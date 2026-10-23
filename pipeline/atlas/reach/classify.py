@@ -338,36 +338,55 @@ def classify(
     # reaches, and filtering the seed would leave only lakes ON the Fraser. The model says the
     # kinds on every extent or on none (`CatalogueRule`), so one filter is the rule's.
     kinds = feature_kinds(per_extent)
-    if kinds and kind_of is not None and FEATURE_TYPES_AFTER_WALK:
-        before = len(sections)
-        sections = {s for s in sections if kind_of(s) in kinds}
-        via_trib = tuple(s for s in via_trib if s in sections)
-        if before != len(sections):
-            diags.append(Diagnostic(entry_id, rid, "feature_types", {
-                "kinds": sorted(kinds), "before": before, "after": len(sections)}))
-        if not sections:
-            return unresolved(Reason.no_sections,
-                              f"feature_types {sorted(kinds)} removed every section")
-
     # OUTSIDE BRITISH COLUMBIA IS SUBTRACTED LAST, from everything a rule reaches. The book does
     # not govern water past the border ("BC regs simply don't apply there" — `border.py`), and
     # the rules reached it two ways: `whole` on an item that crosses the line (the Kootenay, the
     # Kettle, the Flathead), and tributary walks down into Idaho, Montana, Alberta and the Yukon.
     # REPORTED, never silent: the count is a diagnostic, and a rule left with nothing is
-    # unresolved for that reason rather than bound to no water.
-    if outside and OUTSIDE_BC_SUBTRACTED:
-        gone = sections & outside
-        if gone:
-            sections = sections - gone
-            via_trib = tuple(s for s in via_trib if s not in gone)
+    # unresolved for that reason rather than bound to no water. (Both limits: `apply_limits`.)
+    sections, steps = apply_limits(sections, kinds=kinds, kind_of=kind_of, outside=outside)
+    via_trib = tuple(s for s in via_trib if s in sections)
+    for limit, before, after in steps:
+        if limit == "feature_types":
+            if before != after:
+                diags.append(Diagnostic(entry_id, rid, "feature_types", {
+                    "kinds": sorted(kinds), "before": before, "after": after}))
+            if not after:
+                return unresolved(Reason.no_sections,
+                                  f"feature_types {sorted(kinds)} removed every section")
+        elif limit == "outside_bc" and before != after:
             diags.append(Diagnostic(entry_id, rid, "outside_bc", {
-                "removed": len(gone), "kept": len(sections)}))
-            if not sections:
+                "removed": before - after, "kept": after}))
+            if not after:
                 return unresolved(Reason.outside_bc,
-                                  f"every section it selects ({len(gone)}) is outside B.C.")
+                                  f"every section it selects ({before - after}) is outside B.C.")
 
     return RuleBinding(entry_id, rid, Outcome.bound, tuple(sorted(sections)),
                        via_tributary=via_trib), diags
+
+
+def apply_limits(sections, *, kinds=frozenset(), kind_of=None, outside=None,
+                 tidal=None) -> tuple[set[str], list[tuple[str, int, int]]]:
+    """THE GLOBAL LIMITS EVERY BINDING TAKES, in their one order (T125 item 5): the rule's feature
+    kinds (`feature_types`, after the walk — `FEATURE_TYPES_AFTER_WALK`), water outside B.C.
+    (`OUTSIDE_BC_SUBTRACTED`), then tidal water (the corpus's `outside.tidal_sections`, taken out
+    of every row not itself marked tidal). Returns the kept sections and, for each limit that
+    applies (is given), `(limit, before, after)` — the caller reports and decides an emptied
+    binding's reason. `classify` asks it for the first two, `build._without_tidal` for the third,
+    and the steelhead twins (`build._bind_steelhead_waters`) for all three, so a twin can never
+    hold water a rule cannot."""
+    kept = set(sections)
+    steps: list[tuple[str, int, int]] = []
+    for limit, on, keep in (
+            ("feature_types", bool(kinds) and kind_of is not None and FEATURE_TYPES_AFTER_WALK,
+             lambda s: kind_of(s) in kinds),
+            ("outside_bc", bool(outside) and OUTSIDE_BC_SUBTRACTED, lambda s: s not in outside),
+            ("tidal", bool(tidal), lambda s: s not in tidal)):
+        if on:
+            before = len(kept)
+            kept = {s for s in kept if keep(s)}
+            steps.append((limit, before, len(kept)))
+    return kept, steps
 
 
 def feature_kinds(per_extent: list[dict | None]) -> frozenset[str]:

@@ -304,3 +304,42 @@ def test_a_row_its_water_alone_prints_applies_along_the_whole_water():
     e = _entry("r3:fraser_river@3-17", [rule], extents=[{"op": "whole"}])
     got = build_reaches([e], REG, G)
     assert set(got.bindings[0].sections) == {"s3", "s5", "lk"}
+
+
+# ------------------------------------------------------------- T125 item 5: one apply_limits
+
+def test_apply_limits_is_the_global_limits_in_their_one_order():
+    kind = {"s": "stream", "l": "lake", "x": "stream", "t": "stream"}.get
+    got, steps = C.apply_limits({"s", "l", "x", "t"}, kinds={"stream"}, kind_of=kind,
+                                outside={"x"}, tidal={"t"})
+    assert (got, steps) == ({"s"}, [("feature_types", 4, 3), ("outside_bc", 3, 2), ("tidal", 2, 1)])
+    assert C.apply_limits({"s"}) == ({"s"}, [])                # no limit given: none applies
+
+
+def test_the_steelhead_twin_takes_the_global_limits(monkeypatch):
+    """The twins (`build._bind_steelhead_waters`) re-implemented the feature-kind filter and took
+    neither the border nor tidal water; a twin binds the known waters THROUGH `apply_limits`, so it
+    can hold no section a rule cannot. MUTATION (a twin that skips the limits): "out" and "tide"
+    come back."""
+    from pipeline.atlas.reach import build as B
+    entry = {"entry_id": "z5:zone@5", "matched": []}
+    twin = (entry, {"rule_id": "r6b", "extents": [{"op": "steelhead_waters", "siblings": []}]})
+    known = {"a", "out", "tide"}
+    got, _, _ = B._bind_steelhead_waters([twin], [], known, [], [], {}, None,
+                                         outside=frozenset({"out"}), tidal=frozenset({"tide"}))
+    assert [(b.rule_id, b.sections) for b in got] == [("r6b", ("a",))]
+    monkeypatch.setattr(C, "apply_limits", lambda secs, **kw: (set(secs), []))
+    got, _, _ = B._bind_steelhead_waters([twin], [], known, [], [], {}, None,
+                                         outside=frozenset({"out"}), tidal=frozenset({"tide"}))
+    assert [(b.rule_id, b.sections) for b in got] == [("r6b", ("a", "out", "tide"))]
+
+
+def test_no_reader_applies_a_global_limit_itself():
+    """The feature-kind filter, the border and tidal water are applied by `apply_limits` alone."""
+    import inspect
+    from pipeline.atlas.reach import build as B
+    for fn in (B._bind_steelhead_waters, B._without_tidal, C.classify):
+        src = inspect.getsource(fn)
+        assert "apply_limits(" in src, fn.__name__
+        assert "& outside" not in src and "& set(tidal)" not in src and ") in want" not in src \
+            and "in kinds}" not in src, fn.__name__

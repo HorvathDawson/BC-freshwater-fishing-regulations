@@ -211,7 +211,8 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
     # steelhead set and of each zone's wild release (user rulings 2026-10-02). Never the list.
     known = presence.close(bindings)
     got_rules, got_records, sh_diags = _bind_steelhead_waters(
-        steelhead_rules, steelhead_records, known, bindings, licensing, registry, graph)
+        steelhead_rules, steelhead_records, known, bindings, licensing, registry, graph,
+        outside=outside, tidal=tidal)
     bindings.extend(got_rules)
     diagnostics.extend(d for d in sh_diags if not d.payload.get("record"))
     licensing.extend(got_records)
@@ -287,14 +288,16 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
                        tidal=tidal_of, outside=outside)
 
 
-def _bind_steelhead_waters(rules, records, known, bindings, licensing, registry, graph=None):
+def _bind_steelhead_waters(rules, records, known, bindings, licensing, registry, graph=None, *,
+                           outside=None, tidal=None):
     """THE BOOK-KNOWN STEELHEAD WATERS (`Extent` op `steelhead_waters`, `reach.steelhead`) — inside
     the extent's own area when it names one (`area_id`, less `outside_area`: a zone's twin binds its
     region's) and of its `feature_types` when it names them (a zone's twin binds lakes: a stream
     piece answers to the zone it is homed in), minus what each named sibling binds, less any `outside_area_kind` (the stamp stops at
     national parks, as its base does). Returns (rule bindings, licensing placements, diagnostics);
     a diagnostic about a record carries `record: true`. A sibling that did not bind leaves the twin
-    unresolved `complement_unknown` — never the whole known set."""
+    unresolved `complement_unknown` — never the whole known set. The feature kinds, the border and
+    tidal water are the GLOBAL LIMITS every binding takes (`classify.apply_limits`), never a copy."""
     rb = {(b.entry_id, b.rule_id): b for b in bindings}
     lp = {(p.entry_id, p.record_id): p for p in licensing}
     out_rules, out_recs, diags = [], [], []
@@ -322,9 +325,9 @@ def _bind_steelhead_waters(rules, records, known, bindings, licensing, registry,
                 # the ONE region membership (T115): a region's home members
                 secs = _resolve.area_sections(registry, graph, ex[key])
                 pool = pool & secs if keep else pool - secs
-        if ex.get("feature_types"):
-            want = {str(t).lower() for t in ex["feature_types"]}
-            pool = {s for s in pool if _resolve._kind_of(graph, s, registry) in want}
+        pool, _ = _policy.apply_limits(
+            pool, kinds={str(t).lower() for t in ex.get("feature_types") or ()},
+            kind_of=lambda s: _resolve._kind_of(graph, s, registry), outside=outside, tidal=tidal)
         cut = ((_regions.area_family_sections(registry, ex["outside_area_kind"], graph)
                 or frozenset()) if ex.get("outside_area_kind") else frozenset())
         kept = tuple(sorted(pool - taken - cut)) if missing is None else ()
@@ -473,10 +476,11 @@ def _without_tidal(entry: dict, rule: dict, binding: RuleBinding, diags: list[Di
                    tidal) -> tuple[RuleBinding, list[Diagnostic]]:
     """`binding` minus the tidal sections, reported. A rule left with nothing is unresolved
     `tidal` — never bound to no water."""
-    gone = set(binding.sections) & set(tidal)
-    if not gone:
+    left, _ = _policy.apply_limits(binding.sections, tidal=frozenset(tidal))
+    if len(left) == len(binding.sections):
         return binding, diags
-    kept = tuple(s for s in binding.sections if s not in gone)
+    gone = set(binding.sections) - left
+    kept = tuple(s for s in binding.sections if s in left)
     diags = diags + [Diagnostic(entry["entry_id"], rule["rule_id"], "tidal", {
         "removed": len(gone), "kept": len(kept),
         "why": "tidal water: the federal tidal regulations apply, no provincial rule does"})]
