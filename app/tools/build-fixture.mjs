@@ -258,16 +258,17 @@ if (panelDonors.length) {
       // Area from the same drainage relation the pipeline fits, so a fixture ratio is a
       // plausible ratio rather than an invented one.
       ? 1.237 * Math.pow(shedMag[section], 0.851) : null]));
-  counts.panel_member = insert("INSERT OR REPLACE INTO panel_member VALUES (?,?,?,?,?,?,?,?,?)",
+  counts.panel_member = insert("INSERT OR REPLACE INTO panel_member VALUES (?,?,?,?,?,?,?,?,?,?)",
     panelDonors.map(([station, area], i) =>
-      // `role` alternates so the downstream penalty is exercised; `years` spans the record
-      // gate so one donor counts at less than full weight; ONE donor is on regulated
+      // `role` alternates so the downstream penalty is exercised; the discharge record spans the record
+      // gate so one donor counts at less than full weight, and the LEVEL record is 0 (T110: the record is per
+      // quantity, and the fixture writes discharge envelopes only, so no donor here has a level record); ONE donor is on regulated
       // water, so the dam caveat has something to fire on in dev rather than only in a
       // unit test; and one is on a TRIBUTARY, so the fourfold same-river weighting is
       // exercised rather than assumed. `lead` is 0 for all: one panel serves the whole
       // fixture shed, and an own gauge leads by where the section is — which this
       // single-panel fixture cannot say (the rule is pinned in core's and data's tests).
-      [1, i, station, i % 2 === 0 ? "up" : "down", area, 10 + i * 15,
+      [1, i, station, i % 2 === 0 ? "up" : "down", area, 10 + i * 15, 0,
        i === 1 ? 1 : 0, i === 2 ? 0 : 1, 0]));
 }
 

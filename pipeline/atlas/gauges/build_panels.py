@@ -23,9 +23,10 @@ import dataclasses
 import heapq
 import math
 from dataclasses import dataclass
+from typing import Any
 
 from pipeline.atlas.gauges.panel import (
-    MAX_AREA_RATIO, OWN_LEADS_PER_QUANTITY, QUANTITIES, Donor, area_scale, may_lead, panel_for,
+    MAX_AREA_RATIO, OWN_LEADS_PER_QUANTITY, QUANTITIES, Donor, area_scale, may_lead, panel_for, years_in,
 )
 from pipeline.atlas.graph.drainage import AreaModel
 from pipeline.atlas.graph.tributaries import _wsc_below
@@ -38,7 +39,9 @@ class Member:
     station: str
     role: str                 # up | down
     area_km2: float
-    years: int
+    #: Its record in each quantity, years, in `QUANTITIES` order (discharge, level) — `record_years` per quantity, 0
+    #: where it has none. Never one number for both (T110): 07ED001 has 59 years of discharge and 4 of level.
+    years: tuple[int, ...]
     #: This station sits on REGULATED water — a dam governs what it reads.
     #:
     #: Carried to the client rather than left in the pipeline, because it changes what the
@@ -81,10 +84,10 @@ class Panels:
             yield (sec, pid, None if area is None else round(area, 3))
 
     def member_rows(self):
-        """`(panel_id, ord, station, role, area_km2, years, regulated, same_river, lead)`."""
+        """`(panel_id, ord, station, role, area_km2, discharge_years, level_years, regulated, same_river, lead)`."""
         for pid, ms in sorted(self.members.items()):
             for i, m in enumerate(ms):
-                yield (pid, i, m.station, m.role, round(m.area_km2, 3), m.years,
+                yield (pid, i, m.station, m.role, round(m.area_km2, 3), *m.years,
                        1 if m.regulated else 0, 1 if m.same_river else 0, m.lead)
 
 
@@ -298,12 +301,12 @@ def branch_points(graph, area_of, water_of: dict[str, str] | None, kind_of: dict
     return out
 
 
-def candidates(graph, area_of, donors: list[tuple[str, str, int, bool]],
+def candidates(graph, area_of, donors: list[tuple[str, str, Any, bool]],
                max_ratio: float = MAX_AREA_RATIO, water_of: dict[str, str] | None = None,
                kind_of: dict[str, str] | None = None, continues=()) -> dict[str, list[tuple]]:
     """`section -> [(station, role, donor area, years, regulated, lake, same river[, quantities])]`.
 
-    `donors` is `(station, its section, years of record, is regulated)` — already gated on
+    `donors` is `(station, its section, years of record per quantity, is regulated)` — already gated on
     the things that do not depend on the target, so the walk never starts for a station
     that could not speak wherever it arrived.
 
@@ -630,7 +633,7 @@ def systems(continues) -> dict[str, str]:
 
 
 def own_distances(graph, water_of: dict[str, str],
-                  donors: list[tuple[str, str, int, bool]],
+                  donors: list[tuple[str, str, Any, bool]],
                   continues=(), kind_of: dict[str, str] | None = None) -> dict[str, dict[str, float]]:
     """`section -> {station: metres along the water}` for every station on the section's OWN water.
 
@@ -694,7 +697,7 @@ def own_distances(graph, water_of: dict[str, str],
 
 
 def build(graph, model: AreaModel,
-          donors: list[tuple[str, str, int, bool]],
+          donors: list[tuple[str, str, Any, bool]],
           max_ratio: float = MAX_AREA_RATIO,
           water_of: dict[str, str] | None = None,
           measures: dict[str, set[str]] | None = None,
@@ -739,7 +742,8 @@ def build(graph, model: AreaModel,
     by_section: dict[str, tuple[int, float | None]] = {}
     members: dict[int, tuple[Member, ...]] = {}
     intern: dict[tuple, int] = {}
-    facts = {station: (yrs, reg) for station, _sec, yrs, reg in donors}
+    facts = {station: (tuple(years_in(yrs, q) for q in QUANTITIES), reg) for station, _sec, yrs, reg in donors}
+    nothing = (tuple(0 for _ in QUANTITIES), False)
     for sec, cs in cand.items():
         node = graph.nodes.get(sec)
         if node is None:
@@ -783,8 +787,8 @@ def build(graph, model: AreaModel,
         rank = {st: i + 1 for i, st in enumerate(st for st in leads if st in present)}
         same_by = {c[0]: (bool(c[6]) if len(c) > 6 else True) for c in cs}
         chosen = tuple(Member(d.station, d.role, by_station[d.station],
-                              facts.get(d.station, (0, False))[0],
-                              facts.get(d.station, (0, False))[1],
+                              facts.get(d.station, nothing)[0],
+                              facts.get(d.station, nothing)[1],
                               same_by.get(d.station, True),
                               rank.get(d.station, 0))
                        for d in panel)

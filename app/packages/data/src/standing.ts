@@ -21,7 +21,7 @@
  * sheet cannot disagree. `conformance/src/release.test.ts` holds every class value to the sheet's own answer
  * (`answerFrom`) for every section of the fixture release, on both readers, at every horizon and quantity.
  */
-import { basinStanding, type BasinVote, type Horizon } from "@app/core";
+import { basinStanding, recordYears, type BasinVote, type Horizon } from "@app/core";
 import { answerFrom, panelStanding, reading, type Quantity } from "./panel";
 import type { BasinMember, Panel, PanelMember, SectionId, StationId } from "./index";
 
@@ -97,7 +97,7 @@ export function basinStandings(basins: ReadonlyMap<string, readonly BasinMember[
     const votes: BasinVote[] = [];
     for (const m of members) {
       const r = reading(idx.stations[m.station as string], quantity, horizon);
-      if (typeof r === "number") votes.push({ percentile: r, areaKm2: m.areaKm2, years: m.years });
+      if (typeof r === "number") votes.push({ percentile: r, areaKm2: m.areaKm2, years: recordYears(m.years, quantity) });
     }
     const p = basinStanding(votes);
     if (typeof p === "number") out.set(basin, p);

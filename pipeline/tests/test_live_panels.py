@@ -181,7 +181,7 @@ def _mutant(fn, old, new, module=P):
 
 def test_the_per_quantity_choice_is_what_holds_the_flow_seat():
     """Pinned: rank across both quantities at once (the old overall cap) and the flow gauge loses its seat."""
-    mutant = _mutant(panel_for, "if measures is None or q in measures.get(d.station, ())", "if True")
+    mutant = _mutant(panel_for, "if wq[q] > 0 and (measures is None or q in measures.get(d.station, ()))", "if True")
     cand = [_cand(f"L{i}", 100.0) for i in range(MEMBERS_PER_QUANTITY)] + [_cand("FLOW", 900.0)]
     measures = {**{f"L{i}": {"level"} for i in range(MEMBERS_PER_QUANTITY)}, "FLOW": {"discharge"}}
     assert "FLOW" in [d.station for d in panel_for(cand, 100.0, measures=measures)]

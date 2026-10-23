@@ -98,7 +98,7 @@ UNITS = {
     "water.part_geo.n": "microdegrees", "water.part_mark.lon": "microdegrees", "water.part_mark.lat": "microdegrees",
     "conditions.gauge_clim.bands": "clim/2: [u8 pentad, 5 x float16 LE] records",
     "flow-area": "flow-area/1: 'BCFA', u8 1, one LEB128 varint per paint section (sid order) = round(km2 x 1000)",
-    "paint": "paint/3: see pipeline/deliver/release/paint.py",
+    "paint": "paint/4: see pipeline/deliver/release/paint.py",
     "access": "access/1: 'BCAX', u8 1, 8 bytes section_handles, then an access half (pipeline/deliver/release/paint.py)",
     "lakes": "lakes/1: 'BCLK', u8 1, 8 bytes section_handles, LEB128 asof+1, LEB128 count, then per section "
              "(sid ascending) LEB128 sid delta, u8 survey (0 none, 1 sheet, 2 digitised), LEB128 stocked day+1 "

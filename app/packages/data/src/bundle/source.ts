@@ -8,7 +8,7 @@
  * It decides nothing, and it reads no regulation table: regulations are not integrated (see
  * `regulations.ts` in @app/core for where they plug in).
  */
-import { shownParameter, type WaterFix } from "@app/core";
+import { shownParameter, type RecordYears, type WaterFix } from "@app/core";
 import type { Observations } from "../feed/http";
 import type { BasinMember,
   Aged, BundleCounts, BundleInfo, GaugeLink, ItemId, LakeInfo, NameHit, NearHit, Parameter,
@@ -21,6 +21,9 @@ import { num, str, type Db, type Row } from "./db";
 import { buildStandingClasses, type StandingClasses } from "../standing";
 import { boxOfGeoRows, link, nearHit, parametersOf, pentadsOf, placesOf, pointerHits, rankNameHits, routesOf, seriesOf, sid,
          traceDown, withNear, type DownOf } from "./shared";
+
+/** A `panel_member` / `basin_member` row's record per quantity (T110), as the bundle stores it. */
+const recordOf = (r: Row): RecordYears => ({ discharge: Number(r.discharge_years ?? 0), level: Number(r.level_years ?? 0) });
 
 export interface BundleSourceOptions {
   /** The live feed. Absent means conditions render as "we could not check", never as a number. */
@@ -206,7 +209,7 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
             station: str(r.station) as StationId,
             role: str(r.role) === "down" ? "down" : "up",
             areaKm2: Number(r.donor_area),
-            years: Number(r.years),
+            years: recordOf(r),
             regulated: Number(r.regulated ?? 0) === 1,
             sameRiver: Number(r.same_river ?? 1) === 1,
             ...(Number(r.lead ?? 0) > 0 ? { lead: Number(r.lead) } : {}),
@@ -235,7 +238,7 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
         if (!rows) out.set(id, (rows = []));
         rows.push({ station: str(r.station) as StationId,
                     areaKm2: r.area_km2 == null ? null : Number(r.area_km2),
-                    years: Number(r.years) });
+                    years: recordOf(r) });
       }
       return out;
     },
@@ -252,7 +255,7 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
           let list = members.get(id);
           if (!list) members.set(id, (list = []));
           list.push({ station: str(r.station) as StationId, role: str(r.role) === "down" ? "down" : "up",
-                      areaKm2: Number(r.area_km2), years: Number(r.years),
+                      areaKm2: Number(r.area_km2), years: recordOf(r),
                       regulated: Number(r.regulated ?? 0) === 1, sameRiver: Number(r.same_river ?? 1) === 1,
                       ...(Number(r.lead ?? 0) > 0 ? { lead: Number(r.lead) } : {}) });
         }
@@ -266,7 +269,7 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
           let rows = basins.get(id);
           if (!rows) basins.set(id, (rows = []));
           rows.push({ station: str(r.station) as StationId, areaKm2: r.area_km2 == null ? null : Number(r.area_km2),
-                      years: Number(r.years) });
+                      years: recordOf(r) });
         }
         await ready;
         return buildStandingClasses(meta.get("version") ?? "unknown", sections, members, lakes, basins);

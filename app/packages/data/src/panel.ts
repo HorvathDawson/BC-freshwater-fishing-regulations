@@ -12,7 +12,7 @@
  * ordering the screen displays in — which is the SAME ordering the arithmetic used, so the
  * table and the number above it can never disagree.
  */
-import { answering, CORE_MEMBERS, estimate, isAhead, leaderOf, leadShares, shownParameter, trustFor, weightFactors, type Answer,
+import { answering, CORE_MEMBERS, estimate, isAhead, leaderOf, leadShares, recordYears, shownParameter, trustFor, weightFactors, type Answer,
          type Contribution, type TrustClass } from "@app/core";
 import type { Panel, PanelRoute, SectionId, StationId } from "./index";
 
@@ -222,7 +222,8 @@ export function answerFrom(panel: Panel | undefined, index: Index,
     const ratio = panel.areaKm2 && m.areaKm2
       ? Math.max(panel.areaKm2, m.areaKm2) / Math.min(panel.areaKm2, m.areaKm2) : Infinity;
     const share = Number.isFinite(ratio) ? 1 / ratio : 0;
-    const f = weightFactors(share, m.role, m.years, m.sameRiver);
+    const years = recordYears(m.years, chosen);    // the record of the quantity asked (T110)
+    const f = weightFactors(share, m.role, years, m.sameRiver);
     // A donor that is not reporting weighs NOTHING, but its factors are still real and are
     // still shown: "this gauge would have carried 60% of the answer and is quiet today" is
     // the most useful thing the table can say on a bad day.
@@ -230,7 +231,7 @@ export function answerFrom(panel: Panel | undefined, index: Index,
     const w = own === null || back ? 0 : f.share * f.role * f.record;
     raw.push({ station: m.station, role: m.role, percentile: own, weight: 0,
                areaRatio: ratio, areaKm2: m.areaKm2, trust: trustFor(ratio).klass,
-               years: m.years, regulated: m.regulated, sameRiver: m.sameRiver,
+               years, regulated: m.regulated, sameRiver: m.sameRiver,
                factors: f, _w: w,
                ...(row?.observedAt ? { observedAt: row.observedAt } : {}),
                ...(listed && !listed.has(m.station) ? { realtime: false as const } : {}) });
@@ -280,7 +281,8 @@ export function contributionsOf(panel: Panel, index: NonNullable<Index>, quantit
     const own = row ? reading(row, quantity, horizon) : null;
     // past the core, a member is reserve: it answers, and stands back rather than silence the core (`answering`)
     if (own !== null)
-      out.push({ percentile: own, role: m.role, areaKm2: m.areaKm2, years: m.years, sameRiver: m.sameRiver,
+      out.push({ percentile: own, role: m.role, areaKm2: m.areaKm2, years: recordYears(m.years, quantity),
+                 sameRiver: m.sameRiver,
                  ...(m.lead ? { lead: m.lead } : {}), ...(i >= CORE_MEMBERS ? { reserve: true } : {}) });
   });
   return out;

@@ -204,7 +204,7 @@ describe("donorView", () => {
 
 const SEC = 7 as SectionId;
 const PANEL: Panel = { areaKm2: 50, members: [
-  { station: "LEAD" as never, role: "up", areaKm2: 60, years: 40, regulated: false,
+  { station: "LEAD" as never, role: "up", areaKm2: 60, years: { discharge: 40, level: 40 }, regulated: false,
     sameRiver: true },
 ] };
 
@@ -304,7 +304,7 @@ describe("useConditionsView", () => {
 
   it("a quiet donor picked to chart says when it last reported — never the no-gauge refusal (review 2026-10-21)", async () => {
     const two: Panel = { areaKm2: 50, members: [...PANEL.members,
-      { station: "QUIET" as never, role: "down", areaKm2: 70, years: 30, regulated: false, sameRiver: true }] };
+      { station: "QUIET" as never, role: "down", areaKm2: 70, years: { discharge: 30, level: 30 }, regulated: false, sameRiver: true }] };
     const src = { ...source, panelsFor: async () => new Map([[SEC, two]]),
                   gaugeNow: async (st: string) => (st === "QUIET" ? null : source.gaugeNow(st as never)) } as RegsSource;
     const quietFeed = { index: async () => ({ stations: { ...(await feed.index()).stations,

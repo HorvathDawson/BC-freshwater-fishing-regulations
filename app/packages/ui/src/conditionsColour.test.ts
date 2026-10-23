@@ -9,14 +9,14 @@ import { classMarks, pushedStandings, standingValues } from "./conditionsColour"
 
 const st = (s: string) => s as StationId;
 const member = (station: string, areaKm2: number, role: "up" | "down" = "up"): PanelMember =>
-  ({ station: st(station), role, areaKm2, years: 40, regulated: false, sameRiver: true });
+  ({ station: st(station), role, areaKm2, years: { discharge: 40, level: 40 }, regulated: false, sameRiver: true });
 /** Panel 1: two donors. Sections 5 and 6 share it at one area; 7 at another; 9 is a lake; 8 is nothing. */
 const MEMBERS = new Map([[1, [member("A", 100), member("B", 400, "down")]]]);
 const CLASSES = buildStandingClasses("r-test",
   [{ sid: 7, panel: 1, areaKm2: 900 }, { sid: 5, panel: 1, areaKm2: 120 }, { sid: 6, panel: 1, areaKm2: 120 }],
   // 5 and 6 lie in gauged lakes AND have a panel: the panel wins, so neither lake becomes a class of its own
   MEMBERS, new Map([[9, st("L")], [5, st("L")], [6, st("L2")]]),
-  new Map([["08MF", [{ station: st("A"), areaKm2: 100, years: 40 }]], ["08LG", [{ station: st("Q"), areaKm2: 5, years: 3 }]]]));
+  new Map([["08MF", [{ station: st("A"), areaKm2: 100, years: { discharge: 40, level: 40 } }]], ["08LG", [{ station: st("Q"), areaKm2: 5, years: { discharge: 3, level: 3 } }]]]));
 const IDX = { stations: {
   A: { percentile: 0.2, discharge: 0.2, parameter: "discharge" as const },
   B: { percentile: 0.6, discharge: 0.6, parameter: "discharge" as const },

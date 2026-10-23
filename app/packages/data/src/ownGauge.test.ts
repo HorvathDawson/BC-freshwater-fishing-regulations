@@ -14,10 +14,10 @@ import { answerFrom, contributionsOf, panelStanding } from "./panel";
 
 const st = (s: string) => s as StationId;
 const PITT: Panel = { areaKm2: 1181.2, members: [
-  { station: st("08MH035"), role: "down", areaKm2: 1181.2, years: 8, regulated: false, sameRiver: true, lead: 1 },
-  { station: st("08MH006"), role: "up", areaKm2: 26.4, years: 69, regulated: false, sameRiver: false },
-  { station: st("08MH010"), role: "up", areaKm2: 200.9, years: 4, regulated: false, sameRiver: false },
-  { station: st("08MH092"), role: "up", areaKm2: 1.4, years: 5, regulated: false, sameRiver: false },
+  { station: st("08MH035"), role: "down", areaKm2: 1181.2, years: { discharge: 8, level: 8 }, regulated: false, sameRiver: true, lead: 1 },
+  { station: st("08MH006"), role: "up", areaKm2: 26.4, years: { discharge: 69, level: 69 }, regulated: false, sameRiver: false },
+  { station: st("08MH010"), role: "up", areaKm2: 200.9, years: { discharge: 4, level: 4 }, regulated: false, sameRiver: false },
+  { station: st("08MH092"), role: "up", areaKm2: 1.4, years: { discharge: 5, level: 5 }, regulated: false, sameRiver: false },
 ] };
 const UNLED: Panel = { ...PITT, members: PITT.members.map(({ lead: _lead, ...m }) => m) };
 

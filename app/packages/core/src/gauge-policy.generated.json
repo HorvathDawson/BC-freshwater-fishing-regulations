@@ -1,6 +1,6 @@
 {
   "_generated_by": "python -m pipeline.tools.emit_gauge_policy",
-  "_source": "pipeline/gauges/consume/shed.py :: TRUST_BANDS; pipeline/gauges/feed/publish.py :: _TEMP_BANDS; pipeline/gauges/feed/change.py :: the change policy",
+  "_source": "pipeline/gauges/consume/shed.py :: TRUST_BANDS; pipeline/gauges/feed/publish.py :: _TEMP_BANDS; pipeline/gauges/feed/change.py :: the change policy; pipeline/gauges/feed/record.py :: MIN_RECORD_YEARS, QUANTITIES",
   "bands": [
     "good",
     "fair",
@@ -38,6 +38,13 @@
       "CLEVER",
       "COFFEE",
       "ELF"
+    ]
+  },
+  "record": {
+    "minYears": 3,
+    "quantities": [
+      "discharge",
+      "level"
     ]
   }
 }

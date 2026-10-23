@@ -142,7 +142,7 @@ export const PACK_FILES: Record<string, PackFile> = {
     }
   },
   "paint": {
-    "format": "paint/3",
+    "format": "paint/4",
     "kind": "bin",
     "tables": {}
   },
@@ -935,7 +935,7 @@ export const PACK_UNITS: Record<string, string> = {
   "conditions.gauge_clim.bands": "clim/2: [u8 pentad, 5 x float16 LE] records",
   "flow-area": "flow-area/1: 'BCFA', u8 1, one LEB128 varint per paint section (sid order) = round(km2 x 1000)",
   "lakes": "lakes/1: 'BCLK', u8 1, 8 bytes section_handles, LEB128 asof+1, LEB128 count, then per section (sid ascending) LEB128 sid delta, u8 survey (0 none, 1 sheet, 2 digitised), LEB128 stocked day+1 (0 never); days since 1900-01-01 (pipeline/deliver/lake_facts.py)",
-  "paint": "paint/3: see pipeline/deliver/release/paint.py",
+  "paint": "paint/4: see pipeline/deliver/release/paint.py",
   "water.part_geo.e": "microdegrees",
   "water.part_geo.mid_lat": "microdegrees",
   "water.part_geo.mid_lon": "microdegrees",

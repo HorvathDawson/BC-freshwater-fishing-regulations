@@ -17,7 +17,7 @@ import { standingInput } from "@app/map";
 
 const st = (s: string) => s as StationId;
 const member = (station: string, areaKm2: number, role: "up" | "down" = "up"): PanelMember =>
-  ({ station: st(station), role, areaKm2, years: 40, regulated: false, sameRiver: true });
+  ({ station: st(station), role, areaKm2, years: { discharge: 40, level: 40 }, regulated: false, sameRiver: true });
 const MEMBERS = [member("A", 100), member("B", 400, "down")];
 /** 5 and 6 share panel 1 at 120 km²; 7 the same panel at 900; 9 is a gauged lake; 8 nothing speaks for. */
 const PANELS = new Map<SectionId, Panel>([
@@ -25,8 +25,8 @@ const PANELS = new Map<SectionId, Panel>([
   [7 as SectionId, { areaKm2: 900, members: MEMBERS }]]);
 const LAKES = new Map<SectionId, StationId>([[9 as SectionId, st("L")], [5 as SectionId, st("L")],
                                              [6 as SectionId, st("L2")]]);
-const BASINS = new Map([["08MF", [{ station: st("A"), areaKm2: 100, years: 40 }]],
-                        ["08LG", [{ station: st("B"), areaKm2: 5, years: 3 }]]]);
+const BASINS = new Map([["08MF", [{ station: st("A"), areaKm2: 100, years: { discharge: 40, level: 40 } }]],
+                        ["08LG", [{ station: st("B"), areaKm2: 5, years: { discharge: 3, level: 3 } }]]]);
 const CLASSES = buildStandingClasses("r-test",
   [...PANELS].map(([sid, p]) => ({ sid, panel: 1, areaKm2: p.areaKm2 })), new Map([[1, MEMBERS]]), LAKES, BASINS);
 const IDX = { stations: {

@@ -15,7 +15,7 @@
  * they plug in and which bundle tables they will read.
  */
 import type {
-  Band, Bbox, GaugeTrust, NearPlace, RunChange, Standing, WaterFix, WaterSignals,
+  Band, Bbox, GaugeTrust, NearPlace, RecordYears, RunChange, Standing, WaterFix, WaterSignals,
 } from "@app/core";
 
 /** Durable across rebuilds — 99.88% stable. The only id that crosses an artifact boundary. */
@@ -151,8 +151,12 @@ export interface PanelMember {
   role: "up" | "down";
   /** The DONOR's catchment, km². Half of every ratio; the other half is on the section. */
   areaKm2: number;
-  /** Its record length, in years. A percentile from ten is not one from ninety. */
-  years: number;
+  /**
+   * Its record length, in years, PER QUANTITY (`discharge_years` / `level_years`, T110). A percentile from ten is not
+   * one from ninety — and a level percentile is ranked against the level record, so read it with `recordYears` for the
+   * quantity shown, never as one number.
+   */
+  years: RecordYears;
   /**
    * A dam governs this station's water.
    *
@@ -436,8 +440,8 @@ export interface BasinMember {
   station: StationId;
   /** Its catchment: how much of the group this gauge actually observes. */
   areaKm2: number | null;
-  /** Years of record — how well its own baseline is known. */
-  years: number;
+  /** Years of record per quantity — how well its own baseline is known in Flow and in Level (`recordYears`, T110). */
+  years: RecordYears;
 }
 
 export interface RegsSource {

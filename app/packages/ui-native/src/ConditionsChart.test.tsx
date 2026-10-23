@@ -25,9 +25,9 @@ beforeEach(clearPanelCache);
 const SEC = 7 as SectionId;
 const DAY = new Date(2026, 8, 4, 12);
 const PANEL: Panel = { areaKm2: 50, members: [
-  { station: "LEAD" as never, role: "up", areaKm2: 60, years: 40, regulated: false, sameRiver: true },
-  { station: "DAM" as never, role: "down", areaKm2: 55, years: 6, regulated: true, sameRiver: true },
-  { station: "QUIET" as never, role: "up", areaKm2: 300, years: 30, regulated: false, sameRiver: true },
+  { station: "LEAD" as never, role: "up", areaKm2: 60, years: { discharge: 40, level: 40 }, regulated: false, sameRiver: true },
+  { station: "DAM" as never, role: "down", areaKm2: 55, years: { discharge: 6, level: 6 }, regulated: true, sameRiver: true },
+  { station: "QUIET" as never, role: "up", areaKm2: 300, years: { discharge: 30, level: 30 }, regulated: false, sameRiver: true },
 ] };
 const ROUTES = [
   { station: "LEAD", name: "Lead Creek near Town", lat: 49, lon: -122, role: "up", path: [SEC] },

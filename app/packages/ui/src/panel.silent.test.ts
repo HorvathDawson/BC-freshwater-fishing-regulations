@@ -11,12 +11,12 @@ import type { DonorRow, Panel, PanelAnswer } from "@app/data";
 import { answerFrom, donorView, quietHead, withLastReports } from "./panel";
 
 const PANEL: Panel = { areaKm2: 50, members: [
-  { station: "LEAD" as never, role: "up", areaKm2: 60, years: 40, regulated: false, sameRiver: true },
-  { station: "STALE" as never, role: "up", areaKm2: 55, years: 30, regulated: false, sameRiver: true },
-  { station: "SECOND" as never, role: "down", areaKm2: 52, years: 30, regulated: false, sameRiver: true },
-  { station: "COAL" as never, role: "up", areaKm2: 58, years: 30, regulated: false, sameRiver: true },
-  { station: "RANKLESS" as never, role: "down", areaKm2: 51, years: 30, regulated: false, sameRiver: true },
-  { station: "GONE" as never, role: "up", areaKm2: 57, years: 30, regulated: false, sameRiver: true },
+  { station: "LEAD" as never, role: "up", areaKm2: 60, years: { discharge: 40, level: 40 }, regulated: false, sameRiver: true },
+  { station: "STALE" as never, role: "up", areaKm2: 55, years: { discharge: 30, level: 30 }, regulated: false, sameRiver: true },
+  { station: "SECOND" as never, role: "down", areaKm2: 52, years: { discharge: 30, level: 30 }, regulated: false, sameRiver: true },
+  { station: "COAL" as never, role: "up", areaKm2: 58, years: { discharge: 30, level: 30 }, regulated: false, sameRiver: true },
+  { station: "RANKLESS" as never, role: "down", areaKm2: 51, years: { discharge: 30, level: 30 }, regulated: false, sameRiver: true },
+  { station: "GONE" as never, role: "up", areaKm2: 57, years: { discharge: 30, level: 30 }, regulated: false, sameRiver: true },
 ] };
 
 // LEAD and SECOND read; RANKLESS reports with nothing to rank; STALE last spoke on the 14th; COAL is not on ECCC's

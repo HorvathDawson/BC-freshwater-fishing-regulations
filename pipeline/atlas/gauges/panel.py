@@ -46,9 +46,11 @@ from __future__ import annotations
 
 import collections
 import math
+from collections.abc import Mapping
 from dataclasses import dataclass
 
 from pipeline.atlas.graph.drainage import AreaModel
+from pipeline.gauges.feed.record import MIN_RECORD_YEARS, QUANTITIES
 
 #: Beyond this ratio between the two catchments, a transferred reading is not evidence.
 #:
@@ -134,7 +136,10 @@ RECORD_FULL_YEARS = 20
 #: cent of what a ninety-year one counts — so it can tip an answer only where nothing better
 #: exists, which is exactly where it should be allowed to. Below three there are not enough
 #: observations of a given week to call the shape a season at all.
-MIN_RECORD_YEARS = 3
+#:
+#: THE CONSTANT IS `pipeline.gauges.feed.record.MIN_RECORD_YEARS` (T110), imported above: the climatology's floor and
+#: this gate are one number, and the years it is held against are the donor's record IN THE QUANTITY ASKED
+#: (`record_years`), never the longest of its records.
 
 #: Below this total weight the panel says nothing. Silence is a real answer.
 #:
@@ -143,8 +148,8 @@ MIN_RECORD_YEARS = 3
 #: percentile, and each one individually passing a gate says nothing about the sum.
 MIN_TOTAL_WEIGHT = 0.05
 
-#: The quantities a donor is ranked in, as `gauge_stats.parameter` names them and the app's Flow / Level views ask.
-QUANTITIES = ("discharge", "level")
+#: The quantities a donor is ranked in (`QUANTITIES`, imported above from `pipeline.gauges.feed.record`), as
+#: `gauge_stats.parameter` names them and the app's Flow / Level views ask.
 
 #: How many donors a panel keeps PER QUANTITY, best weight first — of every station with a record in that quantity,
 #: live or not.
@@ -287,7 +292,9 @@ def weight_of(share: float, role: str, years: int, same_river: bool = True) -> f
     well its own percentile is pinned, and whether it is even on your river. None of the
     three is captured by the area ratio, which is all the ladder knows about.
     """
-    rec = min(1.0, max(0.0, years / RECORD_FULL_YEARS))
+    # Under the floor a record ranks nothing (T110): the same gate `eligible` holds, so a quantity a donor has too short
+    # a record in weighs 0 in it, here and in the app's `weightFactors`.
+    rec = 0.0 if years < MIN_RECORD_YEARS else min(1.0, max(0.0, years / RECORD_FULL_YEARS))
     direction = 1.0 if role == "up" else DOWNSTREAM_PENALTY
     if share <= 0.0:
         return 0.0
@@ -496,6 +503,9 @@ def panel_for(candidates: list[tuple],
     """Gates, weights and a cap, over
     `(station, role, area, years, regulated, lake[, same_river])`.
 
+    `years` is the donor's record PER QUANTITY, `{quantity: years}` (`record_years`; one int means the same in both):
+    each quantity gates, weighs and caps by its own (T110).
+
     `same_river` is optional so a synthetic caller can leave it off; absent, a donor is
     treated as being on your own river, which is the assumption the model made everywhere
     before the Skeena showed what it costs.
@@ -515,19 +525,34 @@ def panel_for(candidates: list[tuple],
     sections swapped a donor for their own gauge, and where that own gauge reports only level the Flow answer lost a
     donor it had (125 sections fell silent). On top, nothing a panel holds today is ever displaced.
     """
-    out: list[Donor] = []
+    out: list[tuple[Donor, dict[str, float]]] = []
     for cand in candidates:
         station, role, area_donor, years, regulated, crossed_lake = cand[:6]
         same_river = bool(cand[6]) if len(cand) > 6 else True
-        if not eligible(area_target, area_donor, years, regulated, crossed_lake):
+        by_q = {q: years_in(years, q) for q in QUANTITIES}
+        if not any(eligible(area_target, area_donor, y, regulated, crossed_lake) for y in by_q.values()):
             continue
         assert area_target is not None
         sh = share_of(area_target, area_donor)
-        out.append(Donor(station, role, sh, weight_of(sh, role, years, same_river)))
-    out.sort(key=lambda d: -d.weight)
+        # EACH QUANTITY BY ITS OWN RECORD (T110): the gate and the weight a donor has in Level are its level record's,
+        # in Flow its discharge record's. The donor's overall weight — its place in the panel's order, which decides
+        # the core (`CORE_MEMBERS`) — is the better of the two, which is what the longest record used to give.
+        wq = {q: weight_of(sh, role, y, same_river)
+                 if eligible(area_target, area_donor, y, regulated, crossed_lake) else 0.0
+              for q, y in by_q.items()}
+        out.append((Donor(station, role, sh, max(wq.values())), wq))
+    out.sort(key=lambda dw: -dw[0].weight)
     chosen: set[int] = set()
     for q in QUANTITIES:
-        chosen.update([i for i, d in enumerate(out)
-                       if measures is None or q in measures.get(d.station, ())][:MEMBERS_PER_QUANTITY])
+        ranked = sorted((i for i, (d, wq) in enumerate(out)
+                         if wq[q] > 0 and (measures is None or q in measures.get(d.station, ()))),
+                        key=lambda i: -out[i][1][q])
+        chosen.update(ranked[:MEMBERS_PER_QUANTITY])
     wanted = set(keep or ())
-    return [d for i, d in enumerate(out) if i in chosen or d.station in wanted]
+    return [d for i, (d, _wq) in enumerate(out) if i in chosen or d.station in wanted]
+
+
+def years_in(years, quantity: str) -> int:
+    """A candidate's record in `quantity`: `years` is `{quantity: n}` — `record_years` per quantity, as the bundle passes
+    it — or one int, the same record in both (synthetic callers)."""
+    return int(years.get(quantity, 0)) if isinstance(years, Mapping) else int(years)

@@ -846,7 +846,7 @@ CREATE TABLE section_panel (sid INTEGER PRIMARY KEY,
 -- comment. Exactly two values today; a NEIGHBOUR donor -- one that shares weather rather
 -- than water -- would be a third and is deliberately not built (see panel.py).
 --
--- `area_km2` and `years` ARE THE DONOR'S OWN FACTS, and everything a screen shows is
+-- `area_km2` and the `*_years` ARE THE DONOR'S OWN FACTS, and everything a screen shows is
 -- derived from them at read time: the share is min/max against the section's area, the
 -- weight follows from the share and the role and the record, and the trust class and its
 -- error bars come from the ratio through one ladder mirrored into the app and pinned by a
@@ -864,7 +864,13 @@ CREATE TABLE panel_member (panel_id INTEGER NOT NULL,
                            station TEXT NOT NULL,
                            role TEXT NOT NULL,        -- up | down
                            area_km2 REAL NOT NULL,    -- the DONOR's catchment
-                           years INTEGER NOT NULL,    -- its record length
+                           -- ITS RECORD, PER QUANTITY (T110; `record_years` in
+                           -- pipeline/gauges/feed/record.py), 0 where it has none. A Flow
+                           -- answer weighs the discharge record, a Level answer the level
+                           -- record: 07ED001 has 59 years of one and 4 of the other, and the
+                           -- single `years` column it replaced carried 59 into Level.
+                           discharge_years INTEGER NOT NULL,
+                           level_years INTEGER NOT NULL,
                            regulated INTEGER NOT NULL DEFAULT 0,   -- a dam governs it
                            -- ON THE SAME BLUE LINE as the section it speaks for.
                            --
@@ -921,7 +927,7 @@ CREATE TABLE panel_member (panel_id INTEGER NOT NULL,
 -- Both are the same mistake: electing a single representative makes the group's answer
 -- hostage to that one station. So the group carries its whole roster and the client
 -- combines them -- see `useBasinStandings`, which weights by `area_km2` (how much of the
--- group a station actually observes) and `years` (how well its own baseline is known), and
+-- group a station actually observes) and its record in the quantity shown (how well its own baseline is known), and
 -- averages in probit space using the SAME transform the reach panels use.
 --
 -- Only stations with a baseline are written. Liveness is the feed's business and changes
@@ -929,7 +935,11 @@ CREATE TABLE panel_member (panel_id INTEGER NOT NULL,
 CREATE TABLE basin_member (basin_id TEXT NOT NULL,
                            station TEXT NOT NULL,
                            area_km2 REAL,          -- the station's catchment
-                           years INTEGER NOT NULL, -- length of its record
+                           -- its record per quantity (T110, `record_years`): the Flow
+                           -- field weighs discharge, the Level field level. One `years`
+                           -- column held whichever gauge_stats row came last (level).
+                           discharge_years INTEGER NOT NULL,
+                           level_years INTEGER NOT NULL,
                            PRIMARY KEY (basin_id, station)) WITHOUT ROWID;
 
 -- A station on a lake, linked to the lake. No trust band: there is no fraction of a level,

@@ -20,7 +20,7 @@ beforeEach(clearPanelCache);
 
 const SEC = 7 as SectionId;
 const PANEL: Panel = { areaKm2: 50, members: [
-  { station: "LEAD" as never, role: "up", areaKm2: 60, years: 40, regulated: false,
+  { station: "LEAD" as never, role: "up", areaKm2: 60, years: { discharge: 40, level: 40 }, regulated: false,
     sameRiver: true },
 ] };
 

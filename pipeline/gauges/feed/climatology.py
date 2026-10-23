@@ -50,8 +50,8 @@ from collections import defaultdict
 from datetime import date
 from pathlib import Path
 from pipeline.common.curated import CURATED, SOURCE
+from pipeline.gauges.feed.record import MIN_RECORD_YEARS
 
-MIN_YEARS = 3
 MIN_OBS = 10
 PENTADS = 73                 # 365 / 5, with the 73rd absorbing day 366
 PCTILES = (10, 25, 50, 75, 90)
@@ -216,7 +216,7 @@ def build(hydat: Path, stations: list[str] | None = None,
     recent_years: dict[str, dict[str, dict[str, list[float | None]]]] = {}
     for param, (pooled, years, days, recent) in series.items():
         for st, by_pentad in pooled.items():
-            if len(years[st]) < MIN_YEARS:
+            if len(years[st]) < MIN_RECORD_YEARS:
                 continue          # under three years there is no "normal" to speak of
             bands: dict[str, list[float | None]] = {}
             for p, vals in by_pentad.items():

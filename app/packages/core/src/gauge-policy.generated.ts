@@ -51,3 +51,13 @@ export const CHANGE_POLICY = {
   staleHours: 36,
   order: ["CLEVER", "COFFEE", "ELF"],
 } as const;
+
+// The record (T110), from pipeline/gauges/feed/record.py. A station's record is kept PER QUANTITY — a Flow answer weighs
+// the discharge record, a Level answer the level one — and none shorter than the floor may rank a reading at all.
+
+/** The quantities a record is kept in, as the bundle's `*_years` columns and the app's Flow / Level views name them. */
+export type RecordQuantity = "discharge" | "level";
+export const RECORD_QUANTITIES: readonly RecordQuantity[] = ["discharge", "level"];
+
+/** The shortest record, in years, that may rank a reading: the climatology's floor and the donor panel's gate. */
+export const MIN_RECORD_YEARS = 3;

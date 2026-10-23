@@ -29,7 +29,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from pipeline.atlas.gauges.build_panels import build as build_panels
-from pipeline.atlas.gauges.panel import MIN_RECORD_YEARS
+from pipeline.gauges.feed.record import MIN_RECORD_YEARS, QUANTITIES, record_years
 from pipeline.atlas.graph.drainage import AreaModel, fit_area_model
 from pipeline.common.curated import CURATED, GENERATED, REPO_ROOT, SOURCE
 from pipeline.deliver.bundle import rules as _rules
@@ -694,8 +694,11 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_it
     # rainfall, and a three-year record cannot carry a percentile at all. So this is skipped
     # rather than approximated when either is missing.
     hydat = Path(SOURCE) / "hydat.sqlite3"
-    years_by_station = {r[0]: int(r[1] or 0) for r in db.execute(
-        "SELECT station, max(years) FROM gauge_stats GROUP BY station")}
+    # THE RECORD PER QUANTITY (T110): `record_years(stats, station, quantity)` over clim.json's `stats` — the same rows
+    # `gauge_stats` was just written from. It was `max(years)` across quantities here, so 07ED001 (59 years of
+    # discharge, 4 of level) weighed its level reading as a 59-year record.
+    rec_stats = clim.get("stats", {})
+    years_by_station = {st: {q: record_years(rec_stats, st, q) for q in QUANTITIES} for st in sorted(rec_stats)}
     regulated: set[str] = set()
     if hydat.exists():
         with sqlite3.connect(f"file:{hydat}?mode=ro", uri=True) as hy:
@@ -722,9 +725,9 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_it
         # stations transmitting today are flagged regulated, the Skagit at the International
         # Boundary among them, and the rule that was supposed to let it speak for the Skagit
         # never ran because the station was gone two steps earlier.
-        donors = [(st, matched[st], years_by_station.get(st, 0), st in regulated)
+        donors = [(st, matched[st], years_by_station[st], st in regulated)
                   for st in matched
-                  if years_by_station.get(st, 0) >= MIN_RECORD_YEARS]
+                  if any(y >= MIN_RECORD_YEARS for y in years_by_station.get(st, {}).values())]
         # `owner` (section -> water) is what makes a donor a section's OWN gauge, which then
         # leads its answer — owner 2026-10-22, "a water's own gauge comes first" (panel.py).
         # NO `realtime` FLAG (owner 2026-10-22, "chosen live"): every donor with a record is a
@@ -745,7 +748,7 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_it
                                          if s.get("area_km2")})
         db.executemany("INSERT INTO section_panel (sid, panel_id, area_km2) VALUES (?,?,?)",
                        [(sid[_s], _p, _a) for _s, _p, _a in panels.section_rows()])
-        db.executemany("INSERT INTO panel_member VALUES (?,?,?,?,?,?,?,?,?)",
+        db.executemany("INSERT INTO panel_member VALUES (?,?,?,?,?,?,?,?,?,?)",
                        panels.member_rows())
         cov.filled("section_panel", len(panels.by_section))
         cov.filled("panel_member", sum(len(v) for v in panels.members.values()))
@@ -778,14 +781,10 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_it
             "SELECT g.station, g.lon, g.lat, g.area_km2 FROM gauge g "
             "WHERE g.lon IS NOT NULL AND g.lat IS NOT NULL "
             "  AND EXISTS (SELECT 1 FROM gauge_clim c WHERE c.station = g.station)")]
-        _years = {r[0]: (r[1] or 0) for r in db.execute(
-            "SELECT station, years FROM gauge_stats")}
-        _basins = roster(gauged_groups(_pts, _frame), _years)
+        _basins = roster(gauged_groups(_pts, _frame), rec_stats)
         if _basins:
-            db.executemany("INSERT INTO basin_member VALUES (?,?,?,?)",
-                           ((b, st, area, yrs)
-                            for b, rows in sorted(_basins.items())
-                            for st, area, yrs in rows))
+            db.executemany("INSERT INTO basin_member VALUES (?,?,?,?,?)",
+                           ((b, *row) for b, rows in sorted(_basins.items()) for row in rows))
             cov.filled("basin_member",
                        sum(len(rows) for rows in _basins.values()))
             print(f"     basins: {len(_basins):,} of {len(_frame):,} watershed groups have "

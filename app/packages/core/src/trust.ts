@@ -19,6 +19,25 @@
  * threshold.
  */
 
+import { MIN_RECORD_YEARS, type RecordQuantity } from "./gauge-policy.generated";
+
+export { MIN_RECORD_YEARS, RECORD_QUANTITIES, type RecordQuantity } from "./gauge-policy.generated";
+
+/**
+ * A station's record, in years, PER QUANTITY (T110): `{ discharge, level }`, 0 where it has none — the bundle's
+ * `discharge_years` / `level_years`. Never one number for both: 07ED001 has 59 years of discharge and 4 of level.
+ */
+export type RecordYears = Readonly<Record<RecordQuantity, number>>;
+
+/**
+ * THE ONE READ of a station's record: the years it has in the quantity shown. A Flow answer weighs the discharge
+ * record, a Level answer the level one, because each percentile was ranked against that history. Mirrors
+ * `record_years` in pipeline/gauges/feed/record.py; nothing else reduces a record to one number.
+ */
+export function recordYears(record: RecordYears, quantity: RecordQuantity): number {
+  return record[quantity] ?? 0;
+}
+
 /** What a reader is told about a donor. Ordered from nearest to most distant. */
 export type TrustClass = "close" | "near" | "distant" | "far" | "remote";
 
@@ -240,7 +259,8 @@ export interface WeightFactors {
   share: number;
   /** 1 upstream, `DOWNSTREAM_PENALTY` below — a gauge below you has extra water in it. */
   role: number;
-  /** Record length against `RECORD_FULL_YEARS`, capped at 1. Ten years is worth half. */
+  /** Record length (in the quantity asked) against `RECORD_FULL_YEARS`, capped at 1. Ten years is worth half; under
+   *  `MIN_RECORD_YEARS` it is 0 — such a record ranks nothing (the panel's gate, T110). */
   record: number;
 }
 
@@ -272,7 +292,7 @@ export function weightFactors(share: number, role: "up" | "down",
       ? (BEST_ERROR / (errorFor(1 / share) * (sameRiver ? 1 : TRIBUTARY_ERROR_FACTOR))) ** 2
       : 0,
     role: role === "up" ? 1 : DOWNSTREAM_PENALTY,
-    record: Math.min(1, Math.max(0, years / RECORD_FULL_YEARS)),
+    record: years < MIN_RECORD_YEARS ? 0 : Math.min(1, Math.max(0, years / RECORD_FULL_YEARS)),
   };
 }
 

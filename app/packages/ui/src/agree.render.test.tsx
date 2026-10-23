@@ -34,11 +34,11 @@ const PANEL: Panel = {
   areaKm2: 500,
   members: [
     // A same-river gauge reporting discharge, and a tributary reporting only level.
-    { station: "FLOW" as never, role: "up", areaKm2: 520, years: 40,
+    { station: "FLOW" as never, role: "up", areaKm2: 520, years: { discharge: 40, level: 40 },
       regulated: false, sameRiver: true },
-    { station: "STAGE" as never, role: "down", areaKm2: 480, years: 90,
+    { station: "STAGE" as never, role: "down", areaKm2: 480, years: { discharge: 90, level: 90 },
       regulated: true, sameRiver: false },
-    { station: "QUIET" as never, role: "up", areaKm2: 510, years: 12,
+    { station: "QUIET" as never, role: "up", areaKm2: 510, years: { discharge: 12, level: 12 },
       regulated: false, sameRiver: true },
   ],
 };
@@ -46,7 +46,7 @@ const PANEL: Panel = {
 const STAGE_ONLY: Panel = {
   areaKm2: 300,
   members: [
-    { station: "STAGE" as never, role: "up", areaKm2: 310, years: 90,
+    { station: "STAGE" as never, role: "up", areaKm2: 310, years: { discharge: 90, level: 90 },
       regulated: false, sameRiver: true },
   ],
 };

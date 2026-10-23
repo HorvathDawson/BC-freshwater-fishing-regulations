@@ -24,10 +24,17 @@ got.
 
 from __future__ import annotations
 
+from pipeline.gauges.feed.record import QUANTITIES, Stats, record_years
+
 
 def roster(gauged: dict[str, list[tuple[str, float]]],
-           years_of: dict[str, int]) -> dict[str, list[tuple[str, float, int]]]:
-    """`{basin_id: [(station, area_km2, years), ...]}` — every gauge standing in the group.
+           stats: Stats) -> dict[str, list[tuple]]:
+    """`{basin_id: [(station, area_km2, discharge_years, level_years), ...]}` — every gauge standing in the group.
+
+    THE RECORD PER QUANTITY (T110), `record_years` of `stats` (clim.json's `stats`): the field's Flow view weights a
+    station by its discharge record and its Level view by its level record. It used to be one number per station read
+    off `gauge_stats` with whichever row came last — the level one — so the Flow field weighed 08LD001 (115 years of
+    discharge) as a 7-year record.
 
     THIS USED TO ELECT ONE. It returned the largest-catchment station per group, which made
     the group's colour hostage to that station in two ways that both showed as "gauged, but
@@ -44,9 +51,9 @@ def roster(gauged: dict[str, list[tuple[str, float]]],
 
     Ordered by catchment, largest first, so a rebuild on the same data writes the same file.
     """
-    out: dict[str, list[tuple[str, float, int]]] = {}
+    out: dict[str, list[tuple]] = {}
     for basin, members in gauged.items():
-        rows = [(st, area or 0.0, years_of.get(st, 0)) for st, area in members]
+        rows = [(st, area or 0.0, *(record_years(stats, st, q) for q in QUANTITIES)) for st, area in members]
         if rows:
             out[basin] = sorted(rows, key=lambda r: (-r[1], r[0]))
     return out

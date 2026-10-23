@@ -15,12 +15,12 @@ was quiet). The whole roster ships now and the client combines it.
 
 from pipeline.atlas.gauges.basin_station import roster
 
-YEARS = {"S": 40, "small": 40, "big": 40, "mid": 40, "aaa": 40, "bbb": 40,
-         "known": 40, "unknown": 40}
+YEARS = {st: {"discharge": {"years": 40}, "level": {"years": 40}}
+         for st in ("S", "small", "big", "mid", "aaa", "bbb", "known", "unknown")}
 
 
 def test_a_group_with_one_gauge_takes_it():
-    assert roster({"LFRA": [("S", 500.0)]}, YEARS) == {"LFRA": [("S", 500.0, 40)]}
+    assert roster({"LFRA": [("S", 500.0)]}, YEARS) == {"LFRA": [("S", 500.0, 40, 40)]}
 
 
 def test_every_gauge_in_the_group_ships_not_just_the_largest():
@@ -42,7 +42,7 @@ def test_the_order_is_the_same_every_build():
     read, and the client's tie-breaking would move with it."""
     a = roster({"LFRA": [("bbb", 100.0), ("aaa", 100.0)]}, YEARS)
     b = roster({"LFRA": [("aaa", 100.0), ("bbb", 100.0)]}, YEARS)
-    assert a == b == {"LFRA": [("aaa", 100.0, 40), ("bbb", 100.0, 40)]}
+    assert a == b == {"LFRA": [("aaa", 100.0, 40, 40), ("bbb", 100.0, 40, 40)]}
 
 
 def test_a_station_with_no_area_sorts_last_but_still_ships():
@@ -57,6 +57,14 @@ def test_a_station_with_no_area_sorts_last_but_still_ships():
 def test_the_record_length_travels_with_the_station():
     """The client weights by it, so a station whose record is unknown must arrive as 0 years
     rather than as a missing field the client has to guess about."""
-    got = roster({"A": [("S", 1.0)], "B": [("T", 2.0)]}, {"S": 12})
-    assert got["A"] == [("S", 1.0, 12)]
-    assert got["B"] == [("T", 2.0, 0)]
+    got = roster({"A": [("S", 1.0)], "B": [("T", 2.0)]}, {"S": {"discharge": {"years": 12}}})
+    assert got["A"] == [("S", 1.0, 12, 0)]
+    assert got["B"] == [("T", 2.0, 0, 0)]
+
+
+def test_the_record_is_per_quantity_never_the_last_row():
+    """T110: 08LD001 has 115 years of discharge and 7 of level. The roster used to carry ONE number — whichever
+    `gauge_stats` row came last, the level one — so the Flow field weighed it as a 7-year record. Each quantity now
+    travels with its own (mutation: rows built from one `years_of` value fail this)."""
+    stats = {"08LD001": {"discharge": {"years": 115}, "level": {"years": 7}}}
+    assert roster({"A": [("08LD001", 9.0)]}, stats) == {"A": [("08LD001", 9.0, 115, 7)]}

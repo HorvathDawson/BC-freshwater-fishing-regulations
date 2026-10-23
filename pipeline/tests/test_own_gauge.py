@@ -311,7 +311,7 @@ def test_the_member_rows_carry_the_lead():
     graph, water = _river(n=2)
     panels = build(graph, MODEL, [("OWN", "s0", 40, False)], water_of=water)
     pid = panels.by_section["s1"][0]
-    assert [r for r in panels.member_rows() if r[0] == pid] == [(pid, 0, "OWN", "up", 100.0, 40, 0, 1, 1)]
+    assert [r for r in panels.member_rows() if r[0] == pid] == [(pid, 0, "OWN", "up", 100.0, 40, 40, 0, 1, 1)]
 
 
 def test_a_side_channel_takes_its_river_s_lead():

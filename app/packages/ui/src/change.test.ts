@@ -13,7 +13,7 @@ import { CHANGE_RAMP_BASE, pushedRoute, rampPosition, toRamp } from "./routeColo
 
 const st = (s: string) => s as StationId;
 const member = (station: string, areaKm2: number, role: "up" | "down" = "up"): PanelMember =>
-  ({ station: st(station), role, areaKm2, years: 40, regulated: false, sameRiver: true });
+  ({ station: st(station), role, areaKm2, years: { discharge: 40, level: 40 }, regulated: false, sameRiver: true });
 const MEMBERS = new Map([[1, [member("A", 100), member("B", 400, "down")]]]);
 const CLASSES = buildStandingClasses("r-test", [{ sid: 5, panel: 1, areaKm2: 120 }, { sid: 7, panel: 1, areaKm2: 900 }],
                                      MEMBERS, new Map(), new Map());

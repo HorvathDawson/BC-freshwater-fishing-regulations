@@ -28,7 +28,7 @@ const PY = `${ROOT}.venv/bin/python`;
 /** Ratios and records spanning every row of the ladder, plus its edges. */
 const RATIOS = [1, 1.5, 2.5, 9.9, 10, 10.1, 24, 99, 100, 155, 316, 999, 1000, 5000, 10000,
                 50000];
-const YEARS = [3, 6, 10, 16, 20, 40, 76];
+const YEARS = [0, 2, 3, 6, 10, 16, 20, 40, 76];   // 0 and 2: under MIN_RECORD_YEARS, a record ranks nothing (T110)
 const ROLES = ["up", "down"] as const;
 const RIVERS = [true, false] as const;   // same blue line, or a tributary
 

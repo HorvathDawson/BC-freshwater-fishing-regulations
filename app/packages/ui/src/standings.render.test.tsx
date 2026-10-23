@@ -20,7 +20,7 @@ const A = 111 as SectionId, B = 222 as SectionId;
 const panel = (...donors: [string, number][]): Panel => ({
   areaKm2: 100,
   members: donors.map(([station, areaKm2]) =>
-    ({ station: station as never, role: "up" as const, areaKm2, years: 40,
+    ({ station: station as never, role: "up" as const, areaKm2, years: { discharge: 40, level: 40 },
        regulated: false, sameRiver: true })),
 });
 

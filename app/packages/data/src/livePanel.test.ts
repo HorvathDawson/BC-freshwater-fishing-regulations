@@ -16,7 +16,7 @@ import { answerFrom, contributionsOf, panelStanding } from "./panel";
 
 const st = (s: string) => s as StationId;
 const m = (station: string, areaKm2: number, years: number, extra: { lead?: number; sameRiver?: boolean } = {}) =>
-  ({ station: st(station), role: "up" as const, areaKm2, years, regulated: false, sameRiver: extra.sameRiver ?? true,
+  ({ station: st(station), role: "up" as const, areaKm2, years: { discharge: years, level: years }, regulated: false, sameRiver: extra.sameRiver ?? true,
      ...(extra.lead ? { lead: extra.lead } : {}) });
 
 /** A 100 km² reach with three donors: A same size (weight 1), B 20x bigger, C 5x smaller on a tributary. */

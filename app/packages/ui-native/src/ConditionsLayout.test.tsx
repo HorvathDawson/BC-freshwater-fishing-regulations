@@ -32,11 +32,11 @@ const DAY = new Date(2026, 8, 4, 12);
 
 /** Three donors: a long-record lead, a short-record dam, and one that is not reporting. */
 const PANEL: Panel = { areaKm2: 50, members: [
-  { station: "LEAD" as never, role: "up", areaKm2: 60, years: 40, regulated: false,
+  { station: "LEAD" as never, role: "up", areaKm2: 60, years: { discharge: 40, level: 40 }, regulated: false,
     sameRiver: true },
-  { station: "DAM" as never, role: "down", areaKm2: 55, years: 6, regulated: true,
+  { station: "DAM" as never, role: "down", areaKm2: 55, years: { discharge: 6, level: 6 }, regulated: true,
     sameRiver: true },
-  { station: "QUIET" as never, role: "up", areaKm2: 300, years: 30, regulated: false,
+  { station: "QUIET" as never, role: "up", areaKm2: 300, years: { discharge: 30, level: 30 }, regulated: false,
     sameRiver: true },
 ] };
 
