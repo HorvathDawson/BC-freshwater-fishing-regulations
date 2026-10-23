@@ -1,6 +1,6 @@
 # T139 — A third headless one-kind pool appeared: Liard River watershed (r7, 7-53)
 
-Status: DONE — d69e1407 (needs `deliver` to ship).
+Status: DONE — d69e1407, 3abbb24f (review) (needs `deliver` to ship).
 
 Source: `pipeline/tests/test_answers_one_kind_group.py::test_every_shipped_headless_water_is_drawn_but_the_two_open_shapes`
 (needs_bundle) fails on the current bundle: besides the two known open shapes (Duncan DV, z8 r5) a third headless pool is
@@ -73,11 +73,47 @@ in ui-rules-answers.json: `parent: 0` on the Liard DV row of Beattie Lake's 3 fr
 
 Left / follow-ups:
 - On the same group, the stored `caps` list says "No Dolly Varden/bull trout may be kept." and "…in Zone B." for the
-  under-30 cm and over-50 cm bands, with no size in the words. Whether any surface shows these words unqualified was not
-  checked here; worth a look in the card-words lane.
+  under-30 cm and over-50 cm bands, with no size in the words. **Checked in review: no screen shows them.** `group.caps`
+  is read only by the card gate (`card_check.py`) and the page_v36 reference; no app code reads it (grep of
+  app/packages and app/apps). The size sits in the structure (`cap_kinds` from/to). Nothing to do unless the app ever
+  draws `caps`.
 
 Owner questions:
 - **Q-T139a** Beattie Lake: does the Liard watershed's "bull trout 1 (30–50 cm)" sit **beside** the lake's own "trout
   quota = 1", allowing 2 a day (1 trout + 1 bull trout), or **inside** it (1 trout or char in all)? Default built: beside
   (the reader's step-4 `ladder` displacement; headline "2 a day per angler"). If the answer is "inside", that is a reader
   (bundle) ruling change, not a card change.
+
+## Adversarial review (2026-10-23)
+
+Verdict: **the fix is correct and minimal.** Two small defects fixed in 3abbb24f (tests and docs only, no behaviour change). Related files (keep_answers, one_kind_group incl. the whole-set needs_bundle test, t127_displaced_xref, v1): 44 passed, unfiltered.
+
+**Checked, held up:**
+- **Whole-set data effect, measured independently.** Every water was rebuilt twice (rows section, hold on and hold
+  off, via heavy.sh, read-only against the main bundle/export), 80,155 frames each, comparing every row's fields. Only
+  `parent` differs, and only on Beattie Lake (wbk:329665706), part 0, segments 1, 2 and 5: row 1 (DV) goes from None to
+  0. In each case the holder's group kinds include DV (EB GB CT DV LT RB, or the same without LT on Oct 16–31). No
+  holder is itself held, so there are no parent chains in the whole set. The builder's "1 water, 3 frames" stands.
+- **One decision, one function.** `rows.parent_of` is the only place a hold is decided. The app reads the stored
+  `parent` and infers nothing (`grouphead.parentRow`, `drawnRows`, `separateFrom`; `keep.ts`, `sheets/other.ts`,
+  `tree.presOf` go through them). The model validators (`Row`, `RowsFrame._parents`, `_one_kind_groups`) accept the
+  new parent. The held row's `draws` is always empty (a row has one total, homed elsewhere), so it can never carry a
+  one-kind group on a held row.
+- **App draw.** Row 1 was skipped before (headless) and is still skipped (held). The words do not change, and
+  `presOf` reads only a steelhead `presence`, which this row lacks.
+- **Mutations.** `A_ROW_HELD_BY_ITS_TOTALS_GROUP = False` fails the unit test's first assert and the needs_bundle Beattie
+  test (the pins named in As built). Swapping the order of the two holds fails the unit test's cross-reference assert
+  (it returns 0, not 1).
+
+**Fixed (this review):**
+- **A test passed for the wrong reason.** The unit assert "a row whose total is its own pool is never held this way"
+  passed with the `T != o["pool"]` guard deleted, because no other row drew that total. A new assert (two rows of one
+  pool, the other carrying its group) pins the guard: with the guard dropped, it returns 0. The guard is defensive,
+  because no shipped frame has two keep rows of one pool (0 in the whole-set rebuild). `home` prefers the row whose
+  pool is the total, so without such a frame the guard can't be reached.
+- **A missed wording site.** The wire doc of `parent` in `encode.py` (the rows 31 version note shipped in the
+  answers file's description) still said only "holds its fish and cross-references them". It now also names the T139
+  hold. ANSWERS-SPEC and model.py were already updated by the builder.
+
+**Ship:** unchanged. A `deliver` (answers only) is needed. Expected diff: `parent: 0` on Beattie's DV row in 3 frames,
+plus the one-sentence change to the `parent` description text.
