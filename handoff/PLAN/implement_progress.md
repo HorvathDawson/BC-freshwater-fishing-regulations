@@ -3,7 +3,14 @@
 Restart here. Update this file after EVERY step: what is done, what is running, and the exact next action.
 Logs from timing runs live in the session scratchpad, which a reboot wipes. The numbers that matter are copied here.
 
-## CURRENT STATE (2026-10-23 afternoon)
+## CURRENT STATE (2026-10-23 evening)
+- Batch 6 part 1 merged + delivered: T136 (curation gate; pilot = owner Q114), T125 (partial), T109 done — release
+  **r-d72230f10993** (13,636,360 B gz), no binding changed; fixtures 76e7ef05; smoke green (7976 app, 207 pytest, 18).
+- Running: wf_9298a794-aef (T112→T119, T100 resumed in their worktrees wf_144b677f-89c-2/-4 after a network failure);
+  wf_dc7c8506-0c6 (T148 slough second sweep → then T149 complexes + intermittent spot check on the review page);
+  wf_66cdc0f8-dc0 (owner app walk: T143 horizons regression, T144 Change models, T145 spot markers, T146+T147 no access).
+
+## (earlier) CURRENT STATE (2026-10-23 afternoon)
 - Batch 5 merged + delivered: release **r-012fb43aa175** (13,631,465 B gz); no binding changed; T121 +18 gauged
   river polygons. Fixtures 20ab7f21; smoke green. Owner questions to Q113.
 - Running: workflow wf_144b677f-89c "band2-batch-6" — T136 (curation gate; pilot prepared for the owner), T112→T119,
