@@ -140,6 +140,96 @@ def test_the_three_readers_ask_closure_grade():
     # still beats a quota, as the outright release it also is)
     assert stricter(full, quota) and stricter(full, release) and not stricter(release, full)
     assert stricter(part, quota) and not stricter(part, release)
+    # T125 item 1: EVERY reader, not three. The answers' gate (`display.is_closure_gate`, which
+    # `rows` reads — its `_closed_gate` twin is gone), the reader's `full`-closure speakers (the
+    # status index over `effective_rules` rows, the verdicts over stored rows — one `closes_here`)
+    from pipeline.deliver.answers import display as D
+    from pipeline.deliver.verdicts import project as VP
+    assert [D.is_closure_gate(x) for x in (full, part, none)] == [True, True, False]
+    speak = lambda x, **kw: dict(x, state="speaks", **kw)                     # noqa: E731
+    assert [SI.closes([speak(x)]) for x in (full, part, none)] == [True, False, False]
+    assert not SI.closes([speak(full, partly_lifted=True)])
+    assert not SI.closes([dict(full, state="beside")])
+    grade = {0: closure_grade(full), 1: closure_grade(part), 2: closure_grade(none)}
+    S = VP.SPEAKS
+    assert [VP.closes([(i, S, None, None, ())], grade) for i in (0, 1, 2)] == [True, False, False]
+    assert not VP.closes([(0, S, None, None, (5,))], grade)                   # partly lifted
+    assert not VP.closes([(0, S + 1, None, None, ())], grade)                 # does not speak
+    assert VP.closing(lambda f: [(0, S, None, None, ())], grade) == {0: list(VP.T.GAME_FISH)}
+
+
+def _typed(**kw):
+    from pipeline.regs.parsing.catalogue import CatalogueRule
+    base = dict(rule_id="x.r1", type="retention_limit", species=["RB"], take=0,
+                may_target=False, verbatim="Rainbow trout: no fishing",
+                extents=[{"op": "whole"}])
+    return CatalogueRule.model_validate({**base, **kw})
+
+
+def test_every_typed_closure_test_is_says_no_fishing():
+    """T125 item 1: the typed rule's closure test is `says_no_fishing` at every reader — the label,
+    the zone species closure, the blanket closure — and it agrees with `closure_grade` on the
+    same rule as a dict."""
+    from pipeline.regs.parsing.catalogue import says_no_fishing
+    from pipeline.regs.parsing.catalogue_parts import labels
+    from pipeline.deliver.bundle import rules as BR
+    shut, rel = _typed(), _typed(may_target=True)
+    assert labels._is_closure(shut) and not labels._is_closure(rel)
+    assert BR._is_species_closure(shut) and not BR._is_species_closure(rel)
+    blanket = dict(species=["ALL_GAME_FISH"], water="stream",
+                   when={"dates": [{"from_month": 4, "from_day": 1, "to_month": 6, "to_day": 30}]})
+    assert BR.is_blanket_closure(_typed(**blanket))
+    assert not BR.is_blanket_closure(_typed(**blanket, may_target=True, species_except=["CRA"]))
+    for kind, take, mt, want in [("retention_limit", 0, False, True), ("retention_limit", 0, 0, True),
+                                 ("retention_limit", 0, None, False), ("retention_limit", 0, 1, False),
+                                 ("retention_limit", 2, 0, False), ("gear", 0, 0, False)]:
+        assert says_no_fishing(kind, take, mt) is want, (kind, take, mt)
+        assert (closure_grade({"type": kind, "take": take, "may_target": mt}) is not None) is want
+
+
+#: The ONE spelling of the closure test and the one "speaks as a full closure" — nothing else
+#: in the pipeline may combine `take` against 0 with a NEGATIVE `may_target` test, or a "full"
+#: grade with the reader's `partly_lifted` (T125 item 1).
+_CLOSURE_HOMES = {("regs/parsing/catalogue_parts/vocab.py", "says_no_fishing"),
+                  ("deliver/verdicts/project.py", "closes_here")}
+_TAKE_0 = re.compile(r"\btake\b\W{0,4}\)?\s*(==|!=)\s*0\b")
+_NOT_TARGET = re.compile(r"may_target\W{0,4}\)?\s*(is False|== ?0|!= ?0)|\bnot\s+[\w.]*may_target")
+
+
+def _closure_copies(text: str, rel: str) -> list[str]:
+    import ast
+    tree = ast.parse(text)
+    home = {f for r, f in _CLOSURE_HOMES if r == rel}
+    skip = {id(n) for fn in ast.walk(tree)
+            if isinstance(fn, ast.FunctionDef) and fn.name in home for n in ast.walk(fn)}
+    out = []
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.BoolOp) or id(node) in skip:
+            continue
+        seg = ast.get_source_segment(text, node) or ""
+        if (_TAKE_0.search(seg) and _NOT_TARGET.search(seg)) or \
+                ('"full"' in seg and ("partly_lifted" in seg or "[4]" in seg)):
+            out.append(f"{rel}:{node.lineno}")
+    return sorted(set(out))
+
+
+def test_no_closure_test_is_spelled_twice():
+    root = REPO_ROOT / "pipeline"
+    bad = []
+    for p in sorted(root.rglob("*.py")):
+        rel = p.relative_to(root).as_posix()
+        if rel.startswith("tests/"):
+            continue
+        bad += _closure_copies(p.read_text(encoding="utf-8"), rel)
+    assert not bad, f"a closure test spelled outside `says_no_fishing` / `closes_here`: {bad}"
+    # mutation: each old spelling is caught
+    for old in ('def f(r):\n    return r.type == "retention_limit" and r.take == 0 and r.may_target is False\n',
+                'def f(x):\n    return x.get("take") != 0 or x.get("may_target") != 0\n',
+                'def f(r, g):\n    return r[1] == 1 and g[r[0]] == "full" and not r[4]\n',
+                'def f(r):\n    return r.get("state") == "speaks" and g == "full" and not r.get("partly_lifted")\n'):
+        assert _closure_copies(old, "x.py"), old
+    assert not _closure_copies('def f(r):\n    return r.take == 0 and r.may_target and r.x\n', "x.py")
+    assert "_closed_gate" not in (DELIVER / "answers" / "rows.py").read_text()
 
 
 # --------------------------------------------------------------------------- tidal / homes

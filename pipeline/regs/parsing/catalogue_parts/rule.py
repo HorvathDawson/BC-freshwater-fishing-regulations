@@ -13,7 +13,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from .vocab import (
     ChannelSide, ClosureKind, HALF_OF_CHANNEL, LIFE_STAGE_FISH, LifeStage, Obligation, Origin,
     Period, PropulsionLevel, RuleType, VesselAspect, WaterKind, _ADULT_CHINOOK,
-    printed_closure_kinds
+    printed_closure_kinds, says_no_fishing
 )
 from .dates import When
 from .species import FEDERAL_SALMON, SALMON_FISH, _COUNTED_TYPES, _FAMILY, species_problems
@@ -847,8 +847,7 @@ class CatalogueRule(BaseModel):
         # A CLOSURE'S NAME IS A CLOSURE'S. On anything but "no fishing" it names nothing, and
         # where the sentence prints the name itself the field may only repeat it.
         if self.closure_kind is not None:
-            if not (t is RuleType.retention_limit and self.take == 0
-                    and self.may_target is False):
+            if not says_no_fishing(t, self.take, self.may_target):
                 e.append("closure_kind names a closure — a retention_limit with take 0 and "
                          "may_target false")
             printed = printed_closure_kinds(self.verbatim)

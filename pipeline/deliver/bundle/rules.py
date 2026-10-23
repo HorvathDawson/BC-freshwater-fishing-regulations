@@ -25,6 +25,7 @@ import re
 import sqlite3
 from pathlib import Path
 from pipeline.common import entry_id as EID
+from pipeline.regs.parsing.catalogue_parts.vocab import says_no_fishing
 
 
 def _when(r) -> str | None:
@@ -258,8 +259,7 @@ def closure_grade(x: dict) -> str | None:
     Reads a bundle rule (`read.rules`: `undrawn_part`) or the export's flattened fields
     (`not_yet_mapped`): both spellings of the same column."""
     # `type` when the dict carries one (a bare {take, may_target} statement is a retention one)
-    if x.get("type", "retention_limit") != "retention_limit" or x.get("take") != 0 \
-            or x.get("may_target") != 0:
+    if not says_no_fishing(x.get("type", "retention_limit"), x.get("take"), x.get("may_target")):
         return None
     if any(x.get(k) for k in CLOSURE_CONDITIONS):
         return "partial"
@@ -466,7 +466,7 @@ def _is_species_closure(r) -> bool:
     standing rule, not a superior authority's (nothing below a superior authority opens what it
     closed), and naming at least one fish (`named_leaves`) — "Bass: 0 quota, CLOSED TO FISHING",
     never "No fishing in any stream" (ALL_GAME_FISH names no fish)."""
-    return (r.type.value == "retention_limit" and r.take == 0 and r.may_target is False
+    return (says_no_fishing(r.type, r.take, r.may_target)
             and not r.while_ and not r.caught and not r.standing and r.authority != "superior"
             and bool(named_leaves(r)))
 
@@ -655,7 +655,7 @@ def is_blanket_closure(r) -> bool:
     kind of water (`water`), over a season (`when.dates`), with no means (`while`), not standing and
     not a superior authority's."""
     sp = set(r.species or ())
-    return (r.type.value == "retention_limit" and r.take == 0 and r.may_target is False
+    return (says_no_fishing(r.type, r.take, r.may_target)
             and sp <= {"ALL_GAME_FISH", "ALL_FIN_FISH"} and not r.species_except
             and r.water is not None and r.when is not None and bool(r.when.dates)
             and not r.while_ and not r.caught and not r.standing and r.authority != "superior")

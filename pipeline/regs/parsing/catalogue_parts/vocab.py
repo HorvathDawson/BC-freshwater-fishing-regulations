@@ -39,6 +39,20 @@ class RuleType(str, Enum):
     facility = "facility"
 
 
+def says_no_fishing(kind, take, may_target) -> bool:
+    """THE CLOSURE TEST, one spelling (T125 item 1): a `retention_limit` with `take` 0 that may NOT
+    be fished for (`may_target` false — never None, which is unknown). `take: 0` alone is ambiguous:
+    with `may_target` true it is a catch and release. `kind` is a `RuleType` or its value (a bundle
+    or export dict's `type`); `may_target` a bool or the bundle's 0/1.
+
+    Every closure question starts here: a typed rule's (`labels`, `bundle.rules._is_species_closure`
+    / `is_blanket_closure`, the model's `closure_kind` and `suspended_while` checks) and a dict's
+    (`bundle.rules.closure_grade`, which grades it full or partial). `test_one_data_flow` refuses
+    a re-inlined `take == 0 and may_target …` anywhere else."""
+    return (getattr(kind, "value", kind) == RuleType.retention_limit.value and take == 0
+            and may_target is not None and may_target == 0)
+
+
 class Method(str, Enum):
     """`sport fishing` is DEFINED as angling, spear fishing, set lining and crayfish trapping."""
     angling = "angling"

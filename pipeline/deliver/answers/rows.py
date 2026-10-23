@@ -35,7 +35,7 @@ from pipeline.deliver.answers import common
 from pipeline.deliver.answers.common import AnswersError, expand
 from pipeline.deliver.calendar import month_day
 from pipeline.deliver.answers.display import bands as rule_bands
-from pipeline.deliver.answers.display import kind_of
+from pipeline.deliver.answers.display import is_closure_gate, kind_of
 from pipeline.deliver.bundle import read
 from pipeline.deliver.bundle.rules import catch_and_release, closure_grade
 from pipeline.common import entry_id as EID
@@ -187,11 +187,6 @@ class R:
         return self.f.get("take")
 
 
-def _closed_gate(r: R) -> bool:
-    """A gate that closes (the one closure predicate, `rules.closure_grade`), not one that releases."""
-    return r.k == "gate" and closure_grade(r.f) is not None
-
-
 def _keepish(s: Optional[str]) -> bool:
     return s in common.KEEPS
 
@@ -259,8 +254,8 @@ def eval_sp(P: "Part", S: str, o: str) -> Optional[dict]:
     partly = [r for r in A if verdict[r.key][1]]
     steelhead = S == "RB" and P.steelhead_water
     pools = [r for r in A if r.k == "pool"]
-    closed = _stable_sort([r for r in A if _closed_gate(r)], key=lambda r: r.rank)
-    rel = _stable_sort([r for r in A if r.k == "gate" and not _closed_gate(r)], key=lambda r: r.rank)
+    closed = _stable_sort([r for r in A if is_closure_gate(r.f, r.k)], key=lambda r: r.rank)
+    rel = _stable_sort([r for r in A if r.k == "gate" and not is_closure_gate(r.f, r.k)], key=lambda r: r.rank)
 
     def tk(r):
         return 1e9 if r.f.get("unlimited") else r.f.get("take")
@@ -274,7 +269,7 @@ def eval_sp(P: "Part", S: str, o: str) -> Optional[dict]:
     if shut is not None:
         win = shut
     if win.k == "gate":
-        status = "closed" if _closed_gate(win) else "release"
+        status = "closed" if is_closure_gate(win.f, win.k) else "release"
     elif win.k == "size" or shut is not None:
         status = "release"
     else:

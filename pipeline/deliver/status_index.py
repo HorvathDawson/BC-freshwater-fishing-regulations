@@ -117,14 +117,14 @@ def is_full_closure(x: dict) -> bool:
 
 def closes(rows: Iterable[dict]) -> bool:
     """Does an `effective_rules` answer (for one fish) close the water to that fish?"""
-    return any(r.get("state") == "speaks" and is_full_closure(r) and not r.get("partly_lifted")
+    return any(closes_here(r.get("state") == "speaks", closure_grade(r), r.get("partly_lifted"))
                for r in rows)
 
 
 #: Is a bound rule more than the base — a rule of a water table's row (`r<n>:` entries)? The ONE
 #: definition is the verdicts stage's (`verdicts.project.beyond_base`, stored as `key_meta.own`);
 #: the oracle below reads it from there.
-from pipeline.deliver.verdicts.project import beyond_base  # noqa: E402
+from pipeline.deliver.verdicts.project import beyond_base, closes_here  # noqa: E402
 
 
 # --------------------------------------------------------------------------------------------

@@ -9,7 +9,7 @@ import re
 
 from typing import List, Optional
 
-from .vocab import Method, Period, PropulsionLevel, RuleType, VesselAspect
+from .vocab import Method, Period, PropulsionLevel, RuleType, VesselAspect, says_no_fishing
 from .species import BOOK_FAMILIES, OPEN_SUBJECTS, PROTECTED_FISH, SPECIES_GROUPS, expand_species
 from .gear import CAUGHT_HOW, CONDUCT_ACTS, GearClause, Slot, _ANGLER_WORDS
 from .checks import part_words, strip_list_marker
@@ -457,7 +457,7 @@ _EMPHASIS = re.compile(r"\*\*|__")
 
 
 def _is_closure(t: CatalogueRule) -> bool:
-    return t.type is RuleType.retention_limit and t.take == 0 and t.may_target is False
+    return says_no_fishing(t.type, t.take, t.may_target)
 
 
 def _lifted_rule_words(t: CatalogueRule, siblings: Optional[dict] = None) -> str:
@@ -648,7 +648,7 @@ def label_parts(r: CatalogueRule, siblings: Optional[dict] = None, place_of=None
     elif t is RuleType.retention_limit:
         # BRANCH ON may_target FIRST. take=0 alone is ambiguous, and reading it as "release all"
         # turns all 605 "No fishing" rules into a catch-and-release PERMISSION.
-        if r.take == 0 and r.may_target is False:
+        if says_no_fishing(t, r.take, r.may_target):
             if sp == "All game fish" and r.species_except:
                 head = f"No fishing except for {species_words(r.species_except).lower()}"
             elif sp == "All game fish" and not r.while_:

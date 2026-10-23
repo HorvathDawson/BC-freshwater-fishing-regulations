@@ -32,7 +32,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_serializer, model_valid
 from .catalogue_parts.vocab import (  # noqa: F401
     RuleType, Method, Period, WaterKind, ClosureKind, _PRINTED_CLOSURE_KIND, printed_closure_kinds,
     Origin, ChannelSide, LifeStage, LIFE_STAGE_FISH, _ADULT_CHINOOK, HALF_OF_CHANNEL, VesselAspect,
-    PropulsionLevel, Document, Obligation, _Terse
+    PropulsionLevel, Document, Obligation, _Terse, says_no_fishing
 )
 from .catalogue_parts.text import (  # noqa: F401
     _DASH, EXTRACTION_MARKUP, clean_verbatim, squash

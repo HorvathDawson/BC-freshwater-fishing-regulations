@@ -8,7 +8,7 @@ from __future__ import annotations
 from typing import List, Optional
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from .vocab import RuleType
+from .vocab import RuleType, says_no_fishing
 from .text import EXTRACTION_MARKUP, squash
 from .dates import _days
 from .species import (
@@ -446,8 +446,7 @@ class CatalogueEntry(BaseModel):
                 if c is None:
                     e.append(f"designation {x.id}: suspended_while names no rule "
                              f"{sw.rule_id!r} in this entry")
-                elif not (c.type is RuleType.retention_limit and c.take == 0
-                          and c.may_target is False):
+                elif not says_no_fishing(c.type, c.take, c.may_target):
                     e.append(f"designation {x.id}: suspended_while {sw.rule_id!r} is not a "
                              f"closure — a designation sleeps under a closure, never a quota")
             # STEELHEAD COUNTRY PRINTS THE STAMP. Outside the Kootenay (Region 4), where Class II

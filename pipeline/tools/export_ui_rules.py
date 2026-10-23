@@ -2537,7 +2537,7 @@ def guide_retention(d: dict) -> dict:
                    "`standing` one is shown and decides nothing.",
         },
         "examples": {
-            "closed": pick(lambda x: rl(x) and F(x, "take") == 0 and F(x, "may_target") is False
+            "closed": pick(lambda x: C.says_no_fishing(x["type"], F(x, "take"), F(x, "may_target"))
                            and not F(x, "while") and not F(x, "standing"),
                            "species", "take", "may_target", "when", n=1),
             "release": pick(lambda x: rl(x) and F(x, "take") == 0 and F(x, "may_target")

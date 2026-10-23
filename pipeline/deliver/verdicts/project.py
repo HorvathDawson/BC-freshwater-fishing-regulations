@@ -18,10 +18,18 @@ from pipeline.common import entry_id as EID
 SPEAKS = T.code(T.RuleState.speaks)
 
 
+def closes_here(speaks: bool, grade: Optional[str], partly_lifted) -> bool:
+    """THE ONE "THIS RULE CLOSES THE WATER TO ITS FISH" (T125 item 1): it SPEAKS in the reader's
+    answer, is a FULL closure (`rules.closure_grade`), and nothing lifts part of it. The stored
+    verdicts ask it here (`closes`, `closing`) and the status index's direct reading asks it over
+    `effective_rules` rows (`status_index.closes`) — two shapes of row, one predicate."""
+    return bool(speaks) and grade == "full" and not partly_lifted
+
+
 def closes(rows: Iterable[tuple], grade: Mapping[int, Optional[str]]) -> bool:
     """Does a verdict (its `VerdictRow`-shaped rows: rule, state code, reason, by, lifters) close
     the water to its fish? `grade` is every rule's stored `closure_grade` by `RuleIx`."""
-    return any(r[1] == SPEAKS and grade[r[0]] == "full" and not r[4] for r in rows)
+    return any(closes_here(r[1] == SPEAKS, grade[r[0]], r[4]) for r in rows)
 
 
 def closed(verdict_of: Callable[[str], Iterable[tuple]], grade: Mapping[int, Optional[str]]) -> bool:
@@ -38,7 +46,7 @@ def closing(verdict_of: Callable[[str], Iterable[tuple]],
     out: Dict[int, List[str]] = {}
     for f in T.GAME_FISH:
         for r in verdict_of(f):
-            if r[1] == SPEAKS and grade[r[0]] == "full" and not r[4]:
+            if closes_here(r[1] == SPEAKS, grade[r[0]], r[4]):
                 out.setdefault(r[0], []).append(f)
     return out
 
