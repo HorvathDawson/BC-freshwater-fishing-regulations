@@ -112,8 +112,11 @@ def test_re_attaching_a_home_map_is_not_served_from_a_cache():
 
 #: Where "which sections are in region R" may be read. Everything else asks these modules.
 OWNER = {ROOT / "atlas" / "registry" / "regions.py"}
-#: The readers T115 unified: the reach builder and the entry-id parser.
-SCANNED = sorted([*(ROOT / "atlas" / "reach").glob("*.py"), ROOT / "common" / "entry_id.py"])
+#: The readers T115 unified: the reach builder, the entry-id parser, and the bundle's section places
+#: (`deliver.bundle.build._water_places`, which looped `in_region` over the region items itself until
+#: the adversarial review).
+SCANNED = sorted([*(ROOT / "atlas" / "reach").glob("*.py"), ROOT / "common" / "entry_id.py",
+                  ROOT / "deliver" / "bundle" / "build.py"])
 
 
 def _docstrings(tree) -> set[int]:
@@ -151,3 +154,4 @@ def test_no_second_copy_of_region_membership(path):
 def test_the_scan_covers_the_readers_it_unified():
     names = {p.name for p in SCANNED}
     assert {"outside.py", "extent.py", "build.py", "entry_id.py"} <= names
+    assert ROOT / "deliver" / "bundle" / "build.py" in SCANNED

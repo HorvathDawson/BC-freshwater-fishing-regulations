@@ -284,8 +284,9 @@ def _water_places(build_dir: Path, graph, registry_items: list[dict]) -> dict:
       kind     `reach.water_kind.kind_of` — THE water kind of a section (the owner item's, else the
                graph node's), the one every `feature_types` filter placed the rules by; for a
                section no water owns, its node's: stream, lake or wetland (read for those only)
-      regions  the `area:region:*` items holding it, through `registry.regions.in_region` with
-               the atlas's home map attached (`attach_from`): a straddling stream piece is its home
+      regions  the `area:region:*` items holding it, by THE ONE region membership
+               (`registry.regions.section_regions`, T115) with the atlas's home map attached
+               (`attach_from`): a straddling stream piece is its home
                region's, a straddling lake both regions' — the regions whose zone tables it takes
       mus      the MUs the atlas graph says it touches (`StreamNode.mus`)
 
@@ -303,12 +304,9 @@ def _water_places(build_dir: Path, graph, registry_items: list[dict]) -> dict:
                 for i in registry_items}
     named = {s for i in registry_items if is_water(i) for s in i.get("section_ids") or []}
     _regions.attach_from(build_dir, graph, registry)
-    regions_of: dict[str, list[str]] = {}
-    for iid in sorted(registry):
-        if iid.startswith(_regions.REGION_PREFIX):
-            r = iid[len(_regions.REGION_PREFIX):]
-            for s in _regions.in_region(graph, r, set(registry[iid].section_ids)):
-                regions_of.setdefault(s, []).append(r)
+    # THE ONE REGION MEMBERSHIP (T115): the regions whose zone tables a section takes are asked of
+    # `registry.regions`, never re-derived here.
+    regions_of = _regions.section_regions(registry, graph)
     interned: dict[tuple, tuple] = {}
     out: dict[int, tuple] = {}
     for h in ids:
