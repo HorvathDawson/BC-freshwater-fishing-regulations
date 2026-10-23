@@ -192,7 +192,7 @@ use that as the sole source of future work."
 | T145 | spot markers: smaller, capped, deselect on tap off, better look (T131 rework) | OPEN | — | app |
 | T146 | no-public-access colour too close to base regulations | OPEN | — | app |
 | T147 | "no public access" leads the regulations page, bigger and more obvious | OPEN | — | app; with T146 |
-| T148 | sloughs/canals second sweep by FWA feature codes + inside line codes, calibrated on the owner's marks | IN PROGRESS | — | workflow wf_dc7c8506-0c6 |
+| T148 | sloughs/canals second sweep by FWA feature codes + inside line codes, calibrated on the owner's marks | DONE | 5b8066d7 | (data: handoff/PLAN/sloughs/v2); 2,424 candidates; 275 not-fishing waters drawn as lakes |
 | T149 | review page: slough complexes marked in bulk; intermittent-lake spot check | OPEN | — | after T148; ★ owner marks |
 | T150 | drop the regs header's "Parts" button; the part list lives in the Map view | OPEN | — | after T147 |
 | T151 | water Map view: bold emphasis makes the regs legend hard to follow | OPEN | — | with T150 |
