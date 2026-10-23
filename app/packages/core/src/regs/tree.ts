@@ -114,12 +114,25 @@ export function stampLine(x: Stamp): Line {
     text(" " + (x.when ? x.when[0]!.toLowerCase() + x.when.slice(1) : ""))];
 }
 
+/**
+ * T128: a kind's line with ITS number inline-bold. A line naming the total it is part of says that total first ("Of your 2
+ * trout and char a day in streams, up to 2 may be …", the store's words), so the kind's number is the one after "up to" /
+ * "only"; a line without one bolds its first `n` (prototype boldN). Which number is bold only — the words are the store's.
+ */
+export function kindWords(says: string, n: number | null): Line {
+  const t = nbsp(says);
+  const m = n === null ? null : new RegExp(`\\b(?:up to|only) (${n})\\b`, "i").exec(t);
+  if (!m) return boldN(says, n, "inline");
+  const at = m.index + m[0].length - m[1]!.length, rest = t.slice(at + m[1]!.length);
+  return [...(at > 0 ? [text(t.slice(0, at))] : []), { t: "num", s: m[1]!, size: "inline" } as Run, ...(rest ? [text(rest)] : [])];
+}
+
 /** prototype kt: one kind row. */
 export function kindRow(k: TreeKind, env: TreeEnv): KindVM {
   const { size: size0, q } = sizeOf(k.detail), zero = k.n === 0, size = k.size_rule || size0;
   let says: Run[] | null = null;
   if (!k.folded) {
-    says = [...boldN(k.says, zero ? null : k.n, "inline")];
+    says = [...kindWords(k.says, zero ? null : k.n)];
     if (k.species.includes("ST") && /\bhatchery steelhead only\b/.test(k.says)) says.push(text(" "), { t: "link", s: WORDS.HOW_TELL, open: "hatch" });
   }
   let duty: Run[] | null = null;

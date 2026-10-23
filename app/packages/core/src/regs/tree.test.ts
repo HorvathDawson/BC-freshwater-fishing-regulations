@@ -75,6 +75,18 @@ describe("kindRow", () => {
     const st = kindRow((SHARE.children[0] as typeof SHARE).children[1] as never, envOf());
     expect(plain(st.duty)).toBe("10 a year · Stop fishing the Vedder River after 2 a day · Record each on your licence right away");
   });
+  it("T128: a line naming its total bolds the kind's own number (after 'up to' / 'only'), never the total's", () => {
+    const k = kindRow(kind({ species: ["EB", "GB", "CT"], name: "Brook trout, brown trout and cutthroat trout", n: 2,
+      says: "Of your 2 trout and char a day in streams, up to 2 may be hatchery brook, brown or cutthroat trout" }), env);
+    expect(k.says).toEqual([{ t: "text", s: "Of your 2 trout and char a day in streams, up to " }, { t: "num", s: "2", size: "inline" },
+      { t: "text", s: " may be hatchery brook, brown or cutthroat trout" }]);
+    const only = kindRow(kind({ species: ["LT"], name: "Lake trout", n: 1, says: "Of your 1 trout and char a day, only 1 may be lake trout" }), env);
+    expect(only.says!.filter((r) => r.t === "num").length).toBe(1);
+    expect(only.says![0]).toEqual({ t: "text", s: "Of your 1 trout and char a day, only " });
+    // the old words (no total named) bold as before: the first number
+    const old = kindRow(kind({ species: ["RB"], name: "Rainbow trout", n: 2, says: "Up to 2 hatchery rainbow trout (part of the 2 from streams)" }), env);
+    expect(old.says![0]).toEqual({ t: "text", s: "Up to " });
+  });
   it("stamps (rows 31): each stored stamp is a line — 'You need' + the document linked to the Licence tab + its when, lower-cased first", () => {
     const rb = { doc: "shuswap_rainbow_stamp", act: "retaining" as const, name: "Conservation Surcharge Stamp for Shuswap rainbow trout",
       when: "Only if you keep rainbow trout over 50 cm" };

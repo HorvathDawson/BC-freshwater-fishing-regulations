@@ -67,8 +67,9 @@ def test_d_a_count_tier_says_how_many_in_all():
     (own,) = g["tree"][0]["children"]
     count = own["children"][1]
     assert count["says"] == "1 cutthroat or rainbow trout in all (part of the 2)"           # UR3 3
-    assert count["children"][0]["sentence"] == ("Of the 1 cutthroat or rainbow trout in all: up to 1 may be hatchery "
-                                                "cutthroat trout, 30–33 cm (12–13 in)")
+    # T128: the kind names the total around the count tier
+    assert count["children"][0]["sentence"] == ("Of your 2 trout and char a day under this river’s rule, only 1 may be "
+                                                "hatchery cutthroat trout, 30–33 cm (12–13 in)")
 
 
 # F ---------------------------------------------------------------------------------------------

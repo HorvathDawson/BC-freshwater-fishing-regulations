@@ -760,8 +760,12 @@ def check_tree(P, g: dict) -> List[str]:
                     if most(E.fish(mine + others), ac["n"]) > ac["n"]:
                         probs.append(f"{where}: kind {x['species']} also counts toward {ac['n']} with {others}, "
                                      f"but more may be kept together")
+            # T128: a kind's line names the total it is part of ("Of your 2 trout and char a day in streams, …") — a
+            # number of a total, share or own tier the kind sits in (each proved below); an own tier's name may print one
+            allowed |= {float(t["n"]) for t in above(x) if t["tier"] in ("total", "share", "own") and t["n"] is not None}
             for key in ("says", "sentence"):
-                words_ok(x[key], allowed, f"kind {x['species']} {key}")
+                whose = [t.get("whose") or "" for t in above(x)]
+                words_ok(x[key], allowed, f"kind {x['species']} {key}", whose + [w[:1].lower() + w[1:] for w in whose])
             continue
         under = kinds_under(x)
         allowed = {float(x["n"])} if x["n"] is not None else set()

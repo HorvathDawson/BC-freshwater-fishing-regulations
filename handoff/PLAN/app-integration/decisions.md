@@ -872,3 +872,34 @@ Undo for any straggler: say which; each is one component's change, and the ticke
   08MH047 (its own, retired) rank 1, 08MH001 rank 2, 08MH055 rank 3 — the app leads with the best-ranked REPORTING,
   so 08MH001 leads; sid 313839: 08MH001 rank 1. Atnarko sections gain the Bella Coola gauges 08FB007 / 08FB002 / 08FB011 at ranks 2–4 behind 08FB006;
   the Bella Coola gains 08FB006. Undo: pass `continues=()` in build.py.
+
+## CLAUDE 2026-10-22 (T128, owner wording; T127) — a sub-cap line names its total; where the total is named once
+- **Owner (T128)**: "Of your 5 trout and char a day in streams, up to 2 may be hatchery brook, brown or cutthroat trout."
+  Every kind line of a card's tree now names the total it is part of — the nearest total, stream (lake) share or water's
+  own rule above it (a count or size tier is part of one): its number, the group's fish (the group pool's written name:
+  "trout and char", "trout" for Region 1), "a day", and where it holds only where the total is limited to one ("in
+  streams" / "in this stream" for a share; "under this river’s rule" for a water's own rule; "in streams" for a zone total
+  printed for one kind of water — no live group has one today, z8 r5 is a one-kind row with no group). "only N" where the
+  kind is held below that total, else "up to N". One decision: `tree.total_named` (which tier) + `tree.total_words` (its
+  words); the gate proves the named number; `test_answers_t128_subcap_total.py` pins "Of your " in one place.
+- **Where the total is named once (the decision the ticket asked for)**: IN FULL on the header and the tier lines only
+  ("4 a day per angler across Region 2, lakes included", "Only 2 of the 4 may be from streams") — the definition: per
+  angler, across whom, lakes included. A kind line names it SHORT, by reference ("Of your 2 trout and char a day in
+  streams, …"), never in the header's words, so the two never repeat word for word. A kind that is the ONLY kind of its
+  total at the total's number names nothing (whitefish "Up to 15 may be whitefish" under "15 a day per angler across
+  Region 2"; Kootenay Lake — Main Body's rainbow 10; a kind folded into its share/own tier): its tier's line already says
+  the whole of it. Supersedes ROUND UR7 2's "(part of the 2 from streams)".
+- **Kinds under a count tier** ("1 cutthroat or rainbow trout in all") name the total around the count tier, not the
+  count ("Of your 2 trout and char a day under this river’s rule, only 1 may be hatchery cutthroat trout"): the count tier's
+  own line says the 1 in all, directly above.
+- **App**: the Keep tree reads the store's words as before; `tree.ts` `kindWords` only chooses which number is bold — the
+  kind's ("up to 2" / "only 1"), not the total's. No section-version bump (the frames' shape is unchanged; Q below).
+- **T127**: a pool the reader DISPLACED for a fish is no "counts toward this one" cross-reference. `rows.counts_toward`
+  (the pool governs the fish, or holds it as `contains` — the reader's "who governs this kind here") now decides the
+  cross-references, the group's kinds and the outer total; before, the cross-reference also took `replaced`. Perry Creek:
+  the St. Mary's "1 on all tributaries" row lists no brook trout; Perry Creek's own "brook trout 20" row is held by nothing
+  and is a one-kind group of 20 (T80 3). The gate's `_kind_n` needed no special case.
+- **Owner questions (defaults built; in the T128 ticket)**: T128-Qa — a kind under a water's OWN total that is the root ("This creek’s rule:
+  up to 1 a day per angler") also says "Of your 1 trout and char a day, up to 1 may be …" — keep, or name nothing when the
+  kind's number equals the total? Default: keep (one rule everywhere). T128-Qb — bump the rows section version (32 → 33)
+  for the wording? Default: no (shape unchanged; the app reads the words whatever they say).

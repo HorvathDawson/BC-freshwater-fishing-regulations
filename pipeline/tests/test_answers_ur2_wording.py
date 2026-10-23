@@ -67,16 +67,19 @@ def test_2_the_gate_proves_the_numbers_a_worked_line_states():
 def test_3_a_kind_held_to_fewer_says_of_how_many():
     g, _o, _P = _g(F.VEDDER)
     dv = _kind(g, "DV")
-    assert dv["says"] == "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout"
-    assert dv["sentence"].startswith("Of the 2 a day: only 1 may be hatchery Dolly Varden/bull trout or lake trout")
+    # T128: "of how many" is the total the line names
+    assert dv["says"] == "Of your 2 trout and char a day in streams, only 1 may be hatchery Dolly Varden/bull trout or lake trout"
+    assert dv["sentence"] == ("Of your 2 trout and char a day in streams, only 1 may be hatchery Dolly Varden/bull trout or "
+                              "lake trout, 60 cm (24 in) or longer")
     g, _o, _P = _g(F.LWA)
-    assert _kind(g, "DV")["says"] == "Only 1 of the 4 may be Dolly Varden/bull trout or lake trout"
+    assert _kind(g, "DV")["says"] == "Of your 4 trout and char a day, only 1 may be Dolly Varden/bull trout or lake trout"
 
 
 # 4 ---------------------------------------------------------------------------------------------
 def test_4_hatchery_steelhead_only_and_wild_go_back():
     g, _o, _P = _g(F.VEDDER)
-    assert _kind(g, "ST")["says"] == "Up to 2 may be hatchery steelhead only — wild steelhead go back"
+    assert _kind(g, "ST")["says"] == ("Of your 2 trout and char a day in streams, up to 2 may be hatchery steelhead only — "
+                                      "wild steelhead go back")
 
 
 def test_4_the_presence_line_says_a_big_rainbow_is_a_steelhead_where_it_is():

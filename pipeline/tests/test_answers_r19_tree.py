@@ -72,13 +72,15 @@ def test_3_the_vedder_tree():
     assert size["says"] == "Of these, only 1 may be over 50 cm (20 in) — 2 if one is a hatchery steelhead"
     assert (size["extra"]["n"], size["extra"]["species"]) == (1, ["ST"])
     trout, dv, st = size["children"]
-    assert trout["sentence"] == ("Of the 2 a day: up to 2 may be hatchery brook, brown or cutthroat trout, 30 cm (12 in) "
-                                 "or longer")
+    # T128: a kind's line names the total it is part of
+    assert trout["sentence"] == ("Of your 2 trout and char a day in streams, up to 2 may be hatchery brook, brown or "
+                                 "cutthroat trout, 30 cm (12 in) or longer")
     assert trout["also_counts"] == []     # the grouping says the cross-kind over-50 line
-    assert dv["sentence"] == ("Of the 2 a day: only 1 may be hatchery Dolly Varden/bull trout or lake trout, 60 cm "
-                              "(24 in) or longer")
+    assert dv["sentence"] == ("Of your 2 trout and char a day in streams, only 1 may be hatchery Dolly Varden/bull trout "
+                              "or lake trout, 60 cm (24 in) or longer")
     # ROUND20g 2: the size tier's "— 2 if one is a hatchery steelhead" says it once; no size note on the kind
-    assert st["sentence"] == "Of the 2 a day: up to 2 may be hatchery steelhead, rainbow trout over 50 cm (20 in)"
+    assert st["sentence"] == ("Of your 2 trout and char a day in streams, up to 2 may be hatchery steelhead, rainbow trout "
+                              "over 50 cm (20 in)")
     assert "size_note" not in st
 
 
@@ -90,9 +92,10 @@ def test_3_a_kind_that_cannot_pass_the_size_stays_outside_and_a_count_tier_names
     assert size["says"] == "Of these, only 1 may be over 50 cm (20 in)"
     assert [k["species"] for k in size["children"]] == [["EB", "GB"], ["DV", "LT"]]
     assert count["says"] == "1 cutthroat or rainbow trout in all (part of the 2)"     # UR3 3; ≤33 and ≤50 cm: never over 50
+    # T128: a kind under a count tier names the total around it (the count tier's line says the 1 in all)
     assert [k["sentence"] for k in count["children"]] == [
-        "Of the 1 cutthroat or rainbow trout in all: up to 1 may be hatchery cutthroat trout, 30–33 cm (12–13 in)",
-        "Of the 1 cutthroat or rainbow trout in all: up to 1 may be hatchery rainbow trout, 30–50 cm (12–20 in)"]
+        "Of your 2 trout and char a day under this river’s rule, only 1 may be hatchery cutthroat trout, 30–33 cm (12–13 in)",
+        "Of your 2 trout and char a day under this river’s rule, only 1 may be hatchery rainbow trout, 30–50 cm (12–20 in)"]
 
 
 def test_3_a_size_tier_spanning_tiers_wraps_them():

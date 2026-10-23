@@ -807,7 +807,9 @@ class TreeKind(Model):
     may be …", a steelhead kind keeping hatchery fish only "… hatchery steelhead only — wild steelhead go back"),
     `sizes`, `also_counts`, `duties` (ROUND20g 2: "stop fishing here after 2 a day"), `sentence` the whole line,
     "of" its nearest count tier ("Of the 2 a day: up to 2 may be …, 30 cm (12 in) or longer — …"); `presence`
-    the steelhead presence line. Every number gate-proved."""
+    the steelhead presence line. T128: a kind line names the total it is part of — "Of your 2 trout and char a day in
+    streams, up to 2 may be hatchery brook, brown or cutthroat trout" (`says`; its `sentence` the same with the detail and
+    notes), unless it is that total's only kind at its number. Every number gate-proved."""
     node: Literal["kind"]
     species: Tuple[Fish, ...] = Field(min_length=1)
     name: StrictStr = Field(min_length=1)

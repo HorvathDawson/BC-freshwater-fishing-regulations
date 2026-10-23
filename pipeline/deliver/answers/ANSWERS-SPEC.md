@@ -198,6 +198,7 @@ A. **The 2 said once** (`tree.py`): the share no longer says ", not counting hat
    "Only 1 of the 2 from streams may be …"; a hatchery-only steelhead "Up to 2 hatchery steelhead only (part of the 2 from
    streams) — wild steelhead go back". Kinds inside a size or count tier, under an own tier, or the share's one folded kind
    keep their words.
+   SUPERSEDED by T128 (owner 2026-10-22): every kind line names the total it is part of, see "T128" below.
 
 `pipeline/tests/test_answers_ur7.py`.
 
@@ -1332,3 +1333,19 @@ rows-fixes commit (rows.py, the section's version 2).
 - V7 Feb 29 (coordinator ruling): a range to Feb 28 runs through Feb 29 · `catalogue.range_days` ·
   3 part-days of the v0 file change (the Nicola below the lake and two lakes), status index day 60
   only · undo: drop the `(2, 28)` branch in range_days.
+- T128 (owner 2026-10-22: "Up to 2 may be hatchery brook, brown or cutthroat trout" read as 2 more on top of the quota) A
+  KIND LINE NAMES ITS TOTAL: "Of your 2 trout and char a day in streams, up to 2 may be hatchery brook, brown or cutthroat
+  trout". `tree.total_named` picks the tier — the nearest total, stream (lake) share or water's own rule above the kind (a
+  count or size tier is part of one) — and `tree.total_words` says it: its number, the group's fish (`written_name` of the
+  group's pool), "a day", and where it holds only where limited ("in streams" / "in this stream" for a share, "under this
+  river’s rule" for an own tier, "in streams" for a zone total printed for one kind of water). "only N" where the kind is
+  held below that total, else "up to N". A kind that is the ONLY kind of that tier at its number names nothing (the header
+  or the tier it is folded into says the whole of it). The `sentence` is the same line with the detail and notes; a kind
+  naming nothing keeps "Of the 2 a day: …". THE TOTAL IS NAMED ONCE IN FULL — on the header ("4 a day per angler across
+  Region 2, lakes included") and the tier lines; a kind line names it SHORT ("your 4 trout and char a day"), never the
+  header's words. The card gate proves the named number (a total/share/own tier the kind sits in). Supersedes ROUND UR7 2
+  ("(part of the 2 from streams)").
+- T127 A POOL THE READER DISPLACED FOR A FISH IS NO CROSS-REFERENCE: `rows.counts_toward` (the pool governs the fish, or
+  holds it as role `contains`) decides `build_model`'s xref facts, `group_of`'s kinds and `total_of` — Perry Creek's
+  brook trout no longer "count toward" the St. Mary's 1 on its tributaries (displaced, own_row); Perry Creek's own "brook
+  trout 20" row is then held by nothing and is a one-kind group of 20 (T80 3) · undo: `A_DISPLACED_POOL_IS_NO_CROSS_REFERENCE`.
