@@ -1,6 +1,6 @@
 # T117 — `may_enter` everywhere: the other walks, and one owner for outlet, code relation and edge type
 
-Status: DONE — 8446c1ff (step 1), b98c3f3a (step 2), 48c6e9a0 (POLICY_VERSION 24); step 1 reach binding diff EMPTY, step 2 diff: 0 rules, 0 unresolved, 1 licensing record (−1 section, explained below). Gauge shed diff reviewed below (ships at deliver). Rebuild: reach + deliver (no atlas).
+Status: DONE — 8446c1ff (step 1), b98c3f3a (step 2), 48c6e9a0 (POLICY_VERSION 24), a4b54933 (adversarial review fix); step 1 reach binding diff EMPTY, step 2 diff: 0 rules, 0 unresolved, 1 licensing record (−1 section, explained below). Gauge shed diff reviewed below (ships at deliver). Rebuild: reach + deliver (no atlas).
 
 Source: owner 2026-10-22 (unify checks that decide the same thing; the motivating case is T90/T102); unification
 audit 2026-10-22, findings reach 2, 3, 4, cross 6, 7, 9, 10 and matching 5 (CONFIRMED in code; leaks PLAUSIBLE, not
@@ -120,6 +120,54 @@ Rebuild: reach + deliver (no atlas). Depends: T102 part B. Size: L. Owner: no.
   0 unexplained, reasons renamed.
 - Rebuild that ships it: reach + deliver (no atlas). The atlas-side conversions (edge filter, lake codes,
   `fwa_exclude`, leaf prune, basins) are the same answer on the live codes and need no atlas rebuild.
+
+## Adversarial review (2026-10-23, lane-T117)
+Read the goal, the diff (3a68fb9f..1330e354), re-ran the measurements, mutated the key behaviour.
+
+**Defect found and fixed (a4b54933):** `subtree` kept only HALF of the code ruling. It refused a code run's
+divide (`CODE_DIVIDE`, the step-2 change) but never took the run from its own lake (`tributaries_of_reach`
+does, `via=RUN`), so a run piece was in NO subtree: refused from the basin it flows into, never added from
+the lake that owns it. Live proof (graph check on the atlas, read-only): `355996084:17` (North Tsuniah Creek,
+FWA 1100) is the whole run of `lake:329079861`, a headwater lake with no inflows whose main outlet is
+`356340376:0` (North Tsuniah Creek, Tsuniah code). Before the fix `subtree({356340376:0})` lacked it; now it
+holds it. Brittany Creek's subtree (mouth `356356416:0`) is 193 nodes vs `graph.ancestors`' 194 — it loses
+exactly the run piece and its lake, both coded to Tsuniah. `subtree` now follows runs from every non-mouth
+node it reaches, each piece through `may_enter(via=RUN)`.
+- **Reach rerun** (snapshot of a4b54933, scratch, deleted after the diff): digest `81e726a3e6fbad3b` =
+  reaches/full; `binding_diff`: 0 rules, 0 unresolved, 1 licensing — the same single record as step 2
+  (`r5:chilko_river@5-5::chilko_river` −`355996084:17`, explained above; no rule walks Tsuniah's run by a
+  subtree). No outcome changed by the fix, so POLICY_VERSION stays 24. Diff JSON:
+  scratchpad `reach-T117adv.json`.
+- Builder's numbers re-read: step-2 diff JSON (1 licensing record, 1 section) and the graph check
+  (453 firing lake edges, 1 disagreement: Burnaby Lake → Brunette River) match the ticket. Shed diff JSON
+  matches (108,430 → 108,406; 307 lost / 283 gained; 24 sections lose every gauge). One wording fix: the
+  "barrier 9, code_divide 8, bigger_river 1" are refusals counted AT the lost sections (18 of 24); the
+  other 6 are lost because they sit above a refused one.
+
+**Tests that passed for the wrong reason / gaps, now pinned** (each mutation run and seen to fail):
+- The shed's walk DOWN must not ask `may_enter` (going down its own river every step is "a bigger river"
+  by order). No test failed when the switch was applied to both directions →
+  `test_the_gauge_shed_walk_down_is_not_a_tributary_step` (mutation `if forward and SHED_…` →
+  `if SHED_…` fails it).
+- `subtree` without its run block → `test_subtree_keeps_both_halves_of_the_code_ruling` fails.
+- M6 claimed "both readers" of `lake_main_outlet` but tested only the order guard's; `code_runs` keeping
+  its own copy → `test_code_runs_reads_lake_main_outlet_too` fails.
+- The "no walk climbs by its own rules" pin only checked the walks it LISTED. New
+  `test_every_reader_of_up_adj_outside_the_walk_is_classified`: every production function outside
+  tributaries.py that reads `up_adj` (30 of them: graph build/prune, placement by measure, one-level
+  exports, the climbs) is classified with why; adding `graph.up_adj` to an unlisted function fails it.
+- Mutations re-run that the existing tests DO catch: no code divide in `may_enter`; `_is_main_outlet`
+  always true; `code_runs` with no main outlet; no main-flow tie-break; own water asked off the boundary;
+  a run piece judged by order; `wsc.relation` without the dash guard; an empty parent read as "yes".
+
+**Looked for and not found:** a missed prefix/slice of a code (remaining `split("-")` sites are CU keys,
+management units and dates); integer edge-type literals; another tributary climb (every `up_adj` reader
+classified above).
+
+**Left (minor, not fixed):** `added_streams.build_dataset`'s senior-code test changed meaning for an EMPTY
+anchor code (old `tw.startswith("")` was True and could pin a stream to an empty code; now it is not a
+senior). Not measured — the added-streams dataset is regenerated by hand; check its diff the next time it
+is rebuilt.
 
 ## Owner questions
 - **1150 (secondary flow in a wetland)** is neither main flow nor a side channel for the gauge panels.

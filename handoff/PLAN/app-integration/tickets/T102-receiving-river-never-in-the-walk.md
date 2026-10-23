@@ -78,6 +78,19 @@ Rebuild: reach + deliver, no atlas.
   `binding_diff`: 0 rules, 0 unresolved, 0 licensing changed. Pure refactor, POLICY_VERSION unchanged.
 - Rebuild: none for part B on its own (no binding moves); ships with T117's reach + deliver.
 
+## Adversarial review — part B (2026-10-23, lane-T117)
+- Re-derived the old walk against `may_enter` question by question: the step, the boundary ("river
+  continuing" / passing through), own water, the code run and the seed all ask what they asked before.
+  Two deliberate differences, both harmless and stated: a seed now also meets `CODE_DIVIDE` (it never did),
+  and a seed's order guard follows `guarded` (only tests pass False). Builder's T102B diff (empty) re-read.
+- The defect found was in T117's use of `may_enter` (`subtree` refused a code run's divide but never took
+  the run from its own lake) — fixed in a4b54933, reach rerun digest unchanged, see T117 "Adversarial
+  review". Part B's own tests were mutated (no code divide, own water off the boundary, a run piece judged
+  by order, the main-outlet tie-break) and each failed the named test.
+- `REASONS == T.REFUSALS + (…)` in the sweep test pins the vocabulary, not behaviour; the behaviour pin is
+  `test_each_stop_the_walk_makes_on_purpose_explains_a_miss_and_nothing_else_does` (now with
+  `receiving_river`).
+
 ## Owner questions
 - (from part A, still open) Equal watershed codes: the order guard decides (28,359 equal-code edges of
   the live graph it refuses are floodplain pieces). Default built: unchanged — order decides where WSC is
