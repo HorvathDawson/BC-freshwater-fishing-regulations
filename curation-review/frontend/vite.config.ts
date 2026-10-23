@@ -11,9 +11,11 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
-    // Bind BOTH stacks. Vite's default `localhost` resolves to ::1 on macOS, so the
-    // `http://127.0.0.1:5173` that run.sh prints was refusing the connection.
-    host: true,
+    // LOOPBACK ONLY, IPv4 (T96). `true` bound every interface, so anyone on the network could
+    // reach the editor; `false` (Vite's `localhost`) resolves to ::1 on macOS and refuses the
+    // `http://127.0.0.1:5173` run.sh prints. The backend's CORS admits exactly this origin.
+    host: "127.0.0.1",
+    strictPort: true,
     proxy: {
       "/api": {
         target: API,

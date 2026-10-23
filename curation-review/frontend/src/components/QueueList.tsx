@@ -24,8 +24,8 @@ export function QueueList({ rows, selected, loading, onSelect }: Props) {
     );
   /* The two jobs, kept apart. A regional rule is checked against a REGION CHAPTER and binds
      to every stream in its region; a water row is checked against a table row and binds to one
-     water. Interleaved by name they read as one undifferentiated list, and the 117 regional
-     entries — the ones the parser has never seen — disappear into 1,032 rows. */
+     water. Interleaved by name they read as one undifferentiated list, and the 132 regional
+     entries — the ones the parser has never seen — disappear into 1,393 water rows (2026-10-22). */
   let lastKind: string | undefined;
   return (
     <div className="queue">

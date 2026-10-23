@@ -13,15 +13,17 @@ answer an angler gets — to correct what is wrong, and to mark each entry verif
 bash curation-review/run.sh          # backend :8787 + frontend :5173, Ctrl-C stops both
 ```
 
-Then open **http://localhost:5173**. Local only — no LLM calls, no credits.
+Then open **http://127.0.0.1:5173**. Local only — no LLM calls, no credits. Both servers bind
+127.0.0.1 only (Vite `host: "127.0.0.1"`, uvicorn `--host 127.0.0.1`), and the backend's CORS admits only the
+Vite origin: the tool is not reachable from another machine.
 
-The build it serves is `GENERATED.build()` (`data/generated/atlas/full`); `reuse.py` and the in-app
-rebuild button both read it, so repointing the app at another build is a config edit, not a code
-change.
+The build it serves is `GENERATED.build()` (`data/generated/atlas/full`); `reuse.py` reads it, so
+repointing the app at another build is a config edit, not a code change.
 
-The in-app rebuild button builds a side atlas (`<build>_next`) and never touches the build it is
-serving; **Promote** (`POST /api/rebuild/promote`) makes it the served build by rename, keeping the
-old one as `<build>.prev`. The app's caches drop themselves when the served files change.
+**No endpoint starts a process.** The app never builds or promotes an atlas (T96: an 18-minute,
+9 GB build outside `scripts/heavy.sh` sat beside the review buttons). Split edits are applied by a
+side-atlas build the owner runs from a terminal (`python -m pipeline build --atlas`, then `--promote`, through `scripts/heavy.sh`);
+the app's caches drop themselves when the served files change.
 
 ---
 
@@ -48,7 +50,7 @@ entries before that page's table rows. Each entry has a bar at the top:
   the to-do list. The file does not exist until the first mark.
 - The **review** filter lists to do / never verified / changed since verified / flagged /
   verified, with counts; the bar beside it is progress (region, and the whole corpus).
-- An entry opens by URL: `http://localhost:5173/#r5:dean_river@5-9`.
+- An entry opens by URL: `http://127.0.0.1:5173/#r5:dean_river@5-9`.
 
 On each entry the reviewer sees: the book (the row crop, and **show page** for the whole printed
 page — open by default for a region-chapter entry, which has no row crop; page numbers link to the
@@ -56,11 +58,9 @@ repo's PDF at the right PDF page, since `source_pages` are PRINTED numbers and t
 by 2-6); every rule's generated label, quote, `review_reason`, not-yet-mapped part and unresolved
 place; **where each rule binds** — the reach builder's answer for the entry as saved, with what it
 decided (tributary walk, `rest` of the water, tidal water removed, confluence cuts, straddling
-pieces, ambiguous cuts, region clips); and **What an angler is told** — `read.effective_rules`
-on a chosen water piece, date and fish, plus every licensing record and where it binds, read
-from the live bundle (`data/generated/bundle/bundle.sqlite`). The bundle reflects the last bundle
-build: when its copy of the entry differs from the file (a label, or a rule's section count), the
-panel says so and lists the rules.
+pieces, ambiguous cuts, region clips). The "What an angler is told" panel was removed (T96): it
+was a debug table of reader rows, not the app page, and it opened on the wrong water; Phase 3 of
+`handoff/PLAN/curation-review/PLAN.md` puts the app's own page there. Its endpoints (below) remain.
 
 ## What the curator does per entry
 
@@ -84,8 +84,8 @@ it (`pipeline/regs/parsing/ingest_catalogue.py`). Git is the record of who chang
 |---|---|---|
 | Entries (read **and write**) | `data/curated/regulations/entries/catalogue/region-*.json` | the review surface |
 | Registry (read) | `data/generated/atlas/full/registry.json` | item identity, **`boundaries`** (the bindable splits), `variants`, `mus`, `section_ids` |
-| Geometry (read) | `data/generated/atlas/full/graph.gpkg` | streams, split points, lakes, areas — served as GeoJSON for the map |
-| Splits (read **and write**) | `data/curated/waters/splits.json` | the split editor; a rebuild applies it |
+| Geometry (read) | `data/generated/atlas/full/graph.pkl`, `geometries.pkl`, `waterbody_polys.pkl` | streams, split points, lakes, areas — served as GeoJSON for the map |
+| Splits (read **and write**) | `data/curated/waters/splits.json` | the split editor; a rebuild run from a terminal applies it |
 
 **Write model:** `reuse.save_entry` validates the edited entry through
 `pipeline.regs.parsing.catalogue.CatalogueEntry` plus a split-id check against the item's boundaries,

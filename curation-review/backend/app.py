@@ -17,12 +17,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
-import rebuild
 import reuse
 
 app = FastAPI(title="Curation Review")
+#: THE ONLY ORIGIN THE BROWSER MAY CALL FROM: the Vite dev server, which binds 127.0.0.1 only
+#: (`frontend/vite.config.ts`). It proxies `/api`, so the app itself never needs CORS; this is what
+#: stops another page the reviewer has open from reading or writing the catalogue (T96: it was `*`).
+VITE_ORIGIN = "http://127.0.0.1:5173"
 app.add_middleware(
-    CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"],
+    CORSMiddleware, allow_origins=[VITE_ORIGIN], allow_methods=["GET", "PUT", "POST", "DELETE"],
+    allow_headers=["Content-Type"],
 )
 
 
@@ -301,26 +305,6 @@ def synopsis_page_image(printed: int):
     return Response(png, media_type="image/png")
 
 
-@app.post("/api/rebuild")
-def start_rebuild():
-    """Kick off the full graph rebuild (pipeline.atlas.build --full) in the background. CPU-only, no credits.
-    Bakes splits.json edits into the graph; on success the reuse caches drop so every item refreshes.
-    Idempotent while one is running (returns the in-flight status)."""
-    return rebuild.MANAGER.start()
-
-
-@app.post("/api/rebuild/promote")
-def promote_rebuild():
-    """Make the finished `<build>_next` the served build (rename; the old one is kept as
-    `<build>.prev`), after `pipeline.tools.build_parity` has reported the change. The served atlas is
-    never rebuilt in place: its handle table is what the shipped artifacts key sections by."""
-    return rebuild.MANAGER.promote()
-
-
-@app.get("/api/rebuild/status")
-def rebuild_status():
-    """Progress of the current/last rebuild: status, elapsed, per-stage checklist, tail of the log."""
-    return rebuild.MANAGER.snapshot()
 
 
 @app.get("/basemap/bc.pmtiles")

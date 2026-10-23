@@ -17,7 +17,7 @@
       "_name": "Eve River"
      },
      "note": "",
-     "_note": "[auto-proposal L] Hwy 19 bridge over Adam River on Adam River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 19 bridge over Adam River (Sayward area) on a map; single obvious crossing -> review.. Reach is 'upstream of Eve River (confluence) to the Hwy 19 bridge'. Adam River drains to Johnstone Strait near Sayward; Hwy 19 crosses it in the lower river. Public-highway bridge, not in FWA/FSR data -> map/OSM-confirmable. The Eve River endpoint is a separate confluence locator. — [review: two-boundary] 'upstream of Eve River, to Hwy 19 bridge' = TWO boundaries (Eve River confluence + Hwy 19 bridge); may need -a/-b rows per the two-boundary writing rule. [structural-split 2026-08-05 from “upstream of Eve River, to Hwy 19 bridge”] boundary=upstream of Eve River [human-review 2026-08-05 FWA-confluence] mouth of Eve River on mainstem (0 m validated); target blk/wsc set.",
+     "_note": "[review: two-boundary] 'upstream of Eve River, to Hwy 19 bridge' = TWO boundaries (Eve River confluence + Hwy 19 bridge); may need -a/-b rows per the two-boundary writing rule. [structural-split 2026-08-05 from “upstream of Eve River, to Hwy 19 bridge”] boundary=upstream of Eve River [human-review 2026-08-05 FWA-confluence] mouth of Eve River on mainstem (0 m validated); target blk/wsc set. [T96 2026-10-22] the Hwy 19 bridge auto-proposal text that sat here is the bridge's (adam_river__hwy_19_bridge).",
      "_coord": [
       -126.24626,
       50.43788

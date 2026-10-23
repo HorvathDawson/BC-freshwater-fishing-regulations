@@ -433,7 +433,9 @@ export interface Boundary {
   meta?: Record<string, unknown> | null; // AS-BUILT split metadata (anchor_type, route_measure, blk, …)
   in_graph?: boolean; // baked into the current graph build
   in_splits?: boolean; // present in the live splits.json source
-  live?: { label?: string; kind?: string; anchor?: unknown; note?: string } | null; // live splits.json values
+  live?: {
+    label?: string; kind?: string; anchor?: unknown; note?: string; review?: SplitReview;
+  } | null; // live splits.json values
 }
 
 export interface SpeciesOption {
@@ -656,24 +658,10 @@ export interface GeoJSON {
   _todo?: string;
 }
 
-// ---- Graph rebuild (pipeline.atlas.build --full, run as a background subprocess) ----
-
-export interface RebuildStage {
-  label: string;
-  done: boolean;
-  seconds: number | null;
-}
-
-export interface RebuildStatus {
-  status: "idle" | "running" | "done" | "error";
-  elapsed_s: number;
-  current: string;
-  stages: RebuildStage[];
-  n_done: number;
-  n_total: number;
-  returncode: number | null;
-  error: string;
-  /** the finished `<build>_next` has been promoted to the served build (POST /api/rebuild/promote) */
-  promoted: boolean;
-  log_tail: string[];
+/** What the curator left on a cut-point (`reuse.split_review`): its `_note` — how it was placed and
+ *  what is still to verify — and the auto-proposal grade the note opens with (`L` low, `M`, `H`),
+ *  null when the cut is not an open auto-proposal. */
+export interface SplitReview {
+  note: string;
+  grade: "L" | "M" | "H" | null;
 }

@@ -19,6 +19,7 @@ import copy
 import json
 import math
 import os
+import re
 import shutil
 import tempfile
 import threading
@@ -50,9 +51,8 @@ _ROOT = Path(__file__).resolve().parents[2]
 #: — the API tests and a headless click-through run against a temp copy, never the real files.
 ENTRIES_DIR = (Path(os.environ["CURATION_ENTRIES_DIR"]) if os.environ.get("CURATION_ENTRIES_DIR")
                else CURATED.regulations.entries.catalogue)
-# The build the app SERVES. `project_config.review_build_dir` is the one name for it, shared with
-# rebuild.py (which writes this same directory) — see config.yaml `generated.atlas.default_build`. Hard-coding
-# it here meant the app could serve a build months older than the pipeline and say nothing: every
+# The build the app SERVES. `project_config.review_build_dir` is the one name for it — see
+# config.yaml `generated.atlas.default_build`. Hard-coding it here meant the app could serve a build months older than the pipeline and say nothing: every
 # reach still renders, just against a stale graph, so a reviewer signs off on the wrong water.
 _BUILD = GENERATED.build()
 REGISTRY_PATH = _BUILD / "registry.json"
@@ -171,8 +171,8 @@ def split_meta(split_id: str) -> dict:
 
 def invalidate_caches() -> None:
     """Drop EVERY cache derived from the served build (and the bundle), so the next request reads
-    the artifacts on disk now. Called after a promote (`rebuild.promote`), and by `ensure_fresh`
-    whenever the build's files change under the app — a rebuild run outside it, from a terminal.
+    the artifacts on disk now. Called by `ensure_fresh` whenever the build's files change under the
+    app — a promote or a rebuild run from a terminal (the app starts neither).
     The species list, row-image index, projection and FWA lake outlines come from static source, not
     the build, so they are left warm.
 
@@ -469,7 +469,7 @@ def bindable(item) -> list[dict]:
         if not sid:
             continue
         live = {"label": sp.get("label"), "kind": sp.get("kind"),
-                "anchor": sp.get("anchor"), "note": sp.get("note")}
+                "anchor": sp.get("anchor"), "note": sp.get("note"), "review": split_review(sp)}
         if sid in out:
             out[sid]["in_splits"] = True
             out[sid]["live"] = live
@@ -849,7 +849,7 @@ def entry_kind(e: dict) -> str:
 def entry_status(e: dict, item: dict | None) -> str:
     """One coarse status for the queue ordering/badge."""
     # A zone entry has no water to match, so `no_registry` is not a finding about it — it is
-    # the definition of it. Saying otherwise put 117 correct entries at the top of the queue.
+    # the definition of it. Saying otherwise put all 132 at the top of the queue.
     if entry_kind(e) == "zone":
         return "flagged" if _flagged(e) else "zone"
     if item is None:              # `matched` names no item this build has: it binds nothing
@@ -866,7 +866,7 @@ _STATUS_ORDER = {"no_registry": 0, "flagged": 1, "unused_splits": 2, "unreviewed
 
 
 #: Zone first. A regional rule binds to EVERY stream in its region — one of them is 160,000
-#: section-bindings where a water row is a few dozen — and none of the 117 has ever been
+#: section-bindings where a water row is a few dozen — and none of the 132 has ever been
 #: through the parser or the agent review pass: they were transcribed by hand from the region
 #: chapters. Highest leverage, least verified, so they lead. `kind=water` filters them out
 #: when the job is the water tables.
@@ -1505,8 +1505,9 @@ def item_geojson(item_id: str) -> dict:
 # Editing splits.json (the hand-curated split source of truth)
 # --------------------------------------------------------------------------- #
 # splits.json is now hand-curated directly (waterbody-splits.json + build_splits are gone). Edits here
-# write it in place; they take effect only after a graph rebuild (pipeline.atlas.build --full — CPU only, no
-# credits), because splits are baked into the graph's section boundaries.
+# write it in place; they take effect only after an atlas rebuild the owner runs from a terminal
+# (`python -m pipeline build --atlas`, through scripts/heavy.sh — the app starts no process), because
+# splits are baked into the graph's section boundaries.
 
 _SPLIT_EDITABLE = {"label", "note", "kind", "anchor"}
 
@@ -1555,12 +1556,28 @@ def split_errors(data: dict, touched: set[str]) -> list[str]:
     return errs
 
 
+_AUTO_PROPOSAL = re.compile(r"^\[auto-proposal ([A-Z])\]")
+
+
+def split_review(sp: dict) -> dict:
+    """WHAT THE CURATOR LEFT ON A CUT-POINT: its `_note` (the history of how it was placed, and
+    what is still to verify) and the auto-proposal GRADE that note opens with — `[auto-proposal L]`
+    is a low-confidence machine placement nobody has confirmed. The tool used to send neither, so a
+    reviewer saw a confident cut where the file said "Verify: …" (T96). `grade` is None for a cut
+    that is not an open auto-proposal; only a LEADING tag counts (a later one is history)."""
+    note = str(sp.get("_note") or "")
+    m = _AUTO_PROPOSAL.match(note)
+    return {"note": note, "grade": m.group(1) if m else None}
+
+
 def get_split(split_id: str) -> dict | None:
-    """The raw editable split record from splits.json + which waterbody it's under."""
+    """The raw editable split record from splits.json + which waterbody it's under, and its
+    `review` (`split_review`)."""
     for wb in _load_splits().get("waterbodies", []):
         for sp in wb.get("splits", []):
             if sp.get("id") == split_id:
-                return {"split": sp, "waterbody": wb.get("name"), "applies_to": wb.get("applies_to")}
+                return {"split": sp, "waterbody": wb.get("name"), "applies_to": wb.get("applies_to"),
+                        "review": split_review(sp)}
     return None
 
 

@@ -13,11 +13,11 @@ import type {
   GeoJSON,
   ItemSearchResult,
   QueueRow,
-  RebuildStatus,
   RegionSummary,
   SaveResult,
   SpeciesOption,
   SplitRef,
+  SplitReview,
   Status,
   RuleResolved,
   Answer,
@@ -143,9 +143,11 @@ export const api = {
   save: (entryId: string, region: string, entry: Entry) =>
     writeEntry(`/api/entries/${encodeURIComponent(entryId)}`, { region, entry }),
 
-  // --- splits.json editing (needs a graph rebuild to take effect) ---
+  // --- splits.json editing (an atlas rebuild run from a terminal applies it) ---
   getSplit: (splitId: string) =>
-    getJSON<{ split: Record<string, unknown>; waterbody: string; applies_to: unknown }>(
+    getJSON<{
+      split: Record<string, unknown>; waterbody: string; applies_to: unknown; review: SplitReview;
+    }>(
       `/api/splits/${encodeURIComponent(splitId)}`,
     ),
 
@@ -204,23 +206,6 @@ export const api = {
     }
     if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
     return await res.json();
-  },
-
-  // --- graph rebuild (pipeline.atlas.build --full; CPU-only, no credits) ---
-  startRebuild: async (): Promise<RebuildStatus> => {
-    const res = await fetch("/api/rebuild", { method: "POST" });
-    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-    return (await res.json()) as RebuildStatus;
-  },
-
-  rebuildStatus: () => getJSON<RebuildStatus>("/api/rebuild/status"),
-
-  /** Make the finished `<build>_next` the served build (rename; the old one is kept as `.prev`).
-   *  The build itself never touches the served atlas: its handle table is what ships. */
-  promoteRebuild: async (): Promise<{ ok: boolean; error?: string }> => {
-    const res = await fetch("/api/rebuild/promote", { method: "POST" });
-    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-    return (await res.json()) as { ok: boolean; error?: string };
   },
 
   // --- review marks (a sidecar keyed by entry_id + content hash; never inside the entry) ---

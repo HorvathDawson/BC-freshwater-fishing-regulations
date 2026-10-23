@@ -4,4 +4,4 @@ set -euo pipefail
 ROOT="$(git rev-parse --show-toplevel)"
 cd "$ROOT/curation-review/backend"          # so `import reuse` resolves (hyphenated dir can't be a package)
 export PYTHONPATH="$ROOT"                    # so `import pipeline...` resolves
-exec "$ROOT/.venv/bin/uvicorn" app:app --reload --port "${PORT:-8787}"
+exec "$ROOT/.venv/bin/uvicorn" app:app --reload --host 127.0.0.1 --port "${PORT:-8787}"

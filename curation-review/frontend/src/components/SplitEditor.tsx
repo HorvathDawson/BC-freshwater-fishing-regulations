@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { api, type ValidationError } from "../api";
-import type { SplitRef } from "../types";
+import type { SplitRef, SplitReview } from "../types";
 
 interface Props {
   splitId: string;
@@ -8,11 +8,13 @@ interface Props {
   onPreviewPoint?: (pt: { lon: number; lat: number } | null) => void; // "show on map" for point splits
 }
 
-// Edit a curated split in pipeline/splits.json (label / note / anchor / id). splits.json is the
-// hand-curated source of truth; edits take effect after a graph rebuild (pipeline.build --full, no credits).
+// Edit a curated split in data/curated/waters/splits.json (label / note / anchor / id). splits.json is
+// the hand-curated source of truth; edits take effect after an atlas rebuild the owner runs from a
+// terminal (`python -m pipeline build --atlas`, through scripts/heavy.sh) — the app starts no process.
 export function SplitEditor({ splitId, onChanged, onPreviewPoint }: Props) {
   const [raw, setRaw] = useState<Record<string, unknown> | null>(null); // current splits.json record
   const [waterbody, setWaterbody] = useState("");
+  const [review, setReview] = useState<SplitReview | null>(null); // the curator's `_note` + grade
   const [label, setLabel] = useState("");
   const [note, setNote] = useState("");
   const [isPoint, setIsPoint] = useState(false);
@@ -35,6 +37,7 @@ export function SplitEditor({ splitId, onChanged, onPreviewPoint }: Props) {
         const s = d.split as Record<string, unknown>;
         setRaw(s);
         setWaterbody(d.waterbody ?? "");
+        setReview(d.review ?? null);
         setLabel(String(s.label ?? ""));
         setNote(String(s.note ?? ""));
         const a = (s.anchor ?? {}) as Record<string, unknown>;
@@ -100,7 +103,7 @@ export function SplitEditor({ splitId, onChanged, onPreviewPoint }: Props) {
         patch.anchor = a;
       }
       await api.saveSplit(splitId, patch);
-      setMsg("saved to splits.json — rebuild (pipeline.build --full) to apply");
+      setMsg("saved to splits.json — an atlas rebuild run from a terminal applies it");
       load();
       onChanged?.();
     } catch (e) {
@@ -150,6 +153,19 @@ export function SplitEditor({ splitId, onChanged, onPreviewPoint }: Props) {
       <div className="dim" style={{ marginBottom: 6 }}>
         id: <code>{splitId}</code> — kind <code>{String(raw?.kind ?? "?")}</code>
       </div>
+
+      {/* The curator's own record of this cut: an open auto-proposal is a machine placement nobody
+          has confirmed — say so before the reviewer trusts it. */}
+      {review && (review.grade || review.note) && (
+        <div className={"split-review" + (review.grade ? " proposal" : "")}>
+          {review.grade && (
+            <div className="split-review-grade">
+              auto-proposal, grade <strong>{review.grade}</strong> — not yet confirmed on a map
+            </div>
+          )}
+          {review.note && <div className="split-review-note">{review.note}</div>}
+        </div>
+      )}
 
       <label className="fld"><span>label</span>
         <input value={label} onChange={(e) => setLabel(e.target.value)} /></label>
@@ -203,7 +219,8 @@ export function SplitEditor({ splitId, onChanged, onPreviewPoint }: Props) {
       {errs.length > 0 && <div className="errors">{errs.map((e, i) => <div key={i}>{e}</div>)}</div>}
       {msg && <div className="rebuild-note">⚠ {msg}</div>}
       <div className="dim" style={{ marginTop: 4 }}>
-        Edits change splits.json (source of truth); the map/boundaries update after a graph rebuild.
+        Edits change splits.json (source of truth); the map/boundaries update after an atlas rebuild run
+        from a terminal.
       </div>
     </div>
   );

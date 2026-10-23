@@ -50,7 +50,7 @@ def env(request, tmp_path_factory):
     # every save backs its file up first (`writes.py`) — into a temp dir, never data/generated
     mp.setenv("CURATION_BACKUP_DIR", str(tmp_path_factory.mktemp("backups")))
     mp.syspath_prepend(str(BACKEND))
-    for mod in ("app", "reuse", "model_api", "rebuild", "verification", "answer",
+    for mod in ("app", "reuse", "model_api", "verification", "answer",
                 "synopsis_pages", "writes"):
         sys.modules.pop(mod, None)
     import app as app_mod                                     # noqa: E402

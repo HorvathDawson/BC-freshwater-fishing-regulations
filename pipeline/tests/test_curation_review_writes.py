@@ -25,7 +25,7 @@ from pipeline.common.curated import CURATED
 
 REPO = Path(__file__).resolve().parents[2]
 BACKEND = REPO / "curation-review" / "backend"
-_MODS = ("app", "reuse", "model_api", "rebuild", "verification", "answer", "synopsis_pages",
+_MODS = ("app", "reuse", "model_api", "verification", "answer", "synopsis_pages",
          "writes")
 
 

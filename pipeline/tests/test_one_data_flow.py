@@ -77,11 +77,15 @@ def test_the_bundle_derives_neither_tidal_nor_outside_nor_homes_nor_stems_twice(
     assert "attach_from(" in (curation / "reuse.py").read_text()
 
 
-def test_the_review_app_builds_beside_the_served_atlas_and_promotes_explicitly():
-    text = (REPO_ROOT / "curation-review/backend/rebuild.py").read_text()
-    assert "GENERATED.build()" not in text.split("_CMD")[1].split("]")[0]
-    assert "_next" in text and "def promote" in text
-    assert "/api/rebuild/promote" in (REPO_ROOT / "curation-review/backend/app.py").read_text()
+def test_the_review_app_neither_builds_nor_promotes_an_atlas():
+    """T96: the app's rebuild/promote endpoints are gone — an atlas is built beside the served one
+    and promoted only from a terminal (`pipeline.atlas.promote`, through scripts/heavy.sh). The
+    whole safety check (no route, no process-spawning import) is `test_curation_review_safety`."""
+    backend = REPO_ROOT / "curation-review" / "backend"
+    assert not (backend / "rebuild.py").exists()
+    for p in sorted(backend.glob("*.py")):
+        text = p.read_text()
+        assert "/api/rebuild" not in text and "pipeline.atlas.build" not in text, p.name
 
 
 def test_the_tiles_carry_only_what_is_read():

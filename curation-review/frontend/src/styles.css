@@ -476,6 +476,25 @@ body {
   border-color: #fca5a5;
   color: #991b1b;
 }
+.split-review {
+  border: 1px solid var(--line, #ddd);
+  border-radius: 4px;
+  padding: 6px 8px;
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+.split-review.proposal {
+  background: var(--warn-bg, #fef3c7);
+  border-color: #f59e0b;
+}
+.split-review-grade {
+  margin-bottom: 4px;
+}
+.split-review-note {
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--muted);
+}
 .rebuild-note {
   background: var(--warn-bg, #fef3c7);
   border: 1px solid #f59e0b;
@@ -956,108 +975,6 @@ button.btn:disabled {
 }
 .dim {
   color: var(--muted);
-}
-
-/* ---- rebuild graph button + progress panel ---- */
-.rebuild {
-  position: relative;
-  display: inline-flex;
-}
-button.btn.rebuild-running {
-  border-color: var(--accent);
-  color: var(--accent);
-  font-weight: 600;
-}
-.rebuild-panel {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  z-index: 50;
-  width: 340px;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
-  padding: 12px;
-}
-.rebuild-panel-head {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-.rebuild-panel-head strong {
-  flex: 1;
-  font-size: 13px;
-}
-.rebuild-panel-head .x {
-  border: none;
-  background: none;
-  cursor: pointer;
-  font-size: 16px;
-  line-height: 1;
-  color: var(--muted);
-  padding: 0 2px;
-}
-.rebuild-bar {
-  height: 6px;
-  border-radius: 4px;
-  background: #e5e7eb;
-  overflow: hidden;
-  margin-bottom: 8px;
-}
-.rebuild-bar-fill {
-  height: 100%;
-  background: var(--accent);
-  transition: width 0.4s ease;
-}
-.rebuild-bar-fill.ok {
-  background: var(--ok-border);
-}
-.rebuild-bar-fill.err {
-  background: var(--danger-border);
-}
-.rebuild-current {
-  font-size: 12px;
-  margin-bottom: 8px;
-}
-.rebuild-stages {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  font-size: 12px;
-}
-.rebuild-stages li {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 2px 0;
-  color: var(--muted);
-}
-.rebuild-stages li.done {
-  color: var(--text);
-}
-.rebuild-stages li.active {
-  color: var(--accent);
-  font-weight: 600;
-}
-.rebuild-stages .tick {
-  width: 12px;
-  display: inline-block;
-  text-align: center;
-}
-.rebuild-log {
-  margin-top: 8px;
-  max-height: 120px;
-  overflow: auto;
-  font-size: 11px;
-  line-height: 1.4;
-  background: #0b0f14;
-  color: #cbd5e1;
-  border-radius: 6px;
-  padding: 8px;
-  white-space: pre-wrap;
-  word-break: break-word;
 }
 
 /* The queue is two jobs — regional chapters and water tables. This is the seam. */

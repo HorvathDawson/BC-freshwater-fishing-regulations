@@ -13,7 +13,7 @@ bash curation-review/backend/run.sh          # serves http://127.0.0.1:8787
 # 2. In another terminal, start the frontend:
 cd curation-review/frontend
 npm install
-npm run dev                                    # http://localhost:5173
+npm run dev                                    # http://127.0.0.1:5173 (loopback only)
 ```
 
 The Vite dev server proxies `/api/*` to the backend, so the app calls relative URLs.

@@ -293,11 +293,16 @@ Serves `data/bc.pmtiles`, honouring HTTP Range requests (the pmtiles protocol ne
 
 ## Editing splits.json
 
-These write the hand-curated split source. **A graph rebuild is required for any of them to take
-effect** — until then the map still shows the as-built geometry.
+These write the hand-curated split source, `data/curated/waters/splits.json`. **An atlas rebuild,
+run by the owner from a terminal (`python -m pipeline build --atlas`, through
+`scripts/heavy.sh`), is required for any of them to take effect** — until then the map still shows
+the as-built geometry. No endpoint starts a process.
 
 ### GET /api/splits/{split_id}
-→ `{ "split": {...}, "waterbody": "CHILLIWACK RIVER", "applies_to": {...} }` · 404 if not in splits.json.
+→ `{ "split": {...}, "waterbody": "CHILLIWACK RIVER", "applies_to": {...}, "review": {"note": "…",
+"grade": "L" | "M" | "H" | null} }` · 404 if not in splits.json. `review` is the curator's `_note`
+and the auto-proposal grade it opens with (`[auto-proposal L]`), null when the cut is not an open
+auto-proposal (`reuse.split_review`). Each bindable boundary's `live` carries the same `review`.
 
 ### PUT /api/splits/{split_id}
 Body `{ "patch": {label?, note?, kind?, anchor?} }` → `{ok, errors}`.
@@ -315,21 +320,6 @@ rewrites every rule that binds it, so a rename never strands a binding.
 
 ---
 
-## Rebuild
-
-### POST /api/rebuild
-Kicks off `pipeline.atlas.build --full --out data/generated/atlas/full --splits pipeline/atlas/splits.json` as a background
-subprocess — CPU-only, **no credits**. Bakes splits.json edits into the section boundaries. Idempotent
-while one is running (returns the in-flight status). On success the backend drops its reuse caches —
-registry, splits.resolved, gpkg split_points, **and the in-memory graph** — so every subsequent request
-serves fresh data and the UI reloads all items.
-
-### GET /api/rebuild/status
-`{status: idle|running|done|error, elapsed_s, current, stages:[{label, done, seconds}], n_done, n_total,
-returncode, error, log_tail[]}`. `stages` mirrors the pipeline's per-stage `[label: Ns]` timing lines,
-in order, for the progress bar. Poll while `running`.
-
----
 
 ### UI must-haves (from the spec)
 - Side-by-side **original `regs_verbatim`** ↔ **parsed rules** (each rule's binding shown human + raw).

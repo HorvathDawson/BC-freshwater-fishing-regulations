@@ -5,7 +5,6 @@ import type {
 } from "../types";
 import { api, type EntryRefused } from "../api";
 import { describeDiagnostic, reachIdentities } from "../format";
-import { AnswerPanel } from "./AnswerPanel";
 import { VerifyBar, type QueueNav } from "./VerifyBar";
 import { ExtentEditor } from "./ExtentEditor";
 import { AttachItem } from "./AttachItem";
@@ -242,6 +241,10 @@ export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0, nav, o
         <div className="detail-content">
       <VerifyBar entryId={entry.entry_id} verification={detail.verification} dirty={dirty}
         nav={nav} onMarked={onMarked} />
+      {/* ERRORS WITH NO FIELD PATH come first (T96): the gate's entry-level refusals — a lift
+          outside what it lifts, a lake cut into parts — name no field, and below the identity
+          block they were missed while the save button refused. */}
+      <div className="entry-errors"><ErrorsAt path="" /></div>
       {/* Identity header */}
       <div className="entry-head">
         <h2>{entry.display_name || entry.name}</h2>
@@ -327,7 +330,6 @@ export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0, nav, o
           <ErrorsAt path="entry_id" /><ErrorsAt path="name" /><ErrorsAt path="display_name" />
           <ErrorsAt path="region" /><ErrorsAt path="symbols" /><ErrorsAt path="source_pages" />
         </details>
-        <ErrorsAt path="" />
       </div>
 
       {/* matched — the items this entry covers. AUTHORITATIVE: empty binds nothing. */}
@@ -605,7 +607,9 @@ export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0, nav, o
         </div>
       </div>
 
-      <AnswerPanel entry={detail.entry} version={detail.entry} verdict={reaches?.verdict} />
+      {/* "What an angler is told" (AnswerPanel) is gone (T96): a debug table of reader rows, not
+          the app page, and it opened on the wrong water. Phase 3 of curation-review/PLAN.md shows
+          the app's own page here; the bundle endpoints (`/api/answer*`) stay for it. */}
 
       {/* Bindable boundaries */}
       <div className="section">

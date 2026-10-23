@@ -7,7 +7,6 @@ import { VocabCtx } from "./model";
 import { FilterBar } from "./components/FilterBar";
 import { QueueList } from "./components/QueueList";
 import { EntryDetail } from "./components/EntryDetail";
-import { RebuildButton } from "./components/RebuildButton";
 
 export default function App() {
   const [regions, setRegions] = useState<RegionSummary[]>([]);
@@ -25,7 +24,8 @@ export default function App() {
   // The model's vocabulary — every option list the editors offer, read off catalogue.py.
   const [vocab, setVocab] = useState<Vocab | null>(null);
   const [error, setError] = useState<string>("");
-  // bumped after a graph rebuild so the map (and anything keyed on it) refetches even for the same item
+  // bumped by refresh so the map (and anything keyed on it) refetches even for the same item — after
+  // an atlas rebuild run from a terminal the backend drops its caches and the geometry is new
   const [reloadKey, setReloadKey] = useState(0);
 
   // Load region summaries + the model vocabulary once.
@@ -106,16 +106,6 @@ export default function App() {
     if (selected) api.entry(selected).then(setDetail).catch(() => {});
   }, [loadRows, selected]);
 
-  // After a graph rebuild: the backend has dropped its caches, so reload every view — region summaries,
-  // the vocabulary, the queue, and the open entry (its boundaries/geometry are now the freshly-built ones).
-  // Bumping reloadKey forces the map to refetch geojson even when the same item stays selected.
-  const onRebuilt = useCallback(() => {
-    loadRows();
-    api.regions().then(setRegions).catch(() => {});
-    api.vocab().then(setVocab).catch(() => {});
-    if (selected) api.entry(selected).then(setDetail).catch(() => {});
-    setReloadKey((k) => k + 1);
-  }, [loadRows, selected]);
 
   return (
     <div className="app">
@@ -137,9 +127,10 @@ export default function App() {
         onRefresh={() => {
           loadRows();
           api.regions().then(setRegions).catch(() => {});
+          api.vocab().then(setVocab).catch(() => {});
           if (selected) api.entry(selected).then(setDetail).catch(() => {});
+          setReloadKey((k) => k + 1);
         }}
-        slot={<RebuildButton onRebuilt={onRebuilt} />}
       />
       {error && (
         <div className="errors" style={{ margin: 8 }}>
