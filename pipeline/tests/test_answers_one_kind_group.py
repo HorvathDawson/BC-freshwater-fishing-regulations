@@ -200,3 +200,73 @@ def test_mutation_without_the_ruling_shipped_waters_keep_other_headless_pools(sh
     if not ({p for ps in after.values() for p in ps} - {Z8_EB, DUNCAN_DV}):
         pytest.skip("the shipped file already carries the ruling's groups: no own-pool row is headless in it")
     assert {p for ps in after.values() for p in ps} - {Z8_EB, DUNCAN_DV}
+
+
+# --------------------------------------------------------------------------------------------
+# The answers MODEL (model.py) knows the shape: the real build validates every rows frame
+# (`encode.encode` -> `model.validate_section`), which the tests above never ran — they passed while
+# `pipeline.deliver all` stopped on "a group is a total several kinds share, or one with a sub-cap".
+# --------------------------------------------------------------------------------------------
+
+def _validate_rows(model):
+    """The build's own check, as `encode.encode` calls it: every distinct rows frame against its model."""
+    from pipeline.deliver.answers.model import validate_section
+    return validate_section("rows", (v for vals in model.sections["rows"] for v in vals),
+                            model.statics.get("rows"))
+
+
+@pytest.mark.needs_bundle
+def test_the_rows_frames_of_the_t80_waters_pass_the_model(built):
+    """klmb's rainbow, Tranquille's rainbow, Bow Lake's brook trout (and the rest of WATERS): what `rows.produce` makes
+    is what `model.RowsFrame` accepts — a divergence between rows.py and model.py fails here, not in the deliver."""
+    _, model = built
+    assert _validate_rows(model) > 0
+
+
+def _one_kind_frame(data, model):
+    """klmb Oct 10's frame (a copy) and the index of its rainbow row, whose group is the one-kind trout/char shape."""
+    import copy
+    card = copy.deepcopy(_card(model, KLMB, (10, 10)))
+    i = next(i for i, r in enumerate(card["rows"])
+             if r["pool"] is not None and data["rule_ids"][r["pool"]] == KLMB_RB)
+    assert (card["rows"][i]["group"]["kinds"], card["rows"][i]["group"]["subcaps"]) == (["RB"], [])
+    return card, i
+
+
+def _check(frame):
+    from pipeline.deliver.answers.model import validate_section
+    return validate_section("rows", [frame])
+
+
+@pytest.mark.needs_bundle
+def test_the_one_kind_trout_group_validates(built):
+    data, model = built
+    card, _ = _one_kind_frame(data, model)
+    assert _check(card) == 1
+
+
+@pytest.mark.needs_bundle
+def test_mutation_a_one_kind_group_of_a_fish_not_trout_or_char_is_refused(built):
+    """MUTATION: the same frame with its rainbow turned into crayfish everywhere its row names it (the row and its group)
+    — every other check of the group and the frame still holds, so only the one-kind rule can refuse it."""
+    import json
+    from pipeline.deliver.answers.model import ShapeError
+    data, model = built
+    card, i = _one_kind_frame(data, model)
+    assert '"CRA"' not in json.dumps(card["rows"][i])
+    card["rows"][i] = json.loads(json.dumps(card["rows"][i]).replace('"RB"', '"CRA"'))
+    with pytest.raises(ShapeError, match="several kinds share"):
+        _check(card)
+
+
+@pytest.mark.needs_bundle
+def test_mutation_a_one_kind_trout_group_on_another_rules_pool_is_refused(built):
+    """MUTATION: the group's pool moved to a rule no row of the frame pools rainbow under (the crayfish row's pool) — a
+    one-kind group is valid only as its own row's total (not Duncan River's DV inside Region 4's 5), so it is refused."""
+    from pipeline.deliver.answers.model import ShapeError
+    data, model = built
+    card, i = _one_kind_frame(data, model)
+    other = next(r["pool"] for r in card["rows"] if r["pool"] is not None and "RB" not in r["members"])
+    card["rows"][i]["group"]["pool"] = other
+    with pytest.raises(ShapeError, match="its own row's pool"):
+        _check(card)

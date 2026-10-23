@@ -890,7 +890,13 @@ Q23, T3a, P8.
   number —, every kind on the card counting toward it (steelhead stay in the trout/char group), each
   count or size clause of it holding some of them here, the kinds a water's own rule LIFTS out of a
   clause (they still count toward the total), and one sentence. A slot ("none between 36 and 44 cm")
-  is no sub-cap; a size clause another makes redundant on the card is not said twice. Vedder (mouth
+  is no sub-cap; a size clause another makes redundant on the card is not said twice. A group is a
+  total several kinds share, or one with a sub-cap — or (T80 3, 2026-10-22, `rows.
+  A_TROUT_CHAR_TOTAL_OF_ONE_KIND_IS_A_GROUP`) a total of ONE trout/char kind (`common.trout_char()`) with
+  no sub-cap that is its row's OWN pool, not limited to a kind of water (Kootenay Lake — Main Body's
+  rainbow 10, Tranquille's rainbow, Region 7's brook trout lakes): the model refuses every other one-kind
+  group (`GroupTotal._shares` for the fish, `RowsFrame._one_kind_groups` for the pool — some row of the
+  frame pools that kind under the group's pool). Vedder (mouth
   part), Oct 10: "Up to 4 trout and char a day, steelhead included; at most 2 from streams (hatchery
   rainbow trout 50 cm or less excepted); at most 1 Dolly Varden/bull trout or lake trout; at most 2
   over 50 cm; at most 1 over 50 cm, not counting steelhead." and "Kept 2 on another stream? Keep 0

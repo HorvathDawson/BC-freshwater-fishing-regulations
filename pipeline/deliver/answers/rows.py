@@ -1833,7 +1833,7 @@ A_TROUT_CHAR_TOTAL_OF_ONE_KIND_IS_A_GROUP = True
 
 
 def _trout_char() -> frozenset:
-    return dict(common._closed_groups())["TROUT_CHAR"]
+    return common.trout_char()                          # the model (model.py) accepts by the same predicate
 
 
 def raise_of(grp: dict, s: dict) -> Optional[dict]:

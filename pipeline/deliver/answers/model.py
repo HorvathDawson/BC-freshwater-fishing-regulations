@@ -944,7 +944,9 @@ class GroupTotal(Model):
 
     @model_validator(mode="after")
     def _shares(self):
-        if len(self.kinds) < 2 and not self.subcaps:
+        # T80 3 (rows.A_TROUT_CHAR_TOTAL_OF_ONE_KIND_IS_A_GROUP): a total of ONE trout/char kind with no sub-cap is a
+        # group too — only as its row's own pool, which the frame checks (`RowsFrame._one_kind_groups`)
+        if self.one_kind() and not set(self.kinds) <= _trout_char():
             raise ValueError("a group is a total several kinds share, or one with a sub-cap")
         for s in self.subcaps:
             if not set(s.of) <= set(self.kinds) or any(not set(L.members) <= set(self.kinds)
@@ -978,6 +980,15 @@ class GroupTotal(Model):
         if len(ids) != len(set(ids)) or not set(refs) <= set(ids):
             raise ValueError("tier ids are unique and every reference names one")
         return self
+
+    def one_kind(self) -> bool:
+        # a total of one kind with no sub-cap: valid only as a trout/char row's own pool (T80 3)
+        return len(self.kinds) < 2 and not self.subcaps
+
+
+def _trout_char() -> frozenset:
+    from pipeline.deliver.answers.common import trout_char   # the predicate rows.group_of makes the group by
+    return trout_char()
 
 
 class Elsewhere(Model):
@@ -1138,6 +1149,20 @@ class RowsFrame(Model):
                 continue
             if r.parent == i or r.parent >= len(self.rows) or self.rows[r.parent].pool is None:
                 raise ValueError(f"row {i}'s `parent` {r.parent} is not another pooled row of the frame")
+        return self
+
+    @model_validator(mode="after")
+    def _one_kind_groups(self):
+        # T80 3: a one-kind trout/char group (no sub-cap) is its kind's OWN row's total — some row of the frame pools
+        # that kind under the group's pool. A one-kind row inside another rule's total (Duncan River's DV inside
+        # Region 4's 5) is no group: "5" over one kind that can never reach it.
+        for i, r in enumerate(self.rows):
+            g = r.group
+            if g is None or not g.one_kind():
+                continue
+            if not any(o.pool == g.pool and set(g.kinds) <= set(o.members) for o in self.rows):
+                raise ValueError(f"row {i}'s one-kind group (pool {g.pool}) is not its own row's pool: a group is a "
+                                 f"total several kinds share, or one with a sub-cap, or a trout/char row's own total")
         return self
 
 

@@ -487,6 +487,13 @@ def _closed_groups() -> Tuple[Tuple[str, frozenset], ...]:
     return tuple(out)
 
 
+def trout_char() -> frozenset:
+    """The TROUT_CHAR closed group's members: the ONE predicate behind T80 3's one-kind group (a trout/char total of
+    one kind with no sub-cap is a group on its own row) — `rows.group_of` makes it, `model.GroupTotal` / `RowsFrame`
+    accept it."""
+    return dict(_closed_groups())["TROUT_CHAR"]
+
+
 def group_for(codes: Sequence[str]) -> Optional[str]:
     """The closed group whose members are exactly these fish, by name ("Trout and char")."""
     s = set(codes)
