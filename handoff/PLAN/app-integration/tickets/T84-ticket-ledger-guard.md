@@ -1,6 +1,6 @@
 # T84 — Ticket-ledger guard (audit N3)
 
-Status: OPEN.
+Status: DONE — 4ee2030f. `app/tools/check-tickets.mjs` (`pnpm tickets`, first step of `pnpm check`) + `app/tools/check-tickets.test.ts` (11 tests: green on the real ledger, mutation-fails on a removed row, a removed/pushed-down Status line, a removed file, an unticketed commit T-number, DONE without a hash, a duplicated row/unknown status). Commit subjects are scanned only from the commit that began the tickets folder (older "T3a" is another plan). Deliberately NOT checked: ledger status == file status (a lane closes its file before the merger updates the row). Merger: set the T84 ledger row to DONE / 4ee2030f.
 
 Source: owner 2026-10-22: tickets are the sole source of future work. Nothing checks that the ledger stays whole.
 
