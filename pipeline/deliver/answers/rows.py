@@ -2062,8 +2062,11 @@ def parent_of(rows: Sequence[dict], i: int) -> Optional[int]:
     """rows 31 (owner rule 2026-10-21; page v36 parentRow): THE POOL ROW THAT HOLDS A POOLED ROW — of the stored rows
     (`produce`'s, in card order), the first other pooled row holding every fish of row `i` (among its `all_members`,
     or in one of its fact groups) whose facts cross-reference one of them (an `xref` fact: the other pool counts
-    them, decision F4). The card draws no article for such a row: its fish are said inside that pool's; None for
-    every other row (and every row with no pool)."""
+    them, decision F4); else (T139, `A_ROW_HELD_BY_ITS_TOTALS_GROUP`) the row that carries the group of row `i`'s
+    total where that total is ANOTHER rule's (`total`: `total_of`'s key; `draws`: the totals whose group a row
+    carries, `produce`'s `home`) — that group's kinds are row `i`'s fish too, and its article says them. The card
+    draws no article for such a row: its fish are said inside that pool's; None for every other row (and every row
+    with no pool)."""
     o = rows[i]
     if not o.get("pool"):
         return None
@@ -2075,7 +2078,22 @@ def parent_of(rows: Sequence[dict], i: int) -> Optional[int]:
         if holds and any(l["t"] == "xref" and any(S in g["members"] for S in M)
                          for g in r["groups"] for l in g["facts"]):
             return j
+    T = o.get("total")
+    if A_ROW_HELD_BY_ITS_TOTALS_GROUP and T is not None and T != o["pool"]:
+        return next((j for j, r in enumerate(rows) if j != i and r.get("pool") and T in (r.get("draws") or ())),
+                    None)
     return None
+
+
+#: T139 (2026-10-23): a pooled row whose total is ANOTHER rule's, carried as a group on another row, is held by that
+#: row. Beattie Lake (r7, in the Liard River watershed, wbk:329665706): the reader lets the Liard's "bull trout 1
+#: (30-50 cm)" displace the lake's "trout 1" for bull trout, and both count toward Zone B's 5 (`contains`), whose group
+#: sits on the lake's trout row and already says the bull trout (the bucket "LIARD RIVER WATERSHED's rule: Dolly
+#: Varden/bull trout, 30-50 cm, 1, counts toward the 5 a day"). Until T127 the bull trout row was held through the lake
+#: row's cross-reference of a pool the reader DISPLACED; T127 rightly removed that cross-reference, and the row was
+#: left pooled, groupless and unheld — drawn nowhere (core `keep.ts`), a duplicate of the group's bucket. False only in
+#: the mutation pin (test_answers_one_kind_group.py).
+A_ROW_HELD_BY_ITS_TOTALS_GROUP = True
 
 
 def produce(P: Part) -> dict:
@@ -2100,7 +2118,10 @@ def produce(P: Part) -> dict:
     # by another pool is drawn inside that pool's article, never as its own (`A_ONE_KIND_GROUP_ONLY_ON_A_DRAWN_ROW`)
     stubs = [{"pool": row["pool"].key if row.get("pool") else None, "members": list(row["members"]),
               "all_members": list(row["allMembers"]),
-              "groups": [{"members": g["members"], "facts": [fact_out(l) for l in g["facts"]]} for g in row["groups"]]}
+              "groups": [{"members": g["members"], "facts": [fact_out(l) for l in g["facts"]]} for g in row["groups"]],
+              # T139: the row's total, and the totals whose group it carries (`parent_of`'s second hold)
+              "total": totals[id(row)].key if id(row) in totals else None,
+              "draws": [k for k, h in home.items() if h == id(row)]}
              for row in model["rows"]]
     parents = {i: p for i in range(len(stubs)) if (p := parent_of(stubs, i)) is not None}
     own_row = {T.key for i, row in enumerate(model["rows"]) if (T := totals.get(id(row))) is not None

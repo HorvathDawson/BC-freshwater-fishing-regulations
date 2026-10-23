@@ -132,7 +132,9 @@ page's (or the prototype's) own rule, and the app only reads it:
 * **`rows[].scope.narrow_all`** (`rows.scope_of`; page v36 `narrowAll`): the row's narrowing clause binds every one of its
   fish — the same test `elsewhere_of` asks. With `share` the badge says "All Region 2 streams", else "Region 2-wide".
 * **`rows[].parent`** (`rows.parent_of`; page v36 `parentRow`): the index of the pooled row whose pool holds this pooled
-  row's fish and cross-references them (an `xref` fact). The card draws no section for such a row. Absent elsewhere.
+  row's fish and cross-references them (an `xref` fact); else (T139) the row carrying the group of this row's total,
+  where that total is another rule's (Beattie Lake's Liard bull trout row inside Zone B's 5, whose group sits on the
+  lake's trout row and says the bull trout). The card draws no section for such a row. Absent elsewhere.
 * **A deciding record-it rule is a duty** (`rows.stored_role`; page v36 `ladderHtml`): a rule with `record_retention`
   holding a deciding role (`display.WINS`) is stored in `rows_decided.roles` as `duty`, so "How this was decided" lists it
   under "Other rules" with its "Record it" tag (Kootenay Lake's "Write each rainbow trout over 50 cm (20 in) on your

@@ -360,3 +360,73 @@ def test_mutation_a_one_kind_trout_group_on_a_held_row_is_refused_by_the_model(b
     card["rows"][i]["parent"] = next(j for j, r in enumerate(card["rows"]) if j != i and r["pool"] is not None)
     with pytest.raises(ShapeError, match="held by another pool"):
         _check(card)
+
+
+# --------------------------------------------------------------------------------------------
+# T139 (2026-10-23): a third headless pool on the shipped file — Beattie Lake (r7 7-57, in the Liard River watershed).
+# The reader lets the Liard's "bull trout 1 (none under 30 cm or over 50 cm)" (liard_river_watershed.r2) displace the
+# lake's "trout 1 (none over 50 cm)" for bull trout; both count toward Zone B's 5 (z7b trout_char_quota.r1, `contains`),
+# whose group sits on the lake's trout row and already says the bull trout in a bucket of the Liard's rule. Until T127
+# the bull trout row was held through the lake row's cross-reference of the DISPLACED lake pool; T127 removed that
+# cross-reference (rightly) and the row was left pooled, groupless and unheld — drawn nowhere. Not a third open shape:
+# the Duncan shape is a row whose total has NO other row to sit on; here it has one. Fixed at the cause:
+# `rows.parent_of`'s second hold (`A_ROW_HELD_BY_ITS_TOTALS_GROUP`).
+# --------------------------------------------------------------------------------------------
+
+BEATTIE = "wbk:329665706"
+BEATTIE_TROUT = "r7:beattie_lake@7-57::beattie_lake.r2"
+LIARD_DV = "r7:liard_river_watershed_see_map_on_page_63@7-53::liard_river_watershed.r2"
+Z7B_TOTAL = "z7b:trout_char_quota::trout_char_quota.r1"
+LIARD_BUCKET = "LIARD RIVER WATERSHED (see map on page 63)’s rule"
+
+
+@pytest.fixture(scope="module")
+def beattie(request):
+    need(request, "bundle", BUNDLE, BUNDLE_HINT)
+    need(request, "bundle", EXPORT_DIR / "ui-rules-export.json", EXPORT_HINT)
+    data, _ = C.load_export(EXPORT_DIR)
+    model = A.build(BUNDLE, EXPORT_DIR, workers=1, items=[BEATTIE], sections=["rows", "ladder"], log=lambda *_: None)
+    return data, model
+
+
+def _beattie(data, card):
+    """(the bull trout row: members, its holder's pool, its group), (the holder's group: pool, total, kinds,
+    headline), the holder group's Liard bucket."""
+    dv = _row(data, card, LIARD_DV)
+    holder = card["rows"][dv["parent"]] if dv.get("parent") is not None else None
+    g = (holder or {}).get("group") or {}
+    bucket = next(({"title": b["title"], "cap": b["cap"], "by": data["rule_ids"][b["by"]],
+                    "kinds": [(k["species"], k["detail"], k["n"], k["notes"]) for k in b["kinds"]]}
+                   for b in g.get("buckets") or () if b["title"] == LIARD_BUCKET), None)
+    return ((dv["members"], holder and data["rule_ids"][holder["pool"]], dv.get("group")),
+            (g.get("pool") is not None and data["rule_ids"][g["pool"]], g.get("total"), g.get("kinds"),
+             (g.get("headline") or {}).get("says")),
+            bucket)
+
+
+@pytest.mark.needs_bundle
+def test_beattie_lake_bull_trout_row_is_held_by_the_zone_b_group_that_says_it(beattie):
+    """Jun 15 and Oct 25 (bull trout kept): the bull trout row is held by the lake's trout row, whose Zone B group
+    counts the bull trout (2 a day: the lake's 1 trout + the Liard's 1 bull trout, inside Zone B's 5) and says it in the
+    Liard's bucket. Sep 1 (bull trout released, Aug 15-Oct 15): no bull trout keep row. The card gate: 0 problems."""
+    data, model = beattie
+    for md, kinds in (((6, 15), ["EB", "GB", "CT", "DV", "LT", "RB"]), ((10, 25), ["EB", "GB", "CT", "DV", "RB"])):
+        assert _beattie(data, _card(model, BEATTIE, md)) == (
+            (["DV"], BEATTIE_TROUT, None),
+            (Z7B_TOTAL, 5, kinds, "2 a day per angler"),
+            {"title": LIARD_BUCKET, "cap": 1, "by": LIARD_DV,
+             "kinds": [(["DV"], "30–50 cm", 1, ["counts toward the 5 a day"])]}), md
+    sep = _card(model, BEATTIE, (9, 1))
+    assert not any(r["pool"] is not None and data["rule_ids"][r["pool"]] == LIARD_DV for r in sep["rows"])
+    assert _gate(model, [BEATTIE]) == []
+
+
+@pytest.mark.needs_bundle
+def test_mutation_without_the_totals_group_hold_beattie_bull_trout_is_headless(beattie, monkeypatch):
+    """MUTATION (`A_ROW_HELD_BY_ITS_TOTALS_GROUP = False`): the bull trout row is unheld and groupless again — the
+    headless pool the shipped file carried (T139), so the first test's holder pool is None and fails."""
+    data, _ = beattie
+    monkeypatch.setattr(RW, "A_ROW_HELD_BY_ITS_TOTALS_GROUP", False)
+    model = A.build(BUNDLE, EXPORT_DIR, workers=1, items=[BEATTIE], sections=["rows"], log=lambda *_: None)
+    dv = _row(data, _card(model, BEATTIE, (6, 15)), LIARD_DV)
+    assert (dv["members"], dv.get("parent"), dv.get("group")) == (["DV"], None, None)

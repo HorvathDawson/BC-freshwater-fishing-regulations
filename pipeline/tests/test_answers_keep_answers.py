@@ -98,6 +98,35 @@ def test_3_parent_is_the_first_other_pool_holding_and_cross_referencing_the_rows
     assert RW.parent_of([_row(1, ["CT"], ["CT", "RB"], groups=[(["RB"], ["xref"])]), rb], 1) == 0
 
 
+def _held(pool, members, total, draws=()):
+    return {**_row(pool, members), "total": total, "draws": list(draws)}
+
+
+def test_3_t139_a_row_whose_total_is_another_rules_is_held_by_the_row_carrying_that_totals_group():
+    """T139 (Beattie Lake): the lake's trout row (pool `lake`, total Zone B's `zone`, which it carries as a group) and
+    the Liard's bull trout row (pool `liard`, total `zone` too, no cross-reference anywhere): the bull trout row is held
+    by the trout row. MUTATION `A_ROW_HELD_BY_ITS_TOTALS_GROUP = False` fails the first assert ([None, None, None])."""
+    trout = _held("lake", ["CT", "EB", "RB"], "zone", draws=["zone"])
+    dv = _held("liard", ["DV"], "zone")
+    ko = _held("ko", ["KO"], "ko", draws=["ko"])
+    assert [RW.parent_of([trout, dv, ko], i) for i in range(3)] == [None, 0, None]
+    # a row whose total is its own pool is never held this way (it carries its own group)
+    assert RW.parent_of([_held("zone", ["CT"], "zone", draws=["zone"]), _held("dv", ["DV"], "dv")], 1) is None
+    # nor where no other row carries the total (Duncan River's DV on Crazy Creek when the rest is released: open)
+    assert RW.parent_of([_held("duncan", ["DV"], "zone", draws=["zone"]), _held("ko", ["KO"], "ko")], 0) is None
+    # the cross-reference hold comes first
+    assert RW.parent_of([_held("a", ["CT"], "zone", draws=["zone"]),
+                         {**_held("b", ["CT"], "b"), "groups": [{"members": ["DV"], "facts": [{"t": "xref"}]}],
+                          "all_members": ["CT", "DV"]},
+                         dv], 2) == 1
+
+
+def test_3_t139_mutation_without_the_second_hold_the_bull_trout_row_is_unheld(monkeypatch):
+    monkeypatch.setattr(RW, "A_ROW_HELD_BY_ITS_TOTALS_GROUP", False)
+    trout = _held("lake", ["CT", "EB", "RB"], "zone", draws=["zone"])
+    assert [RW.parent_of([trout, _held("liard", ["DV"], "zone")], i) for i in range(2)] == [None, None]
+
+
 def test_3_the_rows_model_holds_parent_to_another_pooled_row():
     base = {"kind": "release", "pool": None, "win": 5, "members": ["DV"], "all_members": ["DV"], "daily": None,
             "narrow": None, "everyone": [], "groups": [], "prot": None, "wins": None, "lift_notes": [], "scope": None,

@@ -1078,8 +1078,9 @@ class Row(Model):
     #: ROUND14 5). Every row has one.
     year: Tuple[YearRun, ...] = Field(min_length=1)
     #: rows 31 (owner rule 2026-10-21, page v36 parentRow): the index, in this frame's `rows`, of the pooled row whose
-    #: pool holds this pooled row's fish (it cross-references them: an `xref` fact) — the card draws no article for
-    #: this row; absent on every other row (`rows.parent_of`)
+    #: pool holds this pooled row's fish (it cross-references them: an `xref` fact; or, T139, it carries the group of
+    #: this row's total, another rule's) — the card draws no article for this row; absent on every other row
+    #: (`rows.parent_of`)
     parent: Optional[Annotated[StrictInt, Field(ge=0)]] = None
     #: rows 32 (owner rule 2026-10-21; the prototype's round UR7 stampsFor on an Other fish row): the licence documents
     #: the row's fish need by its answer (`stamps.row_stamps`); absent where none
