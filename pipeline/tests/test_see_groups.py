@@ -138,7 +138,23 @@ def test_only_a_row_that_only_points_is_a_group_and_a_twin_is_none(corpus):
     assert "r5:squirrel_lake@6-1" not in eids               # the same row printed in Region 5's table: a twin
     # a zone table's note is no water's name ("Main body of Kootenay Lake" would answer a search for "Main")
     assert "z4:kootenay_annual" not in eids and all(e.startswith("r") for e in eids)
-    assert (len(eids), len(rows)) == (45, 51)
+    assert (len(eids), len(rows)) == (44, 50)
+
+
+def test_one_pointer_printed_in_two_regions_is_one_way_in(corpus):
+    """T80 (T56 review): Regions 5 and 7 both print "Blackwater River: see West Road River" — one name, one water;
+    search showed it twice. The first row (by entry id) carries it; no two rows say the same name for the same water."""
+    rows = RULES.see_pointer_rows(corpus)
+    assert [r for r in rows if r[1] == "Blackwater River"] == [
+        ("r5:blackwater_river@5-13", "Blackwater River", 0, "r5:west_road_blackwater_river@5-12+5-13",
+         "West Road River", "gnis:26104")]
+    assert len({(r[1], r[4], r[5]) for r in rows}) == len(rows)
+
+
+def test_mutation_without_the_cross_row_check_blackwater_is_said_twice(corpus, monkeypatch):
+    monkeypatch.setattr(RULES, "ONE_WAY_IN_ACROSS_ROWS", False)
+    assert [r[0] for r in RULES.see_pointer_rows(corpus) if r[1] == "Blackwater River"] == [
+        "r5:blackwater_river@5-13", "r7:blackwater_river@7-10"]
 
 
 def _line(corpus, eid):

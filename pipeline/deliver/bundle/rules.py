@@ -1002,13 +1002,15 @@ def see_pointer_rows(entries: dict) -> list[tuple]:
     and draws no line; what it gives a reader is the way to the waters it names. One row per named
     entry, in the pointer's order: (entry_id, name, ix, target_entry, target_name, item_id) — both
     names the book's (`see_name`), `item_id` the target row's first matched water (what opening it
-    opens; NULL when it matched none). A TWIN ("the same row printed in another region's table") is
-    no group: it names its own water under its own name, so it is left out. Only a WATER row (`r…`)
+    opens; NULL when it matched none). The same name to the same water from two rows (two regions'
+    copies of one pointer) is said once (`ONE_WAY_IN_ACROSS_ROWS`). A TWIN ("the same row printed in
+    another region's table") is no group: it names its own water under its own name, so it is left out. Only a WATER row (`r…`)
     is a name a reader looks up: a zone table's note ("Main body of Kootenay Lake") is none. Two named
     rows that are one water under one name (the Wigwam River's two rows, for Bighorn Creek) are one
     way in, not two identical ones."""
     from pipeline.regs.parsing.catalogue import see_relation
     out: list[tuple] = []
+    across: set = set()
     for eid, ce in sorted(entries.items()):
         if not ce.pointer_only or not eid.startswith("r"):
             continue
@@ -1019,12 +1021,18 @@ def see_pointer_rows(entries: dict) -> list[tuple]:
                 continue
             for te in targets:
                 way = (see_name(te), te.matched[0] if te.matched else None)
-                if way in said:
+                if way in said or (ONE_WAY_IN_ACROSS_ROWS and (see_name(ce),) + way in across):
                     continue
                 said.add(way)
+                across.add((see_name(ce),) + way)
                 out.append((eid, see_name(ce), ix, te.entry_id) + way)
                 ix += 1
     return out
+
+
+#: T80 (T56 review): ONE POINTER PRINTED IN TWO REGIONS IS ONE WAY IN. Regions 5 and 7 both print "Blackwater River:
+#: see West Road River" — the same name to the same water, which search listed twice. The first row by entry id says it.
+ONE_WAY_IN_ACROSS_ROWS = True
 
 
 def regions_of_waters(registry, docs) -> dict[str, frozenset[str]]:
