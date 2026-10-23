@@ -318,7 +318,7 @@ describe("the style adapter (platform-free: one implementation, tested for what 
     for (const theme of ["light", "dark", "cvd"]) {
       const tk = resolveTheme(theme);
       const s = runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles" } as never, theme, {});
-      const casing = s.layers.find((l: { id: string }) => l.id === SELECTION_CASING) as { paint: Record<string, unknown> };
+      const casing = s.layers.find((l: { id: string }) => l.id === SELECTION_CASING) as unknown as { paint: Record<string, unknown> };
       expect([theme, casing.paint["line-color"], casing.paint["line-opacity"]]).toEqual([theme, tk["color.highlight"], shown]);
     }
     expect([SELECTION_CASING, SELECTION_RINGS.lake, SELECTION_RINGS.wetland].map((id) =>

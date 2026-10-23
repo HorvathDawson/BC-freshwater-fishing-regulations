@@ -148,7 +148,7 @@ describe("setting the lake's mode paints its outline (both adapters, the contrac
 
 describe("the first frame: runtimeStyle paints the outline from the lake's mode", () => {
   const edgeColour = (theme: string, modes: Record<string, string>) =>
-    (runtimeStyle(AT, theme, modes).layers.find((l) => (l as { id: string }).id === "lake__edge") as
+    (runtimeStyle(AT, theme, modes).layers.find((l) => (l as { id: string }).id === "lake__edge") as unknown as
       { paint: Record<string, unknown> }).paint["line-color"];
 
   it("status, stocked, depth and plain, light and dark", () => {
