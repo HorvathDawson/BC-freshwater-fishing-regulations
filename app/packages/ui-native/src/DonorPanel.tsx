@@ -327,8 +327,8 @@ function HorizonHeader({ palette, chips, onPick }: {
                             borderRadius: palette.r.pill, borderWidth: 1,
                             borderColor: h.on ? palette.accent : palette.line2,
                             backgroundColor: h.on ? palette.accent : "transparent" }}>
-          <Text style={{ ...TYPE.metaBold, color: h.on ? palette.onAccent : palette.ink }}>
-            {h.chip}
+          <Text style={{ ...TYPE.metaBold, color: h.on ? palette.onAccent : h.note ? palette.sub : palette.ink }}>
+            {h.chip}{h.note ? <Text style={{ ...TYPE.meta, color: palette.sub }}>{` · ${h.note}`}</Text> : null}
           </Text>
         </Pressable>
       ))}

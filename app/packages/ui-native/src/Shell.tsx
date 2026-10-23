@@ -25,7 +25,7 @@ import { routeWhere, spotPins, spotsMenu, useLayerChoice, useLikeVisit, useMapRa
          type Locate } from "@app/ui";
 import { useConditionsColour, useDataFacts, useGaugeGeoJSON, useSync, useLakeColour, lakeModesReady, lakeValuesCarried,
          NO_SEARCH, searchStep, type SearchAction, type SearchMemory, useSearchSession, usePairing, useRegulationKeys,
-         useStatusIndex, statusFeed, useHorizon, flowHorizon, horizonChips, tapOpensWater, useImageryReach, type Horizon, type PairingInput,
+         useStatusIndex, statusFeed, useHorizon, useHorizonPick, flowHorizon, horizonChips, tapOpensWater, useImageryReach, type Horizon, type PairingInput,
          type StatusSource } from "@app/ui";
 import type { LikeStore, Spot, WeatherSource } from "@app/data/spots";
 import { FIELD_HANDOVER_Z, hiddenLayers, shownLayers,
@@ -348,11 +348,13 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   /** What the Conditions view shows — ONE quantity, the registry's Show (`effective.show`): map, gauges and chart. */
   const flowParam: FlowParam = layers.effective.show;
   // THE HORIZON THIS QUANTITY CAN ANSWER (T52): Change is flow only, so under Level it answers as Now while the choice is
-  // kept; and its chip is offered under Flow alone.
+  // kept; its chip stays under Level greyed "Flow only", and a tap on it moves to Flow (T130, `pickDay`).
   const horizon = flowHorizon(hz.horizon, flowParam);
-  const horizonChipsShown = useMemo(() => horizonChips(horizon, flowParam), [horizon, flowParam]);
+  const horizonChipsShown = useMemo(() => horizonChips(hz.horizon, flowParam), [hz.horizon, flowParam]);
   // the panel's chart quantity control sets the same choice (a Level chart is the Level map)
   const setFlowParam = useCallback((q: FlowParam) => setLayerChoice((c) => chooseShow(c, q)), []);
+  // EVERY horizon control picks through this: Change under Level moves the map to Flow first (`pickHorizon`)
+  const pickDay = useHorizonPick(hz.pick, flowParam, setFlowParam);
   const onChooseLayer = useCallback((id: string) =>
     setLayerChoice((c) => chooseLayer(c, id, { carries: carried, online: imagery.up })),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -628,7 +630,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                          from={frame.at}
                          feed={feed}
                          credits={credits} horizon={horizon}
-                         onHorizon={hz.pick} />
+                         onHorizon={pickDay} />
       // the water Map is a named water's (the reducer never puts an unnamed reach on it: `frameViews`)
       : frame.view === "map" && item !== null
         ? <WaterMap source={source} item={item} palette={palette}>
@@ -742,7 +744,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                      // The forecast horizons, on the Conditions tab (owner 2026-10-20, after
                      // P16 removed them). Temperature has no forecast, so it gets none. The
                      // SAME state the panel header sets — see `hz` above.
-                     horizons={mm.horizonsShown ? { chips: horizonChipsShown, onPick: hz.pick } : undefined}
+                     horizons={mm.horizonsShown ? { chips: horizonChipsShown, onPick: pickDay } : undefined}
                      // LAYERS ON BOTH MAPS (owner 2026-10-22): on Conditions the sheet is that map's own —
                      // Show (Flow · Level · Temperature), the ground, gauges and arrows — never the Map tab's
                      onLayers={() => setLayersOpen(true)}

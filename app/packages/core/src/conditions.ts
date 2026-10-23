@@ -78,6 +78,15 @@ function horizonLabel(d: Horizon): HorizonLabel {
 export const HORIZON_LABELS: Readonly<Record<Horizon, HorizonLabel>> =
   Object.fromEntries(HORIZONS.map((d) => [d, horizonLabel(d)])) as Record<Horizon, HorizonLabel>;
 
+/**
+ * THE CHANGE CHIP OUTSIDE FLOW (T130): kept, greyed, with this note under it — Change is flow only (the publisher writes
+ * no change in level), and a tap moves the map to Flow. Its screen-reader name says both.
+ */
+export const CHANGE_NEEDS_FLOW = {
+  note: "Flow only",
+  accessible: `${HORIZON_LABELS.change.accessible}. Flow only: a tap shows Flow`,
+} as const;
+
 /** The chip's screen-reader name, saying which one is on. */
 export function horizonChipLabel(d: Horizon, on: boolean): string {
   return HORIZON_LABELS[d].accessible + (on ? ", showing" : "");

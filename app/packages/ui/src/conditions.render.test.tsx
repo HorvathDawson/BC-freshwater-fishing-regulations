@@ -52,12 +52,12 @@ describe("donorView", () => {
       ok: false, heading: "NO ESTIMATE",
       reason: "No forecast for the gauges here reaches this far ahead.",
       horizons: [
-        { day: 0, chip: "Now", label: "Conditions now", on: false },
-        { day: 1, chip: "+1d", label: "Forecast 1 day ahead", on: false },
-        { day: 3, chip: "+3d", label: "Forecast 3 days ahead", on: false },
-        { day: 5, chip: "+5d", label: "Forecast 5 days ahead", on: false },
-        { day: 10, chip: "+10d", label: "Forecast 10 days ahead, showing", on: true },
-        { day: "change", chip: "Change", label: "Expected change over the next 10 days", on: false },
+        { day: 0, chip: "Now", label: "Conditions now", on: false, note: null, needs: null },
+        { day: 1, chip: "+1d", label: "Forecast 1 day ahead", on: false, note: null, needs: null },
+        { day: 3, chip: "+3d", label: "Forecast 3 days ahead", on: false, note: null, needs: null },
+        { day: 5, chip: "+5d", label: "Forecast 5 days ahead", on: false, note: null, needs: null },
+        { day: 10, chip: "+10d", label: "Forecast 10 days ahead, showing", on: true, note: null, needs: null },
+        { day: "change", chip: "Change", label: "Expected change over the next 10 days", on: false, note: null, needs: null },
       ],
       silent: null,
     });
@@ -82,12 +82,12 @@ describe("donorView", () => {
     if (!vm.ok) throw new Error("expected an estimate");
     expect(vm.headlineSuffix).toBeNull();
     expect(vm.horizons).toEqual([
-      { day: 0, chip: "Now", label: horizonChipLabel(0, true), on: true },
-      { day: 1, chip: "+1d", label: horizonChipLabel(1, false), on: false },
-      { day: 3, chip: "+3d", label: horizonChipLabel(3, false), on: false },
-      { day: 5, chip: "+5d", label: horizonChipLabel(5, false), on: false },
-      { day: 10, chip: "+10d", label: horizonChipLabel(10, false), on: false },
-      { day: "change", chip: "Change", label: horizonChipLabel("change", false), on: false },
+      { day: 0, chip: "Now", label: horizonChipLabel(0, true), on: true, note: null, needs: null },
+      { day: 1, chip: "+1d", label: horizonChipLabel(1, false), on: false, note: null, needs: null },
+      { day: 3, chip: "+3d", label: horizonChipLabel(3, false), on: false, note: null, needs: null },
+      { day: 5, chip: "+5d", label: horizonChipLabel(5, false), on: false, note: null, needs: null },
+      { day: 10, chip: "+10d", label: horizonChipLabel(10, false), on: false, note: null, needs: null },
+      { day: "change", chip: "Change", label: horizonChipLabel("change", false), on: false, note: null, needs: null },
     ]);
   });
 

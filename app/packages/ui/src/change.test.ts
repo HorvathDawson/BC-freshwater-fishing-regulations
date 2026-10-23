@@ -8,7 +8,7 @@ import { describe, expect, it } from "vitest";
 import { answerFrom, buildStandingClasses, sectionStanding, type PanelMember, type SectionId, type StationId } from "@app/data";
 import { codedChange, type RunChange } from "@app/core";
 import { classMarks, pushedStandings, standingValues } from "./conditionsColour";
-import { changeSpark, changeView, donorView, flowHorizon, horizonChips } from "./panel";
+import { changeSpark, changeView, donorView, flowHorizon, horizonChips, pickHorizon } from "./panel";
 import { CHANGE_RAMP_BASE, pushedRoute, rampPosition, toRamp } from "./routeColour";
 
 const st = (s: string) => s as StationId;
@@ -28,13 +28,39 @@ const QUIET = { stations: {
 } } as never;
 
 describe("the Change chip", () => {
-  it("is offered after +10, under Flow only", () => {
-    expect(horizonChips("change", "discharge").map((c) => [c.chip, c.label, c.on])).toEqual([
-      ["Now", "Conditions now", false], ["+1d", "Forecast 1 day ahead", false], ["+3d", "Forecast 3 days ahead", false],
-      ["+5d", "Forecast 5 days ahead", false], ["+10d", "Forecast 10 days ahead", false],
-      ["Change", "Expected change over the next 10 days, showing", true]]);
-    expect(horizonChips(0, "level").map((c) => c.chip)).toEqual(["Now", "+1d", "+3d", "+5d", "+10d"]);
-    expect(horizonChips(0, "temperature").map((c) => c.chip)).toEqual(["Now", "+1d", "+3d", "+5d", "+10d"]);
+  it("is offered after +10, and live under Flow", () => {
+    expect(horizonChips("change", "discharge")).toEqual([
+      { day: 0, chip: "Now", label: "Conditions now", on: false, note: null, needs: null },
+      { day: 1, chip: "+1d", label: "Forecast 1 day ahead", on: false, note: null, needs: null },
+      { day: 3, chip: "+3d", label: "Forecast 3 days ahead", on: false, note: null, needs: null },
+      { day: 5, chip: "+5d", label: "Forecast 5 days ahead", on: false, note: null, needs: null },
+      { day: 10, chip: "+10d", label: "Forecast 10 days ahead", on: false, note: null, needs: null },
+      { day: "change", chip: "Change", label: "Expected change over the next 10 days, showing", on: true,
+        note: null, needs: null }]);
+  });
+
+  /*
+   * T130 (owner 2026-10-22: the Change chip "disappeared"): under Level or Temperature it was DROPPED, and the Show
+   * choice persists, so the chip was simply gone. Now it stays, greyed, saying "Flow only", and a tap moves to Flow.
+   */
+  it("stays under Level and Temperature, greyed: \"Flow only\", and a tap switches to Flow", () => {
+    for (const q of ["level", "temperature"] as const) {
+      const chips = horizonChips("change", q);
+      expect(chips.map((c) => c.chip)).toEqual(["Now", "+1d", "+3d", "+5d", "+10d", "Change"]);
+      expect(chips[5]).toEqual({
+        day: "change", chip: "Change", on: false, note: "Flow only", needs: "discharge",
+        label: "Expected change over the next 10 days. Flow only: a tap shows Flow" });
+      // the chosen day is answered as Now, so Now is the one lit
+      expect(chips.filter((c) => c.on).map((c) => c.day)).toEqual([0]);
+    }
+    expect(horizonChips(3, "level").filter((c) => c.on).map((c) => c.day)).toEqual([3]);
+  });
+
+  it("picks: Change under Level moves to Flow and Change; anything else moves no quantity", () => {
+    expect([pickHorizon("change", "level"), pickHorizon("change", "temperature"), pickHorizon("change", "discharge"),
+            pickHorizon(3, "level"), pickHorizon(0, "temperature")]).toEqual([
+      { horizon: "change", show: "discharge" }, { horizon: "change", show: "discharge" },
+      { horizon: "change", show: null }, { horizon: 3, show: null }, { horizon: 0, show: null }]);
   });
 
   it("answers as Now outside Flow, the choice kept for when Flow returns", () => {
@@ -153,7 +179,8 @@ describe("the donor panel under Change", () => {
     expect(vm.rows.map((r) => r.reads)).toEqual([
       "Expects about 3× today's flow at its highest.", "Expects about 50% more than today's flow at its highest."]);
     expect(vm.horizons.at(-1)).toEqual({ day: "change", chip: "Change",
-                                         label: "Expected change over the next 10 days, showing", on: true });
+                                         label: "Expected change over the next 10 days, showing", on: true,
+                                         note: null, needs: null });
   });
 
   it("out of season: the honest refusal, the chips kept to step back, never steady", () => {

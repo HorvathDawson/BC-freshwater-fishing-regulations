@@ -10,8 +10,10 @@
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { useState } from "react";
 import { Text, View } from "react-native";
-import { useHorizon, useMapModes, type PanelAnswer } from "@app/ui";
+import { flowHorizon, horizonChips, useHorizon, useHorizonPick, useMapModes, type FlowParam,
+         type PanelAnswer } from "@app/ui";
 import { DonorPanel } from "./DonorPanel";
 import { LIGHT } from "./theme";
 
@@ -81,5 +83,34 @@ describe("the map's horizon control and the panel's share one state", () => {
     expect(map().getByLabelText("Conditions now, showing")).toBeTruthy();
     expect(map().getByLabelText("Forecast 3 days ahead")).toBeTruthy();
     expect(screen.getByText("painted at +0")).toBeTruthy();
+  });
+});
+
+/** The Shell's wiring with the Show choice: one quantity state, the chips for it, `useHorizonPick`. */
+function WiredShow({ start }: { start: FlowParam }) {
+  const hz = useHorizon();
+  const [q, setQ] = useState<FlowParam>(start);
+  const pick = useHorizonPick(hz.pick, q, setQ);
+  const chips = horizonChips(hz.horizon, q);
+  return (
+    <View testID="map">
+      <MapScreen at={{ atlas: "a", basemap: "b" } as never} palette={LIGHT} theme="light"
+                 view="plain" camera={{ lon: -122, lat: 49, zoom: 8 } as never}
+                 horizons={{ chips, onPick: pick }} />
+      <Text testID="shown">{`${q} at ${String(flowHorizon(hz.horizon, q))}`}</Text>
+    </View>
+  );
+}
+
+describe("the Change chip under Level (T130)", () => {
+  it("is drawn greyed with \"Flow only\", and a tap moves the map to Flow and Change", () => {
+    render(<WiredShow start="level" />);
+    const chip = map().getByLabelText("Expected change over the next 10 days. Flow only: a tap shows Flow");
+    expect(within(chip).getAllByText(/./).map((t) => t.textContent)).toEqual(["Change", "Flow only"]);
+    expect(screen.getByTestId("shown").textContent).toBe("level at 0");
+    fireEvent.click(chip);
+    expect(screen.getByTestId("shown").textContent).toBe("discharge at change");
+    expect(map().getByLabelText("Expected change over the next 10 days, showing")).toBeTruthy();
+    expect(map().queryByText("Flow only")).toBeNull();
   });
 });

@@ -124,13 +124,20 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
           {horizons.chips.map((h, i) => (
             <Pressable key={h.day} onPress={() => horizons.onPick(h.day)} accessibilityRole="button"
                        accessibilityLabel={h.label} {...HORIZON_HIT}>
-              <View style={{ minWidth: 46, paddingVertical: 8, paddingHorizontal: 10, alignItems: "center",
+              <View style={{ minWidth: 46, paddingVertical: h.note ? 4 : 8, paddingHorizontal: 10,
+                             alignItems: "center", justifyContent: "center",
                              backgroundColor: h.on ? palette.accent : palette.card,
                              borderLeftWidth: i ? 1 : 0, borderLeftColor: palette.line2 }}>
-                <Text style={{ ...TYPE.micro, fontSize: 13, lineHeight: 17, fontWeight: "600",
-                               color: h.on ? palette.onAccent : palette.ink }}>
+                <Text style={{ ...TYPE.micro, fontSize: 13, lineHeight: h.note ? 14 : 17, fontWeight: "600",
+                               color: h.on ? palette.onAccent : h.note ? palette.sub : palette.ink }}>
                   {h.chip}
                 </Text>
+                {/* (T130) a day this quantity does not answer: greyed, with core's note, in about the same height */}
+                {h.note && (
+                  <Text style={{ ...TYPE.micro, fontSize: 10, lineHeight: 11, letterSpacing: 0, color: palette.sub }}>
+                    {h.note}
+                  </Text>
+                )}
               </View>
             </Pressable>
           ))}

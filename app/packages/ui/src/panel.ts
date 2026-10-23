@@ -5,11 +5,11 @@
  * one of them is not a screen (`captureSpot` freezes an answer into a saved spot), so it
  * cannot live behind a hook.
  */
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { answerFrom, basinStandings, sectionStanding, type BasinMember, type DonorRow, type Horizon, type Panel,
          type PanelAnswer, type Parameter, type Quantity, type RegsSource, type SectionId,
          type StationId } from "@app/data";
-import { CHANGE_POLICY, changeDay, changeLine, changeSparkWords, CONDITIONS_WORDS, disagreeNote, donorBecause, isAhead, type RunChange, donorFacts, donorKeyLabel, donorLastReport,
+import { CHANGE_NEEDS_FLOW, CHANGE_POLICY, changeDay, changeLine, changeSparkWords, CONDITIONS_WORDS, disagreeNote, donorBecause, isAhead, type RunChange, donorFacts, donorKeyLabel, donorLastReport,
          donorSilent, gaugeChoiceLabel, donorShare, silentLine,
          donorPinTitle, donorReads, donorReason, donorRowLabel, donorWeightLine,
          estimateHeadline, estimateRange, estimateSentence, freshness, HORIZON_LABELS,
@@ -390,18 +390,59 @@ export interface DonorMapVM {
   words: { fit: string; fitLabel: string; larger: string; smaller: string };
 }
 
-export interface HorizonChipVM { day: Horizon; chip: string; label: string; on: boolean }
+export interface HorizonChipVM {
+  day: Horizon; chip: string; label: string; on: boolean;
+  /** Drawn greyed with this line under the chip (core's words): the day is not answered for this quantity. */
+  note: string | null;
+  /** The quantity a tap moves to first (`pickHorizon`); null: the chip answers as it is. */
+  needs: Parameter | null;
+}
+
+/** Does this day need a quantity other than the one shown? Change is flow only (T52, owner: "never mix flow and level"). */
+const needsFor = (d: Horizon, quantity?: FlowParam): Parameter | null =>
+  d === "change" && quantity !== undefined && quantity !== "discharge" ? "discharge" : null;
 
 /**
  * THE HORIZON CHIPS, for every control that offers them — the map's corner (Conditions tab)
  * and the panel's header. One function over core's HORIZONS and words, so the two controls
  * cannot list different days or name one differently (P16's worry about a second copy).
+ *
+ * THE CHANGE CHIP IS ALWAYS THERE (T130). It is flow only — the publisher writes no change in level — and under Level
+ * or Temperature it was dropped, which with the Show choice remembered read as the chip having vanished. Now it stays,
+ * greyed with core's "Flow only", and a tap moves to Flow (`pickHorizon`). The day lit is the one answered
+ * (`flowHorizon`): Change chosen under Level answers as Now, so Now is lit.
  */
 export function horizonChips(on: Horizon, quantity?: FlowParam): HorizonChipVM[] {
-  // THE CHANGE CHIP IS FLOW ONLY (T52, owner: "never mix flow and level"): the publisher writes no change in level, so
-  // under Level (or Temperature) it is not offered rather than offered and blank.
-  return HORIZONS.filter((d) => d !== "change" || quantity === undefined || quantity === "discharge")
-    .map((d) => ({ day: d, chip: HORIZON_LABELS[d].chip, label: horizonChipLabel(d, d === on), on: d === on }));
+  const lit = quantity === undefined ? on : flowHorizon(on, quantity);
+  return HORIZONS.map((d) => {
+    const needs = needsFor(d, quantity);
+    return needs
+      ? { day: d, chip: HORIZON_LABELS[d].chip, label: CHANGE_NEEDS_FLOW.accessible, on: false,
+          note: CHANGE_NEEDS_FLOW.note, needs }
+      : { day: d, chip: HORIZON_LABELS[d].chip, label: horizonChipLabel(d, d === lit), on: d === lit,
+          note: null, needs: null };
+  });
+}
+
+/**
+ * WHAT A CHIP'S TAP DOES: the day, and the quantity to move to first when the day needs one (Change under Level or
+ * Temperature → Flow). Every control that draws the chips picks through this, so none can set Change and leave the map
+ * on Level answering Now.
+ */
+export function pickHorizon(d: Horizon, quantity: FlowParam): { horizon: Horizon; show: Parameter | null } {
+  return { horizon: d, show: needsFor(d, quantity) };
+}
+
+/**
+ * The one pick for the Shell's horizon controls: `pickHorizon`, then the quantity (when it moves) and the day.
+ */
+export function useHorizonPick(pick: (d: Horizon) => void, quantity: FlowParam,
+                               setQuantity: (q: FlowParam) => void): (d: Horizon) => void {
+  return useCallback((d: Horizon) => {
+    const p = pickHorizon(d, quantity);
+    if (p.show) setQuantity(p.show);
+    pick(p.horizon);
+  }, [pick, quantity, setQuantity]);
 }
 
 /**
