@@ -11,24 +11,33 @@
  *   - an if/return copy over `.status === "keep"`                            → caught by PICK_IF
  *   - a copy reading `x.status === "nolimit"` in a ternary                   → caught by PICK_TERNARY
  *   - re-adding `KEEPISH` (the predicate the copy was built from)            → caught by the KEEPISH ban
+ *   - the same ternary over a property (`f.H && f.H.status === "keep" ? f.H : f.W`) → PICK_TERNARY (review, T161: the
+ *     scan read bare identifiers only, so this copy passed)
+ *   - a `[H, W].find(<keep test>)` copy                                      → PICK_FIND (review: passed before)
+ *   - any of these in `apps/` (the mobile app's own source)                  → scanned since the review (it was not)
  */
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const APP = resolve(__dirname, "../../../..");
-const ROOTS = ["packages", "conformance/src"].map((r) => join(APP, r));
+const ROOTS = ["packages", "apps", "conformance/src"].map((r) => join(APP, r));
+/** the answer a copy tests and returns: a name or a property path (`H`, `f.H`, `fish?.W`) */
+const SUBJ = String.raw`([\w$]+(?:\??\.[\w$]+)*)`;
 const KEEP = String.raw`(?:KEEPISH\(\s*\1\.status\s*\)|\1\.status\s*===?\s*["'](?:keep|nolimit|no_limit)["'])`;
 /** `X && <keep test of X> ? X : <another answer>` — a filter of one answer (`… ? X : null`) picks nothing. */
-const PICK_TERNARY = new RegExp(String.raw`\b(\w+)\b[^?;\n]*${KEEP}[^?;\n]*\?\s*\1\b\s*:(?!\s*(?:null|undefined)\b)`);
+const PICK_TERNARY = new RegExp(String.raw`(?<![\w$.])${SUBJ}(?![\w$])[^?;\n]*${KEEP}[^?;\n]*\?\s*\1(?![\w$.])\s*:(?!\s*(?:null|undefined)\b)`);
 /** `if (<keep test of X>) return X;` */
-const PICK_IF = new RegExp(String.raw`if\s*\([^\n]*?\b(\w+)\.status[^\n]*?\)\s*\{?\s*return\s+\1\b`);
+const PICK_IF = new RegExp(String.raw`if\s*\([^\n]*?(?<![\w$.])${SUBJ}\.status[^\n]*?\)\s*\{?\s*return\s+\1(?![\w$.])`);
+/** `[a, b].find(<keep test>)` / `.filter(<keep test>)` — the first keepable of several answers */
+const PICK_FIND = /\[[^\]\n]*,[^\]\n]*\]\s*\.(?:find|filter)\([^\n]*(?:KEEPISH|\.status\s*===?\s*["'](?:keep|nolimit|no_limit)["'])/;
 const IF_KEEP = /if\s*\([^\n]*(?:KEEPISH|["'](?:keep|nolimit|no_limit)["'])/;
 
 function picks(src: string): string[] {
   const out: string[] = [];
   if (/\bKEEPISH\b/.test(src)) out.push("KEEPISH");
   if (PICK_TERNARY.test(src)) out.push("ternary");
+  if (PICK_FIND.test(src)) out.push("find");
   for (const line of src.split("\n")) if (IF_KEEP.test(line) && PICK_IF.test(line)) { out.push("if"); break; }
   return out;
 }
@@ -64,5 +73,11 @@ describe("T161: the app picks no leading origin of its own", () => {
     expect(picks(`const lead = (h, w) => h && h.status === "nolimit" ? h : w;`)).toEqual(["ternary"]);
     expect(picks(`const kept = (m) => m && m.status === "keep" ? m : null;`)).toEqual([]);
     expect(picks(`const lead = (f) => f?.lead ?? null;`)).toEqual([]);
+    // review (T161): property paths, find(), and a one-answer filter over a property
+    expect(picks(`const lead = (f) => f.H && f.H.status === "keep" ? f.H : f.W;`)).toEqual(["ternary"]);
+    expect(picks(`const lead = (f) => fish?.W && fish?.W.status === "nolimit" ? fish?.W : f.H;`)).toEqual(["ternary"]);
+    expect(picks(`function lead(f) {\n  if (f.H && f.H.status === "keep") return f.H;\n  return f.W;\n}`)).toEqual(["if"]);
+    expect(picks(`const lead = (f) => [f.H, f.W].find((x) => x && x.status === "keep") ?? f.H;`)).toEqual(["find"]);
+    expect(picks(`const kept = (f) => f.H && f.H.status === "keep" ? f.H : null;`)).toEqual([]);
   });
 });

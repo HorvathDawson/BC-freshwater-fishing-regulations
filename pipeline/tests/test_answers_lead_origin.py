@@ -128,12 +128,19 @@ def _status_test(node: ast.AST) -> bool:
 def _picks_a_leader(fn: ast.AST) -> bool:
     """A function that picks one of several origin answers by status: `if <status test of X>: return X`, or a
     max/min whose key ranks by status."""
+    def origin_word(v):
+        # T161 review: naming the leader ("hatchery" / "wild") off a keep test is the same decision as returning it
+        return isinstance(v, ast.Constant) and v.value in common.ORIGINS
     for n in ast.walk(fn):
         if isinstance(n, ast.If) and _status_test(n.test):
             tested = {x.id for x in ast.walk(n.test) if isinstance(x, ast.Name)}
             for b in n.body:
                 if isinstance(b, ast.Return) and isinstance(b.value, ast.Name) and b.value.id in tested:
                     return True
+                if isinstance(b, ast.Return) and origin_word(b.value):
+                    return True
+        if isinstance(n, ast.IfExp) and _status_test(n.test) and origin_word(n.body):
+            return True
         # `X if <keep test of X> else <another answer>` (a filter's `... else None` picks nothing)
         if isinstance(n, ast.IfExp) and _status_test(n.test) and isinstance(n.body, ast.Name) and \
                 n.body.id in {x.id for x in ast.walk(n.test) if isinstance(x, ast.Name)} and \
@@ -310,3 +317,17 @@ def test_the_wire_carries_the_lead_third_and_refuses_a_frame_without_it():
         RowsCodec().decode_frame(sec, 0, [], [])
     # the shard closure reads the two answer slots only: the lead word is no row reference
     assert frame_refs("rows_frame", tables["frames"][0]) == {"rows_decided": [0, 1], "rows_row": []}
+
+
+def test_the_scan_catches_a_lead_name_that_re_decides():
+    """Mutation pin (T161 review): a `lead_name` that names the origin from its own keep test — same answers today, no
+    call to `lead_origin` — is a second copy of the decision; the scan used to pass it (it looked for a returned
+    answer, not a returned origin word)."""
+    copy = ('def lead_name(h, w):\n    if h is None and w is None:\n        return None\n'
+            '    return "hatchery" if h is not None and h["status"] in KEEPS else ('
+            '"wild" if w is not None and w["status"] in KEEPS else ("hatchery" if h is not None else "wild"))\n')
+    assert _leaders(copy, "common.py") == ["common.py:lead_name"]
+    as_if = 'def lead_name(h, w):\n    if h and h["status"] in KEEPS:\n        return "hatchery"\n    return "wild"\n'
+    assert _leaders(as_if, "common.py") == ["common.py:lead_name"]
+    # the shipped one names lead_origin's pick by identity and tests no status
+    assert _leaders(inspect.getsource(common.lead_name), "common.py") == []
