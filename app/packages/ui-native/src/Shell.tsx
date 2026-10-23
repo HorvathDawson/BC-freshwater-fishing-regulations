@@ -396,8 +396,10 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   const cond = useConditionsColour({ source, feed, perTile, paired, onConditions, quantity: mm.standingParam,
                                      horizon: mm.standingHorizon, fieldOn: mm.fieldOn, visible,
                                      epoch: syncState.epoch });
-  // the dots: the Conditions map's, while its Gauges switch is on (off, the roster is not even asked)
-  const gauges = useGaugeGeoJSON(source, feed, onConditions && layers.effective.layers.gauges === true, quantity);
+  // the dots: the Conditions map's, while its Gauges switch is on (off, the roster is not even asked), at the horizon
+  // the rivers are coloured for (T126: a dot under +5 says +5, not now)
+  const gauges = useGaugeGeoJSON(source, feed, onConditions && layers.effective.layers.gauges === true, quantity,
+                                 mm.standingHorizon);
   // The readings on screen, as positions on the legend's own scale (sentinels excluded: a state, not a point).
   const visibleMarks = cond.marks;
   const conditionData = cond.data;

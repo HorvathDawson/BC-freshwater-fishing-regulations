@@ -44,3 +44,18 @@ describe("the temperature dots", () => {
     }
   });
 });
+
+/*
+ * T126: the flow dots read `ramp` — the value already in the standing channel's units (`toRamp` in @app/ui) — against the
+ * river's own stops, so a dot under Change sits in the change domain (200-300) beside the river it is on. Mutation: read
+ * `percentile` x 100 again -> the input differs and the dot paints Change on the percentile ramp.
+ */
+describe("the flow dots", () => {
+  it("interpolate the feature's ramp value over the stream's standing stops, Change's domain included", async () => {
+    const { gaugeDotColour } = await import("./runtime-style");
+    const e = gaugeDotColour("light", "standing") as unknown[];
+    const stops = e.slice(3).filter((_, i) => i % 2 === 0) as number[];
+    expect([e.slice(0, 3), stops.some((s) => s < 100), stops.some((s) => s >= 200)])
+      .toEqual([["interpolate", ["linear"], ["coalesce", ["get", "ramp"], -1]], true, true]);
+  });
+});

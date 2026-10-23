@@ -91,6 +91,16 @@ export function ratioShort(r: number): string {
   return r >= 2 ? `${Math.round(r)}×` : `${(Math.round(r * 10) / 10).toFixed(1)}×`;
 }
 
+/**
+ * A gauge dot's label under Change (T126: the dots follow the horizon): the station's own ratio to today's flow, short —
+ * "3× today", "0.5× today", "1.0× today". The colour already says rising or falling; the label says how much, in the
+ * same short form the panel's ranges use. Pass the station's own `ratio` (the index row's `change.ratio`): the coded
+ * number the colour rides is clamped (`codeFloor`), so decoded it tops out near 36×.
+ */
+export function changeDotLabel(ratio: number): string {
+  return `${ratioShort(ratio)} today`;
+}
+
 const WEEKDAY = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
 const MONTH = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] as const;
 

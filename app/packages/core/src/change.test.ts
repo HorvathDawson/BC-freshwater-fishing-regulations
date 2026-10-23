@@ -4,8 +4,9 @@
  * publisher's side). Today is Thu 22 Oct 2026.
  */
 import { describe, expect, it } from "vitest";
-import { CHANGE_LEGEND, CHANGE_POLICY, CHANGE_STOP_RATIOS, changeDay, changeSparkWords, changeHeadline, changeLine, changeRange,
-         changeRatio, changeReads, changeSentence, codedChange, ratioWords, type RunChange } from "./change";
+import { CHANGE_LEGEND, CHANGE_POLICY, CHANGE_STOP_RATIOS, changeDay, changeDotLabel, changeSparkWords, changeHeadline,
+         changeLine, changeRange, changeRatio, changeReads, changeSentence, codedChange, ratioWords,
+         type RunChange } from "./change";
 import { CONDITIONS_WORDS, donorReads, donorReason, estimateHeadline, estimateRange, estimateSentence,
          HORIZON_LABELS, HORIZONS, isAhead, aheadDays, silentLine, type DonorFacts } from "./conditions";
 import { STALE_AFTER } from "./staleness";
@@ -197,5 +198,12 @@ describe("the Change horizon on the conditions surfaces", () => {
   it("a sentence for one gauge", () => {
     expect(changeSentence(0.59, "roughly", 1)).toBe(
       "At its lowest, about 60% of today's flow — roughly, forecast from one gauge nearby.");
+  });
+});
+
+describe("a gauge dot under Change (T126)", () => {
+  it("says the station's own ratio to today, short", () => {
+    expect([2, 0.5, 1, 22.7944, 544].map(changeDotLabel))
+      .toEqual(["2× today", "0.5× today", "1.0× today", "23× today", "100×+ today"]);
   });
 });

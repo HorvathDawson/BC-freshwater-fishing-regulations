@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
 import type { GaugeTrace, SectionKey, StatusIndex } from "@app/core";
 import { decodeStatusIndex, mapStatusOn, monthAbbr } from "@app/core";
 import type {
-  BundleCounts, GaugeFeed, ItemId, LakeInfo, NameHit,
+  BundleCounts, GaugeFeed, Horizon, ItemId, LakeInfo, NameHit,
   Parameter, PlaceHit, PlaceId, PointerHit, RegsSource, SectionId, Series, StationId, Water,
 } from "@app/data";
 import { useAsync, useDebounced, usePoll, type Async } from "./async";
@@ -256,18 +256,20 @@ export function useGaugeGeoJSON(
   feed: { index(): Promise<Parameters<typeof gaugeGeoJSON>[1]> } | undefined,
   enabled: boolean,
   quantity: GaugeQuantity = "flow",
+  horizon: Horizon = 0,
 ): string | null {
   const got = useAsync(
     async () => {
       if (!feed) return null;
       const [points, idx] = await Promise.all([source.gaugePoints(), feed.index()]);
-      return gaugeGeoJSON(points, idx, quantity);
+      return gaugeGeoJSON(points, idx, quantity, horizon);
     },
     // THE QUANTITY IS PART OF THE CACHE KEY. These are different sets of features, not
     // three colourings of one — 361 stations publish a discharge percentile, 419 a level
     // and 274 a temperature, and they are not nested. A shared cache would show one
-    // roster under another's heading.
-    `gaugepoints:${quantity}`,
+    // roster under another's heading. SO IS THE HORIZON (T126): the dots follow it, and a
+    // day no run reaches drops the dots a forecast cannot speak for.
+    `gaugepoints:${quantity}:${horizon}`,
     enabled,
   );
   return got.state === "ready" ? got.value : null;

@@ -10,9 +10,10 @@
  * Stations with no reading today are DROPPED rather than drawn bare. A dot with no number
  * invites the reader to assume the map failed rather than that the station is quiet.
  */
-import { zoomForMagnitude } from "@app/core";
+import { changeDotLabel, changeRatio, zoomForMagnitude } from "@app/core";
 import { percentileLabel } from "@app/core";
-import type { GaugeFeed } from "@app/data";
+import { reading, type GaugeFeed, type Horizon } from "@app/data";
+import { toRamp } from "./routeColour";
 
 export interface GaugePoint {
   station: string;
@@ -65,7 +66,7 @@ export function gaugeLabel(now: { discharge: number | null; level: number | null
  * rather than recolouring.
  */
 export function gaugeGeoJSON(points: readonly GaugePoint[], index: Index,
-                             quantity: GaugeQuantity = "flow"): string | null {
+                             quantity: GaugeQuantity = "flow", horizon: Horizon = 0): string | null {
   if (!index) return null;
   const features = [];
   for (const p of points) {
@@ -80,19 +81,22 @@ export function gaugeGeoJSON(points: readonly GaugePoint[], index: Index,
      * nested sets. Drawing a station's flow number under a temperature heading — or a
      * bare dot where it has nothing to say — both read as the map having failed.
      */
-    // `percentile` is the station's OWN default and `parameter` says which quantity it is
-    // about — so it can stand in for whichever of the two that is, and must never stand in
-    // for the other. A level percentile shown under "Flow" is arithmetic across two units.
-    // An index row from before the publisher wrote `parameter` carries a bare percentile,
-    // and the publisher's own default for one was discharge — so that is what it means.
-    const param = row.parameter ?? "discharge";
-    const own = (q: "discharge" | "level") =>
-      row[q] ?? (param === q ? row.percentile ?? null : null);
-    const pct = quantity === "level" ? own("level")
-      : quantity === "flow" ? own("discharge")
-      : row.percentile ?? null;
+    /*
+     * THE DOT FOLLOWS THE HORIZON (T126), like the river under it: +3d is the station's forecast percentile for that
+     * day, Change its expected change — read by `reading`, the ONE function the panels read a station with, so a dot
+     * and its river cannot answer different days. (It always showed now, so under +5 a dot said today beside a river
+     * saying Friday.) A day no run reaches has no dot, as a river there has no colour. Temperature has no forecast and
+     * stays on now (the horizon control is not offered under it).
+     *
+     * `reading` also holds the station-default rule this used to repeat: `percentile` stands in only for the quantity
+     * `parameter` names (discharge on a row from before `parameter`), never for the other.
+     */
+    const pct = quantity === "temperature" ? row.percentile ?? null
+      : reading(row, quantity === "level" ? "level" : "discharge", horizon);
     if (quantity === "temperature" ? tC === null : pct === null) continue;
-    const label = gaugeLabel(undefined, pct, tC);
+    // under Change the label is the station's own ratio (the coded number the colour rides is clamped)
+    const label = quantity !== "temperature" && horizon === "change" && pct !== null
+      ? changeDotLabel(row.change?.ratio ?? changeRatio(pct)) : gaugeLabel(undefined, pct, tC);
     if (!label) continue;                   // quiet station: a bare dot would read as a bug
     features.push({
       type: "Feature" as const,
@@ -106,9 +110,10 @@ export function gaugeGeoJSON(points: readonly GaugePoint[], index: Index,
       // comparison, and keeps the ladder itself in ONE place (`@app/core/ladder`) that a
       // test holds equal to the pipeline's.
       properties: { station: p.station, name: p.name, label,
-                    // The percentile the DOT is about, which is not always the station's
-                    // own default — a level gauge asked about flow has nothing to say.
-                    percentile: pct,
+                    // The value the DOT is painted with, in the standing channel's units (`toRamp`: a
+                    // percentile x 100, or Change's own 200-300 domain) — the river's own scale, so a dot
+                    // and the river under it cannot be coloured differently.
+                    ramp: pct === null ? null : toRamp(pct, quantity === "temperature" ? 0 : horizon),
                     ...(tC !== null ? { temperatureC: tC,
                                         temperatureBand: row.temperatureBand ?? null } : {}),
                     minz: zoomForMagnitude(p.mag ?? null) },

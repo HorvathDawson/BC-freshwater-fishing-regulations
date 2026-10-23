@@ -103,7 +103,7 @@ function geojsonData(raw: string): unknown {
 }
 
 /**
- * The flow ramp, as an expression over a feature's own `percentile` property.
+ * The flow ramp, as an expression over a feature's own `ramp` property (its standing in the channel's units).
  *
  * Shares the stream layer's stops by construction — read from the same style metadata —
  * so a gauge dot and the river under it are painted from one scale. Two ramps would drift.
@@ -161,8 +161,9 @@ function rampExpression(theme: string): unknown {
   const mode = STYLE_META.colorModes.stream?.standing as
     { stops?: [number, { token: string }][] } | undefined;
   const stops = mode?.stops ?? [];
-  const out: unknown[] = ["interpolate", ["linear"],
-                          ["*", ["coalesce", ["get", "percentile"], -0.01], 100]];
+  // `ramp` is the dot's value already in the standing channel's units (`toRamp` in @app/ui: a percentile x 100, or the
+  // Change domain 200-300), so the dot reads the river's own stops at every horizon (T126).
+  const out: unknown[] = ["interpolate", ["linear"], ["coalesce", ["get", "ramp"], -1]];
   for (const [at, ref] of stops) out.push(at, t[ref.token]);
   return out;
 }

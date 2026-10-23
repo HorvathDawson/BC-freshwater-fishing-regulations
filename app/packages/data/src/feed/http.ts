@@ -21,6 +21,7 @@
 // would eventually disagree about the same reading (AGENTS rule 23).
 import { standing } from "@app/core";
 import type { Aged, Forecast, Parameter, Reading, StationId } from "../index";
+import type { StationChange } from "../panel";
 
 /** The forecast exactly as the publisher writes it — both quantities, unpicked. */
 interface RawForecast extends Omit<Forecast, "series" | "disclaimer"> {
@@ -91,6 +92,10 @@ interface IndexFile {
     temperatureC?: number | null;
     temperatureAt?: string | null;
     temperatureBand?: "cool" | "warm" | "critical" | null;
+    /** Forecast percentiles keyed by days ahead (publish.py `forecast_percentiles`); read by `reading` in ../panel. */
+    ahead?: Record<string, { discharge?: number; level?: number; model?: string }>;
+    /** The expected change over the next ten days (T52), flow only: `discharge` is the coded ratio, `ratio` the ratio. */
+    change?: StationChange;
   }>;
 }
 
