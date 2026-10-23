@@ -31,6 +31,7 @@ exist.
 from __future__ import annotations
 
 import functools
+from dataclasses import dataclass, field
 
 from pipeline.atlas.graph.graph import ancestors
 from pipeline.common.models import NodeKind, StreamGraph
@@ -413,6 +414,165 @@ def _nodes_on(graph: StreamGraph, blk: str) -> tuple[str, ...]:
     return cached[1].get(blk, ())
 
 
+# --------------------------------------------------------------------------------------- #
+# ONE ENTRY CHECK (T102 part B, owner 2026-10-22: "make the check logic (with the edge type check
+# etc) a single function used in multiple spots"). Every rule that decides whether a walk may step
+# from one water up into the water flowing into it lives in `may_enter`: the walk's every step, every
+# mouth seeded at a cut, every piece of a lake's code run, and every other walk that climbs a water
+# (`subtree`, T117) ask it, and each refusal comes back as one of the named reasons below — so a
+# diagnostic, the T57 sweep and a person reading either share one vocabulary.
+# --------------------------------------------------------------------------------------- #
+
+#: `may_enter`'s verdicts. None is "enter, and collect it".
+CARVED_OUT = "carved_out"              # `blocked`: a carve-out, or a confluence cut's joining water
+CODE_DIVIDE = "code_divide"            # the edge a lake's code run crosses into another basin (`code_runs`)
+RIVER_CONTINUING = "river_continuing"  # the reach's own river going on past its top, or through its lake
+OWN_WATER = "own_water"                # the entry's own water past the cut (`THE_WALK_NEVER_ENTERS_THE_ENTRYS_OWN_WATER`)
+NOT_IN_GRAPH = "not_in_graph"          # an edge to a node the graph does not hold
+BARRIER = "barrier"                    # a 2300 connector (a canal), and so everything above it
+RECEIVING_RIVER = "receiving_river"    # a code strictly above the reach's (`THE_WALK_NEVER_ENTERS_A_PARENT`)
+BIGGER_RIVER = "bigger_river"          # the order guard, where the code cannot say
+#: NOT a refusal: a lake mid-reach (`_lake_mid_reach`) is entered as the river passing through it —
+#: walked, never collected.
+PASSING_THROUGH = "river_passing_through"
+
+#: Every refusal, in the order `may_enter` asks.
+REFUSALS = (CARVED_OUT, CODE_DIVIDE, RIVER_CONTINUING, OWN_WATER, NOT_IN_GRAPH, BARRIER,
+            RECEIVING_RIVER, BIGGER_RIVER)
+
+#: How a step is taken — what `may_enter` asks of it:
+FLOW = "flow"   # a walk step up a flow edge: everything
+SEED = "seed"   # a mouth at the reach's cut (`_mouths_at`), the walk's first step: no "river continuing"
+#                 (the seed is on another blue line, by a confluence)
+RUN = "run"     # a piece of a lake's code run (`code_runs`): FWA's membership, not a flow step — the order
+#                 guard does not judge it, and a run is never at the reach's boundary
+UP = "up"       # everything above a water (`subtree`): its own mainstem is in, so no "river continuing"
+
+
+@dataclass
+class Reach:
+    """What a walk carries — `may_enter`'s context. Built by `reach_context`.
+
+    `reach` the sections the walk starts from; `codes` their watershed codes; `blocked` never entered;
+    `own` the entry's own water (`THE_WALK_NEVER_ENTERS_THE_ENTRYS_OWN_WATER`); `guarded` the barrier and
+    order guards (False only in tests); `cuts` the code runs' divides; `online` the lakes the walk entered
+    as the river passing through, each to the reach piece below it (filled by the walk)."""
+    graph: StreamGraph
+    reach: frozenset
+    codes: frozenset
+    blocked: frozenset = frozenset()
+    own: frozenset = frozenset()
+    guarded: bool = True
+    cuts: frozenset = frozenset()
+    reach_blks: frozenset = frozenset()
+    online: dict = field(default_factory=dict)
+    _through: dict = field(default_factory=dict)
+
+    def at_boundary(self, node: str) -> bool:
+        return node in self.reach or node in self.online
+
+    def through(self, lake: str) -> frozenset:
+        """The blue lines the boundary lake `lake`'s own river leaves by — empty for a lake on a
+        tributary of the reach's river (`_on_a_tributary_of_the_reach`). Once per lake."""
+        got = self._through.get(lake)
+        if got is None:
+            got = _through_blks(self.graph, lake)
+            if got and lake in self.reach and NAMED_LAKE_ON_A_TRIBUTARY_IS_CLIMBED \
+                    and _on_a_tributary_of_the_reach(self.graph, lake, got, self.reach,
+                                                     self.reach_blks):
+                got = frozenset()             # its inflow on that line is a tributary too
+            self._through[lake] = got
+        return got
+
+
+def reach_context(graph: StreamGraph, reach, *, blocked=frozenset(), own=frozenset(),
+                  guarded: bool = True) -> Reach:
+    """The `Reach` a walk from `reach` carries. A piece of `own` sharing a reach piece's watershed
+    code is a side channel of the reach's own river, not own water past the cut."""
+    reach = frozenset(reach)
+    codes = _reach_codes(graph, reach)
+    if THE_WALK_NEVER_ENTERS_THE_ENTRYS_OWN_WATER and own:
+        own = frozenset(s for s in own if s not in reach and not (
+            (n := graph.nodes.get(s)) is not None and n.wsc and n.wsc in codes))
+    else:
+        own = frozenset()
+    _runs, cuts = code_runs(graph) if BIFURCATIONS_FOLLOW_THE_CODE else ({}, frozenset())
+    reach_blks = frozenset(n.blk for r in reach if (n := graph.nodes.get(r)) is not None
+                           and n.kind == NodeKind.stream and n.blk)
+    return Reach(graph=graph, reach=reach, codes=codes, blocked=frozenset(blocked), own=own,
+                 guarded=guarded, cuts=cuts, reach_blks=reach_blks)
+
+
+def may_enter(ctx: Reach, src: str, dst: str, edge=None, *, via: str = FLOW) -> str | None:
+    """May a walk carrying `ctx` step from `dst` up into `src` (which flows into it, by `edge`)?
+    None: yes, and `src` is collected. Otherwise the reason, one of `REFUSALS` — or
+    `PASSING_THROUGH`: entered as the river passing through a lake mid-reach, never collected.
+
+    THE ONE PLACE the walk's entry rules live, asked in this order:
+      `CARVED_OUT`        `src` is blocked;
+      `CODE_DIVIDE`       `edge` is where a lake's code run leaves its basin (`code_runs`);
+      `RIVER_CONTINUING`  at the reach's boundary (`FLOW` only): the reach's own river going on — a
+                          mainstem edge (`MAINSTEM_EDGE_KINDS`) above a stream, the inflow on a boundary
+                          lake's through line or the next lake up it (`_through_blks`, `_lake_on_line`);
+                          unless the lake carries the reach on above it (`PASSING_THROUGH`);
+      `OWN_WATER`         at the boundary, the entry's own water past the cut;
+      `NOT_IN_GRAPH`, `BARRIER` (guarded);
+      `RECEIVING_RIVER`, `BIGGER_RIVER`  the code, then the order where the code cannot say (`_refusal`;
+                          a code run's piece is not judged by order).
+    """
+    g = ctx.graph
+    if src in ctx.blocked:
+        return CARVED_OUT
+    if edge is not None and (edge.from_node, edge.to_node) in ctx.cuts:
+        return CODE_DIVIDE
+    boundary = ctx.at_boundary(dst)
+    if via == FLOW and boundary and src not in ctx.reach:
+        why = _continuing(ctx, src, dst, edge)
+        if why is not None:
+            return why
+    if boundary and src in ctx.own:
+        return OWN_WATER
+    n = g.nodes.get(src)
+    if n is None:
+        return NOT_IN_GRAPH
+    if ctx.guarded and n.is_barrier:
+        return BARRIER                          # the canal, and everything above it
+    return _refusal(g, src, dst, ctx.codes, guarded=ctx.guarded, by_order=via != RUN)
+
+
+def _continuing(ctx: Reach, src: str, dst: str, edge) -> str | None:
+    """Leaving the reach through its own top — `may_enter`'s `RIVER_CONTINUING`. "The reach's own
+    flow continuing" takes two forms, and which one applies depends on what `dst` is:
+
+      STREAM boundary — the `continuation` / `lake_out` edge above it.
+      LAKE boundary   — the inflow on the same blue line as the lake's OUTflow, i.e. the river
+                        running through the lake — arriving as a stream on that line, or as the
+                        next LAKE up it (a chain of reservoirs, `_lake_on_line`).
+
+    Asked ONLY at the boundary: the same edge kind inside a tributary is that tributary's own
+    continuation and must be followed. A lake with the reach carrying on above it is the river
+    passing through (`LAKE_MID_REACH_IS_THE_RIVER`)."""
+    g = ctx.graph
+    sn = g.nodes.get(src)
+    src_is_lake = sn is not None and sn.kind == NodeKind.lake
+    dn = g.nodes.get(dst)
+    if dn is not None and dn.kind == NodeKind.lake:
+        through = ctx.through(dst)
+        if sn is not None and sn.blk and sn.blk in through:
+            return RIVER_CONTINUING
+        if src_is_lake and _lake_on_line(g, src, through):
+            if LAKE_MID_REACH_IS_THE_RIVER and dst in ctx.online \
+                    and _lake_mid_reach(g, src, ctx.reach, ctx.online[dst]):
+                return PASSING_THROUGH        # the next lake of a chain, mid-reach
+            return RIVER_CONTINUING
+        return None
+    if edge is not None and edge.kind in MAINSTEM_EDGE_KINDS:
+        if src_is_lake and LAKE_MID_REACH_IS_THE_RIVER and _lake_mid_reach(g, src, ctx.reach, dst):
+            return PASSING_THROUGH            # the river passing through a lake
+        return RIVER_CONTINUING
+    return None
+
+
 def subtree(graph: StreamGraph, mouths, *, guarded: bool = True) -> frozenset[str]:
     """`mouths` and EVERYTHING upstream of them — a joining river, its own mainstem above its
     mouth included (which `tributaries_of_reach` would leave out as "the river continuing")."""
@@ -459,21 +619,14 @@ def tributaries_of_reach(
     as the river passing through: its other inflows are tributaries, it is not one itself, and
     its inflow on the river's own line is still the river. A lake's secondary outlet that carries
     the lake's code across a divide (`code_runs`) goes with the lake, not with the flow.
+
+    Whether a step is taken is `may_enter`'s alone; this function only keeps the books.
     """
-    reach = frozenset(reach)
-    codes = _reach_codes(graph, reach)
-    if THE_WALK_NEVER_ENTERS_THE_ENTRYS_OWN_WATER and own:
-        own = frozenset(s for s in own if s not in reach and not (
-            (n := graph.nodes.get(s)) is not None and n.wsc and n.wsc in codes))
-    else:
-        own = frozenset()
+    ctx = reach_context(graph, reach, blocked=blocked, own=own, guarded=guarded)
     out: set[str] = set()
-    seen: set[str] = set(reach)
-    stack: list[str] = sorted(reach)          # sorted: determinism, not correctness
-    online: dict[str, str] = {}               # lakes mid-reach -> the reach piece below them
-    reach_blks = frozenset(n.blk for r in reach if (n := graph.nodes.get(r)) is not None
-                           and n.kind == NodeKind.stream and n.blk)
-    runs, cuts = code_runs(graph) if BIFURCATIONS_FOLLOW_THE_CODE else ({}, frozenset())
+    seen: set[str] = set(ctx.reach)
+    stack: list[str] = sorted(ctx.reach)      # sorted: determinism, not correctness
+    runs = code_runs(graph)[0] if BIFURCATIONS_FOLLOW_THE_CODE else {}
 
     # A stream joining EXACTLY at the reach's lower cut belongs to the reach. When a
     # curator anchors a cut on a confluence — "upstream of the confluence with Slesse
@@ -481,99 +634,45 @@ def tributaries_of_reach(
     # the cut, in which case the walk would never see it and the named water would be
     # missing from the very reach it defines. Rare (51 of 196,596 bounded sections) and
     # entirely concentrated on confluence-anchored cuts, which is where it matters most.
-    # Each seed has passed the walk's own step test (`_refusal`) inside `_mouths_at`: a seed is the
-    # walk's first step (T102).
-    for seed in sorted(_mouths_at_lower_bound(graph, reach, window, codes)):
-        if seed not in seen and seed not in blocked and seed not in own:
-            n = graph.nodes.get(seed)
-            if n is not None and not (guarded and n.is_barrier):
-                seen.add(seed)
-                out.add(seed)
-                stack.append(seed)
+    # Each seed has passed `may_enter` inside `_mouths_at`: a seed is the walk's first step (T102).
+    for seed in sorted(_mouths_at_lower_bound(graph, ctx.reach, window, ctx)):
+        if seed not in seen:
+            seen.add(seed)
+            out.add(seed)
+            stack.append(seed)
 
     while stack:
         node = stack.pop()
-        at_boundary = node in reach or node in online
-        node_n = graph.nodes.get(node)
-        is_lake = at_boundary and node_n is not None and node_n.kind == NodeKind.lake
-        through = _through_blks(graph, node) if is_lake else frozenset()
-        if through and node in reach and NAMED_LAKE_ON_A_TRIBUTARY_IS_CLIMBED \
-                and _on_a_tributary_of_the_reach(graph, node, through, reach, reach_blks):
-            through = frozenset()             # its inflow on that line is a tributary too
         # A lake the walk reached (not the reach's own water, not the river passing through)
         # brings the runs FWA codes to it, with whatever joins them.
-        if not at_boundary:
+        if not ctx.at_boundary(node):
             for r in runs.get(node, ()):
-                if r in seen or r in blocked:
+                if r in seen or may_enter(ctx, r, node, via=RUN) is not None:
                     continue
-                rn = graph.nodes.get(r)
-                if rn is None or (guarded and rn.is_barrier):
-                    continue
-                if THE_WALK_NEVER_ENTERS_A_PARENT and _receives(rn, codes):
-                    continue                   # a run through the reach's receiving river (T102)
                 seen.add(r)
                 out.add(r)
                 stack.append(r)
         for ei in graph.up_adj.get(node, []):
             e = graph.edges[ei]
             src = e.from_node
-            if (src, node) in cuts:
-                continue                       # the code divide: that run is another basin's
-
-            # Leaving the reach through its own top. "The reach's own flow continuing"
-            # takes two forms, and which one applies depends on what you are standing on:
-            #
-            #   STREAM boundary — the `continuation` / `lake_out` edge above it.
-            #   LAKE boundary   — the inflow on the same blue line as the lake's OUTflow,
-            #                     i.e. the river running through the lake — arriving as a
-            #                     stream on that line, or as the next LAKE up it (a chain
-            #                     of reservoirs, `_lake_on_line`).
-            #
-            # Applied ONLY at the boundary: the same edge kind inside a tributary is that
-            # tributary's own continuation and must be followed.
-            if at_boundary and src not in reach:
-                sn = graph.nodes.get(src)
-                src_is_lake = sn is not None and sn.kind == NodeKind.lake
-                if is_lake:
-                    if sn is not None and sn.blk and sn.blk in through:
-                        continue
-                    if src_is_lake and _lake_on_line(graph, src, through):
-                        if src not in seen and src not in blocked and LAKE_MID_REACH_IS_THE_RIVER \
-                                and node in online \
-                                and _lake_mid_reach(graph, src, reach, online[node]):
-                            seen.add(src)              # the next lake of a chain, mid-reach
-                            online[src] = online[node]
-                            stack.append(src)
-                        continue
-                elif e.kind in MAINSTEM_EDGE_KINDS:
-                    if src_is_lake and src not in seen and src not in blocked \
-                            and LAKE_MID_REACH_IS_THE_RIVER \
-                            and _lake_mid_reach(graph, src, reach, node):
-                        seen.add(src)                  # the river passing through a lake
-                        online[src] = node
-                        stack.append(src)
-                    continue
-            if src in seen or src in blocked:
+            if src in seen:
                 continue
-            if src in own and at_boundary:
-                continue                       # the entry's own water past the cut: the extent's
-            n = graph.nodes.get(src)
-            if n is None:
-                continue
-            if guarded and n.is_barrier:
-                continue                       # the canal, and everything above it
-            if _refusal(graph, src, node, codes, guarded=guarded) is not None:
-                continue                       # the receiving river, or a bigger river
-            seen.add(src)
-            out.add(src)
-            stack.append(src)
+            why = may_enter(ctx, src, node, e)
+            if why == PASSING_THROUGH:
+                seen.add(src)                  # walked as the river, never collected
+                ctx.online[src] = ctx.online.get(node, node)
+                stack.append(src)
+            elif why is None:
+                seen.add(src)
+                out.add(src)
+                stack.append(src)
 
-    return frozenset(out - frozenset(passed) - own)
+    return frozenset(out - frozenset(passed) - ctx.own)
 
 
 def _mouths_at_lower_bound(graph: StreamGraph, reach: frozenset[str],
                            window: tuple[str, float, float] | None = None,
-                           codes: frozenset[str] | None = None) -> set[str]:
+                           ctx: Reach | None = None) -> set[str]:
     """Tributary mouths sitting exactly on the reach's lower cut.
 
     Looked for on the piece BELOW the cut: the confluence is at the same route measure, so
@@ -585,29 +684,32 @@ def _mouths_at_lower_bound(graph: StreamGraph, reach: frozenset[str],
     to agree about where the reach starts, and they can drift. Node bounds remain the
     fallback for a reach that has no single window (a `whole` extent, or a `between`
     spanning two blue lines).
+
+    `ctx` is the walk's `Reach` (built from `reach` alone when not given): each mouth must pass
+    `may_enter` with it.
     """
     out: set[str] = set()
-    if codes is None:
-        codes = _reach_codes(graph, reach)
+    if ctx is None:
+        ctx = reach_context(graph, reach)
     if window is not None:
         w_blk, w_lo, _w_hi = window
         for nid in reach:
             n = graph.nodes.get(nid)
             if n is None or n.blk != w_blk:
                 continue
-            out |= _mouths_at(graph, nid, n, w_lo, reach, codes)
+            out |= _mouths_at(graph, nid, n, w_lo, reach, ctx)
         return out
     for nid in reach:
         n = graph.nodes.get(nid)
         if n is None or n.lower_bound is None or not n.blk:
             continue
         m = n.lower_bound.route_measure
-        out |= _mouths_at(graph, nid, n, m, reach, codes)
+        out |= _mouths_at(graph, nid, n, m, reach, ctx)
     return out
 
 
 def _mouths_at(graph: StreamGraph, nid: str, n, m: float,
-               reach: frozenset[str], codes: frozenset[str] | None = None) -> set[str]:
+               reach: frozenset[str], ctx: Reach | None = None) -> set[str]:
     """Tributary mouths on the piece immediately BELOW `nid`, at route measure `m`.
 
     THE STRAHLER GUARD APPLIES HERE TOO. Everything joining at the confluence is a sibling of
@@ -623,13 +725,13 @@ def _mouths_at(graph: StreamGraph, nid: str, n, m: float,
 
     The Strahler guard did not end that (T90): the two Harrison pieces are SIDE CHANNELS, order
     2 against the Chehalis's 5, and were reached another way — see `MOUTH_SEEDS_ONLY_AT_THE_CUT`.
-    A seed is the walk's first step, so it takes the walk's own test, `_refusal` (T102): the
+    A seed is the walk's first step, so it takes the walk's own test, `may_enter` (T102): the
     receiving river by its code (`THE_WALK_NEVER_ENTERS_A_PARENT`), a bigger river by its order
-    where the code cannot say.
+    where the code cannot say, a carve-out, the entry's own water, a canal.
     """
     out: set[str] = set()
-    if codes is None:
-        codes = _reach_codes(graph, reach)
+    if ctx is None:
+        ctx = reach_context(graph, reach)
     downs = [graph.edges[ei] for ei in graph.down_adj.get(nid, [])]
     if MOUTH_SEEDS_ONLY_AT_THE_CUT:
         downs = [e for e in downs
@@ -642,7 +744,7 @@ def _mouths_at(graph: StreamGraph, nid: str, n, m: float,
             src = graph.nodes.get(f.from_node)
             if (f.from_node not in reach and src is not None and src.blk != n.blk
                     and f.kind == "confluence" and abs(f.at_measure - m) < 0.5
-                    and _refusal(graph, f.from_node, nid, codes) is None):
+                    and may_enter(ctx, f.from_node, nid, f, via=SEED) is None):
                 out.add(f.from_node)
     return out
 
@@ -702,24 +804,25 @@ def _receives(src, codes: frozenset[str]) -> bool:
 
 
 def _refusal(graph: StreamGraph, src: str, dst: str, codes: frozenset[str], *,
-             guarded: bool = True) -> str | None:
-    """Why the walk may not step from `dst` up into `src` (which flows into it) — or None.
+             guarded: bool = True, by_order: bool = True) -> str | None:
+    """The CODE-AND-ORDER half of `may_enter` (which asks it last): why a walk may not step from
+    `dst` up into `src` (which flows into it) — or None. Called by `may_enter` only.
 
-    ONE test for every step of the walk and every seed (T102). The code is asked first:
+    The code is asked first:
       `receiving_river` — `src`'s code is a strict ancestor of the reach's
         (`THE_WALK_NEVER_ENTERS_A_PARENT`); not a guard, so `guarded=False` keeps it;
       a code extending `dst`'s is a genuine tributary, whatever its order (`_code_says_tributary`);
       `bigger_river` — otherwise (a code missing, or equal codes: WSC silent), the order guard: a
         strictly larger river is no tributary, unless it is a lake's own main outlet
-        (`_is_main_outlet`). `guarded=False` drops it.
+        (`_is_main_outlet`). `guarded=False` drops it; so does `by_order=False` (a code run's piece).
     """
     s, d = graph.nodes.get(src), graph.nodes.get(dst)
     if THE_WALK_NEVER_ENTERS_A_PARENT and _receives(s, codes):
-        return "receiving_river"
-    if _code_says_tributary(s, d):
+        return RECEIVING_RIVER
+    if not by_order or _code_says_tributary(s, d):
         return None
     if guarded and _order_breaks(s, d) and not _is_main_outlet(graph, src, dst):
-        return "bigger_river"
+        return BIGGER_RIVER
     return None
 
 
