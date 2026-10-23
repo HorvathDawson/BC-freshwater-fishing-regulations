@@ -194,6 +194,7 @@ use that as the sole source of future work."
 | T147 | "no public access" leads the regulations page, bigger and more obvious | OPEN | — | app; with T146 |
 | T148 | sloughs/canals second sweep by FWA feature codes + inside line codes, calibrated on the owner's marks | IN PROGRESS | — | workflow wf_dc7c8506-0c6 |
 | T149 | review page: slough complexes marked in bulk; intermittent-lake spot check | OPEN | — | after T148; ★ owner marks |
+| T150 | drop the regs header's "Parts" button; the part list lives in the Map view | OPEN | — | after T147 |
 
 ## Order for open tickets
 
@@ -314,6 +315,7 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q119 | T125 | Audit references for item 8 "answers 12" (fish-list wording) and "reach 11" (double computation) — the copies could not be found from the ticket? | left open | owner |
 | Q120 | T109 | Bump the regs store section version so the app refuses a release built before prov.region (it would tag rank-3 rules "Region rule", never a wrong region)? | no bump | owner |
 | Q121 | T125 | Item 4 renames two unbound reasons (between_cuts_not_ordered → parallel_branches; outside_*) without a POLICY_VERSION bump (no live rule moved)? | no bump | owner |
+| Q122 | T150 | Where the "Parts of this water" list sits in the Map view? | a collapsible list under the map | owner |
 
 ### Answered (recently, for the record)
 - Q5, Q34–Q41 (curation review plan, T97) — owner 2026-10-23: "The review app changes seem good" — PLAN.md approved with all §6 defaults; plus: adding splits, rebuilding and continuing review must work (T97, T133–T136); a salmon pass later (T132).
