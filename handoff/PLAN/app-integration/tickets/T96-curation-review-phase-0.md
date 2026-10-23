@@ -10,6 +10,14 @@ kind its family, the province every area, minus `outside_area*`); real outside-l
 Not run here (no atlas in the worktree): the `needs_atlas` tests of `test_curation_review_api.py`/`_writes.py`, and the
 smoke tier as a whole — the merger's full check. SplitEditor's note/grade block is typechecked (tsc clean), not
 screenshotted. The curated digest moved (region-3.json, splits.json `_note`): the next `pipeline build` re-runs its stages.
+REVIEW (e2c6a287, 38ee2589): the containment gate ignored `within_area` (a rule clipped to Region 2 'held' a
+Region 6 lift; basin 100- in R5 'met' basin 100- in R6) — fixed, test-first; the no-process detector missed
+`from os import system` and `asyncio.create_subprocess_*` — fixed, the detector pinned by its own cases. With the main
+repo's atlas/bundle/regs linked in read-only, `test_curation_review_api.py`, `_writes.py`, `_fingerprint.py`,
+`test_one_data_flow.py` ran: 142 passed, 3 deselected. Smoke: the API file is wholly `needs_atlas`, so it has no no-data
+id for `smoke.txt` (Tier 1 is no-data); the safety file's id covers the routes. Still open: the gate ignores
+`feature_types` (a lake-only lift of a stream-only rule passes) — pre-existing, not in this ticket; Shuswap r8/r10 now
+repeat r7/r9's daily words in their verbatim — check nothing renders a rule's verbatim twice on the page.
 
 Source: handoff/PLAN/curation-review/PLAN.md §4 "Phase 0" and §6 Q1 (a3f66b7c, T66). Defect found there: 5 entries
 fail the gate and `validate_catalogue` — Shuswap Lake `min_cm` 50/60 "not in own verbatim"; `zp:set_lining`,
