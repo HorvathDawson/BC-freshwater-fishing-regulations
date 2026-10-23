@@ -1,6 +1,6 @@
 # T51 — "Like your visit?": a spot's conditions then vs the next 5 days, as a similarity score
 
-Status: DONE — 035b3725 (ticket a7b94f4e). Lane wf_c3f10dea-7b4-2. Follow-ups below are small and none blocks it.
+Status: DONE — 035b3725 + review fixes fb1a968b (ticket a7b94f4e). Lane wf_c3f10dea-7b4-2. Follow-ups below are small and none blocks it.
 
 Phase 4 · Depends on S1 (spot lead-up: weather + gauge frozen at capture), the gauge feed + forecast horizons, Open-Meteo
 weather, the T48 Spots tab · Size 1–2 days
@@ -64,6 +64,24 @@ reference. Tapping a day shows what drives the score (flow vs then, water level,
 - **Observed while testing (existing S1 behaviour, not T51)**: a spot backdated to two days ago froze TODAY's gauge
   reading and panel (capture reads the live feed whatever the visit time), so its "flow then" is today's. Worth its own
   ticket: a backdated visit should take the lead-up's daily mean for the visit day, or record no flow.
+
+## Adversarial review (fb1a968b)
+- **Fixed — "refreshes when online"** was only "refetches when the spot is opened": a spot opened offline stayed on
+  the cached forecast while open. `useLikeVisit` now takes the platform `Connectivity` (Shell passes it) and asks again
+  the moment the device says it is back. Test: opened offline → online event → "Forecast checked just now." (pinned:
+  dropping the retry dependency fails it).
+- **Fixed — "now" was said of a forecast**: today's flow was worded "now" whatever it was, so a cache (or a feed)
+  from yesterday put yesterday's +1 forecast in today's column as "the gauge's reading now". `LikeFetched.flowNow`
+  keeps the index's own day; only that day's flow is "now". Test pinned (reverting to "first column = now" fails it).
+- Checked, no defect: rain windows match (lead-up is visit−7..visit−1, so both sides are the 3 days BEFORE); flow is
+  discharge-only on both sides (`answerFrom(…, "discharge")` panel row vs `reading(row, "discharge", h)`); the live
+  index carries `fetchedAt` and the Chilliwack 08MH001 row has `ahead` 1/3/5/10 only, so +2/+4 are weather-only as
+  claimed. The visit weather is fetched in UTC hours (S1's `at()`, no `timezone`) and the coming days in place-local
+  hours; both are the same instant (the visit's hour), so the comparison holds.
+- Note on the web shot: that spot is backdated (visit 20 Oct, saved 22 Oct), so its "flow then" is the S1 bug's
+  today's reading (5th vs 5th) — the shot shows the strip working, not a real flow comparison.
+- Small, left: with a weather source that has no `ahead` (the no-service default) the age line speaks for the flow
+  half only.
 
 ## Owner questions (each built with its default)
 - Q-a: Today + 4, or +1..+5 (which would put +5's horizon in and drop today's observed flow)? Default: today + 4.
