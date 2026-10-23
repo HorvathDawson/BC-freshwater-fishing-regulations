@@ -288,6 +288,14 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
                        tidal=tidal_of, outside=outside)
 
 
+def tidal_limit(entry: dict, tidal):
+    """THE TIDAL WATER A ROW'S BINDING LOSES: the corpus's tidal sections, or nothing for a row that is itself marked
+    `tidal` (Nitinat Lake's own row keeps its water). One reading (T125 item 5, adversarial review): `build_reach` and
+    the steelhead twins (`_bind_steelhead_waters`) both ask it before `classify.apply_limits`; the twins took tidal water
+    out of every row, marked or not."""
+    return None if not tidal or entry.get("tidal") else tidal
+
+
 def _bind_steelhead_waters(rules, records, known, bindings, licensing, registry, graph=None, *,
                            outside=None, tidal=None):
     """THE BOOK-KNOWN STEELHEAD WATERS (`Extent` op `steelhead_waters`, `reach.steelhead`) — inside
@@ -327,7 +335,8 @@ def _bind_steelhead_waters(rules, records, known, bindings, licensing, registry,
                 pool = pool & secs if keep else pool - secs
         pool, _ = _policy.apply_limits(
             pool, kinds={str(t).lower() for t in ex.get("feature_types") or ()},
-            kind_of=lambda s: _resolve._kind_of(graph, s, registry), outside=outside, tidal=tidal)
+            kind_of=lambda s: _resolve._kind_of(graph, s, registry), outside=outside,
+            tidal=tidal_limit(e, tidal))
         cut = ((_regions.area_family_sections(registry, ex["outside_area_kind"], graph)
                 or frozenset()) if ex.get("outside_area_kind") else frozenset())
         kept = tuple(sorted(pool - taken - cut)) if missing is None else ()
@@ -396,7 +405,7 @@ def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None,
     with the cut (`confluence_excludes`). `None` (a caller that did not compute it) knows of no
     row, so every joining water goes with the cut — the review app passes the same map.
     """
-    if tidal and not entry.get("tidal"):
+    if tidal_limit(entry, tidal):
         binding, diags = build_reach(entry, rule, registry, graph, covered=covered, clip=clip,
                                      outside=outside, shared=shared, regional=regional,
                                      owned=owned)

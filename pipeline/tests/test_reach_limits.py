@@ -334,6 +334,23 @@ def test_the_steelhead_twin_takes_the_global_limits(monkeypatch):
     assert [(b.rule_id, b.sections) for b in got] == [("r6b", ("a", "out", "tide"))]
 
 
+def test_a_tidal_row_keeps_its_tidal_water_in_a_twin_as_in_a_rule():
+    """`build.tidal_limit`: tidal water leaves every row's binding EXCEPT a row itself marked `tidal` — for a rule
+    (`build_reach`) and a steelhead twin alike. Adversarial review (T125 item 5): the twin took tidal water out of a
+    tidal-marked row too. MUTATION (the twin passes the corpus's tidal set straight to `apply_limits`): "tide" goes."""
+    import inspect
+    from pipeline.atlas.reach import build as B
+    tide = frozenset({"tide"})
+    assert [B.tidal_limit(e, tide) for e in ({}, {"tidal": True}, {"tidal": False})] == [tide, None, tide]
+    assert B.tidal_limit({}, frozenset()) is None and B.tidal_limit({}, None) is None
+    marked = {"entry_id": "r1:nitinat_lake@1-3", "matched": [], "tidal": True}
+    twin = (marked, {"rule_id": "r9b", "extents": [{"op": "steelhead_waters", "siblings": []}]})
+    got, _, _ = B._bind_steelhead_waters([twin], [], {"a", "tide"}, [], [], {}, None, tidal=tide)
+    assert [(b.rule_id, b.sections) for b in got] == [("r9b", ("a", "tide"))]
+    assert "tidal_limit(" in inspect.getsource(B.build_reach) and \
+        "tidal_limit(" in inspect.getsource(B._bind_steelhead_waters)
+
+
 def test_no_reader_applies_a_global_limit_itself():
     """The feature-kind filter, the border and tidal water are applied by `apply_limits` alone."""
     import inspect
