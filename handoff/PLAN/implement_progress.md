@@ -3,6 +3,20 @@
 Restart here. Update this file after EVERY step: what is done, what is running, and the exact next action.
 Logs from timing runs live in the session scratchpad, which a reboot wipes. The numbers that matter are copied here.
 
+## CURRENT STATE (2026-10-23 early) — work list = tickets/README.md; owner list = handoff/PLAN/OWNER-TODO.md
+- Branch redesign/stream-sections (never main). Live local release r-36fbc5326506 (strict 7903 + smoke green).
+- Release total gate raised 14 → 15 MB (owner Q55). Web fetch budget is T129.
+- RUNNING (background, will notify):
+  - text release: scratchpad text-release.sh → deliver (T103 T104 T109 T120 T127 T128) + post-release (data tests,
+    sweep, fixtures). Then: review the answers diff (scratchpad answers-before-text.json vs data/generated/regs/
+    ui-rules-answers.json), commit fixtures, smoke, set T128 DONE.
+  - dictionary agent: zdict choice scored by shipped region-shard bytes (T64 note) → merge + rerun store/release.
+  - workflow wf_58c33d34-a73: T130 (heat map at lower zoom; Change chip greyed under Level), T131 (spot pins + tap to open).
+- HELD for owner: T101 (Q44). Next band-2 tickets after these: T126, T105–T108, T110, T111/T115 (ride a reach rerun),
+  T113, T114, T116, T82, T41/T47 leftovers, T100, T94, T102 part B → T117.
+- Merge recipe: cherry-pick worktree branches, rewrite worktree hashes → branch hashes in tickets, README rows,
+  `node app/tools/check-tickets.mjs` (unpiped), strict + smoke once per batch.
+
 ## CURRENT STATE (2026-10-22 late night) — work list is tickets/README.md; owner list is handoff/PLAN/OWNER-TODO.md
 - Live local release r-36fbc5326506 (13.84 MB; best-of-8 zdict trainer): strict 7903 + smoke 18/18 green.
   DONE since last state: T51 T52 T54 T57 T59 T68 T76 T78 T81 T83 T90 T92 T96 T99; PARTIAL T70 T80 T89 T102 (part A).
