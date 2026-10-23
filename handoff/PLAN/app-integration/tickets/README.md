@@ -172,6 +172,7 @@ use that as the sole source of future work."
 | T125 | latent duplicate checks: pins and small helpers | OPEN | — | all |
 | T126 | forecast reading bugs: CLEVER times 8 h off, 5-day summary on a 10-day run, dots ignore horizon | OPEN | — | all (band 2) |
 | T127 | displaced rule still shows "counts toward" and bounds the card gate | OPEN | — | all (band 2; needs deliver) |
+| T128 | sub-cap line names its total ("of your 5 trout and char a day in streams, up to 2 may be…") | OPEN | — | all (band 2; needs deliver) |
 
 ## Order for open tickets
 
@@ -181,7 +182,7 @@ code. Heavy jobs run one at a time through scripts/heavy.sh (≤ 4 workers). ★
 1. **Finishing now:** the batch-3 rebuild (T59, T76, T78, T80, T89, T90 + T96's Shuswap text: reach → binding diff →
    deliver), T52 (Expected change).
 2. **Features and correctness (before cleanup):** T54 (no-access streams, built with Q1–Q3 defaults), T51, T68, T82
-   (O3/O5; ★ the reader-gate run), T41 / T47 leftovers, T126 (forecast reading bugs), T127, T92, T99, T100 ★ (rides a reach rerun), T102 (rides a reach rerun), T94.
+   (O3/O5; ★ the reader-gate run), T41 / T47 leftovers, T126 (forecast reading bugs), T127, T128 (sub-cap names its total), T92, T99, T100 ★ (rides a reach rerun), T102 (rides a reach rerun), T94.
    Unification audit 2026-10-22 (wrong answers today): T103, T104, T106, T109 step 1, T116 first (cheap, no binding
    diff); then T105, T107, T108, T110, T120, T114; T113 rides the tiles window (band 5); T111 + T115 ride the reach
    rerun with T102, each with its own reviewed binding diff.
