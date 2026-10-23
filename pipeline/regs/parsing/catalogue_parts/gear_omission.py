@@ -94,11 +94,12 @@ def _p(rx: str) -> re.Pattern:
 #: (`PropulsionLevel`). That is why this is a vocabulary and not a word search.
 GEAR_PHRASES: Tuple[GearPhrase, ...] = (
     # "single barbless hook" is one point on one hook (`points_per_hook`); a set line's
-    # "One line, single hook" is one hook on the line (`hooks_per_line`). Either is a 1.
+    # "One line, single hook" is one hook on the line (`hooks_per_line`) — but only on a set line:
+    # `hooks_per_line: 1` on an angling rule leaves a treble legal.
     GearPhrase("single_hook", _p(r"\bsingle\s+(?:barbless\s+)?hooks?\b"),
-               "`points_per_hook` or `hooks_per_line` at max 1",
-               lambda r: any(c.slot.value in ("points_per_hook", "hooks_per_line")
-                             and c.max == 1 for c in _clauses(r))),
+               "`points_per_hook` at max 1 (`hooks_per_line` on a set line)",
+               lambda r: _slot(r, "points_per_hook", lambda c: c.max == 1)
+               or (_means(r, "set_lining") and _slot(r, "hooks_per_line", lambda c: c.max == 1))),
     GearPhrase("barbless", _p(r"\bbarbless\b"), "`barb: only [barbless]`",
                lambda r: _slot(r, "barb", lambda c: "barbless" in (c.only or ()))),
     GearPhrase("bait_ban", _p(r"\bbait ban\b|\bno (?:natural )?bait\b"), "a `bait` ban",
@@ -183,6 +184,35 @@ def _span(row: str, verbatim: str) -> Optional[Tuple[int, int]]:
     return None if at < 0 else (at, at + len(verbatim))
 
 
+#: WHICH PHRASES A ZONE DEFAULT IS. A lift covers a phrase only when it lifts that phrase — Duncan
+#: River prints "Exempt from spring closure, exempt from … catch and release, bait ban" with no `;`,
+#: and the bait ban there is imposed. Every `EXEMPTABLE_DEFAULTS` slug is classified (a test pins
+#: it), so a new default is a decision here, not a silent "lifts nothing".
+DEFAULT_LIFTS: Dict[str, frozenset] = {
+    "spring_stream_closure": frozenset(),
+    "summer_stream_closure": frozenset(),
+    "steelhead_stream_closure": frozenset(),
+    "trout_char_winter_release": frozenset(),
+    "bait_ban_streams": frozenset({"bait_ban"}),
+    "single_barbless_hook": frozenset({"single_hook", "barbless"}),
+}
+
+
+def _lifts(rule: "CatalogueRule", phrase: GearPhrase, entry: "CatalogueEntry") -> bool:
+    """Does one of the rule's `exempts` lift THIS phrase? A zone default by `DEFAULT_LIFTS`; a
+    rule of this entry when that rule stores the phrase; a rule of another entry is taken on
+    trust (the bundle resolves it — `pipeline.deliver.bundle.rules._exempts`)."""
+    for x in rule.exempts or ():
+        if x.default_id:
+            if phrase.name in DEFAULT_LIFTS.get(x.default_id, ()):
+                return True
+        elif x.entry_id and x.entry_id != entry.entry_id:
+            return True
+        elif any(r.rule_id == x.target and phrase.stores(r) for r in entry.rules):
+            return True
+    return False
+
+
 def _lifted(rule: "CatalogueRule", phrase: GearPhrase, row_lines: List[str]) -> bool:
     """Is the phrase, as this rule prints it, what an EXEMPTION lifts — "exempt" earlier in the
     same clause (of the rule's own verbatim, or of the printed line the verbatim sits in)?"""
@@ -223,7 +253,8 @@ def gear_misses(entry: "CatalogueEntry",
                     if same_span(i, j) and phrase.printed.search(rules[j].verbatim)]
             if any(phrase.stores(rules[j]) or _noted(rules[j], phrase) for j in sibs):
                 continue
-            if any(rules[j].exempts for j in sibs) and _lifted(rule, phrase, row_lines):
+            if (any(_lifts(rules[j], phrase, entry) for j in sibs)
+                    and _lifted(rule, phrase, row_lines)):
                 continue
             if (entry.entry_id, rule.rule_id, phrase.name) in kept:
                 continue

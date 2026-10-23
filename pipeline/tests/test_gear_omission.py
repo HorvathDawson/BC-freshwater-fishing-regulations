@@ -18,7 +18,8 @@ import pytest
 
 from pipeline.regs.parsing.catalogue import CatalogueEntry
 from pipeline.regs.parsing.catalogue_parts.gear_omission import (
-    GEAR_PHRASES, KEPT_GEAR_GAPS, gear_misses)
+    DEFAULT_LIFTS, GEAR_PHRASES, KEPT_GEAR_GAPS, gear_misses)
+from pipeline.regs.parsing.catalogue_parts.rule import EXEMPTABLE_DEFAULTS
 from pipeline.regs.parsing.validate_catalogue import post_model_checks
 
 WHOLE = [{"op": "whole"}]
@@ -175,6 +176,60 @@ def test_an_exemption_in_another_clause_does_not_cover_a_ban():
             "verbatim": "Exempt from spring closure; bait ban",
             "exempts": [{"default_id": "spring_stream_closure"}]}
     assert _misses(_entry(lift)) == [("t.r1", "bait_ban")]
+
+
+def test_a_lift_covers_only_the_phrase_it_lifts():
+    """Duncan River prints "Exempt from spring closure, exempt from regional Nov 1-Mar 31 bull
+    trout catch and release, bait ban": no `;`, so "exempt" precedes "bait ban" in one clause, but
+    the bait ban is IMPOSED. A rule quoting the whole sentence that stores both lifts and no bait
+    ban has dropped the ban — the lifts are of a closure and a release, not of a bait ban."""
+    words = ("Exempt from spring closure, exempt from regional Nov 1-Mar 31 bull trout catch and "
+             "release, bait ban")
+    lift = {"rule_id": "t.r1", "type": "retention_limit", "species": ["ALL_GAME_FISH"],
+            "verbatim": words,
+            "exempts": [{"default_id": "spring_stream_closure"},
+                        {"default_id": "trout_char_winter_release"}]}
+    assert _misses(_entry(lift)) == [("t.r1", "bait_ban")]
+    # The bait-ban default lifted is what the phrase names: held.
+    held = _with(lift, verbatim="Exempt from bait ban",
+                 exempts=[{"default_id": "bait_ban_streams"}])
+    assert _misses(_entry(held)) == []
+
+
+def test_every_exemptable_default_says_which_phrases_it_lifts():
+    assert set(DEFAULT_LIFTS) == set(EXEMPTABLE_DEFAULTS)
+    assert set().union(*DEFAULT_LIFTS.values()) <= {p.name for p in GEAR_PHRASES}
+
+
+def test_a_lift_of_a_rule_in_this_entry_covers_what_that_rule_stores():
+    """Shuswap: "(anglers fishing from the community pier … are exempt from the bait ban)" lifts
+    the entry's own bait-ban rule by `target`. A target that stores no bait ban lifts no bait
+    ban."""
+    ban = _with(BAIT_BAN, verbatim="Bait ban, single barbless hook",
+                gear=[{"slot": "bait", "ban": ["any_bait"]}, {"slot": "barb", "only": ["barbless"]},
+                      {"slot": "points_per_hook", "max": 1}])
+    words = "anglers fishing from the community pier are exempt from the bait ban"
+    lift = {"rule_id": "t.r2", "type": "bait_restriction", "verbatim": words,
+            "exempts": [{"target": "t.r1", "note": "anglers on the pier"}]}
+    regs = f"Bait ban, single barbless hook ({words})"
+    assert _misses(_entry(ban, lift, regs=regs)) == []
+    other = {"rule_id": "t.r0", "type": "tackle_restriction", "verbatim": "Fly fishing only",
+             "gear": [{"slot": "method", "only": ["fly_fishing"]}]}
+    wrong = _with(lift, exempts=[{"target": "t.r0", "note": "anglers on the pier"}])
+    assert _misses(_entry(ban, other, wrong, regs=regs + "\nFly fishing only")) == [
+        ("t.r2", "bait_ban")]
+
+
+def test_hooks_per_line_holds_a_single_hook_only_on_a_set_line():
+    """A set line's "One line, single hook" is one hook on the line; an angler's "single barbless
+    hook" is one POINT. `hooks_per_line: 1` on an angling rule leaves a treble legal."""
+    angling = _with(SINGLE_BARBLESS, gear=[{"slot": "barb", "only": ["barbless"]},
+                                           {"slot": "hooks_per_line", "max": 1}])
+    assert _misses(_entry(angling)) == [("t.r1", "single_hook")]
+    set_line = {"rule_id": "t.r1", "type": "method_rule",
+                "verbatim": "Set lining: One line, single hook", "while": ["set_lining"],
+                "gear": [{"slot": "hooks_per_line", "max": 1}]}
+    assert _misses(_entry(set_line)) == []
 
 
 def test_a_phrase_written_in_a_note_is_held_by_the_escape():
