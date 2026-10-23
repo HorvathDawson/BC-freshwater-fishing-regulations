@@ -397,6 +397,31 @@ export type StaleReason =
   | "book text changed" | "rule changed" | "binding moved" | "answer changed" | "awaiting build";
 export type QueueOrder = "attention" | "book";
 
+/** ONE VINTAGE ON SCREEN (T133, `pipeline.regs.review.vintage.entry_state`): whether the reach
+ *  run, the bundle and the release on disk were made from this entry as it is now. Until
+ *  "current", the binding and the answer are another vintage's and only T and R can be marked. */
+export interface Vintage {
+  state: "current" | "awaiting build";
+  /** `vintage.Waiting` values — which artifact is not this entry's */
+  reasons: string[];
+  /** the splits it reads that the served atlas does not hold as authored */
+  splits: string[];
+  /** "anchors" when the atlas records each split's anchor; "ids" for an older atlas (a moved
+   *  split is not seen there) */
+  splits_checked: "anchors" | "ids";
+  /** what the human runs (the tool never runs it) */
+  commands: string[];
+}
+
+/** GET /api/build — the pending-build panel (PLAN §5). */
+export interface PendingBuild {
+  built: Record<string, unknown>;
+  entries: { entry_id: string; region: string; name: string; reasons: string[]; splits: string[] }[];
+  splits: { split_id: string; reasons: string[] }[];
+  splits_checked: "anchors" | "ids";
+  commands: string[];
+}
+
 /** One mark in force, with its status against its target NOW (`GET /api/marks`). */
 export interface MarkView {
   scope: "entry" | "rule" | "split";
@@ -433,6 +458,9 @@ export interface QueueRow {
   verify?: VerifyStatus;
   verify_note?: string;
   mark_reasons?: StaleReason[];
+  /** T133: is this entry built (`Vintage.state`), and if not why */
+  vintage?: Vintage["state"];
+  vintage_reasons?: string[];
 }
 
 export interface Boundary {
@@ -521,6 +549,8 @@ export interface EntryDetail {
   source_image: string | null; // synopsis row-crop image filename, if found
   /** the marks in force on this entry (its entry mark, its rule marks) */
   marks?: MarkView[];
+  /** T133: whether the binding and the answer on screen are this entry's */
+  vintage?: Vintage;
 }
 
 // ---- What an angler is told (the live bundle) -------------------------------------------------
@@ -534,14 +564,22 @@ export interface BundleMeta {
 
 /** GET /api/entries/{id}/bundle — the bundle's copy of this entry beside the file's. */
 export interface EntryInBundle {
-  bundle: BundleMeta;
-  in_bundle: boolean;
-  /** false when a rule's label in the bundle differs from the one generated from the file now */
+  /** T133: the entry's vintage; while it awaits its build only this (and `awaiting`) is sent */
+  vintage: Vintage;
+  awaiting: boolean;
+  bundle?: BundleMeta;
+  in_bundle?: boolean;
+  /** false when a rule's label OR its section count in the bundle differs from the file now
+   *  (`vintage.bundle_matches`) */
   bundle_matches: boolean;
-  rules: { rule_id: string; label_bundle: string | null; label_now: string | null;
-           n_sections: number; unresolved: string | null }[];
-  licensing: { kind: string; id: string; label: string; unresolved: string | null;
-               n_sections: number; n_waters: number; waters: { name: string; n: number }[] }[];
+  /** rule_id -> what differs ("label", "sections: 1 in the bundle, 2 now", "not in the bundle") */
+  mismatches?: Record<string, string[]>;
+  /** rules one entry alone cannot count now (a complement, the steelhead set) */
+  unchecked?: string[];
+  rules?: { rule_id: string; label_bundle: string | null; label_now: string | null;
+            n_sections: number; n_sections_now: number | null; unresolved: string | null }[];
+  licensing?: { kind: string; id: string; label: string; unresolved: string | null;
+                n_sections: number; n_waters: number; waters: { name: string; n: number }[] }[];
 }
 
 export interface AnswerPiece {

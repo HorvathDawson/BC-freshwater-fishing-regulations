@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { api } from "./api";
 import type {
-  EntryDetail as EntryDetailT, QueueOrder, QueueRow, RegionSummary, Status, Vocab, VerifyStatus,
+  EntryDetail as EntryDetailT, PendingBuild, QueueOrder, QueueRow, RegionSummary, Status, Vocab,
+  VerifyStatus,
 } from "./types";
 import { VocabCtx } from "./model";
 import { FilterBar } from "./components/FilterBar";
@@ -92,12 +93,37 @@ export default function App() {
     onNext: idx >= 0 && idx < rows.length - 1 ? () => loadDetail(rows[idx + 1].entry_id)
       : idx < 0 && rows.length ? () => loadDetail(rows[0].entry_id) : undefined,
   };
+  // THE PENDING BUILD (T133, PLAN §5): the entries and splits edited since the last build, and the
+  // command the owner runs. Re-read after a save and, while anything waits, once a minute — the
+  // server re-reads the reach run / bundle / release by their digests, so when the owner's rebuild
+  // lands the list empties and the open entry clears "awaiting build" with no restart.
+  const [pending, setPending] = useState<PendingBuild | null>(null);
+  const loadPending = useCallback(() => {
+    api.pendingBuild().then(setPending).catch(() => {});
+  }, []);
+  useEffect(() => { loadPending(); }, [loadPending]);
+  const waiting = (pending?.entries.length ?? 0) + (pending?.splits.length ?? 0);
+  useEffect(() => {
+    if (!waiting) return;
+    const t = window.setInterval(() => {
+      api.pendingBuild().then((p) => {
+        setPending(p);
+        if (p.entries.length + p.splits.length < waiting) {
+          loadRows();
+          if (selected) api.entry(selected).then(setDetail).catch(() => {});
+        }
+      }).catch(() => {});
+    }, 60_000);
+    return () => window.clearInterval(t);
+  }, [waiting, loadRows, selected]);
+
   // After a save, refresh both the queue and the open detail.
   const onSaved = useCallback(() => {
     loadRows();
+    loadPending();
     api.regions().then(setRegions).catch(() => {});
     if (selected) api.entry(selected).then(setDetail).catch(() => {});
-  }, [loadRows, selected]);
+  }, [loadRows, loadPending, selected]);
 
 
   return (
@@ -121,9 +147,22 @@ export default function App() {
           api.regions().then(setRegions).catch(() => {});
           api.vocab().then(setVocab).catch(() => {});
           if (selected) api.entry(selected).then(setDetail).catch(() => {});
+          loadPending();
           setReloadKey((k) => k + 1);
         }}
       />
+      {pending && waiting > 0 && (
+        <div className="pending-build" data-testid="pending-build" style={{ margin: 8 }}>
+          <strong>Awaiting build:</strong>{" "}
+          {pending.entries.length} entr{pending.entries.length === 1 ? "y" : "ies"}
+          {pending.splits.length > 0 && `, ${pending.splits.length} split${pending.splits.length === 1 ? "" : "s"}`}
+          {" "}— only T and R can be marked on them until it runs.{" "}
+          {pending.commands.map((c) => <code key={c} className="cmd">{c}</code>)}
+          {pending.splits_checked === "ids" && (
+            <span className="dim"> (the served atlas predates its split record: a MOVED split is not seen until the next atlas build)</span>
+          )}
+        </div>
+      )}
       {error && (
         <div className="errors" style={{ margin: 8 }}>
           {error}{" "}

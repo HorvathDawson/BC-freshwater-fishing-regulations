@@ -1,4 +1,4 @@
-import type { MarkView, VerifyStatus } from "../types";
+import type { MarkView, Vintage, VerifyStatus } from "../types";
 
 /** Where the open entry sits in the list being worked through. */
 export interface QueueNav {
@@ -21,16 +21,31 @@ interface Props {
   entryId: string;
   marks?: MarkView[];
   nav?: QueueNav;
+  /** T133: whether the reach run, bundle and release on disk are this entry's */
+  vintage?: Vintage;
 }
 
 /* The marks in force on this entry (T97) — READ ONLY. A mark lives in the append-only store
    `marks.jsonl`, held against the entry's fingerprints; when something it was held against
    changes it reads "changed since marked" with the typed reasons. Marking is the review screen's
-   (phase 3, T134: `POST /api/marks`), not this bar's. */
-export function VerifyBar({ entryId, marks, nav }: Props) {
+   (phase 3, T134: `POST /api/marks`), not this bar's.
+   ONE VINTAGE (T133): while the entry AWAITS ITS BUILD the bar says so, why, and what the owner
+   runs; the binding and the answer on screen are then another vintage's, and only T and R can be
+   marked. It clears by itself once the rebuild lands (the server re-reads the digests). */
+export function VerifyBar({ entryId, marks, nav, vintage }: Props) {
   const shown = marks ?? [];
   return (
     <div className="verify-bar" data-testid="verify-bar" data-entry={entryId}>
+      {vintage && vintage.state !== "current" && (
+        <div className="verify-row awaiting-build" data-testid="awaiting-build">
+          <span className="verify-chip stale" title={vintage.reasons.join("; ")}>
+            awaiting build — only T and R can be marked
+          </span>
+          <span className="dim">{vintage.reasons.join("; ")}
+            {vintage.splits.length > 0 && ` (${vintage.splits.join(", ")})`}</span>
+          {vintage.commands.map((c) => <code key={c} className="cmd">{c}</code>)}
+        </div>
+      )}
       <div className="verify-row">
         {shown.length === 0 && (
           <span className="verify-chip unmarked" data-testid="verify-status">{WORDS.unmarked}</span>

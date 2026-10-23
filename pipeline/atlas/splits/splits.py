@@ -69,6 +69,71 @@ def splits_on(data: dict, refs: set[str]) -> list[dict]:
     return out
 
 
+#: A split's fields that do not move it: display and notes — and, as in its anchor, every
+#: `_`-prefixed key (`_note`, `_coord`, `_offset_m`: annotations no builder reads). Everything else
+#: (anchor, kind, the authored offsets, proximity, its own target) is the cut.
+SPLIT_NOT_ANCHOR = frozenset({"id", "label", "note"})
+#: THE ATLAS'S RECORD OF THE CUTS IT WAS BUILT FROM (T133): {split id: `anchor_digest`} for every
+#: split of the splits.json the build read, written beside `splits.resolved.json`. The review tool
+#: compares it with splits.json now: a split added or moved since reads "awaiting build".
+ANCHORS_FILE = "split_anchors.json"
+
+
+def split_index(data: dict | None) -> dict[str, dict]:
+    """split id -> the split, carrying its waterbody's `applies_to` (`_waterbody_applies_to`)
+    beside its own — what `split_anchor` reads."""
+    idx = {}
+    for wb in (data or {}).get("waterbodies", []):
+        for sp in wb.get("splits", []):
+            if isinstance(sp, dict) and sp.get("id"):
+                idx[sp["id"]] = dict(sp, _waterbody_applies_to=wb.get("applies_to"))
+    return idx
+
+
+def split_anchor(split: dict) -> dict:
+    """A split's CANONICAL ANCHOR: every field that decides where the cut is (anchor, kind,
+    authored offset, proximity, its target — its own `applies_to` or its waterbody's), and none
+    that only names or annotates it. `split` as `split_index` gives it."""
+    out = {k: v for k, v in split.items() if k not in SPLIT_NOT_ANCHOR
+           and not str(k).startswith("_")}
+    out["anchor"] = {k: v for k, v in (split.get("anchor") or {}).items()
+                     if not str(k).startswith("_")}
+    out["applies_to"] = sorted(applies_keys(split.get("applies_to"))
+                               or applies_keys(split.get("_waterbody_applies_to")))
+    return out
+
+
+def anchor_digest(split: dict) -> str:
+    """THE ONE DIGEST OF WHERE A CUT IS: SHA-256 (16 hex) of `split_anchor` as sorted-key compact
+    JSON. The review fingerprint holds it (`binding`), the atlas records it (`ANCHORS_FILE`)."""
+    import hashlib
+    blob = json.dumps(split_anchor(split), sort_keys=True, ensure_ascii=False,
+                      separators=(",", ":"), default=str)
+    return hashlib.sha256(blob.encode("utf-8")).hexdigest()[:16]
+
+
+def anchor_digests(data: dict | None) -> dict[str, str]:
+    """split id -> `anchor_digest`, for every split of a splits.json document."""
+    return {sid: anchor_digest(sp) for sid, sp in sorted(split_index(data).items())}
+
+
+def write_anchor_record(data: dict | None, out_dir) -> Path:
+    """Write `ANCHORS_FILE` into a build directory: the anchors of the splits.json document this
+    build read (`data`, read when the build loaded its splits — not re-read at the end, where an
+    edit made during the build would be recorded as built). None (`--no-splits`) records none."""
+    p = Path(out_dir) / ANCHORS_FILE
+    p.write_text(json.dumps(anchor_digests(data), indent=1, sort_keys=True) + "\n", encoding="utf-8")
+    return p
+
+
+def read_anchor_record(build_dir) -> dict[str, str] | None:
+    """The anchors a built atlas recorded (`ANCHORS_FILE`), or None for an atlas built before the
+    record existed — which can still say which split IDS it holds (`splits.resolved.json`), not
+    whether one moved. The caller says which of the two it could check."""
+    p = Path(build_dir) / ANCHORS_FILE
+    return json.loads(p.read_text(encoding="utf-8")) if p.exists() else None
+
+
 def _flatten_waterbodies(data: dict) -> tuple[list[dict], list[tuple[str, str]]]:
     """By-waterbody shape -> flat split dicts. Each split's target is its own ``applies_to`` if it
     has one, else the waterbody's ``applies_to``. Both use the same shape (gnis_id/blk/wsc/gnis_ids).

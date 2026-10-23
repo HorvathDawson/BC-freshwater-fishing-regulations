@@ -62,6 +62,11 @@ export function QueueList({ rows, selected, loading, onSelect }: Props) {
                 {r.verify === "verified" ? "✓ verified" : r.verify === "stale" ? "changed since marked" : r.verify}
               </span>
             )}
+            {r.vintage && r.vintage !== "current" && (
+              <span className="verify-chip stale" title={(r.vintage_reasons ?? []).join("; ")}>
+                awaiting build
+              </span>
+            )}
             {r.page != null && <span className="dim">p.{r.page}</span>}
             {r.pointer && <span className="badge">pointer</span>}
             <span className={`badge ${r.status}`}>{r.status}</span>

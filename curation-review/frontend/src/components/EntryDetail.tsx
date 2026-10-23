@@ -237,7 +237,7 @@ export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0, nav }:
     <div className="detail">
       <div className="detail-cols">
         <div className="detail-content">
-      <VerifyBar entryId={entry.entry_id} marks={detail.marks} nav={nav} />
+      <VerifyBar entryId={entry.entry_id} marks={detail.marks} nav={nav} vintage={detail.vintage} />
       {/* ERRORS WITH NO FIELD PATH come first (T96): the gate's entry-level refusals — a lift
           outside what it lifts, a lake cut into parts — name no field, and below the identity
           block they were missed while the save button refused. */}
@@ -523,8 +523,12 @@ export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0, nav }:
                   const v = reaches?.verdict?.[rule.rule_id];
                   if (!v) return null;
                   const bound = v.outcome === "bound";
+                  // T133: until the entry is built this is the builder's answer for the file NOW,
+                  // not what the bundle ships — a preview for fixing, never the binding to sign off
+                  const preview = detail.vintage && detail.vintage.state !== "current";
                   return (
                     <div className={`binding${bound ? "" : " unbound"}`} data-testid={`binding-${path}`}>
+                      {preview && <span className="badge warn" title="awaiting build: not what the bundle ships yet">preview</span>}{" "}
                       <strong>{bound ? `binds ${v.n_sections.toLocaleString()} section(s)` : `${v.outcome}`}</strong>
                       {v.reason && <> · {v.reason}{v.detail ? `: ${v.detail}` : ""}</>}
                       {rule.side && <> · {String(rule.side)} half only</>}

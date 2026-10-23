@@ -165,8 +165,10 @@ def write_run(out_dir: str | Path, result, entries=None, *,
     report["outside_digest"] = _table_digest(tables[OUTSIDE_TABLE])
     report["straddle_digest"] = _table_digest(tables[STRADDLE_TABLE])
     if isinstance(entries, dict):           # the corpus the run was made from (P2)
-        from pipeline.regs.parsing.io import corpus_digest
+        from pipeline.regs.parsing.io import corpus_digest, entry_digests
         report["entries_digest"] = corpus_digest(entries)
+        # per entry, so the review tool can say WHICH entries this run was made from (T133)
+        report["entry_digests"] = entry_digests(entries)
     report.update(stamps or {})
     (out / "report.json").write_text(
         json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")

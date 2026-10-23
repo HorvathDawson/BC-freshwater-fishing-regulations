@@ -18,7 +18,7 @@ question the reviewer answered, so a change says which question it reopens:
     binding   per record, where it lands, from the curated inputs: the matched waters (folded through
               the registry's absorbed-id map, the corpus' one read point), the placement fields, every
               split it names AND every split on its waters — each as its canonical anchor JSON
-              (`split_anchor`), never coordinates resolved by a build (the 102 confluence anchors
+              (`splits.split_anchor`), never coordinates resolved by a build (the 102 confluence anchors
               have none) — and the matcher override that decides the row's water.
               Plus `reach`, its bundle half: per named water the bound main-stem km (0.1 km), and
               the count of bound sections in no named water. NEVER SECTION IDS: the atlas is not
@@ -58,10 +58,6 @@ NOT_MEANING = frozenset({"label", "review_reason", "rule_id", "id"})
 TEXT_FIELDS = ("name", "regs_verbatim", "source_pages", "symbols")
 #: The entry's own fields that place it (its pseudo-record "entry" binding).
 ENTRY_PLACEMENT = ("matched", "extents", "includes_tributaries", "tidal")
-#: A split's fields that do not move it: display and notes — and, as in its anchor, every
-#: `_`-prefixed key (`_note`, `_coord`, `_offset_m`: annotations no builder reads). Everything else
-#: (anchor, kind, the authored offsets, proximity, its own target) is the cut.
-SPLIT_NOT_ANCHOR = frozenset({"id", "label", "note"})
 #: A rule's fields that NAME ANOTHER RULE OF ITS ENTRY by `rule_id` (130 `within`, 6 `condition_of`,
 #: 3 `derived_from`; and `siblings` inside an extent). A fingerprint holds the NAMED RULE'S MEANING in
 #: place of its id (`_deref`), so a re-parse that renumbers the rules moves no mark: an id is not
@@ -128,6 +124,15 @@ def _rule_reaches(db) -> dict[tuple[str, str], tuple]:
     return {k: reach_summary(v) for k, v in reach.items()}
 
 
+def rule_section_counts(db, entry_id: str) -> dict[str, int]:
+    """THE BUNDLE'S ANSWER TO "how many sections does each rule of this entry bind": rule_id ->
+    distinct sections over every rule set it is in. One query, read by the review tool's "bundle
+    matches" (`vintage.bundle_matches`) and its bundle panel (`answer.entry_in_bundle`)."""
+    return dict(db.execute(
+        "SELECT r.rule_id, COUNT(DISTINCT s.sid) FROM ruleset r JOIN section_ruleset s "
+        "ON s.set_id = r.set_id WHERE r.entry_id = ? GROUP BY r.rule_id", (entry_id,)))
+
+
 def _licensing_labels(db) -> dict[tuple[str, str], str]:
     lic: dict[tuple[str, str], str] = {}
     for table, idcol in (("designation", "designation_id"), ("not_classified", "not_classified_id"),
@@ -179,13 +184,10 @@ class Context:
 
     @cached_property
     def split_index(self) -> dict[str, dict]:
-        """split id -> the split, carrying its waterbody's `applies_to` beside its own."""
-        idx = {}
-        for wb in (self.splits or {}).get("waterbodies", []):
-            for sp in wb.get("splits", []):
-                if isinstance(sp, dict) and sp.get("id"):
-                    idx[sp["id"]] = dict(sp, _waterbody_applies_to=wb.get("applies_to"))
-        return idx
+        """split id -> the split, carrying its waterbody's `applies_to` beside its own
+        (`splits.split_index`)."""
+        from pipeline.atlas.splits.splits import split_index
+        return split_index(self.splits)
 
     @cached_property
     def override_index(self):
@@ -193,18 +195,11 @@ class Context:
         return build_override_index(list(self.overrides))
 
 
-def split_anchor(split: Mapping) -> dict:
-    """A split's CANONICAL ANCHOR: every field that decides where the cut is (anchor, kind,
-    authored offset, proximity, its target — its own `applies_to` or its waterbody's), and none
-    that only names or annotates it."""
-    out = {k: v for k, v in split.items() if k not in SPLIT_NOT_ANCHOR
-           and not str(k).startswith("_")}
-    out["anchor"] = {k: v for k, v in (split.get("anchor") or {}).items()
-                     if not str(k).startswith("_")}
-    from pipeline.atlas.splits.splits import applies_keys
-    out["applies_to"] = sorted(applies_keys(split.get("applies_to"))
-                               or applies_keys(split.get("_waterbody_applies_to")))
-    return out
+def _anchor_digest(split: Mapping) -> str:
+    """A split's canonical anchor as a digest — `splits.anchor_digest`, the atlas's own (the atlas
+    records it per split, `splits.ANCHORS_FILE`, so the two can never disagree about a cut)."""
+    from pipeline.atlas.splits.splits import anchor_digest
+    return anchor_digest(dict(split))
 
 
 def _split_ids(obj) -> set[str]:
@@ -318,7 +313,7 @@ def meaning_fp(record: Mapping) -> str:
 
 def _splits_named(ids: Iterable[str], ctx: Context) -> list:
     idx = ctx.split_index
-    return [(sid, digest(split_anchor(idx[sid])) if sid in idx else None) for sid in sorted(ids)]
+    return [(sid, _anchor_digest(idx[sid]) if sid in idx else None) for sid in sorted(ids)]
 
 
 def _water_refs(matched: Iterable[str], ctx: Context) -> set[str]:
@@ -331,15 +326,33 @@ def _water_refs(matched: Iterable[str], ctx: Context) -> set[str]:
     return refs
 
 
+def _splits_on_waters(entry: Mapping, ctx: Context) -> list[dict]:
+    from pipeline.atlas.splits.splits import splits_on
+    return splits_on(ctx.splits or {}, _water_refs(entry.get("matched") or [], ctx))
+
+
+def entry_split_ids(entry: Mapping, ctx: Context) -> set[str]:
+    """EVERY SPLIT THE ENTRY'S BINDING READS — the splits its binding fingerprints hold: each one
+    on its matched waters (`entry_binding_fp`) and each one its own extents or any rule's or
+    licensing record's placement names (`record_binding_fp`). What the review tool asks the
+    served atlas about before it calls the entry built (`vintage.entry_state`, T133)."""
+    out = {str(sp["id"]) for sp in _splits_on_waters(entry, ctx) if sp.get("id")}
+    out |= _split_ids(entry.get("extents"))
+    for key in ("rules", "licensing"):
+        for x in entry.get(key) or []:
+            if isinstance(x, dict):
+                out |= _split_ids(_placed(x, PLACEMENT_FIELDS))
+    return out
+
+
 def entry_binding_fp(entry: Mapping, ctx: Context) -> str:
     """Where the ENTRY lands: its matched waters, its clip and tributary scope, `tidal`, every
     authored split on its waters (canonical anchors), and the matcher override deciding its row."""
-    from pipeline.atlas.splits.splits import splits_on
     from pipeline.regs.matching.matcher import override_for
     placed = _placed(entry, ENTRY_PLACEMENT)
-    on_waters = splits_on(ctx.splits or {}, _water_refs(entry.get("matched") or [], ctx))
+    on_waters = _splits_on_waters(entry, ctx)
     idx = ctx.split_index
-    waters = sorted((sp["id"], digest(split_anchor(idx.get(sp["id"], sp)))) for sp in on_waters
+    waters = sorted((sp["id"], _anchor_digest(idx.get(sp["id"], sp))) for sp in on_waters
                     if sp.get("id"))
     named = _splits_named(_split_ids(entry.get("extents")), ctx)
     ov = None
@@ -457,5 +470,5 @@ def split_fingerprints(split_id: str, ctx: Context) -> dict:
         raise KeyError(f"split {split_id!r} is not in splits.json")
     return {"text": None, "records": [{"key": f"split:{split_id}",
                                        "meaning": digest({"kind": sp.get("kind")}),
-                                       "binding": digest(split_anchor(sp)),
+                                       "binding": _anchor_digest(sp),
                                        "reach": None, "answer": None}]}

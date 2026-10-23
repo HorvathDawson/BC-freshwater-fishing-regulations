@@ -66,8 +66,8 @@ def main(argv=None) -> int:
     ap.add_argument("--yes", action="store_true", help="upload (without it, print the plan only)")
     a = ap.parse_args(argv)
     root = GENERATED.release
-    release = a.release or max((p for p in root.glob("r-*") if p.is_dir()), key=lambda p: p.stat().st_mtime,
-                               default=None)
+    from pipeline.deliver.release.manifest import latest
+    release = a.release or latest(root)          # THE release on disk: one answer (T133)
     if release is None:
         raise SystemExit(f"publish: no release under {root} — python -m pipeline.deliver release")
     puts = plan(Path(release), root)

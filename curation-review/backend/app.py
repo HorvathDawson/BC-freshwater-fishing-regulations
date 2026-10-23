@@ -109,10 +109,19 @@ def get_split_marks():
     return reuse.split_mark_states()
 
 
+@app.get("/api/build")
+def pending_build():
+    """THE PENDING BUILD (T133, PLAN §5): every entry and split awaiting its build, why, the
+    vintage on disk, and the command(s) the human runs — the tool never runs them. Re-read from
+    disk on every request, so it empties when the rebuild lands, with no restart."""
+    return reuse.pending_build()
+
+
 @app.get("/api/entries/{entry_id}/bundle")
 def entry_bundle(entry_id: str):
-    """The live bundle's copy of this entry beside the file's — per-rule label and section count,
-    where each licensing record binds — and whether the bundle predates the file."""
+    """The live bundle's copy of this entry beside the file's — per-rule label and section count
+    (the bundle's, and the builder's now), where each licensing record binds — and whether they
+    match. For an entry AWAITING BUILD only its `vintage` (the bundle's copy is not this entry's)."""
     d = reuse.entry_answer_context(entry_id)
     if d is None:
         raise HTTPException(404, f"entry {entry_id} not found")
@@ -121,8 +130,16 @@ def entry_bundle(entry_id: str):
 
 @app.get("/api/entries/{entry_id}/answer/waters")
 def entry_answer_waters(entry_id: str, q: str = "", limit: int = 60):
-    """The waters this entry reaches in the bundle, split into pieces that get one answer each."""
+    """The waters this entry reaches in the bundle, split into pieces that get one answer each.
+    409 while the entry awaits its build (T133): the bundle's answer is another vintage's."""
     import answer
+    from pipeline.regs.review.vintage import CURRENT
+    found = reuse._find(entry_id)
+    if found is None:
+        raise HTTPException(404, f"entry {entry_id} not found")
+    vin = reuse.entry_vintage(found[1])
+    if vin["state"] != CURRENT:
+        raise HTTPException(409, {"vintage": vin})
     return answer.entry_waters(entry_id, q=q, limit=limit)
 
 

@@ -1242,6 +1242,13 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
     # THE SAME CORPUS THE REACH RUN WAS MADE FROM (P2): its full content, not only its ids.
     db.execute("INSERT OR REPLACE INTO meta (k, v) VALUES ('entries_digest', ?)",
                (check_corpus(reaches, {e["entry_id"]: e for e, _ in docs}),))
+    # PER ENTRY (T133): which entries this bundle was made from, so the review tool can call ONE
+    # entry built (its digest here = the reach run's = the file's) while another awaits a build.
+    # `check_corpus` just proved the corpus is the run's, so these are the run's `entry_digests`.
+    from pipeline.regs.parsing.io import entry_digests
+    db.execute("INSERT OR REPLACE INTO meta (k, v) VALUES ('entry_digests', ?)",
+               (json.dumps(entry_digests({e["entry_id"]: e for e, _ in docs}), sort_keys=True,
+                           separators=(",", ":")),))
     # What an exemption may name: zone entries by slug, and every entry's rule ids.
     zones: dict[str, list[str]] = {}
     rules_of: dict[str, dict] = {}

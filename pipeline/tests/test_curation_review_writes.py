@@ -66,6 +66,18 @@ def env(tmp_path):
         sys.modules.pop(mod, None)
 
 
+@pytest.fixture
+def as_built(env):
+    """Every target read as built. These tests are about the store and its backups; whether the
+    reach run, bundle and release on disk are the temp catalogue's (T133's gate on a verified mark)
+    is `test_curation_review_vintage.py`'s."""
+    from pipeline.regs.review import vintage as V
+    now = {"state": V.CURRENT, "reasons": [], "splits": [], "splits_checked": "anchors",
+           "commands": []}
+    env["mp"].setattr(env["reuse"], "entry_vintage", lambda e, on=None: dict(now))
+    env["mp"].setattr(env["reuse"], "split_vintage", lambda sid, on=None: dict(now))
+
+
 def _files(env) -> dict[Path, bytes]:
     out = {env["splits"]: env["splits"].read_bytes()}
     for d in (env["cat"], env["dfo"]):
@@ -267,7 +279,7 @@ def _post_mark(c, eid: str, **over):
 
 
 @pytest.mark.needs_atlas
-def test_a_mark_backs_up_the_store_and_only_appends(env):
+def test_a_mark_backs_up_the_store_and_only_appends(env, as_built):
     path = min(env["cat"].glob("region-*.json"), key=lambda p: p.stat().st_size)
     eid = json.loads(path.read_text(encoding="utf-8"))["entries"][0]["entry_id"]
     c, store = env["client"], env["marks"]
@@ -338,7 +350,7 @@ def _mark_state(env, eid: str) -> dict:
 
 
 @pytest.mark.needs_atlas
-def test_rename_carries_marks_and_other_edits_still_stale_them(env):
+def test_rename_carries_marks_and_other_edits_still_stale_them(env, as_built):
     c, sid, new = env["client"], _renameable(env), "renamed_for_test"
     region, eid = _entry_binding(env, sid)
     assert _post_mark(c, eid).status_code == 200
@@ -367,7 +379,7 @@ def test_rename_carries_marks_and_other_edits_still_stale_them(env):
 
 
 @pytest.mark.needs_atlas
-def test_rename_rolls_the_carried_marks_back_too(env):
+def test_rename_rolls_the_carried_marks_back_too(env, as_built):
     c, sid = env["client"], _renameable(env)
     _, eid = _entry_binding(env, sid)
     assert _post_mark(c, eid).status_code == 200

@@ -668,6 +668,7 @@ def main() -> None:
     # registry still looked healthy, because only the AREA splits — which come from a different
     # source — survived. A build that quietly drops the curated geometry must not be reachable by
     # forgetting a flag; opting out is now explicit.
+    splits_doc = None          # the splits.json document read now: its anchors are recorded (T133)
     if args.no_splits:
         splits = None
         print("!! --no-splits: building with NO curated splits; 'downstream of X' rules will not resolve")
@@ -675,6 +676,7 @@ def main() -> None:
         _sp = Path(args.splits) if args.splits else _DEFAULT_SPLITS
         if not _sp.exists():
             raise SystemExit(f"splits file not found: {_sp}  (pass --splits, or --no-splits to skip)")
+        splits_doc = json.loads(_sp.read_text(encoding="utf-8"))
         splits = load_split_defs(str(_sp))
         print(f"curated splits: {len(splits)} from {_sp}")
         # GAUGE CUTS RIDE IN AS ORDINARY SPLIT DEFS, SECOND.
@@ -1097,6 +1099,10 @@ def main() -> None:
     if applied_splits:
         from pipeline.atlas.splits.splits import write_resolved
         write_resolved(applied_splits, str(out / "splits.resolved.json"))
+    # what this atlas was cut from, split by split: the review tool reads a split added or moved
+    # since as "awaiting build" (T133)
+    from pipeline.atlas.splits.splits import write_anchor_record
+    write_anchor_record(splits_doc, out)
     obstacles = None
     if "obstacles" in fwa.layer_names:
         obstacles = fwa.get_layer(

@@ -23,6 +23,7 @@ import type {
   Answer,
   AnswerWater,
   EntryInBundle,
+  PendingBuild,
   QueueOrder,
   VerifyStatus,
   MarkView,
@@ -213,6 +214,9 @@ export const api = {
   /** the marks in force, each with its status and stale reasons now */
   marks: (target?: string) =>
     getJSON<MarkView[]>(`/api/marks${target ? `?target=${encodeURIComponent(target)}` : ""}`),
+
+  /** T133: every entry and split awaiting its build, and the command(s) to run */
+  pendingBuild: () => getJSON<PendingBuild>("/api/build"),
 
   // --- what an angler is told: the live bundle ---
   entryBundle: (entryId: string) =>

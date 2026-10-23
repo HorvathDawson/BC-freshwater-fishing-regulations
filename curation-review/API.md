@@ -166,7 +166,28 @@ The server stamps `date`, `pdf_sha256` (the repo PDF) and the target's fingerpri
 (or `CURATION_MARKS`) through the backed-up commit. `422` for a mark the model refuses (`verified`
 needs every check `y`; `wrong` a `n`, a problem and a note; no reviewer; an unknown field) or an
 entry that FAILS THE GATE; `404` for an unknown entry, rule or split. → the mark with `status` and
-`reasons`.
+`reasons`. **T133:** also `422` ("awaiting build …", with the command to run) when the target is
+AWAITING ITS BUILD and the mark answers anything but `T` and `R` — so no `verified` mark, and no
+split mark, until the reach run, the bundle and the release are this entry's (below).
+
+### One vintage on screen (T133)
+`GET /api/entries/{id}` carries `vintage: {state: current | "awaiting build", reasons, splits,
+splits_checked: anchors | ids, commands}` (`pipeline.regs.review.vintage.entry_state`): `current`
+only when the reach run's `report.json` `entry_digests[id]`, the bundle's `meta` `entry_digests[id]`
+and the entry's digest now (`io.entry_digest`) agree, the newest release's manifest `bundle` states
+that bundle's `entries_digest` + `reach_digest`, the reach run and the bundle were made on the
+served atlas, and every split the entry reads is in that atlas as authored (`split_anchors.json`;
+an atlas built before that record checks split ids only — `splits_checked: ids`). No bundle is
+awaiting build. Queue rows carry `vintage` and `vintage_reasons`; `/api/marks/splits` carries each
+split's `vintage`. Re-read from disk by the files' stamps on every request: a rebuild run in a
+terminal clears it with no restart. `CURATION_REACH_DIR` / `CURATION_RELEASE_ROOT` point the reach
+run and the release root at copies (tests).
+
+### GET /api/build
+→ `{built, entries: [{entry_id, region, name, reasons, splits}], splits: [{split_id, reasons}],
+splits_checked, commands}` — the pending-build panel: everything awaiting its build and what the
+human runs (`scripts/heavy.sh build 30 -- python -m pipeline build --no-tiles` for an entry fix;
+the atlas build, binding diff and promote first when a split or the atlas is why). Never runs it.
 
 ### GET /api/marks?target=&scope=
 → the marks in force (the last per target), each with `status` (`verified | wrong | unsure |
@@ -183,16 +204,21 @@ confirmed is `unmarked` (a split added mid-review queues itself).
 Read from `data/generated/bundle/bundle.sqlite` — the LAST BUNDLE BUILD, not the entry file.
 
 ### GET /api/entries/{entry_id}/bundle
-→ `{bundle: {built, version, …}, in_bundle, bundle_matches, rules: [{rule_id, label_bundle,
-label_now, n_sections, unresolved}], licensing: [{kind, id, label, unresolved, n_sections, n_waters,
-waters: [{name, n}]}]}`. `bundle_matches` compares labels only; the UI also compares each rule's
-`n_sections` with the reach builder's verdict for the saved entry.
+→ `{vintage, awaiting, bundle: {built, version, …}, in_bundle, bundle_matches, mismatches: {rule_id:
+[what differs]}, unchecked: [rule_id], rules: [{rule_id, label_bundle, label_now, n_sections,
+n_sections_now, unresolved}], licensing: [{kind, id, label, unresolved, n_sections, n_waters, waters:
+[{name, n}]}]}`. `bundle_matches` (`vintage.bundle_matches`, T133) compares each rule's label AND its
+section count — the bundle's (`fingerprint.rule_section_counts`) beside the reach builder's on the
+served atlas now (`n_sections_now`; `None` → `unchecked` for a rule one entry alone cannot count).
+Labels alone called Tacheeda / Twin / Main Lake a match while the bundle bound one lake of two. For
+an entry AWAITING BUILD only `{vintage, awaiting: true, bundle_matches: false}`: the bundle's copy is
+another vintage's.
 
 ### GET /api/entries/{entry_id}/answer/waters?q=&limit=60
 → `[{item_id, name, n_sections, pieces: [{sid, n_sections, rules: [{rule_id, via}]}]}]` — the waters
 the entry reaches in the bundle (`"(unnamed streams)"` for sections no named item holds), each split
 into pieces that answer to one rule set; `sid` is a representative bundle section (a handle within
-one bundle vintage — never stored).
+one bundle vintage — never stored). `409 {vintage}` while the entry awaits its build (T133).
 
 ### GET /api/answer?sid=&date=YYYY-MM-DD&fish=
 → `{sid, date, fish, waters, tidal, rules: [{entry_id, rule_id, entry_name, state, type, label,

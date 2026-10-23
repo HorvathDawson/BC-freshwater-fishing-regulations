@@ -321,9 +321,27 @@ def corpus_digest(entries: dict[str, dict]) -> str:
     mapped). The reach run stamps it in `report.json`; the bundle recomputes it over the entries
     it reads and refuses a run made from another corpus — a changed extent, date or species with
     unchanged ids used to pass, because only the id sets were compared."""
+    return _content_digest([entries[k] for k in sorted(entries)])
+
+
+def entry_digest(entry: dict) -> str:
+    """ONE ENTRY'S CONTENT, as a digest (curation-review phase 2, T133): SHA-256 (first 16 hex) over
+    the entry as read through `read_entryfile` (absorbed ids mapped) — the per-entry half of
+    `corpus_digest`, by the same serialisation. The reach run writes every entry's in `report.json`
+    `entry_digests`, the bundle in its `meta`; the review tool computes it for the entry on disk
+    now and calls an entry built only when all three agree (`pipeline.regs.review.vintage`)."""
+    return _content_digest(entry)
+
+
+def entry_digests(entries: dict[str, dict]) -> dict[str, str]:
+    """entry_id -> `entry_digest`, in entry-id order."""
+    return {k: entry_digest(entries[k]) for k in sorted(entries)}
+
+
+def _content_digest(obj) -> str:
+    """THE ONE SERIALISATION the corpus and entry digests hash: sorted-key compact JSON, UTF-8."""
     import hashlib
-    rows = [entries[k] for k in sorted(entries)]
-    return hashlib.sha256(json.dumps(rows, sort_keys=True, separators=(",", ":"),
+    return hashlib.sha256(json.dumps(obj, sort_keys=True, separators=(",", ":"),
                                      ensure_ascii=False).encode("utf-8")).hexdigest()[:16]
 
 

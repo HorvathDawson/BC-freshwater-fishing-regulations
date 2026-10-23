@@ -74,6 +74,13 @@ ROW_IMAGES_DIR = GENERATED.regs.extraction / "row_images"  # source synopsis row
 #: field of an entry. `CURATION_MARKS` points it at a copy (tests).
 MARKS_PATH = (Path(os.environ["CURATION_MARKS"]) if os.environ.get("CURATION_MARKS")
               else CURATED.regulations.review.marks)
+#: THE BUILT VINTAGE the tool holds each entry against (T133): the reach run of the served build
+#: and the release root (the bundle is `pipeline.deliver.bundle.read.BUNDLE`). `CURATION_REACH_DIR`
+#: / `CURATION_RELEASE_ROOT` point them at copies (tests).
+REACH_DIR = (Path(os.environ["CURATION_REACH_DIR"]) if os.environ.get("CURATION_REACH_DIR")
+             else GENERATED.reaches / _BUILD.name)
+RELEASE_ROOT = (Path(os.environ["CURATION_RELEASE_ROOT"]) if os.environ.get("CURATION_RELEASE_ROOT")
+                else GENERATED.release)
 
 
 # --------------------------------------------------------------------------- #
@@ -868,8 +875,9 @@ def queue(region: str | None = None, status: str | None = None,
     unsure | deferred | stale (marked, then changed — `mark_reasons` says why); `todo` is
     everything not currently verified."""
     states = _mark_states()
+    on = built()                      # the vintage on disk, read once for every row (T133)
     rows = []
-    src = [(region, e) for eid, e in load_region(region).items()] if region else _all_entries()
+    src =[(region, e) for eid, e in load_region(region).items()] if region else _all_entries()
     for pos, (reg_id, e) in enumerate(src):
         item = _item_for_entry(e)
         st = entry_status(e, item)
@@ -882,6 +890,7 @@ def queue(region: str | None = None, status: str | None = None,
         if verify and not (vst == verify or (verify == "todo" and vst != "verified")):
             continue
         pages = [p for p in (e.get("source_pages") or []) if isinstance(p, int)]
+        vin = entry_vintage(e, on)
         rows.append({
             "entry_id": e["entry_id"],
             "region": reg_id if isinstance(reg_id, str) else _ident(e)["region"],
@@ -899,6 +908,8 @@ def queue(region: str | None = None, status: str | None = None,
             "verify": vst,
             "verify_note": mst["note"],
             "mark_reasons": mst["reasons"],
+            "vintage": vin["state"],             # current | awaiting build (T133)
+            "vintage_reasons": vin["reasons"],
             "_pos": pos,
         })
     if order == "book":
@@ -1047,9 +1058,120 @@ def marks_view(target: str | None = None, scope: str | None = None) -> list[dict
 
 
 def split_mark_states() -> dict[str, dict]:
-    """splits.json split id -> its mark status now (`marks.split_states`)."""
+    """splits.json split id -> its mark status now (`marks.split_states`), and whether the served
+    atlas holds it as authored (`vintage`: a split added in fix mode reads "awaiting build" until
+    the atlas is rebuilt and promoted)."""
     from pipeline.regs.review import marks as M
-    return M.split_states(M.load(MARKS_PATH), _review_context())
+    ctx = _review_context()
+    states = M.split_states(M.load(MARKS_PATH), ctx)
+    return {sid: dict(st, vintage=split_vintage(sid)) for sid, st in states.items()}
+
+
+# --------------------------------------------------------------------------- #
+# One vintage on screen (T133): `pipeline.regs.review.vintage` decides; this reads the disk
+# --------------------------------------------------------------------------- #
+
+def _vintage_paths():
+    from pipeline.deliver.bundle import read as _R
+    return _BUILD, REACH_DIR, Path(_R.BUNDLE), RELEASE_ROOT
+
+
+def built():
+    """The digests of the vintage on disk NOW (`vintage.Built`): the served atlas, its reach run,
+    the bundle and the newest release. KEYED ON THEIR FILES' STAMPS, so a reach run, a deliver or a
+    promote finished in a terminal is read on the next request — "awaiting build" clears with no
+    restart. The atlas half (its registry digest reads 100 MB) is keyed on the atlas's own files."""
+    from pipeline.regs.review import vintage as V
+    return _built_for(_stamp(V.stamp_paths(*_vintage_paths())))
+
+
+@lru_cache(maxsize=1)
+def _built_atlas(_key: tuple):
+    from pipeline.regs.review import vintage as V
+    return V.read_atlas(_BUILD)
+
+
+@lru_cache(maxsize=1)
+def _built_for(key: tuple):
+    from pipeline.regs.review import vintage as V
+    # the first four stamps are the atlas's own files (`vintage.stamp_paths`)
+    return V.read_built(*_vintage_paths(), atlas=_built_atlas(key[:4]))
+
+
+def _anchors_now(e: dict) -> dict[str, str]:
+    """split id -> its anchor digest in splits.json NOW, for every split the entry's binding reads
+    (`fingerprint.entry_split_ids`). A named id splits.json does not have is the gate's to refuse."""
+    from pipeline.atlas.splits.splits import anchor_digest
+    from pipeline.regs.review import fingerprint as F
+    ctx = _splits_context()
+    idx = ctx.split_index
+    return {sid: anchor_digest(idx[sid]) for sid in sorted(F.entry_split_ids(e, ctx)) if sid in idx}
+
+
+def _splits_context():
+    """A fingerprint context of splits.json and the registry only — what `entry_split_ids` reads.
+    The queue asks it for every entry, so it never reads the bundle's facts (`_review_context`
+    does, once, for marks). Keyed on the files' stamps like the rest."""
+    return _splits_context_for(_stamp((SPLITS_JSON_PATH, REGISTRY_PATH)))
+
+
+@lru_cache(maxsize=1)
+def _splits_context_for(_key: tuple):
+    from pipeline.regs.review import fingerprint as F
+    return F.Context(splits=json.loads(SPLITS_JSON_PATH.read_text(encoding="utf-8")),
+                     registry=_registry())
+
+
+def entry_vintage(e: dict, on=None) -> dict:
+    """Is this entry built (`vintage.entry_state`)? `e` as `load_region` reads it — the form the
+    reach run and the bundle digest. `on`: a `built()` already read for this request (the queue
+    asks for every entry)."""
+    from pipeline.regs.review import vintage as V
+    return V.entry_state(e["entry_id"], io.entry_digest(e), _anchors_now(e),
+                         on if on is not None else built())
+
+
+def split_vintage(split_id: str, on=None) -> dict:
+    """Is this split built as authored now (`vintage.split_state`)?"""
+    from pipeline.atlas.splits.splits import anchor_digest
+    from pipeline.regs.review import vintage as V
+    idx = _splits_context().split_index
+    if split_id not in idx:
+        raise KeyError(split_id)
+    return V.split_state(split_id, anchor_digest(idx[split_id]),
+                         on if on is not None else built())
+
+
+def pending_build() -> dict:
+    """THE PENDING BUILD PANEL (PLAN §5): every entry and split awaiting its build, why, and what
+    to run — empty when the vintage on disk is the one on screen. Read by the queue's panel."""
+    from pipeline.regs.review import vintage as V
+    entries, reasons = [], set()
+    on = built()
+    for region, e in _all_entries():
+        st = entry_vintage(e, on)
+        if st["state"] != V.CURRENT:
+            entries.append({"entry_id": e["entry_id"], "region": region, "name": _ident(e)["name"],
+                            "reasons": st["reasons"], "splits": st["splits"]})
+            reasons.update(st["reasons"])
+    splits = []
+    for sid in sorted(_splits_context().split_index):
+        st = split_vintage(sid, on)
+        if st["state"] != V.CURRENT:
+            splits.append({"split_id": sid, "reasons": st["reasons"]})
+            reasons.update(st["reasons"])
+    b = built()
+    return {"built": b.summary(), "entries": entries, "splits": splits,
+            "splits_checked": "anchors" if b.anchors is not None else "ids",
+            "commands": V.rebuild_commands(reasons)}
+
+
+def _live_counts(entry_id: str) -> dict[str, int | None]:
+    """rule_id -> the sections the reach builder binds it to NOW on the served atlas (the app's
+    `entry_reaches`, the builder's own function), None where one entry alone cannot say."""
+    got = entry_reaches(entry_id).get("verdict") or {}
+    return {rid: (None if v.get("reason") == "needs_corpus" else v.get("n_sections"))
+            for rid, v in got.items()}
 
 
 _PDF_SHA: dict[tuple, str] = {}
@@ -1069,15 +1191,19 @@ def _pdf_sha256() -> str:
 def post_mark(body: dict) -> dict:
     """Record a reviewer's mark: fingerprints taken from the target as it is on disk NOW, the
     date and the book's sha256 stamped here, appended to the store through the backed-up commit.
-    REFUSED (ValueError) on an entry that fails the gate; KeyError for an unknown target."""
+    REFUSED (ValueError) on an entry that fails the gate, and on a target AWAITING BUILD for any
+    answer but T and R (`vintage.refuse_unbuilt`, T133: a verified mark needs the entry's digest
+    the same in the reach run, the bundle and the release); KeyError for an unknown target."""
     import datetime as _dt
     from pipeline.regs.review import fingerprint as F
     from pipeline.regs.review import marks as M
+    from pipeline.regs.review import vintage as V
     scope, target = body.get("scope"), str(body.get("target") or "")
     ctx = _review_context()
     with writes.LOCK, M.store_lock(MARKS_PATH):          # threads, then other processes
         if scope == "split":
             prints = F.split_fingerprints(target, ctx)                 # KeyError: not in splits.json
+            V.refuse_unbuilt(scope, body.get("answers") or {}, split_vintage(target))
             pages = body.get("pages") or []
         else:
             found = _find(target)
@@ -1085,6 +1211,7 @@ def post_mark(body: dict) -> dict:
                 raise KeyError(target)
             region, e = found
             M.refuse_on_gate(target, check_entry(e, region)["errors"])
+            V.refuse_unbuilt(scope, body.get("answers") or {}, entry_vintage(e))
             prints = F.entry_fingerprints(e, ctx, rule_id=body.get("rule_id")
                                           if scope == "rule" else None)
             pages = body.get("pages") or [p for p in e.get("source_pages") or []
@@ -1118,9 +1245,16 @@ def entry_answer_context(entry_id: str) -> dict | None:
     if found is None:
         return None
     _, e = found
+    from pipeline.regs.review import vintage as V
+    vin = entry_vintage(e)
+    if vin["state"] != V.CURRENT:
+        # THE BUNDLE'S COPY IS NOT SHOWN for an entry awaiting its build (T133): it is another
+        # vintage's, and a reviewer must not sign off on it as this one's
+        return {"vintage": vin, "awaiting": True, "bundle_matches": False}
     lab = model_api.labels(e, ENTRIES_DIR, _place_namer())
     now = {r["rule_id"]: lab["rules"][i] for i, r in enumerate(e.get("rules") or [])}
-    return answer.entry_in_bundle(entry_id, now)
+    return {**answer.entry_in_bundle(entry_id, now, _live_counts(entry_id)), "vintage": vin,
+            "awaiting": False}
 
 
 def entry_detail(entry_id: str) -> dict | None:
@@ -1136,6 +1270,7 @@ def entry_detail(entry_id: str) -> dict | None:
         if e["entry_id"] != entry_id:
             continue
         item = _item_for_entry(e)
+        vintage = entry_vintage(e)          # of the entry AS READ, before labels are stamped on
         lab = model_api.labels(e, ENTRIES_DIR, _place_namer())
         e = dict(e,
                  rules=[dict(r, label=lab["rules"][i] or r.get("verbatim", ""))
@@ -1165,6 +1300,9 @@ def entry_detail(entry_id: str) -> dict | None:
             "unused_curated_splits": unused_curated_splits(e, item),
             "source_image": entry_source_image(e),
             "marks": entry_marks(entry_id),
+            # ONE VINTAGE ON SCREEN (T133): "current", or "awaiting build" with why and what to
+            # run — the binding and the answer are this entry's only when current
+            "vintage": vintage,
         }
     return None
 
@@ -2079,4 +2217,4 @@ def save_entry(region: str, entry_dict: dict) -> dict:
 #: Every cache read from the served build — what `invalidate_caches` drops.
 _BUILD_CACHES = (_registry, _place_namer_for, _indices, _splits_meta, _split_points_attrs,
                  _blk_to_item, _tributary_items, item_tributaries, _graph, _geoms, _wbk_polys,
-                 _blk_index, _review_context_for)
+                 _blk_index, _review_context_for, _built_atlas, _built_for, _splits_context_for)

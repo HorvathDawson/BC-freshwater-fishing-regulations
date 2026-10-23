@@ -643,6 +643,19 @@ def _entry_mark(env, eid):
 
 
 @pytest.fixture
+def as_built(env, monkeypatch):
+    """The real bundle, read as THIS entry's vintage. These tests are about marks and the bundle's
+    answers; whether the reach run, bundle and release on disk were made from the temp catalogue
+    (T133's one-vintage gate) is `test_curation_review_vintage.py`'s, over a vintage it writes. The
+    generated data on a machine may predate the per-entry digests, which reads "awaiting build"."""
+    from pipeline.regs.review import vintage as V
+    now = {"state": V.CURRENT, "reasons": [], "splits": [], "splits_checked": "anchors",
+           "commands": []}
+    monkeypatch.setattr(env["reuse"], "entry_vintage", lambda e, on=None: dict(now))
+    monkeypatch.setattr(env["reuse"], "split_vintage", lambda sid, on=None: dict(now))
+
+
+@pytest.fixture
 def fresh_marks(env):
     store = env["dir"] / "marks.jsonl"
     store.write_text("")
@@ -651,7 +664,7 @@ def fresh_marks(env):
 
 
 @pytest.mark.needs_bundle
-def test_a_mark_is_held_against_the_fingerprints_not_the_bytes(env, fresh_marks):
+def test_a_mark_is_held_against_the_fingerprints_not_the_bytes(env, fresh_marks, as_built):
     _the_bundle()
     reuse = env["reuse"]
     assert reuse.MARKS_PATH == fresh_marks, "marks must go to the temp store"
@@ -688,7 +701,7 @@ def test_a_mark_is_held_against_the_fingerprints_not_the_bytes(env, fresh_marks)
 
 
 @pytest.mark.needs_bundle
-def test_a_mark_is_refused_without_what_it_needs(env, fresh_marks):
+def test_a_mark_is_refused_without_what_it_needs(env, fresh_marks, as_built):
     _the_bundle()
     assert _mark(env, BULL, reviewer="").status_code == 422
     assert _mark(env, BULL, verdict="wrong", answers={**ALL_Y, "R": "n"}).status_code == 422
@@ -723,7 +736,7 @@ def test_a_mark_is_refused_on_an_entry_that_fails_the_gate(env, fresh_marks):
 
 
 @pytest.mark.needs_bundle
-def test_a_split_gets_its_own_mark(env, fresh_marks):
+def test_a_split_gets_its_own_mark(env, fresh_marks, as_built):
     _the_bundle()
     states = env["client"].get("/api/marks/splits").json()
     sid = sorted(states)[0]
@@ -788,7 +801,7 @@ DEAN = "r5:dean_river@5-9"
 
 
 @pytest.mark.needs_bundle
-def test_bundle_copy_of_an_entry(env):
+def test_bundle_copy_of_an_entry(env, as_built):
     _the_bundle()
     b = env["client"].get(f"/api/entries/{DEAN}/bundle").json()
     assert b["in_bundle"] is True
@@ -796,10 +809,15 @@ def test_bundle_copy_of_an_entry(env):
     assert {r["rule_id"]: r["label_now"] for r in b["rules"]} == served
     assert {x["id"] for x in b["licensing"]} >= {"dean_river_class_i_main"}
     assert all(x["n_sections"] >= 0 and "waters" in x for x in b["licensing"])
+    # T133: "bundle matches" compares each rule's sections too — the bundle's beside the builder's
+    # now on the served atlas — and says which rules differ and why
+    assert all(isinstance(r["n_sections_now"], int) for r in b["rules"])
+    assert b["bundle_matches"] == (not b["mismatches"]), b["mismatches"]
+    assert b["vintage"]["state"] == "current" and b["awaiting"] is False
 
 
 @pytest.mark.needs_bundle
-def test_answer_for_one_piece_one_day_one_fish(env):
+def test_answer_for_one_piece_one_day_one_fish(env, as_built):
     _the_bundle()
     from pipeline.deliver.bundle import read as R
     waters = env["client"].get(f"/api/entries/{DEAN}/answer/waters").json()
@@ -822,7 +840,7 @@ def test_answer_for_one_piece_one_day_one_fish(env):
 
 
 @pytest.mark.needs_bundle
-def test_tidal_water_says_so(env):
+def test_tidal_water_says_so(env, as_built):
     _the_bundle()
     waters = env["client"].get("/api/entries/r1:nitinat_lake@1-3/answer/waters").json()
     sid = waters[0]["pieces"][0]["sid"]

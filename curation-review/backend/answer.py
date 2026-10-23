@@ -38,32 +38,39 @@ def _db() -> sqlite3.Connection:
 def bundle_meta() -> dict:
     db = _db()
     try:
-        meta = dict(db.execute("SELECT k, v FROM meta WHERE k != 'schema'"))
+        # not the per-entry digests (T133): ~70 KB the page has no use for; the tool's vintage
+        # reads them itself (`reuse.built`)
+        meta = dict(db.execute("SELECT k, v FROM meta WHERE k NOT IN ('schema', 'entry_digests')"))
     finally:
         db.close()
     meta["built"] = dt.datetime.fromtimestamp(os.path.getmtime(R.BUNDLE)).strftime("%Y-%m-%d %H:%M")
     return meta
 
 
-def entry_in_bundle(entry_id: str, labels_now: dict[str, str]) -> dict:
+def entry_in_bundle(entry_id: str, labels_now: dict[str, str],
+                    counts_now: dict[str, int | None]) -> dict:
     """How the bundle's copy of this entry compares with the file's: each rule's label in the
     bundle beside the label generated from the file now, how many sections each rule binds in
-    the bundle, and where each licensing record binds.
+    the bundle beside how many the builder binds now, and where each licensing record binds.
 
-    `labels_now` is rule_id -> the label the app generates from the entry file. A rule present in
-    one and not the other, or worded differently, means the bundle predates the file."""
+    `labels_now` is rule_id -> the label the app generates from the entry file; `counts_now` is
+    rule_id -> the sections the reach builder binds it to now on the served atlas (None where one
+    entry alone cannot say). `bundle_matches` is `vintage.bundle_matches` over both — labels AND
+    section counts (T133: labels alone called Tacheeda a match while the bundle bound one lake of
+    two)."""
+    from pipeline.regs.review.fingerprint import rule_section_counts
+    from pipeline.regs.review.vintage import bundle_matches
     db = _db()
     try:
         b_rules = {rid: (lab, unres) for rid, lab, unres in db.execute(
             "SELECT rule_id, label, unresolved FROM rule WHERE entry_id = ?", (entry_id,))}
-        n_by_rule = dict(db.execute(
-            "SELECT r.rule_id, COUNT(*) FROM ruleset r JOIN section_ruleset s "
-            "ON s.set_id = r.set_id WHERE r.entry_id = ? GROUP BY r.rule_id", (entry_id,)))
+        n_by_rule = rule_section_counts(db, entry_id)
         rules = []
         for rid in list(labels_now) + [r for r in b_rules if r not in labels_now]:
             lab, unres = b_rules.get(rid, (None, None))
             rules.append({"rule_id": rid, "label_bundle": lab, "label_now": labels_now.get(rid),
-                          "n_sections": n_by_rule.get(rid, 0), "unresolved": unres})
+                          "n_sections": n_by_rule.get(rid, 0), "n_sections_now": counts_now.get(rid),
+                          "unresolved": unres})
         lic = []
         for kind, view, idcol in _LIC_VIEWS:
             table = view.rsplit("_section", 1)[0]
@@ -82,9 +89,11 @@ def entry_in_bundle(entry_id: str, labels_now: dict[str, str]) -> dict:
         in_bundle = db.execute("SELECT 1 FROM entry WHERE entry_id = ?", (entry_id,)).fetchone()
     finally:
         db.close()
-    matches = bool(in_bundle) and all(r["label_bundle"] == r["label_now"] for r in rules)
-    return {"bundle": bundle_meta(), "in_bundle": bool(in_bundle), "bundle_matches": matches,
-            "rules": rules, "licensing": lic}
+    m = bundle_matches(labels_now, {rid: lab for rid, (lab, _) in b_rules.items()}, counts_now,
+                       n_by_rule)
+    return {"bundle": bundle_meta(), "in_bundle": bool(in_bundle),
+            "bundle_matches": bool(in_bundle) and m["matches"], "mismatches": m["rules"],
+            "unchecked": m["unchecked"], "rules": rules, "licensing": lic}
 
 
 def entry_waters(entry_id: str, q: str = "", limit: int = 60) -> list[dict]:

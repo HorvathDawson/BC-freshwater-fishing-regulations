@@ -1131,3 +1131,8 @@ button.btn:disabled {
 .verify-row { min-width: 0; }
 .answer-result td:last-child { width: 26%; }
 .answer-result td:first-child { width: 1%; }
+
+/* T133: one vintage on screen — an entry awaiting its build, and the pending-build banner */
+.verify-row.awaiting-build { flex-wrap: wrap; margin-bottom: 4px; }
+code.cmd { font-size: 11px; padding: 1px 6px; border: 1px solid var(--warn-border); border-radius: 3px; user-select: all; }
+.pending-build { padding: 6px 10px; background: var(--warn-bg); border: 1px solid var(--warn-border); color: var(--warn-text); border-radius: 4px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }

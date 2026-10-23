@@ -5,7 +5,12 @@
      "basemap": {id, url, bytes, sha256} | null,
      "files":   {"<name>": {url, bytes, gz, sha256, format, section_handles}, …},
      "regulations": {"valid_until": "<date>" | null, "versions": {…}},
-     "sources": {"synopsis": {title, date}, "dfo"|"fwa"|"basemap"|"hydat": {date}}}   (only when the build passes it)
+     "sources": {"synopsis": {title, date}, "dfo"|"fwa"|"basemap"|"hydat": {date}},   (only when the build passes it)
+     "bundle":  {"entries_digest": "<16 hex>", "reach_digest": "<16 hex>"}}           (only when the build passes it)
+
+`bundle` (T133) names the corpus and the reach run the release was cut from — its bundle's `meta` digests — so the
+curation-review tool can tell that a release IS the bundle beside it (and so carries each entry's digest, the bundle's
+`entry_digests`) without opening a shipped file. The app ignores it.
 
 A data release built on an atlas is compatible with EVERY tile build of that atlas: `compatible` names the sid space
 only. `tiles.current` is filled from the tile version folder when one exists (P18; the tile rebuild is human-run), else
@@ -28,13 +33,39 @@ SOURCE_KEYS = ("synopsis", "dfo", "fwa", "basemap", "hydat")
 
 def manifest(data_release: str, files: Dict[str, dict], handles16: str, *, tiles: Optional[dict] = None,
              basemap: Optional[dict] = None, valid_until: Optional[str] = None,
-             regs_versions: Optional[dict] = None, sources: Optional[dict] = None) -> dict:
+             regs_versions: Optional[dict] = None, sources: Optional[dict] = None,
+             bundle: Optional[dict] = None) -> dict:
     t = {"compatible": [f"{handles16}.*"], "current": None, "assets": None, "mask": None, **(tiles or {})}
     out = {"format": FORMAT, "data_release": data_release, "tiles": t, "basemap": basemap, "files": files,
            "regulations": {"valid_until": valid_until, "versions": regs_versions}}
     if sources is not None:
         out["sources"] = sources
+    if bundle is not None:
+        out["bundle"] = bundle_block(bundle)
     return out
+
+
+#: the bundle `meta` digests a release states (`bundle`), and nothing else of the bundle's meta
+BUNDLE_KEYS = ("entries_digest", "reach_digest")
+
+
+def bundle_block(bundle_meta: dict) -> dict:
+    """`bundle`: the corpus and reach-run digests of the bundle a release is cut from (its `meta`). A bundle that
+    states either as empty is refused: a release says what it was made from, or nothing."""
+    out = {k: bundle_meta.get(k) for k in BUNDLE_KEYS}
+    missing = [k for k, v in out.items() if not v]
+    if missing:
+        raise SystemExit(f"release: the bundle states no {missing} — rebuild it: python -m pipeline.deliver bundle")
+    return out
+
+
+def latest(release_root) -> Optional[Path]:
+    """THE RELEASE ON DISK: the newest `r-*` folder under `release_root` holding a manifest (by the manifest's mtime —
+    a release id is a content hash, so name order is arbitrary), or None when there is none. One answer for every
+    reader that asks "which release is current" (the curation-review tool's vintage, the fixture tools)."""
+    root = Path(release_root)
+    dirs = [d for d in root.glob("r-*") if (d / "manifest.json").is_file()] if root.is_dir() else []
+    return max(dirs, key=lambda d: ((d / "manifest.json").stat().st_mtime_ns, d.name)) if dirs else None
 
 
 _DAY = re.compile(r"^(\d{4})-?(\d{2})-?(\d{2})")

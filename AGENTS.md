@@ -652,3 +652,17 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
     kinds `hydat`, `roster`; `action` is the exact command); a notice clears itself on the next run once current ==
     latest. The owner is told ONCE per kind+latest through `FEED_NOTIFY_URL` (ntfy plain POST; Discord/Slack JSON),
     off when unset (`pipeline/gauges/feed/notify.py`, state in `<feed dir>.notified.json`). Agents never run the script.
+
+## Curation review
+
+65. **A reviewer signs off only on ONE VINTAGE** (T133, curation-review PLAN §4 phase 2). Per-entry digests
+    (`io.entry_digest`, the per-entry half of `corpus_digest`) are written by the reach run (`report.json`
+    `entry_digests`) and the bundle (`meta` `entry_digests`); the release manifest states its bundle's
+    `entries_digest` + `reach_digest` (`manifest.bundle_block`); the atlas records each split's anchor
+    (`split_anchors.json`, `splits.anchor_digest` — the same digest the review fingerprint holds). Whether an entry
+    is built is `pipeline.regs.review.vintage.entry_state`, nowhere else: until its digest agrees across reach, bundle
+    and release on the served atlas, with every split it reads built as authored, it reads "awaiting build" and only
+    T and R may be marked (`refuse_unbuilt`); no bundle is awaiting build. "Bundle matches" is per rule — label AND
+    section count, the bundle's (`fingerprint.rule_section_counts`) against the builder's now
+    (`vintage.bundle_matches`). The review app re-reads the digests by file stamp: a rebuild clears it with no restart.
+    `check_corpus` and the build stage keys are unchanged.

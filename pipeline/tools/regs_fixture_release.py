@@ -65,8 +65,9 @@ def golden_handles(taps: Path) -> List[int]:
 
 
 def newest_release(root: Path) -> Optional[Path]:
-    dirs = [d for d in root.glob("r-*") if (d / "manifest.json").exists()] if root.exists() else []
-    return max(dirs, key=lambda d: (d / "manifest.json").stat().st_mtime) if dirs else None
+    """THE release on disk (`release.manifest.latest`, the one answer — T133)."""
+    from pipeline.deliver.release.manifest import latest
+    return latest(root)
 
 
 def _ids(xs: Iterable[int]) -> str:
