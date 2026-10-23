@@ -1,0 +1,459 @@
+{
+ "before": "data/generated/reaches/full",
+ "after": "data/generated/reaches/full_twin",
+ "rules_changed": 47,
+ "unresolved_changed": 0,
+ "licensing_changed": 1,
+ "rules": {
+  "r5:tanya_lake_s_tributaries@5-10::tanya_lakes_tributaries.r1": {
+   "gained": 64,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "360261604:0",
+    "360279072:0",
+    "360357051:0",
+    "360404092:0",
+    "360425427:0"
+   ],
+   "sample_lost": []
+  },
+  "r1:illusion_lakes@1-6::illusion_lakes.r1": {
+   "gained": 6,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329467797",
+    "lake:329468101",
+    "lake:329468297",
+    "lake:329468311",
+    "lake:329468402"
+   ],
+   "sample_lost": []
+  },
+  "r8:arlington_lakes@8-12::arlington_lakes.r1": {
+   "gained": 5,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329216639",
+    "lake:329216719",
+    "lake:329218712",
+    "lake:329219141",
+    "lake:329219506"
+   ],
+   "sample_lost": []
+  },
+  "r8:mcculloch_reservoir@8-10::mcculloch_reservoir.r1": {
+   "gained": 2,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329459122",
+    "lake:329459137"
+   ],
+   "sample_lost": []
+  },
+  "r8:twin_lakes@8-1::twin_lakes.r1": {
+   "gained": 2,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329459162",
+    "lake:329460278"
+   ],
+   "sample_lost": []
+  },
+  "r8:twin_lakes@8-1::twin_lakes.r2": {
+   "gained": 2,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329459162",
+    "lake:329460278"
+   ],
+   "sample_lost": []
+  },
+  "r1:main_lake_quadra_island@1-15::main_lake.r1": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329095512"
+   ],
+   "sample_lost": []
+  },
+  "r1:main_lake_quadra_island@1-15::main_lake.r2": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329095512"
+   ],
+   "sample_lost": []
+  },
+  "r1:main_lake_quadra_island@1-15::main_lake.r3": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329095512"
+   ],
+   "sample_lost": []
+  },
+  "r1:thetis_lake@1-1::thetis_lake.r1": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329676322"
+   ],
+   "sample_lost": []
+  },
+  "r2:twin_lakes@2-8::twin_lakes.r1": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329291976"
+   ],
+   "sample_lost": []
+  },
+  "r3:nahatlatch_lake_east_and_west@3-15::nahatlatch_lake.r1": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329154752"
+   ],
+   "sample_lost": []
+  },
+  "r6:tagish_lake@6-27::tagish_lake.r1": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328961751"
+   ],
+   "sample_lost": []
+  },
+  "r6:tagish_lake@6-27::tagish_lake.r10": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328961751"
+   ],
+   "sample_lost": []
+  },
+  "r6:tagish_lake@6-27::tagish_lake.r10b": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328961751"
+   ],
+   "sample_lost": []
+  },
+  "r6:tagish_lake@6-27::tagish_lake.r10c": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328961751"
+   ],
+   "sample_lost": []
+  },
+  "r6:tagish_lake@6-27::tagish_lake.r11": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328961751"
+   ],
+   "sample_lost": []
+  },
+  "r6:tagish_lake@6-27::tagish_lake.r12": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328961751"
+   ],
+   "sample_lost": []
+  },
+  "r6:tagish_lake@6-27::tagish_lake.r13": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328961751"
+   ],
+   "sample_lost": []
+  },
+  "r6:tagish_lake@6-27::tagish_lake.r14": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328961751"
+   ],
+   "sample_lost": []
+  },
+  "r6:tagish_lake@6-27::tagish_lake.r2": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328961751"
+   ],
+   "sample_lost": []
+  },
+  "r6:tagish_lake@6-27::tagish_lake.r2b": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328961751"
+   ],
+   "sample_lost": []
+  },
+  "r6:tagish_lake@6-27::tagish_lake.r2c": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328961751"
+   ],
+   "sample_lost": []
+  },
+  "r6:tagish_lake@6-27::tagish_lake.r3": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328961751"
+   ],
+   "sample_lost": []
+  },
+  "r6:tagish_lake@6-27::tagish_lake.r4": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328961751"
+   ],
+   "sample_lost": []
+  },
+  "r6:tagish_lake@6-27::tagish_lake.r5": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328961751"
+   ],
+   "sample_lost": []
+  },
+  "r6:tagish_lake@6-27::tagish_lake.r6": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328961751"
+   ],
+   "sample_lost": []
+  },
+  "r6:tagish_lake@6-27::tagish_lake.r6b": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328961751"
+   ],
+   "sample_lost": []
+  },
+  "r6:tagish_lake@6-27::tagish_lake.r6c": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328961751"
+   ],
+   "sample_lost": []
+  },
+  "r6:tagish_lake@6-27::tagish_lake.r7": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328961751"
+   ],
+   "sample_lost": []
+  },
+  "r6:tagish_lake@6-27::tagish_lake.r8": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328961751"
+   ],
+   "sample_lost": []
+  },
+  "r6:tagish_lake@6-27::tagish_lake.r9": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328961751"
+   ],
+   "sample_lost": []
+  },
+  "r7:la_salle_lakes@7-3::la_salle_lakes.r1": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328981670"
+   ],
+   "sample_lost": []
+  },
+  "r7:la_salle_lakes@7-3::la_salle_lakes.r2": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328981670"
+   ],
+   "sample_lost": []
+  },
+  "r7:rainbow_lakes@7-52::rainbow_lakes.r1": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329576620"
+   ],
+   "sample_lost": []
+  },
+  "r7:rainbow_lakes@7-52::rainbow_lakes.r2": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329576620"
+   ],
+   "sample_lost": []
+  },
+  "r7:rainbow_lakes@7-52::rainbow_lakes.r2p": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329576620"
+   ],
+   "sample_lost": []
+  },
+  "r7:rainbow_lakes@7-52::rainbow_lakes.r3": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329576620"
+   ],
+   "sample_lost": []
+  },
+  "r7:rainbow_lakes@7-52::rainbow_lakes.r4": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329576620"
+   ],
+   "sample_lost": []
+  },
+  "r7:sundance_lake@7-32::sundance_lake.r1": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329473885"
+   ],
+   "sample_lost": []
+  },
+  "r7:tacheeda_lakes_north_and_south@7-16::tacheeda_lakes.r1": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329468815"
+   ],
+   "sample_lost": []
+  },
+  "r7:tacheeda_lakes_north_and_south@7-16::tacheeda_lakes.r2": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329468815"
+   ],
+   "sample_lost": []
+  },
+  "r7:tacheeda_lakes_north_and_south@7-16::tacheeda_lakes.r3": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329468815"
+   ],
+   "sample_lost": []
+  },
+  "r7:tatlatui_lake@7-39::tatlatui_lake.r1": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329136015"
+   ],
+   "sample_lost": []
+  },
+  "r7:yellowhead_lake@7-1::yellowhead_lake.r1": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329619009"
+   ],
+   "sample_lost": []
+  },
+  "r7:yellowhead_lake@7-1::yellowhead_lake.r2": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329619009"
+   ],
+   "sample_lost": []
+  },
+  "r7:yellowhead_lake@7-1::yellowhead_lake.r3": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:329619009"
+   ],
+   "sample_lost": []
+  }
+ },
+ "unresolved": {},
+ "licensing": {
+  "r6:tagish_lake@6-27::yukon_licence": {
+   "gained": 1,
+   "lost": 0,
+   "rescoped": 0,
+   "sample_gained": [
+    "lake:328961751"
+   ],
+   "sample_lost": []
+  }
+ }
+}
