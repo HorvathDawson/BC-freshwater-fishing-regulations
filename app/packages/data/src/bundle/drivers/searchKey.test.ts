@@ -10,7 +10,8 @@
  *
  * Mutations: put `i.name LIKE` / `a.alias LIKE` back in either SEARCH → "barriere" finds 0 and "childrens" 0 (the
  * acceptance cases) and the grep pin fails; `nameNeedle` = `likeEscape` without `searchKey` → "BARRIÈRE" finds 0;
- * drop the key-length guard → "''" answers every water instead of nothing.
+ * drop the key-length guard → "é'" (key "e") answers every water holding an e. ("''" alone does not pin the guard:
+ * its key is "", and `rankWaters` drops every row for an empty key, so it answers nothing either way.)
  */
 import { readFileSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";

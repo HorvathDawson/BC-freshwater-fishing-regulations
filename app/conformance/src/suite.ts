@@ -115,6 +115,23 @@ export function runConformance(name: string, make: () => Promise<RegsSource>,
     expect(hits[0]!.matchedAs).toBeTruthy();
   });
 
+  T("matches a name by its search key, not its spelling (T114)", async (s) => {
+    // Capitals, an accent and a curly apostrophe the name does not have: "Vedder River" -> "V’ÉDDER RIVER". Every
+    // source keys the query and the name by `searchKey`, so this is the same water; a raw LIKE (the bundle and release
+    // SEARCH before T114) or a lower-cased `includes` (the fixture's) finds nothing.
+    const name = (await s.water(CHILLIWACK))!.name;
+    const spelled = name.toUpperCase().replace(/^(.)/, "$1’").replace("E", "É");
+    expect(spelled).not.toBe(name.toUpperCase());
+    const hits = await s.searchNames(spelled, 10);
+    expect(hits.some((h) => h.item === CHILLIWACK)).toBe(true);
+  });
+
+  T("a query whose search key is under two characters answers nothing", async (s) => {
+    // "R’" keys to "r", which every river holds: one letter is not a search, in any source
+    expect(await s.searchNames("R’", 10)).toEqual([]);
+    expect(await s.searchNames("''", 10)).toEqual([]);
+  });
+
   T("honours the limit", async (s) => {
     expect((await s.searchNames("chilliwack", 0)).length).toBe(0);
   });

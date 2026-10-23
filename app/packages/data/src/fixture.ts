@@ -7,7 +7,7 @@
  * refuse to speak for. It carries NO regulations — they are not integrated (see
  * `regulations.ts` in @app/core).
  */
-import type { Band } from "@app/core";
+import { searchKey, type Band } from "@app/core";
 import type {
   Aged, BundleInfo, GaugeLink, ItemId, LakeInfo, NameHit, NearHit, Parameter,
   PlaceHit, PlaceId, PointerHit, Reading, RegsSource, Release, SectionId, Series, StationId, Water,
@@ -127,18 +127,22 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
     },
 
     async searchNames(q, limit): Promise<readonly NameHit[]> {
-      const needle = q.toLowerCase();
+      // THE ONE SEARCH KEY (T114, `@app/core` `searchKey`), as the bundle and release readers match: a query is its key,
+      // a name or alias matches when its key holds the query's, and a key under two characters answers nothing.
+      const needle = searchKey(q);
+      if (needle.length < 2) return [];
+      const has = (text: string) => searchKey(text).includes(needle);
       const rows: NameHit[] = [];
       // THE SAME TOWN the bundle's `place_water` would name, with the same fields, so a
       // screen rendering "near Chilliwack" is exercised by the fixture too.
       const near = { name: "Chilliwack", kind: "city", lat: 49.171, lon: -121.953, km: 1.8 };
-      if (CHILLIWACK.name.toLowerCase().includes(needle)) {
+      if (has(CHILLIWACK.name)) {
         rows.push({ item: id<ItemId>(CHILLIWACK.item), name: CHILLIWACK.name, kind: "stream",
                     matchedAs: null, pieces: CHILLIWACK.sections.length, size: 2236, areaHa: null,
                     near });
       }
-      const byAlias = JEPERSON.alias.toLowerCase().includes(needle);
-      if (byAlias || JEPERSON.name.toLowerCase().includes(needle)) {
+      const byAlias = has(JEPERSON.alias);
+      if (byAlias || has(JEPERSON.name)) {
         rows.push({ item: id<ItemId>(JEPERSON.item), name: JEPERSON.name, kind: "stream",
                     matchedAs: byAlias ? JEPERSON.alias : null, pieces: 1, size: 12, areaHa: null,
                     near: { ...near, km: 2.4 } });
