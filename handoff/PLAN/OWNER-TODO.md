@@ -34,6 +34,7 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   Q130 each model's line under Change · Q132 day chips may still use ELF · Q79 "river" vs "stream" on the page ·
   Q91 "no gauge close enough" wording · Q69 spot pin colour · Q123 how the Map view marks the selected part ·
   Q2 / Q139 / Q47 no-access and tidal notes on Conditions.
+- **Run timing (T162, new):** Q144 default species, passage reaches shown dashed, its own map layer.
 - **Scope and big rebuilds:** Q6 braids · Q10 imagery corridor · Q32 salmon plan · Q125 sewage/tailings/dumps drawn
   as lakes · Q142 Shuswap lake rings · Q7 which old releases to delete.
 - **Things only you can do or know:** Q114 the 30-entry curation pilot · Q4 slough marks (review page) · Q126 were you
