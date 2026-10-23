@@ -174,6 +174,8 @@ use that as the sole source of future work."
 | T127 | displaced rule still shows "counts toward" and bounds the card gate | DONE | 2a0458f2, 358b5076, 77566458 | live after the next deliver |
 | T128 | sub-cap line names its total ("of your 5 trout and char a day in streams, up to 2 may be…") | PARTIAL | 59aba774, c7d9f57f, 77566458, c410ca42, e839d0cd | deliver + golden re-cut |
 | T129 | web request budget: gate first-paint / per-tap bytes, not only the release total | OPEN | — | all |
+| T130 | Conditions: zoom out further before the basin heat map; Change chip greyed under Level | OPEN | — | all |
+| T131 | spot pins look better and open the spot on tap | OPEN | — | all |
 
 ## Order for open tickets
 
@@ -183,7 +185,7 @@ code. Heavy jobs run one at a time through scripts/heavy.sh (≤ 4 workers). ★
 1. **Finishing now:** the batch-3 rebuild (T59, T76, T78, T80, T89, T90 + T96's Shuswap text: reach → binding diff →
    deliver), T52 (Expected change).
 2. **Features and correctness (before cleanup):** T54 (no-access streams, built with Q1–Q3 defaults), T51, T68, T82
-   (O3/O5; ★ the reader-gate run), T41 / T47 leftovers, T126 (forecast reading bugs), T127, T128 (sub-cap names its total), T92, T99, T100 ★ (rides a reach rerun), T102 (rides a reach rerun), T94.
+   (O3/O5; ★ the reader-gate run), T41 / T47 leftovers, T126 (forecast reading bugs), T127, T128 (sub-cap names its total), T130 (heat map zoom + Change chip), T131 (spot pins), T92, T99, T100 ★ (rides a reach rerun), T102 (rides a reach rerun), T94.
    Unification audit 2026-10-22 (wrong answers today): T103, T104, T106, T109 step 1, T116 first (cheap, no binding
    diff); then T105, T107, T108, T110, T120, T114; T113 rides the tiles window (band 5); T111 + T115 ride the reach
    rerun with T102, each with its own reviewed binding diff.
