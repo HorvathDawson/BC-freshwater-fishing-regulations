@@ -15,7 +15,7 @@
  */
 import { useMemo } from "react";
 import type { ItemId, RegsSource, SectionId } from "@app/data";
-import { frameViews, type LatLon, type RouteAction, type View } from "./route";
+import { frameViews, type LatLon, type Route, type RouteAction, type View } from "./route";
 
 export interface WaterOpen {
   /** The water; null for an unnamed reach (then `tapSid` is required; it offers Regulations and Conditions). */
@@ -30,6 +30,8 @@ export interface WaterOpen {
   view?: View;
   /** Opened from a search result: the search is consumed (route `fromSearch`) — back lands on the map. */
   fromSearch?: boolean;
+  /** (T58) The water's split-lake areas, itself among them (`siblingItems`): another area of a lake held is that lake. */
+  group?: readonly ItemId[];
 }
 
 /**
@@ -40,7 +42,8 @@ export function openWater(o: WaterOpen): RouteAction {
   const asked = o.view ?? "regs";
   const views = frameViews({ item: o.item });
   const a: RouteAction = { type: "openWater", item: o.item, tapSid: o.tapSid ?? null, at: o.at ?? null,
-                          part: o.part ?? null, view: views.includes(asked) ? asked : views[0]! };
+                          part: o.part ?? null, view: views.includes(asked) ? asked : views[0]!,
+                          ...(o.group ? { group: o.group } : {}) };
   return o.fromSearch ? { ...a, fromSearch: true } : a;
 }
 
@@ -49,29 +52,71 @@ export function openWater(o: WaterOpen): RouteAction {
  * `except`: the water already on screen (a tap on a water's own map changes nothing).
  */
 export async function openTap(source: Pick<RegsSource, "itemForSection">, sid: SectionId, at: LatLon | null,
-                              view: View, except: ItemId | null = null): Promise<RouteAction | null> {
+                              view: View, except: ItemId | null = null,
+                              groupOf?: (item: ItemId) => Promise<readonly ItemId[] | undefined>): Promise<RouteAction | null> {
   const item = await source.itemForSection(sid);
   if (item !== null && item === except) return null;
-  return openWater({ item, tapSid: sid, at, view });
+  const group = item !== null && groupOf ? await groupOf(item) : undefined;
+  return openWater({ item, tapSid: sid, at, view, group });
 }
 
 export interface WaterOpener {
   /** A tap on a map: the section, where on it, and which view to put in front. */
   tap(sid: SectionId, at: LatLon | null, view: View, except?: ItemId | null): Promise<void>;
+  /**
+   * (T58) "Flows into …" from a water's map: the receiving water `item`, its action built by `build` (waterMap.ts
+   * `exitAction`) once the water's split-lake areas are known.
+   */
+  flow(item: ItemId, build: (group: readonly ItemId[] | undefined) => RouteAction): Promise<void>;
   /** A water by its id (a spot, a deep path). */
   item(item: ItemId, view?: View): void;
   /** A water picked from search's results: the search is consumed, so back lands on the map (route `fromSearch`). */
   searched(item: ItemId, view?: View): void;
 }
 
+export interface OpenerOptions {
+  /**
+   * (T58) THE ROUTE NOW. An open waits on a lookup (the tapped section's water, a lake's areas); when it finishes after
+   * the route has moved — the reader pressed back or ×, picked a tab, opened something else — it is STALE and dropped:
+   * a slow tap never opens a water over where the reader has gone since. Of two opens in flight the later wins.
+   * Absent: nothing is dropped but an open overtaken by a later one.
+   */
+  now?: () => Route;
+  /**
+   * (T58) A water's split-lake areas, itself among them (`@app/data` `siblingItems` over the regs store). Asked only in
+   * water mode — the one place a frame is matched against frames held; from browse mode a water opens alone and at once.
+   * A read that fails opens the water without them (as a water alone).
+   */
+  group?: (item: ItemId) => Promise<readonly ItemId[]>;
+}
+
+/** The opener (`useOpenWater`'s value), React-free: what a test drives. */
+export function waterOpener(source: Pick<RegsSource, "itemForSection">, go: (a: RouteAction) => void,
+                            o: OpenerOptions = {}): WaterOpener {
+  let latest = 0;
+  /** Ask, then dispatch what was asked for — unless a later open was asked, or the route moved, meanwhile. */
+  const settle = async (ask: (groupOf: ((item: ItemId) => Promise<readonly ItemId[] | undefined>) | undefined)
+                          => Promise<RouteAction | null>) => {
+    const mine = ++latest;
+    const start = o.now?.();
+    const groupOf = o.group && (start === undefined || start.mode === "water")
+      ? (item: ItemId) => o.group!(item).catch(() => undefined) : undefined;
+    const a = await ask(groupOf);
+    if (a === null || mine !== latest || (o.now && o.now() !== start)) return;
+    go(a);
+  };
+  return {
+    tap: (sid, at, view, except = null) => settle((groupOf) => openTap(source, sid, at, view, except, groupOf)),
+    flow: (item, build) => settle(async (groupOf) => build(groupOf ? await groupOf(item) : undefined)),
+    // nothing to wait on: at once, and any open still in flight is overtaken
+    item: (item, view = "regs") => { latest += 1; go(openWater({ item, view })); },
+    searched: (item, view = "regs") => { latest += 1; go(openWater({ item, view, fromSearch: true })); },
+  };
+}
+
 /** The Shell's handle on `openWater` / `openTap`, dispatching to the route. */
-export function useOpenWater(source: Pick<RegsSource, "itemForSection">, go: (a: RouteAction) => void): WaterOpener {
-  return useMemo(() => ({
-    tap: async (sid, at, view, except = null) => {
-      const a = await openTap(source, sid, at, view, except);
-      if (a !== null) go(a);
-    },
-    item: (item, view = "regs") => go(openWater({ item, view })),
-    searched: (item, view = "regs") => go(openWater({ item, view, fromSearch: true })),
-  }), [source, go]);
+export function useOpenWater(source: Pick<RegsSource, "itemForSection">, go: (a: RouteAction) => void,
+                             o: OpenerOptions = {}): WaterOpener {
+  const { now, group } = o;
+  return useMemo(() => waterOpener(source, go, { now, group }), [source, go, now, group]);
 }

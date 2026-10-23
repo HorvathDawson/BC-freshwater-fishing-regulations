@@ -18,7 +18,8 @@
 import { useMemo, useSyncExternalStore } from "react";
 import { buildRegsPage, tapDay, type Day, type RegsInputs, type RegsPage, type RegsTarget, type Weekday, type Who } from "@app/core";
 import { downstreamWater, type ItemId, type RegsSource, type SectionId } from "@app/data";
-import { loadRegsInputs, openRegsStore, RegsStoreError, targetFor, type RegsExpect, type RegsLoader, type RegsStore } from "@app/data/regs";
+import { loadRegsInputs, openRegsStore, RegsStoreError, siblingItems, targetFor, type RegsExpect, type RegsLoader,
+         type RegsStore } from "@app/data/regs";
 import { useAsync, type Async } from "./async";
 
 // ── the store ────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -53,6 +54,14 @@ export function loadRegsStore(loader: RegsLoader, expect: RegsExpect = {}): Prom
            (e: unknown) => { if (!(e instanceof RegsStoreError)) byKey!.delete(key); });
   }
   return p;
+}
+
+/**
+ * (T58) A water's split-lake areas, itself among them, read through this release's store (`siblingItems`): what the
+ * opener (`useOpenWater`'s `group`) keeps on a frame so another area of a lake held is that lake, not a second one.
+ */
+export function regsGroupOf(loader: RegsLoader): (item: ItemId) => Promise<readonly ItemId[]> {
+  return async (item) => (await siblingItems(await loadRegsStore(loader), item)) as readonly ItemId[];
 }
 
 /**

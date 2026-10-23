@@ -38,7 +38,7 @@ describe("one water screen: one way in, one Conditions panel", () => {
     const wm = readFileSync(join(APP, "packages/ui/src/waterMap.ts"), "utf8");
     // (owner 2026-10-22 late) "Show regulations for this part" on a split lake's other area is a part move, no openWater
     expect([wm.match(/openWater\(\{[^}]*\}\)/g), wm.match(/\{ type: "cross"[^}]*\}/g), where(/["']cross["']/)]).toEqual([
-      ['openWater({ item, part, view: "regs" })'], ['{ type: "cross", item, part }'],
+      ['openWater({ item, part, view: "regs", group })'], ['{ type: "cross", item, part }'],
       ["packages/ui/src/route.ts", "packages/ui/src/waterMap.ts"]]);
     const shell = readFileSync(join(APP, "packages/ui-native/src/Shell.tsx"), "utf8");
     expect([shell.includes("onCross={(id, p) => go(crossAction(id, p))}"),

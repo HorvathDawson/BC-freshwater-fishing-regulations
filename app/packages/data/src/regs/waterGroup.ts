@@ -30,3 +30,17 @@ export async function loadWaterGroup(store: GroupStore, item: string): Promise<W
   const all = await Promise.all([ord, ...ords.filter((o) => o !== ord)].map((o) => rowsOf(store, o)));
   return waterGroup(all);
 }
+
+/**
+ * (T58) The ids of the water `item`'s split-lake group — a closure area's lake's areas, or the lake's own and its areas
+ * — itself among them; a water with no closure areas is alone. A water the store does not hold: none. The route keeps
+ * this on a frame so a water opened from inside water mode in ANOTHER area of a lake already held is that lake gone back
+ * to, never stacked twice (`@app/ui` route `enter`).
+ */
+export async function siblingItems(store: Pick<RegsReads, "itemOrd" | "siblingOrds" | "item">,
+                                   item: string): Promise<readonly string[]> {
+  const ord = await store.itemOrd(item);
+  if (ord === null) return [];
+  const ords = await store.siblingOrds(ord);
+  return Promise.all(ords.map(async (o) => (o === ord ? item : (await store.item(o)).id)));
+}

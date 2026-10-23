@@ -17,7 +17,7 @@ import { Keyboard, Platform, Text, View, useWindowDimensions, type TextInput } f
 import type { ItemId, RegsSource, SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { bottomBarShown, frameViews, spotSaveFailed, useMapModes, useOpenWater, crossAction, exitAction, partAction,
-         showRegsActions, usePhotoEdit, useRoute, waterFrame,
+         regsGroupOf, showRegsActions, usePhotoEdit, useRoute, waterFrame,
          type BrowseTab, type FlowParam, type RegsStart, type Route, type SpotPhotos } from "@app/ui";
 import { BackLayerContext, edgeBackDepth, useBack, useEdgeBack, useMenu, useOnLeave, useViewSwipe, type SystemBack } from "@app/ui";
 import { routeWhere, spotPins, spotsMenu, useLayerChoice, useMapRail, type LayerStore, type Locate } from "@app/ui";
@@ -191,7 +191,15 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    * `useOpenWater` — a tap on the Conditions map, on the Map tab and on a water's own map alike — which resolves the
    * tapped section's water in one place. The two maps' taps differ ONLY in the view put in front.
    */
-  const opener = useOpenWater(source, go);
+  /*
+   * (T58) The opener reads THE ROUTE NOW, so a slow lookup that finishes after the reader pressed back or × (or moved
+   * on) is dropped, and a split lake's areas from the release, so "Flows into" another area of a lake held goes back to it.
+   */
+  const routeNow = useRef(route);
+  routeNow.current = route;
+  const now = useCallback(() => routeNow.current, []);
+  const groupOf = useMemo(() => (loader ? regsGroupOf(loader) : undefined), [loader]);
+  const opener = useOpenWater(source, go, { now, group: groupOf });
   /** G1 (owner 2026-10-21): a sideways swipe moves between a water's views — Regulations · Conditions · Map. */
   const viewSwipe = useViewSwipe(route, go);
   /**
@@ -605,7 +613,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                                  onVisible: noteVisible, onMoved: (at) => { waterCamera.current = at; },
                                  view: "plain", modes, groups: activeGroups,
                                  onError: (e) => console.error("map:", e.message) }}
-                          onOpenWater={(id, p) => go(exitAction(id, p))}
+                          // (T58) through the opener: the receiving water's lake areas known, a late answer dropped
+                          onOpenWater={(id, p) => void opener.flow(id, (g) => exitAction(id, p, g))}
                           onShowRegs={(id, p) => { for (const a of showRegsActions(item, id, p)) go(a); }}
                           // P15 follow-ups: a step is the frame's part (one water screen); ▲ / ▼ into the water this
                           // one goes on from or as opens it, Map in front (back returns here)
@@ -619,6 +628,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                        // (T53: an unnamed reach, item null, is answered by the tapped section itself)
                        loader={loader} day={mapDay} onDay={setMapDay} section={frame.tapSid}
                        part={frame.part} start={start} onStarted={() => setStart(null)}
+                       // (T58) a Parts sheet row is the frame's part, as a step on the water map is (one water screen)
+                       onPart={item === null ? undefined : (p) => go(partAction(item, item, p))}
                        // NO `feed`. The view quotes no number, so it reads no gauge data — the Conditions view, one
                        // swipe away, is where a water's numbers are.
                        onBack={back} />

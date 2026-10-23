@@ -216,9 +216,12 @@ export function showRegsActions(onScreen: ItemId, item: ItemId, partIx: number):
   return [partAction(onScreen, item, partIx), { type: "view", view: "regs" }];
 }
 
-/** "Flows into …": the receiving water, opened on top at the part the mouth meets (the one `openWater` path). */
-export function exitAction(item: ItemId, part: number | null): RouteAction {
-  return openWater({ item, part, view: "regs" });
+/**
+ * "Flows into …": the receiving water, opened on top at the part the mouth meets (the one `openWater` path). `group`
+ * (T58): its split-lake areas, when the opener read them — a lake already held in another area is gone back to.
+ */
+export function exitAction(item: ItemId, part: number | null, group?: readonly ItemId[]): RouteAction {
+  return openWater({ item, part, view: "regs", group });
 }
 
 /** ▲ / ▼ into the water this one goes on from or as (`water_continue`): that water, its Map in front, on the part it

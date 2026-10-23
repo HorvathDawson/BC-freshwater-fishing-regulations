@@ -14,11 +14,11 @@ import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { makeFixtureSource } from "@app/data/fixture";
-import type { ItemId, SectionId } from "@app/data";
+import type { ItemId, RegsSource, SectionId } from "@app/data";
 import type { Spot } from "@app/data/spots";
 import type { ReleaseLoader } from "@app/data/release";
 import { openRegsFixture } from "@app/data/release/node";
-import { HOME, type Route, type SystemBack } from "@app/ui";
+import { HOME, type RegsStart, type Route, type SystemBack } from "@app/ui";
 
 /** Android's BackHandler, as Android drives it: listeners newest first; a press none handles goes to Android. */
 const android = vi.hoisted(() => {
@@ -89,17 +89,38 @@ function hardwareBack(): boolean {
   return handled;
 }
 
-async function mount(initialRoute: Route, system: SystemBack = nativeBack, loader: ReleaseLoader | null = null) {
-  const source = makeFixtureSource();
+async function mount(initialRoute: Route, system: SystemBack = nativeBack, loader: ReleaseLoader | null = null,
+                     more: { source?: RegsSource; regsStart?: RegsStart } = {}) {
+  const source = more.source ?? makeFixtureSource();
   const water = await source.water(CHILLIWACK);
   TAP.sid = water!.sections[1]!;
   render(
     <GestureHandlerRootView>
       <Shell source={source} palette={LIGHT} theme="light" themeName="light" onTheme={() => {}}
              tiles={{ atlas: "a", basemap: "b" } as never} initialRoute={initialRoute} systemBack={system}
-             loader={loader} spots={[SPOT]} onSaveSpot={async () => {}} onDeleteSpot={async () => {}} />
+             loader={loader} spots={[SPOT]} onSaveSpot={async () => {}} onDeleteSpot={async () => {}}
+             regsStart={more.regsStart ?? null} />
     </GestureHandlerRootView>);
   await act(async () => {});
+}
+
+/**
+ * (T58) The fixture source with Kootenay Lake's West Arm closure areas in it (the dev fixture holds two rivers; the regs
+ * fixture release holds the lake), and one section the test answers by hand: `held.release()` lets its lookup finish.
+ */
+const KLWA: Record<string, string> = { "wbk:-21": "Kootenay Lake — Upper West Arm", "wbk:-22": "Kootenay Lake — Lower West Arm" };
+const KLWA_SID = 990_022 as SectionId, SLOW_SID = 990_001 as SectionId;
+function withLake() {
+  const base = makeFixtureSource();
+  let release = () => {};
+  const held = new Promise<void>((ok) => { release = ok; });
+  const source: RegsSource = {
+    ...base,
+    itemForSection: async (s) => (s === KLWA_SID ? "wbk:-22" as ItemId
+      : s === SLOW_SID ? (await held, JEPERSON) : base.itemForSection(s)),
+    water: async (i) => (KLWA[i] ? { item: i, name: KLWA[i]!, kind: "lake", sections: [] } : base.water(i)),
+  };
+  return { source, release: async () => { await act(async () => { release(); await held; }); } };
 }
 
 /**
@@ -114,7 +135,8 @@ function where(): string {
   const strip = screen.queryByRole("tablist", { name: "Views of this water" });
   if (strip) {
     const on = [...strip.querySelectorAll("[role=tab]")].find((t) => t.getAttribute("aria-selected") === "true");
-    const name = ["Chilliwack River", "Jeperson Side Channel", "Vedder River"].find((n) => screen.queryByText(n)) ?? "?";
+    const name = ["Chilliwack River", "Jeperson Side Channel", "Vedder River", ...Object.values(KLWA)]
+      .find((n) => screen.queryByText(n)) ?? "?";
     parts.push(`water ${name} on ${on?.getAttribute("aria-label")}`);
   }
   if (screen.queryByLabelText("Edit spot") || screen.queryByLabelText("Cancel editing"))
@@ -361,6 +383,56 @@ describe("Android's back, surface by surface (HANDOFF-ui 'Back, everywhere')", (
               "handled -> water Chilliwack River on Map · no bar", "handled -> tab Map"],
       close: ["water Jeperson Side Channel on Regulations · no bar", "tab Map", "ANDROID -> tab Map"],
     });
+  }, 60_000);
+
+  it("(T58) a split lake is held once: from a river opened over Kootenay Lake's Upper West Arm, a tap on its Lower West Arm " +
+     "goes back to the lake (not a second frame), so ONE back is the map", async () => {
+    const lake = withLake();
+    const frame = { part: null, tapSid: null, at: null };
+    await mount({ mode: "water", from: HOME, stack: [{ ...frame, item: "wbk:-21" as ItemId, view: "regs" },
+                                                     { ...frame, item: CHILLIWACK, view: "map" }] },
+                nativeBack, openRegsFixture(), { source: lake.source });
+    await onWaterMap();
+    const seen = [where()];
+    TAP.sid = KLWA_SID;
+    await click("tap the map");
+    await until(() => screen.queryByText(KLWA["wbk:-22"]!) !== null);
+    expect([...seen, ...backs(2)]).toEqual([
+      "water Chilliwack River on Map · no bar",
+      "water Kootenay Lake — Lower West Arm on Regulations · no bar", "handled -> tab Map", "ANDROID -> tab Map"]);
+  }, 60_000);
+
+  it("(T58) a Parts sheet row reads that part (the frame's part: the water's map comes back on it), and is no layer: " +
+     "one back is the map", async () => {
+    await mount({ mode: "water", from: HOME, stack: [{ item: CHILLIWACK, part: 0, tapSid: null, at: null, view: "regs" }] },
+                nativeBack, openRegsFixture(), { regsStart: { tab: "keep", sheet: "parts" as RegsStart["sheet"], scroll: 0 } });
+    await until(() => screen.queryAllByRole("radio").length > 0);
+    const seen = [where()];
+    const row = screen.getAllByRole("radio").find((r) => r.getAttribute("aria-checked") === "false"
+                                                     && /^Vedder Crossing Bridge → Tamihi Rapids Bridge/.test(r.getAttribute("aria-label") ?? ""))!;
+    await act(async () => { fireEvent.click(row); });
+    seen.push(where());
+    await view("Map"); await onWaterMap();
+    seen.push(`${where()} · ${mapWhere()}`);
+    expect([...seen, ...backs(1).slice(1)]).toEqual([
+      "water Chilliwack River on Regulations · Parts of this water sheet · no bar",
+      "water Chilliwack River on Regulations · no bar",
+      // opened on part 0 (Part 3 of 4, "100 m below the Slesse → the Ecological Reserve"); the row picked the mouth
+      "water Chilliwack River on Map · no bar · Part 1 of 4 · Chilliwack River",
+      "handled -> tab Map"]);
+  }, 60_000);
+
+  it("(T58) a slow tap on a water's map: back pressed before its lookup finishes — the late answer opens nothing", async () => {
+    const lake = withLake();
+    await mount({ mode: "water", from: HOME, stack: [{ item: CHILLIWACK, part: null, tapSid: null, at: null, view: "map" }] },
+                nativeBack, openRegsFixture(), { source: lake.source });
+    await onWaterMap();
+    TAP.sid = SLOW_SID;
+    await click("tap the map");
+    const seen = backs(1);
+    await lake.release();
+    seen.push(`answered -> ${where()}`);
+    expect(seen).toEqual(["water Chilliwack River on Map · no bar", "handled -> tab Map", "answered -> tab Map"]);
   }, 60_000);
 
   it("(owner 2026-10-22 late) a water opened from a search RESULT: back is the map, search closed; then Android's", async () => {

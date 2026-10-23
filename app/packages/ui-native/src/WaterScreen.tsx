@@ -45,7 +45,7 @@ import { WaterFrame, WaterInset, WaterTitle } from "./WaterFrame";
 
 export function WaterScreen({ source, item, palette, onBack,
                               loader = null, day = null, onDay, section = null, part = null, fishImages, adiposeImages,
-                              start = null, onStarted }: {
+                              start = null, onStarted, onPart }: {
   /** The water; null for an unnamed reach (T53), which `section` then names — its regulations are that section's. */
   source: RegsSource; item: ItemId | null;
   /**
@@ -72,6 +72,8 @@ export function WaterScreen({ source, item, palette, onBack,
   /** (T41) where the page starts (the web start link, a test affordance), handed on to the page once */
   start?: RegsStart | null;
   onStarted?: () => void;
+  /** (T58) a Parts sheet row: read that part of this water (the caller makes it the frame's part). */
+  onPart?: (partIx: number) => void;
 }) {
   const sheet = useWater(source, item);
   // THE REGULATIONS: the store, the part (the one the frame names, else the tapped section's), the day's inputs, the page
@@ -138,7 +140,7 @@ export function WaterScreen({ source, item, palette, onBack,
       <>
       {frame(null, (
       <RegsScreen page={regs} palette={palette} images={fishImages} adipose={adiposeImages} onDate={() => setDayOpen(true)} layout={layout}
-                  start={start} onStarted={onStarted}
+                  start={start} onStarted={onStarted} onPart={onPart}
                   // past the release's last day in force, the page leads with core's out-of-date sentence (none unstamped)
                   lapsed={regsLapsedNote(loader.manifest?.regulations?.valid_until, Date.now())}
                   // the water's own Map view, through its view strip — the same move as the strip's "Map" (one water screen)

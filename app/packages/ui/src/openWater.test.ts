@@ -3,8 +3,8 @@
  * Map tab produce routes that are equal except `view` (and the tab underneath, which is where each came from).
  */
 import { describe, expect, it } from "vitest";
-import type { ItemId, SectionId } from "@app/data";
-import { openTap, openWater } from "./openWater";
+import type { ItemId, RegsSource, SectionId } from "@app/data";
+import { openTap, openWater, waterOpener } from "./openWater";
 import { HOME, reduce, waterFrame, type Route, type RouteAction } from "./route";
 
 const VEDDER = "gnis:3062" as ItemId;
@@ -75,5 +75,89 @@ describe("openWater: the one builder", () => {
       { type: "openWater", item: VEDDER, tapSid: null, at: null, part: null, view: "regs" },
       { type: "openWater", item: VEDDER, tapSid: null, at: null, part: null, view: "conditions" },
     ]);
+  });
+});
+
+describe("(T58) the opener: a split lake's areas, and a late lookup dropped", () => {
+  const LAKE_A = "wbk:-21" as ItemId, LAKE_B = "wbk:-22" as ItemId, TRIB = "gnis:11481" as ItemId;
+  const AREAS = [LAKE_A, LAKE_B];
+  /** A lookup the test answers by hand, in the order asked: section 1 is lake area B, 2 the tributary, 3 the Vedder. */
+  function slow() {
+    const pending: (() => void)[] = [];
+    const items: Record<number, ItemId> = { 1: LAKE_B, 2: TRIB, 3: VEDDER };
+    const src = { itemForSection: (s: SectionId) => new Promise<ItemId | null>((ok) => { pending.push(() => ok(items[s] ?? null)); }) };
+    return { src, answer: async (i: number) => { pending[i]!(); await new Promise((r) => setTimeout(r, 0)); } };
+  }
+  const groupOf = async (item: ItemId) => (AREAS.includes(item) ? AREAS : [item]);
+  /** The opener over a route the test moves: what it dispatched (applied to the route) and the route after. */
+  function app(start: Route, src: Pick<RegsSource, "itemForSection">, held = false) {
+    let route = start;
+    const sent: RouteAction[] = [];
+    const go = (a: RouteAction) => { sent.push(a); route = reduce(route, a); };
+    // `held`: the route as the opener sees it never moves — the mutation pin's opener, blind to a back
+    const o = waterOpener(src, go, { now: () => (held ? start : route), group: groupOf });
+    return { o, sent, go, route: () => route };
+  }
+  const onTrib: Route = reduce(reduce(HOME, openWater({ item: LAKE_A, part: 0 })),
+                               openWater({ item: TRIB, tapSid: 2 as SectionId }));
+  const depth = (r: Route) => (r.mode === "water" ? r.stack.length : 0);
+
+  it("in water mode a tap and a flow carry the water's areas; from browse mode nothing is asked", async () => {
+    const s = slow();
+    const inWater = app(onTrib, s.src);
+    const t = inWater.o.tap(1 as SectionId, null, "regs", TRIB);
+    await s.answer(0); await t;
+    const browse = app(HOME, s.src);
+    const b = browse.o.tap(1 as SectionId, null, "regs");
+    await s.answer(1); await b;
+    const f = app(onTrib, s.src);
+    await f.o.flow(LAKE_B, (g) => openWater({ item: LAKE_B, part: 0, group: g }));
+    expect({ tap: inWater.sent, browse: browse.sent, flow: f.sent,
+             after: [inWater.route(), f.route()].map((r) => [depth(r), waterFrame(r)]) }).toEqual({
+      tap: [{ type: "openWater", item: LAKE_B, tapSid: 1, at: null, part: null, view: "regs", group: AREAS }],
+      browse: [{ type: "openWater", item: LAKE_B, tapSid: 1, at: null, part: null, view: "regs" }],
+      flow: [{ type: "openWater", item: LAKE_B, tapSid: null, at: null, part: 0, view: "regs", group: AREAS }],
+      // area A was held under the tributary: the lake is gone back to, not stacked again
+      after: [[1, { item: LAKE_B, part: null, tapSid: 1, at: null, view: "regs", group: AREAS }],
+              [1, { item: LAKE_B, part: 0, tapSid: null, at: null, view: "regs", group: AREAS }]],
+    });
+  });
+
+  it("a lake whose areas cannot be read still opens (as a water alone)", async () => {
+    const s = slow();
+    const a = app(onTrib, s.src);
+    const o = waterOpener(s.src, a.go, { now: a.route, group: async () => { throw new Error("store gone"); } });
+    const t = o.tap(1 as SectionId, null, "regs", TRIB);
+    await s.answer(0); await t;
+    expect([a.sent, depth(a.route())]).toEqual([
+      [{ type: "openWater", item: LAKE_B, tapSid: 1, at: null, part: null, view: "regs" }], 3]);
+  });
+
+  it("a lookup that finishes after back / × is dropped; of two taps the later wins", async () => {
+    const s = slow();
+    const backed = app(onTrib, s.src);
+    const t1 = backed.o.tap(3 as SectionId, null, "regs", TRIB);
+    backed.go({ type: "back" });
+    await s.answer(0); await t1;
+    const closed = app(onTrib, s.src);
+    const t2 = closed.o.tap(3 as SectionId, null, "regs", TRIB);
+    closed.go({ type: "close" });
+    await s.answer(1); await t2;
+    const twice = app(HOME, s.src);
+    const [t3, t4] = [twice.o.tap(3 as SectionId, null, "regs"), twice.o.tap(1 as SectionId, null, "regs")];
+    // the first tap's answer comes first, while the second is still asked: it is dropped, the second opens
+    await s.answer(2); await s.answer(3); await Promise.all([t3, t4]);
+    expect({ backed: backed.sent, closed: closed.sent, twice: twice.sent.map((a) => (a as { item: ItemId }).item) }).toEqual({
+      backed: [{ type: "back" }], closed: [{ type: "close" }], twice: [LAKE_B],
+    });
+  });
+
+  it("MUTATION PIN: an opener blind to the route (it never sees the back) opens the stale water after it", async () => {
+    const s = slow();
+    const blind = app(onTrib, s.src, true);
+    const t = blind.o.tap(3 as SectionId, null, "regs", TRIB);
+    blind.go({ type: "back" });
+    await s.answer(0); await t;
+    expect(blind.sent.map((a) => a.type)).toEqual(["back", "openWater"]);
   });
 });

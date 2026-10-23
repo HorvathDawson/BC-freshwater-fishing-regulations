@@ -6,7 +6,7 @@
  */
 import { beforeAll, describe, expect, it } from "vitest";
 import { crossDown, crossUp, markLabel, navSections, partName, stepsDown, stepsUp, type WaterGroup } from "@app/core";
-import { loadWaterGroup, openRegsStore, RegsInputsError, type RegsStore } from "@app/data/regs";
+import { loadWaterGroup, openRegsStore, RegsInputsError, siblingItems, type RegsStore } from "@app/data/regs";
 import { openRegsFixture } from "@app/data/release/node";
 
 let st: RegsStore;
@@ -99,6 +99,12 @@ describe("the water map's group from the fixture release", () => {
         expect(selected.length + water.length).toBe(g.parts.reduce((k, q) => k + q.sids.length, 0));
       }
     }
+  });
+
+  it("(T58) siblingItems: a closure area -> its lake's three areas; a river -> itself; a water not held -> none", async () => {
+    const all = await Promise.all(["wbk:-20", "wbk:-21", "wbk:-22", "gnis:8634", "gnis:0"].map((id) => siblingItems(st, id)));
+    const klwa = ["wbk:-20", "wbk:-21", "wbk:-22"];
+    expect(all).toEqual([klwa, klwa, klwa, ["gnis:8634"], []]);
   });
 
   it("a water the store does not hold is refused, by name", async () => {

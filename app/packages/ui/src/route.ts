@@ -36,7 +36,8 @@
  *
  * BACK STEPS OUT ONE LAYER, IT NEVER UNDOES A MOVE (owner 2026-10-22 late): every move within one water — a view, a part,
  * a split lake's other closure area, the same water opened again — REPLACES the top frame; only a DIFFERENT water opened
- * from inside is a new frame, and one already held is gone back to rather than stacked again (`enter`). A river that
+ * from inside is a new frame, and one already held is gone back to rather than stacked again (`enter`; T58: any closure
+ * area of a split lake held is that lake, by the frames' `group`). A river that
  * changes its name is ONE system (owner 2026-10-22 late): ▲ / ▼ into the water this one continues as / from (`cross`)
  * replaces the top frame too; "Flows into" from a tributary stays a new frame. `close` (the
  * header's ×) leaves every water at once. The browser's history and Android's back count these same frames
@@ -60,6 +61,12 @@ export interface LatLon { lat: number; lon: number }
  */
 export interface WaterFrame {
   item: ItemId | null; part: number | null; tapSid: SectionId | null; at: LatLon | null; view: View;
+  /**
+   * (T58) A split lake's closure areas, `item` among them, when the opener knew them (`@app/data` `siblingItems`):
+   * every area is the SAME water (`sameWater`), so "Flows into" a lake held in another area goes back to it. Absent: a
+   * water alone, or one opened where its areas were not asked (from browse mode, where nothing is held to match).
+   */
+  group?: readonly ItemId[];
 }
 /** A spot being added: at the point the reader gave (a long press, a tap in pick mode, their location), or none yet. */
 export interface AddingSpot { at: LatLon | null }
@@ -91,6 +98,8 @@ export type RouteAction =
    */
   | { type: "openWater"; item: ItemId | null; tapSid?: SectionId | null; part?: number | null; at?: LatLon | null;
       view?: View;
+      /** (T58) The water's split-lake areas, itself among them (kept on the frame when there are two or more). */
+      group?: readonly ItemId[];
       /**
        * (Owner 2026-10-22 late, "back from a searched water lands on the map") Opened from a search result: the search
        * is consumed — `from` is the map underneath with search CLOSED, so back and × land on the map, not the list.
@@ -141,9 +150,14 @@ const top = (r: WaterRoute): WaterFrame => r.stack[r.stack.length - 1]!;
 const withTop = (r: WaterRoute, f: Partial<WaterFrame>): WaterRoute =>
   ({ ...r, stack: [...r.stack.slice(0, -1), { ...top(r), ...f }] });
 const push = (r: WaterRoute, f: WaterFrame): WaterRoute => ({ ...r, stack: [...r.stack, f].slice(-STACK_CAP) });
-/** A frame's water: its item, or for an unnamed reach (no item) the section it stands on. */
+/**
+ * A frame's water: its item — or (T58) any closure area of the same split lake, as either frame's `group` says — or for
+ * an unnamed reach (no item) the section it stands on.
+ */
 const sameWater = (a: WaterFrame, b: WaterFrame) =>
-  a.item !== null || b.item !== null ? a.item === b.item : a.tapSid === b.tapSid;
+  a.item !== null || b.item !== null
+    ? a.item === b.item || (b.item !== null && !!a.group?.includes(b.item)) || (a.item !== null && !!b.group?.includes(a.item))
+    : a.tapSid === b.tapSid;
 /**
  * BACK STEPS OUT ONE LAYER (owner 2026-10-22 late): a water opened from inside water mode is ONE layer only when it is
  * a different water from every frame held. The water on screen opened again (a tap on its own section) replaces its
@@ -159,7 +173,8 @@ const enter = (r: WaterRoute, f: WaterFrame): WaterRoute => {
 const opened = (a: Extract<RouteAction, { type: "openWater" }>): WaterFrame | null => {
   const tapSid = a.tapSid ?? null;
   const f: WaterFrame = { item: a.item, part: a.part ?? null, tapSid, at: tapSid !== null ? a.at ?? null : null,
-                          view: a.view ?? "regs" };
+                          view: a.view ?? "regs",
+                          ...(a.item !== null && a.group && a.group.length > 1 ? { group: a.group } : {}) };
   if (f.item === null && tapSid === null) return null;
   return frameViews(f).includes(f.view) ? f : null;
 };

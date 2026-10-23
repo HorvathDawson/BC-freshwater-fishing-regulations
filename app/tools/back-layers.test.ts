@@ -322,6 +322,10 @@ export function layerWalks(reduce: Reduce) {
                          (r) => partAction(onScreen(r), TRIB, 1), { type: "view", view: "map" }, BACK, BACK]);
   const revisit = walk(a, [exitAction(CHW, 2), openWater({ item: TRIB, view: "regs" }), exitAction(VEDDER, 0)]);
   const close = walk(a, [openWater({ item: TRIB, view: "regs" }), exitAction(CHW, 0), CLOSE]);
+  // (T58) a split lake is ONE water: area A (opened from search, its group unknown), a tributary, then "Flows into"
+  // lands in area B (the opener knows B's areas) — the lake gone back to, never held twice; one back is main
+  const splitLake = walk(reduce(from, openWater({ item: LAKE_A, part: 0, view: "regs" })),
+                         [openWater({ item: TRIB, tapSid: 9 as SectionId, view: "regs" }), exitAction(LAKE_B, 0, [LAKE_A, LAKE_B])]);
   return {
     inside: [...inside.seen, `one back: ${name(reduce(inside.r, BACK))}`],
     lake: [...lake.seen, `one back: ${name(reduce(lake.r, BACK))}`],
@@ -330,6 +334,7 @@ export function layerWalks(reduce: Reduce) {
     chain: chain.seen,
     revisit: [...revisit.seen, `one back: ${name(reduce(revisit.r, BACK))}`],
     close: close.seen,
+    splitLake: [...splitLake.seen, `one back: ${name(reduce(splitLake.r, BACK))}`],
   };
 }
 
@@ -350,6 +355,7 @@ const EXPECTED_WALKS = {
             "one back: main conditions +search"],
   close: ["gnis:3062@-/conditions", "gnis:3062@-/conditions > gnis:11481@-/regs",
           "gnis:3062@-/conditions > gnis:11481@-/regs > gnis:8634@0/regs", "main conditions +search"],
+  splitLake: ["wbk:-21@0/regs", "wbk:-21@0/regs > gnis:11481@-/regs", "wbk:-22@0/regs", "one back: main conditions +search"],
 };
 
 describe("back steps out one layer (owner 2026-10-22 late)", () => {
@@ -371,6 +377,8 @@ describe("back steps out one layer (owner 2026-10-22 late)", () => {
       closeIsBack: (r, a) => reduceRoute(r, a.type === "close" ? { type: "back" } : a),
       // the cross as it was before the owner's "one system" call: the other water opened on top, a layer
       crossPushes: (r, a) => reduceRoute(r, a.type === "cross" ? openWater({ item: a.item, part: a.part, view: "map" }) : a),
+      // (T58) the route blind to a split lake's areas: another area of a lake held is a new water, stacked again
+      groupBlind: (r, a) => reduceRoute(r, a.type === "openWater" ? { ...a, group: undefined } : a),
     };
     const broken = Object.fromEntries(Object.entries(mutants).map(([k, m]) => {
       const w = layerWalks(m);
@@ -380,9 +388,10 @@ describe("back steps out one layer (owner 2026-10-22 late)", () => {
     expect(broken).toEqual({
       partPushes: ["inside", "lake", "chain"],
       viewPushes: ["inside", "lake", "chain"],
-      revisitStacks: ["inside", "revisit"],
+      revisitStacks: ["inside", "revisit", "splitLake"],
       closeIsBack: ["close"],
       crossPushes: ["cross", "system"],
+      groupBlind: ["splitLake"],
     });
   });
 });

@@ -69,6 +69,21 @@ describe("<SheetHost> over the frozen vedder_1010 page", () => {
     expect(onPart).toHaveBeenCalledWith(0);
   });
 
+  it("(T58) on the Regulations page a Parts row reaches the page's caller with its part, and the sheet closes", () => {
+    const parts: number[] = [];
+    render(<RegsScreen page={sheetPage(bc1501)} palette={LIGHT} actions={{ onSheet() {}, onDay() {}, onBook() {} }}
+                       onDate={() => {}} start={{ tab: "keep", sheet: "parts" as SheetKey, scroll: 0 }}
+                       onPart={(i) => parts.push(i)} />);
+    const open = () => {   // react-native-web keeps a closed Modal until its slide-out ends, which jsdom never runs: end it
+      const done = screen.queryByRole("button", { name: "Done" });
+      act(() => { for (let e: HTMLElement | null = done; e; e = e.parentElement) e.dispatchEvent(new Event("animationend", { bubbles: true })); });
+      return screen.queryByRole("button", { name: "Done" }) !== null;
+    };
+    const before = open();
+    act(() => { screen.getAllByRole("radio")[1]!.click(); });
+    expect({ before, parts, after: open() }).toEqual({ before: true, parts: [0], after: false });
+  });
+
   it("4. Done and the scrim each close it once", () => {
     const h = host("hatch");
     act(() => { screen.getByLabelText("Done").click(); screen.getByLabelText("Close").click(); });

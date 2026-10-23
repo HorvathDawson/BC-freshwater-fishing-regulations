@@ -22,6 +22,21 @@ describe("route (P13): one value, one back rule", () => {
     expect(reduce(c, { type: "back" })).toBe(HOME);
   });
 
+  it("(T58) a split lake's areas are one water: either frame's group matches; a group of one is not kept", () => {
+    const A = "wbk:-21" as ItemId, B = "wbk:-22" as ItemId, AREAS = [A, B];
+    const lake = (item: ItemId, group?: readonly ItemId[]): RouteAction =>
+      ({ type: "openWater", item, part: 0, ...(group ? { group } : {}) });
+    const stack = (r: Route) => (r.mode === "water" ? r.stack.map((f) => `${f.item}${f.group ? `[${f.group.length}]` : ""}`) : []);
+    expect([
+      stack(run(HOME, lake(A), lake(VEDDER), lake(B, AREAS))),            // the new frame knows the areas
+      stack(run(HOME, lake(A, AREAS), lake(VEDDER), lake(B))),            // the held frame knows them
+      stack(run(HOME, lake(A), lake(VEDDER), lake(B))),                   // neither: two waters, as before
+      stack(run(HOME, lake(VEDDER, [VEDDER]), lake(FRASER), lake(VEDDER))),
+    ]).toEqual([
+      [`${B}[2]`], [`${B}`], [A, VEDDER, B], [VEDDER],
+    ]);
+  });
+
   it("flowing into two waters, back twice returns to the first water at its part", () => {
     const w = run(HOME, { type: "openWater", item: VEDDER, part: 1 },
                   { type: "flowInto", item: FRASER, part: 4 }, { type: "flowInto", item: HARRISON, part: 0 });

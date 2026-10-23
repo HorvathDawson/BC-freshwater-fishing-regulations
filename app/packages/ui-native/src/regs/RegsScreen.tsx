@@ -66,6 +66,11 @@ export interface RegsScreenProps {
   onMap?: () => void;
   /** the Parts button; absent → it opens the page's own Parts sheet (T37). */
   onParts?: () => void;
+  /**
+   * (T58) A row of the Parts sheet pressed: read that part (the water screen makes it the frame's part — a move within
+   * the water, no back layer). The sheet closes. Absent → the rows read nothing.
+   */
+  onPart?: (partIx: number) => void;
   /** Gear / Methods / Licence (T34/T35); absent → that section is not drawn, its tab is still listed. A function is handed
    *  this screen's actions (its tab links scroll to the section, like the Keep tab's). */
   gear?: Slot; methods?: Slot; licence?: Slot;
@@ -102,7 +107,7 @@ export function TabPending({ label, palette }: { label: string; palette: Palette
   );
 }
 
-export function RegsScreen({ page, palette, images, adipose, actions, onDate, onMap, onParts,
+export function RegsScreen({ page, palette, images, adipose, actions, onDate, onMap, onParts, onPart,
                              gear, methods, licence, footer, store: injected, layout = "phone", start = null, onStarted,
                              lapsed = null }: RegsScreenProps) {
   const store = useMemo(() => injected ?? createPinStore(), [injected]);
@@ -223,7 +228,8 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
         </View>
       ) : pageScroll}
       <SheetHost page={page} open={sheet} onOpen={openSheet} onClose={() => setSheet(null)} palette={palette} fish={images} adipose={adipose}
-                 onTab={(t) => { setSheet(null); toTab(t); }} onBook={actions.onBook} layout={layout} />
+                 onTab={(t) => { setSheet(null); toTab(t); }} onBook={actions.onBook} layout={layout}
+                 onPart={onPart && ((i) => { setSheet(null); onPart(i); })} />
     </View>
     </TermTitles.Provider>
   );
