@@ -187,6 +187,10 @@ use that as the sole source of future work."
 | T140 | bundle regions of a water + area families ask the one region membership (G3) | DONE | 41f541a9, 35dd2ff1, 82c59195 | latent: no bundle row changes; delivered r-012fb43aa175 |
 | T141 | carve-out walk seeds from the extent's cuts; braid cut reports side-channel crossings | DONE | 8c05e725, 35dd2ff1, d5899459, 82c59195 | no binding moved; delivered r-012fb43aa175 |
 | T142 | review screen leftovers: focus after click, error wording, partial mark (Q96), draft-guard test | DONE | 9c141d24, 8d0f5d76, 9b8de2e3, 19dbc1ee | Q96 not built (default no) |
+| T143 | Conditions horizons say "no forecast" for every gauge (Change works) | OPEN | — | high; live regression |
+| T144 | Change: CLEVER + COFFEE (combined), ELF only as last resort with a low-water warning | OPEN | — | research first |
+| T145 | spot markers: smaller, capped, deselect on tap off, better look (T131 rework) | OPEN | — | app |
+| T146 | no-public-access colour too close to base regulations | OPEN | — | app |
 
 ## Order for open tickets
 
