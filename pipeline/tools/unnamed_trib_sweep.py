@@ -23,7 +23,8 @@ through. Two of the walk's own stops are applied while looking, because they are
 
 What is left is the FRONTIER: the lowest unnamed sections where R stops though the section below has
 it. Each is EXPLAINED by a stop the walk makes on purpose (`REASONS`, first match wins) or counted as
-UNEXPLAINED — a real miss. The report counts frontier pairs and the unnamed stream sections above each
+UNEXPLAINED — a real miss. The step's own stops are the WALK'S answer, not a copy of it: `explain` asks
+`tributaries.may_enter` (T102 part B / T117) and reports its named reason. The report counts frontier pairs and the unnamed stream sections above each
 (the whole subtree that loses R with it), by rule and by region, with examples.
 
 NOT SEEN by this check (said, not hidden): a `tributaries_only` rule binds no reach, so a stream joining
@@ -54,18 +55,16 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, Iterable, List, Mapping, Optional, Set, Tuple
 
+from pipeline.atlas.graph import tributaries as T
+from pipeline.common.models import FlowEdge, NodeKind
 from pipeline.common.models.graph import MAINSTEM_EDGE_KINDS as MAINSTEM
 from pipeline.common import entry_id as EID
 
 #: Why a frontier pair is not a miss, in the order they are asked. Each is a stop the walk makes ON
-#: PURPOSE, named after the switch or ruling that makes it:
-REASONS = (
-    # `guarded`: the walk never enters a 2300 barrier piece (a canal) or anything above it.
-    "barrier",
-    # `tributaries._breaks_strahler`: a bigger river cannot be a tributary (codes silent or equal).
-    "strahler",
-    # `_through_blks`: the inflow on the reach lake's outlet line is the river running through the lake.
-    "through_lake",
+#: PURPOSE, named after the switch or ruling that makes it. FIRST the step's own refusal — whatever
+#: `tributaries.may_enter` says, in its vocabulary (`tributaries.REFUSALS`: a canal, the receiving river,
+#: a bigger river, the river continuing through a reach lake …); then the stops made AFTER the walk:
+REASONS = T.REFUSALS + (
     # RU-14 (`build._stem_to_first_lake`): a joining water with a row of its own that the signs pull
     # into the cut is walked from its mouth to its FIRST LAKE; the streams feeding that lake are not.
     "stem_ends_at_lake",
@@ -125,6 +124,68 @@ def topology(build_dir: Path) -> Topo:
     return topo_of(nodes, edges, section_handles.digest_for(Path(build_dir)))
 
 
+class _Node:
+    """A `Topo` handle as the walk reads a graph node (`tributaries.may_enter`)."""
+    __slots__ = ("kind", "blk", "wsc", "stream_order", "is_barrier", "down_m", "up_m")
+    out_of_bc = False                   # outside B.C. is not in a `Topo`
+    edge_types: tuple = ()
+
+    def __init__(self, t: "Topo", h: int):
+        k = t.kind.get(h)
+        self.kind = NodeKind(k) if k in NodeKind._value2member_map_ else k
+        self.blk, self.wsc, self.stream_order = t.blk.get(h, ""), t.wsc.get(h, ""), t.order.get(h)
+        self.is_barrier, self.down_m, self.up_m = bool(t.barrier.get(h)), t.down_m.get(h, 0.0), t.up_m.get(h, 0.0)
+
+
+class _Nodes:
+    def __init__(self, t: "Topo"):
+        self._t, self._memo = t, {}
+
+    def get(self, h, default=None):
+        if h not in self._t.kind:
+            return default
+        n = self._memo.get(h)
+        if n is None:
+            n = self._memo[h] = _Node(self._t, h)
+        return n
+
+    def __getitem__(self, h):
+        n = self.get(h)
+        if n is None:
+            raise KeyError(h)
+        return n
+
+    def __contains__(self, h):
+        return h in self._t.kind
+
+
+class TopoGraph:
+    """The `Topo` as a graph the walk's own functions read (`nodes`, `edges`, `up_adj`, `down_adj`) —
+    so the sweep asks the walk instead of re-implementing it. Built once per `Topo`."""
+
+    def __init__(self, t: "Topo"):
+        self.nodes = _Nodes(t)
+        self.edges: list = []
+        self.up_adj: Dict[int, list] = collections.defaultdict(list)
+        self.down_adj: Dict[int, list] = collections.defaultdict(list)
+        for to in sorted(t.up):
+            for frm, k in t.up[to]:
+                self.up_adj[to].append(len(self.edges))
+                self.down_adj[frm].append(len(self.edges))
+                self.edges.append(FlowEdge(from_node=frm, to_node=to, at_measure=0.0, kind=k))
+
+
+_GRAPHS: Dict[int, Tuple["Topo", TopoGraph]] = {}
+
+
+def graph_of(t: "Topo") -> TopoGraph:
+    hit = _GRAPHS.get(id(t))
+    if hit is None or hit[0] is not t:
+        _GRAPHS.clear()
+        hit = _GRAPHS[id(t)] = (t, TopoGraph(t))
+    return hit[1]
+
+
 Rule = Tuple[str, str]          # (entry_id, rule_id) — AGENTS 8: rule_id is unique only within an entry
 
 
@@ -148,48 +209,51 @@ class Bound:
     stems: Mapping[Rule, frozenset] = field(default_factory=dict)
 
 
-def _breaks_strahler(t: Topo, a: int, b: int) -> bool:
-    """`tributaries._breaks_strahler` on handles (outside B.C. is not in a `Topo`: order None there)."""
-    oa, ob = t.order.get(a), t.order.get(b)
-    if oa is None or ob is None or oa <= ob:
-        return False
-    wa, wb = t.wsc.get(a, ""), t.wsc.get(b, "")
-    return not (wa and wb and wa != wb and wa.startswith(wb))
+def _reaches(b: Bound) -> Dict[Rule, frozenset]:
+    """Each walking rule's REACH (the sections holding it by `reach`), built once per `Bound`."""
+    hit = getattr(b, "_reach_index", None)
+    if hit is None or hit[0] is not b.rules:            # rebuilt when the bindings are replaced
+        acc: Dict[Rule, Set[int]] = collections.defaultdict(set)
+        for sid, rs in b.rules.items():
+            for r, via in rs.items():
+                if via == "reach":
+                    acc[r].add(sid)
+        hit = (b.rules, {r: frozenset(v) for r, v in acc.items()})
+        b._reach_index = hit
+    return hit[1]
 
 
-def _through_blks(t: Topo, lake: int) -> Set[str]:
-    """The blue lines a lake's own flow leaves by, through any lakes below it (`tributaries._through_blks`)."""
-    out: Set[str] = set()
-    seen, stack = {lake}, [lake]
-    while stack:
-        cur = stack.pop()
-        for to, _k in t.down.get(cur, ()):
-            if t.kind.get(to) == "lake":
-                if to not in seen:
-                    seen.add(to)
-                    stack.append(to)
-            elif t.blk.get(to):
-                out.add(t.blk[to])
-    return out
+def _reach_of(b: Bound, rule: Rule) -> frozenset:
+    return _reaches(b).get(rule, frozenset())
 
 
 def _mid_reach(t: Topo, b: Bound, lake: int, below: int, rule: Rule) -> bool:
-    """Does `rule`'s REACH carry on above `lake` on `below`'s line (`tributaries._lake_mid_reach`)?"""
-    bb = t.blk.get(below)
-    if not bb:
-        return False
-    seen, stack = {lake}, [lake]
-    while stack:
-        cur = stack.pop()
-        for src, _k in t.up.get(cur, ()):
-            in_reach = b.rules.get(src, {}).get(rule) == "reach"
-            if in_reach and (src == below or (t.blk.get(src) == bb
-                                              and t.down_m.get(src, 0.0) >= t.up_m.get(below, 0.0) - 1.0)):
-                return True
-            if t.kind.get(src) == "lake" and src not in seen and not in_reach:
-                seen.add(src)
-                stack.append(src)
-    return False
+    """Does `rule`'s REACH carry on above `lake` on `below`'s line — the walk's own
+    `tributaries._lake_mid_reach`, asked of the `Topo`."""
+    return T._lake_mid_reach(graph_of(t), lake, _reach_of(b, rule), below)
+
+
+def walk_context(t: Topo, b: Bound, rule: Rule) -> "T.Reach":
+    """The `tributaries.Reach` the walk of `rule` carries, as far as the bundle shows it: its reach. A
+    LOOSER context than the builder's (T117): no carve-outs, no own water, and no code divides (a `Topo`
+    has no edge types to find a lake's main outlet) — never a rule of its own."""
+    g = graph_of(t)
+    reach = _reach_of(b, rule)
+    return T.Reach(graph=g, reach=reach, codes=frozenset(t.wsc[h] for h in reach if t.wsc.get(h)),
+                   reach_blks=frozenset(t.blk[h] for h in reach
+                                        if t.kind.get(h) == "stream" and t.blk.get(h)))
+
+
+def step_refusal(t: Topo, b: Bound, m: "Miss") -> Optional[str]:
+    """What `tributaries.may_enter` says of the miss's one step: the unnamed stream `m.sid` into the water
+    below it (`m.lake`, else `m.below`) — a reason from `tributaries.REFUSALS`, or None."""
+    first = m.lake if m.lake is not None else m.below
+    ctx = walk_context(t, b, m.rule)
+    if m.lake is not None and m.via == "reach":
+        ctx.online[m.lake] = m.below        # a lake handing on a REACH rule is mid-reach (`_carried`)
+    kind = next((k for d, k in t.down.get(m.sid, ()) if d == first), "confluence")
+    why = T.may_enter(ctx, m.sid, first, FlowEdge(from_node=m.sid, to_node=first, at_measure=0.0, kind=kind))
+    return why if why in T.REFUSALS else None
 
 
 def _carried(t: Topo, b: Bound, d: int, edge: str, came_from: Optional[int]) -> Set[Rule]:
@@ -270,14 +334,9 @@ def _region_of_entry(entry_id: str) -> str:
 def explain(t: Topo, b: Bound, m: Miss) -> Optional[str]:
     """The walk's own stop that accounts for `m` (one of `REASONS`), or None: a real miss."""
     facts = b.facts.get(m.rule, set())
-    first = m.lake if m.lake is not None else m.below
-    if t.barrier.get(m.sid):
-        return "barrier"
-    if _breaks_strahler(t, m.sid, first):
-        return "strahler"
-    reach_lake = m.lake if m.lake is not None else (m.below if t.kind.get(m.below) == "lake" else None)
-    if reach_lake is not None and m.via == "reach" and t.blk.get(m.sid) in _through_blks(t, reach_lake):
-        return "through_lake"
+    why = step_refusal(t, b, m)
+    if why is not None:
+        return why
     if m.lake is not None and m.via == "trib" and m.below in b.stems.get(m.rule, ()) \
             and any(d == m.below and k in MAINSTEM for d, k in t.down.get(m.lake, ())):
         return "stem_ends_at_lake"
@@ -293,14 +352,19 @@ def explain(t: Topo, b: Bound, m: Miss) -> Optional[str]:
 
 
 def _subtree(t: Topo, b: Bound, sid: int, rule: Rule) -> int:
-    """Unnamed stream sections at and above `sid` that lack `rule` (what the miss costs)."""
+    """Unnamed stream sections at and above `sid` that lack `rule` (what the miss costs): climbed as the
+    walk climbs (`tributaries.may_enter`), through unnamed water and lakes."""
+    g, ctx = graph_of(t), walk_context(t, b, rule)
     seen, stack, n = {sid}, [sid], 0
     while stack:
         cur = stack.pop()
         if cur in b.unnamed and t.kind.get(cur) == "stream" and rule not in b.rules.get(cur, {}):
             n += 1
-        for src, _k in t.up.get(cur, ()):
-            if src not in seen and (src in b.unnamed or t.kind.get(src) == "lake"):
+        for ei in g.up_adj.get(cur, ()):
+            e = g.edges[ei]
+            src = e.from_node
+            if src not in seen and (src in b.unnamed or t.kind.get(src) == "lake") \
+                    and T.may_enter(ctx, src, cur, e) is None:
                 seen.add(src)
                 stack.append(src)
     return n

@@ -108,7 +108,9 @@ def test_each_stop_the_walk_makes_on_purpose_explains_a_miss_and_nothing_else_do
     two = lambda **kw: S.topo_of({1: st(2, "100", "B"), 2: st(**kw)}, [(2, 1, "confluence")])  # noqa: E731
     assert _one(two(wsc="100-1"), bound(base, {2})) is None
     assert _one(two(wsc="100-1", barrier=True), bound(base, {2})) == "barrier"
-    assert _one(two(order=3, wsc="200"), bound(base, {2})) == "strahler"
+    assert _one(two(order=3, wsc="200"), bound(base, {2})) == "bigger_river"
+    assert _one(S.topo_of({1: st(2, "100-1", "B"), 2: st(1, "100")}, [(2, 1, "confluence")]),
+                bound(base, {2})) == "receiving_river"                      # the code R drains into (T102)
     assert _one(two(order=3, wsc="100-1"), bound(base, {2})) is None       # the code says tributary: it wins
     assert _one(two(wsc="100-1"), bound(base, {2}, limits={R: frozenset({1})})) == "within_area"
     assert _one(two(wsc="100-1"), bound(base, {2}, limits={R: frozenset({1, 2})})) is None
@@ -122,7 +124,7 @@ def test_the_river_through_a_reach_lake_and_a_stem_bounded_at_its_lake():
     # 3 runs on the lake's outlet line "B": the river through the lake, not a tributary of it
     t = S.topo_of({1: st(3, "100", "B"), 2: lk(3, "100"), 3: st(3, "100", "B", down_m=500.0)},
                   [(2, 1, "lake_out"), (3, 2, "lake_in")])
-    assert _one(t, bound({1: {}, 2: {R: "reach"}, 3: {}}, {3})) == "through_lake"
+    assert _one(t, bound({1: {}, 2: {R: "reach"}, 3: {}}, {3})) == "river_continuing"
     # RU-14: the stem a confluence cut pulls in ends at its first lake
     t2 = S.topo_of({1: st(3, "100", "M"), 2: lk(3, "100"), 3: st(1, "100-4", "c")},
                    [(2, 1, "lake_out"), (3, 2, "lake_in")])
@@ -143,8 +145,9 @@ def test_stem_ends_at_lake_explains_only_the_lake_at_the_top_of_the_joining_wate
 
 
 def test_reasons_are_exactly_the_stops_explain_returns():
-    assert S.REASONS == ("barrier", "strahler", "through_lake", "stem_ends_at_lake", "within_area",
-                         "region_clip", "feature_types")
+    """The step's own stops ARE the walk's (`tributaries.REFUSALS`, T102 part B): the sweep keeps no copy."""
+    from pipeline.atlas.graph import tributaries as T
+    assert S.REASONS == T.REFUSALS + ("stem_ends_at_lake", "within_area", "region_clip", "feature_types")
 
 
 # ---- MU lines ----------------------------------------------------------------------------------------------------
