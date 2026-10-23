@@ -1,6 +1,6 @@
 # T105 — One gauge speaker: the map and the sheet ask different stations
 
-Status: DONE — 4817cb72. App-only: `section_gauge` is unchanged, no deliver needed.
+Status: DONE — 4817cb72, 6888a1dd (adversarial review). App-only: `section_gauge` is unchanged, no deliver needed.
 
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, findings gauges 1 and
 12 (CONFIRMED on `bundle.sqlite`).
@@ -82,8 +82,61 @@ Rebuild: app, plus deliver if `section_gauge` changes. Depends: T93 (policy, def
   Crossing) so the Conditions body still draws the chart they measure.
 
 ## Left / follow-ups
-- Spot capture (`packages/data/src/spots/capture.ts` `readingFor`, `leadUpOf`) still freezes the `section_gauge`
-  station's reading into a saved spot. It is a stored record (format/migration question), so it was left; the pin
-  names it as the one allowed reader. Follow-up: freeze the speaker's lead (`sheetLead`) instead.
+- ~~Spot capture still freezes the `section_gauge` station's reading~~ — fixed in the review (6888a1dd), see below.
 - The design fixture (`packages/data/src/fixture.ts`) has no panel, so under one speaker its Conditions view is the
   refusal everywhere. If design screens need a chart, give the fixture's Chilliwack a panel (60 test call sites).
+
+## Adversarial review (2026-10-23)
+
+Verdict: the core unification is right (one `speakerFor`; map classes, viewport standings and the sheet all ask it;
+the province sample and the fixture release agree map == sheet). Re-measured on the current `bundle.sqlite`: 54,386
+matched-only sections / 368 stations, 0 of them with a lake station; 150 gauged-lake sections (150 lakes, 173
+`lake_gauge` rows), none panelled, none with a `section_gauge` row; 54,044 panelled sections with a match, 48,125 of
+them matched to a member — all as built. Not measured by the builder: **offline, 11,913 panelled sections change the
+station the sheet leads with** (their match is not the panel's first member; 42,131 are).
+
+Defects found and fixed (6888a1dd):
+1. **A second speaker left in spot capture.** `captureSpot` froze the `section_gauge` station's reading and lead-up
+   into a saved spot, so a spot pinned on any of the 54,386 matched-only sections recorded a gauge the sheet had just
+   refused. "Stored record" was not a reason to keep it: the spot's shape is unchanged (a station id), saved spots are
+   untouched, only new captures freeze `sheetLead(speakerFor(panel, lake), rows, null)`; the frozen trace is kept only
+   for a station that `speaks`, as the sheet shows it. The pin now allows exactly one `gaugeForSection` call in each of
+   the two traces (`capture.ts` `traceFor`, `ui/hooks.ts` `useGaugeTrace`).
+2. **The no-gauge refusal over a water something speaks for.** `refuse` was `!reading && !row`, so a gauged lake whose
+   station had no reading, and a panelled section offline whose first member had none, said "No gauge is entitled to
+   speak for this water" — false, and for the lake the map shows it as gauged-but-quiet (the sentinel). Now `refuse`
+   is exactly "nothing speaks" (`speakerFor` null); a quiet lake gets its own quiet head (`lakeQuietHead`: heading,
+   `donorReads`, `donorLastReport` from core); a panel offline leaves the donor panel's "The live readings did not
+   arrive." to speak.
+3. **The donor panel contradicted a lake's own reading.** For a gauged lake the panel answer is `answerFrom`'s
+   "no-station": "NO ESTIMATE — No gauge on this water is close enough in size to speak for it." directly above the
+   lake's own station reading (new since T105 made lakes read). Added `NoEstimate` `"own-gauge"` (core sentence: "This
+   lake has its own gauge, read here directly; nothing is estimated for it from other water."), set by the sheet when
+   the speaker is a lake.
+
+Tests and mutations (each run, each fails as named):
+- `spots/capture.test.ts` "captureSpot freezes the speaker's station": lead from `gaugeForSection` again (the pre-review
+  spelling) fails all three; dropping the `speaks` gate in `traceFor` fails "matched only" and "a panel".
+- `tools/one-speaker.test.ts`: a second `gaugeForSection(` in `capture.ts` (the pre-review file had three) fails
+  "read only for the two traces".
+- `ui/conditions.render.test.tsx`: `refuse: !reading && !row` fails "a gauged lake gone quiet" and "a panel offline";
+  dropping the lake branch of `quiet` fails "gone quiet"; dropping the `own-gauge` panel fails both lake tests.
+- `core/conditions.test.ts` and `ui-native/DonorPanel.test.tsx` cover the new reason's whole sentence.
+- Strict `REGS_STORE_REQUIRED=1 pnpm -C app check` green (336 files, 8,043 tests); `conformance/src/speaker.test.ts`
+  and `release.test.ts` run against the province bundle and the fixture release (read-only symlinks, removed).
+
+Checked and fine: no other copy of the decision (`panelsFor`/`lakeStationsFor` callers are `standing.ts`, the cached
+viewport path, `useSpeaker`, `capture.ts` `panelFor`/`speakerOf`); the panel cache is cleared per test, so the render
+tests do not pass on a stale panel; `useSpeaker` reads panels through the map's cache; both platforms render one
+`ConditionsVM` (`ConditionsPanel` in ui-native), no web/native split.
+
+Ships with an app rebuild; **no deliver**.
+
+## Owner questions
+- Q: Wording for the 54,386 matched-only sections. They now get "No gauge is entitled to speak for this water. A
+  station draining a far larger watershed would have given a number, and the number would have been wrong." and the
+  panel's "No gauge on this water is close enough in size to speak for it." Their match passed `shed.py`'s drainage
+  gate; the panel (`panel.py` `eligible`) excluded the station for record length, a lake crossing, regulation or the
+  tighter area ratio, so "far larger watershed" is not always the reason. **Default built: the sentences unchanged.**
+- Q: The lake reason "This lake has its own gauge, read here directly; nothing is estimated for it from other
+  water." is new wording (T105 review default). **Default built: that sentence.**
