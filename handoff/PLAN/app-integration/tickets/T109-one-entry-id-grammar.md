@@ -1,6 +1,6 @@
 # T109 — One entry-id grammar: tier, region and zone parsed about 10 ways (z7a shows as "Region 7")
 
-Status: PARTIAL — 6c03f5fe (step 1), 89fea9c0 (steps 2 + 3, Python). Lane wf_754f5fcd-d71-3.
+Status: DONE — 6c03f5fe (step 1), 89fea9c0 (steps 2 + 3, Python), 95e10c9a (left item: shipped region). Lanes wf_754f5fcd-d71-3, lane-T125. Needs deliver + regs fixture re-cut.
 - Step 1 DONE: level.ts reads z7a/z7b as "Region 7A/7B rule" (23 entries, whole subs pinned in level.test.ts); the
   golden is held to the ruling by one counted rewrite at load (oracles.zone7Ruled: 54 level words in 8 states;
   exclusions.test.ts pins the count). No rebuild.
@@ -20,8 +20,14 @@ Status: PARTIAL — 6c03f5fe (step 1), 89fea9c0 (steps 2 + 3, Python). Lane wf_7
   Old-vs-new equivalence checked on all 1534 bundle entry ids; export/guide/answers byte-identical again, card gate 0.
 - Owner question (default kept): `_zone_words` words a 7A closure "Zone A" while the level tag says "Region 7A rule" —
   both are book words; unify on one? Default: keep both (sentence vs tag).
-- Left (follow-up, needs deliver + app): the bundle/export ships the parsed region so level.ts stops using its regex
-  (store field + regs fixture regenerate). Minting NOT changed: `matcher.region_num` still reads "REGION 7A" as "7", so
+- Left item DONE (95e10c9a, lane lane-T125): the export's rule `provenance.region` is
+  `entry_id.region_of(entry_id)` ("7a", "6", null for zp:), in the field dictionary; the codec drops it on the wire as
+  derivable and `expand` refills it from the same function; the store keeps it (`store.common.RULE_PROV_KEEP`).
+  `level.ts` reads `prov.region` and holds no regex: no app code reads an entry id (`test_no_ts_reader_of_an_entry_id_
+  region`, mutation-pinned on the old regex; `test_the_export_and_the_store_ship_the_parsed_region`; level.test.ts
+  "reads the region the pipeline shipped"). On the live export all 218 rank-3 rules are zone tables, so every level tag
+  reads as before. Ships with deliver + a regs fixture re-cut (the committed fixture predates the field: until it is
+  re-cut, rank-3 tags read "Region rule" in the fixture-backed app tests). Measured on a scratch deliver (this lane's code, live atlas + batch-5 reach run): the store's 3,405 rule blobs differ only by the added region; on all 218 rank-3 rules the shipped region gives the same tag the regex did; export data and answers byte-identical, guide +2 dictionary texts, card gate 0. MERGER: after deliver, re-cut the fixture — `python -m pipeline.tools.regs_fixture_release` (newest data/release) into app/packages/data/dev/regs-release — then `UPDATE_REGS_FIXTURES=1 pnpm -C app exec vitest run conformance/src/regs/harness` only if the frozen VM fixtures still read stale (they should come back identical: same tags). A scratch re-cut from this lane's release is r-151bedfb7f0e (not committed). Minting NOT changed: `matcher.region_num` still reads "REGION 7A" as "7", so
   r7 rows carry no zone in their id (EntryId.regions recovers it from the MUs + registry). Changing it moves every
   Region 7 entry id and needs the registry → entry resync (memory registry-change-entry-resync) — its own ticket.
 - Owner question (default built with): mint r7a:/r7b: ids for Zone A/B rows? Default: no — keep r7: and read the
