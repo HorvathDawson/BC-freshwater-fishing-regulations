@@ -10,20 +10,27 @@ material is handoff/PLAN/app-data/side-channels/shots/klesilkwa-braid.png).
 
 ## What is done (not this ticket)
 A polygon ALREADY folded into a stream item (`item.kind = 'stream'`, `section_span.shape = 1`; 146 sections on 48 items)
-takes its water's line answer: `build_panels.stream_polygons`, pinned by `pipeline/tests/test_stream_polygon_panels.py`.
+is walked as a stream (point 2 below); one the walk leaves unanswered takes its water's line answer
+(`build_panels.stream_polygons`, now the fallback; `pipeline/tests/test_stream_polygon_panels.py`).
 On the real graph that answers 38 of the 45 polygons that drew grey beside coloured lines; the other 7 (Nation River
 1698439, 1698992, 1700170, 1703535; West Road (Blackwater) 1263111, 1406976; Honna 1444372) stay grey with the
-unanswered lines around them — point 2 below is what would reach them.
+unanswered lines around them — re-examined under point 2: still grey, honestly.
 
 ## What is left
 1. **Find the slough / canal / channel polygons that are still lake (or wetland) items** and decide, per water, whether
    it is a stream under the book. Once it is a stream item (registry: `pipeline/atlas/registry/flowing.py` folds it
    into its river), the colouring follows with no further change.
-2. **Lines boxed between stream polygons.** The panel walk cannot step through a polygon (no stream magnitude, and it
-   counts one as a lake crossing), so a short line between two polygons of the same slough gets no panel — Nicomen
-   Slough 59620 (57 m), and items with few panelled lines (Nelson 1 of 4, Daly 1 of 4, Zaitscullachan 1 of 4). Fix by
-   letting the walk read the WATER'S kind (`_kind` / `area_of` through a stream item's polygon); it changes other
-   sections' panels, so diff `section_panel` before and after on a real build before promoting.
+2. ~~**Lines boxed between stream polygons.**~~ DONE 2026-10-22 (late), owner "a polygon-only slough or canal gets
+   gauges like a stream": the walk reads the WATER'S kind (`build_panels.flowing`, pinned by
+   `pipeline/tests/test_polygon_walk.py`). A stream item's polygon is sized by the lines beneath it, offered a panel and
+   walked through, never a lake crossing. Real graph: stream polygons answered 38 → 59 of 145; Nicomen 59620 answered;
+   Seton Canal and Lewis Slough (polygon-only) answered; Bowman and Hansen Slough stay grey with their unanswered
+   lines. The 7 named above (Nation 4, West Road 2, Honna 1) STAY GREY: re-examined, every line beside them is
+   unanswered too, so a line in their place would be grey. Numbers and the one big side effect (the two Nicomen Slough
+   gauges now climb into the Fraser like any side-channel gauge: 71,668 sections) are in decisions.md under
+   "a polygon-only slough or canal gets gauges like a stream". Needs a `pipeline.deliver` rerun.
+3. **OWNER QUESTION raised by 2:** should a gauge on a side channel speak for the river it branched from and that
+   river's tributaries? Today's walk says yes (29,520 live answers depend on it); see decisions.md.
 
 ## Candidates (cheap, from the live bundle by name; not exhaustive)
 - **OKANAGAN RIVER OXBOWS**: 41 items (32 lake, 9 wetland). Oxbows are cut off from the river, so likely NOT streams —

@@ -673,6 +673,42 @@ style.sha256. Palette D is otherwise untouched: no status, flow, lake or UI toke
   and propagated through exactly like a stream line (its drainage area from the network it sits on), and is not a
   lake crossing. A polygon-only stream item (Seton Canal, Bowman, Lewis, Hansen, Taylor …) gets a panel whenever a
   line in its place would. True lakes keep lake treatment. Before/after panel diff on the real graph before shipping.
+- CLAUDE (built, T55 point 2): `build_panels.flowing` — a node is a stream for the walk when it is a line, or a
+  polygon of a STREAM item (`kind_of[water_of[sec]] == "stream"`, the mutation-pinned gate). Such a polygon is offered
+  a panel, is not a lake crossing, can start a walk as its gauge's own section, is walked through by `own_distances`
+  (at 0 m — a lake node carries no length), and is "same river" with sections of its own water (it has no `blk`).
+  SIZE: its own `stream_magnitude`, which the graph sets to the largest magnitude of the network lines beneath it. On
+  the real graph all 145 stream-item polygon nodes have one; against the line below it is equal on 92, smaller on 51
+  (the line below takes in a confluence), larger on 1, and against the line above equal on 88, larger on 47 (tribu-
+  tary mouths dip into it) — the through-line at the polygon, between its two lines, as a line there would be. Seton
+  Canal: 3,314 (the Seton River line under it); Vedder Canal 2,198 (= the Vedder line below it).
+  The old copy pass (`stream_polygons`) is KEPT AS THE FALLBACK for a polygon the walk leaves unanswered beside an
+  answered line of its water — two on the real graph (West Road lake:329047577, Daly Slough lake:329522748; their
+  lines answer through `mainstem_of`). Retiring it would take their answer away; with it nothing loses one.
+- CLAUDE (measured, REAL GRAPH, read-only via heavy.sh; inputs rebuilt from the live bundle and checked: the old code
+  reproduces all 246,619 live `section_panel` rows exactly, 0 differ). Old 246,657 answered sections → new 286,676:
+  (a) stream-item polygons: answered 38 → 59 of 145 (21 gain: Camp Slough 11, Mountain 2, Hudsons Bay 2, Seton Canal,
+  Stellako, Duncan, Bateson, Quaamitch, Lewis Slough; 33 change from the copied line answer to their own walk's).
+  Polygon-only items: Seton Canal ANSWERED (Cayoosh Creek 08ME002 63%, Nicomen 08MH085/086 13% each, 08ME018), Lewis
+  Slough ANSWERED (08NG049 60%, 08NG084 40%); Bowman Slough and Hansen Slough stay grey — the lines either side of
+  them are unanswered too, so a line in their place would be grey. (b) lines gaining a panel: 79 beside a stream
+  polygon (Nicomen 59620 now has 11 donors at 10.9 km²; Camp 11, Nelson 3, Zaitscullachan 3, Gravel 3 …) and 39,921
+  elsewhere. (c) 31,768 other sections change members. LOST: 2 walk-only, 0 with the fallback. No lake or wetland
+  section gains a panel; the simulated bundle passes both bundle invariants.
+  WHY (b)+(c) IS SO BIG: 71,668 of those 71,770 changes are ONE cause — the two Nicomen Slough gauges (08MH085 at
+  Deroche, 08MH086 at Dewdney) now walk up the slough, out of its head into the Fraser (modelled at ~27,000 km², inside
+  MAX_AREA_RATIO of their 207 km²) and up every tributary within the ratio: the Stein, Cottonwood, McGregor, Bowron …
+  Before, the slough's own polygons ended that walk as "lake crossings". Without those two stations the change is 85
+  gains, 36 changes, 2 losses (the fallback's two). Biggest (c): Stein-basin creeks (Teaspoon, West Fickle, Shelter,
+  Lean-to, unnamed) go from 08MF011 alone to 08MH085/086 ~42% each; Bell and Nelson Slough lines go from 08MF064 alone
+  to ten small Fraser-basin gauges (Cale, Coldwater, Spius …) that walk down the Fraser and now through Nelson
+  Slough's polygons (max share change 0.89).
+  THIS IS THE EXISTING WALK, NOT A NEW RULE: a gauge on a side channel already climbs out of it into its parent river.
+  Measured: forbidding the walk to step UP from a side channel into a bigger non-side-channel removes 29,520 answers
+  from TODAY's panels (a blunter "never step up into something bigger" removes 32,877). With that guard in both, this
+  change is +134 sections, 65 changed, 6 lost. OWNER QUESTION (not decided here): should a side-channel gauge speak
+  for the river it branched from and that river's tributaries? Until answered, the slough behaves like every other
+  side channel, as "a line in its place" would.
 
 ## OWNER 2026-10-22 (late) — back from a searched water lands on the map, at the water
 - Owner: after searching and opening a water (its regulations), back returns to the search list. It should land on
