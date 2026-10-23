@@ -33,7 +33,8 @@ const CONDUCT = [{ entry_id: "zp:conduct", rule_id: "conduct.r1", type: "conduct
   { kind: "conduct", title: "Do not waste the fish you catch", book: [[8, 10], [10, 12]], applies: "A B.C.-wide rule — everywhere in B.C." }] as const;
 const stored = new Map([
   [529, { export: RULE_ROWS[529]![0], facts: { ...RULE_ROWS[529]![1], applies_trib: "Inherited from Chilliwack River: its row covers its tributaries." } as RuleFacts }],
-  [3079, { export: RULE_ROWS[3079]![0], facts: RULE_ROWS[3079]![1] }],
+  // the store ships `prov.region` (T109: the pipeline's parse of the entry id); page v36's row predates it
+  [3079, { export: { ...RULE_ROWS[3079]![0], prov: { ...RULE_ROWS[3079]![0].prov, region: "2" } }, facts: RULE_ROWS[3079]![1] }],
   [7, { export: CONDUCT[0], facts: CONDUCT[1] as unknown as RuleFacts }],
 ]);
 

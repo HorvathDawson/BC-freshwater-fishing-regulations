@@ -12,8 +12,10 @@ import { levelTag } from "./level";
 import { ruleView } from "./rules";
 import { BOOK } from "./testing/speciesBook";
 
+/** `prov.region` as the store ships it (T109: the pipeline's `entry_id.region_of`, stated here, never parsed by the app) */
+const SHIPPED_REGION: Record<string, string> = { "z2:streams": "2", "z2:s": "2" };
 const exp = (entry_id: string, rank: number, entry_name?: string): ExportRule => ({ entry_id, rule_id: "r1", type: "", family: "", label: "L",
-  verbatim: "", fields: {}, prov: { rank, ...(entry_name ? { entry_name } : {}) } });
+  verbatim: "", fields: {}, prov: { rank, ...(entry_name ? { entry_name } : {}), region: SHIPPED_REGION[entry_id] ?? null } });
 const rule = (rix: number, entry_id: string, rank: number, entry_name?: string, book: [number, number][] = [], via: "reach" | "trib" = "reach"): RuleView =>
   ruleView(rix, exp(entry_id, rank, entry_name), { kind: "gear", title: "", book, applies: "" } as RuleFacts, BOOK, via);
 const index = (rs: RuleView[]): RuleIndex => ({ get: (ix) => rs.find((r) => r.rix === ix)!, has: (ix) => rs.some((r) => r.rix === ix), size: rs.length });
