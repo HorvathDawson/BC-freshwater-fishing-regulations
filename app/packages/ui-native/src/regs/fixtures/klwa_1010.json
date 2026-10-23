@@ -288,7 +288,7 @@
       "qualifiers": null,
       "says": [
        {
-        "s": "Up to ",
+        "s": "Of your 2 trout and char a day, up to ",
         "t": "text"
        },
        {
@@ -334,7 +334,7 @@
       "qualifiers": null,
       "says": [
        {
-        "s": "Only ",
+        "s": "Of your 2 trout and char a day, only ",
         "t": "text"
        },
        {
@@ -343,7 +343,7 @@
         "t": "num"
        },
        {
-        "s": " of the 2 may be Dolly Varden/bull trout",
+        "s": " may be Dolly Varden/bull trout",
         "t": "text"
        }
       ],

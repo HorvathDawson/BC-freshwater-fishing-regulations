@@ -310,7 +310,7 @@
           "qualifiers": null,
           "says": [
            {
-            "s": "Up to ",
+            "s": "Of your 2 trout and char a day in streams, up to ",
             "t": "text"
            },
            {
@@ -361,7 +361,7 @@
           "qualifiers": null,
           "says": [
            {
-            "s": "Only ",
+            "s": "Of your 2 trout and char a day in streams, only ",
             "t": "text"
            },
            {
@@ -370,7 +370,7 @@
             "t": "num"
            },
            {
-            "s": " of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
+            "s": " may be hatchery Dolly Varden/bull trout or lake trout",
             "t": "text"
            }
           ],
@@ -435,7 +435,7 @@
           "qualifiers": "rainbow trout",
           "says": [
            {
-            "s": "Up to ",
+            "s": "Of your 2 trout and char a day in streams, up to ",
             "t": "text"
            },
            {
