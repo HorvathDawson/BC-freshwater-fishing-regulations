@@ -69,6 +69,7 @@ describe("donorReason: why there is no estimate, per reason", () => {
     "too-uncertain": "The gauges that can speak for this spot disagree too much to tell a "
                    + "low river from a high one.",
     "offline": "The live readings did not arrive.",
+    "own-gauge": "This lake has its own gauge, read here directly; nothing is estimated for it from other water.",
     // The chosen day is past every forecast run for these gauges (the owner's +10 day often
     // is). Said as that, not as "no gauge close enough", which would be false.
     "no-forecast": "No forecast for the gauges here reaches this far ahead.",

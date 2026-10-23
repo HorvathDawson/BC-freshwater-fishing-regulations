@@ -10,9 +10,9 @@
  * This pins, over every app module (tests excluded):
  *   1. no module but `standing.ts` builds a speaker (`kind: "panel"` / `kind: "lake"`);
  *   2. no module falls back to a matched station (`matched?.station`, the old sheet's spelling);
- *   3. `gaugeForSection` (the `section_gauge` match record) is called only by the sources that implement it, the
- *      trace (`useGaugeTrace`, shown only for a station that `speaks`) and the spot capture (a frozen record: T105's
- *      follow-up, named here so it cannot spread);
+ *   3. `gaugeForSection` (the `section_gauge` match record) is called once each by the two traces: the sheet's
+ *      (`useGaugeTrace`, shown only for a station that `speaks`) and the spot's (`traceFor`, frozen only for a station
+ *      that `speaks`). The spot's reading and lead-up freeze the sheet's station (`sheetLead`, T105 review);
  *   4. there is no `stationsFor` (a third speaker: `section_gauge` first, then the lake) and no `useConditions`.
  * Each pattern is proven able to fail on the spelling it replaced (`SPELLINGS`), so a pass is not a regex that cannot
  * match.
@@ -40,6 +40,9 @@ function sources(dir: string, out: string[] = []): string[] {
 }
 const files = () => ROOTS.flatMap((r) => sources(join(APP, r))).map((p) => relative(APP, p)).sort();
 const hits = (re: RegExp) => files().filter((p) => re.test(readFileSync(join(APP, p), "utf8")));
+/** How many times each hit file says it. */
+const counts = (re: RegExp) => hits(re).map((p) =>
+  [p, readFileSync(join(APP, p), "utf8").match(new RegExp(re.source, "g"))!.length] as const);
 
 const BUILDS = /\bkind:\s*["'](?:panel|lake)["']\s*,/;
 const MATCHED = /\bmatched\??\.station\b/;
@@ -68,8 +71,9 @@ describe("one gauge speaker: speakerFor decides, nothing else (T105)", () => {
     expect(hits(MATCHED)).toEqual([]);
   });
 
-  it("section_gauge is read only by its sources, the trace, and the spot capture (the named follow-up)", () => {
-    expect(hits(MATCH_READ)).toEqual(["packages/data/src/spots/capture.ts", "packages/ui/src/hooks.ts"]);
+  it("section_gauge is read only for the two traces: the sheet's and the spot's, once each", () => {
+    // a second call in capture.ts is the spot freezing the matched station's reading again (the pre-review spelling)
+    expect(counts(MATCH_READ)).toEqual([["packages/data/src/spots/capture.ts", 1], ["packages/ui/src/hooks.ts", 1]]);
   });
 
   it("no third speaker: no stationsFor, no useConditions", () => {

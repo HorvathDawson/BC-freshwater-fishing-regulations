@@ -720,8 +720,15 @@ export function quietHead(name: string, row: DonorRow, ref: number, horizon: Hor
            lastReport: donorLastReport(row.observedAt, zone) };
 }
 
+/** A gauged lake's own station with no reading: whose it is, that it is quiet, when it last reported (core words). */
+export function lakeQuietHead(name: string, observedAt: string | null, ref: number, horizon: Horizon,
+                              zone?: string): QuietVM {
+  return { heading: readingHeading(name), reads: donorReads({ percentile: null, observedAt }, { ref, horizon }),
+           lastReport: donorLastReport(observedAt, zone) };
+}
+
 export interface ConditionsVM {
-  /** The matched gauge is still being looked up. */
+  /** Who speaks for the section (`useSpeaker`) is still being looked up. */
   loading: boolean;
   /** The day everything is for — the caller's, or today when it chose none. */
   day: Date;
@@ -745,7 +752,7 @@ export interface ConditionsVM {
    * panel's gauges speak for this water, one of them is only silent today (review 2026-10-21).
    */
   quiet: QuietVM | null;
-  /** True where no donor leads and nothing reads: draw `noGauge`, the refusal. */
+  /** True where nothing speaks for the section (`speakerFor` null): draw `noGauge`, the refusal. */
   refuse: boolean;
   noGauge: string;
   /** The single-station trace, only where the panel could not answer. */
@@ -827,12 +834,22 @@ export function useConditionsView(
   }
 
   const row = reading ? undefined : panel.rows.find((r) => r.station === lead);
-  // Said once the reading has been asked for and is not there — not while it is on its way.
-  const quiet: QuietVM | null = row && got.state !== "loading" ? quietHead(name, row, today.getTime(), horizon) : null;
+  // Said once the reading has been asked for and is not there — not while it is on its way. A gauged lake with nothing
+  // to say today is its own gauge gone quiet (the map's sentinel), never the no-gauge refusal (T105 review).
+  const quiet: QuietVM | null = got.state === "loading" || reading ? null
+    : row ? quietHead(name, row, today.getTime(), horizon)
+    : speaker?.kind === "lake" ? lakeQuietHead(name, c?.observedAt ?? null, today.getTime(), horizon)
+    : null;
 
   return {
     loading: spoken.state === "loading",
-    day: today, panel, chain, route, lead, select, reading, quiet, refuse: !reading && !row,
+    // A LAKE IS READ AT ITS OWN GAUGE: the donor panel says so, not "no gauge on this water" (answerFrom's "no-station"
+    // for a section with no panel), which the lake's own reading under it would contradict (T105 review).
+    day: today, panel: speaker?.kind === "lake" ? { ...panel, answer: { ok: false, why: "own-gauge" } } : panel,
+    chain, route, lead, select, reading, quiet,
+    // THE REFUSAL ONLY WHERE NOTHING SPEAKS (`speakerFor` null): a panel offline or a lake gone quiet has a gauge that
+    // speaks for it, and "No gauge is entitled to speak for this water" over it would be false (T105 review).
+    refuse: spoken.state !== "loading" && speaker === null,
     noGauge: noGaugeSentence(),
     // THE MATCH RECORD, only for a station that speaks here: where the panel could not answer, how this reach reaches
     // the one of its donors it was matched to. Never a trace to a gauge the map does not colour by.

@@ -48,7 +48,12 @@ function series(param: Parameter, values: Record<string, number | null>, fetched
                                priorYears: [] } };
 }
 
+// WHO SPEAKS (T105): a one-member panel of the Vedder, the station the reach is also matched to.
+const VEDDER_PANEL = { areaKm2: 1200, members: [{ station: "08MH001", role: "up", areaKm2: 1230, years: 60,
+                                                  regulated: false, sameRiver: true }] };
 const source = (over: Partial<RegsSource> = {}): RegsSource => ({
+  panelsFor: async (secs: readonly SectionId[]) => new Map(secs.map((s) => [s, VEDDER_PANEL])),
+  lakeStationsFor: async () => new Map(),
   gaugeForSection: async () => ({ station: "08MH001", name: "Vedder", trust: "good", reachMagnitude: 40,
                                   gaugeMagnitude: 80, lon: -121.96, lat: 49.09 }),
   gaugeNow: async () => null,
@@ -95,7 +100,7 @@ describe("the lead-up, captured", () => {
   });
 
   it("records no station and no gauge days where no gauge speaks for the water", async () => {
-    const s = await captureSpot({ ...base, source: source({ gaugeForSection: async () => null }),
+    const s = await captureSpot({ ...base, source: source({ panelsFor: async () => new Map() }),
                                   weather: weather() });
     expect(s.leadUp!.station).toBeNull();
     expect(s.leadUp!.gauge).toBeNull();

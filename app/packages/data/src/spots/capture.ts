@@ -10,10 +10,11 @@
  */
 import { freezeTrace, leadUpDays, type FrozenTrace } from "@app/core";
 import { answerFrom, type PanelAnswer } from "../panel";
-import type { ItemId, RegsSource, SectionId } from "../index";
+import { sheetLead, speakerFor, speaks, type Speaker } from "../standing";
+import type { ItemId, RegsSource, SectionId, StationId } from "../index";
 import type { DailyWeather, LeadUp, Spot, SpotReading, SpotWeather } from "./model";
 import { stripRoutes } from "./migrate";
-import { leadUpFor, type FeedIndex } from "./leadup";
+import { leadUpFor } from "./leadup";
 import type { WeatherAhead } from "./likeVisit";
 
 /**
@@ -89,17 +90,26 @@ export async function captureSpot(input: CaptureInput): Promise<Spot> {
   const now = input.now ?? Date.now();
   const visitedAt = input.visitedAt ?? now;
 
-  // Everything in parallel: this runs while a person is looking at a "saving" spinner, and
-  // three round trips in series is three times as long to look at it.
-  const [reading, trace, weather, panel, leadUp] = await Promise.all([
-    readingFor(source, section),
-    traceFor(source, section),
-    (input.weather ?? noWeather).at(at.lat, at.lon, new Date(visitedAt)),
+  // In parallel where nothing depends on anything: this runs while a person is looking at a "saving" spinner, and
+  // round trips in series are longer to look at.
+  const sky = (input.weather ?? noWeather).at(at.lat, at.lon, new Date(visitedAt));
+  const [speaker, panel] = await Promise.all([
+    // WHO SPEAKS (T105): the speaker the map colours by and the sheet reads, `speakerFor`. A failed lookup fails the
+    // capture (a spot must not freeze "no gauge speaks here" because a read failed).
+    speakerOf(source, section),
     // THE ANSWER THE APP WAS SHOWING, through the same function the map and the sheet use.
     // Without a feed there is nothing to freeze and the spot keeps only the reading.
     panelFor(source, section, input.feed),
+  ]);
+  // THE SHEET'S STATION (`sheetLead`): never the station `section_gauge` matched to the reach unless it speaks here, so
+  // a saved spot cannot quote a gauge the sheet refused (T105 review).
+  const lead = sheetLead(speaker, panel?.rows ?? [], null);
+  const [reading, trace, weather, leadUp] = await Promise.all([
+    readingFor(source, lead),
+    traceFor(source, section, speaker),
+    sky,
     // S1: the seven days before the visit — daily weather and the station's daily means.
-    leadUpOf(source, input.weather, at, section, visitedAt, input.feed),
+    leadUpFor(source, input.weather, at, lead, leadUpDays(visitedAt), input.feed),
   ]);
 
   return {
@@ -117,28 +127,24 @@ export async function captureSpot(input: CaptureInput): Promise<Spot> {
   };
 }
 
-/** The week before the visit. A failed station lookup is "no station", never a failed capture: a spot must save. */
-async function leadUpOf(source: RegsSource, weather: WeatherSource | undefined, at: { lat: number; lon: number },
-                        section: SectionId | null, visitedAt: number, feed?: FeedIndex): Promise<LeadUp> {
-  let station: string | null = null;
-  try { station = section ? (await source.gaugeForSection(section))?.station ?? null : null; } catch { /* none */ }
-  // the live index tells a station the feed does not carry (settled) from a feed not reached (asked again)
-  return leadUpFor(source, weather, at, station, leadUpDays(visitedAt), feed);
+/** Who speaks for the reach (`speakerFor`, T105): its panel, else the station in its lake, else nobody. */
+async function speakerOf(source: RegsSource, section: SectionId | null): Promise<Speaker | null> {
+  if (!section) return null;
+  const [panels, lakes] = await Promise.all([source.panelsFor([section]), source.lakeStationsFor([section])]);
+  return speakerFor(panels.get(section), lakes.get(section));
 }
 
-async function readingFor(source: RegsSource, section: SectionId | null):
+/** The lead station's reading. No station (nothing speaks for the water) is the refusal: no reading at all. */
+async function readingFor(source: RegsSource, station: StationId | null):
   Promise<SpotReading | null> {
-  if (!section) return null;
-  const link = await source.gaugeForSection(section);
-  // NO LINK IS THE REFUSAL. A station that drains far too much to describe this water gets
-  // no `section_gauge` row, so the link is null — recording a number anyway would freeze a
-  // wrong answer into a saved spot permanently, and a spot is forever.
-  if (!link) return null;
-  const now = await source.gaugeNow(link.station);
-  if (!now) return { station: link.station, discharge: null, level: null,
+  // NO SPEAKER IS THE REFUSAL. Recording a number anyway would freeze a wrong answer into a saved spot permanently,
+  // and a spot is forever.
+  if (!station) return null;
+  const now = await source.gaugeNow(station);
+  if (!now) return { station, discharge: null, level: null,
                      percentile: null, at: null };
   return {
-    station: link.station,
+    station,
     discharge: now.value.discharge,
     level: now.value.level,
     parameter: now.value.parameter,
@@ -147,11 +153,12 @@ async function readingFor(source: RegsSource, section: SectionId | null):
   };
 }
 
-async function traceFor(source: RegsSource, section: SectionId | null):
+async function traceFor(source: RegsSource, section: SectionId | null, speaker: Speaker | null):
   Promise<FrozenTrace | null> {
   if (!section) return null;
   const link = await source.gaugeForSection(section);
-  if (!link)
+  // THE MATCH RECORD, only for a station that speaks here — as the sheet shows it (T105).
+  if (!link || !speaks(speaker, link.station))
     return { station: null, stationName: null, trust: null, reaches: 0,
              metres: null, reachMagnitude: null, gaugeMagnitude: null,
              lon: null, lat: null };

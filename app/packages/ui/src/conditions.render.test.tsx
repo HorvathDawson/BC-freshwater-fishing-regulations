@@ -14,7 +14,7 @@ import { donorBecause, donorFacts, donorLastReport, donorKeyLabel, donorPinTitle
          readingAgeLine, readingHeading,
          readingStandingLine, stageLine, unplacedNote } from "@app/core";
 import type { Panel, RegsSource, SectionId } from "@app/data";
-import { clearPanelCache, donorView, horizonChips, useConditionsView, type DonorRow,
+import { clearPanelCache, donorView, horizonChips, lakeQuietHead, useConditionsView, type DonorRow,
          type PanelAnswer } from "./panel";
 
 const row = (station: string, over: Partial<DonorRow> = {}): DonorRow => ({
@@ -309,9 +309,39 @@ describe("useConditionsView", () => {
     const { result } = renderHook(() => useConditionsView(lake, SEC, DAY, 0, { feed, quantity: "discharge" }));
     await waitFor(() => expect(result.current.reading?.heading).toBeDefined());
     const { age: _age, ...shown } = result.current.reading!;
-    expect([result.current.lead, shown, result.current.refuse]).toEqual(["LAKE", {
-      heading: readingHeading("Lake at Outlet"), figure: 2.31, unit: "m", quantity: "level", stage: null,
-      standing: readingStandingLine(0.6, "normal") }, false]);
+    expect([result.current.lead, shown, result.current.refuse, result.current.quiet, result.current.panel.answer])
+      .toEqual(["LAKE", {
+        heading: readingHeading("Lake at Outlet"), figure: 2.31, unit: "m", quantity: "level", stage: null,
+        standing: readingStandingLine(0.6, "normal") }, false, null,
+        // the donor panel says the lake is read at its own gauge — not answerFrom's "no gauge on this water"
+        { ok: false, why: "own-gauge" }]);
+  });
+
+  /*
+   * NEVER THE NO-GAUGE REFUSAL OVER A WATER SOMETHING SPEAKS FOR (T105 review). Mutations: `refuse: !reading && !row`
+   * (the pre-review rule) fails both; dropping the lake branch of `quiet` fails the first.
+   */
+  it("a gauged lake gone quiet: its own gauge, quiet, with when it last reported — not the refusal (T105 review)", async () => {
+    const lake = { ...source, panelsFor: async () => new Map(), gaugeForSection: async () => null,
+                   lakeStationsFor: async () => new Map([[SEC, "LAKE"]]), gaugeNow: async () => null } as unknown as
+      RegsSource;
+    const { result } = renderHook(() => useConditionsView(lake, SEC, DAY, 0, { feed, quantity: "discharge" }));
+    await waitFor(() => expect(result.current.quiet).not.toBeNull());
+    expect([result.current.lead, result.current.reading, result.current.quiet, result.current.refuse,
+            result.current.panel.answer]).toEqual(["LAKE", null,
+      lakeQuietHead("Lake at Outlet", null, DAY.getTime(), 0), false, { ok: false, why: "own-gauge" }]);
+    expect(result.current.quiet).toEqual({ heading: readingHeading("Lake at Outlet"), reads: "Not reporting today.",
+                                           lastReport: "When it last reported is not known." });
+  });
+
+  it("a panel offline with no reading: the panel says the readings did not arrive, the sheet does not refuse (T105 review)", async () => {
+    const quiet = { ...source, gaugeNow: async () => null } as unknown as RegsSource;
+    const { result } = renderHook(() =>
+      useConditionsView(quiet, SEC, DAY, 0, { feed: undefined, quantity: "discharge" }));
+    await waitFor(() => expect(result.current.lead).toBe("LEAD"));
+    await act(async () => { await new Promise((r) => setTimeout(r, 30)); });   // the reading has been asked
+    expect([result.current.reading, result.current.quiet, result.current.refuse, result.current.panel.answer])
+      .toEqual([null, null, false, { ok: false, why: "offline" }]);
   });
 
   it("shows the quantity the station DECLARES: 08ME030's level beside its level percentile, never its discharge (T106)", async () => {

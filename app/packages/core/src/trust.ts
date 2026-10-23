@@ -139,6 +139,7 @@ export type NoEstimate =
   | "regulated"         // the only candidates are dam-controlled and cannot speak for rain
   | "too-uncertain"     // the interval is wider than MAX_USEFUL_SPREAD
   | "offline"           // the feed did not answer; say nothing rather than something stale
+  | "own-gauge"         // a gauged lake: its own station reads it, so nothing is estimated (T105 review)
   | "no-forecast";      // a day ahead that no forecast run for these gauges reaches
 
 export type Answer = { ok: true; value: Estimate } | { ok: false; why: NoEstimate };

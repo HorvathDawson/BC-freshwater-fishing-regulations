@@ -150,6 +150,9 @@ const WHY: Record<NoEstimate, string> = {
   "too-uncertain": "The gauges that can speak for this spot disagree too much to tell a "
                  + "low river from a high one.",
   "offline": "The live readings did not arrive.",
+  // A GAUGED LAKE (T105 review): its own station reads it, under this line; nothing is carried to it from other water.
+  // Not "no-station" ("no gauge on this water"), which its own reading would contradict.
+  "own-gauge": "This lake has its own gauge, read here directly; nothing is estimated for it from other water.",
   // A day ahead past every forecast run for these gauges — the +10 day often is, and every
   // forecast day is out of season. Not "no gauge close enough", which would be false.
   "no-forecast": "No forecast for the gauges here reaches this far ahead.",
@@ -232,7 +235,8 @@ const DAY = 86_400_000;
  * itself, so with `ref` (the day the answer is for) a report within a day of it is said as what it is. A day ahead
  * with no forecast is a missing FORECAST, not a quiet gauge.
  */
-export function donorReads(r: DonorFacts, o: { ref?: number; horizon?: Horizon } = {}): string {
+export function donorReads(r: Pick<DonorFacts, "percentile" | "realtime" | "observedAt">,
+                           o: { ref?: number; horizon?: Horizon } = {}): string {
   if (r.percentile !== null)
     return o.horizon === "change" ? changeReads(changeRatio(r.percentile)) : `Reads ${inTen(r.percentile)}.`;
   // Not on ECCC's real-time list at all: it is not silent today, it never speaks live — on any day asked about.

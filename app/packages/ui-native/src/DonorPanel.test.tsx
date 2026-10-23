@@ -140,7 +140,7 @@ describe("the donor panel", () => {
   });
 
   const REASONS: NoEstimate[] = ["no-station", "no-record", "regulated", "too-uncertain",
-                                 "offline", "no-forecast"];
+                                 "offline", "no-forecast", "own-gauge"];
   it.each(REASONS)("explains a refusal (%s) instead of showing a blank", (why) => {
     draw({ value: { answer: { ok: false, why }, rows: [], areaKm2: null, routesReady: true } });
     expect(screen.getByText("NO ESTIMATE")).toBeTruthy();

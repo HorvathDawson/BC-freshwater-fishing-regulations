@@ -5,10 +5,10 @@
  * authoritative because it is dated. Every one of these asserts a null where a plausible
  * fake would be easy.
  */
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { captureSpot, noWeather } from "./capture";
 import { isUntitled, spotLabel, type Spot } from "./model";
-import type { RegsSource, SectionId } from "../index";
+import type { RegsSource, SectionId, StationId } from "../index";
 
 // One instant, and every date on the record is derived from it.
 const VISITED = Date.parse("2026-08-30T09:00:00Z");
@@ -22,6 +22,8 @@ const source = (over: Partial<RegsSource> = {}): RegsSource => ({
   watersNear: async () => [],
   locate: async () => ({ on: [], near: [] }),
   gaugeForSection: async () => null,
+  panelsFor: async () => new Map(),
+  lakeStationsFor: async () => new Map(),
   gaugeNow: async () => null,
   gaugeSeries: async () => null,
   traceToGauge: async () => [],
@@ -36,6 +38,47 @@ const base = {
   title: "", now: VISITED, visitedAt: VISITED,
 };
 
+const PANEL_OF = (...stations: string[]) => ({ areaKm2: 40, members: stations.map((station) => (
+  { station: station as never, role: "up" as const, areaKm2: 60, years: 40, regulated: false, sameRiver: true })) });
+const MATCHED = async () => ({ station: "08MH001", name: "Vedder", trust: "good", reachMagnitude: 40,
+                               gaugeMagnitude: 80, lon: -121.96, lat: 49.09 }) as never;
+const NOW_READS = async (station: string) => ({ fetchedAt: 1, value: { discharge: station === "LAKE" ? null : 30,
+  level: 2.5, parameter: station === "LAKE" ? "level" : "discharge", percentile: 0.4, at: "2026-08-30T08:00:00Z" } }) as never;
+
+/*
+ * ONE SPEAKER (T105 review): a spot freezes what the sheet showed — the station `sheetLead` picks from `speakerFor`
+ * (the panel, else the station in the lake) — never the station `section_gauge` matched to the reach on its own.
+ * Mutation: `readingFor(source, section)` reading `gaugeForSection(section).station` again fails "matched only";
+ * dropping the `speaks` gate in `traceFor` fails "matched outside the panel".
+ */
+describe("captureSpot freezes the speaker's station (T105)", () => {
+  const whole = (s: Awaited<ReturnType<typeof captureSpot>>) =>
+    [s.reading?.station ?? null, s.reading?.discharge ?? null, s.trace?.station ?? null, s.leadUp?.station ?? null];
+
+  it("matched only (no panel, no lake): no reading, no trace, no lead-up station — as the sheet refuses", async () => {
+    const gaugeNow = vi.fn(NOW_READS);
+    const s = await captureSpot({ ...base, source: source({ gaugeForSection: MATCHED, gaugeNow }) });
+    expect([whole(s), gaugeNow.mock.calls.length]).toEqual([[null, null, null, null], 0]);
+  });
+
+  it("a panel: its first member offline, and the match traced only when it is a member", async () => {
+    const inPanel = await captureSpot({ ...base, source: source({ gaugeForSection: MATCHED, gaugeNow: NOW_READS,
+      panelsFor: async () => new Map([[1 as SectionId, PANEL_OF("08MH001", "08MH999")]]) }) });
+    const outside = await captureSpot({ ...base, source: source({ gaugeForSection: MATCHED, gaugeNow: NOW_READS,
+      panelsFor: async () => new Map([[1 as SectionId, PANEL_OF("08MF005")]]) }) });
+    expect([whole(inPanel), whole(outside)]).toEqual([
+      ["08MH001", 30, "08MH001", "08MH001"],
+      ["08MF005", 30, null, "08MF005"],
+    ]);
+  });
+
+  it("a gauged lake: its own station's reading", async () => {
+    const s = await captureSpot({ ...base, source: source({ gaugeNow: NOW_READS,
+      lakeStationsFor: async () => new Map([[1 as SectionId, "LAKE" as StationId]]) }) });
+    expect(whole(s)).toEqual(["LAKE", null, null, "LAKE"]);
+  });
+});
+
 describe("captureSpot", () => {
   it("records no reading when no gauge may speak for the water", async () => {
     const s = await captureSpot({ source: source(), ...base });
@@ -43,10 +86,8 @@ describe("captureSpot", () => {
   });
 
   it("refuses a reading when no gauge is entitled to speak for the reach", async () => {
-    // The bundler writes no `section_gauge` row for a reach its gauge drains far too much
-    // to describe — the Fraser at Hope against a 12-magnitude side channel — so the source
-    // returns null. Freezing a number into a permanent record on that basis is worse than
-    // showing it once on a screen.
+    // Nothing speaks for the reach — no panel, no station in its lake — so there is no station to read. Freezing a
+    // number into a permanent record on that basis is worse than showing it once on a screen.
     const s = await captureSpot({
       ...base,
       source: source({
@@ -85,6 +126,7 @@ describe("captureSpot", () => {
     const s = await captureSpot({
       ...base, item: "it_42" as never,
       source: source({
+        panelsFor: async () => new Map([[1 as SectionId, PANEL_OF("08MH001")]]),
         gaugeForSection: async () => ({ station: "08MH001", name: "Vedder", trust: "good",
           reachMagnitude: 40, gaugeMagnitude: 80, lon: -121.96, lat: 49.09 }) as never,
         traceToGauge: async () => [101, 102, 103] as never,

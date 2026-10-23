@@ -17,7 +17,7 @@ const NOW = new Date(2026, 7, 30, 14, 20).getTime();
 
 const source = (over: Partial<RegsSource> = {}): RegsSource => ({
   gaugeForSection: async () => null, gaugeNow: async () => null, traceToGauge: async () => [],
-  panelsFor: async () => new Map(), ...over,
+  panelsFor: async () => new Map(), lakeStationsFor: async () => new Map(), ...over,
 } as unknown as RegsSource);
 
 type Api = ReturnType<typeof useCaptureSpot>;
