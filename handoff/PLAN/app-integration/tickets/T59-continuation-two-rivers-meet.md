@@ -1,6 +1,6 @@
 # T59 — One river system where two rivers meet (Atnarko/Bella Coola); Fraser exit into Annacis Channel
 
-Status: DONE (code) — 66054158 (pipeline), app part 87ba267c, 7e3cd448. Left: `python -m pipeline.deliver` then
+Status: DONE (code) — 66054158 (pipeline), app part 87ba267c, 7e3cd448 (already on the base); reviewed (counts reproduced: 18 rows, +1 Atnarko → Bella Coola, 33 confluence candidates, 469 exit changes / 234 none; Q1 note corrected). Left: `python -m pipeline.deliver` then
 `python -m pipeline.deliver release` (merger; no atlas / reach / tiles rerun); after it the two `needs_bundle` pins
 below pass. Owner review of the exit list (Q1) and the fallback (Q2) below, both with defaults.
 
@@ -64,8 +64,12 @@ both inflow and outlet). Nothing left → no `water_exit` row (as the Bella Cool
 
 ## Owner questions (defaults built)
 - **Q1** — the 469 exit changes (`handoff/PLAN/app-data/t59/exit-changes.tsv`) ship with the deliver? Default: yes,
-  they all drop a water that flows INTO the water; spot-check the list. Doubtful by name only: Noons Creek (was Dallas
-  Creek, now none), Alec Chief Creek (was Toozaza Creek, now none).
+  they all drop a water that flows INTO the water; spot-check the list. (Review 2026-10-22, live bundle + graph:
+  Noons Creek's drop is right — Dallas Creek, an added stream, has its mouth on Noons Creek and Noons reaches the sea;
+  Alec Chief Creek does NOT change (it keeps Toozaza Creek, not in the list) — the earlier note was wrong. Of the 234
+  "none" rows, 205 mouths end on a piece with no edge out (the sea, or the atlas edge: Lightning Creek gnis:3526 runs
+  out of BC at measure 19 274 toward Ross Lake), 29 leave through a braid/sea piece first; the "(none: …)" label in the
+  list means "no named water below the mouth".)
 - **Q2** — the fallback "where no heading pairs them, the river whose FWA code joins nearest the top, only when its
   upstream length / Strahler order is also larger": not built. Default: no; the book pairing covers both owner examples
   and cannot invent a pair. Building it needs a review list like the one above.
