@@ -26,6 +26,7 @@ import { liveRelease, liveReleaseAt, openReleaseDir, regsStoreCandidates } from 
 import { EXCLUDE, excluded } from "./exclusions";
 import { golden, oracleRixOver, taps, tapsOnce } from "./oracles";
 import { subcapRuled } from "./subcapTotal";
+import { t100Ruled } from "./t100MapPage";
 
 export { golden, hydrate, HYDRATE, oracleRixOver, REPO, taps, TAPS } from "./oracles";
 export type { Block, Cell, GoldenFile, GoldenSheet, GoldenState, LeapTap, Tap, TapsFile, TapsMeta } from "@app/core/regs/testing";
@@ -215,6 +216,8 @@ export async function parityGate(env: Env = process.env): Promise<ReturnType<typ
   const gate = paritySkip(s.dir === null ? { path: null, reason: s.reason } : { path: s.dir, reason: null }, env);
   // (T128) the owner's sub-cap wording, applied to the golden once the paired store is open (subcapTotal.ts)
   if (!gate.skip && !gate.fail) await subcapRuled(inputsOf);
+  // (T100) a map-cited rule's book cites the map's page too, applied the same way (t100MapPage.ts)
+  if (!gate.skip && !gate.fail) await t100Ruled(inputsOf);
   return gate;
 }
 

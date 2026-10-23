@@ -49,17 +49,17 @@ describe("T15b caveat blocks vs golden keep.order / keep.lines (every state)", (
 
   const at = async (id: string) => { for await (const c of cases("keep")) if (c.id === id) return blocks(await c.inputs()); return null; };
 
-  it("1. x4p_1010: in-part, hot, 2 spots in force today and 3 other dates", async () => {
+  it("1. x4p_1010: in-part, hot, 2 spots in force today and 3 other dates; (T100) a map-cited row cites the map's p.28 too", async () => {
     const b = await at("x4p_1010");
     if (!b) return;
     expect(b.map(linesOf)).toEqual([[
       "ⓘFishing is different in some spots today", "Everywhere else, follow this page.",
-      "Rainbow trout and Char — release all · May 15–Mar 14 Where: Waters lying west of a line between signs at Henstridge Road and Wharf Road to a line between signs on the south and north shores of Little Shuswap Lake (map A in the regulations) Rule book p.32 ↗",
-      "No fishing · Sep 1–Dec 31 Where: Salmon Arm Bay, west of line between Engineer's Point and Sunnybrae Point Rule book p.32 ↗",
+      "Rainbow trout and Char — release all · May 15–Mar 14 Where: Waters lying west of a line between signs at Henstridge Road and Wharf Road to a line between signs on the south and north shores of Little Shuswap Lake (map A in the regulations) Rule book p.32 ↗ Rule book p.28 ↗",
+      "No fishing · Sep 1–Dec 31 Where: Salmon Arm Bay, west of line between Engineer's Point and Sunnybrae Point Rule book p.32 ↗ Rule book p.28 ↗",
       "Other dates (3)",
-      "No fishing · Mar 15–May 14 Where: Waters lying west of a line between signs at Henstridge Road and Wharf Road to a line between signs on the south and north shores of Little Shuswap Lake (map A in the regulations) Rule book p.32 ↗",
-      "No fishing · Mar 15–May 14 Where: Entire area north of Albas (map B in the regulations) Rule book p.32 ↗",
-      "No fishing · Mar 15–May 14 Where: East of a line between fishing boundary signs on Murdock and Semaphore points, to Hwy 1 bridge (map C in the regulations) Rule book p.32 ↗",
+      "No fishing · Mar 15–May 14 Where: Waters lying west of a line between signs at Henstridge Road and Wharf Road to a line between signs on the south and north shores of Little Shuswap Lake (map A in the regulations) Rule book p.32 ↗ Rule book p.28 ↗",
+      "No fishing · Mar 15–May 14 Where: Entire area north of Albas (map B in the regulations) Rule book p.32 ↗ Rule book p.28 ↗",
+      "No fishing · Mar 15–May 14 Where: East of a line between fishing boundary signs on Murdock and Semaphore points, to Hwy 1 bridge (map C in the regulations) Rule book p.32 ↗ Rule book p.28 ↗",
     ]]);
     expect([b[0]!.kind, b[0]!.hot]).toEqual(["inpart", true]);
   });
