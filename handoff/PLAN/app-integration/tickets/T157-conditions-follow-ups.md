@@ -68,7 +68,7 @@ with T143/T144): forecast + Change + no day ranked = exactly 07FC008 and 08FB012
   low-water model", the legend's low-water line.
 - `harrison-change--desktop-dark.png` — Harrison River under Change: "Part of this change comes from ELF alone
   (08MG013). …" under the answer; the switcher's "no forecast" members.
-- `englishman-change--desktop-dark--scrolled.png` — Englishman River (08HB002, CLEVER+COFFEE): the day line breaks
+- `englishman-change--desktop-dark.png` — Englishman River (08HB002, CLEVER+COFFEE): the day line breaks
   after COFFEE's last day with a dashed tick, no cliff; "COFFEE runs to Tue; after that, CLEVER alone."
 - `chilliwack-level3--desktop-dark.png` — Chilliwack under Level +3: switcher "08MH016 flow forecast only", the
   unlisted gauges "not a real-time gauge". (On today's republished feed Level +3 answers from 3 gauges, so the
@@ -99,6 +99,54 @@ with T143/T144): forecast + Change + no day ranked = exactly 07FC008 and 08FB012
 App build only. No feed republish, no bundle, no tiles.
 
 ## Left / follow-ups
-- `useConditionsView`'s lead/quiet head (`quietHead`) and a gauged lake's own head do not get `aheadWhy` (no row for a
-  lake's own station): a gauged lake with no record would still say "No forecast for this gauge that far ahead.".
+- A gauged lake's own head (`lakeQuietHead`) does not get `aheadWhy` (no panel row for a lake's own station): a gauged
+  lake with no record would still say "No forecast for this gauge that far ahead.". (A panel member's `quietHead` does:
+  it reads the `DonorRow`, which carries `aheadWhy`.)
+- `changeSpark`: a stretch of ONE day either side of a handover (a model reaching only today, or the line's last day but
+  one) is a lone moveTo and draws nothing. Not on the live feed (all 122 handovers are 5 days | 5 days, measured), so
+  not fixed.
+- The route map's own dots in the sheet (`donorMapLabel`) under Change carry no "low-water model" mark; the section's
+  note under the answer says it.
+- `aheadWhy`'s "no-record" does not check that a run reaches the day asked (true on today's feed: 07FC008's ELF runs to
+  11-20, 08FB012's to 11-20); an explicit `record: false` from the publisher (Q4) would settle it.
 - The Conditions MAP under Level +1/+3/+5 still has no word that the forecast is in flow (T143 follow-up, untouched).
+
+## Adversarial review (2026-10-23, lane-T157)
+Re-read the diff against the four asks; re-ran every touched suite; mutated; read the live feed (`data/generated/gauges/
+feeds`, 20:41Z) and the builder's shots.
+- **Confirmed sound:** exactly 07FC008 / 08FB012 are forecast + Change + no `ahead` (08MH098 is forecast without a Change
+  and stays "no forecast"); every index station is `listed`, so "not a real-time gauge" can never hide a flow-only
+  member; `silentWhy`'s flow-only branch is the old `contributionsOf(…discharge…)` test member for member (it is only
+  called with an area); the 122 joined changes all break 5 | 5 days, the tick sits in the gap (Englishman shot).
+- **Fixed — the low-water note named gauges the answer left out.** `DonorRow.lowWater` was set on any member reading a
+  change, and `lowWaterNote` counted `donorCounted` (reads), so a reserve member that STOOD BACK (core `answering`, weight
+  0) was named in "Part of this change comes from ELF alone (…)", and a stood-back non-ELF reserve turned an all-ELF answer
+  into "Part of". Now `answerFrom` sets `lowWater` only for a member not stood back, and the note counts core's new
+  `donorVotes` (counted AND weight > 0) — the rule `shortRecordNote` already used inline, now one function both call.
+  Test: ui `change.test.ts` "never names a reserve gauge that stood back from the answer". Mutations (each run): no
+  `!back` -> fails; `donorCounted` back in `lowWaterNote` -> fails; both -> fails.
+- **Fixed — a mixed silent line lost a member's reason.** With a flow-only or no-record member silent, the kicker became
+  "Not counted this far ahead", and a member no run reaches then read only "Liard River (last 20 Oct, 21:35 PDT)" — as
+  if it too had a forecast. It now says "Liard River (no forecast; last 20 Oct, 21:35 PDT)" under that kicker (unchanged
+  under "No forecast this far ahead"). Test: core "names why a member with a forecast is not counted a day ahead" (whole
+  line). Mutation: `silentMember` ignoring the kicker -> fails. Not shot: panels ship in a binary and I found no real
+  panel with that mix on today's feed.
+- **Shots:** the three `--scrolled` files were pixel-identical to their unscrolled pair (decoded and diffed: no pixel
+  differs; the desktop sheet did not scroll); removed, and the handover reference above now names the file it is in.
+  `conditions-shots.mjs` still writes them.
+- (Review resumed after a machine restart; the two fixes above re-verified: their tests pass, and each mutation named
+  was re-run and fails.)
+- **Fixed — "Peak Sun" read as the handover tick's label.** Drove the real app (own Expo :39575, the owner's :39217 feed,
+  20:41Z) through `conditions-shots.mjs`: on Englishman River the day line's words row was `space-between`, so the mark's
+  words sat centred — and a 5 | 5 day joined line (all 122 on the feed) puts the handover tick exactly mid-line, so
+  "Peak Sun" stood directly under the dashed tick while the peak dot was a third of the way along. The words now stand
+  toward the mark: two spacers either side share the free width as the mark divides the line (`mark.x` and
+  `ends[1].x − mark.x`, the VM's own units). Test: ui-native ConditionsPanel "marks where COFFEE stops…" pins the split
+  (33 %, mark on the 2nd of 4 days). Mutation: equal spacers (centred again) -> fails. Shot re-taken:
+  `englishman-change--desktop-dark.png` ("Peak Sun" under the dot, the tick unlabelled in the gap).
+- Seen in the real app and as the ticket asks: Chilliwack under Level +3, the switcher's 08MH016 "flow forecast only"
+  and the unlisted members "not a real-time gauge", as the sheet's rows; Harrison under Change, "Part of this change comes
+  from ELF alone (08MG013)" under the range with the stood-back fix in.
+- Checks: see below (re-run after the fixes).
+- Rebuild: app build only, as before.
+

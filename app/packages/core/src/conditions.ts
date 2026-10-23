@@ -287,6 +287,13 @@ export function donorState(r: DonorReading, o: DonorAsk = {}): DonorState {
 /** Does this donor count in the estimate — a reading at the horizon (`donorState`'s `reads`)? */
 export const donorCounted = (r: DonorReading): boolean => donorState(r).kind === "reads";
 
+/**
+ * Does this donor VOTE in the answer shown: counted (a reading at the horizon) AND carrying a share of it. A reserve
+ * member that stood back (core `answering`) reads and weighs nothing, so a note about what the answer rests on (a short
+ * record, ELF alone) never names it (T157 review: the low-water note did).
+ */
+export const donorVotes = (r: DonorReading & Pick<DonorFacts, "weight">): boolean => donorCounted(r) && r.weight > 0;
+
 /** A `switch` that forgot a state does not compile. */
 function unreachable(s: never): never {
   throw new Error(`unknown donor state ${JSON.stringify(s)}`);
@@ -366,7 +373,7 @@ export function lastDataStamp(observedAt: string | null | undefined, ref: number
 }
 
 /** One silent member, as the line says it: its name (its station id when the name is not in yet) and when. */
-function silentMember(r: DonorFacts, o: DonorAsk & { ref: number; zone?: string }): string {
+function silentMember(r: DonorFacts, o: DonorAsk & { ref: number; zone?: string }, counted = false): string {
   const name = r.route?.name || r.station;
   const at = lastDataStamp(r.observedAt, o.ref, o.zone);
   const last = at ? `last ${at}` : r.noData ? "has never reported" : "last report not known";
@@ -375,6 +382,8 @@ function silentMember(r: DonorFacts, o: DonorAsk & { ref: number; zone?: string 
     // (T157) a forecast IS there: the member says why it is not counted, never when it last reported
     case "flow-only": return `${name} (flow forecast only)`;
     case "forecast-unranked": return `${name} (no record to compare with)`;
+    // (T157 review) under "Not counted this far ahead" the kicker no longer says why: a member no run reaches says it
+    case "no-forecast": return counted ? `${name} (no forecast; ${last})` : `${name} (${last})`;
     default: return `${name} (${last})`;
   }
 }
@@ -394,7 +403,7 @@ export function silentLine(rows: readonly DonorFacts[],
   const has = silent.some((r) => { const k = donorState(r, o).kind; return k === "flow-only" || k === "forecast-unranked"; });
   const kicker = o.horizon === "change" ? "No forecast running"
     : o.horizon ? (has ? "Not counted this far ahead" : "No forecast this far ahead") : "Not reporting";
-  return `${kicker}: ${silent.map((r) => silentMember(r, o)).join(" · ")}`;
+  return `${kicker}: ${silent.map((r) => silentMember(r, o, has)).join(" · ")}`;
 }
 
 /**
@@ -521,7 +530,7 @@ export function unplacedNote(missing: number): string | null {
 
 /** A short record, said once, when the answer actually leans on one. */
 export function shortRecordNote(rows: readonly DonorFacts[]): string | null {
-  const voting = rows.filter((r) => donorCounted(r) && r.weight > 0);
+  const voting = rows.filter(donorVotes);
   const lean = voting.reduce((a, r) => a + (r.years < 10 ? r.weight : 0), 0);
   if (!voting.length || lean < 0.5) return null;
   const fewest = Math.min(...voting.filter((r) => r.years < 10).map((r) => r.years));

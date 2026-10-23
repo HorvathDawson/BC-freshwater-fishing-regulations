@@ -334,9 +334,15 @@ function ChangeBlock({ palette, change, colour }: { palette: Palette; change: Ch
                 <Path d={r.spark.path} fill="none" stroke={colour} strokeWidth={1.8} strokeLinejoin="round" />
                 <Circle cx={r.spark.mark.x} cy={r.spark.mark.y} r={3.4} fill={colour} />
               </Svg>
-              <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+              {/* (T157 review) the mark's words stand toward the mark: centred, they sat under the handover tick (every
+                  5 | 5 day joined line puts it mid-line) and "Peak Sun" read as the tick's label. The two spacers
+                  share the free width as the mark divides the line (its x of the line's width, the SVG's own units). */}
+              <View style={{ flexDirection: "row" }}>
                 <Text style={{ ...TYPE.meta, color: palette.faint }}>{r.spark.ends[0]!.label}</Text>
+                <View testID="change-mark-before" style={{ flexGrow: r.spark.mark.x, flexShrink: 1, flexBasis: 0 }} />
                 <Text style={{ ...TYPE.meta, color: palette.sub }}>{r.spark.mark.label}</Text>
+                <View testID="change-mark-after"
+                      style={{ flexGrow: r.spark.ends[1]!.x - r.spark.mark.x, flexShrink: 1, flexBasis: 0 }} />
                 <Text style={{ ...TYPE.meta, color: palette.faint }}>{r.spark.ends[1]!.label}</Text>
               </View>
             </View>

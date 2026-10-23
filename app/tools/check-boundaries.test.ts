@@ -2,12 +2,10 @@
  * THE TWO GATES THAT SCAN THE WHOLE TREE, tested together in ONE FILE because they cannot
  * be tested apart.
  *
- * Each test writes a fixture into the real workspace and runs the real checker over the
- * whole of it. vitest runs test FILES in parallel workers, so with a file each, one suite's
- * fixtures were on disk while the other's checker walked past them — a flake that appeared
- * only when both ran, which is to say only in `pnpm check`. Sharing a file makes them
- * sequential by construction; unique fixture names (`_bnd*` / `_plat*`) make the failure
- * legible if they are ever split again.
+ * Each test writes a fixture into a scratch tree under the OS temp dir (`inScratch`, T156) and runs the real checker
+ * over it through `CHECK_ROOT`. They used to write into the real workspace, where other suites walking packages/ in
+ * parallel workers met a half-deleted fixture (ENOENT); the scratch trees end that. The file still keeps both gates
+ * together, and the fixture names (`_bnd*` / `_plat*`) stay unique so a failure is legible.
  *
  * Every case below was a real bug during authoring: a bare side-effect import, a multiline
  * import that swallowed the statement above it, an import read out of a doc comment, and a

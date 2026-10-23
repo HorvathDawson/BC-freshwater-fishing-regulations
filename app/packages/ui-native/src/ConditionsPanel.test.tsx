@@ -145,6 +145,11 @@ describe("the Change block, mounted (T144)", () => {
     await waitFor(() => expect(screen.getByTestId("change-block")).toBeTruthy());
     expect(screen.getAllByTestId("change-handover").map((e) => e.getAttribute("d"))).toEqual(["M146,-4 L146,48"]);
     expect(screen.getByRole("img", { name: /COFFEE's forecast ends tomorrow$/ })).toBeTruthy();
+    // (T157 review) the peak's words stand toward the peak (1/3 of the line), not centred under the tick (1/2).
+    // Mutation: the label row back to `space-between` with no spacers -> fails.
+    const grow = (id: string) => Number((screen.getByTestId(id) as HTMLElement).style.flexGrow);
+    const [before, after] = [grow("change-mark-before"), grow("change-mark-after")];
+    expect(Math.round((before / (before + after)) * 100)).toBe(33);
   });
 
   // T144 review — owner "no elf": the chart under a CLEVER+COFFEE change drew the freshest run, ELF.

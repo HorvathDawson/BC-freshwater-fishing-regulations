@@ -250,7 +250,8 @@ export function answerFrom(panel: Panel | undefined, index: Index,
                ...(row?.observedAt ? { observedAt: row.observedAt } : {}),
                ...(listed && !listed.has(m.station) ? { realtime: false as const } : {}),
                ...(why ? { aheadWhy: why } : {}),
-               ...(own !== null && horizon === "change" && row?.change?.lowWater ? { lowWater: true as const } : {}) });
+               // (T157 review) only a member the answer counts: a reserve member that stood back is not part of "this change"
+               ...(own !== null && !back && horizon === "change" && row?.change?.lowWater ? { lowWater: true as const } : {}) });
   }
   /*
    * A DAY AHEAD THAT NO RUN REACHES is said as that. With no donor reading at the horizon

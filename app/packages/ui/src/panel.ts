@@ -10,7 +10,7 @@ import { answerFrom, basinStandings, sectionStanding, sheetLead, speakerFor, spe
          type Horizon, type Panel, type PanelAnswer, type Parameter, type Quantity, type RegsSource, type SectionId,
          type Speaker, type StationId } from "@app/data";
 import { CHANGE_LOW_WATER, changeLowWaterNote, CHANGE_NEEDS_FLOW, CHANGE_POLICY, changeDay, changeLine, changeReachNote, changeSourceLine, changeSourceName, changeSparkWords, type SourceChange, CONDITIONS_WORDS, disagreeNote, donorBecause, isAhead, type RunChange, donorFacts, donorKeyLabel, donorLastReport,
-         donorCounted, donorSilent, gaugeChoiceLabel, donorShare, silentLine,
+         donorCounted, donorSilent, donorVotes, gaugeChoiceLabel, donorShare, silentLine,
          donorPinTitle, donorReads, donorReason, donorRowLabel, donorWeightLine, refusalIsAboutTheDay,
          estimateHeadline, estimateRange, estimateSentence, freshness, HORIZON_LABELS,
          HORIZONS, horizonChipLabel, metresApart, noGaugeSentence, panelCamera,
@@ -662,9 +662,12 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
   };
 }
 
-/** The counted members whose change is ELF's alone (`DonorRow.lowWater`), said by core (T157). */
+/**
+ * The members voting in the answer whose change is ELF's alone (`DonorRow.lowWater`), said by core (T157). Voting, not
+ * merely reading (core `donorVotes`): a reserve member that stood back is not part of "this change".
+ */
 function lowWaterNote(rows: readonly DonorRow[]): string | null {
-  const counted = rows.filter((r) => donorCounted(r));
+  const counted = rows.filter(donorVotes);
   const low = counted.filter((r) => r.lowWater).map((r) => r.station);
   return changeLowWaterNote(low, low.length === counted.length);
 }

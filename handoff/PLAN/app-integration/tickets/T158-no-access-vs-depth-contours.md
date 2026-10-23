@@ -55,3 +55,19 @@ App build only (style tokens). No tiles, no bundle. The contours themselves only
   (best 17.5 normal / 8.3 every reader); light and dark clear it with #000040 (measured, not gated).
 - **No contour layer in the current tiles** (above): the Depth contours switch is offered and draws nothing. Worth a
   ticket of its own (tile build / bathymetry fetch).
+
+## Adversarial review (2026-10-23, lane-T157)
+- Re-ran `status-colours-distinct` (with `check-boundaries`: 51 passed). The `contour` layer is a static line in
+  `color.contour.line` at `width.lake.edge` with no opacity of its own, so a full-strength line at the gate's coverage
+  over the lake fill at `opacity.lake` is the right model; no other app surface paints the token (the Layers sheet's
+  Depth swatches are `survey`, not the contour).
+- `contourGrounds` reads the lake layer's `plain` / `surveyed` / `status` / `profile` modes and its list is pinned whole, so
+  a category added there fails the pin until it is held. The Conditions view paints lakes `standing` and never offers
+  the contours switch (`overlay.contours` views: map, water), as the test says.
+- The mutation pins (old dark cyan, old light cyan, contour = no_access) are whole lists; the style was regenerated and
+  `pnpm check`'s style gate is clean (sha 8f1f7fc1d362). Nothing to fix.
+- Left as written: Stocked in cvd is not held, and the tiles carry no contour layer (both already follow-ups).
+- (Resumed after a machine restart) re-confirmed `data/generated/tiles/layers/` holds no `contour.geojsonl`, so Coquitlam
+  with Depth on cannot be shown with real contours; the builder's stand-in shots are the only picture, the gate is the
+  evidence. No second copy of the old cyans (#4FD0E8 / #2FA9C9) anywhere in app source, tokens or design.
+

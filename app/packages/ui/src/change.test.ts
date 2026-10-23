@@ -292,6 +292,36 @@ describe("the donor panel under Change", () => {
     expect(now.ok && now.lowWater).toBeNull();
   });
 
+  /*
+   * T157 review: a reserve member that STOOD BACK (core `answering`: bringing it in made the answer too uncertain) reads
+   * a change and weighs nothing — it is not part of "this change". Mutations (each run): `answerFrom` setting `lowWater`
+   * on a stood-back member (no `!back`) -> the first expectation fails (R1/R2 carry it); `lowWaterNote` on
+   * `donorCounted` instead of `donorVotes` -> the second fails ("Part of" for a change that is all ELF's); both -> fails.
+   */
+  it("never names a reserve gauge that stood back from the answer (T157 review)", () => {
+    const trib = (station: string) => ({ station, role: "up", areaKm2: 100, years: { discharge: 40, level: 40 },
+                                         regulated: false, sameRiver: false });
+    const DEEP = { areaKm2: 100, members: ["A", "B", "C", "D", "R1", "R2"].map(trib) } as never;
+    const ch = (r: number, lowWater = false) => ({ change: { discharge: codedChange(r), ...(lowWater ? { lowWater: true } : {}) } });
+    const idx = (o: { core: boolean; reserve: boolean }) => ({ stations: {
+      B: ch(1.1, o.core), C: ch(1.15, o.core), D: ch(1.2, o.core), R1: ch(0.05, o.reserve), R2: ch(40, o.reserve) } }) as never;
+    const said = (i: never) => {
+      const a = answerFrom(DEEP, i, "discharge", "change");
+      const vm = donorView(a, { day: TODAY, horizon: "change", from: null, size: { width: 300, height: 200 },
+                                selected: null, pickable: false, quantity: "discharge" });
+      if (!vm.ok) throw new Error("expected an answer");
+      return [a.rows.filter((r) => r.weight === 0 && r.percentile !== null).map((r) => [r.station, r.lowWater ?? null]),
+              vm.lowWater];
+    };
+    const CAVEAT = "ELF is a low-water model: it carries the river's recent fall forward and has no rain or snowmelt in "
+      + "it, so it cannot see a rise coming.";
+    // the two reserve gauges stood back: the core's change is not ELF's, and nothing is said
+    expect(said(idx({ core: false, reserve: true }))).toEqual([[["R1", null], ["R2", null]], null]);
+    // the core's change IS all ELF's: "This change", whatever the stood-back reserve is
+    expect(said(idx({ core: true, reserve: false }))).toEqual([[["R1", null], ["R2", null]],
+      `This change comes from ELF alone (B, C and D). ${CAVEAT}`]);
+  });
+
   it("out of season: the honest refusal, the chips kept to step back, never steady", () => {
     expect(view(QUIET)).toEqual({
       ok: false, heading: "NO ESTIMATE",

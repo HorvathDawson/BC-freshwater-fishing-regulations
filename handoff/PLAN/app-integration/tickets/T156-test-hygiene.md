@@ -42,3 +42,17 @@ None.
 
 ## Left / follow-ups
 - none.
+
+## Adversarial review (2026-10-23, lane-T157)
+- `pytest pipeline/tests/test_update_hydat_script.py` unfiltered: 8 passed. Mutation re-run: r-new's manifest dated older
+  -> 2 fail (the two the ticket names). The stub hands only the `manifest import latest` lookup to the real python, so
+  the "newest by manifest mtime" rule under test is the publisher's own (`manifest.latest`), not a copy.
+- No other test under `app/tools` or the packages writes into `packages/` (every other writer uses `mkdtempSync`).
+- **Fixed:** `check-boundaries.test.ts`'s header still said each test "writes a fixture into the real workspace" and
+  that sharing a file made it safe; it now says what is true (scratch trees via `CHECK_ROOT`).
+- `CHECK_ROOT` is read from the environment, so a shell that exports it would point `pnpm check`'s gates elsewhere;
+  nothing sets it outside the tests. Left as is.
+- (Resumed after a machine restart) re-run unfiltered: 8 passed; the r-new-dated-older mutation re-run: the same 2 fail.
+  A sweep of every app test that writes files: all write under `mkdtempSync`/`tmpdir` or a fixture-release root, none
+  under `packages/`.
+

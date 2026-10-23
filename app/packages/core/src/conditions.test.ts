@@ -492,6 +492,8 @@ describe("silent panel members", () => {
                   named("Liard River", { percentile: null, observedAt: "2026-10-20T20:35:00-08:00" }),
                   named("Hyland River", { percentile: 0.5 })];
     expect(silentLine(rows, { ref: REF, horizon: 3, zone: VAN })).toBe("Not counted this far ahead: Chilliwack River "
-      + "(flow forecast only) · Bowron River (no record to compare with) · Liard River (last 20 Oct, 21:35 PDT)");
+      + "(flow forecast only) · Bowron River (no record to compare with) · Liard River (no forecast; last 20 Oct, 21:35 PDT)");
   });
+  // T157 review: under "Not counted this far ahead" a member no run reaches lost its reason ("Liard River (last 20 Oct …)"
+  // read as if it had a forecast too). Mutation: `silentMember` ignoring `counted` -> the expectation above fails.
 });
