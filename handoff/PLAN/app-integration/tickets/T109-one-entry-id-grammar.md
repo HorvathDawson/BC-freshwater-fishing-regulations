@@ -1,6 +1,6 @@
 # T109 — One entry-id grammar: tier, region and zone parsed about 10 ways (z7a shows as "Region 7")
 
-Status: DONE — 6c03f5fe (step 1), 89fea9c0 (steps 2 + 3, Python), 95e10c9a (left item: shipped region). Lanes wf_754f5fcd-d71-3, lane-T125. Needs deliver + regs fixture re-cut.
+Status: DONE — 6c03f5fe (step 1), 89fea9c0 (steps 2 + 3, Python), 1ca9bc00 (left item: shipped region). Lanes wf_754f5fcd-d71-3, lane-T125. Needs deliver + regs fixture re-cut.
 - Step 1 DONE: level.ts reads z7a/z7b as "Region 7A/7B rule" (23 entries, whole subs pinned in level.test.ts); the
   golden is held to the ruling by one counted rewrite at load (oracles.zone7Ruled: 54 level words in 8 states;
   exclusions.test.ts pins the count). No rebuild.
@@ -20,7 +20,7 @@ Status: DONE — 6c03f5fe (step 1), 89fea9c0 (steps 2 + 3, Python), 95e10c9a (le
   Old-vs-new equivalence checked on all 1534 bundle entry ids; export/guide/answers byte-identical again, card gate 0.
 - Owner question (default kept): `_zone_words` words a 7A closure "Zone A" while the level tag says "Region 7A rule" —
   both are book words; unify on one? Default: keep both (sentence vs tag).
-- Left item DONE (95e10c9a, lane lane-T125): the export's rule `provenance.region` is
+- Left item DONE (1ca9bc00, lane lane-T125): the export's rule `provenance.region` is
   `entry_id.region_of(entry_id)` ("7a", "6", null for zp:), in the field dictionary; the codec drops it on the wire as
   derivable and `expand` refills it from the same function; the store keeps it (`store.common.RULE_PROV_KEEP`).
   `level.ts` reads `prov.region` and holds no regex: no app code reads an entry id (`test_no_ts_reader_of_an_entry_id_

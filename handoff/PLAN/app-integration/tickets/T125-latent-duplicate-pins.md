@@ -1,8 +1,8 @@
 # T125 — Latent duplicate checks: pins and small helpers (agree today)
 
-Status: PARTIAL — 8a9dd913 (1), b47d770e (2), 697337aa (3), c0ca375f (4), 6e579b3a (5), fb6f70b5 (6), cdbd9b53 (7),
-59ec2784 + 69150d8c + 90936600 + 373fe8ec + ade6cfe6 (8: matching 6/7, app 9/11, reach 9, answers 10/11), 4357b046 (9).
-Adversarial review: 666e7aa2, ad5749aa, eba9094f, f642be76, 6e09c292 (see Adversarial review).
+Status: PARTIAL — 370a3978 (1), 7fcdfaab (2), bffe4431 (3), 81c05b55 (4), 4c0b6272 (5), e81ee1b7 (6), 8d720fb9 (7),
+84525b29 + 4076c58b + 1fdecc94 + ddcd5aca + 1b106ff9 (8: matching 6/7, app 9/11, reach 9, answers 10/11), 0e5baf51 (9).
+Adversarial review: 720e9a6f, 388e6f08, a97c63a0, 9835fa2e, 2b86b39f (see Adversarial review).
 Lane lane-T125 (wf_144b677f-89c-3). Left in item 8: gauges 9, answers 12, reach 11 (see Left). Rebuild: reach rerun +
 deliver (items 4, 5 ride the next reach rerun; 1-3, 8 ship with deliver); app check after the regs fixture re-cut.
 
@@ -82,22 +82,22 @@ the test run, the file restored); the measurement by an independent scratch deli
 this lane's code (incl. the fixes below) from the same live atlas + reach run, diffed read-only.
 
 Fixed (each with a test, mutation-confirmed):
-1. **Item 1's scan missed the twin it unified** (666e7aa2). Re-inlining `status_index.closes`'s own old spelling
+1. **Item 1's scan missed the twin it unified** (720e9a6f). Re-inlining `status_index.closes`'s own old spelling
    (`r.get("state") == "speaks" and is_full_closure(r) and not r.get("partly_lifted")`) left every test green — the scan
    only matched a literal `"full"` beside `partly_lifted`. The scan now also reads `is_full_closure(`, the old text is in
    its mutation list, and `test_the_three_readers_ask_closure_grade` pins that `status_index.closes`, verdicts `closes`
    and `closing` call `closes_here`. Mutation now fails both tests.
-2. **Item 3: a fourth `split:` strip** (ad5749aa). `bundle/spans._authored` stripped the prefix off a registry
+2. **Item 3: a fourth `split:` strip** (388e6f08). `bundle/spans._authored` stripped the prefix off a registry
    boundary's aliases (and a section's) itself; the pin listed three files. `registry.bare_split_id` is the one strip
    (`answers_to` and `_authored` ask it); the pin scans all of pipeline/ (mutation: put the inline strip back in spans →
    `test_no_reader_strips_the_split_prefix_of_a_registry_alias_itself` fails). No output change.
-3. **Item 5: the twins lost the tidal exemption** (eba9094f). `apply_limits` took tidal water from every steelhead twin,
+3. **Item 5: the twins lost the tidal exemption** (a97c63a0). `apply_limits` took tidal water from every steelhead twin,
    while `build_reach` exempts a row itself marked `tidal` (Nitinat Lake's). `build.tidal_limit(entry, tidal)` is that
    decision; both ask it. No live twin is on a tidal row (no binding moves). Pin
    `test_a_tidal_row_keeps_its_tidal_water_in_a_twin_as_in_a_rule` (mutation: twin passes `tidal` straight through).
-4. **Item 7: the parity did not cover the reserve tie** (f642be76). Python `<` beside trust.ts's `<=` (which of two
+4. **Item 7: the parity did not cover the reserve tie** (9835fa2e). Python `<` beside trust.ts's `<=` (which of two
    equal-weight reserve votes stands back first) passed every panel. One panel where the order decides the answer.
-5. **Item 7: three of the four scripts were still not the app's answer** (6e09c292). They imported `answering` but built
+5. **Item 7: three of the four scripts were still not the app's answer** (2b86b39f). They imported `answering` but built
    `Contribution`s with no `reserve` flag; the app's `contributionsOf` marks every member past `CORE_MEMBERS` (by panel
    rank) reserve. On a panel of 5+ their numbers kept a member the app stands back. `panel.reserve_at(rank)` (mirrors
    panel.ts `i >= CORE_MEMBERS`, pinned by text); all four scripts ask it; `test_every_evaluation_script_marks_the_

@@ -1,6 +1,6 @@
 # T136 — Curation review phase 5: parity gate and pilot before the full review
 
-Status: DONE (tool side) — 6d13da6e, 80fc5577, review fixes 96878b88 (lane-T136). The 30-entry PILOT is prepared, not run: it is a
+Status: DONE (tool side) — b42fc8cd, 12739188, review fixes 371f1a85 (lane-T136). The 30-entry PILOT is prepared, not run: it is a
 person's review time (owner question 1). Owner approved PLAN.md 2026-10-23 (defaults Q34–Q41).
 Takes effect on merge: no rebuild. (The new CLI flags change no default; `pipeline build` output is unchanged.)
 
@@ -113,7 +113,7 @@ parity on real waters, and checked that no printed scratch chain or new flag wri
   only READ the live tree (or a download cache). `deliver all --out-dir` stages beside the out-dir. `promote --target`
   touches only its own directory and `.prev`. `/api/ready` is a GET. A mark's `seconds` passes through `post_mark`.
 
-**Found and fixed (96878b88):**
+**Found and fixed (371f1a85):**
 1. **The gate grew a third copy of "a mark's target prints now"** (alongside `tickets.statuses_now` and `reuse.marks_view`).
    Fix: `marks.target_prints`, which both `gate.stale_report` and `tickets.statuses_now` now call. Pin:
    `test_a_mark_s_target_prints_have_one_reader` (whole value plus a source check). Mutation: passing the

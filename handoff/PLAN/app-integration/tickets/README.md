@@ -153,7 +153,7 @@ use that as the sole source of future work."
 | T106 | one shown quantity: read the declared parameter (08ME030) | DONE | 7276735f, f17523c2, 91ea0abc, 82a37db5 | publisher line lands on the next feed publish |
 | T107 | one day's envelope: Python band_for vs TS bandAt | DONE | 4a93cf64, 1399d3d7, a06c1b01, 4965f6ec | — |
 | T108 | one "goes on as": continuation vs spans (11 of 17 pairs) | DONE | fb1b12a5, 551c8090, 93d39ad3, c38fbbec | delivered r-b518a2b507fa |
-| T109 | one entry-id grammar (z7a reads "Region 7") | PARTIAL | 0ef3ed2f, edb0653c, 092e53c4, 73796f11 | exported region field (see ticket) |
+| T109 | one entry-id grammar (z7a reads "Region 7") | DONE | 6c03f5fe, 89fea9c0, 1ca9bc00, 6d731a02 | needs deliver + regs fixture re-cut |
 | T110 | record years per quantity (Level-mode weights) | DONE | ad835645, 31ade2ee, 999b2659, c97c4a98 | delivered r-b518a2b507fa (paint/4) |
 | T111 | every cut reaches the walk (second extent's window dropped) | DONE | ea894c8a, 271b2747, b8c00620 | no binding moved; leftovers → T141; delivered r-941dcc149b17 |
 | T112 | one entry walker over catalogue extents | OPEN | — | all |
@@ -169,7 +169,7 @@ use that as the sole source of future work."
 | T122 | one station liveness (active/realtime/ECCC) | DONE | 9fe57691, 348f9519, 0f918ea0, 749482e9 | no station changes; Q113 cuts vs may_speak; delivered r-012fb43aa175 |
 | T123 | one donor state for Conditions and map labels | DONE | 7355fc2e, 5887de97, b78a9bb0, 7a72d388 | app only |
 | T124 | one per-section layer list in map | DONE | 4976bf2b, 5887de97, b78a9bb0, 7a72d388 | app only; native route colours wetland sloughs |
-| T125 | latent duplicate checks: pins and small helpers | OPEN | — | all |
+| T125 | latent duplicate checks: pins and small helpers | PARTIAL | 370a3978, 7fcdfaab, bffe4431, 81c05b55, 4c0b6272, e81ee1b7, 8d720fb9, 84525b29, 4076c58b, 1fdecc94, ddcd5aca, 1b106ff9, 0e5baf51, 720e9a6f, 388e6f08, a97c63a0, 9835fa2e, 2b86b39f | left: item 8 gauges 9 (Q118), answers 12 + reach 11 (Q119); needs deliver |
 | T126 | forecast reading bugs: CLEVER times 8 h off, 5-day summary on a 10-day run, dots ignore horizon | DONE | e3688e2b, c7ccec1f, d7b9ed24 | live after a feed republish (owner R2 upload) |
 | T127 | displaced rule still shows "counts toward" and bounds the card gate | DONE | 2a0458f2, 358b5076, 77566458 | live after the next deliver |
 | T128 | sub-cap line names its total ("of your 5 trout and char a day in streams, up to 2 may be…") | DONE | 59aba774, c7d9f57f, 77566458, c410ca42, e839d0cd, 6d768bd6, bb46f5f1, 001e8ffd | — |
@@ -180,7 +180,7 @@ use that as the sole source of future work."
 | T133 | curation review phase 2: one vintage on screen | DONE | 94e06e52, 5052824f | digests live from r-b518a2b507fa (reach rerun, no binding changed) |
 | T134 | curation review phase 3: review screen separate from fixing | DONE | 18ad4bf8, 35f6e2db, b66105e6, 32f5654f, 5a9a2243 | leftovers → T142; row_boxes sidecar run by Claude |
 | T135 | curation review phase 4: queue, pre-checks, ticket export | DONE | 8d0f5d76, 19dbc1ee, 9b8de2e3, 0a2be2da | no rebuild |
-| T136 | curation review phase 5: parity gate + pilot | OPEN | — | after T135 |
+| T136 | curation review phase 5: parity gate + pilot | DONE | b42fc8cd, 12739188, 9b080497, 371f1a85, 0634891b | parity 3,405 rules, 0 unexplained; scratch E2E false-stale 0; ★ pilot (Q114) |
 | T137 | reader shooter: TALL cards shot drops the Other fish list (re-shoot + re-run the gate) | DONE | be8b4693, 111dcea3 | — |
 | T138 | reader shooter: chilliwack-p2-row-rb frame misses the rainbow row | DONE | d8997fbd | — |
 | T139 | third headless one-kind pool: Liard River watershed (7-53) | DONE | 8fb5f1ac, 85288617, 67d72c8e, c4a3da48 | delivered r-b518a2b507fa |
@@ -306,6 +306,14 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q111 | T121 | A gauge on standing water means lake OR wetland (no live station affected)? | yes | owner |
 | Q112 | T121 | 08MH024 (Fraser at Mission) now speaks, weakly, for the Vedder Canal polygon of the Vedder — keep, or should the Vedder's own gauge win there? | keep (follows the walk and drainage test) | owner |
 | Q113 | T122 | Gauge cuts follow the roster's realtime snapshot, sheds follow ECCC Active: 38 active-but-silent stations have a shed and no cut. Make cuts follow Active (atlas rebuild, moves section ids)? | unchanged | owner |
+| Q114 | T136 | Run the 30-entry curation pilot (handoff/PLAN/curation-review/PILOT.md, ~1 h; then `python -m pipeline.regs.review.gate pilot-report --pilot handoff/PLAN/curation-review/pilot.json`)? | ★ yours to run; PLAN's "no tool blocker" check stays open until then | owner |
+| Q115 | T136 | After a split the review tool prints `pipeline build --promote` WITH tiles (~40 min more), since --no-tiles cannot pass deliver's vintage check? | yes | owner |
+| Q116 | T136 | A tool blocker in the pilot is a deferred mark whose note starts "TOOL:" (no new verdict)? | yes | owner |
+| Q117 | T136 | The 9 book-known steelhead-twin rules read "needs corpus" in the review app (the bundle binds 0–15 sections): should the app read the run for them? | no (explained by design) | owner |
+| Q118 | T125 | promote.evidence checks a station's name only against the match's display name (Arrow Reservoir vs Lower Arrow Lake never auto-promote): fix as its own ticket (new StationMatch field, match.json regenerate, owner-run promote)? | not built; say if wanted | owner |
+| Q119 | T125 | Audit references for item 8 "answers 12" (fish-list wording) and "reach 11" (double computation) — the copies could not be found from the ticket? | left open | owner |
+| Q120 | T109 | Bump the regs store section version so the app refuses a release built before prov.region (it would tag rank-3 rules "Region rule", never a wrong region)? | no bump | owner |
+| Q121 | T125 | Item 4 renames two unbound reasons (between_cuts_not_ordered → parallel_branches; outside_*) without a POLICY_VERSION bump (no live rule moved)? | no bump | owner |
 
 ### Answered (recently, for the record)
 - Q5, Q34–Q41 (curation review plan, T97) — owner 2026-10-23: "The review app changes seem good" — PLAN.md approved with all §6 defaults; plus: adding splits, rebuilding and continuing review must work (T97, T133–T136); a salmon pass later (T132).
