@@ -985,3 +985,27 @@ could add splits and rebuild then continue review with the new splits etc."
   vintage; only marks whose binding moved go stale ("binding moved"); the new split is queued in S0. Built across T97,
   T133–T136.
 - Salmon (DFO) review is a later pass: T132.
+
+## CLAUDE 2026-10-23 (T82, Q12 carried out) — the timed caveat look (O3) and the sheet height (O5)
+- **O3: the app's caveat box is the one look; the prototype's grey box is not a design.** The grey 56 px box around
+  x15p2's hours is the prototype's location-bar rule `.where{display:flex;min-height:56px;padding:8px 16px;
+  background:var(--wash);border-bottom:…}` (regs-v11.html l.408; no v38 page draws that bar) leaking into the caveat's
+  `<span class="where">`, whose own rule `.caveats .where` sets only font-size and colour. Measured in the staged
+  prototype: x14p2's "On one side of the channel only" item gets the same box; "Closed to some anglers" items have no
+  where line. The app already drew every top caveat (timed, side, angler, check) in one `CaveatBlock` box — the 3 px
+  restricted rule, the sub-grey label, the where line in sub grey — so nothing changed in code. Pinned:
+  `Edges.test.tsx` "O3" (whole style of block, kicker, item and where equal across the four kinds; the where line has no
+  background, padding or min height). Undo: give `.where` a box in `CaveatBlock` for every kind, never one kind.
+- **O5: sheets stay sized to content, under the prototype's cap; the title line tightened.** `regs-heights.mjs
+  --sheets` over every golden sheet of vedder_1010, klwa_1010 and bc1_501 (192; the 15 licsrc person sheets have no
+  prototype sheet to compare): BEFORE (Vedder, 65) the median app sheet was the prototype's height (Δ 0 px), 26 of 60
+  taller; AFTER (all 192) the median app sheet is 6.9 px SHORTER, 69 of 177 taller (rule sheets: median +15 px, their
+  chrome +40). The app's chrome is +21 px median (the 28 px foot under the body, kept: the stand-in for the phone's
+  home-indicator area the Modal does not inset); its bodies −26 px. The tallest app sheet is 722 px against the
+  prototype's 743 (its cap, 88 % of 844); both cap the same 19 sheets. The app's cap is the body at 0.68 of the window
+  (≈ 666 px with plain chrome), kept under the prototype's on purpose (0.82 covered the water's header, T37). What made a
+  sheet open taller than its words was the title: 19 px on TYPE.screen's 27 px line, 4 px of air per line, and most
+  rule titles wrap. Now `SHEET_TITLE` 19 / 23 (both Sheet branches; the app's other 19 px heading is 19 / 23): every
+  measured app sheet moved 4–12 px shorter. The rest of a rule sheet's extra (a 19 px title wraps where the prototype's
+  17 px does not; the sub line under the rule) is the one Sheet's style (T41 Q4: one Sheet for map and regs) and stays.
+  Pinned: `SheetSize.test.tsx`. Undo: one constant.

@@ -27,6 +27,20 @@ const DONE_HIT = hitProps({ w: 34, h: TYPE.bodyStrong.lineHeight });
  *  prototype's own rule (#7: caps only on section kickers; `.done { text-transform: none }`) and the smallest word in it. */
 const DONE_WORD = TYPE.bodyStrong;
 const OPTION_HIT = hitProps({ w: 44, h: 44 });
+/**
+ * (T82 O5, Claude 2026-10-23) THE SHEET'S TITLE: the screen face at 19 px on a 23 px line. It spread TYPE.screen (23 on
+ * 27) and shrank only the size, so a title that wraps — most rule sheets: "Do not release fish in a harmful manner" — sat
+ * on a 1.42 line: 4 px of air per title line (8 on a two-line title) the words do not need. 19 / 23 is the app's other 19 px
+ * heading (WaterMapView's name, TYPE.figureBig): the face's own ratio (23 / 27 ≈ 0.85 ≈ 19 / 23).
+ */
+export const SHEET_TITLE = { ...TYPE.screen, fontSize: 19, lineHeight: 23 } as const;
+/**
+ * (T37, T82 O5) THE PHONE SHEET IS SIZED TO ITS CONTENT; a scrolling body is capped at this share of the window. The
+ * prototype caps the whole sheet at 88 % of its 844 px phone (743 px); the app's cap (0.68 of the window for the body, so
+ * ≈ 666 px with the chrome on 844) stays under it on purpose: 0.82 covered the water's header on a 390 × 844 phone
+ * (howtell-current-water: the header stays visible above the scrim), and the app's window also holds the water frame.
+ */
+export const SHEET_BODY_CAP = 0.68;
 
 export function Sheet({ open, onClose, title, palette, children, scroll = false, sub, scrollRef, layout, dialog = false }: {
   open: boolean; onClose: () => void; title: string;
@@ -176,7 +190,7 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
                                justifyContent: "space-between", paddingHorizontal: 18,
                                paddingBottom: 10, borderBottomWidth: 1.5,
                                borderBottomColor: palette.ink }}>
-                  <Text accessibilityRole="header" style={{ ...TYPE.screen, fontSize: 19, color: palette.ink, flexShrink: 1 }}>{shown.title}</Text>
+                  <Text accessibilityRole="header" style={{ ...SHEET_TITLE, color: palette.ink, flexShrink: 1 }}>{shown.title}</Text>
                   <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Done" {...DONE_HIT}>
                     <Text style={{ ...DONE_WORD, color: palette.accent }}>Done</Text>
                   </Pressable>
@@ -225,7 +239,7 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
                              justifyContent: "space-between", paddingHorizontal: 18,
                              paddingBottom: 10, borderBottomWidth: 1.5,
                              borderBottomColor: palette.ink }}>
-                <Text accessibilityRole="header" style={{ ...TYPE.screen, fontSize: 19, color: palette.ink, flexShrink: 1 }}>{shown.title}</Text>
+                <Text accessibilityRole="header" style={{ ...SHEET_TITLE, color: palette.ink, flexShrink: 1 }}>{shown.title}</Text>
                 <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Done"
                            {...DONE_HIT}>
                   <Text style={{ ...DONE_WORD, color: palette.accent }}>Done</Text>
@@ -235,12 +249,12 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
             </View>
           </GestureDetector>
           {scroll
-            // 0.68, not the ticket's 0.82: with the title row and a sub line on top, 0.82 covered the water's header on a
-            // 390 × 844 phone (howtell-current-water: the header stays visible above the scrim)
+            // SHEET_BODY_CAP (0.68), not the ticket's 0.82: with the title row and a sub line on top, 0.82 covered the water's
+            // header on a 390 × 844 phone (howtell-current-water: the header stays visible above the scrim)
             // `bounces={false}`: at the top a downward pull moves the sheet, not an iOS overscroll of the content
             ? <GestureDetector gesture={bodyPull}>
                 <GestureDetector gesture={scrollNative}>
-                  <ScrollView ref={scrollRef} testID="sheet-scroll" style={{ maxHeight: windowHeight * 0.68 }}
+                  <ScrollView ref={scrollRef} testID="sheet-scroll" style={{ maxHeight: windowHeight * SHEET_BODY_CAP }}
                               keyboardShouldPersistTaps="handled" bounces={false} scrollEventThrottle={16}
                               onScroll={(e) => { scrollTop.current = e.nativeEvent.contentOffset.y; }}
                               contentContainerStyle={{ paddingHorizontal: GUTTER, paddingBottom: SPACE.s4 }}>{shown.children}</ScrollView>

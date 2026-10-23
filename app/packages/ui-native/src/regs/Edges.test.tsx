@@ -10,6 +10,7 @@ import { Text } from "react-native";
 import { buildRegsPage, type RegsInputs, type RegsPage, type SheetKey } from "@app/core";
 import { DARK, LIGHT } from "../theme";
 import { KeepTab } from "./KeepTab";
+import { CaveatBlock } from "./KeepBlocks";
 import { RegsHeader } from "./RegsHeader";
 import { RegsScreen } from "./RegsScreen";
 import { createPinStore } from "./pinStore";
@@ -121,5 +122,37 @@ describe("11. the timed caveat (x15p2_1010, D10 a)", () => {
     expect(sheets).toEqual([`rule:${caveat.items[0]!.rule}`]);
     fireEvent.click(within(items[0]!).getByText("Rule book p.23 ↗"));
     expect([sheets.length, books.length]).toEqual([1, 1]);
+  });
+
+  /*
+   * T82 O3 (Q12: "the same caveat box as the other top caveats"). The prototype draws the timed caveat's hours in a grey
+   * 56 px box; that box is its location-bar rule `.where{display:flex;min-height:56px;padding:8px 16px;background:var(--wash)}`
+   * (regs-v11.html l.408, a bar no v38 page draws) leaking into `.caveats .where`, which overrides only font-size and
+   * colour — x14p2's "On one side of the channel only" item gets the same box. The app draws ONE caveat look for every
+   * top caveat. Mutations: a `kind === "timed"` branch with its own box style fails the first test (its styles differ
+   * from the side / angler / uncertain block's); a wash background or padding on the where line fails the second.
+   */
+  const KINDS = ["timed", "side", "angler", "uncertain"] as const;
+  const styleOf = (kind: (typeof KINDS)[number]) => {
+    render(<CaveatBlock caveat={{ ...caveat, kind }} palette={LIGHT} actions={{ ...NOOP, onTab() {} }} />);
+    const pick = (e: Element) => { const c = getComputedStyle(e);
+      return [c.borderLeftWidth, c.borderLeftColor, c.paddingTop, c.paddingBottom, c.paddingLeft, c.marginTop, c.backgroundColor, c.color, c.fontSize, c.lineHeight].join(" "); };
+    const block = screen.getByTestId("keep-caveat"), item = screen.getByTestId("keep-caveat-item");
+    const where = within(item).getByText(caveat.items[0]!.where!);
+    const out = { block: pick(block), kicker: pick(screen.getByTestId(`kicker:${kind}`)), item: pick(item), where: pick(where) };
+    cleanup();
+    return out;
+  };
+  it("O3: the timed caveat is drawn in the same box as the side, angler and check caveats — whole style, every part", () => {
+    const timed = styleOf("timed");
+    expect(timed.block).toContain(rgb(LIGHT.restricted));
+    for (const k of KINDS.slice(1)) expect(styleOf(k)).toEqual(timed);
+  });
+  it("O3: its hours are a plain sub-grey line under the closure, no grey box (the prototype's leaked .where bar)", () => {
+    render(<CaveatBlock caveat={caveat} palette={LIGHT} actions={{ ...NOOP, onTab() {} }} />);
+    const where = within(screen.getByTestId("keep-caveat-item")).getByText("60 min after sunset–60 min before sunrise");
+    const c = getComputedStyle(where), none = getComputedStyle(screen.getByTestId("keep-caveat")).backgroundColor;   // the block draws no fill
+    expect([c.color, c.backgroundColor, c.paddingLeft, c.minHeight]).toEqual([rgb(LIGHT.sub), none, "0px", "auto"]);
+    expect([rgb(LIGHT.wash), rgb(LIGHT.tint)]).not.toContain(none);
   });
 });
