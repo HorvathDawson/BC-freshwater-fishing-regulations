@@ -29,6 +29,11 @@ LLM parser. Heavy jobs go through `handoff/tools/heavy.sh`. The atlas, tile and 
 
 ## 0. The regs-mode navigation flow (owner decision 2026-10-20)
 
+> **SUPERSEDED IN PART 2026-10-22 (owner audit call 3, built in T71): "Keep only one Map entry (the view strip; drop the
+> header's Map button)".** As built: the water's header is the view strip on every view (‹ back · × close · Regulations · Conditions · Map); the strip is the ONE Map entry; the regs header shows name · date pill · [Parts] (only when the part picker has a choice; otherwise an empty 44 px slot) — no [Map], no [Conditions here]. The `[Map] [Cond.]` header buttons in the drawing
+> below, rule 2's "Conditions here" at `mid_sid` and the "next to Map" answer are history (integration decisions.md D2,
+> D24 and "D2 / D24 against the view strip"). The back rule, the one day and the hidden bottom bar still hold.
+
 The owner chose the prototype layout. Latched to one water, the bottom bar (Map · Search · Conditions · Spots) is
 **hidden**. From there, a single button jumps to the **Conditions at the midpoint of the part being read**, and a clean
 way leads back to the normal map views.
@@ -68,9 +73,10 @@ BROWSE MODE (bottom bar shown)                         WATER MODE (bottom bar hi
 6. **The browse Conditions tab is unchanged as a mode.** Picking a section there shows ConditionsScreen with a
    "Regulations ›" link that enters water mode on the part holding that section.
 
-This replaces integration **D1** (the bar stays) and **D2** (FaceBar above the header). **Owner answers (2026-10-20):**
-- "Conditions here" sits **next to Map** in the header.
-- It opens the midpoint section of the **part currently being read**.
+This replaces integration **D1** (the bar stays) and **D2** (FaceBar above the header). **Owner answers (2026-10-20),
+SUPERSEDED 2026-10-22 (call 3, T71 — no header Map, no "Conditions here"; the view strip is the one Map entry):**
+- ~~"Conditions here" sits **next to Map** in the header.~~
+- ~~It opens the midpoint section of the **part currently being read**.~~
 
 ---
 

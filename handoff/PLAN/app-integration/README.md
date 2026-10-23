@@ -34,7 +34,8 @@ This spec now depends on `handoff/PLAN/app-data/` (revision 2, 2026-10-20):
 
 The owner decided (2026-10-20):
 - the prototype layout, with the **bottom bar hidden in water mode**;
-- "Conditions here" **next to Map**, opening the midpoint section of the **part being read**, and one back rule to the
+- (SUPERSEDED 2026-10-22, owner call 3, T71: the view strip is the one Map entry; no header Map, no "Conditions here")
+  "Conditions here" **next to Map**, opening the midpoint section of the **part being read**, and one back rule to the
   normal map views;
 - the map's up/downstream navigation drawn from the tiles; no geometry store;
 - **a few small files, each with a reason**, written by one bundling step into `data/release/` (apart from the build
@@ -69,7 +70,7 @@ The owner decided (2026-10-20):
 | T10 | The fixture is the fixture RELEASE (`deliver release --items …`, P11). It also replaces `packages/data/dev/bundle.sqlite`. D13 is amended. |
 | T11 | `useRegsStore(loader)` opens lazily on the first water screen. A "loading the regulations for Region N" state appears only on web when a shard is not cached. |
 | T12 | The parity harness reads the release files (P20 stops writing `regs.sqlite`; until then either works). |
-| T16 | `placeAction` gains `"conditions"`. The header carries `[Map] [Conditions here]` (owner). |
+| T16 | `placeAction` gains `"conditions"`. The header carries `[Map] [Conditions here]` (owner). **Superseded (T71, call 3):** the header carries `[Parts]` or nothing; Map is the view strip's. |
 | T23 | `RegsScreen` mounts inside P14's `WaterMode`. There is no FaceBar row (D2 amended) and no bottom bar (D1 amended). `onConditions` opens P14's Conditions view at `mid_sid`, and `onMap` opens P15's water map. |
 | T29 | The pin bar's top is the regs header alone. |
 | T41 | The parity walk is native first, then web. It starts from the map, enters water mode, uses Map / Conditions here, and backs out. |

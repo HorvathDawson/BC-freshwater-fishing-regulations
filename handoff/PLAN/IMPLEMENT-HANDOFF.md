@@ -51,11 +51,12 @@ Sources: `app-data/QUESTIONS.md` (Q1–Q19), `app-integration/decisions.md` (D1�
   `regs.sqlite` is not shipped. (Q12; MINIMAL-PACKAGING §1)
 - **Regs mode:**
   - The bottom bar is hidden while a water is open.
-  - The header reads `‹ · name · date · [Map] · [Conditions here]`.
-  - "Conditions here" opens the midpoint (`part_geo.mid_sid`) of the part being read.
+  - **Superseded 2026-10-22 (owner audit call 3, T71: "Keep only one Map entry (the view strip; drop the header's Map
+    button)"):** the water's header is the view strip on every view (‹ back · × close · Regulations · Conditions · Map); the strip is the ONE Map entry; the regs header shows name · date pill · [Parts] (only when the part picker has a choice; otherwise an empty 44 px slot) — no [Map], no [Conditions here]. The earlier
+    `‹ · name · date · [Map] · [Conditions here]` header, "Conditions here" at `part_geo.mid_sid` and "no FaceBar" (D2/D24)
+    are not built.
   - Back always returns to where you came from: the tab, camera, query and drill are restored.
-  - No FaceBar.
-  - (Q6–Q8; APP-PREP §0; supersedes D1/D2)
+  - (Q6–Q8; APP-PREP §0; supersedes D1/D2; D2/D24 superseded in turn by call 3)
 - **Prototype layout.** Header tabs Keep · Gear · Methods · Licence over one scroll; the pinned stack. (D1 answer)
 - **Conditions shows the same content, better formatted.** Riffle is not involved. (Q10; P16)
 - **Feb 29 reads Feb 28's regulations, with its own real weekday.** The year stays at 365 days. (Q14; D31; P06)
@@ -455,7 +456,7 @@ Already answered elsewhere, so do not re-ask:
 |---|---|---|
 | C1 | Port target: integration README §1, D5, tests.md, T41 and ticket line refs say **v33 @ `04765ab5`**; the goldens are at **v37 @ `d4a0ccd9`** (`cf500b33`), and a final round is running | **`7fb6809f`, i.e. whatever `port/golden/golden.json` `meta.ref` says after the day-1 sync.** Line refs are stale; function names hold. |
 | C2 | Data source: T01 (serve `/regs.sqlite`), T03/T10/T12, T41 and tests.md §4 (store from `/regs.sqlite`; `dev/regs.sqlite` fixture) vs README §0, D22 and P20 | **README §0 + D22:** the release files (water / regs-<region> / regs-sid) through the `ReleaseLoader`; there is no `/regs.sqlite` route, and the fixture is a fixture release. `regs.sqlite` remains only for the port tooling until P20. |
-| C3 | Shell: T23 ("under the FaceBar", `TabBar` stays), D1/D2 defaults, T29 (pin top = both rows) vs APP-PREP §0 / P14 | **APP-PREP §0 + P14:** water mode, bottom bar hidden, no FaceBar, `[Map] [Conditions here]` in the header; the pin top is the regs header alone. |
+| C3 | Shell: T23 ("under the FaceBar", `TabBar` stays), D1/D2 defaults, T29 (pin top = both rows) vs APP-PREP §0 / P14 | **APP-PREP §0 + P14:** water mode, bottom bar hidden. **Superseded in part 2026-10-22 (owner call 3, T71):** the view strip (FaceBar) stays on every view and is the one Map entry; the regs header has `[Parts]` or nothing — no `[Map]`, no `[Conditions here]`. |
 | C4 | Prep order: integration README §2 says "P01–P07 (parallel) → P18 → P08 → P09 → P10 → P11" vs APP-PREP §1 and the ticket headers | **APP-PREP ticket headers:** P05 → P07 → P18 → P08; P09 has no prerequisites (parallel; P08 copies its tables when present); P11 also needs **N2**. |
 | C5 | decisions.md "Owner questions" lists the T14 "." line and `pinUpdate` throwing on 25/134 states as open; D20 calls the tidal golden a prototype bug that T42 excludes | **UI-NOTES v35:** all three are fixed in the prototype. Port `pinChain` as "no lines" for a group-less row (not "skip"); T14 does not port the "." bug; T42 drops the x31p_1010 exclusion if the re-synced golden shows the banner words. |
 | C6 | Heavy jobs: the README says only "via heavy.sh" | **Memory `heavy-jobs-one-at-a-time`:** via heavy.sh, AND only after the owner's go-ahead, AND never while `heavy-job.pause` exists. |
