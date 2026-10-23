@@ -63,7 +63,8 @@ shows only the no-access banner; Q3 lakes take the fourth colour):
 - `pipeline/deliver/bundle/access.py` → bundle `access_area` + `section_access` (permille), measured against the tile
   layers' own geojsonl (no_access, indigenous_land, parcel; sections from stream/lake/wetland), refused for tiles of
   another atlas. `pipeline build`: deliver now depends on tiles. Measured on the live tiles: 4,098 no-access rows
-  (4,028 sections > 50%), 109 permit, 37,878 reserve, 106,609 private.
+  (4,028 rows > 50% = 4,023 sections; 5 sections lie in two nested military areas), 109 permit, 37,878 reserve,
+  106,609 private.
 - THRESHOLD (recorded, core `MOSTLY_INSIDE` = 0.5, `TOUCH_ONLY` = 0.01): of 4,098 no-access rows 3,966 are 100%, 36 in
   90–99%, 41 under 10% (edge grazes); Coquitlam 785/789, Seymour 544/544, Capilano 875/880 mostly inside.
 - paint/3 = paint/2 + the no-access rows (950,316 B gz of the 1,000,000 gate, simulated on the live bundle);
@@ -91,3 +92,19 @@ New owner questions (default built with):
   Default: keep (status-colours-distinct UNDER_20 lists each with its reason).
 - Q-T54b: the release is 82 KB under its 14 MB total gate after `access` (225 KB, private land is 168 KB of it).
   Raise the total gate, or drop private land from the note? Default: ship as built.
+  Review note: the live release ships no `lakes` file (OPTIONAL, gate 100 KB). The first release that ships one would
+  cross the 14 MB total, so this question has to be answered before lakes ship.
+
+## Adversarial review (2026-10-22)
+Checked again on live data: the measured rows (4,098 no-access, 109 permit, 37,878 reserve, 106,609 private), the
+Coquitlam 785/789, Seymour 544/544 and Capilano 875/880 pins (the needs_bundle test passes on a copy of the live bundle
+with the measured rows added), paint 950,316 B gz, access 225,488 B gz, release total ≈ 13,917,467 B. The tile layers
+have no duplicate zoom copies of an area, so no polygon is counted twice within one area.
+Fixed (test first): a failed `access` fetch rejected the whole notice, so it hid the no-access BANNER too. Now only the
+gentle note is lost, with a warning. Also fixed: paint.py docstring (version 3), contract.py comment, and the count
+"4,028 sections" (it is 4,028 rows = 4,023 sections).
+Latent (no effect on live data today; recorded, not changed): `noPublicAccess` SUMS the shares of no-access areas. 23
+no-access polygons nest inside or overlap another (Camp Vernon ⊃ Camp Vernon Range, Heals Rifle Range ⊃ 600 m range,
+Slesse Creek ⊃ Slesse RTA, …). A section 30% inside a polygon and its nested twin would read as 60%, "mostly inside".
+Every nested row today is 1000/1000 or a graze, so no colour changes. Recommended fix if it ever matters: give each
+overlapping region to the larger area only, in `access.compute`, so that the shares add up to the union.

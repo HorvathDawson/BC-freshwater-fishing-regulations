@@ -154,7 +154,8 @@ NAMED = [("Coquitlam River", "gnis:19986", "Coquitlam Watershed"), ("Seymour Riv
 @pytest.mark.needs_bundle
 def test_the_named_watersheds_hold_their_rivers_and_lakes():
     """Measured 2026-10-22 on the live tiles: Coquitlam 785 / Seymour 544 / Capilano 875 sections mostly inside (of 789 /
-    544 / 880 touching); 4,028 province-wide. Held to 95% of those (the atlas build is not bit-identical)."""
+    544 / 880 touching); 4,028 (sid, area) rows over 50% province-wide (4,023 sections: 5 sit in two nested military
+    areas). Held to 95% of those (the atlas build is not bit-identical)."""
     from pipeline.common.curated import GENERATED
     bundle = os.environ.get("UI_EXPORT_BUNDLE") or GENERATED.bundle / "bundle.sqlite"
     db = sqlite3.connect(f"file:{bundle}?mode=ro", uri=True)

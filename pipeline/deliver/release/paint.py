@@ -1,6 +1,6 @@
 """PAINT (P08, MINIMAL-PACKAGING §2): the one file a web reader needs before the first coloured map. Format `paint/3`:
 
-    "BCPT"  u8 version (2)
+    "BCPT"  u8 version (3)
     u32le   n, then the status index (BCSI v2, `pipeline.deliver.status_index`), exactly the bytes of status_index.bin
     the FLOW half, every column a run of LEB128 varints unless said otherwise:
       stations   u32le byte length, then the station ids sorted, UTF-8, joined by "\\n" (the index every column uses)
