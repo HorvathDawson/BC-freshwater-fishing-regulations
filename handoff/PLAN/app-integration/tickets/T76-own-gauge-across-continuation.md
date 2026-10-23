@@ -1,6 +1,11 @@
 # T76 — Own gauge across a continuation: the Vedder takes the Chilliwack's gauge (audit N19, owner call 10)
 
-Status: OPEN.
+Status: PARTIAL — ee624350 (code + tests), 8ea1cf8b (decisions.md: rule, five constants, real-graph diff). Built and
+reviewed on the live graph: 41 sections change, all on continuation waters (Chilliwack 15, Vedder 2, Atnarko 20, Bella
+Coola 4), 0 elsewhere, lead ranks only. Vedder 313838: 08MH047 (retired) rank 1, 08MH001 rank 2 → 08MH001 leads at read
+time. Left: the merger's batched `pipeline.deliver` (no reach, no atlas, no tiles) — then diff `panel_member.lead` vs
+the live bundle (expect only those 41 sections) and see `test_water_continue.py::test_the_chilliwack_continues_as_the_vedder_in_the_bundle`
+go green (fails on the live bundle until T59's Atnarko row ships).
 
 Source: own-gauge REPORT.md: "Vedder (sid 313838): nothing leads" — its own gauge 08MH047 is retired and the Chilliwack
 gauges belong to another item, though `water_continue` links them. Owner 2026-10-22: Vedder/Chilliwack is "one system"
