@@ -27,8 +27,19 @@ describe("EXCLUDE", () => {
     for (const e of EXCLUDE) expect(e.reason.trim().length, `${e.block} ${e.key ?? ""}`).toBeGreaterThan(20);
   });
 
-  it("every listed id is a taps.json state", () => {
-    for (const e of EXCLUDE) if (e.ids !== "*") for (const id of e.ids) expect(T.states[id], id).toBeDefined();
+  it("every listed id is a taps.json state (tapped, or declared gone)", () => {
+    for (const e of EXCLUDE) if (e.ids !== "*") for (const id of e.ids) expect(T.states[id] ?? T.gone[id], id).toBeDefined();
+  });
+
+  it("(T115) a state whose part is gone is excluded in every block, with its taps.json reason — and only those states are", () => {
+    const blocks = ["header", "keep", "gear", "methods", "licence", "sheets", "pins"] as const;
+    const gone = Object.keys(T.gone).sort();
+    expect(gone).toEqual(["x15p14_1010", "x15p15_1010", "x15p17_1010", "x15p18_1010"]);
+    for (const b of blocks) {
+      for (const id of gone) expect(excluded(b, id)?.reason, `${b} ${id}`).toBe(`part gone — ${T.gone[id]!.reason}`);
+      expect(Object.keys(T.states).filter((id) => excluded(b, id)?.reason.startsWith("part gone")), b).toEqual([]);
+    }
+    for (const id of gone) expect(T.states[id], id).toBeUndefined();
   });
 
   it("every keyed entry matches a key some golden state has", () => {
@@ -39,8 +50,11 @@ describe("EXCLUDE", () => {
   });
 
   it("the list, by block and key", () => {
+    // (T115) first: the 4 gone states × 7 blocks, whole-state; the 4 grown parts' labels; the re-cut Fraser's Parts sheet
+    const gone = ["x15p14_1010", "x15p15_1010", "x15p17_1010", "x15p18_1010"].flatMap(() =>
+      ["header 1 -", "keep 1 -", "gear 1 -", "methods 1 -", "licence 1 -", "sheets 1 -", "pins 1 -"]);
     expect(EXCLUDE.map((e) => `${e.block} ${e.ids === "*" ? "*" : e.ids.length} ${e.key?.source ?? "-"}`))
-      .toEqual(["sheets 1 ^(other:x18p5_1010\\|o0)$", "sheets 1 ^(other:x22p1_1010\\|o1)$", "sheets 1 ^(other:x22p3_1010\\|o1)$",
+      .toEqual([...gone, "header 4 ^(place\\.(full|short)|action\\.aria)$", "sheets 14 ^parts$", "sheets 1 ^(other:x18p5_1010\\|o0)$", "sheets 1 ^(other:x22p1_1010\\|o1)$", "sheets 1 ^(other:x22p3_1010\\|o1)$",
         "sheets * ^rule:", `header ${NO_MAP_LABEL_IDS.length} ^place$`, `header ${GOLDEN_MAP_ACTION_IDS.length} ^action$`, "header * ^place\\.shown$",
         "keep 3 ^groups\\.\\d+\\.(tree|worked|lines)$",
         "pins 3 ^anchors\\.\\d+\\.tiers$", "keep 1 ^plainRows\\.0$", "gear 4 ^bait\\.src\\.who$",
@@ -126,7 +140,8 @@ describe("pins (T28, IMPLEMENT-HANDOFF C5)", () => {
   it("no golden state carries the v33 pinUpdate throw at v38 @ bdda3586; no state is dropped, only the Kitimat ruling's tier lines", () => {
     const errs = Object.entries(G.states).filter(([, s]) => !!(s.pins as { error?: unknown } | null)?.error).map(([id]) => id);
     expect([G.meta.version, G.meta.sha, errs]).toEqual(["v38", "bdda3586", []]);
-    expect(Object.keys(G.states).filter((id) => excluded("pins", id) !== null)).toEqual([]);
+    // no state is dropped for a pins reason; (T115) the 4 whose part the release merged away are dropped from every block
+    expect(Object.keys(G.states).filter((id) => excluded("pins", id) !== null).sort()).toEqual(Object.keys(T.gone).sort());
     expect(excluded("pins", "x14p1_1010", "anchors.0.tiers")?.reason).toMatch(/^OWNER RULING 2026-10-21 \(a\)/);
     expect(excluded("pins", "x14p1_1010", "anchors.0.groupLine")).toBeNull();
     expect(excluded("pins", "vedder_1010", "anchors.0.tiers")).toBeNull();

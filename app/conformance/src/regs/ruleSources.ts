@@ -30,7 +30,8 @@ export interface RuleSource {
   /** The part's ruleset for a taps.json state (its reach and trib lists). */
   ruleset(state: TapState): { readonly reach: readonly number[]; readonly trib: readonly number[] };
 }
-export interface TapState { readonly item: string; readonly partIx: number; readonly akey: number }
+/** `goldenPartIx`: the prototype's index where the release renumbered the part (taps.py PART_MOVED; T115) */
+export interface TapState { readonly item: string; readonly partIx: number; readonly akey: number; readonly goldenPartIx?: number }
 
 interface PageData {
   readonly rules: Readonly<Record<string, ExportRule>>; readonly rid: Readonly<Record<string, string>>; readonly species: SpeciesBook;
@@ -53,7 +54,8 @@ export function pageSource(): RuleSource {
     ruleset(t) {
       const w = D.waters.find((x) => x.id === t.item);
       if (!w) throw new Error(`page_v36.html has no water ${t.item}`);
-      const rules = w.parts[t.partIx]?.rules ?? [];
+      // the page's parts are the PROTOTYPE's: a part the release renumbered (taps.py PART_MOVED) is read at its golden index
+      const rules = w.parts[t.goldenPartIx ?? t.partIx]?.rules ?? [];
       return { reach: rules.filter(([, v]) => v !== "trib").map(([ix]) => ix), trib: rules.filter(([, v]) => v === "trib").map(([ix]) => ix) };
     },
   };

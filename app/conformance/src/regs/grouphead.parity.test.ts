@@ -91,7 +91,7 @@ describe.skipIf(gate.skip)("T17 group head", () => {
       expect(plain(b.shareOf), id).toMatch(new RegExp(`^↳ .*\\b${relTier.n}\\b`));
       expect(b.form, id).toBe("b");
     }
-    expect(n).toBe(59);
+    expect(n).toBe(57);   // (T115) the 4 states whose part the release merged away (x15p14/15/17/18, taps.json `gone`) are not cases: their 2 groups (x15p17, x15p18) go with them
   });
 
   it("9. property (r20e/r20f): a moved tag leaves the head (and heads the share, if any); no head scope says ' streams' over an ' across ' total", async () => {

@@ -88,6 +88,7 @@ export function subcapRuled(inputsOf: (id: string) => Promise<RegsInputs | null>
   return (RULED ??= (async () => {
     const G = golden().states;
     for (const id of Object.keys(G)) {
+      if (excluded("keep", id)) continue;   // a whole-state exclusion (T115: a part gone) is never tapped
       const inp = await inputsOf(id), gk = G[id]!.keep as GKeep | null;
       if (!inp || !gk?.groups) continue;
       const kg = comparableGroups(id, keepOf(inp).groups);

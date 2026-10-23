@@ -56,6 +56,10 @@ export function paritySkip(at: ReturnType<typeof provinceStoreAt>, env: Readonly
     : { skip: true, fail: null, reason: at.reason };
 }
 
+/** (T115) Is golden state `id` one whose part the release merged away (taps.json `gone`; exclusions.ts PART_GONE_IDS)?
+ *  The suites that walk hydrate.json's 134 states (the prototype's own) leave these out: there is no part to tap. */
+export const isGone = (id: string): boolean => id in (tapsOnce().gone ?? {});
+
 /** golden id → the app's request (tests.md §1.2): the tap's item, part, date and weekday as taps.json gives them (never
  *  recomputed from another year); `today` is Oct 10 2026 for every state (the prototype's "today" is d=1010). */
 export function requestOf(id: string): { target: RegsTarget; day: Day; weekday: Weekday; today: Day } {
@@ -264,9 +268,10 @@ export interface Case {
   page(who?: Who, tot?: "a" | "b"): Promise<RegsPage>;
 }
 
-/** The state ids for it.each (sync): every taps.json state minus the block's whole-state exclusions (keyed ones stay). */
+/** The state ids for it.each (sync): every GOLDEN state minus the block's whole-state exclusions (keyed ones stay). A
+ *  golden state taps.json neither taps nor declares gone (and excludes) is a case, and its `requestOf` throws. */
 export function caseIds(block: Block): readonly string[] {
-  return Object.keys(tapsOnce().states).filter((id) => excluded(block, id) === null);
+  return Object.keys(golden().states).filter((id) => excluded(block, id) === null);
 }
 
 const caseOf = (id: string, g: GoldenState): Case => ({
@@ -304,7 +309,7 @@ export async function* cases(block: Block): AsyncIterable<Case> {
  * drops golden lines from a key it still compares.
  */
 export function summary(block: Block, passed: number, total: number): string {
-  const ids = Object.keys(tapsOnce().states).filter((id) => excluded(block, id) !== null);
+  const ids = Object.keys(golden().states).filter((id) => excluded(block, id) !== null);
   const keyed = EXCLUDE.filter((e) => e.block === block && e.key);
   return `${block} parity: ${passed}/${total} states equal`
     + (ids.length ? ` · ${ids.length} excluded (${ids.join(", ")})` : "")

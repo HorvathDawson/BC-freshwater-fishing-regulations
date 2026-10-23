@@ -4,7 +4,7 @@
  * under the block) and the parity test asks `excluded(block, id, key)` before comparing it.
  */
 import type { Block } from "@app/core/regs/testing";
-import { golden } from "./oracles";
+import { golden, tapsOnce } from "./oracles";
 
 /** The states whose golden keep.strip.line carries a "Trout …" line — the strip part that words a row's STORED year strip
  *  (rows 30 `rows[].year`; compared since T13, no longer excluded). */
@@ -170,7 +170,39 @@ export const SHEET_SUBST: readonly SheetSubst[] = [
  *  "This river’s rule: 15 a day here …"), not ported (decisions D19 (b), ~250 lines); measured on the golden. */
 export const LEGACY_POOL_SHEETS: readonly string[] = ["x18p5_1010 other:x18p5_1010|o0", "x22p1_1010 other:x22p1_1010|o1", "x22p3_1010 other:x22p3_1010|o1"];
 
+/**
+ * (T115, r-941dcc149b17) The golden states whose PART the release merged away: owner decision AGENTS 54 /
+ * tickets/T115-one-region-membership.md — a stream piece straddling a region line is its home region's only. The four
+ * Fraser pieces that carried two regions' rows were parts of their own in the prototype (x15p14/15/17/18); they now carry
+ * their home region's rows and are part of the neighbouring part, so the golden's two-region page has no store part to
+ * be compared with. taps.py declares them (PART_GONE, checked against the store) and writes them to taps.json `gone`, not
+ * `states`; every block excludes exactly those, each with its taps.json reason. Not the Fraser's other states: x15p16 is
+ * tapped at its renumbered part (taps.py PART_MOVED) and x15p0/1/4/6 at their grown parts (PART_GROWN), compared whole
+ * except the extent words (PART_GROWN_EXCLUDE).
+ */
+export const PART_GONE_IDS: readonly string[] = Object.keys(tapsOnce().gone ?? {});
+const BLOCKS: readonly Block[] = ["header", "keep", "gear", "methods", "licence", "sheets", "pins"];
+export const PART_GONE_EXCLUDE: readonly Exclusion[] = PART_GONE_IDS.flatMap((id) => BLOCKS.map((block): Exclusion => ({
+  block, ids: [id], reason: `part gone — ${tapsOnce().gone[id]!.reason}`,
+  until: "never on this golden — a prototype re-synced on T115's data (it drew the old two-region rows)" })));
+
+/** (T115) The tapped states at a part that took in a merged piece (taps.py PART_GROWN): same rows, a longer extent. */
+export const PART_GROWN_IDS: readonly string[] = Object.entries(tapsOnce().states).filter(([, t]) => t.grown).map(([id]) => id);
+/** (T115) Every tapped state of a water whose parts the release re-cut (taps.json `recut`). */
+export const RECUT_IDS: readonly string[] = Object.entries(tapsOnce().states).filter(([, t]) => t.item in (tapsOnce().recut ?? {})).map(([id]) => id);
+export const RECUT_EXCLUDE: readonly Exclusion[] = [
+  ...(PART_GROWN_IDS.length ? [{ block: "header" as const, ids: PART_GROWN_IDS, key: /^(place\.(full|short)|action\.aria)$/,
+    reason: "T115 (owner decision AGENTS 54, tickets/T115-one-region-membership.md): the part took in the straddling Fraser piece next to it (taps.json `grown`), so its extent words (the header's full and short label, the Parts button's aria that quotes the full label, and the subtitle's label and section count) are not the prototype's; its rows are, and are compared. header.parity asserts the label and subtitle DIFFER (so the entry cannot go stale) and the aria is the golden's with the app's full label in place of the golden's",
+    until: "never on this golden — a prototype re-synced on T115's data" }] : []),
+  ...(RECUT_IDS.length ? [{ block: "sheets" as const, ids: RECUT_IDS, key: /^parts$/,
+    reason: "T115 (owner decision AGENTS 54, tickets/T115-one-region-membership.md): the Fraser's parts were re-cut (19 → 15: each straddling piece joined its neighbour, taps.json `recut`), so the Parts sheet lists parts the prototype did not have; every other sheet of these states is compared",
+    until: "never on this golden — a prototype re-synced on T115's data" }] : []),
+];
+
 export const EXCLUDE: readonly Exclusion[] = [
+  // (T115) golden states whose part the release merged away, and the extent words of the re-cut Fraser
+  ...PART_GONE_EXCLUDE,
+  ...RECUT_EXCLUDE,
   // (T28) no pins entry: the prototype's pinUpdate throw on a group-less article (25 states at v33, facts A#25) is fixed
   // since UI-NOTES v35 (a group-less row pins nothing, IMPLEMENT-HANDOFF C5) — pins.parity replays every state whole
   ...[...new Set(LEGACY_POOL_SHEETS.map((x) => x.split(" ")[0]!))].map((id): Exclusion => ({

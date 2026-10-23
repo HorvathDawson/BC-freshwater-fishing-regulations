@@ -25,7 +25,10 @@ it(`the harness runs against a paired regs store${gate.skip ? ` — SKIPPED: ${"
 
 it("7. golden.json and taps.json are from one sync", () => {
   expect(golden().meta.sha, "golden.json and taps.json differ — re-run app/design/regs-v11/port/sync.mjs").toBe(T.meta.golden);
-  expect([T.meta.golden, golden().meta.version, ids.length, Object.keys(golden().states).length]).toEqual(["bdda3586", "v38", 134, 134]);
+  // (T115) 4 Fraser states' parts merged away (taps.json `gone`, excluded in every block): 130 tapped + 4 gone = 134
+  expect([T.meta.golden, golden().meta.version, ids.length, Object.keys(T.gone).length, Object.keys(golden().states).length])
+    .toEqual(["bdda3586", "v38", 130, 4, 134]);
+  expect([...Object.keys(T.states), ...Object.keys(T.gone)].sort()).toEqual(Object.keys(golden().states).sort());
 });
 
 it("6. requestOf: the tap's item, part, date and weekday as taps.json gives them; today is Oct 10", () => {

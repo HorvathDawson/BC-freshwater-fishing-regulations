@@ -137,6 +137,12 @@ describe.skipIf(gate.skip)("B. every built sheet of every state equals the golde
       // printed → PDF map (static export.pdf_pages); no page is drawn unlinked
       expect({ title: got.title, sub: got.sub || null, folds: got.folds, pages: got.pages }, `${id} ${gk}`)
         .toEqual({ title: want.title, sub: want.sub || null, folds: want.folds, pages: want.pages });
+      if (excluded("sheets", id, gk)?.reason.startsWith("T115")) {
+        // (T115, exclusions RECUT_IDS) the re-cut Fraser's Parts sheet lists the store's 15 parts, not the prototype's 19:
+        // title, folds and pages are compared above; the lines must DIFFER, so the entry cannot go stale
+        expect(eqPlain(gotLines, wantLines).ok, `${id} ${gk}: T115 re-cut, the lines still equal the golden`).toBe(false);
+        skipped.recut = (skipped.recut ?? 0) + 1; continue;
+      }
       expect(eqPlain(gotLines, wantLines), `${id} ${gk}`).toEqual({ ok: true });
       expect(got.nested.map((k) => goldenKeyOf(k as SheetKey, id)), `${id} ${gk} nested`).toEqual(want.nested);
       compared++; byKind[kind] = (byKind[kind] ?? 0) + 1;

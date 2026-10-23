@@ -23,11 +23,13 @@ export const PROTO_TODAY = (() => {
   return TAPS.states[id].date;
 })();
 
-/** every golden state id, in the goldens' order */
-export const IDS = Object.keys(GOLDEN.states);
+/** (T115) the golden states whose part the release merged away (taps.json `gone`): the app has no part to open for them */
+export const GONE = Object.keys(TAPS.gone ?? {});
+/** every golden state id the app can open (all but GONE), in the goldens' order */
+export const IDS = Object.keys(GOLDEN.states).filter((id) => !(id in (TAPS.gone ?? {})));
 export const stateOf = (id) => {
   const g = GOLDEN.states[id], t = TAPS.states[id];
-  if (!g || !t) throw new Error(`no golden state ${id}`);
+  if (!g || !t) throw new Error(TAPS.gone?.[id] ? `golden state ${id} has no part in the store: ${TAPS.gone[id].reason}` : `no golden state ${id}`);
   return { id, w: g.w, d: g.d, p: g.p, water: g.water, item: t.item, part: t.partIx, date: t.date, sheets: Object.keys(g.sheets || {}) };
 };
 

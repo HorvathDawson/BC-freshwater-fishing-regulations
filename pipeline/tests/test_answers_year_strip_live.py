@@ -23,7 +23,8 @@ EXPORT_DIR = Path(os.environ.get("ANSWERS_EXPORT_DIR") or Path(R.BUNDLE).parent.
 GOLDEN = Path(__file__).resolve().parents[2] / "app" / "design" / "regs-v11" / "port" / "golden"
 HYDRATE = json.loads((GOLDEN / "hydrate.json").read_text())
 TAPS = json.loads((GOLDEN / "taps.json").read_text())
-IDS = sorted(HYDRATE["states"])
+#: (T115) the hydrated states the store taps: not the 4 whose part the release merged away (taps.json `gone`)
+IDS = sorted(i for i in HYDRATE["states"] if i not in TAPS["gone"])
 
 
 @pytest.fixture(scope="module")
@@ -37,7 +38,8 @@ def built(request):
 
 @pytest.mark.needs_bundle
 def test_the_oracle_is_page_v38_over_134_states():
-    assert (HYDRATE["meta"]["version"], HYDRATE["meta"]["year"], len(IDS)) == ("v38", 2026, 134)
+    assert (HYDRATE["meta"]["version"], HYDRATE["meta"]["year"], len(HYDRATE["states"]), len(IDS)) == ("v38", 2026, 134, 130)
+    assert sorted(set(HYDRATE["states"]) - set(IDS)) == sorted(TAPS["gone"])
 
 
 @pytest.mark.needs_bundle

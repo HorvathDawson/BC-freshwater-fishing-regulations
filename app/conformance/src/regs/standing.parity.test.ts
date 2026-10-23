@@ -41,7 +41,8 @@ let passed = 0, total = 0;
 afterAll(() => { if (total) console.info(`keep T15 (inherited · whereNot · possession) parity: ${passed}/${total} states equal`); });
 
 describe("T15 standing blocks vs golden keep (every state)", () => {
-  it("134/134 states: inherited, whereNot and possession equal the golden", async () => {
+  // (T115) the 4 states whose part the release merged away (x15p14/15/17/18, taps.json `gone`) are not cases
+  it("130/130 states: inherited, whereNot and possession equal the golden", async () => {
     const bad: string[] = [];
     for await (const c of cases("keep")) {
       total++;
@@ -51,7 +52,7 @@ describe("T15 standing blocks vs golden keep (every state)", () => {
       if (eq.ok) passed++; else bad.push(`${c.id}\n${eq.diff}`);
     }
     expect(bad).toEqual([]);
-    expect(total).toBe(134);
+    expect(total).toBe(130);
   });
 
   it("2. glenn_501: the Duncan River's exemption, its Rule book page and the nearer row's caution", async () => {
@@ -92,7 +93,8 @@ describe("T15 standing blocks vs golden keep (every state)", () => {
     }
   });
 
-  it("5. census: the possession row is on 107 states, always \"2 days’ quota\"; null on the other 27", async () => {
+  // (T115) the 4 states whose part the release merged away (x15p14/15/17/18, taps.json `gone`) are not cases: all 4 carried the possession row
+  it("5. census: the possession row is on 103 states, always \"2 days’ quota\"; null on the other 27", async () => {
     const values: string[] = [];
     let none = 0;
     for await (const c of cases("keep")) {
@@ -100,6 +102,6 @@ describe("T15 standing blocks vs golden keep (every state)", () => {
       if (p) values.push(p.value); else none++;
     }
     if (!values.length && !none) return;   // no paired store: cases() yielded nothing (a failure under REGS_STORE_REQUIRED=1)
-    expect([values.length, none, [...new Set(values)]]).toEqual([107, 27, ["2 days’ quota"]]);
+    expect([values.length, none, [...new Set(values)]]).toEqual([103, 27, ["2 days’ quota"]]);
   });
 });

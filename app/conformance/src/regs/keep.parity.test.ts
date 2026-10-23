@@ -65,7 +65,8 @@ let passed = 0, total = 0;
 afterAll(() => { if (total) console.info(summary("keep", passed, total).replace(/^keep/, "keep (T21 whole tab)")); });
 
 describe("T21 Keep tab vs golden keep (every state)", () => {
-  it("134/134 states: order, every block as its presenter draws it, and every drawn line", async () => {
+  // (T115) the 4 states whose part the release merged away (x15p14/15/17/18, taps.json `gone`) are not cases: their 2 groups and 4 plain rows go with them
+  it("130/130 states: order, every block as its presenter draws it, and every drawn line", async () => {
     const bad: string[] = [];
     let groups = 0, plains = 0, caveats = 0;
     for await (const c of cases("keep")) {
@@ -103,7 +104,7 @@ describe("T21 Keep tab vs golden keep (every state)", () => {
       if (errs.length) bad.push(`${c.id}: ${errs.join("\n")}`); else passed++;
     }
     expect(bad).toEqual([]);
-    expect([total, groups, plains, caveats]).toEqual([134, 97, 31, 9]);
+    expect([total, groups, plains, caveats]).toEqual([130, 95, 27, 9]);
   });
 
   it("mutation pins: a swapped, dropped or reworded block fails the order or the lines comparison", async () => {

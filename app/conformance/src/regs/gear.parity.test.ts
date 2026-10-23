@@ -38,7 +38,8 @@ describe.skipIf(gate.skip)("T30 gear lines vs golden gear", () => {
     passed++;
   });
 
-  it("1. tallies: 27 closed, 107 open with 3 lines, 11 modes, the 8 Weight lines with no source, the dated changes", async () => {
+  // (T115) the 4 states whose part the release merged away (x15p14/15/17/18, taps.json `gone`) are not cases: all 4 open, with 3 lines
+  it("1. tallies: 27 closed, 103 open with 3 lines, 11 modes, the 8 Weight lines with no source, the dated changes", async () => {
     const t = { closed: 0, threeLines: 0, mode: 0, nullSrc: [] as string[], lineChanges: [] as string[], modeChanges: [] as string[] };
     for (const id of ids) {
       const v = (await gearOf(id)).gear;
@@ -49,7 +50,7 @@ describe.skipIf(gate.skip)("T30 gear lines vs golden gear", () => {
       t.lineChanges.push(...v.lines.filter((l) => l.changes.length).map((l) => `${id} ${l.k}`));
       if (v.mode?.changes.length) t.modeChanges.push(id);
     }
-    expect(t).toEqual({ closed: 27, threeLines: 107, mode: 11,
+    expect(t).toEqual({ closed: 27, threeLines: 103, mode: 11,
       nullSrc: ["vedder_515", "cow1_1010", "cow2_1010", "cow3_1010", "x13p0_1010", "x16p8_1010", "x17p7_1010", "x17p1_1010"].map((x) => `${x} weight`),
       lineChanges: ["vedder_1010 hook", "x16p3_1010 hook", "x17p4_1010 hook"], modeChanges: ["vedder_515", "cow1_1010", "cow3_1010"] });
   });

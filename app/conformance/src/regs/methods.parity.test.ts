@@ -50,7 +50,8 @@ describe.skipIf(gate.skip)("T32 ways, boats, reference vs golden methods", () =>
     passed++;
   });
 
-  it("1. tallies: 27 closed, 107 ways, 14 boats, 107 identical reference folds", async () => {
+  // (T115) the 4 states whose part the release merged away (x15p14/15/17/18, taps.json `gone`) are not cases: all 4 open, with ways and the reference fold
+  it("1. tallies: 27 closed, 103 ways, 14 boats, 103 identical reference folds", async () => {
     const t = { closed: 0, ways: 0, boats: [] as string[], reference: 0, refShape: new Set<string>() };
     for (const id of ids) {
       const v = await methodsOf(id);
@@ -59,7 +60,7 @@ describe.skipIf(gate.skip)("T32 ways, boats, reference vs golden methods", () =>
       if (v.boats) t.boats.push(id);
       if (v.reference) { t.reference++; t.refShape.add(JSON.stringify([v.reference.label, v.reference.title, v.reference.sub, v.reference.groups.map((x) => x.head)])); }
     }
-    expect([t.closed, t.ways, t.reference]).toEqual([27, 107, 107]);
+    expect([t.closed, t.ways, t.reference]).toEqual([27, 103, 103]);
     expect(t.boats.sort()).toEqual(["bc1_501", "bc1_1010", "x14p0_1010", "x14p1_1010", "x14p2_1010", "x15p2_1010", "x16p1_1010", "x18p0_1010",
       "x21p0_1010", "x21p1_1010", "x21p2_1010", "x27p0_1010", "x27p1_1010", "x27p2_1010"].sort());
     expect([...t.refShape]).toEqual([JSON.stringify(["Reference", "Handling fish", "21 rules that apply everywhere",

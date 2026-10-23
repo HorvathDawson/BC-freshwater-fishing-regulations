@@ -64,6 +64,8 @@ function parity(src: () => RuleSource, R: () => (oracle: number) => number = () 
     let tribs = 0, ranks = 0;
     const r = R();
     for (const [id, st] of Object.entries(H.states)) {
+      // (T115) a state whose part the release merged away has no tap (taps.json `gone`)
+      if (!T.states[id]) { expect(T.gone[id], `${id} is neither tapped nor gone`).toBeDefined(); continue; }
       const via = viaOf(s.ruleset(T.states[id]!));
       const ix = ruleIndex(s.stored, via, s.book), flat = ruleIndex(s.stored, new Map(), s.book);
       for (const rix of Object.keys(st.via)) { expect(via.get(r(+rix)), `${id} via ${rix}`).toBe("trib"); tribs++; }

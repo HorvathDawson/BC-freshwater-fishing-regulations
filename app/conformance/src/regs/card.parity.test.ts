@@ -12,7 +12,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { buildModel, makePlace, settle, type CardModel, type HydRes } from "@app/core";
-import { inputsOf, oracleRix, paritySkip, releasePairing } from "./golden";
+import { inputsOf, isGone, oracleRix, paritySkip, releasePairing } from "./golden";
 import { HYDRATE } from "./oracles";
 
 type Res = { status: string; daily: number | string | null; win: number; narrow: number | null } | null;
@@ -25,7 +25,8 @@ const H = JSON.parse(readFileSync(HYDRATE, "utf8")) as {
   meta: { version: string; year: number };
   states: Record<string, { s: number; model: OracleModel; dayStatus: [string, number][][] }>;
 };
-const ids = Object.keys(H.states);
+/** (T115) every hydrated state but the 4 whose part the release merged away (taps.json `gone`, golden.ts isGone) */
+const ids = Object.keys(H.states).filter((id) => !isGone(id));
 const YEAR = H.meta.year;
 const at = await releasePairing();
 const pairing = paritySkip(at);
@@ -50,7 +51,7 @@ const project = (m: CardModel): OracleModel => ({
 const rowLine = (m: CardModel) => m.rows.map((r) => [r.kind, r.pool?.rix ?? null, r.daily, r.members]);
 
 it("the oracle: page v38's buildModel over the 134 golden states, YEAR 2026", () => {
-  expect([H.meta.version, YEAR, ids.length]).toEqual(["v38", 2026, 134]);
+  expect([H.meta.version, YEAR, Object.keys(H.states).length, ids.length]).toEqual(["v38", 2026, 134, 130]);
 });
 
 it(`T08 card parity runs against a paired release${pairing.skip ? ` — SKIPPED: ${"reason" in pairing ? pairing.reason : pairing.fail}` : ""}`, () => {

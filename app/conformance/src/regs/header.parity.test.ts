@@ -51,17 +51,24 @@ describe.skipIf(gate.skip)("T16 header vs golden header", () => {
     const noMapButton = excluded("header", id, "action") !== null;
     expect(noMapButton).toBe(g.action?.kind === "map");
     const many = ((await inputsOf(id))!.item?.picker?.choices.length ?? 0) > 1;
-    const action = !noMapButton ? g.action
+    // (T115) a grown part's Parts aria quotes its full label: the golden's words with the app's label in place of the golden's
+    const grown = excluded("header", id, "place.full") !== null;
+    const grownAria = (a: GHeader["action"]) => a && grown && g.place && v.place ? { ...a, aria: a.aria.replace(g.place.full, v.place.full) } : a;
+    const action = !noMapButton ? grownAria(g.action)
       : many ? { kind: "parts", label: "Parts", aria: WORDS.PARTS_ARIA(g.action!.aria.replace(/^View on map: where these rules apply(, )?/, "")) }
       : null;
-    expect({ name: v.name, day: v.dayWord, date: v.date, dateAria: v.dateAria, dot: v.dot, place: noMap ? null : v.place,
+    // (T115) a part that took in a merged piece (exclusions PART_GROWN_IDS): its label is not the prototype's — asserted to differ
+    if (grown) expect(v.place && { full: v.place.full, short: v.place.short }).not.toEqual(g.place && { full: g.place.full, short: g.place.short });
+    expect({ name: v.name, day: v.dayWord, date: v.date, dateAria: v.dateAria, dot: v.dot, place: noMap || grown ? null : v.place,
              action: v.action, tabs: v.tabs.map((t) => ({ sec: t.tab, text: t.label })) })
-      .toEqual({ ...g, action, place: g.place && { full: g.place.full, short: g.place.short } });
+      .toEqual({ ...g, action, place: grown ? null : g.place && { full: g.place.full, short: g.place.short } });
     passed++;
   });
 
   it.each(ids)("1. %s: the subtitle the full label is tested against is page v36's", async (id) => {
-    expect(subtitleOf((await inputsOf(id))!)).toBe(G.states[id]!.sub);
+    // (T115) a grown part's subtitle carries its new extent and section count (exclusions PART_GROWN_IDS) — asserted to differ
+    if (excluded("header", id, "place.full")) expect(subtitleOf((await inputsOf(id))!)).not.toBe(G.states[id]!.sub);
+    else expect(subtitleOf((await inputsOf(id))!)).toBe(G.states[id]!.sub);
   });
 
   it("3. vedder_1010: no action — the golden's Map is the view strip's (T71); the Vedder has no choice of parts", async () => {

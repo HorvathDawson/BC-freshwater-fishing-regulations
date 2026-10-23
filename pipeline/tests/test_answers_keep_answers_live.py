@@ -98,9 +98,10 @@ def test_5_every_stamp_line_the_groups_carry_is_the_prototypes(built, sid):
 
 
 @pytest.mark.needs_bundle
-def test_5_the_stamp_states_are_the_eight_the_prototype_drew(built):
+def test_5_the_stamp_states_are_the_seven_tapped_ones_the_prototype_drew(built):
+    # (T115) x15p17_1010, the eighth, is a part the release merged away (taps.json `gone`): it is not tapped
     assert sorted(s for s in IDS if _golden_stamp_lines(s)) == [
-        "anderson_1010", "x13p4_1010", "x15p16_1010", "x15p17_1010", "x15p1_1010", "x20p1_1010", "x23p0_1010",
+        "anderson_1010", "x13p4_1010", "x15p16_1010", "x15p1_1010", "x20p1_1010", "x23p0_1010",
         "x4p_1010"]
     assert _golden_stamp_lines("x4p_1010") == [
         "You need Conservation Surcharge Stamp for Shuswap Lake char › only if you keep lake trout and Dolly "

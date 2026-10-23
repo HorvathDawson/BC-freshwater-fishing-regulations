@@ -13,6 +13,22 @@ And `leap`: the Feb 29 cases (owner, P06/D31: Feb 29 READS Feb 28's day, 59, on 
 `encode.tap_key` does (`calendar.reading_day_of` + `calendar_spec.weekday_of`): the Zymoetz below Limonite Creek
 (`zymoetz_river.r10`, "Fridays, Saturdays, and Sundays") on Fri 2036-02-29 beside its Thu 2036-02-28, and Tue
 2028-02-29 beside Mon 2028-02-28.
+
+PART IDENTITY. A golden state names a part by its index in the PROTOTYPE's water; a release that re-cuts a water's parts
+(two parts merge when their rows become the same) moves or removes that index. Every state whose golden part label is
+readable (its `sub` minus the kind and section count; not "closed all year", which the prototype merges) is held to the
+store's part at that index: same label (a "…"-truncated golden label as a prefix) and same section count. A state that
+fails is an ERROR (exit 1) unless it is declared below — never a silent `akey: null` nor a tap on whatever water now has
+that index. Declared states are themselves checked, so an entry that no longer describes the store fails too:
+- PART_MOVED: the golden part is the store's part `ix` now, unchanged (label and section count equal there).
+- PART_GROWN: the golden part is at the same index with the same rows, but its extent took in merged sections (label
+  and/or count differ). Tapped and compared (`grown` on the state); the parity excludes only the words of the extent
+  (the header's part label and the subtitle).
+- every water with a declared state is listed in taps.json `recut` (item -> reason): its list of parts is not the
+  golden's, so the parity excludes the Parts sheet on its states.
+- PART_GONE: the golden part's water merged into the store's part `now_in`; no store part has the golden label and
+  count. Written to taps.json `gone` (not `states`), and the parity excludes the state with this reason
+  (conformance/src/regs/exclusions.ts PART_GONE_IDS).
 """
 import argparse, datetime, json, re, sys
 from pathlib import Path
@@ -27,6 +43,46 @@ from pipeline.common.calendar_spec import weekday_of        # noqa: E402
 WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 _D0 = datetime.date(2026, 1, 1)
 WD_OF_DAY = {day_of(((_D0 + datetime.timedelta(i)).month, (_D0 + datetime.timedelta(i)).day)): WEEKDAYS[(_D0 + datetime.timedelta(i)).weekday()] for i in range(365)}
+
+
+# (T115, r-941dcc149b17) owner decision AGENTS 54 / tickets/T115-one-region-membership.md: a stream piece straddling a
+# region line is its HOME region's only. The four Fraser pieces that carried two regions' rows (and so were parts of their
+# own: golden x15p14/15/17/18) now carry their home region's rows and merge with the neighbouring part; the Fraser has 15
+# parts (0..14), not 19. Measured old r-b518a2b507fa -> new by part_section: old 0..13 -> same index, 14 -> 4,
+# 15 -> 6, 16 -> 14, 17 -> 1, 18 -> 0.
+T115 = "T115 (owner decision AGENTS 54, tickets/T115-one-region-membership.md): a straddling stream piece is its home region's only"
+PART_MOVED = {"x15p16_1010": 14}
+PART_GROWN = {
+    "x15p0_1010": f"{T115}: Fraser piece 356364114:699253 (home 7A) merged in from golden part 18",
+    "x15p1_1010": f"{T115}: Fraser piece 356364114:674465 (home 5) merged in from golden part 17",
+    "x15p4_1010": f"{T115}: Fraser piece 356364114:418405 (home 3) merged in from golden part 14",
+    "x15p6_1010": f"{T115}: Fraser piece 356364114:434930 (home 5) merged in from golden part 15",
+}
+PART_GONE = {
+    "x15p14_1010": (4, f"{T115}: the golden part (356364114:418405, Region 3 and Region 5 rows) is in part 4 now, with only Region 3's rows"),
+    "x15p15_1010": (6, f"{T115}: the golden part (356364114:434930, Region 3 and Region 5 rows) is in part 6 now, with only Region 5's rows"),
+    "x15p17_1010": (1, f"{T115}: the golden part (356364114:674465, Region 5 and Region 7A rows) is in part 1 now, with only Region 5's rows"),
+    "x15p18_1010": (0, f"{T115}: the golden part (356364114:699253, Region 5 and Region 7A rows) is in part 0 now, with only Region 7A's rows"),
+}
+_SUB = re.compile(r"^(.*?) · (\d+) sections?(?: · (.*))?$")
+
+
+def golden_part(st):
+    """(label or None, section count) of the golden state's part, from its `sub`."""
+    m = _SUB.match(st["sub"])
+    if not m:
+        raise SystemExit(f"taps: golden sub {st['sub']!r} is not 'kind · N sections[ · label]'")
+    return m.group(3), int(m.group(2))
+
+
+def same_part(golden, store):
+    """Is the store's part (label, sections) the golden part? None when the golden label cannot tell (no label, or the
+    prototype's merged 'closed all year')."""
+    lab, n = golden
+    if lab is None or lab == "closed all year":
+        return None
+    slab, sn = store
+    return sn == n and (slab is not None and (slab.startswith(lab[:-1]) if lab.endswith("…") else slab == lab))
 
 
 def main():
@@ -50,6 +106,39 @@ def main():
     for o, sid in c.execute("select item_ord, item_id from item"):
         ord_of[s.s(sid)] = o
 
+    def store_parts(item):
+        return {ix: (s.s(l) if l is not None else None, n) for ix, l, n in
+                c.execute("select part_ix, label_s, sections from part where item_ord=?", (ord_of[item],))}
+
+    def resolve(sid, st, item, part_ix):
+        """-> (part_ix to tap, None) or (None, gone record); raises SystemExit on an undeclared mismatch."""
+        if item not in ord_of:
+            return part_ix, None
+        parts, g = store_parts(item), golden_part(st)
+        if sid in PART_MOVED:
+            ix = PART_MOVED[sid]
+            if same_part(g, parts.get(ix, (None, -1))) is not True or same_part(g, parts.get(part_ix, (None, -1))):
+                raise SystemExit(f"taps: PART_MOVED {sid} -> {ix} does not describe the store: golden {g}, store {parts.get(part_ix)} at {part_ix}, {parts.get(ix)} at {ix}")
+            return ix, None
+        if sid in PART_GONE:
+            now_in, why = PART_GONE[sid]
+            hit = [ix for ix, p in parts.items() if same_part(g, p)]
+            if hit or now_in not in parts:
+                raise SystemExit(f"taps: PART_GONE {sid} does not describe the store: golden {g} is store part {hit}, now_in {now_in} in {sorted(parts)}")
+            return None, {"item": item, "partIx": part_ix, "nowIn": now_in, "reason": why}
+        if part_ix not in parts:
+            raise SystemExit(f"taps: {sid} names part {part_ix} of {item}, the store has parts {min(parts)}..{max(parts)}: "
+                             "the release re-cut the water — declare the state in PART_MOVED / PART_GROWN / PART_GONE")
+        ok = same_part(g, parts[part_ix])
+        if sid in PART_GROWN:
+            if ok is not False:
+                raise SystemExit(f"taps: PART_GROWN {sid} does not describe the store: part {part_ix} is the golden part {g} unchanged")
+            return part_ix, None
+        if ok is False:
+            raise SystemExit(f"taps: {sid}'s golden part {g} is not the store's part {part_ix} {parts[part_ix]}: "
+                             "the release re-cut the water — declare the state in PART_MOVED / PART_GROWN / PART_GONE")
+        return part_ix, None
+
     def tap(item, part_ix, month, day, weekday):
         o = ord_of.get(item)
         if o is None:
@@ -57,7 +146,7 @@ def main():
         row = c.execute("select akey from part where item_ord=? and part_ix=?", (o, part_ix)).fetchone()
         akey = row[0] if row else None
         if akey is None:
-            return {"item_ord": o, "akey": None}
+            raise SystemExit(f"taps: part {part_ix} of {item} has no answer key")
         seg, mom, nseg = c.execute("select seg, mom, nseg from akey where akey=?", (akey,)).fetchone()
         starts = json.loads(c.execute("select starts from seglist where seg=?", (seg,)).fetchone()[0])
         moms = None
@@ -95,14 +184,27 @@ def main():
     out = {"meta": {"generator": "app/design/regs-v11/port/taps.py", "store": {k: meta.get(k) for k in ("format", "section_handles", "reach_digest", "rule_ids_sha256", "store_digest", "layout")},
                     "golden": G["meta"].get("sha"), "version": G["meta"].get("version"), "year": 2026}, "states": {}, "unnamed": [],
            "leap": [leap("zymoetz_20360229", "gnis:3137", 0, 2036, 2, 29), leap("zymoetz_20360228", "gnis:3137", 0, 2036, 2, 28),
-                    leap("zymoetz_20280229", "gnis:3137", 0, 2028, 2, 29), leap("zymoetz_20280228", "gnis:3137", 0, 2028, 2, 28)]}
+                    leap("zymoetz_20280229", "gnis:3137", 0, 2028, 2, 29), leap("zymoetz_20280228", "gnis:3137", 0, 2028, 2, 28)],
+           "gone": {}, "recut": {}}
     for sid, st in G["states"].items():
         item = by_name.get(st["water"])
         part_ix = int(st["part"]) if st.get("part") not in (None, "") else 0
         md = st["md"]; month, day = md // 100, md % 100
         wd = WEEKDAYS[datetime.date(2026, month, day).weekday()]
-        out["states"][sid] = {"item": item, "partIx": part_ix, "md": md, "date": f"2026-{month:02d}-{day:02d}", "weekday": wd,
-                              **(tap(item, part_ix, month, day, wd) if item else {"error": "no water"})}
+        ix, gone = resolve(sid, st, item, part_ix) if item else (part_ix, None)
+        if gone is not None:
+            out["gone"][sid] = {**gone, "md": md, "date": f"2026-{month:02d}-{day:02d}", "weekday": wd}
+            continue
+        out["states"][sid] = {"item": item, "partIx": ix, "md": md, "date": f"2026-{month:02d}-{day:02d}", "weekday": wd,
+                              **({"goldenPartIx": part_ix} if ix != part_ix else {}),
+                              **({"grown": PART_GROWN[sid]} if sid in PART_GROWN else {}),
+                              **(tap(item, ix, month, day, wd) if item else {"error": "no water"})}
+    # the waters whose parts the release re-cut: every state of one sees a different list of parts than the golden's
+    for sid in (*PART_MOVED, *PART_GROWN, *PART_GONE):
+        out["recut"][by_name[G["states"][sid]["water"]]] = T115
+    stale = sorted((set(PART_MOVED) | set(PART_GROWN) | set(PART_GONE)) - set(G["states"]))
+    if stale:
+        raise SystemExit(f"taps: declared states not in the golden: {stale}")
     # unnamed: an evenly spaced sample of handles whose akey is past the named range
     akeys = s.section_akeys()
     first = s.static("answers.unnamed")["first"]
@@ -113,6 +215,15 @@ def main():
     Path(a.out).write_text(json.dumps(out, indent=1))
     bad = [k for k, v in out["states"].items() if "error" in v]
     print(f"taps: {len(out['states'])} states ({len(bad)} unresolved: {bad[:5]}), {len(out['unnamed'])} unnamed, {len(out['leap'])} leap -> {a.out}")
+    for sid, v in out["states"].items():
+        if "goldenPartIx" in v:
+            print(f"taps: {sid} golden part {v['goldenPartIx']} -> store part {v['partIx']} (PART_MOVED)")
+    for sid in PART_GROWN:
+        print(f"taps: {sid} part {out['states'][sid]['partIx']} grew (PART_GROWN): {PART_GROWN[sid]}")
+    for sid, g in out["gone"].items():
+        print(f"taps: {sid} GONE (golden part {g['partIx']}, now in part {g['nowIn']}): {g['reason']}")
+    if bad:
+        raise SystemExit(f"taps: {len(bad)} states unresolved: {bad}")
 
 
 def _first_moment(starts, d):
