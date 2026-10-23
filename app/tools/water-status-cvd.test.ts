@@ -66,6 +66,12 @@ function ground(theme: string, flavor: string): [string, string][] {
 
 /** Between any two statuses. ~20 is "a different category at a glance" on a thin line. */
 const STATUS_FLOOR = 20;
+/**
+ * (T54) THE FOURTH COLOUR, no public access, against the three as tokens. Light holds the status floor. Dark cannot:
+ * a status must hold 3:1 on the dark card, the dark base is already a deep blue, and the searched best (an ochre,
+ * tools/status-colours-distinct.test.ts `WHY.darkAccess`) stands 15.7 off the dark rose closed for a tritan reader.
+ */
+const ACCESS_FLOOR: Record<"light" | "dark", number> = { light: 20, dark: 15 };
 /** A status line against the ground under it. */
 const GROUND_FLOOR = 15;
 /**
@@ -92,8 +98,9 @@ describe("a water's status, for a colour-blind reader", () => {
         for (let j = i + 1; j < WATER_STATUSES.length; j++) {
           const [a, b] = [WATER_STATUSES[i]!, WATER_STATUSES[j]!];
           const w = worst(colour(a), colour(b));
+          const floor = a === "no_access" || b === "no_access" ? ACCESS_FLOOR[name] : STATUS_FLOOR;
           expect(w.dE, `${name}: ${a} ${colour(a)} vs ${b} ${colour(b)}, under ${w.under}`)
-            .toBeGreaterThanOrEqual(STATUS_FLOOR);
+            .toBeGreaterThanOrEqual(floor);
         }
     });
 

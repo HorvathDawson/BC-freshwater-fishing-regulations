@@ -279,7 +279,9 @@ describe("waterLegend: the key to the colouring drawn", () => {
     waterLegend(w).map((r) => `${Object.values(r.swatch).join(":")} = ${r.label}`);
   it("each colouring, whole; a lake measure ends with what draws neutral and why", () => {
     expect([rows("regulations"), rows("stocked"), rows("depth")]).toEqual([
-      ["status:closed = Closed", "status:own = Has its own regulations", "status:base = Base regulations only"],
+      // (T54) the fourth: access, not regulation — in the regulations key only
+      ["status:closed = Closed", "status:own = Has its own regulations", "status:base = Base regulations only",
+       "status:no_access = No public access"],
       ["stock:season = Stocked this season", "stock:year = Stocked this year", "stock:recent = Stocked 1–3 years ago",
        "stock:decade = Stocked 3–10 years ago", "stock:old = Stocked over 10 years ago",
        "neutral = Not stocked, or no record. Streams and wetlands draw plain: stocking is recorded for lakes only."],

@@ -16,8 +16,10 @@
  * default to T09's two functions (T21 bound them when it drew the page).
  */
 import { useMemo, useSyncExternalStore } from "react";
-import { buildRegsPage, tapDay, type Day, type RegsInputs, type RegsPage, type RegsTarget, type Weekday, type Who } from "@app/core";
+import { accessNotice, buildRegsPage, tapDay, type AccessNotice, type Day, type RegsInputs, type RegsPage, type RegsTarget,
+         type Weekday, type Who } from "@app/core";
 import { downstreamWater, type ItemId, type RegsSource, type SectionId } from "@app/data";
+import type { ReleaseLoader } from "@app/data/release";
 import { loadRegsInputs, openRegsStore, RegsStoreError, siblingItems, targetFor, type RegsExpect, type RegsLoader,
          type RegsStore } from "@app/data/regs";
 import { useAsync, type Async } from "./async";
@@ -116,6 +118,24 @@ export function useDownstreamWater(source: Pick<RegsSource, "traceToGauge" | "wa
                                    section: SectionId | null): Async<{ item: ItemId; name: string; kind: string } | null> {
   const asks = item === null && section !== null;
   return useAsync(async () => (asks ? downstreamWater(source, section!) : null), `downstream:${asks ? section : ""}`, asks);
+}
+
+/**
+ * (T54) WHAT A SECTION'S PAGE SAYS ABOUT ACCESS: paint's no-access rows and the `access` file's gentler ones (permit-only
+ * land, reserves, private land), worded by core (`accessNotice`). Null: nothing to say, or no tapped section (a water
+ * opened from search names no section, so no access is claimed for it).
+ */
+export async function sectionAccessNotice(loader: Pick<ReleaseLoader, "paint" | "access">,
+                                          section: SectionId): Promise<AccessNotice | null> {
+  const [paint, gentle] = await Promise.all([loader.paint(), loader.access()]);
+  return accessNotice([...paint.access.of(section), ...(gentle?.of(section) ?? [])]);
+}
+
+export function useAccessNotice(loader: Pick<ReleaseLoader, "paint" | "access"> | null,
+                                section: SectionId | null): Async<AccessNotice | null> {
+  const asks = !!loader && section !== null;
+  return useAsync(async () => (asks ? sectionAccessNotice(loader!, section!) : null),
+                  `access:${loader ? idOf(loader) : ""}:${asks ? section : ""}`, asks);
 }
 
 /**

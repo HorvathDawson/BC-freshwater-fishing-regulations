@@ -21,6 +21,7 @@
  * two bundles from one atlas and two reach runs share handles and differ in rules, and the
  * decoder refuses an index whose reach digest is not the bundle's when the caller holds one.
  */
+import type { SectionAccess } from "./access";
 import { CALENDAR_DAYS, readingDay } from "./calendar.generated";
 import type { SectionKey } from "./section";
 
@@ -69,6 +70,12 @@ export interface StatusIndex {
   profileCodeOn(profile: number, on: Date): StatusCode;
   /** The code for one water (`item_id`) on a day — its parts rolled up. Absent → base. */
   waterCodeOn(item: string, on: Date): StatusCode;
+  /**
+   * (T54) The release's section access, decoded from the SAME paint as this index (`decodePaint`), so the map's fourth
+   * colour arrives with the day's status and from nothing else. Absent: the file came alone (the dev path's
+   * `status_index.bin`), and nothing is drawn as no access. Never read for a regulation answer (`statusOn`).
+   */
+  readonly access?: SectionAccess | null;
 }
 
 export class StatusIndexError extends Error {}

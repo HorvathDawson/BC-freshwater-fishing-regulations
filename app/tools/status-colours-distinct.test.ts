@@ -45,13 +45,19 @@ const de = <T>(x: T): T => JSON.parse(JSON.stringify(x).replace(/~/g, "#")) as T
 
 type Theme = "light" | "dark" | "cvd";
 const THEMES: Theme[] = ["light", "dark", "cvd"];
-const STATUSES = ["closed", "own", "base", "restricted", "open"] as const;
+const STATUSES = ["closed", "own", "base", "restricted", "open", "no_access"] as const;
 type Status = (typeof STATUSES)[number];
 /** The statuses the map draws as LINES (water, and the permit hatch). Open is a dot and a card word, never a line. */
-const LINES: readonly Status[] = ["closed", "own", "base", "restricted"];
+const LINES: readonly Status[] = ["closed", "own", "base", "restricted", "no_access"];
 /** The water pairs besides the owner's (closed / own has its own floors, above). */
 const WATER: readonly [Status, Status][] = [["closed", "base"], ["own", "base"]];
 const PERMIT: readonly [Status, Status][] = [["restricted", "closed"], ["restricted", "own"], ["restricted", "base"]];
+/**
+ * (T54) NO PUBLIC ACCESS, the fourth map colour: a section mostly inside no-access land, drawn as a line or a lake fill
+ * beside the three water statuses (and over the closed crimson of the no-access area's own hatch), so it is held to them
+ * as tokens, thin lines, lake fills and over satellite; and against the permit hatch as tokens, lines and satellite.
+ */
+const ACCESS: readonly [Status, Status][] = [["no_access", "closed"], ["no_access", "own"], ["no_access", "base"]];
 /**
  * The temperature dots, every pair of bands. Own, base and restricted are never beside them (the temperature view draws no
  * status water and no permit hatch): warm is held off those only to one meaning per colour.
@@ -98,17 +104,23 @@ const FLOOR: Record<Theme, Record<string, number>> = {
            waterToken: 45.5, waterLine: 35, waterLake: 35, waterSat: 35,
            permitToken: 22, permitLine: 16, permitSat: 15,
            temperature: 27.5,
-           boundaryToken: 20, boundaryLine: 13 },
+           boundaryToken: 20, boundaryLine: 13,
+           accessToken: 23, accessLine: 20.5, accessLake: 21, accessSat: 15.5,
+           accessPermitToken: 19, accessPermitLine: 11, accessPermitSat: 13, accessBoundaryToken: 20, accessBoundaryLine: 13 },
   dark:  { ownerToken: 21.5, ownerLine: 21, ownerLake: 22, ownerSat: 18.5,
            waterToken: 29.5, waterLine: 19, waterLake: 23.5, waterSat: 18,
            permitToken: 15, permitLine: 13.5, permitSat: 10.5,
            temperature: 15,
-           boundaryToken: 15, boundaryLine: 15.5 },
+           boundaryToken: 15, boundaryLine: 15.5,
+           accessToken: 15.5, accessLine: 12.5, accessLake: 16.5, accessSat: 11.5,
+           accessPermitToken: 23.5, accessPermitLine: 15.5, accessPermitSat: 14, accessBoundaryToken: 15, accessBoundaryLine: 15.5 },
   cvd:   { ownerToken: 29, ownerLine: 21, ownerLake: 29.5, ownerSat: 17.5,
            waterToken: 49, waterLine: 34, waterLake: 47, waterSat: 33.5,
            permitToken: 23, permitLine: 17.5, permitSat: 16,
            temperature: 25,
-           boundaryToken: 20, boundaryLine: 12.5 },
+           boundaryToken: 20, boundaryLine: 12.5,
+           accessToken: 23, accessLine: 14.5, accessLake: 23.5, accessSat: 14,
+           accessPermitToken: 15.5, accessPermitLine: 10.5, accessPermitSat: 9, accessBoundaryToken: 15.5, accessBoundaryLine: 3 },
 };
 
 /** The reasons, once each (T47 part 2, T83 Q16: lift where cheap, else a recorded exception). */
@@ -128,16 +140,34 @@ const WHY = {
                 "ink rules on or off); the boundary is told apart by dash and width, and is drawn under the water (T83)",
   boundaryLine: "a 3 px grey edge and a 0.6-coverage status line both wash toward a pale ground; a boundary is told apart " +
                 "by dash and width, and since T83 it is drawn UNDER the water lines, so where they cross the status wins",
+  accessPermit: "no public access against the permit hatch (T54): the fourth colour was searched against the three water " +
+                "statuses first (the pairs it is drawn beside); the hatch is thin strokes laid over AREAS, never over the " +
+                "no-access land a no-access stream runs through (that land is hatched in closed crimson)",
+  darkAccess: "dark no public access against the rose closed, 15.7 as tokens and 12.7 as a thin line (T54): a status must " +
+              "hold 3:1 on the dark card and the dark base is already a deep blue, so the fourth hue is a warm ochre, and no " +
+              "colour that clears those reaches 20 from closed (search over the sRGB cube, step 4: best 12.8 as a line)",
+  cvdAccess: "colour-blind no public access, a greyed mauve (T54): every blue sat under 20 from the plum restricted in " +
+             "normal vision, every violet under 11 from closed or base as a line, and the mauve, the searched best against " +
+             "the three water statuses (15.0 as a line), is a neutral the grey boundary sits on (15.9 tokens, 3.1 lines); " +
+             "the boundary is dashed, wider and drawn under the water, so where they cross the status wins",
 } as const;
 /** Every floor under 20, by theme and key, and why. Whole: a floor newly under 20, or one lifted past it, fails. */
 const UNDER_20: Record<string, string> = {
   "light ownerSat": WHY.satellite, "light permitLine": WHY.permit, "light permitSat": WHY.permit,
   "light boundaryLine": WHY.boundaryLine,
+  "light accessSat": WHY.satellite, "light accessPermitToken": WHY.accessPermit, "light accessPermitLine": WHY.accessPermit,
+  "light accessPermitSat": WHY.accessPermit, "light accessBoundaryLine": WHY.boundaryLine,
   "dark ownerSat": WHY.satellite, "dark waterLine": WHY.darkBase, "dark waterSat": WHY.satellite,
   "dark permitToken": WHY.permit, "dark permitLine": WHY.permit, "dark permitSat": WHY.permit,
   "dark temperature": WHY.darkWarm, "dark boundaryToken": WHY.darkBoundary, "dark boundaryLine": WHY.darkBoundary,
+  "dark accessToken": WHY.darkAccess, "dark accessLine": WHY.darkAccess, "dark accessLake": WHY.darkAccess,
+  "dark accessSat": WHY.satellite, "dark accessPermitLine": WHY.accessPermit, "dark accessPermitSat": WHY.accessPermit,
+  "dark accessBoundaryToken": WHY.darkBoundary, "dark accessBoundaryLine": WHY.darkBoundary,
   "cvd ownerSat": WHY.satellite, "cvd permitLine": WHY.permit, "cvd permitSat": WHY.permit,
   "cvd boundaryLine": WHY.boundaryLine,
+  "cvd accessLine": WHY.cvdAccess, "cvd accessSat": WHY.satellite, "cvd accessPermitToken": WHY.accessPermit,
+  "cvd accessPermitLine": WHY.accessPermit, "cvd accessPermitSat": WHY.accessPermit,
+  "cvd accessBoundaryToken": WHY.cvdAccess, "cvd accessBoundaryLine": WHY.cvdAccess,
 };
 /** One meaning per colour: every two statuses, adjacent or not, and every status against body ink, in normal vision. */
 const MEANING_FLOOR = 20;
@@ -176,6 +206,8 @@ function failures(th: Theme, t: Record<string, unknown>): string[] {
     if (lake) hold(`${name(a, b)} as lake fills`, drawn(colour(a), colour(b), [LAKE_GROUND[th]], lakeA, lakeA), f[`${k}Lake`]!);
   };
   asDrawn("closed", "own", "owner", true);
+  for (const [a, b] of ACCESS) asDrawn(a, b, "access", true);
+  asDrawn("no_access", "restricted", "accessPermit", false);
   for (const [a, b] of WATER) asDrawn(a, b, "water", true);
   for (const [a, b] of PERMIT) asDrawn(a, b, "permit", false);
   const dot = (b: TempBand) => t[TEMP_BAND_TOKEN[b]] as string;
@@ -190,8 +222,9 @@ function failures(th: Theme, t: Record<string, unknown>): string[] {
   for (const edge of ["color.region.edge", "color.mu.edge"])
     for (const s of STATUSES) {
       const [e, c] = [t[edge] as string, colour(s)];
-      hold(`${edge} ${e} vs ${s} ${c} as tokens`, worst(e, c), f.boundaryToken!);
-      if (LINES.includes(s)) hold(`${edge} vs ${s} as lines`, drawn(e, c, GROUND[th], EDGE, LINE), f.boundaryLine!);
+      const [bt, bl] = s === "no_access" ? [f.accessBoundaryToken!, f.accessBoundaryLine!] : [f.boundaryToken!, f.boundaryLine!];
+      hold(`${edge} ${e} vs ${s} ${c} as tokens`, worst(e, c), bt);
+      if (LINES.includes(s)) hold(`${edge} vs ${s} as lines`, drawn(e, c, GROUND[th], EDGE, LINE), bl);
     }
   for (let i = 0; i < STATUSES.length; i++)
     for (let j = i + 1; j < STATUSES.length; j++) {

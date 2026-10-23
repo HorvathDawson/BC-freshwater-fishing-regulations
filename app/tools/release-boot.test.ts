@@ -198,8 +198,8 @@ describe("native: always offline, updated by diff, swapped at the next launch", 
 
     const first = await boot(releaseFetch(BASE, r1.dir, log));
     expect(stages).toEqual(["manifest", "install", "paint"]);
-    expect(progress).toEqual(["conditions 1/5", "core 2/5", "flow-area 3/5", "near 4/5", "paint 5/5"]);
-    expect(log.length).toBe(6);                                       // the manifest + every file, once
+    expect(progress).toEqual(["access 1/6", "conditions 2/6", "core 3/6", "flow-area 4/6", "near 5/6", "paint 6/6"]);
+    expect(log.length).toBe(7);                                       // the manifest + every file, once
     expect(first.held.release).toBe(first.manifest.data_release);
     expect(await first.update).toBeNull();
 

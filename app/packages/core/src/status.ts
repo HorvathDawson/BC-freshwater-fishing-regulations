@@ -34,18 +34,27 @@
  * not-integrated flag) was removed on 2026-10-03 — two definitions of "own" is the AGENTS 23
  * failure waiting to happen.
  */
+import { ACCESS_WORDS, noPublicAccess } from "./access";
 import type { SectionKey } from "./section";
 import type { StatusCode, StatusIndex } from "./statusIndex";
 
-export type WaterStatus = "closed" | "own" | "base";
+/**
+ * THE MAP'S FOUR COLOURS. Three are a REGULATION answer (closed / own / base, the status index's); the fourth,
+ * `no_access` (T54), is an ACCESS answer laid over them on the regulations map only: a section MOSTLY inside land the
+ * public may not enter (`access.ts`, `noPublicAccess`). The index never says `no_access`, and neither does a water's
+ * rollup (`waterStatusOn`, a search row): access is not regulation, and the section's page still answers its
+ * regulations, under a banner.
+ */
+export type WaterStatus = "closed" | "own" | "base" | "no_access";
 
-export const WATER_STATUSES: readonly WaterStatus[] = ["closed", "own", "base"];
+export const WATER_STATUSES: readonly WaterStatus[] = ["closed", "own", "base", "no_access"];
 
 /** What each status is called, and the map token that paints it. */
 export const WATER_STATUS: Readonly<Record<WaterStatus, { label: string; token: string }>> = {
   closed: { label: "Closed", token: "color.status.closed" },
   own: { label: "Has its own regulations", token: "color.status.own" },
   base: { label: "Base regulations only", token: "color.status.base" },
+  no_access: { label: ACCESS_WORDS.legend, token: "color.status.no_access" },
 };
 
 /** The file's code as a status: `tidal` and `outside` are not one, so they read null. */
@@ -78,9 +87,18 @@ export function statusOn(index: StatusIndex | null | undefined, section: Section
 
 /** The label of a section the index does not list — base every day, so it sits in every day's `base` set. */
 export const UNLISTED_PROFILE = "b";
+/**
+ * The label of a section MOSTLY inside no-access land (T54, `noPublicAccess`): `no_access` every day, whatever its
+ * regulations say — the fourth colour is drawn over every regulation answer, and the page carries the answer.
+ */
+export const NO_ACCESS_PROFILE = "n";
 
-/** A section's profile label: `p<n>` for the profile it reads, `UNLISTED_PROFILE` for one the index does not list. */
+/**
+ * A section's profile label: `NO_ACCESS_PROFILE` for one mostly inside no-access land (the index's `access`, decoded
+ * from the same paint), else `p<n>` for the profile it reads, `UNLISTED_PROFILE` for one the index does not list.
+ */
 export function profileLabel(index: StatusIndex, section: SectionKey): string {
+  if (noPublicAccess(index.access, section)) return NO_ACCESS_PROFILE;
   const p = index.profileOf(section);
   return p === null ? UNLISTED_PROFILE : `p${p}`;
 }
@@ -94,10 +112,21 @@ export type DayProfiles = Readonly<Record<WaterStatus | "none", readonly string[
  * A label in no set (no state yet, or one from another release) is in none of them, and the map paints it "not asked".
  */
 export function dayProfiles(index: StatusIndex, on: Date): DayProfiles {
-  const out: Record<WaterStatus | "none", string[]> = { closed: [], own: [], base: [UNLISTED_PROFILE], none: [] };
+  const out: Record<WaterStatus | "none", string[]> =
+    { closed: [], own: [], base: [UNLISTED_PROFILE], no_access: [NO_ACCESS_PROFILE], none: [] };
   for (let p = 0; p < index.profiles; p++)
     out[statusOfCode(index.profileCodeOn(p, on)) ?? "none"].push(`p${p}`);
   return out;
+}
+
+/**
+ * WHAT THE MAP DRAWS a section in on a day: `no_access` for one mostly inside no-access land, else its status. The
+ * pushed-data map (`statusData`, a renderer with no per-tile event) reads this; the per-tile map reads the same answer
+ * through `profileLabel` + `dayProfiles`, so the two cannot disagree. Null when there is no index (not asked).
+ */
+export function mapStatusOn(index: StatusIndex | null | undefined, section: SectionKey, on: Date): WaterStatus | null {
+  if (!index) return null;
+  return noPublicAccess(index.access, section) ? "no_access" : statusOn(index, section, on);
 }
 
 /**

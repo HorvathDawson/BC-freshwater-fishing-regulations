@@ -20,6 +20,7 @@ export * from "./section";
 export * from "./regulations";
 export * from "./status";
 export * from "./statusIndex";
+export * from "./access";
 export * from "./lakeFacts";
 export * from "./paint";
 export * from "./search";

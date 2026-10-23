@@ -1017,6 +1017,9 @@
             },
             "base": {
               "token": "color.status.base"
+            },
+            "no_access": {
+              "token": "color.status.no_access"
             }
           },
           "missing": {
@@ -1042,6 +1045,9 @@
             },
             "base": {
               "token": "color.status.base"
+            },
+            "no_access": {
+              "token": "color.status.no_access"
             }
           },
           "missing": {
@@ -1210,6 +1216,9 @@
             },
             "base": {
               "token": "color.status.base"
+            },
+            "no_access": {
+              "token": "color.status.no_access"
             }
           },
           "missing": {
@@ -1235,6 +1244,9 @@
             },
             "base": {
               "token": "color.status.base"
+            },
+            "no_access": {
+              "token": "color.status.no_access"
             }
           },
           "missing": {
@@ -1453,6 +1465,9 @@
             },
             "base": {
               "token": "color.status.base"
+            },
+            "no_access": {
+              "token": "color.status.no_access"
             }
           },
           "missing": {
@@ -1478,6 +1493,9 @@
             },
             "base": {
               "token": "color.status.base"
+            },
+            "no_access": {
+              "token": "color.status.no_access"
             }
           },
           "missing": {
@@ -1816,6 +1834,9 @@
             },
             "base": {
               "token": "color.status.base"
+            },
+            "no_access": {
+              "token": "color.status.no_access"
             }
           },
           "missing": {
@@ -1841,6 +1862,9 @@
             },
             "base": {
               "token": "color.status.base"
+            },
+            "no_access": {
+              "token": "color.status.no_access"
             }
           },
           "missing": {

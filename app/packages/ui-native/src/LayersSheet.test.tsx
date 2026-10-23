@@ -120,9 +120,9 @@ describe("the Layers sheet, mounted", () => {
       "Stocked and Depth have no data yet. They turn on by themselves when a release carries their values.");
   });
 
-  it("the legend sits under the chosen colouring: the day's three statuses", () => {
+  it("the legend sits under the chosen colouring: the day's three statuses and (T54) no public access", () => {
     render(<Wired facts={NONE} out={{}} />);
-    expect(text("water-legend")).toBe("ClosedHas its own regulationsBase regulations only");
+    expect(text("water-legend")).toBe("ClosedHas its own regulationsBase regulations onlyNo public access");
   });
 
   it("no lake values: pressing a greyed tile or a coming-soon switch changes nothing", () => {

@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { FIXTURE as fixture } from "./statusIndex.fixture";
-import { dayProfiles, profileLabel, statusOfCode, statusOn, UNLISTED_PROFILE, waterStatusOn } from "./status";
+import { accessOf } from "./access";
+import { dayProfiles, mapStatusOn, NO_ACCESS_PROFILE, profileLabel, statusOfCode, statusOn, UNLISTED_PROFILE,
+         waterStatusOn } from "./status";
 import { dayOfYear, decodeStatusIndex, StatusIndexError, type StatusIndex } from "./statusIndex";
 import { CALENDAR_CASES, weekdayOf } from "./calendar.generated";
 
@@ -181,11 +183,28 @@ describe("profile labels and the day's label sets", () => {
 
   it("splits the profiles by day, whole — a season over New Year, Feb 28's closure, outside B.C.", () => {
     expect(dayProfiles(ix, new Date(2026, 0, 1)))
-      .toEqual({ closed: ["p1"], own: ["p2"], base: ["b", "p0"], none: ["p3"] });
+      .toEqual({ closed: ["p1"], own: ["p2"], base: ["b", "p0"], no_access: ["n"], none: ["p3"] });
     expect(dayProfiles(ix, new Date(2025, 6, 15)))
-      .toEqual({ closed: [], own: ["p1", "p2"], base: ["b", "p0"], none: ["p3"] });
+      .toEqual({ closed: [], own: ["p1", "p2"], base: ["b", "p0"], no_access: ["n"], none: ["p3"] });
     expect(dayProfiles(ix, new Date(2024, 1, 29)))
-      .toEqual({ closed: ["p0", "p1"], own: ["p2"], base: ["b"], none: ["p3"] });
+      .toEqual({ closed: ["p0", "p1"], own: ["p2"], base: ["b"], no_access: ["n"], none: ["p3"] });
+  });
+
+  it("(T54) a section MOSTLY inside no-access land wears the no-access label every day; the regulation answer does not move", () => {
+    const access = accessOf([{ tier: "no_access", name: "Coquitlam Watershed" }, { tier: "private", name: "" }],
+                            [3, 5, 6, 7], [0, 0, 1, 0], [1000, 500, 1000, 501]);
+    const withAccess: StatusIndex = Object.assign(Object.create(Object.getPrototypeOf(ix)) as StatusIndex, ix, { access });
+    // 3 (closed Dec-Mar, wholly inside): the fourth colour; 5 (own, exactly half inside): its own; 6 (private): base
+    expect([3, 5, 6, 7, 4].map((s) => profileLabel(withAccess, s))).toEqual(["n", "p2", "b", "n", "p1"]);
+    const sets = dayProfiles(withAccess, new Date(2026, 0, 1));
+    expect(sets.no_access).toEqual([NO_ACCESS_PROFILE]);
+    // what the pushed-data map draws is the same answer; the regulation answer (`statusOn`) is untouched
+    expect([3, 5, 6, 7].map((s) => mapStatusOn(withAccess, s, new Date(2026, 0, 1))))
+      .toEqual(["no_access", "own", "base", "no_access"]);
+    expect([3, 7].map((s) => statusOn(withAccess, s, new Date(2026, 0, 1)))).toEqual(["closed", "base"]);
+    // no access table (the dev path): nothing is no access
+    expect(mapStatusOn(ix, 3, new Date(2026, 0, 1))).toBe("closed");
+    expect(mapStatusOn(null, 3, new Date())).toBeNull();
   });
 
   it("refuses a profile the file does not have rather than reading past its tables", () => {

@@ -9,14 +9,15 @@
  *
  * Every SQLite file is checked on open: its meta.format is the manifest's and its meta.section_handles the release's.
  */
-import { decodeLakeFacts, decodePaint, decodeFlowArea, type LakeFacts, type Paint } from "@app/core";
+import { decodeAccessFile, decodeLakeFacts, decodePaint, decodeFlowArea, type LakeFacts, type Paint,
+         type SectionAccess } from "@app/core";
 import type { Db } from "../bundle/db";
 import type { Manifest } from "../manifest";
 import { type Region } from "../pack.generated";
 
-export type FileName = "paint" | "flow-area" | "lakes" | "core" | "near" | "water" | `regs-${Region}` | "regs-sid"
+export type FileName = "paint" | "flow-area" | "lakes" | "access" | "core" | "near" | "water" | `regs-${Region}` | "regs-sid"
   | "conditions";
-export type DbName = Exclude<FileName, "paint" | "flow-area" | "lakes">;
+export type DbName = Exclude<FileName, "paint" | "flow-area" | "lakes" | "access">;
 
 export interface ReleaseSource {
   /** The RAW (decoded, verified) bytes of a release file. */
@@ -41,6 +42,11 @@ export interface ReleaseLoader {
   flowArea(): Promise<Float64Array>;
   /** The lake modes' values (`lakes`), checked against the release's handles; null when the manifest names none. */
   lakes(): Promise<LakeFacts | null>;
+  /**
+   * (T54) The gentler access tiers (`access`: permit-only land, reserves, private land), checked against the release's
+   * handles; null when the manifest names none. Opened with a Regulations page; the no-access rows are paint's.
+   */
+  access(): Promise<SectionAccess | null>;
   /** The regions an answer key's frames are in (water.akey_region; loaded with water). */
   regionsOf(akey: number): Promise<Region[]>;
   /** The region file holding an akey's frames (the first of its regions; every one of them holds them). */
@@ -55,6 +61,7 @@ export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener):
   const order: FileName[] = [];
   let paint: Promise<Paint> | null = null, area: Promise<Float64Array> | null = null;
   let lakes: Promise<LakeFacts | null> | null = null;
+  let access: Promise<SectionAccess | null> | null = null;
   let regions: Promise<Map<number, Region[]>> | null = null;
   const touch = (n: FileName) => { if (!order.includes(n)) order.push(n); };
 
@@ -106,6 +113,15 @@ export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener):
         lakes.catch(() => { lakes = null; });
       }
       return lakes;
+    },
+    access() {
+      if (!access) {
+        if (!m.files.access) return Promise.resolve(null);
+        touch("access");
+        access = source.bytes("access").then((b) => decodeAccessFile(b, handles));
+        access.catch(() => { access = null; });
+      }
+      return access;
     },
     async regionsOf(akey) {
       if (!regions) {

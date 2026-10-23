@@ -14,8 +14,8 @@ import { NO_VALUES, STYLE_META, colorExpression, resolveTheme, themeNames, type 
   from "../packages/map/src/style";
 import { runtimeStyle } from "../packages/map/src/runtime-style";
 
-const DAY: DayProfiles = { closed: ["p1"], own: ["p2", "p7"], base: ["b", "p0"], none: ["p3"] };
-const NO_CLOSURES: DayProfiles = { closed: [], own: ["p2"], base: ["b", "p0", "p1"], none: [] };
+const DAY: DayProfiles = { closed: ["p1"], own: ["p2", "p7"], base: ["b", "p0"], no_access: ["n"], none: ["p3"] };
+const NO_CLOSURES: DayProfiles = { closed: [], own: ["p2"], base: ["b", "p0", "p1"], no_access: ["n"], none: [] };
 /** The channel values with only a day installed. */
 const day = (d: DayProfiles): ChannelValues => ({ ...NO_VALUES, status: d });
 
@@ -26,6 +26,7 @@ const expected = (theme: string, d: DayProfiles): unknown[] => {
   if (d.closed.length) out.push([...d.closed], t["color.status.closed"]);
   if (d.own.length) out.push([...d.own], t["color.status.own"]);
   if (d.base.length) out.push([...d.base], t["color.status.base"]);
+  if (d.no_access.length) out.push([...d.no_access], t["color.status.no_access"]);
   out.push(t["color.water.unmapped"]);
   return out;
 };
@@ -38,11 +39,11 @@ describe("the profile colour mode", () => {
       expect(JSON.stringify({ ...STYLE_META.colorModes[id]!["profile"], $comment: undefined }), id).toBe(JSON.stringify({
         label: "Status for the date", scale: "profile", property: "p", enum: "water_status",
         categories: { closed: { token: "color.status.closed" }, own: { token: "color.status.own" },
-                      base: { token: "color.status.base" } },
+                      base: { token: "color.status.base" }, no_access: { token: "color.status.no_access" } },
         missing: { token: "color.water.unmapped" }, data: { provider: "status", field: "profile" } }));
   });
 
-  it("paints the day as one match over its labels — closed, own, base; anything unplaced is unmapped grey", () => {
+  it("paints the day as one match over its labels — closed, own, base, no access (T54); anything unplaced is unmapped grey", () => {
     for (const theme of themeNames())
       for (const layer of ["stream", "stream__arrows", "lake", "lake__edge", "lake_flowing", "wetland_flowing"]) {
         expect(colorExpression(layer, "profile", resolveTheme(theme), day(DAY)), `${theme} ${layer}`)
@@ -53,7 +54,8 @@ describe("the profile colour mode", () => {
     const t = resolveTheme("light");
     expect(colorExpression("stream", "profile", t, day(DAY))).toEqual(
       ["match", ["coalesce", ["feature-state", "p"], ""], ["p1"], t["color.status.closed"],
-       ["p2", "p7"], t["color.status.own"], ["b", "p0"], t["color.status.base"], t["color.water.unmapped"]]);
+       ["p2", "p7"], t["color.status.own"], ["b", "p0"], t["color.status.base"], ["n"], t["color.status.no_access"],
+       t["color.water.unmapped"]]);
   });
 
   it("with no day installed paints exactly the plain mode — width, opacity, pattern and all", () => {

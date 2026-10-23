@@ -27,8 +27,8 @@ import { ScrollView, Text, View } from "react-native";
 import { dayRange, regsLapsedNote, WATER_BACK, WORDS, type RegsTarget } from "@app/core";
 import type { ItemId, RegsSource, SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
-import { mapDayOf, regsDay, useAnglerProfile, useDownstreamWater, useLayoutClass, useRegsPage, useRegsStore, useRegsTarget,
-         useRegulations, useWater, type RegsStart } from "@app/ui";
+import { mapDayOf, regsDay, useAccessNotice, useAnglerProfile, useDownstreamWater, useLayoutClass, useRegsPage, useRegsStore,
+         useRegsTarget, useRegulations, useWater, type RegsStart } from "@app/ui";
 import { FishSpinner } from "./FishSpinner";
 import { RegulationsPlaceholder } from "./RegulationsPlaceholder";
 import { ViewSwipe, WaterViewsContext } from "./ViewSwipe";
@@ -88,6 +88,8 @@ export function WaterScreen({ source, item, palette, onBack,
   const down = useDownstreamWater(source, item, section);
   const regs = useRegsPage(inputs.value ?? null, who, d.today, down.value?.name ?? null);
   const regsError = store.error ?? found.error ?? inputs.error;
+  // (T54) the tapped section's access: the no-access banner or the gentle note (none when opened with no section)
+  const access = useAccessNotice(loader, section);
   // (T45) how much room the window gives (the app shell's width; never read here): the page arranges itself for it
   const layout = useLayoutClass();
   // the sideways swipe between the water's views, anywhere on this one (see WaterViews: inside the ScrollView)
@@ -141,6 +143,9 @@ export function WaterScreen({ source, item, palette, onBack,
                   start={start} onStarted={onStarted} onPart={onPart}
                   // past the release's last day in force, the page leads with core's out-of-date sentence (none unstamped)
                   lapsed={regsLapsedNote(loader.manifest?.regulations?.valid_until, Date.now())}
+                  // (T54) the access notice; its link moves to the water's Map view, where the area is drawn
+                  access={access.value ?? null}
+                  onAccessMap={views ? () => views.onView("map") : undefined}
                   actions={{
                     onSheet: () => {},                                   // RegsScreen opens the sheet itself (T37 SheetHost)
                     onDay: (x) => onDay?.(mapDayOf(x, d.calendarYear)),

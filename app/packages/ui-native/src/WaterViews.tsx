@@ -14,13 +14,16 @@
  *   Map         the water framed and lit on the map (`usePickFocus`, the search's framing); the parts and their steps
  *               are P15's. The canvas pans, so here the swipe listens on the header only.
  */
+import { useContext } from "react";
 import { View } from "react-native";
 import type { ItemId, Parameter, RegsSource, SectionId } from "@app/data";
 import type { Horizon, PanelFeed } from "@app/ui";
 import type { TileEndpoints } from "@app/map";
-import { useRegsStore, useUnnamedName, useWater, useWaterName } from "@app/ui";
+import { useAccessNotice, useRegsStore, useUnnamedName, useWater, useWaterName } from "@app/ui";
 import type { ReleaseLoader } from "@app/data/release";
 import { ConditionsPanel } from "./ConditionsPanel";
+import { AccessNoticeBlock } from "./regs/AccessNoticeBlock";
+import { WaterViewsContext } from "./ViewSwipe";
 import { FishSpinner } from "./FishSpinner";
 import { type Palette } from "./theme";
 import { WaterFrame, WaterTitle } from "./WaterFrame";
@@ -57,6 +60,10 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, p
   const store = useRegsStore(item === null ? loader : null);
   const unnamed = useUnnamedName(store.value ?? null, item, tapSid);
   const name = (water.state === "ready" ? water.value?.name ?? null : null) ?? (unnamed.value ?? null);
+  // (T54) the TAPPED section's no-access banner only: the gentle note is the Regulations page's
+  const access = useAccessNotice(loader, tapSid);
+  const noAccess = access.value?.tier === "no_access" ? access.value : null;
+  const views = useContext(WaterViewsContext);
 
   return (
     <WaterFrame palette={palette} face="conditions" title={<WaterTitle name={name} palette={palette} />}>
@@ -67,10 +74,15 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, p
           </View>
         )
       ) : (
-        <ConditionsPanel source={source} section={section} palette={palette}
-                         tiles={tiles} theme={theme} feed={feed}
-                         parameter={parameter} onParameter={onParameter} from={from}
-                         credits={credits} horizon={horizon} onHorizon={onHorizon} />
+        <>
+          {/* (T54, owner Q2 default) the flow colour stays; a section in no-access land carries the banner here too */}
+          {noAccess && <AccessNoticeBlock notice={noAccess} palette={palette}
+                                          onMap={views ? () => views.onView("map") : undefined} />}
+          <ConditionsPanel source={source} section={section} palette={palette}
+                           tiles={tiles} theme={theme} feed={feed}
+                           parameter={parameter} onParameter={onParameter} from={from}
+                           credits={credits} horizon={horizon} onHorizon={onHorizon} />
+        </>
       )}
     </WaterFrame>
   );

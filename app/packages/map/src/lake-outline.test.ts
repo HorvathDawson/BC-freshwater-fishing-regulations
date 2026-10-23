@@ -42,6 +42,7 @@ function statusExpr(theme: string): unknown {
           "closed", t["color.status.closed"],
           "own", t["color.status.own"],
           "base", t["color.status.base"],
+          "no_access", t["color.status.no_access"],              // T54: a lake mostly inside no-access land
           t["color.water.unmapped"]];
 }
 

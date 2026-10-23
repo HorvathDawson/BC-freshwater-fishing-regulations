@@ -25,7 +25,7 @@ describe("the Map tab's legend strip", () => {
     strip("regulations", true);
     const el = screen.getByTestId("legend-strip");
     expect([el.style.flexWrap, el.style.flexDirection, el.textContent])
-      .toEqual(["wrap", "row", "ClosedHas its own regulationsBase regulations only"]);
+      .toEqual(["wrap", "row", "ClosedHas its own regulationsBase regulations onlyNo public access"]);
   });
 
   it("MUTATION PIN: without `wrap` it is the old one-line scroller (so the Shell must ask for it)", () => {

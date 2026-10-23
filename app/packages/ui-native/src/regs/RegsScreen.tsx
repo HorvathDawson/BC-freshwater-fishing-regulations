@@ -19,7 +19,8 @@
  */
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { AccessibilityInfo, Platform, ScrollView, Text, View } from "react-native";
-import { creditsFor, parseSheetKey, tabScrollY, WORDS, type RegsPage, type SheetKey, type Tab } from "@app/core";
+import { creditsFor, parseSheetKey, tabScrollY, WORDS, type AccessNotice, type RegsPage, type SheetKey, type Tab } from "@app/core";
+import { AccessNoticeBlock } from "./AccessNoticeBlock";
 import { Credits } from "../Credits";
 import { FreshDot } from "../menu/Fresh";
 import { WaterInset } from "../WaterFrame";
@@ -94,11 +95,18 @@ export interface RegsScreenProps {
    * in the scroll with the out-of-date dot (`FreshDot`, the Data block's). Null/absent: in force, or no stamp — nothing.
    */
   lapsed?: string | null;
+  /**
+   * (T54) The section's access notice (core `accessNotice`, through `@app/ui` `useAccessNotice`): the no-access banner or
+   * the gentle note, drawn first in the scroll after the lapsed line. Null/absent: nothing to say.
+   */
+  access?: AccessNotice | null;
+  /** (T54) the notice's link: show the area on the water's map. Absent → no link. */
+  onAccessMap?: () => void;
 }
 
 export function RegsScreen({ page, palette, images, adipose, actions, onDate, onParts, onPart,
                              gear, methods, licence, footer, store: injected, layout = "phone", start = null, onStarted,
-                             lapsed = null }: RegsScreenProps) {
+                             lapsed = null, access = null, onAccessMap }: RegsScreenProps) {
   const store = useMemo(() => injected ?? createPinStore(), [injected]);
   const scroll = useRef<ScrollView>(null);
   const content = useRef<View>(null);
@@ -173,6 +181,7 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
           <Text accessibilityRole="alert" style={{ ...TYPE.metaBold, color: palette.ink, flex: 1 }}>{lapsed}</Text>
         </WaterInset>
       )}
+      {access && <AccessNoticeBlock notice={access} palette={palette} onMap={onAccessMap} />}
       <AnchorContext.Provider value={sink}>
         <KeepTab keep={page.keep} dateLabel={page.header.date} palette={palette} actions={keepActions} images={images} />
       </AnchorContext.Provider>

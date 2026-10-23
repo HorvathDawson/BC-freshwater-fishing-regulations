@@ -570,6 +570,9 @@
           },
           "base": {
             "token": "color.status.base"
+          },
+          "no_access": {
+            "token": "color.status.no_access"
           }
         },
         "missing": {
@@ -595,6 +598,9 @@
           },
           "base": {
             "token": "color.status.base"
+          },
+          "no_access": {
+            "token": "color.status.no_access"
           }
         },
         "missing": {
@@ -747,6 +753,9 @@
           },
           "base": {
             "token": "color.status.base"
+          },
+          "no_access": {
+            "token": "color.status.no_access"
           }
         },
         "missing": {
@@ -772,6 +781,9 @@
           },
           "base": {
             "token": "color.status.base"
+          },
+          "no_access": {
+            "token": "color.status.no_access"
           }
         },
         "missing": {
@@ -869,6 +881,9 @@
           },
           "base": {
             "token": "color.status.base"
+          },
+          "no_access": {
+            "token": "color.status.no_access"
           }
         },
         "missing": {
@@ -894,6 +909,9 @@
           },
           "base": {
             "token": "color.status.base"
+          },
+          "no_access": {
+            "token": "color.status.no_access"
           }
         },
         "missing": {
@@ -1027,6 +1045,9 @@
           },
           "base": {
             "token": "color.status.base"
+          },
+          "no_access": {
+            "token": "color.status.no_access"
           }
         },
         "missing": {
@@ -1052,6 +1073,9 @@
           },
           "base": {
             "token": "color.status.base"
+          },
+          "no_access": {
+            "token": "color.status.no_access"
           }
         },
         "missing": {
@@ -1324,6 +1348,9 @@
           },
           "base": {
             "token": "color.status.base"
+          },
+          "no_access": {
+            "token": "color.status.no_access"
           }
         },
         "missing": {
@@ -1349,6 +1376,9 @@
           },
           "base": {
             "token": "color.status.base"
+          },
+          "no_access": {
+            "token": "color.status.no_access"
           }
         },
         "missing": {
@@ -1554,6 +1584,9 @@
           },
           "base": {
             "token": "color.status.base"
+          },
+          "no_access": {
+            "token": "color.status.no_access"
           }
         },
         "missing": {
@@ -1579,6 +1612,9 @@
           },
           "base": {
             "token": "color.status.base"
+          },
+          "no_access": {
+            "token": "color.status.no_access"
           }
         },
         "missing": {
@@ -2069,6 +2105,7 @@
       "color.status.closed": "#8F0006",
       "color.status.own": "#D08404",
       "color.status.base": "#3695D8",
+      "color.status.no_access": "#705864",
       "width.stream.base": 1,
       "width.stream.highlight": 3.2,
       "width.stream.water": 2.4,
@@ -2179,6 +2216,7 @@
       "color.status.closed": "#FF3B6D",
       "color.status.own": "#FFD307",
       "color.status.base": "#0368EB",
+      "color.status.no_access": "#985400",
       "color.water.route": "#3F5C6B",
       "color.lake.fill": "#205579",
       "color.lake.edge": "#6FA8C4",
@@ -2281,6 +2319,7 @@
       "color.status.closed": "#8F0006",
       "color.status.own": "#D08404",
       "color.status.base": "#608AE5",
+      "color.status.no_access": "#2A00E0",
       "width.stream.base": 1,
       "width.stream.highlight": 3.2,
       "width.stream.water": 2.4,
@@ -2415,6 +2454,11 @@
       "type": "color",
       "themeable": true,
       "$comment": "ONLY THE BASE (REGIONAL) REGULATIONS APPLY — 97.6% of waters. Blue, so the status map still reads as water: Okabe & Ito's blue (light) and sky blue (dark). A token of its own rather than `water.unmapped` (a grey that says something about the ATLAS) or `water.mapped` (the plain map's water, which must not move when this does)."
+    },
+    "color.status.no_access": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "NO PUBLIC ACCESS (T54) — the FOURTH map colour, and not a regulation: a section MOSTLY inside land the public may not enter (the `no_access` layer's closed land: the Coquitlam, Seymour and Capilano watersheds, military ranges), drawn over whatever its regulations say, on the regulations map only (@app/core `access.ts`, `noPublicAccess`). Searched against every status as drawn (tokens, thin lines, lake fills, over satellite), the grounds, body ink, the missing grey, the highlight and the boundaries, for every reader (tools/status-colours-distinct.test.ts, tools/water-status-cvd.test.ts): an INDIGO in light, the one hue that clears closed / own / base by 20 for a dichromat (any warm, green or grey failed one of them); an OCHRE in dark, where the dark base is already a deep blue and a status must hold 3:1 on the dark card; a greyed MAUVE in the colour-blind theme, where every blue sat under 20 from its plum restricted for any reader and a slate under 12 from the town labels."
     },
     "color.flow.f1": {
       "type": "color",
@@ -2862,7 +2906,8 @@
     "water_status": [
       "closed",
       "own",
-      "base"
+      "base",
+      "no_access"
     ]
   }
 }

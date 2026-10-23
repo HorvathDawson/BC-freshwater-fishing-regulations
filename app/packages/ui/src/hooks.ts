@@ -4,7 +4,7 @@
  */
 import { useMemo, useState } from "react";
 import type { GaugeTrace, SectionKey, StatusIndex } from "@app/core";
-import { decodeStatusIndex, monthAbbr, statusOn } from "@app/core";
+import { decodeStatusIndex, mapStatusOn, monthAbbr } from "@app/core";
 import type {
   BundleCounts, GaugeFeed, ItemId, LakeInfo, NameHit,
   Parameter, PlaceHit, PlaceId, PointerHit, RegsSource, SectionId, Series, StationId, Water,
@@ -503,7 +503,8 @@ export function loadStatusIndex(url: string, handles: string | null,
  *
  * NO LONGER THE WEB MAP'S PATH (colour-latency AP): the Shell hands the map the index itself (`MapProps.status`) and the
  * map colours each tile as it arrives through the `profile` mode. Kept for a renderer with no per-tile event — how the
- * native map colours is open until N2 — and it reads the same `statusOn`, so the two cannot disagree.
+ * native map colours is open until N2 — and it reads `mapStatusOn` (the status, or T54's no access), the answer the
+ * per-tile labels give, so the two cannot disagree.
  *
  * EVERY visible section gets a value, base and none included — feature-state is sticky, so a
  * section that was closed yesterday and is base today must be told so, not left red. A
@@ -514,7 +515,7 @@ export function loadStatusIndex(url: string, handles: string | null,
 export function statusData(index: StatusIndex | null, visible: readonly SectionKey[],
                            on: Date): Record<string, Record<string, Record<string, unknown>>> {
   const values: Record<string, Record<string, unknown>> = {};
-  for (const s of visible) values[String(s)] = { status: statusOn(index, s, on) };
+  for (const s of visible) values[String(s)] = { status: mapStatusOn(index, s, on) };
   // and on the wetland source-layer, for a slough drawn as a wetland (`wetland_flowing`)
   return { stream: values, lake: values, wetland: values };
 }

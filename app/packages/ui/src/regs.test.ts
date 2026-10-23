@@ -5,7 +5,9 @@
 import { describe, expect, it } from "vitest";
 import { loadRegsInputs, RegsStoreError, targetFor, type RegsLoader } from "@app/data/regs";
 import { openRegsFixture } from "@app/data/release/node";
-import { DEFAULT_WHO, loadRegsStore, mapDayOf, regsDay, regsStoreKey, regsTargetKey } from "./regs";
+import { accessOf, type Paint } from "@app/core";
+import type { SectionId } from "@app/data";
+import { DEFAULT_WHO, loadRegsStore, mapDayOf, regsDay, regsStoreKey, regsTargetKey, sectionAccessNotice } from "./regs";
 
 /** The fixture loader, counting how often the store asks it for water (once per `openRegsStore`). */
 function counted(base: RegsLoader = openRegsFixture(), fail = 0): { loader: RegsLoader; water: () => number } {
@@ -105,5 +107,27 @@ describe("the T09 functions", () => {
     expect(t).toEqual({ kind: "part", item: "gnis:3062", partIx: 0 });
     const inp = await loadRegsInputs(st, t, { month: 6, day: 15 }, "Monday", 2026);
     expect([inp.target, inp.item?.name]).toEqual([t, "Vedder River"]);
+  });
+});
+
+describe("(T54) a section's access notice: paint's no-access rows and the access file's gentler ones", () => {
+  const COQ = { tier: "no_access", name: "Coquitlam Watershed" } as const;
+  const PRIV = { tier: "private", name: "" } as const;
+  const loader = (gentle: boolean) => ({
+    paint: async () => ({ access: accessOf([COQ], [7], [0], [1000]) }) as unknown as Paint,
+    access: async () => (gentle ? accessOf([PRIV], [7, 8], [0, 0], [1000, 300]) : null),
+  });
+
+  it("no access wins on a section holding both; a section with only private land gets the gentle note", async () => {
+    expect(await sectionAccessNotice(loader(true), 7 as SectionId)).toEqual({
+      tier: "no_access", link: "Show area on map",
+      text: "No public access: this section is inside Coquitlam Watershed. The regulations below are the Province's, "
+          + "but you may not enter this area to fish." });
+    expect(await sectionAccessNotice(loader(true), 8 as SectionId)).toEqual({
+      tier: "restricted", link: "See the map",
+      text: "Access may be restricted here: this section crosses private land. See the map." });
+    // a release with no access file: the no-access rows still speak, the gentle ones are silent
+    expect((await sectionAccessNotice(loader(false), 7 as SectionId))?.tier).toBe("no_access");
+    expect(await sectionAccessNotice(loader(false), 8 as SectionId)).toBeNull();
   });
 });
