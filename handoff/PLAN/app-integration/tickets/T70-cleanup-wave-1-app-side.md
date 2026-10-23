@@ -1,6 +1,6 @@
 # T70 — Cleanup wave 1, app side: safe deletions, stale worktrees, `pnpm clean`
 
-Status: PARTIAL — 03c989c4, 21c17edc, a12e8540, 6279b644, 89d9e924, 3a252db7, b2c5a6af (lane wf_63a2801d-ce3-3). All code
+Status: PARTIAL — 03c989c4, 21c17edc, a12e8540, 6279b644, 89d9e924, 3a252db7, b2c5a6af, review 6f8baed6 (lane wf_63a2801d-ce3-3). All code
 items done; left: three filesystem steps outside a worktree lane (below) and the strict `pnpm check` run at merge.
 
 Source: handoff/PLAN/audit/PLAN.md §2 "Wave 1" items 1.1–1.7, 1.13. The pipeline half landed (7ea5300b, 8f459d98,
@@ -54,3 +54,11 @@ Depends: T71 (for the wf_e2463c2d worktree). Do before T63 (knip starts clean). 
 - Not in this ticket: `stationsFor` has no non-test caller (audit 1.7 named it; this ticket did not) — T63's knip
   pass decides. Several pre-existing unused imports/locals (`--noUnusedLocals`: core regs/banner.ts, plainrow.ts,
   data panel.ts, ui hooks.ts LakeInfo/PlaceId, ui panel.ts donorKeyLabel, …) — also T63.
+
+## Review (adversarial, 2026-10-22)
+Reproduced: listed names grep to 0 (lakeInfo/stockingHistory kept per decisions.md 2026-10-22 correction; formFactorFor
+and apps/web only in prose/the pin test); `tsc -b --force` exit 0 with 0 JS in any dist/; tickets/boundaries/platform/deps
+gates green; frozen offline install green; targeted vitest (tools, data, ui, core regs+flow, ui-native WaterScreen+regs,
+two map tests, conformance) all green with .venv linked (without it 14 python-spawning tests fail ENOENT — env only).
+TabPending was truly unreachable: `licence` is null iff `inp.key` is null iff `edgeKind` is "outside". One fix:
+6f8baed6 layers.json ui-native "why" still said "the desktop component set". Nothing else left beyond the merger steps above.
