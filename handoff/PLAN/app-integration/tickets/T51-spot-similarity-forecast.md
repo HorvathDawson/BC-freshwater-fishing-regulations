@@ -1,6 +1,6 @@
 # T51 — "Like your visit?": a spot's conditions then vs the next 5 days, as a similarity score
 
-Status: OPEN — ticket a7b94f4e.
+Status: DONE — 035b3725 (ticket a7b94f4e). Lane wf_c3f10dea-7b4-2. Follow-ups below are small and none blocks it.
 
 Phase 4 · Depends on S1 (spot lead-up: weather + gauge frozen at capture), the gauge feed + forecast horizons, Open-Meteo
 weather, the T48 Spots tab · Size 1–2 days
@@ -30,3 +30,41 @@ reference. Tapping a day shows what drives the score (flow vs then, water level,
 - Whole-string tests for the score on fixed inputs (identical day = 100 %, each factor moving alone lowers it as documented,
   missing data handled and worded), a render test of the strip in light/dark, a web shot of a real saved spot.
 - Works offline with the last fetched forecast (says how old it is) and refreshes when online.
+
+## As built (035b3725)
+- **Days: today and the next four** (Today, Tomorrow, +2, +3, +4), beside the visit's own day. Today's flow is the
+  gauge's reading now (horizon 0); +1 and +3 read the feed's `ahead` block; **+2 and +4 have no horizon**, so they are
+  scored on the weather only and say "No flow forecast for this day: scored on the weather only." (no interpolation).
+- **Formula** (`app/packages/core/src/likeVisit.ts`, all named constants): likeness = max(0, 1 − |then − that day| /
+  SPAN); score = Σ weight·likeness / Σ weight over factors known on both days. Weights flow 0.45 · air temperature 0.2 ·
+  rain over the 3 days before 0.2 · wind 0.1 · cloud 0.05. Spans: flow 0.5 (50 percentile points), 12 °C, 15 mm,
+  25 km/h, 100 %. Reads: ≥ 85 very similar, ≥ 65 similar, else different. Weather is compared at the visit's own hour.
+- **Flow = discharge percentile only, station against station**: the visit's from the spot's own gauge's row in the
+  frozen donor panel (asked in discharge), else its reading when that reading holds a discharge and no level; the
+  coming days' from the same station in the feed index via `reading()` (no new feed fetch; the index is the cached
+  object every surface reads). No flow then → "No flow then to compare: scored on the weather only."
+- **Offline**: the last fetched forecast is kept per spot (`openLikeStore`: localStorage key / `spots/like-visit.json`),
+  read at once, refetched when the spot opens; the age line says "Forecast checked 2h ago." or "Offline: showing the
+  forecast checked 5h ago."
+- Weather: one Open-Meteo forecast request (`openMeteo().ahead`, past_days=3, forecast_days=5, hourly air/wind/cloud,
+  daily rain).
+- Tests: core 17, data 10, ui 4 (render), ui-native 5 (light + dark); mutation pins: swapping the flow/temp weights
+  (6 fail), reading level instead of discharge (2 fail), moving the 65 threshold (1 fails). Gates: tsc, boundaries,
+  platform, colours, style clean. Web shots of a spot saved through the app on Chilliwack River (real feed + weather):
+  `handoff/PLAN/app-integration/T51-shots/web-light.png`, `web-dark.png`.
+- No rebuild needed (app only; no pipeline, bundle or tiles change).
+
+## Left / follow-ups (not done here)
+- **+2 / +4 flow**: when T52's per-station DAILY forecast series lands, those days can read it instead of being
+  weather-only (one function: `flowAhead` in `app/packages/data/src/spots/likeVisit.ts`). Default: weather-only, said.
+- **Flow trend over the lead-up** is not a factor (the horizons are too sparse to give a coming-day trend without
+  guessing). Default: left out.
+- **Shares shown can sum to 99 %/101 %** after rounding when factors drop out (e.g. 36+36+18+9). Cosmetic.
+- **Cache is never pruned** of deleted spots (a few hundred bytes each). Default: leave.
+- **Observed while testing (existing S1 behaviour, not T51)**: a spot backdated to two days ago froze TODAY's gauge
+  reading and panel (capture reads the live feed whatever the visit time), so its "flow then" is today's. Worth its own
+  ticket: a backdated visit should take the lead-up's daily mean for the visit day, or record no flow.
+
+## Owner questions (each built with its default)
+- Q-a: Today + 4, or +1..+5 (which would put +5's horizon in and drop today's observed flow)? Default: today + 4.
+- Q-b: Are the weights right (flow 45 %, air 20 %, rain before 20 %, wind 10 %, cloud 5 %)? Default: as built.
