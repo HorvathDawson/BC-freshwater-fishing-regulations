@@ -73,3 +73,21 @@ r20c style tokens, palette census render tests) are inside that check, green.
 - Rule sheets stay ~15 px taller than v38 at the median: the one Sheet's 19 px title and its sub line under the rule.
   Changing those is a Sheet-wide look (map sheets too; T41 Q4 "one Sheet style"), not done here.
 - Licence person sheets (`licsrc:*`, 15 of 192) have no prototype sheet to compare (v38 opens none by those keys).
+
+## Adversarial review (2026-10-23)
+
+- **Fixed — the wide dialog's title was unpinned.** Sheet draws its title in two branches (the phone bottom sheet and
+  the T45 wide dialog). Both use `SHEET_TITLE`, but SheetSize.test.tsx rendered only the phone sheet. Reverting the
+  dialog's title to `{ ...TYPE.screen, fontSize: 19 }` (27 px line) still passed. The title test now runs on both
+  branches (`it.each` phone / desktop dialog). Mutation run: reverting either branch fails only that branch's case.
+- **Fixed — stale wording.** Sheet's `scroll` prop doc still said "at most 82% of the window". It now names
+  `SHEET_BODY_CAP` (0.68).
+- **Checked, no defect found.**
+  - Mutations confirmed. A `kind === "timed"` wash box on the where line fails both O3 tests. `blockOf` returning the
+    row alone fails the Vedder RB case and the Glenn head case.
+  - No other copy of the three-parent climb: regs-walk and regs-census read `pic:` for other purposes.
+  - `useAnchor` spreads no testID, so the added `krow` and `khead` testIDs override nothing.
+  - Reader frames open a fresh page per shot, so a kept-mounted sheet's GroupCard cannot shadow the Keep tab's row.
+  - The 64 px pictures in KeepBlocks sit outside any `krow`, so `rowOf` skips them.
+- **Checks:** strict app check (`REGS_STORE_REQUIRED=1`, via heavy.sh) passed: 336 files, 8,032 tests, 23 skipped,
+  exit 0. No deliver needed.

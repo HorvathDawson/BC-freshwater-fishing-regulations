@@ -45,7 +45,7 @@ export const SHEET_BODY_CAP = 0.68;
 export function Sheet({ open, onClose, title, palette, children, scroll = false, sub, scrollRef, layout, dialog = false }: {
   open: boolean; onClose: () => void; title: string;
   palette: Palette; children: React.ReactNode;
-  /** (T37) the body scrolls inside the sheet, at most 82% of the window tall (the regs sheets); default false: as before */
+  /** (T37) the body scrolls inside the sheet, at most SHEET_BODY_CAP (0.68) of the window tall (the regs sheets); default false: as before */
   scroll?: boolean;
   /** (T37) a small line under the title row (a rule's level, a row's water and day) */
   sub?: string | null;
