@@ -954,11 +954,8 @@ def _review_context_for(_key: tuple):
     from pipeline.deliver.bundle import read as _R
     from pipeline.regs.review import fingerprint as F
     # No bundle yet is a state, not an error: a mark then holds no bundle half (`reach`/`answer`
-    # None) and "awaiting build" cannot arise from it.
-    bundle = F.BundleFacts.read(_R.BUNDLE) if Path(_R.BUNDLE).exists() else None
-    ctx = F.Context(splits=json.loads(SPLITS_JSON_PATH.read_text(encoding="utf-8")),
-                    overrides=tuple(load_overrides(OVERRIDES_PATH)), registry=_registry(),
-                    bundle=bundle)
+    # None) and "awaiting build" cannot arise from it. `Context.on_disk` is the CLIs' context too.
+    ctx = F.Context.on_disk(SPLITS_JSON_PATH, OVERRIDES_PATH, _registry(), _R.BUNDLE)
     ctx.prints_memo = {}                       # entry content -> prints, for this vintage only
     return ctx
 
@@ -1137,6 +1134,24 @@ def split_vintage(split_id: str, on=None) -> dict:
                          on if on is not None else built())
 
 
+def awaiting_build(scope: str, target: str) -> bool:
+    """Whether a mark's target awaits its build NOW (`entry_vintage` / `split_vintage`), so only T
+    and R can be answered — what a refused mark's words depend on (`marks.unanswered_words`). An
+    unknown target is not awaiting (it is refused as unknown)."""
+    from pipeline.regs.review import vintage as V
+    try:
+        if scope == "split":
+            st = split_vintage(target)
+        else:
+            found = _find(target)
+            if found is None:
+                return False
+            st = entry_vintage(found[1])
+    except KeyError:
+        return False
+    return st.get("state") != V.CURRENT
+
+
 # --------------------------------------------------------------------------- #
 # The one queue (T135, PLAN §4 phase 4): `pipeline.regs.review.tiers` orders it, `precheck`
 # finds, `runfacts` reads the run — this only reads the disk for them
@@ -1167,10 +1182,7 @@ def s0_split_ids() -> frozenset[str]:
     from pipeline.regs.review import marks as M
     from pipeline.regs.review import tiers as T
     states = M.split_states(M.load(MARKS_PATH), _review_context())
-    return frozenset(sp["id"] for wb in _load_splits().get("waterbodies", [])
-                     for sp in wb.get("splits", [])
-                     if sp.get("id") and T.split_needs_verify(sp, (states.get(sp["id"]) or {})
-                                                              .get("status")))
+    return T.s0_split_ids(_load_splits(), {k: v.get("status") for k, v in states.items()})
 
 
 def entry_prechecks(e: dict, *, run=None, s0=None, gate: bool = False) -> list[dict]:

@@ -59,7 +59,8 @@ def risks(entry: dict, *, binds: bool, run=None) -> list[str]:
         "no match": not binds and not eid.startswith("z"),
         "unresolved": run is not None and bool(run.unresolved_of(eid)),
         "undrawn part": any(r.get("undrawn_part") for r in rules),
-        "ambiguous cut": run is not None and bool(run.ambiguous_of(eid)),
+        # a cut decided by hand (`cut_pick`) is a decision, not a risk (`runfacts.is_curated_pick`)
+        "ambiguous cut": run is not None and bool(run.open_ambiguous_of(eid)),
         "cut": any(x.get("op") in CUT_OPS or x.get("splits") for x in exts),
         "several waters": len(entry.get("matched") or []) > 1,
         "flag": flagged(entry),
@@ -108,6 +109,16 @@ def split_needs_verify(split: dict, mark_status: str | None = None) -> bool:
     changed since is a point to confirm again, never one the queue stops showing."""
     return (split_grade(split) is not None or "Verify:" in str(split.get("_note") or "")
             or mark_status == "stale")
+
+
+def s0_split_ids(splits: dict, mark_status: dict | None = None) -> frozenset[str]:
+    """THE SPLIT POINTS STILL TO VERIFY (tier S0) in a splits.json: `split_needs_verify` of each
+    with its mark status now (`mark_status`: split id -> status, from `marks.split_states`). What a
+    rule binding through one is pre-checked for (`precheck` `split_to_verify`) — the review app and
+    the pre-check CLI both ask here."""
+    mark_status = mark_status or {}
+    return frozenset(sp["id"] for wb in splits.get("waterbodies", []) for sp in wb.get("splits", [])
+                     if sp.get("id") and split_needs_verify(sp, mark_status.get(sp["id"])))
 
 
 #: S0 order: L grade first (PLAN §3), then M, H, then a "Verify:" note with no grade

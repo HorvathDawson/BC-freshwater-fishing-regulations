@@ -49,7 +49,8 @@ export function useMarking({ key, mark, onRecorded, link, onToggleMap, resetOn }
   async function submit(defer = false) {
     if (inFlight.current) return;
     setErrors([]);
-    if (!reviewer.trim()) { setErrors(["your name first — every mark names its reviewer"]); return; }
+    // the server's own words for this refusal (`marks.REFUSAL_WORDS`), said before the round trip
+    if (!reviewer.trim()) { setErrors(["Type your name first: every mark names its reviewer."]); return; }
     inFlight.current = true;
     const answers = Object.fromEntries(mark.checks.filter((c) => state.answers[c])
       .map((c) => [c, state.answers[c]!]));

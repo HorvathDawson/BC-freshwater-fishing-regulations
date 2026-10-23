@@ -190,10 +190,8 @@ def tickets() -> list[dict]:
     (`tickets.export`), each with what changed since it was made. Read only: the owner files them."""
     from pipeline.regs.review import marks as M
     from pipeline.regs.review import tickets as TK
-    statuses = {(v["scope"], v["target"], v.get("rule_id")): {"status": v["status"],
-                                                             "reasons": v.get("reasons") or []}
-                for v in reuse.marks_view()}
+    marks = M.load(reuse.MARKS_PATH)
     entries = {e["entry_id"]: e for _, e in reuse._all_entries()}
-    got = TK.export(M.load(reuse.MARKS_PATH), entries=entries,
-                    splits=TK.split_index(reuse._load_splits()), statuses=statuses)
+    got = TK.export(marks, entries=entries, splits=TK.split_index(reuse._load_splits()),
+                    statuses=TK.statuses_now(marks, entries=entries, ctx=reuse._review_context()))
     return [{"name": n, "text": t} for n, t in got]

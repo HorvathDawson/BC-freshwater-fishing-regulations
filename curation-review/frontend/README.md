@@ -26,10 +26,12 @@ npm run build      # tsc -b && vite build — must compile clean
 
 ## What it does
 
-- **Filter bar** — region dropdown (`GET /api/regions`) + status filter
-  (`no_registry | flagged | unused_splits | unreviewed | zone`).
-- **Queue** (`GET /api/entries?region=&status=`) — attention-first (server-sorted); rows show
-  name, status badge, MUs, and an ⚠ marker when `unused_curated_splits > 0`.
+- **Filter bar** — region dropdown (`GET /api/regions`; "all regions" by default) + status filter
+  (`no_registry | parser-uncertain | unused_splits | plain | zone`, `reuse.STATUSES`).
+- **Queue** (`GET /api/entries?region=&status=&order=risk`) — THE ONE QUEUE (T135): the S0 split
+  cards first, then tier by tier in the review order (`tiers.queue_rank`, server-sorted), or the
+  book's order; rows show name, tier, risk and pre-check chips, status badge, MUs, and an ⚠ marker
+  when `unused_curated_splits > 0`.
 - **Detail** (`GET /api/entries/{id}`):
   - identity header with a NO REGISTRY badge when a water row has no `matched` item,
   - side-by-side original `regs_verbatim` ↔ parsed `rules[]`, each rule's binding shown as

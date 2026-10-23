@@ -682,3 +682,6 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
     without `report.json` is still being written and is refused, never read as "no findings"); the pre-checks are
     `precheck.prechecks`, a ticket `tickets.ticket_text` / `parse_ticket` (a round trip). "Commit marks" is
     `commit_marks` — `git commit --only` of the marks store — a CLI the screen prints, never a review-mode route.
+    The S0 set is `tiers.s0_split_ids`; a cut decided by hand is `runfacts.is_curated_pick` (a hint, never the
+    `ambiguous cut` risk); a CLI that judges marks reads the vintage through `fingerprint.Context.on_disk` and
+    the corpus through `io.read_entryfile` with the registry — as the review app does.

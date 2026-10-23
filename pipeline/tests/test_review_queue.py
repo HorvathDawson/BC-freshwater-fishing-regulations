@@ -63,7 +63,7 @@ def test_the_run_facts_whole(run):
         {"r1:a@1-1": {"x.r1": (AMB,)}},
         {"r1:c@1-1": {"x.r2": {"reason": "no_sections_for_items",
                                "detail": "no scoped item is in the registry: []"}}},
-        {"r1:b@1-1": {"x.r2": json.loads(DIAG[2]["payload"])}},
+        {"r1:b@1-1": {"x.r2": (json.loads(DIAG[2]["payload"]),)}},
         "d1")
 
 
@@ -79,6 +79,25 @@ def test_a_run_still_being_written_is_refused_never_read_as_empty(tmp_path):
     assert (got.digest, dict(got.ambiguous)) == ("abc", {"r1:a@1-1": {"x.r1": (AMB,)}})
 
 
+def test_every_extent_s_unplaced_pieces_are_kept_and_placed_ones_are_not():
+    """T135 adversarial review: the builder writes one `unclassified` diagnostic PER EXTENT, so a
+    rule with two cut extents reports two; keeping one per rule (the last) lost the first. And a
+    payload with `included: true` was placed — it is not an unplaced piece."""
+    two = [dict(DIAG[2], payload=json.dumps({"extent": 0, "included": False, "pieces": ["1:0"],
+                                             "reasons": {"1:0": "straddles_the_cut"}})),
+           dict(DIAG[2], payload=json.dumps({"extent": 1, "included": False, "pieces": ["2:0", "3:0"],
+                                             "reasons": {"2:0": "flows_to_the_sea_unjoined",
+                                                         "3:0": "flows_to_the_sea_unjoined"}})),
+           dict(DIAG[2], rule_id="x.r9", payload=json.dumps(
+               {"extent": 0, "included": True, "pieces": ["9:0"], "reasons": {}}))]
+    run2 = RunFacts.from_rows(two, [])
+    assert [p["extent"] for p in run2.unclassified_of("r1:b@1-1")["x.r2"]] == [0, 1]
+    assert "x.r9" not in run2.unclassified_of("r1:b@1-1")
+    got = P.prechecks(_e("r1:b@1-1", [QUOTA, dict(QUOTA, rule_id="x.r9")]), binds=True, run=run2)
+    assert [(f["code"], f["rule_id"], f["what"].split(": ", 1)[1]) for f in got] == [
+        ("unplaced_pieces", "x.r2", "3 piece(s) — flows_to_the_sea_unjoined, straddles_the_cut")]
+
+
 # --------------------------------------------------------------------------- the risk factors
 
 def test_every_risk_factor_in_its_order(run):
@@ -91,6 +110,32 @@ def test_every_risk_factor_in_its_order(run):
                        "several waters", "flag")
     # without a run, what only the run knows is not claimed
     assert T.risks(every, binds=False) == ["no match", "undrawn part", "cut", "several waters", "flag"]
+
+
+def test_a_cut_decided_by_hand_is_not_an_ambiguous_cut_risk(run):
+    """T135 adversarial review: a cut the extent's `cut_pick` decided (`toward: "curated"`) is a
+    hint (pre-check `cut_picked`, B) — so it is not the `ambiguous cut` risk factor either; one
+    rule (`runfacts.is_curated_pick`) for both. A rule with one open and one picked cut stays a risk.
+    Mutant: `risks` reads `run.ambiguous_of` (every cut) -> this test fails."""
+    picked = dict(AMB, toward="curated", reason="curated", pick="upper")
+    only_picked = RunFacts.from_rows([dict(DIAG[0], payload=json.dumps(picked))], [])
+    e = _e("r1:a@1-1", [dict(CLOSE, extents=[CUT])])
+    assert T.risks(e, binds=True, run=only_picked) == ["cut"]
+    assert [f["code"] for f in P.prechecks(e, binds=True, run=only_picked)] == ["cut_picked"]
+    both = RunFacts.from_rows([dict(DIAG[0], payload=json.dumps(picked)),
+                               dict(DIAG[0], payload=json.dumps(dict(AMB, split_id="b")))], [])
+    assert T.risks(e, binds=True, run=both) == ["ambiguous cut", "cut"]
+    assert dict(both.open_ambiguous_of("r1:a@1-1")) == {"x.r1": (dict(AMB, split_id="b"),)}
+
+
+def test_s0_is_one_function_of_splits_json_and_the_marks():
+    """`tiers.s0_split_ids`: an open auto-proposal or a "Verify:" note, or a split whose mark went
+    stale — the review app (`reuse.s0_split_ids`) and the pre-check CLI both ask it."""
+    splits = {"waterbodies": [{"splits": [
+        {"id": "a", "_note": "[auto-proposal M] x"}, {"id": "b", "_note": "Verify: the bridge"},
+        {"id": "c", "_note": "[human-review] ok"}, {"id": "d", "_note": ""}]}]}
+    assert T.s0_split_ids(splits) == frozenset({"a", "b"})
+    assert T.s0_split_ids(splits, {"c": "stale", "d": "verified"}) == frozenset({"a", "b", "c"})
 
 
 def test_the_run_moves_an_entry_into_a_risk_tier(run):
@@ -351,6 +396,14 @@ def test_only_wrong_and_unsure_marks_in_force_become_tickets():
         "review-wrong-entry-r1-b-1-1.md"]
 
 
+def test_two_marks_never_share_a_ticket_file():
+    """`ticket_name` slugs the target, so `r1:a_b@1-1` and `r1:a-b@1-1` both make
+    `review-wrong-entry-r1-a-b-1-1.md`; `--out` would write one over the other. Refused instead
+    (T135 adversarial review; no two ids collide in the corpus today)."""
+    with pytest.raises(ValueError, match="two marks make the ticket file review-wrong-entry-r1-a-b-1-1.md"):
+        TK.export([_mark(target="r1:a_b@1-1"), _mark(target="r1:a-b@1-1")])
+
+
 def test_the_round_trip_is_pinned_by_mutation(monkeypatch):
     """Mutant: the note is written without its quote prefix on continuation lines -> the round
     trip fails (`test_a_ticket_round_trips_every_mark_field`)."""
@@ -413,6 +466,36 @@ def test_commit_marks_commits_the_marks_file_and_nothing_else(tmp_path):
     assert commit_marks(repo, store)["committed"] is False
 
 
+def test_commit_marks_commits_a_store_that_lost_lines(tmp_path):
+    """T135 adversarial review: "is there anything to commit" was "how many lines were ADDED", so
+    a store rewritten with lines removed (and none added) said "nothing to commit: the marks store
+    is as HEAD has it" while it was not. Mutant: `store_changed` -> `added_marks(...) > 0` fails."""
+    from pipeline.regs.review.commit_marks import commit_marks
+    from pipeline.regs.review.marks import line
+    repo = tmp_path / "repo"
+    store = repo / "marks.jsonl"
+    repo.mkdir()
+    store.write_text(line(_mark()) + line(_mark(target="r1:b@1-1")))
+    _git(tmp_path, "init", "-q", str(repo))
+    env = {"GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t", "GIT_COMMITTER_NAME": "t",
+           "GIT_COMMITTER_EMAIL": "t@t"}
+    old = {k: os.environ.get(k) for k in env}
+    os.environ.update(env)
+    try:
+        assert commit_marks(repo, store)["added"] == 2
+        store.write_text(line(_mark()))                      # one line removed, none added
+        got = commit_marks(repo, store)
+    finally:
+        for k, v in old.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
+    assert (got["committed"], got["changed"], got["added"], got["message"]) == (
+        True, True, 0, "review: marks store rewritten (no mark added)")
+    assert _git(repo, "show", "HEAD:marks.jsonl") == line(_mark())
+
+
 def test_commit_marks_refuses_a_store_that_does_not_load(tmp_path):
     from pipeline.regs.review.commit_marks import commit_marks
     store = tmp_path / "marks.jsonl"
@@ -434,7 +517,8 @@ def _py_sources():
 def test_no_second_copy_of_the_order_the_prechecks_the_tickets_or_the_run_reader():
     hits: dict[str, list] = {k: [] for k in (
         "def queue_rank(", "def split_rank(", "def prechecks(", "def ticket_text(",
-        "def parse_ticket(", "def commit_marks(", "def refusal_words(", "def risks(")}
+        "def parse_ticket(", "def commit_marks(", "def refusal_words(", "def risks(",
+        "def s0_split_ids(", "def is_curated_pick(", "def statuses_now(", "def on_disk(")}
     run_readers = []
     for p, text in _py_sources():
         if p.name.startswith("test_"):
@@ -456,5 +540,29 @@ def test_no_second_copy_of_the_order_the_prechecks_the_tickets_or_the_run_reader
         "def commit_marks(": ["pipeline/regs/review/commit_marks.py"],
         "def refusal_words(": ["pipeline/regs/review/marks.py"],
         "def risks(": ["pipeline/regs/review/tiers.py"],
+        "def s0_split_ids(": ["pipeline/regs/review/tiers.py", "curation-review/backend/reuse.py"],
+        "def is_curated_pick(": ["pipeline/regs/review/runfacts.py"],
+        "def statuses_now(": ["pipeline/regs/review/tickets.py"],
+        "def on_disk(": ["pipeline/regs/review/fingerprint.py"],
     }
     assert run_readers == ["pipeline/regs/review/runfacts.py"]
+    # T135 adversarial review: the S0 set is `tiers.s0_split_ids` (reuse's is the disk read around
+    # it), a curated pick `runfacts.is_curated_pick` — never re-derived beside them
+    for p, text in _py_sources():
+        rel = str(p.relative_to(REPO))
+        if p.name.startswith("test_") or not rel.startswith(("curation-review/",
+                                                              "pipeline/regs/review/")):
+            continue
+        if rel != "pipeline/regs/review/runfacts.py":
+            assert '"toward") == "curated"' not in text, rel
+        if rel != "pipeline/regs/review/tiers.py":
+            assert "and split_needs_verify(" not in text and "and T.split_needs_verify(" not in text, rel
+
+
+def test_the_screen_says_the_no_name_refusal_in_the_server_s_words():
+    """The verdict bar refuses a mark with no name before the round trip; it says it in
+    `marks.REFUSAL_WORDS`' words, not a second wording (T142 adversarial review)."""
+    from pipeline.regs.review.marks import REFUSAL_WORDS
+    src = (REPO / "curation-review" / "frontend" / "src" / "components" / "useMarking.tsx").read_text(
+        encoding="utf-8")
+    assert f'setErrors(["{dict(REFUSAL_WORDS)["a mark needs the reviewer\'s name"]}"])' in src

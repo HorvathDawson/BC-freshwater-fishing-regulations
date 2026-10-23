@@ -22,6 +22,7 @@ REPO = Path(__file__).resolve().parents[2]
 BACKEND = REPO / "curation-review" / "backend"
 _MODS = ("app", "reuse", "model_api", "answer", "synopsis_pages", "writes", "review", "evidence")
 ASH, FROG = "r1:ash_river@1-7", "r5:frog_lake@5-6"
+ADAM = "r1:adam_river_except_eve_river@1-10"     # binds through splits.json's first waterbody
 AMB = {"also_at": [12419.76], "candidates": [12419.76, 14994.7], "extent": 0,
        "split_id": "ash_river__dickson_lake", "toward": "ash_river__elsie_lake", "used": 14994.7}
 
@@ -119,6 +120,16 @@ def test_a_split_added_mid_review_heads_the_queue_and_moves_no_entry(env, queue)
     reuse = env["reuse"]
     path = Path(reuse.SPLITS_JSON_PATH)
     original = path.read_text()
+    store = Path(reuse.MARKS_PATH)
+    marks_before = store.read_text()
+    c = env["client"]
+    for target in (ADAM, ASH):
+        r = c.post("/api/marks", json={"scope": "entry", "target": target,
+                                       "answers": {"T": "y", "R": "n"}, "problem": "dates",
+                                       "note": "before the split was added", "reviewer": "tester"})
+        assert r.status_code == 200, r.text
+    marked = [r for r in c.get("/api/entries").json() if r["entry_id"] in (ADAM, ASH)]
+    queue = [dict(r, verify="wrong") if r["entry_id"] in (ADAM, ASH) else r for r in queue]
     try:
         data = json.loads(original)
         wb = data["waterbodies"][0]
@@ -134,10 +145,20 @@ def test_a_split_added_mid_review_heads_the_queue_and_moves_no_entry(env, queue)
         p = c.get("/api/review/progress").json()
         assert next(t for t in p["tiers"] if t["tier"] == "S0")["total"] == len(cards)
         after = c.get("/api/entries").json()
-        key = lambda rows: [(r["entry_id"], r["tier"], r["verify"]) for r in rows]  # noqa: E731
+        # T135 adversarial review: with an empty store nothing COULD go stale, so "no entry
+        # re-queues" was vacuous. With marks: the entry on the split's own water (Adam River —
+        # `fingerprint.entry_binding_fp` holds every split on the entry's waters, T133) goes stale,
+        # "binding moved"; every other mark stands, and no row moves tier or place
+        assert [r["verify"] for r in marked] == ["wrong", "wrong"]
+        now = {r["entry_id"]: r for r in after}
+        assert (now[ADAM]["verify"], now[ADAM]["mark_reasons"], now[ASH]["verify"]) == (
+            "stale", ["binding moved"], "wrong")
+        key = lambda rows: [(r["entry_id"], r["tier"],  # noqa: E731
+                             "stale" if r["entry_id"] == ADAM else r["verify"]) for r in rows]
         assert key(after) == key(queue)
     finally:
         path.write_text(original)
+        store.write_text(marks_before)
 
 
 def test_a_wrong_mark_becomes_a_ticket_that_says_what_the_reviewer_said(env):
@@ -174,10 +195,61 @@ def test_a_refused_mark_is_said_in_the_reviewer_s_words(env):
         return r.json()["detail"]
 
     assert refused() == [{"path": "", "msg": words["wrong needs a problem category and a note"]}]
-    assert refused(answers={"T": "y"}) == [{"path": "", "msg": unanswered_words("entry")}]
+    # the fixture run states no entry digests, so every entry AWAITS ITS BUILD: P and A cannot be
+    # answered, and "answer every check" would ask for what the screen holds back (T135/T142
+    # adversarial review) — T y R y is no verdict there (Q96)
+    reuse = env["reuse"]
+    assert reuse.awaiting_build("entry", ASH) is True
+    held = ('Until it is built only T and R can be answered and P and A wait, so "all fine" '
+            'waits for the build: record it wrong (answer n) or unsure (answer ?), or defer it '
+            'with a note.')
+    assert refused(answers={"T": "y", "R": "y"}) == [{"path": "", "msg": held}]
+    assert refused(answers={"T": "y"}) == [{"path": "", "msg": held}]
+    assert unanswered_words("entry", awaiting=True) == held
+    built = pytest.MonkeyPatch()
+    built.setattr(reuse, "awaiting_build", lambda scope, target: False)
+    try:
+        assert refused(answers={"T": "y"}) == [{"path": "", "msg": unanswered_words("entry")}]
+    finally:
+        built.undo()
     assert unanswered_words("entry") == ("Answer every check (T R P A) with y, n or ? before "
                                          "recording the mark, or defer it with a note.")
     assert refused(reviewer="", problem="dates", note="x") == [
         {"path": "", "msg": "Type your name first: every mark names its reviewer."}]
     assert refused(verdict="deferred", answers={}) == [
         {"path": "", "msg": "To defer, write a note saying why."}]
+
+
+def test_a_ticket_says_what_changed_since_and_the_cli_says_the_same(env):
+    """T135 adversarial review: the API's tickets said "changed since marked" and the CLI's did not
+    (it never asked the marks' status). Both now ask `tickets.statuses_now` over the vintage on
+    disk (`fingerprint.Context.on_disk`). Edit the marked entry's rule: its ticket says so."""
+    from pipeline.regs.review import marks as M
+    from pipeline.regs.review import tickets as TK
+    reuse, c = env["reuse"], env["client"]
+    region = Path(reuse.ENTRIES_DIR) / "region-5.json"
+    original = region.read_text()
+    store = Path(reuse.MARKS_PATH)
+    marks_before = store.read_text()
+    try:
+        r = c.post("/api/marks", json={"scope": "entry", "target": FROG, "answers": {"T": "y", "R": "n"},
+                                       "problem": "dates", "note": "frog", "reviewer": "tester"})
+        assert r.status_code == 200, r.text
+        data = json.loads(original)
+        e = next(x for x in data["entries"] if x["entry_id"] == FROG)
+        e["rules"][0]["verbatim"] = str(e["rules"][0].get("verbatim") or "") + " (edited)"
+        region.write_text(json.dumps(data, indent=1, ensure_ascii=False) + "\n")
+        got = {t["name"]: t["text"] for t in c.get("/api/review/tickets").json()}
+        frog = next(t for n, t in got.items() if "frog" in n)
+        assert "- **Now:** changed since marked (" in frog, frog
+        # the CLI's computation, over the same files
+        ctx = reuse._review_context()
+        entries = {x["entry_id"]: x for _, x in reuse._all_entries()}
+        marks = M.load(reuse.MARKS_PATH)
+        st = TK.statuses_now(marks, entries=entries, ctx=ctx)
+        assert st[("entry", FROG, None)]["status"] == "stale"
+        assert dict(TK.export(marks, entries=entries, splits=TK.split_index(reuse._load_splits()),
+                              statuses=st)) == got
+    finally:
+        region.write_text(original)
+        store.write_text(marks_before)

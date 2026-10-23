@@ -34,10 +34,19 @@ def added_marks(repo: Path, store: Path) -> int:
     return sum(1 for ln in store.read_text(encoding="utf-8").splitlines() if ln.strip())
 
 
+def store_changed(repo: Path, store: Path) -> bool:
+    """Whether the store differs from HEAD at all (staged or not, or not tracked yet). Not the
+    count of added lines: a store rewritten with lines REMOVED (a migration's carry) adds none and
+    still has to be committed (T135 adversarial review)."""
+    rel = str(store.resolve().relative_to(repo.resolve()))
+    return bool(_git(repo, "status", "--porcelain", "--", rel).stdout.strip())
+
+
 def commit_marks(repo: Path, store: Path, message: str | None = None, *,
                  dry_run: bool = False) -> dict:
-    """Commit the store alone. `{committed, added, message, command}`; nothing to commit when the
-    store is as HEAD has it. Raises ValueError for a store outside the repo or not valid marks."""
+    """Commit the store alone. `{committed, changed, added, message, command}`; nothing to commit
+    when the store is as HEAD has it (`store_changed`). Raises ValueError for a store outside the
+    repo or not valid marks."""
     from pipeline.regs.review.marks import load
     repo, store = Path(repo), Path(store)
     try:
@@ -46,15 +55,16 @@ def commit_marks(repo: Path, store: Path, message: str | None = None, *,
         raise ValueError(f"{store} is not inside the repository {repo}") from None
     load(store)                                   # a store that does not load is never committed
     n = added_marks(repo, store)
-    msg = message or f"review: {n} mark{'s' if n != 1 else ''}"
+    msg = message or (f"review: {n} mark{'s' if n != 1 else ''}" if n
+                      else "review: marks store rewritten (no mark added)")
     cmd = ["git", "commit", "--only", "-m", msg, "--", rel]
-    if n == 0:
-        return {"committed": False, "added": 0, "message": msg, "command": cmd}
+    if not store_changed(repo, store):
+        return {"committed": False, "changed": False, "added": 0, "message": msg, "command": cmd}
     if dry_run:
-        return {"committed": False, "added": n, "message": msg, "command": cmd}
+        return {"committed": False, "changed": True, "added": n, "message": msg, "command": cmd}
     _git(repo, "add", "--", rel)
     _git(repo, *cmd[1:])
-    return {"committed": True, "added": n, "message": msg, "command": cmd}
+    return {"committed": True, "changed": True, "added": n, "message": msg, "command": cmd}
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -67,7 +77,7 @@ def main(argv: list[str] | None = None) -> int:
     a = ap.parse_args(argv)
     repo = Path(_git(Path(a.marks).resolve().parent, "rev-parse", "--show-toplevel").stdout.strip())
     got = commit_marks(repo, a.marks, a.message, dry_run=a.dry_run)
-    if not got["added"]:
+    if not got["changed"]:
         print("nothing to commit: the marks store is as HEAD has it")
     elif got["committed"]:
         print(f"committed {got['added']} mark(s): {got['message']}")

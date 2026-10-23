@@ -184,12 +184,16 @@ Every **wrong** and **unsure** mark in force as ticket text (`pipeline.regs.revi
 the mark's own fields (scope, target, rule, verdict, answers, problem, the reviewer's note, reviewer,
 date, printed pages, the book's sha256), the entry or split it is about, what changed since (when the
 mark went stale) and the work: fix mode, then the rebuild that ships it. `tickets.parse_ticket` reads
-the mark's fields back (the round trip is a test). CLI: `python -m pipeline.regs.review.tickets --out <dir>`.
+the mark's fields back (the round trip is a test). CLI: `python -m pipeline.regs.review.tickets --out <dir>`
+— the same text, "what changed since" included (`tickets.statuses_now` for both); two marks whose
+targets slug to one file name are refused, never written over each other.
 
 ### Commit marks (T135)
 `python -m pipeline.regs.review.commit_marks [-m msg] [--dry-run]` — `git commit --only` of
 `data/curated/regulations/review/marks.jsonl` and nothing else (staged and edited files elsewhere stay
-as they were). Not an endpoint: review mode writes one thing, a mark; the screen prints the command.
+as they were). It commits whenever the store differs from HEAD, a store that lost lines included (a
+migration's rewrite adds none). Not an endpoint: review mode writes one thing, a mark; the screen prints
+the command.
 
 ### POST /api/marks  (T97)
 Body `{scope: entry | rule | split, target, rule_id?, verdict?: verified | wrong | unsure | deferred,
@@ -198,7 +202,9 @@ answers: {T, R, P, A: y | n | ?}, problem?, note, reviewer, pages?}` (a split an
 any ? → unsure, all y → verified; `422` while a check is unanswered); `deferred` is only ever sent.
 **T142:** a refusal is said in the reviewer's words (`marks.refusal_words` / `unanswered_words`), with
 `path: ""` — e.g. "A wrong mark needs a problem (pick one from the list under the checklist) and a note
-saying what is wrong.", never pydantic's "Value error, …".
+saying what is wrong.", never pydantic's "Value error, …". A target awaiting its build is told that only
+T and R can be answered and "all fine" waits for the build (wrong / unsure / defer now), not to "answer
+every check" (`unanswered_words(scope, awaiting=reuse.awaiting_build(...))`).
 The server stamps `date`, `pdf_sha256` (the repo PDF) and the target's fingerprints
 (`pipeline.regs.review.fingerprint`), and APPENDS the mark to `data/curated/regulations/review/marks.jsonl`
 (or `CURATION_MARKS`) through the backed-up commit. `422` for a mark the model refuses (`verified`

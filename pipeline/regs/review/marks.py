@@ -91,8 +91,18 @@ REFUSAL_WORDS: tuple[tuple[str, str], ...] = (
 )
 
 
-def unanswered_words(scope: str) -> str:
-    """What a reviewer is told when the answers give no verdict yet (a check left unanswered)."""
+def unanswered_words(scope: str, *, awaiting: bool = False) -> str:
+    """What a reviewer is told when the answers give no verdict yet (a check left unanswered).
+    `awaiting`: the target awaits its build (`vintage.entry_state`), so only T and R can be
+    answered (`vintage.CHECKS_WHILE_AWAITING`) and T y R y is no verdict (Q96, not built) —
+    "answer every check" would ask for what the screen will not let them answer."""
+    if awaiting:
+        from pipeline.regs.review.vintage import CHECKS_WHILE_AWAITING
+        can = [c for c in CHECKS[scope] if c in CHECKS_WHILE_AWAITING]
+        wait = [c for c in CHECKS[scope] if c not in CHECKS_WHILE_AWAITING]
+        return (f"Until it is built only {' and '.join(can)} can be answered and "
+                f"{' and '.join(wait)} wait, so \"all fine\" waits for the build: record it "
+                f"wrong (answer n) or unsure (answer ?), or defer it with a note.")
     return (f"Answer every check ({' '.join(CHECKS[scope])}) with y, n or ? before recording "
             f"the mark, or defer it with a note.")
 

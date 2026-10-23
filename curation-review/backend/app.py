@@ -137,7 +137,8 @@ def post_mark(body: MarkPayload):
             raise HTTPException(422, [{"path": "scope", "msg": f"scope is one of {sorted(CHECKS)}"}])
         data["verdict"] = verdict_from_answers(body.scope, body.answers)
         if data["verdict"] is None:
-            raise HTTPException(422, [{"path": "", "msg": unanswered_words(body.scope)}])
+            raise HTTPException(422, [{"path": "", "msg": unanswered_words(
+                body.scope, awaiting=reuse.awaiting_build(body.scope, body.target))}])
     try:
         return reuse.post_mark(data)
     except KeyError as ex:

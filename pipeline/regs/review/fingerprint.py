@@ -182,6 +182,24 @@ class Context:
     registry: Mapping | None = None
     bundle: BundleFacts | None = None
 
+    @classmethod
+    def on_disk(cls, splits_path: str | Path, overrides_path: str | Path | None,
+                registry: "str | Path | Mapping", bundle_path: str | Path) -> "Context":
+        """THE VINTAGE ON DISK as a context: splits.json, the matcher overrides, the served registry
+        and the bundle's facts (no bundle yet is a state, not an error: `bundle` None). The review
+        app (`reuse._review_context`) and the CLIs that judge marks (`precheck`, `tickets`) read
+        it here, so a mark's status is the same wherever it is asked (T135 adversarial review).
+        `registry`: its path, or the registry already loaded (the app's own, cached)."""
+        import json
+        from pipeline.atlas.registry import load_registry
+        from pipeline.regs.matching.matcher import load_overrides
+        ov = Path(overrides_path) if overrides_path else None
+        return cls(splits=json.loads(Path(splits_path).read_text(encoding="utf-8")),
+                   overrides=tuple(load_overrides(ov if ov and ov.exists() else None)),
+                   registry=(registry if isinstance(registry, Mapping)
+                             else load_registry(Path(registry))),
+                   bundle=BundleFacts.read(bundle_path) if Path(bundle_path).exists() else None)
+
     @cached_property
     def split_index(self) -> dict[str, dict]:
         """split id -> the split, carrying its waterbody's `applies_to` beside its own

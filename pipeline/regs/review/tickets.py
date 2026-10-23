@@ -11,7 +11,8 @@ force becomes ticket text the owner files (PLAN §6 Q3: reviewers mark, the owne
 A ticket names the mark it came from (scope, target, rule, date, reviewer); the store is append-
 only, so the mark stays the record and the ticket is its copy for the work list.
 
-CLI (reads the marks store and the catalogue; writes only into `--out`, or prints):
+CLI (reads the marks store, the catalogue and the vintage on disk for what changed since; writes
+only into `--out`, or prints — the same text as the review app's `/api/review/tickets`):
 
     python -m pipeline.regs.review.tickets                    # every ticket, to stdout
     python -m pipeline.regs.review.tickets --out <dir>        # one file per ticket
@@ -186,13 +187,43 @@ def export(marks: Iterable, *, entries: Mapping[str, Mapping] | None = None,
     since; a mark no longer in force (superseded) is never a ticket."""
     from pipeline.regs.review.marks import latest
     out = []
+    seen: dict[str, tuple] = {}
     for key, m in latest(marks).items():
         if m.verdict not in verdicts:
             continue
-        out.append((ticket_name(m), ticket_text(
+        name = ticket_name(m)
+        if name in seen:                 # two targets slugged alike: one file would overwrite the other
+            raise ValueError(f"two marks make the ticket file {name}: {seen[name]} and {key}")
+        seen[name] = key
+        out.append((name, ticket_text(
             m, entry=(entries or {}).get(m.target) if m.scope != "split" else None,
             split=(splits or {}).get(m.target) if m.scope == "split" else None,
             status=(statuses or {}).get(key))))
+    return out
+
+
+def statuses_now(marks: Iterable, *, entries: Mapping[str, Mapping], ctx,
+                 verdicts: Sequence[str] = TICKET_VERDICTS) -> dict[tuple, dict]:
+    """Mark key -> `{status, reasons}` NOW (`marks.status` against the target's fingerprints in
+    `ctx`, a `fingerprint.Context` of the vintage on disk), for the marks in force that export
+    would turn into tickets — what a ticket says changed since. The API (`review.tickets`) and the
+    CLI both ask here, so the file and the screen say the same thing."""
+    from pipeline.regs.review import fingerprint as F
+    from pipeline.regs.review.marks import Prints, latest, status
+    out: dict[tuple, dict] = {}
+    for key, m in latest(marks).items():
+        if m.verdict not in verdicts:
+            continue
+        if m.scope == "split":
+            try:
+                now = Prints.model_validate(F.split_fingerprints(m.target, ctx))
+            except KeyError:                      # the split is gone from splits.json
+                now = None
+        else:
+            e = entries.get(m.target)
+            now = Prints.model_validate(F.entry_fingerprints(e, ctx)) if e is not None else None
+        st = status(m, now)
+        out[key] = {"status": st["status"], "reasons": st["reasons"]}
     return out
 
 
@@ -204,7 +235,9 @@ def split_index(splits_json: Mapping) -> dict[str, dict]:
 
 
 def main(argv: list[str] | None = None) -> int:
-    from pipeline.common.curated import CURATED
+    from pipeline.common.curated import CURATED, GENERATED
+    from pipeline.deliver.bundle.read import BUNDLE
+    from pipeline.regs.review.fingerprint import Context
     from pipeline.regs.review.marks import load
     ap = argparse.ArgumentParser(prog="python -m pipeline.regs.review.tickets",
                                  description="wrong and unsure review marks as ticket text")
@@ -213,12 +246,17 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--verdict", choices=TICKET_VERDICTS, action="append")
     ap.add_argument("--out", type=Path, help="write one file per ticket here (else stdout)")
     a = ap.parse_args(argv)
-    entries = {}
-    for p in sorted(a.entries.glob("region-*.json")):
-        entries.update({e["entry_id"]: e for e in json.loads(p.read_text(encoding="utf-8"))["entries"]})
-    splits = split_index(json.loads(CURATED.waters.splits.read_text(encoding="utf-8")))
-    got = export(load(a.marks), entries=entries, splits=splits,
-                 verdicts=tuple(a.verdict or TICKET_VERDICTS))
+    from pipeline.regs.review.precheck import _corpus
+    # what changed since each mark, against the vintage on disk — as the review app's export says it
+    ctx = Context.on_disk(CURATED.waters.splits, CURATED.regulations.overrides,
+                          GENERATED.registry(), BUNDLE)
+    # the corpus as the review app reads it (`io.read_entryfile` with the registry), so a mark's
+    # prints are taken from the same entry
+    entries = {e["entry_id"]: e for e in _corpus(a.entries, ctx.registry)}
+    marks = load(a.marks)
+    verdicts = tuple(a.verdict or TICKET_VERDICTS)
+    got = export(marks, entries=entries, splits=split_index(ctx.splits), verdicts=verdicts,
+                 statuses=statuses_now(marks, entries=entries, ctx=ctx, verdicts=verdicts))
     if a.out:
         a.out.mkdir(parents=True, exist_ok=True)
         for name, text in got:
