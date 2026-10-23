@@ -1,6 +1,7 @@
 # T97 — Curation review, phases 1–5: marks that last, one vintage, a review screen, queue, gate
 
-Status: OPEN — owner approved PLAN.md 2026-10-23 ("The review app changes seem good"), all §6 defaults (Q5, Q34–Q41).
+Status: DONE for phase 1 — 5a9e8336 (lane-T97). Umbrella open: phases 2–5 are T133–T136.
+Owner approved PLAN.md 2026-10-23 ("The review app changes seem good"), all §6 defaults (Q5, Q34–Q41).
 This ticket is now PHASE 1 (marks that last) plus the umbrella; phases 2–5 are T133–T136; a later salmon pass is T132.
 
 Source: PLAN.md §4 phases 1–5, §5 (how review fits the pipeline), §6 Q2–Q9 (a3f66b7c, T66).
@@ -26,3 +27,63 @@ Each phase's "Accept when" in PLAN.md (0 false-stale marks on a no-op normalisat
 100 % or every difference explained).
 
 Depends: T96 (done). Size: M (phase 1: 3–4 days; all phases 3–4 weeks). Owner: no (plan approved).
+
+## As built (phase 1, 5a9e8336)
+- `pipeline/regs/review/` — `fingerprint.py` (THE one fingerprint module), `marks.py` (the `Mark` model, the store, the
+  one staleness decision), `carry.py` (`carry_marks`; `review.carry_marks` is the name a migration calls).
+- Store: `data/curated/regulations/review/marks.jsonl` (`CURATED.regulations.review.marks`, config.yaml), checked in
+  EMPTY so a missing file raises (AGENTS 37). Append-only: the last mark on a (scope, target, rule_id) is in force.
+- `Mark` (pydantic, `extra=forbid`): scope entry | rule | split, target, rule_id (rule scope), verdict, answers T/R/P/A
+  (a split answers P only), problem, note, reviewer (required, not blank), date, `pdf_sha256` (64 hex, stamped by the
+  server from the repo PDF), `pages` (printed; default the entry's `source_pages`), `prints`, `carried_by`. The
+  verdict must follow from the answers (verified = all y; wrong = an n + problem + note; unsure = a ? and no n;
+  deferred = a note).
+- Fingerprints, per record ("entry" = the entry's own fields, "rule:<id>", "lic:<id>", "split:<id>"):
+  `text` (raw name, regs_verbatim, source_pages, symbols); `meaning` (the record in the model's stored spelling, per
+  record — measured equal to `io.dump_entry` over the whole corpus — less label, review_reason, id and placement
+  fields); `binding` (placement fields with extents' defaults dropped, the canonical anchor of every split it names
+  and of EVERY split on its matched waters, the matcher override deciding its row; ids folded through
+  `flowing.canonical_ids`) and its bundle half `reach` (per named water the bound main-stem km to 0.1, the count of
+  bound sections in no named water); `answer` (bundle rule `label` + `parts`; for the entry record the part facts —
+  steelhead, tidal, province_except, home regions — of its matched waters). Never a section id.
+- Stale reasons (typed, `StaleReason`): book text changed / rule changed / binding moved / answer changed / awaiting
+  build (a record whose mark had a bundle half and the bundle has no copy now). Rule identity: same key + same
+  meaning, else same kind + same meaning (renumbered); never by id alone.
+- `carry_marks(before, after, *, marks, unchanged, by, ctx_before, ctx_after, renamed_splits)` re-stamps only marks
+  that held before, on targets the migration declares unchanged, appended as copies with `carried_by`. The app's
+  split rename uses it (declares every entry and the split unchanged).
+- Gate: `POST /api/marks` runs the save gate (`reuse.check_entry`) and `marks.refuse_on_gate` refuses on any error.
+- API: `POST /api/marks`, `GET /api/marks?target=&scope=`, `GET /api/marks/splits` (every split's status; a new split
+  reads `unmarked`, queued for its own split mark); `GET /api/entries/{id}` carries `marks`; queue rows carry
+  `verify` (unmarked | verified | wrong | unsure | deferred | stale) and `mark_reasons`. Retired:
+  `backend/verification.py`, `GET /api/verification`, `PUT /api/entries/{id}/verify`, VerifyBar's buttons (the bar
+  now shows the marks in force, read only — marking UI is T134).
+- One decision, one function: `pipeline.atlas.splits.splits.applies_keys` / `splits_on` (the app's picker and the
+  fingerprint), `pipeline.regs.matching.matcher.override_for` (`match_row` and the fingerprint).
+- Tests: `pipeline/tests/test_review_marks.py` (34; the split acceptance is in `smoke.txt`, replacing the retired
+  `test_curation_review_fingerprint.py`): whole-corpus no-op normalisation (pipeline writer, shuffled keys, spelled
+  defaults) → 0 stale of 1,525, and one real edit in the same run → exactly 1; split move, ADDED split (owner),
+  override edit, steelhead edit, label wording change, verbatim edit, rule edit, renumbering — each stales exactly the
+  affected marks with the right reason; `carry_marks` caught when it carries everything, nothing, or a stale mark;
+  no-second-copy pin. The steelhead / label / rebuilt-reach cases run against a fixture bundle written with the real
+  `schema.sql` and read by the same `BundleFacts.read`, not a real rebuild.
+
+## Owner questions (built with the default; say if not)
+1. **The reach half counts km per named water, not total sections** (PLAN said "section count and length"). A split
+   cuts one section into two without moving anything; counting sections would stale every zone rule and tributary
+   walk passing over a new split, against "only that water's entries go stale". *Built:* km to 0.1 per named water +
+   count of sections in no named water.
+2. **A split added or moved on a water stales EVERY entry matched to that water** ("binding moved"), not only rules
+   whose reach changed — the owner's acceptance wording. Rules on other entries that merely walk through stay put.
+3. **`unsure` is a verdict** (PLAN §2's "?" outcome; §4's field list named only verified / wrong / deferred).
+4. **No bundle → no bundle half.** A mark made with no bundle on disk holds reach/answer None and can never read
+   "awaiting build"; phase 2's one-vintage gate (T133) is what refuses such a verified mark.
+
+## Follow-ups
+- Ingest: `--replace-entry` should print the marks a replace would stale (fingerprints, typed reasons) — with the
+  ledger retirement (T135).
+- Measure the false-stale rate across a real atlas rebuild (AGENTS: ~50 blocks differ between identical builds; the
+  km / unnamed-count half may flutter) — in the T136 pilot; tighten `reach_summary` if it does.
+- Licensing records carry meaning + binding + bundle label, no reach half.
+- Not run: Tier 2 (`scripts/test-full.sh`, needs the owner's go-ahead) and the app/check.mjs smoke steps (no
+  node_modules in the lane worktree). The frontend typechecks (`tsc -p tsconfig.json --noEmit`).
