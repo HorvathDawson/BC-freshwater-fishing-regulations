@@ -177,7 +177,7 @@ use that as the sole source of future work."
 | T130 | Conditions: zoom out further before the basin heat map; Change chip greyed under Level | DONE | b4f3a40f, cd95bb63, b5218057, c9d48ea7 | Q-T130a/b (defaults built) |
 | T131 | spot pins look better and open the spot on tap | DONE | 00398a3b, fafcd21a, 64b96b55 | Q-T131-1..5 (defaults built); native tap with T50 |
 | T132 | curation review: salmon (DFO) pass | OPEN | — | later, after the first pass |
-| T133 | curation review phase 2: one vintage on screen | OPEN | — | after T97 |
+| T133 | curation review phase 2: one vintage on screen | DONE | 94e06e52, 5052824f | entries read "awaiting build" until a reach + deliver with digests (running) |
 | T134 | curation review phase 3: review screen separate from fixing | OPEN | — | after T133 |
 | T135 | curation review phase 4: queue, pre-checks, ticket export | OPEN | — | after T134 |
 | T136 | curation review phase 5: parity gate + pilot | OPEN | — | after T135 |
@@ -267,6 +267,8 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q82 | T97 | "unsure" is a mark verdict (the "?" outcome) beside verified / wrong / deferred? | yes | owner |
 | Q83 | T101 | "Large share" for a side channel's Flow to answer its river: drainage ≥ 0.5 of the river's (only Hanson/Lewis, Seton Canal, Bell/Nelson reach it today)? | 0.5 | owner |
 | Q84 | T101 | Should a side channel also NOT take its river's Level (the walk cuts it inward; `mainstem_of` still gives an adopted channel line the river's full answer)? One rule both ways, or only your outward rule? | walk cuts inward; adopted lines keep the river's answer — so Nicomen's main channel alternates between the Fraser's answer and its own (historical-only, grey today). Make it one: (a) adopt the connector pieces too, or (b) the channel's own gauges lead on all its water | owner |
+| Q85 | T133 | While an entry awaits its build, the review tool still shows the live binding labelled "preview" (P cannot be answered; bundle copy and answer pane withheld)? | as built | owner |
+| Q86 | T133 | A moved split is only detected after the next atlas build records split anchors (until then only added splits, by id)? | leave it to the next --atlas build | owner |
 
 ### Answered (recently, for the record)
 - Q5, Q34–Q41 (curation review plan, T97) — owner 2026-10-23: "The review app changes seem good" — PLAN.md approved with all §6 defaults; plus: adding splits, rebuilding and continuing review must work (T97, T133–T136); a salmon pass later (T132).

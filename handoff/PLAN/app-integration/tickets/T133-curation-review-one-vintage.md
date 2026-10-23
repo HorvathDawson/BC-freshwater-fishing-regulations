@@ -1,6 +1,6 @@
 # T133 — Curation review phase 2: one vintage on screen (entry digests, awaiting build)
 
-Status: DONE (lane-T133) — built as PLAN §4 phase 2 + the owner's splits-mid-review requirement; acceptance tests
+Status: DONE — 94e06e52, review 5052824f — built as PLAN §4 phase 2 + the owner's splits-mid-review requirement; acceptance tests
 green. Takes effect on the owner's next `pipeline build` (the artifacts on disk predate the digests — until then every
 entry reads "awaiting build", see owner Q1).
 
