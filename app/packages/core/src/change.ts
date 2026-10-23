@@ -150,16 +150,24 @@ function forTheDate(e: ChangeEnd): string {
   return ` (${plainStanding(standing(e.percentile)).toLowerCase()})`;
 }
 
-function riseWords(e: ChangeEnd, today: string): string {
-  return e.back
-    ? `rises to ${ratioWords(e.ratio)} ${on(e.day, today)}${forTheDate(e)}, back down ${by(e.back, today)}`
-    : `rises to ${ratioWords(e.ratio)} ${by(e.day, today)}${forTheDate(e)} and stays up`;
+/**
+ * STILL MOVING WHERE THE FORECAST STOPS (T52 review): an extreme on the last day the run was read for is no step — the
+ * forecast ends while it is still rising (or falling), so whether it holds is not something it says. The publisher calls
+ * this shape `open`; here it is read off the run's own days.
+ */
+const LAST_SHOWN = { rise: "still rising on the last day shown", fall: "still falling on the last day shown" } as const;
+
+function riseWords(e: ChangeEnd, today: string, last: string | undefined, tail = true): string {
+  if (e.back) return `rises to ${ratioWords(e.ratio)} ${on(e.day, today)}${forTheDate(e)}, back down ${by(e.back, today)}`;
+  const head = `rises to ${ratioWords(e.ratio)} ${by(e.day, today)}${forTheDate(e)}`;
+  if (!tail) return head;
+  return e.day === last ? `${head}, ${LAST_SHOWN.rise}` : `${head} and stays up`;
 }
 
-function fallWords(e: ChangeEnd, today: string): string {
-  return e.back
-    ? `falls to ${ratioWords(e.ratio)} ${on(e.day, today)}${forTheDate(e)}, back up ${by(e.back, today)}`
-    : `falls to ${ratioWords(e.ratio)} ${by(e.day, today)}${forTheDate(e)}`;
+function fallWords(e: ChangeEnd, today: string, last: string | undefined, tail = true): string {
+  if (e.back) return `falls to ${ratioWords(e.ratio)} ${on(e.day, today)}${forTheDate(e)}, back up ${by(e.back, today)}`;
+  const head = `falls to ${ratioWords(e.ratio)} ${by(e.day, today)}${forTheDate(e)}`;
+  return tail && e.day === last ? `${head}, ${LAST_SHOWN.fall}` : head;
 }
 
 /**
@@ -170,12 +178,13 @@ function fallWords(e: ChangeEnd, today: string): string {
  * `today` is the reader's calendar day ("YYYY-MM-DD"); the run's days are the Centre's (Pacific).
  */
 export function changeLine(model: string, c: RunChange, today: string): string {
-  const said = c.dir === "rise" ? riseWords(c.peak, today)
-    : c.dir === "fall" ? fallWords(c.trough, today)
+  const last = c.days.length ? c.days[c.days.length - 1]![0] : undefined;
+  const said = c.dir === "rise" ? riseWords(c.peak, today, last)
+    : c.dir === "fall" ? fallWords(c.trough, today, last)
     : c.dir === "both"
       ? (dayNumber(c.peak.day) <= dayNumber(c.trough.day)
-        ? `${riseWords({ ...c.peak, back: null }, today).replace(" and stays up", "")}, then ${fallWords(c.trough, today)}`
-        : `${fallWords({ ...c.trough, back: null }, today)}, then ${riseWords(c.peak, today)}`)
+        ? `${riseWords({ ...c.peak, back: null }, today, last, false)}, then ${fallWords(c.trough, today, last)}`
+        : `${fallWords({ ...c.trough, back: null }, today, last, false)}, then ${riseWords(c.peak, today, last)}`)
       : "little change expected";
   return `${model}: ${said}.`;
 }

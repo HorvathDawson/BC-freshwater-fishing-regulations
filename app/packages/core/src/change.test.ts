@@ -55,6 +55,22 @@ describe("one model's expected change, said whole", () => {
       "ELF: falls to about 60% of today's flow by Sun 1 Nov (low for the time of year).");
   });
 
+  it("a move still going on the last day shown is never said to stay up: the forecast stops there (T52 review)", () => {
+    // 08EE020's ELF run as read: its window ends Sun 1 Nov, the very day of its lowest
+    const fallDays: RunChange["days"] = [["2026-10-31", 6.7, 6.7], ["2026-11-01", 6.5968, 6.5968]];
+    expect(changeLine("ELF", { ...FALL, days: fallDays }, TODAY)).toBe(
+      "ELF: falls to about 60% of today's flow by Sun 1 Nov (low for the time of year), still falling on the last day "
+      + "shown.");
+    // a COFFEE run (five days) still climbing on its last
+    const open: RunChange = { ...STEP, days: [["2026-10-27", 1.5, 1.6], ["2026-10-28", 2.0, 2.127]] };
+    expect(changeLine("COFFEE", open, TODAY)).toBe(
+      "COFFEE: rises to about 3× today's flow by Wed (about normal for the time of year), still rising on the last day "
+      + "shown.");
+    // the same peak with a day after it, held: a step
+    expect(changeLine("COFFEE", { ...open, days: [...open.days, ["2026-10-29", 2.1, 2.12]] }, TODAY)).toBe(
+      "COFFEE: rises to about 3× today's flow by Wed (about normal for the time of year) and stays up.");
+  });
+
   it("steady says so, and says nothing of the record", () => {
     expect(changeLine("COFFEE", { ...FALL, dir: "steady" }, TODAY)).toBe("COFFEE: little change expected.");
   });

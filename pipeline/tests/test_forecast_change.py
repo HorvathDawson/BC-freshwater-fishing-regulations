@@ -142,6 +142,20 @@ def test_spike_or_step_is_whether_it_comes_back_by_half():
     assert change_of([10.0, 30.0, 25.0, 21.0])["peak"]["back"] is None
 
 
+def test_a_move_still_going_on_the_last_day_read_is_open_not_a_step():
+    """A peak on the run's LAST day says nothing about whether it holds: the forecast stops while it is still rising.
+    On the 2026-10-22 feed, 30 of the 57 big moves with no return were on that day (18 of them COFFEE, a five-day run)."""
+    _, s = C.station_change({"COFFEE": daily_run([10.0, 12.0, 20.0, 30.0], model="COFFEE")}, NOW, 10.0, None)
+    assert s == {"discharge": round(C.coded(3.0), 4), "model": "COFFEE", "dir": "rise", "ratio": 3.0,
+                 "day": "2026-10-25", "shape": "open"}
+    # one day held after it is a step
+    _, s = C.station_change({"COFFEE": daily_run([10.0, 30.0, 30.0], model="COFFEE")}, NOW, 10.0, None)
+    assert (s["shape"], s["day"]) == ("step", "2026-10-23")
+    # a fall to the last day, likewise
+    _, s = C.station_change({"COFFEE": daily_run([10.0, 8.0, 4.0], model="COFFEE")}, NOW, 10.0, None)
+    assert (s["dir"], s["shape"], s["day"]) == ("fall", "open", "2026-10-24")
+
+
 def test_the_window_is_ten_days():
     """ELF publishes thirty; a peak on day eleven is not about to happen."""
     got = change_of([10.0] * 11 + [80.0])

@@ -118,7 +118,8 @@ export interface StationChange {
   dir: "rise" | "fall" | "both" | "steady";
   ratio: number;
   day: string;
-  shape: "spike" | "step";
+  /** spike: back within half by a later day; step: held to the last day; open: the extreme IS the last day read. */
+  shape: "spike" | "step" | "open";
   back?: string;
 }
 

@@ -44,7 +44,10 @@ FALL_RATIO = 0.5
 BIG_POINTS = 0.25
 
 # A RISE THAT COMES BACK is a SPIKE: some later day in the window whose highest step is back under today plus half the
-# rise (a fall's mirror: back over today less half the drop). Otherwise it is a STEP — it holds to the end of the window.
+# rise (a fall's mirror: back over today less half the drop). Otherwise it is a STEP — it holds to the end of the window —
+# unless the extreme IS the last day read: then the run stops while it is still moving, and whether it holds is not
+# something the forecast says. That is OPEN (T52 review: 30 of the 57 big moves with no return on 2026-10-22 were on the
+# last day, 18 of them COFFEE's five-day runs; calling them steps put "and stays up" in the panel on no evidence).
 SPIKE_BACK = 0.5
 
 # A RUN OLDER THAN THIS IS NOT A FORECAST ANY MORE (`STALE_AFTER.forecast` in core, 36 h): ELF and COFFEE issue daily,
@@ -230,6 +233,7 @@ def station_change(runs: dict | None, now: datetime, observed: float | None,
     # KEPT SMALL: the index is fetched to paint the map (~180 KB). One coded number colours; the ratio, the day and the
     # shape say what it is in a line. Every run's own detail is in the station file, opened on a tap.
     summary = {"discharge": round(coded(e["ratio"]), 4), "model": lead, "dir": c["dir"],
-               "ratio": e["ratio"], "day": e["day"], "shape": "spike" if e["back"] else "step",
+               "ratio": e["ratio"], "day": e["day"],
+               "shape": "spike" if e["back"] else "open" if e["day"] == c["days"][-1][0] else "step",
                **({"back": e["back"]} if e["back"] else {})}
     return per, summary
