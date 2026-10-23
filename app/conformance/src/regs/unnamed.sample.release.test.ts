@@ -87,12 +87,8 @@ describe.skipIf(!bundle.path)("(T53) unnamed sections in every region: the page'
                               WHERE s.sid = ?`).get(sid) as { regions: string }).regions).split(",").map((r) => r.toUpperCase());
     return rs.length === 1 ? `Region ${rs[0]}` : `Regions ${rs.slice(0, -1).join(", ")} and ${rs[rs.length - 1]}`;
   };
-  const seen = { mu_line: 0, lake_catchment: 0 };
-
   it.each(REGIONS)("Region %s", async (region) => {
     const extra = [...strata(region, "mu_line"), ...strata(region, "lake_catchment")];
-    seen.mu_line += strata(region, "mu_line").length;
-    seen.lake_catchment += strata(region, "lake_catchment").length;
     const sids = [...new Set([...sample(region, true), ...sample(region, false), ...extra])];
     expect(sids.length).toBeGreaterThanOrEqual(2 * PER);
     const got = [], want = [];
@@ -113,6 +109,8 @@ describe.skipIf(!bundle.path)("(T53) unnamed sections in every region: the page'
   }, 120_000);
 
   it("(T57) both new strata were sampled somewhere in B.C.", () => {
-    expect([seen.mu_line > 0, seen.lake_catchment > 0]).toEqual([true, true]);
+    // counted here, not by the Region tests' side effects: this test alone (`-t T57`) must give the same answer
+    const n = (which: "mu_line" | "lake_catchment") => REGIONS.reduce((a, r) => a + strata(r, which).length, 0);
+    expect([n("mu_line") > 0, n("lake_catchment") > 0]).toEqual([true, true]);
   });
 });
