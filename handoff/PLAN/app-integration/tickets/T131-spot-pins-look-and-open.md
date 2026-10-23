@@ -1,6 +1,29 @@
 # T131 — Spot pins on the map: look better, and tap to open the spot
 
-Status: OPEN — owner 2026-10-22: "make spots on the map a) look better and b) clickable to open the spot."
+Status: DONE — 0cc5ea09 (lane wf_58c33d34-a73-2; shots in handoff/PLAN/app-integration/T131-shots/; native drawn by
+the same code but not run on a device: rides T50). Owner 2026-10-22: "make spots on the map a) look better and b)
+clickable to open the spot."
+
+## Built
+- `@app/core` spotPins.ts: `SPOT_PIN` (44 px target, 30/36 px face, group under 40 px, names from z11), `spotMarkers`
+  (greedy grouping in id order, splitZoom, names de-overlapped, the selected first), `spotPress`, words, `spotBack`.
+- `@app/map` `MapProps.spots` + spots.ts `pressSpot`: web draws the marks in its own layer over the canvas (a tap never
+  reaches the water); native as view annotations. Old accent `pins` for spots are gone (the town pin stays a pin).
+- `@app/ui-native` SpotPin: the Spots icon (Icon table) on the card ground framed in ink, hard slab; selected = larger +
+  inverted; group = count over a second face; name above in the boundary marks' label style.
+- Tap → that spot (one back layer); back → the map where it was, that pin selected. On a water's map the spot opens
+  OVER the water (`WaterRoute.spot`; back is the water's map). The spot's ‹ names where back goes.
+- Tokens `color.ui.spot` / `color.ui.spot-ground` (ink / card); theme.test gates the mark dE >= 12 from every status,
+  flow and temperature colour, the selection, the accent (you-are-here) and its ground.
+- With Spots shown, Show no longer drops the accent marker on the spot: its own (selected) pin marks it.
+
+## Owner questions (defaults built)
+- Q-T131-1 Spot pin colour: neutral ink-on-card (selected inverted), the only choice clear of every status, flow and
+  stocking colour in all three themes. A hue of its own instead? Default: neutral.
+- Q-T131-2 Several spots on ONE point (no zoom parts them): the tap opens the Spots list (out of a water first, when on a
+  water's map). Default: the list; alternative: fan them out.
+- Q-T131-3 A spot opened from a water's map sits over the water (back returns to it) and its tab bar leaves the water for
+  that tab. Default: as built.
 
 ## Today
 Saved spots are drawn as accent pins on every map since the Spots switch (Layers; useLayerChoice / spotPins in
