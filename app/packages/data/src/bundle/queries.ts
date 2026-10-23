@@ -146,7 +146,7 @@ export const SEARCH_PLACES =
  *
  * The precompute used to carry the name and be joined back by it — the classic silent
  * mismatch, and when it missed the source MINTED an ItemId out of the name, producing an
- * id that fails `itemExists` and routes a tap nowhere.
+ * id that names no item and routes a tap nowhere.
  */
 export const WATERS_NEAR =
   // `towns` is how many places the water comes within 25 km of — ONE grouped pass over
@@ -230,47 +230,6 @@ export const LAKE_GAUGES =
   "SELECT lg.station, g.name, g.lon, g.lat, g.area_km2, g.mag " +
   "FROM lake_gauge lg LEFT JOIN gauge g USING(station) " +
   "WHERE lg.item_id = ? ORDER BY lg.station";
-
-/**
- * Does this WATER have a gauge — the question a person actually asks.
- *
- * A water is many reaches and they do not agree: the lower Chilliwack is gauged well and
- * its headwaters barely at all. So this returns the BEST reach, not an average and not the
- * first one found, and hands back which reach it was — the answer "yes, 8 km downstream of
- * where you are looking" is true, and "yes" alone is not.
- *
- * Ordering is explicit rather than by a trust string, which would sort fair < good < weak.
- *
- * THE ORDER IS band, then TRANSMITTING, then the biggest reach. Each clause fixes a real
- * wrong answer on the province bundle:
- *
- *   band first     — never trade representativeness for anything else.
- *   NOT liveness   — the bundle holds no such column. The Thompson picking a closed
- *                    station over a working one is a real problem, but it is the FEED's
- *                    to solve: this returns several candidates and the caller prefers one
- *                    the feed index contains. A boolean baked in here would be right in
- *                    March and wrong by November.
- *   biggest reach  — ordering on the band alone gave the Cowichan River a station on a
- *                    13 km2 creek that clipped one of its sections. `good` spans a tenth
- *                    of a watershed to all of it, so the band cannot break its own ties;
- *                    the water's largest reach is what a person means by "this river".
- * A reach now holds exactly one station — the build already picked the one that most
- * nearly IS that water — so the ordering only has to choose between REACHES. The biggest
- * one is what a person means by "this river". This returns several candidates rather than
- * one so the caller can prefer a station the feed says is transmitting.
- *
- * A water whose only stations have closed still answers — with a record-only gauge, which
- * `GaugeLink.live` marks and the UI says out loud.
- */
-export const GAUGE_FOR_ITEM =
-  "SELECT sg.sid, sg.station, sg.trust, sg.mag AS reach_mag, " +
-  "       g.name, g.lon, g.lat, g.area_km2, g.mag " +
-  "FROM item_section it JOIN item i ON i.ord = it.ord " +
-  "JOIN section_gauge sg ON sg.sid = it.sid " +
-  "LEFT JOIN gauge g USING(station) " +
-  "WHERE i.item_id = ? " +
-  "ORDER BY (CASE sg.trust WHEN 'good' THEN 0 WHEN 'fair' THEN 1 ELSE 2 END), " +
-  "         COALESCE(sg.mag, 0) DESC, sg.station LIMIT 8";
 
 /**
  * The station for each of these reaches, in one statement.

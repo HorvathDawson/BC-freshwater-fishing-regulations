@@ -15,7 +15,6 @@ const VISITED = Date.parse("2026-08-30T09:00:00Z");
 
 const source = (over: Partial<RegsSource> = {}): RegsSource => ({
   info: async () => ({ version: "t", validUntil: null }),
-  itemExists: async () => true,
   itemForSection: async () => null,
   water: async () => null,
   searchNames: async () => [],

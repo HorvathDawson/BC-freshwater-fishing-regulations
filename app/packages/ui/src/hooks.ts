@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
 import type { GaugeTrace, SectionKey, StatusIndex } from "@app/core";
 import { decodeStatusIndex, monthAbbr, statusOn } from "@app/core";
 import type {
-  BundleCounts, GaugeFeed, GaugeLink, ItemId, LakeInfo, NameHit,
+  BundleCounts, GaugeFeed, ItemId, LakeInfo, NameHit,
   Parameter, PlaceHit, PlaceId, PointerHit, RegsSource, SectionId, Series, StationId, Water,
 } from "@app/data";
 import { useAsync, useDebounced, usePoll, type Async } from "./async";
@@ -241,31 +241,6 @@ export function useGaugeTrace(
     },
     `trace:${section}`,
     section !== null,
-  );
-}
-
-/**
- * Does this WATER have a gauge — the question asked before any number is wanted.
- *
- * Not `useGaugeTrace` with a different argument. That one asks about the reach a person is
- * looking at, and answers "nothing speaks for this stretch" for most of a river that is
- * perfectly well gauged eight kilometres down. This asks whether the water has a station
- * anywhere on it, which is what a person means by "is this river gauged".
- *
- * Returns null for genuinely ungauged water — a real answer, and the app must show it as
- * one rather than as an empty panel.
- */
-export function useWaterGauge(
-  source: RegsSource, item: ItemId | null,
-): Async<GaugeLink | null> {
-  return useAsync(
-    async (): Promise<GaugeLink | null> => {
-      if (!item) return null;
-      const link = await source.gaugeForItem(item);
-      return link ?? null;
-    },
-    `watergauge:${item}`,
-    item !== null,
   );
 }
 

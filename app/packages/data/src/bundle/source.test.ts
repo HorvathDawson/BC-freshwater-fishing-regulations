@@ -88,7 +88,8 @@ describe("the bundle source", () => {
     for (let i = 1; i < near.length; i++)
       expect(near[i]!.km).toBeGreaterThanOrEqual(near[i - 1]!.km);
     // every hit is a real item, not an id minted from a display name
-    for (const h of near) expect(await src.itemExists(h.item), h.name).toBe(true);
+    for (const h of near)
+      expect(await db.get("SELECT 1 AS hit FROM item WHERE item_id = ?", h.item), h.name).toEqual({ hit: 1 });
   });
 
   it("says how much water each near-by water is, from the bundle's own tables", async () => {
@@ -224,36 +225,6 @@ describe("the bundle source", () => {
     expect(await src.gaugeForSection(Number(ungauged.sid) as SectionId)).toBeNull();
   });
 
-  it("answers whether a WATER has a gauge, not just the reach you tapped", async () => {
-    // A river's reaches disagree — most of a well-gauged river has no station on the exact
-    // stretch in view. Asking the water is the question a person means.
-    const link = await src.gaugeForItem("gnis:8634" as ItemId);
-    expect(link, "the fixture's Chilliwack has four stations on it").not.toBeNull();
-    expect(link!.trust).toBe("good");
-    expect(link!.section, "the answer says WHICH reach it is for").not.toBeNull();
-  });
-
-  it("picks the gauge on the water's biggest reach, not the first good one", async () => {
-    // The defect this replaced: ordering on the trust band alone. `good` runs from a tenth
-    // of a watershed to all of it, so a station clipping one small section outranked the
-    // river's own gauge — on the real bundle a 13 km2 creek station won the Cowichan.
-    const link = await src.gaugeForItem("gnis:8634" as ItemId);
-    const biggest = await db.get(
-      "SELECT sg.station FROM item_section it " +
-      "JOIN item i ON i.ord = it.ord " +
-      "JOIN section_gauge sg ON sg.sid = it.sid " +
-      "LEFT JOIN gauge g USING(station) " +
-      "WHERE i.item_id = 'gnis:8634' AND sg.trust = 'good' " +
-      "ORDER BY sg.mag DESC, sg.station LIMIT 1");
-    expect(link!.station).toBe(biggest!.station);
-  });
-
-  it("reports liveness as unknown when no feed is wired, never as stopped", async () => {
-    // `src` here has no feed. A false would tell an offline reader the gauge shut down.
-    const link = await src.gaugeForItem("gnis:8634" as ItemId);
-    expect(link!.live).toBeNull();
-  });
-
   it("carries both magnitudes so a sheet can show its working", async () => {
     const row = await db.get(
       "SELECT sid FROM section_gauge WHERE trust = 'good' AND mag IS NOT NULL LIMIT 1");
@@ -265,20 +236,22 @@ describe("the bundle source", () => {
   it("distinguishes not-transmitting from not-checked", async () => {
     // Three states, and the third is the one that matters: with no feed wired the honest
     // answer is null. A false here tells an offline reader the gauge shut down.
-    const link = await src.gaugeForItem("gnis:8634" as ItemId);
+    const row = await db.get("SELECT sid FROM section_gauge ORDER BY sid LIMIT 1");
+    const at = Number(row!.sid) as SectionId;
+    const link = await src.gaugeForSection(at);
     expect(link!.live).toBeNull();
 
     const withFeed = makeBundleSource(db, {
       feed: { now: async () => null, observations: async () => null,
               live: async () => new Set([link!.station]) },
     });
-    expect((await withFeed.gaugeForItem("gnis:8634" as ItemId))!.live).toBe(true);
+    expect((await withFeed.gaugeForSection(at))!.live).toBe(true);
 
     const quiet = makeBundleSource(db, {
       feed: { now: async () => null, observations: async () => null,
               live: async () => new Set<string>() },
     });
-    expect((await quiet.gaugeForItem("gnis:8634" as ItemId))!.live).toBe(false);
+    expect((await quiet.gaugeForSection(at))!.live).toBe(false);
   });
 
   it("traces downstream without hanging on a braid", async () => {
@@ -297,20 +270,6 @@ describe("the bundle source", () => {
 });
 
 describe("the gauge model", () => {
-  it("never breaks a tie on the station id, which is alphabetical and meaningless", async () => {
-    // The regression this catches, on the real province bundle: with several stations per
-    // reach, the item-level pick fell through to `ORDER BY station` and the Fraser
-    // answered "Nechako River at Vanderhoof". `seq` is the build's own ranking and must
-    // come first.
-    const sql = (await import("./queries")).GAUGE_FOR_ITEM;
-    const order = sql.slice(sql.indexOf("ORDER BY"));
-    // Representativeness decides, and the station id is only ever the last resort that
-    // keeps a rebuild byte-identical. If it ever leads, the Fraser answers "Nechako River
-    // at Vanderhoof" — which is exactly what happened.
-    expect(order.indexOf("sg.mag"), "magnitude must rank before the station id")
-      .toBeLessThan(order.indexOf("sg.station"));
-  });
-
   it("holds exactly one station per reach — the one that most nearly is it", async () => {
     // A second gauge on the same reach drains more country than the first, or less, so it
     // is a worse answer to the same question rather than a second opinion. The variety

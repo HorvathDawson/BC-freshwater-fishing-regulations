@@ -84,8 +84,6 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
                surveyed: surveyed ? surveyed : null, stations: num(r?.stations) ?? 0 };
     },
 
-    async itemExists(id) { return (await db.get(Q.ITEM, id)) !== undefined; },
-
     async itemForSection(id) {
       const r = await db.get(Q.ITEM_FOR_SECTION, id);
       return r ? (str(r.item_id) as ItemId) : null;
@@ -170,20 +168,6 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
     async gaugeForSection(id): Promise<GaugeLink | null> {
       const r = await db.get(Q.GAUGE_FOR_SECTION, id);
       return link(r, id, (await opts.feed?.live?.()) ?? null);
-    },
-
-    async gaugeForItem(id): Promise<GaugeLink | null> {
-      // Several candidates, already ordered by how well each speaks for this water. The
-      // FEED then breaks the tie: at equal trust a station you can read today beats one
-      // that stopped in 2004. Doing it here rather than in SQL is what lets the bundle
-      // hold no liveness column at all.
-      const rows = await db.all(Q.GAUGE_FOR_ITEM, id);
-      if (!rows.length) return null;
-      const live = (await opts.feed?.live?.()) ?? null;
-      const best = live
-        ? rows.find((r) => live.has(str(r.station))) ?? rows[0]!
-        : rows[0]!;
-      return link(best, sid(best.sid), live);
     },
 
     async stationsFor(sections): Promise<ReadonlyMap<SectionId, StationId>> {

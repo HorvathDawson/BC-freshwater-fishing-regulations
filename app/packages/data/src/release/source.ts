@@ -24,7 +24,7 @@
 import type { WaterFix } from "@app/core";
 import { num, str, type Row } from "../bundle/db";
 import * as BQ from "../bundle/queries";
-import { boxOfGeoRows, byGaugeForItem, link, nearHit, parametersOf, pentadsOf, placesOf, pointerHits, rankNameHits, routesOf, seriesOf, sid,
+import { boxOfGeoRows, link, nearHit, parametersOf, pentadsOf, placesOf, pointerHits, rankNameHits, routesOf, seriesOf, sid,
          traceDown, withNear, type DownOf } from "../bundle/shared";
 import type { BundleSourceOptions } from "../bundle/source";
 import type { BasinMember, BundleCounts, BundleInfo, GaugeLink, ItemId, NameHit, NearHit, Panel, PanelMember,
@@ -158,8 +158,6 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: BundleSourceOptio
                stations: paint.stations.length };
     },
 
-    async itemExists(id) { return (await get(R.ITEM!, id)) !== undefined; },
-
     async itemForSection(id) {
       const r = await get(R.ITEM_FOR_SECTION!, id);
       return r ? (str(r.item_id) as ItemId) : null;
@@ -247,16 +245,6 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: BundleSourceOptio
 
     async gaugeForSection(id): Promise<GaugeLink | null> {
       return link(await get(R.GAUGE_FOR_SECTION!, id), id, await live());
-    },
-
-    async gaugeForItem(id): Promise<GaugeLink | null> {
-      const sections = await sectionsOf(id);
-      const rows = (await chunked(sections, (c) => all(CROSS.SECTION_GAUGES(c.length), ...c)))
-        .sort(byGaugeForItem).slice(0, 8);
-      if (!rows.length) return null;
-      const l = await live();
-      const best = l ? rows.find((r) => l.has(str(r.station))) ?? rows[0]! : rows[0]!;
-      return link(best, sid(best.sid), l);
     },
 
     async stationsFor(sections) {

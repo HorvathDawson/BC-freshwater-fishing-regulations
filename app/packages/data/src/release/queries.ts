@@ -6,7 +6,7 @@
  * NOT HERE, AND WHY: the reads that cross two files become two keyed reads in the release reader (P11 / T04), never a
  * join across files:
  *   NEAR_FOR_ITEMS, WATERS_NEAR, RINGS_FOR_ITEM    near (place_water) → core (item, place)
- *   GAUGES_ON_ITEM, GAUGE_FOR_ITEM                  core (item_section) → conditions (gauge, section_gauge)
+ *   GAUGES_ON_ITEM                                  core (item_section) → conditions (gauge)
  *   gaugesForSections, lakeStationsFor              conditions + core (the lake road: section → item → lake_gauge)
  *   panelsForSections, BASIN_MEMBERS                paint (decoded arrays, not SQL) + flow-area
  *   STOCKED_ON_ITEM, CHARTS_FOR_ITEM, RELEASES_FOR_NAME   no producer yet: not in the release (the reader answers empty)
@@ -87,10 +87,6 @@ export const CROSS = {
   /** conditions: stations standing on these sections. */
   GAUGES_AT: (n: number) => ({ file: "conditions", sql:
     `SELECT lat, lon FROM gauge WHERE sid IN (${ids(n)}) AND lat IS NOT NULL AND lon IS NOT NULL` }),
-  /** conditions: GAUGE_FOR_SECTION for many sections (GAUGE_FOR_ITEM's second half). */
-  SECTION_GAUGES: (n: number) => ({ file: "conditions", sql:
-    "SELECT sg.sid, sg.station, sg.trust, sg.mag AS reach_mag, g.name, g.lon, g.lat, g.area_km2, g.mag " +
-    `FROM section_gauge sg LEFT JOIN gauge g USING(station) WHERE sg.sid IN (${ids(n)})` }),
   SECTION_STATIONS: (n: number) => ({ file: "conditions", sql:
     `SELECT sid, station FROM section_gauge WHERE sid IN (${ids(n)})` }),
   /** conditions: the lake road's second half — the lowest station in each lake, stably. */

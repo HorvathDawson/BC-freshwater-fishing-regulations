@@ -123,7 +123,7 @@ export interface GaugeLink {
   /** Where the station is, for the map. Null when ECCC published no coordinate. */
   lon: number | null;
   lat: number | null;
-  /** The reach the answer is FOR — not always the one asked about, for `gaugeForItem`. */
+  /** The reach the answer is for (the section `gaugeForSection` was asked about). */
   section: SectionId | null;
 }
 
@@ -429,7 +429,6 @@ export interface RegsSource {
   counts(): Promise<BundleCounts>;
 
   // ---- identity -------------------------------------------------------
-  itemExists(id: ItemId): Promise<boolean>;
   itemForSection(id: SectionId): Promise<ItemId | null>;
   /**
    * What water a reach is part of — its id, its name, and what kind of water it is.
@@ -473,13 +472,6 @@ export interface RegsSource {
 
   // ---- conditions -----------------------------------------------------
   gaugeForSection(id: SectionId): Promise<GaugeLink | null>;
-  /**
-   * The best gauge anywhere on this water, or null if none speaks for any of it.
-   *
-   * Answers "does this river have a gauge?" — which `gaugeForSection` cannot, because a
-   * water's reaches disagree. Null here is a real answer and must be shown as one.
-   */
-  gaugeForItem(id: ItemId): Promise<GaugeLink | null>;
   /**
    * Which station speaks for each of these reaches.
    *
@@ -567,6 +559,9 @@ export interface RegsSource {
   panelRoutes(section: SectionId): Promise<readonly PanelRoute[]>;
 
   // ---- lakes ----------------------------------------------------------
+  // PREPARED, NOT FED (owner 2026-10-22, audit wave 1): no screen calls these yet and no release ships the data
+  // (the release reader answers null / []). They are kept on purpose for the stocking and bathymetry feeds — do not
+  // delete them as dead code (decisions.md "the audit plan"; T70).
   lakeInfo(id: ItemId): Promise<LakeInfo | null>;
   stockingHistory(id: ItemId): Promise<readonly Release[]>;
 

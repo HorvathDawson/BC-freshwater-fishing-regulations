@@ -122,7 +122,6 @@ describe("the release reader answers like the bundle reader (P11)", () => {
     }
     for (const id of column("SELECT item_id FROM item ORDER BY ord").filter((_, i) => i % 10 === 0) as ItemId[]) {
       expect([id, await release.water(id)]).toEqual([id, await bundle.water(id)]);
-      expect([id, await release.itemExists(id)]).toEqual([id, await bundle.itemExists(id)]);
     }
     for (const q of ["vedder", "creek", "lake", "slough", "chilliwack", "greyell", "a_b", "xx"])
       expect([q, await release.searchNames(q, 10)]).toEqual([q, await bundle.searchNames(q, 10)]);
@@ -156,7 +155,6 @@ describe("the release reader answers like the bundle reader (P11)", () => {
       expect([s, await release.panelRoutes(s)]).toEqual([s, await bundle.panelRoutes(s)]);
     }
     for (const id of column("SELECT item_id FROM item ORDER BY ord").filter((_, i) => i % 5 === 0) as ItemId[]) {
-      expect([id, await release.gaugeForItem(id)]).toEqual([id, await bundle.gaugeForItem(id)]);
       expect([id, await release.locate(id)]).toEqual([id, await bundle.locate(id)]);
     }
     expect(await release.gaugePoints()).toEqual(await bundle.gaugePoints());

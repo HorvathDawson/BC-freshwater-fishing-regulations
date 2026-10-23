@@ -112,7 +112,6 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
       return { waters: 2, reaches: itemOf.size, surveyed: null, stations: 1 };
     },
 
-    async itemExists(i) { return i === CHILLIWACK.item || i === JEPERSON.item; },
     async itemForSection(s) {
       const item = itemOf.get(s);
       return item ? id<ItemId>(item) : null;
@@ -203,12 +202,6 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
       };
     },
 
-    async gaugeForItem(i): Promise<GaugeLink | null> {
-      // The best reach on the water, which is not the same as any particular one: the
-      // Jeperson creek section would answer "weak", the river as a whole answers "good".
-      if (i !== CHILLIWACK.item) return null;
-      return this.gaugeForSection(handleOf(CHILLIWACK.sections[0]!));
-    },
     async stationsFor(sections): Promise<ReadonlyMap<SectionId, StationId>> {
       const out = new Map<SectionId, StationId>();
       for (const s of sections)

@@ -78,10 +78,6 @@ export function runConformance(name: string, make: () => Promise<RegsSource>,
     expect(c.reaches).toBeGreaterThanOrEqual(c.waters);
   });
 
-  T("a missing item is absent, never a silent empty answer", async (s) => {
-    expect(await s.itemExists("gnis:does-not-exist" as ItemId)).toBe(false);
-  });
-
   T("a section resolves to the item that owns it", async (s) => {
     expect(await s.itemForSection(sections.lowerChilliwack)).toBe(CHILLIWACK);
     expect(await s.itemForSection(NO_SUCH_SECTION)).toBeNull();

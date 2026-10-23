@@ -120,15 +120,6 @@ export function link(r: Row | undefined, section: SectionId | null,
   };
 }
 
-/** `ORDER BY` of GAUGE_FOR_ITEM: band, then the biggest reach, then the station (then the reach, for a total order). */
-const TRUST_RANK: Record<string, number> = { good: 0, fair: 1 };
-export function byGaugeForItem(a: Row, b: Row): number {
-  return (TRUST_RANK[str(a.trust)] ?? 2) - (TRUST_RANK[str(b.trust)] ?? 2)
-    || (num(b.reach_mag) ?? 0) - (num(a.reach_mag) ?? 0)
-    || (str(a.station) < str(b.station) ? -1 : str(a.station) > str(b.station) ? 1 : 0)
-    || Number(a.sid) - Number(b.sid);
-}
-
 const bytesOf = (raw: Uint8Array | ArrayBuffer) => (raw instanceof Uint8Array ? raw : new Uint8Array(raw));
 
 /**

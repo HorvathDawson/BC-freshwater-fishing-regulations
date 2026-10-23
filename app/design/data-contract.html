@@ -832,7 +832,6 @@ interface <b>RegsSource</b> {
   info(): Promise&lt;BundleInfo&gt;;
 
   <span class="c">// ---- identity -------------------------------------------------------</span>
-  itemExists(id: ItemId): Promise&lt;boolean&gt;;
   itemForSection(ix: SectionIx): Promise&lt;ItemId | null&gt;;
 
   <span class="c">// ---- regulations ----------------------------------------------------</span>
