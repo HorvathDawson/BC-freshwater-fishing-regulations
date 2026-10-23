@@ -58,6 +58,17 @@ function sources(dir: string, out: string[] = []): string[] {
 const files = () => ROOTS.flatMap((r) => sources(join(APP, r))).map((p) => relative(APP, p))
   .filter((p) => p !== HOME).sort();
 
+/**
+ * A module's text; "" for one gone since the walk — check-boundaries.test writes and removes a probe module
+ * (`packages/ui/src/_bnd.ts`) while the suite runs in parallel.
+ */
+function read(p: string): string {
+  try { return readFileSync(join(APP, p), "utf8"); } catch (e) {
+    if ((e as NodeJS.ErrnoException).code === "ENOENT") return "";
+    throw e;
+  }
+}
+
 const NAME = `["'](?:stream|lake|wetland|lake_flowing|wetland_flowing)["']`;
 const KEY = `(?:stream|lake|wetland|lake_flowing|wetland_flowing)`;
 /** The ways a module can spell its own per-section layer list. */
@@ -138,7 +149,7 @@ describe("one per-section layer list: perSectionLayers() decides, everything els
 
   it("no module outside sections.ts spells a per-section layer list", () => {
     const hits = files().flatMap((p) => {
-      const text = readFileSync(join(APP, p), "utf8");
+      const text = read(p);
       return Object.entries(SPELLS).filter(([, re]) => re.test(text)).map(([k]) => `${p}: ${k}`);
     });
     expect(hits).toEqual(Object.keys(DECLARED));

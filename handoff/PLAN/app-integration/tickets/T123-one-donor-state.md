@@ -1,6 +1,6 @@
 # T123 — One donor state: the Conditions lines and the map label read a donor differently
 
-Status: OPEN.
+Status: DONE — c8d7dc68 (app only; ships with the next app build, no data rebuild).
 
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, finding gauges 6
 (CONFIRMED in code; mostly masked today).
@@ -24,3 +24,49 @@ For each state a fixture shows the same word in the Conditions line and the map 
 shots unchanged except the horizon case).
 
 Rebuild: none (app). Depends: none. Size: S. Owner: no.
+
+## As built (c8d7dc68)
+- **Core** `app/packages/core/src/conditions.ts`: `donorState(r, { ref, horizon })` returns one tagged state:
+  `reads` (with its percentile), `not-realtime`, `no-forecast`, `unranked` or `quiet`. The order is the ruling. A
+  reading wins. "Not real-time" holds at every horizon. A horizon with no forecast comes before anything about today's
+  reports. `unranked` means a report within a day of `ref`. This is the only code that tests `percentile`, `realtime`
+  or the within-a-day `observedAt` parse. `donorCounted(r)` asks whether the state is `reads`. Types: `DonorState`,
+  `DonorReading`, `DonorAsk`.
+- **Every label is a `switch` over it**, exhaustive (`never`):
+  - `donorReads`, `donorSilent` and `donorRowLabel` in conditions.ts.
+  - `donorMapLabel` (and so `donorMapKey`) in `routeMap.ts`.
+  - `donorUnranked` is `kind === "unranked"`.
+  - `donorShare`, `donorWeightLine`, `gaugeChoiceLabel`, the silent line's member, and the short-record, dam and tide
+    notes go through `donorCounted` or the state.
+- **The horizon case**: on a day ahead or under Change, a donor with no forecast is drawn on the map as
+  **`no forecast`** (new `ROUTE_MAP_WORDS.noForecast`); it used to say `not reporting`. Its screen-reader row label
+  now says `no forecast for this gauge, so it counts for nothing`, not `not reporting today, …`. Both are masked
+  today, because `donorSilent` hides those rows and pins. No app shot changes.
+- **Outside core**: `ui/panel.ts` (`quiet`, `lastReport`, `because` on rows and gauge choices, `lastReportWanted`)
+  and `data/standing.ts` `sheetLead` ask `donorCounted`. They no longer test `percentile === null`.
+- **Pin** `app/tools/one-donor-state.test.ts`:
+  1. One fixture per state (7 rows, both horizon kinds included). Each row is checked as whole values: the row's
+     reading line (or its weight line when it counts), the map label, the map key, the silent flag and the
+     screen-reader label. The Conditions line and the map label must contain the same word.
+  2. The decision itself, checked whole, including its order.
+  3. A grep over apps and packages (tests excluded): no module tests `.percentile` against null, `.realtime` against a
+     boolean, or `.observedAt ? Date.parse`, except inside `donorState`'s own body. The two declared exceptions are a
+     saved spot's own reading (`spots/words.ts`, `SpotScreen.tsx`), which is not a donor. They are counted by file.
+  4. Each pattern is shown to catch the spelling it replaced.
+- **Mutations** (each was run, failed the named test, and was reverted):
+  - `donorMapLabel`'s `no-forecast` case returning `ROUTE_MAP_WORDS.quiet` fails pin 1 and `routeMap.test` "a day
+    ahead with no forecast says no forecast".
+  - Moving the horizon check above `realtime === false` in `donorState` fails pins 1 and 2.
+  - Putting `if (r.percentile !== null) return donorShare(r);` back in `donorMapLabel` fails pin 3.
+  - Putting `quiet: r.percentile === null` back in `ui/panel.ts` fails pin 3.
+- **Checks**: see T124. One `REGS_STORE_REQUIRED=1 pnpm -C app check` covered both lanes.
+
+## Owner questions
+- The map word for a donor with no forecast at the horizon is `no forecast`, for both a day ahead and Change. The
+  row line keeps its two sentences: "No forecast for this gauge that far ahead." and "No forecast running for this
+  gauge now.". Default built: the one short word on the dot.
+
+## Left / follow-ups
+- None. `donorShare` still says `quiet` for any donor that does not count. It is used in pin titles, key labels and
+  the gauge switcher, which are not horizon-aware. Silent donors never reach those pins. The gauge switcher lists
+  every member and says `quiet`, which is unchanged.

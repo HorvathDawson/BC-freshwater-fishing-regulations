@@ -46,10 +46,21 @@ function sources(dir: string, out: string[] = []): string[] {
 }
 const files = () => ROOTS.flatMap((r) => sources(join(APP, r))).map((p) => relative(APP, p)).sort();
 
+/**
+ * A module's text; "" for one gone since the walk — check-boundaries.test writes and removes a probe module
+ * (`packages/ui/src/_bnd.ts`) while the suite runs in parallel.
+ */
+function read(p: string): string {
+  try { return readFileSync(join(APP, p), "utf8"); } catch (e) {
+    if ((e as NodeJS.ErrnoException).code === "ENOENT") return "";
+    throw e;
+  }
+}
+
 const DONOR_STATE_FILE = "packages/core/src/conditions.ts";
 /** A module's text, with `donorState`'s own body cut out — the one place the fields may be tested. */
 function outsideDonorState(p: string): string {
-  const text = readFileSync(join(APP, p), "utf8");
+  const text = read(p);
   if (p !== DONOR_STATE_FILE) return text;
   const start = text.indexOf("export function donorState(");
   const end = text.indexOf("\n}\n", start);
