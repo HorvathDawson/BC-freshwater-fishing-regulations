@@ -5,13 +5,13 @@ Read-only on the repo. Inputs:
   --dams FILE     the dams as GeoJSON in EPSG:3005 (a WFS GetFeature page, e.g. the T154 scratch fetch), or omit it to
                   read the `dams` layer of the gpkg (data/fetch_data.py `--layers dams` puts it there)
   --gpkg FILE     bc_fisheries_data.gpkg (FWA streams / lakes / manmade / wetlands); default the repo's
-  --polys FILE    the T148 census's polys_raw.parquet (fid, wbk, layer of every lake / manmade / wetland piece)
+  --polys FILE    the T148 census's polys_raw.parquet (fid, wbk, layer of every lake / manmade / wetland piece); omit it
+                  to read the pieces from the gpkg by WATERBODY_KEY (the census scratch is not kept; same pieces)
   --candidates    candidates_v2.json.gz (the T148 records; their numeric ids are the polygons to look at)
   --out DIR       writes dams_fwa.json (every dam -> its FWA line and polygons) and dams_by_wbk.json (candidate
                   polygon -> the dams within NEAR_M of it)
 
-    python -I handoff/PLAN/sloughs/v2/dams.py --dams <scratch>/t154/raw/dams_0.json \\
-        --polys <scratch>/t55v2/polys_raw.parquet --out <scratch>/t154/
+    python -I handoff/PLAN/sloughs/v2/dams.py --dams <scratch>/t154/raw/dams_0.json --out <scratch>/t154/
 
 A dam is a CREST LINE. Its FWA line is the nearest streams-layer edge within LINE_M (crossing it, or the nearest when
 the crest sits beside the line); its polygons are every lakes / manmade / wetlands polygon within POLY_M. Which dams
@@ -106,7 +106,7 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split('\n\n')[0])
     ap.add_argument('--dams', default=None)
     ap.add_argument('--gpkg', default=os.path.join(REPO, 'data', 'source', 'bc_fisheries_data.gpkg'))
-    ap.add_argument('--polys', required=True)
+    ap.add_argument('--polys', default=None)
     ap.add_argument('--candidates', default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'candidates_v2.json.gz'))
     ap.add_argument('--out', required=True)
     a = ap.parse_args(argv)
@@ -142,8 +142,14 @@ def main(argv=None):
     # 2. every candidate polygon -> the dams within NEAR_M of it (whole polygon: every piece of the wbk)
     cands = json.load(gzip.open(a.candidates))['candidates']
     want = sorted({int(x['id']) for x in cands if x['id'].isdigit()})
-    raw = pd.read_parquet(a.polys, columns=['fid', 'wbk', 'layer'])
-    raw = raw[raw.wbk.isin(want)]
+    if a.polys:
+        raw = pd.read_parquet(a.polys, columns=['fid', 'wbk', 'layer'])
+        raw = raw[raw.wbk.isin(want)]
+    else:
+        ws = ','.join(map(str, want))
+        raw = pd.DataFrame([(fid, w, lyr) for lyr in ('lakes', 'manmade', 'wetlands') for fid, w in
+                            gp.execute(f'select fid, WATERBODY_KEY from {lyr} where WATERBODY_KEY in ({ws})')],
+                           columns=['fid', 'wbk', 'layer'])
     pieces = collections.defaultdict(list)
     for r in raw.itertuples():
         b = gp.execute(f'select geom from {r.layer} where fid=?', (int(r.fid),)).fetchone()[0]
