@@ -8,7 +8,8 @@ binding its extents made), must turn the same check red. A mutated rule table is
 no file (`read._RULES_BY_PATH`), the established pattern of `test_competition.py`.
 
   Z1   a section's answer is its region base plus the named rows bound to it, every difference named by
-       one row (`pipeline.tools.base_deltas`; T57's vitest pins the unnamed strata against the release page)
+       one row; no section carved out of the base its peers carry (`pipeline.tools.base_deltas`; T57's
+       vitest pins the unnamed strata against the release page)
   Z2   Region 2's bass rule binds Mill Lake; Mill Lake's row speaks over it
   Z10  Peaceful Lake stays in the Malcolm Knapp closure; Goose Lake (2.2 % inside) is out
   Q20  Adams Lake's bull trout / lake trout quota is permanent; the Adams River's dated bull trout quota
@@ -18,7 +19,7 @@ no file (`read._RULES_BY_PATH`), the established pattern of `test_competition.py
   T8   a spot closure closes the tributaries joining within the spot, and only those
   G8   the Columbia's towing and engine rules follow Fairmont-Donald; the Salmon River's two clauses
        follow the Hwy 97 bridge at Falkland — none is a note on the whole river
-  Li1  licensing never colours a water: sections of one rule key share one status, designated or not
+  Li1  licensing never colours a water: a designated section's shipped status is what its rules alone say
   Li10 the West Road keeps its Class II designation (no CW glyph printed), Jun 15-Oct 31
   E13  the Goat River's catch and release holds on the whole mainstem, and only there; the Fraser night
        closure covers the river's side channels, not the sloughs joining it
@@ -135,24 +136,72 @@ def test_z1_every_difference_from_the_region_base_is_named_by_one_row(db):
     want_strata = {f"{r}/{s}": 2 for r in T.regions_of(db) for s in T.STRATA}
     assert {k: v for k, v in got["strata"].items() if not k.endswith("region_line")} == want_strata
     assert [k for k, v in got["strata"].items() if k.endswith("region_line") and not v] == []
-    assert got["unattributable"] == []
+    assert got["unattributable"] == [] and got["carved_out"] == []
     n = got["counts"]
     assert n["attributed"] == n["differences"] > 0 and len(got["rows"]) > 9
+
+
+def test_z1_no_section_is_carved_out_of_its_base(db):
+    """The base rule by rule, over EVERY section of the bundle (Z1's gap: a base rule that should bind a
+    section and binds neither answer): sections that share a region place, a management-unit set, a water
+    kind and tidal-ness carry ONE base — no section is carved out of a line its peers carry (memory
+    `zone-rules-are-the-base`: no carve-outs). MUTATIONS: one section of a group losing one base line —
+    named, with the line; one carrying another region's line — named."""
+    groups = T.base_sets(db, R._rules_of(BUNDLE))
+    assert len(groups) > 100 and sum(n for g in groups.values() for n, _ in g.values()) == \
+        db.execute("SELECT count(*) FROM section_ruleset").fetchone()[0]
+    assert T.peer_problems(groups) == []
+    key = next(k for k, g in sorted(groups.items(), key=str)
+               if k[0] == "4" and k[2] == "lake" and sum(n for n, _ in g.values()) > 10)
+    (base, (n, sid)), = groups[key].items()
+    drop = ("z4:trout_char_quota", "trout_char_quota.r1")
+    cut = {**groups, key: {base: (n - 1, sid), base - {drop}: (1, -1)}}
+    assert T.peer_problems(cut) == \
+        [f"Region 4 MUs {key[1]} lake: 1 section (sid -1) lacks ['{drop[0]}::{drop[1]}'] that its {n - 1} peers carry"]
+    stray = ("z2:species_quotas", "species_quotas.r1")
+    extra = {**groups, key: {base: (n - 1, sid), base | {stray}: (1, -1)}}
+    assert T.peer_problems(extra) == \
+        [f"Region 4 MUs {key[1]} lake: 1 section (sid -1) carries ['{stray[0]}::{stray[1]}'] that its {n - 1} peers do not"]
 
 
 def _a_base_only_lake(db, region: str) -> int:
     return T.sample(db, per=1, regions=[region], strata=["base_only"])[(region, "base_only")][0]
 
 
+def _written_table(rules: dict, region: str, kind: str) -> set:
+    """Region `region`'s standing table for a `kind` water AS THE RULES WRITE IT — every base rule of
+    the region's (`z<region>:`) or the province's (`zp:`) table whose own extents admit the region and
+    the kind — read from the rule table, never from a binding. Only the plain shapes are read
+    (`within` the region / every region, `feature_types`); any other shape is refused, not guessed."""
+    out = set()
+    for (e, r), x in rules.items():
+        if not T.is_base(x) or R.base_region(e) not in (region, None) or not e.startswith(("z", "zp:")):
+            continue
+        exts = list(x.get("extents") or [])
+        for ext in exts:
+            assert ext.get("op") == "within" and not ext.get("outside_area") and \
+                (ext.get("area_kind") == "region" or str(ext.get("area_id", "")).startswith("area:region:")), \
+                f"{e}::{r}: an extent shape this reading does not know: {ext}"
+        if any((ext.get("area_kind") == "region" or ext["area_id"] == f"area:region:{region}")
+               and kind in (ext.get("feature_types") or [kind]) for ext in exts):
+            out.add((e, r))
+    return out
+
+
 def test_z1_a_region_4_lake_with_no_row_answers_exactly_region_4s_table(db):
-    """RULINGS Z1's example: no row, no difference — the page IS the base, on every day and fish."""
+    """RULINGS Z1's example: a Region 4 lake with no row binds EXACTLY Region 4's lake table as its rules
+    are written (Region 4's and the province's region-wide lines that admit a lake) — nothing missing,
+    nothing extra — and, every rule being base, its page is that table's answer. MUTATION: one line of the
+    table not bound there — the lake no longer answers Region 4's table."""
     rules = R._rules_of(BUNDLE)
     sid = next(s for s in T.sample(db, per=20, regions=["4"], strata=["lake"])[("4", "lake")]
                if all(T.is_base(rules[(e, r)]) for e, r, _ in T.bind(db, s)))
-    diffs = {(d, f): T.attribute(*T.answers(db, sid, d, f, BUNDLE), rules)
-             for d in T.DAYS for f in T.leaf_fish()}
-    assert {k: v for k, v in diffs.items() if v} == {}
-    assert {R.base_region(e) for e, r, _ in T.bind(db, sid)} - {None} == {"4"}
+    table = _written_table(rules, "4", "lake")
+    assert len(table) > 40 and {R.base_region(e) for e, _ in table} == {"4", None}
+    bound = {(e, r) for e, r, _ in T.bind(db, sid)}
+    assert bound == table
+    # MUTATION: Region 4's "Trout/char: 5" left off the lake
+    assert bound - {("z4:trout_char_quota", "trout_char_quota.r1")} != table
 
 
 def test_z1_kootenay_lakes_rainbow_10_is_traced_to_the_kootenay_lake_row(db):
@@ -426,27 +475,27 @@ def test_g8_towing_and_engine_rules_follow_their_printed_reach(db):
 
 # =========================================================================================== Li1
 def test_li1_licensing_never_colours_a_water(db, request):
-    """Sections under one rule key read one status every day of the year, whatever licensing binds them:
-    a Class II water is coloured by its rules. Proved on every key the index colours that has sections
-    both with and without a Classified Waters designation. MUTATION: a status index that closes designated
-    sections — the pairs disagree."""
-    from pipeline.deliver.status_index import Index
+    """A Class II water is coloured by its rules, never by its licence: on designated (Classified Waters)
+    sections the SHIPPED status index reads, every day asked, exactly what the reader says from the
+    section's bound RULES alone (`status_index.status_by_reader`, which reads no licensing). One section
+    per rule key that carries a designation, spread over the keys; the 15th of every month. MUTATION: an
+    index that closes designated sections — they disagree with their rules."""
+    from pipeline.deliver import status_index as SI
     idx_path = need(request, "bundle", Path(BUNDLE).with_name("status_index.bin"), BUNDLE_HINT)
-    idx = Index(idx_path.read_bytes())
-    designated = {s for (s,) in db.execute("SELECT DISTINCT sid FROM designation_section")}
-    by_key: dict = {}
-    for sid, key in db.execute("SELECT sid, key_ix FROM section_ruleset WHERE sid IN "
-                               "(SELECT sid FROM section_licensing)"):
-        by_key.setdefault(key, [set(), set()])[sid in designated].add(sid)
-    pairs = [(min(a), min(b)) for a, b in by_key.values() if a and b]
-    assert len(pairs) > 20
+    idx = SI.Index(idx_path.read_bytes())
+    sids = [s for (s,) in db.execute(
+        "SELECT min(sr.sid) FROM section_ruleset sr WHERE sr.sid IN (SELECT sid FROM designation_section) "
+        f"GROUP BY sr.key_ix ORDER BY ({T.SPREAD.replace('s.sid', 'min(sr.sid)')}) LIMIT 16")]
+    assert len(sids) == 16
+    days = [(m, 15) for m in range(1, 13)]
+    by_rules = {(s, d): SI.status_by_reader(s, d, BUNDLE) for s in sids for d in days}
+    assert len({v for v in by_rules.values()}) > 1          # the sample holds more than one colour
 
     def disagree(code) -> list:
-        return [(a, b) for a, b in pairs if any(code(a, (d.month, d.day)) != code(b, (d.month, d.day))
-                                                for d in DAYS[::7])]
+        return sorted(k for k, v in by_rules.items() if code(*k) != v)
 
     assert disagree(idx.code) == []
-    assert disagree(lambda s, on: 2 if s in designated else idx.code(s, on)) != []
+    assert disagree(lambda s, on: SI.CLOSED) != []
 
 
 # ========================================================================================== Li10
@@ -493,9 +542,11 @@ def test_e13_goat_river_catch_and_release_on_the_whole_mainstem_only(db):
 
 def _night(db, bound=None) -> dict:
     sids = bound if bound is not None else _bound_to(db, *FRASER_NIGHT)
-    names = {}
-    for (name, kind, sid) in db.execute("SELECT i.name, i.kind, s.sid FROM item i JOIN item_section s "
-                                        "ON s.ord = i.ord"):
+    names, channels = {}, {}
+    for (name, kind, item, sid) in db.execute("SELECT i.name, i.kind, i.item_id, s.sid FROM item i "
+                                              "JOIN item_section s ON s.ord = i.ord"):
+        if name.endswith(" Side Channel"):
+            channels.setdefault(item, []).append(sid in sids)
         if sid in sids:
             names.setdefault(name, kind)
     # the named sloughs whose flow joins a section the night closure binds
@@ -504,16 +555,21 @@ def _night(db, bound=None) -> dict:
         "SELECT i.name, s.sid FROM item i JOIN item_section s ON s.ord = i.ord WHERE i.name LIKE '% Slough'")
         if down.get(sid) in sids})
     return {"bound": sorted(names), "sloughs_joining": joining,
+            # a side channel the closure touches is covered whole, never in part
+            "side_channels_in_part": sorted(i for i, b in channels.items() if any(b) and not all(b)),
             "sloughs_bound": sorted(n for n in names if n.endswith(" Slough"))}
 
 
 def test_e13_the_fraser_night_closure_covers_its_side_channels_not_its_sloughs(db):
     """Q12: the Fraser's own side channels carry the night closure; a separately named slough that joins
-    the river does not. MUTATION: a joining slough bound — named."""
+    the river does not; each side channel is covered whole. MUTATIONS: a joining slough bound — named; a
+    side channel left part-covered — named."""
     got = _night(db)
     assert got["bound"] == ["Fraser River", "Herrling Island Side Channel", "Jeperson Side Channel",
                             "Seabird Island North Side Channel"]
-    assert got["sloughs_bound"] == [] and got["sloughs_joining"] != []
+    assert got["sloughs_bound"] == [] and got["sloughs_joining"] != [] and got["side_channels_in_part"] == []
+    herrling = min(_sections(db, "blk:355992187"))
+    assert _night(db, _bound_to(db, *FRASER_NIGHT) - {herrling})["side_channels_in_part"] == ["blk:355992187"]
     slough = next(sid for (sid,) in db.execute(
         "SELECT s.sid FROM item i JOIN item_section s ON s.ord = i.ord WHERE i.name = ?",
         (got["sloughs_joining"][0],)))

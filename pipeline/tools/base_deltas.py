@@ -25,6 +25,9 @@ THE CHECK, per section, day and fish — both sides are the REFERENCE READER's a
     a named row moving it.
   * BASE HOME: every base rule bound here belongs to a region the section lies in (`region_place`) or to
     the province, and each region it lies in contributes a table (`base_problems`).
+  * NO CARVE-OUT, over EVERY section (`base_sets`, `peer_problems`): sections sharing a region place, a
+    management-unit set, a water kind and tidal-ness carry ONE base. The attribution above cannot see a
+    base line that binds neither answer; this sees it rule by rule wherever the section's peers carry it.
 
 `sample` draws the stratified sample the test reads (per region: water-row bound by its own place,
 reached by the walk, area-row bound, base only — streams and lakes). T57's vitest
@@ -38,7 +41,7 @@ from __future__ import annotations
 import argparse
 import sqlite3
 from dataclasses import dataclass
-from typing import Dict, Iterable, List, Optional, Sequence, Tuple
+from typing import Dict, FrozenSet, Iterable, List, Optional, Sequence, Tuple
 
 from pipeline.deliver.bundle import read as R
 
@@ -149,6 +152,56 @@ def base_problems(db: sqlite3.Connection, sid: int, bound: Sequence[Tuple[str, s
     return out
 
 
+#: (regions, MU codes, water kind, tidal) -> {base rule set: (sections, lowest sid)}
+BaseGroups = Dict[Tuple[str, str, str, int], Dict[FrozenSet[Tuple[str, str]], Tuple[int, int]]]
+
+
+def base_sets(db: sqlite3.Connection, rules: dict) -> BaseGroups:
+    """EVERY section's base (its bound rules that are `is_base`), grouped by what decides a standing
+    table's reach — the region place, the management-unit set, the water kind, tidal water — counted
+    per distinct base. A whole-bundle read: one row per (group, ruleset), not per section."""
+    acc: Dict[int, set] = {}
+    for set_id, e, r in db.execute("SELECT set_id, entry_id, rule_id FROM ruleset"):
+        s = acc.setdefault(set_id, set())
+        if is_base(rules[(e, r)]):
+            s.add((e, r))
+    base = {k: frozenset(v) for k, v in acc.items()}
+    out: BaseGroups = {}
+    for regions, codes, kind, tidal, set_id, n, sid in db.execute(
+            "SELECT p.regions, coalesce(m.codes, '-'), k.kind, s.sid IN (SELECT sid FROM tidal), s.set_id, "
+            "count(*), min(s.sid) FROM section_ruleset s JOIN region_place p ON p.place = s.place "
+            "JOIN rule_key k ON k.key_ix = s.key_ix LEFT JOIN mu_set m ON m.mus = s.mus GROUP BY 1, 2, 3, 4, 5"):
+        g = out.setdefault((regions, codes, kind or "-", int(tidal)), {})
+        b = base.get(set_id, frozenset())
+        m, low = g.get(b, (0, sid))
+        g[b] = (m + n, min(low, sid))
+    return out
+
+
+def peer_problems(groups: BaseGroups) -> List[str]:
+    """Z1 rule by rule: within a group every section carries ONE base. A section lacking a line its
+    peers carry was carved out of its table; one carrying a line they do not had it added by hand. Each
+    minority base is named against the group's most common one (ties: the larger base)."""
+    out = []
+    for (regions, codes, kind, tidal), g in sorted(groups.items()):
+        if len(g) < 2:
+            continue
+        top = max(g, key=lambda b: (g[b][0], len(b), sorted(b)))
+        peers = g[top][0]
+        where = f"Region {regions} MUs {codes} {kind}{' tidal' if tidal else ''}"
+        for b, (n, sid) in sorted(g.items(), key=lambda kv: kv[1][1]):
+            if b == top:
+                continue
+            many = f"{n} section{'s' if n != 1 else ''} (sid {sid})"
+            if top - b:
+                out.append(f"{where}: {many} lacks {sorted(f'{e}::{r}' for e, r in top - b)} "
+                           f"that its {peers} peers carry")
+            if b - top:
+                out.append(f"{where}: {many} carries {sorted(f'{e}::{r}' for e, r in b - top)} "
+                           f"that its {peers} peers do not")
+    return out
+
+
 def answers(db: sqlite3.Connection, sid: int, day, fish: str, path: str,
             bound: Optional[Sequence[Tuple[str, str, str]]] = None, rules: Optional[dict] = None):
     """(base answer, page answer) for one section, day and fish; `bound` overrides the section's
@@ -230,9 +283,10 @@ def sweep(path: str, per: int = 2, days=DAYS, fish: Optional[Sequence[str]] = No
                         else:
                             n["attributed"] += 1
                             rows[d.row] = rows.get(d.row, 0) + 1
+    peers = peer_problems(base_sets(db, rules))
     db.close()
     return {"counts": n, "strata": {f"{r}/{s}": len(v) for (r, s), v in sorted(strata.items())},
-            "rows": dict(sorted(rows.items())), "unattributable": bad}
+            "rows": dict(sorted(rows.items())), "unattributable": bad, "carved_out": peers}
 
 
 def main(argv=None) -> int:
@@ -242,9 +296,9 @@ def main(argv=None) -> int:
     a = ap.parse_args(argv)
     got = sweep(a.bundle, a.per)
     print(got["counts"], f"{len(got['rows'])} rows")
-    for line in got["unattributable"][:50]:
+    for line in (got["unattributable"] + got["carved_out"])[:50]:
         print(" ", line)
-    return 1 if got["unattributable"] else 0
+    return 1 if got["unattributable"] or got["carved_out"] else 0
 
 
 if __name__ == "__main__":
