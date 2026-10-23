@@ -148,6 +148,10 @@ const PANELS: [number | null, C[]][] = [
   [100, [c(0.02, 100, { sameRiver: false }), c(0.98, 100, { reserve: true, sameRiver: false }),
          c(0.97, 400, { reserve: true, sameRiver: false })]],              // the reserve stands back, lowest first
   [100, [c(0.5, 100, { reserve: true, sameRiver: false }), c(0.02, 100, { reserve: true, sameRiver: false })]],
+  // two reserve votes of EQUAL weight: which stands back first decides the answer (the later one, `<=`). Adversarial
+  // review: without this panel a Python `<` passed beside the app's `<=`.
+  [100, [c(0.9, 100, { sameRiver: false }), c(0.95, 100, { reserve: true, sameRiver: false }),
+         c(0.05, 100, { reserve: true, sameRiver: false })]],
   ...[0.05, 0.3, 0.5, 0.7, 0.95].flatMap((p): [number, C[]][] => [10, 1000, 25_000].map((a) =>
     [a, [c(p, a * 2.5), c(1 - p / 2, a / 7, { role: "down", years: 12 }), c(p / 3, a * 40, { sameRiver: false, lead: 2 })]])),
 ];
