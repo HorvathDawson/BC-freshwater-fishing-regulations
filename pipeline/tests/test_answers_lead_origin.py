@@ -11,7 +11,7 @@ origins — a `return X` guarded by a keep test of X, or a max/min ranking answe
 test proves the scan catches both old shapes.
 
 T161 (decision Q66, 2026-10-23): the pick is SHIPPED — every stored fish answer carries `lead` ("hatchery" | "wild" |
-None, `common.lead_name`, rows 33) so the app's `mainRes` only reads it (its pin: app core `regs/mainRes.test.ts`).
+None, `common.lead_name`, rows 33) so the app's `mainRes` only reads it (its pin: `app/tools/lead-origin.test.ts`).
 The answers model holds every stored lead to the one function; mutation pins: a copy that disagrees is refused by the
 model (`test_the_model_holds_the_stored_lead_to_the_one_function`), a rows 32 frame by the codec.
 """

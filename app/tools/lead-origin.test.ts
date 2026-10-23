@@ -20,7 +20,7 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
-const APP = resolve(__dirname, "../../../..");
+const APP = resolve(__dirname, "..");
 const ROOTS = ["packages", "apps", "conformance/src"].map((r) => join(APP, r));
 /** the answer a copy tests and returns: a name or a property path (`H`, `f.H`, `fish?.W`) */
 const SUBJ = String.raw`([\w$]+(?:\??\.[\w$]+)*)`;

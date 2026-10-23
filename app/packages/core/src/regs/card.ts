@@ -9,7 +9,7 @@
  * SELECTS (by segment, fish and origin) and GROUPS them for display; it decides nothing. Which of a fish's two origin
  * answers a one-line view leads with (page v36 `mainRes`) is the STORE's too since rows 33 (T161, decision Q66): the
  * pipeline's `common.lead_origin` decides it, the frame carries it per fish (`fish[S].lead`), and `mainRes` only reads
- * it (`mainRes.test.ts` pins that no copy of the choice is left here).
+ * it (`app/tools/lead-origin.test.ts` pins that no copy of the choice is left here).
  *
  * THE YEAR STRIP IS THE STORE'S (rows 30): page v36's `dayStatus` / `strip` / `RANKSTAT` (the most permissive of the
  * members' answers over the day's weekday moments) is NOT ported — it is a per-day decision, and the pipeline makes it
