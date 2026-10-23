@@ -69,6 +69,11 @@ def corpus():
      "Wigwam River", "Wigwam River"),
     # no registry name: the heading as it came (the export re-cases it)
     ("GARNET LAKE", "", "GARNET LAKE"),
+    # T80 (T56 review): the book's quotes round an unofficial name are not part of the name the row is shown under —
+    # as `see_name` and search already read it ("Diana Creek", never '"Diana" Creek')
+    ('"DIANA" CREEK', "Gold Creek", "Diana Creek"),
+    ('"LOWER BEAVERPOND" LAKE', "", "LOWER BEAVERPOND LAKE"),
+    ('"Diana" Creek', "", "Diana Creek"),
 ])
 def test_a_row_is_shown_under_its_own_name(heading, registry, shown):
     assert row_name(heading, registry) == shown

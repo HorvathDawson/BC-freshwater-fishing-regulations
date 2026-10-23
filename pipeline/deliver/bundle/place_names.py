@@ -151,9 +151,11 @@ def row_name(name: str, display_name: str = "") -> str:
     words plus only words of the heading's own note
     ("Williston Lake — Zone A" for "Williston Lake (in Zone A) (includes …)"): that tidier spelling is
     kept. Every other row is shown under the book's heading — "Haynes Lake", "South Cameron Lake",
-    "Lonzo Creek" (whose registry name, "Marshall Creek", is its pointer row's)."""
+    "Lonzo Creek" (whose registry name, "Marshall Creek", is its pointer row's). The book's quotes round
+    an unofficial name are not kept (T80, T56 review): '"DIANA" CREEK' is shown as Diana Creek, as
+    `rules.see_name` and search read it."""
     if not display_name:
-        return name
+        return name.replace('"', "")
     if " — " in display_name:
         # a LAKE PART's authored name ("Kootenay Lake — Main Body", "Shannon Lake — proper"): the part the row is
         # about, named by its curator, never a group's
@@ -161,7 +163,7 @@ def row_name(name: str, display_name: str = "") -> str:
     d, h = _which_water(display_name), _which_water(name)
     if d <= h or (h <= d <= _which_water(name, notes=True)):
         return display_name
-    return heading_name(name)
+    return heading_name(name, quotes=False)
 
 
 def heading_name(name: str, quotes: bool = True) -> str:
