@@ -1,6 +1,6 @@
 # T128 — A sub-cap line names the total it is part of ("of your 5 trout/char a day in streams…")
 
-Status: PARTIAL — 5724e9c5 (lane wf_754f5fcd-d71-2). Built: `tree.total_named` + `tree.total_words` (one place), the
+Status: PARTIAL — 5724e9c5, review fix b6376182 (own rule of only some fish: "Of the 3 a day under this lake’s rule", `tree.total_fish`; +46 strings) (lane wf_754f5fcd-d71-2). Built: `tree.total_named` + `tree.total_words` (one place), the
 gate proves the named number, app `kindWords` bolds the kind's number; decision recorded in decisions.md ("CLAUDE
 2026-10-22 (T128 …)"). Answers diff (scratch, full set): 392 distinct strings changed at 21,848 card positions, all
 kind `says`/`sentence` now led by "Of your N … a day …"; card gate 0 problems on 7,180 cards. Left: the deliver
