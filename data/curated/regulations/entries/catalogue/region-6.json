@@ -2799,9 +2799,14 @@
      "rule_id": "fulton_river.r3",
      "type": "advisory",
      "verbatim": "Angling permitted in Fulton River opposite the spawning channels, as signed",
-     "extents": [],
-     "extent_text": "opposite the spawning channels, as signed",
-     "review_reason": "an exception to a closure, not a licensing fact: which closure it lifts is not printed ('as signed'), so it is kept as an advisory that binds nowhere (as it did) until a curator names the closure and the reach"
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "review_reason": "T89 2026-10-22: held on the whole Fulton as an undrawn part (a note, never coloured): the spawning channels' signed stretch is drawn by no boundary; a place on the river, so it does not walk the row's tributaries (AGENTS 13)",
+     "includes_tributaries": false,
+     "undrawn_part": "opposite the spawning channels, as signed"
     }
    ]
   },
@@ -6854,9 +6859,17 @@
      "rule_id": "nilkitkwa_lake.r4",
      "type": "advisory",
      "verbatim": "That section of flowing water between Babine and Nilkitkwa Lakes known as \"Rainbow Alley\" is open for fishing all year",
-     "extents": [],
-     "extent_text": "that section of flowing water between Babine and Nilkitkwa Lakes known as \"Rainbow Alley\"",
-     "review_reason": "this reach lies between Babine and Nilkitkwa Lakes, not on Nilkitkwa Lake's own bindable boundaries (only op:whole is available here) — likely belongs on the Babine River entry"
+     "extents": [
+      {
+       "op": "between",
+       "item_id": "gnis:17687",
+       "splits": [
+        "babine_river__babine_lake",
+        "babine_river__nilkitkwa_lake"
+       ]
+      }
+     ],
+     "review_reason": "T89 2026-10-22: Rainbow Alley is the Babine River (gnis:17687) between Babine and Nilkitkwa lakes — the same stretch babine_river.r3 binds"
     }
    ]
   },

@@ -3425,32 +3425,12 @@
       "source_pages": [
         59
       ],
-      "rules": [
+      "see": [
         {
-          "rule_id": "endako_river.r1",
-          "type": "retention_limit",
           "verbatim": "No Fishing Nov 15-June 30",
-          "species": [
-            "ALL_GAME_FISH"
-          ],
-          "when": {
-            "dates": [
-              {
-                "from_month": 11,
-                "from_day": 15,
-                "to_month": 6,
-                "to_day": 30
-              }
-            ]
-          },
-          "take": 0,
-          "may_target": false,
-          "extents": [
-            {
-              "op": "whole"
-            }
-          ],
-          "review_reason": "no registry match — attach an item and bind extents"
+          "entry_ids": [
+            "r6:endako_river@6-4"
+          ]
         }
       ]
     },

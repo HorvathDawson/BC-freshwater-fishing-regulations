@@ -148,6 +148,10 @@ WINDOWS_HELD_ELSEWHERE: dict = {
     ("z7b:trout_char_quota", "Aug 15-Oct 15"):
         "the Liard half of r9's sentence. Outside the Liard row's Oct 16-Aug 14 its quota is not "
         "in force and r10's all-year release speaks there — which is Aug 15-Oct 15",
+    ("r7:endako_river@7-12", "Nov 15-Jun 30"):
+        "the Region 7A copy of a row printed IN FULL under Region 6 too (`See`, a twin): FWA puts "
+        "the whole Endako in Region 6, where r6:endako_river@6-4's closure carries this window on "
+        "every section (T89, 2026-10-22)",
 }
 
 

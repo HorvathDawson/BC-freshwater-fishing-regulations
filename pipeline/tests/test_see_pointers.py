@@ -95,12 +95,12 @@ def test_every_pointer_lands(corpus):
                 assert t in corpus, (eid, t)
     # + South Thompson River, Young Creek (review, 2026-09-25); + Region 4's Kootenay Lake annual
     # quota line, now a pointer to the Main Body row that states it (ruling G, 2026-09-26)
-    assert n == 75      # + Kitimat -> zp:steelhead (2026-09-29); + Nahatlatch Lake -> z3:trout_char_quota (Q37, 2026-10-07)
+    assert n == 76      # + Kitimat -> zp:steelhead (2026-09-29); + Nahatlatch Lake -> z3:trout_char_quota (Q37, 2026-10-07); + Endako 7A -> its Region 6 twin (T89)
 
 
 def test_no_pointer_row_binds_a_rule(corpus):
     only = sorted(e for e, ce in corpus.items() if ce.pointer_only)
-    assert len(only) == 53    # + z4:kootenay_annual (ruling G)
+    assert len(only) == 54    # + z4:kootenay_annual (ruling G); + r7:endako_river@7-12 (T89)
     for e in only:
         assert not corpus[e].rules and not corpus[e].licensing
 
@@ -116,6 +116,8 @@ def test_no_pointer_row_binds_a_rule(corpus):
     ("r7:west_road_blackwater_river_s_tributaries@7-10", "see"),
     # the MU 6-1 lakes printed in both Region 5 and Region 6
     ("r5:squirrel_lake@6-1", "twin"), ("r5:naglico_lake@6-1", "twin"),
+    # the Endako printed in both Region 6 and Region 7A; FWA puts all of it in Region 6 (T89)
+    ("r7:endako_river@7-12", "twin"),
 ])
 def test_what_a_pointer_is_is_derived_from_the_rows(corpus, eid, rel):
     ce = corpus[eid]
@@ -126,7 +128,7 @@ def test_aliases_and_twins_are_counted(corpus):
     from collections import Counter
     got = Counter(see_relation(ce, [corpus[t] for t in s.entry_ids])
                   for ce in corpus.values() for s in ce.see)
-    assert got == {"alias": 34, "see": 34, "twin": 7}    # + z4:kootenay_annual (G), + Kitimat -> zp:steelhead, + Nahatlatch (Q37)
+    assert got == {"alias": 34, "see": 34, "twin": 8}    # + z4:kootenay_annual (G), + Kitimat -> zp:steelhead, + Nahatlatch (Q37), + Endako 7A (T89)
 
 
 def test_a_region_5_copy_of_a_region_6_lake_binds_nothing(corpus):

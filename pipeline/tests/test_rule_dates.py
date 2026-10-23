@@ -150,10 +150,13 @@ def test_a_semicolon_or_a_list_comma_is_not_the_shape():
 
 
 def test_a_window_held_elsewhere_must_still_need_the_exemption():
-    """The two Zone B windows are listed because another row holds them. A listing no longer
+    """The two Zone B windows (and the Endako's Region 7A copy) are listed because another row
+    holds them. A listing no longer
     needed is refused, so the list cannot go stale."""
     assert set(C.WINDOWS_HELD_ELSEWHERE) == {("z7b:trout_char_quota", "Oct 16-Aug 14"),
-                                             ("z7b:trout_char_quota", "Aug 15-Oct 15")}
+                                             ("z7b:trout_char_quota", "Aug 15-Oct 15"),
+                                             # the Region 6 twin holds it (T89)
+                                             ("r7:endako_river@7-12", "Nov 15-Jun 30")}
     text = "NOTE: Bull trout may only be retained from Oct 16-Aug 14."
     row = dict(_entry(text, _r(
         rule_id="n.r1", type="retention_limit", species=["DV"], take=1, verbatim=text,

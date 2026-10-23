@@ -8837,11 +8837,15 @@
       }
      ],
      "includes_tributaries": true,
-     "extent_text": "upstream of the westernmost of the two Nanaimo Lakes, known locally as \"Second\" Lake",
-     "unresolved_locators": [
-      "upstream of the westernmost of the two Nanaimo Lakes, known locally as \"Second\" Lake"
+     "extents": [
+      {
+       "op": "upstream_of",
+       "splits": [
+        "nanaimo_river__nanaimo_lakes_2"
+       ]
+      }
      ],
-     "review_reason": "two identically named 'Nanaimo Lakes' split points are listed in the boundary menu; cannot determine which is the westernmost lake known locally as 'Second' Lake without additional geographic data"
+     "review_reason": "T89 2026-10-22: the westernmost of the two Nanaimo Lakes is wbk:329101307 (lon -124.216 vs -124.160; FWA variant 'SECOND NANAIMO LAKE'), the river's boundary nanaimo_river__nanaimo_lakes_2"
     },
     {
      "rule_id": "nanaimo_river.r6",
