@@ -183,3 +183,78 @@ def test_the_water_kind_gate_is_what_holds_these_tests():
 
     _, lake_open = run(with_gate("True"))                   # any owned polygon flows: the lake answers
     assert "lake" in lake_open and "lower" in lake_open
+
+
+# ------------------------------------------------------------------ a polygon of a side channel
+
+def _side_slough():
+    """Maria / Nicomen Slough in miniature: a slough whose LINES are side channels of the Fraser (FWA 1350), with a
+    polygon between them, and a small creek gauge far up the Fraser whose catchment matches the polygon's arithmetic.
+
+        creek ─▶ fraser_up ─▶ head ─▶ poly ─▶ foot ─▶ fraser_down        HOPE on fraser_up, C on creek
+    """
+    nodes = [N("creek", 2, blk="C"), N("fraser_up", 500, blk="F"),
+             N("head", 2, blk="S", edge_types=("1350",)), poly("poly", mag=2),
+             N("foot", 2, blk="S", edge_types=("1350",)), N("fraser_down", 500, blk="F")]
+    edges = [E("creek", "fraser_up"), E("fraser_up", "head"), E("head", "poly"), E("poly", "foot"),
+             E("foot", "fraser_down")]
+    water_of = {"creek": UPPER, "fraser_up": LOWER, "fraser_down": LOWER, "head": SLOUGH, "poly": SLOUGH,
+                "foot": SLOUGH}
+    return g(nodes, edges), water_of, [("HOPE", "fraser_up", 60, False), ("C", "creek", 40, False)]
+
+
+def test_a_polygon_of_a_side_channel_takes_the_river_s_answer_like_its_lines():
+    """A line in the polygon's place would be a side channel and take the Fraser's answer (`mainstem_of`); its own
+    magnitude-1 arithmetic is the artefact Herrling Island showed. On the real graph Maria Slough's polygons (and
+    Nicomen's, McArthur Island's, Gravel's, West Road's — 9 in all) took ten creek gauges up to 400 km away at 1.4 km²
+    while the slough's lines on either side carried the Fraser at Hope at 60,000 km². Whole value: the polygon answers
+    exactly as the foot line below it, which is the river's answer."""
+    graph, water_of, donors = _side_slough()
+    got = answers(build(graph, MODEL, donors, water_of=water_of, kind_of=KINDS))
+    river_below = ((("C", "up", False, 0), ("HOPE", "up", True, 0)), 500.0)
+    assert got == {
+        "creek": ((("C", "up", True, 1), ("HOPE", "down", False, 0)), 2.0),
+        "fraser_up": ((("C", "up", False, 0), ("HOPE", "up", True, 1)), 500.0),
+        "head": ((("C", "up", False, 0), ("HOPE", "up", True, 1)), 500.0),     # adopted fraser_up
+        "poly": river_below,                                                   # as the foot line below it
+        "foot": river_below,                                                   # adopted fraser_down
+        "fraser_down": river_below,
+    }
+
+
+def test_a_polygon_of_a_side_channel_whose_river_is_silent_is_silent_too():
+    """The river has no answer, so neither do its channel's lines (`mainstem_of`) — nor the polygon between them,
+    though a creek gauge of matching arithmetic walks straight into it. Before, the polygon alone answered (C at 2 km²)
+    between two grey lines of its own water."""
+    nodes = [N("creek", 2, blk="C"), N("head", 2, blk="S", edge_types=("1350",)), poly("poly", mag=2),
+             N("foot", 2, blk="S", edge_types=("1350",)), N("fraser_down", 500, blk="F")]
+    edges = [E("creek", "head"), E("head", "poly"), E("poly", "foot"), E("foot", "fraser_down")]
+    water_of = {"creek": UPPER, "head": SLOUGH, "poly": SLOUGH, "foot": SLOUGH, "fraser_down": LOWER}
+    got = answers(build(g(nodes, edges), MODEL, [("C", "creek", 40, False)], water_of=water_of, kind_of=KINDS,
+                        max_ratio=10.0))
+    assert got == {"creek": ((("C", "up", True, 1),), 2.0)}
+
+
+def test_the_adoption_gate_is_what_holds_the_side_channel_polygon_tests():
+    """MUTATION PIN on `side_channel_polygons`: drop the "only a line `mainstem_of` adopted" gate and the polygon
+    beside an ordinary line (the canal) is overridden; shut it and the slough polygon walks on its own arithmetic."""
+    src = textwrap.dedent(inspect.getsource(bp.side_channel_polygons))
+    gate = "if h in adopted"
+    assert src.count(gate) == 1, "the adoption gate moved; update this pin to match"
+
+    def mutant(replacement: str):
+        ns = dict(vars(bp))
+        exec(compile(src.replace(gate, replacement), bp.__file__, "exec"), ns)
+        return ns["side_channel_polygons"]
+
+    graph, water_of, donors = _side_slough()
+    shut = mutant("if False")
+    assert shut(graph, water_of, KINDS, bp.mainstem_of(graph, AREA)) == {}
+    real = bp.side_channel_polygons(graph, water_of, KINDS, bp.mainstem_of(graph, AREA))
+    assert real == {"poly": "foot"}
+    # Open: every polygon beside ANY line of its water is overridden — the canal between two ordinary lines too.
+    nodes = [N("above", 100, blk="V"), poly("canal"), N("below", 100, blk="V")]
+    canal = g(nodes, [E("above", "canal"), E("canal", "below")])
+    one_water = {"above": UPPER, "canal": UPPER, "below": UPPER}
+    assert bp.side_channel_polygons(canal, one_water, KINDS, bp.mainstem_of(canal, AREA)) == {}
+    assert mutant("if True")(canal, one_water, KINDS, bp.mainstem_of(canal, AREA)) == {"canal": "below"}
