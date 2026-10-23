@@ -209,10 +209,13 @@ describe.skipIf(!has)("one day's envelope, two languages (T107)", () => {
  * NO SECOND COPY (T107). The envelope's knots and the pentad-position arithmetic live in `@app/core` `flow.ts` and
  * nowhere else in the app's source; a screen that wants a day's band or a rank calls `bandAt` / `percentileInBand`.
  * A second copy is how the half-pentad shift happened. Tests are exempt: they state the knots to check them.
- * Mutation pin: pasting `[0.10, 0.25, 0.50, 0.75, 0.90]` or `(dayOfYear - 1) / 5` into any other source file fails it.
+ * Mutation pin: pasting `[0.10, 0.25, 0.50, 0.75, 0.90]`, `[.1, .25, .5, .75, .9]`, `(dayOfYear - 1) / 5` or `(doy - 1) / 5`
+ * into any other source file fails it.
  */
 describe("one day's envelope has one home", () => {
-  const SECOND_COPY = /0\.10?, ?0\.25, ?0\.50?, ?0\.75|(?:dayOfYear|yday|day) - 1\) \/ 5\b/;
+  // Any spelling of the knots (`0.1`, `.10`) and the pentad position under ANY day name (`doy`, `d`), not just the one
+  // flow.ts happens to use: a second copy is written by someone who did not know about the first (T107 review).
+  const SECOND_COPY = /(?<![\d.])0?\.10?, ?0?\.25, ?0?\.50?, ?0?\.75\b|\b\w+ - 1\) \/ 5\b/;
   const walk = (dir: string): string[] => readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
     const p = `${dir}/${e.name}`;
     if (e.isDirectory()) return e.name === "node_modules" || e.name === "dist" ? [] : walk(p);

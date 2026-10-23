@@ -55,9 +55,46 @@ published differently, so no rebuild and no feed publish.
   43115d8c… vs oracles a2307766…, "re-run app/design/regs-v11/port/taps.py"), unrelated to this change. The parity
   test needs `.venv/bin/python` at the repo root; it skips without it (as the existing one-formula tests do).
 
+## Adversarial review (2026-10-23)
+Fixed:
+- WRONG WORDING on the edge. The as-built change made a value ON p10 / p90 rank 0.05 / 0.95, but the lead-up words still
+  said "below the 10th percentile for the day" / "<p10" (and "above" / ">p90") — false for exactly the case the ticket
+  created, e.g. a dry creek at 0 on a day whose p10 is 0. `data/src/spots/words.ts` now says "at or below the 10th
+  percentile for the day" / "at or above the 90th…" and the chips "≤p10" / "≥p90" (the feed's own docstring: "at or
+  beyond the bottom tenth"). Whole-string pins updated in `data/src/spots/leadupWords.test.ts`, `ui/src/leadUp.test.ts`,
+  `ui-native/src/SpotScreen.test.tsx`; new pin "says a value ON p10 / p90 truthfully" ranks 0 and 1.7 on
+  `[0, 0, 0, 0.4, 1.7]` through `placeInBand`. Mutations: "below the 10th" back → that pin + "says each day whole" fail;
+  "<p10" back → that pin + "draws each day as a value…" fail.
+- "One home" scan was narrow: it only caught the knots spelled `0.10, 0.25…` and the pentad position under the names
+  `dayOfYear` / `yday` / `day`. A copy is written by someone who did not know about the first, under their own name.
+  Now any spelling of the knots (`.1, .25, .5, .75`) and `(<any name> - 1) / 5`. Mutations: appending
+  `(doy - 1) / 5` or `[.1, .25, .5, .75, .9]` to `data/src/spots/leadup.ts` fails "one home"; neither did before.
+Checked and found sound:
+- Port fidelity: `bandAt` / `percentileInBand` against `publish.py` `band_for` / `percentile_of` line by line (centre
+  offset, mod-73 wrap, one-side fallback, `<=`/`>=` edges, linear segment search; the `span == 0` branch is unreachable
+  in both, since a value on a flat segment's `lo` is caught by the segment before it or by the p10 clamp).
+- Mutations re-run, each failing as claimed: drop `- 0.5` (parity band + 2 flow.test); clamp for wrap (parity band +
+  wrap test); `>` for `>=` at p90 (parity rank + leadup edge test); `1 - frac` (parity band + 2 flow.test); a missing
+  side returning null (parity band + fallback test); `placeInBand` not rounding (leadup "rounds nothing else away").
+- The parity test really runs: it needs `.venv/bin/python` at the checkout root and SKIPS without it — in a worktree
+  that has no `.venv` it is silently skipped. Run with the venv linked in: all 3 parity tests execute and pass.
+- Missed call sites: none. Every `bandAt` caller (`data/src/bundle/shared.ts` year + hourly series) and every
+  `placeInBand` caller (`data/src/spots/leadup.ts`) goes through flow.ts; no other band ranking in app source
+  (`ui/hydrograph.ts` only draws `b[0]`/`b[4]`; the gauge dots and Conditions read the feed's published percentile).
+- Day of year: the two app `dayOfYear(iso)` helpers (shared.ts, leadup.ts) are the true calendar day from the UTC date,
+  the same as the feed's `now.timetuple().tm_yday` on a UTC `now` — Mar 1 is 60 in a common year in both, and the 366-
+  long `yearBand` is indexed consistently. (`core/statusIndex` `dayOfYear` is the regulations' leap calendar and is not
+  used for envelopes.)
+- Platform split: `check-platform` green (18 variant sets). Typecheck green.
+- Strict `REGS_STORE_REQUIRED=1 pnpm -C app check` via heavy.sh: every gate through typecheck green; tests 7218 passed /
+  5 failed — the same 5 regs conformance release tests (T02/T03/T07/T08/T09) on the shared store digest mismatch
+  (43115d8c… vs a2307766…), unrelated.
+- Not a formula difference, noted only: the app's pentads come from the bundle as float32, the feed's from its envelope
+  JSON, so the two bands for one station can differ in the 7th significant figure. Parity is of the formula.
+
 ## Owner questions
 - Exactly-on-the-edge reading: the feed's `percentile_of` uses `<=` / `>=`, so a value equal to p10 ranks 0.05 and a
-  lead-up day now reads "below the 10th percentile for the day" — including a dry creek at 0 with p10 = 0. Default
+  lead-up day now reads "at or below the 10th percentile for the day" / "≤p10" (review: was "below" / "<p10") — including a dry creek at 0 with p10 = 0. Default
   built: follow the feed (as the ticket asked). The alternative is `<` / `>` in BOTH (`percentile_of` and
   `percentileInBand`; the parity test keeps them together), which needs a feed publish.
 

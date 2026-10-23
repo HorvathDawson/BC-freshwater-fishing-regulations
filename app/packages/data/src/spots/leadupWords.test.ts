@@ -2,7 +2,7 @@
  * S1: the words a spot's week-before strip and its photographs are shown with, pinned whole (AGENTS 33, P12).
  */
 import { describe, expect, it } from "vitest";
-import { CONDITIONS_WORDS } from "@app/core";
+import { CONDITIONS_WORDS, placeInBand } from "@app/core";
 import type { DailyGauge, DailyWeather } from "./model";
 import { LEAD_UP_WORDS, leadUpDayLabel, leadUpGaugeCells, leadUpGaugeMeta, leadUpGaugePending, leadUpGaugeSentence,
          leadUpGaugeTrend, leadUpQuantity, leadUpUnit, leadUpRainLine, leadUpWeatherCells, leadUpWeatherPending,
@@ -98,8 +98,8 @@ describe("the station's daily means", () => {
 
   it("draws each day as a value and its place in the envelope", () => {
     expect(week.map((d) => leadUpGaugeCells(d, "discharge"))).toEqual([
-      { value: "50.0", place: "p63rd" }, { value: "—", place: "" }, { value: "9.14", place: "<p10" },
-      { value: "120", place: ">p90" }, { value: "20.0", place: "p25th" }]);
+      { value: "50.0", place: "p63rd" }, { value: "—", place: "" }, { value: "9.14", place: "≤p10" },
+      { value: "120", place: "≥p90" }, { value: "20.0", place: "p25th" }]);
     expect(leadUpGaugeCells(g("2026-08-23", null, null, 1.4231, 0.5), "level"))
       .toEqual({ value: "1.42", place: "p50th" });
   });
@@ -108,12 +108,22 @@ describe("the station's daily means", () => {
     expect(week.map((d) => leadUpGaugeSentence(d, "discharge"))).toEqual([
       "Sun Aug 23: 50.0 m³/s, the 63rd percentile for the day",
       "Mon Aug 24: no daily mean recorded",
-      "Tue Aug 25: 9.14 m³/s, below the 10th percentile for the day",
-      "Wed Aug 26: 120 m³/s, above the 90th percentile for the day",
+      "Tue Aug 25: 9.14 m³/s, at or below the 10th percentile for the day",
+      "Wed Aug 26: 120 m³/s, at or above the 90th percentile for the day",
       "Thu Aug 27: 20.0 m³/s, the 25th percentile for the day",
     ]);
     expect(leadUpGaugeSentence(g("2026-08-23", 3.2, null), "discharge"))
       .toBe("Sun Aug 23: 3.20 m³/s, no record to compare it with");
+  });
+
+  it("says a value ON p10 / p90 truthfully: the ranking clamps at the edge, so the words say 'at or' (T107 review)", () => {
+    // A dry creek at 0 on a day whose p10 is 0 cannot be BELOW it. Mutation pin: "below the 10th" / "<p10" fails here.
+    const onEdge = [g("2026-08-23", 0, placeInBand(0, [0, 0, 0, 0.4, 1.7])),
+                    g("2026-08-24", 1.7, placeInBand(1.7, [0, 0, 0, 0.4, 1.7]))];
+    expect(onEdge.map((d) => [leadUpGaugeSentence(d, "discharge"), leadUpGaugeCells(d, "discharge").place])).toEqual([
+      ["Sun Aug 23: 0.00 m³/s, at or below the 10th percentile for the day", "≤p10"],
+      ["Mon Aug 24: 1.70 m³/s, at or above the 90th percentile for the day", "≥p90"],
+    ]);
   });
 
   it("says a day the station had not published yet apart from a day with nothing in it (owner bug 2026-10-22)", () => {

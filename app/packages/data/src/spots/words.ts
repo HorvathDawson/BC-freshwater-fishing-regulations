@@ -103,9 +103,12 @@ const figure = (v: number, q: "discharge" | "level"): string =>
 const valueOf = (d: DailyGauge, q: "discharge" | "level") => (q === "level" ? d.level : d.discharge);
 const placeOf = (d: DailyGauge, q: "discharge" | "level") => (q === "level" ? d.levelPlace : d.dischargePlace);
 
-/** "p63rd", "<p10", ">p90", or nothing — the chip under a day's value. */
+/**
+ * "p63rd", "≤p10", "≥p90", or nothing — the chip under a day's value. AT OR past the edge (T107): the ranking is the
+ * feed's `percentile_of`, which clamps a value ON p10 / p90 too, so "<p10" would be false for a dry creek at 0 on p10 0.
+ */
 const placeChip = (p: DayPlace | null): string =>
-  p === null ? "" : p === "below" ? "<p10" : p === "above" ? ">p90" : percentileLabel(p);
+  p === null ? "" : p === "below" ? "≤p10" : p === "above" ? "≥p90" : percentileLabel(p);
 
 /** A gauge day the feed had not published yet (no mean, not settled as none): a refresh asks for it again. */
 const stillToCome = (d: DailyGauge) => d.discharge === null && d.level === null && !d.none;
@@ -125,8 +128,8 @@ export function leadUpGaugeSentence(d: DailyGauge, q: "discharge" | "level"): st
   if (v === null) return `${p.wd} ${p.mon} ${p.d}: no daily mean recorded`;
   const at = placeOf(d, q);
   const where = at === null ? "no record to compare it with"
-    : at === "below" ? "below the 10th percentile for the day"
-    : at === "above" ? "above the 90th percentile for the day"
+    : at === "below" ? "at or below the 10th percentile for the day"
+    : at === "above" ? "at or above the 90th percentile for the day"
     : `the ${percentileOrdinal(at)} percentile for the day`;
   return `${p.wd} ${p.mon} ${p.d}: ${figure(v, q)} ${UNIT[q]}, ${where}`;
 }

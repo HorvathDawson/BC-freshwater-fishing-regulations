@@ -440,8 +440,8 @@ describe("<SpotScreen> the week before (S1)", () => {
       <SpotScreen palette={LIGHT} onBack={() => {}} spot={spot({ leadUp })} />);
     expect(getByLabelText("Sun Aug 23: 50.0 m³/s, the 50th percentile for the day").textContent).toBe("50.0p50th");
     expect(getByLabelText("Tue Aug 25: no daily mean recorded").textContent).toBe("—");
-    expect(getByLabelText("Sat Aug 29: 20.0 m³/s, below the 10th percentile for the day").textContent)
-      .toBe("20.0<p10");
+    expect(getByLabelText("Sat Aug 29: 20.0 m³/s, at or below the 10th percentile for the day").textContent)
+      .toBe("20.0≤p10");
     expect(getByTestId("leadup-unit").textContent).toBe("m³/s");
     expect(getByTestId("leadup-trend").textContent).toBe("Flow fell over the week: 50.0 → 20.0 m³/s");
     expect(getByTestId("leadup-gauge-meta").textContent).toBe("08MH001 · daily means");
