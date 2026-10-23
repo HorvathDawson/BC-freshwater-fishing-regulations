@@ -15,6 +15,9 @@ with the default Claude uses until you answer). Newest first inside each section
   ditch-only lines as the river), Q2 (leave automatic confluence cuts out), Q4 (cap the cut-line length; suggested no).
 
 ## Reviews
+- **Q53 / T102 — tributary walk order guard.** Your "order only where a code is missing" would switch it off (every live
+  edge has a code; 28,359 same-code floodplain/braid edges rely on it). Default built: code decides parent/child, order
+  still decides equal or unrelated codes.
 - **Q45 / T89 — eight waters the book prints where the registry has no water of that name** (incl. Squirrel Lake 6-1).
   Their rules bind nothing until each is located; the list is in T89 ("Q-A").
 - **Q4 / T55 — slough and canal candidates.** Mark them on https://claude.ai/artifact/Es3Mokt7Fs2yNvm7JgQua8

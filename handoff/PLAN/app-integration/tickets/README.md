@@ -235,6 +235,7 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q50 | T80 | Whole "Kootenay Lake" as a search result? | no — search lists its three parts | owner |
 | Q51 | T80 | A "See X" row whose water has no other row: a page of its own? | no — the pointer opens X's page | owner |
 | Q52 | T80 | Spot photo picker: arm the fallback only where cancel is unsupported? | as built | owner |
+| Q53 | T102 | Order (Strahler) guard: only where a code is missing (= off entirely: no live edge lacks a code), or also on equal/unrelated codes (28,359 equal-code floodplain/braid edges depend on it)? | keep it on equal/unrelated codes; code decides parent/child | owner |
 
 ### Answered (recently, for the record)
 - Q33 (the 5 gate-failing entries) — settled by T96: four were a gate bug (province-wide rule holds a region lift), Shuswap 3-26 quotes its whole printed line.
