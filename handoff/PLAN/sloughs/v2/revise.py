@@ -4,6 +4,11 @@ add the census's new candidates, and measure the rules against the owner's marks
 Read-only on the repo (gpkg, bundle.sqlite, section_handles.txt). Run through scripts/heavy.sh.
 Stage 1 (geometry + neighbours) caches to OUT/geo_v2.pkl; stage 2 (rules) is cheap and reruns from the cache.
 Writes OUT/candidates_v2.json.gz and OUT/sweep2.md.
+
+T154 (2026-10-23): `--dams FILE` reads the provincial dams matched to the candidate polygons (dams.py's
+dams_by_wbk.json) as R2 evidence: a STANDING dam (DAM_OPERATION_CODE in `STANDING`) within `DAM_REACH_M` of the
+polygon, at the polygon's OUTLET on its own blue line (dams.side_of). `--out DIR` writes the outputs (and a fresh stage-1 cache) there instead of OUT, which stays the inputs'
+directory — so a re-run never overwrites the T148 outputs. Without `--dams` the run is the T148 one.
 """
 import collections, gzip, json, math, os, pickle, re, sqlite3, sys
 import pandas as pd
@@ -19,6 +24,21 @@ GPKG = REPO + 'data/source/bc_fisheries_data.gpkg'
 BUNDLE = REPO + 'data/generated/bundle/bundle.sqlite'
 HANDLES = REPO + 'data/generated/atlas/full/section_handles.txt'
 V1 = REPO + 'handoff/PLAN/sloughs/candidates.json.gz'
+
+
+def _flag(name):
+    return sys.argv[sys.argv.index(name) + 1] if name in sys.argv else None
+
+
+WOUT = (_flag('--out') or OUT).rstrip('/') + '/'
+DAMS_FILE = _flag('--dams')
+#: T154: the dams that hold water back (the WRIS operation codes); Breached (Failed), Not Constructed, Decommissioned,
+#: Removed and Application do not impound anything a polygon could be the widening of
+STANDING = {'Active', 'Deactivated'}
+#: T154: a dam is evidence for a polygon when its crest line is this close to it — FWA 1:20k positional tolerance; a
+#: dam impounding the polygon sits on its edge (Quinsam diversion dam 0 m, South Fork dam on the South Nanaimo 8 m)
+DAM_REACH_M = 25.0
+DAMS = json.load(open(DAMS_FILE)) if DAMS_FILE else {}
 
 FC = {
     'GB15300000': 'Lake-Definite', 'GB15300130': 'Lake-Indefinite', 'GB15300140': 'Lake-Intermittent',
@@ -225,9 +245,9 @@ def stage1():
 if os.path.exists(OUT + 'geo_v2.pkl') and '--fresh' not in sys.argv:
     S1 = pickle.load(open(OUT + 'geo_v2.pkl', 'rb'))
     if set(S1['geo']) < set(WANT) - {w for w in WANT if w not in C.index}:
-        S1 = stage1(); pickle.dump(S1, open(OUT + 'geo_v2.pkl', 'wb'))
+        S1 = stage1(); pickle.dump(S1, open(WOUT + 'geo_v2.pkl', 'wb'))
 else:
-    S1 = stage1(); pickle.dump(S1, open(OUT + 'geo_v2.pkl', 'wb'))
+    S1 = stage1(); pickle.dump(S1, open(WOUT + 'geo_v2.pkl', 'wb'))
 GEO, LINES_C = S1['geo'], S1['lines_c']
 
 # blue lines inside each wanted polygon (for "shares the lake's blue line")
@@ -282,6 +302,13 @@ def evidence_for(w, row, stream_name, river_entries):
                        + (f" ({p['name']})" if p['name'] else ''))
         elif p['d'] <= 2.0 and p['name'] and re.search(r'\breservoir\b', p['name'], re.I):
             dam.append(f"touches {p['name']} (wbk {p['wbk']})")
+    # T154: a provincial dam (BC Dams, WRIS) standing on the polygon's edge
+    for d in DAMS.get(str(w), []):
+        # behind it: the dam is at the polygon's OUTLET on its own blue line (dams.side_of) — a dam at its inlet
+        # (Seton Canal below the Seton dam) holds back the water upstream, not this polygon
+        if d['d'] <= DAM_REACH_M and d['operation'] in STANDING and d.get('side') == 'outlet':
+            dam.append(f"provincial dam {d['name']} ({d['function']}, {d['operation']}"
+                       + (f", {d['height_m']:g} m high" if d['height_m'] else '') + f") {d['d']:.0f} m from it")
     # (the owner's notes are NOT evidence here: a rule fed by the mark it is measured against would launder it)
     book_river = [e for e in river_entries if re.search(r'reservoir', ENT[e]['_full'] + (ENT[e]['scope_note'] or ''), re.I)]
     # part of a named lake: a NAMED lakes-layer (or named manmade) polygon touching it
@@ -553,7 +580,7 @@ for w, r, row, ev, rc, why, fired in recs:
 
 ORDER = {'STREAM_BY_BOOK': 0, 'LIKELY_STREAM': 1, 'UNSURE': 2, 'LAKE': 3, 'NOT_FISHING_WATER': 4}
 final.sort(key=lambda x: (ORDER[x['class']], x['class_v1'] is None, x['region'] or '', -(x['elongation'] or 0)))
-json.dump(dict(final=final, exceptions=exceptions), open(OUT + 'v2_work.json', 'w'), default=str)
+json.dump(dict(final=final, exceptions=exceptions), open(WOUT + 'v2_work.json', 'w'), default=str)
 print('records', len(final), collections.Counter(x['class'] for x in final))
 
 # ===================================================================== binds (for NOT_FISHING_WATER and every polygon)
@@ -593,7 +620,7 @@ summary = dict(
             'plus new candidates from the T55 v2 census (found_by v2:*). class_v1 = first-sweep class; rule_class = '
             'what the v2 rules alone say; class = rule_class unless the owner marked it, in which case the class follows '
             'the owner verdict and any disagreement is listed in sweep2.md as a rule exception.'))
-with gzip.open(OUT + 'candidates_v2.json.gz', 'wt') as f:
+with gzip.open(WOUT + 'candidates_v2.json.gz', 'wt') as f:
     json.dump(dict(summary=summary, candidates=final), f, separators=(',', ':'), default=str, allow_nan=False)
 
 # ---------------------------------------------------------------- sweep2.md
@@ -623,7 +650,10 @@ RULES = [
     ('R1', 'A piece whose inside line is one of a named lake\'s blue lines (the lake within 150 m), with no named river main flow of its own through it, no main-flow (1200) line at all and perimeter elongation under 4, is that LAKE (a bay or arm).',
      'Owner notes: Sproat River piece "could actually be labelled as sproat lake too" (not_stream): its 1300 line is blue line 354087683, a 1450 line inside Sproat Lake 59 m away; Cruickshank "this can be on moat lake" (note only): its 1300 line is blue line 354087804, inside Moat Lake 24 m away. Touching alone is not used: 8 stream marks lie within 150 m of a named lake (Duffey, Nicola, Robert, McCauley, Hatzic...), all on a named river or a named slough.'),
     ('R2', 'A widening behind a dam or a reservoir on a river is a LAKE, unless the river\'s book entry names the reservoir as part of the river.',
-     'Owner notes: Quinsam "it is a dammed area", South Nanaimo "dammed area probably a lake?", Bonaparte "probably a lake" (all three unsure). There is no dam dataset in the repo: evidence is a reservoir FWA code, a touching manmade reservoir polygon, a touching polygon named "Reservoir". The owner notes are not used as evidence (a rule fed by the mark it is scored against would launder it), so none of the three fires.'),
+     'Owner notes: Quinsam "it is a dammed area", South Nanaimo "dammed area probably a lake?", Bonaparte "probably a lake" (all three unsure). Evidence: a reservoir FWA code, a touching manmade reservoir polygon, a touching polygon named "Reservoir"'
+     + (f', and (T154, --dams) a standing provincial dam (BC Dams: {"/".join(sorted(STANDING))}) within {DAM_REACH_M:g} m of the polygon, at its outlet on its own blue line.' if DAMS_FILE else
+        '. There is no dam dataset in this run (T154 adds one with --dams).')
+     + ' The owner notes are not used as evidence (a rule fed by the mark it is scored against would launder it).'),
     ('R3', 'Lake Arm (1475) lines inside, with no secondary flow and no named river through it, is a LAKE.',
      'No mark has a 1475 line; the rule rests on what the code means.'),
     ('R4', 'Lake-Indefinite, Lake-Intermittent or Flooded Land on a river\'s line leans LIKELY_STREAM (a slough or side channel) when channel-shaped (perimeter elongation 3 or more) or slough/channel-named; round and large (over 5 ha, elongation under 2.5) is LAKE; anything else keeps its shape class (a round pond stays LAKE).',
@@ -855,6 +885,6 @@ try:
     table([(a, b, n) for (a, b), n in mv.most_common()], ['before', 'after', 'n'])
 except FileNotFoundError:
     pass
-open(OUT + 'sweep2.md', 'w').write('\n'.join(md))
-sz = os.path.getsize(OUT + 'candidates_v2.json.gz')
+open(WOUT + 'sweep2.md', 'w').write('\n'.join(md))
+sz = os.path.getsize(WOUT + 'candidates_v2.json.gz')
 print('wrote candidates_v2.json.gz', sz, 'bytes; sweep2.md')

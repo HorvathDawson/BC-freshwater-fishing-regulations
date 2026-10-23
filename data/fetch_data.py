@@ -1688,6 +1688,14 @@ def main():
         # falls-anchored splits (e.g. Hunlen Falls) and future client display (replacing OSM
         # waterfalls). See pipeline/docs/04.
         "obstacles": {"type": "WFS", "source": "WHSE_FISH.FISS_OBSTACLES_PNT_SP"},
+        # BC Dams (Water Resources Information System, public view) — every dam the Province regulates or has on file,
+        # 2,490 CREST LINES (2,488 LineString + 2 MultiLineString, 2026-10-23) with DAM_NAME, DAM_FUNCTION (Main /
+        # Conversion / Saddle / Outlet / Spillway), DAM_OPERATION_CODE (Active 2,080; Breached, Not Constructed,
+        # Decommissioned, Deactivated, Removed, Application), DAM_HEIGHT, CREST_LENGTH. Licence: Open Government
+        # Licence – British Columbia (catalogue "BC Dams", bd632217-35f9-4d01-8e57-a6dbc454f236). Consumer (T154):
+        # handoff/PLAN/sloughs/v2/dams.py matches each dam to the FWA lines/polygons it sits on, and the T148 revise's
+        # R2 reads that ("a widening behind a dam reads as a lake"). Small (~2.4 MB of GeoJSON, one WFS page).
+        "dams": {"type": "WFS", "source": "WHSE_WATER_MANAGEMENT.WRIS_DAMS_PUBLIC_SVW"},
         "wma": {"type": "WFS", "source": "WHSE_TANTALIS.TA_WILDLIFE_MGMT_AREAS_SVW"},
         "wmu": {
             "type": "WFS",
