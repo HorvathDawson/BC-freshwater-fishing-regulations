@@ -26,9 +26,15 @@ CANAL, UPPER, LOWER, LAKE, SLOUGH = "gnis:canal", "gnis:upper", "gnis:lower", "w
 KINDS = {CANAL: "stream", UPPER: "stream", LOWER: "stream", LAKE: "lake", SLOUGH: "stream"}
 
 
-def poly(node_id: str, mag: int = 100) -> N:
+#: Watershed codes. A tributary's code extends its river's; a side channel carries its river's own (`branch_points`).
+RIVER_WSC = "100-000000"
+TRIB_WSC = RIVER_WSC + "-200000"
+TRIB2_WSC = TRIB_WSC + "-300000"
+
+
+def poly(node_id: str, mag: int = 100, wsc: str = RIVER_WSC) -> N:
     """A polygon section: a `lake:<wbk>` node, no blue-line key, sized by the lines under it."""
-    return N(node_id, stream_magnitude=mag, kind="lake", blk="", length_m=0.0)
+    return N(node_id, stream_magnitude=mag, kind="lake", blk="", length_m=0.0, wsc=wsc)
 
 
 def answers(panels) -> dict[str, tuple[tuple[tuple, ...], float | None]]:
@@ -41,8 +47,11 @@ def _canal():
     """A polygon-only canal between two gauged lines of OTHER waters (Seton Canal between the Seton River's lines):
 
         upper ─▶ canal ─▶ lower          gauges U on `upper`, D on `lower`
+
+    Coded as three waters, each flowing into the next (a tributary into its river), so no branch point is crossed:
+    this is about the polygon, not about Q44 (`test_side_channel_gauges.py`).
     """
-    graph = g([N("upper", 100, blk="U"), poly("canal"), N("lower", 100, blk="L")],
+    graph = g([N("upper", 100, blk="U", wsc=TRIB2_WSC), poly("canal", wsc=TRIB_WSC), N("lower", 100, blk="L")],
               [E("upper", "canal"), E("canal", "lower")])
     water_of = {"upper": UPPER, "canal": CANAL, "lower": LOWER}
     return graph, water_of, [("U", "upper", 40, False), ("D", "lower", 40, False)]
@@ -73,7 +82,7 @@ def test_before_this_ruling_the_canal_was_a_lake_crossing():
 def test_a_gauge_standing_on_a_stream_polygon_speaks_for_it_and_past_it():
     """A station matched to the canal's polygon is a stream gauge on the canal, not a lake level: its own section first,
     then the lines either side."""
-    graph = g([N("upper", 100, blk="U"), poly("canal"), N("lower", 100, blk="L")],
+    graph = g([N("upper", 100, blk="U", wsc=TRIB2_WSC), poly("canal", wsc=TRIB_WSC), N("lower", 100, blk="L")],
               [E("upper", "canal"), E("canal", "lower")])
     got = answers(build(graph, MODEL, [("C", "canal", 40, False)],
                         water_of={"upper": UPPER, "canal": CANAL, "lower": LOWER}, kind_of=KINDS))
@@ -161,7 +170,7 @@ def test_the_water_kind_gate_is_what_holds_these_tests():
         return ns["flowing"]
 
     graph, water_of, donors = _canal()
-    lake_graph = g([N("upper", 100, blk="U"), poly("lake"), N("lower", 100, blk="L")],
+    lake_graph = g([N("upper", 100, blk="U", wsc=TRIB2_WSC), poly("lake", wsc=TRIB_WSC), N("lower", 100, blk="L")],
                    [E("upper", "lake"), E("lake", "lower")])
     lake_water = {"upper": UPPER, "lake": LAKE, "lower": LOWER}
     lake_donors = [("U", "upper", 40, False)]
@@ -188,16 +197,18 @@ def test_the_water_kind_gate_is_what_holds_these_tests():
 # ------------------------------------------------------------------ a polygon of a side channel
 
 def _side_slough():
-    """Maria / Nicomen Slough in miniature: a slough whose LINES are side channels of the Fraser (FWA 1350), with a
-    polygon between them, and a small creek gauge far up the Fraser whose catchment matches the polygon's arithmetic.
+    """Maria / Nicomen Slough in miniature: a slough whose LINES are side channels of the Fraser (FWA 1350, the Fraser's
+    own watershed code), with a polygon between them, beside the Fraser's own course, and a small creek gauge up a
+    tributary whose catchment matches the polygon's arithmetic.
 
-        creek ─▶ fraser_up ─▶ head ─▶ poly ─▶ foot ─▶ fraser_down        HOPE on fraser_up, C on creek
+        creek ─▶ fraser_up ─────────────────────▶ fraser_down        HOPE on fraser_up, C on creek
+                     └─▶ head ─▶ poly ─▶ foot ─────┘
     """
-    nodes = [N("creek", 2, blk="C"), N("fraser_up", 500, blk="F"),
+    nodes = [N("creek", 2, blk="C", wsc=TRIB_WSC), N("fraser_up", 500, blk="F"),
              N("head", 2, blk="S", edge_types=("1350",)), poly("poly", mag=2),
              N("foot", 2, blk="S", edge_types=("1350",)), N("fraser_down", 500, blk="F")]
-    edges = [E("creek", "fraser_up"), E("fraser_up", "head"), E("head", "poly"), E("poly", "foot"),
-             E("foot", "fraser_down")]
+    edges = [E("creek", "fraser_up"), E("fraser_up", "fraser_down"), E("fraser_up", "head"), E("head", "poly"),
+             E("poly", "foot"), E("foot", "fraser_down")]
     water_of = {"creek": UPPER, "fraser_up": LOWER, "fraser_down": LOWER, "head": SLOUGH, "poly": SLOUGH,
                 "foot": SLOUGH}
     return g(nodes, edges), water_of, [("HOPE", "fraser_up", 60, False), ("C", "creek", 40, False)]
@@ -208,17 +219,18 @@ def test_a_polygon_of_a_side_channel_takes_the_river_s_answer_like_its_lines():
     magnitude-1 arithmetic is the artefact Herrling Island showed. On the real graph Maria Slough's polygons (and
     Nicomen's, McArthur Island's, Gravel's, West Road's — 9 in all) took ten creek gauges up to 400 km away at 1.4 km²
     while the slough's lines on either side carried the Fraser at Hope at 60,000 km². Whole value: the polygon answers
-    exactly as the foot line below it, which is the river's answer."""
+    exactly as the foot line below it, which is the river's answer. (Since Q44 the creek and HOPE no longer walk INTO
+    the slough at all — its head is a branch point, `across_branch` — so the slough's pieces hold only the copy.)"""
     graph, water_of, donors = _side_slough()
     got = answers(build(graph, MODEL, donors, water_of=water_of, kind_of=KINDS))
-    river_below = ((("C", "up", False, 0), ("HOPE", "up", True, 0)), 500.0)
+    river = ((("C", "up", False, 0), ("HOPE", "up", True, 1)), 500.0)
     assert got == {
         "creek": ((("C", "up", True, 1), ("HOPE", "down", False, 0)), 2.0),
-        "fraser_up": ((("C", "up", False, 0), ("HOPE", "up", True, 1)), 500.0),
-        "head": ((("C", "up", False, 0), ("HOPE", "up", True, 1)), 500.0),     # adopted fraser_up
-        "poly": river_below,                                                   # as the foot line below it
-        "foot": river_below,                                                   # adopted fraser_down
-        "fraser_down": river_below,
+        "fraser_up": river,
+        "head": river,              # adopted fraser_up
+        "poly": river,              # as the foot line below it
+        "foot": river,              # adopted fraser_down
+        "fraser_down": river,       # down the Fraser itself; the way through the slough is shut
     }
 
 
@@ -226,7 +238,7 @@ def test_a_polygon_of_a_side_channel_whose_river_is_silent_is_silent_too():
     """The river has no answer, so neither do its channel's lines (`mainstem_of`) — nor the polygon between them,
     though a creek gauge of matching arithmetic walks straight into it. Before, the polygon alone answered (C at 2 km²)
     between two grey lines of its own water."""
-    nodes = [N("creek", 2, blk="C"), N("head", 2, blk="S", edge_types=("1350",)), poly("poly", mag=2),
+    nodes = [N("creek", 2, blk="C", wsc=TRIB_WSC), N("head", 2, blk="S", edge_types=("1350",)), poly("poly", mag=2),
              N("foot", 2, blk="S", edge_types=("1350",)), N("fraser_down", 500, blk="F")]
     edges = [E("creek", "head"), E("head", "poly"), E("poly", "foot"), E("foot", "fraser_down")]
     water_of = {"creek": UPPER, "head": SLOUGH, "poly": SLOUGH, "foot": SLOUGH, "fraser_down": LOWER}
