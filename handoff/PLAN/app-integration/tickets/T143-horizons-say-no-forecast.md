@@ -1,6 +1,6 @@
 # T143 — Conditions +1/+3/+5/+10 say "no forecast" for every gauge (Change works)
 
-Status: DONE — 875ac163 (app only; ships with the next app build. No feed republish, no data rebuild.)
+Status: DONE — 875ac163, 5ae8c8da (test move), e4f18716 (docs) (app only; ships with the next app build. No feed republish, no data rebuild.)
 
 Source: Owner 2026-10-23 (app walk). "when i click on +1, +3, +5, +10 it says no forecast for gauges here even tho there definitely is. this is for
 every gauge. but the change option works." Likely since T123 (donorState: a horizon with no percentile → "no-forecast")
