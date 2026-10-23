@@ -38,6 +38,7 @@ import { MapScreen } from "./MapScreen";
 import { SearchSheet } from "./SearchSheet";
 import { SpotsScreen } from "./SpotsScreen";
 import { TopBar, searchPanelWidth, topBarBottom } from "./TopBar";
+import { CLOSE_KEEPS_FOCUS } from "./searchFocus";
 import { SpotDropSheet } from "./SpotDropSheet";
 import { SpotPickBanner } from "./SpotPickBanner";
 import { SpotCapture } from "./SpotCapture";
@@ -404,12 +405,27 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   const [restore, setRestore] = useState<{ key: string; camera: Camera } | null>(null);
   const restores = useRef(0);
   const wasSearching = useRef(searching);
+  /*
+   * (T69) FOCUSED BUT CLOSED. A close the keyboard asked for — Escape, the panel's ✕ — on a wide screen on the web hands
+   * the focus back to the field instead of dropping it on the page body (`toField`); the field then holds it with
+   * search closed. That focus must not open search again (`quiet`): typing, Enter or ↓ there does, or focusing it
+   * afresh. A click on the map, back and a tab change leave the focus where they put it; a phone drops it (its keyboard).
+   */
+  const toField = useRef(false);
+  const quiet = useRef(false);
   useEffect(() => {
     if (searching === wasSearching.current) return;
     wasSearching.current = searching;
+    const keep = toField.current && CLOSE_KEEPS_FOCUS && searchPanelWidth(screenWidth) !== null;
+    toField.current = false;
     if (searching) { searchCamera.current = { ...camera.current }; searchMoved.current = false; return; }
-    field.current?.blur();
-    Keyboard.dismiss();
+    if (keep) {
+      quiet.current = true;                   // the focus event fires inside focus(): it opens nothing
+      try { field.current?.focus(); } finally { quiet.current = false; }
+    } else {
+      field.current?.blur();
+      Keyboard.dismiss();
+    }
     const back = searchCamera.current;
     if (searchMoved.current && back) {
       camera.current = back;                       // a map mounted later (a spot was opened) starts there too
@@ -460,6 +476,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
     []);
   /** Close search: the phone's ‹, Escape, and on a wide screen the panel's ✕ and a click on the map beside it. */
   const closeSearch = useCallback(() => go({ type: "search", open: false }), [go]);
+  /** (T69) A keyboard's close — Escape, the panel's ✕, the phone's ‹ — that gives the focus back to the field (wide web). */
+  const closeToField = useCallback(() => { toField.current = true; closeSearch(); }, [closeSearch]);
   /** (owner 2026-10-22 late) A wide screen's search is a panel beside the map: a click on that map closes it. */
   const wideSearch = searching && searchPanelWidth(screenWidth) !== null;
   /** The SYNC ICON's state (`syncVM`): fresh, needs a refresh, checking — none when there is nothing to sync. */
@@ -809,26 +827,30 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
             <BackLayerContext.Provider value={backLayers}>{body}</BackLayerContext.Provider>
           </WaterViewsContext.Provider>
         </EdgeBack>
-        {/* (T48) search over the SAME map: the sheet rises over it, and the field is drawn over both */}
+        {/*
+          * (T48) search over the SAME map: the sheet rises over it, and the field is drawn over both. The field comes
+          * FIRST in the page (T69): Tab reaches the bar, then the results panel under it — the order the eye reads;
+          * its zIndex keeps it painted over the sheet and the dim.
+          */}
+        {topBar && (
+          <TopBar ref={field} palette={palette} placeholder={placeholder} sync={sync} onSync={syncState.refresh}
+                  open={searching}
+                  query={searchMemory.q} onQuery={searchType}
+                  onOpen={() => { if (!quiet.current) go({ type: "search", open: true }); }}
+                  onClose={closeToField} />
+        )}
         {topBar && (
           <SearchSheet open={searching} top={barBottom} palette={palette} session={session} pick={searchMemory.pick}
                        onAct={searchAct}
                        // the one way out of search into a water: the one opener, with the view this map puts in front;
                        // it consumes the search, so back lands on the map at the water (owner 2026-10-22 late)
                        onOpenWater={openSearched}
-                       onClose={closeSearch}
+                       onClose={closeToField}
                        statusIndex={statusIndex} total={counts?.waters} />
         )}
         {/* PICK ON THE MAP (owner 2026-10-22): the slim banner in the search field's place; a back layer */}
         {picking && route.mode === "browse" && tab === "map" && (
           <SpotPickBanner palette={palette} onCancel={rail.cancelPick} />
-        )}
-        {topBar && (
-          <TopBar ref={field} palette={palette} placeholder={placeholder} sync={sync} onSync={syncState.refresh}
-                  open={searching}
-                  query={searchMemory.q} onQuery={searchType}
-                  onOpen={() => go({ type: "search", open: true })}
-                  onClose={closeSearch} />
         )}
       </View>
       {showLegend && (

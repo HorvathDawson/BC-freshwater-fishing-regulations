@@ -526,3 +526,134 @@ describe("closing search on a wide screen (owner 2026-10-22 late)", () => {
       `search open · half · "chilliwack river" · tab Map`]);
   });
 });
+
+/*
+ * (T69) SEARCH ON A WIDE SCREEN BY KEYBOARD ALONE: open, type, pick, close, Escape — focus asserted at every step.
+ * Closing never drops the focus on the page body: it comes back to the field, which stays FOCUSED BUT CLOSED (its
+ * accent edge says where the focus is); typing, Enter or ↓ there, or focusing it afresh, opens search again. And the
+ * Tab order runs the way the eye does: the bar (field, its clear) before the results panel (its close, then the rows).
+ */
+describe("(T69) search on a wide screen by keyboard alone", () => {
+  const size = (w: number) => {
+    Object.defineProperty(document.documentElement, "clientWidth", { configurable: true, value: w });
+    window.dispatchEvent(new Event("resize"));
+  };
+  const wide = async (body: () => Promise<void>) => { size(1280); try { await body(); } finally { size(390); } };
+  const escape = () => act(() => { window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })); });
+  /** Where the keyboard's focus is, by its spoken name ("page body" when it was dropped). */
+  const focused = () => {
+    const a = document.activeElement;
+    return !a || a === document.body ? "page body" : a.getAttribute("aria-label") ?? a.tagName;
+  };
+  /** What Tab reaches in the bar and the panel, in the order it reaches it (document order: no positive tabindex). */
+  const tabOrder = () => {
+    const sheet = screen.queryByTestId("search-sheet-full") ?? screen.queryByTestId("search-sheet-half");
+    return [...document.querySelectorAll<HTMLElement>('input, [tabindex]:not([tabindex="-1"])')]
+      .filter((e) => screen.getByTestId("top-bar").contains(e) || !!sheet?.contains(e))
+      .map((e) => e.getAttribute("aria-label"));
+  };
+  /** The field's edge, by the palette's name for it (the browser hands back rgb; a probe turns the hex the same way). */
+  const edge = () => {
+    const probe = (hex: string) => { const d = document.createElement("div"); d.style.color = hex; return d.style.color; };
+    const at = screen.getByTestId("search-field").style.borderTopColor;
+    return at === probe(LIGHT.accent) ? "accent" : at === probe(LIGHT.ink) ? "ink" : at;
+  };
+  /** The river's row, by its spoken name (the WHERE line in it: `spokenName`). */
+  const NAMED = "Chilliwack River, near Chilliwack, 2 km";
+  const ROW = `Show ${NAMED} on the map`;
+
+  it("open, type, pick, close, Escape: the focus is where the reader is at each step, and never on the page body", () =>
+    wide(async () => {
+      mount();
+      // Tab into the field: search opens, the focus stays in the field
+      act(() => { field().focus(); });
+      const opened = [where(), focused(), tabOrder()];
+      await typeIn("chilliwack river");
+      const order = tabOrder();
+      const typed = [where(), focused(), order.slice(0, 3), order.slice(3).every((n) => /^Show /.test(n ?? ""))];
+      // Tab down to the row and press Enter: the row is picked and keeps the focus; its open action is next in line
+      const row = screen.getByRole("button", { name: (n) => n.startsWith(ROW) });
+      act(() => { row.focus(); });
+      fireEvent.click(row);
+      await settle();
+      const at = tabOrder().indexOf(document.activeElement?.getAttribute("aria-label") ?? "");
+      const picked = [where(), focused().replace(/\. .*/, ""), tabOrder()[at + 1]];
+      // Escape (the focus on the row): search closes, the focus comes back to the field — focused but closed
+      escape();
+      await settle();
+      const closed = [where(), focused(), edge()];
+      // Escape again, in that field and on the page: nothing to close; it stays closed and keeps the focus
+      act(() => { fireEvent.keyDown(field(), { key: "Escape" }); });
+      escape();
+      await settle();
+      const again = [where(), focused()];
+      expect([opened, typed, picked, closed, again]).toEqual([
+        [`search open · full · "" · tab Map`, SEARCH_BAR.label, [SEARCH_BAR.label, SEARCH_BAR.close]],
+        [`search open · full · "chilliwack river" · tab Map`, SEARCH_BAR.label,
+         [SEARCH_BAR.label, SEARCH_BAR.clear, SEARCH_BAR.close], true],
+        [`search open · half · "chilliwack river" · tab Map`, ROW, SEARCH_BAR.open(NAMED)],
+        [`search closed · no sheet · "chilliwack river" · tab Map`, SEARCH_BAR.label, "accent"],
+        [`search closed · no sheet · "chilliwack river" · tab Map`, SEARCH_BAR.label]]);
+    }));
+
+  it("the focused-but-closed field opens again by typing, by Enter or ↓, and by focusing it afresh; the panel's ✕ " +
+     "hands the focus back to it too", () =>
+    wide(async () => {
+      mount();
+      act(() => { field().focus(); });
+      escape();
+      await settle();
+      const resting = [where(), focused()];
+      await typeIn("chilliwack");
+      const byTyping = [where(), focused()];
+      // the panel's ✕, reached by Tab and pressed: the ✕ goes with the panel, the focus comes back to the field
+      const close = within(screen.getByTestId("search-sheet-full")).getByRole("button", { name: SEARCH_BAR.close });
+      act(() => { close.focus(); });
+      fireEvent.click(close);
+      await settle();
+      const byClose = [where(), focused()];
+      act(() => { fireEvent.keyDown(field(), { key: "Enter" }); });
+      await settle();                           // a blur on submit would land after the key: wait it out
+      const byEnter = [where(), focused()];
+      escape();
+      await settle();
+      act(() => { fireEvent.keyDown(field(), { key: "ArrowDown" }); });
+      const byDown = where();
+      escape();
+      await settle();
+      act(() => { field().blur(); });
+      const away = [where(), focused()];
+      act(() => { field().focus(); });
+      expect([resting, byTyping, byClose, byEnter, byDown, away, [where(), focused()]]).toEqual([
+        [`search closed · no sheet · "" · tab Map`, SEARCH_BAR.label],
+        [`search open · full · "chilliwack" · tab Map`, SEARCH_BAR.label],
+        [`search closed · no sheet · "chilliwack" · tab Map`, SEARCH_BAR.label],
+        [`search open · full · "chilliwack" · tab Map`, SEARCH_BAR.label],
+        `search open · full · "chilliwack" · tab Map`,
+        [`search closed · no sheet · "chilliwack" · tab Map`, "page body"],
+        [`search open · full · "chilliwack" · tab Map`, SEARCH_BAR.label]]);
+    }));
+
+  it("a click on the map beside the panel closes search and leaves the focus where the click put it (no pull back " +
+     "to the field); a closed field without the focus wears the ink edge", () =>
+    wide(async () => {
+      mount();
+      const resting = edge();
+      act(() => { field().focus(); });
+      await typeIn("chilliwack");
+      act(() => { field().blur(); });
+      fireEvent.click(screen.getByTestId("stub-map-click"));
+      await settle();
+      expect([resting, where(), focused(), edge()]).toEqual([
+        "ink", `search closed · no sheet · "chilliwack" · tab Map`, "page body", "ink"]);
+    }));
+
+  it("ON A PHONE closing still drops the focus and the keyboard (no focused-but-closed field holding a keyboard up)",
+     async () => {
+      mount();
+      act(() => { field().focus(); });
+      act(() => { fireEvent.click(screen.getByLabelText(SEARCH_BAR.close)); });
+      await settle();
+      expect([where(), focused()]).toEqual([`search closed · no sheet · "" · tab Map`, "page body"]);
+    });
+});

@@ -18,10 +18,15 @@
  * stays, and search closes by the results panel's ✕, Escape anywhere, or a click on the map beside it (`SearchSheet`,
  * the Shell). The ✕ inside the field, on every screen, only clears what was typed ("Clear search text").
  *
+ * FOCUSED BUT CLOSED (T69, wide screens on the web): closing search by Escape or the panel's ✕ hands the focus back
+ * to this field (the Shell), never to the page body. The field then holds the focus with search closed — its accent
+ * edge says so — and typing, Enter or ↓ there opens search again, as does focusing it afresh. Enter never blurs the
+ * field on a wide screen (it would drop the focus on the page body); a phone's Enter still drops the keyboard.
+ *
  * The placeholder is ONE line per opening of the app (`placeholderFor`), never cycled while on screen; the field is
  * always called "Search waters and towns" aloud, whatever the line says.
  */
-import { forwardRef, useEffect, useRef } from "react";
+import { forwardRef, useEffect, useRef, useState } from "react";
 import { Animated, Easing, Pressable, Text, TextInput, View, useWindowDimensions } from "react-native";
 import { SEARCH_BAR, type SyncVM } from "@app/core";
 import { Icon } from "./icons";
@@ -54,7 +59,7 @@ export interface TopBarProps {
   open: boolean;
   query: string;
   onQuery: (q: string) => void;
-  /** The field took focus: open search (once). */
+  /** The field took focus, or was typed in / sent Enter or ↓ while focused but closed: open search. */
   onOpen: () => void;
   /** ‹ or Escape: close search (the Shell restores the map). */
   onClose: () => void;
@@ -63,13 +68,17 @@ export interface TopBarProps {
 export const TopBar = forwardRef<TextInput, TopBarProps>(function TopBar(
   { palette, placeholder, sync, onSync, open, query, onQuery, onOpen, onClose }, ref) {
   const panel = searchPanelWidth(useWindowDimensions().width);
+  // the field holds the focus (open, or focused but closed): its edge turns accent either way — its one focus mark
+  const [focused, setFocused] = useState(false);
   return (
+    // drawn BEFORE the results sheet, so Tab reaches the bar before the panel under it (T69: the order the eye reads);
+    // raised over the sheet and its dim so it still paints on top
     <View testID="top-bar" pointerEvents="box-none"
-          style={{ position: "absolute", top: TOP_BAR.top, left: TOP_BAR.side,
+          style={{ position: "absolute", top: TOP_BAR.top, left: TOP_BAR.side, zIndex: 2,
                    ...(panel === null ? { right: TOP_BAR.side } : { width: panel }) }}>
       <View testID="search-field"
             style={{ backgroundColor: palette.card, borderWidth: 1.5, borderRadius: palette.r.box,
-                     borderColor: open ? palette.accent : palette.ink, ...palette.lift }}>
+                     borderColor: open || focused ? palette.accent : palette.ink, ...palette.lift }}>
         <View style={{ height: TOP_BAR.field, flexDirection: "row", alignItems: "center" }}>
           {/* THE SAME 40 PX SLOT before and after focus: the magnifier, or (phone) the ‹ that closes search — no jump.
               A wide screen keeps the magnifier: its close is the results panel's ✕, by the results (`SearchSheet`). */}
@@ -86,11 +95,20 @@ export const TopBar = forwardRef<TextInput, TopBarProps>(function TopBar(
           )}
           <TextInput ref={ref}
                      value={query}
-                     onChangeText={onQuery}
-                     onFocus={() => { if (!open) onOpen(); }}
+                     // typing into a focused-but-closed field opens search with what was typed (T69)
+                     onChangeText={(q) => { if (!open) onOpen(); onQuery(q); }}
+                     onFocus={() => { setFocused(true); if (!open) onOpen(); }}
+                     onBlur={() => setFocused(false)}
                      // Escape typed IN the field is the field's on every screen: react-native-web's input stops its
-                     // keys at the field, so the wide panel's window-wide Escape (`SearchSheet`) never hears it
-                     onKeyPress={(e) => { if (e.nativeEvent.key === "Escape") onClose(); }}
+                     // keys at the field, so the wide panel's window-wide Escape (`SearchSheet`) never hears it.
+                     // Focused but closed (T69), Enter or ↓ opens it again: the keys a list box opens on
+                     onKeyPress={(e) => {
+                       const key = e.nativeEvent.key;
+                       if (open && key === "Escape") onClose();
+                       else if (!open && (key === "Enter" || key === "ArrowDown")) onOpen();
+                     }}
+                     // a wide screen's Enter keeps the focus in the field (a blur would drop it on the page body)
+                     blurOnSubmit={panel === null}
                      placeholder={placeholder}
                      placeholderTextColor={palette.faint}
                      accessibilityLabel={SEARCH_BAR.label}
