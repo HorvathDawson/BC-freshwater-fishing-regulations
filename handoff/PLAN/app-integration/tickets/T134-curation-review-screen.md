@@ -163,7 +163,7 @@ Checks: the nine T134 suites unfiltered via `scripts/heavy.sh` (`-m "slow or not
   partial "text and rules verified" mark is wanted.
 - (adversarial review) Clicking an answer button leaves the focus on it, so the next Enter re-clicks that button
   instead of recording the mark (Enter on a focused control is that control's). Keys-only use is unaffected.
-- The owner runs `python -m pipeline.regs.extraction.row_boxes` once (no credits) to put `row_boxes.json` beside
+- DONE 2026-10-23 (Claude ran it: `data/generated/regs/extraction/row_boxes.json`, 313 KB). Was: the owner runs `python -m pipeline.regs.extraction.row_boxes` once (no credits) to put `row_boxes.json` beside
   `synopsis_raw_data.json`; rerun after any re-extraction (the tool refuses a sidecar of another extraction).
 - T135 builds the risk-ordered queue on `tiers` (adds the ambiguous-cut / unresolved factors from `rule_diagnostic.jsonl`,
   which PLAN's P1 counts and these tiers cannot see from the entry alone).
