@@ -1,6 +1,6 @@
 # T151 — The water's Map view: the bold emphasis makes the regulations legend hard to follow
 
-Status: DONE — 167c3744 (map cue, tokens, labels, shots), 2e92a987 (state-handle pin, fixtures); adversarial review ce72e071 (mark labels in the loaded Archivo_400Regular face, pinned). Built with Q123's default (dim the others).
+Status: DONE — 410dbc63 (map cue, tokens, labels, shots), 08b842d0 (state-handle pin, fixtures); adversarial review 56c68c19 (mark labels in the loaded Archivo_400Regular face, pinned). Built with Q123's default (dim the others).
 
 Source: owner 2026-10-23: "the bold in the section map view is also weird and makes the reg legend hard to follow".
 
@@ -55,12 +55,12 @@ ring, the part at the same 2.4 px width, nothing dimmed), built as a temporary l
 committed). The open parts list: `T150-shots/after--*--map-parts.jpg`. `shots.mjs` re-takes them.
 
 ## Checks (T150 + T151, 2026-10-23)
-`REGS_STORE_REQUIRED=1 pnpm -C app check` via scripts/heavy.sh (on 2e92a987): every gate before `test` green (tickets,
+`REGS_STORE_REQUIRED=1 pnpm -C app check` via scripts/heavy.sh (on 08b842d0): every gate before `test` green (tickets,
 boundaries, platform, style, colours, spinner, fixture, gauge-policy, calendar, fish, answers, pack, deps, typecheck);
 vitest 8033 passed, 4 failed, 24 skipped — the 4 are exactly the known x4p_1010 failures from T100 (Shuswap's map page
 in its book links; being fixed on the main checkout): caveats.parity "130/130 states" and "1. x4p_1010", keep.parity
 "130/130 states", sheets.parity "x4p_1010". The first run also caught three things this change owed (fixed in
-2e92a987): the frozen regs VM fixtures still carried `header.action`, the state-handle pin lacked `part`, and the T40
+08b842d0): the frozen regs VM fixtures still carried `header.action`, the state-handle pin lacked `part`, and the T40
 text-scale snapshot (the name row at 2× on a phone is shorter without the 44 px slot).
 
 ## Ships with
@@ -99,4 +99,4 @@ right; one defect fixed.
 - Checks: `REGS_STORE_REQUIRED=1 pnpm -C app check` via scripts/heavy.sh (on the review change): every gate before `test`
   green (boundaries now clean again); vitest 8039 passed, 4 failed, 24 skipped — the same 4 known x4p_1010 failures from
   T100 (caveats.parity ×2, keep.parity, sheets.parity), nothing else.
-- Commit: ce72e071.
+- Commit: 56c68c19.

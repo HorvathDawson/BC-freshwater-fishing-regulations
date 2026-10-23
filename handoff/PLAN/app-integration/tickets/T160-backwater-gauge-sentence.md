@@ -1,13 +1,13 @@
 # T160 — Disclose a gauge's standing backwater (08HB074, Comox Lake) with its own Level sentence
 
-Status: DONE — cb55b47a. Rebuild: deliver (bundle → release) for the flag to ship; no atlas or reach run.
+Status: DONE — fd99643c. Rebuild: deliver (bundle → release) for the flag to ship; no atlas or reach run.
 
 Source: Q49 decided by Claude 2026-10-23 (owner's T78 rule: disclose tidal OR backwater influence where the record shows
 it). 08HB074's HYDAT record names a standing "variable backwater from Comox Lake"; the tidal sentence is the wrong one.
 Add a backwater row (checkable reason) and its own Level sentence; episodic ice/beaver/slide remarks stay unread.
 Ships: deliver + app words. Size: S.
 
-## As built (cb55b47a)
+## As built (fd99643c)
 - AUTHORED row, checkable: `data/curated/gauges/backwater.json` (config `curated.gauges.backwater`, AGENTS 36) — one
   station, 08HB074 Cruickshank River near the mouth: `from` "Comox Lake", `remark` = HYDAT's standing station remark
   verbatim ("STATION SUBJECT TO VARIABLE BACKWATER FROM COMOX LAKE, NECESSITATING EXTENSIVE ESTIMATED PERIODS", type 4,

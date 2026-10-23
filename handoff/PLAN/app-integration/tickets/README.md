@@ -139,7 +139,7 @@ use that as the sole source of future work."
 | T92 | gear omission check | DONE | de0581e1, b931f93d, 750ba2ad, 9c78ef20 | — |
 | T93 | gauge ↔ section relationship table (policy) | OPEN | — | all |
 | T94 | gauge promote: `--only`, demotion guard | DONE | 969ec8fe, 28f03711, 01bf3873, 6753fd6f | first real match+promote dry-run is the owner's |
-| T95 | salmon (DFO) regulations: the plan | OPEN | — | all (owner timing) |
+| T95 | salmon (DFO) regulations: the plan | DROPPED | — | plan exists (pipeline/regs/dfo_salmon/PLAN.md); work → T164 |
 | T96 | curation review phase 0: tool safe + the 5 gate-failing entries (ingest R3/prov broken) | DONE | 3e841e31, 3760fd5f, f0228e09, 15723b83 | — |
 | T97 | curation review phase 1 (marks that last) + umbrella | PARTIAL | 303f6d9d, 15c04705, 5717c9fb | phase 1 done; phases 2–5 → T133–T136 |
 | T98 | tidal water spec: Fraser below Mission (RULINGS C-2, K7/K8) | POSTPONED | — | all; spec ON HOLD |
@@ -194,19 +194,21 @@ use that as the sole source of future work."
 | T147 | "no public access" leads the regulations page | DONE | 01f76c76, e5903a77, 38e6628b, d5d032d8, 1e663952 | app |
 | T148 | sloughs/canals second sweep by FWA feature codes + inside line codes, calibrated on the owner's marks | DONE | 5b8066d7 | (data: handoff/PLAN/sloughs/v2); 2,424 candidates; 275 not-fishing waters drawn as lakes |
 | T149 | review page: slough complexes marked in bulk; intermittent-lake spot check | DONE | e5ba7972 | published v2; ★ owner marks |
-| T150 | drop the regs header's "Parts" button; the part list lives in the Map view | OPEN | — | after T147 |
-| T151 | water Map view: bold emphasis makes the regs legend hard to follow | OPEN | — | with T150 |
+| T150 | drop the regs header's "Parts" button; the part list lives in the Map view | DONE | c3eafff5, 56c68c19, 4f978f5f, 08b842d0, 410dbc63 | app |
+| T151 | water Map view: one line width, selected part by dimming; labels in the loaded face | DONE | c3eafff5, 56c68c19, 4f978f5f, 08b842d0, 410dbc63 | app |
 | T152 | sewage basins, tailing ponds, dumps (275) drawn as fishable lakes | OPEN | — | registry + reach + deliver; tiles window |
-| T153 | a river's rules stop at every unnamed lake polygon on its course (456 holes) | OPEN | — | ★ Q124; reach rerun |
-| T154 | a dams layer so "dammed widening = lake" is decided by data | OPEN | — | data fetch; T148 re-run |
+| T153 | a river's rules on unnamed lake polygons on its course (Q124 default, one flag) | DONE | 52462f99, 62e9cb7c | reach rerun: 569 polygons on 154 rivers, 284 rules gain, 0 lose |
+| T154 | a dams layer (BC WRIS, OGL-BC) matched to FWA; T148 R2 reads it | DONE | 23be8123, d8fab861, 216753d7 | fetch layer `dams`; evidence only (Q-T154a) |
 | T155 | Still Creek and Nelson Creek: book entries with no water (named ditch/canal lines) | OPEN | — | registry + reach + deliver |
-| T156 | test hygiene: update_hydat_script sandbox has no release; _plat.ts race between check-colours and check-boundaries | OPEN | — | tests only |
-| T157 | Conditions follow-ups from T143/T144: switcher "quiet" on a flow-only day, 2 unranked stations, map low-water caveat, handover drop | OPEN | — | app + feed |
-| T158 | dark no-access ice cyan vs depth contours (ΔE 4.7): contours vanish on a no-access lake | OPEN | — | app colours |
+| T156 | test hygiene: hydat sandbox stub release; temp gate fixtures outside the app tree | DONE | 9c6cbd46, 7714418a, 23cee506 | tests |
+| T157 | Conditions follow-ups: switcher states, no record to compare, ELF caveat on map, handover drawn | DONE | 9c6cbd46, 4b82d910, 7714418a, 2c845cf2 | app |
+| T158 | depth contours vs no-access fills: contours held off lake fills, deep navy | DONE | 9c6cbd46, 7714418a, 3d5f19de | app style |
 | T159 | gauge auto-promote checks every name the matcher accepted (Arrow Reservoir / Lower Arrow Lake) | OPEN | — | ★ owner runs promote |
-| T160 | disclose 08HB074's standing backwater (Comox Lake) with its own Level sentence | OPEN | — | deliver + app |
-| T161 | the pipeline ships each fish's leading origin; the app's mainRes only reads it | OPEN | — | deliver + app |
+| T160 | 08HB074's standing Comox Lake backwater gets its own Level sentence | DONE | 52462f99, fd99643c | deliver |
+| T161 | the pipeline ships each fish's leading origin (rows 33); mainRes only reads it | DONE | 23be8123, d0bc72fd, 3bf1e1e1, 3e89b917 | deliver + fixture re-cut (rows 33) |
 | T162 | salmon/steelhead run timing in the app: refresh + regenerate the data, ship a release file, a "Runs" colouring layer + sheet | OPEN | — | feature; size L |
+| T163 | McKinley Creek r1x: catch-and-release only downstream of McKinley Lake (catalogue extent) | OPEN | — | catalogue + reach rerun |
+| T164 | salmon (DFO): finish the dossier, place the 96+7 splits, review the extents, fetch + place current quotas | OPEN | — | umbrella over T95/T132; ★ owner confirms proposed splits |
 
 ## Order for open tickets
 
@@ -274,6 +276,11 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q140 | T147 | A tapped section outside no-access land on a part that runs through it: show the part's "Some of this part is inside …" banner? | no (the tapped section speaks) | owner |
 | Q142 | T100 | Draw real lake parts (added_lakes rings, as Kootenay) for Shuswap maps A/B/C etc.? (atlas rebuild) | not now; caveat line | owner |
 | Q144 | T162 | Run timing layer: default species (steelhead?), show passage reaches (dashed) as well as spawning, and its own map layer vs inside Conditions? | steelhead; both, passage dashed; its own layer | owner |
+| Q145 | T164 | Where the DFO salmon re-fetch runs and how often? | with the gauge feed cron, weekly, plus a notice when the page changes | owner |
+| Q146 | T150 | Opening the parts list shortens the map but does not re-centre it (the Fraser's long lower part gets cut off on a phone) — re-centre on open? | no (keeps the reader's pan) | owner |
+| Q147 | T153 | A pond a steelhead row now takes also gets the zone's lake wording of the steelhead rule (zp:steelhead r1b/r2b/r4b +68 polygons each, z5 r6b +44)? | accept | owner |
+| Q148 | T154 | Promote "dammed widening = lake" (R2 with the dams layer: 26 candidates → LAKE; catches Quinsam and South Nanaimo, not Bonaparte) into the slough candidates, or keep dams as evidence only? | evidence only | owner |
+| Q149 | T154 | Bonaparte (329055141) has no dam in the provincial data — mark it lake by hand on the slough page? | yours on the page | owner |
 
 ### Answered (recently, for the record)
 - Q1, Q3, Q46, Q48, Q49, Q50, Q51, Q52, Q54, Q56, Q57, Q58, Q61, Q64, Q65, Q66, Q67, Q68, Q70, Q71, Q72, Q73, Q74, Q75, Q76, Q77, Q78, Q80, Q81, Q83, Q85, Q86, Q89, Q92, Q93, Q94, Q96, Q97, Q98, Q101, Q102, Q104, Q105, Q106, Q108, Q109, Q110, Q111, Q115, Q116, Q117, Q118, Q120, Q121, Q122, Q127, Q128, Q129, Q131, Q133, Q135, Q136, Q141, Q143 — decided by Claude 2026-10-23 (owner-question triage, owner asked), decisions.md "CLAUDE 2026-10-23 — owner-question triage"; Q29, Q43, Q59, Q60, Q82, Q88, Q90, Q95, Q99, Q100, Q107, Q112 — already answered or obsolete (same record). The owner reads the record and can reverse any.

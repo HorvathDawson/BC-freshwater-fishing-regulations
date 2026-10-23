@@ -1,6 +1,6 @@
 # T153 — A river's rules stop at every unnamed lake polygon on its course
 
-Status: DONE — bf105bcb (built on Q124's stated default behind one flag; the owner's answer can flip it). Rebuild:
+Status: DONE — 62e9cb7c (built on Q124's stated default behind one flag; the owner's answer can flip it). Rebuild:
 reach rerun → binding diff → deliver (no atlas rebuild; POLICY_VERSION 27 invalidates the reach cache).
 
 Source: T148 census structural finding (handoff/PLAN/sloughs/v2/census.md, signals 6–7), 2026-10-23.
@@ -21,7 +21,7 @@ river (fold → stream item); this ticket is the rule for the ones that stay lak
 
 Rebuild: reach rerun + binding diff + deliver. Owner question Q124.
 
-## As built (bf105bcb)
+## As built (62e9cb7c)
 - ONE function: `pipeline/atlas/reach/extent.py::river_widenings`, behind ONE flag
   `UNNAMED_LAKES_ON_THE_RIVER_ARE_THE_RIVER = True`. Read only there (and in the cache pin); `resolve_extent._out` calls it
   for `whole`, the cuts (`upstream_of`/`downstream_of`/`between`) and a `within` that qualifies a named water (only the

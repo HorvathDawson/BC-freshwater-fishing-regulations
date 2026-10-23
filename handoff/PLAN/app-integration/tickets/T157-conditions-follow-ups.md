@@ -1,6 +1,6 @@
 # T157 — Conditions follow-ups from T143 and T144
 
-Status: DONE — 071a0952 (lane-T157); adversarial review a78dabfd
+Status: DONE — 2c845cf2 (lane-T157); adversarial review 4b82d910
 
 Source: T143 and T144 adversarial reviews, 2026-10-23.
 

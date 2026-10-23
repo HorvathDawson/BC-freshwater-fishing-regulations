@@ -1,6 +1,6 @@
 # T154 — A dams layer so "a widening behind a dam reads as a lake" can be decided by data
 
-Status: DONE, REVIEWED — 067d6a64 (fetch entry, dams.py, revise.py --dams) + review 35f8f974 (dams.py runs without
+Status: DONE, REVIEWED — 216753d7 (fetch entry, dams.py, revise.py --dams) + review d8fab861 (dams.py runs without
 the lost census scratch); result below for the owner. No app change, no committed candidates change. Rebuild: none (the merger fetches the layer: `python data/fetch_data.py --layers
 dams`).
 
@@ -104,7 +104,7 @@ Re-derived independently (the builder's scratch was gone), nothing written into 
 - Not re-run: `revise.py --dams` itself (needs the census + marks scratch); the simulation reads the same inputs it
   writes into candidates_v2, so moves are exact for R2 but rules after R2 are not re-evaluated (none can override an
   R2 LAKE — R2 returns).
-- **Fix (35f8f974):** `dams.py --polys` was required and pointed at the lost census scratch; omitted, it now reads the
+- **Fix (d8fab861):** `dams.py --polys` was required and pointed at the lost census scratch; omitted, it now reads the
   pieces from the gpkg by WATERBODY_KEY. Output byte-identical to the explicit-parquet run (`cmp` both files).
 - **Left for the owner / merger:** `revise.py` still hard-codes `t55v2/` + `t55marks/` scratch inputs — re-running it
   (Q-T154a yes) needs `census.py` (heavy) and the owner's marks re-exported from the T149 page first. Q-T154a/b stand.

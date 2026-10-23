@@ -1,6 +1,6 @@
 # T161 — The pipeline ships each fish's leading origin; the app's mainRes only reads it
 
-Status: DONE, REVIEWED — 51061734 (code + pins) + review bab63e16 (pins hardened), 1fa28a55 (the scan
+Status: DONE, REVIEWED — 3e89b917 (code + pins) + review 3bf1e1e1 (pins hardened), d0bc72fd (the scan
 leaves core: boundaries). Rebuild: deliver + fixture/golden
 re-cut (below).
 
@@ -95,7 +95,7 @@ r-8b761969206f 13,639,686; +23,624 B, gate 14,000,000).
 - **Mutations (each run, then restored):**
   - card.ts `lead: H ?? W` (ignore the stored lead) → card.test 2 and 4 fail. Holds.
   - `common.lead_name` hatchery-unless-absent → 3 pipeline tests fail; model validator disabled → 1 fails. Holds.
-  - **Passed (defects, fixed in bab63e16):** a `lead_name` that re-decides from its own keep test (same answers, no
+  - **Passed (defects, fixed in 3bf1e1e1):** a `lead_name` that re-decides from its own keep test (same answers, no
     `lead_origin` call) passed all 14 pipeline tests — the AST scan looked for a returned ANSWER, not a returned origin
     word; now flagged (+1 mutation pin). In the app, a property-path ternary (`f.H && f.H.status === "keep" ? f.H :
     f.W`), a `[f.H, f.W].find(<keep test>)` copy, and any copy under `apps/` passed `mainRes.test.ts` (verified by
@@ -110,7 +110,7 @@ r-8b761969206f 13,639,686; +23,624 B, gate 14,000,000).
   `pnpm -C app regs-fixture` → the UPDATE_REGS_FIXTURES harness → strict app check.
 - **Defect: the app check never got past its 2nd step.** `mainRes.test.ts` lived in `packages/core` and imported
   `node:fs` / `node:path`; `check-boundaries` refuses both (2 violations), so `pnpm check` stopped at `boundaries` and no
-  strict check could run. The builder ran vitest and tsc directly, never `check`. Fixed in 1fa28a55: the file moved
+  strict check could run. The builder ran vitest and tsc directly, never `check`. Fixed in d0bc72fd: the file moved
   whole to `app/tools/lead-origin.test.ts` (tools may read files; root adjusted), references in card.ts and the pipeline
   pin follow; still 3/3, still fails on a copy written into packages/ui.
 - **Checks (review):** `REGS_STORE_REQUIRED=1 pnpm -C app check` via `scripts/heavy.sh` — every gate through typecheck

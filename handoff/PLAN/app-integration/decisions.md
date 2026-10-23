@@ -1102,3 +1102,9 @@ Answered / obsolete (removed from the table):
 - **Q100** (T111) — Obsolete. Built as T141 (DONE 8c05e725, d5899459, its source cites 'owner Q100, 2026-10-23: yes, as T141'). Measured: no binding moved.
 - **Q107** (T135) — PLAN §3 'Order: one queue across all regions, worked tier by tier' with S0 first. The owner approved it with every §6 default on 2026-10-23 (decisions.md 'curation review plan approved').
 - **Q112** (T121) — Obsolete since T105, where section_gauge stopped being a reading source. Checked in the live bundle.sqlite: the Vedder Canal polygon (sid 1957095, shape 1) speaks through panel 3577, led by the Vedder's own 08MH047 and then 08MH001 (OWNER 2026-10-22 'a water's own gauge comes first'). 08MH024 is not a member, so it is neither read nor traced.
+
+## CLAUDE 2026-10-23 — batch 7 small calls (owner reads; reverse any)
+- T150 leftover: the old Parts sheet stays reachable only by the web start link (`sheet=parts`) as a test aid until T61's
+  cleanup removes it with its golden comparisons; undo: delete it now.
+- T153: the tributary walk still never takes ponds (p.80: tributaries are streams) — kept; undo: let `expand` collect
+  unnamed ponds above the reach.

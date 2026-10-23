@@ -1,6 +1,6 @@
 # T150 — Drop the regulations header's "Parts" button; the part list lives in the Map view
 
-Status: DONE — 167c3744 (with T151: header, Map view list, golden exclusion, decisions, shots), 2e92a987 (fixtures, text-scale snapshot); adversarial review ce72e071 (focus after a pick, back pinned, one copy of the words, source pins out of core).
+Status: DONE — 410dbc63 (with T151: header, Map view list, golden exclusion, decisions, shots), 08b842d0 (fixtures, text-scale snapshot); adversarial review 56c68c19 (focus after a pick, back pinned, one copy of the words, source pins out of core).
 
 Source: owner 2026-10-23: "dont we want to remove 'parts' from reg page since map is now at the top tabs?" Follows owner
 call 3 (decisions.md 2026-10-22, T71: the view strip is the one Map entry; the header lost its Map button but kept
@@ -108,4 +108,4 @@ pin replaced.
 - Checks: `REGS_STORE_REQUIRED=1 pnpm -C app check` via scripts/heavy.sh (on the review change): every gate before `test`
   green (boundaries now clean again); vitest 8039 passed, 4 failed, 24 skipped — the same 4 known x4p_1010 failures from
   T100 (caveats.parity ×2, keep.parity, sheets.parity), nothing else.
-- Commit: ce72e071.
+- Commit: 56c68c19.

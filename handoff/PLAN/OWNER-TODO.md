@@ -35,6 +35,10 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   Q91 "no gauge close enough" wording · Q69 spot pin colour · Q123 how the Map view marks the selected part (built: dim the others; thin halo in
   `app-integration/T151-shots/alt-halo--*`) ·
   Q2 / Q139 / Q47 no-access and tidal notes on Conditions.
+- **Salmon (T164, new):** confirm the proposed DFO cut points in the review tool when they land in S0 (96 bridges/signs/dams);
+  Q145 where and how often the DFO re-fetch runs.
+- **Batch 7:** Q146 re-centre the map when the parts list opens · Q147 steelhead lake wording on newly taken ponds ·
+  Q148 dams → "lake" for the slough candidates · Q149 Bonaparte by hand.
 - **Run timing (T162, new):** Q144 default species, passage reaches shown dashed, its own map layer.
 - **Scope and big rebuilds:** Q6 braids · Q10 imagery corridor · Q32 salmon plan · Q125 sewage/tailings/dumps drawn
   as lakes · Q142 Shuswap lake rings · Q7 which old releases to delete.
