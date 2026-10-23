@@ -1,6 +1,11 @@
 # T149 — Review page: mark slough complexes in bulk; spot-check the intermittent lakes
 
-Status: OPEN — after T148.
+Status: DONE — e5ba7972 (page sources + marks backup); published as version 2 of
+https://claude.ai/artifact/Es3Mokt7Fs2yNvm7JgQua8 (2026-10-23). The owner's 98 marks read identical before and after the
+publish; marked records always show whatever the class filter. 144 complexes (359 pieces; only stream-ish classes
+group: touch, or ≤ 150 m with the river's own line near the gap); Endako's complex flags its 199 ha marsh hub.
+Intermittent: (a) on a course 10,676 · (b) isolated 21,939 · (c) named 102; 40 (a) + 10 (b) samples in collection
+"spotcheck". Next: the owner marks; a fold of group (a) only after a dry run the owner approves.
 
 Source: owner 2026-10-23: "likely stream ones that are all in a region on the same river often are part of the same
 wetland like slough areas. we could use this to label items in bulk" and "the intermittent polygons maybe I could do a

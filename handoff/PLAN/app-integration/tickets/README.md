@@ -193,7 +193,7 @@ use that as the sole source of future work."
 | T146 | no-access colour apart from base (light spruce, dark ice cyan) | DONE | 01f76c76, 41ace93b, 38e6628b, df1c8bf1 | app |
 | T147 | "no public access" leads the regulations page | DONE | 01f76c76, e5903a77, 38e6628b, d5d032d8, 1e663952 | app |
 | T148 | sloughs/canals second sweep by FWA feature codes + inside line codes, calibrated on the owner's marks | DONE | 5b8066d7 | (data: handoff/PLAN/sloughs/v2); 2,424 candidates; 275 not-fishing waters drawn as lakes |
-| T149 | review page: slough complexes marked in bulk; intermittent-lake spot check | OPEN | — | after T148; ★ owner marks |
+| T149 | review page: slough complexes marked in bulk; intermittent-lake spot check | DONE | e5ba7972 | published v2; ★ owner marks |
 | T150 | drop the regs header's "Parts" button; the part list lives in the Map view | OPEN | — | after T147 |
 | T151 | water Map view: bold emphasis makes the regs legend hard to follow | OPEN | — | with T150 |
 | T152 | sewage basins, tailing ponds, dumps (275) drawn as fishable lakes | OPEN | — | registry + reach + deliver; tiles window |

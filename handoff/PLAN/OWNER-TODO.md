@@ -12,9 +12,11 @@ with the default Claude uses until you answer). Newest first inside each section
 ## Reviews
 - **Q114 / T136 — the 30-entry curation pilot** (about an hour): `handoff/PLAN/curation-review/PILOT.md`, then
   `python -m pipeline.regs.review.gate pilot-report --pilot handoff/PLAN/curation-review/pilot.json`.
-- **Q4 / T55 — slough and canal candidates.** Mark them on https://claude.ai/artifact/Es3Mokt7Fs2yNvm7JgQua8
-  (stream by the book / not a stream / unsure). Start with the 65 "stream by book" and 236 "likely". Includes the 40
-  Okanagan River oxbows (p.70 says isolated oxbows are exempt from the spring closure).
+- **Q4 / T55 + T149 — slough and canal candidates (page v2).** https://claude.ai/artifact/Es3Mokt7Fs2yNvm7JgQua8 — your 98
+  marks are kept. New: revised classes with feature-code evidence (2,424 candidates), a **Complexes** view (one mark sets
+  every unmarked piece of a slough area on one river; your own marks are never overwritten), and a **Spot check** tab
+  (40 intermittent "lakes" on a stream's course + 10 isolated ones). If the spot check says the on-course ones are not
+  lakes, say so and Claude runs a dry run of folding them (10,676) before anything changes.
 
 Answered 2026-10-23: Q5 + Q34–Q41 (curation plan approved, defaults; splits mid-review must work; salmon pass later = T132), Q13 (Claude runs the reader gate), Q44 (no Level from a side channel; Flow only if it carries a large share), Q53 (as built), Q45 (leave unbound).
 
