@@ -1811,6 +1811,15 @@ def stamp_waived_here(db, section: int, on) -> list[str]:
                                                  if k != "entry_id"}).waives_every_stamp)
 
 
+def steelhead_stamp_period(desig, on) -> bool:
+    """IS IT THE CLASSIFIED-WATER STEELHEAD STAMP'S PERIOD here on `on`: a designation in force (`desig`,
+    `designations_in_force`) carries a `steelhead_stamp_during` whose `when` is not out of force that day. ONE answer
+    (T125 item 8, answers 10): the requirement reader's `steelhead_period` and the licence answer's `stamp_period`
+    each wrote it."""
+    return any(d.get("steelhead_stamp_during") is not None
+               and in_force(d["steelhead_stamp_during"].get("when"), on) != "no" for d in desig)
+
+
 def requirements_in_force(db, section: int, on) -> dict:
     """Every requirement in force on `section` on the day, `{entry_id#req_id: why}` under
     `"holds"`, and the ones an outright stamp waiver lifts there, under `"waived"`:
@@ -1845,10 +1854,7 @@ def requirements_in_force(db, section: int, on) -> dict:
     keeps the province-placed records out of national parks; this reaches the sections- and
     designation-placed ones.)"""
     desig = designations_in_force(db, section, on)
-    have = {"classified_period": bool(desig),
-            "steelhead_period": any(
-                d.get("steelhead_stamp_during") is not None
-                and in_force(d["steelhead_stamp_during"].get("when"), on) != "no" for d in desig)}
+    have = {"classified_period": bool(desig), "steelhead_period": steelhead_stamp_period(desig, on)}
     # A ZONE TABLE'S RESTATEMENT HOLDS ON ITS OWN REGION'S DESIGNATIONS ONLY (RU-12, 2026-10-04):
     # Region 4's "Classified Waters Licence … many East Kootenay rivers (map p.33)" is Region 4's
     # wording and held on the Dean (Region 5) and the Seymour (Region 1) beside the province's.

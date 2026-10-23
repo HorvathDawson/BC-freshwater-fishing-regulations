@@ -320,9 +320,7 @@ def holds(db, C: Corpus, sid: int, md) -> dict:
             "designations": sorted(f"{d['entry_id']}#{d['id']}" for d in desig),
             "rows": rows,
             "_desig": desig,
-            "stamp_period": any(d.get("steelhead_stamp_during") is not None and
-                                read.in_force(d["steelhead_stamp_during"].get("when"), md) != "no"
-                                for d in desig)}
+            "stamp_period": read.steelhead_stamp_period(desig, md)}
 
 
 def _alternatives_here(db, C: Corpus, sid: int) -> List[Tuple[str, dict]]:

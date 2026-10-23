@@ -194,3 +194,20 @@ def test_key_years_are_deterministic(live):
     b = [L.key_year(db, C, k, K[k][0], days, P_, contested, C.index.__getitem__, {}) for k in keys]
     assert a == b and len(P_) == 60
     assert all(len(v["profiles"]) == 60 for y in a for v in y.values())
+
+
+
+def test_the_stamp_period_is_one_answer():
+    """T125 item 8 (answers 10): the classified-water steelhead stamp's period is `read.steelhead_stamp_period`; the
+    requirement reader (`steelhead_period`) and the licence answer (`stamp_period`) both ask it, neither writes it.
+    MUTATION: re-inline the `any(... steelhead_stamp_during ...)` in either and the source pin fails."""
+    import inspect
+    from pipeline.deliver.bundle import read as R
+    spring = {"steelhead_stamp_during": {"when": {"dates": [{"from_month": 1, "from_day": 1, "to_month": 4,
+                                                              "to_day": 30}]}}}
+    assert [R.steelhead_stamp_period([spring], on) for on in ((3, 1), (7, 1))] == [True, False]
+    assert R.steelhead_stamp_period([{"steelhead_stamp_during": {}}], (7, 1)) is True     # no `when`: all year
+    assert R.steelhead_stamp_period([{}], (3, 1)) is False and R.steelhead_stamp_period([], (3, 1)) is False
+    for fn in (R.requirements_in_force, L.holds):
+        src = inspect.getsource(fn)
+        assert "steelhead_stamp_period(" in src and "steelhead_stamp_during" not in src.split('"""')[-1], fn.__name__
