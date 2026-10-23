@@ -6,7 +6,8 @@
  * and fit back. The shares are `donorShare` — the panel's own words for the same number —
  * so the map and the rows under it cannot disagree about what a gauge contributed.
  */
-import { CONDITIONS_WORDS, donorShare, donorUnranked, type DonorFacts, type Horizon } from "./conditions";
+import { CONDITIONS_WORDS, donorShare, donorState, type DonorAsk, type DonorFacts, type DonorReading }
+  from "./conditions";
 
 export const ROUTE_MAP_WORDS = {
   /** The key's two line samples. Role is where the GAUGE sits (`PanelRoute.role`). */
@@ -18,25 +19,38 @@ export const ROUTE_MAP_WORDS = {
   unranked: "reporting, not ranked",
   /** Beside a gauge ECCC does not list as real-time (the feed index's `listed`) — it never reports live. */
   notRealtime: "not a real-time gauge",
+  /**
+   * Beside a gauge no forecast reaches at the horizon asked about — the row says the same ("No forecast …", T123).
+   * It said "not reporting" here, which the row contradicted.
+   */
+  noForecast: "no forecast",
   fit: "Fit",
   fitLabel: "Fit the map to you and the gauges",
   larger: "Larger map",
   smaller: "Smaller map",
 } as const;
 
-/** What a gauge's dot says on the map: its share of the estimate, or that it is quiet. */
-type MapFacts = Pick<DonorFacts, "weight" | "percentile" | "realtime" | "observedAt">;
+/** What a gauge's dot says on the map: its share of the estimate, or its state. */
+type MapFacts = Pick<DonorFacts, "weight"> & DonorReading;
 
-/** `o`: the instant and horizon the answer is for, so a gauge that reports but cannot be ranked is said as that. */
-export function donorMapLabel(r: MapFacts, o: { ref?: number; horizon?: Horizon } = {}): string {
-  if (r.percentile !== null) return donorShare(r);
-  if (r.realtime === false) return ROUTE_MAP_WORDS.notRealtime;
-  return donorUnranked(r, o) ? ROUTE_MAP_WORDS.unranked : ROUTE_MAP_WORDS.quiet;
+/**
+ * `o`: the instant and horizon the answer is for. A `switch` over `donorState` — the state the row's own reading line
+ * (`donorReads`) says — so the dot and the row cannot read one gauge two ways (T123).
+ */
+export function donorMapLabel(r: MapFacts, o: DonorAsk = {}): string {
+  const s = donorState(r, o);
+  switch (s.kind) {
+    case "reads": return donorShare(r);
+    case "not-realtime": return ROUTE_MAP_WORDS.notRealtime;
+    case "no-forecast": return ROUTE_MAP_WORDS.noForecast;
+    case "unranked": return ROUTE_MAP_WORDS.unranked;
+    case "quiet": return ROUTE_MAP_WORDS.quiet;
+    default: { const never: never = s; return never; }
+  }
 }
 
 /** A gauge's entry in the map's key: its station and the same words its dot carries. */
-export function donorMapKey(r: MapFacts & Pick<DonorFacts, "station">,
-                            o: { ref?: number; horizon?: Horizon } = {}): string {
+export function donorMapKey(r: MapFacts & Pick<DonorFacts, "station">, o: DonorAsk = {}): string {
   return `${r.station} · ${donorMapLabel(r, o)}`;
 }
 

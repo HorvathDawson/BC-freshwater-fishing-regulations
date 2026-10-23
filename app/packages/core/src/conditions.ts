@@ -208,71 +208,115 @@ export function sizeApart(ratio: number): string {
   return `${ratio < 10 ? ratio.toFixed(1) : Math.round(ratio)}× apart`;
 }
 
+/* ------------------------------------------------------------ a donor's state ---- */
+
+/** What a donor row must carry for its state to be known. `DonorFacts` (and `DonorRow`) satisfy it. */
+export type DonorReading = Pick<DonorFacts, "percentile" | "realtime" | "observedAt">;
+
+/** The instant (`ref`) and horizon the answer is for. */
+export interface DonorAsk { ref?: number; horizon?: Horizon }
+
+/**
+ * WHAT STATE A DONOR IS IN, at the horizon asked about (T123). The one place a donor's reading fields
+ * (`percentile`, `realtime`, `observedAt`) are tested; every word about a donor — its row's reading, its weight line,
+ * its screen-reader label, its pin, its map key, the silent line — is a `switch` over this, so the Conditions lines
+ * and the map cannot read one gauge two ways (`tools/one-donor-state.test.ts`).
+ *
+ *   reads         it has a percentile at this horizon (a reading today, a forecast ahead): it counts.
+ *   not-realtime  ECCC does not list it as real-time: it never speaks live, on any day asked about.
+ *   no-forecast   a day ahead (or Change) and no forecast run reaches it — a missing FORECAST, not a quiet gauge.
+ *   unranked      today, a report within a day of `ref` that cannot be ranked against its record: it speaks.
+ *   quiet         today, and nothing within a day: not reporting.
+ *
+ * The order is the ruling: a reading wins; "not real-time" is true at every horizon; a horizon's missing forecast
+ * comes before anything about today's reports.
+ */
+export type DonorState =
+  | { kind: "reads"; percentile: number }
+  | { kind: "not-realtime" }
+  | { kind: "no-forecast" }
+  | { kind: "unranked" }
+  | { kind: "quiet" };
+
+const DAY = 86_400_000;
+
+export function donorState(r: DonorReading, o: DonorAsk = {}): DonorState {
+  if (r.percentile !== null) return { kind: "reads", percentile: r.percentile };
+  if (r.realtime === false) return { kind: "not-realtime" };
+  if (o.horizon) return { kind: "no-forecast" };
+  const t = r.observedAt ? Date.parse(r.observedAt) : NaN;
+  if (o.ref !== undefined && Number.isFinite(t) && Math.abs(o.ref - t) < DAY) return { kind: "unranked" };
+  return { kind: "quiet" };
+}
+
+/** Does this donor count in the estimate — a reading at the horizon (`donorState`'s `reads`)? */
+export const donorCounted = (r: DonorReading): boolean => donorState(r).kind === "reads";
+
+/** A `switch` that forgot a state does not compile. */
+function unreachable(s: never): never {
+  throw new Error(`unknown donor state ${JSON.stringify(s)}`);
+}
+
 /**
  * What a donor contributed, in words.
  *
  * A station that is not reporting says so rather than showing 0%: it IS in the panel, and
  * "0%" reads as "not in the panel". A real but tiny share reads "<1%" for the same reason.
  */
-export function donorShare(r: Pick<DonorFacts, "weight" | "percentile">): string {
-  if (r.percentile === null) return "quiet";
+export function donorShare(r: Pick<DonorFacts, "weight"> & DonorReading): string {
+  if (!donorCounted(r)) return "quiet";
   const pc = r.weight * 100;
   return pc > 0 && pc < 1 ? "<1%" : `${Math.round(pc)}%`;
 }
 
 /** The labelled line beside the weight bar. */
 export function donorWeightLine(r: DonorFacts): string {
-  return r.percentile === null ? "not counted today" : `${donorShare(r)} of this estimate`;
+  return donorCounted(r) ? `${donorShare(r)} of this estimate` : "not counted today";
 }
 
-const DAY = 86_400_000;
-
 /**
- * What the gauge itself reads, in the headline's words.
+ * What the gauge itself reads, in the headline's words — `donorState`, said.
  *
  * A gauge with no percentile is not always silent: the feed may hold a reading from today that cannot be ranked (no
  * record in the quantity asked for). Calling that "not reporting" beside "last reported this evening" contradicts
  * itself, so with `ref` (the day the answer is for) a report within a day of it is said as what it is. A day ahead
  * with no forecast is a missing FORECAST, not a quiet gauge.
  */
-export function donorReads(r: Pick<DonorFacts, "percentile" | "realtime" | "observedAt">,
-                           o: { ref?: number; horizon?: Horizon } = {}): string {
-  if (r.percentile !== null)
-    return o.horizon === "change" ? changeReads(changeRatio(r.percentile)) : `Reads ${inTen(r.percentile)}.`;
-  // Not on ECCC's real-time list at all: it is not silent today, it never speaks live — on any day asked about.
-  if (r.realtime === false) return "Not a real-time gauge.";
-  if (o.horizon === "change") return "No forecast running for this gauge now.";
-  if (o.horizon) return "No forecast for this gauge that far ahead.";
-  if (reportingUnranked(r, o.ref)) return "Reporting, but its reading cannot be ranked today.";
-  return "Not reporting today.";
+export function donorReads(r: DonorReading, o: DonorAsk = {}): string {
+  const s = donorState(r, o);
+  switch (s.kind) {
+    case "reads":
+      return o.horizon === "change" ? changeReads(changeRatio(s.percentile)) : `Reads ${inTen(s.percentile)}.`;
+    case "not-realtime": return "Not a real-time gauge.";
+    case "no-forecast":
+      return o.horizon === "change" ? "No forecast running for this gauge now."
+        : "No forecast for this gauge that far ahead.";
+    case "unranked": return "Reporting, but its reading cannot be ranked today.";
+    case "quiet": return "Not reporting today.";
+    default: return unreachable(s);
+  }
 }
 
 /**
- * A MEMBER THAT REPORTS BUT CANNOT BE RANKED at this horizon — `donorReads`' "Reporting, but …" branch, and the one
- * percentile-less member that stays a row. Every word about a member (its row label, its pin, its key) asks this, so
- * the map never says "not reporting" beside a row that says it reports (review 2026-10-22).
+ * A MEMBER THAT REPORTS BUT CANNOT BE RANKED at this horizon — `donorState`'s `unranked`, the one percentile-less
+ * member that stays a row.
  */
-export function donorUnranked(r: Pick<DonorFacts, "percentile" | "realtime" | "observedAt">,
-                              o: { ref?: number; horizon?: Horizon } = {}): boolean {
-  return r.percentile === null && r.realtime !== false && !o.horizon && reportingUnranked(r, o.ref);
-}
-
-/** No percentile, but a report within a day of `ref`: it speaks, its reading just cannot be ranked. */
-function reportingUnranked(r: Pick<DonorFacts, "observedAt">, ref: number | undefined): boolean {
-  const t = r.observedAt ? Date.parse(r.observedAt) : NaN;
-  return ref !== undefined && Number.isFinite(t) && Math.abs(ref - t) < DAY;
+export function donorUnranked(r: DonorReading, o: DonorAsk = {}): boolean {
+  return donorState(r, o).kind === "unranked";
 }
 
 /**
  * A SILENT MEMBER: no reading at the horizon asked about (owner 2026-10-22). Not on the real-time list, no forecast
- * that far ahead, or not reporting — every `donorReads` branch but a reading and "Reporting, but … cannot be ranked",
- * which is a gauge that speaks today and stays a row. A silent member is not drawn as a row or a pin; `silentLine`
- * names it instead.
+ * that far ahead, or not reporting — every state but `reads` and `unranked`, which is a gauge that speaks today and
+ * stays a row. A silent member is not drawn as a row or a pin; `silentLine` names it instead.
  */
-export function donorSilent(r: DonorFacts, o: { ref?: number; horizon?: Horizon } = {}): boolean {
-  if (r.percentile !== null) return false;
-  if (r.realtime === false || o.horizon) return true;
-  return !reportingUnranked(r, o.ref);
+export function donorSilent(r: DonorReading, o: DonorAsk = {}): boolean {
+  const s = donorState(r, o);
+  switch (s.kind) {
+    case "reads": case "unranked": return false;
+    case "not-realtime": case "no-forecast": case "quiet": return true;
+    default: return unreachable(s);
+  }
 }
 
 const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
@@ -287,12 +331,12 @@ export function lastDataStamp(observedAt: string | null | undefined, ref: number
 }
 
 /** One silent member, as the line says it: its name (its station id when the name is not in yet) and when. */
-function silentMember(r: DonorFacts, ref: number, zone?: string): string {
+function silentMember(r: DonorFacts, o: DonorAsk & { ref: number; zone?: string }): string {
   const name = r.route?.name || r.station;
-  const at = lastDataStamp(r.observedAt, ref, zone);
+  const at = lastDataStamp(r.observedAt, o.ref, o.zone);
   const last = at ? `last ${at}` : r.noData ? "has never reported" : "last report not known";
-  if (r.realtime === false) return `${name} (not a real-time gauge${at ? `; ${last}` : ""})`;
-  return `${name} (${last})`;
+  return donorState(r, o).kind === "not-realtime" ? `${name} (not a real-time gauge${at ? `; ${last}` : ""})`
+    : `${name} (${last})`;
 }
 
 /**
@@ -307,7 +351,7 @@ export function silentLine(rows: readonly DonorFacts[],
   if (!silent.length) return null;
   const kicker = o.horizon === "change" ? "No forecast running"
     : o.horizon ? "No forecast this far ahead" : "Not reporting";
-  return `${kicker}: ${silent.map((r) => silentMember(r, o.ref, o.zone)).join(" · ")}`;
+  return `${kicker}: ${silent.map((r) => silentMember(r, o)).join(" · ")}`;
 }
 
 /**
@@ -356,10 +400,18 @@ export function donorBecause(r: DonorFacts): string {
 /** The row's screen-reader name; the weight is drawn as a bar, invisible to a reader. */
 export function donorRowLabel(r: DonorFacts, pickable: boolean, on: boolean,
                               o: { ref?: number; horizon?: Horizon } = {}): string {
-  const said = r.percentile === null
-    ? `${r.realtime === false ? "not a real-time gauge"
-        : donorUnranked(r, o) ? "reporting but not ranked today" : "not reporting today"}, so it counts for nothing`
-    : `${Math.round(r.weight * 100)} per cent of the answer`;
+  const s = donorState(r, o);
+  const nothing = (why: string) => `${why}, so it counts for nothing`;
+  const said = ((): string => {
+    switch (s.kind) {
+      case "reads": return `${Math.round(r.weight * 100)} per cent of the answer`;
+      case "not-realtime": return nothing("not a real-time gauge");
+      case "no-forecast": return nothing("no forecast for this gauge");
+      case "unranked": return nothing("reporting but not ranked today");
+      case "quiet": return nothing("not reporting today");
+      default: return unreachable(s);
+    }
+  })();
   const base = `${r.station}, ${ROLE[r.role]}, ${sizeApart(r.areaRatio)}, ${said}`;
   return pickable ? `${base}. ${on ? "Showing" : "Show"} this gauge's chart` : base;
 }
@@ -370,8 +422,7 @@ export function donorRowLabel(r: DonorFacts, pickable: boolean, on: boolean,
  */
 export function gaugeChoiceLabel(r: DonorFacts, on: boolean): string {
   const name = r.route?.name ? `, ${r.route.name}` : "";
-  const said = r.percentile === null ? "not counted today" : `${donorShare(r)} of this estimate`;
-  return `${on ? "Showing" : "Chart"} ${r.station}${name}, ${said}`;
+  return `${on ? "Showing" : "Chart"} ${r.station}${name}, ${donorWeightLine(r)}`;
 }
 
 const hereName = (r: DonorFacts, atSpot: boolean) =>
@@ -434,7 +485,7 @@ export function unplacedNote(missing: number): string | null {
 
 /** A short record, said once, when the answer actually leans on one. */
 export function shortRecordNote(rows: readonly DonorFacts[]): string | null {
-  const voting = rows.filter((r) => r.percentile !== null && r.weight > 0);
+  const voting = rows.filter((r) => donorCounted(r) && r.weight > 0);
   const lean = voting.reduce((a, r) => a + (r.years < 10 ? r.weight : 0), 0);
   if (!voting.length || lean < 0.5) return null;
   const fewest = Math.min(...voting.filter((r) => r.years < 10).map((r) => r.years));
@@ -445,7 +496,7 @@ export function shortRecordNote(rows: readonly DonorFacts[]): string | null {
 
 /** A dam, said once — only about a number being shown, so only for a reporting gauge. */
 export function regulatedNote(rows: readonly DonorFacts[]): string | null {
-  return rows.some((r) => r.regulated && r.percentile !== null)
+  return rows.some((r) => r.regulated && donorCounted(r))
     ? "This water is controlled by a dam. The reading is real, but it follows a release "
       + "schedule as much as the weather — a low river here can mean the gate is shut "
       + "rather than that the country is dry."
@@ -463,7 +514,7 @@ export const TIDAL_NOTE = "One of these gauges is tidal: its level rises and fal
  * + data/curated/gauges/tidal.json). The flag rides on the member's route, so the line appears once routes are in.
  */
 export function tidalNote(rows: readonly DonorFacts[], quantity: "discharge" | "level"): string | null {
-  return quantity === "level" && rows.some((r) => r.route?.tidal === true && r.percentile !== null)
+  return quantity === "level" && rows.some((r) => r.route?.tidal === true && donorCounted(r))
     ? TIDAL_NOTE : null;
 }
 

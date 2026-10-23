@@ -26,7 +26,7 @@
  * @app/ui) all ask it. `section_gauge` (`gaugeForSection`) is NOT a speaker: it stays the reach-to-station match record
  * (the trace), and the sheet once quoted its station for 54,386 sections the map left uncoloured.
  */
-import { basinStanding, recordYears, type BasinVote, type Horizon } from "@app/core";
+import { basinStanding, donorCounted, recordYears, type BasinVote, type Horizon } from "@app/core";
 import { answerFrom, panelStanding, reading, type Quantity } from "./panel";
 import type { BasinMember, Panel, PanelMember, SectionId, StationId } from "./index";
 
@@ -77,7 +77,7 @@ export function sheetLead(speaker: Speaker | null,
   if (!speaker) return null;
   if (speaks(speaker, picked)) return picked;
   if (speaker.kind === "lake") return speaker.station;
-  return rows.find((r) => r.percentile !== null)?.station ?? rows[0]?.station
+  return rows.find((r) => donorCounted(r))?.station ?? rows[0]?.station
     ?? speaker.panel.members[0]?.station ?? null;
 }
 

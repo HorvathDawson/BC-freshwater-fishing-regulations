@@ -10,7 +10,7 @@ import { answerFrom, basinStandings, sectionStanding, sheetLead, speakerFor, spe
          type Horizon, type Panel, type PanelAnswer, type Parameter, type Quantity, type RegsSource, type SectionId,
          type Speaker, type StationId } from "@app/data";
 import { CHANGE_NEEDS_FLOW, CHANGE_POLICY, changeDay, changeLine, changeSparkWords, CONDITIONS_WORDS, disagreeNote, donorBecause, isAhead, type RunChange, donorFacts, donorKeyLabel, donorLastReport,
-         donorSilent, gaugeChoiceLabel, donorShare, silentLine,
+         donorCounted, donorSilent, gaugeChoiceLabel, donorShare, silentLine,
          donorPinTitle, donorReads, donorReason, donorRowLabel, donorWeightLine,
          estimateHeadline, estimateRange, estimateSentence, freshness, HORIZON_LABELS,
          HORIZONS, horizonChipLabel, metresApart, noGaugeSentence, panelCamera,
@@ -44,7 +44,7 @@ export type PanelFeed = {
  * reported"; a file that could not be read (undefined: a 404, offline) leaves the row as it was — not known.
  */
 export function lastReportWanted(rows: readonly DonorRow[]): string[] {
-  return rows.filter((r) => r.percentile === null && !r.observedAt).map((r) => r.station);
+  return rows.filter((r) => !donorCounted(r) && !r.observedAt).map((r) => r.station);
 }
 
 /**
@@ -633,13 +633,13 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
     rows: shown.map((r: DonorRow): DonorRowVM => {
       const on = o.selected != null && r.station === o.selected;
       return {
-        station: r.station, row: toneOf(r), name: r.route?.name ?? null, quiet: r.percentile === null, on,
+        station: r.station, row: toneOf(r), name: r.route?.name ?? null, quiet: !donorCounted(r), on,
         bar: `${Math.max(1, Math.round(r.weight * 100))}%`,
         weightLine: donorWeightLine(r),
         reads: donorReads(r, { ref: o.day.getTime(), horizon: o.horizon }),
-        lastReport: r.percentile === null ? donorLastReport(r.observedAt, o.zone) : null,
+        lastReport: !donorCounted(r) ? donorLastReport(r.observedAt, o.zone) : null,
         facts: donorFacts(r),
-        because: r.percentile === null ? null : donorBecause(r),
+        because: donorCounted(r) ? donorBecause(r) : null,
         label: donorRowLabel(r, o.pickable, on, { ref, horizon: o.horizon }),
       };
     }),
@@ -675,7 +675,7 @@ export function gaugeChoices(rows: readonly DonorRow[], lead: StationId | null):
   return rows.map((r, i) => {
     const on = r.station === lead;
     return { station: r.station, name: r.route?.name ?? null, share: donorShare(r),
-             quiet: r.percentile === null, on, row: i, label: gaugeChoiceLabel(r, on) };
+             quiet: !donorCounted(r), on, row: i, label: gaugeChoiceLabel(r, on) };
   });
 }
 

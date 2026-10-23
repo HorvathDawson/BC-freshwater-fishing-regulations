@@ -29,6 +29,13 @@ describe("the route map's words", () => {
     expect(donorMapLabel(r, { ref: ref + 2 * 86_400_000 })).toBe("not reporting");
   });
 
+  it("a day ahead with no forecast says no forecast — not 'not reporting' (T123)", () => {
+    const r = { station: "08MH024", weight: 0, percentile: null };
+    expect([donorMapLabel(r, { horizon: 3 }), donorMapLabel(r, { horizon: "change" }), donorMapKey(r, { horizon: 3 }),
+            donorMapLabel({ ...r, realtime: false }, { horizon: 3 }), donorMapLabel({ ...r, percentile: 0.4 }, { horizon: 3 })])
+      .toEqual(["no forecast", "no forecast", "08MH024 · no forecast", "not a real-time gauge", "0%"]);
+  });
+
   it("names the spot as its key does", () => {
     expect(hereMapLabel()).toBe("you are here");
   });
@@ -50,6 +57,7 @@ describe("the route map's words", () => {
       quiet: "not reporting",
       unranked: "reporting, not ranked",
       notRealtime: "not a real-time gauge",
+      noForecast: "no forecast",
       fit: "Fit",
       fitLabel: "Fit the map to you and the gauges",
       larger: "Larger map",
