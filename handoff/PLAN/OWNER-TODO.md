@@ -29,9 +29,9 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Questions answered with a default (change any you disagree with)
 
-New: Q59–Q61 (Expected change: model order, COFFEE in the day chips, colour by ratio); Q46–Q52, Q54, Q56–Q58 (no-access colours, "Like your visit?" days and weights, HYDAT --stations)
+New: Q62–Q66 (size and time wording choices, the app's own origin pick); Q59–Q61 (Expected change: model order, COFFEE in the day chips, colour by ratio); Q46–Q52, Q54, Q56–Q58 (no-access colours, "Like your visit?" days and weights, HYDAT --stations)
 and Q46–Q52 (unnamed-lake walk stop, tidal sentence placement and flags, whole Kootenay Lake in
-search, pointer pages, photo picker). See the "Owner questions" table in `handoff/PLAN/app-integration/tickets/README.md` (Q1–Q61). The ones most likely
+search, pointer pages, photo picker). See the "Owner questions" table in `handoff/PLAN/app-integration/tickets/README.md` (Q1–Q66). The ones most likely
 to matter:
 - Q1–Q3 / T54 no-access streams: permit-only areas get the gentle note; Conditions keeps the flow colour plus a
   banner; lakes inside no-access areas (Coquitlam Lake) get the fourth colour.

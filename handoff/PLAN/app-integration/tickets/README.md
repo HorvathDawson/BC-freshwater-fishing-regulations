@@ -147,13 +147,13 @@ use that as the sole source of future work."
 | T100 | lakes divided into closure areas (K5): Shuswap A/B/C, 67 widened rules | OPEN | — | all |
 | T101 | gauges walk through slough/canal polygons (held) | BLOCKED | 8d57e759..de39b70c (branch, unmerged) | ★ owner Q44 → merge + deliver |
 | T102 | receiving river never walked into (parent-code check in the walk) | PARTIAL | b6749f62, 60786bc9, 402786c9, b8f5fb3f, 95e78dd5, 0c4a9366, b44461d5, e0bc10a0 | part B → T117; Q53 |
-| T103 | one size shape: plain words contradict bands/title (24 strings) | OPEN | — | all (deliver) |
-| T104 | one "when" in words: titles/plain drop hours and weekdays | OPEN | — | all (deliver) |
+| T103 | one size shape: plain words contradict bands/title (24 strings) | DONE | 326e8848, 677158f8, 92cba91f, 671eabad | live after the next deliver; Q62–Q63 |
+| T104 | one "when" in words: titles/plain drop hours and weekdays | DONE | 677158f8, 92cba91f, 671eabad | live after the next deliver; Q64–Q65 |
 | T105 | one gauge speaker for map and sheet (54,401 sections disagree) | OPEN | — | all (app; deliver if section_gauge changes) |
 | T106 | one shown quantity: read the declared parameter (08ME030) | OPEN | — | all (app) |
 | T107 | one day's envelope: Python band_for vs TS bandAt | OPEN | — | all (app or feed) |
 | T108 | one "goes on as": continuation vs spans (11 of 17 pairs) | OPEN | — | all (deliver) |
-| T109 | one entry-id grammar (z7a reads "Region 7") | OPEN | — | all (level.ts fix first, no rebuild) |
+| T109 | one entry-id grammar (z7a reads "Region 7") | PARTIAL | 0ef3ed2f, edb0653c, 092e53c4, 73796f11 | exported region field (see ticket) |
 | T110 | record years per quantity (Level-mode weights) | OPEN | — | all (deliver) |
 | T111 | every cut reaches the walk (second extent's window dropped) | OPEN | — | all (rides a reach rerun) |
 | T112 | one entry walker over catalogue extents | OPEN | — | all |
@@ -164,15 +164,15 @@ use that as the sole source of future work."
 | T117 | may_enter everywhere: other walks + outlet/WSC/edge-type owners | OPEN | — | all (after T102 part B; reach rerun) |
 | T118 | one main line for spans and continuation | OPEN | — | all (deliver; with T108) |
 | T119 | one acceptance gate for ingest, validator and review app | OPEN | — | all (after T112) |
-| T120 | one leading origin: weekday rows take the most permissive | OPEN | — | all (deliver) |
+| T120 | one leading origin: weekday rows take the most permissive | DONE | f757d3e0, 74a712ce, e49f688e, 97b93246 | Q66 (app mainRes) |
 | T121 | water kind in reach and gauges via kind_of | OPEN | — | all (reach rerun) |
 | T122 | one station liveness (active/realtime/ECCC) | OPEN | — | all (deliver) |
 | T123 | one donor state for Conditions and map labels | OPEN | — | all (app) |
 | T124 | one per-section layer list in map | OPEN | — | all (app) |
 | T125 | latent duplicate checks: pins and small helpers | OPEN | — | all |
 | T126 | forecast reading bugs: CLEVER times 8 h off, 5-day summary on a 10-day run, dots ignore horizon | OPEN | — | all (band 2) |
-| T127 | displaced rule still shows "counts toward" and bounds the card gate | OPEN | — | all (band 2; needs deliver) |
-| T128 | sub-cap line names its total ("of your 5 trout and char a day in streams, up to 2 may be…") | OPEN | — | all (band 2; needs deliver) |
+| T127 | displaced rule still shows "counts toward" and bounds the card gate | DONE | 2a0458f2, 358b5076, 77566458 | live after the next deliver |
+| T128 | sub-cap line names its total ("of your 5 trout and char a day in streams, up to 2 may be…") | PARTIAL | 59aba774, c7d9f57f, 77566458, c410ca42, e839d0cd | deliver + golden re-cut |
 
 ## Order for open tickets
 
@@ -247,6 +247,11 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q59 | T52 | Expected change: which model colours a river when several forecast it? | CLEVER, then COFFEE, then ELF (alt: the largest move of any model) | owner |
 | Q60 | T52 | Use COFFEE for the +1/+3/+5/+10 chips too? (its day 0 runs ~1.45× the gauge) | no; Change only | owner |
 | Q61 | T52 | Colour Change by ratio to today (a river already high that triples shows as rising), not by rank for the date? | by ratio; the words give the rank | owner |
+| Q62 | T103 | Slot size wording: plain says "none over 60 cm, under 90 cm" where the book says "none between 60 cm and 90 cm" — reword? | keep the existing wording rule (RULINGS P37) | owner |
+| Q63 | T103 | "Keep only lake trout, none over …" can read as "only lake trout may be kept" — reword the house style? | unchanged | owner |
+| Q64 | T104 | Slocan "12:00 to 00:00" vs the book's "12 pm to midnight" — say noon/midnight (needs an export rebuild)? | unchanged | owner |
+| Q65 | T104 | Licensing labels still word "when" their own way (dates.When.words); routing through when_words adds "as printed:" on 2 labels — do it now? | leave until licensing labels are reworked | owner |
+| Q66 | T120 | The app decides the leading origin again (core regs/card.ts mainRes) — should the pipeline ship it per fish? | fold into T125 (cleanup) | owner |
 
 ### Answered (recently, for the record)
 - Q33 (the 5 gate-failing entries) — settled by T96: four were a gate bug (province-wide rule holds a region lift), Shuswap 3-26 quotes its whole printed line.
