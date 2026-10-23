@@ -1273,9 +1273,11 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
         # pieces keep the measure cut just made; everything else in its basin is placed by the
         # position its code joins the river at. No `seed` and no `window`: a watershed is not
         # walked (`classify` keeps it out of the tributary walk).
-        cuts = [(at[0], at[1])] if op in ("upstream_of", "downstream_of") else \
+        # (the positions as `_watershed_part` takes them — never rebinds `cuts`, the dicts above,
+        # which this part reports like any other extent: T111 review)
+        places = [(at[0], at[1])] if op in ("upstream_of", "downstream_of") else \
             [(a[0], a[1]), (b[0], b[1])]
-        part = _watershed_part(g, universe, set(sec), set(braided), cuts, op)
+        part = _watershed_part(g, universe, set(sec), set(braided), places, op)
         if isinstance(part, str):
             _fail(part, ",".join(scope))
             return None

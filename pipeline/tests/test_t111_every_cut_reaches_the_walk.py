@@ -112,6 +112,23 @@ def test_resolve_extent_returns_the_cuts_it_used():
     assert X.resolve_extent(reg, g, ["gnis:1"], {"op": "whole"})["cuts"] == []
 
 
+def test_a_watershed_part_reports_its_cuts_in_the_same_shape():
+    """Adversarial review (T111): the watershed branch of `resolve_extent` rebound the name `cuts` to
+    bare `(blk, m)` tuples for `_watershed_part` and reported THOSE — no split, no end. A watershed
+    part reports the cuts it used exactly as every other extent does (it is never walked, so the
+    seeding still skips it). Fails if the branch rebinds `cuts` again."""
+    g, reg = _two_reaches()
+    got = X.resolve_extent(reg, g, ["gnis:1"], {"op": "upstream_of", "splits": ["c"],
+                                                "watershed": True})
+    assert got["watershed"] is True
+    assert got["cuts"] == [
+        {"split": "c", "blk": "M", "m": 5000, "end": "lower", "kind": "split", "label": "c"}]
+    got = X.resolve_extent(reg, g, ["gnis:1"], {**TWO[0], "watershed": True})
+    assert got["cuts"] == [
+        {"split": "a", "blk": "M", "m": 1000, "end": "lower", "kind": "split", "label": "a"},
+        {"split": "b", "blk": "M", "m": 2000, "end": "upper", "kind": "split", "label": "b"}]
+    assert B.seeding_cuts(g, [got]) == []
+
 def test_both_lower_cuts_of_a_two_reach_rule_seed(monkeypatch):
     """`alouette_river.r2` / `bull_river.r1`: the second reach's lower cut seeds too. MUTATION
     (`EVERY_CUT_REACHES_THE_WALK` off, the first cut only): C Creek is lost."""
@@ -148,6 +165,42 @@ def test_a_reach_running_down_to_the_mouth_has_no_lower_cut():
     # A Creek hangs on M:0 itself, so the walk (not the seeding) finds it.
     assert _bind(g, reg, [{"op": "downstream_of", "splits": ["a"]}]) == {"M:0", "A:0"}
 
+
+
+def _across_lines():
+    """A `between` spanning two blue lines (the Chilliwack onto the Vedder): C flows into V at V's
+    3000. Cut `a` on C at 500 is the reach's UPPER end, `b` on V at 1000 its LOWER end; K Creek joins
+    V AT 1000, hung by FWA on V:0 below the cut."""
+    w, c = "100-1", "100-1-003000"
+    nodes = [_s("C:0", "C", 0, 500, wsc=c, order=5, upper=_b("a", 500)),
+             _s("C:500", "C", 500, 2000, wsc=c, order=5, lower=_b("a", 500)),
+             _s("V:0", "V", 0, 1000, wsc=w, order=6, upper=_b("b", 1000)),
+             _s("V:1000", "V", 1000, 3000, wsc=w, order=6, lower=_b("b", 1000)),
+             _s("V:3000", "V", 3000, 6000, wsc=w, order=6),
+             _s("K:0", "K", 0, 400, wsc=w + "-001000", order=2, name="K Creek")]
+    edges = [("C:500", "C:0", "continuation", 500), ("C:0", "V:1000", "confluence", 3000),
+             ("V:3000", "V:1000", "continuation", 3000), ("V:1000", "V:0", "continuation", 1000),
+             ("K:0", "V:0", "confluence", 1000)]
+    reg = {"gnis:1": RegistryItem(
+        id="gnis:1", name="Chilliwack-Vedder", kind="stream",
+        section_ids=("C:0", "C:500", "V:0", "V:1000"),
+        boundaries=tuple(RegistryBoundary(id=x, label=x, kind="split", ref=f"split:{x}")
+                         for x in "ab"))}
+    return _graph(nodes, edges), reg
+
+
+@pytest.mark.parametrize("splits", [["a", "b"], ["b", "a"]])
+def test_a_between_across_two_lines_knows_its_lower_end(splits):
+    """Adversarial review (T111): the end of each cut of a `between` across lines comes from
+    `_between_across_lines`' own order (`chosen["b_below_a"]`), whichever way round the splits are
+    written. MUTATION (the two ends swapped in `resolve_extent`): the seed lands on C at 500 and
+    K Creek, at the real lower cut, is lost."""
+    g, reg = _across_lines()
+    got = X.resolve_extent(reg, g, ["gnis:1"], {"op": "between", "splits": splits})
+    assert sorted((c["split"], c["blk"], c["m"], c["end"]) for c in got["cuts"]) == \
+        [("a", "C", 500, "upper"), ("b", "V", 1000, "lower")]
+    assert B.seeding_cuts(g, [got]) == [("V", 1000)]
+    assert _bind(g, reg, [{"op": "between", "splits": splits}]) == {"C:0", "V:1000", "K:0"}
 
 # ------------------------------------------------------------- an ambiguous cut, picked once
 
