@@ -13,7 +13,7 @@ README ledger; this file only records what happened. One heavy job at a time (sc
 4. Cleanup: T70 → T61 → T62 → T63; T72; T92, T94, T60, T99
 5. Tiles window: T64 + T85 → T75; T65 (heavy, alone, in a quiet window)
 6. Native: T50 → T74 → T77 ★ → T86 ★ → T88 ★
-7. Features / pipeline: T54, T52, T51, T68, T93 ★, T79 ★, T97 ★, T100 ★
+7. Features / pipeline: T54, T52, T51, T68, T93 ★, T79 ★, T97 ★, T100, T101 (BLOCKED Q44) ★
 8. Last: T87 ★, T95 ★, T98 ★ (POSTPONED)
 Partial, finished through the tickets above: T41 (→ T82, T50), T47 (→ T83).
 

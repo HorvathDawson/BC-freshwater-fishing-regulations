@@ -6,8 +6,8 @@ Status: IN PROGRESS (2026-10-22). Process ticket: one data rebuild ships the pip
 - Twin Lakes 2-8 and 18 more multi-polygon lakes bind every polygon (matcher ae5554fc, catalogue ad77fda, Main Lake →
   Mine Lake f455228). Reach rerun into data/generated/reaches/full_twin + binding diff
   (handoff/PLAN/audit/binding-diff-twin.json).
-- Stream-item polygons get their water's flow panel (5f9af9a7..3462a565), and the panel walk reads the water's kind
-  (lane wf_3976eddc-bba, when merged).
+- Stream-item polygons get their water's flow panel (5f9af9a7..3462a565). The panel walk through polygons is HELD
+  (T101, owner Q44) and does not ship in this rebuild.
 - "See X" group entries as pointers; identical rules read once (lane wf_e4e2b70f-f21, when merged).
 
 ## Steps (one heavy job at a time, scripts/heavy.sh)

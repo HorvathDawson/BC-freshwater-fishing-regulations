@@ -145,6 +145,7 @@ use that as the sole source of future work."
 | T98 | tidal water spec: Fraser below Mission (RULINGS C-2, K7/K8) | POSTPONED | — | all; spec ON HOLD |
 | T99 | pin the rulings nothing enforces (Z1 base+deltas, 12 ◐ rulings, C-4 citation) | OPEN | — | all |
 | T100 | lakes divided into closure areas (K5): Shuswap A/B/C, 67 widened rules | OPEN | — | all |
+| T101 | gauges walk through slough/canal polygons (held) | BLOCKED | 8d57e759..de39b70c (branch, unmerged) | ★ owner Q44 → merge + deliver |
 
 ## Order for open tickets
 
@@ -217,6 +218,7 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q41 | T97 | Start review before phase 3? | no | owner |
 | Q42 | T98 | Lift the tidal-spec hold? | K8 as built until lifted | owner |
 | Q43 | T100 | Lake closure areas: a lake part (ring) or an area caveat on the whole lake? | whole lake + area caveat line | owner |
+| Q44 | T101 | May a gauge on a side channel/slough speak for the river it branched from? (Nicomen level gauges would answer ~71,668 Fraser sections) | no for Level; Flow only when the side channel carries a large share of the river | owner |
 
 ### Answered (recently, for the record)
 - Palette D stands (T47 part 3) — decisions.md 2026-10-22.
