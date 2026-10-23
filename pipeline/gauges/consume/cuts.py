@@ -28,6 +28,8 @@ Two consumers, one fact, and neither of them matches anything.
 
 from __future__ import annotations
 
+from pipeline.gauges.liveness import speaks_now
+
 # How far the resolver may look from the station's coordinate for a channel to cut. A gauge
 # is often on a bank or a bridge while the FWA line is the channel centre, and on a braided
 # reach the far strand can be a few hundred metres off. Wide enough for that, narrow enough
@@ -43,7 +45,8 @@ def split_defs(matches, stations: list[dict], *, live_only: bool = True) -> list
     the braid — and a distinct type so a cut a curator wrote and a cut a station generated
     are told apart in `splits.resolved.json` and in the gpkg.
 
-    ``live_only`` keeps the cuts to transmitting stations. A station discontinued in 1974
+    ``live_only`` keeps the cuts to transmitting stations (`liveness.speaks_now` on the roster's
+    snapshot — not `may_speak`: T122's owner question). A station discontinued in 1974
     still sits somewhere, but cutting the river at it buys a boundary no reading will ever
     appear on. The MATCH still covers every station, because the bundle wants them all.
     """
@@ -51,7 +54,7 @@ def split_defs(matches, stations: list[dict], *, live_only: bool = True) -> list
     out: list[dict] = []
     for m in sorted(matches, key=lambda m: m.station):
         s = roster.get(m.station)
-        if s is None or (live_only and not s.get("realtime")):
+        if s is None or (live_only and not speaks_now(s)):
             continue
         # A LAKE STATION IS NOT A CUT. It reports a level for a body of water; there is no
         # "above it" and "below it" along a channel to separate. Lake gauges are linked to

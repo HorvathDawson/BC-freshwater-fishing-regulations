@@ -1,9 +1,7 @@
 import os
 import collections
-import csv
 import tempfile
 import re
-import io
 import json
 import argparse
 import logging
@@ -1168,9 +1166,6 @@ def _overpass_places_in(bbox: tuple, kinds: str, depth: int = 0) -> list:
 
 
 _HYDRO_STATIONS_API = "https://api.weather.gc.ca/collections/hydrometric-stations/items"
-_HYDRO_REALTIME_CSV = (
-    "https://dd.weather.gc.ca/today/hydrometric/doc/hydrometric_StationList.csv"
-)
 
 
 _HYDAT_DIR = "https://collaboration.cmc.ec.gc.ca/cmc/hydrometrics/www/"
@@ -1317,16 +1312,17 @@ def fetch_hydrometric_stations(short_name: str, dest_path: Path) -> None:
         print(f"  ✓ {short_name}: already present ({dest_path.name})")
         return
 
+    # ECCC's real-time list, read and parsed where every reader of "live" is (T122)
+    from pipeline.gauges.liveness import STATION_LIST, listed_stations, speaks_now
+
     speaking: set[str] = set()
     try:
         req = urllib.request.Request(
-            _HYDRO_REALTIME_CSV, headers={"User-Agent": _DOWNLOAD_USER_AGENT}
+            STATION_LIST, headers={"User-Agent": _DOWNLOAD_USER_AGENT}
         )
         with urllib.request.urlopen(req, timeout=120) as fh:
             text = fh.read().decode("utf-8-sig", errors="replace")
-        for row in csv.DictReader(io.StringIO(text)):
-            if (row.get("Prov/Terr") or "").strip() == "BC":
-                speaking.add((row.get("ID") or "").strip())
+        speaking = listed_stations(text) or set()
         print(f"  … {len(speaking)} BC stations transmitting today")
     except Exception as e:                                   # the API half still stands
         print(f"  ⚠️  real-time roster unavailable ({e}); no station marked live")
@@ -1367,7 +1363,7 @@ def fetch_hydrometric_stations(short_name: str, dest_path: Path) -> None:
 
     out.sort(key=lambda r: r["station"])            # deterministic; AGENTS rule 19
     dest_path.write_text(json.dumps(out, indent=1, ensure_ascii=False), encoding="utf-8")
-    live = sum(1 for r in out if r["realtime"])
+    live = sum(1 for r in out if speaks_now(r))
     area = sum(1 for r in out if r["area_km2"])
     print(f"  ✓ {short_name}: {len(out)} stations ({live} live, {area} with drainage area)")
 

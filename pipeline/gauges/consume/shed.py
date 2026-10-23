@@ -60,6 +60,7 @@ from typing import Iterable, Optional
 
 from pipeline.common.utils import wsc as _wsc
 from pipeline.common.utils.wsc import trim_wsc as _trim
+from pipeline.gauges.liveness import speaks_now
 
 #: THE SHED CLIMBS AS THE TRIBUTARY WALK CLIMBS (T117, owner 2026-10-22: one entry check, used in every
 #: walk). Going UP from a gauge, each step is one `tributaries.may_enter` allows with the gauge's own
@@ -228,8 +229,8 @@ def build_gauge_sheds(graph, stations: list[dict], node_for_station: dict[str, s
     a separate argument on purpose: matching needs geometry and a 5 GB atlas, this needs
     neither, so the expensive half can be cached and this half re-run freely.
 
-    ``prefer`` is the set of stations ECCC still lists as ACTIVE. Sheds are built from those
-    only.
+    ``prefer`` is the set of stations ECCC still lists as ACTIVE (`liveness.may_speak`). Sheds
+    are built from those only.
 
     ACTIVE, NOT "TRANSMITTING RIGHT NOW", and the difference is a whole class of station. BC
     has 27 stations that are active but silent today: seasonal gauges, shut down for the
@@ -344,7 +345,7 @@ def build_gauge_sheds(graph, stations: list[dict], node_for_station: dict[str, s
     # into different sections); until the cuts separate them, preferring the station a reader
     # can actually get a number from is the honest tiebreak.
     def rank(l: GaugeLink) -> tuple:
-        return (-l.ratio, 0 if by_id.get(l.station, {}).get("realtime") else 1, l.station)
+        return (-l.ratio, 0 if speaks_now(by_id.get(l.station, {})) else 1, l.station)
 
     links = [min(found[sec], key=rank) for sec in sorted(found)]
 
@@ -387,17 +388,16 @@ def downstream_map(graph, sections: Iterable[str]) -> dict[str, str]:
     return out
 
 
-def load_stations(path: Path, *, live_only: bool = False) -> list[dict]:
-    """Read the fetched roster.
+def load_stations(path: Path) -> list[dict]:
+    """Read the fetched roster: EVERY station, live or not.
 
-    ``live_only`` is the difference between "a gauge exists here" and "a gauge is talking".
     The bundle stores both kinds: a discontinued station still anchors a climatology, and a
     client that only ever saw live gauges would tell a user there is no gauge on a river
-    that has had one since 1913.
+    that has had one since 1913. Which may speak and which is speaking is
+    `pipeline.gauges.liveness`'s answer (T122; a `live_only` filter here, unused, was a third
+    spelling of it).
     """
     import json
 
     rows = json.loads(path.read_text(encoding="utf-8"))
-    if live_only:
-        rows = [r for r in rows if r.get("realtime")]
     return sorted(rows, key=lambda r: r["station"])

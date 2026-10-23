@@ -55,6 +55,7 @@ from pathlib import Path
 
 from pipeline.common.curated import CURATED, GENERATED, SOURCE
 from pipeline.gauges import review as _review
+from pipeline.gauges.liveness import speaks_now
 from pipeline.gauges.generate.match import (
     AREA_TOLERANCE_DECADES, KM2_PER_MAGNITUDE, _contains_word, waterbody_name,
 )
@@ -279,7 +280,7 @@ def main(argv: list[str] | None = None) -> int:
 
     matches, stations, types, mags, rev = load_inputs(a.matches)
     promoted, candidates = build(matches, stations, types, mags, rev)
-    live = {s["station"] for s in stations if s.get("realtime")}
+    live = {s["station"] for s in stations if speaks_now(s)}
     counts = Counter(r["trust"] for r in promoted)
     print(f"{len(promoted):,} promoted, {len(candidates):,} left as candidates")
     for k in ORDER:

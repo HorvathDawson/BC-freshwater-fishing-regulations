@@ -49,6 +49,7 @@ from pipeline.gauges.feed.forecast import ATTRIBUTION as FORECAST_ATTRIBUTION
 from pipeline.gauges.feed.forecast import CENTRE_ZONE as _CENTRE_ZONE
 from pipeline.gauges.feed.forecast import instant as _instant
 from pipeline.gauges.feed.forecast import step_day as _step_day
+from pipeline.gauges.liveness import STATION_LIST, listed_stations, roster_drift, stations_to_ask  # noqa: F401
 
 BASE = "https://dd.weather.gc.ca/today/hydrometric/csv/BC"
 UA = "BC-FishRegs-Hydro/1.0"
@@ -147,7 +148,9 @@ def _parse_hourly(station: str, text: str) -> dict | None:
 
 
 # WHO IS TRANSMITTING TODAY, from ECCC itself — the same file `data/fetch_data.py` reads to
-# set the roster's `realtime` flag, but read EVERY RUN instead of once.
+# set the roster's `realtime` flag, but read EVERY RUN instead of once. The list, its parsing,
+# which stations to ask and the drift live in `pipeline.gauges.liveness` (T122: the one place
+# "live" is decided).
 #
 # The roster is a snapshot, and a snapshot drifts. Fetched 1 Sep 2026; by 22 Oct ECCC had
 # dropped 13 of its 439 "live" stations (08EG012 Exchamsiks, 08LG028 Nicola at Douglas Lake,
@@ -155,47 +158,6 @@ def _parse_hourly(station: str, text: str) -> dict | None:
 # (08NM139, 10CD005 among the matched). Driving the feed from the snapshot asked 13 stations
 # for 404s every half hour and never asked the six. One request makes the feed's own answer
 # to "who is live" as fresh as the readings in it.
-STATION_LIST = "https://dd.weather.gc.ca/today/hydrometric/doc/hydrometric_StationList.csv"
-
-
-def listed_stations(text: str | None) -> set[str] | None:
-    """The BC stations ECCC lists as real-time, or None when the list says nothing usable.
-
-    NONE, NOT EMPTY, for a failed or empty answer: an empty set would claim no gauge in the
-    province is transmitting and empty the feed on the strength of one bad response.
-    """
-    if not text:
-        return None
-    out = {(r.get("ID") or "").strip() for r in csv.DictReader(io.StringIO(text))
-           if (r.get("Prov/Terr") or "").strip() == "BC"}
-    out.discard("")
-    return out or None
-
-
-def stations_to_ask(roster: list[dict], listed: set[str] | None) -> tuple[list[str], str]:
-    """`(ids, source)`: ECCC's list when there is one, else the roster's `realtime` flag.
-
-    The list wins outright, including over a station the roster never heard of — the feed is
-    addressed by station id and knows nothing else (see the module note). A station the
-    roster calls live and ECCC no longer lists is not asked: its answer would be a 404.
-    """
-    if listed is not None:
-        return sorted(listed), "eccc"
-    return sorted(s["station"] for s in roster if s.get("realtime")), "roster"
-
-
-def roster_drift(roster: list[dict], listed: set[str] | None) -> dict | None:
-    """How far the roster's `realtime` flag is from ECCC's list today. None without the list.
-
-    `joined`: listed now, not live in the roster. `left`: live in the roster, no longer
-    listed. The donor panels no longer read the roster flag (owner 2026-10-22, "chosen live":
-    which members answer is decided from this feed at read time), so drift here costs only the
-    roster's own accuracy — said every run, like a stale HYDAT.
-    """
-    if listed is None:
-        return None
-    was = {s["station"] for s in roster if s.get("realtime")}
-    return {"joined": sorted(listed - was), "left": sorted(was - listed)}
 
 
 # OWNER-RUN UPSTREAM UPDATES, SAID IN THE INDEX (owner 2026-10-22 late). Each run already learns two things only the

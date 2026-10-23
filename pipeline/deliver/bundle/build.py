@@ -541,6 +541,7 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_it
     from pipeline.gauges.consume.place import nodes_for, summarise
     from pipeline.gauges.matches import check_record, read_match
     from pipeline.gauges.consume.shed import downstream_map, load_stations
+    from pipeline.gauges.liveness import may_speak, speaks_now
 
     from pipeline.common.section_handles import read as _read_handles
 
@@ -616,12 +617,12 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_it
         for s in stations])
     cov.filled("gauge", len(stations))
 
-    # ECCC's own ACTIVE status, not today's traffic. 27 BC stations are active but silent
+    # ECCC's own ACTIVE status, not today's traffic (`liveness.may_speak`, T122). 27 BC stations are active but silent
     # right now — seasonal gauges shut for the winter — and filtering on traffic would
     # delete their sheds every autumn and rebuild them every spring. Retired stations keep
     # their `gauge` row and climatology; what they lose is the claim to speak for reaches
     # they can no longer say anything about.
-    active = {s["station"] for s in stations if s.get("active")}
+    active = {s["station"] for s in stations if may_speak(s)}
     links = build_gauge_sheds(graph, stations, matched, prefer=active, report=shed_lost)
     # `links` arrives grouped by section, best ratio first; `seq` freezes that order so a
     # client takes row 0 and never has to re-derive the judgement.
@@ -804,7 +805,7 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_it
     bands: dict[str, int] = {}
     for l in links:
         bands[l.trust] = bands.get(l.trust, 0) + 1
-    live = {s["station"] for s in stations if s.get("realtime")}
+    live = {s["station"] for s in stations if speaks_now(s)}
     _report("could not be placed on this graph", place_lost, live)
     _report("placed but spoke for no section", shed_lost, live)
     print(f"     match: {summarise(matches)}")
