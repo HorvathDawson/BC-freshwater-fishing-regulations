@@ -1,6 +1,6 @@
 # T89 — Rules that bind no water: 10 unmatched synopsis rows + 3 rules with no extent
 
-Status: PARTIAL — d9ce1d20 (lane wf_4b4f5207-c7a-4). The 3 no-extent rules + the Endako (R7) row are fixed in the
+Status: PARTIAL — d9ce1d20 + review fix a799a3a5 (lane wf_4b4f5207-c7a-4). The 3 no-extent rules + the Endako (R7) row are fixed in the
 catalogue and pinned; ships with the next reach rerun + deliver (no atlas). LEFT: 8 rows (22 rules) whose printed MU
 holds no registry water of their name — Mackenzie Creek 4-21, Frog/Hidden/Secret/Square Lake 5-6, Redfern Lake 5-15,
 Squirrel Lake 6-1 — need the water located and named in the registry (owner Q-A below), then an atlas registry
@@ -37,8 +37,13 @@ backed up, diff = exactly the four rows below (`write_entryfile`, whole-file val
   are not walked (seeded above the lake).
 - `nilkitkwa_lake.r4` "Rainbow Alley … open all year" → `between [babine_river__babine_lake,
   babine_river__nilkitkwa_lake]` on `item_id gnis:17687` (Babine River, variant "Rainbow Alley") — the stretch
-  `babine_river.r3` binds (probe: the same 3 mainstem sections). Advisory, so it decides nothing; it shows the row's
-  words on Rainbow Alley.
+  `babine_river.r3` binds. Advisory, so it decides nothing; it shows the row's words on Rainbow Alley.
+  **Review fix (a799a3a5):** the row's SCOPE was the lake alone, so the run's entry clip (`entry_scope` → `_clip`)
+  emptied r4 (`empty_after_scope` — the first probe passed no clip). The row's `extents` now name the lake AND the
+  Rainbow Alley stretch (as Upper Arrow Lake (drawdown area) names the Columbia). Probe with the run's covered + clip:
+  r4 binds the 3 Babine mainstem sections (360886970:108816/110644/110732 — the mainstem part of `babine_river.r3`'s
+  7, the other 4 being its tributary walk); r1–r3 still bind only `lake:329026685`. Pinned corpus-wide: no rule
+  extent names a water outside its row's scope.
 - `fulton_river.r3` "Angling permitted in Fulton River opposite the spawning channels, as signed" → `undrawn_part`
   "opposite the spawning channels, as signed" beside `[whole]`, `includes_tributaries: false` (a place on the river,
   AGENTS 13). A note on the Fulton's 10 sections, never a colour; it lifts nothing (which closure it would lift is not
@@ -62,7 +67,9 @@ the allow-list (`needs_bundle` — FAILS on the current bundle until the reach r
 Rebuild this needs (merger, one batch): reach rerun on the live atlas (no atlas rebuild, no tiles), then
 `python -m pipeline.deliver` (bundle → status index → export) and verdicts. Diff the reach run `--against` the old one:
 expected per-rule changes only `nanaimo_river.r5` (+570), `nilkitkwa_lake.r4` (+3), `fulton_river.r3` (+10, note),
-`r7:endako_river@7-12::endako_river.r1` gone; `rule_unresolved.jsonl` 33 → 29; `tributaries_pending` 2 → 1 (Nanaimo).
+`r7:endako_river@7-12::endako_river.r1` gone; `rule_unresolved.jsonl` 33 → 29; `tributaries_pending` 2 → 0 (both
+were Nanaimo r5 and Fulton r3: Nanaimo now binds with its walk, Fulton's undrawn part never walks). The Nilkitkwa
+row's scope widens (lake + Rainbow Alley), so its r1–r3 must stay on `lake:329026685` alone — check that too.
 Then run `test_t89_rules_that_bind_no_water.py` (with the bundle) — it must pass.
 
 ## Left — owner question
@@ -70,7 +77,8 @@ Then run `test_t89_rules_that_bind_no_water.py` (with the bundle) — it must pa
 name; every same-name registry candidate lies in another MU, 75+ km from the printed one (Mackenzie Creek 4-21: 4-8,
 4-31, 7-17, 8-5/8-6; Frog Lake 5-6: 1-10, 3-29, 7-30; Hidden Lake 5-6: 5-15, 6-8, 3-35, 2-8, …; Secret Lake 5-6: 3-30,
 8-7; Square Lake 5-6: 5-3, 6-4, 7-12; Redfern Lake 5-15: 7-42; Squirrel Lake 6-1: 5-1 — that one is Paddy Lake,
-name_variants says so). They are most likely unnamed FWA lakes/streams (the 5-6 four with identical "No Ice Fishing;
+name_variants says so). A lead for Redfern Lake 5-15: the registry has **Ruth Redfern Creek** (gnis:28333, MU 5-15,
+−120.58, 52.13) — the lake may be an unnamed FWA lake on that creek; owner to confirm before any match. They are most likely unnamed FWA lakes/streams (the 5-6 four with identical "No Ice Fishing;
 trout quota 1" rows look like one cluster in the West Chilcotin, beside the 6-1 Basalt/Chipmunk/Gatcho lakes).
 **Recommended default: leave all 22 rules unbound** (on the allow-list as AWAITING_WATER) — binding a same-name lake
 elsewhere puts a quota or closure on the wrong water. To fix one: locate it (a map/coordinates from the owner or a
