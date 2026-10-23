@@ -26,7 +26,7 @@ from pipeline.common.curated import CURATED
 REPO = Path(__file__).resolve().parents[2]
 TOOL = REPO / "curation-review"
 BACKEND = TOOL / "backend"
-_MODS = ("app", "reuse", "model_api", "verification", "answer", "synopsis_pages", "writes")
+_MODS = ("app", "reuse", "model_api", "answer", "synopsis_pages", "writes")
 
 
 @pytest.fixture(scope="module")
@@ -40,7 +40,8 @@ def env(tmp_path_factory):
     shutil.copy2(CURATED.waters.splits, splits)
     mp = pytest.MonkeyPatch()
     mp.setenv("CURATION_ENTRIES_DIR", str(cat))
-    mp.setenv("CURATION_VERIFICATION", str(tmp / "verification.json"))
+    (tmp / "marks.jsonl").write_text("")
+    mp.setenv("CURATION_MARKS", str(tmp / "marks.jsonl"))
     mp.setenv("CURATION_SPLITS_JSON", str(splits))
     mp.setenv("CURATION_BACKUP_DIR", str(tmp / "backups"))
     mp.syspath_prepend(str(BACKEND))

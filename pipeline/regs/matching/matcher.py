@@ -332,13 +332,22 @@ def _name_resolve(index: int, water: str, lookup: str, via: str, registry, name_
     return MatchResult(index, water, None, "ambiguous", f"{len(cands)} candidates for '{water}'", tuple(cands), via=via)
 
 
+def override_for(row: dict, override_index: dict[str, list[dict]]) -> dict | None:
+    """THE override that decides this row's water, or None — the one lookup `match_row` makes and
+    the review fingerprint reads (an override edit stales exactly the marks of the rows it
+    decides)."""
+    water = row.get("water", "")
+    return _pick_override(override_index.get(_norm(water), []), region_num(row),
+                          parse_reg_mus(row), water)
+
+
 def match_row(index: int, row: dict, registry: dict[str, RegistryItem], name_index: dict[str, list[str]],
               id_index: dict[str, tuple[str, ...]], override_index: dict[str, list[dict]]) -> MatchResult:
     water = row.get("water", "")
     key = _norm(water)
     rn, row_mus = region_num(row), parse_reg_mus(row)
 
-    e = _pick_override(override_index.get(key, []), rn, row_mus, water)
+    e = override_for(row, override_index)
     if e is not None:
         note = e.get("note", "") or e.get("skip_reason", "")
         if e.get("not_found"):

@@ -12,7 +12,7 @@ with the file's (`bundle_matches`), and the UI says so instead of presenting a s
 the edit's consequence.
 
 `sid` is the bundle's own section handle. It is used only between this backend and its page,
-within one bundle vintage, and is never stored (the verification sidecar keys on entry_id).
+within one bundle vintage, and is never stored (a mark keys on entry_id and its fingerprints, `pipeline.regs.review`).
 """
 from __future__ import annotations
 

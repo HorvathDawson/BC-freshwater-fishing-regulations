@@ -24,8 +24,6 @@ interface Props {
   reloadKey?: number;
   /** where this entry sits in the queue being worked through, and how to move */
   nav?: QueueNav;
-  /** a mark was set or cleared — refresh the queue and progress */
-  onMarked?: () => void;
 }
 
 // Curated-split state vs the built graph, for the colour-coded chip badge.
@@ -61,7 +59,7 @@ function stored(e: Entry): Entry {
   };
 }
 
-export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0, nav, onMarked }: Props) {
+export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0, nav }: Props) {
   const vocab = useVocab();
   const { item, unused_curated_splits, source_image } = detail;
   const related = detail.related_entries ?? [];
@@ -239,8 +237,7 @@ export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0, nav, o
     <div className="detail">
       <div className="detail-cols">
         <div className="detail-content">
-      <VerifyBar entryId={entry.entry_id} verification={detail.verification} dirty={dirty}
-        nav={nav} onMarked={onMarked} />
+      <VerifyBar entryId={entry.entry_id} marks={detail.marks} nav={nav} />
       {/* ERRORS WITH NO FIELD PATH come first (T96): the gate's entry-level refusals — a lift
           outside what it lifts, a lake cut into parts — name no field, and below the identity
           block they were missed while the save button refused. */}

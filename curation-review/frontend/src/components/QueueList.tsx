@@ -56,9 +56,10 @@ export function QueueList({ rows, selected, loading, onSelect }: Props) {
             )}
           </div>
           <div className="meta">
-            {r.verify && r.verify !== "unverified" && (
-              <span className={`verify-chip ${r.verify}`} title={r.verify_note || r.verify}>
-                {r.verify === "verified" ? "✓ verified" : r.verify === "stale" ? "changed since verified" : "⚑ reviewer flag"}
+            {r.verify && r.verify !== "unmarked" && (
+              <span className={`verify-chip ${r.verify}`}
+                title={r.verify === "stale" ? (r.mark_reasons ?? []).join(", ") : (r.verify_note || r.verify)}>
+                {r.verify === "verified" ? "✓ verified" : r.verify === "stale" ? "changed since marked" : r.verify}
               </span>
             )}
             {r.page != null && <span className="dim">p.{r.page}</span>}

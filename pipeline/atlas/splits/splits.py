@@ -34,6 +34,41 @@ def _norm_target(applies: dict | None) -> dict:
     return tgt
 
 
+def applies_keys(at: dict | None) -> set[str]:
+    """The registry ref_ids a splits.json `applies_to` names (gnis_id / gnis_ids / wsc / blk; a wsc
+    TRIMMED, as registry ref_ids store it)."""
+    from pipeline.common.utils.wsc import trim_wsc
+    at = at or {}
+    keys: set[str] = set()
+    if at.get("gnis_id") is not None:
+        keys.add(f"gnis:{at['gnis_id']}")
+    for g in (at.get("gnis_ids") or []):
+        keys.add(f"gnis:{g}")
+    if at.get("wsc"):
+        keys.add(f"wsc:{trim_wsc(str(at['wsc']))}")
+    if at.get("blk"):
+        keys.add(f"blk:{at['blk']}")
+    return keys
+
+
+def splits_on(data: dict, refs: set[str]) -> list[dict]:
+    """THE ONE ANSWER TO "which authored splits are on this water": every splits.json split whose
+    target — its waterbody's `applies_to` together with its own — names one of `refs` (an item's
+    ref_ids). Read by the review app's split picker and by the review fingerprint, so the two can
+    never disagree about which cuts a water carries.
+
+    A split's own `applies_to` counts beside its waterbody's: four waterbodies (Atnarko/Bella
+    Coola, Skeena/Kispiox, Lynn Creek, Whiteswan) carry `applies_to: null` and put it on each
+    split."""
+    out: list[dict] = []
+    for wb in data.get("waterbodies", []):
+        wb_keys = applies_keys(wb.get("applies_to"))
+        for sp in wb.get("splits", []):
+            if isinstance(sp, dict) and (wb_keys | applies_keys(sp.get("applies_to"))) & refs:
+                out.append(sp)
+    return out
+
+
 def _flatten_waterbodies(data: dict) -> tuple[list[dict], list[tuple[str, str]]]:
     """By-waterbody shape -> flat split dicts. Each split's target is its own ``applies_to`` if it
     has one, else the waterbody's ``applies_to``. Both use the same shape (gnis_id/blk/wsc/gnis_ids).

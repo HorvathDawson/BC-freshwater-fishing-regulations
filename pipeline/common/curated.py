@@ -110,6 +110,17 @@ class Entries(BaseModel):
     _abs = field_validator("*", mode="before")(_absolute)
 
 
+class Review(BaseModel):
+    """The curation review's REVIEWED data (T97): `marks` is the append-only store of every
+    reviewer's mark (`pipeline.regs.review.marks`), checked in empty before the first mark."""
+
+    model_config = ConfigDict(frozen=True)
+
+    marks: FilePath
+
+    _abs = field_validator("marks", mode="before")(_absolute)
+
+
 class Regulations(BaseModel):
     model_config = ConfigDict(frozen=True)
 
@@ -121,6 +132,8 @@ class Regulations(BaseModel):
     #: THE BOOK'S TEXT, transcribed verbatim (`definitions.md` p.80, `water-specific-tables.md`
     #: p.4, `licensing.md` pp.6-7, `region-*.md`): source text, read by the answers glossary.
     reference: DirectoryPath
+    #: THE REVIEWERS' MARKS (curation-review PLAN §4 phase 1).
+    review: Review
 
     _abs = field_validator("overrides", "steelhead_waters", "reference", mode="before")(_absolute)
 

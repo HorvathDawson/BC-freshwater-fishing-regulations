@@ -389,15 +389,29 @@ export interface RegionSummary {
   by_verify?: Partial<Record<VerifyStatus, number>>;
 }
 
-/** The reviewer's mark on an entry, from the verification sidecar (never stored in the entry).
- *  `stale` = it was verified, then the entry changed, so it needs another look. */
-export type VerifyStatus = "unverified" | "verified" | "stale" | "flagged";
+/** The reviewer's mark on an entry, from the marks store `marks.jsonl` (never in the entry; T97).
+ *  `stale` = it was marked, then something it was held against changed — `mark_reasons` says what. */
+export type VerifyStatus = "unmarked" | "verified" | "wrong" | "unsure" | "deferred" | "stale";
+/** Why a mark no longer holds (`pipeline.regs.review.marks.StaleReason`). */
+export type StaleReason =
+  | "book text changed" | "rule changed" | "binding moved" | "answer changed" | "awaiting build";
 export type QueueOrder = "attention" | "book";
 
-export interface Verification {
-  status: VerifyStatus;
+/** One mark in force, with its status against its target NOW (`GET /api/marks`). */
+export interface MarkView {
+  scope: "entry" | "rule" | "split";
+  target: string;
+  rule_id: string | null;
+  verdict: "verified" | "wrong" | "unsure" | "deferred";
+  answers: Partial<Record<"T" | "R" | "P" | "A", "y" | "n" | "?">>;
+  problem: string | null;
   note: string;
-  hash: string;
+  reviewer: string;
+  date: string;
+  pages: number[];
+  carried_by: string | null;
+  status: VerifyStatus;
+  reasons: StaleReason[];
 }
 
 export interface QueueRow {
@@ -418,6 +432,7 @@ export interface QueueRow {
   pointer?: boolean;
   verify?: VerifyStatus;
   verify_note?: string;
+  mark_reasons?: StaleReason[];
 }
 
 export interface Boundary {
@@ -504,7 +519,8 @@ export interface EntryDetail {
   related_entries: RelatedEntry[]; // other synopsis rows over the same water
   unused_curated_splits: UnusedSplit[];
   source_image: string | null; // synopsis row-crop image filename, if found
-  verification?: Verification;
+  /** the marks in force on this entry (its entry mark, its rule marks) */
+  marks?: MarkView[];
 }
 
 // ---- What an angler is told (the live bundle) -------------------------------------------------

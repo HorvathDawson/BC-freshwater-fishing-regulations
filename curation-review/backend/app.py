@@ -15,7 +15,7 @@ from collections import Counter
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 import reuse
 
@@ -62,28 +62,51 @@ def get_entries(region: str | None = None, status: str | None = None,
     return reuse.queue(region=region, status=status, kind=kind, verify=verify, order=order)
 
 
-@app.get("/api/verification")
-def get_verification(region: str | None = None):
-    """Progress: {total, verified, stale, flagged, unverified} for a region, or the whole corpus."""
-    return reuse.verification_summary(region)
-
-
 class MarkPayload(BaseModel):
-    state: str          # verified | flagged | unverified
+    """What a reviewer sends; the fingerprints, the date and the book's sha256 are stamped by the
+    server (`reuse.post_mark`), never taken from the client."""
+    model_config = ConfigDict(extra="forbid")
+    scope: str                       # entry | rule | split
+    target: str                      # entry_id, or a split id
+    rule_id: str | None = None       # scope rule
+    verdict: str                     # verified | wrong | unsure | deferred
+    answers: dict[str, str]          # T / R / P / A -> y | n | ?
+    problem: str | None = None
     note: str = ""
+    reviewer: str
+    pages: list[int] = []            # printed pages read (default: the entry's source_pages)
 
 
-@app.put("/api/entries/{entry_id}/verify")
-def mark_entry(entry_id: str, body: MarkPayload):
-    """Mark an entry verified against the book, flag it with a note, or clear the mark. Stored in
-    the verification sidecar against the entry's content hash — never in the entry."""
+@app.post("/api/marks")
+def post_mark(body: MarkPayload):
+    """Record a reviewer's mark (T97) in the append-only store `marks.jsonl`, against the
+    target's fingerprints NOW. Refused (422) on an entry that fails the gate, or a mark the model
+    refuses (a verdict its answers do not support, no reviewer); 404 for an unknown target."""
+    from pydantic import ValidationError
     try:
-        return reuse.mark_entry(entry_id, body.state, body.note)
-    except KeyError:
-        raise HTTPException(404, f"entry {entry_id} not found")
+        return reuse.post_mark(body.model_dump())
+    except KeyError as ex:
+        raise HTTPException(404, f"{body.scope} {body.target}"
+                                 f"{'/' + body.rule_id if body.rule_id else ''} not found: {ex}")
+    except ValidationError as ex:
+        raise HTTPException(422, [{"path": ".".join(str(x) for x in e["loc"]), "msg": e["msg"]}
+                                  for e in ex.errors()])
     except ValueError as ex:
-        raise HTTPException(422, [{"path": "state" if "state" in str(ex) else "note",
-                                   "msg": str(ex)}])
+        raise HTTPException(422, [{"path": "", "msg": str(ex)}])
+
+
+@app.get("/api/marks")
+def get_marks(target: str | None = None, scope: str | None = None):
+    """The marks in force (the last one on each target), each with its `status` and typed stale
+    `reasons` against its target as it is now."""
+    return reuse.marks_view(target, scope)
+
+
+@app.get("/api/marks/splits")
+def get_split_marks():
+    """Every split in splits.json -> its mark status now; a split added since the last review
+    reads `unmarked`, queued for its own `split` mark."""
+    return reuse.split_mark_states()
 
 
 @app.get("/api/entries/{entry_id}/bundle")

@@ -16,7 +16,6 @@ export default function App() {
   // way to go through every entry; "attention" floats the suspicious ones up)
   const [verify, setVerify] = useState<VerifyStatus | "todo" | "">("");
   const [order, setOrder] = useState<QueueOrder>("book");
-  const [progress, setProgress] = useState<{ total: number; verified: number } | null>(null);
   const [rows, setRows] = useState<QueueRow[]>([]);
   const [loadingRows, setLoadingRows] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
@@ -50,7 +49,6 @@ export default function App() {
       .then(setRows)
       .catch((e) => setError(String(e)))
       .finally(() => setLoadingRows(false));
-    api.verification().then(setProgress).catch(() => {});
   }, [region, status, verify, order]);
 
   useEffect(() => {
@@ -94,11 +92,6 @@ export default function App() {
     onNext: idx >= 0 && idx < rows.length - 1 ? () => loadDetail(rows[idx + 1].entry_id)
       : idx < 0 && rows.length ? () => loadDetail(rows[0].entry_id) : undefined,
   };
-  const onMarked = useCallback(() => {
-    loadRows();
-    api.regions().then(setRegions).catch(() => {});
-  }, [loadRows]);
-
   // After a save, refresh both the queue and the open detail.
   const onSaved = useCallback(() => {
     loadRows();
@@ -123,7 +116,6 @@ export default function App() {
         onVerify={setVerify}
         order={order}
         onOrder={setOrder}
-        progress={progress}
         onRefresh={() => {
           loadRows();
           api.regions().then(setRegions).catch(() => {});
@@ -156,7 +148,6 @@ export default function App() {
               onNavigate={loadDetail}
               reloadKey={reloadKey}
               nav={nav}
-              onMarked={onMarked}
             />
           </VocabCtx.Provider>
         ) : (

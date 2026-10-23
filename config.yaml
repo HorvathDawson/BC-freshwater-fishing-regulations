@@ -122,6 +122,8 @@ curated:
     overrides: "data/curated/regulations/overrides.json"
     steelhead_waters: "data/curated/regulations/steelhead_waters.json"  # authored — the known-steelhead list
     reference: "data/curated/regulations/reference"   # the book's text, verbatim (definitions, legend, licensing)
+    review:
+      marks: "data/curated/regulations/review/marks.jsonl"   # reviewed — the reviewers' marks, append-only (T97)
     entries:
       catalogue: "data/curated/regulations/entries/catalogue"
       dfo_salmon: "data/curated/regulations/entries/dfo_salmon"

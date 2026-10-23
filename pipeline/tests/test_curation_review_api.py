@@ -45,13 +45,13 @@ def env(request, tmp_path_factory):
         shutil.copy2(p, tmp / p.name)
     mp = pytest.MonkeyPatch()
     mp.setenv("CURATION_ENTRIES_DIR", str(tmp))
-    # the reviewer's marks go beside the copy, never beside the real catalogue
-    mp.setenv("CURATION_VERIFICATION", str(tmp / "verification.json"))
+    # the reviewer's marks go to a temp store, never the real one
+    (tmp / "marks.jsonl").write_text("")
+    mp.setenv("CURATION_MARKS", str(tmp / "marks.jsonl"))
     # every save backs its file up first (`writes.py`) — into a temp dir, never data/generated
     mp.setenv("CURATION_BACKUP_DIR", str(tmp_path_factory.mktemp("backups")))
     mp.syspath_prepend(str(BACKEND))
-    for mod in ("app", "reuse", "model_api", "verification", "answer",
-                "synopsis_pages", "writes"):
+    for mod in ("app", "reuse", "model_api", "answer", "synopsis_pages", "writes"):
         sys.modules.pop(mod, None)
     import app as app_mod                                     # noqa: E402
     import reuse                                              # noqa: E402
@@ -624,73 +624,117 @@ def test_covered_ids_read_matched_only(env, picks):
 
 
 # --------------------------------------------------------------------------- #
-# The review pass: a mark per entry, in a sidecar, against the entry's content
+# The review pass (T97): a mark in the append-only store, held against fingerprints
 # --------------------------------------------------------------------------- #
 
 BULL = "r4:bull_river@4-22"
+ALL_Y = {"T": "y", "R": "y", "P": "y", "A": "y"}
 
 
-def _mark(env, eid, state, note=""):
-    return env["client"].put(f"/api/entries/{eid}/verify", json={"state": state, "note": note})
+def _mark(env, eid, **over):
+    body = {"scope": "entry", "target": eid, "verdict": "verified", "answers": ALL_Y,
+            "reviewer": "tester", **over}
+    return env["client"].post("/api/marks", json=body)
 
 
-def test_verification_is_a_sidecar_keyed_by_content(env):
+def _entry_mark(env, eid):
+    ms = [m for m in _get(env, eid)["marks"] if m["scope"] == "entry"]
+    return ms[0] if ms else None
+
+
+@pytest.fixture
+def fresh_marks(env):
+    store = env["dir"] / "marks.jsonl"
+    store.write_text("")
+    yield store
+    store.write_text("")
+
+
+@pytest.mark.needs_bundle
+def test_a_mark_is_held_against_the_fingerprints_not_the_bytes(env, fresh_marks):
+    _the_bundle()
     reuse = env["reuse"]
-    side = env["dir"] / "verification.json"
-    assert reuse.VERIFICATION_PATH == side, "marks must go beside the copy the app serves"
+    assert reuse.MARKS_PATH == fresh_marks, "marks must go to the temp store"
     path = _file_of(env, BULL)
     before = path.read_bytes()
+    r = _mark(env, BULL)
+    assert r.status_code == 200, r.text
+    assert (r.json()["status"], r.json()["reasons"]) == ("verified", [])
+    assert path.read_bytes() == before, "marking an entry wrote to its region file"
+    rec, = [json.loads(x) for x in fresh_marks.read_text().splitlines()]
+    assert rec["reviewer"] == "tester" and len(rec["pdf_sha256"]) == 64
+    assert rec["pages"] and rec["prints"]["text"] and rec["prints"]["records"]
+    assert all("section" not in json.dumps(x) for x in rec["prints"]["records"])
+    assert _entry_mark(env, BULL)["status"] == "verified"
+    rows = env["client"].get("/api/entries", params={"region": "4", "verify": "verified"}).json()
+    assert [x["entry_id"] for x in rows] == [BULL]
+    todo = env["client"].get("/api/entries", params={"region": "4", "verify": "todo"}).json()
+    assert BULL not in {x["entry_id"] for x in todo}
+
+    # a placement edit stales it, saying so; putting it back makes it hold again
+    d = _get(env, BULL)
+    edited = copy.deepcopy(d["entry"])
+    edited["rules"][2]["includes_tributaries"] = \
+        edited["rules"][2].get("includes_tributaries") is False
+    assert _put(env, BULL, "4", edited).status_code == 200
+    got = _entry_mark(env, BULL)
+    assert (got["status"], got["reasons"]) == ("stale", ["binding moved"])
+    row, = [x for x in env["client"].get("/api/entries", params={"region": "4",
+                                                                   "verify": "stale"}).json()]
+    assert row["entry_id"] == BULL and row["mark_reasons"] == ["binding moved"]
+    assert _put(env, BULL, "4", d["entry"]).status_code == 200
+    assert path.read_bytes() == before
+    assert _entry_mark(env, BULL)["status"] == "verified"
+
+
+@pytest.mark.needs_bundle
+def test_a_mark_is_refused_without_what_it_needs(env, fresh_marks):
+    _the_bundle()
+    assert _mark(env, BULL, reviewer="").status_code == 422
+    assert _mark(env, BULL, verdict="wrong", answers={**ALL_Y, "R": "n"}).status_code == 422
+    assert _mark(env, BULL, surprise=1).status_code == 422
+    assert _mark(env, "r9:nope").status_code == 404
+    assert _mark(env, BULL, scope="rule", rule_id="no_such_rule").status_code == 404
+    r = _mark(env, BULL, verdict="wrong", answers={**ALL_Y, "R": "n"}, problem="quota",
+              note="Galbraith cut")
+    assert r.status_code == 200 and r.json()["status"] == "wrong"
+    row = next(x for x in env["client"].get(
+        "/api/entries", params={"region": "4", "verify": "wrong"}).json()
+        if x["entry_id"] == BULL)
+    assert row["verify_note"] == "Galbraith cut"
+
+
+@pytest.mark.needs_bundle
+def test_a_mark_is_refused_on_an_entry_that_fails_the_gate(env, fresh_marks):
+    _the_bundle()
+    path = _file_of(env, BULL)
+    before = path.read_bytes()
+    doc = json.loads(before)
+    e = next(x for x in doc["entries"] if x["entry_id"] == BULL)
+    r0 = next(r for r in e["rules"] if r.get("take") is not None)
+    r0["take"] = 97                                   # a number its sentence does not print
+    path.write_text(json.dumps(doc, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
     try:
-        r = _mark(env, BULL, "verified")
-        assert r.status_code == 200, r.text
-        assert r.json()["status"] == "verified"
-        assert path.read_bytes() == before, "marking an entry wrote to its region file"
-        rec = json.loads(side.read_text())["entries"][BULL]
-        assert set(rec) == {"state", "hash", "note"} and rec["state"] == "verified"
-        assert _get(env, BULL)["verification"]["status"] == "verified"
-        rows = env["client"].get("/api/entries", params={"region": "4", "verify": "verified"}).json()
-        assert [x["entry_id"] for x in rows] == [BULL]
-        todo = env["client"].get("/api/entries", params={"region": "4", "verify": "todo"}).json()
-        assert BULL not in {x["entry_id"] for x in todo}
-        prog = env["client"].get("/api/verification", params={"region": "4"}).json()
-        assert prog["verified"] == 1 and prog["total"] == len(todo) + 1
-
-        # an edit makes the mark STALE: it was verified, not in the form it has now
-        d = _get(env, BULL)
-        edited = copy.deepcopy(d["entry"])
-        # flip it (bull_river.r3 is `false` since the RULES round's Q4: the row's ✱ is printed
-        # after its catch-and-release reaches only)
-        edited["rules"][2]["includes_tributaries"] = \
-            edited["rules"][2].get("includes_tributaries") is False
-        assert _put(env, BULL, "4", edited).status_code == 200
-        assert _get(env, BULL)["verification"]["status"] == "stale"
-        assert [x["entry_id"] for x in env["client"].get(
-            "/api/entries", params={"region": "4", "verify": "stale"}).json()] == [BULL]
-        # and putting it back makes it verified again — the hash is of the content, not a counter
-        assert _put(env, BULL, "4", d["entry"]).status_code == 200
-        assert path.read_bytes() == before
-        assert _get(env, BULL)["verification"]["status"] == "verified"
+        r = _mark(env, BULL)
+        assert r.status_code == 422 and "fails the gate" in r.text, r.text
+        assert fresh_marks.read_text() == ""
     finally:
-        _mark(env, BULL, "unverified")
-    assert _get(env, BULL)["verification"]["status"] == "unverified"
-    assert BULL not in json.loads(side.read_text())["entries"]
+        path.write_bytes(before)
 
 
-def test_a_flag_needs_a_note_and_stands_through_edits(env):
-    r = _mark(env, BULL, "flagged")
-    assert r.status_code == 422 and "note" in r.text
-    r = _mark(env, BULL, "bogus", "x")
-    assert r.status_code == 422
-    try:
-        assert _mark(env, BULL, "flagged", "Galbraith cut").json()["status"] == "flagged"
-        row = next(x for x in env["client"].get(
-            "/api/entries", params={"region": "4", "verify": "flagged"}).json()
-            if x["entry_id"] == BULL)
-        assert row["verify_note"] == "Galbraith cut"
-    finally:
-        _mark(env, BULL, "unverified")
-    assert env["client"].put("/api/entries/r9:nope/verify",
-                             json={"state": "verified"}).status_code == 404
+@pytest.mark.needs_bundle
+def test_a_split_gets_its_own_mark(env, fresh_marks):
+    _the_bundle()
+    states = env["client"].get("/api/marks/splits").json()
+    sid = sorted(states)[0]
+    assert states[sid]["status"] == "unmarked"
+    r = env["client"].post("/api/marks", json={"scope": "split", "target": sid,
+                                               "verdict": "verified", "answers": {"P": "y"},
+                                               "reviewer": "tester"})
+    assert r.status_code == 200, r.text
+    assert env["client"].get("/api/marks/splits").json()[sid]["status"] == "verified"
+    assert [m["target"] for m in env["client"].get("/api/marks", params={"scope": "split"}
+                                                   ).json()] == [sid]
 
 
 def test_book_order_is_region_then_page(env):

@@ -152,20 +152,31 @@ highlights from it, and falls back to the raw per-extent resolve only when it is
 ## The review pass
 
 ### GET /api/entries?…&verify=&order=
-`verify` ∈ `unverified | verified | stale | flagged | todo` (todo = not currently verified);
-`order` ∈ `attention` (default) `| book` (region, printed page, chapter before tables, file order).
-Each row also carries `page` (first printed page), `pointer` (a "See X" row with no rules),
-`verify` and `verify_note`. `GET /api/regions` adds `by_verify` counts.
+`verify` ∈ `unmarked | verified | wrong | unsure | deferred | stale | todo` (todo = not currently
+verified); `order` ∈ `attention` (default) `| book` (region, printed page, chapter before tables,
+file order). Each row also carries `page` (first printed page), `pointer` (a "See X" row with no
+rules), `verify`, `verify_note` and `mark_reasons` (the stale reasons). `GET /api/regions` adds
+`by_verify` counts.
 
-### GET /api/verification?region=
-→ `{total, verified, stale, flagged, unverified}` over a region or the whole corpus.
+### POST /api/marks  (T97)
+Body `{scope: entry | rule | split, target, rule_id?, verdict: verified | wrong | unsure | deferred,
+answers: {T, R, P, A: y | n | ?}, problem?, note, reviewer, pages?}` (a split answers `P` only).
+The server stamps `date`, `pdf_sha256` (the repo PDF) and the target's fingerprints
+(`pipeline.regs.review.fingerprint`), and APPENDS the mark to `data/curated/regulations/review/marks.jsonl`
+(or `CURATION_MARKS`) through the backed-up commit. `422` for a mark the model refuses (`verified`
+needs every check `y`; `wrong` a `n`, a problem and a note; no reviewer; an unknown field) or an
+entry that FAILS THE GATE; `404` for an unknown entry, rule or split. → the mark with `status` and
+`reasons`.
 
-### PUT /api/entries/{entry_id}/verify
-Body `{state: "verified" | "flagged" | "unverified", note}` → `{entry_id, record, status}`.
-Writes the sidecar `verification.json` (beside `catalogue/`, or `CURATION_VERIFICATION`) — never the
-entry. `422` for an unknown state or a flag with no note; `404` for an unknown entry. The record's
-`hash` is the entry's content hash, so a later edit reads `stale`. `GET /api/entries/{id}` carries
-`verification: {status, note, hash}`.
+### GET /api/marks?target=&scope=
+→ the marks in force (the last per target), each with `status` (`verified | wrong | unsure |
+deferred | stale`) and `reasons` (`book text changed | rule changed | binding moved | answer changed
+| awaiting build`) against the target NOW. `GET /api/entries/{id}` carries `marks` (its entry and
+rule marks, the same shape).
+
+### GET /api/marks/splits
+→ `{split_id: {status, verdict, reasons}}` for every split in splits.json; a split nobody has
+confirmed is `unmarked` (a split added mid-review queues itself).
 
 ## What an angler is told (the live bundle)
 

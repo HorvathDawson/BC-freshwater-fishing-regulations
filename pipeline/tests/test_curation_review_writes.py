@@ -1,7 +1,7 @@
 """The curation-review app's WRITES: validated, backed up, all or nothing, and never served stale.
 
 Runs the backend (curation-review/backend) against TEMP COPIES of every curated file it writes —
-the catalogue region files, the DFO salmon entry files, splits.json, the verification sidecar —
+the catalogue region files, the DFO salmon entry files, splits.json, the marks store —
 with backups going to a temp dir (`CURATION_BACKUP_DIR`). Never the real files.
 
   save_split    validated by the pipeline's own split loader; an invalid split is a 422 naming
@@ -25,8 +25,7 @@ from pipeline.common.curated import CURATED
 
 REPO = Path(__file__).resolve().parents[2]
 BACKEND = REPO / "curation-review" / "backend"
-_MODS = ("app", "reuse", "model_api", "verification", "answer", "synopsis_pages",
-         "writes")
+_MODS = ("app", "reuse", "model_api", "answer", "synopsis_pages", "writes")
 
 
 @pytest.fixture
@@ -43,7 +42,10 @@ def env(tmp_path):
     shutil.copy2(CURATED.waters.splits, splits)
     mp = pytest.MonkeyPatch()
     mp.setenv("CURATION_ENTRIES_DIR", str(cat))
-    mp.setenv("CURATION_VERIFICATION", str(tmp_path / "verification.json"))
+    marks = tmp_path / "review" / "marks.jsonl"          # the store is checked in, empty
+    marks.parent.mkdir()
+    marks.write_text("")
+    mp.setenv("CURATION_MARKS", str(marks))
     mp.setenv("CURATION_SPLITS_JSON", str(splits))
     mp.setenv("CURATION_DFO_ENTRIES_DIR", str(dfo))
     mp.setenv("CURATION_BACKUP_DIR", str(bak))
@@ -57,7 +59,8 @@ def env(tmp_path):
     assert reuse.DFO_ENTRIES_DIR == dfo and writes.BACKUP_ROOT == bak
     from fastapi.testclient import TestClient
     yield {"client": TestClient(app_mod.app), "reuse": reuse, "writes": writes, "tmp": tmp_path,
-           "cat": cat, "dfo": dfo, "splits": splits, "backups": bak, "mp": mp}
+           "cat": cat, "dfo": dfo, "splits": splits, "backups": bak, "mp": mp,
+           "marks": marks}
     mp.undo()
     for mod in _MODS:
         sys.modules.pop(mod, None)
@@ -257,20 +260,27 @@ def test_entry_save_backs_up_the_file_first(env):
     assert (snap / "catalogue" / path.name).read_bytes() == before
 
 
+def _post_mark(c, eid: str, **over):
+    body = {"scope": "entry", "target": eid, "verdict": "verified",
+            "answers": {"T": "y", "R": "y", "P": "y", "A": "y"}, "reviewer": "tester", **over}
+    return c.post("/api/marks", json=body)
+
+
 @pytest.mark.needs_atlas
-def test_a_verification_mark_backs_up_the_sidecar(env):
+def test_a_mark_backs_up_the_store_and_only_appends(env):
     path = min(env["cat"].glob("region-*.json"), key=lambda p: p.stat().st_size)
     eid = json.loads(path.read_text(encoding="utf-8"))["entries"][0]["entry_id"]
-    side = env["tmp"] / "verification.json"
-    c = env["client"]
-    assert c.put(f"/api/entries/{eid}/verify", json={"state": "verified"}).status_code == 200
+    c, store = env["client"], env["marks"]
+    r = _post_mark(c, eid)
+    assert r.status_code == 200, r.text
     first, = _snapshots(env)
-    assert (first / "ABSENT").read_text().split() == [f"{env['tmp'].name}/verification.json"]
-    before = side.read_bytes()
-    assert c.put(f"/api/entries/{eid}/verify",
-                 json={"state": "flagged", "note": "x"}).status_code == 200
+    assert (first / "review" / "marks.jsonl").read_bytes() == b""
+    once = store.read_bytes()
+    r = _post_mark(c, eid, verdict="deferred", answers={}, note="later")
+    assert r.status_code == 200, r.text
     second = _snapshots(env)[-1]
-    assert next(second.rglob("verification.json")).read_bytes() == before
+    assert (second / "review" / "marks.jsonl").read_bytes() == once
+    assert store.read_bytes().startswith(once) and len(store.read_text().splitlines()) == 2
 
 
 # --------------------------------------------------------------------------- #
@@ -321,43 +331,52 @@ def _entry_binding(env, sid: str) -> tuple[str, str]:
     return best[1], best[2]
 
 
-def _verify_state(env, eid: str) -> str:
-    return env["client"].get(f"/api/entries/{eid}").json()["verification"]["status"]
+def _mark_state(env, eid: str) -> dict:
+    ms = env["client"].get(f"/api/entries/{eid}").json()["marks"]
+    entry_mark, = [m for m in ms if m["scope"] == "entry"]
+    return entry_mark
 
 
 @pytest.mark.needs_atlas
-def test_rename_carries_verified_marks_and_other_edits_still_stale_them(env):
+def test_rename_carries_marks_and_other_edits_still_stale_them(env):
     c, sid, new = env["client"], _renameable(env), "renamed_for_test"
     region, eid = _entry_binding(env, sid)
-    assert c.put(f"/api/entries/{eid}/verify", json={"state": "verified"}).status_code == 200
-    assert _verify_state(env, eid) == "verified"
-    side = env["tmp"] / "verification.json"
-    before_side = side.read_bytes()
+    assert _post_mark(c, eid).status_code == 200
+    assert c.post("/api/marks", json={"scope": "split", "target": sid, "verdict": "verified",
+                                      "answers": {"P": "y"}, "reviewer": "tester"}
+                  ).status_code == 200
+    assert _mark_state(env, eid)["status"] == "verified"
+    before_store = env["marks"].read_bytes()
     n_snaps = len(_snapshots(env))
     r = c.post(f"/api/splits/{sid}/rename", json={"new_id": new})
     assert r.status_code == 200, r.text
-    assert eid in r.json()["carried_marks"]
-    assert _verify_state(env, eid) == "verified", "only the split id changed — the mark stands"
-    snap = _snapshots(env)[n_snaps]                 # the rename's ONE snapshot holds the sidecar
-    assert (snap / env["tmp"].name / "verification.json").read_bytes() == before_side
+    assert eid in r.json()["carried_marks"] and new in r.json()["carried_marks"]
+    got = _mark_state(env, eid)
+    assert got["status"] == "verified", "only the split id changed — the mark stands"
+    assert got["carried_by"] == f"rename-split {sid} -> {new}"
+    assert c.get("/api/marks/splits").json()[new]["status"] == "verified"
+    snap = _snapshots(env)[n_snaps]                 # the rename's ONE snapshot holds the store
+    assert (snap / "review" / "marks.jsonl").read_bytes() == before_store
+    assert env["marks"].read_bytes().startswith(before_store), "carried, never edited"
     entry = c.get(f"/api/entries/{eid}").json()["entry"]
     entry["scope_note"] = (entry.get("scope_note") or "") + " curator edit"
     r = c.put(f"/api/entries/{eid}", json={"region": region, "entry": entry})
     assert r.status_code == 200, r.text
-    assert _verify_state(env, eid) == "stale", "any other edit still makes the mark stale"
+    got = _mark_state(env, eid)
+    assert (got["status"], got["reasons"]) == ("stale", ["rule changed"])
 
 
 @pytest.mark.needs_atlas
 def test_rename_rolls_the_carried_marks_back_too(env):
     c, sid = env["client"], _renameable(env)
     _, eid = _entry_binding(env, sid)
-    assert c.put(f"/api/entries/{eid}/verify", json={"state": "verified"}).status_code == 200
-    side = env["tmp"] / "verification.json"
-    before = {**_files(env), side: side.read_bytes()}
+    assert _post_mark(c, eid).status_code == 200
+    store = env["marks"]
+    before = {**_files(env), store: store.read_bytes()}
     _fail_on_call(env, 3)
     r = c.post(f"/api/splits/{sid}/rename", json={"new_id": "renamed_for_test"})
     assert r.status_code == 422, r.text
-    assert {**_files(env), side: side.read_bytes()} == before
+    assert {**_files(env), store: store.read_bytes()} == before
 
 
 # --------------------------------------------------------------------------- #

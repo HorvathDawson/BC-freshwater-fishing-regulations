@@ -34,7 +34,6 @@ from pipeline.regs.parsing.catalogue import CatalogueRule, label as rule_label
 from pipeline.atlas.reach.covered import covered_ids as _pipeline_covered_ids
 import answer
 import model_api
-import verification
 import writes
 from pipeline.regs.parsing.rows import load_synopsis_rows
 from pipeline.atlas.registry import load_registry
@@ -42,9 +41,9 @@ from pipeline.atlas.reach.build import build_reach as _build_reach, resolve_carv
 from pipeline.atlas.reach.build import entry_scope as _entry_scope
 from pipeline.atlas.reach.classify import wants_tributaries as _wants_tributaries
 from pipeline.atlas.reach import extent as _resolve
-from pipeline.common.utils.wsc import trim_wsc
 from pipeline.common.curated import CURATED, GENERATED, SOURCE
 from pipeline.atlas.splits.sectionizer import _auto_split
+from pipeline.atlas.splits.splits import splits_on
 
 _ROOT = Path(__file__).resolve().parents[2]
 #: The catalogue region files the app reads AND WRITES. `CURATION_ENTRIES_DIR` points it at a copy
@@ -71,8 +70,10 @@ DFO_ENTRIES_DIR = (Path(os.environ["CURATION_DFO_ENTRIES_DIR"])
                    if os.environ.get("CURATION_DFO_ENTRIES_DIR")
                    else CURATED.regulations.entries.dfo_salmon)
 ROW_IMAGES_DIR = GENERATED.regs.extraction / "row_images"  # source synopsis row crops
-#: The reviewer's marks (verified / flagged), a sidecar beside the catalogue — never in an entry.
-VERIFICATION_PATH = verification.path_for(ENTRIES_DIR)
+#: THE REVIEWERS' MARKS (T97): the append-only store `pipeline.regs.review.marks` reads — never a
+#: field of an entry. `CURATION_MARKS` points it at a copy (tests).
+MARKS_PATH = (Path(os.environ["CURATION_MARKS"]) if os.environ.get("CURATION_MARKS")
+              else CURATED.regulations.review.marks)
 
 
 # --------------------------------------------------------------------------- #
@@ -418,39 +419,16 @@ def unused_curated_splits(e: dict, item: dict | None) -> list[dict]:
     return out
 
 
-def _applies_keys(at: dict | None) -> set[str]:
-    """The registry ref_ids a splits.json `applies_to` names."""
-    at = at or {}
-    keys: set[str] = set()
-    if at.get("gnis_id") is not None:
-        keys.add(f"gnis:{at['gnis_id']}")
-    for g in (at.get("gnis_ids") or []):
-        keys.add(f"gnis:{g}")
-    if at.get("wsc"):
-        keys.add(f"wsc:{trim_wsc(str(at['wsc']))}")   # registry ref_ids store the TRIMMED wsc
-    if at.get("blk"):
-        keys.add(f"blk:{at['blk']}")
-    return keys
-
-
 def _item_split_source(item) -> list[dict]:
     """Live splits.json splits on the SAME waterbody as this registry item (applies_to matched to the
     item's ref_ids). May include splits not yet built into the graph (pending rebuild).
 
-    A split's own `applies_to` counts beside its waterbody's: four waterbodies (Atnarko/Bella
-    Coola, Skeena/Kispiox, Lynn Creek, Whiteswan) carry `applies_to: null` and put it on each split.
-    Reading only the waterbody's, every one of their built cut-points showed "orphan — removed from
-    splits.json, will vanish on rebuild" while splits.json held it unchanged."""
+    `pipeline.atlas.splits.splits.splits_on` is the one answer (the review fingerprint reads it
+    too); a split's own `applies_to` counts beside its waterbody's — reading only the waterbody's,
+    the Atnarko/Bella Coola cut-points showed "orphan" while splits.json held them unchanged."""
     if item is None:
         return []
-    refs = set(item.ref_ids)
-    out: list[dict] = []
-    for wb in _load_splits().get("waterbodies", []):
-        wb_keys = _applies_keys(wb.get("applies_to"))
-        for sp in wb.get("splits", []):
-            if (wb_keys | _applies_keys(sp.get("applies_to"))) & refs:
-                out.append(sp)
-    return out
+    return splits_on(_load_splits(), set(item.ref_ids))
 
 
 def bindable(item) -> list[dict]:
@@ -886,9 +864,10 @@ def queue(region: str | None = None, status: str | None = None,
     printed on, the region chapter's entries before that page's table rows, then the file's
     order (alphabetical within a table, as the book prints it).
 
-    `verify` filters on the reviewer's mark (`verification.STATUSES`): unverified | verified |
-    stale (verified, then changed) | flagged; `todo` is everything not currently verified."""
-    marks = verification.load(VERIFICATION_PATH)
+    `verify` filters on the reviewer's mark (`MARK_STATUSES`): unmarked | verified | wrong |
+    unsure | deferred | stale (marked, then changed — `mark_reasons` says why); `todo` is
+    everything not currently verified."""
+    states = _mark_states()
     rows = []
     src = [(region, e) for eid, e in load_region(region).items()] if region else _all_entries()
     for pos, (reg_id, e) in enumerate(src):
@@ -898,8 +877,8 @@ def queue(region: str | None = None, status: str | None = None,
             continue
         if kind and entry_kind(e) != kind:
             continue
-        rec = marks.get(e["entry_id"])
-        vst = verification.status_of(rec, verification.entry_hash(e))
+        mst = _entry_mark_state(e, states)
+        vst = mst["status"]
         if verify and not (vst == verify or (verify == "todo" and vst != "verified")):
             continue
         pages = [p for p in (e.get("source_pages") or []) if isinstance(p, int)]
@@ -918,7 +897,8 @@ def queue(region: str | None = None, status: str | None = None,
             "page": min(pages) if pages else None,
             "pointer": bool(e.get("see")) and not e.get("rules"),
             "verify": vst,
-            "verify_note": (rec or {}).get("note", ""),
+            "verify_note": mst["note"],
+            "mark_reasons": mst["reasons"],
             "_pos": pos,
         })
     if order == "book":
@@ -940,28 +920,194 @@ def _region_key(region: str) -> tuple:
     return (1, int(num) if num else 99, region)
 
 
-def verification_summary(region: str | None = None) -> dict:
-    """{total, verified, stale, flagged, unverified} over a region (or the whole corpus)."""
-    marks = verification.load(VERIFICATION_PATH)
-    src = load_region(region).values() if region else (e for _, e in _all_entries())
-    out = {k: 0 for k in verification.STATUSES}
-    n = 0
-    for e in src:
-        n += 1
-        out[verification.status_of(marks.get(e["entry_id"]), verification.entry_hash(e))] += 1
-    return {"total": n, **out}
+# --------------------------------------------------------------------------- #
+# Review marks (T97): `pipeline.regs.review` decides; this only serves and stores
+# --------------------------------------------------------------------------- #
+
+#: what the queue reports for an entry's marks (`pipeline.regs.review.marks.status`)
+MARK_STATUSES = ("unmarked", "verified", "wrong", "unsure", "deferred", "stale")
 
 
-def mark_entry(entry_id: str, state: str, note: str = "") -> dict:
-    """Record a reviewer's call on an entry, against its content as it is on disk NOW."""
+def _canonical(e: dict) -> dict:
+    """An entry read RAW, with absorbed ids folded as `load_region` folds them."""
+    from pipeline.atlas.registry.flowing import canonical_ids
+    return canonical_ids(e, _registry())
+
+
+def _review_context():
+    """The fingerprint context of the vintage on disk NOW: splits.json, the overrides, the served
+    registry and the bundle's facts. Keyed on their stamps, so an edited split or a rebuilt bundle
+    is read on the next request."""
+    from pipeline.deliver.bundle import read as _R
+    return _review_context_for(_stamp((SPLITS_JSON_PATH, OVERRIDES_PATH, Path(_R.BUNDLE),
+                                       REGISTRY_PATH)))
+
+
+@lru_cache(maxsize=1)
+def _review_context_for(_key: tuple):
+    from pipeline.deliver.bundle import read as _R
+    from pipeline.regs.review import fingerprint as F
+    # No bundle yet is a state, not an error: a mark then holds no bundle half (`reach`/`answer`
+    # None) and "awaiting build" cannot arise from it.
+    bundle = F.BundleFacts.read(_R.BUNDLE) if Path(_R.BUNDLE).exists() else None
+    ctx = F.Context(splits=json.loads(SPLITS_JSON_PATH.read_text(encoding="utf-8")),
+                    overrides=tuple(load_overrides(OVERRIDES_PATH)), registry=_registry(),
+                    bundle=bundle)
+    ctx.prints_memo = {}                       # entry content -> prints, for this vintage only
+    return ctx
+
+
+def _prints(e: dict):
+    """The entry's prints now (every record), memoised per vintage on the entry's content."""
+    from pipeline.regs.review import fingerprint as F
+    from pipeline.regs.review.marks import Prints
+    ctx = _review_context()
+    key = json.dumps(e, sort_keys=True, ensure_ascii=False)
+    got = ctx.prints_memo.get(key)
+    if got is None:
+        got = ctx.prints_memo[key] = Prints.model_validate(F.entry_fingerprints(e, ctx))
+    return got
+
+
+def _mark_states() -> dict[str, list]:
+    """target -> the marks in force on it (`marks.latest`), read from the store now."""
+    from pipeline.regs.review import marks as M
+    out: dict[str, list] = {}
+    for m in M.latest(M.load(MARKS_PATH)).values():
+        out.setdefault(m.target, []).append(m)
+    return out
+
+
+def _mark_view(m, now) -> dict:
+    from pipeline.regs.review import marks as M
+    return {**json.loads(m.model_dump_json()), **M.status(m, now)}
+
+
+def _entry_mark_state(e: dict, states: dict[str, list]) -> dict:
+    """The queue's one word for an entry's marks: its entry mark's status; for an entry marked
+    per rule (zone entries), stale / wrong / unsure / deferred if any rule mark is, verified when
+    every rule holds a verified mark, else unmarked. `reasons` are the stale reasons."""
+    from pipeline.regs.review import marks as M
+    ms = states.get(e["entry_id"]) or []
+    if not ms:
+        return {"status": "unmarked", "note": "", "reasons": []}
+    now = _prints(e)
+    entry_mark = next((m for m in ms if m.scope == "entry"), None)
+    if entry_mark is not None:
+        st = M.status(entry_mark, now)
+        return {"status": st["status"], "note": entry_mark.note, "reasons": st["reasons"]}
+    sts = [(m, M.status(m, now)) for m in ms if m.scope == "rule"]
+    for word in ("stale", "wrong", "unsure", "deferred"):
+        hit = [(m, st) for m, st in sts if st["status"] == word]
+        if hit:
+            return {"status": word, "note": hit[0][0].note,
+                    "reasons": sorted({r for _, st in hit for r in st["reasons"]},
+                                      key=[x.value for x in M.STALE_REASONS].index)}
+    marked = {m.rule_id for m, st in sts if st["status"] == "verified"}
+    every = {r.get("rule_id") for r in e.get("rules") or []}
+    return {"status": "verified" if every and every <= marked else "unmarked", "note": "",
+            "reasons": []}
+
+
+def entry_marks(entry_id: str) -> list[dict]:
+    """The marks in force on this entry (its entry mark and its rule marks), each with its
+    status and stale reasons NOW."""
     found = _find(entry_id)
     if found is None:
-        raise KeyError(entry_id)
-    _, e = found
-    with writes.LOCK:                                  # load + write the sidecar as one step
-        rec = verification.mark(VERIFICATION_PATH, entry_id, e, state, note)
-    return {"entry_id": entry_id, "record": rec,
-            "status": verification.status_of(rec or None, verification.entry_hash(e))}
+        return []
+    now = _prints(found[1])
+    return [_mark_view(m, now) for m in _mark_states().get(entry_id, [])
+            if m.scope in ("entry", "rule")]
+
+
+def marks_view(target: str | None = None, scope: str | None = None) -> list[dict]:
+    """The marks in force (optionally on one target / of one scope), each with its status and
+    stale reasons against its target as it is NOW."""
+    from pipeline.regs.review import fingerprint as F
+    from pipeline.regs.review.marks import Prints
+    ctx = _review_context()
+    entries = {e["entry_id"]: e for _, e in _all_entries()}
+    out = []
+    for tgt, ms in sorted(_mark_states().items()):
+        if target is not None and tgt != target:
+            continue
+        for m in ms:
+            if scope is not None and m.scope != scope:
+                continue
+            if m.scope == "split":
+                try:
+                    now = Prints.model_validate(F.split_fingerprints(tgt, ctx))
+                except KeyError:
+                    now = None
+            else:
+                now = _prints(entries[tgt]) if tgt in entries else None
+            out.append(_mark_view(m, now))
+    return out
+
+
+def split_mark_states() -> dict[str, dict]:
+    """splits.json split id -> its mark status now (`marks.split_states`)."""
+    from pipeline.regs.review import marks as M
+    return M.split_states(M.load(MARKS_PATH), _review_context())
+
+
+_PDF_SHA: dict[tuple, str] = {}
+
+
+def _pdf_sha256() -> str:
+    """The sha256 of the book the reviewer reads (the repo copy, whose bytes are not gov.bc.ca's)."""
+    import hashlib
+    import synopsis_pages
+    key = _stamp((synopsis_pages.PDF_PATH,))
+    if key not in _PDF_SHA:
+        _PDF_SHA.clear()
+        _PDF_SHA[key] = hashlib.sha256(Path(synopsis_pages.PDF_PATH).read_bytes()).hexdigest()
+    return _PDF_SHA[key]
+
+
+def post_mark(body: dict) -> dict:
+    """Record a reviewer's mark: fingerprints taken from the target as it is on disk NOW, the
+    date and the book's sha256 stamped here, appended to the store through the backed-up commit.
+    REFUSED (ValueError) on an entry that fails the gate; KeyError for an unknown target."""
+    import datetime as _dt
+    from pipeline.regs.review import fingerprint as F
+    from pipeline.regs.review import marks as M
+    scope, target = body.get("scope"), str(body.get("target") or "")
+    ctx = _review_context()
+    with writes.LOCK:
+        if scope == "split":
+            prints = F.split_fingerprints(target, ctx)                 # KeyError: not in splits.json
+            pages = body.get("pages") or []
+        else:
+            found = _find(target)
+            if found is None:
+                raise KeyError(target)
+            region, e = found
+            M.refuse_on_gate(target, check_entry(e, region)["errors"])
+            prints = F.entry_fingerprints(e, ctx, rule_id=body.get("rule_id")
+                                          if scope == "rule" else None)
+            pages = body.get("pages") or [p for p in e.get("source_pages") or []
+                                          if isinstance(p, int)]
+        mark = M.Mark.model_validate({**body, "date": _dt.date.today().isoformat(),
+                                      "pdf_sha256": _pdf_sha256(), "pages": pages,
+                                      "prints": prints})
+        writes.commit([(MARKS_PATH, M.appended(MARKS_PATH, [mark]))], "mark")
+    now = M.Prints.model_validate(prints) if scope == "split" else _prints(e)
+    return _mark_view(mark, now)
+
+
+def _carry_rename(before: dict, after: dict, old_id: str, new_id: str, new_splits: dict) -> list:
+    """The marks a split rename re-stamps (`review.carry_marks`): a rename moves nothing, so it
+    declares EVERY entry and the split itself unchanged; only marks that held before are carried."""
+    from pipeline.regs.review import carry_marks
+    from pipeline.regs.review import fingerprint as F
+    from pipeline.regs.review import marks as M
+    ctx_b = _review_context()
+    ctx_a = F.Context(splits=new_splits, overrides=ctx_b.overrides, registry=ctx_b.registry,
+                      bundle=ctx_b.bundle)
+    return carry_marks(before, after, marks=M.load(MARKS_PATH), unchanged=set(after),
+                       by=f"rename-split {old_id} -> {new_id}", ctx_before=ctx_b, ctx_after=ctx_a,
+                       renamed_splits={old_id: new_id})
 
 
 def entry_answer_context(entry_id: str) -> dict | None:
@@ -1017,17 +1163,9 @@ def entry_detail(entry_id: str) -> dict | None:
             "related_entries": related_entries(entry_id),   # other rows over the same water
             "unused_curated_splits": unused_curated_splits(e, item),
             "source_image": entry_source_image(e),
-            "verification": _verification_of(entry_id),
+            "marks": entry_marks(entry_id),
         }
     return None
-
-
-def _verification_of(entry_id: str) -> dict:
-    found = _find(entry_id)
-    rec = verification.load(VERIFICATION_PATH).get(entry_id)
-    h = verification.entry_hash(found[1]) if found else ""
-    return {"status": verification.status_of(rec, h), "note": (rec or {}).get("note", ""),
-            "hash": h}
 
 
 def species_list() -> list[dict]:
@@ -1773,28 +1911,29 @@ def rename_split(old_id: str, new_id: str) -> dict:
         changes: list[tuple[Path, str]] = [(SPLITS_JSON_PATH, _dump_splits(data))]
         refs = split_refs(old_id)                      # the preview's rows, for the report
 
-        marks = verification.load(VERIFICATION_PATH)
         carried: list[str] = []
+        before_corpus: dict[str, dict] = {}
+        after_corpus: dict[str, dict] = {}
+        swapped: set[str] = set()
         try:
             for region in regions():                   # catalogue: read RAW, rewrite only split ids
                 path = ENTRIES_DIR / f"region-{region}.json"
                 entries = io.read_entryfile(path)
-                if sum(_swap_split(e, old_id, new_id) for e in entries.values()):
+                before_corpus.update(load_region(region))
+                for eid, e in entries.items():
+                    if _swap_split(e, old_id, new_id):
+                        swapped.add(eid)
+                if any(eid in swapped for eid in entries):
                     changes.append((path, _render_entryfile(path, region, entries.values())))
-                    # CARRY THE MARKS OVER (user, 2026-10-09): an entry whose ONLY change is the
-                    # renamed id keeps its mark — its hash is re-keyed to the renamed content.
-                    # Hashed as the queue hashes it (`load_region`); a mark already stale (its
-                    # hash is not the entry's now) stays stale.
-                    for eid, e in load_region(region).items():
-                        rec = marks.get(eid)
-                        if not rec or rec.get("hash") != verification.entry_hash(e):
-                            continue
-                        e2 = copy.deepcopy(e)
-                        if _swap_split(e2, old_id, new_id):
-                            marks[eid] = {**rec, "hash": verification.entry_hash(e2)}
-                            carried.append(eid)
-            if carried:
-                changes.append((VERIFICATION_PATH, verification.render(marks)))
+                after_corpus.update({eid: _canonical(e) for eid, e in entries.items()})
+            # CARRY THE MARKS OVER (user, 2026-10-09; T97): an entry whose ONLY change is the renamed
+            # id, and the split's own mark, are declared unchanged — `review.carry_marks` re-stamps
+            # the marks that held before; a mark already stale stays stale.
+            new_marks = _carry_rename(before_corpus, after_corpus, old_id, new_id, data)
+            if new_marks:
+                from pipeline.regs.review import marks as M
+                changes.append((MARKS_PATH, M.appended(MARKS_PATH, new_marks)))
+                carried = sorted({m.target for m in new_marks})
             dfo: list[str] = []
             for path in sorted(Path(DFO_ENTRIES_DIR).glob("region-*.json")):
                 doc = json.loads(path.read_text(encoding="utf-8"))
@@ -1939,4 +2078,4 @@ def save_entry(region: str, entry_dict: dict) -> dict:
 #: Every cache read from the served build — what `invalidate_caches` drops.
 _BUILD_CACHES = (_registry, _place_namer_for, _indices, _splits_meta, _split_points_attrs,
                  _blk_to_item, _tributary_items, item_tributaries, _graph, _geoms, _wbk_polys,
-                 _blk_index)
+                 _blk_index, _review_context_for)

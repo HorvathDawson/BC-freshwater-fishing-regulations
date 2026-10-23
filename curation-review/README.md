@@ -41,15 +41,19 @@ make the call the model couldn't.
 The queue's **order** is `book (page)` by default: region, then printed page, the region chapter's
 entries before that page's table rows. Each entry has a bar at the top:
 
-- **Verified · next** marks the entry checked against the book and opens the next one;
-  **Flag** needs a note saying what is wrong; **Clear** removes the mark; ← / → step through the list.
-- The mark is stored in a sidecar, `data/curated/regulations/entries/verification.json` (beside
-  `catalogue/`; `CURATION_VERIFICATION` overrides it), as `{entry_id: {state, hash, note}}` —
-  never inside an entry. `hash` is the content hash of the entry when it was marked, so an entry
-  edited afterwards (here, by a re-parse, by hand) shows **changed since verified** and returns to
-  the to-do list. The file does not exist until the first mark.
-- The **review** filter lists to do / never verified / changed since verified / flagged /
-  verified, with counts; the bar beside it is progress (region, and the whole corpus).
+- The bar shows the marks in force on the entry (read only) and ← / → to step through the list.
+  Marking is `POST /api/marks`; the screen that makes marks (T/R/P/A keys) is phase 3 (T134).
+- **Marks (T97)** live in the append-only store `data/curated/regulations/review/marks.jsonl`
+  (`CURATED.regulations.review.marks`; `CURATION_MARKS` overrides it), never inside an entry. Each
+  mark names its reviewer, date, the book's sha256 and the printed pages, and holds the target's
+  FINGERPRINTS (`pipeline.regs.review.fingerprint`: text, meaning, binding + its bundle half,
+  answer). When something it was held against changes, the mark reads **changed since marked** with
+  typed reasons — book text changed / rule changed / binding moved / answer changed / awaiting build
+  — so a no-op migration stales nothing and a moved split stales exactly the entries on its water.
+  A mark is refused on an entry that fails the gate. A split rename carries marks over
+  (`review.carry_marks`); a split added mid-review reads `unmarked` in `GET /api/marks/splits`.
+- The **review** filter lists to do / never marked / changed since marked / wrong / unsure /
+  deferred / verified, with counts; the bar beside it is progress (region, and the whole corpus).
 - An entry opens by URL: `http://127.0.0.1:5173/#r5:dean_river@5-9`.
 
 On each entry the reviewer sees: the book (the row crop, and **show page** for the whole printed
@@ -95,7 +99,7 @@ know is refused (422), not dropped. The one exception is each rule's `label`, wh
 stamps on what it serves and removes again on save.
 
 **Every write goes through `backend/writes.py`** (entry saves, split edit/delete/rename, the
-verification sidecar):
+marks store):
 
 - **Backed up first.** Each target is copied, byte for byte, into a snapshot
   `data/generated/regs/entries_backup/curation-review/<UTC stamp>-<action>/<dir>/<file>` (the same

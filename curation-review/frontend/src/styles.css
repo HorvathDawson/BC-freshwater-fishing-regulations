@@ -1095,8 +1095,8 @@ button.btn:disabled {
   color: var(--muted);
 }
 .verify-chip.verified { background: var(--ok-bg); border-color: var(--ok-border); color: var(--ok-text); }
-.verify-chip.stale { background: var(--warn-bg); border-color: var(--warn-border); color: var(--warn-text); }
-.verify-chip.flagged { background: var(--danger-bg); border-color: var(--danger-border); color: var(--danger-text); }
+.verify-chip.stale, .verify-chip.unsure { background: var(--warn-bg); border-color: var(--warn-border); color: var(--warn-text); }
+.verify-chip.wrong { background: var(--danger-bg); border-color: var(--danger-border); color: var(--danger-text); }
 .progress { display: inline-flex; gap: 6px; align-items: center; color: var(--text); }
 .progress .bar { width: 80px; height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden; }
 .progress .bar i { display: block; height: 100%; background: var(--ok-border); }

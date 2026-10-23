@@ -25,6 +25,7 @@ import type {
   EntryInBundle,
   QueueOrder,
   VerifyStatus,
+  MarkView,
 } from "./types";
 
 async function getJSON<T>(url: string): Promise<T> {
@@ -208,28 +209,10 @@ export const api = {
     return await res.json();
   },
 
-  // --- review marks (a sidecar keyed by entry_id + content hash; never inside the entry) ---
-  /** mark verified, flag with a note, or clear ("unverified"). Throws EntryRefused on 422. */
-  verify: async (entryId: string, state: "verified" | "flagged" | "unverified", note = "") => {
-    const res = await fetch(`/api/entries/${encodeURIComponent(entryId)}/verify`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ state, note }),
-    });
-    if (res.status === 422) {
-      const payload = await res.json().catch(() => ({}));
-      const err = new Error("refused") as EntryRefused;
-      err.fieldErrors = asFieldErrors(payload?.detail);
-      throw err;
-    }
-    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-    return (await res.json()) as { entry_id: string; status: VerifyStatus };
-  },
-
-  /** progress over a region, or the whole corpus */
-  verification: (region?: string) =>
-    getJSON<{ total: number; verified: number; stale: number; flagged: number; unverified: number }>(
-      `/api/verification${region ? `?region=${encodeURIComponent(region)}` : ""}`),
+  // --- review marks (T97: the append-only store; marking itself is the phase-3 review screen) ---
+  /** the marks in force, each with its status and stale reasons now */
+  marks: (target?: string) =>
+    getJSON<MarkView[]>(`/api/marks${target ? `?target=${encodeURIComponent(target)}` : ""}`),
 
   // --- what an angler is told: the live bundle ---
   entryBundle: (entryId: string) =>

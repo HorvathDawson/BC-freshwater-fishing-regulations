@@ -21,13 +21,12 @@ interface Props {
   onVerify: (v: VerifyStatus | "todo" | "") => void;
   order: QueueOrder;
   onOrder: (o: QueueOrder) => void;
-  /** verified / total over the whole corpus */
-  progress: { total: number; verified: number } | null;
 }
 
 const REVIEW: [VerifyStatus | "todo" | "", string][] = [
-  ["", "all"], ["todo", "to do (not verified)"], ["unverified", "never verified"],
-  ["stale", "changed since verified"], ["flagged", "flagged"], ["verified", "verified"],
+  ["", "all"], ["todo", "to do (not verified)"], ["unmarked", "never marked"],
+  ["stale", "changed since marked"], ["wrong", "wrong"], ["unsure", "unsure"],
+  ["deferred", "deferred"], ["verified", "verified"],
 ];
 
 export function FilterBar({
@@ -42,9 +41,13 @@ export function FilterBar({
   onVerify,
   order,
   onOrder,
-  progress,
 }: Props) {
   const current = regions.find((r) => r.id === region);
+  // over the whole corpus, from the regions' own counts (no second endpoint)
+  const progress = regions.length ? {
+    total: regions.reduce((n, r) => n + r.total, 0),
+    verified: regions.reduce((n, r) => n + (r.by_verify?.verified ?? 0), 0),
+  } : null;
   const done = current?.by_verify?.verified ?? 0;
   return (
     <div className="filterbar">
