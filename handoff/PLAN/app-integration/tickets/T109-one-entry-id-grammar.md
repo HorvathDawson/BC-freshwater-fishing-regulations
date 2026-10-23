@@ -33,6 +33,26 @@ Status: DONE — 6c03f5fe (step 1), 89fea9c0 (steps 2 + 3, Python), 95e10c9a (le
 - Owner question (default built with): mint r7a:/r7b: ids for Zone A/B rows? Default: no — keep r7: and read the
   zone from the MUs (no resync).
 
+## Adversarial review of the left item (2026-10-23, lane-T125)
+No code defect found; nothing changed for T109 (the T125 review commits do not touch it).
+- End to end on a scratch deliver of this lane's code (live atlas + reach run): the export carries `provenance.region`,
+  the codec drops it on the wire and `expand` refills it (export data file identical to the base's but for the atlas
+  path string), regs.sqlite's 3,405 rule blobs differ from the base's ONLY by `prov.region`, and the RELEASE's
+  `water` store (what the app opens) carries it on all 218 rank-3 rules (R1 19, R2 21, R3 21, R4 22, R5 20, R6 31,
+  7A 28, 7B 36, R8 20). On every one the shipped region equals what the removed regex read; no rank-3 rule is a water
+  row (an `r…` rank-3 rule would now say "Region N rule" where the regex said "Region rule").
+- Mutation: level.ts with the regex back → level.test "reads the region the pipeline shipped" fails; codec `expand`
+  without `region` → 4 codec tests + 2 entry-id pins fail.
+- Not verified here: the app's regs parity on a re-cut fixture. The release's answers digest carries the bundle's atlas
+  path, so a scratch release never pairs with the oracles' store and neither province nor fixture mode can run against
+  one. The merger's re-cut after deliver is the check; until then 284 regs-parity tests fail on the stale fixture, as
+  the builder said.
+- Hand-built test rows (`core/src/regs/testing/ruleRows.ts`, copied from page_v36) carry no `region`: 7 rank-3 rows would
+  tag "Region rule"; no test asserts their tag today.
+- Owner question (default built: no bump): an app reading a release from BEFORE this field (an older release on a device)
+  tags every rank-3 rule "Region rule" — less specific, never a wrong region. Bump the regulations store's section
+  version (`KNOWN_VERSIONS`) so the app refuses such a release instead? Default: no bump.
+
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, findings matching 4,
 answers 5, answers 7 and cross 5 (CONFIRMED).
 

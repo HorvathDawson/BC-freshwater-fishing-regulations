@@ -2,6 +2,7 @@
 
 Status: PARTIAL — 8a9dd913 (1), b47d770e (2), 697337aa (3), c0ca375f (4), 6e579b3a (5), fb6f70b5 (6), cdbd9b53 (7),
 59ec2784 + 69150d8c + 90936600 + 373fe8ec + ade6cfe6 (8: matching 6/7, app 9/11, reach 9, answers 10/11), 4357b046 (9).
+Adversarial review: 666e7aa2, ad5749aa, eba9094f, f642be76, 6e09c292 (see Adversarial review).
 Lane lane-T125 (wf_144b677f-89c-3). Left in item 8: gauges 9, answers 12, reach 11 (see Left). Rebuild: reach rerun +
 deliver (items 4, 5 ride the next reach rerun; 1-3, 8 ship with deliver); app check after the regs fixture re-cut.
 
@@ -75,6 +76,62 @@ status index, regs store and export/answers files snapshotted read-only before a
   `prov.region`, so its rank-3 rules tag "Region rule" ("Single barbless hook, in streams Region From the Region 4
   table…"). Fixed by the fixture re-cut after deliver (T109).
 
+## Adversarial review (2026-10-23)
+Checked: every commit's diff for missed call sites; key pins by mutation (each named below; the mutation was applied,
+the test run, the file restored); the measurement by an independent scratch deliver of BOTH the base (76309f17) and
+this lane's code (incl. the fixes below) from the same live atlas + reach run, diffed read-only.
+
+Fixed (each with a test, mutation-confirmed):
+1. **Item 1's scan missed the twin it unified** (666e7aa2). Re-inlining `status_index.closes`'s own old spelling
+   (`r.get("state") == "speaks" and is_full_closure(r) and not r.get("partly_lifted")`) left every test green — the scan
+   only matched a literal `"full"` beside `partly_lifted`. The scan now also reads `is_full_closure(`, the old text is in
+   its mutation list, and `test_the_three_readers_ask_closure_grade` pins that `status_index.closes`, verdicts `closes`
+   and `closing` call `closes_here`. Mutation now fails both tests.
+2. **Item 3: a fourth `split:` strip** (ad5749aa). `bundle/spans._authored` stripped the prefix off a registry
+   boundary's aliases (and a section's) itself; the pin listed three files. `registry.bare_split_id` is the one strip
+   (`answers_to` and `_authored` ask it); the pin scans all of pipeline/ (mutation: put the inline strip back in spans →
+   `test_no_reader_strips_the_split_prefix_of_a_registry_alias_itself` fails). No output change.
+3. **Item 5: the twins lost the tidal exemption** (eba9094f). `apply_limits` took tidal water from every steelhead twin,
+   while `build_reach` exempts a row itself marked `tidal` (Nitinat Lake's). `build.tidal_limit(entry, tidal)` is that
+   decision; both ask it. No live twin is on a tidal row (no binding moves). Pin
+   `test_a_tidal_row_keeps_its_tidal_water_in_a_twin_as_in_a_rule` (mutation: twin passes `tidal` straight through).
+4. **Item 7: the parity did not cover the reserve tie** (f642be76). Python `<` beside trust.ts's `<=` (which of two
+   equal-weight reserve votes stands back first) passed every panel. One panel where the order decides the answer.
+5. **Item 7: three of the four scripts were still not the app's answer** (6e09c292). They imported `answering` but built
+   `Contribution`s with no `reserve` flag; the app's `contributionsOf` marks every member past `CORE_MEMBERS` (by panel
+   rank) reserve. On a panel of 5+ their numbers kept a member the app stands back. `panel.reserve_at(rank)` (mirrors
+   panel.ts `i >= CORE_MEMBERS`, pinned by text); all four scripts ask it; `test_every_evaluation_script_marks_the_
+   reserve_as_the_app_does` (mutation: drop it from side-channels/compare.py).
+
+Mutations that the builder's pins DO catch (confirmed): labels `_is_closure` re-inlined → `test_no_closure_test_is_
+spelled_twice`; `record_kept` back to `take > 0` → `test_4_a_keeper_is_what_rules_keeps_says`;
+`between_cuts_not_ordered → cuts_collapsed` → `test_each_resolver_code_is_one_reason`; parse menu back to first-item
+aliases → `test_a_cut_point_shared_by_two_items_answers_to_both_alias_sets`; `extent._refs` back to `b.id == bid` →
+the source pin; `has_own_row` counting a tribs-only row → `test_a_row_of_its_own_is_one_predicate`; stamp period
+ignoring `when` → `test_the_stamp_period_is_one_answer`; `held_days` with 365 days → `test_held_days_is_…`; panel
+`measured` without the leader → "one combine, two languages"; `isIsoDay` regex dropped → one-day-table + 4 conditions
+tests; level.ts regex back → level.test "reads the region the pipeline shipped".
+
+Measured (scratch, base vs lane, same atlas + reach run; scratch removed after):
+- bundle.sqlite 63 tables: only `meta.build` differs (the atlas PATH string — the base ran from a scratch copy);
+  verdicts.sqlite 13/13 identical; status_index.bin byte-identical.
+- ui-rules-export.json / ui-rules-answers.json: the only difference is `about.bundle.build` (that same path). So the
+  builder's "byte-identical" holds for content; item 2's 157 new keepers change no answer.
+- guide: `field_dictionary.rule.provenance.region` + `field_dictionary.encoding…rules` (T109), plus the path.
+- card gate on the lane's answers: 0 problems, 7,159 cards, 16,004 groups.
+- regs.sqlite `rule`: 3,405 blobs, 0 differ beyond the added `prov.region`; `static` 1 row (the guide); meta digests.
+- Reach: not re-run here (the builder's run covers it; the in-memory reach cache cannot serve stale bindings across
+  processes, so its digest comparison is real). The two reach fixes move no live binding by construction (no tidal twin).
+- `pnpm -C app check`: 285 failed / 7,691 passed — the 284 regs-parity failures the builder named (fixture predates
+  `prov.region`) + `one-speaker.test.ts` hitting a temp `_bnd.tsx` another test deletes mid-run (a race, not this lane).
+- pytest, every touched file: 402 passed, 2 failed (the span-token tests separately: 328 passed) — `test_no_entry_id_is_parsed_outside_entry_id_py`
+  (base, T135/T142) and `test_the_files_on_disk_are_the_bundles_pair` (the live guide predates `region`; goes green after
+  deliver).
+
+Not changed, noted: item 4 changes the unbound REASON for `between_cuts_not_ordered` / `outside_*` failures while
+`cache.POLICY_VERSION` stays 26 — harmless (the cache is per process) but AGENTS 20 asks for a bump on an outcome change;
+none of the 29 live unbound rules moved.
+
 ## Left / follow-ups
 - Item 8, gauges 9: `promote.evidence` compares the station name only with the match's display name (`m.name`), while
   the matcher accepted any of the node's `name_tuples` (Arrow Reservoir vs Lower Arrow Lake), so such stations can never
@@ -82,6 +139,9 @@ status index, regs store and export/answers files snapshotted read-only before a
   regenerate) and an owner-run promote (`--accept-demotions` review, AGENTS 38) — not done here.
 - Item 8, answers 12 (fish-list wording) and reach 11 (double computation): the audit's file/line references are not in
   the ticket and I could not identify the copies with confidence; need the audit's pointers.
+- Item 7 (review): the scripts still pass a member's record years as one number; the app gives each quantity its own
+  (`recordYears(m.years, quantity)`). A Python `contributions_of(panel, readings, quantity)` mirroring `contributionsOf`
+  would make the whole input the app's; the scripts' member tuples differ per script, so it was left.
 - `pipeline/tests/test_entry_id.py::test_no_entry_id_is_parsed_outside_entry_id_py` fails on the base branch
   (pipeline/regs/review fingerprint/precheck/tiers inline prefix tests, T135/T142 lanes) — not this lane's.
 - `test_dataflow_gates.py::test_gate_4_one_calendar_spec` fails on the base on `regs/edge.test.ts` (and did on
