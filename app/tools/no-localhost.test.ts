@@ -17,7 +17,8 @@ const NODE: Fs = { readdirSync, statSync, readFileSync: (p, enc) => readFileSync
 /**
  * A file that is gone by the time it is looked at is not a source (T80 7). check-boundaries.test.ts and
  * check-platform.test.ts write and delete their `_bnd*` / `_plat*` fixtures under packages/ while this walk runs in
- * another worker: listed, then gone, and the walk threw ENOENT under load. Only ENOENT is forgiven.
+ * another worker: listed, then gone, and the walk threw ENOENT under load. Only ENOENT is forgiven. (T156: those
+ * fixtures are now written to a scratch tree outside the app; this stays forgiving of any other writer.)
  */
 const gone = (e: unknown): boolean => (e as { code?: string } | null)?.code === "ENOENT";
 

@@ -14,31 +14,73 @@
  * banned API read out of the comment explaining why the file does not call it.
  */
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 const ROOT = new URL("..", import.meta.url).pathname;
 
 /*
- * TEMP FILES ARE NAMED PER TEST FILE (`_bnd*` here, `_plat*` in check-platform.test.ts).
+ * FIXTURES ARE WRITTEN OUTSIDE THE APP TREE (T156).
  *
- * Both gates scan the WHOLE tree, and vitest runs test FILES in parallel workers — so a
- * fixture written by one is on disk while the other's checker walks past it. Sharing a
- * basename made the two races into one flake that only appeared when both ran together.
+ * Both gates scan a whole tree, and so do other suites (check-colours, one-speaker, no-localhost) that vitest runs in
+ * parallel workers. A fixture written into packages/ was on disk while their walks listed it and gone when they read
+ * it: ENOENT on `_plat.web.ts`, a flake that appeared only when they ran together. So each case gets a scratch tree
+ * under the OS temp dir — the app's `layers.json` and the fixture, nothing else — and the real gate runs on it through
+ * `CHECK_ROOT`. The real tree is checked as is by each gate's "passes on a clean tree".
  */
-function check(file: string, source: string): number {
-  const path = `${ROOT}${file}`;
-  writeFileSync(path, source);
+function inScratch<T>(files: Record<string, string>, run: (root: string) => T): T {
+  const root = mkdtempSync(join(tmpdir(), "app-gate-"));
   try {
-    execFileSync("node", [`${ROOT}tools/check-boundaries.mjs`], { stdio: "pipe" });
-    return 0;
-  } catch (e: any) {
-    return e.status ?? 1;
+    copyFileSync(`${ROOT}layers.json`, join(root, "layers.json"));
+    for (const [f, src] of Object.entries(files)) {
+      mkdirSync(dirname(join(root, f)), { recursive: true });
+      writeFileSync(join(root, f), src);
+    }
+    return run(root);
   } finally {
-    rmSync(path, { force: true });
+    rmSync(root, { recursive: true, force: true });
   }
 }
+
+/** Run one gate over `root`; its exit code and what it said on stderr. */
+function runGate(tool: string, root: string): { status: number; stderr: string } {
+  try {
+    execFileSync("node", [`${ROOT}tools/${tool}`], { stdio: "pipe", env: { ...process.env, CHECK_ROOT: root } });
+    return { status: 0, stderr: "" };
+  } catch (e: any) {
+    return { status: e.status ?? 1, stderr: String(e.stderr ?? "") };
+  }
+}
+
+/** One gate over a scratch tree holding `files`; its exit code. */
+const gate = (tool: string, files: Record<string, string>): number =>
+  inScratch(files, (root) => runGate(tool, root).status);
+
+const check = (file: string, source: string): number => gate("check-boundaries.mjs", { [file]: source });
+
+describe("the fixtures (T156)", () => {
+  it("are written outside the app tree, where no other suite walks", () => {
+    // mutation: `inScratch` making its tree under ROOT -> fails
+    const file = "packages/ui-native/src/_plat.web.ts";
+    inScratch({ [file]: "export const a = 1;\n" }, (root) => {
+      expect(root.startsWith(ROOT)).toBe(false);
+      expect(existsSync(join(root, file))).toBe(true);
+      expect(existsSync(`${ROOT}${file}`)).toBe(false);
+    });
+  });
+
+  it("reach the gate: each gate reports a scratch tree's violation under its own path", () => {
+    // mutation: a gate ignoring CHECK_ROOT (it walks the clean real tree instead) -> fails
+    expect(inScratch({ "packages/core/src/_bnd.ts": 'import "react-native";\n' },
+      (root) => runGate("check-boundaries.mjs", root).stderr.split("\n")[0])).toBe("✗ packages/core/src/_bnd.ts");
+    expect(inScratch({ "packages/ui-native/src/_plat.ts": "export const el = document.body;\n" },
+      (root) => runGate("check-platform.mjs", root).stderr.split("\n")[0])).toBe(
+      '✗ packages/ui-native/src/_plat.ts: uses "document." in shared code — DOM is absent in React Native');
+  });
+});
 
 describe("layer boundaries", () => {
   it("passes on a clean tree", () => {
@@ -142,24 +184,8 @@ describe("comments are not code", () => {
   });
 });
 
-/*
- * Named `_plat*` so they cannot collide with check-boundaries.test.ts's `_bnd*`: both gates
- * scan the whole tree and vitest runs test files in parallel workers, so each one's
- * fixtures are on disk while the other's checker walks past them.
- */
-/** Write files into the shared tree, run the checker, return its exit code. */
-function checkPlatform(files: Record<string, string>): number {
-  const paths = Object.keys(files).map((f) => `${ROOT}${f}`);
-  for (const [f, src] of Object.entries(files)) writeFileSync(`${ROOT}${f}`, src);
-  try {
-    execFileSync("node", [`${ROOT}tools/check-platform.mjs`], { stdio: "pipe" });
-    return 0;
-  } catch (e: any) {
-    return e.status ?? 1;
-  } finally {
-    for (const p of paths) rmSync(p, { force: true });
-  }
-}
+/** The platform gate over a scratch tree holding `files` (see `inScratch`); its exit code. */
+const checkPlatform = (files: Record<string, string>): number => gate("check-platform.mjs", files);
 
 describe("platform parity", () => {
   it("passes on a clean tree", () => {

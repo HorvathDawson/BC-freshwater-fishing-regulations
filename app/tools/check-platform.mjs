@@ -21,7 +21,10 @@
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
 import { join, relative, basename, dirname } from "node:path";
 
-const root = new URL("..", import.meta.url).pathname;
+// The app root by default. `CHECK_ROOT` points the gate at another tree: its own tests write their fixtures into a
+// scratch copy OUTSIDE the app, never into packages/ where every other tree-scanning test walks (T156: a `_plat.ts`
+// written here was deleted under check-colours / one-speaker mid-walk, ENOENT, in a parallel run).
+const root = process.env.CHECK_ROOT ? process.env.CHECK_ROOT.replace(/\/?$/, "/") : new URL("..", import.meta.url).pathname;
 
 /** Groups that must be complete when any member exists. */
 const VARIANT_SETS = [
