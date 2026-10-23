@@ -188,3 +188,57 @@ def test_the_table_must_be_what_the_panels_were_built_with():
     with pytest.raises(C.ContinuationError, match="panels were built"):
         C.write(db, found, Cov(), built_with=[])
     assert C.write(db, found, Cov(), built_with=[(1, 11, 2, 21)]) == 1
+
+
+# ------------------------------------------------------------------ the acceptance, on the real bundle
+
+def _bundle():
+    import os
+    from pathlib import Path
+
+    from pipeline.deliver.bundle import read as R
+    return Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE)
+
+
+VEDDER_LEADS = {
+    # the real graph, before -> after (decisions.md "CLAUDE 2026-10-22 (T76 …)"): before, 08MH047 alone on both
+    313838: {"08MH047": 1, "08MH001": 2, "08MH055": 3},
+    313839: {"08MH001": 1, "08MH047": 2, "08MH055": 3},
+}
+
+
+@pytest.mark.needs_bundle
+def test_the_vedder_313838_is_led_by_08mh001_in_the_bundle():
+    """THE ACCEPTANCE on shipped data, not a toy graph: the Vedder's sections carry the Chilliwack's gauges as own
+    (`panel_member.lead`), and with its own 08MH047 retired (no reading: weight 0) `leader_of` — the rule trust.ts
+    mirrors — hands the lead to 08MH001."""
+    from pipeline.atlas.gauges.panel import leader_of
+    from pipeline.tests.conftest import predates
+    db = sqlite3.connect(f"file:{_bundle()}?mode=ro", uri=True)
+    got = {sid: {st: lead for st, lead in db.execute(
+        "SELECT m.station, m.lead FROM section_panel p JOIN panel_member m USING (panel_id) "
+        "WHERE p.sid = ? AND m.lead > 0", (sid,))} for sid in VEDDER_LEADS}
+    if got == {313838: {"08MH047": 1}, 313839: {"08MH047": 1}}:
+        predates(f"{_bundle()} predates T76 (the Vedder takes the Chilliwack's gauges as own) — rerun pipeline.deliver")
+    assert got == VEDDER_LEADS
+    members = db.execute("SELECT m.station, m.lead FROM section_panel p JOIN panel_member m USING (panel_id) "
+                         "WHERE p.sid = 313838 ORDER BY m.station").fetchall()
+    weights = [0.0 if st == "08MH047" else 1.0 for st, _ in members]
+    assert members[leader_of([lead for _, lead in members], weights)][0] == "08MH001"
+
+
+def test_the_catalogue_is_read_before_the_graph_is_loaded():
+    """The early catalogue read parses registry.json again (~1 GB resident). Done while graph.pkl and geometries.pkl
+    are in memory it raises the bundle build's peak — the build that once took the Mac down — so it runs before
+    either is unpickled, when only the `item` table it pairs against is needed."""
+    import ast
+    from pathlib import Path
+    src = Path(C.__file__).with_name("build.py").read_text(encoding="utf-8")
+    fn = next(n for n in ast.walk(ast.parse(src)) if isinstance(n, ast.FunctionDef) and n.name == "build")
+    lines = {}
+    for c in ast.walk(fn):
+        if isinstance(c, ast.Call):
+            name = getattr(c.func, "attr", None) or getattr(c.func, "id", None)
+            lines.setdefault(name, []).append(c.lineno)
+    assert len(lines["catalogue_heads"]) == 1
+    assert lines["catalogue_heads"][0] < min(lines["load"])  # pickle.load: graph.pkl, then geometries.pkl

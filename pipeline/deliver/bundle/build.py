@@ -869,6 +869,16 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
     registry_items = json.loads(registry.read_text())["items"]
     _items(db, build_dir, registry_items, cov)
     _lake_areas(db, build_dir, registry_items, cov)
+    # THE BOOK'S RIVER PAIRINGS, READ FROM THE CATALOGUE NOW (T76): the donor panels below treat a continuation's gauges
+    # as a section's own, and they are built while the graph is loaded — before `entry` exists. Read from the catalogue
+    # the rules will be written from (the same sources, the same registry, `rules.read_entries`), against `item` alone,
+    # and BEFORE the pickles: the read parses registry.json again, and the build's peak is graph + geometries.
+    # `_continuation.write` settles again from `entry` and stops the build if the two differ.
+    from pipeline.atlas.registry import load_registry as _load_registry
+    from pipeline.deliver.bundle import continuation as _continuation
+    _book = _continuation.pairs_of(db, _continuation.catalogue_heads(
+        Path(entries) if entries else CURATED.regulations.entries.catalogue.parent,
+        _load_registry(str(Path(build_dir) / "registry.json"))))
     graph_path, geom_path = build_dir / "graph.pkl", build_dir / "geometries.pkl"
     for _p in (graph_path, geom_path):          # P2: the atlas's own files are required
         if not _p.exists():
@@ -889,17 +899,11 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
     # from item_down and the graph while it is loaded; written as parts once `part_section` exists
     # (audit F07: the release used to unpickle graph.pkl again just for this)
     from pipeline.common.section_handles import read as _read_handles
-    from pipeline.deliver.bundle import continuation as _continuation
     _handle_ids = list(_read_handles(build_dir)[0])
     _continues = _continuation.links(db, _handle_ids, graph)
-    # SETTLED NOW, BEFORE THE GAUGES (T76): the donor panels treat a continuation's gauges as a section's own, and they
-    # are built while the graph is loaded — before `entry` exists. So the book's pairings are read from the catalogue
-    # the rules will be written from (the same sources, the same registry, `rules.read_entries`); `_continuation.write`
-    # settles again from `entry` and stops the build if the two differ.
-    from pipeline.atlas.registry import load_registry as _load_registry
-    _entries_dir = Path(entries) if entries else CURATED.regulations.entries.catalogue.parent
-    _settled = _continuation.settle(_continues, _continuation.pairs_of(db, _continuation.catalogue_heads(
-        _entries_dir, _load_registry(str(Path(build_dir) / "registry.json")))))
+    # SETTLED NOW, BEFORE THE GAUGES (T76), with the pairings read above (`_book`)
+    _settled = _continuation.settle(_continues, _book)
+    del _book
     _gauges(db, build_dir, data_dir, registry_items, graph, geoms, cov,
             continues=_continuation.item_pairs(db, _settled))
     # WHERE EACH WATER'S MOUTH FLOWS (T59: `water_exit` named Annacis Channel for the Fraser): read here, while the
