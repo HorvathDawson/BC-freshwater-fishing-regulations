@@ -198,8 +198,9 @@ def preflight(want_tiles: bool) -> None:
 
 
 # What each stage READS from an earlier stage: a stage reruns when one of THESE reran, not every later
-# one. Tiles read only the atlas (no reach input), so a reach-only change no longer rebuilds them.
-DEPENDS = {"reach": (), "tiles": (), "deliver": ("reach",)}
+# one. Tiles read only the atlas (no reach input), so a reach-only change no longer rebuilds them. Deliver reads the
+# tiles' polygons and section geometry for `section_access` (T54), so a tile rebuild re-runs it.
+DEPENDS = {"reach": (), "tiles": (), "deliver": ("reach", "tiles")}
 
 
 def plan(build_dir: Path, force: set[str]) -> list[tuple[str, str, bool]]:

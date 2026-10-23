@@ -3,7 +3,8 @@
 writes paint, derives three per-water flags for search, converts the climatology to float16, VACUUMs, gzips and hashes.
 
   file           holds                                                            source
-  paint          the status index + the flow paint (paint.py)                     status_index.bin + bundle
+  paint          the status index + the flow paint + the no-access rows (paint.py) status_index.bin + bundle
+  access         the gentler access tiers: permit, reserve, private (T54)        bundle (section_access)
   core           item (+ size, gauged, has_rows), alias, item_alias, item_section, place, bundle
                  see_pointer (a group name that only points: search leads to the waters it names)
   near           place_water                                                      bundle
@@ -42,10 +43,10 @@ from pipeline.deliver.release import paint as PAINT
 from pipeline.deliver.release import shards as SH
 
 #: every file and its format (bumped when a reader must refuse an older one)
-FORMATS = {"paint": PAINT.FORMAT, "flow-area": PAINT.AREA_FORMAT, "core": "core/1", "near": "near/1", "water": "water/1", "regs-sid": "regs-sid/1",
+FORMATS = {"paint": PAINT.FORMAT, "flow-area": PAINT.AREA_FORMAT, "access": PAINT.ACCESS_FORMAT,"core": "core/1", "near": "near/1", "water": "water/1", "regs-sid": "regs-sid/1",
            "conditions": "conditions/1", "lakes": LF.FORMAT, **{f"regs-{r}": "regs-region/1" for r in SH.REGIONS}}
 #: the gzip size gates (MINIMAL-PACKAGING §2; P08 test 7)
-SIZE_GATES = {"paint": 1_000_000, "core": 1_300_000, "lakes": 100_000, **{f"regs-{r}": 1_500_000 for r in SH.REGIONS}}
+SIZE_GATES = {"paint": 1_000_000, "access": 300_000, "core": 1_300_000, "lakes": 100_000,**{f"regs-{r}": 1_500_000 for r in SH.REGIONS}}
 TOTAL_GATE = 14_000_000
 
 CORE_TABLES = ("item", "alias", "item_alias", "item_section", "place", "see_pointer")
@@ -319,6 +320,9 @@ def bundle_files(work: Path, bundle: Path, b: sqlite3.Connection, base: Dict[str
     p = work / "flow-area.bin"
     p.write_bytes(PAINT.encode_area(b))
     files["flow-area"] = p
+    p = work / "access.bin"
+    p.write_bytes(PAINT.encode_access(b, handles=base["section_handles"]))
+    files["access"] = p
     files["core"] = copy_file(work / "core.sqlite", {"b": bundle}, [("b", t, None) for t in CORE_TABLES],
                               {**base, "format": FORMATS["core"]}, extra=_core_flags)
     files["near"] = copy_file(work / "near.sqlite", {"b": bundle}, [("b", t, None) for t in NEAR_TABLES],

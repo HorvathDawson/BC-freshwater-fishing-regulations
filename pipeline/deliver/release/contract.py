@@ -28,6 +28,8 @@ OPTIONAL = frozenset({"lakes"})
 FILES = {
     "paint": {"format": PAINT.FORMAT, "kind": "bin", "tables": {}},
     "flow-area": {"format": PAINT.AREA_FORMAT, "kind": "bin", "tables": {}},
+    # (T54) the gentler access tiers (permit / reserve / private) a Regulations page notes; paint carries no access
+    "access": {"format": PAINT.ACCESS_FORMAT, "kind": "bin", "tables": {}},
     "lakes": {"format": LF.FORMAT, "kind": "bin", "tables": {}},
     "core": {"format": "core/1", "kind": "sqlite", "tables": {
         "alias": ["item_id", "alias"],
@@ -92,7 +94,8 @@ UNITS = {
     "water.part_geo.n": "microdegrees", "water.part_mark.lon": "microdegrees", "water.part_mark.lat": "microdegrees",
     "conditions.gauge_clim.bands": "clim/2: [u8 pentad, 5 x float16 LE] records",
     "flow-area": "flow-area/1: 'BCFA', u8 1, one LEB128 varint per paint section (sid order) = round(km2 x 1000)",
-    "paint": "paint/2: see pipeline/deliver/release/paint.py",
+    "paint": "paint/3: see pipeline/deliver/release/paint.py",
+    "access": "access/1: 'BCAX', u8 1, 8 bytes section_handles, then an access half (pipeline/deliver/release/paint.py)",
     "lakes": "lakes/1: 'BCLK', u8 1, 8 bytes section_handles, LEB128 asof+1, LEB128 count, then per section "
              "(sid ascending) LEB128 sid delta, u8 survey (0 none, 1 sheet, 2 digitised), LEB128 stocked day+1 "
              "(0 never); days since 1900-01-01 (pipeline/deliver/lake_facts.py)",

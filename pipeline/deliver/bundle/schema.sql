@@ -1073,3 +1073,20 @@ CREATE TABLE place_water (place_id INTEGER NOT NULL,
                           ckm INTEGER NOT NULL,     -- hundredths of a km, 0..2500
                           ord INTEGER NOT NULL,     -- item.ord, NOT an item_id
                           PRIMARY KEY (place_id, ckm, ord)) WITHOUT ROWID;
+
+-- ACCESS (T54) — the land a section runs through that the public may not enter (tier 'no_access': the
+-- `no_access` tile layer's kind 'closed', e.g. the Coquitlam, Seymour and Capilano watersheds), or may
+-- enter only with leave ('permit': that layer's kind 'permit'; 'reserve': `indigenous_land`; 'private':
+-- the dissolved `parcel` polygon). NOT REGULATION: no status reads it. Measured by
+-- pipeline/deliver/bundle/access.py against the TILES' OWN polygons and section geometry (one vintage),
+-- as the share of the section inside (length for a line, area for a polygon) — a section partly inside
+-- is marked with its share, never cut. `name` drops the OSM id suffix; '' is a nameless polygon (the
+-- private one is always ''). The app decides "mostly inside" (@app/core access.ts).
+CREATE TABLE access_area (ix      INTEGER PRIMARY KEY,
+                          tier    TEXT NOT NULL CHECK (tier IN ('no_access', 'permit', 'reserve', 'private')),
+                          area_id TEXT NOT NULL,
+                          name    TEXT NOT NULL);
+CREATE TABLE section_access (sid      INTEGER NOT NULL,
+                             area     INTEGER NOT NULL REFERENCES access_area (ix),
+                             permille INTEGER NOT NULL CHECK (permille BETWEEN 1 AND 1000),
+                             PRIMARY KEY (sid, area)) WITHOUT ROWID;

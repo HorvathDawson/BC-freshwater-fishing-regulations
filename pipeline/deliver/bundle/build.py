@@ -826,7 +826,7 @@ def edition_valid_until(data_dir: Path) -> str:
 
 
 def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
-          reaches: Path | None = None, entries: Path | None = None) -> Path:
+          reaches: Path | None = None, entries: Path | None = None, tiles: Path | None = None) -> Path:
     """Write the bundle. Returns the path written.
 
     ``data_dir`` is where FETCHED source lives, and it comes from config — not from anything
@@ -987,6 +987,13 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
     cov.skip("stock_water", "needs the FIDQ fetch — no waterbody roster on disk yet")
     cov.skip("stock_code", "needs the FIDQ fetch: the species/stage dictionaries come with it")
     cov.skip("release", "RETIRED — keyed on a name; stock_water + the stocking feed replace it")
+
+    # ACCESS (T54): the no-access, permit, reserve and private land each section runs through, and how much of it —
+    # measured against the TILES' OWN polygons and section geometry (`tiles`, default GENERATED.tiles), refused when the
+    # tiles were cut from another atlas. Not regulation: no status reads it; the app colours and words it.
+    from pipeline.common.section_handles import digest_for as _handles_of
+    from pipeline.deliver.bundle import access as _access
+    _access.write(db, Path(tiles) if tiles else GENERATED.tiles, handles=_handles_of(build_dir), cov=cov)
 
     db.executescript(INDEXES.read_text())
     # THE BUNDLE CARRIES THE POLICY IT WAS BUILT UNDER.

@@ -36,6 +36,17 @@ def _tiny_bundle() -> sqlite3.Connection:
         INSERT INTO panel_member VALUES (2, 0, '08MH016', 'down', 4840.015, 66, 0, 1, 1), (7, 0, '08MH001', 'up', 12.5, 3, 1, 0, 0);
         INSERT INTO basin_member VALUES ('ADMS', '08MH001', 70.41000366210938, 33), ('BABL', '08MH016', NULL, 4);
     """)
+    # (T54) section access, as pipeline/deliver/bundle/access.py writes it
+    from pipeline.deliver.bundle.access import SCHEMA as ACCESS_SCHEMA
+    db.executescript(ACCESS_SCHEMA + """
+        INSERT INTO access_area VALUES (0, 'no_access', 'Coquitlam Watershed [13480215]', 'Coquitlam Watershed'),
+                                       (1, 'no_access', 'Seymour Watershed [678689186]', 'Seymour Watershed'),
+                                       (2, 'permit', 'UBC Malcolm Knapp Research Forest [1166294466]',
+                                        'UBC Malcolm Knapp Research Forest'),
+                                       (3, 'reserve', 'Capilano 5', 'Capilano 5'), (4, 'private', 'parcel', '');
+        INSERT INTO section_access VALUES (3, 0, 1000), (4, 0, 400), (4, 1, 300), (4, 4, 1000), (5, 3, 200),
+                                          (5, 4, 12), (300, 1, 1000), (301, 2, 999);
+    """)
     return db
 
 
@@ -49,6 +60,15 @@ def test_paint_and_flow_area_round_trip():
     assert d["panel_member"] == [(2, 0, "08MH016", "down", 4840.015, 66, 0, 1, 1),
                                  (7, 0, "08MH001", "up", 12.5, 3, 1, 0, 0)]
     assert d["basin_member"] == [("ADMS", "08MH001", 70.41000366210938, 33), ("BABL", "08MH016", None, 4)]
+    # (T54, paint/3) the no-access rows only, their areas renumbered; the gentler tiers are the `access` file's
+    assert d["access"] == {"areas": [("no_access", "Coquitlam Watershed"), ("no_access", "Seymour Watershed")],
+                           "rows": [(3, 0, 1000), (4, 0, 400), (4, 1, 300), (300, 1, 1000)]}
+    a = P.decode_access(P.encode_access(db, handles="147b20dce7d8576c"))
+    assert a == {"handles": "147b20dce7d8576c",
+                 "areas": [("permit", "UBC Malcolm Knapp Research Forest"), ("reserve", "Capilano 5"), ("private", "")],
+                 "rows": [(4, 2, 1000), (5, 1, 200), (5, 2, 12), (301, 0, 999)]}
+    with pytest.raises(ValueError, match="not an access/1 file"):
+        P.decode_access(b"BCAX\x02" + bytes(8))
     assert P.decode_area(P.encode_area(db), 4) == [1.044, 1.883, 2.659, 64000.5]
     with pytest.raises(ValueError):
         P.decode_area(P.encode_area(db), 3)          # paired with a paint of other sections: refused
@@ -163,6 +183,16 @@ def test_paint_reproduces_the_status_index_and_the_flow_tables(rel):
     sp = b.execute("SELECT sid, panel_id, area_km2 FROM section_panel ORDER BY sid").fetchall()
     area = P.decode_area(gzip.decompress((d.parent / m["files"]["flow-area"]["url"]).read_bytes()), len(sp))
     assert [(s, p, a) for (s, p), a in zip(paint["section_panel"], area)] == sp
+    # (T54) paint's access half is exactly the bundle's no-access rows; the access file exactly the gentler tiers
+    def rows_of(tiers, got):
+        names = [(t, n) for t, n in got["areas"]]
+        return [(s, names[a], pm) for s, a, pm in got["rows"]] == [
+            (s, (t, n), pm) for s, t, n, pm in b.execute(
+                f"SELECT s.sid, a.tier, a.name, s.permille FROM section_access s JOIN access_area a ON a.ix = s.area "
+                f"WHERE a.tier IN ({','.join('?' * len(tiers))}) ORDER BY s.sid, s.area", tiers)]
+    assert rows_of(P.PAINT_TIERS, paint["access"])
+    acc = P.decode_access(gzip.decompress((d.parent / m["files"]["access"]["url"]).read_bytes()))
+    assert acc["handles"] == m["files"]["access"]["section_handles"] and rows_of(P.FILE_TIERS, acc)
     assert paint["panel_member"] == [tuple(r[:7]) + (int(r[7] or 0), int(r[8] or 0)) for r in b.execute(
         "SELECT panel_id, ord, station, role, area_km2, years, regulated, same_river, lead FROM panel_member "
         "ORDER BY panel_id, ord")]
@@ -242,12 +272,18 @@ def app_paint_fixture() -> dict:
     db = _tiny_bundle()
     status = SI.encode(_tiny())
     paint, area = P.encode(status, db), P.encode_area(db)
-    d = P.decode(paint)
+    access = P.encode_access(db, handles=_tiny()["handles"])
+    d, a = P.decode(paint), P.decode_access(access)
     return {"paint": base64.b64encode(paint).decode(), "area": base64.b64encode(area).decode(),
             "handles": _tiny()["handles"], "reach": _tiny()["reach_digest"],
             "stations": d["stations"], "section_panel": [list(x) for x in d["section_panel"]],
             "areas": P.decode_area(area, len(d["section_panel"])),
-            "panel_member": [list(x) for x in d["panel_member"]], "basin_member": [list(x) for x in d["basin_member"]]}
+            "panel_member": [list(x) for x in d["panel_member"]], "basin_member": [list(x) for x in d["basin_member"]],
+            # (T54) the access halves: paint's (no access) and the `access` file's (the gentler tiers)
+            "access_areas": [list(x) for x in d["access"]["areas"]],
+            "access_rows": [list(x) for x in d["access"]["rows"]],
+            "access_file": base64.b64encode(access).decode(),
+            "file_areas": [list(x) for x in a["areas"]], "file_rows": [list(x) for x in a["rows"]]}
 
 
 def test_the_apps_paint_fixture_is_current():

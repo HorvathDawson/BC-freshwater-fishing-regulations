@@ -1,4 +1,4 @@
-"""PAINT (P08, MINIMAL-PACKAGING §2): the one file a web reader needs before the first coloured map. Format `paint/2`:
+"""PAINT (P08, MINIMAL-PACKAGING §2): the one file a web reader needs before the first coloured map. Format `paint/3`:
 
     "BCPT"  u8 version (2)
     u32le   n, then the status index (BCSI v2, `pipeline.deliver.status_index`), exactly the bytes of status_index.bin
@@ -12,6 +12,16 @@
       basins     count; then per row in (basin_id, station) order: basin_id (u16 length + UTF-8), station index,
                  area_km2 present (0/1) + its float64 (8 bytes: the column holds float32 values rounded to 16 digits, which only a
                  double reproduces), years
+    the ACCESS half (T54) — the bundle's `section_access` for tier `no_access` only (`PAINT_TIERS`), the one fact the
+    map colours by (the fourth colour) and the Regulations tab's banner names:
+      areas      count; then per area, in the bundle's `access_area` order: tier code (index in
+                 `pipeline.deliver.bundle.access.TIERS`), name byte length, then the name's UTF-8 ("" for a nameless one)
+      rows       count; then THREE COLUMNS of `count` varints, rows in (sid, area) order: sid gap (sid - the previous
+                 row's sid, 0 for a second area of one section), area index, permille (1..1000)
+
+THE GENTLER TIERS (permit / reserve / private, `FILE_TIERS`) ARE NOT HERE: only a Regulations page reads them, and they
+are 144,596 rows (224 KB gzip) against paint's 1 MB gate. They are the file `access` (`access/1`: "BCAX", u8 version 1,
+8 bytes section_handles, then an access half as above), fetched with a page.
 
 THE TARGET AREAS (`section_panel.area_km2`, one per section) are NOT here: only a Conditions view reads them. They are
 the file `flow-area` (`flow-area/1`: "BCFA", u8 version 1, then one varint per section_panel row in paint's sid order,
@@ -21,17 +31,24 @@ column beside paint's runs, 0.19 MB.
 `decode` is the reference decoder, and `test_release.py` proves it reproduces `section_panel`, `panel_member` and
 `basin_member` row for row, and the status half byte for byte.
 
-paint/1 had no `lead`; a paint/1 reader refuses a paint/2 file by its version byte, and the other way round.
+paint/1 had no `lead`, paint/2 no access half; a reader refuses another version by its version byte.
 """
 from __future__ import annotations
 
 import sqlite3
 import struct
-from typing import Dict, List, Tuple
+from typing import Dict, List, Sequence, Tuple
+
+from pipeline.deliver.bundle.access import TIERS as ACCESS_TIERS
 
 MAGIC = b"BCPT"
-VERSION = 2
-FORMAT = "paint/2"
+VERSION = 3
+FORMAT = "paint/3"
+
+#: Which access tiers ride in paint (the colour and the banner), and which in the `access` file (the gentle note).
+PAINT_TIERS: Tuple[str, ...] = ("no_access",)
+FILE_TIERS: Tuple[str, ...] = ("permit", "reserve", "private")
+ACCESS_MAGIC, ACCESS_FORMAT, ACCESS_VERSION = b"BCAX", "access/1", 1
 
 
 def _uv(out: bytearray, v: int) -> None:
@@ -110,11 +127,75 @@ def encode(status_index: bytes, bundle: sqlite3.Connection) -> bytes:
         if area is not None:
             out += struct.pack("<d", area)
         _uv(out, years)
+    out += access_half(bundle, PAINT_TIERS)
     return bytes(out)
 
 
+def access_half(bundle: sqlite3.Connection, tiers: Sequence[str]) -> bytes:
+    """The access rows of `tiers` (module docstring, "the ACCESS half"): only the areas they name, renumbered in the
+    bundle's order. A bundle without `section_access` predates T54 and is refused."""
+    if not bundle.execute("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'section_access'").fetchone():
+        raise ValueError("paint: the bundle has no section_access table — it predates T54; rebuild it: "
+                         "python -m pipeline.deliver bundle")
+    q = ",".join("?" * len(tiers))
+    areas = bundle.execute(f"SELECT ix, tier, name FROM access_area WHERE tier IN ({q}) ORDER BY ix",
+                           tuple(tiers)).fetchall()
+    ren = {ix: k for k, (ix, _t, _n) in enumerate(areas)}
+    rows = bundle.execute(f"SELECT sid, area, permille FROM section_access WHERE area IN "
+                          f"(SELECT ix FROM access_area WHERE tier IN ({q})) ORDER BY sid, area",
+                          tuple(tiers)).fetchall()
+    out = bytearray()
+    _uv(out, len(areas))
+    for _ix, tier, name in areas:
+        b = name.encode("utf-8")
+        _uv(out, ACCESS_TIERS.index(tier))
+        _uv(out, len(b))
+        out += b
+    _uv(out, len(rows))
+    prev = 0
+    for sid, _a, _p in rows:
+        _uv(out, sid - prev)
+        prev = sid
+    for _s, a, _p in rows:
+        _uv(out, ren[a])
+    for _s, _a, pm in rows:
+        _uv(out, pm)
+    return bytes(out)
+
+
+def _read_access(r: "_Reader") -> Dict[str, list]:
+    areas = []
+    for _ in range(r.uv()):
+        t = ACCESS_TIERS[r.uv()]
+        areas.append((t, r.raw(r.uv()).decode("utf-8")))
+    n = r.uv()
+    sids, prev = [], 0
+    for _ in range(n):
+        prev += r.uv()
+        sids.append(prev)
+    ix = [r.uv() for _ in range(n)]
+    pm = [r.uv() for _ in range(n)]
+    return {"areas": areas, "rows": list(zip(sids, ix, pm))}
+
+
+def encode_access(bundle: sqlite3.Connection, *, handles: str) -> bytes:
+    """The `access` file (`access/1`): the gentler tiers, held to the bundle's section handles."""
+    return ACCESS_MAGIC + bytes([ACCESS_VERSION]) + bytes.fromhex(handles) + access_half(bundle, FILE_TIERS)
+
+
+def decode_access(b: bytes) -> Dict[str, object]:
+    """{handles, areas: [(tier, name)], rows: [(sid, area, permille)]}"""
+    if b[:4] != ACCESS_MAGIC or b[4] != ACCESS_VERSION:
+        raise ValueError(f"access: not an {ACCESS_FORMAT} file")
+    r = _Reader(b, 13)
+    d = _read_access(r)
+    if r.i != len(b):
+        raise ValueError(f"access: {len(b) - r.i} trailing bytes")
+    return {"handles": b[5:13].hex(), **d}
+
+
 AREA_MAGIC, AREA_FORMAT = b"BCFA", "flow-area/1"
-#: flow-area keeps its own version: paint/2 changed the members, not the areas.
+#: flow-area keeps its own version: paint/2 changed the members and paint/3 added access, not the areas.
 AREA_VERSION = 1
 
 
@@ -137,7 +218,8 @@ def decode_area(b: bytes, n: int) -> List[float]:
 
 
 def decode(b: bytes) -> Dict[str, object]:
-    """{status: bytes, stations, section_panel: [(sid, panel_id)], panel_member: [...], basin_member: [...]}"""
+    """{status: bytes, stations, section_panel: [(sid, panel_id)], panel_member: [...], basin_member: [...],
+    access: {areas: [(tier, name)], rows: [(sid, area, permille)]}}"""
     if b[:4] != MAGIC or b[4] != VERSION:
         raise ValueError(f"paint: not a {FORMAT} file")
     (n,) = struct.unpack_from("<I", b, 5)
@@ -165,7 +247,8 @@ def decode(b: bytes) -> Dict[str, object]:
         si, has = r.uv(), r.uv()
         area = struct.unpack("<d", r.raw(8))[0] if has else None
         basin_member.append((bid, stations[si], area, r.uv()))
+    access = _read_access(r)
     if r.i != len(b):
         raise ValueError(f"paint: {len(b) - r.i} trailing bytes")
     return {"status": status, "stations": stations, "section_panel": section_panel,
-            "panel_member": panel_member, "basin_member": basin_member}
+            "panel_member": panel_member, "basin_member": basin_member, "access": access}

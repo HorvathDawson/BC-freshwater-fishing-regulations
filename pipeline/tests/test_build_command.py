@@ -43,7 +43,7 @@ def test_a_changed_input_reruns_its_stage_and_what_depends_on_it(world):
     k, _o, seal = world
     seal()
     k["tiles"]["in"] = "edited"
-    assert _runs() == ["tiles"]                      # deliver does not read tiles
+    assert _runs() == ["tiles", "deliver"]           # deliver reads the tiles' polygons for section_access (T54)
     k["tiles"]["in"] = "tiles"
     k["reach"]["in"] = "edited"
     assert _runs() == ["reach", "deliver"]           # tiles do not read the reach run
