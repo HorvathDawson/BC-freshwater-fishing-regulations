@@ -156,6 +156,11 @@ def test_the_three_readers_ask_closure_grade():
     assert not VP.closes([(0, S, None, None, (5,))], grade)                   # partly lifted
     assert not VP.closes([(0, S + 1, None, None, ())], grade)                 # does not speak
     assert VP.closing(lambda f: [(0, S, None, None, ())], grade) == {0: list(VP.T.GAME_FISH)}
+    # and each of the three ASKS `closes_here` (adversarial review: the status index's own spelling,
+    # `is_full_closure(r) and not partly_lifted`, passed every value above and escaped the scan)
+    import inspect
+    for fn in (SI.closes, VP.closes, VP.closing):
+        assert "closes_here(" in inspect.getsource(fn), fn.__qualname__
 
 
 def _typed(**kw):
@@ -207,8 +212,10 @@ def _closure_copies(text: str, rel: str) -> list[str]:
         if not isinstance(node, ast.BoolOp) or id(node) in skip:
             continue
         seg = ast.get_source_segment(text, node) or ""
+        # "speaks as a full closure, not partly lifted": the grade read as "full" OR through the status index's
+        # `is_full_closure` (the old spelling of `status_index.closes`, adversarial review T125)
         if (_TAKE_0.search(seg) and _NOT_TARGET.search(seg)) or \
-                ('"full"' in seg and ("partly_lifted" in seg or "[4]" in seg)):
+                (('"full"' in seg or "is_full_closure(" in seg) and ("partly_lifted" in seg or "[4]" in seg)):
             out.append(f"{rel}:{node.lineno}")
     return sorted(set(out))
 
@@ -226,7 +233,10 @@ def test_no_closure_test_is_spelled_twice():
     for old in ('def f(r):\n    return r.type == "retention_limit" and r.take == 0 and r.may_target is False\n',
                 'def f(x):\n    return x.get("take") != 0 or x.get("may_target") != 0\n',
                 'def f(r, g):\n    return r[1] == 1 and g[r[0]] == "full" and not r[4]\n',
-                'def f(r):\n    return r.get("state") == "speaks" and g == "full" and not r.get("partly_lifted")\n'):
+                'def f(r):\n    return r.get("state") == "speaks" and g == "full" and not r.get("partly_lifted")\n',
+                # status_index.closes before T125 item 1 (it escaped the scan until the adversarial review)
+                'def f(rows):\n    return any(r.get("state") == "speaks" and is_full_closure(r)\n'
+                '               and not r.get("partly_lifted") for r in rows)\n'):
         assert _closure_copies(old, "x.py"), old
     assert not _closure_copies('def f(r):\n    return r.take == 0 and r.may_target and r.x\n', "x.py")
     assert "_closed_gate" not in (DELIVER / "answers" / "rows.py").read_text()
