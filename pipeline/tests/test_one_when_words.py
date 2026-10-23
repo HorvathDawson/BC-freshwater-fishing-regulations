@@ -123,6 +123,7 @@ def test_the_catalogue_label_reads_the_same_function():
                                  "before sunrise, as printed: To be determined")
     assert LB._when_words(SimpleNamespace(when=None)) == ""
     assert w.hours.words() == "one hour after sunset to one hour before sunrise"
+    assert w.dates[0].words() == "Aug 1-Dec 31"
 
 
 # --- the gate -----------------------------------------------------------------------------------------------
@@ -204,7 +205,12 @@ def test_the_label_and_the_rows_words_call_when_words():
     fn = fn[:fn.index("\ndef ")]
     assert "when_words(" in fn and "hours.words()" not in fn and 'f"{d}s"' not in fn
     dates = (ROOT / "pipeline/regs/parsing/catalogue_parts/dates.py").read_text(encoding="utf-8")
-    assert "when_words(" in dates
+    for cls in ("class DateRange(", "class Hours("):        # review: a date range's words were a second copy
+        body = dates[dates.index(cls):]
+        body = body[body.index("def words("):]
+        body = body[:body.index("\n    def ", 1) if "\n    def " in body[1:] else len(body)]
+        body = body[:body.index("\nclass ")] if "\nclass " in body else body
+        assert "when_words(" in body and "MONTHS" not in body, cls
     rows = (ANSWERS / "rows.py").read_text(encoding="utf-8")
     for name in ("weekdays_words", "weekdays_short", "weekdays_label", "weekdays_when"):
         body = rows[rows.index(f"def {name}("):]

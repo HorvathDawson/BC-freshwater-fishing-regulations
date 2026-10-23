@@ -202,8 +202,9 @@ class DateRange(BaseModel):
         return self
 
     def words(self) -> str:
-        nm = SPEC.MONTHS
-        return f"{nm[self.from_month - 1]} {self.from_day}-{nm[self.to_month - 1]} {self.to_day}"
+        """"Aug 1-Dec 31" — T104: said by THE ONE `when_words` (`pipeline.deliver.answers.common`, label style)."""
+        from pipeline.deliver.answers.common import when_words    # lazy: the answers layer reads the catalogue
+        return when_words({"dates": [self.model_dump(mode="json")]}, "label")
 
 
 class Hours(BaseModel):
