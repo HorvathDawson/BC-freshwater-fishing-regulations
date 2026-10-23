@@ -46,6 +46,7 @@ import { nativeRenderer } from "./adapters/native";
 import { mapChrome } from "./chrome";
 import { nativeMapGestures } from "./gestures";
 import { areaLayer, nativeStyle } from "./native-style";
+import { spreadSections } from "./sections";
 import { metricScale } from "./scale";
 import type { MapProps } from "./map-props";
 
@@ -104,11 +105,12 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
 
   /*
    * THE DATA, SPLIT BY WHO CAN TAKE IT. The sections (stream, lake, wetland: MVT ids) go to feature-state; a layer keyed
-   * by a property (`basin`: `basin_id`) has no id on a phone, so its values go into the style (`areaData`).
+   * by a property (`basin`: `basin_id`) has no id on a phone, so its values go into the style (`areaData`). The
+   * `SECTION_DATA` key is fanned out to every per-section layer first (`spreadSections`, T124).
    */
   const [sectionData, areaData] = useMemo(() => {
     const sec: Data = {}, area: Data = {};
-    for (const [layerId, values] of Object.entries(data ?? {})) (areaLayer(layerId) ? area : sec)[layerId] = values;
+    for (const [layerId, values] of Object.entries(spreadSections(data ?? {}))) (areaLayer(layerId) ? area : sec)[layerId] = values;
     return [sec, area];
   }, [data]);
   const areaKey = JSON.stringify(areaData);

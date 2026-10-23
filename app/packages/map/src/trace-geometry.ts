@@ -29,6 +29,7 @@
 import type { SectionKey } from "@app/core";
 import { PMTiles } from "pmtiles";
 import { decodeTile, type TileLayer } from "./mvt";
+import { perSectionLayers } from "./sections";
 
 export type LonLat = { lon: number; lat: number };
 /** [west, south, east, north] */
@@ -43,8 +44,11 @@ const FIRST_HI = 12;
 export const FIRST_BUDGET = 16;
 /** Every tile one request may read, all passes together. */
 export const MAX_TILES = 40;
-/** The layers a route's sections live in. `under_lake` carries no id and cannot be matched. */
-export const TRACE_LAYERS: ReadonlySet<string> = new Set(["stream", "lake", "wetland"]);
+/**
+ * The layers a route's sections live in: the per-section ones (`perSectionLayers`, T124). `under_lake` carries no id
+ * and cannot be matched.
+ */
+export const TRACE_LAYERS: ReadonlySet<string> = new Set(perSectionLayers());
 
 /** One route: a donor's chain, spot first, gauge last (`PanelRoute.path`). */
 export interface TraceRoute {

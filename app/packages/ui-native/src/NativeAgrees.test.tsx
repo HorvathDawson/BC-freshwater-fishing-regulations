@@ -13,7 +13,7 @@ import { renderHook, waitFor } from "@testing-library/react";
 import { buildStandingClasses, type Panel, type PanelMember, type RegsSource, type SectionId,
          type StationId } from "@app/data";
 import { clearPanelCache, useConditionsColour } from "@app/ui";
-import { standingInput } from "@app/map";
+import { perSectionLayers, spreadSections, standingInput } from "@app/map";
 
 const st = (s: string) => s as StationId;
 const member = (station: string, areaKm2: number, role: "up" | "down" = "up"): PanelMember =>
@@ -58,11 +58,12 @@ describe("the phone's pushed standings and the web engine's labels", () => {
         await waitFor(() => expect(web.result.current.standing?.values).toBeTruthy());
         await waitFor(() => expect(Object.keys(phone.result.current.data.basin ?? {}).length)
           .toBe(Object.keys(web.result.current.standing!.values!.basins).length));
-        await waitFor(() => expect(Object.keys(phone.result.current.data.stream ?? {}).length).toBeGreaterThan(0));
+        await waitFor(() => expect(Object.keys(phone.result.current.data.sections ?? {}).length).toBeGreaterThan(0));
         const labels = standingInput(web.result.current.standing!).labels;
-        const pushed = phone.result.current.data as Record<string, Record<string, { standing: number }>>;
+        // as the phone's map takes it: `sections` fanned out to every per-section layer (T124)
+        const pushed = spreadSections(phone.result.current.data) as Record<string, Record<string, { standing: number }>>;
         // per section, on every source-layer the phone is pushed: [section, pushed, engine label]
-        for (const layer of ["stream", "lake", "wetland_flowing"])
+        for (const layer of perSectionLayers())
           expect([layer, VISIBLE.map((s) => [s, pushed[layer]?.[s]?.standing, labels.label(s) ?? undefined])])
             .toEqual([layer, VISIBLE.map((s) => [s, labels.label(s) ?? undefined, labels.label(s) ?? undefined])]);
         // the field: the same basins with the same values

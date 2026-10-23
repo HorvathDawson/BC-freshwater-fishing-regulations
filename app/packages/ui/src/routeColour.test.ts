@@ -22,10 +22,9 @@ describe("the route map's colouring", () => {
     expect(v.basins).toEqual({});
   });
 
-  it("the pushed form: the same values on streams and lakes", () => {
+  it("the pushed form: the values once, for every per-section layer (`sections`, T124)", () => {
     expect(pushedRoute(new Map([[sid(5), 0.25], [sid(2), -0.01]]))).toEqual({
-      stream: { 5: { standing: 25 }, 2: { standing: -1 } },
-      lake: { 5: { standing: 25 }, 2: { standing: -1 } },
+      sections: { 5: { standing: 25 }, 2: { standing: -1 } },
     });
   });
 });

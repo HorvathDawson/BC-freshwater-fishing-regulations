@@ -104,11 +104,10 @@ describe("the Change values, through the one engine's standing channel", () => {
   it("the pushed path and the route map carry the same offset values", () => {
     const one = new Map([[5 as SectionId, 0.75]]);
     expect(pushedStandings(one, new Map([["08MF", 0.25]]), "change")).toEqual({
-      stream: { 5: { standing: 275 } }, lake: { 5: { standing: 275 } }, wetland_flowing: { 5: { standing: 275 } },
-      basin: { "08MF": { standing: 225 } } });
-    expect(pushedRoute(one, "change")).toEqual({ stream: { 5: { standing: 275 } }, lake: { 5: { standing: 275 } } });
+      sections: { 5: { standing: 275 } }, basin: { "08MF": { standing: 225 } } });
+    expect(pushedRoute(one, "change")).toEqual({ sections: { 5: { standing: 275 } } });
     expect(pushedRoute(new Map([[5 as SectionId, -0.01]]), "change"))
-      .toEqual({ stream: { 5: { standing: NaN } }, lake: { 5: { standing: NaN } } });
+      .toEqual({ sections: { 5: { standing: NaN } } });
   });
 });
 

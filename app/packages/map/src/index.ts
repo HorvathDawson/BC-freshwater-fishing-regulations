@@ -30,3 +30,5 @@ export { maplibreGestures, nativeMapGestures, touchRotation,
 export { type TracePin, type TraceProp } from "./trace-overlay";
 export { pressSpot, spotsKey, SPOT_EASE_MS } from "./spots";
 export { traceOverlay, type TraceRoute } from "./trace-geometry";
+/** T124: the per-section source-layers, spelled once, and the pushed data's "every section" key the map fans out. */
+export { perSectionLayers, SECTION_DATA, spreadSections, type PerSectionLayer } from "./sections";

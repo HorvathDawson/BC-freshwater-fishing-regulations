@@ -58,10 +58,9 @@ describe("the map's status values", () => {
     async () => {
       const ix = await loadStatusIndex("u5", "147b20dce7d8576c", serve(tiny()).fetcher);
       const d = statusData(ix, [5, 7], new Date(2026, 0, 10));
-      expect(d.stream).toEqual({ 5: { status: "closed" }, 7: { status: "base" } });
-      expect(d.lake).toEqual(d.stream);
-      expect(d.wetland).toEqual(d.stream);     // a slough drawn as a wetland is coloured too
+      // once, under `sections`: the map fans it out to every per-section layer (T124), a slough's wetland included
+      expect(d).toEqual({ sections: { 5: { status: "closed" }, 7: { status: "base" } } });
       // no index: every value is null (the mode's `missing`), never a guessed base
-      expect(statusData(null, [5], new Date()).stream).toEqual({ 5: { status: null } });
+      expect(statusData(null, [5], new Date())).toEqual({ sections: { 5: { status: null } } });
     });
 });

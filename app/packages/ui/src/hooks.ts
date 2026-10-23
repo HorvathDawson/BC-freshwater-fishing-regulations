@@ -481,15 +481,15 @@ export function loadStatusIndex(url: string, handles: string | null,
  * EVERY visible section gets a value, base and none included — feature-state is sticky, so a
  * section that was closed yesterday and is base today must be told so, not left red. A
  * section with no status (tidal, outside B.C.) is set to null: the mode's `missing`.
- * The same values for streams, lakes and wetlands, because feature-state is per source-layer
- * (a stream's polygon — `lake_flowing` / `wetland_flowing` — reads its own source-layer's).
+ * The same values on every per-section layer, because feature-state is per source-layer
+ * (a stream's polygon — `lake_flowing` / `wetland_flowing` — reads its own source-layer's): `sections` is @app/map's
+ * `SECTION_DATA`, which the map fans out to `perSectionLayers()` (T124).
  */
 export function statusData(index: StatusIndex | null, visible: readonly SectionKey[],
                            on: Date): Record<string, Record<string, Record<string, unknown>>> {
   const values: Record<string, Record<string, unknown>> = {};
   for (const s of visible) values[String(s)] = { status: mapStatusOn(index, s, on) };
-  // and on the wetland source-layer, for a slough drawn as a wetland (`wetland_flowing`)
-  return { stream: values, lake: values, wetland: values };
+  return { sections: values };
 }
 
 /**

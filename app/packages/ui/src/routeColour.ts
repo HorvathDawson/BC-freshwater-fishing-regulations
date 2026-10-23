@@ -51,7 +51,7 @@ export interface RouteValues {
 export interface RouteColourVM {
   /** Per-tile maps (`MapProps.standing`). Null on a pushed-data map. */
   standing: { labels: RouteLabels; values: RouteValues | null } | null;
-  /** Pushed-data maps (`MapProps.data`): the chain's standings on streams and lakes. Empty on a per-tile map. */
+  /** Pushed-data maps (`MapProps.data`): the chain's standings on every section (`sections`). Empty on a per-tile map. */
   data: Record<string, Record<string, Record<string, unknown>>>;
 }
 
@@ -76,8 +76,11 @@ export function routeValues(labels: RouteLabels, standings: ReadonlyMap<SectionI
   };
 }
 
-/** The pushed path's data: every chain section's standing, on streams and lakes (a lake section is a section). */
+/**
+ * The pushed path's data: every chain section's standing, on every per-section layer — `sections` is @app/map's
+ * `SECTION_DATA`, which the map fans out to `perSectionLayers()` (T124). It named `stream` and `lake` here, so a
+ * slough drawn as a wetland polygon in the chain stayed uncoloured on the route while the standings coloured it.
+ */
 export function pushedRoute(standings: ReadonlyMap<SectionId, number>, horizon: Horizon = 0): RouteColourVM["data"] {
-  const values = Object.fromEntries([...standings].map(([s, p]) => [s, { standing: toRamp(p, horizon) }]));
-  return { stream: values, lake: values };
+  return { sections: Object.fromEntries([...standings].map(([s, p]) => [s, { standing: toRamp(p, horizon) }])) };
 }

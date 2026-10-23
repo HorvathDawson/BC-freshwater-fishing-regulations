@@ -151,7 +151,11 @@ export interface MapProps {
   /** Which toggleable layer groups are on. Absent means "leave the style's default". */
   groups?: Record<string, boolean>;
   initial: Camera;
-  /** Per-feature values the active colour mode reads, by layer then feature id. */
+  /**
+   * Per-feature values the active colour mode reads, by layer then feature id. The key `"sections"` (`SECTION_DATA`,
+   * sections.ts) means EVERY per-section source-layer (`perSectionLayers()`): the map fans it out (`spreadSections`),
+   * so a caller hands a section's values once and never names the layers (T124).
+   */
   data?: Record<string, Record<string, Record<string, unknown>>>;
   /**
    * THE DAY'S STATUS, for every layer in the `profile` colour mode (colour-latency study, AP).

@@ -126,14 +126,45 @@ export function stateHandle(sink: StateSink, lit: () => readonly (string | numbe
 }
 
 /**
- * The source-layers whose features carry a section's MVT id (`stream`, `lake`, `wetland`): the only ones a phone can
- * address by feature-state, because MapLibre Native ignores `promoteId`.
+ * THE SOURCE-LAYERS WHOSE FEATURES ARE SECTIONS (T124): the ones carrying a section's MVT id, so the only ones
+ * feature-state can address (on a phone too — MapLibre Native ignores `promoteId`). Each is also the id of the style
+ * layer that draws it plainly, so it doubles as a `MapProps.data` key.
+ *
+ * SPELLED ONCE, HERE. Every list that means "the per-section layers" is this list: `SECTION_SOURCE_LAYERS`,
+ * `WATER_SOURCE_LAYERS`, colouring's `LABEL_SOURCE_LAYERS`, trace-geometry's `TRACE_LAYERS`, and the pushed data's
+ * `SECTION_DATA` fan-out (`spreadSections`). Three hand-typed copies used to stand beside a derived one, and the
+ * pushed lists disagreed (a wetland pushed for standings but not for the route; `wetland` in one, `wetland_flowing`
+ * in another), so a new section layer would have dropped silently out of whichever was not updated.
+ * `tools/one-section-layers.test.ts` proves it equals the style's highlightable layers' source-layers and that no
+ * other module spells such a list.
  */
-export const SECTION_SOURCE_LAYERS: readonly string[] =
-  [...new Set(SECTION_LAYERS.map((id) => stateTarget(id)?.sourceLayer).filter((x): x is string => !!x))].sort();
+const PER_SECTION_LAYERS = ["stream", "lake", "wetland"] as const;
+export type PerSectionLayer = typeof PER_SECTION_LAYERS[number];
+
+/** The per-section source-layers (`PER_SECTION_LAYERS`). */
+export function perSectionLayers(): readonly PerSectionLayer[] {
+  return PER_SECTION_LAYERS;
+}
+
+/** The source-layers a phone can address by feature-state: the per-section ones. */
+export const SECTION_SOURCE_LAYERS: readonly string[] = perSectionLayers();
 
 /** The source-layers a searched water can be drawn in — what a fit's refinement measures (`MapRenderer.waterBox`). */
-export const WATER_SOURCE_LAYERS: readonly string[] = ["stream", "lake", "wetland"];
+export const WATER_SOURCE_LAYERS: readonly string[] = perSectionLayers();
+
+/**
+ * THE `MapProps.data` KEY FOR "EVERY SECTION": its values go to every per-section source-layer. A caller (the pushed
+ * status, standings and route in `@app/ui`, which cannot import this package) hands a section's values once under
+ * this key, and the map fans them out — so no caller names a layer, and none can name a different set.
+ */
+export const SECTION_DATA = "sections";
+
+/** `MapProps.data` with `SECTION_DATA`'s values fanned out to each per-section layer; every other key as given. */
+export function spreadSections<V>(data: Readonly<Record<string, V>>): Record<string, V> {
+  const { [SECTION_DATA]: each, ...rest } = data;
+  if (each === undefined) return { ...rest };
+  return { ...Object.fromEntries(perSectionLayers().map((l) => [l, each])), ...rest };
+}
 
 /**
  * A sink that pushes each feature-state value ONCE (N2 review). Several style layers draw one source-layer (`lake` and

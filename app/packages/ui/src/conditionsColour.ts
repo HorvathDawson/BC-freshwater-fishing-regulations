@@ -87,14 +87,11 @@ export function classMarks(c: StandingClasses, v: StandingValuesVM, visible: rea
 /** The pushed path's per-feature data: every visible section's standing on streams AND lakes, and the field. */
 export function pushedStandings(standings: ReadonlyMap<SectionId, number>,
                                 basins: ReadonlyMap<string, number>, horizon: Horizon = 0): ConditionsColourVM["data"] {
-  const each = [...standings].map(([section, p]) => [section, { standing: toRamp(p, horizon) }]);
   return {
-    // feature-state is per SOURCE-layer: the stream lines, the lake polygons (`lake`, `lake_flowing`) and the marsh a
-    // stream flows through (`wetland_flowing`, the `wetland` source-layer) — which the Shell never told, so a slough
-    // drawn as a wetland polygon stayed unmeasured on the pushed path while the per-tile path coloured it
-    stream: Object.fromEntries(each),
-    lake: Object.fromEntries(each),
-    wetland_flowing: Object.fromEntries(each),
+    // feature-state is per SOURCE-layer: `sections` is @app/map's `SECTION_DATA`, which the map fans out to every
+    // per-section layer (`perSectionLayers()`, T124) — the stream lines, the lake polygons (`lake`, `lake_flowing`) and
+    // the marsh a stream flows through (`wetland_flowing`, the `wetland` source-layer), so no list here can miss one
+    sections: Object.fromEntries([...standings].map(([section, p]) => [section, { standing: toRamp(p, horizon) }])),
     basin: Object.fromEntries([...basins].map(([id, p]) => [id, { standing: toRamp(p, horizon) }])),
   };
 }

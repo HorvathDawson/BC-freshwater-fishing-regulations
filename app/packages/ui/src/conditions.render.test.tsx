@@ -434,10 +434,10 @@ describe("useConditionsView: the route map's colours", () => {
       useConditionsView(source, SEC, DAY, h, { feed, quantity: "discharge", perTile: true }), { initialProps: { h: 0 } });
     const phone = renderHook(() => useConditionsView(source, SEC, DAY, 0, { feed, quantity: "discharge" }));
     await waitFor(() => expect(web.result.current.route.standing?.values).not.toBeNull());
-    await waitFor(() => expect(Object.keys(phone.result.current.route.data.stream ?? {})).toEqual([String(SEC)]));
+    await waitFor(() => expect(Object.keys(phone.result.current.route.data.sections ?? {})).toEqual([String(SEC)]));
     const pushed = phone.result.current.route.data as Record<string, Record<string, { standing: number }>>;
-    const value = pushed.stream![SEC]!.standing;
-    expect(pushed).toEqual({ stream: { [SEC]: { standing: value } }, lake: { [SEC]: { standing: value } } });
+    const value = pushed.sections![SEC]!.standing;
+    expect(pushed).toEqual({ sections: { [SEC]: { standing: value } } });
     expect(phone.result.current.route.standing).toBeNull();
     const r = web.result.current.route;
     expect(r.data).toEqual({});

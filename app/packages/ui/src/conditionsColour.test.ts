@@ -60,10 +60,8 @@ describe("the per-tile path's values", () => {
 });
 
 describe("the pushed path's data (the native map)", () => {
-  it("every visible section on streams, lakes AND the marsh a stream flows through, and the field, in the ramp units", () => {
+  it("every visible section once, for every per-section layer (`sections`, T124), and the field, in the ramp units", () => {
     expect(pushedStandings(new Map([[5 as SectionId, 0.25], [9 as SectionId, -0.01]]), new Map([["08MF", 0.5]])))
-      .toEqual({ stream: { 5: { standing: 25 }, 9: { standing: -1 } }, lake: { 5: { standing: 25 }, 9: { standing: -1 } },
-                 wetland_flowing: { 5: { standing: 25 }, 9: { standing: -1 } },
-                 basin: { "08MF": { standing: 50 } } });
+      .toEqual({ sections: { 5: { standing: 25 }, 9: { standing: -1 } }, basin: { "08MF": { standing: 50 } } });
   });
 });

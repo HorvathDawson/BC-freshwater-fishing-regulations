@@ -150,7 +150,7 @@ describe("statusFeed: how the day's status reaches the map, per renderer (colour
   it("no per-tile event (native): the visible sections pushed as `data` on the Map tab, no status prop", () => {
     const f = statusFeed({ perTile: false, statusOk: true, index, tab: "map", visible: [], day });
     expect(f.status).toBeNull();
-    expect(f.data).toEqual({ stream: {}, lake: {}, wetland: {} });
+    expect(f.data).toEqual({ sections: {} });
     expect(statusFeed({ perTile: false, statusOk: true, index, tab: "conditions", visible: [], day }).data)
       .toBeUndefined();
   });

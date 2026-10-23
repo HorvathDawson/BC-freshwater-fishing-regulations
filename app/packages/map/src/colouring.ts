@@ -34,6 +34,7 @@
 import { dayOfYear, dayProfiles, profileLabel, stockRecency, type LakeFacts, type StatusIndex } from "@app/core";
 import type { ChannelValues, MapAdapter, MapHandle } from "./adapters/contract";
 import type { StandingValues, Tokens } from "./style";
+import { perSectionLayers, type PerSectionLayer } from "./sections";
 
 /** The day's status as the map is told it — given ONLY on a proven pair, with an index that passed its digest checks. */
 export interface ProfileStatus {
@@ -162,11 +163,11 @@ export function coloursEachTile(platform: string): boolean {
 }
 
 /**
- * The source-layers whose sections wear labels. Feature-state is per source-layer, so a stream's polygon
- * (`lake_flowing`, `wetland_flowing`) reads the label set on `lake` / `wetland`.
+ * The source-layers whose sections wear labels: the per-section ones (`perSectionLayers`, T124). Feature-state is per
+ * source-layer, so a stream's polygon (`lake_flowing`, `wetland_flowing`) reads the label set on `lake` / `wetland`.
  */
-export const LABEL_SOURCE_LAYERS = ["stream", "lake", "wetland"] as const;
-export type LabelSourceLayer = typeof LABEL_SOURCE_LAYERS[number];
+export const LABEL_SOURCE_LAYERS = perSectionLayers();
+export type LabelSourceLayer = PerSectionLayer;
 
 /** A tile's section ids, by source-layer. */
 export type TileSections = Partial<Record<LabelSourceLayer, ArrayLike<number>>>;
