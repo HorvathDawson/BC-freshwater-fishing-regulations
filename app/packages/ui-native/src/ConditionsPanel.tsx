@@ -17,7 +17,7 @@ import { chartCaption, chartLabel, CONDITIONS_WORDS, forecastChartLabel, forecas
          forecastRunLine, noChartSentence, type ChartSpan } from "@app/core";
 import type { Parameter, RegsSource, SectionId, StationId } from "@app/data";
 import { coloursEachTile, type TileEndpoints } from "@app/map";
-import { changeView, chartParameter, useChartView, useConditionsView, useForecastAttribution, useGaugeParameters,
+import { changeChartModel, changeView, chartParameter, useChartView, useConditionsView, useForecastAttribution, useGaugeParameters,
          usePrefetchGauges, useSeries, type ChangeVM, type GaugeChoiceVM, type Horizon,
          type PanelFeed } from "@app/ui";
 import Svg, { Circle, Path } from "react-native-svg";
@@ -103,8 +103,14 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
     const w = Math.round(e.nativeEvent.layout.width);
     if (w > 0 && w !== chartW) setChartW(w);
   };
-  const chart = useChartView(source, station, span, param, model ?? undefined, chartW, known);
-  const series = useSeries(source, station, span, param, model ?? undefined, known);
+  // UNDER CHANGE THE CHART DRAWS THE CHANGE'S OWN LEAD MODEL, not the freshest run (T144 review, `changeChartModel`).
+  // The station's change rides every series of the station, so the freshest one (the same request the default makes,
+  // shared by `askOnce`) says which.
+  const anyRun = useSeries(source, station, span, param, undefined, known);
+  const drawn = changeChartModel(model, horizon,
+                                 anyRun.state === "ready" ? anyRun.value?.change : null);
+  const chart = useChartView(source, station, span, param, drawn, chartW, known);
+  const series = useSeries(source, station, span, param, drawn, known);
   // EVERY DONOR'S CHART, ASKED NOW (owner 2026-10-21: "get all the data when the page opens rather than one gauge at a
   // time when clicked"), so the gauge switch draws from what is already here.
   usePrefetchGauges(source, vm.gauges.map((g) => g.station as StationId), span, picked, model ?? undefined);

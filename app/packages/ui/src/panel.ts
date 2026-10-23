@@ -932,6 +932,18 @@ export function changeSpark(c: RunChange, today: string, w: number, h: number): 
 }
 
 /**
+ * WHICH RUN THE CHART DRAWS (T144 review). The reader's pick wins. Under Change, with no pick, it is the first model
+ * the publisher's change is made of (`source.models[0]`: CLEVER where it runs, else COFFEE, else ELF) — owner
+ * 2026-10-23, "no elf": the freshest run, the default everywhere else, is often ELF, which drew "ELF · 30 days" under
+ * "CLEVER and COFFEE together". Elsewhere, or with no station change (a feed from before T144), undefined: freshest.
+ */
+export function changeChartModel(picked: string | null, horizon: Horizon,
+                                 source: SourceChange | null | undefined): string | undefined {
+  if (picked) return picked;
+  return horizon === "change" ? source?.models[0] : undefined;
+}
+
+/**
  * The Change block for the charted gauge, on the reader's `today`.
  *
  * WHICH MODELS SPEAK IS THE PUBLISHER'S (T144, `source`, the station file's `change`): its line first, with its days

@@ -237,6 +237,19 @@ describe("the station's change, by the models the publisher chose (T144)", () =>
       + "back down by Mon.");
   });
 
+  // T144 review: 08HD027 on the 2026-10-23 feed — COFFEE 11x on its last day (Mon), CLEVER 1.06x; joined 3.5x, and the
+  // next day CLEVER alone. The handover is not a return: the publisher marks the end `until` Mon, never `back` Tue.
+  it("says a joined move still on where one model stops, never 'back down' from the handover", () => {
+    const held: SourceChange = { ...JOINED, peak: { day: "2026-10-26", ratio: 3.4797, value: 3.4797, back: null,
+                                                    until: "2026-10-26" } };
+    expect(changeSourceLine(held, TODAY)).toBe("CLEVER and COFFEE together: rises to about 3× today's flow by Mon, "
+      + "still up when COFFEE's forecast ends.");
+    const low: SourceChange = { ...JOINED, dir: "fall", trough: { day: "2026-10-25", ratio: 0.4, value: 0.4,
+                                                                  back: null, until: "2026-10-26" } };
+    expect(changeSourceLine(low, TODAY)).toBe("CLEVER and COFFEE together: falls to about 40% of today's flow by Sun, "
+      + "still down when COFFEE's forecast ends.");
+  });
+
   it("says where a joined change becomes one model's alone", () => {
     expect(changeReachNote(JOINED, TODAY)).toBe("COFFEE runs to Mon; after that, CLEVER alone.");
     expect(changeReachNote({ ...JOINED, reach: { CLEVER: "2026-10-26", COFFEE: "2026-10-26" } }, TODAY)).toBeNull();

@@ -49,9 +49,10 @@ def at_station(station: str):
 def test_a_one_day_spike_between_plus_3_and_plus_5_is_detected_and_dated():
     (per, _, summary), r, now = at_station("08HA003")
     # the map reads CLEVER and COFFEE together (T144): COFFEE peaks a day sooner (44x on 10-25), so the joined peak
-    # is 10-25 — sqrt(22.73 x 44.17) — and still a spike, back by 10-27
+    # is 10-25 — sqrt(22.73 x 44.17). COFFEE stops on 10-26 with the joined line still above half the rise, so it is
+    # OPEN there (T144 review): 10-27 is CLEVER alone, and the old "back by 10-27" was the average losing COFFEE
     assert summary == {"discharge": 0.9937, "models": ["CLEVER", "COFFEE"], "dir": "rise", "ratio": 31.6876,
-                       "day": "2026-10-25", "shape": "spike", "back": "2026-10-27"}
+                       "day": "2026-10-25", "shape": "open"}
     assert per["CLEVER"]["peak"] == {"day": "2026-10-26", "ratio": 22.7944, "value": 10.645, "percentile": 0.7717,
                                      "points": 0.6717, "back": "2026-10-27"}
     # THE POINT: +5 (10-27) samples the day after it and reads the bottom of the record; the day itself is no horizon
@@ -225,6 +226,23 @@ def test_clever_and_coffee_together_are_their_geometric_mean_day_by_day():
                    "dir": "rise"}
     assert s == {"discharge": round(C.coded(6.0), 4), "models": ["CLEVER", "COFFEE"], "dir": "rise", "ratio": 6.0,
                  "day": "2026-10-23", "shape": "spike", "back": "2026-10-24"}
+
+
+def test_a_handover_is_not_a_return():
+    """T144 review (08HD027 on the 2026-10-23 feed: COFFEE 11x on its last day, CLEVER 1.06x, joined 3.5x, then CLEVER
+    alone — called a spike "back down by Tue" though neither model said so). COFFEE 9x on its last day, CLEVER flat:
+    joined 3x there, CLEVER's 1x the day after. Not back while both speak, so no `back`: the end is `until` COFFEE's last
+    day and the shape is `open`. A real return inside the joined stretch is still a spike (the geometric-mean test)."""
+    runs = {"CLEVER": hourly_run([10.0, 10.0, 10.0, 10.0]),
+            "COFFEE": daily_run([15.0, 15.0, 135.0], model="COFFEE")}
+    _, src, s = C.station_change(runs, NOW, 10.0, None)
+    assert src["peak"] == {"day": "2026-10-24", "ratio": 3.0, "value": 3.0, "back": None, "until": "2026-10-24"}
+    assert src["trough"] == {"day": "2026-10-22", "ratio": 1.0, "value": 1.0, "back": None}
+    assert s == {"discharge": round(C.coded(3.0), 4), "models": ["CLEVER", "COFFEE"], "dir": "rise", "ratio": 3.0,
+                 "day": "2026-10-24", "shape": "open"}
+    # one model alone has no handover: the same rise in COFFEE's own run, then CLEVER-free days, is a spike as before
+    alone = C.station_change({"COFFEE": daily_run([10.0, 10.0, 30.0, 10.0], model="COFFEE")}, NOW, 10.0, None)[2]
+    assert (alone["shape"], alone.get("back")) == ("spike", "2026-10-25")
 
 
 def test_one_flood_model_alone_is_its_own_change():

@@ -138,6 +138,12 @@ export interface ChangeEnd {
   points?: number;
   /** The first day back within half of the move — a spike's end; null for a step. */
   back: string | null;
+  /**
+   * A station's combined change only (T144 review): the last day the models that made this end all speak — COFFEE's
+   * fifth — when it is not back by then. Past it the line is the other model alone, so a drop there is a voice leaving,
+   * not the river coming back; the words say the move is still on where that model stops.
+   */
+  until?: string;
 }
 
 /** A run's expected change (`forecasts[model].change`). */
@@ -173,7 +179,8 @@ export function changeSourceName(models: readonly string[]): string {
 
 /** The station's change as the Change block's first line: "CLEVER and COFFEE together: rises to about 160× …". */
 export function changeSourceLine(c: SourceChange, today: string): string {
-  return changeLine(changeSourceName(c.models), c, today);
+  const stops = (day: string) => c.models.filter((m) => c.reach[m] === day).join(" and ");
+  return changeLine(changeSourceName(c.models), c, today, stops);
 }
 
 /**
@@ -214,16 +221,25 @@ function forTheDate(e: ChangeEnd): string {
  */
 const LAST_SHOWN = { rise: "still rising on the last day shown", fall: "still falling on the last day shown" } as const;
 
-function riseWords(e: ChangeEnd, today: string, last: string | undefined, tail = true): string {
+/** Who stops on a day (`SourceChange.reach`), for an end that is still on where they do: "COFFEE". */
+type Stops = (day: string) => string;
+
+/** "still up when COFFEE's forecast ends" — an end not back by the day a joined model stops (`ChangeEnd.until`). */
+const stillOn = (rise: boolean, until: string, stops: Stops) =>
+  `still ${rise ? "up" : "down"} when ${stops(until)}'s forecast ends`;
+
+function riseWords(e: ChangeEnd, today: string, last: string | undefined, tail = true, stops?: Stops): string {
   if (e.back) return `rises to ${ratioWords(e.ratio)} ${on(e.day, today)}${forTheDate(e)}, back down ${by(e.back, today)}`;
   const head = `rises to ${ratioWords(e.ratio)} ${by(e.day, today)}${forTheDate(e)}`;
   if (!tail) return head;
+  if (e.until && stops) return `${head}, ${stillOn(true, e.until, stops)}`;
   return e.day === last ? `${head}, ${LAST_SHOWN.rise}` : `${head} and stays up`;
 }
 
-function fallWords(e: ChangeEnd, today: string, last: string | undefined, tail = true): string {
+function fallWords(e: ChangeEnd, today: string, last: string | undefined, tail = true, stops?: Stops): string {
   if (e.back) return `falls to ${ratioWords(e.ratio)} ${on(e.day, today)}${forTheDate(e)}, back up ${by(e.back, today)}`;
   const head = `falls to ${ratioWords(e.ratio)} ${by(e.day, today)}${forTheDate(e)}`;
+  if (tail && e.until && stops) return `${head}, ${stillOn(false, e.until, stops)}`;
   return tail && e.day === last ? `${head}, ${LAST_SHOWN.fall}` : head;
 }
 
@@ -234,14 +250,14 @@ function fallWords(e: ChangeEnd, today: string, last: string | undefined, tail =
  *   "COFFEE: little change expected."
  * `today` is the reader's calendar day ("YYYY-MM-DD"); the run's days are the Centre's (Pacific).
  */
-export function changeLine(model: string, c: RunChange, today: string): string {
+export function changeLine(model: string, c: RunChange, today: string, stops?: Stops): string {
   const last = c.days.length ? c.days[c.days.length - 1]![0] : undefined;
-  const said = c.dir === "rise" ? riseWords(c.peak, today, last)
-    : c.dir === "fall" ? fallWords(c.trough, today, last)
+  const said = c.dir === "rise" ? riseWords(c.peak, today, last, true, stops)
+    : c.dir === "fall" ? fallWords(c.trough, today, last, true, stops)
     : c.dir === "both"
       ? (dayNumber(c.peak.day) <= dayNumber(c.trough.day)
-        ? `${riseWords({ ...c.peak, back: null }, today, last, false)}, then ${fallWords(c.trough, today, last)}`
-        : `${fallWords({ ...c.trough, back: null }, today, last, false)}, then ${riseWords(c.peak, today, last)}`)
+        ? `${riseWords({ ...c.peak, back: null }, today, last, false)}, then ${fallWords(c.trough, today, last, true, stops)}`
+        : `${fallWords({ ...c.trough, back: null }, today, last, false)}, then ${riseWords(c.peak, today, last, true, stops)}`)
       : "little change expected";
   return `${model}: ${said}.`;
 }

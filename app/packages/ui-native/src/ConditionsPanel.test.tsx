@@ -128,6 +128,27 @@ describe("the Change block, mounted (T144)", () => {
       .toBeTruthy();
     expect(screen.queryByTestId("change-caveat")).toBeNull();
   });
+
+  // T144 review — owner "no elf": the chart under a CLEVER+COFFEE change drew the freshest run, ELF.
+  it("charts the change's own lead model under Change, the freshest run elsewhere", async () => {
+    const joined = { ...low, models: ["CLEVER", "COFFEE"], lowWater: false,
+                     reach: { CLEVER: "2026-09-08", COFFEE: "2026-09-08" } };
+    for (const [horizon, want] of [["change", "CLEVER"], [0, undefined]] as const) {
+      const asked: (string | undefined)[] = [];
+      clearPanelCache();
+      const source = { ...sourceWith({ discharge: 12, level: null, percentile: 0.15, standing: "below",
+                                       at: "2026-09-04T06:00:00Z" }, PANEL),
+                       gaugeSeries: async (_s: unknown, _sp: unknown, _p: unknown, model?: string) =>
+                         (asked.push(model), series(joined)) } as unknown as RegsSource;
+      const { unmount } = render(<ConditionsPanel source={source} section={SEC} palette={LIGHT} feed={feed}
+                                                  horizon={horizon} scroll={false} day={new Date(2026, 8, 4, 12)} />);
+      await waitFor(() => expect(asked.length).toBeGreaterThan(0));
+      await waitFor(() => expect(asked.includes(want)).toBe(true));
+      // the chart is asked for the lead model and never for another named one
+      expect([...new Set(asked)].filter((m) => m !== undefined)).toEqual(want ? [want] : []);
+      unmount();
+    }
+  });
 });
 
 describe("the conditions panel in a water's views", () => {

@@ -8,7 +8,7 @@ import { describe, expect, it } from "vitest";
 import { answerFrom, buildStandingClasses, sectionStanding, type PanelMember, type SectionId, type StationId } from "@app/data";
 import { codedChange, type RunChange, type SourceChange } from "@app/core";
 import { classMarks, pushedStandings, standingValues } from "./conditionsColour";
-import { changeSpark, changeView, donorView, flowHorizon, horizonChips, pickHorizon } from "./panel";
+import { changeChartModel, changeSpark, changeView, donorView, flowHorizon, horizonChips, pickHorizon } from "./panel";
 import { CHANGE_RAMP_BASE, pushedRoute, rampPosition, toRamp } from "./routeColour";
 
 const st = (s: string) => s as StationId;
@@ -246,5 +246,15 @@ describe("the donor panel under Change", () => {
         + "of season there is no expected change to show.",
       horizons: horizonChips("change", "discharge"),
       silent: "No forecast running: A (last report not known) · B (last report not known)" });
+  });
+});
+
+describe("the chart's run under Change (T144 review: owner \"no elf\")", () => {
+  const joined = { models: ["CLEVER", "COFFEE"] } as unknown as SourceChange;
+  it("is the change's own lead model unless the reader picked one; freshest elsewhere and on an older feed", () => {
+    expect([changeChartModel(null, "change", joined), changeChartModel("ELF", "change", joined),
+            changeChartModel(null, 3, joined), changeChartModel(null, "change", null),
+            changeChartModel(null, "change", { models: ["ELF"] } as unknown as SourceChange)])
+      .toEqual(["CLEVER", "ELF", undefined, undefined, "ELF"]);
   });
 });

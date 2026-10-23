@@ -1,6 +1,6 @@
 # T144 — Change: use CLEVER and COFFEE (combine when both), ELF only as a last resort with a low-water warning
 
-Status: DONE — 28d237ee (feed) + 1bc00289 (app), lane-T144; live after a feed republish (below).
+Status: DONE — 28d237ee (feed) + 1bc00289 (app) + review fixes (below), lane-T144; live after a feed republish (below).
 
 Source: Owner 2026-10-23 (app walk). "the change could use coffee and clever but no elf (can combine both if available too for more confident
 guessing) clever is better model i think but you can research them to see how you should use them. it can use elf if
@@ -136,6 +136,59 @@ Shots (`handoff/PLAN/app-integration/T144-shots/`, the replayed feed, own ports 
 No re-fetch needed: the change is recomputed from the runs already on disk. Until then the app shows the old per-model
 list (no `source` in the station file) — the T52 behaviour, ELF line included.
 
+## Adversarial review (2026-10-23)
+
+Replayed the live feed of 2026-10-23 (363 stations with a change: 175 CLEVER, 123 CLEVER+COFFEE, 23 COFFEE, 43 ELF)
+through `station_change` and served it to the web app on my own ports (tiles 39517, web 39518; own headless browser —
+the shared Playwright browser was in use by another lane on :39541 and was left alone). Research spot-checked against
+the cited PDFs: the ELF quotes ("not recommended for management purposes … no meteorological data input", lowest
+accuracy in April and May, 439 stations, 30 days) and COFFEE's (94 watersheds, five-day forecast of instantaneous peaks,
+§3.3 instantaneous-to-daily peak ratios) are verbatim. CLEVER figures not re-checked.
+
+**Defect 1 — a handover was called a spike (feed + app).** Past COFFEE's fifth day the joined line is CLEVER alone, so
+the joined value drops the day after COFFEE stops even when neither model forecasts a fall. `_back` read that drop as the
+river coming back. On the live feed **48 of 123 joined stations** had a fabricated shape: 25 big rises said "back down by
+Tue" that no model said (08HD027: COFFEE 11x and still rising on its last day, CLEVER 1.06x → "rises to about 3x on Mon,
+back down by Tue"; 08PA012: neither run comes back → joined "spike"), 21 steady and 2 step. The builder's own recorded
+test pinned the defect (08HA003 "spike, back 2026-10-27", a day after COFFEE's last).
+Fix: `_measure(..., stops)` — the days, before the window's end, where a joined model stops (from `reach`). An end's
+return is looked for only up to the first stop at or after it; not back by then, the end carries `until` (that day), and
+the summary `shape` is `open`. One model alone has no stops: every run's own change is unchanged. App: `ChangeEnd.until`;
+`changeSourceLine` words it "…, still up when COFFEE's forecast ends." / "still down …" (Englishman River 08HB002:
+"CLEVER and COFFEE together: rises to about 8× today's flow by Sun, still up when COFFEE's forecast ends.").
+No direction changed: only `shape`/`back`.
+
+**Defect 2 — the chart under Change still drew ELF (app).** The owner said "no elf"; under "CLEVER and COFFEE together"
+the chart below drew the freshest run, ELF ("ELF · 30 days", Englishman River and the builder's own Chilliwack shot).
+The builder listed it as a follow-up; it is the owner's complaint on screen, so fixed: `changeChartModel(picked, horizon,
+source)` in @app/ui — the reader's pick wins; under Change with no pick, `source.models[0]`; else undefined (freshest).
+`ConditionsPanel` asks the freshest series once (shared with the default via `askOnce`) for the station change, then
+charts and lists that model. Now "CLEVER · 10 days" under the joined line; Harrison (ELF only) still ELF with the caveat.
+
+Tests added (whole values) and the mutation each fails:
+- `test_a_handover_is_not_a_return` (+ 08HA003 re-pinned to `open`): `_back` ignoring `until` → both fail; `shape`
+  ignoring `until` → both fail.
+- core "says a joined move still on where one model stops": the `until` branch removed from `riseWords` → fails ("and stays
+  up").
+- ui `changeChartModel` whole-value case table: the pick ignored under Change → fails.
+- mounted "charts the change's own lead model under Change": the panel passing `model ?? undefined` → fails.
+
+Checks: feed/forecast pytest unfiltered, 211 pass / 5 fail — the same 5 fail on the builder's HEAD (`test_dfo_salmon`
+×3, `test_update_hydat_script` ×2: generated data absent in the worktree), none in this change. `REGS_STORE_REQUIRED=1 pnpm -C app
+check` via heavy.sh: every gate through typecheck green; vitest 7302 pass / 5 fail — the same five regs-store pairing
+failures (blob/store/settle/card/inputs: province `regs.sqlite` f977e8646d7d vs oracles db98ffb0563359a2), environment.
+
+Shots (`T144-shots/review-*.png`, the replayed feed): Englishman River combined in desktop dark, desktop light and phone
+light (joined line with "still up when COFFEE's forecast ends", CLEVER charted); Harrison River ELF with the caveat in
+light.
+
+Not fixed (left):
+- **Map/section level shows no low-water warning** (the builder's "section-level caveat" follow-up stands): an ELF-only
+  gauge colours the Change map and leads a section's headline with no caveat; the index row carries `lowWater` for it.
+- **The day line has a cliff at the handover** (joined value on COFFEE's last day, CLEVER's own the next); the reach note
+  says why, the picture does not mark it.
+- Q6 below.
+
 ## Owner questions (defaults built)
 - Q1 Weighting where CLEVER and COFFEE both run. Built: EQUAL (geometric mean of ratios), because no head-to-head
   verification exists and the overlap is COFFEE's own domain (coast, rain season). Alternative: CLEVER 2 : COFFEE 1 —
@@ -149,10 +202,13 @@ list (no `source` in the station file) — the T52 behaviour, ELF line included.
   CLEVER's run ends before it. Default: leave; alternative: drive the day horizons from `change_source` too (ratio ×
   gauge), which also brings COFFEE in.
 
+- Q6 (review) A joined rise not back while both models speak is OPEN at COFFEE's last day ("still up when COFFEE's
+  forecast ends"), even where CLEVER alone comes back later (Englishman: CLEVER "back down by Tue"). Alternative: after
+  the handover judge the return on CLEVER's own line (its fall below half of its own peak). Built: open — no model
+  forecast the joined value's return.
+
 ## Left / follow-ups
-- **The chart under Change still defaults to the freshest run**, which is often ELF (Chilliwack: "ELF · 30 days" drawn
-  under the joined line). `seriesOf`'s "freshest" default is a UI default shared by every horizon; under Change it should
-  pick the source's first model. Small, app-only.
+- ~~The chart under Change still defaults to the freshest run~~ — fixed in the adversarial review (`changeChartModel`).
 - **Section-level caveat**: a section whose donors are partly ELF-only (Harrison River: 08MG013 ELF 81% + 08MG001) shows the
   caveat only on the lead gauge's block; the section headline/range does not say part of it is a low-water model. The
   index row carries `lowWater`, so the donor rows could say it.

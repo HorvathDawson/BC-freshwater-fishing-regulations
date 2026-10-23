@@ -162,22 +162,32 @@ def base_of(series: dict, now_local: datetime) -> float | None:
     return None if best is None else best[1]
 
 
-def _back(days: list[tuple[str, float, float]], after: int, rise: bool, base: float, extreme: float) -> str | None:
-    """The first day after the extreme that is back within half of it — a spike's end — or None (a step, or no move)."""
+def _back(days: list[tuple[str, float, float]], after: int, rise: bool, base: float, extreme: float,
+          until: str | None = None) -> str | None:
+    """The first day after the extreme that is back within half of it — a spike's end — or None (a step, or no move).
+    `until`: the last day the models that made the extreme still speak; a day past it is other models', not a return."""
     if (extreme <= base) if rise else (extreme >= base):
         return None                 # no rise (or no fall) to come back from
     line = base + SPIKE_BACK * (extreme - base)
     for d, lo, hi in days[after + 1:]:
+        if until is not None and d > until:
+            return None
         if (hi <= line) if rise else (lo >= line):
             return d
     return None
 
 
 def _measure(days: list[tuple[str, float, float]], base: float, scale: float | None, rank: Rank | None,
-             p0: float | None) -> dict:
+             p0: float | None, stops: tuple[str, ...] = ()) -> dict:
     """THE MEASURE, for a run or a source: the peak and the trough over `days` against `base`, each dated, its
     percentile for the date where it can be ranked (`v * scale` is the flow on the gauge's scale), spike or step, and the
-    direction against the named thresholds. One copy, asked by `run_change` and `source_change`."""
+    direction against the named thresholds. One copy, asked by `run_change` and `station_change`.
+
+    `stops` (a source only): the days, before the window's last, where one of the joined models stops (COFFEE's fifth).
+    A HANDOVER IS NOT A RETURN (T144 review): the day after COFFEE's last is CLEVER alone, so a joined 3.5x falling to
+    CLEVER's own 1.1x the next day is the average losing a voice, not the river coming back. An end's spike is looked
+    for only up to the first stop at or after it; not back by then, the end carries `until` (that stop): the models that
+    made it stopped while it was still up (or down), and whether it holds is not something they say — `open`."""
     ip = max(range(len(days)), key=lambda i: (days[i][2], -i))
     it = min(range(len(days)), key=lambda i: (days[i][1], i))
 
@@ -185,10 +195,14 @@ def _measure(days: list[tuple[str, float, float]], base: float, scale: float | N
         d, lo, hi = days[i]
         v = hi if rise else lo
         p = rank(v * scale, date.fromisoformat(d)) if rank is not None and scale is not None else None
+        until = min((s for s in stops if s >= d), default=None)
+        back = _back(days, i, rise, base, v, until)
+        moved = (v > base) if rise else (v < base)
         return {"day": d, "ratio": round(v / base, 4), "value": round(v, 4),
                 **({"percentile": round(p, 4)} if p is not None else {}),
                 **({"points": round(p - p0, 4) + 0.0} if p is not None and p0 is not None else {}),
-                "back": _back(days, i, rise, base, v)}
+                "back": back,
+                **({"until": until} if until is not None and back is None and moved else {})}
 
     peak, trough = end(ip, True), end(it, False)
     big_rise = peak["ratio"] >= RISE_RATIO or peak.get("points", 0.0) >= BIG_POINTS
@@ -303,13 +317,15 @@ def station_change(runs: dict | None, now: datetime, observed: float | None,
         return per, None, None
     # the station's own days are ratios to today already: measured against a base of 1, and ranked on the gauge's scale
     src = {"models": chosen["models"], "lowWater": chosen["lowWater"], "reach": chosen["reach"],
-           **_measure(chosen["days"], 1.0, observed if observed and observed > 0 else None, rank, p0)}
+           **_measure(chosen["days"], 1.0, observed if observed and observed > 0 else None, rank, p0,
+                      tuple(sorted({d for d in chosen["reach"].values() if d < chosen["days"][-1][0]})))}
     _, e = _extreme(src)
     # KEPT SMALL: the index is fetched to paint the map (~180 KB). One coded number colours; the ratio, the day and the
     # shape say what it is in a line. Every run's own detail, and the source's days, are in the station file.
     summary = {"discharge": round(coded(e["ratio"]), 4), "models": src["models"], "dir": src["dir"],
                "ratio": e["ratio"], "day": e["day"],
-               "shape": "spike" if e["back"] else "open" if e["day"] == src["days"][-1][0] else "step",
+               "shape": "spike" if e["back"] else "open" if e.get("until") or e["day"] == src["days"][-1][0]
+               else "step",
                **({"back": e["back"]} if e["back"] else {}),
                **({"lowWater": True} if src["lowWater"] else {})}
     return per, src, summary
