@@ -1,0 +1,48 @@
+{
+ "palette": "T83",
+ "url": "http://localhost:39583/",
+ "at": "2026-10-23T01:28:40.039Z",
+ "shots": [
+  {
+   "file": "T83--boundary-z7--light.jpg",
+   "view": "boundary-z7",
+   "ground": "light"
+  },
+  {
+   "file": "T83--boundary-z10--light.jpg",
+   "view": "boundary-z10",
+   "ground": "light"
+  },
+  {
+   "file": "T83--boundary-z13--light.jpg",
+   "view": "boundary-z13",
+   "ground": "light"
+  },
+  {
+   "file": "T83--temperature-z8--light.jpg",
+   "view": "temperature-z8",
+   "ground": "light"
+  },
+  {
+   "file": "T83--boundary-z7--dark.jpg",
+   "view": "boundary-z7",
+   "ground": "dark"
+  },
+  {
+   "file": "T83--boundary-z10--dark.jpg",
+   "view": "boundary-z10",
+   "ground": "dark"
+  },
+  {
+   "file": "T83--boundary-z13--dark.jpg",
+   "view": "boundary-z13",
+   "ground": "dark"
+  },
+  {
+   "file": "T83--temperature-z8--dark.jpg",
+   "view": "temperature-z8",
+   "ground": "dark"
+  }
+ ],
+ "errors": []
+}
