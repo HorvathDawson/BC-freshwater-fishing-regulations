@@ -603,7 +603,7 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_it
     # missing HYDAT or list raises (P2) — a flag silently all-0 would say the Fraser at
     # Mission is an ordinary river gauge.
     from pipeline.gauges.consume.tidal import tidal_stations
-    tidal = tidal_stations(Path(SOURCE) / "hydat.sqlite3", CURATED.gauges.tidal)
+    tidal = tidal_stations(Path(SOURCE) / "hydat.sqlite3")   # the authored list: TIDAL_FILE
 
     # No liveness column of any kind -- see schema.sql. The bundle says a gauge exists and
     # where it is; the feed index says which are talking, by containing them.

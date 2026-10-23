@@ -191,15 +191,16 @@ def test_every_shipped_headless_water_is_drawn_but_the_two_open_shapes(shipped):
 
 @pytest.mark.needs_bundle
 def test_mutation_without_the_ruling_shipped_waters_keep_other_headless_pools(shipped, monkeypatch):
-    """MUTATION of the whole-set test: without the ruling, pools beyond the two open shapes stay headless. It bites only
-    on a file shipped WITHOUT the ruling (the 2026-10-22 release); once the deliver ships the groups, the shipped scan
-    holds only the open shapes' waters and this skips (the five-water mutation above still bites)."""
+    """MUTATION of the whole-set test: without the ruling, pools beyond the two open shapes stay headless. The rebuild
+    runs over the shipped scan PLUS the five named waters: a file shipped WITHOUT the ruling (the 2026-10-22 release)
+    puts its 1,022 waters in the scan, and once the deliver ships the groups the scan holds only the open shapes'
+    waters — so the named own pools (klmb's, Tranquille's, Bow Lake's) are what keep this biting either way, never a
+    skip."""
     data, before = shipped
     monkeypatch.setattr(RW, "A_TROUT_CHAR_TOTAL_OF_ONE_KIND_IS_A_GROUP", False)
-    after, _ = _rebuilt_headless(data, before)
-    if not ({p for ps in after.values() for p in ps} - {Z8_EB, DUNCAN_DV}):
-        pytest.skip("the shipped file already carries the ruling's groups: no own-pool row is headless in it")
-    assert {p for ps in after.values() for p in ps} - {Z8_EB, DUNCAN_DV}
+    after, _ = _rebuilt_headless(data, set(before) | set(WATERS))
+    left = {p for ps in after.values() for p in ps} - {Z8_EB, DUNCAN_DV}
+    assert {KLMB_RB, "r3:tranquille_lake@3-29::tranquille_lake.r1", "r7:bow_lake@7-15::bow_lake.r1"} <= left
 
 
 # --------------------------------------------------------------------------------------------

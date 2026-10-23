@@ -2,6 +2,9 @@
 # One test per test file: the fastest one that reads no generated or fetched data (no needs_* marker), picked from a timed
 # run of the full fast suite (--durations, 2026-10-20). Tier 2 (the full fast + slow suite) still runs everything.
 # A listed id that no longer exists fails a whole-tree smoke run, naming it. Edit by hand when a file is added or renamed.
+# GUARDS are the exception to one-per-file (2026-10-23): a whole-repo grep gate is listed even beside its file's fastest
+# test, because three slipped in on merges while only a sibling ran here (no-silent-skips, the bundle's curated reads,
+# the tile contract). Each is under 0.5 s.
 pipeline/atlas/waters/added_streams/tests/test_build.py::test_apply_receiver_overrides_forces_receiver_by_name
 pipeline/atlas/waters/added_streams/tests/test_clean.py::test_abbotsford_strips_cruft_titlecases_and_keeps_ditches
 pipeline/atlas/waters/added_streams/tests/test_coastal.py::test_colliding_mouths_get_distinct_codes
@@ -124,7 +127,10 @@ pipeline/tests/test_name_variants.py::test_display_case_rules
 pipeline/tests/test_names.py::test_mint_waterbody_nodes_gives_an_unnoded_water_a_section
 pipeline/tests/test_no_missing_file_fallbacks.py::test_a_reach_run_without_rule_sections_stops_the_bundle
 pipeline/tests/test_no_silent_skips.py::test_ci_deselects_slow_and_every_data_kind
+pipeline/tests/test_no_silent_skips.py::test_no_skip_outside_the_allowlist
 pipeline/tests/test_one_data_flow.py::test_closure_grade_full_partial_none
+pipeline/tests/test_one_data_flow.py::test_the_bundle_reads_no_curated_waters_file
+pipeline/tests/test_one_data_flow.py::test_the_tiles_carry_only_what_is_read
 pipeline/tests/test_one_rank_table.py::test_the_exporter_has_no_rank_table_of_its_own
 pipeline/tests/test_one_water_kind.py::test_flows_is_decided_in_the_registry_only
 pipeline/tests/test_panel.py::test_a_gauge_below_you_counts_for_less_than_one_above

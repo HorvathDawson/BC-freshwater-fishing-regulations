@@ -23,6 +23,7 @@ import pytest
 
 from pipeline.common.curated import CURATED, SOURCE
 from pipeline.gauges.consume import tidal as T
+from pipeline.tests.conftest import need
 from pipeline.gauges.consume.tidal import TIDAL_REMARK, load_curated, remark_evidence, tidal_stations
 
 #: (station, remark) exactly as HYDAT's STN_REMARKS holds them.
@@ -102,6 +103,7 @@ def test_an_authored_row_without_a_station_id_or_a_reason_is_refused(tmp_path, b
 def test_the_authored_list_is_declared_in_config():
     assert CURATED.gauges.tidal is not None
     assert CURATED.gauges.tidal.name == "tidal.json"
+    assert T.TIDAL_FILE == CURATED.gauges.tidal       # the default the bundle's call reads
 
 
 # ------------------------------------------------------------------ both, and the pins
@@ -134,12 +136,13 @@ def test_the_real_authored_list_is_exactly_the_lower_fraser():
     assert sorted(load_curated(CURATED.gauges.tidal)) == ["08MH028", "08MH032", "08MH035", "08MH044", "08MH053"]
 
 
-@pytest.mark.skipif(not (Path(SOURCE) / "hydat.sqlite3").exists(), reason="no HYDAT on disk (data/fetch_data.py)")
-def test_the_live_record_flags_mission_and_port_mann_and_not_hope():
+@pytest.mark.needs_source
+def test_the_live_record_flags_mission_and_port_mann_and_not_hope(request):
     """WHOLE VALUE against the live HYDAT (review 2026-10-22): the 7 lower-Fraser roster stations plus the 4 the
     record calls tidal outside the roster (08MH025 a DFO tide station; 10LC002, 10LC021, 10MC011 Mackenzie delta).
     A HYDAT refresh that adds a tidal remark fails here, so the new flag is looked at before it ships."""
-    got = tidal_stations(Path(SOURCE) / "hydat.sqlite3", CURATED.gauges.tidal)
+    hydat = need(request, "source", Path(SOURCE) / "hydat.sqlite3", "python data/fetch_data.py --layers hydat")
+    got = tidal_stations(hydat)            # the bundle's own call: the authored list by default
     assert sorted(got) == ["08MH024", "08MH025", "08MH028", "08MH032", "08MH035", "08MH044", "08MH053", "08MH126",
                            "10LC002", "10LC021", "10MC011"]
     assert not set(UNAFFECTED) & set(got)

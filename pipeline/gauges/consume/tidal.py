@@ -30,11 +30,17 @@ import re
 import sqlite3
 from pathlib import Path
 
+from pipeline.common.curated import CURATED
+
 #: The tide, as the record writes it: TIDAL, TIDE, TIDES — a whole word, in any case. Not "TIDEWATER" (a glacier
 #: word) and never "BACKWATER" (see the module note).
 TIDAL_REMARK = re.compile(r"\bTID(?:AL|ES?)\b", re.IGNORECASE)
 
 _STATION = re.compile(r"^\d{2}[A-Z]{2}\d{3}$")
+
+#: The authored list, owned here the way `pipeline.gauges.matches.MATCH_FILE` owns the frozen match: the bundle asks
+#: `tidal_stations` and never names a curated file itself (`test_one_data_flow`: the bundle reads no curated file).
+TIDAL_FILE = CURATED.gauges.tidal
 
 
 def remark_evidence(hydat: Path) -> dict[str, str]:
@@ -52,9 +58,10 @@ def remark_evidence(hydat: Path) -> dict[str, str]:
     return out
 
 
-def load_curated(path: Path) -> dict[str, str]:
+def load_curated(path: Path | None = None) -> dict[str, str]:
     """The authored list, `station -> reason`. RAISES on a missing file (AGENTS 37) and on a row without a station id
     or a reason — a flag nobody can explain is not one a reader should be shown."""
+    path = path or TIDAL_FILE
     blob = json.loads(Path(path).read_text(encoding="utf-8"))
     stations = blob["stations"]
     for st, why in stations.items():
@@ -65,7 +72,7 @@ def load_curated(path: Path) -> dict[str, str]:
     return dict(sorted(stations.items()))
 
 
-def tidal_stations(hydat: Path, curated: Path) -> dict[str, str]:
+def tidal_stations(hydat: Path, curated: Path | None = None) -> dict[str, str]:
     """Every station whose level the tide or a tidal river's backwater moves, `station -> why`: the record's tidal
     remarks joined with the authored list, the authored reason winning."""
     return dict(sorted({**remark_evidence(hydat), **load_curated(curated)}.items()))

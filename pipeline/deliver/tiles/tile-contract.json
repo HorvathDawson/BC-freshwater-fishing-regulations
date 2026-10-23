@@ -223,7 +223,7 @@
       "decorative": false,
       "mvtId": false,
       "minzoom": 4,
-      "maxzoom": 8,
+      "maxzoom": 7,
       "ladder": "none",
       "flows": null
     }

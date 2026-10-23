@@ -51,15 +51,14 @@ def test_a_missing_book_is_a_hard_error_not_an_empty_stamp(tmp_path):
         SP.synopsis_period(tmp_path / "no_such.pdf")
 
 
+#: Tracked in git (`test_synopsis_pages.test_the_pdf_is_there`): a missing PDF FAILS these, never skips them.
 _PDF = SP.default_pdf()
 
 
-@pytest.mark.skipif(not _PDF.exists(), reason="the repo synopsis PDF is not on this machine")
 def test_the_repo_synopsis_reads_its_own_period():
     assert SP.synopsis_period(_PDF) == SP.SynopsisPeriod("2025-04-01", "2027-03-31")
 
 
-@pytest.mark.skipif(not _PDF.exists(), reason="the repo synopsis PDF is not on this machine")
 def test_the_book_title_names_the_same_years_as_the_period():
     """BOOK_TITLE is the footer's words, typed once; a new edition that updates the PDF but not the title fails here."""
     from pipeline.deliver.answers.common import BOOK_TITLE
@@ -68,7 +67,6 @@ def test_the_book_title_names_the_same_years_as_the_period():
     assert years is not None and (years.group(1), years.group(2)) == (p.valid_from[:4], p.valid_until[:4])
 
 
-@pytest.mark.skipif(not _PDF.exists(), reason="the repo synopsis PDF is not on this machine")
 def test_the_bundle_stamps_the_period_end_as_valid_until():
     """The bundle's meta `valid_until` (which the release copies into the manifest) is the period's last day."""
     from pipeline.deliver.bundle.build import edition_valid_until
