@@ -1,6 +1,6 @@
 # T140 — Bundle regions of a water + area families ask the one region membership (G3)
 
-Status: DONE — b08d32f2. Measured: no bundle row changes today (latent defect closed).
+Status: DONE — b08d32f2 (adversarial review: no change). Measured: no bundle row changes today (latent defect closed).
 
 Source: T115's leftovers (owner Q99, 2026-10-23: "yes, as T140 with a measured diff").
 
@@ -68,6 +68,32 @@ Rebuild that ships it: deliver (no reach, no atlas). It changes no output today.
   over from T115.
 - `place_names` / `read` / `export_ui_rules` classify `area:region:` ids by string. That is id parsing, not
   membership, so it was left alone.
+
+## Adversarial review (2026-10-23)
+Nothing wrong found; no code change. What was tried:
+- **Missed call sites.** Every reader of a water's regions or an area family was grepped across `pipeline/` and
+  `curation-review/`:
+  - `outside.water_regions` has two callers. `region_limit` passes the graph. `rules.regions_of_waters` passes the
+    view.
+  - `entry_id._water_regions` reads only the ids' MUs.
+  - `extent.area_sections` asks `region_members`.
+  - `steelhead.py` tests `area:` only to skip area items.
+  - The remaining `area:region:` string tests (`place_names`, `read`, `export_ui_rules`, `spans`) parse ids and
+    do not read membership.
+  - So no second copy of the membership is left in the bundle or the reach builder.
+- **The view is the graph's answer.** `HomeView` carries the same two attributes `in_region` reads. The cache key
+  holds the view by identity, so a view can never be served another graph's answer.
+  `test_the_view_answers_as_the_graph_does` pins it.
+  - The `both` set (straddling lakes) in the bundle's view comes from `_water_places`'s `_kind_registry`. That
+    asks the same `kind_of` over the same items the reach CLI's real registry holds.
+- **Tests failing for the right reason.** The builder's mutations hold. One more was run in this review:
+  dropping `home=` from `bundle.build`'s `_rules.write` call fails `test_the_bundle_hands_its_home_map_to_the_rules`.
+- **`rules.write` without `home`.** Only test fixtures call it that way. It loads the fixture atlas's `graph.pkl` and
+  `region_home.json`, and `test_bundle_licensing.py` (which writes both) passes.
+  - A production caller without `home` would load the 5 GB graph a second time. The bundle build is the only
+    production caller, and it passes `home`.
+- **Measurement.** Not re-run. The review changed no bundle code, and the builder's table-by-table diff names the only
+  changed rows (T121's).
 
 ## Owner questions
 - none.

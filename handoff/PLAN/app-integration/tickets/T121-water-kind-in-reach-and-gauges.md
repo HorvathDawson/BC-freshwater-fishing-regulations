@@ -1,6 +1,6 @@
 # T121 — Water kind in reach and gauges: read `water_kind.kind_of`, not the graph `NodeKind`
 
-Status: DONE — c5ce4298. Reach: no binding moved; bundle: +18 gauged sections (river polygons and sloughs).
+Status: DONE — c5ce4298, 48869e83 (adversarial review: wiring pinned). Reach: no binding moved; bundle: +18 gauged sections (river polygons and sloughs).
 
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, findings reach 8 and
 the Python half of cross 8 (PLAUSIBLE).
@@ -100,6 +100,40 @@ changes no binding today.
 - 08MH024 (Fraser at Mission) now speaks, weakly, for the Vedder Canal's polygon. That follows from the walk and
   the drainage test (the canal drains through Mission), and it is weak by the band. It is listed in case the owner
   wants the Vedder's own gauge to win there. That is T105/T76 territory (one gauge speaker), not this ticket's.
+
+## Adversarial review (2026-10-23) — 48869e83
+**Defect: the change that ships was not pinned by any test.** Each reader takes the registry as an optional argument,
+and `None` means the node's shape. So a production caller that forgot it would silently read the shape again, and
+the unit tests (which pass the registry themselves) would stay green. Each of these mutations was run, and each
+failed **no** test:
+- dropping `registry=kinds` from `bundle.build._gauges`' `build_gauge_sheds` call (this takes the 18 gauge rows back
+  out);
+- dropping `kinds` from its `lake_gauge_links` call;
+- dropping `registry` from `_expander`'s `_stem_to_first_lake` call;
+- dropping `reg` from `resolve_extent`'s `_watershed_part` call (the watershed half had no behavioural test at all).
+
+Fixed with `test_every_production_reader_of_the_water_kind_is_handed_the_registry`. It is an AST scan of every
+non-test module under `pipeline/`. Each call of these functions must pass a registry argument that is not the
+literal `None`: `_stem_to_first_lake`, `_watershed_part`, `is_lake_station`, `build_gauge_sheds`, `lake_gauge_links`.
+The scan also asserts that it sees the five production callers. Each of the four mutations above now fails it. So
+does `shed.py`'s walk calling `is_lake_station(graph, sec)` without the registry, which also fails
+`test_a_river_polygon_station_sheds_like_a_river_station`.
+
+Also checked, with no change needed:
+- **The gate's reach.** It found no other node-kind read in `atlas/reach` or `gauges`.
+  - `steelhead._kind` reads an ITEM's kind. `steelhead.kind()` asks `_kind_of`.
+  - `gauges/consume/place.py` skips `lake:` nodes when projecting a coordinate onto a line. That is the shape (a
+    point can only be projected onto a line), not the water kind.
+- **A wbk-matched (level) station that would now be called a river.** All 196 `wbk` matches in
+  `data/curated/gauges/matches.json` were checked against the registry. No stream item owns any of their
+  polygons, so `lake_gauge` cannot change. The table was identical in the builder's diff, which agrees.
+- **The bundle rows.** Spot-checked in the live bundle. Every polygon (`shape` = 1) section of Nation (4), West Road
+  (4), Stellako, Vedder, Blind Slough (2) and Alouette has no `section_gauge` row today, while their line sections
+  carry the stations the table above names. That matches the +18. West Road shows 4 polygons against 3 added rows;
+  this review did not check why the fourth gains no row.
+
+The scratch reach run of this review (with the T141 fix) is in T141's review: the binding diff is empty. No bundle
+was rebuilt, because the fix is tests only.
 
 ## Owner questions
 - Standing water for a gauge station is `lake` OR `wetland` (default built). Before, only a lake-shaped node

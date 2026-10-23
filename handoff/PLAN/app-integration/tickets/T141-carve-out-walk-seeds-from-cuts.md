@@ -1,6 +1,6 @@
 # T141 — Carve-out walk seeds from the extent's cuts; a braid cut reports its side-channel crossings
 
-Status: DONE — e69750c0. No binding moved.
+Status: DONE — e69750c0, 48869e83 (adversarial review: one carve-out walk). No binding moved.
 
 Source: T111's leftovers (owner Q100, 2026-10-23: "yes, as T141 with a measured diff").
 
@@ -77,6 +77,48 @@ Rebuild that ships it: reach (+ deliver, which follows any reach rerun). It chan
   `cuts`, and the review app does not display it yet. A UI line ("walked from …") would be a curation-review
   ticket.
 - AGENTS rule 16 parity (review app vs builder) was not re-run. The review app calls the same functions.
+
+## Adversarial review (2026-10-23) — 48869e83
+**Defect: a second copy of the carve-out walk, unpinned.** `build_reaches`' licensing carve-out check called
+`tributaries_of_reach(graph, secs, cuts=…)` itself. It did not reuse what `resolve_carve_outs` walked. That copy is
+exactly the one T141 had to remember to re-seed. Reverting it to the old `tributaries_of_reach(graph, secs)` (node
+bounds) failed **no** test.
+
+Fixed:
+- `build.carve_out_walk(graph, row)` is now the one carve-out walk. It takes a row's sections and, unless the row is
+  `walk_past`, everything upstream, walked from `row["cuts"]`.
+- `resolve_carve_outs` blocks it, and `above` is `len(walk - sections)`. The licensing check hands a designation's
+  excluded water exactly it.
+- The output is the same by construction: `tributaries_of_reach` excludes the reach itself, so `walk - sections` is
+  the old `above`, and the licensing `mine` is unchanged.
+
+Tests (in `test_t141_carve_out_walk_seeds_from_cuts.py`):
+- `test_the_carve_out_walk_is_what_the_carve_out_blocks` (whole value): the walk equals the blocked set. A `walk_past`
+  row gives its sections only, and an unresolved row gives nothing.
+- `test_no_second_copy_of_the_carve_out_walk` (AST): `tributaries_of_reach` is called once in `build.py`, inside
+  `carve_out_walk`, and both `build_reaches` and `resolve_carve_outs` call it.
+
+Mutations, each run:
+- The licensing copy restored fails `test_no_second_copy_of_the_carve_out_walk`.
+- `carve_out_walk` dropping `cuts=` (node bounds) fails `test_a_carve_out_does_not_seed_at_a_bound_that_is_not_its_cut`.
+- `_joiners_at(..., principal=True)` on every place fails `test_a_side_channel_takes_no_unnamed_joiner`.
+
+Checked, with no change needed:
+- The builder's diff JSON (`reach-T141T121.json`) does say rules/unresolved/licensing changed 0.
+- No other reader derives a cut. Every other `tributaries_of_reach` caller is a tool or legacy helper
+  (`tributaries_between`, `lake_tributaries`, `with_tributaries`) that resolves no extent.
+- The review app gets the carve-out rows from `resolve_carve_outs` and adds no walk of its own.
+
+**Measured.** One scratch reach run with this branch's code (T141 + T121 + the review fix), against
+`data/generated/reaches/full`:
+- `binding_diff`: rules_changed 0, unresolved_changed 0, licensing_changed 0. Run digest `b9be92114323aa22` (identical).
+- Byte-identical files: `rule_diagnostic`, `rule_extent`, `rule_unresolved`, `licensing_diagnostic`,
+  `licensing_placement` and `straddle`.
+- Diff JSON:
+  `/private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/368da779-39ee-429c-b130-eec0d72dc7dd/scratchpad/reach-T141rev.json`.
+- The scratch reach dir is deleted.
+
+Rebuild that ships it: reach (+ deliver). It changes no output.
 
 ## Owner questions
 - none. Default built: on a side channel, a curated confluence cut takes only a joiner its label names, never the
