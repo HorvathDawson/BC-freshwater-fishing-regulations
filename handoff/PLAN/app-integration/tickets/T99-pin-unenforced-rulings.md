@@ -1,8 +1,10 @@
 # T99 — Pin the rulings nothing enforces (RULINGS §16) and fix the stale citation (C-4)
 
-Status: DONE — 95b50b2f (lane wf_c3f10dea-7b4-5). RULINGS §16 lists only K8 (T98) and K5 (T100); 17 tests in
-`pipeline/tests/test_rulings_pinned.py` (needs_bundle, ~30 s), each whole-value and mutation-pinned; C-4 cites C2.
-No rebuild needed (tests and a read-only tool only). Left: the "not seen" lines and Q-T99a below.
+Status: DONE — 95b50b2f + review 5719197d (lane wf_c3f10dea-7b4-5). RULINGS §16 lists only K8 (T98) and K5
+(T100); 18 tests in `pipeline/tests/test_rulings_pinned.py` (needs_bundle, ~35 s), each whole-value and
+mutation-pinned; C-4 cites C2. Review replaced three tautologies (Z1 Region 4 lake, Li1, E13 side channels — see
+"Review" below) and added Z1's no-carve-out check over every section. No rebuild needed (tests and a read-only
+tool only). Left: T8's unnamed-tributary placement (below) and Q-T99a.
 
 ## Result (2026-10-22, bundle reach_digest dc21329d925d042d)
 
@@ -37,9 +39,10 @@ named side channels, no joining slough (mutations: one section left out; a sloug
 130 m from the mouth, closure above it only (mutation: whole creek) · C3 the guide's `species.trout_note` and
 `gotchas.trout_includes_char.note` carry the whole sentence.
 
-**Not seen by Z1** (said, not hidden): a base rule that SHOULD bind a section and binds neither answer is caught
-only when a whole region's table is missing there, not rule by rule; the sample is 2 per stratum (the CLI runs any
-size). T8's "joining within the spot" is proved for the pieces placed on the river (off-stem sections, by their join
+**Not seen by Z1** (said, not hidden): the attribution sample is 2 per stratum (the CLI runs any size). A base
+rule that SHOULD bind a section and binds neither answer is now caught rule by rule wherever the section's peers
+(same region place, MU set, water kind, tidal) carry it (`base_sets` / `peer_problems`, every section); a line
+missing from a WHOLE peer group is caught only for Region 4 lakes, against the table as its rules are written. T8's "joining within the spot" is proved for the pieces placed on the river (off-stem sections, by their join
 measure); the unnamed tributaries above them are checked only as fewer than the river's walk — the bundle's
 `section_down` is sparse and the full flow graph is the atlas (T57's sweep reads it through heavy.sh).
 
@@ -47,6 +50,19 @@ Pre-existing gate failures seen (not T99's files, not touched): `test_no_silent_
 test_synopsis_period.py:57/62/71, test_tidal_gauges.py:137), `test_dataflow_gates::test_gate_4_one_calendar_spec`
 (app dayPicker.ts:44, edge.test.ts:100), `test_one_data_flow::test_the_bundle_reads_no_curated_waters_file`
 (bundle/build.py `CURATED.gauges.tidal`).
+
+## Review (2026-10-22, 5719197d)
+- Z1 `test_z1_a_region_4_lake_…` compared the reader over the base with the reader over the same base (the lake
+  was chosen because every bound rule is base) — it could not fail. Now: the lake's binding == Region 4's lake
+  table read from the rules' own extents (z4 + zp region-wide lines admitting a lake; unknown extent shapes refused).
+- Z1 no carve-out (new): over all 1,956,154 sections, 1,548 (region place, MU set, kind, tidal) groups each carry
+  one base; 0 carved out. Nitinat Lake (the one tidal section) binds no base, its own group.
+- Li1 compared index codes of sections sharing a rule key; the index profile is per key (`status_index.compute`),
+  so they could never disagree. Now: designated sections' shipped code == `status_by_reader` (rules only), 16
+  keys x 12 days; mutation: an index closing designated sections.
+- E13: each Fraser side channel the night closure touches must be covered whole (was: its name present).
+- Mutations that only re-run set arithmetic in the test (E13 Goat, E14, C3, G8) were left: the main assertion of
+  each reads the bundle/guide whole-value, so a changed curated row turns it red after a rebuild.
 
 ## Owner questions
 - Q-T99a (C3): the guide carries the note "Trout includes char … unless the line excludes them or char have their
