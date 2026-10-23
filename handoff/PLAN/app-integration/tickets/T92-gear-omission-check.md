@@ -1,6 +1,7 @@
 # T92 — Gear check: every gear phrase in a rule's printed text lands in a stored field
 
-Status: OPEN.
+Status: DONE — 14d59b31. `catalogue_parts/gear_omission.py` (12-phrase vocabulary), wired into
+`validate_catalogue.post_model_checks`; catalogue has 0 unexplained misses and 5 kept gaps (below).
 
 Source: memory `gear-rules-need-rework` — "It prevents inversion, not omission — the 8 dropped conjuncts need a
 validator". `validate_catalogue.py` and `catalogue_parts/checks.py` check field → text only (`count_in_words`). A quick
@@ -15,3 +16,33 @@ run over the catalogue and record each miss.
 0 unexplained misses; kept exceptions allow-listed with a reason; part of `validate_catalogue`.
 
 Depends: none (could sit under T66). Size: M. Owner: no.
+
+## Result (2026-10-22)
+
+Run over the catalogue (1,525 entries, 3,405 rules): **0 unexplained misses**. The eight "lost single"
+lakes are already fixed in the data (all 248 "single barbless hook" rules store `points_per_hook: 1`).
+The "161 electric motor" noise was `vessel_rule` `level: electric_only` — the vocabulary maps it.
+Kept gaps (`KEPT_GEAR_GAPS`, each with its reason; a test fails if one stops firing):
+
+1. `harrison_river.r3` powered_boats — "Speed restriction OR no powered boats … as signed": signage decides.
+2. `zp:bait.r4` bait_ban — "unless a bait ban applies" defers to the bans held elsewhere.
+3. `one_island_lake.r1` ice_hut — "See ice hut warning, page 63", a pointer.
+4. `z7b:ice_fishing_huts.r1` ice_fishing + ice_hut — "huts SHOULD have the owner's contact information
+   displayed": advice; no conduct token says it.
+
+Also accepted as holding a phrase: a sibling quoting the same row span; a lift (`exempts`) when "exempt"
+precedes the phrase in its clause; a `note` (which costs a review_reason) that prints the phrase.
+
+Tests: `pipeline/tests/test_gear_omission.py` 25 (14 mutation pins, one per phrase or more); with
+test_validate_catalogue, test_parse_prompt_teaches, test_ingest_catalogue: 137 passed. Rebuild: none
+(validator only; no data changed).
+
+## Left / owner questions
+
+- Q (owner): should the R7B ice-hut advice ("huts should have the owner's contact information
+  displayed") get a conduct token (`display_contact_on_ice_hut`) so it shows as advice on the Gear tab?
+  **Default: no** — it is "should", not law; kept as a gap.
+- Not done: a ROW-level twin (a gear phrase in `regs_verbatim` that no rule, `see` or licensing quote
+  carries). Surveyed: 0 misses once `see` pointers are excluded (the 22 raw hits are all `r5:*@6-1`
+  pointer rows). Not wired because the validator's unit fixtures use partial rows; worth a follow-up
+  ticket if a whole dropped rule is a concern.
