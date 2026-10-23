@@ -73,9 +73,12 @@ export function downstreamLabel(inp: RegsInputs, downstream: string | null | und
 }
 
 /** The header of the tapped part on `inp.day`. `status` is the day's as the strip read it (T13; null strip → tidal or
- *  outside); `canMap` whether the map can frame the part (D1); `downstream` (T53, an unnamed section only) the named
- *  water it flows into. */
-export function headerOf(inp: RegsInputs, o: { today: Day; status: "open" | "closed" | "tidal" | "outside" | "unknown"; canMap: boolean;
+ *  outside); `downstream` (T53, an unnamed section only) the named water it flows into.
+ *
+ *  THE ACTION IS PARTS OR NOTHING (T71, owner call 3, 2026-10-22: "Keep only one Map entry (the view strip; drop the
+ *  header's Map button)"): the water's Map view is offered once, by the view strip; the header offers the Parts sheet when
+ *  the picker has a choice to make. No option brings a Map button back. */
+export function headerOf(inp: RegsInputs, o: { today: Day; status: "open" | "closed" | "tidal" | "outside" | "unknown";
                                                downstream?: string | null }): HeaderVM {
   const name = inp.item?.name ?? inp.place?.name ?? "";
   const date = fmtDay(inp.day);
@@ -85,9 +88,7 @@ export function headerOf(inp: RegsInputs, o: { today: Day; status: "open" | "clo
   const lbl = lab && lab.short !== name ? lab.short : "";
   const full = lab?.full || lbl;
   const many = (inp.item?.picker?.choices.length ?? 0) > 1;
-  const action: HeaderVM["action"] = !inp.item ? null
-    : o.canMap ? { kind: "map", label: WORDS.MAP, aria: WORDS.MAP_ARIA(full) }
-    : many ? { kind: "parts", label: WORDS.PARTS, aria: WORDS.PARTS_ARIA(full) } : null;
+  const action: HeaderVM["action"] = inp.item && many ? { kind: "parts", label: WORDS.PARTS, aria: WORDS.PARTS_ARIA(full) } : null;
   const tabs: readonly [Tab, string][] = [["keep", WORDS.TAB_KEEP], ["gear", WORDS.TAB_GEAR], ["methods", WORDS.TAB_METHODS], ["licence", WORDS.TAB_LICENCE]];
   return {
     name,

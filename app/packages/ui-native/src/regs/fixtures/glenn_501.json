@@ -172,11 +172,7 @@
   "mode": null
  },
  "header": {
-  "action": {
-   "aria": "View on map: where these rules apply, Mouth → Source",
-   "kind": "map",
-   "label": "Map"
-  },
+  "action": null,
   "date": "May 1",
   "dateAria": "Change date, now May 1",
   "dayWord": "Fri",

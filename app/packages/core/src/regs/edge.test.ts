@@ -86,9 +86,9 @@ describe("tidalKeep: the stored tidal frame's banner alone", () => {
 describe("2. unnamed header (D11 a): the store's place name, no part label, no Map / Parts action", () => {
   const inp = { target: { kind: "section", handle: 1178240 }, day: OCT10, weekday: "Saturday", item: null, partIx: 0,
     place: { label: "Region 5", name: "Unnamed stream · Region 5" }, key: key(), frames: { display: OPEN } } as unknown as RegsInputs;
-  it("edge unnamed; header name, place null, action null, four tabs — even when the map could frame it", () => {
+  it("edge unnamed; header name, place null, action null, four tabs", () => {
     expect(edgeKind(inp)).toBe("unnamed");
-    const h = headerOf(inp, { today: OCT10, status: "open", canMap: true });
+    const h = headerOf(inp, { today: OCT10, status: "open" });
     expect([h.name, h.place, h.action, h.tabs.map((t) => t.label)]).toEqual(["Unnamed stream · Region 5", null, null,
       ["What you can keep", "Gear", "Methods", "Licence"]]);
   });

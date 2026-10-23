@@ -1,7 +1,10 @@
 /**
  * T23 — the regs header drawn over the golden headers (fixtures/golden-headers.json, copied from golden.json by
- * conformance/src/regs/goldenSlices.ts): the name, the date pill, the Map / Parts button, the place label and the four
- * tabs, on every golden state; then the presses, the label fit and the one-shape rule.
+ * conformance/src/regs/goldenSlices.ts): the name, the date pill, the Parts button, the place label and the four tabs, on
+ * every golden state; then the presses, the label fit and the one-shape rule.
+ *
+ * (T71, owner call 3) The golden's header Map button is NOT drawn: the water's one Map entry is the view strip. Where the
+ * golden header offers Map, the app's header (core headerOf) offers nothing — the 44 px slot stays empty.
  */
 import { afterEach, describe, expect, it } from "vitest";
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
@@ -18,11 +21,14 @@ type GHeader = { name: string; day: string; date: string; dateAria: string; dot:
   tabs: { sec: Tab; text: string }[] };
 const G = headers as unknown as Record<string, GHeader>;
 
+/** the golden's action as the app has it (T71): Parts stays, the golden's Map is dropped (the view strip's) */
+const appAction = (g: GHeader): HeaderVM["action"] =>
+  g.action?.kind === "parts" ? { kind: "parts", label: "Parts", aria: g.action.aria } : null;
 /** the golden header as the app's HeaderVM (T16 field names) */
 const headerOf = (id: string): HeaderVM => {
   const g = G[id]!;
   return { name: g.name, dayWord: g.day, date: g.date, dateAria: g.dateAria, dot: g.dot,
-    place: g.place && { full: g.place.full, short: g.place.short }, action: g.action,
+    place: g.place && { full: g.place.full, short: g.place.short }, action: appAction(g),
     tabs: g.tabs.map((t) => ({ tab: t.sec, label: t.text })) };
 };
 const rgb = (hex: string) => {
@@ -56,7 +62,7 @@ describe("<RegsHeader> over every golden header", () => {
     expect(drawn()).toEqual({
       name: g.name,
       pill: [g.dateAria, `${g.day} ▾${g.date}`],
-      action: g.action && [g.action.aria, g.action.label],
+      action: g.action?.kind === "parts" ? [g.action.aria, g.action.label] : null,
       place: g.place?.full ?? "",
       tabs: g.tabs.map((t, i) => [t.text, i === 0 ? "true" : "false"]),
     });
@@ -64,12 +70,12 @@ describe("<RegsHeader> over every golden header", () => {
 });
 
 describe("<RegsHeader>", () => {
-  it("vedder_1010: the heading, the pill, the Map button, the place, the tabs, the open dot", () => {
+  it("vedder_1010: the heading, the pill, NO Map button (T71: the view strip's), the place, the tabs, the open dot", () => {
     mount(headerOf("vedder_1010"));
     expect(drawn()).toEqual({
       name: "Vedder River",
       pill: ["Change date, now Oct 10", "Today ▾Oct 10"],
-      action: ["View on map: where these rules apply, Mouth → Vedder Crossing Bridge", "Map"],
+      action: null,
       place: "Mouth → Vedder Crossing Bridge",
       tabs: [["What you can keep", "true"], ["Gear", "false"], ["Methods", "false"], ["Licence", "false"]],
     });
@@ -101,10 +107,22 @@ describe("<RegsHeader>", () => {
     expect(screen.getByTestId("regs-place").textContent).toBe("");
   });
 
-  it("no action handler (no map here): the slot stays, nothing in it", () => {
-    mount(headerOf("vedder_1010"), { action: false });
+  it("no action handler: the slot stays, nothing in it", () => {
+    mount(headerOf("bc1_501"), { action: false });
     expect(screen.queryByTestId("regs-action")).toBeNull();
-    expect(screen.queryByRole("button", { name: /^View on map/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /^Other parts/ })).toBeNull();
+  });
+
+  it("(T71) the action slot is 44 px with Parts, with nothing and with no handler, so the name never reflows", () => {
+    const slot = () => { const s = screen.getByTestId("regs-action-slot").style; return [s.minWidth, s.minHeight]; };
+    const seen: string[][] = [];
+    for (const [id, action] of [["bc1_501", true], ["vedder_1010", true], ["bc1_501", false]] as const) {
+      mount(headerOf(id), { action });
+      seen.push([id, String(!!screen.queryByTestId("regs-action")), ...slot()]);
+      cleanup();
+    }
+    expect(seen).toEqual([["bc1_501", "true", "44px", "44px"], ["vedder_1010", "false", "44px", "44px"],
+                          ["bc1_501", "false", "44px", "44px"]]);
   });
 
   it("header-label-two-lines (prototype fitLabel): the full label when it lays out in two lines, else the short", () => {
@@ -115,12 +133,11 @@ describe("<RegsHeader>", () => {
     expect([pickPlace(cnr, 16.22 * 2 + 1, 16.22), pickPlace(cnr, 16.22 * 2 + 1.01, 16.22)]).toEqual([cnr.full, cnr.short]);
   });
 
-  it("presses: a tab, the pill, Map", () => {
+  it("presses: a tab, the pill; no Map button to press (T71)", () => {
     const { calls } = mount(headerOf("vedder_1010"));
     fireEvent.click(screen.getByRole("tab", { name: "Gear" }));
     fireEvent.click(screen.getByRole("button", { name: "Change date, now Oct 10" }));
-    fireEvent.click(screen.getByRole("button", { name: "View on map: where these rules apply, Mouth → Vedder Crossing Bridge" }));
-    expect(calls).toEqual(["tab:gear", "date", "action:map"]);
+    expect([calls, screen.queryAllByRole("button", { name: /map/i }).length]).toEqual([["tab:gear", "date"], 0]);
   });
 
   it("the selected tab is the tab source's (the pin store): a change re-renders the tabs", () => {

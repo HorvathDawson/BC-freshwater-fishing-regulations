@@ -27,8 +27,6 @@ export interface RegsPageOpts {
   readonly today: Day; readonly who: Who;
   /** the group head form (decisions D12): "a" (default) the share leads, "b" the total leads */
   readonly tot?: "a" | "b";
-  /** whether the map can frame the tapped part (D1/D23: the app frames every named part from the tiles); default true */
-  readonly canMap?: boolean;
   /** the fish manifest (T20); default the generated one */
   readonly fish?: FishManifest;
   /** (T53) an unnamed section: the named water it flows into, for the header's label slot (`downstreamLabel`) */
@@ -55,7 +53,7 @@ export function buildRegsPage(inp: RegsInputs, opts: RegsPageOpts): RegsPage {
     version: "regs-v38",
     target: inp.target, day: inp.day, weekday: inp.weekday, today: sameDay(inp.day, opts.today), who: opts.who,
     status,
-    header: headerOf(inp, { today: opts.today, status, canMap: opts.canMap ?? true, downstream: opts.downstream ?? null }),
+    header: headerOf(inp, { today: opts.today, status, downstream: opts.downstream ?? null }),
     keep,
     gear, methods,
     licence: buildLicence(inp, opts.who, { closed: settled.status?.status === "closed",   // (T33)

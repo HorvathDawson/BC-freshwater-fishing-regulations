@@ -63,12 +63,14 @@ describe("T45 the Regulations view on a wide screen: same words, another arrange
     const h = PAGES[id]!.header;
     const date = `${h.dayWord}${WORDS.DATE_CARET}${h.date}`, place = h.place ? `${h.place.full}${h.place.full}` : "";
     const tabs = "What you can keepGearMethodsLicence";
-    const phoneHead = `${h.name}${date}${place}${tabs}`;
+    // (T71) the header's one action is Parts (drawn beside the pill), or nothing — never Map
+    const act = h.action ? h.action.label : "";
+    const phoneHead = `${h.name}${date}${act}${place}${tabs}`;
     expect(seen.phone!.startsWith(phoneHead)).toBe(true);
     expect(seen).toEqual({
       phone: seen.phone,
       tablet: seen.phone,
-      desktop: `${h.name}${place}${date}${tabs}${seen.phone!.slice(phoneHead.length)}`,
+      desktop: `${h.name}${act}${place}${date}${tabs}${seen.phone!.slice(phoneHead.length)}`,
     });
   });
 

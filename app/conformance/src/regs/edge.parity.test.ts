@@ -26,8 +26,8 @@ const MOMENT_IDS = ["klwa_1010", "klwa_1012", "x15p2_1010", "x15p7_1010", "x17p3
   "x19p4_1010", "x19p6_1010", "x19p7_1010", "x32p0_1010"];
 
 interface GKeep { order: string[]; lines: string[] }
-const pageOf = async (id: string, canMap?: boolean): Promise<RegsPage> =>
-  buildRegsPage((await inputsOf(id))!, { today: requestOf(id).today, who: ADULT_RESIDENT, pid: id, canMap });
+const pageOf = async (id: string): Promise<RegsPage> =>
+  buildRegsPage((await inputsOf(id))!, { today: requestOf(id).today, who: ADULT_RESIDENT, pid: id });
 const keepText = (p: RegsPage) => keepLines(p.keep, p.day);
 
 it(`T42 edge parity runs against a paired regs store${gate.skip ? ` — SKIPPED: ${"reason" in gate ? gate.reason : gate.fail}` : ""}`, () => {
@@ -57,7 +57,7 @@ describe.skipIf(gate.skip)("T42 edge states on the live release", () => {
   });
 
   it("6. hours x15p2_1010: the timed caveat right after the strip, its words and book page; the Parts action", async () => {
-    const p = await pageOf("x15p2_1010", false), k = p.keep;
+    const p = await pageOf("x15p2_1010"), k = p.keep;
     expect(k.order[0]).toBe("strip");
     expect(k.order[1]).toEqual({ caveat: 0 });
     expect(k.caveats[0]!.kind).toBe("timed");

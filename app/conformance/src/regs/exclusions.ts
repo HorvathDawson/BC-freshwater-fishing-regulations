@@ -19,6 +19,12 @@ export const NO_MAP_LABEL_IDS: readonly string[] = Object.entries(golden().state
   .filter(([, s]) => { const h = s.header as { place: unknown; action: { kind: string } | null } | null;
     return !!h && h.place === null && h.action?.kind !== "map"; })
   .map(([id]) => id);
+/** (T71) The states whose golden header offers the prototype's Map button. Owner call 3 (decisions.md, 2026-10-22):
+ *  "Keep only one Map entry (the view strip; drop the header's Map button)" — the app's header offers Parts when the
+ *  picker has a choice to make, else nothing; header.parity asserts that rule on these states instead of the golden. */
+export const GOLDEN_MAP_ACTION_IDS: readonly string[] = Object.entries(golden().states)
+  .filter(([, s]) => (s.header as { action: { kind: string } | null } | null)?.action?.kind === "map")
+  .map(([id]) => id);
 /** The three Kitimat states the owner ruling 2026-10-21 (a) moves away from page v36 (card.parity.test.ts KITIMAT_RULED). */
 export const KITIMAT_RULED_IDS: readonly string[] = ["x14p0_1010", "x14p1_1010", "x14p2_1010"];
 
@@ -153,6 +159,9 @@ export const EXCLUDE: readonly Exclusion[] = [
   { block: "header", ids: NO_MAP_LABEL_IDS, key: /^place$/,
     reason: "the prototype shows no part label where it had no water map of the water; the app frames every named part (D1) and labels it unless the label is the water's name (T16) — the parity asserts that instead",
     until: "never — prototype map coverage, not a regulation" },
+  { block: "header", ids: GOLDEN_MAP_ACTION_IDS, key: /^action$/,
+    reason: "owner call 3 (2026-10-22, T71): one Map entry — the view strip's; the header's Map button is dropped, so where the prototype offers Map the app offers Parts (a choice of parts) or nothing — the parity asserts that instead",
+    until: "never — an owner decision, not a regulation" },
   { block: "header", ids: "*", key: /^place\.shown$/,
     reason: "which of full/short is shown is a measurement (fitLabel); the VM carries both candidates — T41 checks the choice on Expo web" },
   // (T18/T19) the Kitimat owner ruling 2026-10-21 (a): the store's group tree differs from page v36's by design

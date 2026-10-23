@@ -1,7 +1,7 @@
 /**
  * T23 + T29 — the Regulations view of one tap (prototype regs v38 page layout), drawn inside the water frame (T44
  * `WaterFrame`: the back and the view strip, the same row on every view of the water, are the frame's — this screen
- * draws no header row, gutter or width of its own): the regs header (name, date pill, Map, place label, the four tabs)
+ * draws no header row, gutter or width of its own): the regs header (name, date pill, Parts, place label, the four tabs)
  * FIXED above ONE ScrollView that holds the four tab sections — "What you can keep", then the Gear / Methods
  * / Licence slots — and the pin bar over the scroll's top edge.
  *
@@ -14,8 +14,8 @@
  * page and its pin bar in a reading column of about 70 characters (tablet), and beside it a side column holding the date
  * pill, the sections as a list and the pinned lines (desktop). A phone is drawn exactly as before.
  *
- * Owner rule "one water screen": the Map button frames THIS water's map view through the water's own view strip
- * (WaterScreen hands `onMap`); it is not another way into a water.
+ * ONE MAP ENTRY (T71, owner call 3, 2026-10-22): the regs header has no Map button; the water's Map view is offered once,
+ * by the view strip the frame draws.
  */
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { AccessibilityInfo, Platform, ScrollView, Text, View } from "react-native";
@@ -62,8 +62,6 @@ export interface RegsScreenProps {
    * (this screen remounts on the next day's answer), and a sheet kept here closed under the reader at every step.
    */
   onDate: () => void;
-  /** the Map button: this water's map view. Absent → the button is not drawn (its slot stays). */
-  onMap?: () => void;
   /** the Parts button; absent → it opens the page's own Parts sheet (T37). */
   onParts?: () => void;
   /**
@@ -107,7 +105,7 @@ export function TabPending({ label, palette }: { label: string; palette: Palette
   );
 }
 
-export function RegsScreen({ page, palette, images, adipose, actions, onDate, onMap, onParts, onPart,
+export function RegsScreen({ page, palette, images, adipose, actions, onDate, onParts, onPart,
                              gear, methods, licence, footer, store: injected, layout = "phone", start = null, onStarted,
                              lapsed = null }: RegsScreenProps) {
   const store = useMemo(() => injected ?? createPinStore(), [injected]);
@@ -159,8 +157,7 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
   }, [store]);
   const keepActions: KeepActions = { ...actions, onSheet: openSheet, onTab: toTab };
   const action = page.header.action;
-  const onAction = action?.kind === "map" ? onMap && (() => onMap())
-    : action?.kind === "parts" ? (onParts ? () => onParts() : () => openSheet("parts" as SheetKey)) : undefined;
+  const onAction = action?.kind === "parts" ? (onParts ? () => onParts() : () => openSheet("parts" as SheetKey)) : undefined;
 
   // (T43) the pictures this page can show, credited at its foot (the app's whole list is the menu's Data sources page)
   const credits = useMemo(() => creditsFor(page), [page]);

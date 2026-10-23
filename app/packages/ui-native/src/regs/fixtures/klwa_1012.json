@@ -148,11 +148,7 @@
   "mode": null
  },
  "header": {
-  "action": {
-   "aria": "View on map: where these rules apply, Kootenay Lake — Lower West Arm",
-   "kind": "map",
-   "label": "Map"
-  },
+  "action": null,
   "date": "Oct 12",
   "dateAria": "Change date, now Oct 12",
   "dayWord": "Mon",

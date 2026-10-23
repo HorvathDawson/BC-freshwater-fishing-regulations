@@ -25,7 +25,7 @@
  *
  * WHAT A VIEW DRAWS: its content, filling the column. The water's name row is `WaterTitle` — under the header, in the
  * frame's `title` slot (Conditions, Map, and the Regulations view's waiting states), or as the first row of the regs
- * header (`RegsHeader`, whose date pill and Map button sit in it). Either way the row is the same box at the same
+ * header (`RegsHeader`, whose date pill and Parts button sit in it). Either way the row is the same box at the same
  * place. An inset block is `WaterInset` (the frame's gutter), never a padding of the view's own.
  *
  * THE MAP MAY GO FULL-BLEED (`bleed`): the canvas takes the window's width under the header; the header, the name row
@@ -94,7 +94,7 @@ export function WaterFrame({ palette, face, onBack, backLabel, title, bleed = fa
 
 /**
  * The water's name row, the same box on every view: `titleHeight` tall, the name at the gutter in the regs header's
- * face (two lines at most — more at the OS's larger text, T40), and beside it whatever the view puts there (the regs header's date pill and Map button).
+ * face (two lines at most — more at the OS's larger text, T40), and beside it whatever the view puts there (the regs header's date pill and Parts button).
  * `name` null: the row is held empty (the name is still loading) so nothing under it moves when it arrives.
  */
 export function WaterTitle({ name, palette, children }: {

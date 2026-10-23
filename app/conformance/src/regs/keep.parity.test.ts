@@ -170,12 +170,11 @@ describe("T21 Keep tab vs golden keep (every state)", () => {
     expect(excluded("keep", "klmb_1010", "plainRows.0")?.reason).toMatch(/^decisions D19/);
   });
 
-  it("headerOf is called with canMap (D1): a part the map frames gets the Map action", async () => {
+  it("the page's header is headerOf's; (T71) no Map action — the view strip is the water's one Map entry", async () => {
     for await (const c of cases("keep")) {
       if (c.id !== "vedder_1010") continue;
       const inp = await c.inputs(), p = await c.page();
-      expect(p.header).toEqual(headerOf(inp, { today: requestOf(c.id).today, status: p.status, canMap: true }));
-      expect(p.header.action?.kind).toBe("map");
+      expect([p.header, p.header.action]).toEqual([headerOf(inp, { today: requestOf(c.id).today, status: p.status }), null]);
     }
   });
 });

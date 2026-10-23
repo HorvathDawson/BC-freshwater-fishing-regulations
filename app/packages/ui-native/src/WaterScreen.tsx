@@ -143,8 +143,6 @@ export function WaterScreen({ source, item, palette, onBack,
                   start={start} onStarted={onStarted} onPart={onPart}
                   // past the release's last day in force, the page leads with core's out-of-date sentence (none unstamped)
                   lapsed={regsLapsedNote(loader.manifest?.regulations?.valid_until, Date.now())}
-                  // the water's own Map view, through its view strip — the same move as the strip's "Map" (one water screen)
-                  onMap={views?.views.includes("map") ? () => views.onView("map") : undefined}
                   actions={{
                     onSheet: () => {},                                   // RegsScreen opens the sheet itself (T37 SheetHost)
                     onDay: (x) => onDay?.(mapDayOf(x, d.calendarYear)),

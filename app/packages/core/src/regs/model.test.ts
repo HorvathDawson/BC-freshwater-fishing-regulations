@@ -14,7 +14,7 @@ const page = {
   header: {
     name: "Vedder River", dayWord: "Fri", date: "May 15", dateAria: "Change date, now May 15", dot: "open",
     place: { full: "Mouth → Vedder Crossing Bridge", short: "Mouth → Vedder Crossing Bridge" },
-    action: { kind: "map", label: "Map", aria: "View on map" },
+    action: { kind: "parts", label: "Parts", aria: "Other parts — now Mouth → Vedder Crossing Bridge" },
     tabs: [{ tab: "keep", label: "What you can keep" }],
   },
   keep: {

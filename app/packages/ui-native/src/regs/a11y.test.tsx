@@ -77,7 +77,7 @@ function mount(id = "vedder_1010", layout: LayoutClass = "phone", store = create
   return render(
     <MenuContext.Provider value={MENU}>
     <WaterFrame palette={LIGHT} face="regulations" onBack={() => {}} backLabel="Map">
-      <RegsScreen page={page} palette={LIGHT} actions={NOOP} onDate={() => {}} onMap={() => {}} layout={layout} store={store}
+      <RegsScreen page={page} palette={LIGHT} actions={NOOP} onDate={() => {}} layout={layout} store={store}
                   gear={page.gear ? (a) => <GearTab vm={page.gear!} palette={LIGHT} actions={a} /> : undefined}
                   methods={page.methods ? (a) => <MethodsTab vm={page.methods!} palette={LIGHT} actions={a} referenceOpen /> : undefined}
                   licence={id === "vedder_1010" ? (a) => <Licence actions={a} /> : undefined} />

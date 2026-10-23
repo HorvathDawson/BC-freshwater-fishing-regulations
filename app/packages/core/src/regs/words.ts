@@ -13,7 +13,7 @@ export const WORDS = Object.freeze({
   // tabs (golden header.tabs)
   TAB_KEEP: "What you can keep", TAB_GEAR: "Gear", TAB_METHODS: "Methods", TAB_LICENCE: "Licence",
   // header
-  TODAY: "Today", MAP: "Map", PARTS: "Parts",
+  TODAY: "Today", PARTS: "Parts",
   // (T36) the Parts sheet: its title and each row's day word (prototype sheetHtml parts + statusOf)
   PARTS_TITLE: "Parts of this water", PART_OPEN: "open", PART_CLOSED: "closed", PART_UNKNOWN: "unknown",
   // rich text (line.ts plain()): `${BOOK} ${PAGE}<printed> ${LINK_OUT}`
@@ -82,7 +82,6 @@ export const WORDS = Object.freeze({
   TIDAL_WATER: "Tidal water",
   // T16 the header (prototype hdr / placeGo; page v36 subtitle)
   DATE_ARIA: (date: string) => `Change date, now ${date}`,
-  MAP_ARIA: (full: string) => `View on map: where these rules apply${full ? `, ${full}` : ""}`,
   PARTS_ARIA: (full: string) => `Other parts${full ? ` — now ${full}` : ""}`,
   SUB_CLOSED_ALL_YEAR: "closed all year",
   /** (T53) an unnamed section's label slot: the named water it flows into (a stream is that water's tributary) */

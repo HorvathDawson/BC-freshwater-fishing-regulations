@@ -1,7 +1,7 @@
 /**
  * T23 — the Regulations page's header (prototype regs v38 `hdr`, `placeRow`, `placeGo`, `fitLabel`; tokens.md §5
- * "RegsHeader"): the water's name, the date pill (status dot, "Today ▾" / weekday over the date), the Map (or Parts)
- * button, the part's place label on two lines, and the four tabs. Fixed above the page's one scroll — never inside it
+ * "RegsHeader"): the water's name, the date pill (status dot, "Today ▾" / weekday over the date), the Parts button (or
+ * its empty 44 px slot), the part's place label on two lines, and the four tabs. Fixed above the page's one scroll — never inside it
  * (header-one-shape).
  *
  * Draws `HeaderVM` (core header.ts) and nothing else: no logic beyond the label fit (`pickPlace`, layout only). The tab
@@ -37,29 +37,30 @@ export function pickPlace(place: { full: string; short: string }, measuredHeight
   return measuredHeight <= lineHeight * 2 + 1 ? place.full : place.short;
 }
 
-/** (N1) the action's glyph, from the app's one set (`icons.tsx`): Map is the bar's own map; Parts is a list. */
-const GLYPH = { map: "map", parts: "parts" } as const;
+/** (N1) the action's glyph, from the app's one set (`icons.tsx`): Parts is a list. There is no Map button here (T71,
+ *  owner call 3): the water's one Map entry is the view strip. */
+const GLYPH = { parts: "parts" } as const;
 
 export function RegsHeader({ header: h, palette, tabs, onDate, onAction, onTab, side = false }: {
   header: HeaderVM; palette: Palette;
   /** where the selected tab is read from (the pin store) */
   tabs: TabSource;
   onDate: () => void;
-  /** Map / Parts pressed. Absent → the slot stays (44 px, so the name does not reflow between waters) with nothing in it. */
-  onAction?: (kind: "map" | "parts") => void;
+  /** Parts pressed. Absent (or no action) → the slot stays (44 px, so the name does not reflow between waters), empty. */
+  onAction?: (kind: "parts") => void;
   onTab: (t: Tab) => void;
   /**
    * (T45) the desktop arrangement: the date pill and the tabs are drawn in the side column (`RegsSide`), so the header
-   * keeps the name row (with Map) and the place label. false (a phone, a tablet): the header as it always was.
+   * keeps the name row (with Parts) and the place label. false (a phone, a tablet): the header as it always was.
    */
   side?: boolean;
 }) {
   return (
     <View testID="regs-header" style={{ backgroundColor: palette.card, borderBottomWidth: 1.5, borderBottomColor: palette.ink }}>
-      {/* THE NAME ROW is the water frame's (T44): the same box on every view of the water, the pill and Map in it */}
+      {/* THE NAME ROW is the water frame's (T44): the same box on every view of the water, the pill and Parts in it */}
       <WaterTitle name={h.name} palette={palette}>
         {!side && <DatePill h={h} palette={palette} onDate={onDate} />}
-        <View style={{ minWidth: 44, minHeight: 44 }}>
+        <View testID="regs-action-slot" style={{ minWidth: 44, minHeight: 44 }}>
           {h.action && onAction && (
             <RegsPress testID="regs-action" onPress={() => onAction(h.action!.kind)} accessibilityRole="button"
                        accessibilityLabel={h.action.aria} box={{ w: 44, h: 44 }}

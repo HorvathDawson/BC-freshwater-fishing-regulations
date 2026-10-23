@@ -192,11 +192,7 @@
   }
  },
  "header": {
-  "action": {
-   "aria": "View on map: where these rules apply, Mouth → Vedder Crossing Bridge",
-   "kind": "map",
-   "label": "Map"
-  },
+  "action": null,
   "date": "May 15",
   "dateAria": "Change date, now May 15",
   "dayWord": "Fri",

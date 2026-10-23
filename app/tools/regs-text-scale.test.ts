@@ -158,7 +158,7 @@ function measure(scales: readonly number[]): Record<string, M> {
       for (const [c, size] of Object.entries(SIZES) as [LayoutClass, [number, number]][]) {
         SCALE.v = scale; windowAt(size);
         render(h(WaterFrame, { palette: LIGHT, face: "regulations", onBack() {}, backLabel: "Map", children:
-          h(RegsScreen, { page, palette: LIGHT, layout: c, actions: { onSheet() {}, onDay() {}, onBook() {} }, onDate() {}, onMap() {},
+          h(RegsScreen, { page, palette: LIGHT, layout: c, actions: { onSheet() {}, onDay() {}, onBook() {} }, onDate() {},
                           gear: page.gear ? (a: never) => h(GearTab, { vm: page.gear!, palette: LIGHT, actions: a }) : undefined,
                           methods: page.methods ? (a: never) => h(MethodsTab, { vm: page.methods!, palette: LIGHT, actions: a, referenceOpen: true }) : undefined,
                           licence: id === "vedder_1010" ? (a: never) => h(Licence, { actions: a }) : h(Text, null, "") }) }) as ReactNode);
@@ -214,7 +214,7 @@ describe("T40 the Regulations view at 200 % text, laid out in Chrome", () => {
         "glenn_501 desktop 1×": "title 48 place 32",
         "glenn_501 desktop 2×": "title 48 place 65",
         "glenn_501 phone 1×": "title 48 place 32",
-        "glenn_501 phone 2×": "title 78 place 65",
+        "glenn_501 phone 2×": "title 62 place 65",
         "klwa_1010 desktop 1×": "title 48 place 32",
         "klwa_1010 desktop 2×": "title 48 place 65",
         "klwa_1010 phone 1×": "title 48 place 32",

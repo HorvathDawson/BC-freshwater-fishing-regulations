@@ -160,9 +160,9 @@
  },
  "header": {
   "action": {
-   "aria": "View on map: where these rules apply, 2 stretches",
-   "kind": "map",
-   "label": "Map"
+   "aria": "Other parts — now 2 stretches",
+   "kind": "parts",
+   "label": "Parts"
   },
   "date": "Oct 10",
   "dateAria": "Change date, now Oct 10",

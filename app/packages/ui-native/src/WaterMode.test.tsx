@@ -271,3 +271,35 @@ describe("the water's Map view and the rest of the water screen agree (P15 follo
       "the Map tab"]);
   }, 40_000);
 });
+
+describe("ONE MAP ENTRY (T71, owner call 3, 2026-10-22: \"Keep only one Map entry (the view strip; drop the header's Map button)\")", () => {
+  /** The water screen opened on a water's Regulations view, through the real Shell, on the regs fixture release. */
+  async function onRegs(item: string, part: number) {
+    const start: Route = { mode: "water", from: { ...HOME, tab: "map" },
+                           stack: [{ item: item as ItemId, part, tapSid: null, at: null, view: "regs" }] };
+    render(
+      <GestureHandlerRootView>
+        <Shell source={makeFixtureSource()} palette={LIGHT} theme="light" themeName="light" onTheme={() => {}}
+               tiles={{ atlas: "a", basemap: "b" } as never} initialRoute={start} loader={openRegsFixture()} />
+      </GestureHandlerRootView>);
+    await waitFor(() => expect(screen.getByTestId("keep-tab")).toBeTruthy(), { timeout: 20_000 });
+  }
+  /** Every control on the water screen whose name says Map: [role, name]. A control's name is its aria-label, else its
+   *  words. The ‹ (named "Back", its words the tab it returns to) and the × ("Close, back to Map") LEAVE the water for
+   *  the Map tab — they are not a way to this water's map, so they are left out by name, exactly. */
+  const LEAVING = new Set(["Back", "Close, back to Map"]);
+  const mapEntries = () => [...screen.getByTestId("water-frame").querySelectorAll("[role=button],[role=tab],[role=link]")]
+    .map((e) => [e.getAttribute("role"), e.getAttribute("aria-label") ?? e.textContent ?? ""])
+    .filter(([, name]) => /\bmap\b/i.test(name!) && !LEAVING.has(name!));
+
+  it("on the Regulations view the water's Map is offered once — the view strip's tab — and the header's one action is " +
+     "Parts; the strip's Map opens the water's Map view on the part being read", async () => {
+    await onRegs(CHILLIWACK, 1);
+    const leaving = [screen.getByLabelText("Back").textContent, screen.getByTestId("water-close").getAttribute("aria-label")];
+    const seen: unknown[] = [leaving, mapEntries(), screen.getByTestId("regs-action").textContent];
+    fireEvent.click(screen.getByRole("tab", { name: "Map" }));
+    await waitFor(() => expect(screen.getByTestId("water-map-where")).toBeTruthy(), { timeout: 20_000 });
+    seen.push(screen.getByTestId("water-map-where").textContent);
+    expect(seen).toEqual([["Map", "Close, back to Map"], [["tab", "Map"]], "Parts", "Part 1 of 4 · Chilliwack River"]);
+  }, 40_000);
+});

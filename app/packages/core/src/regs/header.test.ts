@@ -56,11 +56,10 @@ describe("partLabels (prototype hereLabel / shortLabel)", () => {
     const p = inputs({ partIx: 1, parts: [part("a", "A"), part("b", "B → C", { runs: "the runs" })] });
     expect(partLabels(p)).toEqual({ full: "B → C", short: "B → C" });
   });
-  it("no picker: the part's uncut short label, else its label — whether or not the map can frame it (T16: the slot is empty only when it is the water's name)", () => {
+  it("no picker: the part's uncut short label, else its label (T16: the slot is empty only when it is the water's name)", () => {
     const one = inputs({ parts: [part("Mouth to source", "Mouth → Source")], choices: [] });
     expect(partLabels(one)).toEqual({ full: "Mouth → Source", short: "Mouth → Source" });
-    for (const canMap of [true, false])
-      expect(headerOf(one, { today, status: "open", canMap }).place).toEqual({ full: "Mouth → Source", short: "Mouth → Source" });
+    expect(headerOf(one, { today, status: "open" }).place).toEqual({ full: "Mouth → Source", short: "Mouth → Source" });
     expect(partLabels(inputs({ parts: [part("Mouth to source", "Mouth…")], choices: [] }))).toEqual({ full: "Mouth to source", short: "Mouth to source" });
     expect(partLabels(inputs({ unnamed: true }))).toBeNull();
   });
@@ -68,41 +67,42 @@ describe("partLabels (prototype hereLabel / shortLabel)", () => {
 
 describe("headerOf", () => {
   it("today: 'Today' + the date; another day: its weekday; the dot from the strip's status", () => {
-    const h = headerOf(inputs(), { today, status: "open", canMap: true });
+    const h = headerOf(inputs(), { today, status: "open" });
     expect([h.name, h.dayWord, h.date, h.dateAria, h.dot]).toEqual(["Test River", "Today", "Oct 10", "Change date, now Oct 10", "open"]);
-    const h2 = headerOf(inputs({ day: D(6, 15), weekday: "Monday" }), { today, status: "closed", canMap: true });
+    const h2 = headerOf(inputs({ day: D(6, 15), weekday: "Monday" }), { today, status: "closed" });
     expect([h2.dayWord, h2.date, h2.dot]).toEqual(["Mon", "Jun 15", "closed"]);
-    expect(["tidal", "outside", "unknown"].map((s) => headerOf(inputs(), { today, status: s as "tidal", canMap: true }).dot))
+    expect(["tidal", "outside", "unknown"].map((s) => headerOf(inputs(), { today, status: s as "tidal" }).dot))
       .toEqual(["faint", "faint", "faint"]);
   });
-  it("the action: Map when the map frames the part, else Parts for several choices, else none", () => {
-    expect(headerOf(inputs(), { today, status: "open", canMap: true }).action)
-      .toEqual({ kind: "map", label: "Map", aria: "View on map: where these rules apply, From the mouth up to the falls" });
-    expect(headerOf(inputs(), { today, status: "open", canMap: false }).action)
+  it("(T71, owner call 3: one Map entry, the view strip's) the action is Parts for several choices, else none — never Map", () => {
+    expect(headerOf(inputs(), { today, status: "open" }).action)
       .toEqual({ kind: "parts", label: "Parts", aria: "Other parts — now From the mouth up to the falls" });
-    expect(headerOf(inputs({ parts: [part("Whole water", "Whole water")], choices: [] }), { today, status: "open", canMap: false }).action).toBeNull();
+    expect(headerOf(inputs({ parts: [part("Whole water", "Whole water")], choices: [] }), { today, status: "open" }).action).toBeNull();
     expect(headerOf(inputs({ parts: [part("Whole water", "Whole water")], choices: [choice([0], "Whole water", 1)] }),
-                    { today, status: "open", canMap: false }).action).toBeNull();
+                    { today, status: "open" }).action).toBeNull();
+    // no option can bring the Map button back: the header has no `canMap` (an old caller's extra key changes nothing)
+    expect(headerOf(inputs(), { today, status: "open", canMap: true } as Parameters<typeof headerOf>[1]).action?.kind).toBe("parts");
   });
-  it("a label that is the water's own name leaves the slot empty; the Map words keep it", () => {
-    const h = headerOf(inputs({ name: "Kootenay Lake — Lower West Arm", parts: [part("x", "Kootenay Lake — Lower West Arm")], choices: [] }),
-                       { today, status: "open", canMap: true });
-    expect([h.place, h.action?.aria]).toEqual([null, "View on map: where these rules apply, Kootenay Lake — Lower West Arm"]);
+  it("a label that is the water's own name leaves the slot empty; the Parts words keep it", () => {
+    const h = headerOf(inputs({ name: "Kootenay Lake — Lower West Arm", parts: [part("x", "Kootenay Lake — Lower West Arm"), part("y", "y")] }),
+                       { today, status: "open" });
+    expect([h.place, h.action]).toEqual([null,
+      { kind: "parts", label: "Parts", aria: "Other parts — now Kootenay Lake — Lower West Arm" }]);
   });
-  it("a one-part water the map cannot frame: the label slot is still empty only when the label is the water's name", () => {
+  it("a one-part water: the label slot is empty only when the label is the water's name, and there is no action", () => {
     const h = headerOf(inputs({ name: "Wilkes Creek", parts: [part("Wilkes Creek", "Wilkes Creek")], choices: [] }),
-                       { today, status: "open", canMap: false });
+                       { today, status: "open" });
     expect([h.place, h.action]).toEqual([null, null]);
   });
   it("an unnamed section: the place's name, no label, no action (D11); always the four tabs", () => {
-    const h = headerOf(inputs({ unnamed: true }), { today, status: "open", canMap: true });
+    const h = headerOf(inputs({ unnamed: true }), { today, status: "open" });
     expect([h.name, h.place, h.action, h.tabs.map((t) => `${t.tab}:${t.label}`)]).toEqual(["Unnamed stream", null, null,
       ["keep:What you can keep", "gear:Gear", "methods:Methods", "licence:Licence"]]);
   });
   it("(T53) an unnamed section that flows into a named water: the label slot says which — a stream is its tributary", () => {
     const of = (kind: string | null, downstream: string | null | undefined, unnamed = true) => {
       const inp = { ...inputs({ unnamed }), key: kind === null ? null : { kind } } as unknown as RegsInputs;
-      return headerOf(inp, { today, status: "open", canMap: true, downstream }).place;
+      return headerOf(inp, { today, status: "open", downstream }).place;
     };
     expect([of("stream", "Eve River"), of("lake", "Salmon River"), of("wetland", "Fraser River"), of(null, "Eve River"),
             of("stream", null), of("stream", undefined)]).toEqual([
