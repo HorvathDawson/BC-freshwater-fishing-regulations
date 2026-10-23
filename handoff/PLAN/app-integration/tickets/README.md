@@ -196,6 +196,10 @@ use that as the sole source of future work."
 | T149 | review page: slough complexes marked in bulk; intermittent-lake spot check | OPEN | — | after T148; ★ owner marks |
 | T150 | drop the regs header's "Parts" button; the part list lives in the Map view | OPEN | — | after T147 |
 | T151 | water Map view: bold emphasis makes the regs legend hard to follow | OPEN | — | with T150 |
+| T152 | sewage basins, tailing ponds, dumps (275) drawn as fishable lakes | OPEN | — | registry + reach + deliver; tiles window |
+| T153 | a river's rules stop at every unnamed lake polygon on its course (456 holes) | OPEN | — | ★ Q124; reach rerun |
+| T154 | a dams layer so "dammed widening = lake" is decided by data | OPEN | — | data fetch; T148 re-run |
+| T155 | Still Creek and Nelson Creek: book entries with no water (named ditch/canal lines) | OPEN | — | registry + reach + deliver |
 
 ## Order for open tickets
 
@@ -318,6 +322,8 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q121 | T125 | Item 4 renames two unbound reasons (between_cuts_not_ordered → parallel_branches; outside_*) without a POLICY_VERSION bump (no live rule moved)? | no bump | owner |
 | Q122 | T150 | Where the "Parts of this water" list sits in the Map view? | a collapsible list under the map | owner |
 | Q123 | T151 | How the water Map view marks the selected part without bold lines? | dim the other parts; one line width | owner |
+| Q124 | T153 | Does a river row's rule apply to an UNNAMED lake polygon its main flow runs through (book "river" includes its widenings unless it names the lake)? | yes for unnamed polygons covered on both sides; a named lake never takes the river's row | owner |
+| Q125 | T152 | Sewage basins / tailing ponds / dumps: draw them at all? | a muted non-water fill, no tap, no rules | owner |
 
 ### Answered (recently, for the record)
 - Q5, Q34–Q41 (curation review plan, T97) — owner 2026-10-23: "The review app changes seem good" — PLAN.md approved with all §6 defaults; plus: adding splits, rebuilding and continuing review must work (T97, T133–T136); a salmon pass later (T132).
