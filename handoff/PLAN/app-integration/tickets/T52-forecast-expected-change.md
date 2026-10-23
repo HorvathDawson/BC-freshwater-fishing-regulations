@@ -78,3 +78,21 @@ CLEVER and COFFEE disagree on a big rise at 40 stations. Index grows 183 KB → 
 - CLEVER's summary `fmax` column is `Forecast_maximum_in_5_days` on a 10-day model (08MH090: 0.263 vs a 5.43 peak on day
   6). Change does not use it; the chart headline still does.
 - Gauge dots ignore the horizon (as for +1..+10): under Change they still show today's percentile.
+
+## Review (2026-10-22, adversarial)
+Held: a one-day spike between +3 and +5 is caught and dated (08HA003, +5 reads the day after); rise-then-fall is a
+spike, a held rise a step; two models kept, each against its own today; out of season and stale runs say nothing;
+series requests only for moved fresh runs, capped and logged; no paint call on the chip switch (same `modes`); Level
+never offered Change; a refusal is nothing, never steady.
+Fixed (test-first):
+- 694f7c71 light rise1/rise2 sat dE2000 13.7 / 6.5 from `color.highlight` (the ring round a tapped river vanished on a
+  rising one — visible in desktop-light-4-panel.png). Gate now holds every stop 20 off the highlight; light rise is
+  violet #D080C8 / #A850F8. Shots in T52-shots/ predate this and show the old magenta.
+- 985feee9 an extreme on the LAST day read was a "step" worded "and stays up" (30 of 57 big unreturned moves on the
+  2026-10-22 feed). Now shape `open` and "still rising/falling on the last day shown".
+- f35008e5 the Change block's words moved into core; model order from `CHANGE_POLICY.order`.
+Left: light rise2 is dE2000 16 from the you-are-here pin's violet (`color.ui.accent`, a pin, not a line); under
+colour-blind simulation several stops sit under 10 from a status (statuses are not drawn on Conditions; the gate is
+normal-vision, as for the warm dot); a section's figure is the geometric mean of each donor's own LARGEST move, so a
+donor rising and one falling can average to "little change" (the explainer says gauges may peak on different days,
+not that they may disagree in direction).
