@@ -1546,6 +1546,35 @@ def test_two_regions_identical_statements_show_once(tmp_path):
             if x["state"] == "speaks"} == {"z7a:q::q.r1"}
 
 
+def test_two_quotas_with_different_seasons_compete_only_where_both_hold(tmp_path):
+    """T125 item 9: `rules.statement` leaves out `when`, so step 6 (two regions) and the water-over-zone replacement
+    could have read two quotas with different seasons as one statement. They do not, because the reader is asked ONE
+    DAY (and one moment): a rule out of force that day takes no part (`read.in_force`), so the season never needs to be in
+    the statement. Pinned whole: Region 5's "Kokanee: 5, Jun 1-Aug 31" beside Region 7A's all-year "Kokanee: 10";
+    and a water's dated "Kokanee: 10, Jun 1-Aug 31" over its zone's "Kokanee: 5"."""
+    summer = {"dates": [{"from_month": 6, "from_day": 1, "to_month": 8, "to_day": 31}]}
+    path = _tiny(tmp_path, [
+        {"entry": "z5:q", "rule": "q.r1", "species": ["KO"], "take": 5, "_rank": 3, "when": summer},
+        {"entry": "z7a:q", "rule": "q.r1", "species": ["KO"], "take": 10, "_rank": 3}])
+    assert _speak(path, "KO", (1, 15)) == {"q.r1"} and \
+        {x["entry"] for x in R.effective_rules(1, (1, 15), "KO", path) if x["state"] == "speaks"} == {"z7a:q"}
+    assert {x["entry"] for x in R.effective_rules(1, (7, 1), "KO", path) if x["state"] == "speaks"} == {"z5:q"}
+    # the same number in two seasons: one shown where both hold, each alone where it alone holds
+    path = _tiny(_sub(tmp_path), [
+        {"entry": "z5:q", "rule": "q.r1", "species": ["KO"], "take": 5, "_rank": 3, "when": summer},
+        {"entry": "z7a:q", "rule": "q.r1", "species": ["KO"], "take": 5, "_rank": 3}])
+    assert [{x["entry"] for x in R.effective_rules(1, on, "KO", path) if x["state"] == "speaks"}
+            for on in ((1, 15), (7, 1))] == [{"z7a:q"}, {"z5:q"}]
+    # a water's dated quota replaces its zone's on its dates only (AGENTS 50)
+    d = tmp_path / "c"
+    d.mkdir()
+    path = _tiny(d, [
+        {"entry": "r5:lake@5-1", "rule": "lake.r1", "species": ["KO"], "take": 10, "_rank": 0, "when": summer},
+        {"entry": "z5:q", "rule": "q.r1", "species": ["KO"], "take": 5, "_rank": 3}])
+    assert [{x["entry"] for x in R.effective_rules(1, on, "KO", path) if x["state"] == "speaks"}
+            for on in ((1, 15), (7, 1))] == [{"z5:q"}, {"r5:lake@5-1"}]
+
+
 def test_a_steelhead_is_a_rainbow_where_no_steelhead_rule_applies(tmp_path):
     """RU-6 (user ruling 2026-10-03): asked about "ST" where the provincial steelhead set does
     not reach (the Okanagan River), the answer is the rainbow's — the river's "Rainbow trout
