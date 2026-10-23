@@ -854,8 +854,10 @@ def test_t90_only_the_piece_AT_the_cut_seeds_and_in_its_own_line_s_measures(monk
 def test_t90_a_receiving_river_s_channel_at_the_cut_is_not_seeded(monkeypatch):
     """A channel carrying the RECEIVING river's own code is a side channel of that river: its order
     is small, so the Strahler guard passes it. Met at a cut it is still never the reach's
-    tributary; a creek of the reach's own river at the same point is. MUTATION
-    (`THE_RECEIVING_RIVER_IS_NEVER_A_SEED`): off, the Harrison channel is seeded."""
+    tributary; a creek of the reach's own river at the same point is. T102: the seeding-only check
+    (`THE_RECEIVING_RIVER_IS_NEVER_A_SEED`) is gone — a seed is the walk's first step and takes the
+    walk's own parent-code rule. MUTATION (`THE_WALK_NEVER_ENTERS_A_PARENT`): off, the Harrison
+    channel is seeded."""
     from pipeline.atlas.graph import tributaries as T
     g = _g([_w("C:0", order=5, wsc=CHEHALIS_WSC),
             _w("C:3592", order=5, wsc=CHEHALIS_WSC, down_m=3592.9),
@@ -866,8 +868,11 @@ def test_t90_a_receiving_river_s_channel_at_the_cut_is_not_seeded(monkeypatch):
             ("K:0", "C:0", "confluence", 3592.9)])
     reach, window = frozenset({"C:3592"}), ("C", 3592.9, 5362.5)
     assert _mouths_at_lower_bound(g, reach, window) == {"K:0"}
-    monkeypatch.setattr(T, "THE_RECEIVING_RIVER_IS_NEVER_A_SEED", False)
+    assert tributaries_of_reach(g, reach, window=window) == {"K:0"}
+    assert not hasattr(T, "THE_RECEIVING_RIVER_IS_NEVER_A_SEED"), "T102: superseded, removed"
+    monkeypatch.setattr(T, "THE_WALK_NEVER_ENTERS_A_PARENT", False)
     assert _mouths_at_lower_bound(g, reach, window) == {"HS3:0", "K:0"}
+    assert tributaries_of_reach(g, reach, window=window) == {"HS3:0", "K:0"}
 
 
 def test_t90_a_reach_running_to_its_mouth_seeds_nothing(monkeypatch):
@@ -903,6 +908,132 @@ def test_t90_a_distributary_at_the_cut_is_not_a_way_in(monkeypatch):
     assert _mouths_at_lower_bound(g, reach, window) == set()
     monkeypatch.setattr(T, "MOUTH_SEEDS_ONLY_AT_THE_CUT", False)
     assert _mouths_at_lower_bound(g, reach, window) == {"x:0"}
+
+
+# --------------------------------------------------------------------------- #
+# T102 — the receiving river is never walked into: ONE parent-code rule, in the walk, which a seed
+# (the walk's first step) takes too. The order guard is the fallback where the code cannot say.
+# --------------------------------------------------------------------------- #
+
+def test_t102_the_chehalis_is_still_blocked_by_code_alone(monkeypatch):
+    """The live Chehalis shape with the seeding's topology check off: the sibling at the Harrison
+    channel's measure 0 is a seed candidate again, and only the parent-code rule refuses it (its
+    code, the Harrison's, is a strict ancestor of the Chehalis's). MUTATION
+    (`THE_WALK_NEVER_ENTERS_A_PARENT`): off as well, the two live Harrison channels come back."""
+    from pipeline.atlas.graph import tributaries as T
+    g = _chehalis()
+    monkeypatch.setattr(T, "MOUTH_SEEDS_ONLY_AT_THE_CUT", False)
+    assert tributaries_of_reach(g, CHEHALIS_REACH, window=CHEHALIS_WINDOW) == frozenset()
+    monkeypatch.setattr(T, "THE_WALK_NEVER_ENTERS_A_PARENT", False)
+    assert tributaries_of_reach(g, CHEHALIS_REACH, window=CHEHALIS_WINDOW) == {"HS1:0", "HS2:0"}
+
+
+def _braid_into_the_receiving_river():
+    """A creek of the Chehalis, with a Harrison side channel braiding into it (a floodplain), and a
+    creek of the HARRISON feeding that channel.
+
+        HC:0 (Harrison creek, order 1, 100-077501-095000)
+          |  confluence
+        HS:0 (Harrison side channel, order 2, the Harrison's code)
+          |  confluence                       <- the braid: the receiving river flowing into a creek
+        K:0  (Chehalis creek, order 2, child code)  <- KU:0 (its own headwater creek, order 1)
+          |  confluence
+        C:0  (Chehalis, order 5)                                     reach
+    """
+    return _g([_w("C:0", order=5, wsc=CHEHALIS_WSC),
+               _w("K:0", order=2, wsc=CHEHALIS_WSC + "-073263"),
+               _w("KU:0", order=1, wsc=CHEHALIS_WSC + "-073263-100000"),
+               _w("HS:0", order=2, wsc=HARRISON_WSC),
+               _w("HC:0", order=1, wsc=HARRISON_WSC + "-095000")],
+              [("K:0", "C:0", "confluence"), ("KU:0", "K:0", "confluence"),
+               ("HS:0", "K:0", "confluence"), ("HC:0", "HS:0", "confluence")])
+
+
+def test_t102_a_braid_into_the_receiving_river_s_side_channel_is_not_walked():
+    """The side channel carries the Harrison's code at order 2, so the order guard passes it; the
+    walk climbed it, and every creek of the Harrison feeding it. The code says it is the river the
+    Chehalis drains into: the walk never steps into it, nor past it."""
+    g = _braid_into_the_receiving_river()
+    assert tributaries_of_reach(g, {"C:0"}) == {"K:0", "KU:0"}
+    assert expand(g, {"C:0"}) == {"C:0", "K:0", "KU:0"}
+
+
+def test_t102_mutation_without_the_parent_rule_the_side_channel_binds(monkeypatch):
+    """MUTATION (`THE_WALK_NEVER_ENTERS_A_PARENT`): off, the walk climbs the receiving river's side
+    channel and the Harrison's creek above it."""
+    from pipeline.atlas.graph import tributaries as T
+    g = _braid_into_the_receiving_river()
+    monkeypatch.setattr(T, "THE_WALK_NEVER_ENTERS_A_PARENT", False)
+    assert T.tributaries_of_reach(g, {"C:0"}) == {"K:0", "KU:0", "HS:0", "HC:0"}
+
+
+def test_t102_a_side_channel_of_the_reach_s_own_river_is_not_a_parent():
+    """Equal codes are the reach's own river beside its line (the Old Kootenay River Channel): never
+    a parent, so the walk keeps it. A reach of TWO rivers, one coded a tributary of the other (the
+    Vedder and the Chilliwack), has the outer river's code too: the outer river's channel is the
+    reach's own water, not the inner river's receiving river."""
+    g = _g([_w("V:0", order=6, wsc="100-1"), _w("CH:0", order=6, wsc="100-1-9"),
+            _w("Vside:0", order=2, wsc="100-1"), _w("Vcreek:0", order=1, wsc="100-1-7"),
+            _w("CHside:0", order=2, wsc="100-1"), _w("up:0", order=1, wsc="100-1-9-3")],
+           [("CH:0", "V:0", "confluence"), ("Vside:0", "V:0", "confluence"),
+            ("Vcreek:0", "Vside:0", "confluence"), ("CHside:0", "CH:0", "confluence"),
+            ("up:0", "CHside:0", "confluence")])
+    assert tributaries_of_reach(g, {"V:0"}) == {"CH:0", "Vside:0", "Vcreek:0", "CHside:0", "up:0"}
+    assert tributaries_of_reach(g, {"V:0", "CH:0"}) == {"Vside:0", "Vcreek:0", "CHside:0", "up:0"}
+    # the Chilliwack alone: the Vedder-coded channel braiding into it is its receiving river
+    assert tributaries_of_reach(g, {"CH:0"}) == frozenset()
+
+
+def test_t102_the_code_decides_a_genuine_tributary_whose_order_looks_too_big(monkeypatch):
+    """A tributary carrying the reach's code extended is a tributary by code, whatever its order (a
+    lake's order aggregates every inflow and runs ahead of its outlet's first piece). The code is
+    asked FIRST. MUTATION: let the order guard judge before the code and the tributary is refused."""
+    from pipeline.atlas.graph import tributaries as T
+    g = _g([_w("r:0", order=2, wsc="100-4"), _w("big:0", order=4, wsc="100-4-2"),
+            _w("big_up:0", order=1, wsc="100-4-2-8")],
+           [("big:0", "r:0", "confluence"), ("big_up:0", "big:0", "continuation")])
+    assert tributaries_of_reach(g, {"r:0"}) == {"big:0", "big_up:0"}
+    monkeypatch.setattr(T, "_code_says_tributary", lambda up, down: False)
+    assert tributaries_of_reach(g, {"r:0"}) == frozenset()
+
+
+def test_t102_where_a_code_is_missing_the_order_guard_decides():
+    """No code on the water (an added stream, water FWA leaves uncoded): the parent rule has nothing
+    to read, so the order guard is the fallback — a bigger river is refused, a smaller creek taken.
+    Equal codes are WSC silent by design (side channels pass that way), and order decides there too:
+    the floodplain artifacts the guard exists for (28,359 equal-code edges on the live graph)."""
+    g = _g([_w("r:0", order=3, wsc="100-4"), _w("big:0", order=5, wsc=""),
+            _w("small:0", order=1, wsc=""), _w("eqbig:0", order=5, wsc="100-4"),
+            _w("eqsmall:0", order=1, wsc="100-4")],
+           [("big:0", "r:0", "confluence"), ("small:0", "r:0", "confluence"),
+            ("eqbig:0", "r:0", "confluence"), ("eqsmall:0", "r:0", "confluence")])
+    assert tributaries_of_reach(g, {"r:0"}) == {"small:0", "eqsmall:0"}
+    # no code on the REACH either: the same fallback
+    g2 = _g([_w("r:0", order=3, wsc=""), _w("big:0", order=5, wsc="100-4"),
+             _w("small:0", order=1, wsc="100-4-1")],
+            [("big:0", "r:0", "confluence"), ("small:0", "r:0", "confluence")])
+    assert tributaries_of_reach(g2, {"r:0"}) == {"small:0"}
+
+
+def test_t102_the_parent_rule_holds_without_the_guards():
+    """`guarded=False` drops the barrier and order guards (tests only). The parent rule is not a
+    guard — it says what a tributary IS — so it holds there too."""
+    g = _braid_into_the_receiving_river()
+    assert tributaries_of_reach(g, {"C:0"}, guarded=False) == {"K:0", "KU:0"}
+
+
+def test_t102_one_refusal_function_names_its_reason():
+    """The walk and the seeding ask ONE function; each refusal carries a named reason."""
+    from pipeline.atlas.graph import tributaries as T
+    g = _braid_into_the_receiving_river()
+    codes = T._reach_codes(g, frozenset({"C:0"}))
+    assert codes == frozenset({CHEHALIS_WSC})
+    assert T._refusal(g, "HS:0", "K:0", codes) == "receiving_river"
+    assert T._refusal(g, "K:0", "C:0", codes) is None
+    big = _g([_w("r:0", order=3, wsc=""), _w("big:0", order=5, wsc="")],
+             [("big:0", "r:0", "confluence")])
+    assert T._refusal(big, "big:0", "r:0", frozenset()) == "bigger_river"
+    assert T._refusal(big, "big:0", "r:0", frozenset(), guarded=False) is None
 
 
 # --------------------------------------------------------------------------- #

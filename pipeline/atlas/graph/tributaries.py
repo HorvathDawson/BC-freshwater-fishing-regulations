@@ -30,6 +30,8 @@ exist.
 
 from __future__ import annotations
 
+import functools
+
 from pipeline.atlas.graph.graph import ancestors
 from pipeline.common.models import NodeKind, StreamGraph
 
@@ -459,10 +461,10 @@ def tributaries_of_reach(
     the lake's code across a divide (`code_runs`) goes with the lake, not with the flow.
     """
     reach = frozenset(reach)
+    codes = _reach_codes(graph, reach)
     if THE_WALK_NEVER_ENTERS_THE_ENTRYS_OWN_WATER and own:
-        reach_wscs = {n.wsc for r in reach if (n := graph.nodes.get(r)) is not None and n.wsc}
         own = frozenset(s for s in own if s not in reach and not (
-            (n := graph.nodes.get(s)) is not None and n.wsc and n.wsc in reach_wscs))
+            (n := graph.nodes.get(s)) is not None and n.wsc and n.wsc in codes))
     else:
         own = frozenset()
     out: set[str] = set()
@@ -479,7 +481,9 @@ def tributaries_of_reach(
     # the cut, in which case the walk would never see it and the named water would be
     # missing from the very reach it defines. Rare (51 of 196,596 bounded sections) and
     # entirely concentrated on confluence-anchored cuts, which is where it matters most.
-    for seed in sorted(_mouths_at_lower_bound(graph, reach, window)):
+    # Each seed has passed the walk's own step test (`_refusal`) inside `_mouths_at`: a seed is the
+    # walk's first step (T102).
+    for seed in sorted(_mouths_at_lower_bound(graph, reach, window, codes)):
         if seed not in seen and seed not in blocked and seed not in own:
             n = graph.nodes.get(seed)
             if n is not None and not (guarded and n.is_barrier):
@@ -556,9 +560,8 @@ def tributaries_of_reach(
                 continue
             if guarded and n.is_barrier:
                 continue                       # the canal, and everything above it
-            if guarded and _breaks_strahler(n, graph.nodes.get(node)) \
-                    and not _is_main_outlet(graph, src, node):
-                continue                       # a bigger river cannot be a tributary
+            if _refusal(graph, src, node, codes, guarded=guarded) is not None:
+                continue                       # the receiving river, or a bigger river
             seen.add(src)
             out.add(src)
             stack.append(src)
@@ -567,7 +570,8 @@ def tributaries_of_reach(
 
 
 def _mouths_at_lower_bound(graph: StreamGraph, reach: frozenset[str],
-                           window: tuple[str, float, float] | None = None) -> set[str]:
+                           window: tuple[str, float, float] | None = None,
+                           codes: frozenset[str] | None = None) -> set[str]:
     """Tributary mouths sitting exactly on the reach's lower cut.
 
     Looked for on the piece BELOW the cut: the confluence is at the same route measure, so
@@ -581,25 +585,27 @@ def _mouths_at_lower_bound(graph: StreamGraph, reach: frozenset[str],
     spanning two blue lines).
     """
     out: set[str] = set()
+    if codes is None:
+        codes = _reach_codes(graph, reach)
     if window is not None:
         w_blk, w_lo, _w_hi = window
         for nid in reach:
             n = graph.nodes.get(nid)
             if n is None or n.blk != w_blk:
                 continue
-            out |= _mouths_at(graph, nid, n, w_lo, reach)
+            out |= _mouths_at(graph, nid, n, w_lo, reach, codes)
         return out
     for nid in reach:
         n = graph.nodes.get(nid)
         if n is None or n.lower_bound is None or not n.blk:
             continue
         m = n.lower_bound.route_measure
-        out |= _mouths_at(graph, nid, n, m, reach)
+        out |= _mouths_at(graph, nid, n, m, reach, codes)
     return out
 
 
 def _mouths_at(graph: StreamGraph, nid: str, n, m: float,
-               reach: frozenset[str]) -> set[str]:
+               reach: frozenset[str], codes: frozenset[str] | None = None) -> set[str]:
     """Tributary mouths on the piece immediately BELOW `nid`, at route measure `m`.
 
     THE STRAHLER GUARD APPLIES HERE TOO. Everything joining at the confluence is a sibling of
@@ -614,10 +620,14 @@ def _mouths_at(graph: StreamGraph, nid: str, n, m: float,
     sections of the HARRISON, which is the river the Chehalis empties into.
 
     The Strahler guard did not end that (T90): the two Harrison pieces are SIDE CHANNELS, order
-    2 against the Chehalis's 5, and were reached another way — see `MOUTH_SEEDS_ONLY_AT_THE_CUT`
-    and `THE_RECEIVING_RIVER_IS_NEVER_A_SEED`.
+    2 against the Chehalis's 5, and were reached another way — see `MOUTH_SEEDS_ONLY_AT_THE_CUT`.
+    A seed is the walk's first step, so it takes the walk's own test, `_refusal` (T102): the
+    receiving river by its code (`THE_WALK_NEVER_ENTERS_A_PARENT`), a bigger river by its order
+    where the code cannot say.
     """
     out: set[str] = set()
+    if codes is None:
+        codes = _reach_codes(graph, reach)
     downs = [graph.edges[ei] for ei in graph.down_adj.get(nid, [])]
     if MOUTH_SEEDS_ONLY_AT_THE_CUT:
         downs = [e for e in downs
@@ -630,8 +640,7 @@ def _mouths_at(graph: StreamGraph, nid: str, n, m: float,
             src = graph.nodes.get(f.from_node)
             if (f.from_node not in reach and src is not None and src.blk != n.blk
                     and f.kind == "confluence" and abs(f.at_measure - m) < 0.5
-                    and not _breaks_strahler(src, n)
-                    and not (THE_RECEIVING_RIVER_IS_NEVER_A_SEED and _receives(src, n))):
+                    and _refusal(graph, f.from_node, nid, codes) is None):
                 out.add(f.from_node)
     return out
 
@@ -653,17 +662,62 @@ def _mouths_at(graph: StreamGraph, nid: str, n, m: float,
 #: the receiving river's own measure 0, kilometres away. Switch it off and both come back.
 MOUTH_SEEDS_ONLY_AT_THE_CUT = True
 
-#: THE RECEIVING RIVER IS NEVER A SEED, AT ANY ORDER (T90). A water whose watershed code is a strict
-#: ancestor of the reach's ("100-077501" the Harrison over "100-077501-094860" the Chehalis) is the
-#: river the reach flows into — or one of its side channels, which carry its code at a small order
-#: and so pass `_breaks_strahler`. Only seeding asks this; the walk itself is untouched.
-THE_RECEIVING_RIVER_IS_NEVER_A_SEED = True
+#: THE WALK NEVER ENTERS A PARENT (T102, owner 2026-10-22: "only use the wsc check parent/child to
+#: handle it during the walk — no walking into a parent"). A water whose watershed code is a STRICT
+#: ANCESTOR of the reach's ("100-077501" the Harrison over "100-077501-094860" the Chehalis) is the
+#: river the reach drains into, or one of its side channels — which carry its code at a small order
+#: and so pass the order guard. The walk never steps into one, at any order, and so never climbs
+#: what feeds it. A seed is the walk's first step and asks the same (`_mouths_at`), which is why
+#: T90's seeding-only `THE_RECEIVING_RIVER_IS_NEVER_A_SEED` is gone. A code EQUAL to one of the
+#: reach's is the reach's own river beside its line (a side channel), never a parent — on a reach of
+#: two rivers coded one inside the other (the Vedder and the Chilliwack) the outer river is the
+#: reach's own. Where a code is missing, or WSC is silent (equal codes: 28,359 of the live graph's
+#: edges the order guard refuses are equal-code floodplain pieces), the order guard decides.
+THE_WALK_NEVER_ENTERS_A_PARENT = True
 
 
-def _receives(src, n) -> bool:
-    """Does `src` carry the code of a water `n` drains into (a strict ancestor of `n`'s code)?"""
-    a, b = getattr(src, "wsc", "") or "", getattr(n, "wsc", "") or ""
-    return bool(a and b and b.startswith(a + "-"))
+def _reach_codes(graph: StreamGraph, reach) -> frozenset[str]:
+    """The watershed codes the reach's own pieces carry."""
+    return frozenset(n.wsc for r in reach if (n := graph.nodes.get(r)) is not None and n.wsc)
+
+
+@functools.lru_cache(maxsize=1024)
+def _strict_ancestors(codes: frozenset[str]) -> frozenset[str]:
+    """Every strict ancestor of any of `codes` that is not itself one of them."""
+    out: set[str] = set()
+    for c in codes:
+        parts = c.split("-")
+        out.update("-".join(parts[:i]) for i in range(1, len(parts)))
+    return frozenset(out - codes)
+
+
+def _receives(src, codes: frozenset[str]) -> bool:
+    """Does `src` carry the code of a water the reach drains into (a strict ancestor of a reach
+    code, equal to none)?"""
+    a = getattr(src, "wsc", "") or ""
+    return bool(a and codes and a in _strict_ancestors(codes))
+
+
+def _refusal(graph: StreamGraph, src: str, dst: str, codes: frozenset[str], *,
+             guarded: bool = True) -> str | None:
+    """Why the walk may not step from `dst` up into `src` (which flows into it) — or None.
+
+    ONE test for every step of the walk and every seed (T102). The code is asked first:
+      `receiving_river` — `src`'s code is a strict ancestor of the reach's
+        (`THE_WALK_NEVER_ENTERS_A_PARENT`); not a guard, so `guarded=False` keeps it;
+      a code extending `dst`'s is a genuine tributary, whatever its order (`_code_says_tributary`);
+      `bigger_river` — otherwise (a code missing, or equal codes: WSC silent), the order guard: a
+        strictly larger river is no tributary, unless it is a lake's own main outlet
+        (`_is_main_outlet`). `guarded=False` drops it.
+    """
+    s, d = graph.nodes.get(src), graph.nodes.get(dst)
+    if THE_WALK_NEVER_ENTERS_A_PARENT and _receives(s, codes):
+        return "receiving_river"
+    if _code_says_tributary(s, d):
+        return None
+    if guarded and _order_breaks(s, d) and not _is_main_outlet(graph, src, dst):
+        return "bigger_river"
+    return None
 
 
 def _is_main_outlet(graph: StreamGraph, lake_id: str, out_id: str) -> bool:
@@ -717,18 +771,27 @@ def _breaks_strahler(upstream, downstream) -> bool:
     on a piece outside B.C. is unknown too (`ORDER_ZERO_IS_UNKNOWN`: FWA computes none past the
     border); inside B.C. it is judged as 0.
     """
+    return _order_breaks(upstream, downstream) and not _code_says_tributary(upstream, downstream)
+
+
+def _code_says_tributary(upstream, downstream) -> bool:
+    """Does `upstream`'s watershed code extend `downstream`'s — FWA saying "genuine tributary"?
+    Then order is never judged: the code wins."""
+    if upstream is None or downstream is None:
+        return False
+    up_wsc, dn_wsc = upstream.wsc or "", downstream.wsc or ""
+    return bool(up_wsc and dn_wsc and up_wsc != dn_wsc and up_wsc.startswith(dn_wsc))
+
+
+def _order_breaks(upstream, downstream) -> bool:
+    """The ORDER half of the guard: `upstream` is a strictly larger river than `downstream`."""
     if upstream is None or downstream is None:
         return False
     a, b = upstream.stream_order, downstream.stream_order
     if ORDER_ZERO_IS_UNKNOWN and ((a == 0 and getattr(upstream, "out_of_bc", False))
                                   or (b == 0 and getattr(downstream, "out_of_bc", False))):
         return False                    # FWA has no order past the border: unknown there
-    if a is None or b is None or a <= b:
-        return False
-    up_wsc, dn_wsc = upstream.wsc or "", downstream.wsc or ""
-    if up_wsc and dn_wsc and up_wsc != dn_wsc and up_wsc.startswith(dn_wsc):
-        return False                    # WSC says genuine tributary — it wins
-    return True
+    return not (a is None or b is None or a <= b)
 
 
 def expand(

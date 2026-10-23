@@ -88,7 +88,11 @@ from typing import Callable
 #:     the line it belongs to (`tributaries.MOUTH_SEEDS_ONLY_AT_THE_CUT`); a water carrying a code the
 #:     reach drains into is never seeded (`tributaries.THE_RECEIVING_RIVER_IS_NEVER_A_SEED`) — the
 #:     Chehalis closure no longer binds two Harrison side channels.
-POLICY_VERSION = "22"
+#: 23: (T102 owner 2026-10-22) the WALK never steps into a water whose code is a strict ancestor of the
+#:     reach's — the receiving river or its side channels, at any order
+#:     (`tributaries.THE_WALK_NEVER_ENTERS_A_PARENT`); a seed takes the same test (`_refusal`), and
+#:     T90's seeding-only `THE_RECEIVING_RIVER_IS_NEVER_A_SEED` is removed.
+POLICY_VERSION = "23"
 
 
 def entry_key(entry: dict, build_id: str, policy_version: str = POLICY_VERSION) -> str:
