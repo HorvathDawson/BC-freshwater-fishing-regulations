@@ -145,6 +145,7 @@ curated:
     review: "data/curated/gauges/review.json"
     waterbody_type: "data/curated/gauges/waterbody_type.json"
     candidates: "data/curated/gauges/candidates.json"   # the review queue `promote` writes beside matches
+    tidal: "data/curated/gauges/tidal.json"             # authored: level gauges the tide moves (T78)
   stocking:
     matches: null       # not built — needs the FIDQ fetch
     review: null

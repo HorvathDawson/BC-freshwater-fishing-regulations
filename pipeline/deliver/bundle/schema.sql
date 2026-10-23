@@ -772,10 +772,15 @@ CREATE VIEW alternative_section AS
 -- notes record that the last four points of match rate came from hand-written aliases, and
 -- without a record of which rows lean on that mechanism there is no telling a link that is
 -- holding from one about to break. `matched_by` is null when nothing resolved.
+-- `tidal` (T78, owner 2026-10-22): 1 where the tide or a tidal river's backwater moves this
+-- station's level — HYDAT's own tidal remarks joined with data/curated/gauges/tidal.json
+-- (pipeline/gauges/consume/tidal.py). The app says so in the Level view. Added LAST with a
+-- default, so the release stays conditions/1 and a reader of an older one sees 0.
 CREATE TABLE gauge (station TEXT PRIMARY KEY, name TEXT NOT NULL,
                     item_id TEXT, sid INTEGER,
                     lon REAL, lat REAL, area_km2 REAL, mag INTEGER,
-                    matched_by TEXT, match_m REAL) WITHOUT ROWID;
+                    matched_by TEXT, match_m REAL,
+                    tidal INTEGER NOT NULL DEFAULT 0) WITHOUT ROWID;
 
 -- ONE station per reach: the one that most nearly IS that water.
 --

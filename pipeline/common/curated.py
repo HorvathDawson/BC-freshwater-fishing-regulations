@@ -146,6 +146,9 @@ class Domain(BaseModel):
     #: (an independent check disagreed), with their evidence. Written by promote beside `matches`
     #: and committed with it, so `check_curated --ci` sees the queue in CI too.
     candidates: FilePath | None = None
+    #: Gauges only: AUTHORED — level stations the tide or a tidal river's backwater moves, each with its reason, joined
+    #: with HYDAT's own tidal remarks by `pipeline.gauges.consume.tidal` into the bundle's `gauge.tidal` (T78).
+    tidal: FilePath | None = None
 
     _abs = field_validator("*", mode="before")(_absolute)
 

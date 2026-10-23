@@ -30,7 +30,8 @@ export const PACK_FILES: Record<string, PackFile> = {
         "area_km2",
         "mag",
         "matched_by",
-        "match_m"
+        "match_m",
+        "tidal"
       ],
       "gauge_clim": [
         "station",

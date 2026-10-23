@@ -1,0 +1,10 @@
+{
+ "_about": "AUTHORED (T78, audit N20). Level gauges the tide or a tidal river's backwater moves, which the HYDAT record does not already say are tidal (pipeline/gauges/consume/tidal.py reads the record's STN_REMARKS for that: 08MH024 Fraser River at Mission and 08MH126 Fraser River at Port Mann come from there). Each row carries why. The bundle writes gauge.tidal = 1 for the union; the app says one sentence in the Level view. Add a station here only with a reason a reader could check.",
+ "stations": {
+  "08MH028": "Fraser River at Steveston: the Fraser estuary at the river mouth, below Mission (the tidal reach of the lower Fraser; own-gauge REPORT 2026-10-22).",
+  "08MH032": "North Arm Fraser River at Vancouver: the Fraser estuary's North Arm, below Mission (the tidal reach of the lower Fraser).",
+  "08MH035": "Pitt River near Port Coquitlam: owner 2026-10-22, \"Port Coquitlam is tidal, with Fraser backwater\" (decisions.md, a water's own gauge comes first).",
+  "08MH044": "Fraser River at Whonock: between Mission (HYDAT: tidal effects) and Port Mann (HYDAT: subject to tidal effect) on the lower Fraser; own-gauge REPORT 2026-10-22 names it a tidal level gauge.",
+  "08MH053": "Fraser River at Deas Island Tunnel: the Fraser estuary's main arm, below Mission (the tidal reach of the lower Fraser)."
+ }
+}
