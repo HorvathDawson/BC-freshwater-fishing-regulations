@@ -1,6 +1,7 @@
 # T80 — Small open items (audit N22, D29, HANDOFF-ui)
 
 Status: PARTIAL — 3e563859, 0b9e9b30 (1); c3f91b83 (2); e306215d (3, needs deliver); 78f9f4bc, a75c942b (7); 2cb3a9da, e160fa1d (T56-review lines 1-2, need deliver). Left: 3's two open shapes + the klmb exclusion after the re-cut; 4's fix (reproduced, cause not pinned); 6 (needs a push); owner calls Q-T80a/b/c; after the re-cut the klmb_1010 conformance exclusion MUST be rewritten (it will fail). Reviewed c7a82035 (whole-set pin). See "Lane 2026-10-22" and "Review 2026-10-22".
+Deliver fix 164a69cb: item 3's one-kind group stopped `pipeline.deliver all` (model.py refused it); the answers model now accepts exactly a TROUT_CHAR one-kind group on its own row's pool, and test_answers_one_kind_group.py runs the build's `validate_section` on the T80 waters (+2 mutation pins).
 
 Each item closes with a fix + test, or a recorded "no" with the reason:
 1. S1 photo minors (implement_progress): draft photos named after the first draft id; the web picker hangs where the
