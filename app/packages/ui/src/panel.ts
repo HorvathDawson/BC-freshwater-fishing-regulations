@@ -9,7 +9,7 @@ import { useMemo, useRef, useState } from "react";
 import { answerFrom, basinStandings, sectionStanding, type BasinMember, type DonorRow, type Horizon, type Panel,
          type PanelAnswer, type Parameter, type Quantity, type RegsSource, type SectionId,
          type StationId } from "@app/data";
-import { changeDay, changeLine, CONDITIONS_WORDS, disagreeNote, donorBecause, isAhead, type RunChange, donorFacts, donorKeyLabel, donorLastReport,
+import { CHANGE_POLICY, changeDay, changeLine, changeSparkWords, CONDITIONS_WORDS, disagreeNote, donorBecause, isAhead, type RunChange, donorFacts, donorKeyLabel, donorLastReport,
          donorSilent, gaugeChoiceLabel, donorShare, silentLine,
          donorPinTitle, donorReads, donorReason, donorRowLabel, donorWeightLine,
          estimateHeadline, estimateRange, estimateSentence, freshness, HORIZON_LABELS,
@@ -811,8 +811,6 @@ export interface ChangeSparkVM {
   label: string;
 }
 
-const CHANGE_ORDER = ["CLEVER", "COFFEE", "ELF"];
-
 /**
  * A run's days as a line, on a LOG scale of the ratio to its own today (a 23-fold spike and a 20% dip both read), each
  * day at its highest step for a rise and its lowest for a fall. Pure, so the shape is pinned in a test.
@@ -830,13 +828,13 @@ export function changeSpark(c: RunChange, today: string, w: number, h: number): 
   const path = pts.map((p, i) => `${i ? "L" : "M"}${x(i)},${y(Math.log(p.r))}`).join(" ");
   const markDay = fall ? c.trough.day : c.peak.day;
   const at = Math.max(0, pts.findIndex((p) => p.d === markDay));
+  const first = pts[0]!.d, last = pts[pts.length - 1]!.d;
+  const words = changeSparkWords(fall, markDay, first, last, today);
   return {
     path,
-    mark: { x: x(at), y: y(logs[at]!),
-            label: `${fall ? CONDITIONS_WORDS.changeMark.low : CONDITIONS_WORDS.changeMark.peak} ${changeDay(markDay, today)}` },
-    ends: [{ x: 0, label: changeDay(pts[0]!.d, today) }, { x: w, label: changeDay(pts[pts.length - 1]!.d, today) }],
-    label: `Each day's ${fall ? "lowest" : "highest"} forecast flow against today's, from ${changeDay(pts[0]!.d, today)} `
-      + `to ${changeDay(pts[pts.length - 1]!.d, today)}`,
+    mark: { x: x(at), y: y(logs[at]!), label: words.mark },
+    ends: [{ x: 0, label: changeDay(first, today) }, { x: w, label: changeDay(last, today) }],
+    label: words.label,
   };
 }
 
@@ -851,12 +849,17 @@ export function changeView(runs: readonly { model: string; change?: RunChange | 
                              // a steady run has no day worth marking: its line says "little change", nothing more
                              spark: r.change.dir === "steady" ? null
                                : changeSpark(r.change, day, size.width, size.height) })),
-    none: said.length ? null : "No forecast is running for this gauge now.",
+    none: said.length ? null : CONDITIONS_WORDS.changeNone,
     attribution: said.length ? attribution : null,
   };
 }
 
-const order = (m: string) => { const i = CHANGE_ORDER.indexOf(m); return i < 0 ? CHANGE_ORDER.length : i; };
+/** The publisher's model order (`CHANGE_POLICY.order`, generated), never typed a second time. */
+const order = (m: string) => {
+  const o: readonly string[] = CHANGE_POLICY.order;
+  const i = o.indexOf(m);
+  return i < 0 ? o.length : i;
+};
 
 const isoDay = (d: Date): string =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;

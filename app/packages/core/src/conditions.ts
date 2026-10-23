@@ -14,7 +14,7 @@ import { catchmentLabel, confidenceWord, inTen, ordinal, percentileOrdinal, plai
 import { interval, type Estimate, type NoEstimate } from "./trust";
 import { localStamp, shortDay, shortStamp } from "./day";
 import { byCadence } from "./staleness";
-import { CHANGE_EXPLAINER, CHANGE_POLICY, changeHeadline, changeRange, changeRatio, changeReads,
+import { CHANGE_EXPLAINER, CHANGE_MARK, CHANGE_POLICY, changeHeadline, changeRange, changeRatio, changeReads,
          changeSentence } from "./change";
 
 /* ------------------------------------------------------------------- horizons ---- */
@@ -110,7 +110,9 @@ export const CONDITIONS_WORDS = {
   /** The Change block's kicker over the lead gauge's own forecasts, one line per model (T52). */
   changeKicker: "WHAT THE FORECASTS EXPECT HERE",
   /** The marked day under a model's line: its peak, or its lowest day when the run falls. */
-  changeMark: { peak: "Peak", low: "Lowest" },
+  changeMark: CHANGE_MARK,
+  /** Under Change, when no run for the charted gauge can say (T52). */
+  changeNone: "No forecast is running for this gauge now.",
   /** Under Change (T52): what the figure is, and that the gauges behind it may peak on different days. */
   changeExplainer: CHANGE_EXPLAINER,
   explainer: "No gauge sits exactly here, so the reading is carried from the nearest ones. A "

@@ -4,7 +4,7 @@
  * publisher's side). Today is Thu 22 Oct 2026.
  */
 import { describe, expect, it } from "vitest";
-import { CHANGE_LEGEND, CHANGE_POLICY, CHANGE_STOP_RATIOS, changeDay, changeHeadline, changeLine, changeRange,
+import { CHANGE_LEGEND, CHANGE_POLICY, CHANGE_STOP_RATIOS, changeDay, changeSparkWords, changeHeadline, changeLine, changeRange,
          changeRatio, changeReads, changeSentence, codedChange, ratioWords, type RunChange } from "./change";
 import { CONDITIONS_WORDS, donorReads, donorReason, estimateHeadline, estimateRange, estimateSentence,
          HORIZON_LABELS, HORIZONS, isAhead, aheadDays, silentLine, type DonorFacts } from "./conditions";
@@ -87,6 +87,21 @@ describe("one model's expected change, said whole", () => {
     const small = { ...SPIKE, peak: { ...SPIKE.peak, points: CHANGE_POLICY.bigPoints - 0.01 } };
     expect(changeLine("CLEVER", small, TODAY)).toBe(
       "CLEVER: rises to about 25× today's flow on Mon, back down by Tue.");
+  });
+});
+
+describe("the Change block's other words, owned here (AGENTS: core owns wording)", () => {
+  it("the day line's mark and its screen-reader name", () => {
+    expect(changeSparkWords(false, "2026-10-26", "2026-10-22", "2026-10-31", TODAY)).toEqual({
+      mark: "Peak Mon", label: "Each day's highest forecast flow against today's, from today to Sat 31 Oct" });
+    expect(changeSparkWords(true, "2026-11-01", "2026-10-22", "2026-11-01", TODAY)).toEqual({
+      mark: "Lowest Sun 1 Nov", label: "Each day's lowest forecast flow against today's, from today to Sun 1 Nov" });
+  });
+
+  it("no run for the charted gauge, and the legend bar's name", () => {
+    expect(CONDITIONS_WORDS.changeNone).toBe("No forecast is running for this gauge now.");
+    expect(CHANGE_LEGEND.describe)
+      .toBe("Expected change, next 10 days: colours from falling to rising; steady is little change");
   });
 });
 

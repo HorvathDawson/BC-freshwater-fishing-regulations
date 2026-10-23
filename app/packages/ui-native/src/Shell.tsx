@@ -897,7 +897,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
               <LegendRamp palette={palette} title={CHANGE_LEGEND.title}
                           low={CHANGE_LEGEND.low} mid={CHANGE_LEGEND.mid} high={CHANGE_LEGEND.high}
                           band={CHANGE_LEGEND.steady} markWords={changeMarkWords}
-                          describe={`${CHANGE_LEGEND.title}: colours from falling to rising; steady is little change`}
+                          describe={CHANGE_LEGEND.describe}
                           stops={changeRampStops(theme)} marks={visibleMarks} />
             ) : (
               <LegendRamp palette={palette}

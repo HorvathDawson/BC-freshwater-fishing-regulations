@@ -80,8 +80,9 @@ describe("the Change values, through the one engine's standing channel", () => {
     expect(pushedStandings(one, new Map([["08MF", 0.25]]), "change")).toEqual({
       stream: { 5: { standing: 275 } }, lake: { 5: { standing: 275 } }, wetland_flowing: { 5: { standing: 275 } },
       basin: { "08MF": { standing: 225 } } });
-    expect(pushedRoute(one, "change")).toEqual(pushedRoute(new Map([[5 as SectionId, 0.75]]), "change"));
-    expect(Object.values(pushedRoute(one, "change")).map((l) => l[5]?.standing)).toEqual([275, 275]);
+    expect(pushedRoute(one, "change")).toEqual({ stream: { 5: { standing: 275 } }, lake: { 5: { standing: 275 } } });
+    expect(pushedRoute(new Map([[5 as SectionId, -0.01]]), "change"))
+      .toEqual({ stream: { 5: { standing: NaN } }, lake: { 5: { standing: NaN } } });
   });
 });
 

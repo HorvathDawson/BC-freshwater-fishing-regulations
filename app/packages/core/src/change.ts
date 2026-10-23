@@ -211,9 +211,29 @@ export function changeRange(lo: number, hi: number): string {
   return `${span} today's flow over the next ${CHANGE_POLICY.days} days`;
 }
 
+/** The marked day under a model's line: its peak, or its lowest day when the run falls. */
+export const CHANGE_MARK = { peak: "Peak", low: "Lowest" } as const;
+
+/**
+ * The words of a run's day line (`changeSpark` in @app/ui): the marked day ("Peak Mon", "Lowest Sun 1 Nov") and the
+ * line's screen-reader name. `fall`: the line is each day's lowest and the mark the trough.
+ */
+export function changeSparkWords(fall: boolean, markDay: string, first: string, last: string,
+                                 today: string): { mark: string; label: string } {
+  return {
+    mark: `${fall ? CHANGE_MARK.low : CHANGE_MARK.peak} ${changeDay(markDay, today)}`,
+    label: `Each day's ${fall ? "lowest" : "highest"} forecast flow against today's, from ${changeDay(first, today)} `
+      + `to ${changeDay(last, today)}`,
+  };
+}
+
+const LEGEND_TITLE = `Expected change, next ${CHANGE_POLICY.days} days`;
+
 /** The Change legend's words; its middle bracket is "little change" (`STEADY_RATIO` either way). */
 export const CHANGE_LEGEND = {
-  title: `Expected change, next ${CHANGE_POLICY.days} days`,
+  title: LEGEND_TITLE,
+  /** the bar's screen-reader name */
+  describe: `${LEGEND_TITLE}: colours from falling to rising; steady is little change`,
   low: "Falling",
   mid: "Steady",
   high: "Rising",
