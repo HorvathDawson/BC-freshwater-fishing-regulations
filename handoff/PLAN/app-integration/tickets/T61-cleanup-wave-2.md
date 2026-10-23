@@ -17,4 +17,10 @@ Includes the ONE name normaliser (owner accepts a reviewed binding diff), retiri
   (owner call 2: archive the prototype answers reference; its v35 harness already went in 36a491ac) after repointing
   `conformance/src/regs/ruleSources.ts`, `taps.py`, `tools/check.mjs` and the `test_answers_*` readers.
 
+- From the unification audit (2026-10-22), covered here, not new tickets: 2.8 — DFO suggestions key 364 names
+  differently (include them in the one normaliser; T114 adds the app search key). 2.10 — the 150/200/250 m confluence
+  tolerances plus one `at_cut()` predicate. 2.16 — core `dayOfYear` is a READING day (Mar 1 = 61) while `shared.ts` and
+  `leadup.ts` use the calendar day: name them `readingDay` and `calendarDayOfYear`, never merge naively (one axis shifts
+  a day). 2.x old pathways — delete the dead `useHydrograph`.
+
 Acceptance: each item's acceptance from the audit plan; binding diff reviewed where bindings move; strict + smoke.

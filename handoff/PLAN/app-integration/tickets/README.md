@@ -147,6 +147,29 @@ use that as the sole source of future work."
 | T100 | lakes divided into closure areas (K5): Shuswap A/B/C, 67 widened rules | OPEN | — | all |
 | T101 | gauges walk through slough/canal polygons (held) | BLOCKED | 8d57e759..de39b70c (branch, unmerged) | ★ owner Q44 → merge + deliver |
 | T102 | receiving river never walked into (parent-code check in the walk) | OPEN | — | all (rides a reach rerun) |
+| T103 | one size shape: plain words contradict bands/title (24 strings) | OPEN | — | all (deliver) |
+| T104 | one "when" in words: titles/plain drop hours and weekdays | OPEN | — | all (deliver) |
+| T105 | one gauge speaker for map and sheet (54,401 sections disagree) | OPEN | — | all (app; deliver if section_gauge changes) |
+| T106 | one shown quantity: read the declared parameter (08ME030) | OPEN | — | all (app) |
+| T107 | one day's envelope: Python band_for vs TS bandAt | OPEN | — | all (app or feed) |
+| T108 | one "goes on as": continuation vs spans (11 of 17 pairs) | OPEN | — | all (deliver) |
+| T109 | one entry-id grammar (z7a reads "Region 7") | OPEN | — | all (level.ts fix first, no rebuild) |
+| T110 | record years per quantity (Level-mode weights) | OPEN | — | all (deliver) |
+| T111 | every cut reaches the walk (second extent's window dropped) | OPEN | — | all (rides a reach rerun) |
+| T112 | one entry walker over catalogue extents | OPEN | — | all |
+| T113 | one name caser for tiles and bundle (O'rourke) | OPEN | — | all (tiles window + deliver) |
+| T114 | one search key for SQL filter and ranking (barriere) | OPEN | — | all (deliver + app; shares T61 2.8) |
+| T115 | one home-filtered region membership (12 Fraser pairs) | OPEN | — | all (rides a reach rerun) |
+| T116 | one water noun: wetlands called "river" | OPEN | — | all (app) |
+| T117 | may_enter everywhere: other walks + outlet/WSC/edge-type owners | OPEN | — | all (after T102 part B; reach rerun) |
+| T118 | one main line for spans and continuation | OPEN | — | all (deliver; with T108) |
+| T119 | one acceptance gate for ingest, validator and review app | OPEN | — | all (after T112) |
+| T120 | one leading origin: weekday rows take the most permissive | OPEN | — | all (deliver) |
+| T121 | water kind in reach and gauges via kind_of | OPEN | — | all (reach rerun) |
+| T122 | one station liveness (active/realtime/ECCC) | OPEN | — | all (deliver) |
+| T123 | one donor state for Conditions and map labels | OPEN | — | all (app) |
+| T124 | one per-section layer list in map | OPEN | — | all (app) |
+| T125 | latent duplicate checks: pins and small helpers | OPEN | — | all |
 
 ## Order for open tickets
 
@@ -157,9 +180,14 @@ code. Heavy jobs run one at a time through scripts/heavy.sh (≤ 4 workers). ★
    deliver), T52 (Expected change).
 2. **Features and correctness (before cleanup):** T54 (no-access streams, built with Q1–Q3 defaults), T51, T68, T82
    (O3/O5; ★ the reader-gate run), T41 / T47 leftovers, T92, T99, T100 ★ (rides a reach rerun), T102 (rides a reach rerun), T94.
+   Unification audit 2026-10-22 (wrong answers today): T103, T104, T106, T109 step 1, T116 first (cheap, no binding
+   diff); then T105, T107, T108, T110, T120, T114; T113 rides the tiles window (band 5); T111 + T115 ride the reach
+   rerun with T102, each with its own reviewed binding diff.
 3. **Waiting on the owner:** T101 (Q44), T55 (candidate marks), T67 (braid Q1/Q2/Q4), T97 (curation plan), T91, T93.
 4. **Cleanup, once features settle:** T60 (consistency auditors) → T70 leftover → T61 → T62 → T63; T72 and T73 in
    this band (T73 alone, not concurrent with T61's normaliser).
+   Unification tickets (latent or plausible): T117 (after T102 part B), T118 (with T108), T112 → T119, T121, T122,
+   T123, T124, T125.
 5. **Tiles window (one tile build):** T64 + T85, then T75.
 6. **Native and shipping:** T50 (alone, heavy) → T74 → T77 ★ → T86 ★ → T88 ★. T65 (determinism, heavy) in a quiet gap.
 7. **Last:** T95 ★, T98 ★ (POSTPONED), T87 ★ (sign-off walk, then delete app/design).
