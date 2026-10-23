@@ -984,27 +984,45 @@ def entry_name(ce) -> str:
     return ce.display_name or ce.name
 
 
+def see_name(ce) -> str:
+    """The name a "See …" row and the rows it names are SAID under in `see_pointer`: the book's heading — what
+    search matches (`SEARCH_POINTERS`: the name or its start) and what the pointer itself prints ("See Lake
+    Revelstoke") — without its notes or the quotes round an unofficial name (`place_names.heading_name`): "LITTLE
+    CAMPBELL RIVER" is Little Campbell River, never the registry's fewer-worded "Campbell River" (which made the line
+    "Campbell River: see Campbell River"), and '"JONES" LAKE' is Jones Lake, found by "Jones Lake". A lake part keeps
+    its authored name ("Williston Lake — Nation Arm"): the part, never the heading's bare "Nation Arm"."""
+    from pipeline.deliver.bundle.place_names import heading_name
+    shown = entry_name(ce)
+    return shown if " — " in shown else heading_name(ce.name, quotes=False)
+
+
 def see_pointer_rows(entries: dict) -> list[tuple]:
     """`see_pointer`: A GROUP NAME THAT ONLY POINTS (owner 2026-10-22). A row whose only content is
     "See …" (`pointer_only`: "TEE PEE LAKES  See Friday, Saturday, and Sunday Lakes") binds nothing
     and draws no line; what it gives a reader is the way to the waters it names. One row per named
     entry, in the pointer's order: (entry_id, name, ix, target_entry, target_name, item_id) — both
-    names as shown (`entry_name`), `item_id` the target row's first matched water (what opening it
+    names the book's (`see_name`), `item_id` the target row's first matched water (what opening it
     opens; NULL when it matched none). A TWIN ("the same row printed in another region's table") is
-    no group: it names its own water under its own name, so it is left out."""
+    no group: it names its own water under its own name, so it is left out. Only a WATER row (`r…`)
+    is a name a reader looks up: a zone table's note ("Main body of Kootenay Lake") is none. Two named
+    rows that are one water under one name (the Wigwam River's two rows, for Bighorn Creek) are one
+    way in, not two identical ones."""
     from pipeline.regs.parsing.catalogue import see_relation
     out: list[tuple] = []
     for eid, ce in sorted(entries.items()):
-        if not ce.pointer_only:
+        if not ce.pointer_only or not eid.startswith("r"):
             continue
-        ix = 0
+        ix, said = 0, set()
         for s in ce.see:
             targets = [entries[t] for t in s.entry_ids if t in entries]
             if not targets or see_relation(ce, targets) == "twin":
                 continue
             for te in targets:
-                out.append((eid, entry_name(ce), ix, te.entry_id, entry_name(te),
-                            te.matched[0] if te.matched else None))
+                way = (see_name(te), te.matched[0] if te.matched else None)
+                if way in said:
+                    continue
+                said.add(way)
+                out.append((eid, see_name(ce), ix, te.entry_id) + way)
                 ix += 1
     return out
 

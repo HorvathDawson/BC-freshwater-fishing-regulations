@@ -713,7 +713,10 @@ def resolve(active: Sequence[Rule], kind: Optional[str], lawful: Sequence[str], 
 #: the same thing (the `rows.same_statement` test, for the vessel family's fields).
 _VESSEL_SAYS = ("type", "dimension", "aspect", "level", "max_power_kw", "max_kmh", "when", "while",
                 "species", "species_except", "take", "may_target", "parts", "label", "uncertain",
-                "undrawn_part", "side", "in_part")
+                "undrawn_part", "side", "in_part",
+                # ...and WHERE it reaches: a rule for one water of its row (an item's extent), or for the part its
+                # words name, or whose place could not be read, is not the whole-water rule beside it
+                "extents", "extent_text", "unresolved", "scope")
 
 
 def vessel_says(x: dict) -> str:

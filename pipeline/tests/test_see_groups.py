@@ -131,7 +131,55 @@ def test_only_a_row_that_only_points_is_a_group_and_a_twin_is_none(corpus):
     assert all(corpus[e].pointer_only for e in eids)
     assert "r8:mara_lake@8-26" not in eids                  # a row with rules of its own AND a "See Shuswap Lake"
     assert "r5:squirrel_lake@6-1" not in eids               # the same row printed in Region 5's table: a twin
-    assert (len(eids), len(rows)) == (46, 53)
+    # a zone table's note is no water's name ("Main body of Kootenay Lake" would answer a search for "Main")
+    assert "z4:kootenay_annual" not in eids and all(e.startswith("r") for e in eids)
+    assert (len(eids), len(rows)) == (45, 51)
+
+
+def _line(corpus, eid):
+    rows = _rows(corpus, eid)
+    return (rows[0][1], [(r[4], r[5]) for r in rows])
+
+
+def test_every_pointer_is_said_by_the_names_the_book_prints(corpus):
+    """REVIEW 2026-10-22: the pointer's name is what search matches (`SEARCH_POINTERS`: the name or its START), so it
+    must be the book's heading. The shown name (`entry_name`) is the registry's where it has fewer words — "LITTLE
+    CAMPBELL RIVER" read "Campbell River: see Campbell River", "BIG QUALICUM" "Qualicum River: see Qualicum River" —
+    and kept the book's quotes ('"Jones" Lake' is never found by "Jones Lake")."""
+    got = {e: _line(corpus, e) for e in (
+        "r1:big_qualicum_river@1-6", "r2:little_campbell_river@2-4", "r2:south_alouette_river@2-8",
+        "r1:weston_lake@1-1", "r2:jones_lake@2-3", "r7:chinaman_lake@7-35", "r4:revelstoke_lake_s_tributaries@4-38",
+        "r3:coldwater_river_s_tributaries@3-13", "r4:arrow_lakes_tributaries", "r4:bighorn_ram_creek@4-2",
+        "r5:bella_coola_river@5-8", "r2:vedder_river@2-4", "r7:nation_river@7-30", "r4:waneta_reservoir@4-8")}
+    assert got == {
+        "r1:big_qualicum_river@1-6": ("Big Qualicum River", [("Qualicum River", "gnis:27804")]),
+        "r2:little_campbell_river@2-4": ("Little Campbell River", [("Campbell River", "gnis:7250")]),
+        "r2:south_alouette_river@2-8": ("South Alouette River", [("Alouette River", "gnis:9630")]),
+        "r1:weston_lake@1-1": ("Weston Lake", [("Lake Weston", "wbk:328996530")]),
+        "r2:jones_lake@2-3": ("Jones Lake", [("Wahleach Lake", "wbk:329177886")]),
+        "r7:chinaman_lake@7-35": ("Chinaman Lake", [("Chunamun Lake", "wbk:328995585")]),
+        "r4:revelstoke_lake_s_tributaries@4-38": ("Revelstoke Lake's Tributaries",
+                                                  [("Lake Revelstoke's Tributaries", "wbk:329484653")]),
+        "r3:coldwater_river_s_tributaries@3-13": ("Coldwater River's Tributaries", [
+            ("Juliet Creek", "gnis:19162"), ("July Creek", "gnis:37260"), ("Mine Creek", "gnis:29546")]),
+        "r4:arrow_lakes_tributaries": ("Arrow Lakes' Tributaries", [
+            ("Lower Arrow Lake's Tributaries", "wbk:328961720"), ("Upper Arrow Lake's Tributaries", "wbk:328961689")]),
+        # the two Wigwam rows are one river to open: one way to it, not two identical buttons
+        "r4:bighorn_ram_creek@4-2": ("Bighorn Creek", [("Wigwam River", "gnis:27703")]),
+        "r5:bella_coola_river@5-8": ("Bella Coola River", [("Atnarko/Bella Coola Rivers", "gnis:11611")]),
+        "r2:vedder_river@2-4": ("Vedder River", [("Chilliwack / Vedder Rivers", "gnis:8634")]),
+        # a lake part keeps its authored name
+        "r7:nation_river@7-30": ("Nation River", [("Williston Lake — Nation Arm", "wbk:-16")]),
+        "r4:waneta_reservoir@4-8": ("Waneta Reservoir", [("Pend D'Oreille River", "gnis:4927")])}
+    rows = RULES.see_pointer_rows(corpus)
+    from pipeline.deliver.bundle.place_names import is_shouting
+    assert [r for r in rows if '"' in r[1] + r[4] or is_shouting(r[1]) or is_shouting(r[4]) or r[1] == r[4]] == []
+    assert len(set((r[0], r[4], r[5]) for r in rows)) == len(rows)          # no water named twice by one pointer
+
+
+def test_mutation_the_shown_name_as_the_pointers_name(corpus, monkeypatch):
+    monkeypatch.setattr(RULES, "see_name", RULES.entry_name)
+    assert _line(corpus, "r2:little_campbell_river@2-4") == ("Campbell River", [("Campbell River", "gnis:7250")])
 
 
 def test_mutation_a_twin_counted_as_a_group(corpus, monkeypatch):
@@ -231,6 +279,31 @@ def test_an_identical_vessel_rule_from_two_rows_reads_once():
     # the nearer row is the one shown: a reach rule (rank 0) over the same words walked in (rank 1)
     near = G.resolve([_vessel("r8:z@8-10::z.r1", 1, level="power_capped", max_power_kw=7.5), b], "lake", [])
     assert near["vessel"]["active"] == [b.key] and near["repeats"] == ["r8:z@8-10::z.r1"]
+
+
+def test_two_boat_rules_alike_but_where_they_reach_both_show():
+    """REVIEW 2026-10-22: the statement is WHERE as well as what (`extents`, `extent_text`, `unresolved`, `scope`) —
+    those were left out of `vessel_says`, so a rule for one water of a row and a whole-row rule folded into one line."""
+    a = _vessel("r2:a@2-19::a.r1", 0, level="power_capped", max_power_kw=7.5, extents=[{"op": "whole"}])
+    b = _vessel("r2:b@2-19::b.r2", 0, level="power_capped", max_power_kw=7.5,
+                extents=[{"op": "whole", "item_id": "wbk:329177889"}])
+    c = _vessel("r2:c@2-19::c.r1", 0, level="power_capped", max_power_kw=7.5, extents=[{"op": "whole"}],
+                extent_text="south of the CPR bridge")
+    d = _vessel("r2:d@2-19::d.r1", 0, level="power_capped", max_power_kw=7.5, extents=[{"op": "whole"}],
+                unresolved="the bridge")
+    e = _vessel("r2:e@2-19::e.r1", 0, level="power_capped", max_power_kw=7.5, extents=[{"op": "whole"}], scope="mu")
+    got = G.resolve([a, b, c, d, e], "lake", [])
+    assert (got["vessel"]["active"], [k for k in got["repeats"] if k in (a.key, b.key, c.key, d.key, e.key)]) == (
+        [a.key, b.key, c.key, d.key, e.key], [])
+
+
+def test_mutation_the_statement_without_where(monkeypatch):
+    monkeypatch.setattr(G, "_VESSEL_SAYS", tuple(k for k in G._VESSEL_SAYS
+                                                 if k not in ("extents", "extent_text", "unresolved", "scope")))
+    a = _vessel("r2:a@2-19::a.r1", 0, level="power_capped", max_power_kw=7.5, extents=[{"op": "whole"}])
+    c = _vessel("r2:c@2-19::c.r1", 0, level="power_capped", max_power_kw=7.5, extents=[{"op": "whole"}],
+                extent_text="south of the CPR bridge")
+    assert G.resolve([a, c], "lake", [])["vessel"]["active"] == [a.key]          # the fold the pin above refuses
 
 
 def test_mutation_the_row_in_the_statement_shows_both(monkeypatch):

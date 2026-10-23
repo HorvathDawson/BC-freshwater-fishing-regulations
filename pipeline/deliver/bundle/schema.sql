@@ -178,10 +178,12 @@ CREATE TABLE entry (entry_id TEXT PRIMARY KEY, item_id TEXT, name TEXT, full_nam
 -- A GROUP NAME THAT ONLY POINTS (owner 2026-10-22): a row whose only content is "See …" ("TEE PEE
 -- LAKES  See Friday, Saturday, and Sunday Lakes"; "CAMERON LAKES  See North and South Cameron
 -- lakes") binds nothing and draws no line on the waters it names; the reader who looks the group
--- up is led to them. One row per named row, in the pointer's order (`ix`): the pointer's shown
--- name (`entry.name`), the named row and its shown name, and `item_id`, the water opening it opens
--- (the named row's first match; NULL when it matched none). A twin (the same row printed in another
--- region's table) is no group and is not here. Search reads it from `core` (release/build.py).
+-- up is led to them. One row per named row, in the pointer's order (`ix`): the pointer's name and
+-- the named row's, both the BOOK's heading without notes or quotes (`rules.see_name`: "Little
+-- Campbell River", "Jones Lake" — what a reader types; a lake part keeps its authored name), and
+-- `item_id`, the water opening it opens (the named row's first match; NULL when it matched none). A
+-- twin (the same row printed in another region's table) is no group and is not here, nor is a zone
+-- table's note; one water named twice under one name is one row. Search reads it from `core`.
 CREATE TABLE see_pointer (entry_id TEXT NOT NULL, name TEXT NOT NULL, ix INTEGER NOT NULL,
                           target_entry TEXT NOT NULL, target_name TEXT NOT NULL, item_id TEXT,
                           PRIMARY KEY (entry_id, ix)) WITHOUT ROWID;

@@ -161,10 +161,15 @@ def row_name(name: str, display_name: str = "") -> str:
     d, h = _which_water(display_name), _which_water(name)
     if d <= h or (h <= d <= _which_water(name, notes=True)):
         return display_name
-    # the heading's NAME, without its notes: "NORBURY (Garbutt) LAKE" is Norbury Lake (what Garbutt's row says: "See
-    # Norbury Lake"), "CHILLIWACK / Vedder Rivers (does not include Sumas River) (see map on page 24)" the Chilliwack /
-    # Vedder Rivers. The notes stay in `full_name`.
-    bare = name
+    return heading_name(name)
+
+
+def heading_name(name: str, quotes: bool = True) -> str:
+    """A book heading's NAME, re-cased, without its notes: "NORBURY (Garbutt) LAKE" is Norbury Lake (what Garbutt's
+    row says: "See Norbury Lake"), "CHILLIWACK / Vedder Rivers (does not include Sumas River) (see map on page 24)" the
+    Chilliwack / Vedder Rivers. The notes stay in `full_name`. `quotes=False` drops the book's quotes round an
+    unofficial name too ('"JONES" LAKE' is Jones Lake) — a name to be found by what a reader types."""
+    bare = name if quotes else name.replace('"', "")
     while True:
         t = re.sub(r"\s*\([^()]*\)", "", bare)
         if t == bare:

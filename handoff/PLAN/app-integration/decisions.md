@@ -681,7 +681,10 @@ style.sha256. Palette D is otherwise untouched: no status, flow, lake or UI toke
 - **The group name leads to its waters**: the bundle's new `see_pointer` table (`rules.see_pointer_rows`): one row per
   named row of each POINTER-ONLY entry, in the book's order — the pointer's shown name, the named row, its shown name and
   the water opening it opens (its first match; NULL when it matched none). A TWIN (the same row in another region's
-  table) is no group and is left out: 46 pointers, 53 rows. The release copies it into `core` (additive, still `core/1`;
+  table) is no group and is left out, as is a zone table's note (z4:kootenay_annual): 45 pointers, 51 rows. REVIEW: both
+  names are the BOOK's heading without notes or quotes (`rules.see_name`), not `entry.name` — that read "Campbell River: see
+  Campbell River" for LITTLE CAMPBELL RIVER and '"Jones" Lake', which search by "Jones Lake" never finds; Bighorn's two
+  Wigwam River rows are one way in. The release copies it into `core` (additive, still `core/1`;
   NOCASE index). Search (`searchPointers`, both sources, one SQL) finds a pointer by its name or the START of it — never
   a word inside it ("lake" lists none) — ordered by core's `rankPointers`; the sheet draws a group "In the regulations"
   between Places and the waters: core's line ("Tee Pee Lakes: see Friday Lake, Saturday Lake, Sunday Lake", `seeLine`)
@@ -697,7 +700,8 @@ style.sha256. Palette D is otherwise untouched: no status, flow, lake or UI toke
   move (zone tables keep their authored scope); diff the answers' "applies" lines before promoting. Page TITLES are
   still the registry item's name (Friday Lake's page is titled "Tepee Lakes") — registry naming, not this.
 - **An identical rule from two rows reads once**: `gear.once` — of vessel rules saying the same (`vessel_says`), the
-  nearest (rank), then the page's order, is shown; the others stay in force and cited, in `repeats` ("All gear
+  nearest (rank), then the page's order, is shown (REVIEW: the statement includes where it reaches —
+  `extents`, `extent_text`, `unresolved`, `scope` — so a part's rule never folds into the whole-water one); the others stay in force and cited, in `repeats` ("All gear
   sources"). McCulloch's main polygon shows the engine limit once (Minnow's is the repeat), Norbury "No powered boats"
   once (Peckhams'), and after the reach rerun Haynes (McCulloch + Haynes) and Mine (Main + Mine) once. Non-vessel
   families already fold restatements (`rows.row_restates`). The app does not dedupe.
