@@ -1,6 +1,6 @@
 # T83 — Map: boundaries under the water's status colour; the warm temperature dot; sub-threshold colour pairs
 
-Status: DONE — 8fd6b758, 440d652f, 87841027 (shots), 9a1caa42 (review) (lane wf_63a2801d-ce3-5; built with Q14–Q16 defaults).
+Status: DONE — 111bd363, cbd3e139, e61a6e7d (shots), 7bb14b79 (review) (lane wf_63a2801d-ce3-5; built with Q14–Q16 defaults).
 (1) Boundaries: `region`/`mu` moved before `stream` in layers.source.json; the lake shoreline (a status line) is held
 back by the new generator option `outline.drawAfter: "mu"`; the lake selection ring follows the last layer of its
 source-layer. Order now: lake fills → region/mu → lake__edge → ring → casing → stream. tools/layer-order.test.ts
@@ -8,7 +8,7 @@ source-layer. Order now: lake fills → region/mu → lake__edge → ring → ca
 table @app/core `TEMP_BAND_TOKEN` → `tempBandColour` (dots) and `palette.temp` (legend). (3) Sub-20 pairs: temperature
 lifted in light (15.9 → 27.9) and cvd (20 → 25.3); every remaining floor under 20 is listed with its reason in
 `UNDER_20` (status-colours-distinct.test.ts), a new one fails. Dark temperature went 17.7 → 15.4 (warm vs closed,
-deutan): recorded exception — no warm hue light enough for the dark map gets further from the dark rose closed. Review (9a1caa42): all three dark dot pairs are under 20 (warm/critical 15.4, cool/warm 17.8, cool/critical 17.7); the 17.7 was open vs closed, untouched by T83, not the plum (which stood 36.0/22.7) — the reason now says so and a test pins it.
+deutan): recorded exception — no warm hue light enough for the dark map gets further from the dark rose closed. Review (7bb14b79): all three dark dot pairs are under 20 (warm/critical 15.4, cool/warm 17.8, cool/critical 17.7); the 17.7 was open vs closed, untouched by T83, not the plum (which stood 36.0/22.7) — the reason now says so and a test pins it.
 Shots (z7/z10/z13 + temperature legend, light/dark): handoff/PLAN/app-data/status-colours/T83/ via
 scripts/t83-shots.mjs. Gates green: style, check-colours, status-colours-distinct, label-colours, water-status-cvd,
 typecheck. Nothing to rerun (style only; no tiles/reach/deliver). Left: the ledger rows (T83 DONE, T47 → DONE) for

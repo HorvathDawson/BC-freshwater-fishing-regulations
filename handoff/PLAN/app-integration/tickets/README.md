@@ -101,9 +101,9 @@ use that as the sole source of future work."
 | T54 | no-access streams: fourth colour + banner | OPEN | a43a7122 (ticket) | all; Q1–Q3 build with defaults |
 | T55 | sloughs/canals still drawn as lakes | IN PROGRESS | fec02c29, 96b0eb73; prior 669fd065, a59f3dc3, ac8a0e1c | finder DONE (865 candidates) → ★ owner marks them on the review page (artifact Es3Mokt7Fs2yNvm7JgQua8) → reclassify → reach + deliver; polygon-walk lane wf_3976eddc-bba |
 | T56 | release rebuild: Twin Lakes + stream polygons + "See X" | DONE | 78a4eed8, 020f4ca8, 794f9c07, cfe405c8, 04357dad | R2 upload (owner) |
-| T57 | unnamed streams: real-data regs sweep incl. trib rules | OPEN | — | all (T53 merged: unblocked) |
+| T57 | unnamed streams: real-data regs sweep incl. trib rules | DONE | 9f434cd3, b846c925, a9455d40, 5dac27c8, 21289c24 | — |
 | T58 | back follow-ups | DONE | 21d41623, 9ec8114a | — |
-| T59 | two rivers meet (Atnarko/Bella Coola); Fraser exit → Annacis | OPEN (app part done) | 87ba267c, 7e3cd448 | pipeline `continuation.py` rule; Fraser `water_exit`; deliver |
+| T59 | two rivers meet (Atnarko/Bella Coola); Fraser exit → Annacis | DONE | c5b1e3d0, 36df866f, 463c013b | needs deliver (ships next rebuild) |
 | T60 | consistency auditors (N16, Fable) | OPEN | — | all |
 | T61 | cleanup wave 2: old pathways/duplicates | OPEN | — | all (check F07 a6aa4d86 before redoing) |
 | T62 | cleanup wave 3: split long files | OPEN | — | all |
@@ -114,7 +114,7 @@ use that as the sole source of future work."
 | T67 | braid splitting as a build step | OPEN | 1497beb0 | assessment done (handoff/PLAN/braids/T67-assessment.md) → ★ owner answers R14 Q1/Q2/Q4 → build (braid_sweep.py) → side atlas/reach/deliver/tiles |
 | T68 | HYDAT / feed follow-ups | OPEN | — | Forecasts line; roster `--stations`; R2 upload step |
 | T69 | search on desktop: keyboard leftovers | DONE | 448ebe1b, 389e451a | — |
-| T70 | cleanup wave 1, app side + stale worktrees + `pnpm clean` | OPEN | — | all |
+| T70 | cleanup wave 1, app side + stale worktrees + `pnpm clean` | PARTIAL | 52ec4cb5, 799614a5, 4615ee0f, 1e8cbdb5, ac95e09f, a7947f99, de3cb79d, fd3f8c06, ef11d8e4, 17e4fe8f | merger steps done 2026-10-22; Q17 dead follow-branch → T63 |
 | T71 | one Map entry: drop the regs header's Map button | DONE | 4817a2e7, 40d6a47c | — |
 | T72 | release LATEST pointer + prune old releases | OPEN | — | all |
 | T73 | smaller reach hand-off (N14, disk) | OPEN | — | all (heavy) |
@@ -125,9 +125,9 @@ use that as the sole source of future work."
 | T78 | tidal/backwater disclosure on Level | OPEN | — | all |
 | T79 | imagery corridor P0 + pools validation | OPEN | — | all (owner go/no-go) |
 | T80 | small open items (S1 minors, Kitimat witness, D19, flash, search, CI) | OPEN | — | all |
-| T81 | settle the pending small owner questions | OPEN | — | all |
+| T81 | settle the pending small owner questions | DONE | 2fb23d92, 116b0e19, 4b197646, bd824a69 | — |
 | T82 | T41 leftovers: reader gate run, caveat box O3, sheet height O5 | OPEN | — | all |
-| T83 | map: boundaries under water, warm dot, sub-20 pairs | OPEN | — | all |
+| T83 | map: boundaries under water, warm dot, sub-20 pairs | DONE | 111bd363, cbd3e139, e61a6e7d, 7bb14b79, a9dae070 | — |
 | T84 | ticket-ledger guard | DONE | caf5ef52 | — |
 | T85 | native install size: z13 overzoom + landuse filter (D32) | OPEN | — | all (heavy) |
 | T86 | production hosting + ship config | OPEN | — | all (owner) |
@@ -183,23 +183,9 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q5 | T66/T97 | Curation review: approve handoff/PLAN/curation-review/PLAN.md (phases 0–5, ~3–4 weeks before a human starts)? | phase 0 (T96) goes ahead; phases 1–5 wait | owner (BLOCKS T97) |
 | Q6 | T67 | Braid splitting at build: go, and which plan? | braids stay paused until the owner reads the assessment | owner (BLOCKED until plan) |
 | Q7 | T72 | Prune list for old releases | keep live + LATEST + previous | owner approves list |
-| Q8 | T76 | Gauge across `water_continue` counts as own? | yes, `water_continue` only | delegated |
 | Q9 | T77 | When to do phone testing D1a / D1b | D1a when the phone is at hand; D1b after the R2 bucket | owner |
 | Q10 | T79 | Imagery go/no-go; SPEC §12 (10 m pack, buffer, sources, licence, server, caps) | no offline imagery before the first native release; skip 10 m; 250 m buffer; online-only on web; pools a study | owner |
-| Q11 | T80 | D19 klmb_1010 pooled row | (a) pipeline-side `group` | delegated |
-| Q12 | T82 | O3: timed caveat in a grey box? O5: sheet height | O3 same caveat box as the other top caveats; O5 size to content up to the prototype's cap | delegated |
 | Q13 | T82 | Launch the reader-gate agent run | after T56 | owner launches |
-| Q14 | T83 | Region/MU boundaries above or under the water status lines (T47 part 1 Q4) | under the status lines, above fills | delegated |
-| Q15 | T83 | Warm temperature dot reuses restricted plum | own hue, not a status colour | delegated |
-| Q16 | T83 | Sub-20 contrast pairs (thin lines, permit/temperature, dark boundary 15, dark closed/base 19.1) | lift where cheap; else recorded exceptions | delegated |
-| Q17 | T81 | T48: keep "open on the best match" preview? | no | delegated |
-| Q18 | T81 | T48: "Add a spot here" wording | close (owner removed it) | delegated |
-| Q19 | T81 | T49 `dayRange` | this calendar year | delegated |
-| Q20 | T81 | D18 bait `also_allowed` | hidden | delegated |
-| Q21 | T81 | T44: name size on Conditions/Map, desktop column, Map full-bleed, wheel outside the column | as built | delegated |
-| Q22 | T81 | Selected-tab cue | as built | delegated |
-| Q23 | T81 | Dark water names near status.base / flow f5 | as built; revisit in T83 gates | delegated |
-| Q25 | T81 | Prototype bugs: closed-all-year "."; `pinUpdate` throws on 25/134 states | close: the prototype is a reference | delegated |
 | Q26 | T86 | R2 bucket, contact address, app name "Can I Fish This?" (no ArcGIS key: owner 2026-10-21) | keep the name; staging bucket first; publisher every 30 min | owner (credentials) |
 | Q27 | T87 | Sign-off: the app looks right; delete app/design | hold until the owner walks it | owner |
 | Q28 | T88 | When to build iOS | after the Android ship | owner |
@@ -207,7 +193,6 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q30 | T91 | Where the Atnarko campsite boundary signs are | keep the current binding until confirmed | owner |
 | Q31 | T93 | Gauge representativeness policy | the current drainage gate stays default | owner |
 | Q32 | T95 | Salmon (DFO) timing and scope | after T50 and the cleanup | owner |
-| Q33 | T96 | The 5 gate-failing entries: Shuswap `min_cm` 50/60; zp set_lining, spear_fishing, bait, white_sturgeon_licence exemptions | fix Shuswap against the book; loosen the gate only where the book exempts across unshared ground | owner |
 | Q34 | T97 | May the app's start link back the review pane? | yes, read-only, on the reviewer's own port; deep link until approved | owner |
 | Q35 | T97 | Who may fix as well as mark? | reviewers mark only; fix mode owner-only; wrong/unsure marks become tickets | owner |
 | Q36 | T97 | Review overrides.json, steelhead_waters, cross_references, DFO entries, name variants in this pass? | not in this pass; the `answer` fingerprint surfaces their effects | owner |
@@ -221,6 +206,8 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q44 | T101 | May a gauge on a side channel/slough speak for the river it branched from? (Nicomen level gauges would answer ~71,668 Fraser sections) | no for Level; Flow only when the side channel carries a large share of the river | owner |
 
 ### Answered (recently, for the record)
+- Q33 (the 5 gate-failing entries) — settled by T96: four were a gate bug (province-wide rule holds a region lift), Shuswap 3-26 quotes its whole printed line.
+- Delegated calls Q8, Q11, Q12, Q14–Q23, Q25 — decided by Claude (owner call 11), decisions.md 'CLAUDE 2026-10-22 (T81)'; the owner reads the record.
 - Palette D stands (T47 part 3) — decisions.md 2026-10-22.
 - D4 dark fish cut-outs with no tile are fine (T38) — owner 2026-10-22.
 - Image permissions held (T43).

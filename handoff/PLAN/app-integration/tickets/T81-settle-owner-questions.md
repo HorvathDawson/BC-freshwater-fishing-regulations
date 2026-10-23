@@ -1,6 +1,6 @@
 # T81 — Settle the pending small owner questions and record them (audit N15, owner call 11)
 
-Status: DONE — 32e3772d, 23287784 (review: the map-chrome stragglers added) (decisions.md "CLAUDE 2026-10-22 (T81, owner delegated: audit call 11)"). The README table edits below are the merger's (this lane may not edit README).
+Status: DONE — 2fb23d92, 4b197646 (review: the map-chrome stragglers added) (decisions.md "CLAUDE 2026-10-22 (T81, owner delegated: audit call 11)"). The README table edits below are the merger's (this lane may not edit README).
 
 Source: owner call 11: "Claude makes judgement calls on the ~30 smaller pending questions and records them". There is
 no consolidated record; two threads of questions have already been lost. The README "Owner questions" table now lists
@@ -26,13 +26,13 @@ Depends: none. Size: S–M. Owner: delegated; the owner reads the record afterwa
 
 ## Result (2026-10-22)
 Decided and recorded in decisions.md under one dated block: Q8, Q11, Q12, Q14, Q15, Q16, Q17, Q18, Q19, Q20, Q21, Q22,
-Q23, Q25 (Q24 was already answered), plus the stragglers (T38, T42, T43, T45/T46, T39/T40, T49, the map-chrome questions [added in review, 23287784], the Level-menu item, the
+Q23, Q25 (Q24 was already answered), plus the stragglers (T38, T42, T43, T45/T46, T39/T40, T49, the map-chrome questions [added in review, 4b197646], the Level-menu item, the
 "Owner questions this spec could not settle" list). Older open-question lines in decisions.md (T49 header, T48
 "OWNER QUESTIONS", D18 row, the prototype-bug / image-permission / `code: null` bullets) are marked DECIDED/CLOSED with a
 pointer. No code changed; nothing needs a rerun.
 
 ### README changes the merger makes (this lane did not edit README)
-- Ledger row T81: `DONE | 32e3772d, <this ticket's commit> | —`.
+- Ledger row T81: `DONE | 2fb23d92, <this ticket's commit> | —`.
 - "Owner questions": delete rows Q8, Q11, Q12, Q14, Q15, Q16, Q17, Q18, Q19, Q20, Q21, Q22, Q23, Q25.
 - "Answered": add one line — "Delegated calls Q8, Q11, Q12, Q14–Q23, Q25 — decided by Claude (owner call 11), decisions.md
   'CLAUDE 2026-10-22 (T81)'; the owner reads the record."

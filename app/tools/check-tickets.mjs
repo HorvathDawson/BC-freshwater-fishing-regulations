@@ -33,7 +33,8 @@ export const STATUSES = ["IN PROGRESS", "BLOCKED", "POSTPONED", "PARTIAL", "DROP
 
 const ID = /^T\d+[a-z]?/;
 const HASH = /\b[0-9a-f]{7,40}\b/;
-const T_IN_SUBJECT = /\bT\d+[a-z]?\b/g;
+// not after a word character or a hyphen: "Q-T57a" is an owner-question label, not ticket T57a
+const T_IN_SUBJECT = /(?<![\w-])T\d+[a-z]?\b/g;
 
 /** The leading status keyword of a status text, or null. */
 export function statusKeyword(text) {

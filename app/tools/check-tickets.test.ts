@@ -90,6 +90,10 @@ describe("the guard fires (mutation)", () => {
     expect(checkLedger(input)).toEqual(["T999: named in a commit subject but missing from the ledger"]);
   });
 
+  it("does not read an owner-question label (Q-T57a) or other hyphen-joined id as a ticket", () => {
+    expect(checkLedger({ ...noGit, subjects: ["T57: status DONE - results and Q-T57a", "see T45-shots"] })).toEqual([]);
+  });
+
   it("on DONE with no commit hash, in the file and in the row", () => {
     const row = rowOf(real.readme, "T02");
     const readme = real.readme.replace(row, "| T02 | blob codec (fflate dict-inflate + UTF-8 decode) | DONE | — | — |");
