@@ -19,6 +19,14 @@ const withTicket = (input: Input, id: string, edit: (text: string) => string): I
   tickets: input.tickets.map((t) => (idOfFile(t.name) === id ? { ...t, text: edit(t.text) } : t)),
 });
 const rowOf = (readme: string, id: string) => readme.split("\n").find((l) => l.startsWith(`| ${id} |`))!;
+/** A ledger row with its status cell replaced — independent of what the live row says today. */
+const withStatus = (row: string, status: string) => {
+  const cells = row.split("|");
+  cells[3] = ` ${status} `;
+  return cells.join("|");
+};
+/** The real tickets + README with no commit subjects: the row/file rules alone, not today's git history. */
+const noGit: Input = { ...real, subjects: [] };
 
 describe("the real ledger", () => {
   it("is whole", () => {
@@ -39,7 +47,23 @@ describe("the real ledger", () => {
 describe("the guard fires (mutation)", () => {
   it("on a removed ledger row", () => {
     const readme = real.readme.replace(rowOf(real.readme, "T84") + "\n", "");
-    expect(checkLedger({ ...real, readme })).toEqual(["T84: ticket file has no ledger row in README.md"]);
+    expect(checkLedger({ ...noGit, readme })).toEqual(["T84: ticket file has no ledger row in README.md"]);
+  });
+
+  it("on a removed ledger row of a ticket commits name (both rules fire)", () => {
+    const readme = real.readme.replace(rowOf(real.readme, "T84") + "\n", "");
+    expect(checkLedger({ ...noGit, readme, subjects: ["T84: ticket-ledger guard"] })).toEqual([
+      "T84: named in a commit subject but missing from the ledger",
+      "T84: ticket file has no ledger row in README.md",
+    ]);
+  });
+
+  it("on two ticket files with the same id", () => {
+    const t84 = real.tickets.find((t) => idOfFile(t.name) === "T84")!;
+    const input = { ...noGit, tickets: [...real.tickets, { name: "T84-another-slug.md", text: t84.text }] };
+    expect(checkLedger(input)).toEqual([
+      "T84: more than one ticket file (T84-another-slug.md, T84-ticket-ledger-guard.md)",
+    ]);
   });
 
   it("on a removed Status line", () => {
@@ -83,8 +107,8 @@ describe("the guard fires (mutation)", () => {
 
   it("on a duplicated row and an unknown status", () => {
     const row = rowOf(real.readme, "T84");
-    const readme = real.readme.replace(row, `${row}\n${row.replace("| OPEN |", "| MAYBE |")}`);
-    expect(checkLedger({ ...real, readme })).toEqual([
+    const readme = real.readme.replace(row, `${row}\n${withStatus(row, "MAYBE")}`);
+    expect(checkLedger({ ...noGit, readme })).toEqual([
       'T84: ledger row appears more than once',
       'T84: ledger status "MAYBE" is not one of IN PROGRESS, BLOCKED, POSTPONED, PARTIAL, DROPPED, OPEN, DONE',
     ]);

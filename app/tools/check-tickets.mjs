@@ -8,7 +8,7 @@
  *
  *   1. a `tickets/T*.md` file has no `Status:` line in its first lines, or one whose value is not a
  *      status the README defines;
- *   2. a ticket file is missing from the README ledger table, or a ledger row has no ticket file
+ *   2. a ticket file is missing from the README ledger table, or a ledger row has no ticket file, or two files share an id
  *      (or a row is repeated);
  *   3. a T-number named in a commit subject (since the tickets folder began) is not in the ledger;
  *   4. a ticket is DONE — in its file or in its ledger row — with no commit hash.
@@ -93,7 +93,15 @@ export function checkLedger({ tickets, readme, subjects }) {
     if (kw === "DONE" && !HASH.test(row.commits)) problems.push(`${row.id}: ledger row is DONE with no commit hash`);
   }
 
-  const files = new Set(tickets.map((t) => idOfFile(t.name)).filter(Boolean));
+  const namesById = new Map();
+  for (const { name } of tickets) {
+    const id = idOfFile(name);
+    if (id) namesById.set(id, [...(namesById.get(id) ?? []), name]);
+  }
+  for (const [id, names] of namesById)
+    if (names.length > 1) problems.push(`${id}: more than one ticket file (${[...names].sort().join(", ")})`);
+
+  const files = new Set(namesById.keys());
   for (const id of files) if (!seen.has(id)) problems.push(`${id}: ticket file has no ledger row in README.md`);
   for (const id of seen) if (!files.has(id)) problems.push(`${id}: ledger row has no ticket file`);
 
