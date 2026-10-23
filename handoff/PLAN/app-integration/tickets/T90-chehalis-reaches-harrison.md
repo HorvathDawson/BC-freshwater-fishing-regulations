@@ -1,6 +1,6 @@
 # T90 — The Chehalis "downstream of the bridge, May 1-31" closure still reaches 2 Harrison sections
 
-Status: DONE (code, commit 04d8fb85) — awaits the batch's reach rerun + deliver; no atlas rebuild. Left: verify the diff below on the rerun.
+Status: DONE (code, commits 04d8fb85 + review 32aa5a12) — awaits the batch's reach rerun + deliver; no atlas rebuild. Left: verify the diff below on the rerun (rules AND licensing_section).
 
 Source: memory `receiving-river-not-a-tributary`. The Strahler guard in `_mouths_at` (pipeline/atlas/graph/
 tributaries.py) is in, yet the 2026-10-22 bundle binds `chehalis_river.r2` via `trib` to Harrison sids 59983, 59984 —
@@ -56,3 +56,20 @@ distributary-at-cut pin) and `test_tributaries.py` (stub `_mouths_at` now a cut;
   ever fired by measure coincidence (the window's 0 vs the receiving river's own measures). **Default built: no** — it
   is the receiving river's tributary (book p80: tributaries contribute to "a larger stream"), and the no-window path
   never seeded at a mouth. Live effect: none beyond the Chehalis rule.
+
+## Review (2026-10-22, adversarial)
+
+- **Defect fixed (32aa5a12):** 04d8fb85 had DELETED the "walk never enters the entry's own water" section of
+  `test_reach_tributaries.py` (the `vedder` fixture + 5 tests, incl. the `THE_WALK_NEVER_ENTERS_THE_ENTRYS_OWN_WATER`
+  mutation pin) — the T90 block replaced it instead of sitting beside it. Restored verbatim; all pass.
+  Targeted: `test_reach_tributaries` + `test_tributaries` + `test_reach_builder` 97 passed.
+- **Reproduced on live:** bundle binds `chehalis_river.r2` via `trib` to 402 sids incl. 59983, 59984, 161089, 161769,
+  196577. On the live `graph.pkl` (heavy.sh probe), the Chehalis window seeds `355992877:0` with the flags off and
+  nothing with them on.
+- **Seed-level probe, whole graph:** the no-window path (carve-out "everything upstream", designations without a
+  window) — 148,621 cut pieces, **0 change**. A window running to a line's MOUTH (lo 0) — 1,229,328 mouth pieces,
+  **241 would have seeded under the old code** (all drops, nothing gained). Only rules/designations whose window
+  reaches a mouth at one of those 241 can move; the builder's re-walk says only the Chehalis among trib rules.
+  Licensing designations were not re-walked — the `licensing_section.jsonl` diff on the rerun is required, and
+  Q-T90's "no live effect beyond the Chehalis" covers rules only until that diff is read.
+
