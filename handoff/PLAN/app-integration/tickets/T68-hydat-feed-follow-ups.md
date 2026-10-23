@@ -1,6 +1,6 @@
 # T68 — HYDAT / feed follow-ups
 
-Status: DONE — 6b1103d1. All three lines built. Ships on the next feed republish (no atlas/reach/deliver/tiles).
+Status: DONE — 6b1103d1, review fix 3338d7dc (step 5 ended silently when no release existed, and broke test_update_hydat_script.py; now a run test pins the upload step). All three lines built. Ships on the next feed republish (no atlas/reach/deliver/tiles).
 Until then the live index has no `forecastIssuedAt`, so the Forecasts line reads "Date not recorded · Unknown" and the
 Data block summary reads "Some dates not recorded". Follow-ups F1–F3 below.
 - A "Forecasts" line on the More Data block: the feed index needs a feed-wide `forecastIssuedAt` (publish.py), the
@@ -35,7 +35,8 @@ Data block summary reads "Some dates not recorded". Follow-ups F1–F3 below.
 
 ## Tests
 - pytest: test_feed_maintenance.py + test_feed_forecast_issued.py + test_feed_roster.py + test_feed_notify.py: 44 passed
-  (11 new). The other feed/forecast files: 83 passed.
+  (11 new). Review: test_update_hydat_script.py runs the script against stubs (8 passed, 4 new);
+  every feed/forecast/update-hydat test file together: 153 passed. The other feed/forecast files: 83 passed.
 - vitest: more / menu / conditions / sync.render / Menu / http: 151 passed.
 - tsc -b, boundaries and platform are clean.
 - Mutation-checked: each of these fails its tests.
