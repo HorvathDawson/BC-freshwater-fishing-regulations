@@ -1,6 +1,6 @@
 # T118 — One main line: spans pick a water's stem by length, continuation by section count
 
-Status: DONE — <T118 commit> (lane-T118). Ships with the next deliver; the measured bundle output is unchanged, so a
+Status: DONE — f214beee (lane-T118). Ships with the next deliver; the measured bundle output is unchanged, so a
 deliver run is only needed to carry the code, not to change data.
 
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, finding cross 2
