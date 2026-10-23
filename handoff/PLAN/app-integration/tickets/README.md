@@ -152,9 +152,9 @@ use that as the sole source of future work."
 | T105 | one gauge speaker for map and sheet (54,401 sections disagree) | DONE | df5da53a, d532f31e, 51f77e32, 46af7a18 | Q90–Q93 defaults |
 | T106 | one shown quantity: read the declared parameter (08ME030) | DONE | 7276735f, f17523c2, 91ea0abc, 82a37db5 | publisher line lands on the next feed publish |
 | T107 | one day's envelope: Python band_for vs TS bandAt | DONE | 4a93cf64, 1399d3d7, a06c1b01, 4965f6ec | — |
-| T108 | one "goes on as": continuation vs spans (11 of 17 pairs) | DONE | fb1b12a5, 551c8090, 93d39ad3, c38fbbec | deliver (running) |
+| T108 | one "goes on as": continuation vs spans (11 of 17 pairs) | DONE | fb1b12a5, 551c8090, 93d39ad3, c38fbbec | delivered r-b518a2b507fa |
 | T109 | one entry-id grammar (z7a reads "Region 7") | PARTIAL | 0ef3ed2f, edb0653c, 092e53c4, 73796f11 | exported region field (see ticket) |
-| T110 | record years per quantity (Level-mode weights) | DONE | ad835645, 31ade2ee, 999b2659, c97c4a98 | deliver (running; paint/4) |
+| T110 | record years per quantity (Level-mode weights) | DONE | ad835645, 31ade2ee, 999b2659, c97c4a98 | delivered r-b518a2b507fa (paint/4) |
 | T111 | every cut reaches the walk (second extent's window dropped) | OPEN | — | all (rides a reach rerun) |
 | T112 | one entry walker over catalogue extents | OPEN | — | all |
 | T113 | one name caser for tiles and bundle (O'rourke) | OPEN | — | all (tiles window + deliver) |
@@ -177,13 +177,13 @@ use that as the sole source of future work."
 | T130 | Conditions: zoom out further before the basin heat map; Change chip greyed under Level | DONE | b4f3a40f, cd95bb63, b5218057, c9d48ea7 | Q-T130a/b (defaults built) |
 | T131 | spot pins look better and open the spot on tap | DONE | 00398a3b, fafcd21a, 64b96b55 | Q-T131-1..5 (defaults built); native tap with T50 |
 | T132 | curation review: salmon (DFO) pass | OPEN | — | later, after the first pass |
-| T133 | curation review phase 2: one vintage on screen | DONE | 94e06e52, 5052824f | entries read "awaiting build" until a reach + deliver with digests (running) |
+| T133 | curation review phase 2: one vintage on screen | DONE | 94e06e52, 5052824f | digests live from r-b518a2b507fa (reach rerun, no binding changed) |
 | T134 | curation review phase 3: review screen separate from fixing | OPEN | — | after T133 |
 | T135 | curation review phase 4: queue, pre-checks, ticket export | OPEN | — | after T134 |
 | T136 | curation review phase 5: parity gate + pilot | OPEN | — | after T135 |
 | T137 | reader shooter: TALL cards shot drops the Other fish list (re-shoot + re-run the gate) | DONE | be8b4693, 111dcea3 | — |
 | T138 | reader shooter: chilliwack-p2-row-rb frame misses the rainbow row | DONE | d8997fbd | — |
-| T139 | third headless one-kind pool: Liard River watershed (7-53) | DONE | 8fb5f1ac, 85288617, 67d72c8e, c4a3da48 | answers deliver (running) |
+| T139 | third headless one-kind pool: Liard River watershed (7-53) | DONE | 8fb5f1ac, 85288617, 67d72c8e, c4a3da48 | delivered r-b518a2b507fa |
 
 ## Order for open tickets
 
