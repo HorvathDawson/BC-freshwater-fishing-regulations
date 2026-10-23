@@ -171,6 +171,43 @@ def test_endako_region_7_row_is_the_region_6_rows_twin():
     assert see_relation(m7, [m6]) == "twin"
 
 
+def scope_misses(entry: dict) -> list[str]:
+    """Rule extents that name a water OUTSIDE the row's own scope — which the reach run then
+    clips to nothing (`build._clip` keeps only the sections of the entry's scope; the result is
+    `empty_after_scope`). A row whose rule binds a water it does not match must name that water
+    in its scope too, as Upper Arrow Lake (drawdown area) names the Columbia. An AREA scope
+    (`within`) clips by place, not by water, and is not checked here."""
+    scope = [x for x in entry.get("extents") or [] if isinstance(x, dict)]
+    if not scope or all(x.get("op") == "within" for x in scope):
+        return []
+    matched = set(entry.get("matched") or ())
+    in_scope = {x["item_id"] if x.get("item_id") else i
+                for x in scope for i in ([x.get("item_id")] if x.get("item_id") else matched)}
+    return [f"{entry['entry_id']}::{r['rule_id']} binds {x['item_id']}, outside its row's scope"
+            for r in entry.get("rules") or [] for x in r.get("extents") or []
+            if x.get("item_id") and x["item_id"] not in in_scope]
+
+
+def test_no_rule_binds_a_water_its_rows_scope_clips_away():
+    """Every rule extent naming another water lies inside its row's scope (corpus-wide)."""
+    got = [m for f in sorted(CAT.glob("*.json"))
+           for e in json.loads(f.read_text())["entries"] for m in scope_misses(e)]
+    assert got == []
+
+
+def test_rainbow_alley_is_in_the_nilkitkwa_rows_scope():
+    """The row's scope is the lake AND Rainbow Alley, as Upper Arrow's is the lake and the
+    Columbia. MUTATION: with the lake alone (the row before), the reach run clipped r4 to nothing
+    (probe on the live atlas: `empty_after_scope`)."""
+    e = _entries("6")["r6:nilkitkwa_lake@6-8"]
+    assert e["extents"] == [
+        {"op": "whole", "item_id": "wbk:329026685"},
+        {"op": "between", "item_id": "gnis:17687",
+         "splits": ["babine_river__babine_lake", "babine_river__nilkitkwa_lake"]}]
+    assert scope_misses({**e, "extents": [{"op": "whole"}]}) == [
+        "r6:nilkitkwa_lake@6-8::nilkitkwa_lake.r4 binds gnis:17687, outside its row's scope"]
+
+
 @pytest.mark.parametrize("region,entry_id", [
     ("1", "r1:nanaimo_river@1-5"), ("6", "r6:nilkitkwa_lake@6-8"), ("6", "r6:fulton_river@6-8"),
     ("7", "r7:endako_river@7-12")])

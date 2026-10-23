@@ -6789,7 +6789,16 @@
    ],
    "extents": [
     {
-     "op": "whole"
+     "op": "whole",
+     "item_id": "wbk:329026685"
+    },
+    {
+     "op": "between",
+     "item_id": "gnis:17687",
+     "splits": [
+      "babine_river__babine_lake",
+      "babine_river__nilkitkwa_lake"
+     ]
     }
    ],
    "rules": [
