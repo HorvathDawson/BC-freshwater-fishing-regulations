@@ -1,6 +1,6 @@
 # T110 — Record length per quantity: Level-mode weights use the discharge record
 
-Status: DONE — 5a6c0576 (pipeline + app), 1905ba72 (adversarial review fixes). Ships with the next deliver (bundle schema + paint/4): see As built.
+Status: DONE — ad835645 (pipeline + app), 999b2659 (adversarial review fixes). Ships with the next deliver (bundle schema + paint/4): see As built.
 
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, finding gauges 4
 (CONFIRMED on `bundle.sqlite`).
@@ -30,7 +30,7 @@ Proof is a reviewed behaviour change: Level-mode estimates over all panels, befo
 
 Rebuild: deliver. Depends: none. Size: S. Owner: no.
 
-## As built (5a6c0576)
+## As built (ad835645)
 
 **One function, one floor.**
 - `pipeline/gauges/feed/record.py`: `record_years(stats, station, quantity)` over clim.json's `stats` (the rows

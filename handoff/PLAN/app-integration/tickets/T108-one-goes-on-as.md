@@ -1,6 +1,6 @@
 # T108 — One "goes on as": continuation and spans disagree on whether water A continues as water B
 
-Status: DONE — 6d64ba50 (code + tests on lane-T108), adversarial review e9084a8b (window pins, spec wording). Ships with the next deliver: bundle `section_span` and
+Status: DONE — fb1b12a5 (code + tests on lane-T108), adversarial review 93d39ad3 (window pins, spec wording). Ships with the next deliver: bundle `section_span` and
 `water_continue` change only when `python -m pipeline.deliver` rebuilds the bundle.
 
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, finding cross 1

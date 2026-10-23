@@ -1,9 +1,9 @@
 # T82 — Regs leftovers from the T41 walk: the reader-gate run, the timed caveat box (O3), sheet height (O5)
 
-Status: DONE — 2864cdc2 (O3 + O5), 7852275d (T138, the reader-gate finding). The reader gate PASSED 2026-10-23 (re-run
+Status: DONE — f7075463 (O3 + O5), d8997fbd (T138, the reader-gate finding). The reader gate PASSED 2026-10-23 (re-run
 after T137, app be8b4693): light 390 px 39/39, dark 390 px 39/39, no confidence drop >= 2, every answer matches the
 prototype reader's (reader/2026-10-23-app-rerun.md; first run reader/2026-10-23-app.md 38/39, fixed by T137). 1280 px:
-not applicable (tests.md §4 fixes the gate at 390x844; no prototype 1280 reader record). Finding → T138 (DONE, 7852275d).
+not applicable (tests.md §4 fixes the gate at 390x844; no prototype 1280 reader record). Finding → T138 (DONE, d8997fbd).
 No deliver needed (app code and tools only; no data changes). T41 can close as DONE.
 
 Source: T41-walk/REPORT.md — O3: x15p2 "At certain times" has no grey box; O5: sheets open taller on a phone than in
@@ -26,7 +26,7 @@ Depends: T56 (fixtures re-cut). Size: S + a human run. Owner: launches the reade
 
 ## As built (2026-10-23, lane-T82)
 
-**O3 — the timed caveat look (2864cdc2).** No code change to the caveat: the app already drew every top caveat (timed,
+**O3 — the timed caveat look (f7075463).** No code change to the caveat: the app already drew every top caveat (timed,
 side, angler, check) in the one `CaveatBlock` box (3 px restricted rule on the left, sub-grey label, items as rule
 buttons, the where line in sub grey). The prototype's grey box around x15p2's hours is not a design: it is v38's
 location-bar rule `.where{display:flex;min-height:56px;padding:8px 16px;background:var(--wash);border-bottom:…}`
@@ -41,7 +41,7 @@ Recorded in decisions.md ("CLAUDE 2026-10-23 (T82, Q12 carried out)").
 - Shots: `T82-shots/o3-after-x15p2-keep-light.jpg`, `o3-after-x14p2-keep-light.jpg` (before: T41-walk
   `shots/x15p2_1010-keep-light.jpg`; the app column is unchanged).
 
-**O5 — sheet heights vs v38 (2864cdc2).** `node app/tools/regs-heights.mjs --sheets --url … --states …` now opens every
+**O5 — sheet heights vs v38 (f7075463).** `node app/tools/regs-heights.mjs --sheets --url … --states …` now opens every
 golden sheet of a state in both (prototype `#sheet.on`, app `sheet-panel`) and prints sheet / chrome / body / capped per
 sheet, then `sheetSummary` (`app/tools/regs-web/sheets.mjs`, tested in `sheets.test.ts`).
 - BEFORE (vedder_1010, 65 sheets, 60 comparable): median app − prototype sheet height **0 px**, 26 taller; chrome

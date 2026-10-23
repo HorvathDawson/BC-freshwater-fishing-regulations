@@ -1,6 +1,6 @@
 # T105 — One gauge speaker: the map and the sheet ask different stations
 
-Status: DONE — 4817cb72, 6888a1dd (adversarial review). App-only: `section_gauge` is unchanged, no deliver needed.
+Status: DONE — df5da53a, 51f77e32 (adversarial review). App-only: `section_gauge` is unchanged, no deliver needed.
 
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, findings gauges 1 and
 12 (CONFIRMED on `bundle.sqlite`).
@@ -82,7 +82,7 @@ Rebuild: app, plus deliver if `section_gauge` changes. Depends: T93 (policy, def
   Crossing) so the Conditions body still draws the chart they measure.
 
 ## Left / follow-ups
-- ~~Spot capture still freezes the `section_gauge` station's reading~~ — fixed in the review (6888a1dd), see below.
+- ~~Spot capture still freezes the `section_gauge` station's reading~~ — fixed in the review (51f77e32), see below.
 - The design fixture (`packages/data/src/fixture.ts`) has no panel, so under one speaker its Conditions view is the
   refusal everywhere. If design screens need a chart, give the fixture's Chilliwack a panel (60 test call sites).
 
@@ -95,7 +95,7 @@ matched-only sections / 368 stations, 0 of them with a lake station; 150 gauged-
 them matched to a member — all as built. Not measured by the builder: **offline, 11,913 panelled sections change the
 station the sheet leads with** (their match is not the panel's first member; 42,131 are).
 
-Defects found and fixed (6888a1dd):
+Defects found and fixed (51f77e32):
 1. **A second speaker left in spot capture.** `captureSpot` froze the `section_gauge` station's reading and lead-up
    into a saved spot, so a spot pinned on any of the 54,386 matched-only sections recorded a gauge the sheet had just
    refused. "Stored record" was not a reason to keep it: the spot's shape is unchanged (a station id), saved spots are

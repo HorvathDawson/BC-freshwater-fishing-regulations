@@ -1,6 +1,6 @@
 # T138 — Reader shooter: the chilliwack-p2-row-rb frame does not land on the rainbow row
 
-Status: DONE — 7852275d. No deliver needed (a test tool + two testIDs). No reader re-run needed (the gate passed).
+Status: DONE — d8997fbd. No deliver needed (a test tool + two testIDs). No reader re-run needed (the gate passed).
 
 ## Today
 `app/tools/compare-regs.mjs` `frames()` row mode is meant to give "the one screenful with that fish's row just under
@@ -30,7 +30,7 @@ matches the steelhead row's picture first, or the 3-parent climb toward `keep-gr
 
 Depends: none (T41's tool). Size: S. Owner: Claude.
 
-## As built (2026-10-23, lane-T82, 7852275d)
+## As built (2026-10-23, lane-T82, d8997fbd)
 
 - Cause: the 3-parent climb. On Chilliwack p2 the RB picture's chain is strip → kind row → the group's body (the RB row
   sits BESIDE the size box, not in it), so the climb stopped on the body, and the frame opened on the box head. The

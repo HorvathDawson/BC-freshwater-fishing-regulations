@@ -1,6 +1,6 @@
 # T139 — A third headless one-kind pool appeared: Liard River watershed (r7, 7-53)
 
-Status: DONE — d69e1407, 3abbb24f (review) (needs `deliver` to ship).
+Status: DONE — 8fb5f1ac, 67d72c8e (review) (needs `deliver` to ship).
 
 Source: `pipeline/tests/test_answers_one_kind_group.py::test_every_shipped_headless_water_is_drawn_but_the_two_open_shapes`
 (needs_bundle) fails on the current bundle: besides the two known open shapes (Duncan DV, z8 r5) a third headless pool is
@@ -16,7 +16,7 @@ The needs_bundle test passes on a fresh deliver; the Liard card reads correctly 
 
 Depends: none. Size: S. Owner: no.
 
-## As built (2026-10-23, d69e1407)
+## As built (2026-10-23, 8fb5f1ac)
 
 **Where:** one water, Beattie Lake (wbk:329665706, r7 7-57, inside the Liard watershed), on 3 card frames: the bull trout
 keep days (May–Aug 14 and Oct 16–31; the lake is closed Nov 1–Apr 30, and bull trout are catch-and-release Aug 15–Oct 15).
@@ -86,7 +86,7 @@ Owner questions:
 
 ## Adversarial review (2026-10-23)
 
-Verdict: **the fix is correct and minimal.** Two small defects fixed in 3abbb24f (tests and docs only, no behaviour change). Related files (keep_answers, one_kind_group incl. the whole-set needs_bundle test, t127_displaced_xref, v1): 44 passed, unfiltered.
+Verdict: **the fix is correct and minimal.** Two small defects fixed in 67d72c8e (tests and docs only, no behaviour change). Related files (keep_answers, one_kind_group incl. the whole-set needs_bundle test, t127_displaced_xref, v1): 44 passed, unfiltered.
 
 **Checked, held up:**
 - **Whole-set data effect, measured independently.** Every water was rebuilt twice (rows section, hold on and hold

@@ -126,7 +126,7 @@ use that as the sole source of future work."
 | T79 | imagery corridor P0 + pools validation | OPEN | — | all (owner go/no-go) |
 | T80 | small open items (S1 minors, Kitimat witness, D19, flash, search, CI) | PARTIAL | ca5ecb26, 309cd3e8, b08af5e9, ea63d8cb, 46f49485, 53abfd9c, 2c2d3d69, 3a6d20c3, 55b30ec7, 128cc4e0, 84d5919d, fb5d72e5 | two open shapes, item 4/6 (see ticket); Q50–Q52 |
 | T81 | settle the pending small owner questions | DONE | 2fb23d92, 116b0e19, 4b197646, bd824a69 | — |
-| T82 | T41 leftovers: reader gate run, caveat box O3, sheet height O5 | PARTIAL | c1d1a432, 111dcea3 (reader gate 39/39 light+dark) | O3, O5 |
+| T82 | T41 leftovers: reader gate run, caveat box O3, sheet height O5 | DONE | f7075463, d8997fbd, 663242b1, 7b9cf940 | — |
 | T83 | map: boundaries under water, warm dot, sub-20 pairs | DONE | 111bd363, cbd3e139, e61a6e7d, 7bb14b79, a9dae070 | — |
 | T84 | ticket-ledger guard | DONE | caf5ef52 | — |
 | T85 | native install size: z13 overzoom + landuse filter (D32) | OPEN | — | all (heavy) |
@@ -138,7 +138,7 @@ use that as the sole source of future work."
 | T91 | Atnarko campsite split location | OPEN | — | all (owner) |
 | T92 | gear omission check | DONE | de0581e1, b931f93d, 750ba2ad, 9c78ef20 | — |
 | T93 | gauge ↔ section relationship table (policy) | OPEN | — | all |
-| T94 | gauge promote: `--only`, demotion guard | OPEN | — | all |
+| T94 | gauge promote: `--only`, demotion guard | DONE | 969ec8fe, 28f03711, 01bf3873, 6753fd6f | first real match+promote dry-run is the owner's |
 | T95 | salmon (DFO) regulations: the plan | OPEN | — | all (owner timing) |
 | T96 | curation review phase 0: tool safe + the 5 gate-failing entries (ingest R3/prov broken) | DONE | 3e841e31, 3760fd5f, f0228e09, 15723b83 | — |
 | T97 | curation review phase 1 (marks that last) + umbrella | PARTIAL | 303f6d9d, 15c04705, 5717c9fb | phase 1 done; phases 2–5 → T133–T136 |
@@ -149,12 +149,12 @@ use that as the sole source of future work."
 | T102 | receiving river never walked into (parent-code check in the walk) | PARTIAL | b6749f62, 60786bc9, 402786c9, b8f5fb3f, 95e78dd5, 0c4a9366, b44461d5, e0bc10a0 | part B → T117 (Q53 answered: as built) |
 | T103 | one size shape: plain words contradict bands/title (24 strings) | DONE | 326e8848, 677158f8, 92cba91f, 671eabad | live after the next deliver; Q62–Q63 |
 | T104 | one "when" in words: titles/plain drop hours and weekdays | DONE | 677158f8, 92cba91f, 671eabad | live after the next deliver; Q64–Q65 |
-| T105 | one gauge speaker for map and sheet (54,401 sections disagree) | OPEN | — | all (app; deliver if section_gauge changes) |
+| T105 | one gauge speaker for map and sheet (54,401 sections disagree) | DONE | df5da53a, d532f31e, 51f77e32, 46af7a18 | Q90–Q93 defaults |
 | T106 | one shown quantity: read the declared parameter (08ME030) | DONE | 7276735f, f17523c2, 91ea0abc, 82a37db5 | publisher line lands on the next feed publish |
 | T107 | one day's envelope: Python band_for vs TS bandAt | DONE | 4a93cf64, 1399d3d7, a06c1b01, 4965f6ec | — |
-| T108 | one "goes on as": continuation vs spans (11 of 17 pairs) | OPEN | — | all (deliver) |
+| T108 | one "goes on as": continuation vs spans (11 of 17 pairs) | DONE | fb1b12a5, 551c8090, 93d39ad3, c38fbbec | deliver (running) |
 | T109 | one entry-id grammar (z7a reads "Region 7") | PARTIAL | 0ef3ed2f, edb0653c, 092e53c4, 73796f11 | exported region field (see ticket) |
-| T110 | record years per quantity (Level-mode weights) | OPEN | — | all (deliver) |
+| T110 | record years per quantity (Level-mode weights) | DONE | ad835645, 31ade2ee, 999b2659, c97c4a98 | deliver (running; paint/4) |
 | T111 | every cut reaches the walk (second extent's window dropped) | OPEN | — | all (rides a reach rerun) |
 | T112 | one entry walker over catalogue extents | OPEN | — | all |
 | T113 | one name caser for tiles and bundle (O'rourke) | OPEN | — | all (tiles window + deliver) |
@@ -182,8 +182,8 @@ use that as the sole source of future work."
 | T135 | curation review phase 4: queue, pre-checks, ticket export | OPEN | — | after T134 |
 | T136 | curation review phase 5: parity gate + pilot | OPEN | — | after T135 |
 | T137 | reader shooter: TALL cards shot drops the Other fish list (re-shoot + re-run the gate) | DONE | be8b4693, 111dcea3 | — |
-| T138 | reader shooter: chilliwack-p2-row-rb frame misses the rainbow row | OPEN | — | all (tool only) |
-| T139 | third headless one-kind pool: Liard River watershed (7-53) | OPEN | — | all |
+| T138 | reader shooter: chilliwack-p2-row-rb frame misses the rainbow row | DONE | d8997fbd | — |
+| T139 | third headless one-kind pool: Liard River watershed (7-53) | DONE | 8fb5f1ac, 85288617, 67d72c8e, c4a3da48 | answers deliver (running) |
 
 ## Order for open tickets
 
@@ -269,6 +269,13 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q84 | T101 | Should a side channel also NOT take its river's Level (the walk cuts it inward; `mainstem_of` still gives an adopted channel line the river's full answer)? One rule both ways, or only your outward rule? | walk cuts inward; adopted lines keep the river's answer — so Nicomen's main channel alternates between the Fraser's answer and its own (historical-only, grey today). Make it one: (a) adopt the connector pieces too, or (b) the channel's own gauges lead on all its water | owner |
 | Q85 | T133 | While an entry awaits its build, the review tool still shows the live binding labelled "preview" (P cannot be answered; bundle copy and answer pane withheld)? | as built | owner |
 | Q86 | T133 | A moved split is only detected after the next atlas build records split anchors (until then only added splits, by id)? | leave it to the next --atlas build | owner |
+| Q87 | T139 | Beattie Lake 7-57: does the Liard watershed's "bull trout 1 (30–50 cm)" sit BESIDE the lake's own "trout 1" (2 a day) or INSIDE it (1 in all)? | beside (the reader's ruling; headline "2 a day per angler") | owner |
+| Q88 | T108 | RULINGS P10 called a creek alone at the receiver's top a "Mouth" unless the magnitudes match; p15 kept the 10 municipal continuations — which wins for goes-on-as? | as built (see T108) | owner |
+| Q89 | T110 | 1,302 sections lose their Level answer because a distant donor's short level record falls under the minimum weight — go silent ("no baseline")? | yes, same rule as every panel | owner |
+| Q90 | T105 | A new spot saves the sheet's lead station (the speaker) rather than section_gauge's? | unchanged for now (follow-up) | owner |
+| Q91 | T105 | The 54,386 matched-only sections now say "No gauge on this water is close enough in size" — wording ok? | as built | owner |
+| Q92 | T105 | Lake reason: "This lake has its own gauge, read here directly; nothing is estimated for it from other water." | as built | owner |
+| Q93 | T105 | Give the design fixture's Chilliwack a real panel so design screens show a chart? | no | owner |
 
 ### Answered (recently, for the record)
 - Q5, Q34–Q41 (curation review plan, T97) — owner 2026-10-23: "The review app changes seem good" — PLAN.md approved with all §6 defaults; plus: adding splits, rebuilding and continuing review must work (T97, T133–T136); a salmon pass later (T132).

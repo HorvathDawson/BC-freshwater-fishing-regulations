@@ -1,6 +1,6 @@
 # T94 — Gauge promote: one reviewed station at a time; demotions shown before writing
 
-Status: DONE — 1406d435, a2b70ccd (review). No deliver needed (tooling only; no curated or shipped data changed).
+Status: DONE — 969ec8fe, 01bf3873 (review). No deliver needed (tooling only; no curated or shipped data changed).
 
 Source: memory `gauge-regenerate-drifts`: on 2026-10-10 a full match + promote demoted 25 stations and rewrote 1,042
 rows. `pipeline/gauges/generate/promote.py` takes only `--dry-run` / `--out`; `pipeline/tools/check_curated.py` still
@@ -15,7 +15,7 @@ A test: a full promote with a would-be demotion exits non-zero and writes nothin
 
 Depends: none (not T68, which is the feed). Size: S. Owner: no.
 
-## As built (2026-10-23, 1406d435)
+## As built (2026-10-23, 969ec8fe)
 - `pipeline/gauges/generate/promote.py`: reads the raw match from `--matches` (default `GENERATED.gauges.match`,
   new config key → `data/generated/gauges/match.json`); the curated `matches.json` + `candidates.json` (`--out`,
   `--candidates`) are both the output and the BASELINE.
