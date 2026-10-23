@@ -187,7 +187,7 @@ def test_a_row_already_stamped_is_refused():
 ROW = {"kind": "release", "pool": None, "win": 3, "members": ["RB"], "all_members": ["RB"],
        "daily": None, "narrow": None, "everyone": [], "groups": [], "prot": None, "wins": None,
        "lift_notes": [], "scope": None}
-FRAME = {"spp": ["RB"], "fish": {"RB": {"hatchery": None, "wild": None}}, "steelhead_line": None}
+FRAME = {"spp": ["RB"], "fish": {"RB": {"hatchery": None, "wild": None, "lead": None}}, "steelhead_line": None}
 
 
 def _rows(year):

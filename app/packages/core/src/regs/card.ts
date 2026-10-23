@@ -6,9 +6,10 @@
  * Owner rule 2026-10-21 (decisions.md): every keep / release / closed, every daily take, every winning and narrowing rule,
  * every role and lift note here is the store's (`Decided.status/win/daily/narrow/roles/lift_notes`, `Row.kind/pool/win/
  * daily/…`). This file DECODES them (rix → RuleView, `no_limit` → "nolimit", a null cap → Infinity as page v36 reads it),
- * SELECTS (by segment, fish and origin) and GROUPS them for display; it decides nothing. One display selection is page
- * v36's and is kept exactly: `mainRes` (which of a fish's two stored origin answers a one-line view leads with — the
- * keepable one).
+ * SELECTS (by segment, fish and origin) and GROUPS them for display; it decides nothing. Which of a fish's two origin
+ * answers a one-line view leads with (page v36 `mainRes`) is the STORE's too since rows 33 (T161, decision Q66): the
+ * pipeline's `common.lead_origin` decides it, the frame carries it per fish (`fish[S].lead`), and `mainRes` only reads
+ * it (`mainRes.test.ts` pins that no copy of the choice is left here).
  *
  * THE YEAR STRIP IS THE STORE'S (rows 30): page v36's `dayStatus` / `strip` / `RANKSTAT` (the most permissive of the
  * members' answers over the day's weekday moments) is NOT ported — it is a per-day decision, and the pipeline makes it
@@ -17,7 +18,7 @@
  * draws it. Nothing here ranks, merges or recomputes a day. (The store holds each distinct strip once — static
  * `rows.strips`, the rows frame naming each row's — and the data layer's `reads.rows` puts it back on the row.)
  *
- * Ports (page_v36.js @ 7fb6809f, inventory names): KEEPISH, st_, hydLine, hydRes, hydFact, hydRow, rowsAt, mainRes,
+ * Ports (page_v36.js @ 7fb6809f, inventory names): st_, hydLine, hydRes, hydFact, hydRow, rowsAt, mainRes,
  * buildModel. Hidden globals replaced: SEC.rows.{frames, decided, rows, at} (→ `inp.year.rowsBySeg`, joined by T04),
  * w._seg['R'+s] (→ WeakMap), PLACE (→ `place`).
  */
@@ -32,8 +33,6 @@ export type CardStatus = "keep" | "nolimit" | "release" | "closed";
 export type YearRun = Row["year"][number];
 type WireStatus = "keep" | "no_limit" | "release" | "closed";
 
-/** page KEEPISH: a fish that may be kept (with or without a limit). */
-export const KEEPISH = (s: CardStatus): boolean => s === "keep" || s === "nolimit";
 /** page st_: the wire's `no_limit` as the page names it. */
 export function st_(s: WireStatus): CardStatus { return s === "no_limit" ? "nolimit" : s; }
 
@@ -81,9 +80,12 @@ export interface HydRow {
   /** The wire row: group, elsewhere, week, restates, presence are read from it (T15–T19). */
   readonly raw: Row;
 }
+/** One fish's stored answers, hydrated: hatchery, wild, and the one that LEADS (rows 33, T161 — the pipeline's
+ *  `common.lead_origin`, stored; never re-decided here). */
+export interface FishRes { readonly H: HydRes | null; readonly W: HydRes | null; readonly lead: HydRes | null }
 export interface CardRows {
   readonly spp: readonly string[];
-  readonly R: Readonly<Record<string, { readonly H: HydRes | null; readonly W: HydRes | null }>>;
+  readonly R: Readonly<Record<string, FishRes>>;
   readonly rows: readonly HydRow[];
   readonly line: RowsValue["steelhead_line"];
 }
@@ -156,18 +158,31 @@ export function rowsAt(inp: RegsInputs, place: RegsPlace, s: number): CardRows |
   const f = inp.year?.rowsBySeg[s] ?? null;
   let out: CardRows | null = null;
   if (f) {
-    const R = place.R, fish: Record<string, { H: HydRes | null; W: HydRes | null }> = {};
-    for (const [S, a] of Object.entries(f.fish)) fish[S] = { H: hydRes(R, a.hatchery, S, "hatchery"), W: hydRes(R, a.wild, S, "wild") };
+    const R = place.R, fish: Record<string, FishRes> = {};
+    for (const [S, a] of Object.entries(f.fish)) {
+      const H = hydRes(R, a.hatchery, S, "hatchery"), W = hydRes(R, a.wild, S, "wild");
+      fish[S] = { H, W, lead: storedLead(H, W, a.lead, S, s) };
+    }
     out = { spp: f.spp, R: fish, rows: f.rows.map((x) => hydRow(R, x)), line: f.steelhead_line };
   }
   memo.set(s, out);
   return out;
 }
 
-/** page mainRes: of a fish's two stored origin answers, the one a one-line view leads with — the keepable one, hatchery
- *  first; else hatchery, else wild. */
-export const mainRes = (H: HydRes | null, W: HydRes | null): HydRes | null =>
-  H && KEEPISH(H.status) ? H : W && KEEPISH(W.status) ? W : (H || W);
+/** The stored leading origin (rows 33 `fish[S].lead`) as its hydrated answer: the origin it names, which must answer;
+ *  null exactly when neither does. A lead naming an absent answer, or a missing lead beside an answer, is a damaged
+ *  frame — refused, never re-picked (T161: the pipeline decides, the app reads). */
+function storedLead(H: HydRes | null, W: HydRes | null, lead: "hatchery" | "wild" | null | undefined, S: string, s: number): HydRes | null {
+  const got = lead === "hatchery" ? H : lead === "wild" ? W : null;
+  if (lead === undefined || (lead !== null && !got) || (lead === null && (H || W)))
+    throw new Error(`regs: rows frame of segment ${s} holds ${S} with lead ${String(lead)} beside `
+      + `hatchery ${H ? "answered" : "absent"} / wild ${W ? "answered" : "absent"} — not a rows 33 frame`);
+  return got;
+}
+
+/** page mainRes: the answer a one-line view leads with for one fish — READ from the stored leading origin (T161,
+ *  decision Q66: `common.lead_origin` decides it in the pipeline; no copy of that choice lives in the app). */
+export const mainRes = (fish: FishRes | null | undefined): HydRes | null => fish?.lead ?? null;
 
 /** page buildModel for the settled day: the stored rows of its segment, and the day's closures only when it is closed. */
 export function buildModel(inp: RegsInputs, place: RegsPlace, settled: Settled): CardModel {

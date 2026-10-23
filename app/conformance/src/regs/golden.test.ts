@@ -159,25 +159,31 @@ describe("liveReleaseAt: a release built for another port is a skip with its rea
   it("a rows-29 release (before the year strip) is a skip naming the version and the rebuild", () => {
     const d = release("r-rows29", { ...sections, rows: 29 });
     expect(liveReleaseAt({ RELEASE_DIR: d })).toEqual({ dir: null,
-      reason: `release ${d} is rows 29 (this app reads 32): rebuild it (deliver all), then re-cut the goldens (sync.mjs)` });
+      reason: `release ${d} is rows 29 (this app reads 33): rebuild it (deliver all), then re-cut the goldens (sync.mjs)` });
   });
 
   it("a rows-30 / display-17 release (before the Keep tab's last choices moved to the pipeline) is a skip naming both", () => {
     const d = release("r-rows30", { ...sections, rows: 30, display: 17 });
-    expect(liveReleaseAt({ RELEASE_DIR: d })).toEqual({ dir: null, reason: `release ${d} is rows 30 (this app reads 32), `
+    expect(liveReleaseAt({ RELEASE_DIR: d })).toEqual({ dir: null, reason: `release ${d} is rows 30 (this app reads 33), `
       + "display 17 (this app reads 18): rebuild it (deliver all), then re-cut the goldens (sync.mjs)" });
   });
 
   it("a rows-31 / licence-6 release (before the four pipeline answers: Other fish stamps, the steelhead stamp, youth alternatives) is a skip naming both", () => {
     const d = release("r-rows31", { ...sections, rows: 31, licence: 6 });
-    expect(liveReleaseAt({ RELEASE_DIR: d })).toEqual({ dir: null, reason: `release ${d} is rows 31 (this app reads 32), `
+    expect(liveReleaseAt({ RELEASE_DIR: d })).toEqual({ dir: null, reason: `release ${d} is rows 31 (this app reads 33), `
       + "licence 6 (this app reads 7): rebuild it (deliver all), then re-cut the goldens (sync.mjs)" });
+  });
+
+  it("a rows-32 release (before the leading origin was shipped, T161) is a skip naming the version and the rebuild", () => {
+    const d = release("r-rows32", { ...sections, rows: 32 });
+    expect(liveReleaseAt({ RELEASE_DIR: d })).toEqual({ dir: null,
+      reason: `release ${d} is rows 32 (this app reads 33): rebuild it (deliver all), then re-cut the goldens (sync.mjs)` });
   });
 
   it("with REGS_STORE_REQUIRED=1 it throws that reason", () => {
     const d = release("r-rows29b", { ...sections, rows: 29 });
     expect(() => liveReleaseAt({ RELEASE_DIR: d, REGS_STORE_REQUIRED: "1" })).toThrow(
-      `REGS_STORE_REQUIRED is set: release ${d} is rows 29 (this app reads 32): rebuild it (deliver all), then re-cut the goldens (sync.mjs)`);
+      `REGS_STORE_REQUIRED is set: release ${d} is rows 29 (this app reads 33): rebuild it (deliver all), then re-cut the goldens (sync.mjs)`);
   });
 
   it("no release: the reason says so", () => {

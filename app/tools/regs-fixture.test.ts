@@ -54,7 +54,7 @@ const ids = (d: DatabaseSync, t: string, col = "id") =>
 /**
  * Closure of a fixture's region files and regs-sid (test 3): the problems, as sentences, in a stable order. The frame
  * shapes are the encoder's (`pipeline/deliver/release/shards.py` `frame_refs`): ladder [common, [[fish, v, v, v]…]],
- * rows [spp, {fish: [h, w]}, [row…], line], licence [hold, doc, u16…]; a licence doc is its answer ids.
+ * rows [spp, {fish: [h, w, lead]}, [row…], line], licence [hold, doc, u16…]; a licence doc is its answer ids.
  */
 function closureProblems(db: Record<string, DatabaseSync>): string[] {
   const water = db.water!, out: string[] = [];
@@ -79,7 +79,8 @@ function closureProblems(db: Record<string, DatabaseSync>): string[] {
     }
     for (const { id, j } of r.prepare("SELECT id, j FROM rows_frame ORDER BY id").all() as { id: number; j: Uint8Array }[]) {
       const [, fish, rows] = val("rows_frame", j) as [unknown, Record<string, (number | null)[]>, number[]];
-      for (const hw of Object.values(fish)) for (const d of hw) if (d !== null) need("rows_decided", d, `rows_frame ${id}`);
+      // rows 33 (T161): [h, w, lead] — the lead is an origin word, not a row
+      for (const hwl of Object.values(fish)) for (const d of hwl.slice(0, 2)) if (d !== null) need("rows_decided", d, `rows_frame ${id}`);
       for (const x of rows) need("rows_row", x, `rows_frame ${id}`);
     }
     for (const { id, j } of r.prepare("SELECT id, j FROM licence_frame ORDER BY id").all() as { id: number; j: Uint8Array }[]) {

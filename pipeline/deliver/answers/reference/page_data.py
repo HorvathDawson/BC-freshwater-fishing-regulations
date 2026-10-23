@@ -241,7 +241,7 @@ def slice_answers(ans: dict, full_keys: list, ladder_keys: list):
         for f in R["at"][k]:
             spp, fish, rs, line, ys = R["frames"][f]          # rows 30: + each row's strip in R["strips"]
             nf = {}
-            for code, (h, w) in fish.items():
+            for code, (h, w, _lead) in fish.items():          # rows 33 (T161): + the leading origin
                 pair = []
                 for i in (h, w):
                     if i is None:

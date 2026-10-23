@@ -107,7 +107,7 @@ describe("3. timed caveat words (D10 a): an hours window, the card at inside=fal
   const R: RuleIndex = { get: (rix) => (rix === 13 ? closer : noRule(rix)), has: (rix) => rix === 13, size: 1 };
   const shut = { status: "closed", closing: [[13, ["KO", "RB"]]], strip: 1 } as unknown as DisplayFrame;
   const rows = { spp: ["KO"], steelhead_line: null, rows: [],
-    fish: { KO: { hatchery: { status: "release", win: 11, daily: null, narrow: null, lines: [], roles: [], lift_notes: [] }, wild: null } } } as unknown as RowsValue;
+    fish: { KO: { hatchery: { status: "release", win: 11, daily: null, narrow: null, lines: [], roles: [], lift_notes: [] }, wild: null, lead: "hatchery" } } } as unknown as RowsValue;
   const inp = { day: OCT10, calendarYear: 2026, rules: R, ruleset: null, key: key(), item: null,
     statics: { exportSpecies: { ...BOOK, groups: { ...BOOK.groups } }, fish: ["KO", "RB"] },
     year: { segStarts: [1, 1], moments: M, displayBySeg: [OPEN, shut], rowsBySeg: [rows, rows], ladderBySeg: [null, null], cells: [], displayByDay: [] },

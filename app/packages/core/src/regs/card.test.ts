@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from "vitest";
 import type { Decided, DisplayFrame, Moment, RegsInputs, Row, RowsValue, RuleIndex, RuleView } from "./inputs";
-import { buildModel, hydFact, hydLine, hydRes, hydRow, KEEPISH, mainRes, rowsAt, st_, type HydRes } from "./card";
+import { buildModel, hydFact, hydLine, hydRes, hydRow, mainRes, rowsAt, st_ } from "./card";
 import { makePlace } from "./place";
 import { settle, settleAt } from "./settle";
 
@@ -21,9 +21,9 @@ const dec = (status: Decided["status"], win: number, daily: number | null, narro
   ({ status, win, daily, narrow, lines: [{ r: win, t: "cap", a: 0, b: null, take: 2 }], roles: [[win, "governs", null], [5, "agrees", win]],
      lift_notes: [[6, { q: 1 }]] }) as unknown as Decided;
 const FRAME: RowsValue = { spp: ["RB", "CT", "LMB"], steelhead_line: "known_with_rules", rows: [KEEP, NOLIMIT, CLOSED], fish: {
-  RB: { hatchery: dec("keep", 3091, 2), wild: dec("release", 3098, null) },
-  CT: { hatchery: dec("release", 528, null), wild: dec("release", 3098, null) },
-  LMB: { hatchery: dec("no_limit", 1362, null), wild: null } } };
+  RB: { hatchery: dec("keep", 3091, 2), wild: dec("release", 3098, null), lead: "hatchery" },
+  CT: { hatchery: dec("release", 528, null), wild: dec("release", 3098, null), lead: "hatchery" },
+  LMB: { hatchery: dec("no_limit", 1362, null), wild: null, lead: "hatchery" } } };
 
 const OPEN_F = { status: "own", closing: [], strip: 1 } as unknown as DisplayFrame;
 const SHUT_F = { status: "closed", closing: [[3080, ["RB"]]], strip: 2 } as unknown as DisplayFrame;
@@ -38,10 +38,9 @@ function inputs(o: { rows?: (RowsValue | null)[]; starts?: number[]; moments?: M
   } as unknown as RegsInputs;
 }
 
-describe("st_, KEEPISH", () => {
-  it("1. st_ names no_limit nolimit; KEEPISH is keep or nolimit", () => {
+describe("st_", () => {
+  it("1. st_ names no_limit nolimit", () => {
     expect([st_("no_limit"), st_("keep"), st_("release"), st_("closed")]).toEqual(["nolimit", "keep", "release", "closed"]);
-    expect((["keep", "nolimit", "release", "closed"] as const).map(KEEPISH)).toEqual([true, true, false, false]);
   });
 });
 
@@ -86,16 +85,27 @@ describe("hydRow / hydRes / hydLine / hydFact: the stored rows with rule refs re
   });
 });
 
-describe("mainRes", () => {
-  const res = (status: HydRes["status"], o: "hatchery" | "wild") => ({ status, o }) as HydRes;
-  it("2. the keepable answer leads, hatchery first; else hatchery; else wild", () => {
-    const Hk = res("keep", "hatchery"), Wr = res("release", "wild"), Hr = res("release", "hatchery"), Wk = res("keep", "wild");
-    expect(mainRes(Hk, Wr)).toBe(Hk);
-    expect(mainRes(Hr, Wk)).toBe(Wk);
-    expect(mainRes(Hr, null)).toBe(Hr);
-    expect(mainRes(null, Wr)).toBe(Wr);
-    expect(mainRes(null, null)).toBeNull();
-    expect(mainRes(res("nolimit", "hatchery"), Wk)?.o).toBe("hatchery");
+describe("mainRes reads the stored leading origin (rows 33, T161)", () => {
+  const one = (fish: RowsValue["fish"]) => {
+    const I = inputs({ rows: [{ ...FRAME, spp: Object.keys(fish), rows: [], fish }, null] });
+    return rowsAt(I, makePlace(I), 0)!;
+  };
+  it("2. the origin the store names leads — even where a keep-first pick would choose the other (the app picks nothing)", () => {
+    const r = one({ RB: { hatchery: dec("keep", 1, 2), wild: dec("release", 2, null), lead: "wild" },
+                    CT: { hatchery: dec("release", 3, null), wild: dec("keep", 4, 5), lead: "hatchery" } });
+    expect([mainRes(r.R.RB)?.o, mainRes(r.R.RB)?.win.rix, mainRes(r.R.CT)?.o, mainRes(r.R.CT)?.win.rix])
+      .toEqual(["wild", 2, "hatchery", 3]);
+    expect(mainRes(r.R.RB)).toBe(r.R.RB!.W);
+  });
+  it("3. no answer, no leader; an unknown fish, no leader", () => {
+    const r = one({ RB: { hatchery: null, wild: null, lead: null } });
+    expect([mainRes(r.R.RB), mainRes(r.R.XX), mainRes(undefined)]).toEqual([null, null, null]);
+  });
+  it("4. a lead naming an absent answer, a null lead beside an answer, or no lead at all is refused, never re-picked", () => {
+    expect(() => one({ RB: { hatchery: null, wild: dec("release", 2, null), lead: "hatchery" } })).toThrow(/lead hatchery/);
+    expect(() => one({ RB: { hatchery: dec("keep", 1, 2), wild: null, lead: null } })).toThrow(/lead null/);
+    expect(() => one({ RB: { hatchery: dec("keep", 1, 2), wild: null } as unknown as RowsValue["fish"][string] }))
+      .toThrow(/not a rows 33 frame/);
   });
 });
 

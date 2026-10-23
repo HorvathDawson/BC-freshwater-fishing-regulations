@@ -1137,6 +1137,20 @@ class Row(Model):
 class FishAnswer(Model):
     hatchery: Optional[Decided]                       # None = no rule in scope speaks
     wild: Optional[Decided]
+    # T161 (rows 33): the origin that LEADS (`common.lead_name`): what a one-line view says — the app's `mainRes`
+    # reads it and never picks; None exactly when neither origin answers
+    lead: Optional[Literal["hatchery", "wild"]]
+
+    @model_validator(mode="after")
+    def _lead_is_the_decided_one(self):
+        # proved against THE one function (no second copy): the shipped leader is `common.lead_name`'s pick
+        from pipeline.deliver.answers import common
+        h = None if self.hatchery is None else {"status": self.hatchery.status}
+        w = None if self.wild is None else {"status": self.wild.status}
+        if self.lead != common.lead_name(h, w):
+            raise ValueError(f"`lead` {self.lead!r} is not the leading origin {common.lead_name(h, w)!r} "
+                             "(common.lead_origin)")
+        return self
 
 
 class RowsFrame(Model):

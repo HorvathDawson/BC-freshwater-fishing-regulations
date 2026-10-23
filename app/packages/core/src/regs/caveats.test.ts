@@ -129,7 +129,7 @@ describe("timedOf: the day reads differently by moment", () => {
   const closer = view(13, 522, {}, {}, { book: [[23, 25]] });
   const R = indexOf([ko, rel, angler, closer]);
   const rows = (status: "keep" | "release", win: number, daily: number | null): RowsValue => ({ spp: ["KO"], steelhead_line: null, rows: [],
-    fish: { KO: { hatchery: { status, win, daily, narrow: null, lines: [], roles: [], lift_notes: [] }, wild: null } } }) as unknown as RowsValue;
+    fish: { KO: { hatchery: { status, win, daily, narrow: null, lines: [], roles: [], lift_notes: [] }, wild: null, lead: "hatchery" } } }) as unknown as RowsValue;
   const inputs = (o: { display?: DisplayFrame[]; rows?: RowsValue[]; moments?: Moment[] | null } = {}) => ({
     day: { month: 10, day: 10 }, calendarYear: 2026, rules: R, ruleset: null, key: { tidal: false }, item: null,
     statics: { exportSpecies: { ...BOOK, groups: { ...BOOK.groups } }, fish: ["KO", "RB"] },

@@ -30,7 +30,7 @@ def row(kind, year, **x):
 
 
 def frame(rows, spp=("RB",)):
-    return {"spp": list(spp), "fish": {S: {"hatchery": DEC, "wild": None} for S in spp}, "rows": rows,
+    return {"spp": list(spp), "fish": {S: {"hatchery": DEC, "wild": None, "lead": "hatchery"} for S in spp}, "rows": rows,
             "steelhead_line": None}
 
 
@@ -74,7 +74,7 @@ def test_no_stored_row_carries_a_strip():
 
 def test_the_frame_layout_is_spp_fish_rows_line_strips():
     sec, _refs, _ = roundtrip([frame([row("keep", KEEP)])])
-    assert sec["frames"] == [[["RB"], {"RB": [0, None]}, [0], None, [0]]]
+    assert sec["frames"] == [[["RB"], {"RB": [0, None, "hatchery"]}, [0], None, [0]]]      # rows 33: + the lead
 
 
 def test_frames_equal_but_for_their_strips_stay_two_frames():
@@ -105,7 +105,7 @@ def test_a_frame_whose_strip_refs_do_not_match_its_rows_is_refused():
 def test_the_model_check_still_holds_every_decoded_strip_to_365_days():
     full = {"kind": "release", "pool": None, "win": 3, "members": ["RB"], "all_members": ["RB"], "daily": None,
             "narrow": None, "everyone": [], "groups": [], "prot": None, "wins": None, "lift_notes": [], "scope": None}
-    vals = [{"spp": ["RB"], "fish": {"RB": {"hatchery": None, "wild": None}}, "steelhead_line": None,
+    vals = [{"spp": ["RB"], "fish": {"RB": {"hatchery": None, "wild": None, "lead": None}}, "steelhead_line": None,
              "rows": [{**full, "year": SPLIT}]}]
     sec, refs, back = roundtrip(vals)
     M.validate_section("rows", back)
@@ -120,5 +120,6 @@ def test_the_model_check_still_holds_every_decoded_strip_to_365_days():
 def test_the_store_holds_the_strips_once_as_a_static_and_the_shard_reads_the_new_frame():
     # one copy in `water` (a static is a common table), never per region shard
     assert ("rows", "strips") in SECTION_STATIC and ("rows", "strips") not in FAMILIES
-    assert frame_refs("rows_frame", [["RB"], {"RB": [3, None]}, [7, 8], None, [0, 0]]) == \
-        {"rows_decided": [3], "rows_row": [7, 8]}
+    # rows 33 (T161): a fish is [h, w, lead] — the lead word is no row reference
+    assert frame_refs("rows_frame", [["RB", "CT"], {"RB": [3, None, "hatchery"], "CT": [None, 4, "wild"]}, [7, 8], None,
+                                     [0, 0]]) == {"rows_decided": [3, 4], "rows_row": [7, 8]}

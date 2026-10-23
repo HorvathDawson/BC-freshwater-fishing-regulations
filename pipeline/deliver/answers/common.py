@@ -244,6 +244,20 @@ def lead_origin(h: Optional[dict], w: Optional[dict]) -> Optional[dict]:
     return h or w or None
 
 
+#: T161: the origin words a stored leading origin is named by (`FishAnswer.lead`).
+ORIGINS = ("hatchery", "wild")
+
+
+def lead_name(h: Optional[dict], w: Optional[dict]) -> Optional[str]:
+    """T161, THE LEADING ORIGIN AS SHIPPED: which origin `lead_origin` picks — "hatchery", "wild", or None when neither
+    answers. The rows frame stores it per fish (`FishAnswer.lead`, rows 33) so the app's `mainRes` only READS it
+    (decision Q66); it names the pick, it never re-decides it (`test_answers_lead_origin`)."""
+    m = lead_origin(h, w)
+    if m is None:
+        return None
+    return "hatchery" if m is h else "wild"
+
+
 def is_tidal(key: tuple) -> bool:
     """Whether a part key is tidal water (`PART_KEY_FIELDS` `tidal`)."""
     return bool(key_dict(key)["tidal"])

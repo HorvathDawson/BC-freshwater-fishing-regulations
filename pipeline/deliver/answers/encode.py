@@ -183,12 +183,15 @@ SPEC = {
                     "about, per fish and origin the number after the winner's clauses with every "
                     "line and role, the rows (one per shared limit), their conditions, each kind's "
                     "keep range and band numbers, and the real daily limit",
-            "version": "32",
+            "version": "33",
             "at": "[[frame index per segment] per key]",
-            "frames": "[[spp, {fish code: [decided h, decided w]}, [row], steelhead_line, [strip]]] — "
+            "frames": "[[spp, {fish code: [decided h, decided w, lead]}, [row], steelhead_line, [strip]]] — "
                       "`spp` the fish the card asks about (5.1, the page's order); per fish the "
                       "hatchery and wild answers (indexes into `decided`, null: no rule in scope "
-                      "speaks); the rows in card order (indexes into `rows`); `steelhead_line` "
+                      "speaks) and, version 33 (T161), the origin that LEADS — hatchery | wild | null "
+                      "(null exactly when neither answers; `common.lead_origin`: the keepable one, "
+                      "hatchery first, else hatchery, else wild) — what a one-line view says, read, "
+                      "never re-decided; the rows in card order (indexes into `rows`); `steelhead_line` "
                       "possible_with_rules | known_with_rules | known_no_rules | null (5.6); "
                       "version 30: per row, in the same order, its year strip (an index into `strips`) — "
                       "the decoded row is the `rows` entry with `year` = that strip, last",
@@ -779,7 +782,7 @@ class RowsCodec:
         decided, rows, strips, frames = Table(), Table(), Table(), Table()
         refs = []
         for v in values:
-            fish = {S: [None if r is None else decided.add(r) for r in (x["hatchery"], x["wild"])]
+            fish = {S: [*(None if r is None else decided.add(r) for r in (x["hatchery"], x["wild"])), x["lead"]]
                     for S, x in v["fish"].items()}
             rs, ys = [], []
             for r in v["rows"]:
@@ -799,10 +802,14 @@ class RowsCodec:
             if not 0 <= y < len(strips):
                 raise AnswersError(f"answers: rows frame {ref} names strip {y}, which is not in `strips` "
                                    f"({len(strips)})")
+        for S, x in fs.items():
+            if len(x) != 3:
+                raise AnswersError(f"answers: rows frame {ref} holds {S} as {x} — not [decided h, decided w, lead] "
+                                   "(rows 33, T161)")
         return {"spp": spp,
                 "fish": {S: {"hatchery": None if h is None else sec["decided"][h],
-                             "wild": None if w is None else sec["decided"][w]}
-                         for S, (h, w) in fs.items()},
+                             "wild": None if w is None else sec["decided"][w], "lead": lead}
+                         for S, (h, w, lead) in fs.items()},
                 "rows": [{**sec["rows"][i], "year": strips[y]} for i, y in zip(rs, ys)], "steelhead_line": line}
 
 

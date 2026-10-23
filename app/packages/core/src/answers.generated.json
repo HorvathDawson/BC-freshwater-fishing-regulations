@@ -5141,6 +5141,21 @@
         }
        ]
       },
+      "lead": {
+       "anyOf": [
+        {
+         "enum": [
+          "hatchery",
+          "wild"
+         ],
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Lead"
+      },
       "wild": {
        "anyOf": [
         {
@@ -5154,7 +5169,8 @@
      },
      "required": [
       "hatchery",
-      "wild"
+      "wild",
+      "lead"
      ],
      "title": "FishAnswer",
      "type": "object"

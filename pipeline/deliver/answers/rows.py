@@ -607,6 +607,12 @@ def _size_release(P: "Part", S: str, A: List[R]) -> Optional[R]:
     return None
 
 
+def fish_answer(h: Optional[dict], w: Optional[dict]) -> dict:
+    """One fish's stored answers (`FishAnswer`): its hatchery and wild answers and, T161, which of them LEADS
+    (`common.lead_name`) — shipped so the app reads the leader instead of picking it."""
+    return {"hatchery": h, "wild": w, "lead": common.lead_name(h, w)}
+
+
 def main_res(H: Optional[dict], W: Optional[dict]) -> Optional[dict]:
     """The fish's leading origin answer (T120: `common.lead_origin`, the one function)."""
     return common.lead_origin(H, W)
@@ -2095,7 +2101,7 @@ def produce(P: Part) -> dict:
     """Everything the card's rows show, for one part on one reading: per fish and origin the
     decided answer (`fish`), and the rows with their conditions, items and real daily limit."""
     model = build_model(P)
-    fish = {S: {"hatchery": res_out(v["H"], P), "wild": res_out(v["W"], P)} for S, v in model["R"].items()}
+    fish = {S: fish_answer(res_out(v["H"], P), res_out(v["W"], P)) for S, v in model["R"].items()}
     # decision F14: every keep row's total; each total's group on ONE row — the row whose pool it
     # is, else the first row whose fish count toward it
     totals = {id(row): total_of(P, model, row) for row in model["rows"]
@@ -2480,7 +2486,8 @@ def refs(out: dict, ix) -> dict:
                           "possession": None if g.get("possession") is None else
                           {**g["possession"], "by": ix(g["possession"]["by"])}}
         return o
-    return {**out, "fish": {S: {o: res(d) for o, d in v.items()} for S, v in out["fish"].items()},
+    return {**out, "fish": {S: {"hatchery": res(v["hatchery"]), "wild": res(v["wild"]), "lead": v["lead"]}
+                            for S, v in out["fish"].items()},
             "rows": [row(r) for r in out["rows"]]}
 
 

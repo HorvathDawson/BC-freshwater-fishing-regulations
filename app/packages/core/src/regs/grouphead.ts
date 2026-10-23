@@ -60,7 +60,7 @@ export function drawnRows(card: CardModel): ReadonlySet<number> {
 export function separateFrom(card: CardModel, row: HydRow): HydRow | null {
   if (parentRow(card, row) || !row.pool) return null;
   return card.rows.find((r) => r !== row && !!r.pool && row.members.every((S) => {
-    const m = mainRes(card.R[S]?.H ?? null, card.R[S]?.W ?? null);
+    const m = mainRes(card.R[S]);
     return !!m && m.roles.get(r.pool!.key)?.role === "lifted";
   })) ?? null;
 }

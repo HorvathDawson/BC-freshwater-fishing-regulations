@@ -22,7 +22,7 @@ ROW = {"kind": "keep", "pool": 3, "win": None, "members": ["RB"], "all_members":
        "conds": [], "items": [], "real_daily": None, "group": None,
        "elsewhere": {"says": "This river’s own limit.", "ask": []},     # answers 2.5 (rows 6)
        "year": [["keep", 365]]}                                          # rows 30: the year strip
-FRAME = {"spp": ["RB"], "fish": {"RB": {"hatchery": DECIDED, "wild": DECIDED}}, "rows": [ROW],
+FRAME = {"spp": ["RB"], "fish": {"RB": {"hatchery": DECIDED, "wild": DECIDED, "lead": "hatchery"}}, "rows": [ROW],
          "steelhead_line": None}
 
 
@@ -47,7 +47,7 @@ def test_a_stray_field_a_wrong_type_or_a_word_outside_the_vocabulary_is_refused(
     _bad("rows", {**FRAME, "rows": [{**ROW, "daily": "2"}]})                 # strict: no coercion
     _bad("rows", {**FRAME, "rows": [{**ROW, "kind": "nolimit"}]})            # answers/1's word
     _bad("rows", {**FRAME, "fish": {"RB": {"hatchery": {**DECIDED, "lines": [
-        {"t": "rel", "r": 3, "a": 0, "b": 30, "take": 1}]}, "wild": None}}})  # a line's stray field
+        {"t": "rel", "r": 3, "a": 0, "b": 30, "take": 1}]}, "wild": None, "lead": "hatchery"}}})  # a line's stray field
     _bad("display", {"status": "open", "closing": [], "strip": 0})
     _bad("display", {"status": "own", "strip": 0})                           # 2.1: closing named
     _bad("display", {"status": "closed", "closing": [[7, ["RB"]]], "closers": [7], "strip": 1})  # a fish left open
@@ -61,7 +61,7 @@ def test_a_stray_field_a_wrong_type_or_a_word_outside_the_vocabulary_is_refused(
 
 def test_every_nullable_field_is_null_exactly_where_its_model_says():
     _bad("rows", {**FRAME, "fish": {"RB": {"hatchery": {**DECIDED, "status": "release"},
-                                           "wild": None}}})                  # daily <=> keep
+                                           "wild": None, "lead": "hatchery"}}})  # daily <=> keep
     _bad("rows", {**FRAME, "rows": [{**ROW, "kind": "release", "pool": None, "win": 3,
                                      "scope": None}]})                       # conds on a no-pool row
     _bad("rows", {**FRAME, "rows": [{**ROW, "scope": {"of": "water", "entry": "z1:x", "share": False,

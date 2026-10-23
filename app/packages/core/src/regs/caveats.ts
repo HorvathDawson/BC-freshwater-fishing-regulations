@@ -147,7 +147,7 @@ export function timedOf(inp: RegsInputs, s: Settled, settledAtSeg: (seg: number)
   const weekly = new Set(rs.flatMap(([, r]) => (r ? r.rows.flatMap((x) => x.raw.week?.species ?? []) : [])));
   for (const S of spp) {
     if (weekly.has(S)) continue;   // its row says the weekday window (rows[].week)
-    const by = rs.map(([j, r]) => [j, r && r.R[S] ? mainRes(r.R[S]!.H, r.R[S]!.W) : null] as const);
+    const by = rs.map(([j, r]) => [j, r ? mainRes(r.R[S]) : null] as const);
     const words = by.map(([j, d]) => [j, answerTxt(d)] as const);
     if (new Set(words.map(([, t]) => t)).size < 2) continue;
     const grp = new Map<string, number[]>();

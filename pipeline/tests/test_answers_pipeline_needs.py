@@ -237,5 +237,5 @@ def test_the_versions_say_what_changed():
     from pipeline.deliver.answers import answers as A
     from pipeline.deliver.answers.encode import SPEC
     v = {s.name: s.version for s in A.SECTIONS}
-    assert (v["rows"], v["licence"]) == (32, 7)
-    assert (SPEC["sections"]["rows"]["version"], SPEC["sections"]["licence"]["version"]) == ("32", "7")
+    assert (v["rows"], v["licence"]) == (33, 7)   # rows 33: T161
+    assert (SPEC["sections"]["rows"]["version"], SPEC["sections"]["licence"]["version"]) == ("33", "7")

@@ -280,7 +280,7 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
       // rows 30: the frame's fifth slot names each row's year strip in the static `rows.strips` (each distinct strip
       // held once); the stored row has no `year` — it goes back on as the row's last field, as RowsCodec.decode_frame
       const [[spp, fs, rs, line, ys], strips] = await Promise.all([
-        blob<[string[], Record<string, [number | null, number | null]>, number[], RowsValue["steelhead_line"], number[]]>(
+        blob<[string[], Record<string, [number | null, number | null, "hatchery" | "wild" | null]>, number[], RowsValue["steelhead_line"], number[]]>(
           FAMILY.rowsFrame, akey, id),
         yearStrips()]);
       if (!Array.isArray(ys) || ys.length !== rs.length) throw damaged(`rows frame ${id} has ${rs.length} rows and ${ys?.length ?? 0} strips`);
@@ -289,7 +289,12 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
       }
       const decided = (d: number | null) => (d === null ? Promise.resolve(null) : blob<NonNullable<RowsValue["fish"][string]["hatchery"]>>(FAMILY.rowsDecided, akey, d));
       const fish: Record<string, RowsValue["fish"][string]> = {};
-      for (const [S, [h, w]] of Object.entries(fs)) fish[S] = { hatchery: await decided(h), wild: await decided(w) };
+      // rows 33 (T161): [decided h, decided w, lead] — the lead is the pipeline's leading origin, carried as stored
+      for (const [S, x] of Object.entries(fs)) {
+        if (!Array.isArray(x) || x.length !== 3) throw damaged(`rows frame ${id} holds ${S} as ${JSON.stringify(x)}, not [h, w, lead]`);
+        const [h, w, lead] = x;
+        fish[S] = { hatchery: await decided(h), wild: await decided(w), lead };
+      }
       const rows = await Promise.all(rs.map((r) => blob<Omit<RowsValue["rows"][number], "year">>(FAMILY.rowsRow, akey, r)));
       return { spp, fish, rows: rows.map((r, i) => ({ ...r, year: strips[ys[i]!]! })), steelhead_line: line };
     }),

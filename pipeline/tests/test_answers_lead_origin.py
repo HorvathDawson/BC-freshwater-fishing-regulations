@@ -9,6 +9,11 @@ so a weekday row could say a bigger quota than the main row gave.
 The pin: an AST scan of `pipeline/deliver/answers/` refuses any other function that picks a leader between the
 origins — a `return X` guarded by a keep test of X, or a max/min ranking answers by their status — and a mutation
 test proves the scan catches both old shapes.
+
+T161 (decision Q66, 2026-10-23): the pick is SHIPPED — every stored fish answer carries `lead` ("hatchery" | "wild" |
+None, `common.lead_name`, rows 33) so the app's `mainRes` only reads it (its pin: app core `regs/mainRes.test.ts`).
+The answers model holds every stored lead to the one function; mutation pins: a copy that disagrees is refused by the
+model (`test_the_model_holds_the_stored_lead_to_the_one_function`), a rows 32 frame by the codec.
 """
 from __future__ import annotations
 
@@ -16,10 +21,16 @@ import ast
 import inspect
 from pathlib import Path
 
+import pytest
+
 from pipeline.deliver import calendar as K
 from pipeline.deliver.answers import common
+from pipeline.deliver.answers import model as M
 from pipeline.deliver.answers import rows as RW
 from pipeline.deliver.answers import year as Y
+from pipeline.deliver.answers.common import AnswersError
+from pipeline.deliver.answers.encode import RowsCodec
+from pipeline.deliver.release.shards import frame_refs
 
 SAT = K.Moment(K.weekday_mask(["Saturday", "Sunday"]))
 WEEK = K.Moment(K.weekday_mask(["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]))
@@ -230,3 +241,72 @@ def test_the_scan_catches_a_literal_keep_test_and_spares_other_status_tests():
     assert _leaders(literal, "x.py") == ["x.py:lead"]
     tidal = 'def compose(value, others):\n    if value.get("status") == "tidal":\n        return value\n    return 1\n'
     assert _leaders(tidal, "x.py") == []
+
+
+# T161 — THE LEADING ORIGIN IS SHIPPED (decision Q66): the rows frame carries `fish[S].lead`, the app only reads it ----
+_STATUSES = (None, "keep", "no_limit", "release", "closed")
+
+
+def _dec(status, win):
+    """A model-valid decided answer (daily set <=> keep)."""
+    return {"status": status, "win": win, "daily": 2 if status == "keep" else None, "narrow": None,
+            "lines": [], "roles": [[win, "governs", None]], "lift_notes": []}
+
+
+def test_lead_name_names_exactly_the_origin_lead_origin_picks():
+    """Whole value over every pair of statuses: `lead_name` is `lead_origin`'s pick, as a word."""
+    got, want = {}, {}
+    for hs in _STATUSES:
+        for ws in _STATUSES:
+            h = None if hs is None else _a(hs, win="h")
+            w = None if ws is None else _a(ws, win="w")
+            got[(hs, ws)] = common.lead_name(h, w)
+            m = common.lead_origin(h, w)
+            want[(hs, ws)] = None if m is None else {"h": "hatchery", "w": "wild"}[m["win"]]
+    assert got == want
+    assert (got[("release", "keep")], got[("keep", "keep")], got[("closed", "release")], got[(None, "closed")],
+            got[(None, None)]) == ("wild", "hatchery", "hatchery", "wild", None)
+
+
+def test_the_stored_fish_answer_carries_its_lead_whole():
+    h, w = _a("release", win="h"), _a("keep", 5, "w")
+    assert RW.fish_answer(h, w) == {"hatchery": h, "wild": w, "lead": "wild"}
+    assert RW.fish_answer(None, None) == {"hatchery": None, "wild": None, "lead": None}
+    # produce stores every fish through it (one place builds a stored fish answer), and it names the one function's pick
+    assert "fish_answer(" in inspect.getsource(RW.produce)
+    assert "common.lead_name(" in inspect.getsource(RW.fish_answer)
+
+
+def _frame_with(h, w, lead):
+    return {"spp": ["RB"], "fish": {"RB": {"hatchery": h, "wild": w, "lead": lead}}, "rows": [],
+            "steelhead_line": None}
+
+
+def test_the_model_holds_the_stored_lead_to_the_one_function():
+    """The answers model refuses a frame whose `lead` is not `common.lead_name`'s — so a COPY of the choice that
+    disagrees (mutation: a hatchery-unless-absent copy, which reads H release / W keep as hatchery) fails the build."""
+    h, w = _dec("release", 1), _dec("keep", 2)
+    M.validate_section("rows", [_frame_with(h, w, "wild")])
+    copy = "hatchery" if h is not None else "wild"                     # the mutated copy's answer
+    with pytest.raises(M.ShapeError, match="is not the leading origin 'wild'"):
+        M.validate_section("rows", [_frame_with(h, w, copy)])
+    with pytest.raises(M.ShapeError):
+        M.validate_section("rows", [_frame_with(h, w, None)])          # a lead left out beside answers
+    with pytest.raises(M.ShapeError):
+        M.validate_section("rows", [_frame_with(None, None, "hatchery")])   # a lead with no answer
+    with pytest.raises(M.ShapeError):
+        M.validate_section("rows", [{**_frame_with(h, w, "wild"), "fish": {"RB": {"hatchery": h, "wild": w}}}])
+    M.validate_section("rows", [_frame_with(None, None, None)])
+
+
+def test_the_wire_carries_the_lead_third_and_refuses_a_frame_without_it():
+    h, w = _dec("release", 1), _dec("keep", 2)
+    tables, refs = RowsCodec().encode([_frame_with(h, w, "wild")], {}, {})
+    assert tables["frames"] == [[["RB"], {"RB": [0, 1, "wild"]}, [], None, []]]
+    sec = dict(tables)
+    assert RowsCodec().decode_frame(sec, refs[0], [], []) == _frame_with(h, w, "wild")
+    sec["frames"] = [[["RB"], {"RB": [0, 1]}, [], None, []]]           # a rows 32 frame
+    with pytest.raises(AnswersError, match=r"holds RB as \[0, 1\] — not \[decided h, decided w, lead\]"):
+        RowsCodec().decode_frame(sec, 0, [], [])
+    # the shard closure reads the two answer slots only: the lead word is no row reference
+    assert frame_refs("rows_frame", tables["frames"][0]) == {"rows_decided": [0, 1], "rows_row": []}

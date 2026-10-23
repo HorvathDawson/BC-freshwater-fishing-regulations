@@ -16,7 +16,7 @@ const X = (v: unknown) => `X'${Buffer.from(typeof v === "string" ? v : JSON.stri
 const H = "aaaaaaaaaaaaaaaa", R = "bbbbbbbbbbbbbbbb", I = "cccccccccccccccc";
 const META = (rows: Record<string, string>) => "CREATE TABLE meta (k TEXT PRIMARY KEY, v TEXT NOT NULL);" +
   Object.entries(rows).map(([k, v]) => `INSERT INTO meta VALUES ('${k}', '${v}');`).join("");
-const VERSIONS = { ladder: 1, rows: 32, gear: 12, licence: 7, display: 18 };
+const VERSIONS = { ladder: 1, rows: 33, gear: 12, licence: 7, display: 18 };
 const FISH = ["BB", "CT", "RB"];
 const MOMENTS = [{ weekdays: ["Monday"], hours: null }, { weekdays: ["Sunday"], hours: null }];
 const STATICS: Record<string, unknown> = {
@@ -96,8 +96,8 @@ function seed(o: { badCells?: boolean; ruleGap?: boolean; noDict?: boolean; badS
     INSERT INTO ladder_frame VALUES (5, ${X([10, [[2, 11], [1, 12, 13, 14]]])});
     INSERT INTO ladder_verdict VALUES (10, ${X([[0], [], [], [], [], []])}), (11, ${X([[1], [], [], [], [[1, [0]]], []])}),
       (12, ${X([[], [1], [], [], [], []])}), (13, ${X([[], [], [1], [], [], []])}), (14, ${X([[], [], [], [], [], [[1, 0, 0]]])});
-    INSERT INTO rows_frame VALUES (5, ${X([["RB", "CT"], { RB: [7, null], CT: [null, 8] }, [3, 4, 3], "known_with_rules", [0, 1, 1]])}),
-      (6, ${X([[], {}, [], null, []])})${o.badStrip ? `, (9, ${X([[], {}, [3], null, [2]])}), (10, ${X([[], {}, [3, 4], null, [0]])})` : ""};
+    INSERT INTO rows_frame VALUES (5, ${X([["RB", "CT"], { RB: [7, null, "hatchery"], CT: [null, 8, "wild"] }, [3, 4, 3], "known_with_rules", [0, 1, 1]])}),
+      (6, ${X([[], {}, [], null, []])})${o.badStrip ? `, (9, ${X([[], {}, [3], null, [2]])}), (10, ${X([[], {}, [3, 4], null, [0]])}), (11, ${X([["RB"], { RB: [7, null] }, [], null, []])})` : ""};
     INSERT INTO rows_decided VALUES (7, ${X({ status: "keep", win: 0 })}), (8, ${X({ status: "release", win: 1 })});
     INSERT INTO rows_row VALUES (3, ${X({ kind: "keep", pool: 0 })}), (4, ${X({ kind: "closed", pool: null })});
     INSERT INTO gear_frame VALUES (5, ${X({ summary: "g", counts: {} })});
@@ -235,7 +235,7 @@ describe("cells and frames: routed to the key's region file", () => {
     const SPLIT = [["keep", 150], ["closed", 30], ["keep", 185]], NONE = [["none", 365]];
     const got = await st.rows(2, 5);
     expect(got).toEqual({ spp: ["RB", "CT"],
-      fish: { RB: { hatchery: { status: "keep", win: 0 }, wild: null }, CT: { hatchery: null, wild: { status: "release", win: 1 } } },
+      fish: { RB: { hatchery: { status: "keep", win: 0 }, wild: null, lead: "hatchery" }, CT: { hatchery: null, wild: { status: "release", win: 1 }, lead: "wild" } },
       // row 3 twice, with two strips: the stored row has no year, the frame's fifth slot names it (rows 30)
       rows: [{ kind: "keep", pool: 0, year: SPLIT }, { kind: "closed", pool: null, year: NONE }, { kind: "keep", pool: 0, year: NONE }],
       steelhead_line: "known_with_rules" });
@@ -248,6 +248,9 @@ describe("cells and frames: routed to the key's region file", () => {
     await expect(st.rows(2, 9)).rejects.toThrow(
       new RegsStoreError("damaged", "regs store: rows frame 9 names strip 2, which is not in rows.strips (2)"));
     await expect(st.rows(2, 10)).rejects.toThrow(new RegsStoreError("damaged", "regs store: rows frame 10 has 2 rows and 1 strips"));
+    // rows 33 (T161): a fish held as [h, w] — no stored leading origin — is damaged, never re-picked here
+    await expect(st.rows(2, 11)).rejects.toThrow(
+      new RegsStoreError("damaged", "regs store: rows frame 11 holds RB as [7,null], not [h, w, lead]"));
   });
 
   it("licence: holds, the document's answers in order, under_16 only when the frame has it", async () => {

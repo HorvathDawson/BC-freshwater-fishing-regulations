@@ -52,9 +52,9 @@ describe("scopeBadge (page v36 scopeBadge + rowHtml's rewrite)", () => {
   });
   it("a row whose every fish's stored answer names another pool `lifted`: 'Separate from your 4 trout and char' (x25p_1010)", () => {
     const st = rowOf({ pool: 6, daily: 6, members: ["ST"], all_members: ["ST"], scope: { of: "water", entry: null, share: false, apart: false, narrow_all: false } });
-    const card = cardOf([TROUT_ROW, st], { R: { ST: { H: res([[1, "lifted"]]), W: null } } });
+    const card = cardOf([TROUT_ROW, st], { R: { ST: { H: res([[1, "lifted"]]), W: null, lead: res([[1, "lifted"]]) } } });
     expect(scopeBadge(card.rows[1]!, card, inp)).toBe("Separate from your 4 trout and char");
-    const notLifted = cardOf([TROUT_ROW, st], { R: { ST: { H: res([[1, "agrees"]]), W: null } } });
+    const notLifted = cardOf([TROUT_ROW, st], { R: { ST: { H: res([[1, "agrees"]]), W: null, lead: res([[1, "agrees"]]) } } });
     expect(scopeBadge(notLifted.rows[1]!, notLifted, inp)).toBe("This water");
   });
 });
@@ -125,7 +125,7 @@ describe("shortOf (prototype; T28's pin lines, form b)", () => {
 describe("parentRow / drawnRows / separateFrom: the store's rows_row.parent (rows 31), read, never inferred", () => {
   const rb = rowOf({ pool: 6, daily: 4, members: ["RB"], all_members: ["RB"], scope: { of: "water", entry: null, share: false, apart: false, narrow_all: false } });
   it("a row the store says is held by row 0 is not drawn, and says no 'Separate from'", () => {
-    const card = cardOf([TROUT_ROW, { ...rb, parent: 0 }], { R: { RB: { H: res([[1, "lifted"]]), W: null } } });
+    const card = cardOf([TROUT_ROW, { ...rb, parent: 0 }], { R: { RB: { H: res([[1, "lifted"]]), W: null, lead: res([[1, "lifted"]]) } } });
     expect([parentRow(card, card.rows[1]!) === card.rows[0], parentRow(card, card.rows[0]!), [...drawnRows(card)], separateFrom(card, card.rows[1]!)])
       .toEqual([true, null, [0], null]);
   });

@@ -299,7 +299,8 @@ def _sections() -> Tuple[Section, ...]:
         # (the prototype's round UR7 stampsFor, `stamps.py`)
         # rows 32 (owner rule 2026-10-21): every row's `stamps` — the licence documents the row's fish need by the row's
         # answer (the prototype's round UR7 stampsFor on an Other fish row and a page-v36 keep-line row, `stamps.row_stamps`)
-        Section("rows", 32, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
+        # rows 33 (T161, decision Q66): every fish carries its leading origin, `FishAnswer.lead` (`common.lead_name`)
+        Section("rows", 33, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
         # answers 2.6: gear 5 (static `count_nouns`: "1 line (rod)")
         # ROUND10 W4: gear 6 (`counts[slot].cites`, the Lines row's `says`)
         # ROUND11 A2: gear 7 (`summary` {says, parts, terms, cites, changes}; a stream's Lines row

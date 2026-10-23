@@ -11,6 +11,6 @@ export const REGS_FORMATS = Object.freeze({ water: "water/1", region: "regs-regi
 export type SectionName = "ladder" | "rows" | "gear" | "licence" | "display";
 export const SECTION_NAMES: readonly SectionName[] = Object.freeze(["ladder", "rows", "gear", "licence", "display"] as const);
 /** The answers section versions (water `meta.layout.versions`) and the glossary's (`static answers.glossary`). */
-export const KNOWN_VERSIONS = Object.freeze({ ladder: 1, rows: 32, gear: 12, licence: 7, display: 18, glossary: 5 } as const);
+export const KNOWN_VERSIONS = Object.freeze({ ladder: 1, rows: 33, gear: 12, licence: 7, display: 18, glossary: 5 } as const);
 /** The blob codecs the data layer can read (`meta.blob_codec`). */
 export const BLOB_CODECS: readonly string[] = Object.freeze(["json", "deflate", "zdict"]);
