@@ -10,6 +10,7 @@
  */
 import type { DailyWeather, SpotWeather, WeatherSample } from "./model";
 import type { WeatherSource } from "./capture";
+import type { WeatherAhead } from "./likeVisit";
 
 const CURRENT = "https://api.open-meteo.com/v1/forecast";
 const ARCHIVE = "https://archive-api.open-meteo.com/v1/archive";
@@ -41,8 +42,40 @@ const localMidnight = (d: string): number => {
   return new Date(y, m - 1, day).getTime();
 };
 
+/** T51: the hourly fields a coming day is compared at, and how many days either side of today are asked for. */
+const AHEAD_HOURLY = "temperature_2m,wind_speed_10m,cloud_cover";
+const AHEAD_DAYS = 5;
+/** The rain window before today's comparison (core `LIKE_RAIN_DAYS`). */
+const AHEAD_PAST_DAYS = 3;
+
 export function openMeteo(fetchImpl: typeof fetch = fetch): WeatherSource {
   return {
+    /**
+     * T51, "Like your visit?": the coming days from the forecast endpoint — daily rain from three days back (the rain
+     * window of today's comparison), hourly air, wind and cloud — on the PLACE's clock (`timezone=auto`). One request.
+     * Null when it could not be read; a value the service did not send is null, never a neighbour's.
+     */
+    async ahead(lat, lon): Promise<WeatherAhead | null> {
+      const url = `${CURRENT}?latitude=${lat}&longitude=${lon}&daily=precipitation_sum&hourly=${AHEAD_HOURLY}` +
+                  `&timezone=auto&past_days=${AHEAD_PAST_DAYS}&forecast_days=${AHEAD_DAYS}`;
+      try {
+        const res = await fetchImpl(url);
+        if (!res.ok) return null;
+        const body = await res.json() as { daily?: Record<string, unknown[]>; hourly?: Record<string, unknown[]> };
+        const num = (v: unknown): number | null => (typeof v === "number" && Number.isFinite(v) ? v : null);
+        const dt = (body.daily?.time ?? []) as string[], ht = (body.hourly?.time ?? []) as string[];
+        if (!dt.length && !ht.length) return null;
+        return {
+          days: dt.map((date, i) => ({ date, precipMm: num(body.daily?.precipitation_sum?.[i]) })),
+          hours: ht.map((at, i) => ({ at, tempC: num(body.hourly?.temperature_2m?.[i]),
+                                      windKph: num(body.hourly?.wind_speed_10m?.[i]),
+                                      cloudPct: num(body.hourly?.cloud_cover?.[i]) })),
+        };
+      } catch {
+        return null;
+      }
+    },
+
     /**
      * The week before a visit (S1), DAILY: max/min temperature, precipitation, strongest wind and the day's WMO code.
      *

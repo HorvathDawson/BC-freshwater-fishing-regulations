@@ -20,12 +20,13 @@ import { bottomBarShown, frameViews, spotSaveFailed, useMapModes, useOpenWater, 
          regsGroupOf, showRegsActions, usePhotoEdit, useRoute, waterFrame,
          type BrowseTab, type FlowParam, type RegsStart, type Route, type SpotPhotos } from "@app/ui";
 import { BackLayerContext, edgeBackDepth, useBack, useEdgeBack, useMenu, useOnLeave, useViewSwipe, type SystemBack } from "@app/ui";
-import { routeWhere, spotPins, spotsMenu, useLayerChoice, useMapRail, type LayerStore, type Locate } from "@app/ui";
+import { routeWhere, spotPins, spotsMenu, useLayerChoice, useLikeVisit, useMapRail, type LayerStore,
+         type Locate } from "@app/ui";
 import { useConditionsColour, useDataFacts, useGaugeGeoJSON, useSync, useLakeColour, lakeModesReady, lakeValuesCarried,
          NO_SEARCH, searchStep, type SearchAction, type SearchMemory, useSearchSession, usePairing, useRegulationKeys,
          useStatusIndex, statusFeed, useHorizon, useImageryReach, type Horizon, type PairingInput,
          type StatusSource } from "@app/ui";
-import type { Spot, WeatherSource } from "@app/data/spots";
+import type { LikeStore, Spot, WeatherSource } from "@app/data/spots";
 import { hiddenLayers, shownLayers,
          type Camera, type TileEndpoints, coloursEachTile, imageryTiles } from "@app/map";
 import { connectivity } from "./connectivity";
@@ -81,7 +82,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                        spots = [], onSaveSpot, weather, onRefreshSpots, onDeleteSpot, refreshing, feed,
                        spotsError, attribution, fishImages, adiposeImages, photos, status = null, pairing = null,
                        systemBack = null, loader = null, initialRoute, initialDay = null, regsStart = null, locate = null, menuInfo,
-                       checkRelease = null, layerStore }: {
+                       checkRelease = null, layerStore, likeStore }: {
   source: RegsSource; palette: Palette;
   /**
    * Where the day's status comes from: the release's paint (P11), or on the dev bundle path status_index.bin. Absent
@@ -144,6 +145,11 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    * every other (owner 2026-10-22). Absent: the defaults, kept for the session only.
    */
   layerStore?: LayerStore;
+  /**
+   * T51: where an open spot's last fetched "Like your visit?" forecast is kept (`@app/data/spots` `openLikeStore`), so
+   * the strip works offline. Absent: fetched each time a spot opens, nothing kept.
+   */
+  likeStore?: LikeStore;
 }) {
   /*
    * HOW MUCH DATA IS IN HERE — read, never stated.
@@ -529,6 +535,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   }, [tab, opener, picking]);
 
   const viewing = openSpot === null ? null : spots.find((s) => s.id === openSpot) ?? null;
+  // T51: the open spot against the coming days — the feed the rest of the app reads, and the weather port
+  const like = useLikeVisit(viewing, { weather, feed }, likeStore);
   if (viewing) {
     const dirty = edit !== null
       && (edit.title !== viewing.title || edit.notes !== viewing.notes
@@ -541,7 +549,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
       <View style={{ flex: 1, backgroundColor: palette.card }}>
         <View style={{ flex: 1 }}>
           <SpotScreen spot={viewing} palette={palette}
-                      mode={edit ? "edit" : "view"}
+                      mode={edit ? "edit" : "view"} likeVisit={like}
                       photoStore={photos?.store} photoEdit={edit ? photoEdit : undefined}
                       title={edit?.title} notes={edit?.notes}
                       onTitle={edit ? (t) => setEdit({ ...edit, title: t }) : undefined}

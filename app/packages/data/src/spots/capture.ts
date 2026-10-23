@@ -14,6 +14,7 @@ import type { ItemId, RegsSource, SectionId } from "../index";
 import type { DailyWeather, LeadUp, Spot, SpotReading, SpotWeather } from "./model";
 import { stripRoutes } from "./migrate";
 import { leadUpFor, type FeedIndex } from "./leadup";
+import type { WeatherAhead } from "./likeVisit";
 
 /**
  * Weather, from wherever weather comes from.
@@ -29,6 +30,11 @@ export interface WeatherSource {
    * be fetched. Optional: a source without it records no lead-up weather, said as unknown.
    */
   days?(lat: number, lon: number, days: readonly string[]): Promise<DailyWeather[] | null>;
+  /**
+   * T51: the forecast for the coming days (with the past days the rain window needs), for "Like your visit?". Null
+   * when it could not be fetched. Optional: a source without it scores the coming days on flow alone.
+   */
+  ahead?(lat: number, lon: number): Promise<WeatherAhead | null>;
 }
 
 /** The honest default: no service, so no weather, said out loud. */

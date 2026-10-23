@@ -24,8 +24,9 @@ import { useState } from "react";
 import { Image, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { DRAFT_WORDS, isUntitled, needsRefresh, observedLine, PHOTO_WORDS, refreshReason, removePhotoLabel, spotHeadline,
   spotLabel, weatherTrend, type PhotoStore, type Spot, type SpotWeather, type WeatherSample } from "@app/data/spots";
-import { leadUpView, useBackLayer, usePhotoUris, type PhotoEdit } from "@app/ui";
+import { leadUpView, useBackLayer, usePhotoUris, type LikeVisitView, type PhotoEdit } from "@app/ui";
 import { LeadUpStrip } from "./LeadUpStrip";
+import { LikeVisitStrip } from "./LikeVisitStrip";
 import { DonorPanel } from "./DonorPanel";
 import { GaugeTrace } from "./GaugeTrace";
 import { percentileLabel } from "@app/core";
@@ -66,6 +67,11 @@ export interface SpotScreenProps {
   photoStore?: Pick<PhotoStore, "uri">;
   /** S1, draft and edit: the photos being edited, with add and remove (`usePhotoEdit`). */
   photoEdit?: PhotoEdit;
+  /**
+   * T51, a saved spot only: its conditions then against today and the next four days (`useLikeVisit`). Absent or null:
+   * no strip (a draft has no visit to compare with yet).
+   */
+  likeVisit?: LikeVisitView | null;
 }
 
 /**
@@ -288,6 +294,12 @@ export function SpotScreen(p: SpotScreenProps) {
         {lead && (
           <Block palette={palette} title={lead.heading}>
             <LeadUpStrip view={lead} palette={palette} />
+          </Block>
+        )}
+
+        {mode !== "draft" && p.likeVisit && (
+          <Block palette={palette} title={p.likeVisit.heading}>
+            <LikeVisitStrip view={p.likeVisit} palette={palette} />
           </Block>
         )}
 

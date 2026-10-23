@@ -27,7 +27,8 @@ import { makeBundleSource } from "@app/data/bundle";
 import { httpFeed, loadManifest, type RegsSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import * as platform from "@app/data/release/platform";
-import { openLayerStore, openMeteo, openPhotos, openSpots, refreshSpot, type Spot } from "@app/data/spots";
+import { openLayerStore, openLikeStore, openMeteo, openPhotos, openSpots, refreshSpot,
+         type Spot } from "@app/data/spots";
 import { loadBundle, setSqlWasmUrl, type LoadedBundle } from "@app/data/bundle/open";
 import { FishSpinner, Shell, THEMES, type ThemeName } from "@app/ui-native";
 import { devStatus, LayoutWidthContext, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, useReleaseBoot, useSpots, type MapTiles,
@@ -87,6 +88,8 @@ export default function App() {
   const spotStore = useMemo(() => openSpots(), []);
   // The Layers sheet's choice (the Spots switch and the rest), kept beside the spots so a reload opens the maps as left
   const layerStore = useMemo(() => openLayerStore(), []);
+  // T51: the last fetched "Like your visit?" forecast per spot, so a spot opened offline still compares (a cache)
+  const likeStore = useMemo(() => openLikeStore(), []);
   // Open-Meteo: no key, and it has an archive endpoint — which is what lets a spot pinned
   // with no signal be filled in later from the day it was actually made.
   const weather = useMemo(() => openMeteo(), []);
@@ -191,7 +194,7 @@ export default function App() {
         )}
         <Shell source={data.source} palette={palette} loader={data.loader} menuInfo={MENU_INFO}
                checkRelease={RELEASE ? checkRelease : null}
-               layerStore={layerStore}
+               layerStore={layerStore} likeStore={likeStore}
                theme={name} themeName={name}
                onTheme={setTheme} tiles={data.tiles}
                status={data.status} pairing={data.pairing}

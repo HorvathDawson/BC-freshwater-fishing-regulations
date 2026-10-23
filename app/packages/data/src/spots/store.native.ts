@@ -40,8 +40,17 @@ export function openSpots(): SpotsStore {
  * `@app/ui` `useLayerChoice` to shrug off — it is a preference, not a record.
  */
 export function openLayerStore(): { read(): string | null; write(text: string): void } {
+  return fileStore("layers.json");
+}
+
+/** T51: the last fetched "Like your visit?" forecasts, a small file of their own — a cache, never inside the spots. */
+export function openLikeStore(): { read(): string | null; write(text: string): void } {
+  return fileStore("like-visit.json");
+}
+
+function fileStore(name: string): { read(): string | null; write(text: string): void } {
   const dir = new Directory(Paths.document, "spots");
-  const file = () => new File(dir, "layers.json");
+  const file = () => new File(dir, name);
   return {
     read: () => { try { const f = file(); return f.exists ? f.textSync() : null; } catch { return null; } },
     write: (t) => { if (!dir.exists) dir.create({ intermediates: true }); file().write(t); },

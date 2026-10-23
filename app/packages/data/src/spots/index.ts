@@ -9,7 +9,7 @@ export type { Spot, SpotStore, SpotReading, SpotWeather, WeatherSample,
   WeatherWindow, DailyWeather, DailyGauge, DayPlace, LeadUp } from "./model";
 export { spotLabel, isUntitled } from "./model";
 export { captureSpot, noWeather, type CaptureInput, type WeatherSource } from "./capture";
-export { openSpots, openLayerStore } from "./store";
+export { openSpots, openLayerStore, openLikeStore } from "./store";
 export { openSpotsWith, SpotsCorrupt, type SpotsFs, type SpotsStore } from "./core";
 export { serialised } from "./queue";
 export { openMeteo, OPEN_METEO_ATTRIBUTION } from "./weather";
@@ -24,3 +24,7 @@ export { leadUpFor, leadUpMissing, leadUpPendingDays, weekGauge, weekWeather, ty
 export { isPhotoRef, nextPhotoRef, openPhotosWith, photoExt, photosDropped, PHOTO_MAX_EDGE,
          type PhotoFiles, type PhotoSource, type PhotoStore, type PickedPhoto } from "./photos";
 export { openPhotos } from "./photoStore";
+// T51: "Like your visit?" — the inputs to core's `likeDay`, and the last fetched forecast kept for offline
+export { comingConditions, fetchLike, flowAhead, likeStation, NOTHING_FETCHED, readLike, visitConditions, visitHour,
+         writeLike, type LikeFetched, type LikeIndex, type LikeSources, type LikeStore,
+         type WeatherAhead } from "./likeVisit";

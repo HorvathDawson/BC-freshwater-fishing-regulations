@@ -36,6 +36,7 @@ export * from "./iconSet";
 export * from "./more";
 export * from "./imagery";
 export * from "./staleness";
+export * from "./likeVisit";
 
 export type Freshness =
   | { state: "live"; ageMs: number }
