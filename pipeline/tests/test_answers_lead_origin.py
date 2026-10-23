@@ -95,13 +95,23 @@ ANSWERS = Path(common.__file__).parent
 
 
 def _status_test(node: ast.AST) -> bool:
-    """A test that reads an answer's status (`x["status"]`, `_keepish(...)`, `... in _KEEPS`)."""
+    """A KEEP test of an answer's status: `_keepish(...)` / `rows._keepish(...)`, or a status read (`x["status"]`,
+    `x.get("status")`) against the keep statuses (`KEEPS` / `common.KEEPS` / `_KEEPS`, or "keep" / "no_limit").
+    A status test for anything else (`display.compose`'s `value.get("status") == "tidal"`) picks no leader."""
+    def ident(n):
+        return n.id if isinstance(n, ast.Name) else n.attr if isinstance(n, ast.Attribute) else None
+    reads = keeps = False
     for n in ast.walk(node):
+        if isinstance(n, ast.Call) and ident(n.func) == "_keepish":
+            return True
         if isinstance(n, ast.Subscript) and isinstance(n.slice, ast.Constant) and n.slice.value == "status":
-            return True
-        if isinstance(n, ast.Call) and isinstance(n.func, ast.Name) and n.func.id == "_keepish":
-            return True
-    return False
+            reads = True
+        if isinstance(n, ast.Call) and ident(n.func) == "get" and \
+                n.args and isinstance(n.args[0], ast.Constant) and n.args[0].value == "status":
+            reads = True
+        if ident(n) in ("KEEPS", "_KEEPS") or (isinstance(n, ast.Constant) and n.value in ("keep", "no_limit")):
+            keeps = True
+    return reads and keeps
 
 
 def _picks_a_leader(fn: ast.AST) -> bool:
@@ -184,3 +194,39 @@ def test_the_callers_delegate():
     assert "common.lead_origin(" in inspect.getsource(RW.main_res)
     assert "common.lead_origin(" in inspect.getsource(Y.leading_answer)
     assert "lead_origin(" in inspect.getsource(RW._week_answer)
+
+
+def test_the_scan_catches_get_and_qualified_keep_tests():
+    """Mutation pin (review): a copy reading the status with `.get("status")`, or testing it through a qualified
+    `rows._keepish(...)` / `x in common.KEEPS`, is the same decision and is caught."""
+    via_get = '''
+def lead(h, w):
+    if h and h.get("status") in KEEPS:
+        return h
+    return h or w
+'''
+    via_attr = '''
+def lead(h, w):
+    if w and rows._keepish(w.get("status")):
+        return w
+    return h or w
+'''
+    via_keeps = '''
+def lead(h, w):
+    if h and h.get("status") in common.KEEPS:
+        return h
+    return h or w
+'''
+    for src in (via_get, via_attr, via_keeps):
+        assert _leaders(src, "x.py") == ["x.py:lead"], src
+    # a filter of ONE answer through `.get` is still no leader
+    assert _leaders('def k(m):\n    return m if m and m.get("status") in KEEPS else None\n', "x.py") == []
+
+
+def test_the_scan_catches_a_literal_keep_test_and_spares_other_status_tests():
+    """Mutation pin (review): `h["status"] == "keep"` is the same decision; a status test that is not a keep test
+    (`display.compose`: `if value.get("status") == "tidal": return value`) is not a leader."""
+    literal = 'def lead(h, w):\n    if h and h["status"] in ("keep", "no_limit"):\n        return h\n    return h or w\n'
+    assert _leaders(literal, "x.py") == ["x.py:lead"]
+    tidal = 'def compose(value, others):\n    if value.get("status") == "tidal":\n        return value\n    return 1\n'
+    assert _leaders(tidal, "x.py") == []
