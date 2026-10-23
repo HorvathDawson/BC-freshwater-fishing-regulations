@@ -23,3 +23,10 @@ Status: IN PROGRESS (2026-10-22) — reach swapped (020f4ca8); deliver running (
 ## Acceptance
 Twin Lakes 2-8: both lakes show the closure in the app. Nicomen Slough and the Vedder Canal are coloured in Conditions.
 Release committed and served; all gates green.
+
+## After the rebuild
+- Release r-2f33edfe8452 (13,684,648 B gz; valid_until 2027-03-31); 132 data tests pass; fixtures re-cut cfe405c8.
+- 4 app tests pinned to the previous vintage fail (akeys +1, taps golden picked other unnamed examples, display
+  frames 29,499 → 29,459): an agent is re-deriving them. Then strict check + smoke, then DONE.
+- The NEXT deliver must also carry T96's curated change (Shuswap 3-26 r8/r10 verbatim now quote the whole printed
+  line); no binding change.
