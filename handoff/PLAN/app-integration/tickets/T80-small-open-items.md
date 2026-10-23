@@ -2,6 +2,7 @@
 
 Status: PARTIAL — 749a3692, e7038596 (1); eacbc3be (2); 210d0996 (3, needs deliver); d50e490c, c8041c6a (7); ca5ecb26, 309cd3e8 (T56-review lines 1-2, need deliver). Left: 3's two open shapes + the klmb exclusion after the re-cut; 4's fix (reproduced, cause not pinned); 6 (needs a push); owner calls Q-T80a/b/c; after the re-cut the klmb_1010 conformance exclusion MUST be rewritten (it will fail). Reviewed ea63d8cb (whole-set pin). See "Lane 2026-10-22" and "Review 2026-10-22".
 Deliver fix 53abfd9c: item 3's one-kind group stopped `pipeline.deliver all` (model.py refused it); the answers model now accepts exactly a TROUT_CHAR one-kind group on its own row's pool, and test_answers_one_kind_group.py runs the build's `validate_section` on the T80 waters (+2 mutation pins).
+Card-gate fix 3a6d20c3: the batch-3 deliver's 30 card-gate problems (Perry Creek's brook trout 20, a one-kind row HELD by the St. Mary's tributaries' 1) — item 3's group now fires only on a row no pool holds (`rows.A_ONE_KIND_GROUP_ONLY_ON_A_DRAWN_ROW`, parent_of decided once; model refuses the shape); card_check over the live bundle's full answers: 0 problems.
 
 Each item closes with a fix + test, or a recorded "no" with the reason:
 1. S1 photo minors (implement_progress): draft photos named after the first draft id; the web picker hangs where the
