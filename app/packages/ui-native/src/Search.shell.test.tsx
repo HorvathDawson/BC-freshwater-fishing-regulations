@@ -13,6 +13,7 @@ import { Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SEARCH_BAR } from "@app/core";
 import { makeFixtureSource } from "@app/data/fixture";
+import type { ItemId } from "@app/data";
 import { HOME, type Route, type SystemBack } from "@app/ui";
 import { LIGHT } from "./theme";
 
@@ -20,13 +21,13 @@ type Fit = { key: string; bbox: unknown; camera?: { lon: number; lat: number; zo
 type Stub = { fit?: Fit; highlight?: readonly unknown[]; pins?: readonly { tone?: string }[]; insetTop?: number;
                onMapPoint?: (lat: number, lon: number) => void;
                onPressFeature?: (layer: string, id: string, lat?: number, lon?: number) => void };
-const seen = vi.hoisted(() => ({ mounts: 0, fits: [] as string[] }));
+const seen = vi.hoisted(() => ({ mounts: 0, fits: [] as string[], frames: [] as unknown[] }));
 vi.mock("./MapScreen", () => ({
   MapScreen: (p: Stub) => {
     useEffect(() => { seen.mounts += 1; }, []);
     const f = p.fit;
     const said = !f ? "none" : f.camera ? `${f.key} camera ${f.camera.lat},${f.camera.lon},${f.camera.zoom}` : f.key;
-    if (seen.fits[seen.fits.length - 1] !== said) seen.fits.push(said);
+    if (seen.fits[seen.fits.length - 1] !== said) { seen.fits.push(said); seen.frames.push(f ?? null); }
     return (
       <View>
         <Text testID="map-state">
@@ -46,7 +47,7 @@ vi.mock("./MapScreen", () => ({
 vi.mock("./FishSpinner", () => ({ FishSpinner: () => null }));
 const { Shell } = await import("./Shell");
 
-afterEach(() => { cleanup(); seen.mounts = 0; seen.fits.length = 0; });
+afterEach(() => { cleanup(); seen.mounts = 0; seen.fits.length = 0; seen.frames.length = 0; });
 beforeAll(() => {
   Object.defineProperty(document.documentElement, "clientWidth", { configurable: true, value: 390 });
   Object.defineProperty(document.documentElement, "clientHeight", { configurable: true, value: 844 });
@@ -54,6 +55,7 @@ beforeAll(() => {
 
 let androidBack: () => boolean = () => false;
 const android: SystemBack = (back) => { androidBack = back; return { sync: () => {}, dispose: () => {} }; };
+const CHILLIWACK = "gnis:8634" as ItemId;
 const FETCHED = new Date(Date.now() - 3 * 3.6e6).toISOString();
 const feedAt = (iso: () => string, refreshed?: () => void) =>
   ({ index: async () => ({ fetchedAt: iso(), stations: {} }), refresh: refreshed }) as never;
@@ -230,31 +232,106 @@ describe("a place is SHOWN by its tap; a water is framed by its tap and opened b
     expect([where(), screen.queryByLabelText("Back to all results")]).toEqual([`search open · full · "chilliwack" · tab Map`, null]);
   });
 
-  it("a water row: its tap frames it (half); its › opens the water screen through the one opener; back returns to the " +
-     "results as they were; the next back closes search and gives the camera back exactly", async () => {
+  it("a water row: its tap frames it (half); closing search then gives the camera back exactly", async () => {
     mount();
     act(() => { fireEvent.focus(field()); });
     await typeIn("chilliwack river");
     fireEvent.click(screen.getByRole("button", { name: /^Show Chilliwack River/ }));
     await settle();
     const framed = [where(), screen.getByTestId("map-state").textContent!.split(" · ")[0]];
-    fireEvent.click(screen.getByRole("button", { name: /^Open Chilliwack River/ }));
-    await waitFor(() => expect(screen.queryByRole("tablist", { name: "Views of this water" })).not.toBeNull());
-    const water = screen.queryByLabelText(SEARCH_BAR.label);
     back();
     await settle();
-    const returned = [where(), screen.getByRole("button", { name: /^Show Chilliwack River/ })
-      .getAttribute("aria-pressed")];
-    back();
-    await settle();
-    expect([framed, water, returned, where(), seen.fits]).toEqual([
+    expect([framed, where(), seen.fits]).toEqual([
       [`search open · half · "chilliwack river" · tab Map`, "fit item:gnis:8634"],
-      null,
-      [`search open · half · "chilliwack river" · tab Map`, "true"],
       `search closed · no sheet · "chilliwack river" · tab Map`,
       // the framing; then, as search closes, one render with no fit (nothing sent), the camera put back, and no fit again
       ["none", "item:gnis:8634", "none", "restore:1 camera 49.15,-121.85,10", "none"],
     ]);
+  });
+
+  /**
+   * (owner 2026-10-22 late, decisions.md "back from a searched water lands on the map, at the water") A water opened
+   * from a result CONSUMES the search: its ‹ and × name the map, and either one lands on the map — search closed, the
+   * text gone — with the camera framed on that water: the SAME box search framed it with (its own outline), sent once
+   * as the map comes back, never the camera from before search. One back, then nothing more to go back to.
+   */
+  const searchedWater = async (leave: () => Promise<void>) => {
+    mount();
+    act(() => { fireEvent.focus(field()); });
+    await typeIn("chilliwack river");
+    fireEvent.click(screen.getByRole("button", { name: /^Show Chilliwack River/ }));
+    await settle();
+    fireEvent.click(screen.getByRole("button", { name: /^Open Chilliwack River/ }));
+    await waitFor(() => expect(screen.queryByRole("tablist", { name: "Views of this water" })).not.toBeNull());
+    const header = [screen.getByRole("button", { name: "Back" }).textContent, screen.getByTestId("water-close")
+      .getAttribute("aria-label")];
+    await leave();
+    await settle();
+    return { header, landed: where(), fits: seen.fits.slice(), arrived: seen.frames[seen.frames.length - 1],
+             searchedWith: seen.frames[1], more: back(), mounts: seen.mounts };
+  };
+  const LANDED = async () => {
+    const box = await makeFixtureSource().waterBox(CHILLIWACK);
+    return {
+      header: ["Map", "Close, back to Map"],
+      landed: `search closed · no sheet · "" · tab Map`,
+      // framed by search, the water screen (no map), then the map back, framed on the water once
+      fits: ["none", "item:gnis:8634", "arrive:gnis:8634:1"],
+      arrived: { key: "arrive:gnis:8634:1", bbox: box, refine: false },
+      searchedWith: { key: "item:gnis:8634", bbox: box, refine: false },
+      more: false, mounts: 2,
+    };
+  };
+
+  it("(owner 2026-10-22 late) back from a water opened from a result lands on the MAP at the water, search closed",
+     async () => {
+    expect(await searchedWater(async () => { back(); })).toEqual(await LANDED());
+  });
+
+  it("(owner 2026-10-22 late) its × does the same", async () => {
+    expect(await searchedWater(async () => {
+      await act(async () => { fireEvent.click(screen.getByLabelText("Close, back to Map")); });
+    })).toEqual(await LANDED());
+  });
+
+  it("(owner 2026-10-22 late) on a wide screen too (the panel's row opens it the same way)", async () => {
+    Object.defineProperty(document.documentElement, "clientWidth", { configurable: true, value: 1280 });
+    window.dispatchEvent(new Event("resize"));
+    try {
+      expect(await searchedWater(async () => { back(); })).toEqual(await LANDED());
+    } finally {
+      Object.defineProperty(document.documentElement, "clientWidth", { configurable: true, value: 390 });
+      window.dispatchEvent(new Event("resize"));
+    }
+  });
+
+  it("the framing is sent ONCE: a water then tapped on that map and left again brings the map back where it was, " +
+     "not dragged to the searched water", async () => {
+    await searchedWater(async () => { back(); });
+    const before = seen.fits.slice();
+    fireEvent.click(screen.getByTestId("stub-feature-click"));
+    await waitFor(() => expect(screen.queryByRole("tablist", { name: "Views of this water" })).not.toBeNull());
+    back();
+    await settle();
+    expect([before, seen.fits.slice(before.length), where()]).toEqual([
+      ["none", "item:gnis:8634", "arrive:gnis:8634:1"], ["none"], `search closed · no sheet · "" · tab Map`]);
+  });
+
+  it("a water opened by a TAP on the map beside the half sheet (a phone) keeps search under it: its ‹ and × say " +
+     "Search, and back returns to the results as they were", async () => {
+    mount();
+    act(() => { fireEvent.focus(field()); });
+    await typeIn("chilliwack river");
+    fireEvent.click(screen.getByRole("button", { name: /^Show Chilliwack River/ }));
+    await settle();
+    fireEvent.click(screen.getByTestId("stub-feature-click"));
+    await waitFor(() => expect(screen.queryByRole("tablist", { name: "Views of this water" })).not.toBeNull());
+    const header = [screen.getByRole("button", { name: "Back" }).textContent,
+                    screen.getByTestId("water-close").getAttribute("aria-label")];
+    back();
+    await settle();
+    expect([header, where()]).toEqual([["Search", "Close, back to Search"],
+                                       `search open · half · "chilliwack river" · tab Map`]);
   });
 
   it("typing again after a pick raises the sheet to FULL (the pick is forgotten)", async () => {

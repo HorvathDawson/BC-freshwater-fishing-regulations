@@ -25,6 +25,15 @@ describe("leaving a water (owner 2026-10-22 late): ‹ one layer, × all of them
       { back: "Back", close: "Close, back to Map" },
     ]);
   });
+
+  it("(owner 2026-10-22 late) a water over an OPEN SEARCH (a map tap beside it) names search, which is where back goes; " +
+     "a water opened from a result never is (the search was consumed: it names the map)", () => {
+    expect([waterExit(1, "Map", true), waterExit(2, "Conditions", true), waterExit(1, "Map", false)]).toEqual([
+      { back: "Search", close: "Close, back to Search" },
+      { back: "Back", close: "Close, back to Search" },
+      { back: "Map", close: "Close, back to Map" },
+    ]);
+  });
 });
 
 describe("stepView", () => {

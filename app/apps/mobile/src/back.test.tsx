@@ -209,6 +209,17 @@ const MOVES_SEEN = [
   "water Chilliwack River on Map · no bar · Part 2 of 4 · Chilliwack River",
 ];
 
+/** Search "chilliwack river", frame its row, and open it from the row's action (the search result path). */
+async function openFromSearch(): Promise<void> {
+  act(() => { fireEvent.focus(screen.getByLabelText("Search waters and towns")); });
+  fireEvent.change(screen.getByLabelText("Search waters and towns"), { target: { value: "chilliwack river" } });
+  await until(() => screen.queryAllByRole("button", { name: /^Show Chilliwack River/ }).length > 0);
+  await act(async () => { fireEvent.click(screen.getAllByRole("button", { name: /^Show Chilliwack River/ })[0]!); });
+  await until(() => screen.queryAllByRole("button", { name: /^Open Chilliwack River/ }).length > 0);
+  await act(async () => { fireEvent.click(screen.getAllByRole("button", { name: /^Open Chilliwack River/ })[0]!); });
+  await until(() => screen.queryByText("Chilliwack River") !== null && !screen.queryByLabelText("Close search"));
+}
+
 /** The tributary chain: tap the Chilliwack open, its Map, then a tap there on the Jeperson Side Channel (another water). */
 async function openTributary(): Promise<void> {
   TAP.sid = (await makeFixtureSource().water(CHILLIWACK))!.sections[1]!;
@@ -351,6 +362,15 @@ describe("Android's back, surface by surface (HANDOFF-ui 'Back, everywhere')", (
       close: ["water Jeperson Side Channel on Regulations · no bar", "tab Map", "ANDROID -> tab Map"],
     });
   }, 60_000);
+
+  it("(owner 2026-10-22 late) a water opened from a search RESULT: back is the map, search closed; then Android's", async () => {
+    await mount(HOME);
+    act(() => { fireEvent.focus(screen.getByLabelText("Search waters and towns")); });
+    const searching = where();
+    await openFromSearch();
+    expect([searching, ...backs(2)]).toEqual([
+      "search · tab Map", "water Chilliwack River on Regulations · no bar", "handled -> tab Map", "ANDROID -> tab Map"]);
+  });
 
   it("(T48) search over the Conditions map: a town's list steps back to all results, then search closes, then the tab " +
      "goes to the Map tab, then Android leaves", async () => {
@@ -527,5 +547,30 @@ describe("the browser's back (systemBack.web: the History API) does the same", (
     const seen = await acrossChilliwackVedder(entry);
     await browserBack(); seen.push(`${where()}${entry()}`);
     expect(seen).toEqual([...ACROSS_SEEN.map((s) => `${s} [entry 1]`), "tab Map [entry 0]"]);
+  }, 60_000);
+
+  it("(owner 2026-10-22 late) a water opened from a search result holds the SAME one entry search held (no orphan " +
+     "entry for the closed search): one browser back is the map, search closed; × the same", async () => {
+    const entry = () => {
+      const s: unknown = window.history.state;
+      const v = s && typeof s === "object" ? (s as Record<string, unknown>)["canifishthis.back"] : undefined;
+      return ` [entry ${typeof v === "number" ? v : 0}]`;
+    };
+    const settle = () => act(async () => { await new Promise((r) => setTimeout(r, 30)); });
+    const walk = async (leave: () => Promise<void>) => {
+      await mount(HOME, webBack);
+      const out = [`${where()}${entry()}`];
+      act(() => { fireEvent.focus(screen.getByLabelText("Search waters and towns")); });
+      await settle(); out.push(`${where()}${entry()}`);
+      await openFromSearch(); await settle(); out.push(`${where()}${entry()}`);
+      await leave(); await settle(); out.push(`${where()}${entry()}`);
+      cleanup();
+      return out;
+    };
+    const viaBack = await walk(browserBack);
+    const viaClose = await walk(() => click("Close, back to Map"));
+    const seen = ["tab Map [entry 0]", "search · tab Map [entry 1]",
+                  "water Chilliwack River on Regulations · no bar [entry 1]", "tab Map [entry 0]"];
+    expect({ viaBack, viaClose }).toEqual({ viaBack: seen, viaClose: seen });
   }, 60_000);
 });

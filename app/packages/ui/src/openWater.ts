@@ -28,6 +28,8 @@ export interface WaterOpen {
   part?: number | null;
   /** The view in front: "conditions" from the Conditions map, "regs" from the Map tab and everything else. */
   view?: View;
+  /** Opened from a search result: the search is consumed (route `fromSearch`) — back lands on the map. */
+  fromSearch?: boolean;
 }
 
 /**
@@ -37,8 +39,9 @@ export interface WaterOpen {
 export function openWater(o: WaterOpen): RouteAction {
   const asked = o.view ?? "regs";
   const views = frameViews({ item: o.item });
-  return { type: "openWater", item: o.item, tapSid: o.tapSid ?? null, at: o.at ?? null, part: o.part ?? null,
-           view: views.includes(asked) ? asked : views[0]! };
+  const a: RouteAction = { type: "openWater", item: o.item, tapSid: o.tapSid ?? null, at: o.at ?? null,
+                          part: o.part ?? null, view: views.includes(asked) ? asked : views[0]! };
+  return o.fromSearch ? { ...a, fromSearch: true } : a;
 }
 
 /**
@@ -55,8 +58,10 @@ export async function openTap(source: Pick<RegsSource, "itemForSection">, sid: S
 export interface WaterOpener {
   /** A tap on a map: the section, where on it, and which view to put in front. */
   tap(sid: SectionId, at: LatLon | null, view: View, except?: ItemId | null): Promise<void>;
-  /** A water by its id (search, a spot, a deep path). */
+  /** A water by its id (a spot, a deep path). */
   item(item: ItemId, view?: View): void;
+  /** A water picked from search's results: the search is consumed, so back lands on the map (route `fromSearch`). */
+  searched(item: ItemId, view?: View): void;
 }
 
 /** The Shell's handle on `openWater` / `openTap`, dispatching to the route. */
@@ -67,5 +72,6 @@ export function useOpenWater(source: Pick<RegsSource, "itemForSection">, go: (a:
       if (a !== null) go(a);
     },
     item: (item, view = "regs") => go(openWater({ item, view })),
+    searched: (item, view = "regs") => go(openWater({ item, view, fromSearch: true })),
   }), [source, go]);
 }

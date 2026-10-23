@@ -212,7 +212,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   /*
    * (T48) SEARCH, OVER THE SAME MAP: the top bar's always-open field opens it (route `search`, on either map), and the
    * results sheet rises over the map that is already there — no second map. What the reader typed and picked is kept
-   * here, so a water opened from the results and back returns to them as they were. ONE session value
+   * here while search is open; a water opened from the results consumes it (back lands on the map). ONE session value
    * (`useSearchSession`) feeds both the sheet's rows and what the main map frames, lights and pins.
    */
   const searching = browse.search;
@@ -388,8 +388,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   /*
    * (T48) SEARCH GIVES THE CAMERA BACK. Where it was when search opened is kept; a pick moves the map (a water framed, a
    * town flown to); closing search — ‹, Escape, the system back, a tab — puts it back EXACTLY (`fit.camera`, sent
-   * once) and drops the keyboard. A water opened from the results keeps search open underneath (the route's `from`),
-   * so nothing is restored until search itself closes.
+   * once) and drops the keyboard. A water opened FROM A RESULT consumes search (owner 2026-10-22 late, route
+   * `fromSearch`): nothing is restored — the map comes back framed on that water (`arrive`, below).
    */
   const searchCamera = useRef<Camera | null>(null);
   const searchMoved = useRef(false);
@@ -411,6 +411,37 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   useEffect(() => { if (searching && session.focus?.bbox) searchMoved.current = true; }, [searching, session.focus?.key]);
   // sent once: the next render hands the map no fit, so a later remount is never dragged back
   useEffect(() => { if (restore) setRestore(null); }, [restore]);
+  /*
+   * (Owner 2026-10-22 late, "back from a searched water lands on the map, at the water") A water opened from a result
+   * consumes search — the route's `from` is the map with search closed — and the map comes back FRAMED ON THAT WATER:
+   * the very framing search gave it (its own outline, `session.focus`; the bundle's box when search had not placed it
+   * yet). Sent once, as the browse map returns (back or ×, from any water stacked above it), and forgotten at the next
+   * move of the route, so a later return (a map tap's water, then back) is never dragged back to it.
+   */
+  const [arrive, setArrive] = useState<{ key: string; bbox: readonly [number, number, number, number];
+                                         refine: boolean } | null>(null);
+  const arrivals = useRef(0);
+  const arrivedAt = useRef<Route | null>(null);
+  useEffect(() => {
+    if (!arrive) return;
+    // landed (the browse map is back): note where; any later move of the route — another water included — forgets it
+    if (arrivedAt.current === null) { if (route.mode === "browse") arrivedAt.current = route; }
+    else if (arrivedAt.current !== route) { arrivedAt.current = null; setArrive(null); }
+  }, [route, arrive]);
+  const openSearched = (id: ItemId) => {
+    const n = ++arrivals.current;
+    const key = `arrive:${id}:${n}`;
+    const f = session.focus?.key === `item:${id}` ? session.focus : null;
+    arrivedAt.current = null;
+    if (f?.bbox) setArrive({ key, bbox: f.bbox, refine: f.refine });
+    else {
+      setArrive(null);
+      void source.waterBox(id).then((bbox) => { if (bbox && arrivals.current === n) setArrive({ key, bbox, refine: false }); });
+    }
+    searchMoved.current = false;            // the camera from before search is not put back: the water is the subject
+    setSearchMemory(NO_SEARCH);             // the search is consumed, its text with it
+    opener.searched(id, tab === "conditions" ? "conditions" : "regs");
+  };
   /** One step of search (`searchStep`): a pick lowers the sheet to half, so the keyboard goes with it. */
   const searchAct = (a: SearchAction) => {
     const next = searchStep(searchMemory.pick, a).pick;
@@ -633,6 +664,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                      fit={rail.fly ? { key: rail.fly.key, bbox: rail.fly.bbox }
                        : searching && session.focus
                          ? { key: session.focus.key, bbox: session.focus.bbox, refine: session.focus.refine }
+                         : arrive ? arrive
                          : restore ? { key: restore.key, bbox: null, camera: restore.camera } : null}
                      // WHAT SEARCH LIGHTS, whole, while search is open — on either map; closed, nothing (the Conditions
                      // view lights a gauge's route with the same feature-state and must not inherit a search)
@@ -706,7 +738,9 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    * a sibling of it) and always listens; Regulations and Conditions listen on their bodies too (the panel's maps and
    * chart shielded); on Map the canvas is the body, header only.
    */
-  const exit = route.mode === "water" ? waterExit(route.stack.length, TABS.find((t) => t.k === route.from.tab)!.t) : null;
+  // ‹ and × name where they go: the tab, or search when it is still open under the water (a map tap beside it)
+  const exit = route.mode === "water"
+    ? waterExit(route.stack.length, TABS.find((t) => t.k === route.from.tab)!.t, route.from.search) : null;
   const waterViews: WaterViews | null = route.mode === "water" && frame !== null && exit !== null
     ? { views: frameViews(frame), on: frame.view, onView: (v) => go({ type: "view", view: v }), onBack: back,
         backLabel: exit.back,
@@ -768,8 +802,9 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
         {topBar && (
           <SearchSheet open={searching} top={barBottom} palette={palette} session={session} pick={searchMemory.pick}
                        onAct={searchAct}
-                       // the one way out of search into a water: the one opener, with the view this map puts in front
-                       onOpenWater={(id) => opener.item(id, tab === "conditions" ? "conditions" : "regs")}
+                       // the one way out of search into a water: the one opener, with the view this map puts in front;
+                       // it consumes the search, so back lands on the map at the water (owner 2026-10-22 late)
+                       onOpenWater={openSearched}
                        onClose={closeSearch}
                        statusIndex={statusIndex} total={counts?.waters} />
         )}

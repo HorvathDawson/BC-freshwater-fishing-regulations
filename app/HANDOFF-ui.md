@@ -146,7 +146,8 @@ A `<Sheet>`'s Modal `onRequestClose` (Android delivers back there while a Modal 
 | Conditions / Spots / More tab root | goes to the **Map tab** (the start tab — Android's fixed start destination, as Google's own apps do); the next back leaves. **iOS:** the edge swipe does not take this step (tabs are not history on iOS; `edgeBackDepth`) | route.ts, gestures.ts | route.test, back.test, gestures.test "edgeBackDepth" |
 | Search open over a map (T48) | closes search (keyboard down, camera restored); the next back is the tab rule | route `search` | back.test "search", Search.shell |
 | Search: a town's "Water near …" list | back to all results (its "← All results") | SearchSheet `useBackLayer` | back.test "search" |
-| A water opened from search | back to search, query and selection kept | route `from` keeps `search` | route.test, Search.shell |
+| A water opened from a search result | the map it was searched over, search closed and its text gone, the camera framed on the water (× the same) | route `fromSearch`: `from` drops `search`; Shell `arrive` fit | route.test, Search.shell, back.test |
+| A water opened by a map tap beside the search sheet | back to search, query and selection kept (‹ says "Search") | route `from` keeps `search` | route.test, Search.shell |
 | A More page (Glossary, Data sources, …) | closes the page to the More tab; a glossary term first | MenuPage `useBackLayer` | back.test "More page", Menu.test |
 | Water screen, any view (Regulations · Conditions · Map) | leaves the water for the map it was tapped on (views are lateral: back never walks the strip) | route | back.test "water screen" |
 | A water flowed into (stack > 1) | back to the water it came from, at its part | route | back.test "flowed into" |

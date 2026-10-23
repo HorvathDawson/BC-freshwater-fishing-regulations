@@ -32,8 +32,14 @@ export const WATER_VIEWS_LABEL = "Views of this water";
  * leaves every water at once for that tab. `fromTab` is the tab's own name as the bottom bar prints it.
  */
 export const WATER_BACK = "Back";
-export function waterExit(depth: number, fromTab: string): { back: string; close: string } {
-  return { back: depth > 1 ? WATER_BACK : fromTab, close: `Close, back to ${fromTab}` };
+/**
+ * Where the first water's ‹ and × go when search is still open under it (a map tap beside the results — a water
+ * opened FROM a result consumed the search, so it names the tab).
+ */
+export const WATER_BACK_TO_SEARCH = "Search";
+export function waterExit(depth: number, fromTab: string, overSearch = false): { back: string; close: string } {
+  const to = overSearch ? WATER_BACK_TO_SEARCH : fromTab;
+  return { back: depth > 1 ? WATER_BACK : to, close: `Close, back to ${to}` };
 }
 
 /** The one labelled way from a Conditions reach to its water's rules (and its screen-reader hint). */

@@ -728,3 +728,24 @@ style.sha256. Palette D is otherwise untouched: no status, flow, lake or UI toke
   without a release): 1408 shows the Eve River tributary closure, 64035 the Salmon River tributary closure, 59506 the
   base only. The committed fixture holds none of the three, so the render test uses its unnamed 634 (Harris Creek
   tributary rules) and 817454 (Region 1 base only).
+## CLAUDE 2026-10-22 (late) — back from a searched water lands on the map, at the water: built
+- **Route** (`@app/ui` route.ts, one line in the reducer): the `openWater` action carries `fromSearch` (set only by the
+  opener's `searched`, i.e. a search result's open action, wide panel and phone sheet alike). From browse it makes `from`
+  the map underneath with `search: false` — the tab search was over (the Map tab, or the Conditions map when searched
+  there). Every water stacked above shares that `from`, so back from the first water and × from any of them land on the
+  map. The back depth is the same as search alone (search open = 1, the water = 1), so the browser keeps its ONE entry:
+  no orphan entry for the closed search, nothing pushed or dropped (back.test, web History).
+- **Map tap beside the half sheet is unchanged** (a tap, not a result): search stays under the water, and the ‹ / ×
+  now say so — `waterExit(depth, tab, overSearch)` names "Search" ("Close, back to Search") when `from.search` is open,
+  so the label names where back actually goes. A water opened from a result names the tab ("Map"), as it should.
+- **Camera** (Shell): the open from a result keeps the framing search gave the water (`session.focus`: its own outline
+  box, `refine` as search had it; the bundle's `waterBox` when search had not placed it yet) as `arrive`, and does NOT
+  restore the camera from before search. The browse map, coming back, is handed it as its `fit` (key
+  `arrive:<item>:<n>`, after a spot's "Show" and before a close's restore). Forgotten at the next move of the route after
+  landing, so a later water tapped on that map and left again does not drag the camera back. The search text is cleared
+  (`NO_SEARCH`): the search is consumed.
+- Pinned: route.test (whole route values both tabs, back / flow+back+back / close, depth), waterViews.test (wording),
+  Search.shell (back, ×, wide; the fit the map receives == the box search framed it with == `waterBox`; sent once; map
+  tap keeps search and says "Search"), back.test (Android: back → map → Android leaves; browser: one entry, back and ×).
+  Mutation pins run: keeping `search` in `from` fails 7 tests across the three files; dropping the `arrive` fit or the
+  label's `overSearch` fails 5 in Search.shell.

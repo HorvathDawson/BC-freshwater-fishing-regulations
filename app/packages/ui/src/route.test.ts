@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ItemId, SectionId } from "@app/data";
+import { backDepth } from "./gestures";
 import { HOME, STACK_CAP, bottomBarShown, frameViews, reduce, waterFrame, type Route, type RouteAction } from "./route";
 
 const VEDDER = "gnis:3062" as ItemId, FRASER = "gnis:39325" as ItemId, HARRISON = "gnis:5000" as ItemId;
@@ -119,10 +120,27 @@ describe("route (P13): one value, one back rule", () => {
       .toEqual([spots, more, { ...HOME, tab: "conditions" }, HOME, HOME]);
   });
 
-  it("(T48) a water opened from search comes back to search as it was, and the next back closes it", () => {
+  it("(T48) a water opened by a TAP on the map while searching (a phone's half sheet) comes back to search as it was, " +
+     "and the next back closes it", () => {
     const open = reduce(HOME, { type: "search", open: true });
-    const water = reduce(open, { type: "openWater", item: VEDDER });
+    const water = reduce(open, { type: "openWater", item: VEDDER, tapSid: 77 as SectionId });
     expect([reduce(water, { type: "back" }), run(water, { type: "back" }, { type: "back" })]).toEqual([open, HOME]);
+  });
+
+  it("(owner 2026-10-22 late) a water opened FROM A SEARCH RESULT consumes the search: back, and × from any water above " +
+     "it, land on the map it was searched over with search closed; the same back depth as search alone", () => {
+    const rows = (["map", "conditions"] as const).map((tab) => {
+      const open = run(HOME, { type: "tab", tab }, { type: "search", open: true });
+      const water = reduce(open, { type: "openWater", item: VEDDER, view: "regs", fromSearch: true });
+      const deeper = reduce(water, { type: "flowInto", item: FRASER, part: 0 });
+      return [water, reduce(water, { type: "back" }), run(deeper, { type: "back" }, { type: "back" }),
+              reduce(deeper, { type: "close" }), backDepth(open), backDepth(water)];
+    });
+    const landed = (tab: "map" | "conditions") => ({ ...HOME, tab });
+    expect(rows).toEqual((["map", "conditions"] as const).map((tab) => [
+      { mode: "water", from: landed(tab), stack: [{ item: VEDDER, part: null, tapSid: null, at: null, view: "regs" }] },
+      landed(tab), landed(tab), landed(tab), tab === "map" ? 1 : 2, tab === "map" ? 1 : 2,
+    ]));
   });
 
   it("(T48) a spot opened or added while searching is over the map: back returns to the map with search closed", () => {

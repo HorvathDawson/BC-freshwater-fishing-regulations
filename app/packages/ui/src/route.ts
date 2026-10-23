@@ -68,8 +68,9 @@ export interface BrowseRoute {
   spot: SpotId | null; adding: AddingSpot | null;
   /**
    * (T48) Search is open over this map: the top bar's field has focus or its results sheet is up. Back closes it first;
-   * a tab change closes it; a water opened from it keeps it, so back from the water returns to the results (the query
-   * and selection are the Shell's). Only on the maps (`SEARCH_TABS`).
+   * a tab change closes it. A water opened FROM A RESULT consumes it (owner 2026-10-22 late, `fromSearch`): back from the
+   * water lands on the map, search closed. A water opened by a tap on the map beside it keeps it. Only on the maps
+   * (`SEARCH_TABS`).
    */
   search: boolean;
   /**
@@ -89,7 +90,12 @@ export type RouteAction =
    * `view`: the view in front ("regs" when absent). `item` null: an unnamed reach (Regulations or Conditions; T53).
    */
   | { type: "openWater"; item: ItemId | null; tapSid?: SectionId | null; part?: number | null; at?: LatLon | null;
-      view?: View }
+      view?: View;
+      /**
+       * (Owner 2026-10-22 late, "back from a searched water lands on the map") Opened from a search result: the search
+       * is consumed — `from` is the map underneath with search CLOSED, so back and × land on the map, not the list.
+       */
+      fromSearch?: boolean }
   /** (T48) Open or close search over the map on screen. */
   | { type: "search"; open: boolean }
   | { type: "view"; view: View }
@@ -172,7 +178,7 @@ export function reduce(r: Route, a: RouteAction): Route {
         return { ...r, search: a.open };
       case "openWater": {
         const f = opened(a);
-        return f === null ? r : { mode: "water", from: r, stack: [f] };
+        return f === null ? r : { mode: "water", from: a.fromSearch ? { ...r, search: false } : r, stack: [f] };
       }
       // a spot opens over the map it was picked on (the rail's menu); back returns to that map
       case "openSpot": return { ...r, spot: a.id, adding: null, search: false };
