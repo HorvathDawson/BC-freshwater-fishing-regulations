@@ -612,18 +612,58 @@ def _mouths_at(graph: StreamGraph, nid: str, n, m: float,
     That is how "No Fishing downstream of the main logging road bridge, May 1-31" on the
     CHEHALIS — a `downstream_of` whose window runs to measure 0, i.e. to the mouth — bound two
     sections of the HARRISON, which is the river the Chehalis empties into.
+
+    The Strahler guard did not end that (T90): the two Harrison pieces are SIDE CHANNELS, order
+    2 against the Chehalis's 5, and were reached another way — see `MOUTH_SEEDS_ONLY_AT_THE_CUT`
+    and `THE_RECEIVING_RIVER_IS_NEVER_A_SEED`.
     """
     out: set[str] = set()
-    for ei in graph.down_adj.get(nid, []):
-        below = graph.edges[ei].to_node
-        for fi in graph.up_adj.get(below, []):
+    downs = [graph.edges[ei] for ei in graph.down_adj.get(nid, [])]
+    if MOUTH_SEEDS_ONLY_AT_THE_CUT:
+        downs = [e for e in downs
+                 if (b := graph.nodes.get(e.to_node)) is not None and b.blk == n.blk]
+        if not downs or any(e.to_node in reach for e in downs):
+            return out                 # the reach's mouth, or its line goes on below it in the reach
+    for e in downs:
+        for fi in graph.up_adj.get(e.to_node, []):
             f = graph.edges[fi]
             src = graph.nodes.get(f.from_node)
             if (f.from_node not in reach and src is not None and src.blk != n.blk
                     and f.kind == "confluence" and abs(f.at_measure - m) < 0.5
-                    and not _breaks_strahler(src, n)):
+                    and not _breaks_strahler(src, n)
+                    and not (THE_RECEIVING_RIVER_IS_NEVER_A_SEED and _receives(src, n))):
                 out.add(f.from_node)
     return out
+
+
+#: TRIBUTARY MOUTHS ARE SEEDED ONLY AT A CUT, FROM THE PIECE BELOW IT ON THE REACH'S OWN LINE (T90,
+#: 2026-10-22). The seeding exists for a cut anchored on a confluence ("upstream of the confluence
+#: with Slesse Creek") whose creek FWA hung on the piece BELOW the cut; the measure it compares is
+#: the cut's, on the reach's line. So: only the reach piece AT the cut seeds (not one whose line goes
+#: on below it inside the reach), only through the piece below it ON ITS LINE (never a distributary
+#: leaving it for another line), and never at the reach's natural MOUTH, where nothing of its line
+#: lies below and everything arriving is joining the receiving river, not the reach — the no-window
+#: path (`_mouths_at_lower_bound` without a window) already skipped a piece with no lower bound.
+#: Before this, every reach piece on the window's line compared the window's lower measure with the
+#: measures of WHATEVER line it flowed into. The Chehalis piece above the mouth piece
+#: (356364028:3592) splits into a Harrison side channel (355992873:0) at 865 m on THAT channel; a
+#: second channel (355992877:0) joins the first at its measure 0.0 — and the "downstream of the
+#: bridge" window also starts at 0, the Chehalis's mouth. So the second channel was seeded and the
+#: walk climbed the first. At a mouth the window's 0 matched water joining the RECEIVING river at
+#: the receiving river's own measure 0, kilometres away. Switch it off and both come back.
+MOUTH_SEEDS_ONLY_AT_THE_CUT = True
+
+#: THE RECEIVING RIVER IS NEVER A SEED, AT ANY ORDER (T90). A water whose watershed code is a strict
+#: ancestor of the reach's ("100-077501" the Harrison over "100-077501-094860" the Chehalis) is the
+#: river the reach flows into — or one of its side channels, which carry its code at a small order
+#: and so pass `_breaks_strahler`. Only seeding asks this; the walk itself is untouched.
+THE_RECEIVING_RIVER_IS_NEVER_A_SEED = True
+
+
+def _receives(src, n) -> bool:
+    """Does `src` carry the code of a water `n` drains into (a strict ancestor of `n`'s code)?"""
+    a, b = getattr(src, "wsc", "") or "", getattr(n, "wsc", "") or ""
+    return bool(a and b and b.startswith(a + "-"))
 
 
 def _is_main_outlet(graph: StreamGraph, lake_id: str, out_id: str) -> bool:

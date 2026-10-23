@@ -84,7 +84,11 @@ from typing import Callable
 #: 21: (reviewer 2026-10-22) `between` across two lines takes the nearest candidate pair that still
 #:     keeps the upper cut above the lower one — a tributary joining the lower line on its lake piece
 #:     no longer leaves the cuts unordered.
-POLICY_VERSION = "21"
+#: 22: (T90 2026-10-22) the mouth seeding happens only at the reach's lower cut and compares a measure on
+#:     the line it belongs to (`tributaries.MOUTH_SEEDS_ONLY_AT_THE_CUT`); a water carrying a code the
+#:     reach drains into is never seeded (`tributaries.THE_RECEIVING_RIVER_IS_NEVER_A_SEED`) — the
+#:     Chehalis closure no longer binds two Harrison side channels.
+POLICY_VERSION = "22"
 
 
 def entry_key(entry: dict, build_id: str, policy_version: str = POLICY_VERSION) -> str:

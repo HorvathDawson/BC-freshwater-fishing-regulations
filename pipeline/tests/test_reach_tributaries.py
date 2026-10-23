@@ -771,15 +771,16 @@ def test_order_zero_is_unknown_only_outside_bc(monkeypatch):
 
 
 def test_an_order_zero_stub_inside_bc_does_not_seed_the_river_it_joins():
-    """Code review A-3, the Chehalis/Harrison class: a reach that is a B.C. order-0 stub, ending at
-    its mouth, must not pick up the bigger river arriving at that confluence (`_mouths_at`). Order 0
-    is unknown only OUTSIDE B.C.; inside it is judged. MUTATION: mark the stub `out_of_bc` and the
-    river (order 5) is seeded."""
+    """Code review A-3: a reach that is a B.C. order-0 stub must not pick up a bigger river arriving
+    at its cut (`_mouths_at`). Order 0 is unknown only OUTSIDE B.C.; inside it is judged. MUTATION:
+    mark the stub `out_of_bc` and the river (order 5) is seeded. (Built as a CUT since T90: at a
+    reach's mouth nothing is seeded at all.)"""
     from pipeline.atlas.graph.tributaries import _mouths_at
     def world(stub_out):
         stub = dataclasses.replace(_n("s:0", order=0, blk="s"), out_of_bc=stub_out)
-        nodes = [stub, _n("R:lo", order=5, blk="R"), _n("H:0", order=5, blk="H")]
-        return _g(nodes, [("s:0", "R:lo", "confluence", 0.0), ("H:0", "R:lo", "confluence", 0.0)])
+        nodes = [stub, _n("s:below", order=0, blk="s"), _n("H:0", order=5, blk="H")]
+        return _g(nodes, [("s:0", "s:below", "continuation", 0.0),
+                          ("H:0", "s:below", "confluence", 0.0)])
     g = world(False)
     assert _mouths_at(g, "s:0", g.nodes["s:0"], 0.0, frozenset({"s:0"})) == set()
     g = world(True)
@@ -787,105 +788,118 @@ def test_an_order_zero_stub_inside_bc_does_not_seed_the_river_it_joins():
 
 
 # --------------------------------------------------------------------------- #
-# A tributary walk never enters the ENTRY'S OWN water (2026-10-10)
+# T90 — the Chehalis "downstream of the main logging road bridge, May 1-31" closure bound two
+# HARRISON side channels (live sids 59983, 59984 = 355992873:0, 355992877:0, both off_stem)
 # --------------------------------------------------------------------------- #
 
-@pytest.fixture
-def vedder():
-    """The Chilliwack/Vedder shape: one row, two rivers on two blue lines.
+CHEHALIS_WSC, HARRISON_WSC = "100-077501-094860", "100-077501"
 
-        chil_up  <- chil_trib_up                  (own water, upper)
-          |  continuation
-        chil_low <- chil_trib                     (own water — FWA codes it a TRIBUTARY of the Vedder)
-          |  confluence (equal order, child code)
-        v_top                                     reach  ("downstream of Vedder Crossing Bridge")
-          |  continuation
-        v_low    <- v_trib <- v_trib_up           reach, with a true tributary
-          |
-        side  <- creek_above_lake <- own_lake <- ... a true tributary carrying a lake the row names
+
+def _w(nid, *, order, wsc, down_m=0.0):
+    return dataclasses.replace(_n(nid, order=order), wsc=wsc, down_m=down_m)
+
+
+def _chehalis(*, codes=True):
+    """The live atlas around the Chehalis mouth (2026-10-22 bundle), reduced to what the seeding
+    reads. `codes=False` blanks every watershed code, so only the topology tells the pieces apart.
+
+        C:3592 (Chehalis, order 5, reach)  --confluence @865.4-->  HS1:0 (Harrison side channel, order 2)
+           |  continuation @3592.9                                   ^  confluence @0.0
+        C:0    (Chehalis, order 5, reach — its mouth)               HS2:0 (Harrison side channel, order 2)
+           |  confluence @8413.3                                     |  confluence @8603.0
+        H:2297 (Harrison, order 7)  <---------------------------------+
+
+    The reach is "downstream of the bridge": its window on the Chehalis runs to measure 0.
     """
-    def n(nid, order, wsc):
-        return dataclasses.replace(_n(nid, order=order), wsc=wsc)
-    nodes = [n("v_low", 6, "100-1"), n("v_top", 6, "100-1"),
-             n("chil_low", 6, "100-1-9"), n("chil_up", 6, "100-1-9"),
-             n("chil_trib", 2, "100-1-9-3"), n("chil_trib_up", 1, "100-1-9-3"),
-             n("v_trib", 2, "100-1-4"), n("v_trib_up", 1, "100-1-4"),
-             n("side", 2, "100-1-5"),
-             dataclasses.replace(_n("own_lake", order=2, kind=NodeKind.lake), wsc="100-1-5"),
-             n("creek_above_lake", 1, "100-1-5")]
-    edges = [("v_top", "v_low", "continuation"),
-             ("chil_low", "v_top", "confluence"),
-             ("chil_up", "chil_low", "continuation"),
-             ("chil_trib", "chil_low", "confluence"),
-             ("chil_trib_up", "chil_up", "confluence"),
-             ("v_trib", "v_low", "confluence"),
-             ("v_trib_up", "v_trib", "continuation"),
-             ("side", "v_low", "confluence"),
-             ("own_lake", "side", "lake_out"),
-             ("creek_above_lake", "own_lake", "lake_in")]
+    c = CHEHALIS_WSC if codes else ""
+    h = HARRISON_WSC if codes else ""
+    nodes = [_w("C:0", order=5, wsc=c), _w("C:3592", order=5, wsc=c, down_m=3592.9),
+             _w("HS1:0", order=2, wsc=h), _w("HS2:0", order=2, wsc=h),
+             _w("H:2297", order=7, wsc=h, down_m=2297.9)]
+    edges = [("C:3592", "C:0", "continuation", 3592.9),
+             ("C:3592", "HS1:0", "confluence", 865.4),    # a distributary into a Harrison channel
+             ("HS2:0", "HS1:0", "confluence", 0.0),       # ...where a sibling sits at measure 0
+             ("HS1:0", "HS2:0", "confluence", 720.1),
+             ("C:0", "H:2297", "confluence", 8413.3),
+             ("HS2:0", "H:2297", "confluence", 8603.0),
+             ("H:2297", "HS2:0", "confluence", 916.6)]
     return _g(nodes, edges)
 
 
-V_REACH = {"v_low", "v_top"}
-V_OWN = {"v_low", "v_top", "chil_low", "chil_up", "own_lake"}   # every section the ENTRY matches
+CHEHALIS_REACH = frozenset({"C:0", "C:3592"})
+CHEHALIS_WINDOW = ("C", 0.0, 5362.5)
 
 
-def test_the_walk_never_enters_the_entrys_own_water_past_the_cut(vedder):
-    """The Chilliwack joins the Vedder's top piece by a `confluence` edge, and FWA codes it a
-    tributary — but it is the row's own water above the cut, governed by its own rules' extents.
-    "Downstream of Vedder Crossing Bridge, including tributaries" binds the Vedder's creeks, never the
-    Chilliwack nor the streams feeding it."""
-    got = tributaries_of_reach(vedder, V_REACH, own=V_OWN)
-    assert not got & {"chil_low", "chil_up", "chil_trib", "chil_trib_up"}
-    assert {"v_trib", "v_trib_up", "side"} <= got
+def test_t90_the_chehalis_reach_binds_no_harrison_side_channel():
+    """Live: `chehalis_river.r2` bound 355992877:0 by the mouth seeding and 355992873:0 by the
+    walk above it. The window's lower measure (0, the mouth) was compared with the measure of an
+    edge on ANOTHER blue line — a Harrison side channel's — where 0 means that channel's mouth."""
+    g = _chehalis()
+    assert _mouths_at_lower_bound(g, CHEHALIS_REACH, CHEHALIS_WINDOW) == set()
+    assert tributaries_of_reach(g, CHEHALIS_REACH, window=CHEHALIS_WINDOW) == frozenset()
 
 
-def test_own_water_met_above_a_true_tributary_is_walked_through_not_collected(vedder):
-    """A lake the row names on one of its river's creeks is the row's (its extent's), never the
-    walk's — but the creek feeding it is still a tributary of the reach."""
-    got = tributaries_of_reach(vedder, V_REACH, own=V_OWN)
-    assert "own_lake" not in got
-    assert "creek_above_lake" in got
+def test_t90_only_the_piece_AT_the_cut_seeds_and_in_its_own_line_s_measures(monkeypatch):
+    """MUTATION (`MOUTH_SEEDS_ONLY_AT_THE_CUT`): with the codes silent, only the topology can say
+    C:3592 is not at the cut — its own line goes on below it INSIDE the reach — and that the
+    sibling's 0.0 is a measure on the side channel's line, not the Chehalis's. Off, the two live
+    sections come back exactly."""
+    from pipeline.atlas.graph import tributaries as T
+    g = _chehalis(codes=False)
+    assert tributaries_of_reach(g, CHEHALIS_REACH, window=CHEHALIS_WINDOW) == frozenset()
+    monkeypatch.setattr(T, "MOUTH_SEEDS_ONLY_AT_THE_CUT", False)
+    assert tributaries_of_reach(g, CHEHALIS_REACH, window=CHEHALIS_WINDOW) == {"HS1:0", "HS2:0"}
 
 
-def test_mutation_without_the_rule_the_walk_climbs_the_chilliwack(vedder, monkeypatch):
-    """Switch the principle off and the regression is back: the walk takes the row's own upstream
-    river and every stream feeding it (1,820 sections on the live atlas)."""
-    import pipeline.atlas.graph.tributaries as T
-    monkeypatch.setattr(T, "THE_WALK_NEVER_ENTERS_THE_ENTRYS_OWN_WATER", False)
-    got = T.tributaries_of_reach(vedder, V_REACH, own=V_OWN)
-    assert {"chil_low", "chil_up", "chil_trib", "chil_trib_up"} <= got
+def test_t90_a_receiving_river_s_channel_at_the_cut_is_not_seeded(monkeypatch):
+    """A channel carrying the RECEIVING river's own code is a side channel of that river: its order
+    is small, so the Strahler guard passes it. Met at a cut it is still never the reach's
+    tributary; a creek of the reach's own river at the same point is. MUTATION
+    (`THE_RECEIVING_RIVER_IS_NEVER_A_SEED`): off, the Harrison channel is seeded."""
+    from pipeline.atlas.graph import tributaries as T
+    g = _g([_w("C:0", order=5, wsc=CHEHALIS_WSC),
+            _w("C:3592", order=5, wsc=CHEHALIS_WSC, down_m=3592.9),
+            _w("HS3:0", order=2, wsc=HARRISON_WSC),
+            _w("K:0", order=2, wsc=CHEHALIS_WSC + "-073263")],      # a creek of the Chehalis
+           [("C:3592", "C:0", "continuation", 3592.9),
+            ("HS3:0", "C:0", "confluence", 3592.9),
+            ("K:0", "C:0", "confluence", 3592.9)])
+    reach, window = frozenset({"C:3592"}), ("C", 3592.9, 5362.5)
+    assert _mouths_at_lower_bound(g, reach, window) == {"K:0"}
+    monkeypatch.setattr(T, "THE_RECEIVING_RIVER_IS_NEVER_A_SEED", False)
+    assert _mouths_at_lower_bound(g, reach, window) == {"HS3:0", "K:0"}
 
 
-def test_the_expander_hands_the_walk_every_item_the_entry_matches(vedder, monkeypatch):
-    """`reach.build._expander` builds `own` from the ENTRY's `matched` items — not only the item the
-    extent names (r4–r9 name none; their scope is the cut)."""
-    from types import SimpleNamespace
-    from pipeline.atlas.reach.build import _expander
-    import pipeline.atlas.graph.tributaries as T
-    registry = {"gnis:vedder": SimpleNamespace(section_ids=("v_low", "v_top")),
-                "gnis:chilliwack": SimpleNamespace(section_ids=("chil_low", "chil_up"))}
-    entry = {"entry_id": "e", "matched": ["gnis:chilliwack", "gnis:vedder"], "rules": []}
-    rule = {"rule_id": "r7", "extents": []}
-    covered = list(entry["matched"])
-    expand = _expander(vedder, registry, covered, rule, entry)
-    got = expand(frozenset(V_REACH))
-    assert not got & {"chil_low", "chil_up", "chil_trib", "chil_trib_up"}
-    assert {"v_low", "v_top", "v_trib", "v_trib_up"} <= got
-    monkeypatch.setattr(T, "THE_WALK_NEVER_ENTERS_THE_ENTRYS_OWN_WATER", False)
-    expand = _expander(vedder, registry, covered, rule, entry)
-    assert {"chil_trib", "chil_trib_up"} <= expand(frozenset(V_REACH))
+def test_t90_a_reach_running_to_its_mouth_seeds_nothing(monkeypatch):
+    """A `downstream_of` window runs to measure 0, the mouth. Everything arriving there joins the
+    RECEIVING river (the Harrison takes the Chehalis at 8413.3 on its own line). MUTATION
+    (`MOUTH_SEEDS_ONLY_AT_THE_CUT`): off, the window's 0 is compared with the Harrison's measures and
+    seeds a creek joining the Harrison at the Harrison's own mouth, kilometres away."""
+    from pipeline.atlas.graph import tributaries as T
+    g = _g([_w("C:0", order=5, wsc=CHEHALIS_WSC), _w("H:2297", order=7, wsc=HARRISON_WSC),
+            _w("far:0", order=2, wsc=HARRISON_WSC + "-000100"),
+            _w("near:0", order=2, wsc=HARRISON_WSC + "-094861")],
+           [("C:0", "H:2297", "confluence", 8413.3),
+            ("far:0", "H:2297", "confluence", 0.0),
+            ("near:0", "H:2297", "confluence", 8413.3)])
+    reach, window = frozenset({"C:0"}), ("C", 0.0, 3592.9)
+    assert _mouths_at_lower_bound(g, reach, window) == set()
+    assert tributaries_of_reach(g, reach, window=window) == frozenset()
+    monkeypatch.setattr(T, "MOUTH_SEEDS_ONLY_AT_THE_CUT", False)
+    assert _mouths_at_lower_bound(g, reach, window) == {"far:0"}
 
 
-def test_a_side_channel_of_the_reachs_own_river_is_not_own_water_past_the_cut(vedder):
-    """A piece of the row's water carrying the reach's OWN watershed code is a side channel beside the
-    stretch (the Old Kootenay River Channel across the Creston flats), not the water going on past a
-    cut: the walk keeps it and the creeks draining through it."""
-    def n(nid, order, wsc):
-        return dataclasses.replace(_n(nid, order=order), wsc=wsc)
-    g = _g(list(vedder.nodes.values()) + [n("v_side", 1, "100-1"), n("side_creek", 1, "100-1-7")],
-           [(e.from_node, e.to_node, e.kind) for e in vedder.edges]
-           + [("v_side", "v_low", "confluence"), ("side_creek", "v_side", "confluence")])
-    got = tributaries_of_reach(g, V_REACH, own=V_OWN | {"v_side"})
-    assert {"v_side", "side_creek"} <= got
-    assert not got & {"chil_low", "chil_trib"}
+def test_t90_a_distributary_at_the_cut_is_not_a_way_in(monkeypatch):
+    """At a cut, only the piece below it ON THE REACH'S LINE is looked at. A distributary leaving
+    the cut piece for a side channel, with a creek joining that channel at the cut's measure (a
+    measure on another line), is not "at the cut". MUTATION (`MOUTH_SEEDS_ONLY_AT_THE_CUT`)."""
+    from pipeline.atlas.graph import tributaries as T
+    g = _g([_w("C:0", order=5, wsc=""), _w("C:3592", order=5, wsc="", down_m=3592.9),
+            _w("SC:0", order=2, wsc=""), _w("x:0", order=1, wsc="")],
+           [("C:3592", "C:0", "continuation", 3592.9),
+            ("C:3592", "SC:0", "confluence", 10.0),
+            ("x:0", "SC:0", "confluence", 3592.9)])
+    reach, window = frozenset({"C:3592"}), ("C", 3592.9, 5362.5)
+    assert _mouths_at_lower_bound(g, reach, window) == set()
+    monkeypatch.setattr(T, "MOUTH_SEEDS_ONLY_AT_THE_CUT", False)
+    assert _mouths_at_lower_bound(g, reach, window) == {"x:0"}

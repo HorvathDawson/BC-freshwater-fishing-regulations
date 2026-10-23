@@ -173,25 +173,38 @@ class _Stub:
         self.down_adj, self.up_adj = down_adj, up_adj
 
 
-def _confluence_stub(sibling_order):
+def _confluence_stub(sibling_order, *, at_mouth=False):
     """A reach node whose piece below carries one sibling arriving at the same measure.
 
-    `sibling_order` is the whole experiment: 1 is a creek, 9 is the river the reach drains
-    into. Everything else about the two is identical.
+    `sibling_order` is the whole experiment: 1 is a creek, 9 is a bigger river. Everything else
+    about the two is identical. The piece below is the reach's own line below its CUT
+    (`at_mouth=False`) or, at the reach's mouth, the receiving river (order 9) — where nothing is
+    seeded at all (T90, `tributaries.MOUTH_SEEDS_ONLY_AT_THE_CUT`).
     """
     nodes = {"reach": _Node("C", 3, "300"),
-             "below": _Node("H", 9, "200"),
+             "below": _Node("H", 9, "200") if at_mouth else _Node("C", 3, "300"),
              "sibling": _Node("S", sibling_order, "200-1")}
-    edges = [_Edge("reach", "below", "confluence", 0.0),
+    edges = [_Edge("reach", "below", "confluence" if at_mouth else "continuation", 0.0),
              _Edge("sibling", "below", "confluence", 0.0)]
     return _Stub(nodes, edges, {"reach": [0], "sibling": [1]}, {"below": [0, 1]})
 
 
-def test_a_side_creek_at_the_mouth_is_seeded():
+def test_a_side_creek_at_the_cut_is_seeded():
     from pipeline.atlas.graph.tributaries import _mouths_at
     g = _confluence_stub(sibling_order=1)
     got = _mouths_at(g, "reach", g.nodes["reach"], 0.0, frozenset({"reach"}))
-    assert got == {"sibling"}, "a genuine side creek at the mouth was lost"
+    assert got == {"sibling"}, "a genuine side creek at the cut was lost"
+
+
+def test_a_creek_joining_the_receiving_river_at_the_reach_s_mouth_is_not_seeded(monkeypatch):
+    """At a reach's natural mouth the creek beside it joins the RECEIVING river: a tributary of
+    that river, not of the reach (T90). MUTATION: `MOUTH_SEEDS_ONLY_AT_THE_CUT` off seeds it, as
+    this test asserted before 2026-10-22 (`test_a_side_creek_at_the_mouth_is_seeded`)."""
+    from pipeline.atlas.graph import tributaries as T
+    g = _confluence_stub(sibling_order=1, at_mouth=True)
+    assert T._mouths_at(g, "reach", g.nodes["reach"], 0.0, frozenset({"reach"})) == set()
+    monkeypatch.setattr(T, "MOUTH_SEEDS_ONLY_AT_THE_CUT", False)
+    assert T._mouths_at(g, "reach", g.nodes["reach"], 0.0, frozenset({"reach"})) == {"sibling"}
 
 
 def test_the_river_the_reach_drains_into_is_not_seeded():
@@ -199,8 +212,9 @@ def test_the_river_the_reach_drains_into_is_not_seeded():
 
     It arrives on its own blue line, by a `confluence` edge, at exactly the reach's lower
     measure — so only the Strahler guard tells it apart from the creek above. The walk has
-    always applied that guard; the seeding did not, and so "No Fishing downstream of the main
-    logging road bridge, May 1-31" on the CHEHALIS bound two sections of the HARRISON.
+    always applied that guard; the seeding did not. (This was believed to be how the Chehalis
+    closure bound two Harrison sections; it was not — T90: those are side channels, order 2, and
+    were reached through a distributary, `test_t90_*` in test_reach_tributaries.py.)
     """
     from pipeline.atlas.graph.tributaries import _mouths_at
     g = _confluence_stub(sibling_order=9)
