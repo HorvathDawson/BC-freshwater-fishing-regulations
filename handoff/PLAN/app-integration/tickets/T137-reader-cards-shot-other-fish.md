@@ -36,3 +36,5 @@ Depends: none (T41's tool). Size: S + a reader run. Owner: Claude (Q13).
 - Re-shot: light + dark sets (39 PNGs each, every prompt-gate39.md name present). ur1-kootenay-lwa-oct10-cards ends with
   Other fish, "Kokanee · Weekends: keep 5 · Weekdays: release", 5 a day; ur2 (Mon Oct 12) kokanee row says release.
 - Still open from Work: the fresh Opus reader run on the new set (39/39 acceptance) is not part of this commit.
+- Reader re-run 2026-10-23 (reader/2026-10-23-app-rerun.md): 39/39 light and dark. Q12 answered from the cards
+  (Sat 5, Mon 0) at conf 5 in both themes. No drop >= 2.
