@@ -117,6 +117,32 @@ def test_gate_stores_an_alias_split_canonically_and_leaves_its_input_alone():
     assert e["rules"][0]["extents"][0]["splits"] == ["alias_cut"]
 
 
+def test_a_cut_pick_moves_with_its_alias():
+    """T119 review: `cut_pick` is keyed by split id and the model refuses a key not among the
+    extent's splits — the gate respelled the split and left its pick behind, so an entry the app
+    used to save was refused (or, through a remap, its pick would decide nothing)."""
+    e = _entry(extents=[{"op": "upstream_of", "splits": ["alias_cut"],
+                         "cut_pick": {"alias_cut": "lower"}}])
+    v = _gate(e)
+    assert v.ok, (v.refusals, v.model_error)
+    assert (v.entry.rules[0].extents[0]["splits"], v.entry.rules[0].extents[0]["cut_pick"]) == (
+        ["real_cut"], {"real_cut": "lower"})
+
+
+def test_a_boundarys_own_id_is_never_respelled():
+    """T119 review, the Campbell River shape: the lake boundary `campbell_river__john_hart_lake` is
+    a boundary of its own AND an alias of the John Hart Dam split. A curator who bound the lake
+    keeps the lake; only an id that is no boundary's own is stored as its boundary's."""
+    menu = {"bindable_ids": ["lake_b", "dam_b"],
+            "boundaries": [["lake_b", "", "lake", []], ["dam_b", "", "split", ["lake_b", "x"]]],
+            "bindable_by_item": {"keep": ["lake_b", "dam_b", "lake_b", "x"]}}
+    v = _gate(_entry(extents=[{"op": "upstream_of", "splits": ["lake_b"], "item_id": "keep"},
+                              {"op": "downstream_of", "splits": ["x"], "item_id": "keep"}]),
+              menu=menu)
+    assert v.ok, v.refusals
+    assert [x["splits"] for x in v.entry.rules[0].extents] == [["lake_b"], ["dam_b"]]
+
+
 def test_the_gate_never_widens_a_bare_rule():
     """`default_extents` is ingest's normalisation of a parser's bare rule, never the gate's: a
     curator who empties a rule's extents is refused, not handed the whole water (AGENTS 13)."""

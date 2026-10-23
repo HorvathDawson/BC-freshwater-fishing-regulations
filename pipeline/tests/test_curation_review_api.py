@@ -771,6 +771,30 @@ def test_a_pointer_row_has_no_unused_splits(env):
     assert bc["status"] != "unused_splits" and bc["unused_curated_splits"] == 0
 
 
+def test_a_cut_bound_only_by_a_licensing_record_is_used(env):
+    """T119 review: `unused_curated_splits` walked the scope and the rules' extents only, so the
+    two Skeena cuts that only its classified-water record binds were listed as unused."""
+    d = _get(env, "r6:skeena_river_mainstem_only@6-10")
+    unused = {u["id"] for u in d["unused_curated_splits"]}
+    assert unused, "the Skeena has curated cuts its rules do not bind"
+    assert not unused & {"skeena_river__kitsumkalum_river_into_skeena_river_u1500m",
+                         "area:SKEENA RIVER ECOLOGICAL RESERVE"}
+
+
+def test_the_app_spells_cut_points_as_the_parse_menu_does(env):
+    """T119 review: ONE gate needs one menu spelling. The app's cut-points read the picker's
+    display aliases (every prefix stripped: `329069968`), the parse menu's keep `lake:329069968`
+    — so each accepted an alias the other refused. Every built boundary of the Campbell River
+    (12 `lake:` aliases corpus-wide, two of them here) now reads the same in both."""
+    from pipeline.atlas.registry import load_registry
+    from pipeline.regs.parsing.validate_catalogue import registry_cut_points
+    reuse = env["reuse"]
+    pipe = dict(registry_cut_points(load_registry(str(GENERATED.registry())))("gnis:39532"))
+    app = dict(reuse._cut_points("gnis:39532"))
+    assert {k: app[k] for k in pipe} == pipe
+    assert "lake:329069968" in pipe["campbell_river__ladore_dam"]
+
+
 def test_minted_cuts_are_not_orphans_or_unused(env):
     d = _get(env, "r5:dean_river@5-9")
     minted = [b for b in d["item"]["boundaries"] if b.get("minted")]

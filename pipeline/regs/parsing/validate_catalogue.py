@@ -47,17 +47,25 @@ def boundary_ids(item: dict) -> tuple[set[str], dict[str, str]]:
 
     A cut-point can answer to several authored ids — "McIntyre Dam" and the gauge that resolved to
     the identical measure are one point, and a confluence is named from either bank. Both BIND,
-    because `extent.py` resolves either. Only one is STORED."""
+    because `extent.py` resolves either. Only one is STORED.
+
+    AN ID THAT IS A BOUNDARY'S OWN ID IS NEVER REWRITTEN, even where another boundary lists it as
+    an alias. The Campbell River holds the lake boundary `campbell_river__john_hart_lake` AND the
+    split `campbell_river__john_hart_dam_power_station`, which lists the lake id among its aliases;
+    mapping every alias to its boundary turned a curator's "John Hart Lake" into the dam (another
+    boundary, another kind and label in the reach run's cuts) on the next save (T119 review)."""
     allowed: set[str] = set(item.get("bindable_ids") or ())
     canon: dict[str, str] = {}
+    own: set[str] = set()
     for b in (item.get("boundaries") or ()):
         if not b:
             continue
         allowed.add(b[0])
+        own.add(b[0])
         for a in (b[3] if len(b) > 3 else ()):
             allowed.add(a)
             canon[a] = b[0]
-    return allowed, canon
+    return allowed, {a: c for a, c in canon.items() if a not in own}
 
 
 def default_extents(data: dict) -> int:
@@ -194,7 +202,23 @@ def canonicalise_splits(data: dict, item: dict) -> list[tuple[tuple, str]]:
                                    f"carries {sid!r}, or bind a cut-point on that water"))
         if fixed:
             ex["splits"] = fixed
+            rename_cut_picks(ex, canon)
     return errors
+
+
+def rename_cut_picks(ex: dict, renamed: dict[str, str]) -> None:
+    """A `cut_pick` is keyed by the split id it decides (`Extent.cut_pick`, which refuses a key not
+    among the extent's `splits`). Wherever a split id is respelled — an alias stored canonically
+    (`canonicalise_splits`), a boundary renamed by a rebuild (`remap_boundaries`) — its pick is
+    respelled with it, IN PLACE; otherwise the entry is refused, or the pick silently decides
+    nothing (T119 review). Two keys landing on one id keep the first written."""
+    picks = ex.get("cut_pick")
+    if not isinstance(picks, dict) or not any(k in renamed for k in picks):
+        return
+    out: dict = {}
+    for k, v in picks.items():
+        out.setdefault(renamed.get(k, k), v)
+    ex["cut_pick"] = out
 
 
 
@@ -501,8 +525,8 @@ def _field_path(field: str) -> list:
 
 def split_parents_named(entry_data: dict) -> list[tuple[tuple, str]]:
     """A LAKE CUT INTO PARTS IS NOT A PLACE A RECORD MAY NAME — `matched`, or an extent's
-    `item_id`/`item_ids`/`outside_items`, naming Kootenay, Williston or Shannon Lake rather than its
-    parts binds a ghost section (`pipeline.atlas.waters.added_lakes.split_parents`). Refused here,
+    `item_id`/`item_ids` (never `outside_items`, which subtracts: `walk.ref_key`), naming Kootenay,
+    Williston or Shannon Lake rather than its parts binds a ghost section (`pipeline.atlas.waters.added_lakes.split_parents`). Refused here,
     at ingest and in the review app, and again by the reach builder. `(path, message)` pairs."""
     from pipeline.atlas.waters.added_lakes.split_parents import refs_to_parents_at, split_parents
     return refs_to_parents_at(entry_data, split_parents())

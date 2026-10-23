@@ -20,6 +20,10 @@ MUTATION PINS — which mutation fails which test:
         -> test_a_split_parent_may_be_subtracted_never_bound
   * a checker module reading `tributary_excludes` / licensing extents by key again
         -> test_no_checker_or_remapper_lists_extent_places_itself
+  * a checker walking the scope + rules' extents only (`unused_curated_splits` did)
+        -> test_no_checker_walks_the_rules_extents_itself
+  * `rename_cut_picks` dropped from `apply_remap` -> test_remap_writes_the_pick_with_its_split
+  * `apply_remap` rewriting every extent once any hit -> the same
 """
 
 from __future__ import annotations
@@ -144,6 +148,47 @@ def test_remap_sees_all_five_places(tmp_path):
     assert rep["changed"] == [("3", "e1", sorted((s, s + "_new") for s in ALL_SPLITS))]
 
 
+def test_remap_moves_a_cut_pick_and_leaves_other_extents_alone(tmp_path):
+    """T119 review: a remapped split takes its `cut_pick` with it (the file is validated as
+    written, and a pick keyed by the old id is refused — the whole remap failed), and an extent
+    that names no remapped split is left exactly as it was (no `splits: []` added to it)."""
+    import json
+    from pipeline.regs.parsing.remap_boundaries import apply_remap
+    from pipeline.regs.parsing.validate_catalogue import rename_cut_picks
+    e = copy.deepcopy(FIVE)
+    e["licensing"][0]["extents"][0]["cut_pick"] = {"s_lic": "lower"}
+    e["rules"][1]["extents"].insert(0, {"op": "whole"})
+    (tmp_path / "region-3.json").write_text(json.dumps({"region": "3", "entries": [e]}))
+    rep = apply_remap(tmp_path, {"s_lic": "s_lic_new"}, dry_run=True)
+    assert rep["changed"] == [("3", "e1", [("s_lic", "s_lic_new")])]
+    ex = {"splits": ["s_lic_new"], "cut_pick": {"s_lic": "lower"}}
+    rename_cut_picks(ex, {"s_lic": "s_lic_new"})
+    assert ex == {"splits": ["s_lic_new"], "cut_pick": {"s_lic_new": "lower"}}
+
+
+def test_remap_writes_the_pick_with_its_split(tmp_path, monkeypatch):
+    import json
+    from pipeline.regs.parsing import remap_boundaries as R
+    e = copy.deepcopy(FIVE)
+    e["licensing"][0]["extents"][0]["cut_pick"] = {"s_lic": "lower"}
+    e["rules"][1]["extents"].insert(0, {"op": "whole"})
+    e["licensing"][0]["tributary_excludes"].append({"op": "whole", "item_id": "i:after"})
+    (tmp_path / "region-3.json").write_text(json.dumps({"region": "3", "entries": [e]}))
+    written = {}
+    monkeypatch.setattr(R.io, "read_entryfile",
+                        lambda path: {x["entry_id"]: x for x in json.loads(path.read_text())["entries"]})
+    monkeypatch.setattr(R.io, "write_entryfile",
+                        lambda path, region, entries: written.update(entries=list(entries)))
+    R.apply_remap(tmp_path, {"s_lic": "s_lic_new"})
+    got = written["entries"][0]
+    assert got["licensing"][0]["extents"][0] == {"op": "upstream_of", "splits": ["s_lic_new"],
+                                                 "item_id": "i:lic",
+                                                 "cut_pick": {"s_lic_new": "lower"}}
+    assert got["rules"][1]["extents"][0] == {"op": "whole"}       # untouched, no `splits: []`
+    assert got["licensing"][0]["tributary_excludes"][1] == {"op": "whole", "item_id": "i:after"}
+    assert got["rules"][1]["extents"][1]["splits"] == ["s_rule"]
+
+
 def test_cut_point_menu_takes_every_scoped_item_never_a_subtracted_one():
     from pipeline.regs.parsing.validate_catalogue import cut_point_menu
     asked = []
@@ -195,6 +240,18 @@ ALLOWED = {
     ("curation-review/backend/reuse.py", "rule_resolved_reach"),
 }
 
+#: (module, function) that may read the rules' `extents` itself — each about what ONE RULE's reach
+#: means, never "which extents does this entry hold".
+RULE_READERS = {
+    # ingest's normalisation: a bare rule takes the whole water (only a rule's own extents)
+    ("pipeline/regs/parsing/validate_catalogue.py", "default_extents"),
+    # a lift must share ground with the rule it lifts: compares two rules' places
+    ("pipeline/regs/parsing/validate_catalogue.py", "exemptions_stay_inside_what_they_lift"),
+    # resolves each rule's reach for the map
+    ("curation-review/backend/reuse.py", "entry_reaches"),
+    ("curation-review/backend/reuse.py", "rule_resolved_reach"),
+}
+
 
 def _key_reads(fn) -> set[str]:
     """String keys `fn` reads with `.get("k")` or `["k"]`."""
@@ -225,7 +282,23 @@ def test_no_checker_or_remapper_lists_extent_places_itself():
     assert bad == []
 
 
-@pytest.mark.parametrize("rel,fn", sorted(ALLOWED))
+def test_no_checker_walks_the_rules_extents_itself():
+    """The OMISSION shape the key pin above cannot see: a function reading `rules` and `extents`
+    (and so leaving out whatever it did not name). `reuse.unused_curated_splits` walked the scope
+    and the rules' extents only, and listed the Skeena's two licensing-bound cuts as "unused"
+    (T119 review)."""
+    bad = []
+    for rel in CHECKERS:
+        tree = ast.parse((REPO / rel).read_text(encoding="utf-8"))
+        for fn in ast.walk(tree):
+            if isinstance(fn, (ast.FunctionDef, ast.AsyncFunctionDef)) \
+                    and {"rules", "extents"} <= _key_reads(fn) \
+                    and (rel, fn.name) not in RULE_READERS:
+                bad.append(f"{rel}:{fn.lineno} {fn.name} walks the rules' extents itself")
+    assert bad == []
+
+
+@pytest.mark.parametrize("rel,fn", sorted(ALLOWED | RULE_READERS))
 def test_the_allowed_readers_still_exist(rel, fn):
     """An allowance for a function that is gone would let a new one in under its name."""
     tree = ast.parse((REPO / rel).read_text(encoding="utf-8"))

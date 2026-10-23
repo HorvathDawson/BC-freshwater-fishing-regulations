@@ -82,3 +82,34 @@ walker drops rule carve-outs → 9 tests fail; walker drops licensing → 9; rem
   stashed (area_boundary curated zones, dataflow gate 4, dfo_salmon archives, entry_id inline parse in review/,
   export_codec on-disk pair, fixture_release, tidal_gauges, update_hydat_script) — pre-existing, not this lane. The 28
   errors are source-data tests (GeoPackage absent in the worktree).
+
+## Adversarial review — 2026-10-23
+
+Tried to break the walker: second copies, tests passing for the wrong reason, the measurement.
+
+- Walker coverage CONFIRMED: every key in the corpus that names an item or a split (`item_id`, `item_ids`,
+  `outside_items`, `splits`) sits in one of the five places (scanned all 1,525 entries by key, any depth). No sixth place.
+- DEFECT, fixed — a second copy the AST pin could not see. `reuse.unused_curated_splits` walked the entry scope and
+  the rules' `extents` only (an OMISSION: it never names `tributary_excludes` or `licensing`, so the key pin passed).
+  Measured on the live registry: `r6:skeena_river_mainstem_only@6-10` listed two curated cuts as "unused" that its
+  classified-water record binds (`skeena_river__kitsumkalum_river_into_skeena_river_u1500m`, `area:SKEENA RIVER
+  ECOLOGICAL RESERVE`). Now `walk.iter_extents`. New pin `test_no_checker_walks_the_rules_extents_itself` (a checker
+  function reading `rules` AND `extents`; four rule-meaning readers allowed by name and pinned to exist) +
+  `test_curation_review_api::test_a_cut_bound_only_by_a_licensing_record_is_used` (real water).
+- DEFECT, fixed — `remap_boundaries.apply_remap` never moved a `cut_pick` with its split. `Extent.cut_pick` is keyed
+  by split id and refuses a key not among the splits, so remapping a picked split made `write_entryfile` refuse the
+  file and the whole remap failed. The walker widened remap to licensing, where the corpus's one `cut_pick` lives
+  (Skeena licensing 0). Also: `hits` was per entry, so once any extent hit, every later extent was rewritten
+  (an extent with no splits gained `splits: []`). Now per extent, and `validate_catalogue.rename_cut_picks` moves
+  the pick. Pin `test_remap_writes_the_pick_with_its_split`.
+- Mutations run (each restored): `unused_curated_splits` back to its own list → the AST pin + the Skeena API test
+  fail; `rename_cut_picks` dropped from remap → `test_remap_writes_the_pick_with_its_split`; remap back to
+  per-entry `hits` → the same.
+- Answers: unchanged (the review queue's status and the remap tool only; no deliver module, no catalogue file).
+
+- Review checks: targeted (walker, gate, validator, ingest, parse-context, end-to-end, catalogue, dispatch, remap,
+  agent parse flow, curation-review API/writes/safety/queue, review reaches) 403 + 109 API passed against the live
+  build; `pytest -m smoke` 197 passed. Full suite (heavy.sh, unfiltered, worktree with atlas/bundle/extraction
+  symlinked read-only): 60 failed, 533 errors — the same 60 fail with the review's changes stashed (answers/dfo/
+  area-boundary/hydat… against the worktree's data), the errors are missing source/generated data; none in a touched
+  test file.

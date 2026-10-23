@@ -30,7 +30,7 @@ from pipeline.regs.matching.matcher import (
     MatchResult, build_id_index, build_name_index, build_override_index, load_overrides, match_row,
 )
 from pipeline.regs.parsing import io
-from pipeline.regs.parsing.catalogue_parts.walk import iter_extent_lists
+from pipeline.regs.parsing.catalogue_parts.walk import iter_extent_lists, iter_extents
 from pipeline.regs.parsing.catalogue import CatalogueRule, label as rule_label
 from pipeline.atlas.reach.covered import covered_ids as _pipeline_covered_ids
 import answer
@@ -412,7 +412,7 @@ def _curated_split_ids(item) -> set[str]:
 
 
 def unused_curated_splits(e: dict, item: dict | None) -> list[dict]:
-    """Curated splits on this item that NO rule's extents reference — surfaced so the curator can see a
+    """Curated splits on this item that NO extent of the entry references — surfaced so the curator can see a
     hand-authored cut that the parse never used (a likely missed reach).
 
     `entry_models.unused_splits` walked the retired Entry's `.scope`; a CatalogueEntry has plain
@@ -424,11 +424,11 @@ def unused_curated_splits(e: dict, item: dict | None) -> list[dict]:
     curated = _curated_split_ids(item)
     if not curated:
         return []
-    used: set[str] = set()
-    for extents in [e.get("extents")] + [r.get("extents") for r in (e.get("rules") or [])]:
-        for ex in (extents or ()):
-            if isinstance(ex, dict):
-                used.update(ex.get("splits") or ())
+    # EVERY extent the entry holds (`walk.iter_extents`, T112) — a cut bound only by a rule's or a
+    # designation's carve-out, or by a licensing record, is used. This walked the scope and the
+    # rules' extents alone, so the two Skeena cuts only its classified-water record binds (the
+    # Kitsumkalum confluence, the Ecological Reserve) were listed "unused" (T119 review).
+    used = {sid for _path, ex, _role in iter_extents(e) for sid in (ex.get("splits") or ())}
     meta = _splits_meta()
     out = []
     for sid in sorted(curated - used):
@@ -2313,11 +2313,18 @@ def _cut_points(iid: str):
     THE ALIASES BIND. An alias is a curated split that could not be cut because its measure landed
     inside a lake run (a dam at the outlet), recorded as another name for the boundary standing at
     that place. It is a real, resolvable cut-point, so binding it must validate (the gate stores
-    the boundary's own id in its place); without it the id resolves on the map but is refused."""
+    the boundary's own id in its place); without it the id resolves on the map but is refused.
+
+    SPELLED AS THE PARSE MENU SPELLS THEM (`parse_context.cut_points`: `split:` stripped, `lake:`
+    kept — the form `extent.py` resolves). This read the picker's display spelling, which strips
+    every prefix, so the app accepted a bare `329069968` that ingest refuses and refused the
+    `lake:329069968` ingest accepts (T119 review). A pending split has no aliases."""
+    from pipeline.regs.parsing.parse_context import cut_points
     it = _registry().get(iid)
     if it is None:
         return None
-    return [(b["id"], tuple(b.get("aliases") or ())) for b in bindable(it)]
+    built = dict(cut_points(it))
+    return [(b["id"], built.get(b["id"], ())) for b in bindable(it)]
 
 
 def _find(entry_id: str) -> tuple[str, dict] | None:

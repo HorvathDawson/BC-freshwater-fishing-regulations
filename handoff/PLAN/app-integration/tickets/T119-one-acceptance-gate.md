@@ -91,8 +91,9 @@ Rebuild: none (code only; the review app picks it up on restart).
 
 ## Owner questions
 
-- The 15 alias spellings above: leave them for the next save to canonicalise (built default), or canonicalise all 8
-  entries now in one reviewed change so their review fingerprints move once, together?
+- The alias spellings above — 13 extents in 6 entries after the review fix (the two Campbell River entries are no
+  longer rewritten; see Adversarial review): leave them for the next save to canonicalise (built default), or
+  canonicalise all 6 entries now in one reviewed change so their review fingerprints move once, together?
 
 ## Left / follow-ups
 
@@ -107,3 +108,50 @@ Rebuild: none (code only; the review app picks it up on restart).
   stashed (area_boundary curated zones, dataflow gate 4, dfo_salmon archives, entry_id inline parse in review/,
   export_codec on-disk pair, fixture_release, tidal_gauges, update_hydat_script) — pre-existing, not this lane. The 28
   errors are source-data tests (GeoPackage absent in the worktree).
+
+## Adversarial review — 2026-10-23
+
+Re-measured the save-time rewrites on the live registry, extent by extent, against what `extent.py` resolves
+(`_refs`: the graph refs a bound id maps to; `_meta`: the kind and label the reach run's `cuts` record).
+
+- DEFECT, fixed — the gate respelled a boundary's OWN id. `boundary_ids` mapped every alias to its boundary, even
+  an alias that is itself another boundary's id. The Campbell River (gnis:39532) has the lake boundary
+  `campbell_river__john_hart_lake` AND the split `campbell_river__john_hart_dam_power_station`, which lists the
+  lake id as an alias (same for `campbell_river__campbell_lake` / `campbell_river__ladore_dam`). Two of the 15
+  "same cut-point" rewrites were these: same graph refs, but the cut's kind/label went `lake "John Hart Lake"` →
+  `split "John Hart Dam power station"` and `lake "Campbell Lake"` → `split "Ladore Dam"`. The printed rows name
+  the LAKE: "including Campbell River between Strathcona Dam and (Lower) Campbell Lake" (r1:lower_campbell_lake_s_
+  tributaries@1-6) — the reach ends at the lake's inlet, and Ladore Dam is at its outlet. Now an id that is a
+  boundary's own id is never rewritten (39 such ids registry-wide). The other 13 rewrites keep identical graph
+  refs AND kind/label (verified each). Pin `test_a_boundarys_own_id_is_never_respelled`.
+- DEFECT, fixed — a `cut_pick` was left behind by the alias rewrite. `Extent.cut_pick` is keyed by split id and the
+  model refuses a key that is not among the extent's splits, so an extent with `splits: [alias]` and
+  `cut_pick: {alias: …}` — accepted by the app before T119 — was refused by the gate. Now
+  `validate_catalogue.rename_cut_picks` moves the pick with its split (and `remap_boundaries` uses it, T112).
+  Corpus: the one `cut_pick` (Skeena licensing 0) is on a canonical id, so nothing changes today. Pin
+  `test_a_cut_pick_moves_with_its_alias`.
+- DEFECT, fixed — the app and the parse menu spelled aliases differently. `reuse._cut_points` read the picker's
+  display aliases (`_boundary_dict`, which strips EVERY prefix: `329069968`), the parse menu keeps `lake:329069968`
+  (`parse_context.cut_points`, the form `extent.py` resolves). So the one gate accepted a bare wbk in the app that
+  ingest refuses, and refused the `lake:` alias ingest accepts (12 `lake:` aliases registry-wide). The app now
+  spells built boundaries through `parse_context.cut_points` (pending splits have no aliases). Pin
+  `test_curation_review_api::test_the_app_spells_cut_points_as_the_parse_menu_does`.
+- Docstring corrected: `split_parents_named` said it reads `outside_items`; it never does (`walk.ref_key`).
+- Checked and held: the gate is the only caller of the six checks and only ingest + `model_api.check` call it;
+  `default_extents` stays out; dispatch loads the registry outside its per-batch `except`; the corpus gate test
+  passes against the live build (1,525 entries, 0 refused). The parse work dir holds no batches/responses
+  (`data/generated/regs/parse/` is the ledger only), so the stricter ingest (empty menu refuses every split; rule
+  carve-outs checked; absorbed ids) could not be measured on real parser output — it is pinned on fixtures only.
+- Mutations run (each restored): own-id filter removed → `test_a_boundarys_own_id_is_never_respelled`;
+  `rename_cut_picks` dropped from `canonicalise_splits` → `test_a_cut_pick_moves_with_its_alias`; `_cut_points`
+  back to the display aliases → `test_the_app_spells_cut_points_as_the_parse_menu_does`.
+- Answers: unchanged — no catalogue file written, no deliver module touched; the only stored-value change is that
+  the next app save of the two Campbell entries keeps the lake ids instead of respelling them.
+- Rebuild: none (code only; the review app picks it up on restart).
+
+- Review checks: targeted (walker, gate, validator, ingest, parse-context, end-to-end, catalogue, dispatch, remap,
+  agent parse flow, curation-review API/writes/safety/queue, review reaches) 403 + 109 API passed against the live
+  build; `pytest -m smoke` 197 passed. Full suite (heavy.sh, unfiltered, worktree with atlas/bundle/extraction
+  symlinked read-only): 60 failed, 533 errors — the same 60 fail with the review's changes stashed (answers/dfo/
+  area-boundary/hydat… against the worktree's data), the errors are missing source/generated data; none in a touched
+  test file.

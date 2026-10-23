@@ -23,6 +23,7 @@ from pathlib import Path
 
 from pipeline.regs.parsing import io
 from pipeline.regs.parsing.catalogue_parts.walk import iter_extents
+from pipeline.regs.parsing.validate_catalogue import rename_cut_picks
 from pipeline.atlas.registry import default_registry_path, load_registry
 
 def build_remap(old_registry: dict, new_registry: dict) -> dict[str, str]:
@@ -54,15 +55,14 @@ def apply_remap(entries_dir: Path, remap: dict[str, str], dry_run: bool = False)
             # carve-outs, and each licensing record's. This skipped every licensing extent once, so
             # about 30 licensing split references went dead after a registry rebuild unreported.
             for _path, ex, _role in iter_extents(e):
-                new_splits = []
-                for sid in ex.get("splits") or []:
-                    if sid in remap:
-                        hits.append((sid, remap[sid]))
-                        new_splits.append(remap[sid])
-                    else:
-                        new_splits.append(sid)
-                if hits:
-                    ex["splits"] = new_splits
+                mine = [(sid, remap[sid]) for sid in ex.get("splits") or [] if sid in remap]
+                if not mine:
+                    continue            # an untouched extent is left exactly as it was
+                hits += mine
+                ex["splits"] = [remap.get(sid, sid) for sid in ex["splits"]]
+                # A PICK FOLLOWS ITS SPLIT: `cut_pick` is keyed by split id and the model refuses
+                # a key that is not among the extent's splits (T119 review).
+                rename_cut_picks(ex, remap)
             if hits:
                 file_changed = True
                 report["changed"].append((region, eid, sorted(set(hits))))
