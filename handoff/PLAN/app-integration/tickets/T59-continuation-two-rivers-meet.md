@@ -1,6 +1,6 @@
 # T59 — One river system where two rivers meet (Atnarko/Bella Coola); Fraser exit into Annacis Channel
 
-Status: DONE (code) — c5b1e3d0 (pipeline), app part 87ba267c, 7e3cd448 (already on the base); reviewed (counts reproduced: 18 rows, +1 Atnarko → Bella Coola, 33 confluence candidates, 469 exit changes / 234 none; Q1 note corrected). Left: `python -m pipeline.deliver` then
+Status: DONE —code) — c5b1e3d0 (pipeline), app part 87ba267c, 7e3cd448 (already on the base); reviewed (counts reproduced: 18 rows, +1 Atnarko → Bella Coola, 33 confluence candidates, 469 exit changes / 234 none; Q1 note corrected). Left: `python -m pipeline.deliver` then
 `python -m pipeline.deliver release` (merger; no atlas / reach / tiles rerun); after it the two `needs_bundle` pins
 below pass. Owner review of the exit list (Q1) and the fallback (Q2) below, both with defaults.
 

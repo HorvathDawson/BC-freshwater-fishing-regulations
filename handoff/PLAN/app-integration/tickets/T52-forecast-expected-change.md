@@ -1,6 +1,6 @@
 # T52 — "Expected change": a Conditions view that flags rivers about to change, spikes included
 
-Status: IN PROGRESS — BUILT in lane wf_e8f2adba-933-2 (940b3242 pipeline + the app commit after it), awaiting review
+Status: IN PROGRESS — BUILT in lane wf_e8f2adba-933-2 (8ad715d6 pipeline + the app commit after it), awaiting review
 and merge; live only after a feed republish (publish.py writes `change`). Ticket 6ffda443.
 
 Phase 4 · Depends on the gauge feed + forecast (pipeline/gauges/feed/forecast.py), Conditions horizons (Now · +1 · +3 · +5
@@ -85,12 +85,12 @@ spike, a held rise a step; two models kept, each against its own today; out of s
 series requests only for moved fresh runs, capped and logged; no paint call on the chip switch (same `modes`); Level
 never offered Change; a refusal is nothing, never steady.
 Fixed (test-first):
-- 694f7c71 light rise1/rise2 sat dE2000 13.7 / 6.5 from `color.highlight` (the ring round a tapped river vanished on a
+- be32f926 light rise1/rise2 sat dE2000 13.7 / 6.5 from `color.highlight` (the ring round a tapped river vanished on a
   rising one — visible in desktop-light-4-panel.png). Gate now holds every stop 20 off the highlight; light rise is
   violet #D080C8 / #A850F8. Shots in T52-shots/ predate this and show the old magenta.
-- 985feee9 an extreme on the LAST day read was a "step" worded "and stays up" (30 of 57 big unreturned moves on the
+- 9a050ec1 an extreme on the LAST day read was a "step" worded "and stays up" (30 of 57 big unreturned moves on the
   2026-10-22 feed). Now shape `open` and "still rising/falling on the last day shown".
-- f35008e5 the Change block's words moved into core; model order from `CHANGE_POLICY.order`.
+- 7b47a6ab the Change block's words moved into core; model order from `CHANGE_POLICY.order`.
 Left: light rise2 is dE2000 16 from the you-are-here pin's violet (`color.ui.accent`, a pin, not a line); under
 colour-blind simulation several stops sit under 10 from a status (statuses are not drawn on Conditions; the gate is
 normal-vision, as for the warm dot); a section's figure is the geometric mean of each donor's own LARGEST move, so a

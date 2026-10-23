@@ -98,12 +98,12 @@ use that as the sole source of future work."
 | T51 | spot similarity forecast ("Like your visit?") | DONE | fa7235c0, 2f5cdc70, a6fd848d, aba28187 | — |
 | T52 | Conditions "Expected change" | DONE | 8ad715d6, 1089d4a2, be32f926, 9a050ec1, 7b47a6ab, ee1234e0 | live after the feed republish |
 | T53 | unnamed stream shows no regulations | DONE | 74c1decd, 79c74252, 46f3d2f1, 9ef5ea75, 1925ecdc | — (real-data sweep is T57) |
-| T54 | no-access streams: fourth colour + banner | PARTIAL | fec02c29, a5f9b5eb, e08f791b, b291b598, c155f40f, 7c0798d7, bd12dfb9 | needs deliver; Q54/Q55 |
+| T54 | no-access streams: fourth colour + banner | DONE | a43a7122, 83f28d54, fec02c29, a5f9b5eb, e08f791b, b291b598, c155f40f, 7c0798d7, bd12dfb9, 4d20b016, 128cc4e0 | live in r-36fbc5326506; Q54/Q55 |
 | T55 | sloughs/canals still drawn as lakes | IN PROGRESS | fec02c29, 96b0eb73; prior 669fd065, a59f3dc3, ac8a0e1c | finder DONE (865 candidates) → ★ owner marks them on the review page (artifact Es3Mokt7Fs2yNvm7JgQua8) → reclassify → reach + deliver; polygon-walk lane wf_3976eddc-bba |
 | T56 | release rebuild: Twin Lakes + stream polygons + "See X" | DONE | 78a4eed8, 020f4ca8, 794f9c07, cfe405c8, 04357dad | R2 upload (owner) |
 | T57 | unnamed streams: real-data regs sweep incl. trib rules | DONE | 9f434cd3, b846c925, a9455d40, 5dac27c8, 21289c24 | — |
 | T58 | back follow-ups | DONE | 21d41623, 9ec8114a | — |
-| T59 | two rivers meet (Atnarko/Bella Coola); Fraser exit → Annacis | DONE | c5b1e3d0, 36df866f, 463c013b | needs deliver (ships next rebuild) |
+| T59 | two rivers meet (Atnarko/Bella Coola); Fraser exit → Annacis | DONE | c5b1e3d0, 36df866f, 463c013b, c432f6df | live in r-36fbc5326506 |
 | T60 | consistency auditors (N16, Fable) | OPEN | — | all |
 | T61 | cleanup wave 2: old pathways/duplicates | OPEN | — | all (check F07 a6aa4d86 before redoing) |
 | T62 | cleanup wave 3: split long files | OPEN | — | all |
@@ -120,11 +120,11 @@ use that as the sole source of future work."
 | T73 | smaller reach hand-off (N14, disk) | OPEN | — | all (heavy) |
 | T74 | native colouring engine + native map gaps | OPEN | — | all |
 | T75 | basemap in the release manifest | OPEN | — | all |
-| T76 | own gauge across a continuation (Vedder) | OPEN | — | all |
+| T76 | own gauge across a continuation (Vedder) | DONE | ce29990c, 2470ef08, f648ab5c, 4fba2181, e5dfe217 | live in r-36fbc5326506 |
 | T77 | D1 phone testing | OPEN | — | all (owner) |
-| T78 | tidal/backwater disclosure on Level | OPEN | — | all |
+| T78 | tidal/backwater disclosure on Level | DONE | 4d35d021, c0412c4d, 8185dd28, 5aec64f3, ca52fa7c, c0ea4eb9 | live; Q47–Q49 |
 | T79 | imagery corridor P0 + pools validation | OPEN | — | all (owner go/no-go) |
-| T80 | small open items (S1 minors, Kitimat witness, D19, flash, search, CI) | OPEN | — | all |
+| T80 | small open items (S1 minors, Kitimat witness, D19, flash, search, CI) | PARTIAL | ca5ecb26, 309cd3e8, b08af5e9, ea63d8cb, 46f49485, 53abfd9c, 2c2d3d69, 3a6d20c3, 55b30ec7, 128cc4e0, 84d5919d, fb5d72e5 | two open shapes, item 4/6 (see ticket); Q50–Q52 |
 | T81 | settle the pending small owner questions | DONE | 2fb23d92, 116b0e19, 4b197646, bd824a69 | — |
 | T82 | T41 leftovers: reader gate run, caveat box O3, sheet height O5 | OPEN | — | all |
 | T83 | map: boundaries under water, warm dot, sub-20 pairs | DONE | 111bd363, cbd3e139, e61a6e7d, 7bb14b79, a9dae070 | — |
@@ -133,8 +133,8 @@ use that as the sole source of future work."
 | T86 | production hosting + ship config | OPEN | — | all (owner) |
 | T87 | owner sign-off walk, then final clean-up | OPEN | — | all (owner) |
 | T88 | iOS build | OPEN | — | all (owner timing) |
-| T89 | rules that bind no water (10 unmatched + 3 no extent) | OPEN | — | all |
-| T90 | Chehalis closure reaches Harrison side channels | OPEN | — | all |
+| T89 | rules that bind no water (10 unmatched + 3 no extent) | PARTIAL | 010b5c28, 1ea79ca0, 894854c0, d47a38cd, 5f1eec34 | 8 rows need locating (Q45) |
+| T90 | Chehalis closure reaches Harrison side channels | DONE | ca9aa451, 9eb7d92f, 9d305ebf, 8fa32076, c8c72d6f | live; T102 part B |
 | T91 | Atnarko campsite split location | OPEN | — | all (owner) |
 | T92 | gear omission check | DONE | de0581e1, b931f93d, 750ba2ad, 9c78ef20 | — |
 | T93 | gauge ↔ section relationship table (policy) | OPEN | — | all |

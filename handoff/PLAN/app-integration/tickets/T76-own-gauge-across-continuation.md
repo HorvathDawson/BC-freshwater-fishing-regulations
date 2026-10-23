@@ -1,6 +1,6 @@
 # T76 — Own gauge across a continuation: the Vedder takes the Chilliwack's gauge (audit N19, owner call 10)
 
-Status: PARTIAL — ce29990c (code + tests), 2470ef08 (decisions.md: rule, five constants, real-graph diff). Built and
+Status: DONE — ce29990c (code + tests), 2470ef08 (decisions.md: rule, five constants, real-graph diff). Built and
 reviewed on the live graph: 41 sections change, all on continuation waters (Chilliwack 15, Vedder 2, Atnarko 20, Bella
 Coola 4), 0 elsewhere, lead ranks only. Vedder 313838: 08MH047 (retired) rank 1, 08MH001 rank 2 → 08MH001 leads at read
 time. Left: the merger's batched `pipeline.deliver` (no reach, no atlas, no tiles) — then diff `panel_member.lead` vs
