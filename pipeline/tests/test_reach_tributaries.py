@@ -903,3 +903,108 @@ def test_t90_a_distributary_at_the_cut_is_not_a_way_in(monkeypatch):
     assert _mouths_at_lower_bound(g, reach, window) == set()
     monkeypatch.setattr(T, "MOUTH_SEEDS_ONLY_AT_THE_CUT", False)
     assert _mouths_at_lower_bound(g, reach, window) == {"x:0"}
+
+
+# --------------------------------------------------------------------------- #
+# A tributary walk never enters the ENTRY'S OWN water (2026-10-10)
+# --------------------------------------------------------------------------- #
+
+@pytest.fixture
+def vedder():
+    """The Chilliwack/Vedder shape: one row, two rivers on two blue lines.
+
+        chil_up  <- chil_trib_up                  (own water, upper)
+          |  continuation
+        chil_low <- chil_trib                     (own water — FWA codes it a TRIBUTARY of the Vedder)
+          |  confluence (equal order, child code)
+        v_top                                     reach  ("downstream of Vedder Crossing Bridge")
+          |  continuation
+        v_low    <- v_trib <- v_trib_up           reach, with a true tributary
+          |
+        side  <- creek_above_lake <- own_lake <- ... a true tributary carrying a lake the row names
+    """
+    def n(nid, order, wsc):
+        return dataclasses.replace(_n(nid, order=order), wsc=wsc)
+    nodes = [n("v_low", 6, "100-1"), n("v_top", 6, "100-1"),
+             n("chil_low", 6, "100-1-9"), n("chil_up", 6, "100-1-9"),
+             n("chil_trib", 2, "100-1-9-3"), n("chil_trib_up", 1, "100-1-9-3"),
+             n("v_trib", 2, "100-1-4"), n("v_trib_up", 1, "100-1-4"),
+             n("side", 2, "100-1-5"),
+             dataclasses.replace(_n("own_lake", order=2, kind=NodeKind.lake), wsc="100-1-5"),
+             n("creek_above_lake", 1, "100-1-5")]
+    edges = [("v_top", "v_low", "continuation"),
+             ("chil_low", "v_top", "confluence"),
+             ("chil_up", "chil_low", "continuation"),
+             ("chil_trib", "chil_low", "confluence"),
+             ("chil_trib_up", "chil_up", "confluence"),
+             ("v_trib", "v_low", "confluence"),
+             ("v_trib_up", "v_trib", "continuation"),
+             ("side", "v_low", "confluence"),
+             ("own_lake", "side", "lake_out"),
+             ("creek_above_lake", "own_lake", "lake_in")]
+    return _g(nodes, edges)
+
+
+V_REACH = {"v_low", "v_top"}
+V_OWN = {"v_low", "v_top", "chil_low", "chil_up", "own_lake"}   # every section the ENTRY matches
+
+
+def test_the_walk_never_enters_the_entrys_own_water_past_the_cut(vedder):
+    """The Chilliwack joins the Vedder's top piece by a `confluence` edge, and FWA codes it a
+    tributary — but it is the row's own water above the cut, governed by its own rules' extents.
+    "Downstream of Vedder Crossing Bridge, including tributaries" binds the Vedder's creeks, never the
+    Chilliwack nor the streams feeding it."""
+    got = tributaries_of_reach(vedder, V_REACH, own=V_OWN)
+    assert not got & {"chil_low", "chil_up", "chil_trib", "chil_trib_up"}
+    assert {"v_trib", "v_trib_up", "side"} <= got
+
+
+def test_own_water_met_above_a_true_tributary_is_walked_through_not_collected(vedder):
+    """A lake the row names on one of its river's creeks is the row's (its extent's), never the
+    walk's — but the creek feeding it is still a tributary of the reach."""
+    got = tributaries_of_reach(vedder, V_REACH, own=V_OWN)
+    assert "own_lake" not in got
+    assert "creek_above_lake" in got
+
+
+def test_mutation_without_the_rule_the_walk_climbs_the_chilliwack(vedder, monkeypatch):
+    """Switch the principle off and the regression is back: the walk takes the row's own upstream
+    river and every stream feeding it (1,820 sections on the live atlas)."""
+    import pipeline.atlas.graph.tributaries as T
+    monkeypatch.setattr(T, "THE_WALK_NEVER_ENTERS_THE_ENTRYS_OWN_WATER", False)
+    got = T.tributaries_of_reach(vedder, V_REACH, own=V_OWN)
+    assert {"chil_low", "chil_up", "chil_trib", "chil_trib_up"} <= got
+
+
+def test_the_expander_hands_the_walk_every_item_the_entry_matches(vedder, monkeypatch):
+    """`reach.build._expander` builds `own` from the ENTRY's `matched` items — not only the item the
+    extent names (r4–r9 name none; their scope is the cut)."""
+    from types import SimpleNamespace
+    from pipeline.atlas.reach.build import _expander
+    import pipeline.atlas.graph.tributaries as T
+    registry = {"gnis:vedder": SimpleNamespace(section_ids=("v_low", "v_top")),
+                "gnis:chilliwack": SimpleNamespace(section_ids=("chil_low", "chil_up"))}
+    entry = {"entry_id": "e", "matched": ["gnis:chilliwack", "gnis:vedder"], "rules": []}
+    rule = {"rule_id": "r7", "extents": []}
+    covered = list(entry["matched"])
+    expand = _expander(vedder, registry, covered, rule, entry)
+    got = expand(frozenset(V_REACH))
+    assert not got & {"chil_low", "chil_up", "chil_trib", "chil_trib_up"}
+    assert {"v_low", "v_top", "v_trib", "v_trib_up"} <= got
+    monkeypatch.setattr(T, "THE_WALK_NEVER_ENTERS_THE_ENTRYS_OWN_WATER", False)
+    expand = _expander(vedder, registry, covered, rule, entry)
+    assert {"chil_trib", "chil_trib_up"} <= expand(frozenset(V_REACH))
+
+
+def test_a_side_channel_of_the_reachs_own_river_is_not_own_water_past_the_cut(vedder):
+    """A piece of the row's water carrying the reach's OWN watershed code is a side channel beside the
+    stretch (the Old Kootenay River Channel across the Creston flats), not the water going on past a
+    cut: the walk keeps it and the creeks draining through it."""
+    def n(nid, order, wsc):
+        return dataclasses.replace(_n(nid, order=order), wsc=wsc)
+    g = _g(list(vedder.nodes.values()) + [n("v_side", 1, "100-1"), n("side_creek", 1, "100-1-7")],
+           [(e.from_node, e.to_node, e.kind) for e in vedder.edges]
+           + [("v_side", "v_low", "confluence"), ("side_creek", "v_side", "confluence")])
+    got = tributaries_of_reach(g, V_REACH, own=V_OWN | {"v_side"})
+    assert {"v_side", "side_creek"} <= got
+    assert not got & {"chil_low", "chil_trib"}
