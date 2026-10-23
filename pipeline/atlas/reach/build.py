@@ -203,7 +203,9 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
                 for i, (x, row) in enumerate(zip(rec["tributary_excludes"], detail)):
                     secs = set(row.get("sections") or ())
                     mine = secs if row.get("walk_past") else \
-                        secs | set(_tribs.tributaries_of_reach(graph, secs))
+                        secs | set(_tribs.tributaries_of_reach(graph, secs,
+                                                               cuts=[tuple(c) for c in
+                                                                     row.get("cuts") or ()]))
                     items = set(([x.get("item_id")] if x.get("item_id") else [])
                                 + list(x.get("item_ids") or []))
                     carved[(entry_id, rec["id"], i)] = (removed & mine, items)
@@ -596,12 +598,30 @@ def resolve_carve_outs(entry: dict, rule: dict, registry, graph,
         if got is not None:
             secs = set(got.get("sections") or ())
             row["sections"] = sorted(secs)
+            # THE CARVE-OUT'S WALK SEEDS FROM THE CUTS ITS EXTENT USED (T141, owner Q100), as the
+            # rule's own walk does (`seeding_cuts`) — never re-derived from node bounds.
+            seeds = carve_out_cuts(graph, got)
+            row["cuts"] = [list(c) for c in seeds]
             if not past:
-                above = _tribs.tributaries_of_reach(graph, secs)
+                above = _tribs.tributaries_of_reach(graph, secs, cuts=seeds)
                 blocked |= secs | above
                 row["above"] = len(above)      # "and everything upstream of it"
         detail.append(row)
     return detail, blocked
+
+
+#: POLICY (T141, owner Q100 2026-10-23): A CARVE-OUT'S "AND EVERYTHING UPSTREAM OF IT" IS WALKED FROM
+#: THE CUTS ITS EXTENT USED (`seeding_cuts`, the rule walk's one seeding), not from its pieces' node
+#: bounds. The two differed only on a braid: node bounds offered every side channel's lower end,
+#: wherever it lay. False = the node bounds (the mutation pin).
+CARVE_OUT_WALK_SEEDS_FROM_ITS_CUTS = True
+
+
+def carve_out_cuts(graph, got: dict) -> list[tuple[str, float]]:
+    """The places a carve-out's walk seeds from: its resolved extent's lower cuts (`seeding_cuts`)."""
+    if not CARVE_OUT_WALK_SEEDS_FROM_ITS_CUTS:
+        return _tribs.lower_bound_cuts(graph, got.get("sections") or ())
+    return seeding_cuts(graph, [got])
 
 
 def carve_out_passed(detail: list[dict]) -> set[str]:
@@ -610,18 +630,25 @@ def carve_out_passed(detail: list[dict]) -> set[str]:
     return {s for row in detail if row.get("walk_past") for s in row.get("sections") or ()}
 
 
+def cut_places(cut: dict) -> list[tuple[str, float]]:
+    """Where ONE used cut lies, as `(blk, measure)`: its principal line first, then the braid's side
+    channels it crosses (`extent.CUTS_REPORT_SIDE_CHANNEL_CROSSINGS`, T141)."""
+    return [(cut["blk"], cut["m"]), *((b, m) for b, m in cut.get("side") or ())]
+
+
 def seeding_cuts(graph, per: list[dict | None]) -> list[tuple[str, float]]:
     """EVERY LOWER CUT OF THE RULE, as `(blk, measure)`, for the tributary seeding
     (`tributaries.EVERY_CUT_REACHES_THE_WALK`, T111): each resolved extent's `lower` cuts exactly as
-    `resolve_extent` used them; an extent that resolved with no cut (`whole`, `within`) offers its
-    pieces' lower node bounds (`tributaries.lower_bound_cuts`). A watershed part is never walked
-    (`classify`), so it seeds nothing."""
+    `resolve_extent` used them, with their side-channel crossings (`cut_places`, T141); an extent
+    that resolved with no cut (`whole`, `within`) offers its pieces' lower node bounds
+    (`tributaries.lower_bound_cuts`). A watershed part is never walked (`classify`), so it seeds
+    nothing. The rule's walk and its carve-outs' walks (`resolve_carve_outs`) both seed here."""
     out: list[tuple[str, float]] = []
     for got in per:
         if got is None or got.get("watershed"):
             continue
         if got.get("cuts"):
-            out += [(c["blk"], c["m"]) for c in got["cuts"] if c["end"] == "lower"]
+            out += [x for c in got["cuts"] if c["end"] == "lower" for x in cut_places(c)]
         else:
             out += _tribs.lower_bound_cuts(
                 graph, got.get("seed") if "seed" in got else got.get("sections") or ())
@@ -673,41 +700,57 @@ def confluence_excludes(entry: dict, rule: dict, registry, graph, covered,
                 or ex.get("op") not in ("upstream_of", "downstream_of", "between"):
             continue
         for cut in got.get("cuts") or ():
-            sid, kind, label, blk, m = cut["split"], cut["kind"], cut["label"], cut["blk"], cut["m"]
-            if kind == "confluence":
-                head = label.split("\u2192")[0].strip().lower()
-                joiners = _tribs.confluence_joiners(graph, blk, m, names=(head,)) if head else ()
-                joiners = joiners or _tribs.confluence_joiners(graph, blk, m)
-            elif "confluence" in label.lower() and " near " in f" {label.lower()} ":
-                near = _tribs.confluence_joiners(graph, blk, m,
-                                                 near=_tribs.CONFLUENCE_NEAR_M)
-                joiners = frozenset(j for j in near
-                                    if (graph.nodes[j].display_name or "").strip()
-                                    and graph.nodes[j].display_name.strip().lower()
-                                    in label.lower())
-            else:
+            sid, kind, label = cut["split"], cut["kind"], cut["label"]
+            if kind != "confluence" and not ("confluence" in label.lower()
+                                             and " near " in f" {label.lower()} "):
                 continue
-            by_name: dict[str, set[str]] = {}
-            for j in joiners:
-                by_name.setdefault((graph.nodes[j].display_name or "").strip(), set()).add(j)
-            for water, mouths in sorted(by_name.items()):
-                if (sid, water) in done:
-                    continue
-                done.add((sid, water))
-                included = _rule_includes(words, water)
-                negated = not included and _rule_excludes(words, water)
-                own = own_rows(registry, owned, mouths, entry.get("entry_id"))
-                with_cut = bool(
-                    not included and not negated and not own
-                    and _tribs.CONFLUENCE_WATER_WITHOUT_A_ROW_GOES_WITH_THE_CUT)
-                subtree = sorted(_tribs.subtree(graph, mouths))
-                rows.append({"split": sid, "water": water or "(unnamed)",
-                             "mouths": sorted(mouths), "included": included,
-                             "negated": negated, "own_row": own, "with_cut": with_cut,
-                             "signs_below": _signs_below(words, water),
-                             "signs_above": _signs_above(words, water),
-                             "blk": blk, "m": m, "subtree": subtree,
-                             "sections": [] if (included or with_cut) else subtree})
+            # THE WHOLE CUT (T141): its principal line, then each side channel it crosses — a joiner
+            # hung on a side channel at the cut is at the cut too. A row names the place it was found.
+            for i, (blk, m) in enumerate(cut_places(cut)):
+                rows += _joiners_at(graph, registry, owned, entry, words, sid, kind, label, blk, m,
+                                    done, principal=(i == 0))
+    return rows
+
+
+def _joiners_at(graph, registry, owned, entry, words, sid, kind, label, blk, m, done, *,
+                principal: bool = True) -> list[dict]:
+    """`confluence_excludes`' rows for the water joining at ONE place `(blk, m)` of cut `sid`. On a
+    side channel (`principal=False`) only a joiner the label NAMES is taken: the unnamed fallback of
+    a curated confluence cut is its principal line's alone."""
+    rows: list[dict] = []
+    if kind == "confluence":
+        head = label.split("\u2192")[0].strip().lower()
+        joiners = _tribs.confluence_joiners(graph, blk, m, names=(head,)) if head else ()
+        if principal:
+            joiners = joiners or _tribs.confluence_joiners(graph, blk, m)
+    else:
+        near = _tribs.confluence_joiners(graph, blk, m,
+                                         near=_tribs.CONFLUENCE_NEAR_M)
+        joiners = frozenset(j for j in near
+                            if (graph.nodes[j].display_name or "").strip()
+                            and graph.nodes[j].display_name.strip().lower()
+                            in label.lower())
+    by_name: dict[str, set[str]] = {}
+    for j in joiners:
+        by_name.setdefault((graph.nodes[j].display_name or "").strip(), set()).add(j)
+    for water, mouths in sorted(by_name.items()):
+        if (sid, water) in done:
+            continue
+        done.add((sid, water))
+        included = _rule_includes(words, water)
+        negated = not included and _rule_excludes(words, water)
+        own = own_rows(registry, owned, mouths, entry.get("entry_id"))
+        with_cut = bool(
+            not included and not negated and not own
+            and _tribs.CONFLUENCE_WATER_WITHOUT_A_ROW_GOES_WITH_THE_CUT)
+        subtree = sorted(_tribs.subtree(graph, mouths))
+        rows.append({"split": sid, "water": water or "(unnamed)",
+                     "mouths": sorted(mouths), "included": included,
+                     "negated": negated, "own_row": own, "with_cut": with_cut,
+                     "signs_below": _signs_below(words, water),
+                     "signs_above": _signs_above(words, water),
+                     "blk": blk, "m": m, "subtree": subtree,
+                     "sections": [] if (included or with_cut) else subtree})
     return rows
 
 

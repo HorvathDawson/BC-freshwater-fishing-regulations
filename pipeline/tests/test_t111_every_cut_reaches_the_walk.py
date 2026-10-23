@@ -103,8 +103,8 @@ def test_resolve_extent_returns_the_cuts_it_used():
     g, reg = _two_reaches()
     got = X.resolve_extent(reg, g, ["gnis:1"], TWO[1])
     assert got["cuts"] == [
-        {"split": "c", "blk": "M", "m": 5000, "end": "lower", "kind": "split", "label": "c"},
-        {"split": "d", "blk": "M", "m": 6000, "end": "upper", "kind": "split", "label": "d"}]
+        {"split": "c", "blk": "M", "m": 5000, "end": "lower", "kind": "split", "label": "c", "side": []},
+        {"split": "d", "blk": "M", "m": 6000, "end": "upper", "kind": "split", "label": "d", "side": []}]
     got = X.resolve_extent(reg, g, ["gnis:1"], {"op": "upstream_of", "splits": ["c"]})
     assert [(c["split"], c["m"], c["end"]) for c in got["cuts"]] == [("c", 5000, "lower")]
     got = X.resolve_extent(reg, g, ["gnis:1"], {"op": "downstream_of", "splits": ["c"]})
@@ -122,11 +122,11 @@ def test_a_watershed_part_reports_its_cuts_in_the_same_shape():
                                                 "watershed": True})
     assert got["watershed"] is True
     assert got["cuts"] == [
-        {"split": "c", "blk": "M", "m": 5000, "end": "lower", "kind": "split", "label": "c"}]
+        {"split": "c", "blk": "M", "m": 5000, "end": "lower", "kind": "split", "label": "c", "side": []}]
     got = X.resolve_extent(reg, g, ["gnis:1"], {**TWO[0], "watershed": True})
     assert got["cuts"] == [
-        {"split": "a", "blk": "M", "m": 1000, "end": "lower", "kind": "split", "label": "a"},
-        {"split": "b", "blk": "M", "m": 2000, "end": "upper", "kind": "split", "label": "b"}]
+        {"split": "a", "blk": "M", "m": 1000, "end": "lower", "kind": "split", "label": "a", "side": []},
+        {"split": "b", "blk": "M", "m": 2000, "end": "upper", "kind": "split", "label": "b", "side": []}]
     assert B.seeding_cuts(g, [got]) == []
 
 def test_both_lower_cuts_of_a_two_reach_rule_seed(monkeypatch):

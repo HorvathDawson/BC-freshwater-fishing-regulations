@@ -256,6 +256,19 @@ def _cut_at(g, refs: set[str], universe: set[str]):
     reach on two page loads. Now the order is fixed — the measure nearest the mouth first — and the
     alternatives are handed back: `resolve_extent` takes the candidate nearest the rule's other end
     (`AMBIGUOUS_CUT_NEAREST_THE_OTHER_END`) and records every candidate as an `ambiguous_cut`."""
+    by_blk, at = _crossings(g, refs, universe)
+    if not at:
+        return None
+    blk = max(at, key=lambda b: (by_blk.get(b, 0.0), b))
+    ms = sorted(at[blk])
+    return blk, ms[0], ms[1:]
+
+
+def _crossings(g, refs: set[str], universe: set[str]
+               ) -> tuple[dict[str, float], dict[str, set[float]]]:
+    """`({blk: length in universe}, {blk: {measure}})` — every place a node bound carrying one of
+    `refs` sits, per blue line. The one scan `_cut_at` (the principal line) and `_side_crossings`
+    (the braid's other lines) both read."""
     by_blk: dict[str, float] = {}
     at: dict[str, set[float]] = {}
     for nid in universe:
@@ -266,12 +279,25 @@ def _cut_at(g, refs: set[str], universe: set[str]):
         for b in (n.lower_bound, n.upper_bound):
             if b is not None and b.boundary_id in refs:
                 at.setdefault(n.blk, set()).add(b.route_measure)
-    if not at:
-        return None
-    blk = max(at, key=lambda b: (by_blk.get(b, 0.0), b))
-    ms = sorted(at[blk])
-    return blk, ms[0], ms[1:]
-    return None
+    return by_blk, at
+
+
+#: POLICY (T141, owner Q100 2026-10-23): A CUT ACROSS A BRAID REPORTS ITS SIDE-CHANNEL CROSSINGS. The
+#: perpendicular sweep cuts the mainstem AND every side channel at the same place under one split id
+#: (`_cut_at`); the reach is taken on the principal line, but the cut is just as much where each side
+#: channel crosses it. Each used cut carries them as `side` — `[(blk, measure), …]` on the OTHER blue
+#: lines — so every reader of the cuts (the tributary seeding, `build.seeding_cuts`; the confluence
+#: test, `build.confluence_excludes`) sees the whole cut, not its principal line alone. False = no
+#: side crossings (the mutation pin).
+CUTS_REPORT_SIDE_CHANNEL_CROSSINGS = True
+
+
+def _side_crossings(g, refs: set[str], universe: set[str], blk: str) -> list[tuple[str, float]]:
+    """The cut's crossings on every blue line but `blk` (its principal line), sorted."""
+    if not CUTS_REPORT_SIDE_CHANNEL_CROSSINGS:
+        return []
+    _, at = _crossings(g, refs, universe)
+    return sorted((b, m) for b, ms in at.items() if b != blk for m in ms)
 
 
 def _by_measure(g, universe: set[str], blk: str, lo: float, hi: float,
@@ -912,9 +938,10 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
     one of two readings (see `_cut_at`). None = not determinable at all (an `within(area)` scope, or a
     cut that is not on the scoped water).
 
-    `cuts` (T111) are the cuts the reach was actually taken at — `{split, blk, m, end, kind, label}`,
-    `end` "lower" or "upper", after `cut_pick` and the ambiguous-cut rule; empty for `whole` and
-    `within`. The tributary seeding (`build.seeding_cuts`) and the confluence test
+    `cuts` (T111) are the cuts the reach was actually taken at — `{split, blk, m, end, kind, label,
+    side}`, `end` "lower" or "upper", after `cut_pick` and the ambiguous-cut rule, `side` the same
+    cut's crossings of the braid's other blue lines (T141, `CUTS_REPORT_SIDE_CHANNEL_CROSSINGS`);
+    empty for `whole` and `within`. The tributary seeding (`build.seeding_cuts`) and the confluence test
     (`build.confluence_excludes`) read them; neither re-derives a cut.
 
     ``reasons`` (optional): a list the caller passes to collect ``(code, detail)`` for anything that
@@ -1166,7 +1193,8 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
     def _used(sid: str, at, end: str) -> None:
         kind, label = _meta(sid)
         cuts.append({"split": sid, "blk": at[0], "m": at[1], "end": end, "kind": kind,
-                     "label": label})
+                     "label": label,
+                     "side": [list(x) for x in _side_crossings(g, _refs(sid), universe, at[0])]})
 
     def _why_of(pieces) -> dict[str, str]:
         """The typed reason for each reported piece (`unknown` only if no pass said one)."""
