@@ -1,6 +1,6 @@
 # T117 — `may_enter` everywhere: the other walks, and one owner for outlet, code relation and edge type
 
-Status: DONE — 8446c1ff (step 1), b98c3f3a (step 2), the POLICY_VERSION 24 / ticket commit; step 1 reach binding diff EMPTY, step 2 diff: 0 rules, 0 unresolved, 1 licensing record (−1 section, explained below). Gauge shed diff reviewed below (ships at deliver). Rebuild: reach + deliver (no atlas).
+Status: DONE — 8446c1ff (step 1), b98c3f3a (step 2), 48c6e9a0 (POLICY_VERSION 24); step 1 reach binding diff EMPTY, step 2 diff: 0 rules, 0 unresolved, 1 licensing record (−1 section, explained below). Gauge shed diff reviewed below (ships at deliver). Rebuild: reach + deliver (no atlas).
 
 Source: owner 2026-10-22 (unify checks that decide the same thing; the motivating case is T90/T102); unification
 audit 2026-10-22, findings reach 2, 3, 4, cross 6, 7, 9, 10 and matching 5 (CONFIRMED in code; leaks PLAUSIBLE, not
