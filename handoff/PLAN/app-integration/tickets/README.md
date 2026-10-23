@@ -191,6 +191,9 @@ use that as the sole source of future work."
 | T144 | Change: CLEVER + COFFEE (combined), ELF only as last resort with a low-water warning | OPEN | — | research first |
 | T145 | spot markers: smaller, capped, deselect on tap off, better look (T131 rework) | OPEN | — | app |
 | T146 | no-public-access colour too close to base regulations | OPEN | — | app |
+| T147 | "no public access" leads the regulations page, bigger and more obvious | OPEN | — | app; with T146 |
+| T148 | sloughs/canals second sweep by FWA feature codes + inside line codes, calibrated on the owner's marks | IN PROGRESS | — | workflow wf_dc7c8506-0c6 |
+| T149 | review page: slough complexes marked in bulk; intermittent-lake spot check | OPEN | — | after T148; ★ owner marks |
 
 ## Order for open tickets
 
