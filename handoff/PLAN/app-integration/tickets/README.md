@@ -158,7 +158,7 @@ use that as the sole source of future work."
 | T111 | every cut reaches the walk (second extent's window dropped) | OPEN | — | all (rides a reach rerun) |
 | T112 | one entry walker over catalogue extents | OPEN | — | all |
 | T113 | one name caser for tiles and bundle (O'rourke) | OPEN | — | all (tiles window + deliver) |
-| T114 | one search key for SQL filter and ranking (barriere) | DONE | ebc435e5, 6a9384d3, 21021abb, e7c4d3ca, 4ae97a60 | needs deliver (name_key/alias_key) — run after merge |
+| T114 | one search key for SQL filter and ranking (barriere) | DONE | ebc435e5, 6a9384d3, 21021abb, e7c4d3ca, 4ae97a60, 48f712e9, 2683568e | delivered r-e88ea8112b1a (core 1.09 MB) |
 | T115 | one home-filtered region membership (12 Fraser pairs) | OPEN | — | all (rides a reach rerun) |
 | T116 | one water noun: wetlands called "river" | DONE | 4cf77c7a, 86e6ad40, 0c533d4a, 91b2952e | — |
 | T117 | may_enter everywhere: other walks + outlet/WSC/edge-type owners | OPEN | — | all (after T102 part B; reach rerun) |
