@@ -1,5 +1,7 @@
 # T30 — presenter: gear lines, changes line, item sources, closed note, day line
 
+Status: DONE — c5770fa4, 9d408f38.
+
 Phase 3 · Depends on T00 (line/words), T04 (statics), T05 (`weekdayOf`), T06 (`RuleView`), T09 (`RegsInputs.frames.gear`,
 `year.displayByDay`), T12 (golden harness), T13 (`strip.ts` book-day helpers) · Blocks T31, T32, T34, T35 · Decisions: D6 (pages carry `pdf` for the link) ·
 Size ≤ 1 day

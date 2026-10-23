@@ -1,5 +1,7 @@
 # T23 — RN: `RegsScreen` in `WaterScreen`, `RegsHeader`, the one scroll
 
+Status: DONE — 830312a5.
+
 Phase 1 · Depends on T11 (`useRegsStore`, `useRegsTarget`, `useRegulations`, `useRegsPage`, `regsDay`, `useAnglerProfile`), T16 (`HeaderVM`), T21 (`buildRegsPage` Keep
 slice), T22 (tokens) · Blocks T24–T27, T29, T34, T35, T37 · Decisions D1 (a), D2 (a), D7 (a), D11 (a) · Size 1 day
 

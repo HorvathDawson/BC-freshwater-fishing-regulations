@@ -1,4 +1,7 @@
 # T42 — edge states: unnamed section, tidal, outside B.C., hours-window moments, weekday rows
+
+Status: DONE — b2e116c6, 0e36a2d5 (caveat look → T82).
+
 Phase 4 · Depends on T05 (`segmentIndex` with moments), T09 (`loadRegsInputs` for a section handle), T13–T21 (Keep),
 T16 (header), T23 (RegsScreen), T36 (weekday `other:` sheet) · Decisions D10 (hours windows), D11 (unnamed header) ·
 Size 1 day

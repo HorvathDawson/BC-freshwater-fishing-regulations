@@ -1,4 +1,7 @@
 # T52 — "Expected change": a Conditions view that flags rivers about to change, spikes included
+
+Status: OPEN — ticket 6ffda443.
+
 Phase 4 · Depends on the gauge feed + forecast (pipeline/gauges/feed/forecast.py), Conditions horizons (Now · +1 · +3 · +5
 · +10), the colouring engine's standing channel, T47 palette D · Size 2–3 days (pipeline + app)
 

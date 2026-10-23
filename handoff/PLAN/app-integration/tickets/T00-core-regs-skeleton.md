@@ -1,5 +1,7 @@
 # T00 — core `regs/` skeleton: model + line + words, `regulations.ts` rewritten
 
+Status: DONE — 40b2c67d.
+
 Phase 0 · Depends on — · Blocks every other ticket · Decisions — · Size ½ day
 
 Target: **regs v33 @ 04765ab5** (`app/design/regs-v11.html`, `pipeline/deliver/answers/reference/page_v36.js` unchanged

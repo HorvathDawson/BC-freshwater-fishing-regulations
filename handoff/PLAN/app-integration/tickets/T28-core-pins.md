@@ -1,5 +1,7 @@
 # T28 — core: `shortOf`, `pinChain`, `tabInView` + golden pin fixtures
 
+Status: DONE — 14b90015.
+
 Phase 2 · Depends on T00 (core `regs/` skeleton), T12 (golden loader), T17/T18 (the VM fields this fills: `TierVM.short`,
 `GroupVM.pinLine`) · Blocks T29 · Decisions D12 (a) · Size ½ day
 

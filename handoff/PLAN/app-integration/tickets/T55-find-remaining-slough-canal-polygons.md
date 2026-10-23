@@ -1,5 +1,7 @@
 # T55 — Find the sloughs and canals still drawn as lakes (POSTPONED)
 
+Status: IN PROGRESS — fec02c29, 96b0eb73 (reopened); prior 669fd065, a59f3dc3, ac8a0e1c. Finder wf_937ae915-731 running; 7 grey polygons (Nation, West Road, Honna) open.
+
 Owner 2026-10-22 (late), decisions.md "sloughs and canals look like streams in Conditions": the book treats sloughs and
 canals as streams. Many such polygons are already marked as stream items; "the rest are still to be found … and stays
 postponed". This ticket is that postponed part. Do not start it with the braid / canal geometry work, which stays

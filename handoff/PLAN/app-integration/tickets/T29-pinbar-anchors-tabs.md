@@ -1,5 +1,7 @@
 # T29 — RN: anchors, `PinBar`, tab-in-view, tab scroll-to
 
+Status: DONE — 61ef4fe6, e13452ff.
+
 Phase 2 · Depends on T28 (`pinChain`, `appPinLines`, `tabInView`, `tabScrollY`, `anchoredScrollY`, `PinAnchor`), T23 (screen,
 header tabs), T26 (`onAnchor` events), T27 (KeepTab) · Blocks T34/T35 (their sections feed `tops`), T41 · Decisions D1 (a),
 D2 (a), D12 (a) · Size 1 day

@@ -1,5 +1,7 @@
 # T17 — presenter: group head (title, scope kicker, forms a/b, origin line)
 
+Status: DONE — 670521fc, fe2014cb, cb71e1d0 (`parent` from the pipeline).
+
 Phase 1 · Depends on T00, T06 (species names, `RuleView`), T08 (`CardModel.rows` = page v36 hydRow rows), T12 · Blocks T18 (tagShare, rootPages, rootBook), T21, T26, T28 (shortOf) · Decisions — (form a is the owner's pick, r20h) · Size 1 day
 
 Target **regs v33 @ 04765ab5**: prototype buildKeep 1027–1326 — moveTag/tagShare 1100–1106, head/origin 1206–1213, rootT/hdrRoot

@@ -1,5 +1,7 @@
 # T33 — presenter: licence (who is fishing, label, answer, sources)
 
+Status: DONE — b3ab85c5, a43a0de2, cd0a2a59.
+
 Phase 3 · Depends on T00, T04 (`licence_*` codecs, statics `licence.*`, `export.licences`, `lic` words), T05
 (`profileIndex`), T06 (species words), T08 (rows: `not_kept` for the steelhead drop), T09 (`frames.licence`, `lics`,
 `part.paper_licence`), T12 · Blocks T35, T36 (`licsrc:` sheet body) · Decisions **D8** (profile is per session; this

@@ -1,5 +1,7 @@
 # T08 — core hydrate 3: rows model (`rowsAt`, `hydRow`, `buildModel`, `dayStatus`)
 
+Status: DONE — b64af2ed, 279236b5 (`dayStatus` dropped; the day status is the pipeline's answer).
+
 Phase 0 · Depends on T07, T09 (parity inputs) · Blocks T13, T15, T17–T19, T21, T36 · Decisions — · Size ¾ day
 
 ## Goal

@@ -1,5 +1,7 @@
 # T16 — presenter: header (name, date words, dot, part label, action, tabs)
 
+Status: DONE — b763f12d, d2f55c3b.
+
 Phase 1 · Depends on T00, T09 (`RegsInputs.item/partIx/place`), T12, T13 (strip status) · Blocks T21, T23 · Decisions D1 (map action), D7 (date sheet) · Size ½ day
 
 Target **regs v33 @ 04765ab5**: prototype `hdr` 1012–1021, `statusOf` 979–982, `fullPart` 983, `hereLabel` 984–991,

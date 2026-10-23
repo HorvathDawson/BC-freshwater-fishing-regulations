@@ -1,5 +1,7 @@
 # T20 — fish manifest → `core/src/regs/fish.generated.ts` + the app's image map
 
+Status: DONE — 803bc30d.
+
 Phase 1 · Depends on T00 · Blocks T18, T19 (captions, thumbs), T26/T27/T37 (images) · Decisions — (image permissions: T43) · Size ½ day
 
 Target **regs v33 @ 04765ab5**: prototype `FISHPIC` 955, `fishName` 963, `thumb` 959–962, `fishBtn` 964–968 read

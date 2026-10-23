@@ -1,5 +1,7 @@
 # T25 — RN: `ClosedBanner`, `InheritedLine`, `WhereNot`, `PossessionRow` (+ the shared `LineText`)
 
+Status: DONE (built in T21) — 3665f151 (KeepBlocks.tsx, LineText.tsx).
+
 Phase 1 · Depends on T14 (`BannerVM`), T15 (`InheritedVM`, `WhereNotVM`, possession), T00 (`Line`/`Run`, `words.ts`), T22, T23 ·
 Blocks T26 (reuses `LineText`), T27 · Decisions D6 (Rule book link opening) · Size ½ day
 

@@ -1,5 +1,7 @@
 # T13 — presenter: year strip + status line
 
+Status: DONE — 4e9db5ab, 3c5d3628.
+
 Phase 1 · Depends on T00 (line/words), T07 (`settle()` → `Settled`), T08 (`CardModel` rows), T09 (`RegsInputs.year`), T12 (golden harness) · Blocks T21, T24 · Decisions — · Size ½ day
 
 Target: **regs v33 @ 04765ab5** (prototype = `app/design/regs-v11.html` at that commit; line refs below are that file, script

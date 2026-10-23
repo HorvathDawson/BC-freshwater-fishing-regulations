@@ -1,5 +1,7 @@
 # T32 — presenter: ways to fish, boats, reference fold
 
+Status: DONE — b76a9941.
+
 Phase 3 · Depends on T00, T06 (`RuleView`, species words), T09, T12, T30 (`sourceLine`, `closedUntil`, `GearCtx`), T31
 (`yesNo`, `ELEM`) · Blocks T34, T35 · Decisions — · Size ≤ 1 day
 

@@ -1,4 +1,7 @@
 # T36 — presenter: every sheet (`page.sheet(key) → SheetVM`)
+
+Status: DONE — abfc42ea, d82411c5, d91d9ba3.
+
 Phase 4 · Depends on T06, T07, T08 (hydrate: rule views, ladder verdicts, rows model), T12 (harness), T15 (possession row
 opens `pos:`), T19 (other-fish rows open `other:`), T20 (fish manifest + tips), T30/T33 (item / licence source keys) ·
 Blocks T37, T38, T42 · Decisions D5 (frozen target v33 @ 04765ab5), D6 (book links), D13 (fixture store) · Size 1 day

@@ -1,5 +1,7 @@
 # T22 — theme + type tokens for the page
 
+Status: DONE — 24e63e82, 8f010a17, 44a09ac2.
+
 Phase 1 · Depends on — (pure token work; may start any time) · Blocks T23–T29, T34, T35, T37, T39, T40 · Decisions D3 (palette
 `sub`), D9 (one more font file) · Size ½ day
 

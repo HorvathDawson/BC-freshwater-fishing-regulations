@@ -1,4 +1,7 @@
 # T44 — one frame for the water screen's views (no shift between Regulations, Conditions and Map)
+
+Status: DONE — 825cf1a8, f2e98e0d.
+
 Phase 4 · Depends on T23 (RegsScreen), one-water-screen (openWater / WaterViews), P15 (WaterMapView) · Size 1 day
 
 ## Owner (2026-10-21)

@@ -1,5 +1,7 @@
 # T53 — An unnamed stream shows no regulations (only Conditions)
 
+Status: DONE — cause 74c1decd, 79c74252; merged 46f3d2f1, 9ef5ea75, 1925ecdc. Real-data verification is T57.
+
 > **BUILT 2026-10-22, app only (decisions.md "CLAUDE 2026-10-22 — T53 built"):** an unnamed frame offers Regulations ·
 > Conditions (no Map); the Map tab puts Regulations in front; the page is the store's answer for the tapped section
 > (`RegsTarget` kind "section"); header "Unnamed stream · Region N" (the store's) + "Tributary of <water>" when the flow

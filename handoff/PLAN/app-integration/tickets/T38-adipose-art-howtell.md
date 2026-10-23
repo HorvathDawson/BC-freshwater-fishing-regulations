@@ -1,4 +1,7 @@
 # T38 — RN: `AdiposeArt` + the How to tell sheet
+
+Status: DONE — e924a347, 75a8505c (D4: owner 2026-10-22, dark cut-outs with no tile are fine).
+
 Phase 4 · Depends on T36 (`hatch` SheetVM, `adipose` block), T37 (SheetBody), T20 (image map / `apps/mobile` asset
 registration) · Blocks T41 · Decisions D4 (no tile behind pictures), D15 (asset permissions — these two drawings are
 ours, no third-party credit) · Size ½ day

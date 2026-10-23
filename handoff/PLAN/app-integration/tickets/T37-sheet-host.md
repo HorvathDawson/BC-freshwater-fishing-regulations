@@ -1,4 +1,7 @@
 # T37 — RN: `SheetHost` + the sheet body components
+
+Status: DONE — c1bffeef, c3566bc2, d91d9ba3 (the taller-sheet item O5 moved to T82).
+
 Phase 4 · Depends on T36 (SheetVM), T23 (RegsScreen owns `sheet` state), T22 (TYPE/SPACE), T20 (fish image map), T34
 (`RuleBookLink`, `SourceLine`) · Blocks T38, T41, T42, T43 · Decisions D6 (book links), D7 (the day sheet stays T23's
 `DaySheet`, not a SheetKey) · Size 1 day

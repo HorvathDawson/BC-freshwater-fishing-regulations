@@ -1,5 +1,7 @@
 # T43 — Rule book links on native, fish credits, the image-permissions ship gate
 
+Status: DONE — b4e5734c, 75a8505c (owner dropped the permissions part: permission is held).
+
 > **Owner 2026-10-20 (IMPLEMENT-HANDOFF §6 item 1): the owner HAS permission for every image — not a ship gate; the
 > permissions part is dropped.** Built (2026-10-22): goals 1 and 2 only. No `fish_credits.tsv`, no `check-fish-credits`,
 > no `--ship`; manifest `_about` already records the permission. As built: `openBook.ts` (the one open, every caller),

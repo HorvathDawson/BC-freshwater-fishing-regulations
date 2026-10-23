@@ -1,4 +1,7 @@
 # T49 — the map's day: a calendar icon instead of the stepper strip
+
+Status: DONE — 02570d07, 1fc9be2e, 9db57864.
+
 Phase 4 · Depends on the layers-B lane (legend strip rework), T23 (DaySheet / MapDay, the one `mapDay`), G1 back · Size 0.5–1 day
 
 ## Owner (2026-10-21)

@@ -1,5 +1,7 @@
 # T54 — Streams in no-access areas: a fourth colour, and the page says so
 
+Status: OPEN — ticket a43a7122. Owner Q1–Q3 open; build with the suggested defaults (README owner-questions table).
+
 Owner 2026-10-22: "the private land of coquitlam watershed, seymour watershed etc and rsa zones etc... basically no
 access areas should color the streams a fourth color to show the user they can not access it. (regs are ok but access
 is not) then in the regulation tab it should make it clear that this is in an area you arent allowed to access. (is an

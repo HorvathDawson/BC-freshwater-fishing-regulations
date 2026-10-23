@@ -1,5 +1,7 @@
 # T05 — core tap: `segmentIndex`, `weekdayOf`, `profileIndex`; taps.json parity; `answers --check` in `pnpm check`
 
+Status: DONE — f9d3cf12, 89f0d3d2, 46ccd2d0 (redo).
+
 Phase 0 · Depends on T00, T04 · Blocks T07, T09, T33 · Decisions — · Size ½ day
 
 ## Goal

@@ -1,5 +1,7 @@
 # T21 — `buildRegsPage()` Keep slice + Keep golden parity on all states
 
+Status: DONE — 3665f151, a445aa91, b824f4ee.
+
 Phase 1 · Depends on T07, T08, T09, T12, T13–T20 · Blocks T23, T27, T28 · Decisions D1 (map action) · Size 1 day
 
 Target **regs v33 @ 04765ab5**: prototype `buildKeep` 1027–1326 (the composition and draw order), page v36 `renderCard` 702–716

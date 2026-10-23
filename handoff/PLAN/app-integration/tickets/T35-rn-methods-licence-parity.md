@@ -1,5 +1,7 @@
 # T35 — RN: WaysList, Boats, ReferenceFold, WhoSelector, LicenceAnswer; Gear/Methods/Licence golden parity
 
+Status: DONE — 28e6d404, aeeb52de.
+
 Phase 3 · Depends on T11 (`useAnglerProfile`), T21 (`buildRegsPage`), T27, T30–T34 · Blocks T36 (sheets from these
 links), T41 · Decisions **D8** (profile per session, default B.C. resident 16+), D6 (via `SourceLine`/`RuleBookLink`) ·
 Size ≤ 1 day

@@ -1,5 +1,7 @@
 # T04 — store reads: items, parts, picker, akey, segments, cells, frame codecs, rules, statics, section blocks
 
+Status: DONE — bb28757f, d6d3ee0e.
+
 Phase 0 · Depends on T02, T03 · Blocks T05 (parity test), T09, T10 · Decisions — · Size 1 day (if it overruns: T04a = item/part/
 akey/seg/cell/section reads; T04b = the five frame codecs + rules + statics)
 

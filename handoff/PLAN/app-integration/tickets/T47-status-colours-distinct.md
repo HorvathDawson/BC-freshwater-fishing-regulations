@@ -1,4 +1,7 @@
 # T47 — status colours you can tell apart: "has its own regulations" vs "closed" (and restricted)
+
+Status: PARTIAL — daf61b67, 5473776d, d6a5a51c, 056d6cc5, e6754333. Palette D questions closed (decisions.md "palette D stands"). Left → T83: boundaries under the water, the warm temperature dot's hue, the sub-20 pairs. Close as DONE when T83 closes.
+
 Phase 4 · Depends on T22 (tokens), the colouring engine (colouring.ts), T39 (palette gate) · Size 1 day
 
 ## Owner (2026-10-21)

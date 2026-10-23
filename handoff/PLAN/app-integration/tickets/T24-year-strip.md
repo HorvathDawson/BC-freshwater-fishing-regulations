@@ -1,5 +1,7 @@
 # T24 — RN: `YearStrip`
 
+Status: DONE (built in T21) — 3665f151 (`ui-native/src/regs/YearStrip.tsx`).
+
 Phase 1 · Depends on T13 (`StripVM`, v33 shape in T13), T22 (tokens), T23 (screen) · Blocks T27 · Decisions — · Size ½ day
 
 Target **regs v33 @ 04765ab5** (CSS 84–113, 265–267, 699; script `flagBar`/`flagLegend` — inventory names, v33 ≈ 945–953).

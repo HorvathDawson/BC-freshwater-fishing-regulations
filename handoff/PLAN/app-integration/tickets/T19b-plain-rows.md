@@ -1,5 +1,7 @@
 # T19b — presenter: plain rows (a row page v36 draws without a quota card) + the "How this was decided" ladder
 
+Status: DONE — 5cda8390, 8a1c3c52.
+
 Phase 1 · Depends on T00, T06 (`describe`, `say` = `facts.plain`), T07 (`Settled.lifted`, verdict roles), T08 (`CardModel` rows, `R`),
 T12, T13 (`speciesYear`, `runOf`, `spanWords`/`rangeTxt`), T17 (`rowTitle`, `scopeOf`), T18 (`pictures`), T19 (`splitRows`) ·
 Blocks T21 (removes its 25-state exclusion), T26/T27 (render), T36 (`other:` sheet reuses `ladderOf`) · Decisions — · Size 1½ days (split at the ladder if needed)

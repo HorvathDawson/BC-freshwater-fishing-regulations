@@ -1,5 +1,7 @@
 # T18 — presenter: the quota tree (tiers, size band, kind rows, pictures)
 
+Status: DONE — ae0a8abf, fe2014cb (the 3 Kitimat states held to the store, owner ruling (a)).
+
 Phase 1 · Depends on T00 (`boldN`, `nbsp`), T06, T08, T12, T17 (`HeadCtx`: hdrRoot, tagShare, tag, rootPages, rootBook), T20 (`FISH` manifest) · Blocks T21, T26, T28 · Decisions — · Size 1 day
 
 Target **regs v33 @ 04765ab5**: prototype buildKeep — `pics` 1124, `presOf`/`presP` 1139–1140, `nbsp` 1222, `boldN` 1223,

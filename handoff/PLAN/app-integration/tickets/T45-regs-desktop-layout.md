@@ -1,4 +1,7 @@
 # T45 — a desktop layout for the Regulations view (web app)
+
+Status: DONE — 919cdb6f, 412f4bfc.
+
 Phase 4 · Depends on T44 (the shared frame), T23/T29 (header, pin bar), T34/T35, T37 (sheets) · Size 1–2 days
 
 ## Owner (2026-10-21)

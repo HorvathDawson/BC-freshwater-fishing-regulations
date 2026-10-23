@@ -1,4 +1,7 @@
 # T51 — "Like your visit?": a spot's conditions then vs the next 5 days, as a similarity score
+
+Status: OPEN — ticket a7b94f4e.
+
 Phase 4 · Depends on S1 (spot lead-up: weather + gauge frozen at capture), the gauge feed + forecast horizons, Open-Meteo
 weather, the T48 Spots tab · Size 1–2 days
 

@@ -1,5 +1,7 @@
 # T02 — blob codec (fflate dict-inflate) + UTF-8 decode
 
+Status: DONE — 53ea8298.
+
 Phase 0 · Depends on T00 · Blocks T03, T04 · Decisions — · Size ½ day
 
 ## Goal

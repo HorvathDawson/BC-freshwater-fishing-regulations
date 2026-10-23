@@ -1,5 +1,7 @@
 # T12 — golden parity harness (loader, per-state inputs cache, `eqPlain`, exclusions, VM-fixture writer)
 
+Status: DONE — d41f8522, 087388c2, 6e9e0443 (trout-line and Other-fish stamp lines now compared).
+
 Phase 0 · Depends on T05 (creates `golden.ts`), T09 (`inputsOf`), T10 (fixture fallback) · Blocks T13–T21, T28, T30–T36 · Decisions — · Size ¾ day
 
 ## Goal
