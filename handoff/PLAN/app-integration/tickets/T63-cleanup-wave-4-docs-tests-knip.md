@@ -19,3 +19,10 @@ Status: OPEN. Source: handoff/PLAN/audit/PLAN.md §2 "Wave 4" + owner: "a big te
   Endako 7A rule renumbering every later rix); Rainbow Alley on Babine parts 1-2 (T89) recorded as ORACLE_PREDATES;
   klmb_1010 D19 (a) → D19_GROUPS. Still owed: re-cut page_v36.html's blocks + hydrate.json (human: `page_data --html`,
   then `node app/design/regs-v11/port/hydrate.mjs`), which retires ORACLE_PREDATES.
+- Page v36 oracle refresh (2026-10-22): `python -m pipeline.deliver.answers.reference.page_data --html
+  pipeline/deliver/answers/reference/page_v36.html` + `node app/design/regs-v11/port/hydrate.mjs` on r-36fbc5326506
+  produced a 3-line page diff but broke 275 card/settle/describe parity tests (vedder_515, chw*, wilkes, x15p*), so it
+  was reverted. The parity tests map oracle rule numbers to the store by key (5f1eec34) and pass on the old page; a
+  refresh needs its own lane: find why the regenerated page disagrees (subset build: 42 waters / 727 rules; the
+  translation assuming the old numbering; T80 groups), then drop settle's ORACLE_PREDATES entries. Decide with the
+  owner's call 2 (archive the prototype answers reference) — the refresh may not be worth doing at all.
