@@ -16,6 +16,7 @@ import json
 
 import pytest
 
+from pipeline.gauges.liveness import may_speak
 from pipeline.tools import check_curated as C
 
 
@@ -127,11 +128,11 @@ def test_only_active_stations_need_a_decision(tmp_path):
     import dataclasses
     rows = [{"station": "A", "active": True}, {"station": "B", "active": False}]
     a = dataclasses.replace(_art(tmp_path, rows, {"stations": [{"station": "A"}]}),
-                            roster_where="active")
+                            roster_where=may_speak, roster_where_word="active")
     verdict, detail = C.check(a)
     assert verdict == "fresh" and "1 without a decision, none active" in detail
     a = dataclasses.replace(_art(tmp_path, rows, {"stations": [{"station": "B"}]}),
-                            roster_where="active")
+                            roster_where=may_speak, roster_where_word="active")
     assert C.check(a)[0] == "STALE"
 
 
@@ -139,4 +140,4 @@ def test_the_gauge_queue_is_committed_curated_data():
     """CI has no data/generated: the review queue lives beside the matches, in curated."""
     gauge = next(a for a in C.ARTIFACTS if a.name == "gauge match")
     assert gauge.candidates is not None and "curated" in gauge.candidates.parts
-    assert gauge.roster_where == "active"
+    assert (gauge.roster_where, gauge.roster_where_word) == (may_speak, "active")   # T122: the one liveness

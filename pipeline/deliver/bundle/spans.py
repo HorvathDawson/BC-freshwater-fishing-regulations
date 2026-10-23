@@ -132,8 +132,8 @@ def compute(nodes: dict, edges, handles: dict[str, int], items: list[tuple[int, 
     """Every (sid, lo_m, hi_m, lo, hi, off_stem, shape) row for the STREAM waters in `items`
     ((ord, item_id, kind, [sid])). `nodes` is the graph's node dict, `edges` its FlowEdges,
     `handles` node id -> sid, `lake_items` wbk -> (item_id, kind) of the water owning that polygon.
-    `stems`, when given, is filled with {item_id: main stem blk} — the one place each water's stem
-    is decided. `graph` (the StreamGraph the nodes and edges came from) places a stream's own
+    `stems`, when given, is filled with {item_id: main stem blk} — each water's stem as
+    `lines.main_line_of` decides it (the bundle's one main line, T118). `graph` (the StreamGraph the nodes and edges came from) places a stream's own
     POLYGONS by their measure window (`graph.windows.polygon_window`); without it they are off-stem.
     `ends` is {sid: the word for that section's natural lower end} (`continuation.lower_ends`, from
     `continuation.goes_on`): a section whose lower end is a plain `mouth` reads it instead."""

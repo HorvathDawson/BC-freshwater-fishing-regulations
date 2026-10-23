@@ -197,8 +197,9 @@ def exit_receivers(o: int, cands: Sequence[int], mouths: Dict[int, set], downs: 
     through the lower), or a water with no main line (a lake) that `item_down` says drains into `o` (Moose Lake on
     the Fraser, a lake the creek runs out of). Flow has no cycles, so a water that flows into `o` is never where `o`
     goes. Empty for the Fraser: its mouth is the sea. A LAKE (no main line: absent from `mouths`) keeps every
-    receiver: a creek running through it is both its inflow and its outlet, and a creek's main line (a count) can be
-    its upper line, so the creek's "mouth" is no evidence against the lake's outlet (Adsit Lake, Crooked Lake)."""
+    receiver: a creek running through it is both its inflow and its outlet, and a creek's main line (`lines.main_line`,
+    the line carrying most of its length) can be its upper line, so the creek's "mouth" is no evidence against the
+    lake's outlet (Adsit Lake, Crooked Lake)."""
     if o not in mouths:
         return list(cands)
 

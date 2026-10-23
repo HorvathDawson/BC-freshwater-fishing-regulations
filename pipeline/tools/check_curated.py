@@ -40,8 +40,10 @@ import json
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Callable, Mapping
 
 from pipeline.common.curated import ROOT, SOURCE, load
+from pipeline.gauges.liveness import may_speak
 
 #: The reviewed artifacts come from `config.yaml`, so there is ONE place naming them and a
 #: typo fails at load with the key rather than here with a confusing "not built". The
@@ -65,10 +67,13 @@ class Artifact:
     #: forever and teach everyone to ignore it; only a station in NEITHER file is stale.
     candidates: Path | None = None
     candidate_ids: str = "stations.*"
-    #: Only roster rows with this field truthy NEED a decision (user, 2026-10-09: an inactive
+    #: Only roster rows this predicate holds for NEED a decision (user, 2026-10-09: an inactive
     #: gauge publishes no reading, so an unmatched one leaves no water without its gauge). The
-    #: rest are reported, never STALE.
-    roster_where: str | None = None
+    #: rest are reported, never STALE. For the gauges it is `liveness.may_speak` (T122 review:
+    #: this read the `active` field through its name, a reader the liveness pin could not see).
+    roster_where: Callable[[Mapping], bool] | None = None
+    #: What the excused rows are not, for the report ("none active").
+    roster_where_word: str = ""
 
     def ids(self, path: Path, spec: str) -> set[str] | None:
         """Ids out of a file, or None if the file is not there at all.
@@ -117,7 +122,8 @@ ARTIFACTS = [
         roster_ids="station",
         frozen_ids="stations.*",
         candidates=_C.gauges.candidates,
-        roster_where="active",
+        roster_where=may_speak,
+        roster_where_word="active",
     ),
     Artifact(
         name="gauge water-body type",
@@ -163,7 +169,7 @@ def undecided(a: Artifact, roster: set[str], frozen: set[str]) -> tuple[list[str
     idle: list[str] = []
     if a.roster_where:
         rows = json.loads(a.roster.read_text(encoding="utf-8"))
-        need = {r[a.roster_ids] for r in rows if r.get(a.roster_where)}
+        need = {r[a.roster_ids] for r in rows if a.roster_where(r)}
         idle = [s for s in new if s not in need]
         new = [s for s in new if s in need]
     return new, idle, queued
@@ -193,7 +199,7 @@ def check(a: Artifact) -> tuple[str, str]:
     gone = sorted(frozen - roster)
     if not new:
         bits = []
-        if idle: bits.append(f"{len(idle)} without a decision, none {a.roster_where}")
+        if idle: bits.append(f"{len(idle)} without a decision, none {a.roster_where_word}")
         if queued: bits.append(f"{len(queued & roster)} in the review queue")
         if gone: bits.append(f"{len(gone)} dropped from the roster")
         tail = ("; " + "; ".join(bits)) if bits else ""

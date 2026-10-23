@@ -64,8 +64,13 @@ def test_the_feed_and_the_roster_writer_use_this_list():
 
 
 #: A READ of a roster row's liveness, or the ECCC list parsed or addressed. The roster WRITER's dict literal
-#: (`"realtime": sid in speaking`) is no read.
-_READS = re.compile(r"""\.get\(\s*["'](?:realtime|active)["']\s*[,)]|\[\s*["']realtime["']\s*\]"""
+#: (`"realtime": sid in speaking`) is no read. T122 review added: a SUBSCRIPT of `active` (the answers' unrelated
+#: `["vessel"]["active"]` excepted) and `getattr`. A field read through a VARIABLE key (`check_curated` read
+#: `r.get(a.roster_where)` with `roster_where="active"`) no grep can see: that one is pinned by identity in
+#: `test_check_curated.py::test_the_gauge_queue_is_committed_curated_data` (its predicate IS `may_speak`).
+_READS = re.compile(r"""\.get\(\s*["'](?:realtime|active)["']\s*[,)]"""
+                    r"""|(?<!\["vessel"\])\[\s*["'](?:realtime|active)["']\s*\]"""
+                    r"""|getattr\([^)]*["'](?:realtime|active)["']"""
                     r"""|hydrometric_StationList|Prov/Terr""")
 
 
@@ -81,6 +86,13 @@ def _offenders(root: Path) -> list[str]:
     return out
 
 
+def test_the_pin_leaves_the_answers_vessel_alone(tmp_path):
+    d = tmp_path / "pipeline" / "deliver"
+    d.mkdir(parents=True)
+    (d / "x.py").write_text('out.update(g["vessel"]["active"])\nans = {"active": vessel}\n')
+    assert _offenders(tmp_path) == []
+
+
 def test_nothing_else_reads_liveness():
     """THE GREP PIN: `realtime`, `active` and ECCC's list are read in `liveness.py` alone."""
     assert _offenders(ROOT) == []
@@ -90,7 +102,8 @@ def test_nothing_else_reads_liveness():
 def test_the_pin_would_see_a_second_reader(tmp_path):
     for i, line in enumerate(('live = {s["station"] for s in stations if s.get("realtime")}',
                               'active = {s["station"] for s in stations if s.get("active")}',
-                              'if (row.get("Prov/Terr") or "").strip() == "BC":', 'n = sum(r["realtime"] for r in out)')):
+                              'if (row.get("Prov/Terr") or "").strip() == "BC":', 'n = sum(r["realtime"] for r in out)',
+                              'need = {r["station"] for r in rows if r["active"]}', 'ok = getattr(row, "realtime")')):
         d = tmp_path / str(i) / "pipeline" / "gauges"
         d.mkdir(parents=True)
         (d / "x.py").write_text(line + "\n")
