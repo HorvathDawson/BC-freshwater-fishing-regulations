@@ -1,0 +1,183 @@
+"""Curation review phase 4 (T135) THROUGH THE REVIEW APP, in REVIEW MODE: the one queue, the
+pre-checks on screen, the ticket export, and a refused mark said in the reviewer's words (T142).
+
+The FastAPI app runs with `TestClient` over TEMP COPIES of the catalogue, splits.json and the marks
+store, the real atlas and synopsis (read only), and a FIXTURE REACH RUN written here — two real
+diagnostics of the corpus (Ash River's ambiguous cut, Frog Lake's unresolved rules) — so what the
+queue says of the run is pinned whatever the live run is doing.
+"""
+from __future__ import annotations
+
+import json
+import shutil
+import sys
+from pathlib import Path
+
+import pytest
+
+from pipeline.common.curated import CURATED, GENERATED
+from pipeline.tests.conftest import ATLAS_HINT, need
+
+REPO = Path(__file__).resolve().parents[2]
+BACKEND = REPO / "curation-review" / "backend"
+_MODS = ("app", "reuse", "model_api", "answer", "synopsis_pages", "writes", "review", "evidence")
+ASH, FROG = "r1:ash_river@1-7", "r5:frog_lake@5-6"
+AMB = {"also_at": [12419.76], "candidates": [12419.76, 14994.7], "extent": 0,
+       "split_id": "ash_river__dickson_lake", "toward": "ash_river__elsie_lake", "used": 14994.7}
+
+pytestmark = [pytest.mark.needs_atlas, pytest.mark.needs_source]
+
+
+@pytest.fixture(scope="module")
+def env(request, tmp_path_factory):
+    need(request, "atlas", GENERATED.build() / "registry.json", ATLAS_HINT)
+    root = tmp_path_factory.mktemp("queue")
+    cat = root / "catalogue"
+    cat.mkdir()
+    for p in sorted(CURATED.regulations.entries.catalogue.glob("region-*.json")):
+        shutil.copy2(p, cat / p.name)
+    shutil.copy2(CURATED.waters.splits, root / "splits.json")
+    (root / "marks.jsonl").write_text("")
+    run = root / "run"
+    run.mkdir()
+    (run / "report.json").write_text(json.dumps({"digest": "fixture-run"}))
+    (run / "rule_diagnostic.jsonl").write_text(json.dumps(
+        {"entry_id": ASH, "kind": "ambiguous_cut", "payload": json.dumps(AMB),
+         "rule_id": "ash_river.r1"}) + "\n")
+    (run / "rule_unresolved.jsonl").write_text("".join(json.dumps(
+        {"detail": "no scoped item is in the registry: []", "entry_id": FROG,
+         "reason": "no_sections_for_items", "rule_id": rid}) + "\n"
+        for rid in ("frog_lake.r1", "frog_lake.r2")))
+    mp = pytest.MonkeyPatch()
+    for k, v in {"CURATION_FIX": "0", "CURATION_ENTRIES_DIR": cat,
+                 "CURATION_SPLITS_JSON": root / "splits.json", "CURATION_MARKS": root / "marks.jsonl",
+                 "CURATION_BACKUP_DIR": root / "backups", "CURATION_REACH_DIR": run}.items():
+        mp.setenv(k, str(v))
+    mp.syspath_prepend(str(BACKEND))
+    for mod in _MODS:
+        sys.modules.pop(mod, None)
+    import app as app_mod                                     # noqa: E402
+    import reuse                                              # noqa: E402
+    assert app_mod.FIX is False and reuse.REACH_DIR == run
+    from fastapi.testclient import TestClient
+    yield {"client": TestClient(app_mod.app), "root": root, "reuse": reuse}
+    mp.undo()
+    for mod in _MODS:
+        sys.modules.pop(mod, None)
+
+
+@pytest.fixture(scope="module")
+def queue(env):
+    return env["client"].get("/api/entries").json()
+
+
+def test_one_queue_across_every_region_in_the_review_order(env, queue):
+    """No region: the whole corpus, tier by tier (P1 Z P2 P3 P4 sweep), each tier led by its most
+    urgent risk factor; the statuses say what the parse left, never "unreviewed"."""
+    from pipeline.regs.review.tiers import RISKS, TIERS
+    assert len(queue) == 1525
+    assert len({r["region"] for r in queue}) > 5
+    tiers = [TIERS.index(r["tier"]) for r in queue]
+    assert tiers == sorted(tiers)
+    for t in ("P1", "P3"):
+        first = [RISKS.index(r["risks"][0]) for r in queue if r["tier"] == t]
+        assert first == sorted(first), t
+    assert next(r for r in queue if r["tier"] == "P1")["risks"][0] == "no match"
+    assert {r["status"] for r in queue} == {"no_registry", "parser-uncertain", "unused_splits",
+                                            "plain", "zone"}
+    assert all(set(r["prechecks"]) == {"A", "B"} for r in queue)
+    c = env["client"]
+    assert c.get("/api/entries", params={"order": "attention"}).status_code == 422
+    assert c.get("/api/entries", params={"status": "flagged"}).status_code == 422
+
+
+def test_the_run_s_facts_reach_the_queue_and_the_screen(env, queue):
+    """Ash River's ambiguous cut and Frog Lake's unresolved rules, from the fixture run: risk
+    factors on their rows, pre-checks and the cut's candidates on Ash River's screen."""
+    rows = {r["entry_id"]: r for r in queue}
+    assert "ambiguous cut" in rows[ASH]["risks"] and "unresolved" in rows[FROG]["risks"]
+    v = env["client"].get(f"/api/entries/{ASH}/review").json()
+    assert v["ambiguous_cuts"] == {"ash_river.r1": [AMB]}
+    assert v["run"] == {"run": "fixture-run", "why": None}
+    amb = [f for f in v["prechecks"] if f["code"] == "ambiguous_cut"]
+    assert amb == [{"code": "ambiguous_cut", "severity": "A", "rule_id": "ash_river.r1",
+                    "what": "a cut matched several places on its line; the builder took one by "
+                            "ruling E16 — check the pick: ash_river__dickson_lake at 12,420 m, "
+                            "14,995 m; took 14,995 m (toward ash_river__elsie_lake)"}]
+    assert v["parse_findings"] == []
+    frog = env["client"].get(f"/api/entries/{FROG}/review").json()
+    assert [(f["code"], f["rule_id"]) for f in frog["prechecks"] if f["code"] == "unresolved"] == [
+        ("unresolved", "frog_lake.r1"), ("unresolved", "frog_lake.r2")]
+    p = env["client"].get("/api/review/progress").json()
+    assert p["facts"] == {"run": "fixture-run", "why": None}
+
+
+def test_a_split_added_mid_review_heads_the_queue_and_moves_no_entry(env, queue):
+    """Owner 2026-10-23 (T135 acceptance): a split added after review began is in tier S0 on the
+    next load — the split cards that lead the one queue — and no entry re-queues: the entries'
+    rows (marks, tiers, order) are as they were."""
+    reuse = env["reuse"]
+    path = Path(reuse.SPLITS_JSON_PATH)
+    original = path.read_text()
+    try:
+        data = json.loads(original)
+        wb = data["waterbodies"][0]
+        new = {**wb["splits"][0], "id": "t135_added_split", "label": "added mid-review",
+               "_note": "Verify: added in fix mode 2026-10-23 — confirm on the built map"}
+        wb["splits"].append(new)
+        path.write_text(json.dumps(data, indent=1, ensure_ascii=False) + "\n")
+        c = env["client"]
+        cards = c.get("/api/review/splits").json()
+        assert "t135_added_split" in [x["split_id"] for x in cards]
+        card = next(x for x in cards if x["split_id"] == "t135_added_split")
+        assert (card["s0"], card["status"]) == (True, "unmarked")
+        p = c.get("/api/review/progress").json()
+        assert next(t for t in p["tiers"] if t["tier"] == "S0")["total"] == len(cards)
+        after = c.get("/api/entries").json()
+        key = lambda rows: [(r["entry_id"], r["tier"], r["verify"]) for r in rows]  # noqa: E731
+        assert key(after) == key(queue)
+    finally:
+        path.write_text(original)
+
+
+def test_a_wrong_mark_becomes_a_ticket_that_says_what_the_reviewer_said(env):
+    from pipeline.regs.review.tickets import SEPARATOR, parse_ticket
+    c = env["client"]
+    body = {"scope": "entry", "target": ASH, "answers": {"T": "y", "R": "n"}, "problem": "dates",
+            "note": "the row says Jun 15,\nwe store Jun 1", "reviewer": "tester"}
+    r = c.post("/api/marks", json=body)
+    assert r.status_code == 200 and r.json()["verdict"] == "wrong", r.text
+    got = c.get("/api/review/tickets").json()
+    assert [t["name"] for t in got] == ["review-wrong-entry-r1-ash-river-1-7.md"]
+    fields = parse_ticket(got[0]["text"])
+    assert {k: fields[k] for k in ("scope", "target", "rule_id", "verdict", "answers", "problem",
+                                   "note", "reviewer")} == {
+        "scope": "entry", "target": ASH, "rule_id": None, "verdict": "wrong",
+        "answers": {"T": "y", "R": "n"}, "problem": "dates", "note": "the row says Jun 15,\nwe store Jun 1",
+        "reviewer": "tester"}
+    md = c.get("/api/review/tickets.md")
+    assert md.headers["content-type"].startswith("text/markdown") and SEPARATOR not in md.text
+    assert md.text == got[0]["text"]
+
+
+def test_a_refused_mark_is_said_in_the_reviewer_s_words(env):
+    """T142: what to do, never pydantic's "Value error, …" and never a field path."""
+    from pipeline.regs.review.marks import REFUSAL_WORDS, unanswered_words
+    words = dict(REFUSAL_WORDS)
+    c = env["client"]
+
+    def refused(**kw):
+        body = {"scope": "entry", "target": ASH, "answers": {"T": "y", "R": "n"},
+                "reviewer": "tester", **kw}
+        r = c.post("/api/marks", json=body)
+        assert r.status_code == 422, r.text
+        return r.json()["detail"]
+
+    assert refused() == [{"path": "", "msg": words["wrong needs a problem category and a note"]}]
+    assert refused(answers={"T": "y"}) == [{"path": "", "msg": unanswered_words("entry")}]
+    assert unanswered_words("entry") == ("Answer every check (T R P A) with y, n or ? before "
+                                         "recording the mark, or defer it with a note.")
+    assert refused(reviewer="", problem="dates", note="x") == [
+        {"path": "", "msg": "Type your name first: every mark names its reviewer."}]
+    assert refused(verdict="deferred", answers={}) == [
+        {"path": "", "msg": "To defer, write a note saying why."}]

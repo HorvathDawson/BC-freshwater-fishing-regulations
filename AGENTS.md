@@ -676,3 +676,9 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
     (`run.sh --fix`, `CURATION_FIX=1`, `app.register_fix_routes`); `test_curation_review_safety` pins review mode to
     exactly `POST /api/marks`. Never add a write route to review mode. The verdict is `marks.verdict_from_answers`, the
     tiers `regs/review/tiers.py`, the coverage strip `regs/review/coverage.py` (its fold IS `squash`) — one function each.
+67. **The review queue has one order and one reader of the run** (T135). The order is `tiers.queue_rank` (tier, the
+    most urgent risk factor `tiers.RISKS`, the severity-A pre-checks) with the S0 split points first (`split_rank`);
+    the run's ambiguous cuts / unresolved rules reach the review side only through `regs/review/runfacts.py` (a run
+    without `report.json` is still being written and is refused, never read as "no findings"); the pre-checks are
+    `precheck.prechecks`, a ticket `tickets.ticket_text` / `parse_ticket` (a round trip). "Commit marks" is
+    `commit_marks` — `git commit --only` of the marks store — a CLI the screen prints, never a review-mode route.

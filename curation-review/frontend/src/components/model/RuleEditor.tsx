@@ -236,7 +236,8 @@ export function RuleEditor({ rule: r, path, onChange, siblings, boundaries, item
         keys={["extents", "includes_tributaries", "tributaries_only", "tributary_excludes", "extent_text", "undrawn_part", "side", "unresolved_locators"]}>
         <F path={`${path}.extents`} hint="the rule's own reach — never inherited from the entry">
           <ExtentEditor extents={r.extents ?? []} boundaries={boundaries} itemNames={itemNames}
-            siblingRules={others} path={`${path}.extents`} onChange={(x) => set({ extents: x.length ? x : undefined })} />
+            siblingRules={others} ruleId={r.rule_id} path={`${path}.extents`}
+            onChange={(x) => set({ extents: x.length ? x : undefined })} />
         </F>
         <div className="grid2">
           <F path={`${path}.includes_tributaries`} hint="unset inherits the entry's">

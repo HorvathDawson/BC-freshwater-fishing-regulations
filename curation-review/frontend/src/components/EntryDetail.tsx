@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type {
   Boundary, CheckResult, Entry, EntryDetail as EntryDetailT, EntryReaches, FieldError,
-  ItemSearchResult, LicensingRecord, Mode, ReviewView, Rule,
+  ItemSearchResult, LicensingRecord, Mode, ReviewView, Rule, RunAmbiguousCut,
 } from "../types";
 import { api, type EntryRefused } from "../api";
 import { describeDiagnostic, reachIdentities } from "../format";
@@ -10,13 +10,17 @@ import { Evidence } from "./Evidence";
 import { EntryReview } from "./EntryReview";
 import { AddSplit } from "./AddSplit";
 import { ExtentEditor } from "./ExtentEditor";
+import { Prechecks } from "./Prechecks";
 import { AttachItem } from "./AttachItem";
 import { ITEM_COLORS, MapPanel } from "./MapPanel";
 import { SplitEditor } from "./SplitEditor";
 import { RuleEditor } from "./model/RuleEditor";
 import { LicensingEditor, blankRecord } from "./model/LicensingEditor";
 import { SeeEditor } from "./model/SeeEditor";
-import { Check, ErrorsAt, ErrorsCtx, F, Text, Tri, put, useVocab } from "../model";
+import { Check, ErrorsAt, ErrorsCtx, F, RunCutsCtx, Text, Tri, put, useVocab } from "../model";
+
+/** the run's ambiguous cuts while the review view has not loaded (one object, so the context is stable) */
+const NO_CUTS: Record<string, RunAmbiguousCut[]> = {};
 
 interface Props {
   detail: EntryDetailT;
@@ -254,7 +258,7 @@ export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0, nav, m
   };
 
   return (
-    <ErrorsCtx.Provider value={errors}>
+    <ErrorsCtx.Provider value={errors}><RunCutsCtx.Provider value={view?.ambiguous_cuts ?? NO_CUTS}>
     <div className={`detail${fix ? " fix-mode" : " review-mode"}`}>
       <div className={`detail-cols${mapBig ? " map-big" : ""}`}>
         <div className="detail-content">
@@ -268,6 +272,7 @@ export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0, nav, m
       {view ? (
         <>
           <Evidence view={view} pdfPages={pdfPages} />
+          <Prechecks view={view} />
           <EntryReview detail={detail} view={view} mode={mode} onMarked={onMarked}
             onToggleMap={() => setMapBig((x) => !x)} onDate={setViewDate} />
         </>
@@ -812,6 +817,6 @@ export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0, nav, m
         </div>
       </div>
     </div>
-    </ErrorsCtx.Provider>
+    </RunCutsCtx.Provider></ErrorsCtx.Provider>
   );
 }

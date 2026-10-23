@@ -152,7 +152,7 @@ body {
   border-color: var(--danger-border);
   color: var(--danger-text);
 }
-.badge.flagged {
+.badge.parser-uncertain {
   background: var(--warn-bg);
   border-color: var(--warn-border);
   color: var(--warn-text);
@@ -986,6 +986,20 @@ button.btn:disabled {
   font-size:11px; letter-spacing:.06em; text-transform:uppercase; opacity:.75;
 }
 .queue-group:first-child{ margin-top:0 }
+.queue-group.warn{ background:var(--warn-bg); color:var(--warn-text); opacity:1; text-transform:none; letter-spacing:0 }
+
+/* ---- T135: the one queue's tier and risk chips, the pre-check list, the ambiguous cuts ---- */
+.badge.tier { background:#eef2ff; border-color:#a5b4fc; color:#3730a3; font-weight:600; }
+.badge.risk { background:var(--danger-bg); border-color:var(--danger-border); color:var(--danger-text); }
+.prechecks { margin:6px 0; font-size:12px; }
+.prechecks li { margin:2px 0; }
+.prechecks .sev { display:inline-block; width:16px; font-weight:700; }
+.prechecks .sev-A { color:var(--danger-text); }
+.prechecks .sev-B { color:var(--muted); }
+.amb-cut { font-size:12px; margin:2px 0; }
+.cut-pick { display:inline-flex; gap:4px; align-items:center; font-size:12px; margin-left:6px; }
+.cut-pick input { width:90px; }
+.tickets-link { font-size:12px; }
 
 /* ---- model editors (components/model, model.tsx) ---- */
 .mfield {

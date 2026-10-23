@@ -1,7 +1,7 @@
-import { useMemo } from "react";
-import type { Boundary, Extent, Op } from "../types";
+import { useContext, useMemo } from "react";
+import type { Boundary, Extent, Op, RunAmbiguousCut } from "../types";
 import { splitArity } from "../format";
-import { Check, Checks, ErrorsAt, F, Tags, Text, orNone, put, useVocab } from "../model";
+import { Check, Checks, ErrorsAt, F, RunCutsCtx, Tags, Text, orNone, put, useVocab } from "../model";
 
 interface Props {
   extents: Extent[];
@@ -15,12 +15,16 @@ interface Props {
    *  Absent where no rule holds the list (an entry's scope, a licensing record): `rest` belongs to
    *  rules only, and the model refuses it anywhere else. */
   siblingRules?: string[];
+  /** the rule these extents are (T135): its ambiguous cuts in the reach run are offered as
+   *  `cut_pick` candidates */
+  ruleId?: string;
 }
 
 // Per-rule extent editor: op dropdown + split-id multiselect populated from the
 // item's boundaries. Arity is enforced in the UI (whole=0, up/down=1, between=2).
-export function ExtentEditor({ extents, boundaries, onChange, itemNames = {}, path = "extents", siblingRules }: Props) {
+export function ExtentEditor({ extents, boundaries, onChange, itemNames = {}, path = "extents", siblingRules, ruleId }: Props) {
   const v = useVocab();
+  const runCuts = useContext(RunCutsCtx)[ruleId ?? ""] ?? [];
   const OPS: Op[] = v.extent_ops.filter((o) => o !== "rest" || siblingRules !== undefined);
   // Bindable options: drop curated splits no longer in splits.json (orphans — they vanish on rebuild),
   // keep auto boundaries, and float curated splits (splits.json) to the top.
@@ -79,9 +83,21 @@ export function ExtentEditor({ extents, boundaries, onChange, itemNames = {}, pa
     // to "downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge", bounded by a cut on the
     // Chilliwack and one on the Vedder. So the scope follows the cut-points automatically.
     const own = owners(splits);
+    // a cut pick names one of the extent's splits; one for a split no longer chosen is refused
+    const pick = Object.fromEntries(Object.entries(extents[i].cut_pick ?? {})
+      .filter(([k]) => splits.includes(k)));
+    const cut_pick = Object.keys(pick).length ? pick : undefined;
     update(i, own.length > 1
-      ? { splits: orNone(splits), item_ids: own, item_id: undefined }
-      : { splits: orNone(splits), item_ids: undefined });
+      ? { splits: orNone(splits), item_ids: own, item_id: undefined, cut_pick }
+      : { splits: orNone(splits), item_ids: undefined, cut_pick });
+  }
+  /** THE HAND-CURATED PICK of an ambiguous cut (ruling E16 refinement): `lower` / `upper` / a
+   *  measure; undefined leaves it to the ruling. */
+  function setPick(i: number, sid: string, value: "lower" | "upper" | number | undefined) {
+    const next = { ...(extents[i].cut_pick ?? {}) };
+    if (value === undefined) delete next[sid];
+    else next[sid] = value;
+    update(i, { cut_pick: Object.keys(next).length ? next : undefined });
   }
   function add() {
     onChange([...extents, { op: "whole" }]);
@@ -217,6 +233,18 @@ export function ExtentEditor({ extents, boundaries, onChange, itemNames = {}, pa
                   label="outside_area_kind" onChange={(x) => update(i, { outside_area_kind: x })} />
               </F>
             </details>
+            {needSplits && splits.length > 0 && (
+              <F path={`${at}.cut_pick`} deep
+                hint="an AMBIGUOUS cut (one split at two places on the line): which one — the ruling (E16) picks when unset">
+                <span className="cut-pick" data-testid="cut-pick">
+                  {splits.map((sid) => (
+                    <CutPick key={sid} sid={sid} value={ex.cut_pick?.[sid]}
+                      cuts={runCuts.filter((c) => c.split_id === sid && c.extent === i)}
+                      onChange={(x) => setPick(i, sid, x)} />
+                  ))}
+                </span>
+              </F>
+            )}
             {needSplits && (
               <span className="dim">
                 {splits.length}/{arity} split{arity === 1 ? "" : "s"}
@@ -255,5 +283,41 @@ export function ExtentEditor({ extents, boundaries, onChange, itemNames = {}, pa
         + add extent
       </button>
     </div>
+  );
+}
+
+/** One split's cut pick: the ruling (unset), the lower or upper candidate, a candidate measure the
+ *  reach run found (`cuts`), or any measure typed. Shown for every split of a cut extent; the run's
+ *  candidates are listed only when the run found the cut ambiguous. */
+function CutPick({ sid, value, cuts, onChange }: {
+  sid: string;
+  value: "lower" | "upper" | number | undefined;
+  cuts: RunAmbiguousCut[];
+  onChange: (v: "lower" | "upper" | number | undefined) => void;
+}) {
+  const cands = [...new Set(cuts.flatMap((c) => c.candidates))].sort((a, b) => a - b);
+  const sel = value === undefined ? "" : typeof value === "number"
+    ? (cands.includes(value) ? `m:${value}` : "measure") : value;
+  const took = cuts[0];
+  return (
+    <span title={took ? `the run took ${Math.round(took.used)} m (toward ${took.toward})` : undefined}>
+      <span className="dim">{sid}:</span>{" "}
+      <select aria-label={`cut_pick ${sid}`} value={sel} onChange={(e) => {
+        const x = e.target.value;
+        onChange(x === "" ? undefined : x === "lower" || x === "upper" ? x
+          : x === "measure" ? (typeof value === "number" ? value : cands[0] ?? 0)
+          : Number(x.slice(2)));
+      }}>
+        <option value="">ruling E16{took ? ` (took ${Math.round(took.used).toLocaleString()} m)` : ""}</option>
+        <option value="lower">lower</option>
+        <option value="upper">upper</option>
+        {cands.map((c) => <option key={c} value={`m:${c}`}>at {Math.round(c).toLocaleString()} m</option>)}
+        <option value="measure">a measure…</option>
+      </select>
+      {sel === "measure" && (
+        <input type="number" aria-label={`cut_pick ${sid} measure`} value={String(value ?? "")}
+          onChange={(e) => e.target.value !== "" && onChange(Number(e.target.value))} />
+      )}
+    </span>
   );
 }

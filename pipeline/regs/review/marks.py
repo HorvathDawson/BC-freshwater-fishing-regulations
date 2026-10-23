@@ -76,6 +76,41 @@ def verdict_from_answers(scope: str, answers: Mapping[str, str]) -> Optional[str
     return None
 
 
+#: THE REVIEWER'S WORDS for a refused mark (T142): the model's message (pydantic prefixes it
+#: "Value error, ") -> what the person at the review screen is told to do. Matched by the model's
+#: own phrase, so a reworded model message falls through to itself, never to a wrong instruction.
+REFUSAL_WORDS: tuple[tuple[str, str], ...] = (
+    ("wrong needs a problem category and a note",
+     "A wrong mark needs a problem (pick one from the list under the checklist) and a note "
+     "saying what is wrong."),
+    ("wrong needs a check answered n", "A wrong mark needs a check answered n."),
+    ("verified needs every check", "Verified needs every check answered y."),
+    ("unsure needs a check answered ?", "Unsure needs a check answered ? and none answered n."),
+    ("deferred needs a note saying why", "To defer, write a note saying why."),
+    ("a mark needs the reviewer's name", "Type your name first: every mark names its reviewer."),
+)
+
+
+def unanswered_words(scope: str) -> str:
+    """What a reviewer is told when the answers give no verdict yet (a check left unanswered)."""
+    return (f"Answer every check ({' '.join(CHECKS[scope])}) with y, n or ? before recording "
+            f"the mark, or defer it with a note.")
+
+
+def refusal_words(msg: str, field: str | None = None) -> str:
+    """A refused mark's message in the reviewer's words (`REFUSAL_WORDS`); `field` is the payload
+    field the refusal names, if any (an empty `reviewer` is refused by its length, not a phrase).
+    A message no phrase matches (the gate's, awaiting build's — already sentences) is passed through
+    as it is, less pydantic's "Value error, " prefix."""
+    m = str(msg).removeprefix("Value error, ")
+    if field == "reviewer":
+        return dict(REFUSAL_WORDS)["a mark needs the reviewer's name"]
+    for phrase, words in REFUSAL_WORDS:
+        if phrase in m:
+            return words
+    return m
+
+
 class RecordPrint(BaseModel):
     """One record's fingerprints (`fingerprint.entry_records`)."""
     model_config = ConfigDict(extra="forbid", frozen=True)

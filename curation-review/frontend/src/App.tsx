@@ -5,14 +5,14 @@ import type {
   SplitCard, Status, Tier, Vocab, VerifyStatus,
 } from "./types";
 import { VocabCtx } from "./model";
-import { FilterBar } from "./components/FilterBar";
-import { QueueList } from "./components/QueueList";
+import { ALL_REGIONS, FilterBar } from "./components/FilterBar";
+import { QueueList, SplitRow } from "./components/QueueList";
 import { EntryDetail } from "./components/EntryDetail";
 import { SplitCardView } from "./components/SplitCardView";
 import { ProgressBar } from "./components/ProgressBar";
-import { isTyping, keepSelected, nextUnsure, paceSamples, recordPace } from "./review";
+import { isTyping, keepSelected, nextUnsure, paceSamples, recordPace, splitsInQueue } from "./review";
 
-const TIERS: Tier[] = ["P1", "Z", "P2", "P3", "P4", "sweep"];
+const TIERS: Tier[] = ["S0", "P1", "Z", "P2", "P3", "P4", "sweep"];
 /** `#split:<id>` opens a split card; any other hash is an entry id (`#r5:dean_river@5-9`) */
 const SPLIT_HASH = "split:";
 
@@ -22,16 +22,20 @@ export default function App() {
   const [work, setWork] = useState<"entries" | "splits">(
     decodeURIComponent(window.location.hash.slice(1)).startsWith(SPLIT_HASH) ? "splits" : "entries");
   const [regions, setRegions] = useState<RegionSummary[]>([]);
-  const [region, setRegion] = useState("");
+  // THE ONE QUEUE (T135, PLAN §3): every region, in the review order, by default
+  const [region, setRegion] = useState(ALL_REGIONS);
   const [status, setStatus] = useState<Status | "">("");
   const [tier, setTier] = useState<Tier | "">("");
-  // the reviewer's pass: which marks to list, and in what order (the book's, by default — the
-  // way to go through every entry; "attention" floats the suspicious ones up)
+  // the reviewer's pass: which marks to list, and in what order — the review order by default
+  // (tier, then the most urgent risk factor; T135), or the book's (region, page)
   const [verify, setVerify] = useState<VerifyStatus | "todo" | "">("");
-  const [order, setOrder] = useState<QueueOrder>("book");
+  const [order, setOrder] = useState<QueueOrder>("risk");
   const [rows, setRows] = useState<QueueRow[]>([]);
   const [loadingRows, setLoadingRows] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
+  // what the selection is: an entry, or a split card (the one queue holds both)
+  const [selKind, setSelKind] = useState<"entry" | "split">(
+    decodeURIComponent(window.location.hash.slice(1)).startsWith("split:") ? "split" : "entry");
   const [detail, setDetail] = useState<EntryDetailT | null>(null);
   const [cards, setCards] = useState<SplitCard[]>([]);
   const [allSplits, setAllSplits] = useState(false);
@@ -52,8 +56,6 @@ export default function App() {
       .regions()
       .then((r) => {
         setRegions(r);
-        // an entry named in the URL picks its own region (below); otherwise the first
-        if (r.length && !region && !window.location.hash) setRegion(r[0].id);
       })
       .catch((e) => setError(String(e)));
     api.vocab().then(setVocab).catch((e) => setError(`vocabulary: ${e}`));
@@ -65,13 +67,15 @@ export default function App() {
   }, []);
   useEffect(() => { loadProgress(); }, [loadProgress]);
 
+  const s0Ref = useRef(false);
   const selectedRef = useRef(selected);
   selectedRef.current = selected;
   const loadRows = useCallback(() => {
     if (!region) return;
+    if (tier === "S0") { setRows([]); return; }          // S0 is the split points alone
     setLoadingRows(true);
     api
-      .entries(region, status, "", verify, order, tier)
+      .entries(region === ALL_REGIONS ? undefined : region, status, "", verify, order, tier)
       // THE OPEN ENTRY STAYS IN THE LIST after it is marked (a "to do" filter drops it otherwise)
       .then((fresh) => setRows((old) => keepSelected(fresh, old, selectedRef.current)))
       .catch((e) => setError(String(e)))
@@ -91,10 +95,16 @@ export default function App() {
       return at < 0 ? c : [...c.slice(0, at), old[at], ...c.slice(at)];
     })).catch((e) => setError(String(e)));
   }, [allSplits]);
-  useEffect(() => { if (work === "splits") loadCards(); }, [work, loadCards]);
+  // THE S0 TIER LEADS THE ONE QUEUE (T135): in the review order the split points still to verify
+  // come before every entry (`tiers.split_rank`), so j / k walk from the last card into P1
+  const s0InQueue = work === "entries" && order === "risk" && !status && (tier === "" || tier === "S0");
+  useEffect(() => { if (work === "splits" || s0InQueue) loadCards(); }, [work, s0InQueue, loadCards]);
+  const queueCards = s0InQueue ? splitsInQueue(cards, verify) : [];
+  s0Ref.current = s0InQueue;
 
   const loadDetail = useCallback((entryId: string) => {
     setSelected(entryId);
+    setSelKind("entry");
     openedAt.current = Date.now();
     // the open entry is in the URL, so a reload or a shared link lands on it (resume in place)
     if (decodeURIComponent(window.location.hash.slice(1)) !== entryId)
@@ -107,6 +117,7 @@ export default function App() {
 
   const openCard = useCallback((splitId: string) => {
     setSelected(splitId);
+    setSelKind("split");
     openedAt.current = Date.now();
     const h = `${SPLIT_HASH}${splitId}`;
     if (decodeURIComponent(window.location.hash.slice(1)) !== h)
@@ -120,14 +131,19 @@ export default function App() {
       const id = decodeURIComponent(window.location.hash.slice(1));
       if (!id) return;
       if (id.startsWith(SPLIT_HASH)) {
-        setWork("splits");
+        setSelKind("split");
         setSelected(id.slice(SPLIT_HASH.length));
+        // a card is listed in the one queue (review order) or in the split list: open the split
+        // list when the queue is not showing the cards
+        if (!s0Ref.current) setWork("splits");
         return;
       }
       setWork("entries");
+      setSelKind("entry");
       setSelected(id);
       api.entry(id)
-        .then((d) => { setRegion(d.region); setDetail(d); })
+        // the entry's own region, unless the one queue (every region) is showing
+        .then((d) => { setRegion((r) => (r === ALL_REGIONS ? r : d.region)); setDetail(d); })
         .catch((e) => setError(String(e)));
     };
     open();
@@ -137,26 +153,27 @@ export default function App() {
 
   // Where the open entry sits in the list, and its neighbours — so a reviewer can walk the
   // whole region in order without going back to the list.
-  const list: { id: string; verify?: string }[] = work === "splits"
-    ? cards.map((c) => ({ id: c.split_id, verify: c.status }))
-    : rows.map((r) => ({ id: r.entry_id, verify: r.verify }));
+  const list: { id: string; verify?: string; kind: "entry" | "split" }[] = work === "splits"
+    ? cards.map((c) => ({ id: c.split_id, verify: c.status, kind: "split" as const }))
+    : [...queueCards.map((c) => ({ id: c.split_id, verify: c.status, kind: "split" as const })),
+       ...rows.map((r) => ({ id: r.entry_id, verify: r.verify, kind: "entry" as const }))];
   // AN UNSAVED FIX-MODE DRAFT IS NEVER LEFT BY ONE KEY (T134 adversarial review): j / k / u, the
   // queue's prev / next and the move after a final mark all go through `go`, which asks first.
   const draftDirty = useRef(false);
   const onDirty = useCallback((d: boolean) => { draftDirty.current = d; }, []);
-  const go = (id: string) => {
+  const go = (id: string, kind: "entry" | "split" = work === "splits" ? "split" : "entry") => {
     if (draftDirty.current && !window.confirm("This entry has unsaved edits. Leave it and discard them?"))
       return;
     draftDirty.current = false;
-    (work === "splits" ? openCard : loadDetail)(id);
+    (kind === "split" ? openCard : loadDetail)(id);
   };
-  const idx = list.findIndex((r) => r.id === selected);
+  const idx = list.findIndex((r) => r.id === selected && r.kind === selKind);
   const nav = {
     pos: idx + 1,
     total: list.length,
-    onPrev: idx > 0 ? () => go(list[idx - 1].id) : undefined,
-    onNext: idx >= 0 && idx < list.length - 1 ? () => go(list[idx + 1].id)
-      : idx < 0 && list.length ? () => go(list[0].id) : undefined,
+    onPrev: idx > 0 ? () => go(list[idx - 1].id, list[idx - 1].kind) : undefined,
+    onNext: idx >= 0 && idx < list.length - 1 ? () => go(list[idx + 1].id, list[idx + 1].kind)
+      : idx < 0 && list.length ? () => go(list[0].id, list[0].kind) : undefined,
   };
   const navRef = useRef({ nav, list, idx, go });
   navRef.current = { nav, list, idx, go };
@@ -170,7 +187,7 @@ export default function App() {
       else if (ev.key === "k" && N.nav.onPrev) { N.nav.onPrev(); ev.preventDefault(); }
       else if (ev.key === "u") {
         const i = nextUnsure(N.list, N.idx < 0 ? -1 : N.idx);
-        if (i >= 0) { N.go(N.list[i].id); ev.preventDefault(); }
+        if (i >= 0) { N.go(N.list[i].id, N.list[i].kind); ev.preventDefault(); }
       }
     };
     window.addEventListener("keydown", onKey);
@@ -195,13 +212,13 @@ export default function App() {
         if (p.entries.length + p.splits.length < waiting) {
           loadRows();
           loadProgress();
-          if (work === "splits") loadCards();
-          if (selected && work === "entries") api.entry(selected).then(setDetail).catch(() => {});
+          if (work === "splits" || s0InQueue) loadCards();
+          if (selected && selKind === "entry") api.entry(selected).then(setDetail).catch(() => {});
         }
       }).catch(() => {});
     }, 60_000);
     return () => window.clearInterval(t);
-  }, [waiting, loadRows, loadCards, loadProgress, selected, work]);
+  }, [waiting, loadRows, loadCards, loadProgress, selected, selKind, work, s0InQueue]);
 
   // After a save, refresh both the queue and the open detail.
   const onSaved = useCallback(() => {
@@ -218,17 +235,17 @@ export default function App() {
     if (final) setSamples(recordPace((Date.now() - openedAt.current) / 1000));
     loadRows();
     loadProgress();
-    if (work === "splits") loadCards();
+    if (work === "splits" || s0InQueue) loadCards();
     api.regions().then(setRegions).catch(() => {});
-    if (work === "entries" && selected) {
+    if (selKind === "entry" && selected) {
       if (final && navRef.current.nav.onNext) navRef.current.nav.onNext();
       else api.entry(selected).then(setDetail).catch(() => {});
     } else if (final && navRef.current.nav.onNext) {
       navRef.current.nav.onNext();
     }
-  }, [loadRows, loadProgress, loadCards, selected, work]);
+  }, [loadRows, loadProgress, loadCards, selected, selKind, s0InQueue, work]);
 
-  const card = work === "splits" ? cards.find((c) => c.split_id === selected) ?? null : null;
+  const card = selKind === "split" ? cards.find((c) => c.split_id === selected) ?? null : null;
 
   return (
     <div className={`app${mode?.fix ? " fix-mode" : ""}`}>
@@ -249,10 +266,10 @@ export default function App() {
         onRefresh={() => {
           loadRows();
           loadProgress();
-          if (work === "splits") loadCards();
+          if (work === "splits" || s0InQueue) loadCards();
           api.regions().then(setRegions).catch(() => {});
           api.vocab().then(setVocab).catch(() => {});
-          if (selected && work === "entries") api.entry(selected).then(setDetail).catch(() => {});
+          if (selected && selKind === "entry") api.entry(selected).then(setDetail).catch(() => {});
           loadPending();
           setReloadKey((k) => k + 1);
         }}
@@ -265,7 +282,7 @@ export default function App() {
                 setSelected(null);
                 setDetail(null);
               }}>
-                <option value="entries">entries</option>
+                <option value="entries">the queue</option>
                 <option value="splits">split points (S0)</option>
               </select>
             </div>
@@ -288,7 +305,7 @@ export default function App() {
                 : "review mode: the one thing this screen writes is a mark"}>
               {mode ? (mode.fix ? "FIX MODE" : "review mode") : "…"}
             </span>
-            <ProgressBar progress={progress} samples={samples} />
+            <ProgressBar progress={progress} samples={samples} commands={mode?.commands} />
           </>
         }
       />
@@ -333,29 +350,24 @@ export default function App() {
         {work === "splits" ? (
           <div className="queue">
             {cards.map((c) => (
-              <div key={c.split_id} data-entry={c.split_id}
-                className={`queue-row${selected === c.split_id ? " selected" : ""}`}
-                onClick={() => openCard(c.split_id)}>
-                <div className="name">{c.label || c.split_id}</div>
-                <div className="meta">
-                  {c.grade && <span className="badge warn">grade {c.grade}</span>}
-                  {c.status !== "unmarked" && <span className={`verify-chip ${c.status}`}>{c.status}</span>}
-                  {c.vintage && c.vintage.state !== "current" && <span className="verify-chip stale">awaiting build</span>}
-                  <span className="dim">{c.waterbody}</span>
-                </div>
-              </div>
+              <SplitRow key={c.split_id} c={c} selected={selected === c.split_id}
+                onSelect={() => openCard(c.split_id)} />
             ))}
             {!cards.length && <div className="empty-state">No split points to verify.</div>}
           </div>
         ) : (
           <QueueList
             rows={rows}
-            selected={selected}
+            selected={selKind === "entry" ? selected : null}
             loading={loadingRows}
-            onSelect={loadDetail}
+            onSelect={(id) => go(id, "entry")}
+            splits={queueCards}
+            selectedSplit={selKind === "split" ? selected : null}
+            onSelectSplit={(id) => go(id, "split")}
+            facts={progress?.facts}
           />
         )}
-        {work === "splits" ? (
+        {selKind === "split" ? (
           card && mode ? (
             <SplitCardView key={card.split_id} card={card} mode={mode} onMarked={() => onMarked(true)}
               nav={nav} reloadKey={reloadKey} />

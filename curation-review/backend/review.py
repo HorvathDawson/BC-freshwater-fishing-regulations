@@ -5,11 +5,12 @@
                             answer: the app's own page by its start link
     split_queue()           tier S0 — the split points still to verify, each as a card
     progress()              done / to do per tier and overall, for the progress bar and the ETA
+    tickets()               T135: the wrong and unsure marks in force, as ticket text
 
 Read only. The one thing the review screen writes is a mark (`POST /api/marks`, `reuse.post_mark`).
-Every decision is someone else's function: the tier (`tiers`), the strip (`coverage`), whether the
-entry is built (`vintage`), the bundle's counts (`fingerprint.rule_section_counts`), the part to
-open (`answer.app_part`).
+Every decision is someone else's function: the tier and the queue's order (`tiers`), the pre-checks
+(`precheck`), the strip (`coverage`), whether the entry is built (`vintage`), the bundle's counts
+(`fingerprint.rule_section_counts`), the part to open (`answer.app_part`), a ticket (`tickets`).
 """
 from __future__ import annotations
 
@@ -75,6 +76,7 @@ def review_view(entry_id: str, day: str | None = None) -> dict | None:
     image_key = None if zone else reuse.entry_source_image(e)
     vin = reuse.entry_vintage(e)
     current = vin["state"] == CURRENT
+    run = reuse.run_facts()                       # the reach run's facts (T135); None: no run
     day = day or dt.date.today().isoformat()
 
     counts: dict[str, int] = {}
@@ -107,8 +109,16 @@ def review_view(entry_id: str, day: str | None = None) -> dict | None:
         "display_name": e.get("display_name"),
         "kind": "zone" if zone else "water",
         "region": region,
-        "tier": T.entry_tier(e, binds=item is not None),
-        "risks": T.risks(e, binds=item is not None),
+        "tier": T.entry_tier(e, binds=item is not None, run=run),
+        "risks": T.risks(e, binds=item is not None, run=run),
+        # T135: what a machine says before the reviewer reads (the save gate included), the cuts
+        # the builder chose between (ruling E16; a `cut_pick` in fix mode overrides), and the
+        # second-pass agent's findings on the parse (none exist yet)
+        "prechecks": reuse.entry_prechecks(e, run=run, gate=True),
+        "ambiguous_cuts": {rid: list(cuts) for rid, cuts in
+                           (run.ambiguous_of(entry_id) if run is not None else {}).items()},
+        "parse_findings": reuse.parse_review_findings().get(entry_id, []),
+        "run": reuse.queue_facts(),
         "evidence": _evidence(e, image_key),
         "coverage": entry_coverage(e),
         "vintage": vin,
@@ -143,9 +153,12 @@ def split_queue(only_to_verify: bool = True) -> list[dict]:
                         "note": str(sp.get("_note") or ""), "s0": s0,
                         "item_id": reuse.split_item(sp, wb),
                         "status": st["status"], "verdict": st.get("verdict"),
-                        "reasons": st.get("reasons") or [], "vintage": st.get("vintage")})
-    out.sort(key=lambda r: (r["status"] in DONE, T.GRADE_ORDER.get(r["grade"], 9),
-                            str(r["waterbody"]), r["split_id"]))
+                        "reasons": st.get("reasons") or [], "vintage": st.get("vintage"),
+                        # the one queue's order (`tiers.split_rank`); a split not in S0 after
+                        "_rank": T.split_rank(sp, st["status"]) if s0 else (len(T.TIERS), 9, 0)})
+    out.sort(key=lambda r: (r["status"] in DONE, r["_rank"], str(r["waterbody"]), r["split_id"]))
+    for r in out:
+        del r["_rank"]
     return out
 
 
@@ -169,4 +182,18 @@ def progress() -> dict:
     for t in rows:
         t["todo"] = t["total"] - t["done"]
     total = {k: sum(t[k] for t in rows) for k in ("total", "done", "stale", "todo")}
-    return {"tiers": rows, "overall": {"tier": "all", **total}}
+    return {"tiers": rows, "overall": {"tier": "all", **total}, "facts": reuse.queue_facts()}
+
+
+def tickets() -> list[dict]:
+    """THE TICKET EXPORT (T135, PLAN §4 phase 4): every wrong and unsure mark in force as ticket text
+    (`tickets.export`), each with what changed since it was made. Read only: the owner files them."""
+    from pipeline.regs.review import marks as M
+    from pipeline.regs.review import tickets as TK
+    statuses = {(v["scope"], v["target"], v.get("rule_id")): {"status": v["status"],
+                                                             "reasons": v.get("reasons") or []}
+                for v in reuse.marks_view()}
+    entries = {e["entry_id"]: e for _, e in reuse._all_entries()}
+    got = TK.export(M.load(reuse.MARKS_PATH), entries=entries,
+                    splits=TK.split_index(reuse._load_splits()), statuses=statuses)
+    return [{"name": n, "text": t} for n, t in got]

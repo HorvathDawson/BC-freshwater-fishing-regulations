@@ -12,24 +12,28 @@ TRUTH. Curator edits are written straight back to them through `pipeline.regs.pa
 `POST /api/marks`. FIX MODE (`run.sh --fix`, `CURATION_FIX=1`) also registers the editors:
 `POST /api/check`, `PUT /api/entries/{id}`, `POST /api/splits`, `PUT` / `DELETE /api/splits/{id}`,
 `POST /api/splits/{id}/rename`. In review mode those answer 404 / 405 from the router.
-`GET /api/mode` → `{fix, app_url, checks: {entry, rule, split}, problems: {T, R, P, A: [..]}}`.
+`GET /api/mode` → `{fix, app_url, checks: {entry, rule, split}, problems: {T, R, P, A: [..]},
+prechecks: {code: {severity, what}}, commands: {commit_marks, tickets, prechecks}}` (T135: the
+commands the screen PRINTS for the human; it runs none).
 
 ---
 
 ## Queue
 
 ### GET /api/regions
-→ `[{ "id": "1", "total": 211, "by_status": {"no_registry":3,"flagged":35,"unused_splits":5,"unreviewed":168,"zone":0} }]`
+→ `[{ "id": "1", "total": 211, "by_status": {"no_registry":3,"parser-uncertain":35,"unused_splits":5,"plain":168,"zone":0} }]`
 
 ### GET /api/entries?region=&status=
-Both query params optional. `status` ∈ `no_registry | flagged | unused_splits | unreviewed | zone`.
-`no_registry` = a water row whose `matched` names no item of this build (it binds nothing); `flagged` = a
-rule or licensing record carries a `review_reason` (or a rule an unresolved locator)
-or `unresolved_locators`.
-Rows are pre-sorted (attention first).
+Both query params optional; **no `region` is THE ONE QUEUE over every region** (T135). `status` ∈
+`no_registry | parser-uncertain | unused_splits | plain | zone` (`422` otherwise) — what the PARSE and
+the build left, never review progress (that is `verify`). `no_registry` = a water row whose `matched`
+names no item of this build (it binds nothing); `parser-uncertain` (was "flagged") = a rule or licensing
+record carries a `review_reason` (or a rule an unresolved locator); `plain` (was "unreviewed") =
+nothing the parser or the build flagged.
+Rows are pre-sorted in the review order (`order=risk`, below).
 ```json
 { "entry_id":"r2:chilliwack_vedder_rivers@2-2", "region":"2", "name":"CHILLIWACK / VEDDER RIVERS",
-  "mus":["2-2"], "status":"unreviewed", "kind":"water", "n_rules":6,
+  "mus":["2-2"], "status":"plain", "kind":"water", "n_rules":6,
   "matched_item_id":"gnis:8634", "matched_item_name":"Chilliwack River",
   "also_item_ids":["gnis:3062","wbk:329707189"], "unused_curated_splits":0 }
 ```
@@ -159,19 +163,42 @@ highlights from it, and falls back to the raw per-extent resolve only when it is
 
 ### GET /api/entries?…&verify=&order=
 `verify` ∈ `unmarked | verified | wrong | unsure | deferred | stale | todo` (todo = not currently
-verified); `order` ∈ `attention` (default) `| book` (region, printed page, chapter before tables,
-file order). Each row also carries `page` (first printed page), `pointer` (a "See X" row with no
+verified); `order` ∈ `risk` (default) `| book` (region, printed page, chapter before tables, file
+order); anything else `422`. **`risk` is the review order (T135, PLAN §3):** by tier, within a tier the
+most urgent risk factor (`tiers.RISKS`: no match, unresolved, undrawn part, ambiguous cut, cut, several
+waters, flag), then the more severity-A pre-checks, then the book's order (`tiers.queue_rank`). The
+split points (S0) lead it: `GET /api/review/splits`, ordered by `tiers.split_rank`. Each row also carries `page` (first printed page), `pointer` (a "See X" row with no
 rules), `verify`, `verify_note` and `mark_reasons` (the stale reasons). `GET /api/regions` adds
 `by_verify` counts.
 
 `tier` filters on the review tier (`S0` is the split cards'; `P1 | Z | P2 | P3 | P4 | sweep`,
-`pipeline.regs.review.tiers.entry_tier`); each row carries `tier`.
+`pipeline.regs.review.tiers.entry_tier`); each row carries `tier`, `risks` (most urgent first) and
+`prechecks: {A, B}` (how many findings of each severity, `precheck.prechecks`). The `unresolved` and
+`ambiguous cut` factors come from the served reach run (`runfacts.RunFacts`: `rule_diagnostic` /
+`rule_unresolved`, read only when `report.json` says the run is complete); with no run they are not
+claimed and `GET /api/review/progress` `facts` says why.
+
+### GET /api/review/tickets  ·  GET /api/review/tickets.md  (T135)
+Every **wrong** and **unsure** mark in force as ticket text (`pipeline.regs.review.tickets`):
+`[{name, text}]`, or one Markdown text. Read only — the owner files them (PLAN §6 Q3). A ticket carries
+the mark's own fields (scope, target, rule, verdict, answers, problem, the reviewer's note, reviewer,
+date, printed pages, the book's sha256), the entry or split it is about, what changed since (when the
+mark went stale) and the work: fix mode, then the rebuild that ships it. `tickets.parse_ticket` reads
+the mark's fields back (the round trip is a test). CLI: `python -m pipeline.regs.review.tickets --out <dir>`.
+
+### Commit marks (T135)
+`python -m pipeline.regs.review.commit_marks [-m msg] [--dry-run]` — `git commit --only` of
+`data/curated/regulations/review/marks.jsonl` and nothing else (staged and edited files elsewhere stay
+as they were). Not an endpoint: review mode writes one thing, a mark; the screen prints the command.
 
 ### POST /api/marks  (T97)
 Body `{scope: entry | rule | split, target, rule_id?, verdict?: verified | wrong | unsure | deferred,
 answers: {T, R, P, A: y | n | ?}, problem?, note, reviewer, pages?}` (a split answers `P` only).
 **T134:** with no `verdict` the answers decide it (`marks.verdict_from_answers`: any n → wrong, else
 any ? → unsure, all y → verified; `422` while a check is unanswered); `deferred` is only ever sent.
+**T142:** a refusal is said in the reviewer's words (`marks.refusal_words` / `unanswered_words`), with
+`path: ""` — e.g. "A wrong mark needs a problem (pick one from the list under the checklist) and a note
+saying what is wrong.", never pydantic's "Value error, …".
 The server stamps `date`, `pdf_sha256` (the repo PDF) and the target's fingerprints
 (`pipeline.regs.review.fingerprint`), and APPENDS the mark to `data/curated/regulations/review/marks.jsonl`
 (or `CURATION_MARKS`) through the backed-up commit. `422` for a mark the model refuses (`verified`
@@ -212,7 +239,12 @@ confirmed is `unmarked` (a split added mid-review queues itself).
 
 ### The review screen (T134)
 - `GET /api/entries/{id}/review?date=` → `{entry_id, name (the RAW name — the heading),
-  display_name, kind, region, tier, risks, evidence, coverage, vintage, answer, date, rules}`.
+  display_name, kind, region, tier, risks, evidence, coverage, vintage, answer, date, rules,
+  prechecks, ambiguous_cuts, parse_findings, run}`. T135: `prechecks` `[{code, severity: A | B,
+  rule_id, what}]` (`precheck.prechecks`, the save gate included); `ambiguous_cuts` `{rule_id:
+  [{split_id, extent, used, candidates, toward}]}` (the run's; `toward: curated` = a `cut_pick`);
+  `parse_findings` the second-pass agent's lines (`io.read_review_findings`; none exist yet); `run`
+  `{run: digest | null, why}`.
   `evidence`: `{kind: row | passage | none | missing, printed, pdf_page, boxes, found, total, why,
   crop_url, page_url, row_image}` — a water row's box from `row_boxes.json`
   (`CURATION_ROW_BOXES`; `missing` with the command when there is none), a zone passage found by
@@ -228,8 +260,9 @@ confirmed is `unmarked` (a split added mid-review queues itself).
   mark went stale): `[{split_id, label, kind,
   waterbody, grade, note, s0, item_id, status, verdict, reasons, vintage}]`, to-do first, grade L
   first.
-- `GET /api/review/progress` → `{tiers: [{tier, total, done, stale, todo}], overall}` (done = a
-  mark in force: verified, wrong, unsure, deferred).
+- `GET /api/review/progress` → `{tiers: [{tier, total, done, stale, todo}], overall, facts}` (done =
+  a mark in force: verified, wrong, unsure, deferred; `facts` = `{run, why}`, the reach run the
+  risk factors were read from).
 - `GET /api/items/{item_id}/split-groups` → the splits.json groups on the item (fix mode's add-split
   form).
 

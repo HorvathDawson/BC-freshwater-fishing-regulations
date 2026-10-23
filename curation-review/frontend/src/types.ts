@@ -7,12 +7,15 @@
 /** An extent op — the values come from `/api/vocab` (`entry_models.Op`), not from here. */
 export type Op = string;
 
+/** What the PARSE and the build left (`reuse.entry_status`) — never review progress; the marks are
+ *  `VerifyStatus`. T135 renamed "flagged" (parser-uncertain) and "unreviewed" (plain). */
 export type Status =
   | "no_registry"
   /** a rule or licensing record carries a `review_reason` */
-  | "flagged"
+  | "parser-uncertain"
   | "unused_splits"
-  | "unreviewed"
+  /** nothing the parser or the build flagged */
+  | "plain"
   /** A regional or provincial rule. It names no water BY DEFINITION, so it is a category,
    *  not a problem — it used to show as `no_registry` and sit at the top of the queue. */
   | "zone";
@@ -50,6 +53,9 @@ export interface Extent {
    *  side of the cut(s), not the river alone. Refused with includes_tributaries (own or inherited),
    *  with item_ids, and with area_id/area_kind. */
   watershed?: boolean;
+  /** an AMBIGUOUS CUT decided by hand (ruling E16 refinement): split id -> `lower` / `upper` /
+   *  a measure (m) within 25 m of one of the run's candidates. Absent: the ruling picks. */
+  cut_pick?: Record<string, "lower" | "upper" | number>;
   [key: string]: unknown;
 }
 
@@ -395,7 +401,9 @@ export type VerifyStatus = "unmarked" | "verified" | "wrong" | "unsure" | "defer
 /** Why a mark no longer holds (`pipeline.regs.review.marks.StaleReason`). */
 export type StaleReason =
   | "book text changed" | "rule changed" | "binding moved" | "answer changed" | "awaiting build";
-export type QueueOrder = "attention" | "book";
+/** risk: the review order (tier, the most urgent risk factor, the severity-A pre-checks, then the
+ *  book — `tiers.queue_rank`); book: region, printed page, then the page's order. */
+export type QueueOrder = "risk" | "book";
 
 /** ONE VINTAGE ON SCREEN (T133, `pipeline.regs.review.vintage.entry_state`): whether the reach
  *  run, the bundle and the release on disk were made from this entry as it is now. Until
@@ -463,6 +471,10 @@ export interface QueueRow {
   vintage_reasons?: string[];
   /** T134: the review tier (PLAN §3) */
   tier?: Tier;
+  /** T135: the risk factors, most urgent first (`tiers.RISKS`) */
+  risks?: string[];
+  /** T135: how many pre-check findings, by severity (A facts, B heuristics) */
+  prechecks?: { A: number; B: number };
 }
 
 export interface Boundary {
@@ -737,6 +749,30 @@ export interface Mode {
   checks: Record<"entry" | "rule" | "split", Check[]>;
   /** the problem categories a "wrong" mark names, by check (`marks.PROBLEMS`) */
   problems: Record<Check, string[]>;
+  /** T135: the pre-check codes (`precheck.CHECKS`) */
+  prechecks: Record<string, { severity: "A" | "B"; what: string }>;
+  /** T135: what the screen PRINTS for the human to run (commit the marks, export tickets) */
+  commands: Record<"commit_marks" | "tickets" | "prechecks", string>;
+}
+
+/** One pre-check finding (`precheck.prechecks`). */
+export interface Precheck {
+  code: string;
+  severity: "A" | "B";
+  rule_id: string | null;
+  what: string;
+}
+
+/** One ambiguous cut the reach RUN chose between (rule_diagnostic `ambiguous_cut`, T135) — every
+ *  candidate and the side it took; the live resolver's view of the same cut is `AmbiguousCut`. */
+export interface RunAmbiguousCut {
+  split_id: string;
+  extent: number;
+  used: number;
+  candidates: number[];
+  /** the ruling's side (a split id or `mouth`), or `curated` when the extent's cut_pick decided */
+  toward: string;
+  also_at?: number[];
 }
 
 /** Where an entry is printed and how to see it (`evidence.locate`). */
@@ -785,6 +821,20 @@ export interface ReviewView {
   date: string;
   /** a zone entry's rules carry their impact line and their own answer link */
   rules: { rule_id: string; impact?: string; answer?: AnswerLink }[];
+  /** T135: the pre-checks, the save gate included */
+  prechecks: Precheck[];
+  /** T135: rule id -> the cuts the builder chose between */
+  ambiguous_cuts: Record<string, RunAmbiguousCut[]>;
+  /** T135: the second-pass agent's findings on the parse (none exist yet) */
+  parse_findings: string[];
+  /** T135: the reach run the risk factors were read from, or why there is none */
+  run: QueueFacts;
+}
+
+/** Which reach run the queue's run-based factors came from (`reuse.queue_facts`). */
+export interface QueueFacts {
+  run: string | null;
+  why: string | null;
 }
 
 /** GET /api/review/splits — a split card (tier S0). */
@@ -804,7 +854,7 @@ export interface SplitCard {
 }
 
 export interface TierProgress { tier: Tier | "all"; total: number; done: number; stale: number; todo: number }
-export interface Progress { tiers: TierProgress[]; overall: TierProgress }
+export interface Progress { tiers: TierProgress[]; overall: TierProgress; facts?: QueueFacts }
 
 /** What the reviewer sends (`POST /api/marks`); the server stamps the rest. No `verdict`: the
  *  answers decide it (`marks.verdict_from_answers`) — except `deferred`, which is the reviewer's own call. */

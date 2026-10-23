@@ -117,18 +117,20 @@ def test_each_tier_whole():
     assert got == {"zone": "Z", "pointer": "sweep", "closure + cut": "P1", "closure, no match": "P1",
                    "plain closure": "P2", "quota, two waters": "P3", "quota, flagged": "P3",
                    "plain quota": "P4"}
+    # in `tiers.RISKS` order, most urgent first (T135: no match leads P1)
     assert T.risks(_e("r1:a@1-1", [dict(CLOSE, extents=[CUT], unresolved_locators=["x"])],
                       matched=("gnis:1", "gnis:2")), binds=False) == [
-        "cut", "several waters", "flag", "no match"]
+        "no match", "cut", "several waters", "flag"]
 
 
 def test_a_closure_is_the_one_closure_predicate():
     """A closure with a condition ("partial") is a closure; a release you may still fish for is not
-    — `rules.closure_grade`, never a second reading."""
+    — `rules.closure_grade`, never a second reading. (T135: the partial one's undrawn part is a
+    risk factor, so it is P1, not P2 — PLAN §3's P1 starts with the closures with undrawn parts.)"""
     partial = dict(CLOSE, undrawn_part="near the dam")
     release = {"rule_id": "x.r3", "type": "retention_limit", "take": 0, "may_target": 1,
                "extents": [{"op": "whole"}]}
-    assert [T.entry_tier(_e("r1:a@1-1", [r]), binds=True) for r in (partial, release)] == ["P2", "P4"]
+    assert [T.entry_tier(_e("r1:a@1-1", [r]), binds=True) for r in (partial, release)] == ["P1", "P4"]
 
 
 def test_s0_is_an_open_auto_proposal_or_a_verify_note():

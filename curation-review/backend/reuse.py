@@ -801,22 +801,25 @@ def entry_kind(e: dict) -> str:
 
 
 def entry_status(e: dict, item: dict | None) -> str:
-    """One coarse status for the queue ordering/badge."""
+    """One coarse status for the queue's badge and filter — what the PARSE and the build left, not
+    review progress (the reviewer's marks are `verify`). T135 (PLAN §4 phase 4): `parser-uncertain`
+    was "flagged", and `plain` was "unreviewed" — a word that read as review progress when it only
+    meant "nothing the parser or the build flagged"."""
     # A zone entry has no water to match, so `no_registry` is not a finding about it — it is
     # the definition of it. Saying otherwise put all 132 at the top of the queue.
     if entry_kind(e) == "zone":
-        return "flagged" if _flagged(e) else "zone"
+        return "parser-uncertain" if _flagged(e) else "zone"
     if item is None:              # `matched` names no item this build has: it binds nothing
         return "no_registry"
     if _flagged(e):
-        return "flagged"
+        return "parser-uncertain"
     if unused_curated_splits(e, item):
         return "unused_splits"
-    return "unreviewed"
+    return "plain"
 
 
-_STATUS_ORDER = {"no_registry": 0, "flagged": 1, "unused_splits": 2, "unreviewed": 3,
-                 "zone": 4}
+#: every status `entry_status` gives
+STATUSES = ("no_registry", "parser-uncertain", "unused_splits", "plain", "zone")
 
 
 #: Zone first. A regional rule binds to EVERY stream in its region — one of them is 160,000
@@ -829,12 +832,13 @@ _KIND_ORDER = {"zone": 0, "water": 1}
 
 def queue(region: str | None = None, status: str | None = None,
           kind: str | None = None, verify: str | None = None,
-          order: str = "attention", tier: str | None = None) -> list[dict]:
-    """Review queue rows.
+          order: str = "risk", tier: str | None = None) -> list[dict]:
+    """Review queue rows — ONE QUEUE ACROSS ALL REGIONS by default (`region` None).
 
-    `order="attention"` (the default) floats what needs attention to the top, regional and
-    provincial entries in their own block ahead of the water rows — they answer a different
-    question and are checked against a different source (the region chapter, not a table row).
+    `order="risk"` (the default, T135 / PLAN §3, §4 phase 4) is the review order: by tier (P1 Z P2
+    P3 P4 sweep — the split points, S0, come first and are `review.split_queue`'s), within a tier
+    the most urgent risk factor first, then the most severity-A pre-checks, then the book's order
+    (`tiers.queue_rank`, the one ordering function).
 
     `order="book"` is the order to go through EVERY entry in: by region, then the page it is
     printed on, the region chapter's entries before that page's table rows, then the file's
@@ -845,8 +849,13 @@ def queue(region: str | None = None, status: str | None = None,
     everything not currently verified. `tier` filters on the review tier (`tiers.entry_tier`, PLAN §3:
     P1 Z P2 P3 P4 sweep — split points, S0, are `split_queue`'s)."""
     from pipeline.regs.review import tiers as T
+    from pipeline.regs.review.precheck import severe as _severe
+    if order not in QUEUE_ORDERS:
+        raise ValueError(f"order is one of {', '.join(QUEUE_ORDERS)}, not {order!r}")
     states = _mark_states()
     on = built()                      # the vintage on disk, read once for every row (T133)
+    run = run_facts()                 # the reach run's facts, read once (T135)
+    s0 = s0_split_ids()
     rows = []
     src =[(region, e) for eid, e in load_region(region).items()] if region else _all_entries()
     for pos, (reg_id, e) in enumerate(src):
@@ -856,7 +865,7 @@ def queue(region: str | None = None, status: str | None = None,
             continue
         if kind and entry_kind(e) != kind:
             continue
-        tr = T.entry_tier(e, binds=item is not None)
+        tr = T.entry_tier(e, binds=item is not None, run=run)
         if tier and tr != tier:
             continue
         mst = _entry_mark_state(e, states)
@@ -865,6 +874,8 @@ def queue(region: str | None = None, status: str | None = None,
             continue
         pages = [p for p in (e.get("source_pages") or []) if isinstance(p, int)]
         vin = entry_vintage(e, on)
+        found = entry_prechecks(e, run=run, s0=s0)
+        n_a = _severe(found)
         rows.append({
             "entry_id": e["entry_id"],
             "region": reg_id if isinstance(reg_id, str) else _ident(e)["region"],
@@ -885,17 +896,26 @@ def queue(region: str | None = None, status: str | None = None,
             "vintage": vin["state"],             # current | awaiting build (T133)
             "vintage_reasons": vin["reasons"],
             "tier": tr,                           # PLAN §3 (T134: progress and ETA by tier)
+            "risks": T.risks(e, binds=item is not None, run=run),     # T135, most urgent first
+            "prechecks": {"A": n_a, "B": len(found) - n_a},
+            "_rank": T.queue_rank(e, binds=item is not None, run=run, severe=n_a),
             "_pos": pos,
         })
+
+    def book(r):
+        return (_region_key(r["region"]), r["page"] if r["page"] is not None else 10_000,
+                _KIND_ORDER.get(r["kind"], 9), r["_pos"])
     if order == "book":
-        rows.sort(key=lambda r: (_region_key(r["region"]), r["page"] if r["page"] is not None
-                                 else 10_000, _KIND_ORDER.get(r["kind"], 9), r["_pos"]))
+        rows.sort(key=book)
     else:
-        rows.sort(key=lambda r: (_KIND_ORDER.get(r["kind"], 9),
-                                 _STATUS_ORDER.get(r["status"], 9), r["name"]))
+        rows.sort(key=lambda r: (r["_rank"], book(r)))
     for r in rows:
-        del r["_pos"]
+        del r["_pos"], r["_rank"]
     return rows
+
+
+#: the queue's orders: the review order (tiers, risk first; the default) and the book's
+QUEUE_ORDERS = ("risk", "book")
 
 
 def _region_key(region: str) -> tuple:
@@ -1115,6 +1135,73 @@ def split_vintage(split_id: str, on=None) -> dict:
         raise KeyError(split_id)
     return V.split_state(split_id, anchor_digest(idx[split_id]),
                          on if on is not None else built())
+
+
+# --------------------------------------------------------------------------- #
+# The one queue (T135, PLAN §4 phase 4): `pipeline.regs.review.tiers` orders it, `precheck`
+# finds, `runfacts` reads the run — this only reads the disk for them
+# --------------------------------------------------------------------------- #
+
+def run_facts():
+    """The served reach run's facts (`runfacts.RunFacts`: ambiguous cuts, unresolved rules,
+    unplaced pieces), keyed on its files' stamps — a reach run finished in a terminal is read on
+    the next request. None while there is no COMPLETE run (`report.json` is written last): the
+    run-based risk factors and pre-checks are then not claimed, and `queue_facts` says so."""
+    from pipeline.regs.review.runfacts import DIAGNOSTIC, UNRESOLVED
+    return _run_facts_for(_stamp((REACH_DIR / "report.json", REACH_DIR / f"{DIAGNOSTIC}.jsonl",
+                                  REACH_DIR / f"{UNRESOLVED}.jsonl")))
+
+
+@lru_cache(maxsize=1)
+def _run_facts_for(_key: tuple):
+    from pipeline.regs.review.runfacts import RunFacts
+    try:
+        return RunFacts.read(REACH_DIR)
+    except FileNotFoundError:
+        return None
+
+
+def s0_split_ids() -> frozenset[str]:
+    """The split points still to verify (tier S0, `tiers.split_needs_verify` with each split's mark
+    status now) — what a rule binding through one is pre-checked for (`split_to_verify`)."""
+    from pipeline.regs.review import marks as M
+    from pipeline.regs.review import tiers as T
+    states = M.split_states(M.load(MARKS_PATH), _review_context())
+    return frozenset(sp["id"] for wb in _load_splits().get("waterbodies", [])
+                     for sp in wb.get("splits", [])
+                     if sp.get("id") and T.split_needs_verify(sp, (states.get(sp["id"]) or {})
+                                                              .get("status")))
+
+
+def entry_prechecks(e: dict, *, run=None, s0=None, gate: bool = False) -> list[dict]:
+    """`precheck.prechecks` for one entry against the served build and run. `gate`: also run the
+    save gate (`check_entry`; the open entry only — the queue does not run it for every row)."""
+    from pipeline.regs.review.precheck import prechecks
+    errs = None
+    if gate:
+        found = _find(e["entry_id"])
+        errs = check_entry(e, found[0] if found else None)["errors"]
+    return prechecks(e, binds=_item_for_entry(e) is not None,
+                     run=run if run is not None else run_facts(),
+                     s0=s0 if s0 is not None else s0_split_ids(), gate_errors=errs)
+
+
+def queue_facts() -> dict:
+    """What the queue's order was decided on: the reach run read (its digest), or why none was."""
+    run = run_facts()
+    return {"run": run.digest if run is not None else None,
+            "why": None if run is not None else
+            f"no complete reach run in {REACH_DIR} — the ambiguous-cut and unresolved factors are "
+            f"not known (run: scripts/heavy.sh build 30 -- python -m pipeline build --no-tiles)"}
+
+
+def parse_review_findings() -> dict[str, list[str]]:
+    """entry_id -> the second-pass agent's findings on it (`io.read_review_findings`, every
+    severity), from the parse work dir's `reviews/`. None exist yet: {}."""
+    work = io.default_work_dir()
+    if not (work / "reviews").is_dir():
+        return {}
+    return io.read_review_findings(work, severities=("high", "medium", "low"))
 
 
 def pending_build() -> dict:
@@ -2310,4 +2397,4 @@ def save_entry(region: str, entry_dict: dict) -> dict:
 _BUILD_CACHES = (_registry, _place_namer_for, _indices, _splits_meta, _split_points_attrs,
                  _blk_to_item, item_tributaries, _graph, _geoms, _wbk_polys,
                  _blk_index, _review_context_for, _built_atlas, _built_for, _splits_context_for,
-                 _ref_items)
+                 _ref_items, _run_facts_for)

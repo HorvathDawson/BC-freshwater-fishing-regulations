@@ -7,9 +7,13 @@
 // (`may_target` above) highlights that field too.
 
 import { createContext, useContext, useState, type ReactNode } from "react";
-import type { FieldError, Vocab } from "./types";
+import type { FieldError, RunAmbiguousCut, Vocab } from "./types";
 
 export const VocabCtx = createContext<Vocab | null>(null);
+
+/** T135: the reach run's ambiguous cuts on the open entry, rule id -> cuts — the candidates a
+ *  `cut_pick` chooses among (fix mode's extent editor). Empty when there is no run. */
+export const RunCutsCtx = createContext<Record<string, RunAmbiguousCut[]>>({});
 
 export function useVocab(): Vocab {
   const v = useContext(VocabCtx);

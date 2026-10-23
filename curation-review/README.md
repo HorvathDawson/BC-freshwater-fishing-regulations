@@ -58,6 +58,29 @@ Evidence first, then the checklist, with the verdict bar always visible:
 - **Progress and ETA** per tier (S0 P1 Z P2 P3 P4 sweep, `pipeline.regs.review.tiers`) and
   overall; the ETA is the reviewer's own median time over their last 20 entries in this browser.
 
+### The one queue, pre-checks and the output (T135)
+
+- **One queue across all regions** ("all regions", the default) in the **review order**: the split
+  points still to verify (S0, L grade first) lead it, then the entries tier by tier (P1 Z P2 P3 P4
+  sweep), each tier led by its most urgent **risk factor** — no match, unresolved, undrawn part,
+  ambiguous cut, cut, several waters, flag — then the most severity-A pre-checks, then the book.
+  One function decides it (`tiers.queue_rank` / `split_rank`); `j` / `k` walk from the last split
+  card into P1. "book (page)" is still offered. The `unresolved` and `ambiguous cut` factors are
+  read from the served reach run (`pipeline.regs.review.runfacts`); with no complete run the queue
+  says so and does not claim them.
+- **Pre-checks** (`pipeline.regs.review.precheck`; CLI `python -m pipeline.regs.review.precheck`):
+  severity A are facts (fails the gate, binds nothing, unresolved, unplaced pieces, ambiguous cut,
+  binds through an S0 split, parser-uncertain, unresolved locator, undrawn part), B are hints (a cut
+  picked by hand, a quote not in the row, more than 15 characters no rule quotes). Each entry's are
+  listed under its evidence, with every ambiguous cut's candidates and the one taken.
+- **Statuses** say what the parse left, not review progress: `parser-uncertain` (was "flagged") and
+  `plain` (was "unreviewed").
+- **Fix mode's `cut_pick`**: every split of a cut extent has a pick — the ruling (E16, unset),
+  lower, upper, one of the run's candidate measures, or a measure typed.
+- **Output** ("output" beside the progress bar): the wrong and unsure marks as ticket text
+  (`/api/review/tickets.md`; files: `python -m pipeline.regs.review.tickets --out <dir>`), and the
+  command that commits the marks file and nothing else: `python -m pipeline.regs.review.commit_marks`.
+
 The build it serves is `GENERATED.build()` (`data/generated/atlas/full`); `reuse.py` reads it, so
 repointing the app at another build is a config edit, not a code change.
 
@@ -79,8 +102,8 @@ make the call the model couldn't.
 
 ## Going through every entry (the review pass)
 
-The queue's **order** is `book (page)` by default: region, then printed page, the region chapter's
-entries before that page's table rows. Each entry has a bar at the top:
+The queue's **order** is the review order by default (T135, above); `book (page)` goes by region,
+then printed page, the region chapter's entries before that page's table rows. Each entry has a bar at the top:
 
 - The bar shows the marks in force on the entry and ← / → to step through the list; the
   checklist below it makes them (`POST /api/marks`, T134 — see "The review screen").
@@ -200,6 +223,13 @@ none carries this entry's name, no crop is shown rather than a wrong one.
 `pipeline/tests/test_curation_review_api.py` drives the API with `TestClient` on a temp copy of the
 catalogue: GET, unchanged PUT (byte-identical), an edit to each editor's field, and invalid edits
 refused at the field — one entry of every rule type and every licensing kind.
+
+T135 / T142: `test_review_queue.py` (the order, the pre-checks, the ticket round trip, the marks
+commit), `test_curation_review_queue.py` (the one queue, the run's facts on screen, a split added
+mid-review, a wrong mark as a ticket, refusals in the reviewer's words) and the BROWSER test
+`test_curation_review_browser.py` (`-m slow`: the real backend in fix mode and Vite, each on a free
+port of its own, driven by Playwright — the fix-mode draft guard on `j`, and Enter after clicking an
+answer records the mark).
 
 To run the app against a copy (never the real files): `CURATION_ENTRIES_DIR=<copy>` on the backend,
 and `CURATION_API=http://127.0.0.1:<port>` on `vite` when the backend is on another port:

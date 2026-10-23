@@ -59,31 +59,47 @@ def get_mode():
     scope answers and the problem categories a "wrong" mark names (`marks.PROBLEMS`)."""
     import answer
     from pipeline.regs.review.marks import CHECKS, PROBLEMS
+    from pipeline.regs.review.precheck import CHECKS as PRECHECKS
     return {"fix": FIX, "app_url": answer.APP_URL,
             "checks": {k: list(v) for k, v in CHECKS.items()},
-            "problems": {k: list(v) for k, v in PROBLEMS.items()}}
+            "problems": {k: list(v) for k, v in PROBLEMS.items()},
+            # T135: the pre-check codes (severity, meaning) and the commands the screen PRINTS —
+            # it runs neither (review mode writes one thing, a mark)
+            "prechecks": {k: {"severity": sev, "what": what} for k, (sev, what) in PRECHECKS.items()},
+            "commands": {"commit_marks": "python -m pipeline.regs.review.commit_marks",
+                         "tickets": "python -m pipeline.regs.review.tickets --out <dir>",
+                         "prechecks": "python -m pipeline.regs.review.precheck"}}
 
 
 @app.get("/api/regions")
 def get_regions():
+    """Per region: how many entries, by status and by the reviewer's mark. One pass over the one
+    queue (T135), grouped — not a queue per region."""
+    rows = reuse.queue()
     out = []
     for r in reuse.regions():
-        rows = reuse.queue(region=r)
-        out.append({"id": r, "total": len(rows), "by_status": dict(Counter(x["status"] for x in rows)),
-                    "by_verify": dict(Counter(x["verify"] for x in rows))})
+        mine = [x for x in rows if x["region"] == r]
+        out.append({"id": r, "total": len(mine), "by_status": dict(Counter(x["status"] for x in mine)),
+                    "by_verify": dict(Counter(x["verify"] for x in mine))})
     return out
 
 
 @app.get("/api/entries")
 def get_entries(region: str | None = None, status: str | None = None,
                 kind: str | None = None, verify: str | None = None,
-                order: str = "attention", tier: str | None = None):
-    """`kind` is zone | water — the region chapters or the water tables. They are two jobs.
-    `verify` is the reviewer's mark (unmarked | verified | wrong | unsure | deferred | stale |
-    todo); `tier` the review tier (PLAN §3); `order` is attention (what needs a look first) or
-    book (region, page, then the page's order)."""
-    if order not in ("attention", "book"):
-        raise HTTPException(422, [{"path": "order", "msg": "order is attention or book"}])
+                order: str = "risk", tier: str | None = None):
+    """THE ONE QUEUE (T135): every region unless `region` names one. `kind` is zone | water — the
+    region chapters or the water tables. `verify` is the reviewer's mark (unmarked | verified |
+    wrong | unsure | deferred | stale | todo); `tier` the review tier (PLAN §3); `status` what the
+    parse left (`reuse.STATUSES`); `order` is risk (the review order: tier, the most urgent risk
+    factor, the severity-A pre-checks, then the book — `tiers.queue_rank`) or book (region, page,
+    then the page's order)."""
+    if order not in reuse.QUEUE_ORDERS:
+        raise HTTPException(422, [{"path": "order",
+                                   "msg": "order is " + " or ".join(reuse.QUEUE_ORDERS)}])
+    if status and status not in reuse.STATUSES:
+        raise HTTPException(422, [{"path": "status",
+                                   "msg": "status is one of " + ", ".join(reuse.STATUSES)}])
     return reuse.queue(region=region, status=status, kind=kind, verify=verify, order=order,
                        tier=tier)
 
@@ -111,25 +127,27 @@ def post_mark(body: MarkPayload):
     the gate, or a mark the model refuses (a verdict its answers do not support, no reviewer);
     404 for an unknown target. With no `verdict` the answers decide it (`marks.verdict_from_answers`)."""
     from pydantic import ValidationError
-    from pipeline.regs.review.marks import CHECKS, verdict_from_answers
+    from pipeline.regs.review.marks import (CHECKS, refusal_words, unanswered_words,
+                                            verdict_from_answers)
     data = body.model_dump()
+    # A REFUSAL IS SAID IN THE REVIEWER'S WORDS (T142, `marks.refusal_words`): what to do, never
+    # the model's "Value error, …" — and with no field path, which means nothing at the screen.
     if data["verdict"] is None:
         if body.scope not in CHECKS:
             raise HTTPException(422, [{"path": "scope", "msg": f"scope is one of {sorted(CHECKS)}"}])
         data["verdict"] = verdict_from_answers(body.scope, body.answers)
         if data["verdict"] is None:
-            raise HTTPException(422, [{"path": "answers", "msg": "answer every check ("
-                                       + ", ".join(CHECKS[body.scope]) + ") or name a verdict"}])
+            raise HTTPException(422, [{"path": "", "msg": unanswered_words(body.scope)}])
     try:
         return reuse.post_mark(data)
     except KeyError as ex:
         raise HTTPException(404, f"{body.scope} {body.target}"
                                  f"{'/' + body.rule_id if body.rule_id else ''} not found: {ex}")
     except ValidationError as ex:
-        raise HTTPException(422, [{"path": ".".join(str(x) for x in e["loc"]), "msg": e["msg"]}
-                                  for e in ex.errors()])
+        raise HTTPException(422, [{"path": "", "msg": refusal_words(
+            e["msg"], str(e["loc"][0]) if e["loc"] else None)} for e in ex.errors()])
     except ValueError as ex:
-        raise HTTPException(422, [{"path": "", "msg": str(ex)}])
+        raise HTTPException(422, [{"path": "", "msg": refusal_words(str(ex))}])
 
 
 @app.get("/api/marks")
@@ -162,6 +180,25 @@ def review_progress():
     from the reviewer's own pace."""
     import review
     return review.progress()
+
+
+@app.get("/api/review/tickets")
+def review_tickets():
+    """THE TICKET EXPORT (T135): every wrong and unsure mark in force as ticket text, with what
+    changed since. Read only — the owner files them (`python -m pipeline.regs.review.tickets
+    --out <dir>` writes the same text to files)."""
+    import review
+    return review.tickets()
+
+
+@app.get("/api/review/tickets.md")
+def review_tickets_md():
+    """The tickets as one Markdown text (`tickets.SEPARATOR` between them), to read or save."""
+    import review
+    from pipeline.regs.review.tickets import SEPARATOR
+    got = review.tickets()
+    body = SEPARATOR.join(t["text"] for t in got) if got else "No wrong or unsure marks in force.\n"
+    return Response(body, media_type="text/markdown; charset=utf-8")
 
 
 @app.get("/api/review/splits")
