@@ -11,7 +11,7 @@ import { answerFrom, basinStandings, sectionStanding, sheetLead, speakerFor, spe
          type Speaker, type StationId } from "@app/data";
 import { CHANGE_NEEDS_FLOW, CHANGE_POLICY, changeDay, changeLine, changeSparkWords, CONDITIONS_WORDS, disagreeNote, donorBecause, isAhead, type RunChange, donorFacts, donorKeyLabel, donorLastReport,
          donorCounted, donorSilent, gaugeChoiceLabel, donorShare, silentLine,
-         donorPinTitle, donorReads, donorReason, donorRowLabel, donorWeightLine,
+         donorPinTitle, donorReads, donorReason, donorRowLabel, donorWeightLine, refusalIsAboutTheDay,
          estimateHeadline, estimateRange, estimateSentence, freshness, HORIZON_LABELS,
          HORIZONS, horizonChipLabel, metresApart, noGaugeSentence, panelCamera,
          readingAgeLine, readingHeading, readingIn, readingStandingLine, regulatedNote, SAME_PLACE_M, tidalNote,
@@ -559,7 +559,10 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
   const silent = silentLine(rows, { ref, horizon: o.horizon, ...(o.zone ? { zone: o.zone } : {}) });
   if (!answer.ok)
     return { ok: false, heading: CONDITIONS_WORDS.noEstimate, reason: donorReason(answer.why, o.horizon),
-             horizons: answer.why === "no-forecast" ? horizonChips(o.horizon, o.quantity) : null, silent };
+             horizons: refusalIsAboutTheDay(answer.why) ? horizonChips(o.horizon, o.quantity) : null,
+             // T143: under a flow-only forecast the members are not without one — "No forecast this far ahead: …" under
+             // the reason that says the forecast is there, in flow, would contradict it
+             silent: answer.why === "flow-forecast-only" ? null : silent };
   const e = answer.value;
   /*
    * A ROW'S TONE IS ITS INDEX IN THE PANEL'S WEIGHT ORDER, not its place among the rows shown. The gauge switch lists

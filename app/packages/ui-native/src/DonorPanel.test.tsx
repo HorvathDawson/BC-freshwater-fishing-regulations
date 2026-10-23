@@ -140,7 +140,7 @@ describe("the donor panel", () => {
   });
 
   const REASONS: NoEstimate[] = ["no-station", "no-record", "regulated", "too-uncertain",
-                                 "offline", "no-forecast", "own-gauge"];
+                                 "offline", "no-forecast", "own-gauge", "flow-forecast-only"];
   it.each(REASONS)("explains a refusal (%s) instead of showing a blank", (why) => {
     draw({ value: { answer: { ok: false, why }, rows: [], areaKm2: null, routesReady: true } });
     expect(screen.getByText("NO ESTIMATE")).toBeTruthy();
@@ -153,6 +153,22 @@ describe("the donor panel", () => {
                     routesReady: true }, horizon: 10, onHorizon });
     expect(screen.getByText("No forecast for the gauges here reaches this far ahead.")).toBeTruthy();
     expect(screen.getByLabelText("Forecast 10 days ahead, showing")).toBeTruthy();
+    fireEvent.click(screen.getByLabelText("Conditions now"));
+    expect(onHorizon).toHaveBeenCalledWith(0);
+  });
+
+  it("under Level at +3 with a flow-only forecast, says so, keeps the chips, and names no member as forecastless (T143)",
+     () => {
+    const onHorizon = vi.fn();
+    const quiet = { station: "08MH103", role: "up" as const, percentile: null, weight: 0, areaRatio: 1, areaKm2: 644,
+                    years: 16, regulated: false, factors: { share: 1, role: 1, record: 1 }, trust: "good" as const,
+                    sameRiver: true, observedAt: "2026-10-22T19:05:00-08:00" };
+    draw({ value: { answer: { ok: false, why: "flow-forecast-only" }, rows: [quiet as never], areaKm2: 849,
+                    routesReady: true }, horizon: 3, onHorizon });
+    expect(screen.getByText("The forecast for the gauges here is of flow, not level, this far ahead. "
+                            + "Show Flow to see it.")).toBeTruthy();
+    expect(screen.queryByText(/No forecast this far ahead/)).toBeNull();
+    expect(screen.getByLabelText("Forecast 3 days ahead, showing")).toBeTruthy();
     fireEvent.click(screen.getByLabelText("Conditions now"));
     expect(onHorizon).toHaveBeenCalledWith(0);
   });

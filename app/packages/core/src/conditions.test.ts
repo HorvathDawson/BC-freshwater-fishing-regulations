@@ -73,6 +73,8 @@ describe("donorReason: why there is no estimate, per reason", () => {
     // The chosen day is past every forecast run for these gauges (the owner's +10 day often
     // is). Said as that, not as "no gauge close enough", which would be false.
     "no-forecast": "No forecast for the gauges here reaches this far ahead.",
+    // Under Level, a day the runs forecast in flow only (T143): the forecast is there, in the other quantity.
+    "flow-forecast-only": "The forecast for the gauges here is of flow, not level, this far ahead. Show Flow to see it.",
   };
   it.each(Object.entries(WHY))("%s", (why, sentence) => {
     expect(donorReason(why as NoEstimate)).toBe(sentence);

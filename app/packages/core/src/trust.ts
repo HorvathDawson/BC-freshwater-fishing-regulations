@@ -140,7 +140,8 @@ export type NoEstimate =
   | "too-uncertain"     // the interval is wider than MAX_USEFUL_SPREAD
   | "offline"           // the feed did not answer; say nothing rather than something stale
   | "own-gauge"         // a gauged lake: its own station reads it, so nothing is estimated (T105 review)
-  | "no-forecast";      // a day ahead that no forecast run for these gauges reaches
+  | "no-forecast"       // a day ahead that no forecast run for these gauges reaches
+  | "flow-forecast-only"; // a day ahead under Level: the runs here forecast FLOW that day, no stage (T143)
 
 export type Answer = { ok: true; value: Estimate } | { ok: false; why: NoEstimate };
 

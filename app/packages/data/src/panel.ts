@@ -250,7 +250,7 @@ export function answerFrom(panel: Panel | undefined, index: Index,
    * false — so it is "no-record": none has a reading to rank. Nothing outside the panel is borrowed.
    */
   if (!contributions.length && panel.areaKm2 && panel.members.length) {
-    return { answer: { ok: false, why: isAhead(horizon) ? "no-forecast" : "no-record" },
+    return { answer: { ok: false, why: silentWhy(panel, index, horizon) },
              rows: raw.map(({ _w, ...r }) => ({ ...r, weight: 0 })),
              areaKm2: panel.areaKm2, routesReady: false };
   }
@@ -266,6 +266,27 @@ export function answerFrom(panel: Panel | undefined, index: Index,
            areaKm2: panel.areaKm2, routesReady: false };
 }
 
+
+/**
+ * WHY A PANEL WITH GAUGES AND AN AREA HAS NOTHING TO SAY at this quantity and horizon — the one decision `answerFrom`
+ * refuses with when no member reads:
+ *
+ *   no-record            today: none of the members has a reading of the asked quantity to rank.
+ *   flow-forecast-only   a DAY ahead under Level, where the members' runs DO forecast that day, in flow (T143). The feed's
+ *                        +1/+3/+5 are CLEVER's, and CLEVER forecasts discharge only (`publish.forecast_percentiles`), so
+ *                        on the 2026-10-23 feed 310 of 372 stations with a forecast had no level at +1/+3/+5: a Level
+ *                        reader was told "no forecast" at every gauge while the chart drew one. Still no answer — a flow
+ *                        never stands in for a level — but the refusal says the forecast is there, in flow.
+ *   no-forecast          any other horizon ahead: no run reaches it in the asked quantity or any other.
+ */
+export function silentWhy(panel: Panel, index: NonNullable<Index>,
+                          horizon: Horizon): "no-record" | "no-forecast" | "flow-forecast-only" {
+  if (!isAhead(horizon)) return "no-record";
+  // Asked only once the asked quantity has no contribution, so under Flow this is empty and the answer no-forecast:
+  // the reason is only ever reached under Level.
+  return typeof horizon === "number" && contributionsOf(panel, index, "discharge", horizon).length
+    ? "flow-forecast-only" : "no-forecast";
+}
 
 /**
  * What a panel's donors contribute to `estimate` for one quantity and horizon: every member reporting a reading, while
