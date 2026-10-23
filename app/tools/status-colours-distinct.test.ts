@@ -34,7 +34,7 @@
 import { describe, expect, it } from "vitest";
 import { TEMP_BAND_TOKEN, type TempBand } from "@app/core";
 import { resolveTheme } from "@app/map";
-import { deltaE, MODELS, parseHex, worstSeparation } from "./cvd";
+import { deltaE, lch, MODELS, parseHex, worstSeparation } from "./cvd";
 
 /**
  * Colours below are written ENCODED, `~` for the hash (the house trick from check-colours.test.ts), so this file holds no
@@ -105,15 +105,15 @@ const FLOOR: Record<Theme, Record<string, number>> = {
            permitToken: 22, permitLine: 16, permitSat: 15,
            temperature: 27.5,
            boundaryToken: 20, boundaryLine: 13,
-           accessToken: 23, accessLine: 20.5, accessLake: 21, accessSat: 15.5,
-           accessPermitToken: 19, accessPermitLine: 11, accessPermitSat: 13, accessBoundaryToken: 20, accessBoundaryLine: 13 },
+           accessToken: 11.5, accessLine: 12, accessLake: 12, accessSat: 11.5,
+           accessPermitToken: 21, accessPermitLine: 9, accessPermitSat: 9.5, accessBoundaryToken: 6.5, accessBoundaryLine: 3.5 },
   dark:  { ownerToken: 21.5, ownerLine: 21, ownerLake: 22, ownerSat: 18.5,
            waterToken: 29.5, waterLine: 19, waterLake: 23.5, waterSat: 18,
            permitToken: 15, permitLine: 13.5, permitSat: 10.5,
            temperature: 15,
            boundaryToken: 15, boundaryLine: 15.5,
-           accessToken: 15.5, accessLine: 12.5, accessLake: 16.5, accessSat: 11.5,
-           accessPermitToken: 23.5, accessPermitLine: 15.5, accessPermitSat: 14, accessBoundaryToken: 15, accessBoundaryLine: 15.5 },
+           accessToken: 28, accessLine: 22.5, accessLake: 27, accessSat: 16.5,
+           accessPermitToken: 12, accessPermitLine: 9.5, accessPermitSat: 7, accessBoundaryToken: 15.5, accessBoundaryLine: 9.5 },
   cvd:   { ownerToken: 29, ownerLine: 21, ownerLake: 29.5, ownerSat: 17.5,
            waterToken: 49, waterLine: 34, waterLake: 47, waterSat: 33.5,
            permitToken: 23, permitLine: 17.5, permitSat: 16,
@@ -143,9 +143,19 @@ const WHY = {
   accessPermit: "no public access against the permit hatch (T54): the fourth colour was searched against the three water " +
                 "statuses first (the pairs it is drawn beside); the hatch is thin strokes laid over AREAS, never over the " +
                 "no-access land a no-access stream runs through (that land is hatched in closed crimson)",
-  darkAccess: "dark no public access against the rose closed, 15.7 as tokens and 12.7 as a thin line (T54): a status must " +
-              "hold 3:1 on the dark card and the dark base is already a deep blue, so the fourth hue is a warm ochre, and no " +
-              "colour that clears those reaches 20 from closed (search over the sRGB cube, step 4: best 12.8 as a line)",
+  lightAccess: "light no public access is a MAGENTA (T146, owner 2026-10-23: T54's indigo 'is very similar to base regs'): " +
+               "a hue family of its own, 75 degrees of LCh hue off base and 38 off every status. Measured over the sRGB " +
+               "cube (step 4, handoff/PLAN/app-integration/T146-shots/frontier.mjs): every colour 40 degrees or more off the " +
+               "light base stands at most 12.2 from closed, own or base for a dichromat as a thin line, because red, orange " +
+               "and blue already take the colour-blind space and only an indigo beside base clears 20. So the light theme " +
+               "holds the normal-vision floor (T146 test below) and gives up the dichromat one: a colour-blind reader's " +
+               "theme (cvd) keeps its mauve, 14.5 and up from every water status (owner question Q-T146a)",
+  accessBoundary: "no public access against the grey boundary (T146): the magenta (light) and the ice cyan (dark) sit near " +
+                  "the neutral's lightness for some reader; the boundary is dashed, wider and drawn UNDER the water lines " +
+                  "(T83), so where they cross the status wins",
+  darkAccessPermit: "dark no public access, an ICE CYAN (T146), against the lilac permit hatch: the cyan was searched against " +
+                    "the three water statuses it is drawn beside (22.6 as a line, from 12.7 for T54's ochre); the hatch is " +
+                    "laid over permit AREAS, never over the no-access land a no-access stream runs through",
   cvdAccess: "colour-blind no public access, a greyed mauve (T54): every blue sat under 20 from the plum restricted in " +
              "normal vision, every violet under 11 from closed or base as a line, and the mauve, the searched best against " +
              "the three water statuses (15.0 as a line), is a neutral the grey boundary sits on (15.9 tokens, 3.1 lines); " +
@@ -155,14 +165,16 @@ const WHY = {
 const UNDER_20: Record<string, string> = {
   "light ownerSat": WHY.satellite, "light permitLine": WHY.permit, "light permitSat": WHY.permit,
   "light boundaryLine": WHY.boundaryLine,
-  "light accessSat": WHY.satellite, "light accessPermitToken": WHY.accessPermit, "light accessPermitLine": WHY.accessPermit,
-  "light accessPermitSat": WHY.accessPermit, "light accessBoundaryLine": WHY.boundaryLine,
+  "light accessToken": WHY.lightAccess, "light accessLine": WHY.lightAccess, "light accessLake": WHY.lightAccess,
+  "light accessSat": WHY.lightAccess, "light accessPermitLine": WHY.accessPermit,
+  "light accessPermitSat": WHY.accessPermit, "light accessBoundaryToken": WHY.accessBoundary,
+  "light accessBoundaryLine": WHY.accessBoundary,
   "dark ownerSat": WHY.satellite, "dark waterLine": WHY.darkBase, "dark waterSat": WHY.satellite,
   "dark permitToken": WHY.permit, "dark permitLine": WHY.permit, "dark permitSat": WHY.permit,
   "dark temperature": WHY.darkWarm, "dark boundaryToken": WHY.darkBoundary, "dark boundaryLine": WHY.darkBoundary,
-  "dark accessToken": WHY.darkAccess, "dark accessLine": WHY.darkAccess, "dark accessLake": WHY.darkAccess,
-  "dark accessSat": WHY.satellite, "dark accessPermitLine": WHY.accessPermit, "dark accessPermitSat": WHY.accessPermit,
-  "dark accessBoundaryToken": WHY.darkBoundary, "dark accessBoundaryLine": WHY.darkBoundary,
+  "dark accessSat": WHY.satellite, "dark accessPermitToken": WHY.darkAccessPermit,
+  "dark accessPermitLine": WHY.darkAccessPermit, "dark accessPermitSat": WHY.darkAccessPermit,
+  "dark accessBoundaryToken": WHY.darkBoundary, "dark accessBoundaryLine": WHY.accessBoundary,
   "cvd ownerSat": WHY.satellite, "cvd permitLine": WHY.permit, "cvd permitSat": WHY.permit,
   "cvd boundaryLine": WHY.boundaryLine,
   "cvd accessLine": WHY.cvdAccess, "cvd accessSat": WHY.satellite, "cvd accessPermitToken": WHY.accessPermit,
@@ -369,5 +381,52 @@ describe("status colours, as drawn (T47)", () => {
     const why = UNDER_20["dark temperature"]!;
     expect(["warm / critical 15.4", "cool / warm 17.8", "cool / critical 17.7"].map((p) => [p, why.includes(p)]))
       .toEqual([["warm / critical 15.4", true], ["cool / warm 17.8", true], ["cool / critical 17.7", true]]);
+  });
+});
+
+/*
+ * NO PUBLIC ACCESS IS NOT BASE, TO THE OWNER'S EYE (T146). T54's light indigo cleared every floor above — 23.4 from base
+ * as tokens for the worst reader, 32.8 in normal vision — and the owner still read it as base ("the no public access
+ * color is awkward too. it is very similar to base regs", 2026-10-23): both were BLUE, 23 degrees of hue apart. A ΔE
+ * floor cannot see a shared hue family, so this holds the hue itself, in normal vision, in the two themes a reader with
+ * normal vision uses (cvd is the dichromat's theme and is held above): no public access at least ACCESS_HUE degrees of
+ * LCh hue off base, and at least ACCESS_NORMAL apart from base as a token, a thin line over every ground and a lake fill.
+ */
+const ACCESS_HUE = 45;
+const ACCESS_NORMAL = { token: 35, line: 30, lake: 30 };
+function apartFromBase(th: "light" | "dark", t: Record<string, unknown>): string[] {
+  const [x, b] = [t["color.status.no_access"] as string, t["color.status.base"] as string];
+  const out: string[] = [];
+  const d = Math.abs(lch(x).h - lch(b).h) % 360;
+  const hue = d > 180 ? 360 - d : d;
+  if (hue < ACCESS_HUE) out.push(`${th}: no_access ${x} is base's hue ${b}: ${hue.toFixed(1)} degrees < ${ACCESS_HUE}`);
+  const lakeA = t["opacity.lake"] as number;
+  const line = Math.min(...GROUND[th].map((g) => deltaE(over(x, g, LINE), over(b, g, LINE))));
+  const lake = deltaE(over(x, LAKE_GROUND[th], lakeA), over(b, LAKE_GROUND[th], lakeA));
+  for (const [what, v, floor] of [["token", deltaE(x, b), ACCESS_NORMAL.token], ["thin line", line, ACCESS_NORMAL.line],
+                                  ["lake fill", lake, ACCESS_NORMAL.lake]] as const)
+    if (v < floor) out.push(`${th}: no_access ${x} vs base ${b} as a ${what}, normal vision ${v.toFixed(1)} < ${floor}`);
+  return out;
+}
+
+describe("no public access is not base (T146)", () => {
+  it("stands a hue family apart from base, and far from it as drawn, in normal vision — light and dark", () => {
+    expect((["light", "dark"] as const).flatMap((th) => apartFromBase(th, resolveTheme(th)))).toEqual([]);
+  });
+
+  it("fails T54's indigo, which the owner read as base (mutation pin)", () => {
+    expect(apartFromBase("light", resolveTheme("light", de({ "color.status.no_access": "~2A00E0" })))).toEqual(de([
+      "light: no_access ~2A00E0 is base's hue ~608AE5: 23.2 degrees < 45",
+      "light: no_access ~2A00E0 vs base ~608AE5 as a token, normal vision 32.8 < 35",
+      "light: no_access ~2A00E0 vs base ~608AE5 as a thin line, normal vision 24.4 < 30",
+      "light: no_access ~2A00E0 vs base ~608AE5 as a lake fill, normal vision 26.7 < 30"]));
+  });
+
+  it("fails the dark theme's no access painted in base's own deep blue (mutation pin)", () => {
+    expect(apartFromBase("dark", resolveTheme("dark", de({ "color.status.no_access": "~0368EB" })))).toEqual(de([
+      "dark: no_access ~0368EB is base's hue ~0368EB: 0.0 degrees < 45",
+      "dark: no_access ~0368EB vs base ~0368EB as a token, normal vision 0.0 < 35",
+      "dark: no_access ~0368EB vs base ~0368EB as a thin line, normal vision 0.0 < 30",
+      "dark: no_access ~0368EB vs base ~0368EB as a lake fill, normal vision 0.0 < 30"]));
   });
 });

@@ -67,11 +67,14 @@ function ground(theme: string, flavor: string): [string, string][] {
 /** Between any two statuses. ~20 is "a different category at a glance" on a thin line. */
 const STATUS_FLOOR = 20;
 /**
- * (T54) THE FOURTH COLOUR, no public access, against the three as tokens. Light holds the status floor. Dark cannot:
- * a status must hold 3:1 on the dark card, the dark base is already a deep blue, and the searched best (an ochre,
- * tools/status-colours-distinct.test.ts `WHY.darkAccess`) stands 15.7 off the dark rose closed for a tritan reader.
+ * (T54, T146) THE FOURTH COLOUR, no public access, against the three as tokens. Dark holds well past the status floor:
+ * its ice cyan stands 28.5 off the deep-blue base for the worst reader (T54's ochre stood 15.7 off closed). Light cannot:
+ * the owner read T54's indigo as base (T146), and every hue 40 degrees or more off the light base is at most ~12 from
+ * closed, own or base for some dichromat (tools/status-colours-distinct.test.ts `WHY.lightAccess`); the magenta stands
+ * 11.9 off own under tritan (Machado). A colour-blind reader's theme is `cvd`, held by tools/cvd.test.ts and the
+ * status-colours gate. Owner question Q-T146a.
  */
-const ACCESS_FLOOR: Record<"light" | "dark", number> = { light: 20, dark: 15 };
+const ACCESS_FLOOR: Record<"light" | "dark", number> = { light: 11.5, dark: 28 };
 /** A status line against the ground under it. */
 const GROUND_FLOOR = 15;
 /**
