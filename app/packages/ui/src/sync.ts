@@ -24,7 +24,7 @@
  */
 import { useCallback, useEffect, useState } from "react";
 import { hydatNotice as noticeOf, type HydatNotice } from "@app/core";
-import type { GaugeFeed } from "@app/data";
+import { FEED_TTL_MS, type GaugeFeed } from "@app/data";
 import { usePoll } from "./async";
 
 /**
@@ -37,7 +37,7 @@ function forecastOf(i: { forecastIssuedAt?: string | null } | null): string | nu
 }
 
 /** How often the sync state is re-read while the app is open: the feed's own cache lifetime (`TTL_MS`, http.ts). */
-export const SYNC_POLL_MS = 5 * 60_000;
+export const SYNC_POLL_MS = FEED_TTL_MS;
 /** A refresh the reader asked for shows "checking" at least this long, so the tap visibly did something. */
 export const SYNC_MIN_CHECK_MS = 600;
 

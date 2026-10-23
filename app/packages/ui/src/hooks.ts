@@ -5,6 +5,7 @@
 import { useMemo, useState } from "react";
 import type { GaugeTrace, SectionKey, StatusIndex } from "@app/core";
 import { decodeStatusIndex, mapStatusOn, monthAbbr } from "@app/core";
+import { FEED_TTL_MS } from "@app/data";
 import type {
   BundleCounts, GaugeFeed, Horizon, ItemId, LakeInfo, NameHit,
   Parameter, PlaceHit, PlaceId, PointerHit, RegsSource, SectionId, Series, StationId, Water,
@@ -121,7 +122,7 @@ export function useWaterName(
  * and told they are one. This is the same reading, for a station the caller chooses.
  */
 /** How often an open view re-asks the feed for a station's reading: the feed's cache TTL (5 min). */
-export const READING_POLL_MS = 5 * 60_000;
+export const READING_POLL_MS = FEED_TTL_MS;
 
 export function useStationReading(
   source: RegsSource, station: StationId | null,

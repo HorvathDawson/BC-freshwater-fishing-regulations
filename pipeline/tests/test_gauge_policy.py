@@ -76,3 +76,23 @@ def test_the_temperature_bands_are_the_publishers():
                   '  ["critical", null],\n')
     union = E.render().split("export type TempBand =")[1].split(";")[0]
     assert union == ' "cool" | "warm" | "critical"'
+
+
+def test_the_knots_the_panel_floor_and_the_forecast_days_are_the_pipelines():
+    """T125 item 6: emitted whole, from their one Python home each; the publisher's own ranking reads the knots from
+    the climatology too (mutation: re-type `[0.10, 0.25, ...]` in `percentile_of` and the source pin fails)."""
+    import inspect
+    from pipeline.atlas.gauges.panel import MIN_TOTAL_WEIGHT
+    from pipeline.gauges.feed import publish
+    from pipeline.gauges.feed.climatology import PCTILES
+    got = json.loads(E.render_json())
+    assert (got["knots"], got["minTotalWeight"], got["forecastDays"]) == (
+        [0.1, 0.25, 0.5, 0.75, 0.9], 0.05, [1, 3, 5, 10])
+    assert [round(k * 100) for k in got["knots"]] == list(PCTILES)
+    assert (got["minTotalWeight"], got["forecastDays"]) == (MIN_TOTAL_WEIGHT, list(publish.HORIZONS))
+    assert "export const PERCENTILE_KNOTS = [0.1, 0.25, 0.5, 0.75, 0.9] as const;" in E.render()
+    assert "export const MIN_TOTAL_WEIGHT = 0.05;" in E.render()
+    assert "export const FORECAST_DAYS = [1, 3, 5, 10] as const;" in E.render()
+    src = inspect.getsource(publish.percentile_of)
+    assert "PCTILES" in src and "0.25" not in src
+    assert publish.percentile_of(30, [10, 20, 30, 40, 50]) == 0.5

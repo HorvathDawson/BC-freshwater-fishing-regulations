@@ -10,10 +10,10 @@
  * Bounded twice: entries live as long as the feed reuses its own files (`TTL_MS`, data/src/feed/http.ts), and the
  * map keeps the most recently used `CAP` of them. A failure is never kept — the next asker tries again.
  */
-import type { Parameter, StationId } from "@app/data";
+import { FEED_TTL_MS, type Parameter, type StationId } from "@app/data";
 
 /** How long an answer is reused: the feed's own file reuse (`TTL_MS` in data/src/feed/http.ts). */
-export const ANSWER_TTL_MS = 5 * 60_000;
+export const ANSWER_TTL_MS = FEED_TTL_MS;
 /** At most this many answers per source — a panel has a handful of donors, two spans, a parameter list each. */
 export const ANSWER_CAP = 96;
 

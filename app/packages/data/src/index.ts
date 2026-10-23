@@ -594,7 +594,7 @@ export type { Db, Row, Cell } from "./bundle/db";
 /** User pins — a separate store with a separate lifecycle. See pins.ts. */
 export type { Pin, PinPhoto, PinStore } from "./pins";
 
-export { httpFeed, type GaugeFeed } from "./feed/http";
+export { FEED_TTL_MS, httpFeed, type GaugeFeed } from "./feed/http";
 
 // The panel arithmetic: bundle rows plus a feed reading -> one answer. Three callers,
 // one of them not a screen, so it cannot live behind a hook — see ./panel.ts.

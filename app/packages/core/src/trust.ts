@@ -19,7 +19,7 @@
  * threshold.
  */
 
-import { MIN_RECORD_YEARS, type RecordQuantity } from "./gauge-policy.generated";
+import { MIN_RECORD_YEARS, MIN_TOTAL_WEIGHT, type RecordQuantity } from "./gauge-policy.generated";
 
 export { MIN_RECORD_YEARS, RECORD_QUANTITIES, type RecordQuantity } from "./gauge-policy.generated";
 
@@ -238,7 +238,7 @@ export function leadShares(weights: readonly number[], lead: number | null): num
 /** Mirrors `weight_of` in panel.py; `tools/trust-ladder.test.ts` holds the two together. */
 const DOWNSTREAM_PENALTY = 0.85;
 const RECORD_FULL_YEARS = 20;
-const MIN_TOTAL_WEIGHT = 0.05;
+// MIN_TOTAL_WEIGHT is generated from panel.py (`gauge-policy.generated`, T125 item 6), never typed here.
 
 /**
  * The three things a donor's weight is made of, unmultiplied.

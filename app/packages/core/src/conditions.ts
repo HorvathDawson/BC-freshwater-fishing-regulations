@@ -13,6 +13,7 @@ import { catchmentLabel, confidenceWord, inTen, ordinal, percentileOrdinal, plai
          seasonPhrase, standing, standingWord, type Standing } from "./flow";
 import { interval, type Estimate, type NoEstimate } from "./trust";
 import { localStamp, shortDay, shortStamp } from "./day";
+import { FORECAST_DAYS } from "./gauge-policy.generated";
 import { byCadence } from "./staleness";
 import { CHANGE_EXPLAINER, CHANGE_MARK, CHANGE_POLICY, changeHeadline, changeRange, changeRatio, changeReads,
          changeSentence } from "./change";
@@ -36,8 +37,9 @@ import { CHANGE_EXPLAINER, CHANGE_MARK, CHANGE_POLICY, changeHeadline, changeRan
  * largest move each gauge's forecast expects over the next ten days, read day by day (`./change`). It is "ahead" like
  * the days — a forecast, refused as `no-forecast` — but it has no date, so ask `isAhead` / `aheadDays`, never `> 0`.
  */
-export type Horizon = 0 | 1 | 3 | 5 | 10 | "change";
-export const HORIZONS: readonly Horizon[] = [0, 1, 3, 5, 10, "change"];
+export type Horizon = 0 | (typeof FORECAST_DAYS)[number] | "change";
+/** Now, the publisher's forecast days (`FORECAST_DAYS`, generated from publish.py HORIZONS, T125 item 6), Change. */
+export const HORIZONS: readonly Horizon[] = [0, ...FORECAST_DAYS, "change"];
 
 /** The horizons that are a DAY (Now and +1/+3/+5/+10): everything but Change. The one list for code that needs a date
  *  per horizon (a spot's coming days, T51), so none re-derives it with its own `typeof h === "number"`. */

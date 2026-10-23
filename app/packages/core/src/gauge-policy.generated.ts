@@ -61,3 +61,17 @@ export const RECORD_QUANTITIES: readonly RecordQuantity[] = ["discharge", "level
 
 /** The shortest record, in years, that may rank a reading: the climatology's floor and the donor panel's gate. */
 export const MIN_RECORD_YEARS = 3;
+
+// The envelope and the panel (T125 item 6). PCTILES in pipeline/gauges/feed/climatology.py, as fractions: every envelope
+// is built at these knots, a reading is ranked between them (`percentileInBand`), the standing words break at them
+// (`standing`) and the map's percentile ramp stops at them. MIN_TOTAL_WEIGHT in pipeline/atlas/gauges/panel.py: below it
+// a panel is too uncertain to answer. HORIZONS in pipeline/gauges/feed/publish.py: the days ahead a forecast is ranked.
+
+/** The percentile knots of a `Band`, ascending. */
+export const PERCENTILE_KNOTS = [0.1, 0.25, 0.5, 0.75, 0.9] as const;
+
+/** The total weight below which a panel refuses ("too-uncertain"). */
+export const MIN_TOTAL_WEIGHT = 0.05;
+
+/** The days ahead the publisher ranks a forecast for (now, 0, is the app's own). */
+export const FORECAST_DAYS = [1, 3, 5, 10] as const;

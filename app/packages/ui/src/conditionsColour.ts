@@ -15,7 +15,7 @@
  * cannot colour a section differently; and both only on a PROVEN PAIR (the caller's `paired`).
  */
 import { useMemo, useRef } from "react";
-import { basinStandings, classStanding, type Horizon, type Parameter, type RegsSource, type SectionId,
+import { basinStandings, classStanding, type Horizon, type Parameter, type RegsSource, type SectionId, FEED_TTL_MS,
          type StandingClasses } from "@app/data";
 import { useAsync, usePoll } from "./async";
 import { useBasinStandings, usePanelStandings, type PanelFeed } from "./panel";
@@ -53,7 +53,7 @@ export const sourceKey = (s: object): number => {
 };
 
 /** How often the map re-asks the feed: the feed's own cache life, so a published refresh lands within one. */
-export const FEED_POLL_MS = 5 * 60_000;
+export const FEED_POLL_MS = FEED_TTL_MS;
 
 /** The values for one feed index, quantity and horizon — one class's standing each, and the basins'. */
 export function standingValues(c: StandingClasses, idx: Parameters<typeof classStanding>[2], quantity: Parameter,

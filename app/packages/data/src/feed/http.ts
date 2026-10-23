@@ -36,8 +36,9 @@ interface RawForecast extends Omit<Forecast, "series" | "disclaimer"> {
   } | null;
 }
 
-/** How long a fetched file is reused. The publisher runs every 30 minutes. */
-const TTL_MS = 5 * 60_000;
+/** How long a fetched file is reused. The publisher runs every 30 minutes. THE ONE FEED LIFETIME (T125 item 6): the
+ *  answers cache, the sync poll, the map's feed poll and the reading poll are this, never a second `5 * 60_000`. */
+export const FEED_TTL_MS = 5 * 60_000;
 
 interface IndexFile {
   fetchedAt: string;
@@ -232,7 +233,7 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch): GaugeFe
   async function load<T>(path: string): Promise<T | null> {
     const url = `${trimmed}/${path}`;
     const hit = cache.get(url);
-    if (hit && Date.now() - hit.at < TTL_MS) return hit.value as T;
+    if (hit && Date.now() - hit.at < FEED_TTL_MS) return hit.value as T;
 
     let p = inflight.get(url) as Promise<T | null> | undefined;
     if (!p) {

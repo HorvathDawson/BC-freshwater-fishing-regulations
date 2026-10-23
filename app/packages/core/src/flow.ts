@@ -12,12 +12,15 @@ export type Band = readonly [number, number, number, number, number];
 export type Standing =
   | "much-below" | "below" | "normal" | "above" | "much-above" | "no-record";
 
+/** The standing words break at the envelope's own knots (p10, p25, p75, p90 — `PERCENTILE_KNOTS`, generated from the
+ *  climatology's PCTILES, T125 item 6): the map's ramp stops at the same ones. */
 export function standing(percentile: number | null): Standing {
   if (percentile === null) return "no-record";
-  if (percentile < 0.10) return "much-below";
-  if (percentile < 0.25) return "below";
-  if (percentile < 0.75) return "normal";
-  if (percentile < 0.90) return "above";
+  const [p10, p25, , p75, p90] = KNOTS;
+  if (percentile < p10) return "much-below";
+  if (percentile < p25) return "below";
+  if (percentile < p75) return "normal";
+  if (percentile < p90) return "above";
   return "much-above";
 }
 
@@ -206,8 +209,8 @@ export function bandAt(pentads: readonly (Band | null)[], dayOfYear: number): Ba
 /** Where a value sits in an envelope: a percentile (0–1), or which side of the envelope it fell off. */
 export type BandPlace = number | "below" | "above";
 
-/** The percentiles of the five knots of a `Band`. */
-const KNOTS = [0.10, 0.25, 0.50, 0.75, 0.90] as const;
+/** The percentiles of the five knots of a `Band`: the climatology's PCTILES (generated, T125 item 6). */
+const KNOTS = PERCENTILE_KNOTS;
 
 /** What `percentileInBand` reports at or past an edge of the envelope: "the bottom tenth", "the top tenth". */
 export const BELOW_BAND = 0.05;
@@ -271,6 +274,7 @@ export function placeInBand(v: number | null, band: Band | null): BandPlace | nu
 export { TRUST_BANDS, TRUST_FLOOR, type GaugeTrust } from "./gauge-policy.generated";
 
 import type { GaugeTrust as Trust } from "./gauge-policy.generated";
+import { PERCENTILE_KNOTS } from "./gauge-policy.generated";
 
 /**
  * What a band is called, in the two places the app says it.

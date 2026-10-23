@@ -44,6 +44,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from pipeline.common.curated import CURATED, SOURCE
+from pipeline.gauges.feed.climatology import PCTILES
 from pipeline.gauges.feed.change import stale as _stale_run, station_change
 from pipeline.gauges.feed.forecast import ATTRIBUTION as FORECAST_ATTRIBUTION
 from pipeline.gauges.feed.forecast import CENTRE_ZONE as _CENTRE_ZONE
@@ -264,7 +265,7 @@ def percentile_of(value: float | None, band: list[float | None] | None) -> float
     """
     if value is None or not band or len(band) < 5 or any(b is None for b in band):
         return None
-    ps = [0.10, 0.25, 0.50, 0.75, 0.90]
+    ps = [p / 100 for p in PCTILES]         # the envelope's own knots (T125 item 6)
     vs = [float(b) for b in band]           # type: ignore[arg-type]
     if value <= vs[0]:
         return 0.05
@@ -282,8 +283,8 @@ def percentile_of(value: float | None, band: list[float | None] | None) -> float
 # HOW FAR AHEAD THE MAP WILL LOOK.
 #
 # Not a horizon the models publish — CLEVER runs ten days hourly and ELF thirty daily — but
-# the days a person plans a trip around. Mirrored by HORIZONS in
-# `app/packages/core/src/conditions.ts` (with 0 for now).
+# the days a person plans a trip around. Emitted to the app as `FORECAST_DAYS`
+# (`pipeline.tools.emit_gauge_policy`), which core's HORIZONS read (with 0 for now).
 #
 # TEN DAYS (owner, 2026-10-20). Past about five the bounds on both models are wide, and the
 # answer often reads "normal for the season"; the owner wants the ten-day view on the map

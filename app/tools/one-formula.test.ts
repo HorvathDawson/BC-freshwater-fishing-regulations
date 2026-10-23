@@ -226,6 +226,7 @@ describe("one day's envelope has one home", () => {
     const hits = ["packages", "apps", "tools"].flatMap((d) => (existsSync(`${APP}/${d}`) ? walk(`${APP}/${d}`) : []))
       .filter((f) => SECOND_COPY.test(readFileSync(f, "utf8")))
       .map((f) => f.slice(APP.length + 1));
-    expect(hits).toEqual(["packages/core/src/flow.ts"]);
+    // the knots are GENERATED from the climatology's PCTILES (T125 item 6); flow.ts keeps the pentad arithmetic
+    expect(hits).toEqual(["packages/core/src/flow.ts", "packages/core/src/gauge-policy.generated.ts"]);
   });
 });
