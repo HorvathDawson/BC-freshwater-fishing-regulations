@@ -91,17 +91,72 @@ def _kind(node) -> str:
     return k.value if hasattr(k, "value") else str(k).split(".")[-1]
 
 
+def flowing(graph, water_of: dict[str, str] | None = None, kind_of: dict[str, str] | None = None):
+    """`section -> True when the walk treats it as a STREAM`: a line, or a polygon of a STREAM water.
+
+    THE WATER'S KIND, NEVER THE GEOMETRY (owner 2026-10-22 late, "a polygon-only slough or canal gets gauges like a
+    stream"). A slough or canal is a stream item (`flowing.py` folds its polygons into the river's item), yet its
+    polygons are `lake:<wbk>` nodes in the graph, and the walk read that `NodeKind` as the water's kind: it counted
+    the Vedder Canal as a lake crossing, gave no panel to any of the 146 stream-item polygons, and left a canal that is
+    ONLY polygons (Seton Canal, Bowman, Lewis, Hansen, Taylor Slough) unmeasured wherever it sat. So a polygon of a
+    stream item is a stream here — offered a panel, walked through without ending the relationship, and its own
+    gauge's section — exactly as a line in its place would be. A lake item's polygon, and a polygon no water owns,
+    stays a lake.
+
+    A LINE STAYS A LINE whoever owns it: a short line a lake item owns (a narrows, an outlet stub) was always walked
+    as a stream, and this ruling is about polygons only.
+
+    Sized like a line, from its own `stream_magnitude`: the graph gives a polygon node the largest magnitude of the
+    network lines under it (`graph.build_stream_graph`), which on a canal or slough is the through-line at its outlet —
+    see the real-graph measure in decisions.md "a polygon-only slough or canal gets gauges like a stream".
+    """
+    water_of = water_of or {}
+    kind_of = kind_of or {}
+
+    def is_stream(sec: str) -> bool:
+        node = graph.nodes.get(sec)
+        if node is None:
+            return False
+        if _kind(node) == "stream":
+            return True
+        water = water_of.get(sec)
+        return water is not None and kind_of.get(water) == "stream"
+    return is_stream
+
+
+def _same_blue_line(graph, water_of: dict[str, str] | None, is_stream, a: str, b: str) -> bool:
+    """Whether the water flows past both sections — `Member.same_river`.
+
+    Two LINES: the same FWA blue-line key, as always. A POLYGON has no blue-line key of its own (`blk` is "" on a lake
+    node; the through-line's key is on the fids beneath it), so where a stream item's polygon is one end, the same
+    WATER stands in for the same line: the Vedder Canal is the Vedder River's own water, a gauge on Nicomen Slough is
+    not on the Fraser's. A true lake at either end is never the same line, as before (its `blk` is "").
+    """
+    na, nb = graph.nodes[a], graph.nodes[b]
+    if _kind(na) == "stream" and _kind(nb) == "stream":
+        return bool(na.blk) and nb.blk == na.blk
+    if not (is_stream(a) and is_stream(b)):
+        return False
+    wa = (water_of or {}).get(a)
+    return wa is not None and (water_of or {}).get(b) == wa
+
+
 MAINSTEM_HOPS = 4
 
 
 def candidates(graph, area_of, donors: list[tuple[str, str, int, bool]],
-               max_ratio: float = MAX_AREA_RATIO) -> dict[str, list[tuple]]:
+               max_ratio: float = MAX_AREA_RATIO, water_of: dict[str, str] | None = None,
+               kind_of: dict[str, str] | None = None) -> dict[str, list[tuple]]:
     """`section -> [(station, role, donor area, years, regulated, lake, same river)]`.
 
     `donors` is `(station, its section, years of record, is regulated)` — already gated on
     the things that do not depend on the target, so the walk never starts for a station
     that could not speak wherever it arrived.
+
+    `water_of` (section -> water item) and `kind_of` (water item -> stream / lake / wetland) make a STREAM water's
+    polygon a stream for the walk (`flowing`). Without them a polygon is a lake, as the geometry says.
     """
+    is_stream = flowing(graph, water_of, kind_of)
     up: dict[str, list[str]] = collections.defaultdict(list)
     down: dict[str, list[str]] = collections.defaultdict(list)
     for e in graph.edges:
@@ -127,7 +182,7 @@ def candidates(graph, area_of, donors: list[tuple[str, str, int, bool]],
         # `role` is "up" rather than "down" because there is no direction to penalise: the
         # gauge is neither above nor below this water, it is in it, and DOWNSTREAM_PENALTY
         # exists to discount water that has been diluted on the way down.
-        if _kind(start) == "stream":
+        if is_stream(sec):
             out[sec].append((station, "up", a0, years, regulated, False, True))
         # A STATION ON A LAKE HAS ALREADY CROSSED ONE.
         #
@@ -144,7 +199,7 @@ def candidates(graph, area_of, donors: list[tuple[str, str, int, bool]],
         #
         # Seeded as already-crossed rather than skipped outright, so the rule reads as what
         # it is: one lake on the path, wherever on the path it sits.
-        started_in_a_lake = _kind(start) == "lake"
+        started_in_a_lake = _kind(start) == "lake" and not is_stream(sec)
         # Walking upstream reaches sections the gauge is DOWNSTREAM of, and vice versa.
         for adj, role in ((up, "down"), (down, "up")):
             seen: set[str] = {sec}
@@ -163,13 +218,14 @@ def candidates(graph, area_of, donors: list[tuple[str, str, int, bool]],
                     seen.add(nxt)
                     # A LAKE ANYWHERE ON THE PATH ENDS THE RELATIONSHIP, and it stays ended
                     # for everything beyond it — storage does not un-attenuate.
-                    lake = crossed or _kind(node) == "lake"
-                    if _kind(node) == "stream":
+                    # A stream water's polygon is not a lake crossing — see `flowing`.
+                    lake = crossed or (_kind(node) == "lake" and not is_stream(nxt))
+                    if is_stream(nxt):
                         # SAME BLUE LINE OR NOT. Two donors of identical catchment size can
                         # be two different relationships — one where the water flows past
                         # both points, one where you share only the weather — and the area
                         # ratio cannot tell them apart. See TRIBUTARY_ERROR_FACTOR.
-                        same = bool(start.blk) and node.blk == start.blk
+                        same = _same_blue_line(graph, water_of, is_stream, sec, nxt)
                         out[nxt].append((station, role, a0, years, regulated, lake, same))
                     stack.append((nxt, lake))
     return out
@@ -263,23 +319,23 @@ def mainstem_of(graph, area_of) -> dict[str, str]:
 
 def stream_polygons(graph, water_of: dict[str, str], kind_of: dict[str, str],
                     panelled: dict[str, tuple]) -> dict[str, str]:
-    """`polygon section of a STREAM water -> the line section of that water whose answer it takes`.
+    """`polygon section of a STREAM water -> the line section of that water whose answer it takes` — THE FALLBACK.
 
     THE WATER'S KIND, NEVER THE GEOMETRY (owner 2026-10-22 late, "sloughs and canals look like streams in
-    Conditions"). A slough or canal is a stream item (`flowing.py` folds its polygons into the river's item), yet its
-    polygons are `lake:<wbk>` nodes in the graph. The walk above sizes a reach by stream magnitude, which a polygon
-    has none of, and it read `NodeKind` as if it were the water's kind — so all 146 stream-item polygons had no
-    panel, and 45 of them (Nicomen Slough 4, the Vedder Canal on the Vedder River …) drew grey between coloured
-    lines of the same water.
+    Conditions", then "a polygon-only slough or canal gets gauges like a stream"). The walk itself now treats a stream
+    item's polygon as a stream (`flowing`): sized by the magnitude of the lines under it, offered a panel, walked
+    through. This pass is only for a polygon the walk leaves WITHOUT an answer while a line of its own water has one —
+    on the real graph (2026-10-22) two: West Road (Blackwater) lake:329047577 and Daly Slough lake:329522748, both
+    beside lines that answer through their river (`mainstem_of`), not through a walk that could reach the polygon.
+    Without it they would lose the answer this pass gave them before the walk changed.
 
-    A polygon has no catchment of its own to ask about: it is a wide piece of the stream it belongs to. So it takes
-    that stream's answer — the panel AND the target area of the nearest line of the SAME water that has one,
-    DOWNSTREAM first (the water leaving a polygon is the water that went through it), upstream only when nothing
-    below answers. The walk keeps to the water's own sections, through its other polygons and unanswered lines, and
-    never borrows another water's answer: a canal-only item with no answered line is honestly unmeasured.
+    Such a polygon takes its stream's answer — the panel AND the target area of the nearest line of the SAME water that
+    has one, DOWNSTREAM first (the water leaving a polygon is the water that went through it), upstream only when
+    nothing below answers. The search keeps to the water's own sections and never borrows another water's answer (the
+    walk is what brings other waters' gauges, exactly as it does to a line).
 
     A lake item's polygon is not touched — a lake's answer is `lake_gauge` (level), never a river's flow. `panelled`
-    is `by_section` as the walk and side channels left it; a line keeps its own walk's answer, or its lack of one.
+    is `by_section` as the walk and side channels left it; anything already answered keeps its answer.
     """
     up: dict[str, list[str]] = collections.defaultdict(list)
     down: dict[str, list[str]] = collections.defaultdict(list)
@@ -335,7 +391,7 @@ def systems(continues) -> dict[str, str]:
 
 def own_distances(graph, water_of: dict[str, str],
                   donors: list[tuple[str, str, int, bool]],
-                  continues=()) -> dict[str, dict[str, float]]:
+                  continues=(), kind_of: dict[str, str] | None = None) -> dict[str, dict[str, float]]:
     """`section -> {station: metres along the water}` for every station on the section's OWN water.
 
     ONE SYSTEM ACROSS A CONTINUATION (T76, owner 2026-10-22: a river that changes its name is one system; T81 Q8:
@@ -352,7 +408,11 @@ def own_distances(graph, water_of: dict[str, str],
     and never both. The gauge stands at the downstream end of its own section ("the section that begins at the gauge
     and runs upstream", `nodes_for`), so its own section is 0, the section below begins at the gauge (0), and the
     section above begins one gauge-section away.
+
+    A STREAM water's polygon is walked through like its lines (`flowing`, with `kind_of`), at its graph length — 0,
+    since a lake node carries no measure: the Vedder Canal does not part the Vedder from its own gauge.
     """
+    is_stream = flowing(graph, water_of, kind_of)
     up: dict[str, list[str]] = collections.defaultdict(list)
     down: dict[str, list[str]] = collections.defaultdict(list)
     for e in graph.edges:
@@ -382,7 +442,7 @@ def own_distances(graph, water_of: dict[str, str],
                 step = 0.0 if (going_down and cur == sec) else length(cur)
                 for nxt in adj[cur]:
                     node = graph.nodes.get(nxt)
-                    if node is None or _kind(node) != "stream" or system_of(water_of.get(nxt)) != system:
+                    if node is None or not is_stream(nxt) or system_of(water_of.get(nxt)) != system:
                         continue
                     if d + step < best.get(nxt, math.inf):
                         best[nxt] = d + step
@@ -423,8 +483,9 @@ def build(graph, model: AreaModel,
     the scale of "far" (`panel.area_scale`: Hack's law wants real catchments and the area model runs low on big
     rivers) and breaks a tie between own gauges standing at the same distance and modelled size. None: the model's.
 
-    `kind_of` (water item -> its kind: stream / lake / wetland) is what lets a STREAM water's polygons take that
-    water's answer (`stream_polygons`); it needs `water_of` too. Without both, polygons get nothing, as before.
+    `kind_of` (water item -> its kind: stream / lake / wetland) is what makes a STREAM water's polygon a stream for
+    the walk (`flowing`) and, where the walk leaves one unanswered, lets it take its water's line answer
+    (`stream_polygons`); it needs `water_of` too. Without both, every polygon is a lake, as the geometry says.
 
     `continues` (`(water, the water it goes on as)`, the bundle's `water_continue` as item ids) makes a continuation's
     gauges a section's own (T76, `own_distances`): the Vedder is led by the Chilliwack's 08MH001. Empty: each water
@@ -432,8 +493,8 @@ def build(graph, model: AreaModel,
     """
     area_of = lambda n: model.area_km2(getattr(n, "stream_magnitude", None),
                                        getattr(n, "wsc", ""))
-    cand = candidates(graph, area_of, donors, max_ratio)
-    own = own_distances(graph, water_of, donors, continues) if water_of else {}
+    cand = candidates(graph, area_of, donors, max_ratio, water_of=water_of, kind_of=kind_of)
+    own = own_distances(graph, water_of, donors, continues, kind_of=kind_of) if water_of else {}
 
     by_section: dict[str, tuple[int, float | None]] = {}
     members: dict[int, tuple[Member, ...]] = {}
@@ -506,9 +567,9 @@ def build(graph, model: AreaModel,
         else:
             by_section[sec] = got
 
-    # A STREAM WATER'S POLYGONS TAKE ITS ANSWER — see `stream_polygons`. Last, after the side channels, so a polygon
-    # takes whatever its line finally says. The same (panel, area) pair, so the polygon and its line are one colour
-    # input to the one colouring engine — nothing for a client to derive.
+    # A STREAM WATER'S POLYGON THE WALK LEFT UNANSWERED TAKES ITS LINE'S ANSWER — the fallback, see `stream_polygons`.
+    # Last, after the side channels, so it takes whatever its line finally says. The same (panel, area) pair, so the
+    # polygon and its line are one colour input to the one colouring engine — nothing for a client to derive.
     if water_of and kind_of:
         for sec, line in stream_polygons(graph, water_of, kind_of, by_section).items():
             by_section[sec] = by_section[line]

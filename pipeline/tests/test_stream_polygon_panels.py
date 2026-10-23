@@ -6,6 +6,11 @@ sections on its stem; Vedder River carries 4.7 km of Vedder Canal as one polygon
 reach by its stream magnitude, which a polygon does not have, and the old code read the graph's `NodeKind` (a polygon
 node is `lake:<wbk>`) as if it were the water's kind — so every one of the 146 stream-item polygons had no panel and
 drew grey between coloured lines of the same water.
+
+SINCE "a polygon-only slough or canal gets gauges like a stream" (same file) the WALK reads the water's kind
+(`build_panels.flowing`, pinned by test_polygon_walk.py), so a sized polygon answers on its own; `stream_polygons` is the
+fallback for one the walk leaves unanswered beside an answered line of its water. The fixtures here keep the polygon
+UNSIZED (`stream_magnitude=None`), which no walk can answer, so they exercise that fallback alone.
 """
 
 from __future__ import annotations
@@ -26,7 +31,8 @@ KINDS = {SLOUGH: "stream", RIVER: "stream", LAKE: "lake"}
 
 
 def poly(node_id: str) -> N:
-    """A polygon section: a `lake:<wbk>` node with no stream magnitude, as the real graph has it."""
+    """An UNSIZED polygon section: a `lake:<wbk>` node with no stream magnitude — the case the walk cannot answer.
+    (The real graph sizes all 145 stream-item polygons from the lines beneath them; see test_polygon_walk.py.)"""
     return N(node_id, stream_magnitude=None, kind="lake")
 
 
@@ -94,8 +100,8 @@ def test_a_true_lake_keeps_lake_treatment():
 
 
 def test_a_polygon_never_borrows_another_water_s_answer():
-    """The walk keeps to the polygon's own water: a canal-only item (Seton Canal, Bowman, Lewis …) with no line of
-    its own is honestly unmeasured, however close a gauged river is."""
+    """The FALLBACK keeps to the polygon's own water: it never copies a neighbour's answer. (A sized canal is reached by
+    the walk itself, as a line would be — test_polygon_walk.py; an unsized one has nothing to be weighed by.)"""
     graph = g([poly("canal"), N("river", 100)], [E("canal", "river")])
     panels = build(graph, MODEL, [("R", "river", 40, False)],
                    water_of={"canal": SLOUGH, "river": RIVER}, kind_of=KINDS)
@@ -205,18 +211,11 @@ def polygons_beside_an_answer_without_one(db) -> list[tuple[str, int]]:
         "ORDER BY i.item_id, s.sid").fetchall()
 
 
-def polygons_with_another_water_s_answer(db) -> list[tuple[str, int]]:
-    """`(water, polygon sid)` for each stream-item polygon whose (panel, target area) is no line of its OWN water's —
-    the pass must never hand a polygon a neighbour's answer."""
-    return db.execute(
-        "SELECT i.item_id, s.sid FROM item i JOIN item_section s ON s.ord = i.ord "
-        "JOIN section_span sp ON sp.sid = s.sid JOIN section_panel pp ON pp.sid = s.sid "
-        "WHERE i.kind = 'stream' AND sp.shape = 1 "
-        "AND NOT EXISTS (SELECT 1 FROM item_section s2 JOIN section_span l ON l.sid = s2.sid "
-        "                JOIN section_panel p ON p.sid = l.sid "
-        "                WHERE s2.ord = i.ord AND l.shape = 0 "
-        "                  AND p.panel_id = pp.panel_id AND p.area_km2 IS pp.area_km2) "
-        "ORDER BY i.item_id, s.sid").fetchall()
+# RETIRED 2026-10-22 (late): "no stream polygon wears another water's answer". It held while the only way a polygon got
+# a panel was copying its own line's. Since the walk reads the water's kind, a polygon answers like a line in its
+# place — Seton Canal from Cayoosh Creek and the Seton system, Lewis Slough from its river's gauges — and its (panel,
+# area) is its own, not any line's. What stays invariant is below: a polygon touching an answered line of its water has
+# an answer, and no lake or wetland section has a panel.
 
 
 def standing_water_with_a_flow_answer(db) -> list[tuple[str, int]]:
@@ -259,16 +258,16 @@ def test_the_invariants_read_a_toy_bundle_as_intended():
     its neighbours are unanswered too, and that is the honest answer, not a missed one."""
     before = _toy_bundle(_TOY, _TOY_LINES)
     assert polygons_beside_an_answer_without_one(before) == [(SLOUGH, 2)]
-    assert polygons_with_another_water_s_answer(before) == []
     assert standing_water_with_a_flow_answer(before) == []
 
-    after = _toy_bundle(_TOY, {**_TOY_LINES, 2: (7, 1.5)})
-    assert polygons_beside_an_answer_without_one(after) == []
-    assert polygons_with_another_water_s_answer(after) == []
+    # The polygon answered — by its line's pair or by a walk of its own (another panel, its own area): either holds.
+    for own in ((7, 1.5), (9, 30.0)):
+        after = _toy_bundle(_TOY, {**_TOY_LINES, 2: own})
+        assert polygons_beside_an_answer_without_one(after) == []
+        assert standing_water_with_a_flow_answer(after) == []
 
-    # A polygon wearing the river's answer, a slough line's panel at another target area, a lake given a panel: named.
-    wrong = _toy_bundle(_TOY, {**_TOY_LINES, 2: (9, 30.0), 12: (7, 9.9), 20: (9, 30.0)})
-    assert polygons_with_another_water_s_answer(wrong) == [(RIVER, 12), (SLOUGH, 2)]
+    # A lake given a panel: named.
+    wrong = _toy_bundle(_TOY, {**_TOY_LINES, 2: (7, 1.5), 20: (9, 30.0)})
     assert standing_water_with_a_flow_answer(wrong) == [(LAKE, 20)]
 
 
@@ -288,7 +287,6 @@ def test_every_stream_polygon_beside_an_answered_line_of_its_water_has_an_answer
 
 
 @pytest.mark.needs_bundle
-def test_no_stream_polygon_wears_another_water_s_answer_and_no_lake_wears_a_panel():
+def test_no_lake_or_wetland_wears_a_panel():
     db = sqlite3.connect(f"file:{_bundle()}?mode=ro", uri=True)
-    assert polygons_with_another_water_s_answer(db) == []
     assert standing_water_with_a_flow_answer(db) == []

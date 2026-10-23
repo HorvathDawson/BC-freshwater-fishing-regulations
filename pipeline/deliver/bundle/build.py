@@ -737,8 +737,9 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_it
         measures: dict[str, set[str]] = collections.defaultdict(set)
         for st, param in db.execute("SELECT station, parameter FROM gauge_stats"):
             measures[st].add(param)
-        # `kind_of`: a STREAM water's polygons (sloughs, canals — owner 2026-10-22 late) take that water's line
-        # answer; the water's kind decides, never the polygon's geometry. See build_panels.stream_polygons.
+        # `kind_of`: a STREAM water's polygons (sloughs, canals — owner 2026-10-22 late) are walked like its lines,
+        # and one left unanswered takes its line's answer; the water's kind decides, never the polygon's geometry. See
+        # build_panels.flowing and build_panels.stream_polygons.
         # `continues`: across a `water_continue` link the gauges are the section's own (T76: the Vedder is led by the
         # Chilliwack's 08MH001) — one system, the same gates. See build_panels.own_distances.
         panels = build_panels(graph, model, donors, water_of=owner, continues=continues,
