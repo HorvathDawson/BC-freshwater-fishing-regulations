@@ -1,7 +1,7 @@
 # T54 — Streams in no-access areas: a fourth colour, and the page says so
 
-Status: PARTIAL — 991baa1c (pipeline: section_access, paint/3, access/1), 2fc72d9b (app: fourth colour, banner, note,
-legend); ticket a43a7122; review 60b568ae (banner survives a failed access fetch), 86b6e830 (notes). Built with
+Status: PARTIAL — a5f9b5eb (pipeline: section_access, paint/3, access/1), e08f791b (app: fourth colour, banner, note,
+legend); ticket a43a7122; review c155f40f (banner survives a failed access fetch), 7c0798d7 (notes). Built with
 Q1–Q3 defaults. Left: the rebuild below (deliver all + release), then the
 needs_bundle checks; see "Built / left" at the foot.
 

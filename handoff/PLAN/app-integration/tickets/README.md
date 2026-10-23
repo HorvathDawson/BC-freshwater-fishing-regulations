@@ -95,10 +95,10 @@ use that as the sole source of future work."
 | T48 | search in the top bar | DONE | d1b5680a, f733ec5e, 81000acf, 349968b0, 3f8c277f | — (keyboard → T69) |
 | T49 | map's day: calendar icon + date sheet | DONE | 02570d07, 1fc9be2e, 9db57864 | — |
 | T50 | Android emulator parity + system bars | OPEN | 7da6deff, 294dd4d5 (ticket) | all; after T61–T63, heavy, alone |
-| T51 | spot similarity forecast ("Like your visit?") | OPEN | a7b94f4e (ticket) | all |
+| T51 | spot similarity forecast ("Like your visit?") | DONE | fa7235c0, 2f5cdc70, a6fd848d, aba28187 | — |
 | T52 | Conditions "Expected change" | IN PROGRESS | 6ffda443 (ticket) | all (pipeline daily series + app chip) |
 | T53 | unnamed stream shows no regulations | DONE | 74c1decd, 79c74252, 46f3d2f1, 9ef5ea75, 1925ecdc | — (real-data sweep is T57) |
-| T54 | no-access streams: fourth colour + banner | OPEN | a43a7122 (ticket) | all; Q1–Q3 build with defaults |
+| T54 | no-access streams: fourth colour + banner | PARTIAL | fec02c29, a5f9b5eb, e08f791b, b291b598, c155f40f, 7c0798d7, bd12dfb9 | needs deliver; Q54/Q55 |
 | T55 | sloughs/canals still drawn as lakes | IN PROGRESS | fec02c29, 96b0eb73; prior 669fd065, a59f3dc3, ac8a0e1c | finder DONE (865 candidates) → ★ owner marks them on the review page (artifact Es3Mokt7Fs2yNvm7JgQua8) → reclassify → reach + deliver; polygon-walk lane wf_3976eddc-bba |
 | T56 | release rebuild: Twin Lakes + stream polygons + "See X" | DONE | 78a4eed8, 020f4ca8, 794f9c07, cfe405c8, 04357dad | R2 upload (owner) |
 | T57 | unnamed streams: real-data regs sweep incl. trib rules | DONE | 9f434cd3, b846c925, a9455d40, 5dac27c8, 21289c24 | — |
@@ -112,7 +112,7 @@ use that as the sole source of future work."
 | T65 | determinism proof (N12) | OPEN | — | all (heavy) |
 | T66 | curation review tool | PARTIAL | a3f66b7c (plan) | owner reads curation-review/PLAN.md; build → T96, T97 |
 | T67 | braid splitting as a build step | OPEN | 1497beb0 | assessment done (handoff/PLAN/braids/T67-assessment.md) → ★ owner answers R14 Q1/Q2/Q4 → build (braid_sweep.py) → side atlas/reach/deliver/tiles |
-| T68 | HYDAT / feed follow-ups | OPEN | — | Forecasts line; roster `--stations`; R2 upload step |
+| T68 | HYDAT / feed follow-ups | DONE | e25d05fd, 17610988, 0fa29df4, 98817665 | F1/F2 follow-ups in ticket |
 | T69 | search on desktop: keyboard leftovers | DONE | 448ebe1b, 389e451a | — |
 | T70 | cleanup wave 1, app side + stale worktrees + `pnpm clean` | PARTIAL | 52ec4cb5, 799614a5, 4615ee0f, 1e8cbdb5, ac95e09f, a7947f99, de3cb79d, fd3f8c06, ef11d8e4, 17e4fe8f | merger steps done 2026-10-22; Q17 dead follow-branch → T63 |
 | T71 | one Map entry: drop the regs header's Map button | DONE | 4817a2e7, 40d6a47c | — |
@@ -136,17 +136,17 @@ use that as the sole source of future work."
 | T89 | rules that bind no water (10 unmatched + 3 no extent) | OPEN | — | all |
 | T90 | Chehalis closure reaches Harrison side channels | OPEN | — | all |
 | T91 | Atnarko campsite split location | OPEN | — | all (owner) |
-| T92 | gear omission check | OPEN | — | all |
+| T92 | gear omission check | DONE | de0581e1, b931f93d, 750ba2ad, 9c78ef20 | — |
 | T93 | gauge ↔ section relationship table (policy) | OPEN | — | all |
 | T94 | gauge promote: `--only`, demotion guard | OPEN | — | all |
 | T95 | salmon (DFO) regulations: the plan | OPEN | — | all (owner timing) |
 | T96 | curation review phase 0: tool safe + the 5 gate-failing entries (ingest R3/prov broken) | DONE | 3e841e31, 3760fd5f, f0228e09, 15723b83 | — |
 | T97 | curation review phases 1–5 (marks, one vintage, review screen, queue, gate) | BLOCKED (owner) | — | all; owner approves PLAN.md |
 | T98 | tidal water spec: Fraser below Mission (RULINGS C-2, K7/K8) | POSTPONED | — | all; spec ON HOLD |
-| T99 | pin the rulings nothing enforces (Z1 base+deltas, 12 ◐ rulings, C-4 citation) | OPEN | — | all |
+| T99 | pin the rulings nothing enforces (Z1 base+deltas, 12 ◐ rulings, C-4 citation) | DONE | f8742374, 53d57288, f3bc2b4b, 857bed9a | — |
 | T100 | lakes divided into closure areas (K5): Shuswap A/B/C, 67 widened rules | OPEN | — | all |
 | T101 | gauges walk through slough/canal polygons (held) | BLOCKED | 8d57e759..de39b70c (branch, unmerged) | ★ owner Q44 → merge + deliver |
-| T102 | receiving river never walked into (parent-code check in the walk) | OPEN | — | all (rides a reach rerun) |
+| T102 | receiving river never walked into (parent-code check in the walk) | PARTIAL | b6749f62, 60786bc9, 402786c9, b8f5fb3f, 95e78dd5, 0c4a9366, b44461d5, e0bc10a0 | part B → T117; Q53 |
 | T103 | one size shape: plain words contradict bands/title (24 strings) | OPEN | — | all (deliver) |
 | T104 | one "when" in words: titles/plain drop hours and weekdays | OPEN | — | all (deliver) |
 | T105 | one gauge speaker for map and sheet (54,401 sections disagree) | OPEN | — | all (app; deliver if section_gauge changes) |
@@ -236,6 +236,11 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q51 | T80 | A "See X" row whose water has no other row: a page of its own? | no — the pointer opens X's page | owner |
 | Q52 | T80 | Spot photo picker: arm the fallback only where cancel is unsupported? | as built | owner |
 | Q53 | T102 | Order (Strahler) guard: only where a code is missing (= off entirely: no live edge lacks a code), or also on equal/unrelated codes (28,359 equal-code floodplain/braid edges depend on it)? | keep it on equal/unrelated codes; code decides parent/child | owner |
+| Q54 | T54 | Fourth colour per theme is a recorded compromise (dark ochre 12.7 from closed as a thin line; colour-blind mauve 3.1 from the grey boundary line) — keep? | keep | owner |
+| Q55 | T54 | Release total is ~82 KB under its 14 MB gate after `access` (private land 168 KB of it); a future `lakes` file would cross it — raise the gate or drop private land from the note? | ship as built; decide before lakes ship | owner |
+| Q56 | T51 | "Like your visit?": today + 4 days, or +1..+5? | today + 4 | owner |
+| Q57 | T51 | Similarity weights: flow 45 %, air 20 %, rain before 20 %, wind 10 %, cloud 5 % — right? | as built | owner |
+| Q58 | T68 | `update-hydat.sh --stations <file>` copies the refreshed default roster over that file — ok? | as built | owner |
 
 ### Answered (recently, for the record)
 - Q33 (the 5 gate-failing entries) — settled by T96: four were a gate bug (province-wide rule holds a region lift), Shuswap 3-26 quotes its whole printed line.

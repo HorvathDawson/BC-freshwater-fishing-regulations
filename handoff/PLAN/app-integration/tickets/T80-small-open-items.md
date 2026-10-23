@@ -1,7 +1,7 @@
 # T80 — Small open items (audit N22, D29, HANDOFF-ui)
 
-Status: PARTIAL — 3e563859, 0b9e9b30 (1); c3f91b83 (2); e306215d (3, needs deliver); 78f9f4bc, a75c942b (7); 2cb3a9da, e160fa1d (T56-review lines 1-2, need deliver). Left: 3's two open shapes + the klmb exclusion after the re-cut; 4's fix (reproduced, cause not pinned); 6 (needs a push); owner calls Q-T80a/b/c; after the re-cut the klmb_1010 conformance exclusion MUST be rewritten (it will fail). Reviewed c7a82035 (whole-set pin). See "Lane 2026-10-22" and "Review 2026-10-22".
-Deliver fix 164a69cb: item 3's one-kind group stopped `pipeline.deliver all` (model.py refused it); the answers model now accepts exactly a TROUT_CHAR one-kind group on its own row's pool, and test_answers_one_kind_group.py runs the build's `validate_section` on the T80 waters (+2 mutation pins).
+Status: PARTIAL — 749a3692, e7038596 (1); eacbc3be (2); 210d0996 (3, needs deliver); d50e490c, c8041c6a (7); ca5ecb26, 309cd3e8 (T56-review lines 1-2, need deliver). Left: 3's two open shapes + the klmb exclusion after the re-cut; 4's fix (reproduced, cause not pinned); 6 (needs a push); owner calls Q-T80a/b/c; after the re-cut the klmb_1010 conformance exclusion MUST be rewritten (it will fail). Reviewed ea63d8cb (whole-set pin). See "Lane 2026-10-22" and "Review 2026-10-22".
+Deliver fix 53abfd9c: item 3's one-kind group stopped `pipeline.deliver all` (model.py refused it); the answers model now accepts exactly a TROUT_CHAR one-kind group on its own row's pool, and test_answers_one_kind_group.py runs the build's `validate_section` on the T80 waters (+2 mutation pins).
 
 Each item closes with a fix + test, or a recorded "no" with the reason:
 1. S1 photo minors (implement_progress): draft photos named after the first draft id; the web picker hangs where the
@@ -28,17 +28,17 @@ Depends: none (3 needs a deliver). Size: M. Owner: delegated. Default for D19: (
 
 ## Lane 2026-10-22 (worktree wf_4b4f5207-c7a-3) — item by item
 
-1. **FIXED** 3e563859, 0b9e9b30. A re-captured draft keeps its first id (`ui/capture.ts`; capture.render.test +2); the
+1. **FIXED** 749a3692, e7038596. A re-captured draft keeps its first id (`ui/capture.ts`; capture.render.test +2); the
    web picker settles on page focus + 1 s grace where no `cancel` fires, and a file already on the input still wins
    (`pickPhoto.web.test.ts`, 5 tests; the grace is unexported so check-platform's native/web surfaces stay equal);
    `leadUpUnit` (from `CONDITIONS_WORDS.unit`) replaces the literals in `ui/leadUp.ts`; one object-URL map per IndexedDB
    factory, so a delete through the spots store's instance revokes the URL the app's instance drew (photos.test +1).
    Not verified on a device (Safari < 16.4).
-2. **FIXED** c3f91b83. Witness: Humphrys Creek (gnis:2046), June 10 — z6 r7 sends CT+GB back against an EB+LT pool row
+2. **FIXED** eacbc3be. Witness: Humphrys Creek (gnis:2046), June 10 — z6 r7 sends CT+GB back against an EB+LT pool row
    (Region 6's steelhead closure holds ST apart). Found by scanning every shipped row (64 go-back lines name as many
    fish as their row, not the same ones). `test_humphrys_june_count_collision` asserts the whole back list; the
    count-comparison mutant drops exactly the CT+GB line.
-3. **PARTIAL** e306215d (needs `deliver`). Bigger than klmb: the live release ships trout/char pooled rows with no group
+3. **PARTIAL** 210d0996 (needs `deliver`). Bigger than klmb: the live release ships trout/char pooled rows with no group
    headline and no parent — which core `keep.ts` draws NOWHERE — on 78 row frames / 1,022 waters. Fixed: a one-kind
    trout/char total that is its row's OWN pool and not limited to a kind of water is a group
    (`rows.A_TROUT_CHAR_TOTAL_OF_ONE_KIND_IS_A_GROUP`, mutation-pinned; `test_answers_one_kind_group.py`, 5 tests):
@@ -66,17 +66,17 @@ Depends: none (3 needs a deliver). Size: M. Owner: delegated. Default for D19: (
 6. **NOT DONE.** A real CI run needs a push to GitHub, which this lane does not do. For the merger/owner:
    `git push origin redesign/stream-sections:ci-scratch/t80`, `gh run list --branch ci-scratch/t80`, then
    `git push origin :ci-scratch/t80`.
-7. **FIXED** 78f9f4bc, a75c942b. no-localhost forgives a file deleted mid-walk (ENOENT only; any other error throws —
+7. **FIXED** d50e490c, c8041c6a. no-localhost forgives a file deleted mid-walk (ENOENT only; any other error throws —
    unit test over a fake fs); back.test's browser-back steps await their popstate (armed before the action, 2 s ceiling)
    instead of a 30 ms sleep. Neither flake reproduced (8 parallel tool runs; 4 concurrent back.test runs); both fixed by
    the race's mechanism.
 
 T56-review lines:
-- Quote marks: **stripped** (Claude call, owner call 11) 2cb3a9da — `place_names.row_name` drops the book's quotes
+- Quote marks: **stripped** (Claude call, owner call 11) ca5ecb26 — `place_names.row_name` drops the book's quotes
   ('"DIANA" CREEK' → Diana Creek). Exactly 9 `entry.name` values move against the live bundle (review: corpus vs
   bundle `entry`): Link River (r1), Jones Lake, Paq Lake (r2), Alces Lake (r4), Blackwater River, Brown Lake (r5),
   Diana Creek (r6), Chinaman Lake, Lower Beaverpond Lake (r7). Undo: `quotes=True` in row_name.
-- Blackwater twice: **FIXED** e160fa1d — `rules.ONE_WAY_IN_ACROSS_ROWS` (mutation-pinned): see_pointer 51 → 50 rows.
+- Blackwater twice: **FIXED** 309cd3e8 — `rules.ONE_WAY_IN_ACROSS_ROWS` (mutation-pinned): see_pointer 51 → 50 rows.
 - The 5 pointer-only waters with no page: **not built** — owner question Q-T80b.
 
 **Rebuild this lane needs: deliver only** (`python -m pipeline.deliver`: bundle → status index → export → answers),
@@ -92,7 +92,7 @@ Owner questions (each with the default built):
   pointer has no rules of its own to show.
 
 ## Review 2026-10-22 (adversarial, same worktree)
-- Reproduced on live data: 1,022 waters with a headless trout/char row in the shipped answers; rebuilt with e306215d,
+- Reproduced on live data: 1,022 waters with a headless trout/char row in the shipped answers; rebuilt with 210d0996,
   996 stay headless (982 z8 trout_char_quota.r5, 14 Duncan River DV) and 19 own pools gain a group; card gate over the
   rebuild 638 groups / 247 distinct cards / 0 problems. The builder's test pinned this on 5 waters only — now pinned
   over EVERY shipped water (`test_every_shipped_headless_water_is_drawn_but_the_two_open_shapes` + its mutation, which

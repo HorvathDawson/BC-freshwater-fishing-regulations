@@ -1,6 +1,6 @@
 # T99 — Pin the rulings nothing enforces (RULINGS §16) and fix the stale citation (C-4)
 
-Status: DONE — 95b50b2f + review 5719197d (lane wf_c3f10dea-7b4-5). RULINGS §16 lists only K8 (T98) and K5
+Status: DONE — f8742374 + review f3bc2b4b (lane wf_c3f10dea-7b4-5). RULINGS §16 lists only K8 (T98) and K5
 (T100); 18 tests in `pipeline/tests/test_rulings_pinned.py` (needs_bundle, ~35 s), each whole-value and
 mutation-pinned; C-4 cites C2. Review replaced three tautologies (Z1 Region 4 lake, Li1, E13 side channels — see
 "Review" below) and added Z1's no-carve-out check over every section. No rebuild needed (tests and a read-only
@@ -51,7 +51,7 @@ test_synopsis_period.py:57/62/71, test_tidal_gauges.py:137), `test_dataflow_gate
 (app dayPicker.ts:44, edge.test.ts:100), `test_one_data_flow::test_the_bundle_reads_no_curated_waters_file`
 (bundle/build.py `CURATED.gauges.tidal`).
 
-## Review (2026-10-22, 5719197d)
+## Review (2026-10-22, f3bc2b4b)
 - Z1 `test_z1_a_region_4_lake_…` compared the reader over the base with the reader over the same base (the lake
   was chosen because every bound rule is base) — it could not fail. Now: the lake's binding == Region 4's lake
   table read from the rules' own extents (z4 + zp region-wide lines admitting a lake; unknown extent shapes refused).

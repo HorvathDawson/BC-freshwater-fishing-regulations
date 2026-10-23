@@ -1,6 +1,6 @@
 # T90 — The Chehalis "downstream of the bridge, May 1-31" closure still reaches 2 Harrison sections
 
-Status: DONE (code, commits 04d8fb85 + review 32aa5a12) — awaits the batch's reach rerun + deliver; no atlas rebuild. Left: verify the diff below on the rerun (rules AND licensing_section).
+Status: DONE (code, commits ca9aa451 + review 9d305ebf) — awaits the batch's reach rerun + deliver; no atlas rebuild. Left: verify the diff below on the rerun (rules AND licensing_section).
 
 Source: memory `receiving-river-not-a-tributary`. The Strahler guard in `_mouths_at` (pipeline/atlas/graph/
 tributaries.py) is in, yet the 2026-10-22 bundle binds `chehalis_river.r2` via `trib` to Harrison sids 59983, 59984 —
@@ -59,7 +59,7 @@ distributary-at-cut pin) and `test_tributaries.py` (stub `_mouths_at` now a cut;
 
 ## Review (2026-10-22, adversarial)
 
-- **Defect fixed (32aa5a12):** 04d8fb85 had DELETED the "walk never enters the entry's own water" section of
+- **Defect fixed (9d305ebf):** ca9aa451 had DELETED the "walk never enters the entry's own water" section of
   `test_reach_tributaries.py` (the `vedder` fixture + 5 tests, incl. the `THE_WALK_NEVER_ENTERS_THE_ENTRYS_OWN_WATER`
   mutation pin) — the T90 block replaced it instead of sitting beside it. Restored verbatim; all pass.
   Targeted: `test_reach_tributaries` + `test_tributaries` + `test_reach_builder` 97 passed.

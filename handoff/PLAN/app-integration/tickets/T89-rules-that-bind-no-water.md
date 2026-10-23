@@ -1,6 +1,6 @@
 # T89 — Rules that bind no water: 10 unmatched synopsis rows + 3 rules with no extent
 
-Status: PARTIAL — d9ce1d20 + review fix a799a3a5 (lane wf_4b4f5207-c7a-4). The 3 no-extent rules + the Endako (R7) row are fixed in the
+Status: PARTIAL — 010b5c28 + review fix 894854c0 (lane wf_4b4f5207-c7a-4). The 3 no-extent rules + the Endako (R7) row are fixed in the
 catalogue and pinned; ships with the next reach rerun + deliver (no atlas). LEFT: 8 rows (22 rules) whose printed MU
 holds no registry water of their name — Mackenzie Creek 4-21, Frog/Hidden/Secret/Square Lake 5-6, Redfern Lake 5-15,
 Squirrel Lake 6-1 — need the water located and named in the registry (owner Q-A below), then an atlas registry
@@ -38,7 +38,7 @@ backed up, diff = exactly the four rows below (`write_entryfile`, whole-file val
 - `nilkitkwa_lake.r4` "Rainbow Alley … open all year" → `between [babine_river__babine_lake,
   babine_river__nilkitkwa_lake]` on `item_id gnis:17687` (Babine River, variant "Rainbow Alley") — the stretch
   `babine_river.r3` binds. Advisory, so it decides nothing; it shows the row's words on Rainbow Alley.
-  **Review fix (a799a3a5):** the row's SCOPE was the lake alone, so the run's entry clip (`entry_scope` → `_clip`)
+  **Review fix (894854c0):** the row's SCOPE was the lake alone, so the run's entry clip (`entry_scope` → `_clip`)
   emptied r4 (`empty_after_scope` — the first probe passed no clip). The row's `extents` now name the lake AND the
   Rainbow Alley stretch (as Upper Arrow Lake (drawdown area) names the Columbia). Probe with the run's covered + clip:
   r4 binds the 3 Babine mainstem sections (360886970:108816/110644/110732 — the mainstem part of `babine_river.r3`'s

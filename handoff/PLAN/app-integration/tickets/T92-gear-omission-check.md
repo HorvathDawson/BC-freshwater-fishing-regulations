@@ -1,6 +1,6 @@
 # T92 — Gear check: every gear phrase in a rule's printed text lands in a stored field
 
-Status: DONE — 14d59b31 + review fix 7414c2a4. `catalogue_parts/gear_omission.py` (12-phrase vocabulary),
+Status: DONE — de0581e1 + review fix 750ba2ad. `catalogue_parts/gear_omission.py` (12-phrase vocabulary),
 wired into `validate_catalogue.post_model_checks`; catalogue has 0 unexplained misses and 5 kept gaps (below).
 
 Source: memory `gear-rules-need-rework` — "It prevents inversion, not omission — the 8 dropped conjuncts need a

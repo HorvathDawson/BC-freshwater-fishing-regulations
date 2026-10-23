@@ -15,6 +15,8 @@ with the default Claude uses until you answer). Newest first inside each section
   ditch-only lines as the river), Q2 (leave automatic confluence cuts out), Q4 (cap the cut-line length; suggested no).
 
 ## Reviews
+- **Q55 / T54 — release size.** With the no-access file the release is ~82 KB under its 14 MB limit (private land
+  is 168 KB of it); a future lakes file would cross it. Raise the limit or drop private land from the note?
 - **Q53 / T102 — tributary walk order guard.** Your "order only where a code is missing" would switch it off (every live
   edge has a code; 28,359 same-code floodplain/braid edges rely on it). Default built: code decides parent/child, order
   still decides equal or unrelated codes.
@@ -27,8 +29,9 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Questions answered with a default (change any you disagree with)
 
-New this round: Q46–Q52 (unnamed-lake walk stop, tidal sentence placement and flags, whole Kootenay Lake in
-search, pointer pages, photo picker). See the "Owner questions" table in `handoff/PLAN/app-integration/tickets/README.md` (Q1–Q52). The ones most likely
+New: Q46–Q52, Q54, Q56–Q58 (no-access colours, "Like your visit?" days and weights, HYDAT --stations)
+and Q46–Q52 (unnamed-lake walk stop, tidal sentence placement and flags, whole Kootenay Lake in
+search, pointer pages, photo picker). See the "Owner questions" table in `handoff/PLAN/app-integration/tickets/README.md` (Q1–Q58). The ones most likely
 to matter:
 - Q1–Q3 / T54 no-access streams: permit-only areas get the gentle note; Conditions keeps the flow colour plus a
   banner; lakes inside no-access areas (Coquitlam Lake) get the fourth colour.

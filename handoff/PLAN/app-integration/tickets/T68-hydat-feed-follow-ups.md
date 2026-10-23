@@ -1,6 +1,6 @@
 # T68 — HYDAT / feed follow-ups
 
-Status: DONE — 6b1103d1, review fix 3338d7dc (step 5 ended silently when no release existed, and broke test_update_hydat_script.py; now a run test pins the upload step). All three lines built. Ships on the next feed republish (no atlas/reach/deliver/tiles).
+Status: DONE — e25d05fd, review fix 0fa29df4 (step 5 ended silently when no release existed, and broke test_update_hydat_script.py; now a run test pins the upload step). All three lines built. Ships on the next feed republish (no atlas/reach/deliver/tiles).
 Until then the live index has no `forecastIssuedAt`, so the Forecasts line reads "Date not recorded · Unknown" and the
 Data block summary reads "Some dates not recorded". Follow-ups F1–F3 below.
 - A "Forecasts" line on the More Data block: the feed index needs a feed-wide `forecastIssuedAt` (publish.py), the
@@ -8,7 +8,7 @@ Data block summary reads "Some dates not recorded". Follow-ups F1–F3 below.
 - The roster-drift notice's command uses the default roster path even with `--stations`.
 - scripts/update-hydat.sh stops before upload; document/automate the R2 upload step (human-run with credentials).
 
-## As built (6b1103d1)
+## As built (e25d05fd)
 1. **Forecasts line.** `publish.py` `newest_forecast_issue` writes `index.json` `forecastIssuedAt`. It holds the newest
    run's `issuedAt` across every station and model, copied as the station files carry it, so the line and a station's
    chart parse it the same way. It is null when the run holds no forecast. Older indexes do not have the field.

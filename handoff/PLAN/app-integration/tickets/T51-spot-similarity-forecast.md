@@ -1,6 +1,6 @@
 # T51 — "Like your visit?": a spot's conditions then vs the next 5 days, as a similarity score
 
-Status: DONE — 035b3725 + review fixes fb1a968b (ticket a7b94f4e). Lane wf_c3f10dea-7b4-2. Follow-ups below are small and none blocks it.
+Status: DONE — fa7235c0 + review fixes a6fd848d (ticket a7b94f4e). Lane wf_c3f10dea-7b4-2. Follow-ups below are small and none blocks it.
 
 Phase 4 · Depends on S1 (spot lead-up: weather + gauge frozen at capture), the gauge feed + forecast horizons, Open-Meteo
 weather, the T48 Spots tab · Size 1–2 days
@@ -31,7 +31,7 @@ reference. Tapping a day shows what drives the score (flow vs then, water level,
   missing data handled and worded), a render test of the strip in light/dark, a web shot of a real saved spot.
 - Works offline with the last fetched forecast (says how old it is) and refreshes when online.
 
-## As built (035b3725)
+## As built (fa7235c0)
 - **Days: today and the next four** (Today, Tomorrow, +2, +3, +4), beside the visit's own day. Today's flow is the
   gauge's reading now (horizon 0); +1 and +3 read the feed's `ahead` block; **+2 and +4 have no horizon**, so they are
   scored on the weather only and say "No flow forecast for this day: scored on the weather only." (no interpolation).
@@ -65,7 +65,7 @@ reference. Tapping a day shows what drives the score (flow vs then, water level,
   reading and panel (capture reads the live feed whatever the visit time), so its "flow then" is today's. Worth its own
   ticket: a backdated visit should take the lead-up's daily mean for the visit day, or record no flow.
 
-## Adversarial review (fb1a968b)
+## Adversarial review (a6fd848d)
 - **Fixed — "refreshes when online"** was only "refetches when the spot is opened": a spot opened offline stayed on
   the cached forecast while open. `useLikeVisit` now takes the platform `Connectivity` (Shell passes it) and asks again
   the moment the device says it is back. Test: opened offline → online event → "Forecast checked just now." (pinned:

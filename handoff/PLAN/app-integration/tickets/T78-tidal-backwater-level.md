@@ -1,6 +1,6 @@
 # T78 — Tidal / backwater disclosure on the Level view (audit N20)
 
-Status: DONE (code) — d312b153 (pipeline: gauge.tidal), dafaeb0d (app: Level-view sentence), 1e4746dc (review: whole-value pins). Reviewed 2026-10-22: live HYDAT reproduces 11 flagged / 7 in the roster; dev fixture differs only by gauge.tidal=0; targeted app + pipeline tests green. Left: the one deliver (below) so the live bundle/release carry the column; owner questions Q-T78a–c with defaults built.
+Status: DONE (code) — c0412c4d (pipeline: gauge.tidal), 8185dd28 (app: Level-view sentence), ca52fa7c (review: whole-value pins). Reviewed 2026-10-22: live HYDAT reproduces 11 flagged / 7 in the roster; dev fixture differs only by gauge.tidal=0; targeted app + pipeline tests green. Left: the one deliver (below) so the live bundle/release carry the column; owner questions Q-T78a–c with defaults built.
 
 Source: decisions.md "a water's own gauge comes first" (owner): "In the Level view, check and disclose tidal or
 backwater influence where the record shows it (Port Coquitlam is tidal, with Fraser backwater)." The own-gauge REPORT:

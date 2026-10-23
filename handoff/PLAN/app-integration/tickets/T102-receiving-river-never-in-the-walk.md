@@ -1,6 +1,6 @@
 # T102 — The receiving river is never walked into (parent-code check in the walk, not only in seeding)
 
-Status: PART A DONE (c8215722: `THE_WALK_NEVER_ENTERS_A_PARENT` + one `_refusal` for walk and seeds; seed-only check removed; POLICY_VERSION 23) — reach rerun binding diff vs reaches/full EMPTY (0 rules, 0 unresolved, 0 licensing); REVIEWED (08e405a7: code_runs now takes the parent rule too; rerun digest identical, diff EMPTY); open: owner call on order guard for equal codes; part B open. Raised 2026-10-22 from the owner's question on T90 ("I thought the tributary logic handled the Harrison,
+Status: PART A DONE (95e78dd5: `THE_WALK_NEVER_ENTERS_A_PARENT` + one `_refusal` for walk and seeds; seed-only check removed; POLICY_VERSION 23) — reach rerun binding diff vs reaches/full EMPTY (0 rules, 0 unresolved, 0 licensing); REVIEWED (b44461d5: code_runs now takes the parent rule too; rerun digest identical, diff EMPTY); open: owner call on order guard for equal codes; part B open. Raised 2026-10-22 from the owner's question on T90 ("I thought the tributary logic handled the Harrison,
 using the WSC").
 
 ## Why
@@ -8,7 +8,7 @@ using the WSC").
   (`_breaks_strahler`: "a bigger river cannot be a tributary"); the WSC there only OVERRIDES that in favour of a genuine
   tributary (line ~729). Nothing in the walk says "a water whose code is a strict ancestor of the reach's code is the
   river the reach drains into — never enter it".
-- The receiving river's SIDE CHANNELS carry its code at a small order, so they pass the order test. T90 (04d8fb85)
+- The receiving river's SIDE CHANNELS carry its code at a small order, so they pass the order test. T90 (ca9aa451)
   closed the one way they got in (mouth seeding) with `THE_RECEIVING_RIVER_IS_NEVER_A_SEED`, but "only seeding asks
   this; the walk itself is untouched".
 - A braid that rejoins the receiving river can still let the walk climb into it the same way.
