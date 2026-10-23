@@ -3,6 +3,14 @@
 Restart here. Update this file after EVERY step: what is done, what is running, and the exact next action.
 Logs from timing runs live in the session scratchpad, which a reboot wipes. The numbers that matter are copied here.
 
+## CURRENT STATE (2026-10-22 late night) — work list is tickets/README.md; owner list is handoff/PLAN/OWNER-TODO.md
+- Live local release r-36fbc5326506 (13.84 MB; best-of-8 zdict trainer): strict 7903 + smoke 18/18 green.
+  DONE since last state: T51 T52 T54 T57 T59 T68 T76 T78 T81 T83 T90 T92 T96 T99; PARTIAL T70 T80 T89 T102 (part A).
+- RUNNING wf_754f5fcd-d71: T104+T103, T128+T127, T109, T120 (regulation text). Then ONE deliver via heavy.sh, the
+  answers diff reviewed, fixtures, strict + smoke.
+- Lessons: run `node app/tools/check-tickets.mjs` unpiped; live-release tests read values from taps.json/keys (T63);
+  page v36 oracle refresh reverted (T63 note).
+
 ## CURRENT STATE (2026-10-22 night) — work list is tickets/README.md; owner list is handoff/PLAN/OWNER-TODO.md
 - Live local release r-2f33edfe8452 (T56 DONE): strict 7782 + smoke 18/18 green at HEAD. R2 upload = owner.
 - DONE today on redesign/stream-sections: T53 T56 T58 T69 T71 T84 T96 (+ search-back, one-river-system back, HYDAT
