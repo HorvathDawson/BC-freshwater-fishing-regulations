@@ -3,7 +3,10 @@
  * the input has no "cancel" event (Safari before 16.4) — nothing at all, which is the page getting its focus back.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { pickPhoto, PICKER_FOCUS_GRACE_MS } from "./pickPhoto.web";
+import { pickPhoto } from "./pickPhoto.web";
+
+/** pickPhoto.web.ts `PICKER_FOCUS_GRACE_MS`: kept unexported, as the native picker has no such export (check-platform). */
+const PICKER_FOCUS_GRACE_MS = 1000;
 
 let clicked: HTMLInputElement | null = null;
 beforeEach(() => {

@@ -15,7 +15,7 @@ export const PHOTO_SOURCES: readonly PhotoSource[] = ["library", "camera"];
  * before 16.4), the page regaining focus is the only sign the chooser closed; a "change" can follow the focus by a
  * moment, so a cancel is read only after this grace, and only when the input holds no file (T80 1).
  */
-export const PICKER_FOCUS_GRACE_MS = 1000;
+const PICKER_FOCUS_GRACE_MS = 1000;
 
 /** One photo, or null when the chooser was closed without a choice. Settles exactly once. */
 export function pickPhoto(from: PhotoSource): Promise<PickedPhoto | null> {
