@@ -1,6 +1,6 @@
 # T82 — Regs leftovers from the T41 walk: the reader-gate run, the timed caveat box (O3), sheet height (O5)
 
-Status: OPEN. The reader run is human-launched.
+Status: OPEN. The reader run: owner 2026-10-23 lets Claude run it (running).
 
 Source: T41-walk/REPORT.md — O3: x15p2 "At certain times" has no grey box; O5: sheets open taller on a phone than in
 the prototype. `handoff/PLAN/app-integration/reader/` does not exist: the comprehension reader gate (tests.md §4) has

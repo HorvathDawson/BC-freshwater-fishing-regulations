@@ -214,7 +214,6 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q7 | T72 | Prune list for old releases | keep live + LATEST + previous | owner approves list |
 | Q9 | T77 | When to do phone testing D1a / D1b | D1a when the phone is at hand; D1b after the R2 bucket | owner |
 | Q10 | T79 | Imagery go/no-go; SPEC §12 (10 m pack, buffer, sources, licence, server, caps) | no offline imagery before the first native release; skip 10 m; 250 m buffer; online-only on web; pools a study | owner |
-| Q13 | T82 | Launch the reader-gate agent run | after T56 | owner launches |
 | Q26 | T86 | R2 bucket, contact address, app name "Can I Fish This?" (no ArcGIS key: owner 2026-10-21) | keep the name; staging bucket first; publisher every 30 min | owner (credentials) |
 | Q27 | T87 | Sign-off: the app looks right; delete app/design | hold until the owner walks it | owner |
 | Q28 | T88 | When to build iOS | after the Android ship | owner |
@@ -253,6 +252,7 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q66 | T120 | The app decides the leading origin again (core regs/card.ts mainRes) — should the pipeline ship it per fish? | fold into T125 (cleanup) | owner |
 
 ### Answered (recently, for the record)
+- Q13 (reader gate, T82) — owner 2026-10-23: "you can run the reader gate" — Claude runs it (an Opus agent run, not the parser).
 - Q44 (side-channel gauges, T101) — owner 2026-10-23: a side channel's gauge never answers Level for the river it branched from; it answers Flow for that river only when the side channel carries a large share of it. T101 unblocked.
 - Q53 (order guard, T102) — owner 2026-10-23: as built — the code (WSC) decides parent/child; stream order only breaks ties on equal or unrelated codes.
 - Q45 (eight waters, T89) — owner 2026-10-23: leave them unbound and listed (AWAITING_WATER); never bind a same-name water elsewhere.

@@ -15,7 +15,6 @@ with the default Claude uses until you answer). Newest first inside each section
 - **Q4 / T55 — slough and canal candidates.** Mark them on https://claude.ai/artifact/Es3Mokt7Fs2yNvm7JgQua8
   (stream by the book / not a stream / unsure). Start with the 65 "stream by book" and 236 "likely". Includes the 40
   Okanagan River oxbows (p.70 says isolated oxbows are exempt from the spring closure).
-- **Q13 / T82 — launch the reader-gate agent run.** Ready now (T56 landed).
 
 Answered 2026-10-23: Q44 (no Level from a side channel; Flow only if it carries a large share), Q53 (as built), Q45 (leave unbound).
 
