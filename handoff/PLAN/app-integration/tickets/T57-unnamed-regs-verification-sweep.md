@@ -1,6 +1,6 @@
 # T57 — Unnamed streams: real-data sweep that their regulations are right (incl. tributary rules)
 
-Status: DONE — e3dfef2b (lane wf_63a2801d-ce3-1). Trib-rule miss count 0 unexplained (150 frontier pairs, all
+Status: DONE — e3dfef2b (lane wf_63a2801d-ce3-1); review fixes 26f678d0 (`stem_ends_at_lake` now explains only a lake draining into the bounded joining water itself — before, any lake on any Nass r2 tributary would have been laundered; live: all 70 are Meziadin Lake → Meziadin River, result unchanged) and c4f71b79 (the T57 strata vitest no longer depends on the Region tests running first). Trib-rule miss count 0 unexplained (150 frontier pairs, all
 explained below); MU-group lines clean; every unnamed section has a page. Nothing must rerun. Left: the two
 not-seen classes and the 3 "lake at reach top" sections below (recorded, no default change).
 
