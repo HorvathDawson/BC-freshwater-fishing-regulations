@@ -44,6 +44,8 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from pipeline.common.curated import CURATED, SOURCE
+from pipeline.gauges.feed.change import stale as _stale_run, station_change
+from pipeline.gauges.feed.forecast import ATTRIBUTION as FORECAST_ATTRIBUTION
 
 BASE = "https://dd.weather.gc.ca/today/hydrometric/csv/BC"
 UA = "BC-FishRegs-Hydro/1.0"
@@ -398,7 +400,9 @@ def forecast_percentiles(runs: dict | None, envelopes: dict | None,
         for model in MODEL_ORDER:
             run = runs.get(model) or {}
             series = run.get("series")
-            if not series:
+            # A RUN PAST `change.STALE_HOURS` IS NOT TODAY'S FORECAST (T52): the feed carried ELF runs from 09-24 and 10-14
+            # that still answered +3/+5/+10 at 08CG001, a week after the Centre had stopped issuing them.
+            if not series or _stale_run(run, now):
                 continue
             got: dict = {}
             for q in ("discharge", "level"):
@@ -773,6 +777,7 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
           f"  ({len(t_env)} now have enough history for an envelope)")
 
     index: dict[str, dict] = {}
+    newest: str | None = None           # the newest forecast run that answered an expected change (T52)
     for r in got:
         # AGAINST THE SAME QUANTITY THE ENVELOPE IS MADE OF. 237 BC stations measure stage
         # and never discharge — the Skagit at the International Boundary among them — so
@@ -798,6 +803,12 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
         # number per station made that switch impossible to offer honestly — the client
         # would have been recolouring the same value under two labels.
         t_at, t_c = temps.get(r["station"], (None, None))
+        flow_env = have.get("discharge")
+        changed = station_change(
+            forecast.get(r["station"]), now, r["discharge"],
+            (lambda v, d, env=flow_env: percentile_of(v, band_for(env, datetime(d.year, d.month, d.day, 12,
+                                                                                  tzinfo=timezone.utc))))
+            if flow_env else None)
         per = {}
         for q in ("discharge", "level"):
             v = r["level"] if q == "level" else r["discharge"]
@@ -849,6 +860,11 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
             # unmeasured rather than as normal.
             **({"ahead": ahead} if (ahead := forecast_percentiles(
                 forecast.get(r["station"]), have, now)) else {}),
+            # THE EXPECTED CHANGE (T52): the largest move a run expects over the next ten days, read day by day so a
+            # one-day spike between the sampled horizons is seen (`pipeline.gauges.feed.change`). Beside `ahead`, not in
+            # it: `ahead` is keyed by DAY and read by `String(day)`; this is no day. Flow only — `discharge` is the coded
+            # ratio the donor panels combine; the rest is what the words need. Absent when no fresh run can say.
+            **({"change": changed[1]} if changed[1] else {}),
         }
         # This year's daily record: whatever the file already held, plus every day the
         # 2-hour window can see, plus the archive where the record had a hole. The archive
@@ -887,8 +903,13 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
             # meant only CLEVER ever appeared: the freshet model publishes later in the
             # morning than the low-flow model, so it won the tie in September, when freshet
             # is months over. They answer different questions; the reader picks.
-            "forecasts": forecast.get(r["station"]) or {},
+            # Each with its expected change beside it (T52, `change`) where the run can say one: the days, the peak and
+            # the trough, each dated, for the panel to word per model.
+            "forecasts": {m: ({**run, "change": changed[0][m]} if m in changed[0] else run)
+                          for m, run in sorted((forecast.get(r["station"]) or {}).items())},
         }, separators=(",", ":")), encoding="utf-8")
+        stamps = [t for t in [newest] + [c.get("issuedAt") for c in changed[0].values()] if t]
+        newest = max(stamps) if stamps else newest
 
     # PROVENANCE TRAVELS WITH THE NUMBERS. Every percentile in this file was computed
     # against one HYDAT release; saying which lets a reader — and a later bug hunt — know
@@ -906,6 +927,11 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
         # app's HYDAT line reads the notice, which survives a run whose listing check failed.
         "hydat": {"release": release, "latest": latest_release, "stale": stale},
         "maintenance": maintenance,
+        # THE PROVINCE'S WORDS TRAVEL WITH ITS NUMBERS (T52): required verbatim wherever a forecast appears, so the app
+        # reads them from the feed that carries the forecast rather than from a copy typed into the app. With the issue
+        # time of the newest run behind an expected change (PST wall clock, as the Centre stamps it). Both absent when no
+        # run answered.
+        **({"forecastAttribution": FORECAST_ATTRIBUTION, "forecastIssuedAt": newest} if newest else {}),
         "stations": index,
         # WHICH STATIONS ECCC CALLS REAL-TIME this run. Absent from `stations` still means
         # nothing to show; this says why. Listed and absent: a live gauge silent this run.
@@ -1000,7 +1026,8 @@ def main() -> None:
                 # could decline to re-fetch but had nothing to carry, so the station file
                 # was rewritten without the series it already had.
                 have[st] = {m: run for m, run in prev.items() if run.get("series")}
-            fcast = _forecast.with_series(fcast, stations=set(ids), keep=have)
+            fcast = _forecast.with_series(fcast, stations=set(ids), keep=have,
+                                          now=datetime.now(timezone.utc))
         except Exception as exc:                                # noqa: BLE001
             print(f"  forecast unavailable: {exc}", file=sys.stderr)
 

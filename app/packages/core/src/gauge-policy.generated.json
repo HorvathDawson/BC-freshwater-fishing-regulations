@@ -1,6 +1,6 @@
 {
   "_generated_by": "python -m pipeline.tools.emit_gauge_policy",
-  "_source": "pipeline/gauges/consume/shed.py :: TRUST_BANDS; pipeline/gauges/feed/publish.py :: _TEMP_BANDS",
+  "_source": "pipeline/gauges/consume/shed.py :: TRUST_BANDS; pipeline/gauges/feed/publish.py :: _TEMP_BANDS; pipeline/gauges/feed/change.py :: the change policy",
   "bands": [
     "good",
     "fair",
@@ -24,5 +24,20 @@
       "critical",
       null
     ]
-  ]
+  ],
+  "change": {
+    "days": 10,
+    "riseRatio": 2,
+    "fallRatio": 0.5,
+    "bigPoints": 0.25,
+    "spikeBack": 0.5,
+    "scale": 2,
+    "codeFloor": 0.005,
+    "staleHours": 36,
+    "order": [
+      "CLEVER",
+      "COFFEE",
+      "ELF"
+    ]
+  }
 }

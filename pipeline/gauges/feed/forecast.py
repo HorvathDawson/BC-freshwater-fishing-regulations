@@ -303,9 +303,45 @@ def series(station: str, model: str, timeout: float = 25.0) -> dict | None:
     return out
 
 
+# THE MOST SERIES REQUESTS ONE PUBLISH MAY MAKE (T52: "fetched politely … bounded and logged"). A request is made only
+# for a run whose issue time moved since the last publish, so a normal morning asks about one per (station, model) that
+# reissued — 830 on 2026-10-22 across CLEVER, COFFEE and ELF, then nothing for the rest of the day. Every in-season run at
+# once is ~1,000 (325 + 157 + 369 runs that day, plus a margin); past this something is wrong (an issue time that changes
+# every tick) and the rest wait for the next run, which still carries what it has.
+SERIES_REQUEST_CAP = 1200
+
+
+def plan_series(summary: dict[str, dict[str, dict]], stations: set[str] | None,
+                keep: dict[str, dict[str, dict]] | None,
+                now: datetime | None = None) -> tuple[list[tuple[str, str]], int, int]:
+    """`(asked, carried, stale)`: which runs need their series fetched, and how many were carried or skipped as stale.
+
+    Pure, so the politeness is pinned in a test rather than in a log. A run is ASKED only when it is in season (it is
+    in the summary at all), for a station the feed publishes, issued within `change.STALE_HOURS` of `now` (an old run is
+    not a forecast to fetch), and not already on disk with the same issue time (then it is CARRIED, free). Capped at
+    SERIES_REQUEST_CAP, in station order.
+    """
+    from pipeline.gauges.feed.change import stale as _stale     # noqa: PLC0415 — change imports nothing from here
+    want: list[tuple[str, str]] = []
+    carried = old = 0
+    for st, runs in sorted(summary.items()):
+        if stations is not None and st not in stations:
+            continue
+        for model, row in sorted(runs.items()):
+            prev = ((keep or {}).get(st) or {}).get(model) or {}
+            if prev.get("series") and (prev.get("issuedAt") or "") == (row.get("issuedAt") or ""):
+                row["series"] = prev["series"]
+                carried += 1
+            elif now is not None and _stale(row, now):
+                old += 1
+            else:
+                want.append((st, model))
+    return want[:SERIES_REQUEST_CAP], carried, old
+
+
 def with_series(summary: dict[str, dict[str, dict]], stations: set[str] | None = None,
                 keep: dict[str, dict[str, dict]] | None = None,
-                workers: int = 8) -> dict[str, dict[str, dict]]:
+                workers: int = 8, now: datetime | None = None) -> dict[str, dict[str, dict]]:
     """Attach the per-station series to every run, skipping the ones that have not moved.
 
     ``keep`` maps ``station -> {model: previous run}`` — the runs already on disk, WITH
@@ -324,21 +360,10 @@ def with_series(summary: dict[str, dict[str, dict]], stations: set[str] | None =
     """
     from concurrent.futures import ThreadPoolExecutor
 
-    want: list[tuple[str, str]] = []
-    carried = 0
-    for st, runs in summary.items():
-        if stations is not None and st not in stations:
-            continue
-        for model, row in runs.items():
-            prev = ((keep or {}).get(st) or {}).get(model) or {}
-            if prev.get("series") and (prev.get("issuedAt") or "") == (row.get("issuedAt") or ""):
-                row["series"] = prev["series"]
-                carried += 1
-            else:
-                want.append((st, model))
+    want, carried, old = plan_series(summary, stations, keep, now)
     total = sum(len(r) for r in summary.values())
     if not want:
-        print(f"  series   0 fetched ({carried} carried forward, {total} runs)")
+        print(f"  series   0 requests, 0 fetched ({carried} carried forward, {old} stale skipped, {total} runs)")
         return summary
     with ThreadPoolExecutor(max_workers=workers) as pool:
         got = list(pool.map(lambda k: (k, series(k[0], k[1])), sorted(want)))
@@ -347,7 +372,7 @@ def with_series(summary: dict[str, dict[str, dict]], stations: set[str] | None =
         if ser:
             summary[st][model]["series"] = ser
             n += 1
-    print(f"  series   {n} fetched of {len(want)} asked, {carried} carried forward "
+    print(f"  series   {len(want)} requests, {n} fetched, {carried} carried forward, {old} stale skipped "
           f"({total} runs)")
     return summary
 

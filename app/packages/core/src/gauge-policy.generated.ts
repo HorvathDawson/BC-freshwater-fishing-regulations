@@ -36,3 +36,18 @@ export const TEMP_BANDS: readonly (readonly [TempBand, number | null])[] = [
   ["warm", 20],
   ["critical", null],
 ];
+
+// The expected-change policy (T52), from pipeline/gauges/feed/change.py. The publisher measures each forecast run's
+// largest move over `days` against these thresholds and carries the ratio coded as Φ(log2(ratio) / scale), kept inside
+// (codeFloor, 1 − codeFloor), so it rides the donor panels; the app decodes, words and colours it by the same numbers.
+export const CHANGE_POLICY = {
+  days: 10,
+  riseRatio: 2,
+  fallRatio: 0.5,
+  bigPoints: 0.25,
+  spikeBack: 0.5,
+  scale: 2,
+  codeFloor: 0.005,
+  staleHours: 36,
+  order: ["CLEVER", "COFFEE", "ELF"],
+} as const;
