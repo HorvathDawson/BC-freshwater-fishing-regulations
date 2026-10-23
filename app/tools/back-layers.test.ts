@@ -194,7 +194,7 @@ describe("back, everywhere: every surface registers a back layer", () => {
     expect(found).toEqual([
       "packages/ui-native/src/Faces.tsx#FaceBar: takes onBack",
       "packages/ui-native/src/LayersSheet.tsx#LayersSheet: takes onClose",
-      "packages/ui-native/src/SearchSheet.tsx#SearchSheet: a dialog",
+      "packages/ui-native/src/SearchSheet.tsx#SearchSheet: takes onClose",
       "packages/ui-native/src/Sheet.tsx#Sheet: a Modal",
       "packages/ui-native/src/Shell.tsx#Shell: takes onBack",
       "packages/ui-native/src/SpotCapture.tsx#WhenScreen: takes onBack",

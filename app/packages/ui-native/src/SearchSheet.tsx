@@ -30,8 +30,9 @@
  *    two choices. Composed in core (`wherePhrase`).
  *  - a town is a question about the ground, not a water: its row says so, in its colour (`palette.place`).
  */
+import { useEscapeCloses } from "./escapeCloses";
 import { useEffect, useRef, useState } from "react";
-import { Animated, FlatList, Platform, Pressable, Text, View, useWindowDimensions } from "react-native";
+import { Animated, FlatList, Pressable, Text, View, useWindowDimensions } from "react-native";
 import { SEARCH_BAR, WATER_STATUS, nearCount, nearRowSub, spokenName, waterRowSub, watersNear,
          type StatusIndex, type WaterStatus } from "@app/core";
 import type { ItemId, NameHit, NearHit, PlaceHit } from "@app/data";
@@ -141,21 +142,9 @@ export function SearchSheet({ open, top, palette, session, pick, onAct, onOpenWa
   /*
    * ESCAPE CLOSES SEARCH ON A WIDE SCREEN, wherever the focus is (owner 2026-10-22 late): after a pick the field has
    * given up the focus, so the field's own Escape would no longer hear it. Typed or not, a town's list or not, it is
-   * the whole search that goes. A dialog over the page (a Modal: the Layers sheet, a menu page) hears its own Escape
-   * first and is left to it.
+   * the whole search that goes (escapeCloses.web.ts; a dialog over the page keeps its own Escape).
    */
-  const closeRef = useRef(onClose);
-  closeRef.current = onClose;
-  useEffect(() => {
-    if (!open || panel === null || Platform.OS !== "web" || typeof window === "undefined") return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "Escape" || e.defaultPrevented) return;
-      if (typeof document !== "undefined" && document.querySelector('[aria-modal="true"]')) return;
-      closeRef.current();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open, panel]);
+  useEscapeCloses(open && panel !== null, onClose);
 
   if (!shown) return null;
   const rows = open ? sheetRows(pick, session) : [];
