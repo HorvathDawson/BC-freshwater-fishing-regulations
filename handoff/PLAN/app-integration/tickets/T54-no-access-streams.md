@@ -1,7 +1,8 @@
 # T54 — Streams in no-access areas: a fourth colour, and the page says so
 
 Status: PARTIAL — 991baa1c (pipeline: section_access, paint/3, access/1), 2fc72d9b (app: fourth colour, banner, note,
-legend); ticket a43a7122. Built with Q1–Q3 defaults. Left: the rebuild below (deliver all + release), then the
+legend); ticket a43a7122; review 60b568ae (banner survives a failed access fetch), 86b6e830 (notes). Built with
+Q1–Q3 defaults. Left: the rebuild below (deliver all + release), then the
 needs_bundle checks; see "Built / left" at the foot.
 
 Owner 2026-10-22: "the private land of coquitlam watershed, seymour watershed etc and rsa zones etc... basically no
