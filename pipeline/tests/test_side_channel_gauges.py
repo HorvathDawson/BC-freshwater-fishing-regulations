@@ -173,15 +173,122 @@ def test_a_creek_up_the_river_no_longer_speaks_for_a_backwater_through_its_head(
     }
 
 
+def test_a_split_cut_into_a_stub_is_still_a_branch_point():
+    """FWA cuts a split into stubs: the Fraser spills into Nelson Slough through a 1.4 km² Fraser piece whose ONLY way on
+    is the slough (real graph, 355996184:214). The river beside is one piece further up — still the slough's head, and
+    the creek far up the river still does not speak for the backwater. (A head looked for on the edge's own end alone
+    read this as a new name and let the nine creek gauges back into Bell and Nelson Slough.)
+
+        creek ─▶ r_up ─▶ r_down
+                   └─▶ r_stub ─▶ slough ─▶ r_down      r_stub: the river's water and code, area 2
+    """
+    nodes = [N("creek", 2, blk="C", wsc=CODE + "-100000"), N("r_up", 300, blk="R", wsc=CODE),
+             N("r_down", 300, blk="R", wsc=CODE), N("r_stub", 2, blk="R", wsc=CODE), N("slough", 2, blk="S", wsc=TRIB)]
+    edges = [E("creek", "r_up"), E("r_up", "r_down"), E("r_up", "r_stub"), E("r_stub", "slough"), E("slough", "r_down")]
+    water = {"creek": CREEK, "r_up": RIVER, "r_down": RIVER, "r_stub": RIVER, "slough": SLOUGH}
+    graph = g(nodes, edges)
+    assert branch_points(graph, AREA, water, KINDS) == {("r_stub", "slough"): (2 / 300, SLOUGH)}
+    got = answers(build(graph, MODEL, [("C", "creek", 40, False)], water_of=water, kind_of=KINDS,
+                        measures={"C": FLOW}))
+    assert "slough" not in got
+
+
+def test_a_braid_above_a_new_name_does_not_make_it_a_branch():
+    """The upper water braids just above the name change and both pieces rejoin before it: no other way on, still one
+    water taking another name.
+
+        u0 ─▶ u1 ─▶ upper ─▶ lower
+         └─▶ braid ──┘
+    """
+    assert branch_points(*_braided(), KINDS) == {}
+
+
+def _braided():
+    nodes = [N("u0", 50, blk="U", wsc=CODE), N("u1", 50, blk="U", wsc=CODE), N("braid", 1, blk="X", wsc=CODE),
+             N("upper", 50, blk="U", wsc=CODE), N("lower", 50, blk="W", wsc=CODE)]
+    edges = [E("u0", "u1"), E("u0", "braid"), E("braid", "upper"), E("u1", "upper"), E("upper", "lower")]
+    return g(nodes, edges), AREA, {"u0": RIVER, "u1": RIVER, "upper": RIVER, "lower": SLOUGH}
+
+
 # ------------------------------------------------------------------ what is not a branch point
 
 def test_a_continued_system_is_one_river_not_a_branch():
-    """The Chilliwack goes on as the Vedder (`water_continue`, T76): two waters, one river."""
-    nodes = [N("a", 100, blk="A", wsc=CODE), N("b", 100, blk="B", wsc=CODE)]
-    graph = g(nodes, [E("a", "b")])
+    """The Chilliwack goes on as the Vedder (`water_continue`, T76): two waters, one river — even where the graph
+    shows a split (a braid piece of the river's code beside the named one)."""
+    nodes = [N("a", 100, blk="A", wsc=CODE), N("b", 100, blk="B", wsc=CODE), N("braid", 1, blk="X", wsc=CODE)]
+    graph = g(nodes, [E("a", "b"), E("a", "braid")])
     water = {"a": RIVER, "b": CANAL}
     assert branch_points(graph, AREA, water, KINDS) == {("a", "b"): (1.0, RIVER)}       # equal: the first is "smaller"
     assert branch_points(graph, AREA, water, KINDS, continues=[(RIVER, CANAL)]) == {}
+
+
+def _renamed():
+    """ONE WATER, ANOTHER NAME (adversarial review 2026-10-23). Hogg Slough runs into Mountain Slough's polygon and on
+    as Mountain Slough; South Hawks Creek through Hansen Slough's ponds; Hanson Creek through Lewis Slough. Same code,
+    two stream waters, and nothing else leaves the upper end or reaches the lower on that code: all the water goes on.
+    A gauge L (level) on the upper water, a creek joining the lower on its own (nested) code.
+
+        upper ─▶ lower ─▶ below           upper 50 (L), lower 50, below 55
+                 creek ─┘                 creek 5 on a tributary code
+    """
+    nodes = [N("upper", 50, blk="U", wsc=CODE), N("lower", 50, blk="W", wsc=CODE), N("below", 55, blk="W", wsc=CODE),
+             N("creek", 5, blk="C", wsc=TRIB)]
+    edges = [E("upper", "lower"), E("lower", "below"), E("creek", "lower")]
+    water = {"upper": RIVER, "lower": SLOUGH, "below": SLOUGH, "creek": CREEK}
+    return g(nodes, edges), water, [("L", "upper", 40, False)], {"L": LEVEL}
+
+
+def test_one_water_taking_another_name_is_not_a_branch_point():
+    """Whole value: no branch point, so the upper water's level gauge answers the renamed water below, as any gauge
+    answers the next reach of its own river. As a branch (share 1.0) it would carry Flow only and drop L."""
+    graph, water, donors, meas = _renamed()
+    assert branch_points(graph, AREA, water, KINDS) == {}
+    got = answers(build(graph, MODEL, donors, water_of=water, kind_of=KINDS, measures=meas))
+    assert got == {
+        "upper": ((("L", "up", True, 1),), 50.0),
+        "lower": ((("L", "up", False, 0),), 50.0),
+        "below": ((("L", "up", False, 0),), 55.0),
+    }
+
+
+def test_mutation_pin_a_branch_is_a_split_or_a_join():
+    """Without the split-or-join test the renamed pair is a branch point at share 0.91 and L stops at the name change;
+    without either half alone a long slough's head (a split) or mouth (a join) disappears."""
+    graph, water, donors, meas = _renamed()
+    old = "if not (goes_on(a, b, ca) or fed(b, a, cb)):"
+    every = _mutant(branch_points, old, "if False:")
+    assert every(graph, AREA, water, KINDS) == {("upper", "lower"): (50 / 55, RIVER)}
+    got = _with("branch_points", every, lambda: answers(build(graph, MODEL, donors, water_of=water, kind_of=KINDS,
+                                                              measures=meas)))
+    assert set(got) == {"upper"}
+    # A slough longer than MAINSTEM_HOPS: its head is seen only as a split, its mouth only as a join.
+    nodes = [N("r_up", 500, blk="R", wsc=CODE), N("r_mid", 500, blk="R", wsc=CODE), N("r_down", 500, blk="R", wsc=CODE)]
+    nodes += [N(f"c{i}", 5, blk="S", wsc=CODE) for i in range(1, 7)]
+    edges = [E("r_up", "r_mid"), E("r_mid", "r_down"), E("r_up", "c1"), E("c6", "r_down")]
+    edges += [E(f"c{i}", f"c{i + 1}") for i in range(1, 6)]
+    water = {"r_up": RIVER, "r_mid": RIVER, "r_down": RIVER, **{f"c{i}": SLOUGH for i in range(1, 7)}}
+    long = g(nodes, edges)
+    assert set(branch_points(long, AREA, water, KINDS)) == {("r_up", "c1"), ("c6", "r_down")}
+    assert set(_mutant(branch_points, old, "if not goes_on(a, b, ca):")(long, AREA, water, KINDS)) == {("r_up", "c1")}
+    assert set(_mutant(branch_points, old, "if not fed(b, a, cb):")(long, AREA, water, KINDS)) == {("c6", "r_down")}
+
+
+def test_mutation_pin_the_split_is_looked_for_past_fwa_s_stubs_and_not_in_a_braid():
+    """Looked for on the edge's own end only, the stubbed head is a "new name" and the creek reaches the backwater;
+    without the braid check the braided name change is a branch."""
+    import pipeline.tests.test_side_channel_gauges as me
+    local = _mutant(branch_points, "mine = run(a, back, c)", "mine = {a}")
+    assert not _with("branch_points", local, lambda: _passes(me.test_a_split_cut_into_a_stub_is_still_a_branch_point))
+    braids = _mutant(branch_points, "y not in mine and y != b", "y != b")
+    assert braids(*_braided(), KINDS) == {("upper", "lower"): (1.0, RIVER)}
+
+
+def _passes(test) -> bool:
+    try:
+        test()
+    except AssertionError:
+        return False
+    return True
 
 
 def test_a_lake_or_an_unowned_section_is_never_a_branch_point():

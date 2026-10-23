@@ -28,6 +28,7 @@ from pipeline.atlas.gauges.panel import (
     MAX_AREA_RATIO, OWN_LEADS_PER_QUANTITY, QUANTITIES, Donor, area_scale, may_lead, panel_for,
 )
 from pipeline.atlas.graph.drainage import AreaModel
+from pipeline.atlas.graph.tributaries import _wsc_below
 
 
 @dataclass(frozen=True)
@@ -150,8 +151,9 @@ MAINSTEM_HOPS = 4
 #: cross the branch point as Flow; below it, as nothing. DEFAULT 0.5 (Claude; an owner question in T101): the channel
 #: is the larger half of the split, so its discharge and the river's are within a factor of two — the top rung of
 #: the error ladder (`ERROR_BY_RATIO`, "close") with room to spare. On the real graph every named slough and side
-#: channel of the Fraser, Thompson, Columbia and Kootenay sits below 0.04 (Nicomen 0.003); the pairs above it are
-#: one-river splits: Bell Slough off Nelson Slough, Lewis Slough off Hanson Creek, Seton Canal off the Seton River.
+#: channel of the Fraser, Thompson, Columbia and Kootenay sits below 0.04 (Nicomen 0.003); the one pair above it is
+#: a one-river split: Bell Slough off Nelson Slough (0.55). (Lewis Slough, Seton Canal and the other "1.0" pairs first
+#: measured were one water taking another name, not branches — see `branch_points`.)
 LARGE_SHARE = 0.5
 
 #: Every quantity a reading carries until it crosses a branch point.
@@ -179,8 +181,10 @@ def across_branch(share: float) -> frozenset[str]:
 
 
 def _code_child(parent: str, child: str) -> bool:
-    """`child` is a watershed code nested under `parent` (a tributary's code extends its river's)."""
-    return bool(parent) and child.startswith(parent + "-")
+    """`child` is a watershed code STRICTLY nested under `parent` (a tributary's code extends its river's) — the same
+    parent/child test the tributary walk asks (`tributaries._wsc_below`, T102), so the two never disagree on which
+    code is whose parent."""
+    return bool(parent) and child != parent and _wsc_below(child, parent)
 
 
 def branch_points(graph, area_of, water_of: dict[str, str] | None, kind_of: dict[str, str] | None,
@@ -193,12 +197,22 @@ def branch_points(graph, area_of, water_of: dict[str, str] | None, kind_of: dict
         an edge between two sections of the same code and two different STREAM waters is where the channel leaves or
         rejoins its river: Nicomen, Maria, Herrling, Morey … off the Fraser; Hotsprings and Baldy off the Columbia;
         Widgeon off the Pitt; Seton Canal off the Seton River; Bell off Nelson Slough. On the real graph (2026-10-23)
-        128 edges, 62 water pairs, all of them a channel and its river.
+        99 edges, 32 water pairs, all of them a channel and its river.
       - THE RIVER FLOWING INTO A TRIBUTARY'S CODE. Water flows from a tributary's code into its river's, never the
         other way; an edge running from a code into one nested under it is a river spilling into a backwater coded
         like a tributary — the Fraser into Nelson Slough at its head. (Its mouth looks like any tributary's and is not
         a branch point here.)
     Two waters of one continued system (`continues`, T76) are one river, never a branch.
+
+    A SPLIT OR A JOIN, NEVER A NEW NAME. A branch point is where water divides or meets: the upper end's own code goes
+    on past the edge (another way down on that code — the river beside the channel's head), or the lower end's code
+    was already flowing before it (another way in on that code — the river beside the channel's mouth), looked for
+    within `MAINSTEM_HOPS` on the end's own code because FWA cuts the split itself into stubs (the Fraser spills into
+    Nelson Slough through a 1.4 km² Fraser piece whose only way on IS the slough), and never a braid that rejoins
+    above the edge. An edge with neither is ONE water taking another name — Hogg Slough becoming Mountain Slough, South Hawks Creek running through
+    Hansen Slough's ponds, Hanson Creek through Lewis Slough, Seton Canal into the Seton River, Noons Creek into
+    Dallas Creek: all of each water's flow goes on, so there is no side channel and no share (adversarial review
+    2026-10-23: these were 11 of the 107 edges, and every pair but Bell/Nelson at or above the large-share bar).
 
     THE SIDE CHANNEL is the smaller of the two waters there. THE SHARE is the smaller water's size over the larger's
     AROUND the branch point: the largest drainage among each
@@ -220,6 +234,36 @@ def branch_points(graph, area_of, water_of: dict[str, str] | None, kind_of: dict
     for e in graph.edges:
         adj[e.from_node].append(e.to_node)
         adj[e.to_node].append(e.from_node)
+
+    down: dict[str, list[str]] = collections.defaultdict(list)
+    up: dict[str, list[str]] = collections.defaultdict(list)
+    for e in graph.edges:
+        down[e.from_node].append(e.to_node)
+        up[e.to_node].append(e.from_node)
+
+    def code(x: str) -> str:
+        return getattr(graph.nodes.get(x), "wsc", "") or ""
+
+    def run(start: str, step, c: str) -> set[str]:
+        """`start` and the pieces on code `c` within `MAINSTEM_HOPS` of it, following `step` (FWA's stubs)."""
+        got, frontier = {start}, [start]
+        for _hop in range(MAINSTEM_HOPS):
+            frontier = [y for x in frontier for y in step[x] if y not in got and code(y) == c]
+            got.update(frontier)
+        return got
+
+    def splits(a: str, b: str, c: str, back, ahead) -> bool:
+        """Water on code `c` divides near `a` — a piece on `c` within `MAINSTEM_HOPS` behind `a` (`back`) has another
+        way on (`ahead`) that is not the way to `b` and not one of those pieces (a braid above the edge that rejoins
+        before it)."""
+        mine = run(a, back, c)
+        return any(y not in mine and y != b and code(y) == c for x in mine for y in ahead[x])
+
+    def goes_on(a: str, b: str, c: str) -> bool:
+        return splits(a, b, c, up, down)               # the river beside the channel's head
+
+    def fed(b: str, a: str, c: str) -> bool:
+        return splits(b, a, c, down, up)               # the river beside the channel's mouth
 
     def size_near(start: str, water: str) -> float:
         best = area_of(graph.nodes[start]) or 0.0
@@ -247,6 +291,8 @@ def branch_points(graph, area_of, water_of: dict[str, str] | None, kind_of: dict
         ca, cb = getattr(na, "wsc", "") or "", getattr(nb, "wsc", "") or ""
         if not ((ca and ca == cb) or _code_child(ca, cb)):
             continue
+        if not (goes_on(a, b, ca) or fed(b, a, cb)):
+            continue                                   # one water, another name
         sa, sb = size_near(a, wa), size_near(b, wb)
         out[(a, b)] = (min(sa, sb) / max(sa, sb) if max(sa, sb) > 0 else 0.0, wa if sa <= sb else wb)
     return out
