@@ -2,7 +2,7 @@
  * T11, pure (logic project): the one day (`regsDay` / `mapDayOf`), the store cache's key, and `loadRegsStore` — one open
  * per loader and expectation, a refusal cached, a failed fetch retried — over THE COMMITTED REGS FIXTURE RELEASE (T10).
  */
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { loadRegsInputs, RegsStoreError, targetFor, type RegsLoader } from "@app/data/regs";
 import { openRegsFixture } from "@app/data/release/node";
 import { accessOf, type Paint } from "@app/core";
@@ -129,5 +129,23 @@ describe("(T54) a section's access notice: paint's no-access rows and the access
     // a release with no access file: the no-access rows still speak, the gentle ones are silent
     expect((await sectionAccessNotice(loader(false), 7 as SectionId))?.tier).toBe("no_access");
     expect(await sectionAccessNotice(loader(false), 8 as SectionId)).toBeNull();
+  });
+
+  it("a failed `access` file never silences the no-access banner: paint's rows are enough for it", async () => {
+    const broken = {
+      paint: async () => ({ access: accessOf([COQ], [7], [0], [1000]) }) as unknown as Paint,
+      access: async () => { throw new Error("offline"); },
+    };
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      expect(await sectionAccessNotice(broken, 7 as SectionId)).toEqual({
+        tier: "no_access", link: "Show area on map",
+        text: "No public access: this section is inside Coquitlam Watershed. The regulations below are the Province's, "
+            + "but you may not enter this area to fish." });
+      expect(await sectionAccessNotice(broken, 8 as SectionId)).toBeNull();
+      expect(warn.mock.calls).toEqual([["access:", "offline"], ["access:", "offline"]]);
+    } finally {
+      warn.mockRestore();
+    }
   });
 });

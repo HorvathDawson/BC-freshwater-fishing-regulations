@@ -127,7 +127,13 @@ export function useDownstreamWater(source: Pick<RegsSource, "traceToGauge" | "wa
  */
 export async function sectionAccessNotice(loader: Pick<ReleaseLoader, "paint" | "access">,
                                           section: SectionId): Promise<AccessNotice | null> {
-  const [paint, gentle] = await Promise.all([loader.paint(), loader.access()]);
+  // the gentle file failing (offline, a bad fetch) costs only the gentle note: the no-access banner is paint's alone,
+  // and must never be silenced by it. The loader forgets a failed fetch, so the next page asks again.
+  const gentleOf = loader.access().catch((e: unknown) => {
+    console.warn("access:", e instanceof Error ? e.message : e);
+    return null;
+  });
+  const [paint, gentle] = await Promise.all([loader.paint(), gentleOf]);
   return accessNotice([...paint.access.of(section), ...(gentle?.of(section) ?? [])]);
 }
 
