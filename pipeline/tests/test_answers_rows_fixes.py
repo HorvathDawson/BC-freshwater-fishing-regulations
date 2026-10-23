@@ -6,6 +6,7 @@ rows.DECISIONS F1-F10). Every fix on the real card it was found on, each with a 
   * F2  Chilliwack Lake, Jul 15: "No wild trout over 50 cm" shows although the wild daily number
         and winner are the hatchery's;
   * F3  Kitimat R., Feb 15: the cutthroat and brown trout release survives (fish SETS compared);
+        its count-collision mutation (2 fish against the row's 2) on Humphrys Creek, June 10;
   * F4  Vedder R., Jan 15: hatchery rainbow counts toward Region 2's 4, not the stream share's 2;
         its own row reads 0-50 cm (F5c) and still counts toward the region (F7);
   * F5a Teslin L.: slots are bands of 0; F6 its possession limits are not yearly limits;
@@ -40,7 +41,8 @@ ANDERSON, CHILLIWACK_L, KITIMAT, VEDDER = "gnis:10030", "wbk:329083341", "gnis:3
 TESLIN, THOMPSON, MAYER, TRANQUILLE = "wbk:328961703", "gnis:39492", "wbk:329163196", "wbk:329563842"
 MOUTH = "mouth"                     # the Vedder part ending at the mouth (Vedder Crossing Bridge down)
 R8_STREAM = "gnis:10098"            # Buchanan Creek (Region 8)
-WATERS = (ANDERSON, CHILLIWACK_L, KITIMAT, VEDDER, TESLIN, THOMPSON, MAYER, TRANQUILLE, R8_STREAM)
+HUMPHRYS = "gnis:2046"              # Humphrys Creek (Region 6, no steelhead): F3's count-collision witness (T80 2)
+WATERS = (ANDERSON, CHILLIWACK_L, KITIMAT, VEDDER, TESLIN, THOMPSON, MAYER, TRANQUILLE, R8_STREAM, HUMPHRYS)
 
 
 @pytest.fixture(scope="module")
@@ -172,8 +174,8 @@ def test_kitimat_february_cutthroat_and_brown_go_back(built):
 
     The page-bug mutation this test used to carry (the page's count comparison drops a release that names as many fish as
     the row has members — 2 vs 2) no longer applies here: with steelhead the release names 3 fish against the row's 2, so
-    the mutant could not fail. It was removed rather than kept as a tautology; the count-collision case needs another
-    water as its witness (implement_progress: open)."""
+    the mutant could not fail. It was removed rather than kept as a tautology; its witness is now Humphrys Creek
+    (`test_humphrys_june_count_collision`, T80 2)."""
     data = built[0]
     t = card(built, KITIMAT, 1, (2, 15))
     row = row_of(built, t, "z6:trout_char_quota::trout_char_quota.r1")
@@ -182,6 +184,28 @@ def test_kitimat_february_cutthroat_and_brown_go_back(built):
     assert back and _rid(data, back[0]["r"]).endswith("trout_char_quota.r7")
     assert item_of(row, "CT")["back"] and item_of(row, "GB")["back"]
     assert "CT" not in (row["real_daily"] or {}).get("open", [])
+
+
+@pytest.mark.needs_bundle
+def test_humphrys_june_count_collision(built, monkeypatch):
+    """F3's count collision (T80 2). Humphrys Creek, Region 6, June 10: the zone's Nov 1-June 30 stream release (r7)
+    sends cutthroat and GB back, while Region 6's steelhead closure (May 15-June 15) holds steelhead apart — so r7
+    names exactly two fish against a pool row of two OTHER fish (brook and lake trout). Compared by count, as the
+    consumer page did, that release reads as everyone's and is dropped. Found by scanning every shipped row for a
+    go-back line naming as many fish as its row and not the same ones (64 such lines; the Kitimat lost its own when
+    hatchery steelhead joined its release)."""
+    data = built[0]
+    def backs(t):
+        row = row_of(built, t, "z6:trout_char_quota::trout_char_quota.r1")
+        return sorted(row["members"]), [(sorted(c["who"]), _rid(data, c["r"])) for c in row["conds"] if c["c"] == "back"]
+    closure = (["ST"], "z6:steelhead_stream_closure::steelhead_stream_closure.r1")
+    dv = (["DV"], "z6:trout_char_quota::trout_char_quota.r5")
+    ct_gb = (["CT", "GB"], "z6:trout_char_quota::trout_char_quota.r7")
+    assert backs(card(built, HUMPHRYS, 0, (6, 10))) == (["EB", "LT"], [closure, dv, ct_gb])
+    # MUTATION: the page's count comparison drops the release (two fish, like the row's two); nothing else moves
+    monkeypatch.setattr(RW, "_who_n", lambda l, r: None if (not l.get("members") or l.get("general")
+                        or len(l["members"]) == len(r["members"])) else list(l["members"]))
+    assert backs(card(built, HUMPHRYS, 0, (6, 10), lambda *_: None)) == (["EB", "LT"], [closure, dv])
 
 
 # --------------------------------------------------------------------------------------------
