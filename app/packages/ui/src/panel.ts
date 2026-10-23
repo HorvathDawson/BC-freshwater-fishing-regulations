@@ -258,11 +258,6 @@ async function cachedBasins(source: RegsSource) {
   return basinCache;
 }
 
-/** Test seam: the cache is module state and a test must be able to start from empty. */
-export function clearBasinCache(): void {
-  basinCache = null;
-}
-
 /** The panel for one section, joined against today's readings. */
 export function usePanel(
   source: RegsSource,

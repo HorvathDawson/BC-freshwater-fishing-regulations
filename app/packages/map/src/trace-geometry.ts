@@ -34,8 +34,7 @@ export type LonLat = { lon: number; lat: number };
 /** [west, south, east, north] */
 export type Bbox = [number, number, number, number];
 
-/** The atlas zooms: nothing exists below 4, everything exists at 14 (`MAGNITUDE_LADDER`). */
-export const ATLAS_MIN_Z = 4;
+/** The atlas's top zoom: everything exists at 14 (`MAGNITUDE_LADDER`); nothing exists below 4. */
 export const ATLAS_MAX_Z = 14;
 /** The first pass's zoom range: below 8 a z4–8 tile has thinned all but mainstems. */
 const FIRST_LO = 8;

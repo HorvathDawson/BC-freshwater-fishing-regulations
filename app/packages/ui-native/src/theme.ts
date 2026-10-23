@@ -1,5 +1,4 @@
-import { colour, tempBandColour, translucent, waterStatusColour, STYLE_META,
-         mapChrome as chromeOf, type MapChrome } from "@app/map";
+import { colour, tempBandColour, translucent, waterStatusColour, STYLE_META } from "@app/map";
 import { TEMP_BANDS, WATER_STATUSES, type TempBand, type WaterStatus } from "@app/core";
 /**
  * The palette the phone components paint with.
@@ -284,13 +283,4 @@ export function flowRamp(theme: string): readonly string[] {
 export function flowRampStops(theme: string): readonly { at: number; colour: string }[] {
   const mode = STYLE_META.colorModes.stream?.standing as { stops?: [number, { token: string }][] } | undefined;
   return (mode?.stops ?? []).filter(([at]) => at >= 0).map(([at, ref]) => ({ at: at / 100, colour: colour(theme, ref.token) }));
-}
-
-/**
- * The colours MapLibre's own controls wear — `mapChrome` in @app/map, from the same
- * `color.ui.*` tokens this palette is built from. `<Map/>` derives it itself when no `chrome`
- * is passed; this is here for a caller that wants it explicitly.
- */
-export function mapChrome(theme: string): MapChrome {
-  return chromeOf(theme);
 }

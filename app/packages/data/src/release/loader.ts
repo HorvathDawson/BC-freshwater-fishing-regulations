@@ -12,7 +12,7 @@
 import { decodeLakeFacts, decodePaint, decodeFlowArea, type LakeFacts, type Paint } from "@app/core";
 import type { Db } from "../bundle/db";
 import type { Manifest } from "../manifest";
-import { REGIONS, type Region } from "../pack.generated";
+import { type Region } from "../pack.generated";
 
 export type FileName = "paint" | "flow-area" | "lakes" | "core" | "near" | "water" | `regs-${Region}` | "regs-sid"
   | "conditions";
@@ -132,5 +132,3 @@ export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener):
   };
   return loader;
 }
-
-export const ALL_REGIONS: readonly Region[] = REGIONS;

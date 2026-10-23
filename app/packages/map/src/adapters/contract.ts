@@ -11,7 +11,7 @@ import { pinCollection, TRACE_PINS_SOURCE, TRACE_SOURCE, type TracePin } from ".
 import type { TraceCollection } from "../trace-geometry";
 import { BASEMAP_LABELS, OWN_LABELS, basemapLabelPaint, ownLabelOnImagery } from "../labels";
 import {
-  MAP_STYLE, NO_VALUES, STYLE_META, colorExpression, defaultView, followerMode, followersOf, isRuntimeLayer,
+  MAP_STYLE, NO_VALUES, STYLE_META, colorExpression, followerMode, followersOf, isRuntimeLayer,
   resolveTheme, type ChannelValues, type Tokens,
 } from "../style";
 
@@ -589,5 +589,3 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
     },
   };
 }
-
-export const DEFAULT_VIEW = defaultView;

@@ -286,9 +286,3 @@ export function gaugeSentence(t: Trust, live: boolean | null): string {
   return `${c}, but the station has stopped reporting — there is a record here, not a ` +
          "reading.";
 }
-
-/** What the sheet says when nothing is entitled to speak for this water at all. */
-export const NO_GAUGE = "no station speaks for this water";
-
-/** …and when a station speaks for the water but has nothing to say about this stretch. */
-export const NO_READING_HERE = "no reading on this stretch";

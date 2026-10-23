@@ -71,7 +71,6 @@ export const D19_POOLED_IDS: readonly string[] = ["klmb_1010"];
  *  pipeline's stored documents leave it out there (`stamps.drop_closed_steelhead_stamp`). licence.parity holds this list to
  *  the stored condition (rows not_kept closed ST, and no profile lists the stamp), so it cannot drift. */
 export const STEELHEAD_DROP_IDS: readonly string[] = ["bc1_501", "bc0_501", "bc1_1010", "bc0_1010", "ape_501", "ape_1010", "x15p2_1010"];
-export const STEELHEAD_STAMP_ITEM = /^Steelhead Conservation Surcharge Stamp\b/;
 /** (T33) tidal water: the prototype draws an empty Licence section (as on a closed day); page v36 licParts draws its
  *  "Tidal water" box with the stored tidal licence words, which the app keeps (D33 (b): tidal water is not closed). */
 export const TIDAL_LICENCE_IDS: readonly string[] = ["x31p_1010"];
@@ -79,7 +78,6 @@ export const TIDAL_LICENCE_IDS: readonly string[] = ["x31p_1010"];
  *  angling licence") — COMPARED since licence 7: the stored `under_16[].buy[].or` carries the alternatives' documents and
  *  names. */
 export const YOUTH_ALT_IDS: readonly string[] = ["x12p_1010", "x30p_1010", "x35p_1010"];
-export const YOUTH_ALT_LINES = /^Under 16: no licence needed if you fish with a licensed adult\b| Or, for your own limit: /;
 export const LICENCE_EXCLUDE: readonly Exclusion[] = [
   { block: "licence", ids: TIDAL_LICENCE_IDS,
     reason: "decisions D33 (b): the prototype's empty Licence section on tidal water is the closed-day path over a key that is not closed; the app draws page v36 licParts' tidal box (\"Tidal water\" + the stored tidal licence words) — licence.parity asserts it",

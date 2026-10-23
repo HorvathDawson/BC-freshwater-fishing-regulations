@@ -188,12 +188,6 @@ export function textFaults(root: HTMLElement, palette: Palette, tab: Tab): Recor
   return bad;
 }
 
-/** Every text rule's faults in one list (`[]` is a pass). */
-export function paletteFaults(root: HTMLElement, palette: Palette, tab: Tab): string[] {
-  const f = textFaults(root, palette, tab);
-  return TEXT_RULES.flatMap((r) => f[r]);
-}
-
 const SIDES = ["Top", "Right", "Bottom", "Left"] as const;
 
 /** Rule 3 for rules (borders): a status colour on a border only on a status element or a keyed exception (ALLOW). */
