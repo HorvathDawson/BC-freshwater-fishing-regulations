@@ -66,8 +66,7 @@ Left / follow-ups:
 - Place search (`SEARCH_PLACES`, `place.name LIKE`) and pointer search (`SEARCH_POINTERS`, `see_pointer.name LIKE`)
   still compare raw strings — "barriere" will not find the town of Barrière. Same fix (a `name_key` on `place` and
   `see_pointer`) is a follow-up ticket.
-- `release/build.py::_core_flags` still builds `item_name_nc` / `alias_nc` (NOCASE on the raw strings); SEARCH no
-  longer reads them (a contains-LIKE never used them). Drop them in the next release change (core size).
+- ~~`item_name_nc` / `alias_nc`~~ dropped — see "As built: core size gate" below.
 - T61 2.8: fold `tiles/names.normalise` and the DFO-suggestion keys into one pipeline normaliser and reuse
   `pipeline.common.search_key` for search.
 - `core/menu.ts` glossary `fold` (NFKD, keeps apostrophes) is a separate glossary-term filter, not water search; left.
@@ -113,3 +112,24 @@ Left / follow-ups (review):
 - The 75 newer-Unicode letters: if a key ever needs them, pin Python's `unicodedata` version or lower-case in one
   language only. Nothing to do for BC names.
 
+
+## As built: core size gate (2026-10-23)
+
+The first deliver with the keys failed the release: `SIZE GATE: core: 1,377,692 B gzip > 1,300,000`. Fixed without
+moving the gate, and without a second matching rule:
+
+- **Dead indexes dropped.** `_core_flags` no longer builds `item_name_nc` / `alias_nc` (water SEARCH is a contains-LIKE
+  on the keys; nothing read them). `see_pointer_nc` / `place_name_nc` stay (their searches are still on raw names).
+- **Keys stored thin.** `pipeline.common.search_key.stored_key`: NULL where the text is ASCII and its key is its lower
+  case (most BC names), else `search_key`. The bundler writes `stored_key`; both SEARCH forms read
+  `COALESCE(i.name_key, lower(i.name))` / `COALESCE(a.alias_key, lower(a.alias))` (`@app/data` bundle/queries.ts
+  `NAME_KEY` / `ALIAS_KEY`, the release SEARCH imports them). ASCII-only thinning makes `lower()` exact on any SQLite
+  build (ICU or not). The key function is still one function; the dev fixture's full keys read the same.
+- **Pins.** `test_release.py::test_every_cores_effective_key_is_the_search_key`: over every item and alias row of a
+  built core, `COALESCE(key, lower(text)) == search_key(text)` (and most rows store none). `test_search_key.py`:
+  `stored_key` is NULL only where ASCII lower is the key; the bundler test writes NULL for "Mabel Creek"/"Mable Creek".
+  `searchKey.test.ts` seeds thin keys (spelled out, no copy of the rule) and finds "mabel"/"MABEL LAKE"/alias "mable"
+  through the fallback on both readers; the pin wants the COALESCE form. Mutation: `NAME_KEY = "i.name_key"` → 3 fail.
+- **Measured** (scratch on r-6960fe8201e3's core, gzip -9): no keys 1,283,617; full keys 1,374,991; full keys − NOCASE
+  indexes 1,175,578; thin keys − indexes 1,087,851. Shipped: **r-e88ea8112b1a core 1,091,913 B gz** (gate 1,300,000,
+  unchanged); release total 13,648,526 B gz (gate 15,000,000).

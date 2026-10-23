@@ -60,8 +60,9 @@ CREATE TABLE meta (k TEXT PRIMARY KEY, v TEXT) WITHOUT ROWID;
 -- `name_key` / `alias_key` ARE WHAT SEARCH FILTERS ON (T114): `pipeline.common.search_key` of `name` / `alias`
 -- (lower case, accents and apostrophes off, whitespace collapsed), the rule the app keys a query with
 -- (`@app/core` `searchKey`, one case table for both). The app's SEARCH never compares the raw strings, so
--- "barriere" finds Barrière Lake and "childrens" Children's Fishing Pond. The bundler writes every one;
--- they are nullable only so a test seeding a few rows need not (a NULL key is a water search cannot find).
+-- "barriere" finds Barrière Lake and "childrens" Children's Fishing Pond. STORED THIN (core size gate): NULL
+-- where the text is ASCII and its key is its lower case (`stored_key`); the app reads COALESCE(name_key,
+-- lower(name)), which is the search key on every row (test_release.py holds a built core to it).
 CREATE TABLE item (ord INTEGER PRIMARY KEY, item_id TEXT NOT NULL UNIQUE,
                    name TEXT NOT NULL, kind TEXT, part_of TEXT, area_ha INTEGER, name_key TEXT);
 CREATE TABLE alias (item_id TEXT NOT NULL, alias TEXT NOT NULL, alias_key TEXT);

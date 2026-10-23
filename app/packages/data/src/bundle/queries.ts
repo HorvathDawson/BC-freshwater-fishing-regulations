@@ -42,6 +42,16 @@ export const ITEM_FOR_SECTION =
   "WHERE s.sid = ? LIMIT 1";
 
 /**
+ * (T114) THE STORED SEARCH KEYS AS SEARCH READS THEM. The pipeline stores a key only where `lower()` of the text is not
+ * already it (`pipeline.common.search_key.stored_key`: NULL for an ASCII text whose key is its lower case, ~99% of BC
+ * names — the core size gate), so the key of a row is this COALESCE. Not a second rule: on every row of a built core it
+ * equals `searchKey(name)` / `searchKey(alias)` (`pipeline/tests/test_release.py`), and a full key (the dev fixture's)
+ * reads the same.
+ */
+export const NAME_KEY = "COALESCE(i.name_key, lower(i.name))";
+export const ALIAS_KEY = "COALESCE(a.alias_key, lower(a.alias))";
+
+/**
  * Name search — the CANDIDATES. The final order is decided in @app/core (`rankWaters`).
  *
  * `?1` is `nameNeedle(query)`: the query's SEARCH KEY (`@app/core` `searchKey`, T114) with LIKE's own wildcards
@@ -83,19 +93,19 @@ export const SEARCH =
   "         WHERE s.ord = m.ord) AS size, m.area_ha " +
   "FROM ( " +
   "  SELECT i.ord, i.item_id, i.name, i.kind, %AREA% AS area_ha, NULL AS matched_as, " +
-  "         (CASE WHEN i.name_key LIKE ?1 ESCAPE '\\' THEN 0 " +
-  "               WHEN i.name_key LIKE ?1 || '%' ESCAPE '\\' THEN 2 " +
-  "               WHEN ' ' || i.name_key LIKE '% ' || ?1 || '%' ESCAPE '\\' THEN 4 " +
+  "         (CASE WHEN " + NAME_KEY + " LIKE ?1 ESCAPE '\\' THEN 0 " +
+  "               WHEN " + NAME_KEY + " LIKE ?1 || '%' ESCAPE '\\' THEN 2 " +
+  "               WHEN ' ' || " + NAME_KEY + " LIKE '% ' || ?1 || '%' ESCAPE '\\' THEN 4 " +
   "               ELSE 6 END) AS tier " +
-  "  FROM item i WHERE i.name_key LIKE '%' || ?1 || '%' ESCAPE '\\' " +
+  "  FROM item i WHERE " + NAME_KEY + " LIKE '%' || ?1 || '%' ESCAPE '\\' " +
   "    AND EXISTS (SELECT 1 FROM item_section s WHERE s.ord = i.ord) " +
   "  UNION ALL " +
   "  SELECT i.ord, i.item_id, i.name, i.kind, %AREA% AS area_ha, a.alias AS matched_as, " +
-  "         (CASE WHEN a.alias_key LIKE ?1 ESCAPE '\\' THEN 2 " +
-  "               WHEN a.alias_key LIKE ?1 || '%' ESCAPE '\\' THEN 3 " +
-  "               WHEN ' ' || a.alias_key LIKE '% ' || ?1 || '%' ESCAPE '\\' THEN 5 " +
+  "         (CASE WHEN " + ALIAS_KEY + " LIKE ?1 ESCAPE '\\' THEN 2 " +
+  "               WHEN " + ALIAS_KEY + " LIKE ?1 || '%' ESCAPE '\\' THEN 3 " +
+  "               WHEN ' ' || " + ALIAS_KEY + " LIKE '% ' || ?1 || '%' ESCAPE '\\' THEN 5 " +
   "               ELSE 7 END) AS tier " +
-  "  FROM alias a JOIN item i USING(item_id) WHERE a.alias_key LIKE '%' || ?1 || '%' ESCAPE '\\' " +
+  "  FROM alias a JOIN item i USING(item_id) WHERE " + ALIAS_KEY + " LIKE '%' || ?1 || '%' ESCAPE '\\' " +
   "    AND EXISTS (SELECT 1 FROM item_section s WHERE s.ord = i.ord) " +
   ") m GROUP BY m.item_id, m.matched_as " +
   "ORDER BY tier, COALESCE(size, m.area_ha) IS NULL, COALESCE(size, m.area_ha) DESC, " +

@@ -138,10 +138,10 @@ def _core_flags(con: sqlite3.Connection) -> None:
     con.execute("INSERT OR IGNORE INTO rowed SELECT j.value FROM b.entry e, json_each(e.matched) j")
     con.execute("UPDATE item SET has_rows = item_id IN (SELECT item_id FROM rowed)")
     con.execute("DROP TABLE rowed")
-    con.execute("CREATE INDEX item_name_nc ON item(name COLLATE NOCASE)")
-    con.execute("CREATE INDEX alias_nc ON alias(alias COLLATE NOCASE)")
+    # no name index on item / alias (T114): water SEARCH is a contains-LIKE on the search keys, which no index serves
+    # (the old item_name_nc / alias_nc cost ~200 KB gzip and served nothing)
     con.execute("CREATE INDEX see_pointer_nc ON see_pointer(name COLLATE NOCASE)")
-    # the case-sensitive name indexes are the bundle's; search is LIKE (case-insensitive): the NOCASE ones serve it
+    # the case-sensitive name indexes are the bundle's; pointer search is a prefix LIKE: the NOCASE one serves it
     con.execute("DROP INDEX IF EXISTS item_by_name")
     con.execute("DROP INDEX IF EXISTS alias_by_text")
     # places: nothing in the app reads them by OSM id; search reads the name case-insensitively

@@ -254,6 +254,21 @@ def test_the_release_ships_the_bundles_continuation_links_as_they_are(rel, tmp_p
     assert w.execute(q).fetchall() == b.execute(q).fetchall() != []
 
 
+def test_every_cores_effective_key_is_the_search_key(rel, tmp_path):
+    """T114, keys stored thin (`stored_key`): over EVERY item and alias row of the built core, what the app's SEARCH
+    reads — `COALESCE(name_key, lower(name))` (`@app/data` `NAME_KEY` / `ALIAS_KEY`) — is `search_key` of the text,
+    the twin of `@app/core` `searchKey`. One rule, however the key is stored."""
+    from pipeline.common.search_key import search_key
+    con = _open(rel[0], "core", tmp_path)
+    for table, text, key in (("item", "name", "name_key"), ("alias", "alias", "alias_key")):
+        rows = con.execute(f"SELECT {text}, COALESCE({key}, lower({text})), {key} IS NULL FROM {table}").fetchall()
+        assert rows, table
+        bad = [(t, k) for t, k, _ in rows if k != search_key(t)]
+        assert not bad, f"{table}: {len(bad)} rows read a key that is not search_key: {bad[:5]}"
+        # the thinning is what keeps core under its gate: most rows store none
+        assert sum(n for *_, n in rows) > len(rows) // 2, table
+
+
 def test_the_apps_pack_contract_is_current():
     from pipeline.tools import emit_pack
     assert emit_pack.OUT.read_text() == emit_pack.render(), "run: python -m pipeline.tools.emit_pack"

@@ -6,7 +6,9 @@
  *
  * The store is built in memory: the bundle's own `schema.sql` for the bundle reader, and the release CONTRACT's core and
  * near columns (`PACK_FILES`, generated from `pipeline/deliver/release/contract.py`) for the release reader. The keys are
- * written by `searchKey`; the pipeline writes them with `search_key`, held to the same case table.
+ * written by `searchKey`; the pipeline writes them with `search_key`, held to the same case table. They are seeded THIN, as
+ * the pipeline stores them (`stored_key`): NULL for the ASCII names whose key is their lower case (Barrie Creek, Dore
+ * River, Mabel Lake and its alias), so the reader's `COALESCE(key, lower(text))` is exercised on both branches.
  *
  * Mutations: put `i.name LIKE` / `a.alias LIKE` back in either SEARCH → "barriere" finds 0 and "childrens" 0 (the
  * acceptance cases) and the grep pin fails; `nameNeedle` = `likeEscape` without `searchKey` → "BARRIÈRE" finds 0;
@@ -42,18 +44,22 @@ const WATERS: [string, string, string, string[]][] = [
   ["wbk:7", "Children's Fishing Pond", "lake", []],
   ["gnis:8", "Barrie Creek", "stream", []],
   ["gnis:9", "Dore River", "stream", ["Doré Creek"]],
+  ["wbk:10", "Mabel Lake", "lake", ["Mable Lake"]],
 ];
 const BARRIERE = ["gnis:4", "gnis:5", "gnis:6", "wbk:1", "wbk:2", "wbk:3"];
+/** What the pipeline leaves NULL (`stored_key`): spelled out, not computed, so the test holds no copy of the rule. */
+const THIN = new Set(["Barrie Creek", "Dore River", "Mabel Lake", "Mable Lake"]);
+const stored = (t: string): string | null => (THIN.has(t) ? null : searchKey(t));
 
-const esc = (s: string) => `'${s.replace(/'/g, "''")}'`;
+const esc = (s: string | null) => (s === null ? "NULL" : `'${s.replace(/'/g, "''")}'`);
 
 function bundleStore(): RegsSource {
   const seed = WATERS.map(([id, name, kind, aliases], ord) =>
     `INSERT INTO item (ord, item_id, name, kind, name_key) VALUES (${ord}, ${esc(id)}, ${esc(name)}, ${esc(kind)}, ` +
-    `${esc(searchKey(name))});` +
+    `${esc(stored(name))});` +
     `INSERT INTO item_section (ord, sid) VALUES (${ord}, ${ord + 1});` +
     aliases.map((a) => `INSERT INTO alias (item_id, alias, alias_key) VALUES (${esc(id)}, ${esc(a)}, ` +
-                       `${esc(searchKey(a))});`).join("")).join("\n");
+                       `${esc(stored(a))});`).join("")).join("\n");
   return makeBundleSource(openInMemory(SCHEMA, seed));
 }
 
@@ -67,9 +73,9 @@ function releaseStore(): RegsSource {
   const core = make("core"), near = make("near");
   WATERS.forEach(([id, name, kind, aliases], ord) => {
     core.prepare("INSERT INTO item (ord, item_id, name, kind, name_key, pieces) VALUES (?, ?, ?, ?, ?, 1)")
-      .run(ord, id, name, kind, searchKey(name));
+      .run(ord, id, name, kind, stored(name));
     for (const a of aliases)
-      core.prepare("INSERT INTO alias (item_id, alias, alias_key) VALUES (?, ?, ?)").run(id, a, searchKey(a));
+      core.prepare("INSERT INTO alias (item_id, alias, alias_key) VALUES (?, ?, ?)").run(id, a, stored(a));
   });
   const H = "d768d6e135e62b99";
   const manifest = parseManifest({
@@ -117,6 +123,14 @@ for (const [reader, store] of READERS) {
         .toEqual([["gnis:9", "Doré Creek"]]);
     });
 
+    it("a water stored with no key (NULL: its key is its lower case) is found through lower(name), alias too", async () => {
+      const s = store();
+      for (const q of ["mabel", "MABEL LAKE"])
+        expect((await s.searchNames(q, 10)).map((h) => [h.item, h.matchedAs])).toEqual([["wbk:10", null]]);
+      expect((await s.searchNames("mable", 10)).map((h) => [h.item, h.matchedAs])).toEqual([["wbk:10", "Mable Lake"]]);
+      expect((await s.searchNames("barrie creek", 10)).map((h) => h.item)).toEqual(["gnis:8"]);
+    });
+
     it("a query whose key is under two characters answers nothing (\"''\" would otherwise be LIKE '%%')", async () => {
       expect(await store().searchNames("''", 10)).toEqual([]);
       expect(await store().searchNames("é'", 10)).toEqual([]);
@@ -136,8 +150,8 @@ describe("one search key — the pin (no second copy)", () => {
   it("both SEARCH forms filter on the stored keys, in both halves of the union", () => {
     for (const sql of [Q.SEARCH, R.SEARCH]) {
       expect(sql).not.toMatch(/\b(?:name|alias)\s+LIKE\b/);
-      expect(sql).toContain("i.name_key LIKE '%' || ?1 || '%'");
-      expect(sql).toContain("a.alias_key LIKE '%' || ?1 || '%'");
+      expect(sql).toContain("COALESCE(i.name_key, lower(i.name)) LIKE '%' || ?1 || '%'");
+      expect(sql).toContain("COALESCE(a.alias_key, lower(a.alias)) LIKE '%' || ?1 || '%'");
     }
   });
 

@@ -33,7 +33,8 @@ FILES = {
     "lakes": {"format": LF.FORMAT, "kind": "bin", "tables": {}},
     "core": {"format": "core/1", "kind": "sqlite", "tables": {
         # `name_key` / `alias_key` (T114): what the app's SEARCH filters on (`@app/core` `searchKey` of the query). The
-        # app's search NEEDS them: a core without them fails every water search, so ship it with the app that reads it
+        # app's search NEEDS them: a core without them fails every water search, so ship it with the app that reads it.
+        # Stored thin (`pipeline.common.search_key.stored_key`): NULL where COALESCE(key, lower(name)) already is it
         "alias": ["item_id", "alias", "alias_key"],
         "item": ["ord", "item_id", "name", "kind", "part_of", "area_ha", "name_key", "size", "gauged", "has_rows",
                  "pieces"],

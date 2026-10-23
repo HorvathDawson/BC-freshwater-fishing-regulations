@@ -29,3 +29,15 @@ def search_key(text: str) -> str:
     folded = _MARKS.sub("", unicodedata.normalize("NFD", text or ""))
     # every JS whitespace run is one " " after the sub, so stripping " " is JS's trim()
     return _WS.sub(" ", _APOSTROPHES.sub("", folded.lower())).strip(" ")
+
+
+def stored_key(text: str) -> str | None:
+    """What the bundle STORES in `name_key` / `alias_key` (T114, core size gate): the search key, or NULL where the
+    reader's fallback already gives it. The reader's key is `COALESCE(name_key, lower(name))` (`@app/data`
+    `NAME_KEY` / `ALIAS_KEY`), so a key is left out only for an ASCII text whose key IS its ASCII lower case — SQLite's
+    `lower()` is exact there with or without ICU. 99% of BC names ("Mabel Lake") store NULL; "Barrière Lake", "Children's
+    Fishing Pond", a doubled space all store their key. Still ONE rule: the fallback is never a different match, and
+    `test_release.py::test_every_cores_effective_key_is_the_search_key` holds every row of a built core to
+    `search_key`."""
+    key = search_key(text)
+    return None if text.isascii() and key == text.lower() else key
