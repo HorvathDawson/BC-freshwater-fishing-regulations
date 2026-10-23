@@ -13,7 +13,7 @@
  * the colours are the spot tokens (`palette.spot`, gated in theme.test.ts). One button, which says what a tap does.
  */
 import { Pressable, Text, View } from "react-native";
-import { SPOT_PIN, type SpotMarker } from "@app/core";
+import { SPOT_PIN, spotFace, type SpotMarker } from "@app/core";
 import { Icon } from "./icons";
 import { FACE } from "./type";
 import type { Palette } from "./theme";
@@ -22,7 +22,7 @@ const FRAME = 2;
 
 export function SpotPin({ m, palette, press }: { m: SpotMarker; palette: Palette; press: () => void }) {
   const { mark, ground } = palette.spot;
-  const size = m.selected ? SPOT_PIN.selectedFace : SPOT_PIN.face;
+  const size = spotFace(m);
   const fill = m.selected ? mark : ground, ink = m.selected ? ground : mark;
   const square = { width: size, height: size, borderWidth: FRAME, borderColor: mark, borderRadius: palette.r.chip };
   return (

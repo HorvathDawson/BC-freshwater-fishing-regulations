@@ -71,6 +71,12 @@ export interface SpotMarker {
   a11y: string;
 }
 
+/** The face a mark is drawn at, px: the selected one larger. The ONE size — names are placed against it here, and
+ *  `SpotPin` draws it. */
+export function spotFace(m: Pick<SpotMarker, "selected">): number {
+  return m.selected ? SPOT_PIN.selectedFace : SPOT_PIN.face;
+}
+
 /** Web Mercator pixels at `zoom`, 512 px tiles. */
 function px(p: { lat: number; lon: number }, zoom: number): [number, number] {
   const world = 512 * 2 ** zoom;
@@ -121,8 +127,10 @@ export function spotMarkers(points: readonly SpotPoint[], zoom: number, selected
   if (zoom < SPOT_PIN.labelZoom) return marks;
 
   // NAMES, the selected first: each above its face, kept only where it crosses no name kept and no other face
-  const half = SPOT_PIN.face / 2;
-  const faces: Box[] = marks.map((m) => { const [x, y] = px(m, zoom); return [x - half, y - half, x + half, y + half]; });
+  const faces: Box[] = marks.map((m) => {
+    const [x, y] = px(m, zoom), half = spotFace(m) / 2;
+    return [x - half, y - half, x + half, y + half];
+  });
   const kept: Box[] = [];
   const order = marks.map((_, i) => i).sort((a, b) => Number(marks[b]!.selected) - Number(marks[a]!.selected) || a - b);
   for (const i of order) {
@@ -131,7 +139,7 @@ export function spotMarkers(points: readonly SpotPoint[], zoom: number, selected
     const title = sorted.find((p) => p.id === m.ids[0])!.title;
     const [x, y] = px(m, zoom);
     const w = labelWidth(title);
-    const bottom = y - half - SPOT_PIN.labelGap;
+    const bottom = y - spotFace(m) / 2 - SPOT_PIN.labelGap;
     const box: Box = [x - w / 2, bottom - LABEL_HEIGHT, x + w / 2, bottom];
     if (kept.some((k) => crosses(k, box)) || faces.some((f, j) => j !== i && crosses(f, box))) continue;
     kept.push(box);

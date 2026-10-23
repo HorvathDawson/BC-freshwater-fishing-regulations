@@ -4,7 +4,8 @@
  */
 import { describe, expect, it } from "vitest";
 import { CAMERA_MAX_ZOOM } from "./ladder";
-import { SPOT_PIN, SPOT_PIN_WORDS, spotBack, spotMarkers, spotPress, type SpotMarker, type SpotPoint } from "./spotPins";
+import { SPOT_PIN, SPOT_PIN_WORDS, spotBack, spotFace, spotMarkers, spotPress, type SpotMarker,
+         type SpotPoint } from "./spotPins";
 
 const TAMIHI: SpotPoint = { id: "s1", lat: 49.0974, lon: -121.9675, title: "Tamihi run" };
 const VEDDER: SpotPoint = { id: "s2", lat: 49.1, lon: -122.0, title: "Vedder River" };
@@ -71,6 +72,23 @@ describe("spotMarkers", () => {
     const b: SpotPoint = { id: "b", lat: 49.5, lon: -122 + 60 / (512 * 2 ** 12) * 360, title: "Lower canyon pool" };
     expect([spotMarkers([a, b], 12, null).map((m) => m.label), spotMarkers([a, b], 12, "b").map((m) => m.label)])
       .toEqual([["Upper canyon pool", null], [null, "Lower canyon pool"]]);
+  });
+
+  it("THE SELECTED FACE IS ITS DRAWN SIZE: a name that would cross the selected (larger) face is dropped, one that " +
+     "would cross only a plain face's size is not mistaken for clear; and spotFace is the size each is drawn at", () => {
+    // N sits 59.5 px straight below S at z12 (two marks). N's name (22 px tall, 21 px above N) tops out 16.5 px below
+    // S's centre — inside the selected 36 px face (18), outside a plain 30 px one (15).
+    const z = 12, world = 512 * 2 ** z;
+    const at = (x: number, y: number) => ({
+      lon: (x / world) * 360 - 180,
+      lat: (Math.atan(Math.sinh(Math.PI * (1 - (2 * y) / world))) * 180) / Math.PI });
+    const x0 = world * 0.16, y0 = world * 0.35;
+    const s: SpotPoint = { id: "a", ...at(x0, y0), title: "S" };
+    const n: SpotPoint = { id: "b", ...at(x0, y0 + 59.5), title: "A name long enough to sit over S" };
+    const [plainS] = spotMarkers([s, n], z, null), [selS] = spotMarkers([s, n], z, "a");
+    expect([spotMarkers([s, n], z, null).map((m) => m.label), spotMarkers([s, n], z, "a").map((m) => m.label),
+            spotFace(plainS!), spotFace(selS!)])
+      .toEqual([["S", n.title], ["S", null], SPOT_PIN.face, SPOT_PIN.selectedFace]);
   });
 
   it("a long name is the label whole (the face clips nothing); none at all for no spots", () => {

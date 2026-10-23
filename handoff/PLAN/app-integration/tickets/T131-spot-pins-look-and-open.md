@@ -1,6 +1,6 @@
 # T131 — Spot pins on the map: look better, and tap to open the spot
 
-Status: DONE — 0cc5ea09 (lane wf_58c33d34-a73-2; shots in handoff/PLAN/app-integration/T131-shots/; native drawn by
+Status: DONE — 0cc5ea09, review fix (selected face size, spotFace) (lane wf_58c33d34-a73-2; shots in handoff/PLAN/app-integration/T131-shots/; native drawn by
 the same code but not run on a device: rides T50). Owner 2026-10-22: "make spots on the map a) look better and b)
 clickable to open the spot."
 
@@ -24,6 +24,11 @@ clickable to open the spot."
   water's map). Default: the list; alternative: fan them out.
 - Q-T131-3 A spot opened from a water's map sits over the water (back returns to it) and its tab bar leaves the water for
   that tab. Default: as built.
+- Q-T131-4 (review) The selected spot's name is dropped when a neighbouring face sits where it would go (seen on the
+  desktop shot: "Vedder Crossing pool" named, the selected "Tamihi run" not). Place a blocked name below its face
+  instead? Default: dropped, as for any name.
+- Q-T131-5 (review) On the Conditions map a spot pin sits over a gauge's reading pill and hides part of it (the pin
+  wins the tap). Default: as built; alternative: offset the pill or draw spots under gauge pills.
 
 ## Today
 Saved spots are drawn as accent pins on every map since the Spots switch (Layers; useLayerChoice / spotPins in
