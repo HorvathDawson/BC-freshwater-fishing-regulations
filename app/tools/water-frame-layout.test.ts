@@ -16,7 +16,7 @@
  *
  * Only the map canvas is replaced (no WebGL here): a plain box with no words, so it cannot move "left".
  */
-import "./render-setup.ts";   // the render project's setup (the stale render-setup.js beside it would win the bare name)
+import "./render-setup.ts";   // the render project's setup
 import { createElement as h, type ReactNode } from "react";
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
