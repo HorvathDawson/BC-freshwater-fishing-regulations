@@ -15,8 +15,6 @@ with the default Claude uses until you answer). Newest first inside each section
   ditch-only lines as the river), Q2 (leave automatic confluence cuts out), Q4 (cap the cut-line length; suggested no).
 
 ## Reviews
-- **Q55 / T54 — release size.** With the no-access file the release is ~82 KB under its 14 MB limit (private land
-  is 168 KB of it); a future lakes file would cross it. Raise the limit or drop private land from the note?
 - **Q53 / T102 — tributary walk order guard.** Your "order only where a code is missing" would switch it off (every live
   edge has a code; 28,359 same-code floodplain/braid edges rely on it). Default built: code decides parent/child, order
   still decides equal or unrelated codes.

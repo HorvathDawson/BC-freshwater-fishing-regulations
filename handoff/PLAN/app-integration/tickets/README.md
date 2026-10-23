@@ -240,7 +240,6 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q52 | T80 | Spot photo picker: arm the fallback only where cancel is unsupported? | as built | owner |
 | Q53 | T102 | Order (Strahler) guard: only where a code is missing (= off entirely: no live edge lacks a code), or also on equal/unrelated codes (28,359 equal-code floodplain/braid edges depend on it)? | keep it on equal/unrelated codes; code decides parent/child | owner |
 | Q54 | T54 | Fourth colour per theme is a recorded compromise (dark ochre 12.7 from closed as a thin line; colour-blind mauve 3.1 from the grey boundary line) — keep? | keep | owner |
-| Q55 | T54 | Release total is ~82 KB under its 14 MB gate after `access` (private land 168 KB of it); a future `lakes` file would cross it — raise the gate or drop private land from the note? | ship as built; decide before lakes ship | owner |
 | Q56 | T51 | "Like your visit?": today + 4 days, or +1..+5? | today + 4 | owner |
 | Q57 | T51 | Similarity weights: flow 45 %, air 20 %, rain before 20 %, wind 10 %, cloud 5 % — right? | as built | owner |
 | Q58 | T68 | `update-hydat.sh --stations <file>` copies the refreshed default roster over that file — ok? | as built | owner |
@@ -254,6 +253,7 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q66 | T120 | The app decides the leading origin again (core regs/card.ts mainRes) — should the pipeline ship it per fish? | fold into T125 (cleanup) | owner |
 
 ### Answered (recently, for the record)
+- Q55 (release size) — owner 2026-10-22: "we can raise the size limit". TOTAL_GATE 14,000,000 → 15,000,000 B gzip (pipeline/deliver/release/build.py); private land stays in the access file.
 - Q33 (the 5 gate-failing entries) — settled by T96: four were a gate bug (province-wide rule holds a region lift), Shuswap 3-26 quotes its whole printed line.
 - Delegated calls Q8, Q11, Q12, Q14–Q23, Q25 — decided by Claude (owner call 11), decisions.md 'CLAUDE 2026-10-22 (T81)'; the owner reads the record.
 - Palette D stands (T47 part 3) — decisions.md 2026-10-22.

@@ -47,7 +47,7 @@ FORMATS = {"paint": PAINT.FORMAT, "flow-area": PAINT.AREA_FORMAT, "access": PAIN
            "conditions": "conditions/1", "lakes": LF.FORMAT, **{f"regs-{r}": "regs-region/1" for r in SH.REGIONS}}
 #: the gzip size gates (MINIMAL-PACKAGING §2; P08 test 7)
 SIZE_GATES = {"paint": 1_000_000, "access": 300_000, "core": 1_300_000, "lakes": 100_000,**{f"regs-{r}": 1_500_000 for r in SH.REGIONS}}
-TOTAL_GATE = 14_000_000
+TOTAL_GATE = 15_000_000  # owner 2026-10-22 (Q55): raised from 14,000,000 — room for T128 wording + the lakes file
 
 CORE_TABLES = ("item", "alias", "item_alias", "item_section", "place", "see_pointer")
 NEAR_TABLES = ("place_water",)

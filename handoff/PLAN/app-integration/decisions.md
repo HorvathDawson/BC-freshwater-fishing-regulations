@@ -907,3 +907,7 @@ Undo for any straggler: say which; each is one component's change, and the ticke
   up to 1 a day per angler") also says "Of your 1 trout and char a day, up to 1 may be …" — keep, or name nothing when the
   kind's number equals the total? Default: keep (one rule everywhere). T128-Qb — bump the rows section version (32 → 33)
   for the wording? Default: no (shape unchanged; the app reads the words whatever they say).
+
+## OWNER 2026-10-22 (late) — release size limit raised (Q55)
+- "we can raise the size limit". The release total gate goes 14,000,000 → 15,000,000 B gzip (TOTAL_GATE,
+  pipeline/deliver/release/build.py). Private land stays in the access file. Per-file gates unchanged.
