@@ -32,6 +32,16 @@ consistent and then remove your added check?" — Yes:
   order guard first again → the code-wins case fails.
 - Reach rerun into a side dir + per-rule binding diff; list every rule that moves, with names and why, before promoting.
 
+## Part B — one entry check, used everywhere (owner 2026-10-22)
+"Then we could make the check logic (with the edge type check etc) a single function used in multiple spots."
+- After part A lands: gather every acceptance rule the walk and the seeding apply — parent code (WSC), edge type,
+  the order fallback, the entry's own water, barriers, lakes, code_runs, within-area — into ONE function
+  (e.g. `may_enter(src, dst, reach) -> reason | None`) in tributaries.py, and call it at every step of the walk, at
+  every seed, and from any other place that re-implements a subset (find them: the T57 sweep tool's checks, panels'
+  tributary-ish walks, reach extent code). Each refusal returns a named reason, so diagnostics read one vocabulary.
+- Pure refactor: the reach binding diff against part A's output must be EMPTY (proof of no behaviour change). A test
+  asserts no other module re-implements the rules (a grep pin, like the one-pathway checks).
+
 ## Acceptance
 Binding diff reviewed; 0 sections of a receiving river (by code) bound by any tributary walk; tests pinned.
 Rebuild: reach + deliver, no atlas.
