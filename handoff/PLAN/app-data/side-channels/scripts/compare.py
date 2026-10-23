@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, ".")
-from pipeline.atlas.gauges.panel import Contribution, answering  # noqa: E402
+from pipeline.atlas.gauges.panel import Contribution, answering, reserve_at  # noqa: E402
 
 MAIN = Path("/Users/dawson.horvath/dev/personal/BC-freshwater-fishing-regulations")
 BUNDLE = MAIN / "data/generated/bundle/bundle.sqlite"
@@ -34,11 +34,11 @@ def reading(row):
 def estimate(members, target, idx):
     """-> (percentile 0..100 | None, why, [(station, share of answer)])."""
     cs, sts = [], []
-    for st, role, area, years, _reg, same in members or ():
+    for rank, (st, role, area, years, _reg, same) in enumerate(members or ()):
         p = reading(idx.get(st))
         if p is None:
             continue
-        cs.append(Contribution(p, role, area, years, bool(same)))
+        cs.append(Contribution(p, role, area, years, bool(same), reserve=reserve_at(rank)))
         sts.append(st)
     got, _stood = answering(target, cs)
     if not got["ok"]:

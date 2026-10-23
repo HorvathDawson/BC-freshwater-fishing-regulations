@@ -15,7 +15,7 @@ import sqlite3
 import sys
 
 sys.path.insert(0, ".")
-from pipeline.atlas.gauges.panel import Contribution, answering  # noqa: E402
+from pipeline.atlas.gauges.panel import Contribution, answering, reserve_at  # noqa: E402
 
 MAIN = "/Users/dawson.horvath/dev/personal/BC-freshwater-fishing-regulations"
 BUNDLE = MAIN + "/data/generated/bundle/bundle.sqlite"
@@ -38,12 +38,12 @@ def estimate(entry, idx, q):
         return None, "no-panel", []
     members, target = entry
     cs, sts = [], []
-    for m in members or ():
+    for rank, m in enumerate(members or ()):
         st, role, area, years, _reg, same = m[:6]
         p = reading(idx.get(st), q)
         if p is None:
             continue
-        cs.append(Contribution(p, role, area, years, bool(same), m[6] if len(m) > 6 else 0))
+        cs.append(Contribution(p, role, area, years, bool(same), m[6] if len(m) > 6 else 0, reserve_at(rank)))
         sts.append(st)
     got, _stood = answering(target, cs)
     if not got["ok"]:

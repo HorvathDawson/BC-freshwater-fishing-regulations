@@ -20,7 +20,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, ".")
-from pipeline.atlas.gauges.panel import CORE_MEMBERS, Contribution, answering, weight_of  # noqa: E402
+from pipeline.atlas.gauges.panel import Contribution, answering, reserve_at, weight_of  # noqa: E402
 from pipeline.deliver.release import build as RB  # noqa: E402
 from pipeline.deliver.release import paint as PAINT  # noqa: E402
 from pipeline.gauges.feed.publish import listed_stations, roster_drift  # noqa: E402
@@ -52,7 +52,7 @@ def estimate(members, target, idx, q, drop=None):
         p = reading(idx.get(st), q)
         if st == drop or p is None:
             continue
-        cs.append(Contribution(p, role, area, years, bool(same), lead, rank >= CORE_MEMBERS))
+        cs.append(Contribution(p, role, area, years, bool(same), lead, reserve_at(rank)))
         sts.append(st)
     got, _stood = answering(target, cs)
     if not got["ok"]:

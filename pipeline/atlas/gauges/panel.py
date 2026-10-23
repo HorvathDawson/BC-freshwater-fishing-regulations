@@ -178,6 +178,13 @@ MEMBERS_PER_QUANTITY = 8
 #: panels' answers are unchanged. app/tools/trust-ladder.test.ts holds the app's number equal to this one.
 CORE_MEMBERS = 4
 
+
+def reserve_at(rank: int) -> bool:
+    """Is the member at this panel rank (0-based, the panel's own order, counted before any silent member is skipped)
+    a RESERVE member — the app's `contributionsOf` (app/packages/data/src/panel.ts: `i >= CORE_MEMBERS`). The handoff
+    evaluation scripts mark their `Contribution`s with it, so `answering` stands the same members back as the app."""
+    return rank >= CORE_MEMBERS
+
 #: How close two catchments must be before a REGULATED station may speak.
 #:
 #: The regulation gate is right about TRANSFER and wrong about measurement, and the two were

@@ -14,7 +14,7 @@ import sqlite3
 import sys
 
 sys.path.insert(0, ".")
-from pipeline.atlas.gauges.panel import Contribution, answering  # noqa: E402
+from pipeline.atlas.gauges.panel import Contribution, answering, reserve_at  # noqa: E402
 
 MAIN = "/Users/dawson.horvath/dev/personal/BC-freshwater-fishing-regulations"
 BUNDLE = MAIN + "/data/generated/bundle/bundle.sqlite"
@@ -34,11 +34,12 @@ def reading(row, q):
 def estimate(members, target, idx, q, lead_station=None, lead_share=0.7):
     """-> (percentile 0..100 | None, why, [(station, share)]); `lead_station` leads (rank 1) with `lead_share`."""
     cs, sts = [], []
-    for st, role, area, years, _reg, same in members or ():
+    for rank, (st, role, area, years, _reg, same) in enumerate(members or ()):
         p = reading(idx.get(st), q)
         if p is None:
             continue
-        cs.append(Contribution(p, role, area, years, bool(same), 1 if st == lead_station else 0))
+        cs.append(Contribution(p, role, area, years, bool(same), 1 if st == lead_station else 0,
+                               reserve_at(rank)))
         sts.append(st)
     got, _stood = answering(target, cs, own_share=lead_share)
     if not got["ok"]:

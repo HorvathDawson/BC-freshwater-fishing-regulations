@@ -239,3 +239,22 @@ def test_no_evaluation_script_rolls_its_own_combine():
     for p in users:
         src = p.read_text()
         assert "answering" in src or re.search(r"^from (compare|evaluate) import", src, re.M), p.relative_to(root)
+
+
+def test_every_evaluation_script_marks_the_reserve_as_the_app_does():
+    """The app's `contributionsOf` (app/packages/data/src/panel.ts) marks a member past `CORE_MEMBERS` by panel rank
+    as reserve, and `answering` stands it back. Adversarial review (T125 item 7): three of the four scripts built their
+    `Contribution`s with no reserve flag, so on a panel of five or more their "app's answer" kept a reserve member the
+    app stands back. Every script that builds a `Contribution` asks `reserve_at` (mutation: drop it from one)."""
+    from pathlib import Path
+    from pipeline.atlas.gauges.panel import CORE_MEMBERS, reserve_at
+    assert [reserve_at(i) for i in range(CORE_MEMBERS + 2)] == [False] * CORE_MEMBERS + [True, True]
+    repo = Path(__file__).resolve().parents[2]
+    ts = (repo / "app/packages/data/src/panel.ts").read_text()
+    assert "i >= CORE_MEMBERS ? { reserve: true }" in ts            # the rule reserve_at mirrors
+    builders = [p for p in sorted((repo / "handoff/PLAN/app-data").rglob("scripts/*.py"))
+                if "Contribution(" in p.read_text()]
+    assert len(builders) == 4
+    for p in builders:
+        calls = re.findall(r"Contribution\((?:[^()]|\([^()]*\))*\)", p.read_text())
+        assert calls and all("reserve_at(" in c for c in calls), (p.name, calls)
