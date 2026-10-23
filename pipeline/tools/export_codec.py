@@ -21,7 +21,8 @@ WHAT CHANGES ON THE WIRE (Phase 4, `FREV/export.md` C0..C-G):
   · a rule set's members are INTEGER indexes into `rules`; its zone/province members are one
     interned `bases[i]` (C-A2); a licensing set's members index `licensing`;
   · a rule drops `id`/`entry_id`/`rule_id` (the parallel id), `family` (`codec.family_of_type`),
-    `provenance.entry_name` (its entry's `name`), `provenance.rank` (`codec.rank`) and
+    `provenance.entry_name` (its entry's `name`), `provenance.region` (`entry_id.region_of`), `provenance.rank`
+    (`codec.rank`) and
     `provenance.who` where `who_default` says it (C-C) — `label` and `verbatim` stay;
   · an entry drops `chapter` (its id's prefix), `rules` / `licensing` (the ids that start with
     `<entry_id>::` / `<entry_id>#`) and its empty values (C-D);
@@ -124,7 +125,8 @@ ENCODING_TEXT = {
         "rules": "[rule], in `rule_ids` order (sorted by entry_id, then rule_id). A rule WITHOUT "
                  "`id` (= rule_ids[i]), `entry_id` / `rule_id` (its id split at the first '::'), "
                  "`family` (`codec.family_of_type[type]`), `provenance.entry_name` (its entry's "
-                 "`name`, \"\" when none), `provenance.rank` (`codec.rank[authority/binds_to]`), "
+                 "`name`, \"\" when none), `provenance.region` (its entry id's region, "
+                 "`entry_id.region_of`), `provenance.rank` (`codec.rank[authority/binds_to]`), "
                  "and `provenance.who` when it is `who_default`; provenance fields at their "
                  "default are absent: " + _defaults(PROVENANCE_DEFAULTS),
         "licensing_ids": "the string id `entry_id#record_id` of `licensing[i]`, sorted",
@@ -286,6 +288,8 @@ def compact(doc: dict, *, family_of_type: dict, rank: dict) -> tuple[dict, dict]
         p = dict(x["provenance"])
         if p.pop("entry_name") != (entries[eid]["name"] or ""):
             raise EncodeError(f"rule {k}: provenance.entry_name is not its entry's name")
+        if p.pop("region") != EID.region_of(eid):
+            raise EncodeError(f"rule {k}: provenance.region is not its entry id's region")
         if p.pop("rank") != rank.get(f"{p['authority']}/{p['binds_to']}"):
             raise EncodeError(f"rule {k}: rank is not codec.rank")
         if p["who"] == who_default(eid, p["authority"], p["binds_to"],
@@ -436,7 +440,8 @@ def expand(data: dict, guide: dict) -> dict:
         who = p.pop("who", None)
         if who is None:
             who = who_default(eid, p["authority"], p["binds_to"], name[eid])
-        prov = {"entry_name": name[eid], "authority": p["authority"], "binds_to": p["binds_to"],
+        prov = {"entry_name": name[eid], "region": EID.region_of(eid),
+                "authority": p["authority"], "binds_to": p["binds_to"],
                 "rank": rank[f"{p['authority']}/{p['binds_to']}"], "who": who,
                 **{a: b for a, b in p.items() if a not in ("authority", "binds_to")}}
         rules[k] = {"id": k, "entry_id": eid, "rule_id": rid, "type": x["type"],

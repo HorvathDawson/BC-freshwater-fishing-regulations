@@ -11,10 +11,19 @@ import { ruleView } from "./rules";
 import { BOOK } from "./testing/speciesBook";
 import { GEAR } from "./words";
 
+/** The rule as the store ships it: `prov.region` is the pipeline's parse of the entry id (`entry_id.region_of`, T109) —
+ * stated here as the export states it, never read off the id by the app. */
+const SHIPPED_REGION: Record<string, string | null> = {
+  "zp:g": null, "z2:s": "2", "zx:a": null, "z7:x": "7", "z6:x": "6", "z7b:x": "7b", "z7a:species_quotas": "7a" };
 const exp = (entry_id: string, rank: number, entry_name?: string): ExportRule => ({ entry_id, rule_id: "r1", type: "", family: "", label: "L",
-  verbatim: "", fields: {}, prov: { rank, ...(entry_name ? { entry_name } : {}) } });
-const rule = (entry_id: string, rank: number, entry_name?: string, via: "reach" | "trib" = "reach"): RuleView =>
-  ruleView(0, exp(entry_id, rank, entry_name), { kind: "gear", title: "", book: [], applies: "" } as RuleFacts, BOOK, via);
+  verbatim: "", fields: {}, prov: { rank, ...(entry_name ? { entry_name } : {}),
+    region: entry_id in SHIPPED_REGION ? SHIPPED_REGION[entry_id]! : null } });
+const rule = (entry_id: string, rank: number, entry_name?: string, via: "reach" | "trib" = "reach",
+  region?: string): RuleView => {
+  const e = exp(entry_id, rank, entry_name);
+  return ruleView(0, region === undefined ? e : { ...e, prov: { ...e.prov, region } },
+    { kind: "gear", title: "", book: [], applies: "" } as RuleFacts, BOOK, via);
+};
 
 describe("levelTag / ruleSub (page v36 levelTag, openRule's sub)", () => {
   it("names each rank, Region N from the rule's own entry id", () => {
@@ -41,7 +50,8 @@ describe("levelTag / ruleSub (page v36 levelTag, openRule's sub)", () => {
       ["z7b:single_barbless_hook", "Every stream in Zone B"], ["z7b:site_c_tagging", "Zone B"], ["z7b:species_quotas", "Zone B"],
       ["z7b:thin_ice", "Inga and Sundance lakes"], ["z7b:trout_char_quota", "Zone B"]];
     expect(ZONE7.length).toBe(23);
-    expect(ZONE7.map(([id, name]) => ruleSub(rule(id, 3, name)))).toEqual([
+    // what the pipeline ships for these ids (`entry_id.region_of`): the zone letter
+    expect(ZONE7.map(([id, name]) => ruleSub(rule(id, 3, name, "reach", id.slice(1, 3))))).toEqual([
       "Region 7A rule · Every stream in Zone A", "Region 7A rule · Lakes of Zone A", "Region 7A rule · Zone A",
       "Region 7A rule · Upper Fraser and Nechako", "Region 7A rule · Lakes of Zone A", "Region 7A rule · Every stream in Zone A",
       "Region 7A rule · Zone A", "Region 7A rule · Every stream in Zone A", "Region 7A rule · Lakes of Zone A", "Region 7A rule · Zone A",
@@ -53,6 +63,12 @@ describe("levelTag / ruleSub (page v36 levelTag, openRule's sub)", () => {
     expect([levelWord(rule("z7a:species_quotas", 3, "Zone A")), ruleSub(rule("z7b:x", 3, "Region 7B")), levelTag(rule("z7:x", 3)),
       levelTag(rule("z6:x", 3)), levelTag(rule("zp:g", 3))])
       .toEqual(["Region 7A", "Region 7B", "Region 7 rule", "Region 6 rule", "Region rule"]);
+  });
+  it("reads the region the pipeline shipped, never the entry id (T109)", () => {
+    // MUTATION: a levelTag that parses the id again says "Region 7A rule" for the first and "Region rule" for the second
+    expect([levelTag(rule("z7a:x", 3, undefined, "reach", "7b")), levelTag(rule("zp:odd", 3, undefined, "reach", "5"))])
+      .toEqual(["Region 7B rule", "Region 5 rule"]);
+    expect(levelTag(rule("z7a:x", 3, undefined, "reach"))).toBe("Region rule");      // nothing shipped: no region named
   });
   it("there is one levelTag in the barrel and one set of level words", () => {
     expect(regs.levelTag).toBe(levelTag);

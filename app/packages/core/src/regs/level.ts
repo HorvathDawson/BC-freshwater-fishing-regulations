@@ -5,12 +5,14 @@
 import type { RuleView } from "./inputs";
 import { WORDS } from "./words";
 
-/** page v36 levelTag over the part's view (`r.rank`, the rule's own entry id for the region number). A zone row's id names
- * its lettered zone (`z7a:` → "Region 7A rule", T109), as Python's region words do. */
+/** page v36 levelTag over the part's view (`r.rank`, and the region the pipeline parsed from the rule's entry id,
+ * `prov.region`: `z7a:` → "7a" → "Region 7A rule", T109). The app never reads an entry id itself: the region is shipped
+ * (export `provenance.region`, `pipeline.common.entry_id.region_of`), so a lettered zone and Python's region words
+ * cannot disagree. No region shipped → "Region rule". */
 export function levelTag(r: RuleView): string {
   const k = r.rank;
   if (k === 4) return WORDS.LEVEL_TAG_BC;
-  if (k === 3) { const m = /^z(\d+[a-z]?):/.exec(r.export.entry_id || ""); return m ? WORDS.LEVEL_TAG_REGION(m[1]!.toUpperCase()) : WORDS.LEVEL_TAG_REGION_ANY; }
+  if (k === 3) { const reg = r.export.prov?.region; return reg ? WORDS.LEVEL_TAG_REGION(reg.toUpperCase()) : WORDS.LEVEL_TAG_REGION_ANY; }
   if (k === 2) return WORDS.LEVEL_TAG_AREA;
   if (k === 1) return WORDS.LEVEL_TAG_DOWN;
   if (k === -1) return WORDS.LEVEL_TAG_FED;

@@ -137,11 +137,36 @@ def test_no_entry_id_is_parsed_outside_entry_id_py():
     assert hits == [], "parse entry ids with pipeline.common.entry_id, not inline: " + ", ".join(hits)
 
 
-def test_one_ts_reader_of_an_entry_id_region():
-    """The app reads an entry id's region in one place (level.ts); nothing else regexes an id."""
+def test_no_ts_reader_of_an_entry_id_region():
+    """T109 (left item, done): the export ships the parsed region (`provenance.region`, `entry_id.region_of`) and the
+    store carries it (`store.common.RULE_PROV_KEEP`), so the app reads NO entry id — level.ts, which held the last
+    regex, reads `prov.region`. No second copy: nothing in the app regexes or prefix-tests an entry id (mutation: put
+    level.ts's `/^z(\\d+[a-z]?):/.exec(r.export.entry_id …)` back and this fails)."""
     app = ROOT / "app/packages"
     assert app.is_dir()
-    pat = re.compile(r"/\^z\(|/\^r\(|entry_id[^;\n]{0,40}\.(startsWith|match)\(")
+    pat = re.compile(r"/\^z\(|/\^r\(|/\^zp|entry_id[^;\n]{0,40}\.(startsWith|match|exec|test)\(|\.exec\([^)]*entry_id")
     hits = sorted(p.relative_to(ROOT).as_posix() for p in app.rglob("*.ts")
                   if "node_modules" not in p.parts and not p.name.endswith(".test.ts") and pat.search(p.read_text()))
-    assert hits == ["app/packages/core/src/regs/level.ts"]
+    assert hits == []
+    level = (app / "core/src/regs/level.ts").read_text()
+    assert "prov?.region" in level and "entry_id" not in level.split("export function levelTag", 1)[1].split("\n}", 1)[0]
+    assert pat.search('const m = /^z(\\d+[a-z]?):/.exec(r.export.entry_id || "");')
+
+
+def test_the_export_and_the_store_ship_the_parsed_region():
+    """The region the app shows is the pipeline's parse, carried end to end: the export's rule provenance
+    (`export_ui_rules`), the codec (dropped on the wire as derivable, refilled by `expand` from the same function) and
+    the store's rule blob."""
+    from pipeline.deliver.store import common as SC
+    from pipeline.tools import export_codec as K
+    from pipeline.tools import export_ui_rules as X
+    import inspect
+    assert "region" in SC.RULE_PROV_KEEP and "region" in X.PROVENANCE_TEXT
+    assert '"region": EID.region_of(r["entry_id"])' in inspect.getsource(X)
+    assert [EID.region_of(e) for e in ("z7a:x", "z7b:x", "z5:x", "r6:x@6-1", "r7:w@7-30", "zp:x")] == \
+        ["7a", "7b", "5", "6", "7", None]
+    src = inspect.getsource(K)
+    assert 'p.pop("region") != EID.region_of(eid)' in src and '"region": EID.region_of(eid)' in src
+    rule = {"id": "z7a:q::q.r1", "entry_id": "z7a:q", "rule_id": "q.r1"}
+    assert SC.rule_words({**rule, "provenance": {"rank": 3, "region": "7a", "entry_name": "Zone A"}})["prov"] == \
+        {"rank": 3, "entry_name": "Zone A", "region": "7a"}

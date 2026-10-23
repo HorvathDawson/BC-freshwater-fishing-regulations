@@ -91,7 +91,7 @@ export interface RuleIndex { get(rix: number): RuleView; has(rix: number): boole
    *  naming a rule the store lacks opens nothing). Optional so hand-built test indexes need not carry it. */
   byKey?(key: RuleKey): RuleView | null }
 
-export interface ExportRule { entry_id: string; rule_id: string; type: string; family: string; label: string; verbatim: string; fields: Record<string, unknown>; parts?: Record<string, string>; prov: { rank: number; entry_name?: string; who?: string; uncertain?: boolean; why?: string | null }; dimension?: string; binds?: string }
+export interface ExportRule { entry_id: string; rule_id: string; type: string; family: string; label: string; verbatim: string; fields: Record<string, unknown>; parts?: Record<string, string>; prov: { rank: number; entry_name?: string; region?: string | null; who?: string; uncertain?: boolean; why?: string | null }; dimension?: string; binds?: string }
 
 export interface Statics {
   glossary: { version: number; terms: readonly GlossaryTerm[] };

@@ -205,6 +205,7 @@ def _rule_record(r: dict, entry_name: str) -> dict:
         "fields": dict(sorted(fields.items())),
         "provenance": {
             "entry_name": entry_name,
+            "region": EID.region_of(r["entry_id"]),
             "authority": s.authority.value,
             "binds_to": s.scope.value,
             "rank": s.rank,
@@ -1623,6 +1624,9 @@ RECORD_TEXT = {
 
 PROVENANCE_TEXT = {
     "entry_name": "the entry's display name",
+    "region": "the book region its entry id names, lower case (`z7a:…` -> \"7a\", `r6:…` -> \"6\"; null for the "
+              "province's table): what a level tag says (\"Region 7A rule\"). Parsed once, by the pipeline "
+              "(`pipeline.common.entry_id.region_of`) — never read off the id again",
     "authority": "who wrote it: superior | province | region",
     "binds_to": "what it binds to: region (the region's standing table), area, water",
     "rank": "the ladder position derived from (authority, binds_to); smaller speaks first",

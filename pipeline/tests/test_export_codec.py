@@ -23,6 +23,7 @@ from pathlib import Path
 
 import pytest
 
+from pipeline.common import entry_id as EID
 from pipeline.tools import export_codec as K
 from pipeline.tools import export_ui_rules as X
 from pipeline.tests.conftest import need, BUNDLE_HINT, EXPORT_HINT
@@ -55,10 +56,11 @@ def _tiny() -> dict:
         return {"id": f"{e}::{r}", "entry_id": e, "rule_id": r, "type": typ, "family": fam,
                 "dimension": "daily", "label": "L", "parts": {"what": "L"}, "verbatim": "V",
                 "binds": "sections", "fields": {"extents": [{"op": "whole"}]},
-                "provenance": {"entry_name": NAMES[e], "authority": auth, "binds_to": to,
+                "provenance": {"entry_name": NAMES[e], "region": REGION[e], "authority": auth, "binds_to": to,
                                "rank": rank, "who": who, "scope": "section",
                                "uncertain": False, "why": None}, **kw}
     NAMES = {"r1:a": "A Lake", "z1:t": "Region 1", "zp:p": ""}
+    REGION = {"r1:a": "1", "z1:t": "1", "zp:p": None}             # what `entry_id.region_of` parses (T109)
     rules = {
         "r1:a::a.r1": rule("r1:a", "a.r1", "retention_limit", "retention", "region", "water",
                            "Region 1 · for this water (A Lake)", 0),
@@ -203,6 +205,7 @@ def _decode_from_the_dictionary(data: dict, guide: dict) -> dict:
         eid, sub = rid.split("::", 1)
         name = entries[eid]["name"] or ""
         p = {"uncertain": False, "why": None, **r["provenance"], "entry_name": name,
+             "region": EID.region_of(eid),       # "its entry id's region, `entry_id.region_of`"
              "rank": rank[f"{r['provenance']['authority']}/{r['provenance']['binds_to']}"]}
         if "who" not in p:              # the default applies only where `who` is absent
             p["who"] = who(eid, p["authority"], p["binds_to"], name)
