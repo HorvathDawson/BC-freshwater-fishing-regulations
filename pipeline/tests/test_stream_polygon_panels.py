@@ -42,7 +42,8 @@ def _nicomen():
         top ─▶ p_up ─▶ mid ─▶ p_low ─▶ foot          (all the slough; gauges on `top` and `foot`)
         lake ─▶ narrows ─▶ outlet                    (a TRUE lake item owning a line of its own, then a river)
 
-    `mid` sits between two polygons and is reached by neither gauge, as 59620 is on the real slough. `narrows` is a
+    `mid` sits between two UNSIZED polygons and is reached by neither gauge, as 59620 was on the real slough before
+    the walk went through polygons (T101; since then the slough's own gauges reach it — `_far_slough`). `narrows` is a
     line the LAKE item owns, answered by the river's gauge walking up — the case where only the water-kind gate keeps
     the lake's polygon off a flow answer.
     """
@@ -142,6 +143,70 @@ def test_the_water_kind_gate_is_what_holds_these_tests():
         "p_low": "foot", "p_up": "foot", "lake": "narrows"}
 
 
+# ------------------------------------------------------------------ a panel with no lead still answers
+#
+# T101 after deliver (2026-10-23): Nicomen Slough's 57 m connector 59620 (FWA 1410, not a side channel, so never
+# adopted by `mainstem_of`) is now reached by the slough's own gauges 08MH085/086 through the walked polygons, 17 km
+# from the section they stand on — past the own-gauge "far" limit, so they are members with `lead` 0. Its polygon takes
+# that answer. LEAD IS NOT "ANSWERS": `lead` only re-weights the votes (`panel.leader_of` / `lead_shares`, the app's
+# `leaderOf` / `leadShares`); with no leader a panel answers from its members' usual weights. Whether a member is LIVE
+# is read-time, from the feed (owner 2026-10-22, "chosen live") — the build never decides it. So the polygon pass takes
+# the nearest line of its own water with ANY panel, and never walks past one to a line whose gauge leads.
+
+def _far_slough():
+    """`top ─▶ p_up ─▶ mid ─▶ p_low ─▶ foot`, all the slough. The gauge stands on `foot`, a 16 km section, so `p_low`
+    and `mid` are its own water 16 km from it — too far to lead (`may_lead`, 10 km at this size). `p_low` is sized and
+    walked; `p_up` is unsized, so the walk stops there and only the polygon pass can answer it."""
+    nodes = [N("top", 100), poly("p_up"), N("mid", 100), N("p_low", 100, kind="lake"), N("foot", 100, length_m=16_000.0)]
+    edges = [E("top", "p_up"), E("p_up", "mid"), E("mid", "p_low"), E("p_low", "foot")]
+    water_of = {s: SLOUGH for s in ("top", "p_up", "mid", "p_low", "foot")}
+    return g(nodes, edges), water_of, [("FOOT", "foot", 40, False)]
+
+
+def _led(panels) -> dict[str, tuple[tuple[tuple[str, int], ...], float | None]]:
+    """`section -> ((station, lead), …), target area)` — the whole colour input with each member's lead rank."""
+    return {sec: (tuple((m.station, m.lead) for m in panels.members[pid]), area)
+            for sec, (pid, area) in panels.by_section.items()}
+
+
+def test_a_polygon_takes_its_own_line_whose_own_gauge_does_not_lead():
+    """Whole value. `mid` answers from its own slough's gauge without a lead, and `p_up` takes `mid` — the line
+    downstream of it — not `foot`, where the gauge leads 16 km further on. The owner's Q44 clause: "the side channel
+    and its own polygons still take their own gauge"."""
+    from pipeline.atlas.gauges.panel import lead_shares, leader_of
+
+    graph, water_of, donors = _far_slough()
+    panels = build(graph, MODEL, donors, water_of=water_of, kind_of=KINDS)
+    assert _led(panels) == {
+        "foot": ((("FOOT", 1),), 100.0),
+        "p_low": ((("FOOT", 0),), 100.0),
+        "mid": ((("FOOT", 0),), 100.0),
+        "p_up": ((("FOOT", 0),), 100.0),
+    }
+    assert panels.by_section["p_up"] == panels.by_section["mid"]
+    # And a panel with no leader answers: the usual weights, normalised (the app's `leadShares` is the mirror).
+    assert lead_shares([0.4], leader_of([0], [0.4])) == [1.0]
+
+
+def test_mutation_pin_lead_never_decides_whether_a_line_answers_its_polygon():
+    """MUTATION PIN: hand the polygon pass only the lines whose panel has a leading member ("no lead answers nothing")
+    and `p_up` walks past its own line to `foot`'s led panel — the wrong answer the needs_bundle test caught on 59620."""
+    src = textwrap.dedent(inspect.getsource(bp.build))
+    call = "stream_polygons(graph, water_of, kind_of, by_section)"
+    assert src.count(call) == 1, "the polygon pass's call moved; update this pin to match"
+    led_only = ("stream_polygons(graph, water_of, kind_of, "
+                "{s: v for s, v in by_section.items() if any(m.lead for m in members[v[0]])})")
+    ns = dict(vars(bp))
+    exec(compile(src.replace(call, led_only), bp.__file__, "exec"), ns)
+
+    graph, water_of, donors = _far_slough()
+    real = build(graph, MODEL, donors, water_of=water_of, kind_of=KINDS)
+    mutant = ns["build"](graph, MODEL, donors, water_of=water_of, kind_of=KINDS)
+    assert real.by_section["p_up"] == real.by_section["mid"]
+    assert _led(mutant)["p_up"] == ((("FOOT", 1),), 100.0)
+    assert mutant.by_section["p_up"] == mutant.by_section["foot"] != real.by_section["p_up"]
+
+
 # ------------------------------------------------------------------ on the real bundle
 
 def _bundle() -> Path:
@@ -165,8 +230,11 @@ def _stem(db, item_id):
 
 @pytest.mark.needs_bundle
 @pytest.mark.parametrize("item_id, want", [
-    # Nicomen Slough: four stem polygons; 1265716 walks on through the unpanelled 59620 and polygon 1453408 to 59619.
-    ("gnis:21105", {1453542: 59618, 1453408: 59619, 1265716: 59619, 1265712: 59621}),
+    # Nicomen Slough: four stem polygons, each the line just downstream. 1265716 takes the 57 m connector 59620 (FWA
+    # 1410, not adopted by `mainstem_of`), which since T101 answers from the slough's own gauges 08MH085/086 — members
+    # without a lead (17 km away), which still answer (`_far_slough`). Before T101 59620 was unpanelled and 1265716
+    # walked on to 59619 (the Fraser, by adoption).
+    ("gnis:21105", {1453542: 59618, 1453408: 59619, 1265716: 59620, 1265712: 59621}),
     # Vedder River: the Vedder Canal polygon (4.7 km) takes the line at the mouth.
     ("gnis:3062", {1957095: 313837}),
 ])

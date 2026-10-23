@@ -161,3 +161,42 @@ FOLLOW-UPS (not done here)
 - `lake_gauge_links` should refuse a stream item (latent route for a slough level gauge to the whole item).
 
 Verdict: MERGE (with the review fix). Ship steps unchanged; the numbers to diff against are unchanged.
+
+## After deliver — 2026-10-23
+Delivered bundle (data/generated/bundle/bundle.sqlite) matches the measurement exactly: 246,705 sections with a panel,
+Flow answered 246,060, Level answered 127,270 (a member reporting the quantity, `gauge_stats`).
+
+ONE needs_bundle failure, and the new answer is the RIGHT one — the test's expectation was stale, not the build.
+`test_nicomen_and_vedder_polygons_take_their_lines_answer_from_the_bundle[gnis:21105]`: polygon 1265716 now takes line
+59620 instead of 59619.
+- What 59620 is: a 57 m CONNECTOR of Nicomen Slough (FWA edge type 1410) between polygons 1265716 and 1453408. Not
+  1100/1350, so `mainstem_of` never adopts it; its neighbours 59619 (:16917) and 59621 (:18999) are side channels and
+  take the Fraser's answer by adoption. Before T101 the slough's polygons stopped the walk as "lake crossings" and 59620
+  was unpanelled, so the polygon walked on to 59619. Now the walk goes through the polygons and the slough's OWN gauges
+  08MH085/086 (level only, 1960-64) reach 59620 and 1265716 (17 km from section 59618 they stand on) as members with
+  `lead` 0 — past the own-gauge far limit (10 km at 207 km²). In the real build 1265716 gets that panel from its own
+  walk; the test's re-derivation from the lines alone gives the same.
+- Considered and REJECTED: "a panel with no lead answers nothing, so the polygon walks on". Lead is not "answers":
+  `lead` only re-weights votes (`panel.leader_of` / `lead_shares`, the app's `leaderOf` / `leadShares`); with no leader a
+  panel answers from its members' usual weights, and whether a member is live is read-time, from the feed (owner
+  2026-10-22, "chosen live"; no roster flag in the build). A build-side "answers" test would be a second copy of that
+  read-time decision. It would also hand the polygon the Fraser's answer while its own line beside it answers from
+  Nicomen's gauges — the disagreement the polygon passes exist to prevent.
+- The owner's rule decides it: "the side channel and its own polygons still take their own gauge" (Q44). 1265716 is
+  Nicomen Slough's own polygon and takes Nicomen's own gauges; level is local to the backwater. No lead-gate change is
+  needed: on 59620 and 1265716 both members ARE the own gauges, so leading would change no share.
+- In the app, today: 08MH085/086 have no live feed, so 59620, 1265716 and 59622 (:22415, also Nicomen-only) read grey
+  in Level and in Flow, between Fraser-coloured adopted pieces (59619, 59621, 1453408, 1265712). Base had the Fraser on
+  1265716 and creek gauges 100-400 km away on 59622.
+- Tests (pipeline/tests/test_stream_polygon_panels.py): expectation 1265716 -> 59620 with the stale comment fixed;
+  `test_a_polygon_takes_its_own_line_whose_own_gauge_does_not_lead` (whole value with lead ranks, and a no-lead panel's
+  shares sum to 1); `test_mutation_pin_lead_never_decides_whether_a_line_answers_its_polygon` (hand the polygon pass only
+  led panels and the polygon walks past its own line to the led one — must differ). No pipeline code changed, so no
+  re-deliver.
+
+OWNER FOLLOW-UP (folds into "Inward vs adoption" above, not done here): Nicomen's stem now alternates Fraser (adopted
+1100/1350 pieces) and Nicomen-own (the 1410 connector, its polygon, the top line). Two ways to make it one answer, both
+the owner's call: (a) adopt a side channel's connector pieces like its side-channel lines (the whole slough takes the
+Fraser, plus own gauges only where they lead), or (b) let a side channel's own gauges lead on all of its own water
+regardless of distance (a lead-gate change scoped to side channels' own gauges), so Level leads with Nicomen everywhere
+on the slough. Note 08MH085/086 are historical only (1960-64), so (b) changes nothing live today.
