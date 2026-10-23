@@ -38,8 +38,9 @@ import {
   Camera, GeoJSONSource, Map as MLMap, Marker, VectorSource,
   type CameraRef, type MapRef, type VectorSourceRef,
 } from "@maplibre/maplibre-react-native";
-import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, FIT_MAX_ZOOM, MIN_ZOOM, fitAtMost, padBbox, refineFit, type Bbox,
-         type SectionKey } from "@app/core";
+import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, FIT_MAX_ZOOM, MIN_ZOOM, SPOT_PIN, fitAtMost, padBbox, refineFit, spotMarkers,
+         type Bbox, type SectionKey } from "@app/core";
+import { pressSpot, spotsKey } from "./spots";
 import { baseAdapter } from "./adapters/contract";
 import { nativeRenderer } from "./adapters/native";
 import { mapChrome } from "./chrome";
@@ -65,7 +66,7 @@ type Data = NonNullable<MapProps["data"]>;
 
 export function Map({ at, theme, view, modes, groups, hide, show, initial, data, onPressFeature, chrome, onError,
                       onMoved, onMapPoint, onLongPress, highlight, water, marker, style, gauges, onVisible, pins, bare, fit,
-                      basemap, marks, onPressMark, onImageryError: _noTileErrors }: MapProps) {
+                      basemap, marks, onPressMark, spots, onImageryError: _noTileErrors }: MapProps) {
   // `onImageryError` is accepted and never called: the binding has no per-tile error event. A phone learns the imagery
   // is unreachable from `useImageryReach`'s probe instead (satellite is online-only, owner 2026-10-21).
   const adapter = useRef(baseAdapter("native"));
@@ -283,6 +284,10 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   }, []);
 
   const scale = metricScale(scaleAt.lat, scaleAt.zoom, SCALE_MAX_WIDTH);
+  const spotKey = spotsKey(spots?.points, spots?.selected ?? null);
+  const spotMarks = useMemo(() => (spots ? spotMarkers(spots.points, scaleAt.zoom, spots.selected) : []),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [spotKey, scaleAt.zoom]);
   return (
     <>
       <MLMap
@@ -322,6 +327,15 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
             <View style={dot(p.tone ?? furniture.accent, furniture.card, 12)} accessibilityLabel={p.title} />
           </Marker>
         ))}
+        {/* (T131) YOUR SPOTS: `spotMarkers` at the zoom the camera settled at, each the app's face in a 44 px box (a view
+            annotation: its press is the face's, never the map's) */}
+        {spots ? spotMarks.map((mk) => (
+          <Marker key={mk.key} id={mk.key} lngLat={[mk.lon, mk.lat]}>
+            <View style={{ width: SPOT_PIN.hit, height: SPOT_PIN.hit }}>
+              {spots.face(mk, () => pressSpot(mk, spots, (c, o) => renderer.easeTo(c, o)))}
+            </View>
+          </Marker>
+        )) : null}
         {/* THE BOUNDARY MARKS (P15): the web's `markElement` as a view annotation — a 44 px target, a 16 px ring
             (filled when open), the label above it */}
         {(marks ?? []).map((k, i) => (

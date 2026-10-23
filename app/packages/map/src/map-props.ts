@@ -4,7 +4,8 @@
  */
 // A feature id on our own layers IS a section handle — an integer. `SectionKey` keeps
 // this honest without `map` having to know which artifact minted it.
-import type { SectionKey } from "@app/core";
+import type { SectionKey, SpotMarker, SpotPoint } from "@app/core";
+import type { ReactNode } from "react";
 import type { ViewStyle } from "react-native";
 import type { TileEndpoints } from "./runtime-style";
 import type { TraceProp } from "./trace-overlay";
@@ -17,6 +18,22 @@ export interface MapMark {
   label: string | null;
   a11y: string;
   on: boolean;
+}
+
+/** (T131) The reader's saved spots on a map (`MapProps.spots`). */
+export interface MapSpots {
+  points: readonly SpotPoint[];
+  /** The spot drawn selected (last opened or shown), or null. */
+  selected: string | null;
+  /** A spot's mark was tapped. */
+  onOpen(id: string): void;
+  /** A group no zoom parts (spots on one point) was tapped: its spots. */
+  onList(ids: readonly string[]): void;
+  /**
+   * Draws one mark's face, inside the map's 44 px target (centred on the point). The app's: the icon set lives above
+   * the map. `press` is the map's (`pressSpot`), to be called by the face's one button.
+   */
+  face(m: SpotMarker, press: () => void): ReactNode;
 }
 
 export interface Camera {
@@ -289,6 +306,12 @@ export interface MapProps {
    * cleared when you pan away, these belong to whatever the panel is describing.
    */
   pins?: readonly { lat: number; lon: number; tone?: string; title?: string }[];
+  /**
+   * (T131) THE READER'S SAVED SPOTS — not `pins`: each is a mark of its own the map places at its zoom (`@app/core`
+   * `spotMarkers`: alone and named closer in, grouped further out, the selected one marked), a 44 px target that wins
+   * over the water under it. Both renderers place them and carry out a tap the same way (`./spots` `pressSpot`).
+   */
+  spots?: MapSpots;
   /**
    * Where the camera ended up, whenever the user stops moving it.
    *

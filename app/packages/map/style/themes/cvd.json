@@ -95,6 +95,8 @@
     "color.ui.on-accent": "@color.ui.card",
     "color.ui.live": "#04879B",
     "color.ui.attention": "@color.ui.ink",
+    "color.ui.spot": "@color.ui.ink",
+    "color.ui.spot-ground": "@color.ui.card",
     "color.ui.place-band": "#FBF0E6",
     "color.ui.donor.1": "#373708",
     "color.ui.donor.2": "#670848",

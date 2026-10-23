@@ -31,8 +31,9 @@ import { followSize, syncSize } from "./size";
 import { toExpression } from "./legacy-filter";
 import { compassShown, keyboardRotation, maplibreGestures, touchRotation } from "./gestures";
 import { longPressWatch, type LongPressWatch } from "./longPress";
-import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, FIT_MAX_ZOOM, MIN_ZOOM, bboxOfGeometry, padBbox, refineFit,
-         unionBbox, type Bbox } from "@app/core";
+import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, FIT_MAX_ZOOM, MIN_ZOOM, SPOT_PIN, bboxOfGeometry, padBbox, refineFit,
+         spotMarkers, unionBbox, type Bbox, type SpotMarker } from "@app/core";
+import { pressSpot, spotsKey } from "./spots";
 import type { MapHandle } from "./adapters/contract";
 import { hereImage } from "./here-mark";
 import { labelShift } from "./marks";
@@ -223,7 +224,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
                      chrome,
                       onError, onMoved, onMapPoint, onLongPress, highlight, water, marker, style,
                       gauges, onVisible, pins, bare, fit, basemap, trace, onImageryError,
-                      zoomControls, status, standing, lakes, marks, onPressMark, insetTop = 0 }: MapProps) {
+                      zoomControls, status, standing, lakes, marks, onPressMark, spots, insetTop = 0 }: MapProps) {
   // read by the map's one `error` handler, which is bound once at construction
   const imageryError = useRef(onImageryError);
   imageryError.current = onImageryError;
@@ -702,6 +703,47 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     };
   }, [JSON.stringify(marks ?? []), furniture.ink, furniture.card]);
 
+  /*
+   * (T131) YOUR SPOTS: the marks `spotMarkers` gives at this zoom, each the app's face (`spots.face`) in a 44 px box over
+   * the map — a layer of its own above the canvas, so a tap on one never reaches the map (the water under it does not
+   * open). Regrouped as the camera moves, re-rendered only when the marks change; each frame only moves the boxes.
+   */
+  const spotsNow = useRef(spots);
+  spotsNow.current = spots;
+  const [spotMarks, setSpotMarks] = useState<readonly SpotMarker[]>([]);
+  const spotSig = useRef("");
+  const spotBoxes = useRef(new globalThis.Map<string, HTMLDivElement>());
+  const placeSpot = (el: HTMLDivElement, mk: SpotMarker) => {
+    const p = map.current?.project([mk.lon, mk.lat]);
+    if (p) el.style.transform = `translate(${p.x - SPOT_PIN.hit / 2}px, ${p.y - SPOT_PIN.hit / 2}px)`;
+  };
+  const spotKey = spotsKey(spots?.points, spots?.selected ?? null);
+  useEffect(() => {
+    const m = map.current;
+    if (!m) return;
+    const regroup = () => {
+      const s = spotsNow.current;
+      const next = s ? spotMarkers(s.points, m.getZoom(), s.selected) : [];
+      const sig = JSON.stringify(next);
+      if (sig !== spotSig.current) { spotSig.current = sig; setSpotMarks(next); }
+      for (const mk of next) { const el = spotBoxes.current.get(mk.key); if (el) placeSpot(el, mk); }
+    };
+    regroup();
+    m.on("move", regroup);
+    return () => { m.off("move", regroup); };
+  }, [spotKey, at.atlas, at.basemap, at.glyphs, at.sprite, at.assets]);
+  const spotLayer = spots && spotMarks.length ? (
+    <div data-spots="" style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none" }}>
+      {spotMarks.map((mk) => (
+        <div key={mk.key} data-spot={mk.key}
+             ref={(el) => { if (el) { spotBoxes.current.set(mk.key, el); placeSpot(el, mk); } else spotBoxes.current.delete(mk.key); }}
+             style={{ position: "absolute", left: 0, top: 0, width: SPOT_PIN.hit, height: SPOT_PIN.hit,
+                      pointerEvents: "auto", zIndex: mk.selected ? 1 : 0 }}>
+          {spots.face(mk, () => pressSpot(mk, spotsNow.current ?? spots,
+                                          (c, o) => renderer.current?.easeTo(c, o)))}
+        </div>))}
+    </div>) : null;
+
   /**
    * THE CHANNELS (the colouring engine, `colouring.ts`): the day's status and the Conditions standings go to ONE
    * engine, which labels the tiles already loaded and installs the values. New values are one `Colouring.set`: a day is
@@ -1009,8 +1051,11 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     "--map-inset-top": `${insetTop}px`,
   } as React.CSSProperties), [furniture, insetTop]);
 
-  return <div ref={host}
-              style={{ position: "absolute", inset: 0, ...vars, ...(style as object) }} />;
+  // the spots' layer is the map's sibling, over it in the same box (the host is the map's: MapLibre owns its children)
+  return <>
+    <div ref={host} style={{ position: "absolute", inset: 0, ...vars, ...(style as object) }} />
+    {spotLayer}
+  </>;
 }
 
 /**

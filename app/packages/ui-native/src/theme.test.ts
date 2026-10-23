@@ -107,6 +107,23 @@ describe("status colours on a row are the map's", () => {
   });
 });
 
+describe("(T131) a saved spot's pin is no water's colour and not the you-are-here pin", () => {
+  it("its mark is ΔE-clear of every status, flow and temperature colour the maps draw, the selection, the accent " +
+     "(the you-are-here and provisional pin) and its own ground, in every theme; the ground is the card", async () => {
+    const { colour } = await import("@app/map");
+    for (const [name, p] of [["light", LIGHT], ["dark", DARK], ["cvd", CVD]] as const) {
+      const others: [string, string][] = [
+        ...[p.closed, p.restricted, p.open, ...Object.values(p.waterStatus)].map((c) => ["status", c] as [string, string]),
+        ...["f1", "f2", "f3", "f4", "f5", "f6", "f7"].map((f) => [f, colour(name, `color.flow.${f}`)] as [string, string]),
+        ...Object.entries(p.temp), ["highlight", colour(name, "color.highlight")], ["accent", p.accent],
+        ["ground", p.spot.ground]];
+      for (const [what, c] of others)
+        expect(deltaE(p.spot.mark, c), `${name}: spot vs ${what} ${c}`).toBeGreaterThanOrEqual(MIN_DELTA_E);
+      expect([p.spot.ground, contrast(p.spot.mark, p.spot.ground) >= 4.5], name).toEqual([p.card, true]);
+    }
+  });
+});
+
 describe("the attention dot (sync icon, a stale source) is no water's status", () => {
   it("`attention` is ΔE-clear of every status colour on the map, in every theme; the stale badge and the sync dot draw it", async () => {
     const { freshColour } = await import("./menu/Fresh");

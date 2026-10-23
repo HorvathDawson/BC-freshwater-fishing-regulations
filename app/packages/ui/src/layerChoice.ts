@@ -9,7 +9,7 @@
  * the map. (A spot is a record and its store says so; this is not one.)
  */
 import { useCallback, useState } from "react";
-import { LAYER_DEFAULTS, restoreLayers, saveLayers, type LayerChoice } from "@app/core";
+import { LAYER_DEFAULTS, restoreLayers, saveLayers, type LayerChoice, type SpotPoint } from "@app/core";
 import { spotLabel, type Spot } from "@app/data/spots";
 
 /** Whole text, by one name: what a phone's file and a browser's key both are. */
@@ -36,10 +36,10 @@ export function useLayerChoice(store?: LayerStore):
 
 /**
  * THE SAVED SPOTS A MAP IS HANDED (owner 2026-10-22: "toggle our spots on and off in the layer menu"): every spot, at
- * its place, under the name its row in the Spots tab shows — while the Layers sheet's Spots switch is on (`layersVM
- * (...).effective.pins.spots`); none while it is off. The colour is the screen's (a palette token).
+ * its place, under the name its row in the Spots tab shows, by its id (T131: a tap on its pin opens it) — while the
+ * Layers sheet's Spots switch is on (`layersVM(...).effective.pins.spots`); none while it is off. How each is drawn is
+ * `@app/core` `spotMarkers` (grouped, named, selected) and `@app/ui-native` `SpotPin`, in the spot tokens.
  */
-export function spotPins(spots: readonly Spot[], shown: boolean):
-  readonly { lat: number; lon: number; title: string }[] {
-  return shown ? spots.map((s) => ({ lat: s.lat, lon: s.lon, title: spotLabel(s) })) : [];
+export function spotPins(spots: readonly Spot[], shown: boolean): readonly SpotPoint[] {
+  return shown ? spots.map((s) => ({ id: s.id, lat: s.lat, lon: s.lon, title: spotLabel(s) })) : [];
 }

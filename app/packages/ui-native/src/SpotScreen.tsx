@@ -48,6 +48,8 @@ export interface SpotScreenProps {
   onNotes?: (s: string) => void;
   /** view: leave the screen. draft: back to picking. edit: handled by onDiscard. */
   onBack?: () => void;
+  /** (T131) view: where back goes, in words (`@app/core` `spotBack`: the tab it is over, or "Back"). Absent: Spots. */
+  back?: string;
   onEdit?: () => void;
   onSave?: () => void;
   onDiscard?: () => void;
@@ -115,7 +117,7 @@ export function SpotScreen(p: SpotScreenProps) {
           <Link palette={palette} label="Cancel editing" text="Cancel" onPress={leaveEdit} />
         ) : p.onBack ? (
           <Link palette={palette} label="Back" icon="back"
-                text={mode === "draft" ? "Back" : "Spots"} onPress={p.onBack} />
+                text={mode === "draft" ? "Back" : p.back ?? "Spots"} onPress={p.onBack} />
         ) : <View />}
 
         <View style={{ flexDirection: "row", gap: 18 }}>

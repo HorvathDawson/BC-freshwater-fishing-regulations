@@ -51,12 +51,30 @@ describe("route (P13): one value, one back rule", () => {
     expect(r.mode === "water" && r.stack[0]!.item).toBe("w:4");
   });
 
-  it("a tab or a spot is impossible in water mode: there is no bar", () => {
+  it("a tab, search or adding a spot is impossible in water mode: there is no bar", () => {
     const w = reduce(HOME, { type: "openWater", item: VEDDER });
-    for (const a of [{ type: "tab", tab: "spots" }, { type: "openSpot", id: "s1" }, { type: "search", open: true },
+    for (const a of [{ type: "tab", tab: "spots" }, { type: "search", open: true },
                      { type: "addSpot", at: { lat: 49, lon: -122 } }] as RouteAction[]) {
       expect(reduce(w, a)).toBe(w);
     }
+  });
+
+  it("(T131) a spot's pin tapped on a water's map opens the spot OVER the water: ONE back layer — back is the water's " +
+     "map as it was, back again leaves the water; × leaves it all; the spot's tab bar leaves for that tab", () => {
+    const w = run(HOME, { type: "openWater", item: VEDDER, part: 2 }, { type: "view", view: "map" });
+    const spot = reduce(w, { type: "openSpot", id: "s1" });
+    expect([spot, reduce(spot, { type: "back" }), run(spot, { type: "back" }, { type: "back" }),
+            reduce(spot, { type: "close" }), reduce(spot, { type: "tab", tab: "spots" }),
+            reduce(spot, { type: "openSpot", id: "s2" }), backDepth(w), backDepth(spot)]).toEqual([
+      { ...w, spot: "s1" }, w, HOME, HOME, { ...HOME, tab: "spots" }, { ...w, spot: "s2" }, 1, 2]);
+  });
+
+  it("(T131) under a spot nothing of the water moves: a view, a part or a water opened is not taken", () => {
+    const spot = run(HOME, { type: "openWater", item: VEDDER }, { type: "openSpot", id: "s1" });
+    for (const a of [{ type: "view", view: "map" }, { type: "part", part: 3 }, { type: "flowInto", item: FRASER, part: 0 },
+                     { type: "openWater", item: HARRISON }, { type: "cross", item: FRASER, part: 0 },
+                     { type: "search", open: true }, { type: "addSpot" }] as RouteAction[])
+      expect(reduce(spot, a)).toBe(spot);
   });
 
   it("in browse mode back closes what is open, innermost first, then stays", () => {

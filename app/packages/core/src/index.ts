@@ -85,5 +85,6 @@ export * from "./gestures";
 export * from "./waterViews";
 export * from "./waterNav";
 export * from "./mapRail";
+export * from "./spotPins";
 export * from "./layers";
 export * from "./dayPicker";

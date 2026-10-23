@@ -22,7 +22,7 @@ const HORIZON_HIT = hitProps({ w: 46, h: 33 });
 export function MapScreen({ at, palette, theme, view, modes, groups, hide, show, camera,
                             onLayers, layersChanged = 0, onLongPress, onPressFeature, onMoved, onMapPoint, horizons,
                             highlight, marker, pins, data, status, standing, lakes, gauges, onVisible, onError,
-                            fit, basemap, onImageryError, water, marks, onPressMark, insetTop = 0 }: {
+                            fit, basemap, onImageryError, water, marks, onPressMark, spots, insetTop = 0 }: {
   at: TileEndpoints; palette: Palette; theme: string; view: string;
   groups?: Record<string, boolean>;
   /** Layers this view does not draw — see `hiddenLayers`. Not a user toggle. */
@@ -75,6 +75,8 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
   onImageryError?: MapProps["onImageryError"];
   /** (T48) Marked points with their own colour — a searched town's pin, in the town's colour. See MapProps.pins. */
   pins?: MapProps["pins"];
+  /** (T131) The reader's saved spots, each a mark that opens its spot — see MapProps.spots (the Shell's `spotLayer`). */
+  spots?: MapProps["spots"];
   /**
    * (T48) The bottom edge of the app's bar over the map (the search field), in px: the corner's chips, the rail and the
    * web map's own controls start under it. 0: no bar.
@@ -86,7 +88,7 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
       <Map at={at} theme={theme} view={view} modes={modes} groups={groups} hide={hide} show={show}
            initial={camera}
            onPressFeature={onPressFeature} onMoved={onMoved} onMapPoint={onMapPoint} onLongPress={onLongPress}
-           highlight={highlight} pins={pins} insetTop={insetTop} water={water} marks={marks} onPressMark={onPressMark} marker={marker} data={data} status={status} standing={standing} lakes={lakes}
+           highlight={highlight} pins={pins} spots={spots} insetTop={insetTop} water={water} marks={marks} onPressMark={onPressMark} marker={marker} data={data} status={status} standing={standing} lakes={lakes}
            gauges={gauges}
            onVisible={onVisible} onError={onError} fit={fit} basemap={basemap} onImageryError={onImageryError} />
 

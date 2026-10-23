@@ -18,14 +18,22 @@ import { makeFixtureSource } from "@app/data/fixture";
 import type { ItemId } from "@app/data";
 import type { Spot } from "@app/data/spots";
 import { HOME, type Locate, type Route, type SystemBack } from "@app/ui";
+import type { MapSpots } from "@app/map";
 import { LIGHT } from "./theme";
+
+/** What the map marks: its own marker, else (T131) the selected spot's own pin, said as that spot. */
+function pinOf(p: { marker?: { lat: number; lon: number } | null; spots?: MapSpots }): string {
+  if (p.marker) return `${p.marker.lat},${p.marker.lon}`;
+  const s = p.spots?.points.find((x) => x.id === p.spots?.selected);
+  return s ? `${s.lat},${s.lon} (spot ${s.id})` : "none";
+}
 
 /** The section the stub's "tap a water" lands on: a reach of the Chilliwack (set in `beforeAll`). */
 const TAP = { sid: 0 };
 type Stub = { onLongPress?: (lat: number, lon: number) => void; onLayers?: () => void;
               onMapPoint?: (lat: number, lon: number) => void;
               onPressFeature?: (layer: string, id: number, lat?: number, lon?: number) => void;
-              marker?: { lat: number; lon: number } | null; fit?: { key: string } | null;
+              marker?: { lat: number; lon: number } | null; fit?: { key: string } | null; spots?: MapSpots;
               camera: { lat: number; lon: number; zoom: number } };
 vi.mock("./MapScreen", () => ({
   MapScreen: (p: Stub) =>
@@ -38,7 +46,7 @@ vi.mock("./MapScreen", () => ({
         <Text>tap</Text></Pressable>
       {p.onLayers && <Pressable accessibilityRole="button" accessibilityLabel="Choose layers"
                                 onPress={p.onLayers}><Text>layers</Text></Pressable>}
-      <Text testID="map-state">{`pin ${p.marker ? `${p.marker.lat},${p.marker.lon}` : "none"} · fit ${p.fit?.key ?? "none"}` +
+      <Text testID="map-state">{`pin ${pinOf(p)} · fit ${p.fit?.key ?? "none"}` +
                                 ` · camera ${p.camera.lat},${p.camera.lon},${p.camera.zoom}`}</Text>
     </View>,
 }));
@@ -157,7 +165,7 @@ describe("spots and the rail, through the Shell (T48)", () => {
       `${BAR} (Spots) | no map | spots tab`,
       `${BAR} (Spots) | no map | spot screen`,
       `${BAR} (Spots) | no map | spots tab`,
-      `${BAR} (Map) | pin 49.0974,-121.9675 · fit spot:s1:1 · camera 49.15,-121.85,10 | nothing`,
+      `${BAR} (Map) | pin 49.0974,-121.9675 (spot s1) · fit spot:s1:1 · camera 49.15,-121.85,10 | nothing`,
       true, ROOT, false,
     ]);
   });
@@ -165,7 +173,7 @@ describe("spots and the rail, through the Shell (T48)", () => {
   it("a spot's own Show is the same Show: the Map tab, framed on it with its pin", () => {
     mount({ start: { ...HOME, tab: "conditions", spot: "s1" } });
     press("Show on map");
-    expect(look()).toBe(`${BAR} (Map) | pin 49.0974,-121.9675 · fit spot:s1:1 · camera 49.0974,-121.9675,14 | nothing`);
+    expect(look()).toBe(`${BAR} (Map) | pin 49.0974,-121.9675 (spot s1) · fit spot:s1:1 · camera 49.0974,-121.9675,14 | nothing`);
   });
 
   it("Show's pin and framing belong to that map: a spot opened, or another tab, forgets them (no re-framing on return)", () => {
@@ -182,7 +190,7 @@ describe("spots and the rail, through the Shell (T48)", () => {
     press("Show Tamihi run on the map");
     tab("Conditions");
     expect([shown, returned, look()]).toEqual([
-      `${BAR} (Map) | pin 49.0974,-121.9675 · fit spot:s1:1 · camera 49.15,-121.85,10 | nothing`, ROOT,
+      `${BAR} (Map) | pin 49.0974,-121.9675 (spot s1) · fit spot:s1:1 · camera 49.15,-121.85,10 | nothing`, ROOT,
       `${BAR} (Conditions) | pin none · fit none · camera 49.15,-121.85,10 | nothing`,
     ]);
   });

@@ -124,11 +124,25 @@ export interface MapRail {
    */
   show(spot: Pick<Spot, "id" | "lat" | "lon">): void;
   fly: SpotFly | null;
+  /**
+   * (T131) THE SELECTED PIN: the spot Show framed, while that framing holds; else the spot last opened from its pin,
+   * once back on the map it was tapped on. Null otherwise.
+   */
+  selected: string | null;
+  /** (T131) A spot's pin tapped, on any map: that spot opens over the map (one back layer), as its row opens it. */
+  openPin(id: string): void;
+  /** (T131) A group of spots no zoom parts was tapped: the Spots list (out of a water first, when on a water's map). */
+  listSpots(): void;
+  /**
+   * The map's own marker: the provisional pin, else where Show sent the map — unless the spots are drawn
+   * (`spotsShown`), when the selected spot's pin already marks it.
+   */
+  marker(spotsShown: boolean): LatLon | null;
 }
 
 /** Where the route is, as far as the rail cares: any change of it forgets the pin and the framing. */
 export function railPlace(r: Route): string {
-  return r.mode === "water" ? "water"
+  return r.mode === "water" ? `water|${r.spot ?? ""}`
     : `${r.tab}|${r.spot ?? ""}|${r.adding === null ? "" : "adding"}|${r.search ? "search" : ""}`;
 }
 
@@ -142,7 +156,12 @@ export function useMapRail(go: (a: RouteAction) => void, locate: Locate | null =
   const [permission, setPermission] = useState<LocatePermission | null>(null);
   const [drop, setDrop] = useState<LatLon | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [fly, setFly] = useState<(SpotFly & { for: string }) | null>(null);
+  const [fly, setFly] = useState<(SpotFly & { for: string; spot: string }) | null>(null);
+  /**
+   * (T131) The spot last opened from its pin, and the map it was on: selected there again when back returns to it. Not
+   * forgotten by the route moving (the spot's own screen is a move) — it simply is not that map any more.
+   */
+  const [opened, setOpened] = useState<{ id: string; for: string } | null>(null);
   // pick mode is made FOR the Map tab's root (as Show's framing is): the move there keeps it, any other move ends it
   const [pickFor, setPickFor] = useState<string | null>(null);
   const [flights, setFlights] = useState(0);
@@ -159,6 +178,9 @@ export function useMapRail(go: (a: RouteAction) => void, locate: Locate | null =
     setError(null);
     if (!keepFly) setFly(null);
     if (!keepPick) setPickFor(null);
+    // the pin's spot open, or back on its map: kept; anywhere else, forgotten
+    const spotOpen = route === null ? null : route.spot ?? null;
+    if (opened !== null && place !== opened.for && spotOpen !== opened.id) setOpened(null);
   }
   const picking = pickFor !== null && pickFor === place;
 
@@ -211,8 +233,18 @@ export function useMapRail(go: (a: RouteAction) => void, locate: Locate | null =
       const n = flights + 1;
       setFlights(n);
       const at = { lat: spot.lat, lon: spot.lon };
-      setFly({ key: `spot:${spot.id}:${n}`, bbox: boxAround(at, SPOT_FLY_KM), at, for: MAP_ROOT });
+      setFly({ key: `spot:${spot.id}:${n}`, bbox: boxAround(at, SPOT_FLY_KM), at, for: MAP_ROOT, spot: spot.id });
       if (place !== MAP_ROOT) go({ type: "tab", tab: "map" });
     },
+    selected: flying ? flying.spot : opened !== null && opened.for === place && !moved ? opened.id : null,
+    openPin: (id) => {
+      setOpened({ id, for: place });
+      go({ type: "openSpot", id });
+    },
+    listSpots: () => {
+      if (route?.mode === "water") go({ type: "close" });
+      go({ type: "tab", tab: "spots" });
+    },
+    marker: (spotsShown) => (moved ? null : drop) ?? (flying && !spotsShown ? flying.at : null),
   };
 }

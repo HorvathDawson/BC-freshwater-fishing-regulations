@@ -87,7 +87,14 @@ export interface BrowseRoute {
    */
   prev?: BrowseTab;
 }
-export interface WaterRoute { mode: "water"; stack: readonly WaterFrame[]; from: BrowseRoute }
+export interface WaterRoute {
+  mode: "water"; stack: readonly WaterFrame[]; from: BrowseRoute;
+  /**
+   * (T131) A saved spot opened OVER the water — its pin tapped on the water's map: one back layer (back is the water as
+   * it was). While it is open nothing of the water moves; its tab bar leaves the water for that tab. Absent: none.
+   */
+  spot?: SpotId;
+}
 export type Route = BrowseRoute | WaterRoute;
 
 export type RouteAction =
@@ -207,7 +214,17 @@ export function reduce(r: Route, a: RouteAction): Route {
       default: return r;            // view / part / flowInto / cross mean nothing without a water
     }
   }
+  if (r.spot !== undefined) {       // (T131) a spot over the water: back drops it; × and a tab leave the water too
+    switch (a.type) {
+      case "openSpot": return { ...r, spot: a.id };
+      case "back": { const { spot: _gone, ...water } = r; return water; }
+      case "close": return r.from;
+      case "tab": return reduce(r.from, a);
+      default: return r;
+    }
+  }
   switch (a.type) {
+    case "openSpot": return { ...r, spot: a.id };
     case "view": return frameViews(top(r)).includes(a.view) ? withTop(r, { view: a.view }) : r;
     case "part":
       if (top(r).item === null) return r;
@@ -229,7 +246,7 @@ export function reduce(r: Route, a: RouteAction): Route {
       if (r.stack.length > 1) return { ...r, stack: r.stack.slice(0, -1) };
       return r.from;
     case "close": return r.from;    // every water at once
-    default: return r;              // a tab or a spot is impossible: there is no bar
+    default: return r;              // a tab, search or adding a spot is impossible: there is no bar
   }
 }
 

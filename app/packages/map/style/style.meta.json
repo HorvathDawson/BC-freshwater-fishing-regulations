@@ -2409,6 +2409,8 @@
       "color.ui.on-accent": "#FFFFFF",
       "color.ui.live": "#04879B",
       "color.ui.attention": "#15181C",
+      "color.ui.spot": "#15181C",
+      "color.ui.spot-ground": "#FFFFFF",
       "color.ui.place-band": "#FBF0E6",
       "color.ui.donor.1": "#373708",
       "color.ui.donor.2": "#670848",
@@ -2521,6 +2523,8 @@
       "color.ui.on-accent": "#100A22",
       "color.ui.live": "#37D6EA",
       "color.ui.attention": "#F0F2F0",
+      "color.ui.spot": "#F0F2F0",
+      "color.ui.spot-ground": "#15181B",
       "color.ui.place-band": "#231A12",
       "color.ui.donor.1": "#37D6EA",
       "color.ui.donor.2": "#FF9B54",
@@ -2633,6 +2637,8 @@
       "color.ui.on-accent": "#FFFFFF",
       "color.ui.live": "#04879B",
       "color.ui.attention": "#15181C",
+      "color.ui.spot": "#15181C",
+      "color.ui.spot-ground": "#FFFFFF",
       "color.ui.place-band": "#FBF0E6",
       "color.ui.donor.1": "#04879B",
       "color.ui.donor.2": "#B5480B",
@@ -3061,6 +3067,16 @@
       "type": "color",
       "themeable": true,
       "$comment": "ATTENTION, not a water's status: the sync icon's needs-a-refresh dot and a source's 'likely out of date' badge. It sits beside water drawn in the status colours, so it is none of them (it was the closed red, and a red dot over the map read as 'closed'). The ink: neutral, and the strongest mark on the card."
+    },
+    "color.ui.spot": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "T131 YOUR SAVED SPOT on a map: its pin's mark (the Spots icon, the frame, the selected pin's fill). Stands on water drawn in every status, flow and temperature colour and beside the you-are-here pin (the accent), so it is none of them: the ink, neutral, the strongest mark on any ground (theme.test.ts holds it)."
+    },
+    "color.ui.spot-ground": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "T131 the ground of a saved spot's pin and of its name: the card, so a pin reads as the app's own object on the map (the selected pin swaps mark and ground)."
     },
     "color.ui.place-band": {
       "type": "color",

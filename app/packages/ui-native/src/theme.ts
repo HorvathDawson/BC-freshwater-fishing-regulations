@@ -46,6 +46,12 @@ export interface Palette {
    */
   attention: string;
   /**
+   * (T131) YOUR SAVED SPOT on a map — `color.ui.spot` / `color.ui.spot-ground`: the pin's mark (icon, frame, the
+   * selected pin's fill) and its ground (the card). Neutral, so it is no water's status, flow or temperature colour and
+   * not the accent of the you-are-here pin; `theme.test.ts` holds it ΔE-clear of every one of them.
+   */
+  spot: { mark: string; ground: string };
+  /**
    * A TOWN, not a water — `color.label.place`. The search results put places in their own
    * group above the waters, and the pin that marks a town on the map wears the same colour,
    * so "this row is that pin" reads without a legend. Neutral, like the basemap's own town
@@ -227,6 +233,7 @@ export function paletteFor(theme: string): Palette {
     ...statusColours(theme),
     quiet: c("color.ui.quiet"), accent: c("color.ui.accent"), onAccent: c("color.ui.on-accent"),
     live: c("color.ui.live"), attention: c("color.ui.attention"),
+    spot: { mark: c("color.ui.spot"), ground: c("color.ui.spot-ground") },
     place: c("color.label.place"), placeBand: c("color.ui.place-band"),
     stock: [c("color.stock.season"), c("color.stock.year"), c("color.stock.recent"),
             c("color.stock.decade"), c("color.stock.old")],

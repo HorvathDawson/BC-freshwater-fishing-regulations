@@ -208,6 +208,54 @@ describe("useMapRail", () => {
       ["drop:- perm:- err:- fly:-"]]);
   });
 
+  it("(T131) A PIN TAPPED opens its spot over the map it is on; back there, that spot is the selected pin; any other " +
+     "move forgets it", () => {
+    const { acts, out, at } = rig(null, HOME);
+    const before = out.r!.selected;
+    act(() => out.r!.openPin("s2"));
+    const spot = reduce(HOME, acts[0]!);
+    at(spot);
+    const over = out.r!.selected;
+    at(reduce(spot, { type: "back" }));
+    const back = out.r!.selected;
+    at(reduce(HOME, { type: "tab", tab: "conditions" }));
+    const moved = out.r!.selected;
+    at(HOME);
+    expect([before, acts, over, back, moved, out.r!.selected]).toEqual([
+      null, [{ type: "openSpot", id: "s2" }], null, "s2", null, null]);
+  });
+
+  it("(T131) on a WATER'S map the same: the spot over the water, and selected when back on the water", () => {
+    const water = reduce(HOME, { type: "openWater", item: "gnis:3062" as never, view: "map" });
+    const { acts, out, at } = rig(null, water);
+    act(() => out.r!.openPin("s1"));
+    const spot = reduce(water, acts[0]!);
+    at(spot);
+    at(reduce(spot, { type: "back" }));
+    expect([acts, spot.mode === "water" && spot.spot, out.r!.selected]).toEqual([[{ type: "openSpot", id: "s1" }], "s1", "s1"]);
+  });
+
+  it("(T131) the spot Show framed is the selected pin while the framing holds; a provisional pin is no spot", () => {
+    const { out, at } = rig(null, SPOTS);
+    act(() => out.r!.show({ id: "s1", lat: 49.0974, lon: -121.9675 }));
+    at(HOME);
+    const shown = [out.r!.selected, out.r!.marker(true), out.r!.marker(false)];
+    act(() => out.r!.pressLong(49.1, -121.9));
+    expect([shown, [out.r!.selected, out.r!.marker(true)]]).toEqual([
+      ["s1", null, { lat: 49.0974, lon: -121.9675 }],
+      ["s1", { lat: 49.1, lon: -121.9 }]]);
+  });
+
+  it("(T131) a group no zoom parts opens the Spots list: from a browse map the tab; from a water's map, out of the " +
+     "water to it", () => {
+    const water = reduce(HOME, { type: "openWater", item: "gnis:3062" as never, view: "map" });
+    const onMap = rig(null, HOME), onWater = rig(null, water);
+    act(() => onMap.out.r!.listSpots());
+    act(() => onWater.out.r!.listSpots());
+    expect([onMap.acts, onWater.acts, onWater.acts.reduce(reduce, water as Route)]).toEqual([
+      [{ type: "tab", tab: "spots" }], [{ type: "close" }, { type: "tab", tab: "spots" }], SPOTS]);
+  });
+
   it("a spot's own Show (its screen, over any tab) lands on the Map tab the same way", () => {
     const seen: string[] = [];
     const out: { r?: MapRail } = {};

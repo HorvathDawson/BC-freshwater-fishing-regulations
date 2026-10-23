@@ -10,7 +10,7 @@
  * style spec can express belongs in the style, not here.
  */
 export { Map } from "./Map";
-export type { MapProps, Camera, MapChrome, MapMark } from "./map-props";
+export type { MapProps, Camera, MapChrome, MapMark, MapSpots } from "./map-props";
 export { coloursEachTile, standingInput, type LakeFeed, type ProfileStatus, type StandingFeed } from "./colouring";
 export { imageryTiles, runtimeStyle, type TileEndpoints } from "./runtime-style";
 export { baseAdapter, type MapAdapter, type MapHandle } from "./adapters/contract";
@@ -28,4 +28,5 @@ export { maplibreGestures, nativeMapGestures, touchRotation,
          type MaplibreGestureOptions, type NativeMapGestureProps } from "./gestures";
 /** The route overlay (owner 2026-10-21): routes copied out of the tiles, pins, and their words' slots. */
 export { type TracePin, type TraceProp } from "./trace-overlay";
+export { pressSpot, spotsKey, SPOT_EASE_MS } from "./spots";
 export { traceOverlay, type TraceRoute } from "./trace-geometry";

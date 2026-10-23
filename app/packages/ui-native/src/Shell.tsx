@@ -10,7 +10,7 @@
  * themselves are not integrated, so a water's sheet shows a placeholder where they will go.
  */
 import { CHANGE_LEGEND, changeMarkWords, chooseLayer, chooseShow, dayLabel, dayRange, layersVM, placeholderFor, syncVM,
-         TEMP_LEGEND,
+         spotBack, TEMP_LEGEND,
          unprovenLine, WATER_STATUS, WATER_STATUSES, waterExit, waterLegend, withImageryCredit,
          type SectionKey } from "@app/core";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -29,7 +29,7 @@ import { useConditionsColour, useDataFacts, useGaugeGeoJSON, useSync, useLakeCol
          type StatusSource } from "@app/ui";
 import type { LikeStore, Spot, WeatherSource } from "@app/data/spots";
 import { FIELD_HANDOVER_Z, hiddenLayers, shownLayers,
-         type Camera, type TileEndpoints, coloursEachTile, imageryTiles } from "@app/map";
+         type Camera, type MapSpots, type TileEndpoints, coloursEachTile, imageryTiles } from "@app/map";
 import { connectivity } from "./connectivity";
 import { imageryProbe } from "./imageryProbe";
 import { LegendCount, LegendRamp, LegendStrip } from "./Chrome";
@@ -44,6 +44,7 @@ import { CLOSE_KEEPS_FOCUS } from "./searchFocus";
 import { SpotDropSheet } from "./SpotDropSheet";
 import { SpotPickBanner } from "./SpotPickBanner";
 import { SpotCapture } from "./SpotCapture";
+import { SpotPin } from "./SpotPin";
 import { SpotScreen } from "./SpotScreen";
 import { TABS, TabBar, type TabKey } from "./TabBar";
 import { WaterScreen } from "./WaterScreen";
@@ -172,7 +173,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   // another region fetches that region's. The page that draws them is T01/T03's; until then the placeholder stands.
   useRegulationKeys(source, item);
   const adding = route.mode === "browse" ? route.adding : null;
-  const openSpot = route.mode === "browse" ? route.spot : null;
+  // a spot open over the browse map, or (T131) over a water, its pin tapped on the water's map
+  const openSpot = route.mode === "browse" ? route.spot : route.spot ?? null;
   const toTab = (k: BrowseTab) => go({ type: "tab", tab: k });
   /*
    * G1: ONE BACK for every input — ‹, the platform's system back, the iOS edge swipe.
@@ -361,11 +363,20 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
     [carried.stocked, carried.surveyed, imagery.up]);
   /*
    * YOUR SPOTS ON EVERY MAP (owner 2026-10-22: "toggle our spots on and off in the layer menu"): each saved spot is a
-   * pin in the accent on the Map tab, the Conditions map and a water's map view — while the Layers sheet's Spots switch
+   * mark on the Map tab, the Conditions map and a water's map view — while the Layers sheet's Spots switch
    * is on (`effective.pins.spots`, default on); off, no map is handed one.
    */
-  const savedPins = useMemo(() => spotPins(spots, layers.effective.pins.spots).map((p) => ({ ...p, tone: palette.accent })),
-    [spots, layers.effective.pins.spots, palette.accent]);
+  const spotsShown = layers.effective.pins.spots;
+  const spotPoints = useMemo(() => spotPins(spots, spotsShown), [spots, spotsShown]);
+  /*
+   * (T131) EACH A MARK THAT OPENS ITS SPOT: placed and grouped by the map (`@app/core` `spotMarkers`), drawn by `SpotPin`
+   * in the spot tokens, the selected one the spot last opened or shown (the rail's). A tap opens the spot over the map it
+   * is on — the one back layer the Spots tab's row opens too; a group no zoom parts opens the Spots list.
+   */
+  const spotLayer: MapSpots | undefined = spotPoints.length === 0 ? undefined : {
+    points: spotPoints, selected: rail.selected, onOpen: rail.openPin, onList: () => rail.listSpots(),
+    face: (m, press) => <SpotPin m={m} palette={palette} press={press} />,
+  };
   const mm = useMapModes({ tab: mapTab, flowParam, horizon, zoomedOut, paired, statusOk, perTile,
                            water: layers.effective.water, groups: layers.effective.groups,
                            basemap: layers.effective.basemap, imageryUp: imagery.up });
@@ -560,6 +571,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                       onNotes={edit ? (n) => setEdit({ ...edit, notes: n }) : undefined}
                       dirty={dirty}
                       onBack={close}
+                      // (T131) the ‹ names where back goes: the tab the spot is over, or Back over a water
+                      back={spotBack(route.mode === "water" ? null : TABS.find((t) => t.k === tab)!.t)}
                       onEdit={onSaveSpot && (() => {
                         setEdit({ title: viewing.title, notes: viewing.notes });
                         photoEdit.begin(viewing.id, viewing.photos);
@@ -637,7 +650,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
             {/* P15: the parts, lit and framed from the release; ▼ / ▲, marks, the mouth's exit */}
             <WaterMapView loader={loader} item={item} part={frame.part} tapSid={frame.tapSid} palette={palette}
                           map={{ at: tiles, theme, camera: waterCamera.current ?? camera.current,
-                                 basemap: mm.basemap, data: statusMapData, status: mapStatus, pins: savedPins,
+                                 basemap: mm.basemap, data: statusMapData, status: mapStatus, spots: spotLayer,
                                  onVisible: noteVisible, onMoved: (at) => { waterCamera.current = at; },
                                  view: "plain", modes, groups: activeGroups,
                                  onError: (e) => console.error("map:", e.message) }}
@@ -689,13 +702,14 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                      camera={camera.current}
                      // (T48) the top bar over the map: the corner's chips, the rail and the web map's controls go under it
                      insetTop={barBottom}
-                     // the provisional pin a long press dropped, else the spot "Show" sent the map to
-                     marker={rail.drop ?? rail.fly?.at ?? null}
+                     // the provisional pin a long press dropped, else the spot "Show" sent the map to — unless the
+                     // spots are drawn, when that spot's own (selected) pin marks it (T131)
+                     marker={rail.marker(spotsShown)}
                      // a searched town's pin, in the town's colour (its row's), so pin and row read as one thing
-                     // and the saved spots, while the Layers sheet's Spots switch is on
                      pins={searching && session.focus?.marker
-                       ? [...savedPins, { ...session.focus.marker, tone: palette.place }]
-                       : savedPins.length ? savedPins : NONE_PINS}
+                       ? [{ ...session.focus.marker, tone: palette.place }] : NONE_PINS}
+                     // (T131) the saved spots, while the Layers sheet's Spots switch is on: each opens its spot
+                     spots={spotLayer}
                      basemap={mm.basemap} onImageryError={imagery.tileFailed}
                      // WHERE THE CAMERA IS SENT, one subject at a time: a spot "Show" asked for (the rail forgets it
                      // whenever the route moves), else what search has picked (a water framed, a town flown to), else

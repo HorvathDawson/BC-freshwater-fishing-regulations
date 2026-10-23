@@ -69,9 +69,9 @@ describe("spotPins: the saved spots a map is handed", () => {
     ({ id, lat, lon, title, waterName: null, item: null }) as unknown as Spot;
   const spots = [spot("a", 49.1, -121.9, "Tamihi run"), spot("b", 50.2, -122.3, "")];
 
-  it("on: every spot, at its place, under its own name; off: none", () => {
+  it("on: every spot, by its id, at its place, under its own name; off: none", () => {
     expect([spotPins(spots, true), spotPins(spots, false), spotPins([], true)]).toEqual([
-      [{ lat: 49.1, lon: -121.9, title: "Tamihi run" }, { lat: 50.2, lon: -122.3, title: "50.2000, -122.3000" }],
+      [{ id: "a", lat: 49.1, lon: -121.9, title: "Tamihi run" }, { id: "b", lat: 50.2, lon: -122.3, title: "50.2000, -122.3000" }],
       [], []]);
   });
 });
