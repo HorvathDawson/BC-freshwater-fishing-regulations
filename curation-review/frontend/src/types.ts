@@ -443,6 +443,8 @@ export interface MarkView {
   date: string;
   pages: number[];
   carried_by: string | null;
+  /** the reviewer's time on the target before this mark (the screen's clock; T136 pilot) */
+  seconds?: number | null;
   status: VerifyStatus;
   reasons: StaleReason[];
 }
@@ -867,4 +869,6 @@ export interface MarkPost {
   problem?: string | null;
   note?: string;
   reviewer: string;
+  /** seconds on the target before this mark — the screen's clock (T136: the pilot's time per entry) */
+  seconds?: number;
 }

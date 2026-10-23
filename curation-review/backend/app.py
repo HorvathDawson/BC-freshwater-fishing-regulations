@@ -53,6 +53,26 @@ async def _fresh_caches(request, call_next):
     return await call_next(request)
 
 
+#: WARM AT STARTUP (T136, PLAN §4 phase 5): `CURATION_WARM=1` (run.sh sets it) loads every cache a
+#: first entry reads in a background thread (`reuse.warm`), so the reviewer never waits on a cold
+#: backend; `GET /api/ready` says when it is done. Off by default (tests, a one-off script).
+WARM = os.environ.get("CURATION_WARM") == "1"
+
+
+@app.on_event("startup")
+def _warm_at_startup():
+    if WARM:
+        import threading
+        threading.Thread(target=reuse.warm, name="curation-warm", daemon=True).start()
+
+
+@app.get("/api/ready")
+def get_ready():
+    """THE READY SIGNAL: whether the backend has loaded what a first entry needs (`reuse.warm`),
+    step by step with the time each finished — poll it before the reviewer starts."""
+    return reuse.readiness()
+
+
 @app.get("/api/mode")
 def get_mode():
     """What this server is: review or fix mode, the app the answer is checked in, the checks each
@@ -118,6 +138,8 @@ class MarkPayload(BaseModel):
     note: str = ""
     reviewer: str
     pages: list[int] = []            # printed pages read (default: the entry's source_pages)
+    #: the reviewer's time on the target before this mark, by the screen's clock (T136 pilot)
+    seconds: float | None = None
 
 
 @app.post("/api/marks")

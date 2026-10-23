@@ -29,6 +29,10 @@ def main() -> None:
                          "skip the export. For changes to the tippecanoe invocation, where "
                          "re-deriving the same geometry is ~40 min of wasted work.")
     ap.add_argument("--verbose", action="store_true")
+    ap.add_argument("--release-root", type=Path, default=GENERATED.release,
+                    help="where the released tile folder goes: <root>/tiles/<version>/ (default: data/release)")
+    ap.add_argument("--bundle", type=Path, default=GENERATED.bundle / "bundle.sqlite",
+                    help="the bundle the finished tiles are checked against (default: the live one)")
     ap.add_argument("--no-release", action="store_true",
                     help="stamp the version but do not copy into data/release/tiles/<version>/ (a scratch build)")
     ap.add_argument("--write-contract", action="store_true",
@@ -64,7 +68,7 @@ def main() -> None:
                           minzoom=a.minzoom, maxzoom=a.maxzoom, verbose=a.verbose)
         print(f"\n{out}  {out.stat().st_size / 1e6:,.1f} MB   "
               f"tiles took {time.time() - t0:,.0f}s")
-        _version_and_release(build_dir, out_dir, out, a.no_release)
+        _version_and_release(build_dir, out_dir, out, a.no_release, a.release_root)
         return
 
     counts: dict[str, int] = {}
@@ -93,11 +97,12 @@ def main() -> None:
                       minzoom=a.minzoom, maxzoom=a.maxzoom, verbose=a.verbose)
     mb = out.stat().st_size / 1e6
     print(f"\n{out}  {mb:,.1f} MB   total {time.time() - t0:,.0f}s")
-    _version_and_release(build_dir, out_dir, out, a.no_release)
-    _check_vintage(out_dir)
+    _version_and_release(build_dir, out_dir, out, a.no_release, a.release_root)
+    _check_vintage(out_dir, a.bundle)
 
 
-def _version_and_release(build_dir: Path, out_dir: Path, archive: Path, no_release: bool) -> None:
+def _version_and_release(build_dir: Path, out_dir: Path, archive: Path, no_release: bool,
+                         release_root: Path = GENERATED.release) -> None:
     """P18: stamp the tile version into the archive, write the sidecar, and copy archive + mask into
     `data/release/tiles/<version>/` (the shipped set). The archive in `out_dir` stays where the dev server reads it."""
     from pipeline.deliver.tiles import version as V
@@ -105,11 +110,11 @@ def _version_and_release(build_dir: Path, out_dir: Path, archive: Path, no_relea
     print(f"tile version {v}")
     _write_sidecar(build_dir, out_dir, v)
     if not no_release:
-        d = V.to_release(archive, v, GENERATED.release, SOURCE / "bc_boundary.geojson")
+        d = V.to_release(archive, v, Path(release_root), SOURCE / "bc_boundary.geojson")
         print(f"released: {d}")
 
 
-def _check_vintage(out_dir: Path) -> None:
+def _check_vintage(out_dir: Path, bundle: Path = GENERATED.bundle / "bundle.sqlite") -> None:
     """Does the bundle that SHIPS still match the tiles just built?
 
     Not the bundle someone happens to be building — the one at the canonical path, because
@@ -118,7 +123,7 @@ def _check_vintage(out_dir: Path) -> None:
     """
     from pipeline.common.vintage import report
 
-    ok, msg = report(out_dir, GENERATED.bundle / "bundle.sqlite")
+    ok, msg = report(out_dir, Path(bundle))
     print(msg)
     if not ok:
         print("      Rebuild the bundle against this atlas:\n"

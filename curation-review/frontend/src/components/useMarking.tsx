@@ -39,7 +39,10 @@ export function useMarking({ key, mark, onRecorded, link, onToggleMap, resetOn }
   const [busy, setBusy] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
   const [done, setDone] = useState("");
-  useEffect(() => { setStates({}); setErrors([]); setDone(""); }, [resetOn]);
+  // THE REVIEWER'S CLOCK (T136 pilot): from the target opening — or the last mark recorded on it
+  // (a zone entry's rules) — to this mark; sent with it and kept in the store (`Mark.seconds`)
+  const since = useRef(Date.now());
+  useEffect(() => { setStates({}); setErrors([]); setDone(""); since.current = Date.now(); }, [resetOn]);
 
   const state = states[key] ?? blankChecklist(first);
   const setState = (s: ChecklistState) => setStates((m) => ({ ...m, [key]: s }));
@@ -57,12 +60,14 @@ export function useMarking({ key, mark, onRecorded, link, onToggleMap, resetOn }
     const body: MarkPost = {
       scope: mark.scope, target: mark.target, rule_id: mark.rule_id ?? null, answers,
       problem: state.problem || null, note: state.note, reviewer: reviewer.trim(),
+      seconds: Math.round((Date.now() - since.current) / 100) / 10,
       ...(defer ? { verdict: "deferred" as const } : {}),
     };
     setBusy(true);
     try {
       const got = await api.postMark(body);
       setDone(`${mark.rule_id ? mark.rule_id + ": " : ""}${got.status}`);
+      since.current = Date.now();
       onRecorded(got);
     } catch (e) {
       const fe = (e as EntryRefused).fieldErrors;

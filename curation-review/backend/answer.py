@@ -187,7 +187,7 @@ def effective(sid: int, day: str, fish: str) -> dict:
     """The answer at one section, on one day, for one fish: `effective_rules`, each rule with its
     `state`, plus the licensing records bound there and whether the section is tidal."""
     on = _parse_day(day)
-    got = R.effective_rules(int(sid), on, fish)     # raises ValueError on a group code
+    got = R.effective_rules(int(sid), on, fish, R.BUNDLE)   # raises ValueError on a group code
     db = _db()
     try:
         waters = [n for (n,) in db.execute(

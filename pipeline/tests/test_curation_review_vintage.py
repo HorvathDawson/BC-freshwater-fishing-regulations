@@ -64,8 +64,8 @@ def app_env(request, tmp_path_factory):
     for k, v in {"CURATION_FIX": "1", "CURATION_ENTRIES_DIR": cat,
                  "CURATION_SPLITS_JSON": tmp / "splits.json",
                  "CURATION_MARKS": tmp / "marks.jsonl", "CURATION_BACKUP_DIR": tmp / "backups",
-                 "CURATION_REACH_DIR": tmp / "reach", "CURATION_RELEASE_ROOT": tmp / "release"
-                 }.items():
+                 "CURATION_REACH_DIR": tmp / "reach", "CURATION_RELEASE_ROOT": tmp / "release",
+                 "CURATION_TILES": tmp / "tiles"}.items():
         mp.setenv(k, str(v))
     mp.syspath_prepend(str(BACKEND))
     for mod in ("app", "reuse", "model_api", "answer", "synopsis_pages", "writes",
@@ -176,7 +176,9 @@ def test_an_entry_edit_awaits_reach_and_deliver_then_clears_without_a_restart(ap
         assert _vintage(env, BULL) == want
         pend = env["client"].get("/api/build").json()
         assert [x["entry_id"] for x in pend["entries"]] == [BULL]
-        assert pend["commands"] == ["scripts/heavy.sh build 30 -- python -m pipeline build --no-tiles"]
+        # the tool serves COPIES, so the rebuild it prints is of the copies (T136), never the live tree
+        assert pend["commands"] == V.rebuild_commands([V.Waiting.reach_entry], env["reuse"].rebuild_target())
+        assert pend["commands"][0].endswith(f"--entries {env['cat']} --out {env['tmp'] / 'reach'}")
         row = next(x for x in env["client"].get("/api/entries", params={"region": "4"}).json()
                    if x["entry_id"] == BULL)
         assert row["vintage"] == V.AWAITING and row["vintage_reasons"] == want[1]
@@ -233,7 +235,8 @@ def test_a_split_added_mid_review_clears_after_the_rebuild_without_a_restart(app
         v = _get(env, eid)["vintage"]
         assert (v["state"], v["reasons"], v["splits"]) == (
             V.AWAITING, [V.Waiting.split_unbuilt.value], [new["id"]])
-        assert v["commands"][0].endswith("python -m pipeline build --atlas")
+        assert v["commands"][0].startswith("scripts/heavy.sh atlas 30 -- python -m pipeline.atlas.build "
+                                           f"--full --splits {splits_path} --out ")
         assert _vintage(env, other) == CUR                       # another water: untouched
         assert _entry_mark(env, eid)["reasons"] == ["binding moved"]
         states = env["client"].get("/api/marks/splits").json()
@@ -316,11 +319,12 @@ def test_fix_mode_adds_a_split_the_panel_lists_it_and_review_mode_cannot(app_env
         pend = env["client"].get("/api/build").json()
         assert pend["splits"] == [{"split_id": body["split"]["id"],
                                    "reasons": [V.Waiting.split_unbuilt.value]}]
-        assert pend["commands"] == V.rebuild_commands([V.Waiting.split_unbuilt]) == [
-            "scripts/heavy.sh atlas 30 -- python -m pipeline build --atlas",
-            "python -m pipeline.atlas.reach.binding_diff  # per-rule bindings, live vs the side "
-            "atlas's reach run, before promoting (AGENTS 63)",
-            "scripts/heavy.sh build 30 -- python -m pipeline build --promote --no-tiles"]
+        assert pend["commands"] == V.rebuild_commands([V.Waiting.split_unbuilt],
+                                                      env["reuse"].rebuild_target())
+        assert [c.split(" -- ", 1)[-1].split()[2] for c in pend["commands"]] == [
+            "pipeline.atlas.build", "pipeline.atlas.reach.cli", "pipeline.atlas.reach.binding_diff",
+            "pipeline.atlas.promote", "pipeline.atlas.reach.cli", "pipeline.deliver.tiles",
+            "pipeline.deliver"]
         card = next(c for c in env["client"].get("/api/review/splits").json()
                     if c["split_id"] == body["split"]["id"])
         assert (card["s0"], card["status"], card["vintage"]["state"], card["item_id"]) == (

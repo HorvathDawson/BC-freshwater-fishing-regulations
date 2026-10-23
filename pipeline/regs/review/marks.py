@@ -157,6 +157,11 @@ class Mark(BaseModel):
     pages: list[int] = Field(default_factory=list, description="printed pages read")
     prints: Prints
     carried_by: Optional[str] = None
+    #: THE REVIEWER'S TIME on the target before this mark, by the review screen's clock (seconds
+    #: from the target opening — or the previous mark of a zone entry's rules — to this one): the
+    #: T136 pilot's "time per entry". None for a mark made outside the screen (a migration's copy,
+    #: a script).
+    seconds: Optional[float] = Field(default=None, ge=0)
 
     @field_validator("reviewer")
     @classmethod
@@ -356,36 +361,60 @@ def _held_against(mark: Mark, now: Prints) -> list[RecordPrint]:
     return list(now.records)
 
 
-def stale_reasons(mark: Mark, now: Prints | Mapping | None) -> list[StaleReason]:
-    """Why `mark` no longer holds on its target as it is NOW (`now`: the target's prints from
-    `fingerprint`; None when the target is gone). Empty = the mark holds. Reasons in
-    `STALE_REASONS` order, each once."""
+#: WHICH PART OF A MARK'S PRINTS MOVED (`moved`) -> the reason it gives. `records`: a record the
+#: mark held is gone, or (not a rule mark) a new one appeared; `unbuilt`: a bundle half the mark
+#: had is not built now.
+MOVED_REASONS: dict[str, StaleReason] = {
+    "text": StaleReason.book_text_changed,
+    "records": StaleReason.rule_changed,
+    "meaning": StaleReason.rule_changed,
+    "binding": StaleReason.binding_moved,
+    "reach": StaleReason.binding_moved,
+    "answer": StaleReason.answer_changed,
+    "unbuilt": StaleReason.awaiting_build,
+}
+#: the parts a BUILD writes (the bundle's half) — every other part is read from the curated files.
+#: A mark gone stale with only these moved was moved by a rebuild alone, not by an edit: across a
+#: rebuild of unchanged inputs that is a FALSE STALE (the T136 gate: 0).
+BUILT_PARTS = frozenset({"reach", "answer", "unbuilt"})
+
+
+def moved(mark: Mark, now: Prints | Mapping | None) -> frozenset[str]:
+    """THE ONE COMPARISON of a mark's prints with its target's prints NOW (`now`: from
+    `fingerprint`; None when the target is gone): which parts moved (`MOVED_REASONS`' keys).
+    Empty = the mark holds. `stale_reasons` is this, named; the T136 gate asks it which moves a
+    rebuild alone made (`BUILT_PARTS`)."""
     if now is None:
-        return [StaleReason.rule_changed]
+        return frozenset({"records"})
     if not isinstance(now, Prints):
         now = Prints.model_validate(now)
-    got: set[StaleReason] = set()
+    got: set[str] = set()
     if mark.prints.text != now.text:
-        got.add(StaleReason.book_text_changed)
+        got.add("text")
     # a rule mark is held against its entry's record and ITS rule — the entry's other rules are
     # not what it answered for; its rule may have been renumbered (`match_records`)
     pairs, gone, new = match_records(mark.prints.records, _held_against(mark, now))
-    if gone:
-        got.add(StaleReason.rule_changed)
-    if new and mark.scope != "rule":
-        got.add(StaleReason.rule_changed)
+    if gone or (new and mark.scope != "rule"):
+        got.add("records")
     for was, cur in pairs:
         if was.meaning != cur.meaning:
-            got.add(StaleReason.rule_changed)
+            got.add("meaning")
         if was.binding != cur.binding:
-            got.add(StaleReason.binding_moved)
-        for field, moved in (("reach", StaleReason.binding_moved),
-                             ("answer", StaleReason.answer_changed)):
-            a, b = getattr(was, field), getattr(cur, field)
+            got.add("binding")
+        for part in ("reach", "answer"):
+            a, b = getattr(was, part), getattr(cur, part)
             if a is not None and b is None:
-                got.add(StaleReason.awaiting_build)
+                got.add("unbuilt")
             elif a is not None and a != b:
-                got.add(moved)
+                got.add(part)
+    return frozenset(got)
+
+
+def stale_reasons(mark: Mark, now: Prints | Mapping | None) -> list[StaleReason]:
+    """Why `mark` no longer holds on its target as it is NOW (`now`: the target's prints from
+    `fingerprint`; None when the target is gone). Empty = the mark holds. Reasons in
+    `STALE_REASONS` order, each once — `moved`, named by `MOVED_REASONS`."""
+    got = {MOVED_REASONS[p] for p in moved(mark, now)}
     return [r for r in STALE_REASONS if r in got]
 
 

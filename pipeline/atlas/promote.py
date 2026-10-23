@@ -27,11 +27,16 @@ from pipeline.common.section_handles import FILENAME as HANDLES
 
 
 def promote(candidate: Path, name: str | None = None, *, dry_run: bool = False,
-            log=print) -> dict:
-    """Make `candidate` the build called `name` (default: the configured default build). Returns
+            log=print, target: Path | None = None, tiles: Path | None = None,
+            bundle: Path | None = None) -> dict:
+    """Make `candidate` the build called `name` (default: the configured default build) — or the
+    build directory `target` (T136: a scratch atlas a review rehearsal serves). `tiles` / `bundle`
+    are the shipped artifacts whose atlas the `.prev` may still be (default: the live ones). Returns
     {"from", "to", "prev", "parity"}; `parity` is build_parity's report text."""
+    if target is not None and name is not None:
+        raise SystemExit("promote: name a build (--to) or a directory (--target), not both")
     candidate = Path(candidate).resolve()
-    target = GENERATED.build(name).resolve()
+    target = Path(target).resolve() if target is not None else GENERATED.build(name).resolve()
     prev = target.with_name(target.name + ".prev")
     if not (candidate / HANDLES).exists() or not (candidate / "registry.json").exists():
         raise SystemExit(f"promote: {candidate} is not a finished atlas (no {HANDLES} / "
@@ -50,7 +55,8 @@ def promote(candidate: Path, name: str | None = None, *, dry_run: bool = False,
                 "dry_run": True}
     if prev.exists():
         from pipeline.common.vintage import promoted_atlas
-        carrier = promoted_atlas(prev, GENERATED.tiles, GENERATED.bundle / "bundle.sqlite")
+        carrier = promoted_atlas(prev, Path(tiles) if tiles else GENERATED.tiles,
+                                 Path(bundle) if bundle else GENERATED.bundle / "bundle.sqlite")
         if carrier:
             raise SystemExit(f"promote: {prev} is still what {carrier} was cut from — rebuild the "
                              f"shipped artifacts from {target} before promoting again")
@@ -69,9 +75,15 @@ def main(argv=None) -> int:
     ap.add_argument("candidate", type=Path, help="the finished side build (e.g. .../full_next)")
     ap.add_argument("--to", default=None, help="the build name to become (default: the "
                                                  "configured default build)")
+    ap.add_argument("--target", type=Path, default=None,
+                    help="the build DIRECTORY to become (a scratch atlas), instead of a name under the live builds")
+    ap.add_argument("--tiles", type=Path, default=None,
+                    help="the tile set the .prev may still be the atlas of (default: the live tiles)")
+    ap.add_argument("--bundle", type=Path, default=None,
+                    help="the bundle the .prev may still be the atlas of (default: the live bundle)")
     ap.add_argument("--dry-run", action="store_true", help="print the parity report and stop")
     a = ap.parse_args(argv)
-    promote(a.candidate, a.to, dry_run=a.dry_run)
+    promote(a.candidate, a.to, dry_run=a.dry_run, target=a.target, tiles=a.tiles, bundle=a.bundle)
     return 0
 
 

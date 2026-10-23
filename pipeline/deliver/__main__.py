@@ -8,7 +8,7 @@
     python -m pipeline.deliver card_check [--bundle FILE] [--export-dir DIR]
     python -m pipeline.deliver store [--bundle FILE] [--export-dir DIR] [--out FILE] [--blobs CODEC]
     python -m pipeline.deliver export [--bundle FILE] [--out FILE]
-    python -m pipeline.deliver all --out-dir DIR [--build DIR] [--reaches DIR]
+    python -m pipeline.deliver all --out-dir DIR [--build DIR] [--reaches DIR] [--entries DIR] [--tiles DIR]
 
 The artifacts a client reads — the bundle, the status index, and the export pair
 (`ui-rules-export.json` + `ui-rules-guide.json`, one run) — are three commands
@@ -36,7 +36,7 @@ def _bundle(a) -> Path:
     build_dir = a.build or GENERATED.require_build()
     out = a.out or (GENERATED.bundle / "bundle.sqlite")
     print(f"bundling {build_dir} -> {out}")
-    build(build_dir, out, reaches=a.reaches, entries=a.entries)
+    build(build_dir, out, reaches=a.reaches, entries=a.entries, tiles=a.tiles)
     return out
 
 
@@ -84,7 +84,12 @@ def _all(a) -> int:
     """THE CHAIN, ATOMIC (P07). Every step writes into a staging directory beside the destination (on the same disk, so
     `os.replace` is a rename). Only when the last step AND `vintage.report_all(strict)` pass is each file moved into
     place: into --out-dir, or to its canonical home (`canonical_homes`). A failed step or a vintage mismatch moves
-    nothing, and the staging directory is removed either way, so the live files are never a mix of two runs."""
+    nothing, and the staging directory is removed either way, so the live files are never a mix of two runs.
+
+    `--tiles DIR` (T136): the tile set the chain is cut against — the bundle's access measure, the vintage check and
+    the release's tile block — instead of the live `GENERATED.tiles`; its released folder is looked up in the
+    release root this run writes to (`<out-dir>/release`, or the live one). A scratch rebuild (a review rehearsed on
+    copies) then reads and writes no live file."""
     import os
     import shutil
     import tempfile
@@ -99,7 +104,8 @@ def _all(a) -> int:
         # heap back, so a step run in-process inherited the bundle build's peak. A step that
         # fails stops the chain (`check=True`); each still runs alone.
         b = ["bundle", "--out", str(bundle)]
-        for flag, v in (("--build", a.build), ("--reaches", a.reaches), ("--entries", a.entries)):
+        for flag, v in (("--build", a.build), ("--reaches", a.reaches), ("--entries", a.entries),
+                        ("--tiles", a.tiles)):
             if v is not None:
                 b += [flag, str(v)]
         _step(b)
@@ -112,16 +118,17 @@ def _all(a) -> int:
         _step(["card_check", "--bundle", str(bundle), "--export-dir", str(d)])
         _step(["store", "--bundle", str(bundle), "--export-dir", str(d), "--out", str(d / "regs.sqlite")])
         # THE SHIPPED SET (P08): data/release/<data_release>/, from the files just made
+        rel_root = (dest / "release") if dest else GENERATED.release
+        tiles = ["--tiles", str(a.tiles), "--tiles-release-root", str(rel_root)] if a.tiles else []
         _step(["release", "--bundle", str(bundle), "--store", str(d / "regs.sqlite"), "--status-index",
-               str(d / "status_index.bin"), "--export-dir", str(d), "--out-root", str(d / "release")])
-        ok, msg = vintage.report_all(GENERATED.tiles, vintage.Artifacts.in_dir(d), strict=True)
+               str(d / "status_index.bin"), "--export-dir", str(d), "--out-root", str(d / "release"), *tiles])
+        ok, msg = vintage.report_all(a.tiles or GENERATED.tiles, vintage.Artifacts.in_dir(d), strict=True)
         print(msg)
         if not ok:
             print("pipeline.deliver: vintage refused — nothing was promoted", file=sys.stderr)
             return 1
         homes = canonical_homes()
         # the release folder(s) go to data/release/ (or <out-dir>/release/), whole
-        rel_root = (dest / "release") if dest else GENERATED.release
         releases = sorted(p for p in (d / "release").iterdir()) if (d / "release").exists() else []
         names = sorted(p.name for p in d.iterdir() if p.name != "release")
         unknown = [n for n in names if dest is None and n not in homes]
@@ -159,6 +166,8 @@ def main(argv=None) -> int:
     b.add_argument("--reaches", type=Path, default=None)
     b.add_argument("--entries", type=Path, default=None)
     b.add_argument("--out", type=Path, default=None)
+    b.add_argument("--tiles", type=Path, default=None,
+                   help="the tile set the access measure reads (default: the live tiles)")
     v = sub.add_parser("verdicts", help="the reader's every answer, once: verdicts.sqlite")
     v.add_argument("--bundle", type=Path, default=GENERATED.bundle / "bundle.sqlite")
     v.add_argument("--out", type=Path, default=None,
@@ -195,6 +204,9 @@ def main(argv=None) -> int:
     al.add_argument("--build", type=Path, default=None)
     al.add_argument("--reaches", type=Path, default=None)
     al.add_argument("--entries", type=Path, default=None)
+    al.add_argument("--tiles", type=Path, default=None,
+                    help="the tile set to cut against (default: the live tiles); its released folder is looked up "
+                         "in this run's release root")
     al.add_argument("--out-dir", type=Path, default=None,
                     help="write bundle.sqlite, status_index.bin, ui-rules-export.json, "
                          "ui-rules-guide.json, ui-rules-answers.json and regs.sqlite here "
@@ -202,7 +214,7 @@ def main(argv=None) -> int:
     a = ap.parse_args(argv)
     if a.step in (None, "all"):
         if a.step is None:
-            a.build = a.reaches = a.entries = None
+            a.build = a.reaches = a.entries = a.tiles = None
             a.out_dir = None
         return _all(a)
     if a.step == "bundle":

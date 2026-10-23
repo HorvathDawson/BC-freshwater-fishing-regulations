@@ -53,7 +53,10 @@ ENTRIES_DIR = (Path(os.environ["CURATION_ENTRIES_DIR"]) if os.environ.get("CURAT
 # The build the app SERVES. `project_config.review_build_dir` is the one name for it — see
 # config.yaml `generated.atlas.default_build`. Hard-coding it here meant the app could serve a build months older than the pipeline and say nothing: every
 # reach still renders, just against a stale graph, so a reviewer signs off on the wrong water.
-_BUILD = GENERATED.build()
+# `CURATION_BUILD` points it at another atlas — a scratch rehearsal of the review (T136), whose printed
+# rebuild then writes that copy (`vintage.Target`), never the live one.
+_BUILD = (Path(os.environ["CURATION_BUILD"]) if os.environ.get("CURATION_BUILD")
+          else GENERATED.build())
 REGISTRY_PATH = _BUILD / "registry.json"
 OVERRIDES_PATH = CURATED.regulations.overrides
 SPLITS_RESOLVED_PATH = _BUILD / "splits.resolved.json"
@@ -81,6 +84,15 @@ REACH_DIR = (Path(os.environ["CURATION_REACH_DIR"]) if os.environ.get("CURATION_
              else GENERATED.reaches / _BUILD.name)
 RELEASE_ROOT = (Path(os.environ["CURATION_RELEASE_ROOT"]) if os.environ.get("CURATION_RELEASE_ROOT")
                 else GENERATED.release)
+#: The tile set a rebuild of THIS target writes (T136): only the printed commands name it — the tool
+#: reads no tile. `CURATION_TILES` points it at a copy.
+TILES_DIR = (Path(os.environ["CURATION_TILES"]) if os.environ.get("CURATION_TILES")
+             else GENERATED.tiles)
+if os.environ.get("CURATION_BUNDLE"):
+    # THE BUNDLE the tool reads (answers, marks' bundle half, the vintage): `pipeline.deliver.bundle.read`
+    # holds the one path every reader of it asks; a scratch review points it at its copy (T136).
+    from pipeline.deliver.bundle import read as _bundle_read
+    _bundle_read.BUNDLE = os.environ["CURATION_BUNDLE"]
 
 
 # --------------------------------------------------------------------------- #
@@ -1068,6 +1080,16 @@ def _vintage_paths():
     return _BUILD, REACH_DIR, Path(_R.BUNDLE), RELEASE_ROOT
 
 
+def rebuild_target():
+    """WHAT A REBUILD PRINTED HERE REBUILDS (`vintage.Target`, T136): the corpus and splits.json
+    this tool edits, and the atlas, reach run, bundle, release and tiles it serves — read at call
+    time, so a tool pointed at copies prints commands that rebuild the copies."""
+    from pipeline.regs.review import vintage as V
+    from pipeline.deliver.bundle import read as _R
+    return V.Target(entries=ENTRIES_DIR, splits=SPLITS_JSON_PATH, build=_BUILD, reach=REACH_DIR,
+                    bundle=Path(_R.BUNDLE), release=RELEASE_ROOT, tiles=TILES_DIR)
+
+
 def built():
     """The digests of the vintage on disk NOW (`vintage.Built`): the served atlas, its reach run,
     the bundle and the newest release. KEYED ON THEIR FILES' STAMPS, so a reach run, a deliver or a
@@ -1120,7 +1142,7 @@ def entry_vintage(e: dict, on=None) -> dict:
     asks for every entry)."""
     from pipeline.regs.review import vintage as V
     return V.entry_state(e["entry_id"], io.entry_digest(e), _anchors_now(e),
-                         on if on is not None else built())
+                         on if on is not None else built(), rebuild_target())
 
 
 def split_vintage(split_id: str, on=None) -> dict:
@@ -1131,7 +1153,7 @@ def split_vintage(split_id: str, on=None) -> dict:
     if split_id not in idx:
         raise KeyError(split_id)
     return V.split_state(split_id, anchor_digest(idx[split_id]),
-                         on if on is not None else built())
+                         on if on is not None else built(), rebuild_target())
 
 
 def awaiting_build(scope: str, target: str) -> bool:
@@ -1200,11 +1222,12 @@ def entry_prechecks(e: dict, *, run=None, s0=None, gate: bool = False) -> list[d
 
 def queue_facts() -> dict:
     """What the queue's order was decided on: the reach run read (its digest), or why none was."""
+    from pipeline.regs.review import vintage as V
     run = run_facts()
     return {"run": run.digest if run is not None else None,
             "why": None if run is not None else
             f"no complete reach run in {REACH_DIR} — the ambiguous-cut and unresolved factors are "
-            f"not known (run: scripts/heavy.sh build 30 -- python -m pipeline build --no-tiles)"}
+            f"not known (run: " + "; then ".join(V.reach_run_commands(rebuild_target())) + ")"}
 
 
 def parse_review_findings() -> dict[str, list[str]]:
@@ -1238,7 +1261,7 @@ def pending_build() -> dict:
     # that landed mid-request and describe another vintage than the rows)
     return {"built": on.summary(), "entries": entries, "splits": splits,
             "splits_checked": "anchors" if on.anchors is not None else "ids",
-            "commands": V.rebuild_commands(reasons)}
+            "commands": V.rebuild_commands(reasons, rebuild_target())}
 
 
 def _live_counts(entry_id: str) -> dict[str, int | None]:
@@ -2410,3 +2433,45 @@ _BUILD_CACHES = (_registry, _place_namer_for, _indices, _splits_meta, _split_poi
                  _blk_to_item, item_tributaries, _graph, _geoms, _wbk_polys,
                  _blk_index, _review_context_for, _built_atlas, _built_for, _splits_context_for,
                  _ref_items, _run_facts_for)
+
+
+# --------------------------------------------------------------------------- #
+# Warm before the reviewer sits down (T136, PLAN §4 phase 5)
+# --------------------------------------------------------------------------- #
+
+#: What a cold backend loads before its first entry answers quickly, in the order a first entry
+#: needs it: the registry and the matcher (the queue), the bundle's facts (marks), the vintage and the
+#: reach run's facts (awaiting build, risk factors), the graph (reaches) and the section geometry
+#: (the map). The queue itself is computed last, once, so every one of its readers is warm.
+WARM_STEPS: tuple[tuple[str, str], ...] = (
+    ("registry", "_registry"), ("matcher", "_indices"), ("bundle facts", "_review_context"),
+    ("vintage", "built"), ("reach run facts", "run_facts"), ("graph", "_graph"),
+    ("geometry", "_geoms"), ("queue", "queue"),
+)
+_READY: dict = {"ready": False, "warming": False, "done": [], "seconds": None, "error": None}
+
+
+def warm(steps=WARM_STEPS) -> dict:
+    """Load every cache a first entry reads (`WARM_STEPS`), recording each step as it finishes —
+    what `readiness` reports and `GET /api/ready` serves. Run once at startup in a thread when
+    `CURATION_WARM=1` (`run.sh` sets it), so a reviewer is never the one who waits."""
+    import time as _t
+    t0 = _t.time()
+    _READY.update(ready=False, warming=True, done=[], seconds=None, error=None)
+    try:
+        for name, fn in steps:
+            globals()[fn]()
+            _READY["done"].append({"step": name, "at_s": round(_t.time() - t0, 1)})
+        _READY["ready"] = True
+    except Exception as ex:  # noqa: BLE001 — reported by /api/ready, never swallowed silently
+        _READY["error"] = f"{type(ex).__name__}: {ex}"
+    finally:
+        _READY.update(warming=False, seconds=round(_t.time() - t0, 1))
+    return readiness()
+
+
+def readiness() -> dict:
+    """THE READY SIGNAL: {ready, warming, done: [{step, at_s}], todo: [step], seconds, error}."""
+    done = [d["step"] for d in _READY["done"]]
+    return {**{k: _READY[k] for k in ("ready", "warming", "seconds", "error")},
+            "done": list(_READY["done"]), "todo": [n for n, _ in WARM_STEPS if n not in done]}

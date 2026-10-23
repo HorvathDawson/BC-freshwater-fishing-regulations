@@ -86,8 +86,31 @@ repointing the app at another build is a config edit, not a code change.
 
 **No endpoint starts a process.** The app never builds or promotes an atlas (T96: an 18-minute,
 9 GB build outside `scripts/heavy.sh` sat beside the review buttons). Split edits are applied by a
-side-atlas build the owner runs from a terminal (`python -m pipeline build --atlas`, then `--promote`, through `scripts/heavy.sh`);
+side-atlas build the owner runs from a terminal (the commands the pending-build panel prints: `python -m pipeline build --atlas`, a reach run on it and its binding diff, then `--promote` — with tiles — through `scripts/heavy.sh`);
 the app's caches drop themselves when the served files change.
+
+### The gate before the full review (T136)
+
+- **Ready signal.** `run.sh` sets `CURATION_WARM=1`: at startup the backend loads everything a first
+  entry reads (registry, matcher, bundle facts, vintage, run facts, graph, geometry, then the queue
+  once) in a background thread. `curl -s http://127.0.0.1:8787/api/ready` lists each step with the
+  second it finished and says `"ready": true` when done (or the `error`). Start it before the reviewer
+  sits down.
+- **Parity (AGENTS 16).** `scripts/heavy.sh parity 30 -- python -m pipeline.regs.review.parity
+  --json /tmp/parity.json` compares the app's binding of every rule (outcome, reason, section set)
+  with the served reach run's; only a typed cause explains a difference (`parity.EXPLAINED`).
+- **False stale.** `python -m pipeline.regs.review.gate stale` reads every mark in force: held,
+  stale by an edit, stale by a rebuild alone (`build_only` — the false stales; the gate is 0).
+- **Pilot.** `handoff/PLAN/curation-review/PILOT.md`: 30 targets across the tiers; every mark keeps
+  the screen's clock (`seconds`); `python -m pipeline.regs.review.gate pilot-report --pilot <list>`.
+- **A rehearsal on copies.** Every path the tool reads or rebuilds can point at a copy:
+  `CURATION_ENTRIES_DIR`, `CURATION_SPLITS_JSON`, `CURATION_MARKS`, `CURATION_DFO_ENTRIES_DIR`,
+  `CURATION_BACKUP_DIR` (inputs) and `CURATION_BUILD`, `CURATION_REACH_DIR`, `CURATION_BUNDLE`,
+  `CURATION_RELEASE_ROOT` (= the bundle's directory + `/release`), `CURATION_TILES` (outputs). The
+  pending-build panel then prints the rebuild ON THOSE COPIES, step by step (`vintage.Target`,
+  `rebuild_commands`: atlas `--splits/--out`, reach `--entries/--out`, binding diff, `promote
+  --target`, tiles `--release-root`, `deliver all --tiles --out-dir`) — never a live path. A tool
+  serving some live outputs and some copies prints no command at all.
 
 ---
 

@@ -236,7 +236,8 @@ def test_the_split_check_names_the_split_and_the_atlas_commands(world):
     st = world.state(ADAM)
     assert st["splits"] == ["adam__falls"]
     assert st["commands"][0] == "scripts/heavy.sh atlas 30 -- python -m pipeline build --atlas"
-    assert "binding_diff" in st["commands"][1] and "--promote" in st["commands"][2]
+    assert "reach.cli" in st["commands"][1] and "binding_diff" in st["commands"][2]
+    assert st["commands"][3] == "scripts/heavy.sh build 30 -- python -m pipeline build --promote"
 
 
 def test_a_moved_split_awaits_the_atlas(world):

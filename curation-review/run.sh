@@ -14,6 +14,9 @@ ROOT="$(git rev-parse --show-toplevel)"
 if [ "${1:-}" = "--fix" ]; then export CURATION_FIX=1; MODE=fix; else export CURATION_FIX=0; MODE=review; fi
 export CURATION_VITE_PORT="${CURATION_VITE_PORT:-5173}"
 export CURATION_API="http://127.0.0.1:${PORT:-8787}"
+# WARM BEFORE THE REVIEWER SITS DOWN (T136): the backend loads every cache a first entry reads in the
+# background; `curl -s $CURATION_API/api/ready` says `"ready": true` when it is done.
+export CURATION_WARM="${CURATION_WARM:-1}"
 
 # --- backend (background) ---
 echo "starting backend on :${PORT:-8787} ($MODE mode) …"

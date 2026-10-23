@@ -703,7 +703,7 @@ def test_no_second_copy_of_the_fingerprint_the_split_targets_or_the_override_pic
     assert not (REPO / "curation-review" / "backend" / "verification.py").exists()
     hits = {"entry_hash": [], "def applies_keys": [], "def _applies_keys": [],
             "_pick_override(": [], "def stale_reasons": [], "def entry_fingerprints(": [],
-            "def match_records(": [], "flock(": []}
+            "def match_records(": [], "flock(": [], "def moved(": []}
     for p, text in _py_sources():
         for k in hits:
             if k in text:
@@ -715,6 +715,7 @@ def test_no_second_copy_of_the_fingerprint_the_split_targets_or_the_override_pic
     assert hits["def entry_fingerprints("] == ["pipeline/regs/review/fingerprint.py"]
     assert hits["def match_records("] == ["pipeline/regs/review/marks.py"]   # rule identity
     assert hits["flock("] == ["pipeline/regs/review/marks.py"]               # the store's lock
+    assert hits["def moved("] == ["pipeline/regs/review/marks.py"]   # the one comparison (T136)
     matcher = (REPO / "pipeline/regs/matching/matcher.py").read_text(encoding="utf-8")
     assert len(re.findall(r"_pick_override\(", matcher)) == 2     # its def, and override_for
 

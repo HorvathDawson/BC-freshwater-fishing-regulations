@@ -121,20 +121,21 @@ def _split_reasons(anchors_now: Mapping[str, str], built: Built) -> tuple[set, l
     return got, which
 
 
-def _state(got: set, splits: list[str], built: Built) -> dict:
+def _state(got: set, splits: list[str], built: Built, target: Optional["Target"]) -> dict:
     reasons = [w for w in Waiting if w in got]
     return {"state": AWAITING if reasons else CURRENT, "reasons": [w.value for w in reasons],
             "splits": splits, "splits_checked": "anchors" if built.anchors is not None else "ids",
-            "commands": rebuild_commands(reasons)}
+            "commands": rebuild_commands(reasons, target)}
 
 
 def entry_state(entry_id: str, digest_now: str, anchors_now: Mapping[str, str],
-                built: Built) -> dict:
+                built: Built, target: Optional["Target"] = None) -> dict:
     """THE ONE ANSWER to "is this entry built": {state, reasons, splits, splits_checked, commands}.
     `digest_now` is `io.entry_digest` of the entry on disk; `anchors_now` is split id ->
     `splits.anchor_digest` now, for every split the entry reads (`fingerprint.entry_split_ids`).
     `state` is CURRENT only when the reach run, the bundle and the release were all made from this
-    entry as it is now, on the served atlas, with every split it reads built as authored."""
+    entry as it is now, on the served atlas, with every split it reads built as authored.
+    `target`: where the printed `commands` rebuild (`rebuild_commands`; default the live tree)."""
     got, splits = _split_reasons(anchors_now, built)
     R, B, L = built.reach, built.bundle, built.release
     if R is None:
@@ -163,14 +164,15 @@ def entry_state(entry_id: str, digest_now: str, anchors_now: Mapping[str, str],
         got.add(Waiting.release_predates)
     elif B is not None and release_is_of(L, B) is False:
         got.add(Waiting.release_bundle)
-    return _state(got, splits, built)
+    return _state(got, splits, built, target)
 
 
-def split_state(split_id: str, anchor_now: str, built: Built) -> dict:
+def split_state(split_id: str, anchor_now: str, built: Built,
+                target: Optional["Target"] = None) -> dict:
     """Is this split built as authored now? A split mark answers P on the map, which draws the
     served atlas: a split it does not hold, or holds elsewhere, is awaiting build."""
     got, splits = _split_reasons({split_id: anchor_now}, built)
-    return _state(got, splits, built)
+    return _state(got, splits, built, target)
 
 
 def bundle_rebound(reach: Mapping, bundle: Mapping) -> bool:
@@ -191,19 +193,128 @@ def release_is_of(release: Mapping, bundle: Mapping) -> bool:
         (bundle.get("entries_digest"), bundle.get("reach_digest"))
 
 
-def rebuild_commands(reasons: Iterable) -> list[str]:
-    """What the human runs to clear `reasons` (PLAN §5 — the tool prints it, never runs it): an
-    entry fix needs reach then deliver; a split (or a reach run / bundle made on another atlas)
-    needs the atlas built, its per-rule binding diff read (AGENTS 63), promoted, then the rest."""
+@dataclass(frozen=True)
+class Target:
+    """WHERE A REBUILD READS AND WRITES (T136): the review tool's own paths — the corpus and
+    splits.json it edits, and the atlas, reach run, bundle, release root and tile set it serves.
+    `canonical()` is the live tree; the tool pointed at COPIES (`CURATION_*`, a scratch review)
+    is another target, and the commands it prints must rebuild THOSE, never the live data."""
+    entries: Path
+    splits: Path
+    build: Path
+    reach: Path
+    bundle: Path
+    release: Path
+    tiles: Path
+
+    #: what a rebuild WRITES (the corpus and splits.json are only read)
+    OUTPUTS = ("build", "reach", "bundle", "release", "tiles")
+
+    @classmethod
+    def canonical(cls) -> "Target":
+        from pipeline.common.curated import CURATED, GENERATED
+        b = GENERATED.build()
+        return cls(entries=CURATED.regulations.entries.catalogue, splits=CURATED.waters.splits,
+                   build=b, reach=GENERATED.reaches / b.name, bundle=GENERATED.bundle / "bundle.sqlite",
+                   release=GENERATED.release, tiles=GENERATED.tiles)
+
+    def _same(self, other: "Target", name: str) -> bool:
+        return Path(getattr(self, name)).resolve() == Path(getattr(other, name)).resolve()
+
+    def kind(self) -> str:
+        """`canonical` (every path the live one), `scratch` (every OUTPUT elsewhere), or `mixed`:
+        some output live and some not — a rebuild from it would write the live tree from copies
+        (or a copy from half the live tree), so no command is printed for it."""
+        live = Target.canonical()
+        same = {n: self._same(live, n) for n in ("entries", "splits", *self.OUTPUTS)}
+        if all(same.values()):
+            return "canonical"
+        if not any(same[n] for n in self.OUTPUTS):
+            return "scratch"
+        return "mixed"
+
+
+def _shown(p: Path) -> str:
+    """A path as a printed command names it: repo-relative under the repo, else absolute (never
+    through a symlink — a worktree's data/ may link to the main checkout's)."""
+    import os
+    from pipeline.common.curated import REPO_ROOT
+    p = Path(os.path.abspath(p))
+    try:
+        return str(p.relative_to(os.path.abspath(REPO_ROOT)))
+    except ValueError:
+        return str(p)
+
+
+def _next(p: Path) -> Path:
+    return Path(p).with_name(Path(p).name + "_next")
+
+
+#: the binding diff's line: what to read before promoting (AGENTS 63)
+_DIFF_WHY = ("  # per-rule bindings, live vs the side atlas's reach run — read it before promoting "
+             "(AGENTS 63)")
+
+
+def rebuild_commands(reasons: Iterable, target: Optional[Target] = None) -> list[str]:
+    """What the human runs to clear `reasons` (PLAN §5 — the tool prints it, never runs it), FOR
+    `target` (default the live tree): an entry fix needs reach then deliver; a split (or a reach
+    run / bundle made on another atlas) needs the atlas built beside the served one, a reach run
+    on it and its per-rule binding diff read against the served run (AGENTS 63), the promote, then
+    reach, TILES and deliver — a new atlas is a new sid space, and `deliver all` refuses a bundle
+    whose tiles are another atlas's (so the old "--promote --no-tiles" could never finish).
+
+    A SCRATCH target (`Target.kind`: every output a copy) gets the same chain spelled out step by
+    step with every path its own, so a rehearsal never writes the live tree; a MIXED one gets no
+    command, only why."""
     rs = {Waiting(r) for r in reasons}
     if not rs:
         return []
-    if rs & ATLAS_REASONS:
+    t = target or Target.canonical()
+    kind = t.kind() if target is not None else "canonical"
+    if kind == "mixed":
+        return ["# no command: the tool serves some live artifacts and some copies, so a rebuild "
+                "would write one from the other — point every CURATION_* output (build, reach, "
+                "bundle, release, tiles) at the live tree or at copies"]
+    s = {k: _shown(getattr(t, k)) for k in ("entries", "splits", "build", "reach", "bundle",
+                                             "release", "tiles")}
+    nb, nr = _shown(_next(t.build)), _shown(_next(t.reach))
+    atlas = bool(rs & ATLAS_REASONS)
+    if kind == "canonical":
+        if not atlas:
+            return ["scripts/heavy.sh build 30 -- python -m pipeline build --no-tiles"]
         return ["scripts/heavy.sh atlas 30 -- python -m pipeline build --atlas",
-                "python -m pipeline.atlas.reach.binding_diff  # per-rule bindings, live vs the side "
-                "atlas's reach run, before promoting (AGENTS 63)",
-                "scripts/heavy.sh build 30 -- python -m pipeline build --promote --no-tiles"]
-    return ["scripts/heavy.sh build 30 -- python -m pipeline build --no-tiles"]
+                f"scripts/heavy.sh reach 30 -- python -m pipeline.atlas.reach.cli --build {nb} "
+                f"--out {nr}",
+                f"python -m pipeline.atlas.reach.binding_diff {s['reach']} {nr}{_DIFF_WHY}",
+                "scripts/heavy.sh build 30 -- python -m pipeline build --promote"]
+    out_dir = Path(t.bundle).parent
+    if Path(t.release).resolve() != (out_dir / "release").resolve():
+        return [f"# no command: `pipeline.deliver all --out-dir {_shown(out_dir)}` writes the "
+                f"release into {_shown(out_dir / 'release')}, but the tool reads releases from "
+                f"{s['release']} — point CURATION_RELEASE_ROOT there"]
+    reach = (f"scripts/heavy.sh reach 30 -- python -m pipeline.atlas.reach.cli --build {s['build']} "
+             f"--entries {s['entries']} --out {s['reach']}")
+    deliver = (f"scripts/heavy.sh deliver 30 -- python -m pipeline.deliver all --build {s['build']} "
+               f"--reaches {s['reach']} --entries {s['entries']} --tiles {s['tiles']} "
+               f"--out-dir {_shown(out_dir)}")
+    if not atlas:
+        return [reach, deliver]
+    return [f"scripts/heavy.sh atlas 30 -- python -m pipeline.atlas.build --full --splits "
+            f"{s['splits']} --out {nb}",
+            f"scripts/heavy.sh reach 30 -- python -m pipeline.atlas.reach.cli --build {nb} "
+            f"--entries {s['entries']} --out {nr}",
+            f"python -m pipeline.atlas.reach.binding_diff {s['reach']} {nr}{_DIFF_WHY}",
+            f"python -m pipeline.atlas.promote {nb} --target {s['build']} --tiles {s['tiles']} "
+            f"--bundle {s['bundle']}",
+            reach,
+            f"scripts/heavy.sh tiles 30 -- python -m pipeline.deliver.tiles --build {s['build']} "
+            f"--out {s['tiles']} --release-root {s['release']} --bundle {s['bundle']}",
+            deliver]
+
+
+def reach_run_commands(target: Optional[Target] = None) -> list[str]:
+    """What makes a reach run (and the rest) for `target` — the queue's words when there is none."""
+    return rebuild_commands([Waiting.no_reach_run], target)
 
 
 def refuse_unbuilt(scope: str, answers: Mapping[str, str], state: Mapping) -> None:
