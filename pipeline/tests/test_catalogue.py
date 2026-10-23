@@ -423,10 +423,12 @@ def test_every_name_the_prompts_use_is_current():
 
 def _refused(rule: dict) -> str:
     import pytest
-    from pipeline.regs.parsing.validate_catalogue import check_entry
+    from pipeline.regs.parsing.validate_catalogue import default_extents, gate
     entry = {"entry_id": "e1", "name": "X", "regs_verbatim": rule["verbatim"],
              "rules": [dict(rule, rule_id="r1")]}
-    got, errors = check_entry(entry, rule["verbatim"])
+    default_extents(entry)                       # as ingest does, so only the shape is refused
+    v = gate(entry, menu=None, registry=None, source_text=rule["verbatim"])
+    got, errors = v.entry, v.messages()
     if got is not None:
         pytest.fail(f"accepted {rule}")
     return " ".join(errors)

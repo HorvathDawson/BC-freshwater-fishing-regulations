@@ -79,6 +79,14 @@ class ParseContext:
         return out
 
 
+def cut_points(item: RegistryItem) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """`(id, aliases)` for every boundary of `item`, the aliases spelled as an extent binds them.
+    `split:` is the graph's ref prefix; the parser binds bare ids, so `RegistryBoundary.answers_to`
+    (the one strip, T125 item 3) spells them. The parse menu and `validate_catalogue`'s registry menu
+    (`registry_cut_points`) both read this, so the two spell a cut-point one way."""
+    return tuple((b.id, b.answers_to()[1:]) for b in item.boundaries)
+
+
 def build_parse_context(item: RegistryItem, raw_regs: str = "", entry_id: str = "",
                         region: str = "", row_index: int = -1, name: str = "",
                         symbols: tuple[str, ...] = (), review_hints: tuple[str, ...] = (),
@@ -105,15 +113,14 @@ def build_parse_context(item: RegistryItem, raw_regs: str = "", entry_id: str = 
     items = (item, *also_items)
     bmap: dict[str, tuple[str, str, str, tuple[str, ...]]] = {}
     for it in items:                                   # union, primary first (its label/kind win)
-        for b in it.boundaries:
-            # `split:` is the graph's ref prefix; the parser binds bare ids (`answers_to` strips it).
+        for b, (bid, aliases) in zip(it.boundaries, cut_points(it)):
             # A cut-point SHARED by two items keeps the aliases of BOTH (T125 item 3): the first
             # item's alone dropped what the second answers to, so the menu refused an id the
-            # resolver binds.
-            prev = bmap.get(b.id)
-            aliases = tuple(dict.fromkeys((*(prev[3] if prev else ()), *b.answers_to()[1:])))
-            bmap[b.id] = (prev or (b.id, b.label, b.kind, ()))[:3] + (aliases,)
-    by_item = tuple((it.id, tuple(x for b in it.boundaries for x in b.answers_to()))
+            # resolver binds. Ids and aliases are spelled by `cut_points` (T119: one spelling).
+            prev = bmap.get(bid)
+            merged = tuple(dict.fromkeys((*(prev[3] if prev else ()), *aliases)))
+            bmap[bid] = (prev or (bid, b.label, b.kind, ()))[:3] + (merged,)
+    by_item = tuple((it.id, tuple(x for bid, aliases in cut_points(it) for x in (bid, *aliases)))
                     for it in items)
     return ParseContext(
         entry_id=entry_id or item.id,

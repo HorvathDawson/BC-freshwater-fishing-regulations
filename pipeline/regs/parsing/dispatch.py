@@ -186,15 +186,19 @@ def _invalid_batch_ids(manifest: dict, batches_dir: Path, responses_dir: Path) -
     must be targeted explicitly to re-parse (e.g. on a stronger model)."""
     # JUDGED BY THE INGEST THAT WRITES. This called the retired prose ingest, which refuses every
     # catalogue entry, so every response looked invalid and `--redo-invalid` re-bought them all.
-    from pipeline.regs.parsing.ingest_catalogue import ingest, load_batch, response_rows
+    from pipeline.regs.parsing.ingest_catalogue import (ingest, ingest_registry, load_batch,
+                                                        response_rows)
     batch = load_batch([str(p) for p in sorted(batches_dir.glob("batch_*.json"))])
+    # Loaded OUTSIDE the per-batch `except` below: a missing build must fail the run, not mark
+    # every batch invalid and re-buy them all.
+    registry = ingest_registry()
     bad_indices: set[int] = set()
     for b in manifest["batches"]:
         rp = responses_dir / f"batch_{b['id']:03d}.json"
         if not rp.exists():
             continue
         try:
-            accepted, _ = ingest(response_rows(rp), batch)
+            accepted, _ = ingest(response_rows(rp), batch, registry=registry)
         except Exception:                                 # noqa: BLE001 — garbage response: redo it
             bad_indices.update(b["indices"])
             continue

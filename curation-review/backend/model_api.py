@@ -28,6 +28,7 @@ from pydantic import TypeAdapter, ValidationError
 
 from pipeline.common.models.enums import NodeKind
 from pipeline.regs.parsing import catalogue as C
+from pipeline.regs.parsing.catalogue_parts.walk import iter_extents
 from pipeline.regs.parsing.entry_models import Extent, Op
 
 #: Keys the app STAMPS on what it serves and removes before validation — the generated label of
@@ -88,18 +89,14 @@ def _corpus_tokens(entries: list[dict]) -> dict:
     must_be: dict[str, set] = {}
     area_kinds: set = set()
     for e in entries:
-        exts = list(e.get("extents") or [])
         for r in e.get("rules") or []:
-            exts += list(r.get("extents") or []) + list(r.get("tributary_excludes") or [])
             for c in r.get("gear") or []:
                 slot = c.get("slot", "")
                 for k in ("allow", "only", "ban", "except", "members", "of"):
                     gear.setdefault(slot, set()).update(c.get(k) or [])
                 must_be.setdefault(slot, set()).update(c.get("must_be") or [])
-        for x in e.get("licensing") or []:
-            exts += list(x.get("extents") or [])
-        for x in exts:
-            if isinstance(x, dict) and x.get("area_kind"):
+        for _path, x, _role in iter_extents(e):
+            if x.get("area_kind"):
                 area_kinds.add(x["area_kind"])
     return {"gear_members": {k: sorted(v) for k, v in gear.items() if v},
             "must_be": {k: sorted(v) for k, v in must_be.items() if v},
@@ -334,73 +331,40 @@ def warnings_of(entry: dict) -> list[dict]:
     out: list[dict] = []
     known = set(Extent.model_fields)
 
-    def visit(exts, path):
-        for i, x in enumerate(exts or []):
-            if not isinstance(x, dict):
-                continue
-            extra = sorted(set(x) - known)
-            if extra:
-                out.append(_err(path + [i], f"extent keys {extra} are not in the Extent model "
-                                            f"(the resolver may not read them)"))
-            try:
-                Extent.model_validate(x)
-            except ValidationError as ex:
-                for e in ex.errors():
-                    out.append(_err(path + [i] + list(e["loc"]), _clean_msg(e["msg"])))
-
-    visit(entry.get("extents"), ["extents"])
-    for i, r in enumerate(entry.get("rules") or []):
-        if isinstance(r, dict):
-            visit(r.get("extents"), ["rules", i, "extents"])
-            visit(r.get("tributary_excludes"), ["rules", i, "tributary_excludes"])
-    for j, x in enumerate(entry.get("licensing") or []):
-        if isinstance(x, dict):
-            visit(x.get("extents"), ["licensing", j, "extents"])
-            visit(x.get("tributary_excludes"), ["licensing", j, "tributary_excludes"])
+    for path, x, _role in iter_extents(entry):           # every extent the entry holds (T112)
+        extra = sorted(set(x) - known)
+        if extra:
+            out.append(_err(list(path), f"extent keys {extra} are not in the Extent model "
+                                        f"(the resolver may not read them)"))
+        try:
+            Extent.model_validate(x)
+        except ValidationError as ex:
+            for e in ex.errors():
+                out.append(_err(list(path) + list(e["loc"]), _clean_msg(e["msg"])))
     return out
 
 
-def check(entry: dict) -> tuple[C.CatalogueEntry | None, list[dict]]:
-    """Validate a draft through THE INGEST GATE: `CatalogueEntry`, and then what ingest checks
-    beyond the model (`validate_catalogue`) — every number in its own verbatim, a sub-limit inside
-    its parent, a lift inside what it lifts, no lake that is cut into parts. Returns the model (or
-    None) and the addressed errors; an entry with any error is not saved.
+def check(entry: dict, *, menu: dict | None, registry) -> tuple[C.CatalogueEntry | None, list[dict]]:
+    """Validate a draft through THE GATE (`validate_catalogue.gate`) — the one ingest runs: the
+    model, every number in its own verbatim, a sub-limit inside its parent, a lift inside what it
+    lifts, no lake that is cut into parts, no absorbed item id (`registry`), every split id a
+    cut-point it may bind (`menu`, `validate_catalogue.cut_point_menu`; an alias is stored
+    canonically). Returns the model (or None) — carrying the gate's rewrites, so a save writes the
+    canonical form — and the addressed errors; an entry with any error is not saved.
 
-    ONE GATE. The app used to run only the model, so a curator saved `take: 15` on a rule whose
-    sentence says 20 and the save went through; the next ingest would have refused the entry the
-    app had just accepted."""
+    ONE GATE (T119). The app used to run only the model, so a curator saved `take: 15` on a rule
+    whose sentence says 20 and the save went through; then it ran its own partial set beside the
+    validator's, never resolving an exemption alias or canonicalising a split id, so an entry it
+    accepted could still be refused by the full validator."""
     from pipeline.regs.parsing import validate_catalogue as V
-    pre: list[dict] = []
-    if isinstance(entry, dict):
-        pre += [_err([], m) for m in V.exemptions_stay_inside_what_they_lift(entry)]
-        pre += [_err(_split_parent_path(entry, m), m) for m in V.split_parents_named(entry)]
     try:
-        got = C.CatalogueEntry.model_validate(entry)
-    except ValidationError as ex:
-        return None, pre + errors_of(ex, entry)
+        v = V.gate(entry, menu=menu, registry=registry)
     except (TypeError, ValueError) as ex:            # a draft that is not even an object
-        return None, pre + [_err([], str(ex))]
-    post = [_err(path, msg) for path, msg in V.post_model_checks(got)]
-    return got, pre + post
-
-
-def _split_parent_path(entry: dict, msg: str) -> list:
-    """Address a split-parent refusal ("<entry>/<rule> …", "<entry>#<record> …", "<entry> matched:
-    …") to the rule, record or field it names."""
-    eid = str(entry.get("entry_id", ""))
-    if msg.startswith(f"{eid} matched:"):
-        return ["matched"]
-    if msg.startswith(f"{eid} extents:"):
-        return ["extents"]
-    for i, r in enumerate(entry.get("rules") or []):
-        if isinstance(r, dict) and msg.startswith((f"{eid}/{r.get('rule_id')}:",
-                                                   f"{eid}/{r.get('rule_id')} ")):
-            return ["rules", i]
-    for j, x in enumerate(entry.get("licensing") or []):
-        if isinstance(x, dict) and msg.startswith((f"{eid}#{x.get('id')}:",
-                                                   f"{eid}#{x.get('id')} ")):
-            return ["licensing", j]
-    return []
+        return None, [_err([], str(ex))]
+    errs = [_err(list(path), msg) for path, msg in v.refusals]
+    if v.model_error is not None:
+        errs += errors_of(v.model_error, entry)
+    return v.entry, errs
 
 
 def pass_through_changes(before: dict, after: dict) -> list[dict]:

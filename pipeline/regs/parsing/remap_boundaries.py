@@ -22,18 +22,8 @@ import argparse
 from pathlib import Path
 
 from pipeline.regs.parsing import io
+from pipeline.regs.parsing.catalogue_parts.walk import iter_extents
 from pipeline.atlas.registry import default_registry_path, load_registry
-
-def _extents(entry: dict):
-    """Every extent dict in an entry — the entry's own reach, and each rule's reach and carve-outs.
-
-    The entry's reach is `extents`. This read the prose era's `scope`, which no catalogue entry
-    has, so after a registry rebuild every entry-level reach kept its dead split ids silently."""
-    yield from (entry.get("extents") or [])
-    for r in entry.get("rules") or []:
-        yield from (r.get("extents") or [])
-        yield from (r.get("tributary_excludes") or [])
-
 
 def build_remap(old_registry: dict, new_registry: dict) -> dict[str, str]:
     """{old boundary id: new boundary id} for boundaries whose READABLE id changed but whose `ref`
@@ -60,7 +50,10 @@ def apply_remap(entries_dir: Path, remap: dict[str, str], dry_run: bool = False)
         file_changed = False
         for eid, e in by_id.items():
             hits: list[tuple[str, str]] = []
-            for ex in _extents(e):
+            # EVERY extent (`walk.iter_extents`, T112): the entry scope, each rule's extents and
+            # carve-outs, and each licensing record's. This skipped every licensing extent once, so
+            # about 30 licensing split references went dead after a registry rebuild unreported.
+            for _path, ex, _role in iter_extents(e):
                 new_splits = []
                 for sid in ex.get("splits") or []:
                     if sid in remap:

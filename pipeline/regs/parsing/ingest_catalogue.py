@@ -43,7 +43,7 @@ from pathlib import Path
 from pipeline.regs.parsing import io
 from pipeline.regs.parsing.catalogue import CatalogueEntry, clean_verbatim
 from pipeline.regs.parsing.io import dump_entry
-from pipeline.regs.parsing.validate_catalogue import check_entry, squash
+from pipeline.regs.parsing.validate_catalogue import default_extents, gate, squash
 
 
 def load_batch(paths: list[str]) -> dict[str, dict]:
@@ -97,8 +97,21 @@ def _passthrough(item: dict) -> dict:
     }
 
 
-def ingest(candidates: list[dict], batch: dict[str, dict]) -> tuple[dict[str, CatalogueEntry],
-                                                                    list[str]]:
+def ingest_registry():
+    """The registry ingest checks against: the default build's (`GENERATED.registry()`), so an
+    absorbed item id is refused at ingest exactly as the review app refuses it (T119). It raises
+    naming the build command when there is no build — an ingest with no registry would skip a
+    check, which is the gap this closes."""
+    from pipeline.atlas.registry import load_registry
+    from pipeline.common.curated import GENERATED
+    return load_registry(str(GENERATED.registry()))
+
+
+def ingest(candidates: list[dict], batch: dict[str, dict], *,
+           registry) -> tuple[dict[str, CatalogueEntry], list[str]]:
+    """Run every candidate through THE gate (`validate_catalogue.gate`) with its batch item as the
+    cut-point menu and `registry` for the absorbed-id check (None only where a caller has no build
+    — tests). Returns ({entry_id: accepted entry}, [problem lines])."""
     accepted: dict[str, CatalogueEntry] = {}
     problems: list[str] = []
     for data in candidates:
@@ -131,9 +144,15 @@ def ingest(candidates: list[dict], batch: dict[str, dict]) -> tuple[dict[str, Ca
                 if isinstance(rec, dict) and isinstance(rec.get("verbatim"), str):
                     rec["verbatim"] = clean_verbatim(rec["verbatim"])
         source = data["regs_verbatim"]
+        # A RULE THAT SAYS NOTHING ABOUT PLACE takes the whole water — ingest's normalisation of
+        # the parser's output, written into the file (AGENTS 13). Not part of the gate: a curator's
+        # draft is never widened.
+        default_extents(data)
         # `item` carries the boundary menu, so this also checks every split id and rewrites an
-        # alias to its canonical spelling — the same gate the agent runs on itself.
-        entry, errors = check_entry(data, source, item)
+        # alias to its canonical spelling — the same gate the agent runs on itself and the review
+        # app runs on a save.
+        verdict = gate(data, menu=item, registry=registry, source_text=source)
+        entry, errors = verdict.entry, verdict.messages()
         fatal = [e for e in errors if not e.startswith("ADVISORY")]
         for e in errors:
             problems.append(f"{'ADVISORY ' if e.startswith('ADVISORY') else ''}{eid}: {e}")
@@ -211,7 +230,7 @@ def run(batch_paths: list[str], response_paths: list[str], out_dir: str,
     candidates: list[dict] = []
     for p in response_paths:
         candidates += response_rows(p)
-    accepted, problems = ingest(candidates, batch)
+    accepted, problems = ingest(candidates, batch, registry=ingest_registry())
     for p in problems:
         print(("WARN " if p.startswith("ADVISORY") else "FAIL ") + p)
 

@@ -48,36 +48,41 @@ def split_parents(registry=None, path: str | None = None) -> dict[str, list[str]
 
 
 def refs_to_parents(entries, parents: dict[str, list[str]]) -> list[str]:
-    """Every place an entry names a split parent — `matched`, an extent's `item_id`/`item_ids`
-    (entry, rule and licensing), a `tributary_excludes` — as one line each. Empty = clean.
+    """Every place an entry BINDS a split parent — `matched`, an extent's `item_id`/`item_ids`
+    (entry scope, rule and licensing, extents and carve-outs: `walk.iter_item_refs`) — as one line
+    each. Empty = clean. An extent's `outside_items` may name a parent: subtracting "Kootenay Lake"
+    from the Creston Valley WMA takes out its parts and its ghost (`reach.extent.
+    whole_water_sections`), which is what the four Creston records do.
 
     `entries` are entry dicts; `parents` is `split_parents()`."""
-    if not parents:
+    return [msg for e in entries for _path, msg in refs_to_parents_at(e, parents)]
+
+
+def refs_to_parents_at(entry: dict, parents: dict[str, list[str]]) -> list[tuple[tuple, str]]:
+    """`refs_to_parents` for one entry, each line with the PATH of the id it names (the entry's own
+    keys, `walk.iter_item_refs`), so the review app addresses it to the field."""
+    from pipeline.regs.parsing.catalogue_parts.walk import iter_item_refs, ref_key
+    if not parents or not isinstance(entry, dict):
         return []
-    out: list[str] = []
-
-    def scan(exts, where):
-        for ex in exts or []:
-            if not isinstance(ex, dict):
-                continue
-            for i in ([ex["item_id"]] if ex.get("item_id") else []) + list(ex.get("item_ids") or []):
-                if i in parents:
-                    out.append(f"{where}: {i} is cut into {', '.join(parents[i])} — name the "
-                               f"part(s)")
-
-    for e in entries:
-        eid = e.get("entry_id")
-        for i in e.get("matched") or []:
-            if i in parents:
-                out.append(f"{eid} matched: {i} is cut into {', '.join(parents[i])} — match the "
-                           f"part(s)")
-        scan(e.get("extents"), f"{eid} extents")
-        for r in e.get("rules") or []:
-            if isinstance(r, dict):
-                scan(r.get("extents"), f"{eid}/{r.get('rule_id')}")
-                scan(r.get("tributary_excludes"), f"{eid}/{r.get('rule_id')} tributary_excludes")
-        for x in e.get("licensing") or []:
-            if isinstance(x, dict):
-                scan(x.get("extents"), f"{eid}#{x.get('id')}")
-                scan(x.get("tributary_excludes"), f"{eid}#{x.get('id')} tributary_excludes")
+    eid = entry.get("entry_id")
+    out: list[tuple[tuple, str]] = []
+    for path, i in iter_item_refs(entry):
+        if i not in parents or ref_key(path) == "outside_items":
+            continue
+        parts = ", ".join(parents[i])
+        if path[0] == "matched":
+            out.append((path, f"{eid} matched: {i} is cut into {parts} — match the part(s)"))
+            continue
+        out.append((path, f"{_where(entry, path)}: {i} is cut into {parts} — name the part(s)"))
     return out
+
+
+def _where(entry: dict, path: tuple) -> str:
+    """How a refusal names the list an extent sits in: `<entry> extents`, `<entry>/<rule id>`,
+    `<entry>#<record id>`, with ` tributary_excludes` for a carve-out."""
+    eid = entry.get("entry_id")
+    if path[0] == "extents":
+        return f"{eid} extents"
+    rec = entry[path[0]][path[1]]
+    out = f"{eid}/{rec.get('rule_id')}" if path[0] == "rules" else f"{eid}#{rec.get('id')}"
+    return out + (" tributary_excludes" if path[2] == "tributary_excludes" else "")

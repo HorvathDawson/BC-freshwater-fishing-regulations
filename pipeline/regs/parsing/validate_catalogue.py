@@ -25,17 +25,20 @@ Two did, in the first authored pass. Layer 3 is what closes it.
 from __future__ import annotations
 
 import argparse
+import copy
 import json
 import re
 import sys
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable
 
 from pydantic import ValidationError
 
 from pipeline.regs.parsing.catalogue import CatalogueEntry, squash, RuleType, label, \
     licensing_label
 from pipeline.regs.parsing.catalogue_parts.gear_omission import gear_omissions
+from pipeline.regs.parsing.catalogue_parts.walk import (describe, iter_extents, iter_item_refs,
+                                                        ref_key, scoped_items)
 
 # `squash` is the ONE normaliser and lives in catalogue.py, beside the model validator that
 # also needs it — two copies drifted once and cost a whole parse.
@@ -99,19 +102,69 @@ def default_extents(data: dict) -> int:
     return n
 
 
-def canonicalise_splits(data: dict, item: dict) -> list[str]:
+def cut_point_menu(entry: dict, cut_points) -> dict:
+    """THE CUT-POINTS AN ENTRY MAY BIND, for a caller that has a registry rather than a batch item
+    (the review app; a corpus check). Returns the batch item's own shape — `bindable_ids`,
+    `boundaries` (`[id, label, kind, aliases]`), `bindable_by_item` — so `canonicalise_splits` reads
+    one shape whichever caller built it.
+
+    The items are every water the entry MATCHES and every item an extent is scoped to
+    (`walk.scoped_items`: a carve-out naming a tributary binds that tributary's cut-points). An
+    extent's `outside_items` are not among them — it subtracts those, it does not bind on them.
+
+    `cut_points(item_id)` -> `[(id, aliases), ...]` for one item, or None for an item it does not
+    know (that item then offers nothing, so a split scoped to it is refused)."""
+    items: list[str] = []
+    for path, iid in iter_item_refs(entry):              # matched first, then extents in file order
+        if ref_key(path) != "outside_items" and iid not in items:
+            items.append(iid)
+    boundaries: dict[str, list] = {}
+    by_item: dict[str, list[str]] = {}
+    for iid in items:
+        own: list[str] = []
+        for bid, aliases in (cut_points(iid) or ()):
+            boundaries.setdefault(bid, [bid, "", "", list(aliases)])
+            own += [bid, *aliases]
+        by_item[iid] = own
+    allowed = sorted({x for b in boundaries.values() for x in [b[0], *b[3]]})
+    return {"bindable_ids": allowed, "boundaries": list(boundaries.values()),
+            "bindable_by_item": by_item}
+
+
+def registry_cut_points(registry):
+    """`cut_points` for `cut_point_menu` over a built registry: each boundary's id and its aliases,
+    spelled as the parse menu spells them (`parse_context.cut_points`)."""
+    from pipeline.regs.parsing.parse_context import cut_points
+
+    def of(iid: str):
+        it = registry.get(iid) if registry is not None else None
+        return cut_points(it) if it is not None else None
+    return of
+
+
+def canonicalise_splits(data: dict, item: dict) -> list[tuple[tuple, str]]:
     """Rewrite alias split ids to their canonical id, IN PLACE, and report ids this water cannot
-    bind. Returns error strings (empty = clean).
+    bind. Returns `(path, message)` pairs, `path` in the entry's own keys ending at the extent's
+    `splits` (empty = clean).
+
+    EVERY extent the entry holds is checked — the entry scope, each rule's extents AND carve-outs,
+    each licensing record's extents and carve-outs (`walk.iter_extents`, T112). The rules'
+    `tributary_excludes` were skipped here once, and 62 curator-written split references in them
+    were never validated.
+
+    `item` is the MENU: a batch item (ingest, the parse agent's self-check) or `cut_point_menu`
+    (the review app). A menu that states no boundaries at all — a batch written before boundaries
+    were exported — checks nothing; a menu that states an EMPTY set refuses every split.
 
     This lives in the validator, not only in ingest, because the agent is told to run the validator
     on itself until clean — a check it cannot run is a defect it cannot fix, and an invented
     cut-point is otherwise invisible until it silently selects no sections at reach resolution."""
     if item.get("no_registry"):
         return []                    # nothing to bind: no split id can be valid here
-    allowed, canon = boundary_ids(item)
-    if not allowed:
+    if "bindable_ids" not in item and "boundaries" not in item:
         return []                    # a batch written before boundaries were exported
-    errors: list[str] = []
+    allowed, canon = boundary_ids(item)
+    errors: list[tuple[tuple, str]] = []
     # A COMBINED ENTRY'S MENU IS A UNION over several waters, so the union check alone accepts a
     # reach scoped to the Atnarko but bounded by a confluence that only exists on the Bella Coola.
     # An extent that names its water(s) must bind a cut-point ON one of them. A multi-item scope
@@ -120,40 +173,27 @@ def canonicalise_splits(data: dict, item: dict) -> list[str]:
     by_item = {i: {canon.get(x, x) for x in ids}
                for i, ids in (item.get("bindable_by_item") or {}).items()}
 
-    def visit(extents, where: str) -> None:
-        for ex in extents or ():
-            if not isinstance(ex, dict):
+    for path, ex, _role in iter_extents(data):
+        where, at = describe(path), path + ("splits",)
+        ids = scoped_items(ex)
+        scoped = set().union(*(by_item.get(i, set()) for i in ids)) if ids and by_item else None
+        fixed = []
+        for sid in (ex.get("splits") or ()):
+            if sid in canon:
+                fixed.append(canon[sid])        # an alias — store the canonical spelling
+            elif sid in allowed:
+                fixed.append(sid)
+            else:
+                errors.append((at, f"{where}: unknown split id {sid!r} — not a cut-point on this "
+                                   f"water: it was invented or belongs to another item"))
+                fixed.append(sid)
                 continue
-            ids = [ex["item_id"]] if ex.get("item_id") else list(ex.get("item_ids") or ())
-            scoped = set().union(*(by_item.get(i, set()) for i in ids)) if ids and by_item else None
-            fixed = []
-            for sid in (ex.get("splits") or ()):
-                if sid in canon:
-                    fixed.append(canon[sid])        # an alias — store the canonical spelling
-                elif sid in allowed:
-                    fixed.append(sid)
-                else:
-                    errors.append(f"{where}: split id {sid!r} is not a cut-point on this water "
-                                  f"— it was invented or belongs to another item")
-                    fixed.append(sid)
-                    continue
-                if scoped is not None and fixed[-1] not in scoped:
-                    errors.append(f"{where}: extent is scoped to {', '.join(ids)!r} but {sid!r} "
-                                  f"is not a cut-point on it — drop the scope, add the item that "
-                                  f"carries {sid!r}, or bind a cut-point on that water")
-            if fixed:
-                ex["splits"] = fixed
-
-    visit(data.get("extents"), "entry scope")
-    for i, r in enumerate(data.get("rules") or ()):
-        if isinstance(r, dict):
-            visit(r.get("extents"), f"rule {i + 1}")
-    # A LICENSING RECORD BINDS BY THE SAME CUT-POINTS a rule does — a designation's reach, a
-    # requirement's place, a carve-out from its tributaries — so the same menu governs it.
-    for i, x in enumerate(data.get("licensing") or ()):
-        if isinstance(x, dict):
-            visit(x.get("extents"), f"licensing {i + 1}")
-            visit(x.get("tributary_excludes"), f"licensing {i + 1} tributary_excludes")
+            if scoped is not None and fixed[-1] not in scoped:
+                errors.append((at, f"{where}: extent is scoped to {', '.join(ids)!r} but {sid!r} "
+                                   f"is not a cut-point on it — drop the scope, add the item that "
+                                   f"carries {sid!r}, or bind a cut-point on that water"))
+        if fixed:
+            ex["splits"] = fixed
     return errors
 
 
@@ -370,7 +410,7 @@ def post_model_checks(entry: CatalogueEntry) -> list[tuple[list, str]]:
     validated entry. Returns `(path, message)` pairs, `path` in the entry's own JSON keys
     (`["rules", 2, "take"]`), so the review app can address each one to its field.
 
-    ONE implementation, called by ingest (`check_entry`) and by the review app's check and save
+    ONE implementation, called by `gate` — so by ingest and by the review app's check and save
     (`curation-review/backend`). A curator saved `take: 15` on a rule whose sentence says 20, and
     the app accepted it, because only ingest ran this gate; the next re-ingest would have refused
     the entry it had just signed off on."""
@@ -459,13 +499,13 @@ def _field_path(field: str) -> list:
     return out
 
 
-def split_parents_named(entry_data: dict) -> list[str]:
+def split_parents_named(entry_data: dict) -> list[tuple[tuple, str]]:
     """A LAKE CUT INTO PARTS IS NOT A PLACE A RECORD MAY NAME — `matched`, or an extent's
-    `item_id`/`item_ids`, naming Kootenay, Williston or Shannon Lake rather than its parts binds a
-    ghost section (`pipeline.atlas.waters.added_lakes.split_parents`). Refused here, at ingest and
-    in the review app, and again by the reach builder."""
-    from pipeline.atlas.waters.added_lakes.split_parents import refs_to_parents, split_parents
-    return refs_to_parents([entry_data], split_parents())
+    `item_id`/`item_ids`/`outside_items`, naming Kootenay, Williston or Shannon Lake rather than its
+    parts binds a ghost section (`pipeline.atlas.waters.added_lakes.split_parents`). Refused here,
+    at ingest and in the review app, and again by the reach builder. `(path, message)` pairs."""
+    from pipeline.atlas.waters.added_lakes.split_parents import refs_to_parents_at, split_parents
+    return refs_to_parents_at(entry_data, split_parents())
 
 
 def absorbed_ids_named(entry_data: dict, registry) -> list[str]:
@@ -476,55 +516,99 @@ def absorbed_ids_named(entry_data: dict, registry) -> list[str]:
     return absorbed_refs([entry_data], registry)
 
 
-def check_entry(entry_data: dict, source_text: str,
-                item: dict | None = None, registry=None) -> tuple[CatalogueEntry | None, list[str]]:
-    """Returns (entry, errors). `source_text` is the printed row the agent was given.
+@dataclass(frozen=True)
+class Verdict:
+    """What `gate` decided about one entry.
 
-    `item` is that row's batch item. Given one, extents are checked against its boundary menu and
-    alias ids are rewritten to canonical — so pass it whenever it is available. Given a `registry`,
-    an id it absorbed is refused (`absorbed_ids_named`)."""
-    errors: list[str] = []
-    if registry is not None:
-        errors += absorbed_ids_named(entry_data, registry)
-    # NOTHING IS REPAIRED HERE. `coerce_shapes` used to rewrite a bare-string `exempts` into a
-    # list and `electric_only: true` into a propulsion level, and it silently DROPPED
-    # `electric_only: false`. A shape the schema does not take is refused and re-parsed; the
-    # prompt documents both fields.
-    #
-    # An exemption that names a zone entry by the BOOK's wording lifts nothing.
-    resolve_exempt_ids(entry_data)
-    errors += exemptions_stay_inside_what_they_lift(entry_data)
-    errors += split_parents_named(entry_data)
-    default_extents(entry_data)
-    if item is not None:
-        # Before model validation: this rewrites aliases, and the rewritten value is what the
-        # returned entry must carry.
-        errors += canonicalise_splits(entry_data, item)
+    `entry` is the validated model (None when the model refused it) and carries every rewrite the
+    gate made (an alias split id stored canonically, an exemption alias resolved). `refusals` are
+    `(path, message)` from every check that is not the model itself, `path` in the entry's own JSON
+    keys; `model_error` is the model's own refusal, kept whole so the review app can render it in
+    its field terms (`model_api.errors_of`); `advisories` never refuse."""
+    entry: CatalogueEntry | None
+    refusals: tuple[tuple[tuple, str], ...] = ()
+    model_error: ValidationError | None = None
+    advisories: tuple[str, ...] = ()
+
+    @property
+    def ok(self) -> bool:
+        return self.entry is not None and not self.refusals
+
+    def messages(self) -> list[str]:
+        """Every refusal and advisory as one line each — what ingest and the agent's self-check
+        print. A model error reads `<loc>: <msg>`; an advisory starts `ADVISORY`."""
+        out = [m for _p, m in self.refusals]
+        if self.model_error is not None:
+            out += [f"{'.'.join(str(x) for x in e['loc'])}: {e['msg']}"
+                    for e in self.model_error.errors()]
+        return out + list(self.advisories)
+
+
+def gate(entry_data: dict, *, menu: dict | None, registry,
+         source_text: str | None = None) -> Verdict:
+    """THE ONE ACCEPTANCE GATE (T119): is this catalogue entry acceptable? Ingest, the parse agent's
+    self-check (`run`, through ingest) and the review app's check and save all call THIS, so an
+    entry one of them accepts is never refused by another.
+
+    Every check, in order — each skipped only when its input is absent, never by the caller:
+
+      absorbed ids        `absorbed_ids_named`      needs `registry`
+      exemption aliases   `resolve_exempt_ids`      (the rewrite is in the returned entry)
+      lift inside target  `exemptions_stay_inside_what_they_lift`
+      split parents       `split_parents_named`
+      cut-points          `canonicalise_splits`     needs `menu` (the rewrite is in the entry)
+      THE MODEL           `CatalogueEntry`
+      the printed row     layer 3                   needs `source_text`
+      after the model     `post_model_checks`
+      long row, one rule  advisory                  needs `source_text`
+
+    `menu` is the cut-point menu: ingest passes the row's batch item (what the parser was shown);
+    the review app passes `cut_point_menu` over the build it serves. `registry` and `menu` are
+    keyword-only and REQUIRED, so a caller states that it has none (None) rather than forgetting
+    one — that is how ingest came to skip the absorbed-id check. `entry_data` is not modified.
+
+    NOT here: `default_extents`. That is ingest's normalisation of a parser's bare rule (it writes
+    the whole water onto a rule that says nothing about place), not a check — run on a curator's
+    draft it would widen a rule silently (AGENTS 13)."""
+    data = copy.deepcopy(entry_data)
+    refusals: list[tuple[tuple, str]] = []
+    if isinstance(data, dict):
+        if registry is not None:
+            refusals += [(("matched",), m) for m in absorbed_ids_named(data, registry)]
+        # NOTHING IS REPAIRED HERE. `coerce_shapes` used to rewrite a bare-string `exempts` into
+        # a list and `electric_only: true` into a propulsion level, and it silently DROPPED
+        # `electric_only: false`. A shape the schema does not take is refused and re-parsed; the
+        # prompt documents both fields.
+        #
+        # An exemption that names a zone entry by the BOOK's wording lifts nothing.
+        resolve_exempt_ids(data)
+        refusals += [((), m) for m in exemptions_stay_inside_what_they_lift(data)]
+        refusals += split_parents_named(data)
+        if menu is not None:
+            # Before model validation: this rewrites aliases, and the rewritten value is what the
+            # returned entry must carry.
+            refusals += canonicalise_splits(data, menu)
     try:
-        entry = CatalogueEntry.model_validate(entry_data)
+        entry = CatalogueEntry.model_validate(data)
     except ValidationError as exc:
-        for e in exc.errors():
-            loc = ".".join(str(x) for x in e["loc"])
-            errors.append(f"{loc}: {e['msg']}")
-        return None, errors
+        return Verdict(None, tuple(refusals), exc)
 
     # LAYER 3 — the passage must be the text we handed over, not a rewrite of it.
-    if source_text:
-        if squash(entry.regs_verbatim) not in squash(source_text):
-            errors.append(
-                "regs_verbatim is not a contiguous run of the source row — it has been reworded, "
-                "reordered or stitched. Quote the printed text.")
+    if source_text and squash(entry.regs_verbatim) not in squash(source_text):
+        refusals.append((("regs_verbatim",),
+                         "regs_verbatim is not a contiguous run of the source row — it has been "
+                         "reworded, reordered or stitched. Quote the printed text."))
 
-    errors += [msg for _path, msg in post_model_checks(entry)]
+    refusals += [(tuple(path), msg) for path, msg in post_model_checks(entry)]
 
     # A row whose printed text is long but which produced one short rule has almost certainly
     # dropped something. Advisory, not fatal — some rows really are one sentence.
+    advisories: tuple[str, ...] = ()
     if source_text and len(squash(source_text)) > 200 and len(entry.rules) == 1:
-        errors.append(
+        advisories = (
             f"ADVISORY: {len(squash(source_text))} characters of source produced a single rule — "
-            f"check for a restriction you have not carried across")
-
-    return entry, errors
+            f"check for a restriction you have not carried across",)
+    return Verdict(entry, tuple(refusals), None, advisories)
 
 
 def run(batch_path: str, candidate_path: str) -> int:
@@ -532,10 +616,11 @@ def run(batch_path: str, candidate_path: str) -> int:
     the envelope it submits — `[{"index": N, "entry": {...}}, ...]`.
 
     This IS the ingest gate, called as ingest calls it — the row facts copied from the batch,
-    then `check_entry` — so a candidate that comes back clean here is one ingest accepts."""
-    from pipeline.regs.parsing.ingest_catalogue import ingest, load_batch, response_rows
+    then `gate` — so a candidate that comes back clean here is one ingest accepts."""
+    from pipeline.regs.parsing.ingest_catalogue import (ingest, ingest_registry, load_batch,
+                                                        response_rows)
     entries = response_rows(candidate_path)
-    accepted, problems = ingest(entries, load_batch([batch_path]))
+    accepted, problems = ingest(entries, load_batch([batch_path]), registry=ingest_registry())
     for p in problems:
         print(("WARN " if p.startswith("ADVISORY") else "FAIL ") + p)
     total = len(entries)

@@ -63,7 +63,7 @@ def test_an_agent_response_in_the_documented_shape_reaches_disk(tmp_path):
     batch = {"r3:tranquille_lake@3-29": {"entry_id": "r3:tranquille_lake@3-29", "raw_regs": ROW,
                                          "name": "TRANQUILLE LAKE", "region": "3"}}
 
-    accepted, problems = ingest([candidate], batch)
+    accepted, problems = ingest([candidate], batch, registry=None)
     assert not [p for p in problems if not p.startswith("ADVISORY")], problems
     assert list(accepted) == ["r3:tranquille_lake@3-29"]
 
@@ -92,16 +92,16 @@ def test_the_gate_refuses_the_mistakes_the_prompt_warns_about(tmp_path):
     # take=0 with no may_target — the 605-rule defect
     acc, _ = ingest([cand({"rule_id": "x.r1", "type": "retention_limit",
                            "verbatim": "No fishing for kokanee in streams.",
-                           "species": ["KO"], "take": 0})], batch)
+                           "species": ["KO"], "take": 0})], batch, registry=None)
     assert not acc
 
     # a species on a bait rule — the ban is the whole river
     acc, _ = ingest([cand({"rule_id": "x.r1", "type": "bait_restriction", "verbatim": "Bait ban.",
-                           "gear": [{"slot": "bait", "ban": ["any_bait"]}], "species": ["RB"]})], batch)
+                           "gear": [{"slot": "bait", "ban": ["any_bait"]}], "species": ["RB"]})], batch, registry=None)
     assert not acc
 
     # a number that is not in the rule's own sentence
     acc, _ = ingest([cand({"rule_id": "x.r1", "type": "retention_limit",
                            "verbatim": "Rainbow trout daily quota = 8",
-                           "species": ["RB"], "take": 80})], batch)
+                           "species": ["RB"], "take": 80})], batch, registry=None)
     assert not acc

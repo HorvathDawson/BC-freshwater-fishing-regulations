@@ -9,7 +9,18 @@ from __future__ import annotations
 
 import pytest
 
-from pipeline.regs.parsing.validate_catalogue import check_entry, squash
+import copy
+
+from pipeline.regs.parsing.validate_catalogue import default_extents, gate, squash
+
+
+def _gated(entry, source, item=None):
+    """THE GATE as ingest calls it (a bare rule given the whole water first, `default_extents`),
+    minus the registry: (model or None, every message)."""
+    entry = copy.deepcopy(entry)
+    default_extents(entry)
+    v = gate(entry, menu=item, registry=None, source_text=source)
+    return v.entry, v.messages()
 
 SOURCE = ("TRANQUILLE LAKE 3-29 Rainbow trout daily quota = 8. Bait ban. "
           "No fishing for kokanee in streams.")
@@ -28,19 +39,19 @@ def _quota(**kw):
 
 
 def test_a_clean_entry_passes():
-    _, errors = check_entry(_entry([_quota()]), SOURCE)
+    _, errors = _gated(_entry([_quota()]), SOURCE)
     assert errors == []
 
 
 def test_a_number_not_in_its_own_sentence_is_refused():
     """The guard that caught a 50 cm sub-limit attributed to a rule whose text never said it."""
-    _, errors = check_entry(_entry([_quota(take=99)]), SOURCE)
+    _, errors = _gated(_entry([_quota(take=99)]), SOURCE)
     assert any("does not appear in its own verbatim" in e for e in errors)
 
 
 def test_a_reworded_passage_is_refused():
     """LAYER 3. The agent writes both the passage and the rules, so only the source can settle it."""
-    _, errors = check_entry(_entry([_quota()], regs="Rainbow trout quota is eight."), SOURCE)
+    _, errors = _gated(_entry([_quota()], regs="Rainbow trout quota is eight."), SOURCE)
     assert any("reworded" in e or "contiguous substring" in e for e in errors)
 
 
@@ -48,7 +59,7 @@ def test_an_invented_sentence_is_refused():
     """Exactly what got through the first time: a rule quoting text that is nowhere in the source."""
     rules = [_quota(rule_id="t.r2", verbatim="All sturgeon must be released.",
                     species=["WSG"], take=0, may_target=True)]
-    _, errors = check_entry(_entry(rules, regs=SOURCE + " All sturgeon must be released."), SOURCE)
+    _, errors = _gated(_entry(rules, regs=SOURCE + " All sturgeon must be released."), SOURCE)
     assert any("reworded" in e or "contiguous run" in e for e in errors)
 
 
@@ -58,25 +69,25 @@ def test_a_sub_limit_larger_than_its_parent_is_refused():
                     within="t.r1")]
     rules[1]["take"] = 8
     rules[0]["take"] = 8
-    _, errors = check_entry(_entry(rules), SOURCE)
+    _, errors = _gated(_entry(rules), SOURCE)
     assert errors == [] or all("cannot exceed" not in e for e in errors)
 
 
 def test_within_must_name_a_rule_in_the_same_entry():
-    _, errors = check_entry(_entry([_quota(within="nope.r9")]), SOURCE)
+    _, errors = _gated(_entry([_quota(within="nope.r9")]), SOURCE)
     assert any("names no rule in this entry" in e for e in errors)
 
 
 def test_take_zero_without_may_target_is_refused_by_the_model():
     rules = [{"rule_id": "t.r1", "type": "retention_limit",
               "verbatim": "No fishing for kokanee in streams", "species": ["KO"], "take": 0}]
-    _, errors = check_entry(_entry(rules), SOURCE)
+    _, errors = _gated(_entry(rules), SOURCE)
     assert any("may_target" in e for e in errors)
 
 
 def test_a_long_row_producing_one_rule_is_flagged_but_not_fatal():
     long_src = SOURCE + " " + ("Single barbless hook. Electric motor only. " * 6)
-    _, errors = check_entry(_entry([_quota()], regs=long_src), long_src)
+    _, errors = _gated(_entry([_quota()], regs=long_src), long_src)
     advisories = [e for e in errors if e.startswith("ADVISORY")]
     assert advisories and all(e.startswith("ADVISORY") for e in errors)
 
@@ -114,15 +125,13 @@ def _reach_entry(splits):
 
 
 def test_validator_refuses_an_invented_split_id():
-    from pipeline.regs.parsing.validate_catalogue import check_entry
-    _, errors = check_entry(_reach_entry(["okanagan_river__invented_dam"]),
+    _, errors = _gated(_reach_entry(["okanagan_river__invented_dam"]),
                             "No fishing downstream of McIntyre Dam.", _reach_item())
     assert any("invented" in e for e in errors), errors
 
 
 def test_validator_rewrites_an_alias_to_the_canonical_id():
-    from pipeline.regs.parsing.validate_catalogue import check_entry
-    entry, errors = check_entry(_reach_entry(["okanagan_river__mcintyre_dam"]),
+    entry, errors = _gated(_reach_entry(["okanagan_river__mcintyre_dam"]),
                                 "No fishing downstream of McIntyre Dam.", _reach_item())
     assert not [e for e in errors if not e.startswith("ADVISORY")], errors
     assert entry.rules[0].extents[0]["splits"] == ["gauge__08NM247"]
@@ -130,8 +139,7 @@ def test_validator_rewrites_an_alias_to_the_canonical_id():
 
 def test_validator_without_an_item_still_validates_the_rest():
     """`item` is optional — a caller that has no batch still gets layers 1 and 2."""
-    from pipeline.regs.parsing.validate_catalogue import check_entry
-    entry, errors = check_entry(_reach_entry(["anything_at_all"]),
+    entry, errors = _gated(_reach_entry(["anything_at_all"]),
                                 "No fishing downstream of McIntyre Dam.")
     assert entry is not None
     assert not any("not a cut-point" in e for e in errors)
@@ -261,14 +269,14 @@ def test_a_lake_cut_into_parts_is_not_a_place_a_record_may_name(where):
                            "satisfied_by": [{"hold": ["basic_licence"]}],
                            "extents": [{"op": "whole", "item_ids": ["wbk:329459193"]}],
                            "verbatim": "Rainbow trout daily quota = 8"}]
-    _, errors = check_entry(e, SOURCE)
+    _, errors = _gated(e, SOURCE)
     assert any("is cut into" in x for x in errors), errors
 
 
 def test_the_parts_themselves_are_fine():
     e = _entry([_quota(extents=[{"op": "whole", "item_id": "wbk:-20"}])])
     e["matched"] = ["wbk:-21"]
-    _, errors = check_entry(e, SOURCE)
+    _, errors = _gated(e, SOURCE)
     assert not any("is cut into" in x for x in errors), errors
 
 
@@ -288,7 +296,7 @@ def test_the_post_model_gate_addresses_each_refusal_to_its_field():
     got = post_model_checks(CatalogueEntry.model_validate(e))
     paths = {tuple(p) for p, _ in got}
     assert ("rules", 0, "take") in paths and ("rules", 0, "lengths", 0, "min_cm") in paths
-    _, errors = check_entry(e, SOURCE)
+    _, errors = _gated(e, SOURCE)
     assert [m for _, m in got] == [x for x in errors if "does not appear" in x]
 
 
@@ -322,7 +330,7 @@ def _sub_limit(verbatim, take=1, **kw):
 
 def test_a_count_spelled_as_a_word_is_its_own_number():
     """"only one over 50 cm" — six sub-limits were dropped because the gate read digits only."""
-    _, errors = check_entry(_entry(_sub_limit("only one over 50 cm"), regs=_NATION), _NATION)
+    _, errors = _gated(_entry(_sub_limit("only one over 50 cm"), regs=_NATION), _NATION)
     assert errors == []
 
 
@@ -334,7 +342,7 @@ def test_a_count_spelled_as_a_word_is_its_own_number():
 ])
 def test_a_word_count_must_be_the_same_number_and_a_whole_word(take, verbatim):
     regs = f"Lake trout possession quota = 2 ({verbatim}); no set lines"
-    _, errors = check_entry(_entry(_sub_limit(verbatim, take=take), regs=regs), regs)
+    _, errors = _gated(_entry(_sub_limit(verbatim, take=take), regs=regs), regs)
     assert any("t.r2: take=" in e and "does not appear" in e for e in errors), errors
 
 
@@ -342,7 +350,7 @@ def test_a_size_is_never_accepted_as_a_word():
     """Words are for COUNTS. A length the sentence spells only as "fifty" is not a printed size."""
     regs = "Lake trout possession quota = 2 (only one over fifty); no set lines"
     rules = _sub_limit("only one over fifty")
-    _, errors = check_entry(_entry(rules, regs=regs), regs)
+    _, errors = _gated(_entry(rules, regs=regs), regs)
     assert any("lengths[0].min_cm=50" in e for e in errors), errors
 
 
@@ -460,13 +468,13 @@ def test_moving_the_fin_fish_ban_out_of_region_6_refuses_the_set_lining_lift():
 
 
 def test_every_curated_entry_passes_the_ingest_gate():
-    """THE WHOLE CATALOGUE PASSES `check_entry` against its own printed passage (T96): ingest for a
+    """THE WHOLE CATALOGUE PASSES `gate` against its own printed passage (T96): ingest for a
     region is all or nothing, so one refused entry breaks the region. Advisories are not refusals."""
     import copy
     entries = _curated_entries()
     refused = {}
     for e in entries:
-        _, errors = check_entry(copy.deepcopy(e), e.get("regs_verbatim") or "")
+        _, errors = _gated(copy.deepcopy(e), e.get("regs_verbatim") or "")
         errors = [x for x in errors if not x.startswith("ADVISORY")]
         if errors:
             refused[e["entry_id"]] = errors

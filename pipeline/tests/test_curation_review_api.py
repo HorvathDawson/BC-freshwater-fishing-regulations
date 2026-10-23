@@ -530,7 +530,9 @@ BAD = {
                        _bad_rule("tackle_restriction",
                                  lambda r: r.update(extents=[{"op": "whole",
                                                               "item_id": "wbk:328974235"}]),
-                                 "", "is cut into")),
+                                 # addressed to the id itself (T112's walker paths); the
+                                 # editor marks every field the path starts with
+                                 ".extents.0.item_id", "is cut into")),
     "a bare whole beside a place in words": ("rule:tackle_restriction",
                                              _bad_rule("tackle_restriction",
                                                        lambda r: r.update(

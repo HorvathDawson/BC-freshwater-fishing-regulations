@@ -30,6 +30,7 @@ from pipeline.regs.matching.matcher import (
     MatchResult, build_id_index, build_name_index, build_override_index, load_overrides, match_row,
 )
 from pipeline.regs.parsing import io
+from pipeline.regs.parsing.catalogue_parts.walk import iter_extent_lists
 from pipeline.regs.parsing.catalogue import CatalogueRule, label as rule_label
 from pipeline.atlas.reach.covered import covered_ids as _pipeline_covered_ids
 import answer
@@ -492,20 +493,6 @@ def _combined_bindable(item, e: dict) -> list[dict]:
         for b in bindable(it):
             out.setdefault(b["id"], {**b, "item_id": built.get(b["id"], it.id)})
     return list(out.values())
-
-
-def _bindable_ids(item) -> set[str]:
-    """Every id a rule may legally bind on this item — including each boundary's ALIASES.
-
-    An alias is a curated split that could not be cut because its measure landed inside a lake run
-    (a dam at the outlet), recorded as another name for the boundary standing at that place. It is a
-    real, resolvable cut-point, so binding it must validate; without this the id resolves on the map
-    but is rejected on save."""
-    out: set[str] = set()
-    for b in bindable(item):
-        out.add(b["id"])
-        out.update(b.get("aliases") or ())
-    return out
 
 
 def item_bindable(item_id: str) -> list[dict]:
@@ -2143,15 +2130,17 @@ def delete_split(split_id: str) -> dict:
 
 
 def _extent_lists(e: dict):
-    """(part id, label, extents list) for every place an entry stores extents: its scope, each
-    rule's extents and tributary excludes, each licensing record's."""
-    yield "(entry scope)", "the entry's own reach", e.get("extents") or []
-    for r in e.get("rules") or []:
-        for key in ("extents", "tributary_excludes"):
-            yield r["rule_id"], _label(r), r.get(key) or []
-    for x in e.get("licensing") or []:
-        for key in ("extents", "tributary_excludes"):
-            yield x.get("id", ""), f"{x.get('kind')}: {x.get('verbatim', '')}", x.get(key) or []
+    """(part id, label, extents list) for every place an entry stores extents (`walk`, T112): its
+    scope, each rule's extents and tributary excludes, each licensing record's."""
+    for path, exts, _role in iter_extent_lists(e):
+        if path[0] == "extents":
+            yield "(entry scope)", "the entry's own reach", exts
+        elif path[0] == "rules":
+            r = e["rules"][path[1]]
+            yield r["rule_id"], _label(r), exts
+        else:
+            x = e["licensing"][path[1]]
+            yield x.get("id", ""), f"{x.get('kind')}: {x.get('verbatim', '')}", exts
 
 
 def split_refs(split_id: str) -> list[dict]:
@@ -2316,50 +2305,19 @@ def _label(rule: dict) -> str:
         return (rule.get("verbatim") or "")
 
 
-def _check_splits(entry_dict: dict, allowed: set[str]) -> list[dict]:
-    """Every split id an extent binds must be a cut-point the curator can actually bind: the entry
-    scope, every rule's extents, and every licensing record's extents. A cut-point answers to its
-    own id AND to any alias of it, because extent.py resolves either."""
-    errs: list[dict] = []
+def _cut_points(iid: str):
+    """`cut_points` for `validate_catalogue.cut_point_menu`: what a rule may bind on one item in the
+    app — the built boundaries AND the splits.json splits pending a rebuild (`bindable`), each with
+    its aliases. None for an item this build does not have.
 
-    def visit(extents, path: list) -> None:
-        for i, ex in enumerate(extents or ()):
-            if not isinstance(ex, dict):
-                continue
-            for sid in (ex.get("splits") or ()):
-                if sid not in allowed:
-                    errs.append({"path": ".".join(map(str, path + [i, "splits"])),
-                                 "msg": f"unknown split id {sid!r} — not a cut-point of any water "
-                                        f"this entry or extent names"})
-
-    visit(entry_dict.get("extents"), ["extents"])
-    for j, r in enumerate(entry_dict.get("rules") or ()):
-        if isinstance(r, dict):
-            visit(r.get("extents"), ["rules", j, "extents"])
-    for j, x in enumerate(entry_dict.get("licensing") or ()):
-        if isinstance(x, dict):
-            visit(x.get("extents"), ["licensing", j, "extents"])
-    return errs
-
-
-def _referenced_item_ids(entry_dict: dict) -> set[str]:
-    """Every other-item id an extent scopes to (entry scope, rule extents and tributary excludes,
-    licensing extents and tributary excludes)."""
-    ids: set[str] = set()
-
-    def _scan(extents):
-        for ex in extents or []:
-            if isinstance(ex, dict):
-                if ex.get("item_id"):
-                    ids.add(ex["item_id"])
-                ids.update(ex.get("item_ids") or ())
-
-    _scan(entry_dict.get("extents"))
-    for r in list(entry_dict.get("rules") or []) + list(entry_dict.get("licensing") or []):
-        if isinstance(r, dict):
-            _scan(r.get("extents"))
-            _scan(r.get("tributary_excludes"))
-    return ids
+    THE ALIASES BIND. An alias is a curated split that could not be cut because its measure landed
+    inside a lake run (a dam at the outlet), recorded as another name for the boundary standing at
+    that place. It is a real, resolvable cut-point, so binding it must validate (the gate stores
+    the boundary's own id in its place); without it the id resolves on the map but is refused."""
+    it = _registry().get(iid)
+    if it is None:
+        return None
+    return [(b["id"], tuple(b.get("aliases") or ())) for b in bindable(it)]
 
 
 def _find(entry_id: str) -> tuple[str, dict] | None:
@@ -2369,19 +2327,22 @@ def _find(entry_id: str) -> tuple[str, dict] | None:
     return None
 
 
-def check_entry(entry_dict: dict, region: str | None = None) -> dict:
-    """EVERYTHING a save would refuse, without writing: the model, the pass-through fields, the
-    split ids. Plus the generated label of every rule and record, so the editor shows what the app
-    will say while the curator types. `{ok, errors, warnings, labels}`; each error is
-    `{path, msg}` with `path` in the entry's own JSON keys (`rules.2.gear.0.max`)."""
+def _gate(data: dict):
+    """THE GATE (`validate_catalogue.gate`, through `model_api.check`) with the build this app
+    serves: its registry, and the cut-points of every item the entry matches or an extent is scoped
+    to (`cut_point_menu` over `_cut_points`). Returns (model or None, addressed errors)."""
+    from pipeline.regs.parsing.validate_catalogue import cut_point_menu
+    return model_api.check(data, menu=cut_point_menu(data, _cut_points), registry=_registry())
+
+
+def _checked(entry_dict: dict, region: str | None) -> tuple:
+    """(the gate's model or None, `check_entry`'s answer). One run of the gate serves a check and a
+    save, so a save writes exactly the entry the check accepted — with the gate's rewrites."""
     data = model_api.strip_served(entry_dict)
     labels = model_api.labels(data, ENTRIES_DIR, _place_namer())
-    entry, errs = model_api.check(data)
-    # AN ABSORBED ITEM ID IS REFUSED WHERE A FILE IS WRITTEN (AGENTS 55): a `matched` or an extent
-    # naming a polygon this registry folded into its river names the river. Only the corpus' read
-    # point (`io.read_entryfile`, `load_region` above) maps one; a save never writes one back.
-    from pipeline.regs.parsing.validate_catalogue import absorbed_ids_named
-    errs += [{"path": "matched", "msg": m} for m in absorbed_ids_named(data, _registry())]
+    entry, errs = _gate(data)
+    # WHAT THE APP ADDS TO THE GATE is about the EDIT, not the entry: an app edits entries, it does
+    # not create or move them, and the synopsis row's own fields are not edited here.
     found = _find(str(data.get("entry_id", "")))
     if found is None:
         errs.append({"path": "entry_id", "msg": f"{data.get('entry_id')!r} is not an entry in "
@@ -2392,31 +2353,33 @@ def check_entry(entry_dict: dict, region: str | None = None) -> dict:
             errs.append({"path": "region", "msg": f"the entry is in region-{on_region}.json, not "
                                                  f"region-{region}.json"})
         errs += model_api.pass_through_changes(on_disk, data)
-    if entry is not None:
-        item = _item_for_entry(data)
-        allowed = _bindable_ids(item)           # built graph ∪ splits.json — bind pending splits too
-        for iid in _referenced_item_ids(data):  # + splits of any cross-item extent / exclude
-            it2 = _registry().get(iid)
-            if it2:
-                allowed |= _bindable_ids(it2)
-        errs += _check_splits(data, allowed)
-    return {"ok": not errs, "errors": errs, "warnings": model_api.warnings_of(data),
-            "labels": labels}
+    return entry, {"ok": not errs, "errors": errs, "warnings": model_api.warnings_of(data),
+                   "labels": labels}
+
+
+def check_entry(entry_dict: dict, region: str | None = None) -> dict:
+    """EVERYTHING a save would refuse, without writing: THE GATE (`validate_catalogue.gate` — the
+    model, the checks after it, absorbed ids, split parents, every split id against the cut-points
+    it may bind) and the edit's own limits (the pass-through fields, the entry's region). Plus the
+    generated label of every rule and record, so the editor shows what the app will say while the
+    curator types. `{ok, errors, warnings, labels}`; each error is `{path, msg}` with `path` in the
+    entry's own JSON keys (`rules.2.gear.0.max`)."""
+    return _checked(entry_dict, region)[1]
 
 
 def save_entry(region: str, entry_dict: dict) -> dict:
-    """Validate an edited entry (`check_entry`) and write it back to its region file, the single
-    source of truth. The file's new text is produced by `io.write_entryfile` on a staged copy —
-    every other entry in the file is written back exactly as it was read, and the whole file is
-    validated as written — then committed through `writes.commit`, which backs the file up first.
-    Returns `{ok, errors}`.
+    """Validate an edited entry (the gate, `check_entry`) and write it back to its region file, the
+    single source of truth — AS THE GATE RETURNED IT, so an alias split id or an exemption's book
+    name is stored in its canonical spelling, exactly as ingest stores it. The file's new text is
+    produced by `io.write_entryfile` on a staged copy — every other entry in the file is written
+    back exactly as it was read, and the whole file is validated as written — then committed
+    through `writes.commit`, which backs the file up first. Returns `{ok, errors}`.
 
     There is no confirm/lock — a catalogue entry has no such field; a re-parse leaves an entry
     edited here alone (see the module doc)."""
-    res = check_entry(entry_dict, region)
+    entry, res = _checked(entry_dict, region)
     if not res["ok"]:
         return {"ok": False, "errors": res["errors"]}
-    entry, _ = model_api.check(model_api.strip_served(entry_dict))
     path = ENTRIES_DIR / f"region-{region}.json"
     with writes.LOCK:
         existing: dict[str, object] = dict(io.read_entryfile(path, missing_ok=True))

@@ -106,7 +106,7 @@ def _between(**scope) -> dict:
 def test_item_id_scoped_extent_must_bind_a_cutpoint_on_that_item():
     """A combined entry's flat menu is a UNION, so the union check accepted a reach scoped to the
     Atnarko but bounded by a confluence that only exists on the Bella Coola."""
-    errs = canonicalise_splits(_between(item_id="gnis:17209"), _COMBINED)
+    errs = [m for _p, m in canonicalise_splits(_between(item_id="gnis:17209"), _COMBINED)]
     assert len(errs) == 1 and "gnis:17209" in errs[0] and "talchako" in errs[0]
 
 
@@ -114,7 +114,7 @@ def test_item_ids_lets_one_reach_span_two_waters():
     """A reach whose two ends sit on DIFFERENT waters must be scoped to both — scoping it to either
     alone puts the other end out of scope and the reach cannot resolve at all."""
     assert canonicalise_splits(_between(item_ids=["gnis:17209", "gnis:11611"]), _COMBINED) == []
-    errs = canonicalise_splits(_between(item_ids=["gnis:17209"]), _COMBINED)
+    errs = [m for _p, m in canonicalise_splits(_between(item_ids=["gnis:17209"]), _COMBINED)]
     assert len(errs) == 1 and "talchako" in errs[0]
 
 

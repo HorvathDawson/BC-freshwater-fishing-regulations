@@ -29,27 +29,27 @@ def _cand(**over):
 
 
 def test_a_clean_candidate_is_accepted():
-    accepted, problems = ingest([_cand()], BATCH)
+    accepted, problems = ingest([_cand()], BATCH, registry=None)
     assert list(accepted) == ["r3:tranquille@3-29"]
     assert not [p for p in problems if not p.startswith("ADVISORY")]
 
 
 def test_regs_verbatim_comes_from_the_batch_not_the_model():
     """THE POINT OF THE GATE. A model-supplied passage makes the substring check meaningless."""
-    accepted, _ = ingest([_cand(regs_verbatim="whatever the model felt like writing")], BATCH)
+    accepted, _ = ingest([_cand(regs_verbatim="whatever the model felt like writing")], BATCH, registry=None)
     assert accepted["r3:tranquille@3-29"].regs_verbatim == SRC
 
 
 def test_a_number_not_in_the_source_is_rejected():
     accepted, problems = ingest([_cand(rules=[
         {"rule_id": "t.r1", "type": "retention_limit",
-         "verbatim": "Rainbow trout daily quota = 99", "species": ["RB"], "take": 99}])], BATCH)
+         "verbatim": "Rainbow trout daily quota = 99", "species": ["RB"], "take": 99}])], BATCH, registry=None)
     assert not accepted and problems
 
 
 def test_an_entry_id_not_in_the_batch_is_rejected():
     """An invented or altered entry_id would write a regulation onto a water nobody asked about."""
-    accepted, problems = ingest([_cand(entry_id="r3:somewhere_else@3-29")], BATCH)
+    accepted, problems = ingest([_cand(entry_id="r3:somewhere_else@3-29")], BATCH, registry=None)
     assert not accepted
     assert any("not in the batch" in p for p in problems)
 
@@ -58,14 +58,14 @@ def test_nothing_partial_is_written():
     """One good entry and one bad one: the good one lands, the bad one does not, and neither is
     half-written. A water with some of its regulations is indistinguishable from one with none."""
     bad = _cand(entry_id="r3:nope@3-29")
-    accepted, _ = ingest([_cand(), bad], BATCH)
+    accepted, _ = ingest([_cand(), bad], BATCH, registry=None)
     assert list(accepted) == ["r3:tranquille@3-29"]
 
 
 def test_write_validates_the_WHOLE_file_not_just_the_new_rows(tmp_path):
     """A duplicate entry_id or a broken neighbour is a failure of the file; writing it ships the
     break."""
-    accepted, _ = ingest([_cand()], BATCH)
+    accepted, _ = ingest([_cand()], BATCH, registry=None)
     out = tmp_path / "cat"
     out.mkdir()
     (out / "region-3.json").write_text(json.dumps(
@@ -82,7 +82,7 @@ def test_write_validates_the_WHOLE_file_not_just_the_new_rows(tmp_path):
 
 
 def test_reingesting_replaces_rather_than_duplicates(tmp_path):
-    accepted, _ = ingest([_cand()], BATCH)
+    accepted, _ = ingest([_cand()], BATCH, registry=None)
     out = tmp_path / "cat"; out.mkdir()
     write(accepted, out, ledger=tmp_path / "ingested.json")
     write(accepted, out, ledger=tmp_path / "ingested.json")
@@ -91,7 +91,7 @@ def test_reingesting_replaces_rather_than_duplicates(tmp_path):
 
 
 def test_dry_run_writes_nothing(tmp_path):
-    accepted, _ = ingest([_cand()], BATCH)
+    accepted, _ = ingest([_cand()], BATCH, registry=None)
     out = tmp_path / "cat"; out.mkdir()
     write(accepted, out, dry_run=True, ledger=tmp_path / "ingested.json")
     assert not list(out.glob("*.json"))
@@ -134,14 +134,14 @@ def test_an_alias_is_rewritten_to_the_canonical_id():
     only one spelling is stored, or two rules about one point never compare equal."""
     from pipeline.regs.parsing.ingest_catalogue import ingest
     accepted, problems = ingest([_candidate(["okanagan_river__mcintyre_dam"])],
-                                {"e1": _batch_item()})
+                                {"e1": _batch_item()}, registry=None)
     assert not [p for p in problems if not p.startswith("ADVISORY")], problems
     assert _splits_of(accepted["e1"]) == ["gauge__08NM247"]
 
 
 def test_the_canonical_id_passes_through_unchanged():
     from pipeline.regs.parsing.ingest_catalogue import ingest
-    accepted, _ = ingest([_candidate(["gauge__08NM247"])], {"e1": _batch_item()})
+    accepted, _ = ingest([_candidate(["gauge__08NM247"])], {"e1": _batch_item()}, registry=None)
     assert _splits_of(accepted["e1"]) == ["gauge__08NM247"]
 
 
@@ -150,7 +150,7 @@ def test_an_invented_split_id_is_refused():
     surfaced much later as a rule that silently selected nothing."""
     from pipeline.regs.parsing.ingest_catalogue import ingest
     accepted, problems = ingest([_candidate(["okanagan_river__invented_dam"])],
-                                {"e1": _batch_item()})
+                                {"e1": _batch_item()}, registry=None)
     assert "e1" not in accepted
     assert any("invented" in p for p in problems), problems
 
@@ -161,7 +161,7 @@ def test_a_no_registry_row_is_not_split_checked():
     cand = _candidate(["gauge__08NM247"])
     cand["rules"][0]["extents"] = []
     cand["rules"][0]["review_reason"] = "no registry match — attach an item and bind extents"
-    accepted, problems = ingest([cand], {"e1": item})
+    accepted, problems = ingest([cand], {"e1": item}, registry=None)
     assert not [p for p in problems if not p.startswith("ADVISORY")], problems
 
 
@@ -173,7 +173,7 @@ def test_within_area_survives_ingest():
     from pipeline.regs.parsing.ingest_catalogue import ingest
     cand = _candidate(["gauge__08NM247"])
     cand["rules"][0]["extents"] = [{"op": "whole", "within_area": "area:region:5"}]
-    accepted, problems = ingest([cand], {"e1": _batch_item()})
+    accepted, problems = ingest([cand], {"e1": _batch_item()}, registry=None)
     assert not [p for p in problems if not p.startswith("ADVISORY")], problems
     assert accepted["e1"].rules[0].extents[0]["within_area"] == "area:region:5"
 
@@ -184,7 +184,7 @@ def test_within_area_survives_alongside_a_bound_reach():
     cand["rules"][0]["extents"] = [{"op": "downstream_of",
                                     "splits": ["okanagan_river__mcintyre_dam"],
                                     "within_area": "area:region:8"}]
-    accepted, _ = ingest([cand], {"e1": _batch_item()})
+    accepted, _ = ingest([cand], {"e1": _batch_item()}, registry=None)
     ex = accepted["e1"].rules[0].extents[0]
     assert ex["splits"] == ["gauge__08NM247"]        # alias canonicalised
     assert ex["within_area"] == "area:region:8"      # and the limiter kept
@@ -214,7 +214,7 @@ def test_entry_id_comes_from_the_batch_not_the_model():
     cand["entry_id"] = "e1"                       # model drops the qualifier
     item = _batch_item(entry_id="e1@8-9", index=7)
     cand["_batch_index"] = 7                      # what run() attaches when it unwraps the envelope
-    accepted, problems = ingest([cand], {"e1@8-9": item, "#7": item})
+    accepted, problems = ingest([cand], {"e1@8-9": item, "#7": item}, registry=None)
     assert not [p for p in problems if not p.startswith("ADVISORY")], problems
     assert "e1@8-9" in accepted, f"stored under {list(accepted)}"
     assert accepted["e1@8-9"].entry_id == "e1@8-9"
@@ -228,7 +228,7 @@ def test_a_rule_that_says_nothing_about_location_gets_the_whole_water():
     from pipeline.regs.parsing.ingest_catalogue import ingest
     cand = _candidate(["gauge__08NM247"])
     del cand["rules"][0]["extents"]
-    accepted, problems = ingest([cand], {"e1": _batch_item()})
+    accepted, problems = ingest([cand], {"e1": _batch_item()}, registry=None)
     assert not [p for p in problems if not p.startswith("ADVISORY")], problems
     assert accepted["e1"].rules[0].extents == [{"op": "whole"}]
 
@@ -253,7 +253,7 @@ def test_identity_comes_from_the_batch_not_the_model():
     item.update(name="ATNARKO RIVER", display_name="Atnarko River", region="5")
     cand = _candidate(["gauge__08NM247"])
     cand.update(name="Marble River", display_name="x", region="9")
-    accepted, problems = ingest([cand], {cand["entry_id"]: item})
+    accepted, problems = ingest([cand], {cand["entry_id"]: item}, registry=None)
     e = accepted[cand["entry_id"]]
     assert (e.name, e.display_name, e.region) == ("ATNARKO RIVER", "Atnarko River", "5"), problems
 
@@ -268,7 +268,7 @@ def test_every_row_fact_is_the_batchs_and_none_is_the_models():
     cand = _candidate(["gauge__08NM247"])
     cand.update(symbols=["Includes Tributaries", "Classified"], source_pages=[9],
                 display_name="Invented", matched=["gnis:999"])
-    accepted, _ = ingest([cand], {cand["entry_id"]: item})
+    accepted, _ = ingest([cand], {cand["entry_id"]: item}, registry=None)
     e = accepted[cand["entry_id"]]
     assert e.symbols == ["Classified", "Stocked"]
     assert e.source_pages == [54] and e.display_name == ""
@@ -283,7 +283,7 @@ def test_every_row_fact_is_the_batchs_and_none_is_the_models():
 def _ingest_once(tmp_path, **cand):
     out = tmp_path / "cat"
     out.mkdir(exist_ok=True)
-    accepted, _ = ingest([_cand(**cand)], BATCH)
+    accepted, _ = ingest([_cand(**cand)], BATCH, registry=None)
     return out, accepted
 
 
