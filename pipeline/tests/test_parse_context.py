@@ -220,6 +220,17 @@ def test_no_reader_strips_the_split_prefix_of_a_registry_alias_itself():
         assert "answers_to()" in src, rel
     ext = (root / "atlas/reach/extent.py").read_text()
     assert 'want = {bid, f"split:{bid}"}' not in ext and ext.count("answers_to()") >= 2
+    # ANYWHERE in pipeline/ (adversarial review: the bundle's span tokens, `spans._authored`, stripped the prefix off
+    # a registry boundary's aliases itself and the list above never looked there). An ALIAS strip — `a`/`alias`
+    # sliced past "split:" or its prefix removed — lives only in `registry.bare_split_id`.
+    import re
+    strip = re.compile(r'\b(a|alias|x)\[len\("split:"\):\]|\b(a|alias|x)\)?\.removeprefix\("split:"\)')
+    hits = sorted(p.relative_to(root).as_posix() for p in root.rglob("*.py")
+                  if "tests" not in p.parts and strip.search(p.read_text()))
+    assert hits == ["common/models/registry.py"], hits
+    assert strip.search('got = sorted(a[len("split:"):] if a.startswith("split:") else a for a in aliases)')
+    assert strip.search('self.by_alias.setdefault(str(a).removeprefix("split:"), [])')
+    assert "bare_split_id(" in (root / "deliver/bundle/spans.py").read_text()
 
 
 def test_render_boundary_menu_tolerates_a_three_element_row():

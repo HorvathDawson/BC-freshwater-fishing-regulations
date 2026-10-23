@@ -21,8 +21,15 @@ class RegistryBoundary:
         the graph's `split:` ref prefix stripped (a rule's `Extent.splits` names bare ids), in order.
         The one reading (T125 item 3): the parse menu (`parse_context`), the resolver (`extent`),
         and the bundle's place names all ask it."""
-        return (self.id, *(a[len("split:"):] if a.startswith("split:") else a
-                           for a in (self.aliases or ())))
+        return (self.id, *(bare_split_id(a) for a in (self.aliases or ())))
+
+
+def bare_split_id(alias: str) -> str:
+    """A cut-point alias as a rule names it: the graph's `split:` ref prefix stripped (`split:goat_creek` ->
+    `goat_creek`), anything else as it is. The ONE strip (T125 item 3, adversarial review): `answers_to` and the
+    bundle's span tokens (`spans._authored`, which reads a section's graph aliases as well as a registry boundary's)
+    ask it."""
+    return alias[len("split:"):] if alias.startswith("split:") else alias
 
 
 @dataclass(frozen=True)

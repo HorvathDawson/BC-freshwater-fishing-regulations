@@ -59,6 +59,7 @@ from collections import defaultdict
 from pathlib import Path
 
 from pipeline.atlas.graph.windows import polygon_window
+from pipeline.common.models.registry import bare_split_id
 from pipeline.deliver.bundle.lines import main_line_of
 from pipeline.deliver.bundle.place_names import area_boundary_name, cut_name, display_case
 
@@ -81,7 +82,7 @@ def _is_auto(split_id: str) -> bool:
 
 def _authored(aliases) -> list[str]:
     """The curated split ids among a boundary's aliases (a cut aliased onto it), sorted."""
-    got = sorted(a[len("split:"):] if a.startswith("split:") else a for a in (aliases or ()))
+    got = sorted(bare_split_id(a) for a in (aliases or ()))        # the one strip (`registry.bare_split_id`)
     return [a for a in got if not _is_auto(a) and "@" not in a
             and not a.startswith(("lake:", "label:"))]
 
