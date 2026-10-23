@@ -246,6 +246,9 @@ class GeneratedGauges(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     feeds: Path
+    #: The matcher's RAW output (`pipeline.gauges.generate.match`), never the curated file: only
+    #: `promote` writes `CURATED.gauges.matches`, and only after it has shown what would be demoted (T94).
+    match: Path
 
     _abs = field_validator("*", mode="before")(_absolute)
 

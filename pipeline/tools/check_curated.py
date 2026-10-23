@@ -56,7 +56,7 @@ class Artifact:
     name: str
     roster: Path            # the fetched list of things that need a decision
     frozen: Path            # the committed answers
-    regenerate: str         # the command a human runs
+    regenerate: str         # the command a human runs; `{stations}` is filled by `fix_command`
     roster_ids: str         # see `ids` for the three spellings
     frozen_ids: str
     #: A generated file whose ids also count as "known". A candidate is a decision IN
@@ -110,7 +110,10 @@ ARTIFACTS = [
         name="gauge match",
         roster=SOURCE / "bc_hydrometric_stations.json",
         frozen=_C.gauges.matches or ROOT / "pipeline" / "gauge_match.json",
-        regenerate="python -m pipeline.gauges.generate.match --build data/generated/atlas/full && python -m pipeline.gauges.generate.promote",
+        # SURGICAL (T94): match into the generated file, then promote ONLY the stations the gate
+        # found. A full promote rewrote 1,042 rows and demoted 25 on 2026-10-10.
+        regenerate=("python -m pipeline.gauges.generate.match --build data/generated/atlas/full"
+                    " && python -m pipeline.gauges.generate.promote --only {stations}"),
         roster_ids="station",
         frozen_ids="stations.*",
         candidates=_C.gauges.candidates,
@@ -152,6 +155,30 @@ def _short(p: Path) -> str:
         return str(p)
 
 
+def undecided(a: Artifact, roster: set[str], frozen: set[str]) -> tuple[list[str], list[str], set[str]]:
+    """`(new, idle, queued)`: roster ids needing a decision and in neither file (the STALE ones),
+    ids in neither file that `roster_where` excuses, and the review queue's ids."""
+    queued = (a.ids(a.candidates, a.candidate_ids) if a.candidates else None) or set()
+    new = sorted(roster - frozen - queued)
+    idle: list[str] = []
+    if a.roster_where:
+        rows = json.loads(a.roster.read_text(encoding="utf-8"))
+        need = {r[a.roster_ids] for r in rows if r.get(a.roster_where)}
+        idle = [s for s in new if s not in need]
+        new = [s for s in new if s in need]
+    return new, idle, queued
+
+
+def fix_command(a: Artifact) -> str:
+    """The command to print for a STALE artifact, `{stations}` filled with exactly the stale ids —
+    so the gauge fix promotes those stations and nothing else (T94)."""
+    if "{stations}" not in a.regenerate:
+        return a.regenerate
+    roster, frozen = a.ids(a.roster, a.roster_ids), a.ids(a.frozen, a.frozen_ids)
+    new = undecided(a, roster or set(), frozen or set())[0]
+    return a.regenerate.replace("{stations}", " ".join(new) or "<station ...>")
+
+
 def check(a: Artifact) -> tuple[str, str]:
     """`(verdict, detail)` for one artifact. Verdict is fresh | STALE | absent."""
     roster = a.ids(a.roster, a.roster_ids)
@@ -162,15 +189,8 @@ def check(a: Artifact) -> tuple[str, str]:
         return "absent", (f"not built: {_short(a.frozen)} does not exist "
                           f"({len(roster):,} in the roster)")
 
-    queued = (self_ids := a.ids(a.candidates, a.candidate_ids)
-              if a.candidates else None) or set()
-    new, gone = sorted(roster - frozen - queued), sorted(frozen - roster)
-    idle = []
-    if a.roster_where:
-        rows = json.loads(a.roster.read_text(encoding="utf-8"))
-        need = {r[a.roster_ids] for r in rows if r.get(a.roster_where)}
-        idle = [s for s in new if s not in need]
-        new = [s for s in new if s in need]
+    new, idle, queued = undecided(a, roster, frozen)
+    gone = sorted(frozen - roster)
     if not new:
         bits = []
         if idle: bits.append(f"{len(idle)} without a decision, none {a.roster_where}")
@@ -200,7 +220,7 @@ def main() -> int:
     if stale:
         print("\nRegenerate, review the diff, and commit:")
         for art in stale:
-            print(f"  {art.regenerate}")
+            print(f"  {fix_command(art)}")
         print("\nThese need a completed build and are not CI's job — that is the point of "
               "committing the answers.")
     return 1 if (stale and a.ci) else 0

@@ -1,7 +1,23 @@
 """Promote generated matches into the curated store, with a trust level on every row.
 
-    python -m pipeline.gauges.generate.promote --dry-run
-    python -m pipeline.gauges.generate.promote
+    python -m pipeline.gauges.generate.promote --dry-run              # what would change, every demotion
+    python -m pipeline.gauges.generate.promote --only 08KG001 08MH166 # splice just these stations in
+    python -m pipeline.gauges.generate.promote                        # all of it; refused if anything demotes
+    python -m pipeline.gauges.generate.promote --accept-demotions     # ...once a person has read the list
+
+It reads the matcher's RAW output (`--matches`, default `GENERATED.gauges.match`) and writes the curated
+`matches.json` + `candidates.json`. That curated pair is also the BASELINE: what is in it now is what a
+promote can demote.
+
+A FULL PROMOTE IS NOT A NO-OP (T94). The size signal reads node magnitudes from the CURRENT bundle and
+matched lines move between builds: on 2026-10-10 a full match + promote demoted 25 stations and rewrote
+1,042 rows when the owner wanted two reviewed stations added. So:
+
+    --only S ...    changes exactly those stations' rows (promoted or queued); every other row of
+                    both files is left as it was, byte for byte.
+    a full promote  lists each demotion (station, trust before -> after) and REFUSES (exit 2,
+                    nothing written) unless `--accept-demotions`. `--only` obeys the same rule for
+                    the stations it names.
 
 WHAT PROMOTION IS. The matcher produces guesses. Most are obviously right, a few are
 obviously wrong, and a person has looked at the ones in between. Promotion is the step that
@@ -37,7 +53,7 @@ import math
 from collections import Counter
 from pathlib import Path
 
-from pipeline.common.curated import GENERATED, SOURCE, generated
+from pipeline.common.curated import CURATED, GENERATED, SOURCE
 from pipeline.gauges import review as _review
 from pipeline.gauges.generate.match import (
     AREA_TOLERANCE_DECADES, KM2_PER_MAGNITUDE, _contains_word, waterbody_name,
@@ -96,9 +112,9 @@ def promotable(ev: dict) -> bool:
     return ev["name_agrees"] and False not in (ev["area_agrees"], ev["kind_agrees"])
 
 
-def build(matches, stations, types, mags) -> tuple[list[dict], list[dict]]:
+def build(matches, stations, types, mags, rev=None) -> tuple[list[dict], list[dict]]:
     """`(promoted, candidates)` — every station, sorted, with its trust and evidence."""
-    rev = _review.load().stations
+    rev = _review.load().stations if rev is None else rev
     by_id = {s["station"]: s for s in stations}
     promoted, candidates = [], []
     for m in sorted(matches, key=lambda m: m.station):
@@ -137,15 +153,100 @@ def build(matches, stations, types, mags) -> tuple[list[dict], list[dict]]:
     return promoted, candidates
 
 
-def main() -> int:
-    ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--dry-run", action="store_true", help="report, write nothing")
-    ap.add_argument("--out", type=Path, default=MATCH_FILE)
-    a = ap.parse_args()
 
-    matches = read_match()
+# ------------------------------------------------------------------ what a promote writes (T94)
+
+#: Below every trust: the station is in neither file after the promote.
+ABSENT = "absent"
+
+
+def _rank(trust: str) -> int:
+    """Position in ORDER (0 = highest); a station in neither file ranks below `candidate`."""
+    return ORDER.index(trust) if trust in ORDER else len(ORDER)
+
+
+def trust_after(station: str, promoted: dict, candidates: dict) -> str:
+    """The trust a station holds in a `(promoted, candidates)` pair of station maps."""
+    if station in promoted:
+        return promoted[station]["trust"]
+    return "candidate" if station in candidates else ABSENT
+
+
+def demotions(before: dict, promoted: dict, candidates: dict) -> list[tuple[str, str, str]]:
+    """`(station, was, now)` for every row of the baseline PROMOTED map that would end up lower.
+
+    THE ONE DEFINITION of a demotion; the full promote and `--only` both ask it. A row of the
+    baseline's review queue is not in it — a candidate has no trust to lose.
+    """
+    out = []
+    for sid in sorted(before):
+        was, now = before[sid].get("trust", "candidate"), trust_after(sid, promoted, candidates)
+        if _rank(now) > _rank(was):
+            out.append((sid, was, now))
+    return out
+
+
+def merge(before: dict, before_cand: dict, promoted: list[dict], candidates: list[dict],
+          only: list[str] | None = None) -> tuple[dict, dict]:
+    """The `(promoted, candidates)` station maps to write, sorted by station.
+
+    Full (`only` None): the fresh result, whole. `--only`: the baseline, with exactly the named
+    stations replaced by their fresh row in whichever file it now belongs; every other row is the
+    baseline's own. A named station the fresh match does not carry is an error, never a skip.
+    """
+    fresh_p = {r["station"]: r for r in promoted}
+    fresh_c = {c["station"]: c for c in candidates}
+    if only is None:
+        return dict(sorted(fresh_p.items())), dict(sorted(fresh_c.items()))
+    missing = [s for s in only if s not in fresh_p and s not in fresh_c]
+    if missing:
+        raise SystemExit(f"--only: not in the fresh match: {', '.join(missing)}")
+    new_p, new_c = dict(before), dict(before_cand)
+    for sid in only:
+        new_p.pop(sid, None)
+        new_c.pop(sid, None)
+        if sid in fresh_p:
+            new_p[sid] = fresh_p[sid]
+        else:
+            new_c[sid] = fresh_c[sid]
+    return dict(sorted(new_p.items())), dict(sorted(new_c.items()))
+
+
+def _stations(path: Path) -> dict | None:
+    """A promoted-shape file's `stations` map. None when the file is absent, or is a bare match
+    LIST — what the matcher used to write over the curated file; that baseline has no trust left."""
+    if not path.exists():
+        return None
+    blob = json.loads(path.read_text("utf-8")).get("stations")
+    return blob if isinstance(blob, dict) else None
+
+
+MATCHES_ABOUT = (
+    "Gauge matches, PROMOTED. Every row carries a `trust`: bound (a person "
+    "stated the water), reviewed (a person checked the guess), auto (four "
+    "independent checks agreed, nobody looked), wrong (bad, right answer not "
+    "known yet — a worklist), none (no such water). Generated by "
+    "`python -m pipeline.gauges.generate.promote`; the decisions it reads are "
+    "in the curated review beside this file, which no program writes.")
+CANDIDATES_ABOUT = (
+    "Generated matches NOT promoted: at least one independent check "
+    "disagreed. Evidence is attached so a reviewer can see which. "
+    "Regenerable — never edit by hand; record decisions in the curated "
+    "review instead.")
+
+
+def dump(about: str, rows: dict) -> str:
+    """The on-disk shape both files share: `indent=1`, ASCII escapes, a trailing newline. A
+    committed file read and dumped back is byte-identical, which is what lets `--only` leave
+    every row it was not asked about exactly as it was."""
+    return json.dumps({"_about": about, "stations": rows}, indent=1) + "\n"
+
+
+def load_inputs(matches_path: Path):
+    """`(matches, stations, types, mags, review)` — everything `build` reads, from disk."""
+    matches = read_match(matches_path)
     if not matches:
-        raise SystemExit(f"no matches at {MATCH_FILE} — run pipeline.gauges.generate.match")
+        raise SystemExit(f"no matches at {matches_path} — run pipeline.gauges.generate.match")
     stations = json.loads((SOURCE / "bc_hydrometric_stations.json").read_text("utf-8"))
     types = load_types()
     # Magnitudes come from the last bundle: the promote decides TRUST, not placement, and
@@ -156,8 +257,27 @@ def main() -> int:
         import sqlite3
         mags = {s: m for s, m in sqlite3.connect(bundle).execute(
             "SELECT station, mag FROM gauge WHERE mag IS NOT NULL")}
+    return matches, stations, types, mags, _review.load().stations
 
-    promoted, candidates = build(matches, stations, types, mags)
+
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(description=__doc__,
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--dry-run", action="store_true", help="report (demotions too), write nothing")
+    ap.add_argument("--matches", type=Path, default=GENERATED.gauges.match,
+                    help="the matcher's raw output to promote from")
+    ap.add_argument("--out", type=Path, default=MATCH_FILE,
+                    help="the promoted file (also the baseline)")
+    ap.add_argument("--candidates", type=Path, default=CURATED.gauges.candidates,
+                    help="the review queue (also the baseline)")
+    ap.add_argument("--only", nargs="+", metavar="STATION",
+                    help="change only these stations' rows; every other row is kept as it is")
+    ap.add_argument("--accept-demotions", action="store_true",
+                    help="write although rows would lose trust (once a person has read the list)")
+    a = ap.parse_args(argv)
+
+    matches, stations, types, mags, rev = load_inputs(a.matches)
+    promoted, candidates = build(matches, stations, types, mags, rev)
     live = {s["station"] for s in stations if s.get("realtime")}
     counts = Counter(r["trust"] for r in promoted)
     print(f"{len(promoted):,} promoted, {len(candidates):,} left as candidates")
@@ -170,29 +290,42 @@ def main() -> int:
         print("  candidates, by what disagreed:")
         for w, n in why.most_common(6):
             print(f"    {n:5,}  {w}")
+
+    before, before_cand = _stations(a.out), _stations(a.candidates)
+    if before is None:
+        if a.only:
+            raise SystemExit(f"--only needs a promoted baseline at {a.out} and there is none (absent, "
+                             f"or a bare match list): restore it with  git checkout -- {a.out}")
+        if not a.accept_demotions:
+            print(f"\nREFUSED, nothing written: {a.out} is absent or not a promoted file, so what this "
+                  f"would demote is unknown. Restore it (git checkout -- {a.out}), or pass "
+                  f"--accept-demotions for a first promote.")
+            return 2
+        before = {}
+    if a.only and before_cand is None:
+        raise SystemExit(f"--only needs the review queue at {a.candidates} and there is none")
+    new_p, new_c = merge(before, before_cand or {}, promoted, candidates, a.only)
+
+    changed = sorted(s for s in set(before) | set(new_p) if before.get(s) != new_p.get(s))
+    head = ", ".join(changed[:8]) + (" ..." if len(changed) > 8 else "")
+    print(f"\n{len(changed):,} promoted row(s) would change" + (f": {head}" if changed else ""))
+    down = demotions(before, new_p, new_c)
+    if down:
+        print(f"{len(down)} DEMOTION(S), rows that would lose trust:")
+        for sid, was, now in down:
+            print(f"  {sid}  {was} -> {now}")
     if a.dry_run:
         print("\n--dry-run: nothing written")
         return 0
+    if down and not a.accept_demotions:
+        print("\nREFUSED, nothing written. Splice in what you meant with --only <station ...>, or rerun "
+              "with --accept-demotions once a person has reviewed every line above.")
+        return 2
 
-    from pipeline.common.curated import CURATED
-    cand_path = CURATED.gauges.candidates     # committed beside the matches (check_curated --ci)
-    cand_path.write_text(json.dumps({
-        "_about": "Generated matches NOT promoted: at least one independent check "
-                  "disagreed. Evidence is attached so a reviewer can see which. "
-                  "Regenerable — never edit by hand; record decisions in the curated "
-                  "review instead.",
-        "stations": {c["station"]: c for c in candidates}}, indent=1) + "\n", "utf-8")
-
-    a.out.write_text(json.dumps({
-        "_about": "Gauge matches, PROMOTED. Every row carries a `trust`: bound (a person "
-                  "stated the water), reviewed (a person checked the guess), auto (four "
-                  "independent checks agreed, nobody looked), wrong (bad, right answer not "
-                  "known yet — a worklist), none (no such water). Generated by "
-                  "`python -m pipeline.gauges.generate.promote`; the decisions it reads are "
-                  "in the curated review beside this file, which no program writes.",
-        "stations": {r["station"]: r for r in promoted}}, indent=1) + "\n", "utf-8")
+    a.candidates.write_text(dump(CANDIDATES_ABOUT, new_c), "utf-8")
+    a.out.write_text(dump(MATCHES_ABOUT, new_p), "utf-8")
     print(f"\nwrote {a.out}")
-    print(f"      {cand_path}")
+    print(f"      {a.candidates}")
     return 0
 
 

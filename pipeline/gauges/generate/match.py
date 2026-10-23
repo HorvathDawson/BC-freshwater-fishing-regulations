@@ -377,8 +377,13 @@ def match_stations(stations: list[dict], geoms: dict, graph, *,
     return sorted(out, key=lambda m: m.station)
 
 
-def main() -> None:
-    """Freeze the match against a completed build. See `MATCH_FILE`."""
+def main(argv: list[str] | None = None) -> None:
+    """Match against a completed build into `GENERATED.gauges.match` — NOT the curated file.
+
+    The curated `MATCH_FILE` holds trust a person gave (reviewed rows) and is written only by
+    `pipeline.gauges.generate.promote`, which shows every demotion first and can take one station
+    at a time (T94). Writing the raw match over it, as this did by default, threw that trust away.
+    """
     import argparse
     import pickle
 
@@ -389,9 +394,13 @@ def main() -> None:
                     help="a completed build directory (graph.pkl, geometries.pkl)")
     ap.add_argument("--stations", type=Path,
                     default=SOURCE / "bc_hydrometric_stations.json")
-    ap.add_argument("--out", type=Path, default=MATCH_FILE)
-    a = ap.parse_args()
+    ap.add_argument("--out", type=Path, default=GENERATED.gauges.match,
+                    help="the raw match (default: the generated one promote reads; never the curated file)")
+    a = ap.parse_args(argv)
 
+    if a.out.resolve() == MATCH_FILE.resolve():
+        raise SystemExit(f"refusing to write the raw match over the curated {MATCH_FILE} — it would drop every "
+                         "trust a person gave. Write it elsewhere and promote from there (T94).")
     if not (a.build / "graph.pkl").exists():
         raise SystemExit(f"no completed build at {a.build} (needs graph.pkl + geometries.pkl)")
     with (a.build / "graph.pkl").open("rb") as fh:
@@ -401,12 +410,13 @@ def main() -> None:
 
     matches = match_stations(load_stations(a.stations), geoms, graph)
     print(summarise(matches))
+    a.out.parent.mkdir(parents=True, exist_ok=True)
     write_match(matches, a.out)
     riv = sum(1 for m in matches if m.status == "matched" and m.wsc and not m.wbk)
     lak = sum(1 for m in matches if m.status == "matched" and m.wbk)
     print(f"wrote {a.out}  ({riv} on streams by coord + wsc, {lak} on lakes by wbk)")
-    print("  next: python -m pipeline.atlas.build   (cuts rivers at their gauges)")
-    print("        python -m pipeline.deliver.bundle  (reads the same file for its sheds)")
+    print(f"  next: python -m pipeline.gauges.generate.promote --matches {a.out} --dry-run   (lists demotions)")
+    print(f"        python -m pipeline.gauges.generate.promote --matches {a.out} --only <station ...>")
 
 
 if __name__ == "__main__":

@@ -226,6 +226,10 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
     including 23 `NO_MATCH` entries a human verified against the map. Run
     `python -m pipeline.tools.check_curated` to see whether it is actually stale; it prints
     the command and never runs it. If it says `ok`, there is nothing to do.
+    The matcher writes `data/generated/gauges/match.json` and refuses the curated file; only
+    `pipeline.gauges.generate.promote` writes `data/curated/gauges/{matches,candidates}.json`, one
+    station at a time with `--only <station…>`. A full promote lists every demotion and refuses
+    without `--accept-demotions`, which is the owner's call after reading the list (T94).
 
 39. **The two tiers are not interchangeable.** The *mill* (fetch → build → match → bundle →
     tiles) is ~27 min and ~10 GB and runs by hand a few times a year. The *guards*

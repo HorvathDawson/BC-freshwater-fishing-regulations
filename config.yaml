@@ -49,6 +49,7 @@ generated:
 
   gauges:
     feeds: "data/generated/gauges/feeds"               # per-station published JSON
+    match: "data/generated/gauges/match.json"          # the matcher's raw output; `promote` reads it (T94)
 
   # Run timing (pipeline/runtiming/generate): runs.json, the section->CU index, the
   # deduplicated profiles and the colour cube. Re-runnable from data/source/runtiming/.

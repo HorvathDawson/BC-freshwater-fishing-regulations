@@ -17,7 +17,8 @@ It fetches by id and writes `id → data`.
 | Producer | Runs | Reads | Writes |
 |---|---|---|---|
 | `data/fetch_data.py --layers hydrometric_stations` | per build | ECCC OGC API + today's transmitting roster | `data/source/bc_hydrometric_stations.json` |
-| `pipeline.gauges.generate.match` | per build | that roster, `graph.pkl`, `geometries.pkl`, `aliases.json` | `data/curated/gauges/matches.json` (every station, with provenance) |
+| `pipeline.gauges.generate.match` | per build | that roster, `graph.pkl`, `geometries.pkl`, `aliases.json` | `data/generated/gauges/match.json` (every station, with provenance; raw) |
+| `pipeline.gauges.generate.promote --only <station…>` | by hand, per reviewed station | the raw match + the curated review | `data/curated/gauges/{matches,candidates}.json`; a full promote lists demotions and refuses them without `--accept-demotions` (T94) |
 | `pipeline.gauges.consume.shed` | per build | `graph.pkl` + the match | `section_gauge`, `lake_gauge`, `section_down` |
 | hydro job — HYDAT tier | **yearly**, gated on the release listing date | the 266 MB HYDAT release | `gauge/clim.json` — 325 KB, all stations |
 | hydro job — reading tier | **30 min** | ECCC readings, BCRFC CLEVER | `gauge/index.json`, `gauge/{station}.json` |
@@ -266,7 +267,8 @@ matches anything anywhere else.
 ```
 data/source/bc_hydrometric_stations.json        fetched roster (fetch_data --layers hydrometric_stations)
   │
-  │   python -m pipeline.gauges.generate.match --build <a completed build>
+  │   python -m pipeline.gauges.generate.match --build <a completed build>   -> data/generated/gauges/match.json
+  │   python -m pipeline.gauges.generate.promote --only <station ...>          (T94: one station at a time)
   ▼
 data/curated/gauges/matches.json                COMMITTED. One row per station:
   │                                        streams  wsc + blk + measure

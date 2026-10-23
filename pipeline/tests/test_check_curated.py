@@ -118,9 +118,7 @@ class TestTheRealDeclarations:
     def test_the_gauge_match_is_in_sync_with_the_roster(self):
         gauge = next(a for a in C.ARTIFACTS if a.name == "gauge match")
         if gauge.roster.exists() and gauge.frozen.exists():
-            assert C.check(gauge)[0] == "fresh", (
-                "the gauge match is stale — run "
-                "`python -m pipeline.gauges.generate.match --build <a completed build>`")
+            assert C.check(gauge)[0] == "fresh", f"the gauge match is stale — run `{C.fix_command(gauge)}`"
 
 
 def test_only_active_stations_need_a_decision(tmp_path):
