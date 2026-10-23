@@ -6,9 +6,9 @@
  },
  "by_reason": {
   "barrier": 29,
+  "bigger_river": 1,
+  "river_continuing": 7,
   "stem_ends_at_lake": 70,
-  "strahler": 1,
-  "through_lake": 7,
   "within_area": 43
  },
  "by_region": {},
@@ -31,19 +31,19 @@
    "r7:peace_river_from_hwy_29_bridge_to_the_site_c_dam@7-31::peace_river.r2": 1,
    "r7:peace_river_from_hwy_29_bridge_to_the_site_c_dam@7-31::peace_river.r3": 1
   },
-  "stem_ends_at_lake": {
-   "r6:nass_river@6-30::nass_river.r2": 70
-  },
-  "strahler": {
+  "bigger_river": {
    "r6:nass_river@6-30::nass_river.r1": 1
   },
-  "through_lake": {
+  "river_continuing": {
    "r2:twin_lakes@2-8::twin_lakes.r1": 2,
    "r4:duck_lake_permit_required_see_note_on_page_34@4-6::duck_lake.r1": 1,
    "r4:duck_lake_permit_required_see_note_on_page_34@4-6::duck_lake.r2": 1,
    "r4:duck_lake_permit_required_see_note_on_page_34@4-6::duck_lake.r3": 1,
    "r4:duck_lake_permit_required_see_note_on_page_34@4-6::duck_lake.r4": 1,
    "r4:duck_lake_permit_required_see_note_on_page_34@4-6::duck_lake.r5": 1
+  },
+  "stem_ends_at_lake": {
+   "r6:nass_river@6-30::nass_river.r2": 70
   },
   "within_area": {
    "r2:pitt_river@2-8::pitt_river.r1": 1,
