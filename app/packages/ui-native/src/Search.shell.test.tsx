@@ -317,6 +317,31 @@ describe("a place is SHOWN by its tap; a water is framed by its tap and opened b
       ["none", "item:gnis:8634", "arrive:gnis:8634:1"], ["none"], `search closed · no sheet · "" · tab Map`]);
   });
 
+  it("(owner 2026-10-22 late) searched over the CONDITIONS map: the water opens on its Conditions view; moving between " +
+     "its views does not forget the framing; back lands on the Conditions map (the map searched over), framed on it",
+     async () => {
+    mount({ ...HOME, tab: "conditions" });
+    act(() => { fireEvent.focus(field()); });
+    await typeIn("chilliwack river");
+    fireEvent.click(screen.getByRole("button", { name: /^Show Chilliwack River/ }));
+    await settle();
+    fireEvent.click(screen.getByRole("button", { name: /^Open Chilliwack River/ }));
+    await waitFor(() => expect(screen.queryByRole("tablist", { name: "Views of this water" })).not.toBeNull());
+    const viewOn = () => screen.getAllByRole("tab").find((t) => t.getAttribute("aria-selected") === "true")
+      ?.getAttribute("aria-label") ?? screen.getAllByRole("tab").find((t) => t.getAttribute("aria-selected") === "true")
+      ?.textContent;
+    const opened = [viewOn(), screen.getByRole("button", { name: "Back" }).textContent];
+    fireEvent.click(screen.getAllByRole("tab").find((t) => /Regulations/.test(t.textContent ?? ""))!);
+    await settle();
+    const moved = viewOn();
+    back();
+    await settle();
+    const box = await makeFixtureSource().waterBox(CHILLIWACK);
+    expect([opened, moved, where(), seen.fits, seen.frames[seen.frames.length - 1]]).toEqual([
+      ["Conditions", "Conditions"], "Regulations", `search closed · no sheet · "" · tab Conditions`,
+      ["none", "item:gnis:8634", "arrive:gnis:8634:1"], { key: "arrive:gnis:8634:1", bbox: box, refine: false }]);
+  });
+
   it("a water opened by a TAP on the map beside the half sheet (a phone) keeps search under it: its ‹ and × say " +
      "Search, and back returns to the results as they were", async () => {
     mount();
