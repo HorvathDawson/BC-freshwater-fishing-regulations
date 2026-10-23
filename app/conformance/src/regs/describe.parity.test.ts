@@ -12,7 +12,7 @@
  */
 import { describe as group, expect, it } from "vitest";
 import { describe, ruleIndex, viaOf, type RegsPage, type RuleView } from "@app/core";
-import { hydrate, taps } from "./oracles";
+import { hydrate, oracleRixOver, taps } from "./oracles";
 import { pageDecode, pageSource, storeSource, type RuleSource } from "./ruleSources";
 
 const H = hydrate();
@@ -25,7 +25,9 @@ const TARGET: RegsPage["version"] = "regs-v38";
 const factsOf = (r: RuleView) => ({ key: r.key, kind: r.kind, baseRank: r.baseRank, species: r.species, speciesExcept: r.speciesExcept,
   wins: r.wins, tcond: r.tcond, part: r.part, notes: r.notes });
 
-function parity(src: () => RuleSource) {
+/** `R`: the oracle's rule number → `src`'s (identity on page_v36.html's own inputs; by durable key on a store — oracles.ts
+ *  `oracleRixOver`: a rule added or dropped ahead of a rix renumbers it without changing a word). */
+function parity(src: () => RuleSource, R: () => (oracle: number) => number = () => (r) => r) {
   it("the oracle is page v38's 726 rules over 134 states, written after this sync's taps.json", () => {
     // provenance of the CONTENT, not of the run: the prototype version is the port target, and the golden/version are
     // the ones taps.json carries — hydrate.mjs copies them from the taps.json it read, so a hydrate.json written before
@@ -41,9 +43,10 @@ function parity(src: () => RuleSource) {
     const s = src();
     const ix = ruleIndex(s.stored, new Map(), s.book);
     const bad: string[] = [];
+    const r = R();
     for (const [rix, want] of Object.entries(H.describe)) {
-      expect(ix.has(+rix), `rix ${rix} stored`).toBe(true);
-      const got = describe(ix.get(+rix), s.book);
+      expect(ix.has(r(+rix)), `rix ${rix} stored`).toBe(true);
+      const got = describe(ix.get(r(+rix)), s.book);
       if (got !== want) bad.push(`${rix}: ${JSON.stringify(got)} ≠ ${JSON.stringify(want)}`);
     }
     expect(bad).toEqual([]);
@@ -52,19 +55,21 @@ function parity(src: () => RuleSource) {
   it("8. every rule view decodes as page v36 does (key, kind, ranks, species, windows, time, part, notes)", () => {
     const s = src();
     const ix = ruleIndex(s.stored, new Map(), s.book);
-    for (const [rix, want] of Object.entries(H.rules)) expect(factsOf(ix.get(+rix)), `rix ${rix}`).toEqual(want);
+    const r = R();
+    for (const [rix, want] of Object.entries(H.rules)) expect(factsOf(ix.get(r(+rix))), `rix ${rix}`).toEqual(want);
   });
 
   it("9. per state, the part's ruleset gives every oracle trib via and every per-part rank", () => {
     const s = src();
     let tribs = 0, ranks = 0;
+    const r = R();
     for (const [id, st] of Object.entries(H.states)) {
       const via = viaOf(s.ruleset(T.states[id]!));
       const ix = ruleIndex(s.stored, via, s.book), flat = ruleIndex(s.stored, new Map(), s.book);
-      for (const rix of Object.keys(st.via)) { expect(via.get(+rix), `${id} via ${rix}`).toBe("trib"); tribs++; }
+      for (const rix of Object.keys(st.via)) { expect(via.get(r(+rix)), `${id} via ${rix}`).toBe("trib"); tribs++; }
       for (const [rix, rank] of Object.entries(st.ranks)) {
-        expect(ix.get(+rix).rank, `${id} rank ${rix}`).toBe(rank);
-        expect(flat.get(+rix).rank, `${id} rank ${rix} needs the via`).not.toBe(rank);
+        expect(ix.get(r(+rix)).rank, `${id} rank ${rix}`).toBe(rank);
+        expect(flat.get(r(+rix)).rank, `${id} rank ${rix} needs the via`).not.toBe(rank);
         ranks++;
       }
     }
@@ -79,7 +84,7 @@ group.skipIf(!store)(`T06 parity: the regs store (${store?.name ?? "absent"})`, 
   it("holds every rule of the store, a superset of the page's slice", () => {
     expect(store!.stored.size).toBeGreaterThanOrEqual(Object.keys(H.describe).length);
   });
-  parity(() => store!);
+  parity(() => store!, () => oracleRixOver(store!.stored));
 
   // hydrate.json's 726 rules all have empty notes; the store's rules with prov.uncertain (or a review_reason) are the only
   // ones that exercise the UNCERTAIN / CURATOR wording. The oracle is page v36's own decode run over the same store rows.

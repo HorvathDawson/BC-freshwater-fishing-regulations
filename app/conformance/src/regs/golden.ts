@@ -24,9 +24,9 @@ import { loadRegsInputs, openRegsStore, RegsStoreError, type RegsLoader, type Re
 import { regsFixtureDir } from "@app/data/release/node";
 import { liveRelease, liveReleaseAt, openReleaseDir, regsStoreCandidates } from "../fixtureRelease";
 import { EXCLUDE, excluded } from "./exclusions";
-import { golden, taps, tapsOnce } from "./oracles";
+import { golden, oracleRixOver, taps, tapsOnce } from "./oracles";
 
-export { golden, hydrate, HYDRATE, REPO, taps, TAPS } from "./oracles";
+export { golden, hydrate, HYDRATE, oracleRixOver, REPO, taps, TAPS } from "./oracles";
 export type { Block, Cell, GoldenFile, GoldenSheet, GoldenState, LeapTap, Tap, TapsFile, TapsMeta } from "@app/core/regs/testing";
 
 /** Where the port tooling's province store (regs.sqlite) is, or why there is none to pair with. The FIRST candidate on
@@ -210,6 +210,18 @@ export async function parityGate(env: Env = process.env): Promise<ReturnType<typ
   return paritySkip(s.dir === null ? { path: null, reason: s.reason } : { path: s.dir, reason: null }, env);
 }
 
+/**
+ * The page v36 oracle's rule numbers → the paired store's, by each rule's DURABLE key ("entry::rule"). hydrate.json (and the
+ * tickets' literals quoted from page v36) number rules as page_v36.html's `#data.rid` does — the export's rix when the page's
+ * blocks were last cut — and a rix moves whenever a rule ahead of it is added or dropped (T89 dropped Endako 7A's own rule:
+ * every rix after it moved down one, and all 134 settle/card states failed on numbering alone). A rule the oracle names that
+ * the store no longer has is a CONTENT change and throws: re-cut the page's blocks (page_data --html) and hydrate.json.
+ * Identity when the numbering agrees. `store` defaults to the harness's paired store; null: no store (the caller skips).
+ */
+export async function oracleRix(store?: RegsStore | null): Promise<((oracle: number) => number) | null> {
+  const st = store === undefined ? await parityStore() : store;
+  return st ? oracleRixOver(await st.rules()) : null;
+}
 const INPUTS = new Map<string, Promise<RegsInputs | null>>();
 /** The memoised `RegsInputs` of one golden state (T09 `loadRegsInputs` over `parityStore()`; calendar year = taps.json
  *  meta.year, 2026), or null when there is no paired store (skip). The same promise for the same id, per test file. */

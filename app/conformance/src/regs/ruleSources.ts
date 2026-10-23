@@ -5,7 +5,7 @@
  *   `#answers` (`sections.display.rules`), i.e. exactly what port/hydrate.mjs fed page v36 when it wrote the oracle
  *   (the data blocks are unchanged since the oracle's ref; only page code changed). 726 rules; a part's via is its
  *   `rules [[ix, via]]` list.
- * - `storeSource()` — the live RELEASE when this machine has one (data/release/r-*, all 3,406 rules), read through
+ * - `storeSource()` — the live RELEASE when this machine has one (data/release/r-*, every rule), read through
  *   `@app/data/regs` `openRegsStore(loader)` exactly as the app reads it (T03/T04 replaced T06's stopgap that opened
  *   regs.sqlite with node:sqlite): `rules()`, `statics().exportSpecies`, and a state's via from its `akey`'s ruleset.
  *   Absent: null, and the store-backed tests report themselves skipped.

@@ -62,3 +62,27 @@ let H: Hydrate | undefined;
 export function hydrate(): Hydrate {
   return (H ??= JSON.parse(readFileSync(HYDRATE, "utf8")) as Hydrate);
 }
+
+/** `oracleRix` over any rule set keyed by rix (a store's `rules()`, a RuleSource's `stored`). */
+export function oracleRixOver(rules: Iterable<readonly [number, { readonly export: { readonly entry_id: string; readonly rule_id: string } }]>):
+  (oracle: number) => number {
+  const byKey = new Map<string, number>();
+  for (const [rix, r] of rules) byKey.set(`${r.export.entry_id}::${r.export.rule_id}`, rix);
+  const rid = pageRid();
+  return (oracle: number) => {
+    const key = rid.get(oracle);
+    if (key === undefined) throw new Error(`oracle rule ${oracle} is not in page_v36.html's #data.rid`);
+    const now = byKey.get(key);
+    if (now === undefined) throw new Error(`oracle rule ${oracle} (${key}) is not in the store: a content change — re-cut the page blocks and hydrate.json`);
+    return now;
+  };
+}
+let RID: Map<number, string> | undefined;
+/** page_v36.html's `#data.rid` (oracle rule number → "entry::rule"), read once. */
+function pageRid(): Map<number, string> {
+  if (RID) return RID;
+  const html = readFileSync(`${REPO}pipeline/deliver/answers/reference/page_v36.html`, "utf8");
+  const m = html.match(/<script[^>]*id="data"[^>]*>([\s\S]*?)<\/script>/);
+  if (!m) throw new Error("page_v36.html has no #data");
+  return (RID = new Map(Object.entries((JSON.parse(m[1]!) as { rid: Record<string, string> }).rid).map(([k, v]) => [Number(k), v])));
+}
