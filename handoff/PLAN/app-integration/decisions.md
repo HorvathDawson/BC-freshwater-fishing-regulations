@@ -851,3 +851,24 @@ the owner's later word "the prototype is a reference, not the end-all … Claude
   images (no longer in the manifest), both prototype bugs (Q25) — closed and marked there.
 
 Undo for any straggler: say which; each is one component's change, and the ticket that built it names the files.
+
+## CLAUDE 2026-10-22 (T76, owner call 10 + T81 Q8) — own gauge across a continuation; the five own-gauge constants
+- **The rule**: a gauge on a `water_continue` predecessor or successor is a section's OWN gauge — one system (owner:
+  a river that changes its name is ONE system, 87ba267c), `water_continue` only (T81 Q8): a tributary, side channel or
+  receiving river is other water. Same quantity, same far/area gates (`panel.may_lead`); the distance runs along the
+  water through the name change; a chain (A as B, B as C) is one system; a lake still ends the walk.
+  `build_panels.own_distances(…, continues)`; mutation pin `test_the_system_is_what_holds_the_vedder_test`.
+- **Ordering in the bundle**: the panels are built while the graph is loaded, before `entry` exists, so the
+  continuations are settled there — `item_down` + `continuation.links` moved before `_gauges`, the book's pairings read
+  from the catalogue (`rules.read_entries`, the same sources and registry `rules.write` reads). `continuation.write`
+  settles again from `entry` and stops the build if the two differ (`built_with`).
+- **The five constants, as values (call 10 kept them; `panel.py`, pinned by test_own_gauge.py)**: lead share
+  `OWN_LEAD_SHARE` = 0.7; much-smaller ratio `OWN_SMALLER_RATIO` = 10; far fraction `OWN_FAR_FRACTION` = 0.2 of the
+  Hack length; far floor `OWN_FAR_MIN_KM` = 10 km; area trust `OWN_AREA_TRUST` = 10 (published vs modelled catchment).
+  (Also `OWN_LEADS_PER_QUANTITY` = 4.)
+- **Real graph, before → after** (live atlas graph + live bundle donors, the 17 live `water_continue` rows plus T59's
+  Atnarko → Bella Coola): 41 sections change, all on continuation waters (Chilliwack 15, Vedder 2, Atnarko 20, Bella
+  Coola 4); 0 elsewhere; no member added or dropped (only `lead` ranks); 4,713 → 4,714 panels. Vedder sid 313838:
+  08MH047 (its own, retired) rank 1, 08MH001 rank 2, 08MH055 rank 3 — the app leads with the best-ranked REPORTING,
+  so 08MH001 leads; sid 313839: 08MH001 rank 1. Atnarko sections gain the Bella Coola gauges 08FB007 / 08FB002 / 08FB011 at ranks 2–4 behind 08FB006;
+  the Bella Coola gains 08FB006. Undo: pass `continues=()` in build.py.
