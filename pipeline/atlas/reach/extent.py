@@ -974,7 +974,9 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
     if not universe and op != "within":
         # `within` is the one op that can answer without an item scope — an admin-area closure names
         # the area, not a water. Every other op selects FROM a water, so no water means no answer.
-        _fail("no_sections_for_items", ",".join(scope))
+        known = [i for i in scope if i in reg]
+        _fail("no_sections_for_items", f"no scoped item is in the registry: {scope}" if not known
+              else f"every scoped item has zero sections: {known}")
         return None
     # `within_area` LIMITS whatever this extent selects to a polygon. It is the one shape the
     # vocabulary could not express: "any stream in the Fraser River Watershed OF REGION 5" is a
@@ -1047,6 +1049,13 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
     def _out(sec: set[str], **extra) -> dict:
         d = {"sections": sorted(_limited(sec)), "unclassified": [], "ambiguous_cut": [],
              "window": None, "cuts": [], "waters": _waters(g, _limited(sec))}
+        if not d["sections"]:
+            # resolved, and selects nothing: said, so an unbound rule's reason is the resolver's
+            if op == "between":
+                _fail("between_selects_nothing", "both cuts resolve but the reach between them is "
+                      "empty — the two may have collapsed to one measure (see the Mitchell alias bug)")
+            else:
+                _fail("selects_nothing", f"the {op} extent resolves and selects no section")
         if limit_sections is not None:
             d["within_area"] = sorted(limit_sections)
             if op != "within":
@@ -1238,7 +1247,7 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
     if op in ("upstream_of", "downstream_of"):
         at = _cut_at(g, _refs(ids[0]), universe)
         if at is None:
-            _fail("cut_not_on_this_water", ids[0])
+            _fail("cut_not_on_this_water", f"cut(s) not on the scoped water: {ids[:1]}")
             return None
         at = _pin(ids[0], at)
         if at is None:
@@ -1255,7 +1264,8 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
         a = _cut_at(g, _refs(ids[0]), universe)
         b = _cut_at(g, _refs(ids[1]), universe)
         if a is None or b is None:
-            _fail("cut_not_on_this_water", ids[0] if a is None else ids[1])
+            _fail("cut_not_on_this_water", "cut(s) not on the scoped water: "
+                  f"{[i for i, x in zip(ids, (a, b)) if x is None]}")
             return None
         a, b = _pin(ids[0], a), _pin(ids[1], b)
         if a is None or b is None:

@@ -416,10 +416,12 @@ def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None,
     region = region_limit(entry, registry, shared, graph=graph) if regional else None
 
     per: list[dict | None] = []
+    why: list[list[tuple[str, str]]] = []          # what the resolver said of each extent (`_why`)
     clipped = False
     out_of_region = 0
     for ex in rule.get("extents") or []:
-        got = _resolve.resolve_extent(registry, graph, covered, ex)
+        why.append([])
+        got = _resolve.resolve_extent(registry, graph, covered, ex, reasons=why[-1])
         if got is not None:
             if region is not None and _row_water(ex, entry.get("matched") or ()):
                 before = len(got.get("sections") or ())
@@ -446,6 +448,7 @@ def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None,
         expand_tributaries=expander,
         kind_of=lambda s: _resolve._kind_of(graph, s, registry),
         outside=outside,
+        reasons=why,
     )
     for row in getattr(expander, "confluence", None) or ():
         # REPORTED, never silent: which joining water each confluence cut kept out of the walk,

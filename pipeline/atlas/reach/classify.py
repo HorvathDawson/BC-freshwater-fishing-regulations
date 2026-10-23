@@ -4,9 +4,9 @@ EVERY policy decision the reach builder makes lives in this file. That is delibe
 scattered across the pass they become invisible, and each one is a judgement about
 whether a regulation applies somewhere it might not.
 
-`resolve_extent` returns a bare ``None`` for five distinct failures, so the reason is
-re-derived here from the extent and the registry. When the resolver grows typed reasons,
-`_why` should defer to it and shrink to almost nothing.
+`resolve_extent` returns a bare ``None`` for many distinct failures and SAYS WHICH through its
+`reasons=` list (a typed code per failure); `_why` reads those codes (`UNBOUND_REASON`) and never
+re-derives a reason from the extent and the registry (T125 item 4).
 """
 
 from __future__ import annotations
@@ -138,6 +138,7 @@ def classify(
     expand_tributaries=None,
     kind_of=None,
     outside: frozenset | set | None = None,
+    reasons: list[list[tuple[str, str]]] | None = None,
 ) -> tuple[RuleBinding, list[Diagnostic]]:
     """Turn one rule's per-extent resolutions into a binding plus its diagnostics.
 
@@ -150,6 +151,9 @@ def classify(
     `outside` is the set of sections outside B.C., subtracted from every binding
     (`pipeline.atlas.reach.outside.outside_bc`). Both are optional so a caller with no graph
     (the unit tests) can still classify; the builder always passes them.
+
+    `reasons` is positional against `per_extent` too: what `resolve_extent(reasons=)` said about
+    each extent (`(code, detail)` pairs). An unbound rule's reason is read from it (`_why`).
     """
     rid = rule["rule_id"]
     extents = rule.get("extents") or []
@@ -254,7 +258,7 @@ def classify(
         _straddle_placed(diags, entry_id, rid, i, got)
 
     if not resolved_any:
-        return unresolved(*_why(extents, registry, covered_ids))
+        return unresolved(*_why(reasons))
 
     if len(per_extent) > 1 and any(g is None for g in per_extent):
         diags.append(Diagnostic(entry_id, rid, "partial_extents", {
@@ -273,7 +277,7 @@ def classify(
             # The resolver is right; the curation is inconsistent. A real signal.
             return unresolved(Reason.empty_after_scope,
                               "resolved, then the entry scope removed every section")
-        return unresolved(*_why(extents, registry, covered_ids))
+        return unresolved(*_why(reasons))
 
     via_trib: tuple[str, ...] = ()
     direct = set(sections) | ws_river
@@ -372,49 +376,30 @@ def feature_kinds(per_extent: list[dict | None]) -> frozenset[str]:
     return frozenset(k for got in per_extent if got for k in (got.get("feature_types") or ()))
 
 
-def _why(extents: list[dict], registry, covered_ids: list[str]) -> tuple[Reason, str]:
-    """Re-derive why every extent came back ``None``.
-
-    The resolver does not say, so this inspects the same inputs it did. Ordered
-    most-specific first; `unknown` means the resolver refused for a reason this cannot
-    reproduce, which is itself worth surfacing rather than papering over.
-    """
-    for ex in extents:
-        op = ex.get("op")
-        if op == "within":
-            aid = ex.get("area_id")
-            if not aid:
-                return Reason.area_scope, "within() with no area_id"
-            if aid not in registry:
-                return Reason.area_id_dangling, f"area_id {aid!r} is not a registry item"
-            return Reason.area_scope, f"within({aid}) is not geometry"
-
-        scope = ex.get("item_ids") or ([ex["item_id"]] if ex.get("item_id") else covered_ids)
-        known = [i for i in scope if i in registry]
-        if not known:
-            return Reason.no_sections_for_items, f"no scoped item is in the registry: {scope}"
-        if not any(registry[i].section_ids for i in known):
-            return (Reason.no_sections_for_items,
-                    f"every scoped item has zero sections: {known}")
-
-        splits = ex.get("splits") or []
-        if op in ("upstream_of", "downstream_of", "between") and splits:
-            universe = {s for i in known for s in registry[i].section_ids}
-            missing = [s for s in splits if not _cut_exists(s, known, registry, universe)]
-            if missing:
-                return Reason.cut_not_found, f"cut(s) not on the scoped water: {missing}"
-            if op == "between" and len(splits) == 2:
-                return (Reason.cuts_collapsed,
-                        "both cuts resolve but the reach between them is empty — the two "
-                        "may have collapsed to one measure (see the Mitchell alias bug)")
-    return Reason.unknown, "resolver returned None and the cause could not be re-derived"
+#: WHY AN EXTENT DID NOT BIND, as the resolver says it (`extent.resolve_extent(reasons=)`): its
+#: code -> the binding's `Reason`. A code not listed here is `unknown`, its code named in the detail
+#: — a new resolver failure is surfaced, never mapped to a guess (T125 item 4: `_why` used to
+#: re-derive the reason from the extent and the registry, a second reading of the resolver).
+UNBOUND_REASON: dict[str, Reason] = {
+    "no_sections_for_items": Reason.no_sections_for_items,
+    "within_without_area_id": Reason.area_scope,
+    "area_kind_matches_nothing": Reason.area_scope,
+    "area_has_no_features_of_type": Reason.area_scope,
+    "area_does_not_meet_this_water": Reason.area_scope,
+    "area_id_not_in_registry": Reason.area_id_dangling,
+    "cut_not_on_this_water": Reason.cut_not_found,
+    "between_cuts_collapsed": Reason.cuts_collapsed,
+    "between_cuts_not_ordered": Reason.parallel_branches,
+    "between_selects_nothing": Reason.cuts_collapsed,
+    "selects_nothing": Reason.no_sections,
+}
 
 
-def _cut_exists(split_id: str, items: list[str], registry, universe: set[str]) -> bool:
-    """Is this split id a boundary on any of the scoped items (directly or by alias)?"""
-    for i in items:
-        it = registry.get(i)
-        for b in (it.boundaries if it else ()):
-            if split_id in b.answers_to():
-                return True
-    return False
+def _why(reasons: list[list[tuple[str, str]]] | None) -> tuple[Reason, str]:
+    """The reason the resolver gave for the FIRST extent (in order) that it explained — read, never
+    re-derived. `unknown` when it explained none (a caller that did not collect `reasons`)."""
+    for got in reasons or ():
+        for code, detail in got or ():
+            reason = UNBOUND_REASON.get(code, Reason.unknown)
+            return reason, (detail if reason is not Reason.unknown else f"{code}: {detail}")
+    return Reason.unknown, "the resolver gave no reason for any extent"

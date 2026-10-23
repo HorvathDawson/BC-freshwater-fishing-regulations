@@ -214,8 +214,7 @@ def test_no_reader_strips_the_split_prefix_of_a_registry_alias_itself():
     strip or the `{bid, f"split:{bid}"}` want-set in any of them and this fails)."""
     from pathlib import Path
     root = Path(__file__).resolve().parents[1]
-    for rel in ("regs/parsing/parse_context.py", "atlas/reach/classify.py",
-                "deliver/bundle/place_names.py"):
+    for rel in ("regs/parsing/parse_context.py", "deliver/bundle/place_names.py"):
         src = (root / rel).read_text()
         assert 'len("split:")' not in src and 'removeprefix("split:")' not in src, rel
         assert "answers_to()" in src, rel

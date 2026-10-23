@@ -353,7 +353,6 @@ def test_a_displaced_lake_edge_is_still_bindable_by_the_name_rules_use():
     So a kept lake edge came back unbindable. `_pickup` now sends the label along and `_expand`
     spells it here, where the readable-id rule already lives.
     """
-    from pipeline.atlas.reach.classify import _cut_exists
     g = StreamGraph()
     tx = (NameTuple("River X", NameSource.gazette, gnis_id="1"),)
     # the dam won the pickup at the lake edge; the lake survives only as an alias
@@ -365,5 +364,6 @@ def test_a_displaced_lake_edge_is_still_bindable_by_the_name_rules_use():
     aliases = {b.id: b.aliases for b in reg["gnis:1"].boundaries}["river_x__bar_lake_dam"]
     assert "river_x__bar_lake" in aliases, "the id a rule binds must survive the relabel"
     assert not [a for a in aliases if a.startswith("label:")], "label: is consumed, never shipped"
-    assert _cut_exists("river_x__bar_lake", ["gnis:1"], reg, set()) is True
-    assert _cut_exists("river_x__bar_lake_dam", ["gnis:1"], reg, set()) is True
+    # the ids the resolver binds the cut-point by (`RegistryBoundary.answers_to`, T125 item 3)
+    (b,) = [b for b in reg["gnis:1"].boundaries if b.id == "river_x__bar_lake_dam"]
+    assert {"river_x__bar_lake", "river_x__bar_lake_dam"} <= set(b.answers_to())

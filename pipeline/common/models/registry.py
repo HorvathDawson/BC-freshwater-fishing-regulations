@@ -20,7 +20,7 @@ class RegistryBoundary:
         """EVERY ID THIS CUT-POINT ANSWERS TO, as a rule binds it: its own `id`, then each alias with
         the graph's `split:` ref prefix stripped (a rule's `Extent.splits` names bare ids), in order.
         The one reading (T125 item 3): the parse menu (`parse_context`), the resolver (`extent`),
-        the unbound-reason (`classify._cut_exists`) and the bundle's place names all ask it."""
+        and the bundle's place names all ask it."""
         return (self.id, *(a[len("split:"):] if a.startswith("split:") else a
                            for a in (self.aliases or ())))
 

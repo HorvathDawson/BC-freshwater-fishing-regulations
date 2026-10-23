@@ -130,36 +130,67 @@ def test_no_extents_with_no_registry_is_reported_as_no_registry():
 
 def test_zero_section_item_gets_its_own_reason():
     reg = {"i0": _Item([])}
+    why = [[("no_sections_for_items", "every scoped item has zero sections: ['i0']")]]
     b, _ = classify("e", _rule(), [None], registry=reg, covered_ids=["i0"],
-                    scope_clipped=False, entry_has_registry=True)
-    assert b.reason is Reason.no_sections_for_items
+                    scope_clipped=False, entry_has_registry=True, reasons=why)
+    assert (b.reason, b.detail) == (Reason.no_sections_for_items,
+                                    "every scoped item has zero sections: ['i0']")
 
 
-def test_a_cut_that_is_not_on_the_water_is_named():
+def test_the_resolver_says_why_and_classify_reads_it():
+    """T125 item 4: the reason is the RESOLVER's (`resolve_extent(reasons=)`), never re-derived by
+    `classify` from the extent and the registry. A rule over items with no sections — the 22
+    unbound rules of the live run — gets the same reason and words as before."""
+    from pipeline.atlas.reach.extent import resolve_extent
+    for reg, covered, want in (({}, [], "no scoped item is in the registry: []"),
+                               ({"i0": _Item([])}, ["i0"], "every scoped item has zero sections: ['i0']")):
+        why: list = []
+        assert resolve_extent(reg, None, covered, {"op": "whole"}, reasons=why) is None
+        assert why == [("no_sections_for_items", want)]
+        b, _ = classify("e", _rule(), [None], registry=reg, covered_ids=covered,
+                        scope_clipped=False, entry_has_registry=True, reasons=[why])
+        assert (b.reason, b.detail) == (Reason.no_sections_for_items, want)
+
+
+@pytest.mark.parametrize("code,reason", [
+    ("cut_not_on_this_water", Reason.cut_not_found),
+    ("between_cuts_collapsed", Reason.cuts_collapsed),
+    ("between_selects_nothing", Reason.cuts_collapsed),
+    ("between_cuts_not_ordered", Reason.parallel_branches),
+    ("within_without_area_id", Reason.area_scope),
+    ("area_does_not_meet_this_water", Reason.area_scope),
+    ("area_id_not_in_registry", Reason.area_id_dangling),
+    ("selects_nothing", Reason.no_sections),
+])
+def test_each_resolver_code_is_one_reason(code, reason):
+    b, _ = classify("e", _rule(), [None], registry=REG, covered_ids=["i1"], scope_clipped=False,
+                    entry_has_registry=True, reasons=[[(code, "said")]])
+    assert (b.reason, b.detail) == (reason, "said")
+
+
+def test_an_unmapped_code_is_unknown_and_named_and_the_first_explained_extent_wins():
+    b, _ = classify("e", _rule(extents=[{"op": "whole"}, {"op": "whole"}]), [None, None],
+                    registry=REG, covered_ids=["i1"], scope_clipped=False, entry_has_registry=True,
+                    reasons=[[("outside_item_not_in_registry", "gnis:9")],
+                             [("cut_not_on_this_water", "x")]])
+    assert (b.reason, b.detail) == (Reason.unknown, "outside_item_not_in_registry: gnis:9")
+    b, _ = classify("e", _rule(extents=[{"op": "whole"}, {"op": "whole"}]), [None, None],
+                    registry=REG, covered_ids=["i1"], scope_clipped=False, entry_has_registry=True,
+                    reasons=[[], [("cut_not_on_this_water", "x")]])
+    assert b.reason is Reason.cut_not_found
+
+
+def test_classify_never_re_derives_a_reason():
+    """Mutation pin: the extent-and-registry re-derivation (`_cut_exists`, the scope test) is gone —
+    with no reasons, a rule whose cut is missing from the registry is `unknown`, not `cut_not_found`."""
+    import inspect
+    from pipeline.atlas.reach import classify as C
     b, _ = classify("e", _rule(extents=[{"op": "upstream_of", "splits": ["ghost"]}]),
                     [None], registry=REG, covered_ids=["i1"], scope_clipped=False,
                     entry_has_registry=True)
-    assert b.reason is Reason.cut_not_found
-    assert "ghost" in b.detail
-
-
-def test_a_cut_bound_by_alias_counts_as_found():
-    reg = {"i1": _Item(["s1"], [_B("real", aliases=["split:aka"])])}
-    b, _ = classify("e", _rule(extents=[{"op": "upstream_of", "splits": ["aka"]}]),
-                    [None], registry=reg, covered_ids=["i1"], scope_clipped=False,
-                    entry_has_registry=True)
-    assert b.reason is not Reason.cut_not_found
-
-
-def test_within_area_is_distinguished_from_a_dangling_area_id():
-    b1, _ = classify("e", _rule(extents=[{"op": "within", "area_id": "area:known"}]),
-                     [None], registry={"area:known": _Item()}, covered_ids=["i1"],
-                     scope_clipped=False, entry_has_registry=True)
-    assert b1.reason is Reason.area_scope
-    b2, _ = classify("e", _rule(extents=[{"op": "within", "area_id": "nope"}]),
-                     [None], registry=REG, covered_ids=["i1"], scope_clipped=False,
-                     entry_has_registry=True)
-    assert b2.reason is Reason.area_id_dangling
+    assert b.reason is Reason.unknown
+    src = inspect.getsource(C._why)
+    assert "registry" not in src and "extents" not in src and not hasattr(C, "_cut_exists")
 
 
 def test_empty_after_the_row_scope_is_its_own_reason():

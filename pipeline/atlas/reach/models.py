@@ -22,9 +22,8 @@ class Outcome(str, Enum):
 class Reason(str, Enum):
     """Why a rule did not bind. A CLOSED set — extend deliberately.
 
-    `resolve_extent` returns a bare ``None`` for several distinct failures, so these are
-    derived by `classify` from the extent and the registry rather than reported by the
-    resolver. Whenever the resolver grows typed reasons, this should defer to it.
+    `resolve_extent` says why an extent failed through its `reasons=` codes, and `classify`
+    maps them here (`classify.UNBOUND_REASON`) — never re-deriving one (T125 item 4).
     """
 
     # --- authored, but nothing to bind to -------------------------------------
