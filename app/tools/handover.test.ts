@@ -158,6 +158,18 @@ describe("the basin/river handover", () => {
       .toEqual({ basin: app, field: app, rivers: app });
   });
 
+  it("stops the field's source one zoom short of the handover, without the tile builder to hand", () => {
+    /*
+     * Review T130: the only check on `sources.basins.maxzoom` read the Python, and it SKIPS where no .venv is (every
+     * worktree, CI without the pipeline). Moved alone to the handover, MapLibre would ask the archive for z8 tiles,
+     * which a z8-handover build no longer writes, and the field would vanish across [7, 8) with nothing failing.
+     */
+    const sources = MAP_STYLE.sources as Record<string, { maxzoom?: number }>;
+    const basin = MAP_STYLE.layers.find((l) => l.id === "basin") as { source?: string };
+    expect({ source: basin.source, maxzoom: sources[basin.source!]?.maxzoom })
+      .toEqual({ source: "basins", maxzoom: FIELD_HANDOVER_Z - 1 });
+  });
+
   it("leaves no zoom drawing neither the field nor the rivers", () => {
     // The property the numbers above exist for, stated directly and checked across the
     // band rather than inferred from two constants that were once off by one.

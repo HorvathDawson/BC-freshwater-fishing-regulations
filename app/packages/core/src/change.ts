@@ -8,8 +8,8 @@
  * donor panels like every other horizon (weights, own-gauge lead, reserve, refusals). This file decodes that number and
  * says it; the thresholds are the publisher's (`CHANGE_POLICY`, generated), never typed here a second time.
  *
- * FLOW ONLY. A ratio of stages is not a ratio of water, and the owner's rule is never to mix the two: the Change chip is
- * offered under Flow alone (`horizonChips` in @app/ui).
+ * FLOW ONLY. A ratio of stages is not a ratio of water, and the owner's rule is never to mix the two: under Level the
+ * Change chip is greyed "Flow only" and a tap moves to Flow (T130, `horizonChips` / `pickHorizon` in @app/ui).
  */
 import { CHANGE_POLICY } from "./gauge-policy.generated";
 import { plainStanding, standing } from "./flow";
