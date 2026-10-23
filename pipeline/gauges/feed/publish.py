@@ -373,32 +373,41 @@ def forecast_percentiles(runs: dict | None, envelopes: dict | None,
     both, and a level forecast ranked against a discharge envelope is arithmetic across two
     units. A horizon with nothing to say is ABSENT rather than null-filled — the map draws
     ungauged grey for an absent one, which is the honest answer.
+
+    THE FIRST MODEL THAT ANSWERS, PER QUANTITY (T143 review). The order is chosen once per
+    quantity, not once per day: CLEVER answering a day's flow used to end the search, so the
+    level ELF forecasts for the same day was never ranked — on the 2026-10-23 feed 310 of the
+    372 forecast stations had no level at +1/+3/+5 while the Level chart drew ELF's stage
+    forecast. `model` names the run behind the discharge (else the level); `levelModel` is
+    written only where the level came from a different run, so a one-model day is unchanged.
     """
     if not runs or not envelopes:
         return {}
     out: dict[str, dict] = {}
     for days in HORIZONS:
         when = now + timedelta(days=days)
-        for model in MODEL_ORDER:
-            run = runs.get(model) or {}
-            series = run.get("series")
-            # A RUN PAST `change.STALE_HOURS` IS NOT TODAY'S FORECAST (T52): the feed carried ELF runs from 09-24 and 10-14
-            # that still answered +3/+5/+10 at 08CG001, a week after the Centre had stopped issuing them.
-            if not series or _stale_run(run, now):
-                continue
-            got: dict = {}
-            for q in ("discharge", "level"):
-                v = forecast_at(series, when, q)
-                p = percentile_of(v, band_for(envelopes.get(q), when))
+        got: dict = {}
+        by: dict[str, str] = {}
+        for q in ("discharge", "level"):
+            for model in MODEL_ORDER:
+                run = runs.get(model) or {}
+                series = run.get("series")
+                # A RUN PAST `change.STALE_HOURS` IS NOT TODAY'S FORECAST (T52): the feed carried ELF runs from 09-24 and
+                # 10-14 that still answered +3/+5/+10 at 08CG001, a week after the Centre had stopped issuing them.
+                if not series or _stale_run(run, now):
+                    continue
+                p = percentile_of(forecast_at(series, when, q), band_for(envelopes.get(q), when))
                 if p is not None:
-                    got[q] = p
-            if got:
-                # WHICH MODEL SAID SO travels with the number. Two models disagreeing about
-                # the same day is a real and frequent thing in the shoulder months, and a
-                # percentile with no attribution cannot be checked against the chart the
-                # sheet draws from the same run.
-                out[str(days)] = {**got, "model": model}
-                break                       # first model that can answer wins; see MODEL_ORDER
+                    got[q], by[q] = p, model
+                    break                   # first model that can answer THIS quantity wins; see MODEL_ORDER
+        if got:
+            # WHICH MODEL SAID SO travels with the number. Two models disagreeing about
+            # the same day is a real and frequent thing in the shoulder months, and a
+            # percentile with no attribution cannot be checked against the chart the
+            # sheet draws from the same run.
+            model = by.get("discharge") or by["level"]
+            out[str(days)] = {**got, "model": model,
+                              **({"levelModel": by["level"]} if by.get("level", model) != model else {})}
     return out
 
 

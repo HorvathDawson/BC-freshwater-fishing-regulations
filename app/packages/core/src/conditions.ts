@@ -158,11 +158,12 @@ const WHY: Record<NoEstimate, string> = {
   // A day ahead past every forecast run for these gauges — the +10 day often is, and every
   // forecast day is out of season. Not "no gauge close enough", which would be false.
   "no-forecast": "No forecast for the gauges here reaches this far ahead.",
-  // UNDER LEVEL, A DAY THE RUNS FORECAST ONLY IN FLOW (T143, owner 2026-10-23: "it says no forecast for gauges here even
-  // tho there definitely is"). CLEVER — the run that answers +1/+3/+5 — forecasts discharge and no stage, so a Level
-  // reader was told no forecast exists while the chart drew one. A flow never stands in for a level; the words say
-  // which quantity the forecast is in, and where to find it.
-  "flow-forecast-only": "The forecast for the gauges here is of flow, not level, this far ahead. Show Flow to see it.",
+  // UNDER LEVEL, A DAY THE FEED RANKS ONLY IN FLOW (T143, owner 2026-10-23: "it says no forecast for gauges here even
+  // tho there definitely is"). A flow never stands in for a level; the words say which quantity is ranked and where to
+  // find it. Not "the forecast is of flow, not level" (the first T143 wording): until the per-quantity feed is
+  // republished, ELF's stage forecast for these days exists — the Level chart draws it — and is only not RANKED.
+  "flow-forecast-only": "The gauges here have a flow forecast this far ahead, but no level forecast ranked against "
+                      + "their record. Show Flow to see it.",
 };
 
 /**

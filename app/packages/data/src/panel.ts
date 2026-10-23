@@ -105,7 +105,8 @@ import type { Horizon } from "@app/core";
  */
 export type Quantity = "discharge" | "level";
 
-type Ahead = Record<string, { discharge?: number; level?: number; model?: string }>;
+/** `model` ran the discharge (else the level); `levelModel` only where the level came from another run (T143 review). */
+type Ahead = Record<string, { discharge?: number; level?: number; model?: string; levelModel?: string }>;
 
 /**
  * A station's EXPECTED CHANGE over the next ten days (T52, the feed's `change`, `pipeline/gauges/feed/change.py`): the
@@ -250,7 +251,7 @@ export function answerFrom(panel: Panel | undefined, index: Index,
    * false — so it is "no-record": none has a reading to rank. Nothing outside the panel is borrowed.
    */
   if (!contributions.length && panel.areaKm2 && panel.members.length) {
-    return { answer: { ok: false, why: silentWhy(panel, index, horizon) },
+    return { answer: { ok: false, why: silentWhy(panel, index, chosen, horizon) },
              rows: raw.map(({ _w, ...r }) => ({ ...r, weight: 0 })),
              areaKm2: panel.areaKm2, routesReady: false };
   }
@@ -272,19 +273,19 @@ export function answerFrom(panel: Panel | undefined, index: Index,
  * refuses with when no member reads:
  *
  *   no-record            today: none of the members has a reading of the asked quantity to rank.
- *   flow-forecast-only   a DAY ahead under Level, where the members' runs DO forecast that day, in flow (T143). The feed's
- *                        +1/+3/+5 are CLEVER's, and CLEVER forecasts discharge only (`publish.forecast_percentiles`), so
- *                        on the 2026-10-23 feed 310 of 372 stations with a forecast had no level at +1/+3/+5: a Level
- *                        reader was told "no forecast" at every gauge while the chart drew one. Still no answer — a flow
- *                        never stands in for a level — but the refusal says the forecast is there, in flow.
- *   no-forecast          any other horizon ahead: no run reaches it in the asked quantity or any other.
+ *   flow-forecast-only   a DAY ahead under LEVEL, where no member has a ranked level that day and some member has a
+ *                        ranked flow (T143). On the 2026-10-23 feed 310 of 372 forecast stations had no level at
+ *                        +1/+3/+5: the publisher let CLEVER (flow only) answer the whole day, so ELF's stage forecast
+ *                        was never ranked — fixed per quantity in `publish.forecast_percentiles`; after that republish
+ *                        a handful of CLEVER-only stations remain. Still no answer — a flow never stands in for a level
+ *                        — but the refusal says the flow is ranked.
+ *   no-forecast          any other horizon ahead: no run reaches it ranked in the asked quantity, nor (under Level) in
+ *                        flow. Change is flow only (T52), so under Level it is no-forecast too.
  */
-export function silentWhy(panel: Panel, index: NonNullable<Index>,
+export function silentWhy(panel: Panel, index: NonNullable<Index>, quantity: Quantity,
                           horizon: Horizon): "no-record" | "no-forecast" | "flow-forecast-only" {
   if (!isAhead(horizon)) return "no-record";
-  // Asked only once the asked quantity has no contribution, so under Flow this is empty and the answer no-forecast:
-  // the reason is only ever reached under Level.
-  return typeof horizon === "number" && contributionsOf(panel, index, "discharge", horizon).length
+  return quantity === "level" && typeof horizon === "number" && contributionsOf(panel, index, "discharge", horizon).length
     ? "flow-forecast-only" : "no-forecast";
 }
 

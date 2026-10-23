@@ -8,7 +8,9 @@
  * under FLOW every horizon answers on this feed — 107k of 239k release sections at +1 as at Now. Under LEVEL, +1/+3/+5
  * answered "No forecast for the gauges here" on almost every water, because CLEVER (which answers those days) forecasts
  * discharge and no stage; the Layers choice is kept, so a reader who once picked Level saw it everywhere. The refusal
- * now says the forecast is there, in flow (`silentWhy`), and a flow still never stands in for a level.
+ * now says the flow is ranked (`silentWhy`), and a flow still never stands in for a level. The adversarial review found
+ * the publisher's half: ELF DOES forecast stage on those days; `forecast_percentiles` stopped at CLEVER's flow. Fixed per
+ * quantity in the publisher (feed republish); the "per-quantity feed" block below reads its output.
  *
  * MUTATION PINS (each fails the named test; checked by hand 2026-10-23):
  *   - `reading` returning null for every horizon past 0 (the regression's shape)  → "answers every day ahead in Flow"
@@ -18,6 +20,8 @@
  *   - `donorView` keeping chips only for "no-forecast"                           → DonorPanel "under Level at +3 …"
  *   - `donorView` keeping the silent line under a flow-only refusal               → DonorPanel "under Level at +3 …"
  *   - `silentWhy` answering flow-forecast-only from the LEVEL contributions       → "says the forecast is in flow under Level"
+ *   - `silentWhy` ignoring its quantity (the first T143 build)                    → "is never flow-forecast-only under Flow …"
+ *   - `reading` reading `levelModel`'s day as absent / dropping a level beside `levelModel` → "answers Level at +1/+3/+5 …"
  */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -83,10 +87,48 @@ describe("every station of the owner's feed, as a one-gauge panel", () => {
 
 describe("silentWhy", () => {
   it("today is no-record", () => {
-    expect(silentWhy(PANEL, INDEX, 0)).toBe("no-record");
+    expect(silentWhy(PANEL, INDEX, "level", 0)).toBe("no-record");
   });
   it("Change under Level is no forecast (the Shell answers it as Now; Change is flow only, T52)", () => {
-    expect(silentWhy(PANEL, INDEX, "change")).toBe("no-forecast");
+    expect(silentWhy(PANEL, INDEX, "level", "change")).toBe("no-forecast");
+  });
+  it("is never flow-forecast-only under Flow, whatever the members forecast (T143 review)", () => {
+    // the exported function used to ignore the quantity and lean on its one caller's precondition
+    expect(([1, 3, 5, 10] as const).map((h) => silentWhy(PANEL, INDEX, "discharge", h)))
+      .toEqual(["no-forecast", "no-forecast", "no-forecast", "no-forecast"]);
+    expect(silentWhy(PANEL, INDEX, "level", 3)).toBe("flow-forecast-only");
+  });
+});
+
+/*
+ * THE REPUBLISHED FEED (T143 review). The publisher let the first model to answer ANYTHING win the whole day, so CLEVER's
+ * flow ended the search and ELF's stage forecast for +1/+3/+5 was never ranked. `forecast_percentiles` now takes the
+ * first model per quantity. `ahead-per-quantity-*.json` is that function's output over the SAME snapshot (each station
+ * file's runs, the feed's clim.json, now = fetchedAt) for the panel's members and the Fraser at Hope, laid over the real
+ * index here: the app reads it with no change (both shapes), and Level answers those days from ELF's level.
+ */
+const PER_Q = JSON.parse(readFileSync(join(dir, "ahead-per-quantity-2026-10-23T0350Z.json"), "utf8")).ahead;
+const REPUBLISHED = { ...INDEX, stations: Object.fromEntries(Object.entries(INDEX.stations as Record<string, object>)
+  .map(([s, row]) => [s, s in PER_Q ? { ...row, ...(PER_Q[s] ? { ahead: PER_Q[s] } : {}) } : row])) };
+
+describe("the Chilliwack panel on the per-quantity feed", () => {
+  const on = (q: "discharge" | "level", h: 1 | 3 | 5 | 10) => {
+    const a = answerFrom(PANEL, REPUBLISHED, q, h).answer;
+    return a.ok ? { ok: true, percentile: r4(a.value.percentile), donors: a.value.donors } : a;
+  };
+  it("answers Level at +1/+3/+5 from ELF's stage, and Flow as before", () => {
+    expect({ 1: on("level", 1), 3: on("level", 3), 5: on("level", 5), 10: on("level", 10) })
+      .toEqual({ 1: ok(0.05, 3), 3: ok(0.05, 3), 5: ok(0.05, 3), 10: ok(0.05, 3) });
+    expect({ 1: on("discharge", 1), 3: on("discharge", 3), 5: on("discharge", 5), 10: on("discharge", 10) })
+      .toEqual({ 1: ok(0.05, 4), 3: ok(0.05, 4), 5: ok(0.05, 4), 10: ok(0.05, 3) });
+  });
+  it("ranks the Fraser at Hope's level day by day, each its own", () => {
+    const one: Panel = { areaKm2: 100, members: [{ station: "08MF005" as never, role: "up", areaKm2: 100,
+      years: { discharge: 40, level: 40 }, regulated: false, sameRiver: true }] };
+    expect(([1, 3, 5, 10] as const).map((h) => {
+      const a = answerFrom(one, REPUBLISHED, "level", h).answer;
+      return a.ok ? r4(a.value.percentile) : a.why;
+    })).toEqual([0.152, 0.1112, 0.05, 0.05]);
   });
 });
 

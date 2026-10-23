@@ -111,6 +111,25 @@ def test_a_quantity_the_model_does_not_publish_is_absent():
     assert "level" not in got["1"]
 
 
+def test_each_quantity_takes_the_first_model_that_answers_IT():
+    """T143 review: CLEVER answering a day's FLOW must not end the search for its LEVEL. ELF
+    forecasts stage at +1/+3/+5 too; the feed of 2026-10-23 dropped it at 310 of 372
+    forecast stations because the first model to answer anything won the whole day. Each
+    quantity is attributed to its own run; a one-model day carries no `levelModel`."""
+    runs = {"ELF": {"series": daily(NOW, 30, 18.0, level=2.0)},
+            "CLEVER": {"series": hourly(NOW, 240, lambda h: 5.0)}}
+    env = {"discharge": FLAT, "level": {str(p): [1.0, 1.5, 2.0, 2.5, 3.0] for p in range(73)}}
+    got = forecast_percentiles(runs, env, NOW)
+    assert got["1"] == {"discharge": pytest.approx(0.05), "level": pytest.approx(0.5),
+                        "model": "CLEVER", "levelModel": "ELF"}
+    # ELF alone (CLEVER out of season): both quantities from one run, said once
+    assert forecast_percentiles({"ELF": runs["ELF"]}, env, NOW)["1"] == {
+        "discharge": pytest.approx(0.95), "level": pytest.approx(0.5), "model": "ELF"}
+    # a level with no envelope of its own is still absent, whoever forecasts it
+    assert forecast_percentiles(runs, {"discharge": FLAT}, NOW)["1"] == {
+        "discharge": pytest.approx(0.05), "model": "CLEVER"}
+
+
 def test_forecast_at_takes_the_nearest_step_and_not_an_interpolation():
     """A value between two steps is a number no model produced — and it would then be
     ranked and shown as a percentile, traceable to no run."""

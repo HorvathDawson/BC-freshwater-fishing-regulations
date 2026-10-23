@@ -94,7 +94,7 @@ interface IndexFile {
     temperatureAt?: string | null;
     temperatureBand?: "cool" | "warm" | "critical" | null;
     /** Forecast percentiles keyed by days ahead (publish.py `forecast_percentiles`); read by `reading` in ../panel. */
-    ahead?: Record<string, { discharge?: number; level?: number; model?: string }>;
+    ahead?: Record<string, { discharge?: number; level?: number; model?: string; levelModel?: string }>;
     /** The expected change over the next ten days (T52), flow only: `discharge` is the coded ratio, `ratio` the ratio. */
     change?: StationChange;
   }>;

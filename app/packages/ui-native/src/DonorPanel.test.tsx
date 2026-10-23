@@ -165,8 +165,8 @@ describe("the donor panel", () => {
                     sameRiver: true, observedAt: "2026-10-22T19:05:00-08:00" };
     draw({ value: { answer: { ok: false, why: "flow-forecast-only" }, rows: [quiet as never], areaKm2: 849,
                     routesReady: true }, horizon: 3, onHorizon });
-    expect(screen.getByText("The forecast for the gauges here is of flow, not level, this far ahead. "
-                            + "Show Flow to see it.")).toBeTruthy();
+    expect(screen.getByText("The gauges here have a flow forecast this far ahead, but no level forecast ranked "
+                            + "against their record. Show Flow to see it.")).toBeTruthy();
     expect(screen.queryByText(/No forecast this far ahead/)).toBeNull();
     expect(screen.getByLabelText("Forecast 3 days ahead, showing")).toBeTruthy();
     fireEvent.click(screen.getByLabelText("Conditions now"));
