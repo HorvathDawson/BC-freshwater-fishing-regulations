@@ -1,7 +1,7 @@
 # T143 — Conditions +1/+3/+5/+10 say "no forecast" for every gauge (Change works)
 
-Status: DONE — 875ac163, 5ae8c8da (test move), e4f18716 (docs); adversarial review: see "Adversarial review" (publisher
-fix + app wording, de0ccaa3). App part ships with the next app build; the full fix needs a FEED REPUBLISH (owner, `publish.py`).
+Status: DONE — 8d3de7e0, 92d47b1c (test move), 3d17b1df (docs); adversarial review: see "Adversarial review" (publisher
+fix + app wording, 90edf4ae). App part ships with the next app build; the full fix needs a FEED REPUBLISH (owner, `publish.py`).
 
 Source: Owner 2026-10-23 (app walk). "when i click on +1, +3, +5, +10 it says no forecast for gauges here even tho there definitely is. this is for
 every gauge. but the change option works." Likely since T123 (donorState: a horizon with no percentile → "no-forecast")
@@ -38,7 +38,7 @@ on :39331 (headless Chromium, not the shared browser).
 - I could not read the owner's browser state (not my port, not my browser), so "the owner was on Level" is inferred
   from the sentence, the chip behaviour and the fact that nothing else reproduces it. See the owner question.
 
-## As built (875ac163)
+## As built (8d3de7e0)
 - **One decision, one function**: `silentWhy(panel, index, horizon)` in `app/packages/data/src/panel.ts` — why a panel
   with gauges and an area has nothing to say: `no-record` today; `flow-forecast-only` on a day ahead whose members DO
   forecast that day in flow; `no-forecast` otherwise. `answerFrom`'s no-contribution branch is its only caller. A flow
@@ -134,7 +134,7 @@ r-d72230f10993). Flow at +1/+3/+5/+10 answers on the Chilliwack and elsewhere; L
 
 Owner question added: Q3 (two runs for one day under Flow vs Level).
 
-Checks (review, de0ccaa3): `REGS_STORE_REQUIRED=1 pnpm -C app check` via `scripts/heavy.sh` (with a read-only `.venv`
+Checks (review, 90edf4ae): `REGS_STORE_REQUIRED=1 pnpm -C app check` via `scripts/heavy.sh` (with a read-only `.venv`
 symlink to the main checkout, removed after): typecheck and every gate clean; tests 7,301 passed, 6 failed — the same
 five regs-store vintage files as above, plus `tools/one-speaker.test.ts` hitting ENOENT on `_plat.web.ts`, the temp
 file `tools/check-boundaries.test.ts` writes and deletes while the two run in parallel (passes alone, 5/5; untouched

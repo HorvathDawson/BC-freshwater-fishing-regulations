@@ -1,6 +1,6 @@
 # T144 — Change: use CLEVER and COFFEE (combine when both), ELF only as a last resort with a low-water warning
 
-Status: DONE — 28d237ee (feed) + 1bc00289 (app) + 4b1f9c57 (review fixes), lane-T144; live after a feed republish (below).
+Status: DONE — a156e1c2 (feed) + 89ee4423 (app) + b4fd96a9 (review fixes), lane-T144; live after a feed republish (below).
 
 Source: Owner 2026-10-23 (app walk). "the change could use coffee and clever but no elf (can combine both if available too for more confident
 guessing) clever is better model i think but you can research them to see how you should use them. it can use elf if

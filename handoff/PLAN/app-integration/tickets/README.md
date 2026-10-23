@@ -144,7 +144,7 @@ use that as the sole source of future work."
 | T97 | curation review phase 1 (marks that last) + umbrella | PARTIAL | 303f6d9d, 15c04705, 5717c9fb | phase 1 done; phases 2–5 → T133–T136 |
 | T98 | tidal water spec: Fraser below Mission (RULINGS C-2, K7/K8) | POSTPONED | — | all; spec ON HOLD |
 | T99 | pin the rulings nothing enforces (Z1 base+deltas, 12 ◐ rulings, C-4 citation) | DONE | f8742374, 53d57288, f3bc2b4b, 857bed9a | — |
-| T100 | lakes divided into closure areas (K5): Shuswap A/B/C, 67 widened rules | OPEN | — | all |
+| T100 | lakes divided into closure areas: whole lake + area caveat citing the book's map (Q43 default) | DONE | f72b57d0, 8710bdd2, 1cccc29e, da79ce4d | deliver + fixture re-cut |
 | T101 | gauges walk through slough/canal polygons + Q44 side-channel rule | DONE | 74e10c03, 2ffbae66, 92c188b4, a2fae3cf, f99f2cd8, bb632aa9, 22835b2f | Q83, Q84 (defaults built) |
 | T102 | receiving river never walked into (parent-code check in the walk) | DONE | b6749f62, 60786bc9, 402786c9, b8f5fb3f, 95e78dd5, 0c4a9366, b44461d5, e0bc10a0, 06b8d1cb, 149714b6, bb614474 | part B = one entry check `may_enter` (rides the batch-4 reach rerun); delivered r-941dcc149b17 |
 | T103 | one size shape: plain words contradict bands/title (24 strings) | DONE | 326e8848, 677158f8, 92cba91f, 671eabad | live after the next deliver; Q62–Q63 |
@@ -156,14 +156,14 @@ use that as the sole source of future work."
 | T109 | one entry-id grammar (z7a reads "Region 7") | DONE | 6c03f5fe, 89fea9c0, 1ca9bc00, 6d731a02 | delivered r-d72230f10993 (fixtures 76e7ef05) |
 | T110 | record years per quantity (Level-mode weights) | DONE | ad835645, 31ade2ee, 999b2659, c97c4a98 | delivered r-b518a2b507fa (paint/4) |
 | T111 | every cut reaches the walk (second extent's window dropped) | DONE | ea894c8a, 271b2747, b8c00620 | no binding moved; leftovers → T141; delivered r-941dcc149b17 |
-| T112 | one entry walker over catalogue extents | OPEN | — | all |
+| T112 | one entry walker over catalogue extents | DONE | 9cde1fbe, f99cd705, 05a8b704 | no rebuild (review app restart) |
 | T113 | one name caser for tiles and bundle (O'rourke) | OPEN | — | all (tiles window + deliver) |
 | T114 | one search key for SQL filter and ranking (barriere) | DONE | ebc435e5, 6a9384d3, 21021abb, e7c4d3ca, 4ae97a60, 48f712e9, 2683568e | delivered r-e88ea8112b1a (core 1.09 MB) |
 | T115 | one home-filtered region membership (12 Fraser pairs) | DONE | e0461d31, 2699715d, 330c029e, b8c00620 | 12 Fraser + 3 steelhead-twin + 1 licensing pair removed; leftovers → T140; delivered r-941dcc149b17 |
 | T116 | one water noun: wetlands called "river" | DONE | 4cf77c7a, 86e6ad40, 0c533d4a, 91b2952e | — |
 | T117 | may_enter everywhere: other walks + outlet/WSC/edge-type owners | DONE | c7aa109f, 3b07fefc, 7552cab6, 5a07b674, 10cc45c6, 3aa88557 | 1 licensing section; gauge shed change ships at deliver (Q103); delivered r-941dcc149b17 |
 | T118 | one main line for spans and continuation | DONE | 0ac0fc2b, 348f9519, 0f918ea0, 749482e9 | no shipped row changes (13 waters' exit evidence moves, no water_exit row); delivered r-012fb43aa175 |
-| T119 | one acceptance gate for ingest, validator and review app | OPEN | — | all (after T112) |
+| T119 | one acceptance gate for ingest, validator and review app | DONE | 9cde1fbe, f99cd705, 05a8b704 | no rebuild |
 | T120 | one leading origin: weekday rows take the most permissive | DONE | f757d3e0, 74a712ce, e49f688e, 97b93246 | Q66 (app mainRes) |
 | T121 | water kind in reach and gauges via kind_of | DONE | 7c11c27b, 35dd2ff1, d5899459, 82c59195 | no binding moved; +18 gauged river polygons at deliver; delivered r-012fb43aa175 |
 | T122 | one station liveness (active/realtime/ECCC) | DONE | 9fe57691, 348f9519, 0f918ea0, 749482e9 | no station changes; Q113 cuts vs may_speak; delivered r-012fb43aa175 |
@@ -187,11 +187,11 @@ use that as the sole source of future work."
 | T140 | bundle regions of a water + area families ask the one region membership (G3) | DONE | 41f541a9, 35dd2ff1, 82c59195 | latent: no bundle row changes; delivered r-012fb43aa175 |
 | T141 | carve-out walk seeds from the extent's cuts; braid cut reports side-channel crossings | DONE | 8c05e725, 35dd2ff1, d5899459, 82c59195 | no binding moved; delivered r-012fb43aa175 |
 | T142 | review screen leftovers: focus after click, error wording, partial mark (Q96), draft-guard test | DONE | 9c141d24, 8d0f5d76, 9b8de2e3, 19dbc1ee | Q96 not built (default no) |
-| T143 | Conditions horizons say "no forecast" for every gauge (Change works) | OPEN | — | high; live regression |
-| T144 | Change: CLEVER + COFFEE (combined), ELF only as last resort with a low-water warning | OPEN | — | research first |
-| T145 | spot markers: smaller, capped, deselect on tap off, better look (T131 rework) | OPEN | — | app |
-| T146 | no-public-access colour too close to base regulations | OPEN | — | app |
-| T147 | "no public access" leads the regulations page, bigger and more obvious | OPEN | — | app; with T146 |
+| T143 | Conditions horizons say "no forecast" (Level: publisher stopped at the first model) | DONE | ce46639f, 90edf4ae, fd584a83, 92d47b1c, 3d17b1df, 8d3de7e0 | feed republish (local done; R2 owner) |
+| T144 | Change: CLEVER + COFFEE combined, ELF only last resort with a low-water caveat | DONE | 7b4d941f, b4fd96a9, a522525f, 89ee4423, a156e1c2 | feed republish (local done; R2 owner) |
+| T145 | spot markers: small capped squares, deselect on tap off | DONE | 43300623, de300379, fcbd8d0f, 43300623, de300379, fcbd8d0f | app; native guard needs the device run (T50) |
+| T146 | no-access colour apart from base (light spruce, dark ice cyan) | DONE | 01f76c76, 41ace93b, 38e6628b, df1c8bf1 | app |
+| T147 | "no public access" leads the regulations page | DONE | 01f76c76, e5903a77, 38e6628b, d5d032d8, 1e663952 | app |
 | T148 | sloughs/canals second sweep by FWA feature codes + inside line codes, calibrated on the owner's marks | DONE | 5b8066d7 | (data: handoff/PLAN/sloughs/v2); 2,424 candidates; 275 not-fishing waters drawn as lakes |
 | T149 | review page: slough complexes marked in bulk; intermittent-lake spot check | OPEN | — | after T148; ★ owner marks |
 | T150 | drop the regs header's "Parts" button; the part list lives in the Map view | OPEN | — | after T147 |
@@ -200,6 +200,9 @@ use that as the sole source of future work."
 | T153 | a river's rules stop at every unnamed lake polygon on its course (456 holes) | OPEN | — | ★ Q124; reach rerun |
 | T154 | a dams layer so "dammed widening = lake" is decided by data | OPEN | — | data fetch; T148 re-run |
 | T155 | Still Creek and Nelson Creek: book entries with no water (named ditch/canal lines) | OPEN | — | registry + reach + deliver |
+| T156 | test hygiene: update_hydat_script sandbox has no release; _plat.ts race between check-colours and check-boundaries | OPEN | — | tests only |
+| T157 | Conditions follow-ups from T143/T144: switcher "quiet" on a flow-only day, 2 unranked stations, map low-water caveat, handover drop | OPEN | — | app + feed |
+| T158 | dark no-access ice cyan vs depth contours (ΔE 4.7): contours vanish on a no-access lake | OPEN | — | app colours |
 
 ## Order for open tickets
 
@@ -324,6 +327,24 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q123 | T151 | How the water Map view marks the selected part without bold lines? | dim the other parts; one line width | owner |
 | Q124 | T153 | Does a river row's rule apply to an UNNAMED lake polygon its main flow runs through (book "river" includes its widenings unless it names the lake)? | yes for unnamed polygons covered on both sides; a named lake never takes the river's row | owner |
 | Q125 | T152 | Sewage basins / tailing ponds / dumps: draw them at all? | a muted non-water fill, no tap, no rules | owner |
+| Q126 | T143 | Were you on Level when +1/+3/+5/+10 said "no forecast"? (Flow answered at every horizon on today's feed) | yes, assumed | owner |
+| Q127 | T143 | Under Level, +1/+3/+5 rank ELF's stage while Flow ranks CLEVER's discharge — one day from two model runs, each named? | yes | owner |
+| Q128 | T144 | CLEVER and COFFEE weighted equally (geometric mean of their ratios; no head-to-head verification exists) — or CLEVER 2:1? | equal | owner |
+| Q129 | T144 | After COFFEE's 5 days the combined Change is CLEVER alone, said in a note — or stop the window at 5 days? | CLEVER alone, noted | owner |
+| Q130 | T144 | Under a combined Change, also draw each model's own line (quieter)? | yes | owner |
+| Q131 | T144 | ELF caveat: "ELF is a low-water model: it carries the river's recent fall forward and has no rain or snowmelt in it, so it cannot see a rise coming." | as built | owner |
+| Q132 | T144 | The +1/+3/+5/+10 chips keep the old model order (CLEVER then ELF) — or follow the Change source too? | keep | owner |
+| Q133 | T144 | A joined rise not yet back while both models run reads "still up when COFFEE's forecast ends" | as built | owner |
+| Q134 | T145 | Spot pin: a 12 px square (never confused with a round gauge dot) — or round/teardrop? | square | owner |
+| Q135 | T145 | Selected spot: a ring in the spot colour (no new colour) — or its own colour? | ring | owner |
+| Q136 | T145 | Spot names from z12 on one line, cut at 120 px; tap target stays 44 px (accessibility) — or 32 px? | as built | owner |
+| Q137 | T146 | Light no-access is spruce green #00604C (the magenta clashed with the selection outline) — keep, or keep magenta and move the selection colour? | spruce | owner |
+| Q138 | T146 | Colour-blind readers: light no-access line is ~11.5 ΔE from closed/own/base for a dichromat (cvd theme keeps its mauve at 14.5+) — add a dash on no-access lines? | no dash (colour alone carries status) | owner |
+| Q139 | T147 | The no-access block also leads Conditions for a tapped no-access section at full size? | keep | owner |
+| Q140 | T147 | A tapped section outside no-access land on a part that runs through it: show the part's "Some of this part is inside …" banner? | no (the tapped section speaks) | owner |
+| Q141 | T119 | 13 alias split spellings in 6 entries (Fraser 3-14 ×6, Guichon, Columbia ×2, Elk ×3, Okanagan): canonicalise on each entry's next save, or now in one reviewed change? | on next save | owner |
+| Q142 | T100 | Draw real lake parts (added_lakes rings, as Kootenay) for Shuswap maps A/B/C etc.? (atlas rebuild) | not now; caveat line | owner |
+| Q143 | T100 | Salmon Arm community-pier exemptions cite "the maps on p.28" (the pier is not on the map, the bay is)? | keep the cite | owner |
 
 ### Answered (recently, for the record)
 - Q5, Q34–Q41 (curation review plan, T97) — owner 2026-10-23: "The review app changes seem good" — PLAN.md approved with all §6 defaults; plus: adding splits, rebuilding and continuing review must work (T97, T133–T136); a salmon pass later (T132).

@@ -1,6 +1,6 @@
 # T146 — The "no public access" colour reads too close to base regulations
 
-Status: DONE — 158391f5 (tokens, gate, option shots), 03ef3c76 (review: light is spruce, not the selection's magenta). Built with the Q-T146a default; Q-T146b (spruce vs selection) default built.
+Status: DONE — df1c8bf1 (tokens, gate, option shots), 41ace93b (review: light is spruce, not the selection's magenta). Built with the Q-T146a default; Q-T146b (spruce vs selection) default built.
 
 Source: Owner 2026-10-23 (app walk). "the no public access color is awkward too. it is very similar to base regs". Related: T54 (no-access
 streams, Q1–Q3), T47 (status colours you can tell apart; Palette D stands).
@@ -59,7 +59,7 @@ App build only (tokens and style are compiled into the app). No pipeline, bundle
 Reproduced on this worktree's app (Expo web, own port 39541, the live release through :39217), light and dark, the
 North Shore / Coquitlam map and the Coquitlam River's water Map view after a tap.
 
-**Defect (fixed, 03ef3c76): the built magenta was the selection's colour.** Light `#F01C84` stood **10.4** (normal vision)
+**Defect (fixed, 41ace93b): the built magenta was the selection's colour.** Light `#F01C84` stood **10.4** (normal vision)
 from `color.highlight` `#c2187a` — the selection outline (`casingPaint` / `ringPaint`) — LCh hue 359 against 351. The
 tokens comment claimed the highlight had been searched against; no gate measured it (`pick.mjs` / `frontier.mjs` never
 read `color.highlight`, and the status gate holds only statuses, boundaries and ink). On screen

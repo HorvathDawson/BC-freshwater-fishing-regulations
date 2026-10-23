@@ -1,6 +1,6 @@
 # T112 — One entry walker: validators and remappers each skip different extent lists
 
-Status: DONE — e23ca33d (lane-T112, with T119; one code commit because the app's split check was replaced by T119's gate).
+Status: DONE — 05a8b704 (lane-T112, with T119; one code commit because the app's split check was replaced by T119's gate).
 
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, finding matching 1
 (CONFIRMED).

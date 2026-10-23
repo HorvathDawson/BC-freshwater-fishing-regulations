@@ -1,6 +1,6 @@
 # T147 — "No public access" is a bigger, more obvious part of the regulations at the top
 
-Status: DONE — 96c78718 (core words, page path, block, shots), bae708b4 (square corners), b3920585 (review: the page path pinned); colour from 158391f5 + 03ef3c76 (T146; light block is now spruce). Built with T54 Q1 default (permit-only = gentle note).
+Status: DONE — 1e663952 (core words, page path, block, shots), d5d032d8 (square corners), e5903a77 (review: the page path pinned); colour from df1c8bf1 + 41ace93b (T146; light block is now spruce). Built with T54 Q1 default (permit-only = gentle note).
 
 Source: owner 2026-10-23 (app walk): "make the no public access a bigger part of the regulations at the top and more
 obvious". Related: T54 (no-access streams; permit-only areas get the gentle note, Q1–Q3), T146 (its colour).
@@ -35,7 +35,7 @@ Q1 default). Never hidden in a caveat line. Web + native, light + dark; reader-g
   test and the ui test strings were updated, as the intended wording change).
 - Shots: `T147-shots/` — Coquitlam Lake (one part: "This water is inside") and Seymour River part 0 ("Some of this part
   …"), phone 390 and desktop 1280, light and dark, from the live release r-012fb43aa175 (`T146-shots/regs-shots.mjs`).
-  The shots show 6 px rounded corners; bae708b4 then squared them (RADIUS.box, the regs tokens gate) — otherwise
+  The shots show 6 px rounded corners; d5d032d8 then squared them (RADIUS.box, the regs tokens gate) — otherwise
   identical.
 
 ## Checks (both tickets, 2026-10-23)
@@ -64,7 +64,7 @@ regs store's water file).
 Reproduced on this worktree's app (own port 39541, live release): Coquitlam Lake (`?regs=wbk:329291808`) and Seymour River
 part 0 (`?regs=gnis:6105&part=0`), phone, light and dark — the block leads, title, body and link as pinned
 (`T147-shots/review--*.png`, in T146's review colours: a spruce tint in light, ice cyan in dark).
-- **Test gap (fixed, b3920585): the page path was unpinned where it is wired.** Mutating `WaterScreen` back to T54's
+- **Test gap (fixed, e5903a77): the page path was unpinned where it is wired.** Mutating `WaterScreen` back to T54's
   call (`useAccessNotice(loader, section)` — no store, no page) left the whole ui-native suite green (1125 passed): only
   `@app/ui` `pageAccessNotice` and core's words were pinned, never that the screen hands them the page. NEW in
   `WaterScreen.regs-props.test.tsx`: the fixture release (Chilliwack, part 0, no tapped section) with a paint whose

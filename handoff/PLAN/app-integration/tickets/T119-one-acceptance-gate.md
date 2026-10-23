@@ -1,6 +1,6 @@
 # T119 — One acceptance gate: ingest and the review app each build a partial gate
 
-Status: DONE — e23ca33d (lane-T112, one code commit with T112).
+Status: DONE — 05a8b704 (lane-T112, one code commit with T112).
 
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, finding matching 2
 (CONFIRMED in code).

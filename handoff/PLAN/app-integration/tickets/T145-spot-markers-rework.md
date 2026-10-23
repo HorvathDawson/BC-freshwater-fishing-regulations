@@ -1,6 +1,6 @@
 # T145 — Spot markers: smaller, capped size, deselect on tap off, a better look
 
-Status: DONE — 2cb2ea91, a73d0561, review fixes in the commit that adds "Adversarial review" below (lane-T145; web shots in handoff/PLAN/app-integration/T145-shots/; native is drawn by the same
+Status: DONE — fcbd8d0f, de300379, review fixes in the commit that adds "Adversarial review" below (lane-T145; web shots in handoff/PLAN/app-integration/T145-shots/; native is drawn by the same
 code but was not run on a device: rides T50)
 
 Source: Owner 2026-10-23 (app walk). "the new spot markers look really bad and take up a ton of space and dont deselect if click off them etc.

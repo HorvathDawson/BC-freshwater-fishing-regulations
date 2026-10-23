@@ -1,6 +1,6 @@
 # T100 — Lakes divided into closure areas (RULINGS K5): Shuswap's maps A/B/C and the "widened" rules
 
-Status: DONE (owner Q43 default built: whole-water binding + area caveat) — fb648d5e, f54b21be, the ticket commit;
+Status: DONE (owner Q43 default built: whole-water binding + area caveat) — da79ce4d, 1cccc29e, the ticket commit;
 adversarial review fix (Mahood outlet cites no map; 19 rules cite a map, not 23) — see "Adversarial review".
 Lane lane-T100 (worktree wf_144b677f-89c-4). Rebuild: deliver (export + answers + store; bundle, reach and atlas
 unchanged) and a regs fixture re-cut after it.
