@@ -54,10 +54,12 @@ describe.skipIf(gate.skip)(`T12 harness parity (store: ${label})`, () => {
   it("5. named states, literally", async () => {
     const pick = async (id: string) => { const i = (await inputsOf(id))!; return [id, i.key!.akey, i.s, i.cell]; };
     expect(await Promise.all(["vedder_515", "klwa_1010", "klwa_1012", "x15p7_1010"].map(pick))).toEqual([
-      ["vedder_515", 886, 1, { ladder: 1057, rows: T.states.vedder_515!.cell.rows, gear: 320, licence: 1, display: 64 }],
-      ["klwa_1010", 1229, 1, T.states.klwa_1010!.cell],
-      ["klwa_1012", 1229, 0, T.states.klwa_1012!.cell],
-      ["x15p7_1010", 1039, 4, { ...T.states.x15p7_1010!.cell, display: 704 }],
+      // keys and frame ids come from taps.json (the Python reference decoder), never literals: a rebuild that adds an
+      // answer key renumbers them (T56, batch 3), and the test is about the two decoders agreeing, not about a vintage
+      ["vedder_515", T.states.vedder_515!.akey, 1, { ...T.states.vedder_515!.cell, display: 64 }],
+      ["klwa_1010", T.states.klwa_1010!.akey, 1, T.states.klwa_1010!.cell],
+      ["klwa_1012", T.states.klwa_1012!.akey, 0, T.states.klwa_1012!.cell],
+      ["x15p7_1010", T.states.x15p7_1010!.akey, 4, T.states.x15p7_1010!.cell],
     ]);
   });
 
@@ -66,7 +68,7 @@ describe.skipIf(gate.skip)(`T12 harness parity (store: ${label})`, () => {
     for await (const c of cases("keep")) {
       seen.push(c.id);
       if (c.id === "vedder_515") {
-        expect([c.g.id, c.g.water, c.tap.akey, (await c.inputs()).key!.akey]).toEqual(["vedder_515", "Vedder River", 886, 886]);
+        expect([c.g.id, c.g.water, c.tap.akey, (await c.inputs()).key!.akey]).toEqual(["vedder_515", "Vedder River", T.states.vedder_515!.akey, T.states.vedder_515!.akey]);
         const p = await c.page();
         expect([p.version, p.target, p.day, p.keep.order[0]]).toEqual(["regs-v38", c.tap && requestOf(c.id).target, { month: 5, day: 15 }, "strip"]);
       }
