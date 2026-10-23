@@ -75,7 +75,7 @@ describe("gaugeGeoJSON at a horizon", () => {
   const row = {
     percentile: 0.4, parameter: "discharge", discharge: 0.4, level: 0.7,
     ahead: { "1": { discharge: 0.5, model: "CLEVER" }, "3": { discharge: 0.9, level: 0.2, model: "ELF" } },
-    change: { discharge: 0.6915, model: "CLEVER", dir: "rise", ratio: 2, day: "2026-10-25", shape: "spike" },
+    change: { discharge: 0.6915, models: ["CLEVER"], dir: "rise", ratio: 2, day: "2026-10-25", shape: "spike" },
   };
   const at = (horizon: Horizon, quantity: "flow" | "level" = "flow") => {
     const g = gaugeGeoJSON([pts[0]!], { fetchedAt: "t", stations: { "08MH001": row } } as never, quantity, horizon);

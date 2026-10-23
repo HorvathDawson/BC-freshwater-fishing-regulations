@@ -151,6 +151,55 @@ export interface RunChange {
   days: readonly (readonly [string, number, number])[];
 }
 
+/**
+ * THE STATION'S CHANGE (T144, the feed's station-file `change`): which models make it is decided by the publisher
+ * (`change_source` in pipeline/gauges/feed/change.py) where the runs live — CLEVER and COFFEE combined day by day where
+ * both reach (equal weights, the geometric mean of their ratios), else the one that does, else ELF marked `lowWater`.
+ * Its days are ratios to today (`base` 1). This file only words it.
+ */
+export interface SourceChange extends RunChange {
+  models: readonly string[];
+  /** Only the low-water model (ELF) spoke: the words carry `CHANGE_LOW_WATER`. */
+  lowWater: boolean;
+  /** Each model's last day in the window: COFFEE runs five days, CLEVER ten. */
+  reach: Readonly<Record<string, string>>;
+}
+
+/** Who the station's change is from, as its line opens: "CLEVER and COFFEE together", "CLEVER", "ELF". */
+export function changeSourceName(models: readonly string[]): string {
+  return models.length > 1 ? `${models.slice(0, -1).join(", ")} and ${models[models.length - 1]} together`
+    : models[0] ?? "";
+}
+
+/** The station's change as the Change block's first line: "CLEVER and COFFEE together: rises to about 160× …". */
+export function changeSourceLine(c: SourceChange, today: string): string {
+  return changeLine(changeSourceName(c.models), c, today);
+}
+
+/**
+ * THE LOW-WATER CAVEAT (owner 2026-10-23: "maybe have a warning for it being a low water forecast"). ELF is an empirical
+ * recession extrapolation with no weather in it (BC River Forecast Centre, ELF technical reference 2023: forecasts of a
+ * rise "are not recommended … because the model has no meteorological data input"), so it is said whenever ELF alone
+ * makes a station's change.
+ */
+export const CHANGE_LOW_WATER = "ELF is a low-water model: it carries the river's recent fall forward and has no "
+  + "rain or snowmelt in it, so it cannot see a rise coming.";
+
+/**
+ * Where a combined change becomes one model's alone: "COFFEE runs to Mon; after that, CLEVER alone." Null when every
+ * model reaches the same last day, or one model speaks.
+ */
+export function changeReachNote(c: SourceChange, today: string): string | null {
+  if (c.models.length < 2) return null;
+  const ends = c.models.map((m) => ({ m, day: c.reach[m] })).filter((e): e is { m: string; day: string } => !!e.day);
+  const last = Math.max(...ends.map((e) => dayNumber(e.day)));
+  const short = ends.filter((e) => dayNumber(e.day) < last);
+  if (!short.length) return null;
+  const rest = ends.filter((e) => dayNumber(e.day) === last).map((e) => e.m);
+  return `${short.map((e) => `${e.m} runs to ${changeDay(e.day, today)}`).join("; ")}; after that, `
+    + `${rest.join(" and ")} alone.`;
+}
+
 /** "(high for the time of year)" when the move is big against the record; nothing otherwise. */
 function forTheDate(e: ChangeEnd): string {
   if (e.percentile === undefined || e.points === undefined) return "";

@@ -19,7 +19,7 @@
 // `standing` comes from core rather than being restated here. A second copy of the
 // thresholds is a second answer to "is this river low", and the feed and the sheet
 // would eventually disagree about the same reading (AGENTS rule 23).
-import { shownParameter, standing } from "@app/core";
+import { shownParameter, standing, type SourceChange } from "@app/core";
 import type { Aged, Forecast, Parameter, Reading, StationId } from "../index";
 import type { StationChange } from "../panel";
 
@@ -109,6 +109,8 @@ interface StationFile {
   recent?: [string, number | null, number | null][];
   /** Every BC River Forecast Centre run for this station, keyed by model name. */
   forecasts?: Record<string, RawForecast> | null;
+  /** The station's expected change (T144): which models make it is the publisher's decision (`change_source`). */
+  change?: SourceChange | null;
   /**
    * `[day, level, discharge]` daily means for the current year, grown by the feed. Days older than ECCC's 30-day
    * archive, filled by `pipeline.gauges.feed.year_backfill`, carry a fourth element, "final" (HYDAT / approved) or
@@ -150,6 +152,8 @@ export interface Observations {
   forecasts: Record<string, RawForecast>;
   /** `{parameter: {year: [366 values]}}` — the recent complete years, unpicked. */
   priorYears: Record<string, Record<string, (number | null)[]>>;
+  /** The station's expected change as the feed wrote it (T144), or null. */
+  change?: SourceChange | null;
 }
 
 /**
@@ -331,6 +335,7 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch): GaugeFe
         daily: f?.daily ?? [],
         forecasts: f?.forecasts ?? {},
         priorYears: f?.priorYears ?? {},
+        change: f?.change ?? null,
       };
     },
   };

@@ -15,7 +15,7 @@
  * they plug in and which bundle tables they will read.
  */
 import type {
-  Band, Bbox, GaugeTrust, NearPlace, RecordYears, RunChange, Standing, WaterFix, WaterSignals,
+  Band, Bbox, GaugeTrust, NearPlace, RecordYears, RunChange, SourceChange, Standing, WaterFix, WaterSignals,
 } from "@app/core";
 
 /** Durable across rebuilds — 99.88% stable. The only id that crosses an artifact boundary. */
@@ -270,6 +270,11 @@ export interface Series {
   forecast: Forecast | null;
   /** Every model running for this station, so a reader can pick. Empty out of season. */
   forecasts: readonly Forecast[];
+  /**
+   * The station's expected change (T144, the feed's station-file `change`): CLEVER and COFFEE combined, one alone, or
+   * ELF marked low-water — decided by the publisher. Absent on a feed from before T144 or when no fresh run can say.
+   */
+  change?: SourceChange | null;
   /**
    * The last complete years of the daily record, on this series' own day index — each the WHOLE year, not cut to
    * `values` (a chart cuts it to its frame; a spot's lead-up reads last December out of it in January, S1). Last

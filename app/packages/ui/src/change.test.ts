@@ -6,7 +6,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { answerFrom, buildStandingClasses, sectionStanding, type PanelMember, type SectionId, type StationId } from "@app/data";
-import { codedChange, type RunChange } from "@app/core";
+import { codedChange, type RunChange, type SourceChange } from "@app/core";
 import { classMarks, pushedStandings, standingValues } from "./conditionsColour";
 import { changeSpark, changeView, donorView, flowHorizon, horizonChips, pickHorizon } from "./panel";
 import { CHANGE_RAMP_BASE, pushedRoute, rampPosition, toRamp } from "./routeColour";
@@ -151,7 +151,64 @@ describe("the Change block for the charted gauge", () => {
 
   it("says so when no run is running for the gauge — and claims no attribution for a forecast it does not show", () => {
     expect(changeView([{ model: "CLEVER", change: null }], TODAY, ATTRIBUTION)).toEqual({
-      runs: [], none: "No forecast is running for this gauge now.", attribution: null });
+      runs: [], caveat: null, note: null, none: "No forecast is running for this gauge now.", attribution: null });
+  });
+
+  // T144: the publisher's station change decides which models speak; the block only words it.
+  const JOINED: SourceChange = {
+    models: ["CLEVER", "COFFEE"], lowWater: false, reach: { CLEVER: "2026-10-31", COFFEE: "2026-10-26" },
+    dir: "rise", base: 1,
+    peak: { day: "2026-10-25", ratio: 31.6876, value: 31.6876, percentile: 0.8327, points: 0.7327, back: "2026-10-27" },
+    trough: { day: "2026-10-22", ratio: 1, value: 1, percentile: 0.1, points: 0, back: null },
+    days: [["2026-10-22", 1, 1], ["2026-10-24", 3.3417, 3.3417], ["2026-10-25", 6.6458, 31.6876],
+           ["2026-10-27", 1.0043, 2.6831], ["2026-10-31", 1.0064, 1.3169]],
+  };
+  const COFFEE: RunChange = { ...SPIKE, base: 0.6,
+    peak: { day: "2026-10-25", ratio: 44.1667, value: 26.5, percentile: 0.95, points: 0.85, back: null } };
+
+  it("leads with CLEVER and COFFEE together, then each one's own line — and leaves ELF out", () => {
+    const vm = changeView([{ model: "ELF", change: { ...ELF, dir: "fall" } }, { model: "COFFEE", change: COFFEE },
+                           { model: "CLEVER", change: SPIKE }], TODAY, ATTRIBUTION, { width: 40, height: 40 }, JOINED);
+    expect(vm).toEqual({
+      runs: [
+        { model: "CLEVER and COFFEE together", part: false,
+          line: "CLEVER and COFFEE together: rises to about 30× today's flow on Sun (high for the time of year), "
+            + "back down by Tue.",
+          spark: { path: "M0,40 L10,26 L20,0 L30,28.6 L40,36.8", mark: { x: 20, y: 0, label: "Peak Sun" },
+                   ends: [{ x: 0, label: "today" }, { x: 40, label: "Sat 31 Oct" }],
+                   label: "Each day's highest forecast flow against today's, from today to Sat 31 Oct" } },
+        { model: "CLEVER", part: true, spark: null,
+          line: "CLEVER: rises to about 25× today's flow on Mon (high for the time of year), back down by Tue." },
+        { model: "COFFEE", part: true, spark: null,
+          line: "COFFEE: rises to about 45× today's flow by Sun (very high for the time of year) and stays up." },
+      ],
+      caveat: null,
+      note: "COFFEE runs to Mon; after that, CLEVER alone.",
+      none: null,
+      attribution: ATTRIBUTION,
+    });
+  });
+
+  it("one model alone is one line, with its days", () => {
+    const alone: SourceChange = { ...JOINED, models: ["CLEVER"], reach: { CLEVER: "2026-10-31" } };
+    const vm = changeView([{ model: "CLEVER", change: SPIKE }, { model: "ELF", change: ELF }], TODAY, ATTRIBUTION,
+                          { width: 40, height: 40 }, alone);
+    expect([vm.runs.map((r) => [r.model, r.line, r.part, r.spark?.mark.label]), vm.caveat, vm.note]).toEqual([
+      [["CLEVER", "CLEVER: rises to about 30× today's flow on Sun (high for the time of year), back down by Tue.",
+        false, "Peak Sun"]], null, null]);
+  });
+
+  it("ELF alone carries the low-water caveat", () => {
+    const low: SourceChange = { ...ELF, dir: "fall", base: 1, models: ["ELF"], lowWater: true,
+      reach: { ELF: "2026-11-01" },
+      trough: { day: "2026-11-01", ratio: 0.45, value: 0.45, back: null },
+      days: [["2026-10-22", 1, 1], ["2026-11-01", 0.45, 0.45]] };
+    const vm = changeView([{ model: "ELF", change: ELF }], TODAY, ATTRIBUTION, { width: 40, height: 40 }, low);
+    expect([vm.runs.map((r) => r.line), vm.caveat, vm.note]).toEqual([
+      ["ELF: falls to about 45% of today's flow by Sun 1 Nov, still falling on the last day shown."],
+      "ELF is a low-water model: it carries the river's recent fall forward and has no rain or snowmelt in it, so it "
+        + "cannot see a rise coming.",
+      null]);
   });
 
   it("marks a falling run's lowest day", () => {

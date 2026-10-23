@@ -118,7 +118,8 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   // the peak marked, and the Province's attribution as the feed carries it — decided in @app/ui (`changeView`).
   const attribution = useForecastAttribution(feed);
   const change: ChangeVM | null = horizon === "change" && series.state === "ready"
-    ? changeView(runs, vm.day, attribution, { width: Math.max(160, (chartW || 300) - 8), height: 40 }) : null;
+    ? changeView(runs, vm.day, attribution, { width: Math.max(160, (chartW || 300) - 8), height: 40 },
+                 series.value?.change ?? null) : null;
 
   if (vm.loading)
     return (
@@ -313,7 +314,9 @@ function ChangeBlock({ palette, change, colour }: { palette: Palette; change: Ch
       <Kicker palette={palette}>{W.changeKicker}</Kicker>
       {change.runs.map((r) => (
         <View key={r.model} style={{ gap: SPACE.s1 }}>
-          <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>{r.line}</Text>
+          <Text style={r.part ? { ...TYPE.meta, color: palette.sub } : { ...TYPE.bodyStrong, color: palette.ink }}>
+            {r.line}
+          </Text>
           {r.spark && (
             <View aria-label={r.spark.label} role="img" style={{ paddingHorizontal: 4 }}>
               <Svg width="100%" height={58} viewBox={`-4 -6 ${r.spark.ends[1]!.x + 8} 58`}>
@@ -329,6 +332,10 @@ function ChangeBlock({ palette, change, colour }: { palette: Palette; change: Ch
           )}
         </View>
       ))}
+      {change.note && <Text style={{ ...TYPE.meta, color: palette.sub }}>{change.note}</Text>}
+      {change.caveat && (
+        <Text testID="change-caveat" style={{ ...TYPE.body, color: palette.ink }}>{change.caveat}</Text>
+      )}
       {change.none && <Text style={{ ...TYPE.body, color: palette.sub }}>{change.none}</Text>}
       {change.attribution && <Text style={{ ...TYPE.meta, color: palette.faint }}>{change.attribution}</Text>}
     </View>

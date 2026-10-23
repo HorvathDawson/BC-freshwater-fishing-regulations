@@ -5,7 +5,8 @@
  */
 import { describe, expect, it } from "vitest";
 import { CHANGE_LEGEND, CHANGE_POLICY, CHANGE_STOP_RATIOS, changeDay, changeDotLabel, changeSparkWords, changeHeadline,
-         changeLine, changeRange, changeRatio, changeReads, changeSentence, codedChange, ratioWords,
+         changeLine, changeRange, changeRatio, changeReachNote, changeReads, changeSentence, changeSourceLine,
+         changeSourceName, CHANGE_LOW_WATER, codedChange, ratioWords, type SourceChange,
          type RunChange } from "./change";
 import { CONDITIONS_WORDS, donorReads, donorReason, estimateHeadline, estimateRange, estimateSentence,
          HORIZON_LABELS, HORIZONS, isAhead, aheadDays, silentLine, type DonorFacts } from "./conditions";
@@ -205,5 +206,47 @@ describe("a gauge dot under Change (T126)", () => {
   it("says the station's own ratio to today, short", () => {
     expect([2, 0.5, 1, 22.7944, 544].map(changeDotLabel))
       .toEqual(["2× today", "0.5× today", "1.0× today", "23× today", "100×+ today"]);
+  });
+});
+
+/** 08HB025's station change (T144): CLEVER 47x and COFFEE 544x joined, 161x on Sun 25 Oct, back by Mon; COFFEE stops Mon. */
+const JOINED: SourceChange = {
+  models: ["CLEVER", "COFFEE"], lowWater: false, reach: { CLEVER: "2026-10-31", COFFEE: "2026-10-26" },
+  dir: "rise", base: 1,
+  peak: { day: "2026-10-25", ratio: 160.6636, value: 160.6636, percentile: 0.95, points: 0.9, back: "2026-10-26" },
+  trough: { day: "2026-10-27", ratio: 0.9833, value: 0.9833, percentile: 0.05, points: 0, back: "2026-10-30" },
+  days: [["2026-10-22", 1, 1.0878], ["2026-10-25", 94.7657, 160.6636], ["2026-10-26", 12.2515, 41.8312],
+         ["2026-10-31", 1.15, 1.25]],
+};
+/** ELF alone, falling to 0.4x by Sun. */
+const LOW: SourceChange = {
+  models: ["ELF"], lowWater: true, reach: { ELF: "2026-10-25" }, dir: "fall", base: 1,
+  peak: { ...none }, trough: { day: "2026-10-25", ratio: 0.4, value: 0.4, back: null },
+  days: [["2026-10-22", 1, 1], ["2026-10-25", 0.4, 0.4]],
+};
+
+describe("the station's change, by the models the publisher chose (T144)", () => {
+  it("names who it is from", () => {
+    expect([["CLEVER", "COFFEE"], ["CLEVER"], ["ELF"]].map(changeSourceName))
+      .toEqual(["CLEVER and COFFEE together", "CLEVER", "ELF"]);
+  });
+
+  it("says a joined change as one line", () => {
+    expect(changeSourceLine(JOINED, TODAY)).toBe(
+      "CLEVER and COFFEE together: rises to more than 100× today's flow on Sun (very high for the time of year), "
+      + "back down by Mon.");
+  });
+
+  it("says where a joined change becomes one model's alone", () => {
+    expect(changeReachNote(JOINED, TODAY)).toBe("COFFEE runs to Mon; after that, CLEVER alone.");
+    expect(changeReachNote({ ...JOINED, reach: { CLEVER: "2026-10-26", COFFEE: "2026-10-26" } }, TODAY)).toBeNull();
+    expect(changeReachNote(LOW, TODAY)).toBeNull();
+  });
+
+  it("says ELF alone with its own name, and the low-water caveat in full", () => {
+    expect(changeSourceLine(LOW, TODAY)).toBe("ELF: falls to about 40% of today's flow by Sun, "
+      + "still falling on the last day shown.");
+    expect(CHANGE_LOW_WATER).toBe("ELF is a low-water model: it carries the river's recent fall forward and has no "
+      + "rain or snowmelt in it, so it cannot see a rise coming.");
   });
 });

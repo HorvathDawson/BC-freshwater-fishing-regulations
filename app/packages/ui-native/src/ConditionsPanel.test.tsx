@@ -8,7 +8,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { fireGestureHandler, getByGestureTestId } from "react-native-gesture-handler/jest-utils";
-import { CONDITIONS_WORDS, noGaugeSentence, readingHeading, readingStandingLine, stageLine, TIDAL_NOTE } from "@app/core";
+import { CHANGE_LOW_WATER, changeSourceLine, CONDITIONS_WORDS, noGaugeSentence, readingHeading, readingStandingLine,
+         stageLine, TIDAL_NOTE } from "@app/core";
 import type { Panel, RegsSource, SectionId } from "@app/data";
 import { clearPanelCache } from "@app/ui";
 import { ConditionsPanel } from "./ConditionsPanel";
@@ -88,6 +89,44 @@ describe("the conditions panel", () => {
     fold();
     await waitFor(() => expect(screen.getByText(readingStandingLine(0.15, "below"))).toBeTruthy());
     expect(screen.queryByText(TIDAL_NOTE)).toBeNull();
+  });
+});
+
+describe("the Change block, mounted (T144)", () => {
+  // The station's change as the feed writes it: ELF alone (no flood model running), so the low-water caveat.
+  const low = { models: ["ELF"], lowWater: true, reach: { ELF: "2026-09-08" }, dir: "fall", base: 1,
+                peak: { day: "2026-09-04", ratio: 1, value: 1, back: null },
+                trough: { day: "2026-09-08", ratio: 0.4, value: 0.4, back: null },
+                days: [["2026-09-04", 1, 1], ["2026-09-08", 0.4, 0.4]] };
+  const elfRun = { model: "ELF", issuedAt: "2026-09-04T09:00:00", horizonDays: 30, value: 5, extreme: "min",
+                   min: 5, ave: 8, max: 12, unit: "m3/s", disclaimer: null,
+                   series: { step: "1d", at: ["2026-09-04"], mid: [12], lo: [12], hi: [12] },
+                   change: { ...low, base: 12, models: undefined } };
+  const series = (change: unknown) => ({ fetchedAt: Date.now(), value: {
+    step: "1h", from: "2026-09-04T00:00:00Z", parameter: "discharge", at: [], values: [], band: [], now: null,
+    forecast: elfRun, forecasts: [elfRun], priorYears: [], change } });
+
+  it("draws the publisher's source line and the low-water caveat it carries", async () => {
+    const source = { ...sourceWith({ discharge: 12, level: null, percentile: 0.15, standing: "below",
+                                     at: "2026-09-04T06:00:00Z" }, PANEL),
+                     gaugeSeries: async () => series(low) } as unknown as RegsSource;
+    render(<ConditionsPanel source={source} section={SEC} palette={LIGHT} feed={feed} horizon="change"
+                            scroll={false} day={new Date(2026, 8, 4, 12)} />);
+    await waitFor(() => expect(screen.getByTestId("change-block")).toBeTruthy());
+    expect(screen.getByText(changeSourceLine(low as never, "2026-09-04"))).toBeTruthy();
+    expect(screen.getByTestId("change-caveat").textContent).toBe(CHANGE_LOW_WATER);
+  });
+
+  it("an older feed with no station change lists the runs and says no caveat", async () => {
+    const source = { ...sourceWith({ discharge: 12, level: null, percentile: 0.15, standing: "below",
+                                     at: "2026-09-04T06:00:00Z" }, PANEL),
+                     gaugeSeries: async () => series(undefined) } as unknown as RegsSource;
+    render(<ConditionsPanel source={source} section={SEC} palette={LIGHT} feed={feed} horizon="change"
+                            scroll={false} day={new Date(2026, 8, 4, 12)} />);
+    await waitFor(() => expect(screen.getByTestId("change-block")).toBeTruthy());
+    expect(screen.getByText("ELF: falls to about 40% of today's flow by Tue, still falling on the last day shown."))
+      .toBeTruthy();
+    expect(screen.queryByTestId("change-caveat")).toBeNull();
   });
 });
 

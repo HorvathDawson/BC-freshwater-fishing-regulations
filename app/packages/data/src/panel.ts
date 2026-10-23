@@ -110,12 +110,15 @@ type Ahead = Record<string, { discharge?: number; level?: number; model?: string
 
 /**
  * A station's EXPECTED CHANGE over the next ten days (T52, the feed's `change`, `pipeline/gauges/feed/change.py`): the
- * largest move its lead forecast run expects, read day by day. FLOW ONLY. `discharge` is the ratio to today's flow
+ * largest move its forecast expects, read day by day (T144: the flood models combined, else ELF). FLOW ONLY. `discharge` is the ratio to today's flow
  * CODED for the donor pathway (core `changeRatio` decodes it); the rest is what the run said, for the words.
  */
 export interface StationChange {
   discharge: number;
-  model: string;
+  /** The models behind it (T144, the publisher's `change_source`): CLEVER and COFFEE together, one alone, or ELF. */
+  models: readonly string[];
+  /** Only the low-water model (ELF) spoke. */
+  lowWater?: true;
   dir: "rise" | "fall" | "both" | "steady";
   ratio: number;
   day: string;

@@ -7,6 +7,7 @@
  */
 import { describe, expect, it, vi } from "vitest";
 import { httpFeed, lastReportAt } from "./http";
+import { seriesOf } from "../bundle/shared";
 import type { StationId } from "../index";
 
 const S = "08MH001" as StationId;
@@ -150,6 +151,21 @@ describe("httpFeed", () => {
     expect(obs.discharge.length).toBe(obs.level.length);
     expect(obs.at.length).toBe(obs.discharge.length);
     expect(["discharge", "level"]).toContain(obs.parameter);
+  });
+
+  it("carries the station's change (T144) from the file to the series, as the publisher wrote it", async () => {
+    const change = { models: ["CLEVER", "COFFEE"], lowWater: false,
+                     reach: { CLEVER: "2026-09-11", COFFEE: "2026-09-06" },
+                     dir: "rise", base: 1, peak: { day: "2026-09-03", ratio: 6, value: 6, back: "2026-09-04" },
+                     trough: { day: "2026-09-01", ratio: 1, value: 1, back: null },
+                     days: [["2026-09-01", 1, 1], ["2026-09-03", 6, 6]] };
+    const f = httpFeed("http://x", server({ "08MH001.json": { ...STATION, change } }));
+    const obs = (await f.observations(S))!;
+    expect(obs.change).toEqual(change);
+    expect(seriesOf([], obs, "72h", "discharge")!.value.change).toEqual(change);
+    // an older file carries none: null, never a guess
+    const old = (await httpFeed("http://x", server({ "08MH001.json": STATION })).observations(S))!;
+    expect([old.change, seriesOf([], old, "72h", "discharge")!.value.change]).toEqual([null, null]);
   });
 
   it("reports no reading when the station answered with no numbers", async () => {

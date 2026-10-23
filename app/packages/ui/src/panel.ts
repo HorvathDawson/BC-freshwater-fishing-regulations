@@ -9,7 +9,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { answerFrom, basinStandings, sectionStanding, sheetLead, speakerFor, speaks, type BasinMember, type DonorRow,
          type Horizon, type Panel, type PanelAnswer, type Parameter, type Quantity, type RegsSource, type SectionId,
          type Speaker, type StationId } from "@app/data";
-import { CHANGE_NEEDS_FLOW, CHANGE_POLICY, changeDay, changeLine, changeSparkWords, CONDITIONS_WORDS, disagreeNote, donorBecause, isAhead, type RunChange, donorFacts, donorKeyLabel, donorLastReport,
+import { CHANGE_LOW_WATER, CHANGE_NEEDS_FLOW, CHANGE_POLICY, changeDay, changeLine, changeReachNote, changeSourceLine, changeSourceName, changeSparkWords, type SourceChange, CONDITIONS_WORDS, disagreeNote, donorBecause, isAhead, type RunChange, donorFacts, donorKeyLabel, donorLastReport,
          donorCounted, donorSilent, gaugeChoiceLabel, donorShare, silentLine,
          donorPinTitle, donorReads, donorReason, donorRowLabel, donorWeightLine, refusalIsAboutTheDay,
          estimateHeadline, estimateRange, estimateSentence, freshness, HORIZON_LABELS,
@@ -872,12 +872,21 @@ export interface ChangeRunVM {
   line: string;
   /** The day-by-day line (`changeSpark`): null when the run has fewer than two days. */
   spark: ChangeSparkVM | null;
+  /** One model's own line under a combined change (T144): drawn quieter, it is what was joined, not the answer. */
+  part: boolean;
 }
 
 /** The Change block under the reading, for the lead gauge. */
 export interface ChangeVM {
-  /** Every run that can say, in the publisher's order (CLEVER, COFFEE, ELF). Empty: `none` says why. */
+  /**
+   * The station's change first (T144: "CLEVER and COFFEE together", one model, or ELF), then each combined model's own
+   * line; on a feed from before T144, every run in the publisher's order. Empty: `none` says why.
+   */
   runs: readonly ChangeRunVM[];
+  /** The low-water caveat when ELF alone makes the change (`CHANGE_LOW_WATER`); null otherwise. */
+  caveat: string | null;
+  /** Where a combined change becomes one model's alone ("COFFEE runs to Mon; after that, CLEVER alone."); or null. */
+  note: string | null;
   /** "No forecast is running for this gauge now." — when no run can say; null otherwise. */
   none: string | null;
   /** The Province's attribution, verbatim, from the feed (null when the feed carries none). */
@@ -922,19 +931,35 @@ export function changeSpark(c: RunChange, today: string, w: number, h: number): 
   };
 }
 
-/** The Change block for the lead gauge's runs (each `Forecast` with its `change`), on the reader's `today`. */
+/**
+ * The Change block for the charted gauge, on the reader's `today`.
+ *
+ * WHICH MODELS SPEAK IS THE PUBLISHER'S (T144, `source`, the station file's `change`): its line first, with its days
+ * as the line; then, where it combines CLEVER and COFFEE, each one's own line (no day line) so the reader sees what was
+ * joined; ELF only when it is the source, and then with the low-water caveat. A feed from before T144 has no `source`:
+ * every run is listed as it stands, as it was.
+ */
 export function changeView(runs: readonly { model: string; change?: RunChange | null; series?: unknown }[],
-                           today: Date, attribution: string | null, size = { width: 280, height: 44 }): ChangeVM {
+                           today: Date, attribution: string | null, size = { width: 280, height: 44 },
+                           source: SourceChange | null = null): ChangeVM {
   const day = isoDay(today);
+  // a steady change has no day worth marking: its line says "little change", nothing more
+  const spark = (c: RunChange) => (c.dir === "steady" ? null : changeSpark(c, day, size.width, size.height));
   const said = runs.filter((r): r is typeof r & { change: RunChange } => !!r.change)
+    .filter((r) => !source || (source.models.length > 1 && source.models.includes(r.model)))
     .sort((a, b) => order(a.model) - order(b.model));
+  const lines: ChangeRunVM[] = [
+    ...(source ? [{ model: changeSourceName(source.models), line: changeSourceLine(source, day), spark: spark(source),
+                    part: false }] : []),
+    ...said.map((r) => ({ model: r.model, line: changeLine(r.model, r.change, day),
+                          spark: source ? null : spark(r.change), part: !!source })),
+  ];
   return {
-    runs: said.map((r) => ({ model: r.model, line: changeLine(r.model, r.change, day),
-                             // a steady run has no day worth marking: its line says "little change", nothing more
-                             spark: r.change.dir === "steady" ? null
-                               : changeSpark(r.change, day, size.width, size.height) })),
-    none: said.length ? null : CONDITIONS_WORDS.changeNone,
-    attribution: said.length ? attribution : null,
+    runs: lines,
+    caveat: source?.lowWater ? CHANGE_LOW_WATER : null,
+    note: source ? changeReachNote(source, day) : null,
+    none: lines.length ? null : CONDITIONS_WORDS.changeNone,
+    attribution: lines.length ? attribution : null,
   };
 }
 

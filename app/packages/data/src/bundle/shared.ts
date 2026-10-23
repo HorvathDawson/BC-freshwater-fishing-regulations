@@ -243,7 +243,7 @@ export function seriesOf(pentads: (Band | null)[], obs: Observations | null, spa
         step: "1d", from: `${year}-01-01`, parameter: param,
         at: stamps, values, band, yearBand,
         now: reading === null ? null : { index: today - 1, value: reading },
-        forecast: chosen, forecasts: runs, priorYears: prior,
+        forecast: chosen, forecasts: runs, priorYears: prior, change: obs?.change ?? null,
       },
     };
   }
@@ -260,7 +260,7 @@ export function seriesOf(pentads: (Band | null)[], obs: Observations | null, spa
       step: "1h", from: obs.from, parameter: param,
       at: obs.at, values, band,
       now: idx < 0 ? null : { index: idx, value: values[idx]! },
-      forecast: chosen, forecasts: runs, priorYears: [],
+      forecast: chosen, forecasts: runs, priorYears: [], change: obs.change ?? null,
     },
   };
 }
