@@ -1,6 +1,6 @@
 # T55 — Find the sloughs and canals still drawn as lakes (POSTPONED)
 
-Status: IN PROGRESS — finder done: 865 candidates (65 stream by book, 236 likely, 331 unsure, 233 lake controls) in handoff/PLAN/sloughs/candidates.json.gz; ★ OWNER marks them on https://claude.ai/artifact/Es3Mokt7Fs2yNvm7JgQua8 (marks read back with ArtifactData, collection "verdicts"). Next: confirmed ones become stream items (registry fold) → reach + deliver + binding diff, as a side build separate from T67. Prior fec02c29, 96b0eb73, 669fd065, a59f3dc3, ac8a0e1c.
+Status: IN PROGRESS — finder done: 865 candidates (65 stream by book, 236 likely, 331 unsure, 233 lake controls) in handoff/PLAN/sloughs/candidates.json.gz; ★ OWNER marks them on https://claude.ai/artifact/Es3Mokt7Fs2yNvm7JgQua8 (marks read back with ArtifactData, collection "verdicts"). Next: confirmed ones become stream items (registry fold) → reach + deliver + binding diff, as a side build separate from T67. Point 2 (polygon walk) built on T101's branch; the 7 grey polygons (Nation, West Road, Honna) re-examined: honestly grey. Side-channel gauges: Q44 answered 2026-10-23, built under T101. Prior fec02c29, 96b0eb73, 669fd065, a59f3dc3, ac8a0e1c.
 
 Owner 2026-10-22 (late), decisions.md "sloughs and canals look like streams in Conditions": the book treats sloughs and
 canals as streams. Many such polygons are already marked as stream items; "the rest are still to be found … and stays
