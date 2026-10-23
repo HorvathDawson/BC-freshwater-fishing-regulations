@@ -1,6 +1,6 @@
 # T101 — Gauges walk through slough/canal polygons: ship once the side-channel question is answered
 
-Status: BLOCKED (owner Q44). Built and reviewed, NOT merged: branch worktree-wf_3976eddc-bba-1
+Status: OPEN — Q44 answered 2026-10-23 (no Level from a side channel; Flow only when it carries a large share). Built and reviewed, NOT merged; the Q44 rule is the remaining build: branch worktree-wf_3976eddc-bba-1
 (.claude/worktrees/wf_3976eddc-bba-1), commits 8d57e759 0a0fa59b d831ed6a 7cc92b90 a389bf59 de39b70c.
 
 Owner 2026-10-22: "if a slough or canal is fully polygon only it should still be able to get gauge info of neighbours

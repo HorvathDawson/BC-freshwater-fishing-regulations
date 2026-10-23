@@ -911,3 +911,14 @@ Undo for any straggler: say which; each is one component's change, and the ticke
 ## OWNER 2026-10-22 (late) — release size limit raised (Q55)
 - "we can raise the size limit". The release total gate goes 14,000,000 → 15,000,000 B gzip (TOTAL_GATE,
   pipeline/deliver/release/build.py). Private land stays in the access file. Per-file gates unchanged.
+
+## OWNER 2026-10-23 — side-channel gauges (Q44), the order guard (Q53), the eight unlocated waters (Q45)
+- **Q44 / T101:** a gauge on a side channel or slough never answers **Level** for the river it branched from (level
+  is local to the backwater). It answers **Flow** for that river only when the side channel carries a large share of
+  the river's flow; otherwise no. The side channel and its own polygons still take their own gauge. T101 builds the
+  rule in one function, measures it against the 29,520 live answers that rely on a side-channel gauge today, and ships.
+- **Q53 / T102:** as built. The WSC code decides parent/child in the tributary walk; Strahler order only decides
+  between equal or unrelated codes (28,359 floodplain/braid edges).
+- **Q45 / T89:** the eight waters printed in an MU holding no registry water of that name stay unbound and listed
+  (AWAITING_WATER). A same-name water elsewhere is never bound.
+- **Q6 / T67 (braids):** not yet — braids stay paused; the owner reads the assessment first.

@@ -133,7 +133,7 @@ use that as the sole source of future work."
 | T86 | production hosting + ship config | OPEN | — | all (owner) |
 | T87 | owner sign-off walk, then final clean-up | OPEN | — | all (owner) |
 | T88 | iOS build | OPEN | — | all (owner timing) |
-| T89 | rules that bind no water (10 unmatched + 3 no extent) | PARTIAL | 010b5c28, 1ea79ca0, 894854c0, d47a38cd, 5f1eec34 | 8 rows need locating (Q45) |
+| T89 | rules that bind no water (10 unmatched + 3 no extent) | PARTIAL | 010b5c28, 1ea79ca0, 894854c0, d47a38cd, 5f1eec34 | 8 rows stay unbound (Q45 answered: leave) |
 | T90 | Chehalis closure reaches Harrison side channels | DONE | ca9aa451, 9eb7d92f, 9d305ebf, 8fa32076, c8c72d6f | live; T102 part B |
 | T91 | Atnarko campsite split location | OPEN | — | all (owner) |
 | T92 | gear omission check | DONE | de0581e1, b931f93d, 750ba2ad, 9c78ef20 | — |
@@ -145,8 +145,8 @@ use that as the sole source of future work."
 | T98 | tidal water spec: Fraser below Mission (RULINGS C-2, K7/K8) | POSTPONED | — | all; spec ON HOLD |
 | T99 | pin the rulings nothing enforces (Z1 base+deltas, 12 ◐ rulings, C-4 citation) | DONE | f8742374, 53d57288, f3bc2b4b, 857bed9a | — |
 | T100 | lakes divided into closure areas (K5): Shuswap A/B/C, 67 widened rules | OPEN | — | all |
-| T101 | gauges walk through slough/canal polygons (held) | BLOCKED | 8d57e759..de39b70c (branch, unmerged) | ★ owner Q44 → merge + deliver |
-| T102 | receiving river never walked into (parent-code check in the walk) | PARTIAL | b6749f62, 60786bc9, 402786c9, b8f5fb3f, 95e78dd5, 0c4a9366, b44461d5, e0bc10a0 | part B → T117; Q53 |
+| T101 | gauges walk through slough/canal polygons | OPEN | 8d57e759..de39b70c (branch, unmerged) | Q44 answered: build the rule, measure, merge + deliver |
+| T102 | receiving river never walked into (parent-code check in the walk) | PARTIAL | b6749f62, 60786bc9, 402786c9, b8f5fb3f, 95e78dd5, 0c4a9366, b44461d5, e0bc10a0 | part B → T117 (Q53 answered: as built) |
 | T103 | one size shape: plain words contradict bands/title (24 strings) | DONE | 326e8848, 677158f8, 92cba91f, 671eabad | live after the next deliver; Q62–Q63 |
 | T104 | one "when" in words: titles/plain drop hours and weekdays | DONE | 677158f8, 92cba91f, 671eabad | live after the next deliver; Q64–Q65 |
 | T105 | one gauge speaker for map and sheet (54,401 sections disagree) | OPEN | — | all (app; deliver if section_gauge changes) |
@@ -232,8 +232,6 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q41 | T97 | Start review before phase 3? | no | owner |
 | Q42 | T98 | Lift the tidal-spec hold? | K8 as built until lifted | owner |
 | Q43 | T100 | Lake closure areas: a lake part (ring) or an area caveat on the whole lake? | whole lake + area caveat line | owner |
-| Q44 | T101 | May a gauge on a side channel/slough speak for the river it branched from? (Nicomen level gauges would answer ~71,668 Fraser sections) | no for Level; Flow only when the side channel carries a large share of the river | owner |
-| Q45 | T89 | Where are the eight waters the book prints in an MU holding no registry water of that name (Q-A in T89)? | rows stay unbound and listed in T89 | owner |
 | Q46 | T57 | A nameless lake at the top of a reach stops the tributary walk like a named one (Bull r1, St. Mary r3: 3 sections)? | no change | owner |
 | Q47 | T78 | Tidal sentence: closed "Notes and sources" fold, or open under the Level headline? | in the fold | owner |
 | Q48 | T78 | Flag other possibly tidal gauges (e.g. 08MH026 Brunette) without a recorded reason? | no; add to data/curated/gauges/tidal.json with a reason | owner |
@@ -241,7 +239,6 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q50 | T80 | Whole "Kootenay Lake" as a search result? | no — search lists its three parts | owner |
 | Q51 | T80 | A "See X" row whose water has no other row: a page of its own? | no — the pointer opens X's page | owner |
 | Q52 | T80 | Spot photo picker: arm the fallback only where cancel is unsupported? | as built | owner |
-| Q53 | T102 | Order (Strahler) guard: only where a code is missing (= off entirely: no live edge lacks a code), or also on equal/unrelated codes (28,359 equal-code floodplain/braid edges depend on it)? | keep it on equal/unrelated codes; code decides parent/child | owner |
 | Q54 | T54 | Fourth colour per theme is a recorded compromise (dark ochre 12.7 from closed as a thin line; colour-blind mauve 3.1 from the grey boundary line) — keep? | keep | owner |
 | Q56 | T51 | "Like your visit?": today + 4 days, or +1..+5? | today + 4 | owner |
 | Q57 | T51 | Similarity weights: flow 45 %, air 20 %, rain before 20 %, wind 10 %, cloud 5 % — right? | as built | owner |
@@ -256,6 +253,9 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q66 | T120 | The app decides the leading origin again (core regs/card.ts mainRes) — should the pipeline ship it per fish? | fold into T125 (cleanup) | owner |
 
 ### Answered (recently, for the record)
+- Q44 (side-channel gauges, T101) — owner 2026-10-23: a side channel's gauge never answers Level for the river it branched from; it answers Flow for that river only when the side channel carries a large share of it. T101 unblocked.
+- Q53 (order guard, T102) — owner 2026-10-23: as built — the code (WSC) decides parent/child; stream order only breaks ties on equal or unrelated codes.
+- Q45 (eight waters, T89) — owner 2026-10-23: leave them unbound and listed (AWAITING_WATER); never bind a same-name water elsewhere.
 - Q55 (release size) — owner 2026-10-22: "we can raise the size limit". TOTAL_GATE 14,000,000 → 15,000,000 B gzip (pipeline/deliver/release/build.py); private land stays in the access file.
 - Q33 (the 5 gate-failing entries) — settled by T96: four were a gate bug (province-wide rule holds a region lift), Shuswap 3-26 quotes its whole printed line.
 - Delegated calls Q8, Q11, Q12, Q14–Q23, Q25 — decided by Claude (owner call 11), decisions.md 'CLAUDE 2026-10-22 (T81)'; the owner reads the record.

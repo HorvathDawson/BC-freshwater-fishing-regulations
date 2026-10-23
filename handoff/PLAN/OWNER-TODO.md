@@ -6,24 +6,18 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
-- **Q44 / T101 — side-channel gauges.** May a gauge on a side channel or slough speak for the river it branched from?
-  If yes, two Nicomen Slough level gauges answer Level for about 71,668 Fraser sections. Suggested: no for Level;
-  Flow only when the side channel carries a large share of the river. Built and reviewed, held unmerged.
 - **Q5 / T66, T97 — curation review plan.** Read `handoff/PLAN/curation-review/PLAN.md` (verdict: the tool is not
   ready for a person yet) and approve it or change it. Its 9 questions are Q33–Q41.
-- **Q6 / T67 — braid splitting at build.** Read `handoff/PLAN/braids/T67-assessment.md`, then answer R14 Q1 (keep
+- **Q6 / T67 — braid splitting at build** (2026-10-23: "not yet", you read it first). Read `handoff/PLAN/braids/T67-assessment.md`, then answer R14 Q1 (keep
   ditch-only lines as the river), Q2 (leave automatic confluence cuts out), Q4 (cap the cut-line length; suggested no).
 
 ## Reviews
-- **Q53 / T102 — tributary walk order guard.** Your "order only where a code is missing" would switch it off (every live
-  edge has a code; 28,359 same-code floodplain/braid edges rely on it). Default built: code decides parent/child, order
-  still decides equal or unrelated codes.
-- **Q45 / T89 — eight waters the book prints where the registry has no water of that name** (incl. Squirrel Lake 6-1).
-  Their rules bind nothing until each is located; the list is in T89 ("Q-A").
 - **Q4 / T55 — slough and canal candidates.** Mark them on https://claude.ai/artifact/Es3Mokt7Fs2yNvm7JgQua8
   (stream by the book / not a stream / unsure). Start with the 65 "stream by book" and 236 "likely". Includes the 40
   Okanagan River oxbows (p.70 says isolated oxbows are exempt from the spring closure).
 - **Q13 / T82 — launch the reader-gate agent run.** Ready now (T56 landed).
+
+Answered 2026-10-23: Q44 (no Level from a side channel; Flow only if it carries a large share), Q53 (as built), Q45 (leave unbound).
 
 ## Questions answered with a default (change any you disagree with)
 
