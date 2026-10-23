@@ -22,8 +22,8 @@
     "basins": {
       "type": "vector",
       "url": "pmtiles://atlas",
-      "maxzoom": 8,
-      "$comment": "THE SAME ARCHIVE AS `atlas`, read as a second source that STOPS at z8 — the last zoom the tile builder writes basin polygons at (`basin` maxzoom = BASIN_HANDOVER_Z - 1 in pipeline/deliver/tiles/layers.py). MapLibre overzooms a source past its maxzoom, so the field can be drawn to the handover (z10, owner 2026-10-22: \"the watershed colouring happens at a slightly higher zoom\") from the z8 tiles it already has, with no tile rebuild and no z9 basin tiles. On `atlas` itself the field could never outlive the tiles: at z9 MapLibre asks the archive for z9 tiles, which carry no basins, and the field vanished a zoom before the rivers came back. Only the basin layer reads it, and that layer is drawn only while the field is on (`field.drawnIn`), so the Map tab never fetches through it."
+      "maxzoom": 7,
+      "$comment": "THE SAME ARCHIVE AS `atlas`, read as a second source that STOPS at z7 — the last zoom the tile builder writes basin polygons at (`basin` maxzoom = BASIN_HANDOVER_Z - 1 in pipeline/deliver/tiles/layers.py). MapLibre overzooms a source past its maxzoom, so the z7 tiles carry the field across [7, 8) up to the handover (z8 since T130, owner 2026-10-22: \"should be able to zoom out quite a bit more first\"; it was z10). An archive built while the handover was z9 also holds z8 basin tiles; they are never asked for. On `atlas` itself the field could never outlive the tiles: at z9 MapLibre asks the archive for z9 tiles, which carry no basins, and the field vanished a zoom before the rivers came back. Only the basin layer reads it, and that layer is drawn only while the field is on (`field.drawnIn`), so the Map tab never fetches through it."
     }
   },
   "layers": [
@@ -232,7 +232,7 @@
       "type": "line",
       "source": "basins",
       "source-layer": "basin",
-      "maxzoom": 10,
+      "maxzoom": 8,
       "layout": {
         "visibility": "visible"
       }
@@ -242,7 +242,7 @@
       "type": "fill",
       "source": "basins",
       "source-layer": "basin",
-      "maxzoom": 10,
+      "maxzoom": 8,
       "layout": {
         "visibility": "visible"
       }

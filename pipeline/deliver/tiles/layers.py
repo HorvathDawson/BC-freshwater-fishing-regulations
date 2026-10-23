@@ -304,7 +304,15 @@ _RETIRED_MASK: tuple[LayerSpec, ...] = (
 #: top of them is noise. One number, named once, because the tile build, the style and the
 #: app's tap handling all have to agree about it or the map has a zoom where nothing is
 #: clickable or two things answer at once.
-BASIN_HANDOVER_Z = 9
+#:
+#: z8 (T130, owner 2026-10-22: "should be able to zoom out quite a bit more first"): measured
+#: with shots at z6-z10, the coloured rivers still read at z8 (magnitude >= 100, ~12k
+#: features, connected), while at z7 (magnitude >= 250) they break into hairline fragments
+#: on blank land. The SAME number as the app style's field handover (the `basin` layer's
+#: maxzoom in app/packages/map/style/layers.source.json, `FIELD_HANDOVER_Z`), held equal by
+#: app/tools/handover.test.ts. Archives built at 9 still serve: the style reads basins to z7
+#: only, so their z8 basin tiles are simply never asked for.
+BASIN_HANDOVER_Z = 8
 
 HYDROLOGY: tuple[LayerSpec, ...] = (
     LayerSpec(
@@ -319,7 +327,7 @@ HYDROLOGY: tuple[LayerSpec, ...] = (
             "stop nesting and become a mosaic: 11,580 polygons cover 2.68M km2 of a "
             "945,000 km2 province because a named watershed contains its tributaries'.\n\n"
             "SIMPLIFIED TO 100 m, AS ONE COVERAGE (refinement pass, 2026-10-22): one pixel at "
-            "z10, the deepest zoom the app overzooms these z8 tiles to, and every shared border "
+            "z10, where the field then handed over (z8 since T130, so it is finer than it needs), and every shared border "
             "simplified once so neighbours never gap or overlap (tiles/basins.py). It was 500 m, "
             "one polygon at a time: 3,552 slivers up to ~700 m and a sawtooth edge at z9.\n\n"
             "`basin_id` AND NOTHING ELSE. The reading is not in the tile — it changes every "

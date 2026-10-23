@@ -93,6 +93,24 @@ export interface MapModesVM {
   basemapNote: string | null;
 }
 
+/**
+ * IS THE CATCHMENT FIELD THE ANSWER IN THIS VIEW (below the handover)? On Conditions, under Flow or Level — never under
+ * temperature, where the models publish no field and the rivers stay drawn (plain) at every zoom. The ONE predicate the
+ * field's drawing (`fieldOn`) and the map's taps (`tapOpensWater`) both read.
+ */
+export const fieldAnswers = (tab: BrowseTab, flowParam: FlowParam): boolean =>
+  tab === "conditions" && flowParam !== "temperature";
+
+/**
+ * DOES A TAP AT THIS ZOOM OPEN A WATER? Not where the field is drawn: below the handover (`FIELD_HANDOVER_Z`, @app/map)
+ * the Conditions map is catchments, and a reach sheet for a shape the size of a valley answers a question nobody asked.
+ * At and above it the rivers are back and they are what you tap (T130: the handover is a zoom, `zoom < handover` is
+ * the field, exactly as the style's exclusive maxzoom draws it).
+ */
+export function tapOpensWater(i: { tab: BrowseTab; flowParam: FlowParam; zoom: number; handover: number }): boolean {
+  return !(fieldAnswers(i.tab, i.flowParam) && i.zoom < i.handover);
+}
+
 export function mapModes(i: MapModeInput): MapModesVM {
   const onConditions = i.tab === "conditions";
   const temperature = i.flowParam === "temperature";
@@ -136,7 +154,7 @@ export function mapModes(i: MapModeInput): MapModesVM {
   return {
     onConditions, quantity, standingParam,
     standingHorizon: temperature ? 0 : i.horizon,
-    fieldOn: onConditions && !temperature && i.zoomedOut,
+    fieldOn: fieldAnswers(i.tab, i.flowParam) && i.zoomedOut,
     horizonsShown: onConditions && !temperature,
     asksVisible: !i.perTile || onConditions,
     modes, activeGroups,

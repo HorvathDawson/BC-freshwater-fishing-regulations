@@ -2035,14 +2035,6 @@
         [
           8,
           2.4
-        ],
-        [
-          9,
-          4.8
-        ],
-        [
-          10,
-          9.6
         ]
       ]
     },
@@ -2177,7 +2169,7 @@
   },
   "field": {
     "layer": "basin",
-    "handover": 10,
+    "handover": 8,
     "drawnIn": [
       "standing"
     ],
@@ -2220,20 +2212,7 @@
       "opacity": "opacity.basin"
     }
   },
-  "minzoomByMode": {
-    "wetland_flowing": {
-      "standing": 10
-    },
-    "lake": {
-      "standing": 10
-    },
-    "lake_flowing": {
-      "standing": 10
-    },
-    "stream": {
-      "standing": 10
-    }
-  },
+  "minzoomByMode": {},
   "edgeOpacities": {
     "parcel_private__edge": "opacity.parcel.edge",
     "indigenous_land__edge": "opacity.admin.edge",

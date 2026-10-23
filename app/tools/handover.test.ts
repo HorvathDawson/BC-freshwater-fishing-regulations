@@ -6,12 +6,15 @@
  *
  *   the STYLE         ends the field there and stands the rivers down below it
  *                     (the basin layer's maxzoom, `minzoomByMode`, `field.handover`)
- *   the APP           refuses taps below it                   (HANDOVER_Z)
- *   the TILE BUILDER  writes basin polygons up to a zoom AT OR BELOW it (BASIN_HANDOVER_Z - 1),
- *                     and the field's own source stops exactly there, so MapLibre overzooms
- *                     the last tile that carries basins up to the handover. z10 since the
- *                     refinement pass (owner 2026-10-22: the watershed colouring "at a slightly
- *                     higher zoom"); the tiles still stop at z8.
+ *   the APP           refuses taps below it (`tapOpensWater`), reading the style's number
+ *                     (`FIELD_HANDOVER_Z`), never typing one
+ *   the TILE BUILDER  writes basin polygons up to the zoom below it (BASIN_HANDOVER_Z - 1, the
+ *                     SAME number), and the field's own source stops exactly there, so MapLibre
+ *                     overzooms the last tile that carries basins across the last step.
+ *
+ * z8 since T130 (owner 2026-10-22: "should be able to zoom out quite a bit more first"; it was z10).
+ * Measured with shots at z6-z10, light and dark: the coloured rivers read at z8; at z7 they break
+ * into hairline fragments on blank land.
  *
  * Disagree and the map has a zoom where nothing is drawn, or one where two answers are
  * drawn over each other and the smaller wins by being on top. Neither failure throws.
@@ -19,7 +22,8 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { STYLE_META, baseAdapter, resolveTheme, type MapHandle } from "@app/map";
+import { FIELD_HANDOVER_Z, STYLE_META, baseAdapter, resolveTheme, type MapHandle } from "@app/map";
+import { tapOpensWater } from "@app/ui";
 import { paintFor } from "../packages/map/src/adapters/contract";
 // The style itself is not exported — it is the generated artifact, and reading
 // it here is reading what actually ships rather than a re-export of it.
@@ -44,30 +48,56 @@ print(json.dumps({"handover": BASIN_HANDOVER_Z, "basinMax": b.maxzoom,
   return JSON.parse(execFileSync(PY, ["-c", script], { encoding: "utf8" }));
 }
 
-/** What the app thinks, read from the app — the constant, not a copy of it. */
+/**
+ * What the app thinks, read from the app: the Shell must READ the style's number (`FIELD_HANDOVER_Z`), never type one.
+ */
 function fromShell(): number {
   const src = readFileSync(`${ROOT}app/packages/ui-native/src/Shell.tsx`, "utf8");
-  const m = src.match(/const HANDOVER_Z = (\d+);/);
-  if (!m) throw new Error("HANDOVER_Z not found in Shell.tsx");
-  return Number(m[1]);
+  if (!/const HANDOVER_Z = FIELD_HANDOVER_Z;/.test(src)) throw new Error("Shell.tsx types its own handover");
+  return FIELD_HANDOVER_Z;
 }
 
 const has = existsSync(PY);
 
 describe("the basin/river handover", () => {
-  it("stands the rivers down while they are coloured by flow, and not otherwise", () => {
+  it("is ONE number: z8, the field's maxzoom, and nothing else types it", () => {
+    /*
+     * T130. The handover was typed in six places (the basin maxzoom, four `minzoomByMode`
+     * entries, the Shell). Now the style's basin layer holds it, the field stands the rivers
+     * down through `covers` alone (no per-mode floor), and the app reads `FIELD_HANDOVER_Z`.
+     */
+    expect({ handover: FIELD_HANDOVER_Z, field: STYLE_META.field!.handover, shell: fromShell(),
+             minzoomByMode: STYLE_META.minzoomByMode })
+      .toEqual({ handover: 8, field: 8, shell: 8, minzoomByMode: {} });
+  });
+
+  it("stands the rivers down while coloured by flow, keyed on the MODE, and not otherwise", () => {
     /*
      * KEYED ON THE MODE, NOT THE VIEW. The app renders one view and sets each layer's
      * colour mode, so a rule keyed on "the conditions view" is a rule that never fires —
-     * which is exactly what happened: the field was built, the tiles carried it, and the
-     * rivers stayed drawn over the top of it at every zoom.
+     * which is exactly what happened once: the rivers stayed drawn over the field at every zoom.
+     * Under closure or plain they keep the style's own floor — switching to Regulations at
+     * z6 must not show a province with no rivers on it.
      */
-    expect(STYLE_META.minzoomByMode.stream).toEqual({ standing: 10 });
-    expect(STYLE_META.minzoomByMode.lake).toEqual({ standing: 10 });
-    // Under closure or plain they keep the style's own floor — switching to Regulations at
-    // z6 must not show a province with no rivers on it.
-    expect(STYLE_META.minzoomByMode.stream!.closure).toBeUndefined();
-    expect(STYLE_META.minzoomByMode.stream!.plain).toBeUndefined();
+    const a = baseAdapter("web");
+    const { h, floor } = recorder();
+    a.setLayerMode(h, "basin", "standing", "light");
+    a.setLayerMode(h, "stream", "standing", "light");
+    a.setLayerMode(h, "lake", "standing", "light");
+    expect({ stream: floor.stream, lake: floor.lake }).toEqual({ stream: 8, lake: 8 });
+    a.setLayerMode(h, "basin", "plain", "light");
+    a.setLayerMode(h, "stream", "status", "light");
+    a.setLayerMode(h, "lake", "plain", "light");
+    expect({ stream: floor.stream, lake: floor.lake }).toEqual({ stream: 0, lake: 0 });
+  });
+
+  it("opens a water on a tap at and above the handover, never below it while the field answers", () => {
+    const at = (zoom: number, flowParam: "discharge" | "level" | "temperature" = "discharge",
+                tab: "conditions" | "map" = "conditions") =>
+      tapOpensWater({ tab, flowParam, zoom, handover: FIELD_HANDOVER_Z });
+    expect({ z7_9: at(7.9), z8: at(8), z10: at(10), level7_9: at(7.9, "level"),
+             temperature6: at(6, "temperature"), mapTab6: at(6, "discharge", "map") })
+      .toEqual({ z7_9: false, z8: true, z10: true, level7_9: false, temperature6: true, mapTab6: true });
   });
 
   it("draws the field in the Conditions view and hides it in every other", () => {
@@ -120,16 +150,23 @@ describe("the basin/river handover", () => {
      * The two numbers are the SAME number. The field draws below the handover, the rivers
      * from it, and there is no zoom that is both or neither.
      */
-    expect(basin.maxzoom).toBe(app);
-    expect(STYLE_META.field!.handover).toBe(app);
-    expect(STYLE_META.minzoomByMode.stream!.standing).toBe(app);
+    const a = baseAdapter("web");
+    const { h, floor } = recorder();
+    a.setLayerMode(h, "basin", "standing", "light");
+    a.setLayerMode(h, "stream", "standing", "light");
+    expect({ basin: basin.maxzoom, field: STYLE_META.field!.handover, rivers: floor.stream })
+      .toEqual({ basin: app, field: app, rivers: app });
   });
 
   it("leaves no zoom drawing neither the field nor the rivers", () => {
     // The property the numbers above exist for, stated directly and checked across the
     // band rather than inferred from two constants that were once off by one.
     const basin = MAP_STYLE.layers.find((l) => l.id === "basin")!;
-    const riversFrom = STYLE_META.minzoomByMode.stream!.standing!;
+    const a = baseAdapter("web");
+    const { h, floor } = recorder();
+    a.setLayerMode(h, "basin", "standing", "light");
+    a.setLayerMode(h, "stream", "standing", "light");
+    const riversFrom = floor.stream!;
     for (let z = 4; z <= 14; z += 0.5) {
       const field = z < (basin.maxzoom ?? 24) && z >= (basin.minzoom ?? 0);
       const rivers = z >= riversFrom;
@@ -144,9 +181,8 @@ describe("the basin/river handover", () => {
     // THE FIELD'S SOURCE STOPS WHERE THE BASINS STOP: one zoom deeper and MapLibre asks the archive for tiles with no
     // basins in them, and the field vanishes before the rivers come back.
     expect(sources[basin.source!]).toMatchObject({ url: "pmtiles://atlas", maxzoom: py.basinMax });
-    expect(py.basinMax).toBe(py.handover - 1);
-    // and the handover is at or past the tiles' own: overzooming carries the field forward, never back
-    expect(fromShell()).toBeGreaterThanOrEqual(py.handover);
+    // ONE NUMBER on both sides of the Python/TypeScript line (T130): the tiles stop one zoom short of the handover
+    expect({ handover: py.handover, basinMax: py.basinMax }).toEqual({ handover: fromShell(), basinMax: fromShell() - 1 });
     // And the field must reach the zoom the map opens at its widest.
     expect(py.basinMin).toBeLessThanOrEqual(4);
     /*
@@ -182,16 +218,17 @@ describe("the basin/river handover", () => {
     a.setLayerMode(h, "basin", "standing", "light");
     expect(shown.basin).toBe(true);
     expect(floor).toEqual({
-      stream: 10, "selection-casing": 10, stream__arrows: 10, lake: 10, lake__edge: 10,
-      "stream-nobaseline": 10, water_river: 10, stream__label: 11, lake__label: 10, lake_flowing: 10,
-      wetland: 10, wetland_flowing: 10, under_lake: 10, contour: 10,
+      // T130: the handover (z8) or the layer's own floor where that is later — a release, never a second rule
+      stream: 8, "selection-casing": 8, stream__arrows: 10, lake: 8, lake__edge: 8,
+      "stream-nobaseline": 8, water_river: 9, stream__label: 11, lake__label: 8, lake_flowing: 8,
+      wetland: 8, wetland_flowing: 8, under_lake: 8, contour: 8,
       // and the areas and the gauges (review 2026-10-22: hatches at Liumchen and gauge dots drawn on the field)
-      indigenous_land: 10, indigenous_land__edge: 11, indigenous_land__label: 10,
-      no_access: 10, no_access__edge: 10, no_access__label: 10,
-      no_access_permit: 10, no_access_permit__edge: 10, no_access_permit__label: 10,
-      eco_reserve: 10, eco_reserve__edge: 10, eco_reserve__label: 10,
-      park: 10, park__label: 10, park_closed: 10, park_closed__edge: 10, park_closed__label: 10,
-      "gauge-dot": 10, "gauge-label": 10,
+      indigenous_land: 8, indigenous_land__edge: 11, indigenous_land__label: 9,
+      no_access: 8, no_access__edge: 10, no_access__label: 9,
+      no_access_permit: 8, no_access_permit__edge: 10, no_access_permit__label: 9,
+      eco_reserve: 8, eco_reserve__edge: 10, eco_reserve__label: 8,
+      park: 8, park__label: 8, park_closed: 8, park_closed__edge: 10, park_closed__label: 8,
+      "gauge-dot": 8, "gauge-label": 8,
     });
   });
 

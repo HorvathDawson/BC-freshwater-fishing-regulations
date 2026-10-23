@@ -904,11 +904,11 @@ for (const l of src.layers ?? []) {
     solid = { over: l.field.solid.over.token, opacity: l.opacity?.token };
   }
   field = { layer: l.id, handover: l.maxzoom, drawnIn, covers, ...(solid ? { solid } : {}) };
-  // EVERY FLOOR A MODE GIVES A COVERED LAYER IS THE HANDOVER OR BELOW: a covered layer that came back later than the
-  // field leaves would open a band drawing neither (tools/handover.test.ts holds the band itself).
+  // ONE HANDOVER (T130): a covered layer takes its floor from the field alone. A per-mode floor on it is the handover
+  // typed a second time — move one and the other opens a band drawing neither, or two answers at once.
   for (const id of Object.keys(covers))
-    for (const [m, z] of Object.entries(layersById.get(id)?.minzoomByMode ?? {}))
-      if (z > l.maxzoom) err(`${where}: "${id}" in mode "${m}" starts at z${z}, after the field hands over at z${l.maxzoom}`);
+    if (layersById.get(id)?.minzoomByMode)
+      err(`${where}: "${id}" is covered by the field and also declares minzoomByMode — the field's maxzoom is its floor`);
 }
 
 /*
@@ -1019,11 +1019,10 @@ const meta = {
    * view" is a rule that never fires. The mode IS the question being asked — `standing` is
    * "what is the water doing" wherever it appears.
    *
-   * Below z9 that question is answered by the basin field instead: a river is a hairline
-   * there and its colour is a guess three pixels wide, so two answers would be stacked and
-   * the smaller would win by being on top. `BASIN_HANDOVER_Z` in the tile builder is the
-   * same number and the app's tap handling is the third place that has to agree, which is
-   * why this is emitted rather than written into three files.
+   * The rivers' stand-down under the basin field is NOT one of these (T130): it is
+   * `field.covers`, floored at the field's own maxzoom — the one handover number, which the
+   * app reads as `FIELD_HANDOVER_Z` and the tile builder's `BASIN_HANDOVER_Z` is held to.
+   * The `standing: 10` each river layer carried here was that number typed four more times.
    */
   /** The field and what it covers — see `field` above. null: the style has none. */
   field,

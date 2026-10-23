@@ -28,11 +28,11 @@ from pipeline.deliver.tiles.layers import BY_NAME
 
 #: Simplification, in metres, and it is DERIVED rather than chosen by eye.
 #:
-#: One pixel at the deepest zoom the field is DRAWN at. The tiles stop at z8, but the app
-#: overzooms them to its handover, z10 since the refinement pass (owner 2026-10-22), and at
-#: z10 one pixel is ~100 m at 49 N. It was 500 m — the next step out from a z8 pixel — and
-#: overzoomed to z10 every 500 m run was a 5 px straight edge: the sawtooth basin border on
-#: the Conditions map (review 2026-10-22; app/tools/handover.test.ts holds it to a pixel).
+#: At most one pixel at the deepest zoom the field is DRAWN at (app/tools/handover.test.ts
+#: holds it to a pixel at the handover). Chosen when the handover was z10, where one pixel
+#: is ~100 m at 49 N; it was 500 m, and overzoomed to z10 every 500 m run was a 5 px straight
+#: edge (review 2026-10-22). The handover is z8 since T130 (one pixel ~400 m), so this could
+#: rise toward that in a tile build to save bytes; it is not raised here, untested.
 #: Simplified as one coverage, 100 m is 494k vertices of the source's 5.46M.
 SIMPLIFY_M = 100.0
 

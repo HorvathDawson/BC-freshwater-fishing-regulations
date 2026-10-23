@@ -21,8 +21,8 @@
     "basins": {
       "type": "vector",
       "url": "pmtiles://atlas",
-      "maxzoom": 8,
-      "$comment": "THE SAME ARCHIVE AS `atlas`, read as a second source that STOPS at z8 — the last zoom the tile builder writes basin polygons at (`basin` maxzoom = BASIN_HANDOVER_Z - 1 in pipeline/deliver/tiles/layers.py). MapLibre overzooms a source past its maxzoom, so the field can be drawn to the handover (z10, owner 2026-10-22: \"the watershed colouring happens at a slightly higher zoom\") from the z8 tiles it already has, with no tile rebuild and no z9 basin tiles. On `atlas` itself the field could never outlive the tiles: at z9 MapLibre asks the archive for z9 tiles, which carry no basins, and the field vanished a zoom before the rivers came back. Only the basin layer reads it, and that layer is drawn only while the field is on (`field.drawnIn`), so the Map tab never fetches through it."
+      "maxzoom": 7,
+      "$comment": "THE SAME ARCHIVE AS `atlas`, read as a second source that STOPS at z7 — the last zoom the tile builder writes basin polygons at (`basin` maxzoom = BASIN_HANDOVER_Z - 1 in pipeline/deliver/tiles/layers.py). MapLibre overzooms a source past its maxzoom, so the z7 tiles carry the field across [7, 8) up to the handover (z8 since T130, owner 2026-10-22: \"should be able to zoom out quite a bit more first\"; it was z10). An archive built while the handover was z9 also holds z8 basin tiles; they are never asked for. On `atlas` itself the field could never outlive the tiles: at z9 MapLibre asks the archive for z9 tiles, which carry no basins, and the field vanished a zoom before the rivers came back. Only the basin layer reads it, and that layer is drawn only while the field is on (`field.drawnIn`), so the Map tab never fetches through it."
     }
   },
   "groups": [
@@ -721,7 +721,7 @@
       "geometry": "polygon",
       "featureIdProperty": "basin_id",
       "highlightable": false,
-      "maxzoom": 10,
+      "maxzoom": 8,
       "colorModes": {
         "plain": {
           "label": "Hidden",
@@ -821,7 +821,7 @@
       "opacity": {
         "token": "opacity.basin"
       },
-      "$comment": "THE PROVINCE AS A FIELD, below the zoom where a river is a hairline.\n\nA percentile is a claim about a CATCHMENT, which is why the discs this replaces were wrong: a disc paints land the gauge says nothing about, two overlapping discs blend into a colour that is not on the scale, and a blurred edge is a lighter shade — on a sequential ramp, a different number. These are the Province's own named watersheds and they have edges.\n\nz4-8 ONLY. At z9 the rivers are wide enough to carry the colour themselves and a field over the top of them is noise. `BASIN_HANDOVER_Z` in the tile builder is the same number; the app's tap handling is the third place that has to agree.\n\nMAXZOOM IS EXCLUSIVE, and this was written as if it were inclusive. MapLibre hides a layer at zoom >= maxzoom, so `maxzoom: 8` meant the field stopped at 8.0 while the rivers, standing down below 9, did not start until 9.0 — a full zoom level, and a common resting place, drawing NEITHER. Zooming out of Conditions showed the rivers vanish and the province stay blank until the next step. It is the handover zoom itself: the field draws below 9, the rivers from 9, and the two meet exactly. The TILE still stops at z8 — z8 tiles overzoom to cover 8.x — which is why the builder's maxzoom and this one are different numbers for different questions.",
+      "$comment": "THE PROVINCE AS A FIELD, below the zoom where a river is a hairline.\n\nA percentile is a claim about a CATCHMENT, which is why the discs this replaces were wrong: a disc paints land the gauge says nothing about, two overlapping discs blend into a colour that is not on the scale, and a blurred edge is a lighter shade — on a sequential ramp, a different number. These are the Province's own named watersheds and they have edges.\n\nTHIS LAYER'S `maxzoom` IS THE HANDOVER — the one number (T130): emitted as `field.handover`, read by the app as `FIELD_HANDOVER_Z` (camera bit, taps: `tapOpensWater`), and every layer in `field.covers` stands down below it. z8 since T130 (owner 2026-10-22: \"should be able to zoom out quite a bit more first\"; it was z10): measured at z6-z10, the coloured rivers read at z8 and break into hairline fragments at z7. `BASIN_HANDOVER_Z` in the tile builder is held to the same number (tools/handover.test.ts).\n\nMAXZOOM IS EXCLUSIVE, and this was written as if it were inclusive. MapLibre hides a layer at zoom >= maxzoom, so `maxzoom: 8` meant the field stopped at 8.0 while the rivers, standing down below 9, did not start until 9.0 — a full zoom level, and a common resting place, drawing NEITHER. Zooming out of Conditions showed the rivers vanish and the province stay blank until the next step. It is the handover zoom itself: the field draws below 9, the rivers from 9, and the two meet exactly. The TILE still stops at z8 — z8 tiles overzoom to cover 8.x — which is why the builder's maxzoom and this one are different numbers for different questions.",
       "field": {
         "drawnIn": [
           "standing"
@@ -896,18 +896,10 @@
             [
               8,
               2.4
-            ],
-            [
-              9,
-              4.8
-            ],
-            [
-              10,
-              9.6
             ]
           ]
         },
-        "$comment": "THE SEAM, under the field in each basin's own colour: it shows only where no basin is drawn, so it closes the slivers between independently simplified neighbours without moving a border. Wide enough for the widest (~700 m) at every zoom the field draws: 700 m is 7 px at z10, 3.5 at z9 and 1.7 at z8 at 49 N (tools/handover.test.ts holds the curve to it)."
+        "$comment": "THE SEAM, under the field in each basin's own colour: it shows only where no basin is drawn, so it closes the slivers between independently simplified neighbours without moving a border. Wide enough for the widest (~700 m) at every zoom the field draws: 700 m is 1.7 px at z8, the handover, at 49 N; the curve ends there with the field (tools/handover.test.ts holds it to the gap below the handover)."
       }
     },
     {
@@ -1122,9 +1114,6 @@
       },
       "opacity": {
         "token": "opacity.wetland"
-      },
-      "minzoomByMode": {
-        "standing": 10
       },
       "$comment": "The same for a slough drawn as a WETLAND polygon (Taylor Slough): stream colours, no hatch — the weave says 'marsh' and this is not one. See `lake_flowing`."
     },
@@ -1441,9 +1430,6 @@
         "$comment": "BIG LAKES GET NAMED EARLIER, and win collisions when they compete. `showAbove` is v1's area ladder — 5 km2 at z8, 1 km2 at z9, 0.1 km2 at z10, everything from z11 — and `sortBy: area_m2` becomes a NEGATED symbol-sort-key, so a cluster of ponds can no longer crowd out the lake somebody actually came looking for. Both read the same `area_m2` the outline width does, which is why that attribute survives.",
         "priority": 1
       },
-      "minzoomByMode": {
-        "standing": 10
-      },
       "filter": [
         "!=",
         [
@@ -1630,9 +1616,6 @@
       },
       "opacity": {
         "token": "opacity.lake"
-      },
-      "minzoomByMode": {
-        "standing": 10
       },
       "$comment": "A STREAM'S POLYGON — a river's wide reach, a slough, a canal (the Vedder Canal, the Stellako's) — drawn from the `lake` source-layer but in STREAM colours, in every mode (user ruling 2026-10-03: a slough is a stream everywhere, and must look like one). The tile's `water` property is the registry's water kind, the same `item.kind` the bundle carries, so the map and the sheet cannot disagree about what the water is; `lake` draws the rest (its inverse filter). No label and no outline: the river's own route is written into the `stream` layer under this polygon's section id (pipeline tiles/export.py), which carries the name along the line and fills the hole at the zooms the polygon is not yet drawn at. Status is pushed on the `lake` source-layer (`statusData`), and feature-state is per source-layer, so this layer sees it. Not in `highlight`'s own id space: `selected` on `lake` already lights it."
     },
@@ -2100,9 +2083,6 @@
         },
         "haloWidth": 1.2,
         "$comment": "WHICH WAY THE WATER GOES, on the Conditions map (owner 2026-10-21). A glyph laid along the line and CHOSEN to point DOWNSTREAM by the tile contract's `flows` (stream lines run mouth to source, measured on the live atlas), in the stream's own colour with a paper halo, drawn only where a view shows it (`views[].show`: Conditions). From z9, where the Conditions rivers come back after the basin field; big water first (Strahler order 6+ at z9, everything from z13) so a valley is not a field of chevrons, and placed after every name so a name never loses its spot to an arrow. A glyph, not an `addImage` icon: the phone has no runtime-image API (N2-F1) and the fonts ship with every release."
-      },
-      "minzoomByMode": {
-        "standing": 10
       }
     }
   ],

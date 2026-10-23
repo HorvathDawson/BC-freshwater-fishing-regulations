@@ -112,8 +112,9 @@ export const STYLE_META = meta as unknown as {
    * The zoom a layer takes while coloured a particular way — `{layer: {mode: minzoom}}`.
    *
    * Keyed on the MODE, not the view, because that is how the app switches: it renders one
-   * view and sets each layer's colour mode. `standing` — "what is the water doing" — stands
-   * the rivers down below z9 so the basin field can answer instead.
+   * view and sets each layer's colour mode. No layer declares one today: the rivers stand down
+   * under the basin field through `field.covers` alone (T130 — the handover is one number, the
+   * field's maxzoom, and a second copy here was the same number typed four more times).
    */
   minzoomByMode: Record<string, Record<string, number>>;
   /**
@@ -177,6 +178,14 @@ export function withFollowers(modes: Readonly<Record<string, string>>): Record<s
 }
 
 export const layerIds = (): string[] => MAP_STYLE.layers.map((l) => l.id);
+/**
+ * WHERE THE CONDITIONS FIELD HANDS OVER TO THE RIVERS — the ONE number (T130). It is the basin layer's maxzoom in
+ * layers.source.json, emitted as `field.handover`; the style ends the field there and stands every covered layer down
+ * below it (`covers`), and the app reads THIS for its camera bit and its taps. The tile builder's `BASIN_HANDOVER_Z`
+ * (pipeline/deliver/tiles/layers.py) is held to the same number by tools/handover.test.ts. Nothing else may type it.
+ */
+export const FIELD_HANDOVER_Z: number = STYLE_META.field?.handover ?? 0;
+
 export const toggleableGroups = (): LayerGroup[] => STYLE_META.groups.filter((g) => g.toggleable);
 export const views = (): MapView[] => STYLE_META.views;
 

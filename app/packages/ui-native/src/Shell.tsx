@@ -25,10 +25,10 @@ import { routeWhere, spotPins, spotsMenu, useLayerChoice, useLikeVisit, useMapRa
          type Locate } from "@app/ui";
 import { useConditionsColour, useDataFacts, useGaugeGeoJSON, useSync, useLakeColour, lakeModesReady, lakeValuesCarried,
          NO_SEARCH, searchStep, type SearchAction, type SearchMemory, useSearchSession, usePairing, useRegulationKeys,
-         useStatusIndex, statusFeed, useHorizon, flowHorizon, horizonChips, useImageryReach, type Horizon, type PairingInput,
+         useStatusIndex, statusFeed, useHorizon, flowHorizon, horizonChips, tapOpensWater, useImageryReach, type Horizon, type PairingInput,
          type StatusSource } from "@app/ui";
 import type { LikeStore, Spot, WeatherSource } from "@app/data/spots";
-import { hiddenLayers, shownLayers,
+import { FIELD_HANDOVER_Z, hiddenLayers, shownLayers,
          type Camera, type TileEndpoints, coloursEachTile, imageryTiles } from "@app/map";
 import { connectivity } from "./connectivity";
 import { imageryProbe } from "./imageryProbe";
@@ -63,21 +63,18 @@ const NONE: readonly SectionKey[] = [];
 const NONE_PINS: readonly never[] = [];
 
 /** Where the map starts the FIRST time. After that the camera is whatever the user left. */
-// z10, AT the field's handover (was 9.4): the app opens on rivers you can tap on the Conditions map too, not on the
-// catchment field that now runs to z10 (refinement pass, 2026-10-22)
+// z10, above the field's handover: the app opens on rivers you can tap on the Conditions map too
 const HOME: Camera = { lon: -121.85, lat: 49.15, zoom: 10 };
 
 /**
- * WHERE THE FIELD HANDS OVER TO THE RIVERS. The style's number — the basin layer's maxzoom and the rivers'
- * `minzoomByMode` — and a test holds them equal (tools/handover.test.ts). z10 since the refinement pass (owner
- * 2026-10-22: the watershed colouring "at a slightly higher zoom"): the field is drawn from the tiles' z8 basins,
- * overzoomed (`sources.basins` in layers.source.json), so the tile builder's `BASIN_HANDOVER_Z` (9) no longer bounds it.
+ * WHERE THE FIELD HANDS OVER TO THE RIVERS: the style's one number (`FIELD_HANDOVER_Z`, the basin layer's maxzoom),
+ * read, never typed here (T130, owner 2026-10-22: "should be able to zoom out quite a bit more first").
  *
  * Below it the Conditions map is catchments and NOTHING IS TAPPABLE: a tap would open a
  * reach sheet for a shape the size of a valley, answering a question nobody asked. Above it
  * the rivers are back and they are what you tap.
  */
-const HANDOVER_Z = 10;
+const HANDOVER_Z = FIELD_HANDOVER_Z;
 
 export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                        spots = [], onSaveSpot, weather, onRefreshSpots, onDeleteSpot, refreshing, feed,
@@ -525,18 +522,18 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    *
    * NOTHING IS TAPPABLE ON THE CONDITIONS MAP BELOW THE HANDOVER. Down there it is catchments, and the only thing under
    * a finger is a shape the size of a valley — a reach panel for it would answer a question about one river with a
-   * number about a region. The rivers come back at z9 and they are what you tap.
+   * number about a region. The rivers come back at the handover and they are what you tap (`tapOpensWater`).
    */
   const picking = rail.picking;
   const onPressFeature = useCallback(async (_layer: string, featureId: SectionKey, lat?: number, lon?: number) => {
     // PICK ON THE MAP: a tap places the spot's pin (`onMapPoint`) and opens nothing — a water under it included
     if (picking) return;
     const conditions = tab === "conditions";
-    if (conditions && (camera.current?.zoom ?? HOME.zoom) < HANDOVER_Z) return;
+    if (!tapOpensWater({ tab, flowParam, zoom: camera.current?.zoom ?? HOME.zoom, handover: HANDOVER_Z })) return;
     // The tile's feature id IS the section handle — converted, not cast (see noteVisible above).
     await opener.tap(Number(featureId) as SectionId,
                      lat !== undefined && lon !== undefined ? { lat, lon } : null, conditions ? "conditions" : "regs");
-  }, [tab, opener, picking]);
+  }, [tab, flowParam, opener, picking]);
 
   const viewing = openSpot === null ? null : spots.find((s) => s.id === openSpot) ?? null;
   // T51: the open spot against the coming days — the feed the rest of the app reads, and the weather port; asked
