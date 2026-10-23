@@ -1,6 +1,9 @@
 # T71 — One Map entry: drop the Regulations header's Map button (audit N2, owner call 3)
 
-Status: OPEN.
+Status: DONE — b103b32a (code + tests + fixtures), 9afd17a7 (docs + shots). Header action is Parts or null (no
+`canMap`); one-surface pin `WaterMode.test` "ONE MAP ENTRY" (mutation: HEAD's header → fails with the "View on map"
+button); golden header parity re-keyed (`GOLDEN_MAP_ACTION_IDS`). Shots: T71-shots/ (light + dark, Vedder + Bella
+Coola). Not in scope, left as built (no owner ruling): the strip's Conditions opens the tapped reach, not `mid_sid`.
 
 Source: decisions.md (audit plan, call 3): "Keep only one Map entry (the view strip; drop the header's Map button)".
 Still built: `core/regs/header.ts` emits `{kind:"map"}` when `canMap`; `page.ts` defaults `canMap` true;
