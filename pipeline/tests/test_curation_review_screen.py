@@ -55,6 +55,7 @@ def env(request, tmp_path_factory):
             for b in _page_boxes((str(default_pdf()), 16))}
     sidecar = tmp_path_factory.mktemp("sidecar") / "row_boxes.json"
     sidecar.write_text(json.dumps({"version": VERSION, "rows": rows,
+                                   "pdf_sha256": hashlib.sha256(default_pdf().read_bytes()).hexdigest(),
                                    "raw_data_sha256": hashlib.sha256(raw.read_bytes()).hexdigest()}))
     mp = pytest.MonkeyPatch()
     for k, v in {"CURATION_FIX": "0", "CURATION_ENTRIES_DIR": cat,
@@ -216,3 +217,82 @@ def test_progress_counts_every_entry_and_every_s0_split_point(env):
     assert p["overall"]["total"] == 1525 + 150
     assert p["overall"]["total"] == sum(t["total"] for t in p["tiers"])
     assert all(t["todo"] == t["total"] - t["done"] for t in p["tiers"])
+
+
+# --------------------------------------------------------------------------- adversarial review
+
+def test_a_sidecar_cut_from_another_pdf_is_refused_by_name(env, monkeypatch, tmp_path):
+    """The boxes are points on ONE book. A new PDF dropped in before the extraction is re-run keeps
+    the raw data's sha — so the sidecar must name the PDF's bytes too, or every crop is cut from
+    the new book at the old one's places."""
+    import evidence
+    doc = json.loads(evidence.ROW_BOXES_PATH.read_text())
+    other = tmp_path / "row_boxes.json"
+    other.write_text(json.dumps({**doc, "pdf_sha256": "0" * 64}))
+    monkeypatch.setattr(evidence, "ROW_BOXES_PATH", other)
+    v = env["client"].get(f"/api/entries/{ADAM}/review").json()
+    import synopsis_pages
+    assert (v["evidence"]["kind"], v["evidence"]["why"]) == (
+        "missing", f"{other} was cut from another PDF than {synopsis_pages.PDF_PATH} — re-run the "
+                   "extraction on it, then `python -m pipeline.regs.extraction.row_boxes`")
+    assert env["client"].get(f"/api/entries/{ADAM}/evidence/crop.png").status_code == 404
+
+
+#: a confirmed point whose note asks for no check — not in S0 until something changes it
+PLAIN_SPLIT = "adams_river__signs_200_m_downstream_of_salmon_viewing_platforms"
+
+
+def _card(env, split_id):
+    import review
+    return next((c for c in review.split_queue() if c["split_id"] == split_id), None)
+
+
+def test_a_moved_split_is_a_split_point_to_confirm_again(env):
+    """Owner 2026-10-23: a split added OR MOVED in fix mode is confirmed in S0 after the rebuild.
+    `save_split` with a new anchor stamps "Verify: moved in fix mode …" (`reuse.fix_mode_stamp`, the
+    add's stamp); the same anchor saved again stamps nothing."""
+    reuse = env["reuse"]
+    path = Path(reuse.SPLITS_JSON_PATH)
+    original = path.read_text()
+    try:
+        assert _card(env, PLAIN_SPLIT) is None                        # not S0 before
+        sp = reuse.get_split(PLAIN_SPLIT)["split"]
+        assert reuse.save_split(PLAIN_SPLIT, {"anchor": sp["anchor"]})["ok"]
+        assert reuse.get_split(PLAIN_SPLIT)["split"]["_note"] == sp["_note"]   # not moved
+        moved = {**sp["anchor"], "offset_m": 250}
+        got = reuse.save_split(PLAIN_SPLIT, {"anchor": moved})
+        assert got["ok"], got
+        assert got["split"]["_note"] == f"{reuse.fix_mode_stamp('moved')} {sp['_note']}"
+        assert reuse.fix_mode_stamp("moved").startswith("Verify: moved in fix mode ")
+        card = _card(env, PLAIN_SPLIT)
+        assert (card["s0"], card["status"]) == (True, "unmarked")
+    finally:
+        path.write_text(original)
+
+
+def test_a_split_mark_gone_stale_is_listed_in_s0(env):
+    """A split confirmed, then changed by hand (not through the tool, so no stamp): its mark is
+    stale and S0 lists it again — the queue never stops showing a point to confirm."""
+    reuse = env["reuse"]
+    path = Path(reuse.SPLITS_JSON_PATH)
+    original = path.read_text()
+    try:
+        r = env["client"].post("/api/marks", json={"scope": "split", "target": PLAIN_SPLIT,
+                                                   "answers": {"P": "y"}, "reviewer": "tester"})
+        assert r.status_code == 200 and r.json()["status"] == "verified", r.text
+        assert _card(env, PLAIN_SPLIT) is None                        # confirmed, not S0
+        path.write_text(_shift(original))
+        card = _card(env, PLAIN_SPLIT)
+        assert card is not None and (card["s0"], card["status"]) == (True, "stale"), card
+    finally:
+        path.write_text(original)
+
+
+def _shift(text: str) -> str:
+    """splits.json with PLAIN_SPLIT's offset moved 200 -> 250 m (whatever the file's layout)."""
+    data = json.loads(text)
+    for wb in data["waterbodies"]:
+        for sp in wb["splits"]:
+            if sp["id"] == PLAIN_SPLIT:
+                sp["anchor"]["offset_m"] = 250
+    return json.dumps(data, indent=1, ensure_ascii=False) + "\n"

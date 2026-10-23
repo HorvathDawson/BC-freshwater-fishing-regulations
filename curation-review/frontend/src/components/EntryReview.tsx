@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { AnswerLink, Check, EntryDetail, MarkView, Mode, ReviewView } from "../types";
 import { Checklist } from "./Checklist";
 import { useMarking, VerdictBar } from "./useMarking";
+import { nextOpenRule } from "../review";
 
 interface Props {
   detail: EntryDetail;
@@ -60,7 +61,7 @@ export function EntryReview({ detail, view, mode, onMarked, onToggleMap, onDate 
     mark: { scope: zone ? "rule" : "entry", target: detail.entry.entry_id,
             rule_id: zone ? key : null, checks, held },
     onRecorded: () => {
-      const next = keys.findIndex((k, i) => i > at && open(marksBy[k]));
+      const next = nextOpenRule(keys, at, (k) => open(marksBy[k]));
       const final = !zone || next < 0;
       if (!final) setAt(next);
       onMarked(final);

@@ -25,7 +25,7 @@ can change the catalogue or splits.json. FIX MODE (`--fix`, which sets `CURATION
 owner's: entry save and the live draft check, split add / move / delete / rename, and the
 pending-build panel's list of what waits. A fix in fix mode puts the entry (or split) in
 **awaiting build** with the exact commands to run (the tool never runs them); when the rebuild
-lands the screen picks it up with no restart, a new split is queued in tier S0 to confirm, the
+lands the screen picks it up with no restart, a new or moved split is queued in tier S0 to confirm, the
 marks whose binding moved read "binding moved", and every other mark stands.
 
 ### The review screen (T134)
@@ -48,8 +48,9 @@ Evidence first, then the checklist, with the verdict bar always visible:
 - **The answer** is the app's own page, opened by its start link
   (`<CURATION_APP_URL>?regs=<item>&part=<i>&date=<day>`, default `http://127.0.0.1:39218/`) in a
   new tab — the part where the entry's rules hold, its own water first.
-- **Split points (tier S0)**: "work → split points" lists the cut-points still to verify, L grade
-  first, each as a card with its note, grade and the map; one check, P.
+- **Split points (tier S0)**: "work → split points" lists the cut-points still to verify (an open
+  auto-proposal, a "Verify:" note — which a fix-mode add or move stamps — or a split mark gone
+  stale), L grade first, each as a card with its note, grade and the map; one check, P.
 - **Keys**: `t r p a` pick a check, `y n ?` answer it, Enter records the mark and moves on,
   `j` / `k` next / previous, `u` the next unsure entry, `o` opens the app page, `m` the map large.
   The URL hash is the open entry (`#r1:adam_river_except_eve_river@1-10`, `#split:<id>`): a reload

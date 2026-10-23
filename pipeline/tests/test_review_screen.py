@@ -168,7 +168,7 @@ def test_no_second_copy_of_the_tier_the_grade_the_flag_the_strip_or_the_verdict(
     hits: dict[str, list] = {k: [] for k in (
         "def entry_tier(", "def split_grade(", "def split_needs_verify(", "def flagged(",
         r"\[auto-proposal ([A-Z])\]", "def coverage(", "def verdict_from_answers(", "def find_passage(",
-        "def app_part(")}
+        "def app_part(", "def fix_mode_stamp(", "in fix mode {")}
     for p, text in _py_sources():
         if p.name.startswith("test_"):
             continue
@@ -184,7 +184,10 @@ def test_no_second_copy_of_the_tier_the_grade_the_flag_the_strip_or_the_verdict(
         "def coverage(": ["pipeline/regs/review/coverage.py"],
         "def verdict_from_answers(": ["pipeline/regs/review/marks.py"],
         "def find_passage(": ["curation-review/backend/evidence.py"],
-        "def app_part(": ["curation-review/backend/answer.py"]}
+        "def app_part(": ["curation-review/backend/answer.py"],
+        # the note a fix-mode add OR move stamps (S0): one function (adversarial review)
+        "def fix_mode_stamp(": ["curation-review/backend/reuse.py"],
+        "in fix mode {": ["curation-review/backend/reuse.py"]}
 
 
 # --------------------------------------------------------------------------- the row boxes
@@ -223,3 +226,108 @@ def test_the_helper_reads_the_adam_river_row_where_the_extractor_cropped_it():
     s = 400 / 72
     w, h = (x1 - x0 + 10) * s, (y1 - y0 + 10) * s
     assert abs(w - 2855) <= 1 and abs(h - 109) <= 1, (w, h)
+
+
+# --------------------------------------------------------------------------- adversarial review
+
+def test_the_strip_and_the_gate_agree_on_every_quote_of_the_corpus():
+    """The strip calls a quote "in the row" exactly when the save gate does (`CatalogueEntry`'s
+    chain of custody: `squash(quote) in squash(regs_verbatim)` — the RAW row, while the strip
+    shows `clean_verbatim` of it). Over every rule and licensing quote of the corpus."""
+    disagree, n = [], 0
+    for e in _corpus():
+        hay = squash(e.get("regs_verbatim") or "")
+        missing = set(COV.entry_coverage(e)["missing"])
+        for r in (e.get("rules") or []) + (e.get("licensing") or []):
+            q = squash(r.get("verbatim") or "")
+            if not q:
+                continue
+            n += 1
+            rid = str(r.get("rule_id") or r.get("id"))
+            if (q in hay) == (rid in missing):
+                disagree.append((e["entry_id"], rid))
+    assert n > 3000 and disagree == [], disagree[:10]
+
+
+def _render_in_threads(render, pages=(5, 9, 14, 20, 26, 31, 40, 47), each: int = 3) -> list[str]:
+    """`render(pdf_page)` from len(pages) threads at once, `each` times; the errors raised."""
+    import threading
+    errs: list[str] = []
+
+    def work(i):
+        try:
+            for k in range(each):
+                render(pages[(i + k) % len(pages)])
+        except Exception as ex:  # noqa: BLE001 — the failure is the finding
+            errs.append(repr(ex))
+    ts = [threading.Thread(target=work, args=(i,)) for i in range(len(pages))]
+    for t in ts:
+        t.start()
+    for t in ts:
+        t.join()
+    return errs
+
+
+@pytest.fixture
+def backend_mods(monkeypatch):
+    import sys
+    monkeypatch.syspath_prepend(str(REPO / "curation-review" / "backend"))
+    for m in ("evidence", "synopsis_pages"):
+        sys.modules.pop(m, None)
+    import evidence
+    import synopsis_pages
+    yield evidence, synopsis_pages
+    for m in ("evidence", "synopsis_pages"):
+        sys.modules.pop(m, None)
+
+
+def test_pages_render_from_many_threads_at_once(backend_mods):
+    """PDFIUM IS NOT THREAD-SAFE and FastAPI serves these routes from a thread pool: the screen asks
+    for a crop and a page at once. Every render holds `synopsis_pages.PDFIUM_LOCK`."""
+    evidence, pages = backend_mods
+    assert _render_in_threads(lambda n: evidence._render.__wrapped__(n, 1.0)) == []
+    assert _render_in_threads(lambda n: pages.page_png.__wrapped__(n + 2, 1.0)) == []
+
+
+def test_the_render_lock_is_pinned_by_mutation(backend_mods, monkeypatch):
+    """MUTATION: no lock (`PDFIUM_LOCK` a no-op) — renders in flight together fail, and
+    `test_pages_render_from_many_threads_at_once` fails on it."""
+    import contextlib
+    evidence, pages = backend_mods
+    monkeypatch.setattr(pages, "PDFIUM_LOCK", contextlib.nullcontext())
+    assert _render_in_threads(lambda n: evidence._render.__wrapped__(n, 1.0)) != []
+
+
+def test_s0_holds_a_split_whose_mark_went_stale():
+    """A confirmed split point whose anchor or kind changed since is to confirm again: its mark is
+    stale, and S0 lists it whatever its note says."""
+    plain = {"_note": "[human-review 2026-08-06] placed on the bridge"}
+    assert [T.split_needs_verify(plain, s) for s in (None, "unmarked", "verified", "stale")] == [
+        False, False, False, True]
+
+
+def _node_review(expr: str):
+    """Evaluate `expr` against the frontend's `review.ts` in node (type stripping, no build)."""
+    import shutil
+    import subprocess
+    node = shutil.which("node")
+    assert node, "node is needed (the app and the review frontend need it too): install Node >= 22.6"
+    src = REPO / "curation-review" / "frontend" / "src" / "review.ts"
+    code = f"const R = await import({json.dumps(src.as_uri())}); console.log(JSON.stringify({expr}));"
+    got = subprocess.run([node, "--input-type=module", "-e", code], capture_output=True,
+                         text=True, timeout=60)
+    assert got.returncode == 0, got.stderr[-2000:]
+    return json.loads(got.stdout.strip().splitlines()[-1])
+
+
+def test_a_zone_entry_moves_on_only_when_every_rule_is_marked():
+    """Enter on a zone rule opens the next OPEN rule — after it, then wrapping to one before it; the
+    entry is done (-1, the screen moves on) only when none is open. It used to look only AFTER the
+    rule: marking the last rule first left the earlier ones unmarked and moved to the next entry."""
+    got = _node_review(
+        "[['r1','r2','r3'], ['r2'], ['r1','r3'], []].map((open) =>"
+        " [0, 1, 2].map((at) => R.nextOpenRule(['r1','r2','r3'], at, (k) => open.includes(k))))")
+    assert got == [[1, 2, 0],       # all open: the next one, the last wraps to the first
+                   [1, -1, 1],      # only r2 open: from r1 or r3 it is r2; marking r2 ends it
+                   [2, 2, 0],       # r1 and r3 open: from r3 it wraps back to r1
+                   [-1, -1, -1]]    # none open: done

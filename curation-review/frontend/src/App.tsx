@@ -140,7 +140,16 @@ export default function App() {
   const list: { id: string; verify?: string }[] = work === "splits"
     ? cards.map((c) => ({ id: c.split_id, verify: c.status }))
     : rows.map((r) => ({ id: r.entry_id, verify: r.verify }));
-  const go = work === "splits" ? openCard : loadDetail;
+  // AN UNSAVED FIX-MODE DRAFT IS NEVER LEFT BY ONE KEY (T134 adversarial review): j / k / u, the
+  // queue's prev / next and the move after a final mark all go through `go`, which asks first.
+  const draftDirty = useRef(false);
+  const onDirty = useCallback((d: boolean) => { draftDirty.current = d; }, []);
+  const go = (id: string) => {
+    if (draftDirty.current && !window.confirm("This entry has unsaved edits. Leave it and discard them?"))
+      return;
+    draftDirty.current = false;
+    (work === "splits" ? openCard : loadDetail)(id);
+  };
   const idx = list.findIndex((r) => r.id === selected);
   const nav = {
     pos: idx + 1,
@@ -364,6 +373,7 @@ export default function App() {
               nav={nav}
               mode={mode}
               onMarked={onMarked}
+              onDirty={onDirty}
             />
           </VocabCtx.Provider>
         ) : (

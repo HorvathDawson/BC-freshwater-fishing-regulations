@@ -1,6 +1,7 @@
 """THE REVIEW TIERS (PLAN §3) — which pile an entry or a split point is reviewed in.
 
-    S0     split points still to verify (an open auto-proposal, or a note that says "Verify:")
+    S0     split points still to verify (an open auto-proposal, a note that says "Verify:", or a
+           split mark gone stale)
     P1     closures with a risk factor (a cut, several waters, a flag, no match)
     Z      zone entries (the region chapters and the provincial pages)
     P2     plain closures
@@ -77,9 +78,12 @@ def split_grade(split: dict) -> str | None:
     return m.group(1) if m else None
 
 
-def split_needs_verify(split: dict) -> bool:
-    """Tier S0: an open auto-proposal, or a note asking for a check ("Verify: …")."""
-    return split_grade(split) is not None or "Verify:" in str(split.get("_note") or "")
+def split_needs_verify(split: dict, mark_status: str | None = None) -> bool:
+    """Tier S0: an open auto-proposal, a note asking for a check ("Verify: …"), or a split mark
+    that went STALE (`mark_status`, the split's mark state): a confirmed point whose anchor or kind
+    changed since is a point to confirm again, never one the queue stops showing."""
+    return (split_grade(split) is not None or "Verify:" in str(split.get("_note") or "")
+            or mark_status == "stale")
 
 
 #: S0 order: L grade first (PLAN §3), then M, H, then a "Verify:" note with no grade

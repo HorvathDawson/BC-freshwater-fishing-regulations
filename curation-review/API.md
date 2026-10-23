@@ -224,7 +224,8 @@ confirmed is `unmarked` (a split added mid-review queues itself).
 - `GET /api/entries/{id}/evidence/crop.png` — the row (water column above regulation column) or
   passage at 2.6 px/pt; `…/evidence/page.png` — the printed page with it marked. `404` naming the
   command when the sidecar is missing.
-- `GET /api/review/splits?all=` → the split cards (tier S0 unless `all`): `[{split_id, label, kind,
+- `GET /api/review/splits?all=` → the split cards (tier S0 unless `all`; S0 includes a split whose
+  mark went stale): `[{split_id, label, kind,
   waterbody, grade, note, s0, item_id, status, verdict, reasons, vintage}]`, to-do first, grade L
   first.
 - `GET /api/review/progress` → `{tiers: [{tier, total, done, stale, todo}], overall}` (done = a
@@ -383,7 +384,9 @@ pipeline's split loader; a duplicate id is refused. The note is stamped "Verify:
 <date> …" (tier S0). `GET /api/build` then lists the split with the atlas commands.
 
 ### PUT /api/splits/{split_id}
-Body `{ "patch": {label?, note?, kind?, anchor?} }` → `{ok, errors}`. A new anchor MOVES the split.
+Body `{ "patch": {label?, note?, kind?, anchor?} }` → `{ok, errors}`. A new anchor MOVES the split;
+a moved split not already in S0 has its note stamped "Verify: moved in fix mode <date> …"
+(`reuse.fix_mode_stamp`, the add's stamp), so it is confirmed again after the rebuild.
 
 ### DELETE /api/splits/{split_id}
 → `{ok, errors}` · 404 if absent.

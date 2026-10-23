@@ -120,8 +120,8 @@ def review_view(entry_id: str, day: str | None = None) -> dict | None:
 
 
 def split_queue(only_to_verify: bool = True) -> list[dict]:
-    """The split cards: every split point (tier S0 alone by default — an open auto-proposal or a
-    "Verify:" note), its note and grade, its water, its mark status and whether the atlas holds it
+    """The split cards: every split point (tier S0 alone by default — an open auto-proposal, a
+    "Verify:" note, or a split mark gone stale), its note and grade, its water, its mark status and whether the atlas holds it
     as authored. Order: not yet done (unmarked, stale) first, then grade L, M, H, ungraded, then
     the waterbody's name — PLAN §3 "L grade first"."""
     from pipeline.regs.review import tiers as T
@@ -131,13 +131,16 @@ def split_queue(only_to_verify: bool = True) -> list[dict]:
     for wb in data.get("waterbodies", []):
         for sp in wb.get("splits", []):
             sid = sp.get("id")
-            if not sid or (only_to_verify and not T.split_needs_verify(sp)):
+            if not sid:
                 continue
             st = states.get(sid) or {"status": "unmarked", "verdict": None, "reasons": [],
                                      "vintage": None}
+            s0 = T.split_needs_verify(sp, st["status"])
+            if only_to_verify and not s0:
+                continue
             out.append({"split_id": sid, "label": sp.get("label"), "kind": sp.get("kind"),
                         "waterbody": wb.get("name"), "grade": T.split_grade(sp),
-                        "note": str(sp.get("_note") or ""), "s0": T.split_needs_verify(sp),
+                        "note": str(sp.get("_note") or ""), "s0": s0,
                         "item_id": reuse.split_item(sp, wb),
                         "status": st["status"], "verdict": st.get("verdict"),
                         "reasons": st.get("reasons") or [], "vintage": st.get("vintage")})

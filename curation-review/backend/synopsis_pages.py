@@ -15,11 +15,18 @@ changes bytes day to day.
 from __future__ import annotations
 
 import io
+import threading
 from functools import lru_cache
 
 from pipeline.common import synopsis_pages as _pages
 
 PDF_PATH = _pages.default_pdf()
+
+#: PDFIUM IS NOT THREAD-SAFE. FastAPI runs these sync routes in a thread pool, and the review screen
+#: asks for a crop and a page at once (and `j` held down asks for many): two renders in flight
+#: failed "Failed to load page." (8 threads x 6 renders: every thread failed; under this lock none
+#: did). Every pdfium call in the backend holds it — `page_png` here and `evidence._render`.
+PDFIUM_LOCK = threading.Lock()
 
 
 def printed_to_pdf() -> dict[int, int]:
@@ -38,11 +45,12 @@ def page_png(printed: int, scale: float = 1.6) -> bytes | None:
     if n is None:
         return None
     import pypdfium2 as pdfium
-    doc = pdfium.PdfDocument(str(PDF_PATH))
-    try:
-        img = doc[n - 1].render(scale=scale).to_pil()
-    finally:
-        doc.close()
+    with PDFIUM_LOCK:
+        doc = pdfium.PdfDocument(str(PDF_PATH))
+        try:
+            img = doc[n - 1].render(scale=scale).to_pil()
+        finally:
+            doc.close()
     buf = io.BytesIO()
     img.save(buf, format="PNG", optimize=True)
     return buf.getvalue()

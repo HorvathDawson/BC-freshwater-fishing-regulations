@@ -69,11 +69,12 @@ def _stamp(p: Path) -> tuple:
 
 def row_boxes() -> dict:
     """The sidecar's rows, checked to be this extraction's. Raises `Missing`."""
-    return _row_boxes(_stamp(ROW_BOXES_PATH), _stamp(RAW_DATA_PATH))["rows"]
+    return _row_boxes(_stamp(ROW_BOXES_PATH), _stamp(RAW_DATA_PATH),
+                      _stamp(synopsis_pages.PDF_PATH))["rows"]
 
 
 @lru_cache(maxsize=1)
-def _row_boxes(key: tuple, raw_key: tuple) -> dict:
+def _row_boxes(key: tuple, raw_key: tuple, pdf_key: tuple = (None, None, None)) -> dict:
     if key[1] is None:
         raise Missing(f"{ROW_BOXES_PATH} does not exist — make it with `{ROW_BOXES_COMMAND}` "
                       f"(no credits; a few minutes)")
@@ -86,6 +87,15 @@ def _row_boxes(key: tuple, raw_key: tuple) -> dict:
         if doc.get("raw_data_sha256") != now:
             raise Missing(f"{ROW_BOXES_PATH} was cut from another extraction than "
                           f"{RAW_DATA_PATH.name} — remake it with `{ROW_BOXES_COMMAND}`")
+    # THE BOXES ARE POINTS ON ONE PDF (T134 adversarial review): a new book dropped in
+    # data/source before the extraction is re-run keeps the raw data's sha, so that check passes —
+    # and every crop would be cut from the new book at the old book's places. The crop is rendered
+    # from `synopsis_pages.PDF_PATH`, so the sidecar must be of that file's bytes.
+    if pdf_key[1] is not None:
+        pdf = hashlib.sha256(Path(pdf_key[0]).read_bytes()).hexdigest()
+        if doc.get("pdf_sha256") != pdf:
+            raise Missing(f"{ROW_BOXES_PATH} was cut from another PDF than {pdf_key[0]} — "
+                          f"re-run the extraction on it, then `{ROW_BOXES_COMMAND}`")
     return doc
 
 
@@ -95,11 +105,12 @@ def _row_boxes(key: tuple, raw_key: tuple) -> dict:
 def _render(pdf_page: int, scale: float):
     """The PDF page rendered (PIL, RGB) — the repo copy the entries were read from."""
     import pypdfium2 as pdfium
-    doc = pdfium.PdfDocument(str(synopsis_pages.PDF_PATH))
-    try:
-        return doc[pdf_page - 1].render(scale=scale).to_pil().convert("RGB")
-    finally:
-        doc.close()
+    with synopsis_pages.PDFIUM_LOCK:                 # pdfium is not thread-safe (synopsis_pages)
+        doc = pdfium.PdfDocument(str(synopsis_pages.PDF_PATH))
+        try:
+            return doc[pdf_page - 1].render(scale=scale).to_pil().convert("RGB")
+        finally:
+            doc.close()
 
 
 @lru_cache(maxsize=24)

@@ -55,6 +55,17 @@ export function keepSelected(fresh: QueueRow[], old: QueueRow[], selected: strin
   return [...fresh.slice(0, pos), old[at], ...fresh.slice(pos)];
 }
 
+/** A ZONE ENTRY'S NEXT RULE after `keys[at]` is marked: the next one still open after it, then
+ *  WRAPPING to an open one before it; -1 when none is open — only then is the entry done and the
+ *  screen moves on (a reviewer who clicked rule 3 first still gets rules 1 and 2). */
+export function nextOpenRule(keys: string[], at: number, isOpen: (k: string) => boolean): number {
+  for (let d = 1; d < keys.length; d++) {
+    const i = (at + d) % keys.length;
+    if (isOpen(keys[i])) return i;
+  }
+  return -1;
+}
+
 /** The index of the next row whose mark is `unsure` after `from` (wrapping), or -1. */
 export function nextUnsure<T extends { verify?: string; status?: string }>(rows: T[], from: number): number {
   for (let k = 1; k <= rows.length; k++) {

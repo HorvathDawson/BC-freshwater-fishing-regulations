@@ -1859,8 +1859,7 @@ def add_split(body: dict) -> dict:
         # A NEW SPLIT IS TIER S0 (owner: "the new split appears in tier S0 to confirm"): its note
         # opens with "Verify:", which `tiers.split_needs_verify` reads — until a split mark
         # confirms it on the built map, it is a split point still to verify like any other.
-        import datetime as _dt
-        stamp = f"Verify: added in fix mode {_dt.date.today().isoformat()} — confirm on the built map."
+        stamp = fix_mode_stamp("added")
         new = {"id": sp["id"], "label": sp.get("label") or sp["id"], "kind": sp.get("kind"),
                "anchor": copy.deepcopy(sp["anchor"]), "note": sp.get("note") or "",
                "_note": f"{stamp} {sp.get('_note') or ''}".strip(),
@@ -1935,6 +1934,15 @@ def get_split(split_id: str) -> dict | None:
     return None
 
 
+def fix_mode_stamp(action: str) -> str:
+    """THE NOTE A FIX-MODE CHANGE TO A SPLIT POINT OPENS WITH (owner 2026-10-23: "add splits and
+    rebuild then continue review with the new splits"): "Verify: <added|moved> in fix mode <date>
+    — confirm on the built map." It puts the split in tier S0 (`tiers.split_needs_verify` reads
+    "Verify:") until a split mark confirms it where the owner's build put it."""
+    import datetime as _dt
+    return f"Verify: {action} in fix mode {_dt.date.today().isoformat()} — confirm on the built map."
+
+
 def save_split(split_id: str, patch: dict) -> dict:
     """Apply a patch (label / note / kind / anchor) to a split in splits.json and write it back.
     The patched file is validated by the pipeline's own split loader (`split_errors`) first; an
@@ -1953,7 +1961,14 @@ def save_split(split_id: str, patch: dict) -> dict:
                        if sp.get("id") == split_id), None)
         if target is None:
             return {"ok": False, "errors": [f"split {split_id} not found in splits.json"]}
+        moved = "anchor" in patch and patch["anchor"] != target.get("anchor")
         target.update(copy.deepcopy(patch))
+        # A MOVED SPLIT IS A SPLIT POINT TO CONFIRM AGAIN (T134 adversarial review): its old mark
+        # goes stale with its anchor, but a split whose note asked for no check was not in S0, so
+        # the review queue never showed it again. The move stamps it as an add does.
+        from pipeline.regs.review.tiers import split_needs_verify
+        if moved and not split_needs_verify(target):
+            target["_note"] = f"{fix_mode_stamp('moved')} {target.get('_note') or ''}".strip()
         errs = split_errors(data, {split_id})
         if errs:
             return {"ok": False, "errors": errs}

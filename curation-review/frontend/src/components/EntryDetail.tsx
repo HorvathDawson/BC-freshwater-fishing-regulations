@@ -31,6 +31,8 @@ interface Props {
   mode: Mode;
   /** a mark was recorded; `final` when the entry is done */
   onMarked: (final: boolean) => void;
+  /** whether the fix-mode draft differs from the file (the screen asks before leaving it) */
+  onDirty?: (dirty: boolean) => void;
 }
 
 // Curated-split state vs the built graph, for the colour-coded chip badge.
@@ -66,7 +68,7 @@ function stored(e: Entry): Entry {
   };
 }
 
-export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0, nav, mode, onMarked }: Props) {
+export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0, nav, mode, onMarked, onDirty }: Props) {
   const vocab = useVocab();
   const fix = mode.fix;
   // T134: what the checklist is answered from — evidence, coverage, tier, impact, the app link
@@ -179,6 +181,8 @@ export function EntryDetail({ detail, onSaved, onNavigate, reloadKey = 0, nav, m
     () => JSON.stringify(entry) !== JSON.stringify(stored(detail.entry)),
     [entry, detail.entry],
   );
+  useEffect(() => { onDirty?.(dirty); }, [dirty, onDirty]);
+  useEffect(() => () => onDirty?.(false), [onDirty]);
 
   function edit(fn: (e: Entry) => Entry) {
     setSaveErrors([]);
