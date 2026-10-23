@@ -3,7 +3,17 @@
 Restart here. Update this file after EVERY step: what is done, what is running, and the exact next action.
 Logs from timing runs live in the session scratchpad, which a reboot wipes. The numbers that matter are copied here.
 
-## CURRENT STATE (2026-10-23 evening)
+## CURRENT STATE (2026-10-23 night)
+- Merged + delivered: app walk T143–T147, T112/T119, T100 → release **r-8b761969206f** (no binding changed); local feed
+  republished (Level answers at +1/+3/+5 at 359 stations; Change = CLEVER+COFFEE). Fixtures ee896281.
+- Smoke: 4 parity fails on x4p_1010 (Shuswap: T100 adds the map page p.28 to book links, house format) — an agent is
+  adding a counted golden rewrite (like subcapTotal) — wait for it, then smoke again.
+- Slough page v2 published (T149); owner's 98 marks verified identical; backup handoff/PLAN/sloughs/marks/.
+- Owner questions triaged: 37 left (OWNER-TODO grouped); 64 decided + 12 answered in decisions.md.
+- Running: wf_3b941604-37b "band2-batch-7" (T150+T151, T157+T158+T156, T153+T160 reach, T161+T154). After it: merge,
+  reach rerun + deliver + fixtures + smoke; then the CLEANUP band (T60 → T70 → T61 → T62 → T63; T72, T73).
+
+## (earlier) CURRENT STATE (2026-10-23 evening)
 - Batch 6 part 1 merged + delivered: T136 (curation gate; pilot = owner Q114), T125 (partial), T109 done — release
   **r-d72230f10993** (13,636,360 B gz), no binding changed; fixtures 76e7ef05; smoke green (7976 app, 207 pytest, 18).
 - Running: wf_9298a794-aef (T112→T119, T100 resumed in their worktrees wf_144b677f-89c-2/-4 after a network failure);
