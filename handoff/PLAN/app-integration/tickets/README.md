@@ -172,7 +172,7 @@ use that as the sole source of future work."
 | T125 | latent duplicate checks: pins and small helpers | OPEN | — | all |
 | T126 | forecast reading bugs: CLEVER times 8 h off, 5-day summary on a 10-day run, dots ignore horizon | OPEN | — | all (band 2) |
 | T127 | displaced rule still shows "counts toward" and bounds the card gate | DONE | 2a0458f2, 358b5076, 77566458 | live after the next deliver |
-| T128 | sub-cap line names its total ("of your 5 trout and char a day in streams, up to 2 may be…") | PARTIAL | 59aba774, c7d9f57f, 77566458, c410ca42, e839d0cd | deliver + golden re-cut |
+| T128 | sub-cap line names its total ("of your 5 trout and char a day in streams, up to 2 may be…") | DONE | 59aba774, c7d9f57f, 77566458, c410ca42, e839d0cd, 6d768bd6, bb46f5f1, 001e8ffd | — |
 | T129 | web request budget: gate first-paint / per-tap bytes, not only the release total | OPEN | — | all |
 | T130 | Conditions: zoom out further before the basin heat map; Change chip greyed under Level | OPEN | — | all |
 | T131 | spot pins look better and open the spot on tap | OPEN | — | all |
