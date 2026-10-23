@@ -462,6 +462,13 @@ def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None,
         outside=outside,
         reasons=why,
     )
+    widened = sorted({p for got in per if got for p in (got.get("widened") or ())})
+    if widened:
+        # REPORTED, never silent (T153, `extent.river_widenings`): the unnamed polygons the river's
+        # main flow runs through that this rule's extents took as the river. What the rule finally
+        # binds may be fewer (a `feature_types: [stream]` filter, the tidal or region limits).
+        diags.append(Diagnostic(entry["entry_id"], rule["rule_id"], "river_widening",
+                                {"polygons": widened}))
     for row in getattr(expander, "confluence", None) or ():
         # REPORTED, never silent: which joining water each confluence cut kept out of the walk,
         # and which the rule's words took in.

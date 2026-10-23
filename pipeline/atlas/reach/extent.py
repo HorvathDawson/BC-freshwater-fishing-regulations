@@ -30,6 +30,7 @@ from __future__ import annotations
 from pipeline.atlas.graph.windows import polygon_window
 from pipeline.atlas.registry import regions as _regions
 from pipeline.atlas.registry.basins import basin_code, basin_members
+from pipeline.common.fwa_edge_types import is_main_flow
 from pipeline.common.registry_kinds import area_key
 from pipeline.common.utils.wsc import trim_wsc   # noqa: F401  (used by the moved body)
 from pipeline.common.utils import wsc as _wsc
@@ -750,6 +751,93 @@ def _bracket(g, comp: set[str], inside: set[str], outside: set[str], universe: s
     return sides.pop() if len(sides) == 1 else ""
 
 
+#: POLICY (T153, owner question Q124 — OPEN; built on its stated default, 2026-10-23): AN UNNAMED
+#: LAKE POLYGON THE RIVER'S MAIN FLOW RUNS THROUGH IS THE RIVER for a rule whose extent covers BOTH
+#: SIDES of it — the book's "river" includes its widenings unless it names the lake. FWA cuts a blue
+#: line at every waterbody it crosses and the graph makes each one a `lake:{wbk}` node that no river
+#: item holds, so a river row's reach stopped at every pond on its course and the pond fell back to
+#: the zone rules (456 such polygons under a named row, census T148). A NAMED lake (a GNIS name on
+#: the node) or one any registry water holds never takes the river's row: it is a water of its own.
+#: Decided by ONE function, `river_widenings`; every extent that measures a river (`whole`, the cuts,
+#: a `within` of a named water) calls it. False = the reach stops at the polygon (the mutation pin).
+UNNAMED_LAKES_ON_THE_RIVER_ARE_THE_RIVER = True
+
+#: How many unnamed polygons back to back one widening may chain through (a pond draining straight
+#: into another pond on the same line). Measured: the longest chain under a regulated row is short;
+#: the cap only bounds a pathological graph.
+WIDENING_CHAIN_MAX = 8
+
+#: {id(registry): (registry, frozenset of sections a registry WATER holds)} — checked by identity.
+_HELD: dict[int, tuple[object, frozenset]] = {}
+
+
+def _held_by_a_water(reg) -> frozenset:
+    """Every section some registry water (stream, lake, wetland — never an area) holds."""
+    hit = _HELD.get(id(reg))
+    if hit is None or hit[0] is not reg:
+        out: set[str] = set()
+        for it in (reg.values() if hasattr(reg, "values") else ()):
+            k = getattr(it, "kind", "")
+            if str(getattr(k, "value", k) or "").lower() in ("stream", "lake", "wetland"):
+                out.update(getattr(it, "section_ids", None) or ())
+        hit = _HELD[id(reg)] = (reg, frozenset(out))
+    return hit[1]
+
+
+def river_widenings(g, reg, selected: set[str]) -> set[str]:
+    """THE UNNAMED LAKE POLYGONS a reach takes as its river's widenings (T153,
+    `UNNAMED_LAKES_ON_THE_RIVER_ARE_THE_RIVER`) — the one place it is decided.
+
+    A polygon is taken when ALL hold:
+      * it is a waterbody node with no GNIS name and no registry water holds it (unnamed, not a
+        water of its own — every registry lake is named);
+      * it is not already selected;
+      * the river's MAIN FLOW runs through it: it drains (`lake_out`) into a SELECTED piece P, and
+        a SELECTED piece on P's own blue line, from further up that line, flows into it
+        (`lake_in`) — the extent covers both sides, as `graph.tributaries._lake_mid_reach` reads
+        "a lake in the middle of the reach" — and both pieces carry a MAIN FLOW line
+        (`fwa_edge_types.is_main_flow`: 1000/1050/1200/1250). A pond on a side channel (1100/1350,
+        or a blue line of its own), a lake at the reach's top or mouth, or one holding a cut is
+        never taken.
+    Unnamed polygons back to back on the line (a pond draining into a pond) are taken together,
+    every one on the path between the two sides (`WIDENING_CHAIN_MAX`); a NAMED polygon in the
+    chain breaks it."""
+    if not UNNAMED_LAKES_ON_THE_RIVER_ARE_THE_RIVER or g is None or not hasattr(g, "nodes"):
+        return set()
+    held = _held_by_a_water(reg)
+
+    def _open(nid: str) -> bool:
+        n = g.nodes.get(nid)
+        return (n is not None and not n.blk and not (n.gnis_id or n.display_name)
+                and nid not in held and nid not in selected)
+
+    out: set[str] = set()
+    for pid in sorted(selected):
+        p = g.nodes.get(pid)
+        if p is None or not p.blk or not is_main_flow(p):
+            continue
+        for ei in sorted(g.up_adj.get(pid, ())):
+            e = g.edges[ei]
+            if e.kind != "lake_out" or not _open(e.from_node):
+                continue
+            stack = [(e.from_node, (e.from_node,))]
+            while stack:
+                cur, path = stack.pop()
+                for ej in sorted(g.up_adj.get(cur, ())):
+                    f = g.edges[ej]
+                    src = f.from_node
+                    s = g.nodes.get(src)
+                    if s is None:
+                        continue
+                    if s.blk:
+                        if (f.kind == "lake_in" and src in selected and s.blk == p.blk
+                                and s.down_m >= p.up_m - 1.0 and is_main_flow(s)):
+                            out.update(path)
+                    elif src not in path and len(path) < WIDENING_CHAIN_MAX and _open(src):
+                        stack.append((src, path + (src,)))
+    return out
+
+
 def whole_water_sections(reg, g, item_id: str) -> set[str]:
     """Every section a water's id stands for when a rule names the WHOLE of it: its own, and — for
     a lake cut into parts, which owns none (user ruling 2026-10-03, `registry.add_lake_parts`) —
@@ -1047,9 +1135,21 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
         out = sec if limit_sections is None else (sec & limit_sections)
         return (out - drop_sections) if drop_sections else out
 
-    def _out(sec: set[str], **extra) -> dict:
+    def _out(sec: set[str], *, widen: bool = False, inside: set[str] | None = None,
+             **extra) -> dict:
+        # THE RIVER'S UNNAMED WIDENINGS (T153, `river_widenings`): a measured river extent takes
+        # every unnamed polygon its main flow runs through between two pieces it selected — a
+        # `within` of a named water only those inside the area. Reported (`widened`), and kept out
+        # of `waters`, which names the waters the reach lands on.
+        wide: set[str] = river_widenings(g, reg, sec) if widen else set()
+        if inside is not None:
+            wide &= inside
+        river = sec
+        sec = sec | wide
         d = {"sections": sorted(_limited(sec)), "unclassified": [], "ambiguous_cut": [],
-             "window": None, "cuts": [], "waters": _waters(g, _limited(sec))}
+             "window": None, "cuts": [], "waters": _waters(g, _limited(river))}
+        if wide:
+            d["widened"] = sorted(_limited(wide))
         if not d["sections"]:
             # resolved, and selects nothing: said, so an unbound rule's reason is the resolver's
             if op == "between":
@@ -1078,7 +1178,7 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
         return d
 
     if op == "whole":
-        return _out(universe)
+        return _out(universe, widen=True)
     if op == "within":
         # An `area:` registry item already carries every section its polygon covers (the build's
         # membership pass), so `within` needs no geometry here — it is a set operation.
@@ -1140,7 +1240,7 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
             # means the rule paired a water with an area it never enters.
             _fail("area_does_not_meet_this_water", aid or kind_of_area)
             return None
-        return _out(sec)
+        return _out(sec, widen=bool(universe), inside=in_area)
     # The measure window this extent resolved to, as (blk, lo, hi) — None when there isn't
     # one (a `whole` extent, or a `between` spanning two blue lines). Returned rather than
     # discarded because the tributary walk needs the reach's lower cut to decide which
@@ -1327,5 +1427,6 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
                  unplaced=[s for s in part["unplaced"] if s not in braided],
                  at_cut=part["at_cut"], river_code=part["river_code"])
         return d
-    return _out(sec, unclassified=sorted(braided), ambiguous_cut=ambiguous, window=window,
+    return _out(sec, widen=True, unclassified=sorted(braided), ambiguous_cut=ambiguous,
+                window=window,
                 cuts=cuts, unclassified_why=_why_of(braided), straddle_placed=_placed(set(sec)))

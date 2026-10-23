@@ -1,0 +1,6908 @@
+{
+ "_about": "T153 measured 2026-10-23: every lake polygon a rule newly binds after extent.river_widenings (scratch reach run vs data/generated/reaches/full, same atlas, same entries digest 4e3f729204098d06). river = display name of the piece the polygon drains into; rules = entry::rule newly bound. 1,219 rule_section rows gained, 0 lost, 0 rescoped, 0 non-lake sections moved.",
+ "polygons": {
+  "lake:329021790": {
+   "river": [
+    "South Atnarko River"
+   ],
+   "area_m2": 1620787,
+   "lat": 51.98886,
+   "lon": -125.68335,
+   "rules": [
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r10",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r13",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r3",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r4",
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329026698": {
+   "river": [
+    "Pinkut Creek"
+   ],
+   "area_m2": 981500,
+   "lat": 54.36226,
+   "lon": -125.38047,
+   "rules": [
+    "r6:pinkut_creek@6-6::pinkut_creek.r2"
+   ]
+  },
+  "lake:329291824": {
+   "river": [
+    "Stave River"
+   ],
+   "area_m2": 937483,
+   "lat": 49.75421,
+   "lon": -122.50437,
+   "rules": [
+    "r2:stave_river@2-8::stave_river.r1",
+    "r2:stave_river@2-8::stave_river.r2",
+    "z2:stave_river_marking::stave_river_marking.r1"
+   ]
+  },
+  "lake:329502178": {
+   "river": [
+    "Salmon River"
+   ],
+   "area_m2": 856530,
+   "lat": 54.96649,
+   "lon": -123.84667,
+   "rules": [
+    "r7:salmon_river@7-15::salmon_river.r1"
+   ]
+  },
+  "lake:329247793": {
+   "river": [
+    "Kootenay River"
+   ],
+   "area_m2": 691211,
+   "lat": 51.03078,
+   "lon": -116.31165,
+   "rules": [
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r1",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r10",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r2",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r3",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r8",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r9"
+   ]
+  },
+  "lake:328984081": {
+   "river": [
+    "Kwinageese River"
+   ],
+   "area_m2": 490471,
+   "lat": 56.00252,
+   "lon": -128.75697,
+   "rules": [
+    "r6:kwinageese_river@6-30::kwinageese_river.r3",
+    "z6:trout_char_quota::trout_char_quota.r9b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329184498": {
+   "river": [
+    "McKinley Creek"
+   ],
+   "area_m2": 451037,
+   "lat": 52.1032,
+   "lon": -120.64931,
+   "rules": [
+    "r5:mckinley_creek@5-2::mckinley_creek.r1x",
+    "r5:mckinley_creek@5-2::mckinley_creek.r2"
+   ]
+  },
+  "lake:329632842": {
+   "river": [
+    "Denetiah Creek"
+   ],
+   "area_m2": 393372,
+   "lat": 58.31824,
+   "lon": -127.47422,
+   "rules": [
+    "r7:denetiah_creek@7-52::denetiah_creek.r1"
+   ]
+  },
+  "lake:329571952": {
+   "river": [
+    "Kildala River"
+   ],
+   "area_m2": 372555,
+   "lat": 53.87982,
+   "lon": -128.14385,
+   "rules": [
+    "r6:kildala_river@6-3::kildala_river.r1"
+   ]
+  },
+  "lake:329632849": {
+   "river": [
+    "Denetiah Creek"
+   ],
+   "area_m2": 365595,
+   "lat": 58.51378,
+   "lon": -127.29779,
+   "rules": [
+    "r7:denetiah_creek@7-52::denetiah_creek.r1"
+   ]
+  },
+  "lake:329420876": {
+   "river": [
+    "Kwinageese River"
+   ],
+   "area_m2": 346893,
+   "lat": 56.06158,
+   "lon": -128.97116,
+   "rules": [
+    "r6:kwinageese_river@6-30::kwinageese_river.r3",
+    "z6:trout_char_quota::trout_char_quota.r9b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329542452": {
+   "river": [
+    "Sustut River"
+   ],
+   "area_m2": 345738,
+   "lat": 56.60064,
+   "lon": -126.47935,
+   "rules": [
+    "r6:sustut_river@6-18::sustut_river.r1",
+    "r6:sustut_river@6-18::sustut_river.r2",
+    "z6:trout_char_quota::trout_char_quota.r9b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329238172": {
+   "river": [
+    "Klinaklini River"
+   ],
+   "area_m2": 336222,
+   "lat": 51.74959,
+   "lon": -125.07858,
+   "rules": [
+    "r5:klinaklini_river@5-6::klinaklini_river.r1"
+   ]
+  },
+  "lake:329507897": {
+   "river": [
+    "Wahpeeto Creek"
+   ],
+   "area_m2": 288000,
+   "lat": 51.22009,
+   "lon": -126.33542,
+   "rules": [
+    "r1:wahpeeto_creek@1-14::wahpeeto_creek.r1"
+   ]
+  },
+  "lake:329313065": {
+   "river": [
+    "Ksi Sii Aks"
+   ],
+   "area_m2": 205533,
+   "lat": 55.17213,
+   "lon": -129.02561,
+   "rules": [
+    "r6:ksi_sii_aks_river_formerly_tseax_river@6-14::ksi_sii_aks_river.r1",
+    "r6:ksi_sii_aks_river_formerly_tseax_river@6-14::ksi_sii_aks_river.r2"
+   ]
+  },
+  "lake:328994352": {
+   "river": [
+    "Denetiah Creek"
+   ],
+   "area_m2": 197826,
+   "lat": 58.52049,
+   "lon": -127.28327,
+   "rules": [
+    "r7:denetiah_creek@7-52::denetiah_creek.r1"
+   ]
+  },
+  "lake:329021843": {
+   "river": [
+    "South Atnarko River"
+   ],
+   "area_m2": 195087,
+   "lat": 51.91524,
+   "lon": -125.58775,
+   "rules": [
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r10",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r13",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r3",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r4",
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329238207": {
+   "river": [
+    "Klinaklini River"
+   ],
+   "area_m2": 188614,
+   "lat": 51.79272,
+   "lon": -125.00633,
+   "rules": [
+    "r5:klinaklini_river@5-6::klinaklini_river.r1"
+   ]
+  },
+  "lake:329518181": {
+   "river": [
+    "Anstey River"
+   ],
+   "area_m2": 174643,
+   "lat": 51.29205,
+   "lon": -118.84087,
+   "rules": [
+    "r3:anstey_river@3-36::anstey_river.r1",
+    "r3:anstey_river@3-36::anstey_river.r2"
+   ]
+  },
+  "lake:329182845": {
+   "river": [
+    "Homathko River"
+   ],
+   "area_m2": 174478,
+   "lat": 51.7135,
+   "lon": -124.59367,
+   "rules": [
+    "r5:homathko_river@5-5::homathko_river.r1"
+   ]
+  },
+  "lake:329148531": {
+   "river": [
+    "Nithi River"
+   ],
+   "area_m2": 165261,
+   "lat": 53.93775,
+   "lon": -125.27363,
+   "rules": [
+    "r6:nithi_river@6-4::nithi_river.r1"
+   ]
+  },
+  "lake:329246350": {
+   "river": [
+    "Moyie River"
+   ],
+   "area_m2": 159035,
+   "lat": 49.29279,
+   "lon": -116.16162,
+   "rules": [
+    "r4:moyie_river@4-5::moyie_river.r3"
+   ]
+  },
+  "lake:328996817": {
+   "river": [
+    "Lachmach River"
+   ],
+   "area_m2": 149457,
+   "lat": 54.25752,
+   "lon": -129.90922,
+   "rules": [
+    "r6:lachmach_river@6-14::lachmach_river.r1"
+   ]
+  },
+  "lake:329201872": {
+   "river": [
+    "Buckley Creek"
+   ],
+   "area_m2": 142584,
+   "lat": 57.88292,
+   "lon": -130.80311,
+   "rules": [
+    "r6:buckley_creek@6-21::buckley_creek.r1",
+    "r6:buckley_creek@6-21::buckley_creek.r2",
+    "r6:buckley_creek@6-21::buckley_creek.r3"
+   ]
+  },
+  "lake:329262655": {
+   "river": [
+    "Caribou Creek"
+   ],
+   "area_m2": 137920,
+   "lat": 49.97997,
+   "lon": -117.88717,
+   "rules": [
+    "r4:caribou_creek@4-15::caribou_creek.r1"
+   ]
+  },
+  "lake:329601781": {
+   "river": [
+    "Dean River"
+   ],
+   "area_m2": 133783,
+   "lat": 52.37858,
+   "lon": -125.16174,
+   "rules": [
+    "r5:dean_river@5-9::dean_river.r1",
+    "r5:dean_river@5-9::dean_river.r6",
+    "r5:dean_river@5-9::dean_river.r7",
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329247818": {
+   "river": [
+    "Kootenay River"
+   ],
+   "area_m2": 133782,
+   "lat": 51.04114,
+   "lon": -116.33063,
+   "rules": [
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r1",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r10",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r2",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r3",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r8",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r9"
+   ]
+  },
+  "lake:329054816": {
+   "river": [
+    "Fiftynine Creek"
+   ],
+   "area_m2": 131493,
+   "lat": 51.27102,
+   "lon": -121.64728,
+   "rules": [
+    "r3:fiftynine_creek@3-30::fiftynine_creek.r1"
+   ]
+  },
+  "lake:329197166": {
+   "river": [
+    "Rainy River"
+   ],
+   "area_m2": 131348,
+   "lat": 49.62797,
+   "lon": -123.54943,
+   "rules": [
+    "r2:rainy_river@2-5::rainy_river.r1"
+   ]
+  },
+  "lake:328986908": {
+   "river": [
+    "Cameron Creek"
+   ],
+   "area_m2": 130776,
+   "lat": 52.87808,
+   "lon": -120.86761,
+   "rules": [
+    "r5:cameron_creek@5-15::cameron_creek.r1",
+    "r5:cameron_creek@5-15::cameron_creek.r1x",
+    "r5:cameron_creek@5-15::cameron_creek.r2",
+    "r5:cameron_creek@5-15::cameron_creek.r3",
+    "r5:cameron_creek@5-15::cameron_creek.r4"
+   ]
+  },
+  "lake:329026878": {
+   "river": [
+    "Pinkut Creek"
+   ],
+   "area_m2": 125153,
+   "lat": 54.34727,
+   "lon": -125.35254,
+   "rules": [
+    "r6:pinkut_creek@6-6::pinkut_creek.r2"
+   ]
+  },
+  "lake:329184572": {
+   "river": [
+    "Moffat Creek"
+   ],
+   "area_m2": 120087,
+   "lat": 52.13974,
+   "lon": -120.97604,
+   "rules": [
+    "r5:moffat_creek@5-2::moffat_creek.r1x"
+   ]
+  },
+  "lake:329069292": {
+   "river": [
+    "Bull River"
+   ],
+   "area_m2": 117005,
+   "lat": 49.50375,
+   "lon": -115.34851,
+   "rules": [
+    "r4:bull_river@4-22::bull_river.r2",
+    "r4:bull_river@4-22::bull_river.r3"
+   ]
+  },
+  "lake:329247825": {
+   "river": [
+    "North White River"
+   ],
+   "area_m2": 102714,
+   "lat": 50.44719,
+   "lon": -115.23476,
+   "rules": [
+    "r4:north_fork_white_river@4-24::north_white_river.r1",
+    "r4:north_fork_white_river@4-24::north_white_river.r2"
+   ]
+  },
+  "lake:329170969": {
+   "river": [
+    "Watch Creek"
+   ],
+   "area_m2": 96973,
+   "lat": 51.49983,
+   "lon": -121.01036,
+   "rules": [
+    "r5:watch_creek@5-1::watch_creek.r1",
+    "r5:watch_creek@5-1::watch_creek.r1x"
+   ]
+  },
+  "lake:329064698": {
+   "river": [
+    "Bulkley River"
+   ],
+   "area_m2": 91584,
+   "lat": 54.46311,
+   "lon": -126.14655,
+   "rules": [
+    "r6:bulkley_river@6-9::bulkley_river.r1",
+    "r6:bulkley_river@6-9::bulkley_river.r2",
+    "r6:bulkley_river@6-9::bulkley_river.r3",
+    "z6:trout_char_quota::trout_char_quota.r9b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:328992863": {
+   "river": [
+    "Dean River"
+   ],
+   "area_m2": 90664,
+   "lat": 52.3749,
+   "lon": -125.17884,
+   "rules": [
+    "r5:dean_river@5-9::dean_river.r1",
+    "r5:dean_river@5-9::dean_river.r6",
+    "r5:dean_river@5-9::dean_river.r7",
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329526061": {
+   "river": [
+    "Dimsdale Creek"
+   ],
+   "area_m2": 86266,
+   "lat": 54.16918,
+   "lon": -120.43927,
+   "rules": [
+    "r7:dimsdale_creek@7-19::dimsdale_creek.r1"
+   ]
+  },
+  "lake:329148738": {
+   "river": [
+    "Endako River"
+   ],
+   "area_m2": 81766,
+   "lat": 54.39017,
+   "lon": -125.98461,
+   "rules": [
+    "r6:endako_river@6-4::endako_river.r1"
+   ]
+  },
+  "lake:329532539": {
+   "river": [
+    "Squamish River"
+   ],
+   "area_m2": 81764,
+   "lat": 50.28418,
+   "lon": -123.41176,
+   "rules": [
+    "r2:squamish_river@2-6::squamish_river.r1"
+   ]
+  },
+  "lake:329074461": {
+   "river": [
+    "Cariboo River"
+   ],
+   "area_m2": 81764,
+   "lat": 53.03242,
+   "lon": -120.51842,
+   "rules": [
+    "r5:cariboo_river@5-15::cariboo_river.r1",
+    "r5:cariboo_river@5-15::cariboo_river.r1x"
+   ]
+  },
+  "lake:329303555": {
+   "river": [
+    "Phelix Creek"
+   ],
+   "area_m2": 80289,
+   "lat": 50.64373,
+   "lon": -122.64473,
+   "rules": [
+    "r2:phelix_creek@2-11::phelix_creek.r1"
+   ]
+  },
+  "lake:329316146": {
+   "river": [
+    "Spius Creek"
+   ],
+   "area_m2": 75567,
+   "lat": 49.90127,
+   "lon": -121.31,
+   "rules": [
+    "r3:spius_creek@3-13::spius_creek.r1",
+    "r3:spius_creek@3-13::spius_creek.r2",
+    "r3:spius_creek@3-13::spius_creek.r3"
+   ]
+  },
+  "lake:328963527": {
+   "river": [
+    "Big Bar Creek"
+   ],
+   "area_m2": 74910,
+   "lat": 51.33685,
+   "lon": -121.85082,
+   "rules": [
+    "r3:big_bar_creek@3-31::big_bar_creek.r1"
+   ]
+  },
+  "lake:328964341": {
+   "river": [
+    "Fiftyseven Creek"
+   ],
+   "area_m2": 73822,
+   "lat": 51.2144,
+   "lon": -121.5797,
+   "rules": [
+    "r3:fiftyseven_creek@3-30::fiftyseven_creek.r1"
+   ]
+  },
+  "lake:328963529": {
+   "river": [
+    "Big Bar Creek"
+   ],
+   "area_m2": 71682,
+   "lat": 51.32327,
+   "lon": -121.82066,
+   "rules": [
+    "r3:big_bar_creek@3-31::big_bar_creek.r1"
+   ]
+  },
+  "lake:329054916": {
+   "river": [
+    "Fiftynine Creek"
+   ],
+   "area_m2": 71319,
+   "lat": 51.26814,
+   "lon": -121.62533,
+   "rules": [
+    "r3:fiftynine_creek@3-30::fiftynine_creek.r1"
+   ]
+  },
+  "lake:329679959": {
+   "river": [
+    "Lachmach River"
+   ],
+   "area_m2": 67491,
+   "lat": 54.27792,
+   "lon": -129.91447,
+   "rules": [
+    "r6:lachmach_river@6-14::lachmach_river.r1"
+   ]
+  },
+  "lake:328992893": {
+   "river": [
+    "Dean River"
+   ],
+   "area_m2": 65997,
+   "lat": 52.29709,
+   "lon": -125.13779,
+   "rules": [
+    "r5:dean_river@5-9::dean_river.r1",
+    "r5:dean_river@5-9::dean_river.r6",
+    "r5:dean_river@5-9::dean_river.r7",
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329021915": {
+   "river": [
+    "South Atnarko River"
+   ],
+   "area_m2": 65995,
+   "lat": 51.92184,
+   "lon": -125.62787,
+   "rules": [
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r10",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r13",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r3",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r4",
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329184645": {
+   "river": [
+    "Little Horsefly River"
+   ],
+   "area_m2": 64568,
+   "lat": 52.4547,
+   "lon": -120.66949,
+   "rules": [
+    "r5:little_horsefly_river@5-2::little_horsefly_river.r1",
+    "r5:little_horsefly_river@5-2::little_horsefly_river.r1x",
+    "r5:little_horsefly_river@5-2::little_horsefly_river.r2"
+   ]
+  },
+  "lake:329502474": {
+   "river": [
+    "Salmon River"
+   ],
+   "area_m2": 63093,
+   "lat": 54.98048,
+   "lon": -123.82069,
+   "rules": [
+    "r7:salmon_river@7-15::salmon_river.r1"
+   ]
+  },
+  "lake:329505324": {
+   "river": [
+    "Cayoosh Creek"
+   ],
+   "area_m2": 62957,
+   "lat": 50.42268,
+   "lon": -122.27482,
+   "rules": [
+    "r3:cayoosh_creek@3-16::cayoosh_creek.r1"
+   ]
+  },
+  "lake:329102746": {
+   "river": [
+    "Crooked River"
+   ],
+   "area_m2": 62939,
+   "lat": 54.33531,
+   "lon": -122.67035,
+   "rules": [
+    "r7:crooked_river@7-24::crooked_river.r2",
+    "r7:crooked_river@7-24::crooked_river.r3"
+   ]
+  },
+  "lake:329247848": {
+   "river": [
+    "Kootenay River"
+   ],
+   "area_m2": 59999,
+   "lat": 51.07208,
+   "lon": -116.39527,
+   "rules": [
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r1",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r10",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r2",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r3",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r8",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r9"
+   ]
+  },
+  "lake:329421058": {
+   "river": [
+    "Kwinageese River"
+   ],
+   "area_m2": 57705,
+   "lat": 56.07336,
+   "lon": -128.97233,
+   "rules": [
+    "r6:kwinageese_river@6-30::kwinageese_river.r3",
+    "z6:trout_char_quota::trout_char_quota.r9b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329132037": {
+   "river": [
+    "Davis River"
+   ],
+   "area_m2": 57316,
+   "lat": 56.72483,
+   "lon": -124.18078,
+   "rules": [
+    "r7:davis_river@7-37::davis_river.r1"
+   ]
+  },
+  "lake:328964358": {
+   "river": [
+    "Bonaparte River"
+   ],
+   "area_m2": 56170,
+   "lat": 51.31997,
+   "lon": -120.73708,
+   "rules": [
+    "r3:bonaparte_river@3-30::bonaparte_river.r2"
+   ]
+  },
+  "lake:329037228": {
+   "river": [
+    "Big Bar Creek"
+   ],
+   "area_m2": 55946,
+   "lat": 51.32274,
+   "lon": -121.97523,
+   "rules": [
+    "r3:big_bar_creek@3-31::big_bar_creek.r1"
+   ]
+  },
+  "lake:328963539": {
+   "river": [
+    "Big Bar Creek"
+   ],
+   "area_m2": 55794,
+   "lat": 51.34264,
+   "lon": -121.86197,
+   "rules": [
+    "r3:big_bar_creek@3-31::big_bar_creek.r1"
+   ]
+  },
+  "lake:329526166": {
+   "river": [
+    "Dimsdale Creek"
+   ],
+   "area_m2": 54828,
+   "lat": 54.16156,
+   "lon": -120.45665,
+   "rules": [
+    "r7:dimsdale_creek@7-19::dimsdale_creek.r1"
+   ]
+  },
+  "lake:329027225": {
+   "river": [
+    "Fulton River"
+   ],
+   "area_m2": 52561,
+   "lat": 54.99271,
+   "lon": -126.92783,
+   "rules": [
+    "r6:fulton_river@6-8::fulton_river.r1",
+    "r6:fulton_river@6-8::fulton_river.r1b",
+    "r6:fulton_river@6-8::fulton_river.r2",
+    "r6:fulton_river@6-8::fulton_river.r3"
+   ]
+  },
+  "lake:329633011": {
+   "river": [
+    "Denetiah Creek"
+   ],
+   "area_m2": 52074,
+   "lat": 58.29941,
+   "lon": -127.52162,
+   "rules": [
+    "r7:denetiah_creek@7-52::denetiah_creek.r1"
+   ]
+  },
+  "lake:329518270": {
+   "river": [
+    "Celista Creek"
+   ],
+   "area_m2": 51859,
+   "lat": 51.24024,
+   "lon": -119.29504,
+   "rules": [
+    "r3:celista_creek@3-36::celista_creek.r1"
+   ]
+  },
+  "lake:329182950": {
+   "river": [
+    "Homathko River"
+   ],
+   "area_m2": 51391,
+   "lat": 51.72379,
+   "lon": -124.5816,
+   "rules": [
+    "r5:homathko_river@5-5::homathko_river.r1"
+   ]
+  },
+  "lake:329602028": {
+   "river": [
+    "Dean River"
+   ],
+   "area_m2": 51106,
+   "lat": 52.36619,
+   "lon": -125.16797,
+   "rules": [
+    "r5:dean_river@5-9::dean_river.r1",
+    "r5:dean_river@5-9::dean_river.r6",
+    "r5:dean_river@5-9::dean_river.r7",
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329171170": {
+   "river": [
+    "Watch Creek"
+   ],
+   "area_m2": 50860,
+   "lat": 51.50997,
+   "lon": -121.06338,
+   "rules": [
+    "r5:watch_creek@5-1::watch_creek.r1",
+    "r5:watch_creek@5-1::watch_creek.r1x"
+   ]
+  },
+  "lake:329664094": {
+   "river": [
+    "Shuswap River"
+   ],
+   "area_m2": 49573,
+   "lat": 50.2945,
+   "lon": -118.80846,
+   "rules": [
+    "r8:shuswap_river@8-26::shuswap_river.r3",
+    "r8:shuswap_river@8-26::shuswap_river.r4"
+   ]
+  },
+  "lake:328994114": {
+   "river": [
+    "Halfway River"
+   ],
+   "area_m2": 49321,
+   "lat": 56.90965,
+   "lon": -123.75452,
+   "rules": [
+    "r7:halfway_river@7-34::halfway_river.r1",
+    "r7:halfway_river@7-34::halfway_river.r2",
+    "r7:halfway_river@7-34::halfway_river.r3"
+   ]
+  },
+  "lake:328964369": {
+   "river": [
+    "Fiftynine Creek"
+   ],
+   "area_m2": 48586,
+   "lat": 51.22665,
+   "lon": -121.54331,
+   "rules": [
+    "r3:fiftynine_creek@3-30::fiftynine_creek.r1"
+   ]
+  },
+  "lake:329575628": {
+   "river": [
+    "Claud Elliott Creek"
+   ],
+   "area_m2": 47954,
+   "lat": 50.33595,
+   "lon": -126.53474,
+   "rules": [
+    "r1:claud_elliott_creek@1-10::claud_elliott_creek.r1"
+   ]
+  },
+  "lake:329313234": {
+   "river": [
+    "Ksi Hlginx"
+   ],
+   "area_m2": 46391,
+   "lat": 54.67715,
+   "lon": -129.46178,
+   "rules": [
+    "r6:ksi_hlginx_river_formerly_ishkheenickh_river@6-14::ksi_hlginx_river.r1",
+    "r6:ksi_hlginx_river_formerly_ishkheenickh_river@6-14::ksi_hlginx_river.r2"
+   ]
+  },
+  "lake:329095651": {
+   "river": [
+    "Oyster River"
+   ],
+   "area_m2": 44696,
+   "lat": 49.67137,
+   "lon": -125.48912,
+   "rules": [
+    "r1:oyster_river@1-6::oyster_river.r1",
+    "r1:oyster_river@1-6::oyster_river.r2",
+    "z1:cutthroat_tagging::cutthroat_tagging.r1"
+   ]
+  },
+  "lake:329171239": {
+   "river": [
+    "Watch Creek"
+   ],
+   "area_m2": 44592,
+   "lat": 51.51039,
+   "lon": -121.09146,
+   "rules": [
+    "r5:watch_creek@5-1::watch_creek.r1",
+    "r5:watch_creek@5-1::watch_creek.r1x"
+   ]
+  },
+  "lake:329021984": {
+   "river": [
+    "Atnarko River"
+   ],
+   "area_m2": 44230,
+   "lat": 52.11452,
+   "lon": -125.20066,
+   "rules": [
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r1",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r11",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r13",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r3",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r4",
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329182974": {
+   "river": [
+    "Homathko River"
+   ],
+   "area_m2": 44229,
+   "lat": 51.64753,
+   "lon": -124.39557,
+   "rules": [
+    "r5:homathko_river@5-5::homathko_river.r1"
+   ]
+  },
+  "lake:328966690": {
+   "river": [
+    "Crooked River"
+   ],
+   "area_m2": 44181,
+   "lat": 54.37785,
+   "lon": -122.64071,
+   "rules": [
+    "r7:crooked_river@7-24::crooked_river.r2",
+    "r7:crooked_river@7-24::crooked_river.r3"
+   ]
+  },
+  "lake:329037255": {
+   "river": [
+    "Big Bar Creek"
+   ],
+   "area_m2": 43944,
+   "lat": 51.34554,
+   "lon": -121.94572,
+   "rules": [
+    "r3:big_bar_creek@3-31::big_bar_creek.r1"
+   ]
+  },
+  "lake:329633050": {
+   "river": [
+    "Denetiah Creek"
+   ],
+   "area_m2": 43882,
+   "lat": 58.3055,
+   "lon": -127.50198,
+   "rules": [
+    "r7:denetiah_creek@7-52::denetiah_creek.r1"
+   ]
+  },
+  "lake:328988832": {
+   "river": [
+    "McNomee Creek"
+   ],
+   "area_m2": 43754,
+   "lat": 51.38391,
+   "lon": -119.03737,
+   "rules": [
+    "r3:mcnomee_creek@3-36::mcnomee_creek.r1",
+    "r3:mcnomee_creek@3-36::mcnomee_creek.r2"
+   ]
+  },
+  "lake:329526244": {
+   "river": [
+    "Dimsdale Creek"
+   ],
+   "area_m2": 42753,
+   "lat": 54.14827,
+   "lon": -120.50868,
+   "rules": [
+    "r7:dimsdale_creek@7-19::dimsdale_creek.r1"
+   ]
+  },
+  "lake:329316216": {
+   "river": [
+    "Maka Creek"
+   ],
+   "area_m2": 41851,
+   "lat": 49.7819,
+   "lon": -121.18971,
+   "rules": [
+    "r3:maka_creek@3-13::maka_creek.r1"
+   ]
+  },
+  "lake:329303641": {
+   "river": [
+    "Phelix Creek"
+   ],
+   "area_m2": 41681,
+   "lat": 50.64529,
+   "lon": -122.63547,
+   "rules": [
+    "r2:phelix_creek@2-11::phelix_creek.r1"
+   ]
+  },
+  "lake:329524201": {
+   "river": [
+    "Findlay Creek"
+   ],
+   "area_m2": 41423,
+   "lat": 49.94472,
+   "lon": -116.35875,
+   "rules": [
+    "r4:findlay_creek@4-26::findlay_creek.r2",
+    "r4:findlay_creek@4-26::findlay_creek.r3",
+    "r4:findlay_creek@4-26::findlay_creek.r4"
+   ]
+  },
+  "lake:329459369": {
+   "river": [
+    "Trout Creek"
+   ],
+   "area_m2": 40065,
+   "lat": 49.82366,
+   "lon": -119.98994,
+   "rules": [
+    "r8:trout_creek@8-8::trout_creek.r2"
+   ]
+  },
+  "lake:329518302": {
+   "river": [
+    "McNomee Creek"
+   ],
+   "area_m2": 39997,
+   "lat": 51.39003,
+   "lon": -119.02781,
+   "rules": [
+    "r3:mcnomee_creek@3-36::mcnomee_creek.r1",
+    "r3:mcnomee_creek@3-36::mcnomee_creek.r2"
+   ]
+  },
+  "lake:329037270": {
+   "river": [
+    "Big Bar Creek"
+   ],
+   "area_m2": 39795,
+   "lat": 51.32888,
+   "lon": -121.96918,
+   "rules": [
+    "r3:big_bar_creek@3-31::big_bar_creek.r1"
+   ]
+  },
+  "lake:329037273": {
+   "river": [
+    "Big Bar Creek"
+   ],
+   "area_m2": 39656,
+   "lat": 51.33209,
+   "lon": -121.83481,
+   "rules": [
+    "r3:big_bar_creek@3-31::big_bar_creek.r1"
+   ]
+  },
+  "lake:329101391": {
+   "river": [
+    "Haslam Creek"
+   ],
+   "area_m2": 39629,
+   "lat": 48.97097,
+   "lon": -124.0705,
+   "rules": [
+    "r1:haslam_creek@1-5::haslam_creek.r1"
+   ]
+  },
+  "lake:329177971": {
+   "river": [
+    "Big Silver Creek"
+   ],
+   "area_m2": 38987,
+   "lat": 49.83946,
+   "lon": -121.8167,
+   "rules": [
+    "r2:big_silver_creek@2-18::big_silver_creek.r1"
+   ]
+  },
+  "lake:329316225": {
+   "river": [
+    "Moore Creek"
+   ],
+   "area_m2": 38827,
+   "lat": 50.48478,
+   "lon": -120.43374,
+   "rules": [
+    "r3:moore_creek@3-19::moore_creek.r1"
+   ]
+  },
+  "lake:329072097": {
+   "river": [
+    "McLeod River"
+   ],
+   "area_m2": 36923,
+   "lat": 54.81776,
+   "lon": -123.32929,
+   "rules": [
+    "r7:mcleod_river@7-24::mcleod_river.r1"
+   ]
+  },
+  "lake:329650339": {
+   "river": [
+    "Albreda River"
+   ],
+   "area_m2": 36269,
+   "lat": 52.66669,
+   "lon": -119.11839,
+   "rules": [
+    "r3:albreda_river@3-43::albreda_river.r1"
+   ]
+  },
+  "lake:329452166": {
+   "river": [
+    "Nicola River"
+   ],
+   "area_m2": 35614,
+   "lat": 50.14154,
+   "lon": -120.28685,
+   "rules": [
+    "r3:nicola_river@3-13::nicola_river.r1",
+    "r3:nicola_river@3-13::nicola_river.r5"
+   ]
+  },
+  "lake:329055141": {
+   "river": [
+    "Bonaparte River"
+   ],
+   "area_m2": 35129,
+   "lat": 51.35349,
+   "lon": -120.77112,
+   "rules": [
+    "r3:bonaparte_river@3-30::bonaparte_river.r2"
+   ]
+  },
+  "lake:329055148": {
+   "river": [
+    "Fiftynine Creek"
+   ],
+   "area_m2": 34669,
+   "lat": 51.22564,
+   "lon": -121.55122,
+   "rules": [
+    "r3:fiftynine_creek@3-30::fiftynine_creek.r1"
+   ]
+  },
+  "lake:329055153": {
+   "river": [
+    "Fiftyseven Creek"
+   ],
+   "area_m2": 34157,
+   "lat": 51.21574,
+   "lon": -121.55011,
+   "rules": [
+    "r3:fiftyseven_creek@3-30::fiftyseven_creek.r1"
+   ]
+  },
+  "lake:329042073": {
+   "river": [
+    "Burnt Bridge Creek"
+   ],
+   "area_m2": 33474,
+   "lat": 52.5858,
+   "lon": -126.12024,
+   "rules": [
+    "r5:burnt_bridge_creek_upstream_of_sitkatapa_creek@5-11::burnt_bridge_creek.r1",
+    "r5:burnt_bridge_creek_upstream_of_sitkatapa_creek@5-11::burnt_bridge_creek.r2",
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:328988135": {
+   "river": [
+    "Mohun Creek"
+   ],
+   "area_m2": 33363,
+   "lat": 50.11799,
+   "lon": -125.4409,
+   "rules": [
+    "r1:mohun_creek@1-10::mohun_creek.r1",
+    "r1:mohun_creek@1-10::mohun_creek.r2"
+   ]
+  },
+  "lake:329680036": {
+   "river": [
+    "Khutzeymateen River"
+   ],
+   "area_m2": 33018,
+   "lat": 54.52305,
+   "lon": -129.71055,
+   "rules": [
+    "r6:khutzeymateen_river@6-14::khutzeymateen_river.r1"
+   ]
+  },
+  "lake:329022059": {
+   "river": [
+    "Hunlen Creek"
+   ],
+   "area_m2": 32487,
+   "lat": 52.20548,
+   "lon": -125.78844,
+   "rules": [
+    "r5:hunlen_creek_upstream_of_hunlen_falls@5-11::hunlen_creek.r1",
+    "r5:hunlen_creek_upstream_of_hunlen_falls@5-11::hunlen_creek.r2"
+   ]
+  },
+  "lake:329247897": {
+   "river": [
+    "Kootenay River"
+   ],
+   "area_m2": 32091,
+   "lat": 51.04668,
+   "lon": -116.34462,
+   "rules": [
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r1",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r10",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r2",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r3",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r8",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r9"
+   ]
+  },
+  "lake:329532654": {
+   "river": [
+    "Squamish River"
+   ],
+   "area_m2": 31536,
+   "lat": 50.2833,
+   "lon": -123.42765,
+   "rules": [
+    "r2:squamish_river@2-6::squamish_river.r1"
+   ]
+  },
+  "lake:329457724": {
+   "river": [
+    "Keogh River"
+   ],
+   "area_m2": 31428,
+   "lat": 50.53422,
+   "lon": -127.21021,
+   "rules": [
+    "r1:keogh_river@1-13::keogh_river.r2"
+   ]
+  },
+  "lake:329055211": {
+   "river": [
+    "Fiftynine Creek"
+   ],
+   "area_m2": 30846,
+   "lat": 51.25122,
+   "lon": -121.68982,
+   "rules": [
+    "r3:fiftynine_creek@3-30::fiftynine_creek.r1"
+   ]
+  },
+  "lake:329575650": {
+   "river": [
+    "Tsitika River"
+   ],
+   "area_m2": 30338,
+   "lat": 50.23722,
+   "lon": -126.35825,
+   "rules": [
+    "r1:tsitika_river@1-10::tsitika_river.r1"
+   ]
+  },
+  "lake:329316275": {
+   "river": [
+    "Spius Creek"
+   ],
+   "area_m2": 30109,
+   "lat": 49.8998,
+   "lon": -121.30676,
+   "rules": [
+    "r3:spius_creek@3-13::spius_creek.r1",
+    "r3:spius_creek@3-13::spius_creek.r2",
+    "r3:spius_creek@3-13::spius_creek.r3"
+   ]
+  },
+  "lake:329037333": {
+   "river": [
+    "Big Bar Creek"
+   ],
+   "area_m2": 29793,
+   "lat": 51.33445,
+   "lon": -121.96155,
+   "rules": [
+    "r3:big_bar_creek@3-31::big_bar_creek.r1"
+   ]
+  },
+  "lake:329504353": {
+   "river": [
+    "Caycuse River"
+   ],
+   "area_m2": 29636,
+   "lat": 48.75465,
+   "lon": -124.4954,
+   "rules": [
+    "r1:caycuse_river@1-3::caycuse_river.r1",
+    "r1:caycuse_river@1-3::caycuse_river.r2"
+   ]
+  },
+  "lake:329184864": {
+   "river": [
+    "Little Horsefly River"
+   ],
+   "area_m2": 29111,
+   "lat": 52.37007,
+   "lon": -121.3463,
+   "rules": [
+    "r5:little_horsefly_river@5-2::little_horsefly_river.r1",
+    "r5:little_horsefly_river@5-2::little_horsefly_river.r1x",
+    "r5:little_horsefly_river@5-2::little_horsefly_river.r2"
+   ]
+  },
+  "lake:329313320": {
+   "river": [
+    "Ksi Sii Aks"
+   ],
+   "area_m2": 28996,
+   "lat": 55.17593,
+   "lon": -129.02902,
+   "rules": [
+    "r6:ksi_sii_aks_river_formerly_tseax_river@6-14::ksi_sii_aks_river.r1",
+    "r6:ksi_sii_aks_river_formerly_tseax_river@6-14::ksi_sii_aks_river.r2"
+   ]
+  },
+  "lake:329069401": {
+   "river": [
+    "Gold Creek"
+   ],
+   "area_m2": 28746,
+   "lat": 49.39866,
+   "lon": -115.61097,
+   "rules": [
+    "r4:gold_creek@4-3::gold_creek.r1",
+    "r4:gold_creek@4-3::gold_creek.r2"
+   ]
+  },
+  "lake:329633146": {
+   "river": [
+    "Denetiah Creek"
+   ],
+   "area_m2": 28067,
+   "lat": 58.28972,
+   "lon": -127.54234,
+   "rules": [
+    "r7:denetiah_creek@7-52::denetiah_creek.r1"
+   ]
+  },
+  "lake:329467693": {
+   "river": [
+    "Tsable River"
+   ],
+   "area_m2": 28021,
+   "lat": 49.52609,
+   "lon": -125.10305,
+   "rules": [
+    "r1:tsable_river@1-6::tsable_river.r1"
+   ]
+  },
+  "lake:329149447": {
+   "river": [
+    "Endako River"
+   ],
+   "area_m2": 27659,
+   "lat": 54.39374,
+   "lon": -125.99299,
+   "rules": [
+    "r6:endako_river@6-4::endako_river.r1"
+   ]
+  },
+  "lake:329184901": {
+   "river": [
+    "Little Horsefly River"
+   ],
+   "area_m2": 26872,
+   "lat": 52.46177,
+   "lon": -120.67697,
+   "rules": [
+    "r5:little_horsefly_river@5-2::little_horsefly_river.r1",
+    "r5:little_horsefly_river@5-2::little_horsefly_river.r1x",
+    "r5:little_horsefly_river@5-2::little_horsefly_river.r2"
+   ]
+  },
+  "lake:329421343": {
+   "river": [
+    "Kwinageese River"
+   ],
+   "area_m2": 26049,
+   "lat": 56.06233,
+   "lon": -128.96533,
+   "rules": [
+    "r6:kwinageese_river@6-30::kwinageese_river.r3",
+    "z6:trout_char_quota::trout_char_quota.r9b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329037368": {
+   "river": [
+    "Big Bar Creek"
+   ],
+   "area_m2": 25787,
+   "lat": 51.32819,
+   "lon": -121.82827,
+   "rules": [
+    "r3:big_bar_creek@3-31::big_bar_creek.r1"
+   ]
+  },
+  "lake:329037373": {
+   "river": [
+    "Big Bar Creek"
+   ],
+   "area_m2": 25533,
+   "lat": 51.28192,
+   "lon": -121.98368,
+   "rules": [
+    "r3:big_bar_creek@3-31::big_bar_creek.r1"
+   ]
+  },
+  "lake:329575667": {
+   "river": [
+    "Claud Elliott Creek"
+   ],
+   "area_m2": 25215,
+   "lat": 50.31713,
+   "lon": -126.55558,
+   "rules": [
+    "r1:claud_elliott_creek@1-10::claud_elliott_creek.r1"
+   ]
+  },
+  "lake:329086997": {
+   "river": [
+    "Hemp Creek"
+   ],
+   "area_m2": 24933,
+   "lat": 52.02503,
+   "lon": -119.81963,
+   "rules": [
+    "r3:hemp_creek@3-46::hemp_creek.r1"
+   ]
+  },
+  "lake:328995276": {
+   "river": [
+    "Albreda River"
+   ],
+   "area_m2": 24735,
+   "lat": 52.62693,
+   "lon": -119.15238,
+   "rules": [
+    "r3:albreda_river@3-43::albreda_river.r1"
+   ]
+  },
+  "lake:329316336": {
+   "river": [
+    "Prospect Creek"
+   ],
+   "area_m2": 24032,
+   "lat": 50.14016,
+   "lon": -121.29142,
+   "rules": [
+    "r3:prospect_creek@3-13::prospect_creek.r1",
+    "r3:prospect_creek@3-13::prospect_creek.r2"
+   ]
+  },
+  "lake:329055357": {
+   "river": [
+    "Fiftyseven Creek"
+   ],
+   "area_m2": 23623,
+   "lat": 51.18932,
+   "lon": -121.58226,
+   "rules": [
+    "r3:fiftyseven_creek@3-30::fiftyseven_creek.r1"
+   ]
+  },
+  "lake:329481538": {
+   "river": [
+    "Cameron Creek"
+   ],
+   "area_m2": 23574,
+   "lat": 52.8753,
+   "lon": -120.85685,
+   "rules": [
+    "r5:cameron_creek@5-15::cameron_creek.r1",
+    "r5:cameron_creek@5-15::cameron_creek.r1x",
+    "r5:cameron_creek@5-15::cameron_creek.r2",
+    "r5:cameron_creek@5-15::cameron_creek.r3",
+    "r5:cameron_creek@5-15::cameron_creek.r4"
+   ]
+  },
+  "lake:329467715": {
+   "river": [
+    "Englishman River"
+   ],
+   "area_m2": 23565,
+   "lat": 49.23238,
+   "lon": -124.59081,
+   "rules": [
+    "r1:englishman_river@1-5::englishman_river.r1"
+   ]
+  },
+  "lake:329055368": {
+   "river": [
+    "Clinton Creek"
+   ],
+   "area_m2": 23215,
+   "lat": 51.12998,
+   "lon": -121.68574,
+   "rules": [
+    "r3:clinton_creek@3-30::clinton_creek.r1"
+   ]
+  },
+  "lake:329171688": {
+   "river": [
+    "Watch Creek"
+   ],
+   "area_m2": 23027,
+   "lat": 51.51177,
+   "lon": -121.07238,
+   "rules": [
+    "r5:watch_creek@5-1::watch_creek.r1",
+    "r5:watch_creek@5-1::watch_creek.r1x"
+   ]
+  },
+  "lake:328996890": {
+   "river": [
+    "Lachmach River"
+   ],
+   "area_m2": 22843,
+   "lat": 54.28897,
+   "lon": -129.93101,
+   "rules": [
+    "r6:lachmach_river@6-14::lachmach_river.r1"
+   ]
+  },
+  "lake:329602658": {
+   "river": [
+    "Dean River"
+   ],
+   "area_m2": 22291,
+   "lat": 52.2388,
+   "lon": -124.96803,
+   "rules": [
+    "r5:dean_river@5-9::dean_river.r1",
+    "r5:dean_river@5-9::dean_river.r6",
+    "r5:dean_river@5-9::dean_river.r7",
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329238590": {
+   "river": [
+    "Klinaklini River"
+   ],
+   "area_m2": 22197,
+   "lat": 51.75086,
+   "lon": -125.09886,
+   "rules": [
+    "r5:klinaklini_river@5-6::klinaklini_river.r1"
+   ]
+  },
+  "lake:329316355": {
+   "river": [
+    "Nicola River"
+   ],
+   "area_m2": 22071,
+   "lat": 50.16288,
+   "lon": -120.66163,
+   "rules": [
+    "r3:nicola_river@3-13::nicola_river.r2",
+    "r3:nicola_river@3-13::nicola_river.r3",
+    "r3:nicola_river@3-13::nicola_river.r3x",
+    "r3:nicola_river@3-13::nicola_river.r4",
+    "r3:nicola_river@3-13::nicola_river.r5"
+   ]
+  },
+  "lake:328974096": {
+   "river": [
+    "Deep Creek"
+   ],
+   "area_m2": 21838,
+   "lat": 54.58135,
+   "lon": -128.5548,
+   "rules": [
+    "r6:deep_creek@6-15::deep_creek.r1"
+   ]
+  },
+  "lake:329633216": {
+   "river": [
+    "Denetiah Creek"
+   ],
+   "area_m2": 21749,
+   "lat": 58.30634,
+   "lon": -127.49386,
+   "rules": [
+    "r7:denetiah_creek@7-52::denetiah_creek.r1"
+   ]
+  },
+  "lake:329246565": {
+   "river": [
+    "Moyie River"
+   ],
+   "area_m2": 21379,
+   "lat": 49.29181,
+   "lon": -116.15705,
+   "rules": [
+    "r4:moyie_river@4-5::moyie_river.r3"
+   ]
+  },
+  "lake:329246566": {
+   "river": [
+    "Irishman Creek"
+   ],
+   "area_m2": 21242,
+   "lat": 49.28091,
+   "lon": -116.05988,
+   "rules": [
+    "r4:irishman_creek@4-5::irishman_creek.r1",
+    "r4:moyie_river@4-5::moyie_river.r1"
+   ]
+  },
+  "lake:329520515": {
+   "river": [
+    "Tulameen River"
+   ],
+   "area_m2": 21092,
+   "lat": 49.30494,
+   "lon": -120.98148,
+   "rules": [
+    "r8:tulameen_river@8-5::tulameen_river.r1",
+    "r8:tulameen_river@8-5::tulameen_river.r2",
+    "r8:tulameen_river@8-5::tulameen_river.r3"
+   ]
+  },
+  "lake:329319148": {
+   "river": [
+    "Nechako River"
+   ],
+   "area_m2": 21010,
+   "lat": 53.60771,
+   "lon": -124.94375,
+   "rules": [
+    "r7:nechako_river@7-12::nechako_river.r1",
+    "z7a:sara_sturgeon::sara_sturgeon.r1"
+   ]
+  },
+  "lake:329664330": {
+   "river": [
+    "Sitkum Creek"
+   ],
+   "area_m2": 19524,
+   "lat": 50.42436,
+   "lon": -118.28306,
+   "rules": [
+    "r8:sitkum_creek@8-23::sitkum_creek.r1"
+   ]
+  },
+  "lake:329518473": {
+   "river": [
+    "Perry River"
+   ],
+   "area_m2": 18960,
+   "lat": 51.30062,
+   "lon": -118.68407,
+   "rules": [
+    "r3:perry_river@3-35::perry_river.r1",
+    "r3:perry_river@3-35::perry_river.r2"
+   ]
+  },
+  "lake:329518474": {
+   "river": [
+    "Anstey River"
+   ],
+   "area_m2": 18917,
+   "lat": 51.31791,
+   "lon": -118.78212,
+   "rules": [
+    "r3:anstey_river@3-36::anstey_river.r1",
+    "r3:anstey_river@3-36::anstey_river.r2"
+   ]
+  },
+  "lake:329055539": {
+   "river": [
+    "Fiftynine Creek"
+   ],
+   "area_m2": 18560,
+   "lat": 51.27725,
+   "lon": -121.63936,
+   "rules": [
+    "r3:fiftynine_creek@3-30::fiftynine_creek.r1"
+   ]
+  },
+  "lake:329171922": {
+   "river": [
+    "Watch Creek"
+   ],
+   "area_m2": 18354,
+   "lat": 51.44807,
+   "lon": -121.13653,
+   "rules": [
+    "r5:watch_creek@5-1::watch_creek.r1",
+    "r5:watch_creek@5-1::watch_creek.r1x"
+   ]
+  },
+  "lake:328996539": {
+   "river": [
+    "Goldstream River"
+   ],
+   "area_m2": 18154,
+   "lat": 48.46384,
+   "lon": -123.58261,
+   "rules": [
+    "r1:goldstream_river@1-2::goldstream_river.r1"
+   ]
+  },
+  "lake:329085346": {
+   "river": [
+    "Chatter Creek"
+   ],
+   "area_m2": 17556,
+   "lat": 51.88272,
+   "lon": -117.65736,
+   "rules": [
+    "r4:chatter_creek@4-36::chatter_creek.r1"
+   ]
+  },
+  "lake:329526715": {
+   "river": [
+    "Dimsdale Creek"
+   ],
+   "area_m2": 17399,
+   "lat": 54.14522,
+   "lon": -120.5129,
+   "rules": [
+    "r7:dimsdale_creek@7-19::dimsdale_creek.r1"
+   ]
+  },
+  "lake:329524492": {
+   "river": [
+    "Lavington Creek"
+   ],
+   "area_m2": 17251,
+   "lat": 50.01809,
+   "lon": -116.05179,
+   "rules": [
+    "r4:lavington_creek@4-26::lavington_creek.r1",
+    "r4:lavington_creek@4-26::lavington_creek.r2",
+    "r4:lavington_creek@4-26::lavington_creek.r3"
+   ]
+  },
+  "lake:329262832": {
+   "river": [
+    "Whatshan River"
+   ],
+   "area_m2": 16857,
+   "lat": 50.21811,
+   "lon": -118.03773,
+   "rules": [
+    "r4:whatshan_river@4-32::whatshan_river.r1"
+   ]
+  },
+  "lake:328968332": {
+   "river": [
+    "Davis River"
+   ],
+   "area_m2": 16137,
+   "lat": 56.75096,
+   "lon": -124.17759,
+   "rules": [
+    "r7:davis_river@7-37::davis_river.r1"
+   ]
+  },
+  "lake:329518531": {
+   "river": [
+    "Anstey River"
+   ],
+   "area_m2": 16052,
+   "lat": 51.31296,
+   "lon": -118.80442,
+   "rules": [
+    "r3:anstey_river@3-36::anstey_river.r1",
+    "r3:anstey_river@3-36::anstey_river.r2"
+   ]
+  },
+  "lake:329233923": {
+   "river": [
+    "Kitimat River"
+   ],
+   "area_m2": 16015,
+   "lat": 53.97356,
+   "lon": -128.07334,
+   "rules": [
+    "r6:kitimat_river_angling_regulations_for_the_kitimat_river_are@6-3::kitimat_river.r2",
+    "r6:kitimat_river_angling_regulations_for_the_kitimat_river_are@6-3::kitimat_river.r3",
+    "r6:kitimat_river_angling_regulations_for_the_kitimat_river_are@6-3::kitimat_river.r4",
+    "r6:kitimat_river_angling_regulations_for_the_kitimat_river_are@6-3::kitimat_river.r5",
+    "r6:kitimat_river_angling_regulations_for_the_kitimat_river_are@6-3::kitimat_river.r7",
+    "r6:kitimat_river_angling_regulations_for_the_kitimat_river_are@6-3::kitimat_river.r8",
+    "z6:trout_char_quota::trout_char_quota.r9b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329055633": {
+   "river": [
+    "Fiftynine Creek"
+   ],
+   "area_m2": 15982,
+   "lat": 51.27228,
+   "lon": -121.63147,
+   "rules": [
+    "r3:fiftynine_creek@3-30::fiftynine_creek.r1"
+   ]
+  },
+  "lake:329150106": {
+   "river": [
+    "Endako River"
+   ],
+   "area_m2": 15947,
+   "lat": 54.38673,
+   "lon": -125.97419,
+   "rules": [
+    "r6:endako_river@6-4::endako_river.r1"
+   ]
+  },
+  "lake:329467763": {
+   "river": [
+    "Tsable River"
+   ],
+   "area_m2": 15914,
+   "lat": 49.54471,
+   "lon": -125.09973,
+   "rules": [
+    "r1:tsable_river@1-6::tsable_river.r1"
+   ]
+  },
+  "lake:328965936": {
+   "river": [
+    "Trout Creek"
+   ],
+   "area_m2": 15847,
+   "lat": 51.91991,
+   "lon": -119.93217,
+   "rules": [
+    "r3:trout_creek_wells_gray_park@3-46::trout_creek_wells_gray_park.r1"
+   ]
+  },
+  "lake:329055647": {
+   "river": [
+    "Fiftyseven Creek"
+   ],
+   "area_m2": 15697,
+   "lat": 51.21277,
+   "lon": -121.58557,
+   "rules": [
+    "r3:fiftyseven_creek@3-30::fiftyseven_creek.r1"
+   ]
+  },
+  "lake:329518542": {
+   "river": [
+    "Anstey River"
+   ],
+   "area_m2": 15675,
+   "lat": 51.31785,
+   "lon": -118.77122,
+   "rules": [
+    "r3:anstey_river@3-36::anstey_river.r1",
+    "r3:anstey_river@3-36::anstey_river.r2"
+   ]
+  },
+  "lake:329316476": {
+   "river": [
+    "July Creek"
+   ],
+   "area_m2": 15460,
+   "lat": 49.68823,
+   "lon": -121.09181,
+   "rules": [
+    "r3:july_creek@3-13::july_creek.r1"
+   ]
+  },
+  "lake:329518550": {
+   "river": [
+    "Eagle River"
+   ],
+   "area_m2": 15395,
+   "lat": 50.9432,
+   "lon": -118.48605,
+   "rules": [
+    "r3:eagle_river@3-34::eagle_river.r1",
+    "r3:eagle_river@3-34::eagle_river.r2"
+   ]
+  },
+  "lake:329247992": {
+   "river": [
+    "Kootenay River"
+   ],
+   "area_m2": 15394,
+   "lat": 51.02283,
+   "lon": -116.28694,
+   "rules": [
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r1",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r10",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r2",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r3",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r8",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r9"
+   ]
+  },
+  "lake:329172137": {
+   "river": [
+    "Watch Creek"
+   ],
+   "area_m2": 15039,
+   "lat": 51.50876,
+   "lon": -121.09911,
+   "rules": [
+    "r5:watch_creek@5-1::watch_creek.r1",
+    "r5:watch_creek@5-1::watch_creek.r1x"
+   ]
+  },
+  "lake:329037551": {
+   "river": [
+    "Big Bar Creek"
+   ],
+   "area_m2": 14589,
+   "lat": 51.32046,
+   "lon": -121.81864,
+   "rules": [
+    "r3:big_bar_creek@3-31::big_bar_creek.r1"
+   ]
+  },
+  "lake:329063843": {
+   "river": [
+    "Marble River"
+   ],
+   "area_m2": 14240,
+   "lat": 50.42912,
+   "lon": -127.4067,
+   "rules": [
+    "r1:marble_link_river_only_between_victoria_and_alice_lakes@1-13::marble_link_river_only_between_victoria_and_alice_lakes.r1"
+   ]
+  },
+  "lake:329085401": {
+   "river": [
+    "Chatter Creek"
+   ],
+   "area_m2": 13992,
+   "lat": 51.8853,
+   "lon": -117.66315,
+   "rules": [
+    "r4:chatter_creek@4-36::chatter_creek.r1"
+   ]
+  },
+  "lake:329217208": {
+   "river": [
+    "Eholt Creek"
+   ],
+   "area_m2": 13625,
+   "lat": 49.15199,
+   "lon": -118.55739,
+   "rules": [
+    "r8:eholt_creek@8-14::eholt_creek.r1"
+   ]
+  },
+  "lake:329603383": {
+   "river": [
+    "Dean River"
+   ],
+   "area_m2": 13618,
+   "lat": 52.41588,
+   "lon": -125.21871,
+   "rules": [
+    "r5:dean_river@5-9::dean_river.r1",
+    "r5:dean_river@5-9::dean_river.r6",
+    "r5:dean_river@5-9::dean_river.r7",
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329467790": {
+   "river": [
+    "South Englishman River"
+   ],
+   "area_m2": 13503,
+   "lat": 49.13855,
+   "lon": -124.3628,
+   "rules": [
+    "r1:healy_lake_s_outlet_stream@1-5::healy_lake_s_outlet_stream.r1"
+   ]
+  },
+  "lake:329500734": {
+   "river": [
+    "Mohun Creek"
+   ],
+   "area_m2": 13043,
+   "lat": 50.08765,
+   "lon": -125.54999,
+   "rules": [
+    "r1:mohun_creek@1-10::mohun_creek.r1"
+   ]
+  },
+  "lake:329248024": {
+   "river": [
+    "Kootenay River"
+   ],
+   "area_m2": 12786,
+   "lat": 51.02444,
+   "lon": -116.28958,
+   "rules": [
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r1",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r10",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r2",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r3",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r8",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r9"
+   ]
+  },
+  "lake:329132900": {
+   "river": [
+    "Davis River"
+   ],
+   "area_m2": 12620,
+   "lat": 56.74828,
+   "lon": -124.1743,
+   "rules": [
+    "r7:davis_river@7-37::davis_river.r1"
+   ]
+  },
+  "lake:329319483": {
+   "river": [
+    "Nechako River"
+   ],
+   "area_m2": 12516,
+   "lat": 53.58662,
+   "lon": -124.95559,
+   "rules": [
+    "r7:nechako_river@7-12::nechako_river.r1",
+    "z7a:sara_sturgeon::sara_sturgeon.r1"
+   ]
+  },
+  "lake:329526939": {
+   "river": [
+    "Dimsdale Creek"
+   ],
+   "area_m2": 12397,
+   "lat": 54.16424,
+   "lon": -120.45031,
+   "rules": [
+    "r7:dimsdale_creek@7-19::dimsdale_creek.r1"
+   ]
+  },
+  "lake:329055852": {
+   "river": [
+    "Fiftynine Creek"
+   ],
+   "area_m2": 12351,
+   "lat": 51.26713,
+   "lon": -121.66778,
+   "rules": [
+    "r3:fiftynine_creek@3-30::fiftynine_creek.r1"
+   ]
+  },
+  "lake:329070300": {
+   "river": [
+    "Quinsam River"
+   ],
+   "area_m2": 12290,
+   "lat": 49.92909,
+   "lon": -125.52384,
+   "rules": [
+    "r1:quinsam_river@1-6::quinsam_river.r3",
+    "r1:quinsam_river@1-6::quinsam_river.r4"
+   ]
+  },
+  "lake:329197607": {
+   "river": [
+    "Chapman Creek"
+   ],
+   "area_m2": 12160,
+   "lat": 49.58051,
+   "lon": -123.6078,
+   "rules": [
+    "r2:chapman_creek@2-5::chapman_creek.r1",
+    "r2:chapman_creek@2-5::chapman_creek.r2"
+   ]
+  },
+  "lake:329482077": {
+   "river": [
+    "Beaver Creek"
+   ],
+   "area_m2": 12142,
+   "lat": 52.39888,
+   "lon": -121.64961,
+   "rules": [
+    "r5:beaver_creek_chain_of_lakes@5-2::beaver_creek_chain_of_lakes.r1"
+   ]
+  },
+  "lake:329123781": {
+   "river": [
+    "Fording River"
+   ],
+   "area_m2": 12137,
+   "lat": 50.30291,
+   "lon": -114.82826,
+   "rules": [
+    "r4:fording_river_upstream_of_josephine_falls@4-23::fording_river_upstream.r1"
+   ]
+  },
+  "lake:329095969": {
+   "river": [
+    "Oyster River"
+   ],
+   "area_m2": 12123,
+   "lat": 49.72406,
+   "lon": -125.45606,
+   "rules": [
+    "r1:oyster_river@1-6::oyster_river.r1",
+    "r1:oyster_river@1-6::oyster_river.r2",
+    "z1:cutthroat_tagging::cutthroat_tagging.r1"
+   ]
+  },
+  "lake:329055888": {
+   "river": [
+    "Fiftyseven Creek"
+   ],
+   "area_m2": 11877,
+   "lat": 51.14614,
+   "lon": -121.80319,
+   "rules": [
+    "r3:fiftyseven_creek@3-30::fiftyseven_creek.r1"
+   ]
+  },
+  "lake:329482116": {
+   "river": [
+    "Beaver Creek"
+   ],
+   "area_m2": 11688,
+   "lat": 52.39915,
+   "lon": -121.65686,
+   "rules": [
+    "r5:beaver_creek_chain_of_lakes@5-2::beaver_creek_chain_of_lakes.r1"
+   ]
+  },
+  "lake:329524675": {
+   "river": [
+    "Sandown Creek"
+   ],
+   "area_m2": 11545,
+   "lat": 50.04208,
+   "lon": -115.91466,
+   "rules": [
+    "r4:sandown_creek@4-20::sandown_creek.r1"
+   ]
+  },
+  "lake:329037658": {
+   "river": [
+    "Big Bar Creek"
+   ],
+   "area_m2": 11251,
+   "lat": 51.34406,
+   "lon": -121.86737,
+   "rules": [
+    "r3:big_bar_creek@3-31::big_bar_creek.r1"
+   ]
+  },
+  "lake:329603751": {
+   "river": [
+    "Dean River"
+   ],
+   "area_m2": 11231,
+   "lat": 52.44607,
+   "lon": -125.25309,
+   "rules": [
+    "r5:dean_river@5-9::dean_river.r1",
+    "r5:dean_river@5-9::dean_river.r6",
+    "r5:dean_river@5-9::dean_river.r7",
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329319552": {
+   "river": [
+    "Nechako River"
+   ],
+   "area_m2": 11147,
+   "lat": 53.59804,
+   "lon": -124.95047,
+   "rules": [
+    "r7:nechako_river@7-12::nechako_river.r1",
+    "z7a:sara_sturgeon::sara_sturgeon.r1"
+   ]
+  },
+  "lake:329505890": {
+   "river": [
+    "Cayoosh Creek"
+   ],
+   "area_m2": 11133,
+   "lat": 50.65691,
+   "lon": -121.9843,
+   "rules": [
+    "r3:cayoosh_creek@3-16::cayoosh_creek.r1"
+   ]
+  },
+  "lake:329603825": {
+   "river": [
+    "Dean River"
+   ],
+   "area_m2": 10924,
+   "lat": 52.30261,
+   "lon": -125.13999,
+   "rules": [
+    "r5:dean_river@5-9::dean_river.r1",
+    "r5:dean_river@5-9::dean_river.r6",
+    "r5:dean_river@5-9::dean_river.r7",
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329664574": {
+   "river": [
+    "Wap Creek"
+   ],
+   "area_m2": 10510,
+   "lat": 50.87174,
+   "lon": -118.51137,
+   "rules": [
+    "r8:wap_creek@8-24::wap_creek.r1"
+   ]
+  },
+  "lake:329505944": {
+   "river": [
+    "Cayoosh Creek"
+   ],
+   "area_m2": 10233,
+   "lat": 50.39457,
+   "lon": -122.49825,
+   "rules": [
+    "r3:cayoosh_creek@3-16::cayoosh_creek.r1"
+   ]
+  },
+  "lake:329056044": {
+   "river": [
+    "Fiftynine Creek"
+   ],
+   "area_m2": 10075,
+   "lat": 51.22083,
+   "lon": -121.51241,
+   "rules": [
+    "r3:fiftynine_creek@3-30::fiftynine_creek.r1"
+   ]
+  },
+  "lake:329056045": {
+   "river": [
+    "Fiftyseven Creek"
+   ],
+   "area_m2": 10073,
+   "lat": 51.21718,
+   "lon": -121.56916,
+   "rules": [
+    "r3:fiftyseven_creek@3-30::fiftyseven_creek.r1"
+   ]
+  },
+  "lake:329172611": {
+   "river": [
+    "Watch Creek"
+   ],
+   "area_m2": 9997,
+   "lat": 51.51052,
+   "lon": -121.05269,
+   "rules": [
+    "r5:watch_creek@5-1::watch_creek.r1",
+    "r5:watch_creek@5-1::watch_creek.r1x"
+   ]
+  },
+  "lake:329022748": {
+   "river": [
+    "Atnarko River"
+   ],
+   "area_m2": 9985,
+   "lat": 52.20217,
+   "lon": -125.49606,
+   "rules": [
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r1",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r11",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r13",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r3",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r4",
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329066410": {
+   "river": [
+    "Station Creek"
+   ],
+   "area_m2": 9798,
+   "lat": 55.23468,
+   "lon": -127.6212,
+   "rules": [
+    "r6:station_creek@6-9::station_creek.r1",
+    "r6:station_creek@6-9::station_creek.r2",
+    "r6:station_creek@6-9::station_creek.r3"
+   ]
+  },
+  "lake:329056082": {
+   "river": [
+    "Fiftynine Creek"
+   ],
+   "area_m2": 9774,
+   "lat": 51.22911,
+   "lon": -121.57073,
+   "rules": [
+    "r3:fiftynine_creek@3-30::fiftynine_creek.r1"
+   ]
+  },
+  "lake:329575760": {
+   "river": [
+    "Claud Elliott Creek"
+   ],
+   "area_m2": 9584,
+   "lat": 50.27732,
+   "lon": -126.53633,
+   "rules": [
+    "r1:claud_elliott_creek@1-10::claud_elliott_creek.r1"
+   ]
+  },
+  "lake:329056098": {
+   "river": [
+    "Fiftyseven Creek"
+   ],
+   "area_m2": 9583,
+   "lat": 51.19684,
+   "lon": -121.58441,
+   "rules": [
+    "r3:fiftyseven_creek@3-30::fiftyseven_creek.r1"
+   ]
+  },
+  "lake:328993076": {
+   "river": [
+    "Dean River"
+   ],
+   "area_m2": 9527,
+   "lat": 52.28949,
+   "lon": -124.8109,
+   "rules": [
+    "r5:dean_river@5-9::dean_river.r1",
+    "r5:dean_river@5-9::dean_river.r6",
+    "r5:dean_river@5-9::dean_river.r7",
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329056105": {
+   "river": [
+    "Fiftyseven Creek"
+   ],
+   "area_m2": 9515,
+   "lat": 51.14821,
+   "lon": -121.75876,
+   "rules": [
+    "r3:fiftyseven_creek@3-30::fiftyseven_creek.r1"
+   ]
+  },
+  "lake:329172683": {
+   "river": [
+    "Watch Creek"
+   ],
+   "area_m2": 9441,
+   "lat": 51.47706,
+   "lon": -121.01884,
+   "rules": [
+    "r5:watch_creek@5-1::watch_creek.r1",
+    "r5:watch_creek@5-1::watch_creek.r1x"
+   ]
+  },
+  "lake:329056124": {
+   "river": [
+    "Fiftynine Creek"
+   ],
+   "area_m2": 9337,
+   "lat": 51.21436,
+   "lon": -121.50526,
+   "rules": [
+    "r3:fiftynine_creek@3-30::fiftynine_creek.r1"
+   ]
+  },
+  "lake:329056131": {
+   "river": [
+    "Fiftyseven Creek"
+   ],
+   "area_m2": 9319,
+   "lat": 51.20372,
+   "lon": -121.58471,
+   "rules": [
+    "r3:fiftyseven_creek@3-30::fiftyseven_creek.r1"
+   ]
+  },
+  "lake:329319671": {
+   "river": [
+    "Nechako River"
+   ],
+   "area_m2": 9306,
+   "lat": 53.60327,
+   "lon": -124.94808,
+   "rules": [
+    "r7:nechako_river@7-12::nechako_river.r1",
+    "z7a:sara_sturgeon::sara_sturgeon.r1"
+   ]
+  },
+  "lake:329056133": {
+   "river": [
+    "Fiftynine Creek"
+   ],
+   "area_m2": 9304,
+   "lat": 51.262,
+   "lon": -121.62213,
+   "rules": [
+    "r3:fiftynine_creek@3-30::fiftynine_creek.r1"
+   ]
+  },
+  "lake:329482370": {
+   "river": [
+    "Cameron Creek"
+   ],
+   "area_m2": 9096,
+   "lat": 52.88534,
+   "lon": -120.81311,
+   "rules": [
+    "r5:cameron_creek@5-15::cameron_creek.r1",
+    "r5:cameron_creek@5-15::cameron_creek.r1x",
+    "r5:cameron_creek@5-15::cameron_creek.r2",
+    "r5:cameron_creek@5-15::cameron_creek.r3",
+    "r5:cameron_creek@5-15::cameron_creek.r4"
+   ]
+  },
+  "lake:329383356": {
+   "river": [
+    "Goat River"
+   ],
+   "area_m2": 8905,
+   "lat": 53.28862,
+   "lon": -120.94632,
+   "rules": [
+    "r7:goat_river@7-5::goat_river.r1"
+   ]
+  },
+  "lake:329604368": {
+   "river": [
+    "Dean River"
+   ],
+   "area_m2": 8680,
+   "lat": 52.23562,
+   "lon": -124.89717,
+   "rules": [
+    "r5:dean_river@5-9::dean_river.r1",
+    "r5:dean_river@5-9::dean_river.r6",
+    "r5:dean_river@5-9::dean_river.r7",
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329056223": {
+   "river": [
+    "Fiftynine Creek"
+   ],
+   "area_m2": 8541,
+   "lat": 51.21644,
+   "lon": -121.50783,
+   "rules": [
+    "r3:fiftynine_creek@3-30::fiftynine_creek.r1"
+   ]
+  },
+  "lake:329056236": {
+   "river": [
+    "Fiftynine Creek"
+   ],
+   "area_m2": 8462,
+   "lat": 51.23311,
+   "lon": -121.57495,
+   "rules": [
+    "r3:fiftynine_creek@3-30::fiftynine_creek.r1"
+   ]
+  },
+  "lake:329411066": {
+   "river": [
+    "Nakina River"
+   ],
+   "area_m2": 8351,
+   "lat": 59.07709,
+   "lon": -132.41751,
+   "rules": [
+    "r6:nakina_river@6-26::nakina_river.r1"
+   ]
+  },
+  "lake:329506048": {
+   "river": [
+    "Bridge River"
+   ],
+   "area_m2": 8305,
+   "lat": 50.78708,
+   "lon": -122.2018,
+   "rules": [
+    "r3:bridge_river@3-33::bridge_river.r1",
+    "r3:bridge_river@3-33::bridge_river.r3"
+   ]
+  },
+  "lake:329197732": {
+   "river": [
+    "Angus Creek"
+   ],
+   "area_m2": 8304,
+   "lat": 49.54717,
+   "lon": -123.66159,
+   "rules": [
+    "r2:angus_creek@2-5::angus_creek.r1"
+   ]
+  },
+  "lake:329604504": {
+   "river": [
+    "Dean River"
+   ],
+   "area_m2": 8241,
+   "lat": 52.45656,
+   "lon": -125.2655,
+   "rules": [
+    "r5:dean_river@5-9::dean_river.r1",
+    "r5:dean_river@5-9::dean_river.r6",
+    "r5:dean_river@5-9::dean_river.r7",
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329371937": {
+   "river": [
+    "Chimney Creek"
+   ],
+   "area_m2": 8230,
+   "lat": 52.04073,
+   "lon": -122.05635,
+   "rules": [
+    "r5:chimney_creek@5-2::chimney_creek.r1"
+   ]
+  },
+  "lake:329575781": {
+   "river": [
+    "Claud Elliott Creek"
+   ],
+   "area_m2": 8188,
+   "lat": 50.33738,
+   "lon": -126.53081,
+   "rules": [
+    "r1:claud_elliott_creek@1-10::claud_elliott_creek.r1"
+   ]
+  },
+  "lake:329104026": {
+   "river": [
+    "Crooked River"
+   ],
+   "area_m2": 8121,
+   "lat": 54.3899,
+   "lon": -122.63478,
+   "rules": [
+    "r7:crooked_river@7-24::crooked_river.r2",
+    "r7:crooked_river@7-24::crooked_river.r3"
+   ]
+  },
+  "lake:329056294": {
+   "river": [
+    "Fiftyseven Creek"
+   ],
+   "area_m2": 8075,
+   "lat": 51.14444,
+   "lon": -121.77232,
+   "rules": [
+    "r3:fiftyseven_creek@3-30::fiftyseven_creek.r1"
+   ]
+  },
+  "lake:329506061": {
+   "river": [
+    "Walker Creek"
+   ],
+   "area_m2": 8024,
+   "lat": 50.88257,
+   "lon": -122.95488,
+   "rules": [
+    "r3:walker_creek@3-32::walker_creek.r1"
+   ]
+  },
+  "lake:329292366": {
+   "river": [
+    "Kanaka Creek"
+   ],
+   "area_m2": 7996,
+   "lat": 49.28895,
+   "lon": -122.43325,
+   "rules": [
+    "r2:kanaka_creek@2-8::kanaka_creek.r1"
+   ]
+  },
+  "lake:329056315": {
+   "river": [
+    "Bonaparte River"
+   ],
+   "area_m2": 7932,
+   "lat": 51.2566,
+   "lon": -121.05548,
+   "rules": [
+    "r3:bonaparte_river@3-30::bonaparte_river.r2"
+   ]
+  },
+  "lake:329304095": {
+   "river": [
+    "Phelix Creek"
+   ],
+   "area_m2": 7677,
+   "lat": 50.64843,
+   "lon": -122.63279,
+   "rules": [
+    "r2:phelix_creek@2-11::phelix_creek.r1"
+   ]
+  },
+  "lake:329411114": {
+   "river": [
+    "Nakina River"
+   ],
+   "area_m2": 7671,
+   "lat": 59.10503,
+   "lon": -132.4254,
+   "rules": [
+    "r6:nakina_river@6-26::nakina_river.r1"
+   ]
+  },
+  "lake:329056371": {
+   "river": [
+    "Fiftyseven Creek"
+   ],
+   "area_m2": 7539,
+   "lat": 51.21852,
+   "lon": -121.56997,
+   "rules": [
+    "r3:fiftyseven_creek@3-30::fiftyseven_creek.r1"
+   ]
+  },
+  "lake:329651323": {
+   "river": [
+    "Albreda River"
+   ],
+   "area_m2": 7507,
+   "lat": 52.63957,
+   "lon": -119.16666,
+   "rules": [
+    "r3:albreda_river@3-43::albreda_river.r1"
+   ]
+  },
+  "lake:329173031": {
+   "river": [
+    "Watch Creek"
+   ],
+   "area_m2": 7410,
+   "lat": 51.51152,
+   "lon": -121.06699,
+   "rules": [
+    "r5:watch_creek@5-1::watch_creek.r1",
+    "r5:watch_creek@5-1::watch_creek.r1x"
+   ]
+  },
+  "lake:329246894": {
+   "river": [
+    "Crawford Creek"
+   ],
+   "area_m2": 7409,
+   "lat": 49.79722,
+   "lon": -116.70637,
+   "rules": [
+    "r4:crawford_creek@4-6::crawford_creek_4_6.r1"
+   ]
+  },
+  "lake:329151273": {
+   "river": [
+    "Endako River"
+   ],
+   "area_m2": 7326,
+   "lat": 54.38478,
+   "lon": -125.97162,
+   "rules": [
+    "r6:endako_river@6-4::endako_river.r1"
+   ]
+  },
+  "lake:329056433": {
+   "river": [
+    "Fiftyseven Creek"
+   ],
+   "area_m2": 7174,
+   "lat": 51.21627,
+   "lon": -121.57404,
+   "rules": [
+    "r3:fiftyseven_creek@3-30::fiftyseven_creek.r1"
+   ]
+  },
+  "lake:329506131": {
+   "river": [
+    "Cayoosh Creek"
+   ],
+   "area_m2": 7119,
+   "lat": 50.66251,
+   "lon": -121.98341,
+   "rules": [
+    "r3:cayoosh_creek@3-16::cayoosh_creek.r1",
+    "r3:cayoosh_creek@3-16::cayoosh_creek.r2"
+   ]
+  },
+  "lake:329173088": {
+   "river": [
+    "Watch Creek"
+   ],
+   "area_m2": 7119,
+   "lat": 51.47607,
+   "lon": -121.0422,
+   "rules": [
+    "r5:watch_creek@5-1::watch_creek.r1",
+    "r5:watch_creek@5-1::watch_creek.r1x"
+   ]
+  },
+  "lake:329087797": {
+   "river": [
+    "Hemp Creek"
+   ],
+   "area_m2": 7032,
+   "lat": 51.99932,
+   "lon": -119.83629,
+   "rules": [
+    "r3:hemp_creek@3-46::hemp_creek.r1"
+   ]
+  },
+  "lake:329173150": {
+   "river": [
+    "Watch Creek"
+   ],
+   "area_m2": 6881,
+   "lat": 51.5095,
+   "lon": -121.05529,
+   "rules": [
+    "r5:watch_creek@5-1::watch_creek.r1",
+    "r5:watch_creek@5-1::watch_creek.r1x"
+   ]
+  },
+  "lake:329500968": {
+   "river": [
+    "Mohun Creek"
+   ],
+   "area_m2": 6750,
+   "lat": 50.08612,
+   "lon": -125.55751,
+   "rules": [
+    "r1:mohun_creek@1-10::mohun_creek.r1"
+   ]
+  },
+  "lake:329518923": {
+   "river": [
+    "Anstey River"
+   ],
+   "area_m2": 6655,
+   "lat": 51.31675,
+   "lon": -118.77881,
+   "rules": [
+    "r3:anstey_river@3-36::anstey_river.r1",
+    "r3:anstey_river@3-36::anstey_river.r2"
+   ]
+  },
+  "lake:329524949": {
+   "river": [
+    "Lavington Creek"
+   ],
+   "area_m2": 6651,
+   "lat": 50.02339,
+   "lon": -116.05644,
+   "rules": [
+    "r4:lavington_creek@4-26::lavington_creek.r1",
+    "r4:lavington_creek@4-26::lavington_creek.r2",
+    "r4:lavington_creek@4-26::lavington_creek.r3"
+   ]
+  },
+  "lake:329527553": {
+   "river": [
+    "Dimsdale Creek"
+   ],
+   "area_m2": 6634,
+   "lat": 54.1418,
+   "lon": -120.51053,
+   "rules": [
+    "r7:dimsdale_creek@7-19::dimsdale_creek.r1"
+   ]
+  },
+  "lake:329056528": {
+   "river": [
+    "Fiftynine Creek"
+   ],
+   "area_m2": 6578,
+   "lat": 51.26438,
+   "lon": -121.66954,
+   "rules": [
+    "r3:fiftynine_creek@3-30::fiftynine_creek.r1"
+   ]
+  },
+  "lake:329518936": {
+   "river": [
+    "Eagle River"
+   ],
+   "area_m2": 6482,
+   "lat": 50.94691,
+   "lon": -118.48783,
+   "rules": [
+    "r3:eagle_river@3-34::eagle_river.r1",
+    "r3:eagle_river@3-34::eagle_river.r2"
+   ]
+  },
+  "lake:329123973": {
+   "river": [
+    "Cadorna Creek"
+   ],
+   "area_m2": 6443,
+   "lat": 50.46259,
+   "lon": -115.03713,
+   "rules": [
+    "r4:cadorna_creek@4-23::cadorna_creek.r1",
+    "r4:cadorna_creek@4-23::cadorna_creek.r2",
+    "r4:cadorna_creek@4-23::cadorna_creek.r3"
+   ]
+  },
+  "lake:329242660": {
+   "river": [
+    "Deep Creek"
+   ],
+   "area_m2": 6401,
+   "lat": 54.58924,
+   "lon": -128.57377,
+   "rules": [
+    "r6:deep_creek@6-15::deep_creek.r1"
+   ]
+  },
+  "lake:329319900": {
+   "river": [
+    "Nechako River"
+   ],
+   "area_m2": 6400,
+   "lat": 53.60083,
+   "lon": -124.95009,
+   "rules": [
+    "r7:nechako_river@7-12::nechako_river.r1",
+    "z7a:sara_sturgeon::sara_sturgeon.r1"
+   ]
+  },
+  "lake:329460547": {
+   "river": [
+    "Trout Creek"
+   ],
+   "area_m2": 6319,
+   "lat": 49.80843,
+   "lon": -120.02095,
+   "rules": [
+    "r8:trout_creek@8-8::trout_creek.r2"
+   ]
+  },
+  "lake:329056577": {
+   "river": [
+    "Clinton Creek"
+   ],
+   "area_m2": 6301,
+   "lat": 51.10347,
+   "lon": -121.5931,
+   "rules": [
+    "r3:clinton_creek@3-30::clinton_creek.r1"
+   ]
+  },
+  "lake:329056586": {
+   "river": [
+    "Fiftynine Creek"
+   ],
+   "area_m2": 6237,
+   "lat": 51.26386,
+   "lon": -121.67262,
+   "rules": [
+    "r3:fiftynine_creek@3-30::fiftynine_creek.r1"
+   ]
+  },
+  "lake:329683224": {
+   "river": [
+    "Zymoetz River"
+   ],
+   "area_m2": 6225,
+   "lat": 54.74146,
+   "lon": -127.34549,
+   "rules": [
+    "r6:zymoetz_copper_river@6-9::zymoetz_river.r3",
+    "r6:zymoetz_copper_river@6-9::zymoetz_river.r4",
+    "r6:zymoetz_copper_river@6-9::zymoetz_river.r7",
+    "z6:trout_char_quota::trout_char_quota.r9b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329248176": {
+   "river": [
+    "White River"
+   ],
+   "area_m2": 6205,
+   "lat": 50.45169,
+   "lon": -115.1877,
+   "rules": [
+    "r4:white_river_see_also_east_white_north_white_rivers@4-24::white_river.r1",
+    "r4:white_river_see_also_east_white_north_white_rivers@4-24::white_river.r2",
+    "r4:white_river_see_also_east_white_north_white_rivers@4-24::white_river.r4"
+   ]
+  },
+  "lake:329248180": {
+   "river": [
+    "Kootenay River"
+   ],
+   "area_m2": 6143,
+   "lat": 51.06639,
+   "lon": -116.38413,
+   "rules": [
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r1",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r10",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r2",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r3",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r8",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r9"
+   ]
+  },
+  "lake:329056610": {
+   "river": [
+    "Fiftynine Creek"
+   ],
+   "area_m2": 6122,
+   "lat": 51.27475,
+   "lon": -121.63769,
+   "rules": [
+    "r3:fiftynine_creek@3-30::fiftynine_creek.r1"
+   ]
+  },
+  "lake:329605329": {
+   "river": [
+    "Dean River"
+   ],
+   "area_m2": 6109,
+   "lat": 52.23818,
+   "lon": -124.89239,
+   "rules": [
+    "r5:dean_river@5-9::dean_river.r1",
+    "r5:dean_river@5-9::dean_river.r6",
+    "r5:dean_river@5-9::dean_river.r7",
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329173400": {
+   "river": [
+    "Watch Creek"
+   ],
+   "area_m2": 5963,
+   "lat": 51.47831,
+   "lon": -121.01247,
+   "rules": [
+    "r5:watch_creek@5-1::watch_creek.r1",
+    "r5:watch_creek@5-1::watch_creek.r1x"
+   ]
+  },
+  "lake:329319939": {
+   "river": [
+    "Nechako River"
+   ],
+   "area_m2": 5957,
+   "lat": 53.6052,
+   "lon": -124.94667,
+   "rules": [
+    "r7:nechako_river@7-12::nechako_river.r1",
+    "z7a:sara_sturgeon::sara_sturgeon.r1"
+   ]
+  },
+  "lake:329056644": {
+   "river": [
+    "Fiftynine Creek"
+   ],
+   "area_m2": 5953,
+   "lat": 51.25987,
+   "lon": -121.68353,
+   "rules": [
+    "r3:fiftynine_creek@3-30::fiftynine_creek.r1"
+   ]
+  },
+  "lake:329519001": {
+   "river": [
+    "McNomee Creek"
+   ],
+   "area_m2": 5807,
+   "lat": 51.38685,
+   "lon": -119.03533,
+   "rules": [
+    "r3:mcnomee_creek@3-36::mcnomee_creek.r1",
+    "r3:mcnomee_creek@3-36::mcnomee_creek.r2"
+   ]
+  },
+  "lake:329521434": {
+   "river": [
+    "Little Muddy Creek"
+   ],
+   "area_m2": 5785,
+   "lat": 49.05967,
+   "lon": -120.85145,
+   "rules": [
+    "r2:little_muddy_creek@2-1::little_muddy_creek.r1"
+   ]
+  },
+  "lake:329683269": {
+   "river": [
+    "Zymoetz River"
+   ],
+   "area_m2": 5743,
+   "lat": 54.73963,
+   "lon": -127.34726,
+   "rules": [
+    "r6:zymoetz_copper_river@6-9::zymoetz_river.r3",
+    "r6:zymoetz_copper_river@6-9::zymoetz_river.r4",
+    "r6:zymoetz_copper_river@6-9::zymoetz_river.r7",
+    "z6:trout_char_quota::trout_char_quota.r9b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329186002": {
+   "river": [
+    "Little Horsefly River"
+   ],
+   "area_m2": 5693,
+   "lat": 52.45651,
+   "lon": -120.67195,
+   "rules": [
+    "r5:little_horsefly_river@5-2::little_horsefly_river.r1",
+    "r5:little_horsefly_river@5-2::little_horsefly_river.r1x",
+    "r5:little_horsefly_river@5-2::little_horsefly_river.r2"
+   ]
+  },
+  "lake:329521455": {
+   "river": [
+    "Little Muddy Creek"
+   ],
+   "area_m2": 5608,
+   "lat": 49.0609,
+   "lon": -120.85275,
+   "rules": [
+    "r2:little_muddy_creek@2-1::little_muddy_creek.r1"
+   ]
+  },
+  "lake:329525036": {
+   "river": [
+    "Sandown Creek"
+   ],
+   "area_m2": 5592,
+   "lat": 50.03677,
+   "lon": -115.90131,
+   "rules": [
+    "r4:sandown_creek@4-20::sandown_creek.r1"
+   ]
+  },
+  "lake:329173510": {
+   "river": [
+    "Watch Creek"
+   ],
+   "area_m2": 5563,
+   "lat": 51.46539,
+   "lon": -121.05315,
+   "rules": [
+    "r5:watch_creek@5-1::watch_creek.r1",
+    "r5:watch_creek@5-1::watch_creek.r1x"
+   ]
+  },
+  "lake:329197875": {
+   "river": [
+    "Angus Creek"
+   ],
+   "area_m2": 5497,
+   "lat": 49.54567,
+   "lon": -123.65909,
+   "rules": [
+    "r2:angus_creek@2-5::angus_creek.r1"
+   ]
+  },
+  "lake:329482877": {
+   "river": [
+    "Beaver Creek"
+   ],
+   "area_m2": 5486,
+   "lat": 52.39721,
+   "lon": -121.63574,
+   "rules": [
+    "r5:beaver_creek_chain_of_lakes@5-2::beaver_creek_chain_of_lakes.r1"
+   ]
+  },
+  "lake:329317023": {
+   "river": [
+    "Maka Creek"
+   ],
+   "area_m2": 5460,
+   "lat": 49.78332,
+   "lon": -121.19377,
+   "rules": [
+    "r3:maka_creek@3-13::maka_creek.r1"
+   ]
+  },
+  "lake:329183506": {
+   "river": [
+    "Homathko River"
+   ],
+   "area_m2": 5440,
+   "lat": 51.72911,
+   "lon": -124.57608,
+   "rules": [
+    "r5:homathko_river@5-5::homathko_river.r1"
+   ]
+  },
+  "lake:329104417": {
+   "river": [
+    "Crooked River"
+   ],
+   "area_m2": 5430,
+   "lat": 54.32821,
+   "lon": -122.66972,
+   "rules": [
+    "r7:crooked_river@7-24::crooked_river.r2",
+    "r7:crooked_river@7-24::crooked_river.r3"
+   ]
+  },
+  "lake:329056761": {
+   "river": [
+    "Fiftyseven Creek"
+   ],
+   "area_m2": 5419,
+   "lat": 51.19657,
+   "lon": -121.58092,
+   "rules": [
+    "r3:fiftyseven_creek@3-30::fiftyseven_creek.r1"
+   ]
+  },
+  "lake:329202570": {
+   "river": [
+    "Buckley Creek"
+   ],
+   "area_m2": 5392,
+   "lat": 57.92681,
+   "lon": -130.72756,
+   "rules": [
+    "r6:buckley_creek@6-21::buckley_creek.r1",
+    "r6:buckley_creek@6-21::buckley_creek.r2",
+    "r6:buckley_creek@6-21::buckley_creek.r3"
+   ]
+  },
+  "lake:329605751": {
+   "river": [
+    "Dean River"
+   ],
+   "area_m2": 5339,
+   "lat": 52.23604,
+   "lon": -124.90283,
+   "rules": [
+    "r5:dean_river@5-9::dean_river.r1",
+    "r5:dean_river@5-9::dean_river.r6",
+    "r5:dean_river@5-9::dean_river.r7",
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329501069": {
+   "river": [
+    "Mohun Creek"
+   ],
+   "area_m2": 5286,
+   "lat": 50.11915,
+   "lon": -125.45399,
+   "rules": [
+    "r1:mohun_creek@1-10::mohun_creek.r1",
+    "r1:mohun_creek@1-10::mohun_creek.r2"
+   ]
+  },
+  "lake:329197887": {
+   "river": [
+    "Angus Creek"
+   ],
+   "area_m2": 5263,
+   "lat": 49.54187,
+   "lon": -123.68456,
+   "rules": [
+    "r2:angus_creek@2-5::angus_creek.r1"
+   ]
+  },
+  "lake:328993138": {
+   "river": [
+    "Dean River"
+   ],
+   "area_m2": 5261,
+   "lat": 52.28797,
+   "lon": -124.81701,
+   "rules": [
+    "r5:dean_river@5-9::dean_river.r1",
+    "r5:dean_river@5-9::dean_river.r6",
+    "r5:dean_river@5-9::dean_river.r7",
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329231207": {
+   "river": [
+    "Seeley Creek"
+   ],
+   "area_m2": 5244,
+   "lat": 55.20369,
+   "lon": -127.6718,
+   "rules": [
+    "r6:seeley_creek_outlet_of_seeley_lake@6-9::seeley_creek.r1",
+    "r6:seeley_creek_outlet_of_seeley_lake@6-9::seeley_creek.r2",
+    "r6:seeley_creek_outlet_of_seeley_lake@6-9::seeley_creek.r3"
+   ]
+  },
+  "lake:329070548": {
+   "river": [
+    "Thelwood Creek"
+   ],
+   "area_m2": 5229,
+   "lat": 49.52084,
+   "lon": -125.61902,
+   "rules": [
+    "r1:buttle_lake_s_tributaries@1-9::buttle_lake_s_tributaries.r2",
+    "r1:thelwood_creek@1-9::thelwood_creek.r1"
+   ]
+  },
+  "lake:329605841": {
+   "river": [
+    "Dean River"
+   ],
+   "area_m2": 5201,
+   "lat": 52.37026,
+   "lon": -125.17525,
+   "rules": [
+    "r5:dean_river@5-9::dean_river.r1",
+    "r5:dean_river@5-9::dean_river.r6",
+    "r5:dean_river@5-9::dean_river.r7",
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329070551": {
+   "river": [
+    "Miller Creek"
+   ],
+   "area_m2": 5190,
+   "lat": 49.96004,
+   "lon": -125.51009,
+   "rules": [
+    "r1:miller_creek@1-6::miller_creek.r1"
+   ]
+  },
+  "lake:329643789": {
+   "river": [
+    "Damdochax Creek"
+   ],
+   "area_m2": 5118,
+   "lat": 56.46113,
+   "lon": -127.99755,
+   "rules": [
+    "r6:damdochax_creek@6-17::damdochax_creek.r1",
+    "z6:trout_char_quota::trout_char_quota.r9b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:328964436": {
+   "river": [
+    "Bonaparte River"
+   ],
+   "area_m2": 5114,
+   "lat": 51.32025,
+   "lon": -120.72993,
+   "rules": [
+    "r3:bonaparte_river@3-30::bonaparte_river.r2"
+   ]
+  },
+  "lake:329056828": {
+   "river": [
+    "Fiftyseven Creek"
+   ],
+   "area_m2": 5104,
+   "lat": 51.14239,
+   "lon": -121.78639,
+   "rules": [
+    "r3:fiftyseven_creek@3-30::fiftyseven_creek.r1"
+   ]
+  },
+  "lake:329056831": {
+   "river": [
+    "Cutoff Valley Creek"
+   ],
+   "area_m2": 5089,
+   "lat": 51.07767,
+   "lon": -121.62414,
+   "rules": [
+    "r3:cutoff_valley_creek@3-30::cutoff_valley_creek.r1"
+   ]
+  },
+  "lake:329683342": {
+   "river": [
+    "Zymoetz River"
+   ],
+   "area_m2": 5088,
+   "lat": 54.74588,
+   "lon": -127.34718,
+   "rules": [
+    "r6:zymoetz_copper_river@6-9::zymoetz_river.r3",
+    "r6:zymoetz_copper_river@6-9::zymoetz_river.r4",
+    "r6:zymoetz_copper_river@6-9::zymoetz_river.r7",
+    "z6:trout_char_quota::trout_char_quota.r9b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329263133": {
+   "river": [
+    "Salmo River"
+   ],
+   "area_m2": 5073,
+   "lat": 49.41444,
+   "lon": -117.22109,
+   "rules": [
+    "r4:salmo_river@4-8::salmo_river.r2",
+    "r4:salmo_river@4-8::salmo_river.r3",
+    "r4:salmo_river@4-8::salmo_river.r4"
+   ]
+  },
+  "lake:329292514": {
+   "river": [
+    "Campbell River"
+   ],
+   "area_m2": 5066,
+   "lat": 49.02239,
+   "lon": -122.57036,
+   "rules": [
+    "r2:campbell_river@2-4::campbell_river.r1",
+    "r2:campbell_river@2-4::campbell_river.r4"
+   ]
+  },
+  "lake:329521541": {
+   "river": [
+    "Little Muddy Creek"
+   ],
+   "area_m2": 5058,
+   "lat": 49.062,
+   "lon": -120.8111,
+   "rules": [
+    "r2:little_muddy_creek@2-1::little_muddy_creek.r1"
+   ]
+  },
+  "lake:329173654": {
+   "river": [
+    "Watch Creek"
+   ],
+   "area_m2": 5048,
+   "lat": 51.47527,
+   "lon": -121.05086,
+   "rules": [
+    "r5:watch_creek@5-1::watch_creek.r1",
+    "r5:watch_creek@5-1::watch_creek.r1x"
+   ]
+  },
+  "lake:329056873": {
+   "river": [
+    "Fiftyseven Creek"
+   ],
+   "area_m2": 4943,
+   "lat": 51.14602,
+   "lon": -121.77047,
+   "rules": [
+    "r3:fiftyseven_creek@3-30::fiftyseven_creek.r1"
+   ]
+  },
+  "lake:329155282": {
+   "river": [
+    "Silverhope Creek"
+   ],
+   "area_m2": 4931,
+   "lat": 49.15806,
+   "lon": -121.32414,
+   "rules": [
+    "r2:silverhope_silver_creek@2-2::silverhope_creek.r1",
+    "r2:silverhope_silver_creek@2-2::silverhope_creek.r2",
+    "r2:silverhope_silver_creek@2-2::silverhope_creek.r3"
+   ]
+  },
+  "lake:329059951": {
+   "river": [
+    "Bowron River"
+   ],
+   "area_m2": 4926,
+   "lat": 53.1942,
+   "lon": -121.27189,
+   "rules": [
+    "r7:bowron_river@7-7::bowron_river.r1",
+    "r7:bowron_river@7-7::bowron_river.r2"
+   ]
+  },
+  "lake:329069744": {
+   "river": [
+    "Gold Creek"
+   ],
+   "area_m2": 4825,
+   "lat": 49.38752,
+   "lon": -115.62698,
+   "rules": [
+    "r4:gold_creek@4-3::gold_creek.r1",
+    "r4:gold_creek@4-3::gold_creek.r2"
+   ]
+  },
+  "lake:329056915": {
+   "river": [
+    "Cutoff Valley Creek"
+   ],
+   "area_m2": 4815,
+   "lat": 51.02608,
+   "lon": -121.69246,
+   "rules": [
+    "r3:cutoff_valley_creek@3-30::cutoff_valley_creek.r1"
+   ]
+  },
+  "lake:329651748": {
+   "river": [
+    "Albreda River"
+   ],
+   "area_m2": 4812,
+   "lat": 52.6632,
+   "lon": -119.13128,
+   "rules": [
+    "r3:albreda_river@3-43::albreda_river.r1"
+   ]
+  },
+  "lake:329173741": {
+   "river": [
+    "Watch Creek"
+   ],
+   "area_m2": 4788,
+   "lat": 51.46891,
+   "lon": -121.05137,
+   "rules": [
+    "r5:watch_creek@5-1::watch_creek.r1",
+    "r5:watch_creek@5-1::watch_creek.r1x"
+   ]
+  },
+  "lake:329320062": {
+   "river": [
+    "Nechako River"
+   ],
+   "area_m2": 4742,
+   "lat": 53.59126,
+   "lon": -124.9544,
+   "rules": [
+    "r7:nechako_river@7-12::nechako_river.r1",
+    "z7a:sara_sturgeon::sara_sturgeon.r1"
+   ]
+  },
+  "lake:329067337": {
+   "river": [
+    "Station Creek"
+   ],
+   "area_m2": 4724,
+   "lat": 55.19096,
+   "lon": -127.58113,
+   "rules": [
+    "r6:station_creek@6-9::station_creek.r1",
+    "r6:station_creek@6-9::station_creek.r2",
+    "r6:station_creek@6-9::station_creek.r3"
+   ]
+  },
+  "lake:329680714": {
+   "river": [
+    "Ksi X'anmas"
+   ],
+   "area_m2": 4675,
+   "lat": 54.80266,
+   "lon": -129.67914,
+   "rules": [
+    "r6:ksi_x_anmas_river_formerly_kwinamass_river@6-14::ksi_x_anmas_river.r1",
+    "z6:trout_char_quota::trout_char_quota.r9b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329503634": {
+   "river": [
+    "Salmon River"
+   ],
+   "area_m2": 4613,
+   "lat": 55.02405,
+   "lon": -123.85346,
+   "rules": [
+    "r7:salmon_river@7-15::salmon_river.r1"
+   ]
+  },
+  "lake:329483056": {
+   "river": [
+    "Beaver Creek"
+   ],
+   "area_m2": 4603,
+   "lat": 52.39811,
+   "lon": -121.63147,
+   "rules": [
+    "r5:beaver_creek_chain_of_lakes@5-2::beaver_creek_chain_of_lakes.r1"
+   ]
+  },
+  "lake:329248253": {
+   "river": [
+    "Kootenay River"
+   ],
+   "area_m2": 4525,
+   "lat": 51.07712,
+   "lon": -116.40593,
+   "rules": [
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r1",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r10",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r2",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r3",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r8",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r9"
+   ]
+  },
+  "lake:329503650": {
+   "river": [
+    "Salmon River"
+   ],
+   "area_m2": 4482,
+   "lat": 55.02306,
+   "lon": -123.85194,
+   "rules": [
+    "r7:salmon_river@7-15::salmon_river.r1"
+   ]
+  },
+  "lake:329152158": {
+   "river": [
+    "Endako River"
+   ],
+   "area_m2": 4394,
+   "lat": 54.36955,
+   "lon": -125.94289,
+   "rules": [
+    "r6:endako_river@6-4::endako_river.r1"
+   ]
+  },
+  "lake:329057026": {
+   "river": [
+    "Fiftynine Creek"
+   ],
+   "area_m2": 4379,
+   "lat": 51.22113,
+   "lon": -121.52305,
+   "rules": [
+    "r3:fiftynine_creek@3-30::fiftynine_creek.r1"
+   ]
+  },
+  "lake:329483117": {
+   "river": [
+    "Beaver Creek"
+   ],
+   "area_m2": 4327,
+   "lat": 52.39843,
+   "lon": -121.64599,
+   "rules": [
+    "r5:beaver_creek_chain_of_lakes@5-2::beaver_creek_chain_of_lakes.r1"
+   ]
+  },
+  "lake:329242858": {
+   "river": [
+    "Deep Creek"
+   ],
+   "area_m2": 4322,
+   "lat": 54.56496,
+   "lon": -128.52971,
+   "rules": [
+    "r6:deep_creek@6-15::deep_creek.r1"
+   ]
+  },
+  "lake:329231358": {
+   "river": [
+    "Seeley Creek"
+   ],
+   "area_m2": 4320,
+   "lat": 55.20197,
+   "lon": -127.67298,
+   "rules": [
+    "r6:seeley_creek_outlet_of_seeley_lake@6-9::seeley_creek.r1",
+    "r6:seeley_creek_outlet_of_seeley_lake@6-9::seeley_creek.r2",
+    "r6:seeley_creek_outlet_of_seeley_lake@6-9::seeley_creek.r3"
+   ]
+  },
+  "lake:329453483": {
+   "river": [
+    "Nicola River"
+   ],
+   "area_m2": 4287,
+   "lat": 50.03878,
+   "lon": -119.90284,
+   "rules": [
+    "r3:nicola_river@3-13::nicola_river.r1",
+    "r3:nicola_river@3-13::nicola_river.r5"
+   ]
+  },
+  "lake:329057078": {
+   "river": [
+    "Fiftynine Creek"
+   ],
+   "area_m2": 4251,
+   "lat": 51.22483,
+   "lon": -121.52828,
+   "rules": [
+    "r3:fiftynine_creek@3-30::fiftynine_creek.r1"
+   ]
+  },
+  "lake:329503662": {
+   "river": [
+    "Salmon River"
+   ],
+   "area_m2": 4241,
+   "lat": 55.03202,
+   "lon": -123.86734,
+   "rules": [
+    "r7:salmon_river@7-15::salmon_river.r1"
+   ]
+  },
+  "lake:329057101": {
+   "river": [
+    "Fiftyseven Creek"
+   ],
+   "area_m2": 4158,
+   "lat": 51.14352,
+   "lon": -121.79627,
+   "rules": [
+    "r3:fiftyseven_creek@3-30::fiftyseven_creek.r1"
+   ]
+  },
+  "lake:329088414": {
+   "river": [
+    "Hemp Creek"
+   ],
+   "area_m2": 4079,
+   "lat": 51.99741,
+   "lon": -119.84524,
+   "rules": [
+    "r3:hemp_creek@3-46::hemp_creek.r1"
+   ]
+  },
+  "lake:329320136": {
+   "river": [
+    "Nechako River"
+   ],
+   "area_m2": 4074,
+   "lat": 53.59544,
+   "lon": -124.95176,
+   "rules": [
+    "r7:nechako_river@7-12::nechako_river.r1",
+    "z7a:sara_sturgeon::sara_sturgeon.r1"
+   ]
+  },
+  "lake:329292598": {
+   "river": [
+    "Coquitlam River"
+   ],
+   "area_m2": 4032,
+   "lat": 49.5535,
+   "lon": -122.73199,
+   "rules": [
+    "r2:coquitlam_river@2-8::coquitlam_river.r1",
+    "r2:coquitlam_river@2-8::coquitlam_river.r2"
+   ]
+  },
+  "lake:329606774": {
+   "river": [
+    "Dean River"
+   ],
+   "area_m2": 4006,
+   "lat": 52.23524,
+   "lon": -124.89985,
+   "rules": [
+    "r5:dean_river@5-9::dean_river.r1",
+    "r5:dean_river@5-9::dean_river.r6",
+    "r5:dean_river@5-9::dean_river.r7",
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329351153": {
+   "river": [
+    "Magar Creek"
+   ],
+   "area_m2": 3965,
+   "lat": 54.09713,
+   "lon": -129.10956,
+   "rules": [
+    "r6:magar_creek@6-10::magar_creek.r1",
+    "r6:magar_creek@6-10::magar_creek.r2"
+   ]
+  },
+  "lake:329483219": {
+   "river": [
+    "Beaver Creek"
+   ],
+   "area_m2": 3943,
+   "lat": 52.40447,
+   "lon": -121.71097,
+   "rules": [
+    "r5:beaver_creek_chain_of_lakes@5-2::beaver_creek_chain_of_lakes.r1"
+   ]
+  },
+  "lake:329247148": {
+   "river": [
+    "Keen Creek"
+   ],
+   "area_m2": 3920,
+   "lat": 49.75246,
+   "lon": -117.19853,
+   "rules": [
+    "r4:keen_creek@4-18::keen_creek.r1"
+   ]
+  },
+  "lake:329274967": {
+   "river": [
+    "McMillan Creek"
+   ],
+   "area_m2": 3887,
+   "lat": 53.99645,
+   "lon": -122.74449,
+   "rules": [
+    "r7:mcmillan_creek@7-15::mcmillan_creek.r1",
+    "r7:mcmillan_creek@7-15::mcmillan_creek.r2",
+    "r7:mcmillan_creek@7-15::mcmillan_creek.r3",
+    "r7:mcmillan_creek@7-15::mcmillan_creek.r4",
+    "zp:youth_disabled_waters::youth_disabled_waters.r1"
+   ]
+  },
+  "lake:329060108": {
+   "river": [
+    "Bowron River"
+   ],
+   "area_m2": 3876,
+   "lat": 53.17684,
+   "lon": -120.96186,
+   "rules": [
+    "r7:bowron_river@7-7::bowron_river.r1",
+    "r7:bowron_river@7-7::bowron_river.r2"
+   ]
+  },
+  "lake:329088489": {
+   "river": [
+    "Alice Creek"
+   ],
+   "area_m2": 3835,
+   "lat": 52.07556,
+   "lon": -120.13395,
+   "rules": [
+    "r3:alice_creek@3-46::alice_creek.r1"
+   ]
+  },
+  "lake:329247159": {
+   "river": [
+    "Crawford Creek"
+   ],
+   "area_m2": 3830,
+   "lat": 49.79452,
+   "lon": -116.68829,
+   "rules": [
+    "r4:crawford_creek@4-6::crawford_creek_4_6.r1"
+   ]
+  },
+  "lake:329030241": {
+   "river": [
+    "Pinkut Creek"
+   ],
+   "area_m2": 3786,
+   "lat": 54.36303,
+   "lon": -125.50591,
+   "rules": [
+    "r6:pinkut_creek@6-6::pinkut_creek.r2"
+   ]
+  },
+  "lake:329320175": {
+   "river": [
+    "Nechako River"
+   ],
+   "area_m2": 3774,
+   "lat": 53.58372,
+   "lon": -124.95379,
+   "rules": [
+    "r7:nechako_river@7-12::nechako_river.r1",
+    "z7a:sara_sturgeon::sara_sturgeon.r1"
+   ]
+  },
+  "lake:329248306": {
+   "river": [
+    "Kootenay River"
+   ],
+   "area_m2": 3718,
+   "lat": 51.07835,
+   "lon": -116.40802,
+   "rules": [
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r1",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r10",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r2",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r3",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r8",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r9"
+   ]
+  },
+  "lake:329060129": {
+   "river": [
+    "Bowron River"
+   ],
+   "area_m2": 3706,
+   "lat": 53.17652,
+   "lon": -120.96071,
+   "rules": [
+    "r7:bowron_river@7-7::bowron_river.r1",
+    "r7:bowron_river@7-7::bowron_river.r2"
+   ]
+  },
+  "lake:329124111": {
+   "river": [
+    "Cadorna Creek"
+   ],
+   "area_m2": 3690,
+   "lat": 50.46479,
+   "lon": -115.041,
+   "rules": [
+    "r4:cadorna_creek@4-23::cadorna_creek.r1",
+    "r4:cadorna_creek@4-23::cadorna_creek.r2",
+    "r4:cadorna_creek@4-23::cadorna_creek.r3"
+   ]
+  },
+  "lake:329057257": {
+   "river": [
+    "Fiftynine Creek"
+   ],
+   "area_m2": 3689,
+   "lat": 51.26193,
+   "lon": -121.68281,
+   "rules": [
+    "r3:fiftynine_creek@3-30::fiftynine_creek.r1"
+   ]
+  },
+  "lake:329231466": {
+   "river": [
+    "Seeley Creek"
+   ],
+   "area_m2": 3687,
+   "lat": 55.20708,
+   "lon": -127.66542,
+   "rules": [
+    "r6:seeley_creek_outlet_of_seeley_lake@6-9::seeley_creek.r1",
+    "r6:seeley_creek_outlet_of_seeley_lake@6-9::seeley_creek.r2",
+    "r6:seeley_creek_outlet_of_seeley_lake@6-9::seeley_creek.r3"
+   ]
+  },
+  "lake:328977754": {
+   "river": [
+    "Ksi Sii Aks"
+   ],
+   "area_m2": 3681,
+   "lat": 55.17449,
+   "lon": -129.03017,
+   "rules": [
+    "r6:ksi_sii_aks_river_formerly_tseax_river@6-14::ksi_sii_aks_river.r1",
+    "r6:ksi_sii_aks_river_formerly_tseax_river@6-14::ksi_sii_aks_river.r2"
+   ]
+  },
+  "lake:329177224": {
+   "river": [
+    "Guichon Creek"
+   ],
+   "area_m2": 3674,
+   "lat": 50.63286,
+   "lon": -120.97484,
+   "rules": [
+    "r3:guichon_creek@3-18::guichon_creek.r1"
+   ]
+  },
+  "lake:329263229": {
+   "river": [
+    "Beaver Creek"
+   ],
+   "area_m2": 3650,
+   "lat": 49.18599,
+   "lon": -117.38133,
+   "rules": [
+    "r4:beaver_creek@4-8::beaver_creek.r1"
+   ]
+  },
+  "lake:329124114": {
+   "river": [
+    "Michel Creek"
+   ],
+   "area_m2": 3645,
+   "lat": 49.49538,
+   "lon": -114.68198,
+   "rules": [
+    "r4:michel_creek_upstream_of_the_easternmost_hwy_3_bridge@4-23::michel_creek_upper.r2",
+    "r4:michel_creek_upstream_of_the_easternmost_hwy_3_bridge@4-23::michel_creek_upper.r3"
+   ]
+  },
+  "lake:328969673": {
+   "river": [
+    "Silverhope Creek"
+   ],
+   "area_m2": 3638,
+   "lat": 49.15833,
+   "lon": -121.32615,
+   "rules": [
+    "r2:silverhope_silver_creek@2-2::silverhope_creek.r1",
+    "r2:silverhope_silver_creek@2-2::silverhope_creek.r2",
+    "r2:silverhope_silver_creek@2-2::silverhope_creek.r3"
+   ]
+  },
+  "lake:329506489": {
+   "river": [
+    "Bridge River"
+   ],
+   "area_m2": 3630,
+   "lat": 50.78566,
+   "lon": -122.20861,
+   "rules": [
+    "r3:bridge_river@3-33::bridge_river.r1",
+    "r3:bridge_river@3-33::bridge_river.r3"
+   ]
+  },
+  "lake:329124121": {
+   "river": [
+    "Fording River"
+   ],
+   "area_m2": 3574,
+   "lat": 50.30148,
+   "lon": -114.82114,
+   "rules": [
+    "r4:fording_river_upstream_of_josephine_falls@4-23::fording_river_upstream.r1"
+   ]
+  },
+  "lake:329038212": {
+   "river": [
+    "Big Bar Creek"
+   ],
+   "area_m2": 3552,
+   "lat": 51.24114,
+   "lon": -122.04054,
+   "rules": [
+    "r3:big_bar_creek@3-31::big_bar_creek.r1"
+   ]
+  },
+  "lake:329607243": {
+   "river": [
+    "Dean River"
+   ],
+   "area_m2": 3551,
+   "lat": 52.4073,
+   "lon": -125.20863,
+   "rules": [
+    "r5:dean_river@5-9::dean_river.r1",
+    "r5:dean_river@5-9::dean_river.r6",
+    "r5:dean_river@5-9::dean_river.r7",
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329516509": {
+   "river": [
+    "Kowatua Creek"
+   ],
+   "area_m2": 3516,
+   "lat": 58.4604,
+   "lon": -132.6741,
+   "rules": [
+    "r6:kowatua_creek@6-26::kowatua_creek.r1"
+   ]
+  },
+  "lake:329198012": {
+   "river": [
+    "Angus Creek"
+   ],
+   "area_m2": 3514,
+   "lat": 49.54626,
+   "lon": -123.66035,
+   "rules": [
+    "r2:angus_creek@2-5::angus_creek.r1"
+   ]
+  },
+  "lake:329162401": {
+   "river": [
+    "Gold River"
+   ],
+   "area_m2": 3513,
+   "lat": 49.99594,
+   "lon": -125.92462,
+   "rules": [
+    "r1:gold_river@1-9::gold_river.r1",
+    "r1:gold_river@1-9::gold_river.r4"
+   ]
+  },
+  "lake:329152571": {
+   "river": [
+    "Endako River"
+   ],
+   "area_m2": 3510,
+   "lat": 54.3369,
+   "lon": -125.9088,
+   "rules": [
+    "r6:endako_river@6-4::endako_river.r1"
+   ]
+  },
+  "lake:329057333": {
+   "river": [
+    "Fiftyseven Creek"
+   ],
+   "area_m2": 3475,
+   "lat": 51.20588,
+   "lon": -121.54004,
+   "rules": [
+    "r3:fiftyseven_creek@3-30::fiftyseven_creek.r1"
+   ]
+  },
+  "lake:329239935": {
+   "river": [
+    "Klinaklini River"
+   ],
+   "area_m2": 3459,
+   "lat": 51.75545,
+   "lon": -125.0967,
+   "rules": [
+    "r5:klinaklini_river@5-6::klinaklini_river.r1"
+   ]
+  },
+  "lake:329198022": {
+   "river": [
+    "Rainy River"
+   ],
+   "area_m2": 3437,
+   "lat": 49.53228,
+   "lon": -123.49124,
+   "rules": [
+    "r2:rainy_river@2-5::rainy_river.r1"
+   ]
+  },
+  "lake:329057347": {
+   "river": [
+    "Fiftynine Creek"
+   ],
+   "area_m2": 3432,
+   "lat": 51.25394,
+   "lon": -121.68821,
+   "rules": [
+    "r3:fiftynine_creek@3-30::fiftynine_creek.r1"
+   ]
+  },
+  "lake:329070659": {
+   "river": [
+    "Elk River"
+   ],
+   "area_m2": 3374,
+   "lat": 49.73661,
+   "lon": -125.84268,
+   "rules": [
+    "r1:elk_river_also_see_buttle_lake_s_tributaries@1-9::elk_river.r1"
+   ]
+  },
+  "lake:329644091": {
+   "river": [
+    "Damdochax Creek"
+   ],
+   "area_m2": 3355,
+   "lat": 56.46768,
+   "lon": -128.00606,
+   "rules": [
+    "r6:damdochax_creek@6-17::damdochax_creek.r1",
+    "z6:trout_char_quota::trout_char_quota.r9b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329060184": {
+   "river": [
+    "Bowron River"
+   ],
+   "area_m2": 3340,
+   "lat": 53.17951,
+   "lon": -120.93944,
+   "rules": [
+    "r7:bowron_river@7-7::bowron_river.r1",
+    "r7:bowron_river@7-7::bowron_river.r2"
+   ]
+  },
+  "lake:329057423": {
+   "river": [
+    "Fiftyseven Creek"
+   ],
+   "area_m2": 3227,
+   "lat": 51.20435,
+   "lon": -121.53479,
+   "rules": [
+    "r3:fiftyseven_creek@3-30::fiftyseven_creek.r1"
+   ]
+  },
+  "lake:329607650": {
+   "river": [
+    "Dean River"
+   ],
+   "area_m2": 3214,
+   "lat": 52.42163,
+   "lon": -125.23137,
+   "rules": [
+    "r5:dean_river@5-9::dean_river.r1",
+    "r5:dean_river@5-9::dean_river.r6",
+    "r5:dean_river@5-9::dean_river.r7",
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329503792": {
+   "river": [
+    "Salmon River"
+   ],
+   "area_m2": 3209,
+   "lat": 55.02164,
+   "lon": -123.8501,
+   "rules": [
+    "r7:salmon_river@7-15::salmon_river.r1"
+   ]
+  },
+  "lake:329680970": {
+   "river": [
+    "Lachmach River"
+   ],
+   "area_m2": 3174,
+   "lat": 54.27524,
+   "lon": -129.90471,
+   "rules": [
+    "r6:lachmach_river@6-14::lachmach_river.r1"
+   ]
+  },
+  "lake:329317381": {
+   "river": [
+    "Moore Creek"
+   ],
+   "area_m2": 3172,
+   "lat": 50.42216,
+   "lon": -120.40906,
+   "rules": [
+    "r3:moore_creek@3-19::moore_creek.r1"
+   ]
+  },
+  "lake:329523019": {
+   "river": [
+    "Sumallo River"
+   ],
+   "area_m2": 3157,
+   "lat": 49.26747,
+   "lon": -121.22534,
+   "rules": [
+    "r2:sumallo_river_includes_cedar_lake_at_sunshine_valley@2-2::sumallo_river.r1",
+    "r2:sumallo_river_includes_cedar_lake_at_sunshine_valley@2-2::sumallo_river.r2"
+   ]
+  },
+  "lake:329468132": {
+   "river": [
+    "French Creek"
+   ],
+   "area_m2": 3147,
+   "lat": 49.24035,
+   "lon": -124.5214,
+   "rules": [
+    "r1:french_creek@1-5::french_creek.r1"
+   ]
+  },
+  "lake:329411695": {
+   "river": [
+    "Nakina River"
+   ],
+   "area_m2": 3127,
+   "lat": 59.10625,
+   "lon": -132.42048,
+   "rules": [
+    "r6:nakina_river@6-26::nakina_river.r1"
+   ]
+  },
+  "lake:329519305": {
+   "river": [
+    "McNomee Creek"
+   ],
+   "area_m2": 3067,
+   "lat": 51.38779,
+   "lon": -119.03254,
+   "rules": [
+    "r3:mcnomee_creek@3-36::mcnomee_creek.r1",
+    "r3:mcnomee_creek@3-36::mcnomee_creek.r2"
+   ]
+  },
+  "lake:329620248": {
+   "river": [
+    "Fraser River"
+   ],
+   "area_m2": 3036,
+   "lat": 52.52127,
+   "lon": -118.33116,
+   "rules": [
+    "r7:fraser_river@7-9::fraser_river.r1",
+    "r7:fraser_river@7-9::fraser_river.r2",
+    "z7a:sara_sturgeon::sara_sturgeon.r1"
+   ]
+  },
+  "lake:329388030": {
+   "river": [
+    "Thautil River"
+   ],
+   "area_m2": 2935,
+   "lat": 54.4447,
+   "lon": -127.27718,
+   "rules": [
+    "r6:thautil_river@6-9::thautil_river.r1",
+    "r6:thautil_river@6-9::thautil_river.r2"
+   ]
+  },
+  "lake:329525337": {
+   "river": [
+    "Sandown Creek"
+   ],
+   "area_m2": 2843,
+   "lat": 50.04083,
+   "lon": -115.90896,
+   "rules": [
+    "r4:sandown_creek@4-20::sandown_creek.r1"
+   ]
+  },
+  "lake:329024355": {
+   "river": [
+    "South Atnarko River"
+   ],
+   "area_m2": 2820,
+   "lat": 51.90868,
+   "lon": -125.58387,
+   "rules": [
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r10",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r13",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r3",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r4",
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329248373": {
+   "river": [
+    "Kootenay River"
+   ],
+   "area_m2": 2793,
+   "lat": 51.05135,
+   "lon": -116.3558,
+   "rules": [
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r1",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r10",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r2",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r3",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r8",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r9"
+   ]
+  },
+  "lake:329522075": {
+   "river": [
+    "Little Muddy Creek"
+   ],
+   "area_m2": 2784,
+   "lat": 49.06005,
+   "lon": -120.85245,
+   "rules": [
+    "r2:little_muddy_creek@2-1::little_muddy_creek.r1"
+   ]
+  },
+  "lake:329608320": {
+   "river": [
+    "Dean River"
+   ],
+   "area_m2": 2745,
+   "lat": 52.24474,
+   "lon": -124.88762,
+   "rules": [
+    "r5:dean_river@5-9::dean_river.r1",
+    "r5:dean_river@5-9::dean_river.r6",
+    "r5:dean_river@5-9::dean_river.r7",
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329015652": {
+   "river": [
+    "Adams River"
+   ],
+   "area_m2": 2742,
+   "lat": 52.04904,
+   "lon": -118.88774,
+   "rules": [
+    "r3:adams_river_upstream_of_adams_lake@3-37::adams_river_upstream.r1",
+    "r3:adams_river_upstream_of_adams_lake@3-37::adams_river_upstream.r2",
+    "r3:adams_river_upstream_of_adams_lake@3-37::adams_river_upstream.r3",
+    "r3:adams_river_upstream_of_adams_lake@3-37::adams_river_upstream.r4",
+    "r3:adams_river_upstream_of_adams_lake@3-37::adams_river_upstream.r5"
+   ]
+  },
+  "lake:329068003": {
+   "river": [
+    "Telkwa River"
+   ],
+   "area_m2": 2716,
+   "lat": 54.45331,
+   "lon": -127.63765,
+   "rules": [
+    "r6:telkwa_river@6-9::telkwa_river.r1",
+    "r6:telkwa_river@6-9::telkwa_river.r2",
+    "z6:trout_char_quota::trout_char_quota.r9b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329317470": {
+   "river": [
+    "Moore Creek"
+   ],
+   "area_m2": 2703,
+   "lat": 50.42785,
+   "lon": -120.40504,
+   "rules": [
+    "r3:moore_creek@3-19::moore_creek.r1"
+   ]
+  },
+  "lake:329522103": {
+   "river": [
+    "Little Muddy Creek"
+   ],
+   "area_m2": 2675,
+   "lat": 49.06101,
+   "lon": -120.85417,
+   "rules": [
+    "r2:little_muddy_creek@2-1::little_muddy_creek.r1"
+   ]
+  },
+  "lake:329198087": {
+   "river": [
+    "Chapman Creek"
+   ],
+   "area_m2": 2634,
+   "lat": 49.5822,
+   "lon": -123.6141,
+   "rules": [
+    "r2:chapman_creek@2-5::chapman_creek.r1",
+    "r2:chapman_creek@2-5::chapman_creek.r2"
+   ]
+  },
+  "lake:329030585": {
+   "river": [
+    "Pinkut Creek"
+   ],
+   "area_m2": 2622,
+   "lat": 54.35967,
+   "lon": -125.48316,
+   "rules": [
+    "r6:pinkut_creek@6-6::pinkut_creek.r2"
+   ]
+  },
+  "lake:329644257": {
+   "river": [
+    "Damdochax Creek"
+   ],
+   "area_m2": 2595,
+   "lat": 56.47574,
+   "lon": -128.00931,
+   "rules": [
+    "r6:damdochax_creek@6-17::damdochax_creek.r1",
+    "z6:trout_char_quota::trout_char_quota.r9b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329243155": {
+   "river": [
+    "Deep Creek"
+   ],
+   "area_m2": 2595,
+   "lat": 54.5741,
+   "lon": -128.5469,
+   "rules": [
+    "r6:deep_creek@6-15::deep_creek.r1"
+   ]
+  },
+  "lake:329174627": {
+   "river": [
+    "Watch Creek"
+   ],
+   "area_m2": 2592,
+   "lat": 51.46765,
+   "lon": -121.05132,
+   "rules": [
+    "r5:watch_creek@5-1::watch_creek.r1",
+    "r5:watch_creek@5-1::watch_creek.r1x"
+   ]
+  },
+  "lake:329608634": {
+   "river": [
+    "Dean River"
+   ],
+   "area_m2": 2562,
+   "lat": 52.24444,
+   "lon": -124.88877,
+   "rules": [
+    "r5:dean_river@5-9::dean_river.r1",
+    "r5:dean_river@5-9::dean_river.r6",
+    "r5:dean_river@5-9::dean_river.r7",
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329533345": {
+   "river": [
+    "Noons Creek"
+   ],
+   "area_m2": 2558,
+   "lat": 49.33873,
+   "lon": -122.8116,
+   "rules": [
+    "r2:noons_creek@2-8::noons_creek.r1"
+   ]
+  },
+  "lake:329030607": {
+   "river": [
+    "Pinkut Creek"
+   ],
+   "area_m2": 2556,
+   "lat": 54.44374,
+   "lon": -125.64908,
+   "rules": [
+    "r6:pinkut_creek@6-6::pinkut_creek.r2"
+   ]
+  },
+  "lake:329633839": {
+   "river": [
+    "Denetiah Creek"
+   ],
+   "area_m2": 2555,
+   "lat": 58.30119,
+   "lon": -127.51978,
+   "rules": [
+    "r7:denetiah_creek@7-52::denetiah_creek.r1"
+   ]
+  },
+  "lake:329317510": {
+   "river": [
+    "Moore Creek"
+   ],
+   "area_m2": 2548,
+   "lat": 50.41874,
+   "lon": -120.41217,
+   "rules": [
+    "r3:moore_creek@3-19::moore_creek.r1"
+   ]
+  },
+  "lake:329186738": {
+   "river": [
+    "Moffat Creek"
+   ],
+   "area_m2": 2531,
+   "lat": 52.11139,
+   "lon": -120.94371,
+   "rules": [
+    "r5:moffat_creek@5-2::moffat_creek.r1x"
+   ]
+  },
+  "lake:329317523": {
+   "river": [
+    "Moore Creek"
+   ],
+   "area_m2": 2505,
+   "lat": 50.44566,
+   "lon": -120.4122,
+   "rules": [
+    "r3:moore_creek@3-19::moore_creek.r1"
+   ]
+  },
+  "lake:329483672": {
+   "river": [
+    "Beaver Creek"
+   ],
+   "area_m2": 2492,
+   "lat": 52.65664,
+   "lon": -122.08601,
+   "rules": [
+    "r5:beaver_creek_chain_of_lakes@5-2::beaver_creek_chain_of_lakes.r1"
+   ]
+  },
+  "lake:329186753": {
+   "river": [
+    "Little Horsefly River"
+   ],
+   "area_m2": 2478,
+   "lat": 52.36771,
+   "lon": -121.34864,
+   "rules": [
+    "r5:little_horsefly_river@5-2::little_horsefly_river.r1",
+    "r5:little_horsefly_river@5-2::little_horsefly_river.r1x",
+    "r5:little_horsefly_river@5-2::little_horsefly_river.r2"
+   ]
+  },
+  "lake:329202783": {
+   "river": [
+    "Buckley Creek"
+   ],
+   "area_m2": 2418,
+   "lat": 57.92164,
+   "lon": -130.7345,
+   "rules": [
+    "r6:buckley_creek@6-21::buckley_creek.r1",
+    "r6:buckley_creek@6-21::buckley_creek.r2",
+    "r6:buckley_creek@6-21::buckley_creek.r3"
+   ]
+  },
+  "lake:329068120": {
+   "river": [
+    "Telkwa River"
+   ],
+   "area_m2": 2416,
+   "lat": 54.45477,
+   "lon": -127.63726,
+   "rules": [
+    "r6:telkwa_river@6-9::telkwa_river.r1",
+    "r6:telkwa_river@6-9::telkwa_river.r2",
+    "z6:trout_char_quota::trout_char_quota.r9b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329292797": {
+   "river": [
+    "Scott Creek"
+   ],
+   "area_m2": 2401,
+   "lat": 49.31239,
+   "lon": -122.80889,
+   "rules": [
+    "r2:scott_hoy_creek@2-8::scott_creek.r1"
+   ]
+  },
+  "lake:329124229": {
+   "river": [
+    "Flathead River"
+   ],
+   "area_m2": 2381,
+   "lat": 49.34321,
+   "lon": -114.86366,
+   "rules": [
+    "r4:flathead_river@4-1::flathead_river.r1",
+    "r4:flathead_river@4-1::flathead_river.r2",
+    "r4:flathead_river@4-1::flathead_river.r3"
+   ]
+  },
+  "lake:329483724": {
+   "river": [
+    "Beaver Creek"
+   ],
+   "area_m2": 2340,
+   "lat": 52.39756,
+   "lon": -121.62268,
+   "rules": [
+    "r5:beaver_creek_chain_of_lakes@5-2::beaver_creek_chain_of_lakes.r1"
+   ]
+  },
+  "lake:329057737": {
+   "river": [
+    "Fiftyseven Creek"
+   ],
+   "area_m2": 2338,
+   "lat": 51.18883,
+   "lon": -121.63945,
+   "rules": [
+    "r3:fiftyseven_creek@3-30::fiftyseven_creek.r1"
+   ]
+  },
+  "lake:329292824": {
+   "river": [
+    "Salmon River"
+   ],
+   "area_m2": 2299,
+   "lat": 49.06474,
+   "lon": -122.41869,
+   "rules": [
+    "r2:salmon_river@2-4::salmon_river.r1"
+   ]
+  },
+  "lake:329223169": {
+   "river": [
+    "Triumph River"
+   ],
+   "area_m2": 2293,
+   "lat": 53.33504,
+   "lon": -128.61226,
+   "rules": [
+    "r6:triumph_river@6-3::triumph_river.r1"
+   ]
+  },
+  "lake:329060367": {
+   "river": [
+    "Bowron River"
+   ],
+   "area_m2": 2281,
+   "lat": 53.18008,
+   "lon": -120.9424,
+   "rules": [
+    "r7:bowron_river@7-7::bowron_river.r1",
+    "r7:bowron_river@7-7::bowron_river.r2"
+   ]
+  },
+  "lake:329372905": {
+   "river": [
+    "Chimney Creek"
+   ],
+   "area_m2": 2272,
+   "lat": 52.04983,
+   "lon": -122.0782,
+   "rules": [
+    "r5:chimney_creek@5-2::chimney_creek.r1"
+   ]
+  },
+  "lake:329317578": {
+   "river": [
+    "Moore Creek"
+   ],
+   "area_m2": 2254,
+   "lat": 50.42833,
+   "lon": -120.40375,
+   "rules": [
+    "r3:moore_creek@3-19::moore_creek.r1"
+   ]
+  },
+  "lake:329219311": {
+   "river": [
+    "Eholt Creek"
+   ],
+   "area_m2": 2238,
+   "lat": 49.13246,
+   "lon": -118.60886,
+   "rules": [
+    "r8:eholt_creek@8-14::eholt_creek.r1"
+   ]
+  },
+  "lake:329609237": {
+   "river": [
+    "Dean River"
+   ],
+   "area_m2": 2206,
+   "lat": 52.28916,
+   "lon": -124.81384,
+   "rules": [
+    "r5:dean_river@5-9::dean_river.r1",
+    "r5:dean_river@5-9::dean_river.r6",
+    "r5:dean_river@5-9::dean_river.r7",
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329506782": {
+   "river": [
+    "Cayoosh Creek"
+   ],
+   "area_m2": 2179,
+   "lat": 50.38706,
+   "lon": -122.51988,
+   "rules": [
+    "r3:cayoosh_creek@3-16::cayoosh_creek.r1"
+   ]
+  },
+  "lake:329068229": {
+   "river": [
+    "Telkwa River"
+   ],
+   "area_m2": 2165,
+   "lat": 54.45627,
+   "lon": -127.63752,
+   "rules": [
+    "r6:telkwa_river@6-9::telkwa_river.r1",
+    "r6:telkwa_river@6-9::telkwa_river.r2",
+    "z6:trout_char_quota::trout_char_quota.r9b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329057824": {
+   "river": [
+    "Fiftyseven Creek"
+   ],
+   "area_m2": 2136,
+   "lat": 51.21187,
+   "lon": -121.58588,
+   "rules": [
+    "r3:fiftyseven_creek@3-30::fiftyseven_creek.r1"
+   ]
+  },
+  "lake:329057825": {
+   "river": [
+    "Fiftyseven Creek"
+   ],
+   "area_m2": 2134,
+   "lat": 51.19102,
+   "lon": -121.58273,
+   "rules": [
+    "r3:fiftyseven_creek@3-30::fiftyseven_creek.r1"
+   ]
+  },
+  "lake:329024785": {
+   "river": [
+    "Hunlen Creek"
+   ],
+   "area_m2": 2128,
+   "lat": 52.17584,
+   "lon": -125.83674,
+   "rules": [
+    "r5:hunlen_creek_upstream_of_hunlen_falls@5-11::hunlen_creek.r1",
+    "r5:hunlen_creek_upstream_of_hunlen_falls@5-11::hunlen_creek.r2"
+   ]
+  },
+  "lake:329609402": {
+   "river": [
+    "Dean River"
+   ],
+   "area_m2": 2118,
+   "lat": 52.23716,
+   "lon": -124.89415,
+   "rules": [
+    "r5:dean_river@5-9::dean_river.r1",
+    "r5:dean_river@5-9::dean_river.r6",
+    "r5:dean_river@5-9::dean_river.r7",
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329600134": {
+   "river": [
+    "Chilcotin River"
+   ],
+   "area_m2": 2032,
+   "lat": 52.76195,
+   "lon": -124.63871,
+   "rules": [
+    "r5:chilcotin_river@5-12+5-13+5-14::chilcotin_river.r1",
+    "r5:chilcotin_river@5-12+5-13+5-14::chilcotin_river.r2x",
+    "r5:chilcotin_river@5-12+5-13+5-14::chilcotin_river.r4",
+    "r5:chilcotin_river@5-12+5-13+5-14::chilcotin_river.r5",
+    "r5:chilcotin_river@5-12+5-13+5-14::chilcotin_river.r6",
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329247381": {
+   "river": [
+    "Keen Creek"
+   ],
+   "area_m2": 2028,
+   "lat": 49.77063,
+   "lon": -117.1924,
+   "rules": [
+    "r4:keen_creek@4-18::keen_creek.r1"
+   ]
+  },
+  "lake:329620482": {
+   "river": [
+    "Fraser River"
+   ],
+   "area_m2": 2026,
+   "lat": 52.52815,
+   "lon": -118.3366,
+   "rules": [
+    "r7:fraser_river@7-9::fraser_river.r1",
+    "r7:fraser_river@7-9::fraser_river.r2",
+    "z7a:sara_sturgeon::sara_sturgeon.r1"
+   ]
+  },
+  "lake:329576026": {
+   "river": [
+    "Claud Elliott Creek"
+   ],
+   "area_m2": 2020,
+   "lat": 50.27811,
+   "lon": -126.53733,
+   "rules": [
+    "r1:claud_elliott_creek@1-10::claud_elliott_creek.r1"
+   ]
+  },
+  "lake:329134252": {
+   "river": [
+    "Davis River"
+   ],
+   "area_m2": 2004,
+   "lat": 56.75021,
+   "lon": -124.17617,
+   "rules": [
+    "r7:davis_river@7-37::davis_river.r1"
+   ]
+  },
+  "lake:329461661": {
+   "river": [
+    "Trout Creek"
+   ],
+   "area_m2": 1987,
+   "lat": 49.82085,
+   "lon": -119.99425,
+   "rules": [
+    "r8:trout_creek@8-8::trout_creek.r2"
+   ]
+  },
+  "lake:329024895": {
+   "river": [
+    "South Atnarko River"
+   ],
+   "area_m2": 1975,
+   "lat": 51.94158,
+   "lon": -125.6553,
+   "rules": [
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r10",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r13",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r3",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r4",
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329416884": {
+   "river": [
+    "Baker Creek"
+   ],
+   "area_m2": 1972,
+   "lat": 52.92871,
+   "lon": -123.01658,
+   "rules": [
+    "r5:baker_creek@5-13::baker_creek.r1",
+    "r5:baker_creek@5-13::baker_creek.r2x"
+   ]
+  },
+  "lake:329057898": {
+   "river": [
+    "Clinton Creek"
+   ],
+   "area_m2": 1954,
+   "lat": 51.10615,
+   "lon": -121.73597,
+   "rules": [
+    "r3:clinton_creek@3-30::clinton_creek.r1"
+   ]
+  },
+  "lake:329665328": {
+   "river": [
+    "Sitkum Creek"
+   ],
+   "area_m2": 1948,
+   "lat": 50.42692,
+   "lon": -118.27562,
+   "rules": [
+    "r8:sitkum_creek@8-23::sitkum_creek.r1"
+   ]
+  },
+  "lake:329633925": {
+   "river": [
+    "Denetiah Creek"
+   ],
+   "area_m2": 1922,
+   "lat": 58.29879,
+   "lon": -127.52976,
+   "rules": [
+    "r7:denetiah_creek@7-52::denetiah_creek.r1"
+   ]
+  },
+  "lake:329198199": {
+   "river": [
+    "Angus Creek"
+   ],
+   "area_m2": 1913,
+   "lat": 49.5436,
+   "lon": -123.66126,
+   "rules": [
+    "r2:angus_creek@2-5::angus_creek.r1"
+   ]
+  },
+  "lake:329057920": {
+   "river": [
+    "Fiftyseven Creek"
+   ],
+   "area_m2": 1912,
+   "lat": 51.18109,
+   "lon": -121.59616,
+   "rules": [
+    "r3:fiftyseven_creek@3-30::fiftyseven_creek.r1"
+   ]
+  },
+  "lake:329317681": {
+   "river": [
+    "Maka Creek"
+   ],
+   "area_m2": 1911,
+   "lat": 49.7823,
+   "lon": -121.1958,
+   "rules": [
+    "r3:maka_creek@3-13::maka_creek.r1"
+   ]
+  },
+  "lake:329057933": {
+   "river": [
+    "Fiftyseven Creek"
+   ],
+   "area_m2": 1897,
+   "lat": 51.14408,
+   "lon": -121.79815,
+   "rules": [
+    "r3:fiftyseven_creek@3-30::fiftyseven_creek.r1"
+   ]
+  },
+  "lake:329248437": {
+   "river": [
+    "Kootenay River"
+   ],
+   "area_m2": 1890,
+   "lat": 51.06628,
+   "lon": -116.38304,
+   "rules": [
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r1",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r10",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r2",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r3",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r8",
+    "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35::kootenay_river_upper.r9"
+   ]
+  },
+  "lake:329576046": {
+   "river": [
+    "Claud Elliott Creek"
+   ],
+   "area_m2": 1867,
+   "lat": 50.3393,
+   "lon": -126.52427,
+   "rules": [
+    "r1:claud_elliott_creek@1-10::claud_elliott_creek.r1"
+   ]
+  },
+  "lake:329186955": {
+   "river": [
+    "Moffat Creek"
+   ],
+   "area_m2": 1864,
+   "lat": 52.11111,
+   "lon": -120.94526,
+   "rules": [
+    "r5:moffat_creek@5-2::moffat_creek.r1x"
+   ]
+  },
+  "lake:329057954": {
+   "river": [
+    "Cutoff Valley Creek"
+   ],
+   "area_m2": 1844,
+   "lat": 51.0126,
+   "lon": -121.7575,
+   "rules": [
+    "r3:cutoff_valley_creek@3-30::cutoff_valley_creek.r1"
+   ]
+  },
+  "lake:329681365": {
+   "river": [
+    "Lachmach River"
+   ],
+   "area_m2": 1815,
+   "lat": 54.27435,
+   "lon": -129.90311,
+   "rules": [
+    "r6:lachmach_river@6-14::lachmach_river.r1"
+   ]
+  },
+  "lake:329057977": {
+   "river": [
+    "Clinton Creek"
+   ],
+   "area_m2": 1797,
+   "lat": 51.11231,
+   "lon": -121.7226,
+   "rules": [
+    "r3:clinton_creek@3-30::clinton_creek.r1"
+   ]
+  },
+  "lake:329057982": {
+   "river": [
+    "Fiftyseven Creek"
+   ],
+   "area_m2": 1787,
+   "lat": 51.19021,
+   "lon": -121.64315,
+   "rules": [
+    "r3:fiftyseven_creek@3-30::fiftyseven_creek.r1"
+   ]
+  },
+  "lake:329223256": {
+   "river": [
+    "Triumph River"
+   ],
+   "area_m2": 1779,
+   "lat": 53.44389,
+   "lon": -128.68378,
+   "rules": [
+    "r6:triumph_river@6-3::triumph_river.r1"
+   ]
+  },
+  "lake:329525512": {
+   "river": [
+    "Sandown Creek"
+   ],
+   "area_m2": 1772,
+   "lat": 50.03971,
+   "lon": -115.90464,
+   "rules": [
+    "r4:sandown_creek@4-20::sandown_creek.r1"
+   ]
+  },
+  "lake:329483945": {
+   "river": [
+    "Beaver Creek"
+   ],
+   "area_m2": 1757,
+   "lat": 52.39707,
+   "lon": -121.64256,
+   "rules": [
+    "r5:beaver_creek_chain_of_lakes@5-2::beaver_creek_chain_of_lakes.r1"
+   ]
+  },
+  "lake:329068410": {
+   "river": [
+    "Bulkley River"
+   ],
+   "area_m2": 1747,
+   "lat": 54.41633,
+   "lon": -126.10269,
+   "rules": [
+    "r6:bulkley_river@6-9::bulkley_river.r1",
+    "r6:bulkley_river@6-9::bulkley_river.r2",
+    "r6:bulkley_river@6-9::bulkley_river.r3",
+    "z6:trout_char_quota::trout_char_quota.r9b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329058049": {
+   "river": [
+    "Clinton Creek"
+   ],
+   "area_m2": 1678,
+   "lat": 51.11184,
+   "lon": -121.72477,
+   "rules": [
+    "r3:clinton_creek@3-30::clinton_creek.r1"
+   ]
+  },
+  "lake:329525527": {
+   "river": [
+    "Sandown Creek"
+   ],
+   "area_m2": 1677,
+   "lat": 50.04055,
+   "lon": -115.9075,
+   "rules": [
+    "r4:sandown_creek@4-20::sandown_creek.r1"
+   ]
+  },
+  "lake:329483974": {
+   "river": [
+    "Beaver Creek"
+   ],
+   "area_m2": 1672,
+   "lat": 52.39696,
+   "lon": -121.63922,
+   "rules": [
+    "r5:beaver_creek_chain_of_lakes@5-2::beaver_creek_chain_of_lakes.r1"
+   ]
+  },
+  "lake:329681426": {
+   "river": [
+    "Lachmach River"
+   ],
+   "area_m2": 1668,
+   "lat": 54.27341,
+   "lon": -129.90141,
+   "rules": [
+    "r6:lachmach_river@6-14::lachmach_river.r1"
+   ]
+  },
+  "lake:329373110": {
+   "river": [
+    "Chimney Creek"
+   ],
+   "area_m2": 1663,
+   "lat": 52.07293,
+   "lon": -122.23883,
+   "rules": [
+    "r5:chimney_creek@5-2::chimney_creek.r1"
+   ]
+  },
+  "lake:329058074": {
+   "river": [
+    "Fiftyseven Creek"
+   ],
+   "area_m2": 1620,
+   "lat": 51.19451,
+   "lon": -121.64666,
+   "rules": [
+    "r3:fiftyseven_creek@3-30::fiftyseven_creek.r1"
+   ]
+  },
+  "lake:329058079": {
+   "river": [
+    "Fiftynine Creek"
+   ],
+   "area_m2": 1610,
+   "lat": 51.25706,
+   "lon": -121.68374,
+   "rules": [
+    "r3:fiftynine_creek@3-30::fiftynine_creek.r1"
+   ]
+  },
+  "lake:329058091": {
+   "river": [
+    "Fiftynine Creek"
+   ],
+   "area_m2": 1595,
+   "lat": 51.22854,
+   "lon": -121.5686,
+   "rules": [
+    "r3:fiftynine_creek@3-30::fiftynine_creek.r1"
+   ]
+  },
+  "lake:329610514": {
+   "river": [
+    "Dean River"
+   ],
+   "area_m2": 1578,
+   "lat": 52.40332,
+   "lon": -125.19399,
+   "rules": [
+    "r5:dean_river@5-9::dean_river.r1",
+    "r5:dean_river@5-9::dean_river.r6",
+    "r5:dean_river@5-9::dean_river.r7",
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329102227": {
+   "river": [
+    "Koksilah River"
+   ],
+   "area_m2": 1572,
+   "lat": 48.63773,
+   "lon": -123.75573,
+   "rules": [
+    "r1:koksilah_river@1-4::koksilah_river.r1"
+   ]
+  },
+  "lake:329533565": {
+   "river": [
+    "Hastings Creek"
+   ],
+   "area_m2": 1550,
+   "lat": 49.34472,
+   "lon": -123.05905,
+   "rules": [
+    "r2:hastings_creek@2-8::hastings_creek.r1"
+   ]
+  },
+  "lake:329038594": {
+   "river": [
+    "Big Bar Creek"
+   ],
+   "area_m2": 1546,
+   "lat": 51.31941,
+   "lon": -121.97717,
+   "rules": [
+    "r3:big_bar_creek@3-31::big_bar_creek.r1"
+   ]
+  },
+  "lake:329504081": {
+   "river": [
+    "Salmon River"
+   ],
+   "area_m2": 1535,
+   "lat": 54.50949,
+   "lon": -123.68708,
+   "rules": [
+    "r7:salmon_river@7-15::salmon_river.r1"
+   ]
+  },
+  "lake:329293015": {
+   "river": [
+    "Salmon River"
+   ],
+   "area_m2": 1530,
+   "lat": 49.0671,
+   "lon": -122.4275,
+   "rules": [
+    "r2:salmon_river@2-4::salmon_river.r1"
+   ]
+  },
+  "lake:329042731": {
+   "river": [
+    "Burnt Bridge Creek"
+   ],
+   "area_m2": 1509,
+   "lat": 52.54641,
+   "lon": -126.12082,
+   "rules": [
+    "r5:burnt_bridge_creek_upstream_of_sitkatapa_creek@5-11::burnt_bridge_creek.r1",
+    "r5:burnt_bridge_creek_upstream_of_sitkatapa_creek@5-11::burnt_bridge_creek.r2",
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329058151": {
+   "river": [
+    "Fiftyseven Creek"
+   ],
+   "area_m2": 1498,
+   "lat": 51.18822,
+   "lon": -121.57976,
+   "rules": [
+    "r3:fiftyseven_creek@3-30::fiftyseven_creek.r1"
+   ]
+  },
+  "lake:329058152": {
+   "river": [
+    "Clinton Creek"
+   ],
+   "area_m2": 1496,
+   "lat": 51.10731,
+   "lon": -121.7327,
+   "rules": [
+    "r3:clinton_creek@3-30::clinton_creek.r1"
+   ]
+  },
+  "lake:329070852": {
+   "river": [
+    "Elk River"
+   ],
+   "area_m2": 1451,
+   "lat": 49.79417,
+   "lon": -125.87524,
+   "rules": [
+    "r1:elk_river_also_see_buttle_lake_s_tributaries@1-9::elk_river.r1"
+   ]
+  },
+  "lake:329095257": {
+   "river": [
+    "Windermere Creek"
+   ],
+   "area_m2": 1438,
+   "lat": 50.49469,
+   "lon": -115.90317,
+   "rules": [
+    "r4:windermere_creek@4-25::windermere_creek.r1"
+   ]
+  },
+  "lake:329223336": {
+   "river": [
+    "Triumph River"
+   ],
+   "area_m2": 1409,
+   "lat": 53.43217,
+   "lon": -128.67972,
+   "rules": [
+    "r6:triumph_river@6-3::triumph_river.r1"
+   ]
+  },
+  "lake:329240883": {
+   "river": [
+    "Klinaklini River"
+   ],
+   "area_m2": 1406,
+   "lat": 51.84909,
+   "lon": -124.95257,
+   "rules": [
+    "r5:klinaklini_river@5-6::klinaklini_river.r1"
+   ]
+  },
+  "lake:329058214": {
+   "river": [
+    "Fiftyseven Creek"
+   ],
+   "area_m2": 1402,
+   "lat": 51.21706,
+   "lon": -121.57374,
+   "rules": [
+    "r3:fiftyseven_creek@3-30::fiftyseven_creek.r1"
+   ]
+  },
+  "lake:329247475": {
+   "river": [
+    "Keen Creek"
+   ],
+   "area_m2": 1402,
+   "lat": 49.74824,
+   "lon": -117.19895,
+   "rules": [
+    "r4:keen_creek@4-18::keen_creek.r1"
+   ]
+  },
+  "lake:329263479": {
+   "river": [
+    "Salmo River"
+   ],
+   "area_m2": 1399,
+   "lat": 49.41232,
+   "lon": -117.21743,
+   "rules": [
+    "r4:salmo_river@4-8::salmo_river.r2",
+    "r4:salmo_river@4-8::salmo_river.r3",
+    "r4:salmo_river@4-8::salmo_river.r4"
+   ]
+  },
+  "lake:329134420": {
+   "river": [
+    "Davis River"
+   ],
+   "area_m2": 1398,
+   "lat": 56.74583,
+   "lon": -124.17334,
+   "rules": [
+    "r7:davis_river@7-37::davis_river.r1"
+   ]
+  },
+  "lake:329058218": {
+   "river": [
+    "Fiftyseven Creek"
+   ],
+   "area_m2": 1396,
+   "lat": 51.15766,
+   "lon": -121.73084,
+   "rules": [
+    "r3:fiftyseven_creek@3-30::fiftyseven_creek.r1"
+   ]
+  },
+  "lake:329684091": {
+   "river": [
+    "Zymoetz River"
+   ],
+   "area_m2": 1383,
+   "lat": 54.74265,
+   "lon": -127.34528,
+   "rules": [
+    "r6:zymoetz_copper_river@6-9::zymoetz_river.r3",
+    "r6:zymoetz_copper_river@6-9::zymoetz_river.r4",
+    "r6:zymoetz_copper_river@6-9::zymoetz_river.r7",
+    "z6:trout_char_quota::trout_char_quota.r9b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329058228": {
+   "river": [
+    "Cutoff Valley Creek"
+   ],
+   "area_m2": 1381,
+   "lat": 51.06276,
+   "lon": -121.64753,
+   "rules": [
+    "r3:cutoff_valley_creek@3-30::cutoff_valley_creek.r1"
+   ]
+  },
+  "lake:329519635": {
+   "river": [
+    "Crazy Creek"
+   ],
+   "area_m2": 1379,
+   "lat": 51.0,
+   "lon": -118.42653,
+   "rules": [
+    "r3:crazy_creek@3-35::crazy_creek.r2"
+   ]
+  },
+  "lake:329610947": {
+   "river": [
+    "Dean River"
+   ],
+   "area_m2": 1378,
+   "lat": 52.44074,
+   "lon": -125.25012,
+   "rules": [
+    "r5:dean_river@5-9::dean_river.r1",
+    "r5:dean_river@5-9::dean_river.r6",
+    "r5:dean_river@5-9::dean_river.r7",
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329634034": {
+   "river": [
+    "Denetiah Creek"
+   ],
+   "area_m2": 1371,
+   "lat": 58.29715,
+   "lon": -127.53213,
+   "rules": [
+    "r7:denetiah_creek@7-52::denetiah_creek.r1"
+   ]
+  },
+  "lake:329317873": {
+   "river": [
+    "Moore Creek"
+   ],
+   "area_m2": 1369,
+   "lat": 50.44768,
+   "lon": -120.41267,
+   "rules": [
+    "r3:moore_creek@3-19::moore_creek.r1"
+   ]
+  },
+  "lake:329373226": {
+   "river": [
+    "Chimney Creek"
+   ],
+   "area_m2": 1347,
+   "lat": 52.04944,
+   "lon": -122.06318,
+   "rules": [
+    "r5:chimney_creek@5-2::chimney_creek.r1"
+   ]
+  },
+  "lake:329525603": {
+   "river": [
+    "Sandown Creek"
+   ],
+   "area_m2": 1341,
+   "lat": 50.0407,
+   "lon": -115.91054,
+   "rules": [
+    "r4:sandown_creek@4-20::sandown_creek.r1"
+   ]
+  },
+  "lake:329058262": {
+   "river": [
+    "Fiftyseven Creek"
+   ],
+   "area_m2": 1329,
+   "lat": 51.19401,
+   "lon": -121.64513,
+   "rules": [
+    "r3:fiftyseven_creek@3-30::fiftyseven_creek.r1"
+   ]
+  },
+  "lake:329058267": {
+   "river": [
+    "Fiftyseven Creek"
+   ],
+   "area_m2": 1316,
+   "lat": 51.21423,
+   "lon": -121.58261,
+   "rules": [
+    "r3:fiftyseven_creek@3-30::fiftyseven_creek.r1"
+   ]
+  },
+  "lake:329412392": {
+   "river": [
+    "Nakina River"
+   ],
+   "area_m2": 1311,
+   "lat": 59.10702,
+   "lon": -132.41757,
+   "rules": [
+    "r6:nakina_river@6-26::nakina_river.r1"
+   ]
+  },
+  "lake:329293089": {
+   "river": [
+    "Fergus Creek"
+   ],
+   "area_m2": 1307,
+   "lat": 49.01427,
+   "lon": -122.75474,
+   "rules": [
+    "r2:fergus_creek@2-4::fergus_creek.r1"
+   ]
+  },
+  "lake:329247506": {
+   "river": [
+    "Keen Creek"
+   ],
+   "area_m2": 1300,
+   "lat": 49.75356,
+   "lon": -117.19795,
+   "rules": [
+    "r4:keen_creek@4-18::keen_creek.r1"
+   ]
+  },
+  "lake:329533670": {
+   "river": [
+    "Hastings Creek"
+   ],
+   "area_m2": 1275,
+   "lat": 49.34023,
+   "lon": -123.04937,
+   "rules": [
+    "r2:hastings_creek@2-8::hastings_creek.r1"
+   ]
+  },
+  "lake:329501605": {
+   "river": [
+    "Mohun Creek"
+   ],
+   "area_m2": 1274,
+   "lat": 50.10872,
+   "lon": -125.42951,
+   "rules": [
+    "r1:mohun_creek@1-10::mohun_creek.r1",
+    "r1:mohun_creek@1-10::mohun_creek.r2"
+   ]
+  },
+  "lake:329484135": {
+   "river": [
+    "Beaver Creek"
+   ],
+   "area_m2": 1272,
+   "lat": 52.39866,
+   "lon": -121.62945,
+   "rules": [
+    "r5:beaver_creek_chain_of_lakes@5-2::beaver_creek_chain_of_lakes.r1"
+   ]
+  },
+  "lake:329038660": {
+   "river": [
+    "Big Bar Creek"
+   ],
+   "area_m2": 1269,
+   "lat": 51.32649,
+   "lon": -121.82571,
+   "rules": [
+    "r3:big_bar_creek@3-31::big_bar_creek.r1"
+   ]
+  },
+  "lake:329611264": {
+   "river": [
+    "Dean River"
+   ],
+   "area_m2": 1236,
+   "lat": 52.46063,
+   "lon": -125.26358,
+   "rules": [
+    "r5:dean_river@5-9::dean_river.r1",
+    "r5:dean_river@5-9::dean_river.r6",
+    "r5:dean_river@5-9::dean_river.r7",
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329025518": {
+   "river": [
+    "Hunlen Creek"
+   ],
+   "area_m2": 1226,
+   "lat": 52.17552,
+   "lon": -125.83462,
+   "rules": [
+    "r5:hunlen_creek_upstream_of_hunlen_falls@5-11::hunlen_creek.r1",
+    "r5:hunlen_creek_upstream_of_hunlen_falls@5-11::hunlen_creek.r2"
+   ]
+  },
+  "lake:329247527": {
+   "river": [
+    "Keen Creek"
+   ],
+   "area_m2": 1201,
+   "lat": 49.7652,
+   "lon": -117.1925,
+   "rules": [
+    "r4:keen_creek@4-18::keen_creek.r1"
+   ]
+  },
+  "lake:329507195": {
+   "river": [
+    "Cayoosh Creek"
+   ],
+   "area_m2": 1181,
+   "lat": 50.3878,
+   "lon": -122.52149,
+   "rules": [
+    "r3:cayoosh_creek@3-16::cayoosh_creek.r1"
+   ]
+  },
+  "lake:329058361": {
+   "river": [
+    "Cutoff Valley Creek"
+   ],
+   "area_m2": 1181,
+   "lat": 51.0798,
+   "lon": -121.61471,
+   "rules": [
+    "r3:cutoff_valley_creek@3-30::cutoff_valley_creek.r1"
+   ]
+  },
+  "lake:329154141": {
+   "river": [
+    "Endako River"
+   ],
+   "area_m2": 1181,
+   "lat": 54.35531,
+   "lon": -125.93532,
+   "rules": [
+    "r6:endako_river@6-4::endako_river.r1"
+   ]
+  },
+  "lake:329476867": {
+   "river": [
+    "Burnt River"
+   ],
+   "area_m2": 1174,
+   "lat": 55.30453,
+   "lon": -122.34152,
+   "rules": [
+    "r7:burnt_river@7-22::burnt_river.r1",
+    "r7:burnt_river@7-22::burnt_river.r2"
+   ]
+  },
+  "lake:329529050": {
+   "river": [
+    "Dimsdale Creek"
+   ],
+   "area_m2": 1164,
+   "lat": 54.16586,
+   "lon": -120.44685,
+   "rules": [
+    "r7:dimsdale_creek@7-19::dimsdale_creek.r1"
+   ]
+  },
+  "lake:329388904": {
+   "river": [
+    "Gosnell Creek"
+   ],
+   "area_m2": 1162,
+   "lat": 54.07489,
+   "lon": -127.77383,
+   "rules": [
+    "r6:gosnell_creek@6-9::gosnell_creek.r1",
+    "r6:gosnell_creek@6-9::gosnell_creek.r2"
+   ]
+  },
+  "lake:329665448": {
+   "river": [
+    "Wap Creek"
+   ],
+   "area_m2": 1162,
+   "lat": 50.88381,
+   "lon": -118.27828,
+   "rules": [
+    "r8:wap_creek@8-24::wap_creek.r2"
+   ]
+  },
+  "lake:329068710": {
+   "river": [
+    "Telkwa River"
+   ],
+   "area_m2": 1160,
+   "lat": 54.4522,
+   "lon": -127.63761,
+   "rules": [
+    "r6:telkwa_river@6-9::telkwa_river.r1",
+    "r6:telkwa_river@6-9::telkwa_river.r2",
+    "z6:trout_char_quota::trout_char_quota.r9b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329058386": {
+   "river": [
+    "Cutoff Valley Creek"
+   ],
+   "area_m2": 1140,
+   "lat": 51.08795,
+   "lon": -121.58646,
+   "rules": [
+    "r3:cutoff_valley_creek@3-30::cutoff_valley_creek.r1"
+   ]
+  },
+  "lake:329684211": {
+   "river": [
+    "Zymoetz River"
+   ],
+   "area_m2": 1137,
+   "lat": 54.74358,
+   "lon": -127.34738,
+   "rules": [
+    "r6:zymoetz_copper_river@6-9::zymoetz_river.r3",
+    "r6:zymoetz_copper_river@6-9::zymoetz_river.r4",
+    "r6:zymoetz_copper_river@6-9::zymoetz_river.r7",
+    "z6:trout_char_quota::trout_char_quota.r9b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329417409": {
+   "river": [
+    "Baker Creek"
+   ],
+   "area_m2": 1132,
+   "lat": 52.87772,
+   "lon": -123.03125,
+   "rules": [
+    "r5:baker_creek@5-13::baker_creek.r1",
+    "r5:baker_creek@5-13::baker_creek.r2x"
+   ]
+  },
+  "lake:329175744": {
+   "river": [
+    "Watch Creek"
+   ],
+   "area_m2": 1132,
+   "lat": 51.47576,
+   "lon": -121.0291,
+   "rules": [
+    "r5:watch_creek@5-1::watch_creek.r1",
+    "r5:watch_creek@5-1::watch_creek.r1x"
+   ]
+  },
+  "lake:329198403": {
+   "river": [
+    "Angus Creek"
+   ],
+   "area_m2": 1127,
+   "lat": 49.53961,
+   "lon": -123.69159,
+   "rules": [
+    "r2:angus_creek@2-5::angus_creek.r1"
+   ]
+  },
+  "lake:329198417": {
+   "river": [
+    "Angus Creek"
+   ],
+   "area_m2": 1103,
+   "lat": 49.54488,
+   "lon": -123.67656,
+   "rules": [
+    "r2:angus_creek@2-5::angus_creek.r1"
+   ]
+  },
+  "lake:329058407": {
+   "river": [
+    "Fiftyseven Creek"
+   ],
+   "area_m2": 1101,
+   "lat": 51.14401,
+   "lon": -121.79749,
+   "rules": [
+    "r3:fiftyseven_creek@3-30::fiftyseven_creek.r1"
+   ]
+  },
+  "lake:329187246": {
+   "river": [
+    "Moffat Creek"
+   ],
+   "area_m2": 1100,
+   "lat": 52.09968,
+   "lon": -120.946,
+   "rules": [
+    "r5:moffat_creek@5-2::moffat_creek.r1x"
+   ]
+  },
+  "lake:329058411": {
+   "river": [
+    "Fiftyseven Creek"
+   ],
+   "area_m2": 1097,
+   "lat": 51.17821,
+   "lon": -121.5014,
+   "rules": [
+    "r3:fiftyseven_creek@3-30::fiftyseven_creek.r1"
+   ]
+  },
+  "lake:329504153": {
+   "river": [
+    "Salmon River"
+   ],
+   "area_m2": 1097,
+   "lat": 54.48626,
+   "lon": -123.68911,
+   "rules": [
+    "r7:salmon_river@7-15::salmon_river.r1"
+   ]
+  },
+  "lake:329175783": {
+   "river": [
+    "Watch Creek"
+   ],
+   "area_m2": 1096,
+   "lat": 51.49874,
+   "lon": -121.00109,
+   "rules": [
+    "r5:watch_creek@5-1::watch_creek.r1",
+    "r5:watch_creek@5-1::watch_creek.r1x"
+   ]
+  },
+  "lake:329373341": {
+   "river": [
+    "Chimney Creek"
+   ],
+   "area_m2": 1086,
+   "lat": 52.04962,
+   "lon": -122.07929,
+   "rules": [
+    "r5:chimney_creek@5-2::chimney_creek.r1"
+   ]
+  },
+  "lake:329634105": {
+   "river": [
+    "Denetiah Creek"
+   ],
+   "area_m2": 1078,
+   "lat": 58.29948,
+   "lon": -127.52635,
+   "rules": [
+    "r7:denetiah_creek@7-52::denetiah_creek.r1"
+   ]
+  },
+  "lake:329458750": {
+   "river": [
+    "Nimpkish River"
+   ],
+   "area_m2": 1076,
+   "lat": 49.99389,
+   "lon": -126.29495,
+   "rules": [
+    "r1:nimpkish_river@1-11::nimpkish_river.r1"
+   ]
+  },
+  "lake:329462059": {
+   "river": [
+    "Trout Creek"
+   ],
+   "area_m2": 1076,
+   "lat": 49.8223,
+   "lon": -119.99277,
+   "rules": [
+    "r8:trout_creek@8-8::trout_creek.r2"
+   ]
+  },
+  "lake:329058427": {
+   "river": [
+    "Fiftynine Creek"
+   ],
+   "area_m2": 1071,
+   "lat": 51.25659,
+   "lon": -121.68436,
+   "rules": [
+    "r3:fiftynine_creek@3-30::fiftynine_creek.r1"
+   ]
+  },
+  "lake:329484234": {
+   "river": [
+    "Beaver Creek"
+   ],
+   "area_m2": 1069,
+   "lat": 52.39742,
+   "lon": -121.64314,
+   "rules": [
+    "r5:beaver_creek_chain_of_lakes@5-2::beaver_creek_chain_of_lakes.r1"
+   ]
+  },
+  "lake:329504162": {
+   "river": [
+    "Salmon River"
+   ],
+   "area_m2": 1061,
+   "lat": 54.48869,
+   "lon": -123.70061,
+   "rules": [
+    "r7:salmon_river@7-15::salmon_river.r1"
+   ]
+  },
+  "lake:329232172": {
+   "river": [
+    "Seeley Creek"
+   ],
+   "area_m2": 1046,
+   "lat": 55.19633,
+   "lon": -127.68282,
+   "rules": [
+    "r6:seeley_creek_outlet_of_seeley_lake@6-9::seeley_creek.r1",
+    "r6:seeley_creek_outlet_of_seeley_lake@6-9::seeley_creek.r2",
+    "r6:seeley_creek_outlet_of_seeley_lake@6-9::seeley_creek.r3"
+   ]
+  },
+  "lake:329042864": {
+   "river": [
+    "Burnt Bridge Creek"
+   ],
+   "area_m2": 1036,
+   "lat": 52.54255,
+   "lon": -126.12566,
+   "rules": [
+    "r5:burnt_bridge_creek_upstream_of_sitkatapa_creek@5-11::burnt_bridge_creek.r1",
+    "r5:burnt_bridge_creek_upstream_of_sitkatapa_creek@5-11::burnt_bridge_creek.r2",
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329293207": {
+   "river": [
+    "Nicomekl River"
+   ],
+   "area_m2": 1031,
+   "lat": 49.09243,
+   "lon": -122.5864,
+   "rules": [
+    "r2:nicomekl_river@2-4::nicomekl_river.r1",
+    "r2:nicomekl_river@2-4::nicomekl_river.r4",
+    "r2:nicomekl_river@2-4::nicomekl_river.r5",
+    "r2:nicomekl_river@2-4::nicomekl_river.r6"
+   ]
+  },
+  "lake:329320669": {
+   "river": [
+    "Nechako River"
+   ],
+   "area_m2": 1030,
+   "lat": 53.58958,
+   "lon": -124.9544,
+   "rules": [
+    "r7:nechako_river@7-12::nechako_river.r1",
+    "z7a:sara_sturgeon::sara_sturgeon.r1"
+   ]
+  },
+  "lake:329154244": {
+   "river": [
+    "Nithi River"
+   ],
+   "area_m2": 1023,
+   "lat": 53.91162,
+   "lon": -125.22426,
+   "rules": [
+    "r6:nithi_river@6-4::nithi_river.r1"
+   ]
+  },
+  "lake:329684277": {
+   "river": [
+    "Zymoetz River"
+   ],
+   "area_m2": 1021,
+   "lat": 54.74333,
+   "lon": -127.34562,
+   "rules": [
+    "r6:zymoetz_copper_river@6-9::zymoetz_river.r3",
+    "r6:zymoetz_copper_river@6-9::zymoetz_river.r4",
+    "r6:zymoetz_copper_river@6-9::zymoetz_river.r7",
+    "z6:trout_char_quota::trout_char_quota.r9b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329162719": {
+   "river": [
+    "Gold River"
+   ],
+   "area_m2": 1017,
+   "lat": 49.99298,
+   "lon": -125.92995,
+   "rules": [
+    "r1:gold_river@1-9::gold_river.r1",
+    "r1:gold_river@1-9::gold_river.r4"
+   ]
+  },
+  "lake:329417474": {
+   "river": [
+    "Baker Creek"
+   ],
+   "area_m2": 1017,
+   "lat": 52.76161,
+   "lon": -123.02507,
+   "rules": [
+    "r5:baker_creek@5-13::baker_creek.r1",
+    "r5:baker_creek@5-13::baker_creek.r2x"
+   ]
+  },
+  "lake:329611793": {
+   "river": [
+    "Dean River"
+   ],
+   "area_m2": 1011,
+   "lat": 52.44296,
+   "lon": -125.24936,
+   "rules": [
+    "r5:dean_river@5-9::dean_river.r1",
+    "r5:dean_river@5-9::dean_river.r6",
+    "r5:dean_river@5-9::dean_river.r7",
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329484271": {
+   "river": [
+    "Beaver Creek"
+   ],
+   "area_m2": 1009,
+   "lat": 52.39745,
+   "lon": -121.61473,
+   "rules": [
+    "r5:beaver_creek_chain_of_lakes@5-2::beaver_creek_chain_of_lakes.r1"
+   ]
+  },
+  "lake:329389019": {
+   "river": [
+    "Gosnell Creek"
+   ],
+   "area_m2": 991,
+   "lat": 54.07351,
+   "lon": -127.77401,
+   "rules": [
+    "r6:gosnell_creek@6-9::gosnell_creek.r1",
+    "r6:gosnell_creek@6-9::gosnell_creek.r2"
+   ]
+  },
+  "lake:329198471": {
+   "river": [
+    "Angus Creek"
+   ],
+   "area_m2": 978,
+   "lat": 49.54281,
+   "lon": -123.66011,
+   "rules": [
+    "r2:angus_creek@2-5::angus_creek.r1"
+   ]
+  },
+  "lake:329665488": {
+   "river": [
+    "Wap Creek"
+   ],
+   "area_m2": 973,
+   "lat": 50.88392,
+   "lon": -118.27696,
+   "rules": [
+    "r8:wap_creek@8-24::wap_creek.r2"
+   ]
+  },
+  "lake:329038745": {
+   "river": [
+    "Big Bar Creek"
+   ],
+   "area_m2": 964,
+   "lat": 51.24074,
+   "lon": -122.04168,
+   "rules": [
+    "r3:big_bar_creek@3-31::big_bar_creek.r1"
+   ]
+  },
+  "lake:329060633": {
+   "river": [
+    "Bowron River"
+   ],
+   "area_m2": 959,
+   "lat": 53.17995,
+   "lon": -120.93797,
+   "rules": [
+    "r7:bowron_river@7-7::bowron_river.r1",
+    "r7:bowron_river@7-7::bowron_river.r2"
+   ]
+  },
+  "lake:329320697": {
+   "river": [
+    "Nechako River"
+   ],
+   "area_m2": 957,
+   "lat": 53.59435,
+   "lon": -124.95298,
+   "rules": [
+    "r7:nechako_river@7-12::nechako_river.r1",
+    "z7a:sara_sturgeon::sara_sturgeon.r1"
+   ]
+  },
+  "lake:329025836": {
+   "river": [
+    "Hunlen Creek"
+   ],
+   "area_m2": 945,
+   "lat": 52.17572,
+   "lon": -125.83576,
+   "rules": [
+    "r5:hunlen_creek_upstream_of_hunlen_falls@5-11::hunlen_creek.r1",
+    "r5:hunlen_creek_upstream_of_hunlen_falls@5-11::hunlen_creek.r2"
+   ]
+  },
+  "lake:329198484": {
+   "river": [
+    "Chapman Creek"
+   ],
+   "area_m2": 940,
+   "lat": 49.58072,
+   "lon": -123.61089,
+   "rules": [
+    "r2:chapman_creek@2-5::chapman_creek.r1",
+    "r2:chapman_creek@2-5::chapman_creek.r2"
+   ]
+  },
+  "lake:329198488": {
+   "river": [
+    "Angus Creek"
+   ],
+   "area_m2": 938,
+   "lat": 49.54594,
+   "lon": -123.66196,
+   "rules": [
+    "r2:angus_creek@2-5::angus_creek.r1"
+   ]
+  },
+  "lake:329576261": {
+   "river": [
+    "Eve River"
+   ],
+   "area_m2": 911,
+   "lat": 50.28184,
+   "lon": -126.369,
+   "rules": [
+    "r1:eve_river@1-10::eve_river.r1"
+   ]
+  },
+  "lake:329031154": {
+   "river": [
+    "Pinkut Creek"
+   ],
+   "area_m2": 910,
+   "lat": 54.36367,
+   "lon": -125.50604,
+   "rules": [
+    "r6:pinkut_creek@6-6::pinkut_creek.r2"
+   ]
+  },
+  "lake:329484326": {
+   "river": [
+    "Beaver Creek"
+   ],
+   "area_m2": 908,
+   "lat": 52.33229,
+   "lon": -121.47434,
+   "rules": [
+    "r5:beaver_creek_chain_of_lakes@5-2::beaver_creek_chain_of_lakes.r1"
+   ]
+  },
+  "lake:329504195": {
+   "river": [
+    "Salmon River"
+   ],
+   "area_m2": 891,
+   "lat": 54.48546,
+   "lon": -123.68807,
+   "rules": [
+    "r7:salmon_river@7-15::salmon_river.r1"
+   ]
+  },
+  "lake:329070978": {
+   "river": [
+    "Elk River"
+   ],
+   "area_m2": 882,
+   "lat": 49.73872,
+   "lon": -125.83925,
+   "rules": [
+    "r1:elk_river_also_see_buttle_lake_s_tributaries@1-9::elk_river.r1"
+   ]
+  },
+  "lake:329031171": {
+   "river": [
+    "Pinkut Creek"
+   ],
+   "area_m2": 881,
+   "lat": 54.34231,
+   "lon": -125.44289,
+   "rules": [
+    "r6:pinkut_creek@6-6::pinkut_creek.r2"
+   ]
+  },
+  "lake:329681852": {
+   "river": [
+    "Lachmach River"
+   ],
+   "area_m2": 862,
+   "lat": 54.27411,
+   "lon": -129.90243,
+   "rules": [
+    "r6:lachmach_river@6-14::lachmach_river.r1"
+   ]
+  },
+  "lake:329519791": {
+   "river": [
+    "McNomee Creek"
+   ],
+   "area_m2": 861,
+   "lat": 51.3858,
+   "lon": -119.03702,
+   "rules": [
+    "r3:mcnomee_creek@3-36::mcnomee_creek.r1",
+    "r3:mcnomee_creek@3-36::mcnomee_creek.r2"
+   ]
+  },
+  "lake:329176009": {
+   "river": [
+    "Watch Creek"
+   ],
+   "area_m2": 861,
+   "lat": 51.4762,
+   "lon": -121.03946,
+   "rules": [
+    "r5:watch_creek@5-1::watch_creek.r1",
+    "r5:watch_creek@5-1::watch_creek.r1x"
+   ]
+  },
+  "lake:329653075": {
+   "river": [
+    "Albreda River"
+   ],
+   "area_m2": 859,
+   "lat": 52.56641,
+   "lon": -119.10479,
+   "rules": [
+    "r3:albreda_river@3-43::albreda_river.r1"
+   ]
+  },
+  "lake:329154355": {
+   "river": [
+    "Endako River"
+   ],
+   "area_m2": 859,
+   "lat": 54.37776,
+   "lon": -125.96083,
+   "rules": [
+    "r6:endako_river@6-4::endako_river.r1"
+   ]
+  },
+  "lake:329525721": {
+   "river": [
+    "Sandown Creek"
+   ],
+   "area_m2": 851,
+   "lat": 50.03938,
+   "lon": -115.90388,
+   "rules": [
+    "r4:sandown_creek@4-20::sandown_creek.r1"
+   ]
+  },
+  "lake:329038771": {
+   "river": [
+    "Big Bar Creek"
+   ],
+   "area_m2": 839,
+   "lat": 51.30359,
+   "lon": -121.9856,
+   "rules": [
+    "r3:big_bar_creek@3-31::big_bar_creek.r1"
+   ]
+  },
+  "lake:329038775": {
+   "river": [
+    "Big Bar Creek"
+   ],
+   "area_m2": 821,
+   "lat": 51.31049,
+   "lon": -121.98147,
+   "rules": [
+    "r3:big_bar_creek@3-31::big_bar_creek.r1"
+   ]
+  },
+  "lake:329198558": {
+   "river": [
+    "Angus Creek"
+   ],
+   "area_m2": 817,
+   "lat": 49.54824,
+   "lon": -123.66093,
+   "rules": [
+    "r2:angus_creek@2-5::angus_creek.r1"
+   ]
+  },
+  "lake:329058575": {
+   "river": [
+    "Fiftyseven Creek"
+   ],
+   "area_m2": 817,
+   "lat": 51.18929,
+   "lon": -121.58007,
+   "rules": [
+    "r3:fiftyseven_creek@3-30::fiftyseven_creek.r1"
+   ]
+  },
+  "lake:329417596": {
+   "river": [
+    "Baker Creek"
+   ],
+   "area_m2": 816,
+   "lat": 52.76134,
+   "lon": -123.0265,
+   "rules": [
+    "r5:baker_creek@5-13::baker_creek.r1",
+    "r5:baker_creek@5-13::baker_creek.r2x"
+   ]
+  },
+  "lake:329176059": {
+   "river": [
+    "Watch Creek"
+   ],
+   "area_m2": 812,
+   "lat": 51.46719,
+   "lon": -121.05858,
+   "rules": [
+    "r5:watch_creek@5-1::watch_creek.r1",
+    "r5:watch_creek@5-1::watch_creek.r1x"
+   ]
+  },
+  "lake:329612214": {
+   "river": [
+    "Dean River"
+   ],
+   "area_m2": 793,
+   "lat": 52.38773,
+   "lon": -125.17179,
+   "rules": [
+    "r5:dean_river@5-9::dean_river.r1",
+    "r5:dean_river@5-9::dean_river.r6",
+    "r5:dean_river@5-9::dean_river.r7",
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329572678": {
+   "river": [
+    "Kildala River"
+   ],
+   "area_m2": 792,
+   "lat": 53.88645,
+   "lon": -128.10804,
+   "rules": [
+    "r6:kildala_river@6-3::kildala_river.r1"
+   ]
+  },
+  "lake:329058599": {
+   "river": [
+    "Fiftynine Creek"
+   ],
+   "area_m2": 767,
+   "lat": 51.22065,
+   "lon": -121.51432,
+   "rules": [
+    "r3:fiftynine_creek@3-30::fiftynine_creek.r1"
+   ]
+  },
+  "lake:329484418": {
+   "river": [
+    "Beaver Creek"
+   ],
+   "area_m2": 748,
+   "lat": 52.36582,
+   "lon": -121.53335,
+   "rules": [
+    "r5:beaver_creek_chain_of_lakes@5-2::beaver_creek_chain_of_lakes.r1"
+   ]
+  },
+  "lake:329468537": {
+   "river": [
+    "French Creek"
+   ],
+   "area_m2": 735,
+   "lat": 49.24055,
+   "lon": -124.5161,
+   "rules": [
+    "r1:french_creek@1-5::french_creek.r1"
+   ]
+  },
+  "lake:329154486": {
+   "river": [
+    "Endako River"
+   ],
+   "area_m2": 703,
+   "lat": 54.38936,
+   "lon": -125.97313,
+   "rules": [
+    "r6:endako_river@6-4::endako_river.r1"
+   ]
+  },
+  "lake:329373474": {
+   "river": [
+    "Chimney Creek"
+   ],
+   "area_m2": 662,
+   "lat": 52.06107,
+   "lon": -122.16049,
+   "rules": [
+    "r5:chimney_creek@5-2::chimney_creek.r1"
+   ]
+  },
+  "lake:329031265": {
+   "river": [
+    "Fulton River"
+   ],
+   "area_m2": 661,
+   "lat": 55.00315,
+   "lon": -126.71541,
+   "rules": [
+    "r6:fulton_river@6-8::fulton_river.r1",
+    "r6:fulton_river@6-8::fulton_river.r1b",
+    "r6:fulton_river@6-8::fulton_river.r2",
+    "r6:fulton_river@6-8::fulton_river.r3"
+   ]
+  },
+  "lake:329373477": {
+   "river": [
+    "Chimney Creek"
+   ],
+   "area_m2": 651,
+   "lat": 52.04943,
+   "lon": -122.0752,
+   "rules": [
+    "r5:chimney_creek@5-2::chimney_creek.r1"
+   ]
+  },
+  "lake:329162891": {
+   "river": [
+    "Gold River"
+   ],
+   "area_m2": 642,
+   "lat": 49.9929,
+   "lon": -125.93095,
+   "rules": [
+    "r1:gold_river@1-9::gold_river.r1",
+    "r1:gold_river@1-9::gold_river.r4"
+   ]
+  },
+  "lake:329454550": {
+   "river": [
+    "Nicola River"
+   ],
+   "area_m2": 636,
+   "lat": 50.04506,
+   "lon": -119.89892,
+   "rules": [
+    "r3:nicola_river@3-13::nicola_river.r1",
+    "r3:nicola_river@3-13::nicola_river.r5"
+   ]
+  },
+  "lake:329462331": {
+   "river": [
+    "Eneas Creek"
+   ],
+   "area_m2": 626,
+   "lat": 49.66349,
+   "lon": -119.74431,
+   "rules": [
+    "r8:eneas_creek@8-8::eneas_creek.r1"
+   ]
+  },
+  "lake:329293448": {
+   "river": [
+    "Salmon River"
+   ],
+   "area_m2": 625,
+   "lat": 49.06554,
+   "lon": -122.41897,
+   "rules": [
+    "r2:salmon_river@2-4::salmon_river.r1"
+   ]
+  },
+  "lake:329176180": {
+   "river": [
+    "Watch Creek"
+   ],
+   "area_m2": 610,
+   "lat": 51.47653,
+   "lon": -121.03976,
+   "rules": [
+    "r5:watch_creek@5-1::watch_creek.r1",
+    "r5:watch_creek@5-1::watch_creek.r1x"
+   ]
+  },
+  "lake:329612573": {
+   "river": [
+    "Dean River"
+   ],
+   "area_m2": 569,
+   "lat": 52.4449,
+   "lon": -125.24912,
+   "rules": [
+    "r5:dean_river@5-9::dean_river.r1",
+    "r5:dean_river@5-9::dean_river.r6",
+    "r5:dean_river@5-9::dean_river.r7",
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329484515": {
+   "river": [
+    "Beaver Creek"
+   ],
+   "area_m2": 560,
+   "lat": 52.36102,
+   "lon": -121.51159,
+   "rules": [
+    "r5:beaver_creek_chain_of_lakes@5-2::beaver_creek_chain_of_lakes.r1"
+   ]
+  },
+  "lake:329026321": {
+   "river": [
+    "South Atnarko River"
+   ],
+   "area_m2": 536,
+   "lat": 51.90813,
+   "lon": -125.58426,
+   "rules": [
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r10",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r13",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r3",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r4",
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329102490": {
+   "river": [
+    "Koksilah River"
+   ],
+   "area_m2": 515,
+   "lat": 48.7187,
+   "lon": -123.91544,
+   "rules": [
+    "r1:koksilah_river@1-4::koksilah_river.r1"
+   ]
+  },
+  "lake:329677051": {
+   "river": [
+    "Colquitz River"
+   ],
+   "area_m2": 510,
+   "lat": 48.46847,
+   "lon": -123.40233,
+   "rules": [
+    "r1:colquitz_river@1-1::colquitz_river.r1"
+   ]
+  },
+  "lake:329501963": {
+   "river": [
+    "Mohun Creek"
+   ],
+   "area_m2": 495,
+   "lat": 50.11427,
+   "lon": -125.43782,
+   "rules": [
+    "r1:mohun_creek@1-10::mohun_creek.r1",
+    "r1:mohun_creek@1-10::mohun_creek.r2"
+   ]
+  },
+  "lake:329026386": {
+   "river": [
+    "South Atnarko River"
+   ],
+   "area_m2": 494,
+   "lat": 51.90839,
+   "lon": -125.58539,
+   "rules": [
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r10",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r13",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r3",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r4",
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329043161": {
+   "river": [
+    "Burnt Bridge Creek"
+   ],
+   "area_m2": 474,
+   "lat": 52.52904,
+   "lon": -126.12897,
+   "rules": [
+    "r5:burnt_bridge_creek_upstream_of_sitkatapa_creek@5-11::burnt_bridge_creek.r1",
+    "r5:burnt_bridge_creek_upstream_of_sitkatapa_creek@5-11::burnt_bridge_creek.r2",
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329634290": {
+   "river": [
+    "Denetiah Creek"
+   ],
+   "area_m2": 457,
+   "lat": 58.29268,
+   "lon": -127.55001,
+   "rules": [
+    "r7:denetiah_creek@7-52::denetiah_creek.r1"
+   ]
+  },
+  "lake:329069188": {
+   "river": [
+    "Telkwa River"
+   ],
+   "area_m2": 431,
+   "lat": 54.45702,
+   "lon": -127.63762,
+   "rules": [
+    "r6:telkwa_river@6-9::telkwa_river.r1",
+    "r6:telkwa_river@6-9::telkwa_river.r2",
+    "z6:trout_char_quota::trout_char_quota.r9b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329293584": {
+   "river": [
+    "Serpentine River"
+   ],
+   "area_m2": 424,
+   "lat": 49.18329,
+   "lon": -122.77397,
+   "rules": [
+    "r2:serpentine_river@2-4::serpentine_river.r1",
+    "r2:serpentine_river@2-4::serpentine_river.r4"
+   ]
+  },
+  "lake:329220184": {
+   "river": [
+    "Eholt Creek"
+   ],
+   "area_m2": 416,
+   "lat": 49.15001,
+   "lon": -118.56013,
+   "rules": [
+    "r8:eholt_creek@8-14::eholt_creek.r1"
+   ]
+  },
+  "lake:329198844": {
+   "river": [
+    "Angus Creek"
+   ],
+   "area_m2": 414,
+   "lat": 49.5481,
+   "lon": -123.66158,
+   "rules": [
+    "r2:angus_creek@2-5::angus_creek.r1"
+   ]
+  },
+  "lake:329519946": {
+   "river": [
+    "Crazy Creek"
+   ],
+   "area_m2": 407,
+   "lat": 50.99951,
+   "lon": -118.42505,
+   "rules": [
+    "r3:crazy_creek@3-35::crazy_creek.r2"
+   ]
+  },
+  "lake:329484629": {
+   "river": [
+    "Beaver Creek"
+   ],
+   "area_m2": 326,
+   "lat": 52.36586,
+   "lon": -121.53375,
+   "rules": [
+    "r5:beaver_creek_chain_of_lakes@5-2::beaver_creek_chain_of_lakes.r1"
+   ]
+  },
+  "lake:329293650": {
+   "river": [
+    "Salmon River"
+   ],
+   "area_m2": 310,
+   "lat": 49.07975,
+   "lon": -122.46221,
+   "rules": [
+    "r2:salmon_river@2-4::salmon_river.r1"
+   ]
+  },
+  "lake:329484636": {
+   "river": [
+    "Beaver Creek"
+   ],
+   "area_m2": 301,
+   "lat": 52.35358,
+   "lon": -121.49715,
+   "rules": [
+    "r5:beaver_creek_chain_of_lakes@5-2::beaver_creek_chain_of_lakes.r1"
+   ]
+  },
+  "lake:329523922": {
+   "river": [
+    "Lemon Creek"
+   ],
+   "area_m2": 300,
+   "lat": 49.75229,
+   "lon": -117.20919,
+   "rules": [
+    "r4:lemon_creek@4-17::lemon_creek.r1"
+   ]
+  },
+  "lake:329318436": {
+   "river": [
+    "July Creek"
+   ],
+   "area_m2": 212,
+   "lat": 49.68625,
+   "lon": -121.10379,
+   "rules": [
+    "r3:july_creek@3-13::july_creek.r1"
+   ]
+  },
+  "lake:329247788": {
+   "river": [
+    "Keen Creek"
+   ],
+   "area_m2": 104,
+   "lat": 49.75317,
+   "lon": -117.19785,
+   "rules": [
+    "r4:keen_creek@4-18::keen_creek.r1"
+   ]
+  },
+  "lake:329247789": {
+   "river": [
+    "Keen Creek"
+   ],
+   "area_m2": 101,
+   "lat": 49.74985,
+   "lon": -117.19813,
+   "rules": [
+    "r4:keen_creek@4-18::keen_creek.r1"
+   ]
+  },
+  "lake:329244318": {
+   "river": null,
+   "area_m2": null,
+   "lat": null,
+   "lon": null,
+   "rules": [
+    "z1:trout_quota::trout_quota.r5b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329462890": {
+   "river": null,
+   "area_m2": null,
+   "lat": null,
+   "lon": null,
+   "rules": [
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  },
+  "lake:329462911": {
+   "river": null,
+   "area_m2": null,
+   "lat": null,
+   "lon": null,
+   "rules": [
+    "z5:trout_char_quota::trout_char_quota.r6b",
+    "zp:steelhead::steelhead.r1b",
+    "zp:steelhead::steelhead.r2b",
+    "zp:steelhead::steelhead.r4b"
+   ]
+  }
+ }
+}

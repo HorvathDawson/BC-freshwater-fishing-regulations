@@ -105,7 +105,11 @@ from typing import Callable
 #:     `area_id` and the `area_kind: region` family are a region's HOME members
 #:     (`registry.regions.region_sections`, `ONE_REGION_MEMBERSHIP`) as the zone rules' always were —
 #:     a stream piece straddling a region line is no longer the other region's row's.
-POLICY_VERSION = "26"
+#: 27: (T153, owner Q124 open — its stated default built) an UNNAMED lake polygon the river's main flow
+#:     runs through, between two pieces a rule's extent selected, is the river for that rule
+#:     (`extent.river_widenings`, `extent.UNNAMED_LAKES_ON_THE_RIVER_ARE_THE_RIVER`); a named lake never
+#:     takes the river's row.
+POLICY_VERSION = "27"
 
 
 def entry_key(entry: dict, build_id: str, policy_version: str = POLICY_VERSION) -> str:
