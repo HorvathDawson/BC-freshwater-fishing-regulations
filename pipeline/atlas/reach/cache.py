@@ -90,7 +90,8 @@ from typing import Callable
 #:     Chehalis closure no longer binds two Harrison side channels.
 #: 23: (T102 owner 2026-10-22) the WALK never steps into a water whose code is a strict ancestor of the
 #:     reach's — the receiving river or its side channels, at any order
-#:     (`tributaries.THE_WALK_NEVER_ENTERS_A_PARENT`); a seed takes the same test (`_refusal`), and
+#:     (`tributaries.THE_WALK_NEVER_ENTERS_A_PARENT`); a seed takes the same test (`_refusal`), so
+#:     does a lake's code run (a run's piece of the receiving river is left out), and
 #:     T90's seeding-only `THE_RECEIVING_RIVER_IS_NEVER_A_SEED` is removed.
 POLICY_VERSION = "23"
 

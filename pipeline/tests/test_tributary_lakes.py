@@ -264,6 +264,44 @@ def test_a_lakes_main_outlet_is_never_a_run(dewar):
     assert "chan_dn" in tributaries_of_reach(g, {"hawks"})
 
 
+def _run_through_the_receiving_river():
+    """T102 review: a run that flows down through the REACH'S RECEIVING RIVER before its divide —
+    the live shape of lake:329311939 (code …-185547-088421), whose secondary outlet runs through
+    river 185547 and a piece of the Muskwa (…-577347) before crossing into …-577347-180434.
+
+        riv (R7, reach) <- out (R73, main outlet, order 2) <- lake:a (R73) -> sec (R73, order 1)
+                                                                               -> y (R7) -> musk (R)
+                                                                               -> z (R9: the divide)
+    """
+    R, R7, R73, R9 = "100-5", "100-5-7", "100-5-7-3", "100-5-9"
+    nodes = [_n("riv", order=5, blk="RIV", wsc=R7), _n("out", order=2, blk="OUT", wsc=R73),
+             _n("lake:a", order=2, kind=L, wsc=R73), _n("sec", order=1, blk="SEC", wsc=R73),
+             _n("y", order=1, blk="Y", wsc=R7), _n("musk", order=1, blk="MUSK", wsc=R),
+             _n("z", order=3, blk="Z", wsc=R9)]
+    edges = [("out", "riv", "confluence"), ("lake:a", "out", "lake_out"),
+             ("lake:a", "sec", "lake_out"), ("sec", "y", "confluence"),
+             ("y", "musk", "confluence"), ("musk", "z", "confluence")]
+    return _g(nodes, edges)
+
+
+def test_t102_a_run_never_takes_the_walk_into_the_reachs_receiving_river():
+    """The run is still found by code (respected, unchanged), but a run is a step of the walk and
+    takes the walk's one parent rule: its piece coded as the reach's RECEIVING river (`musk`, a
+    strict ancestor of the reach's code) is not collected. MUTATION
+    (`THE_WALK_NEVER_ENTERS_A_PARENT`): off, the receiving river's piece binds as a tributary."""
+    from pipeline.atlas.graph import tributaries as T
+    g = _run_through_the_receiving_river()
+    runs, cuts = code_runs(g)
+    assert runs == {"lake:a": ("sec", "y", "musk")} and cuts == {("musk", "z")}
+    assert tributaries_of_reach(g, {"riv"}) == {"out", "lake:a", "sec", "y"}
+    old = T.THE_WALK_NEVER_ENTERS_A_PARENT
+    try:
+        T.THE_WALK_NEVER_ENTERS_A_PARENT = False
+        assert tributaries_of_reach(g, {"riv"}) == {"out", "lake:a", "sec", "y", "musk"}
+    finally:
+        T.THE_WALK_NEVER_ENTERS_A_PARENT = old
+
+
 # ============================================================================ real data (slow)
 #
 # `ATLAS_BUILD` points these at a side build; the default is the promoted one.

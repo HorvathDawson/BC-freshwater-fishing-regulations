@@ -509,6 +509,8 @@ def tributaries_of_reach(
                 rn = graph.nodes.get(r)
                 if rn is None or (guarded and rn.is_barrier):
                     continue
+                if THE_WALK_NEVER_ENTERS_A_PARENT and _receives(rn, codes):
+                    continue                   # a run through the reach's receiving river (T102)
                 seen.add(r)
                 out.add(r)
                 stack.append(r)
@@ -611,7 +613,7 @@ def _mouths_at(graph: StreamGraph, nid: str, n, m: float,
     THE STRAHLER GUARD APPLIES HERE TOO. Everything joining at the confluence is a sibling of
     the reach, and one of those siblings is the river the reach FLOWS INTO — it arrives on its
     own blue line, by a `confluence` edge, at exactly this measure, so every other test here
-    passes it. The walk below rejects that case with `_breaks_strahler` ("a bigger river cannot
+    passes it. The walk below rejects that case with its order guard ("a bigger river cannot
     be a tributary"); the seeding did not, and so a rule reaching the mouth of its own water
     picked up the receiving river.
 
@@ -667,7 +669,8 @@ MOUTH_SEEDS_ONLY_AT_THE_CUT = True
 #: ANCESTOR of the reach's ("100-077501" the Harrison over "100-077501-094860" the Chehalis) is the
 #: river the reach drains into, or one of its side channels — which carry its code at a small order
 #: and so pass the order guard. The walk never steps into one, at any order, and so never climbs
-#: what feeds it. A seed is the walk's first step and asks the same (`_mouths_at`), which is why
+#: what feeds it. A seed is the walk's first step and asks the same (`_mouths_at`), and so does a
+#: lake's code run (`code_runs`: a run flowing down through the receiving river leaves it out), which is why
 #: T90's seeding-only `THE_RECEIVING_RIVER_IS_NEVER_A_SEED` is gone. A code EQUAL to one of the
 #: reach's is the reach's own river beside its line (a side channel), never a parent — on a reach of
 #: two rivers coded one inside the other (the Vedder and the Chilliwack) the outer river is the
