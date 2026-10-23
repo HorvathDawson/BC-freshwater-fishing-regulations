@@ -1,6 +1,25 @@
 # T109 — One entry-id grammar: tier, region and zone parsed about 10 ways (z7a shows as "Region 7")
 
-Status: OPEN.
+Status: PARTIAL — 6c03f5fe (step 1), 89fea9c0 (steps 2 + 3, Python). Lane wf_754f5fcd-d71-3.
+- Step 1 DONE: level.ts reads z7a/z7b as "Region 7A/7B rule" (23 entries, whole subs pinned in level.test.ts); the
+  golden is held to the ruling by one counted rewrite at load (oracles.zone7Ruled: 54 level words in 8 states;
+  exclusions.test.ts pins the count). No rebuild.
+- Step 2 DONE (Python, pure refactor): pipeline/common/entry_id.py `parse(eid, registry=None) -> EntryId(head, kind,
+  region, slug, mus, regions)` + `book_region`, `is_province/is_zone/is_table/is_water_row`, `region_of/zone_region`,
+  ONE `region_words` (read.region_words IS it; display.regions_label words through it), `mint_water_row` (batch_exporter
+  mints through it, format unchanged). ~70 inline prefix tests and 9 parsers (read.base_region/_entry_region/_book_region,
+  rules._zone_region/_book_region, export_codec._region_of, display._region/_region_of + chapter regex, glossary,
+  unnamed_trib_sweep, outside._ENTRY_REGION/entry_regions) now go through it. Answers diff EMPTY: export + answers +
+  card_check from the live bundle are byte-identical to the live files (answers sha256 0c52b8ce…, card gate 0 problems).
+- Step 3 DONE: pipeline/tests/test_entry_id.py scans every pipeline module (AST) for an inline
+  startswith("z"|"r"|"zp"|"zp:"|…) or an entry-id regex outside entry_id.py (mutation: each removed spelling is caught),
+  and pins level.ts as the app's one entry-id reader.
+- Left (follow-up, needs deliver + app): the bundle/export ships the parsed region so level.ts stops using its regex
+  (store field + regs fixture regenerate). Minting NOT changed: `matcher.region_num` still reads "REGION 7A" as "7", so
+  r7 rows carry no zone in their id (EntryId.regions recovers it from the MUs + registry). Changing it moves every
+  Region 7 entry id and needs the registry → entry resync (memory registry-change-entry-resync) — its own ticket.
+- Owner question (default built with): mint r7a:/r7b: ids for Zone A/B rows? Default: no — keep r7: and read the
+  zone from the MUs (no resync).
 
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, findings matching 4,
 answers 5, answers 7 and cross 5 (CONFIRMED).
