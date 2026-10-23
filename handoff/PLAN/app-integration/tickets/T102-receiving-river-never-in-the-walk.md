@@ -13,13 +13,24 @@ using the WSC").
   this; the walk itself is untouched".
 - A braid that rejoins the receiving river can still let the walk climb into it the same way.
 
+## Owner decision (2026-10-22)
+"Shouldn't we only use the wsc check parent/child to handle it during the walk? no walking into a parent? to keep it
+consistent and then remove your added check?" — Yes:
+- ONE rule, in the walk: never step into a water whose watershed code is a strict ancestor of the reach's code. A seed is
+  the walk's first step, so the same check covers seeding.
+- REMOVE `THE_RECEIVING_RIVER_IS_NEVER_A_SEED` (T90's seeding-only check) — superseded.
+- WSC decides parent/child wherever both codes are known; the Strahler/order guard stays only as the fallback where a
+  code is missing (out of B.C., added streams with no code).
+- KEEP `MOUTH_SEEDS_ONLY_AT_THE_CUT`: it fixes a different bug (at a natural mouth the old seeding matched SIBLING
+  waters joining the receiving river at the same measure; a parent check does not stop siblings).
+- Respect `code_runs` (Dewar Lake ruling: follow the code).
+
 ## Work
-- Apply the same strict-ancestor test (`_receives`) to every step of the walk, not only to seeds; respect the FWA
-  code-run exceptions (`code_runs`, the Dewar Lake ruling: follow the code).
-- Test-first: a fixture where a reach's walk reaches a side channel of its receiving river through a braid; mutation
-  pin (switch off → the channel is bound).
-- Reach rerun into a side dir + per-rule binding diff: expect no change today (prove it), or list every rule the
-  check now stops, with names, for review before promoting.
+- Implement the rule above test-first; fixtures: a braid into the receiving river's side channel (blocked), a genuine
+  tributary whose order looks too big (allowed by code), a no-code water (order fallback), the Chehalis/Harrison case
+  (still blocked with the seed check removed). Mutation pins: drop the parent check → the side channel binds; put the
+  order guard first again → the code-wins case fails.
+- Reach rerun into a side dir + per-rule binding diff; list every rule that moves, with names and why, before promoting.
 
 ## Acceptance
 Binding diff reviewed; 0 sections of a receiving river (by code) bound by any tributary walk; tests pinned.
