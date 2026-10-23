@@ -310,20 +310,37 @@ def perry(request):
 
 
 @pytest.mark.needs_bundle
-def test_perry_creek_brook_trout_held_by_the_st_mary_row_is_no_group(perry):
+def test_perry_creek_brook_trout_is_no_longer_held_by_the_st_mary_row(perry):
+    """T127: the reader displaced the St. Mary's 1 for brook trout, so that row no longer cross-references them — Perry
+    Creek's own "brook trout 20" row is held by nothing, drawn on its own and a one-kind group of 20 (T80 3)."""
     data, model = perry
     for md in ((6, 15), (7, 15), (10, 10)):
         row, parent = _perry(data, model, md)
-        assert (row["members"], parent is not None and data["rule_ids"][parent["pool"]], row.get("group")) \
-            == (["EB"], ST_MARY_TRIBS, None)
+        g = row.get("group") or {}
+        assert (row["members"], parent, g.get("kinds"), (g.get("headline") or {}).get("says")) \
+            == (["EB"], None, ["EB"], "20 a day per angler")
     assert _gate(model, [PERRY]) == []
 
 
 @pytest.mark.needs_bundle
-def test_mutation_a_one_kind_group_on_a_held_row_fails_the_card_gate(perry, monkeypatch):
-    """MUTATION: without the drawn-row condition Perry Creek's brook trout row gets a group again, worded "1" through
-    the St. Mary's cross-reference, and the card gate refuses it (the batch-3 deliver's 30 problems, one key here)."""
+def test_mutation_with_the_displaced_cross_reference_perry_creek_is_held_and_no_group(perry, monkeypatch):
+    """MUTATION (T127 off): the St. Mary's row cross-references the brook trout again, so Perry Creek's row is held
+    (`parent`) and, by the drawn-row condition, no group — the shape the batch-3 deliver shipped."""
     data, _ = perry
+    monkeypatch.setattr(RW, "A_DISPLACED_POOL_IS_NO_CROSS_REFERENCE", False)
+    model = A.build(BUNDLE, EXPORT_DIR, workers=1, items=[PERRY], sections=["rows", "ladder"], log=lambda *_: None)
+    row, parent = _perry(data, model)
+    assert (row["members"], parent is not None and data["rule_ids"][parent["pool"]], row.get("group")) \
+        == (["EB"], ST_MARY_TRIBS, None)
+
+
+@pytest.mark.needs_bundle
+def test_mutation_a_one_kind_group_on_a_held_row_fails_the_card_gate(perry, monkeypatch):
+    """MUTATION: with the St. Mary's displaced cross-reference back (T127 off) and without the drawn-row condition Perry
+    Creek's brook trout row gets a group again, worded "1" through that cross-reference, and the card gate refuses it
+    (the batch-3 deliver's 30 problems, one key here)."""
+    data, _ = perry
+    monkeypatch.setattr(RW, "A_DISPLACED_POOL_IS_NO_CROSS_REFERENCE", False)
     monkeypatch.setattr(RW, "A_ONE_KIND_GROUP_ONLY_ON_A_DRAWN_ROW", False)
     model = A.build(BUNDLE, EXPORT_DIR, workers=1, items=[PERRY], sections=["rows", "ladder"], log=lambda *_: None)
     row, _parent = _perry(data, model)

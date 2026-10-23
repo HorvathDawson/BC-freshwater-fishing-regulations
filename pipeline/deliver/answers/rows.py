@@ -617,6 +617,25 @@ def main_res(H: Optional[dict], W: Optional[dict]) -> Optional[dict]:
     return common.lead_origin(H, W)
 
 
+#: T127 (2026-10-22, found by the Perry Creek card-gate fix): a pool the reader DISPLACED for a fish yields no "counts
+#: toward this one" cross-reference — `counts_toward` decides every cross-reference. False only in the mutation pin
+#: (test_answers_t127_displaced_xref.py): the St. Mary's "trout/char 1 on all tributaries" then lists Perry Creek's brook
+#: trout again, though Perry Creek's own "brook trout 20" displaced it (reason own_row).
+A_DISPLACED_POOL_IS_NO_CROSS_REFERENCE = True
+
+
+def counts_toward(m: Optional[dict], key: str) -> bool:
+    """T127: the fish whose decided answer is `m` COUNTS TOWARD the pool `key` here — the reader's "who governs this
+    kind here": the pool governs it (the winner) or holds it as the total around its winner (`contains`, a pool the
+    reader says SPEAKS for it). A pool the reader displaced for the fish (role `replaced`: Perry Creek's own "brook trout
+    20" displaced the St. Mary's "trout/char 1 on all tributaries", reason own_row) or lifted holds nothing: no
+    cross-reference ("counts toward this one"), no group membership, no outer total. The one predicate behind
+    `build_model`'s xref facts, `group_of`'s kinds and `total_of`."""
+    if not m:
+        return False
+    return m["win"].key == key or (m["roles"].get(key) or {}).get("role") == "contains"
+
+
 # --------------------------------------------------------------------------------------------
 # 5.1 / 5.3 The model: fish asked about, rows (the page's speciesAt and buildModel)
 # --------------------------------------------------------------------------------------------
@@ -731,7 +750,10 @@ def build_model(P: "Part") -> dict:
             continue
         if _keepish(m["status"]):
             for k, v in m["roles"].items():
-                if v["role"] in ("replaced", "contains") and k in keep_rows and k != m["win"].key:
+                # T127: the pools the fish counts toward (`counts_toward`); without the ruling (mutation only) a pool the
+                # reader displaced for it cross-referenced it too
+                if k in keep_rows and k != m["win"].key and (
+                        counts_toward(m, k) or (not A_DISPLACED_POOL_IS_NO_CROSS_REFERENCE and v["role"] == "replaced")):
                     keep_rows[k]["xref"].append({"S": S, "by": m["win"], "daily": m["daily"]})
             continue
         parent = None
@@ -1663,7 +1685,7 @@ def total_of(P: "Part", model: dict, row: dict) -> R:
     outs: Optional[List[str]] = None
     for S in row["members"]:
         m = _kept(model, S)
-        ks = [k for k, v in m["roles"].items() if v["role"] == "contains"] if m else []
+        ks = [k for k in m["roles"] if k != m["win"].key and counts_toward(m, k)] if m else []
         outs = ks if outs is None else [k for k in outs if k in ks]
     return P.by_key[outs[0]] if outs else row["pool"]
 
@@ -1751,9 +1773,7 @@ def group_of(P: "Part", model: dict, T: R, own_row: bool = False) -> Optional[di
     on every kind of water (`A_TROUT_CHAR_TOTAL_OF_ONE_KIND_IS_A_GROUP`).
     THE DECISION ONLY: how the card SAYS it is `card.card_of` (answers 2.8 — the lead sentence
     and the items of 2.6/2.7 are gone: they restated the kind rows)."""
-    kinds = [S for S in model["spp"]
-             if (m := _kept(model, S)) is not None
-             and (m["win"] is T or (m["roles"].get(T.key) or {}).get("role") == "contains")]
+    kinds = [S for S in model["spp"] if counts_toward(_kept(model, S), T.key)]          # T127: the one predicate
     kinds.sort(key=lambda S: _icu_key(P.sp_name(S)))
     if not kinds:
         return None
@@ -1835,6 +1855,7 @@ A_TROUT_CHAR_TOTAL_OF_ONE_KIND_IS_A_GROUP = True
 #: a group there was never drawn, and the card worded it "1" through that cross-reference while the reader had
 #: DISPLACED the St. Mary's 1 for brook trout (20 may be kept) — the card gate's 30 problems. The held row's fish stay
 #: said inside the holding pool's article, as before T80. `model.RowsFrame._one_kind_groups` refuses the shape.
+#: (T127 then removed that displaced cross-reference: Perry Creek's row is held by nothing now and is a group of 20.)
 A_ONE_KIND_GROUP_ONLY_ON_A_DRAWN_ROW = True
 
 
