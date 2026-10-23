@@ -435,6 +435,38 @@ describe("Android's back, surface by surface (HANDOFF-ui 'Back, everywhere')", (
     expect(seen).toEqual(["water Chilliwack River on Map · no bar", "handled -> tab Map", "answered -> tab Map"]);
   }, 60_000);
 
+  it("(T58 review) \"Flows into\" goes through the opener: it opens the receiving water once its areas are read, and " +
+     "back pressed before they are read wins (the water opens nothing late)", async () => {
+    const chilliwack = { mode: "water", from: HOME,
+                         stack: [{ item: CHILLIWACK, part: 1, tapSid: null, at: null, view: "map" }] } as const;
+    const flows = () => screen.getByRole("link", { name: "Flows into Vedder River ›" });
+    // the dev fixture source holds no Vedder: its title, so the page says which water opened
+    const base = makeFixtureSource();
+    const source: RegsSource = { ...base, water: async (i) => (i === "gnis:3062"
+      ? { item: i, name: "Vedder River", kind: "river", sections: [] } : base.water(i)) };
+    await mount(chilliwack, nativeBack, openRegsFixture(), { source });
+    await onWaterMap(); await until(() => screen.queryByRole("link", { name: "Flows into Vedder River ›" }) !== null);
+    await act(async () => { fireEvent.click(flows()); });
+    await waitFor(() => expect(screen.queryByTestId("water-map") === null
+                           && screen.queryAllByText("Vedder River").length > 0).toBe(true), { timeout: 20_000 });
+    const opened = [where()];
+    hardwareBack();
+    await until(() => screen.queryAllByText("Chilliwack River").length > 0);
+    opened.push(`back -> ${where()}`);
+    cleanup();
+    await mount(chilliwack, nativeBack, openRegsFixture(), { source });
+    await onWaterMap(); await until(() => screen.queryByRole("link", { name: "Flows into Vedder River ›" }) !== null);
+    // the press and back in one go: back lands before the receiving water's areas are read
+    act(() => {
+      fireEvent.click(flows());
+      for (const h of [...android.listeners].reverse()) if (h()) return;
+    });
+    await act(async () => { await new Promise((r) => setTimeout(r, 50)); });
+    expect([...opened, `pressed then back -> ${where()}`]).toEqual([
+      "water Vedder River on Regulations · no bar", "back -> water Chilliwack River on Map · no bar",
+      "pressed then back -> tab Map"]);
+  }, 60_000);
+
   it("(owner 2026-10-22 late) a water opened from a search RESULT: back is the map, search closed; then Android's", async () => {
     await mount(HOME);
     act(() => { fireEvent.focus(screen.getByLabelText("Search waters and towns")); });
