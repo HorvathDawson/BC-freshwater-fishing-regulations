@@ -18,3 +18,9 @@ Each item closes with a fix + test, or a recorded "no" with the reason:
 
 Acceptance: each item is a line here marked fixed (commit + test) or declined (reason).
 Depends: none (3 needs a deliver). Size: M. Owner: delegated. Default for D19: (a) a pipeline-side group.
+
+## Added 2026-10-22 (T56 review)
+- Own-row names keep the book's quote marks in "applies" lines: '"Diana" Creek', '"Lower Beaverpond" Lake'
+  (place_names.row_name; see_name already strips them). Decide: strip, or keep as the book prints.
+- Region 5 and Region 7 both print "Blackwater River: see West Road River", so search shows the pointer twice.
+- The 5 "See X" pointers whose waters have no other row have no page of their own.
