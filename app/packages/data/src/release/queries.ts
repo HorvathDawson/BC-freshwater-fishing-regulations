@@ -7,7 +7,7 @@
  * join across files:
  *   NEAR_FOR_ITEMS, WATERS_NEAR, RINGS_FOR_ITEM    near (place_water) → core (item, place)
  *   GAUGES_ON_ITEM                                  core (item_section) → conditions (gauge)
- *   gaugesForSections, lakeStationsFor              conditions + core (the lake road: section → item → lake_gauge)
+ *   lakeStationsFor                                 conditions + core (the lake road: section → item → lake_gauge)
  *   panelsForSections, BASIN_MEMBERS                paint (decoded arrays, not SQL) + flow-area
  *   STOCKED_ON_ITEM, CHARTS_FOR_ITEM, RELEASES_FOR_NAME   no producer yet: not in the release (the reader answers empty)
  */
@@ -87,8 +87,6 @@ export const CROSS = {
   /** conditions: stations standing on these sections. */
   GAUGES_AT: (n: number) => ({ file: "conditions", sql:
     `SELECT lat, lon FROM gauge WHERE sid IN (${ids(n)}) AND lat IS NOT NULL AND lon IS NOT NULL` }),
-  SECTION_STATIONS: (n: number) => ({ file: "conditions", sql:
-    `SELECT sid, station FROM section_gauge WHERE sid IN (${ids(n)})` }),
   /** conditions: the lake road's second half — the lowest station in each lake, stably. */
   LAKE_STATIONS: (n: number) => ({ file: "conditions", sql:
     `SELECT item_id, min(station) AS station FROM lake_gauge WHERE item_id IN (${ids(n)}) GROUP BY item_id` }),

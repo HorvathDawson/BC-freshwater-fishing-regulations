@@ -20,7 +20,7 @@ import { DatabaseSync } from "node:sqlite";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
-import { answerFrom, classStandings, httpFeed, parseManifest, sectionStanding, verify, type ItemId, type Manifest, type Panel, type PlaceId,
+import { answerFrom, classStandings, httpFeed, parseManifest, sectionStanding, sheetLead, speakerFor, speaks, verify, type ItemId, type Manifest, type Panel, type PlaceId,
          type RegsSource, type SectionId, type StandingClasses, type StationId } from "@app/data";
 import { makeBundleSource } from "@app/data/bundle";
 import { makeFixtureSource } from "@app/data/fixture";
@@ -145,7 +145,6 @@ describe("the release reader answers like the bundle reader (P11)", () => {
 
   it("the gauge reads, the lake road and the walks", async () => {
     const all = allSections();
-    expect(await release.stationsFor(all)).toEqual(await bundle.stationsFor(all));
     const lakes = await release.lakeStationsFor(all);
     expect(lakes).toEqual(await bundle.lakeStationsFor(all));
     expect(new Set(lakes.values())).toEqual(new Set(["08MH016", "08MH056"]));     // the lowest of a lake's two
@@ -214,6 +213,28 @@ describe("the release reader answers like the bundle reader (P11)", () => {
     const classed = (c: StandingClasses) => all.filter((s) => c.classOf(s) !== null);
     expect(classed(r)).toEqual(classed(b));
     expect(r.basins).toEqual(b.basins);
+  });
+
+  /*
+   * ONE SPEAKER (T105): the map's class for a section IS the speaker the sheet asks for it (`speakerFor` over the
+   * section's own `panelsFor` + `lakeStationsFor`), and the sheet's lead is one of that speaker's stations — every
+   * section, both readers. The province version, a sample per region, is `speaker.test.ts`.
+   */
+  it("the map's class and the sheet's speaker are one, and the sheet leads with the speaker's station", async () => {
+    const all = allSections();
+    for (const [name, src] of [["release", release], ["bundle", bundle]] as const) {
+      const [c, panels, lakes] = await Promise.all([src.standingClasses(), src.panelsFor(all), src.lakeStationsFor(all)]);
+      const kinds = new Set<string>();
+      for (const s of all) {
+        const k = c.classOf(s), map = k === null ? null : c.classes[k]!;
+        const sheet = speakerFor(panels.get(s), lakes.get(s));
+        kinds.add(sheet?.kind ?? "none");
+        if (JSON.stringify(map) !== JSON.stringify(sheet)) expect([name, s, map]).toEqual([name, s, sheet]);
+        const lead = sheetLead(sheet, [], null);
+        expect([name, s, sheet === null ? lead === null : speaks(map, lead)]).toEqual([name, s, true]);
+      }
+      expect([name, [...kinds].sort()]).toEqual([name, ["lake", "none", "panel"]]);
+    }
   });
 
   it("the series: the same observations over the same envelope, to float16", async () => {

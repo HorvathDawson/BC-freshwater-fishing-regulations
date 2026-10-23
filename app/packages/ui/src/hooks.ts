@@ -91,41 +91,8 @@ export interface Conditions {
   trace: readonly SectionId[];
 }
 
-export function useConditions(source: RegsSource, section: SectionId | null): Async<Conditions> {
-  return useAsync(
-    async (): Promise<Conditions> => {
-      const empty: Conditions = {
-        station: null, stationName: null, discharge: null, level: null, parameter: null, percentile: null,
-        standing: null, trust: null, fetchedAt: null, observedAt: null, trace: [],
-      };
-      if (!section) return empty;
-      const link = await source.gaugeForSection(section);
-      // NO LINK IS THE REFUSAL. A station that drains far too much to describe this water
-      // gets no `section_gauge` row at all, so `gaugeForSection` returns null — there is no
-      // "none" band to test for, and testing for one implied the row existed and was
-      // labelled. Returning its number anyway is the failure this path exists to prevent.
-      if (!link) return empty;
-      // NO SERIES HERE (P16). This fetched the station's 72-hour series for the model run
-      // behind it, and nothing read the answer: the chart asks for its own (`useSeries`).
-      const [now, trace] = await Promise.all([
-        source.gaugeNow(link.station),
-        source.traceToGauge(section),
-      ]);
-      return {
-        station: link.station, stationName: link.name, trust: link.trust, trace,
-        discharge: now?.value.discharge ?? null,
-        level: now?.value.level ?? null,
-        parameter: now?.value.parameter ?? null,
-        percentile: now?.value.percentile ?? null,
-        standing: now?.value.standing ?? null,
-        fetchedAt: now?.fetchedAt ?? null,
-        observedAt: now?.value.at || null,
-      };
-    },
-    `conditions:${section}`,
-    section !== null,
-  );
-}
+// NO `useConditions` (T105): it read the station `section_gauge` matched to a reach for the sheet's reading, a second
+// speaker beside the map's (`speakerFor` in @app/data). The sheet reads the speaker's lead through `useStationReading`.
 
 /**
  * Which water a reach belongs to, by name.
@@ -147,8 +114,8 @@ export function useWaterName(
 /**
  * One station's own latest reading — whichever station you ask about.
  *
- * `useConditions` above answers "what does the ONE station matched to this reach say", and
- * the station is not a parameter. That was the whole answer when a reach had one gauge; a
+ * The deleted `useConditions` answered "what does the ONE station matched to this reach say", and
+ * the station was not a parameter. That was the whole answer when a reach had one gauge; a
  * donor panel has up to four, and a reader looking at a table of four with a chart of a
  * fifth (the matched one, which need not be in the panel at all) is being shown two models
  * and told they are one. This is the same reading, for a station the caller chooses.
@@ -184,7 +151,7 @@ export async function stationReading(source: RegsSource, station: StationId | nu
     standing: null, trust: null, fetchedAt: null, observedAt: null, trace: [],
   };
   if (!station) return empty;
-  // The reading only — see `useConditions`: the chart reads its own series.
+  // The reading only (P16): the chart reads its own series.
   const now = await source.gaugeNow(station);
   if (!now) return { ...empty, station };
   return {

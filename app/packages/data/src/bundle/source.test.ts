@@ -329,7 +329,6 @@ describe("the gauge model", () => {
     // Handles, not names — and starting at 1, because 0 is reserved for "no section".
     const many = Array.from({ length: 2500 }, (_, i) => (i + 1) as SectionId);
     const s = makeBundleSource(spy);
-    await s.stationsFor(many);
     await s.panelsFor(many);
     await s.lakeStationsFor(many);
     expect(worst).toBeGreaterThan(0);

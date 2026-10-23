@@ -6,9 +6,9 @@
  * cannot live behind a hook.
  */
 import { useCallback, useMemo, useRef, useState } from "react";
-import { answerFrom, basinStandings, sectionStanding, type BasinMember, type DonorRow, type Horizon, type Panel,
-         type PanelAnswer, type Parameter, type Quantity, type RegsSource, type SectionId,
-         type StationId } from "@app/data";
+import { answerFrom, basinStandings, sectionStanding, sheetLead, speakerFor, speaks, type BasinMember, type DonorRow,
+         type Horizon, type Panel, type PanelAnswer, type Parameter, type Quantity, type RegsSource, type SectionId,
+         type Speaker, type StationId } from "@app/data";
 import { CHANGE_NEEDS_FLOW, CHANGE_POLICY, changeDay, changeLine, changeSparkWords, CONDITIONS_WORDS, disagreeNote, donorBecause, isAhead, type RunChange, donorFacts, donorKeyLabel, donorLastReport,
          donorSilent, gaugeChoiceLabel, donorShare, silentLine,
          donorPinTitle, donorReads, donorReason, donorRowLabel, donorWeightLine,
@@ -19,8 +19,8 @@ import { CHANGE_NEEDS_FLOW, CHANGE_POLICY, changeDay, changeLine, changeSparkWor
          type Standing } from "@app/core";
 import { donorMapKey, donorMapLabel, hereMapLabel, ROUTE_MAP_WORDS,
          routeLegend } from "@app/core";
-import { useAsync } from "./async";
-import { useConditions, useGaugeTrace, useStationReading } from "./hooks";
+import { useAsync, type Async } from "./async";
+import { useGaugeTrace, useStationReading } from "./hooks";
 import { pushedRoute, routeLabels, routeValues, type RouteColourVM } from "./routeColour";
 
 import type { FlowParam } from "./mapModes";
@@ -287,6 +287,27 @@ export function usePanel(
     () => ({ answer: { ok: false, why: "no-station" }, rows: [], areaKm2: null,
              routesReady: false }), []);
   return got.state === "ready" && got.value ? got.value : none;
+}
+
+/**
+ * WHO SPEAKS FOR THIS SECTION, as the map decides it (`speakerFor` in @app/data, T105): its panel through the SAME
+ * cached fetch `usePanelStandings` colours from, else the station in its lake, else nothing. `name` is a lake
+ * station's name (a panel's donors carry theirs on their routes); null where the bundle has none.
+ */
+export function useSpeaker(source: RegsSource, section: SectionId | null):
+  Async<{ speaker: Speaker | null; name: string | null }> {
+  return useAsync(
+    async () => {
+      if (!section) return { speaker: null, name: null };
+      const [panels, lakes] = await Promise.all([cached(source, [section]), source.lakeStationsFor([section])]);
+      const speaker = speakerFor(panels.get(section), lakes.get(section));
+      const name = speaker?.kind === "lake"
+        ? (await source.gaugePoints()).find((g) => g.station === speaker.station)?.name ?? null : null;
+      return { speaker, name };
+    },
+    `speaker:${section ?? ""}`,
+    section !== null,
+  );
 }
 
 /**
@@ -748,7 +769,8 @@ export function useConditionsView(
 ): ConditionsVM {
   const { feed, quantity } = opts;
   const perTile = opts.perTile ?? false;
-  const conditions = useConditions(source, section);
+  const spoken = useSpeaker(source, section);
+  const speaker = spoken.state === "ready" ? spoken.value.speaker : null;
   const traced = useGaugeTrace(source, section);
   const panel = useLastReports(feed, usePanelRoutes(source, section,
                                                     usePanel(source, feed, section, quantity, horizon)));
@@ -773,23 +795,19 @@ export function useConditionsView(
     ? { standing: { labels, values: routeValues(labels, standings, horizon) }, data: {} }
     : { standing: null, data: pushedRoute(standings, horizon) }), [perTile, labels, standings, horizon]);
 
-  const matched = conditions.state === "ready" ? conditions.value : null;
   /*
-   * THE CHART FOLLOWS THE PANEL: the picked donor, else the heaviest reporting one (rows
-   * are in weight order), else any donor, else the one station matched to this reach.
+   * THE CHART FOLLOWS THE SPEAKER (T105), the one the map colours by (`speakerFor`): a panel's picked donor, else its
+   * heaviest reporting one, any donor, its first member; a lake's own station; nothing where nothing speaks
+   * (`sheetLead`). The station `section_gauge` matched to this reach is never read for a reading: for 54,386 sections
+   * with no panel it quoted a gauge the map left uncoloured, and a gauged lake (no `section_gauge` row) read nothing.
    */
   const [picked, select] = useState<StationId | null>(null);
-  const lead: StationId | null = picked
-    ?? panel.rows.find((r) => r.percentile !== null)?.station
-    ?? panel.rows[0]?.station
-    ?? matched?.station
-    ?? null;
+  const lead: StationId | null = sheetLead(speaker, panel.rows, picked);
   const got = useStationReading(source, lead);
-  const live = got.state === "ready" ? got.value : null;
+  const c = got.state === "ready" ? got.value : null;
   const name = panel.rows.find((r) => r.station === lead)?.route?.name
-    ?? (lead === matched?.station ? matched?.stationName : null)
+    ?? (speaker?.kind === "lake" && spoken.state === "ready" ? spoken.value.name : null)
     ?? lead ?? "";
-  const c = lead === matched?.station && !live?.fetchedAt ? matched : live;
 
   let reading: ReadingVM | null = null;
   // THE DECLARED QUANTITY (T106): the publisher's `parameter`, the one its percentile is about. 08ME030 reports both
@@ -813,10 +831,12 @@ export function useConditionsView(
   const quiet: QuietVM | null = row && got.state !== "loading" ? quietHead(name, row, today.getTime(), horizon) : null;
 
   return {
-    loading: conditions.state === "loading",
+    loading: spoken.state === "loading",
     day: today, panel, chain, route, lead, select, reading, quiet, refuse: !reading && !row,
     noGauge: noGaugeSentence(),
-    trace: !panel.answer.ok && traced.state === "ready" && traced.value.station
+    // THE MATCH RECORD, only for a station that speaks here: where the panel could not answer, how this reach reaches
+    // the one of its donors it was matched to. Never a trace to a gauge the map does not colour by.
+    trace: !panel.answer.ok && traced.state === "ready" && speaks(speaker, traced.value.station)
       ? traced.value : null,
     gauges: gaugeChoices(panel.rows, lead),
   };

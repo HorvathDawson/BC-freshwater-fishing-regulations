@@ -173,22 +173,6 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
       return link(r, id, (await opts.feed?.live?.()) ?? null);
     },
 
-    async stationsFor(sections): Promise<ReadonlyMap<SectionId, StationId>> {
-      const out = new Map<SectionId, StationId>();
-      if (!sections.length) return out;
-      // Chunked: SQLite's default parameter ceiling is 999, and a dense viewport can hold
-      // more reaches than that.
-      // 400, not 999: the query binds the section list TWICE — once for streams and once
-      // for the lakes union — so the ceiling is halved. Getting this wrong is a runtime
-      // "too many SQL variables" on a dense viewport and nowhere else.
-      for (let i = 0; i < sections.length; i += 400) {
-        const chunk = sections.slice(i, i + 400);
-        for (const r of await db.all(Q.gaugesForSections(chunk.length), ...chunk, ...chunk))
-          out.set(sid(r.sid), str(r.station) as StationId);
-      }
-      return out;
-    },
-
     async panelsFor(sections) {
       const out = new Map<SectionId, Panel>();
       if (!sections.length) return out;

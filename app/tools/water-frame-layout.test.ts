@@ -72,7 +72,13 @@ const strips: Record<string, number> = {};
 
 /** Mount the water on Regulations, press the strip through every view, and snapshot each. */
 async function shoot(): Promise<Record<(typeof VIEWS)[number], string>> {
-  const source = makeFixtureSource();
+  // A SPEAKER FOR THE CHILLIWACK (T105): the design fixture has no panel, and a section only `section_gauge` matches
+  // is spoken for by nothing, so its Conditions view is the refusal with no chart. The province's lower Chilliwack has
+  // a panel; this gives the fixture's one, Vedder Crossing alone, so the view draws the chart these positions are of.
+  const fixture = makeFixtureSource();
+  const source = { ...fixture, panelsFor: async (secs: readonly number[]) => new Map(secs.map((s) => [s, {
+    areaKm2: 1230, members: [{ station: "08MH001", role: "up", areaKm2: 1230, years: 60, regulated: false,
+                               sameRiver: true }] }])) } as unknown as typeof fixture;
   const water = await source.water("gnis:8634" as never);
   render(h(GestureHandlerRootView, { style: { flex: 1 } } as never, h(Shell, {
     source, palette: LIGHT, theme: "light", themeName: "light", onTheme: () => {},

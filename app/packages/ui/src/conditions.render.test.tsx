@@ -213,6 +213,7 @@ const source = {
   panelRoutes: async () => [{ station: "LEAD", name: "Lead Creek near Town", lat: 49,
                               lon: -122, role: "up", path: [SEC] }],
   lakeStationsFor: async () => new Map(),
+  gaugePoints: async () => [{ station: "LAKE", name: "Lake at Outlet", lon: -122, lat: 49, mag: null }],
   gaugeForSection: async () => ({ station: "MATCH", name: "Matched River", trust: "close",
                                   reachMagnitude: 1, gaugeMagnitude: 2, lon: -122, lat: 49 }),
   traceToGauge: async () => [SEC],
@@ -265,16 +266,52 @@ describe("useConditionsView", () => {
     expect(gaugeSeries).not.toHaveBeenCalled();
   });
 
-  it("moves to a station the reader picks", async () => {
+  it("moves to a donor the reader picks, and never to a station the speaker does not hold (T105)", async () => {
+    const two: Panel = { areaKm2: 50, members: [...PANEL.members,
+      { station: "OTHER" as never, role: "down", areaKm2: 70, years: 30, regulated: false, sameRiver: true }] };
+    const src = { ...source, panelsFor: async () => new Map([[SEC, two]]),
+                  panelRoutes: async () => [...await source.panelRoutes(SEC),
+                    { station: "OTHER", name: "Other River at Bridge", lat: 49, lon: -122, role: "down", path: [SEC] }],
+                } as unknown as RegsSource;
     const { result } = renderHook(() =>
-      useConditionsView(source, SEC, DAY, 0, { feed, quantity: "discharge" }));
-    await waitFor(() => expect(result.current.lead).toBe("LEAD"));
+      useConditionsView(src, SEC, DAY, 0, { feed, quantity: "discharge" }));
+    await waitFor(() => expect(result.current.reading?.heading).toBe(readingHeading("Lead Creek near Town")));
+    // the reach's `section_gauge` match is not one of the panel's: picking it changes nothing
     act(() => result.current.select("MATCH" as never));
+    expect(result.current.lead).toBe("LEAD");
+    act(() => result.current.select("OTHER" as never));
     await waitFor(() => expect(result.current.reading?.figure).toBe(3.4));
-    expect(result.current.lead).toBe("MATCH");
+    expect(result.current.lead).toBe("OTHER");
     expect(result.current.reading).toMatchObject({
-      heading: readingHeading("Matched River"), unit: "m", quantity: "level", stage: null,
+      heading: readingHeading("Other River at Bridge"), unit: "m", quantity: "level", stage: null,
       standing: readingStandingLine(null, null) });
+  });
+
+  it("no panel and no lake: the matched station is never quoted — the sheet refuses, as the map leaves it uncoloured (T105)", async () => {
+    // one of the 54,386 sections with a `section_gauge` row and no `section_panel` row
+    const gaugeNow = vi.fn(source.gaugeNow);
+    const { result } = renderHook(() =>
+      useConditionsView({ ...source, panelsFor: async () => new Map(), gaugeNow } as unknown as RegsSource,
+                        SEC, DAY, 0, { feed, quantity: "discharge" }));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect({ lead: result.current.lead, reading: result.current.reading, quiet: result.current.quiet,
+             refuse: result.current.refuse, trace: result.current.trace })
+      .toEqual({ lead: null, reading: null, quiet: null, refuse: true, trace: null });
+    expect(gaugeNow).not.toHaveBeenCalled();
+  });
+
+  it("a gauged lake reads its own station, as the map colours it (T105)", async () => {
+    const lake = { ...source, panelsFor: async () => new Map(), gaugeForSection: async () => null,
+                   lakeStationsFor: async () => new Map([[SEC, "LAKE"]]),
+                   gaugeNow: async () => ({ fetchedAt: Date.now() - 5 * 60_000,
+                     value: { discharge: null, level: 2.31, percentile: 0.6, standing: "normal",
+                              at: "2026-09-04T06:00:00Z", parameter: "level" } }) } as unknown as RegsSource;
+    const { result } = renderHook(() => useConditionsView(lake, SEC, DAY, 0, { feed, quantity: "discharge" }));
+    await waitFor(() => expect(result.current.reading?.heading).toBeDefined());
+    const { age: _age, ...shown } = result.current.reading!;
+    expect([result.current.lead, shown, result.current.refuse]).toEqual(["LAKE", {
+      heading: readingHeading("Lake at Outlet"), figure: 2.31, unit: "m", quantity: "level", stage: null,
+      standing: readingStandingLine(0.6, "normal") }, false]);
   });
 
   it("shows the quantity the station DECLARES: 08ME030's level beside its level percentile, never its discharge (T106)", async () => {
@@ -337,10 +374,22 @@ describe("useConditionsView", () => {
     expect(result.current.refuse).toBe(true);
   });
 
-  it("falls back to the matched trace where no panel answers", async () => {
+  it("where the panel cannot answer (offline) it leads with its first member, and traces only a donor's match (T105)", async () => {
+    const own = { ...source, gaugeForSection: async () => ({ ...(await source.gaugeForSection(SEC))!, station: "LEAD" }) } as
+      unknown as RegsSource;
     const { result } = renderHook(() =>
-      useConditionsView(source, SEC, DAY, 0, { feed: undefined, quantity: "discharge" }));
-    await waitFor(() => expect(result.current.trace?.station).toBe("MATCH"));
+      useConditionsView(own, SEC, DAY, 0, { feed: undefined, quantity: "discharge" }));
+    await waitFor(() => expect(result.current.trace?.station).toBe("LEAD"));
+    expect(result.current.lead).toBe("LEAD");
+    // matched to a station the panel does not hold: no trace to it
+    const asked = vi.fn(source.gaugeForSection);
+    const other = renderHook(() =>
+      useConditionsView({ ...source, gaugeForSection: asked } as unknown as RegsSource, SEC, DAY, 0,
+                        { feed: undefined, quantity: "discharge" }));
+    await waitFor(() => expect(other.result.current.lead).toBe("LEAD"));
+    await waitFor(() => expect(asked).toHaveBeenCalled());
+    await act(async () => { await new Promise((r) => setTimeout(r, 30)); });   // the match has landed
+    expect(other.result.current.trace).toBeNull();
   });
 });
 

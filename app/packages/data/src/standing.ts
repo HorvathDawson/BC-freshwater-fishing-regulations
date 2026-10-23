@@ -20,6 +20,11 @@
  * station; the viewport path (`usePanelStandings`, the native map's) and the class path both call it, so the map and the
  * sheet cannot disagree. `conformance/src/release.test.ts` holds every class value to the sheet's own answer
  * (`answerFrom`) for every section of the fixture release, on both readers, at every horizon and quantity.
+ *
+ * ONE SPEAKER (T105): "which gauge speaks for this section?" is `speakerFor` — its panel, else the station in its lake,
+ * else nothing. The map's classes, the viewport standings and the conditions sheet (`useSpeaker` / `sheetLead` in
+ * @app/ui) all ask it. `section_gauge` (`gaugeForSection`) is NOT a speaker: it stays the reach-to-station match record
+ * (the trace), and the sheet once quoted its station for 54,386 sections the map left uncoloured.
  */
 import { basinStanding, recordYears, type BasinVote, type Horizon } from "@app/core";
 import { answerFrom, panelStanding, reading, type Quantity } from "./panel";
@@ -28,10 +33,53 @@ import type { BasinMember, Panel, PanelMember, SectionId, StationId } from "./in
 /** The live feed's index, as `answerFrom` reads it. */
 export type FeedIndex = Parameters<typeof answerFrom>[1];
 
-/** What one class of sections asks the feed: a donor panel at one target area, or the station standing IN a lake. */
-export type StandingClass =
+/**
+ * WHO SPEAKS FOR A SECTION: its donor panel (at the section's own target area), or the station standing IN its lake.
+ * Null (from `speakerFor`) is nothing: the map leaves the water uncoloured and the sheet refuses.
+ */
+export type Speaker =
   | { readonly kind: "panel"; readonly panel: Panel }
   | { readonly kind: "lake"; readonly station: StationId };
+
+/** What one class of sections asks the feed: one speaker, shared by every section of the class. */
+export type StandingClass = Speaker;
+
+/**
+ * THE ONE DECISION (T105): which gauge speaks for this section, from what the release holds about it — its panel
+ * (`panelsFor`) and the station in its lake (`lakeStationsFor`).
+ *
+ * A PANEL WINS over a lake station, as the viewport path always had it (lakes were set first and panels written over).
+ * `section_gauge` is not an input: a match is not a speaker (the panel's own gate, `panel.py` `eligible`, decides who
+ * may speak; `shed.py`'s match has no regulation or record gate).
+ */
+export function speakerFor(panel: Panel | undefined, lake: StationId | undefined): Speaker | null {
+  if (panel) return { kind: "panel", panel };
+  if (lake !== undefined) return { kind: "lake", station: lake };
+  return null;
+}
+
+/** Whether `station` is one of the speaker's own: a member of its panel, or its lake's station. */
+export function speaks(speaker: Speaker | null, station: string | null | undefined): boolean {
+  if (!speaker || station == null) return false;
+  return speaker.kind === "lake" ? speaker.station === station
+    : speaker.panel.members.some((m) => m.station === station);
+}
+
+/**
+ * WHICH OF THE SPEAKER'S STATIONS THE SHEET LEADS WITH (its chart and reading): the reader's pick when it is one of
+ * the speaker's; else the heaviest reporting donor (`rows` are `answerFrom`'s, in weight order), any donor, the panel's
+ * first member (offline: no rows); a lake's own station; nothing where nothing speaks. Never a station the speaker
+ * does not hold, so the sheet cannot quote a gauge the map does not colour by.
+ */
+export function sheetLead(speaker: Speaker | null,
+                          rows: readonly { readonly station: StationId; readonly percentile: number | null }[],
+                          picked: StationId | null): StationId | null {
+  if (!speaker) return null;
+  if (speaks(speaker, picked)) return picked;
+  if (speaker.kind === "lake") return speaker.station;
+  return rows.find((r) => r.percentile !== null)?.station ?? rows[0]?.station
+    ?? speaker.panel.members[0]?.station ?? null;
+}
 
 /**
  * THE STATIC HALF, for one release: each section's class, the classes, and the basins' stations. Built once per release
@@ -58,10 +106,16 @@ export interface StandingClasses {
  */
 export function sectionStanding(panel: Panel | undefined, lake: StationId | undefined, idx: FeedIndex,
                                 quantity: Quantity, horizon: Horizon): number | null {
+  return speakerStanding(speakerFor(panel, lake), idx, quantity, horizon);
+}
+
+/** The standing of one speaker (`sectionStanding`'s arithmetic, after `speakerFor` has decided who speaks). */
+export function speakerStanding(speaker: Speaker | null, idx: FeedIndex, quantity: Quantity,
+                                horizon: Horizon): number | null {
   if (!idx) return null;                         // offline: colour nothing rather than colour wrong
-  if (panel) return panelStanding(panel, idx, quantity, horizon);
-  if (lake === undefined) return null;
-  const row = idx.stations[lake as string];
+  if (!speaker) return null;
+  if (speaker.kind === "panel") return panelStanding(speaker.panel, idx, quantity, horizon);
+  const row = idx.stations[speaker.station as string];
   if (!row) return null;                         // not transmitting: say nothing
   const p = reading(row, quantity, horizon);
   return typeof p === "number" ? p : -0.01;
@@ -75,13 +129,12 @@ export function classStandings(c: StandingClasses, idx: FeedIndex, quantity: Qua
   return out;
 }
 
-/** One class's standing (`sectionStanding` of its panel or lake station); NaN where that is null. */
+/** One class's standing (`speakerStanding` of its speaker); NaN where that is null. */
 export function classStanding(c: StandingClasses, i: number, idx: FeedIndex, quantity: Quantity,
                               horizon: Horizon): number {
   const k = c.classes[i];
   if (!k) return NaN;
-  const v = k.kind === "panel" ? sectionStanding(k.panel, undefined, idx, quantity, horizon)
-    : sectionStanding(undefined, k.station, idx, quantity, horizon);
+  const v = speakerStanding(k, idx, quantity, horizon);
   return v === null ? NaN : v;
 }
 
@@ -132,7 +185,7 @@ export function buildStandingClasses(release: string, sections: Iterable<Panelle
     if (k === undefined) {
       k = classes.length;
       byArea.set(area, k);
-      classes.push({ kind: "panel", panel: { areaKm2: s.areaKm2, members: members.get(s.panel) ?? [] } });
+      classes.push(speakerFor({ areaKm2: s.areaKm2, members: members.get(s.panel) ?? [] }, undefined)!);
     }
     if (sids.length && s.sid <= sids[sids.length - 1]!) sorted = false;
     sids.push(s.sid);
@@ -143,17 +196,18 @@ export function buildStandingClasses(release: string, sections: Iterable<Panelle
     sids = order.map((i) => sids[i]!);
     cls = order.map((i) => cls[i]!);
   }
-  // A PANEL WINS over a lake station, as it always did: a lake class only for a lake section no panel speaks for
+  // WHO SPEAKS is `speakerFor`'s (a panel wins over a lake station): a lake class only where it answers "the lake"
   const byStation = new Map<string, number>();
   const extra: [number, number][] = [];
   for (const [sid, station] of lakes) {
     const n = Number(sid);
-    if (at(sids, n) >= 0) continue;
+    const speaker = speakerFor(at(sids, n) >= 0 ? PANELLED : undefined, station);
+    if (speaker?.kind !== "lake") continue;
     let k = byStation.get(station as string);
     if (k === undefined) {
       k = classes.length;
       byStation.set(station as string, k);
-      classes.push({ kind: "lake", station });
+      classes.push(speaker);
     }
     extra.push([n, k]);
   }
@@ -169,6 +223,9 @@ export function buildStandingClasses(release: string, sections: Iterable<Panelle
   };
   return { release, classes, classOf, basins };
 }
+
+/** A section a panel speaks for, as `speakerFor` sees it when only that a panel exists matters (the class build). */
+const PANELLED: Panel = { areaKm2: null, members: [] };
 
 /** Where `section` sits in sorted `ids`, or -1. */
 function at(ids: ArrayLike<number>, section: number): number {

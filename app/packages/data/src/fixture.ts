@@ -206,13 +206,6 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
       };
     },
 
-    async stationsFor(sections): Promise<ReadonlyMap<SectionId, StationId>> {
-      const out = new Map<SectionId, StationId>();
-      for (const s of sections)
-        if (itemOf.has(s)) out.set(s, id<StationId>(GAUGE.station));
-      return out;
-    },
-
     /**
      * The dev fixture has no panels, and says so by returning nothing at all rather than
      * an empty panel per section. The two are different answers — "nothing qualified" is a

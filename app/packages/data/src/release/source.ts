@@ -247,16 +247,6 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: BundleSourceOptio
       return link(await get(R.GAUGE_FOR_SECTION!, id), id, await live());
     },
 
-    async stationsFor(sections) {
-      const out = new Map<SectionId, StationId>();
-      if (!sections.length) return out;
-      for (const r of await chunked(sections, (c) => all(CROSS.SECTION_STATIONS(c.length), ...c)))
-        out.set(sid(r.sid), str(r.station) as StationId);
-      // LAKES TOO, by their own road, where no stream station speaks (see the bundle's gaugesForSections)
-      for (const [s, st] of await lakeRoad(sections.filter((s) => !out.has(s)))) out.set(s, st);
-      return out;
-    },
-
     async lakeStationsFor(sections) {
       return lakeRoad(sections);
     },

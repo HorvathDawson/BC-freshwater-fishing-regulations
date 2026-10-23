@@ -8,7 +8,7 @@
  * `waterbodyDataService.ts` was 1,157 lines on web and 116 on mobile.
  *
  * One shape carries the design: bulk reads take an ARRAY, because the map
- * colours a viewport, not a feature — `stationsFor`, `panelsFor` and `lakeStationsFor` below.
+ * colours a viewport, not a feature — `panelsFor` and `lakeStationsFor` below (who speaks: `speakerFor`, standing.ts).
  *
  * REGULATIONS ARE NOT READ HERE. There is no rule, rule-set or licensing query on this
  * interface: regulations are not integrated, and `@app/core`'s `regulations.ts` says where
@@ -493,14 +493,6 @@ export interface RegsSource {
 
   // ---- conditions -----------------------------------------------------
   gaugeForSection(id: SectionId): Promise<GaugeLink | null>;
-  /**
-   * Which station speaks for each of these reaches.
-   *
-   * Bulk and viewport-scoped, for colouring the map. The whole table is 558,746 rows —
-   * holding it client-side to answer a question about the ~300 reaches on screen would be
-   * most of the bundle in memory.
-   */
-  stationsFor(sections: readonly SectionId[]): Promise<ReadonlyMap<SectionId, StationId>>;
   /**
    * The donor panel for each of these sections.
    *

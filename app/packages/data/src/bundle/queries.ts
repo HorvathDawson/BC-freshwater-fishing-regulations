@@ -256,44 +256,6 @@ export const LAKE_GAUGES =
   "WHERE lg.item_id = ? ORDER BY lg.station";
 
 /**
- * The station for each of these reaches, in one statement.
- *
- * Called with whatever the map currently has on screen, so it is bounded by the viewport
- * rather than by the province. The alternative — holding all 558,746 rows client-side to
- * colour a map — is most of the bundle in memory to answer a question about 300 features.
- */
-export const gaugesForSections = (n: number) =>
-  /*
-   * LAKES TOO, AND THEY COME BY A DIFFERENT ROAD.
-   *
-   * `section_gauge` is stream sections only, and deliberately: a lake station reports a
-   * level in metres, not a discharge, and a trust ratio between the two is arithmetic on
-   * different quantities — `section_gauge` once had 11,049 stream sections being told a
-   * reservoir's level. So lake stations live in `lake_gauge`, keyed by ITEM rather than by
-   * section, because a lake is one water however many sections it is cut into.
-   *
-   * The consequence was that the Conditions view coloured every river and left every lake
-   * grey, including lakes with a gauge sitting in them. This union walks the lake's own
-   * road — section -> item -> lake_gauge — so a gauged lake is coloured by its own reading.
-   *
-   * `trust` is 'good' for a lake and that is not a fudge: there is no fraction of a level.
-   * The station is either in this water or it is not, which is exactly what `lake_gauge`
-   * records, and it is a stronger claim than any ratio a stream section can make.
-   *
-   * A lake with several stations takes the lowest station id, arbitrarily but STABLY — a
-   * colour that changes when the query planner changes its mind is worse than either
-   * choice. 196 lake_gauge rows over fewer lakes, so this is rare.
-   */
-  `SELECT sid, station, trust FROM section_gauge WHERE sid IN (${placeholders(n)})
-   UNION ALL
-   SELECT it.sid, min(lg.station) AS station, 'good' AS trust
-     FROM item_section it JOIN item i ON i.ord = it.ord
-                          JOIN lake_gauge lg ON lg.item_id = i.item_id
-    WHERE it.sid IN (${placeholders(n)})
-      AND it.sid NOT IN (SELECT sid FROM section_gauge)
-    GROUP BY it.sid`;
-
-/**
  * Lakes with a station IN them, and nothing else.
  *
  * A LAKE IS NOT A PANEL AND MUST NOT BE ONE. The donor panel carries a reading from one
