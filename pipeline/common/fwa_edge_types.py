@@ -7,7 +7,7 @@ model's barrier ("2300") — so nothing showed whether they agreed. They are nam
 
   * MAIN FLOW — the river's own line: single line (1000), in a wetland (1050), the construction lines of
     a double-line river (1200, 1250). A lake outlet carrying one is the lake's river, not a distributary
-    (`tributaries._main_outlets`).
+    (`tributaries.lake_main_outlet`).
   * SIDE CHANNEL — a secondary channel of a bigger river, not a river of its own (1100, 1350; 28,903
     sections, median magnitude 1). The gauge panels never size one by its own catchment
     (`build_panels.mainstem_of`).

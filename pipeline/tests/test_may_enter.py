@@ -217,3 +217,15 @@ def test_both_readers_ask_lake_main_outlet(monkeypatch):
     monkeypatch.setattr(T, "lake_main_outlet", lambda graph, lake: frozenset())
     assert T.tributaries_of_reach(g, {"R:0"}) == {"a:0"}
     assert T._is_main_outlet(g, "lake:7", "a:0") is False
+
+
+def test_code_runs_reads_lake_main_outlet_too(monkeypatch):
+    """M6, the other reader (adversarial review): `code_runs` skips exactly the outlets `lake_main_outlet`
+    names. Name every Dewar outlet the lake's river and there is no run; name none and Five Mile Creek (the
+    main outlet) becomes a run too. Mutation: `code_runs` keeping its own main-outlet copy -> this fails."""
+    from pipeline.tests.test_tributary_lakes import dewar
+    make = getattr(dewar, "__wrapped__", dewar)
+    g = make()
+    assert T.code_runs(g)[0] == {"lake:dewar": ("chan_up", "lake:pond", "chan_dn")}
+    monkeypatch.setattr(T, "lake_main_outlet", lambda graph, lake: frozenset({"five_mile", "chan_up"}))
+    assert T.code_runs(make())[0] == {}

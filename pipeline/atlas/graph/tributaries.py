@@ -581,12 +581,25 @@ def subtree(graph: StreamGraph, mouths, *, guarded: bool = True) -> frozenset[st
 
     Every step asks `may_enter` (T117) with the mouths as the reach (`UP`: no "river continuing"), so
     the climb never enters the river the joining water flows into — through a braid it would take the
-    reach's own river — nor a bigger river where the code cannot say, nor a canal."""
+    reach's own river — nor a bigger river where the code cannot say, nor a canal.
+
+    BOTH HALVES OF THE CODE RULING (Dewar Lake, `code_runs`), as the walk keeps them: the climb never
+    crosses a code run's divide into another basin's run (`CODE_DIVIDE`), and a lake it reaches brings
+    the run FWA codes to it (`via=RUN`) — a run piece is the lake's, so the water above the lake holds
+    it. Refusing the divide without taking the run (T117's first cut) would leave a run reached from its
+    own lake in no subtree at all."""
     ctx = reach_context(graph, mouths, guarded=guarded)
+    runs = code_runs(graph)[0] if BIFURCATIONS_FOLLOW_THE_CODE else {}
     out: set[str] = set(ctx.reach)
     stack = sorted(ctx.reach)
     while stack:
         node = stack.pop()
+        if node not in ctx.reach:
+            for r in runs.get(node, ()):
+                if r in out or may_enter(ctx, r, node, via=RUN) is not None:
+                    continue
+                out.add(r)
+                stack.append(r)
         for ei in graph.up_adj.get(node, []):
             e = graph.edges[ei]
             src = e.from_node

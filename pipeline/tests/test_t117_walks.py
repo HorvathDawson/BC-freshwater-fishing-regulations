@@ -55,6 +55,22 @@ def test_subtree_climbs_as_the_walk_climbs(monkeypatch):
     assert T.subtree(g, {"C:0"}) == {"C:0", "C:500", "K:0", "HS:0", "HC:0", "X:0", "XU:0"}
 
 
+def test_subtree_keeps_both_halves_of_the_code_ruling():
+    """Adversarial review (T117): `subtree` refused a code run's divide but never took the run, so a run
+    reached from its OWN lake was in no subtree at all. The Dewar fixture: climbing from Five Mile Creek
+    (the lake's main outlet) takes the lake's run (`chan_up`, `lake:pond`, `chan_dn`, and `chan_trib`
+    joining it); climbing from South Hawks Creek stops at the divide, as the walk does.
+    Mutations: drop the run block in `subtree` -> the first assert fails; drop `CODE_DIVIDE` in
+    `may_enter` -> the second fails."""
+    from pipeline.tests.test_tributary_lakes import dewar
+    g = dewar.__wrapped__() if hasattr(dewar, "__wrapped__") else dewar()
+    assert T.subtree(g, {"five_mile"}) == {"five_mile", "lake:dewar", "dewar_in", "chan_up", "lake:pond",
+                                           "chan_dn", "chan_trib"}
+    assert T.subtree(g, {"south_hawks"}) == {"south_hawks", "lake:seven", "seven_in"}
+    # the walk from the river Five Mile joins takes the same run with the lake
+    assert T.subtree(g, {"five_mile"}) <= T.tributaries_of_reach(g, {"wlr"})
+
+
 def test_tributary_node_ids_is_the_subtree_less_the_node():
     g = _joining_river()
     assert T.tributary_node_ids(g, "C:0") == {"C:500", "K:0"}
@@ -103,6 +119,26 @@ def test_the_gauge_shed_climbs_as_the_walk_climbs(monkeypatch):
     monkeypatch.setattr(shed, "SHED_CLIMBS_THROUGH_MAY_ENTER", False)
     got = {l.section_id for l in shed.build_gauge_sheds(g, [{"station": "08A"}], {"08A": "G"})}
     assert got == {"G", "K", "X", "XU"}
+
+
+def test_the_gauge_shed_walk_down_is_not_a_tributary_step(monkeypatch):
+    """Adversarial review (T117): only the climb UP asks `may_enter`; the walk DOWN from a gauge goes on
+    down its own river, where every step is "a bigger river" by order. A gauge G (order 2) on a river
+    that grows below it (D, order 3, same code): D is in the shed. Mutation: ask `may_enter` on the walk
+    down too (`if forward and SHED_...` -> `if SHED_...`) -> D is refused as `bigger_river` and this fails."""
+    from pipeline.common.models import StreamNode
+    from pipeline.common.models.graph import FlowEdge, StreamGraph
+    from pipeline.gauges.consume import shed
+    g = StreamGraph()
+    for nid, mag, order in (("G", 100, 2), ("D", 110, 3), ("K", 60, 1)):
+        g.nodes[nid] = StreamNode(node_id=nid, kind=NodeKind.stream, blk=nid, wsc="100-7",
+                                  stream_magnitude=mag, stream_order=order)
+    for ix, (a, b) in enumerate([("G", "D"), ("K", "G")]):
+        g.edges.append(FlowEdge(from_node=a, to_node=b, at_measure=0.0, kind="continuation"))
+        g.up_adj.setdefault(b, []).append(ix)
+        g.down_adj.setdefault(a, []).append(ix)
+    got = {l.section_id for l in shed.build_gauge_sheds(g, [{"station": "08A"}], {"08A": "G"})}
+    assert got == {"G", "D", "K"}
 
 
 def test_joining_is_the_walk_s_first_step():
@@ -195,3 +231,72 @@ def test_no_production_walk_climbs_by_its_own_rules():
                         and any(a.name == "ancestors" for a in n.names):
                     callers.append(rel)
     assert callers == []
+
+
+#: Adversarial review (T117): the pin above checks the walks it LISTS; a new climb written elsewhere slipped
+#: past it. Every production function outside tributaries.py that reads `up_adj` is named here with why it is
+#: not a tributary climb (or which entry check it asks). A new reader fails until it is classified.
+UP_ADJ_READERS = {
+    # graph construction and pruning: they BUILD or rewire the adjacency, they do not climb it
+    ("pipeline/atlas/build.py", "main"): "in-degree counts for the build summary",
+    ("pipeline/atlas/build.py", "summarize"): "in-degree counts",
+    ("pipeline/atlas/graph/graph.py", "_finalize_lake_bounds"): "a lake's inlets, one level, for its bounds",
+    ("pipeline/atlas/graph/graph.py", "ancestors"): "the raw closure, kept for the graph's own tests",
+    ("pipeline/atlas/graph/leaf_prune.py", "hops_above_named"): "prune: hops to a named water",
+    ("pipeline/atlas/graph/leaf_prune.py", "prunable"): "prune: leaf test",
+    ("pipeline/atlas/graph/nests.py", "nest_ports"): "a nest's ports, one level",
+    ("pipeline/atlas/graph/prune.py", "loop_nodes"): "mainstem loop detection",
+    ("pipeline/atlas/graph/prune.py", "prune_mainstem_loops"): "rebuilds the adjacency",
+    ("pipeline/atlas/graph/windows.py", "polygon_window"): "a polygon's inlets, one level, for its window",
+    ("pipeline/atlas/splits/sectionizer.py", "split_graph_at"): "rebuilds the adjacency",
+    ("pipeline/atlas/waters/added_streams/ingest.py", "attach_connectors"): "adds edges",
+    ("pipeline/atlas/registry/flowing.py", "merge_flowing_polygons"): "polygon neighbours, both directions",
+    ("pipeline/atlas/registry/flowing.py", "merge_flowing_polygons.neighbours"): "polygon neighbours",
+    ("pipeline/atlas/registry/flowing.py", "merge_flowing_polygons.threading"): "polygon threading",
+    # placement on a cut's own line (AGENTS 11: by measure, never a flow walk)
+    ("pipeline/atlas/reach/extent.py", "_across_the_junction"): "pieces meeting a line end, one level",
+    ("pipeline/atlas/reach/extent.py", "_by_measure._nbrs"): "braid neighbours inside the universe",
+    ("pipeline/atlas/reach/extent.py", "_flow_reach"): "a detached piece's flow path to its own water",
+    ("pipeline/atlas/reach/extent.py", "_line_length"): "a line's confluence measures",
+    ("pipeline/atlas/reach/extent.py", "_watershed_part"): "connected groups of the river's own code",
+    # exports and the review app's anabranch test: one level, no set collected
+    ("pipeline/common/io/export_gpkg.py", "export_graph_gpkg"): "inlet counts",
+    ("pipeline/common/io/export_gpkg.py", "export_lake_io"): "a lake's inlets, one level",
+    ("pipeline/deliver/bundle/continuation.py", "graph_flow"): "edges into a top piece, one level",
+    ("pipeline/deliver/tiles/export.py", "export_streams.neighbour_weight"): "neighbour weights, one level",
+    ("curation-review/backend/reuse.py", "item_side_channels"): "leaves-and-rejoins test, one level",
+    # the climbs: each asks `may_enter` (see WALKS above)
+    ("pipeline/atlas/reach/build.py", "_stem_to_first_lake"): "may_enter",
+    ("pipeline/common/io/export_gpkg.py", "export_tributaries"): "may_enter",
+    ("pipeline/gauges/consume/shed.py", "build_gauge_sheds"): "hands up_adj to `_walk`, which asks may_enter",
+    ("pipeline/tools/unnamed_trib_sweep.py", "TopoGraph.__init__"): "builds the sweep's graph view",
+    ("pipeline/tools/unnamed_trib_sweep.py", "_subtree"): "may_enter",
+}
+
+
+def _up_adj_readers() -> set:
+    out = set()
+    for top in ("pipeline", "curation-review"):
+        for p in sorted((ROOT / top).rglob("*.py")):
+            rel = p.relative_to(ROOT).as_posix()
+            if "/tests/" in rel or "/archive/" in rel or "node_modules" in rel \
+                    or rel == "pipeline/atlas/graph/tributaries.py":
+                continue
+
+            def visit(node, stack):
+                for ch in ast.iter_child_nodes(node):
+                    if isinstance(ch, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                        visit(ch, stack + [ch.name])
+                        continue
+                    if isinstance(ch, ast.Attribute) and ch.attr == "up_adj":
+                        out.add((rel, ".".join(stack) or "<module>"))
+                    visit(ch, stack)
+            visit(ast.parse(p.read_text(encoding="utf-8")), [])
+    return out
+
+
+def test_every_reader_of_up_adj_outside_the_walk_is_classified():
+    """Pin: a function outside tributaries.py that reads `up_adj` is on `UP_ADJ_READERS` — a new climb has
+    to say which entry check it asks. Mutation: add `graph.up_adj` to any unlisted production function ->
+    this fails naming it."""
+    assert _up_adj_readers() == set(UP_ADJ_READERS)
