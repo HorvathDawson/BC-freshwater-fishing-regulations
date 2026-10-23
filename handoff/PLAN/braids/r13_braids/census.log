@@ -1,0 +1,8 @@
+[heavy:r13-census] start (free 86%): env PYTHONPATH=/Users/dawson.horvath/dev/personal/BC-freshwater-fishing-regulations .venv/bin/python /Users/dawson.horvath/.claude/projects/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/handoff/PLAN/r13_braids/census_r13.py /Users/dawson.horvath/.claude/projects/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/handoff/PLAN/r13_braids
+graph 5
+geoms 10
+indexed 1087250 14
+hosts 806
+rows 457 21
+done 21
+[heavy:r13-census] done rc=0 (free 86%)

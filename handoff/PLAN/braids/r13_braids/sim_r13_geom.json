@@ -1,0 +1,4238 @@
+{
+ "summary": {
+  "consistency_moves": 10,
+  "consistency": [
+   [
+    "adams_river__signs_200_m_downstream_of_salmon_viewing_platforms",
+    3626,
+    "355996658:1742",
+    "355996658:0",
+    "356362743:750",
+    760
+   ],
+   [
+    "adams_river__signs_200_m_downstream_of_salmon_viewing_platforms",
+    41074,
+    "356362743:2957",
+    "356362743:750",
+    "355996658:0",
+    4
+   ],
+   [
+    "adams_river__signs_200_m_upstream_of_salmon_viewing_platforms",
+    41071,
+    "356362743:3357",
+    "356362743:2957",
+    "355996658:1742",
+    2417
+   ],
+   [
+    "atnarko_bella_coola_rivers_includes_tributaries_exce__south_atnarko_river_into_atnarko_river",
+    87290,
+    "360240665:0",
+    "360240665:309",
+    "360879335:52214",
+    56632
+   ],
+   [
+    "chowade_river__horseshoe_road_bridge",
+    84886,
+    "359571076:20884",
+    "359571076:0",
+    "359002043:0",
+    0
+   ],
+   [
+    "morice_river__lamprey_creek_into_morice_river",
+    85906,
+    "360213366:446",
+    "360213366:0",
+    "360885316:32902",
+    54285
+   ],
+   [
+    "morice_river__lamprey_creek_into_morice_river",
+    85908,
+    "360213366:0",
+    "360213366:446",
+    "360213368:1314",
+    1354
+   ],
+   [
+    "peace_river__halfway_river_into_peace_river_d5000m",
+    43022,
+    "359012853:3357",
+    "359012853:0",
+    "359572348:1621387",
+    1632169
+   ],
+   [
+    "peace_river__halfway_river_into_peace_river_d5000m",
+    85619,
+    "359572348:1632425",
+    "359572348:1621387",
+    "359012853:0",
+    0
+   ],
+   [
+    "zymoetz__zymoetz_canyon_lower_entrance_transmission_line_sign",
+    87469,
+    "360245483:0",
+    "360245483:366",
+    "360881231:19397",
+    19397
+   ]
+  ],
+  "cuts": 35,
+  "split_points": 21,
+  "rehomed": [
+   {
+    "split": "atnarko_bella_coola_rivers_includes_tributaries_exce__atnarko_park_campsite_boundary_signs",
+    "ch": "360225339",
+    "rehome_to": "lo",
+    "edges": 1
+   },
+   {
+    "split": "atnarko_bella_coola_rivers_includes_tributaries_exce__south_atnarko_river_into_atnarko_river",
+    "ch": "360224406",
+    "rehome_to": "lo",
+    "edges": 1
+   },
+   {
+    "split": "chowade_river__horseshoe_road_bridge",
+    "ch": "359002030",
+    "rehome_to": "lo",
+    "edges": 1
+   },
+   {
+    "split": "salmon_river__kay_creek_into_salmon_river",
+    "ch": "354087999",
+    "rehome_to": "lo",
+    "edges": 1
+   },
+   {
+    "split": "zymoetz__zymoetz_canyon_upper_entrance",
+    "ch": "360245483",
+    "rehome_to": "hi",
+    "edges": 1
+   }
+  ],
+  "log": [
+   {
+    "split": "adams_river__signs_200_m_downstream_of_salmon_viewing_platforms",
+    "ch": "355996658",
+    "m": 1742.7,
+    "flip": false,
+    "k": 1
+   },
+   {
+    "split": "adams_river__signs_200_m_upstream_of_salmon_viewing_platforms",
+    "ch": "355996658",
+    "m": 2459.8,
+    "flip": false,
+    "k": 1
+   },
+   {
+    "split": "atnarko_bella_coola_rivers_includes_tributaries_exce__atnarko_park_campsite_boundary_signs",
+    "ch": "360225339",
+    "rehome_to": "lo",
+    "edges": 1
+   },
+   {
+    "split": "atnarko_bella_coola_rivers_includes_tributaries_exce__goat_creek_into_atnarko_river",
+    "ch": "360237278",
+    "m": 1514.8,
+    "flip": false,
+    "k": 1
+   },
+   {
+    "split": "atnarko_bella_coola_rivers_includes_tributaries_exce__south_atnarko_river_into_atnarko_river",
+    "ch": "360224406",
+    "rehome_to": "lo",
+    "edges": 1
+   },
+   {
+    "split": "atnarko_bella_coola_rivers_includes_tributaries_exce__south_atnarko_river_into_atnarko_river",
+    "ch": "360240665",
+    "m": 309.9,
+    "flip": true,
+    "k": 1
+   },
+   {
+    "split": "bulkley_river__in_moricetown_canyon_or_within_100_m_downstream",
+    "ch": "360239390",
+    "m": 311.6,
+    "flip": false,
+    "k": 1
+   },
+   {
+    "split": "chowade_river__horseshoe_road_bridge",
+    "ch": "359002030",
+    "rehome_to": "lo",
+    "edges": 1
+   },
+   {
+    "split": "chowade_river__horseshoe_road_bridge",
+    "ch": "359002043",
+    "m": 839.7,
+    "flip": false,
+    "k": 1
+   },
+   {
+    "split": "chowade_river__horseshoe_road_bridge",
+    "ch": "359006631",
+    "m": 285.8,
+    "flip": false,
+    "k": 1
+   },
+   {
+    "split": "chowade_river__horseshoe_road_bridge",
+    "ch": "359006635",
+    "m": 434.2,
+    "flip": false,
+    "k": 1
+   },
+   {
+    "split": "chuckwalla_river__fishing_boundary_signs_at_ten_mile_pool_200_m_downstream",
+    "ch": "360218590",
+    "m": 555.7,
+    "flip": false,
+    "k": 1
+   },
+   {
+    "split": "dean_river__signs_0_5_km_above_the_canyon_500_m_upstream",
+    "ch": "360227736",
+    "m": 421.5,
+    "flip": false,
+    "k": 1
+   },
+   {
+    "split": "morice_river__lamprey_creek_into_morice_river",
+    "ch": "360213366",
+    "m": 446.2,
+    "flip": false,
+    "k": 1
+   },
+   {
+    "split": "morice_river__lamprey_creek_into_morice_river",
+    "ch": "360213368",
+    "m": 1314.2,
+    "flip": false,
+    "k": 1
+   },
+   {
+    "split": "peace_river__boundary_signs_1200_m_downstream_of_site_c_dam",
+    "ch": "359005110",
+    "m": 3455.0,
+    "flip": false,
+    "k": 1
+   },
+   {
+    "split": "peace_river__boundary_signs_1200_m_downstream_of_site_c_dam",
+    "ch": "359013560",
+    "m": 166.0,
+    "flip": false,
+    "k": 1
+   },
+   {
+    "split": "peace_river__halfway_river_into_peace_river_d5000m",
+    "ch": "359012853",
+    "m": 3357.9,
+    "flip": false,
+    "k": 1
+   },
+   {
+    "split": "peace_river__site_c_dam",
+    "ch": "359005110",
+    "m": 5293.7,
+    "flip": false,
+    "k": 1
+   },
+   {
+    "split": "peace_river__site_c_dam",
+    "ch": "359013560",
+    "m": 1156.4,
+    "flip": false,
+    "k": 1
+   },
+   {
+    "split": "salmon_river__kay_creek_into_salmon_river",
+    "ch": "354087999",
+    "rehome_to": "lo",
+    "edges": 1
+   },
+   {
+    "split": "skeena_river__cedarvale",
+    "ch": "360243437",
+    "m": 1069.0,
+    "flip": false,
+    "k": 1
+   },
+   {
+    "split": "thompson_river__boundary_signs",
+    "ch": "355995300",
+    "m": 186.6,
+    "flip": false,
+    "k": 1
+   },
+   {
+    "split": "zymoetz__mcdonell_lake_3000_m_downstream",
+    "ch": "360241575",
+    "m": 33.4,
+    "flip": false,
+    "k": 1
+   },
+   {
+    "split": "zymoetz__zymoetz_canyon_lower_entrance_transmission_line_sign",
+    "ch": "360245483",
+    "m": 366.7,
+    "flip": false,
+    "k": 1
+   },
+   {
+    "split": "zymoetz__zymoetz_canyon_upper_entrance",
+    "ch": "360245483",
+    "rehome_to": "hi",
+    "edges": 1
+   }
+  ],
+  "applied": [
+   [
+    "adams_river__signs_200_m_downstream_of_salmon_viewing_platforms",
+    "355996658",
+    1742.7,
+    false
+   ],
+   [
+    "adams_river__signs_200_m_upstream_of_salmon_viewing_platforms",
+    "355996658",
+    2459.8,
+    false
+   ],
+   [
+    "atnarko_bella_coola_rivers_includes_tributaries_exce__goat_creek_into_atnarko_river",
+    "360237278",
+    1514.8,
+    false
+   ],
+   [
+    "atnarko_bella_coola_rivers_includes_tributaries_exce__south_atnarko_river_into_atnarko_river",
+    "360240665",
+    309.9,
+    false
+   ],
+   [
+    "bulkley_river__in_moricetown_canyon_or_within_100_m_downstream",
+    "360239390",
+    311.6,
+    false
+   ],
+   [
+    "chowade_river__horseshoe_road_bridge",
+    "359002043",
+    839.7,
+    false
+   ],
+   [
+    "chowade_river__horseshoe_road_bridge",
+    "359006631",
+    285.8,
+    false
+   ],
+   [
+    "chowade_river__horseshoe_road_bridge",
+    "359006635",
+    434.2,
+    false
+   ],
+   [
+    "chuckwalla_river__fishing_boundary_signs_at_ten_mile_pool_200_m_downstream",
+    "360218590",
+    555.7,
+    false
+   ],
+   [
+    "dean_river__signs_0_5_km_above_the_canyon_500_m_upstream",
+    "360227736",
+    421.5,
+    false
+   ],
+   [
+    "morice_river__lamprey_creek_into_morice_river",
+    "360213366",
+    446.2,
+    false
+   ],
+   [
+    "morice_river__lamprey_creek_into_morice_river",
+    "360213368",
+    1314.2,
+    false
+   ],
+   [
+    "peace_river__boundary_signs_1200_m_downstream_of_site_c_dam",
+    "359005110",
+    3455.0,
+    false
+   ],
+   [
+    "peace_river__site_c_dam",
+    "359005110",
+    5293.7,
+    false
+   ],
+   [
+    "peace_river__boundary_signs_1200_m_downstream_of_site_c_dam",
+    "359013560",
+    166.0,
+    false
+   ],
+   [
+    "peace_river__site_c_dam",
+    "359013560",
+    1156.4,
+    false
+   ],
+   [
+    "peace_river__halfway_river_into_peace_river_d5000m",
+    "359012853",
+    3357.9,
+    false
+   ],
+   [
+    "skeena_river__cedarvale",
+    "360243437",
+    1069.0,
+    false
+   ],
+   [
+    "thompson_river__boundary_signs",
+    "355995300",
+    186.6,
+    false
+   ],
+   [
+    "zymoetz__mcdonell_lake_3000_m_downstream",
+    "360241575",
+    33.4,
+    false
+   ],
+   [
+    "zymoetz__zymoetz_canyon_lower_entrance_transmission_line_sign",
+    "360245483",
+    366.7,
+    false
+   ]
+  ],
+  "new_sections": [
+   "355995300:186",
+   "355996658:1742",
+   "355996658:2459",
+   "359002043:839",
+   "359005110:3454",
+   "359005110:5293",
+   "359006631:285",
+   "359006635:434",
+   "359012853:3357",
+   "359013560:1156",
+   "359013560:165",
+   "360213366:446",
+   "360213368:1314",
+   "360218590:555",
+   "360227736:421",
+   "360237278:1514",
+   "360239390:311",
+   "360240665:309",
+   "360241575:33",
+   "360243437:1068",
+   "360245483:366"
+  ],
+  "today_unclassified_total": 3,
+  "today_marks_total": 59,
+  "split_e15_unclassified_total": 3,
+  "split_e15_marks_total": 83,
+  "split_bare_unclassified_total": 86,
+  "split_bare_marks_total": 0,
+  "split_new_unclassified_total": 5,
+  "split_new_marks_total": 0
+ },
+ "rows": [
+  {
+   "entry": "r1:ash_river@1-7",
+   "rule": "ash_river.r1",
+   "seq": 0,
+   "piece": "354088143:161",
+   "why": "straddles_the_cut",
+   "family": [
+    "354088143:161"
+   ],
+   "today": {
+    "354088143:161": [
+     "in",
+     432,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 4,
+   "split_e15": {
+    "354088143:161": [
+     "in",
+     432,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 4,
+   "split_bare": {
+    "354088143:161": [
+     "UNPLACED",
+     432,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 1,
+   "split_bare_n_sections": 3,
+   "split_new": {
+    "354088143:161": [
+     "UNPLACED",
+     432,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 1,
+   "split_new_n_sections": 3
+  },
+  {
+   "entry": "r1:salmon_river@1-10",
+   "rule": "salmon_river.r1",
+   "seq": 0,
+   "piece": "354087999:0",
+   "why": "straddles_the_cut",
+   "family": [
+    "354087999:0"
+   ],
+   "today": {
+    "354087999:0": [
+     "out",
+     885,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 8,
+   "split_e15": {
+    "354087999:0": [
+     "out",
+     885,
+     null
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 8,
+   "split_bare": {
+    "354087999:0": [
+     "out",
+     885,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 0,
+   "split_bare_n_sections": 8,
+   "split_new": {
+    "354087999:0": [
+     "out",
+     885,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 8
+  },
+  {
+   "entry": "r2:noons_creek@2-8",
+   "rule": "noons_creek.r1",
+   "seq": 0,
+   "piece": "-2200000385:0",
+   "why": "flows_to_the_sea_unjoined",
+   "family": [
+    "-2200000385:0"
+   ],
+   "today": {
+    "-2200000385:0": [
+     "UNPLACED",
+     363,
+     null
+    ]
+   },
+   "today_n_unclassified": 2,
+   "today_n_sections": 5,
+   "split_e15": {
+    "-2200000385:0": [
+     "UNPLACED",
+     363,
+     null
+    ]
+   },
+   "split_e15_n_unclassified": 2,
+   "split_e15_n_sections": 5,
+   "split_bare": {
+    "-2200000385:0": [
+     "UNPLACED",
+     363,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 2,
+   "split_bare_n_sections": 5,
+   "split_new": {
+    "-2200000385:0": [
+     "UNPLACED",
+     363,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 2,
+   "split_new_n_sections": 5
+  },
+  {
+   "entry": "r2:noons_creek@2-8",
+   "rule": "noons_creek.r1",
+   "seq": 0,
+   "piece": "-2200000386:0",
+   "why": "flows_to_the_sea_unjoined",
+   "family": [
+    "-2200000386:0"
+   ],
+   "today": {
+    "-2200000386:0": [
+     "UNPLACED",
+     100,
+     null
+    ]
+   },
+   "today_n_unclassified": 2,
+   "today_n_sections": 5,
+   "split_e15": {
+    "-2200000386:0": [
+     "UNPLACED",
+     100,
+     null
+    ]
+   },
+   "split_e15_n_unclassified": 2,
+   "split_e15_n_sections": 5,
+   "split_bare": {
+    "-2200000386:0": [
+     "UNPLACED",
+     100,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 2,
+   "split_bare_n_sections": 5,
+   "split_new": {
+    "-2200000386:0": [
+     "UNPLACED",
+     100,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 2,
+   "split_new_n_sections": 5
+  },
+  {
+   "entry": "r2:seymour_river@2-8",
+   "rule": "seymour_river.r1",
+   "seq": 0,
+   "piece": "-2000000390:0",
+   "why": "flows_to_the_sea_unjoined",
+   "family": [
+    "-2000000390:0"
+   ],
+   "today": {
+    "-2000000390:0": [
+     "UNPLACED",
+     216,
+     null
+    ]
+   },
+   "today_n_unclassified": 1,
+   "today_n_sections": 4,
+   "split_e15": {
+    "-2000000390:0": [
+     "UNPLACED",
+     216,
+     null
+    ]
+   },
+   "split_e15_n_unclassified": 1,
+   "split_e15_n_sections": 4,
+   "split_bare": {
+    "-2000000390:0": [
+     "UNPLACED",
+     216,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 1,
+   "split_bare_n_sections": 4,
+   "split_new": {
+    "-2000000390:0": [
+     "UNPLACED",
+     216,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 1,
+   "split_new_n_sections": 4
+  },
+  {
+   "entry": "r3:adams_river_downstream_of_adams_lake@3-37",
+   "rule": "adams_river_downstream.r1",
+   "seq": 0,
+   "piece": "355996658:0",
+   "why": "straddles_the_cut",
+   "family": [
+    "355996658:0",
+    "355996658:1742",
+    "355996658:2459"
+   ],
+   "today": {
+    "355996658:0": [
+     "out",
+     2845,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 1,
+   "split_e15": {
+    "355996658:0": [
+     "out",
+     1743,
+     "projected"
+    ],
+    "355996658:1742": [
+     "in",
+     717,
+     "projected"
+    ],
+    "355996658:2459": [
+     "out",
+     385,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 2,
+   "split_bare": {
+    "355996658:0": [
+     "UNPLACED",
+     1743,
+     null
+    ],
+    "355996658:1742": [
+     "UNPLACED",
+     717,
+     null
+    ],
+    "355996658:2459": [
+     "UNPLACED",
+     385,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 3,
+   "split_bare_n_sections": 1,
+   "split_new": {
+    "355996658:0": [
+     "out",
+     1743,
+     null
+    ],
+    "355996658:1742": [
+     "in",
+     717,
+     null
+    ],
+    "355996658:2459": [
+     "out",
+     385,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 2
+  },
+  {
+   "entry": "r3:thompson_river_downstream_of_signs_at_kamloops_lake_outlet_t@3-13+3-14+3-18",
+   "rule": "thompson_river_downstream_of_kamloops_lake.r5",
+   "seq": 0,
+   "piece": "355995299:0",
+   "why": "straddles_the_cut",
+   "family": [
+    "355995299:0"
+   ],
+   "today": {
+    "355995299:0": [
+     "out",
+     1433,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 18,
+   "split_e15": {
+    "355995299:0": [
+     "out",
+     1433,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 18,
+   "split_bare": {
+    "355995299:0": [
+     "UNPLACED",
+     1433,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 4,
+   "split_bare_n_sections": 17,
+   "split_new": {
+    "355995299:0": [
+     "out",
+     1433,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 18
+  },
+  {
+   "entry": "r3:thompson_river_downstream_of_signs_at_kamloops_lake_outlet_t@3-13+3-14+3-18",
+   "rule": "thompson_river_downstream_of_kamloops_lake.r5",
+   "seq": 0,
+   "piece": "355995300:0",
+   "why": "straddles_the_cut",
+   "family": [
+    "355995300:0",
+    "355995300:186"
+   ],
+   "today": {
+    "355995300:0": [
+     "in",
+     481,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 18,
+   "split_e15": {
+    "355995300:0": [
+     "out",
+     187,
+     "projected"
+    ],
+    "355995300:186": [
+     "in",
+     295,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 18,
+   "split_bare": {
+    "355995300:0": [
+     "UNPLACED",
+     187,
+     null
+    ],
+    "355995300:186": [
+     "UNPLACED",
+     295,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 4,
+   "split_bare_n_sections": 17,
+   "split_new": {
+    "355995300:0": [
+     "out",
+     187,
+     null
+    ],
+    "355995300:186": [
+     "in",
+     295,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 18
+  },
+  {
+   "entry": "r3:thompson_river_downstream_of_signs_at_kamloops_lake_outlet_t@3-13+3-14+3-18",
+   "rule": "thompson_river_downstream_of_kamloops_lake.r5",
+   "seq": 0,
+   "piece": "355995302:0",
+   "why": "straddles_the_cut",
+   "family": [
+    "355995302:0"
+   ],
+   "today": {
+    "355995302:0": [
+     "out",
+     308,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 18,
+   "split_e15": {
+    "355995302:0": [
+     "out",
+     308,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 18,
+   "split_bare": {
+    "355995302:0": [
+     "UNPLACED",
+     308,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 4,
+   "split_bare_n_sections": 17,
+   "split_new": {
+    "355995302:0": [
+     "out",
+     308,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 18
+  },
+  {
+   "entry": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8",
+   "rule": "atnarko_bella_coola_rivers.r12",
+   "seq": 0,
+   "piece": "360237277:0",
+   "why": "straddles_the_cut",
+   "family": [
+    "360237277:0"
+   ],
+   "today": {
+    "360237277:0": [
+     "in",
+     627,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 27,
+   "split_e15": {
+    "360237277:0": [
+     "in",
+     627,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 27,
+   "split_bare": {
+    "360237277:0": [
+     "UNPLACED",
+     627,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 3,
+   "split_bare_n_sections": 25,
+   "split_new": {
+    "360237277:0": [
+     "in",
+     627,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 27
+  },
+  {
+   "entry": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8",
+   "rule": "atnarko_bella_coola_rivers.r12",
+   "seq": 0,
+   "piece": "360237278:0",
+   "why": "straddles_the_cut",
+   "family": [
+    "360237278:0",
+    "360237278:1514"
+   ],
+   "today": {
+    "360237278:0": [
+     "in",
+     1582,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 27,
+   "split_e15": {
+    "360237278:0": [
+     "in",
+     1515,
+     "projected"
+    ],
+    "360237278:1514": [
+     "out",
+     68,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 27,
+   "split_bare": {
+    "360237278:0": [
+     "UNPLACED",
+     1515,
+     null
+    ],
+    "360237278:1514": [
+     "UNPLACED",
+     68,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 3,
+   "split_bare_n_sections": 25,
+   "split_new": {
+    "360237278:0": [
+     "in",
+     1515,
+     null
+    ],
+    "360237278:1514": [
+     "out",
+     68,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 27
+  },
+  {
+   "entry": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8",
+   "rule": "atnarko_bella_coola_rivers.r2",
+   "seq": 0,
+   "piece": "360224406:0",
+   "why": "straddles_the_cut",
+   "family": [
+    "360224406:0"
+   ],
+   "today": {
+    "360224406:0": [
+     "in",
+     1072,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 22,
+   "split_e15": {
+    "360224406:0": [
+     "in",
+     1072,
+     null
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 24,
+   "split_bare": {
+    "360224406:0": [
+     "in",
+     1072,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 0,
+   "split_bare_n_sections": 24,
+   "split_new": {
+    "360224406:0": [
+     "in",
+     1072,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 1,
+   "split_new_n_sections": 22
+  },
+  {
+   "entry": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8",
+   "rule": "atnarko_bella_coola_rivers.r2",
+   "seq": 0,
+   "piece": "360225339:0",
+   "why": "straddles_the_cut",
+   "family": [
+    "360225339:0"
+   ],
+   "today": {
+    "360225339:0": [
+     "out",
+     215,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 22,
+   "split_e15": {
+    "360225339:0": [
+     "out",
+     215,
+     null
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 24,
+   "split_bare": {
+    "360225339:0": [
+     "out",
+     215,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 0,
+   "split_bare_n_sections": 24,
+   "split_new": {
+    "360225339:0": [
+     "out",
+     215,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 1,
+   "split_new_n_sections": 22
+  },
+  {
+   "entry": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8",
+   "rule": "atnarko_bella_coola_rivers.r2",
+   "seq": 1,
+   "piece": "360224406:0",
+   "why": "straddles_the_cut",
+   "family": [
+    "360224406:0"
+   ],
+   "today": {
+    "360224406:0": [
+     "out",
+     1072,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 10,
+   "split_e15": {
+    "360224406:0": [
+     "out",
+     1072,
+     null
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 10,
+   "split_bare": {
+    "360224406:0": [
+     "out",
+     1072,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 0,
+   "split_bare_n_sections": 10,
+   "split_new": {
+    "360224406:0": [
+     "out",
+     1072,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 11
+  },
+  {
+   "entry": "r5:chuckwalla_river@5-7",
+   "rule": "chuckwalla_river.r2",
+   "seq": 0,
+   "piece": "360218590:0",
+   "why": "straddles_the_cut",
+   "family": [
+    "360218590:0",
+    "360218590:555"
+   ],
+   "today": {
+    "360218590:0": [
+     "out",
+     657,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 1,
+   "split_e15": {
+    "360218590:0": [
+     "out",
+     556,
+     "projected"
+    ],
+    "360218590:555": [
+     "in",
+     102,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 2,
+   "split_bare": {
+    "360218590:0": [
+     "UNPLACED",
+     556,
+     null
+    ],
+    "360218590:555": [
+     "UNPLACED",
+     102,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 2,
+   "split_bare_n_sections": 1,
+   "split_new": {
+    "360218590:0": [
+     "out",
+     556,
+     null
+    ],
+    "360218590:555": [
+     "in",
+     102,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 2
+  },
+  {
+   "entry": "r5:dean_river@5-9",
+   "rule": "dean_river.r10",
+   "seq": 0,
+   "piece": "360227736:0",
+   "why": "straddles_the_cut",
+   "family": [
+    "360227736:0",
+    "360227736:421"
+   ],
+   "today": {
+    "360227736:0": [
+     "out",
+     645,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 2,
+   "split_e15": {
+    "360227736:0": [
+     "out",
+     421,
+     "projected"
+    ],
+    "360227736:421": [
+     "in",
+     223,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 3,
+   "split_bare": {
+    "360227736:0": [
+     "UNPLACED",
+     421,
+     null
+    ],
+    "360227736:421": [
+     "UNPLACED",
+     223,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 3,
+   "split_bare_n_sections": 1,
+   "split_new": {
+    "360227736:0": [
+     "out",
+     421,
+     null
+    ],
+    "360227736:421": [
+     "in",
+     223,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 3
+  },
+  {
+   "entry": "r5:dean_river@5-9",
+   "rule": "dean_river.r10",
+   "seq": 0,
+   "piece": "360227738:0",
+   "why": "straddles_the_cut",
+   "family": [
+    "360227738:0"
+   ],
+   "today": {
+    "360227738:0": [
+     "in",
+     1976,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 2,
+   "split_e15": {
+    "360227738:0": [
+     "in",
+     1976,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 3,
+   "split_bare": {
+    "360227738:0": [
+     "UNPLACED",
+     1976,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 3,
+   "split_bare_n_sections": 1,
+   "split_new": {
+    "360227738:0": [
+     "in",
+     1976,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 3
+  },
+  {
+   "entry": "r5:dean_river@5-9",
+   "rule": "dean_river.r3",
+   "seq": 0,
+   "piece": "360227736:0",
+   "why": "straddles_the_cut",
+   "family": [
+    "360227736:0",
+    "360227736:421"
+   ],
+   "today": {
+    "360227736:0": [
+     "out",
+     645,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 16,
+   "split_e15": {
+    "360227736:0": [
+     "out",
+     421,
+     "projected"
+    ],
+    "360227736:421": [
+     "in",
+     223,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 17,
+   "split_bare": {
+    "360227736:0": [
+     "UNPLACED",
+     421,
+     null
+    ],
+    "360227736:421": [
+     "UNPLACED",
+     223,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 3,
+   "split_bare_n_sections": 15,
+   "split_new": {
+    "360227736:0": [
+     "out",
+     421,
+     null
+    ],
+    "360227736:421": [
+     "in",
+     223,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 17
+  },
+  {
+   "entry": "r5:dean_river@5-9",
+   "rule": "dean_river.r3",
+   "seq": 0,
+   "piece": "360227738:0",
+   "why": "straddles_the_cut",
+   "family": [
+    "360227738:0"
+   ],
+   "today": {
+    "360227738:0": [
+     "in",
+     1976,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 16,
+   "split_e15": {
+    "360227738:0": [
+     "in",
+     1976,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 17,
+   "split_bare": {
+    "360227738:0": [
+     "UNPLACED",
+     1976,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 3,
+   "split_bare_n_sections": 15,
+   "split_new": {
+    "360227738:0": [
+     "in",
+     1976,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 17
+  },
+  {
+   "entry": "r5:dean_river@5-9",
+   "rule": "dean_river.r4",
+   "seq": 0,
+   "piece": "360227736:0",
+   "why": "straddles_the_cut",
+   "family": [
+    "360227736:0",
+    "360227736:421"
+   ],
+   "today": {
+    "360227736:0": [
+     "in",
+     645,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 2,
+   "split_e15": {
+    "360227736:0": [
+     "in",
+     421,
+     "projected"
+    ],
+    "360227736:421": [
+     "out",
+     223,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 2,
+   "split_bare": {
+    "360227736:0": [
+     "UNPLACED",
+     421,
+     null
+    ],
+    "360227736:421": [
+     "UNPLACED",
+     223,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 3,
+   "split_bare_n_sections": 1,
+   "split_new": {
+    "360227736:0": [
+     "in",
+     421,
+     null
+    ],
+    "360227736:421": [
+     "out",
+     223,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 2
+  },
+  {
+   "entry": "r5:dean_river@5-9",
+   "rule": "dean_river.r4",
+   "seq": 0,
+   "piece": "360227738:0",
+   "why": "straddles_the_cut",
+   "family": [
+    "360227738:0"
+   ],
+   "today": {
+    "360227738:0": [
+     "out",
+     1976,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 2,
+   "split_e15": {
+    "360227738:0": [
+     "out",
+     1976,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 2,
+   "split_bare": {
+    "360227738:0": [
+     "UNPLACED",
+     1976,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 3,
+   "split_bare_n_sections": 1,
+   "split_new": {
+    "360227738:0": [
+     "out",
+     1976,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 2
+  },
+  {
+   "entry": "r5:dean_river@5-9",
+   "rule": "dean_river.r9",
+   "seq": 0,
+   "piece": "360227736:0",
+   "why": "straddles_the_cut",
+   "family": [
+    "360227736:0",
+    "360227736:421"
+   ],
+   "today": {
+    "360227736:0": [
+     "out",
+     645,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 16,
+   "split_e15": {
+    "360227736:0": [
+     "out",
+     421,
+     "projected"
+    ],
+    "360227736:421": [
+     "in",
+     223,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 17,
+   "split_bare": {
+    "360227736:0": [
+     "UNPLACED",
+     421,
+     null
+    ],
+    "360227736:421": [
+     "UNPLACED",
+     223,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 3,
+   "split_bare_n_sections": 15,
+   "split_new": {
+    "360227736:0": [
+     "out",
+     421,
+     null
+    ],
+    "360227736:421": [
+     "in",
+     223,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 17
+  },
+  {
+   "entry": "r5:dean_river@5-9",
+   "rule": "dean_river.r9",
+   "seq": 0,
+   "piece": "360227738:0",
+   "why": "straddles_the_cut",
+   "family": [
+    "360227738:0"
+   ],
+   "today": {
+    "360227738:0": [
+     "in",
+     1976,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 16,
+   "split_e15": {
+    "360227738:0": [
+     "in",
+     1976,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 17,
+   "split_bare": {
+    "360227738:0": [
+     "UNPLACED",
+     1976,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 3,
+   "split_bare_n_sections": 15,
+   "split_new": {
+    "360227738:0": [
+     "in",
+     1976,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 17
+  },
+  {
+   "entry": "r6:bulkley_river@6-9",
+   "rule": "bulkley_river.r5",
+   "seq": 0,
+   "piece": "360239390:0",
+   "why": "straddles_the_cut",
+   "family": [
+    "360239390:0",
+    "360239390:311"
+   ],
+   "today": {
+    "360239390:0": [
+     "out",
+     403,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 2,
+   "split_e15": {
+    "360239390:0": [
+     "out",
+     312,
+     "projected"
+    ],
+    "360239390:311": [
+     "in",
+     92,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 3,
+   "split_bare": {
+    "360239390:0": [
+     "UNPLACED",
+     312,
+     null
+    ],
+    "360239390:311": [
+     "UNPLACED",
+     92,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 2,
+   "split_bare_n_sections": 2,
+   "split_new": {
+    "360239390:0": [
+     "out",
+     312,
+     null
+    ],
+    "360239390:311": [
+     "in",
+     92,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 3
+  },
+  {
+   "entry": "r6:morice_river@6-9",
+   "rule": "morice_river.r4",
+   "seq": 0,
+   "piece": "360213355:609",
+   "why": "straddles_the_cut",
+   "family": [
+    "360213355:609"
+   ],
+   "today": {
+    "360213355:609": [
+     "out",
+     653,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 27,
+   "split_e15": {
+    "360213355:609": [
+     "out",
+     653,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 28,
+   "split_bare": {
+    "360213355:609": [
+     "UNPLACED",
+     653,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 7,
+   "split_bare_n_sections": 24,
+   "split_new": {
+    "360213355:609": [
+     "out",
+     653,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 28
+  },
+  {
+   "entry": "r6:morice_river@6-9",
+   "rule": "morice_river.r4",
+   "seq": 0,
+   "piece": "360213357:0",
+   "why": "straddles_the_cut",
+   "family": [
+    "360213357:0"
+   ],
+   "today": {
+    "360213357:0": [
+     "in",
+     1851,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 27,
+   "split_e15": {
+    "360213357:0": [
+     "in",
+     1851,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 28,
+   "split_bare": {
+    "360213357:0": [
+     "UNPLACED",
+     1851,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 7,
+   "split_bare_n_sections": 24,
+   "split_new": {
+    "360213357:0": [
+     "in",
+     1851,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 28
+  },
+  {
+   "entry": "r6:morice_river@6-9",
+   "rule": "morice_river.r4",
+   "seq": 0,
+   "piece": "360213358:0",
+   "why": "straddles_the_cut",
+   "family": [
+    "360213358:0"
+   ],
+   "today": {
+    "360213358:0": [
+     "in",
+     3147,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 27,
+   "split_e15": {
+    "360213358:0": [
+     "in",
+     3147,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 28,
+   "split_bare": {
+    "360213358:0": [
+     "UNPLACED",
+     3147,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 7,
+   "split_bare_n_sections": 24,
+   "split_new": {
+    "360213358:0": [
+     "in",
+     3147,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 28
+  },
+  {
+   "entry": "r6:morice_river@6-9",
+   "rule": "morice_river.r4",
+   "seq": 0,
+   "piece": "360213366:0",
+   "why": "straddles_the_cut",
+   "family": [
+    "360213366:0",
+    "360213366:446"
+   ],
+   "today": {
+    "360213366:0": [
+     "in",
+     2400,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 27,
+   "split_e15": {
+    "360213366:0": [
+     "out",
+     446,
+     "projected"
+    ],
+    "360213366:446": [
+     "in",
+     1954,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 28,
+   "split_bare": {
+    "360213366:0": [
+     "UNPLACED",
+     446,
+     null
+    ],
+    "360213366:446": [
+     "UNPLACED",
+     1954,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 7,
+   "split_bare_n_sections": 24,
+   "split_new": {
+    "360213366:0": [
+     "out",
+     446,
+     null
+    ],
+    "360213366:446": [
+     "in",
+     1954,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 28
+  },
+  {
+   "entry": "r6:morice_river@6-9",
+   "rule": "morice_river.r4",
+   "seq": 0,
+   "piece": "360213368:0",
+   "why": "straddles_the_cut",
+   "family": [
+    "360213368:0",
+    "360213368:1314"
+   ],
+   "today": {
+    "360213368:0": [
+     "out",
+     1392,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 27,
+   "split_e15": {
+    "360213368:0": [
+     "out",
+     1314,
+     "projected"
+    ],
+    "360213368:1314": [
+     "in",
+     78,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 28,
+   "split_bare": {
+    "360213368:0": [
+     "UNPLACED",
+     1314,
+     null
+    ],
+    "360213368:1314": [
+     "UNPLACED",
+     78,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 7,
+   "split_bare_n_sections": 24,
+   "split_new": {
+    "360213368:0": [
+     "out",
+     1314,
+     null
+    ],
+    "360213368:1314": [
+     "in",
+     78,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 28
+  },
+  {
+   "entry": "r6:morice_river@6-9",
+   "rule": "morice_river.r5",
+   "seq": 0,
+   "piece": "360213355:609",
+   "why": "straddles_the_cut",
+   "family": [
+    "360213355:609"
+   ],
+   "today": {
+    "360213355:609": [
+     "out",
+     653,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 27,
+   "split_e15": {
+    "360213355:609": [
+     "out",
+     653,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 28,
+   "split_bare": {
+    "360213355:609": [
+     "UNPLACED",
+     653,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 7,
+   "split_bare_n_sections": 24,
+   "split_new": {
+    "360213355:609": [
+     "out",
+     653,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 28
+  },
+  {
+   "entry": "r6:morice_river@6-9",
+   "rule": "morice_river.r5",
+   "seq": 0,
+   "piece": "360213357:0",
+   "why": "straddles_the_cut",
+   "family": [
+    "360213357:0"
+   ],
+   "today": {
+    "360213357:0": [
+     "in",
+     1851,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 27,
+   "split_e15": {
+    "360213357:0": [
+     "in",
+     1851,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 28,
+   "split_bare": {
+    "360213357:0": [
+     "UNPLACED",
+     1851,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 7,
+   "split_bare_n_sections": 24,
+   "split_new": {
+    "360213357:0": [
+     "in",
+     1851,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 28
+  },
+  {
+   "entry": "r6:morice_river@6-9",
+   "rule": "morice_river.r5",
+   "seq": 0,
+   "piece": "360213358:0",
+   "why": "straddles_the_cut",
+   "family": [
+    "360213358:0"
+   ],
+   "today": {
+    "360213358:0": [
+     "in",
+     3147,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 27,
+   "split_e15": {
+    "360213358:0": [
+     "in",
+     3147,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 28,
+   "split_bare": {
+    "360213358:0": [
+     "UNPLACED",
+     3147,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 7,
+   "split_bare_n_sections": 24,
+   "split_new": {
+    "360213358:0": [
+     "in",
+     3147,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 28
+  },
+  {
+   "entry": "r6:morice_river@6-9",
+   "rule": "morice_river.r5",
+   "seq": 0,
+   "piece": "360213366:0",
+   "why": "straddles_the_cut",
+   "family": [
+    "360213366:0",
+    "360213366:446"
+   ],
+   "today": {
+    "360213366:0": [
+     "in",
+     2400,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 27,
+   "split_e15": {
+    "360213366:0": [
+     "out",
+     446,
+     "projected"
+    ],
+    "360213366:446": [
+     "in",
+     1954,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 28,
+   "split_bare": {
+    "360213366:0": [
+     "UNPLACED",
+     446,
+     null
+    ],
+    "360213366:446": [
+     "UNPLACED",
+     1954,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 7,
+   "split_bare_n_sections": 24,
+   "split_new": {
+    "360213366:0": [
+     "out",
+     446,
+     null
+    ],
+    "360213366:446": [
+     "in",
+     1954,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 28
+  },
+  {
+   "entry": "r6:morice_river@6-9",
+   "rule": "morice_river.r5",
+   "seq": 0,
+   "piece": "360213368:0",
+   "why": "straddles_the_cut",
+   "family": [
+    "360213368:0",
+    "360213368:1314"
+   ],
+   "today": {
+    "360213368:0": [
+     "out",
+     1392,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 27,
+   "split_e15": {
+    "360213368:0": [
+     "out",
+     1314,
+     "projected"
+    ],
+    "360213368:1314": [
+     "in",
+     78,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 28,
+   "split_bare": {
+    "360213368:0": [
+     "UNPLACED",
+     1314,
+     null
+    ],
+    "360213368:1314": [
+     "UNPLACED",
+     78,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 7,
+   "split_bare_n_sections": 24,
+   "split_new": {
+    "360213368:0": [
+     "out",
+     1314,
+     null
+    ],
+    "360213368:1314": [
+     "in",
+     78,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 28
+  },
+  {
+   "entry": "r6:zymoetz_copper_river@6-9",
+   "rule": "zymoetz_river.r1",
+   "seq": 0,
+   "piece": "360241575:0",
+   "why": "straddles_the_cut",
+   "family": [
+    "360241575:0",
+    "360241575:33"
+   ],
+   "today": {
+    "360241575:0": [
+     "in",
+     172,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 4,
+   "split_e15": {
+    "360241575:0": [
+     "out",
+     33,
+     "projected"
+    ],
+    "360241575:33": [
+     "in",
+     139,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 4,
+   "split_bare": {
+    "360241575:0": [
+     "UNPLACED",
+     33,
+     null
+    ],
+    "360241575:33": [
+     "UNPLACED",
+     139,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 2,
+   "split_bare_n_sections": 3,
+   "split_new": {
+    "360241575:0": [
+     "out",
+     33,
+     null
+    ],
+    "360241575:33": [
+     "in",
+     139,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 4
+  },
+  {
+   "entry": "r6:zymoetz_copper_river@6-9",
+   "rule": "zymoetz_river.r2",
+   "seq": 0,
+   "piece": "360245483:0",
+   "why": "straddles_the_cut",
+   "family": [
+    "360245483:0",
+    "360245483:366"
+   ],
+   "today": {
+    "360245483:0": [
+     "out",
+     463,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 2,
+   "split_e15": {
+    "360245483:0": [
+     "out",
+     367,
+     null
+    ],
+    "360245483:366": [
+     "out",
+     97,
+     null
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 2,
+   "split_bare": {
+    "360245483:0": [
+     "out",
+     367,
+     null
+    ],
+    "360245483:366": [
+     "out",
+     97,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 0,
+   "split_bare_n_sections": 2,
+   "split_new": {
+    "360245483:0": [
+     "out",
+     367,
+     null
+    ],
+    "360245483:366": [
+     "out",
+     97,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 2
+  },
+  {
+   "entry": "r7:chowade_river@7-43",
+   "rule": "chowade_river.r1",
+   "seq": 0,
+   "piece": "359002029:829",
+   "why": "joins_a_straddling_braid",
+   "family": [
+    "359002029:829"
+   ],
+   "today": {
+    "359002029:829": [
+     "out",
+     243,
+     "follows"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 57,
+   "split_e15": {
+    "359002029:829": [
+     "out",
+     243,
+     "follows"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 59,
+   "split_bare": {
+    "359002029:829": [
+     "UNPLACED",
+     243,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 14,
+   "split_bare_n_sections": 57,
+   "split_new": {
+    "359002029:829": [
+     "out",
+     243,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 58
+  },
+  {
+   "entry": "r7:chowade_river@7-43",
+   "rule": "chowade_river.r1",
+   "seq": 0,
+   "piece": "359002030:1256",
+   "why": "joins_a_straddling_braid",
+   "family": [
+    "359002030:1256"
+   ],
+   "today": {
+    "359002030:1256": [
+     "out",
+     738,
+     "follows"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 57,
+   "split_e15": {
+    "359002030:1256": [
+     "out",
+     738,
+     "follows"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 59,
+   "split_bare": {
+    "359002030:1256": [
+     "UNPLACED",
+     738,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 14,
+   "split_bare_n_sections": 57,
+   "split_new": {
+    "359002030:1256": [
+     "out",
+     738,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 58
+  },
+  {
+   "entry": "r7:chowade_river@7-43",
+   "rule": "chowade_river.r1",
+   "seq": 0,
+   "piece": "359002030:2056",
+   "why": "joins_a_straddling_braid",
+   "family": [
+    "359002030:2056"
+   ],
+   "today": {
+    "359002030:2056": [
+     "out",
+     31,
+     "follows"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 57,
+   "split_e15": {
+    "359002030:2056": [
+     "out",
+     31,
+     "follows"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 59,
+   "split_bare": {
+    "359002030:2056": [
+     "UNPLACED",
+     31,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 14,
+   "split_bare_n_sections": 57,
+   "split_new": {
+    "359002030:2056": [
+     "out",
+     31,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 58
+  },
+  {
+   "entry": "r7:chowade_river@7-43",
+   "rule": "chowade_river.r1",
+   "seq": 0,
+   "piece": "359002030:2134",
+   "why": "joins_a_straddling_braid",
+   "family": [
+    "359002030:2134"
+   ],
+   "today": {
+    "359002030:2134": [
+     "out",
+     12,
+     "follows"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 57,
+   "split_e15": {
+    "359002030:2134": [
+     "out",
+     12,
+     "follows"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 59,
+   "split_bare": {
+    "359002030:2134": [
+     "UNPLACED",
+     12,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 14,
+   "split_bare_n_sections": 57,
+   "split_new": {
+    "359002030:2134": [
+     "out",
+     12,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 58
+  },
+  {
+   "entry": "r7:chowade_river@7-43",
+   "rule": "chowade_river.r1",
+   "seq": 0,
+   "piece": "359002030:2197",
+   "why": "straddles_the_cut",
+   "family": [
+    "359002030:2197"
+   ],
+   "today": {
+    "359002030:2197": [
+     "out",
+     3035,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 57,
+   "split_e15": {
+    "359002030:2197": [
+     "out",
+     3035,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 59,
+   "split_bare": {
+    "359002030:2197": [
+     "UNPLACED",
+     3035,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 14,
+   "split_bare_n_sections": 57,
+   "split_new": {
+    "359002030:2197": [
+     "out",
+     3035,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 58
+  },
+  {
+   "entry": "r7:chowade_river@7-43",
+   "rule": "chowade_river.r1",
+   "seq": 0,
+   "piece": "359002036:0",
+   "why": "straddles_the_cut",
+   "family": [
+    "359002036:0"
+   ],
+   "today": {
+    "359002036:0": [
+     "out",
+     1803,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 57,
+   "split_e15": {
+    "359002036:0": [
+     "out",
+     1803,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 59,
+   "split_bare": {
+    "359002036:0": [
+     "UNPLACED",
+     1803,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 14,
+   "split_bare_n_sections": 57,
+   "split_new": {
+    "359002036:0": [
+     "out",
+     1803,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 58
+  },
+  {
+   "entry": "r7:chowade_river@7-43",
+   "rule": "chowade_river.r1",
+   "seq": 0,
+   "piece": "359002043:0",
+   "why": "straddles_the_cut",
+   "family": [
+    "359002043:0",
+    "359002043:839"
+   ],
+   "today": {
+    "359002043:0": [
+     "out",
+     1574,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 57,
+   "split_e15": {
+    "359002043:0": [
+     "out",
+     840,
+     "projected"
+    ],
+    "359002043:839": [
+     "in",
+     734,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 59,
+   "split_bare": {
+    "359002043:0": [
+     "UNPLACED",
+     840,
+     null
+    ],
+    "359002043:839": [
+     "UNPLACED",
+     734,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 14,
+   "split_bare_n_sections": 57,
+   "split_new": {
+    "359002043:0": [
+     "out",
+     840,
+     null
+    ],
+    "359002043:839": [
+     "in",
+     734,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 58
+  },
+  {
+   "entry": "r7:chowade_river@7-43",
+   "rule": "chowade_river.r1",
+   "seq": 0,
+   "piece": "359002044:0",
+   "why": "straddles_the_cut",
+   "family": [
+    "359002044:0"
+   ],
+   "today": {
+    "359002044:0": [
+     "out",
+     706,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 57,
+   "split_e15": {
+    "359002044:0": [
+     "out",
+     706,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 59,
+   "split_bare": {
+    "359002044:0": [
+     "UNPLACED",
+     706,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 14,
+   "split_bare_n_sections": 57,
+   "split_new": {
+    "359002044:0": [
+     "out",
+     706,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 58
+  },
+  {
+   "entry": "r7:chowade_river@7-43",
+   "rule": "chowade_river.r1",
+   "seq": 0,
+   "piece": "359006630:0",
+   "why": "straddles_the_cut",
+   "family": [
+    "359006630:0"
+   ],
+   "today": {
+    "359006630:0": [
+     "out",
+     195,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 57,
+   "split_e15": {
+    "359006630:0": [
+     "out",
+     195,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 59,
+   "split_bare": {
+    "359006630:0": [
+     "UNPLACED",
+     195,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 14,
+   "split_bare_n_sections": 57,
+   "split_new": {
+    "359006630:0": [
+     "out",
+     195,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 58
+  },
+  {
+   "entry": "r7:chowade_river@7-43",
+   "rule": "chowade_river.r1",
+   "seq": 0,
+   "piece": "359006630:227",
+   "why": "straddles_the_cut",
+   "family": [
+    "359006630:227"
+   ],
+   "today": {
+    "359006630:227": [
+     "out",
+     141,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 57,
+   "split_e15": {
+    "359006630:227": [
+     "out",
+     141,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 59,
+   "split_bare": {
+    "359006630:227": [
+     "UNPLACED",
+     141,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 14,
+   "split_bare_n_sections": 57,
+   "split_new": {
+    "359006630:227": [
+     "out",
+     141,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 58
+  },
+  {
+   "entry": "r7:chowade_river@7-43",
+   "rule": "chowade_river.r1",
+   "seq": 0,
+   "piece": "359006631:0",
+   "why": "straddles_the_cut",
+   "family": [
+    "359006631:0"
+   ],
+   "today": {
+    "359006631:0": [
+     "out",
+     96,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 57,
+   "split_e15": {
+    "359006631:0": [
+     "out",
+     96,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 59,
+   "split_bare": {
+    "359006631:0": [
+     "UNPLACED",
+     96,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 14,
+   "split_bare_n_sections": 57,
+   "split_new": {
+    "359006631:0": [
+     "out",
+     96,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 58
+  },
+  {
+   "entry": "r7:chowade_river@7-43",
+   "rule": "chowade_river.r1",
+   "seq": 0,
+   "piece": "359006635:0",
+   "why": "straddles_the_cut",
+   "family": [
+    "359006635:0",
+    "359006635:434"
+   ],
+   "today": {
+    "359006635:0": [
+     "in",
+     1016,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 57,
+   "split_e15": {
+    "359006635:0": [
+     "out",
+     434,
+     "projected"
+    ],
+    "359006635:434": [
+     "in",
+     581,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 59,
+   "split_bare": {
+    "359006635:0": [
+     "UNPLACED",
+     434,
+     null
+    ],
+    "359006635:434": [
+     "UNPLACED",
+     581,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 14,
+   "split_bare_n_sections": 57,
+   "split_new": {
+    "359006635:0": [
+     "out",
+     434,
+     null
+    ],
+    "359006635:434": [
+     "in",
+     581,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 58
+  },
+  {
+   "entry": "r7:peace_river_downstream_of_boundary_signs_1_200m_downstream_o@7-31",
+   "rule": "",
+   "seq": 0,
+   "piece": "359005110:0",
+   "why": "scope_unclassified",
+   "family": [
+    "359005110:0",
+    "359005110:3454",
+    "359005110:5293"
+   ],
+   "today": {
+    "359005110:0": [
+     "in",
+     5935,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 58,
+   "split_e15": {
+    "359005110:0": [
+     "in",
+     3455,
+     "projected"
+    ],
+    "359005110:3454": [
+     "out",
+     1839,
+     "projected"
+    ],
+    "359005110:5293": [
+     "out",
+     641,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 59,
+   "split_bare": {
+    "359005110:0": [
+     "UNPLACED",
+     3455,
+     null
+    ],
+    "359005110:3454": [
+     "UNPLACED",
+     1839,
+     null
+    ],
+    "359005110:5293": [
+     "UNPLACED",
+     641,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 9,
+   "split_bare_n_sections": 54,
+   "split_new": {
+    "359005110:0": [
+     "in",
+     3455,
+     null
+    ],
+    "359005110:3454": [
+     "out",
+     1839,
+     null
+    ],
+    "359005110:5293": [
+     "out",
+     641,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 59
+  },
+  {
+   "entry": "r7:peace_river_downstream_of_boundary_signs_1_200m_downstream_o@7-31",
+   "rule": "",
+   "seq": 0,
+   "piece": "359005111:0",
+   "why": "scope_unclassified",
+   "family": [
+    "359005111:0"
+   ],
+   "today": {
+    "359005111:0": [
+     "in",
+     688,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 58,
+   "split_e15": {
+    "359005111:0": [
+     "in",
+     688,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 59,
+   "split_bare": {
+    "359005111:0": [
+     "UNPLACED",
+     688,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 9,
+   "split_bare_n_sections": 54,
+   "split_new": {
+    "359005111:0": [
+     "in",
+     688,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 59
+  },
+  {
+   "entry": "r7:peace_river_downstream_of_boundary_signs_1_200m_downstream_o@7-31",
+   "rule": "",
+   "seq": 0,
+   "piece": "359013278:0",
+   "why": "scope_unclassified",
+   "family": [
+    "359013278:0"
+   ],
+   "today": {
+    "359013278:0": [
+     "in",
+     1262,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 58,
+   "split_e15": {
+    "359013278:0": [
+     "in",
+     1262,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 59,
+   "split_bare": {
+    "359013278:0": [
+     "UNPLACED",
+     1262,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 9,
+   "split_bare_n_sections": 54,
+   "split_new": {
+    "359013278:0": [
+     "in",
+     1262,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 59
+  },
+  {
+   "entry": "r7:peace_river_downstream_of_boundary_signs_1_200m_downstream_o@7-31",
+   "rule": "",
+   "seq": 0,
+   "piece": "359013279:0",
+   "why": "scope_unclassified",
+   "family": [
+    "359013279:0"
+   ],
+   "today": {
+    "359013279:0": [
+     "in",
+     201,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 58,
+   "split_e15": {
+    "359013279:0": [
+     "in",
+     201,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 59,
+   "split_bare": {
+    "359013279:0": [
+     "UNPLACED",
+     201,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 9,
+   "split_bare_n_sections": 54,
+   "split_new": {
+    "359013279:0": [
+     "in",
+     201,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 59
+  },
+  {
+   "entry": "r7:peace_river_downstream_of_boundary_signs_1_200m_downstream_o@7-31",
+   "rule": "",
+   "seq": 0,
+   "piece": "359013560:0",
+   "why": "scope_unclassified",
+   "family": [
+    "359013560:0",
+    "359013560:1156",
+    "359013560:165"
+   ],
+   "today": {
+    "359013560:0": [
+     "out",
+     2885,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 58,
+   "split_e15": {
+    "359013560:0": [
+     "in",
+     166,
+     "projected"
+    ],
+    "359013560:1156": [
+     "out",
+     1728,
+     "projected"
+    ],
+    "359013560:165": [
+     "out",
+     990,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 59,
+   "split_bare": {
+    "359013560:0": [
+     "UNPLACED",
+     166,
+     null
+    ],
+    "359013560:1156": [
+     "UNPLACED",
+     1728,
+     null
+    ],
+    "359013560:165": [
+     "UNPLACED",
+     990,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 9,
+   "split_bare_n_sections": 54,
+   "split_new": {
+    "359013560:0": [
+     "in",
+     166,
+     null
+    ],
+    "359013560:1156": [
+     "out",
+     1728,
+     null
+    ],
+    "359013560:165": [
+     "out",
+     990,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 59
+  },
+  {
+   "entry": "r7:peace_river_from_hwy_29_bridge_to_the_site_c_dam@7-31",
+   "rule": "",
+   "seq": 0,
+   "piece": "359005110:0",
+   "why": "scope_unclassified",
+   "family": [
+    "359005110:0",
+    "359005110:3454",
+    "359005110:5293"
+   ],
+   "today": {
+    "359005110:0": [
+     "out",
+     5935,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 35,
+   "split_e15": {
+    "359005110:0": [
+     "out",
+     3455,
+     "projected"
+    ],
+    "359005110:3454": [
+     "out",
+     1839,
+     "projected"
+    ],
+    "359005110:5293": [
+     "in",
+     641,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 37,
+   "split_bare": {
+    "359005110:0": [
+     "UNPLACED",
+     3455,
+     null
+    ],
+    "359005110:3454": [
+     "UNPLACED",
+     1839,
+     null
+    ],
+    "359005110:5293": [
+     "UNPLACED",
+     641,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 9,
+   "split_bare_n_sections": 35,
+   "split_new": {
+    "359005110:0": [
+     "out",
+     3455,
+     null
+    ],
+    "359005110:3454": [
+     "out",
+     1839,
+     null
+    ],
+    "359005110:5293": [
+     "in",
+     641,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 37
+  },
+  {
+   "entry": "r7:peace_river_from_hwy_29_bridge_to_the_site_c_dam@7-31",
+   "rule": "",
+   "seq": 1,
+   "piece": "359005110:0",
+   "why": "scope_unclassified",
+   "family": [
+    "359005110:0",
+    "359005110:3454",
+    "359005110:5293"
+   ],
+   "today": {
+    "359005110:0": [
+     "out",
+     5935,
+     null
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 1,
+   "split_e15": {
+    "359005110:0": [
+     "out",
+     3455,
+     null
+    ],
+    "359005110:3454": [
+     "out",
+     1839,
+     null
+    ],
+    "359005110:5293": [
+     "out",
+     641,
+     null
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 1,
+   "split_bare": {
+    "359005110:0": [
+     "out",
+     3455,
+     null
+    ],
+    "359005110:3454": [
+     "out",
+     1839,
+     null
+    ],
+    "359005110:5293": [
+     "out",
+     641,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 0,
+   "split_bare_n_sections": 1,
+   "split_new": {
+    "359005110:0": [
+     "out",
+     3455,
+     null
+    ],
+    "359005110:3454": [
+     "out",
+     1839,
+     null
+    ],
+    "359005110:5293": [
+     "out",
+     641,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 1
+  },
+  {
+   "entry": "r7:peace_river_from_hwy_29_bridge_to_the_site_c_dam@7-31",
+   "rule": "",
+   "seq": 0,
+   "piece": "359005111:0",
+   "why": "scope_unclassified",
+   "family": [
+    "359005111:0"
+   ],
+   "today": {
+    "359005111:0": [
+     "out",
+     688,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 35,
+   "split_e15": {
+    "359005111:0": [
+     "out",
+     688,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 37,
+   "split_bare": {
+    "359005111:0": [
+     "UNPLACED",
+     688,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 9,
+   "split_bare_n_sections": 35,
+   "split_new": {
+    "359005111:0": [
+     "out",
+     688,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 37
+  },
+  {
+   "entry": "r7:peace_river_from_hwy_29_bridge_to_the_site_c_dam@7-31",
+   "rule": "",
+   "seq": 1,
+   "piece": "359005111:0",
+   "why": "scope_unclassified",
+   "family": [
+    "359005111:0"
+   ],
+   "today": {
+    "359005111:0": [
+     "out",
+     688,
+     null
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 1,
+   "split_e15": {
+    "359005111:0": [
+     "out",
+     688,
+     null
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 1,
+   "split_bare": {
+    "359005111:0": [
+     "out",
+     688,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 0,
+   "split_bare_n_sections": 1,
+   "split_new": {
+    "359005111:0": [
+     "out",
+     688,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 1
+  },
+  {
+   "entry": "r7:peace_river_from_hwy_29_bridge_to_the_site_c_dam@7-31",
+   "rule": "",
+   "seq": 0,
+   "piece": "359013278:0",
+   "why": "scope_unclassified",
+   "family": [
+    "359013278:0"
+   ],
+   "today": {
+    "359013278:0": [
+     "out",
+     1262,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 35,
+   "split_e15": {
+    "359013278:0": [
+     "out",
+     1262,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 37,
+   "split_bare": {
+    "359013278:0": [
+     "UNPLACED",
+     1262,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 9,
+   "split_bare_n_sections": 35,
+   "split_new": {
+    "359013278:0": [
+     "out",
+     1262,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 37
+  },
+  {
+   "entry": "r7:peace_river_from_hwy_29_bridge_to_the_site_c_dam@7-31",
+   "rule": "",
+   "seq": 1,
+   "piece": "359013278:0",
+   "why": "scope_unclassified",
+   "family": [
+    "359013278:0"
+   ],
+   "today": {
+    "359013278:0": [
+     "out",
+     1262,
+     null
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 1,
+   "split_e15": {
+    "359013278:0": [
+     "out",
+     1262,
+     null
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 1,
+   "split_bare": {
+    "359013278:0": [
+     "out",
+     1262,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 0,
+   "split_bare_n_sections": 1,
+   "split_new": {
+    "359013278:0": [
+     "out",
+     1262,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 1
+  },
+  {
+   "entry": "r7:peace_river_from_hwy_29_bridge_to_the_site_c_dam@7-31",
+   "rule": "",
+   "seq": 0,
+   "piece": "359013279:0",
+   "why": "scope_unclassified",
+   "family": [
+    "359013279:0"
+   ],
+   "today": {
+    "359013279:0": [
+     "out",
+     201,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 35,
+   "split_e15": {
+    "359013279:0": [
+     "out",
+     201,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 37,
+   "split_bare": {
+    "359013279:0": [
+     "UNPLACED",
+     201,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 9,
+   "split_bare_n_sections": 35,
+   "split_new": {
+    "359013279:0": [
+     "out",
+     201,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 37
+  },
+  {
+   "entry": "r7:peace_river_from_hwy_29_bridge_to_the_site_c_dam@7-31",
+   "rule": "",
+   "seq": 1,
+   "piece": "359013279:0",
+   "why": "scope_unclassified",
+   "family": [
+    "359013279:0"
+   ],
+   "today": {
+    "359013279:0": [
+     "out",
+     201,
+     null
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 1,
+   "split_e15": {
+    "359013279:0": [
+     "out",
+     201,
+     null
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 1,
+   "split_bare": {
+    "359013279:0": [
+     "out",
+     201,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 0,
+   "split_bare_n_sections": 1,
+   "split_new": {
+    "359013279:0": [
+     "out",
+     201,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 1
+  },
+  {
+   "entry": "r7:peace_river_from_hwy_29_bridge_to_the_site_c_dam@7-31",
+   "rule": "",
+   "seq": 0,
+   "piece": "359013560:0",
+   "why": "scope_unclassified",
+   "family": [
+    "359013560:0",
+    "359013560:1156",
+    "359013560:165"
+   ],
+   "today": {
+    "359013560:0": [
+     "in",
+     2885,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 35,
+   "split_e15": {
+    "359013560:0": [
+     "out",
+     166,
+     "projected"
+    ],
+    "359013560:1156": [
+     "in",
+     1728,
+     "projected"
+    ],
+    "359013560:165": [
+     "out",
+     990,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 37,
+   "split_bare": {
+    "359013560:0": [
+     "UNPLACED",
+     166,
+     null
+    ],
+    "359013560:1156": [
+     "UNPLACED",
+     1728,
+     null
+    ],
+    "359013560:165": [
+     "UNPLACED",
+     990,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 9,
+   "split_bare_n_sections": 35,
+   "split_new": {
+    "359013560:0": [
+     "out",
+     166,
+     null
+    ],
+    "359013560:1156": [
+     "in",
+     1728,
+     null
+    ],
+    "359013560:165": [
+     "out",
+     990,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 37
+  },
+  {
+   "entry": "r7:peace_river_from_hwy_29_bridge_to_the_site_c_dam@7-31",
+   "rule": "",
+   "seq": 1,
+   "piece": "359013560:0",
+   "why": "scope_unclassified",
+   "family": [
+    "359013560:0",
+    "359013560:1156",
+    "359013560:165"
+   ],
+   "today": {
+    "359013560:0": [
+     "out",
+     2885,
+     null
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 1,
+   "split_e15": {
+    "359013560:0": [
+     "out",
+     166,
+     null
+    ],
+    "359013560:1156": [
+     "out",
+     1728,
+     null
+    ],
+    "359013560:165": [
+     "out",
+     990,
+     null
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 1,
+   "split_bare": {
+    "359013560:0": [
+     "out",
+     166,
+     null
+    ],
+    "359013560:1156": [
+     "out",
+     1728,
+     null
+    ],
+    "359013560:165": [
+     "out",
+     990,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 0,
+   "split_bare_n_sections": 1,
+   "split_new": {
+    "359013560:0": [
+     "out",
+     166,
+     null
+    ],
+    "359013560:1156": [
+     "out",
+     1728,
+     null
+    ],
+    "359013560:165": [
+     "out",
+     990,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 1
+  },
+  {
+   "entry": "r7:peace_river_from_hwy_29_bridge_to_the_site_c_dam@7-31",
+   "rule": "peace_river.r5",
+   "seq": 0,
+   "piece": "359012853:0",
+   "why": "straddles_the_cut",
+   "family": [
+    "359012853:0",
+    "359012853:3357"
+   ],
+   "today": {
+    "359012853:0": [
+     "out",
+     4750,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 6,
+   "split_e15": {
+    "359012853:0": [
+     "out",
+     3358,
+     "projected"
+    ],
+    "359012853:3357": [
+     "in",
+     1392,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 7,
+   "split_bare": {
+    "359012853:0": [
+     "UNPLACED",
+     3358,
+     null
+    ],
+    "359012853:3357": [
+     "UNPLACED",
+     1392,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 3,
+   "split_bare_n_sections": 5,
+   "split_new": {
+    "359012853:0": [
+     "out",
+     3358,
+     null
+    ],
+    "359012853:3357": [
+     "in",
+     1392,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 7
+  },
+  {
+   "entry": "r7:peace_river_from_hwy_29_bridge_to_the_site_c_dam@7-31",
+   "rule": "peace_river.r5",
+   "seq": 0,
+   "piece": "359012862:0",
+   "why": "straddles_the_cut",
+   "family": [
+    "359012862:0"
+   ],
+   "today": {
+    "359012862:0": [
+     "in",
+     1172,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 6,
+   "split_e15": {
+    "359012862:0": [
+     "in",
+     1172,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 7,
+   "split_bare": {
+    "359012862:0": [
+     "UNPLACED",
+     1172,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 3,
+   "split_bare_n_sections": 5,
+   "split_new": {
+    "359012862:0": [
+     "in",
+     1172,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 7
+  },
+  {
+   "entry": "r7:peace_river_from_site_c_dam_to_boundary_signs_1_200m_downstr@7-31",
+   "rule": "",
+   "seq": 0,
+   "piece": "359013560:0",
+   "why": "scope_unclassified",
+   "family": [
+    "359013560:0",
+    "359013560:1156",
+    "359013560:165"
+   ],
+   "today": {
+    "359013560:0": [
+     "out",
+     2885,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 1,
+   "split_e15": {
+    "359013560:0": [
+     "out",
+     166,
+     "projected"
+    ],
+    "359013560:1156": [
+     "out",
+     1728,
+     "projected"
+    ],
+    "359013560:165": [
+     "in",
+     990,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 2,
+   "split_bare": {
+    "359013560:0": [
+     "UNPLACED",
+     166,
+     null
+    ],
+    "359013560:1156": [
+     "UNPLACED",
+     1728,
+     null
+    ],
+    "359013560:165": [
+     "UNPLACED",
+     990,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 3,
+   "split_bare_n_sections": 1,
+   "split_new": {
+    "359013560:0": [
+     "out",
+     166,
+     null
+    ],
+    "359013560:1156": [
+     "out",
+     1728,
+     null
+    ],
+    "359013560:165": [
+     "in",
+     990,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 3
+  },
+  {
+   "entry": "z6:skeena_nass_winter_closure",
+   "rule": "skeena_nass_winter_closure.r1",
+   "seq": 0,
+   "piece": "360243437:0",
+   "why": "straddles_the_cut",
+   "family": [
+    "360243437:0",
+    "360243437:1068"
+   ],
+   "today": {
+    "360243437:0": [
+     "out",
+     1557,
+     null
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 0,
+   "split_e15": {
+    "360243437:0": [
+     "out",
+     1069,
+     null
+    ],
+    "360243437:1068": [
+     "out",
+     488,
+     null
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 0,
+   "split_bare": {
+    "360243437:0": [
+     "out",
+     1069,
+     null
+    ],
+    "360243437:1068": [
+     "out",
+     488,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 0,
+   "split_bare_n_sections": 0,
+   "split_new": {
+    "360243437:0": [
+     "out",
+     1069,
+     null
+    ],
+    "360243437:1068": [
+     "out",
+     488,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 0
+  },
+  {
+   "entry": "z6:skeena_nass_winter_closure",
+   "rule": "skeena_nass_winter_closure.r3",
+   "seq": 0,
+   "piece": "360243437:0",
+   "why": "straddles_the_cut",
+   "family": [
+    "360243437:0",
+    "360243437:1068"
+   ],
+   "today": {
+    "360243437:0": [
+     "out",
+     1557,
+     "projected"
+    ]
+   },
+   "today_n_unclassified": 0,
+   "today_n_sections": 70,
+   "split_e15": {
+    "360243437:0": [
+     "out",
+     1069,
+     "projected"
+    ],
+    "360243437:1068": [
+     "in",
+     488,
+     "projected"
+    ]
+   },
+   "split_e15_n_unclassified": 0,
+   "split_e15_n_sections": 71,
+   "split_bare": {
+    "360243437:0": [
+     "UNPLACED",
+     1069,
+     null
+    ],
+    "360243437:1068": [
+     "UNPLACED",
+     488,
+     null
+    ]
+   },
+   "split_bare_n_unclassified": 2,
+   "split_bare_n_sections": 70,
+   "split_new": {
+    "360243437:0": [
+     "out",
+     1069,
+     null
+    ],
+    "360243437:1068": [
+     "in",
+     488,
+     null
+    ]
+   },
+   "split_new_n_unclassified": 0,
+   "split_new_n_sections": 71
+  }
+ ],
+ "unplaced_new": {
+  "r1:ash_river@1-7|ash_river.r1|0": {
+   "354088143:161": {
+    "why": "straddles_the_cut",
+    "nb": [
+     [
+      "lake:329016199",
+      "lake_out",
+      594,
+      "out"
+     ],
+     [
+      "lake:329017035",
+      "lake_in",
+      162,
+      "out"
+     ]
+    ]
+   }
+  },
+  "r2:noons_creek@2-8|noons_creek.r1|0": {
+   "-2200000385:0": {
+    "why": "flows_to_the_sea_unjoined",
+    "nb": [
+     [
+      "-2200000282:0",
+      "confluence",
+      32,
+      "out"
+     ],
+     [
+      "-2200000283:0",
+      "connector",
+      246,
+      "out"
+     ],
+     [
+      "-2200000421:0",
+      "confluence",
+      363,
+      "out"
+     ]
+    ]
+   },
+   "-2200000386:0": {
+    "why": "flows_to_the_sea_unjoined",
+    "nb": [
+     [
+      "-2200000283:0",
+      "confluence",
+      100,
+      "out"
+     ]
+    ]
+   }
+  },
+  "r2:seymour_river@2-8|seymour_river.r1|0": {
+   "-2000000390:0": {
+    "why": "flows_to_the_sea_unjoined",
+    "nb": [
+     [
+      "-2000000006:0",
+      "confluence",
+      137,
+      "out"
+     ]
+    ]
+   }
+  },
+  "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8|atnarko_bella_coola_rivers.r2|0": {
+   "360240665:0": {
+    "why": "flows_to_the_sea_unjoined",
+    "nb": [
+     [
+      "360240665:309",
+      "continuation",
+      310,
+      "out"
+     ],
+     [
+      "360378892:0",
+      "confluence",
+      260,
+      "out"
+     ]
+    ]
+   }
+  }
+ }
+}
