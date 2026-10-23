@@ -67,6 +67,28 @@ describe("<WaterScreen> regulations", () => {
     expect(screen.getByRole("alert").textContent).toBe(screen.getByTestId("regs-lapsed").textContent);
   }, 30_000);
 
+  /*
+   * (T147 review) THE PAGE PATH IS WIRED: a water opened with no tapped section (search, a start link) leads with its
+   * part's no-access block. `pageAccessNotice` and core's words are pinned in @app/ui and @app/core; this pins that
+   * WaterScreen hands `useAccessNotice` the store and the page — dropping them (the T54 call, section only) left every
+   * other ui-native test green.
+   */
+  it("(T147) opened with no tapped section: the part's no-access block leads the page", async () => {
+    const live = openRegsFixture();
+    const inside = [{ area: { tier: "no_access", name: "Test Watershed" }, share: 1 }];
+    // the fixture release carries no paint file: a paint whose no-access rows put every section inside closed land
+    const closedLand: ReleaseLoader = Object.assign(Object.create(Object.getPrototypeOf(live)), live, {
+      paint: async () => ({ access: { of: () => inside } }) });
+    render(<WaterScreen source={makeFixtureSource()} item={"gnis:8634" as ItemId} palette={LIGHT}
+                        loader={closedLand} day={new Date(2026, 9, 10, 12)} part={0} />);
+    await waitFor(() => expect(screen.getByTestId("access-banner")).toBeTruthy(), { timeout: 20_000 });
+    expect(screen.getByTestId("access-banner").textContent).toBe("No public accessThis part of the water is inside Test "
+      + "Watershed. The public may not go there, so you can't fish here. The regulations below are the Province's; they "
+      + "don't give you access.");
+    expect([...screen.getByTestId("regs-content").children].map((e) => e.getAttribute("data-testid")).slice(0, 2))
+      .toEqual(["access-banner", "keep-tab"]);
+  }, 30_000);
+
   it("(T35) the Licence tab's pick reaches the page: Under 16 rebuilds it for that angler (useAnglerProfile, D8 a)", async () => {
     render(<WaterScreen source={makeFixtureSource()} item={"gnis:8634" as ItemId} palette={LIGHT}
                         loader={openRegsFixture()} day={new Date(2026, 9, 10, 12)} part={1} />);
