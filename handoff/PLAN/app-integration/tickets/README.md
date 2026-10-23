@@ -173,6 +173,7 @@ use that as the sole source of future work."
 | T126 | forecast reading bugs: CLEVER times 8 h off, 5-day summary on a 10-day run, dots ignore horizon | OPEN | — | all (band 2) |
 | T127 | displaced rule still shows "counts toward" and bounds the card gate | DONE | 2a0458f2, 358b5076, 77566458 | live after the next deliver |
 | T128 | sub-cap line names its total ("of your 5 trout and char a day in streams, up to 2 may be…") | PARTIAL | 59aba774, c7d9f57f, 77566458, c410ca42, e839d0cd | deliver + golden re-cut |
+| T129 | web request budget: gate first-paint / per-tap bytes, not only the release total | OPEN | — | all |
 
 ## Order for open tickets
 
@@ -191,7 +192,7 @@ code. Heavy jobs run one at a time through scripts/heavy.sh (≤ 4 workers). ★
    this band (T73 alone, not concurrent with T61's normaliser).
    Unification tickets (latent or plausible): T117 (after T102 part B), T118 (with T108), T112 → T119, T121, T122,
    T123, T124, T125.
-5. **Tiles window (one tile build):** T64 + T85, then T75.
+5. **Tiles window (one tile build):** T64 + T85, then T75; T129 (web request budget) alongside.
 6. **Native and shipping:** T50 (alone, heavy) → T74 → T77 ★ → T86 ★ → T88 ★. T65 (determinism, heavy) in a quiet gap.
 7. **Last:** T95 ★, T98 ★ (POSTPONED), T87 ★ (sign-off walk, then delete app/design).
 
