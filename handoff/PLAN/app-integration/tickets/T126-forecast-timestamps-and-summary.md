@@ -1,6 +1,6 @@
 # T126 — Forecast reading bugs found by T52: CLEVER times 8 h off, a 5-day summary on a 10-day run, dots ignore horizon
 
-Status: DONE — a4d0d040 (pipeline) + 88a097b4 (app), lane-T126; live after a feed republish (below). Found
+Status: DONE — a4d0d040 (pipeline) + 88a097b4 (app) + 01d2f772 (adversarial review), lane-T126; live after a feed republish (below). Found
 2026-10-22 while building T52 (correctness, band 2).
 
 1. **CLEVER timestamps are Pacific Standard Time, read as UTC.** Best fit against 305 gauges is 8 h off UTC. The
@@ -59,7 +59,38 @@ a2307766…: re-run `app/design/regs-v11/port/taps.py`), environment, not this c
 `.venv/bin/python -m pipeline.gauges.feed.publish --out data/generated/gauges/feeds --clim data/generated/gauges/feeds/clim.json`.
 It needs no re-fetch of the series: runs already on disk are zoned and re-summarised as they are carried.
 
+## Adversarial review (01d2f772)
+Fixed:
+- **"Is this step a day?" was decided twice.** `change.py` took a step as a whole Centre day when bare-dated OR its series
+  is daily (`step: "1d"`, COFFEE's `…T00:00:00` midnights); `publish.forecast_at` only when bare-dated, so to the
+  horizons a COFFEE day was a midnight instant (15:30 at the Centre read tomorrow's value) — the same defect this ticket
+  fixed for ELF. One function now, `forecast.step_day(series, at)`, asked by both. No visible change today (horizons ask
+  CLEVER then ELF, `MODEL_ORDER`), but the decision no longer has two copies. Tests: `test_forecast_clock.py`
+  `test_a_daily_run_stamped_at_midnight_is_a_day_too` (mutation: `step_day` ignores `step` → fails, plus two
+  `test_forecast_change.py` tests); the no-second-copy test now also refuses `"1d"` / `is_day(` in `publish.py` /
+  `change.py` (mutation: put `series.get("step") == "1d"` back in `change.base_of` → fails).
+- **The Shell's hand-over of the horizon to the dots was unpinned**: dropping `mm.standingHorizon` from Shell's
+  `useGaugeGeoJSON(...)` passed all 1099 ui-native tests. `ConditionsLayers.shell.test.tsx` "the gauge dots follow the
+  map's horizon" now asks it (rivers and dots at 0, +3 after the map's +3, 0 under Temperature); the mutation fails it.
+
+Checked and sound:
+- Every other stamp reader: `grep fromisoformat|timezone(|strptime` over `pipeline/gauges` — the rest are ECCC
+  observations (`year_backfill`, `publish._local_day`), already zoned; nothing outside `pipeline/gauges/feed` reads
+  forecast series. App: `chart.ts` `Date.parse`s series stamps (now zoned, so device-independent); no string slicing of
+  forecast stamps; the forecast summary `value` is not worded anywhere in the app (only `horizonDays`).
+- Builder's mutations re-run: offset −7 → 6 clock tests fail; bare-day branch → whole-day test; issue-time filter →
+  2 summary tests; `settle` zoning → the carry test. Each fails as claimed.
+- `reading()` is the only copy of the station-default rule (`parameter ?? "discharge"` appears only in `panel.ts`
+  among index readers); `gauge-dot`/`gauge-label` read only `ramp`, `label`, `minz` — nothing still reads the dropped
+  `percentile` property. Negative change → `toRamp` NaN → JSON null → `coalesce -1`, the ungauged colour.
+- `REGS_STORE_REQUIRED=1 pnpm -C app check` (heavy.sh): tickets/boundaries/platform/style/…/typecheck green; vitest
+  7219 pass / 5 fail — the same five regs-store pairing failures (store 43115d8c… vs taps a2307766…), not this lane.
+  Feed pytest: 344 pass; `test_own_gauge_continuation` errors on the missing worktree bundle (environment).
+
 ## Left / follow-ups
+- ELF's bare-day stamps (`"2026-10-22"`) reach the app as-is; `Date.parse` reads a bare ISO date as UTC midnight, so the
+  chart places each ELF day at 16:00/17:00 the previous Pacific day. Pre-existing, cosmetic at a 30-day scale; zone them
+  (or place them at the Centre's noon) in the app's chart when someone touches it.
 - `issuedAt` is still written naive (`forecast._issued`: "Updated at: 10:35 AM …" → `2026-10-22T10:35:00`). The pipeline
   reads it on the Centre's clock (`instant`), but the app's `forecastRunLine` `Date.parse`s it on the device's clock, and
   whether the layer's wording is PST or local (PDT in summer) is unmeasured. Measure against a summer run, then zone it
