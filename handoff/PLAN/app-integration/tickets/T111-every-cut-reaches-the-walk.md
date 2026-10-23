@@ -46,7 +46,7 @@ actually used — `{split, blk, m, end: lower|upper, kind, label}`, one per spli
 - **Confluence** — `build.confluence_excludes(..., resolved=per)` reads `resolved[i]["cuts"]` (resolving the
   extents itself when a caller passes none, as the tests and review app do). `_cut_places` is deleted; the
   function holds no geometry (no node bound, no `_cut_at`).
-- `cache.POLICY_VERSION` 23 → 24; the policy pin in `test_reach_builder.py` carries the new flag.
+- `cache.POLICY_VERSION` 23 → 24 in the lane, renumbered 24 → 25 at merge (after T117 took 24); the policy pin in `test_reach_builder.py` carries the new flag.
 
 Tests: `pipeline/tests/test_t111_every_cut_reaches_the_walk.py` (whole values) — `resolve_extent`'s `cuts` per op;
 a two-reach rule seeds both lower cuts (MUTATION `EVERY_CUT_REACHES_THE_WALK=False` → C Creek lost); extent order

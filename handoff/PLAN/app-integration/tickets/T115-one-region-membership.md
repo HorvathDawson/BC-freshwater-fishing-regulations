@@ -51,7 +51,7 @@ already owned the home map):
   (`common.entry_id` calls `regions.zones_of`). `outside.REGION_PREFIX` is gone.
 - The steelhead twin's `area_id` / `outside_area` resolve through `extent.area_sections` (home members for a region
   key) instead of the raw item.
-- Policy flag `regions.ONE_REGION_MEMBERSHIP`; `cache.POLICY_VERSION` 24 → 25, policy pin updated.
+- Policy flag `regions.ONE_REGION_MEMBERSHIP`; `cache.POLICY_VERSION` 24 → 25 in the lane, renumbered 25 → 26 at merge; policy pin updated.
 
 Tests: `pipeline/tests/test_one_region_membership.py` — the Fraser fixture (a piece in polygons 3 and 5, home 3):
 `region_limit` and `build_reach` for `r5:fraser_river@5-2` leave it out, a straddling lake stays in (MUTATION
