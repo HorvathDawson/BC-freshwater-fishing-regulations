@@ -22,8 +22,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import type { Panel } from "./index";
-import { answerFrom, reading, silentWhy } from "./panel";
+import { answerFrom, reading, silentWhy, type Panel } from "@app/data";
 
 const dir = join(__dirname, "fixtures/live");
 const INDEX = JSON.parse(readFileSync(join(dir, "feed-index-2026-10-23T0350Z.json"), "utf8"));

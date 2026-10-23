@@ -47,7 +47,7 @@ on :39331 (headless Chromium, not the shared browser).
   the one list of refusals that keep the horizon chips.
 - **UI** (`ui/src/panel.ts` `donorView`): chips kept for both day refusals; the silent line ("No forecast this far
   ahead: …") is dropped under a flow-only refusal, where it would contradict the reason.
-- **Real-feed test**: `app/packages/data/src/liveFeedHorizons.test.ts` over `app/packages/data/src/fixtures/live/` — the
+- **Real-feed test**: `app/conformance/src/liveFeedHorizons.test.ts` over `app/conformance/src/fixtures/live/` (conformance, the package that may read files — `packages/data` may not import `node:fs`) — the
   dev server's `index.json` byte for byte (fetchedAt 2026-10-23T03:50:35Z) and the release's own panel for the Chilliwack
   reach the sheet opened on (section 1235781, r-012fb43aa175, from `panelsFor`). Whole values: the panel at every
   horizon in Flow and Level; every station of the feed as a one-gauge panel, tallied by answer (Level +1/+3/+5: 62 ok,
@@ -67,6 +67,13 @@ on :39331 (headless Chromium, not the shared browser).
 - Shots (`../T143-shots/`, this worktree's Expo on :39331 against the owner's :39217 data, desktop 1280×900):
   `chilliwack-flow-1d/3d/5d/10d.png` (Flow: "Very low for the time of year by then" at each), `chilliwack-level-3d.png`
   (Level: the new refusal, chips kept), `chilliwack-level-10d.png` (Level +10: ELF's level answers).
+
+## Checks (2026-10-23)
+`REGS_STORE_REQUIRED=1 pnpm -C app check` via `scripts/heavy.sh`: every gate through typecheck clean; tests 7,299 passed,
+5 failed — all five the regs-store parity files (`conformance/src/regs/{blob,store}.release`, `card/settle.parity`,
+`inputs.release`), failing because the main checkout's `data/generated/bundle/regs.sqlite` is store f977e8646d7ddcd8
+while the committed oracles were cut from db98ffb0563359a2 ("re-run app/design/regs-v11/port/taps.py"). A data-vintage
+mismatch, untouched by this ticket. Mutation pins above run against the four files named there.
 
 ## Owner questions (default built)
 1. **Were you on Level when you saw it?** Default built: assumed yes — it is the only state that reproduces the sentence
