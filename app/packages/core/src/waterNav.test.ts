@@ -7,7 +7,7 @@
 import { describe, expect, it } from "vitest";
 import {
   crossLabel, crossDown, crossUp, exitLabel, groupBounds, itemNote, markLabel, navSections, partAt, partBounds, partName,
-  partOfSection, partWhere, stepDown, stepsDown, stepsUp, waterGroup, wholeLabel, type ItemNavRows,
+  partOfSection, partWhere, stepDown, stepsDown, stepsUp, waterGroup, wholeAria, wholeLabel, type ItemNavRows,
 } from "./waterNav";
 
 const deg = (u: number) => u / 1e6;
@@ -178,6 +178,9 @@ describe("the group's parts, mouth first (the release's rank)", () => {
     // the group's mouth is the Lower West Arm's: into the Kootenay River at its part 4
     expect(g.exit).toEqual({ item: "gnis:14097", name: "Kootenay River", part: 4 });
     expect(wholeLabel(g, 0, false)).toBe("⤢ Whole lake");
+    // (T116) a marsh's button says what it is: waterNoun's word, not "river"
+    const marsh = waterGroup([{ ...KL_MAIN, kind: "wetland" }]);
+    expect([wholeLabel(marsh, 0, false), wholeAria(marsh, 0, false)]).toEqual(["⤢ Whole wetland", "Whole wetland"]);
   });
 
   it("KLWA opened as the split lake itself (no part of its own): its closure areas, and its mouth is theirs", () => {

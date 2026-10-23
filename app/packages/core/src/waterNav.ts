@@ -25,6 +25,7 @@
  * next (`next`), ▼ with nothing below steps into the next one's part. The step is the caller's to take: it opens the
  * other water (`crossUp` / `crossDown` say which, and where).
  */
+import { waterNoun } from "./regs/words";
 import type { Bbox } from "./search";
 
 /** One part of the group as the release stores it, its section ids included (`part_section`). */
@@ -310,6 +311,8 @@ export const WATER_MAP_WORDS = {
   highest: "Highest part",
   regs: "Show regulations for this part",
   thisPart: "This part",
+  /** The ⤢ button framing the whole water; the noun is `waterNoun`'s (T116): "Whole river", "Whole wetland". */
+  whole: (noun: string) => `Whole ${noun}`,
   upstreamSide: "Upstream",
   downstreamSide: "Downstream",
   /** The close button's label; its glyph is the icon set's `close` (N1). */
@@ -335,7 +338,7 @@ export function wholeLabel(g: WaterGroup, i: number, whole: boolean): string {
 /** The ⤢ button as a screen reader says it (no glyph): "Whole river", "Whole lake", "This part". */
 export function wholeAria(g: WaterGroup, i: number, whole: boolean): string {
   if (whole) return WATER_MAP_WORDS.thisPart;
-  return g.parts[i]?.kind === "lake" ? "Whole lake" : "Whole river";
+  return WATER_MAP_WORDS.whole(waterNoun(g.parts[i]?.kind ?? "stream", "page"));
 }
 
 /** ▲ / ▼ into another water, on the button and to a screen reader alike: "▲ Upstream into Chilliwack River". */

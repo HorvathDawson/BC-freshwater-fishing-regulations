@@ -24,6 +24,7 @@
 
 import { sizeSignal } from "./near";
 import { searchKey } from "./searchKey";
+import { waterNoun } from "./regs/words";
 
 /** `[west, south, east, north]`, degrees. MapLibre's `fitBounds` order. */
 export type Bbox = readonly [number, number, number, number];
@@ -163,9 +164,8 @@ export function wherePhrase(p: { name: string; km: number } | null): string | nu
 /** How far "water near a town" reaches: the bundle's precomputed `place_water` ring. */
 export const NEAR_KM = 25;
 
-/** What the atlas calls a water, said in a row. An unknown kind is said as the atlas spells it, never guessed. */
-export const KIND_WORD: Readonly<Record<string, string>> = { stream: "Stream", lake: "Lake", wetland: "Wetland" };
-const kindWord = (kind: string): string => KIND_WORD[kind] ?? kind;
+/** What the atlas calls a water, said in a row: `waterNoun`'s row form (T116). An unknown kind is said as spelled. */
+const kindWord = (kind: string): string => waterNoun(kind, "row");
 
 /** A distance in a near-list row: "under 1 km", or one decimal ("7.9 km"). */
 export function kmWords(km: number): string {

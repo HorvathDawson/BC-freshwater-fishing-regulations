@@ -75,6 +75,9 @@ describe("inPartOf: rules of parts the map can't draw", () => {
       .toEqual(["Boat rules in some spots", "Fishing rules are the same everywhere on this lake.", false]);
     expect(inPartOf(settled({ inpart: [{ rule: boat, now: true }] }), { item: { kind: "stream" } } as unknown as RegsInputs, ["vessel"])!.calm)
       .toBe("Fishing rules are the same everywhere on this river.");
+    // (T116) a marsh is a wetland, not a river
+    expect(inPartOf(settled({ inpart: [{ rule: boat, now: true }] }), { item: { kind: "wetland" } } as unknown as RegsInputs, ["vessel"])!.calm)
+      .toBe("Fishing rules are the same everywhere on this wetland.");
     expect(lines(inPartOf(settled({ inpart: [{ rule: spot, now: false }] }), inp, KEEP_FAMS))).toEqual([
       "Some spots have their own rules", "Not in force today. The map can’t draw these places yet, so check where you are.", false,
       ["No fishing", "Where: some spots, marked by buoys and signs. Look for signs.", "Rule book p.32 ↗"], null]);

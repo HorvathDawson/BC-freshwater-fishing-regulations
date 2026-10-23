@@ -103,6 +103,13 @@ describe("ladderOf, the Keep tab's form", () => {
     const e2 = env([win, r5, area], { RB: { H: [[1, "governs", null], [5, "replaced", 4]] } });
     expect(ladderOf(row(), e2).lost.map((x) => x.status)).toEqual(["Replaced by a rule above"]);
   });
+  it("(T116) 'Replaced by this <noun>’s rule' names the water by waterNoun: river, lake, wetland — never a wetland 'river'", () => {
+    const win = rule(1, { rank: 0 }), r5 = rule(5);
+    const status = (kind: string) => ladderOf(row(), env([win, r5], { RB: { H: [[1, "governs", null], [5, "replaced", 1]] } }, { kind }))
+      .lost.map((x) => `${x.text} | ${x.status}`);
+    expect([status("stream"), status("lake"), status("wetland")]).toEqual([
+      ["Sentence 5. | Replaced by this river’s rule"], ["Sentence 5. | Replaced by this lake’s rule"], ["Sentence 5. | Replaced by this wetland’s rule"]]);
+  });
   it("a line for fewer fish than the row says the data's subset sentence (or its 'for …'); none in the data → a missing line", () => {
     const a = rule(1, { subsets: [{ fish: ["RB"], plain: "Rainbow only." } as never] }), b = rule(2, { subsets: [{ fish: ["CT"], for: "for cutthroat", plain: null } as never] }), c = rule(3);
     const e = env([a, b, c], { RB: { H: [[1, "governs", null]] }, CT: { H: [[2, "floor", null], [3, "limit", null]] } });

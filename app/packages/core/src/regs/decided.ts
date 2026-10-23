@@ -23,7 +23,7 @@ import type { LadderStepVM, LadderVM } from "./model";
 import { cap, clean } from "./names";
 import type { Settled } from "./settle";
 import { ruleBook } from "./book";
-import { LADDER_Q, LEVEL_HEAD, LOSES, SAYS, WORDS } from "./words";
+import { LADDER_Q, LEVEL_HEAD, LOSES, SAYS, WORDS, waterNoun } from "./words";
 
 /** One rule's place in a row's ladder (page v36 rowSources item): its role and what it lost to, for which fish. */
 export interface LadderItem {
@@ -99,7 +99,7 @@ export function rowSources(row: HydRow, card: CardModel, settled: Settled, inp: 
 function byName(b: RuleView | null, inp: RegsInputs): string {
   if (!b || b.missing) return WORDS.BY_ABOVE;
   const rk = b.baseRank;
-  return rk === 0 ? WORDS.BY_WATER(inp.item?.kind === "lake" ? WORDS.WATER_LAKE : WORDS.WATER_RIVER)
+  return rk === 0 ? WORDS.BY_WATER(waterNoun(inp.item?.kind ?? "stream", "page"))
     : rk === 3 ? WORDS.BY_REGION(b.export.prov.entry_name || WORDS.REGION)
     : rk === 4 ? WORDS.BY_BC : WORDS.BY_ABOVE;
 }

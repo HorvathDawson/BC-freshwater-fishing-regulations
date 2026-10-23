@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { MONTHS, WEEKDAYS } from "../calendar.generated";
-import { ALL_WORDS, MONTH1, WD3, WORDS, wordsIn } from "./words";
+import { ALL_WORDS, MONTH1, WD3, WORDS, waterNoun, wordsIn } from "./words";
 
 describe("WORDS", () => {
   it("is frozen, and every value is a non-empty string, a function or a frozen list", () => {
@@ -72,6 +72,24 @@ describe("ALL_WORDS", () => {
     expect(WD3.join(" ")).toBe("Mon Tue Wed Thu Fri Sat Sun");
     expect(MONTH1).toEqual(MONTHS.map((m) => m[0]));
     expect(MONTH1.join("")).toBe("JFMAMJJASOND");
+  });
+});
+
+describe("waterNoun: the one noun for a kind of water (T116)", () => {
+  it("says every atlas kind in a sentence and as a row label; an unknown kind as the atlas spells it", () => {
+    const kinds = ["stream", "lake", "wetland", "canal"];
+    expect(kinds.map((k) => waterNoun(k, "page"))).toEqual(["river", "lake", "wetland", "canal"]);
+    expect(kinds.map((k) => waterNoun(k, "row"))).toEqual(["Stream", "Lake", "Wetland", "canal"]);
+  });
+
+  it("composes the page's sentences whole for every kind", () => {
+    expect(["stream", "lake", "wetland"].map((k) => WORDS.BY_WATER(waterNoun(k, "page"))))
+      .toEqual(["this river’s rule", "this lake’s rule", "this wetland’s rule"]);
+    expect(WORDS.CALM_BOAT(waterNoun("wetland", "page"))).toBe("Fishing rules are the same everywhere on this wetland.");
+  });
+
+  it("every noun it says is a word the no-hand-facts test knows", () => {
+    for (const k of ["stream", "lake", "wetland"]) for (const f of ["page", "row"] as const) expect(ALL_WORDS.has(waterNoun(k, f)), `${k}/${f}`).toBe(true);
   });
 });
 

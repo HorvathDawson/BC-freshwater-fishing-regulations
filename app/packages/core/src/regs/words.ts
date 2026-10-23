@@ -7,6 +7,7 @@
  * derived from them.
  */
 import { MONTHS, WEEKDAYS } from "../calendar.generated";
+import type { PlaceNames } from "../answers.generated";
 import type { Line } from "./line";
 
 export const WORDS = Object.freeze({
@@ -99,7 +100,9 @@ export const WORDS = Object.freeze({
   INPART_IC: "ⓘ",
   CALM_HOT: "Everywhere else, follow this page.",
   CALM_BOAT: (noun: string) => "Fishing rules are the same everywhere on this " + noun + ".",
-  WATER_LAKE: "lake", WATER_RIVER: "river",   // page v36: PLACE.kind === "lake" ? "lake" : "river"
+  // (T116) waterNoun()'s words: a kind inside a sentence ("this river’s rule") and as a search row's label ("Stream")
+  WATER_RIVER: "river", WATER_LAKE: "lake", WATER_WETLAND: "wetland",
+  ROW_STREAM: "Stream", ROW_LAKE: "Lake", ROW_WETLAND: "Wetland",
   CALM_LATER: "Not in force today. The map can’t draw these places yet, so check where you are.",
   WHERE: (p: string) => "Where: " + p,
   WHERE_SIGNS: "Where: some spots, marked by buoys and signs. Look for signs.",
@@ -212,6 +215,31 @@ export const WORDS = Object.freeze({
   // ── T23 the regs header (prototype hdr: the pill's caret, the tab row's name; sheetHtml 'date': the day sheet's title) ──
   DATE_CARET: " ▾", TABS_LABEL: "Section", DAY_SHEET_TITLE: "Which day?",
 } as const);
+
+/** (T116) The kinds of water the atlas names: the keys of a place's `names`. */
+export type WaterKind = keyof PlaceNames;
+
+/** How a kind is said: `page` inside a sentence ("this river’s rule", "Whole river"); `row` as a search row's label. */
+export type NounForm = "page" | "row";
+
+/**
+ * (T116) THE noun for a kind of water — the one place it is decided. Every presenter that names a water's kind calls
+ * this; a lake-else-river test once lived in three modules and called the 54 wetland items (marshes, swamps, oxbows) a
+ * river, and search kept its own kind-to-word table (pinned by tools/one-water-noun.test.ts). A kind added to the atlas is a compile error here (the `never`); a kind this build does not know at run time
+ * is said as the atlas spells it, never guessed.
+ */
+export function waterNoun(kind: string, form: NounForm): string {
+  const k = kind as WaterKind;
+  switch (k) {
+    case "stream": return form === "page" ? WORDS.WATER_RIVER : WORDS.ROW_STREAM;
+    case "lake": return form === "page" ? WORDS.WATER_LAKE : WORDS.ROW_LAKE;
+    case "wetland": return form === "page" ? WORDS.WATER_WETLAND : WORDS.ROW_WETLAND;
+    default: {
+      const unknown: never = k;
+      return unknown;
+    }
+  }
+}
 
 /** (T36) page v36 ROLE: a rule's role in a row's sources sheet (openRowSources), verbatim. */
 export const ROLE: Readonly<Record<string, string>> = Object.freeze({ governs: "Sets the number", contains: "The group total this counts toward",
