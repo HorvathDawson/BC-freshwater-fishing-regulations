@@ -61,6 +61,12 @@ from typing import Iterable, Optional
 from pipeline.common.utils import wsc as _wsc
 from pipeline.common.utils.wsc import trim_wsc as _trim
 
+#: THE SHED CLIMBS AS THE TRIBUTARY WALK CLIMBS (T117, owner 2026-10-22: one entry check, used in every
+#: walk). Going UP from a gauge, each step is one `tributaries.may_enter` allows with the gauge's own
+#: section as the reach (`via=UP`: the river above the gauge is its shed): never into a canal, a water the
+#: gauge's river drains into, a bigger river where the code cannot say, or across a code run's divide.
+#: Going DOWN is not a tributary step and is untouched. Switch it off and the climb is the raw flow graph.
+SHED_CLIMBS_THROUGH_MAY_ENTER = True
 
 # Fraction of the gauge's own drainage that this section accounts for.
 #
@@ -135,6 +141,10 @@ def _walk(graph, start: str, adj: dict[str, list[int]], forward: bool,
     walks the entire basin to the sea to emit nothing — and a GUARD on ill-formed data,
     where a braid or a bad magnitude would otherwise let a shed jump a river it lost.
     """
+    ctx = None
+    if forward and SHED_CLIMBS_THROUGH_MAY_ENTER:
+        from pipeline.atlas.graph import tributaries as _tribs
+        ctx = _tribs.reach_context(graph, {start})
     seen = {start}
     q: deque[tuple[str, int]] = deque([(start, 0)])
     while q:
@@ -147,9 +157,12 @@ def _walk(graph, start: str, adj: dict[str, list[int]], forward: bool,
         for ix in sorted(adj.get(node, ())):
             e = graph.edges[ix]
             nxt = e.from_node if forward else e.to_node
-            if nxt not in seen and nxt in graph.nodes:
-                seen.add(nxt)
-                q.append((nxt, hops + 1))
+            if nxt in seen or nxt not in graph.nodes:
+                continue
+            if ctx is not None and _tribs.may_enter(ctx, nxt, node, e, via=_tribs.UP) is not None:
+                continue                 # the tributary walk's own refusal (T117)
+            seen.add(nxt)
+            q.append((nxt, hops + 1))
 
 
 def is_lake_station(graph, node_id: str) -> bool:

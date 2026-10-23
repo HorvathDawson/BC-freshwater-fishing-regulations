@@ -828,7 +828,9 @@ def _stem_to_first_lake(graph, mouths) -> frozenset[str]:
     every stream piece reached from them by the river's own `continuation` edges — never a
     `lake_out` edge (the lake is where the stem ends), never a confluence (a tributary is the
     walk's to collect). What a `between` from the mouth to the lake outlet would select
-    (user ruling 2026-10-03, RU-14)."""
+    (user ruling 2026-10-03, RU-14). Each step up is also one `tributaries.may_enter` allows (T117):
+    never into a canal, nor a water the joining river drains into."""
+    ctx = _tribs.reach_context(graph, mouths)
     out: set[str] = set()
     stack = sorted(mouths)
     while stack:
@@ -843,7 +845,8 @@ def _stem_to_first_lake(graph, mouths) -> frozenset[str]:
             e = graph.edges[ei]
             src = graph.nodes.get(e.from_node)
             if e.kind == "continuation" and src is not None and src.kind == NodeKind.stream \
-                    and e.from_node not in out:
+                    and e.from_node not in out \
+                    and _tribs.may_enter(ctx, e.from_node, nid, e, via=_tribs.UP) is None:
                 stack.append(e.from_node)
     return frozenset(out)
 

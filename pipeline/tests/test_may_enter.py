@@ -148,7 +148,7 @@ RULE_NAMES = frozenset({
     "stream_order", "wsc", "kind"})
 
 #: The walks in tributaries.py: they keep the books (seen / out / stack) and ask `may_enter`.
-WALKERS = ("tributaries_of_reach", "_mouths_at_lower_bound")
+WALKERS = ("tributaries_of_reach", "_mouths_at_lower_bound", "subtree", "joining")
 
 
 def _names_in_body(fn) -> set[str]:

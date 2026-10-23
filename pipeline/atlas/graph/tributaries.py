@@ -33,7 +33,6 @@ from __future__ import annotations
 import functools
 from dataclasses import dataclass, field
 
-from pipeline.atlas.graph.graph import ancestors
 from pipeline.common.models import NodeKind, StreamGraph
 from pipeline.common import fwa_edge_types
 from pipeline.common.utils import wsc
@@ -578,11 +577,41 @@ def _continuing(ctx: Reach, src: str, dst: str, edge) -> str | None:
 
 def subtree(graph: StreamGraph, mouths, *, guarded: bool = True) -> frozenset[str]:
     """`mouths` and EVERYTHING upstream of them — a joining river, its own mainstem above its
-    mouth included (which `tributaries_of_reach` would leave out as "the river continuing")."""
+    mouth included (which `tributaries_of_reach` would leave out as "the river continuing").
+
+    Every step asks `may_enter` (T117) with the mouths as the reach (`UP`: no "river continuing"), so
+    the climb never enters the river the joining water flows into — through a braid it would take the
+    reach's own river — nor a bigger river where the code cannot say, nor a canal."""
+    ctx = reach_context(graph, mouths, guarded=guarded)
+    out: set[str] = set(ctx.reach)
+    stack = sorted(ctx.reach)
+    while stack:
+        node = stack.pop()
+        for ei in graph.up_adj.get(node, []):
+            e = graph.edges[ei]
+            src = e.from_node
+            if src in out or may_enter(ctx, src, node, e, via=UP) is not None:
+                continue
+            out.add(src)
+            stack.append(src)
+    return frozenset(out)
+
+
+def joining(graph: StreamGraph, reach, *, guarded: bool = True) -> frozenset[str]:
+    """The waters ONE walk step from `reach` — what joins it directly: the first level of
+    `tributaries_of_reach` (without the mouth seeding), each step `may_enter`'s. The review app's
+    tributary picker and its one-level map layer read this, so a curator is offered what the walk would
+    take (T117): never the reach's own river going on, the river it drains into, a bigger river, a
+    canal."""
+    ctx = reach_context(graph, reach, guarded=guarded)
     out: set[str] = set()
-    for m in sorted(mouths):
-        out.add(m)
-        out |= ancestors(graph, m, guarded=guarded)
+    for node in sorted(ctx.reach):
+        for ei in graph.up_adj.get(node, []):
+            e = graph.edges[ei]
+            src = e.from_node
+            if src in ctx.reach or src in out or may_enter(ctx, src, node, e) is not None:
+                continue
+            out.add(src)
     return frozenset(out)
 
 
@@ -966,7 +995,7 @@ def lake_tributaries(graph: StreamGraph, lake_id: str,
 
 def tributary_node_ids(graph: StreamGraph, node_id: str,
                        guarded: bool = True) -> frozenset[str]:
-    """EVERYTHING upstream, mainstem included — `ancestors`, under an older name.
+    """EVERYTHING upstream, mainstem included — `subtree` of the one node, less the node itself.
 
     NOT a spelling of `tributaries_of_reach`, which is what I first made it. That walk
     excludes the river continuing above the reach; this one does not, and the difference is
@@ -974,7 +1003,7 @@ def tributary_node_ids(graph: StreamGraph, node_id: str,
     like the tributaries and means the ancestors — so it says so here rather than in a
     caller's head.
     """
-    return frozenset(ancestors(graph, node_id, guarded=guarded))
+    return subtree(graph, {node_id}, guarded=guarded) - {node_id}
 
 
 def with_tributaries(graph: StreamGraph, section_ids, guarded: bool = True) -> frozenset[str]:

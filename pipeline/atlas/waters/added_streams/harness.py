@@ -23,7 +23,8 @@ from pipeline.atlas.fwa import FWADataAccessor
 from pipeline.atlas.waters.added_streams.ingest import attach_connectors, ingest, load_features
 from pipeline.atlas.build import get_lake_names, get_lake_wbk_kind
 from pipeline.atlas.graph.blk_chains import build_blk_chains, load_stream_fids
-from pipeline.atlas.graph.graph import ancestors, build_section_geometries, build_stream_graph
+from pipeline.atlas.graph.graph import build_section_geometries, build_stream_graph
+from pipeline.atlas.graph.tributaries import subtree
 from pipeline.common.models import NodeKind
 from pipeline.common.curated import GENERATED
 
@@ -63,7 +64,7 @@ def run(geojson: str, gpkg: str, bbox=None, pad: float = 3000.0, out: str | None
     fwa_ancestors: set[str] = set()
     for nid, n in graph.nodes.items():
         if n.kind == NodeKind.stream and str(n.blk) in fwa_roots:
-            fwa_ancestors |= ancestors(graph, nid)
+            fwa_ancestors |= subtree(graph, {nid}) - {nid}
 
     print(f"\n  attached: added={report['added']} skipped={report['skipped']}")
     print(f"  {'added blk':>10} | {'wsc':<34} | len(m) | ord | mag | ∈anc(FWA)")

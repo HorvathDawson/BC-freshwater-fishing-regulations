@@ -514,50 +514,26 @@ def _blk_to_item() -> dict[str, str]:
     return out
 
 
-# Flow-edge kinds that make ``from_node`` a TRIBUTARY of ``to_node``: a stream confluence, or a stream
-# emptying into a lake. (``continuation`` = same channel; ``lake_out`` = the lake's own outflow — neither
-# is a tributary.)
-_TRIB_EDGE_KINDS = {"confluence", "lake_in"}
-
-
-@lru_cache(maxsize=1)
-def _tributary_items() -> dict[str, set[str]]:
-    """graph node ``to_node`` -> {owning item ids of the streams whose mouth flows into it}. Built ONCE
-    from the graph's own flow edges — this IS "each node's tributaries" the graph records. Everything
-    downstream (stream OR lake tributaries) reads from here; no WSC guessing.
-
-    These edges were read out of graph.gpkg's `confluences` layer, which was a projection of
-    `graph.edges` — the same tuples, one artifact later. Read from the graph directly, so the
-    tributary picker no longer goes empty when the gpkg is not written.
-    """
-    from collections import defaultdict
-    out: dict[str, set[str]] = defaultdict(set)
-    blk2item = _blk_to_item()
-    for e in _graph().edges:
-        if e.kind in _TRIB_EDGE_KINDS:
-            iid = blk2item.get(str(e.from_node).split(":", 1)[0])
-            if iid:
-                out[str(e.to_node)].add(iid)
-    return out
-
-
 @lru_cache(maxsize=1024)
 def item_tributaries(item_id: str) -> list[dict]:
     """Named tributaries of an item, for the carve-out picker — **graph only**. A tributary is a named
     stream whose mouth flows into one of the item's graph nodes (its section_ids, plus the lake node for
     a lake). Reads the graph's flow edges (confluence + lake_in), so it works identically for streams
     and lakes. Pick a tributary, then a reach on it (upstream_of a point excludes it + everything above,
-    so deeper tributaries are reached through the first-order one they flow into)."""
+    so deeper tributaries are reached through the first-order one they flow into).
+
+    WHAT JOINS IT is the tributary walk's own first step (`tributaries.joining`, T117): what the walk
+    from this item would enter, by the walk's one entry check — not every edge into it."""
     it = _registry().get(item_id)
     if it is None:
         return []
     nodes = set(it.section_ids)
     if it.id.startswith("wbk:"):
         nodes.add("lake:" + it.id.split(":", 1)[1])   # tributaries point at the lake node
-    idx = _tributary_items()
-    cand: set[str] = set()
-    for n in nodes:
-        cand |= idx.get(n, set())
+    from pipeline.atlas.graph.tributaries import joining
+    blk2item = _blk_to_item()
+    cand = {blk2item[b] for src in joining(_graph(), nodes)
+            if (b := str(src).split(":", 1)[0]) in blk2item}
     cand.discard(item_id)
     reg = _registry()
     out = [{"id": i, "name": reg[i].name}
@@ -639,14 +615,8 @@ def item_tributary_geojson(item_id: str, limit: int = 6000) -> dict:
     it = reg.get(item_id)
     if it is None:
         return {"type": "FeatureCollection", "features": []}
-    g = _graph()
-    own = set(it.section_ids)
-    mouths = set()
-    for nid in own:                                        # incoming edges = what flows into us
-        for i in g.up_adj.get(nid, []):
-            frm = g.edges[i].from_node
-            if frm not in own:
-                mouths.add(frm)
+    from pipeline.atlas.graph.tributaries import joining
+    mouths = set(joining(_graph(), it.section_ids))      # what the walk's first step enters (T117)
     # expand each joining piece to the whole named stream it belongs to
     by_node: dict[str, str] = {}
     for iid, item in reg.items():
@@ -2217,5 +2187,5 @@ def save_entry(region: str, entry_dict: dict) -> dict:
 
 #: Every cache read from the served build — what `invalidate_caches` drops.
 _BUILD_CACHES = (_registry, _place_namer_for, _indices, _splits_meta, _split_points_attrs,
-                 _blk_to_item, _tributary_items, item_tributaries, _graph, _geoms, _wbk_polys,
+                 _blk_to_item, item_tributaries, _graph, _geoms, _wbk_polys,
                  _blk_index, _review_context_for, _built_atlas, _built_for, _splits_context_for)

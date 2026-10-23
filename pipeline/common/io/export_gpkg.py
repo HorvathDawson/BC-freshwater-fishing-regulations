@@ -221,20 +221,24 @@ def export_tributaries(graph: StreamGraph, geoms: dict, target_node_id: str, pat
                        layer: str = "tributaries", guarded: bool = True) -> int:
     """Write the ancestor set of ``target_node_id`` (the upstream tributary walk) as a layer.
 
-    ``role`` = target|tributary; ``depth`` = confluences upstream of the target. The
-    WSC-descendant filter is already in the edge set; ``guarded`` (default) also stops at
-    EDGE_TYPE=2300 barrier nodes, matching ``graph.ancestors``.
+    ``role`` = target|tributary; ``depth`` = confluences upstream of the target. Each step is one
+    ``tributaries.may_enter`` allows (T117, ``via=UP``: the target's own mainstem above it included),
+    so this check layer shows what ``tributaries.subtree`` climbs; ``guarded=False`` drops the barrier
+    and order guards.
     """
+    from pipeline.atlas.graph import tributaries as _tribs
     if target_node_id not in graph.nodes:
         raise ValueError(f"target node {target_node_id!r} not in graph")
 
+    ctx = _tribs.reach_context(graph, {target_node_id}, guarded=guarded)
     depth: dict[str, int] = {target_node_id: 0}
     q: deque[str] = deque([target_node_id])
     while q:
         cur = q.popleft()
         for ei in graph.up_adj.get(cur, []):
-            src = graph.edges[ei].from_node
-            if src in depth or (guarded and graph.nodes[src].is_barrier):
+            e = graph.edges[ei]
+            src = e.from_node
+            if src in depth or _tribs.may_enter(ctx, src, cur, e, via=_tribs.UP) is not None:
                 continue
             depth[src] = depth[cur] + 1
             q.append(src)
