@@ -1344,7 +1344,8 @@ rows-fixes commit (rows.py, the section's version 2).
   naming nothing keeps "Of the 2 a day: …". THE TOTAL IS NAMED ONCE IN FULL — on the header ("4 a day per angler across
   Region 2, lakes included") and the tier lines; a kind line names it SHORT ("your 4 trout and char a day"), never the
   header's words. The card gate proves the named number (a total/share/own tier the kind sits in). Supersedes ROUND UR7 2
-  ("(part of the 2 from streams)").
+  ("(part of the 2 from streams)"). Review: an OWN tier holding only some of the group's fish names no fish
+  (`tree.total_fish`): "Of the 3 a day under this lake’s rule, only 1 may be Dolly Varden/bull trout" (Kamloops Lake).
 - T127 A POOL THE READER DISPLACED FOR A FISH IS NO CROSS-REFERENCE: `rows.counts_toward` (the pool governs the fish, or
   holds it as role `contains`) decides `build_model`'s xref facts, `group_of`'s kinds and `total_of` — Perry Creek's
   brook trout no longer "count toward" the St. Mary's 1 on its tributaries (displaced, own_row); Perry Creek's own "brook

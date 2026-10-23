@@ -85,8 +85,8 @@ def test_a_water_own_total_and_a_count_tier_name_the_total_around_them():
     g, P = _group(F.TWO)
     own = next(t for t, _p in walk(g["tree"]) if t["node"] == "tier" and t["tier"] == "own")
     assert [k["says"] for k in own["children"]] == [
-        "Of your 4 trout and char a day under this river’s rule, only 3 may be hatchery cutthroat trout",
-        "Of your 4 trout and char a day under this river’s rule, up to 4 may be hatchery rainbow trout"]
+        "Of the 4 a day under this river’s rule, only 3 may be hatchery cutthroat trout",
+        "Of the 4 a day under this river’s rule, up to 4 may be hatchery rainbow trout"]
 
 
 def test_a_zone_total_limited_to_one_kind_of_water_says_it():
@@ -99,6 +99,17 @@ def test_a_zone_total_limited_to_one_kind_of_water_says_it():
     assert [s for s, _ in _kinds(g)] == [
         "Of your 4 trout and char a day in lakes, up to 4 may be brook, brown, cutthroat or rainbow trout",
         "Of your 4 trout and char a day in lakes, only 1 may be Dolly Varden/bull trout or lake trout"]
+
+
+def test_mutation_an_own_tier_of_some_fish_called_your_trout_and_char(monkeypatch):
+    """MUTATION (review): `total_fish` naming the group's fish for every tier gives back "Of your 4 trout and char a day
+    under this river’s rule" on the Duncan shape, whose own rule holds only cutthroat and rainbow trout."""
+    real = TR.total_fish
+    monkeypatch.setattr(TR, "total_fish", lambda t, kinds, what: real({**t, "tier": "total"}, kinds, what))
+    g, _P = _group(F.TWO)
+    own = next(t for t, _p in walk(g["tree"]) if t["node"] == "tier" and t["tier"] == "own")
+    assert own["children"][0]["says"] == "Of your 4 trout and char a day under this river’s rule, only 3 may be hatchery " \
+                                         "cutthroat trout"
 
 
 def test_mutation_without_the_named_total_the_old_words_come_back(monkeypatch):
@@ -132,6 +143,7 @@ def test_one_place_words_the_named_total():
 BUNDLE = os.environ.get("UI_EXPORT_BUNDLE")
 EXPORT_DIR = os.environ.get("ANSWERS_EXPORT_DIR")
 R2_STREAM, R1_STREAM, R6_LAKE, KLMB = "blk:355991777", "gnis:10015", "gnis:10031", "wbk:-20"
+KAMLOOPS, ADAMS = "wbk:329563838", "wbk:329014384"
 
 
 @pytest.fixture(scope="module")
@@ -145,7 +157,7 @@ def live(request):
     need(request, "bundle", bundle, BUNDLE_HINT)
     need(request, "bundle", export / "ui-rules-export.json", EXPORT_HINT)
     data, _ = C.load_export(export)
-    model = A.build(bundle, export, workers=1, items=[R2_STREAM, R1_STREAM, R6_LAKE, KLMB], sections=["rows", "ladder"],
+    model = A.build(bundle, export, workers=1, items=[R2_STREAM, R1_STREAM, R6_LAKE, KLMB, KAMLOOPS, ADAMS], sections=["rows", "ladder"],
                     log=lambda *_: None)
     return data, model, bundle
 
@@ -202,6 +214,28 @@ def test_kootenay_main_body_the_trout_total_names_its_5_the_one_kind_rainbow_gro
                      "r4:kootenay_lake_main_body_for_location_see_map_on_page_34@4-19::kootenay_lake_main_body.r4")
     assert (rb["header"]["says"], _kinds(rb)) == ("This lake’s rule: up to 10 a day per angler", [
         ("Up to 10 may be rainbow trout", "Of the 10 a day: up to 10 may be rainbow trout, any size")])
+
+
+@pytest.mark.needs_bundle
+def test_a_lake_rule_for_some_fish_is_not_your_trout_and_char(live):
+    """REVIEW (T128): an own tier holding only SOME of the group's fish is no "your N trout and char a day". Kamloops Lake
+    (p.30: "Rainbow trout daily quota = 2", "bull trout daily quota = 1") read "Of your 3 trout and char a day under this
+    lake’s rule" right above "Of your 5 trout and char a day" — two totals for the same fish; Adams Lake ("Daily quota = 1
+    bull trout or lake trout") read "Of your 1 trout and char a day". The tier is named by its number and whose it is."""
+    g = _live_group(live, KAMLOOPS, (7, 10), "z3:trout_char_quota::trout_char_quota.r1")
+    assert [s for s, _ in _kinds(g)] == [
+        "Of the 3 a day under this lake’s rule, only 1 may be Dolly Varden/bull trout",
+        "Of the 3 a day under this lake’s rule, only 2 may be rainbow trout",
+        "Of your 5 trout and char a day, up to 5 may be brook, brown or cutthroat trout",
+        "Of your 5 trout and char a day, only 1 may be lake trout"]
+    g = _live_group(live, ADAMS, (7, 10), "z3:trout_char_quota::trout_char_quota.r1")
+    assert _kinds(g) == [
+        ("Of the 1 a day under this lake’s rule, up to 1 may be Dolly Varden/bull trout",
+         "Of the 1 a day under this lake’s rule, up to 1 may be Dolly Varden/bull trout, 80 cm (31 in) or longer"),
+        ("Of the 1 a day under this lake’s rule, up to 1 may be lake trout",
+         "Of the 1 a day under this lake’s rule, up to 1 may be lake trout, 60 cm (24 in) or longer"),
+        ("Of your 5 trout and char a day, up to 5 may be brook, brown, cutthroat or rainbow trout",
+         "Of your 5 trout and char a day, up to 5 may be brook, brown, cutthroat or rainbow trout, any size")]
 
 
 @pytest.mark.needs_bundle

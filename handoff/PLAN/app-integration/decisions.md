@@ -889,6 +889,10 @@ Undo for any straggler: say which; each is one component's change, and the ticke
   total at the total's number names nothing (whitefish "Up to 15 may be whitefish" under "15 a day per angler across
   Region 2"; Kootenay Lake — Main Body's rainbow 10; a kind folded into its share/own tier): its tier's line already says
   the whole of it. Supersedes ROUND UR7 2's "(part of the 2 from streams)".
+- **Review (T128)**: a water's own rule holding only SOME of the group's fish is no "your N trout and char" — Kamloops
+  Lake ("Rainbow trout daily quota = 2", "bull trout daily quota = 1") read "Of your 3 trout and char a day under this
+  lake’s rule" right above "Of your 5 trout and char a day". Such a tier is named by its number and whose it is: "Of the
+  3 a day under this lake’s rule, only 1 may be Dolly Varden/bull trout" (`tree.total_fish`; Adams Lake, the Duncan shape).
 - **Kinds under a count tier** ("1 cutthroat or rainbow trout in all") name the total around the count tier, not the
   count ("Of your 2 trout and char a day under this river’s rule, only 1 may be hatchery cutthroat trout"): the count tier's
   own line says the 1 in all, directly above.

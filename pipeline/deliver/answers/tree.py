@@ -167,10 +167,24 @@ def total_named(chain: Sequence[dict], kind: dict) -> Optional[dict]:
     return t
 
 
-def total_words(t: dict, what: str, where: str) -> str:
+def total_fish(t: dict, kinds: Sequence[str], what: str) -> Optional[str]:
+    """T128 review: the fish a named total is OF — the group's (`what`, "trout and char") for a total or a share, and for a
+    water's own rule holding every one of the group's kinds; None for an own rule holding only SOME of them (Kamloops
+    Lake's "Rainbow trout daily quota = 2" and "bull trout daily quota = 1", one tier of 3 beside Region 3's 5; Adams
+    Lake's "1 bull trout or lake trout"): it is no "3 trout and char a day" of yours, the 5 is."""
+    if t["tier"] != "own":
+        return what
+    held = {S for x, _p in walk(t["children"]) if x["node"] == "kind" for S in x["species"]}
+    return what if held >= set(kinds) else None
+
+
+def total_words(t: dict, what: Optional[str], where: str) -> str:
     """T128: the named total in the reader's words — its number, the group's fish, the period and, only where the total
     is limited to one, its kind of water: "Of your 2 trout and char a day in streams", "Of your 5 trout and char a day",
-    a water's own rule "Of your 2 trout and char a day under this river’s rule"."""
+    a water's own rule "Of your 2 trout and char a day under this river’s rule"; an own rule of only some of the group's
+    fish (`total_fish` None) by its number and whose it is, "Of the 3 a day under this lake’s rule"."""
+    if what is None:
+        return f"Of the {_js(t['n'])} a day{where}"
     return f"Of your {_js(t['n'])} {what} a day{where}"
 
 
@@ -583,7 +597,7 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
             continue
         up = count_of(par, p)
         named = total_named(chain(par, x), x)
-        lead = total_words(named, c.what, where_of(named)) if named is not None else None
+        lead = total_words(named, total_fish(named, grp["kinds"], c.what), where_of(named)) if named is not None else None
         x["says"] = _kind_says(x, named["n"] if named is not None else up["n"], lead=lead)
         bare = _kind_says(x, named["n"] if named is not None else up["n"], plain=True, lead=lead)
         kind_origin[id(x)] = x.get("_origin")

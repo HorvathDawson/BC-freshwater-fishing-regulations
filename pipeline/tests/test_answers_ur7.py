@@ -89,11 +89,12 @@ def test_2_every_shape_of_kind_under_the_share():
 
 
 def test_2_kinds_under_an_own_tier_or_a_water_total_are_unchanged():
-    """No "part of" on them; T128: they name the own rule's total, by whose it is."""
+    """No "part of" on them; T128: they name the own rule's total, by whose it is (its fish are only some of the group's,
+    so no "your 4 trout and char": T128 review, `tree.total_fish`)."""
     g = _g(F.TWO)
     own = _tier(g, "own")
     assert [k["says"] for k in own["children"]] == [
-        "Of your 4 trout and char a day under this river’s rule, only 3 may be hatchery cutthroat trout",
-        "Of your 4 trout and char a day under this river’s rule, up to 4 may be hatchery rainbow trout"]
+        "Of the 4 a day under this river’s rule, only 3 may be hatchery cutthroat trout",
+        "Of the 4 a day under this river’s rule, up to 4 may be hatchery rainbow trout"]
     g = _g(F.COUNT)
     assert all("part of" not in n["says"] for n, _p in _walk(g["tree"]) if n["node"] == "kind")

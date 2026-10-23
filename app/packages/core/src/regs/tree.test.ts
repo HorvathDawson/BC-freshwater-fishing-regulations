@@ -83,6 +83,11 @@ describe("kindRow", () => {
     const only = kindRow(kind({ species: ["LT"], name: "Lake trout", n: 1, says: "Of your 1 trout and char a day, only 1 may be lake trout" }), env);
     expect(only.says!.filter((r) => r.t === "num").length).toBe(1);
     expect(only.says![0]).toEqual({ t: "text", s: "Of your 1 trout and char a day, only " });
+    // T128 review: an own rule of only some of the group's fish is named by its number ("Of the 3 a day under …")
+    const own = kindRow(kind({ species: ["DV"], name: "Dolly Varden/bull trout", n: 1,
+      says: "Of the 3 a day under this lake’s rule, only 1 may be Dolly Varden/bull trout" }), env);
+    expect(own.says).toEqual([{ t: "text", s: "Of the 3 a day under this lake’s rule, only " }, { t: "num", s: "1", size: "inline" },
+      { t: "text", s: " may be Dolly Varden/bull trout" }]);
     // the old words (no total named) bold as before: the first number
     const old = kindRow(kind({ species: ["RB"], name: "Rainbow trout", n: 2, says: "Up to 2 hatchery rainbow trout (part of the 2 from streams)" }), env);
     expect(old.says![0]).toEqual({ t: "text", s: "Up to " });
