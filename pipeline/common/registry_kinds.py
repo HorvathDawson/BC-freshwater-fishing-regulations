@@ -61,3 +61,11 @@ def is_water(item) -> bool:
 def waters(items):
     """Just the waters, preserving order."""
     return [i for i in items if is_water(i)]
+
+
+def area_key(aid: str) -> str:
+    """THE REGISTRY KEY OF AN AREA a record names bare (`clayhurst_ecological_reserve`) or keyed (`area:…`) — one
+    spelling of `aid if aid.startswith("area:") else f"area:{aid}"`, which the resolver's three area limits and the
+    bundle's place names each wrote (T125 item 8)."""
+    aid = str(aid)
+    return aid if aid.startswith("area:") else f"area:{aid}"

@@ -20,6 +20,7 @@ from pipeline.common.models import WATERBODY_KINDS, NameSource, NodeKind, Regist
 from pipeline.common.utils.wsc import trim_wsc
 from pipeline.common.utils import wsc as _wsc
 from pipeline.common.water_kind import flows
+from pipeline.common.registry_kinds import is_water
 
 logger = logging.getLogger(__name__)
 
@@ -595,7 +596,7 @@ def add_mu_sets(registry: dict[str, RegistryItem], geoms: dict,
     polys = [mu_polys[m] for m in mu_ids]
     tree = STRtree(polys)
     for iid, it in list(registry.items()):
-        if it.kind == "area" or not it.name:                 # named streams/lakes only
+        if not is_water(it) or not it.name:                  # named streams/lakes only
             continue
         parts = [geoms[nid] for nid in it.section_ids if geoms.get(nid) is not None]
         if parts:

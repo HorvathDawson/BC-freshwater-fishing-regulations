@@ -42,6 +42,7 @@ from pipeline.atlas.reach.build import entry_scope as _entry_scope
 from pipeline.atlas.reach.classify import wants_tributaries as _wants_tributaries
 from pipeline.atlas.reach import extent as _resolve
 from pipeline.common.curated import CURATED, GENERATED, SOURCE
+from pipeline.common.registry_kinds import is_water
 from pipeline.atlas.splits.sectionizer import _auto_split
 from pipeline.atlas.splits.splits import splits_on
 
@@ -1424,7 +1425,7 @@ def search_items(q: str, limit: int = 20) -> list[dict]:
         return []
     out = []
     for it in _registry().values():
-        if it.kind == "area":
+        if not is_water(it):
             continue
         names = [it.name, *it.variants]
         if any(ql in (n or "").lower() for n in names):

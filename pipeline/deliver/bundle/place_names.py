@@ -20,6 +20,8 @@ from __future__ import annotations
 
 import re
 
+from pipeline.common.registry_kinds import area_key
+
 #: A Water Survey of Canada station number at the head of a label: "08HB006 · …".
 _GAUGE_LABEL = re.compile(r"^\d{2}[A-Z]{2}\d{3}\b")
 #: A cut-point that has no name: an unnamed lake, a measure, or a label that is its own id.
@@ -352,7 +354,7 @@ class PlaceNamer:
                 if it is not None and getattr(it, "name", "") else None)
 
     def _area(self, aid: str) -> str | None:
-        key = aid if aid.startswith("area:") else f"area:{aid}"
+        key = area_key(aid)
         if key.startswith("area:region:"):
             return None
         if key.startswith("area:basin:"):

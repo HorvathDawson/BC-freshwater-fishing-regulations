@@ -30,6 +30,7 @@ from __future__ import annotations
 from pipeline.atlas.graph.windows import polygon_window
 from pipeline.atlas.registry import regions as _regions
 from pipeline.atlas.registry.basins import basin_code, basin_members
+from pipeline.common.registry_kinds import area_key
 from pipeline.common.utils.wsc import trim_wsc   # noqa: F401  (used by the moved body)
 from pipeline.common.utils import wsc as _wsc
 
@@ -992,7 +993,7 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
     limit_sections: set[str] | None = None
     limit_id = str(ex.get("within_area") or "")
     if limit_id:
-        key = limit_id if limit_id.startswith("area:") else f"area:{limit_id}"
+        key = area_key(limit_id)
         limit_sections = area_sections(reg, g, key)
         if limit_sections is None:
             _fail("within_area_not_in_registry", limit_id)
@@ -1015,7 +1016,7 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
     if ex.get("outside_area"):
         drop_ids.append(str(ex["outside_area"]))
     for drop_id in drop_ids:
-        key = drop_id if drop_id.startswith("area:") else f"area:{drop_id}"
+        key = area_key(drop_id)
         got_area = area_sections(reg, g, key)
         if got_area is None:
             _fail("outside_area_not_in_registry", drop_id)
@@ -1110,7 +1111,7 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
                 return None
             in_area = set(family)
         else:
-            key = aid if aid.startswith("area:") else f"area:{aid}"
+            key = area_key(aid)
             in_area = area_sections(reg, g, key)
             if in_area is None:
                 _fail("area_id_not_in_registry", aid)

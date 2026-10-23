@@ -37,6 +37,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from pipeline.common.models import RegistryItem
+from pipeline.common.registry_kinds import is_water
 from pipeline.common.utils.wsc import trim_wsc
 
 _log = logging.getLogger(__name__)
@@ -113,7 +114,7 @@ def build_name_index(registry: dict[str, RegistryItem]) -> dict[str, list[str]]:
     """normalized name/variant -> [item_id]. Areas are skipped (never a name-match target for a row)."""
     idx: dict[str, list[str]] = {}
     for it in registry.values():
-        if it.kind == "area":
+        if not is_water(it):
             continue
         for n in {it.name, *it.variants}:
             key = _norm(n)
@@ -162,7 +163,7 @@ def build_id_index(registry: dict[str, RegistryItem]) -> dict[str, tuple[str, ..
        group name to every member is what the gazetteer says it names.
 
     3. Otherwise first writer (a stream ref no item owns keeps today's one-item answer)."""
-    idx: dict[str, tuple[str, ...]] = {iid: (iid,) for iid, it in registry.items() if it.kind != "area"}
+    idx: dict[str, tuple[str, ...]] = {iid: (iid,) for iid, it in registry.items() if is_water(it)}
     carriers: dict[str, list[str]] = {}
     for iid, it in registry.items():
         for r in it.ref_ids:

@@ -89,3 +89,37 @@ class TestEveryReaderUsesIt:
         # is the registry's kind) — and it is the third site that once took a park for an owner
         # (`_identity`). So it is held to `is_water(` like the other two.
         assert "is_water(" in self._src("pipeline.deliver.tiles.export", "Owners")
+
+
+class TestNoBypass:
+    """T125 item 8 (matching 6, 7): the matcher's name index and ref bridge, the registry's MU overlay and the review
+    app's name search asked `kind == "area"` themselves; the resolver's three area limits and the bundle's place names
+    each spelled the area key. Mutation: re-inline either in any of them and this fails."""
+
+    SCANNED = ("pipeline/regs/matching/matcher.py", "pipeline/atlas/registry/build.py",
+               "curation-review/backend/reuse.py", "pipeline/atlas/reach/extent.py",
+               "pipeline/deliver/bundle/place_names.py")
+
+    def test_no_reader_asks_kind_area_or_spells_the_area_key(self):
+        import re
+        from pipeline.common.curated import REPO_ROOT
+        inline_kind = re.compile(r'\.kind ?[!=]= ?"area"')
+        inline_key = re.compile(r'if (\w+)\.startswith\("area:"\) else f"area:\{\1\}"')   # a slugged key is another
+        for rel in self.SCANNED:
+            src = (REPO_ROOT / rel).read_text()
+            assert not inline_kind.search(src), rel
+            assert not inline_key.search(src), rel
+        assert inline_kind.search('if it.kind == "area":') and \
+            inline_key.search('key = aid if aid.startswith("area:") else f"area:{aid}"')
+
+    def test_area_key(self):
+        from pipeline.common.registry_kinds import area_key
+        assert [area_key(x) for x in ("clayhurst", "area:clayhurst", "area:region:5")] == \
+            ["area:clayhurst", "area:clayhurst", "area:region:5"]
+
+    def test_the_matcher_skips_an_area_by_kind(self):
+        from pipeline.common.models import RegistryItem
+        from pipeline.regs.matching.matcher import build_name_index
+        reg = {"area:x": RegistryItem(id="area:x", name="Bear Creek", kind="area"),
+               "gnis:1": RegistryItem(id="gnis:1", name="Bear Creek", kind="stream")}
+        assert list(build_name_index(reg).values()) == [["gnis:1"]]
