@@ -315,9 +315,34 @@ def stream_polygons(graph, water_of: dict[str, str], kind_of: dict[str, str],
     return out
 
 
+def systems(continues) -> dict[str, str]:
+    """`water item -> its system` for every water in a `water_continue` link: the waters one name change joins (the
+    Chilliwack and the Vedder) share one key, a chain (A as B, B as C) all of them. A water in no link is its own system
+    and is not listed."""
+    root: dict[str, str] = {}
+
+    def find(w: str) -> str:
+        while root.get(w, w) != w:
+            w = root[w]
+        return w
+
+    for a, b in continues or ():
+        ra, rb = find(a), find(b)
+        if ra != rb:
+            root[max(ra, rb)] = min(ra, rb)
+    return {w: find(w) for w in root.keys() | set(root.values())}
+
+
 def own_distances(graph, water_of: dict[str, str],
-                  donors: list[tuple[str, str, int, bool]]) -> dict[str, dict[str, float]]:
+                  donors: list[tuple[str, str, int, bool]],
+                  continues=()) -> dict[str, dict[str, float]]:
     """`section -> {station: metres along the water}` for every station on the section's OWN water.
+
+    ONE SYSTEM ACROSS A CONTINUATION (T76, owner 2026-10-22: a river that changes its name is one system; T81 Q8:
+    `water_continue` only). `continues` is `(water, the water it goes on as)` — the bundle's `water_continue`, as item
+    ids. A station's own water is its whole system: the Chilliwack's 08MH001 is the Vedder's own gauge, measured along
+    the water through the name change, under the same gates. A tributary, a side channel and the river a water flows
+    into are other water; only a `water_continue` link joins two waters.
 
     A station's water is the water its section belongs to (`water_of`, the registry's section -> water item — the
     same join `gauge.item_id` is made from). The walk keeps to stream sections of that water, so a lake on the way
@@ -337,11 +362,15 @@ def own_distances(graph, water_of: dict[str, str],
     def length(sec: str) -> float:
         return float(getattr(graph.nodes[sec], "length_m", 0.0) or 0.0)
 
+    joined = systems(continues)
+    system_of = lambda w: joined.get(w, w)  # noqa: E731
+
     out: dict[str, dict[str, float]] = collections.defaultdict(dict)
     for station, sec, _years, _reg in donors:
         water = water_of.get(sec)
         if water is None or sec not in graph.nodes:
             continue
+        system = system_of(water)
         out[sec][station] = 0.0
         for adj, going_down in ((up, False), (down, True)):
             best = {sec: 0.0}
@@ -353,7 +382,7 @@ def own_distances(graph, water_of: dict[str, str],
                 step = 0.0 if (going_down and cur == sec) else length(cur)
                 for nxt in adj[cur]:
                     node = graph.nodes.get(nxt)
-                    if node is None or _kind(node) != "stream" or water_of.get(nxt) != water:
+                    if node is None or _kind(node) != "stream" or system_of(water_of.get(nxt)) != system:
                         continue
                     if d + step < best.get(nxt, math.inf):
                         best[nxt] = d + step
@@ -370,7 +399,8 @@ def build(graph, model: AreaModel,
           water_of: dict[str, str] | None = None,
           measures: dict[str, set[str]] | None = None,
           published: dict[str, float] | None = None,
-          kind_of: dict[str, str] | None = None) -> Panels:
+          kind_of: dict[str, str] | None = None,
+          continues=()) -> Panels:
     """Candidates, gates, weights, and the dictionary — the whole pass.
 
     `water_of` (section -> water item) is what says which donors are a section's OWN gauges; without it nothing
@@ -395,11 +425,15 @@ def build(graph, model: AreaModel,
 
     `kind_of` (water item -> its kind: stream / lake / wetland) is what lets a STREAM water's polygons take that
     water's answer (`stream_polygons`); it needs `water_of` too. Without both, polygons get nothing, as before.
+
+    `continues` (`(water, the water it goes on as)`, the bundle's `water_continue` as item ids) makes a continuation's
+    gauges a section's own (T76, `own_distances`): the Vedder is led by the Chilliwack's 08MH001. Empty: each water
+    item is its own.
     """
     area_of = lambda n: model.area_km2(getattr(n, "stream_magnitude", None),
                                        getattr(n, "wsc", ""))
     cand = candidates(graph, area_of, donors, max_ratio)
-    own = own_distances(graph, water_of, donors) if water_of else {}
+    own = own_distances(graph, water_of, donors, continues) if water_of else {}
 
     by_section: dict[str, tuple[int, float | None]] = {}
     members: dict[int, tuple[Member, ...]] = {}

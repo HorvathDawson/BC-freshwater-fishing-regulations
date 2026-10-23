@@ -511,8 +511,11 @@ def _place_water(db: sqlite3.Connection, build_dir: Path, places: list[dict],
 
 
 def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_items: list[dict],
-            graph, geoms, cov: Coverage) -> None:
+            graph, geoms, cov: Coverage, continues=()) -> None:
     """Which water has a gauge, and how well that gauge speaks for it.
+
+    `continues`: the settled `water_continue` links as item ids (`continuation.item_pairs`) — a continuation's gauges
+    are a section's own in the donor panels (T76).
 
     THE ANSWER A USER IS ACTUALLY ASKING FOR. Not "where are the gauges" — a map of 440
     dots tells a person nothing about the creek under their feet. The question is "is
@@ -732,7 +735,9 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_it
             measures[st].add(param)
         # `kind_of`: a STREAM water's polygons (sloughs, canals — owner 2026-10-22 late) take that water's line
         # answer; the water's kind decides, never the polygon's geometry. See build_panels.stream_polygons.
-        panels = build_panels(graph, model, donors, water_of=owner,
+        # `continues`: across a `water_continue` link the gauges are the section's own (T76: the Vedder is led by the
+        # Chilliwack's 08MH001) — one system, the same gates. See build_panels.own_distances.
+        panels = build_panels(graph, model, donors, water_of=owner, continues=continues,
                               kind_of={i["id"]: i.get("kind") for i in registry_items if is_water(i)},
                               measures=measures,
                               published={s["station"]: s["area_km2"] for s in stations
@@ -876,7 +881,6 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
     with geom_path.open("rb") as fh:
         geoms = pickle.load(fh)
     _place_water(db, build_dir, places, registry_items, geoms, cov)
-    _gauges(db, build_dir, data_dir, registry_items, graph, geoms, cov)
     # WHICH WATER EACH WATER DRAINS INTO (ROUND14 1, `nearer.item_down`): read from the graph while it
     # is loaded; `trib_nearer` is derived from it once the rule sets are written
     from pipeline.deliver.bundle import nearer as _nearer
@@ -888,6 +892,16 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
     from pipeline.deliver.bundle import continuation as _continuation
     _handle_ids = list(_read_handles(build_dir)[0])
     _continues = _continuation.links(db, _handle_ids, graph)
+    # SETTLED NOW, BEFORE THE GAUGES (T76): the donor panels treat a continuation's gauges as a section's own, and they
+    # are built while the graph is loaded — before `entry` exists. So the book's pairings are read from the catalogue
+    # the rules will be written from (the same sources, the same registry, `rules.read_entries`); `_continuation.write`
+    # settles again from `entry` and stops the build if the two differ.
+    from pipeline.atlas.registry import load_registry as _load_registry
+    _entries_dir = Path(entries) if entries else CURATED.regulations.entries.catalogue.parent
+    _settled = _continuation.settle(_continues, _continuation.pairs_of(db, _continuation.catalogue_heads(
+        _entries_dir, _load_registry(str(Path(build_dir) / "registry.json")))))
+    _gauges(db, build_dir, data_dir, registry_items, graph, geoms, cov,
+            continues=_continuation.item_pairs(db, _settled))
     # WHERE EACH WATER'S MOUTH FLOWS (T59: `water_exit` named Annacis Channel for the Fraser): read here, while the
     # graph is loaded; `topology.write` keeps only the exits the mouth reaches
     from pipeline.deliver.bundle import topology as _topology
@@ -956,7 +970,7 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
         # the rows just written, proved against them.
         from pipeline.deliver.bundle import derived as _derived
         _derived.write(db, cov, places=places)
-        _continuation.write(db, _continues, cov)
+        _continuation.write(db, _continues, cov, built_with=_settled)
         _topology.write(db, named_geo, cov, mouths=_mouths)
         del named_geo
         # THE NEARER ✱ ROW (ROUND14 1, RULINGS T14): from item_down, entry.matched and the rule sets

@@ -228,19 +228,42 @@ def heading_pairs(heading: str, names: Mapping[str, str]) -> Set[frozenset]:
     return {frozenset((x, y)) for i in at for j in at if i < j for x in at[i] for y in at[j] if x != y}
 
 
-def book_pairs(b: sqlite3.Connection) -> Set[Tuple[int, int]]:
-    """{(ord, ord)} both orders, of every two STREAMS one water row's heading pairs (`heading_pairs`) among its matched
-    waters (`entry.full_name`, `entry.matched`)."""
-    import json
+def pairs_of(b: sqlite3.Connection, heads: Iterable[Tuple[str, str, Sequence[str]]]) -> Set[Tuple[int, int]]:
+    """{(ord, ord)} both orders, of every two STREAMS (the bundle's `item`) one water row's heading pairs
+    (`heading_pairs`) among its matched waters. `heads` is `(entry_id, heading, matched item ids)` per entry; only water
+    rows (`r…`) whose heading has a "/" can pair. One rule for both readers: `book_pairs` (the `entry` table) and
+    `catalogue_heads` (the catalogue, read before `entry` exists — the donor panels need the links then, T76)."""
     ordof = {i: (o, n) for o, i, n in b.execute("SELECT ord, item_id, name FROM item WHERE kind = 'stream'")}
     out: Set[Tuple[int, int]] = set()
-    for full, matched in b.execute("SELECT full_name, matched FROM entry WHERE entry_id LIKE 'r%' AND full_name LIKE "
-                                   "'%/%' ORDER BY entry_id"):
-        names = {i: ordof[i][1] for i in json.loads(matched or "[]") if i in ordof}
+    for eid, full, matched in sorted(heads, key=lambda h: h[0]):
+        if not eid.lower().startswith("r") or "/" not in (full or ""):
+            continue
+        names = {i: ordof[i][1] for i in matched or () if i in ordof}
         for p in heading_pairs(full, names):
             x, y = sorted(ordof[i][0] for i in p)
             out |= {(x, y), (y, x)}
     return out
+
+
+def book_pairs(b: sqlite3.Connection) -> Set[Tuple[int, int]]:
+    """`pairs_of` the bundle's `entry` table (`entry.full_name`, `entry.matched`)."""
+    import json
+    return pairs_of(b, [(e, f, json.loads(m or "[]"))
+                        for e, f, m in b.execute("SELECT entry_id, full_name, matched FROM entry")])
+
+
+def catalogue_heads(entries_dir, registry=None) -> List[Tuple[str, str, List[str]]]:
+    """`(entry_id, heading, matched)` of every entry of every entry SOURCE under `entries_dir`, read as `rules.write`
+    reads them (`rules.read_entries`): the rows `entry` will hold, before it is written."""
+    from pipeline.deliver.bundle.rules import read_entries
+    return [(e["entry_id"], e.get("name") or "", list(e.get("matched") or ()))
+            for e in read_entries(entries_dir, registry)]
+
+
+def item_pairs(b: sqlite3.Connection, settled: Iterable[Tuple[int, int, int, int]]) -> List[Tuple[str, str]]:
+    """`settle`'s links as `(water item, the water item it goes on as)` — what the donor panels take (T76)."""
+    item = dict(b.execute("SELECT ord, item_id FROM item"))
+    return sorted((item[a], item[c]) for a, _s, c, _t in settled)
 
 
 def graph_flow(graph, ids: Sequence[str], owners: Mapping[int, Set[int]], tops: Iterable[int]) -> Flow:
@@ -289,12 +312,21 @@ def links(b: sqlite3.Connection, ids: Sequence[str], graph) -> List[Link]:
     return candidates(streams, secs, b.execute("SELECT ord, down_ord FROM item_down"), line, flow)
 
 
-def write(b: sqlite3.Connection, found: Iterable[Link], cov) -> int:
+def write(b: sqlite3.Connection, found: Iterable[Link], cov,
+          built_with: Optional[Iterable[Tuple[int, int, int, int]]] = None) -> int:
     """The bundle's `water_continue (ord, part, next_ord, next_part)` from `links`' candidates, settled with the book's
-    pairings (`book_pairs`, from `entry`), once `part_section` exists. A linked section with no part stops the build."""
+    pairings (`book_pairs`, from `entry`), once `part_section` exists. A linked section with no part stops the build.
+
+    `built_with`: the links the donor panels were built with (settled earlier from `catalogue_heads`, T76). The table
+    must be exactly those — or the Vedder's panel and its ▲ would disagree about what one system is — else the build
+    stops."""
     part = {(o, s): p for o, s, p in b.execute("SELECT ord, sid, part_ix FROM part_section")}
+    settled = settle(found, book_pairs(b))
+    if built_with is not None and sorted(settled) != sorted(built_with):
+        raise ContinuationError(f"water_continue: the panels were built with {sorted(built_with)}, the entry table "
+                                f"settles {sorted(settled)} — the catalogue read and `entry` disagree")
     out = []
-    for a_ord, a, b_ord, bs in settle(found, book_pairs(b)):
+    for a_ord, a, b_ord, bs in settled:
         pa, pb = part.get((a_ord, a)), part.get((b_ord, bs))
         if pa is None or pb is None:
             raise ContinuationError(f"water_continue: section {a if pa is None else bs} has no part")

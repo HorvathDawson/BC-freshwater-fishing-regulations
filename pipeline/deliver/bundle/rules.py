@@ -1186,6 +1186,18 @@ def check_corpus(reaches: Path, entries: dict[str, dict]) -> str:
     return now
 
 
+def read_entries(entries_dir: Path, registry=None):
+    """Every entry dict of every entry SOURCE under `entries_dir`: a directory of region files carrying `entries` (see
+    `io.entry_sources`), files in name order. The bundle's one corpus read — `write` below, and the continuation
+    pairings the donor panels need before `entry` exists (`continuation.catalogue_heads`, T76)."""
+    from pipeline.regs.parsing.io import _holds_entries, read_entryfile
+    for d in sorted({p.parent for p in Path(entries_dir).rglob("region-*.json")}):
+        if not _holds_entries(d):
+            continue
+        for path in sorted(d.glob("region-*.json")):
+            yield from read_entryfile(path, registry, require_entries=True).values()
+
+
 def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
           build_dir: Path | None = None) -> None:
     """Write `entry`, `rule`, `section_ruleset`, `ruleset`, and every licensing table."""
@@ -1202,8 +1214,6 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
                   for r in _jsonl(reaches / "rule_unresolved.jsonl")}
 
     from pipeline.regs.parsing.catalogue import CatalogueEntry
-
-    from pipeline.regs.parsing.io import _holds_entries, read_entryfile
 
     if build_dir is None:
         raise SystemExit("rules.write needs build_dir to resolve section handles")
@@ -1222,13 +1232,9 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
     # files of another shape and is not one. Inside a source, a region file WITHOUT `entries` is
     # a defect, and stops the build (`require_entries`). Read through the corpus' one read point,
     # so an item id this registry folded into another names its item (`io.read_entryfile`).
-    for d in sorted({p.parent for p in entries_dir.rglob("region-*.json")}):
-        if not _holds_entries(d):
-            continue
-        for path in sorted(d.glob("region-*.json")):
-            for e in read_entryfile(path, registry, require_entries=True).values():
-                # Read through the model, so a key from a retired shape is refused, not read.
-                docs.append((e, CatalogueEntry.model_validate(e)))
+    for e in read_entries(entries_dir, registry):
+        # Read through the model, so a key from a retired shape is refused, not read.
+        docs.append((e, CatalogueEntry.model_validate(e)))
     # THE SAME CORPUS THE REACH RUN WAS MADE FROM (P2): its full content, not only its ids.
     db.execute("INSERT OR REPLACE INTO meta (k, v) VALUES ('entries_digest', ?)",
                (check_corpus(reaches, {e["entry_id"]: e for e, _ in docs}),))

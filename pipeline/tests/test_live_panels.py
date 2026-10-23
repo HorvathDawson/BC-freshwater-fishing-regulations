@@ -104,14 +104,14 @@ def test_the_build_takes_no_roster_flag():
 
 
 def test_the_bundle_passes_the_panel_build_no_roster_flag():
-    """pipeline/deliver/bundle/build.py calls `build_panels(...)` with the water map, the water kinds (a stream
+    """pipeline/deliver/bundle/build.py calls `build_panels(...)` with the water map, the continuations (T76), the water kinds (a stream
     water's polygons take its answer — test_stream_polygon_panels.py), the measures and the published areas — and
     nothing derived from `realtime`."""
     src = Path(__file__).resolve().parents[1] / "deliver" / "bundle" / "build.py"
     calls = [c for c in ast.walk(ast.parse(src.read_text(encoding="utf-8")))
              if isinstance(c, ast.Call) and getattr(c.func, "id", None) == "build_panels"]
     assert len(calls) == 1
-    assert sorted(k.arg for k in calls[0].keywords) == ["kind_of", "measures", "published", "water_of"]
+    assert sorted(k.arg for k in calls[0].keywords) == ["continues", "kind_of", "measures", "published", "water_of"]
     assert "realtime" not in ast.unparse(calls[0])
 
 

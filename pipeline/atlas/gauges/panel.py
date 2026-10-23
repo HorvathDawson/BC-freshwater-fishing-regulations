@@ -302,7 +302,9 @@ def weight_of(share: float, role: str, years: int, same_river: bool = True) -> f
 # OWNER 2026-10-22 (handoff/PLAN/app-integration/decisions.md): "the pitt could use its own gauge" — "it can still use
 # auxiliary gauges but own gauge should be main (unless far from click) low magnitude compared to click spot."
 #
-# A water's OWN gauge is a station matched to that water (gauge.item_id is the section's water). It LEADS the answer:
+# A water's OWN gauge is a station matched to that water (gauge.item_id is the section's water) — or to a water it is
+# one system with across a `water_continue` link (T76, T81 Q8: the Chilliwack's 08MH001 is the Vedder's own; only that
+# link, `build_panels.own_distances`). It LEADS the answer:
 # it carries at least `OWN_LEAD_SHARE` of it and the other donors split the rest in their usual proportion. It stops
 # leading where it is FAR along the water from the tapped section, or drains MUCH LESS than it; there the usual
 # weighting applies. Never across quantities: the lead is chosen among the donors REPORTING the quantity asked for, so
