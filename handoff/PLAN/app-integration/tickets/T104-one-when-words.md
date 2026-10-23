@@ -1,6 +1,8 @@
 # T104 — One "when" in words: titles and plain lines drop hours and weekdays
 
-Status: OPEN.
+Status: DONE — e7dfba0a, 485dfdd4 (review: `DateRange.words` also calls `when_words`). Answers diff: 7 titles + 9
+plains (Campbell, Nicomekl, Serpentine, Harrison, Pitt, Slocan, Fraser above Mission title only (no plain: a gate);
+Lower West Arm r3 r4 r5 plains); card gate 0 problems. Rebuild: deliver. Left: owner questions below.
 
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, finding 2
 (CONFIRMED on `ui-rules-export.json` / `ui-rules-answers.json`).
@@ -33,3 +35,13 @@ Proof is a reviewed behaviour change. The answers diff lists every changed title
 The gate fails on a mutation that drops hours from `_title`.
 
 Rebuild: deliver. Depends: none. Size: M. Owner: no.
+
+## Owner questions
+
+- **Slocan reads "12:00 to 00:00"**; the book prints "12 pm to midnight". `when_words` could say "noon"/"midnight"
+  for 12:00/00:00 (changes the catalogue label too, so an export rebuild). Default: unchanged.
+- **`dates.When.words()` is still a second wording of a `when`** ("Saturdays and Sundays" without "on", hours before
+  weekdays, unparsed seasons without "as printed:"). Its only shipped surface is the licensing labels (2 live:
+  Atnarko/Bella Coola and Burnt Bridge "…, from reopening to steelhead fishing; the period is not printed").
+  Routing it through `when_words` would prefix those with "as printed:", which is wrong for a curated note.
+  Default: leave it until the licensing labels are reworked; then route it through `when_words` and pin it.

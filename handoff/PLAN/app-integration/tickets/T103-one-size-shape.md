@@ -1,6 +1,7 @@
 # T103 — One size shape: the plain words contradict the bands and the title
 
-Status: OPEN.
+Status: DONE — e7dfba0a. Answers diff: exactly 24 `plain` strings (Bennett 6, Morley/Tagish/Teslin 18),
+no `title`, no `bands`; card gate 0 problems. Rebuild: deliver. Left: owner question below.
 
 Source: owner 2026-10-22 ("look for other spots where this same trap of multiple things that should be checking the
 same thing failing to have a unified function … simplify by unifying the code checks and logic where possible");
@@ -31,3 +32,12 @@ Proof is a reviewed behaviour change: the answers diff changes exactly the 24 `p
 `bands`. The gate fails on a mutation that brings back the `_plain` pick; the pin fails on a re-inlined bounds read.
 
 Rebuild: deliver. Depends: none. Size: S. Owner: no.
+
+## Owner questions
+
+- **A no-keep slot reads "none over 60 cm (24 in), under 90 cm (35 in)"** (`band_words`, RULINGS P37) where the book
+  prints "none between 60 cm and 90 cm"; the comma can read as two clauses ("none over 60", "under 90"). The title has
+  the same words. Default: keep P37's words (no change); say "between" only on the owner's call.
+- **"Keep only lake trout, none over …"** (take-less size rule, 18 Morley/Tagish/Teslin plains) follows the existing
+  house style ("Keep only trout and char, none over 50 cm", 40+ plains) but can read as "only lake trout may be kept".
+  Default: unchanged.
