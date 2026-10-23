@@ -160,7 +160,8 @@ meanwhile unless marked BLOCKED).
    normaliser).
 4. **Cleanup waves, in order:** T70 → T61 → T62 → T63 (knip starts clean after T70). T72 after T56 settles the live
    release. T92, T94, T60, T99 fit anywhere in this band.
-5. **Tiles window (one tile build):** T64 + T85, then T75.
+5. **Tiles window (one tile build):** T64 + T85, then T75. T65 (determinism proof, heavy, background, alone) in a
+   quiet window between heavy jobs.
 6. **Native, after the cleanup:** T50 (alone, heavy) → T74 → T77 ★ (phone) → T86 ★ (R2, keys, name) → T88 ★.
 7. **Features / pipeline additions:** T54 (build with defaults), T52, T51, T68, T93 ★, T79 ★, T97 ★ (after the owner
    approves the plan), T100 ★ (rides a reach rerun).
