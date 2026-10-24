@@ -6,6 +6,12 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
+- **T162 run timing — PSF's terms forbid redistribution.** salmonwatersheds.ca/terms: personal non-commercial use only;
+  no copying, publishing, mirroring or redistributing (modified or not) without PSF's prior written permission. T162 is
+  stopped before any fetch. Ask PSF (info@salmonwatersheds.ca) for written permission to ship derived run timing in the
+  app, or pick another source. Also yours: the three Explorer pages under `data/source/runtiming/*.html` are tracked
+  in this PUBLIC repo — untrack/purge them or not. Details: the T162 ticket's Outcome.
+
 - **T67 braids — check every cut (phone-friendly):** https://claude.ai/artifact/Et8B4Z6ZbKNNw9mMkJWzFH
   29 proposed cuts (Right / Wrong / Unsure + note), 2 re-homed, 38 braids left alone, 45 dropped ditches, and two
   yes/no calls on the Questions tab (a gauge on a named side channel cutting its mainstem; a moved length cut changing

@@ -44,3 +44,37 @@ coloring layer)." Related: T95 / T132 (salmon regulations; the owner said 2026-1
 
 Depends: nothing blocking; heavy (generate needs the atlas) → one at a time via scripts/heavy.sh. Size: L.
 Rebuild: runtiming fetch + generate, release (new file), app.
+
+## Outcome (2026-10-24) — STOPPED at step 1: the terms forbid redistribution
+
+Nothing was fetched, regenerated, shipped or built. The brief was to record the dataset's licence first and stop if it
+forbids redistribution; it does.
+
+- **Dataset #90's record** (https://data.salmonwatersheds.ca/result?datasetid=90, read 2026-10-24): "Average Run Timing
+  of Salmon and Steelhead Conservation Units", Pacific Salmon Foundation / Salmon Watersheds Program, updated
+  2024-Sep-10, source file `dataset90_run_timing_2024-09-10.csv`. **No licence field, no DOI, no reuse grant.** So the
+  upstream data has not changed since the 2026-09-08 fetch.
+- **The Salmon Watersheds Program's Terms of Use** (https://salmonwatersheds.ca/terms/, which govern the site's
+  document/data library) say, verbatim: "we authorize you to view and download the information and materials … only
+  for your personal, non-commercial use … You may not copy, publish, post or mirror any Materials on any other server,
+  website or other platform", and "the Content may not be copied, modified, reproduced, republished, transmitted, sold,
+  offered for sale, or otherwise distributed without our prior written permission."
+- **The Pacific Salmon Explorer** (where `fetch/explorer.py` reads the curves and `fetch/boundaries.py` the CU tiles)
+  states no licence at all, only "© Pacific Salmon Foundation 2024" — all rights reserved by default.
+- A `runs/1` release file (cubes + run lists derived from the curves and CU polygons) served to every app user is
+  distribution of modified Content. Attribution alone does not make it allowed.
+
+**Also flagged:** `data/source/runtiming/{run-timing,catch-and-run-size,biological-status}.html` are TRACKED in a PUBLIC
+GitHub repo (`HorvathDawson/BC-freshwater-fishing-regulations`). That is a mirror of PSF Content on another platform —
+the owner's call whether to untrack them (`git rm --cached`, add to `data/.gitignore`) and purge them from history.
+
+**To unblock:** the owner asks PSF for written permission (info@salmonwatersheds.ca, 1-604-664-7664) to ship derived
+run-timing curves and CU-based reach assignments in a free app, with the attribution they want. With permission in hand,
+the Work section stands as written (Q144 defaults: steelhead first; spawning solid + passage dashed; its own layer), and
+the permission + attribution text get recorded in `data/source/runtiming/fetched.json` and `pipeline/runtiming/README.md`.
+Alternatives that need no permission: DFO's own open run-timing data (Open Government Licence – Canada) for the
+salmon species — a different source with different coverage (no steelhead: steelhead is provincial), so a new design
+pass, not a swap.
+
+**After T67 (braids) changes section ids:** whenever this ticket resumes, generate runs AFTER the braid atlas is
+promoted, never before — section ids are the join key.
