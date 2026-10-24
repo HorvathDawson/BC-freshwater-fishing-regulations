@@ -129,9 +129,13 @@ DITCHES_LEAVE_RIVER_ITEMS = True
 
 
 def is_ditch(n: StreamNode) -> bool:
-    """A 2300-only stream piece with no gnis of its own (`DITCHES_LEAVE_RIVER_ITEMS`)."""
+    """A 2300-only stream piece with no name of its own (`DITCHES_LEAVE_RIVER_ITEMS`): no gnis, and every
+    name it carries is inherited from its river (`NameSource.side_channel`). A 2300 line a curator or a
+    gauge named (the Quinsam Diversion, `name_variants.json`) is a water of its own and stays."""
     from pipeline.common.fwa_edge_types import is_manmade_secondary_only
-    return n.kind == NodeKind.stream and not n.gnis_id and is_manmade_secondary_only(n.edge_types)
+    if n.kind != NodeKind.stream or n.gnis_id or not is_manmade_secondary_only(n.edge_types):
+        return False
+    return all(t.source == NameSource.side_channel for t in n.name_tuples)
 
 
 def drop_ditches(groups: dict[str, list]) -> dict[str, list]:

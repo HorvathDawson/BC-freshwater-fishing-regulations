@@ -405,6 +405,10 @@ def _with_ditch():
     g.nodes["s1"] = replace(_node("s1", blk="S", wsc="100", name="River X",
                                   tuples=(NameTuple("River X", NameSource.side_channel, gnis_id="1"),)),
                             edge_types=("1100", "2300"))
+    # a 2300 line a curator named (the Quinsam Diversion, name_variants) is a water of its own
+    g.nodes["q1"] = replace(_node("q1", blk="Q", wsc="300", name="Q Diversion",
+                                  tuples=(NameTuple("Q Diversion", NameSource.override),)), edge_types=("2300",))
+    g.nodes["q2"] = replace(_node("q2", blk="Q2", wsc="300"), edge_types=("1000",))
     # a canal that IS its water (every piece 2300, gazetted) keeps its item
     g.nodes["c1"] = replace(_node("c1", blk="C", wsc="200", gnis="5", name="Y Canal"), edge_types=("2300",))
     return build_registry(g)
@@ -415,6 +419,7 @@ def test_a_2300_only_ditch_leaves_its_rivers_item():
     assert set(reg["gnis:1"].section_ids) == {"m1", "s1"}
     assert not any("d1" in it.section_ids for it in reg.values() if it.kind == "stream")
     assert set(reg["gnis:5"].section_ids) == {"c1"}
+    assert "q1" in reg["wsc:300"].section_ids               # a named diversion is not a ditch
 
 
 def test_mutation_ditches_kept_puts_the_ditch_back_in_the_river(monkeypatch):

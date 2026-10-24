@@ -54,7 +54,6 @@ from typing import Iterable, Optional
 
 from shapely.geometry import LineString, Point
 
-from pipeline.common.fwa_edge_types import is_manmade_secondary_only
 from pipeline.common.models import FlowEdge, NodeKind, SplitPoint, StreamGraph
 
 #: half the chord the cut line is square to (m): the "median tangent" averages ±100 m of the host
@@ -199,7 +198,8 @@ def water_key(view: View, nid: str) -> str:
     n = view.g.nodes[nid]
     if n.kind != NodeKind.stream:
         return f"wbk:{n.wbk}"
-    if not n.gnis_id and is_manmade_secondary_only(n.edge_types):
+    from pipeline.atlas.registry.build import is_ditch
+    if is_ditch(n):
         return f"ditch:{n.blk}"
     k = item_id(n, view.wsc_gnis)
     if not n.gnis_id and n.display_name:
