@@ -1,0 +1,376 @@
+{
+ "_doc": "T61 2.8 (audit F20): the effect of ONE name key (pipeline/common/names.py key) on every stage, measured by side builds (nothing promoted). Baseline = the same code with the pre-2.8 normaliser bodies patched back in (scratchpad atlas_oldkeys.py / reach_oldkeys.py / bundle_run.py --old), so the diff is 2.8 alone.",
+ "date": "2026-10-24",
+ "normalisers": [
+  {
+   "normaliser": "tiles/names.normalise (+ bundle alias dedupe, gauge/stocking/bathymetry match, lake_facts)",
+   "values": {
+    "St. Mary's River": "st mary s river",
+    "ST. MARY'S RIVER": "st mary s river",
+    "St Marys River": "st marys river",
+    "St. Mary’s River": "st mary s river",
+    "Saint Mary's River": "saint mary s river",
+    "Mt. Milligan Lake": "mt milligan lake",
+    "Barrière Lake": "barriere lake",
+    "Pend-d'Oreille River": "pend d oreille river",
+    "WOLF LAKE *": "wolf lake",
+    "Kwotlenemo (Fountain) Lake": "kwotlenemo fountain lake",
+    "Unnamed Boulder Cr.": "unnamed boulder cr"
+   },
+   "st_marys_distinct_keys": 2
+  },
+  {
+   "normaliser": "regs/matching/matcher._norm (+ dfo match name index)",
+   "values": {
+    "St. Mary's River": "st marys river",
+    "ST. MARY'S RIVER": "st marys river",
+    "St Marys River": "st marys river",
+    "St. Mary’s River": "st marys river",
+    "Saint Mary's River": "saint marys river",
+    "Mt. Milligan Lake": "mt milligan lake",
+    "Barrière Lake": "barriere lake",
+    "Pend-d'Oreille River": "pend doreille river",
+    "WOLF LAKE *": "wolf lake",
+    "Kwotlenemo (Fountain) Lake": "kwotlenemo lake",
+    "Unnamed Boulder Cr.": "unnamed boulder cr"
+   },
+   "st_marys_distinct_keys": 1
+  },
+  {
+   "normaliser": "regs/matching/matcher._norm_keep",
+   "values": {
+    "St. Mary's River": "st marys river",
+    "ST. MARY'S RIVER": "st marys river",
+    "St Marys River": "st marys river",
+    "St. Mary’s River": "st marys river",
+    "Saint Mary's River": "saint marys river",
+    "Mt. Milligan Lake": "mt milligan lake",
+    "Barrière Lake": "barriere lake",
+    "Pend-d'Oreille River": "pend doreille river",
+    "WOLF LAKE *": "wolf lake",
+    "Kwotlenemo (Fountain) Lake": "kwotlenemo fountain lake",
+    "Unnamed Boulder Cr.": "unnamed boulder cr"
+   },
+   "st_marys_distinct_keys": 1
+  },
+  {
+   "normaliser": "atlas/registry/build._norm_name",
+   "values": {
+    "St. Mary's River": "st. mary's river",
+    "ST. MARY'S RIVER": "st. mary's river",
+    "St Marys River": "st marys river",
+    "St. Mary’s River": "st. mary’s river",
+    "Saint Mary's River": "saint mary's river",
+    "Mt. Milligan Lake": "mt. milligan lake",
+    "Barrière Lake": "barrière lake",
+    "Pend-d'Oreille River": "pend-d'oreille river",
+    "WOLF LAKE *": "wolf lake *",
+    "Kwotlenemo (Fountain) Lake": "kwotlenemo (fountain) lake",
+    "Unnamed Boulder Cr.": "unnamed boulder cr."
+   },
+   "st_marys_distinct_keys": 3
+  },
+  {
+   "normaliser": "atlas/registry/flowing._norm",
+   "values": {
+    "St. Mary's River": "st. mary's river",
+    "ST. MARY'S RIVER": "st. mary's river",
+    "St Marys River": "st marys river",
+    "St. Mary’s River": "st. mary’s river",
+    "Saint Mary's River": "saint mary's river",
+    "Mt. Milligan Lake": "mt. milligan lake",
+    "Barrière Lake": "barrière lake",
+    "Pend-d'Oreille River": "pend-d'oreille river",
+    "WOLF LAKE *": "wolf lake *",
+    "Kwotlenemo (Fountain) Lake": "kwotlenemo (fountain) lake",
+    "Unnamed Boulder Cr.": "unnamed boulder cr."
+   },
+   "st_marys_distinct_keys": 3
+  },
+  {
+   "normaliser": "atlas/reach/steelhead._norm",
+   "values": {
+    "St. Mary's River": "st. mary's river",
+    "ST. MARY'S RIVER": "st. mary's river",
+    "St Marys River": "st marys river",
+    "St. Mary’s River": "st. mary’s river",
+    "Saint Mary's River": "saint mary's river",
+    "Mt. Milligan Lake": "mt. milligan lake",
+    "Barrière Lake": "barrière lake",
+    "Pend-d'Oreille River": "pend-d'oreille river",
+    "WOLF LAKE *": "wolf lake *",
+    "Kwotlenemo (Fountain) Lake": "kwotlenemo (fountain) lake",
+    "Unnamed Boulder Cr.": "unnamed boulder cr."
+   },
+   "st_marys_distinct_keys": 3
+  },
+  {
+   "normaliser": "regs/dfo_salmon/locations.normalize (was ALSO the dfo match lookup key)",
+   "values": {
+    "St. Mary's River": "st mary s river",
+    "ST. MARY'S RIVER": "st mary s river",
+    "St Marys River": "st marys river",
+    "St. Mary’s River": "st mary s river",
+    "Saint Mary's River": "saint mary s river",
+    "Mt. Milligan Lake": "mt milligan lake",
+    "Barrière Lake": "barri re lake",
+    "Pend-d'Oreille River": "pend d oreille river",
+    "WOLF LAKE *": "wolf lake",
+    "Kwotlenemo (Fountain) Lake": "kwotlenemo fountain lake",
+    "Unnamed Boulder Cr.": "unnamed boulder creek"
+   },
+   "st_marys_distinct_keys": 2
+  },
+  {
+   "normaliser": "regs/dfo_salmon/splitwork._norm",
+   "values": {
+    "St. Mary's River": "st mary s river",
+    "ST. MARY'S RIVER": "st mary s river",
+    "St Marys River": "st marys river",
+    "St. Mary’s River": "st mary s river",
+    "Saint Mary's River": "saint mary s river",
+    "Mt. Milligan Lake": "mt milligan lake",
+    "Barrière Lake": "barri re lake",
+    "Pend-d'Oreille River": "pend d oreille river",
+    "WOLF LAKE *": "wolf lake",
+    "Kwotlenemo (Fountain) Lake": "kwotlenemo fountain lake",
+    "Unnamed Boulder Cr.": "unnamed boulder cr"
+   },
+   "st_marys_distinct_keys": 2
+  },
+  {
+   "normaliser": "reach/build + graph/tributaries cut-label joiner compare",
+   "values": {
+    "St. Mary's River": "st. mary's river",
+    "ST. MARY'S RIVER": "st. mary's river",
+    "St Marys River": "st marys river",
+    "St. Mary’s River": "st. mary’s river",
+    "Saint Mary's River": "saint mary's river",
+    "Mt. Milligan Lake": "mt. milligan lake",
+    "Barrière Lake": "barrière lake",
+    "Pend-d'Oreille River": "pend-d'oreille river",
+    "WOLF LAKE *": "wolf lake *",
+    "Kwotlenemo (Fountain) Lake": "kwotlenemo (fountain) lake",
+    "Unnamed Boulder Cr.": "unnamed boulder cr."
+   },
+   "st_marys_distinct_keys": 3
+  },
+  {
+   "normaliser": "deliver/bundle/spans own-name compare",
+   "values": {
+    "St. Mary's River": "st. mary's river",
+    "ST. MARY'S RIVER": "st. mary's river",
+    "St Marys River": "st marys river",
+    "St. Mary’s River": "st. mary’s river",
+    "Saint Mary's River": "saint mary's river",
+    "Mt. Milligan Lake": "mt. milligan lake",
+    "Barrière Lake": "barrière lake",
+    "Pend-d'Oreille River": "pend-d'oreille river",
+    "WOLF LAKE *": "wolf lake *",
+    "Kwotlenemo (Fountain) Lake": "kwotlenemo (fountain) lake",
+    "Unnamed Boulder Cr.": "unnamed boulder cr."
+   },
+   "st_marys_distinct_keys": 3
+  },
+  {
+   "normaliser": "added_streams _canon/_canon_name/canon/nm",
+   "values": {
+    "St. Mary's River": "stmarysriver",
+    "ST. MARY'S RIVER": "stmarysriver",
+    "St Marys River": "stmarysriver",
+    "St. Mary’s River": "stmarysriver",
+    "Saint Mary's River": "saintmarysriver",
+    "Mt. Milligan Lake": "mtmilliganlake",
+    "Barrière Lake": "barrirelake",
+    "Pend-d'Oreille River": "penddoreilleriver",
+    "WOLF LAKE *": "wolflake",
+    "Kwotlenemo (Fountain) Lake": "kwotlenemofountainlake",
+    "Unnamed Boulder Cr.": "unnamedbouldercr"
+   },
+   "st_marys_distinct_keys": 1
+  },
+  {
+   "normaliser": "added_streams/fwa_match._norm",
+   "values": {
+    "St. Mary's River": "st. mary's river",
+    "ST. MARY'S RIVER": "st. mary's river",
+    "St Marys River": "st marys river",
+    "St. Mary’s River": "st. mary’s river",
+    "Saint Mary's River": "saint mary's river",
+    "Mt. Milligan Lake": "mt. milligan lake",
+    "Barrière Lake": "barrière lake",
+    "Pend-d'Oreille River": "pend-d'oreille river",
+    "WOLF LAKE *": "wolf lake *",
+    "Kwotlenemo (Fountain) Lake": "kwotlenemo (fountain) lake",
+    "Unnamed Boulder Cr.": "unnamed boulder cr."
+   },
+   "st_marys_distinct_keys": 3
+  },
+  {
+   "normaliser": "common/search_key.search_key (app, T114) — unchanged",
+   "values": {
+    "St. Mary's River": "st. marys river",
+    "ST. MARY'S RIVER": "st. marys river",
+    "St Marys River": "st marys river",
+    "St. Mary’s River": "st. marys river",
+    "Saint Mary's River": "saint marys river",
+    "Mt. Milligan Lake": "mt. milligan lake",
+    "Barrière Lake": "barriere lake",
+    "Pend-d'Oreille River": "pend-doreille river",
+    "WOLF LAKE *": "wolf lake *",
+    "Kwotlenemo (Fountain) Lake": "kwotlenemo (fountain) lake",
+    "Unnamed Boulder Cr.": "unnamed boulder cr."
+   },
+   "st_marys_distinct_keys": 2
+  },
+  {
+   "normaliser": "common/names.key (NEW, the one key)",
+   "values": {
+    "St. Mary's River": "st marys river",
+    "ST. MARY'S RIVER": "st marys river",
+    "St Marys River": "st marys river",
+    "St. Mary’s River": "st marys river",
+    "Saint Mary's River": "saint marys river",
+    "Mt. Milligan Lake": "mt milligan lake",
+    "Barrière Lake": "barriere lake",
+    "Pend-d'Oreille River": "pend doreille river",
+    "WOLF LAKE *": "wolf lake",
+    "Kwotlenemo (Fountain) Lake": "kwotlenemo fountain lake",
+    "Unnamed Boulder Cr.": "unnamed boulder cr"
+   },
+   "st_marys_distinct_keys": 1
+  },
+  {
+   "normaliser": "common/names.compact_key (NEW)",
+   "values": {
+    "St. Mary's River": "stmarysriver",
+    "ST. MARY'S RIVER": "stmarysriver",
+    "St Marys River": "stmarysriver",
+    "St. Mary’s River": "stmarysriver",
+    "Saint Mary's River": "saintmarysriver",
+    "Mt. Milligan Lake": "mtmilliganlake",
+    "Barrière Lake": "barrierelake",
+    "Pend-d'Oreille River": "penddoreilleriver",
+    "WOLF LAKE *": "wolflake",
+    "Kwotlenemo (Fountain) Lake": "kwotlenemofountainlake",
+    "Unnamed Boulder Cr.": "unnamedbouldercr"
+   },
+   "st_marys_distinct_keys": 1
+  }
+ ],
+ "st_marys_river": {
+  "old_distinct_keys": 4,
+  "old_keys": [
+   "st mary s river",
+   "st marys river",
+   "st. mary's river",
+   "stmarysriver"
+  ],
+  "new_key": "st marys river",
+  "app_search_key_unchanged": "st. marys river"
+ },
+ "atlas": {
+  "runs": [
+   "data/generated/atlas/names (new code)",
+   "data/generated/atlas/names_base (old bodies patched)"
+  ],
+  "graph": "identical: 1,957,196 nodes and 1,557,783 edges, every node/edge/adjacency pickled equal",
+  "registry.json": "byte-identical (21,261 items; flowing fold 116 items into 83 streams + 6 own, both runs)",
+  "section_handles.txt": "byte-identical",
+  "geometries.pkl": "byte-identical",
+  "sidecars": "item_points, merge_report, region_home, split_anchors, splits.resolved, waterbody_polys, gauge_matches: byte-identical",
+  "differs_only": "graph.pkl bytes (pickle layout; content equal), *.meta.json build_ts, summary.txt timings, area_catalog.gpkg (gpkg timestamps)",
+  "changed_items": 0
+ },
+ "reach": {
+  "runs": [
+   "data/generated/scratch/names28/reach_new",
+   "data/generated/scratch/names28/reach_base"
+  ],
+  "digest": {
+   "new": "a7224300598f3a50",
+   "base": "a7224300598f3a50"
+  },
+  "binding_diff": "no binding changed (rule_section 183,284,159 rows, licensing_section 1,038,221, rule_unresolved 26)",
+  "files": "every jsonl byte-identical; report.json differs only in `seconds` and `build`",
+  "rule_bindings_changed": 0,
+  "licensing_changed": 0,
+  "steelhead_presence_changed": 0
+ },
+ "bundle": {
+  "runs": [
+   "data/generated/scratch/names28/bundle_new.sqlite",
+   "data/generated/scratch/names28/bundle_base.sqlite"
+  ],
+  "inputs": "both from data/generated/atlas/full + data/generated/reaches/full (the live pair), so only deliver code differs",
+  "tables": 64,
+  "tables_differing": [
+   "alias"
+  ],
+  "gauge_tables": "identical (section_gauge, panels and every gauge table: no gauge binding moved)",
+  "cut_labels_spans": "identical (spans.py own-name compares changed nothing)",
+  "alias": {
+   "base_only": [
+    "('wbk:329060781', 'Bobbs', None)",
+    "('wbk:329370967', \"JOE'S LAKE\", 'joes lake')",
+    "('wbk:329537267', 'TSEKET LAKE', None)"
+   ],
+   "new_only": [],
+   "n_base_only": 3,
+   "n_new_only": 0,
+   "rows_base": 2913,
+   "rows_new": 2910
+  }
+ },
+ "changes": [
+  {
+   "table": "alias",
+   "change": "row dropped",
+   "item_id": "wbk:329060781",
+   "item_name": "Bobbs Lake",
+   "alias": "Bobbs",
+   "before_key": "bobbs (tiles.normalise of 'Bobbs') vs 'bobb s' (of the kept alias BOBB'S)",
+   "after_key": "bobbs == key(\"BOBB'S\")",
+   "classification": "explained",
+   "why": "the same name spelled with and without the apostrophe now keys once; BOBB'S stays (same app search key 'bobbs'), search loses nothing"
+  },
+  {
+   "table": "alias",
+   "change": "row dropped",
+   "item_id": "wbk:329370967",
+   "item_name": "Joes Lake",
+   "alias": "JOE'S LAKE",
+   "before_key": "joe s lake (alias) vs joes lake (name)",
+   "after_key": "joes lake == joes lake",
+   "classification": "explained",
+   "why": "the alias is the item's own name with an apostrophe; app search key of both is 'joes lake', search loses nothing"
+  },
+  {
+   "table": "alias",
+   "change": "row dropped",
+   "item_id": "wbk:329537267",
+   "item_name": "Ts'Eket Lake",
+   "alias": "TSEKET LAKE",
+   "before_key": "tseket lake (alias) vs ts eket lake (name)",
+   "after_key": "tseket lake == tseket lake",
+   "classification": "explained",
+   "why": "the alias is the item's own name without the apostrophe; app search key of both is 'tseket lake'"
+  }
+ ],
+ "counts": {
+  "explained": 3,
+  "unexplained": 0,
+  "rule_bindings": 0,
+  "gauge_bindings": 0,
+  "registry_items": 0
+ },
+ "not_built_here (generators; take effect only on their next regeneration, none run — AGENTS 38)": {
+  "gauges/generate/match.py": "4 HYDAT station keys change (08LB023 EDWARDS CREEK (LYON'S DIVERSION), 08NE119 PEND D'OREILLE RIVER, 08NJ121 O'SHEA CREEK, 08NN009 DAN O'REA CREEK); the 3 curated ones are name+radius matches whose FWA name keys the same way under both functions",
+  "stocking/generate, bathymetry/generate": "use tiles.normalise; not regenerated",
+  "added_streams generator (fwa_match, dem, build_dataset nm)": "all 672 municipal/added-stream names key identically under compact_key; fwa_match now ignores apostrophes/punctuation between a municipal and an FWA name",
+  "lake_facts": "PREPARED, NOT FED: nothing produces a lakes file",
+  "dfo_salmon/match": "proposals for every DFO water identical (status, item_ids, suggestions); worklist finds Squamish River's curated split (0 -> 1)",
+  "regs/matching/matcher": "identical values on all 21,509 registry/catalogue/override/DFO names"
+ },
+ "live_comparison_note": "data/generated/atlas/full was built 2026-10-10; a side atlas of today's code has other section handles and registry bytes for reasons that predate 2.8, so a side-vs-live diff would be all drift. The 2.8 effect is the base-vs-new diff above, which subtracts it."
+}

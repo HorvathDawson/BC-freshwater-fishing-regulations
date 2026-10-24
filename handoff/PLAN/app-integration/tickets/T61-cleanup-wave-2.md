@@ -151,3 +151,32 @@ Rebuilt on the merged tree: release r-d6ef0ca7eab4, binding diff "no binding cha
 merge: 9f66867 (provinceStoreOf import), 0ad1a84 (deliver promotes only r-* + writes LATEST), c8fdbee + 2633355 (stale
 tests after T153/T161, style hash). Strict `pnpm -C app check` green: 362 files / 8162 tests. Full pipeline suite: 5343
 passed; the 4 synopsis_pages errors are order-dependent (pass alone) → T63.
+
+## Outcome (2.8)
+
+2026-10-24, commits bb22f3eb..2260322e (15). ONE name key: `pipeline/common/names.py` `key()` (NFKD accent fold, casefold,
+apostrophes DELETED, every other non-letter/digit run one space; St./Saint, Mt./Mount, Cr./Creek NOT folded — measured: no
+registry pair), plus `compact_key` (no spaces, the added-streams compare) and `drop_notes` (the matcher's "(...)" strip).
+Pinned by `pipeline/tests/test_name_key.py`: a whole-value table, one mutation pin per step, "the app search key is finer"
+(equal `search_key` => equal `key`), and every caller answering with it.
+
+- **Pointed at it:** matcher `_norm`/`_norm_keep` (identical on all 21,509 names), registry `build._norm_name`, `flowing._norm`,
+  `reach/steelhead._norm`, reach cut-label joiners (`reach/build`, `graph/tributaries.confluence_joiners`), `tiles/names.normalise`
+  (so the bundle alias dedupe, lake_facts and the gauge/stocking/bathymetry matchers), bundle `spans` own-name compares,
+  `place_names._which_water` (identical), DFO `match` (its name-index lookups used `locations.normalize`, which keyed 364
+  registry names differently from the index; proposals now identical, worklist finds Squamish's split) and `splitwork`,
+  added-streams `_canon`/`_canon_name`/`canon`/`nm` (compact_key; identical on all 672 names) and `fwa_match`.
+- **Kept, named as other questions:** `search_key` (the app's, T114 — finer; 14 punctuation-only variants are a pre-existing
+  search gap, noted in the diff), `tiles.display`, id slugs (`area_catalog.area_id`, `registry/build._slug`,
+  `dfo entries._slugify`), DFO locator fingerprints (`locations.normalize`), text cleaners. Left: `graph/prune._has_own_name`
+  (braid lane T67; would move the graph).
+- **Effect (side builds, base = same code with the old bodies patched back):** atlas — graph, registry.json, section_handles,
+  geometries, sidecars all identical; reach — digest a7224300598f3a50 both, `binding_diff` "no binding changed"; bundle —
+  64 tables, only `alias` −3 rows (Bobbs, JOE'S LAKE, TSEKET LAKE: each equal to a kept row under the app search key too).
+  **3 explained, 0 unexplained**, 0 rule / gauge bindings. `handoff/PLAN/audit/names-2.8-diff.{md,json}`.
+- **Promotion:** no atlas, reach or tiles rebuild (handles + registry hash unchanged → the tiles–bundle vintage holds). The
+  next ordinary `python -m pipeline.deliver all` (or `python -m pipeline build --no-tiles`) drops the 3 aliases. Generators
+  (gauge match: 4 station keys; stocking/bathymetry; added-streams) take effect only at their next regeneration — not run.
+- **Also:** bb22f3eb overwrote `pipeline/tests/test_names.py` (name-tuple tests) by mistake; 9df3d2f0 restores it verbatim.
+  Seen failing, not touched: test_dfo_salmon ×3 (need `cache/dfo_salmon`, fail at base too), test_release
+  `test_every_cores_effective_key_is_the_search_key` (missing `needs_bundle` marker).
