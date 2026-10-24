@@ -30,7 +30,6 @@ const DRAWING = ["apps/mobile/src", "packages/ui-native/src"] as const;
 const NOT_SCREENS: Record<string, string> = {
   "packages/ui-native/src/icons.tsx": "the icon table: Lucide path data, copied verbatim (one-icon-set.test.ts owns it)",
   "packages/ui-native/src/fish-sprite.generated.ts": "generated sprite frames",
-  "packages/ui-native/src/ConditionsLayout.before.ts": "a fixture of the OLD panel's lines, kept for the layout test's before/after",
 };
 const components = () => files(DRAWING).filter((f) => /\.tsx$/.test(f) && !(f in NOT_SCREENS) && !/\/testing\//.test(f));
 

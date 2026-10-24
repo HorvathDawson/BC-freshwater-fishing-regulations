@@ -6,10 +6,9 @@
  *
  *   1. THE ORDER: horizon control (the panel header) → headline → the lead gauge's reading
  *      → the chart → the donor list → one fold holding the explanations, closed.
- *   2. THE SAME WORDS: every line of text the panel drew before P16 is still drawn after it
- *      (with the fold opened). `ConditionsLayout.before.ts` was RECORDED from the pre-P16
- *      panel against these fixtures (`P16_RECORD=1`), not written by hand — so it cannot
- *      agree with the new layout by construction. A dropped sentence fails here.
+ *   2. THE SAME WORDS: every line of text the panel draws (with the fold opened) is named
+ *      below, whole, per scene — the set P16 kept from the panel before it (once a recorded
+ *      snapshot, T62 3.10: now asserted directly). A dropped sentence fails here.
  *
  * Whole strings only (AGENTS 33): each recorded line is matched as an entire text node.
  */
@@ -21,7 +20,6 @@ import type { Panel, RegsSource, SectionId } from "@app/data";
 import { makeFixtureSource } from "@app/data/fixture";
 import { clearPanelCache } from "@app/ui";
 import { ConditionsPanel } from "./ConditionsPanel";
-import { BEFORE_P16 } from "./ConditionsLayout.before";
 import { LIGHT } from "./theme";
 
 afterEach(cleanup);
@@ -71,9 +69,9 @@ const CREDITS = ["Hydrometric data: Environment and Climate Change Canada",
                  "Forecast data provided by the BC River Forecast Centre"];
 
 /**
- * A third scene, NOT in the record: the lead gauge with a forecast running, so the chart
- * carries the Centre's disclaimer. The record's scenes have no series (the chart says so),
- * and adding one there would change what they drew before.
+ * A third scene, NOT in `SAYS`: the lead gauge with a forecast running, so the chart
+ * carries the Centre's disclaimer. The other scenes have no series (the chart says so),
+ * and adding one there would change what they draw.
  */
 const FIXTURE = makeFixtureSource();
 const forecasting = () => ({
@@ -88,8 +86,6 @@ const SCENES = {
   forecast: forecasting,
 } as const;
 type Scene = keyof typeof SCENES;
-/** The scenes the pre-P16 record was made from. */
-const RECORDED = ["estimate", "none"] as const;
 
 async function draw(scene: Scene) {
   const onHorizon = vi.fn();
@@ -123,59 +119,86 @@ const precedes = (a: Element, b: Element) =>
 
 
 /**
- * THE ONE DECLARED FORMAT CHANGE (P16 item 5): a time the record printed in UTC is now said
- * in the reader's clock with its zone named. The record stays verbatim; this re-says each of
- * its UTC stamps through core's `localStamp` — the same instant, so the same fact.
- */
-const UTC_STAMP = /(\d{4}-\d\d-\d\d) (\d\d:\d\d) UTC/g;
-const retime = (l: string) =>
-  l.replace(UTC_STAMP, (_m, d: string, t: string) => localStamp(Date.parse(`${d}T${t}:00Z`)));
-
-/**
- * THE ONE DECLARED REMOVAL (owner 2026-10-22, "yes they should be hidden but mentioned with a last data time"): QUIET
- * is silent, so its row is no longer drawn — these four lines were that row — and one line names it instead.
+ * WHAT THE PANEL SAYS, per scene, with the fold open: every line, whole (AGENTS 33). The reading's time is said in the
+ * reader's clock with its zone named (P16 item 5, core's `localStamp`). A silent donor (QUIET) draws no row; one line
+ * names it instead (owner 2026-10-22, "yes they should be hidden but mentioned with a last data time").
  */
 const SILENT_ROW = ["Quiet River", "not counted today", "Not reporting today.",
                     "upstream · drains 300 km² · 6.0× apart · on this reach"];
 const SILENT_LINE = "Not reporting: Quiet River (last report not known)";
+const SAYS: Readonly<Record<"estimate" | "none", readonly string[]>> = {
+  estimate: [
+    "ESTIMATE FOR THIS SPOT",
+    "About normal for the time of year",
+    "Lower than 7 days in 10 at this time of year — fairly confident, from 2 gauges nearby.",
+    "3rd–49th percentile for early September · this spot drains 50 km²",
+    "Now",
+    "+1d",
+    "+3d",
+    "+5d",
+    "TAP A GAUGE TO SEE ITS CHART",
+    "LEAD",
+    "Lead Creek near Town",
+    "80% of this estimate",
+    "Reads lower than 8 days in 10 at this time of year.",
+    "upstream · drains 60 km² · same size · on this reach",
+    "Counts this much because it drains almost exactly the same country.",
+    "DAM",
+    "Dam Creek below the Dam",
+    "20% of this estimate",
+    "Reads higher than 8 days in 10 at this time of year.",
+    "downstream · drains 55 km² · same size · dam-controlled · on this reach",
+    "Counts this much because it drains almost exactly the same country; it sits downstream, so it carries extra water; it has only 6 years of record, so it counts 30%.",
+    "QUIET",
+    "This water is controlled by a dam. The reading is real, but it follows a release schedule as much as the weather — a low river here can mean the gate is shut rather than that the country is dry.",
+    "These gauges disagree by 46 points. That is a catchment doing more than one thing, and the range above is the honest answer rather than their average.",
+    "No gauge sits exactly here, so the reading is carried from the nearest ones. A gauge counts for more when it drains a piece of country the same size as this one, when it sits upstream, and when it has a long record. The percentage beside each is how much of the answer above came from it.",
+    "AT LEAD CREEK NEAR TOWN",
+    "12.5",
+    "m³/s",
+    "1.2 m stage",
+    "BELOW NORMAL — 15th percentile for the date",
+    `This gauge's own reading · observed ${localStamp(Date.parse("2026-09-04T06:00:00Z"))} · checked 5 min ago`,
+    "Flow",
+    "Level",
+    "Last 72 hours",
+    "This year",
+    "This station published no recent readings.",
+    "SOURCES",
+    "Hydrometric data: Environment and Climate Change Canada",
+    "Forecast data provided by the BC River Forecast Centre",
+    SILENT_LINE,
+  ],
+  none: [
+    "NO ESTIMATE",
+    "No gauge on this water is close enough in size to speak for it.",
+    "No gauge is entitled to speak for this water. A station draining a far larger watershed would have given a number, and the number would have been wrong.",
+    "SOURCES",
+    "Hydrometric data: Environment and Climate Change Canada",
+    "Forecast data provided by the BC River Forecast Centre",
+  ],
+};
 
 describe("P16: the same content", () => {
-  // RECORD MODE ran once, on the pre-P16 panel; it is left here so the record can be
-  // re-made from a checkout of that commit (`P16_RECORD=1 pnpm -C app test ConditionsLayout`).
-  it.runIf(process.env.P16_RECORD === "1")("records the pre-P16 text set", async () => {
-    const rec: Record<string, string[]> = {};
-    for (const s of RECORDED) {
-      await draw(s); rec[s] = [...new Set(lines())]; cleanup(); clearPanelCache();
-    }
-    // Printed, not written: ui-native may not touch the filesystem (layers.json).
-    console.log(JSON.stringify(rec, null, 2));
-  });
-
-  for (const s of RECORDED) {
-    it.skipIf(process.env.P16_RECORD === "1")(
-      `every line drawn before P16 is still drawn (${s})`, async () => {
-        const before = BEFORE_P16[s].map(retime);
-        // NOT EMPTY, or the guard passes vacuously.
-        expect(before.length).toBeGreaterThan(s === "estimate" ? 30 : 3);
-        await draw(s);
-        openFold();
-        const after = new Set(lines());
-        // Whole: exactly the silent member's row is gone, and the line naming it is there instead.
-        expect(before.filter((l) => !after.has(l))).toEqual(s === "estimate" ? SILENT_ROW : []);
-        expect(after.has(SILENT_LINE)).toBe(s === "estimate");
-      });
+  for (const s of ["estimate", "none"] as const) {
+    it(`draws every line, whole (${s})`, async () => {
+      await draw(s);
+      openFold();
+      const drawn = new Set(lines());
+      expect(SAYS[s].filter((l) => !drawn.has(l))).toEqual([]);
+      // the silent donor's row is not drawn
+      expect(SILENT_ROW.filter((l) => drawn.has(l))).toEqual([]);
+    });
   }
 
-  it.skipIf(process.env.P16_RECORD === "1")(
-    "is not vacuous: with the fold shut it reports the small print missing", async () => {
-      // MUTATION PIN. The guard opens the fold; skip that and the explainer and the credits
-      // must be reported missing — so a layout that dropped them could not pass.
-      const recorded = BEFORE_P16.estimate;
-      await draw("estimate");
-      const shut = new Set(lines());
-      expect(recorded.filter((l) => !shut.has(l))).toEqual(expect.arrayContaining([
-        CONDITIONS_WORDS.explainer, "SOURCES", CREDITS[0]]));
-    });
+  it("is not vacuous: with the fold shut it reports the small print missing", async () => {
+    // MUTATION PIN. The guard opens the fold; skip that and the explainer and the credits
+    // must be reported missing — so a layout that dropped them could not pass.
+    await draw("estimate");
+    const shut = new Set(lines());
+    expect(SAYS.estimate.filter((l) => !shut.has(l))).toEqual(expect.arrayContaining([
+      CONDITIONS_WORDS.explainer, "SOURCES", CREDITS[0]]));
+  });
 });
 
 describe("P16: one reading order", () => {
@@ -229,15 +252,6 @@ describe("P16: one reading order", () => {
     expect(precedes(disclaimer, screen.getByRole("button", { name: CONDITIONS_WORDS.fold }))).toBe(true);
   });
 
-  it("re-says only the record's UTC times, and each as the same instant", () => {
-    // The declared change touches the time lines and nothing else …
-    const changed = BEFORE_P16.estimate.filter((l) => retime(l) !== l);
-    expect(changed).toEqual(["This gauge's own reading · observed 2026-09-04 06:00 UTC · "
-                             + "checked 5 min ago"]);
-    // … and prints no UTC of its own unless the reader's zone is UTC.
-    expect(retime(changed[0]!)).toBe("This gauge's own reading · observed "
-      + `${localStamp(Date.parse("2026-09-04T06:00:00Z"))} · checked 5 min ago`);
-  });
 
   // ONE SET OF CHIPS IN THE PANEL. The owner's rule (2026-10-20) is not "exactly one control
   // in the app": the Conditions map has its own in the corner (MapScreen.test.tsx), the panel
