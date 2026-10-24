@@ -14,7 +14,7 @@
  */
 import { Text, View } from "react-native";
 import { CONDITIONS_WORDS, distanceWord, hereMapLabel, onTheReach, reachCount, routeCamera,
-         shareWord, traceSentence, tracePath, trustWord,
+         shareWord, traceSentence, tracePath, trustWord, TRACE_WORDS,
          type AnyTrace as Trace } from "@app/core";
 import type { TileEndpoints } from "@app/map";
 import { MiniMap } from "./MiniMap";
@@ -22,7 +22,9 @@ import { DotGlyph, HereGlyph } from "./DonorMap";
 import { TYPE } from "./type";
 import { SPACE, type Palette } from "./theme";
 
-export function GaugeTrace({ trace, palette, title = "How this spot reaches the gauge",
+const W = TRACE_WORDS;
+
+export function GaugeTrace({ trace, palette, title = TRACE_WORDS.title,
                              at, theme, from }:
   { trace: Trace; palette: Palette; title?: string;
     /** Where the person actually is — the tapped point, or a saved spot's coordinate. */
@@ -42,11 +44,11 @@ export function GaugeTrace({ trace, palette, title = "How this spot reaches the 
   // case simply has more to work with.
   const camera = routeCamera(trace, from ?? null);
   const facts: [string, string | null][] = [
-    ["distance", onTheReach(trace) ? "on the reach" : distanceWord(trace.metres)],
-    ["this reach", trace.reachMagnitude === null ? null : `magnitude ${trace.reachMagnitude}`],
-    ["at the gauge", trace.gaugeMagnitude === null ? null : `magnitude ${trace.gaugeMagnitude}`],
-    ["share", shareWord(trace)],
-    ["so it shows", trace.trust === null ? null : trustWord(trace.trust)],
+    [W.label.distance, onTheReach(trace) ? W.onTheReach : distanceWord(trace.metres)],
+    [W.label.reach, trace.reachMagnitude === null ? null : W.magnitude(trace.reachMagnitude)],
+    [W.label.gauge, trace.gaugeMagnitude === null ? null : W.magnitude(trace.gaugeMagnitude)],
+    [W.label.share, shareWord(trace)],
+    [W.label.trust, trace.trust === null ? null : trustWord(trace.trust)],
   ];
 
   return (
@@ -113,7 +115,7 @@ export function GaugeTrace({ trace, palette, title = "How this spot reaches the 
               <HereGlyph fill={palette.accent} edge={palette.card} />
             </Dot>
           )}
-          <Dot palette={palette} label="the gauge">
+          <Dot palette={palette} label={W.gaugeDot}>
             <DotGlyph tone={palette.live} edge={palette.card} />
           </Dot>
         </View>
@@ -132,7 +134,7 @@ export function GaugeTrace({ trace, palette, title = "How this spot reaches the 
             <Text style={{ ...TYPE.figure,
                            color: value === null ? palette.faint : palette.sub,
                            textAlign: "right", flexShrink: 1 }}>
-              {value ?? "not known"}
+              {value ?? W.notKnown}
             </Text>
           </View>
         ))}

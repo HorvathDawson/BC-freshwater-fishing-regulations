@@ -103,14 +103,6 @@ export function literals(source: string): [kind: "copy" | "figure", text: string
  * ticket T60-copy (move to core words). Deleting a line is the only intended change; a new string belongs in core.
  */
 const KNOWN_COPY: Record<string, readonly string[]> = {
-  // the legend ramp's screen-reader sentence, built from parts
-  "packages/ui-native/src/Chrome.tsx": ["near the 〈〉 percentile", "〈〉: colours from 〈〉 to", "〈〉; 〈〉 is the middle half of past years"],
-  "packages/ui-native/src/GaugeTrace.tsx": ["How this spot reaches the gauge", "at the gauge", "not known", "on the reach", "so it shows", "the gauge", "this reach"],
-  "packages/ui-native/src/Hydrograph.tsx": [
-    "No envelope: this station's record is too short to say what is normal here.", "Past TODAY is a model forecast, not a reading.",
-    "River flow against its normal range", "Shaded is the middle half of everything this station has recorded for these", "Values in 〈〉.",
-    "days; the dashed line is the median.",
-  ],
   "packages/ui-native/src/SpotCapture.tsx": [
     "Back", "Cancel", "Earlier day", "Earlier hour", "Later day", "Later hour", "Next", "Now the exact spot", "Pick the water",
     "Reading the water", "Tap the point on 〈〉.", "Tap the stream or lake your spot is on.", "When were you there?",

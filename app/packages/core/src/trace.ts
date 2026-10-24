@@ -233,6 +233,19 @@ export function shareWord(t: AnyTrace): string | null {
 }
 
 /**
+ * (T180) THE TRACE PANEL'S WORDS (`GaugeTrace`): its title, each fact's label and the words its values are said in, the
+ * route map's gauge dot, and what a missing value reads — said, never left empty ("0 %" is a claim; "not known" is not).
+ */
+export const TRACE_WORDS = {
+  title: "How this spot reaches the gauge",
+  label: { distance: "distance", reach: "this reach", gauge: "at the gauge", share: "share", trust: "so it shows" },
+  onTheReach: "on the reach",
+  magnitude: (m: number) => `magnitude ${m}`,
+  gaugeDot: "the gauge",
+  notKnown: "not known",
+} as const;
+
+/**
  * The one-line explanation under the panel.
  *
  * Says what is true, including when that is "we cannot tell you" — the sentence a person

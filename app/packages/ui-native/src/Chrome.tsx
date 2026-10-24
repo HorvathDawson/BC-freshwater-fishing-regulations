@@ -4,7 +4,7 @@
  * Separated from the screens because all four tabs use the same shapes, and because the
  * map itself must never be asked to draw UI — everything here sits above it.
  */
-import { legendCount, legendTickLabel, percentileOrdinal, standing } from "@app/core";
+import { FLOW_LEGEND, legendCount, legendTickLabel, percentileOrdinal, standing } from "@app/core";
 import { ScrollView, Text, View } from "react-native";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 import { TYPE } from "./type";
@@ -184,14 +184,13 @@ export function LegendRamp({ palette, stops, title, low, high, marks, mid, band 
         {counts.map((c, i) => c === 0 ? null : (
           <View key={i}
                 accessibilityLabel={legendTickLabel(c, markWords ? markWords((i + 0.5) / BINS)
-                                                    : `near the ${percentileOrdinal((i + 0.5) / BINS)} percentile`)}
+                                                    : FLOW_LEGEND.near(percentileOrdinal((i + 0.5) / BINS)))}
                 style={{ position: "absolute", bottom: BAR, left: pct(i / BINS), width: pct(1 / BINS),
                          paddingHorizontal: 0.5 }}>
             <View style={{ height: Math.max(3, (c / peak) * TICKS), backgroundColor: palette.ink, opacity: 0.8 }} />
           </View>
         ))}
-        <View testID="legend-bar" accessibilityLabel={describe ?? `${title}: colours from ${low.toLowerCase()} to `
-                                                      + `${high.toLowerCase()}; ${mid.toLowerCase()} is the middle half of past years`}
+        <View testID="legend-bar" accessibilityLabel={describe ?? FLOW_LEGEND.scale(title, low, high, mid)}
               style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: BAR }}>
           <Svg width="100%" height={BAR} viewBox={`0 0 100 ${BAR}`} preserveAspectRatio="none">
             <Defs>

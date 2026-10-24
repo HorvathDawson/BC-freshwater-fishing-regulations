@@ -141,7 +141,7 @@ export function Hydrograph({ shape, palette, colour, label, caption, unit,
   );
   return (
     <View accessibilityRole="image"
-          accessibilityLabel={label ?? "River flow against its normal range"}>
+          accessibilityLabel={label ?? CONDITIONS_WORDS.hydrograph.label}>
       {view ? <ZoomBar palette={palette} view={view} /> : null}
       {/* THE PLOT IS READ WITH A FINGER: inside a water's view swipe a drag on it is the chart's (zoom, pan, read-out;
           see ViewSwipe); the zoom bar, the key and the caption are text, and swipe with the page */}
@@ -178,14 +178,9 @@ export function Hydrograph({ shape, palette, colour, label, caption, unit,
           station with too thin a record to build one was captioned as though it had. What
           is on screen decides what this says. */}
       <Text style={{ fontSize: 11.5, color: palette.sub, marginTop: 6, lineHeight: 17 }}>
-        {caption ?? (shape.envelopes.length
-          ? "Shaded is the middle half of everything this station has recorded for these " +
-            "days; the dashed line is the median."
-          : "No envelope: this station's record is too short to say what is normal here.")}
-        {shape.forecast
-          ? " Past TODAY is a model forecast, not a reading."
-          : ""}
-        {unit ? ` Values in ${unit}.` : ""}
+        {caption ?? (shape.envelopes.length ? CONDITIONS_WORDS.hydrograph.envelope : CONDITIONS_WORDS.hydrograph.noEnvelope)}
+        {shape.forecast ? CONDITIONS_WORDS.hydrograph.forecast : ""}
+        {unit ? CONDITIONS_WORDS.hydrograph.unit(unit) : ""}
       </Text>
 
       {/* THE CENTRE'S OWN WORDS (the CSV header's disclaimer) are drawn by the caller, in

@@ -120,6 +120,12 @@ export function legendTickLabel(count: number, where: string): string {
 export const FLOW_LEGEND = {
   title: { discharge: "Flow vs. past years, this date", level: "Water level vs. past years, this date" },
   low: "Low", mid: "Normal", high: "High",
+  /** (T180) a histogram tick's place on the scale, aloud (`ordinal`: `percentileOrdinal`'s "20th") */
+  near: (ordinal: string) => `near the ${ordinal} percentile`,
+  /** (T180) the ramp bar's name aloud: the title, its two ends and the bracket's word */
+  scale: (title: string, low: string, high: string, mid: string) =>
+    `${title}: colours from ${low.toLowerCase()} to ${high.toLowerCase()}; ${mid.toLowerCase()} is the middle half of `
+    + "past years",
 } as const;
 
 export const CONDITIONS_WORDS = {
@@ -148,6 +154,18 @@ export const CONDITIONS_WORDS = {
   span: { "72h": "Last 72 hours", year: "This year" },
   /** (T60) The chart's key: the four things that share its frame (Hydrograph `Key` rows). */
   key: { reading: "reading", middleHalf: "middle half", band: "10th–90th", median: "median" },
+  /**
+   * (T180) THE HYDROGRAPH'S OWN LINES: the chart's name aloud, and the caption under it — what the shading is (or that
+   * the record is too short for any), that past TODAY is forecast, and the unit.
+   */
+  hydrograph: {
+    label: "River flow against its normal range",
+    envelope: "Shaded is the middle half of everything this station has recorded for these days; the dashed line is "
+      + "the median.",
+    noEnvelope: "No envelope: this station's record is too short to say what is normal here.",
+    forecast: " Past TODAY is a model forecast, not a reading.",
+    unit: (unit: string) => ` Values in ${unit}.`,
+  },
   /** The ONE place the app decides what a quantity is measured in. */
   unit: { discharge: "m³/s", level: "m" },
   /** The Change block's kicker over the lead gauge's own forecasts, one line per model (T52). */
