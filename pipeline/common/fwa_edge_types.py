@@ -53,3 +53,12 @@ def is_side_channel(x: Iterable[str] | object) -> bool:
 def is_barrier(x: Iterable[str] | object) -> bool:
     """Does the node (or edge-type set) carry an artificial connector (a canal)?"""
     return CONNECTOR in _types(x)
+
+
+def is_manmade_secondary_only(x: Iterable[str] | object) -> bool:
+    """Is EVERY line of the node (or edge-type set) an artificial connector (2300, "Manmade – Secondary
+    Flow")? Such a piece with no gnis of its own is a ditch beside a river — the Serpentine's 168th St grid —
+    and is in no river's item (owner Q1, 2026-10-24; `registry.build.DITCHES_LEAVE_RIVER_ITEMS`). A piece
+    with no edge types at all is not one."""
+    t = _types(x)
+    return bool(t) and t <= {CONNECTOR}

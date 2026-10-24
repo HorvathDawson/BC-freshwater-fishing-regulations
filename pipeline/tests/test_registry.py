@@ -386,3 +386,38 @@ def test_a_displaced_lake_edge_is_still_bindable_by_the_name_rules_use():
     # the ids the resolver binds the cut-point by (`RegistryBoundary.answers_to`, T125 item 3)
     (b,) = [b for b in reg["gnis:1"].boundaries if b.id == "river_x__bar_lake_dam"]
     assert {"river_x__bar_lake", "river_x__bar_lake_dam"} <= set(b.answers_to())
+
+
+# ---------------------------------------------------------------- owner Q1 (2026-10-24, T67): ditches
+
+
+def _with_ditch():
+    from dataclasses import replace
+    g = StreamGraph()
+    tx = (NameTuple("River X", NameSource.gazette, gnis_id="1"),)
+    g.nodes["m1"] = replace(_node("m1", blk="M", wsc="100", gnis="1", name="River X", tuples=tx),
+                            edge_types=("1000",))
+    # the 168th St shape: 2300-only, no gnis, the river's code and inherited name -> the river's item today
+    g.nodes["d1"] = replace(_node("d1", blk="D", wsc="100", name="River X",
+                                  tuples=(NameTuple("River X", NameSource.side_channel, gnis_id="1"),)),
+                            edge_types=("2300",))
+    # a side channel that is partly 2300 is still the river
+    g.nodes["s1"] = replace(_node("s1", blk="S", wsc="100", name="River X",
+                                  tuples=(NameTuple("River X", NameSource.side_channel, gnis_id="1"),)),
+                            edge_types=("1100", "2300"))
+    # a canal that IS its water (every piece 2300, gazetted) keeps its item
+    g.nodes["c1"] = replace(_node("c1", blk="C", wsc="200", gnis="5", name="Y Canal"), edge_types=("2300",))
+    return build_registry(g)
+
+
+def test_a_2300_only_ditch_leaves_its_rivers_item():
+    reg = _with_ditch()
+    assert set(reg["gnis:1"].section_ids) == {"m1", "s1"}
+    assert not any("d1" in it.section_ids for it in reg.values() if it.kind == "stream")
+    assert set(reg["gnis:5"].section_ids) == {"c1"}
+
+
+def test_mutation_ditches_kept_puts_the_ditch_back_in_the_river(monkeypatch):
+    from pipeline.atlas.registry import build as B
+    monkeypatch.setattr(B, "DITCHES_LEAVE_RIVER_ITEMS", False)
+    assert "d1" in _with_ditch()["gnis:1"].section_ids

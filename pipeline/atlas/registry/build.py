@@ -118,6 +118,35 @@ def split_distinct_names(groups: dict[str, list]) -> dict[str, list]:
     return out
 
 
+#: POLICY (owner Q1, 2026-10-24, T67): A DITCH IS NOT ITS RIVER. A stream piece every line of which is FWA
+#: EDGE_TYPE 2300 ("Manmade – Secondary Flow") and which has no gnis of its own joined its river's item only
+#: because FWA gives it the river's watershed code — the Serpentine's 168th St drainage grid (blk 355995609,
+#: 355996889). It leaves the river's item and is in no item: it carries the zone rules only, never the
+#: river's. An item made of nothing but such pieces (a canal that IS the water) keeps them. False is the
+#: mutation pin. The braid sweep reads the same predicate (`braid_sweep.water_key`), so a ditch is never cut
+#: as the river's braid either.
+DITCHES_LEAVE_RIVER_ITEMS = True
+
+
+def is_ditch(n: StreamNode) -> bool:
+    """A 2300-only stream piece with no gnis of its own (`DITCHES_LEAVE_RIVER_ITEMS`)."""
+    from pipeline.common.fwa_edge_types import is_manmade_secondary_only
+    return n.kind == NodeKind.stream and not n.gnis_id and is_manmade_secondary_only(n.edge_types)
+
+
+def drop_ditches(groups: dict[str, list]) -> dict[str, list]:
+    """`groups` with every ditch piece (`is_ditch`) taken out of a stream item that has other pieces."""
+    out: dict[str, list] = {}
+    for iid, nodes in groups.items():
+        if nodes and nodes[0].kind not in WATERBODY_KINDS:
+            keep = [n for n in nodes if not is_ditch(n)]
+            if keep:
+                out[iid] = keep
+                continue
+        out[iid] = nodes
+    return out
+
+
 STILL_RE = re.compile(r"\b(lake|lakes|pond|reservoir|lagoon)\b", re.I)
 
 
@@ -253,6 +282,8 @@ def build_registry(graph: StreamGraph, prof=None, pinned: dict[str, str] | None 
         groups: dict[str, list[StreamNode]] = defaultdict(list)
         for n in graph.nodes.values():
             groups[item_id(n, wsc_gnis)].append(n)
+        if DITCHES_LEAVE_RIVER_ITEMS:
+            groups = drop_ditches(groups)
         groups = split_distinct_names(groups)      # a NAMED side channel is its own water, not a reach
 
     registry: dict[str, RegistryItem] = {}
