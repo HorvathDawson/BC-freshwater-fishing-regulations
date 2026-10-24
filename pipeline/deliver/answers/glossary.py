@@ -7,8 +7,9 @@ GENERATED, NEVER WRITTEN PER WATER. Each term is one generator below: its words 
 filled from the data — the export's rules (the possession multiplier, the quotas used in the
 examples, the annual steelhead quota), its licensing records (fees, the classes, the stamps, the
 under-16 paths) and entries (the region-wide tables and their pages) — and from the book's own
-text (`CURATED.regulations.reference`: the p.80 definitions, the p.4 legend), quoted VERBATIM in
-`quote`. Every term names its book pages (PRINTED page numbers: the export's entry `pages` are
+text (the p.80 definitions, the p.4 legend, the region titles), quoted VERBATIM in `quote`. The
+book's text is READ FROM THE BUNDLE (`glossary_source`, plan 2.14: the bundle is the only run-time
+source), which copied it from the curated transcription when it was built. Every term names its book pages (PRINTED page numbers: the export's entry `pages` are
 printed; the definitions are p.80, the legend p.4, the adipose diagram p.13). A generator whose
 data is missing raises: no term is ever written from a guess.
 
@@ -18,7 +19,6 @@ from __future__ import annotations
 
 import re
 from collections import Counter
-from pathlib import Path
 from typing import Callable, Dict, List, Optional
 
 from pipeline.deliver.answers.common import AnswersError
@@ -32,46 +32,35 @@ VERSION = 5
 
 
 # --------------------------------------------------------------------------------------------
-# The book's text (verbatim, curated)
+# The book's text (verbatim, from the bundle's glossary_source)
 # --------------------------------------------------------------------------------------------
 
 def _clean(s: str) -> str:
     return re.sub(r"\s+", " ", s.replace("**", "")).strip()
 
 
-def _paragraph_terms(text: str) -> Dict[str, str]:
-    """`**term**: definition` (p.80) and `**Term:** definition` (p.4) paragraphs -> {term: text}."""
-    out: Dict[str, str] = {}
-    for para in re.split(r"\n\s*\n", text):
-        m = re.match(r"\s*\*\*(.+?)(?::\*\*|\*\*:)\s*(.+)", para, re.S)
-        if m:
-            out[_clean(m.group(1)).lower()] = _clean(m.group(2))
-    return out
-
-
 class Book:
-    """The curated transcription of the synopsis (source text, never edited to fit)."""
+    """The book's words the glossary quotes: the p.80 definitions, the p.4 legend, the region titles — the bundle's
+    `glossary_source` rows (`Book.from_bundle`); a test may hand it rows itself
+    (`pipeline.deliver.bundle.glossary_source.rows_from_book`)."""
 
-    def __init__(self, ref_dir: Optional[Path] = None):
-        if ref_dir is None:
-            from pipeline.common.curated import CURATED
-            ref_dir = CURATED.regulations.reference
-        self.dir = Path(ref_dir)
-        self.defs = _paragraph_terms(self._read("definitions.md"))          # p.80
-        self.legend = _paragraph_terms(self._read("water-specific-tables.md"))  # p.4
-        self.regions: Dict[str, str] = {}
-        for f in sorted(self.dir.glob("region-*.md")):
-            first = self._read(f.name).splitlines()[0]
-            m = re.match(r"#\s*Region\s+(\w+)\s+—\s+(.+)", first)
-            if not m:
-                raise AnswersError(f"glossary: {f.name} has no 'Region N — Name' title")
-            self.regions[m.group(1).lower()] = _clean(m.group(2))
+    def __init__(self, rows):
+        by = {k: {} for k in ("definition", "legend", "region")}
+        for kind, term, text in rows:
+            if kind not in by:
+                raise AnswersError(f"glossary: unknown glossary_source kind {kind!r}")
+            by[kind][term] = text
+        if not by["definition"] or not by["legend"] or not by["region"]:
+            raise AnswersError("glossary: the book's text is incomplete — "
+                               + ", ".join(k for k, v in by.items() if not v) + " missing")
+        self.defs = by["definition"]          # p.80
+        self.legend = by["legend"]            # p.4
+        self.regions: Dict[str, str] = by["region"]
 
-    def _read(self, name: str) -> str:
-        p = self.dir / name
-        if not p.is_file():
-            raise AnswersError(f"glossary: the book's text {p} is missing")
-        return p.read_text(encoding="utf-8")
+    @classmethod
+    def from_bundle(cls, path) -> "Book":
+        from pipeline.deliver.bundle import glossary_source
+        return cls(glossary_source.read(path))
 
     def define(self, term: str) -> str:
         t = self.defs.get(term.lower())
@@ -424,10 +413,10 @@ GENERATORS = (t_daily, t_possession, t_release, t_no_fishing_for, t_hook, t_fly_
               t_classified, t_set_line, t_guided, t_under_16, t_stream, t_mu, t_year)
 
 
-def build(doc: dict, ref_dir: Optional[Path] = None) -> dict:
+def build(doc: dict, book: Book) -> dict:
     """The glossary: {version, terms} — every term generated from the export (`doc`, decoded) and
-    the book's text."""
-    B, D = Book(ref_dir), Data(doc)
+    the book's text (`book`: `Book.from_bundle(<the bundle>)`)."""
+    B, D = book, Data(doc)
     terms = [g(B, D) for g in GENERATORS] + t_regions(B, D)
     ids = [t["id"] for t in terms]
     if len(set(ids)) != len(ids):

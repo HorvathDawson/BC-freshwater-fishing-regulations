@@ -607,7 +607,7 @@ def build(bundle: str, export_dir: Path, *, workers: int = 0, items: Optional[It
         "bundle": data["about"]["bundle"],
     }
     from pipeline.deliver.answers import glossary as _glossary
-    gl = _glossary.build(doc)
+    gl = _glossary.build(doc, _glossary.Book.from_bundle(B.path))   # the book's words from the bundle (2.14)
     log(f"answers: built in {time.time() - t0:.0f} s")
     from pipeline.deliver.answers.display import places_table
     return Model(about=about, keys=keys, parts=parts, segments=segs, sections=out,

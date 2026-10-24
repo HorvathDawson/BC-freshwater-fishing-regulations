@@ -262,7 +262,8 @@ def test_a3_a_lift_the_card_names_is_not_said_again():
 
 def test_a2_every_term_the_sentence_names_is_a_glossary_term():
     from pipeline.deliver.answers import glossary as GL
-    book = GL.Book()
+    from pipeline.deliver.bundle.glossary_source import rows_from_book
+    book = GL.Book(rows_from_book())
     ids = {GL.t_fly_fishing(book)["id"], GL.t_artificial_fly(book)["id"], "single_barbless_hook"}
     named = {t for _lead, t in G.FLY_MODES.values()} | {"single_barbless_hook"}
     assert named <= ids

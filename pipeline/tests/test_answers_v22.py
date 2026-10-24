@@ -17,6 +17,7 @@ import pytest
 
 from pipeline.deliver.answers import encode as E
 from pipeline.deliver.answers import glossary as G
+from pipeline.deliver.bundle.glossary_source import rows_from_book
 from pipeline.deliver.answers.common import AnswersError, load_export
 from pipeline.deliver.bundle import read as R
 from pipeline.regs.parsing import catalogue as C
@@ -257,16 +258,38 @@ def test_j_terms_are_generated_from_the_data():
     data, guide, _ = _files()
     from pipeline.tools.export_codec import expand
     m = expand(data, guide)
-    base = {t["id"]: t for t in G.build(m)["terms"]}
+    book = G.Book(rows_from_book())
+    base = {t["id"]: t for t in G.build(m, book)["terms"]}
     assert "2 days' fish" in base["possession_quota"]["example"]   # ROUND20h 2: the multiplier is in the example
     for r in m["rules"].values():
         if r["fields"].get("per_daily"):
             r["fields"]["per_daily"] = 3
-    mut = {t["id"]: t for t in G.build(m)["terms"]}
+    mut = {t["id"]: t for t in G.build(m, book)["terms"]}
     assert "3 days' fish" in mut["possession_quota"]["example"]
     assert mut["possession_quota"]["example"] != base["possession_quota"]["example"]
 
 
 def test_j_a_missing_book_text_stops_the_build(tmp_path):
-    with pytest.raises(AnswersError):
-        G.Book(tmp_path)
+    with pytest.raises(SystemExit, match="definitions.md is missing"):
+        rows_from_book(tmp_path)
+    with pytest.raises(AnswersError, match="incomplete"):
+        G.Book([("definition", "day", "a day")])
+
+
+def test_j_the_glossary_quotes_the_book_the_bundle_carries(tmp_path):
+    """Plan 2.14: the answers read the book's words from the bundle's `glossary_source`, never the curated files.
+    MUTATION: a bundle carrying another definition quotes it; a bundle without the table is refused."""
+    from pipeline.deliver.bundle import glossary_source as GS
+    rows = [(k, t, ("CHANGED " + x) if (k, t) == ("definition", "licence year") else x)
+            for k, t, x in rows_from_book()]
+    b = tmp_path / "bundle.sqlite"
+    db = sqlite3.connect(b)
+    db.execute("CREATE TABLE glossary_source (kind TEXT, term TEXT, text TEXT, PRIMARY KEY (kind, term))")
+    db.executemany("INSERT INTO glossary_source VALUES (?,?,?)", rows)
+    db.commit()
+    db.close()
+    assert "CHANGED" in G.t_year(G.Book.from_bundle(b), None)["quote"]
+    old = tmp_path / "old.sqlite"
+    sqlite3.connect(old).close()
+    with pytest.raises(SystemExit, match="no `glossary_source` table"):
+        GS.read(old)

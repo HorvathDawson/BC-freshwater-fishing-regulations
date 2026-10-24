@@ -1113,3 +1113,12 @@ CREATE TABLE section_access (sid      INTEGER NOT NULL,
                              area     INTEGER NOT NULL REFERENCES access_area (ix),
                              permille INTEGER NOT NULL CHECK (permille BETWEEN 1 AND 1000),
                              PRIMARY KEY (sid, area)) WITHOUT ROWID;
+
+-- THE BOOK'S OWN WORDS the glossary quotes (plan 2.14, audit F29): the p.80 definitions, the p.4 legend and each
+-- region's title, copied from the curated transcription (`CURATED.regulations.reference`) by
+-- pipeline/deliver/bundle/glossary_source.py, so the answers quote the book this bundle was built from and open no
+-- curated file at run time. kind: definition | legend | region; term: the term lower case, or the region code.
+CREATE TABLE glossary_source (kind TEXT NOT NULL CHECK (kind IN ('definition', 'legend', 'region')),
+                              term TEXT NOT NULL,
+                              text TEXT NOT NULL,
+                              PRIMARY KEY (kind, term)) WITHOUT ROWID;

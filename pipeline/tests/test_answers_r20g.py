@@ -16,6 +16,7 @@ from __future__ import annotations
 from pipeline.deliver.answers import card_check as CC
 from pipeline.deliver.answers import display as X
 from pipeline.deliver.answers import glossary as G
+from pipeline.deliver.bundle.glossary_source import rows_from_book
 from pipeline.deliver.answers.tree import walk
 from pipeline.tests import answers28_fixture as F
 
@@ -92,7 +93,7 @@ def _doc(per_daily=2, total=5):
 
 
 def test_the_possession_term_is_short_and_keeps_the_book_verbatim():
-    B = G.Book()
+    B = G.Book(rows_from_book())
     t = G.t_possession(B, G.Data(_doc()))
     # ROUND20h 2: the term says only where possession holds (the plain line says the number and the exception)
     assert t["says"] == "The fish you have with you at any time — in camp, a cooler or a vehicle."

@@ -19,6 +19,7 @@ import pytest
 from pipeline.deliver.answers import card_check as CC
 from pipeline.deliver.answers import gear as GE
 from pipeline.deliver.answers import glossary as G
+from pipeline.deliver.bundle.glossary_source import rows_from_book
 from pipeline.deliver.bundle import read
 from pipeline.tests import answers28_fixture as F
 
@@ -58,7 +59,7 @@ def _doc(per_daily=2, total=5):
 
 
 def test_the_possession_term_does_not_repeat_the_plain_line():
-    t = G.t_possession(G.Book(), G.Data(_doc()))
+    t = G.t_possession(G.Book(rows_from_book()), G.Data(_doc()))
     assert t["says"] == "The fish you have with you at any time — in camp, a cooler or a vehicle."
     assert "quota" not in t["says"] and "home" not in t["says"]
     assert G.VERSION >= 4

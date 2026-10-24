@@ -41,13 +41,14 @@ def _sources(*dirs: Path) -> dict[Path, str]:
 # --------------------------------------------------------------------------- grep gates
 
 def test_the_bundle_reads_no_curated_waters_file():
-    """`CURATED.` under pipeline/deliver/bundle may name only the corpus (`regulations.entries`).
+    """`CURATED.` under pipeline/deliver/bundle may name only the corpus (`regulations.entries`) and the book's own
+    text the glossary quotes (`regulations.reference`, copied into `glossary_source`, plan 2.14).
     `part_of`, cut labels and offsets come from the atlas; the steelhead list through its own
     loader (a fingerprint check, not a fact)."""
     bad = []
     for p, text in _sources(BUNDLE_DIR).items():
         for m in re.finditer(r"CURATED\.([A-Za-z_.]+)", text):
-            if not m.group(1).startswith("regulations.entries"):
+            if not m.group(1).startswith(("regulations.entries", "regulations.reference")):
                 bad.append(f"{p.name}: CURATED.{m.group(1)}")
     assert bad == []
     for p, text in _sources(BUNDLE_DIR).items():

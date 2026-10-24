@@ -18,6 +18,7 @@ from __future__ import annotations
 
 from pipeline.deliver.answers import gear as GE
 from pipeline.deliver.answers import glossary as G
+from pipeline.deliver.bundle.glossary_source import rows_from_book
 from pipeline.deliver.answers.tree import walk
 from pipeline.deliver.calendar import SPEC
 from pipeline.tests import answers28_fixture as F
@@ -81,7 +82,7 @@ def test_fly_and_hook_words_name_what_the_book_excludes():
     assert GE.summary_sentence({"lines": "1 line", "hook": GE.HOOK_WORDS["single_barbless"],
                                 "attach": "one hook, lure or fly"}) == \
         "1 line with a single barbless hook, no trebles (one hook, lure or fly)."
-    t = G.t_fly_fishing(G.Book())
+    t = G.t_fly_fishing(G.Book(rows_from_book()))
     assert t["says"].startswith("Only an artificial fly on the line (one single-pointed hook) — no bait or lure, no float "
                                 "or strike indicator, no sinker or split shot, no spinner or other attracting device.")
     assert G.VERSION == 5
