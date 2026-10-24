@@ -294,6 +294,21 @@ export const panelsForSections = (n: number) =>
     WHERE sp.sid IN (${placeholders(n)})
     ORDER BY sp.sid, pm.ord`;
 
+/**
+ * WHICH WATER A SECTION IS, AND WHICH WATER EACH STATION STANDS ON (T168, `RegsSource.gaugeWaters`): the section's
+ * items, the `water_continue` links touching a set of waters (both directions, each half keyed: `ord` is the primary
+ * key, `next_ord` UNIQUE), those waters' item ids, and the stations' own water and reach.
+ */
+export const ITEMS_OF_SECTION =
+  "SELECT i.ord, i.item_id FROM item_section s JOIN item i ON i.ord = s.ord WHERE s.sid = ?";
+export const continueLinks = (n: number) =>
+  `SELECT ord, next_ord FROM water_continue WHERE ord IN (${placeholders(n)}) ` +
+  `UNION ALL SELECT ord, next_ord FROM water_continue WHERE next_ord IN (${placeholders(n)})`;
+export const itemIdsForOrds = (n: number) =>
+  `SELECT ord, item_id FROM item WHERE ord IN (${placeholders(n)})`;
+export const gaugeWatersFor = (n: number) =>
+  `SELECT station, item_id, sid FROM gauge WHERE station IN (${placeholders(n)})`;
+
 // ONE ENVELOPE PER (STATION, PARAMETER). A station that measures both stage and discharge
 // has two, in two different units, and asking for "the" envelope of such a station is how a
 // level ends up compared against a discharge — a percentile that looks fine and means

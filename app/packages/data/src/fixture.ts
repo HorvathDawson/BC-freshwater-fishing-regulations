@@ -279,6 +279,8 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
     // The design fixture has no lake stations, and an empty map is the real answer for a
     // province where 196 lake_gauge rows cover a few dozen lakes.
     async lakeStationsFor() { return new Map(); },
+    // No stations stand on any fixture water: every water is its own, and no gauge is placed.
+    async gaugeWaters() { return { waters: [], gauges: new Map() }; },
     // The design fixture has no watershed polygons, so the field has nothing to colour.
     // Empty is the real answer, and the map draws no field rather than a wrong one.
     async basinMembers() { return new Map(); },

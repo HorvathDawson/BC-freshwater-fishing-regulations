@@ -6,8 +6,8 @@
  */
 import { bandAt, boxOfParts, describeBy, rankPointers, rankWaters, type Band, type Bbox, type NearPlace } from "@app/core";
 import { forecastFor, type Observations } from "../feed/http";
-import type { Aged, GaugeLink, ItemId, NameHit, NearHit, Parameter, PanelRoute, PointerHit, SectionId, Series,
-              StationId } from "../index";
+import type { Aged, GaugeLink, GaugeWaters, ItemId, NameHit, NearHit, Parameter, PanelRoute, PointerHit, SectionId,
+              Series, StationId } from "../index";
 import { num, str, type Cell, type Row } from "./db";
 
 /**
@@ -411,4 +411,35 @@ function lastIndex(values: readonly (number | null)[]): number {
   for (let i = values.length - 1; i >= 0; i--)
     if (values[i] !== null && Number.isFinite(values[i]!)) return i;
   return -1;
+}
+
+/**
+ * THE WATERS JOINED TO THESE across `water_continue` (T168), both ways and transitively, as ords — one system, as
+ * `build_panels.own_distances` reads a water's own gauges: a river that changes its name is one water (the Chilliwack
+ * and the Vedder). `linked` answers the links touching a set of ords (`ord`, `next_ord` rows). Bounded: the province
+ * has 17 links, and a cycle cannot loop because every ord is visited once.
+ */
+export async function continuedOrds(start: readonly number[],
+                                    linked: (ords: number[]) => Promise<readonly Row[]>): Promise<number[]> {
+  const seen = new Set<number>(start);
+  let frontier = [...seen];
+  for (let i = 0; i < 64 && frontier.length; i++) {
+    const next: number[] = [];
+    for (const r of await linked(frontier))
+      for (const o of [Number(r.ord), Number(r.next_ord)])
+        if (Number.isFinite(o) && !seen.has(o)) { seen.add(o); next.push(o); }
+    frontier = next;
+  }
+  return [...seen].sort((a, b) => a - b);
+}
+
+/** `gauge` rows (`station`, `item_id`, `sid`) and a section's waters, as `RegsSource.gaugeWaters` answers them. */
+export function gaugeWatersOf(waters: readonly string[], rows: readonly Row[]): GaugeWaters {
+  const gauges = new Map<StationId, { item: ItemId | null; section: SectionId | null }>();
+  for (const r of rows)
+    gauges.set(str(r.station) as StationId, {
+      item: r.item_id == null || str(r.item_id) === "" ? null : str(r.item_id) as ItemId,
+      section: r.sid == null ? null : sid(r.sid),
+    });
+  return { waters: [...new Set(waters)].sort() as ItemId[], gauges };
 }

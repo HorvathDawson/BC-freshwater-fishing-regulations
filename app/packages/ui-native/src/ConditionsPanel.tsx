@@ -18,8 +18,9 @@ import { chartCaption, chartLabel, CONDITIONS_WORDS, forecastChartLabel, forecas
 import type { Parameter, RegsSource, SectionId, StationId } from "@app/data";
 import { coloursEachTile, type TileEndpoints } from "@app/map";
 import { changeChartModel, changeView, chartParameter, useChartView, useConditionsView, useForecastAttribution, useGaugeParameters,
-         usePrefetchGauges, useSeries, type ChangeVM, type GaugeChoiceVM, type Horizon,
+         usePrefetchGauges, useSeries, type ChangeVM, type GaugeChoiceVM, type GaugeGroupVM, type Horizon,
          type PanelFeed } from "@app/ui";
+import { GaugeGroups } from "./GaugeGroups";
 import Svg, { Circle, Path } from "react-native-svg";
 import { ChartControls } from "./ChartControls";
 import { Credits } from "./Credits";
@@ -189,7 +190,8 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
     <View style={{ gap: SPACE.s3 }} onLayout={measure}>
       {/* WHICH GAUGE, RIGHT BY THE PLOT IT CONTROLS (owner 2026-10-21): it was the donor list, a screen below. */}
       {vm.gauges.length > 0 && (
-        <GaugeSwitch palette={palette} gauges={vm.gauges} onPick={(s) => vm.select(s as never)} />
+        <GaugeSwitch palette={palette} gauges={vm.gauges} groups={vm.gaugeGroups}
+                     onPick={(s) => vm.select(s as never)} />
       )}
       {readingRows}
       {change && <ChangeBlock palette={palette} change={change} colour={tint} />}
@@ -256,7 +258,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
                   chain={vm.chain} data={vm.route.data} standing={vm.route.standing}
                   onHorizon={onHorizon} quantity={parameter ?? "discharge"}
                   detail={detail} chart={graph}
-                  foot={small} />
+                  foot={small} sides={vm.sides} count={vm.count} />
       {footer}
     </>
   );
@@ -282,15 +284,12 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
  * a quiet gauge is still offered and says it counts for nothing today; picked, it says when it last reported, and the
  * chart says so if it has no recent record to draw.
  */
-function GaugeSwitch({ palette, gauges, onPick }: {
+function GaugeSwitch({ palette, gauges, groups, onPick }: {
   palette: Palette; gauges: readonly GaugeChoiceVM[]; onPick: (station: string) => void;
+  /** (T168) the chips grouped, own first, the not-reporting folded (`gaugeChoiceGroups`); null: one run */
+  groups?: readonly GaugeGroupVM<GaugeChoiceVM>[] | null;
 }) {
-  return (
-    <View style={{ gap: SPACE.s2 }}>
-      <Kicker palette={palette}>{W.chartGauge}</Kicker>
-      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: SPACE.s2 }}
-            accessibilityRole="radiogroup" accessibilityLabel={W.controls.gauge}>
-        {gauges.map((g) => (
+  const chip = (g: GaugeChoiceVM) => (
           <Pressable key={g.station} onPress={() => onPick(g.station)} accessibilityRole="radio"
                      aria-checked={g.on} accessibilityLabel={g.label}
                      style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2,
@@ -303,8 +302,21 @@ function GaugeSwitch({ palette, gauges, onPick }: {
             <Text style={{ ...TYPE.figure, color: palette.ink }}>{g.station}</Text>
             <Text style={{ ...TYPE.metaBold, color: g.quiet ? palette.faint : palette.sub }}>{g.share}</Text>
           </Pressable>
-        ))}
-      </View>
+  );
+  return (
+    <View style={{ gap: SPACE.s2 }}>
+      <Kicker palette={palette}>{W.chartGauge}</Kicker>
+      {groups ? (
+        <View accessibilityRole="radiogroup" accessibilityLabel={W.controls.gauge}>
+          <GaugeGroups palette={palette} groups={groups} keyOf={(g) => g.station} render={chip} wrap
+                       testID="switch-groups" />
+        </View>
+      ) : (
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: SPACE.s2 }}
+              accessibilityRole="radiogroup" accessibilityLabel={W.controls.gauge}>
+          {gauges.map(chip)}
+        </View>
+      )}
     </View>
   );
 }

@@ -11,7 +11,7 @@
 import { shownParameter, type RecordYears, type WaterFix } from "@app/core";
 import type { Observations } from "../feed/http";
 import type { BasinMember,
-  Aged, BundleCounts, BundleInfo, GaugeLink, ItemId, LakeInfo, NameHit, NearHit, Parameter,
+  Aged, BundleCounts, BundleInfo, GaugeLink, GaugeWaters, ItemId, LakeInfo, NameHit, NearHit, Parameter,
   Panel, PanelMember, PanelRoute, PlaceHit, PlaceId, PointerHit, Reading, RegsSource, Release,
   SectionId, Series,
   StationId, Water,
@@ -19,7 +19,7 @@ import type { BasinMember,
 import * as Q from "./queries";
 import { num, str, type Db, type Row } from "./db";
 import { buildStandingClasses, type StandingClasses } from "../standing";
-import { boxOfGeoRows, link, nearHit, parametersOf, pentadsOf, placesOf, pointerHits, rankNameHits, routesOf, seriesOf, sid,
+import { boxOfGeoRows, continuedOrds, gaugeWatersOf, link, nearHit, parametersOf, pentadsOf, placesOf, pointerHits, rankNameHits, routesOf, seriesOf, sid,
          traceDown, withNear, type DownOf } from "./shared";
 
 /** A `panel_member` / `basin_member` row's record per quantity (T110), as the bundle stores it. */
@@ -303,6 +303,17 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
       if (!members.length) return [];
       const stations = members.map((m) => m.station);
       return routesOf(section, members, placesOf(await db.all(Q.gaugePlaces(stations.length), ...stations)), down);
+    },
+
+    async gaugeWaters(section, stations): Promise<GaugeWaters> {
+      const own = await db.all(Q.ITEMS_OF_SECTION, section);
+      // A bundle cut before `water_continue` has no table: each water is its own system.
+      const ords = await continuedOrds(own.map((r) => Number(r.ord)), async (o) => {
+        try { return await db.all(Q.continueLinks(o.length), ...o, ...o); } catch { return []; }
+      });
+      const items = ords.length ? await db.all(Q.itemIdsForOrds(ords.length), ...ords) : [];
+      const gauges = stations.length ? await db.all(Q.gaugeWatersFor(stations.length), ...stations) : [];
+      return gaugeWatersOf(items.map((r) => str(r.item_id)), gauges);
     },
 
     async lakeInfo(id): Promise<LakeInfo | null> {

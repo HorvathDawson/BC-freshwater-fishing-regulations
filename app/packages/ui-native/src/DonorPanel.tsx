@@ -42,8 +42,10 @@ import { useState, type ReactNode } from "react";
 import { LayoutChangeEvent, Pressable, Text, View } from "react-native";
 import type { MapProps, TileEndpoints } from "@app/map";
 import type { StationId } from "@app/data";
-import { useDonorView, type Horizon, type HorizonChipVM, type PanelAnswer, type Quantity } from "@app/ui";
+import { useDonorView, type DonorRowVM, type GaugeSides, type Horizon, type HorizonChipVM, type PanelAnswer,
+         type Quantity } from "@app/ui";
 import { DonorMap, routeMapHeight } from "./DonorMap";
+import { GaugeGroups } from "./GaugeGroups";
 import { Icon } from "./icons";
 import { TYPE } from "./type";
 import { SPACE, type Palette } from "./theme";
@@ -73,7 +75,7 @@ export function donorTone(palette: Palette, row: number | null, quiet: boolean):
 
 export function DonorPanel({ palette, value, day, at, theme, from, selected, onSelect,
                              horizon = 0, onHorizon, chain: chainProp, data, standing,
-                             detail, chart, foot, quantity }: {
+                             detail, chart, foot, quantity, sides, count }: {
   palette: Palette; value: PanelAnswer;
   /**
    * The quantity the answer is in, when the caller knows it (the conditions sheet: the one the map paints). Only the
@@ -114,6 +116,13 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
   chart?: ReactNode;
   /** Drawn last, inside the fold: the chart's disclaimer and the data credits. */
   foot?: ReactNode;
+  /**
+   * (T168) Each member's side — on this water or a donor (`useConditionsView`'s `sides`). With it the rows group, own
+   * first, and the not-reporting fold away; without it (a saved spot) one run, as before.
+   */
+  sides?: GaugeSides;
+  /** (T168) The count line: "2 gauges on this water · 5 estimating from other waters · 6 not reporting". */
+  count?: string | null;
 }) {
   /*
    * MEASURED, NOT ASSUMED. The panel is rendered at every width from a phone to a desktop
@@ -138,7 +147,7 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
   const vm = useDonorView(value, { day, horizon, from: from ?? null,
                                    size: { width: mapWidth, height: mapH },
                                    selected: selected ?? null, pickable: !!onSelect,
-                                   ...(quantity ? { quantity } : {}) });
+                                   ...(quantity ? { quantity } : {}), sides: sides ?? null });
 
   if (!vm.ok) {
     // THE NO-ESTIMATE CASE IS THE SAME LAYOUT with fewer blocks: the kicker and the reason
@@ -153,6 +162,7 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
         <Block palette={palette} first>
           <Kicker palette={palette}>{vm.heading}</Kicker>
           <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>{vm.reason}</Text>
+          {count ? <CountLine palette={palette}>{count}</CountLine> : null}
           {/* EVERY MEMBER SILENT: the same line the table carries, naming them all (owner 2026-10-22). */}
           {vm.silent ? <Silent palette={palette}>{vm.silent}</Silent> : null}
           {detail}
@@ -168,10 +178,62 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
    * BY THE ROW'S TONE INDEX (`r.row`, its place in the panel's weight order), which its pin, route and key carry too:
    * silent members are not drawn, so a row's place in the list is not its index.
    */
-  const quietAt = new Map(vm.rows.map((r) => [r.row, r.quiet]));
+  const quietAt = new Map([...vm.rows, ...(vm.groups ?? []).flatMap((g) => [...g.shown, ...g.folded])]
+    .map((r) => [r.row, r.quiet]));
   const toneOf = (i: number | null) => donorTone(palette, i, i !== null && !!quietAt.get(i));
   const map = vm.map;
   const because = vm.rows.filter((r) => r.because);
+  /** One donor row; `i` 0 is the first of its list (no hairline above it). */
+  const row = (r: DonorRowVM, i: number) => {
+    const pick = onSelect ? () => onSelect(r.station as StationId) : undefined;
+    return (
+    <Pressable onPress={pick} disabled={!pick}
+          accessibilityRole={pick ? "button" : "text"}
+          // `aria-selected`, not `accessibilityState`: react-native-web >= 0.21
+          // ignores the latter (AGENTS 34).
+          aria-selected={pick ? r.on : undefined}
+          accessibilityLabel={r.label}
+          style={{ paddingVertical: SPACE.s3, gap: SPACE.s1,
+                   borderTopWidth: i === 0 ? 0 : 1, borderTopColor: palette.line,
+                   // THE SELECTED ROW IS MARKED ON THE LEFT, not by a tint: the row
+                   // already carries a colour that means something (its pin).
+                   paddingLeft: SPACE.s2, marginLeft: -SPACE.s2 - 3,
+                   borderLeftWidth: 3,
+                   borderLeftColor: r.on ? toneOf(r.row) : "transparent" }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2 }}>
+        {/* The same tone as its pin, so the map and the table are one thing. */}
+        <View testID={`donor-dot-${r.station}`}
+              style={{ width: 9, height: 9, borderRadius: 5, backgroundColor: toneOf(r.row) }} />
+        <Text style={{ ...TYPE.figure, color: palette.ink }}>{r.station}</Text>
+        {r.name ? (
+          <Text style={{ ...TYPE.metaSemi, color: palette.sub, flex: 1 }}>
+            {r.name}
+          </Text>
+        ) : null}
+      </View>
+      {/* EVERY NUMBER SAYS WHAT IT IS — the weight, labelled, beside its bar. */}
+      <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2,
+                     marginLeft: INSET }}>
+        <View style={{ flex: 1, height: 5, backgroundColor: palette.line2,
+                       borderRadius: 3, overflow: "hidden" }}>
+          <View style={{ width: r.bar, height: 5, backgroundColor: toneOf(r.row) }} />
+        </View>
+        <Text style={{ ...TYPE.metaBold, color: palette.ink }}>{r.weightLine}</Text>
+      </View>
+      {/* WHAT THIS GAUGE ITSELF READS, in the headline's words. */}
+      <Text style={{ ...TYPE.meta, color: palette.ink, marginLeft: INSET }}>
+        {r.reads}
+      </Text>
+      {/* WHEN A QUIET GAUGE LAST SPOKE (owner 2026-10-21), or that it is not known. */}
+      {r.lastReport ? (
+        <Text style={{ ...TYPE.meta, color: palette.sub, marginLeft: INSET }}>{r.lastReport}</Text>
+      ) : null}
+      <Text style={{ ...TYPE.meta, color: palette.sub, marginLeft: INSET }}>
+        {r.facts}
+      </Text>
+    </Pressable>
+    );
+  };
 
   const answerSide = (
     <>
@@ -209,6 +271,8 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
   const gaugeSide = (
     <>
       <Block palette={palette} first={wide}>
+        {/* (T168) THE COUNT LINE first: how many gauges stand on this water, how many estimate from others */}
+        {count ? <CountLine palette={palette}>{count}</CountLine> : null}
         <View onLayout={onMapLayout} />
         {/* THE MAP WAITS FOR THE ROUTES (`map` is null until they are in): a MapLibre map
             reads its opening camera once, on mount, and a map mounted early stays framed on
@@ -224,60 +288,18 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
         )}
 
         {onSelect && <Kicker palette={palette}>{vm.tapToChart}</Kicker>}
-        <View accessibilityRole="list" accessibilityLabel={vm.listLabel}>
-          {vm.rows.map((r, i) => {
-            const pick = onSelect ? () => onSelect(r.station as StationId) : undefined;
-            return (
-            <Pressable key={r.station} onPress={pick} disabled={!pick}
-                  accessibilityRole={pick ? "button" : "text"}
-                  // `aria-selected`, not `accessibilityState`: react-native-web >= 0.21
-                  // ignores the latter (AGENTS 34).
-                  aria-selected={pick ? r.on : undefined}
-                  accessibilityLabel={r.label}
-                  style={{ paddingVertical: SPACE.s3, gap: SPACE.s1,
-                           borderTopWidth: i === 0 ? 0 : 1, borderTopColor: palette.line,
-                           // THE SELECTED ROW IS MARKED ON THE LEFT, not by a tint: the row
-                           // already carries a colour that means something (its pin).
-                           paddingLeft: SPACE.s2, marginLeft: -SPACE.s2 - 3,
-                           borderLeftWidth: 3,
-                           borderLeftColor: r.on ? toneOf(r.row) : "transparent" }}>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2 }}>
-                {/* The same tone as its pin, so the map and the table are one thing. */}
-                <View testID={`donor-dot-${r.station}`}
-                      style={{ width: 9, height: 9, borderRadius: 5, backgroundColor: toneOf(r.row) }} />
-                <Text style={{ ...TYPE.figure, color: palette.ink }}>{r.station}</Text>
-                {r.name ? (
-                  <Text style={{ ...TYPE.metaSemi, color: palette.sub, flex: 1 }}>
-                    {r.name}
-                  </Text>
-                ) : null}
-              </View>
-              {/* EVERY NUMBER SAYS WHAT IT IS — the weight, labelled, beside its bar. */}
-              <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2,
-                             marginLeft: INSET }}>
-                <View style={{ flex: 1, height: 5, backgroundColor: palette.line2,
-                               borderRadius: 3, overflow: "hidden" }}>
-                  <View style={{ width: r.bar, height: 5, backgroundColor: toneOf(r.row) }} />
-                </View>
-                <Text style={{ ...TYPE.metaBold, color: palette.ink }}>{r.weightLine}</Text>
-              </View>
-              {/* WHAT THIS GAUGE ITSELF READS, in the headline's words. */}
-              <Text style={{ ...TYPE.meta, color: palette.ink, marginLeft: INSET }}>
-                {r.reads}
-              </Text>
-              {/* WHEN A QUIET GAUGE LAST SPOKE (owner 2026-10-21), or that it is not known. */}
-              {r.lastReport ? (
-                <Text style={{ ...TYPE.meta, color: palette.sub, marginLeft: INSET }}>{r.lastReport}</Text>
-              ) : null}
-              <Text style={{ ...TYPE.meta, color: palette.sub, marginLeft: INSET }}>
-                {r.facts}
-              </Text>
-            </Pressable>
-            );
-          })}
-        </View>
+        {vm.groups ? (
+          <View accessibilityRole="list" accessibilityLabel={vm.listLabel}>
+            <GaugeGroups palette={palette} groups={vm.groups} keyOf={(r) => r.station} testID="donor-groups"
+                         render={(r, first) => row(r, first ? 0 : 1)} />
+          </View>
+        ) : (
+          <View accessibilityRole="list" accessibilityLabel={vm.listLabel}>
+            {vm.rows.map((r, i) => <View key={r.station}>{row(r, i)}</View>)}
+          </View>
+        )}
         {/* THE SILENT MEMBERS, NAMED (owner 2026-10-22): not rows, not pins — one line, each with its last data. */}
-        {vm.silent ? <Silent palette={palette}>{vm.silent}</Silent> : null}
+        {vm.silent && !vm.groups ? <Silent palette={palette}>{vm.silent}</Silent> : null}
       </Block>
 
       {/* THE WORKING'S WORKING, closed (P16 item 3): why each gauge counts what it counts,
@@ -365,6 +387,11 @@ export function Block({ palette, children, first }: {
       {children}
     </View>
   );
+}
+
+/** (T168) The count line: how many gauges stand on this water, how many estimate from others, how many are silent. */
+function CountLine({ palette, children }: { palette: Palette; children: ReactNode }) {
+  return <Text testID="gauge-count" style={{ ...TYPE.metaBold, color: palette.ink }}>{children}</Text>;
 }
 
 /** The one line naming the panel's silent members — quieter than a row, never a row. */

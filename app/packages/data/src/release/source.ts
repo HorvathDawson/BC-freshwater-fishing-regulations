@@ -24,7 +24,7 @@
 import { shownParameter, type WaterFix } from "@app/core";
 import { num, str, type Row } from "../bundle/db";
 import * as BQ from "../bundle/queries";
-import { boxOfGeoRows, link, nearHit, parametersOf, pentadsOf, placesOf, pointerHits, rankNameHits, routesOf, seriesOf, sid,
+import { boxOfGeoRows, continuedOrds, gaugeWatersOf, link, nearHit, parametersOf, pentadsOf, placesOf, pointerHits, rankNameHits, routesOf, seriesOf, sid,
          traceDown, withNear, type DownOf } from "../bundle/shared";
 import type { BundleSourceOptions } from "../bundle/source";
 import type { BasinMember, BundleCounts, BundleInfo, GaugeLink, ItemId, NameHit, NearHit, Panel, PanelMember,
@@ -327,6 +327,22 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: BundleSourceOptio
       if (!list.length) return [];
       const stations = list.map((m) => m.station);
       return routesOf(section, list, placesOf(await all(CROSS.GAUGE_PLACES(stations.length), ...stations)), down);
+    },
+
+    async gaugeWaters(section, stations) {
+      // core: the section's waters; water: the continuation links (absent from a release with no water file, or one
+      // cut before `water_continue`: each water is its own system); core: their item ids; conditions: the stations'
+      const named = (await all(CROSS.ITEMS_FOR_SECTIONS(1), section)).map((r) => str(r.item_id));
+      const start = named.length
+        ? (await all(CROSS.ORDS_FOR_ITEMS(named.length), ...named)).map((r) => Number(r.ord)) : [];
+      const ords = await continuedOrds(start, async (o) => {
+        if (!loader.manifest.files.water) return [];
+        try { return await all(CROSS.CONTINUE_LINKS(o.length), ...o, ...o); } catch { return []; }
+      });
+      const items = ords.length ? await chunked(ords, (c) => all(CROSS.ITEMS_FOR_ORDS(c.length), ...c)) : [];
+      const gauges = stations.length
+        ? await chunked([...stations], (c) => all(CROSS.GAUGE_WATERS(c.length), ...c)) : [];
+      return gaugeWatersOf(items.map((r) => str(r.item_id)), gauges);
     },
 
     // no producer ships bathymetry charts or stocking records yet: the honest answers are none

@@ -97,6 +97,10 @@ export const CROSS = {
   SECTIONS_FOR_ITEMS: (n: number) => ({ file: "core", sql:
     `SELECT s.sid, i.item_id FROM item_section s JOIN item i ON i.ord = s.ord WHERE i.item_id IN (${ids(n)})` }),
   GAUGE_PLACES: (n: number) => ({ file: "conditions", sql: B.gaugePlaces(n) }),
+  /** conditions: each station's own water and reach (T168, `gaugeWaters`). */
+  GAUGE_WATERS: (n: number) => ({ file: "conditions", sql: B.gaugeWatersFor(n) }),
+  /** water: the `water_continue` links touching these waters, both ways (T168, `gaugeWaters`). */
+  CONTINUE_LINKS: (n: number) => ({ file: "water", sql: B.continueLinks(n) }),
   /** water: the answer keys of a water's parts (part's primary key is (item_ord, part_ix)). */
   AKEYS_FOR_ORD: { file: "water", sql:
     "SELECT DISTINCT akey FROM part WHERE item_ord = ? AND akey IS NOT NULL ORDER BY akey" },

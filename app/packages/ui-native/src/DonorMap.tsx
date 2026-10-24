@@ -27,6 +27,7 @@ import type { SectionKey } from "@app/core";
 import type { MapProps, TileEndpoints, TraceProp } from "@app/map";
 import type { DonorMapVM } from "@app/ui";
 import { MiniMap } from "./MiniMap";
+import { GaugeGroups } from "./GaugeGroups";
 import { TYPE } from "./type";
 import { SPACE, type Palette } from "./theme";
 
@@ -111,14 +112,24 @@ export function DonorMap({ vm, at, theme, palette, toneOf, height, larger, onLar
           </KeyRow>
         ))}
       </View>
-      <View style={{ flexDirection: "row", flexWrap: "wrap", columnGap: SPACE.s3,
-                     rowGap: SPACE.s1 }}>
-        {vm.keys.filter((k) => k.row !== null).map((k) => (
-          <KeyRow key={k.label} palette={palette} label={k.label}>
-            <DotGlyph tone={toneOf(k.row)} edge={palette.sub} />
-          </KeyRow>
-        ))}
-      </View>
+      {/* (T168) grouped, own first, the not-reporting folded — the rows' and the switch's groups */}
+      {vm.keyGroups ? (
+        <GaugeGroups palette={palette} groups={vm.keyGroups} keyOf={(k) => k.label} wrap testID="key-groups"
+                     render={(k) => (
+                       <KeyRow palette={palette} label={k.label}>
+                         <DotGlyph tone={toneOf(k.row)} edge={palette.sub} />
+                       </KeyRow>
+                     )} />
+      ) : (
+        <View style={{ flexDirection: "row", flexWrap: "wrap", columnGap: SPACE.s3,
+                       rowGap: SPACE.s1 }}>
+          {vm.keys.filter((k) => k.row !== null).map((k) => (
+            <KeyRow key={k.label} palette={palette} label={k.label}>
+              <DotGlyph tone={toneOf(k.row)} edge={palette.sub} />
+            </KeyRow>
+          ))}
+        </View>
+      )}
       {/* A DONOR WITH NO ROUTE IS SAID SO, not quietly dropped from the key. */}
       {vm.unplaced && <Text style={{ ...TYPE.meta, color: palette.faint }}>{vm.unplaced}</Text>}
     </View>

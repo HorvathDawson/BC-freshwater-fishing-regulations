@@ -198,6 +198,12 @@ export interface PanelMember {
  * same donors differently. Sort by the weight you compute — which is also the order to
  * display, so the number and the table beneath it come from one calculation.
  */
+/** `RegsSource.gaugeWaters`: a section's waters and each station's own water and reach. */
+export interface GaugeWaters {
+  waters: readonly ItemId[];
+  gauges: ReadonlyMap<StationId, { item: ItemId | null; section: SectionId | null }>;
+}
+
 export interface Panel {
   /** The target's own catchment, km². Null where the graph had no magnitude for it. */
   areaKm2: number | null;
@@ -524,6 +530,16 @@ export interface RegsSource {
   lakeStationsFor(
     sections: readonly SectionId[],
   ): Promise<ReadonlyMap<SectionId, StationId>>;
+  /**
+   * WHICH WATER EACH OF THESE STATIONS STANDS ON, and which waters this section is (T168): the facts core's
+   * `gaugeSide` splits a panel into the gauges ON THIS WATER and the donors estimating from other waters.
+   *
+   * `waters` is the section's own water(s) (`item_section`) and every water joined to one across `water_continue`,
+   * both ways and transitively — ONE SYSTEM, as `build_panels.own_distances` reads a water's own gauges (the Vedder and
+   * the Chilliwack). `gauges` is each station's `gauge.item_id` and `gauge.sid` (null where the release has none:
+   * 296 stations stand on no named water). A station the release does not hold is absent.
+   */
+  gaugeWaters(section: SectionId, stations: readonly StationId[]): Promise<GaugeWaters>;
   /**
    * Which station speaks for each catchment, and how far the reading travelled.
    *

@@ -19,6 +19,7 @@ import { CHANGE_LOW_WATER, changeLowWaterNote, CHANGE_NEEDS_FLOW, CHANGE_POLICY,
          type Standing } from "@app/core";
 import { donorMapKey, donorMapLabel, hereMapLabel, ROUTE_MAP_WORDS,
          routeLegend } from "@app/core";
+import { gaugeCountLine, gaugeSides, groupGauges, stateAt, type GaugeGroup, type GaugeSide } from "@app/core";
 import { useAsync, type Async } from "./async";
 import { useGaugeTrace, useStationReading } from "./hooks";
 import { pushedRoute, routeLabels, routeValues, type RouteColourVM } from "./routeColour";
@@ -383,6 +384,15 @@ export interface DonorPinVM {
 }
 export interface DonorKeyVM { row: number | null; label: string }
 
+/**
+ * (T168) EACH STATION'S SIDE — on this water or a donor (core `gaugeSide`), by station. Null until the waters are read
+ * (`useGaugeSides`), and on a saved spot, which froze none: the surfaces then draw one run, as before.
+ */
+export type GaugeSides = ReadonlyMap<string, GaugeSide> | null;
+
+/** A surface's items grouped (core `groupGauges`): own first, each group's not-reporting members under its fold. */
+export type GaugeGroupVM<T> = GaugeGroup<T>;
+
 /** One donor's route, for the overlay: its chain of reaches, spot first, and both ends. */
 export interface DonorRouteVM {
   row: number;
@@ -404,6 +414,8 @@ export interface DonorMapVM {
   chain: readonly SectionKey[];
   /** Each placed donor's route, in weight order — what the overlay copies out of the tiles. */
   routes: readonly DonorRouteVM[];
+  /** (T168) The key's gauges grouped, own first, the not-reporting under each group's fold; null without sides. */
+  keyGroups: readonly GaugeGroupVM<DonorKeyVM>[] | null;
   /** The key's line samples: only the roles drawn. */
   legend: readonly { role: "up" | "down"; label: string }[];
   /** Every mark's extent [w, s, e, n] — what "fit" returns to. */
@@ -517,6 +529,12 @@ export type DonorVM =
       listLabel: string;
       /** Only the members that speak at this horizon; the silent ones are in `silent`. */
       rows: readonly DonorRowVM[];
+      /**
+       * (T168) EVERY member's row, grouped: on this water first, then the donors; in each, the reporting ones listed and
+       * the rest (silent and unranked) under a closed fold. Null without sides (a saved spot, or still reading): draw
+       * `rows` and `silent`, as before. With groups, `silent` is not drawn — its members are the folds' rows.
+       */
+      groups: readonly GaugeGroupVM<DonorRowVM>[] | null;
       /** "Not reporting: …" — the members hidden from the table and the map, each with its last data time. */
       silent: string | null;
       shortRecord: string | null;
@@ -553,6 +571,8 @@ export interface DonorViewOptions {
    * T78); left out (a saved spot, which did not record it), the tide is not said.
    */
   quantity?: Quantity;
+  /** (T168) Each member's side; null or absent: one run, as before. */
+  sides?: GaugeSides;
 }
 
 /** The donor panel's view model, from an answer. Pure: a saved spot builds it from frozen data. */
@@ -601,6 +621,16 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
   const pts = [...placed.map((r) => ({ lat: r.route!.lat!, lon: r.route!.lon! })),
                ...(from ? [from] : [])];
   const drawn = placed.filter((r) => (r.route?.path.length ?? 0) > 0);
+  // (T168) on this water first: the key reads own gauges first, and their labels win a crowded map (`rank`)
+  const sides = o.sides ?? null;
+  const sideOf = (r: DonorRow): GaugeSide => sides?.get(r.station) ?? "donor";
+  const ask = { ref, horizon: o.horizon };
+  // every key stays in sight: each names a pin drawn on the map (a silent member has neither), so none folds
+  const placedGroups = sides
+    ? groupGauges(placed, sideOf, (r) => stateAt(r, ask), { horizon: o.horizon, keep: () => true }) : null;
+  const keyOrder = placedGroups ? placedGroups.flatMap((g) => g.shown) : placed;
+  const rankOf = new Map(keyOrder.map((r, i) => [r, i]));
+  const keyOf = (r: DonorRow): DonorKeyVM => ({ row: toneOf(r), label: donorMapKey(r, ask) });
   const map: DonorMapVM | null = value.routesReady && camera ? {
     camera,
     key: `${camera.lon.toFixed(3)},${camera.lat.toFixed(3)},${camera.zoom.toFixed(1)}`,
@@ -608,7 +638,7 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
       ...placed.map((r): DonorPinVM => {
         const row = toneOf(r);
         return { lat: r.route!.lat!, lon: r.route!.lon!, row, kind: "gauge",
-                 title: donorPinTitle(r, r === atSpot), label: donorMapLabel(r, { ref, horizon: o.horizon }), rank: row };
+                 title: donorPinTitle(r, r === atSpot), label: donorMapLabel(r, ask), rank: sides ? rankOf.get(r) ?? row : row };
       }),
       // LAST, so it draws over a gauge at the same place.
       ...(from ? [{ lat: from.lat, lon: from.lon, row: null, title: here, kind: "here" as const,
@@ -616,8 +646,9 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
     ],
     keys: [
       ...(from ? [{ row: null, label: here }] : []),
-      ...placed.map((r) => ({ row: toneOf(r), label: donorMapKey(r, { ref, horizon: o.horizon }) })),
+      ...keyOrder.map(keyOf),
     ],
+    keyGroups: placedGroups?.map((g) => ({ ...g, shown: g.shown.map(keyOf), folded: g.folded.map(keyOf) })) ?? null,
     unplaced: unplacedNote(shown.length - placed.length),
     chain: [...new Set(shown.flatMap((r) => r.route?.path ?? []))],
     routes: drawn.map((r) => ({ row: toneOf(r), role: r.role, path: r.route!.path,
@@ -628,6 +659,20 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
     words: { fit: ROUTE_MAP_WORDS.fit, fitLabel: ROUTE_MAP_WORDS.fitLabel,
              larger: ROUTE_MAP_WORDS.larger, smaller: ROUTE_MAP_WORDS.smaller },
   } : null;
+
+  function rowVM(r: DonorRow): DonorRowVM {
+    const on = o.selected != null && r.station === o.selected;
+    return {
+      station: r.station, row: toneOf(r), name: r.route?.name ?? null, quiet: !donorCounted(r), on,
+      bar: `${Math.max(1, Math.round(r.weight * 100))}%`,
+      weightLine: donorWeightLine(r),
+      reads: donorReads(r, { ref: o.day.getTime(), horizon: o.horizon }),
+      lastReport: !donorCounted(r) ? donorLastReport(r.observedAt, o.zone) : null,
+      facts: donorFacts(r),
+      because: donorCounted(r) ? donorBecause(r) : null,
+      label: donorRowLabel(r, o.pickable, on, { ref, horizon: o.horizon }),
+    };
+  }
 
   return {
     ok: true,
@@ -641,19 +686,9 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
     map,
     tapToChart: CONDITIONS_WORDS.tapToChart,
     listLabel: CONDITIONS_WORDS.donorList,
-    rows: shown.map((r: DonorRow): DonorRowVM => {
-      const on = o.selected != null && r.station === o.selected;
-      return {
-        station: r.station, row: toneOf(r), name: r.route?.name ?? null, quiet: !donorCounted(r), on,
-        bar: `${Math.max(1, Math.round(r.weight * 100))}%`,
-        weightLine: donorWeightLine(r),
-        reads: donorReads(r, { ref: o.day.getTime(), horizon: o.horizon }),
-        lastReport: !donorCounted(r) ? donorLastReport(r.observedAt, o.zone) : null,
-        facts: donorFacts(r),
-        because: donorCounted(r) ? donorBecause(r) : null,
-        label: donorRowLabel(r, o.pickable, on, { ref, horizon: o.horizon }),
-      };
-    }),
+    rows: shown.map(rowVM),
+    groups: sides ? groupGauges(rows, sideOf, (r) => stateAt(r, ask), { horizon: o.horizon })
+      .map((g) => ({ ...g, shown: g.shown.map(rowVM), folded: g.folded.map(rowVM) })) : null,
     silent,
     shortRecord: shortRecordNote(rows),
     regulated: regulatedNote(rows),
@@ -710,9 +745,39 @@ export function gaugeChoices(rows: readonly DonorRow[], lead: StationId | null,
   });
 }
 
+/**
+ * (T168) THE SWITCH GROUPED: `gaugeChoices` own first, each group's not-reporting chips under its fold — except the chip
+ * the chart shows, which stays in sight. Null without sides or without a choice to make.
+ */
+export function gaugeChoiceGroups(rows: readonly DonorRow[], lead: StationId | null,
+                                  ask: { ref?: number; horizon?: Horizon }, sides: GaugeSides):
+  GaugeGroupVM<GaugeChoiceVM>[] | null {
+  const choices = gaugeChoices(rows, lead, ask);
+  if (!sides || !choices.length) return null;
+  const row = new Map(rows.map((r) => [r.station as string, r]));
+  return groupGauges(choices, (c) => sides.get(c.station) ?? "donor", (c) => stateAt(row.get(c.station)!, ask),
+                     { horizon: ask.horizon ?? 0, keep: (c) => c.on });
+}
+
+/**
+ * (T168) WHICH SIDE EACH STATION IS ON for this section (core `gaugeSides` over `RegsSource.gaugeWaters`). Null while
+ * reading, without a section or stations, or when the source cannot say (an old test double): the surfaces then draw
+ * one run, as before — never a guess at "on this water".
+ */
+export function useGaugeSides(source: RegsSource, section: SectionId | null,
+                              stations: readonly StationId[]): GaugeSides {
+  const key = stations.join(",");
+  const got = useAsync(async () => {
+    if (section === null || !stations.length) return null;
+    const w = await source.gaugeWaters(section, stations);
+    return gaugeSides(stations, { waters: w.waters, section }, w.gauges);
+  }, `gaugesides:${section ?? ""}:${key}`, section !== null && stations.length > 0);
+  return got.state === "ready" ? got.value : null;
+}
+
 /** `donorView`, memoised for a component. */
 export function useDonorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
-  const { day, horizon, from, size, selected, pickable, quantity } = o;
+  const { day, horizon, from, size, selected, pickable, quantity, sides } = o;
   const t = day.getTime();
   const lat = from?.lat;
   const lon = from?.lon;
@@ -721,8 +786,8 @@ export function useDonorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
     () => donorView(value, { day: new Date(t), horizon,
                              from: lat != null && lon != null ? { lat, lon } : null,
                              size: { width, height }, selected, pickable,
-                             ...(quantity ? { quantity } : {}) }),
-    [value, t, horizon, lat, lon, width, height, selected, pickable, quantity]);
+                             ...(quantity ? { quantity } : {}), sides: sides ?? null }),
+    [value, t, horizon, lat, lon, width, height, selected, pickable, quantity, sides]);
 }
 
 /** The lead station's own reading, finished. */
@@ -790,6 +855,12 @@ export interface ConditionsVM {
   trace: GaugeTrace | null;
   /** The chart's gauge switcher — see `gaugeChoices`. */
   gauges: readonly GaugeChoiceVM[];
+  /** (T168) The switcher grouped (`gaugeChoiceGroups`); null: draw `gauges` as one run. */
+  gaugeGroups: readonly GaugeGroupVM<GaugeChoiceVM>[] | null;
+  /** (T168) Each station's side, for the donor panel; null until read. */
+  sides: GaugeSides;
+  /** (T168) "2 gauges on this water · 5 estimating from other waters · 6 not reporting" (core `gaugeCountLine`). */
+  count: string | null;
 }
 
 /**
@@ -843,6 +914,20 @@ export function useConditionsView(
   const lead: StationId | null = sheetLead(speaker, panel.rows, picked);
   const got = useStationReading(source, lead);
   const c = got.state === "ready" ? got.value : null;
+  // (T168) on this water or a donor: every station that speaks for the section — the panel's members, a lake's own
+  const stationKey = speaker?.kind === "panel" ? speaker.panel.members.map((m) => m.station).join(",")
+    : speaker?.kind === "lake" ? speaker.station : "";
+  const stations = useMemo(() => (stationKey ? stationKey.split(",") as StationId[] : []), [stationKey]);
+  const sides = useGaugeSides(source, section, stations);
+  const ask = { ref: today.getTime(), horizon };
+  const count = !sides ? null
+    : speaker?.kind === "lake"
+      ? (got.state === "ready" ? gaugeCountLine([{ side: sides.get(speaker.station) ?? "donor",
+                                                   state: stateAt({ percentile: c?.percentile ?? null,
+                                                                    observedAt: c?.observedAt ?? null }, ask) }],
+                                                 horizon) : null)
+      : gaugeCountLine(panel.rows.map((r) => ({ side: sides.get(r.station) ?? "donor", state: stateAt(r, ask) })),
+                       horizon);
   const name = panel.rows.find((r) => r.station === lead)?.route?.name
     ?? (speaker?.kind === "lake" && spoken.state === "ready" ? spoken.value.name : null)
     ?? lead ?? "";
@@ -887,6 +972,8 @@ export function useConditionsView(
     trace: !panel.answer.ok && traced.state === "ready" && speaks(speaker, traced.value.station)
       ? traced.value : null,
     gauges: gaugeChoices(panel.rows, lead, { ref: today.getTime(), horizon }),
+    gaugeGroups: gaugeChoiceGroups(panel.rows, lead, ask, sides),
+    sides, count,
   };
 }
 
