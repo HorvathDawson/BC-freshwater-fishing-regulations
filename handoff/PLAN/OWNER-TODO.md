@@ -13,9 +13,9 @@ with the default Claude uses until you answer). Newest first inside each section
   in this PUBLIC repo — untrack/purge them or not. Details: the T162 ticket's Outcome.
 
 - **T67 braids — check every cut (phone-friendly):** https://claude.ai/artifact/Et8B4Z6ZbKNNw9mMkJWzFH
-  29 proposed cuts (Right / Wrong / Unsure + note), 2 re-homed, 38 braids left alone, 45 dropped ditches, and two
-  yes/no calls on the Questions tab (a gauge on a named side channel cutting its mainstem; a moved length cut changing
-  a 1 km Fraser piece's region 5 → 7). Nothing is promoted until you have marked them. (Push is off in /config, so no
+  Round 2 (2026-10-24): 28 proposed cuts (Right / Wrong / Unsure + note), 2 re-homed, 19 braids left alone, 45
+  dropped ditches, and three yes/no calls on the Questions tab (a gauge on a named side channel cutting its mainstem;
+  a moved length cut changing a 1 km Fraser piece's region 5 → 7; the Exchamsiks curated-split fix). Nothing is promoted until you have marked them. (Push is off in /config, so no
   notification was sent.)
 
 ## Reviews
