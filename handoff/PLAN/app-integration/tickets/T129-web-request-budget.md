@@ -1,6 +1,6 @@
 # T129 — Web request budget: gate what a web visitor fetches, not only the release total
 
-Status: DONE (3d0cc66a, 4183a2f4, 950dfaeb) — owner 2026-10-22: "as long as it isn't too much of a raise. we can be smart
+Status: DONE (ef40ed10, 36e4b3ae, 511aadb1) — owner 2026-10-22: "as long as it isn't too much of a raise. we can be smart
 on the webapp on how things are requested." (The release total gate went 14 → 15 MB, Q55.) Proposals below for the owner.
 
 ## Why
@@ -23,7 +23,7 @@ The table, the gates in the build and the app, the pinned request walk; any lazy
 
 ## Outcome
 
-DONE 2026-10-24 (3d0cc66a, 4183a2f4, 950dfaeb). Measured on r-bb4331929428 served by the owner's :39217, with the app
+DONE 2026-10-24 (ef40ed10, 36e4b3ae, 511aadb1). Measured on r-bb4331929428 served by the owner's :39217, with the app
 on a dev server of this worktree (Expo web, 390 × 844), each walk a cold Chrome profile (no HTTP cache, no Cache
 Storage), recorded over CDP (`app/tools/request-walk.mjs`).
 
@@ -92,7 +92,7 @@ header's name, so a moved camera or retiled map fails by name.
 
 - The manifest was fetched TWICE per web visit: the boot's read, then the sync icon's first check an instant later.
   `useSync` takes `named` (App passes the boot manifest's release on the web only; a phone's boot opened its held set,
-  so its first check still asks). First paint on the wire 1,031.5 → 1,025.3 kB, one request fewer (3d0cc66a).
+  so its first check still asks). First paint on the wire 1,031.5 → 1,025.3 kB, one request fewer (ef40ed10).
 
 ### Proposals (not done: each changes the release format or what the web holds)
 

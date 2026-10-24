@@ -173,7 +173,7 @@ use that as the sole source of future work."
 | T126 | forecast reading bugs: CLEVER times 8 h off, 5-day summary on a 10-day run, dots ignore horizon | DONE | e3688e2b, c7ccec1f, d7b9ed24 | live after a feed republish (owner R2 upload) |
 | T127 | displaced rule still shows "counts toward" and bounds the card gate | DONE | 2a0458f2, 358b5076, 77566458 | live after the next deliver |
 | T128 | sub-cap line names its total ("of your 5 trout and char a day in streams, up to 2 may be…") | DONE | 59aba774, c7d9f57f, 77566458, c410ca42, e839d0cd, 6d768bd6, bb46f5f1, 001e8ffd | — |
-| T129 | web request budget: gate first-paint / per-tap bytes, not only the release total | DONE | 3d0cc66a, 4183a2f4, 950dfaeb, 16794d00 | bytes table + WEB_BUDGET gates (release step + app test) + pinned request walk; splits → T182 |
+| T129 | web request budget: gate first-paint / per-tap bytes, not only the release total | DONE | ef40ed10, 36e4b3ae, 511aadb1, 3ff84f30 | bytes table + WEB_BUDGET gates (release step + app test) + pinned request walk; splits → T182 |
 | T130 | Conditions: zoom out further before the basin heat map; Change chip greyed under Level | DONE | b4f3a40f, cd95bb63, b5218057, c9d48ea7 | Q-T130a/b (defaults built) |
 | T131 | spot pins look better and open the spot on tap | DONE | 00398a3b, fafcd21a, 64b96b55 | Q-T131-1..5 (defaults built); native tap with T50 |
 | T132 | curation review: salmon (DFO) pass | OPEN | — | later, after the first pass |
