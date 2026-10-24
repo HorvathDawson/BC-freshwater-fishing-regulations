@@ -26,7 +26,7 @@ import { dayRange, placeholderFor, syncVM } from "@app/core";
 import { useMemo, useRef, useState } from "react";
 import { View } from "react-native";
 import { bottomBarShown, spotPins, useDayFlow, useLikeVisit, useMapRail, useMenu, useDataFacts, useSync,
-         BackLayerContext, type RegsStart } from "@app/ui";
+         BackLayerContext, useReleasePrefetch, type RegsStart } from "@app/ui";
 import type { Camera, MapSpots } from "@app/map";
 import { connectivity } from "./connectivity";
 import { SearchSheet } from "./SearchSheet";
@@ -56,6 +56,8 @@ export function Shell(p: ShellProps) {
   const { source, palette, theme, tiles, spots = [], onSaveSpot, weather, feed, photos, loader = null, locate = null,
           menuInfo, checkRelease = null, releaseNamed = null, hydat } = p;
   const nav = useShellNav({ source, loader, systemBack: p.systemBack ?? null, initialRoute: p.initialRoute });
+  /** (T186) the map's region reports drive the web prefetch; undefined (a phone): the map is not asked */
+  const onRegion = useReleasePrefetch(p.prefetch ? loader : null);
   const { route, go, tab, frame, adding, openSpot, back, backLayers } = nav;
   /*
    * EVERY SURFACE IS UNDER THE ONE BACK (app/HANDOFF-ui.md "Back, everywhere"): whatever the Shell returns — the spot,
@@ -165,7 +167,7 @@ export function Shell(p: ShellProps) {
                   spots={spots} spotsShown={spotsShown} spotLayer={spotLayer} spotsError={p.spotsError}
                   onRefreshSpots={p.onRefreshSpots} refreshing={p.refreshing} locate={locate} photos={photos}
                   loader={loader} syncState={syncState} menu={menu} menuInfo={menuInfo} mapDay={mapDay}
-                  onSaveSpot={onSaveSpot} onLayers={() => setLayersOpen(true)} />;
+                  onSaveSpot={onSaveSpot} onLayers={() => setLayersOpen(true)} onRegion={onRegion} />;
 
   /** (T48) The top bar — the search field — is the maps': on the Map and Conditions tabs while browsing. */
   const topBar = route.mode === "browse" && (tab === "map" || tab === "conditions") && !rail.picking;

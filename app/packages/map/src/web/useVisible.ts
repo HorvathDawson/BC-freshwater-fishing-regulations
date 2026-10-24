@@ -1,5 +1,6 @@
 /**
- * WHICH SECTIONS ARE ON SCREEN on the web map, reported to `onVisible` after movement settles.
+ * WHICH SECTIONS ARE ON SCREEN on the web map, reported to `onVisible` after movement settles — and (T186) which region
+ * is under its centre, reported to `onRegion`.
  */
 import { useEffect, useRef } from "react";
 import type { MapProps } from "../map-props";
@@ -60,4 +61,34 @@ export function useVisible({ map, renderer }: WebMapRefs, onVisible: MapProps["o
     // it. Keyed on whether a listener exists rather than on its identity, so a caller
     // passing an inline arrow still cannot make this thrash.
   }, [onVisible !== undefined]);
+}
+
+/** The style layer whose features carry `region_id` (layers.source.json `region`: a near-invisible fill). */
+const REGION_LAYER = "region";
+
+/**
+ * (T186) THE REGION UNDER THE CENTRE, on every `idle` (the first is the first painted map): the `region` fill's
+ * `region_id` at the centre pixel, or null. Keyed on whether a listener exists, like `useVisible`.
+ */
+export function useRegion({ map }: WebMapRefs, onRegion: MapProps["onRegion"]) {
+  const regionCb = useRef(onRegion);
+  regionCb.current = onRegion;
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !onRegion) return;
+    const report = () => {
+      const cb = regionCb.current;
+      if (!cb) return;
+      let id: string | null = null;
+      if (m.getLayer(REGION_LAYER)) {
+        const f = m.queryRenderedFeatures(m.project(m.getCenter()), { layers: [REGION_LAYER] })[0];
+        const v = f?.properties?.region_id as unknown;
+        id = typeof v === "string" || typeof v === "number" ? String(v) : null;
+      }
+      cb(id);
+    };
+    m.on("idle", report);
+    if (m.isStyleLoaded() && m.loaded()) report();
+    return () => { m.off("idle", report); };
+  }, [onRegion !== undefined]);
 }

@@ -38,6 +38,7 @@ export * from "./mapRail";
 export * from "./layerChoice";
 export * from "./imagery";
 export * from "./sync";
+export * from "./prefetch";
 
 export * from "./layout";
 export * from "./gestures";

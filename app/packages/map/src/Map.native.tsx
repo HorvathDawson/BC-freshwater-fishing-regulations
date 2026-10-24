@@ -70,7 +70,9 @@ type Data = NonNullable<MapProps["data"]>;
 export function Map({ at, theme, view, modes, groups, hide, show, initial, data, onPressFeature, chrome, onError,
                       onMoved, onMapPoint, onLongPress, highlight, water, waterLine, selection = "outline", marker, style, gauges,
                       onVisible, pins, bare, fit,
-                      basemap, marks, onPressMark, spots, onImageryError: _noTileErrors }: MapProps) {
+                      basemap, marks, onPressMark, spots, onImageryError: _noTileErrors,
+                      onRegion: _noPrefetch }: MapProps) {
+  // `onRegion` is accepted and never called: it feeds the WEB's prefetch, and a phone holds the release installed.
   // `onImageryError` is accepted and never called: the binding has no per-tile error event. A phone learns the imagery
   // is unreachable from `useImageryReach`'s probe instead (satellite is online-only, owner 2026-10-21).
   const adapter = useRef(baseAdapter("native"));

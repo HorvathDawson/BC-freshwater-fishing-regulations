@@ -80,6 +80,12 @@ export interface ShellProps {
    */
   releaseNamed?: string | null;
   /**
+   * (T186, Q164) Fetch ahead after first paint: the regs file of the region in view, and core + sql-wasm when the
+   * browser is idle and not on Save-Data / a slow connection (`@app/ui` `useReleasePrefetch`). The WEB only (App passes
+   * it there): a phone holds the release installed.
+   */
+  prefetch?: boolean;
+  /**
    * Where the Layers sheet's choice is kept across a reload (`@app/data/spots` `openLayerStore`): the Spots switch and
    * every other (owner 2026-10-22). Absent: the defaults, kept for the session only.
    */

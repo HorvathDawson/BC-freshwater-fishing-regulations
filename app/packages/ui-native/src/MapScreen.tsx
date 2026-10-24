@@ -23,7 +23,7 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
                             onLayers, layersChanged = 0, onLongPress, onPressFeature, onMoved, onMapPoint, horizons,
                             highlight, marker, pins, data, status, standing, lakes, gauges, onVisible, onError,
                             fit, basemap, onImageryError, water, waterLine, selection, marks, onPressMark, spots,
-                            insetTop = 0 }: {
+                            insetTop = 0, onRegion }: {
   at: TileEndpoints; palette: Palette; theme: string; view: string;
   groups?: Record<string, boolean>;
   /** Layers this view does not draw — see `hiddenLayers`. Not a user toggle. */
@@ -87,6 +87,8 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
    * web map's own controls start under it. 0: no bar.
    */
   insetTop?: number;
+  /** (T186) The region under the centre, each settle — see MapProps.onRegion (the web prefetch's). */
+  onRegion?: MapProps["onRegion"];
 }) {
   return (
     <View style={{ flex: 1, backgroundColor: palette.tint }}>
@@ -95,7 +97,8 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
            onPressFeature={onPressFeature} onMoved={onMoved} onMapPoint={onMapPoint} onLongPress={onLongPress}
            highlight={highlight} pins={pins} spots={spots} insetTop={insetTop} water={water} waterLine={waterLine} selection={selection} marks={marks} onPressMark={onPressMark} marker={marker} data={data} status={status} standing={standing} lakes={lakes}
            gauges={gauges}
-           onVisible={onVisible} onError={onError} fit={fit} basemap={basemap} onImageryError={onImageryError} />
+           onVisible={onVisible} onError={onError} fit={fit} basemap={basemap} onImageryError={onImageryError}
+           onRegion={onRegion} />
 
       {/*
         ZOOM, COMPASS AND SCALE ARE THE MAP'S OWN (see @app/map/controls.css). What is left

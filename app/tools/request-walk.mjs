@@ -11,6 +11,12 @@
 //                                   [--json out.json] [--pin]      (--pin: write the pin from this run)
 //   → exit 1 on any FAIL line
 //
+// T186 (Q164): THE PREFETCH after first paint (the region's regs file always; core + sql-wasm when the browser is idle)
+// is recorded as a moment of its own, `prefetch after paint`: the release files (and the wasm) a first-paint window
+// fetched AFTER the app's first `release-prefetch` performance mark. So `first paint` stays what painting needed — the
+// T129 gate — and each later moment shows what it still had to fetch with the prefetch done. `tap named (save-data)`
+// is the same tap with `navigator.connection.saveData` on: the idle prefetch is skipped, the region's file is not.
+//
 // Tiles, glyphs and sprites are recorded (bytes, count) but never pinned: what they cost depends on the viewport and the
 // zoom, not on the app's choice of what to load. The app bundle and fonts are a development build's (Metro, unminified):
 // recorded as `app`, not pinned, and not what production ships.
@@ -50,8 +56,12 @@ function kindOf(url) {
   return { kind: 'external', name: u.hostname };
 }
 
-async function session(url, { seedSpot = false } = {}) {
-  const init = seedSpot ? `try { if (!localStorage.getItem('canifishthis.spots.v1')) localStorage.setItem('canifishthis.spots.v1', ${JSON.stringify(JSON.stringify([SPOT]))}); } catch {}` : '';
+/** The page says Save-Data (T186): what a reader who asked the browser to save data gets. */
+const SAVE_DATA = `try { Object.defineProperty(Navigator.prototype, 'connection', { configurable: true, get: () => ({ saveData: true, effectiveType: '4g' }) }); } catch {}`;
+
+async function session(url, { seedSpot = false, saveData = false } = {}) {
+  const init = (seedSpot ? `try { if (!localStorage.getItem('canifishthis.spots.v1')) localStorage.setItem('canifishthis.spots.v1', ${JSON.stringify(JSON.stringify([SPOT]))}); } catch {}` : '')
+    + (saveData ? SAVE_DATA : '');
   const b = await open(url, { width: 390, height: 844, network: true, init });
   const take = () => b.requests.splice(0).filter((r) => /^https?:/.test(r.url));
   /** quiet: no request started or finished for `quiet` ms, and none in flight */
@@ -81,15 +91,31 @@ async function session(url, { seedSpot = false } = {}) {
 const results = [];   // { walk, moment, requests: [{ kind, name, bytes, url }] }
 const record = (walk, moment, reqs) => results.push({ walk, moment,
   requests: reqs.map((r) => ({ ...kindOf(r.url), bytes: r.bytes ?? 0, url: r.url, failed: r.failed ?? null })) });
-const firstPaint = async (s) => {
+/** When the app first marked a prefetch (epoch ms), or null: none yet. */
+const PREFETCH_AT = `(() => { const e = performance.getEntriesByType('mark').filter((m) => m.name.startsWith('release-prefetch'));
+  return e.length ? performance.timeOrigin + Math.min(...e.map((m) => m.startTime)) : null; })()`;
+/**
+ * First paint, then the prefetch it starts (T186), as two moments: everything sent before the app's first prefetch
+ * mark is first paint's; a release file or the wasm sent at or after it is the prefetch's (tiles, the feed and the app
+ * stay with first paint — the prefetch fetches only release files).
+ */
+const firstPaint = async (s, walk) => {
   await s.until(`!!document.querySelector('[data-testid=map-day]') || !!document.querySelector('[data-testid=regs-header]')`, 120000, 'the map');
   await s.idle(4000);
+  // the region's file is always prefetched once the map has painted; wait for its mark, then for the quiet after it
+  await s.until(`${PREFETCH_AT} !== null`, 30000, 'the prefetch after first paint').catch(() => {});
+  await s.idle(4000);
+  const at = await s.b.evaluate(PREFETCH_AT);
+  const reqs = s.take();
+  const ahead = (r) => at !== null && r.wall !== null && r.wall * 1000 >= at - 1 && ['release', 'wasm'].includes(kindOf(r.url).kind);
+  record(walk, 'first paint', reqs.filter((r) => !ahead(r)));
+  record(walk, 'prefetch after paint', reqs.filter(ahead));
 };
 
 async function visit() {
   const s = await session(`${URL0}/`);
   try {
-    await firstPaint(s); record('visit', 'first paint', s.take());
+    await firstPaint(s, 'visit');
     await s.press('Search waters and towns'); await sleep(600);
     await s.b.evaluate(`document.querySelector('input').focus()`);
     await s.b.send('Input.insertText', { text: 'Thompson' });
@@ -105,7 +131,7 @@ async function visit() {
 async function conditions() {
   const s = await session(`${URL0}/`);
   try {
-    await firstPaint(s); record('conditions', 'first paint', s.take());
+    await firstPaint(s, 'conditions');
     await s.press('Conditions'); await s.until(`!!document.querySelector('[data-testid=map-horizons]')`); await s.idle();
     record('conditions', 'open Conditions', s.take());
     await s.press('Expected change over the next 10 days'); await s.idle();
@@ -116,7 +142,7 @@ async function conditions() {
 async function spot() {
   const s = await session(`${URL0}/`, { seedSpot: true });
   try {
-    await firstPaint(s); record('spot', 'first paint', s.take());
+    await firstPaint(s, 'spot');
     await s.press('Spots'); await s.until(`!!document.querySelector('[data-testid=spots-screen]')`); await s.idle();
     record('spot', 'the Spots tab', s.take());
     await s.press('Walk spot', { prefix: true }); await s.idle();
@@ -132,12 +158,14 @@ async function spot() {
 const MAP_TAPS = [
   { walk: 'tap named', x: 102, y: 260, name: 'Gravel Slough', moment: 'map tap: a named water (R2)' },
   { walk: 'tap unnamed', x: 319, y: 602, name: 'Unnamed stream · Region 2', moment: 'map tap: an unnamed stream (R2)' },
+  // T186: the named tap again with Save-Data on — no idle prefetch, so the tap fetches core + wasm itself
+  { walk: 'tap named (save-data)', x: 102, y: 260, name: 'Gravel Slough', moment: 'map tap: a named water (R2)', saveData: true },
 ];
 async function taps() {
   for (const t of MAP_TAPS) {
-    const s = await session(`${URL0}/`);
+    const s = await session(`${URL0}/`, { saveData: !!t.saveData });
     try {
-      await firstPaint(s); record(t.walk, 'first paint', s.take());
+      await firstPaint(s, t.walk);
       for (const type of ['mouseMoved', 'mousePressed', 'mouseReleased'])
         await s.b.send('Input.dispatchMouseEvent', { type, x: t.x, y: t.y, button: 'left', clickCount: 1 });
       await s.until(`!!document.querySelector('[data-testid=regs-header]')`, 60000, `a tap at ${t.x},${t.y} to open a water`);
@@ -165,11 +193,11 @@ for (const w of ONLY) { if (!WALKS[w]) throw new Error(`no walk ${w}`); await WA
 // ---- the table ----
 const kb = (n) => (n / 1000).toFixed(1).padStart(8);
 const sum = (rs, f) => rs.filter(f).reduce((a, r) => a + r.bytes, 0);
-console.log(`${'walk'.padEnd(10)} ${'moment'.padEnd(40)} ${'release kB'.padStart(10)} ${'wasm'.padStart(8)} ${'feed'.padStart(8)} ${'tiles+map'.padStart(9)} ${'other'.padStart(8)}  release files`);
+console.log(`${'walk'.padEnd(22)} ${'moment'.padEnd(40)} ${'release kB'.padStart(10)} ${'wasm'.padStart(8)} ${'feed'.padStart(8)} ${'tiles+map'.padStart(9)} ${'other'.padStart(8)}  release files`);
 for (const m of results) {
   const rs = m.requests;
   const rel = sum(rs, (r) => r.kind === 'release' || r.kind === 'manifest' || r.kind === 'mask');
-  console.log(`${m.walk.padEnd(10)} ${m.moment.padEnd(40)} ${kb(rel)}   ${kb(sum(rs, (r) => r.kind === 'wasm'))} ${kb(sum(rs, (r) => r.kind === 'feed'))} ${kb(sum(rs, (r) => ['tiles', 'basemap', 'map-assets'].includes(r.kind)))} ${kb(sum(rs, (r) => ['app', 'external'].includes(r.kind)))}  ${[...new Set(rs.filter((r) => r.name).map((r) => r.name))].join(' ')}`);
+  console.log(`${m.walk.padEnd(22)} ${m.moment.padEnd(40)} ${kb(rel)}   ${kb(sum(rs, (r) => r.kind === 'wasm'))} ${kb(sum(rs, (r) => r.kind === 'feed'))} ${kb(sum(rs, (r) => ['tiles', 'basemap', 'map-assets'].includes(r.kind)))} ${kb(sum(rs, (r) => ['app', 'external'].includes(r.kind)))}  ${[...new Set(rs.filter((r) => r.name).map((r) => r.name))].join(' ')}`);
 }
 const failed = results.flatMap((m) => m.requests.filter((r) => r.failed && r.kind !== 'app').map((r) => `${m.walk}/${m.moment}: ${r.url} ${r.failed}`));
 if (opt('--json', null)) fs.writeFileSync(opt('--json'), JSON.stringify(results, null, 1));

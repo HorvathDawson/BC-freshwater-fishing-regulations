@@ -20,7 +20,9 @@ The one current map of `app/` (T63, checked against the code 2026-10-24). Why th
 
 ```
 data/release/r-*/ (R2 in production)
-  └─ manifest ─▶ @app/data release loader (bootRelease; phone: install to disk; web: fetch on first need)
+  └─ manifest ─▶ @app/data release loader (bootRelease; phone: install to disk; web: fetch on first need, and
+                   after first paint prefetch the region in view's regs file + core/sql-wasm on idle — T186,
+                   `release/prefetch.ts`, `@app/ui` `useReleasePrefetch`, the map's `onRegion`)
                    ├─ WaterSource (release/source.ts): core, near, paint, conditions, flow-area …
                    └─ RegsStore (regs/store.ts): water + regs-<region> + regs-sid
                          └─▶ @app/ui hooks ─▶ @app/ui-native screens ─▶ apps/mobile App.tsx

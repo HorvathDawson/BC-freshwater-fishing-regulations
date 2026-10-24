@@ -53,6 +53,13 @@ export interface ReleaseLoader {
   regionDb(akey: number): Promise<Db>;
   /** Which files have been opened so far (the web's lazy-load test reads this). */
   opened(): readonly FileName[];
+  /**
+   * (T186) Fetch a file's bytes ahead of need WITHOUT opening it: the source's own fetch, so it lands in the release
+   * cache the later open reads (web; a phone's files are installed and never prefetched). Once per file per loader.
+   */
+  prefetch(name: FileName): Promise<void>;
+  /** Whether a file was prefetched or opened already. */
+  prefetched(name: FileName): boolean;
 }
 
 export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener): ReleaseLoader {
@@ -64,6 +71,7 @@ export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener):
   let access: Promise<SectionAccess | null> | null = null;
   let regions: Promise<Map<number, Region[]>> | null = null;
   const touch = (n: FileName) => { if (!order.includes(n)) order.push(n); };
+  const ahead = new Map<FileName, Promise<void>>();
 
   const db = (name: DbName): Promise<Db> => {
     const spec = m.files[name];
@@ -145,6 +153,17 @@ export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener):
       return db(`regs-${held ?? rs[0]!}`);
     },
     opened: () => order.slice(),
+    prefetch(name) {
+      if (!m.files[name]) return Promise.reject(new ReleaseError(`release ${m.data_release} has no file ${name}`));
+      let p = ahead.get(name);
+      if (!p) {
+        p = source.bytes(name).then(() => {});
+        p.catch(() => ahead.delete(name));        // a failure is not kept: the next ask (or the open) tries again
+        ahead.set(name, p);
+      }
+      return p;
+    },
+    prefetched: (name) => ahead.has(name) || order.includes(name),
   };
   return loader;
 }

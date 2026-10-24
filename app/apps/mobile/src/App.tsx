@@ -169,6 +169,8 @@ export default function App() {
                // T129: the web's boot read the server's manifest an instant ago; the sync icon's first check takes that
                // read rather than a second request (a phone's boot opened its HELD set, so its first check still asks)
                releaseNamed={Platform.OS === "web" ? data.loader.manifest.data_release : null}
+               // (T186, Q164) the web fetches ahead after first paint; a phone holds the release installed
+               prefetch={Platform.OS === "web"}
                layerStore={layerStore} likeStore={likeStore}
                theme={name} themeName={name}
                onTheme={setTheme} tiles={data.tiles}

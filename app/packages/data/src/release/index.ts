@@ -7,3 +7,4 @@ export { heldPath, POINTER, type Progress, type ReleaseFs } from "./install";
 export { makeReleaseSource } from "./source";
 export { assetsDigest } from "./assets";
 export { bootRelease, releaseTiles, BootError, type BootOptions, type Booted, type ReleasePlatform } from "./boot";
+export { prefetchPlan, regionOfTile, runPrefetch, type PrefetchSignals } from "./prefetch";

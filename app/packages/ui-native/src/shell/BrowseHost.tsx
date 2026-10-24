@@ -26,7 +26,7 @@ const NONE_PINS: readonly never[] = [];
 
 export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, onTheme, tiles, camera, insetTop,
                              spots, spotsShown, spotLayer, spotsError, onRefreshSpots, refreshing, locate,
-                             photos, loader, syncState, menu, menuInfo, mapDay, onSaveSpot, onLayers }: {
+                             photos, loader, syncState, menu, menuInfo, mapDay, onSaveSpot, onLayers, onRegion }: {
   nav: ShellNav; col: MapColouring; search: ShellSearch; rail: MapRail; palette: Palette; theme: string;
   themeName: ThemeName; onTheme: (t: ThemeName) => void; tiles: TileEndpoints; camera: MutableRefObject<Camera>;
   insetTop: number; spots: readonly Spot[]; spotsShown: boolean; spotLayer: MapSpots | undefined;
@@ -36,6 +36,8 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
   onSaveSpot?: (spot: Spot) => void | Promise<void>;
   /** Open the Layers sheet (the Shell's). */
   onLayers: () => void;
+  /** (T186) The region under the map's centre, for the web prefetch (`useReleasePrefetch`); absent on a phone. */
+  onRegion?: (regionId: string | null) => void;
 }) {
   const { route, go, browse, tab, back, opener } = nav;
   const { flowParam, mm, layers, imagery, cond, gauges, lakeFeed, mapStatus, statusMapData, noteVisible, setZoomedOut,
@@ -129,6 +131,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
                      // must be answerable from the map without changing tab.
                      gauges={onConditions ? gauges ?? undefined : undefined}
                      onVisible={mm.asksVisible ? noteVisible : undefined}
+                     onRegion={onRegion}
                      onMoved={(at) => {
                        camera.current = at;
                        // The ref is deliberate — see the Shell's camera — but ONE BIT of the camera is

@@ -339,5 +339,14 @@ export interface MapProps {
    * would round-trip through React.
    */
   onMoved?: (at: Camera) => void;
+  /**
+   * (T186) THE REGION UNDER THE MAP'S CENTRE, each time the map settles (`idle`): the `region` layer's `region_id` at
+   * the centre ("1" … "7A" … "8"), or null over no region (the sea, outside B.C., a view that does not draw the
+   * layer). The first report is the first painted map. The web prefetch reads it (`@app/ui` `useReleasePrefetch`).
+   *
+   * THE WEB MAP ONLY reports it: a phone holds the whole release, there is nothing to fetch ahead. Accepted on both,
+   * so the two maps take the same props.
+   */
+  onRegion?: (regionId: string | null) => void;
   style?: ViewStyle;
 }

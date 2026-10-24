@@ -6,16 +6,13 @@
   "paint"
  ],
  "visit | first search": [
-  "core",
-  "near",
-  "wasm"
+  "near"
  ],
  "visit | search: show a water": [
+  "regs-3",
   "water"
  ],
- "visit | search: open the water (R3)": [
-  "regs-3"
- ],
+ "visit | search: open the water (R3)": [],
  "tap named | first paint": [
   "feed:index",
   "manifest",
@@ -24,9 +21,6 @@
  ],
  "tap named | map tap: a named water (R2)": [
   "access",
-  "core",
-  "regs-2",
-  "wasm",
   "water"
  ],
  "tap unnamed | first paint": [
@@ -38,10 +32,7 @@
  "tap unnamed | map tap: an unnamed stream (R2)": [
   "access",
   "conditions",
-  "core",
-  "regs-2",
   "regs-sid",
-  "wasm",
   "water"
  ],
  "conditions | first paint": [
@@ -52,9 +43,7 @@
  ],
  "conditions | open Conditions": [
   "conditions",
-  "core",
-  "flow-area",
-  "wasm"
+  "flow-area"
  ],
  "conditions | the Change horizon": [],
  "spot | first paint": [
@@ -145,5 +134,45 @@
   "regs-7b",
   "wasm",
   "water"
+ ],
+ "visit | prefetch after paint": [
+  "core",
+  "regs-2",
+  "wasm"
+ ],
+ "tap named | prefetch after paint": [
+  "core",
+  "regs-2",
+  "wasm"
+ ],
+ "tap unnamed | prefetch after paint": [
+  "core",
+  "regs-2",
+  "wasm"
+ ],
+ "tap named (save-data) | first paint": [
+  "feed:index",
+  "manifest",
+  "mask",
+  "paint"
+ ],
+ "tap named (save-data) | prefetch after paint": [
+  "regs-2"
+ ],
+ "tap named (save-data) | map tap: a named water (R2)": [
+  "access",
+  "core",
+  "wasm",
+  "water"
+ ],
+ "conditions | prefetch after paint": [
+  "core",
+  "regs-2",
+  "wasm"
+ ],
+ "spot | prefetch after paint": [
+  "core",
+  "regs-2",
+  "wasm"
  ]
 }

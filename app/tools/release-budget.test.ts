@@ -10,6 +10,11 @@
  *                           (`build.web_moments`), is under its gate; and through the loader the app runs, a cold open of
  *                           a water in each region fetches core + water + that region's file and nothing else
  *
+ * T186 (Q164): the web PREFETCHES after first paint — the regs file of the region in view, and core + sql-wasm when the
+ * browser is idle (not on Save-Data / a slow connection). The walk records it as its own moment (`prefetch after
+ * paint`), so first paint is still what painting needed, and a gate prices a moment's files WITH what the prefetch
+ * took for it (a Save-Data visitor fetches them at the tap): the gate is the cold cost, the pin shows what is left.
+ *
  * The live half runs on the release this machine holds (`liveRelease`, a worktree reads the main checkout's) and skips
  * without one, unless REGS_STORE_REQUIRED=1.
  */
@@ -18,7 +23,7 @@ import { mkdtempSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { ItemId, Manifest } from "@app/data";
-import { bootRelease, type ReleasePlatform } from "@app/data/release";
+import { bootRelease, prefetchPlan, runPrefetch, type ReleasePlatform } from "@app/data/release";
 import { WEB_BUDGET } from "../packages/data/src/pack.generated";
 import { releaseCache } from "../packages/data/src/release/drivers/cache.web";
 import { releaseSource } from "../packages/data/src/release/drivers/source.web";
@@ -41,12 +46,36 @@ const GATED: Record<string, string> = {
   first_tap_unnamed: "tap unnamed | map tap: an unnamed stream (R2)",
   conditions_open: "conditions | open Conditions",
 };
+/** The walk's prefetch moment for a moment ("tap named | …" → "tap named | prefetch after paint"). */
+const prefetchOf = (moment: string) => `${moment.split(" | ")[0]} | prefetch after paint`;
+/** The release files a moment needed, with what the prefetch had already fetched of them (a Save-Data visitor's
+ *  moment fetches those itself); first paint is its own. */
+const withPrefetch = (moment: string, gate: readonly string[]): string[] => moment.endsWith("| first paint")
+  ? releaseFiles(moment)
+  : [...releaseFiles(prefetchOf(moment)).filter((f) => gate.includes(f)), ...releaseFiles(moment)];
 
 describe("the pinned walk fetches what the budget prices", () => {
-  it("every gate names a pinned moment, and that moment fetches exactly the gate's files, once each", () => {
+  it("every gate names a pinned moment, and that moment (with its prefetch) fetches exactly the gate's files, once each", () => {
     expect(sorted(Object.keys(WEB_BUDGET))).toEqual(sorted(Object.keys(GATED)));
     for (const [gate, moment] of Object.entries(GATED))
-      expect([gate, sorted(releaseFiles(moment))]).toEqual([gate, sorted(WEB_BUDGET[gate]!.files)]);
+      expect([gate, sorted(withPrefetch(moment, WEB_BUDGET[gate]!.files))]).toEqual([gate, sorted(WEB_BUDGET[gate]!.files)]);
+  });
+
+  it("T186: after first paint the walk prefetches the region in view's file (R2), and core + wasm on idle", () => {
+    const prefetches = Object.entries(PIN).filter(([k]) => k.endsWith("| prefetch after paint") && !k.includes("save-data"));
+    expect(prefetches.length).toBeGreaterThan(3);
+    for (const [k, files] of prefetches) expect([k, files]).toEqual([k, ["core", "regs-2", "wasm"]]);
+    // Save-Data: the region's file only; the tap then fetches core and the wasm itself
+    expect(PIN["tap named (save-data) | prefetch after paint"]).toEqual(["regs-2"]);
+    expect(PIN["tap named (save-data) | map tap: a named water (R2)"]).toEqual(["access", "core", "wasm", "water"]);
+  });
+
+  it("T186: no file is fetched twice — a moment after the prefetch asks for none of what it took", () => {
+    const twice = Object.keys(PIN).filter((k) => !/\| (first paint|prefetch after paint)$/.test(k) && PIN[prefetchOf(k)])
+      .flatMap((k) => PIN[k]!.filter((f) => PIN[prefetchOf(k)]!.includes(f)).map((f) => `${k}: ${f}`));
+    expect(twice).toEqual([]);
+    // the named tap in the prefetched region: no region file, no core, no engine — water and access are its own
+    expect(PIN["tap named | map tap: a named water (R2)"]).toEqual(["access", "water"]);
   });
 
   it("before the first question nothing but the manifest, paint and the mask (and the feed's index) — every walk", () => {
@@ -106,6 +135,19 @@ describe.skipIf(!LIVE)("the live release is under every web gate", () => {
     const grown = price(dir, WEB_BUDGET.first_tap!.files);
     expect([grown.files.includes(small), grown.bytes > WEB_BUDGET.first_tap!.gate]).toEqual([true, true]);
   });
+
+  it("T186: through the loader the app runs, a prefetched region file and core are read from the cache by the open", async () => {
+    const log: string[] = [];
+    const b = await bootRelease({ manifestUrl: `${BASE}manifest.json`, releaseBase: BASE, wasmBase: "",
+                                  platform: web, fetch: releaseFetch(BASE, LIVE!, log) });
+    runPrefetch(b.loader, prefetchPlan({ region: "2", idle: true, saveData: false, effectiveType: "4g" }));
+    await b.loader.prefetch("regs-2");
+    await b.loader.db("core");
+    const before = log.length;
+    expect((await b.source.regulationKeys(REGION_WATERS[2] as ItemId)).length).toBeGreaterThan(0);
+    // the open fetched water alone: regs-2 came from the prefetch's cached bytes, core was already open
+    expect([log.length - before, b.loader.opened()]).toEqual([1, ["paint", "core", "water", "regs-2"]]);
+  }, 120_000);
 
   it("a cold open of a water in each region fetches core + water + that region's file, nothing more", async () => {
     for (const [region, item] of Object.entries(REGION_WATERS)) {

@@ -35,7 +35,7 @@ import { useChannels } from "./web/useChannels";
 import { useFit } from "./web/useFit";
 import { useGauges, useTrace } from "./web/useOverlays";
 import { useWaterCopy } from "./web/useWaterCopy";
-import { useVisible } from "./web/useVisible";
+import { useRegion, useVisible } from "./web/useVisible";
 import { useWebMapRefs } from "./web/refs";
 
 export function Map({ at, theme, view, modes, groups, hide, show, initial, data, onPressFeature,
@@ -43,7 +43,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
                       onError, onMoved, onMapPoint, onLongPress, highlight, water, waterLine, selection = "outline", marker,
                       style,
                       gauges, onVisible, pins, bare, fit, basemap, trace, onImageryError,
-                      zoomControls, status, standing, lakes, marks, onPressMark, spots, insetTop = 0 }: MapProps) {
+                      zoomControls, status, standing, lakes, marks, onPressMark, spots, insetTop = 0, onRegion }: MapProps) {
   const refs = useWebMapRefs(onError);
   // Confines the BASEMAP's labels to British Columbia — see `useOutsideMask`. Absent on the
   // first frame and present a moment later, which is why it is applied by an effect after the map is made
@@ -70,6 +70,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   useTrace(refs, { trace, at, onError }, traceBox);
   useWaterCopy(refs, { highlight, water, waterLine, at, onError });
   useVisible(refs, onVisible);
+  useRegion(refs, onRegion);
   usePressFeature(refs, onPressFeature, onError);
 
   /**

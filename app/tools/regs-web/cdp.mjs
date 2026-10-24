@@ -24,7 +24,8 @@ export async function open(url, { width = 440, height = 900, init = '', offline 
   const requests = [], byId = new Map();
   const onNetwork = (m) => {
     if (m.method === 'Network.requestWillBeSent' && !m.params.redirectResponse) {
-      const r = { url: m.params.request.url, method: m.params.request.method, range: m.params.request.headers.Range ?? null, bytes: null, status: null };
+      const r = { url: m.params.request.url, method: m.params.request.method, range: m.params.request.headers.Range ?? null, bytes: null, status: null,
+                  wall: m.params.wallTime ?? null };   // T186: when it was sent (epoch s), to split a prefetch off first paint
       byId.set(m.params.requestId, r); requests.push(r);
     } else if (m.method === 'Network.responseReceived') { const r = byId.get(m.params.requestId); if (r) r.status = m.params.response.status; }
     else if (m.method === 'Network.loadingFinished') { const r = byId.get(m.params.requestId); if (r) r.bytes = m.params.encodedDataLength; }
