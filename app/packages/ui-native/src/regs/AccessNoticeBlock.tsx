@@ -7,8 +7,8 @@
  * The banner LEADS the page as a block in the WARNING amber (T165, `palette.warning`: the map draws the water dotted
  * grey, the warning lives here): a thick bar of it down the left, its tint as the ground (`palette.noAccessBand`), the
  * legend's own swatch — the map's dotted grey line — beside a large title ("No public access", the legend's own words),
- * then the plain-words body and the link — every word in ink, which holds 7:1 on the tint (the amber itself is under
- * 3:1 on the card, so it is never the words). The gentle note stays one small grey line (T54 Q1: permit-only land).
+ * then the plain-words body and the link — every word in ink, which holds 7:1 on the tint (the light amber itself is
+ * 3.0:1 on the card, under what words need, so it is never the words). The gentle note stays one small grey line (T54 Q1: permit-only land).
  */
 import { Text, View } from "react-native";
 import type { AccessNotice } from "@app/core";
