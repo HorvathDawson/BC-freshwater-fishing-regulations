@@ -88,6 +88,7 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 from pipeline.common.curated import GENERATED
+from pipeline.deliver.binary import read_varint, varint
 from pipeline.deliver.bundle import read
 from pipeline.deliver.bundle.rules import closure_grade
 from pipeline.deliver.calendar import DAYS, day_of, month_day, reading_day_of
@@ -268,20 +269,6 @@ def compute(path: str, verdicts: Optional[str] = None, log=print) -> dict:
     }
 
 
-def _varint(n: int) -> bytes:
-    if n < 0:
-        raise ValueError(n)
-    out = bytearray()
-    while True:
-        b = n & 0x7F
-        n >>= 7
-        if n:
-            out.append(b | 0x80)
-        else:
-            out.append(b)
-            return bytes(out)
-
-
 def encode(idx: dict) -> bytes:
     out = bytearray(MAGIC)
     out.append(VERSION)
@@ -290,12 +277,12 @@ def encode(idx: dict) -> bytes:
         if len(h) != 8:
             raise ValueError(f"{key} {idx[key]!r} is not 16 hex digits")
         out += h
-    out += _varint(len(idx["profiles"]))
+    out += varint(len(idx["profiles"]))
     for p in idx["profiles"]:
         rs = runs_of(p)
-        out += _varint(len(rs))
+        out += varint(len(rs))
         for length, code in rs:
-            out += _varint(length << 3 | code)
+            out += varint(length << 3 | code)
     # section runs: consecutive sids sharing a profile
     runs: List[List[int]] = []
     for sid, pi in idx["sections"].items():
@@ -303,15 +290,15 @@ def encode(idx: dict) -> bytes:
             runs[-1][1] += 1
         else:
             runs.append([sid, 1, pi])
-    out += _varint(len(runs))
+    out += varint(len(runs))
     gaps, end = bytearray(), 0
     for start, count, _ in runs:
-        gaps += _varint(start - end)
+        gaps += varint(start - end)
         end = start + count
     out += gaps
-    out += b"".join(_varint(c) for _, c, _ in runs)
-    out += b"".join(_varint(pi) for _, _, pi in runs)
-    out += _varint(len(idx["items"]))
+    out += b"".join(varint(c) for _, c, _ in runs)
+    out += b"".join(varint(pi) for _, _, pi in runs)
+    out += varint(len(idx["items"]))
     shared, lens, tails, profs = bytearray(), bytearray(), bytearray(), bytearray()
     prev = b""
     for item_id, pi in idx["items"].items():
@@ -319,10 +306,10 @@ def encode(idx: dict) -> bytes:
         n = 0
         while n < min(len(b), len(prev)) and b[n] == prev[n]:
             n += 1
-        shared += _varint(n)
-        lens += _varint(len(b) - n)
+        shared += varint(n)
+        lens += varint(len(b) - n)
         tails += b[n:]
-        profs += _varint(pi)
+        profs += varint(pi)
         prev = b
     out += shared + lens + tails + profs
     return bytes(out)
@@ -342,14 +329,8 @@ class Index:
 
         def v() -> int:
             nonlocal pos
-            n = shift = 0
-            while True:
-                b = data[pos]
-                pos += 1
-                n |= (b & 0x7F) << shift
-                shift += 7
-                if not b & 0x80:
-                    return n
+            n, pos = read_varint(data, pos)
+            return n
         self.profiles: List[Tuple[int, ...]] = []
         for _ in range(v()):
             days: List[int] = []

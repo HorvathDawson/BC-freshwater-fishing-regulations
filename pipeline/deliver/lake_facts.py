@@ -48,6 +48,7 @@ import re
 from collections import Counter
 from typing import Dict, List, Mapping, NamedTuple, Optional, Sequence, Set, Tuple
 
+from pipeline.deliver.binary import read_varint, varint
 from pipeline.deliver.tiles.names import normalise
 
 FORMAT = "lakes/1"
@@ -119,26 +120,7 @@ def facts(survey: Mapping[str, Tuple[Set[str], int]], stocked: Mapping[str, Tupl
 # ---- bytes ---------------------------------------------------------------------------------------------------------
 
 def _varint(n: int) -> bytes:
-    if n < 0:
-        raise ValueError(f"lake facts: a negative varint {n}")
-    out = bytearray()
-    while True:
-        b = n & 0x7F
-        n >>= 7
-        out.append(b | (0x80 if n else 0))
-        if not n:
-            return bytes(out)
-
-
-def _read_varint(b: bytes, i: int) -> Tuple[int, int]:
-    n = shift = 0
-    while True:
-        x = b[i]
-        i += 1
-        n |= (x & 0x7F) << shift
-        shift += 7
-        if not x & 0x80:
-            return n, i
+    return varint(n, "lake facts")
 
 
 def encode(f: Facts, *, handles: str, asof: Optional[int]) -> bytes:
@@ -157,16 +139,16 @@ def decode(b: bytes) -> dict:
     if b[:4] != MAGIC or b[4] != VERSION:
         raise ValueError("lake facts: not a lakes/1 file")
     handles = b[5:13].hex()
-    a, i = _read_varint(b, 13)
-    n, i = _read_varint(b, i)
+    a, i = read_varint(b, 13)
+    n, i = read_varint(b, i)
     out: Facts = {}
     sid = 0
     for _ in range(n):
-        d, i = _read_varint(b, i)
+        d, i = read_varint(b, i)
         sid += d
         s = b[i]
         i += 1
-        st, i = _read_varint(b, i)
+        st, i = read_varint(b, i)
         out[sid] = (s, None if st == 0 else st - 1)
     if i != len(b):
         raise ValueError(f"lake facts: {len(b) - i} trailing bytes")

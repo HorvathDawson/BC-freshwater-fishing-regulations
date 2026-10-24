@@ -41,6 +41,7 @@ import sqlite3
 import struct
 from typing import Dict, List, Sequence, Tuple
 
+from pipeline.deliver.binary import put_varint, read_varint
 from pipeline.deliver.bundle.access import TIERS as ACCESS_TIERS
 
 MAGIC = b"BCPT"
@@ -54,12 +55,7 @@ ACCESS_MAGIC, ACCESS_FORMAT, ACCESS_VERSION = b"BCAX", "access/1", 1
 
 
 def _uv(out: bytearray, v: int) -> None:
-    if v < 0:
-        raise ValueError(f"paint: varint {v} is negative")
-    while v >= 0x80:
-        out.append((v & 0x7F) | 0x80)
-        v >>= 7
-    out.append(v)
+    put_varint(out, v, "paint")
 
 
 class _Reader:
@@ -67,14 +63,8 @@ class _Reader:
         self.b, self.i = b, at
 
     def uv(self) -> int:
-        shift = v = 0
-        while True:
-            c = self.b[self.i]
-            self.i += 1
-            v |= (c & 0x7F) << shift
-            if c < 0x80:
-                return v
-            shift += 7
+        v, self.i = read_varint(self.b, self.i)
+        return v
 
     def raw(self, n: int) -> bytes:
         out = self.b[self.i:self.i + n]
