@@ -213,11 +213,12 @@ use that as the sole source of future work."
 | T166 | tidal areas cut: DFO tidal polygon → one clean cut across each stream (fix partial-channel blobs) | OPEN | — | after cleanup; atlas rebuild; ★ confirm cuts |
 | T167 | More tab: simpler details, references on their own page, data freshness compact on the main tab, a real desktop layout | DONE | 3af0dbaa, de06c3ae | app; tiles date needs a manifest stamp (follow-up) |
 | T168 | "N gauges in view": split gauges on this water from donor gauges | OPEN | — | app |
-| T169 | one gauge panel for one side-channel water (Nicomen grey middle: connector vs adopted lines) | OPEN | — | deliver; Q84 default (a) |
+| T169 | one gauge panel for one side-channel water (Nicomen grey middle: connector vs adopted lines) | DONE | 89b8e1a1, d42f0741 | deliver: 24 sections change, all side-channel; Nicomen one panel |
 | T170 | a spot gets the flow of its own day (historical) on refresh or on request | OPEN | — | app (+ feed/release history) |
 | T171 | "Like your visit?": every forecast day uses the flow forecast (no weather-only gaps) | OPEN | — | feed + app |
 | T172 | Android smoke on the emulator (builds, installs, opens, main screens) — before cleanup; full parity stays T50 | OPEN | — | heavy, alone |
 | T173 | fish obstacles layer (falls, dams, culverts) from the BC Data Catalogue | OPEN | — | future |
+| T174 | remaining answered → grey → answered gaps on main rivers (321/84 runs; Gravel Slough connectors) | OPEN | — | deliver; Q153–Q155 |
 
 ## Order for open tickets
 
@@ -265,7 +266,6 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q63 | T103 | "Keep only lake trout, none over …" can read as "only lake trout may be kept" — reword the house style? | unchanged | owner |
 | Q69 | T131 | Spot pin colour: neutral ink on card, or a hue of its own? | neutral ink | owner |
 | Q79 | T116 | Regs page says "river" for a stream ("this river's rule", "Whole river") while search rows say "Stream" — switch the page to "stream"? | keep "river" on the page | owner |
-| Q84 | T101 | Should a side channel also NOT take its river's Level (the walk cuts it inward; `mainstem_of` still gives an adopted channel line the river's full answer)? One rule both ways, or only your outward rule? | walk cuts inward; adopted lines keep the river's answer — so Nicomen's main channel alternates between the Fraser's answer and its own (historical-only, grey today). Make it one: (a) adopt the connector pieces too, or (b) the channel's own gauges lead on all its water | owner |
 | Q87 | T139 | Beattie Lake 7-57: does the Liard watershed's "bull trout 1 (30–50 cm)" sit BESIDE the lake's own "trout 1" (2 a day) or INSIDE it (1 in all)? | beside (the reader's ruling; headline "2 a day per angler") | owner |
 | Q91 | T105 | The 54,386 matched-only sections now say "No gauge on this water is close enough in size" — wording ok? | as built | owner |
 | Q103 | T117 | The gauge shed climbs the way the walk does: the Theodosia (08GC005) and Quinsam (08HD034) diversion gauges no longer speak for water above their canal (the river's own gauge takes over on 174 + 107 sections); 24 sections lose every gauge; a gauge ON a canal reads only its own piece? | as built | owner |
@@ -290,8 +290,12 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q149 | T154 | Bonaparte (329055141) has no dam in the provincial data — mark it lake by hand on the slough page? | yours on the page | owner |
 | Q151 | T166 | Unnamed streams: assume their tidal limit is at the mouth (no crossing work)? | yes | owner |
 | Q152 | T153 | A pond a steelhead river takes as its widening is ANADROMOUS (a rainbow over 50 cm in it is a steelhead, p.80) — 68 ponds; found by the card gate on the Kitimat's pond? | yes (built; one flag) | owner |
+| Q153 | T174 | A river's own side piece is adopted onto the LARGEST same-code section — use the nearest ANSWERED one instead (84 Flow gaps)? | measure first (T174) | owner |
+| Q154 | T174 | Walk a river's own unowned double-line polygon as the river (as T101 does for stream items' polygons)? | measure first (T174) | owner |
+| Q155 | T174 | Gravel Slough's 1425 connector lines take the answer of the polygons around them? | yes (3 sections) | owner |
 
 ### Answered (recently, for the record)
+- Q84 (side channel and its river) — owner 2026-10-24 delegated ("do what you think is best just make sure it is sane"): T169 one panel per side-channel water; Q169d (one panel for a long side-channel water) decided yes.
 - Q150 / Q137 / Q138 (no-access look) — owner 2026-10-23: streams dotted grey, warning amber in the page banner, own keeps amber (decisions.md).
 - Q1, Q3, Q46, Q48, Q49, Q50, Q51, Q52, Q54, Q56, Q57, Q58, Q61, Q64, Q65, Q66, Q67, Q68, Q70, Q71, Q72, Q73, Q74, Q75, Q76, Q77, Q78, Q80, Q81, Q83, Q85, Q86, Q89, Q92, Q93, Q94, Q96, Q97, Q98, Q101, Q102, Q104, Q105, Q106, Q108, Q109, Q110, Q111, Q115, Q116, Q117, Q118, Q120, Q121, Q122, Q127, Q128, Q129, Q131, Q133, Q135, Q136, Q141, Q143 — decided by Claude 2026-10-23 (owner-question triage, owner asked), decisions.md "CLAUDE 2026-10-23 — owner-question triage"; Q29, Q43, Q59, Q60, Q82, Q88, Q90, Q95, Q99, Q100, Q107, Q112 — already answered or obsolete (same record). The owner reads the record and can reverse any.
 - Q5, Q34–Q41 (curation review plan, T97) — owner 2026-10-23: "The review app changes seem good" — PLAN.md approved with all §6 defaults; plus: adding splits, rebuilding and continuing review must work (T97, T133–T136); a salmon pass later (T132).

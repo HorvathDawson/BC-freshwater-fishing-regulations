@@ -28,7 +28,7 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
 - **Readings of the book (a wrong call misleads anglers):** Q124 a river's rules on unnamed widenings (456 polygons) ·
   Q87 Beattie Lake bull trout beside or inside the trout quota · Q140 no-access banner on a part's open stretch ·
   Q42 tidal Fraser below Mission (postponed) · Q62, Q63 size-slot and "keep only" wording.
-- **Which gauge speaks (your policy):** Q31 the gauge rule · Q84 side channel and its river's Level · Q103 diversion
+- **Which gauge speaks (your policy):** Q31 the gauge rule · Q103 diversion
   gauges stop at their canal (24 sections lose every gauge) · Q113 cuts for 38 silent stations (atlas rebuild).
 - **How it looks (taste):** Q134 square spot pins · Q150 the new "own regulations" colour (no access now amber, T165) ·
   Q130 each model's line under Change · Q132 day chips may still use ELF · Q79 "river" vs "stream" on the page ·
@@ -39,6 +39,7 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   Q145 where and how often the DFO re-fetch runs.
 - **Batch 7:** Q146 re-centre the map when the parts list opens · Q147 steelhead lake wording on newly taken ponds ·
   Q148 dams → "lake" for the slough candidates · Q149 Bonaparte by hand.
+- **Gauge gaps on main rivers (T174):** Q153–Q155, measured before anything changes.
 - **Run timing (T162, new):** Q144 default species, passage reaches shown dashed, its own map layer.
 - **Scope and big rebuilds:** Q6 braids · Q10 imagery corridor · Q32 salmon plan · Q125 sewage/tailings/dumps drawn
   as lakes · Q142 Shuswap lake rings · Q7 which old releases to delete.
