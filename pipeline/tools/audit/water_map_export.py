@@ -560,8 +560,12 @@ def read_braids(db, meta: dict, reach_dir: Path) -> List[dict]:
     and starting at it) and the extents themselves. A rule's extents are the reach run's
     (`rule_extent.jsonl` of the run the bundle was built from — the digests must agree); the row's own
     scope (rule_id '') is the entry's `extents`."""
-    from pipeline.deliver.bundle import read as bundle_read
-
+    # E15 IS GONE (T67, owner 2026-10-24): a braid across a cut is CUT at build (`splits.braid_sweep`), so
+    # the bundle no longer marks one (`section_straddle` was dropped). The proposed cuts are reviewed from
+    # handoff/PLAN/braids/v2/cuts.json instead.
+    if not db.execute("SELECT 1 FROM sqlite_master WHERE name = 'section_straddle'").fetchone():
+        raise SystemExit("water_map_export --braids: this bundle has no `section_straddle` — E15 is gone "
+                         "(T67: braids are cut at build); review handoff/PLAN/braids/v2/cuts.json")
     report = json.loads((reach_dir / "report.json").read_text())
     if report.get("digest") != meta["reach_digest"]:
         raise VintageError(f"water_map_export: reach run {reach_dir} is {report.get('digest')}, the bundle "
@@ -574,7 +578,10 @@ def read_braids(db, meta: dict, reach_dir: Path) -> List[dict]:
     splits = {sid: (name, json.loads(at)) for sid, name, at in db.execute("SELECT split_id, name, at FROM split")}
     out = []
     for (sid,) in db.execute("SELECT DISTINCT sid FROM section_straddle ORDER BY sid").fetchall():
-        marks = bundle_read.straddles(db, sid)
+        marks = [{"entry_id": e, "rule_id": r, "how": h, "side": sd, "share": sh}
+                 for e, r, h, sd, sh in db.execute(
+                     "SELECT entry_id, rule_id, how, side, share FROM section_straddle "
+                     "WHERE sid = ? ORDER BY entry_id, rule_id", (sid,))]
         item_id, water, kind, ord_ = db.execute(
             "SELECT i.item_id, i.name, i.kind, i.ord FROM item_section x JOIN item i ON i.ord = x.ord "
             "WHERE x.sid = ? ORDER BY i.ord LIMIT 1", (sid,)).fetchone()

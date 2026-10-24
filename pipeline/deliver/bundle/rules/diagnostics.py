@@ -1,4 +1,4 @@
-"""The reach run's diagnostic tables as the bundle keeps them: ambiguous cuts, pieces that straddle a cut,
+"""The reach run's diagnostic tables as the bundle keeps them: ambiguous cuts
 and any run table keyed by section handle (`run_rows`, refused when the run and the atlas differ)."""
 from __future__ import annotations
 
@@ -24,32 +24,6 @@ def ambiguous_cuts(rows: list[dict], table: str = "rule_diagnostic",
                     json.dumps([float(x) for x in p["candidates"]]), str(p["toward"])))
     out.sort()
     return out
-
-
-def straddle_crossing(rows: list[dict]) -> list[dict]:
-    """The run's `straddle` rows that `section_straddle` lists: every projected piece with length on
-    BOTH sides of its cut (`share` < 1), and every piece that followed one of those in the same
-    extent. One row per (section, entry, rule): a rule whose two extents both judged a piece is
-    'in' when either took it, with the first extent's share."""
-    by_ext: dict[tuple, list[dict]] = {}
-    for r in rows:
-        by_ext.setdefault((r["entry_id"], r["rule_id"], r["extent"]), []).append(r)
-    out: dict[tuple, dict] = {}
-    for k in sorted(by_ext, key=lambda k: (k[0], k[1], -1 if k[2] is None else k[2])):
-        crossing = {r["section_id"] for r in by_ext[k]
-                    if r["how"] == "projected" and r["share"] < 1}
-        for r in sorted(by_ext[k], key=lambda r: r["section_id"]):
-            if r["section_id"] not in crossing and not (
-                    r["how"] == "follows" and set(r["braids"]) & crossing):
-                continue
-            key = (r["section_id"], r["entry_id"], r["rule_id"])
-            row = {"section_id": r["section_id"], "entry_id": r["entry_id"],
-                   "rule_id": r["rule_id"], "how": r["how"], "side": r["side"],
-                   "share": round(r["share"], 3) if r["how"] == "projected" else None}
-            if key in out:
-                row = dict(out[key], side="in" if "in" in (out[key]["side"], r["side"]) else "out")
-            out[key] = row
-    return [out[k] for k in sorted(out)]
 
 
 def run_rows(rows: list[dict], sid: dict[str, int], what: str) -> list[dict]:

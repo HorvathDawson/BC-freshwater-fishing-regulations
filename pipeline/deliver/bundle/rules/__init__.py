@@ -48,7 +48,7 @@ from pipeline.deliver.bundle.rules.presence import (
     write_steelhead_presence, prove_steelhead_presence,
 )
 from pipeline.deliver.bundle.rules.diagnostics import (
-    ambiguous_cuts, straddle_crossing, run_rows,
+    ambiguous_cuts, run_rows,
 )
 from pipeline.deliver.bundle.rules.tables import (
     _jsonl, intern_sets, check_corpus, read_entries, write,

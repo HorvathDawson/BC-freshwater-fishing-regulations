@@ -105,6 +105,10 @@ def main() -> int:
     if args.against:
         print("\n" + "=" * 72)
         print(diff_runs(args.against, result).summary())
+    # THE STRADDLE GATE (T67): after the tables are written, so what failed can be read — the run still
+    # FAILS, naming every piece left straddling a cut the atlas should have swept.
+    from pipeline.atlas.reach.build import straddle_gate
+    straddle_gate(result.diagnostics)
     return 0
 
 

@@ -321,7 +321,6 @@ def _rules_fixture(tmp: Path, bound: list[tuple], unresolved: list[tuple]):
     (run / "tidal.jsonl").write_text("")
     (run / "outside_bc.jsonl").write_text(json.dumps({"section_id": "s:3"}) + "\n")
     # the braids the run placed across a cut (R10): none here; a test writes its own
-    (run / "straddle.jsonl").write_text("")
     # the run's diagnostics: none here; a test writes its own (`rule_ambiguous_cut`)
     (run / "rule_diagnostic.jsonl").write_text("")
     # and the licensing half's (`licensing_ambiguous_cut`)
@@ -391,39 +390,6 @@ def test_the_written_ruleset_is_checked_not_just_the_input(tmp_path, monkeypatch
     monkeypatch.setattr(bundle_rules.tables, "intern_sets", lambda rows: (
         lambda ss: (ss[0], [s + [("r1:x@1-1", "ghost", "reach")] for s in ss[1]]))(real(rows)))
     with pytest.raises(SystemExit, match="ruleset names rules that are not in `rule`"):
-        bundle_rules.write(db, run, entries, _Cov(), build_dir=build)
-
-
-def _straddle(eid, rid, ext, sid, how, side, share=None, braids=()):
-    return json.dumps({"entry_id": eid, "rule_id": rid, "extent": ext, "section_id": sid,
-                       "how": how, "side": side, "share": share, "braids": list(braids)}) + "\n"
-
-
-def test_a_braid_across_a_rules_boundary_is_marked_in_the_bundle(tmp_path, monkeypatch):
-    """R10 (RULINGS E15): the run's `straddle.jsonl` is READ into `section_straddle` — only what
-    really runs across the boundary (a share under 1, and a piece following such a braid); a
-    braid the projection put wholly on one side is placed but not marked."""
-    from pipeline.deliver.bundle import read as R
-    monkeypatch.setattr(bundle_lic, "ACKNOWLEDGED_CONFLICTS", {})
-    db, run, entries, build = _rules_fixture(tmp_path, [("r1:x@1-1", "x.r1", "s:2")], [])
-    (run / "straddle.jsonl").write_text(
-        _straddle("r1:x@1-1", "x.r1", 0, "s:1", "projected", "out", 1.0)
-        + _straddle("r1:x@1-1", "x.r1", 0, "s:2", "projected", "in", 0.75)
-        + _straddle("r1:x@1-1", "x.r1", 0, "s:3", "follows", "in", braids=["s:2"]))
-    bundle_rules.write(db, run, entries, _Cov(), build_dir=build)
-    assert db.execute("SELECT sid, how, side, share FROM section_straddle ORDER BY sid").fetchall() \
-        == [(2, "projected", "in", 0.75), (3, "follows", "in", None)]
-    assert R.straddles(db, 2) == [{"entry_id": "r1:x@1-1", "rule_id": "x.r1", "how": "projected",
-                                   "side": "in", "share": 0.75}]
-    assert R.straddles(db, 1) == []
-
-
-def test_a_run_without_the_straddle_table_is_refused(tmp_path, monkeypatch):
-    """A run made before R10 is not a run with no braids across a cut (P2: no fallbacks)."""
-    monkeypatch.setattr(bundle_lic, "ACKNOWLEDGED_CONFLICTS", {})
-    db, run, entries, build = _rules_fixture(tmp_path, [("r1:x@1-1", "x.r1", "s:2")], [])
-    (run / "straddle.jsonl").unlink()
-    with pytest.raises(SystemExit, match="predates the `straddle` table"):
         bundle_rules.write(db, run, entries, _Cov(), build_dir=build)
 
 

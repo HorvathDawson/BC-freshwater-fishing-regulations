@@ -15,7 +15,7 @@ from pipeline.deliver.bundle.rules.regions import (
     _own_rows, co_bound_regions, equivalent_regions, own_entry_regions, regions_of_waters
 )
 from pipeline.deliver.bundle.rules.presence import prove_steelhead_presence, write_steelhead_presence
-from pipeline.deliver.bundle.rules.diagnostics import ambiguous_cuts, run_rows, straddle_crossing
+from pipeline.deliver.bundle.rules.diagnostics import ambiguous_cuts, run_rows
 
 
 def _jsonl(path: Path):
@@ -296,14 +296,6 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
     if set(own.values()) - {ce.entry_id for ce in ces if getattr(ce, "tidal", False)}:
         raise SystemExit(f"tidal: the reach run names tidal rows the corpus does not mark tidal "
                          f"({sorted(set(own.values()))}) — re-run the reach builder")
-    # THE CHANNELS THAT RUN ACROSS A RULE'S BOUNDARY (R10, `section_straddle`), READ FROM THE RUN.
-    from pipeline.atlas.reach.io import STRADDLE_TABLE
-    crossing = run_rows(straddle_crossing(read_table(reaches, STRADDLE_TABLE)), sid,
-                        STRADDLE_TABLE)
-    db.executemany("INSERT INTO section_straddle (sid, entry_id, rule_id, how, side, share) "
-                   "VALUES (?,?,?,?,?,?)", [(x["sid"], x["entry_id"], x["rule_id"], x["how"],
-                                             x["side"], x["share"]) for x in crossing])
-    cov.filled("section_straddle", len(crossing))
     # THE CUTS THAT MATCHED SEVERAL PLACES ON THEIR LINE (RULINGS E16, `rule_ambiguous_cut`),
     # READ FROM THE RUN'S DIAGNOSTICS: every candidate and the one the builder took.
     amb = ambiguous_cuts(read_table(reaches, "rule_diagnostic"))

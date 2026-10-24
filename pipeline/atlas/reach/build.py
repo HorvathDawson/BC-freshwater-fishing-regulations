@@ -128,17 +128,9 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
         covered = (covered_fn(e, registry) if covered_fn
                    else _covered_ids(e, registry))
 
-        scope_marks: dict[str, dict] = {}
-        clip, scope_failed = entry_scope(e, covered, registry, graph, marks=scope_marks)
+        clip, scope_failed = entry_scope(e, covered, registry, graph)
         if scope_failed:
             report.scope_unresolved.append(entry_id)
-        if scope_marks:
-            # THE ROW'S OWN SCOPE placed a braid straddling its cut on its majority side (R10):
-            # reported per entry (rule_id ""), and carried like a rule's (`io.STRADDLE_TABLE`).
-            diagnostics.append(Diagnostic(entry_id, "", "scope_straddle_placed", {
-                "pieces": {p: scope_marks[p] for p in sorted(scope_marks)},
-                "why": "a braid straddling the row's cut takes the side holding most of its "
-                       "length; every rule of the row is clipped to that side"}))
         # PIECES THE ROW'S OWN SCOPE COULD NOT PLACE. `entry_scope` keeps only what its extents
         # place, so a braid straddling the row's cut left EVERY rule of the row with no word said
         # — the Peace's side channels across the Site C reach were covered by none of its three
@@ -1020,7 +1012,7 @@ def _expander(graph, registry, covered, rule, entry, *, cuts=None, region=None, 
     return expand
 
 
-def entry_scope(e: dict, covered: list[str], registry, graph, marks: dict | None = None):
+def entry_scope(e: dict, covered: list[str], registry, graph):
     """The stretch the ENTRY is about, or (None, []) when it is about the whole water.
 
     The synopsis qualifies a row in its NAME — "FRASER RIVER (upstream of the CPR Bridge
@@ -1044,14 +1036,6 @@ def entry_scope(e: dict, covered: list[str], registry, graph, marks: dict | None
             failed.append(sc)
             continue
         out |= set(got.get("sections") or ())
-        if marks is not None:
-            for p, m in (got.get("straddle_placed") or {}).items():
-                marks.setdefault(p, dict(m))
-    if marks:
-        # `marks` (optional, R10): the braids the scope placed on the side of its cut holding most
-        # of their length, with the side they ended on across the scope's extents.
-        for p, m in marks.items():
-            m["side"] = "in" if p in out else "out"
     return (out or None), failed
 
 
@@ -1130,3 +1114,30 @@ def _clip(got: dict, clip: set[str], area_scope: bool = False) -> dict:
         else:
             out["seed"] = [s for s in got["seed"] if s in clip]
     return out
+
+
+class StraddleGateError(RuntimeError):
+    """A braid still straddles a cut after the atlas swept it (`straddle_gate`)."""
+
+
+#: THE STRADDLE GATE (T67, owner 2026-10-24). The atlas cuts every braid that attaches to the host on both
+#: sides of a cut (`splits.braid_sweep`), and the reach reads the cut on every line it crosses
+#: (`extent.A_CUT_SEVERS_EVERY_LINE_IT_CROSSES`), so no piece may still be `straddles_the_cut`. One that
+#: is means the sweep missed it — the run stops and names it, never places it by a rule of thumb (E15 is
+#: gone). The reasons counted are the reach's own typed words (`extent._by_measure`).
+STRADDLE_GATE_REASONS = frozenset({"straddles_the_cut", "joins_a_straddling_braid"})
+
+
+def straddle_gate(diagnostics) -> None:
+    """Raise `StraddleGateError` naming every (entry, rule, piece) the reach left straddling a cut."""
+    bad = []
+    for d in diagnostics:
+        if d.kind not in ("unclassified", "scope_unclassified"):
+            continue
+        reasons = (d.payload or {}).get("reasons") or {}
+        for p in sorted(reasons):
+            if reasons[p] in STRADDLE_GATE_REASONS:
+                bad.append(f"{d.entry_id}/{d.rule_id or '-'}: {p} ({reasons[p]})")
+    if bad:
+        raise StraddleGateError(f"{len(bad)} piece(s) still straddle a cut after the braid sweep:\n  "
+                                + "\n  ".join(bad[:50]) + ("\n  …" if len(bad) > 50 else ""))

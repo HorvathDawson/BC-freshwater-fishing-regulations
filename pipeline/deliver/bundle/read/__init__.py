@@ -21,7 +21,7 @@ from pipeline.deliver.bundle.read.source import (
 )
 from pipeline.deliver.bundle.read.facts import (
     _day, IN_FORCE, _days_of, in_force, speaks_for, names_fish, not_yet_mapped, _steelhead_min_cm,
-    steelhead_rules, home_region, straddles, steelhead_water, STEELHEAD_CODES, steelhead_presence,
+    steelhead_rules, home_region, steelhead_water, STEELHEAD_CODES, steelhead_presence,
     as_rainbow, _spoken_lengths, covers, released_on_water, _base_dimension,
 )
 from pipeline.deliver.bundle.read.ladder import (

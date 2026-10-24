@@ -113,7 +113,11 @@ from typing import Callable
 #:     river takes as its widening is `anadromous` (a rainbow over 50 cm is a steelhead, p.80) where steelhead
 #:     rules apply (`steelhead.Presence.anadromous`, `A_STEELHEAD_RIVERS_WIDENING_IS_ANADROMOUS`) — the
 #:     Kitimat's pond kept a wild 60 cm rainbow under the zone's lake quota.
-POLICY_VERSION = "28"
+#: 29: (T67, owner 2026-10-24) E15 IS GONE: a braid straddling a cut is no longer placed on its majority
+#:     side and marked. The atlas cuts it (`splits.braid_sweep`); the reach reads the cut on every line it
+#:     crosses (`extent.A_CUT_SEVERS_EVERY_LINE_IT_CROSSES`), and the run refuses what still straddles
+#:     (`build.straddle_gate`).
+POLICY_VERSION = "29"
 
 
 def entry_key(entry: dict, build_id: str, policy_version: str = POLICY_VERSION) -> str:

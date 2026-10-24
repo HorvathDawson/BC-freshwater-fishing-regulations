@@ -68,12 +68,14 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
     lake, pond, other water or the sea) is placed by its FLOW PATH to the first sections of its
     water (D5, 2026-10-12, `extent.OFF_LINE_PIECES_FOLLOW_THEIR_FLOW`, `test_reach_flow_placement.py`);
     what stays unplaced carries a typed reason (`straddles_the_cut`, `meets_the_line_at_the_cut`,
-    `flows_to_the_sea_unjoined`, … in the `unclassified` diagnostic's `reasons`). A BRAID STRADDLING
-    THE CUT is the owner's exception (RULINGS E15, 2026-10-16): it takes the side holding most of its
-    length, projected onto the cut's line by geometry (`extent.STRADDLING_BRAIDS_TAKE_THEIR_MAJORITY_SIDE`),
-    and is MARKED (`straddle_placed` diagnostic → run `straddle.jsonl` → bundle `section_straddle`); a
-    piece joining it follows it; an even split or no geometry stays unplaced. That is a stated ruling,
-    not a builder's guess — it is the only placement of a straddler there is.
+    `flows_to_the_sea_unjoined`, … in the `unclassified` diagnostic's `reasons`). A BRAID ACROSS A CUT
+    IS CUT AT BUILD (RULINGS E17, owner 2026-10-24, T67; E15's majority side is gone): `splits.braid_sweep`
+    cuts every channel of the host's own water that attaches to the mainstem on BOTH sides of a cut — for
+    every split kind, along the perpendicular to the ±100 m chord — and never one touching a single side
+    (South Atnarko); the reach reads the cut on every line it crosses
+    (`extent.A_CUT_SEVERS_EVERY_LINE_IT_CROSSES`) and the run FAILS on a piece still `straddles_the_cut`
+    (`build.straddle_gate`). Length cuts never take a junction a braid spans. A 2300-only ditch with no gnis
+    of its own is in no river item (`registry.build.DITCHES_LEAVE_RIVER_ITEMS`).
 13. **A rule's extents are its own — never inherited from its entry. Never widen a rule
     that names a place it could not bind.** No reader (reach builder, bundle,
     `pipeline/deliver/bundle/read/source.py` `source_of`) hands a rule its entry's `extents`; the entry's only clip.

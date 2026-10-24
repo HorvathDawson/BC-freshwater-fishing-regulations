@@ -482,28 +482,6 @@ CREATE TABLE outside_bc (sid INTEGER PRIMARY KEY) WITHOUT ROWID;
 -- under the general rules".
 CREATE TABLE tidal (sid INTEGER PRIMARY KEY, entry_id TEXT NOT NULL) WITHOUT ROWID;
 
--- A CHANNEL THAT RUNS ACROSS A RULE'S BOUNDARY (R10, owner 2026-10-16, RULINGS E15). A braid that
--- leaves the main line on one side of a rule's cut and rejoins it on the other is simplified to no
--- braid: the reach builder places it on the side holding MOST OF ITS LENGTH, projected onto the cut's
--- own line (`extent.STRADDLING_BRAIDS_TAKE_THEIR_MAJORITY_SIDE`), and a piece that reaches the water
--- only through such a braid follows it. Listed here — read from the run's `straddle.jsonl`, never
--- derived again — is every section that REALLY runs across the boundary (`how` 'projected', with
--- `share` < 1 of its length on its side) and every piece that follows one (`how` 'follows', `share`
--- NULL), so a reader can say "this channel runs across the boundary of <rule>". `side` 'in': the rule
--- binds it (its extents took it; the rule set holds the rule unless a later limit removed it);
--- 'out': the rule's boundary passes through it and the rule does not apply. `rule_id` '' is the
--- row's own scope (every rule of the row is clipped to that side). A braid the projection put
--- wholly on one side does not cross, and is not listed (the run's table still records it).
-CREATE TABLE section_straddle (sid      INTEGER NOT NULL,
-                               entry_id TEXT NOT NULL,
-                               rule_id  TEXT NOT NULL,
-                               how      TEXT NOT NULL CHECK (how IN ('projected', 'follows')),
-                               side     TEXT NOT NULL CHECK (side IN ('in', 'out')),
-                               share    REAL CHECK ((how = 'projected') = (share IS NOT NULL)
-                                                    AND (share IS NULL OR (share >= 0.5
-                                                                           AND share < 1))),
-                               PRIMARY KEY (sid, entry_id, rule_id)) WITHOUT ROWID;
-
 -- A RULE WHOSE CUT MATCHED SEVERAL PLACES ON ITS LINE (owner 2026-10-22). One split id can land at two
 -- route measures on one blue line — a lake the river runs through is met at its outlet and its inlet
 -- ("Harrison River … Harrison Lake": km 20 and km 84). The reach builder takes the candidate nearest
