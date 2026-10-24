@@ -73,6 +73,20 @@ textarea { width: 100%; box-sizing: border-box; min-height: 40px; font: 14px var
 td, th { text-align: left; padding: 4px 8px 4px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
 th { font: 600 12px var(--mono); color: var(--sub); text-transform: uppercase; }
 @media (prefers-reduced-motion: no-preference) { .card { transition: border-color .15s; } }
+.mapbox { position: relative; cursor: zoom-in; }
+.mapbox .expand { position: absolute; right: 8px; bottom: 8px; font: 600 13px var(--body); padding: 6px 10px;
+  border-radius: 6px; border: 1px solid var(--rule); background: var(--card); color: var(--ink); cursor: pointer; }
+#viewer { position: fixed; inset: 0; z-index: 50; background: var(--ground); display: grid; grid-template-rows: auto 1fr; }
+#viewer .vbar { display: flex; align-items: center; gap: 8px; padding: calc(8px + env(safe-area-inset-top, 0px))
+  max(12px, env(safe-area-inset-right, 0px)) 8px max(12px, env(safe-area-inset-left, 0px)); border-bottom: 1px solid var(--rule); background: var(--card); }
+#viewer .vtitle { flex: 1; min-width: 0; font: 600 18px/1.1 var(--display); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#viewer .vbar button { font: 600 16px var(--body); min-width: 40px; height: 40px; border-radius: 8px; border: 1px solid var(--rule);
+  background: var(--ground); color: var(--ink); cursor: pointer; }
+#viewer .vstage { position: relative; overflow: hidden; touch-action: none; padding-bottom: env(safe-area-inset-bottom, 0px); }
+#viewer svg { width: 100%; height: 100%; display: block; cursor: grab; }
+#viewer svg.drag { cursor: grabbing; }
+#viewer .vhint { position: absolute; left: 12px; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); font-size: 12px; color: var(--sub);
+  background: var(--card); border: 1px solid var(--rule); border-radius: 6px; padding: 3px 7px; pointer-events: none; }
 </style>
 
 <div class="wrap">
@@ -155,15 +169,76 @@ function mapSvg(c) {
   const order = ["host", "on", "below", "above", "cut"];
   const paths = order.flatMap((k) => lines.filter(([, kk]) => kk === k).map(([pl]) => {
     const [col, sw] = stroke[k];
-    return `<polyline fill="none" stroke="${col}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round"${k === "cut" ? ' stroke-dasharray="6 4"' : ""} points="${pl.map((p) => T(p).join(",")).join(" ")}"/>`;
+    return `<polyline fill="none" stroke="${col}" stroke-width="${sw}" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"${k === "cut" ? ' stroke-dasharray="6 4"' : ""} points="${pl.map((p) => T(p).join(",")).join(" ")}"/>`;
   })).join("");
-  const dots = (c.cuts || []).filter(Boolean).map((p) => { const [x, y] = T(p); return `<circle cx="${x}" cy="${y}" r="5" fill="var(--card)" stroke="var(--cut)" stroke-width="2.5"/>`; }).join("");
-  const pin = c.pt ? (() => { const [x, y] = T(c.pt); return `<circle cx="${x}" cy="${y}" r="3.5" fill="var(--cut)"/>`; })() : "";
+  const dots = (c.cuts || []).filter(Boolean).map((p) => { const [x, y] = T(p); return `<circle class="dot" data-r="5" cx="${x}" cy="${y}" r="5" fill="var(--card)" stroke="var(--cut)" stroke-width="2.5" vector-effect="non-scaling-stroke"/>`; }).join("");
+  const pin = c.pt ? (() => { const [x, y] = T(c.pt); return `<circle class="dot" data-r="3.5" cx="${x}" cy="${y}" r="3.5" fill="var(--cut)"/>`; })() : "";
   // scale bar: a round length near a quarter of the width
   const target = (W / 4) / s, nice = [50, 100, 200, 250, 500, 1000, 2000, 5000].reduce((a, b) => Math.abs(b - target) < Math.abs(a - target) ? b : a);
   const bw = nice * s;
-  const bar = `<g font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--sub)"><rect x="12" y="${H - 16}" width="${bw.toFixed(1)}" height="3" fill="var(--sub)"/><text x="12" y="${H - 22}">${km(nice)}</text><text x="${W - 22}" y="20">N↑</text></g>`;
-  return `<svg class="map" viewBox="0 0 ${W} ${H}" role="img" aria-label="Map of the cut on ${esc(c.water)}">${paths}${dots}${pin}${bar}</svg>`;
+  const bar = `<g class="chrome" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--sub)"><rect x="12" y="${H - 16}" width="${bw.toFixed(1)}" height="3" fill="var(--sub)"/><text x="12" y="${H - 22}">${km(nice)}</text><text x="${W - 22}" y="20">N↑</text></g>`;
+  MAPS.push({ title: `${c.water} · ${c.label || ""}`, inner: `${paths}${dots}${pin}`, W, H, mpp: 1 / s });
+  const k = MAPS.length - 1;
+  return `<div class="mapbox" data-map="${k}"><svg class="map" viewBox="0 0 ${W} ${H}" role="img" aria-label="Map of the cut on ${esc(c.water)}">${paths}${dots}${pin}${bar}</svg><button type="button" class="expand" data-map="${k}">⤢ Zoom</button></div>`;
+}
+const MAPS = [];
+
+/* ---------------- full-screen zoomable map: pinch / wheel / drag / double-tap, + − reset */
+function openViewer(k) {
+  const m = MAPS[k]; if (!m) return;
+  const v = document.createElement("div"); v.id = "viewer"; v.setAttribute("role", "dialog"); v.setAttribute("aria-label", m.title);
+  v.innerHTML = `<div class="vbar"><span class="vtitle">${esc(m.title)}</span><button type="button" data-z="in" aria-label="Zoom in">+</button><button type="button" data-z="out" aria-label="Zoom out">−</button><button type="button" data-z="reset" aria-label="Reset">⟲</button><button type="button" data-z="close" aria-label="Close">✕</button></div>
+    <div class="vstage"><svg viewBox="0 0 ${m.W} ${m.H}" preserveAspectRatio="xMidYMid meet">${m.inner}</svg><span class="vhint"></span></div>`;
+  document.body.appendChild(v); document.body.style.overflow = "hidden";
+  const svg = v.querySelector("svg"), hint = v.querySelector(".vhint");
+  let vb = { x: 0, y: 0, w: m.W, h: m.H };
+  const apply = () => {
+    svg.setAttribute("viewBox", `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
+    const z = vb.w / m.W;
+    svg.querySelectorAll(".dot").forEach((d) => d.setAttribute("r", (+d.dataset.r * z).toFixed(2)));
+    hint.textContent = `${(m.W / vb.w).toFixed(1)}× · screen width ≈ ${km(vb.w * m.mpp)}`;
+  };
+  const toSvg = (cx, cy) => { const r = svg.getBoundingClientRect(), sc = Math.min(r.width / vb.w, r.height / vb.h);
+    const ox = (r.width - vb.w * sc) / 2, oy = (r.height - vb.h * sc) / 2;
+    return [vb.x + (cx - r.left - ox) / sc, vb.y + (cy - r.top - oy) / sc, sc]; };
+  const zoomAt = (f, cx, cy) => {
+    const nw = Math.min(m.W * 4, Math.max(m.W / 60, vb.w / f)), real = vb.w / nw;
+    const [sx, sy] = cx == null ? [vb.x + vb.w / 2, vb.y + vb.h / 2] : toSvg(cx, cy);
+    vb = { x: sx - (sx - vb.x) / real, y: sy - (sy - vb.y) / real, w: nw, h: nw * m.H / m.W }; apply();
+  };
+  const close = () => { v.remove(); document.body.style.overflow = ""; document.removeEventListener("keydown", key); };
+  const key = (e) => { if (e.key === "Escape") close(); if (e.key === "+" || e.key === "=") zoomAt(1.5); if (e.key === "-") zoomAt(1 / 1.5); };
+  document.addEventListener("keydown", key);
+  v.querySelector(".vbar").addEventListener("click", (e) => {
+    const z = e.target.closest("[data-z]")?.dataset.z;
+    if (z === "in") zoomAt(1.6); else if (z === "out") zoomAt(1 / 1.6);
+    else if (z === "reset") { vb = { x: 0, y: 0, w: m.W, h: m.H }; apply(); } else if (z === "close") close();
+  });
+  svg.addEventListener("wheel", (e) => { e.preventDefault(); zoomAt(e.deltaY < 0 ? 1.25 : 0.8, e.clientX, e.clientY); }, { passive: false });
+  const pts = new Map(); let last = null, lastTap = 0;
+  svg.addEventListener("pointerdown", (e) => {
+    svg.setPointerCapture(e.pointerId); pts.set(e.pointerId, [e.clientX, e.clientY]); svg.classList.add("drag");
+    if (pts.size === 1) { const now = Date.now(); if (now - lastTap < 300) zoomAt(2, e.clientX, e.clientY); lastTap = now; }
+    last = null;
+  });
+  svg.addEventListener("pointermove", (e) => {
+    if (!pts.has(e.pointerId)) return;
+    pts.set(e.pointerId, [e.clientX, e.clientY]);
+    const p = [...pts.values()];
+    if (p.length === 1) {
+      const [x, y] = p[0];
+      if (last) { const sc = toSvg(0, 0)[2]; vb.x -= (x - last.x) / sc; vb.y -= (y - last.y) / sc; apply(); }
+      last = { x, y };
+    } else {
+      const [a, b] = p, cx = (a[0] + b[0]) / 2, cy = (a[1] + b[1]) / 2, d = Math.hypot(a[0] - b[0], a[1] - b[1]);
+      if (last && last.d) zoomAt(d / last.d, cx, cy);
+      last = { d };
+    }
+  });
+  const up = (e) => { pts.delete(e.pointerId); last = null; if (!pts.size) svg.classList.remove("drag"); };
+  svg.addEventListener("pointerup", up); svg.addEventListener("pointercancel", up);
+  apply();
+  v.querySelector("[data-z=close]").focus();
 }
 
 /* ---------------- cards */
@@ -218,6 +293,7 @@ function itemsFor(k) {
   return [];
 }
 function render() {
+  MAPS.length = 0;
   $("#tabs").innerHTML = TABS.map((t) => `<button type="button" role="tab" aria-selected="${t.key === tab}" data-tab="${t.key}">${t.name}<span>${t.n}</span></button>`).join("");
   let html = "", done = 0, total = 0;
   if (tab === "q") { html = QUESTIONS.map(qCard).join("") + INFO.map(infoCard).join(""); total = QUESTIONS.length; done = QUESTIONS.filter((q) => marks[docId(q.id)]?.verdict).length; }
@@ -252,6 +328,8 @@ async function save(id, patch) {
   catch (e) { if (tag) tag.textContent = "Not saved: " + (e?.message || e?.code || "error") + ". Tap again to retry."; }
 }
 document.addEventListener("click", (e) => {
+  const mb = e.target.closest(".mapbox, .expand");
+  if (mb && !e.target.closest("#viewer")) { openViewer(+mb.dataset.map); return; }
   const t = e.target.closest("[data-tab]");
   if (t) { tab = t.dataset.tab; try { localStorage.setItem("braid-tab", tab); } catch {} render(); window.scrollTo({ top: 0 }); return; }
   const b = e.target.closest("button[data-v]");
