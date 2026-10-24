@@ -226,9 +226,15 @@ def _same_water(view: View, a: str, b: str, loose: bool = False) -> bool:
     ka, kb = water_key(view, a), water_key(view, b)
     if ka == kb:
         return True
-    if loose and GAUGES_CUT_THEIR_RIVER and not (ka.startswith("ditch:") or kb.startswith("ditch:")) \
-            and ka.partition("|")[0] == kb.partition("|")[0]:
-        return True
+    if loose and GAUGES_CUT_THEIR_RIVER and not (ka.startswith("ditch:") or kb.startswith("ditch:")):
+        if ka.partition("|")[0] == kb.partition("|")[0]:
+            return True
+        # a gazetted channel of the river (Cannery Channel, gnis 17805) carries the river's own watershed
+        # code: for a gauge it is the river
+        from pipeline.common.utils.wsc import trim_wsc
+        wa, wb = (trim_wsc(view.g.nodes[x].wsc or "") for x in (a, b))
+        if wa and wa == wb:
+            return True
     # a gazetted piece of the river and its unnamed braid: the braid's key carries the inherited name
     base_a, _, name_a = ka.partition("|")
     base_b, _, name_b = kb.partition("|")
@@ -296,10 +302,16 @@ CONFLUENCE_CUTS_RUN_FROM_THE_MOUTH = True
 def confluence_frame(view: View, fr: Frame, mouth: tuple[float, float], hp: str) -> Frame:
     """The cut line of a confluence whose mouth is off the main channel: from the mouth through the nearest
     point of the main channel (the host's own water with the greatest stream magnitude within `REACH_M`) and
-    `REACH_M` beyond it. A mouth on the main channel keeps the square frame."""
+    `REACH_M` beyond it. A mouth on the main channel keeps the square frame, NOT clipped at a meander: the
+    confluence's line runs straight across every channel."""
     if not CONFLUENCE_CUTS_RUN_FROM_THE_MOUTH:
         return fr
     g = view.g
+    nrm = (fr.t[1], -fr.t[0])
+    # "straight across every channel": a confluence's square line is not clipped at a meander
+    square = Frame(blk=fr.blk, M=fr.M, c=fr.c, t=fr.t,
+                   line=LineString([(fr.c.x + REACH_M * nrm[0], fr.c.y + REACH_M * nrm[1]),
+                                    (fr.c.x - REACH_M * nrm[0], fr.c.y - REACH_M * nrm[1])]))
     m = Point(mouth)
     best = None
     host_mag = g.nodes[hp].stream_magnitude or 0
@@ -314,14 +326,14 @@ def confluence_frame(view: View, fr: Frame, mouth: tuple[float, float], hp: str)
             continue
         cands.append(((n.stream_magnitude or 0), ln.length, nid))
     if not cands:
-        return fr
+        return square
     mag, _, main = max(cands)
     if mag <= host_mag:
-        return fr
+        return square
     q = view.line(main).interpolate(view.line(main).project(m))
     d = q.distance(m)
     if d < OFF_MAIN_M:
-        return fr
+        return square
     u = ((q.x - m.x) / d, (q.y - m.y) / d)
     end = Point(q.x + u[0] * REACH_M, q.y + u[1] * REACH_M)
     line = LineString([(m.x, m.y), (end.x, end.y)])

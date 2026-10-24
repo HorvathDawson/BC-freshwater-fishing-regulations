@@ -311,6 +311,33 @@ def test_9_the_line_is_clipped_where_it_recrosses_the_host():
     assert [c.gate for c in res.cases] == ["refused: line misses"]
 
 
+def _meander_case():
+    host = [(0, 0), (1200, 0), (1200, -300), (800, -300), (800, -600), (3000, -600)]
+    G = _G(host=host)
+    b = G.add("B", [(500, 0), (500, -900), (2500, -900), (2500, -600)])
+    G.join(b, "H:0", 500.0, xy=(500, 0))
+    G.join("H:0", b, G.g.nodes[b].up_m, xy=(2500, -600))
+    g, geoms = G.done()
+    sp = SplitPoint(split_id="conf", blk="H", route_measure=1000.0, fid="", label="conf",
+                    anchor_type=AnchorType.confluence, source="curated")
+    return g, geoms, sp
+
+
+def test_r3_a_confluence_line_is_not_clipped_at_a_meander():
+    """Squamish/Ashlu's shape: the clipped square line stops at the meander; a confluence's line runs on
+    straight across every channel and cuts the braid beyond it."""
+    g, geoms, sp = _meander_case()
+    res = BS.sweep(g, geoms, [sp], mouths={"conf": (1000.0, 0.0)})
+    assert [p.blk for p in res.points] == ["B"]
+
+
+def test_r3_mutation_clipped_the_confluence_line_misses(monkeypatch):
+    monkeypatch.setattr(BS, "CONFLUENCE_CUTS_RUN_FROM_THE_MOUTH", False)
+    g, geoms, sp = _meander_case()
+    res = BS.sweep(g, geoms, [sp], mouths={"conf": (1000.0, 0.0)})
+    assert res.points == [] and [c.gate for c in res.cases] == ["refused: line misses"]
+
+
 # ---------------------------------------------------------------- 10. multi-crossing
 
 
@@ -407,7 +434,7 @@ def test_mutation_sided_across_lines_a_polygon_edge_makes_a_false_straddle(monke
 def _gauge_on_a_named_side_channel():
     """A gauge whose coordinate sits on a NAMED side channel S of the river (Fraser 08MH028's shape)."""
     G = _G()
-    G.braid("S", BRAID, 800, 1200, name="Seabird Channel")
+    G.braid("S", BRAID, 800, 1200, name="Cannery Channel", gnis="17805")      # gazetted, the river's code
     g, geoms = G.done()
     return g, geoms, G.g.nodes["S:0"].up_m / 2
 
