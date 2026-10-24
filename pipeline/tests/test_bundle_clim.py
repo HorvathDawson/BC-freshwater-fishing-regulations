@@ -2,7 +2,7 @@
 
 `gauge_clim.bands` is the one place in the bundle where a table stores a hand-packed binary
 record. Python writes it in `deliver/bundle/build.py`; TypeScript reads it in
-`app/packages/data/src/bundle/source.ts`. Nothing in either language checks the other, and a
+`app/packages/data/src/sql/shared.ts`. Nothing in either language checks the other, and a
 disagreement about the stride or an offset does not raise — it silently yields a seasonal
 band for the wrong time of year, or flow figures off by orders of magnitude, on a screen
 whose whole job is to say whether a river is unusually low.
@@ -51,12 +51,12 @@ def test_the_writer_still_writes_this_layout():
 def test_the_app_reads_the_same_offsets():
     """The reader must use THIS stride and THESE offsets, not its own arithmetic.
 
-    The reader lives in `bundle/shared.ts` (`pentadsOf`) since P11, and reads two codecs: clim/1 (this writer:
+    The reader lives in `sql/shared.ts` (`pentadsOf`) since P11 (T61 moved it), and reads two codecs: clim/1 (this writer:
     float32, so 1 + 5*4 = 21-byte records) and clim/2 (the release's float16). The pins below hold the clim/1 path
     to this file's layout: the width it picks for clim/1, the record it derives from that width, the pentad at
     offset 0, the five values at 1 + k*width, every float little-endian.
     """
-    ts = ROOT / "app/packages/data/src/bundle/shared.ts"   # tracked: app/ is in git
+    ts = ROOT / "app/packages/data/src/sql/shared.ts"   # tracked: app/ is in git
     src = ts.read_text(encoding="utf-8")
 
     assert 'codec === "clim/1" ? 4 : 2' in src, "pentadsOf no longer reads clim/1 as 4-byte floats"
