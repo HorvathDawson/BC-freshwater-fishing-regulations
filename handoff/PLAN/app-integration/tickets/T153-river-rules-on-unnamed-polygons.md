@@ -147,3 +147,9 @@ Nekite 2, Kitimat 1, Kakweiken 1, Sustut 1, Chilcotin 1, Ksi X'anmas 1). Scratch
 **Owner question Q152** (built with the default): a pond a steelhead river takes as its widening is anadromous — a rainbow
 over 50 cm in it is a steelhead, as on the river. Flip: `A_STEELHEAD_RIVERS_WIDENING_IS_ANADROMOUS = False` (then the
 answers builder must learn to word a card where hatchery and wild rainbow keep at different sizes — it cannot today).
+
+## Correction (2026-10-24, T163)
+The adversarial review's "McKinley defect" was a misreading: `mckinley_creek.r1x` is Region 5's spring-closure LIFT
+(RULINGS L13, `whole` by design), not the catch-and-release; it only stores the row's whole sentence as its verbatim
+text. The catch-and-release r1 already stops at McKinley Lake's outlet, and the pond lake:329184498 gets the bait ban and
+the harmless lift, not catch-and-release. Nothing to fix (T163 dropped).

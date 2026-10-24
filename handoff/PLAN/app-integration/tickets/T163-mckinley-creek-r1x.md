@@ -1,6 +1,6 @@
 # T163 — McKinley Creek r1x: catch-and-release is "downstream of McKinley Lake", not the whole creek
 
-Status: NOT A DEFECT — no catalogue change made (lane-T163, 2026-10-23). The premise is wrong: r1x is not the catch and release, it is Region 5's spring-closure lift (RULINGS L13), and it covers the whole listed creek by design. Owner: close, or overrule L13 for this row (see "Finding").
+Status: DROPPED — not a defect — no catalogue change made (lane-T163, 2026-10-23). The premise is wrong: r1x is not the catch and release, it is Region 5's spring-closure lift (RULINGS L13), and it covers the whole listed creek by design. Owner: close, or overrule L13 for this row (see "Finding").
 
 Source: T153 adversarial review 2026-10-23 (spot check of the 10 largest newly bound polygons). The catalogue gives
 McKinley Cr rule r1x a whole-water extent, but the book (printed p.46) limits its catch-and-release to "downstream of
