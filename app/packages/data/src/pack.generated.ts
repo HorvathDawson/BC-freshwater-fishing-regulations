@@ -930,6 +930,51 @@ export const PACK_FILES: Record<string, PackFile> = {
   }
 };
 
+/**
+ * (T129) THE WEB REQUEST BUDGET: per moment of a first web visit, the release files it fetches (manifest names;
+ * "manifest" is manifest.json, "mask" the tile set's bc_outside.geojson, "regs-{region}" the largest region file) and
+ * the most they may weigh in bytes as sent. The release step fails over it (`build.gate_problems`); the app's
+ * `tools/release-budget.test.ts` holds the live release and the pinned browser walk to it.
+ */
+export const WEB_BUDGET: Record<string, { files: readonly string[]; gate: number }> = {
+  "first_paint": {
+    "files": [
+      "manifest",
+      "paint",
+      "mask"
+    ],
+    "gate": 1150000
+  },
+  "first_tap": {
+    "files": [
+      "core",
+      "water",
+      "access",
+      "regs-{region}"
+    ],
+    "gate": 5000000
+  },
+  "first_tap_unnamed": {
+    "files": [
+      "core",
+      "water",
+      "access",
+      "regs-{region}",
+      "regs-sid",
+      "conditions"
+    ],
+    "gate": 9500000
+  },
+  "conditions_open": {
+    "files": [
+      "core",
+      "flow-area",
+      "conditions"
+    ],
+    "gate": 4700000
+  }
+};
+
 /** Units of the columns the release transforms (the decoders read these). */
 export const PACK_UNITS: Record<string, string> = {
   "access": "access/1: 'BCAX', u8 1, 8 bytes section_handles, then an access half (pipeline/deliver/release/paint.py)",

@@ -106,3 +106,26 @@ UNITS = {
              "(0 never); days since 1900-01-01 (pipeline/deliver/lake_facts.py)",
 }
 REGIONS = SH.REGIONS
+
+#: (T129) THE WEB REQUEST BUDGET. The release total (`build.TOTAL_GATE`) is what a PHONE holds; a web visitor fetches
+#: lazily (MINIMAL-PACKAGING §2, the app's `release/loader.ts`), and nothing gated those paths. Per moment of a first
+#: visit: the release files it fetches, by manifest name ("manifest" is manifest.json itself; "mask" the tile set's
+#: bc_outside.geojson, sent as is; "regs-{region}" the LARGEST regs-<region> file; every other file its gzip bytes),
+#: and the most they may weigh. The file lists are what the browser walk pins (`app/tools/request-walk.mjs`,
+#: `request-walk.pin.json`); `build.gate_problems` fails the release over a gate, and `app/tools/release-budget.test.ts`
+#: holds the live release and the pin to it. Gates set 2026-10-24 from r-bb4331929428 with 10-15 % headroom (measured in
+#: the comments; the T129 ticket's table). The sql.js engine (sql-wasm, 659 kB) rides with the first SQLite file opened
+#: and is not a release file: it is not priced here.
+WEB_BUDGET = {
+    # the coloured map, Map tab (measured 1,024,306: manifest 5,888 + paint 955,855 + mask 62,563)
+    "first_paint": {"files": ["manifest", "paint", "mask"], "gate": 1_150_000},
+    # the first tap on a NAMED water on the map, largest region: sid -> water (core), the page (water + the region
+    # file) and the tapped section's access note (measured 4,436,131, regs-6)
+    "first_tap": {"files": ["core", "water", "access", "regs-{region}"], "gate": 5_000_000},
+    # the first tap on an UNNAMED stream (most streams): + its key (regs-sid) and conditions, whose `section_down` the
+    # header's "Tributary of ..." walks (measured 8,530,859, regs-6)
+    "first_tap_unnamed": {"files": ["core", "water", "access", "regs-{region}", "regs-sid", "conditions"],
+                          "gate": 9_500_000},
+    # the Conditions tab: gauges + climatology, the panels' areas, core for the lakes' gauges (measured 4,156,368)
+    "conditions_open": {"files": ["core", "flow-area", "conditions"], "gate": 4_700_000},
+}

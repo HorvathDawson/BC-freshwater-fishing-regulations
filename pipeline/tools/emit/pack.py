@@ -40,6 +40,14 @@ export interface PackFile {{
 
 export const PACK_FILES: Record<string, PackFile> = {files};
 
+/**
+ * (T129) THE WEB REQUEST BUDGET: per moment of a first web visit, the release files it fetches (manifest names;
+ * "manifest" is manifest.json, "mask" the tile set's bc_outside.geojson, "regs-{{region}}" the largest region file) and
+ * the most they may weigh in bytes as sent. The release step fails over it (`build.gate_problems`); the app's
+ * `tools/release-budget.test.ts` holds the live release and the pinned browser walk to it.
+ */
+export const WEB_BUDGET: Record<string, {{ files: readonly string[]; gate: number }}> = {json.dumps(C.WEB_BUDGET, indent=2)};
+
 /** Units of the columns the release transforms (the decoders read these). */
 export const PACK_UNITS: Record<string, string> = {json.dumps(C.UNITS, indent=2, sort_keys=True)};
 

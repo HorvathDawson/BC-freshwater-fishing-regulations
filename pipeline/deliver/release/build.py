@@ -41,6 +41,7 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Optional
 
 from pipeline.deliver import lake_facts as LF
+from pipeline.deliver.release import contract as C
 from pipeline.deliver.release import paint as PAINT
 from pipeline.deliver.release import shards as SH
 
@@ -206,6 +207,30 @@ def gate_problems(release_dir: Path) -> List[str]:
     total = sum(v["gz"] for v in sz.values())
     if total > TOTAL_GATE:
         out.append(f"total: {total:,} B gzip > {TOTAL_GATE:,}")
+    return out + [f"web {k}: {n:,} B > {C.WEB_BUDGET[k]['gate']:,} ({', '.join(f)})"
+                  for k, (n, f) in web_moments(release_dir).items() if n > C.WEB_BUDGET[k]["gate"]]
+
+
+def web_moments(release_dir: Path) -> Dict[str, tuple]:
+    """(T129) {moment: (bytes a web visitor fetches for it, the files priced)} for every `contract.WEB_BUDGET` moment:
+    a file's gzip bytes from the manifest, the manifest's own size, the tile set's mask as sent (`tiles.mask.bytes`), and
+    `regs-{region}` as the largest region file."""
+    d = Path(release_dir)
+    m = json.loads((d / "manifest.json").read_text())
+    files = m["files"]
+    region = max((k for k in files if k.startswith("regs-") and k != "regs-sid"), key=lambda k: files[k]["gz"])
+
+    def price(name: str) -> tuple:
+        if name == "manifest":
+            return name, (d / "manifest.json").stat().st_size
+        if name == "mask":
+            return name, int(((m.get("tiles") or {}).get("mask") or {}).get("bytes") or 0)
+        name = region if name == "regs-{region}" else name
+        return name, int(files[name]["gz"]) if name in files else 0
+    out = {}
+    for k, spec in C.WEB_BUDGET.items():
+        priced = [price(f) for f in spec["files"]]
+        out[k] = (sum(n for _, n in priced), [f for f, _ in priced])
     return out
 
 
