@@ -635,8 +635,7 @@ def item_tributary_geojson(item_id: str, limit: int = 6000) -> dict:
         drawn += 1
     feats = []
     for i in range(0, len(sections), 400):
-        feats += _features("streams", sections[i:i + 400],
-                                     ["node_id", "display_name"], "tributary")
+        feats += _features("streams", sections[i:i + 400], "tributary")
     return {"type": "FeatureCollection", "features": feats, "n_tributaries": len(trib_ids),
             "n_drawn": drawn, "truncated": drawn < len(trib_ids)}
 

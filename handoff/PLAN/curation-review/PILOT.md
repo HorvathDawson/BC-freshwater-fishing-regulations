@@ -49,8 +49,9 @@ among those **unmarked and built** (an entry awaiting its build can only be half
 quotas: S0 4 · P1 6 · Z 4 · P2 4 · P3 4 · P4 6 · sweep 2. If the vintage changes before the pilot,
 re-run that command (the list is a vintage's).
 
-Regenerated 2026-10-24 for release `r-bb4331929428` (one build: reach, bundle and release digests agree;
-`pilot.json` `vintage`). The Z tier moved (four new zone entries); every other target is unchanged.
+Regenerated 2026-10-24 for release `r-0ed3c2b2a0a7` (one build: atlas, reach, bundle and release agree;
+`pilot.json` `vintage`). Against r-bb4331929428 the Z tier moved (four new zone entries); the rebuild to
+r-0ed3c2b2a0a7 the same day left all 30 targets the same.
 The pilot also runs on the shareable artifact page (T184, `curation-review/artifact/`): its marks come
 back through `python -m pipeline.regs.review.import_artifact_marks`.
 

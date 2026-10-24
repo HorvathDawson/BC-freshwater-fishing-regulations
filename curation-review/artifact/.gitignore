@@ -1,0 +1,2 @@
+# the built page, its book images and the export are rebuilt per vintage (export_artifact + build_page)
+out/

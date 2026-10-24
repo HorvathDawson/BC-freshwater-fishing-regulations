@@ -240,27 +240,27 @@
  "short": {},
  "vintage": {
   "atlas": {
-   "handles": "d768d6e135e62b99",
-   "registry": "8c77ba1cd2dc3929"
+   "handles": "a1944923732ccbfc",
+   "registry": "f45c4a3a3e456d2d"
   },
-  "anchors_recorded": false,
+  "anchors_recorded": true,
   "reach": {
-   "digest": "ca80e9c7bb2f4006",
+   "digest": "faba79c782e33afe",
    "entries_digest": "4e3f729204098d06",
-   "handles": "d768d6e135e62b99",
-   "registry_digest": "8c77ba1cd2dc3929"
+   "handles": "a1944923732ccbfc",
+   "registry_digest": "f45c4a3a3e456d2d"
   },
   "bundle": {
-   "reach_digest": "ca80e9c7bb2f4006",
+   "reach_digest": "faba79c782e33afe",
    "entries_digest": "4e3f729204098d06",
-   "section_handles": "d768d6e135e62b99",
-   "registry_digest": "8c77ba1cd2dc3929"
+   "section_handles": "a1944923732ccbfc",
+   "registry_digest": "f45c4a3a3e456d2d"
   },
   "release": {
-   "id": "r-bb4331929428",
+   "id": "r-0ed3c2b2a0a7",
    "bundle": {
     "entries_digest": "4e3f729204098d06",
-    "reach_digest": "ca80e9c7bb2f4006"
+    "reach_digest": "faba79c782e33afe"
    }
   }
  }

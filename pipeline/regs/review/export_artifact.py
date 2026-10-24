@@ -99,7 +99,11 @@ def _bounds(feats: Iterable[Mapping]):
     return (min(xs0), min(ys0), max(xs1), max(ys1))
 
 
-def _path(geoms: Sequence, proj: Projection) -> str:
+#: a layer's path longer than this (a tributary walk over a whole watershed) is simplified 4x harder
+MAP_MAX_PATH = 150_000
+
+
+def _path(geoms: Sequence, proj: Projection, tol: float = MAP_TOL) -> str:
     """One SVG path `d` for many geometries (lines and polygon rings), projected, merged, simplified."""
     from shapely.geometry import LineString, MultiLineString
     from shapely.ops import linemerge, transform, unary_union
@@ -114,13 +118,13 @@ def _path(geoms: Sequence, proj: Projection) -> str:
     out = []
     if lines:
         merged = linemerge(unary_union(lines)) if len(lines) > 1 else lines[0]
-        merged = merged.simplify(MAP_TOL, preserve_topology=False)
+        merged = merged.simplify(tol, preserve_topology=False)
         for part in getattr(merged, "geoms", [merged]):
             cs = list(part.coords)
             if len(cs) >= 2:
                 out.append("M" + "L".join(f"{x:.1f} {y:.1f}" for x, y in cs))
     for r in rings:
-        r = LineString(r.coords).simplify(MAP_TOL)
+        r = LineString(r.coords).simplify(tol)
         cs = list(r.coords)
         if len(cs) >= 3:
             out.append("M" + "L".join(f"{x:.1f} {y:.1f}" for x, y in cs) + "Z")
@@ -162,6 +166,8 @@ def build_map(item_feats: list[dict], rule_sets: Mapping[str, dict], tribs: list
 
     def add(kind: str, geoms) -> int | None:
         d = _path(geoms, proj) if geoms else ""
+        if len(d) > MAP_MAX_PATH:
+            d = _path(geoms, proj, MAP_TOL * 4)
         if not d:
             return None
         key = kind + "|" + d
@@ -177,12 +183,14 @@ def build_map(item_feats: list[dict], rule_sets: Mapping[str, dict], tribs: list
         if not r.get("drawn"):
             rules[rid] = {"n": r.get("n", 0), "drawn": False}
             continue
-        geoms = [shape(by_node[n]["geometry"]) for n in r.get("in", []) if n in by_node]
-        geoms += _shapes(r.get("extra", []))
-        lakes = [g for g in geoms if g.geom_type in ("Polygon", "MultiPolygon")]
-        lines = [g for g in geoms if g not in lakes]
+        own = [shape(by_node[n]["geometry"]) for n in r.get("in", []) if n in by_node]
+        off = _shapes(r.get("extra", []))      # the tributary walk / an area's other waters: drawn thin
+        poly = lambda g: g.geom_type in ("Polygon", "MultiPolygon")
+        lakes = [g for g in own + off if poly(g)]
         rules[rid] = {"n": r.get("n", 0), "drawn": True,
-                      "on": [i for i in (add("reach", lines), add("reach_lake", lakes)) if i is not None],
+                      "on": [i for i in (add("reach_off", [g for g in off if not poly(g)]),
+                                         add("reach", [g for g in own if not poly(g)]),
+                                         add("reach_lake", lakes)) if i is not None],
                       "out": [i for i in (add("excluded", _shapes(r.get("excluded", []))),) if i is not None]}
     focus = set(focus_splits)
     pts = []
