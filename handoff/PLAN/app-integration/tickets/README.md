@@ -105,7 +105,7 @@ use that as the sole source of future work."
 | T58 | back follow-ups | DONE | 21d41623, 9ec8114a | — |
 | T59 | two rivers meet (Atnarko/Bella Coola); Fraser exit → Annacis | DONE | c5b1e3d0, 36df866f, 463c013b, c432f6df | live in r-36fbc5326506 |
 | T60 | consistency auditors (N16, Fable) | OPEN | — | all |
-| T61 | cleanup wave 2: old pathways/duplicates | OPEN | — | all (check F07 a6aa4d86 before redoing) |
+| T61 | cleanup wave 2: old pathways/duplicates | PARTIAL | 9db616f0, 884fe9c7, 46cab8cd, baeda569, 0ad1a84 | lanes A/B/C merged, rebuilt with no binding change; left: 2.8 name normaliser (owner OK to promote on an explained diff), 2.17 fixture move |
 | T62 | cleanup wave 3: split long files | OPEN | — | all |
 | T63 | cleanup wave 4: docs, tests, knip | OPEN | — | all |
 | T64 | tiles: S2 size wins + tile rebuild | OPEN | — | all |

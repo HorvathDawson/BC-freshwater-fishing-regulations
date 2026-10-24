@@ -1,6 +1,8 @@
 # T61 — Cleanup wave 2: merge old pathways and duplicates
 
-Status: OPEN. Source: handoff/PLAN/audit/PLAN.md §2 "Wave 2" (items 2.x), with the owner's corrections: keep
+Status: PARTIAL — lanes A (9db616f0…a3411ccf), B (46cab8cd…baeda569), C (0a24db3a…884fe9c7) merged; see the Outcome
+sections. Left: 2.8 the one name normaliser (next), 2.17's live-input move into app/fixtures/, stale prose the lanes listed
+(→ T63). 2.10's tolerances-in-bundle-meta: dropped (owner 2026-10-24: the app never reads them). 2.18 is T48. Source: handoff/PLAN/audit/PLAN.md §2 "Wave 2" (items 2.x), with the owner's corrections: keep
 stocking / bathymetry / salmon code as "prepared"; prove every script unneeded before deleting it.
 Includes the ONE name normaliser (owner accepts a reviewed binding diff), retiring the dev bundle + riffle fixture
 (N6), finishing P20 (no regs.sqlite, N5).
@@ -143,3 +145,9 @@ read as before). Commits on the lane B worktree branch, on d376e9b8:
   the live bundle refuses it (no `glossary_source`), and the vintage check sees a new schema_sha256.
 - 2.20 8bc78d32 — `answers/engine.py` holds the keeping Engine; caps.py and card_check import it.
 - 2.21 2e297a46 — `added_streams/mapcheck.py` is the one checker (resolves once, writes both maps); verify_map deleted.
+
+## Merge (2026-10-24)
+Rebuilt on the merged tree: release r-d6ef0ca7eab4, binding diff "no binding changed", card_check 0 problems. Fixes at
+merge: 9f66867 (provinceStoreOf import), 0ad1a84 (deliver promotes only r-* + writes LATEST), c8fdbee + 2633355 (stale
+tests after T153/T161, style hash). Strict `pnpm -C app check` green: 362 files / 8162 tests. Full pipeline suite: 5343
+passed; the 4 synopsis_pages errors are order-dependent (pass alone) → T63.
