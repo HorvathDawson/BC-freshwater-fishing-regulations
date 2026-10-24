@@ -115,10 +115,9 @@ def test_the_manifest_names_the_sid_space_not_a_tile_build():
 # ---- on a bundle -------------------------------------------------------------------------------------------------
 
 @pytest.fixture(scope="module")
-def rel(request, tmp_path_factory):
+def rel(request, tmp_path_factory, live_store_of):
     from pipeline.common.curated import GENERATED
     from pipeline.deliver.bundle import read as R
-    from pipeline.deliver.store.build import build as build_store
     from pipeline.tests.conftest import need, BUNDLE_HINT, EXPORT_HINT
     from pipeline.deliver.export.contract import OUT as EXPORT
     bundle = need(request, "bundle", Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE), BUNDLE_HINT)
@@ -129,8 +128,7 @@ def rel(request, tmp_path_factory):
         pytest.fail(f"{bundle} predates P09: point UI_EXPORT_BUNDLE at a bundle with part_geo")
     out = tmp_path_factory.mktemp("release")
     # no regs.sqlite is kept (P20): the store is made here from the answers + export pair, as `deliver all` does
-    store = out / "regs.sqlite"
-    build_store(exp / "ui-rules-answers.json", exp, bundle, store)
+    store = live_store_of(exp, bundle)
     kw = dict(bundle=bundle, store=store, status_index=si, export_dir=exp)
     d = B.build(**kw, out_root=out / "a")
     d2 = B.build(**kw, out_root=out / "b")

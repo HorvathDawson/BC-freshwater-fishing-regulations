@@ -426,13 +426,11 @@ def _export_dir() -> Path:
 
 
 @pytest.fixture(scope="module")
-def live(request, tmp_path_factory):
+def live(request, live_store_of):
     need(request, "bundle", BUNDLE, BUNDLE_HINT)
     exp = need(request, "bundle", _export_dir() / "ui-rules-answers.json", EXPORT_HINT).parent
-    out = tmp_path_factory.mktemp("store") / "regs.sqlite"
-    # the deliver step's codec; this proves the ENCODING of whatever answers are on disk, so it does not
-    # need the card gate's stamp (test_card_gate_in_chain.py proves the store refuses without one)
-    build(exp / "ui-rules-answers.json", exp, BUNDLE, out, require_card_check=False)
+    # the deliver step's store, built once per session and shared with test_release (conftest `live_store_of`)
+    out = live_store_of(exp, BUNDLE)
     raw, A, E, G = load_inputs(exp / "ui-rules-answers.json", exp)
     return out, raw, A, E, G
 

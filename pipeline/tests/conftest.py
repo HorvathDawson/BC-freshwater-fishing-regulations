@@ -89,6 +89,26 @@ def _the_marked_data(request):
         need(request, "atlas", os.environ.get("ATLAS_BUILD") or GENERATED.build(), ATLAS_HINT)
 
 
+_LIVE_STORES: dict = {}
+
+
+@pytest.fixture(scope="session")
+def live_store_of(tmp_path_factory):
+    """THE LIVE REGS STORE, built ONCE per session (T63: test_release and test_regs_store each built it, ~50 s apiece).
+    No regs.sqlite is kept (P20), so it is made here from the answers + export pair on disk, as `deliver all` does —
+    card-gate stamp required, as there. `of(export_dir, bundle)` -> the store's path; the caller has already `need`ed
+    its inputs."""
+    def of(export_dir: Path, bundle: Path) -> Path:
+        key = (str(export_dir), str(bundle))
+        if key not in _LIVE_STORES:
+            from pipeline.deliver.store.build import build
+            out = tmp_path_factory.mktemp("live-store") / "regs.sqlite"
+            build(Path(export_dir) / "ui-rules-answers.json", Path(export_dir), Path(bundle), out)
+            _LIVE_STORES[key] = out
+        return _LIVE_STORES[key]
+    return of
+
+
 def predates(msg: str) -> None:
     """A bundle built before the ruling this test pins FAILS — the canonical gate and a side build
     alike — unless `UI_EXPORT_ALLOW_PREDATING=1` asks for the old skip."""
