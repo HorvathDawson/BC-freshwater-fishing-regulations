@@ -16,7 +16,6 @@ Mutation pins (each fails the named test):
 from __future__ import annotations
 
 import inspect
-import json
 import re
 import textwrap
 from pathlib import Path
@@ -49,7 +48,8 @@ def test_one_floor():
     """The climatology, the panel gate and the record module hold the SAME object — and the app reads it generated."""
     assert climatology.MIN_RECORD_YEARS is record.MIN_RECORD_YEARS is P.MIN_RECORD_YEARS == 3
     from pipeline.tools.emit import gauge_policy as EG
-    assert json.loads(EG.render_json())["record"] == {"minYears": MIN_RECORD_YEARS, "quantities": list(QUANTITIES)}
+    q = ", ".join(f'"{x}"' for x in QUANTITIES)
+    assert f"export const RECORD_QUANTITIES: readonly RecordQuantity[] = [{q}];" in EG.render()
     assert f"export const MIN_RECORD_YEARS = {MIN_RECORD_YEARS};" in EG.render()
     assert not hasattr(climatology, "MIN_YEARS")          # its own constant is gone
 
