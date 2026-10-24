@@ -3,7 +3,22 @@
 Restart here. Update this file after EVERY step: what is done, what is running, and the exact next action.
 Logs from timing runs live in the session scratchpad, which a reboot wipes. The numbers that matter are copied here.
 
-## CURRENT STATE (2026-10-24)
+## CURRENT STATE (2026-10-24, later)
+- Live release r-9cf1fef180a8 (rows 33). On the branch but NOT yet delivered: T169 (one panel per side-channel water —
+  Nicomen; deliver needed). App-only and merged (no deliver): T165 dotted-grey no-access, T167 More tab, T168 gauge
+  groups + not-reporting fold. Strict app check green after T165 (8101).
+- Running agents (worktrees under .claude/worktrees/agent-*): T170+T171 (spot day flow via ECCC GeoMet; feed per-day
+  forecast percentiles — needs a LOCAL feed republish after merge: `scripts/heavy.sh feed 30 -- .venv/bin/python -m
+  pipeline.gauges.feed.publish --out data/generated/gauges/feeds --clim data/generated/gauges/feeds/clim.json`),
+  T175+T176 (water line at every zoom; legend count).
+- Next: merge both → one deliver (`bash <scratchpad>/rebuild.sh`: reach rerun + deliver + binding diff + post-release;
+  recreate from the "Key Technical Concepts" recipe if the scratchpad is wiped) → commit fixtures → smoke → T172 Android
+  smoke (alone; JAVA_HOME = Android Studio JBR) → cleanup band (T60 → T70 → T61 → T62 → T63; T72, T73).
+- Dropped: T163 (McKinley r1x is the L13 lift — not a defect). New tickets T166–T176 (tidal cut, More tab, gauges,
+  side channels, spot history, every forecast day, Android smoke, fish obstacles, main-river gaps, line at every zoom,
+  legend count). Owner questions to Q159; OWNER-TODO grouped.
+
+## (earlier) CURRENT STATE (2026-10-24)
 - Batch 7 merged + delivered: release **r-9cf1fef180a8** (rows 33; T153 widenings 569 ponds + 026e7841 steelhead-widening
   fix after the card gate caught key 2336; T160; T161; T150/T151/T156/T157/T158; T154 dams evidence). Fixtures 71b882ef;
   smoke green (8082 app, 207 pytest, 18). POLICY_VERSION 28.
