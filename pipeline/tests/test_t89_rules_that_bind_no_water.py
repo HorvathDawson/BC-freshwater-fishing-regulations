@@ -72,7 +72,7 @@ AWAITING_WATER_ROWS = {
 }
 AWAITING_WATER = frozenset((e, r) for e, (_, _, rids) in AWAITING_WATER_ROWS.items() for r in rids)
 
-#: Every rule allowed to end unresolved. 29 = 7 by design + 22 awaiting a water.
+#: Every rule allowed to end unresolved. 26 = 4 by design + 22 awaiting a water (T153 bound 3 steelhead twins).
 ALLOWED_UNRESOLVED = BY_DESIGN | AWAITING_WATER
 
 
@@ -106,8 +106,8 @@ def _place(rule: dict) -> dict:
 # ---------------------------------------------------------------------------------------------
 # The allow-list itself (no data): exact, both ways — the key rule, mutation-pinned
 # ---------------------------------------------------------------------------------------------
-def test_the_allow_list_is_exact_29():
-    assert len(BY_DESIGN) == 7 and len(AWAITING_WATER) == 22 and len(ALLOWED_UNRESOLVED) == 29
+def test_the_allow_list_is_exact_26():
+    assert len(BY_DESIGN) == 4 and len(AWAITING_WATER) == 22 and len(ALLOWED_UNRESOLVED) == 26
     assert unresolved_problems(set(ALLOWED_UNRESOLVED)) == []
 
 
