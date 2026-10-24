@@ -148,7 +148,7 @@ OWN bbox (a combined bbox cross-contaminates), then merges with per-source blk o
 ```
 PYTHONPATH="$PWD" .venv/bin/python -m pipeline.atlas.waters.added_streams.build_dataset burnaby squamish port_moody
 ```
-Then eyeball `data/generated/added_streams/verify_<source>.html` (regenerate with `python -m pipeline.atlas.waters.added_streams.verify_map <source>`)
+Then eyeball `data/generated/added_streams/verify_<source>.html` (regenerate with `python -m pipeline.atlas.waters.added_streams.mapcheck <source> --only package`)
 and commit the artifact. It is the checked-off source of truth from then on.
 
 **Guarantees the resolver enforces** for the consumer:

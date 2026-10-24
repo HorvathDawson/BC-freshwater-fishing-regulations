@@ -1418,7 +1418,7 @@ _SOURCE_BLK_SPAN = 100_000_000    # each source's minted blks live in a disjoint
 
 
 def _resolve_source(source: str, gpkg: str, pad: float):
-    """Resolve ONE municipal source in its OWN bbox — identical to what verify_map / mapcheck render, so the
+    """Resolve ONE municipal source in its OWN bbox — identical to what mapcheck renders, so the
     frozen artifact matches the vetted maps (a combined bbox cross-contaminates: a Burnaby creek can pick up a
     Squamish coastal code). Unconfirmed features are dropped, exactly as the maps do."""
     from pipeline.atlas.waters.added_streams.clean import clean_source

@@ -8,8 +8,8 @@ now (`RELIABLE_SOURCES = set()` — burnaby moved off trust_source once the fixe
 ## Run / validate (safe for the assistant — no LLM credits)
 ```bash
 PYTHONPATH=. .venv/bin/python -m pytest pipeline/atlas/waters/added_streams/tests -q            # 110 pass (~1 s)
-PYTHONPATH=. .venv/bin/python -m pipeline.atlas.waters.added_streams.mapcheck burnaby           # regen one map (~50 s)
-PYTHONPATH=. .venv/bin/python -m pipeline.atlas.waters.added_streams.verify_map burnaby         # final result + FWA context
+PYTHONPATH=. .venv/bin/python -m pipeline.atlas.waters.added_streams.mapcheck burnaby           # both maps, one resolve (~50 s)
+PYTHONPATH=. .venv/bin/python -m pipeline.atlas.waters.added_streams.mapcheck burnaby --only package   # final result + FWA context
 PYTHONPATH=. .venv/bin/python -m pipeline.atlas.waters.added_streams.build_dataset burnaby squamish port_moody  # re-freeze the artifact
 ```
 The build **consumes the frozen `added_streams.build.json`** (on by default) — see README "Build integration".
@@ -89,7 +89,7 @@ a bare `pytest` (testpaths = pipeline/tests) does NOT collect them; run the expl
 - **Lake through-flow** (`lake_through_spine`) — a lake's OUTLET stream runs THROUGH the lake as its central
   axis (major axis of the lake, nudged just past the headwater shore), so the many inlets attach at DISTINCT
   measures instead of all piling at the outlet with identical `…-999999`. The under-lake span carries the lake
-  `wbk`. `mapcheck`/`verify_map` just render the resolver output now (no separate spine hack).
+  `wbk`. `mapcheck` (both maps) just renders the resolver output now (no separate spine hack).
 - **Unique WSC** (`_bump_wsc`) — two DIFFERENT streams never share a code (bumped to the nearest free trailing
   segment, receiver-first so a bumped parent propagates). Same-name *fragments* still share; unnamed shares
   with nobody. `test_bump_wsc_...`.
