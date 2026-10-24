@@ -1,6 +1,6 @@
 /**
  * T36 (A) — the sheets over hand-built inputs. The rules are the store's rows (testing/ruleRows.ts), the glossary terms the
- * store's `glossary` static; every expected string is the golden's (app/design/regs-v11/port/golden/golden.json, regs v38,
+ * store's `glossary` static; every expected string is the golden's (app/fixtures/golden/golden.json, regs v38,
  * path in each test). The 134-state parity is app/conformance/src/regs/sheets.parity.test.ts.
  */
 import { describe, expect, it } from "vitest";

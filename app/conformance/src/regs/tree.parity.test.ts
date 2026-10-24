@@ -2,7 +2,7 @@
  * T18 parity: every golden g28 group's quota tree — each tier (kicker, line with its big numbers and fresh Rule book page,
  * relation, sub, origin) and each kind row (sentence, number, How to tell, size chip, qualifiers, pictures, also-counts,
  * duty with "Steelhead stamp ›", presence) — built by core `treeOf` over the state's inputs and projected to the golden's
- * shape (keepGroups.ts), against app/design/regs-v11/port/golden/golden.json (regs v38 @ 7fb6809f).
+ * shape (keepGroups.ts), against app/fixtures/golden/golden.json (regs v38 @ 7fb6809f).
  *
  * A kind's `lines` (its drawn lines in order) are compared too, whole — the prototype's licence stamp lines (round UR7
  * stampsFor: "You need … ›") included since rows 31: the store's `TreeKind.stamps`, worded by tree.ts `stampLine`.

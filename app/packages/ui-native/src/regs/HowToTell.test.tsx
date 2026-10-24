@@ -17,7 +17,7 @@ import { RegsScreen } from "./RegsScreen";
 import { AdiposeArt } from "./AdiposeArt";
 import { DARK, LIGHT } from "../theme";
 import vedder1010 from "./fixtures/vedder_1010.json";
-import golden from "../../../../design/regs-v11/port/golden/golden.json";
+import golden from "../../../../fixtures/golden/golden.json";
 
 afterEach(cleanup);
 

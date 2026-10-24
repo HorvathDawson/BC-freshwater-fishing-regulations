@@ -1,7 +1,7 @@
 /**
  * T17 parity: every golden g28 group's head — title, scope kicker, the number line (form a, the owner's r20h pick), the
  * origin block — built by core `headCtx`/`groupHeadOf`/`originOf` over the state's inputs (T12 `inputsOf`, the paired
- * release) and projected to the golden's shape (keepGroups.ts), against app/design/regs-v11/port/golden/golden.json
+ * release) and projected to the golden's shape (keepGroups.ts), against app/fixtures/golden/golden.json
  * (regs v38 @ 7fb6809f). Expected values are the golden's; the ticket's literals are restated from it.
  */
 import { afterAll, describe, expect, it } from "vitest";

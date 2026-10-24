@@ -1,7 +1,7 @@
 """The phase-0 parity oracle: for every golden state, what the Python reference decoder says the app's tap must resolve.
 
-    .venv/bin/python app/design/regs-v11/port/taps.py [--release data/release/r-…] [--golden app/design/regs-v11/port/golden/golden.json]
-    -> app/design/regs-v11/port/golden/taps.json
+    .venv/bin/python app/design/regs-v11/port/taps.py [--release data/release/r-…] [--golden app/fixtures/golden/golden.json]
+    -> app/fixtures/golden/taps.json
 
 Per state: the water's item id (page v36's export ids, by the snapshot's water name), the part index, the date (2026, the
 prototype's year), the weekday, then the store's answer: item_ord, akey, the segment starts, the moments, the segment index
@@ -90,9 +90,9 @@ def same_part(golden, store):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--release", default=None, help="the release folder whose regs store to read (default: data/release/LATEST)")
-    ap.add_argument("--golden", default=str(REPO / "app/design/regs-v11/port/golden/golden.json"))
+    ap.add_argument("--golden", default=str(REPO / "app/fixtures/golden/golden.json"))
     ap.add_argument("--page", default=str(REPO / "app/design/regs-v11/reference/page_v36.html"))
-    ap.add_argument("--out", default=str(REPO / "app/design/regs-v11/port/golden/taps.json"))
+    ap.add_argument("--out", default=str(REPO / "app/fixtures/golden/taps.json"))
     ap.add_argument("--unnamed", type=int, default=20)
     a = ap.parse_args()
 

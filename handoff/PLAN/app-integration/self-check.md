@@ -25,7 +25,7 @@ Verdict: implementable as written after the one fix.
 |---|---|---|
 | runs = run-length of `display_frame.strip` over the book year (Feb 29 dropped), each day at its own weekday | `port/verify_map.py` (decodes the store exactly so) | ✓ 134/134 states equal golden `keep.strip.bar[].flex`; status word 134/134 |
 | `taps.json displayByDay` is per-day at the day's own weekday (page v36 `segOf`) | first version used the day's FIRST moment — **✗ → fixed** in `port/taps.py` before the ticket was written (klwa_1010 Sat → s 1, klwa_1012 Mon → s 0) | ✓ |
-| prototype refs `flagBar` 945, `flagLegend` 949, `span` 1363 @ 04765ab5 | `port/golden/inventory.json` | ✓ |
+| prototype refs `flagBar` 945, `flagLegend` 949, `span` 1363 @ 04765ab5 | `app/fixtures/golden/inventory.json` | ✓ |
 | page v36 refs `waterStrip0` 459, `nextOpen` 443, `runOf` 488, `strip` 238, `dayStatus` 231, `daySegs` 134 | read `page_v36.js` :129–142, inventory | ✓ |
 | `segOf(w, md) = segAt(w, md, weekdayOf(md), false)` | read `page_v36.js` :137–139 | ✓ — the reason taps.py had to change |
 | needs every segment's rows frame ("Trout release only until …") | not in the first `RegsInputs` | **✗ → fixed**: `RegsInputs.year.rowsBySeg` added to contracts.md (T13 mark) and requested from T09 |

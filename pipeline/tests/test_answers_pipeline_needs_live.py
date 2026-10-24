@@ -1,6 +1,6 @@
 """THE FOUR ANSWERS THE APP KEYED AS EXCLUSIONS on the REAL waters, against the GOLDEN ORACLE: the answers build (this
 code, the bundle on this machine) for the waters the 134 golden states name, read at each state's own key and segment
-(taps.json), against what the PROTOTYPE drew (app/design/regs-v11/port/golden/golden.json — never this code's output).
+(taps.json), against what the PROTOTYPE drew (app/fixtures/golden/golden.json — never this code's output).
 The no-data twin is `test_answers_pipeline_needs.py`; the app's parity (licence, keep, sheets) proves them end to end on
 a release built from this code.
 
@@ -23,7 +23,7 @@ from pipeline.tests.conftest import need, BUNDLE_HINT, EXPORT_HINT
 
 BUNDLE = os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE
 EXPORT_DIR = Path(os.environ.get("ANSWERS_EXPORT_DIR") or Path(R.BUNDLE).parent.parent / "regs")
-GOLDEN = Path(__file__).resolve().parents[2] / "app" / "design" / "regs-v11" / "port" / "golden"
+GOLDEN = Path(__file__).resolve().parents[2] / "app" / "fixtures" / "golden"
 GOLD = json.loads((GOLDEN / "golden.json").read_text())
 G = GOLD["states"]
 TAPS = json.loads((GOLDEN / "taps.json").read_text())["states"]

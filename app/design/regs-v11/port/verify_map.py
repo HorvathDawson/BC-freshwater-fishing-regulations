@@ -29,8 +29,8 @@ TROUTISH = set("RB CT EB GB LT DV ST BT CT_ws CT_c".split())   # page_v36.js row
 
 
 def main():
-    G = json.loads((REPO / "app/design/regs-v11/port/golden/golden.json").read_text())
-    T = json.loads((REPO / "app/design/regs-v11/port/golden/taps.json").read_text())
+    G = json.loads((REPO / "app/fixtures/golden/golden.json").read_text())
+    T = json.loads((REPO / "app/fixtures/golden/taps.json").read_text())
     rel = os.environ.get("REGS_RELEASE")
     s = province_store(Path(rel) if rel else None)
     c, cache = s.con, {}

@@ -1,6 +1,6 @@
 /**
  * T07 parity: core's `settle(inp, makePlace(inp))` — the stored ladder verdicts and display frames decoded, selected and
- * grouped — against page v36's OWN settle() (app/design/regs-v11/port/golden/hydrate.json, port/hydrate.mjs running
+ * grouped — against page v36's OWN settle() (app/fixtures/golden/hydrate.json, port/hydrate.mjs running
  * page_v36.js lines 1–246 in node, YEAR 2026) on all 134 golden states, with inputs from T09 `inputsOf` over the live
  * release paired with the oracles (skipped with the reason otherwise; a failure under REGS_STORE_REQUIRED=1). Every
  * expected value is read from the oracle except the ticket's literal table (page v36's output, quoted by the ticket).

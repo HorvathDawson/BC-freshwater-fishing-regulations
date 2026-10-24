@@ -1,7 +1,7 @@
 /**
  * The Regulations page view model — `RegsPage` and everything below it (contracts.md §2). Components draw these and
  * never compute: every finished sentence is here, pinned by a core test against the goldens
- * (app/design/regs-v11/port/golden/golden.json, regs v38 @ 7fb6809f).
+ * (app/fixtures/golden/golden.json, regs v38 @ 7fb6809f).
  *
  * Later tickets add fields where the contract marks them (T28 `GroupVM.pinLine`), and the functions declared beside
  * their types (T33 `licenceBlockLines`, T36 `sheetOf`/`sheetLines`).

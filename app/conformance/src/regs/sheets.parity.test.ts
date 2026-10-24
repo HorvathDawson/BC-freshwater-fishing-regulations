@@ -1,6 +1,6 @@
 /**
  * T36 parity (B): every sheet a golden state can open, built by `page.sheet(appKeyOf(key))` over the state's inputs and
- * projected by `sheetLines`, against app/design/regs-v11/port/golden/golden.json (regs v38 @ 7fb6809f): title, sub, folds,
+ * projected by `sheetLines`, against app/fixtures/golden/golden.json (regs v38 @ 7fb6809f): title, sub, folds,
  * linked pages, body lines and nested keys. A per-state "@" is the global `golden.sheets[key]`.
  *
  * Built: every kind (rule:, gl:, pos:, hatch, srcs:, licsrc:, src:, sp:, other:, parts). `parts` reads each picker choice's

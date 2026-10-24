@@ -8,8 +8,10 @@ import fs from 'node:fs'; import os from 'node:os'; import path from 'node:path'
 
 export const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const REPO = path.resolve(HERE, '../../../..');
+/** Where the generated oracles live (app/fixtures/golden/, T63): the app's tests read them there, not under design/. */
+export const GOLDEN = path.join(REPO, 'app/fixtures/golden');
 export const FILES = ['app/design/regs-v11.html', 'app/design/regs-v11/v36snap.js', 'app/design/regs-v11/watermap.js',
-  'app/design/regs-v11/UI-NOTES.md', 'app/design/regs-v10/fish.js', 'app/design/regs-v10/fishart.js',
+  'app/design/regs-v11/UI-NOTES.md', 'app/design/regs-v10/fish.js', 'app/fixtures/fishart.js',
   'app/design/regs-v11/reference/page_v36.js'];
 
 const git = (...a) => execFileSync('git', ['-C', REPO, ...a], { encoding: 'utf8', maxBuffer: 1 << 30 });
@@ -31,7 +33,7 @@ export function stage(ref = 'HEAD') {
 export function versionOf(notes) { const m = fs.readFileSync(notes, 'utf8').match(/^#\s*regs\s+(v\d+)/im); return m ? m[1] : 'v?'; }
 
 export function args(argv = process.argv.slice(2)) {
-  const o = { ref: 'HEAD', out: path.join(HERE, 'golden') };
+  const o = { ref: 'HEAD', out: GOLDEN };
   for (let i = 0; i < argv.length; i++) { const a = argv[i];
     if (a === '--ref') o.ref = argv[++i]; else if (a === '--out') o.out = path.resolve(argv[++i]);
     else if (a === '--only') o.only = argv[++i]; else if (a === '--quick') o.quick = true; }

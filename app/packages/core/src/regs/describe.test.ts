@@ -1,7 +1,7 @@
 /**
  * T06: a rule as a line of words (page_v36 bands, bandTxt, closedGate, covers, describe, cutWords), over the real rule
  * rows in testing/ruleRows.ts. The expected sentences are the ticket's table; describe.parity.test.ts checks every one
- * of them (and the other 709) against page v36's own output in port/golden/hydrate.json.
+ * of them (and the other 709) against page v36's own output in app/fixtures/golden/hydrate.json.
  */
 import { describe as group, expect, it } from "vitest";
 import { bands, bandTxt, closedGate, covers, cutWords, describe } from "./describe";

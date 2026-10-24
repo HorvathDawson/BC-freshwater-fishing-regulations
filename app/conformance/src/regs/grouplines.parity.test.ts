@@ -1,7 +1,7 @@
 /**
  * T17–T19 parity (the whole group): every golden g28 group's `lines` — the group's drawn text, line by line, in draw order
  * (head, origin, tree, not-kept lines, How it adds up, quiet line, "See every regulation line ›") — composed from the same
- * core VMs the field parities project (keepGroups.ts groupLinesProj), against app/design/regs-v11/port/golden/golden.json.
+ * core VMs the field parities project (keepGroups.ts groupLinesProj), against app/fixtures/golden/golden.json.
  * The field parities prove each part's words; this proves their order and which parts share a line.
  *
  * Nothing dropped from the golden group lines: the stamp lines are compared (rows 31: the store's `stamps`, drawn by tree.ts /

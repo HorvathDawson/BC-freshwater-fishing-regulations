@@ -103,7 +103,7 @@ describe("emit-fish: the look-for tips (T36, contracts §3 FISH_TIPS)", () => {
       "RB", "SMB", "ST", "WP", "WSG", "YP"]);
     expect(FISH_TIPS.RB).toEqual(["Pink or red band along the side", "Small black spots, mostly above the middle of the side",
       "Rows of black spots on the tail"]);
-    // page v36's own words (not regs-v10/fishart.js, which an older copy says "…bright silver, 50 cm or longer")
+    // page v36's own words (not app/fixtures/fishart.js, which an older copy says "…bright silver, 50 cm or longer")
     expect(FISH_TIPS.ST).toEqual(["A rainbow trout that went to sea: bright silver", "Faint spots, mostly on the back and tail",
       "Hatchery steelhead are missing this small fin (the adipose fin)"]);
   });
@@ -112,7 +112,7 @@ describe("emit-fish: the look-for tips (T36, contracts §3 FISH_TIPS)", () => {
     expect(fishTips(src).RB![0]).toBe("Mutated band");
   });
   it("every golden sp: sheet's \"What to look for\" list equals FISH_TIPS[code]", () => {
-    const g = JSON.parse(readFileSync(`${app}design/regs-v11/port/golden/golden.json`, "utf8")) as { sheets: Record<string, { lines: string[] }> };
+    const g = JSON.parse(readFileSync(`${app}fixtures/golden/golden.json`, "utf8")) as { sheets: Record<string, { lines: string[] }> };
     const sp = Object.entries(g.sheets).filter(([k]) => k.startsWith("sp:"));
     expect(sp.length).toBe(19);
     const bad = sp.filter(([k, v]) => { const i = v.lines.indexOf("What to look for");
@@ -157,7 +157,7 @@ describe("emit-fish: the committed files are current (--check)", () => {
 
 describe("emit-fish: golden cross-check", () => {
   type Pic = { code?: string | null; caption?: string };
-  const golden = JSON.parse(readFileSync(`${app}design/regs-v11/port/golden/golden.json`, "utf8"));
+  const golden = JSON.parse(readFileSync(`${app}fixtures/golden/golden.json`, "utf8"));
   const pics: Pic[] = [];
   const walk = (o: unknown): void => {
     if (Array.isArray(o)) { o.forEach(walk); return; }

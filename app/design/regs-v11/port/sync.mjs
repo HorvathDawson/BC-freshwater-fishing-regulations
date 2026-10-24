@@ -1,15 +1,15 @@
 // Re-sync the app port with the prototype: regenerate every port artifact at a ref and say what moved.
 //   node app/design/regs-v11/port/sync.mjs [--ref HEAD|<sha>|WORKTREE]
-// Runs golden.mjs, pins.mjs, pinreplay.mjs, tokens.mjs, inventory.mjs, taps.py and then hydrate.mjs into app/design/regs-v11/port/golden/, then prints
+// Runs golden.mjs, pins.mjs, pinreplay.mjs, tokens.mjs, inventory.mjs, taps.py and then hydrate.mjs into app/fixtures/golden/, then prints
 //   - the functions whose bodies changed (inventory diff: the tickets that port them need a look),
 //   - per state and per tab, which golden blocks changed (the app tests that will now fail, and why),
 //   - token values that changed (tokens.md / the theme JSON need a look).
 // Commit the regenerated golden/ with the prototype version in the message; the app's parity tests read these files.
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs'; import os from 'node:os'; import path from 'node:path';
-import { HERE, REPO, args } from './stage.mjs';
+import { GOLDEN, HERE, REPO, args } from './stage.mjs';
 
-const A = args(), OUT = path.join(HERE, 'golden'), TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'regs-sync-'));
+const A = args(), OUT = GOLDEN, TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'regs-sync-'));
 const keep = f => fs.existsSync(path.join(OUT, f)) && fs.copyFileSync(path.join(OUT, f), path.join(TMP, f));
 ['golden.json', 'tokens.json', 'inventory.json'].forEach(keep);
 const run = (cmd, a) => execFileSync(cmd, a, { cwd: REPO, stdio: ['ignore', 'inherit', 'inherit'] });

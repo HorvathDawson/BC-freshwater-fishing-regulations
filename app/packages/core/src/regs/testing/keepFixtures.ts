@@ -1,7 +1,7 @@
 /**
  * Hand-built Keep-tab inputs for the store-free T17–T19 unit tests: a Vedder-like group (Region 2's 4 a day over the
  * streams' 2, the river's own 4 hatchery rainbow), its RuleIndex and card model. Every sentence is copied from the
- * golden (app/design/regs-v11/port/golden/golden.json, vedder_1010 / klwa_1010) or the store; nothing is invented except
+ * golden (app/fixtures/golden/golden.json, vedder_1010 / klwa_1010) or the store; nothing is invented except
  * the rule indices. The 134-state parity is app/conformance/src/regs/{grouphead,tree,tail,others}.parity.test.ts.
  */
 import type { GroupTotal, Row, TreeKind, TreeTier } from "../../answers.generated";

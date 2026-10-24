@@ -1,10 +1,10 @@
 // T41 — THE STATE TABLE of the browser tools: a golden state id → the same state in the prototype (its #hash) and in the
 // app (the web start link, `@app/ui` parseStartLink). The prototype's (w, d, p) and the app's (item, part, date) both come
-// from the committed port goldens (port/golden/golden.json + taps.json, generated at the port target's ref), never typed.
+// from the committed port goldens (app/fixtures/golden/golden.json + taps.json, generated at the port target's ref), never typed.
 import fs from 'node:fs'; import path from 'node:path'; import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-export const GOLDEN_DIR = path.resolve(HERE, '../../design/regs-v11/port/golden');
+export const GOLDEN_DIR = path.resolve(HERE, '../../fixtures/golden');
 const load = (f) => JSON.parse(fs.readFileSync(path.join(GOLDEN_DIR, f), 'utf8'));
 const GOLDEN = load('golden.json'), TAPS = load('taps.json');
 

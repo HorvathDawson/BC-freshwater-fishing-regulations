@@ -5,11 +5,11 @@
 //   node app/design/regs-v11/port/pinreplay.mjs [golden.json] [pins.json]
 // pinChain below is the reference the TypeScript port (app/packages/core/src/regs/pins.ts) transcribes. Coordinates are
 // content offsets (scrollTop 0); "R(e).top < y" in the prototype is "e.top - scrollY < header".
-import fs from 'node:fs'; import path from 'node:path'; import { fileURLToPath } from 'node:url';
+import fs from 'node:fs'; import path from 'node:path';
 
-const HERE = path.dirname(fileURLToPath(import.meta.url));
-const G = JSON.parse(fs.readFileSync(process.argv[2] || path.join(HERE, 'golden', 'golden.json'), 'utf8'));
-const P = JSON.parse(fs.readFileSync(process.argv[3] || path.join(HERE, 'golden', 'pins.json'), 'utf8'));
+import { GOLDEN } from './stage.mjs';
+const G = JSON.parse(fs.readFileSync(process.argv[2] || path.join(GOLDEN, 'golden.json'), 'utf8'));
+const P = JSON.parse(fs.readFileSync(process.argv[3] || path.join(GOLDEN, 'pins.json'), 'utf8'));
 
 export function pinChain(anchors, scrollY, vp, hOf) {
   const { header: hh, LH, ROW } = vp, top = e => e.top - scrollY;

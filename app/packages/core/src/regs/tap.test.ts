@@ -1,5 +1,5 @@
 /**
- * T05 unit cases, store-free. The segment literals are taps.json's (app/design/regs-v11/port/golden/taps.json); the licence
+ * T05 unit cases, store-free. The segment literals are taps.json's (app/fixtures/golden/taps.json); the licence
  * dims/profiles are the regs store's `static licence.profile_dims` / `licence.profiles`, copied. The store-backed parity
  * over all 134 golden states (and the Feb 29 cases) is app/conformance/src/regs/tap.parity.test.ts.
  */

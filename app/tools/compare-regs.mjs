@@ -7,7 +7,7 @@
 //        [--who u16,non_resident] [--ref <ref>] [--url http://localhost:8081] [--clock proto|real] [--out DIR]
 //        [--scale 0.4 --jpeg 0.72]
 //   node app/tools/compare-regs.mjs --all [--out DIR]         every WALK_STATES state × tab (light), Vedder dark, the sheet set
-//   node app/tools/compare-regs.mjs --reader OUT_DIR [--theme dark]  the reader set (port/reader/states.json), app only, with the
+//   node app/tools/compare-regs.mjs --reader OUT_DIR [--theme dark]  the reader set (app/fixtures/reader-states.json), app only, with the
 //                                                            prototype's PNG names: OUT/TALL, OUT/FRAMES, OUT/TALL/NEW
 // Writes OUT/<id>-<tab>[-<sheet>]-<theme>.png and OUT/compare.json (every shot's diff %).
 import fs from 'node:fs'; import path from 'node:path'; import { fileURLToPath } from 'node:url';
@@ -99,13 +99,13 @@ function allShots() {
     ['vedder_1010', 'other:vedder_1010|o0'], ['klwa_1010', 'other:klwa_1010|o0'], ['bc1_501', 'parts'], ['vedder_1010', 'pos:vedder_1010|pos', 'dark']];
   for (const [id, sheet, theme = 'light'] of SHEETS) list.push({ id, tab: 'keep', sheet, theme });
   // the first rule: and sp: sheets the Vedder's golden holds
-  const st = JSON.parse(fs.readFileSync(path.join(HERE, '../design/regs-v11/port/golden/golden.json'), 'utf8')).states.vedder_1010.sheets;
+  const st = JSON.parse(fs.readFileSync(path.join(HERE, '../fixtures/golden/golden.json'), 'utf8')).states.vedder_1010.sheets;
   for (const re of [/^rule:/, /^sp:/, /^src:/]) { const k = Object.keys(st).find((x) => re.test(x)); if (k) list.push({ id: 'vedder_1010', tab: 'keep', sheet: k, theme: 'light' }); }
   return list;
 }
 
 // ── the reader set: the prototype's PNG names, the app's screens (tests.md §4) ─────────────────────────────────────
-const READER = path.join(HERE, '../design/regs-v11/port/reader/states.json');
+const READER = path.join(HERE, '../fixtures/reader-states.json');
 async function reader(out) {
   const set = JSON.parse(fs.readFileSync(READER, 'utf8'));
   for (const d of ['TALL', 'FRAMES', 'TALL/NEW']) fs.mkdirSync(path.join(out, d), { recursive: true });

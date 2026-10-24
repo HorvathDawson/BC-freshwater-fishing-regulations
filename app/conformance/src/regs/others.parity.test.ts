@@ -1,7 +1,7 @@
 /**
  * T19 parity (Other fish + the split): which rows the Keep tab draws as groups (page v36 rowsHtml's TROUTISH split, none on
  * a closed day) and the compact Other fish list, built by core splitRows / groupRows / otherFishOf over the state's inputs,
- * against app/design/regs-v11/port/golden/golden.json (regs v38 @ 7fb6809f) on all 134 states.
+ * against app/fixtures/golden/golden.json (regs v38 @ 7fb6809f) on all 134 states.
  */
 import { afterAll, describe, expect, it } from "vitest";
 import { otherFishOf, FISH, splitRows } from "@app/core";

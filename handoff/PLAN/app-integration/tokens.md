@@ -1,7 +1,7 @@
 # tokens.md — the prototype's tokens, type and spacing → the app's theme, `TYPE`, `SPACE`
 
 Target **regs v33 @ 04765ab5** (decisions D5). Every value on this page is copied from
-`app/design/regs-v11/port/golden/tokens.json` (`meta.sha = 04765ab5`, `meta.version = v33`). When the two disagree,
+`app/fixtures/golden/tokens.json` (`meta.sha = 04765ab5`, `meta.version = v33`). When the two disagree,
 **tokens.json wins** and this page is stale — follow §4. Prototype line refs are `app/design/regs-v11.html` @ 04765ab5
 (CSS is lines 1–880; the round-20c/20g/20h/20i token blocks are at 697, 817–823, 849–861, 862–868).
 
@@ -209,7 +209,7 @@ the outer `Text` style carries the lineHeight and the inner has none (T26).
    row; the component named in the role's left part owns the StyleSheet change; re-run that ticket's render test.
    Diff mechanically: `node -e` over the old and new `census` arrays keyed by `sel|role|i` (the census can carry several rows per
    selector — one per state variant, e.g. `.ghd .num .ghn` at 12.48 and 17 px).
-5. Commit `port/golden/` + theme JSON + `style.json`/`style.meta.json`/`style.sha256` + `type.ts`/`theme.ts` + this page together
+5. Commit `app/fixtures/golden/` + theme JSON + `style.json`/`style.meta.json`/`style.sha256` + `type.ts`/`theme.ts` + this page together
    ("regs vNN tokens").
 
 v32 → v33 (the bump this spec absorbed): `--sub` `#5F666C/#A3ABB2` → `#555C62/#B0B8BF`; census: `.k28 .duty` 12.48/600 →

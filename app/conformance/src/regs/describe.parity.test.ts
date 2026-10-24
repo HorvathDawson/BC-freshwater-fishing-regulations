@@ -1,5 +1,5 @@
 /**
- * T06 parity: core's rule views and describe() against page v36's OWN output (app/design/regs-v11/port/golden/
+ * T06 parity: core's rule views and describe() against page v36's OWN output (app/fixtures/golden/
  * hydrate.json, written by port/hydrate.mjs running page_v36.js lines 1–242 in node). Nothing here is a hand-copied string:
  * every expected value is read from the oracle.
  *

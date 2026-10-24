@@ -1,6 +1,6 @@
 /**
  * The rich-text runs every presenter emits, and `plain()` — the golden comparison form (contracts.md §1, §5).
- * Expected strings are golden values (port/golden/golden.json @ v38) where the ticket names one; the store-backed
+ * Expected strings are golden values (app/fixtures/golden/golden.json @ v38) where the ticket names one; the store-backed
  * comparison of the same forms against every golden page link is conformance/src/regs/line.golden.test.ts.
  */
 import { describe, expect, it } from "vitest";

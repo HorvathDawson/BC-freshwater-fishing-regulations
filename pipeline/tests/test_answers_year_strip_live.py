@@ -1,6 +1,6 @@
 """THE YEAR STRIP (rows 30) on the REAL waters, against the GOLDEN ORACLE: the answers build (this code, the bundle on
 this machine) for the 42 waters the 134 golden states name, and every drawn row's stored `year` equals page v36's own
-dayStatus runs for that state (app/design/regs-v11/port/golden/hydrate.json, the prototype's output — never this code's).
+dayStatus runs for that state (app/fixtures/golden/hydrate.json, the prototype's output — never this code's).
 The no-data twin is `test_answers_year_strip.py`.
 
 `UI_EXPORT_BUNDLE` / `ANSWERS_EXPORT_DIR` point the suite at a side bundle and its export pair.
@@ -20,7 +20,7 @@ from pipeline.tests.conftest import need, BUNDLE_HINT, EXPORT_HINT
 
 BUNDLE = os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE
 EXPORT_DIR = Path(os.environ.get("ANSWERS_EXPORT_DIR") or Path(R.BUNDLE).parent.parent / "regs")
-GOLDEN = Path(__file__).resolve().parents[2] / "app" / "design" / "regs-v11" / "port" / "golden"
+GOLDEN = Path(__file__).resolve().parents[2] / "app" / "fixtures" / "golden"
 HYDRATE = json.loads((GOLDEN / "hydrate.json").read_text())
 TAPS = json.loads((GOLDEN / "taps.json").read_text())
 #: (T115) the hydrated states the store taps: not the 4 whose part the release merged away (taps.json `gone`)

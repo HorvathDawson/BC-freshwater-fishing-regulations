@@ -1,6 +1,6 @@
 /**
  * T22: the app's theme and type scale carry what the Regulations page paints with, read from the prototype's computed
- * tokens (app/design/regs-v11/port/golden/tokens.json), never retyped. A prototype bump that moves a token fails here.
+ * tokens (app/fixtures/golden/tokens.json), never retyped. A prototype bump that moves a token fails here.
  */
 import { describe, expect, it } from "vitest";
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
@@ -10,7 +10,7 @@ import { DARK, LIGHT, SPACE, GUTTER, type Palette } from "../packages/ui-native/
 import { FACE, FACES_REQUIRED, TYPE } from "../packages/ui-native/src/type";
 
 const here = (p: string) => fileURLToPath(new URL(p, import.meta.url));
-const tokens = JSON.parse(readFileSync(here("../design/regs-v11/port/golden/tokens.json"), "utf8")) as {
+const tokens = JSON.parse(readFileSync(here("../fixtures/golden/tokens.json"), "utf8")) as {
   tokens: { light: Record<string, string>; dark: Record<string, string> };
   compare: { token: string; light: string; dark: string; same: boolean }[];
 };

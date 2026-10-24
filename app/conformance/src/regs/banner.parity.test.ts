@@ -1,6 +1,6 @@
 /**
  * T14 parity: the closed / tidal banner — `bannerOf(inp, settle(…), stripOf(…))` — against the golden
- * (app/design/regs-v11/port/golden/golden.json, page v38 @ 7fb6809f) `keep.banner` on every golden state, inputs from T09
+ * (app/fixtures/golden/golden.json, page v38 @ 7fb6809f) `keep.banner` on every golden state, inputs from T09
  * `inputsOf` over the harness's paired store (REGS_STORE_REQUIRED=1 turns a skip into a failure).
  *
  * Every expected value is the golden's except the ticket's literals (page v38's output, re-read from the golden at v38;

@@ -1,5 +1,5 @@
 /**
- * THE ORACLE FILES (app/design/regs-v11/port/golden/) — the one module every regs parity suite reads them through:
+ * THE ORACLE FILES (app/fixtures/golden/) — the one module every regs parity suite reads them through:
  * golden.json (`golden()`), taps.json (`taps()`), hydrate.json (`hydrate()`), their paths and REPO. Kept apart from
  * golden.ts so exclusions.ts (which golden.ts's `cases` reads) can compute its id lists at load without an import cycle;
  * golden.ts re-exports these.
@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 import type { GoldenFile, TapsFile } from "@app/core/regs/testing";
 
 export const REPO = fileURLToPath(new URL("../../../../", import.meta.url));
-export const GOLDEN_DIR = `${REPO}app/design/regs-v11/port/golden/`;
+export const GOLDEN_DIR = `${REPO}app/fixtures/golden/`;
 export const TAPS = `${GOLDEN_DIR}taps.json`;
 export const HYDRATE = `${GOLDEN_DIR}hydrate.json`;
 

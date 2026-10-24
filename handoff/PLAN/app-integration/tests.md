@@ -2,7 +2,7 @@
 
 Target: **regs v33 = `app/design/regs-v11.html` @ `04765ab5`** (round 20i), its committed `app/design/regs-v11/tools/check.mjs`
 (**110 `check()` call sites, 111 results**: `map-status-tokens` runs light + dark), goldens regenerated at v33
-(`app/design/regs-v11/port/golden/golden.json` meta `{sha:"04765ab5", version:"v33", states:134, sheets:144}`, commit 325a03f4).
+(`app/fixtures/golden/golden.json` meta `{sha:"04765ab5", version:"v33", states:134, sheets:144}`, commit 325a03f4).
 Read the checks with `git show 04765ab5:app/design/regs-v11/tools/check.mjs` (line numbers below are that file's).
 
 Ticket ids are README §2's. Test file names for T36–T43 are binding; for T13–T35 they are the names this file assumes
@@ -81,7 +81,7 @@ export function diffLines(a: readonly string[], e: readonly string[], ctx = 2): 
 ```
 `expect(eqPlain(...)).toEqual({ok:true})` fails with the diff as the message, e.g.
 ```
-keep · vedder_1010 · groups[0].tree  (golden app/design/regs-v11/port/golden/golden.json @ 04765ab5)
+keep · vedder_1010 · groups[0].tree  (golden app/fixtures/golden/golden.json @ 04765ab5)
   @@ line 3 @@
     "Only 2 of the 4 may be from streams, not counting hatchery rainbow trout"
   - "Only 1 of the fish in this box may be over 50 cm (20 in)"            (expected)
@@ -310,7 +310,7 @@ a **fresh** opus reader (a new agent, no history), **PNG screenshots only**, a f
 2. **Shoot the app** (`node app/tools/compare-regs.mjs --reader OUT_DIR`, T41): Expo web (`pnpm -C app/apps/mobile web`,
    store served by `tools/serve-tiles.mjs` `/regs.sqlite`), Chrome via cdp at **390×844 DPR 2**, fonts loaded (not offline).
    For each PNG name in the prompt the tool has a state → `{item, partIx, date, tab, sheet?, who?, scroll}` table
-   (`port/reader/states.json`, derived from `regs-v11/tools/shoot.mjs` + `frames.mjs` STATES): TALL = the whole tab as one
+   (`app/fixtures/reader-states.json`, derived from `regs-v11/tools/shoot.mjs` + `frames.mjs` STATES): TALL = the whole tab as one
    image (the app's ScrollView content measured and shot in one tall viewport), FRAMES = consecutive 844-px screenfuls with
    90 px overlap, stepped back so no line sits under the pin stack (frames.mjs's rule). Same file names as the prototype set.
 3. **Run the reader** — the human launches it (it is an agent run): one fresh reader on the app set with the same prompt.

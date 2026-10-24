@@ -61,7 +61,7 @@ The words, numbers, block order and Rule book pages are equal. The Keep parity t
    - Same words and numbers.
    - In the prototype, "How to tell ›" sits at the end of the origin sentence; the Rule book link wraps under it. In the app, both links sit on their own row under the sentence.
 9. **Size band** ("Of these, only 1 may be over 50 cm"). Matches: the slate side bar and slate head line (`--rule`, round UR7).
-   - T21 added `color.ui.rule` to the theme for this: light #46627F, dark #93A8BE, taken from `port/golden/tokens.json`.
+   - T21 added `color.ui.rule` to the theme for this: light #46627F, dark #93A8BE, taken from `app/fixtures/golden/tokens.json`.
    - Both draw the band's 1 px `line2` top and bottom rules.
    - The prototype's band has no gap between its head line and its first kind. The app's tier padding leaves about 4 px more.
 10. **Also-count chip** ("Only 1 cutthroat or rainbow trout over 50 cm"). The prototype has a 3 px ink left bar and full width. The app draws a tint chip sized to its text.

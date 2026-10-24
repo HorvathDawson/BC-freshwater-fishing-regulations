@@ -1,6 +1,6 @@
 /**
  * T33 parity: the Licence tab (core buildLicence via buildRegsPage) for all six anglers (age × residency) of every golden
- * state, against app/design/regs-v11/port/golden/golden.json `states[id].licence["<age>|<res>"]` (regs v38 @ 7fb6809f):
+ * state, against app/fixtures/golden/golden.json `states[id].licence["<age>|<res>"]` (regs v38 @ 7fb6809f):
  * the question and its ⓘ, the choices (text, checked, value), the profile's label, every block as {cls, lines}
  * (`licenceBlockLines`), the source line (who, and the licsrc: key the golden embeds the state id in) — and the licsrc:
  * sheet's lines (`licenceSourceLines`) against the golden sheet. Exclusions (exclusions.ts LICENCE_*) are listed with their

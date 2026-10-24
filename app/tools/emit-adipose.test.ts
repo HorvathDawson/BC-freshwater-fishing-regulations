@@ -1,6 +1,6 @@
 /**
  * T38 — the hatch sheet's two drawings (Wild · adipose fin there / Hatchery · clipped), shot from the prototype's own
- * `FISHART.draw('RB', …)` (app/design/regs-v10/fishart.js, which regs-v11.html loads). Only the pure part runs here:
+ * `FISHART.draw('RB', …)` (app/fixtures/fishart.js, which regs-v11.html loads). Only the pure part runs here:
  * rasterising needs Chrome (`node tools/emit-adipose.mjs`, `--check`), so it is not in `pnpm check`.
  *
  * What this pins:

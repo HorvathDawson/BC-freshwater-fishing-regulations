@@ -7,7 +7,7 @@ import { appKeyOf as coreAppKeyOf } from "@app/core";
 import { parseStartLink } from "@app/ui";
 // @ts-expect-error — a plain .mjs module of the node tools (no declaration file)
 import { appKeyOf, GONE, IDS, PROTO_TODAY, REF, stateOf, urlsOf, WALK_STATES } from "./states.mjs";
-import golden from "../../design/regs-v11/port/golden/golden.json";
+import golden from "../../fixtures/golden/golden.json";
 
 const G = golden as unknown as { meta: { ref: string }; states: Record<string, { sheets?: Record<string, unknown> }> };
 const NOW = new Date(2026, 9, 22, 9);

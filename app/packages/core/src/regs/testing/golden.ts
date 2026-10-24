@@ -1,5 +1,5 @@
 /**
- * The golden oracles' shapes (tests.md §1.2), types only: `app/design/regs-v11/port/golden/golden.json` (page v38 @
+ * The golden oracles' shapes (tests.md §1.2), types only: `app/fixtures/golden/golden.json` (page v38 @
  * bdda3586, ≥ b999cfd7 — one space wherever two elements abut) and `taps.json` (the Python reference decoder's taps over
  * the store the goldens were cut from). conformance/src/regs/golden.ts reads them; core unit tests over hand fixtures may
  * type literals copied from them. Not exported from the regs index: `@app/core/regs/testing` is a test-only subpath.

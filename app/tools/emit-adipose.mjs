@@ -7,7 +7,7 @@
  *
  * The prototype's "Hatchery or wild?" sheet draws `FISHART.draw('RB', {marks:false, adiMark:true})` and the same with
  * `clipped:true` (regs-v11.html sheetHtml hatch; page v36 adiposeHtml). That drawing is evaluated here from
- * `design/regs-v10/fishart.js` (the file regs-v11.html loads) with a stub `window`, checked to be the same on a second
+ * `fixtures/fishart.js` (the file regs-v11.html loads) with a stub `window`, checked to be the same on a second
  * evaluation, and rasterised in headless Chrome (tools/regs-web/cdp.mjs) on a transparent canvas at 800×300:
  * an RGBA cut-out like the fish photos (D4 — no ground behind a picture). The colours live in the image, never in app
  * code (check-colours): this file only calls `draw`.
@@ -23,7 +23,7 @@ import { join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const app = fileURLToPath(new URL("..", import.meta.url));
-export const FISHART_SOURCE = `${app}design/regs-v10/fishart.js`;
+export const FISHART_SOURCE = `${app}fixtures/fishart.js`;
 export const OUT = {
   wild: `${app}apps/mobile/assets/fish/adipose-wild.webp`,
   clipped: `${app}apps/mobile/assets/fish/adipose-clipped.webp`,

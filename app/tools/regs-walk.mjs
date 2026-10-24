@@ -12,7 +12,7 @@
 import fs from 'node:fs';
 import { RECT, SCROLL, openApp, scrollTo, sleep, tap, tid, until } from './regs-web/drive.mjs';
 import { APP_URL, METHODS_COMPACT, PHONE, PROTO_TODAY, WALK_STATES, appKeyOf, urlsOf } from './regs-web/states.mjs';
-import golden from '../design/regs-v11/port/golden/golden.json' with { type: 'json' };
+import golden from '../fixtures/golden/golden.json' with { type: 'json' };
 import manifest from '../apps/mobile/assets/fish/manifest.json' with { type: 'json' };
 
 const args = process.argv.slice(2);

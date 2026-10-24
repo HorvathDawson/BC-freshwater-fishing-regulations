@@ -42,7 +42,7 @@ from pipeline.deliver.release import shards as SH
 from pipeline.deliver.store.common import unpack
 
 REPO = Path(__file__).resolve().parents[3]
-TAPS = REPO / "app" / "design" / "regs-v11" / "port" / "golden" / "taps.json"
+TAPS = REPO / "app" / "fixtures" / "golden" / "taps.json"
 OUT = REPO / "app" / "packages" / "data" / "dev" / "regs-release"
 SID_WIDTH = {"section_akey": 2, "section_place": 1}
 #: water tables cut to the kept waters (by their ord column); every other water table is copied whole

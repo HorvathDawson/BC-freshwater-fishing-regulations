@@ -2,7 +2,7 @@
 
 2026-10-20. Supersedes the *how* of `~/.claude/projects/…/handoff/PLAN/APP-INTEGRATION.md` (2026-10-19, kept for the
 why). Nothing in `app/` source, `pipeline/`, `regs-v11.html` or `check.mjs` was changed to write this; the only code added
-is the port tooling in `app/design/regs-v11/port/` (committed, run, outputs in `port/golden/`).
+is the port tooling in `app/design/regs-v11/port/` (committed, run, outputs in `app/fixtures/golden/`).
 
 | file | what |
 |---|---|
@@ -82,7 +82,7 @@ The owner decided (2026-10-20):
 111 checks). It is the latest committed prototype AND the one whose snapshot was taken from the data the built store holds
 (rows 26 · gear 12 · licence 6 · display 16 · glossary 5 — the store's `meta.layout.versions`). The spec started on v32
 (`18bc2a11`); v33 landed mid-writing and was absorbed by re-running the generators — the procedure below, for real. Some
-ticket line refs may still read `@18bc2a11`: function NAMES are authoritative, `port/golden/inventory.json` has the current
+ticket line refs may still read `@18bc2a11`: function NAMES are authoritative, `app/fixtures/golden/inventory.json` has the current
 ranges. The spec never copies prototype strings by hand; it points at generated files, so a new version flows in by
 re-running one command:
 
@@ -90,7 +90,7 @@ re-running one command:
 node app/design/regs-v11/port/sync.mjs --ref <commit>      # ≈ 25 s; needs Chrome, .venv, data/generated/bundle/regs.sqlite
 ```
 
-| generator | output (`app/design/regs-v11/port/golden/`) | what the port uses it for |
+| generator | output (`app/fixtures/golden/`) | what the port uses it for |
 |---|---|---|
 | `golden.mjs` | `golden.json` (8.8 MB): per state (134 = 41 waters × days × parts) the header, every Keep block (strip, inherited, banner, groups with the whole tree, not-kept, worked, other fish, possession, where-not), Gear, Methods, Licence for all 6 (age × residency) profiles, every sheet the state can open (+144 global sheets: rules, glossary, fish, how-to-tell), and the pin bar sampled every 8 px with the anchors it was measured from | the expected strings of every core presenter test; the pin fixtures |
 | `tokens.mjs` | `tokens.json`: every `:root` custom property as computed (light, dark), the app theme values, a diff, and a style census per role (font family/size/weight/line-height, colour **named by token**, background, border, padding) | `tokens.md`, the RN `StyleSheet`s, the palette render gate |
@@ -117,7 +117,7 @@ except the version line — the tickets cite golden paths.
    part of the generators) and re-run.
 3. For each changed function in the inventory diff, open the ticket whose "Ports" section names it; port the delta in the
    core presenter; run that ticket's test (it now reads the new golden). For a changed token, follow `tokens.md` §4.
-4. `pnpm -C app test -- regs` until green; commit `port/golden/` and the app change together, message "regs vNN".
+4. `pnpm -C app test -- regs` until green; commit `app/fixtures/golden/` and the app change together, message "regs vNN".
 5. The comprehension reader gate (tests.md §4) only when the version's report says a reader round was run on it.
 
 ## 2. Order
@@ -197,7 +197,7 @@ RN tickets after T27. See each ticket's "Depends on".
   subtracts data strings and asserts the rest ⊆ `words.ts`).
 - **One presenter per prototype function family**, named after it; each file header lists the prototype/page-v36
   functions it ports with `inventory.json` names (not line numbers — those are in the ticket for the frozen version only).
-- **Tests.** Core: `*.test.ts` beside the file (project `logic`), reading `app/design/regs-v11/port/golden/golden.json` through
+- **Tests.** Core: `*.test.ts` beside the file (project `logic`), reading `app/fixtures/golden/golden.json` through
   `core/src/regs/testing/golden.ts` (T12), skipped with `it.skipIf(!hasProvinceRegs())` when the province store is absent
   (as `hasDevBundle()` does). RN: `*.test.tsx` in `ui-native/src/regs/` (project `render`) over hand-built VMs from
   `core/src/regs/testing/vm-fixtures.ts` + one golden-driven mount per tab.

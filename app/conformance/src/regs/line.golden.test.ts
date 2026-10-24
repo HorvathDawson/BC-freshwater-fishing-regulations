@@ -1,5 +1,5 @@
 /**
- * The core word table and the rich-text forms against the goldens themselves (app/design/regs-v11/port/golden/golden.json),
+ * The core word table and the rich-text forms against the goldens themselves (app/fixtures/golden/golden.json),
  * so nothing here is a string copied by hand: a prototype bump that renames a tab or reshapes the Rule book link fails
  * this test, not a reader. Core cannot read files (layers.json), so the golden-driven half of T00's tests lives here;
  * T12's harness replaces the loader below.
@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { WORDS, plain, type Run } from "@app/core";
 
-const GOLDEN = fileURLToPath(new URL("../../../design/regs-v11/port/golden/golden.json", import.meta.url));
+const GOLDEN = fileURLToPath(new URL("../../../fixtures/golden/golden.json", import.meta.url));
 
 interface GoldenPage { readonly text: string; readonly pdf: number | null }
 interface Golden {

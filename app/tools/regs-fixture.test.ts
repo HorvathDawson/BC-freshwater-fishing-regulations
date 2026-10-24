@@ -28,7 +28,7 @@ const MAN = JSON.parse(readFileSync(join(DIR, "manifest.json"), "utf8")) as {
   data_release: string; tiles: { current: unknown; compatible: string[] };
   files: Record<string, { url: string; gz: number; bytes: number; sha256: string; format: string }>;
 };
-const TAPS = JSON.parse(readFileSync(join(REPO, "app/design/regs-v11/port/golden/taps.json"), "utf8")) as {
+const TAPS = JSON.parse(readFileSync(join(REPO, "app/fixtures/golden/taps.json"), "utf8")) as {
   meta: { store: { section_handles: string; reach_digest: string; rule_ids_sha256: string } };
   states: Record<string, { item: string; akey: number }>; leap: { item: string; akey: number }[];
   unnamed: { handle: number; akey: number; place: number }[];

@@ -1,7 +1,7 @@
 /**
  * T19 parity (group tail): every golden g28 group's not-kept lines, "How it adds up", steelhead quiet line and "See every
  * regulation line ›", built by core notKeptOf / workedOf / quietOf / moreOf over the state's inputs and projected to the
- * golden's shape (keepGroups.ts), against app/design/regs-v11/port/golden/golden.json (regs v38 @ 7fb6809f).
+ * golden's shape (keepGroups.ts), against app/fixtures/golden/golden.json (regs v38 @ 7fb6809f).
  */
 import { afterAll, describe, expect, it } from "vitest";
 import { caseIds, golden, inputsOf, parityGate, summary } from "./golden";

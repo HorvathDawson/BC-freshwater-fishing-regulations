@@ -2,7 +2,7 @@
 
 Target: regs **v33** (`app/design/regs-v11.html` @ `04765ab5`, UI-NOTES v33), answers sections ladder 1 · rows 26 ·
 gear 12 · licence 6 · display 16 · glossary 5, store `regs-store/4`. The golden file that pins every string in this model
-is `app/design/regs-v11/port/golden/golden.json` (generator `port/golden.mjs`); its per-state shape mirrors this model
+is `app/fixtures/golden/golden.json` (generator `port/golden.mjs`); its per-state shape mirrors this model
 on purpose, so a parity test is `plain(vm.x) === golden.states[id].x`.
 
 Three layers, three type families:
@@ -501,7 +501,7 @@ export interface Statics {
 }
 // CardModel (T08 defines it; card.ts) — Infinity is a legal daily; roles keyed by RuleKey.   // (T08)
 // app/packages/core/src/fish.generated.ts (T20's generator) also emits:
-export const FISH_TIPS: Readonly<Record<string, readonly string[]>>;   // page v36's FISHART.SPECIES[code].tips (pipeline/deliver/answers/reference/page_v36.js — what regs-v11/tools/snap.mjs read; regs-v10/fishart.js is an older copy, its ST tip differs) — "What to look for" (not in the store); emitted by app/tools/emit-fish.mjs   // (T36)
+export const FISH_TIPS: Readonly<Record<string, readonly string[]>>;   // page v36's FISHART.SPECIES[code].tips (pipeline/deliver/answers/reference/page_v36.js — what regs-v11/tools/snap.mjs read; app/fixtures/fishart.js is an older copy, its ST tip differs) — "What to look for" (not in the store); emitted by app/tools/emit-fish.mjs   // (T36)
 
 // app/packages/data/src/regs/inputs.ts
 export async function loadRegsInputs(store: RegsStore, target: RegsTarget, day: Day, weekday: Weekday,
@@ -571,7 +571,7 @@ Store mapping (verified 2026-10-20 on `data/generated/bundle/regs.sqlite`, see T
 | `sheet("parts")` | `item.parts[]` label/short/km + `closed_all_year` → `choice` block (T36) | proto parts branch |
 
 Line numbers: `regs-v11.html` @ 04765ab5 (v33) and `page_v36.js` (unchanged since 18bc2a11) — **always re-read them from
-`app/design/regs-v11/port/golden/inventory.json`** (they move when the prototype changes; the names do not).
+`app/fixtures/golden/inventory.json`** (they move when the prototype changes; the names do not).
 
 ### 4.1 Mappings already proved against the goldens (`port/verify_map.py`, `port/pinreplay.mjs`, v33)
 

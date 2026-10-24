@@ -16,7 +16,7 @@ import { LIGHT } from "../theme";
 import vedder1010 from "./fixtures/vedder_1010.json";
 import klwa1010 from "./fixtures/klwa_1010.json";
 import bc1501 from "./fixtures/bc1_501.json";
-import golden from "../../../../design/regs-v11/port/golden/golden.json";
+import golden from "../../../../fixtures/golden/golden.json";
 
 afterEach(cleanup);
 

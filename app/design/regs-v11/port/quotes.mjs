@@ -4,10 +4,11 @@
 // golden file's text (whitespace-normalised, JSON-unescaped). Prints, per ticket, the quotes not found. Strings a ticket
 // quotes from elsewhere (code, SQL, CLI output) are expected misses; a sentence of the page that misses is stale.
 import fs from 'node:fs'; import path from 'node:path'; import { fileURLToPath } from 'node:url';
+import { GOLDEN } from './stage.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url)), REPO = path.resolve(HERE, '../../../..');
 const DIR = process.argv[2] || path.join(REPO, 'handoff/PLAN/app-integration/tickets');
-const G = process.argv[3] || path.join(HERE, 'golden', 'golden.json');
+const G = process.argv[3] || path.join(GOLDEN, 'golden.json');
 const norm = t => t.replace(/\s+/g, ' ').trim();
 const hay = new Set(); (function walk(x) { if (typeof x === 'string') hay.add(norm(x)); else if (x && typeof x === 'object') Object.values(x).forEach(walk); })(JSON.parse(fs.readFileSync(G, 'utf8')));
 const all = [...hay].join('\n');

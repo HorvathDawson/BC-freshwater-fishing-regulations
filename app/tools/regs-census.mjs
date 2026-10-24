@@ -4,13 +4,13 @@
 // `btn:`; the four sections `keep-tab`, `regs-gear`, `regs-methods`, `regs-licence`). It drives the app as a reader would:
 // the menu's Display page picks the palette, Search finds the water, the eye frames it on the map, a tap on the framed
 // water opens its Regulations. Colours are named by the THEME'S TOKENS (packages/map/style/themes/<theme>.json), never by
-// a hex typed here, and printed per tab next to the prototype's bound and its census (port/golden/tokens.json .census).
+// a hex typed here, and printed per tab next to the prototype's bound and its census (app/fixtures/golden/tokens.json .census).
 //
 //   pnpm -C app/apps/mobile web          (or: EXPO_PUBLIC_DATA_BASE=… npx expo start --web --port <yours>)
 //   node app/tools/regs-census.mjs [--url http://localhost:8081] [--theme light|dark|cvd] [--water "Vedder River" …] [--shot keep.png] [out.json]
 //   --shot: a 390 × 844 shot of the first water's Keep tab with its fish pictures in view (D4: the owner looks once, in dark)
 //
-// States: `--water` names (repeatable), else `app/design/regs-v11/port/reader/states.json` `[{ "water": "…" }]` when T41 has
+// States: `--water` names (repeatable), else `app/fixtures/reader-states.json` `[{ "water": "…" }]` when T41 has
 // written it, else the Vedder River. The day is the app's (today): the census is about colour, not the day's answer.
 // Exit 1 when a tab breaks a rule (the same rules as ui-native/src/regs/testing/census.ts).
 import fs from 'node:fs'; import path from 'node:path'; import { fileURLToPath } from 'node:url';
@@ -27,7 +27,7 @@ const url = opt('--url', 'http://localhost:8081'), theme = opt('--theme', 'light
 const waters = []; for (let w; (w = opt('--water'));) waters.push(w);
 const out = args.find((a) => !a.startsWith('--'));
 if (!['light', 'dark', 'cvd'].includes(theme)) { console.error(`--theme light|dark|cvd, not ${theme}`); process.exit(2); }
-const statesFile = path.join(HERE, '../design/regs-v11/port/reader/states.json');
+const statesFile = path.join(HERE, '../fixtures/reader-states.json');
 const STATES = waters.length ? waters
   : fs.existsSync(statesFile) ? [...new Set(JSON.parse(fs.readFileSync(statesFile, 'utf8')).map((s) => s.water).filter(Boolean))] : ['Vedder River'];
 
@@ -138,7 +138,7 @@ try {
 } finally { await b.close(); }
 
 // the prototype's census for the same theme (light for cvd, which the prototype has no column for): the tokens its text wears
-const proto = JSON.parse(fs.readFileSync(path.join(HERE, '../design/regs-v11/port/golden/tokens.json'), 'utf8'));
+const proto = JSON.parse(fs.readFileSync(path.join(HERE, '../fixtures/golden/tokens.json'), 'utf8'));
 const pc = proto.census[theme === 'dark' ? 'dark' : 'light'] ?? [];
 const pt = [...new Set(pc.filter((r) => r.n > 0 && r.color).map((r) => { const n = r.color.split('|').map((c) => c.replace('--', '').replace('on-accent', 'onAccent')); return ['ink', 'sub', 'accent', 'open', 'closed', 'restricted', 'rule', 'onAccent', 'card'].find((p) => n.includes(p)) ?? n[0]; }))].sort();
 console.log(`\nprototype ${proto.meta.version} census (${theme === 'dark' ? 'dark' : 'light'}): text tokens ${pt.join(' ')} · bound per tab ${JSON.stringify(BOUND)}`);

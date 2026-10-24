@@ -74,7 +74,7 @@ PROTOTYPE / ORACLE CHAIN (nothing here ships)
  ui-rules-{export,guide,answers}.json → page_data.py → reference/page_v36.html 5.3 MB (tracked)
    → app/design/regs-v11/tools/snap.mjs → v36snap.js 15.4 MB → oracle.json, regs-diagram/data.js
  bundle + status_index + answers + export + tiles/layers → tools/water_map_export.py → regs-v11/watermap.js 288 KB
- regs.sqlite + the prototype (headless Chrome) → regs-v11/port/sync.mjs → port/golden/ ≈ 10.9 MB (golden 8.5 MB, hydrate 1.3,
+ regs.sqlite + the prototype (headless Chrome) → regs-v11/port/sync.mjs → app/fixtures/golden/ ≈ 10.9 MB (golden 8.5 MB, hydrate 1.3,
    taps 0.47, tokens 0.09, inventory 0.06)
 ```
 
@@ -244,7 +244,7 @@ app's queries exist but return empty, so the Layers sheet's "Stocked" mode has n
 | `app/design/regs-v11/v36snap.js` | `regs-v11/tools/snap.mjs` | 15.4 MB | regs-v11.html, check.mjs | unstamped |
 | `regs-v11/oracle.json`, `regs-diagram/data.js` | oracle.mjs / build.mjs | — | check.mjs / the diagram | unstamped; data.js lags |
 | `regs-v11/watermap.js` | `pipeline/tools/audit/water_map_export.py` | 288 KB, **3 waters** | regs-v11 map overlay | stamped. Projected SVG paths, Douglas–Peucker; a geometry copy outside the tiles. |
-| `regs-v11/port/golden/*` | `port/sync.mjs` (golden.mjs, tokens.mjs, inventory.mjs, taps.py, hydrate.mjs) | ≈ 10.9 MB | integration tests (planned) | the port's expected strings |
+| `app/fixtures/golden/*` | `port/sync.mjs` (golden.mjs, tokens.mjs, inventory.mjs, taps.py, hydrate.mjs) | ≈ 10.9 MB | integration tests (planned) | the port's expected strings |
 
 All five are **design/test artifacts**. They are legitimate as tests, but none may become an app input. The two that
 must die with the port are `v36snap.js` and `watermap.js`: the app reads the store and the tiles instead.

@@ -30,7 +30,7 @@ Every ticket names files and signatures from this page. Paths are relative to `a
 | 21 | `regulations.ts` header stale about verdicts | staler: lines 7–9 say `status.ts` and the date pill were "deleted outright" — both exist | rewrite (T00) |
 | 22 | conformance runs the node driver | only `conformance/src/fixture.test.ts` (fixture source); bundle source tested in `packages/data/src/bundle/source.test.ts` | regs conformance = a new runner (T09) |
 | 23 | page v36 reads `static display.strip` | page v36 computes strips client-side; the PROTOTYPE's runs are snap `runsOf` = per-day `display_frame.strip`, legend words = `SEC.display.strip` labels | the app follows the prototype (T13) |
-| 24 | prototype line refs (1081–1279, 1577–1603, 1446–1532) | at 04765ab5 (v33): `buildKeep` 1027–1326, `shortOf` 1628, `pinUpdate` 1637, `buildGear` 1476–1572, `licence` 1381 (v32 @ 18bc2a11: 1020, 1588, 1597, 1454, 1359) | read refs from `port/golden/inventory.json` |
+| 24 | prototype line refs (1081–1279, 1577–1603, 1446–1532) | at 04765ab5 (v33): `buildKeep` 1027–1326, `shortOf` 1628, `pinUpdate` 1637, `buildGear` 1476–1572, `licence` 1381 (v32 @ 18bc2a11: 1020, 1588, 1597, 1454, 1359) | read refs from `app/fixtures/golden/inventory.json` |
 | 25 | — | **prototype bug**: `pinUpdate` throws `Cannot read properties of null (reading 'headline')` on 25 of 134 states (a ledger article whose row has no `group`) | app `pinChain` must skip; excluded from pin parity |
 
 ## B. App seams (exact)

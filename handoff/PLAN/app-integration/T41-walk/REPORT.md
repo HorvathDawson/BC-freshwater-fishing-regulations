@@ -107,7 +107,7 @@ per section and are not taller than the prototype's: match.)
 ## The reader gate (tests.md §4) — produced, not run
 
 `node app/tools/compare-regs.mjs --reader OUT` shoots the reader set from the app with the prototype's PNG names, from
-`app/design/regs-v11/port/reader/states.json` (29 entries: 20 TALL, 2 TALL/NEW, the Vedder FRAMES series + 6 row frames).
+`app/fixtures/reader-states.json` (29 entries: 20 TALL, 2 TALL/NEW, the Vedder FRAMES series + 6 row frames).
 `prompt-gate39.md` now names `$OUT/TALL`, `$OUT/FRAMES` and `$OUT/TALL/NEW`; the questions are unedited. The reader is
 an agent run: **the human launches it** (pass = 39/39, no answer differing from the prototype reader's) and files the
 result in `handoff/PLAN/app-integration/reader/`. T39's `regs-census.mjs` now reads the same states.json (each water once).
