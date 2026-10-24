@@ -19,6 +19,11 @@ with the default Claude uses until you answer). Newest first inside each section
   notification was sent.)
 
 ## Reviews
+- **Curation pilot (Q114) — now an artifact, works on a phone:** https://claude.ai/artifact/DSnzYbemqcTLbUXJud3DLp
+  30 targets on release r-0ed3c2b2a0a7. Per target: the book crop (tap to zoom), the map, the rules, the angler's answer,
+  then T / R / P / A with y / n / ? and Record. Marks save per person with timing; share it from the Share menu to let
+  helpers mark too. About an hour. Claude imports the marks and runs the pilot report.
+
 - **Q114 / T136 — the 30-entry curation pilot** (about an hour): `handoff/PLAN/curation-review/PILOT.md`, then
   `python -m pipeline.regs.review.gate pilot-report --pilot handoff/PLAN/curation-review/pilot.json`.
 - **Q4 / T55 + T149 — slough and canal candidates (page v2).** https://claude.ai/artifact/Es3Mokt7Fs2yNvm7JgQua8 — your 98
