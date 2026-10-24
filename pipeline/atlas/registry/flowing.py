@@ -55,6 +55,7 @@ from collections import defaultdict, deque
 from dataclasses import replace
 
 from pipeline.common.models import RegistryItem
+from pipeline.common.names import key
 from pipeline.common.water_kind import flows, head_noun
 
 #: How many UNNAMED line pieces may lie between two members of one water. Measured on the
@@ -75,7 +76,8 @@ _WATER = ("stream", "lake", "wetland")
 
 
 def _norm(s: str) -> str:
-    return " ".join((s or "").split()).casefold()
+    """THE name key (`pipeline.common.names.key`, T61 2.8)."""
+    return key(s)
 
 
 def _kind(x) -> str:
