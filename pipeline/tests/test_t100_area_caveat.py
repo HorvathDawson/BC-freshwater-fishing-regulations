@@ -258,9 +258,9 @@ def doc(request) -> dict:
     from pipeline.deliver.export import (
         checks as export_checks, contract as export_contract, model as export_model
     )
-    bundle = Path(os.environ.get("UI_EXPORT_BUNDLE") or export_contractxport_contract.BUNDLE)
+    bundle = Path(os.environ.get("UI_EXPORT_BUNDLE") or export_contract.BUNDLE)
     need(request, "bundle", bundle, BUNDLE_HINT)
-    return export_modelxport_model.build(bundle)
+    return export_model.build(bundle)
 
 
 @pytest.mark.needs_bundle
@@ -285,6 +285,6 @@ def test_the_export_gate_refuses_an_unmapped_map_page(doc):
     keep = mp["page"]
     try:
         mp["page"] = 999
-        assert f"{k}: cites {mp['cite']}, which guide.pdf_pages does not map" in export_checksxport_checks.problems(doc)
+        assert f"{k}: cites {mp['cite']}, which guide.pdf_pages does not map" in export_checks.problems(doc)
     finally:
         mp["page"] = keep
