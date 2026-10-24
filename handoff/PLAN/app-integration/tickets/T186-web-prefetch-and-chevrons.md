@@ -1,6 +1,6 @@
 # T186 — Web prefetch after first paint (Q164) and the icon set's chevrons in place of typed glyphs (Q162)
 
-Status: DONE (7f4361c0, b5995311, bde99ac3) — owner decisions 2026-10-24 (decisions.md Q164, Q162).
+Status: DONE (d54842ec, b8b5b357, 0a129a14) — owner decisions 2026-10-24 (decisions.md Q164, Q162).
 
 Strict check (`REGS_STORE_REQUIRED=1 pnpm -C app check`, through heavy.sh, unfiltered): green against
 r-bb4331929428 (the release the walk was cut on: 373 files / 8,208 tests passed, 27 skipped). Against the main
