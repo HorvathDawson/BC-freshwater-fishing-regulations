@@ -56,6 +56,7 @@ describe("3. keys", () => {
       .toBe("r-ae1ec99ab43a#d768d6e135e62b99.c9f9604f12bf");
   });
   it("regsTargetKey", () => {
+    // any handle: the key only spells what it is given
     expect([regsTargetKey({ kind: "part", item: "gnis:3062", partIx: 0 }), regsTargetKey({ kind: "section", handle: 634 })])
       .toEqual(["part:gnis:3062:0", "section:634"]);
   });

@@ -37,16 +37,17 @@ describe.skipIf(!LIVE)(`T04 reads on the live release (${LIVE ?? "absent"})`, ()
     rix = (key) => { const i = by.get(key); if (i === undefined) throw new Error(`no rule ${key}`); return i; };
   });
 
-  it("1. itemOrd from core; item(7670) is the Vedder", async () => {
-    expect(await st.itemOrd("gnis:3062")).toBe(7670);
-    expect(await st.itemOrd("wbk:-22")).toBe(11620);
+  it("1. itemOrd from core; item(<the Vedder's ordinal>) is the Vedder", async () => {
+    expect(await st.itemOrd("gnis:3062")).toBe(V.item_ord);   // taps.json: an ordinal moves with every delivery
+    const klwa = (await st.itemOrd("wbk:-22"))!;
+    expect((await st.item(klwa)).id).toBe("wbk:-22");
     expect(await st.itemOrd("nope")).toBeNull();
-    const v = await st.item(7670);
+    const v = await st.item(V.item_ord);
     expect({ id: v.id, name: v.name, kind: v.kind }).toEqual({ id: "gnis:3062", name: "Vedder River", kind: "stream" });
   });
 
   it("2. the Vedder's one part", async () => {
-    expect(await st.parts(7670)).toEqual([{ itemOrd: 7670, partIx: 0, akey: VA, sections: 5, facts: {
+    expect(await st.parts(V.item_ord)).toEqual([{ itemOrd: V.item_ord, partIx: 0, akey: VA, sections: 5, facts: {
       order: 0, label: "From the mouth up to the Vedder Crossing Bridge", short: "Mouth → Vedder Crossing Bridge",
       runs: "From the mouth up to the Vedder Crossing Bridge", place: null, hint: "Whole water",
       km: 12.95, closed_all_year: false, paper_licence: [rix("zp:salmon_stamp::salmon_stamp.r1"), rix("zp:steelhead::steelhead.r4")] } }]);

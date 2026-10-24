@@ -92,6 +92,7 @@ describe("the Chilliwack: ▼ / ▲ through its four parts, the ends disabled, t
   it("a tap on a part's section selects it; a section of another water changes nothing", async () => {
     const g = await loadWaterGroup(st, "gnis:8634");
     const s = waterMapStart(0);
+    // the committed regs fixture's handle of the Chilliwack's part 4 (frozen until `pnpm regs-fixture` re-cuts it)
     expect(run(g, s, { type: "section", sid: 1235785 })).toEqual(waterMapStart(3));
     expect(run(g, s, { type: "section", sid: 62410 })).toBe(s);          // the Vedder River's
     expect(run(g, s, { type: "part", ix: 2 })).toEqual(waterMapStart(2));
@@ -310,7 +311,7 @@ describe("leaving the map, through the route (P13)", () => {
     // a tap kept: same water, the tap stays; a split lake's other area: that area becomes the water, the tap goes
     const tapped: Route = { ...onMap, stack: [{ item: CHW, part: 1, tapSid: 62453 as never, at: { lat: 49, lon: -121 }, view: "map" }] };
     expect([top(reduce(tapped, partAction(CHW, CHW, 2))), top(reduce(tapped, partAction(CHW, "wbk:-21" as ItemId, 0)))])
-      .toEqual([{ item: CHW, part: 2, tapSid: 62453, at: { lat: 49, lon: -121 }, view: "map" },
+      .toEqual([{ item: CHW, part: 2, tapSid: 62453, at: { lat: 49, lon: -121 }, view: "map" },   // the tap given above
                 { item: "wbk:-21", part: 0, tapSid: null, at: null, view: "map" }]);
   });
 

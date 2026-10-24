@@ -104,7 +104,7 @@ describe("useRegsTarget / useRegulations (through the T09 seam)", () => {
     };
     const { result } = renderHook(() => useRegsTarget(st, null, 634 as never, targetFor));
     await waitFor(() => expect(result.current.state).toBe("ready"));
-    expect([result.current.value, seen]).toEqual([{ kind: "section", handle: 634 }, []]);
+    expect([result.current.value, seen]).toEqual([{ kind: "section", handle: 634 }, []]);   // the handle given above
     const none = renderHook(() => useRegsTarget(st, null, null, targetFor));
     await act(async () => { await Promise.resolve(); });
     expect([none.result.current.state, seen]).toEqual(["loading", []]);
@@ -141,7 +141,7 @@ describe("useRegsTarget / useRegulations (through the T09 seam)", () => {
     await waitFor(() => expect(asks.length).toBe(1));
     const now = new Date();
     expect([asks[0]!.target, asks[0]!.day, asks[0]!.year])
-      .toEqual([{ kind: "section", handle: 634 }, { month: now.getMonth() + 1, day: now.getDate() }, now.getFullYear()]);
+      .toEqual([{ kind: "section", handle: 634 }, { month: now.getMonth() + 1, day: now.getDate() }, now.getFullYear()]);   // as given
   });
 
   it("no store or no target: nothing asked", async () => {

@@ -45,7 +45,7 @@ describe("the fixture release itself", () => {
       return;
     }
     const b = await openRegsStore(openReleaseDir(LIVE!));
-    expect([await b.itemOrd(DROPPED), await a.itemOrd(DROPPED)]).toEqual([1938, null]);
+    expect([(await b.itemOrd(DROPPED)) !== null, await a.itemOrd(DROPPED)]).toEqual([true, null]);
     const akeys = (await water.all("SELECT akey FROM akey ORDER BY akey")).map((r) => Number(r.akey));
     expect(akeys.length).toBeGreaterThan(100);
     let frames = 0;

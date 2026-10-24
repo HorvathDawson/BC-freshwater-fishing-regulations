@@ -30,6 +30,7 @@ describe("the water map's group from the fixture release", () => {
       "fishing boundary signs 100 m below the Slesse Creek confluence: 1 → 2"]);
     expect(steps(g)).toEqual(["-|1", "0|2", "1|3", "2|-"]);
     expect(g.exit).toEqual({ item: "gnis:3062", name: "Vedder River", part: 0 });
+    // the committed regs fixture's own handles (frozen until `pnpm regs-fixture` re-cuts it over a new atlas)
     expect(navSections(g, 0).selected).toEqual([60210, 60211, 60212, 62453, 62571, 62823, 1235779, 1235780, 1235825]);
     expect(g.parts[0]!.box).toEqual([-121.966394, 49.071523, -121.836034, 49.097385]);
   });

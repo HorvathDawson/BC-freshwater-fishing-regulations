@@ -45,7 +45,8 @@ describe.skipIf(pairing.skip)(`T09 loadRegsInputs on the live release (${at.path
   it("1. vedder_515: the item, key, segment, cell, the year and the rules through the part's via", async () => {
     const inp = await load(st, "gnis:3062", 0, 5, 15, "Friday");
     const it_ = inp.item!;
-    expect([it_.ord, it_.name, it_.kind, it_.sections, it_.id]).toEqual([7670, "Vedder River", "stream", 5, "gnis:3062"]);
+    expect([it_.ord, it_.name, it_.kind, it_.sections, it_.id])
+      .toEqual([tapOf("vedder_515").item_ord, "Vedder River", "stream", 5, "gnis:3062"]);
     expect([inp.key!.akey, inp.s, inp.cell]).toEqual([tapOf("vedder_515").akey, 1, cellOf("vedder_515")]);
     expect([inp.year!.cells.length, inp.year!.segStarts]).toEqual([4, [1, 122, 153, 183]]);
     expect(inp.frames!.display).toEqual({ status: "own", closing: [], strip: 20 });

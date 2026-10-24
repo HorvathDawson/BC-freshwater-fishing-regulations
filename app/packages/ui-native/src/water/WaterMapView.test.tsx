@@ -98,6 +98,7 @@ describe("<WaterMapView>", () => {
     for (let k = 0; k < 3; k += 1) fireEvent.click(screen.getByRole("button", { name: "▲ Upstream" }));
     expect(bar()).toBe("Part 4 of 4 · Chilliwack River | Chilliwack River Ecological Reserve boundary → Source"
       + " | ▼ Downstream | Highest part (off)");
+    // the committed regs fixture's handle of the Chilliwack's part 4 (frozen until `pnpm regs-fixture` re-cuts it)
     expect([lit().highlight, seen.props?.fit?.key]).toEqual([[1235785], "gnis:8634:3"]);
     // the disabled end does nothing
     fireEvent.click(screen.getByRole("button", { name: "Highest part" }));
@@ -258,7 +259,7 @@ describe("<WaterMapView>", () => {
     mount("gnis:12227", null, 59291);
     await ready();
     expect(bar()).toBe("Part 3 of 4 · Cowichan River | CNR Bridge (mile 70.2) → Greendale Trestle | ▼ Downstream | ▲ Upstream");
-    expect(lit().highlight).toEqual([59291]);
+    expect(lit().highlight).toEqual([59291]);   // the tapped handle given to mount()
   }, 30_000);
 
   it("KLWA from the Main Body: the three closure areas; Show regulations for another area names that water", async () => {
