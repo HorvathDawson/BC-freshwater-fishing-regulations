@@ -92,9 +92,10 @@ describe("the Chilliwack: ▼ / ▲ through its four parts, the ends disabled, t
   it("a tap on a part's section selects it; a section of another water changes nothing", async () => {
     const g = await loadWaterGroup(st, "gnis:8634");
     const s = waterMapStart(0);
-    // the committed regs fixture's handle of the Chilliwack's part 4 (frozen until `pnpm regs-fixture` re-cuts it)
-    expect(run(g, s, { type: "section", sid: 1235785 })).toEqual(waterMapStart(3));
-    expect(run(g, s, { type: "section", sid: 62410 })).toBe(s);          // the Vedder River's
+    // a section of the Chilliwack's top part, and one of the Vedder's, read from the fixture (handles move with each re-cut)
+    expect(run(g, s, { type: "section", sid: g.parts[3]!.sids[0]! })).toEqual(waterMapStart(3));
+    const vedder = await loadWaterGroup(st, "gnis:3062");
+    expect(run(g, s, { type: "section", sid: vedder.parts[0]!.sids[0]! })).toBe(s);
     expect(run(g, s, { type: "part", ix: 2 })).toEqual(waterMapStart(2));
     expect(run(g, s, { type: "part", ix: 4 })).toBe(s);
   });
@@ -159,23 +160,28 @@ describe("(T150) the parts of this water, listed under the map — the header's 
   });
 });
 
-describe("a side channel: the Zymoetz's canyon", () => {
-  it("▲ below the fork opens a chooser, the main stem first; a choice steps there", async () => {
-    const g = await loadWaterGroup(st, "gnis:3137");
-    const canyon = waterMapStart(1);
-    expect(view(g, canyon).up).toEqual({ label: "▲ Upstream", aria: "▲ Upstream", disabled: false, fork: true, cross: null });
-    const open = run(g, canyon, { type: "up" });
-    expect(open).toEqual({ ...canyon, choosing: "up" });
+// (T67, r-0ed3c2b2a0a7) the Zymoetz's canyon side channel is no part of its own any more: E15's spurious mark is gone
+// and the channel joins the part above the canyon. The Skeena's Exchamsiks confluence cut made a side channel a part of
+// its own, and its Ecological Reserve part is a fork upstream.
+describe("a fork upstream: the Skeena's Ecological Reserve", () => {
+  it("▲ at the fork opens a chooser, the main stem first; a choice steps there", async () => {
+    const g = await loadWaterGroup(st, "gnis:2936");
+    const reserve = waterMapStart(1);
+    expect(view(g, reserve).up).toEqual({ label: "▲ Upstream", aria: "▲ Upstream", disabled: false, fork: true, cross: null });
+    const open = run(g, reserve, { type: "up" });
+    expect(open).toEqual({ ...reserve, choosing: "up" });
     expect(view(g, open).chooser).toEqual({ title: "Which way upstream?", close: "Close", options: [
-      { ix: 3, item: "gnis:3137", partIx: 0, name: "Zymoetz Canyon upper entrance → Limonite Creek confluence", note: "Zymoetz River" },
-      { ix: 2, item: "gnis:3137", partIx: 5, name: "Side channel", note: "Zymoetz River" }] });
+      { ix: 3, item: "gnis:2936", partIx: 0, name: "2 stretches (1)", note: "Skeena River" },
+      { ix: 2, item: "gnis:2936", partIx: 1,
+        name: "Skeena River Ecological Reserve boundary → 1.5 km upstream of the Kitsumkalum River confluence", note: "Skeena River" }] });
     expect(run(g, open, { type: "choose", to: 2 })).toEqual(waterMapStart(2));
     expect(run(g, open, { type: "choose", to: 3 })).toEqual(waterMapStart(3));
     // not one of the ways up: nothing
     expect(run(g, open, { type: "choose", to: 0 })).toBe(open);
-    expect(run(g, open, { type: "closeChooser" })).toEqual(canyon);
+    expect(run(g, open, { type: "closeChooser" })).toEqual(reserve);
     // the side channel's own ▲ is the main stem, no chooser
-    expect(run(g, waterMapStart(2), { type: "up" })).toEqual(waterMapStart(3));
+    expect([view(g, waterMapStart(0)).current.name, view(g, waterMapStart(0)).up.fork]).toEqual(["Side channel", false]);
+    expect(run(g, waterMapStart(0), { type: "up" })).toEqual(waterMapStart(3));
   });
 });
 
@@ -205,17 +211,17 @@ describe("every part is reached by ▼ / ▲ (P15 review: the Zymoetz's lake par
 
   it("the Zymoetz's source part: ▼ is a fork, the main stem first, then the lake part (its only way in)", async () => {
     const g = await loadWaterGroup(st, "gnis:3137");
-    const source = waterMapStart(5);
+    const source = waterMapStart(4);
     expect(view(g, source).down).toEqual({ label: "▼ Downstream", aria: "▼ Downstream", disabled: false, fork: true,
                                            cross: null });
     const open = run(g, source, { type: "down" });
     expect([open.choosing, view(g, open).chooser]).toEqual(["down", { title: "Which way downstream?", close: "Close",
       options: [
-        { ix: 3, item: "gnis:3137", partIx: 0, name: "Zymoetz Canyon upper entrance → Limonite Creek confluence", note: "Zymoetz River" },
-        { ix: 4, item: "gnis:3137", partIx: 2, name: "A lake → McDonell Lake outlet", note: "Zymoetz River" }] }]);
-    expect(run(g, open, { type: "choose", to: 4 })).toEqual(waterMapStart(4));
-    // a way UP is not a choice going down
-    expect(run(g, open, { type: "choose", to: 5 })).toBe(open);
+        { ix: 2, item: "gnis:3137", partIx: 0, name: "Zymoetz Canyon upper entrance → Limonite Creek confluence", note: "Zymoetz River" },
+        { ix: 3, item: "gnis:3137", partIx: 2, name: "A lake → McDonell Lake outlet", note: "Zymoetz River" }] }]);
+    expect(run(g, open, { type: "choose", to: 3 })).toEqual(waterMapStart(3));
+    // not a way down: nothing
+    expect(run(g, open, { type: "choose", to: 4 })).toBe(open);
   });
 });
 

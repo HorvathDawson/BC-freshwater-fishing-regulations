@@ -3,7 +3,7 @@
  * per loader and expectation, a refusal cached, a failed fetch retried — over THE COMMITTED REGS FIXTURE RELEASE (T10).
  */
 import { describe, expect, it, vi } from "vitest";
-import { loadRegsInputs, RegsStoreError, targetFor, type RegsLoader } from "@app/data/regs";
+import { loadRegsInputs, openRegsStore, RegsStoreError, targetFor, type RegsLoader } from "@app/data/regs";
 import { openRegsFixture } from "@app/data/release/node";
 import { accessOf, type Paint } from "@app/core";
 import type { SectionId } from "@app/data";
@@ -84,10 +84,12 @@ describe("4–5. loadRegsStore", () => {
   it("5. a refusal is cached: the second ask rejects the same way without opening again", async () => {
     const { loader, water } = counted();
     const tiles = "0000000000000000.000000000000";
+    // the atlas the fixture was cut for, read from the fixture itself (it moves with every `pnpm regs-fixture`)
+    const atlas = (await openRegsStore(openRegsFixture())).meta.sectionHandles;
     const e1 = await loadRegsStore(loader, { tiles }).catch((e: unknown) => e);
     expect(e1).toBeInstanceOf(RegsStoreError);
     expect([(e1 as RegsStoreError).why, (e1 as RegsStoreError).message])
-      .toEqual(["digest", `regs store: built for atlas d768d6e135e62b99, the map is ${tiles} — refused`]);
+      .toEqual(["digest", `regs store: built for atlas ${atlas}, the map is ${tiles} — refused`]);
     const e2 = await loadRegsStore(loader, { tiles }).catch((e: unknown) => e);
     expect(e2).toBe(e1);
     expect(water()).toBe(1);

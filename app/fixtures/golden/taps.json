@@ -3,11 +3,11 @@
   "generator": "app/design/regs-v11/port/taps.py",
   "store": {
    "format": "regs-store/4",
-   "section_handles": "d768d6e135e62b99",
-   "reach_digest": "ca80e9c7bb2f4006",
+   "section_handles": "a1944923732ccbfc",
+   "reach_digest": "faba79c782e33afe",
    "rule_ids_sha256": "7fd80bc0f32d2ed4",
-   "answers_sha256": "a5d3c00ae099d249656c15907e63dd869ad114ac0da013fbcb69371fe9edc9c6",
-   "store_digest": "c730108dd3450c01",
+   "answers_sha256": "f66888bef6a206a6488a870cd4bfc1c75f2f5d14d17a08148aefa4f548a95cc6",
+   "store_digest": "2a47b20a24c546f5",
    "layout": "{\"top\":[\"about\",\"spec\",\"schemas\",\"fish\",\"keys\",\"segments\",\"moments\",\"segment_moments\",\"parts\",\"places\",\"unnamed\",\"glossary\",\"sections\"],\"sections\":{\"ladder\":[\"version\",\"at\",\"reasons\",\"reason_state\",\"verdicts\",\"frames\"],\"rows\":[\"version\",\"at\",\"decided\",\"rows\",\"strips\",\"frames\"],\"gear\":[\"version\",\"at\",\"frames\",\"province_methods\",\"parent\",\"methods\",\"count_nouns\",\"moments\",\"conduct_means\"],\"licence\":[\"version\",\"at\",\"holds\",\"answers\",\"documents\",\"under_16\",\"frames\",\"profiles\",\"profile_dims\",\"residency_labels\",\"profile_labels\"],\"display\":[\"version\",\"at\",\"frames\",\"rules\",\"waters\",\"strip\",\"reasons\",\"licensing\"]},\"versions\":{\"ladder\":1,\"rows\":33,\"gear\":12,\"licence\":7,\"display\":18}}"
   },
   "golden": "bdda3586",
@@ -22,7 +22,7 @@
    "date": "2026-05-15",
    "weekday": "Friday",
    "item_ord": 7670,
-   "akey": 888,
+   "akey": 889,
    "seg": 73,
    "mom": null,
    "nseg": 4,
@@ -417,7 +417,7 @@
    "date": "2026-06-15",
    "weekday": "Monday",
    "item_ord": 7670,
-   "akey": 888,
+   "akey": 889,
    "seg": 73,
    "mom": null,
    "nseg": 4,
@@ -812,7 +812,7 @@
    "date": "2026-10-10",
    "weekday": "Saturday",
    "item_ord": 7670,
-   "akey": 888,
+   "akey": 889,
    "seg": 73,
    "mom": null,
    "nseg": 4,
@@ -1236,8 +1236,8 @@
    ],
    "s": 1,
    "cell": {
-    "ladder": 3440,
-    "rows": 2803,
+    "ladder": 3428,
+    "rows": 2801,
     "gear": 431,
     "licence": 2,
     "display": 111
@@ -1647,8 +1647,8 @@
    ],
    "s": 0,
    "cell": {
-    "ladder": 3439,
-    "rows": 2802,
+    "ladder": 3427,
+    "rows": 2800,
     "gear": 431,
     "licence": 2,
     "display": 111
@@ -4413,7 +4413,7 @@
    "moments": null,
    "s": 0,
    "cell": {
-    "ladder": 3345,
+    "ladder": 3333,
     "rows": 486,
     "gear": 0,
     "licence": 1,
@@ -4805,8 +4805,8 @@
    "moments": null,
    "s": 0,
    "cell": {
-    "ladder": 3434,
-    "rows": 2797,
+    "ladder": 3422,
+    "rows": 2795,
     "gear": 432,
     "licence": 160,
     "display": 111
@@ -5202,8 +5202,8 @@
    "moments": null,
    "s": 5,
    "cell": {
-    "ladder": 3437,
-    "rows": 2800,
+    "ladder": 3425,
+    "rows": 2798,
     "gear": 431,
     "licence": 2,
     "display": 111
@@ -11548,8 +11548,8 @@
    "moments": null,
    "s": 0,
    "cell": {
-    "ladder": 4471,
-    "rows": 3513,
+    "ladder": 4459,
+    "rows": 3511,
     "gear": 823,
     "licence": 2,
     "display": 34
@@ -11940,8 +11940,8 @@
    "moments": null,
    "s": 0,
    "cell": {
-    "ladder": 3477,
-    "rows": 2837,
+    "ladder": 3465,
+    "rows": 2835,
     "gear": 426,
     "licence": 2,
     "display": 36
@@ -12337,8 +12337,8 @@
    "moments": null,
    "s": 4,
    "cell": {
-    "ladder": 4691,
-    "rows": 3657,
+    "ladder": 4679,
+    "rows": 3655,
     "gear": 913,
     "licence": 169,
     "display": 93
@@ -15879,6 +15879,10 @@
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
+   "recounted": {
+    "reason": "T67 (owner 2026-10-24, decisions.md \"braids accepted\"; RULINGS E17, AGENTS 12): the Kootenay's ditch-only line 356365735:0 (1,982.6 m) left the river item (owner Q1, DITCHES_LEAVE_RIVER_ITEMS); 3 length cuts on 356570348 moved: 52 -> 51 sections",
+    "sections": 51
+   },
    "item_ord": 1496,
    "akey": 285,
    "seg": 4,
@@ -16684,8 +16688,8 @@
    "moments": null,
    "s": 3,
    "cell": {
-    "ladder": 2567,
-    "rows": 2042,
+    "ladder": 2555,
+    "rows": 2040,
     "gear": 330,
     "licence": 2,
     "display": 644
@@ -17080,8 +17084,8 @@
    "moments": null,
    "s": 3,
    "cell": {
-    "ladder": 2567,
-    "rows": 2045,
+    "ladder": 2555,
+    "rows": 2043,
     "gear": 330,
     "licence": 2,
     "display": 644
@@ -18263,8 +18267,8 @@
    "moments": null,
    "s": 0,
    "cell": {
-    "ladder": 3481,
-    "rows": 2841,
+    "ladder": 3469,
+    "rows": 2839,
     "gear": 426,
     "licence": 164,
     "display": 36
@@ -19041,6 +19045,10 @@
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
+   "recounted": {
+    "reason": "T67 (owner 2026-10-24, decisions.md \"braids accepted\"; RULINGS E17, AGENTS 12): the Dean's side channel 360227736 is cut at the 0.5 km sign (421 m): 2 -> 3 sections",
+    "sections": 3
+   },
    "item_ord": 2206,
    "akey": 374,
    "seg": 75,
@@ -21046,8 +21054,8 @@
    "moments": null,
    "s": 3,
    "cell": {
-    "ladder": 2580,
-    "rows": 2061,
+    "ladder": 2568,
+    "rows": 2059,
     "gear": 332,
     "licence": 0,
     "display": 22
@@ -21443,7 +21451,7 @@
    "s": 3,
    "cell": {
     "ladder": 1605,
-    "rows": 2061,
+    "rows": 2059,
     "gear": 332,
     "licence": 0,
     "display": 22
@@ -21841,7 +21849,7 @@
    "s": 5,
    "cell": {
     "ladder": 1605,
-    "rows": 2058,
+    "rows": 2056,
     "gear": 332,
     "licence": 0,
     "display": 22
@@ -22221,6 +22229,10 @@
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
+   "recounted": {
+    "reason": "T67 (owner 2026-10-24, decisions.md \"braids accepted\"; RULINGS E17, AGENTS 12): the old perpendicular sweep's gauge cuts are gone on the Fraser's side channels 355992485 and 355994872, and 08MH028's cut moved 578 -> 545 m: 30 -> 29 sections",
+    "sections": 29
+   },
    "item_ord": 9697,
    "akey": 1036,
    "seg": 0,
@@ -22232,7 +22244,7 @@
    "moments": null,
    "s": 0,
    "cell": {
-    "ladder": 2882,
+    "ladder": 2870,
     "rows": 219,
     "gear": 370,
     "licence": 0,
@@ -22632,8 +22644,8 @@
    "moments": null,
    "s": 5,
    "cell": {
-    "ladder": 2915,
-    "rows": 2363,
+    "ladder": 2903,
+    "rows": 2361,
     "gear": 8,
     "licence": 1,
     "display": 710
@@ -23208,8 +23220,8 @@
    ],
    "s": 4,
    "cell": {
-    "ladder": 2903,
-    "rows": 2345,
+    "ladder": 2891,
+    "rows": 2343,
     "gear": 369,
     "licence": 1,
     "display": 703
@@ -23589,6 +23601,10 @@
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
+   "recounted": {
+    "reason": "T67 (owner 2026-10-24, decisions.md \"braids accepted\"; RULINGS E17, AGENTS 12): on the Fraser mainstem the old perpendicular sweep's gauge cuts are gone (94,834 / 108,135 / 111,137 / 122,096 / 132,550 / 148,097 m) and the automatic length cuts moved off braid-spanned junctions (owner Q2) (93,822 / 116,370 / 135,999 m): 40 -> 36 sections",
+    "sections": 36
+   },
    "item_ord": 9697,
    "akey": 1035,
    "seg": 141,
@@ -23692,8 +23708,8 @@
    ],
    "s": 2,
    "cell": {
-    "ladder": 2880,
-    "rows": 2318,
+    "ladder": 2868,
+    "rows": 2316,
     "gear": 369,
     "licence": 150,
     "display": 692
@@ -24092,8 +24108,8 @@
    "moments": null,
    "s": 5,
    "cell": {
-    "ladder": 2906,
-    "rows": 2354,
+    "ladder": 2894,
+    "rows": 2352,
     "gear": 8,
     "licence": 1,
     "display": 706
@@ -24491,8 +24507,8 @@
    "moments": null,
    "s": 4,
    "cell": {
-    "ladder": 2892,
-    "rows": 2331,
+    "ladder": 2880,
+    "rows": 2329,
     "gear": 8,
     "licence": 1,
     "display": 697
@@ -24891,8 +24907,8 @@
    "moments": null,
    "s": 5,
    "cell": {
-    "ladder": 2929,
-    "rows": 2380,
+    "ladder": 2917,
+    "rows": 2378,
     "gear": 371,
     "licence": 1,
     "display": 715
@@ -25290,8 +25306,8 @@
    "moments": null,
    "s": 5,
    "cell": {
-    "ladder": 2935,
-    "rows": 2389,
+    "ladder": 2923,
+    "rows": 2387,
     "gear": 8,
     "licence": 1,
     "display": 718
@@ -25690,8 +25706,8 @@
    "moments": null,
    "s": 6,
    "cell": {
-    "ladder": 2887,
-    "rows": 2397,
+    "ladder": 2875,
+    "rows": 2395,
     "gear": 8,
     "licence": 1,
     "display": 695
@@ -26089,8 +26105,8 @@
    "moments": null,
    "s": 4,
    "cell": {
-    "ladder": 2887,
-    "rows": 2324,
+    "ladder": 2875,
+    "rows": 2322,
     "gear": 8,
     "licence": 1,
     "display": 695
@@ -26488,8 +26504,8 @@
    "moments": null,
    "s": 4,
    "cell": {
-    "ladder": 2899,
-    "rows": 2339,
+    "ladder": 2887,
+    "rows": 2337,
     "gear": 368,
     "licence": 1,
     "display": 700
@@ -26887,8 +26903,8 @@
    "moments": null,
    "s": 4,
    "cell": {
-    "ladder": 2943,
-    "rows": 2404,
+    "ladder": 2931,
+    "rows": 2402,
     "gear": 368,
     "licence": 1,
     "display": 720
@@ -27286,8 +27302,8 @@
    "moments": null,
    "s": 4,
    "cell": {
-    "ladder": 2876,
-    "rows": 2314,
+    "ladder": 2864,
+    "rows": 2312,
     "gear": 368,
     "licence": 0,
     "display": 690
@@ -27683,8 +27699,8 @@
    "moments": null,
    "s": 3,
    "cell": {
-    "ladder": 2871,
-    "rows": 2309,
+    "ladder": 2859,
+    "rows": 2307,
     "gear": 367,
     "licence": 2,
     "display": 342
@@ -28081,8 +28097,8 @@
    "moments": null,
    "s": 4,
    "cell": {
-    "ladder": 3024,
-    "rows": 2463,
+    "ladder": 3012,
+    "rows": 2461,
     "gear": 381,
     "licence": 0,
     "display": 732
@@ -28871,7 +28887,7 @@
    "moments": null,
    "s": 2,
    "cell": {
-    "ladder": 3031,
+    "ladder": 3019,
     "rows": 161,
     "gear": 383,
     "licence": 0,
@@ -29266,7 +29282,7 @@
    "s": 2,
    "cell": {
     "ladder": 166,
-    "rows": 2454,
+    "rows": 2452,
     "gear": 7,
     "licence": 0,
     "display": 7
@@ -29662,7 +29678,7 @@
    "s": 4,
    "cell": {
     "ladder": 166,
-    "rows": 2456,
+    "rows": 2454,
     "gear": 7,
     "licence": 0,
     "display": 7
@@ -30058,7 +30074,7 @@
    "s": 4,
    "cell": {
     "ladder": 166,
-    "rows": 2464,
+    "rows": 2462,
     "gear": 7,
     "licence": 0,
     "display": 7
@@ -31239,8 +31255,8 @@
    "moments": null,
    "s": 4,
    "cell": {
-    "ladder": 3027,
-    "rows": 2468,
+    "ladder": 3015,
+    "rows": 2466,
     "gear": 7,
     "licence": 0,
     "display": 735
@@ -34880,8 +34896,8 @@
    "moments": null,
    "s": 2,
    "cell": {
-    "ladder": 2779,
-    "rows": 2195,
+    "ladder": 2767,
+    "rows": 2193,
     "gear": 360,
     "licence": 2,
     "display": 253
@@ -35277,8 +35293,8 @@
    "moments": null,
    "s": 4,
    "cell": {
-    "ladder": 2779,
-    "rows": 2200,
+    "ladder": 2767,
+    "rows": 2198,
     "gear": 360,
     "licence": 2,
     "display": 253
@@ -35672,8 +35688,8 @@
    "moments": null,
    "s": 2,
    "cell": {
-    "ladder": 2788,
-    "rows": 2203,
+    "ladder": 2776,
+    "rows": 2201,
     "gear": 360,
     "licence": 2,
     "display": 253
@@ -36053,6 +36069,10 @@
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
+   "recounted": {
+    "reason": "T67 (owner 2026-10-24, decisions.md \"braids accepted\"; RULINGS E17, AGENTS 12): on the Columbia (356570372) the automatic length cuts moved off braid-spanned junctions (owner Q2): 4 cuts -> 5, 132 -> 133 sections",
+    "sections": 133
+   },
    "item_ord": 9108,
    "akey": 463,
    "seg": 4,
@@ -36462,7 +36482,7 @@
    "moments": null,
    "s": 2,
    "cell": {
-    "ladder": 2782,
+    "ladder": 2770,
     "rows": 1141,
     "gear": 360,
     "licence": 2,
@@ -36857,8 +36877,8 @@
    "moments": null,
    "s": 2,
    "cell": {
-    "ladder": 2791,
-    "rows": 2206,
+    "ladder": 2779,
+    "rows": 2204,
     "gear": 360,
     "licence": 2,
     "display": 673
@@ -37252,8 +37272,8 @@
    "moments": null,
    "s": 2,
    "cell": {
-    "ladder": 2776,
-    "rows": 2192,
+    "ladder": 2764,
+    "rows": 2190,
     "gear": 359,
     "licence": 2,
     "display": 372
@@ -38032,6 +38052,10 @@
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
+   "recounted": {
+    "reason": "T67 (owner 2026-10-24, decisions.md \"braids accepted\"; RULINGS E17, AGENTS 12): the Exchamsiks confluence cut runs straight across (Skeena 67,917 m and side channel 360224434) and the automatic length cuts moved off braid-spanned junctions (owner Q2): 44 -> 46 sections",
+    "sections": 46
+   },
    "item_ord": 7279,
    "akey": 849,
    "seg": 8,
@@ -38828,6 +38852,10 @@
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
+   "recounted": {
+    "reason": "T67 (owner 2026-10-24, decisions.md \"braids accepted\"; RULINGS E17, AGENTS 12): the Cedarvale cut takes the braid 360243437 (1,069 m): 51 -> 52 sections",
+    "sections": 52
+   },
    "item_ord": 7279,
    "akey": 852,
    "seg": 114,
@@ -39223,12 +39251,17 @@
   },
   "x19p5_1010": {
    "item": "gnis:2936",
-   "partIx": 5,
+   "partIx": 6,
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
+   "goldenPartIx": 5,
+   "recounted": {
+    "reason": "T67 (owner 2026-10-24, decisions.md \"braids accepted\"; RULINGS E17, AGENTS 12): the Exchamsiks cut on side channel 360224434 made its upper piece a part of its own (store part 5, 'Side channel, joining 63.2 km from the mouth'): 7 -> 6 sections, part 5 -> 6",
+    "sections": 6
+   },
    "item_ord": 7279,
-   "akey": 854,
+   "akey": 855,
    "seg": 113,
    "mom": null,
    "nseg": 8,
@@ -39622,12 +39655,13 @@
   },
   "x19p6_1010": {
    "item": "gnis:2936",
-   "partIx": 6,
+   "partIx": 7,
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
+   "goldenPartIx": 6,
    "item_ord": 7279,
-   "akey": 855,
+   "akey": 856,
    "seg": 116,
    "mom": 14,
    "nseg": 11,
@@ -40129,12 +40163,13 @@
   },
   "x19p7_1010": {
    "item": "gnis:2936",
-   "partIx": 7,
+   "partIx": 8,
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
+   "goldenPartIx": 7,
    "item_ord": 7279,
-   "akey": 856,
+   "akey": 857,
    "seg": 115,
    "mom": 13,
    "nseg": 12,
@@ -41173,6 +41208,10 @@
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
+   "recounted": {
+    "reason": "T67 (owner 2026-10-24, decisions.md \"braids accepted\"; RULINGS E17, AGENTS 12): the Thompson's side channel 355995300 is cut at the boundary signs (187 m): 7 -> 8 sections",
+    "sections": 8
+   },
    "item_ord": 9745,
    "akey": 1060,
    "seg": 146,
@@ -41191,8 +41230,8 @@
    "moments": null,
    "s": 5,
    "cell": {
-    "ladder": 3014,
-    "rows": 2434,
+    "ladder": 3002,
+    "rows": 2432,
     "gear": 377,
     "licence": 152,
     "display": 727
@@ -41591,8 +41630,8 @@
    "moments": null,
    "s": 6,
    "cell": {
-    "ladder": 3000,
-    "rows": 2449,
+    "ladder": 2988,
+    "rows": 2447,
     "gear": 378,
     "licence": 152,
     "display": 727
@@ -41990,8 +42029,8 @@
    "moments": null,
    "s": 5,
    "cell": {
-    "ladder": 3000,
-    "rows": 2434,
+    "ladder": 2988,
+    "rows": 2432,
     "gear": 376,
     "licence": 152,
     "display": 727
@@ -42387,8 +42426,8 @@
    "moments": null,
    "s": 3,
    "cell": {
-    "ladder": 3006,
-    "rows": 2440,
+    "ladder": 2994,
+    "rows": 2438,
     "gear": 8,
     "licence": 1,
     "display": 6
@@ -43953,6 +43992,10 @@
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
+   "recounted": {
+    "reason": "T67 (owner 2026-10-24, decisions.md \"braids accepted\"; RULINGS E17, AGENTS 12): the Peace's braids are cut at Site C, the 1,200 m signs and the Halfway (+5 km), 07FD002's cut moved 959 -> 836 m, and the automatic length cuts moved off braid-spanned junctions (owner Q2) on 359572348: 54 -> 56 sections",
+    "sections": 56
+   },
    "item_ord": 1691,
    "akey": 317,
    "seg": 15,
@@ -44347,12 +44390,17 @@
   },
   "x22p3_1010": {
    "item": "gnis:14619",
-   "partIx": 3,
+   "partIx": 4,
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
+   "goldenPartIx": 3,
+   "recounted": {
+    "reason": "T67 (owner 2026-10-24, decisions.md \"braids accepted\"; RULINGS E17, AGENTS 12): the Halfway braid 359012853 is cut at 3,358 m: 6 -> 7 sections; renumbered 3 -> 4 (part order follows rule-set ids)",
+    "sections": 7
+   },
    "item_ord": 1691,
-   "akey": 320,
+   "akey": 321,
    "seg": 70,
    "mom": null,
    "nseg": 9,
@@ -44751,6 +44799,10 @@
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
+   "recounted": {
+    "reason": "T67 (owner 2026-10-24, decisions.md \"braids accepted\"; RULINGS E17, AGENTS 12): the Peace braids 359005110 / 359013560 cut at Site C dam, and the automatic length cuts moved off braid-spanned junctions (owner Q2): 29 -> 30 sections",
+    "sections": 30
+   },
    "item_ord": 1691,
    "akey": 318,
    "seg": 15,
@@ -45145,12 +45197,17 @@
   },
   "x22p6_1010": {
    "item": "gnis:14619",
-   "partIx": 6,
+   "partIx": 2,
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
+   "goldenPartIx": 6,
+   "recounted": {
+    "reason": "T67 (owner 2026-10-24, decisions.md \"braids accepted\"; RULINGS E17, AGENTS 12) DEFECT (reach `_bracket`): the Site C braid piece 359005110:3454 binds no Peace row and joined this part: 1 -> 2 sections; renumbered 6 -> 2",
+    "sections": 2
+   },
    "item_ord": 1691,
-   "akey": 323,
+   "akey": 319,
    "seg": 15,
    "mom": null,
    "nseg": 7,
@@ -45166,7 +45223,7 @@
    "moments": null,
    "s": 5,
    "cell": {
-    "ladder": 944,
+    "ladder": 925,
     "rows": 74,
     "gear": 15,
     "licence": 2,
@@ -45543,12 +45600,13 @@
   },
   "x22p2_1010": {
    "item": "gnis:14619",
-   "partIx": 2,
+   "partIx": 3,
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
+   "goldenPartIx": 2,
    "item_ord": 1691,
-   "akey": 319,
+   "akey": 320,
    "seg": 15,
    "mom": null,
    "nseg": 7,
@@ -45564,7 +45622,7 @@
    "moments": null,
    "s": 5,
    "cell": {
-    "ladder": 925,
+    "ladder": 930,
     "rows": 810,
     "gear": 15,
     "licence": 2,
@@ -46740,8 +46798,8 @@
    "moments": null,
    "s": 0,
    "cell": {
-    "ladder": 4006,
-    "rows": 3197,
+    "ladder": 3994,
+    "rows": 3195,
     "gear": 666,
     "licence": 166,
     "display": 34
@@ -47136,8 +47194,8 @@
    "moments": null,
    "s": 3,
    "cell": {
-    "ladder": 3498,
-    "rows": 2964,
+    "ladder": 3486,
+    "rows": 2962,
     "gear": 442,
     "licence": 2,
     "display": 155
@@ -48314,6 +48372,10 @@
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
+   "recounted": {
+    "reason": "T67 (owner 2026-10-24, decisions.md \"braids accepted\"; RULINGS E17, AGENTS 12): the old perpendicular sweep's gauge cuts are gone on the West Road's side channel 355997348 (124 m): 83 -> 82 sections",
+    "sections": 82
+   },
    "item_ord": 6045,
    "akey": 734,
    "seg": 104,
@@ -48724,8 +48786,8 @@
    "moments": null,
    "s": 0,
    "cell": {
-    "ladder": 3467,
-    "rows": 2827,
+    "ladder": 3455,
+    "rows": 2825,
     "gear": 426,
     "licence": 161,
     "display": 36
@@ -49116,8 +49178,8 @@
    "moments": null,
    "s": 0,
    "cell": {
-    "ladder": 4668,
-    "rows": 3644,
+    "ladder": 4656,
+    "rows": 3642,
     "gear": 901,
     "licence": 168,
     "display": 922
@@ -50406,8 +50468,8 @@
    "moments": null,
    "s": 0,
    "cell": {
-    "ladder": 3975,
-    "rows": 3174,
+    "ladder": 3963,
+    "rows": 3172,
     "gear": 431,
     "licence": 5,
     "display": 1
@@ -50798,8 +50860,8 @@
    "moments": null,
    "s": 0,
    "cell": {
-    "ladder": 3482,
-    "rows": 2842,
+    "ladder": 3470,
+    "rows": 2840,
     "gear": 426,
     "licence": 165,
     "display": 36
@@ -52761,115 +52823,115 @@
    "name": "Unnamed stream \u00b7 Region 1"
   },
   {
-   "handle": 819273,
+   "handle": 819317,
    "akey": 2187,
    "place": 16,
    "name": "Unnamed stream \u00b7 Region 6"
   },
   {
-   "handle": 1178314,
+   "handle": 1178362,
    "akey": 2094,
    "place": 0,
    "name": "Unnamed stream \u00b7 Region 1"
   },
   {
-   "handle": 1251290,
+   "handle": 1251341,
    "akey": 2217,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1277243,
+   "handle": 1277294,
    "akey": 2217,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1304167,
+   "handle": 1304218,
    "akey": 2217,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1310394,
+   "handle": 1310445,
    "akey": 2217,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1344581,
+   "handle": 1344632,
    "akey": 2293,
    "place": 16,
    "name": "Unnamed lake \u00b7 Region 6"
   },
   {
-   "handle": 1425154,
+   "handle": 1425205,
    "akey": 2217,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1469151,
+   "handle": 1469202,
    "akey": 2217,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1510399,
+   "handle": 1510450,
    "akey": 2217,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1580141,
+   "handle": 1580192,
    "akey": 2217,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1638454,
+   "handle": 1638505,
    "akey": 2217,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1667790,
+   "handle": 1667841,
    "akey": 2217,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1684327,
+   "handle": 1684378,
    "akey": 2217,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1802789,
+   "handle": 1802840,
    "akey": 2217,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1834184,
+   "handle": 1834235,
    "akey": 2217,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1887689,
+   "handle": 1887740,
    "akey": 2217,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1908659,
+   "handle": 1908710,
    "akey": 2217,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1920859,
+   "handle": 1920910,
    "akey": 2217,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
@@ -52883,7 +52945,7 @@
    "date": "2036-02-29",
    "weekday": "Friday",
    "readingDay": 59,
-   "akey": 906,
+   "akey": 907,
    "starts": [
     1,
     1,
@@ -53057,7 +53119,7 @@
    "date": "2036-02-28",
    "weekday": "Thursday",
    "readingDay": 59,
-   "akey": 906,
+   "akey": 907,
    "starts": [
     1,
     1,
@@ -53231,7 +53293,7 @@
    "date": "2028-02-29",
    "weekday": "Tuesday",
    "readingDay": 59,
-   "akey": 906,
+   "akey": 907,
    "starts": [
     1,
     1,
@@ -53405,7 +53467,7 @@
    "date": "2028-02-28",
    "weekday": "Monday",
    "readingDay": 59,
-   "akey": 906,
+   "akey": 907,
    "starts": [
     1,
     1,
@@ -53612,6 +53674,7 @@
   }
  },
  "recut": {
-  "gnis:39325": "T115 (owner decision AGENTS 54, tickets/T115-one-region-membership.md): a straddling stream piece is its home region's only"
+  "gnis:39325": "T115 (owner decision AGENTS 54, tickets/T115-one-region-membership.md): a straddling stream piece is its home region's only",
+  "gnis:2936": "T67 (owner 2026-10-24): the Exchamsiks confluence cut runs straight across the Skeena; the side channel 360224434 above it is a part of its own (8 -> 9 parts)"
  }
 }

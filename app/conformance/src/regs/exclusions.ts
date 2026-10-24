@@ -195,6 +195,17 @@ export const PART_GONE_EXCLUDE: readonly Exclusion[] = PART_GONE_IDS.flatMap((id
 
 /** (T115) The tapped states at a part that took in a merged piece (taps.py PART_GROWN): same rows, a longer extent. */
 export const PART_GROWN_IDS: readonly string[] = Object.entries(tapsOnce().states).filter(([, t]) => t.grown).map(([id]) => id);
+/** (T67) The tapped states whose part kept its label and rows while the atlas re-cut the sections under it (taps.py
+ *  PART_RECOUNTED: braid cuts, a ditch leaving its river, moved length cuts): {id: the store's count, why}. header.parity
+ *  holds the subtitle to the golden's with that count (`recountedSub`); every block is compared whole. */
+export const PART_RECOUNTED: Readonly<Record<string, { reason: string; sections: number }>> = Object.fromEntries(
+  Object.entries(tapsOnce().states).filter(([, t]) => t.recounted).map(([id, t]) => [id, t.recounted!]));
+/** The golden subtitle `kind · N section(s)[ · label]` with the section count `n`. Throws on a subtitle of another shape. */
+export function recountedSub(sub: string, n: number): string {
+  const m = /^(.*? · )\d+ sections?((?: · .*)?)$/.exec(sub);
+  if (!m) throw new Error(`recountedSub: ${JSON.stringify(sub)} is not 'kind · N sections[ · label]'`);
+  return `${m[1]}${n} ${n === 1 ? "section" : "sections"}${m[2]}`;
+}
 /** (T115) Every tapped state of a water whose parts the release re-cut (taps.json `recut`). */
 export const RECUT_IDS: readonly string[] = Object.entries(tapsOnce().states).filter(([, t]) => t.item in (tapsOnce().recut ?? {})).map(([id]) => id);
 export const RECUT_EXCLUDE: readonly Exclusion[] = [
@@ -202,8 +213,8 @@ export const RECUT_EXCLUDE: readonly Exclusion[] = [
     reason: "T115 (owner decision AGENTS 54, tickets/T115-one-region-membership.md): the part took in the straddling Fraser piece next to it (taps.json `grown`), so its extent words (the header's full and short label, and the subtitle's label and section count) are not the prototype's; its rows are, and are compared. header.parity asserts the label and subtitle DIFFER (so the entry cannot go stale). (The Parts button whose aria quoted the label is gone: T150, GOLDEN_PARTS_ACTION_IDS)",
     until: "never on this golden — a prototype re-synced on T115's data" }] : []),
   ...(RECUT_IDS.length ? [{ block: "sheets" as const, ids: RECUT_IDS, key: /^parts$/,
-    reason: "T115 (owner decision AGENTS 54, tickets/T115-one-region-membership.md): the Fraser's parts were re-cut (19 → 15: each straddling piece joined its neighbour, taps.json `recut`), so the Parts sheet lists parts the prototype did not have; every other sheet of these states is compared",
-    until: "never on this golden — a prototype re-synced on T115's data" }] : []),
+    reason: "the water's parts were re-cut (taps.json `recut`, the reason per water): T115 (owner decision AGENTS 54, tickets/T115-one-region-membership.md) the Fraser's 19 → 15, each straddling piece joining its neighbour; T67 (owner 2026-10-24) the Skeena's 8 → 9, the Exchamsiks confluence cut making a side channel a part of its own. So the Parts sheet lists parts the prototype did not have; every other sheet of these states is compared",
+    until: "never on this golden — a prototype re-synced on T115's and T67's data" }] : []),
 ];
 
 export const EXCLUDE: readonly Exclusion[] = [

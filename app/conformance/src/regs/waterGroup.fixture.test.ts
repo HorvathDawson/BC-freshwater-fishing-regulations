@@ -30,15 +30,16 @@ describe("the water map's group from the fixture release", () => {
       "fishing boundary signs 100 m below the Slesse Creek confluence: 1 → 2"]);
     expect(steps(g)).toEqual(["-|1", "0|2", "1|3", "2|-"]);
     expect(g.exit).toEqual({ item: "gnis:3062", name: "Vedder River", part: 0 });
-    // the committed regs fixture's own handles (frozen until `pnpm regs-fixture` re-cuts it over a new atlas)
-    expect(navSections(g, 0).selected).toEqual([60210, 60211, 60212, 62453, 62571, 62823, 1235779, 1235780, 1235825]);
+    // the committed regs fixture's own handles (frozen until `pnpm regs-fixture` re-cuts it over a new atlas; r-0ed3c2b2a0a7)
+    expect(navSections(g, 0).selected).toEqual([60211, 60212, 60213, 62456, 62574, 62826, 1235830, 1235831, 1235876]);
     expect(g.parts[0]!.box).toEqual([-121.966394, 49.071523, -121.836034, 49.097385]);
   });
 
   it("Vedder: one part, named by its water", async () => {
     const g = await loadWaterGroup(st, "gnis:3062");
+    // the committed regs fixture's own handles (frozen until `pnpm regs-fixture` re-cuts it over a new atlas; r-0ed3c2b2a0a7)
     expect([names(g), steps(g), navSections(g, 0).selected]).toEqual([
-      ["Vedder River"], ["-|-"], [62410, 313837, 313838, 313839, 1957095]]);
+      ["Vedder River"], ["-|-"], [62413, 313851, 313852, 313853, 1957146]]);
   });
 
   it("Cowichan: four parts in a line", async () => {
@@ -57,15 +58,17 @@ describe("the water map's group from the fixture release", () => {
     }
   });
 
-  it("Zymoetz: ▲ below the canyon fork offers the main stem first, then the side channel", async () => {
+  it("Zymoetz: five parts in a line but one fork: ▼ from the source offers the main stem first, then the lake part", async () => {
     const g = await loadWaterGroup(st, "gnis:3137");
+    // (T67, r-0ed3c2b2a0a7) no "Side channel" part: E15's spurious mark at the canyon is gone and the channel joins
+    // the part above the canyon
     expect(names(g)).toEqual([
       "Mouth → Zymoetz Canyon lower entrance = transmission-line sign",
       "Zymoetz Canyon lower entrance = transmission-line sign → Zymoetz Canyon upper entrance",
-      "Side channel", "Zymoetz Canyon upper entrance → Limonite Creek confluence",
+      "Zymoetz Canyon upper entrance → Limonite Creek confluence",
       "A lake → McDonell Lake outlet", "Limonite Creek confluence → Source"]);
     // ▼ from the source is a fork: the main stem, then "A lake → McDonell Lake outlet" — its only way in (P15 review)
-    expect(steps(g)).toEqual(["-|1", "0|3,2", "1|3", "1,2|5", "3|5", "3,4|-"]);
+    expect(steps(g)).toEqual(["-|1", "0|2", "1|4", "2|4", "2,3|-"]);
   });
 
   it("water_continue: the Vedder goes on from the Chilliwack — ▲ from the Vedder, ▼ from the Chilliwack's lowest part", async () => {

@@ -41,6 +41,9 @@ export interface Tap {
   goldenPartIx?: number;
   /** the part took in sections the release merged into it (taps.py PART_GROWN): its extent words are not the golden's */
   grown?: string;
+  /** the part kept its label and rows but the atlas re-cut the sections under it (taps.py PART_RECOUNTED, T67): only
+   *  its section count is not the golden's — `sections` is the store's */
+  recounted?: { reason: string; sections: number };
 }
 
 /** A golden state whose part the release merged away (taps.py PART_GONE): never tapped; the parity excludes it with
