@@ -227,6 +227,7 @@ use that as the sole source of future work."
 | T180 | move the remaining ~105 component strings into core words (T60's KNOWN_COPY list empties) | DONE | 71179834, b54c69c1, bc7bc016, 462f8488 | KNOWN_COPY 95 → 0, no wording change; map gaugeDots attribution noted |
 | T181 | gauge pill keeps the theme the map was built with (check, then fix) | DONE | 7c43151a | confirmed (pill, pin, hatches kept the build theme); fixed + render test |
 | T182 | release file splits for the web (section_down, part_geo, nearest town in core, conditions) | OPEN | — | release format; from T129's measurements |
+| T183 | straddling pieces carry BOTH regions' rules (reverses T115, owner 2026-10-24) | OPEN | — | reach + deliver; after the T67 braid merge |
 
 ## Order for open tickets
 

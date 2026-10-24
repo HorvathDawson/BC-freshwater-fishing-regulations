@@ -1183,3 +1183,17 @@ is never touched). T170's "read when this spot was saved" label is gone. Ticket 
 - **T61 2.8 one name normaliser:** may be PROMOTED by Claude when its binding diff shows only explained changes
   (names now keying the same way); anything unexplained is held and listed for the owner.
 - **T67 braids:** owner checks every cut on the review page (phone-friendly), sent by push notification when ready.
+
+## OWNER 2026-10-24 (day) — braid review marks (artifact Et8B4Z6ZbKNNw9mMkJWzFH, collection "marks")
+- 24 of 26 proposed cuts marked right; Chowade note only; 08NK016 "can't tell what is happening".
+- **Tributaries on a braid** (Chowade, 08KH006, 08LF023): "don't assign tribs like this — only if they come from the
+  side untouched". Rule: a tributary hanging off a braid takes the side of the cut where it JOINS the braid, and only if
+  its own course never crosses the cut; otherwise it is cut (or left out of the braid network), never sided wholesale.
+- **Gauge on a named side channel: YES, it still cuts its mainstem** (restores Fraser 08MH028/08MH032, Pemberton 08MG025).
+- **Exchamsiks / confluence cuts:** "it should just cut straight across from the confluence across the mainstem" — a
+  confluence cut is a line from the tributary's mouth straight across every channel to the mainstem. The proposed
+  curated diff (exchamsiks_host.proposed.diff) is dropped.
+- **Left alone tab:** the page must say in plain words why each braid was left alone and show which braid.
+- **REVERSES T115: a piece that straddles a region line carries BOTH regions' rules** (owner answer to the conflict,
+  2026-10-24). Supersedes "home region only" (T115, 2026-10-22). → T183. Moving a length cut then never moves a
+  piece's region rules (q_length_home is moot).
