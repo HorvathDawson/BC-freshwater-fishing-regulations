@@ -293,6 +293,7 @@ def test_the_release_ships_the_bundles_continuation_links_as_they_are(rel, tmp_p
     assert w.execute(q).fetchall() == b.execute(q).fetchall() != []
 
 
+@pytest.mark.needs_bundle
 def test_every_cores_effective_key_is_the_search_key(rel, tmp_path):
     """T114, keys stored thin (`stored_key`): over EVERY item and alias row of the built core, what the app's SEARCH
     reads — `COALESCE(name_key, lower(name))` (`@app/data` `NAME_KEY` / `ALIAS_KEY`) — is `search_key` of the text,
