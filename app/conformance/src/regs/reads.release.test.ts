@@ -24,7 +24,7 @@ const T = taps();
  *  (three rebuilds in a row broke the ticket's literals: T63), so ids come from taps.json, rules are named by their durable
  *  "entry::rule" key, and only facts about the water (names, sections, segments, statuses, counts) are typed here. */
 const V = T.states.vedder_515!, VA = V.akey, C515 = V.cell, C615 = T.states.vedder_615!.cell;
-const V515 = C515.rows, V615 = C615.rows;
+const V515 = C515.rows;
 const VEDDER = "r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4::chilliwack_vedder_rivers";
 
 describe.skipIf(!LIVE)(`T04 reads on the live release (${LIVE ?? "absent"})`, () => {

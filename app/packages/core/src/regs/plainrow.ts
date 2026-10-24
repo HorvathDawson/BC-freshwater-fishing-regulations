@@ -61,7 +61,7 @@ const perDay = (runs: readonly YearRun[]): string[] => runs.flatMap(([st, n]) =>
 /** The year's words over a row's stored strip and the water's stored closed days (page v36 runTxt / closedRuns / runUntil). */
 export class YearWords {
   private readonly water: string[];
-  constructor(private readonly inp: RegsInputs, private readonly seams: PlainRowSeams) {
+  constructor(inp: RegsInputs, private readonly seams: PlainRowSeams) {
     this.water = seams.BOOK_DAYS.map((d) => (isClosedOn(inp, readingDay(d.month, d.day)) ? "closed" : "keep"));
   }
   /** The water's own stored closed state of a book day (page v36 waterSegs, per day). */

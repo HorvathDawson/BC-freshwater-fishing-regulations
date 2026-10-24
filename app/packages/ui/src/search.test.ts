@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { ItemId, PlaceId, SectionId } from "@app/data";
 import type { NameHit } from "@app/data";
 import {
-  NO_PICK, focusFor, isSelected, resultGroups, searchSheet, searchStep, subjectOf, targetKey, townToPreview,
+  NO_PICK, focusFor, isSelected, resultGroups, searchSheet, searchStep, subjectOf, targetKey,
   type Located, type SearchPick, type SearchTarget, type TownView,
 } from "./search";
 
@@ -77,29 +77,6 @@ describe("what the search map shows", () => {
     const a = focusFor({ town: null, best: chilliwack })!;
     const b = focusFor({ town: null, best: { ...chilliwack, sections: [...chilliwack.sections] } })!;
     expect(a.key).toBe(b.key);
-  });
-});
-
-describe("a town typed in full", () => {
-  const town = (name: string) => ({ place: name as PlaceId, name, kind: "town", lat: 54,
-                                    lon: -127, pop: null });
-
-  it("previews the town when no water carries that exact name", () => {
-    expect(townToPreview("smithers", [], [town("Smithers"), town("Smithers Landing")])!.name)
-      .toBe("Smithers");
-    // "Chilliwack" is a city; the waters are Chilliwack RIVER and LAKE, not Chilliwack.
-    expect(townToPreview("Chilliwack ", [{ name: "Chilliwack River" }], [town("Chilliwack")])!
-      .name).toBe("Chilliwack");
-  });
-
-  it("leaves the water alone when one has exactly that name", () => {
-    expect(townToPreview("fraser lake", [{ name: "Fraser Lake" }], [town("Fraser Lake")]))
-      .toBeNull();
-  });
-
-  it("does not guess from a prefix", () => {
-    expect(townToPreview("smith", [], [town("Smithers")])).toBeNull();
-    expect(townToPreview("s", [], [town("S")])).toBeNull();
   });
 });
 
@@ -183,28 +160,18 @@ describe("select, then go", () => {
 });
 
 describe("what the pinned map is about", () => {
-  const auto = { best: "gnis:9" as ItemId, typedTown: null };
   const water: SearchTarget = { kind: "water", item: "gnis:1" as ItemId, name: "Bulkley River" };
 
-  it("nothing tapped: the best match for the typing", () => {
-    expect(subjectOf(NO_PICK, auto)).toEqual({ item: "gnis:9", place: null, pin: null });
-  });
-
-  it("a town typed in full beats the best water", () => {
-    expect(subjectOf(NO_PICK, { ...auto, typedTown: smithers.place }))
-      .toEqual({ item: null, place: smithers.place, pin: null });
-  });
-
-  it("a tapped row beats the typing", () => {
-    expect(subjectOf({ selected: water, town: null }, auto).item).toBe("gnis:1");
-    expect(subjectOf({ selected: { kind: "place", place: smithers.place }, town: null }, auto))
+  it("a tapped row is the subject", () => {
+    expect(subjectOf({ selected: water, town: null })).toEqual({ item: "gnis:1", place: null, pin: null });
+    expect(subjectOf({ selected: { kind: "place", place: smithers.place }, town: null }))
       .toEqual({ item: null, place: smithers.place, pin: null });
   });
 
   it("an open town is the subject until one of its waters is tapped, which keeps it pinned", () => {
     const inTown: SearchPick = { selected: null, town: smithers.place };
-    expect(subjectOf(inTown, auto)).toEqual({ item: null, place: smithers.place, pin: null });
-    expect(subjectOf({ ...inTown, selected: water }, auto))
+    expect(subjectOf(inTown)).toEqual({ item: null, place: smithers.place, pin: null });
+    expect(subjectOf({ ...inTown, selected: water }))
       .toEqual({ item: "gnis:1", place: null, pin: smithers.place });
   });
 
@@ -269,10 +236,6 @@ describe("(T48) the results sheet over the main map: full while typing, half whi
   });
 
   it("the main map follows what the reader PICKED, never the typing (the full sheet covers it): no auto subject", () => {
-    const auto = { best: "gnis:9" as ItemId, typedTown: smithers.place };
-    expect([subjectOf(NO_PICK, auto, false), subjectOf({ selected: water, town: null }, auto, false),
-            subjectOf(NO_PICK, auto)]).toEqual([
-      { item: null, place: null, pin: null }, { item: "gnis:1", place: null, pin: null },
-      { item: null, place: smithers.place, pin: null }]);
+    expect(subjectOf(NO_PICK)).toEqual({ item: null, place: null, pin: null });
   });
 });

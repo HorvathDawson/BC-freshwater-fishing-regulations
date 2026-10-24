@@ -151,24 +151,6 @@ export function usePickFocus(source: WaterSource, item: ItemId | null): MapFocus
                  [best, item]);
 }
 
-/**
- * A TOWN TYPED IN FULL is a town. "Smithers" names no water, and "Chilliwack" names a city
- * and no water by exactly that name — so the map opens on the town and lights what is
- * near it, as riffle does, without making the reader find and tap the town's row first.
- *
- * Only on an EXACT town name, and only when no water carries that exact name: someone who
- * typed "Fraser Lake" wants the lake, not the village of the same name, and someone still
- * typing "Chilli" has not asked for anything yet.
- */
-export function townToPreview(query: string, waters: readonly { name: string }[],
-                              places: readonly PlaceHit[]): PlaceHit | null {
-  const q = searchKey(query);
-  if (q.length < 2) return null;
-  const town = places.find((p) => searchKey(p.name) === q);
-  if (!town) return null;
-  return waters.some((w) => searchKey(w.name) === q) ? null : town;
-}
-
 /* ────────────────────────────────────────────────────────────────────────────────────────
  * LOOK, THEN GO.
  *
@@ -254,20 +236,17 @@ export function searchStep(s: SearchPick, a: SearchAction):
 
 /**
  * WHAT THE PINNED MAP IS ABOUT, in order: the row the reader tapped; else the town whose
- * list is open; else a town typed in full; else the best match for the typing. A water
- * looked at from inside a town's list keeps that town pinned.
+ * list is open. A water looked at from inside a town's list keeps that town pinned. (T48) The main map behind a full
+ * sheet follows only what was PICKED, never the typing: moving it under the typing is unseen work (T81 / Q17 dropped
+ * the "follow the best match" branch, which nothing asked for).
  */
-export function subjectOf(pick: SearchPick, auto: { best: ItemId | null;
-                                                    typedTown: PlaceHit | null }, follow = true):
+export function subjectOf(pick: SearchPick):
     { item: ItemId | null; place: PlaceHit | null; pin: PlaceHit | null } {
   const p = pick.selected;
   if (p?.kind === "water") return { item: p.item, place: null, pin: pick.town };
   if (p?.kind === "place") return { item: null, place: p.place, pin: null };
   if (pick.town) return { item: null, place: pick.town, pin: null };
-  // (T48) the main map behind a full sheet follows only what was picked: moving it under the typing is unseen work
-  if (!follow) return { item: null, place: null, pin: null };
-  if (auto.typedTown) return { item: null, place: auto.typedTown, pin: null };
-  return { item: auto.best, place: null, pin: null };
+  return { item: null, place: null, pin: null };
 }
 
 /** One group of results, in the order they are drawn. */
@@ -307,22 +286,12 @@ export function resultGroups(r: { waters: readonly NameHit[]; places: readonly P
 }
 
 /**
- * The search screen's map and its town list, from what the reader has in hand.
- *
- * `results` is the ranked list the screen is already showing, so the map and the first row
- * can never disagree about which water is "best". ONE town fetch serves both the open list
- * and the map: inside a town's list the subject is that town or a water near it.
+ * The search screen's map and its town list, from what the reader has picked. ONE town fetch serves both the open
+ * list and the map: inside a town's list the subject is that town or a water near it.
  */
-export function useSearchView(source: WaterSource, query: string,
-                              results: { waters: readonly NameHit[];
-                                         places: readonly PlaceHit[] },
-                              pick: SearchPick, follow = true):
+export function useSearchView(source: WaterSource, pick: SearchPick):
     { focus: MapFocus | null; town: Async<TownView | null> } {
-  const typed = query.trim().length >= 2;
-  const subject = subjectOf(pick, {
-    best: typed ? results.waters[0]?.item ?? null : null,
-    typedTown: typed ? townToPreview(query, results.waters, results.places) : null,
-  }, follow);
+  const subject = subjectOf(pick);
   const located = useLocated(source, subject.item);
   const townPlace = pick.town ?? subject.place;
   const town = useTown(source, townPlace);
@@ -384,7 +353,7 @@ export function useSearchSession(source: WaterSource, memory: SearchMemory, open
   if (hits.state === "ready") last.current = hits.value;
   const typed = open && q.trim().length >= 2;
   const results = typed ? last.current : EMPTY_RESULTS;
-  const { focus, town } = useSearchView(source, open ? q : "", results, open ? pick : NO_PICK, false);
+  const { focus, town } = useSearchView(source, open ? pick : NO_PICK);
   return {
     results, typed, town, focus,
     busy: typed && hits.state === "loading" && !last.current.waters.length && !last.current.places.length

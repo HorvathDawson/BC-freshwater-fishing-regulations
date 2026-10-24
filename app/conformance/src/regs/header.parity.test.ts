@@ -11,7 +11,7 @@
  * measurement (excluded; T41). Every expected value is the golden's except the ticket's literals.
  */
 import { afterAll, describe, expect, it } from "vitest";
-import { buildModel, headerOf, makePlace, settle, stripOf, subtitleOf, WORDS, type HeaderVM } from "@app/core";
+import { buildModel, headerOf, makePlace, settle, stripOf, subtitleOf, type HeaderVM } from "@app/core";
 import { caseIds, golden, inputsOf, parityGate, requestOf, summary } from "./golden";
 import { excluded } from "./exclusions";
 

@@ -6,8 +6,7 @@
  * after the strip (contiguous, in order). The ticket's literals are asserted beside it as whole strings.
  */
 import { afterAll, describe, expect, it } from "vitest";
-import { caveatsOf, makePlace, plain, settle, settleAt, type CaveatVM, type RegsInputs } from "@app/core";
-import { WORDS } from "@app/core";
+import { caveatsOf, makePlace, settle, settleAt, type CaveatVM, type RegsInputs } from "@app/core";
 import { eqPlain } from "./eq";
 import { cases } from "./golden";
 import { caveatLines } from "./keepPage";

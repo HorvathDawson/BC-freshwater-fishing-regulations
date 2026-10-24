@@ -27,7 +27,7 @@
  * always called "Search waters and towns" aloud, whatever the line says.
  */
 import { forwardRef, useEffect, useRef, useState } from "react";
-import { Animated, Easing, Pressable, Text, TextInput, View, useWindowDimensions } from "react-native";
+import { Animated, Easing, Pressable, TextInput, View, useWindowDimensions } from "react-native";
 import { SEARCH_BAR, type SyncVM } from "@app/core";
 import { Icon } from "./icons";
 import { CLOSE_KEEPS_FOCUS, closedFieldClick } from "./searchFocus";

@@ -170,9 +170,6 @@ const fieldDrawnIn = (mode: string | undefined): boolean =>
 export const IMAGERY_GROUP = "imagery";
 
 export function baseAdapter(platform: "native" | "web"): MapAdapter {
-  const typeOf = (layerId: string) =>
-    (MAP_STYLE.layers.find((x) => x.id === layerId) as { type?: string } | undefined)?.type;
-
   /*
    * WHAT THIS MAP IS PAINTING, remembered — the one piece of state an adapter keeps (colour-latency AP). A `profile`
    * mode needs the day, and the day arrives on its own schedule: a theme toggle or a mode change must paint the day

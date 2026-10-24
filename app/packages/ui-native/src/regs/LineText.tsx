@@ -5,7 +5,7 @@
  */
 import { createContext, useContext } from "react";
 import { Text } from "react-native";
-import { WORDS, type Line, type Run, type SheetKey, type Day, type Tab } from "@app/core";
+import { WORDS, type Line, type SheetKey, type Day, type Tab } from "@app/core";
 import { CAPPED_SCALE, TYPE, type TextStyle } from "../type";
 import type { Palette } from "../theme";
 import { lineRun } from "./hit";

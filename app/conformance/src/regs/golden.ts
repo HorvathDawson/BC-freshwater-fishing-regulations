@@ -22,7 +22,7 @@ import { loadRegsInputs, openRegsStore, RegsStoreError, type RegsLoader, type Re
 import { regsFixtureDir } from "@app/data/release/node";
 import { liveRelease, liveReleaseAt, openReleaseDir } from "../fixtureRelease";
 import { EXCLUDE, excluded } from "./exclusions";
-import { golden, oracleRixOver, taps, tapsOnce } from "./oracles";
+import { golden, oracleRixOver, tapsOnce } from "./oracles";
 import { subcapRuled } from "./subcapTotal";
 import { t100Ruled } from "./t100MapPage";
 

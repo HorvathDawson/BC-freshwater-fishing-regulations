@@ -25,7 +25,7 @@ import type { PinStore } from "./pinStore";
 import { NO_ACTIONS } from "./LineText";
 import type { FishImages } from "./types";
 import {
-  ALLOW, borderFaults, census, coloursOf, MAX_COLOURS, pictureFaults, rgbOf, roleOf, surfaceFaults, TEXT_RULES, textFaults, tokenOf,
+  ALLOW, borderFaults, census, coloursOf, pictureFaults, rgbOf, roleOf, surfaceFaults, TEXT_RULES, textFaults, tokenOf,
   type TextRule,
 } from "./testing/census";
 import vedder1010 from "./fixtures/vedder_1010.json";

@@ -9,7 +9,7 @@
  * the global click handler's `data-open` / `data-rule` / `data-gl` / `data-fish` / `data-howtell` (here each a run or a
  * block carrying its `SheetKey`).
  */
-import { Text, View, type ImageSourcePropType } from "react-native";
+import { Text, View } from "react-native";
 import { type SheetBlock, type SheetKey, type SheetVM, type Tab } from "@app/core";
 import { TYPE } from "../type";
 import { GUTTER, type Palette } from "../theme";

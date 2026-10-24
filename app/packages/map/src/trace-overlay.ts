@@ -92,9 +92,6 @@ export function tracePaint(theme: string): Record<string, Record<string, unknown
 export const TRACE_LAYER_IDS = [
   "trace-arrows", "trace-gauge-halo", "trace-gauge", "trace-label", "trace-here", "trace-here-label"] as const;
 
-/** Line width over zoom: present but quiet at a province, a clear ribbon at a valley. */
-const width = (k: number) => ["interpolate", ["linear"], ["zoom"], 5, 2.2 * k, 10, 3.6 * k, 14, 5 * k];
-
 /**
  * The overlay's layers. Appended LAST to the style, so the route and its marks sit on top
  * of every river and every gauge dot — at a zoom where the Conditions view stands the

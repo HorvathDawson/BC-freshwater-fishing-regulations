@@ -18,7 +18,6 @@
 import { ruleBookLine } from "./book";
 import { describe } from "./describe";
 import type { DisplayFrame, RegsInputs, RuleView } from "./inputs";
-import type { Line, Run } from "./line";
 import type { BannerVM, Day, StripVM } from "./model";
 import type { Settled } from "./settle";
 import { BOOK_DAYS, bookIndex, displayOnBookDay, fmtDay, nextOpen, runOf, waterSegs } from "./strip";

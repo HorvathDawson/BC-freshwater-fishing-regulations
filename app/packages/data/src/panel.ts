@@ -14,7 +14,7 @@
  */
 import { answering, CORE_MEMBERS, estimate, isAhead, leaderOf, leadShares, recordYears, shownParameter, trustFor, weightFactors, type Answer,
          type AheadWhy, type Contribution, type TrustClass } from "@app/core";
-import type { Panel, PanelRoute, SectionId, StationId } from "./index";
+import type { Panel, PanelRoute, StationId } from "./index";
 
 /** One row of the table under the answer — a donor, and what it contributed. */
 export interface DonorRow {

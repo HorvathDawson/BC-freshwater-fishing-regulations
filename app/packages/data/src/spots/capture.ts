@@ -12,7 +12,7 @@ import { freezeTrace, leadUpDays, localDate, type FrozenTrace } from "@app/core"
 import { answerFrom, type PanelAnswer } from "../panel";
 import { sheetLead, speakerFor, speaks, type Speaker } from "../standing";
 import type { ItemId, WaterSource, SectionId, StationId } from "../index";
-import type { DailyWeather, LeadUp, Spot, SpotReading, SpotWeather } from "./model";
+import type { DailyWeather, Spot, SpotReading, SpotWeather } from "./model";
 import { stripRoutes } from "./migrate";
 import { leadUpFor } from "./leadup";
 import { capturePanelOnDay, fillDayFlow, type DayFlowPorts } from "./dayFlow";

@@ -70,7 +70,7 @@ const expected = (ps: Record<string, number>): PanelAnswer => answerFrom(PANEL, 
 
 describe("a spot added for an earlier day records that day (Q161)", () => {
   it("3 days ago: the lead gauge's daily mean and the panel of that day, never the live feed", async () => {
-    const { src, gaugeNow } = source();
+    const { src } = source();
     const s = await captureSpot(input(src, THREE_DAYS_AGO));
     // (`gaugeNow` is still asked by the lead-up, for the quantity the station declares — never frozen as a reading)
     expect([percentileInBand(30, BAND), percentileInBand(60, BAND)]).toEqual([0.375, 0.75]);
@@ -101,7 +101,7 @@ describe("a spot added for an earlier day records that day (Q161)", () => {
   });
 
   it("offline, for a day older than the feed: saved pending; a refresh online fills the day and the panel", async () => {
-    const { src, gaugeNow } = source();
+    const { src } = source();
     const off = await captureSpot(input(src, LONG_AGO, { hydat: hydat({ kind: "none" }), online: () => false }));
     // (`gaugeNow` is still asked by the lead-up, for the quantity the station declares — never frozen as a reading)
     expect({ reading: off.reading, dayFlow: off.dayFlow, panelDay: off.panelDay, panel: off.panel }).toEqual({

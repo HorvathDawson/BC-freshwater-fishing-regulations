@@ -5,7 +5,7 @@
  * app that is the ordinary case rather than the exception. A rejected promise on a river
  * bank turns into an error screen where "we could not check" is the truth.
  */
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { httpFeed, lastReportAt } from "./http";
 import { seriesOf } from "../sql/shared";
 import type { StationId } from "../index";
