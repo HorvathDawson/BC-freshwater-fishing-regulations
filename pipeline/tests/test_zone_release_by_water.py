@@ -109,7 +109,7 @@ def test_a_lake_keeps_its_quotas_when_the_stream_release_is_in_force(db):
 def test_the_step_is_what_displaces_them(db, monkeypatch):
     """Mutation: with `released_on_water` answering None (the reader before ZS-2), the quotas
     speak beside the stream releases again and both bundle cases fail."""
-    monkeypatch.setattr(R, "released_on_water", lambda x: None)
+    monkeypatch.setattr(R.ladder, "released_on_water", lambda x: None)
     sep, _, _ = _anderson(db)
     assert f"{Z3}::trout_char_quota.r1" in sep and f"{Z3}::trout_char_quota.r4" in sep
     jan, _ = _andreen(db)
@@ -160,7 +160,7 @@ def test_a_closure_a_water_row_and_another_region_are_untouched(tmp_path, monkey
     release), pinned in test_moot_size_clause.py."""
     # step 6 (two regions: the stricter applies) would take the other region's quota out on
     # its own; switched off here so what is left is step 4b's reach alone
-    monkeypatch.setattr(R, "stricter", lambda a, b: False)
+    monkeypatch.setattr(R.ladder, "stricter", lambda a, b: False)
     water = {"entry": "r9:creek", "rule": "creek.r1", "species": ["DV"], "take": 2,
              "_rank": 0}
     other = {"entry": "z8:q", "rule": "q.r1", "species": ["TROUT_CHAR"], "take": 5, "_rank": 3}

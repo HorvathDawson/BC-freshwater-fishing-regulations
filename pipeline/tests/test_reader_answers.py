@@ -77,7 +77,7 @@ def test_denetiah_creek_its_own_closure_is_all_that_speaks_for_bull_trout(db, mo
     assert now[DENETIAH]["state"] == "speaks"
     assert f"{LIARD}.r3" not in now and f"{LIARD}.r2" not in now
     assert not [k for k, x in now.items() if x["state"] == "speaks" and keeps(x)]
-    monkeypatch.setattr(R, "WATER_CLOSURE_DOMINANT", False)
+    monkeypatch.setattr(R.ladder, "WATER_CLOSURE_DOMINANT", False)
     then = _said(sid, (7, 5), "DV")
     assert then[f"{LIARD}.r3"]["state"] == "speaks"
     assert set(then) - set(now) == {f"{LIARD}.r3"}, "the possession 1 and nothing else"
@@ -112,7 +112,7 @@ def test_a_region_7_lakes_winter_closure_silences_its_own_possession_limit(db, m
                      (c.split("::")[0], "cunningham_lake.r1")).fetchone()[0]
     now = _said(sid, (12, 1), "LT")
     assert now[f"{c}.r1"]["state"] == "speaks" and f"{c}.r2" not in now
-    monkeypatch.setattr(R, "WATER_CLOSURE_DOMINANT", False)
+    monkeypatch.setattr(R.ladder, "WATER_CLOSURE_DOMINANT", False)
     assert _said(sid, (12, 1), "LT")[f"{c}.r2"]["state"] == "speaks"
 
 
@@ -177,7 +177,7 @@ def test_off_the_synthetic_keepers_speak_again(tmp_path, monkeypatch):
     path = _tiny(tmp_path, [
         SHUT, {"entry": "r9:area", "rule": "area.r3", "species": ["DV"], "take": 1, "_rank": 2,
                "dimension": "possession"}])
-    monkeypatch.setattr(R, "WATER_CLOSURE_DOMINANT", False)
+    monkeypatch.setattr(R.ladder, "WATER_CLOSURE_DOMINANT", False)
     assert _speaking(path) == {"creek.r1", "area.r3"}
 
 
@@ -395,6 +395,6 @@ def test_a_closure_on_part_of_a_water_dominates_like_a_whole_water_closure(db, f
         silenced = {k for k, x in got.items() if x.get("reason") == "water_closure"}
         assert "z2:trout_char_quota::trout_char_quota.r4" in silenced
         assert all(got[k]["by"] == CHILLIWACK_R1 for k in silenced)
-    monkeypatch.setattr(R, "WATER_CLOSURE_DOMINANT", False)
+    monkeypatch.setattr(R.ladder, "WATER_CLOSURE_DOMINANT", False)
     got = _said(min(parts[False]), (7, 15), fish, trace=True)
     assert not [k for k, x in got.items() if x.get("reason") == "water_closure"]

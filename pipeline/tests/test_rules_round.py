@@ -224,14 +224,14 @@ def test_q5_own_row_beats_the_inherited_release(db):
     got = _states(sid, (6, 20), "RB")
     assert got[f"{GRANBY}::granby_river.r3"][0] == "speaks"
     assert got[f"{KETTLE_T}::kettle_river_s_tributaries.r2"] == ("displaced", "own_row")
-    old = R.OWN_ROW_BEATS_INHERITED
+    old = R.ladder.OWN_ROW_BEATS_INHERITED
     try:
-        R.OWN_ROW_BEATS_INHERITED = False
+        R.ladder.OWN_ROW_BEATS_INHERITED = False
         got = _states(sid, (6, 20), "RB")
         assert got[f"{KETTLE_T}::kettle_river_s_tributaries.r2"][0] == "speaks"
         assert got[f"{GRANBY}::granby_river.r3"][0] == "displaced"
     finally:
-        R.OWN_ROW_BEATS_INHERITED = old
+        R.ladder.OWN_ROW_BEATS_INHERITED = old
 
 
 @pytest.mark.needs_bundle
@@ -265,12 +265,12 @@ def test_c5_granbys_dated_bait_ban_replaces_the_inherited_all_year_ban(db):
     assert got["zp:bait::bait.r4"][0] == "speaks"
     got = _states(sid, (6, 20), "RB")
     assert got[own][0] == "speaks" and got[inh] == ("displaced", "own_row")
-    old = R.OWN_ROW_REPLACES_INHERITED
+    old = R.ladder.OWN_ROW_REPLACES_INHERITED
     try:
-        R.OWN_ROW_REPLACES_INHERITED = False
+        R.ladder.OWN_ROW_REPLACES_INHERITED = False
         assert _states(sid, (11, 15), "RB")[inh][0] == "speaks"
     finally:
-        R.OWN_ROW_REPLACES_INHERITED = old
+        R.ladder.OWN_ROW_REPLACES_INHERITED = old
 
 
 @pytest.mark.needs_bundle

@@ -1,7 +1,7 @@
 """THE ONE-DATA-FLOW GATES (DATAFLOW §3), structural: they read the SOURCE as an AST, never a regex
 a new spelling can walk past (finding H2: three closure spellings walked past the old grep).
 
-  1 reader    nothing outside `bundle/read.py`, `deliver/verdicts/` and the named ORACLES calls
+  1 reader    nothing outside `bundle/read/`, `deliver/verdicts/` and the named ORACLES calls
               `effective_rules` / `effective_rules_bound`: every other stage looks the verdict up
   2 closure   nothing downstream of the bundle reads `may_target` but `bundle/rules.py` (the one
               closure predicate, `closure_grade`, and `catch_and_release`) and the export's record
@@ -98,7 +98,7 @@ def reader_calls(sources: dict[str, str]) -> set[tuple[str, str]]:
     """(module, qualname) of every call of the reader outside its own module and the verdicts."""
     out: set = set()
     for path, text in sources.items():
-        if path == "pipeline/deliver/bundle/read.py" or path.startswith("pipeline/deliver/verdicts/"):
+        if path.startswith(("pipeline/deliver/bundle/read/", "pipeline/deliver/verdicts/")):
             continue
 
         def on(node, where, unit, path=path):

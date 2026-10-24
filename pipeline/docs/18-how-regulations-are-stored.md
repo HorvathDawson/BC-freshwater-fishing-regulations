@@ -295,7 +295,7 @@ companions (`closed_to_except`). 111 records today.
 
 ## Which rule wins
 
-The reference is `pipeline/deliver/bundle/read.py::effective_rules(section, day, fish)`; the
+The reference is `pipeline/deliver/bundle/read/ladder.py::effective_rules(section, day, fish)`; the
 export guide says the same in prose. In outline:
 
 * **Per fish, per day.** Two rules compete only for a fish both speak for, and only while both
@@ -359,7 +359,7 @@ data/curated/regulations/entries/catalogue/  the typed rules                    
   (11 files; 1,515 entries, 3,317 rules, 111 licensing records)
 
 pipeline/regs/parsing/catalogue.py           the 13 types, validation, and the label generator
-pipeline/deliver/bundle/read.py              effective_rules — which rule wins
+pipeline/deliver/bundle/read/ladder.py       effective_rules — which rule wins
 pipeline/tests/test_catalogue.py             what the model refuses, and why
 pipeline/tests/test_catalogue_entries.py     what the authored files must satisfy
 pipeline/tests/test_validate_catalogue.py    what a candidate parse must survive

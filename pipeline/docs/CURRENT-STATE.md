@@ -222,7 +222,7 @@ The export lists 14 licences.
 
 Made 2026-09-29 by another agent; the artifacts in the table above predate them.
 
-1. **`read.effective_rules` step 4b** (`pipeline/deliver/bundle/read.py`,
+1. **`read.effective_rules` step 4b** (`pipeline/deliver/bundle/read/ladder.py`,
    `read.released_on_water`; test `pipeline/tests/test_zone_release_by_water.py`, untracked).
    A zone release limited to a kind of water (`water: stream`, every extent `feature_types:
    [stream]`) — Region 3's "Bull trout (Dolly Varden) from streams, Aug 1-Oct 31", Region 4's
@@ -271,7 +271,7 @@ Made 2026-09-29 by another agent; the artifacts in the table above predate them.
 
 ## 3. What competes — the reference reader
 
-**The ladder is applied in code:** `pipeline/deliver/bundle/read.py::effective_rules(section,
+**The ladder is applied in code:** `pipeline/deliver/bundle/read/ladder.py::effective_rules(section,
 on, fish)` returns the rules that speak for one fish on one section on one day, each with a
 state (`speaks`, `beside`, `shown`, `not_yet_mapped`). It is the reference the app must match;
 the export `guide` says the same in prose. (The previous version of this file said nothing

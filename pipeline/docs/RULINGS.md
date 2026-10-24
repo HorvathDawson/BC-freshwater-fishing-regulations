@@ -36,7 +36,7 @@ Never cite a PDF page without writing "PDF p.".
 - **Date** is the date of the ruling. A later date supersedes an earlier one.
 - **Example** names a water and what the ruling means there.
 - **Enforced in** gives the constant, function or test that holds the ruling. Every name was
-  checked with grep on 2026-10-08. `read` is `pipeline/deliver/bundle/read.py`. `catalogue` is
+  checked with grep on 2026-10-08. `read` is `pipeline/deliver/bundle/read/` (the package; `effective_rules` is in `read/ladder.py`). `catalogue` is
   `pipeline/regs/parsing/catalogue.py`. Test files are under `pipeline/tests/`.
 
 **Status markers.**

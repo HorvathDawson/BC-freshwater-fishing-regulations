@@ -1,514 +1,43 @@
-"""Reading the regulations back OUT of a built bundle — the only source a reader may use.
+"""Who speaks — the ladder, executable (`effective_rules`).
 
-Two things live here, and both were in `pipeline/regs/table/` until that package went (it read a
-`sections.json` nothing wrote any more, for a settling layer removed on 2026-09-22):
+THE REFERENCE SEMANTICS THE APP MUST MATCH. The export's `guide.ladder` states the ruling in words and this
+states it in code, so the words can be tested on real sections. It is deliberately small and reads the bundle
+only. When app/packages/core/src/regulations.ts grows its reader, it answers these same questions the same
+way, and `pipeline/tests/test_competition.py` is the list of cases it must reproduce.
 
-    rules(bundle)     every rule as the bundle ships it, `conditions` hoisted to the top level
-    source_of(rule)   WHO wrote a rule and WHAT it binds to — two typed axes, and the ladder
-                      rank derived from them (the export's `provenance`)
-
-NOTHING HERE READS A CURATED FILE. A fallback to the entry files is how a reader answers with
-something the bundle never agreed to (a size fix shipped half-applied that way), so there is none.
+The named POLICY switches (`MOOT_SIZE_CLAUSE_HIDDEN`, `WATER_CLOSURE_DOMINANT`, `OWN_ROW_BEATS_INHERITED`,
+`OWN_ROW_REPLACES_INHERITED`, `NEARER_ROW_BEATS_FARTHER`) live here, beside the steps that read them, so a
+test that switches one off (on this module) proves the step is what decides it.
 """
 from __future__ import annotations
 
-import json
-import re
 import sqlite3
 from dataclasses import dataclass, field
-from enum import Enum
-from functools import lru_cache
-from typing import FrozenSet, List
-
-from pipeline.common.curated import GENERATED
+from typing import List
 from pipeline.common import entry_id as EID
-
-BUNDLE = str(GENERATED.bundle / "bundle.sqlite")
-
-
-# --------------------------------------------------------------------------------------------
-# The rules
-# --------------------------------------------------------------------------------------------
-
-def rules(path: str = BUNDLE) -> List[dict]:
-    """Every rule in the bundle, flattened: its columns, with `conditions` hoisted to the top level
-    and the JSON columns decoded, plus `entry`/`rule` (the pair that is its identity — see `rid`)
-    and `entry_name`. A rule's `extents` are its own; nothing carries its entry's beside them.
-
-    `exempts` is a COLUMN (resolved at build to the entry each lift reaches); a bundle from before
-    it would read as a corpus in which nothing lifts anything, so it is refused."""
-    db = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
-    try:
-        return rules_from(db, path)
-    finally:
-        db.close()
-
-
-#: Columns a reader never sees on a rule dict: decided once at bundle time from the rule's own
-#: fields (`rule.closure_grade`, read through `rules.closure_grade` everywhere in Python).
-_DERIVED_COLUMNS = ("closure_grade",)
-
-
-def rules_from(db: sqlite3.Connection, where: str = "the bundle") -> List[dict]:
-    """`rules` on an open connection (the bundle builder reads its own rows back through this:
-    `derived.write`)."""
-    cols = [r[1] for r in db.execute("PRAGMA table_info(rule)")]
-    if "exempts" not in cols:
-        raise SystemExit(f"read.rules: {where} has no `rule.exempts` column — rebuild the "
-                         f"bundle (`python -m pipeline.deliver.bundle`)")
-    names = dict(db.execute("SELECT entry_id, name FROM entry"))
-    out = []
-    for row in db.execute("SELECT * FROM rule"):
-        d = dict(zip(cols, row))
-        for c in _DERIVED_COLUMNS:
-            d.pop(c, None)
-        cond = json.loads(d.pop("conditions") or "{}")
-        if "exempts" in cond:
-            raise SystemExit(f"read.rules: {d['entry_id']}::{d['rule_id']} carries `exempts` "
-                             f"in `conditions` as well as in its column")
-        for k in ("species", "species_except"):
-            d[k] = json.loads(d[k]) if d.get(k) else []
-        d.update(cond)
-        for col, name in (("when_", "when"), ("while_", "while"), ("exempts", "exempts")):
-            v = d.pop(col, None)
-            if v:
-                d[name] = json.loads(v)
-        if d.pop("standing", 0):
-            d["standing"] = True
-        d["rule"], d["entry"] = d["rule_id"], d["entry_id"]
-        d["entry_name"] = names.get(d["entry_id"]) or ""
-        d.setdefault("extents", [])
-        out.append(d)
-    return out
-
-
-def rid(x: dict) -> str:
-    """The identity of a rule, which is NOT its `rule_id`: 408 rules share 140 rule ids
-    (`species_quotas.r1` is nine rules, one per region). Only `(entry, rule)` is unique."""
-    return f"{x['entry']}::{x['rule']}"
-
-
-# --------------------------------------------------------------------------------------------
-# Who wrote it, and what it binds to
-# --------------------------------------------------------------------------------------------
-
-class Authority(str, Enum):
-    superior = "superior"     # federal listings, national parks, ecological reserves
-    province = "province"
-    region = "region"
-
-
-class Scope(str, Enum):
-    region = "region"         # the whole region (or the whole province): the standing table
-    area = "area"             # a named area inside the region — MUs 1-1 to 1-6, a WMA, a park
-    water = "water"           # one named water, or a cut piece of it
-    inherited = "inherited"   # reached from a downstream water by the tributary walk
-
-
-@dataclass(frozen=True)
-class Source:
-    """Where a rule comes from. `rank` used to be one stored integer that folded two facts —
-    who wrote it, what it binds to — and a Region 5 rule for one river then sat at the rung of
-    Region 5's whole table. Held as two typed values, the rank is derived and never stored."""
-    authority: Authority
-    scope: Scope
-    region: str = ""          # "4", "7a" — the region whose table wrote it
-    place: str = ""           # the area / water the scope names
-    regions: FrozenSet[str] = frozenset()   # a province-wide rule the book limits to regions
-
-    @property
-    def rank(self) -> int:
-        """The ladder as a sort key; SMALLER SPEAKS FIRST. Scope decides before authority — a
-        provincial rule written for one lake speaks there before the region's table — and among
-        region-wide rules the region speaks before the province. A superior authority is outside
-        the ladder: nothing below it opens what it closed."""
-        if self.authority is Authority.superior:
-            return -1
-        return {Scope.water: 0, Scope.inherited: 1, Scope.area: 2,
-                Scope.region: 3 if self.authority is Authority.region else 4}[self.scope]
-
-    def words(self) -> str:
-        """Both axes, for a reader: "Region 2 · region-wide", "Region 2 · for this water"."""
-        wrote = ("Federal or Parks" if self.authority is Authority.superior
-                 else "Provincial" if self.authority is Authority.province
-                 else "Region " + self.region.upper())
-        if self.scope is Scope.region:
-            where = ("in " + region_words(self.regions) if self.regions
-                     else "province-wide" if self.authority is Authority.province
-                     else "region-wide")
-        elif self.scope is Scope.area:
-            where = self.place or "an area of the region"
-        elif self.scope is Scope.water:
-            where = "for this water" + (f" ({self.place})" if self.place else "")
-        else:
-            where = "inherited from " + (self.place or "a downstream water")
-        return f"{wrote} · {where}"
-
-
-#: the one region wording (T109): "Region 7A", "Regions 3 and 8"
-region_words = EID.region_words
-
-
-def _area_words(area_id: str) -> str:
-    """`area:mu_group:management_units_1_1_to_1_6` -> "MUs 1-1 to 1-6"; a watershed by FWA code
-    (`area:basin:100-`) -> the river it drains to, "Fraser River watershed" (`registry.basins`)."""
-    from pipeline.atlas.registry.basins import basin_name
-    named = basin_name(area_id)
-    if named:
-        return named
-    kind, _, slug = area_id.partition(":")[2].partition(":")
-    words = slug.replace("_", " ")
-    words = re.sub(r"management units (\d+) (\d+)(?: (?:and|to) (\d+) (\d+))?",
-                   lambda m: "MUs " + m.group(1) + "-" + m.group(2)
-                   + ((" " + ("to" if "to" in m.group(0) else "and") + " " + m.group(3) + "-"
-                       + m.group(4)) if m.group(3) else ""), words)
-    return words.title() if kind in ("wma", "national_parks") else words
-
-
-def source_of(rule: dict) -> Source:
-    """The one place a rule's provenance is decided, from ITS OWN extents (nothing inherits the
-    entry's — a caller offering `entry_extents` is refused).
-
-    A water entry (`r<n>:`) is written for that water. A zone entry's rule is region-wide when
-    every extent is `within area:region:N` (or `area_kind: region`), an area when it names a
-    smaller area, and a water when it names one. A rule with no extents names its place in words
-    (`extent_text`, failing that `unresolved_locators`, failing that `undrawn_part`); one naming
-    no place at all is refused — what it binds to is unknown."""
-    entry = str(rule["entry"])
-    prefix = EID.head_of(entry)
-    if "entry_extents" in rule:
-        raise ValueError(f"source_of {rid(rule)}: `entry_extents` — a rule's scope is its own "
-                         f"extents; nothing inherits the entry's")
-    if prefix == "zp":
-        auth, region = Authority.province, ""
-    else:
-        auth, region = Authority.region, EID.region_of(entry) or ""
-    if str(rule.get("authority") or "") == "superior":
-        auth = Authority.superior
-    place = str(rule.get("entry_name") or "")
-    exts = list(rule.get("extents") or [])
-    if not EID.is_table(prefix):
-        # AN AREA ROW OF A WATER TABLE (SP-3, 2026-09-29): "CRESTON VALLEY WILDLIFE MANAGEMENT
-        # AREA (CVWMA) WATERS — Bass daily quota = unlimited … EXCEPT Duck Lake (see separate
-        # entry)", Bowron Lake Park waters, the Liard River watershed. Every extent is `within` a
-        # named area, so the row binds every water of the area — it is not written for one of
-        # them. Ranked as the water it lands on, it TIED with Duck Lake's own "Bass daily quota
-        # = 3" and both spoke; a named water's own row must beat it, as it beats a zone's area.
-        areas = [str(e.get("area_id") or e.get("area_kind") or "") for e in exts]
-        if exts and all(e.get("op") == "within" for e in exts) and all(areas):
-            return Source(auth, Scope.area, region, place)
-        return Source(auth, Scope.water, region, place)
-    if not exts:
-        named = (str(rule.get("extent_text") or "").strip()
-                 or "; ".join(rule.get("unresolved_locators") or [])
-                 or str(rule.get("undrawn_part") or "").strip())
-        if not named:
-            raise ValueError(f"source_of {rid(rule)}: the rule has no extents and names no "
-                             f"place — what it binds to is unknown")
-        return Source(auth, Scope.water, region, named)
-    within = [e for e in exts if e.get("op") == "within"]
-    if len(within) < len(exts):
-        # A region's table writing about one lake is an override on that lake.
-        return Source(auth, Scope.water, region, str(rule.get("extent_text") or place))
-    areas = [str(e.get("area_id") or "") for e in within]
-    kinds = [str(e.get("area_kind") or "") for e in within]
-    other = [a for a in areas if a and not a.startswith("area:region:")]
-    other_kinds = [k for k in kinds if k and k != "region"]
-    if other or other_kinds:
-        label = ", ".join(_area_words(a) for a in other) or ", ".join(
-            k.replace("_", " ").title() for k in other_kinds)
-        return Source(auth, Scope.area, region, label)
-    regions = frozenset(a.split(":")[-1] for a in areas if a.startswith("area:region:"))
-    if auth is Authority.province and regions and "region" not in kinds:
-        return Source(auth, Scope.region, region, place, regions)
-    return Source(auth, Scope.region, region, place)
-
-
-# --------------------------------------------------------------------------------------------
-# Who speaks — the ladder, executable
-# --------------------------------------------------------------------------------------------
-#
-# THE REFERENCE SEMANTICS THE APP MUST MATCH. The app has no rules engine yet; the export's
-# `guide.ladder` states the ruling in words and this states it in code, so the words can be
-# tested on real sections. It is deliberately small and reads the bundle only. When
-# app/packages/core/src/regulations.ts grows its reader, it answers these same questions the same
-# way, and `pipeline/tests/test_competition.py` is the list of cases it must reproduce.
-
-
-def _day(on) -> int:
-    """`datetime.date` or `(month, day)` -> the catalogue's day index (1..366): the delivery's one
-    calendar (`pipeline.deliver.calendar.day_of`)."""
-    from pipeline.deliver.calendar import day_of
-    return day_of(on)
-
-
-#: What `in_force` answers, in wire order (`types.InForce`: 0 no, 1 yes, 2 part).
-IN_FORCE = ("no", "yes", "part")
-
-
-@lru_cache(maxsize=None)
-def _days_of(dates_json: str):
-    from pipeline.regs.parsing.catalogue import DateRange, _days
-    dates = [DateRange.model_validate(d) for d in json.loads(dates_json)]
-    return frozenset(_days(dates)) if dates else None
-
-
-def in_force(when: dict | None, on, at=None) -> str:
-    """Whether a `when` (the bundle's JSON) holds on a day, at a MOMENT: "yes", "no", or "part".
-
-    `at` is a `calendar.Moment` — a class of weekdays and, where the key holds an hours rule,
-    inside or outside its window (`calendar.moments`). Asked at a moment, a weekday or hours rule
-    DECIDES (user ruling 2026-10-08, review D2/G5): "yes" on the weekdays and hours it covers,
-    "no" at the others — Kootenay Lake's Lower West Arm keeps 5 kokanee on a Saturday and releases
-    them on a Monday; the Fraser above Mission is closed from one hour after sunset to one hour
-    before sunrise and open by day. A moment that straddles a rule's weekdays, or names another
-    hours window, is refused: `moments` cuts every key so that none does.
-
-    Without a moment (`at` None: the day only), such a rule reads "part", as does a season that
-    could not be read (`unparsed`, always): shown BESIDE what it would displace, displacing
-    nothing — the export's own scans, which ask a day and not a moment, still read it so."""
-    if not when:
-        return "yes"
-    days = _days_of(json.dumps(when.get("dates") or [], sort_keys=True))
-    if days is not None and _day(on) not in days:
-        return "no"
-    if when.get("unparsed"):
-        return "part"
-    wd, hr = when.get("weekdays"), when.get("hours")
-    if not (wd or hr):
-        return "yes"
-    if at is None:
-        return "part"
-    from pipeline.deliver.calendar import ALL_WEEK, hours_key, weekday_mask
-    if wd:
-        m = weekday_mask(wd)
-        if not at.weekdays & m:
-            return "no"
-        if at.weekdays & ~m & ALL_WEEK:
-            raise ValueError(f"in_force: moment {at} straddles the weekdays {wd}")
-    if hr:
-        if at.hours != hours_key(hr):
-            raise ValueError(f"in_force: moment {at} does not cut the hours window {hr}")
-        if not at.inside:
-            return "no"
-    return "yes"
-
-
-def speaks_for(rule: dict, fish: str) -> bool:
-    """Whether a rule says anything about ONE fish (a leaf code of the book's list, "DV"). A rule
-    that names no species binds whatever you catch; `ALL_FIN_FISH` is every fish but crayfish;
-    the other open subjects (`PROTECTED_SPECIES`, `SALMON`) hold no game fish and so speak for
-    none — but `SALMON` speaks for a salmon the book names (`catalogue.SALMON_FISH`: chinook);
-    otherwise the fish must be in the expansion of `species` and not of `species_except`. A
-    bait or tackle rule for a TARGET speaks only when the fish asked about is that target."""
-    from pipeline.regs.parsing.catalogue import SALMON_FISH, expand_species
-    tgt = rule.get("when_targeting") or []
-    if tgt and fish not in expand_species(list(tgt)):
-        return False
-    sp = list(rule.get("species") or [])
-    if not sp:
-        return True
-    if fish in expand_species(list(rule.get("species_except") or [])):
-        return False
-    if "ALL_FIN_FISH" in sp:
-        # "Fin fish" is not crayfish: "release all fin fish caught in your trap" keeps the
-        # crayfish, and `rules._lift_terms` leaves a crayfish quota standing under "all fish".
-        return fish != "CRA"
-    if fish in SALMON_FISH and SALMON_FISH[fish] in sp:
-        return True
-    return fish in expand_species(sp)
-
-
-def names_fish(rule: dict, fish: str) -> bool:
-    """Whether a rule NAMES this fish rather than a group holding it. "Bull trout … release" names
-    the Dolly Varden/bull trout; "Trout/char daily quota = 2" names a group. "Char" names each char
-    (`catalogue.NAMING_GROUPS`): once trout include char (p.80) it is the book's only way to name
-    char apart from trout — Region 1's "you must release: All char (includes Dolly Varden)" names
-    the char a lake's "Trout daily quota = 2" (a trout/char quota) would otherwise let be kept."""
-    from pipeline.regs.parsing.catalogue import NAMING_GROUPS, SPECIES_GROUPS
-    return any(c == fish or (c in NAMING_GROUPS and fish in SPECIES_GROUPS[c])
-               for c in rule.get("species") or [])
-
-
-def not_yet_mapped(rule: dict) -> bool:
-    """A rule held on its water as a note because the part it names is not drawn (`undrawn_part`:
-    Kinbasket Lake's "No Fishing within 200 m of Bush-Sullivan Bridge"). It is bound to the whole
-    water only so it can be SHOWN there; it NEVER governs the whole water — it never competes,
-    never displaces, never lifts, and never holds a record dormant (`effective_rules`)."""
-    return bool(str(rule.get("undrawn_part") or "").strip())
-
-
-#: A rainbow longer than this is a steelhead where anadromous rainbow are found (p.80).
-def _steelhead_min_cm() -> int:
-    from pipeline.regs.parsing.catalogue import DEFINITIONAL_SIZE
-    return int(DEFINITIONAL_SIZE["ST"]["min_cm"])
-
-
-def steelhead_rules(db, section: int) -> bool:
-    """Whether the provincial steelhead rules apply on this section (`section_steelhead_rules`:
-    the reach run's `rules`, stored with the presence code). Where they do not, a rainbow of any
-    size is a rainbow (user ruling 2026-10-03). A bundle without the view is refused."""
-    if not db.execute("SELECT 1 FROM sqlite_master WHERE name = 'section_steelhead_rules'") \
-            .fetchone():
-        if db.execute("SELECT 1 FROM sqlite_master WHERE name = 'rule'").fetchone():
-            raise SystemExit("read: the bundle has no `section_steelhead_rules` view — rebuild it "
-                             "(`python -m pipeline.deliver.bundle`)")
-        return False
-    return db.execute("SELECT 1 FROM section_steelhead_rules WHERE sid = ?",
-                      (section,)).fetchone() is not None
-
-
-def home_region(db, section: int) -> str | None:
-    """The region a STRADDLING section takes its zone rules from (`section_home`, the atlas's
-    `region_home.json`), or None for a section in one region."""
-    row = db.execute("SELECT region FROM section_home WHERE sid = ?", (section,)).fetchone()
-    return row[0] if row else None
-
-
-def straddles(db, section: int) -> list[dict]:
-    """The rule boundaries this section RUNS ACROSS (`section_straddle`, R10): one dict per
-    (entry, rule) — `how` 'projected' (the channel itself crosses; `share` of its length lies on
-    `side`) or 'follows' (it joins a channel that crosses) — `side` 'in' when the rule applies here.
-    `rule_id` '' is the row's own scope. [] for a section that crosses none."""
-    return [{"entry_id": e, "rule_id": r, "how": h, "side": s, "share": sh}
-            for e, r, h, s, sh in db.execute(
-                "SELECT entry_id, rule_id, how, side, share FROM section_straddle WHERE sid = ? "
-                "ORDER BY entry_id, rule_id", (section,))]
-
-
-def steelhead_water(db, section: int) -> bool:
-    """Whether the book's steelhead definition holds on this section (`steelhead_water`): a
-    rainbow over 50 cm here is a steelhead. A bundle without the table is refused."""
-    if not db.execute("SELECT 1 FROM sqlite_master WHERE name = 'steelhead_water'").fetchone():
-        if db.execute("SELECT 1 FROM sqlite_master WHERE name = 'rule'").fetchone():
-            raise SystemExit("read: the bundle has no `steelhead_water` table — rebuild it "
-                             "(`python -m pipeline.deliver.bundle`)")
-        return False                                    # a hand-made test bundle of rule sets
-    return db.execute("SELECT 1 FROM steelhead_water WHERE sid = ?", (section,)).fetchone() \
-        is not None
-
-
-#: `section_steelhead.code` -> its word (schema.sql).
-STEELHEAD_CODES = {1: "known", 2: "possible"}
-
-
-def steelhead_presence(db, section: int) -> str | None:
-    """How sure we are that steelhead are on this section (`section_steelhead`, user rulings
-    2026-10-01/02): "known" (a steelhead row's own water or a rule of one binds it, or the curated
-    known-steelhead
-    list names its water — a presence indicator that changes no answer by itself;
-    `steelhead_water` follows where steelhead rules apply),
-    "possible" (any other stream the steelhead rules bind), or None. A rule bundle without the
-    table is refused."""
-    if not db.execute("SELECT 1 FROM sqlite_master WHERE name = 'section_steelhead'").fetchone():
-        if db.execute("SELECT 1 FROM sqlite_master WHERE name = 'rule'").fetchone():
-            raise SystemExit("read: the bundle has no `section_steelhead` table — rebuild it "
-                             "(`python -m pipeline.deliver.bundle`)")
-        return None
-    row = db.execute("SELECT code FROM section_steelhead WHERE sid = ?", (section,)).fetchone()
-    return STEELHEAD_CODES[row[0]] if row else None
-
-
-def as_rainbow(x: dict) -> dict | None:
-    """A rule READ FOR A RAINBOW WHERE A RAINBOW OVER 50 CM IS A STEELHEAD: its length bands over
-    that range (every rainbow here is 50 cm or less). `None` when it speaks only of rainbow over 50
-    cm; the rule unchanged when it has no bands or none lies outside; with the bands outside dropped
-    otherwise — and with no bands at all when the one left covers every rainbow ("hatchery rainbow
-    trout catch and release (50 cm or less)" is then an outright release of hatchery rainbow)."""
-    bands = x.get("lengths") or []
-    if not bands:
-        return x
-    top = _steelhead_min_cm()
-    inside = [b for b in bands if b.get("min_cm") is None or b["min_cm"] < top]
-    if not inside:
-        return None
-    if len(inside) == 1 and inside[0].get("min_cm") is None \
-            and (inside[0].get("max_cm") is None or inside[0]["max_cm"] >= top):
-        y = {k: v for k, v in x.items() if k != "lengths"}
-        if inside[0].get("take") is not None:
-            y["take"] = inside[0]["take"]
-        # A size rule ("none under 50 cm" has no count of its own: `daily/size`) that now holds
-        # at every rainbow length is a count: it competes where counts do.
-        if y.get("take") is not None and "/size" in str(y.get("dimension") or ""):
-            y["dimension"] = str(y["dimension"]).replace("/size", "", 1)
-        return y
-    return x if len(inside) == len(bands) else dict(x, lengths=inside)
-
-
-def _spoken_lengths(x: dict, top: float = float("inf")) -> list | None:
-    """THE LENGTHS A RULE SPEAKS ABOUT, as merged inclusive ranges `[(lo, hi), …]` over
-    `[0, top]` — `None` when it speaks about every length (no `lengths`). A length no band covers
-    is not spoken about by the rule (`catalogue.LengthBand`, "first match wins")."""
-    bands = x.get("lengths") or []
-    if not bands:
-        return None
-    got = sorted((float(b.get("min_cm") or 0), min(float(b["max_cm"]) if b.get("max_cm")
-                                                   is not None else float("inf"), top))
-                 for b in bands)
-    out: list = []
-    for lo, hi in got:
-        if lo > hi:
-            continue
-        if out and lo <= out[-1][1] + 1:                    # whole centimetres: 29 | 30
-            out[-1] = (out[-1][0], max(out[-1][1], hi))
-        else:
-            out.append((lo, hi))
-    return out
-
-
-def covers(o: dict, k: dict, top: float = float("inf")) -> bool:
-    """DOES `o` SPEAK ABOUT EVERY LENGTH `k` DOES? A rule displaces another only over the fish it
-    speaks about (N-5, 2026-09-29): Lakelse Lake's "Rainbow trout over 50 cm catch and release"
-    says nothing about a 30 cm rainbow, so it must not silence Region 6's "Trout/char: 5" — the
-    5 still counts every rainbow under 50 cm — and Chilko Lake's "no rainbow trout over 70 cm"
-    leaves the lake's own "Trout/char daily quota = 2" speaking for rainbow. `top` caps the
-    lengths asked about (a rainbow where a larger one is a steelhead: 50 cm)."""
-    a = _spoken_lengths(o, top)
-    if a is None:
-        return True
-    b = _spoken_lengths(k, top)
-    if b is None:
-        b = [(0.0, top)]
-    return all(any(lo >= x and hi <= y for x, y in a) for lo, hi in b)
-
-
-def released_on_water(x: dict) -> str | None:
-    """THE WATER KIND A ZONE RELEASE IS LIMITED TO — "stream" for Region 3's "you must release:
-    Bull trout (Dolly Varden) from streams, Aug 1-Oct 31", Region 4's "Trout/char release: in
-    streams from Nov 1-Mar 31" — or `None`.
-
-    Only an outright release that is no closure (`take: 0`, the fish may still be fished for:
-    `rules.release_origins`), carrying a `water`, whose every extent draws only that kind of
-    water (`feature_types: [water]`), so that being bound to a section IS being on that kind of
-    water. `effective_rules` step 4b lets such a release displace its own table's keeping quotas
-    for the fish, exactly as a release printed without `water` does."""
-    from pipeline.deliver.bundle.rules import closure_grade, release_origins
-    water = x.get("water")
-    if not water or not release_origins(x) or closure_grade(x) is not None:
-        return None
-    exts = x.get("extents") or []
-    if not exts or any(list(e.get("feature_types") or []) != [water] for e in exts):
-        return None
-    return str(water)
-
-
-def _base_dimension(x: dict) -> str:
-    """A rule's dimension without its conditions: "daily@water=stream" -> "daily"."""
-    return str(x.get("dimension") or "").split("@", 1)[0]
+from pipeline.deliver.bundle.read.records import BUNDLE, rules
+from pipeline.deliver.bundle.read.source import source_of
+from pipeline.deliver.bundle.read.facts import (
+    _base_dimension, _spoken_lengths, _steelhead_min_cm, as_rainbow, covers, in_force, names_fish,
+    not_yet_mapped, released_on_water, speaks_for, steelhead_rules, steelhead_water
+)
 
 
 _RULES_BY_PATH: dict = {}
+
 
 #: POLICY (user ruling 2026-10-05, option A): a zone-side size-only clause made moot by an outright
 #: release or closure of the same fish is not shown (`effective_rules` step 5b). Named so a test can
 #: switch it off and prove the step is what hides the clause.
 MOOT_SIZE_CLAUSE_HIDDEN = True
 
+
 #: POLICY (user ruling 2026-10-06, DENETIAH): a water's OWN full closure in force is the most dominant
 #: rule — it silences every keeping rule for the fish it covers, of any source and any key, save a
 #: superior authority's (`effective_rules` step 4c). Named so a test can switch it off and prove the
 #: step is what silences them.
 WATER_CLOSURE_DOMINANT = True
+
 
 #: POLICY (user ruling Q5, 2026-10-07, KETTLE -> GRANBY / WEST KETTLE): a tributary with a row of its
 #: own gets BOTH its own row's rules and the rules it inherits by the tributary walk ("Kettle River's
@@ -522,6 +51,7 @@ WATER_CLOSURE_DOMINANT = True
 #: `effective_rules` step 4; named so a test can switch it off and prove the step decides it.
 OWN_ROW_BEATS_INHERITED = True
 
+
 #: POLICY (user ruling C-5, 2026-10-08, KETTLE -> GRANBY): INHERITED RULES BEHAVE LIKE ZONE RULES —
 #: a rule of the water's own row REPLACES an inherited rule of the same kind (type and dimension)
 #: on every day, as a row's dated bait ban replaces its zone's all-year one (L8). Granby River's
@@ -530,6 +60,7 @@ OWN_ROW_BEATS_INHERITED = True
 #: water's quota meets a zone's) and closures still combine (L20). `effective_rules` step 3b;
 #: named so a test can switch it off and prove the step decides it.
 OWN_ROW_REPLACES_INHERITED = True
+
 
 #: POLICY (owner ruling 2026-10-16, ROUND14 1, RULINGS T14): WHERE TWO ✱ ROWS COMPETE ON A TRIBUTARY,
 #: THE ROW OF THE WATER NEAREST THAT STREAM WINS — on the Duncan River's tributaries the Duncan's "bull
@@ -542,11 +73,15 @@ OWN_ROW_REPLACES_INHERITED = True
 #: 4; named so a test can switch it off and prove the step decides it.
 NEARER_ROW_BEATS_FARTHER = True
 
+
 #: The states of a rule that is IN the answer (`effective_rules`). With `trace=True` the answer also
 #: holds the rules that took part and lost, each with a state outside this set ("lifted",
 #: "displaced", "moot"), its `reason` (`LOSS_REASONS`) and `by` (the rule that beat it).
 SPEAKERS = ("speaks", "beside", "shown", "not_yet_mapped")
+
+
 SPEAKER_STATES = frozenset(SPEAKERS)
+
 
 #: Why a rule that took part lost — one reason per rule, the step that removed it first.
 LOSS_REASONS = {
@@ -566,11 +101,14 @@ LOSS_REASONS = {
     "nearer_row": "displaced",               # step 4: the nearer ✱ row beats a farther one (T14)
 }
 
+
 #: The states a loser takes (`LOSS_REASONS` values, in their first order): lifted, displaced, moot.
 LOSER_STATES = tuple(dict.fromkeys(LOSS_REASONS.values()))
 
+
 #: The origins a reader may ask about (`effective_rules(origin=…)`); None = not known.
 ASKABLE_ORIGINS = ("hatchery", "wild")
+
 
 #: How a rule reaches a section (`ruleset.via`): by its own extents, or by the tributary walk.
 VIAS = ("reach", "trib")
@@ -1759,242 +1297,3 @@ def _answer(s: _Ask, trace: bool) -> List[dict]:
             answer.append((name(k), dict(body(k), state=LOSS_REASONS[reason], reason=reason,
                                          by=name(by))))
     return [x for _, x in sorted(answer, key=lambda p: p[0])]
-
-
-# --------------------------------------------------------------------------------------------
-# Licensing: which requirements are in force on a section, on a day
-# --------------------------------------------------------------------------------------------
-# The reference reader for WHERE AND WHEN a requirement holds — the angler is unknown, so `who`
-# and `doing` are left for the sentence (app/packages/core/src/regulations.ts) and every record
-# that holds is returned. Licensing never votes on open/closed: this answers what holds while the
-# water is open, and a closed water needs no licence by construction.
-
-
-def designations_in_force(db, section: int, on) -> list[dict]:
-    """The designations bound to `section` that are in force on the day: their `when` holds
-    (a `part` day counts — it holds at some hours), and no `suspended_while` closure of their entry
-    binds the section that day. Each is its record, with `entry_id` and `id`. Public: the licence
-    answer reads it for the designation boxes and for which `licence_terms` (classified class,
-    units) price the water (consumer 7.7 step 3)."""
-    out = []
-    rules_here: set | None = None
-    for eid, did, rec in db.execute(
-            "SELECT d.entry_id, d.designation_id, d.record FROM designation_section ds "
-            "JOIN designation d ON d.entry_id = ds.entry_id AND d.designation_id = "
-            "ds.designation_id WHERE ds.sid = ?", (section,)):
-        r = json.loads(rec)
-        if in_force(r.get("when"), on) == "no":
-            continue
-        asleep = False
-        for s in r.get("suspended_while") or []:
-            if rules_here is None:
-                rules_here = {(e, x) for e, x in db.execute(
-                    "SELECT rs.entry_id, rs.rule_id FROM section_ruleset sr JOIN ruleset rs "
-                    "ON rs.set_id = sr.set_id WHERE sr.sid = ?", (section,))}
-            if (eid, s["rule_id"]) in rules_here:
-                w = db.execute("SELECT when_ FROM rule WHERE entry_id = ? AND rule_id = ?",
-                               (eid, s["rule_id"])).fetchone()
-                if in_force(json.loads(w[0]) if w and w[0] else None, on) == "yes":
-                    asleep = True
-        if not asleep:
-            out.append(dict(r, entry_id=eid, id=did))
-    return out
-
-
-def stamp_waived_here(db, section: int, on) -> list[str]:
-    """The designations (`entry_id#id`) that waive the Steelhead Stamp OUTRIGHT on this section
-    on this day — "(Steelhead Stamp not required)", in force (`Designation.waives_every_stamp`).
-    Where one holds, no steelhead stamp is required (user ruling 2026-10-02)."""
-    from pipeline.regs.parsing.catalogue import Designation
-    return sorted(f"{d['entry_id']}#{d['id']}" for d in designations_in_force(db, section, on)
-                  if Designation.model_validate({k: v for k, v in d.items()
-                                                 if k != "entry_id"}).waives_every_stamp)
-
-
-def steelhead_stamp_period(desig, on) -> bool:
-    """IS IT THE CLASSIFIED-WATER STEELHEAD STAMP'S PERIOD here on `on`: a designation in force (`desig`,
-    `designations_in_force`) carries a `steelhead_stamp_during` whose `when` is not out of force that day. ONE answer
-    (T125 item 8, answers 10): the requirement reader's `steelhead_period` and the licence answer's `stamp_period`
-    each wrote it."""
-    return any(d.get("steelhead_stamp_during") is not None
-               and in_force(d["steelhead_stamp_during"].get("when"), on) != "no" for d in desig)
-
-
-def requirements_in_force(db, section: int, on) -> dict:
-    """Every requirement in force on `section` on the day, `{entry_id#req_id: why}` under
-    `"holds"`, and the ones an outright stamp waiver lifts there, under `"waived"`:
-    `{entry_id#req_id: [designation]}`;
-    under `"also_printed"`, `{entry_id#req_id: [entry_id#req_id, …]}`, the records that RESTATE a
-    holding one (one obligation printed twice is one key; RU-12) — and a zone table's
-    `on_designation` restatement holds on its own region's designations only.
-
-    A requirement holds where it is placed (`requirement_section`; `province` everywhere but its
-    `province_except` kind and tidal water; `on_designation` wherever a designation satisfying its
-    `on` is in force), on the days of its `when`; one with `on` and sections needs that designation
-    in force too. `waived_where: steelhead_stamp_waived` lifts it where `stamp_waived_here` holds.
-
-    A REQUIREMENT IN A PART NOBODY HAS DRAWN (`undrawn_part`: the Creston Valley WMA permit on
-    the south end of Kootenay Lake's Main Body) never holds of the section: it is listed under
-    `"not_yet_mapped"`, `{entry_id#req_id: part}`, to be SHOWN on the water, as a rule in an undrawn
-    part is (`not_yet_mapped`).
-
-    A REQUIREMENT FOR THE OTHER KIND OF WATER DOES NOT HOLD (G5, adopted 2026-10-06): one printed
-    for streams (`water: stream` — the province's Classified Waters Licence,
-    `zp:steelhead#steelhead_targeting`) does not hold on a lake or a wetland. A record that
-    RESTATES another binds as that record (`as_bound`: its `who`, `satisfied_by` and `water` —
-    one obligation). The section's kind is `section_kind`: its named water's (`item.kind`), else its
-    unnamed part's (the atlas's node kind, S1); only a section with neither keeps it. Listed under
-    `"wrong_water"`, `{entry_id#req_id: the water it is for}`, as `waived` lists the waived ones.
-
-    A SUPERIOR AUTHORITY'S REQUIREMENT DISPLACES THE PROVINCIAL ONES (G5, adopted 2026-10-06): where
-    a requirement with `authority: superior` holds (a national park's fishing permit), every other
-    holding requirement that has a way to satisfy it (`satisfied_by`, as bound) is NOT VALID there —
-    "a federal or park authority's requirement replaces provincial licences". It is moved to
-    `"displaced"`, `{entry_id#req_id: [superior entry_id#req_id, …]}`. (`province_except` already
-    keeps the province-placed records out of national parks; this reaches the sections- and
-    designation-placed ones.)"""
-    desig = designations_in_force(db, section, on)
-    have = {"classified_period": bool(desig), "steelhead_period": steelhead_stamp_period(desig, on)}
-    # A ZONE TABLE'S RESTATEMENT HOLDS ON ITS OWN REGION'S DESIGNATIONS ONLY (RU-12, 2026-10-04):
-    # Region 4's "Classified Waters Licence … many East Kootenay rivers (map p.33)" is Region 4's
-    # wording and held on the Dean (Region 5) and the Seymour (Region 1) beside the province's.
-    desig_regions = {EID.region_of(d["entry_id"]) for d in desig}
-
-    def own_region(eid: str) -> bool:
-        r = base_region(eid)
-        return r is None or EID.book_region(r) in desig_regions
-    placed = {(e, r) for e, r in db.execute(
-        "SELECT entry_id, req_id FROM requirement_section WHERE sid = ?", (section,))}
-    tidal = db.execute("SELECT 1 FROM tidal WHERE sid = ?", (section,)).fetchone() is not None
-    excepted = {k for (k,) in db.execute(
-        "SELECT area_kind FROM province_except WHERE sid = ?", (section,))}
-    waivers = stamp_waived_here(db, section, on)
-    holds: dict[str, str] = {}
-    waived: dict[str, list[str]] = {}
-    undrawn: dict[str, str] = {}
-    restated: dict[str, str] = {}
-    records = {f"{e}#{r}": (e, r, p, json.loads(rec)) for e, r, p, rec in db.execute(
-        "SELECT entry_id, req_id, placement, record FROM requirement")}
-    for eid, rid, placement, r in records.values():
-        if placement == "sections":
-            if (eid, rid) not in placed:
-                continue
-            why = "sections"
-        elif placement == "province":
-            kinds = {x.get("outside_area_kind") for x in r.get("extents") or []} - {None}
-            if tidal or kinds & excepted:
-                continue
-            why = "province"
-        elif placement == "on_designation":
-            if not own_region(eid):
-                continue
-            why = "on_designation"
-        else:
-            continue                                     # unresolved: the reader says "check"
-        if r.get("on") and not have[r["on"]]:
-            continue
-        if in_force(r.get("when"), on) == "no":
-            continue
-        key = f"{eid}#{rid}"
-        if not_yet_mapped(r):
-            undrawn[key] = str(r["undrawn_part"]).strip()
-            continue
-        if r.get("waived_where") == "steelhead_stamp_waived" and waivers:
-            waived[key] = waivers
-            continue
-        holds[key] = why
-        if r.get("restates"):
-            restated[key] = f"{r['restates']['entry_id']}#{r['restates']['id']}"
-    # ONE OBLIGATION, PRINTED TWICE, IS ONE KEY (RU-12, 2026-10-04): a record that `restates`
-    # another (Region 4's Classified Waters Licence line, the Shuswap row's char stamp, the
-    # Creston permit on the CVWMA row) is folded into the record it restates when that one holds
-    # too — listed under `also_printed` on the restated key, not as an obligation of its own.
-    also: dict[str, list[str]] = {}
-    for key, of in sorted(restated.items()):
-        if of in holds and of != key:
-            also.setdefault(of, []).append(key)
-            holds.pop(key)
-    # THE OTHER KIND OF WATER (G5): read on the obligation as bound — after the fold, so a
-    # restatement goes where the record it restates goes
-    kind = section_kind(db, section)
-    every_req = {x: v[3] for x, v in records.items()}
-    bound = {k: as_bound(records[k][3], every_req) for k in holds}
-    wrong: dict[str, str] = {}
-    if kind is not None:
-        for k in list(holds):
-            w = bound[k].get("water")
-            if w and w != kind:
-                wrong[k] = w
-                holds.pop(k)
-    # A SUPERIOR AUTHORITY DISPLACES (G5)
-    superior = sorted(k for k in holds if records[k][3].get("authority") == "superior")
-    displaced: dict[str, list[str]] = {}
-    if superior:
-        for k in list(holds):
-            if records[k][3].get("authority") != "superior" and bound[k].get("satisfied_by"):
-                displaced[k] = superior
-                holds.pop(k)
-    also = {k: v for k, v in also.items() if k in holds or k in displaced}
-    return {"holds": holds, "waived": waived, "not_yet_mapped": undrawn, "also_printed": also,
-            "wrong_water": wrong, "displaced": displaced,
-            "considered": considered_records(db, section, tidal, excepted)}
-
-
-#: Every licensing table and its id column: the records a section's sources may list.
-LICENSING_TABLES = (("requirement", "req_id"), ("designation", "designation_id"),
-                    ("exemption", "exemption_id"), ("alternative", "alternative_id"),
-                    ("licence_terms", "terms_id"), ("not_classified", "not_classified_id"))
-
-
-def considered_records(db, section: int, tidal: bool, excepted: set) -> list[str]:
-    """EVERY RECORD A SECTION'S "ALL LICENCE SOURCES" LISTS (consumer 7.7 step 2, M4: decided here,
-    beside the requirements in force, not again by the answers): its licensing set's records, in
-    (entry, record) order, then every record placed `province`, `on_designation` or `not_placed`
-    — unless an extent stops it at one of the section's province-exception kinds, or the water is
-    tidal, where no province-wide record holds."""
-    row = db.execute("SELECT set_id FROM section_licensing WHERE sid = ?", (section,)).fetchone()
-    own = [f"{e}#{r}" for e, r in db.execute(
-        "SELECT entry_id, record_id FROM licensing_set WHERE set_id = ? ORDER BY entry_id, "
-        "record_id", (row[0],))] if row else []
-    glob: list[str] = []
-    if not tidal:
-        recs = []
-        for tab, idcol in LICENSING_TABLES:
-            cols = [c[1] for c in db.execute(f"PRAGMA table_info({tab})")]
-            for x in db.execute(f"SELECT * FROM {tab}"):
-                d = dict(zip(cols, x))
-                recs.append((f"{d['entry_id']}#{d[idcol]}", d.get("placement"),
-                             json.loads(d["record"])))
-        glob = [k for k, placement, r in sorted(recs, key=lambda t: t[0])
-                if placement in ("province", "on_designation", "not_placed")
-                and not any(x.get("outside_area_kind") in excepted for x in r.get("extents") or [])]
-    return list(dict.fromkeys(own + glob))
-
-
-def section_kind(db, section: int) -> str | None:
-    """The WATER KIND of a section (lake, stream, wetland): the named water's (`item.kind`), else
-    its unnamed part's (`unnamed_part.kind`: `reach.water_kind.kind_of`, the graph node's —
-    S1, user ruling 2026-10-10: "we definitely know this from the build"). None only for a section
-    with neither (outside B.C., or a hand-built bundle with no places)."""
-    got = db.execute("SELECT i.kind FROM item_section s JOIN item i ON i.ord = s.ord "
-                     "WHERE s.sid = ?", (section,)).fetchone()
-    if got:
-        return got[0]
-    got = db.execute("SELECT u.kind FROM section_ruleset r JOIN unnamed_part u ON u.up = r.up "
-                     "WHERE r.sid = ?", (section,)).fetchone()
-    return got[0] if got else None
-
-
-def as_bound(r: dict, requirements: dict) -> dict:
-    """A requirement as it binds: one that RESTATES another (`restates`) reads the restated record's
-    `who`, `satisfied_by` and `water` — one obligation printed twice (RU-12). `requirements` is
-    every requirement record by `entry_id#req_id`."""
-    rs = r.get("restates")
-    if rs:
-        o = requirements.get(f"{rs['entry_id']}#{rs['id']}")
-        if o:
-            return dict(r, who=o.get("who"), satisfied_by=o.get("satisfied_by"),
-                        water=o.get("water"))
-    return r
-
-

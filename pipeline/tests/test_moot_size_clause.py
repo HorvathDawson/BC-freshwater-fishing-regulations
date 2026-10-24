@@ -65,9 +65,9 @@ def _said(sid, on, fish) -> dict:
 def _both_ways(monkeypatch, sid, on, fish):
     """(answer with the ruling, answer with the step switched off)."""
     now = _said(sid, on, fish)
-    monkeypatch.setattr(R, "MOOT_SIZE_CLAUSE_HIDDEN", False)
+    monkeypatch.setattr(R.ladder, "MOOT_SIZE_CLAUSE_HIDDEN", False)
     then = _said(sid, on, fish)
-    monkeypatch.setattr(R, "MOOT_SIZE_CLAUSE_HIDDEN", True)
+    monkeypatch.setattr(R.ladder, "MOOT_SIZE_CLAUSE_HIDDEN", True)
     return now, then
 
 

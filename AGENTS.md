@@ -73,7 +73,7 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
     not a builder's guess — it is the only placement of a straddler there is.
 13. **A rule's extents are its own — never inherited from its entry. Never widen a rule
     that names a place it could not bind.** No reader (reach builder, bundle,
-    `pipeline/deliver/bundle/read.py` `source_of`) hands a rule its entry's `extents`; the entry's only clip.
+    `pipeline/deliver/bundle/read/source.py` `source_of`) hands a rule its entry's `extents`; the entry's only clip.
     So every rule says where it is, or `CatalogueEntry` refuses it: `extents`, or its place in
     words — `extent_text` / `unresolved_locators` — and then it stays UNBOUND. Ingest writes
     the whole water (a zone entry: its area) onto a rule that says nothing about location
@@ -279,7 +279,7 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
 
 <!-- 45-53: rulings from 2026-09-25 to 2026-09-29 that were only in commit messages and memory.
      Appended, not interleaved, so the numbers above stay stable. The mechanics are in
-     pipeline/docs/CURRENT-STATE.md; the reference reader is read.py `effective_rules`. -->
+     pipeline/docs/CURRENT-STATE.md; the reference reader is read/ladder.py `effective_rules`. -->
 
 45. **The book's species list (p.80) is closed, and a bull trout IS a Dolly Varden.** 22 fish
     in TROUT/CHAR/WHITEFISH/BASS/OTHER (`catalogue.BOOK_FAMILIES`); any other code is refused.
@@ -325,7 +325,7 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
     "Trout/char release: in streams from Nov 1-Mar 31". Closures, water rows and other regions'
     rules are untouched. A size clause with no count ("none under 60 cm", `daily/size`) is not
     reached here but by step 5b (rule 57, MOOT SIZE CLAUSE). (2026-09-29, working tree)
-53. **Competition lives in one function.** `pipeline/deliver/bundle/read.py::effective_rules` is
+53. **Competition lives in one function.** `pipeline/deliver/bundle/read/ladder.py::effective_rules` is
     the reference reader: per fish, per day, lifts, naming before place, water-vs-zone quota
     rulings. The export `guide` restates it; the app must match it. Change a ruling there and in
     the guide together.
