@@ -1,4 +1,4 @@
-"""ONE REBUILD COMMAND (P2): curated + source data -> atlas -> reach -> tiles -> deliver.
+"""ONE REBUILD COMMAND (P2): curated + source data -> atlas -> clim -> reach -> tiles -> deliver.
 
     python -m pipeline build                    # preflight, then every stage that is out of date
     python -m pipeline build --dry-run          # the plan: each stage, its key, run or up to date
@@ -15,6 +15,13 @@ runs makes every later stage run. The atlas is never rebuilt to check it (it is 
 deterministic, memory `atlas-build-not-deterministic`): only `--atlas` builds one, and only
 `--promote` makes it the atlas everything else reads.
 
+THE GAUGE ENVELOPE IS A STAGE (N9, plan 2.11): `clim` makes `clim.json` from HYDAT
+(`pipeline.gauges.feed.climatology`), keyed on the HYDAT stamp, the roster and its own code. The deliver
+key holds `clim.json` by CONTENT, so after `clim` runs the deliver key is taken again: the bundle reruns
+only when the envelope's bytes moved (`READS_CONTENT`). Fetching HYDAT stays outside (a 266 MB
+download: `scripts/update-hydat.sh` / `data/fetch_data.py --layers hydat`); the preflight refuses
+without it.
+
 The manifest (`data/generated/build-manifest.json`) records, per run, each stage's command, key,
 status and seconds; per stage, its last successful key. Durations are never part of a key.
 The last stage is the strict vintage check: tiles and bundle from one atlas and one registry.
@@ -27,6 +34,7 @@ import json
 import subprocess
 import sys
 import time
+from datetime import date
 from pathlib import Path
 
 from pipeline.common.curated import CURATED, GENERATED, REPO_ROOT, SOURCE
@@ -35,11 +43,12 @@ from pipeline.gauges.consume.bundle_tables import CLIM_PATH
 MANIFEST = GENERATED.bundle.parent / "build-manifest.json"
 # TILES BEFORE DELIVER: tiles read only the atlas, and `pipeline.deliver all` ends with the vintage
 # check against the shipped tiles — after an atlas promote, deliver-then-tiles failed that check every time.
-STAGES = ("reach", "tiles", "deliver")
+STAGES = ("clim", "reach", "tiles", "deliver")
 WORKERS = 4
 
 # What each stage's CODE is: a change to any .py file under these (tests excluded) reruns it.
 CODE = {
+    "clim": ("pipeline/gauges/feed/climatology.py", "pipeline/gauges/feed/record.py"),
     "reach": ("pipeline/atlas/reach", "pipeline/atlas/graph", "pipeline/atlas/registry", "pipeline/regs",
               "pipeline/common"),     # graph/: the tributary walk the reach run uses
     "deliver": ("pipeline",),
@@ -55,11 +64,12 @@ def _sha(obj) -> str:
 
 
 def code_digest(roots) -> str:
-    """The stage's code, by content (uncommitted edits count): every .py file under `roots`,
-    tests and caches excluded."""
+    """The stage's code, by content (uncommitted edits count): every .py file under `roots` (a root may
+    be one file), tests and caches excluded."""
     h = hashlib.sha256()
     for root in roots:
-        for p in sorted((REPO_ROOT / root).rglob("*.py")):
+        base = REPO_ROOT / root
+        for p in ([base] if base.is_file() else sorted(base.rglob("*.py"))):
             if "tests" in p.parts or "__pycache__" in p.parts:
                 continue
             h.update(str(p.relative_to(REPO_ROOT)).encode())
@@ -108,13 +118,17 @@ def sources() -> dict:
             "hydat": SOURCE / "hydat.sqlite3"}
 
 
-def deliver_sources() -> dict:
+def deliver_sources(missing_ok: bool = False) -> dict:
     """What the deliver step reads from OUTSIDE the atlas and the corpus (N7, F06): every source
     stamp — the raw gpkg too (the bundle fits its catchment-area model and drainage groups from it)
-    — and the gauge envelope `clim.json` by CONTENT, since it is made outside `pipeline build`
-    (scripts/dev-build.sh) and a rewrite need not change its size or time. A missing one raises."""
+    — and the gauge envelope `clim.json` by CONTENT: the `clim` stage writes it, and a rewrite need
+    not change its size or time. A missing one raises; only the PLAN passes `missing_ok` (the `clim`
+    stage is about to make it, and deliver is keyed again after it runs — `READS_CONTENT`)."""
     out = {k: stamp(p) for k, p in sources().items()}
     if not Path(CLIM_PATH).exists():
+        if missing_ok:
+            out["clim"] = None
+            return out
         raise SystemExit(f"build: no {CLIM_PATH} — the bundle snapshots the gauge envelope; make it:\n"
                          f"    python -m pipeline.gauges.feed.climatology --hydat "
                          f"{SOURCE / 'hydat.sqlite3'} --out {CLIM_PATH}")
@@ -122,8 +136,20 @@ def deliver_sources() -> dict:
     return out
 
 
-def keys(build_dir: Path) -> dict[str, dict]:
-    """Every stage's inputs, as digests (the key is `_sha` of these)."""
+def clim_key() -> dict:
+    """N9: what the envelope is made from — the HYDAT archive (stamp) and its release marker, the station roster that
+    restricts it, its code — and the YEAR: `climatology` keeps the record up to last year (`date.today()`), so a new
+    year is a new envelope."""
+    hydat = SOURCE / "hydat.sqlite3"
+    marker = hydat.with_suffix(".release")
+    return {"hydat": stamp(hydat), "release": marker.read_text().strip() if marker.exists() else None,
+            "stations": stamp(SOURCE / "bc_hydrometric_stations.json"), "year": date.today().year,
+            "code": code_digest(CODE["clim"])}
+
+
+def keys(build_dir: Path, missing_ok: bool = False) -> dict[str, dict]:
+    """Every stage's inputs, as digests (the key is `_sha` of these). `missing_ok`: the plan, before `clim`
+    has made the envelope (`deliver_sources`)."""
     from pipeline.atlas.registry import load_registry
     from pipeline.atlas.reach.steelhead import fingerprint, load_list
     from pipeline.common.section_handles import digest_for, registry_digest_for
@@ -132,10 +158,11 @@ def keys(build_dir: Path) -> dict[str, dict]:
     atlas = {"handles": digest_for(build_dir), "registry": registry_digest_for(build_dir)}
     corpus = corpus_digest(read_all_entries(registry=load_registry(str(build_dir / "registry.json"))))
     return {
+        "clim": clim_key(),
         "reach": dict(atlas, corpus=corpus, steelhead=fingerprint(load_list()),
                       code=code_digest(CODE["reach"])),
         "deliver": dict(atlas, corpus=corpus, curated=curated_digest(),
-                        sources=deliver_sources(),
+                        sources=deliver_sources(missing_ok),
                         code=code_digest(CODE["deliver"])),
         "tiles": tiles_key(build_dir),
     }
@@ -153,7 +180,8 @@ def tiles_key(build_dir: Path) -> dict:
 
 def outputs(build_dir: Path) -> dict[str, list[Path]]:
     reach = GENERATED.reaches / build_dir.name
-    return {"reach": [reach / "report.json", reach / "rule_section.jsonl"],
+    return {"clim": [Path(CLIM_PATH)],
+            "reach": [reach / "report.json", reach / "rule_section.jsonl"],
             "deliver": [GENERATED.bundle / "bundle.sqlite", GENERATED.bundle / "verdicts.sqlite",
                         GENERATED.bundle / "status_index.bin", GENERATED.release / "LATEST"],
             "tiles": [GENERATED.tiles / "atlas.pmtiles", GENERATED.tiles / "atlas.meta.json"]}
@@ -162,6 +190,8 @@ def outputs(build_dir: Path) -> dict[str, list[Path]]:
 def commands(build_dir: Path) -> dict[str, list[str]]:
     py = [sys.executable, "-m"]
     return {
+        "clim": py + ["pipeline.gauges.feed.climatology", "--hydat", str(SOURCE / "hydat.sqlite3"),
+                      "--out", str(CLIM_PATH)],
         "reach": py + ["pipeline.atlas.reach.cli", "--build", str(build_dir),
                        "--out", str(GENERATED.reaches / build_dir.name)],
         "deliver": py + ["pipeline.deliver", "all", "--build", str(build_dir)],
@@ -199,13 +229,17 @@ def preflight(want_tiles: bool) -> None:
 # What each stage READS from an earlier stage: a stage reruns when one of THESE reran, not every later
 # one. Tiles read only the atlas (no reach input), so a reach-only change no longer rebuilds them. Deliver reads the
 # tiles' polygons and section geometry for `section_access` (T54), so a tile rebuild re-runs it.
-DEPENDS = {"reach": (), "tiles": (), "deliver": ("reach", "tiles")}
+DEPENDS = {"clim": (), "reach": (), "tiles": (), "deliver": ("reach", "tiles")}
+#: What a stage reads from an earlier stage BY CONTENT, in its own key: after that stage runs, the key is taken again
+#: and the stage runs only if it moved. Deliver keys `clim.json`'s bytes (N7), so a `clim` run that rewrote the same
+#: envelope does not rebuild the bundle.
+READS_CONTENT = {"deliver": ("clim",)}
 
 
 def plan(build_dir: Path, force: set[str]) -> list[tuple[str, str, bool]]:
     """[(stage, key, run?)] in order; a stage runs when its key changed, its outputs are missing, it is
     forced, or a stage it DEPENDS on runs."""
-    m, k, out = load_manifest(), keys(build_dir), outputs(build_dir)
+    m, k, out = load_manifest(), keys(build_dir, missing_ok=True), outputs(build_dir)
     rows, runs = [], set()
     for s in STAGES:
         key = _sha(k[s])
@@ -216,6 +250,23 @@ def plan(build_dir: Path, force: set[str]) -> list[tuple[str, str, bool]]:
             runs.add(s)
         rows.append((s, key, go))
     return rows
+
+
+def execute(build_dir: Path, rows, cmds: dict, run: dict, m: dict, skip=()) -> set[str]:
+    """Run the plan's stages in order; a stage that reads an earlier one BY CONTENT (`READS_CONTENT`) is keyed again
+    once that one ran, and runs only if its key moved. Returns the stages that ran."""
+    ran: set[str] = set()
+    for s, key, go in rows:
+        if s in skip:
+            continue
+        if any(d in ran for d in READS_CONTENT.get(s, ())):
+            key = _sha(keys(build_dir)[s])          # taken again: it reads that stage's output by content
+            go = go or key != (m["stages"].get(s) or {}).get("key")
+            print(f"  {s:<8} {key}  {'RUN' if go else 'up to date'} (re-keyed after {', '.join(READS_CONTENT[s])})")
+        if go:
+            run_stage(s, cmds[s], key, run, m)
+            ran.add(s)
+    return ran
 
 
 def run_stage(stage: str, cmd: list[str], key: str, run: dict, m: dict) -> None:
@@ -288,9 +339,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"  {s:<8} {key}  {'skip (--no-tiles)' if skip else 'RUN' if go else 'up to date'}")
     if a.dry_run:
         return 0
-    for s, key, go in rows:
-        if go and not (a.no_tiles and s == "tiles"):
-            run_stage(s, cmds[s], key, run, m)
+    execute(build_dir, rows, cmds, run, m, skip={"tiles"} if a.no_tiles else set())
 
     # P07: every artifact of the delivery, not only tiles <-> bundle
     from pipeline.common.vintage import Artifacts, report_all

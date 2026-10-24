@@ -17,7 +17,7 @@ def world(tmp_path: Path, monkeypatch):
         ps[0].write_text("x")
     k = {s: {"in": s} for s in B.STAGES}
     monkeypatch.setattr(B, "MANIFEST", tmp_path / "build-manifest.json")
-    monkeypatch.setattr(B, "keys", lambda _b: k)
+    monkeypatch.setattr(B, "keys", lambda _b, missing_ok=False: k)
     monkeypatch.setattr(B, "outputs", lambda _b: outs)
 
     def seal():
@@ -106,8 +106,8 @@ def test_a_refreshed_gpkg_changes_the_deliver_key(inputs):
 
 
 def test_a_new_envelope_changes_the_deliver_key_even_at_the_same_size_and_time(inputs):
-    """clim.json is made outside `pipeline build` (scripts/dev-build.sh): its CONTENT is keyed, so a
-    rewrite that kept size and mtime still reruns the bundle."""
+    """clim.json is the `clim` stage's output, and the deliver key holds its CONTENT, so a rewrite that kept
+    size and mtime still reruns the bundle."""
     import os
     _, clim = inputs
     before = B._sha(B.deliver_sources())
@@ -123,3 +123,60 @@ def test_a_missing_envelope_is_refused_with_the_command_that_makes_it(inputs):
     clim.unlink()
     with pytest.raises(SystemExit, match="pipeline.gauges.feed.climatology"):
         B.deliver_sources()
+
+
+def test_a_missing_envelope_is_only_a_placeholder_in_the_plan(inputs):
+    """The plan runs before `clim` has made it; deliver is keyed again once it has (`execute`)."""
+    _, clim = inputs
+    clim.unlink()
+    assert B.deliver_sources(missing_ok=True)["clim"] is None
+
+
+# ------------------------------------------------------------------ N9: the envelope is a stage
+
+def test_the_envelope_is_made_first_from_hydat():
+    assert B.STAGES[0] == "clim" and B.STAGES.index("clim") < B.STAGES.index("deliver")
+    cmd = B.commands(Path("atlas"))["clim"]
+    assert cmd[2] == "pipeline.gauges.feed.climatology" and str(B.CLIM_PATH) in cmd and "--hydat" in cmd
+    assert B.outputs(Path("atlas"))["clim"] == [Path(B.CLIM_PATH)]
+    assert set(B.clim_key()) == {"hydat", "release", "stations", "year", "code"}
+
+
+def test_a_new_hydat_reruns_the_envelope_only(world):
+    k, _o, seal = world
+    seal()
+    k["clim"]["in"] = "HYDAT 2027"
+    assert _runs() == ["clim"]           # deliver is re-keyed after it runs, never by dependency
+
+
+def _execute(world, monkeypatch, envelope_moves: bool):
+    k, _o, seal = world
+    seal()
+    k["clim"]["in"] = "HYDAT 2027"
+    ran: list[str] = []
+    monkeypatch.setattr(B, "run_stage", lambda s, *_a: ran.append(s))
+
+    def keys_after(_b, missing_ok=False):
+        if envelope_moves and "clim" in ran:
+            return dict(k, deliver={"in": "deliver", "clim": "new bytes"})
+        return k
+    monkeypatch.setattr(B, "keys", keys_after)
+    rows = B.plan(Path("atlas"), set())
+    B.execute(Path("atlas"), rows, {s: [s] for s in B.STAGES}, {}, B.load_manifest())
+    return ran
+
+
+def test_an_envelope_rewritten_with_the_same_bytes_does_not_rebuild_the_bundle(world, monkeypatch):
+    assert _execute(world, monkeypatch, envelope_moves=False) == ["clim"]
+
+
+def test_an_envelope_that_moved_rebuilds_the_bundle(world, monkeypatch):
+    assert _execute(world, monkeypatch, envelope_moves=True) == ["clim", "deliver"]
+
+
+def test_a_bare_python_m_pipeline_refuses():
+    import subprocess
+    import sys
+    r = subprocess.run([sys.executable, "-m", "pipeline"], capture_output=True, text=True,
+                       cwd=Path(B.__file__).resolve().parents[1])
+    assert r.returncode != 0 and "python -m pipeline build" in r.stderr

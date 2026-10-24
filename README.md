@@ -109,7 +109,7 @@ markers (`.github/workflows/pipeline-ci.yml`).
 cd app && pnpm install && pnpm check      # what app CI runs
 pnpm tiles                                # serve the local tiles, bundle and feeds
 pnpm dev:web                              # the phone UI in a browser
-./scripts/dev-build.sh                    # refresh the gauge feeds (~1 min)
+./scripts/dev-build.sh                    # refresh the gauge feeds (~1 min; the envelope is a pipeline build stage)
 curation-review/run.sh                    # the curation tool (see curation-review/README.md)
 ```
 

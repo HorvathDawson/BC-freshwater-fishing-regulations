@@ -14,7 +14,8 @@
 #                         asks the listing itself and STOPS unless data/source now holds the newest release.
 #   2. the envelope       clim.json, from that HYDAT, into the served feed directory
 #   3. republish the feed with the new envelope: every percentile re-measured; the notice clears here (current == latest)
-#   4. the bundle         `pipeline build` reruns the deliver stage (its key holds the hydat stamp and clim's hash):
+#   4. the bundle         `pipeline build` reruns its clim stage (keyed on the HYDAT stamp: the same envelope again)
+#                         and the deliver stage (its key holds the hydat stamp and clim's hash):
 #                         gauge_clim / gauge_stats / section_panel, and a new release whose manifest dates HYDAT.
 #                         Heavy, so through scripts/heavy.sh: one heavy job at a time, with the memory guard.
 #   5. the upload         the new release to R2 through the release publisher (`pipeline.tools.publish`: tiles,
