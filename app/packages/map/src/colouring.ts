@@ -37,7 +37,7 @@
  * the older way, by data PUSHED for the sections on screen:
  *
  *                  web (per tile)                                native (pushed)
- *   status         mode `profile`; `MapProps.status` = the       mode `status`; `statusData` (@app/ui hooks.ts) =
+ *   status         mode `profile`; `MapProps.status` = the       mode `status`; `statusData` (@app/ui hooks/facts.ts) =
  *                  index + the day, on both tabs                 every visible section's code, Map tab only
  *   standing       `MapProps.standing` = the classes + their     `data` = every visible section's standing
  *                  values (`useConditionsColour`)                (`usePanelStandings` → `setData`)

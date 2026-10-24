@@ -70,7 +70,7 @@ describe("the feed lifetime", () => {
   it("is one constant", () => {
     expect([ANSWER_TTL_MS, SYNC_POLL_MS, FEED_POLL_MS, READING_POLL_MS]).toEqual([FEED_TTL_MS, FEED_TTL_MS,
       FEED_TTL_MS, FEED_TTL_MS]);
-    for (const f of ["ui/src/answers.ts", "ui/src/sync.ts", "ui/src/conditionsColour.ts", "ui/src/hooks.ts"])
+    for (const f of ["ui/src/answers.ts", "ui/src/sync.ts", "ui/src/conditionsColour.ts", "ui/src/hooks/gauge.ts"])
       expect(read(`app/packages/${f}`), f).not.toMatch(/=\s*5 \* 60_000/);
   });
 });

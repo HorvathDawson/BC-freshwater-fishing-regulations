@@ -73,7 +73,7 @@ describe("one gauge speaker: speakerFor decides, nothing else (T105)", () => {
 
   it("section_gauge is read only for the two traces: the sheet's and the spot's, once each", () => {
     // a second call in capture.ts is the spot freezing the matched station's reading again (the pre-review spelling)
-    expect(counts(MATCH_READ)).toEqual([["packages/data/src/spots/capture.ts", 1], ["packages/ui/src/hooks.ts", 1]]);
+    expect(counts(MATCH_READ)).toEqual([["packages/data/src/spots/capture.ts", 1], ["packages/ui/src/hooks/gauge.ts", 1]]);
   });
 
   it("no third speaker: no stationsFor, no useConditions", () => {
