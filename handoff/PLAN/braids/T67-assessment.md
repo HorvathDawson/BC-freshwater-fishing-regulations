@@ -331,3 +331,34 @@ decision before any promotion — as built the reach run FAILS on them; the Exch
 whose host is a named side channel should still cut its mainstem (3 lost gauge boundaries); whether a length
 cut may move a straddling piece's home region (the 1,021 m Fraser case). Bundle, tiles, card gate and the slow
 suite were not run (phase 3+).
+
+### Round 2 (same day): the gate failures and the residual straddles
+
+Rebased onto `redesign/stream-sections` 3458b129 (E15's bundle removal re-applied in the split
+`bundle/read/` and `bundle/rules/` packages). The twin was rebuilt from 3458b129, so the diff below is
+against the current base.
+
+- **Chowade r1, 359006631:259** — the 26 m piece of a braid below its own cut drains into an unnamed pond, so
+  it reaches its water only by the D5 flow path, and the upstream walk climbed the braid's continuation edge
+  back over the cut. **Ash r1, 354088143:161** — Elsie Lake's second outlet; the upstream walk climbed through
+  Elsie Lake (the cut's own lake) to the Ash above it. Fix: `extent._flow_reach` never steps between pieces of
+  a line meeting at the window's cut, nor climbs through the lake the cut is the edge of (POLICY_VERSION 30).
+  Both pieces are now outside; the reach gate passes.
+- **Tweedsmuir Park** (an area edge cutting many lines): a touch on another line of the same split was sided
+  by that line's own crossing, which is not one side across a polygon. Anchors that cut every line by their own
+  geometry (area, MU, line) are now judged on the point's own line only. This also refuses the one proposed
+  Tweedsmuir cut (360224974 at 133.68), which was the same false straddle. The other 28 cuts are unchanged.
+- **Gauge 08NM250**: the only path across the cut ran through a creek of another name. **Gauge 08GA079**: the same
+  shape after the cut. Through pieces are now taken on the host's own water (and ponds) only.
+- **Kitsumkalum +1.5 km, Squamish/Ashlu**: genuine straddles the clipped cut line does not reach. They stay
+  "refused: line misses". Both cuts are unbound (no rule binds them), so the reach is not affected.
+- **Exchamsiks**: the confluence projects onto a Skeena side channel (360216952), and the sweep cuts the
+  mainstem 1.75 km away. The proposed curated change is in `v2/exchamsiks_host.proposed.diff` (scope the split
+  to the mainstem blk 360887278, `proximity_m` 1500; the mouth is 1,252 m from the mainstem). NOT applied.
+
+New counts: 28 cut cases (19 curated, 9 gauge), 30 braid cut points; refused near curated cuts: 4 another
+water, 13 one side, 2 line misses; 2 junctions re-homed; 3 residual straddles (Exchamsiks, Kitsumkalum,
+Ashlu); reach gate 0. Length cuts: 2,300 unchanged, 301 moved, 3 dropped, 16 added (733 junctions skipped),
+0 braid cuts, 0 straddles. Binding diff vs the twin: 466 rules changed; 389 section ids only, 21 braid (as
+above), 12 ditch, 44 by one moved length cut (the 1,021 m Fraser piece), 0 unexplained. `cuts.json` regenerated.
+

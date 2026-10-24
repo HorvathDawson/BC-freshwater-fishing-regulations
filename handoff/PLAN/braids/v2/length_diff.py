@@ -10,6 +10,7 @@ attributed:
   braid    — on a blue line the side atlas's braid sweep cut, or a member of a network it cut/re-homed
   ditch    — a 2300-only ditch the registry no longer puts in its river's item (owner Q1)
   e15      — a piece the old run placed by E15's majority side (straddle.jsonl), E15 being gone
+  length   — a blue line whose automatic length cuts moved (a straddling piece's home region follows)
   rehome   — a blue line one of whose edges the sweep re-homed by geometry
   gauge    — on a blue line the old anchors perpendicular sweep cut under a gauge id (removed)
   other    — anything else (unexplained)
@@ -71,6 +72,18 @@ for f in ("braid_sweep.json", "braid_sweep_length.json"):
                 rehome_blks.add(str(m[k]).split(":")[0])
 old_res = json.loads((OLD_ATLAS / "splits.resolved.json").read_text())
 gauge_blks = {r["blk"] for r in old_res if "braid cut" in (r.get("concern") or "")}
+# blue lines whose automatic length cuts moved (a junction a braid spans is skipped): a straddling piece's
+# home region can follow (the region holding most of its length)
+_new_res = json.loads((NEW_ATLAS / "splits.resolved.json").read_text())
+_lo = defaultdict(set)
+_ln = defaultdict(set)
+for r in old_res:
+    if r.get("source") == "length":
+        _lo[r["blk"]].add(round(r["route_measure"], 1))
+for r in _new_res:
+    if r.get("source") == "length":
+        _ln[r["blk"]].add(round(r["route_measure"], 1))
+length_blks = {b for b in set(_lo) | set(_ln) if _lo[b] != _ln[b]}
 old_braid_cut_blks = set(gauge_blks)
 
 # ditches: 2300-only, no gnis, in a stream item of the OLD registry
@@ -98,6 +111,8 @@ def why(sid: str) -> str:
         return "braid"
     if blk in e15:
         return "e15"
+    if blk in length_blks:
+        return "length"
     if blk in rehome_blks:
         return "rehome"
     if blk in old_braid_cut_blks:
