@@ -212,13 +212,14 @@ use that as the sole source of future work."
 | T165 | no public access: streams dotted grey (owner), warning amber only in the page banner; own keeps amber | OPEN | — | app style |
 | T166 | tidal areas cut: DFO tidal polygon → one clean cut across each stream (fix partial-channel blobs) | OPEN | — | after cleanup; atlas rebuild; ★ confirm cuts |
 | T167 | More tab: simpler details, references on their own page, data freshness compact on the main tab, a real desktop layout | DONE | 3af0dbaa, de06c3ae | app; tiles date needs a manifest stamp (follow-up) |
-| T168 | "N gauges in view": split gauges on this water from donor gauges | OPEN | — | app |
+| T168 | "N gauges in view": split gauges on this water from donor gauges; not-reporting gauges under a closed drop-down (owner 2026-10-24) | OPEN | — | app |
 | T169 | one gauge panel for one side-channel water (Nicomen grey middle: connector vs adopted lines) | DONE | 89b8e1a1, d42f0741 | deliver: 24 sections change, all side-channel; Nicomen one panel |
 | T170 | a spot gets the flow of its own day (historical) on refresh or on request | OPEN | — | app (+ feed/release history) |
 | T171 | "Like your visit?": every forecast day uses the flow forecast (no weather-only gaps) | OPEN | — | feed + app |
 | T172 | Android smoke on the emulator (builds, installs, opens, main screens) — before cleanup; full parity stays T50 | OPEN | — | heavy, alone |
 | T173 | fish obstacles layer (falls, dams, culverts) from the BC Data Catalogue | OPEN | — | future |
 | T174 | remaining answered → grey → answered gaps on main rivers (321/84 runs; Gravel Slough connectors) | OPEN | — | deliver; Q153–Q155 |
+| T175 | a water's own line shows at every zoom on its Conditions / water map (copy from tiles, clamp the opening zoom) | OPEN | — | app |
 
 ## Order for open tickets
 

@@ -12,3 +12,8 @@ the water's own line) and which are DONORS (other waters' gauges the estimate bo
 first). One function decides own vs donor (core), used by every surface; whole-value tests; shots (Nicomen Slough,
 Chilliwack, a lake with its own gauge) light/dark, phone/desktop. Ships: app (and the bundle if a field is missing).
 Size: S.
+
+## Owner addition (2026-10-24)
+"nicomen slough has so many not reporting gauges. they need to be hidden under drop down." — gauges not reporting
+(donorState not "reads") collapse under one closed-by-default disclosure per group ("6 not reporting ▸"); the count line
+counts them apart. Sent to the T168 lane while it builds.
