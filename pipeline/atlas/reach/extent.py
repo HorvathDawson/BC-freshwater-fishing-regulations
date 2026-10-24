@@ -48,9 +48,9 @@ def area_sections(reg, g, key: str) -> set[str] | None:
     that basin (`registry.basins`). None = no such area (the caller fails, naming it)."""
     if key in reg:
         if key.startswith(_regions.REGION_PREFIX):
-            # A WATER TAKES THE ZONE RULES OF THE REGION IT LIES IN: a straddling stream piece is
-            # its home region's only, a lake is in both (`registry.regions`, user ruling 2026-09-25
-            # — Mara Lake). The ONE region membership (T115): `regions.region_sections`.
+            # A WATER TAKES THE ZONE RULES OF EVERY REGION IT LIES IN: a straddling stream piece,
+            # like a lake, is in both (T183, owner 2026-10-24 — Mara Lake, the Fraser's 4 pieces).
+            # The ONE region membership (T115): `regions.region_members`.
             return _regions.region_members(reg, g, key)
         return set(reg[key].section_ids)
     code = basin_code(key)

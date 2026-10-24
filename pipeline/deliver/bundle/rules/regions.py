@@ -7,12 +7,12 @@ from pipeline.deliver.bundle.rules.predicates import _zone_region
 
 
 #: POLICY (T140, RULINGS Z14): THE REGIONS A ROW'S OWN WATER LIES IN are asked of the ONE
-#: region membership (`registry.regions`, T115) with the atlas's home map (`home`): a stream piece
-#: straddling a region line lies in its HOME region only, a lake in every region it touches — the
-#: same members the zone rules and the per-region row limit read. Before, the bundle called
-#: `outside.water_regions` with no graph, i.e. plain polygon membership, so a printed lift carried
-#: (G3) into a region where the water has only a straddling piece homed elsewhere. False = plain
-#: polygon membership (the mutation pin).
+#: region membership (`registry.regions`, T115) — the same members the zone rules and the per-region
+#: row limit read. Since T183 (owner 2026-10-24) that membership is raw: a straddling stream piece lies
+#: in both regions, as a lake does, so a printed lift carries (G3) into a region where the water has
+#: a straddling piece — the piece carries that region's closure too. With
+#: `regions.STRADDLERS_IN_EVERY_REGION` on, this flag changes nothing; with it off (the T115 pin), True
+#: hands the home map in and False is plain polygon membership (the T140 mutation pin).
 WATER_REGIONS_BY_HOME = True
 
 

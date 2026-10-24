@@ -364,9 +364,9 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
             f"{foreign[:5]} ({len(foreign)}), licensing sets on {licensed} section(s). Tidal "
             f"water takes only its own row's note. Re-run the reach builder:\n"
             f"    python -m pipeline.atlas.reach.cli --build <atlas> --out {reaches}")
-    # THE REGION A STRADDLING SECTION TAKES ITS ZONE RULES FROM (`section_home`): the atlas's own
-    # `region_home.json` (`registry.regions.write_homes`), by handle — the fact that decided which
-    # region's table the reach run bound here, so a reader can say "this piece takes Region 3's".
+    # THE HOME REGION OF A STRADDLING SECTION (`section_home`): the atlas's own `region_home.json`
+    # (`registry.regions.write_homes`), by handle — the region holding most of it. Display only since
+    # T183: a straddler takes both regions' tables (the reach run bound both).
     from pipeline.atlas.registry.regions import read_homes
     homes = sorted((sid[h], r) for h, r in read_homes(build_dir).items() if h in sid)
     db.executemany("INSERT INTO section_home (sid, region) VALUES (?,?)", homes)

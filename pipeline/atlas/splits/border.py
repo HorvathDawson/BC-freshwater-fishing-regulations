@@ -314,7 +314,9 @@ def mark_inside_areas(graph: StreamGraph, geoms: dict, polys_by_name: dict,
 
     The overlap is measured, not merely tested: two pieces cut at the boundary both *touch* the
     polygon there, so a bare ``intersects`` would flag the outside neighbour of every cut. A shared
-    point has zero length and zero area and is excluded; anything with real extent inside is kept.
+    point has zero length and zero area and is excluded; anything with real extent inside is kept —
+    for a REGION, more than `SLIVER_M` of a line (`registry.regions.holds`, T183: a straddler carries
+    both regions' rules, so a piece a metre or two over the line is positional error, not membership).
 
     Covers lake and wetland nodes as well as stream pieces. The old midpoint pass tested
     ``kind == stream`` only, so 1,750 lakes lying wholly inside a park — plus 44 straddling one — were
@@ -332,6 +334,8 @@ def mark_inside_areas(graph: StreamGraph, geoms: dict, polys_by_name: dict,
     Lakes and wetlands are never cut and keep the outline test.
     """
     from shapely.strtree import STRtree
+
+    from pipeline.atlas.registry import regions as _regions
 
     extra = extra or {}
     cutter = cutter or {}
@@ -399,8 +403,8 @@ def mark_inside_areas(graph: StreamGraph, geoms: dict, polys_by_name: dict,
             if i in outline:
                 if _waterbody_overlap_counts(part.area, gs[i].area):
                     n += _flag(nids[i], name)
-            elif part.length > _AREA_MIN_OVERLAP_M or part.area > 0:
-                n += _flag(nids[i], name)
+            elif _regions.holds(name, part.length, _AREA_MIN_OVERLAP_M) or part.area > 0:
+                n += _flag(nids[i], name)   # a REGION needs > SLIVER_M inside (T183)
     return n
 
 

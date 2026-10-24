@@ -12,8 +12,15 @@ Now:
     (G3, `equivalent_regions`) carries into a region only where the row's water really lies.
   * both area-family readers call `regions.area_family_sections`.
 
+T183 (owner 2026-10-24) made the one membership RAW — a straddling stream piece lies in both regions,
+as a lake does — so the regions of a water now include a region it only straddles into, and the lift
+carries there (the piece carries that region's closure too). The T140 behaviour is what
+`regions.STRADDLERS_IN_EVERY_REGION = False` gives, and the tests below hold it under that pin.
+
 Mutation pins:
-  * `rules.regions.WATER_REGIONS_BY_HOME = False` fails `test_a_straddling_piece_homed_elsewhere_is_not_a_region_of_the_water`
+  * `regions.STRADDLERS_IN_EVERY_REGION = False` fails `test_a_straddling_piece_is_a_region_of_the_water`
+    and `test_the_lift_carries_into_a_region_the_water_straddles_into`.
+  * with that pin off, `rules.regions.WATER_REGIONS_BY_HOME = False` fails `test_a_straddling_piece_homed_elsewhere_is_not_a_region_of_the_water`
     and `test_the_lift_does_not_carry_into_a_region_the_water_only_straddles_into`.
   * `bundle.build` dropping `home=` on `_rules.write` fails `test_the_bundle_hands_its_home_map_to_the_rules`.
   * an `f"area:{kind}:"` family prefix built outside `regions.py` fails `test_no_second_copy_of_an_area_family`.
@@ -67,10 +74,18 @@ def _ce(eid, matched):
 DOCS = [_ce("r3:c_creek@3-1", ["gnis:C"]), _ce("r3:w_lake@3-1", ["wbk:W"])]
 
 
-def test_a_straddling_piece_homed_elsewhere_is_not_a_region_of_the_water():
+def test_a_straddling_piece_is_a_region_of_the_water(monkeypatch):
+    """T183: the creek's piece straddling into Region 5 makes Region 5 one of its regions. Under the
+    T115 pin, the home map holds it to Region 3 (T140), and WATER_REGIONS_BY_HOME off undoes that."""
     g, reg = _world()
+    both = {"r3:c_creek@3-1": frozenset({"3", "5"}), "r3:w_lake@3-1": frozenset({"3", "5"})}
+    assert R.regions_of_waters(reg, DOCS, regions.home_view(g)) == both
+    monkeypatch.setattr(regions, "STRADDLERS_IN_EVERY_REGION", False)
     assert R.regions_of_waters(reg, DOCS, regions.home_view(g)) == {
         "r3:c_creek@3-1": frozenset({"3"}), "r3:w_lake@3-1": frozenset({"3", "5"})}
+    from pipeline.deliver.bundle.rules import regions as RR
+    monkeypatch.setattr(RR, "WATER_REGIONS_BY_HOME", False)
+    assert R.regions_of_waters(reg, DOCS, regions.home_view(g)) == both
 
 
 def test_without_a_home_map_it_is_plain_membership():
@@ -80,13 +95,17 @@ def test_without_a_home_map_it_is_plain_membership():
         "r3:c_creek@3-1": frozenset({"3", "5"}), "r3:w_lake@3-1": frozenset({"3", "5"})}
 
 
-def test_the_lift_does_not_carry_into_a_region_the_water_only_straddles_into():
-    """G3 end to end (`equivalent_regions`): the creek's Region 3 row's printed lift carries into
-    Region 3 only; before T140 it carried into Region 5 through the one straddling piece."""
+def test_the_lift_carries_into_a_region_the_water_straddles_into(monkeypatch):
+    """G3 end to end (`equivalent_regions`): since T183 the creek's straddling piece carries Region
+    5's closure, so its Region 3 row's printed lift carries into Region 5 too. Under the T115 pin it
+    carries into Region 3 only (T140)."""
     g, reg = _world()
     water = R.regions_of_waters(reg, DOCS, regions.home_view(g))
-    assert R.equivalent_regions(DOCS[0], "c_creek.r1", water, {}, {}) == frozenset({"3"})
+    assert R.equivalent_regions(DOCS[0], "c_creek.r1", water, {}, {}) == frozenset({"3", "5"})
     assert R.equivalent_regions(DOCS[1], "w_lake.r1", water, {}, {}) == frozenset({"3", "5"})
+    monkeypatch.setattr(regions, "STRADDLERS_IN_EVERY_REGION", False)
+    water = R.regions_of_waters(reg, DOCS, regions.home_view(g))
+    assert R.equivalent_regions(DOCS[0], "c_creek.r1", water, {}, {}) == frozenset({"3"})
 
 
 def test_the_view_answers_as_the_graph_does():
@@ -95,7 +114,7 @@ def test_the_view_answers_as_the_graph_does():
     for regs in (("3",), ("5",), ("3", "5")):
         assert regions.region_sections(regs, reg, view) == regions.region_sections(regs, reg, g)
     assert regions.section_regions(reg, view) == regions.section_regions(reg, g) == {
-        "c3:0": {"3"}, "c35:0": {"3"}, "lake:L": {"3", "5"}}
+        "c3:0": {"3"}, "c35:0": {"3", "5"}, "lake:L": {"3", "5"}}
 
 
 def test_a_view_of_a_graph_with_no_home_map_is_refused():

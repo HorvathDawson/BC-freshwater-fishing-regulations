@@ -122,7 +122,10 @@ from typing import Callable
 #: 31: (T187) a detached braid piece cut at BOTH ends by the window's own two cuts (lower end the lower
 #:     cut, upper end the upper cut) lies inside the window
 #:     (`extent.A_PIECE_BETWEEN_THE_WINDOWS_CUTS_IS_INSIDE`): the Peace's 1.84 km piece under Site C.
-POLICY_VERSION = "31"
+#: 32: (T183, owner 2026-10-24, REVERSES 26/T115) A STRADDLER CARRIES BOTH REGIONS' RULES: the one region
+#:     membership is raw (`registry.regions.STRADDLERS_IN_EVERY_REGION`) — a stream piece in two region
+#:     polygons takes both zone tables, both regions' per-region rows and both steelhead twins.
+POLICY_VERSION = "32"
 
 
 def entry_key(entry: dict, build_id: str, policy_version: str = POLICY_VERSION) -> str:

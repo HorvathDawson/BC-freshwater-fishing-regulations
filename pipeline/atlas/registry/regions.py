@@ -1,43 +1,36 @@
-"""THE REGION A WATER LIES IN — one region per section, for the zone rules (user ruling 2026-09-25).
+"""THE REGIONS A WATER LIES IN — for the zone rules and every per-region reader.
 
 A water takes the zone rules of the region it lies IN. Region membership (`area:region:*` registry
-items) is by INTERSECTION: the atlas flags every piece that reaches into a region polygon
-(`splits.border.mark_inside_areas`), and a lake is never cut, so a lake drawn across a region line
-sits in both — and bound BOTH regions' standing tables, tied. Mara Lake (61 % Region 3, 39 % Region
-8 by area; the book prints it under Shuswap Lake in Region 3) carried Region 3's "Trout/char: 5"
-and Region 8's "Trout/char: 5" side by side. Measured on the promoted build (2026-09-25): 215
-sections sit in more than one region — 160 lakes and 55 stream pieces the area cutter's
-first-enter/last-exit left straddling — and 41 rule sets (214 sections) carried two regions' base.
+items) is by INTERSECTION: the atlas flags every piece that reaches into a region polygon by more
+than `SLIVER_M` (`splits.border.mark_inside_areas`, `holds` below — a touch is not membership), and
+a lake is never cut, so a lake drawn across a region line sits in both. Mara Lake (61 % Region 3, 39 %
+Region 8 by area; the book prints it under Shuswap Lake in Region 3) carries Region 3's "Trout/char:
+5" and Region 8's "Trout/char: 5". Measured on the promoted build (2026-09-25): 215 sections sit in
+more than one region — 160 lakes and 55 stream pieces the area cutter's first-enter/last-exit left
+straddling.
 
-THE HOME REGION is the region holding the largest share of the section: a waterbody by its OUTLINE's
-area (the same geometry the membership pass tests), a stream piece by its line's length. A tie
-(never seen on real data) goes to the smaller region id, so the answer is deterministic. Nothing is
-cut: the straddling section is MARKED as its home region's for the zone rules
-(`straddling-sections-mark-not-cut`), and only there.
+A STRADDLER CARRIES BOTH REGIONS' RULES (T183, owner 2026-10-24, reversing T115 and the stream half of
+the 2026-09-25 ruling): "those straddle pieces are supposed to get both regions' regulations". A
+stream piece drawn across a region line is in both regions, as a lake is — both zone tables, both
+regions' per-region rows (the Fraser's Region 3 and Region 5 rows on 356364114:418405) — and the most
+strict applies, per fish, where the rules are read (`deliver.bundle.read.effective_rules` step 6).
+Moving a length cut therefore never moves a piece's region rules.
 
-ONLY A STREAM PIECE IS HELD TO ITS HOME (user ruling 2026-09-25, second half). A LAKE straddling a
-region line keeps BOTH regions' zone rules and the most strict wins, per fish (`in_region`;
-`deliver.bundle.read.effective_rules` step 6). The home of a lake is still measured and reported.
-
-ONE MEMBERSHIP FOR EVERY READER (T115, 2026-10-22). A per-region ROW is limited to the regions its id
-names by the same home members (`region_sections`, below; `reach.outside.region_limit`): a Fraser
-piece homed in Region 3 is not Region 5's row's, and a lake stays in both — the book prints Mara Lake
-in Region 8's table too ("No powered boats south of the CPR bridge"), and that row still binds the
-lake. Nor does it move the province's border: a section in any region polygon is inside B.C.,
-whichever is home.
-
-Computed ONCE, BY THE ATLAS BUILD — from region polygons (`area_catalog.gpkg`), waterbody
-outlines (`waterbody_polys.pkl`) and section lines (`geometries.pkl`), about ten seconds — and
-written to `region_home.json` beside `registry.json` (`write_homes`). The reach CLI and the review
-app attach that file to the graph they resolve against (`attach_from`), the bundle writes it as
-`section_home`, so no reader measures it again and none can disagree; `extent.area_sections` reads
-it for every `area:region:*` key.
+THE HOME REGION is still measured: the region holding the largest share of the section (a waterbody
+by its OUTLINE's area, a stream piece by its line's length; a tie goes to the smaller region id). It
+is a fact for display (the bundle's `section_home`, the export's `home_region`) and the T115 mutation
+pin (`in_region`); it filters no membership. Computed ONCE, BY THE ATLAS BUILD — from region polygons
+(`area_catalog.gpkg`), waterbody outlines (`waterbody_polys.pkl`) and section lines
+(`geometries.pkl`) — and written to `region_home.json` beside `registry.json` (`write_homes`). The
+reach CLI and the review app attach that file to the graph they resolve against (`attach_from`).
 """
 from __future__ import annotations
 
 from pathlib import Path
 from types import MappingProxyType
 from typing import Mapping
+
+from pipeline.common.tolerances import SLIVER_M
 
 REGION_PREFIX = "area:region:"
 
@@ -202,6 +195,10 @@ LAKE_PREFIX = "lake:"
 def in_region(graph, region: str, sections: set[str]) -> set[str]:
     """`sections` (one region's members) less the STREAM sections whose home is another region.
 
+    T115'S HOME FILTER, read only with `STRADDLERS_IN_EVERY_REGION` off (the T183 mutation pin): the
+    one membership is now raw (a straddling stream piece is in both regions, owner 2026-10-24). Kept
+    so the pin can say what it reverses.
+
     A LAKE STRADDLING A REGION LINE IS IN BOTH (user ruling 2026-09-25, Ahbau Lake 51/49, Mara Lake
     61/39): a lake is one water that is never cut, and an angler on either shore is in either
     region, so it binds BOTH regions' zone rules and the MOST STRICT applies — decided per fish
@@ -218,14 +215,20 @@ def in_region(graph, region: str, sections: set[str]) -> set[str]:
 
 # ---------------------------------------------------------------------------------------------------
 # ONE REGION MEMBERSHIP (T115, owner 2026-10-22: one decision, one function). "Which sections are in
-# region R?" is answered HERE and nowhere else: a region item's members through `in_region` — a stream
-# piece straddling a region line is its HOME region's only, a lake is in every region it touches. The
-# zone rules (`extent.area_sections`), a per-region row's region (`reach.outside.region_limit`), the
-# steelhead twin's `area_id`, an `area_kind: region` family and the province's inside
-# (`reach.outside.outside_bc`) all ask these functions. Before, `outside.region_sections` read the raw
-# polygon membership, so `r5:fraser_river@5-2`'s rules bound a Fraser piece (356364114:418405) whose
-# home is Region 3 — 12 rule–section pairs of another region's rules. `test_one_region_membership.py`
-# pins that no other module reads a region item's sections.
+# region R?" is answered HERE and nowhere else. The zone rules (`extent.area_sections`), a per-region
+# row's region (`reach.outside.region_limit`), the steelhead twin's `area_id`, an `area_kind: region`
+# family, the regions a row's water lies in (`section_regions`) and the province's inside
+# (`reach.outside.outside_bc`) all ask these functions. `test_one_region_membership.py` pins that no
+# other module reads a region item's sections.
+#
+# ITS ANSWER IS RAW MEMBERSHIP (T183, owner 2026-10-24, REVERSING T115's "home region only"): "those
+# straddle pieces are supposed to get both regions' regulations". A section is in EVERY region whose
+# polygon holds more than `SLIVER_M` of it (`holds`, the atlas's membership pass): a stream piece drawn
+# across a region line carries both regions' zone rules and both regions' per-region rows, exactly as a
+# straddling lake always did, and the most strict applies per fish where the rules are read
+# (`deliver.bundle.read.effective_rules` step 6). A TOUCH IS NOT MEMBERSHIP: a piece cut at the line
+# meets the polygon at a point, and a piece reaching under `SLIVER_M` into it is positional error. The
+# home region (`region_home.json`) stays a measured, displayed fact; it no longer filters anything.
 # ---------------------------------------------------------------------------------------------------
 
 #: Caches keyed by the registry's (and graph's) id — each value HOLDS the objects, so a recycled id
@@ -234,9 +237,20 @@ _ITEMS: dict = {}
 _SECTIONS: dict = {}
 _MEMBER: dict = {}
 
-#: POLICY (T115): a region's sections are its HOME members (`in_region`) for every reader. False =
-#: the raw polygon membership for every reader (the mutation pin).
-ONE_REGION_MEMBERSHIP = True
+#: POLICY (T183, reversing T115): a region's sections are EVERY section its polygon holds more than
+#: `SLIVER_M` of, for every reader — a straddling stream piece is in both regions, as a lake is. False =
+#: T115's home members (`in_region`: a straddling stream piece in its home region only) for every
+#: reader — the mutation pin.
+STRADDLERS_IN_EVERY_REGION = True
+
+
+def holds(area_id: str, inside_m: float, otherwise_m: float) -> bool:
+    """DOES THIS AREA'S POLYGON HOLD A LINE PIECE whose length inside it is `inside_m`? The atlas's
+    membership pass asks it (`splits.border.mark_inside_areas`). A REGION holds a piece only when more
+    than `SLIVER_M` of it lies inside (T183: a touch is not membership, and since a straddler now
+    carries both regions' rules, a piece reaching a metre or two over the line must not); any other
+    area keeps its own threshold (`otherwise_m`)."""
+    return inside_m > (SLIVER_M if str(area_id).startswith(REGION_PREFIX) else otherwise_m)
 
 
 def region_items(registry) -> list[str]:
@@ -264,10 +278,12 @@ def zones_of(registry, region: str) -> dict[str, frozenset[str]]:
 
 
 def region_members(registry, graph, key: str) -> set[str]:
-    """ONE region item's sections (`area:region:5`, `area:region:7a`): its home members
-    (`in_region`) unless the policy pin is off. What `extent.area_sections` answers for the key."""
+    """ONE region item's sections (`area:region:5`, `area:region:7a`): every section its polygon
+    holds more than `SLIVER_M` of (the atlas's membership pass, `holds`) — a straddler is in every
+    region it lies in (T183). With the policy pin off, T115's home members (`in_region`). What
+    `extent.area_sections` answers for the key."""
     got = set(registry[key].section_ids)
-    if not ONE_REGION_MEMBERSHIP:
+    if STRADDLERS_IN_EVERY_REGION:
         return got
     return in_region(graph, key[len(REGION_PREFIX):], got)
 
@@ -277,7 +293,7 @@ def _cache_key(registry, graph, *rest):
     attached to it (`attach` may be called again on the same graph)."""
     home = getattr(graph, _ATTR, None) if graph is not None else None
     both = getattr(graph, _ATTR_BOTH, None) if graph is not None else None
-    return (id(registry), id(graph), id(home), id(both), ONE_REGION_MEMBERSHIP, *rest), \
+    return (id(registry), id(graph), id(home), id(both), STRADDLERS_IN_EVERY_REGION, *rest), \
         (registry, graph, home, both)
 
 
@@ -296,10 +312,11 @@ def _store(cache: dict, key, held, value, cap: int):
 
 
 def region_sections(regions, registry, graph) -> frozenset[str] | None:
-    """THE SECTIONS OF THE NAMED REGIONS — each region item's home members (`in_region`), unioned. A
-    region `7` is 7A and 7B together; a region the registry does not have contributes nothing.
-    `None` when the registry has no regions at all (a fixture: nothing can be said). `graph=None`
-    (or a graph with no home map attached) is plain membership — a unit-test fixture's."""
+    """THE SECTIONS OF THE NAMED REGIONS — each region item's members (`region_members`: every
+    section in its polygon, a straddler in both, T183), unioned. A region `7` is 7A and 7B together;
+    a region the registry does not have contributes nothing. `None` when the registry has no regions
+    at all (a fixture: nothing can be said). `graph` matters only with the policy pin off (T115's
+    home members); `None` there is plain membership too."""
     items = region_items(registry)
     if not items:
         return None
@@ -319,8 +336,8 @@ def region_sections(regions, registry, graph) -> frozenset[str] | None:
 
 def area_family_sections(registry, kind: str, graph=None) -> frozenset[str] | None:
     """Every section of every `area:<kind>:*` item (`Extent.area_kind` / `outside_area_kind`, the
-    steelhead twin's `outside_area_kind`). The REGION family is its members by home
-    (`region_sections` of every region). `None` when the family has no item."""
+    steelhead twin's `outside_area_kind`). The REGION family is `region_sections` of every region
+    (the one membership). `None` when the family has no item."""
     if kind == "region":
         items = region_items(registry)
         return region_sections(tuple(k[len(REGION_PREFIX):] for k in items), registry, graph) \
@@ -334,7 +351,7 @@ def area_family_sections(registry, kind: str, graph=None) -> frozenset[str] | No
 
 def section_regions(registry, graph=None) -> dict[str, frozenset[str]]:
     """`{section: regions}` — the regions (zones, where the registry holds them) each section is a
-    member of, by home (`region_sections`)."""
+    member of, by the one membership (`region_members`: a straddler in each region it lies in)."""
     key, held = _cache_key(registry, graph)
     hit = _cached(_MEMBER, key, held)
     if hit is not None:

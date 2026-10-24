@@ -323,7 +323,7 @@ def _bind_steelhead_waters(rules, records, known, bindings, licensing, registry,
                 if ex[key] not in registry:
                     raise SystemExit(f"{eid}::{rid}: steelhead_waters {key} {ex[key]} is not in "
                                      f"the registry")
-                # the ONE region membership (T115): a region's home members
+                # the ONE region membership (T115; T183: a straddler is in both regions)
                 secs = _resolve.area_sections(registry, graph, ex[key])
                 pool = pool & secs if keep else pool - secs
         pool, _ = _policy.apply_limits(

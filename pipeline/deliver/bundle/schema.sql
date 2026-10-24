@@ -574,12 +574,11 @@ CREATE VIEW section_steelhead_rules (sid) AS
     SELECT sr.sid FROM section_ruleset sr JOIN steelhead_set ss ON ss.set_id = sr.set_id
     WHERE ss.rules = 1 AND NOT EXISTS (SELECT 1 FROM steelhead_known k WHERE k.sid = sr.sid);
 
--- THE REGION A STRADDLING SECTION TAKES ITS ZONE RULES FROM (`pipeline.atlas.registry.regions`):
--- a stream piece drawn across a region line is held to the region holding most of its length; a
--- lake straddling a line is in both (its home is still recorded). Only straddling sections are
--- listed (215 on the promoted atlas); every other section lies in one region. The atlas measured
--- it once (`region_home.json`); the reach run bound the zone tables by it; this carries it so a
--- reader can say "this piece takes Region 3's rules" without inferring it from the rule set.
+-- THE HOME REGION OF A STRADDLING SECTION (`pipeline.atlas.registry.regions`): the region holding
+-- most of it (a stream piece by length, a lake by area). A FACT FOR DISPLAY ONLY since T183 (owner
+-- 2026-10-24): a straddler, stream piece or lake, takes BOTH regions' rules and the most strict wins
+-- per fish; the home filters nothing. Only straddling sections are listed (~218 on the promoted
+-- atlas); every other section lies in one region. The atlas measured it once (`region_home.json`).
 CREATE TABLE section_home (sid INTEGER PRIMARY KEY, region TEXT NOT NULL) WITHOUT ROWID;
 
 -- WHERE A PROVINCE-WIDE REQUIREMENT DOES NOT HOLD. A `province` requirement ships no section rows;

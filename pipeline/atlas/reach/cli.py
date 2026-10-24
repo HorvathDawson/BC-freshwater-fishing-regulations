@@ -32,10 +32,10 @@ def main() -> int:
     build = Path(args.build)
     registry = load_registry(str(build / "registry.json"))
     graph = read_artifact(str(build / "graph.pkl"))
-    # THE REGION EACH STRADDLING SECTION LIES IN, for the zone rules (`registry.regions`): a stream
-    # piece drawn across a region line takes its home region's standing table; a lake takes both
-    # (the most strict applies where the rules are read). Measured once by the atlas build and read
-    # from it here — never measured again.
+    # THE HOME REGION OF EACH STRADDLING SECTION (`registry.regions`), measured once by the atlas build
+    # and read from it here. Since T183 it filters nothing — a straddler, stream piece or lake, takes
+    # BOTH regions' rules (the most strict applies where the rules are read); it is attached so the
+    # T115 mutation pin and the review app read the same graph.
     from pipeline.atlas.registry import regions
     home = regions.attach_from(build, graph, registry)   # the atlas's own `region_home.json`
     # WHERE A WATER THAT TOUCHES NOTHING LIES, for a watershed part (`reach.position`): read from
@@ -43,8 +43,8 @@ def main() -> int:
     from pipeline.atlas.reach import position
     position.attach(graph, build)
     lakes = len(regions.lakes_among(graph, registry, home))
-    print(f"  region homes: {len(home) - lakes:,} straddling stream piece(s) held to the region "
-          f"they lie in; {lakes:,} straddling lake(s) in every region they touch")
+    print(f"  region straddlers: {len(home) - lakes:,} stream piece(s) and {lakes:,} lake(s), each in "
+          f"every region it lies in (T183)")
     # EVERY SOURCE, not just the synopsis. The reach builder is a CONSUMER of the corpus:
     # zone regulations, park closures and the salmon entries are the same kind of thing to
     # it as a river row, and a rule that binds to an area binds through the same resolver.

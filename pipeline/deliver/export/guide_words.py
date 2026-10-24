@@ -300,9 +300,9 @@ WATER_PART_TEXT = {
                           "2026-10-03); never a lake, never \"possible\", never a part with "
                           "`steelhead_rules: false` (there rainbow rules speak for every rainbow)",
     "home_region": "present on a part with a section drawn across a region line: the region(s) "
-                   "those straddling pieces take their zone rules from (a stream piece is held to "
-                   "the region holding most of its length; a lake straddling a line is in both and "
-                   "the most strict wins) — `section_home`, measured once by the atlas",
+                   "holding most of those straddling pieces (a stream piece by length, a lake by "
+                   "area). Display only: a straddling piece takes BOTH regions' rules and the most "
+                   "strict wins per fish — `section_home`, measured once by the atlas",
     "steelhead_rules": "ON EVERY PART WITH A RULE SET (absent only where `ruleset` is null): true "
                        "when the provincial steelhead set (the annual hatchery 10, the wild "
                        "release, the record duty) applies there, false when it does not — the "

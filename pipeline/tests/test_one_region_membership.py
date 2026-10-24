@@ -1,19 +1,14 @@
 """T115 — ONE REGION MEMBERSHIP: "which sections are in region R?" is answered once, by
-`registry.regions` (owner 2026-10-22, unification audit finding reach 1).
+`registry.regions` (owner 2026-10-22, unification audit finding reach 1). T183 (owner 2026-10-24)
+REVERSES T115's answer, keeping the one function: a section is in EVERY region whose polygon holds
+more than `SLIVER_M` of it — a straddling stream piece carries both regions' rules, as a lake does.
 
-The zone rules took a region's HOME members (`extent.area_sections` -> `regions.in_region`: a stream
-piece straddling a region line is its home region's, a lake is in both), but a per-region row's limit
-(`outside.region_sections` -> `region_limit`), `outside._membership`, the steelhead twin's `area_id`
-and the `area_kind`/`outside_area_kind` families read the raw polygon membership. So
-`r5:fraser_river@5-2`'s rules r2/r3/r4 bound Fraser piece 356364114:418405, home Region 3 (inside
-polygons 3 and 5): 12 rule–section pairs of another region's rules on 4 Fraser pieces.
-
-Now every reader calls `regions.region_sections` / `regions.region_members` /
+Every reader calls `regions.region_sections` / `regions.region_members` /
 `regions.area_family_sections` / `regions.section_regions`.
 
 Mutation pins:
-  * `regions.ONE_REGION_MEMBERSHIP = False` (raw polygon membership) fails
-    `test_a_per_region_row_does_not_bind_a_piece_homed_in_another_region`.
+  * `regions.STRADDLERS_IN_EVERY_REGION = False` (T115's home members) fails
+    `test_a_per_region_row_binds_a_piece_straddling_into_its_region` and the steelhead-twin test.
   * a module outside `regions.py` reading a region item's sections (an `"area:region:"` literal, a
     bare `REGION_PREFIX`, an `in_region` call) fails `test_no_second_copy_of_region_membership`.
 """
@@ -65,14 +60,15 @@ def _bind(g, reg):
     return set(b.sections)
 
 
-def test_a_per_region_row_does_not_bind_a_piece_homed_in_another_region(monkeypatch):
-    """The Fraser's Region 5 row binds Region 5's pieces only; the piece homed in Region 3 is the
-    Region 3 row's. MUTATION (`ONE_REGION_MEMBERSHIP` off): the raw polygon puts it back."""
+def test_a_per_region_row_binds_a_piece_straddling_into_its_region(monkeypatch):
+    """T183: the Fraser's Region 5 row binds every piece in Region 5's polygon, the straddling piece
+    homed in Region 3 included (the Region 3 row binds it too). MUTATION (`STRADDLERS_IN_EVERY_REGION`
+    off, T115's home members): the straddling piece is left out again."""
     g, reg = _world()
-    assert O.region_limit(FRASER_5, reg, SHARED, graph=g) == {"f5:0", "lake:L"}
-    assert _bind(g, reg) == {"f5:0"}
-    monkeypatch.setattr(regions, "ONE_REGION_MEMBERSHIP", False)
+    assert O.region_limit(FRASER_5, reg, SHARED, graph=g) == {"f35:0", "f5:0", "lake:L"}
     assert _bind(g, reg) == {"f35:0", "f5:0"}
+    monkeypatch.setattr(regions, "STRADDLERS_IN_EVERY_REGION", False)
+    assert _bind(g, reg) == {"f5:0"}
 
 
 def test_the_row_limit_and_the_zone_rules_are_one_answer():
@@ -80,7 +76,7 @@ def test_the_row_limit_and_the_zone_rules_are_one_answer():
     from pipeline.atlas.reach.extent import area_sections
     g, reg = _world()
     assert area_sections(reg, g, "area:region:5") == set(regions.region_sections(("5",), reg, g)) \
-        == {"f5:0", "lake:L"}
+        == {"f35:0", "f5:0", "lake:L"}
     assert area_sections(reg, g, "area:region:3") == {"f3:0", "f35:0", "lake:L"}
 
 
@@ -89,19 +85,22 @@ def test_the_families_and_the_province_read_the_same_membership():
     assert regions.area_family_sections(reg, "region", g) == {"f3:0", "f35:0", "f5:0", "lake:L"}
     assert regions.area_family_sections(reg, "park", g) is None
     assert regions.section_regions(reg, g) == {
-        "f3:0": {"3"}, "f35:0": {"3"}, "f5:0": {"5"}, "lake:L": {"3", "5"}}
+        "f3:0": {"3"}, "f35:0": {"3", "5"}, "f5:0": {"5"}, "lake:L": {"3", "5"}}
     assert O.water_regions(FRASER_5, reg, g) == ("3", "5")
     assert O.outside_bc(reg, g) == frozenset()
 
 
-def test_without_a_home_map_it_is_plain_membership():
-    """A fixture graph (no `region_home.json` attached) cannot say a home: plain membership."""
+def test_the_home_map_filters_nothing():
+    """The home map is a measured fact (display); attached or not, the membership is the same."""
     g, reg = _world(attach=False)
-    assert regions.region_sections(("5",), reg, g) == {"f35:0", "f5:0", "lake:L"}
-    assert regions.region_sections(("5",), reg, None) == {"f35:0", "f5:0", "lake:L"}
+    g2, _ = _world()
+    for graph in (g, g2, None):
+        assert regions.region_sections(("5",), reg, graph) == {"f35:0", "f5:0", "lake:L"}
 
 
-def test_re_attaching_a_home_map_is_not_served_from_a_cache():
+def test_re_attaching_a_home_map_is_not_served_from_a_cache(monkeypatch):
+    """With the pin off (T115's home members), a re-attached map is read afresh, never cached."""
+    monkeypatch.setattr(regions, "STRADDLERS_IN_EVERY_REGION", False)
     g, reg = _world(attach=False)
     assert "f35:0" in regions.region_sections(("5",), reg, g)
     regions.attach(g, {"f35:0": "3"}, both=())
@@ -165,16 +164,48 @@ def _twin(extent):
     return entry, rule
 
 
-def test_the_steelhead_twin_s_region_is_its_home_members():
-    """Adversarial review (T115): a zone twin's `area_id: area:region:5` binds the book-known waters
-    homed in Region 5 (and the straddling lake, in both) — never the Fraser piece homed in Region 3;
-    `outside_area` subtracts the same membership. MUTATION (the twin reading the raw region item,
-    `set(registry[key].section_ids)`): f35:0 comes back."""
+def test_the_steelhead_twin_s_region_is_the_one_membership(monkeypatch):
+    """A zone twin's `area_id: area:region:5` binds the book-known waters in Region 5's polygon — the
+    Fraser piece straddling into it included (T183) — and `outside_area` subtracts the same
+    membership. MUTATION (`STRADDLERS_IN_EVERY_REGION` off): T115's home members, f35:0 goes."""
     g, reg = _world()
     known = {"f3:0", "f35:0", "f5:0", "lake:L"}
-    got, _, _ = B._bind_steelhead_waters(
-        [_twin({"area_id": "area:region:5"})], [], known, [], [], reg, g)
-    assert [(b.rule_id, set(b.sections)) for b in got] == [("r6b", {"f5:0", "lake:L"})]
-    got, _, _ = B._bind_steelhead_waters(
-        [_twin({"outside_area": "area:region:5"})], [], known, [], [], reg, g)
-    assert [(b.rule_id, set(b.sections)) for b in got] == [("r6b", {"f3:0", "f35:0"})]
+
+    def twin(extent):
+        got, _, _ = B._bind_steelhead_waters([_twin(extent)], [], known, [], [], reg, g)
+        return [(b.rule_id, set(b.sections)) for b in got]
+
+    assert twin({"area_id": "area:region:5"}) == [("r6b", {"f35:0", "f5:0", "lake:L"})]
+    assert twin({"outside_area": "area:region:5"}) == [("r6b", {"f3:0"})]
+    monkeypatch.setattr(regions, "STRADDLERS_IN_EVERY_REGION", False)
+    assert twin({"area_id": "area:region:5"}) == [("r6b", {"f5:0", "lake:L"})]
+
+
+# ------------------------------------------------------------- a touch is not membership (T183)
+
+def test_a_region_holds_a_piece_only_past_a_sliver():
+    """A straddler carries both regions' rules, so a piece reaching under `SLIVER_M` over the line is
+    positional error, not membership: `regions.holds` (the atlas's membership pass asks it) wants
+    more than SLIVER_M inside a REGION; any other area keeps its own threshold. MUTATION (`holds`
+    using `otherwise_m` for regions): the 3 m reach into Region 5 is flagged."""
+    from shapely.geometry import box
+    from pipeline.atlas.graph.blk_chains import build_blk_chains
+    from pipeline.atlas.graph.graph import build_section_geometries, build_stream_graph
+    from pipeline.atlas.splits.border import mark_inside_areas
+    from pipeline.common.tolerances import SLIVER_M
+    from pipeline.tests.test_border import _fid
+
+    assert not regions.holds("area:region:5", SLIVER_M, 1.0)
+    assert regions.holds("area:region:5", SLIVER_M + 0.01, 1.0)
+    assert regions.holds("area:park:x", 2.0, 1.0)
+    # Y lies in x 50..103, reaching 3 m past x=100 into the east polygon; Z reaches 40 m
+    fids = [_fid("Y1", "Y", "300", [(50, 10), (103, 10)], 0, 53),
+            _fid("Z1", "Z", "400", [(50, 30), (140, 30)], 0, 90)]
+    chains = build_blk_chains(fids, {})
+    graph = build_stream_graph(chains, fids, {}, {})
+    geoms = build_section_geometries(chains, fids, {})
+    east = box(100, 0, 200, 100)
+    mark_inside_areas(graph, geoms, {"area:region:5": east, "area:park:east": east})
+    by_blk = {nid.split(":")[0]: node.in_areas for nid, node in graph.nodes.items()}
+    assert "area:region:5" not in by_blk["Y"] and "area:park:east" in by_blk["Y"]
+    assert "area:region:5" in by_blk["Z"] and "area:park:east" in by_blk["Z"]

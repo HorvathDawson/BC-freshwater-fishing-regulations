@@ -246,9 +246,8 @@ def _water_places(build_dir: Path, graph, registry_items: list[dict]) -> dict:
                graph node's), the one every `feature_types` filter placed the rules by; for a
                section no water owns, its node's: stream, lake or wetland (read for those only)
       regions  the `area:region:*` items holding it, by THE ONE region membership
-               (`registry.regions.section_regions`, T115) with the atlas's home map attached
-               (`attach_from`): a straddling stream piece is its home
-               region's, a straddling lake both regions' — the regions whose zone tables it takes
+               (`registry.regions.section_regions`, T115): a straddling section — stream piece
+               or lake — is in both regions (T183) — the regions whose zone tables it takes
       mus      the MUs the atlas graph says it touches (`StreamNode.mus`)
 
     Read once, here, from the atlas the bundle is built from; `derived.write` groups and proves

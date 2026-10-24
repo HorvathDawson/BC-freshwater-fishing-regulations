@@ -1,14 +1,14 @@
-"""A WATER TAKES THE ZONE RULES OF THE REGION IT LIES IN (user ruling 2026-09-25).
+"""A WATER TAKES THE ZONE RULES OF EVERY REGION IT LIES IN (user ruling 2026-09-25; T183 2026-10-24).
 
-A lake is never cut, so one drawn across a region line was a member of both `area:region:*` items
-and bound BOTH regions' standing tables — Mara Lake carried Region 3's and Region 8's "Trout/char:
-5" side by side. `registry.regions` gives every straddling section its HOME region (largest share of
-its outline's area, or of its line's length), and `extent.area_sections` resolves `area:region:N`
-through it. A regional ROW is still limited by the polygons it touches (Region 8's own Mara Lake
-row binds the lake).
+A lake is never cut, so one drawn across a region line is a member of both `area:region:*` items
+and binds BOTH regions' standing tables — Mara Lake carries Region 3's and Region 8's "Trout/char:
+5", the most strict applying. Since T183 (owner 2026-10-24, reversing T115 and the stream half of
+2026-09-25) a STREAM PIECE straddling the line does the same: both tables, both regions' rows.
+`registry.regions` still measures every straddler's HOME region (largest share of its outline's
+area, or of its line's length) — a fact for display; it filters nothing.
 
 The bundle is `UI_EXPORT_BUNDLE`, else the shipped one; the atlas `ATLAS_BUILD`, else the promoted.
-Mutation: `in_region` returning its input unchanged fails the extent and bundle tests below.
+Mutation: `regions.STRADDLERS_IN_EVERY_REGION = False` fails the extent tests below.
 """
 from __future__ import annotations
 
@@ -47,17 +47,18 @@ def test_straddlers_are_the_sections_in_more_than_one_region():
     assert regions.straddlers(reg) == {"lake:1": ("3", "8")}
 
 
-def test_a_region_area_resolves_a_stream_piece_to_its_home_and_a_lake_to_both():
-    """A stream piece is its home region's; a LAKE straddling the line is in both (user ruling
-    2026-09-25: Ahbau Lake, Mara Lake — both zone bases, the most strict applies). MUTATION:
-    `in_region` holding lakes to their home fails the lake half; returning its input unchanged
-    fails the stream half. Which straddler is a LAKE is the registry's kind (`attach`'s `both`,
-    from `lakes_among`), never the `lake:` prefix."""
+def test_a_region_area_resolves_a_straddler_stream_piece_or_lake_to_both(monkeypatch):
+    """T183: a stream piece straddling the line is in both regions, as a LAKE is (Ahbau Lake, Mara
+    Lake — both zone bases, the most strict applies). The home map filters nothing. MUTATION
+    (`STRADDLERS_IN_EVERY_REGION` off): T115's home filter — the stream piece goes to its home
+    only, the lake (the registry's kind, `attach`'s `both`) stays in both."""
     reg = _reg(**{"3": ["lake:1", "a:0", "s:9"], "8": ["lake:1", "b:0", "s:9"]})
     g = SimpleNamespace(nodes={})
     assert extent.area_sections(reg, g, "area:region:8") == {"lake:1", "b:0", "s:9"}  # not attached
     regions.attach(g, {"lake:1": "3", "s:9": "3"}, both={"lake:1"})   # a LAKE by the registry's kind
     assert extent.area_sections(reg, g, "area:region:3") == {"lake:1", "a:0", "s:9"}
+    assert extent.area_sections(reg, g, "area:region:8") == {"lake:1", "b:0", "s:9"}
+    monkeypatch.setattr(regions, "STRADDLERS_IN_EVERY_REGION", False)
     assert extent.area_sections(reg, g, "area:region:8") == {"lake:1", "b:0"}
 
 
@@ -71,13 +72,13 @@ def test_only_region_areas_are_held_to_a_home():
 
 def test_a_regional_row_is_limited_by_the_one_region_membership():
     """Region 8's Mara Lake row ("No powered boats south of the CPR bridge") still binds the lake —
-    a LAKE is in every region it touches — while a stream piece homed in Region 3 is not Region 8's
-    (T115: the row limit reads the same home members as the zone rules)."""
+    a LAKE is in every region it touches — and so, since T183, does a stream piece homed in Region 3
+    that straddles into Region 8 (the row limit reads the same membership as the zone rules)."""
     reg = _reg(**{"3": ["lake:1", "s:9"], "8": ["lake:1", "s:9", "b:0"]})
     g = SimpleNamespace(nodes={})
     assert regions.region_sections(("8",), reg, g) == {"lake:1", "s:9", "b:0"}   # no home map
     regions.attach(g, {"lake:1": "3", "s:9": "3"}, both={"lake:1"})
-    assert regions.region_sections(("8",), reg, g) == {"lake:1", "b:0"}
+    assert regions.region_sections(("8",), reg, g) == {"lake:1", "s:9", "b:0"}
     assert regions.region_sections(("3",), reg, g) == {"lake:1", "s:9"}
 
 
@@ -133,10 +134,10 @@ def test_ahbau_lake_takes_region_5_and_zone_7a_bases(db):
 
 @pytest.mark.needs_atlas
 @pytest.mark.needs_bundle
-def test_only_lakes_carry_two_regions_standing_tables(db):
-    """Before R2: 41 rule sets (214 sections) carried two regions' region-wide rules, lakes and
-    stream pieces alike. R2 gave every one a single home; the second half of the ruling puts the
-    LAKES back in both regions (most strict wins) — a stream piece still has one home."""
+def test_only_straddlers_carry_two_regions_standing_tables(db):
+    """A section carrying two regions' region-wide rules is a STRADDLER (`region_home.json` lists
+    it), a lake or — since T183 — a stream piece; and at least one of each does (Mara Lake; the
+    Fraser's 356364114:418405 in Regions 3 and 5)."""
     region_wide = {}
     for e, r, c in db.execute("select entry_id, rule_id, conditions from rule "
                               "where entry_id like 'z%' and entry_id not like 'zp:%'"):
@@ -150,10 +151,14 @@ def test_only_lakes_carry_two_regions_standing_tables(db):
             per_set[s].add(region_wide[(e, r)])
     two = {s for s, z in per_set.items() if len(z) > 1}
     handles = _handles()
+    home = {h for (h,) in db.execute("select sid from section_home")}
+    both = [handles[sid] for sid, s in db.execute("select sid, set_id from section_ruleset")
+            if s in two]
     bad = [handles[sid] for sid, s in db.execute("select sid, set_id from section_ruleset")
-           if s in two and not handles[sid].startswith("lake:")]
+           if s in two and sid not in home]
     assert not bad, bad[:5]
-    assert two, "no straddling lake carries both bases"
+    assert any(h.startswith("lake:") for h in both), "no straddling lake carries both bases"
+    assert "356364114:418405" in both, "the straddling Fraser piece carries one base (T183)"
 
 
 def _handles() -> dict[int, str]:
@@ -375,11 +380,11 @@ def test_the_nechako_and_west_road_lift_region_6s_spring_closure_not_its_winter_
 
 @pytest.mark.needs_atlas
 @pytest.mark.needs_bundle
-def test_west_road_7a_mainstem_piece_takes_zone_7as_table_and_its_own_row(db):
-    """356364550:15264 is 54 % Zone 7A by length: it takes Zone 7A's spring closure, and the
-    Region 5 row (p.47) binds it, lifting that closure ("the regional spring closure does not add
-    to its own mainstem closure"). On June 20 its own row's closure (Nov 1-June 14) is over and
-    no spring closure speaks."""
+def test_west_road_7a_mainstem_piece_takes_both_tables_and_its_own_row(db):
+    """356364550:15264 is 54 % Zone 7A by length and straddles into Region 5: it takes Zone 7A's
+    spring closure AND Region 5's table (T183), and the Region 5 row (p.47) binds it, lifting the
+    spring closure ("the regional spring closure does not add to its own mainstem closure"). On
+    June 20 its own row's closure (Nov 1-June 14) is over and no spring closure speaks."""
     handles = _handles()
     sid = next(i for i, h in handles.items() if h == "356364550:15264")
     wr = "r5:west_road_blackwater_river@5-12+5-13"
@@ -388,10 +393,10 @@ def test_west_road_7a_mainstem_piece_takes_zone_7as_table_and_its_own_row(db):
         "where s.sid = ?", (sid,))}
     assert (wr, "west_road_blackwater_river.r6") in rs
     assert ("z7a:spring_stream_closure", "spring_stream_closure.r1") in rs
-    assert not any(e.startswith("z5:") for e, _ in rs)
+    assert any(e.startswith("z5:") for e, _ in rs)
     got = {f"{x['entry']}::{x['rule']}" for x in R.effective_rules(sid, (6, 20), "RB", BUNDLE)
            if x["state"] == "speaks"}
-    assert "z7a:spring_stream_closure::spring_stream_closure.r1" not in got
+    assert not any("spring_stream_closure" in k for k in got), got
 
 
 @pytest.mark.needs_atlas

@@ -438,7 +438,7 @@ def test_policy_version_is_bumped_when_classify_changes():
         "mouth_seeds_only_at_the_cut": tributaries.MOUTH_SEEDS_ONLY_AT_THE_CUT,
         "the_walk_never_enters_a_parent": tributaries.THE_WALK_NEVER_ENTERS_A_PARENT,
         "every_cut_reaches_the_walk": tributaries.EVERY_CUT_REACHES_THE_WALK,
-        "one_region_membership": regions.ONE_REGION_MEMBERSHIP,
+        "straddlers_in_every_region": regions.STRADDLERS_IN_EVERY_REGION,
         "unnamed_lakes_on_the_river_are_the_river": extent.UNNAMED_LAKES_ON_THE_RIVER_ARE_THE_RIVER,
         "a_steelhead_rivers_widening_is_anadromous": steelhead.A_STEELHEAD_RIVERS_WIDENING_IS_ANADROMOUS,
     })
@@ -455,10 +455,10 @@ def test_policy_version_is_bumped_when_classify_changes():
                      "mouth_seeds_only_at_the_cut": True,
                      "the_walk_never_enters_a_parent": True,
                      "every_cut_reaches_the_walk": True,
-                     "one_region_membership": True,
+                     "straddlers_in_every_region": True,
                      "unnamed_lakes_on_the_river_are_the_river": True,
                      "a_steelhead_rivers_widening_is_anadromous": True})
-    assert cache.POLICY_VERSION == "31", "update this pin with the version it was taken at"
+    assert cache.POLICY_VERSION == "32", "update this pin with the version it was taken at"
     assert policy == expected, (
         f"classify.py policy changed to {policy} — bump cache.POLICY_VERSION "
         f"(currently {cache.POLICY_VERSION!r}) and update this test together")

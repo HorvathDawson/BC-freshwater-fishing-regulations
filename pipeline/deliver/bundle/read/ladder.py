@@ -1221,9 +1221,10 @@ def _step5b_moot_size_clause(s: _Ask) -> None:
 
 
 def _step6_two_regions(s: _Ask) -> None:
-    # 6. TWO REGIONS' BASES: THE MOST STRICT APPLIES (RULINGS Z4). A lake drawn across
-    #    a region line binds both regions' zone rules (`registry.regions.in_region`) — Ahbau Lake
-    #    (51 % Region 5, 49 % Zone 7A), Mara Lake (61 % Region 3, 39 % Region 8). Neither table
+    # 6. TWO REGIONS' BASES: THE MOST STRICT APPLIES (RULINGS Z4). A section drawn across
+    #    a region line — a lake, and since T183 a stream piece too — binds both regions' zone rules
+    #    (`registry.regions.region_members`) — Ahbau Lake (51 % Region 5, 49 % Zone 7A), Mara Lake
+    #    (61 % Region 3, 39 % Region 8), the Fraser's straddling pieces. Neither table
     #    outranks the other by place, so step 4 set them against each other not at all (`peers`);
     #    here, per fish, a rule of one region is displaced by a STRICTER rule of the other:
     #      a closure beats a retention rule that is not one (closed beats open);

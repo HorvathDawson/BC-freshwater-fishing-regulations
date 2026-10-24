@@ -143,8 +143,8 @@ def rowed_waters(entries) -> dict[str, tuple[tuple[str, tuple[str, ...]], ...]]:
 
 def water_regions(entry: dict, registry, graph=None) -> tuple[str, ...]:
     """The regions (zones, where the registry holds them) the row's own waters lie in — by the one
-    region membership (`registry.regions.section_regions`: a stream piece in its home region, a
-    lake in every region it touches, given a `graph` carrying the home map)."""
+    region membership (`registry.regions.section_regions`: a straddling section — stream piece or
+    lake — in every region it lies in, T183)."""
     member = _regions.section_regions(registry, graph)
     out: set[str] = set()
     for i in entry.get("matched") or ():
@@ -178,9 +178,9 @@ def region_limit(entry: dict, registry, shared=None, *, graph) -> frozenset[str]
     `shared=None` (a caller that did not compute it) holds every row to its id's regions — the
     narrower answer, never a widening.
 
-    THE REGION'S SECTIONS ARE ITS HOME MEMBERS (T115, `registry.regions.region_sections`): a stream
-    piece straddling the line is held to its home region, as the zone rules hold it; `graph` carries
-    the home map (`None`: a fixture's plain membership)."""
+    THE REGION'S SECTIONS ARE THE ONE MEMBERSHIP (T115, `registry.regions.region_sections`), the
+    zone rules' own: a stream piece straddling the line is in both regions (T183, owner 2026-10-24),
+    so both regions' per-region rows bind it; `graph` matters only with the policy pin off."""
     regions = entry_regions(str(entry.get("entry_id") or ""), registry)
     if not regions:
         return None
