@@ -362,3 +362,39 @@ Ashlu); reach gate 0. Length cuts: 2,300 unchanged, 301 moved, 3 dropped, 16 add
 0 braid cuts, 0 straddles. Binding diff vs the twin: 466 rules changed; 389 section ids only, 21 braid (as
 above), 12 ditch, 44 by one moved length cut (the 1,021 m Fraser piece), 0 unexplained. `cuts.json` regenerated.
 
+### Round 3 (owner review marks, decisions.md "OWNER 2026-10-24 (day) — braid review marks")
+
+- **Creeks on a braid** (Chowade, 08KH006, 08LF023): a nameless or own-water creek hanging off a cut braid
+  whose own course crosses the cut line is now cut at its crossing (`TRIBUTARIES_CROSSING_THE_CUT_ARE_CUT`;
+  22 creek cuts on 12 cuts). The review data sides every piece by topology: a host piece by the cut, a piece
+  of a cut line by its side of the crossing, and every other creek by the side where it JOINS the braid —
+  never by network membership (the page's old "5 above / 1 below" was a midpoint-geometry reading). Limit:
+  the reach's tributary walk still takes a nameless creek whole with the braid half it joins. The cut only
+  splits its sections. An own-water creek's far half is left unplaced, never sided.
+- **A gauge on a named side channel still cuts its mainstem** (`GAUGES_CUT_THEIR_RIVER`, plus "a channel on the
+  river's code is the river" for gauges): Fraser 08MH028 cuts the Fraser again. 08MG025 and 08LB072 had been
+  projected onto a braid loop the prune had deleted, so they cut nothing; a point or gauge now lands on the
+  nearest channel the graph still holds (`POINTS_LAND_ON_LIVE_CHANNELS`): 08MG025 cuts Pemberton Creek again.
+  NOT restored: 08MH032 (no live channel within its 500 m projection tolerance). 22 more of the old sweep's
+  23 listed cuts are not explained by this rule. Most were cuts on channels that do not attach to the gauge's
+  channel on both sides.
+- **Confluence cuts run straight across** (`CONFLUENCE_CUTS_RUN_FROM_THE_MOUTH`): a mouth on a side channel cuts
+  from the mouth through the main channel and across it. Exchamsiks now cuts the Skeena at 67,917 m (was
+  68,914) plus two more channels, and no longer straddles. A confluence's square line is no longer clipped at a
+  meander. Squamish/Ashlu still misses: the cut line passes within 10 m of the network's end, a junction not a
+  crossing. Kitsumkalum +1.5 km is an offset cut (not at the mouth) and stays a line-miss. Both are unbound.
+  The proposed curated diff is dropped.
+- **08NK016** (Elk River near Natal): the station projects onto a 1.15 km side channel 23 m below its head. The
+  sweep treats the Elk mainstem as that channel's braid and cuts the mainstem 40 m away (plus one creek). The
+  page's "on" sides came from a side test using a point 50 m up the side channel, which is past its end. The
+  review data now uses the sweep's own frame.
+- **Review data**: every record has a plain-words `why`; refused records carry the refused braid's pieces
+  with side "refused" (others "untouched").
+
+Counts: 29 cut cases (19 curated, 10 gauge), 53 braid/creek cut points; refused near curated cuts: 4 another
+water, 15 one side, 2 line misses; 2 re-homed; residual straddles 2 (Kitsumkalum, Ashlu, both unbound); reach
+gate 0. Binding diff vs twin: 470 rules; 393 ids only, 21 braid (unchanged from round 2), 12 ditch, 44 by the
+one moved length cut (41 attributed "length", 3 province-wide steelhead rules show as "braid" because they also
+bind sections near 08MH028), 0 unexplained. T115's reversal (T183, both regions' rules on a straddling piece)
+is a separate lane and makes the moved-length-cut effect moot.
+

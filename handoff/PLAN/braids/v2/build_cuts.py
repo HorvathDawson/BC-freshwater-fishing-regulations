@@ -101,6 +101,133 @@ def host_window(blk, M):
     return out
 
 
+def frame_side_fn(case, c):
+    """Side of a point against the case's cut line: the sweep's own frame (`frame_c`, `frame_t`, `frame_u`)."""
+    fc, ft, fu = case.get("frame_c"), case.get("frame_t"), case.get("frame_u")
+    if fc is None or ft is None:
+        return None
+    cx, cy = fc
+
+    def side(pt):
+        if fu is None:
+            v = (pt.x - cx) * ft[0] + (pt.y - cy) * ft[1]
+        else:
+            v = fu[2] * (fu[0] * (pt.y - cy) - fu[1] * (pt.x - cx))
+        return "above" if v > 0 else "below" if v < 0 else None
+    return side
+
+
+def name_of(nid):
+    n = g.nodes.get(nid)
+    if n is None:
+        return nid
+    if n.display_name:
+        return n.display_name
+    return "a pond" if not n.blk else "an unnamed channel"
+
+
+def sides_by_topology(case, side_fn, pieces):
+    """{section: "below" | "above" | "left out"} by TOPOLOGY, the reach's own reading: a host piece by the
+    cut's measure, a piece of a line the sweep cut by its side of that crossing; every other piece takes the
+    side of the nearest such piece it is CONNECTED to (either flow direction), never stepping across a bound that carries this cut — so a braid half meets the host on its
+    own side, and a creek on the braid takes the side where it JOINS the braid. A piece that reaches no host
+    piece that way (the far half of a creek the cut line crossed) is "left out"."""
+    sid = case["split_id"]
+    ref = f"split:{sid}"
+    host = {}
+    for s_ in by_blk.get(case["host_blk"], ()):
+        n = g.nodes[s_]
+        if n.up_m <= case["M"] + 1e-3:
+            host[s_] = "below"
+        elif n.down_m >= case["M"] - 1e-3:
+            host[s_] = "above"
+    # a line the sweep cut: each piece by which side of its crossing it lies on (the cut line's own frame)
+    for cp in case["cut_points"]:
+        p = point_at(cp["blk"], cp["m"] - 5.0)
+        below = side_fn(p) if (side_fn and p is not None) else None
+        if below is None:
+            continue
+        above = "above" if below == "below" else "below"
+        for s_ in by_blk.get(cp["blk"], ()):
+            host.setdefault(s_, below if g.nodes[s_].up_m <= cp["m"] + 0.05 else above)   # m is rounded to 2 dp
+
+    def severed(a, b_):
+        na, nb = g.nodes.get(a), g.nodes.get(b_)
+        if na is None or nb is None or na.blk != nb.blk or not na.blk:
+            return False
+        bnd = na.lower_bound if abs(na.down_m - nb.up_m) < 1e-3 else (
+            na.upper_bound if abs(na.up_m - nb.down_m) < 1e-3 else None)
+        return bnd is not None and (bnd.boundary_id == ref or ref in (bnd.aliases or ()))
+
+    def nbrs(x):
+        for i in g.down_adj.get(x, ()):
+            yield g.edges[i].to_node
+        for i in g.up_adj.get(x, ()):
+            yield g.edges[i].from_node
+
+    out = {}
+    for s_ in pieces:
+        if s_ in host:
+            out[s_] = host[s_]
+            continue
+        seen, frontier, got = {s_}, [s_], None
+        while frontier and got is None and len(seen) < 800:
+            nxt = []
+            for x in frontier:
+                for y in sorted(set(nbrs(x))):
+                    if y in seen or severed(x, y):
+                        continue
+                    if y in host:
+                        got = host[y]
+                        break
+                    seen.add(y)
+                    nxt.append(y)
+                if got is not None:
+                    break
+            frontier = nxt
+        out[s_] = got or "left out"
+    return out
+
+
+def why_text(case, water, side_by):
+    gate = case["gate"]
+    own = case["through_own"]
+    other = case["through_other"]
+    far = {t["side"] for t in case["touches"] if abs(t["m"] - case["M"]) >= 10}
+    trib = [k for k in case["crossings"] if k.get("tributary")]
+    if gate == "cut":
+        d = min((k["dist"] for k in case["crossings"] if k["used"] and not k.get("tributary")), default=0)
+        t = (f"Cut: this side channel leaves the {water} below the cut and rejoins it above, so the cut line "
+             f"crosses it too ({round(d)} m from the river).")
+        if trib:
+            t += (f" {len(trib)} creek(s) on it cross the cut line and are cut there too; each other creek "
+                  "goes with the part of the braid it flows into.")
+        return t
+    if gate == "refused: one side":
+        where = {"lo": "below", "hi": "above"}.get(next(iter(far)), "on one side of") if len(far) == 1 else "on one side of"
+        return (f"Left alone: this channel touches the {water} only {where} the cut, so the cut does not "
+                "separate it (a bend or bulge the cut line happens to cross).")
+    if gate == "refused: another water":
+        names = sorted({name_of(x) for x in other}) or ["another water"]
+        return (f"Left alone: the only path across the cut runs through {', '.join(names)} — that is its own "
+                f"water, not the {water}'s, so the {water}'s cut does not take it.")
+    if gate == "refused: line misses":
+        fl = LineString(case["frame_line"])
+        gap = min((geo[x].distance(fl) for x in own if x in geo), default=None)
+        gap_t = f"{round(gap)} m" if gap is not None else "short"
+        if gap is not None and gap < 10:
+            return (f"Left alone: it joins the {water} on both sides of the cut, but the cut line meets it only "
+                    "within 10 m of one of its ends (a junction, not a crossing), so there is nothing to cut.")
+        return (f"Left alone: it joins the {water} on both sides of the cut, but the cut line ends {gap_t} "
+                "short of it.")
+    if gate.startswith("rehomed"):
+        return ("Not cut: it joins the river within 10 m of the cut; that junction is moved to the side the "
+                "rest of the channel is on.")
+    if gate == "refused: junction <10 m":
+        return "Left alone: the cut line meets it only within 10 m of one of its ends (a junction, not a crossing)."
+    return gate
+
+
 records = []
 for case in sweep["cases"]:
     gate = case["gate"]
@@ -110,38 +237,42 @@ for case in sweep["cases"]:
         continue
     blk, M = case["host_blk"], case["M"]
     c = point_at(blk, M)
-    up = point_at(blk, M + 50.0)
     if c is None:
         continue
     fl = case["frame_line"]
-    tx, ty = (up.x - c.x, up.y - c.y) if up is not None else (0.0, 0.0)
-
-    def side(p):
-        v = (p.x - c.x) * tx + (p.y - c.y) * ty
-        return "above" if v > 0 else "below" if v < 0 else "on"
-
-    member_blks = {x.split(":")[0] for x in case["members"]}
+    side_fn = frame_side_fn(case, c)
+    member_blks = {x.split(":")[0] for x in case["members"] if not x.startswith("lake")}
     cut_ids = {f"{p['blk']}:{int(p['m'])}" for p in case["cut_points"]}
-    pieces, lens = [], defaultdict(float)
+    refused_set = set(case["through_own"]) | set(case["through_other"]) if gate.startswith("refused") else set()
+    if gate == "refused: one side":
+        refused_set = set(case["side_channels"])
+    shown = []
     for b in sorted(member_blks):
-        for s in by_blk.get(b, ()):
-            ln = geo.get(s)
+        for s_ in by_blk.get(b, ()):
+            ln = geo.get(s_)
             if ln is None or ln.is_empty or ln.distance(c) > HOST_M:
                 continue
-            n = g.nodes[s]
-            mid = ln.interpolate(0.5, normalized=True)
-            sd = side(mid)
-            through = s in case["through_own"] or s in cut_ids or any(
-                s.split(":")[0] == x.split(":")[0] and s not in case["members"] and s in cut_ids
-                for x in case["through_own"])
-            is_member = s in case["members"] or s in cut_ids
-            pieces.append({"section": s, "name": n.display_name, "length_m": round(n.length_m or 0.0, 1),
-                           "side": sd, "member": is_member,
-                           "through_own": s in case["through_own"] or s in cut_ids,
-                           "line": line_ll(ln)})
-            if is_member:
-                lens[sd] += n.length_m or 0.0
-    hp = min(by_blk.get(blk, [None]), key=lambda s: abs(g.nodes[s].down_m - M) if s else 0) if by_blk.get(blk) else None
+            shown.append(s_)
+    topo = sides_by_topology(case, side_fn, shown) if gate == "cut" or gate.startswith("rehomed") else {}
+    pieces, lens = [], defaultdict(float)
+    for s_ in shown:
+        n = g.nodes[s_]
+        is_member = s_ in case["members"] or s_ in cut_ids or s_.split(":")[0] in {p["blk"] for p in case["cut_points"]}
+        if gate.startswith("refused"):
+            sd = "refused" if s_ in refused_set else "untouched"
+        else:
+            sd = topo.get(s_, "left out")
+        pieces.append({"section": s_, "name": n.display_name, "length_m": round(n.length_m or 0.0, 1),
+                       "side": sd, "member": is_member,
+                       "through_own": s_ in case["through_own"] or s_.split(":")[0] in
+                       {p["blk"] for p in case["cut_points"] if not any(
+                           k.get("tributary") and k["node"].split(":")[0] == p["blk"] for k in case["crossings"])},
+                       "tributary_cut": any(k.get("tributary") and k["node"].split(":")[0] == n.blk
+                                            for k in case["crossings"]),
+                       "line": line_ll(ln)})
+        if is_member and sd in ("above", "below"):
+            lens[sd] += n.length_m or 0.0
+    hp = min(by_blk.get(blk, [None]), key=lambda s_: abs(g.nodes[s_].down_m - M) if s_ else 0) if by_blk.get(blk) else None
     water = g.nodes[hp].display_name if hp else ""
     rs = []
     for e, r in sorted(rules_of.get(case["split_id"], set()) | old_rules_of.get(case["split_id"], set())):
@@ -157,16 +288,17 @@ for case in sweep["cases"]:
     records.append({
         "split_id": case["split_id"], "label": case["label"], "source": case["source"],
         "anchor_type": case["anchor_type"], "water": water, "host_blk": blk, "M": round(M, 1),
-        "gate": gate, "cut_point": ll(c.x, c.y),
+        "gate": gate, "why": why_text(case, water or "river", None), "cut_point": ll(c.x, c.y),
         "cut_line": [ll(x, y) for x, y in fl],
         "host": host_window(blk, M),
         "pieces": pieces,
         "length_m": {k: round(v, 1) for k, v in sorted(lens.items())},
         "braid_cuts": [{"blk": p["blk"], "m": p["m"], "point": ll(*next(
             ((k["x"], k["y"]) for k in case["crossings"] if k["used"] and k["node"].split(":")[0] == p["blk"]),
-            (c.x, c.y)))} for p in case["cut_points"]],
+            (c.x, c.y))), "tributary": any(k.get("tributary") and k["node"].split(":")[0] == p["blk"]
+                                           for k in case["crossings"])} for p in case["cut_points"]],
         "crossings": [{"section": k["node"], "dist_m": k["dist"], "to_end_m": k["to_end"], "used": k["used"],
-                       "point": ll(k["x"], k["y"])} for k in case["crossings"]],
+                       "tributary": bool(k.get("tributary")), "point": ll(k["x"], k["y"])} for k in case["crossings"]],
         "touches": [{"section": t["node"], "host_section": t["host"], "m": t["m"], "side": t["side"]}
                     for t in case["touches"]],
         "residual_straddle": any(r["split_id"] == case["split_id"] and abs(r["M"] - M) < 0.01

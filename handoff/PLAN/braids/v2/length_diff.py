@@ -34,7 +34,7 @@ OUT.mkdir(parents=True, exist_ok=True)
 def lengths(atlas: Path):
     g = read_artifact(str(atlas / "graph.pkl"))
     L = {nid: (n.blk, float(n.length_m or 0.0), tuple(n.edge_types), bool(n.gnis_id),
-               getattr(n.kind, "value", str(n.kind))) for nid, n in g.nodes.items()}
+               getattr(n.kind, "value", str(n.kind)), float(n.down_m), float(n.up_m)) for nid, n in g.nodes.items()}
     del g
     return L
 
@@ -47,11 +47,14 @@ NL = lengths(NEW_ATLAS)
 # attribution sets
 sweep = json.loads((NEW_ATLAS / "braid_sweep.json").read_text())
 braid_blks, braid_nodes = set(), set()
+braid_at = defaultdict(list)          # blk -> the measures a braid case cut or was judged at
 for c in sweep["cases"]:
     if c["gate"] == "cut" or c["gate"].startswith("rehomed"):
         braid_nodes.update(c["members"])
         for p in c["cut_points"]:
             braid_blks.add(p["blk"])
+            braid_at[p["blk"]].append(p["m"])
+        braid_at[c["host_blk"]].append(c["M"])
         for x in c["members"]:
             braid_blks.add(x.split(":")[0]) if c["gate"] == "cut" and x in c["through_own"] else None
 for c in sweep["cases"]:
@@ -95,7 +98,7 @@ for it in reg["items"]:
             in_stream_item[s] = (it["id"], it["name"])
 del reg
 ditch = {}
-for nid, (blk, ln, et, has_gnis, kind) in OL.items():
+for nid, (blk, ln, et, has_gnis, kind, *_) in OL.items():
     if kind == "stream" and not has_gnis and et and set(et) <= {"2300"} and nid in in_stream_item:
         ditch[nid] = {"section": nid, "blk": blk, "length_m": round(ln, 1), "item": in_stream_item[nid][0],
                       "name": in_stream_item[nid][1]}
@@ -184,6 +187,15 @@ while a is not None or b is not None:
         if abs(dlt) < 0.5:
             continue
         w = why(f"{blk}:0") if blk not in ditch_blks else "ditch"
+        if w == "braid" and blk in length_blks:
+            # a line a braid case touched AND whose length cuts moved: the change is the braid's only if a
+            # changed section lies within 3 km of where the case cut or was judged on this line
+            moved = [x for x in (old ^ new) if (OL.get(x) or NL.get(x) or ("",))[0] == blk]
+            def _near(x):
+                t = OL.get(x) or NL.get(x)
+                return any(t[5] - 3000 <= m <= t[6] + 3000 for m in braid_at.get(blk, ()))
+            if not any(_near(x) for x in moved):
+                w = "length"
         by[w]["net_m"] += dlt
         by[w]["blks"] += 1
         blk_changes.append({"blk": blk, "before_m": round(ob.get(blk, 0.0), 1), "after_m": round(nb.get(blk, 0.0), 1),
