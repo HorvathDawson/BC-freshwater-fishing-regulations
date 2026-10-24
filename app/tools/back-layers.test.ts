@@ -201,7 +201,8 @@ describe("back, everywhere: every surface registers a back layer", () => {
       "packages/ui-native/src/SpotCapture.tsx#Coach: takes onCancel",
       "packages/ui-native/src/SpotDropSheet.tsx#SpotDropSheet: takes onCancel",
       "packages/ui-native/src/SpotPickBanner.tsx#SpotPickBanner: takes onCancel",
-      "packages/ui-native/src/SpotScreen.tsx#SpotScreen: takes onBack",
+      // (T60) SpotScreen read "takes onBack" only from its bottom row's `? p.onBack : leaveEdit` ternary; that second
+      // Back button is gone (one surface per action). It still registers (`useBackLayer`) and back.test drives it.
       "packages/ui-native/src/SpotScreen.tsx#Confirm: takes onCancel",
       "packages/ui-native/src/WaterFrame.tsx#WaterFrame: takes onBack",
       "packages/ui-native/src/WaterScreen.tsx#WaterScreen: takes onBack",
