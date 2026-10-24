@@ -420,7 +420,7 @@ def test_policy_version_is_bumped_when_classify_changes():
                 "complement_unknown_if_a_sibling_does_not_bind": True,
                 "complement_withholds_straddlers": True}
     from pipeline.atlas.graph import tributaries
-    from pipeline.atlas.reach import extent, licensing, outside
+    from pipeline.atlas.reach import extent, licensing, outside, steelhead
     from pipeline.atlas.registry import regions
     policy.update({
         "confluence_cut_excludes_the_joining_water":
@@ -440,6 +440,7 @@ def test_policy_version_is_bumped_when_classify_changes():
         "every_cut_reaches_the_walk": tributaries.EVERY_CUT_REACHES_THE_WALK,
         "one_region_membership": regions.ONE_REGION_MEMBERSHIP,
         "unnamed_lakes_on_the_river_are_the_river": extent.UNNAMED_LAKES_ON_THE_RIVER_ARE_THE_RIVER,
+        "a_steelhead_rivers_widening_is_anadromous": steelhead.A_STEELHEAD_RIVERS_WIDENING_IS_ANADROMOUS,
     })
     expected.update({"confluence_cut_excludes_the_joining_water": True,
                      "confluence_water_without_a_row_goes_with_the_cut": True,
@@ -454,8 +455,9 @@ def test_policy_version_is_bumped_when_classify_changes():
                      "the_walk_never_enters_a_parent": True,
                      "every_cut_reaches_the_walk": True,
                      "one_region_membership": True,
-                     "unnamed_lakes_on_the_river_are_the_river": True})
-    assert cache.POLICY_VERSION == "27", "update this pin with the version it was taken at"
+                     "unnamed_lakes_on_the_river_are_the_river": True,
+                     "a_steelhead_rivers_widening_is_anadromous": True})
+    assert cache.POLICY_VERSION == "28", "update this pin with the version it was taken at"
     assert policy == expected, (
         f"classify.py policy changed to {policy} — bump cache.POLICY_VERSION "
         f"(currently {cache.POLICY_VERSION!r}) and update this test together")

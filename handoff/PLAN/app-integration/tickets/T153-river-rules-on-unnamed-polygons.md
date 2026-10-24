@@ -101,3 +101,49 @@ Rebuild: reach rerun + binding diff + deliver. Owner question Q124.
 - Q3 (new): a TRIBUTARY walk still never takes ponds (p.80: "tributaries" are streams); only ponds on the row's own
   extents widen. Default: keep.
 - Catalogue fix (not this ticket): `r5:mckinley_creek@5-2` r1x is `whole` but the book says downstream of McKinley Lake.
+
+## Follow-up: the card gate on the Kitimat's pond (2026-10-23) — A STEELHEAD RIVER'S WIDENING IS ANADROMOUS
+**Found by** the batch-7 rebuild: `pipeline.deliver all` stopped at the card gate, 12 problems, all on answer key 2336
+(rule `z6:trout_char_quota::trout_char_quota.r1`, at 01-15, 06-15, 07-15, 10-10): the size group "Cutthroat trout, brown
+trout, Dolly Varden/bull trout, lake trout or brook trout: only 1 over 50 cm between them" binds RB over 50 cm but does not
+name it; the tier "Of these, only 1 may be over 50 cm — 2 if one is a hatchery steelhead" caps RB over 50 cm but RB sits
+outside it; kind RB sizes [[0, 50]] are not the lengths RB may be kept at.
+
+**Key 2336** = rule set 1709, ONE section: `lake:329233923` (the Kitimat River's unnamed pond, 53.974 N −128.073, newly
+bound by T153), kind lake, steelhead known (the Kitimat's own water, via its widened `whole`), steelhead rules apply,
+`anadromous` FALSE. Its trout rules: the Kitimat's r4 "Hatchery rainbow trout (adipose clipped, <50 cm) daily quota = 5"
+(RB, hatchery, `lengths` ≤50 / >50 take 0), r5 "Hatchery steelhead (adipose clipped, >50 cm) daily quota = 2", Region 6's
+r1 trout/char 5, r2 "1 over 50 cm", r3 DV/LT 3 and the lake twin r9b "all wild steelhead" (+ zp:steelhead r1b/r2b/r4b).
+So the reader kept hatchery rainbows to 50 cm and a WILD rainbow at ANY size (1 over 50 under r2); the builder worded RB
+from the leading (hatchery) origin, "50 cm or less", and left RB out of the size group — the gate was right that the card
+misstated the rules. The river's own stream sections pass: there `anadromous` is true, so a rainbow over 50 cm IS a
+steelhead (wild: released; hatchery: the river's 2).
+
+**Verdict: a presence defect T153 introduced, not a builder gap.** The book: p.80 "steelhead: a rainbow trout longer than
+50 cm in WATERS where anadromous rainbow trout are found" (not "streams"); the Kitimat row, p.51, splits rainbow from
+steelhead at 50 cm on origin-marked fish ("Hatchery rainbow trout (adipose clipped, <50 cm)" / "Hatchery steelhead
+(adipose clipped, >50 cm)") — a split that reads only where a big rainbow is a steelhead. T153's premise is that the pond
+IS the river (its main flow runs through it; steelhead pass through it to spawn above), so a wild 60 cm rainbow there is
+a wild steelhead and goes back (Region 6 "all wild steelhead" must be released, p.49 zone box; the provincial release). Wording the card
+"wild rainbow trout over 50 cm: 1 may be kept" would tell an angler to keep a wild steelhead 10 m from where the river's
+card releases it. The AGENTS 54 rule `anadromous = KNOWN ∧ STREAM ∧ RULES APPLY` (user ruling 2026-10-03) was written for
+real lakes (Khartoum, Lois: their own rows print "hatchery steelhead"; resident big rainbow are rainbow there); a T153
+widening is not a lake in that sense.
+
+**Fix (one function, one flag):** `pipeline/atlas/reach/steelhead.py::Presence.anadromous` — steelhead rules apply AND
+(a stream OR a pond a steelhead row's OWN water took as its river's widening). `Presence.add_row` collects those ponds from
+the own-water binding's `river_widening` diagnostic (`self.widened`, kept inside the row's own sections). Flag
+`steelhead.A_STEELHEAD_RIVERS_WIDENING_IS_ANADROMOUS = True`, read only there; `cache.POLICY_VERSION` 27 → 28 (pin in
+`test_reach_builder.py`). With T153's flag off there are no widenings, so this changes nothing. Tests:
+`pipeline/tests/test_t153_steelhead_widening.py` (whole presence rows of a toy river + pond; mutations listed in its
+docstring, run). The answers builder is unchanged.
+
+**Measured** (scratch reach run with this code vs `data/generated/reaches/full`, same atlas): `binding_diff` — **no
+binding changed**; `rule_extent`, `rule_diagnostic`, `licensing_section` byte-identical. `steelhead_presence`: exactly
+**68 rows change, every one a `lake:` polygon on the T153 list, only `anadromous` false → true** (the 68 Q147 counted:
+Dean R 28, Atnarko/Bella Coola 9, Zymoetz/Copper 6, Telkwa 5, Kwinageese 4, Burnt Bridge Cr 4, Damdochax 3, Bulkley 2,
+Nekite 2, Kitimat 1, Kakweiken 1, Sustut 1, Chilcotin 1, Ksi X'anmas 1). Scratch deliver on that run (bundle → verdicts → export → answers → card_check): **card gate 0 problems** (2,433 keys, 7,673 cards, 17,132 groups); key 2336 is now `steelhead_water` true and its card reads: the Kitimat River's rule — steelhead 2 ("hatchery rainbow trout over 50 cm"); the rest of the 5 — rainbow trout 5 "50 cm or less", the size group naming cutthroat, brown, Dolly Varden/bull, lake and brook trout. Rebuild needed: reach rerun (POLICY_VERSION 28 invalidates the cache) + deliver; no atlas rebuild.
+
+**Owner question Q152** (built with the default): a pond a steelhead river takes as its widening is anadromous — a rainbow
+over 50 cm in it is a steelhead, as on the river. Flip: `A_STEELHEAD_RIVERS_WIDENING_IS_ANADROMOUS = False` (then the
+answers builder must learn to word a card where hatchery and wild rainbow keep at different sizes — it cannot today).

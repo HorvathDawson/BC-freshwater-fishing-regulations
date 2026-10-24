@@ -39,7 +39,11 @@ KNOWN ∧ a STREAM (`water_kind.kind_of`: a slough or canal is one) ∧ STEELHEA
 ruling 2026-10-03: "if no steelhead rules exist, rainbow rules still apply to a steelhead" — a
 steelhead is a rainbow). Known by the book or by the list alike (the Cowichan River); never a lake,
 never a "possible" stream, never a known water no steelhead rule binds (the Okanagan River: its
-"Rainbow trout catch and release" speaks for every rainbow, however big).
+"Rainbow trout catch and release" speaks for every rainbow, however big). ONE EXCEPTION, the T153
+widening (`Presence.anadromous`): an unnamed pond a steelhead row's OWN river takes as its widening
+(`extent.river_widenings`) IS that river — the Kitimat's pond: p.80 "a rainbow trout longer than 50 cm
+in WATERS where anadromous rainbow trout are found", and the row's own size split ("Hatchery rainbow
+trout (adipose clipped, <50 cm)" / "Hatchery steelhead (adipose clipped, >50 cm)", p.51) reads only so.
 
   known     book-known (above) or listed; each row says which (`regulations`, `listed`), whether
             steelhead rules apply (`rules`), and `anadromous`.
@@ -101,6 +105,13 @@ PROVINCE_SET_RULES = ("steelhead.r1", "steelhead.r2", "steelhead.r4")
 #: rainbow. Streams are unchanged (every section any rule of a steelhead row binds). The curated list
 #: never brings a lake in either (it binds no rule).
 LAKES_ONLY_BY_OWN_ROW = True
+
+#: A STEELHEAD RIVER'S WIDENING IS ANADROMOUS (T153 follow-up, 2026-10-23, the card gate on the Kitimat's
+#: pond `lake:329233923`): an unnamed pond a steelhead row's OWN river takes as its widening
+#: (`extent.river_widenings`) is the river, so a rainbow over 50 cm in it is a steelhead (p.80) — read only
+#: by `Presence.anadromous`. False: the pond is a lake, its wild 60 cm rainbow keepable under the zone's lake
+#: quota while the river's own row splits rainbow from steelhead at 50 cm.
+A_STEELHEAD_RIVERS_WIDENING_IS_ANADROMOUS = True
 
 
 #: A STEELHEAD ROW'S OWN WATER: its matched waters within its own scope, as its rules are held (its
@@ -336,6 +347,9 @@ class Presence:
         self.curated: list[dict] = []
         #: the list the run was given (`fingerprint`) — the bundle refuses a run made with another
         self.list_fingerprint: str = fingerprint([])
+        #: T153: the unnamed ponds each steelhead row's OWN water took as its river's widenings
+        #: (`extent.river_widenings`, reported as the own-water binding's `river_widening` diagnostic)
+        self.widened: set[str] = set()
         #: section -> the steelhead row that binds it (the lowest entry id)
         self._book: dict[str, str] | None = None
         self.by_entry: dict[str, dict[str, int]] = {}
@@ -347,9 +361,11 @@ class Presence:
             return
         self.rows.add(e["entry_id"])
         if own is not None:
-            binding, _ = own()
+            binding, diags = own()
             trib = frozenset(binding.via_tributary)
             self.own[e["entry_id"]] = frozenset(s for s in binding.sections if s not in trib)
+            self.widened.update(p for d in diags if d.kind == "river_widening"
+                                for p in d.payload.get("polygons") or () if p in self.own[e["entry_id"]])
 
     def add_list(self, resolved, outside=frozenset()) -> None:
         """The curated list: each water's own sections in B.C. (`outside` — the border, as every
@@ -385,6 +401,15 @@ class Presence:
         """The section's water kind (`water_kind.kind_of`: a slough or canal is a stream)."""
         return _resolve._kind_of(self.graph, s, self.registry)
 
+    def anadromous(self, s: str, kind: str, apply) -> bool:
+        """WHERE A RAINBOW OVER 50 CM IS A STEELHEAD (p.80) — the one place it is decided: steelhead
+        rules apply here (`rules_apply`), and the section is a STREAM (user ruling 2026-10-03) or a
+        pond a steelhead row's own river took as its widening (T153, `self.widened`): the pond is
+        the river, so the river's size split holds in it (the Kitimat's "hatchery rainbow trout
+        <50 cm" / "hatchery steelhead >50 cm" — a wild 60 cm rainbow in it is a wild steelhead)."""
+        return s in apply and (kind == "stream" or (A_STEELHEAD_RIVERS_WIDENING_IS_ANADROMOUS
+                                                    and s in self.widened))
+
     @staticmethod
     def rules_apply(bindings) -> frozenset:
         """WHERE STEELHEAD RULES APPLY: the sections bound by every member of the provincial set
@@ -416,8 +441,9 @@ class Presence:
                          "entry_id": book.get(s, CURATED_LIST),
                          "regulations": s in book, "listed": s in self.listed,
                          "rules": s in apply,
-                         # p.80 where steelhead rules apply, on a stream (user ruling 2026-10-03)
-                         "anadromous": kind == "stream" and s in apply,
+                         # p.80 where steelhead rules apply, on a stream (user ruling 2026-10-03) or
+                         # a steelhead river's widening (T153)
+                         "anadromous": self.anadromous(s, kind, apply),
                          "kind": kind})
         rows += [{"section_id": s, "steelhead": POSSIBLE, "entry_id": PROVINCE_STEELHEAD,
                   "regulations": False, "listed": False, "rules": s in apply,

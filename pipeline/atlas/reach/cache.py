@@ -109,7 +109,11 @@ from typing import Callable
 #:     runs through, between two pieces a rule's extent selected, is the river for that rule
 #:     (`extent.river_widenings`, `extent.UNNAMED_LAKES_ON_THE_RIVER_ARE_THE_RIVER`); a named lake never
 #:     takes the river's row.
-POLICY_VERSION = "27"
+#: 28: (T153 follow-up, 2026-10-23) A STEELHEAD RIVER'S WIDENING IS ANADROMOUS: a pond a steelhead row's own
+#:     river takes as its widening is `anadromous` (a rainbow over 50 cm is a steelhead, p.80) where steelhead
+#:     rules apply (`steelhead.Presence.anadromous`, `A_STEELHEAD_RIVERS_WIDENING_IS_ANADROMOUS`) — the
+#:     Kitimat's pond kept a wild 60 cm rainbow under the zone's lake quota.
+POLICY_VERSION = "28"
 
 
 def entry_key(entry: dict, build_id: str, policy_version: str = POLICY_VERSION) -> str:

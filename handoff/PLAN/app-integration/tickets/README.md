@@ -288,6 +288,7 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q148 | T154 | Promote "dammed widening = lake" (R2 with the dams layer: 26 candidates → LAKE; catches Quinsam and South Nanaimo, not Bonaparte) into the slough candidates, or keep dams as evidence only? | evidence only | owner |
 | Q149 | T154 | Bonaparte (329055141) has no dam in the provincial data — mark it lake by hand on the slough page? | yours on the page | owner |
 | Q151 | T166 | Unnamed streams: assume their tidal limit is at the mouth (no crossing work)? | yes | owner |
+| Q152 | T153 | A pond a steelhead river takes as its widening is ANADROMOUS (a rainbow over 50 cm in it is a steelhead, p.80) — 68 ponds; found by the card gate on the Kitimat's pond? | yes (built; one flag) | owner |
 
 ### Answered (recently, for the record)
 - Q150 / Q137 / Q138 (no-access look) — owner 2026-10-23: streams dotted grey, warning amber in the page banner, own keeps amber (decisions.md).

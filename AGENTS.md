@@ -358,7 +358,9 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
     provincial set, base or twin (`steelhead.Presence.rules_apply`; the export's
     `steelhead_rules_apply` is the same predicate). `anadromous_rainbow` (a rainbow over 50 cm is a
     steelhead) holds exactly on KNOWN ∧ STREAM (rule 55) ∧ STEELHEAD RULES APPLY — book-known or on
-    the curated list alike (the Cowichan River). "If no steelhead rules exist, rainbow rules still
+    the curated list alike (the Cowichan River) — and on an unnamed pond a steelhead row's own river takes as
+    its T153 widening (`Presence.anadromous`, `A_STEELHEAD_RIVERS_WIDENING_IS_ANADROMOUS`, Q152: the pond is the
+    river; the Kitimat's pond). "If no steelhead rules exist, rainbow rules still
     apply to a steelhead" (user ruling 2026-10-03): a known part no steelhead rule applies to
     carries `steelhead_rules: false` in the export, with the display line "Steelhead have been
     recorded here, but no steelhead rule applies: treat any rainbow, however big, as a rainbow
