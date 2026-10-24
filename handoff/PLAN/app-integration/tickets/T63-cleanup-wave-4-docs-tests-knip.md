@@ -30,3 +30,33 @@ Status: OPEN. Source: handoff/PLAN/audit/PLAN.md §2 "Wave 4" + owner: "a big te
 - Order-dependent (2026-10-24, T61 final run): `test_synopsis_pages.py` (4 tests) ERROR in the full serial suite with
   "PDFium: Data format error" loading data/source/fishing_synopsis.pdf, and pass alone (9 passed). Find the earlier
   test that leaks state into it (a patched SOURCE / an open pdfium handle) and fix the isolation.
+
+## Outcome (2026-10-24)
+
+Commits d065b13c..(this ticket's last) on the lane branch, from b98d2de5.
+
+- **Docs.** `pipeline/docs/MAP.md` and `app/MAP.md`: the one current map of each (every path checked to exist), linked
+  from AGENTS.md, README.md, app/README.md, pipeline/docs/00-README.md. Archived: pipeline/docs/CURRENT-STATE.md and
+  NEXT.md (-> archive/2026-10-*), 06-ui-data-contract.md; app/README.md lost its stale build-order / "nothing here" /
+  PlaceholderScreen text; AGENTS rule 31 points at package.json.
+- **Tests.** Removed as duplicates: 15 pipeline card-gate loops covered pair by pair by
+  test_answers_r16_caps::test_the_gate_proves_every_fixture_card_with_its_cap_system, test_trim_wsc::test_none_like;
+  app: horizon.test HORIZONS, emit-adipose self-compare, 4 restating assertions (menu, change, leadupWords); the dead
+  search auto-subject tests went with the code. trustWord became a whole-value pin. The 4 order-dependent
+  test_synopsis_pages errors: test_review_screen's unlocked-pdfium mutation corrupted pdfium in-process; it now runs in a
+  child process. The live regs store is built once per session (conftest `live_store_of`): ~60 s off the suite.
+  Vintage-pin guard: `app/tools/vintage-pins.test.ts` (mutation-pinned); the Vedder ordinal and wbk:-22 pins now derive
+  from taps.json / a round trip.
+- **knip** in `pnpm check` (6.40.0, deps.md): `app/knip.jsonc`, entry exports checked, allowances with reasons
+  (platform variants, the platform half, generated files, PREPARED-NOT-FED queries, the FIT_MAX_ZOOM alias; tools' @app/*
+  aliases as `paths`). ~100 unread barrel re-exports and dead code removed (gaugeSentence, donorUnranked, flowRamp,
+  usePickFocus, Pill, pins.ts, map's @app/ui dep, …). `noUnusedLocals` on (17 fixed).
+- **Lane leftovers.** port/golden, reader states.json, fishart.js -> `app/fixtures/` with every reader repointed; the
+  unread gauge-policy JSON dropped; stale prose naming fixture_release / build-fixture.mjs / bundle/queries.ts fixed;
+  `useSearchView/subjectOf(follow)` and townToPreview removed; `stationsFor` already gone (the one-speaker guard keeps it).
+- **Checks.** `REGS_STORE_REQUIRED=1 pnpm -C app check` (heavy.sh): rc 0, Test Files 367 passed | 4 skipped (371), Tests
+  8173 passed | 21 skipped. Full pytest (heavy.sh, unfiltered): before 1 failed / 5531 passed in 999 s; after 5515
+  passed / 1 failed in 915 s — the failure was the pdfium mutation child dying by SIGTRAP in the full suite, fixed after
+  (test_review_screen + test_synopsis_pages rerun: 25 passed); the full suite was not rerun after that fix.
+- **Not done.** test_curation_review_screen zone-entry test (74 s) and test_pfma_drainage (38 s first gpkg read) left
+  slow; 4 weak smoke tests (pentad wrap, marks load, callable checks) kept; page v36 oracle untouched (owner call 2).
