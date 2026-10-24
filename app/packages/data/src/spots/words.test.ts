@@ -55,7 +55,8 @@ describe("spotHeadline", () => {
 
 describe("spotRowLines — the list row, by the LOCAL day of the visit", () => {
   const spot = (over: Partial<Spot> = {}): Spot => ({
-    id: "s1", createdAt: new Date(2026, 8, 1, 20).getTime(), visitedAt: new Date(2026, 7, 30, 23, 30).getTime(),
+    // saved minutes later the same local evening (already the next day in UTC)
+    id: "s1", createdAt: new Date(2026, 7, 30, 23, 50).getTime(), visitedAt: new Date(2026, 7, 30, 23, 30).getTime(),
     updatedAt: 0, lat: 49.0974, lon: -121.9675, item: null, waterName: null, title: "t", notes: "", photos: [],
     reading: null, weather: null, trace: null, panel: null, ...over,
   });
@@ -76,6 +77,20 @@ describe("spotRowLines — the list row, by the LOCAL day of the visit", () => {
     expect(spotRowLines(spot({
       reading: { station: "08MH001", discharge: 15.7, level: null, percentile: null, at: null },
     }))[0]).toBe("2026-08-30 · 15.7 m³/s · no weather");
+  });
+
+  it("a trip on an earlier day than the save: that day's flow, never the save day's reading (Q161)", () => {
+    const later = { createdAt: new Date(2026, 8, 1, 20).getTime(),
+                    reading: { station: "08MH001", discharge: 11.2, level: null, percentile: 0.05, at: null } };
+    expect([spotRowLines(spot(later))[0],
+            spotRowLines(spot({ ...later, dayFlow: { state: "filled", station: "08MH001", date: "2026-08-30",
+                                                     discharge: 15.7, percentile: 0.038, place: 0.038, source: "feed",
+                                                     filledAt: 0 } }))[0],
+            spotRowLines(spot({ ...later, dayFlow: { state: "none", station: "08MH001", date: "2026-08-30",
+                                                     why: "no-discharge", askedAt: 0 } }))[0]])
+      .toEqual(["2026-08-30 · flow that day not read yet · no weather",
+                "2026-08-30 · 15.7 m³/s · p4th · no weather",
+                "2026-08-30 · no flow that day · no weather"]);
   });
 
   it("shows the quantity the reading declares: 08ME030's level beside its level percentile (T106)", () => {

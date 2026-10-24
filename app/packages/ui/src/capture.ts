@@ -8,7 +8,7 @@
 import { useRef, useState } from "react";
 import { setVisitHour, shiftVisitDay, visitSteps, type VisitSteps } from "@app/core";
 import type { ItemId, RegsSource, SectionId } from "@app/data";
-import { captureSpot, type Spot, type WeatherSource } from "@app/data/spots";
+import { captureSpot, type HydatDaily, type Spot, type WeatherSource } from "@app/data/spots";
 import { spotSaveFailed } from "./spots";
 import { usePhotoEdit, type PhotoEdit, type SpotPhotos } from "./photos";
 
@@ -21,6 +21,8 @@ export interface CaptureOptions {
   now?: () => number;
   /** S1: the photo store and the platform's picker. Absent -> the draft offers no photos. */
   photos?: SpotPhotos;
+  /** Q161: HYDAT and the online word, for a trip on an earlier day (read from that day's record). */
+  history?: { hydat?: HydatDaily; online?: () => boolean };
 }
 
 /** The water picked on the map. `section` is used to look things up while capturing and is never stored. */
@@ -73,7 +75,8 @@ export function useCaptureSpot(opts: CaptureOptions): CaptureSpotApi {
       setError(null);
       try {
         const spot = await captureSpot({
-          feed: opts.feed, source: opts.source, weather: opts.weather, at, visitedAt,
+          feed: opts.feed, source: opts.source, weather: opts.weather, at, visitedAt, now: now(),
+          ...(opts.history ? { history: opts.history } : {}),
           item: water.item, section: water.section, waterName: water.name,
           title: title || water.name || "",
           ...(begun.current ? { id: () => begun.current! } : {}),

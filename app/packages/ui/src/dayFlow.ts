@@ -8,7 +8,6 @@
  * itself the moment the device says it is back online.
  */
 import { useEffect, useState } from "react";
-import { localDate } from "@app/core";
 import { DAY_FLOW_WORDS, dayFlowAskable, dayFlowLine, dayFlowStation, readingIsTheDays, type DayFlowAnswer,
          type Spot } from "@app/data/spots";
 import type { Connectivity } from "./imagery";
@@ -21,8 +20,6 @@ export interface DayFlowView {
   action: { label: string; busy: boolean } | null;
   /** What is happening now: asking, offline (waiting), the day not over. Null when nothing is. */
   status: string | null;
-  /** Under the frozen estimate when it was read on another day than the visit's. */
-  notTheDay: string | null;
 }
 
 type Phase = "idle" | "asking" | "offline" | "pending";
@@ -34,16 +31,11 @@ const STATUS: Readonly<Record<Phase, string | null>> =
 export function dayFlowView(spot: Spot, phase: Phase): DayFlowView | null {
   if (!dayFlowStation(spot) || readingIsTheDays(spot)) return null;
   const askable = dayFlowAskable(spot);
-  const r = spot.reading;
-  // the day the frozen reading is of: its own observation time, else when the spot was saved
-  const ymd = localDate(r?.at && Number.isFinite(Date.parse(r.at)) ? Date.parse(r.at) : spot.createdAt);
   return {
     heading: DAY_FLOW_WORDS.heading,
     line: dayFlowLine(spot.dayFlow),
     action: askable ? { label: DAY_FLOW_WORDS.action, busy: phase === "asking" } : null,
     status: STATUS[phase],
-    // only a spot that froze an estimate or a reading with something in it has an "above" that is not the day's
-    notTheDay: (spot.panel || (r && (r.discharge !== null || r.level !== null))) ? DAY_FLOW_WORDS.notTheDay(ymd) : null,
   };
 }
 

@@ -27,7 +27,7 @@ import { useConditionsColour, useDataFacts, useGaugeGeoJSON, useSync, useLakeCol
          NO_SEARCH, searchStep, type SearchAction, type SearchMemory, useSearchSession, usePairing, useRegulationKeys,
          useStatusIndex, statusFeed, useHorizon, useHorizonPick, flowHorizon, horizonChips, tapOpensWater, useImageryReach, type Horizon, type PairingInput,
          type StatusSource } from "@app/ui";
-import type { DayFlowAnswer, LikeStore, Spot, WeatherSource } from "@app/data/spots";
+import type { DayFlowAnswer, HydatDaily, LikeStore, Spot, WeatherSource } from "@app/data/spots";
 import { FIELD_HANDOVER_Z, hiddenLayers, shownLayers,
          type Camera, type MapSpots, type TileEndpoints, coloursEachTile, imageryTiles } from "@app/map";
 import { connectivity } from "./connectivity";
@@ -81,7 +81,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                        spots = [], onSaveSpot, weather, onRefreshSpots, onDeleteSpot, refreshing, feed,
                        spotsError, attribution, fishImages, adiposeImages, photos, status = null, pairing = null,
                        systemBack = null, loader = null, initialRoute, initialDay = null, regsStart = null, locate = null, menuInfo,
-                       checkRelease = null, layerStore, likeStore, onDayFlow }: {
+                       checkRelease = null, layerStore, likeStore, onDayFlow, hydat }: {
   source: RegsSource; palette: Palette;
   /**
    * Where the day's status comes from: the release's paint (P11), or on the dev bundle path status_index.bin. Absent
@@ -108,6 +108,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    * learned (null: nothing to ask). Absent -> the spot sheet shows the record and offers no action.
    */
   onDayFlow?: (spot: Spot) => Promise<DayFlowAnswer | null>;
+  /** Q161: HYDAT's daily means, so a spot added for an earlier day reads that day's gauges. Absent: feed days only. */
+  hydat?: HydatDaily;
   /** Awaited like a save: a rejection is shown and the spot stays open (P01). */
   onDeleteSpot?: (id: string) => void | Promise<void>;
   /** The spots could not be read (a corrupt file, set aside): said in the Spots menu, never an empty list (P01). */
@@ -633,6 +635,9 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                    // So the spot freezes the ESTIMATE the reader was looking at,
                    // not just the matched station's own number.
                    feed={feed}
+                   // Q161: a trip on an earlier day is read from that day's record (HYDAT when online)
+                   history={{ ...(hydat ? { hydat } : {}),
+                              ...(connectivity.watches ? { online: connectivity.online } : {}) }}
                    theme={theme} camera={camera.current}
                    onCancel={back}
                    // awaited: a rejection reaches SpotCapture, which shows it and stays open (P01)

@@ -223,6 +223,7 @@ export default function App() {
                  catch { /* said by spotsHook.error; the list keeps what was saved */ }
                  finally { setRefreshing(false); }
                }}
+               hydat={hydat}
                onDayFlow={async (spot) => {
                  // T170 "Get the flow for that day": that one spot, through the same fill a refresh uses; the others
                  // come back as they are (no write), and an edit made meanwhile wins (`refresh`'s patch)

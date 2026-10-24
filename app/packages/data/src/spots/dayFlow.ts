@@ -22,8 +22,10 @@
  * never replaced (`readingIsTheDays`).
  */
 import { localDate, percentileInBand, placeInBand } from "@app/core";
-import type { RegsSource, StationId } from "../index";
+import type { Panel, PanelMember, RegsSource, StationId } from "../index";
+import { answerFrom, type PanelAnswer } from "../panel";
 import { dayIn } from "./leadup";
+import { stripRoutes } from "./migrate";
 import type { DayFlow, Spot } from "./model";
 
 /** ECCC GeoMet's HYDAT daily means (OGC API – Features). */
@@ -158,4 +160,107 @@ export async function fillDayFlow(spot: Spot, ports: DayFlowPorts, now: number =
     : answer.kind === "not-published" ? { state: "not-published", station, date, askedAt: now }
     : null;
   return { spot: rec ? { ...spot, dayFlow: rec, updatedAt: now } : spot, answer };
+}
+
+/* ---- Q161: the TRIP DAY's gauge panel ---------------------------------------------------------------------------- */
+/*
+ * owner 2026-10-24: "it should save the date that you set as the time of trip in the add a spot". A spot added for an
+ * earlier day froze the panel as the gauges read when it was SAVED — labelled so (T170), but still not the trip's. Now
+ * the panel of a spot whose trip day is earlier than its save day is the section's panel (its member set as now) with
+ * each member's DAILY MEAN that day, through the one read (`flowOnDay`: discharge only, ranked with core
+ * `percentileInBand`), and answered by the same `answerFrom` the map and the sheet use. A spot added the day of the
+ * trip is read live, as always. Nothing here reads a save-day reading for an earlier trip day.
+ */
+
+/** The trip's local day is before the day the spot was saved. */
+export const isBackdated = (spot: Pick<Spot, "visitedAt" | "createdAt">): boolean =>
+  visitDay(spot) < localDate(spot.createdAt);
+
+/** A day's answers as the index `answerFrom` reads: each member with a ranked flow that day, nothing for the rest. */
+function dayIndex(members: readonly PanelMember[], answers: readonly DayFlowAnswer[]): Parameters<typeof answerFrom>[1] {
+  const stations: Record<string, { percentile: number; discharge: number; parameter: "discharge" }> = {};
+  members.forEach((m, i) => {
+    const a = answers[i];
+    // a day's answer, not a donor's state (that is core's `donorState`, over the rows `answerFrom` makes of this)
+    const p = a?.kind === "flow" ? a.percentile : null;
+    if (p !== null) stations[m.station] = { percentile: p, discharge: p, parameter: "discharge" };
+  });
+  return { stations };
+}
+
+/**
+ * THE PANEL ON A DAY: every member's flow that day (`flowOnDay`), then `answerFrom` over them. `pending` when any member
+ * could not be read yet (offline, or the day not over in its record): a panel half made of another day is never
+ * frozen. A member with no flow that day (level only, no record, not published) is silent in it, as a quiet gauge is.
+ */
+export async function panelOnDay(panel: Panel, date: string, ports: DayFlowPorts):
+  Promise<{ state: "day"; answer: PanelAnswer } | { state: "pending" }> {
+  const answers = await Promise.all(panel.members.map((m) => flowOnDay(m.station, date, ports)));
+  if (answers.some((a) => a.kind === "offline" || a.kind === "pending")) return { state: "pending" };
+  return { state: "day", answer: stripRoutes(answerFrom(panel, dayIndex(panel.members, answers), "discharge")) };
+}
+
+/**
+ * A panel back out of a frozen answer — for a spot saved before Q161 (its section is not kept, AGENTS 5): each row's
+ * station, side, catchment, record and the two flags. `lead` is not in a row; the member whose frozen share was raised
+ * above its plain one (core `leadShares`) led, and keeps leading.
+ */
+export function panelOfAnswer(p: PanelAnswer): Panel {
+  // the members the frozen answer counted (weight over 0): a quiet or stood-back one weighed nothing
+  const plain = p.rows.map((r) => (!(r.weight > 0) || !r.factors ? 0
+    : r.factors.share * r.factors.role * r.factors.record));
+  const total = plain.reduce((a, w) => a + w, 0);
+  const led = total > 0 ? p.rows.findIndex((r, i) => r.weight > plain[i]! / total + 1e-9) : -1;
+  return { areaKm2: p.areaKm2,
+           members: p.rows.map((r, i) => ({ station: r.station, role: r.role, areaKm2: r.areaKm2,
+                                            // the frozen answer is a flow panel: its rows carry the discharge
+                                            // record, and the day's panel is read in discharge only
+                                            years: { discharge: r.years, level: 0 }, regulated: r.regulated,
+                                            sameRiver: r.sameRiver, ...(i === led ? { lead: 1 } : {}) })) };
+}
+
+/**
+ * The trip day's panel for a spot being added for an earlier day: `{panel, panelDay}` for the record. No panel for the
+ * section: nothing to freeze. A member that could not be read: `pending`, with the members to read again.
+ */
+export async function capturePanelOnDay(panel: Panel | undefined, date: string, ports: DayFlowPorts):
+  Promise<Pick<Spot, "panel" | "panelDay">> {
+  if (!panel) return { panel: null };
+  const got = await panelOnDay(panel, date, ports);
+  return got.state === "day" ? { panel: got.answer, panelDay: { state: "day", date } }
+    : { panel: null, panelDay: { state: "pending", date, members: panel } };
+}
+
+/**
+ * A spot whose panel is not of its trip day, and could be: a backdated spot with its panel still to read (`pending`),
+ * or one saved before Q161 holding a panel read when it was saved. Never a spot whose reading is the trip day's own.
+ */
+export function needsDayPanel(spot: Spot): boolean {
+  if (!isBackdated(spot) || readingIsTheDays(spot)) return false;
+  return spot.panelDay ? spot.panelDay.state === "pending" : !!spot.panel;
+}
+
+/** Read the trip day's panel onto a spot that needs it (`needsDayPanel`); the same spot back when nothing is learned. */
+export async function fillDayPanel(spot: Spot, ports: DayFlowPorts, now: number = Date.now()): Promise<Spot> {
+  if (!needsDayPanel(spot)) return spot;
+  const date = visitDay(spot);
+  const members = spot.panelDay?.state === "pending" ? spot.panelDay.members : panelOfAnswer(spot.panel!);
+  const got = await panelOnDay(members, date, ports);
+  if (got.state === "day") return { ...spot, panel: got.answer, panelDay: { state: "day", date }, updatedAt: now };
+  // still not readable: a spot saved before Q161 is marked pending (its save-day panel is never shown for the trip)
+  return spot.panelDay ? spot : { ...spot, panelDay: { state: "pending", date, members }, updatedAt: now };
+}
+
+/**
+ * WHAT "What the water was doing" SHOWS for a saved spot (decided here, drawn by `SpotScreen`):
+ *   live     saved on its trip day (or its reading is the trip day's own): its panel and reading as read then;
+ *   day      a backdated spot whose panel is the trip day's — each gauge's daily mean that day;
+ *   pending  a backdated spot whose trip-day panel is still to read: its save-day panel and reading are not shown;
+ *   flow     a backdated spot with no panel: the gauge's own flow that day is under "Flow that day".
+ */
+export function savedGauges(spot: Spot): "live" | "day" | "pending" | "flow" {
+  if (!isBackdated(spot) || readingIsTheDays(spot)) return "live";
+  if (spot.panelDay?.state === "day" && spot.panel) return "day";
+  if (spot.panelDay?.state === "pending" || spot.panel) return "pending";
+  return "flow";
 }

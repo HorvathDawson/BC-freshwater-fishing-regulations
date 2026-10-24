@@ -165,10 +165,12 @@ describe("the visit day's flow on a spot", () => {
                                   filledAt: got.dayFlow!.state === "filled" ? got.dayFlow!.filledAt : 0 });
     expect(dayFlowLine(got.dayFlow)).toBe("19.6 m³/s, the 24th percentile for the date — filled in from the day's "
       + "record (HYDAT daily mean, 15 Aug 2024).");
+    // Q161: the refresh also refills the panel for the trip day (its member asked the same one read)
     expect([visitConditions(got).flow, needsRefresh(got), dayFlowAskable(got), h.asked])
-      .toEqual([percentileInBand(19.6, BAND), false, false, ["08MH001 2024-08-15"]]);
-    // the frozen reading and panel are kept as recorded, never overwritten
-    expect([got.reading, got.panel]).toEqual([backdated().reading, backdated().panel]);
+      .toEqual([percentileInBand(19.6, BAND), false, false, ["08MH001 2024-08-15", "08MH001 2024-08-15"]]);
+    // the frozen reading is kept as recorded (never shown for the trip day); the save-day panel is replaced by the day's
+    expect([got.reading, got.panelDay, got.panel?.rows.map((r) => [r.station, r.percentile])]).toEqual([
+      backdated().reading, { state: "day", date: "2024-08-15" }, [["08MH001", percentileInBand(19.6, BAND)]]]);
   });
 
   it("a spot whose reading was taken ON the day is untouched: nothing asked, the same object back", async () => {
@@ -207,7 +209,7 @@ describe("the visit day's flow on a spot", () => {
     expect([np.spot.dayFlow, dayFlowLine(np.spot.dayFlow), dayFlowAskable(np.spot), needsRefresh(np.spot)]).toEqual([
       { state: "not-published", station: "08MH001", date: "2024-08-15", askedAt: SAVED },
       "The flow for 15 Aug 2024 is not published yet: it is older than ECCC's recent record and not in HYDAT yet. "
-        + "Try again later.", true, false]);
+        + "Try again later.", true, true]);    // still due a refresh: its save-day panel is not the trip day's (Q161)
     const later = await refreshSpot(np.spot, sky, source(), undefined, { hydat: hydat({ kind: "day", discharge: 19.6,
                                                                                           level: null }) });
     expect(later.dayFlow?.state).toBe("filled");

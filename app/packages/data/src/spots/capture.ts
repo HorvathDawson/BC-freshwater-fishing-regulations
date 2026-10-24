@@ -8,13 +8,14 @@
  * as a null on the record rather than a zero or a guess — the screen then says "not known",
  * which is the truth, and a later backfill can fill it in and mark itself as backfilled.
  */
-import { freezeTrace, leadUpDays, type FrozenTrace } from "@app/core";
+import { freezeTrace, leadUpDays, localDate, type FrozenTrace } from "@app/core";
 import { answerFrom, type PanelAnswer } from "../panel";
 import { sheetLead, speakerFor, speaks, type Speaker } from "../standing";
 import type { ItemId, RegsSource, SectionId, StationId } from "../index";
 import type { DailyWeather, LeadUp, Spot, SpotReading, SpotWeather } from "./model";
 import { stripRoutes } from "./migrate";
 import { leadUpFor } from "./leadup";
+import { capturePanelOnDay, fillDayFlow, type DayFlowPorts } from "./dayFlow";
 import type { WeatherAhead } from "./likeVisit";
 
 /**
@@ -65,6 +66,11 @@ export interface CaptureInput {
   visitedAt?: number;
   /** The live index, so the estimate can be frozen as the reader saw it. */
   feed?: { index(): Promise<Parameters<typeof answerFrom>[1]> };
+  /**
+   * Q161: HYDAT and the device's online word, for a trip on an EARLIER day than today — its gauges are read from that
+   * day's record (`flowOnDay`), never from the live feed. Absent: the feed's own daily series only; older days wait.
+   */
+  history?: Omit<DayFlowPorts, "source">;
   now?: number;
   id?: () => string;
 }
@@ -89,31 +95,46 @@ export async function captureSpot(input: CaptureInput): Promise<Spot> {
   const { source, at, item, section, waterName } = input;
   const now = input.now ?? Date.now();
   const visitedAt = input.visitedAt ?? now;
+  /*
+   * THE TRIP'S DAY, NOT THE SAVE'S (owner 2026-10-24, Q161: "it should save the date that you set as the time of trip
+   * in the add a spot"). A trip on an earlier day than today is recorded from THAT day's record — the lead gauge's
+   * daily mean (`fillDayFlow`) and the section's panel with every member's daily mean that day (`capturePanelOnDay`),
+   * both through the one history read (`flowOnDay`) — and never from the live feed, which is today's river. Offline or
+   * the day not over: saved as pending, filled by a refresh. A trip today is read live, exactly as before.
+   */
+  const earlier = localDate(visitedAt) < localDate(now);
+  const ports: DayFlowPorts = { source, ...input.history };
 
   // In parallel where nothing depends on anything: this runs while a person is looking at a "saving" spinner, and
   // round trips in series are longer to look at.
   const sky = (input.weather ?? noWeather).at(at.lat, at.lon, new Date(visitedAt));
-  const [speaker, panel] = await Promise.all([
+  const [speaker, panelled] = await Promise.all([
     // WHO SPEAKS (T105): the speaker the map colours by and the sheet reads, `speakerFor`. A failed lookup fails the
     // capture (a spot must not freeze "no gauge speaks here" because a read failed).
     speakerOf(source, section),
     // THE ANSWER THE APP WAS SHOWING, through the same function the map and the sheet use.
     // Without a feed there is nothing to freeze and the spot keeps only the reading.
-    panelFor(source, section, input.feed),
+    // An earlier trip day: the same panel, each member's daily mean that day (Q161).
+    earlier ? panelOnTripDay(source, section, localDate(visitedAt), ports)
+            : panelFor(source, section, input.feed).then((p): Pick<Spot, "panel" | "panelDay"> => ({ panel: p })),
   ]);
+  const { panel, ...onDay } = panelled;     // `panelDay` only on an earlier trip day (Q161)
   // THE SHEET'S STATION (`sheetLead`): never the station `section_gauge` matched to the reach unless it speaks here, so
   // a saved spot cannot quote a gauge the sheet refused (T105 review).
   const lead = sheetLead(speaker, panel?.rows ?? [], null);
   const [reading, trace, weather, leadUp] = await Promise.all([
-    readingFor(source, lead),
+    // an earlier trip day holds no live reading: its flow is that day's record (`dayFlow`, below)
+    earlier ? Promise.resolve(lead ? { station: lead, discharge: null, level: null, percentile: null, at: null } : null)
+            : readingFor(source, lead),
     traceFor(source, section, speaker),
     sky,
     // S1: the seven days before the visit — daily weather and the station's daily means.
     leadUpFor(source, input.weather, at, lead, leadUpDays(visitedAt), input.feed),
   ]);
 
-  return {
+  const spot: Spot = {
     panel,
+    ...onDay,
     id: input.id?.() ?? `spot_${now.toString(36)}_${Math.random().toString(36).slice(2, 8)}`,
     createdAt: now, updatedAt: now, visitedAt,
     lat: at.lat, lon: at.lon,
@@ -125,6 +146,21 @@ export async function captureSpot(input: CaptureInput): Promise<Spot> {
     notes: "", photos: [],
     reading, weather, trace, leadUp,
   };
+  // the trip day's own flow, through the one fill a refresh and "Get the flow for that day" use; offline: asked later
+  return earlier ? (await fillDayFlow(spot, ports, now)).spot : spot;
+}
+
+/** The section's panel with each member's daily mean on the trip day (Q161); a failed lookup freezes no panel. */
+async function panelOnTripDay(source: RegsSource, section: SectionId | null, date: string, ports: DayFlowPorts):
+  Promise<Pick<Spot, "panel" | "panelDay">> {
+  if (!section) return { panel: null };
+  try {
+    const panels = await source.panelsFor([section]);
+    return await capturePanelOnDay(panels.get(section), date, ports);
+  } catch {
+    // A spot must save. A missing estimate is a smaller loss than a lost record.
+    return { panel: null };
+  }
 }
 
 /** Who speaks for the reach (`speakerFor`, T105): its panel, else the station in its lake, else nobody. */

@@ -136,8 +136,10 @@ export interface StationChange {
 
 /**
  * EVERY FORECAST DAY'S DISCHARGE PERCENTILE (T171; the publisher's `change.forecast_days`): the ten Centre days after
- * the feed's today, `from` first. Each day is the chosen model's daily mean ranked against that day's envelope; the model
- * per day is the publisher's one rule (the first flood model, CLEVER then COFFEE; else ELF). `lowWater` lists the
+ * the feed's today, `from` first. Each day is the models' daily mean ranked against that day's envelope, joined by the
+ * publisher's one combination (`change.combine_day`, T177: CLEVER and COFFEE together where both reach the day — `model`
+ * then reads "CLEVER+COFFEE" — one alone where only it does; else ELF). The app reads the name only to tell an ELF day.
+ * `lowWater` lists the
  * indexes of the days ELF made (absent: none). A day no model can rank is null in both lists. Flow only.
  */
 export interface AheadDays {

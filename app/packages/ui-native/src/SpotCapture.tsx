@@ -26,8 +26,8 @@ import { SPOT_CAPTURE_AT, VISIT_QUICK_DAYS, type LatLon, type SectionKey, type V
 import { useRef, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import type { RegsSource, SectionId } from "@app/data";
-import type { Spot, WeatherSource } from "@app/data/spots";
-import { useBackLayer, useCaptureSpot, type CaptureWater, type SpotPhotos } from "@app/ui";
+import type { HydatDaily, Spot, WeatherSource } from "@app/data/spots";
+import { dayFlowView, useBackLayer, useCaptureSpot, type CaptureWater, type SpotPhotos } from "@app/ui";
 import type { Camera, TileEndpoints } from "@app/map";
 import { FishSpinner } from "./FishSpinner";
 import { MapScreen } from "./MapScreen";
@@ -64,6 +64,11 @@ export interface SpotCaptureProps {
   onCancel: () => void;
   /** S1: the photo store and the platform's picker. Absent -> the draft offers no photos. */
   photos?: SpotPhotos;
+  /**
+   * Q161: HYDAT and the device's online word, so a trip on an earlier day is read from that day's record. Absent: the
+   * feed's daily series only, and older days wait for a refresh.
+   */
+  history?: { hydat?: HydatDaily; online?: () => boolean };
   /** Awaited: a rejection is shown and the sheet stays open (P01). */
   onSaved: (spot: Spot) => void | Promise<void>;
 }
@@ -78,7 +83,7 @@ export function SpotCapture(props: SpotCaptureProps) {
     ? { lat: props.at.lat, lon: props.at.lon, zoom: Math.max(camera.zoom, AT_ZOOM) } : camera);
   const preset = props.at != null;
   // The visit's day and hour, the capture and the save: `useCaptureSpot` (P12b).
-  const cap = useCaptureSpot({ source, weather: props.weather, feed, photos: props.photos });
+  const cap = useCaptureSpot({ source, weather: props.weather, feed, photos: props.photos, history: props.history });
   // Leaving without saving deletes the photos the draft added (S1): nothing else would ever hold them.
   const cancel = () => { void cap.cancel(); props.onCancel(); };
   const draft = cap.draft;
@@ -136,6 +141,8 @@ export function SpotCapture(props: SpotCaptureProps) {
     // renderer and quietly showed less.
     return (
       <SpotScreen spot={draft} palette={palette} mode="draft"
+                  // an earlier trip day: the day's flow as read from its record, said before it is saved (Q161)
+                  dayFlow={{ view: dayFlowView(draft, "idle"), onAsk: null }}
                   photoStore={props.photos?.store} photoEdit={cap.photos}
                   title={title} notes={notes} onTitle={setTitle} onNotes={setNotes}
                   onBack={() => setStep("when")}

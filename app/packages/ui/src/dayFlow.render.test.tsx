@@ -19,11 +19,10 @@ const backdated: Spot = {
 };
 
 describe("dayFlowView", () => {
-  it("a backdated spot never asked: the action, and that the estimate above is the day it was saved", () => {
+  it("a backdated spot never asked: the action (the save-day label is gone, Q161)", () => {
     expect(dayFlowView(backdated, "idle")).toEqual({
       heading: "Flow that day", line: null, status: null,
       action: { label: "Get the flow for that day", busy: false },
-      notTheDay: "The estimate above was read when this spot was saved (23 Oct 2026), not on the day of the visit.",
     });
   });
 
@@ -34,7 +33,6 @@ describe("dayFlowView", () => {
       heading: "Flow that day", status: null, action: null,
       line: "19.6 m³/s, the 24th percentile for the date — filled in from the day's record (HYDAT daily mean, "
         + "15 Aug 2024).",
-      notTheDay: "The estimate above was read when this spot was saved (23 Oct 2026), not on the day of the visit.",
     });
   });
 

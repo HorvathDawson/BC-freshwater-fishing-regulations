@@ -23,8 +23,8 @@ import type { LeadUp, Spot } from "./model";
 import type { WeatherSource } from "./capture";
 import { declaredQuantity, fillDays, gaugeDayPending, leadUpMissing, leadUpUnread, weatherDayPending, weekGauge, weekWeather,
          type FeedIndex } from "./leadup";
-import { DAY_FLOW_WORDS, LEAD_UP_WORDS } from "./words";
-import { dayFlowAskable, fillDayFlow, needsDayFlow, type HydatDaily } from "./dayFlow";
+import { DAY_FLOW_WORDS, DAY_PANEL_WORDS, LEAD_UP_WORDS } from "./words";
+import { dayFlowAskable, fillDayFlow, fillDayPanel, needsDayFlow, needsDayPanel, type HydatDaily } from "./dayFlow";
 
 /** Is anything on this spot still unknown, and worth another try? */
 export function needsRefresh(spot: Spot): boolean {
@@ -32,7 +32,8 @@ export function needsRefresh(spot: Spot): boolean {
   // a spot on water no station speaks for has `reading: null` forever, and asking again
   // will never change it. The weather, and the week before, are retryable.
   // T170: and the visit day's flow, when the reading is not the day's and it has never been asked for
-  return spot.weather === null || leadUpMissing(spot.leadUp) || needsDayFlow(spot);
+  // Q161: and the trip day's gauge panel, when it is still to read or was read on the day the spot was saved
+  return spot.weather === null || leadUpMissing(spot.leadUp) || needsDayFlow(spot) || needsDayPanel(spot);
 }
 
 /** One line for the UI. Null when there is nothing outstanding. */
@@ -41,6 +42,7 @@ export function refreshReason(spot: Spot): string | null {
   if (leadUpUnread(spot.leadUp)) return LEAD_UP_WORDS.notRecorded;
   if (leadUpMissing(spot.leadUp)) return LEAD_UP_WORDS.someDaysPending;
   if (needsDayFlow(spot)) return DAY_FLOW_WORDS.notRecorded;
+  if (needsDayPanel(spot)) return DAY_PANEL_WORDS.notRecorded;
   return null;
 }
 
@@ -72,6 +74,11 @@ export async function refreshSpot(spot: Spot, weather: WeatherSource, source?: R
     // THE DAY'S OWN FLOW (T170), through the one read; a reading taken on the day is never touched (`dayFlowAskable`)
     const got = await fillDayFlow(next, { source, ...history });
     if (got.spot !== next) next = { ...next, dayFlow: got.spot.dayFlow };
+  }
+  if (source && needsDayPanel(next)) {
+    // THE TRIP DAY'S PANEL (Q161), through the same one read: a spot saved before it, or added offline, is refilled
+    // for its own day; a reading taken on the trip day is never touched (`needsDayPanel`)
+    next = await fillDayPanel(next, { source, ...history });
   }
   return next === spot ? spot : { ...next, updatedAt: Date.now() };
 }

@@ -11,7 +11,7 @@
  */
 import type { FrozenTrace, ShownQuantity } from "@app/core";
 import type { PanelAnswer } from "../panel";
-import type { ItemId } from "../index";
+import type { ItemId, Panel } from "../index";
 
 /** Weather at the moment of capture. Every field nullable: a spot with no forecast is fine. */
 /**
@@ -249,7 +249,24 @@ export interface Spot {
   leadUp?: LeadUp | null;
   /** The visit day's flow from the day's record (T170); absent until asked, and on a spot whose reading is the day's. */
   dayFlow?: DayFlow | null;
+  /**
+   * WHICH DAY `panel` IS OF, for a spot whose trip day is earlier than the day it was saved (owner 2026-10-24, Q161:
+   * "it should save the date that you set as the time of trip in the add a spot"). Absent: `panel` was read live on
+   * the trip day itself (a spot saved the day of the trip, or one saved before this existed — then a backdated one is
+   * refilled for its day by a refresh, `needsDayPanel`).
+   */
+  panelDay?: PanelDay | null;
 }
+
+/**
+ * THE TRIP DAY'S GAUGE PANEL (Q161). `day`: `panel` is the section's panel with each member's DAILY MEAN that day, from
+ * its record (`flowOnDay`, ranked with core `percentileInBand`), never a reading taken on the day the spot was saved.
+ * `pending`: some member's day could not be read yet (offline, or the day not over) — `panel` is null and `members` is
+ * the panel to read again (station ids and catchments only: a spot keeps no section, AGENTS 5); a refresh fills it.
+ */
+export type PanelDay =
+  | { state: "day"; date: string }
+  | { state: "pending"; date: string; members: Panel };
 
 /** Where spots live. One file on a phone, browser storage on the web. */
 export interface SpotStore {

@@ -32,5 +32,7 @@ export { comingConditions, fetchLike, flowAhead, likeStation, NOTHING_FETCHED, r
 export { dayFlowAskable, dayFlowStation, fillDayFlow, flowOnDay, geometHydat, GEOMET_DAILY_MEAN, needsDayFlow,
          readingIsTheDays, visitDay, type DayFlowAnswer, type DayFlowPorts, type HydatDaily,
          type HydatDay } from "./dayFlow";
-export { DAY_FLOW_WORDS, dayFlowLine } from "./words";
-export type { DayFlow } from "./model";
+// Q161: the trip day's gauge panel for a spot added for an earlier day
+export { fillDayPanel, isBackdated, needsDayPanel, panelOfAnswer, panelOnDay, savedGauges } from "./dayFlow";
+export { DAY_FLOW_WORDS, DAY_PANEL_WORDS, dayFlowLine } from "./words";
+export type { DayFlow, PanelDay } from "./model";

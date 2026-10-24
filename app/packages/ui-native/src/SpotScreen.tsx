@@ -22,8 +22,9 @@
  */
 import { useState } from "react";
 import { Image, Pressable, ScrollView, Text, TextInput, View } from "react-native";
-import { DRAFT_WORDS, isUntitled, needsRefresh, observedLine, PHOTO_WORDS, refreshReason, removePhotoLabel, spotHeadline,
-  spotLabel, spotReadingFigure, weatherTrend, type PhotoStore, type Spot, type SpotWeather, type WeatherSample } from "@app/data/spots";
+import { DAY_PANEL_WORDS, DRAFT_WORDS, isUntitled, needsRefresh, observedLine, PHOTO_WORDS, refreshReason, removePhotoLabel,
+  savedGauges, spotHeadline, spotLabel, spotReadingFigure, visitDay, weatherTrend, type PhotoStore, type Spot, type SpotWeather,
+  type WeatherSample } from "@app/data/spots";
 import { leadUpView, useBackLayer, usePhotoUris, type DayFlowView, type LikeVisitView, type PhotoEdit } from "@app/ui";
 import { LeadUpStrip } from "./LeadUpStrip";
 import { LikeVisitStrip } from "./LikeVisitStrip";
@@ -95,6 +96,8 @@ export function SpotScreen(p: SpotScreenProps) {
 
   const r = spot.reading;
   const fig = spotReadingFigure(r);   // the quantity the reading shows (T106), never whichever value is present
+  // Q161: a trip on an earlier day than the save shows that day's gauges, never the save day's (`savedGauges`)
+  const gauges = savedGauges(spot);
   const w = spot.weather;
   // S1: the week before the visit, decided in @app/ui; and the photos — the edit's while editing, else the spot's
   const lead = leadUpView(spot.leadUp, spot.reading);
@@ -221,12 +224,24 @@ export function SpotScreen(p: SpotScreenProps) {
             a saved spot carries no tiles, and no horizon chips, because you cannot
             re-forecast the past.
           */}
-          {spot.panel ? (
+          {gauges === "pending" ? (
+            <Text testID="spot-gauges-pending" style={{ ...TYPE.small, color: palette.sub }}>
+              {DAY_PANEL_WORDS.pending(visitDay(spot))}
+            </Text>
+          ) : gauges === "flow" ? (
+            <Text testID="spot-gauges-flow" style={{ ...TYPE.small, color: palette.sub }}>
+              {DAY_PANEL_WORDS.flowOnly}
+            </Text>
+          ) : spot.panel ? (
             <>
               <DonorPanel palette={palette} value={spot.panel}
                           day={new Date(spot.visitedAt)} />
-              {r && <Meta palette={palette} at={r.at} backfilled={r.backfilled}
-                          station={r.station} />}
+              {gauges === "day" ? (
+                <Text testID="spot-gauges-day" style={{ ...TYPE.small, color: palette.sub }}>
+                  {DAY_PANEL_WORDS.ofTheDay(visitDay(spot))}
+                </Text>
+              ) : r && <Meta palette={palette} at={r.at} backfilled={r.backfilled}
+                             station={r.station} />}
             </>
           ) : r && fig ? (
             // A spot saved before the estimate was frozen. Its own reading is all there is,
@@ -253,13 +268,10 @@ export function SpotScreen(p: SpotScreenProps) {
               number would have been wrong.
             </Text>
           )}
-          {/* T170: a frozen estimate read on another day than the visit's says so — it is not "then" */}
-          {mode !== "draft" && df?.notTheDay ? (
-            <Text testID="spot-not-the-day" style={{ ...TYPE.small, color: palette.sub }}>{df.notTheDay}</Text>
-          ) : null}
         </Block>
 
-        {mode !== "draft" && df && (
+        {/* the trip day's own flow; in the draft too, where a spot added for an earlier day shows what it read */}
+        {df && (mode !== "draft" || df.line || df.status) && (
           <Block palette={palette} title={df.heading}>
             {df.line ? (
               <Text testID="day-flow-line" style={{ ...TYPE.body, color: palette.ink }}>{df.line}</Text>

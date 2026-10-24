@@ -8,6 +8,7 @@ import { CONDITIONS_WORDS, localDate, localDateTime, monthAbbr, weekdayAbbr, per
          shownParameter, type DeclaresQuantity, type ShownQuantity } from "@app/core";
 import type { DailyGauge, DailyWeather, DayPlace, Spot, SpotReading, WeatherWindow } from "./model";
 import { OPEN_METEO_ATTRIBUTION } from "./weather";
+import { isBackdated, readingIsTheDays } from "./dayFlow";
 
 /* ---- S1: the week before the visit ------------------------------------------------------------------------------ */
 
@@ -209,9 +210,22 @@ export const DAY_FLOW_WORDS = {
   asking: "Asking for the flow on that day…",
   offline: "Offline: the flow for that day will be asked for when you are back online.",
   pending: "That day is not over in the gauge's record yet. Try again tomorrow.",
-  /** Over a frozen estimate that was read when the spot was saved, not on the visit's day. */
-  notTheDay: (savedOn: string): string =>
-    `The estimate above was read when this spot was saved (${fullDay(savedOn)}), not on the day of the visit.`,
+} as const;
+
+/**
+ * Q161: what "What the water was doing" says on a spot whose trip was on an earlier day than it was saved. Its gauges
+ * are that day's record (each station's daily mean), never the readings of the day it was saved.
+ */
+export const DAY_PANEL_WORDS = {
+  /** Under the trip day's panel. */
+  ofTheDay: (date: string): string => `Each gauge's daily mean on ${fullDay(date)}, the day of the visit.`,
+  /** In place of a panel still to read (offline when added, or saved before the trip day's gauges were kept). */
+  pending: (date: string): string =>
+    `The gauges for ${fullDay(date)} have not been read from their record yet. Refresh fills them in.`,
+  /** A backdated spot whose water has no gauge panel: its one gauge's flow that day is the block below. */
+  flowOnly: "This water's gauge reading for the day of the visit is under Flow that day.",
+  /** The refresh line. */
+  notRecorded: "The gauges for the day of this visit have not been read yet. They can be filled in from the day's record.",
 } as const;
 
 /**
@@ -321,6 +335,20 @@ export function spotReadingFigure(r: SpotReading | null | undefined):
 }
 
 /**
+ * Q161: the list row of a spot whose trip was on an earlier day than it was saved — that day's flow from its record,
+ * never the reading of the day it was saved.
+ */
+function tripDayGauge(spot: Spot): string {
+  const df = spot.dayFlow;
+  if (df?.state === "filled") {
+    const pct = df.percentile;             // the day's own ranking (a spot record, not a donor's state)
+    return `${figure(df.discharge, "discharge")} ${UNIT.discharge}${pct === null ? "" : ` · ${percentileLabel(pct)}`}`;
+  }
+  if (df?.state === "none") return "no flow that day";
+  return spot.reading?.station || df ? "flow that day not read yet" : "no gauge";
+}
+
+/**
  * The two lines under a spot's name in the list: the LOCAL day of the visit with what was recorded, then where.
  *
  * The visit, not the record: spots are typed up on the drive home or the week after, and the list used to date
@@ -328,7 +356,8 @@ export function spotReadingFigure(r: SpotReading | null | undefined):
  */
 export function spotRowLines(spot: Spot): [string, string] {
   const g = spot.reading, w = spot.weather, f = spotReadingFigure(g);
-  const gauge = g && f
+  const gauge = isBackdated(spot) && !readingIsTheDays(spot) ? tripDayGauge(spot)
+    : g && f
     ? `${f.figure} ${f.unit}${g.percentile != null ? ` · ${percentileLabel(g.percentile)}` : ""}`
     : "no gauge";
   const weather = w?.tempC != null ? `${w.tempC}°C${w.backfilled ? " (filled in)" : ""}` : "no weather";
