@@ -15,7 +15,7 @@
  * cannot colour a section differently; and both only on a PROVEN PAIR (the caller's `paired`).
  */
 import { useMemo, useRef } from "react";
-import { basinStandings, classStanding, type Horizon, type Parameter, type RegsSource, type SectionId, FEED_TTL_MS,
+import { basinStandings, classStanding, type Horizon, type Parameter, type WaterSource, type SectionId, FEED_TTL_MS,
          type StandingClasses } from "@app/data";
 import { useAsync, usePoll } from "./async";
 import { useBasinStandings, usePanelStandings, type PanelFeed } from "./panel";
@@ -97,7 +97,7 @@ export function pushedStandings(standings: ReadonlyMap<SectionId, number>,
 }
 
 export function useConditionsColour(i: {
-  source: RegsSource; feed: PanelFeed | undefined;
+  source: WaterSource; feed: PanelFeed | undefined;
   /** `coloursEachTile(Platform.OS)`: the renderer labels tiles itself. */
   perTile: boolean;
   /** The proven pair (P11). Anything less colours nothing. */

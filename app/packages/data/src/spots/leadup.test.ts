@@ -1,6 +1,6 @@
 /**
  * S1: the week before the visit, frozen onto the spot — daily weather from a weather source, and the matched station's
- * daily means through the RegsSource (the feed's `daily`, joined to the bundle's envelope by `gaugeSeries`). Seven
+ * daily means through the WaterSource (the feed's `daily`, joined to the bundle's envelope by `gaugeSeries`). Seven
  * days, oldest first; a day nobody has is a day of nulls, never a neighbour's value. Captured offline, a refresh fills
  * it in later; a spot saved before it existed loads, and a refresh fills that in too.
  */
@@ -13,7 +13,7 @@ import { openSpotsWith, type SpotsFs } from "./core";
 import type { DailyGauge, DailyWeather, Spot } from "./model";
 import { LEAD_UP_WORDS } from "./words";
 import type { WeatherSource } from "./capture";
-import type { Aged, Parameter, RegsSource, SectionId, Series } from "../index";
+import type { Aged, Parameter, WaterSource, SectionId, Series } from "../index";
 
 // Local parts: the week is the reader's own seven days, in any time zone the suite runs in.
 const VISIT = new Date(2026, 7, 30, 9).getTime();
@@ -51,7 +51,7 @@ function series(param: Parameter, values: Record<string, number | null>, fetched
 // WHO SPEAKS (T105): a one-member panel of the Vedder, the station the reach is also matched to.
 const VEDDER_PANEL = { areaKm2: 1200, members: [{ station: "08MH001", role: "up", areaKm2: 1230, years: 60,
                                                   regulated: false, sameRiver: true }] };
-const source = (over: Partial<RegsSource> = {}): RegsSource => ({
+const source = (over: Partial<WaterSource> = {}): WaterSource => ({
   panelsFor: async (secs: readonly SectionId[]) => new Map(secs.map((s) => [s, VEDDER_PANEL])),
   lakeStationsFor: async () => new Map(),
   gaugeForSection: async () => ({ station: "08MH001", name: "Vedder", trust: "good", reachMagnitude: 40,
@@ -67,7 +67,7 @@ const source = (over: Partial<RegsSource> = {}): RegsSource => ({
     : series("discharge", { "2026-08-23": 50, "2026-08-24": 40, "2026-08-25": 30, "2026-08-27": 9,
                             "2026-08-28": 120, "2026-08-29": 20 }),
   ...over,
-} as unknown as RegsSource);
+} as unknown as WaterSource);
 
 const base = { at: { lat: 49.0974, lon: -121.9675 }, item: null, section: 7 as SectionId,
                waterName: "Chilliwack River", title: "", now: VISIT, visitedAt: VISIT };

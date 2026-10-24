@@ -7,7 +7,7 @@
  */
 import { useCallback, useEffect, useRef, useState, type MutableRefObject } from "react";
 import { Keyboard, useWindowDimensions, type TextInput } from "react-native";
-import type { ItemId, RegsSource } from "@app/data";
+import type { ItemId, WaterSource } from "@app/data";
 import { NO_SEARCH, searchStep, useSearchSession, type SearchAction, type SearchMemory } from "@app/ui";
 import type { Camera } from "@app/map";
 import { searchPanelWidth } from "../TopBar";
@@ -15,7 +15,7 @@ import { CLOSE_KEEPS_FOCUS } from "../searchFocus";
 import type { ShellNav } from "./useShellNav";
 
 export function useShellSearch({ source, nav, camera }: {
-  source: RegsSource; nav: ShellNav; camera: MutableRefObject<Camera>;
+  source: WaterSource; nav: ShellNav; camera: MutableRefObject<Camera>;
 }) {
   const { route, go, browse, tab, opener } = nav;
   const searching = browse.search;

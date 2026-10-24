@@ -5,7 +5,7 @@
  */
 import { useMemo } from "react";
 import { answerFrom, basinStandings, sectionStanding, speakerFor, type BasinMember, type Horizon, type Panel,
-         type PanelAnswer, type Quantity, type RegsSource, type SectionId, type Speaker } from "@app/data";
+         type PanelAnswer, type Quantity, type WaterSource, type SectionId, type Speaker } from "@app/data";
 import { useAsync, type Async } from "../async";
 
 type Index = Parameters<typeof answerFrom>[1];
@@ -29,7 +29,7 @@ type Index = Parameters<typeof answerFrom>[1];
 const PANEL_CACHE_MAX = 60_000;
 const panelCache = new Map<SectionId, Panel | null>();
 
-async function cached(source: RegsSource,
+async function cached(source: WaterSource,
                       sections: readonly SectionId[]): Promise<ReadonlyMap<SectionId, Panel>> {
   const out = new Map<SectionId, Panel>();
   const missing: SectionId[] = [];
@@ -89,7 +89,7 @@ export function clearPanelCache(): void {
  * creek as a river in drought.
  */
 export function usePanelStandings(
-  source: RegsSource,
+  source: WaterSource,
   feed: { index(): Promise<Index> } | undefined,
   sections: readonly SectionId[],
   quantity: Quantity = "discharge",
@@ -161,7 +161,7 @@ export function usePanelStandings(
  * every pan to save nothing.
  */
 export function useBasinStandings(
-  source: RegsSource,
+  source: WaterSource,
   feed: { index(): Promise<Index> } | undefined,
   enabled: boolean,
   quantity: Quantity = "discharge",
@@ -186,14 +186,14 @@ export function useBasinStandings(
 
 /** The station-per-catchment table, read once. It comes from the bundle and cannot change. */
 let basinCache: ReadonlyMap<string, readonly BasinMember[]> | null = null;
-async function cachedBasins(source: RegsSource) {
+async function cachedBasins(source: WaterSource) {
   if (basinCache === null) basinCache = await source.basinMembers();
   return basinCache;
 }
 
 /** The panel for one section, joined against today's readings. */
 export function usePanel(
-  source: RegsSource,
+  source: WaterSource,
   feed: { index(): Promise<Index> } | undefined,
   section: SectionId | null,
   quantity: Quantity = "discharge",
@@ -225,7 +225,7 @@ export function usePanel(
  * cached fetch `usePanelStandings` colours from, else the station in its lake, else nothing. `name` is a lake
  * station's name (a panel's donors carry theirs on their routes); null where the bundle has none.
  */
-export function useSpeaker(source: RegsSource, section: SectionId | null):
+export function useSpeaker(source: WaterSource, section: SectionId | null):
   Async<{ speaker: Speaker | null; name: string | null }> {
   return useAsync(
     async () => {
@@ -252,7 +252,7 @@ export function useSpeaker(source: RegsSource, section: SectionId | null):
  * Rows keep the weight ORDER `usePanel` produced, so the map's key, the table and the
  * arithmetic are all the same list in the same sequence.
  */
-export function usePanelRoutes(source: RegsSource, section: SectionId | null,
+export function usePanelRoutes(source: WaterSource, section: SectionId | null,
                                panel: PanelAnswer): PanelAnswer {
   const got = useAsync(
     async () => (section ? await source.panelRoutes(section) : []),

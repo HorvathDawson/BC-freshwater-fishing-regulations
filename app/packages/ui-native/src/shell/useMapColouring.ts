@@ -5,7 +5,7 @@
 import { chooseLayer, chooseShow, layersVM, withImageryCredit, type SectionKey } from "@app/core";
 import { useCallback, useMemo, useState } from "react";
 import { Platform } from "react-native";
-import type { GaugeFeed, RegsSource, SectionId } from "@app/data";
+import type { GaugeFeed, WaterSource, SectionId } from "@app/data";
 import { useMapModes, useLayerChoice, type BrowseTab, type FlowParam, type LayerStore } from "@app/ui";
 import { useConditionsColour, useGaugeGeoJSON, useLakeColour, lakeModesReady, lakeValuesCarried, usePairing,
          useStatusIndex, statusFeed, useHorizon, useHorizonPick, flowHorizon, horizonChips, useImageryReach,
@@ -30,7 +30,7 @@ export const HANDOVER_Z = FIELD_HANDOVER_Z;
 
 export function useMapColouring({ source, feed, status, pairing, tiles, layerStore, attribution, mapTab, mapDay,
                                   epoch }: {
-  source: RegsSource; feed?: GaugeFeed; status: StatusSource | null; pairing: PairingInput | null;
+  source: WaterSource; feed?: GaugeFeed; status: StatusSource | null; pairing: PairingInput | null;
   tiles: TileEndpoints; layerStore?: LayerStore; attribution?: readonly string[];
   /** Which browse map's questions are asked (a water's map view asks the Map tab's). */
   mapTab: BrowseTab;

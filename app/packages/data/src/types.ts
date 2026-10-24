@@ -1,5 +1,5 @@
 /**
- * The shapes `RegsSource` answers in: the ids (an item is durable, a section is a handle), what a bundle holds, the
+ * The shapes `WaterSource` answers in: the ids (an item is durable, a section is a handle), what a bundle holds, the
  * gauges' links, panels and routes, series and forecasts, and the search hits. Data only — the interface is source.ts.
  */
 import type {
@@ -175,7 +175,7 @@ export interface PanelMember {
 }
 
 
-/** `RegsSource.gaugeWaters`: a section's waters and each station's own water and reach. */
+/** `WaterSource.gaugeWaters`: a section's waters and each station's own water and reach. */
 export interface GaugeWaters {
   waters: readonly ItemId[];
   gauges: ReadonlyMap<StationId, { item: ItemId | null; section: SectionId | null }>;

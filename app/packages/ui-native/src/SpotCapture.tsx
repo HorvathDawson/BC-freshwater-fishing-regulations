@@ -25,7 +25,7 @@
 import { SPOT_CAPTURE_AT, VISIT_QUICK_DAYS, type LatLon, type SectionKey, type VisitSteps } from "@app/core";
 import { useRef, useState } from "react";
 import { Pressable, Text, View } from "react-native";
-import type { RegsSource, SectionId } from "@app/data";
+import type { WaterSource, SectionId } from "@app/data";
 import type { HydatDaily, Spot, WeatherSource } from "@app/data/spots";
 import { dayFlowView, useBackLayer, useCaptureSpot, type CaptureWater, type SpotPhotos } from "@app/ui";
 import type { Camera, TileEndpoints } from "@app/map";
@@ -54,7 +54,7 @@ export interface SpotCaptureProps {
    */
   feed?: { index(): Promise<any> };
 
-  source: RegsSource;
+  source: WaterSource;
   weather?: WeatherSource;
   tiles: TileEndpoints;
   palette: Palette;

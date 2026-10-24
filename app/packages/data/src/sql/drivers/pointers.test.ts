@@ -9,7 +9,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { memorySource } from "./memoryRelease";
 import * as Q from "../queries";
 import { RELEASE_QUERIES } from "../../release/queries";
-import type { RegsSource } from "../../index";
+import type { WaterSource } from "../../index";
 
 const ROWS = [
   ["r7:cameron_lakes@7-31", "Cameron Lakes", 0, "r7:north_cameron_lake@7-31", "North Cameron Lake", "wbk:329657333"],
@@ -19,7 +19,7 @@ const ROWS = [
   ["r8:tee_pee_lakes@8-6", "Tee Pee Lakes", 1, "r8:saturday_lake@8-6", "Saturday Lake", null],
 ] as const;
 
-let src: RegsSource;
+let src: WaterSource;
 beforeAll(() => {
   src = memorySource({ core: (d) => {
     const ins = d.prepare("INSERT INTO see_pointer VALUES (?, ?, ?, ?, ?, ?)");

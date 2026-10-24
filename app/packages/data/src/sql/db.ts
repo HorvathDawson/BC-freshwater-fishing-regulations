@@ -14,7 +14,7 @@
  * CORP — including the basemap's font and sprite CDN. The whole app would have paid for a
  * property only the database wanted.
  *
- * `RegsSource` is async at every method anyway, so nothing above this line changed shape.
+ * `WaterSource` is async at every method anyway, so nothing above this line changed shape.
  */
 /** `noUncheckedIndexedAccess` is on, so a column read is `| undefined` — which is right:
  *  asking for a column the query did not select should not typecheck as present. */

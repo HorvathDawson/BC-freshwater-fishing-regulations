@@ -4,7 +4,7 @@
  * route action or the one opener's.
  */
 import type { MutableRefObject } from "react";
-import type { ItemId, RegsSource } from "@app/data";
+import type { ItemId, WaterSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { crossAction, exitAction, mapPointTap, partAction, showRegsActions, waterFrame, type MapRail,
          type RegsStart } from "@app/ui";
@@ -19,7 +19,7 @@ import type { MapColouring } from "./useMapColouring";
 
 export function WaterModeHost({ frame, nav, col, source, palette, loader, tiles, theme, feed, rail, spotLayer, camera,
                                 waterCamera, fishImages, adiposeImages, mapDay, onDay, start, onStarted }: {
-  frame: NonNullable<ReturnType<typeof waterFrame>>; nav: ShellNav; col: MapColouring; source: RegsSource;
+  frame: NonNullable<ReturnType<typeof waterFrame>>; nav: ShellNav; col: MapColouring; source: WaterSource;
   palette: Palette; loader: ReleaseLoader | null; tiles: TileEndpoints; theme: string;
   feed?: import("@app/data").GaugeFeed; rail: MapRail; spotLayer: MapSpots | undefined;
   camera: MutableRefObject<Camera>;

@@ -2,7 +2,7 @@
  * The week before a visit (S1): daily weather, and the matched station's daily means, for the seven local days
  * before it (`leadUpDays` in @app/core).
  *
- * THE GAUGE DAYS COME THROUGH THE EXISTING SOURCE, never a new one. `RegsSource.gaugeSeries(station, "year", p)` is
+ * THE GAUGE DAYS COME THROUGH THE EXISTING SOURCE, never a new one. `WaterSource.gaugeSeries(station, "year", p)` is
  * already the join of the feed's `daily` (this year's daily means in the station file) and its `priorYears` with the
  * bundle's envelope for each day of the year; this reads seven days out of it and places each in its envelope
  * (`placeInBand`). A day with no mean stays null.
@@ -17,7 +17,7 @@
  * and is never asked for again. A weather day with no value at all is one the service did not send: asked again too.
  */
 import { calendarDayOfYear, localDate, placeInBand, type Band } from "@app/core";
-import type { Aged, Parameter, RegsSource, Series, StationId } from "../index";
+import type { Aged, Parameter, WaterSource, Series, StationId } from "../index";
 import type { WeatherSource } from "./capture";
 import type { DailyGauge, DailyWeather, LeadUp } from "./model";
 
@@ -99,7 +99,7 @@ export function dayIn(s: Series | null, date: string): { v: number | null; band:
  * A day on or after the day the feed was written (its age, P02) is held as still to come, even if the feed has a mean
  * for it: that mean is of a day not yet over, and freezing it would keep a morning as the day.
  */
-export async function weekGauge(source: RegsSource, station: string, days: readonly string[],
+export async function weekGauge(source: WaterSource, station: string, days: readonly string[],
                                 feed?: FeedIndex): Promise<DailyGauge[] | null> {
   const id = station as StationId;
   let params: readonly Parameter[];
@@ -130,12 +130,12 @@ export async function weekGauge(source: RegsSource, station: string, days: reado
  * The quantity the station's feed declares (T106 review), to freeze beside its days: the publisher's `parameter`, read
  * as the feed client carries it, never inferred from the days. Null when the reading cannot be had.
  */
-export async function declaredQuantity(source: RegsSource, station: string): Promise<Parameter | null> {
+export async function declaredQuantity(source: WaterSource, station: string): Promise<Parameter | null> {
   try { return (await source.gaugeNow(station as StationId))?.value.parameter ?? null; } catch { return null; }
 }
 
 /** Both halves for a visit, as `captureSpot` freezes them. */
-export async function leadUpFor(source: RegsSource, weather: WeatherSource | undefined,
+export async function leadUpFor(source: WaterSource, weather: WeatherSource | undefined,
                                 at: { lat: number; lon: number }, station: string | null,
                                 days: readonly string[], feed?: FeedIndex): Promise<LeadUp> {
   const [w, g, p] = await Promise.all([

@@ -10,7 +10,7 @@ import { needsRefresh, refreshReason, refreshSpot } from "./refresh";
 import { visitConditions } from "./likeVisit";
 import { DAY_FLOW_WORDS, dayFlowLine } from "./words";
 import type { Spot } from "./model";
-import type { Aged, Parameter, RegsSource, Series } from "../index";
+import type { Aged, Parameter, WaterSource, Series } from "../index";
 
 /**
  * GeoMet's own answer for the Chilliwack at Vedder Crossing on 15 Aug 2024 (fetched 2026-10-23 from
@@ -70,8 +70,8 @@ function series(values: Record<string, number>, prior: Record<string, number> = 
                                priorYears: [{ year: 2025, values: p }] } as unknown as Series };
 }
 const source = (s: Aged<Series> | null = series({ "2026-10-20": 30 }, { "2025-08-15": 50 }),
-                params: readonly Parameter[] = ["discharge", "level"]): RegsSource =>
-  ({ gaugeParameters: async () => params, gaugeSeries: async () => s } as unknown as RegsSource);
+                params: readonly Parameter[] = ["discharge", "level"]): WaterSource =>
+  ({ gaugeParameters: async () => params, gaugeSeries: async () => s } as unknown as WaterSource);
 const hydat = (answer: HydatDay | Error): HydatDaily & { asked: string[] } => {
   const asked: string[] = [];
   return { asked, day: async (st, d) => { asked.push(`${st} ${d}`); if (answer instanceof Error) throw answer; return answer; } };

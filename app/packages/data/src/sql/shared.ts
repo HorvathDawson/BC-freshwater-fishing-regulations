@@ -423,7 +423,7 @@ export async function continuedOrds(start: readonly number[],
   return [...seen].sort((a, b) => a - b);
 }
 
-/** `gauge` rows (`station`, `item_id`, `sid`) and a section's waters, as `RegsSource.gaugeWaters` answers them. */
+/** `gauge` rows (`station`, `item_id`, `sid`) and a section's waters, as `WaterSource.gaugeWaters` answers them. */
 export function gaugeWatersOf(waters: readonly string[], rows: readonly Row[]): GaugeWaters {
   const gauges = new Map<StationId, { item: ItemId | null; section: SectionId | null }>();
   for (const r of rows)

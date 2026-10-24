@@ -12,7 +12,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { chartLabel, CONDITIONS_WORDS, readingHeading } from "@app/core";
-import type { Panel, RegsSource, SectionId } from "@app/data";
+import type { Panel, WaterSource, SectionId } from "@app/data";
 import { makeFixtureSource } from "@app/data/fixture";
 import { clearAnswers, clearPanelCache } from "@app/ui";
 import { ConditionsPanel } from "./ConditionsPanel";
@@ -38,7 +38,7 @@ const feed = { index: async () => ({ stations: {
 } }) };
 
 /** A source that logs every series it is asked for; `hold` stations never answer. */
-function sourceLogging(asked: string[], hold: readonly string[] = []): RegsSource {
+function sourceLogging(asked: string[], hold: readonly string[] = []): WaterSource {
   return {
     panelsFor: async () => new Map([[SEC, PANEL]]),
     panelRoutes: async () => ROUTES,
@@ -53,10 +53,10 @@ function sourceLogging(asked: string[], hold: readonly string[] = []): RegsSourc
     gaugeNow: async () => ({ fetchedAt: Date.now() - 5 * 60_000,
                              value: { discharge: 12.5, level: 1.2, percentile: 0.15, standing: "below",
                                       at: "2026-09-04T06:00:00Z" } }),
-  } as unknown as RegsSource;
+  } as unknown as WaterSource;
 }
 
-async function draw(src: RegsSource) {
+async function draw(src: WaterSource) {
   render(<GestureHandlerRootView>
     <ConditionsPanel source={src} section={SEC} palette={LIGHT} feed={feed} scroll={false} day={DAY}
                      parameter="discharge" />

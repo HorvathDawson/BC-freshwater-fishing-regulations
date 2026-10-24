@@ -1,13 +1,14 @@
 /**
  * THE ONE INTERFACE every platform's source implements (the release reader, the fixture). Every method exists because
  * a screen asks for it, and every one is in the conformance suite, which runs against every implementation.
+ * Named for what it reads — waters, gauges, places — and not regulations, which the release loader reads (T62 3.7).
  */
 import type { Bbox, WaterFix } from "@app/core";
 import type {
   Aged, BasinMember, BundleCounts, BundleInfo, GaugeLink, GaugeWaters, ItemId, LakeInfo, NameHit, NearHit, Panel, Parameter, PanelRoute, PlaceHit, PlaceId, PointerHit, Reading, Release, SectionId, Series, StationId, Water,
 } from "./types";
 
-export interface RegsSource {
+export interface WaterSource {
   info(): Promise<BundleInfo>;
   /** How much this bundle holds. Read, never asserted by a screen. */
   counts(): Promise<BundleCounts>;

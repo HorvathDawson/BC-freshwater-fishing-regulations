@@ -12,7 +12,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { buildRegsPage, type RegsPage, type Weekday } from "@app/core";
 import { loadRegsInputs, openRegsStore, type RegsStore } from "@app/data/regs";
 import { makeReleaseSource } from "@app/data/release";
-import { downstreamWater, type RegsSource, type SectionId } from "@app/data";
+import { downstreamWater, type WaterSource, type SectionId } from "@app/data";
 import { liveReleaseAt, openReleaseDir } from "../fixtureRelease";
 
 const at = liveReleaseAt();
@@ -24,7 +24,7 @@ it(`T53 unnamed streams on the live release${at.dir ? "" : ` — SKIPPED: ${at.r
 });
 
 describe.skipIf(!at.dir)(`T53 an unnamed stream's regulations on the live release (${at.dir ?? at.reason})`, () => {
-  let st: RegsStore, src: RegsSource;
+  let st: RegsStore, src: WaterSource;
   beforeAll(async () => {
     const loader = openReleaseDir(at.dir!);
     st = await openRegsStore(loader);

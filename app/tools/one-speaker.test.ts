@@ -55,7 +55,7 @@ const SPELLINGS: [RegExp, string][] = [
   [MATCHED, `    ?? matched?.station`],
   [MATCH_READ, `      const link = await source.gaugeForSection(section);`],
   [THIRD, `    async stationsFor(sections): Promise<ReadonlyMap<SectionId, StationId>> {`],
-  [THIRD, `export function useConditions(source: RegsSource, section: SectionId | null): Async<Conditions> {`],
+  [THIRD, `export function useConditions(source: WaterSource, section: SectionId | null): Async<Conditions> {`],
 ];
 
 describe("one gauge speaker: speakerFor decides, nothing else (T105)", () => {

@@ -13,7 +13,7 @@ import { parseManifest } from "../../manifest";
 import { PACK_FILES } from "../../pack.generated";
 import { releaseLoader, type DbName, type ReleaseLoader } from "../../release/loader";
 import { makeReleaseSource, type SourceOptions } from "../../release/source";
-import type { RegsSource } from "../../index";
+import type { WaterSource } from "../../index";
 
 /** The handles every memory release is cut against (any 16 hex digits: no tiles are drawn). */
 export const MEMORY_HANDLES = "d768d6e135e62b99";
@@ -58,5 +58,5 @@ export function memoryRelease(seed: MemorySeed): ReleaseLoader {
 }
 
 /** The app's reader over a memory release. */
-export const memorySource = (seed: MemorySeed, opts: SourceOptions = {}): RegsSource =>
+export const memorySource = (seed: MemorySeed, opts: SourceOptions = {}): WaterSource =>
   makeReleaseSource(memoryRelease(seed), opts);

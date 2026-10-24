@@ -2,7 +2,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { act, cleanup, render } from "@testing-library/react";
 import { leadUpDays } from "@app/core";
-import type { RegsSource } from "@app/data";
+import type { WaterSource } from "@app/data";
 import { needsRefresh, openSpotsWith, refreshSpot, type Spot, type SpotsFs } from "@app/data/spots";
 import { spotSaveFailed, useSpots, type SpotsStoreLike } from "./spots";
 
@@ -73,7 +73,7 @@ describe("useSpots (P01)", () => {
       gaugeSeries: async () => ({ fetchedAt: visit, value: { step: "1d", from: "2026-01-01", parameter: "discharge",
         at: [], values, band: values.map(() => [10, 20, 40, 60, 100]), now: null, forecast: null, forecasts: [],
         priorYears: [] } }),
-    } as unknown as RegsSource;
+    } as unknown as WaterSource;
     const weather = { at: async () => null, days: async () => { throw new Error("the weather was whole"); } };
     const out: { api?: ReturnType<typeof useSpots> } = {};
     render(<Probe store={openSpotsWith(fs, "s.json")} out={out} />);

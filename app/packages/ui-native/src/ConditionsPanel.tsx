@@ -15,7 +15,7 @@ import { useContext, useState } from "react";
 import { Platform, Pressable, ScrollView, Text, View, type LayoutChangeEvent } from "react-native";
 import { chartCaption, chartLabel, CONDITIONS_WORDS, forecastChartLabel, forecastModelOption,
          forecastRunLine, noChartSentence, type ChartSpan } from "@app/core";
-import type { Parameter, RegsSource, SectionId, StationId } from "@app/data";
+import type { Parameter, WaterSource, SectionId, StationId } from "@app/data";
 import { coloursEachTile, type TileEndpoints } from "@app/map";
 import { changeChartModel, changeView, chartParameter, useChartView, useConditionsView, useForecastAttribution, useGaugeParameters,
          usePrefetchGauges, useSeries, type ChangeVM, type GaugeChoiceVM, type GaugeGroupVM, type Horizon,
@@ -42,7 +42,7 @@ const W = CONDITIONS_WORDS;
 export function ConditionsPanel({ source, section, palette, tiles, theme, colour,
                                   parameter, onParameter, from, feed, scroll = true,
                                   footer, credits, horizon = 0, onHorizon, day = null, waterLine, waterBox }: {
-  source: RegsSource; section: SectionId | null; palette: Palette;
+  source: WaterSource; section: SectionId | null; palette: Palette;
   /** The live index, for the donor panel. Absent offline — it then says so. */
   feed?: PanelFeed;
   /** Present, the route panel draws the chain of reaches down to the station. */

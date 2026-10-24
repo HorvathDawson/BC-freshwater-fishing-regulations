@@ -19,7 +19,7 @@ The correction pass removed the feed and kept the preparation.
   `core` and `facts` — source-agnostic, tested on synthetic input (`pipeline/tests/test_lake_facts.py`). Its docstring
   says what a future feed must provide (below).
 - **The app's reader**: `@app/core` `decodeLakeFacts` (now also counting `surveyed` / `stocked` sections),
-  `@app/data` `ReleaseLoader.lakes()` / `RegsSource.lakeFacts()` (null for a release without the file, the bundle and
+  `@app/data` `ReleaseLoader.lakes()` / `WaterSource.lakeFacts()` (null for a release without the file, the bundle and
   the fixture), `@app/ui` `useLakeColour`.
 - **The engine's two channels**, `survey` and `stocked` (`@app/map` `colouring.ts`; `MapProps.lakes`), and the tests
   that a release carrying values recolours lakes with no tile change: `colouring.test.ts` (the lake channels),

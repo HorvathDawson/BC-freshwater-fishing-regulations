@@ -5,7 +5,7 @@
 import { waterExit } from "@app/core";
 import { useCallback, useMemo, useRef } from "react";
 import { Platform } from "react-native";
-import type { ItemId, RegsSource } from "@app/data";
+import type { ItemId, WaterSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { frameViews, regsGroupOf, useOpenWater, useRoute, waterFrame, type BrowseTab, type Route } from "@app/ui";
 import { edgeBackDepth, useBack, useEdgeBack, useViewSwipe, type SystemBack } from "@app/ui";
@@ -14,7 +14,7 @@ import { TABS, type TabKey } from "../TabBar";
 import type { WaterViews } from "../ViewSwipe";
 
 export function useShellNav({ source, loader, systemBack, initialRoute }: {
-  source: RegsSource; loader: ReleaseLoader | null; systemBack: SystemBack | null; initialRoute?: Route;
+  source: WaterSource; loader: ReleaseLoader | null; systemBack: SystemBack | null; initialRoute?: Route;
 }) {
   /*
    * THE ROUTE (P13): what is on screen is ONE value, moved by one reducer (`@app/ui` route.ts). The tab, the water

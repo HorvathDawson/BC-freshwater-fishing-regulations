@@ -10,7 +10,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { fireGestureHandler, getByGestureTestId } from "react-native-gesture-handler/jest-utils";
 import { CHANGE_LOW_WATER, changeSourceLine, CONDITIONS_WORDS, noGaugeSentence, readingHeading, readingStandingLine,
          stageLine, TIDAL_NOTE, BACKWATER_NOTE } from "@app/core";
-import type { Panel, RegsSource, SectionId } from "@app/data";
+import type { Panel, WaterSource, SectionId } from "@app/data";
 import { clearPanelCache } from "@app/ui";
 import { ConditionsPanel } from "./ConditionsPanel";
 import { WaterViewsContext, type WaterViews } from "./ViewSwipe";
@@ -35,7 +35,7 @@ const sourceWith = (now: Record<string, unknown> | null, panel: Panel | null) =>
   gaugeSeries: async () => null,
   gaugeParameters: async () => ["discharge", "level"],
   gaugeNow: async () => (now ? { fetchedAt: Date.now() - 5 * 60_000, value: now } : null),
-}) as unknown as RegsSource;
+}) as unknown as WaterSource;
 
 const feed = { index: async () => ({ stations: {
   LEAD: { percentile: 0.15, parameter: "discharge" as const, discharge: 0.15 } } }) };
@@ -66,11 +66,11 @@ describe("the conditions panel", () => {
   });
 
   it("hands the map's quantity to the donor panel, so a tidal lead is disclosed in Level only (T78)", async () => {
-    const tidalSource = (base: RegsSource) => ({
+    const tidalSource = (base: WaterSource) => ({
       ...base,
       panelRoutes: async () => [{ station: "LEAD", name: "Lead Creek near Town", lat: 49, lon: -122, role: "up",
                                   path: [SEC], tidal: true }],
-    }) as unknown as RegsSource;
+    }) as unknown as WaterSource;
     const both = { index: async () => ({ stations: {
       LEAD: { percentile: 0.15, parameter: "discharge" as const, discharge: 0.15, level: 0.4 } } }) };
     const source = tidalSource(sourceWith({ discharge: 12.5, level: 1.2, percentile: 0.15, standing: "below",
@@ -92,11 +92,11 @@ describe("the conditions panel", () => {
   });
 
   it("discloses a lake's backwater on a backed-up lead in Level only, in its own words (T160)", async () => {
-    const backedSource = (base: RegsSource) => ({
+    const backedSource = (base: WaterSource) => ({
       ...base,
       panelRoutes: async () => [{ station: "LEAD", name: "Lead Creek near the Mouth", lat: 49, lon: -122, role: "up",
                                   path: [SEC], backwater: true }],
-    }) as unknown as RegsSource;
+    }) as unknown as WaterSource;
     const both = { index: async () => ({ stations: {
       LEAD: { percentile: 0.15, parameter: "discharge" as const, discharge: 0.15, level: 0.4 } } }) };
     const source = backedSource(sourceWith({ discharge: 12.5, level: 1.2, percentile: 0.15, standing: "below",
@@ -136,7 +136,7 @@ describe("the Change block, mounted (T144)", () => {
   it("draws the publisher's source line and the low-water caveat it carries", async () => {
     const source = { ...sourceWith({ discharge: 12, level: null, percentile: 0.15, standing: "below",
                                      at: "2026-09-04T06:00:00Z" }, PANEL),
-                     gaugeSeries: async () => series(low) } as unknown as RegsSource;
+                     gaugeSeries: async () => series(low) } as unknown as WaterSource;
     render(<ConditionsPanel source={source} section={SEC} palette={LIGHT} feed={feed} horizon="change"
                             scroll={false} day={new Date(2026, 8, 4, 12)} />);
     await waitFor(() => expect(screen.getByTestId("change-block")).toBeTruthy());
@@ -147,7 +147,7 @@ describe("the Change block, mounted (T144)", () => {
   it("an older feed with no station change lists the runs and says no caveat", async () => {
     const source = { ...sourceWith({ discharge: 12, level: null, percentile: 0.15, standing: "below",
                                      at: "2026-09-04T06:00:00Z" }, PANEL),
-                     gaugeSeries: async () => series(undefined) } as unknown as RegsSource;
+                     gaugeSeries: async () => series(undefined) } as unknown as WaterSource;
     render(<ConditionsPanel source={source} section={SEC} palette={LIGHT} feed={feed} horizon="change"
                             scroll={false} day={new Date(2026, 8, 4, 12)} />);
     await waitFor(() => expect(screen.getByTestId("change-block")).toBeTruthy());
@@ -166,7 +166,7 @@ describe("the Change block, mounted (T144)", () => {
                      days: [["2026-09-04", 1, 1], ["2026-09-05", 2, 3], ["2026-09-06", 1, 1.1], ["2026-09-08", 1, 1]] };
     const source = { ...sourceWith({ discharge: 12, level: null, percentile: 0.15, standing: "below",
                                      at: "2026-09-04T06:00:00Z" }, PANEL),
-                     gaugeSeries: async () => series(joined) } as unknown as RegsSource;
+                     gaugeSeries: async () => series(joined) } as unknown as WaterSource;
     render(<ConditionsPanel source={source} section={SEC} palette={LIGHT} feed={feed} horizon="change"
                             scroll={false} day={new Date(2026, 8, 4, 12)} />);
     await waitFor(() => expect(screen.getByTestId("change-block")).toBeTruthy());
@@ -189,7 +189,7 @@ describe("the Change block, mounted (T144)", () => {
       const source = { ...sourceWith({ discharge: 12, level: null, percentile: 0.15, standing: "below",
                                        at: "2026-09-04T06:00:00Z" }, PANEL),
                        gaugeSeries: async (_s: unknown, _sp: unknown, _p: unknown, model?: string) =>
-                         (asked.push(model), series(joined)) } as unknown as RegsSource;
+                         (asked.push(model), series(joined)) } as unknown as WaterSource;
       const { unmount } = render(<ConditionsPanel source={source} section={SEC} palette={LIGHT} feed={feed}
                                                   horizon={horizon} scroll={false} day={new Date(2026, 8, 4, 12)} />);
       await waitFor(() => expect(asked.length).toBeGreaterThan(0));

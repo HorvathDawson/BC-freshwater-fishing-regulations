@@ -9,11 +9,11 @@
  *   - `continuedOrds` stopping after one hop: the Sumas (two links away) is lost.
  */
 import { describe, expect, it } from "vitest";
-import type { RegsSource, SectionId, StationId } from "@app/data";
+import type { WaterSource, SectionId, StationId } from "@app/data";
 import { memorySource, type MemorySeed } from "../packages/data/src/sql/drivers/memoryRelease";
 
 /** `continuation` false: a release with no water file (or one cut before `water_continue`). */
-function release(continuation = true): RegsSource {
+function release(continuation = true): WaterSource {
   const seed: MemorySeed = {
     core: (d) => d.exec(`
       INSERT INTO item (ord, item_id, name) VALUES (1, 'gnis:8634', 'Chilliwack River'), (2, 'gnis:3062', 'Vedder River'),

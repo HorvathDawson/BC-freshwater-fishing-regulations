@@ -422,7 +422,7 @@ testID (a nested run inherits its Text's role). In use —
 ### 2.8 Hooks (`@app/ui` `regs.ts`, T11)
 ```ts
 export type RegsOpenDb = (url: string) => Promise<Db>;                 // injected (App.tsx passes loadBundle)   // (T11)
-export function useRegsStore(source: RegsSource, regsUrl: string | undefined, openDb: RegsOpenDb | undefined): Async<RegsStore | null>;   // (T11)
+export function useRegsStore(source: WaterSource, regsUrl: string | undefined, openDb: RegsOpenDb | undefined): Async<RegsStore | null>;   // (T11)
 export function useRegsTarget(store: RegsStore | null, item: ItemId | null, section: SectionId | null): Async<RegsTarget | null>;   // (T11)
 export function useRegulations(store: RegsStore | null, target: RegsTarget | null, mapDay: Date | null): Async<RegsInputs | null>;   // (T11) keyed on the calendar date
 export function useRegsPage(inputs: RegsInputs | null, who: Who, today: Day): RegsPage | null;   // useMemo(buildRegsPage(inputs, {today, who})); null while inputs null   // (T11, §6 #8)

@@ -14,7 +14,7 @@
  * the same frame either way; the water Map stays a named water's (asked for it, the frame's first view, Regulations).
  */
 import { useMemo } from "react";
-import type { ItemId, RegsSource, SectionId } from "@app/data";
+import type { ItemId, WaterSource, SectionId } from "@app/data";
 import { frameViews, type LatLon, type Route, type RouteAction, type View } from "./route";
 
 export interface WaterOpen {
@@ -51,7 +51,7 @@ export function openWater(o: WaterOpen): RouteAction {
  * A map tap -> the route action, or null when nothing opens: the tapped section resolved to its water HERE, once.
  * `except`: the water already on screen (a tap on a water's own map changes nothing).
  */
-export async function openTap(source: Pick<RegsSource, "itemForSection">, sid: SectionId, at: LatLon | null,
+export async function openTap(source: Pick<WaterSource, "itemForSection">, sid: SectionId, at: LatLon | null,
                               view: View, except: ItemId | null = null,
                               groupOf?: (item: ItemId) => Promise<readonly ItemId[] | undefined>): Promise<RouteAction | null> {
   const item = await source.itemForSection(sid);
@@ -91,7 +91,7 @@ export interface OpenerOptions {
 }
 
 /** The opener (`useOpenWater`'s value), React-free: what a test drives. */
-export function waterOpener(source: Pick<RegsSource, "itemForSection">, go: (a: RouteAction) => void,
+export function waterOpener(source: Pick<WaterSource, "itemForSection">, go: (a: RouteAction) => void,
                             o: OpenerOptions = {}): WaterOpener {
   let latest = 0;
   /** Ask, then dispatch what was asked for — unless a later open was asked, or the route moved, meanwhile. */
@@ -115,7 +115,7 @@ export function waterOpener(source: Pick<RegsSource, "itemForSection">, go: (a: 
 }
 
 /** The Shell's handle on `openWater` / `openTap`, dispatching to the route. */
-export function useOpenWater(source: Pick<RegsSource, "itemForSection">, go: (a: RouteAction) => void,
+export function useOpenWater(source: Pick<WaterSource, "itemForSection">, go: (a: RouteAction) => void,
                              o: OpenerOptions = {}): WaterOpener {
   const { now, group } = o;
   return useMemo(() => waterOpener(source, go, { now, group }), [source, go, now, group]);

@@ -1,5 +1,5 @@
 /**
- * (T168) THE CONDITIONS PANEL, WIRED: `useConditionsView` reads each station's water (`RegsSource.gaugeWaters`), and the
+ * (T168) THE CONDITIONS PANEL, WIRED: `useConditionsView` reads each station's water (`WaterSource.gaugeWaters`), and the
  * count line, the gauge switch and the donor rows all group from that one answer. A panel with its own gauge and a
  * silent donor; a gauged lake read at its own station.
  *
@@ -8,7 +8,7 @@
  */
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import type { Panel, RegsSource, SectionId } from "@app/data";
+import type { Panel, WaterSource, SectionId } from "@app/data";
 import { clearPanelCache } from "@app/ui";
 import { ConditionsPanel } from "./ConditionsPanel";
 import { LIGHT } from "./theme";
@@ -37,7 +37,7 @@ const source = (o: { panel: Panel | null; lake?: string }) => ({
   gaugeNow: async (st: string) => (st === "OWN" || st === "LAKEG"
     ? { fetchedAt: Date.now() - 5 * 60_000, value: { discharge: 12.5, level: null, percentile: 0.45, standing: "normal",
                                                      at: "2026-10-23T06:00:00Z" } } : null),
-}) as unknown as RegsSource;
+}) as unknown as WaterSource;
 
 // OWN reads; FAR is not on ECCC's real-time list
 const feed = { index: async () => ({ listed: ["OWN", "LAKEG"], stations: {

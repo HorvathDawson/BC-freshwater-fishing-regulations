@@ -174,7 +174,7 @@ export const LAKE_GAUGES =
   "WHERE lg.item_id = ? ORDER BY lg.station";
 
 /**
- * WHICH WATER EACH STATION STANDS ON, AND THE WATERS JOINED TO A WATER (T168, `RegsSource.gaugeWaters`): the
+ * WHICH WATER EACH STATION STANDS ON, AND THE WATERS JOINED TO A WATER (T168, `WaterSource.gaugeWaters`): the
  * `water_continue` links touching a set of waters (both directions, each half keyed: `ord` is the primary key,
  * `next_ord` UNIQUE), and the stations' own water and reach.
  */

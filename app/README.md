@@ -22,12 +22,12 @@ Nothing here prevents that by convention. `layers.json` states the rule and
 
 ```
 packages/core       domain logic — pure TS, no React, no platform   100% shared
-packages/data       ONE RegsSource interface, one impl per platform interface shared
+packages/data       ONE WaterSource interface, one impl per platform interface shared
 packages/ui         headless React hooks (data, not elements)       100% shared
 packages/ui-native  the components (RN primitives), every layout     native app + web (phone, tablet, desktop)
 packages/map        the ONE <Map/>; both adapters behind it         100% shared
 apps/mobile         the one app shell: native, and web through RNW
-conformance         one suite, run against EVERY RegsSource
+conformance         one suite, run against EVERY WaterSource
 ```
 
 ## One component set; desktop is a layout class
@@ -54,7 +54,7 @@ the line and it is why this works without committing to react-native-web up fron
 
 ## Build order (the ordering is the point)
 
-1. `core` + the `RegsSource` interface + the fixture implementation — **before either app exists**
+1. `core` + the `WaterSource` interface + the fixture implementation — **before either app exists**
 2. `apps/mobile` against a real bundle, offline on first run
 3. the same app on the web against the release store via range reads
 4. Conformance runs **both** implementations on every commit

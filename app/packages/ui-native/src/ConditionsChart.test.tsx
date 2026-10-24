@@ -13,7 +13,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-libra
 import { fireGestureHandler, getByGestureTestId } from "react-native-gesture-handler/jest-utils";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { chartLabel, CONDITIONS_WORDS, donorLastReport, lastDataStamp, noGaugeSentence, readingHeading } from "@app/core";
-import type { Panel, RegsSource, SectionId } from "@app/data";
+import type { Panel, WaterSource, SectionId } from "@app/data";
 import { makeFixtureSource } from "@app/data/fixture";
 import { clearPanelCache } from "@app/ui";
 import { ConditionsPanel } from "./ConditionsPanel";
@@ -47,14 +47,14 @@ const source = {
   gaugeNow: async () => ({ fetchedAt: Date.now() - 5 * 60_000,
                            value: { discharge: 12.5, level: 1.2, percentile: 0.15, standing: "below",
                                     at: "2026-09-04T06:00:00Z" } }),
-} as unknown as RegsSource;
+} as unknown as WaterSource;
 const feed = { index: async () => ({ stations: {
   LEAD: { percentile: 0.15, parameter: "discharge" as const, discharge: 0.15 },
   DAM: { percentile: 0.8, parameter: "discharge" as const, discharge: 0.8 },
   QUIET: { percentile: null, parameter: "discharge" as const, observedAt: "2026-08-30T10:00:00-08:00" },
 } }) };
 
-async function draw(src: RegsSource = source) {
+async function draw(src: WaterSource = source) {
   render(<GestureHandlerRootView>
     <ConditionsPanel source={src} section={SEC} palette={LIGHT} feed={feed} scroll={false} day={DAY} />
   </GestureHandlerRootView>);
@@ -106,7 +106,7 @@ const silent = {
     gaugeNow: (s: string) => Promise<unknown> }).gaugeNow(st)),
   gaugeSeries: (st: string, span: "72h" | "year", p?: never, m?: string) =>
     (st === "QUIET" ? Promise.resolve(null) : FIXTURE.gaugeSeries("08MH001" as never, span, p, m)),
-} as unknown as RegsSource;
+} as unknown as WaterSource;
 
 describe("charting a quiet gauge (review 2026-10-21)", () => {
   it("says the gauge is quiet and when it last reported, under the switch — never the no-gauge refusal", async () => {

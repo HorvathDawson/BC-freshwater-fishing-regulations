@@ -18,7 +18,7 @@
  * such day is asked for again, and only it is filled (`fillDays`): a day the spot holds is never overwritten.
  */
 import { leadUpDays } from "@app/core";
-import type { RegsSource } from "../index";
+import type { WaterSource } from "../index";
 import type { LeadUp, Spot } from "./model";
 import type { WeatherSource } from "./capture";
 import { declaredQuantity, fillDays, gaugeDayPending, leadUpMissing, leadUpUnread, weatherDayPending, weekGauge, weekWeather,
@@ -55,7 +55,7 @@ export function refreshReason(spot: Spot): string | null {
  * `history` (T170): HYDAT and the device's online word, for the visit day's own flow (`fillDayFlow`): asked for a spot
  * whose reading is not the day's, and again while HYDAT has not published the day.
  */
-export async function refreshSpot(spot: Spot, weather: WeatherSource, source?: RegsSource,
+export async function refreshSpot(spot: Spot, weather: WeatherSource, source?: WaterSource,
                                   feed?: FeedIndex,
                                   history?: { hydat?: HydatDaily; online?: () => boolean }): Promise<Spot> {
   if (!needsRefresh(spot) && !dayFlowAskable(spot)) return spot;
@@ -84,7 +84,7 @@ export async function refreshSpot(spot: Spot, weather: WeatherSource, source?: R
 }
 
 /** The week before, with only its missing halves and days fetched; null when nothing new was learned. */
-async function fillLeadUp(spot: Spot, weather: WeatherSource, source?: RegsSource,
+async function fillLeadUp(spot: Spot, weather: WeatherSource, source?: WaterSource,
                           feed?: FeedIndex): Promise<LeadUp | null> {
   const had = spot.leadUp ?? null;
   const days = leadUpDays(spot.visitedAt);

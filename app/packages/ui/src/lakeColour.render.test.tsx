@@ -6,14 +6,14 @@
 import { describe, expect, it } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
 import type { LakeFacts } from "@app/core";
-import type { RegsSource } from "@app/data";
+import type { WaterSource } from "@app/data";
 import { useLakeColour } from "./lakeColour";
 
 const facts = (tag: string): LakeFacts => ({
   handles: tag, asof: 46314, sections: 1, surveyed: 0, stocked: 0, survey: () => null, stockedDay: () => null,
 });
 const source = (f: LakeFacts | null, asked: string[] = []) =>
-  ({ lakeFacts: async () => { asked.push("lakeFacts"); return f; } } as unknown as RegsSource);
+  ({ lakeFacts: async () => { asked.push("lakeFacts"); return f; } } as unknown as WaterSource);
 const DAY = new Date(2026, 9, 21, 15, 30);
 
 describe("useLakeColour", () => {

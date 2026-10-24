@@ -13,7 +13,7 @@ import { donorBecause, donorFacts, donorLastReport, donorKeyLabel, donorPinTitle
          freshness, HORIZON_LABELS, horizonChipLabel, localStamp, noGaugeSentence,
          readingAgeLine, readingHeading,
          readingStandingLine, stageLine, unplacedNote } from "@app/core";
-import type { Panel, RegsSource, SectionId } from "@app/data";
+import type { Panel, WaterSource, SectionId } from "@app/data";
 import { clearPanelCache, donorView, horizonChips, lakeQuietHead, useConditionsView, type DonorRow,
          type PanelAnswer } from "./panel";
 
@@ -241,7 +241,7 @@ const source = {
           at: "2026-09-04T06:00:00Z", parameter: "discharge" }
       : { discharge: null, level: 3.4, percentile: null, standing: null, at: "", parameter: "level" },
   }),
-} as unknown as RegsSource;
+} as unknown as WaterSource;
 
 const feed = { index: async () => ({ stations: {
   LEAD: { percentile: 0.15, parameter: "discharge" as const, discharge: 0.15 } } }) };
@@ -276,7 +276,7 @@ describe("useConditionsView", () => {
     // `forecast` field nothing read — the chart has `useSeries`. A reading is a reading.
     const gaugeSeries = vi.fn(async () => null);
     const { result } = renderHook(() =>
-      useConditionsView({ ...source, gaugeSeries } as RegsSource, SEC, DAY, 0,
+      useConditionsView({ ...source, gaugeSeries } as WaterSource, SEC, DAY, 0,
                         { feed, quantity: "discharge" }));
     await waitFor(() => expect(result.current.reading?.heading).toBeDefined());
     expect(gaugeSeries).not.toHaveBeenCalled();
@@ -288,7 +288,7 @@ describe("useConditionsView", () => {
     const src = { ...source, panelsFor: async () => new Map([[SEC, two]]),
                   panelRoutes: async () => [...await source.panelRoutes(SEC),
                     { station: "OTHER", name: "Other River at Bridge", lat: 49, lon: -122, role: "down", path: [SEC] }],
-                } as unknown as RegsSource;
+                } as unknown as WaterSource;
     const { result } = renderHook(() =>
       useConditionsView(src, SEC, DAY, 0, { feed, quantity: "discharge" }));
     await waitFor(() => expect(result.current.reading?.heading).toBe(readingHeading("Lead Creek near Town")));
@@ -307,7 +307,7 @@ describe("useConditionsView", () => {
     // one of the 54,386 sections with a `section_gauge` row and no `section_panel` row
     const gaugeNow = vi.fn(source.gaugeNow);
     const { result } = renderHook(() =>
-      useConditionsView({ ...source, panelsFor: async () => new Map(), gaugeNow } as unknown as RegsSource,
+      useConditionsView({ ...source, panelsFor: async () => new Map(), gaugeNow } as unknown as WaterSource,
                         SEC, DAY, 0, { feed, quantity: "discharge" }));
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect({ lead: result.current.lead, reading: result.current.reading, quiet: result.current.quiet,
@@ -321,7 +321,7 @@ describe("useConditionsView", () => {
                    lakeStationsFor: async () => new Map([[SEC, "LAKE"]]),
                    gaugeNow: async () => ({ fetchedAt: Date.now() - 5 * 60_000,
                      value: { discharge: null, level: 2.31, percentile: 0.6, standing: "normal",
-                              at: "2026-09-04T06:00:00Z", parameter: "level" } }) } as unknown as RegsSource;
+                              at: "2026-09-04T06:00:00Z", parameter: "level" } }) } as unknown as WaterSource;
     const { result } = renderHook(() => useConditionsView(lake, SEC, DAY, 0, { feed, quantity: "discharge" }));
     await waitFor(() => expect(result.current.reading?.heading).toBeDefined());
     const { age: _age, ...shown } = result.current.reading!;
@@ -340,7 +340,7 @@ describe("useConditionsView", () => {
   it("a gauged lake gone quiet: its own gauge, quiet, with when it last reported — not the refusal (T105 review)", async () => {
     const lake = { ...source, panelsFor: async () => new Map(), gaugeForSection: async () => null,
                    lakeStationsFor: async () => new Map([[SEC, "LAKE"]]), gaugeNow: async () => null } as unknown as
-      RegsSource;
+      WaterSource;
     const { result } = renderHook(() => useConditionsView(lake, SEC, DAY, 0, { feed, quantity: "discharge" }));
     await waitFor(() => expect(result.current.quiet).not.toBeNull());
     expect([result.current.lead, result.current.reading, result.current.quiet, result.current.refuse,
@@ -351,7 +351,7 @@ describe("useConditionsView", () => {
   });
 
   it("a panel offline with no reading: the panel says the readings did not arrive, the sheet does not refuse (T105 review)", async () => {
-    const quiet = { ...source, gaugeNow: async () => null } as unknown as RegsSource;
+    const quiet = { ...source, gaugeNow: async () => null } as unknown as WaterSource;
     const { result } = renderHook(() =>
       useConditionsView(quiet, SEC, DAY, 0, { feed: undefined, quantity: "discharge" }));
     await waitFor(() => expect(result.current.lead).toBe("LEAD"));
@@ -365,7 +365,7 @@ describe("useConditionsView", () => {
     const now08ME030 = { discharge: 5.46, level: 4.162, percentile: 0.432, standing: "normal",
                          at: "2026-10-22T18:40:00-08:00", parameter: "level" };
     const src = { ...source, gaugeNow: async () => ({ fetchedAt: Date.now() - 5 * 60_000, value: now08ME030 }) } as
-      unknown as RegsSource;
+      unknown as WaterSource;
     const { result } = renderHook(() => useConditionsView(src, SEC, DAY, 0, { feed, quantity: "discharge" }));
     await waitFor(() => expect(result.current.reading?.heading).toBeDefined());
     const { age: _age, ...shown } = result.current.reading!;
@@ -378,7 +378,7 @@ describe("useConditionsView", () => {
     // and declared discharge, the same two values: the discharge, with its stage beside it
     const src2 = { ...source, gaugeNow: async () => ({ fetchedAt: Date.now() - 5 * 60_000,
                                                        value: { ...now08ME030, parameter: "discharge" } }) } as
-      unknown as RegsSource;
+      unknown as WaterSource;
     const two = renderHook(() => useConditionsView(src2, SEC, DAY, 0, { feed, quantity: "discharge" }));
     await waitFor(() => expect(two.result.current.reading?.heading).toBeDefined());
     expect(two.result.current.reading).toMatchObject({ figure: 5.46, unit: "m³/s", quantity: "discharge",
@@ -389,7 +389,7 @@ describe("useConditionsView", () => {
     const two: Panel = { areaKm2: 50, members: [...PANEL.members,
       { station: "QUIET" as never, role: "down", areaKm2: 70, years: { discharge: 30, level: 30 }, regulated: false, sameRiver: true }] };
     const src = { ...source, panelsFor: async () => new Map([[SEC, two]]),
-                  gaugeNow: async (st: string) => (st === "QUIET" ? null : source.gaugeNow(st as never)) } as RegsSource;
+                  gaugeNow: async (st: string) => (st === "QUIET" ? null : source.gaugeNow(st as never)) } as WaterSource;
     const quietFeed = { index: async () => ({ stations: { ...(await feed.index()).stations,
       QUIET: { percentile: null, parameter: "discharge" as const, observedAt: "2026-08-30T10:00:00-08:00" } } }) };
     const { result } = renderHook(() =>
@@ -412,7 +412,7 @@ describe("useConditionsView", () => {
   it("refuses only where no donor leads and nothing reads", async () => {
     const { result } = renderHook(() =>
       useConditionsView({ ...source, panelsFor: async () => new Map(), gaugeForSection: async () => null,
-                          gaugeNow: async () => null } as unknown as RegsSource,
+                          gaugeNow: async () => null } as unknown as WaterSource,
                         SEC, DAY, 0, { feed, quantity: "discharge" }));
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.reading).toBeNull();
@@ -422,7 +422,7 @@ describe("useConditionsView", () => {
 
   it("where the panel cannot answer (offline) it leads with its first member, and traces only a donor's match (T105)", async () => {
     const own = { ...source, gaugeForSection: async () => ({ ...(await source.gaugeForSection(SEC))!, station: "LEAD" }) } as
-      unknown as RegsSource;
+      unknown as WaterSource;
     const { result } = renderHook(() =>
       useConditionsView(own, SEC, DAY, 0, { feed: undefined, quantity: "discharge" }));
     await waitFor(() => expect(result.current.trace?.station).toBe("LEAD"));
@@ -430,7 +430,7 @@ describe("useConditionsView", () => {
     // matched to a station the panel does not hold: no trace to it
     const asked = vi.fn(source.gaugeForSection);
     const other = renderHook(() =>
-      useConditionsView({ ...source, gaugeForSection: asked } as unknown as RegsSource, SEC, DAY, 0,
+      useConditionsView({ ...source, gaugeForSection: asked } as unknown as WaterSource, SEC, DAY, 0,
                         { feed: undefined, quantity: "discharge" }));
     await waitFor(() => expect(other.result.current.lead).toBe("LEAD"));
     await waitFor(() => expect(asked).toHaveBeenCalled());

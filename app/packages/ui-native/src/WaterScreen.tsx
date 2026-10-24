@@ -25,7 +25,7 @@
 import { useContext, useMemo, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { dayRange, regsLapsedNote, WATER_BACK, WORDS, type RegsTarget } from "@app/core";
-import type { ItemId, RegsSource, SectionId } from "@app/data";
+import type { ItemId, WaterSource, SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { mapDayOf, regsDay, useAccessNotice, useAnglerProfile, useDownstreamWater, useLayoutClass, useRegsPage, useRegsStore,
          useRegsTarget, useRegulations, useWater, type RegsStart } from "@app/ui";
@@ -49,7 +49,7 @@ export function WaterScreen({ source, item, palette, onBack,
                               loader = null, day = null, onDay, section = null, part = null, fishImages, adiposeImages,
                               start = null, onStarted, onPart }: {
   /** The water; null for an unnamed reach (T53), which `section` then names — its regulations are that section's. */
-  source: RegsSource; item: ItemId | null;
+  source: WaterSource; item: ItemId | null;
   /**
    * T01: everything the Regulations page reads (T21 draws it: `useRegsStore(loader)` opens the store on the first water).
    *

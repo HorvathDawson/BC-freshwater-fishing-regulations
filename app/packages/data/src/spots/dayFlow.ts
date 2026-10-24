@@ -6,7 +6,7 @@
  * day froze TODAY's gauge reading (capture reads the live feed whatever the visit time), and one pinned offline froze
  * none. This fills the visit day's DAILY MEAN instead, from the station's record of that day:
  *
- *   1. the feed's own daily series (`RegsSource.gaugeSeries(station, "year", "discharge")`): this year's daily means as
+ *   1. the feed's own daily series (`WaterSource.gaugeSeries(station, "year", "discharge")`): this year's daily means as
  *      ECCC published them (provisional), and the last complete HYDAT years the feed carries (`priorYears`);
  *   2. older or missing, WHEN ONLINE: ONE request to ECCC's MSC GeoMet OGC API, collection `hydrometric-daily-mean`
  *      (HYDAT's published daily means; Open Government Licence – Canada), for the first record on or after the day
@@ -22,7 +22,7 @@
  * never replaced (`readingIsTheDays`).
  */
 import { localDate, percentileInBand, placeInBand } from "@app/core";
-import type { Panel, PanelMember, RegsSource, StationId } from "../index";
+import type { Panel, PanelMember, WaterSource, StationId } from "../index";
 import { answerFrom, type PanelAnswer } from "../panel";
 import { dayIn } from "./leadup";
 import { stripRoutes } from "./migrate";
@@ -78,7 +78,7 @@ export type DayFlowAnswer =
   | { kind: "offline" };          // a source it needed could not be reached: asked again later
 
 export interface DayFlowPorts {
-  source: RegsSource;
+  source: WaterSource;
   /** HYDAT through GeoMet; absent: older days wait (said as offline). */
   hydat?: HydatDaily;
   /** The device's word on being online; `true` where it cannot say. */

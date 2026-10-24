@@ -25,7 +25,7 @@ import { makeReleaseSource } from "../../release/source";
 import { parseManifest } from "../../manifest";
 import { sha256Hex } from "../../sha256";
 import type { Db, Row } from "../db";
-import type { RegsSource } from "../../index";
+import type { WaterSource } from "../../index";
 import * as Q from "../queries";
 import * as R from "../../release/queries";
 
@@ -48,7 +48,7 @@ const THIN = new Set(["Barrie Creek", "Dore River", "Mabel Lake", "Mable Lake"])
 const stored = (t: string): string | null => (THIN.has(t) ? null : searchKey(t));
 
 /** The release's core + near, columns as the contract states them, behind a loader that verifies nothing. */
-function releaseStore(): RegsSource {
+function releaseStore(): WaterSource {
   const make = (file: "core" | "near") => {
     const d = new DatabaseSync(":memory:");
     for (const [t, cols] of Object.entries(PACK_FILES[file]!.tables)) d.exec(`CREATE TABLE ${t} (${cols.join(", ")})`);
@@ -81,7 +81,7 @@ function releaseStore(): RegsSource {
   return makeReleaseSource(loader);
 }
 
-const READERS: [string, () => RegsSource][] = [["the release reader", releaseStore]];
+const READERS: [string, () => WaterSource][] = [["the release reader", releaseStore]];
 
 for (const [reader, store] of READERS) {
   describe(`one search key — ${reader}`, () => {

@@ -8,12 +8,12 @@
 import { describe, expect, it, vi } from "vitest";
 import { captureSpot, noWeather } from "./capture";
 import { isUntitled, spotLabel, type Spot } from "./model";
-import type { RegsSource, SectionId, StationId } from "../index";
+import type { WaterSource, SectionId, StationId } from "../index";
 
 // One instant, and every date on the record is derived from it.
 const VISITED = Date.parse("2026-08-30T09:00:00Z");
 
-const source = (over: Partial<RegsSource> = {}): RegsSource => ({
+const source = (over: Partial<WaterSource> = {}): WaterSource => ({
   info: async () => ({ version: "t", validUntil: null }),
   itemForSection: async () => null,
   water: async () => null,
@@ -30,7 +30,7 @@ const source = (over: Partial<RegsSource> = {}): RegsSource => ({
   lakeInfo: async () => null,
   stockingHistory: async () => [],
   ...over,
-} as RegsSource);
+} as WaterSource);
 
 const base = {
   at: { lat: 49.0974, lon: -121.9675 },

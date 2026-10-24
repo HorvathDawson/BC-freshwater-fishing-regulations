@@ -18,7 +18,7 @@
 import { useMemo, useSyncExternalStore } from "react";
 import { accessNotice, buildRegsPage, tapDay, waterAccessNotice, type AccessNotice, type Day, type RegsInputs, type RegsPage, type RegsTarget,
          type Weekday, type Who } from "@app/core";
-import { downstreamWater, type ItemId, type RegsSource, type SectionId } from "@app/data";
+import { downstreamWater, type ItemId, type WaterSource, type SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { loadRegsInputs, openRegsStore, RegsStoreError, siblingItems, targetFor, type RegsExpect, type RegsLoader,
          type RegsStore } from "@app/data/regs";
@@ -114,7 +114,7 @@ export function useUnnamedName(store: RegsStore | null, item: ItemId | null, sec
  * `downstreamWater` (@app/data: the first named water down the reach's flow pointers) for an unnamed reach on screen;
  * disabled (loading, never asked) for a named water or no section. Feeds the header's "Tributary of …" line.
  */
-export function useDownstreamWater(source: Pick<RegsSource, "traceToGauge" | "waterFor">, item: ItemId | null,
+export function useDownstreamWater(source: Pick<WaterSource, "traceToGauge" | "waterFor">, item: ItemId | null,
                                    section: SectionId | null): Async<{ item: ItemId; name: string; kind: string } | null> {
   const asks = item === null && section !== null;
   return useAsync(async () => (asks ? downstreamWater(source, section!) : null), `downstream:${asks ? section : ""}`, asks);

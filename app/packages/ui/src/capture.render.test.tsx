@@ -6,7 +6,7 @@
  */
 import { afterEach, describe, expect, it } from "vitest";
 import { act, cleanup, render } from "@testing-library/react";
-import type { RegsSource, SectionId } from "@app/data";
+import type { WaterSource, SectionId } from "@app/data";
 import type { Spot } from "@app/data/spots";
 import { useCaptureSpot, type CaptureOptions } from "./capture";
 
@@ -15,10 +15,10 @@ const settle = () => act(async () => { for (let i = 0; i < 6; i++) await Promise
 
 const NOW = new Date(2026, 7, 30, 14, 20).getTime();
 
-const source = (over: Partial<RegsSource> = {}): RegsSource => ({
+const source = (over: Partial<WaterSource> = {}): WaterSource => ({
   gaugeForSection: async () => null, gaugeNow: async () => null, traceToGauge: async () => [],
   panelsFor: async () => new Map(), lakeStationsFor: async () => new Map(), ...over,
-} as unknown as RegsSource);
+} as unknown as WaterSource);
 
 type Api = ReturnType<typeof useCaptureSpot>;
 function Probe({ opts, out }: { opts: CaptureOptions; out: { api?: Api } }) {

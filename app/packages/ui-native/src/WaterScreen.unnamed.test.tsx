@@ -14,7 +14,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import { buildRegsPage, plain, WORDS, type RegsPage } from "@app/core";
 import { makeFixtureSource } from "@app/data/fixture";
-import type { ItemId, RegsSource, SectionId } from "@app/data";
+import type { ItemId, WaterSource, SectionId } from "@app/data";
 import { BLOCK_BITS, loadRegsInputs, type RegsStore } from "@app/data/regs";
 import { openRegsFixture } from "@app/data/release/node";
 import { DEFAULT_WHO, LayoutWidthContext, loadRegsStore } from "@app/ui";
@@ -26,7 +26,7 @@ afterEach(cleanup);
 const DAY = new Date(2026, 9, 10, 12);   // Sat Oct 10
 const HARRIS = "Harris Creek";
 /** The fixture source, with flow pointers for the tapped reach: 634 → 9001 (unnamed) → 9002 (a named water). */
-function sourceFlowing(): RegsSource {
+function sourceFlowing(): WaterSource {
   const base = makeFixtureSource();
   return { ...base,
     traceToGauge: async (from: SectionId) => (from === 634 ? [634, 9001, 9002] as SectionId[] : [from]),
@@ -61,7 +61,7 @@ async function baseOnlyUnnamed(): Promise<number> {
   throw new Error("the regs fixture holds no unnamed section answered by its region's base alone");
 }
 
-async function open(handle: number, source: RegsSource = makeFixtureSource(), width: number | null = null) {
+async function open(handle: number, source: WaterSource = makeFixtureSource(), width: number | null = null) {
   render(<LayoutWidthContext.Provider value={width}>
            <WaterScreen source={source} item={null} section={handle as SectionId} palette={LIGHT}
                         loader={openRegsFixture()} day={DAY} />

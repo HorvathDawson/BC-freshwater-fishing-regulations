@@ -12,7 +12,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CHART_ZOOM, CONDITIONS_WORDS, chartReadoutLine, fitDomain, isZoomed, monthAbbr, pad2, panDomain, timeAt,
          zoomChanges, zoomDomain, type ChartSpan, type Domain } from "@app/core";
-import type { Parameter, RegsSource, Series, StationId } from "@app/data";
+import type { Parameter, WaterSource, Series, StationId } from "@app/data";
 import { useAsync, type Async } from "./async";
 import { askOnce, chartParameter, peekAnswer, seriesKey } from "./answers";
 import { READING_REUSE_MS, stationReading } from "./hooks";
@@ -114,7 +114,7 @@ function extentOf(s: Series | null): Domain | null {
  * the LAST chart up, marked `pending`. Only the first chart a view ever draws shows "loading". `enabled` false (the
  * station's quantities are not known yet) asks nothing and counts as on its way.
  */
-export function useChartView(source: RegsSource, station: StationId | null, span: ChartSpan,
+export function useChartView(source: WaterSource, station: StationId | null, span: ChartSpan,
                              parameter: Parameter | undefined, model: string | undefined,
                              width: number, enabled = true): Async<ChartView | null> {
   const key = seriesKey(station, span, parameter, model);
@@ -200,7 +200,7 @@ export function useChartView(source: RegsSource, station: StationId | null, span
  * series for the other span. Every ask goes through the answer store under the chart's own keys, so the chart, the
  * model chips and this are one request per donor per span. Bounded: only `stations`, the panel's donors.
  */
-export function usePrefetchGauges(source: RegsSource, stations: readonly StationId[], span: ChartSpan,
+export function usePrefetchGauges(source: WaterSource, stations: readonly StationId[], span: ChartSpan,
                                   picked: Parameter | null | undefined, model: string | undefined): void {
   const list = stations.join("\n");
   useEffect(() => {

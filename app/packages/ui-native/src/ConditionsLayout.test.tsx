@@ -16,7 +16,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { CONDITIONS_WORDS, donorReason, forecastRunLine, localStamp, noGaugeSentence,
          readingHeading } from "@app/core";
-import type { Panel, RegsSource, SectionId } from "@app/data";
+import type { Panel, WaterSource, SectionId } from "@app/data";
 import { makeFixtureSource } from "@app/data/fixture";
 import { clearPanelCache } from "@app/ui";
 import { ConditionsPanel } from "./ConditionsPanel";
@@ -55,7 +55,7 @@ const sourceWith = (panel: Panel | null, now: Record<string, unknown> | null) =>
   gaugeParameters: async () => ["discharge", "level"],
   // A FIXED clock-free age: the reading's own time is pinned, the fetch is "5 min ago".
   gaugeNow: async () => (now ? { fetchedAt: Date.now() - 5 * 60_000, value: now } : null),
-}) as unknown as RegsSource;
+}) as unknown as WaterSource;
 
 /** The two donors disagree by far more than 25 points, so the disagreement note shows. */
 const feed = { index: async () => ({ stations: {
@@ -78,7 +78,7 @@ const forecasting = () => ({
   ...(sourceWith(PANEL, NOW) as unknown as Record<string, unknown>),
   gaugeSeries: (_st: string, span: "72h" | "year", p?: never, m?: string) =>
     FIXTURE.gaugeSeries("08MH001" as never, span, p, m),
-}) as unknown as RegsSource;
+}) as unknown as WaterSource;
 
 const SCENES = {
   estimate: () => sourceWith(PANEL, NOW),

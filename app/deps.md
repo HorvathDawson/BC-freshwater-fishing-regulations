@@ -9,7 +9,7 @@ v1's webapp reached `chart.js` + `pdf-lib` + `pdfjs-dist` + `fuse.js` + `suncalc
 ## Build / test
 
 - `typescript` — the language.
-- `vitest` — test runner; also runs the conformance suite against every `RegsSource`.
+- `vitest` — test runner; also runs the conformance suite against every `WaterSource`.
 
 - `jsdom` — a DOM for tests, so components are actually MOUNTED rather than inspected as
   source. Ninety-four tests passed while nothing in the workspace had ever rendered; a

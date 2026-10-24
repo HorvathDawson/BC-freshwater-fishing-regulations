@@ -5,7 +5,7 @@
 import { useMemo } from "react";
 import type { GaugeTrace } from "@app/core";
 import { FEED_TTL_MS } from "@app/data";
-import type { Horizon, Parameter, RegsSource, SectionId, Series, StationId } from "@app/data";
+import type { Horizon, Parameter, WaterSource, SectionId, Series, StationId } from "@app/data";
 import { useAsync, usePoll, type Async } from "../async";
 import { askOnce, peekAnswer, seriesKey } from "../answers";
 import { gaugeGeoJSON, type GaugeQuantity } from "../gaugePoints";
@@ -45,7 +45,7 @@ export interface Conditions {
 export const READING_POLL_MS = FEED_TTL_MS;
 
 export function useStationReading(
-  source: RegsSource, station: StationId | null,
+  source: WaterSource, station: StationId | null,
 ): Async<Conditions> {
   // P02: re-asked every READING_POLL_MS while a view holds it (the feed's own cache lives as long), keeping the last
   // reading on screen meanwhile; each tick also re-renders, so its age line moves on.
@@ -66,7 +66,7 @@ export function useStationReading(
 export const READING_REUSE_MS = READING_POLL_MS / 2;
 
 /** One station's reading as the conditions view holds it — what `useStationReading` and the prefetch ask. */
-export async function stationReading(source: RegsSource, station: StationId | null): Promise<Conditions> {
+export async function stationReading(source: WaterSource, station: StationId | null): Promise<Conditions> {
   const empty: Conditions = {
     station: null, stationName: null, discharge: null, level: null, parameter: null, percentile: null,
     standing: null, trust: null, fetchedAt: null, observedAt: null, trace: [],
@@ -102,7 +102,7 @@ export async function stationReading(source: RegsSource, station: StationId | nu
  * A zero would read as "the gauge is right here".
  */
 export function useGaugeTrace(
-  source: RegsSource, section: SectionId | null,
+  source: WaterSource, section: SectionId | null,
 ): Async<GaugeTrace> {
   return useAsync(
     async (): Promise<GaugeTrace> => {
@@ -143,7 +143,7 @@ export function useGaugeTrace(
  * for nothing.
  */
 export function useGaugeGeoJSON(
-  source: RegsSource,
+  source: WaterSource,
   feed: { index(): Promise<Parameters<typeof gaugeGeoJSON>[1]> } | undefined,
   enabled: boolean,
   quantity: GaugeQuantity = "flow",
@@ -174,7 +174,7 @@ export function useGaugeGeoJSON(
  * first's promise — `useAsync` alone shares nothing between callers.
  */
 export function useSeries(
-  source: RegsSource, station: StationId | null, span: "72h" | "year",
+  source: WaterSource, station: StationId | null, span: "72h" | "year",
   parameter?: Parameter, model?: string, enabled = true,
 ): Async<Series | null> {
   const key = seriesKey(station, span, parameter, model);
@@ -193,7 +193,7 @@ export function useSeries(
 
 /** Which quantities this station can be charted in — an empty list means no envelope. */
 export function useGaugeParameters(
-  source: RegsSource, station: StationId | null,
+  source: WaterSource, station: StationId | null,
 ): Async<readonly Parameter[]> {
   // Through the answer store, so a prefetched donor's quantities are known the instant it is picked — otherwise the
   // chart would ask for the station's "auto" series first and its picked quantity a frame later (two loads).

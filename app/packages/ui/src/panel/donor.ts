@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { type DonorRow, type Horizon, type PanelAnswer, type Quantity, type RegsSource, type SectionId,
+import { type DonorRow, type Horizon, type PanelAnswer, type Quantity, type WaterSource, type SectionId,
          type StationId } from "@app/data";
 import { changeLowWaterNote, CONDITIONS_WORDS, disagreeNote, donorBecause, donorCounted, donorFacts, donorLastReport,
          donorPinTitle, donorReads, donorReason, donorRowLabel, donorSilent, donorVotes, donorWeightLine,
@@ -166,7 +166,7 @@ export interface DonorViewOptions {
   sides?: GaugeSides;
   /**
    * (T175) THE WATER ITSELF, where no tap says where the reader is (a water opened from search or the list): its box
-   * [w, s, e, n] from the release (`RegsSource.waterBox`). The route map frames it with the gauges, so the water being
+   * [w, s, e, n] from the release (`WaterSource.waterBox`). The route map frames it with the gauges, so the water being
    * read is on the map it opens with — a lone gauge 20 km down the valley used to fill the frame and the creek was off
    * it. Ignored when `from` is given: the tap is the place then.
    */
@@ -361,11 +361,11 @@ export function gaugeChoiceGroups(rows: readonly DonorRow[], lead: StationId | n
 }
 
 /**
- * (T168) WHICH SIDE EACH STATION IS ON for this section (core `gaugeSides` over `RegsSource.gaugeWaters`). Null while
+ * (T168) WHICH SIDE EACH STATION IS ON for this section (core `gaugeSides` over `WaterSource.gaugeWaters`). Null while
  * reading, without a section or stations, or when the source cannot say (an old test double): the surfaces then draw
  * one run, as before — never a guess at "on this water".
  */
-export function useGaugeSides(source: RegsSource, section: SectionId | null,
+export function useGaugeSides(source: WaterSource, section: SectionId | null,
                               stations: readonly StationId[]): GaugeSides {
   const key = stations.join(",");
   const got = useAsync(async () => {

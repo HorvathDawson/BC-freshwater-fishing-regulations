@@ -14,7 +14,7 @@ import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { makeFixtureSource } from "@app/data/fixture";
-import type { ItemId, RegsSource, SectionId } from "@app/data";
+import type { ItemId, WaterSource, SectionId } from "@app/data";
 import type { Spot } from "@app/data/spots";
 import type { ReleaseLoader } from "@app/data/release";
 import { openRegsFixture } from "@app/data/release/node";
@@ -90,7 +90,7 @@ function hardwareBack(): boolean {
 }
 
 async function mount(initialRoute: Route, system: SystemBack = nativeBack, loader: ReleaseLoader | null = null,
-                     more: { source?: RegsSource; regsStart?: RegsStart } = {}) {
+                     more: { source?: WaterSource; regsStart?: RegsStart } = {}) {
   const source = more.source ?? makeFixtureSource();
   const water = await source.water(CHILLIWACK);
   TAP.sid = water!.sections[1]!;
@@ -114,7 +114,7 @@ function withLake() {
   const base = makeFixtureSource();
   let release = () => {};
   const held = new Promise<void>((ok) => { release = ok; });
-  const source: RegsSource = {
+  const source: WaterSource = {
     ...base,
     itemForSection: async (s) => (s === KLWA_SID ? "wbk:-22" as ItemId
       : s === SLOW_SID ? (await held, JEPERSON) : base.itemForSection(s)),
@@ -442,7 +442,7 @@ describe("Android's back, surface by surface (HANDOFF-ui 'Back, everywhere')", (
     const flows = () => screen.getByRole("link", { name: "Flows into Vedder River ›" });
     // the dev fixture source holds no Vedder: its title, so the page says which water opened
     const base = makeFixtureSource();
-    const source: RegsSource = { ...base, water: async (i) => (i === "gnis:3062"
+    const source: WaterSource = { ...base, water: async (i) => (i === "gnis:3062"
       ? { item: i, name: "Vedder River", kind: "river", sections: [] } : base.water(i)) };
     await mount(chilliwack, nativeBack, openRegsFixture(), { source });
     await onWaterMap(); await until(() => screen.queryByRole("link", { name: "Flows into Vedder River ›" }) !== null);

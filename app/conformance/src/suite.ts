@@ -1,5 +1,5 @@
 /**
- * ONE suite, run against EVERY RegsSource implementation.
+ * ONE suite, run against EVERY WaterSource implementation.
  *
  * This is the file that keeps mobile and web answering the same question the same way.
  * When a query is added to the interface it is added here in the SAME commit — otherwise
@@ -11,7 +11,7 @@
  * not measure. Regulations are not integrated, so nothing here asks about them.
  */
 import { expect, it } from "vitest";
-import type { ItemId, RegsSource, SectionId, StationId } from "@app/data";
+import type { ItemId, WaterSource, SectionId, StationId } from "@app/data";
 
 const CHILLIWACK = "gnis:8634" as ItemId;
 /**
@@ -26,7 +26,7 @@ const NO_SUCH_SECTION = 2_000_000_000 as SectionId;
  *
  * A section is an integer HANDLE — an index into the atlas's section_handles.txt — so it is
  * meaningful only against the artifact that minted it. This suite runs against every
- * RegsSource, and the fixture's table and the province bundle's table are different tables:
+ * WaterSource, and the fixture's table and the province bundle's table are different tables:
  * a literal here would pass against one source and fail against the next, which is the
  * opposite of what a conformance suite is for. So each source names its own two sections
  * and the suite tests the BEHAVIOUR. `item_id` stays written down, because that one is
@@ -49,10 +49,10 @@ export interface ConformanceOptions {
   noProducer?: readonly ("lakes")[];
 }
 
-export function runConformance(name: string, make: () => Promise<RegsSource>,
+export function runConformance(name: string, make: () => Promise<WaterSource>,
                                sections: ConformanceSections, opts: ConformanceOptions = {}) {
   const noLakes = opts.noProducer?.includes("lakes") ?? false;
-  const T = (what: string, fn: (s: RegsSource) => Promise<void>) =>
+  const T = (what: string, fn: (s: WaterSource) => Promise<void>) =>
     it(`${name}: ${what}`, async () => { await fn(await make()); });
 
   // ---- identity ----

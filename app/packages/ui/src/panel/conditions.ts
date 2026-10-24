@@ -4,7 +4,7 @@
  */
 import { useMemo, useRef, useState } from "react";
 import { speaks, sheetLead, type DonorRow, type Horizon, type PanelAnswer, type Parameter, type Quantity,
-         type RegsSource, type SectionId, type StationId } from "@app/data";
+         type WaterSource, type SectionId, type StationId } from "@app/data";
 import { CONDITIONS_WORDS, donorLastReport, donorReads, donorSilent, freshness, gaugeCountLine, noGaugeSentence,
          readingAgeLine, readingHeading, readingIn, readingStandingLine, shownParameter, stageLine, stateAt,
          type GaugeTrace, type SectionKey, type Standing } from "@app/core";
@@ -96,7 +96,7 @@ export interface ConditionsVM {
  * the same question the colour does.
  */
 export function useConditionsView(
-  source: RegsSource, section: SectionId | null, day: Date | null, horizon: Horizon,
+  source: WaterSource, section: SectionId | null, day: Date | null, horizon: Horizon,
   opts: { feed: PanelFeed | undefined; quantity: Quantity;
           /** `coloursEachTile(Platform.OS)`: the route map colours through the engine. Omitted: pushed. */
           perTile?: boolean },

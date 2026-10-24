@@ -5,7 +5,7 @@
 import { useState } from "react";
 import type { SectionKey, StatusIndex } from "@app/core";
 import { mapStatusOn } from "@app/core";
-import type { BundleCounts, GaugeFeed, ItemId, RegsSource } from "@app/data";
+import type { BundleCounts, GaugeFeed, ItemId, WaterSource } from "@app/data";
 import { useAsync, type Async } from "../async";
 
 /**
@@ -22,7 +22,7 @@ import { useAsync, type Async } from "../async";
  * own index. Anything unavailable stays `null` and the sheet omits it — a fabricated figure
  * is worse than a missing one, because a missing one is visibly missing.
  */
-export function useDataFacts(source: RegsSource, feed?: GaugeFeed, wanted = true): Async<{
+export function useDataFacts(source: WaterSource, feed?: GaugeFeed, wanted = true): Async<{
   counts: BundleCounts | null;
   /** Stations the LIVE FEED is publishing — not the same as the bundle's roster. */
   liveStations: number | null;
@@ -72,9 +72,9 @@ export function statusData(index: StatusIndex | null, visible: readonly SectionK
 
 /**
  * THE REGULATIONS READ OF THE WATER THAT IS OPEN (P11): its answer keys, through the source — on the release that opens
- * core, water and the region file holding them (`RegsSource.regulationKeys`), so opening a water in another region
+ * core, water and the region file holding them (`WaterSource.regulationKeys`), so opening a water in another region
  * fetches that region's file. Nothing is asked while no water is open. T01/T03 draw the page from what this opened.
  */
-export function useRegulationKeys(source: RegsSource, item: ItemId | null): Async<readonly number[]> {
+export function useRegulationKeys(source: WaterSource, item: ItemId | null): Async<readonly number[]> {
   return useAsync(async () => (item ? source.regulationKeys(item) : []), `regulation-keys:${item ?? ""}`, item !== null);
 }

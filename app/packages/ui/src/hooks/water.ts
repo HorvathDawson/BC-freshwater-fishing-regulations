@@ -3,7 +3,7 @@
  * belongs to, and search over names, places and pointers.
  */
 import { useMemo } from "react";
-import type { ItemId, NameHit, PlaceHit, PointerHit, RegsSource, SectionId, Water } from "@app/data";
+import type { ItemId, NameHit, PlaceHit, PointerHit, WaterSource, SectionId, Water } from "@app/data";
 import { useAsync, useDebounced, type Async } from "../async";
 
 /**
@@ -12,7 +12,7 @@ import { useAsync, useDebounced, type Async } from "../async";
  * No regulations: they are not integrated (see `regulations.ts` in @app/core). The sheet
  * renders a placeholder where they will go.
  */
-export function useWater(source: RegsSource, item: ItemId | null): Async<Water | null> {
+export function useWater(source: WaterSource, item: ItemId | null): Async<Water | null> {
   return useAsync(
     () => (item ? source.water(item) : Promise.resolve(null)),
     `water-item:${item}`,
@@ -31,14 +31,14 @@ export function waterLineSections(water: Water | null, item: ItemId | null,
 }
 
 /** `waterLineSections` for a water read from the source (the named water's sections once read; the tap meanwhile). */
-export function useWaterLine(source: RegsSource, item: ItemId | null, tapSid: SectionId | null): readonly SectionId[] {
+export function useWaterLine(source: WaterSource, item: ItemId | null, tapSid: SectionId | null): readonly SectionId[] {
   const w = useWater(source, item);
   const water = w.state === "ready" ? w.value ?? null : null;
   return useMemo(() => waterLineSections(water, item, tapSid), [water, item, tapSid]);
 }
 
-/** (T175) A water's box from the release (`RegsSource.waterBox`): where its Conditions map frames it without a tap. */
-export function useWaterBox(source: RegsSource, item: ItemId | null):
+/** (T175) A water's box from the release (`WaterSource.waterBox`): where its Conditions map frames it without a tap. */
+export function useWaterBox(source: WaterSource, item: ItemId | null):
     readonly [number, number, number, number] | null {
   const b = useAsync(() => (item ? source.waterBox(item) : Promise.resolve(null)), `water-box:${item}`, item !== null);
   return b.state === "ready" ? b.value ?? null : null;
@@ -67,7 +67,7 @@ export const SEARCH_DEBOUNCE_MS = 200;
 
 /** Names and aliases, plus the towns you can ask "what is near here" about. Debounced: see `SEARCH_DEBOUNCE_MS`. */
 export function useSearch(
-  source: RegsSource,
+  source: WaterSource,
   query: string,
   limit = 40,
   debounceMs = SEARCH_DEBOUNCE_MS,
@@ -95,7 +95,7 @@ export function useSearch(
  * name also read everything else about it.
  */
 export function useWaterName(
-  source: RegsSource, section: SectionId | null,
+  source: WaterSource, section: SectionId | null,
 ): Async<{ item: ItemId; name: string; kind: string } | null> {
   return useAsync(
     () => (section ? source.waterFor(section) : Promise.resolve(null)),

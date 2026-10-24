@@ -22,7 +22,7 @@ import {
 } from "@expo-google-fonts/archivo";
 import { JetBrainsMono_500Medium } from "@expo-google-fonts/jetbrains-mono";
 import { INSTALL_WORDS, installLine, rolledBackLine, startStage } from "@app/core";
-import { httpFeed, loadManifest, type RegsSource } from "@app/data";
+import { httpFeed, loadManifest, type WaterSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import * as platform from "@app/data/release/platform";
 import { fillDayFlow, geometHydat, openLayerStore, openLikeStore, openMeteo, openPhotos, openSpots, refreshSpot,
@@ -98,7 +98,7 @@ export default function App() {
       .then((m) => m.data_release),
     []);
 
-  const data = useMemo((): { source: RegsSource; status: StatusSource; pairing: PairingInput;
+  const data = useMemo((): { source: WaterSource; status: StatusSource; pairing: PairingInput;
                              tiles: MapTiles & { imagery: string }; loader: ReleaseLoader } | null => {
     if (boot.state !== "ready") return null;
     const b = boot.booted;

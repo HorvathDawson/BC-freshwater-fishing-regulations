@@ -13,7 +13,7 @@ import { Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SEARCH_BAR } from "@app/core";
 import { makeFixtureSource } from "@app/data/fixture";
-import type { ItemId, RegsSource } from "@app/data";
+import type { ItemId, WaterSource } from "@app/data";
 import { HOME, type Route, type SystemBack } from "@app/ui";
 import { LIGHT } from "./theme";
 
@@ -61,7 +61,7 @@ const feedAt = (iso: () => string, refreshed?: () => void) =>
   ({ index: async () => ({ fetchedAt: iso(), stations: {} }), refresh: refreshed }) as never;
 const FEED = feedAt(() => FETCHED);
 
-function mount(start: Route = HOME, feed: unknown = FEED, source: RegsSource = makeFixtureSource()) {
+function mount(start: Route = HOME, feed: unknown = FEED, source: WaterSource = makeFixtureSource()) {
   render(
     <GestureHandlerRootView>
       <Shell source={source} palette={LIGHT} theme="light" themeName="light" onTheme={() => {}}
@@ -364,7 +364,7 @@ describe("a place is SHOWN by its tap; a water is framed by its tap and opened b
     // the fixture's valley prints no such row: one is handed in, naming the fixture's river as one of its waters
     const fixture = makeFixtureSource();
     const asked: string[] = [];
-    const source: RegsSource = { ...fixture, async searchPointers(q) {
+    const source: WaterSource = { ...fixture, async searchPointers(q) {
       asked.push(q);
       return /^tee/i.test(q) ? [{ entry: "r8:tee_pee_lakes@8-6", name: "Tee Pee Lakes", see: [
         { name: "Friday Lake", item: "gnis:8634" as ItemId }, { name: "Saturday Lake", item: null },

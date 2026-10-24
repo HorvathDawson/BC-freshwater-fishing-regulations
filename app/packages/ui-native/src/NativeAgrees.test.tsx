@@ -10,7 +10,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
-import { buildStandingClasses, type Panel, type PanelMember, type RegsSource, type SectionId,
+import { buildStandingClasses, type Panel, type PanelMember, type WaterSource, type SectionId,
          type StationId } from "@app/data";
 import { clearPanelCache, useConditionsColour } from "@app/ui";
 import { perSectionLayers, spreadSections, standingInput } from "@app/map";
@@ -42,7 +42,7 @@ const source = {
     new Map(secs.filter((s) => LAKES.has(s)).map((s) => [s, LAKES.get(s)!])),
   basinMembers: async () => BASINS,
   standingClasses: async () => CLASSES,
-} as unknown as RegsSource;
+} as unknown as WaterSource;
 const feed = { index: async () => IDX as never };
 const VISIBLE = [5, 6, 7, 8, 9] as SectionId[];
 

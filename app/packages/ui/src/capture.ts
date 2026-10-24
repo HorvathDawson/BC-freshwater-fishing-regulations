@@ -7,13 +7,13 @@
  */
 import { useRef, useState } from "react";
 import { setVisitHour, shiftVisitDay, visitSteps, type VisitSteps } from "@app/core";
-import type { ItemId, RegsSource, SectionId } from "@app/data";
+import type { ItemId, WaterSource, SectionId } from "@app/data";
 import { captureSpot, type HydatDaily, type Spot, type WeatherSource } from "@app/data/spots";
 import { spotSaveFailed } from "./spots";
 import { usePhotoEdit, type PhotoEdit, type SpotPhotos } from "./photos";
 
 export interface CaptureOptions {
-  source: RegsSource;
+  source: WaterSource;
   weather?: WeatherSource;
   /** The live index, so the estimate is frozen as the reader saw it. */
   feed?: { index(): Promise<any> };

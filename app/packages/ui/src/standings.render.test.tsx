@@ -13,7 +13,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
 import { clearPanelCache, usePanelStandings } from "./panel";
-import type { Panel, RegsSource, SectionId } from "@app/data";
+import type { Panel, WaterSource, SectionId } from "@app/data";
 
 const A = 111 as SectionId, B = 222 as SectionId;
 
@@ -31,7 +31,7 @@ const src = (panels: Record<string, Panel>, lakes: Record<string, string> = {}) 
   // transfers to it. It is coloured by a station IN it, or not at all.
   lakeStationsFor: async (secs: readonly SectionId[]) =>
     new Map(secs.filter((s) => lakes[s]).map((s) => [s, lakes[s]!])),
-} as unknown as RegsSource);
+} as unknown as WaterSource);
 
 const feed = (pct: Record<string, number | null>) => ({
   index: async () => ({
@@ -97,7 +97,7 @@ describe("usePanelStandings", () => {
     const panelsFor = vi.fn(async () => new Map());
     const lakeStationsFor = vi.fn(async () => new Map());
     renderHook(() => usePanelStandings(
-      { panelsFor, lakeStationsFor } as unknown as RegsSource, feed({}), [A, B]));
+      { panelsFor, lakeStationsFor } as unknown as WaterSource, feed({}), [A, B]));
     await waitFor(() => expect(panelsFor).toHaveBeenCalledWith([A, B]));
   });
 
@@ -109,7 +109,7 @@ describe("usePanelStandings", () => {
     const panelsFor = vi.fn(async (secs: readonly SectionId[]) =>
       new Map(secs.map((s) => [s, panel(["08A", 100])])));
     const lakeStationsFor = vi.fn(async () => new Map());
-    const source = { panelsFor, lakeStationsFor } as unknown as RegsSource;
+    const source = { panelsFor, lakeStationsFor } as unknown as WaterSource;
     const { result, rerender } = renderHook(
       ({ secs }) => usePanelStandings(source, feed({ "08A": 0.42 }), secs),
       { initialProps: { secs: [A] as SectionId[] } });
@@ -126,7 +126,7 @@ describe("usePanelStandings", () => {
     // waste as re-asking for a panel — and most of the province is this case.
     const panelsFor = vi.fn(async () => new Map());
     const lakeStationsFor = vi.fn(async () => new Map());
-    const source = { panelsFor, lakeStationsFor } as unknown as RegsSource;
+    const source = { panelsFor, lakeStationsFor } as unknown as WaterSource;
     const { rerender } = renderHook(
       ({ q }) => usePanelStandings(source, feed({}), [A], "discharge", q as never),
       { initialProps: { q: 0 } });
@@ -140,7 +140,7 @@ describe("usePanelStandings", () => {
     const panelsFor = vi.fn(async () => new Map());
     const lakeStationsFor = vi.fn(async () => new Map());
     renderHook(() => usePanelStandings(
-      { panelsFor, lakeStationsFor } as unknown as RegsSource, feed({}), []));
+      { panelsFor, lakeStationsFor } as unknown as WaterSource, feed({}), []));
     await new Promise((r) => setTimeout(r, 10));
     expect(panelsFor).not.toHaveBeenCalled();
   });

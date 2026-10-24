@@ -1,7 +1,7 @@
 /**
  * @app/data — ONE interface, one implementation per platform.
  *
- * The shapes are in types.ts and the interface, `RegsSource`, in source.ts. Every method exists because a screen asks
+ * The shapes are in types.ts and the interface, `WaterSource`, in source.ts. Every method exists because a screen asks
  * for it (the query census in "One Interface, Two Storages" §1), and every one is in the
  * conformance suite, which runs against EVERY implementation. That suite is what stops
  * the phone and the browser answering the same question two ways — the v1 failure where
@@ -15,7 +15,7 @@
  * they plug in and which bundle tables they will read.
  */
 export * from "./types";
-export type { RegsSource } from "./source";
+export type { WaterSource } from "./source";
 
 /** The driver seam (`Db`: four methods), for the layers that hand one to `@app/data` (T03). */
 export type { Db, Row, Cell } from "./sql/db";

@@ -17,7 +17,7 @@
       "why": "core must run identically on device, in a browser, and in a test with no platform at all."
     },
     "packages/data": {
-      "purpose": "RegsSource interface + per-platform implementations.",
+      "purpose": "WaterSource interface + per-platform implementations.",
       "mayImport": [
         "@app/core",
         "fflate"

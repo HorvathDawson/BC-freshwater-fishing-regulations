@@ -1,5 +1,5 @@
 /**
- * THE RELEASE READER (P11): a RegsSource over the release's files, through the loader (lazy, verified, per file).
+ * THE RELEASE READER (P11): a WaterSource over the release's files, through the loader (lazy, verified, per file).
  *
  * THE APP'S ONE DATA READER (the dev bundle reader was retired, T61). It asks each file for its own tables: a query
  * cannot JOIN across two files, and the reads that matter most here are exactly those — search's nearest towns
@@ -27,7 +27,7 @@ import { boxOfGeoRows, continuedOrds, gaugeWatersOf, link, nearHit, parametersOf
          traceDown, withNear, type DownOf } from "../sql/shared";
 import type { Observations } from "../feed/http";
 import type { Aged, BasinMember, BundleCounts, BundleInfo, GaugeLink, ItemId, NameHit, NearHit, Panel, PanelMember,
-              PlaceHit, PlaceId, PointerHit, Reading, RegsSource, SectionId, StationId, Water } from "../index";
+              PlaceHit, PlaceId, PointerHit, Reading, WaterSource, SectionId, StationId, Water } from "../index";
 import type { DbName, ReleaseLoader } from "./loader";
 import { buildStandingClasses, type StandingClasses } from "../standing";
 import { CROSS, META, RELEASE_QUERIES as R } from "./queries";
@@ -65,7 +65,7 @@ export interface SourceOptions {
   };
 }
 
-export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {}): RegsSource {
+export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {}): WaterSource {
   const db = (n: DbName) => loader.db(n);
   const all = async (q: { file: string; sql: string }, ...p: (string | number | null)[]) =>
     (await db(q.file as DbName)).all(q.sql, ...p);
@@ -277,7 +277,7 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
       const [paint, members, at, area] = await Promise.all([loader.paint(), membersOf(), indexOf(), loader.flowArea()]);
       for (const s of sections) {
         const panel = paint.panelOf(s);
-        if (panel === null) continue;                     // no panel: ABSENT, never an empty one (see RegsSource)
+        if (panel === null) continue;                     // no panel: ABSENT, never an empty one (see WaterSource)
         const i = at(s);
         out.set(s, { areaKm2: i === null ? null : area[i]!, members: members.get(panel) ?? [] });
       }

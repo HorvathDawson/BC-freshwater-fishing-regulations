@@ -11,7 +11,7 @@
 import { freezeTrace, leadUpDays, localDate, type FrozenTrace } from "@app/core";
 import { answerFrom, type PanelAnswer } from "../panel";
 import { sheetLead, speakerFor, speaks, type Speaker } from "../standing";
-import type { ItemId, RegsSource, SectionId, StationId } from "../index";
+import type { ItemId, WaterSource, SectionId, StationId } from "../index";
 import type { DailyWeather, LeadUp, Spot, SpotReading, SpotWeather } from "./model";
 import { stripRoutes } from "./migrate";
 import { leadUpFor } from "./leadup";
@@ -43,7 +43,7 @@ export interface WeatherSource {
 export const noWeather: WeatherSource = { at: async () => null };
 
 export interface CaptureInput {
-  source: RegsSource;
+  source: WaterSource;
   weather?: WeatherSource;
   at: { lat: number; lon: number };
   item: ItemId | null;
@@ -76,7 +76,7 @@ export interface CaptureInput {
 }
 
 /** The estimate as the app had it, or null when there is no feed or no panel. */
-async function panelFor(source: RegsSource, section: SectionId | null,
+async function panelFor(source: WaterSource, section: SectionId | null,
                         feed: CaptureInput["feed"]): Promise<PanelAnswer | null> {
   if (!feed || !section) return null;
   try {
@@ -151,7 +151,7 @@ export async function captureSpot(input: CaptureInput): Promise<Spot> {
 }
 
 /** The section's panel with each member's daily mean on the trip day (Q161); a failed lookup freezes no panel. */
-async function panelOnTripDay(source: RegsSource, section: SectionId | null, date: string, ports: DayFlowPorts):
+async function panelOnTripDay(source: WaterSource, section: SectionId | null, date: string, ports: DayFlowPorts):
   Promise<Pick<Spot, "panel" | "panelDay">> {
   if (!section) return { panel: null };
   try {
@@ -164,14 +164,14 @@ async function panelOnTripDay(source: RegsSource, section: SectionId | null, dat
 }
 
 /** Who speaks for the reach (`speakerFor`, T105): its panel, else the station in its lake, else nobody. */
-async function speakerOf(source: RegsSource, section: SectionId | null): Promise<Speaker | null> {
+async function speakerOf(source: WaterSource, section: SectionId | null): Promise<Speaker | null> {
   if (!section) return null;
   const [panels, lakes] = await Promise.all([source.panelsFor([section]), source.lakeStationsFor([section])]);
   return speakerFor(panels.get(section), lakes.get(section));
 }
 
 /** The lead station's reading. No station (nothing speaks for the water) is the refusal: no reading at all. */
-async function readingFor(source: RegsSource, station: StationId | null):
+async function readingFor(source: WaterSource, station: StationId | null):
   Promise<SpotReading | null> {
   // NO SPEAKER IS THE REFUSAL. Recording a number anyway would freeze a wrong answer into a saved spot permanently,
   // and a spot is forever.
@@ -189,7 +189,7 @@ async function readingFor(source: RegsSource, station: StationId | null):
   };
 }
 
-async function traceFor(source: RegsSource, section: SectionId | null, speaker: Speaker | null):
+async function traceFor(source: WaterSource, section: SectionId | null, speaker: Speaker | null):
   Promise<FrozenTrace | null> {
   if (!section) return null;
   const link = await source.gaugeForSection(section);

@@ -83,7 +83,7 @@ export function sheetLead(speaker: Speaker | null,
 
 /**
  * THE STATIC HALF, for one release: each section's class, the classes, and the basins' stations. Built once per release
- * (`RegsSource.standingClasses`); the map labels a section with `classOf` as its tile arrives.
+ * (`WaterSource.standingClasses`); the map labels a section with `classOf` as its tile arrives.
  */
 export interface StandingClasses {
   /** The release the classes were built from. A different object is a different labelling: the map relabels. */

@@ -5,22 +5,22 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, render } from "@testing-library/react";
-import type { RegsSource } from "@app/data";
+import type { WaterSource } from "@app/data";
 import { SEARCH_DEBOUNCE_MS, useSearch } from "./hooks";
 
 const stub = () => {
   const searchNames = vi.fn(async () => []);
   const searchPlaces = vi.fn(async () => []);
-  return { source: { searchNames, searchPlaces } as unknown as RegsSource, searchNames, searchPlaces };
+  return { source: { searchNames, searchPlaces } as unknown as WaterSource, searchNames, searchPlaces };
 };
 
-function Probe({ source, q }: { source: RegsSource; q: string }) {
+function Probe({ source, q }: { source: WaterSource; q: string }) {
   const r = useSearch(source, q);
   return <p>{r.state}</p>;
 }
 
 /** Type `word` a letter at a time, `gapMs` apart — every gap shorter than the debounce. */
-async function type(rerender: (ui: React.ReactElement) => void, source: RegsSource, word: string, gapMs: number) {
+async function type(rerender: (ui: React.ReactElement) => void, source: WaterSource, word: string, gapMs: number) {
   for (let i = 1; i <= word.length; i++) {
     await act(async () => { rerender(<Probe source={source} q={word.slice(0, i)} />); });
     await act(async () => { vi.advanceTimersByTime(gapMs); });

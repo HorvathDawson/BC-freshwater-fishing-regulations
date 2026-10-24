@@ -39,7 +39,7 @@ export function gaugeSide(g: GaugePlace | undefined, w: ThisWater): GaugeSide {
   return g.section !== null && g.section === w.section ? "own" : "donor";
 }
 
-/** Each station's side, from `RegsSource.gaugeWaters`' answer — the map every surface reads. */
+/** Each station's side, from `WaterSource.gaugeWaters`' answer — the map every surface reads. */
 export function gaugeSides(stations: readonly string[], w: ThisWater,
                            places: ReadonlyMap<string, GaugePlace>): ReadonlyMap<string, GaugeSide> {
   return new Map(stations.map((s) => [s, gaugeSide(places.get(s), w)]));

@@ -3,7 +3,7 @@
  * Map tab produce routes that are equal except `view` (and the tab underneath, which is where each came from).
  */
 import { describe, expect, it } from "vitest";
-import type { ItemId, RegsSource, SectionId } from "@app/data";
+import type { ItemId, WaterSource, SectionId } from "@app/data";
 import { openTap, openWater, waterOpener } from "./openWater";
 import { HOME, reduce, waterFrame, type Route, type RouteAction } from "./route";
 
@@ -90,7 +90,7 @@ describe("(T58) the opener: a split lake's areas, and a late lookup dropped", ()
   }
   const groupOf = async (item: ItemId) => (AREAS.includes(item) ? AREAS : [item]);
   /** The opener over a route the test moves: what it dispatched (applied to the route) and the route after. */
-  function app(start: Route, src: Pick<RegsSource, "itemForSection">, held = false) {
+  function app(start: Route, src: Pick<WaterSource, "itemForSection">, held = false) {
     let route = start;
     const sent: RouteAction[] = [];
     const go = (a: RouteAction) => { sent.push(a); route = reduce(route, a); };

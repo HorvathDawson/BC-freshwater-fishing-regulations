@@ -14,7 +14,7 @@
  */
 import { beforeEach, describe, expect, it } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
-import type { Panel, RegsSource, SectionId } from "@app/data";
+import type { Panel, WaterSource, SectionId } from "@app/data";
 import { clearPanelCache, HORIZONS, usePanel, usePanelStandings, type Quantity } from "./panel";
 
 const A = 111 as SectionId;
@@ -57,7 +57,7 @@ const source = {
   panelsFor: async (secs: readonly SectionId[]) =>
     new Map(secs.filter((s) => PANELS[s]).map((s) => [s, PANELS[s]!])),
   lakeStationsFor: async () => new Map(),
-} as unknown as RegsSource;
+} as unknown as WaterSource;
 
 const feed = {
   index: async () => ({

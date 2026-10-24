@@ -1,5 +1,5 @@
 /**
- * An in-memory RegsSource holding a slice of the REAL Chilliwack valley build.
+ * An in-memory WaterSource holding a slice of the REAL Chilliwack valley build.
  *
  * Not a toy. Every value below came out of build 54ea0bb4 or a live feed on 30 Aug 2026,
  * so the conformance suite exercises the cases that actually broke things: a river cut into
@@ -10,7 +10,7 @@
 import { searchKey, type Band } from "@app/core";
 import type {
   Aged, BundleInfo, GaugeLink, ItemId, LakeInfo, NameHit, NearHit, Parameter,
-  PlaceHit, PlaceId, PointerHit, Reading, RegsSource, Release, SectionId, Series, StationId, Water,
+  PlaceHit, PlaceId, PointerHit, Reading, WaterSource, Release, SectionId, Series, StationId, Water,
 } from "./index";
 import { buildStandingClasses } from "./standing";
 
@@ -85,7 +85,7 @@ const ELF = {
   },
 };
 
-export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): RegsSource {
+export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): WaterSource {
   /** Every section this fixture knows, and the water each belongs to. */
   const itemOf = new Map<SectionId, string>([
     ...CHILLIWACK.sections.map((sec) => [handleOf(sec), CHILLIWACK.item] as const),

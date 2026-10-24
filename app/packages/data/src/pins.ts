@@ -54,7 +54,7 @@ export interface PinPhoto {
   bytes: number;
 }
 
-/** Local-only store. Deliberately separate from RegsSource — different lifecycle. */
+/** Local-only store. Deliberately separate from WaterSource — different lifecycle. */
 export interface PinStore {
   list(): Promise<Pin[]>;
   /** The primary lookup — pins are found by WHERE they are, not by what they attach to. */

@@ -1,7 +1,7 @@
 /**
  * THE SHELL'S INPUTS: everything the app hands the Shell (T62 3.4: the props type, out of Shell.tsx unchanged).
  */
-import type { RegsSource } from "@app/data";
+import type { WaterSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import type { LayerStore, Locate, PairingInput, RegsStart, Route, SpotPhotos, StatusSource, SystemBack } from "@app/ui";
 import type { DayFlowAnswer, HydatDaily, LikeStore, Spot, WeatherSource } from "@app/data/spots";
@@ -11,7 +11,7 @@ import type { AdiposeImages, FishImages } from "../regs/types";
 import type { Palette, ThemeName } from "../theme";
 
 export interface ShellProps {
-  source: RegsSource; palette: Palette;
+  source: WaterSource; palette: Palette;
   /**
    * Where the day's status comes from: the release's paint (P11). Absent -> the water is drawn plain.
    */

@@ -16,7 +16,7 @@
  */
 import { useContext } from "react";
 import { View } from "react-native";
-import type { ItemId, Parameter, RegsSource, SectionId } from "@app/data";
+import type { ItemId, Parameter, WaterSource, SectionId } from "@app/data";
 import type { Horizon, PanelFeed } from "@app/ui";
 import type { TileEndpoints } from "@app/map";
 import { useAccessNotice, useRegsStore, useUnnamedName, useWater, useWaterBox, useWaterLine, useWaterName } from "@app/ui";
@@ -30,7 +30,7 @@ import { WaterFrame, WaterTitle } from "./WaterFrame";
 
 export function WaterConditions({ source, item, tapSid, palette, tiles, theme, parameter, onParameter, from, feed,
                                   credits, horizon, onHorizon, loader = null }: {
-  source: RegsSource;
+  source: WaterSource;
   /** (T53) the release, for an unnamed reach's name (the store's, as its Regulations page heads with); null: no name */
   loader?: ReleaseLoader | null;
   /** The water; null for an unnamed reach (then `tapSid` is its section). */
@@ -93,7 +93,7 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, p
 }
 
 export function WaterMap({ source, item, palette, children }: {
-  source: RegsSource; item: ItemId; palette: Palette;
+  source: WaterSource; item: ItemId; palette: Palette;
   /** The map. */
   children: React.ReactNode;
 }) {

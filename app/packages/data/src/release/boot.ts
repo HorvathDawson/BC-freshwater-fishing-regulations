@@ -21,7 +21,7 @@ import { PaintError, StatusIndexError, type Paint } from "@app/core";
 import { VerifyError } from "../fetchVerified";
 import { compatible, loadManifest, ManifestError, type Held, type Manifest } from "../manifest";
 import { sha256Hex } from "../sha256";
-import type { RegsSource } from "../index";
+import type { WaterSource } from "../index";
 import type { SourceOptions } from "./source";
 import { heldFrom, heldManifest, heldPath, install, pointerFor, POINTER as POINTER_PATH, prune, readHeld, sameSet,
          writeHeld, type Progress, type ReleaseFs } from "./install";
@@ -71,7 +71,7 @@ export interface Booted {
   held: Held;
   loader: ReleaseLoader;
   paint: Paint;
-  source: RegsSource;
+  source: WaterSource;
   /** Where the map reads a release-relative path from: a local file on native, the release root on the web. */
   locate(path: string): string;
   /** Native: the background update, resolving to the set installed for the NEXT launch (null: nothing to do). */

@@ -1,6 +1,6 @@
 /**
  * HOW THE LAKE MODES' VALUES REACH THE MAP (owner 2026-10-21: stocked lakes and the depth colouring go through the one
- * colouring pathway, and update from data alone). The release's `lakes` file (`RegsSource.lakeFacts`) says, per lake
+ * colouring pathway, and update from data alone). The release's `lakes` file (`WaterSource.lakeFacts`) says, per lake
  * section, whether it was surveyed and when it was last stocked; the web map's colouring engine labels each tile's lakes
  * with them as the tile arrives (`MapProps.lakes`: the `survey` and `stocked` channels) — the same per-tile path as the
  * day's status and the Conditions standings, so a new release recolours the lakes with no tile change.
@@ -17,7 +17,7 @@
  */
 import { useMemo } from "react";
 import { dayNumber, type LakeFacts } from "@app/core";
-import type { RegsSource } from "@app/data";
+import type { WaterSource } from "@app/data";
 import { useAsync } from "./async";
 import { sourceKey } from "./conditionsColour";
 
@@ -27,7 +27,7 @@ export interface LakeFeedVM {
   readonly day: number;
 }
 
-export function useLakeColour(i: { source: RegsSource; perTile: boolean; paired: boolean; today: Date }):
+export function useLakeColour(i: { source: WaterSource; perTile: boolean; paired: boolean; today: Date }):
     LakeFeedVM | null {
   const on = i.perTile && i.paired;
   const facts = useAsync(() => i.source.lakeFacts(), `lakefacts:${sourceKey(i.source)}`, on);

@@ -8,7 +8,7 @@
  * loader and verified against its manifest.
  *
  * WHY A FIXTURE RELEASE AND NOT THE LIVE ONE. A run over the live release would need data CI does not hold and would
- * only ever be a Tier 2 report; the fixture runs in `pnpm check` with no data — and RegsSource reads nothing of the regs
+ * only ever be a Tier 2 report; the fixture runs in `pnpm check` with no data — and WaterSource reads nothing of the regs
  * half.
  *
  * The suite's two sections are QUERIED from the fixture (each source names its own; handles mean nothing across
@@ -23,7 +23,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
 import { answerFrom, classStandings, httpFeed, parseManifest, sectionStanding, sheetLead, speakerFor, speaks, verify, type ItemId, type Manifest, type Panel,
-         type RegsSource, type SectionId } from "@app/data";
+         type WaterSource, type SectionId } from "@app/data";
 import { openSqlite } from "@app/data/sql/node";
 import { makeReleaseSource, releaseLoader, type DbName, type ReleaseLoader } from "@app/data/release";
 import { fixtureRelease } from "./fixtureRelease";
@@ -79,7 +79,7 @@ runConformance("release", async () => makeReleaseSource(loader(), { feed: httpFe
                sections, { noProducer: ["lakes"] });
 
 describe("the release reader over the fixture release (P11)", () => {
-  let release: RegsSource, L: ReleaseLoader;
+  let release: WaterSource, L: ReleaseLoader;
   const feed = () => httpFeed("fixture:/feeds/gauge", feedFetch);
   beforeAll(() => {
     L = loader();

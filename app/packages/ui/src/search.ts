@@ -16,7 +16,7 @@ import {
   watersNear,
   type Bbox, type Extent, type LatLon, type StatusIndex, type WaterStatus,
 } from "@app/core";
-import type { ItemId, NameHit, NearHit, PlaceHit, PointerHit, RegsSource, SectionId } from "@app/data";
+import type { ItemId, NameHit, NearHit, PlaceHit, PointerHit, WaterSource, SectionId } from "@app/data";
 import { useAsync, type Async } from "./async";
 import { useSearch, type SearchResults } from "./hooks";
 
@@ -103,7 +103,7 @@ export function focusFor(input: {
 }
 
 /** The best match's sections and extent. Idle (loading forever) when there is none. */
-export function useLocated(source: RegsSource, item: ItemId | null): Async<Located | null> {
+export function useLocated(source: WaterSource, item: ItemId | null): Async<Located | null> {
   return useAsync(
     async () => {
       if (!item) return null;
@@ -120,7 +120,7 @@ export function useLocated(source: RegsSource, item: ItemId | null): Async<Locat
 }
 
 /** What is near a town, with every nearby water's sections for the highlight. */
-export function useTown(source: RegsSource, place: PlaceHit | null): Async<TownView | null> {
+export function useTown(source: WaterSource, place: PlaceHit | null): Async<TownView | null> {
   return useAsync(
     async () => {
       if (!place) return null;
@@ -143,7 +143,7 @@ export function useTown(source: RegsSource, place: PlaceHit | null): Async<TownV
  * of what is near a town. Same decision, same box and highlight as the search map drew, so
  * the water they picked is the water the map shows when they come back to it.
  */
-export function usePickFocus(source: RegsSource, item: ItemId | null): MapFocus | null {
+export function usePickFocus(source: WaterSource, item: ItemId | null): MapFocus | null {
   const located = useLocated(source, item);
   const best = located.state === "ready" ? located.value : null;
   return useMemo(() => focusFor({ town: null,
@@ -313,7 +313,7 @@ export function resultGroups(r: { waters: readonly NameHit[]; places: readonly P
  * can never disagree about which water is "best". ONE town fetch serves both the open list
  * and the map: inside a town's list the subject is that town or a water near it.
  */
-export function useSearchView(source: RegsSource, query: string,
+export function useSearchView(source: WaterSource, query: string,
                               results: { waters: readonly NameHit[];
                                          places: readonly PlaceHit[] },
                               pick: SearchPick, follow = true):
@@ -377,7 +377,7 @@ export interface SearchSession {
  * (T48) ONE SEARCH SESSION, read by the Shell: the sheet's rows and the main map behind it come from this one value, so
  * the list and the map can never disagree about which water is lit. `open` false asks nothing (search is closed).
  */
-export function useSearchSession(source: RegsSource, memory: SearchMemory, open: boolean): SearchSession {
+export function useSearchSession(source: WaterSource, memory: SearchMemory, open: boolean): SearchSession {
   const { q, pick } = memory;
   const hits = useSearch(source, open ? q : "");
   const last = useRef<SearchResults>({ waters: [], places: [], pointers: [] });

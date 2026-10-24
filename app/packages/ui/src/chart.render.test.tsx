@@ -5,7 +5,7 @@
 import { describe, expect, it } from "vitest";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { chartReadoutLine, monthAbbr } from "@app/core";
-import type { RegsSource, Series, StationId } from "@app/data";
+import type { WaterSource, Series, StationId } from "@app/data";
 import { chartBox, chartHeight, chartTicks, tickCount, useChartView } from "./chart";
 
 const H = 3_600_000;
@@ -19,7 +19,7 @@ const SERIES: Series = {
   now: { index: N - 1, value: 4.72 },
   forecast: null, forecasts: [], priorYears: [],
 };
-const source = { gaugeSeries: async () => ({ fetchedAt: 0, value: SERIES }) } as unknown as RegsSource;
+const source = { gaugeSeries: async () => ({ fetchedAt: 0, value: SERIES }) } as unknown as WaterSource;
 const ST = "08MH001" as StationId;
 
 describe("the chart's size", () => {

@@ -13,7 +13,7 @@ import { needsDayFlow, needsDayPanel, panelOfAnswer, savedGauges, type HydatDail
 import { needsRefresh, refreshReason, refreshSpot } from "./refresh";
 import { DAY_PANEL_WORDS } from "./words";
 import { answerFrom, type PanelAnswer } from "../panel";
-import type { Aged, Panel, RegsSource, SectionId, Series, StationId } from "../index";
+import type { Aged, Panel, WaterSource, SectionId, Series, StationId } from "../index";
 import type { Spot } from "./model";
 
 const BAND: Band = [10, 20, 40, 60, 100];
@@ -52,14 +52,14 @@ function source(gaugeNow = vi.fn(async () => ({ fetchedAt: NOW, value: { dischar
     gaugeParameters: async () => ["discharge", "level"],
     gaugeSeries: async (st: string) => yearOf(DAYS[st] ?? {}),
     gaugeNow,
-  } as unknown as RegsSource };
+  } as unknown as WaterSource };
 }
 const hydat = (a: HydatDay): HydatDaily & { asked: string[] } => {
   const asked: string[] = [];
   return { asked, day: async (st, d) => { asked.push(`${st} ${d}`); return a; } };
 };
 const sky = { at: async () => ({ tempC: 9 }) as never, days: async () => null };
-const input = (src: RegsSource, visitedAt: number, history?: { hydat?: HydatDaily; online?: () => boolean }) => ({
+const input = (src: WaterSource, visitedAt: number, history?: { hydat?: HydatDaily; online?: () => boolean }) => ({
   source: src, weather: sky, at: { lat: 49.1, lon: -121.96 }, item: null, section: 1 as SectionId,
   waterName: "Chilliwack River", title: "", now: NOW, visitedAt, feed: { index: async () => LIVE },
   id: () => "s1", ...(history ? { history } : {}) });

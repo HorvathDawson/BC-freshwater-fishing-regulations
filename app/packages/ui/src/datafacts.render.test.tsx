@@ -5,13 +5,13 @@
  */
 import { afterEach, describe, expect, it } from "vitest";
 import { act, cleanup, render } from "@testing-library/react";
-import type { BundleCounts, RegsSource } from "@app/data";
+import type { BundleCounts, WaterSource } from "@app/data";
 import { useDataFacts } from "./hooks";
 
 afterEach(cleanup);
 const settle = () => act(async () => { for (let i = 0; i < 4; i++) await Promise.resolve(); });
 
-function Probe({ source, wanted }: { source: RegsSource; wanted: boolean }) {
+function Probe({ source, wanted }: { source: WaterSource; wanted: boolean }) {
   const f = useDataFacts(source, undefined, wanted);
   return <p>{f.state}:{f.state === "ready" ? String(f.value.counts?.waters) : ""}</p>;
 }
@@ -21,7 +21,7 @@ const counts: BundleCounts = { waters: 19699, reaches: 6967, surveyed: null, sta
 describe("useDataFacts: read on demand, then kept", () => {
   it("asks nothing until wanted, once when wanted, and keeps the answer when no longer wanted", async () => {
     let asked = 0;
-    const source = { counts: async () => { asked++; return counts; } } as unknown as RegsSource;
+    const source = { counts: async () => { asked++; return counts; } } as unknown as WaterSource;
     const { container, rerender } = render(<Probe source={source} wanted={false} />);
     await settle();
     expect(asked).toBe(0);
