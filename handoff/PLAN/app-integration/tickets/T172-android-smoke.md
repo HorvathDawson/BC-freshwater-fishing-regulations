@@ -9,8 +9,8 @@ cleanup).
 ## Setup (measured 2026-10-23)
 Android SDK at ~/Library/Android/sdk (build-tools, cmake, cmdline-tools, emulator, ndk, platform-tools, platforms,
 system-images); AVD `n1_pixel` (from the N1 spike, handoff/PLAN/app-data/N1-SPIKE.md); 48 GB RAM. adb/emulator are not
-on PATH (use $HOME/Library/Android/sdk/{platform-tools,emulator}); no JAVA_HOME set — use Android Studio's bundled JBR
-(/Applications/Android Studio.app/Contents/jbr/Contents/Home) or say what is missing.
+on PATH (use $HOME/Library/Android/sdk/{platform-tools,emulator}); no JAVA_HOME set — use Android Studio's bundled JBR, confirmed present: OpenJDK 21.0.10 at
+`/Applications/Android Studio.app/Contents/jbr/Contents/Home` (export JAVA_HOME to it for Gradle).
 
 ## Work (smoke only)
 1. Boot `n1_pixel` headless (`-no-window` if it runs; else windowed) via scripts/heavy.sh, ALONE (no reach run, app check
