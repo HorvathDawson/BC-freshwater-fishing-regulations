@@ -813,12 +813,14 @@ STAMP_NAME = "card-check.json"
 
 def code_sha() -> str:
     """The digest of the gate's code and the engine it holds the cards against (every module of
-    `pipeline.deliver.answers`), so a stamp says WHICH gate passed."""
+    `pipeline.deliver.answers`, its subpackages `rows/`, `display/` and `model/` included), so a stamp says
+    WHICH gate passed."""
     import hashlib
     from pathlib import Path
     h = hashlib.sha256()
-    for f in sorted(Path(__file__).parent.glob("*.py")):
-        h.update(f.name.encode() + b"\0" + f.read_bytes() + b"\0")
+    root = Path(__file__).parent
+    for f in sorted(root.rglob("*.py")):
+        h.update(f.relative_to(root).as_posix().encode() + b"\0" + f.read_bytes() + b"\0")
     return h.hexdigest()[:16]
 
 
