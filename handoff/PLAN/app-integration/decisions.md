@@ -1178,3 +1178,8 @@ is never touched). T170's "read when this spot was saved" label is gone. Ticket 
   - Q4: no cap on the cut line, but a cut may only take a braid that ATTACHES TO THE MAINSTEM ON BOTH SIDES OF THE CUT
     POINT (the topology gate). Nothing touching one side only (bulges, bends, South Atnarko) is ever cut.
   - The owner checks every proposed cut by hand in a review artifact before anything is promoted.
+
+## OWNER 2026-10-24 (night) — promotion calls
+- **T61 2.8 one name normaliser:** may be PROMOTED by Claude when its binding diff shows only explained changes
+  (names now keying the same way); anything unexplained is held and listed for the owner.
+- **T67 braids:** owner checks every cut on the review page (phone-friendly), sent by push notification when ready.
