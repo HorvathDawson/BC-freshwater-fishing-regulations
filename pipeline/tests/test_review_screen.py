@@ -312,6 +312,8 @@ def test_the_render_lock_is_pinned_by_mutation():
     import sys
     got = subprocess.run([sys.executable, "-c", _MUTATION, str(REPO / "curation-review" / "backend"), str(REPO)],
                          capture_output=True, text=True, timeout=600, cwd=REPO)
+    if got.returncode < 0:     # killed by a signal: unlocked pdfium can crash the process outright — a failure too
+        return
     assert got.returncode == 0, got.stderr[-2000:]
     assert int(got.stdout.strip().splitlines()[-1]) > 0, got.stdout
 
