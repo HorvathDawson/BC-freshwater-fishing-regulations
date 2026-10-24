@@ -26,3 +26,7 @@ Status: OPEN. Source: handoff/PLAN/audit/PLAN.md §2 "Wave 4" + owner: "a big te
   refresh needs its own lane: find why the regenerated page disagrees (subset build: 42 waters / 727 rules; the
   translation assuming the old numbering; T80 groups), then drop settle's ORACLE_PREDATES entries. Decide with the
   owner's call 2 (archive the prototype answers reference) — the refresh may not be worth doing at all.
+
+- Order-dependent (2026-10-24, T61 final run): `test_synopsis_pages.py` (4 tests) ERROR in the full serial suite with
+  "PDFium: Data format error" loading data/source/fishing_synopsis.pdf, and pass alone (9 passed). Find the earlier
+  test that leaks state into it (a patched SOURCE / an open pdfium handle) and fix the isolation.
