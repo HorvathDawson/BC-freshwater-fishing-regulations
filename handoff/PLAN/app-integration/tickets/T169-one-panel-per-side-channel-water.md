@@ -1,6 +1,6 @@
 # T169 — One gauge panel for one water: Nicomen Slough reads the same answer along its whole length
 
-Status: DONE (lane-T169, ae99328e) — not yet delivered. Owner 2026-10-23 delegated: "do what you think is best just make
+Status: DONE (lane-T169, 89b8e1a1) — not yet delivered. Owner 2026-10-23 delegated: "do what you think is best just make
 sure it is sane".
 
 Source: owner 2026-10-23: "why did one section of nicomen slough not get conditions even though both ends of the lake
@@ -43,7 +43,7 @@ tests on Nicomen (all 9 sections one panel) + a mutation pin. Ships: deliver (pa
 - Sections whose panel changes are ONLY side-channel pieces (named side-channel items, connectors/braids between them);
   0 changes on ordinary streams, tributaries or lakes — a test fails if any non-side-channel section's panel moves.
 
-## As built — 2026-10-23 (ae99328e, pipeline/atlas/gauges/build_panels.py)
+## As built — 2026-10-23 (89b8e1a1, pipeline/atlas/gauges/build_panels.py)
 ONE MAP, `side_channel_waters(graph, area_of, water_of, kind_of, adopted, continues)` -> `{side-channel water: river
 section}`: a STREAM water at least one of whose lines `mainstem_of` adopts onto a section of ANOTHER water (not one
 `water_continue` system, not a lake item). Its river section is the LARGEST of the sections its lines were adopted onto

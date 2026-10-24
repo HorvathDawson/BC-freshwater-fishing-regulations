@@ -1,6 +1,6 @@
 # T168 — "N gauges in view": split the gauges on this water from the donor gauges
 
-Status: DONE — lane-T168, c54ba532 (code + tests); this ticket update follows it. App only; no rebuild, no deliver: every fact needed was already in the bundle
+Status: DONE — lane-T168, bfee90d9 (code + tests); this ticket update follows it. App only; no rebuild, no deliver: every fact needed was already in the bundle
 and the release (`gauge.item_id`, `gauge.sid`, `item_section`, `water_continue`).
 
 Source: owner 2026-10-23: "when it says (13 gauges in view) we need to make a division between real gauges and donor
@@ -65,7 +65,7 @@ disclosure ("6 not reporting ▾"); the count line counts them apart.
   compares a side to "own"/"donor", or spells the group words; every pattern proven to fire; panel.ts calls
   `groupGauges` for rows, key and switch and all three ui-native surfaces draw `<GaugeGroups>`. M13 (the own-first sort
   first written in ui), M14 (a heading literal in GaugeGroups) fail it.
-- `REGS_STORE_REQUIRED=1 pnpm -C app check` via `scripts/heavy.sh appcheck 30`: green, 8,117 passed / 24 skipped (2026-10-24, before c54ba532). The full mutation list (M1–M15) was run with `scratchpad/T168-mutate.py`; each failed its test and was reverted.
+- `REGS_STORE_REQUIRED=1 pnpm -C app check` via `scripts/heavy.sh appcheck 30`: green, 8,117 passed / 24 skipped (2026-10-24, before bfee90d9). The full mutation list (M1–M15) was run with `scratchpad/T168-mutate.py`; each failed its test and was reverted.
 
 ## Shots (own Expo port 8197, release data from :39217)
 In `/Users/dawson.horvath/dev/personal/BC-freshwater-fishing-regulations/.playwright-mcp/T168/`:

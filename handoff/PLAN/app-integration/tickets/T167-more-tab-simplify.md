@@ -1,6 +1,6 @@
 # T167 — The More tab: simpler details, references apart, data freshness on the main tab, a real desktop layout
 
-Status: DONE — 9770cf9b (lane-T167; merge into redesign/stream-sections)
+Status: DONE — 3af0dbaa (lane-T167; merge into redesign/stream-sections)
 
 Source: owner 2026-10-23: "details in the more tab could be simplified a lot too. right now it is hard to read. separate
 out references to a separate thing. then this stuff [the data sources list: Synopsis, In-season changes, DFO salmon,
