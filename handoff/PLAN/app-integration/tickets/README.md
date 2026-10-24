@@ -219,8 +219,8 @@ use that as the sole source of future work."
 | T172 | Android smoke on the emulator (builds, installs, opens, main screens) — before cleanup; full parity stays T50 | OPEN | — | heavy, alone |
 | T173 | fish obstacles layer (falls, dams, culverts) from the BC Data Catalogue | OPEN | — | future |
 | T174 | remaining answered → grey → answered gaps on main rivers (321/84 runs; Gravel Slough connectors) | OPEN | — | deliver; Q153–Q155 |
-| T175 | a water's own line shows at every zoom on its Conditions / water map (copy from tiles, clamp the opening zoom) | OPEN | — | app |
-| T176 | the Conditions legend's "N gauges in view" counts sections, not gauges | OPEN | — | app |
+| T175 | a water's own line shows at every zoom on its Conditions / water map (copy from tiles, clamp the opening zoom) | DONE | e8999343, 1f46e968 | app; native not run (T172/T50) |
+| T176 | the Conditions legend's "N gauges in view" counts sections, not gauges | DONE | e8999343, 1f46e968 | app: "N reaches coloured" |
 | T177 | combine CLEVER + COFFEE on every forecast day, weighted by measured skill (owner Q160) | OPEN | — | feed; measurement first |
 
 ## Order for open tickets

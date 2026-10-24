@@ -1,6 +1,6 @@
 # T176 — The Conditions map legend's "N gauges in view" counts sections, not gauges
 
-Status: DONE — lane-T176 work on lane-T175, 886cb19e (with T175); this ticket update follows it. App only.
+Status: DONE — lane-T176 work on lane-T175, e8999343 (with T175); this ticket update follows it. App only.
 
 Source: T168 review (2026-10-24): the "13 gauges in view" the owner saw on Nicomen Slough is the Conditions map legend
 (`app/packages/ui-native/src/Chrome.tsx` `LegendRamp`), which counts the VISIBLE SECTIONS that have a standing — not

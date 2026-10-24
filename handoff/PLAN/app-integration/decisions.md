@@ -1133,3 +1133,7 @@ T146's spruce/cyan and the T165 amber swap; the dash is the owner's chosen secon
 - CLAUDE 2026-10-24 (T170/T171): `aheadDays` lives in the feed index (+9 KB gzip); ELF appears in the Like-your-visit strip
   only where no flood model reaches (37 stations), with its caveat; no offline history file in the release; a same-day spot
   whose gauge was silent at capture offers to fill the day's flow. Undo any by its ticket.
+- CLAUDE 2026-10-24 (T175/T176): the opening zoom steps in until the water's own line draws (Fit brings far gauges back);
+  with no tap the map frames the water's box plus its gauges; wetlands are not copied; the legend reads "N reaches
+  coloured" (it counts reaches; a station count needs on-screen gauge dots — not built). Follow-up: no-access stretches
+  should draw DOTTED in the copy too (owner's T165 look), today they leave a gap below the tiles' zoom — T175 Left.

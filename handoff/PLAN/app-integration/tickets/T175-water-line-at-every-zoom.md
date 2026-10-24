@@ -1,6 +1,6 @@
 # T175 — A water's own line shows at every zoom on its Conditions (and water) map
 
-Status: DONE — lane-T175, 886cb19e (code + tests, with T176); this ticket update follows it. App only: no rebuild, no
+Status: DONE — lane-T175, e8999343 (code + tests, with T176); this ticket update follows it. App only: no rebuild, no
 deliver, no new data — the geometry is the tiles', the box the release's `waterBox` (already shipped).
 
 Source: owner 2026-10-24: "the map in conditions tab of a stream sometimes doesn't show the stream because it is too
@@ -118,3 +118,6 @@ before the framing change) — an emulation of the old behaviour, not a build of
    with the wetland's paint.
 4. **No-access stretches in the copy** — default: hidden as on the atlas (no dots below the atlas zoom). Alternative: draw
    the copy's no-access stretch with the dots too.
+
+## Left (merge 2026-10-24)
+- The copy leaves no-access stretches as a gap below the tiles' zoom; draw them dotted grey like the tiles (T165).
