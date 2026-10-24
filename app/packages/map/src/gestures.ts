@@ -3,7 +3,7 @@
  * these turn it into each renderer's own switches, so the browse map and the water map, on the web and on the phone,
  * pan, pinch and tap alike.
  *
- *   maplibreGestures    maplibre-gl's constructor options (`Map.web.tsx`). `clickTolerance` is the tap slop: a press
+ *   maplibreGestures    maplibre-gl's constructor options (`web/useMapInstance.ts`). `clickTolerance` is the tap slop: a press
  *                       that moved further is a pan and never fires a click, so a small pan never selects a section.
  *   nativeMapGestures   MapLibre Native's `Map` props (`@maplibre/maplibre-react-native` 11.5), spread onto the map in
  *                       `Map.native.tsx` (N2). Nothing here names the native SDK.

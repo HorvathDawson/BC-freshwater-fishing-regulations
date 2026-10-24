@@ -1,7 +1,7 @@
 /**
  * THE SCALE BAR'S ARITHMETIC, shared so the phone draws the web's bar (N2 review).
  *
- * The web uses MapLibre GL JS's `ScaleControl` (`Map.web.tsx`: metric, `maxWidth` 92, bottom-right). The RN binding's
+ * The web uses MapLibre GL JS's `ScaleControl` (`web/useMapInstance.ts`: metric, `maxWidth` 92, bottom-right). The RN binding's
  * scale bar is top-left only on Android and follows the device's units, so `Map.native.tsx` draws its own from this:
  * the ground distance `maxWidth` pixels span at the centre, rounded DOWN to 1, 2, 3 or 5 × 10ⁿ metres (GL JS's
  * `getRoundNum`), and the bar shortened in proportion. MapLibre's world is 512 px wide at z0.

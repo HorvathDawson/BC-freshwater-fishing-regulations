@@ -416,7 +416,7 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
        *
        * CONFINING THEM TO BC IS NOT DONE HERE. It needs the mask as a literal (a `within`
        * expression cannot reference a source) and the mask is fetched, so it is applied in
-       * `Map.web.tsx` once it lands — in ONE place, through `toExpression`, because
+       * `web/outsideMask.ts` once it lands — in ONE place, through `toExpression`, because
        * Protomaps writes most of these filters in the legacy syntax and combining a legacy
        * filter with an expression under `all` makes MapLibre parse the whole thing as
        * legacy.

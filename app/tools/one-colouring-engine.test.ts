@@ -17,7 +17,7 @@
  * Each assertion was checked to fail against the bypass it names (mutation runs recorded in the colour-latency README).
  */
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { STYLE_META } from "../packages/map/src/style";
 import { ENGINE_KEYS, standingInput, statusInput, stockedInput, surveyInput, withoutEngineKeys,
@@ -25,6 +25,9 @@ import { ENGINE_KEYS, standingInput, statusInput, stockedInput, surveyInput, wit
 import { statusFeed } from "../packages/ui/src/mapModes";
 
 const read = (p: string) => readFileSync(resolve(__dirname, "..", p), "utf8");
+/** The web map whole: `Map.web.tsx` and its hooks, one per concern, in `web/` (T62). */
+const webMap = () => [read("packages/map/src/Map.web.tsx"),
+  ...readdirSync(resolve(__dirname, "../packages/map/src/web")).sort().map((f) => read(`packages/map/src/web/${f}`))].join("\n");
 /** The keys the engine's channels label a section with, from the channels themselves — never restated. */
 const index = { profileOf: () => null, profiles: 0 } as never;
 const lakes = { facts: { survey: () => null, stockedDay: () => null, sections: 0, surveyed: 0, stocked: 0 } as never, day: 0 };
@@ -52,7 +55,7 @@ describe("one colouring engine", () => {
   });
 
   it("the web map makes ONE engine and hands every channel to it through ONE function", () => {
-    const src = read("packages/map/src/Map.web.tsx");
+    const src = webMap();
     expect(src.match(/new Colouring\(/g)?.length).toBe(1);
     expect(src.match(/\bc\.set\(/g)?.length).toBe(1);
     expect(src.match(/toChannel\("(\w+)"/g)).toEqual(
@@ -77,7 +80,7 @@ describe("one colouring engine", () => {
                              (e) => why.push(e.message)))
       .toEqual({ stream: { 1: { other: 2 } }, lake: { 4: { other: 1 } } });
     expect(why.length).toBe(3);
-    const src = read("packages/map/src/Map.web.tsx");
+    const src = webMap();
     const sets = src.match(/adapter\.current\.setData\(/g)?.length ?? 0;
     expect(sets).toBeGreaterThan(0);
     expect(src.match(/of Object\.entries\(withoutEngineKeys\(/g)?.length).toBe(sets);
@@ -121,6 +124,7 @@ describe("one colouring engine", () => {
     expect(rs).toContain('ring(SELECTION_RINGS.wetland, "wetland")');
     for (const f of ["Map.web.tsx", "Map.native.tsx", "colouring.ts", "look.ts", "adapters/contract.ts"])
       expect([f, read(`packages/map/src/${f}`).includes("color.highlight")]).toEqual([f, false]);
+    expect(webMap().includes("color.highlight")).toBe(false);
   });
 
   it("the Shell takes the Conditions colouring from `useConditionsColour` alone, the lake values from `useLakeColour`", () => {

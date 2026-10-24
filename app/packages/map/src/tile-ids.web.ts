@@ -10,7 +10,7 @@
  *
  * PINNED TO 5.24 (`GL_INTERNALS`; `tools/gl-internals.test.ts` fails on any other installed version and checks the
  * names below are still in its bundle and source). Duck-typed, never imported: on a build that does not look like 5.24
- * these return null and the map takes the PUBLIC route instead (`querySourceFeatures`, in Map.web.tsx) — heavier,
+ * these return null and the map takes the PUBLIC route instead (`querySourceFeatures`, in web/handles.ts) — heavier,
  * measured in the colour-latency README, never wrong.
  *
  * Web only: the native binding has no per-tile event at all (`tile-ids.native.ts`).

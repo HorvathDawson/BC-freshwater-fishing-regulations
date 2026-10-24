@@ -13,7 +13,7 @@ import { STYLE_META, resolveTheme, tempBandColour } from "./style";
  * server answered with index.html, and the console filled with
  * `Unexpected token '<', "<!DOCTYPE "... is not valid JSON` — once per map mount, so the
  * count climbed on every tab switch while the app looked fine. The gauge source then began
- * empty and was only rescued by the imperative `setData` in Map.web.tsx.
+ * empty and was only rescued by the imperative `setData` in web/useOverlays.ts.
  *
  * The value stays a STRING across the props boundary on purpose: it changes every half hour
  * and a string is what makes React's identity check cheap. Parsing belongs here, at the one
@@ -107,7 +107,7 @@ function rampExpression(theme: string): unknown {
  * This shows on every view, not only Conditions: `Map.web` hands the
  * style an empty FeatureCollection when there are no gauges, so the
  * source exists from the first frame (which is deliberate — see
- * EMPTY_FC there). The credit is therefore always on, which is the
+ * EMPTY_FC, web/ready.ts). The credit is therefore always on, which is the
  * safe direction to be wrong in.
  */
 export function gaugeSource(raw: string) {

@@ -151,7 +151,7 @@ describe("one per-section layer list: perSectionLayers() decides, everything els
   });
 
   it("the web map fans `sections` out on EVERY path into setData — the restore after a relabel too (review)", () => {
-    // Map.web.tsx applies pushed data in two places: the `data` effect and the engine's `restore` (what a relabel's
+    // The web map applies pushed data in two places: the `data` effect (web/useLook.ts) and the engine's `restore` (web/useChannels.ts) (what a relabel's
     // clear must put back). The restore went straight to `withoutEngineKeys(latestData.current)`, so a `sections` key
     // reached `adapter.setData(h, "sections", …)`, which throws `unknown layer "sections"` inside the engine's swap.
     // Both paths go through `withoutEngineKeys` (one-colouring-engine pins that), so the fan-out lives there.
