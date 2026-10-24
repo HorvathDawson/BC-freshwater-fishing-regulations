@@ -1224,3 +1224,8 @@ local tool's fix-mode writers are retired (T185). The review itself moves to a s
   region in view; core + sql-wasm when the browser is idle and not on Save-Data / a slow connection. Gates (T129)
   measure first paint before any prefetch.
 - **Q162 (owner: no preference; Claude's call: swap):** the typed ▾ / ▲ / ▼ in core words become the icon set's chevrons.
+
+## OWNER 2026-10-24 — braids accepted
+Every proposed braid cut, re-home and left-alone card marked right on round 3 (artifact Et8B4Z6ZbKNNw9mMkJWzFH). The
+Ditches tab needs nothing (Q1 already decided: ditch-only lines leave their river). T67 merged and promoted with a
+full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
