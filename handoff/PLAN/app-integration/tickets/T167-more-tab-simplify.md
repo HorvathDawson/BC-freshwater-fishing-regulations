@@ -25,3 +25,7 @@ MenuHost.tsx.
    settings/links) — consistent with the app's desktop shell; mobile stays as is.
 5. Shots before/after: phone and desktop, light and dark. Render tests for the new list; words whole-value in core.
 Ships: app. Size: S–M.
+
+## Owner note (2026-10-23)
+The BC River Forecast Centre gave the owner permission to use its data — credit it on the Sources page; HYDAT/ECCC
+under the Open Government Licence – Canada (decisions.md "OWNER 2026-10-23 — data permissions").

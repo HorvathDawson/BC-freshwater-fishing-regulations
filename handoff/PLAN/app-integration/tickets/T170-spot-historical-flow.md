@@ -33,3 +33,7 @@ whether a browser may call it directly (CORS) before building; if not, the feed 
 4. Tests whole-value (backdated spot fills the day's percentile; a same-day spot is untouched; level-only station gives
    no flow); shots of a backdated Chilliwack spot before/after. Ships: app (+ feed/release if a history file is needed).
 Size: M.
+
+## Licence (owner 2026-10-23)
+HYDAT is under the Open Government Licence – Canada (decisions.md "OWNER 2026-10-23 — data permissions") — the
+licence check in the work list is settled; endpoint and CORS still to verify.

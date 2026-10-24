@@ -1108,3 +1108,9 @@ Answered / obsolete (removed from the table):
   cleanup removes it with its golden comparisons; undo: delete it now.
 - T153: the tributary walk still never takes ponds (p.80: tributaries are streams) — kept; undo: let `expand` collect
   unnamed ponds above the reach.
+
+## OWNER 2026-10-23 — data permissions
+- **BC River Forecast Centre:** the owner asked the RFC directly and has PERMISSION to use their data (the CLEVER,
+  COFFEE and ELF forecasts the feed publishes). Credit the BC River Forecast Centre on the Sources page (T167).
+- **HYDAT** (and ECCC's GeoMet hydrometric services) is under the Open Government Licence – Canada; attribute ECCC
+  (T167; T170's online daily-mean lookup).

@@ -220,3 +220,7 @@ Not fixed (left):
   stale since T52, untouched here.
 - Browser note: the shared Playwright browser was on another lane's page (:39461) when this lane took its shots; it was
   navigated away to :39418.
+
+## Permission (owner 2026-10-23)
+The owner has the BC River Forecast Centre's permission to use its model data (decisions.md "OWNER 2026-10-23 — data
+permissions").
