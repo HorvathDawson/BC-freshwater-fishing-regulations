@@ -1210,3 +1210,16 @@ as Okanagan River mainstem. Applied with the slough fold (dry run first, per the
 The curation review must not update files directly. Marks are the review's only output; changes reach curated entries
 and splits as proposals the owner accepts (side rebuild + binding diff shown), applied as one commit per ticket. The
 local tool's fix-mode writers are retired (T185). The review itself moves to a shareable artifact (T184).
+
+## OWNER 2026-10-24 — order, PSF, and three small calls
+- **Order:** braids (T67) → T183 → the tiles window (with the braid tile rebuild) → native (T50…) → the slough fold
+  whenever the slough marks are finished (it takes a second tile rebuild; accepted).
+- **T162 unblocked:** the owner asked PSF and permission is granted ("it is good"). Build run timing from PSF + DFO open
+  data (best source per species: DFO for the salmon runs where it is better, PSF for steelhead and where DFO has none).
+  Record PSF's reply and their attribution wording in data/source/runtiming/ when the owner forwards it.
+- **Q163 (default kept until PSF's wording says otherwise):** raw PSF pages stay local only (untracked); only derived
+  data is committed. No history rewrite.
+- **Q164 (owner: "prefetch reg data before a person clicks"):** prefetch on the web — always the regs file of the
+  region in view; core + sql-wasm when the browser is idle and not on Save-Data / a slow connection. Gates (T129)
+  measure first paint before any prefetch.
+- **Q162 (explained; Claude's call: swap):** the typed ▾ / ▲ / ▼ in core words become the icon set's chevrons.
