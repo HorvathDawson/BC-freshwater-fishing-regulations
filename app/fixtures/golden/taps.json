@@ -52885,6 +52885,7 @@
  },
  "recut": {
   "gnis:39325": "T115 (owner decision AGENTS 54, tickets/T115-one-region-membership.md): a straddling stream piece is its home region's only",
-  "gnis:2936": "T67 (owner 2026-10-24): the Ecological Reserve's side-channel piece 360216962:96 no longer carries the Skeena section-2 designation and is a part of its own (8 -> 9 parts)"
+  "gnis:2936": "T67 (owner 2026-10-24): the Ecological Reserve's side-channel piece 360216962:96 no longer carries the Skeena section-2 designation and is a part of its own (8 -> 9 parts)",
+  "gnis:14619": "T67 (owner 2026-10-24): the Peace's braids are cut at Site C, the 1,200 m signs and the Halfway, so its parts are renumbered (part order follows rule-set ids)"
  }
 }

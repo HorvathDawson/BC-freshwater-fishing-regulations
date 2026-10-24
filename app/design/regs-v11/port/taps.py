@@ -65,9 +65,9 @@ PART_MOVED = {"x15p16_1010": 14,
               "x19p6_1010": 7, "x19p7_1010": 8}
               # (T187) x22p6 (the Peace's Dinosaur Lake part) is back to its golden place and size: part 6, 1 section
 #: gone states whose water's list of parts is still the golden's (labels and order the Parts sheet draws): not `recut`
-GONE_NOT_RECUT = {"x22p2_1010"}
+GONE_NOT_RECUT: set[str] = set()
 #: the reason a water is `recut` (its list of parts is not the golden's), by the state that shows it
-RECUT_WHY = {"x22p6_1010": "T67 (owner 2026-10-24): the Peace's braids are cut at Site C, the 1,200 m signs and the "
+RECUT_WHY = {"x22p2_1010": "T67 (owner 2026-10-24): the Peace's braids are cut at Site C, the 1,200 m signs and the "
                            "Halfway, so its parts are renumbered (part order follows rule-set ids)",
              "x19p6_1010": "T67 (owner 2026-10-24): the Ecological Reserve's side-channel piece 360216962:96 no longer "
                            "carries the Skeena section-2 designation and is a part of its own (8 -> 9 parts)"}
