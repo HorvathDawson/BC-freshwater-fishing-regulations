@@ -60,6 +60,7 @@ from pathlib import Path
 
 from pipeline.atlas.graph.windows import polygon_window
 from pipeline.common.models.registry import bare_split_id
+from pipeline.common.names import key as name_key
 from pipeline.common.tolerances import AT_CUT_M, at_cut
 from pipeline.deliver.bundle.lines import main_line_of
 from pipeline.deliver.bundle.place_names import area_boundary_name, cut_name, display_case
@@ -325,14 +326,14 @@ class NameFacts:
         key = (str(blk), frozenset(own))
         if key in self._marks:
             return self._marks[key]
-        own_names = {self.item_name.get(i, "").lower() for i in own}
+        own_names = {name_key(self.item_name.get(i, "")) for i in own}
         out = set()
         for at, fn, fb, dn in self.joins.get(str(blk), ()):
             if fb is None:
                 continue                                  # a lake is no landmark here
             names = {self.item_name[i] for i in self.node_items.get(fn, set()) - own
                      if self.item_name.get(i)}
-            if not names and dn and dn.lower() not in own_names:
+            if not names and dn and name_key(dn) not in own_names:
                 names = {dn}
             out |= {(round(at, 2), display_case(n)) for n in names}
         self._marks[key] = sorted(out)
@@ -401,8 +402,8 @@ def _confluence_name(label: str, own_names: set[str], offset: tuple[float, str] 
         return label
     a, b = (x.strip() for x in label.split("→", 1))
     b = _OFFSET_TAIL.sub("", b).strip()
-    own = {n.lower() for n in own_names}
-    other = b if a.lower() in own and b.lower() not in own else a
+    own = {name_key(n) for n in own_names}
+    other = b if name_key(a) in own and name_key(b) not in own else a
     name = f"{other} confluence"
     if offset:
         name = f"{distance_words(offset[0])} {offset[1]} of the {name}"
@@ -416,15 +417,15 @@ def _length_name(f: NameFacts, blk: str, m: float, own: set[str]) -> tuple[str, 
     joiners = f.joining(blk, m)
     others: set[str] = set()
     braid = False
-    own_names = {f.item_name.get(i, "").lower() for i in own}
+    own_names = {name_key(f.item_name.get(i, "")) for i in own}
     for fn, fb, dn in joiners:
         items = f.node_items.get(fn, set())
         if items & own:
             braid = True
         names = {f.item_name[i] for i in items - own if f.item_name.get(i)}
-        if not items and dn and dn.lower() not in own_names:
+        if not items and dn and name_key(dn) not in own_names:
             names = {dn}
-        if not items and dn and dn.lower() in own_names:
+        if not items and dn and name_key(dn) in own_names:
             braid = True
         what = "outlet" if fb is None else "confluence"
         others |= {f"{display_case(n)} {what}" for n in names}
@@ -438,7 +439,7 @@ def _placed(base: str, f: NameFacts, blk: str, m: float, own: set[str], *,
     """`base` placed by the nearest named water joining the same blue line: "side channel below
     Ucona River" (below = downstream of its mouth). `distance` adds how far."""
     marks = [(abs(at - m), at, nm) for at, nm in f.landmarks(blk, own)
-             if not at_cut(at, m) and nm.lower() not in base.lower()]
+             if not at_cut(at, m) and name_key(nm) not in name_key(base)]
     if not marks:
         return base
     d, at, nm = min(marks)
