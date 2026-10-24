@@ -751,7 +751,8 @@ def main() -> None:
         area_specs = [(s.anchor.area_layer, s.anchor.area_name_field, s.anchor.area_name)
                       for s in splits if s.anchor.type == AnchorType.area_boundary]
         area_polys = get_area_polys(fwa, area_specs, bbox=bbox) if area_specs else None
-        pts = resolve_split_defs(splits, chains, mu_polys=mu_polys, area_polys=area_polys)
+        pts = resolve_split_defs(splits, chains, mu_polys=mu_polys, area_polys=area_polys,
+                                 live_blks={n.blk for n in graph.nodes.values() if n.blk})
         # THE BRAID SWEEP (T67): which side channels each cut must also cut — only a network that
         # attaches to the host on BOTH sides of the cut, only the host's own water — judged on the graph
         # BEFORE these cuts are made. Applied after them, below.

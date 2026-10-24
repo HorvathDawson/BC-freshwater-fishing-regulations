@@ -165,9 +165,17 @@ def _tributary_chain(anchor, by_blk, by_wsc) -> Optional[BlkChain]:
     return None
 
 
+#: POLICY (T67, owner 2026-10-24 — a gauge still cuts its river): a point or gauge anchor is projected onto
+#: the nearest target channel THE GRAPH STILL HOLDS (`live_blks`). The braid prune deletes pure braid loops,
+#: and a gauge whose coordinate fell on a pruned loop (Fraser 08MH032) was cut on nothing — only the old
+#: perpendicular sweep had cut the river beside it. False is the mutation pin.
+POINTS_LAND_ON_LIVE_CHANNELS = True
+
+
 def resolve_split_defs(split_defs: list[SplitDef], chains: list[BlkChain],
                        mu_polys: Optional[dict] = None,
-                       area_polys: Optional[dict] = None) -> list[SplitPoint]:
+                       area_polys: Optional[dict] = None,
+                       live_blks: Optional[set] = None) -> list[SplitPoint]:
     by_blk = {c.blk: c for c in chains}
     by_wsc: dict[str, list[BlkChain]] = defaultdict(list)   # keyed by TRIMMED wsc (authored form)
     for c in chains:
@@ -205,6 +213,8 @@ def resolve_split_defs(split_defs: list[SplitDef], chains: list[BlkChain],
                 g = c.geometry
                 if g is None or g.is_empty:
                     continue
+                if POINTS_LAND_ON_LIVE_CHANNELS and live_blks is not None and blk not in live_blks:
+                    continue                   # pruned from the graph: nothing to cut there
                 d = g.project(p)
                 dist = g.interpolate(d).distance(p)
                 if dist <= sd.proximity_m and (host is None or dist < host[2]):

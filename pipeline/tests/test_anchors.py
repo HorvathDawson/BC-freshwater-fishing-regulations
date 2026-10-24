@@ -304,3 +304,26 @@ def test_area_boundary_cut_that_would_leave_a_sliver_is_not_made():
                   anchor=SplitAnchor(type=AnchorType.area_boundary, area_layer="parks_bc", area_name="PARK"))
     pts = resolve_split_defs([sd], chains, area_polys={"PARK": park})
     assert sorted(round(p.route_measure) for p in pts) == [100], "enter only; no cut 0.2 m from the end"
+
+
+
+def _two_channels():
+    """A gauge coordinate 5 m from a channel the braid prune removed (P) and 40 m from the river (X)."""
+    fids = [_fid("X1", "X", "100", [(0, 0), (1000, 0)], 0, 1000, gnis_name="X River"),
+            _fid("P1", "P", "100", [(0, 45), (1000, 45)], 0, 1000)]
+    chains = build_blk_chains(fids, {})
+    sd = SplitDef(id="gauge__1", wsc="100",
+                  anchor=SplitAnchor(type=AnchorType.gauge, coord=(500.0, 40.0), is_lonlat=False))
+    return chains, sd
+
+
+def test_a_gauge_lands_on_the_nearest_channel_the_graph_still_holds():
+    chains, sd = _two_channels()
+    assert [p.blk for p in resolve_split_defs([sd], chains, live_blks={"X"})] == ["X"]
+
+
+def test_mutation_without_the_live_set_the_gauge_lands_on_the_pruned_loop(monkeypatch):
+    from pipeline.atlas.splits import anchors as A
+    monkeypatch.setattr(A, "POINTS_LAND_ON_LIVE_CHANNELS", False)
+    chains, sd = _two_channels()
+    assert [p.blk for p in A.resolve_split_defs([sd], chains, live_blks={"X"})] == ["P"]
