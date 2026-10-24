@@ -213,7 +213,7 @@ use that as the sole source of future work."
 | T166 | tidal areas cut: DFO tidal polygon → one clean cut across each stream (fix partial-channel blobs) | OPEN | — | after cleanup; atlas rebuild; ★ confirm cuts |
 | T167 | More tab: simpler details, references on their own page, data freshness compact on the main tab, a real desktop layout | DONE | 3af0dbaa, de06c3ae | app; tiles date needs a manifest stamp (follow-up) |
 | T168 | "N gauges in view": split gauges on this water from donor gauges; not-reporting gauges under a closed drop-down (owner 2026-10-24) | DONE | bfee90d9, fcddee67 | app |
-| T169 | one gauge panel for one side-channel water (Nicomen grey middle: connector vs adopted lines) | DONE | 89b8e1a1, d42f0741 | deliver: 24 sections change, all side-channel; Nicomen one panel |
+| T169 | one gauge panel for one side-channel water (Nicomen grey middle: connector vs adopted lines) | DONE | 89b8e1a1, d42f0741 | delivered r-46595c88e76e: Nicomen all 9 sections one panel (4740) |
 | T170 | a spot gets the flow of its own day (historical) on refresh or on request | DONE | ef762537, 298cee48, a09374b0 | app; GeoMet direct from the browser (no proxy) |
 | T171 | "Like your visit?": every forecast day uses the flow forecast (no weather-only gaps) | DONE | 3f43c1dd, ef762537, a09374b0 | feed republish (local; R2 owner) + app |
 | T172 | Android smoke on the emulator (builds, installs, opens, main screens) — before cleanup; full parity stays T50 | OPEN | — | heavy, alone |
