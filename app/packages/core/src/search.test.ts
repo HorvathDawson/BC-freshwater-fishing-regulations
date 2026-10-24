@@ -117,7 +117,8 @@ describe("the search map's words", () => {
 
 describe("(T48) the top bar's search field and its results sheet", () => {
   it("the words, whole: what the field is called aloud, its close, its clear, a row's open action, the sheet's lines", () => {
-    expect({ ...SEARCH_BAR, open: SEARCH_BAR.open("Chilliwack River"), placeholders: SEARCH_BAR.placeholders.length })
+    expect({ ...SEARCH_BAR, open: SEARCH_BAR.open("Chilliwack River"), placeholders: SEARCH_BAR.placeholders.length,
+             near: SEARCH_BAR.near("Hope"), placeSub: SEARCH_BAR.placeSub("Town"), show: SEARCH_BAR.show("Hope") })
       .toEqual({
         label: "Search waters and towns",
         close: "Close search",
@@ -127,6 +128,15 @@ describe("(T48) the top bar's search field and its results sheet", () => {
         start: "Type two letters — a river, a lake or a town. Aliases count: “Vedder” finds the Chilliwack.",
         none: "Nothing by that name in this bundle.",
         failed: "Search could not read the bundle.",
+        // (T180) moved from the sheet's components, unchanged
+        namedWaters: "named waters",
+        searching: "Searching",
+        allResults: "All results",
+        backToAll: "Back to all results",
+        near: "Water near Hope",
+        nearFailed: "Could not read what is near this town.",
+        placeSub: "Town · every named water around it",
+        show: "Show Hope on the map",
         placeholders: 9,
       });
   });

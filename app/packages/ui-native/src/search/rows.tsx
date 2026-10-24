@@ -21,11 +21,11 @@ export function sheetRows(pick: SearchPick, s: SearchSession): Row[] {
   const place = pick.town;
   if (place) {
     const near = s.town.state === "ready" && s.town.value ? s.town.value.near : [];
-    rows.push({ t: "head", key: "back", label: "All results", back: true,
+    rows.push({ t: "head", key: "back", label: SEARCH_BAR.allResults, back: true,
                 right: s.town.state === "ready" ? nearCount(near.length) : "" });
-    rows.push({ t: "head", key: "near-h", label: `Water near ${place.name}`, place: true });
+    rows.push({ t: "head", key: "near-h", label: SEARCH_BAR.near(place.name), place: true });
     if (s.town.state === "failed")
-      rows.push({ t: "note", key: "fail", text: "Could not read what is near this town." });
+      rows.push({ t: "note", key: "fail", text: SEARCH_BAR.nearFailed });
     else if (s.town.state === "ready" && !near.length)
       rows.push({ t: "note", key: "none", text: watersNear(0, place.name) });
     for (const n of near) rows.push({ t: "near", key: `n:${n.item}`, near: n });

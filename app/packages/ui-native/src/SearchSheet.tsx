@@ -141,7 +141,7 @@ export function SearchSheet({ open, top, palette, session, pick, onAct, onOpenWa
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 6,
                          paddingLeft: 18, paddingRight: 6 }}>
             {!pick.town && total !== undefined && (
-              <Text style={{ ...TYPE.section, color: palette.faint }}>{count(total, "named waters")}</Text>
+              <Text style={{ ...TYPE.section, color: palette.faint }}>{count(total, SEARCH_BAR.namedWaters)}</Text>
             )}
             <Pressable testID="search-panel-close" onPress={onClose} accessibilityRole="button"
                        accessibilityLabel={SEARCH_BAR.close} hitSlop={4}
@@ -153,12 +153,12 @@ export function SearchSheet({ open, top, palette, session, pick, onAct, onOpenWa
           </View>
         ) : !pick.town && total !== undefined && (
           <View style={{ flexDirection: "row", justifyContent: "flex-end", paddingHorizontal: 18, paddingBottom: 2 }}>
-            <Text style={{ ...TYPE.section, color: palette.faint }}>{count(total, "named waters")}</Text>
+            <Text style={{ ...TYPE.section, color: palette.faint }}>{count(total, SEARCH_BAR.namedWaters)}</Text>
           </View>
         )}
         {session.busy ? (
           <View style={{ alignItems: "center", paddingVertical: 28 }}>
-            <FishSpinner palette={palette} size={86} label="Searching" />
+            <FishSpinner palette={palette} size={86} label={SEARCH_BAR.searching} />
           </View>
         ) : (
           <FlatList

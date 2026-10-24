@@ -253,6 +253,17 @@ export const SEARCH_BAR = {
   start: "Type two letters — a river, a lake or a town. Aliases count: “Vedder” finds the Chilliwack.",
   none: "Nothing by that name in this bundle.",
   failed: "Search could not read the bundle.",
+  /** (T180) The sheet's head: what the count counts, and the spinner's name aloud while search reads. */
+  namedWaters: "named waters",
+  searching: "Searching",
+  /** (T180) A town picked: the way back to every result, its heading, and a town it could not read. */
+  allResults: "All results",
+  backToAll: "Back to all results",
+  near: (town: string) => `Water near ${town}`,
+  nearFailed: "Could not read what is near this town.",
+  /** (T180) A place row's line under its name (`kind`: the place's kind, capitalised), and any row's action aloud. */
+  placeSub: (kind: string) => `${kind} · every named water around it`,
+  show: (name: string) => `Show ${name} on the map`,
   placeholders: [
     "Cast your search — any lake or river",
     "Drop a line: river, lake or creek…",

@@ -111,15 +111,6 @@ const KNOWN_COPY: Record<string, readonly string[]> = {
     "River flow against its normal range", "Shaded is the middle half of everything this station has recorded for these", "Values in 〈〉.",
     "days; the dashed line is the median.",
   ],
-  "packages/ui-native/src/SearchSheet.tsx": [
-    "Searching", "named waters",
-  ],
-  "packages/ui-native/src/search/SheetRow.tsx": [
-    "Back to all results", "Show 〈〉 on the map", "〈〉 · every named water around it",
-  ],
-  "packages/ui-native/src/search/rows.tsx": [
-    "All results", "Could not read what is near this town.", "Water near 〈〉",
-  ],
   "packages/ui-native/src/SpotCapture.tsx": [
     "Back", "Cancel", "Earlier day", "Earlier hour", "Later day", "Later hour", "Next", "Now the exact spot", "Pick the water",
     "Reading the water", "Tap the point on 〈〉.", "Tap the stream or lake your spot is on.", "When were you there?",

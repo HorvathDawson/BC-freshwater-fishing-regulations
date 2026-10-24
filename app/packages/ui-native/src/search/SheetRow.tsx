@@ -22,7 +22,7 @@ export function SheetRow({ r, palette, pick, act, onOpenWater, statusIndex, toda
                      backgroundColor: r.band ? palette.placeBand : undefined }}>
         {r.back ? (
           <Pressable onPress={() => act({ t: "back" })} accessibilityRole="button"
-                     accessibilityLabel="Back to all results">
+                     accessibilityLabel={SEARCH_BAR.backToAll}>
             <IconText name="back" text={r.label} size={14} gap={2}
                       style={{ ...TYPE.section, color: palette.accent }} />
           </Pressable>
@@ -78,8 +78,8 @@ export function SheetRow({ r, palette, pick, act, onOpenWater, statusIndex, toda
     const t: SearchTarget = { kind: "place", place: r.place };
     return (
       <Hit palette={palette} tone={palette.place} bar band name={r.place.name}
-           sub={`${cap(r.place.kind)} · every named water around it`}
-           label={`Show ${r.place.name} on the map`}
+           sub={SEARCH_BAR.placeSub(cap(r.place.kind))}
+           label={SEARCH_BAR.show(r.place.name)}
            onPress={() => act({ t: "select", target: t })} />
     );
   }
@@ -90,7 +90,7 @@ export function SheetRow({ r, palette, pick, act, onOpenWater, statusIndex, toda
            status={rowStatus(r.near.item, statusIndex, today)}
            sub={nearRowSub(r.near.kind, r.near.km)}
            selected={isSelected(pick, t)}
-           label={`Show ${r.near.name} on the map`}
+           label={SEARCH_BAR.show(r.near.name)}
            goLabel={SEARCH_BAR.open(r.near.name)}
            onPress={() => act({ t: "select", target: t })}
            onGo={() => onOpenWater(r.near.item)} />
@@ -106,7 +106,7 @@ export function SheetRow({ r, palette, pick, act, onOpenWater, statusIndex, toda
          sub={waterRowSub(h.kind, h.near, r.dup)}
          strongSub={r.dup}
          selected={isSelected(pick, t)}
-         label={`Show ${named} on the map`}
+         label={SEARCH_BAR.show(named)}
          goLabel={SEARCH_BAR.open(named)}
          onPress={() => act({ t: "select", target: t })}
          onGo={() => onOpenWater(h.item)} />
