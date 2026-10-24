@@ -28,11 +28,12 @@ dropping ones only regulated by admin area regs like liard) this might reduce si
 Scale: the FWA wetlands layer has **375,178 polygons, 77 named** (gpkg `wetlands`) — most of them carry no rule of their
 own, only zone rules or an area entry (e.g. "Liard River watershed").
 - KEEP (never drop): named wetlands; any wetland that is part of a stream item (sloughs/side channels folded by
-  flowing.py, T55/T149 folds); one a water's own row or an extent binds; one with a gauge (lake_gauge); no-access ones
-  the T54/T165 colour draws; wetlands a stream line runs through that the walk/panels need as a node (keep the GRAPH,
+  flowing.py, T55/T149 folds); one a water's own row or an extent binds; one with a gauge (lake_gauge); wetlands a stream line runs through that the walk/panels need as a node (keep the GRAPH,
   drop only the DRAWN polygon — the atlas and reach are unchanged; this is a tiles-only cut).
 - DROP from the tiles: every other wetland polygon — unnamed, and bound only by zone rules or area-only entries
-  (watershed / admin-area rules like the Liard). They are still covered by those rules; the app answers a tap there
+  (watershed / admin-area rules like the Liard). That includes unnamed wetlands inside no-access land (owner
+  2026-10-23: "this could get dropped if it has no regs") — the no-access LAND fill (`noaccess.fill`) still shows the
+  area, so the wetland adds nothing. They are still covered by those rules; the app answers a tap there
   from the land/area, not a wetland feature.
 - Measure first: wetland layer bytes in atlas.pmtiles by zoom, how many polygons each KEEP class retains, and the size
   win; a before/after shot of a wetland-heavy area (Fort Nelson, the Chilcotin) so the map still reads (a muted wetland
