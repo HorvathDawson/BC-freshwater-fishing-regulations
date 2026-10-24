@@ -366,7 +366,7 @@ above), 12 ditch, 44 by one moved length cut (the 1,021 m Fraser piece), 0 unexp
 
 - **Creeks on a braid** (Chowade, 08KH006, 08LF023): a nameless or own-water creek hanging off a cut braid
   whose own course crosses the cut line is now cut at its crossing (`TRIBUTARIES_CROSSING_THE_CUT_ARE_CUT`;
-  22 creek cuts on 12 cuts). The review data sides every piece by topology: a host piece by the cut, a piece
+  22 creek cuts on 14 cuts). The review data sides every piece by topology: a host piece by the cut, a piece
   of a cut line by its side of the crossing, and every other creek by the side where it JOINS the braid —
   never by network membership (the page's old "5 above / 1 below" was a midpoint-geometry reading). Limit:
   the reach's tributary walk still takes a nameless creek whole with the braid half it joins. The cut only
