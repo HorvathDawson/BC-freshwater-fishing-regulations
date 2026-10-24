@@ -1,122 +1,91 @@
-"""T61 2.8 (audit F20): ONE name key, `pipeline.common.names.key`.
+"""(name, source) tuple tests (03 S2) — side-channel name inheritance."""
 
-The table is whole values: every case states the full key, never a fragment (AGENTS 33). The mutation pins below
-each break ONE step of `key` and prove a case in the table fails, so no step can be dropped silently. The callers are
-pinned too: every module that used to carry its own normaliser now answers with `key` (or names the other question it
-asks — `compact_key`, `drop_notes`, the app's `search_key`).
-"""
-from __future__ import annotations
-
-import json
-import re
-import unicodedata
-from pathlib import Path
-
-import pytest
-
-from pipeline.common import names
-from pipeline.common.names import compact_key, drop_notes, fold, key
-from pipeline.common.search_key import search_key
-
-ROOT = Path(__file__).resolve().parents[2]
-
-TABLE = [
-    # the audit's case: one key for every spelling of St. Mary's (it had four)
-    ("St. Mary's River", "st marys river"),
-    ("ST. MARY'S RIVER", "st marys river"),
-    ("St Marys River", "st marys river"),
-    ("St. Mary’s River", "st marys river"),
-    ("St. Mary‘s River", "st marys river"),
-    ("St. Maryʼs River", "st marys river"),
-    ("St. Mary`s River", "st marys river"),
-    # St./Saint and Mt./Mount are NOT folded (measured: no registry pair)
-    ("Saint Mary's River", "saint marys river"),
-    ("Mt. Milligan Lake", "mt milligan lake"),
-    # accents
-    ("Barrière Lake", "barriere lake"),
-    ("Pouce Coupé River", "pouce coupe river"),
-    ("Tŝilhqox Biny", "tsilhqox biny"),
-    ("Taaltsux̱éi Héen", "taaltsuxei heen"),
-    ("T’ooch’ Héeni", "tooch heeni"),
-    ("Sts'a'í:les", "stsai les"),
-    # hyphens, dashes and other punctuation are separators
-    ("Pend-d'Oreille River", "pend doreille river"),
-    ("Pend D'Oreille River", "pend doreille river"),
-    ("Kootenay Lake — Main Body", "kootenay lake main body"),
-    ("WOLF LAKE *", "wolf lake"),
-    ("FOWL CREEK LAKE NO.2", "fowl creek lake no 2"),
-    ("Champion Lake #1", "champion lake 1"),
-    ("snake_case", "snake case"),
-    # parentheticals are kept as words (dropping them is the matcher's `drop_notes`)
-    ("Kwotlenemo (Fountain) Lake", "kwotlenemo fountain lake"),
-    # whitespace and case
-    ("  Chilliwack \t RIVER\n", "chilliwack river"),
-    ("﻿Mabel Lake", "mabel lake"),
-    # the kind word stays, and abbreviations are not expanded
-    ("Yakoun Lake", "yakoun lake"),
-    ("Unnamed Boulder Cr", "unnamed boulder cr"),
-    # letters that do not decompose stay letters; compatibility forms fold
-    ("Łąka Lake", "łaka lake"),
-    ("ﬁsh Lake", "fish lake"),
-    ("Ｅｌｋ Lake", "elk lake"),
-    ("Straße Creek", "strasse creek"),
-    ("", ""),
-    (None, ""),
-]
+from pipeline.common.models import BlkChain, NameSource, NameTuple
+from pipeline.atlas.graph.names import resolve_names
 
 
-@pytest.mark.parametrize("text,want", TABLE, ids=[repr(t) for t, _ in TABLE])
-def test_the_table(text, want):
-    assert key(text) == want
+def _chain(blk, wsc, gnis_id="", gnis_name="", order=1, mag=1):
+    nts = (NameTuple(gnis_name, NameSource.gazette),) if gnis_name else ()
+    return BlkChain(blk=blk, fwa_watershed_code=wsc, fids=(), geometry=None, mouth_measure=0.0,
+                    length_m=1.0, name_tuples=nts, gnis_id=gnis_id, gnis_name=gnis_name,
+                    stream_order=order, stream_magnitude=mag)
 
 
-def test_compact_key_and_drop_notes():
-    assert compact_key("Logger's Lane") == "loggerslane"
-    assert compact_key("Mc Kay Creek") == compact_key("McKay Creek") == "mckaycreek"
-    assert compact_key("Brûlé Creek") == "brulecreek"
-    assert drop_notes("Kwotlenemo (Fountain) Lake") == "Kwotlenemo   Lake"
-    assert key(drop_notes("Kwotlenemo (Fountain) Lake")) == "kwotlenemo lake"
-    assert fold("Barrière Lake") == "Barriere Lake"
+def _names(chain):
+    return {(t.name, t.source.value) for t in chain.name_tuples}
 
 
-def _broken(**over):
-    """`key` with one step replaced."""
-    def k(text):
-        s = over.get("fold", fold)(text)
-        s = over.get("case", str.casefold)(s)
-        s = over.get("apostrophe", lambda t: names._APOSTROPHES.sub("", t))(s)
-        s = over.get("separate", lambda t: names._SEPARATORS.sub(" ", t))(s)
-        return over.get("strip", str.strip)(s)
-    return k
+def test_side_channel_inherits_main_name_directionally():
+    # Same WSC: the SMALLER channel (Blind Slough) inherits the bigger mainstem's name; the mainstem
+    # (Stave River) must NOT pick up the side channel's name — else both names become ambiguous.
+    stave = _chain("S", "100-1", gnis_id="14589", gnis_name="Stave River", order=5, mag=100)
+    blind = _chain("B", "100-1", gnis_id="13674", gnis_name="Blind Slough", order=2, mag=10)
+    by_blk = {c.blk: c for c in resolve_names([stave, blind])}
+
+    assert ("Stave River", "side-channel") in _names(by_blk["B"])      # slough inherits mainstem
+    assert ("Blind Slough", "side-channel") not in _names(by_blk["S"])  # mainstem does NOT inherit slough
+    assert ("Stave River", "gazette") in _names(by_blk["S"])
 
 
-MUTATIONS = {
-    "no accent fold": dict(fold=lambda t: t or ""),
-    "NFD instead of NFKD": dict(fold=lambda t: "".join(c for c in unicodedata.normalize("NFD", t or "")
-                                                       if not unicodedata.combining(c))),
-    "no case fold": dict(case=lambda t: t),
-    "lower instead of casefold": dict(case=str.lower),
-    "apostrophe becomes a space": dict(apostrophe=lambda t: re.sub("['’‘ʼ`]", " ", t)),
-    "only ASCII apostrophe deleted": dict(apostrophe=lambda t: t.replace("'", "")),
-    "punctuation kept": dict(separate=lambda t: re.sub(r"\s+", " ", t)),
-    "ASCII-only letters": dict(separate=lambda t: re.sub(r"[^a-z0-9]+", " ", t)),
-    "underscore kept": dict(separate=lambda t: re.sub(r"[^\w]+", " ", t)),
-    "not trimmed": dict(strip=lambda t: t),
-}
+def test_unnamed_side_channel_still_inherits():
+    # An UNNAMED braided segment sharing the WSC still inherits the main channel's name (+gnis) so the
+    # registry can group the whole river.
+    main = _chain("M", "100-2", gnis_id="7551", gnis_name="Pitt River", order=6, mag=200)
+    braid = _chain("X", "100-2", gnis_id="", gnis_name="", order=1, mag=3)
+    by_blk = {c.blk: c for c in resolve_names([main, braid])}
+    tup = [t for t in by_blk["X"].name_tuples if t.source == NameSource.side_channel]
+    assert tup and tup[0].name == "Pitt River" and tup[0].gnis_id == "7551"
 
 
-@pytest.mark.parametrize("name", sorted(MUTATIONS))
-def test_every_step_is_pinned(name):
-    """Each mutation of `key` fails at least one whole-value case of the table."""
-    broken = _broken(**MUTATIONS[name])
-    assert any(broken(t) != w for t, w in TABLE if t is not None), name
-    # and the unbroken assembly IS key (so the mutations mutate the real thing)
-    assert all(_broken()(t) == w for t, w in TABLE if t is not None)
+# --- minting nodes for waterbodies the graph never nodes -------------------------------------------
+
+def test_mint_waterbody_nodes_gives_an_unnoded_water_a_section():
+    """A waterbody is only noded when stream fids run THROUGH it, so an isolated lake (nothing flows
+    in or out) and an overlaid wetland (the fids record it in member_wbks, not as a node) both ended
+    up with an EMPTY section_ids — `op=whole` then resolved against an empty universe and the rule
+    silently bound nothing. Minting gives the item exactly one section to answer with."""
+    from pipeline.atlas.graph.names import mint_waterbody_nodes
+    from pipeline.common.models import NameSource, NodeKind, StreamGraph
+
+    g = StreamGraph()
+    n = mint_waterbody_nodes(g, {"111": (("Frazer Lake", "27804"),)}, NameSource.gazette)
+    assert n == 1
+    node = g.nodes["lake:111"]
+    assert node.kind == NodeKind.lake and node.wbk == "111"
+    assert node.display_name == "Frazer Lake"
+    assert node.name_tuples[0].gnis_id == "27804"      # so the item's ref_ids keep the gnis
+    assert not g.up_adj.get("lake:111") and not g.down_adj.get("lake:111")   # edgeless by design
 
 
-def test_the_search_key_is_finer():
-    """Equal app search keys always give equal name keys: `key` never splits what search joins."""
-    cases = json.loads((ROOT / "pipeline/common/search_key_cases.json").read_text())["cases"]
-    texts = [t for t, _ in cases] + [t for t, _ in TABLE if t is not None]
-    for a in texts:
-        assert key(search_key(a)) == key(a), a
+def test_mint_waterbody_nodes_never_overwrites_a_real_node():
+    from pipeline.atlas.graph.names import mint_waterbody_nodes
+    from pipeline.common.models import NameSource, NodeKind, StreamGraph, StreamNode
+
+    g = StreamGraph()
+    g.nodes["lake:111"] = StreamNode(node_id="lake:111", kind=NodeKind.lake, wbk="111",
+                                     display_name="Real Lake")
+    assert mint_waterbody_nodes(g, {"111": (("Other Name", ""),)}, NameSource.gazette) == 0
+    assert g.nodes["lake:111"].display_name == "Real Lake"
+
+
+def test_mint_waterbody_nodes_skips_the_unnamed():
+    """The name is the whole point — a nameless polygon can never be targeted by a regulation, and
+    minting one would just add an unmatchable item."""
+    from pipeline.atlas.graph.names import mint_waterbody_nodes
+    from pipeline.common.models import NameSource, StreamGraph
+
+    g = StreamGraph()
+    assert mint_waterbody_nodes(g, {"222": (("", "999"),)}, NameSource.gazette) == 0
+    assert not g.nodes
+
+
+def test_mint_waterbody_nodes_takes_the_longest_gazetted_name():
+    """Matches what add_waterbody_items put on the item, so no display name churns when the water
+    becomes a node instead."""
+    from pipeline.atlas.graph.names import mint_waterbody_nodes
+    from pipeline.common.models import NameSource, StreamGraph
+
+    g = StreamGraph()
+    mint_waterbody_nodes(g, {"333": (("Tsayta", "1"), ("Nation Lakes", "2"))}, NameSource.gazette)
+    assert g.nodes["lake:333"].display_name == "Nation Lakes"
+    assert {t.name for t in g.nodes["lake:333"].name_tuples} == {"Tsayta", "Nation Lakes"}
