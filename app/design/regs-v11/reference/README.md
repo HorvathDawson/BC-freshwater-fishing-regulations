@@ -9,4 +9,4 @@ regs screens were ported from, so it lives here beside the port tooling (`../por
 |---|---|---|
 | `page_v36.html` | the page with its `#data` / `#answers` / `#cases` blocks inlined | `app/conformance/src/regs/{ruleSources,oracles}.ts` (the T06/T07 parity tests), `../port/{hydrate,taps}`, `../tools/{check,snap}.mjs`, `app/tools/regs-fixtures.test.ts` |
 | `page_v36.js` | the page's script | the same, plus `../port/{stage,inventory}.mjs`, `app/tools/emit-fish.mjs` (the FISHART tips) |
-| `calendar.generated.js` | the calendar tables, generated (`python -m pipeline.tools.emit_calendar`; `--check` in CI) | `ruleSources.ts` `pageDecode`, `../port/hydrate.mjs` |
+| `calendar.generated.js` | the calendar tables, generated (`python -m pipeline.tools.emit.calendar`; `--check` in CI) | `ruleSources.ts` `pageDecode`, `../port/hydrate.mjs` |
