@@ -217,6 +217,7 @@ use that as the sole source of future work."
 | T170 | a spot gets the flow of its own day (historical) on refresh or on request | OPEN | — | app (+ feed/release history) |
 | T171 | "Like your visit?": every forecast day uses the flow forecast (no weather-only gaps) | OPEN | — | feed + app |
 | T172 | Android smoke on the emulator (builds, installs, opens, main screens) — before cleanup; full parity stays T50 | OPEN | — | heavy, alone |
+| T173 | fish obstacles layer (falls, dams, culverts) from the BC Data Catalogue | OPEN | — | future |
 
 ## Order for open tickets
 
