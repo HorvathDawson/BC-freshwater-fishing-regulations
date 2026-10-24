@@ -72,6 +72,9 @@ _SELF_M = 5.0
 GATE_REFUSES_ONE_SIDE = True
 #: POLICY: only the host's own water is cut (rule 3). False is the mutation pin (another water's network).
 ONLY_THE_HOSTS_OWN_WATER = True
+#: POLICY (owner 2026-10-24): a GAUGE's cut takes the whole river it measures — a gauge on a NAMED side
+#: channel still cuts the mainstem (`_same_water(loose=True)`). False is the mutation pin.
+GAUGES_CUT_THEIR_RIVER = True
 #: POLICY: the edge-consistency pass (rule 6). False is the mutation pin (a braid's edge leaks across).
 EDGES_REHOMED_BY_GEOMETRY = True
 
@@ -207,9 +210,15 @@ def water_key(view: View, nid: str) -> str:
     return k
 
 
-def _same_water(view: View, a: str, b: str) -> bool:
+def _same_water(view: View, a: str, b: str, loose: bool = False) -> bool:
+    """Is `b` the same water as `a`? `loose` (a gauge's cut, `GAUGES_CUT_THEIR_RIVER`): a channel's own name
+    does not make it another water — a gauge on a named side channel measures the river, and its cut
+    crosses the mainstem too (owner 2026-10-24: Fraser 08MH028/08MH032, Pemberton 08MG025)."""
     ka, kb = water_key(view, a), water_key(view, b)
     if ka == kb:
+        return True
+    if loose and GAUGES_CUT_THEIR_RIVER and not (ka.startswith("ditch:") or kb.startswith("ditch:")) \
+            and ka.partition("|")[0] == kb.partition("|")[0]:
         return True
     # a gazetted piece of the river and its unnamed braid: the braid's key carries the inherited name
     base_a, _, name_a = ka.partition("|")
@@ -380,8 +389,9 @@ def networks(view: View, blk: str, M: float, host: set[str], *, centre: Point) -
     return out
 
 
-def judge(view: View, net: Network, host_piece: str) -> Network:
-    """The gate: does `net` straddle, and which of its pieces are THROUGH (host water / other)."""
+def judge(view: View, net: Network, host_piece: str, loose: bool = False) -> Network:
+    """The gate: does `net` straddle, and which of its pieces are THROUGH (host water / other). `loose`: a
+    gauge's cut (`GAUGES_CUT_THEIR_RIVER`)."""
     import networkx as nx
     # A touch within END_M of the cut is a junction AT the cut, not a side: it is re-homed to the side the
     # rest of the channel meets the host on (rule 5). Straddling is decided by the touches farther away.
@@ -389,7 +399,7 @@ def judge(view: View, net: Network, host_piece: str) -> Network:
     sides = {t["side"] for t in far}
     net.straddles = sides == {"lo", "hi"}
     net.side_channels = [x for x in net.members
-                         if view.g.nodes[x].kind == NodeKind.stream and _same_water(view, host_piece, x)]
+                         if view.g.nodes[x].kind == NodeKind.stream and _same_water(view, host_piece, x, loose)]
     if not net.straddles:
         return net
     G = nx.Graph()
@@ -421,7 +431,7 @@ def judge(view: View, net: Network, host_piece: str) -> Network:
         # creek of another name below it) is that water's straddle, not the host's braid — and the reach,
         # which sees the host's water alone, places the own piece on its one side.
         mine = {x for x in net.members
-                if view.g.nodes[x].kind != NodeKind.stream or _same_water(view, host_piece, x)}
+                if view.g.nodes[x].kind != NodeKind.stream or _same_water(view, host_piece, x, loose)}
         own_block = _block(G.subgraph(mine | {"\x00LO", "\x00HI"}))
         own = [x for x in streams if x in own_block]
     net.through_own = own
@@ -573,7 +583,7 @@ def sweep(graph: StreamGraph, geoms: dict, points: list[SplitPoint],
                 continue
             for net in networks(view, blk, M, host_all, centre=fr.c):
                 _side_by_own_cut(g, net, sps, blk)
-                judge(view, net, hp)
+                judge(view, net, hp, loose=(sp.source == "gauge"))
                 cands = net.through_own if net.straddles else (
                     [] if GATE_REFUSES_ONE_SIDE else net.side_channels)
                 shown = net.through_own if net.straddles else net.side_channels
@@ -591,7 +601,7 @@ def sweep(graph: StreamGraph, geoms: dict, points: list[SplitPoint],
                 real = [k for k in crossings if k["to_end"] >= END_M and k["node"] in set(cands)]
                 near = [t for t in net.touches if abs(t["m"] - t["M"]) < END_M]
                 far_sides = {t["side"] for t in net.touches if abs(t["m"] - t["M"]) >= END_M}
-                own_near = [t for t in near if _same_water(view, hp, t["node"])]
+                own_near = [t for t in near if _same_water(view, hp, t["node"], sp.source == "gauge")]
                 one_side_crossed = GATE_REFUSES_ONE_SIDE and any(k["to_end"] >= END_M for k in crossings)
                 if not net.straddles and not real and not one_side_crossed and not own_near:
                     continue                           # a tributary the line never meets: not a case
@@ -846,7 +856,7 @@ def residual_straddles(graph: StreamGraph, geoms: dict, points: list[SplitPoint]
             try:
                 for net in networks(view, sp.blk, sp.route_measure, host_all, centre=c):
                     _side_by_own_cut(g, net, sps, sp.blk)
-                    if judge(view, net, hp).straddles and net.through_own:
+                    if judge(view, net, hp, loose=(sp.source == "gauge")).straddles and net.through_own:
                         out.append({"split_id": sid, "blk": sp.blk, "M": sp.route_measure,
                                     "pieces": net.through_own})
             finally:

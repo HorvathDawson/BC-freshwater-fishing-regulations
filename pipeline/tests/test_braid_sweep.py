@@ -404,6 +404,31 @@ def test_mutation_sided_across_lines_a_polygon_edge_makes_a_false_straddle(monke
     assert res.points or resid or any(c.gate != "refused: one side" for c in res.cases)
 
 
+def _gauge_on_a_named_side_channel():
+    """A gauge whose coordinate sits on a NAMED side channel S of the river (Fraser 08MH028's shape)."""
+    G = _G()
+    G.braid("S", BRAID, 800, 1200, name="Seabird Channel")
+    g, geoms = G.done()
+    return g, geoms, G.g.nodes["S:0"].up_m / 2
+
+
+def test_r3_a_gauge_on_a_named_side_channel_still_cuts_its_mainstem():
+    g, geoms, m = _gauge_on_a_named_side_channel()
+    res, resid = _apply(g, geoms, [_cut("gauge__X", m, blk="S", source="gauge")])
+    assert [p.blk for p in res.points] == ["H"] and resid == []
+    # a curated cut on the same channel still leaves the mainstem alone: it is another water
+    g, geoms, m = _gauge_on_a_named_side_channel()
+    res, _ = _apply(g, geoms, [_cut("c", m, blk="S")])
+    assert res.points == [] and {c.gate for c in res.cases} == {"refused: another water"}
+
+
+def test_r3_mutation_without_the_rule_the_gauge_leaves_its_mainstem(monkeypatch):
+    monkeypatch.setattr(BS, "GAUGES_CUT_THEIR_RIVER", False)
+    g, geoms, m = _gauge_on_a_named_side_channel()
+    res, _ = _apply(g, geoms, [_cut("gauge__X", m, blk="S", source="gauge")])
+    assert res.points == []
+
+
 def test_spans_a_braid_is_the_gate():
     g, geoms = _one_braid()
     v = BS.View(g, geoms)
