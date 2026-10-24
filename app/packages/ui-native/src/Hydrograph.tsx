@@ -154,13 +154,13 @@ export function Hydrograph({ shape, palette, colour, label, caption, unit,
           cannot end up describing a line of a different shade. */}
       <View style={{ flexDirection: "row", flexWrap: "wrap", columnGap: 14, rowGap: 5,
                      marginTop: 8 }}>
-        <Key palette={palette} label="reading" swatch="line" colour={colour} />
+        <Key palette={palette} label={CONDITIONS_WORDS.key.reading} swatch="line" colour={colour} />
         {shape.envelopes.length > 0 && (
           <>
-            <Key palette={palette} label="middle half" swatch="fill" colour={palette.ink} />
-            <Key palette={palette} label="10th–90th" swatch="faintfill"
+            <Key palette={palette} label={CONDITIONS_WORDS.key.middleHalf} swatch="fill" colour={palette.ink} />
+            <Key palette={palette} label={CONDITIONS_WORDS.key.band} swatch="faintfill"
                  colour={palette.ink} />
-            <Key palette={palette} label="median" swatch="dash" colour={palette.sub} />
+            <Key palette={palette} label={CONDITIONS_WORDS.key.median} swatch="dash" colour={palette.sub} />
           </>
         )}
         {shape.priorYears.map((y) => (

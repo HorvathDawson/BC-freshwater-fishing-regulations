@@ -9,8 +9,8 @@
  * day's status from the status index (closed / own regulations / base); the regulation records
  * themselves are not integrated, so a water's sheet shows a placeholder where they will go.
  */
-import { CHANGE_LEGEND, changeMarkWords, chooseLayer, chooseShow, dayLabel, dayRange, layersVM, placeholderFor, syncVM,
-         spotBack, TEMP_LEGEND,
+import { CHANGE_LEGEND, changeMarkWords, chooseLayer, chooseShow, closedLegend, dayLabel, dayRange, FLOW_LEGEND, layersVM,
+         placeholderFor, syncVM, spotBack, TEMP_LEGEND,
          unprovenLine, WATER_STATUS, WATER_STATUS_LINE, WATER_STATUSES, waterExit, waterLegend, withImageryCredit,
          type SectionKey } from "@app/core";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -937,9 +937,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
               </>
             ) : (
               <LegendRamp palette={palette}
-                          title={flowParam === "level" ? "Water level vs. past years, this date"
-                                 : "Flow vs. past years, this date"}
-                          low="Low" mid="Normal" high="High"
+                          title={FLOW_LEGEND.title[flowParam === "level" ? "level" : "discharge"]}
+                          low={FLOW_LEGEND.low} mid={FLOW_LEGEND.mid} high={FLOW_LEGEND.high}
                           stops={flowRampStops(theme)} marks={visibleMarks} />
             )
           ) : layers.water.drawn !== "regulations" ? (
@@ -955,8 +954,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
               {WATER_STATUSES.map((s) => (
                 <LegendCount key={s} palette={palette} colour={palette.waterStatus[s]}
                              line dotted={WATER_STATUS_LINE[s] === "dotted"}
-                             label={s === "closed" ? (mapDay ? `Closed on ${dayLabel(mapDay)}` : "Closed today")
-                                    : WATER_STATUS[s].label} />
+                             label={s === "closed" ? closedLegend(mapDay) : WATER_STATUS[s].label} />
               ))}
             </>
           )}

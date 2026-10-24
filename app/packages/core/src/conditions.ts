@@ -115,6 +115,16 @@ export function legendTickLabel(count: number, where: string): string {
 /* ------------------------------------------------------------------ the words ---- */
 
 /** Fixed words on the conditions surfaces, in one table rather than spelled in JSX. */
+/**
+ * (T60) THE CONDITIONS MAP'S RAMP LEGEND (the Shell's `LegendRamp`): the quantity shown, named in the title, and the
+ * ramp's three words. Typed in the Shell before the data-vs-UI audit; the change legend beside it (`CHANGE_LEGEND`) was
+ * already core's.
+ */
+export const FLOW_LEGEND = {
+  title: { discharge: "Flow vs. past years, this date", level: "Water level vs. past years, this date" },
+  low: "Low", mid: "Normal", high: "High",
+} as const;
+
 export const CONDITIONS_WORDS = {
   /** after a forecast run past `STALE_AFTER.forecast` — the Data block's "Likely out of date", in a line */
   runOld: "likely out of date",
@@ -139,6 +149,8 @@ export const CONDITIONS_WORDS = {
   },
   quantity: { discharge: "Flow", level: "Level" },
   span: { "72h": "Last 72 hours", year: "This year" },
+  /** (T60) The chart's key: the four things that share its frame (Hydrograph `Key` rows). */
+  key: { reading: "reading", middleHalf: "middle half", band: "10th–90th", median: "median" },
   /** The ONE place the app decides what a quantity is measured in. */
   unit: { discharge: "m³/s", level: "m" },
   /** The Change block's kicker over the lead gauge's own forecasts, one line per model (T52). */

@@ -40,6 +40,8 @@ export * from "./freshness";
 export * from "./likeVisit";
 export * from "./gestures";
 export * from "./waterViews";
+export * from "./tabs";
+export * from "./spotWords";
 export * from "./waterNav";
 export * from "./mapRail";
 export * from "./spotPins";

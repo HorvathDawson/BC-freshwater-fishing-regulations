@@ -7,6 +7,7 @@ import { useState } from "react";
 import { Image, Text, View } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
 import { WORDS, type BannerVM, type CaveatVM, type InheritedVM, type OtherFishKeyVM, type OtherFishRowVM, type PossessionVM, type WhereNotVM } from "@app/core";
+import { Icon } from "../icons";
 import { TYPE } from "../type";
 import { GUTTER, type Palette } from "../theme";
 import { LineText, TermText, type KeepActions } from "./LineText";
@@ -112,7 +113,11 @@ export function CaveatBlock({ caveat, palette, actions }: { caveat: CaveatVM; pa
   if (caveat.kind === "inpart") return (
     <View testID="keep-caveat" style={{ marginTop: 8, marginHorizontal: GUTTER }}>
       <RegsPress accessibilityRole="button" aria-expanded={open} onPress={() => setOpen(!open)} box={ROW} style={{ minHeight: 44, justifyContent: "center" }}>
-        <Text style={[TYPE.regsBody, { color: palette.ink }]}>{`${open ? "▼" : "▶"} ${head}`}</Text>
+        {/* (T60) the fold's mark is the set's expand / collapse, as every other fold's — not a typed ▶ / ▼ */}
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+          <Icon name={open ? "collapse" : "expand"} colour={palette.ink} size={16} />
+          <Text style={[TYPE.regsBody, { color: palette.ink, flex: 1 }]}>{head}</Text>
+        </View>
       </RegsPress>
       {open && body}
     </View>

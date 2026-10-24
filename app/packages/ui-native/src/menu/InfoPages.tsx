@@ -3,7 +3,7 @@
  * only says where it goes. (Owner 2026-10-22) Display and Contact are drawn on the More tab itself (`MoreScreen`).
  */
 import { Linking, Pressable, Text, View } from "react-native";
-import type { AboutVM, SourcesVM } from "@app/core";
+import { WORDS, type AboutVM, type SourcesVM } from "@app/core";
 import { Credits } from "../Credits";
 import { TYPE } from "../type";
 import { SPACE, type Palette } from "../theme";
@@ -20,7 +20,7 @@ export function AboutPage({ vm, palette }: { vm: AboutVM; palette: Palette }) {
         <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>{vm.notOfficial}</Text>
       </View>
       <Pressable onPress={() => open(vm.official.url)} accessibilityRole="link" accessibilityLabel={vm.official.label}>
-        <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{`${vm.official.label} ↗`}</Text>
+        <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{`${vm.official.label} ${WORDS.LINK_OUT}`}</Text>
       </Pressable>
       <View style={{ gap: SPACE.s2 }}>
         <Text style={{ ...TYPE.section, color: palette.sub }}>{vm.versionsTitle}</Text>

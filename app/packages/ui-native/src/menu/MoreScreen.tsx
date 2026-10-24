@@ -19,7 +19,7 @@
 import { createContext, useContext } from "react";
 import { Linking, Pressable, ScrollView, Text, View } from "react-native";
 import { useLayoutClass } from "@app/ui";
-import { menuVM, WATER_STATUS_LINE, WATER_STATUSES, type DataInput, type MenuPageKey, type MoreVM } from "@app/core";
+import { menuVM, WATER_STATUS_LINE, WATER_STATUSES, WORDS, type DataInput, type MenuPageKey, type MoreVM } from "@app/core";
 import { TYPE } from "../type";
 import { GUTTER, MORE_WIDE, SPACE, THEMES, type Palette, type ThemeName } from "../theme";
 import { FreshDot, FreshBadge } from "./Fresh";
@@ -158,7 +158,7 @@ function DataBlock({ vm, palette }: { vm: MoreVM["data"]; palette: Palette }) {
           <Pressable testID="data-inseason-link" onPress={() => { void Linking.openURL(vm.inseason.link.url); }}
                      accessibilityRole="link" accessibilityLabel={vm.inseason.link.label} hitSlop={6}
                      style={{ alignSelf: "flex-start", minHeight: 28, justifyContent: "center" }}>
-            <Text style={{ ...TYPE.metaBold, fontSize: 13, color: palette.accent }}>{`${vm.inseason.link.label} ↗`}</Text>
+            <Text style={{ ...TYPE.metaBold, fontSize: 13, color: palette.accent }}>{`${vm.inseason.link.label} ${WORDS.LINK_OUT}`}</Text>
           </Pressable>
         </View>
         <View style={{ paddingHorizontal: GUTTER, paddingTop: SPACE.s2, paddingBottom: SPACE.s2 }}>

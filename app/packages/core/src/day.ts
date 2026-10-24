@@ -195,3 +195,11 @@ export function visitSteps(at: number, now: number): VisitSteps {
  */
 export const VISIT_QUICK_DAYS: readonly (readonly [string, number])[] =
   [["Today", 0], ["Yesterday", -1], ["2 days ago", -2]];
+
+/**
+ * (T60) The Map tab's status legend, "closed" row: for today, or for the day the map is set to ("Closed on Oct 10").
+ * Typed in the Shell before the data-vs-UI audit.
+ */
+export function closedLegend(day: Date | null): string {
+  return day ? `Closed on ${dayLabel(day)}` : "Closed today";
+}

@@ -7,6 +7,7 @@
 import { useState } from "react";
 import { Text, View } from "react-native";
 import { WORDS, type LadderVM, type PlainRowVM } from "@app/core";
+import { Icon } from "../icons";
 import { TYPE } from "../type";
 import { GUTTER, type Palette } from "../theme";
 import { LineText, TermText, type KeepActions } from "./LineText";
@@ -19,7 +20,11 @@ function Ladder({ ladder, more, palette, actions }: { ladder: LadderVM; more: Pl
   return (
     <View style={{ marginTop: 8, borderTopWidth: 1, borderTopColor: palette.line }}>
       <RegsPress accessibilityRole="button" aria-expanded={open} onPress={() => setOpen(!open)} box={{ w: 44, h: 44 }} style={{ minHeight: 44, justifyContent: "center" }}>
-        <Text style={[TYPE.regsBody, { color: palette.ink }]}>{`${open ? "▼" : "▶"}  ${ladder.label}`}</Text>
+        {/* (T60) the fold's mark is the set's expand / collapse, as every other fold's — not a typed ▶ / ▼ */}
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+          <Icon name={open ? "collapse" : "expand"} colour={palette.ink} size={16} />
+          <Text style={[TYPE.regsBody, { color: palette.ink, flex: 1 }]}>{ladder.label}</Text>
+        </View>
       </RegsPress>
       {open && ladder.sections.map((s, i) => (
         <View key={i} style={{ paddingBottom: 6 }}>

@@ -4,7 +4,8 @@
  * 12.48 in the accent. No logic: the summary is the VM's.
  */
 import { useState } from "react";
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { IconText } from "../../icons";
 import { TYPE } from "../../type";
 import type { Palette } from "../../theme";
 import { RegsPress } from "../RegsPress";
@@ -15,7 +16,8 @@ export function Fold({ summary, palette, children, testID }: { summary: string; 
     <View testID={testID} style={{ marginTop: 8 }}>
       <RegsPress accessibilityRole="button" aria-expanded={open} accessibilityLabel={summary} onPress={() => setOpen((o) => !o)} box={{ w: 44, h: 44 }}
                  style={{ minHeight: 44, justifyContent: "center" }}>
-        <Text style={[TYPE.metaBold, { color: palette.accent }]}><Text aria-hidden>{open ? "▾ " : "▸ "}</Text>{summary}</Text>
+        {/* (T60) the fold's mark is the set's expand / collapse (the icon is decorative; the button says `summary`) */}
+        <IconText name={open ? "collapse" : "expand"} text={summary} size={14} style={{ ...TYPE.metaBold, color: palette.accent }} />
       </RegsPress>
       {open ? <View style={{ paddingBottom: 4 }}>{children}</View> : null}
     </View>

@@ -20,16 +20,13 @@
  * an ink icon — one more pair for the palette gate (T39) to hold in light, dark and the colour-blind palette.
  */
 import { Pressable, Text, View } from "react-native";
+import { BROWSE_TABS } from "@app/core";
 import { Icon, type IconName } from "./icons";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
 
-export const TABS = [
-  { k: "map", t: "Map" },
-  { k: "conditions", t: "Conditions" },
-  { k: "spots", t: "Spots" },
-  { k: "more", t: "More" },
-] as const satisfies readonly { k: IconName; t: string }[];
+/** The tabs and their names are core's (`BROWSE_TABS`, T60): each key is also the icon that draws it. */
+export const TABS = BROWSE_TABS satisfies readonly { k: IconName; t: string }[];
 
 export type TabKey = (typeof TABS)[number]["k"];
 

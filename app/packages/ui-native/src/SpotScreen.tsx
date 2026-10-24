@@ -30,7 +30,7 @@ import { LeadUpStrip } from "./LeadUpStrip";
 import { LikeVisitStrip } from "./LikeVisitStrip";
 import { DonorPanel } from "./DonorPanel";
 import { GaugeTrace } from "./GaugeTrace";
-import { percentileLabel } from "@app/core";
+import { percentileLabel, SPOT_WINDOW } from "@app/core";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
 import { Button } from "./Button";
@@ -412,10 +412,10 @@ export function SpotScreen(p: SpotScreenProps) {
       </ScrollView>
 
       {editable && p.onSave && (
+        // ONE WAY OUT (T60, one surface per action): the way back / out of the edit is the ‹ / Cancel at the top, as on
+        // every screen; this row had a second Back / Cancel beside Save, the same action offered twice
         <View style={{ flexDirection: "row", gap: 10, padding: 16, borderTopWidth: 1,
                        borderTopColor: palette.line }}>
-          <Button palette={palette} kind="ghost" label={mode === "draft" ? "Back" : "Cancel"}
-                  onPress={mode === "draft" ? p.onBack : leaveEdit} />
           <Button palette={palette}
                   label={mode === "draft" ? "Save spot" : "Save changes"} onPress={p.onSave} />
         </View>
@@ -438,7 +438,7 @@ function Window({ weather, palette }: { weather: SpotWeather; palette: Palette }
   if (!win || (!win.before && !win.at && !win.after)) return null;
 
   const cols: [string, WeatherSample | null][] =
-    [["−1 h", win.before], ["visit", win.at], ["+1 h", win.after]];
+    [[SPOT_WINDOW.before, win.before], [SPOT_WINDOW.at, win.at], [SPOT_WINDOW.after, win.after]];
   const rows: [string, (s: WeatherSample) => number | null, string][] = [
     ["Cloud", (s) => s.cloudPct, "%"],
     ["Pressure", (s) => s.pressureHpa, ""],
