@@ -21,3 +21,21 @@ cut — pinned equal to `shard_rows`). Weighting changes nothing on today's data
 it is there so a table whose bulk ships nowhere is not trained on it. Result: new answers **13,843,064** (−156,936
 under; regs-3 319,120), live answers 13,817,723 (content cost under the new trainer +25,341). Store 30 s → ~60 s,
 release 9 s. Q55 (raise the gate / drop private land from access) is not forced by this change; still the owner's.
+
+## Owner addition (2026-10-23): drop unnamed wetlands with no direct regulation
+"in the tile optimization ticket we could consider removing all unnamed wetlands without direct regulation? (including
+dropping ones only regulated by admin area regs like liard) this might reduce size a bit".
+Scale: the FWA wetlands layer has **375,178 polygons, 77 named** (gpkg `wetlands`) — most of them carry no rule of their
+own, only zone rules or an area entry (e.g. "Liard River watershed").
+- KEEP (never drop): named wetlands; any wetland that is part of a stream item (sloughs/side channels folded by
+  flowing.py, T55/T149 folds); one a water's own row or an extent binds; one with a gauge (lake_gauge); no-access ones
+  the T54/T165 colour draws; wetlands a stream line runs through that the walk/panels need as a node (keep the GRAPH,
+  drop only the DRAWN polygon — the atlas and reach are unchanged; this is a tiles-only cut).
+- DROP from the tiles: every other wetland polygon — unnamed, and bound only by zone rules or area-only entries
+  (watershed / admin-area rules like the Liard). They are still covered by those rules; the app answers a tap there
+  from the land/area, not a wetland feature.
+- Measure first: wetland layer bytes in atlas.pmtiles by zoom, how many polygons each KEEP class retains, and the size
+  win; a before/after shot of a wetland-heavy area (Fort Nelson, the Chilcotin) so the map still reads (a muted wetland
+  fill from the basemap's landuse layer can stand in visually if the look suffers).
+- Status colours: a dropped wetland never had a status of its own; check no section's colour disappears (the drop list
+  holds no section a status index row colours).
