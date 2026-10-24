@@ -259,6 +259,7 @@ UP_ADJ_READERS = {
     ("pipeline/atlas/reach/extent.py", "_flow_reach"): "a detached piece's flow path to its own water",
     ("pipeline/atlas/reach/extent.py", "_line_length"): "a line's confluence measures",
     ("pipeline/atlas/reach/extent.py", "_watershed_part"): "connected groups of the river's own code",
+    ("pipeline/atlas/reach/extent.py", "river_widenings"): "T153: the unnamed lake widenings a river's main flow runs through",
     # exports and the review app's anabranch test: one level, no set collected
     ("pipeline/common/io/export_gpkg.py", "export_graph_gpkg"): "inlet counts",
     ("pipeline/common/io/export_gpkg.py", "export_lake_io"): "a lake's inlets, one level",

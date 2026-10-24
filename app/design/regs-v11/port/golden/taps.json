@@ -7,7 +7,7 @@
    "reach_digest": "ca80e9c7bb2f4006",
    "rule_ids_sha256": "7fd80bc0f32d2ed4",
    "answers_sha256": "a5d3c00ae099d249656c15907e63dd869ad114ac0da013fbcb69371fe9edc9c6",
-   "store_digest": null,
+   "store_digest": "33acd22c1147346e",
    "layout": "{\"top\":[\"about\",\"spec\",\"schemas\",\"fish\",\"keys\",\"segments\",\"moments\",\"segment_moments\",\"parts\",\"places\",\"unnamed\",\"glossary\",\"sections\"],\"sections\":{\"ladder\":[\"version\",\"at\",\"reasons\",\"reason_state\",\"verdicts\",\"frames\"],\"rows\":[\"version\",\"at\",\"decided\",\"rows\",\"strips\",\"frames\"],\"gear\":[\"version\",\"at\",\"frames\",\"province_methods\",\"parent\",\"methods\",\"count_nouns\",\"moments\",\"conduct_means\"],\"licence\":[\"version\",\"at\",\"holds\",\"answers\",\"documents\",\"under_16\",\"frames\",\"profiles\",\"profile_dims\",\"residency_labels\",\"profile_labels\"],\"display\":[\"version\",\"at\",\"frames\",\"rules\",\"waters\",\"strip\",\"reasons\",\"licensing\"]},\"versions\":{\"ladder\":1,\"rows\":33,\"gear\":12,\"licence\":7,\"display\":18}}"
   },
   "golden": "bdda3586",

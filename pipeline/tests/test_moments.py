@@ -180,7 +180,8 @@ def shipped(request):
 
 def _decided(t, fish):
     h = t["rows"]["fish"][fish]
-    return {o: (d["status"], d["daily"]) for o, d in h.items()}
+    # rows 33 (T161): fish[S] also carries `lead`, the leading origin — not an origin itself
+    return {o: (d["status"], d["daily"]) for o, d in h.items() if isinstance(d, dict)}
 
 
 @pytest.mark.needs_bundle
