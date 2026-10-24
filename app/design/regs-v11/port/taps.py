@@ -62,10 +62,8 @@ T115 = "T115 (owner decision AGENTS 54, tickets/T115-one-region-membership.md): 
 PART_MOVED = {"x15p16_1010": 14,
               # (T67) the Skeena's new part 5 (a side-channel piece of the Ecological Reserve, PART_GONE x19p5) renumbers
               # the parts after it
-              "x19p6_1010": 7, "x19p7_1010": 8,
-              # (T67, T187) the Peace's Dinosaur Lake part is renumbered 6 -> 2 (part order follows rule-set ids), same
-              # label and 1 section again: T187 put the Site C braid piece 359005110:3454 back under the Site C closure
-              "x22p6_1010": 2}
+              "x19p6_1010": 7, "x19p7_1010": 8}
+              # (T187) x22p6 (the Peace's Dinosaur Lake part) is back to its golden place and size: part 6, 1 section
 #: gone states whose water's list of parts is still the golden's (labels and order the Parts sheet draws): not `recut`
 GONE_NOT_RECUT = {"x22p2_1010"}
 #: the reason a water is `recut` (its list of parts is not the golden's), by the state that shows it
