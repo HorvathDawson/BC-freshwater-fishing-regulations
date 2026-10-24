@@ -11,12 +11,12 @@ receiver_blk, receiver_wsc``.
 
 from __future__ import annotations
 
-import re
 from collections import Counter
 
 from pipeline.atlas.waters.added_streams.coastal import is_coastal_wsc
 from pipeline.common.utils.wsc import trim_wsc
 from pipeline.common.utils import wsc as _wsc
+from pipeline.common.names import compact_key
 
 
 def _prefixes(wsc: str) -> str:
@@ -24,7 +24,7 @@ def _prefixes(wsc: str) -> str:
 
 
 def _canon(name: str) -> str:
-    return re.sub(r"[^a-z0-9]", "", (name or "").lower())
+    return compact_key(name)                     # the one name key, spaces dropped (T61 2.8)
 
 
 def validate_propagation(streams: list[dict]) -> list[str]:

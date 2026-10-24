@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import io
 import math
-import re
 import urllib.request
 from pathlib import Path
 from typing import Optional
@@ -22,6 +21,8 @@ from pyproj import Transformer
 from shapely.geometry import LineString, MultiPoint, Point
 from shapely.ops import nearest_points, snap, split, substring, unary_union
 from shapely.strtree import STRtree
+
+from pipeline.common.names import compact_key
 
 _TO_ALBERS = Transformer.from_crs("EPSG:4326", "EPSG:3005", always_xy=True)
 _TO_LONLAT = Transformer.from_crs("EPSG:3005", "EPSG:4326", always_xy=True)
@@ -322,8 +323,7 @@ def dem_flow(features: list[dict], sampler: "ElevationSampler", tol_m: float = 2
     node_pieces_kept = defaultdict(list)
     for k in kept:
         node_pieces_kept[node[2 * k]].append(k); node_pieces_kept[node[2 * k + 1]].append(k)
-    def canon(name):
-        return re.sub(r"[^a-z0-9]", "", (name or "").lower())
+    canon = compact_key                                            # the one name key, no spaces (T61 2.8)
     node_names = defaultdict(set)                                   # canonical names of pieces touching a node
     for k in kept:
         cn = canon(pieces[k][2])
@@ -434,7 +434,7 @@ def dem_flow(features: list[dict], sampler: "ElevationSampler", tol_m: float = 2
     #     first, spanning-only, each visible. ---
     by_name = defaultdict(list)
     for k in kept:
-        cn = re.sub(r"[^a-z0-9]", "", pieces[k][2].lower())
+        cn = compact_key(pieces[k][2])
         if cn:
             by_name[cn].append(k)
     for ks in by_name.values():

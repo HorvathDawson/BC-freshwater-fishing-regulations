@@ -33,6 +33,7 @@ from pipeline.atlas.waters.added_streams.wsc import mint_wsc
 from pipeline.common.utils.wsc import trim_wsc
 from pipeline.common.utils import wsc as _wsc
 from pipeline.common.models import BlkChain
+from pipeline.common.names import compact_key
 from pipeline.common.curated import CURATED, GENERATED
 
 _TO_ALBERS = Transformer.from_crs("EPSG:4326", "EPSG:3005", always_xy=True)
@@ -470,9 +471,9 @@ def _blue_line_total(rc: BlkChain, fwa_chains: list[BlkChain]) -> Optional[float
 
 
 def _canon_name(s: str) -> str:
-    """Canonical name key: lowercase, punctuation/space stripped ("Logger's Lane" == "loggerslane")."""
-    import re
-    return re.sub(r"[^a-z0-9]", "", (s or "").lower())
+    """Canonical name key: `names.compact_key` — the one name key with no spaces ("Logger's Lane" ==
+    "loggerslane"; T61 2.8)."""
+    return compact_key(s)
 
 
 def _deloop(coords: list, tol: float = 12.0, max_loop: float = 400.0) -> list:
@@ -529,9 +530,8 @@ def _merge_by_name(minted, receiver, geom, ch_by_blk_all):
     blks = {ch.blk for ch in minted}
     ch_by_blk = {ch.blk: ch for ch in minted}
 
-    import re
     def nm(b):                                              # canonical: ignore punctuation ("Logger's"=="Loggers")
-        return re.sub(r"[^a-z0-9]", "", (ch_by_blk_all[b].name or "").lower())
+        return compact_key(ch_by_blk_all[b].name)
 
     def cont(b):                                             # (proportion, gap) of b's mouth on receiver
         k, rb = receiver[b]
