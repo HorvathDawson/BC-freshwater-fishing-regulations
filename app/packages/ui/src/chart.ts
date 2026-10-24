@@ -10,7 +10,7 @@
  * or `buildHydrograph`'s; this holds the state and hands the component actions that only take measurements.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CHART_ZOOM, CONDITIONS_WORDS, chartReadoutLine, fitDomain, isZoomed, monthAbbr, panDomain, timeAt,
+import { CHART_ZOOM, CONDITIONS_WORDS, chartReadoutLine, fitDomain, isZoomed, monthAbbr, pad2, panDomain, timeAt,
          zoomChanges, zoomDomain, type ChartSpan, type Domain } from "@app/core";
 import type { Parameter, RegsSource, Series, StationId } from "@app/data";
 import { useAsync, type Async } from "./async";
@@ -34,7 +34,6 @@ export function tickCount(width: number): number {
   return width < 480 ? 3 : 5;
 }
 
-const pad2 = (n: number) => String(n).padStart(2, "0");
 
 /**
  * The axis ticks for a window, as REAL TIMES. The year chart said "Jan Mar May Jul Sep Nov" evenly across a frame that

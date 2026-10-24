@@ -26,10 +26,10 @@ import type { SheetKey } from "../sheetKey";
 import { fishNames, pictures } from "../tree";
 import { WD3, WORDS } from "../words";
 import { WEEKDAYS } from "../../calendar.generated";
+import { cap } from "../names";
 
 type StepLine = LadderStepVM["lines"][number];
 const para = (l: Line): SheetBlock => ({ k: "para", text: l });
-const cap1 = (t: string): string => (t ? t[0]!.toUpperCase() + t.slice(1) : t);
 const term = (inp: RegsInputs, id: string): Run[] => (inp.statics.glossary.terms.some((t) => t.id === id) ? [{ t: "term", ids: [id] }] : []);
 
 /** page v36 rowHtml's value (valueHtml, big for a pooled keep row; "a day, shared" said "a day"; a real-daily row its sum). */
@@ -67,7 +67,7 @@ function weekLines(row: HydRow, inp: RegsInputs): StepLine[] {
   };
   return [
     ...(w.parts ?? []).filter((p) => p.says).map((p) =>
-      line(key(p.rules?.[0]), [text(p.days), text(" "), text(cap1(p.says))], p.today ? WORDS.TODAY : null, !!p.today, p.days)),
+      line(key(p.rules?.[0]), [text(p.days), text(" "), text(cap(p.says))], p.today ? WORDS.TODAY : null, !!p.today, p.days)),
     ...(row.raw.restates ?? []).map((x) => line(key(x.r), [text(x.says)], null)),
   ];
 }

@@ -12,7 +12,7 @@ declare const __DEV__: boolean | undefined;
  * needs a real DOM node to attach a canvas to, and on this platform RNW is producing divs
  * anyway. The native renderer is a different file for exactly this reason.
  */
-import { dayOfYear, type SectionKey } from "@app/core";
+import { readingDayOf, type SectionKey } from "@app/core";
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as maplibregl from "maplibre-gl";
 import { Protocol } from "pmtiles";
@@ -813,7 +813,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
       devCost({ t: t0, ms: performance.now() - t0, calls: c.calls - c0, kind });
     });
   };
-  const statusDay = status ? dayOfYear(status.day) : 0;
+  const statusDay = status ? readingDayOf(status.day) : 0;
   useEffect(() => toChannel("status", status ? statusInput(status) : null, `status:${statusDay}`),
             [status?.index, statusDay, at.atlas]);
   useEffect(() => toChannel("standing", standing ? standingInput(standing) : null, "standing"),

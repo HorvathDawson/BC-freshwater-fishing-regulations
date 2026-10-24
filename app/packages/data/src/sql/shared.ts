@@ -3,7 +3,7 @@
  * `makeReleaseSource` (`../release/source.ts`) asks the release's files and hands the rows here; a test may hand rows
  * from any SQLite with the pipeline bundle's columns. (Its second reader, the dev bundle's, was retired in T61.)
  */
-import { bandAt, boxOfParts, describeBy, rankPointers, rankWaters, type Band, type Bbox, type NearPlace } from "@app/core";
+import { bandAt, boxOfParts, calendarDayOfYear, describeBy, rankPointers, rankWaters, type Band, type Bbox, type NearPlace } from "@app/core";
 import { forecastFor, type Observations } from "../feed/http";
 import type { Aged, GaugeLink, GaugeWaters, ItemId, NameHit, NearHit, Parameter, PanelRoute, PointerHit, SectionId,
               Series, StationId } from "../index";
@@ -200,7 +200,7 @@ export function seriesOf(pentads: (Band | null)[], obs: Observations | null, spa
      */
     const at = obs?.at.length ? new Date(obs.at[obs.at.length - 1]!) : new Date();
     const year = at.getUTCFullYear();
-    const today = dayOfYear(at.toISOString().slice(0, 10));
+    const today = calendarDayOfYear(at.toISOString().slice(0, 10));
     const days = Math.min(daysInYear(year), today + 31);
     const values: (number | null)[] = Array.from({ length: days }, () => null);
     const stamps: string[] = Array.from({ length: days }, (_, i) => dayStamp(year, i));
@@ -208,7 +208,7 @@ export function seriesOf(pentads: (Band | null)[], obs: Observations | null, spa
     // goes on last year's line below, never on this one.
     const lastYear: (number | null)[] = [];
     for (const [day, lv, q] of obs?.daily ?? []) {
-      const i = dayOfYear(day) - 1;
+      const i = calendarDayOfYear(day) - 1;
       if (day.startsWith(`${year - 1}-`)) {
         const v = param === "level" ? lv : q;
         if (i >= 0 && v !== null && Number.isFinite(v)) lastYear[i] = v;
@@ -251,7 +251,7 @@ export function seriesOf(pentads: (Band | null)[], obs: Observations | null, spa
   const values = param === "level" ? obs.level : obs.discharge;
   // Each observation takes the envelope for the day its own timestamp falls in,
   // interpolated between pentads, so a series spanning weeks bends rather than steps.
-  const band = obs.at.map((t: string) => bandAt(pentads, dayOfYear(t)));
+  const band = obs.at.map((t: string) => bandAt(pentads, calendarDayOfYear(t)));
   const idx = lastIndex(values);
   return {
     fetchedAt: obs.fetchedAt,
@@ -370,15 +370,6 @@ export function placesOf(rows: readonly Row[]): Map<string, { name: string; sect
 export function parametersOf(rows: readonly Row[]): Parameter[] {
   return rows.map((r) => str(r.parameter) as Parameter)
     .filter((p): p is Parameter => p === "discharge" || p === "level");
-}
-
-/** 1..366 for an ISO date or timestamp. The axis of every seasonal question here. */
-function dayOfYear(iso: string): number {
-  const y = Number(iso.slice(0, 4));
-  const m = Number(iso.slice(5, 7));
-  const d = Number(iso.slice(8, 10));
-  if (!y || !m || !d) return 1;
-  return Math.round((Date.UTC(y, m - 1, d) - Date.UTC(y, 0, 1)) / 86_400_000) + 1;
 }
 
 function daysInYear(year: number): number {

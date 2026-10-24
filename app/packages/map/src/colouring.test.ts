@@ -9,7 +9,7 @@
  * a feed refresh that touches a section.
  */
 import { describe, expect, it } from "vitest";
-import { dayOfYear, type LakeFacts, type StatusCode, type StatusIndex, type SurveyState } from "@app/core";
+import { readingDayOf, type LakeFacts, type StatusCode, type StatusIndex, type SurveyState } from "@app/core";
 import { baseAdapter, paintFor, type MapHandle } from "./adapters/contract";
 import { Colouring, coloursEachTile, standingInput, statusInput, stockedInput, surveyInput, type LabelTarget,
          type StandingFeed,
@@ -22,7 +22,7 @@ function fakeIndex(name: string, bySection: Record<number, number>,
   const profiles = Object.keys(codes).length;
   const code = (p: number, on: Date): StatusCode => {
     const c = codes[p]!;
-    return typeof c === "string" ? c : c[dayOfYear(on)] ?? "base";
+    return typeof c === "string" ? c : c[readingDayOf(on)] ?? "base";
   };
   return {
     name, handles: "0".repeat(16), reachDigest: "0".repeat(16), sections: Object.keys(bySection).length,
@@ -37,7 +37,7 @@ function fakeIndex(name: string, bySection: Record<number, number>,
 const JUN1 = new Date(2025, 5, 1), JAN1 = new Date(2026, 0, 1);
 /** A: section 10 closed in January and own otherwise (p0), 11 own all year (p1), 12 outside B.C. (p2). */
 const A = fakeIndex("A", { 10: 0, 11: 1, 12: 2 },
-                    { 0: { [dayOfYear(JAN1)]: "closed", [dayOfYear(JUN1)]: "own" }, 1: "own", 2: "outside" });
+                    { 0: { [readingDayOf(JAN1)]: "closed", [readingDayOf(JUN1)]: "own" }, 1: "own", 2: "outside" });
 /** B, another release: the same handles numbered differently — p0 now means "closed all year". */
 const B = fakeIndex("B", { 11: 0, 13: 1 }, { 0: "closed", 1: "own" });
 

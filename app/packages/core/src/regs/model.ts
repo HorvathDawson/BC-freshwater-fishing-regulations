@@ -119,7 +119,7 @@ export interface GroupHeadVM {
   readonly leadN: number | null;            // the share lead's number; golden head.leadN is its string form
   readonly words: Line;                     // the root tier's words, its n big
   readonly ofTotal: boolean;                // form a: words prefixed by words.OF_THE
-  readonly whyHere: string | null;          // root why_here (cap1)
+  readonly whyHere: string | null;          // root why_here (cap)
   readonly shareOf: Line | null;            // form b only: "↳ " + shortOf(relTier)
   readonly terms: readonly string[];        // the daily_quota ⓘ
   readonly nolimit: boolean;
@@ -135,7 +135,7 @@ export interface TierVM {
                                             // (T18) folded: [] — or, with no tier origin, the tier's fresh Rule book link alone
   readonly folded: boolean;                 // (T18, v38 int1) form a's share that says no more than the head's lead: no kicker, no words
   readonly relation: string | null;         // (T18, rows 28) an own tier's relation to the share and the total (nbsp'd), under its line
-  readonly sub: string | null;              // own tier: cap1(why_here)
+  readonly sub: string | null;              // own tier: cap(why_here)
   readonly origin: OriginVM | null;         // tier.origin with How to tell and the root's book when group.origin is null
   readonly band: boolean;                   // tier === "size": the tinted SizeBand wraps this node
   readonly short: string;                   // shortOf(tier) for the pin bar (T28)
@@ -149,7 +149,7 @@ export interface KindVM {
   readonly size: { text: string; rule: boolean } | null;   // the chip (nbsp'd); rule: the bold size_rule chip
   readonly qualifiers: string | null;       // sizeOf(detail).q joined ", "
   readonly pictures: readonly FishPicVM[];  // FIRST after the sentence + chip
-  readonly also: readonly string[];         // also_counts[].says (cap1)
+  readonly also: readonly string[];         // also_counts[].says (cap)
   readonly duty: Line | null;               // duties.map(dutyWords).join(" · ") + link "Steelhead stamp ›" {tab:"licence"}
   readonly stamps: readonly Line[];         // (rows 31) one per stored stamp: "You need" + link "<name> ›" {tab:"licence"} + when
   readonly presence: Line | null;           // presOf(k).says + ⓘ steelhead

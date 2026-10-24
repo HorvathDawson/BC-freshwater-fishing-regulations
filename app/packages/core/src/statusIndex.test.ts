@@ -3,7 +3,7 @@ import { FIXTURE as fixture } from "./statusIndex.fixture";
 import { accessOf } from "./access";
 import { dayProfiles, mapStatusOn, NO_ACCESS_PROFILE, profileLabel, statusOfCode, statusOn, UNLISTED_PROFILE,
          waterStatusOn } from "./status";
-import { dayOfYear, decodeStatusIndex, StatusIndexError, type StatusIndex } from "./statusIndex";
+import { readingDayOf, decodeStatusIndex, StatusIndexError, type StatusIndex } from "./statusIndex";
 import { CALENDAR_CASES, weekdayOf } from "./calendar.generated";
 
 /*
@@ -57,24 +57,24 @@ describe("the status index decoder", () => {
   });
 
   it("reads Feb 29 as Feb 28 (day 59) and puts Mar 1 on day 61 in every year (P06)", () => {
-    expect(dayOfYear(new Date(2024, 1, 29))).toBe(59);
-    expect(dayOfYear(new Date(2036, 1, 29))).toBe(59);
-    expect(dayOfYear(new Date(2025, 2, 1))).toBe(61);
-    expect(dayOfYear(new Date(2024, 2, 1))).toBe(61);
-    expect(dayOfYear(new Date(2025, 0, 1))).toBe(1);
-    expect(dayOfYear(new Date(2025, 11, 31))).toBe(366);
-    expect(dayOfYear({ month: 2, day: 28 })).toBe(59);
+    expect(readingDayOf(new Date(2024, 1, 29))).toBe(59);
+    expect(readingDayOf(new Date(2036, 1, 29))).toBe(59);
+    expect(readingDayOf(new Date(2025, 2, 1))).toBe(61);
+    expect(readingDayOf(new Date(2024, 2, 1))).toBe(61);
+    expect(readingDayOf(new Date(2025, 0, 1))).toBe(1);
+    expect(readingDayOf(new Date(2025, 11, 31))).toBe(366);
+    expect(readingDayOf({ month: 2, day: 28 })).toBe(59);
   });
 
   it("answers every worked calendar case as the Python spec does (calendar_spec.cases)", () => {
     expect(CALENDAR_CASES.length).toBeGreaterThanOrEqual(7);
     for (const c of CALENDAR_CASES) {
       const [y, m, d] = c.date.split("-").map(Number) as [number, number, number];
-      expect({ date: c.date, day: dayOfYear(new Date(y, m - 1, d)), weekday: weekdayOf(y, m, d) })
+      expect({ date: c.date, day: readingDayOf(new Date(y, m - 1, d)), weekday: weekdayOf(y, m, d) })
         .toEqual({ date: c.date, day: c.reading_day, weekday: c.weekday });
     }
     // the Zymoetz case: Fri 2036-02-29 reads Feb 28's day on a Friday, not Feb 28's Thursday
-    expect([dayOfYear(new Date(2036, 1, 29)), weekdayOf(2036, 2, 29), weekdayOf(2036, 2, 28)])
+    expect([readingDayOf(new Date(2036, 1, 29)), weekdayOf(2036, 2, 29), weekdayOf(2036, 2, 28)])
       .toEqual([59, "Friday", "Thursday"]);
   });
 
@@ -84,7 +84,7 @@ describe("the status index decoder", () => {
     const at = off > 0 ? new Date(2025, 11, 31, 23, 30) : new Date(2026, 0, 1, 0, 30);
     if (off === 0) return;                    // UTC: there is no such time
     const ix = decodeStatusIndex(BYTES, null);
-    expect(dayOfYear(at)).toBe(off > 0 ? 366 : 1);
+    expect(readingDayOf(at)).toBe(off > 0 ? 366 : 1);
     // section 3 is closed Dec 1 - Mar 30; on Nov 30 / Apr 1 the other side reads differently
     const edge = off > 0 ? new Date(2025, 10, 30, 23, 30) : new Date(2025, 11, 1, 0, 30);
     expect(ix.codeOn(3, edge)).toBe(off > 0 ? "own" : "closed");

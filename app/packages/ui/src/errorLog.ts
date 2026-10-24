@@ -7,6 +7,7 @@
  * The app shell tees `console.error` into it once (`teeConsoleErrors`), so every error the app already logs — the map's
  * `onError`, a failed fetch, a refused release — is in the ring without each screen knowing about it.
  */
+import { pad2 } from "@app/core";
 
 export interface ErrorLog {
   /** Add one line (an Error's message, or the logged values joined). */
@@ -22,8 +23,6 @@ function word(v: unknown): string {
   if (typeof v === "string") return v;
   try { return JSON.stringify(v) ?? String(v); } catch { return String(v); }
 }
-
-const pad2 = (n: number) => String(n).padStart(2, "0");
 
 /** A ring of the last `size` lines, each cut to `width` characters. `now` is for tests. */
 export function createErrorLog(size = 20, width = 240, now: () => number = Date.now): ErrorLog {

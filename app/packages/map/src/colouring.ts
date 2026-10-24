@@ -31,7 +31,7 @@
  * Platform-free on purpose: the renderer hands in each tile's ids per source-layer and a target that sets state, so
  * every sequence is tested as plain code (`colouring.test.ts`), not through a browser.
  */
-import { dayOfYear, dayProfiles, profileLabel, stockRecency, type LakeFacts, type StatusIndex } from "@app/core";
+import { readingDayOf, dayProfiles, profileLabel, stockRecency, type LakeFacts, type StatusIndex } from "@app/core";
 import type { ChannelValues, MapAdapter, MapHandle } from "./adapters/contract";
 import type { StandingValues, Tokens } from "./style";
 import { perSectionLayers, spreadSections, type PerSectionLayer } from "./sections";
@@ -92,7 +92,7 @@ export function statusInput(s: ProfileStatus): ChannelInput {
   const index = s.index;
   return {
     labels: { key: "p", of: index, label: (id) => profileLabel(index, id) },
-    valuesKey: dayOfYear(s.day),
+    valuesKey: readingDayOf(s.day),
     values: () => dayProfiles(index, s.day),
   };
 }

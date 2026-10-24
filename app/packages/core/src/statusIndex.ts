@@ -42,9 +42,9 @@ const DAYS = CALENDAR_DAYS;
  * catalogue's leap calendar (Mar 1 is 61 IN EVERY YEAR), except that Feb 29 reads Feb 28's day, 59
  * (owner, P06/D31: the year keeps 365 reading days; slot 60 is never read). A weekday rule reads the
  * date's own weekday (`weekdayOf`). Read in the date's LOCAL calendar: the regulations are dated where
- * the water is.
+ * the water is. NOT `calendarDayOfYear` (day.ts), a flow series' day: never merge the two (one axis shifts a day).
  */
-export function dayOfYear(on: Date | { month: number; day: number }): number {
+export function readingDayOf(on: Date | { month: number; day: number }): number {
   const [m, d] = on instanceof Date ? [on.getMonth() + 1, on.getDate()] : [on.month, on.day];
   return readingDay(m, d);
 }
@@ -185,7 +185,7 @@ export function decodeStatusIndex(bytes: Uint8Array, expectHandles: string | nul
   }
   if (pos !== bytes.length) fail("trailing bytes");
 
-  const at = (p: number, on: Date): StatusCode => STATUS_CODES[days[p * DAYS + dayOfYear(on) - 1]!]!;
+  const at = (p: number, on: Date): StatusCode => STATUS_CODES[days[p * DAYS + readingDayOf(on) - 1]!]!;
   const profileOf = (section: SectionKey): number | null => {
     const s = typeof section === "number" ? section : Number(section);
     const p = Number.isInteger(s) && s >= 0 && s < bySection.length ? bySection[s]! : 0;

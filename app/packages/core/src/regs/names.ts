@@ -19,7 +19,8 @@ const SALMON_GROUP = "SA";
 /** The group whose members are the game fish (page v36 GAME). */
 const ALL_GAME_FISH = "ALL_GAME_FISH";
 
-export const cap = (s: string): string => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
+/** The first letter in capitals; nothing (null, undefined, "") is "". THE one (T61 2.16: four `cap1` copies). */
+export const cap = (s: string | null | undefined): string => (s ? s.charAt(0).toUpperCase() + s.slice(1) : "");
 export const clean = (s: string | null | undefined): string => String(s || "").replace(/\*+/g, "").replace(/\s+/g, " ").trim();
 
 /** The game fish (page v36 GAME = groups.ALL_GAME_FISH.members); none when the book has no such group. */

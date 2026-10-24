@@ -101,7 +101,6 @@ export function scopeBadge(row: HydRow, card: CardModel, inp: RegsInputs): strin
 export const pagesOf = (r: RuleView | null): ReadonlySet<number> => new Set((r?.facts?.book ?? []).map(([p]) => p));
 
 const tierOf = (t: TreeTier | TreeKind | undefined): TreeTier | null => (t && t.node === "tier" ? t : null);
-const cap1 = (t: string | null | undefined): string => (t ? t[0]!.toUpperCase() + t.slice(1) : "");
 
 export interface HeadCtx {
   readonly row: HydRow; readonly rowIx: number; readonly card: CardModel; readonly inp: RegsInputs;
@@ -164,7 +163,7 @@ export function groupHeadOf(ctx: HeadCtx, opts: { tot: "a" | "b" }): GroupHeadVM
     const hm = bigWords(hlead, h.n);
     const words: Run[] = hm ?? (h.n != null ? [{ t: "num", s: String(h.n), size: "big" }, text(" "), text(h.unit)] : [text(h.says)]);
     return { form: null, rootTier: null, lead: null, leadN: null, words, ofTotal: false,
-      whyHere: hm && hrest && !g.tree.length ? cap1(hrest) : null, shareOf: null, terms: [], nolimit: !hm && h.n == null };
+      whyHere: hm && hrest && !g.tree.length ? cap(hrest) : null, shareOf: null, terms: [], nolimit: !hm && h.n == null };
   }
   const words = bigWords(hdrRoot.says, hdrRoot.n);
   if (relTier && opts.tot === "a") {
@@ -184,7 +183,7 @@ export function groupHeadOf(ctx: HeadCtx, opts: { tot: "a" | "b" }): GroupHeadVM
     }
   }
   return { form: shareOf ? "b" : null, rootTier: hdrRoot.id, lead: null, leadN: null, words: words ?? [text(nbsp(hdrRoot.says))],
-    ofTotal: false, whyHere: hdrRoot.why_here ? cap1(hdrRoot.why_here) : null, shareOf, terms: [], nolimit: !words };
+    ofTotal: false, whyHere: hdrRoot.why_here ? cap(hdrRoot.why_here) : null, shareOf, terms: [], nolimit: !words };
 }
 
 /** The `.ghd.gsub` block (prototype orig / orig2): the group's origin words (its tag before " — "), "How to tell ›",

@@ -16,6 +16,7 @@ import type { Day, HeaderVM, Tab } from "./model";
 import { fmtDay } from "./strip";
 import { WD3, WORDS } from "./words";
 import { WEEKDAYS } from "../calendar.generated";
+import { sameDay } from "../day";
 
 /** The data cut a label with "…" (a match key, never said). */
 const CUT = "…";
@@ -61,7 +62,6 @@ export function partLabels(inp: RegsInputs): { full: string; short: string } | n
   return { full: s, short: s };
 }
 
-const sameDay = (a: Day, b: Day) => a.month === b.month && a.day === b.day;
 
 /**
  * (T53) An unnamed section's label slot: the named water it flows into (`downstream`, the first named water down its flow

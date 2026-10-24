@@ -22,6 +22,7 @@ import { makePlace } from "./place";
 import { settle } from "./settle";
 import { sheetOf } from "./sheets";
 import type { SheetKey } from "./sheetKey";
+import { sameDay } from "../day";
 
 export interface RegsPageOpts {
   readonly today: Day; readonly who: Who;
@@ -35,7 +36,6 @@ export interface RegsPageOpts {
   readonly pid?: string;
 }
 
-const sameDay = (a: Day, b: Day) => a.month === b.month && a.day === b.day;
 
 /** The whole page for one tap (T21: header + Keep). */
 export function buildRegsPage(inp: RegsInputs, opts: RegsPageOpts): RegsPage {

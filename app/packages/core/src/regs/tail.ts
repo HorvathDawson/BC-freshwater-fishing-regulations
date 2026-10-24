@@ -20,15 +20,15 @@ import type { GroupVM, NotKeptVM } from "./model";
 import type { SheetKey } from "./sheetKey";
 import { fishNames, pictures, presenceLine, stampLine, type TreeEnv } from "./tree";
 import { WORDS } from "./words";
+import { cap } from "./names";
 
-const cap1 = (t: string | null | undefined): string => (t ? t[0]!.toUpperCase() + t.slice(1) : "");
 
 /** prototype nk: one line per deciding rule of the fish nobody may keep here. */
 export function notKeptOf(g: GroupTotal, env: TreeEnv): readonly NotKeptVM[] {
   const names = fishNames(env.inp, env.fish);
   return (g.not_kept ?? []).map((x): NotKeptVM => {
     const r = env.inp.rules.get(x.by);
-    const whose: Run[] = [text(cap1(x.whose))];
+    const whose: Run[] = [text(cap(x.whose))];
     if (!r.missing) { whose.push(text(WORDS.DOT_SEP)); whose.push(...ruleBookLine(r)); }
     return { status: x.status, says: x.says, whose, mark: x.status === "closed" ? WORDS.CLOSED_MARK as "✕" : null,
       presence: presenceLine(x.presence), pictures: pictures(x.species, env.fish, names), stamps: (x.stamps ?? []).map(stampLine) };

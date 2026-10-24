@@ -18,6 +18,7 @@ import type { DisplayFrame, RegsInputs } from "./inputs";
 import type { Day, StripVM } from "./model";
 import type { Settled } from "./settle";
 import { MONTH1, WD3, WORDS } from "./words";
+import { sameDay } from "../day";
 
 /** The 365 days of the book's year (no Feb 29), as page v36 DAYS: book day i → {month, day}. */
 export const BOOK_DAYS: readonly Day[] = Object.freeze(COMMON_YEAR_MONTH_LAST_DAY.flatMap((n, m) =>
@@ -128,7 +129,6 @@ export function troutLine(card: CardModel, d: Day): string | null {
                           ru.all ? WORDS.ALL_YEAR : WORDS.UNTIL(fmtDay(ru.until!)));
 }
 
-const sameDay = (a: Day, b: Day) => a.month === b.month && a.day === b.day;
 const SOON_WINDOW = 21;
 
 /**

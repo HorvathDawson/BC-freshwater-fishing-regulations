@@ -59,7 +59,8 @@ export function dayRange(now: Date, validUntil: string | null): DayRange {
 
 const isoOf = (d: Date) => localDate(d.getTime());
 export const inRange = (r: DayRange, d: Date): boolean => { const i = isoOf(d); return i >= r.first && i <= r.last; };
-const sameDay = (a: Date, b: Date) => isoOf(a) === isoOf(b);
+/** The same local date, year included. */
+const sameDate = (a: Date, b: Date) => isoOf(a) === isoOf(b);
 
 /** "Saturday, June 15" */
 export function fullDay(d: Date): string {
@@ -68,7 +69,7 @@ export function fullDay(d: Date): string {
 
 /** The map's calendar button: "Today", or the day it shows ("Sat, Jun 15"). */
 export function dayButtonVM(day: Date | null, now: Date): { text: string; label: string } {
-  if (!day || sameDay(day, now)) return { text: DAY_PICKER.today, label: DAY_PICKER.buttonLabel(DAY_PICKER.todaySaid) };
+  if (!day || sameDate(day, now)) return { text: DAY_PICKER.today, label: DAY_PICKER.buttonLabel(DAY_PICKER.todaySaid) };
   return { text: `${DAY_PICKER.weekdays[day.getDay()]![0]}, ${DAY_PICKER.monthsShort[day.getMonth()]} ${day.getDate()}`,
            label: DAY_PICKER.buttonLabel(fullDay(day)) };
 }
@@ -76,12 +77,12 @@ export function dayButtonVM(day: Date | null, now: Date): { text: string; label:
 /** "Showing today, Wednesday, October 21" / "Showing Saturday, June 13" */
 export function showingLine(day: Date | null, now: Date): string {
   const d = day ?? now;
-  return DAY_PICKER.showing(sameDay(d, now) ? DAY_PICKER.todayFull(fullDay(d)) : fullDay(d));
+  return DAY_PICKER.showing(sameDate(d, now) ? DAY_PICKER.todayFull(fullDay(d)) : fullDay(d));
 }
 
 /** The day a pick lands on: today is null (so "Today" follows midnight), any other day its local noon (`mapDayOf`). */
 export function chooseDay(d: Date, now: Date): Date | null {
-  return sameDay(d, now) ? null : new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12);
+  return sameDate(d, now) ? null : new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12);
 }
 
 /** `n` days (or months) from the day shown; undefined when that leaves the range (the step is refused, not clamped). */
@@ -125,7 +126,7 @@ export function monthVM(year: number, month: number, chosen: Date | null, now: D
   for (let n = 1; n <= days; n++) {
     const d = new Date(year, month, n, 12);
     const iso = isoOf(d);
-    const today = sameDay(d, now), isChosen = sameDay(d, shown);
+    const today = sameDate(d, now), isChosen = sameDate(d, shown);
     const disabled = iso < range.first || iso > range.last;
     if (iso < range.first) offBefore = true;
     if (iso > range.last) offAfter = true;

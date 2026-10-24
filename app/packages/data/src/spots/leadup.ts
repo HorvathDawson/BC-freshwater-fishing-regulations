@@ -16,7 +16,7 @@
  * for them again (`leadUpPendingDays`); a day the feed had been published past and holds nothing for is `none: true`,
  * and is never asked for again. A weather day with no value at all is one the service did not send: asked again too.
  */
-import { localDate, placeInBand, type Band } from "@app/core";
+import { calendarDayOfYear, localDate, placeInBand, type Band } from "@app/core";
 import type { Aged, Parameter, RegsSource, Series, StationId } from "../index";
 import type { WeatherSource } from "./capture";
 import type { DailyGauge, DailyWeather, LeadUp } from "./model";
@@ -72,19 +72,13 @@ export async function weekWeather(weather: WeatherSource | undefined, lat: numbe
   }
 }
 
-/** Day of the year, 1-based, of a "YYYY-MM-DD" — on the same index `gaugeSeries` builds its days on. */
-function dayOfYear(date: string): number {
-  const [y, m, d] = date.split("-").map(Number) as [number, number, number];
-  return Math.round((Date.UTC(y, m - 1, d) - Date.UTC(y, 0, 1)) / 86_400_000) + 1;
-}
-
 /**
  * One day's mean and that day's envelope, out of a "year" series: this year's days, or a prior year's. The one reader
  * of a day in a station's year — the week before a visit (`weekGauge`) and the visit day's own flow (`flowOnDay`, T170).
  */
 export function dayIn(s: Series | null, date: string): { v: number | null; band: Band | null } {
   if (!s) return { v: null, band: null };
-  const i = dayOfYear(date) - 1;
+  const i = calendarDayOfYear(date) - 1;
   const year = Number(date.slice(0, 4));
   const vals = year === Number(s.from.slice(0, 4)) ? s.values
     : s.priorYears.find((p) => p.year === year)?.values ?? [];

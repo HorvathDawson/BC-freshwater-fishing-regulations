@@ -24,6 +24,7 @@ import type { RegsInputs } from "./inputs";
 import { boldN, nbsp, text, type Line, type Run } from "./line";
 import type { FishPicVM, KindVM, OriginVM, TierVM, TreeNodeVM } from "./model";
 import { WORDS } from "./words";
+import { cap } from "./names";
 
 export interface TreeEnv {
   readonly inp: RegsInputs; readonly card: CardModel; readonly fish: FishManifest;
@@ -31,7 +32,6 @@ export interface TreeEnv {
   readonly tot: "a" | "b";
 }
 
-const cap1 = (t: string | null | undefined): string => (t ? t[0]!.toUpperCase() + t.slice(1) : "");
 
 /** prototype sizeOf, verbatim: the detail's size words (non-"any" preferred) and its other words (qualifiers). */
 export function sizeOf(detail: string | null | undefined): { size: string; q: readonly string[] } {
@@ -68,9 +68,9 @@ export function tierWords(t: TreeTier): Line {
   return out;
 }
 
-/** prototype dutyWords (v33): cap1, and "this river / stream / lake / creek" becomes the water's own name. */
+/** prototype dutyWords (v33): cap, and "this river / stream / lake / creek" becomes the water's own name. */
 export function dutyWords(duty: string, waterName: string): string {
-  return cap1(duty).replace(/\bthis (river|stream|lake|creek)\b/i, () => WORDS.THE_NAME(waterName));
+  return cap(duty).replace(/\bthis (river|stream|lake|creek)\b/i, () => WORDS.THE_NAME(waterName));
 }
 
 const same = (a: readonly string[], b: readonly string[]): boolean => a.length === b.length && a.every((x) => b.includes(x));
@@ -152,7 +152,7 @@ export function kindRow(k: TreeKind, env: TreeEnv): KindVM {
     size: size && !zero ? { text: nbsp(size), rule: !!k.size_rule } : null,
     qualifiers: q.length ? q.join(", ") : null,
     pictures: pictures(k.species, env.fish, fishNames(env.inp, env.fish)),
-    also: [...(sizeNote ? [nbsp(cap1(sizeNote.says))] : []), ...(k.also_counts ?? []).map((a) => nbsp(cap1(a.says)))],
+    also: [...(sizeNote ? [nbsp(cap(sizeNote.says))] : []), ...(k.also_counts ?? []).map((a) => nbsp(cap(a.says)))],
     duty, stamps, presence: presenceLine(presOf(k, env.card, env.drawn)),
   };
 }
@@ -182,7 +182,7 @@ export function tierNode(t: TreeTier, env: TreeEnv, root: boolean, seen: Readonl
   if (bk.length) line.push(text(" "), ...bk);
   return { ...base, kicker: t === env.ctx.tagShare ? env.ctx.tag : null, line, folded: false,
     relation: t.relation ? nbsp(t.relation) : null,
-    sub: t.tier === "own" && t.why_here ? nbsp(cap1(t.why_here)) : null, origin: torg([]) };
+    sub: t.tier === "own" && t.why_here ? nbsp(cap(t.why_here)) : null, origin: torg([]) };
 }
 
 /** prototype tops/tree: the head's root's children (the head IS the root tier), else every tier at the top. */

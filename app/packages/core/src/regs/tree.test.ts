@@ -44,7 +44,7 @@ describe("tierWords", () => {
 });
 
 describe("dutyWords", () => {
-  it("cap1, and 'this river' becomes the water's own name — once", () => {
+  it("cap, and 'this river' becomes the water's own name — once", () => {
     expect(dutyWords("stop fishing this river after 2 a day", "Vedder River")).toBe("Stop fishing the Vedder River after 2 a day");
     // the prototype capitalises BEFORE the swap, so a duty that opens on "this creek" reads "the …" (no store duty does)
     expect(dutyWords("this Creek, then this stream", "Wilkes Creek")).toBe("the Wilkes Creek, then this stream");
