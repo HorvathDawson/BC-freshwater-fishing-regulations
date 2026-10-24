@@ -1,6 +1,6 @@
 # T172 — Android smoke: show the app builds, installs and runs on the emulator (before cleanup)
 
-Status: DONE — 2026-10-23, the commit that adds "Result" below (smoke only: the app builds, installs, opens and runs on
+Status: DONE — 9cc8724f (2026-10-23; smoke only: the app builds, installs, opens and runs on
 the emulator; no code changed; every problem found is a line in T50 "Found by T172")
 
 Source: owner 2026-10-23: "maybe do a simple android emulation before cleanup but do full emulator work and comparison
