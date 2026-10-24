@@ -384,13 +384,14 @@ def build_registry(graph: StreamGraph, prof=None, pinned: dict[str, str] | None 
     # `StreamNode.location_identifier`, so stamping would print "within area:drains_to:pfma_5"
     # across the whole north coast.
     with prof.phase("drainage areas"):
+        # P2 / plan 2.13: NO SILENT SKIP. Without the PFMA layer DFO section E's tidal scopes do not resolve, and a
+        # warning in a 60-minute log is how they would vanish from a shipped atlas; the build stops, naming the fetch.
+        from pipeline.atlas.splits import pfma_drainage
         try:
-            from pipeline.atlas.splits import pfma_drainage
             basins = pfma_drainage.basin_areas()
-        except Exception as exc:                      # layer not fetched, or no geometry stack
-            logger.warning("drainage areas skipped (%s) — DFO section E's tidal scopes will not "
-                           "resolve; fetch with: python -m data.fetch_data --layers pfma_areas", exc)
-            basins = {}
+        except Exception as exc:                      # noqa: BLE001 — re-raised, never swallowed
+            raise SystemExit(f"registry: drainage areas could not be built ({exc}) — DFO section E's tidal scopes "
+                             "need the PFMA layer: python -m data.fetch_data --layers pfma_areas") from exc
         if basins:
             drain: dict[str, list[StreamNode]] = defaultdict(list)
             for n in graph.nodes.values():

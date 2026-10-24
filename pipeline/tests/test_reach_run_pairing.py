@@ -96,3 +96,12 @@ def test_no_run_for_this_atlas_returns_nothing_rather_than_a_guess(world):
     (atlas / "empty").mkdir()
     (atlas / "empty" / "section_handles.txt").write_text("z:0\n")
     assert B._reach_run(atlas / "empty") is None
+
+
+def test_an_atlas_without_its_handle_table_is_refused_not_paired_by_name(world):
+    """Plan 2.13: an unreadable handle table used to fall back to pairing by folder name in silence."""
+    atlas, reaches, run = world
+    run("legacy", "full", with_digest=False)
+    (atlas / "full" / "section_handles.txt").unlink()
+    with pytest.raises(FileNotFoundError, match="section_handles.txt"):
+        B._reach_run(atlas / "full")

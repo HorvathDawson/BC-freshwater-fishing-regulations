@@ -1404,10 +1404,13 @@ def _polys(fwa, layers, bbox):
 
 
 def _geoms(fwa, layer, bbox):
-    try:
-        gdf = fwa.get_layer(layer, columns=["geometry"], bbox=bbox)
-    except Exception:                                            # noqa: BLE001 — layer optional
-        return []
+    """Every geometry of `layer` in `bbox`. NOT OPTIONAL (plan 2.13): the tidal boundary decides which added streams
+    end at the sea, and an empty list read as "no tidal water anywhere" — a missing layer stops the build, naming the
+    fetch; an empty bbox is an empty list, as it always was."""
+    if layer not in fwa.layer_names:
+        raise SystemExit(f"added streams: no `{layer}` layer in {fwa.gpkg_path} — "
+                         f"fetch it: python data/fetch_data.py --layers {layer}")
+    gdf = fwa.get_layer(layer, columns=["geometry"], bbox=bbox)
     return [g for g in gdf.geometry if g is not None]
 
 

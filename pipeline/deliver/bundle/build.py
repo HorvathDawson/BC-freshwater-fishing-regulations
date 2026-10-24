@@ -96,10 +96,9 @@ def _reach_run(build_dir: Path) -> Path | None:
     rather than assumed.
     """
     from pipeline.common.section_handles import digest_for
-    try:
-        want = digest_for(build_dir)
-    except Exception:
-        want = ""
+    # NO SILENT FALLBACK (plan 2.13): an atlas whose handle table cannot be read used to pair by folder NAME alone —
+    # the pairing this function exists to replace. It stops, naming the file (the bundle needs it anyway).
+    want = digest_for(build_dir)
 
     runs, by_name = [], []
     for report in sorted((GENERATED.reaches).glob("*/report.json")):

@@ -474,63 +474,6 @@ def load_mu_polys(gpkg: str, bbox=None) -> dict:
     return out
 
 
-def stamp_waterbody_membership(gpkg: str, mu_polys: dict, area_polys: dict,
-                               bbox=None) -> dict:
-    """MU and area membership for EVERY waterbody polygon, node or not.
-
-    A lake becomes a graph node when a stream is routed through it, and a wetland only when
-    something names it. Measured province-wide, that leaves **417,111 waterbodies with no
-    node at all**: 333,468 of 333,526 wetlands, 82,201 lakes and 1,442 reservoirs. They are
-    real water, they are fishable, and a zone regulation ("in MU 4-5 the trout quota is 2")
-    applies to every one of them — but with no node they carry no MU, so no zone rule can
-    reach them and they would silently read as unregulated.
-
-    Returns {wbk: {"mus": [...], "areas": [...]}} keyed by WATERBODY_KEY, which is the same
-    key the tile exporter joins polygons on. Written as a build artifact so membership is
-    computed exactly once, in the build, like everything else.
-    """
-    import geopandas as gpd
-    from shapely.strtree import STRtree
-
-    keys: list[str] = []
-    geoms: list = []
-    for layer in ("lakes", "manmade", "wetlands"):
-        kw: dict = {"engine": "pyogrio", "columns": ["WATERBODY_KEY"]}
-        if bbox is not None:
-            kw["bbox"] = tuple(bbox)
-        try:
-            gdf = gpd.read_file(gpkg, layer=layer, **kw)
-        except Exception:
-            continue
-        for k, geom in zip(gdf["WATERBODY_KEY"], gdf.geometry):
-            if k is None or geom is None or geom.is_empty:
-                continue
-            keys.append(str(int(k)))
-            geoms.append(geom)
-    if not geoms:
-        return {}
-
-    tree = STRtree(geoms)
-    out: dict[str, dict[str, list[str]]] = {}
-
-    def _add(i: int, field: str, value: str) -> None:
-        rec = out.setdefault(keys[i], {"mus": [], "areas": []})
-        if value not in rec[field]:
-            rec[field].append(value)
-
-    for mu, poly in mu_polys.items():
-        if poly is None or poly.is_empty:
-            continue
-        for i in tree.query(poly, predicate="intersects"):
-            _add(int(i), "mus", mu)
-    for area, poly in area_polys.items():
-        if poly is None or poly.is_empty:
-            continue
-        for i in tree.query(poly, predicate="intersects"):
-            _add(int(i), "areas", area)
-    return out
-
-
 def apply_border(fwa, graph: StreamGraph, geoms: dict, chains: list[BlkChain],
                  fid_index: Optional[dict] = None, prof=None,
                  cuts_out: Optional[dict] = None,

@@ -1,11 +1,30 @@
 """Unit tests for build_registry — synthetic StreamGraph, no FWA needed."""
 
+import pytest
 from shapely.geometry import LineString, box
 
 from pipeline.common.models import (
     BoundaryKind, NameSource, NameTuple, NodeKind, SectionBoundary, StreamGraph, StreamNode,
 )
 from pipeline.atlas.registry import add_mu_sets, add_waterbody_items, build_registry
+
+
+@pytest.fixture(autouse=True)
+def _no_pfma_layer_needed(monkeypatch):
+    """A synthetic graph has no PFMA drainage: the province's basins are not read (the build refuses to skip them)."""
+    from pipeline.atlas.splits import pfma_drainage
+    monkeypatch.setattr(pfma_drainage, "basin_areas", lambda *a, **kw: {})
+
+
+def test_a_missing_pfma_layer_stops_the_registry_naming_the_fetch(monkeypatch):
+    """Plan 2.13: the drainage areas were a logged skip; DFO section E would have resolved nowhere."""
+    from pipeline.atlas.splits import pfma_drainage
+
+    def gone(*_a, **_kw):
+        raise FileNotFoundError("no layer pfma_areas")
+    monkeypatch.setattr(pfma_drainage, "basin_areas", gone)
+    with pytest.raises(SystemExit, match="fetch_data --layers pfma_areas"):
+        build_registry(StreamGraph(), pinned={})
 
 
 def _node(nid, *, blk="", wsc="", gnis="", name="", tuples=(), in_areas=(),
