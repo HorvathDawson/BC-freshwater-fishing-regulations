@@ -1197,3 +1197,11 @@ is never touched). T170's "read when this spot was saved" label is gone. Ticket 
 - **REVERSES T115: a piece that straddles a region line carries BOTH regions' rules** (owner answer to the conflict,
   2026-10-24). Supersedes "home region only" (T115, 2026-10-22). → T183. Moving a length cut then never moves a
   piece's region rules (q_length_home is moot).
+
+## OWNER 2026-10-24 — Okanagan River oxbows are streams (slough review, T55/T149)
+"All the oxbows should be made streams — make sure of that (Okanagan oxbow ones)." 41 slough candidates sit in the
+registry item "Okanagan River Oxbows" (wbk polygons now kind lake/wetland; 38 UNSURE, 2 LIKELY_STREAM, 1 LAKE in v2).
+All 41 become STREAM water. The book's own entry `r8:okanagan_river_oxbows@8-1` ("isolated oxbows adjacent to Okanagan
+River downstream of McIntyre Dam and upstream of Vaseux Lake are EXEMPT from the spring closure") must keep binding
+every one of them after the change — a binding diff proves it — so they read as streams with their own exemption, not
+as Okanagan River mainstem. Applied with the slough fold (dry run first, per the bulk-reclassify rule).
