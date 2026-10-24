@@ -5,7 +5,7 @@ How a sentence in the fishing synopsis becomes data, and how that data becomes a
 Read this before touching regulation entries. It replaces doc 17. It is background: the field-level
 contract is `pipeline/regs/parsing/prompts/CATALOGUE_PARSE_PROMPT.md` and the model
 (`pipeline/regs/parsing/catalogue.py`); where this doc and either of them disagree about a field,
-they win. Counts here were measured on 2026-09-29 (`pipeline/docs/CURRENT-STATE.md` says where
+they win. Counts here were measured on 2026-09-29 (`pipeline/docs/archive/2026-10-CURRENT-STATE.md` says where
 each comes from).
 
 ---

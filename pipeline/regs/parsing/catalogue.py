@@ -6,7 +6,7 @@ from those (see `label()`), so it cannot drift from the numbers the way the pros
 `r6:bennett_lake` said "tiered size limit" while its own verbatim said "only 1 over 90 cm, none
 between 60 cm and 90 cm".
 
-Spec: pipeline/docs/18-how-regulations-are-stored.md and pipeline/docs/CURRENT-STATE.md. Source
+Spec: pipeline/docs/18-how-regulations-are-stored.md and pipeline/docs/MAP.md. Source
 text: data/curated/regulations/reference/.
 
 THE ONE INVARIANT: a type boundary is a wall the override cannot cross. Two rules that could ever

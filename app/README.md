@@ -1,7 +1,8 @@
 # canifishthis — app workspace
 
-Greenfield, mobile-first. Inherits **no code** from `webapp/` or `mobile/` at the repo
-root; those are prior art. Plan: [`pipeline/docs/archive/13-build-plan.md`](../pipeline/docs/archive/13-build-plan.md) §4.
+Greenfield, mobile-first. Inherits **no code** from `archive/webapp` or `archive/mobile`; those are prior art.
+**What is where today: [`MAP.md`](MAP.md).** This file is the WHY of the layers, the one React and the one map style.
+History: [`pipeline/docs/archive/13-build-plan.md`](../pipeline/docs/archive/13-build-plan.md) §4.
 
 ## Why the layers are shaped this way
 
@@ -52,24 +53,18 @@ inversion is why `ui/` exists as a separate package from the component set.
 renderers. `<div>` and `<View>` do not. This is the opposite of where most teams draw
 the line and it is why this works without committing to react-native-web up front.
 
-## Build order (the ordering is the point)
-
-1. `core` + the `WaterSource` interface + the fixture implementation — **before either app exists**
-2. `apps/mobile` against a real bundle, offline on first run
-3. the same app on the web against the release store via range reads
-4. Conformance runs **both** implementations on every commit
-
 ## Commands
 
 ```bash
 pnpm install
-pnpm check        # boundaries + platform + style + colours + deps + typecheck + test — what CI runs
+pnpm check        # every gate, knip, typecheck, vitest — what CI runs (the steps: package.json scripts.check)
 pnpm boundaries   # layer rules (layers.json)
 pnpm platform     # variant sets complete, shared code portable
 pnpm style        # rebuild the style, verify hash, fail if it was stale
 pnpm style:build  # after editing layers.source.json
 pnpm colours      # no colour literal outside tokens.json + themes/ (the one palette)
 pnpm deps         # every dependency justified in deps.md
+pnpm knip         # no unused file, export or dependency (allowances in knip.jsonc)
 pnpm clean        # delete every workspace dist/ (typecheck output; nothing reads it)
 ```
 
@@ -82,7 +77,7 @@ pnpm dev:ios      # expo run:ios — needs Xcode + CocoaPods
 ```
 
 All three are the **same Expo project** (`apps/mobile`) on three platforms, and all three
-render the same `PlaceholderScreen` out of `@app/ui-native`. That is the point: mobile web
+render the same `Shell` out of `@app/ui-native`. That is the point: mobile web
 is not a port of the phone UI, it *is* the phone UI, compiled by react-native-web.
 
 `android/` and `ios/` are **not committed**. They are generated from `app.json` by
@@ -187,13 +182,3 @@ through `resolveTheme()`; `palette` in `packages/ui-native/src/theme.ts` is buil
 map's ΔE/duplicate guards skip and `theme.test.ts` / `tools/cvd.test.ts` hold instead. A theme
 value may name another token (`"@color.ui.ink"`) when two are one colour by design.
 `tools/check-colours.mjs` fails on a hex, `rgb()`/`hsl()` or named colour anywhere else.
-
-## What is deliberately NOT here
-
-No schema, no queries, no components, no map adapters. The content store's shape is
-decided by 13-build-plan steps 6–7; writing types against a guess would bake in a
-shape the data cannot fill. What exists today is the **structure and its enforcement**.
-
-Two things are already real, because neither depends on the schema:
-- `core/freshness` — a stale value must never render as a live one (§5)
-- the conformance suite — one query, but the wiring both implementations must satisfy

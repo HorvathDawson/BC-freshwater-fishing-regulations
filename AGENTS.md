@@ -4,6 +4,9 @@ Decisions already made and paid for. Each line exists because something broke or
 measured. **Read this before changing anything**; re-deriving these costs a day and
 re-litigating them costs trust.
 
+**Maps of what exists now:** `pipeline/docs/MAP.md` (the pipeline) and `app/MAP.md` (the app). Fix a map when the code
+moves under it.
+
 Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (delivery), `pipeline/docs/archive/10-plan.md`
 (issues ①–㊸), `pipeline/docs/archive/REACH-BUILDER.md`, `pipeline/docs/archive/RESOLVER-HANDOFF.md`.
 
@@ -168,7 +171,9 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
     as something they are not (⑨/㉜ — the one failure with real consequences).
 30. **Every dependency needs a line in `app/deps.md`.** v1 accumulated chart.js + pdf-lib +
     pdfjs + fuse + suncalc without anyone deciding to.
-31. **`pnpm check` must pass**: boundaries → platform → style → deps → typecheck → test.
+31. **`pnpm check` must pass.** Its steps are `app/package.json` `scripts.check` (and `app/MAP.md`), not a list
+    retyped here: the gates, the generated-file checks, knip (no unused file, export or dependency; allowances with
+    reasons in `app/knip.jsonc`), typecheck, vitest.
 
 32. **A screen may not assert a fact about the data it is sitting on — it asks.**
     `App.tsx` passed `waters={255} reaches={6967} surveyed={35} stations={5}` and a fixed
@@ -279,7 +284,7 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
 
 <!-- 45-53: rulings from 2026-09-25 to 2026-09-29 that were only in commit messages and memory.
      Appended, not interleaved, so the numbers above stay stable. The mechanics are in
-     pipeline/docs/CURRENT-STATE.md; the reference reader is read/ladder.py `effective_rules`. -->
+     pipeline/docs/archive/2026-10-CURRENT-STATE.md (history); the reference reader is read/ladder.py `effective_rules`. -->
 
 45. **The book's species list (p.80) is closed, and a bull trout IS a Dolly Varden.** 22 fish
     in TROUT/CHAR/WHITEFISH/BASS/OTHER (`catalogue.BOOK_FAMILIES`); any other code is refused.

@@ -11,7 +11,7 @@ LOSSLESS is proved three ways:
 The comparison with the PRE-COMPRESSION builder (59cd509e) for the same bundle was made once,
 outside the suite: every table equal; the differences are the 21,568 unreferenced lake edges, the
 `about` closure lists and the guide's closure notes naming a rule set (or an `example` key) instead
-of a section, and the dictionary/guide texts this phase rewrote (pipeline/docs/06-ui-data-contract.md Part 6).
+of a section, and the dictionary/guide texts this phase rewrote (pipeline/docs/archive/06-ui-data-contract.md Part 6).
 """
 from __future__ import annotations
 

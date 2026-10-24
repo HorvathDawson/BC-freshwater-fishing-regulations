@@ -32,6 +32,9 @@ curated data ┘  graph,     every rule   bundle → verdicts → status index  
 - **Tiles** (`pipeline/deliver/tiles/`): the map, with a sidecar recording which atlas and registry
   it was cut from.
 
+The current maps: [`pipeline/docs/MAP.md`](pipeline/docs/MAP.md) (stages, modules, inputs, outputs) and
+[`app/MAP.md`](app/MAP.md) (packages, the data path, fixtures, gates).
+
 Each stage records digests of what it read (atlas handles, registry, corpus, reach run) and the
 next stage refuses a mismatched pair. The rulings on how the book is read are in
 [`pipeline/docs/RULINGS.md`](pipeline/docs/RULINGS.md); the rules for working in this repo are in
