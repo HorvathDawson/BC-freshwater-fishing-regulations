@@ -291,13 +291,29 @@ def test_pages_render_from_many_threads_at_once(backend_mods):
     assert _render_in_threads(lambda n: pages.page_png.__wrapped__(n + 2, 1.0)) == []
 
 
-def test_the_render_lock_is_pinned_by_mutation(backend_mods, monkeypatch):
+#: The mutation, run in a CHILD process: unlocked concurrent renders corrupt pdfium's process-global state, and every
+#: later `PdfDocument` in the same process then fails with "PDFium: Data format error" (T63: this test, run in-process,
+#: was the leak behind test_synopsis_pages' 4 order-dependent errors in the full suite).
+_MUTATION = """
+import contextlib, sys
+sys.path.insert(0, sys.argv[1])
+sys.path.insert(0, sys.argv[2])
+import evidence, synopsis_pages
+from pipeline.tests.test_review_screen import _render_in_threads
+synopsis_pages.PDFIUM_LOCK = contextlib.nullcontext()
+print(len(_render_in_threads(lambda n: evidence._render.__wrapped__(n, 1.0))))
+"""
+
+
+def test_the_render_lock_is_pinned_by_mutation():
     """MUTATION: no lock (`PDFIUM_LOCK` a no-op) — renders in flight together fail, and
-    `test_pages_render_from_many_threads_at_once` fails on it."""
-    import contextlib
-    evidence, pages = backend_mods
-    monkeypatch.setattr(pages, "PDFIUM_LOCK", contextlib.nullcontext())
-    assert _render_in_threads(lambda n: evidence._render.__wrapped__(n, 1.0)) != []
+    `test_pages_render_from_many_threads_at_once` fails on it. In a child process (see `_MUTATION`)."""
+    import subprocess
+    import sys
+    got = subprocess.run([sys.executable, "-c", _MUTATION, str(REPO / "curation-review" / "backend"), str(REPO)],
+                         capture_output=True, text=True, timeout=600, cwd=REPO)
+    assert got.returncode == 0, got.stderr[-2000:]
+    assert int(got.stdout.strip().splitlines()[-1]) > 0, got.stdout
 
 
 def test_s0_holds_a_split_whose_mark_went_stale():
