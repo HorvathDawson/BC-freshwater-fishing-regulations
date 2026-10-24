@@ -1,4 +1,4 @@
-# T165 — No public access takes the warning amber; "has its own regulations" gets a new colour
+# T165 — No public access: streams dotted grey (like under-lake streams, a bit stronger); the warning lives in the banner
 
 Status: OPEN
 
@@ -6,7 +6,24 @@ Source: owner 2026-10-23 (after T146): "the no access color is still not aggress
 more warning maybe it could take the yellow or orange color then has its own regulation gets a different color?"
 Supersedes Q137/Q138 (T146's spruce / dash questions).
 
-## Work
+## OWNER DECISION 2026-10-23 (supersedes the amber swap below)
+"maybe the stream color through no access areas should be dotted grey? like under lakes but a little more visible?" —
+chosen over amber lines and dotted amber: streams through no-access land draw as a DOTTED GREY line (the under-lake
+stream style, a little stronger); no-access lake fills grey; the no-access LAND fill stays; the regulations page keeps
+the T147 "No public access" block in the amber WARNING colour; "own regulations" KEEPS its amber on the map. The dash is a
+second channel by the owner's choice (it was Q138; the `stream-nobaseline` layer is the precedent: its own layer because
+line-dasharray cannot vary per feature).
+
+## Work (as decided)
+1. Map: a `stream-noaccess` dotted layer (grey, a little stronger than `under_lake`), lake fills inside no-access grey;
+   status.no_access becomes that grey for lines/fills in every theme; the colour gates updated (no_access grey must stay
+   apart from base, water.ungauged and the under-lake grey — say how it reads apart, the dot pattern being the main cue).
+2. The page: the T147 block's bar/tint/heading in the warning amber (status.own's hue or a dedicated warning token,
+   whichever the gates prefer); the legend says "No public access" with the dotted grey swatch.
+3. status.own stays amber; no new colour needed.
+4. Shots: Coquitlam / Seymour / Capilano watersheds, light + dark, phone + desktop; the under-lake style beside it.
+
+## Earlier plan (superseded)
 1. status.no_access := the amber status.own uses today (Okabe & Ito orange in light, yellow in dark; the cvd theme's
    warning hue) — it must read as a warning at a glance.
 2. status.own gets a NEW colour, apart from closed (crimson), the new no_access (amber), base (blue), the selection

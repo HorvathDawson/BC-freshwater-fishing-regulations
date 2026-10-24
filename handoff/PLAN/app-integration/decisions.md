@@ -1114,3 +1114,8 @@ Answered / obsolete (removed from the table):
   COFFEE and ELF forecasts the feed publishes). Credit the BC River Forecast Centre on the Sources page (T167).
 - **HYDAT** (and ECCC's GeoMet hydrometric services) is under the Open Government Licence – Canada; attribute ECCC
   (T167; T170's online daily-mean lookup).
+
+## OWNER 2026-10-23 — no public access on the map: dotted grey
+Streams through no-access land draw as a dotted grey line (the under-lake style, a little stronger); no-access lakes grey;
+the regulations page leads with the amber "No public access" block (T147); "own regulations" keeps amber. Supersedes
+T146's spruce/cyan and the T165 amber swap; the dash is the owner's chosen second channel (was Q138). Ticket T165.
