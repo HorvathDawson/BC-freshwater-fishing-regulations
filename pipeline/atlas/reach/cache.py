@@ -117,7 +117,9 @@ from typing import Callable
 #:     side and marked. The atlas cuts it (`splits.braid_sweep`); the reach reads the cut on every line it
 #:     crosses (`extent.A_CUT_SEVERS_EVERY_LINE_IT_CROSSES`), and the run refuses what still straddles
 #:     (`build.straddle_gate`).
-POLICY_VERSION = "29"
+#: 30: (T67) the D5 flow path never crosses the window's cut either: it does not step between pieces of a
+#:     line meeting at the cut, nor climb through the lake the cut is the edge of (`extent._flow_reach`).
+POLICY_VERSION = "30"
 
 
 def entry_key(entry: dict, build_id: str, policy_version: str = POLICY_VERSION) -> str:

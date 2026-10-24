@@ -491,7 +491,8 @@ def _by_measure(g, universe: set[str], blk: str, lo: float, hi: float,
         reach: dict[str, set[str]] = {}
         flags: dict[str, set[str]] = {}
         for nid in sorted(lost):
-            reach[nid], flags[nid] = _flow_reach(g, nid, universe, blk, lo, hi)
+            reach[nid], flags[nid] = _flow_reach(g, nid, universe, blk, lo, hi,
+                                                 cut_ids=frozenset(cut_ids), principal=blk)
         inside.add(_JUST_ABOVE_IN)                         # the window's side of "just above a cut"
         outside.add(_JUST_ABOVE_OUT)
 
@@ -628,7 +629,22 @@ def _say(why: dict | None, nid: str, reason: str) -> None:
         why.setdefault(nid, reason)
 
 
-def _flow_reach(g, nid: str, universe: set[str], blk: str, lo: float, hi: float):
+def _severed(g, a: str, b: str, principal: str, cut_ids) -> bool:
+    """Do pieces `a` and `b` of one blue line (not the cut's principal one) meet at a bound carrying the
+    window's cut? Then they are on opposite sides of it (`A_CUT_SEVERS_EVERY_LINE_IT_CROSSES`)."""
+    if not cut_ids:
+        return False
+    na, nb = g.nodes.get(a), g.nodes.get(b)
+    if na is None or nb is None or not na.blk or na.blk != nb.blk or na.blk == principal:
+        return False
+    bnd = na.upper_bound if abs(na.up_m - nb.down_m) < 0.001 else (
+        na.lower_bound if abs(na.down_m - nb.up_m) < 0.001 else None)
+    return bnd is not None and (str(bnd.boundary_id) in cut_ids
+                                or any(x in cut_ids for x in (bnd.aliases or ())))
+
+
+def _flow_reach(g, nid: str, universe: set[str], blk: str, lo: float, hi: float,
+                cut_ids: frozenset = frozenset(), principal: str = ""):
     """(sections of the scoped water `nid`'s WATER reaches, flags) — the flow path through water
     that is not the scoped water's own.
 
@@ -639,7 +655,16 @@ def _flow_reach(g, nid: str, universe: set[str], blk: str, lo: float, hi: float)
     extends the piece's — never leads back to the river, so it is not climbed. A downstream path that
     meets the cut's own line AT the cut (within `WATERSHED_AT_CUT_M`) is on neither side: it is
     dropped and flagged `at_cut`, so the piece stays unplaced and says why — unless it arrives
-    through a LAKE'S OUTLET, which puts it just above the cut (`_JUST_ABOVE_IN` / `_OUT`)."""
+    through a LAKE'S OUTLET, which puts it just above the cut (`_JUST_ABOVE_IN` / `_OUT`).
+
+    THE WINDOW'S CUT IS NOT CROSSED (T67, `A_CUT_SEVERS_EVERY_LINE_IT_CROSSES`): neither walk steps between
+    two pieces of a blue line that meet at a bound carrying the cut (a braid the atlas cut there: the
+    Chowade's 26 m piece below Horseshoe Road Bridge climbed back over its own cut), and the upstream walk
+    never climbs through the LAKE the cut is the edge of (`cut_ids` holds `lake:{wbk}`): a channel
+    draining the window's cut lake is on that lake's downstream side (the Ash River's second outlet of
+    Elsie Lake, outside "between Elsie Lake and Dickson Lake")."""
+    if not A_CUT_SEVERS_EVERY_LINE_IT_CROSSES:
+        cut_ids = frozenset()
     cuts = [c for c in (lo, hi) if 0.0 < c < float("inf")]
     from pipeline.atlas.registry.basins import node_basin_code
     hits: set[str] = set()
@@ -654,6 +679,8 @@ def _flow_reach(g, nid: str, universe: set[str], blk: str, lo: float, hi: float)
         for i in downs:
             e = g.edges[i]
             y = e.to_node
+            if _severed(g, x, y, principal, cut_ids):
+                continue
             if y in universe:
                 q = g.nodes.get(y)
                 at = [c for c in cuts if abs(e.at_measure - c) <= WATERSHED_AT_CUT_M]
@@ -676,6 +703,8 @@ def _flow_reach(g, nid: str, universe: set[str], blk: str, lo: float, hi: float)
         x = stack.pop()
         for i in g.up_adj.get(x, []):
             y = g.edges[i].from_node
+            if _severed(g, x, y, principal, cut_ids) or y in cut_ids:
+                continue
             if y in universe:
                 hits.add(y)
                 continue
