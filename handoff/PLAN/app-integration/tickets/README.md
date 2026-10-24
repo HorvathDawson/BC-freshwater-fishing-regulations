@@ -223,6 +223,7 @@ use that as the sole source of future work."
 | T176 | the Conditions legend's "N gauges in view" counts sections, not gauges | DONE | e8999343, 1f46e968 | app: "N reaches coloured" |
 | T177 | combine CLEVER + COFFEE on every forecast day, weighted by measured skill (owner Q160) | DONE | b039349e, 73dd133e, af119f2c | feed republish; equal weights until the archive decides (T178); + spots record the trip day |
 | T178 | re-score CLEVER vs COFFEE from the run archive (~6 weeks) and set the weights by the verdict | OPEN | — | due ~2026-12-05 |
+| T179 | one cut-placement pass: auto cuts merge into names, real cuts close together stay apart (order-independent) | OPEN | — | heavy (atlas rebuild); after T61 2.8; owner reviews binding diff |
 
 ## Order for open tickets
 
