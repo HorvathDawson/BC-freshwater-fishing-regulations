@@ -3,7 +3,22 @@
 Restart here. Update this file after EVERY step: what is done, what is running, and the exact next action.
 Logs from timing runs live in the session scratchpad, which a reboot wipes. The numbers that matter are copied here.
 
-## CURRENT STATE (2026-10-24, evening)
+## CURRENT STATE (2026-10-24, night — owner asleep)
+- Live release **r-d6ef0ca7eab4** (data/release/LATEST; :39217 serves it). T61 lanes A/B/C merged; rebuild bound
+  nothing differently; strict app check green (8162); full pytest 5343 passed (4 synopsis_pages order-dependent → T63).
+- Done tonight: T172 (Android smoke → 9 lines in T50), T70, T72 (LATEST/PUBLISHED pointers, prune; 22 old releases
+  pruned, owner Q7), T61 partial. New: T179 (one cut-placement pass). Commands moved by T61: publish =
+  `python -m pipeline.deliver.release.publish`, prune = `…release.prune`, check_curated = `pipeline.tools.audit.check_curated`;
+  generators = `python -m pipeline.tools.emit [--check]`; the only entry is `python -m pipeline build`.
+- Running agents (worktrees .claude/worktrees/agent-*): T60 consistency auditors (Fable); T67 braid lane (Q6 answered:
+  drop 2300 ditches, both-sides gate, no cap, sweep on every split kind, length cuts avoid braid junctions; writes
+  handoff/PLAN/braids/v2/cuts.json → Claude builds the phone-friendly review page and PUSH-NOTIFIES the owner); T61 2.8
+  name normaliser (side builds + binding diff; owner OK to PROMOTE on an explained diff).
+- Next: merge T60 → T62 (split long files) → T63 (docs/tests/knip + lane leftovers) → T73 (reach hand-off, heavy, alone).
+  Never: parser, R2 upload, tiles rebuild, braid promotion (owner checks cuts first), `main`.
+- Scratchpad scripts: rebuild.sh (rotates reaches!), rebuild-resume.sh (no rotation), post-release.sh.
+
+## (earlier) CURRENT STATE (2026-10-24, evening)
 - Live release r-46595c88e76e (T169 Nicomen one panel). Smoke green (8198 app, 207 pytest, 18). Merged app-only:
   T165, T167, T168, T175, T176, T170/T171, T177 (combine CLEVER+COFFEE, equal weights; run archive
   data/generated/gauges/feeds.runs/; spots record their TRIP date). T163 dropped.
