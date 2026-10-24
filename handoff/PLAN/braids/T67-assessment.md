@@ -258,3 +258,76 @@ Promote the atlas, reaches, bundle and tiles together, keeping the old ones as `
 
 **Effort:** about 2 days of code and tests, about half a day of side builds and diffs (one atlas build, one
 reach run, possibly one twin build), and 1 hour of human-run tiles.
+
+## Outcome (build lane), 2026-10-24
+
+Phases 0–2 done on the worktree branch; **nothing promoted** (phase 3+ is the owner's: every proposed cut is
+checked by hand first). Side outputs only: `data/generated/atlas/braids` (the change), `data/generated/atlas/
+braids_twin` (a twin of the base commit 2da3d077, built to subtract drift: the live `full` atlas is from
+2026-10-10 and the code and curated splits moved since), reach runs `data/generated/scratch/t67/reach_{braids,twin}`.
+
+**Owner answers as built.** The rule (2026-10-24): a cut takes a braid only where it attaches to the mainstem on
+BOTH sides of the cut point; anything touching one side is never cut; no cap on the line. **Q1**: a 2300-only
+line with no name of its own (no gnis, every name inherited from its river) is in no river item — a 2300 line a
+curator named (the Quinsam Diversion) stays. Its own commit; its binding effect is attributed separately below.
+**Q2 (refined twice)**: the sweep runs on every split kind with one gate, and the automatic length cuts never
+pick a junction a braid spans (`length_splits.junction_cuts` asks `braid_sweep.spans_a_braid`, then takes the
+next eligible junction by its own rules or leaves the stretch long); the build fails if the sweep would cut a
+braid at a length cut. RULINGS **E17** supersedes E15; AGENTS 12 updated; POLICY_VERSION 28 → 29.
+
+**Phase 0 — census re-run** (R14 `census.py` on atlas `full`, through heavy.sh): **no drift**. 754 cases, every
+class, risk and rule delta identical to R14 (curated 19 cut / 6 junction / 12 gated / 8 other-water; gauge
+6/7/7/3; length 265/60/291/70; high 8, medium 7, low 4, unbound 6).
+
+**Phase 1 — code and tests.** `pipeline/atlas/splits/braid_sweep.py` (the gate, the cut line, the sweep, the
+junction re-home, the host-edge re-home and side-consistency edge pass, the residual check, the length-cut
+check) runs between `resolve_split_defs` and `split_graph_at`; braid cuts carry the split's own id and are
+applied in their own pass with pickup off. The anchors perpendicular sweep is removed. E15 is removed end to end
+(reach `_majority_side`/marks, `position.share_within`, `straddle.jsonl`, bundle `section_straddle`,
+`read.straddles`, `rules.straddle_crossing`); the reach severs adjacency across a cut on every line it crosses
+(`extent.A_CUT_SEVERS_EVERY_LINE_IT_CROSSES`) and the reach CLI fails, after writing its tables, on any piece
+still `straddles_the_cut` (`build.straddle_gate`). Tests: `test_braid_sweep.py` (the R14 fixtures 1–11, 7b, 8b
+and the mutation pins — gate off cuts the South-Atnarko-shaped one-sided network; edge pass off leaks the braid;
+own-water check off cuts another water's network; host re-home off leaves a one-sided network straddling),
+`test_reach_braid_cuts.py` (fixture 12 + the severing mutation), `test_length_braids.py` (braid-spanned junction
+skipped, next one taken + mutation), `test_registry.py` (ditch + mutation + named diversion). 24 + 30 pass. Fast
+suite unfiltered: 5,460 passed, 6 failed, 4 errors — all present on the base commit or environmental (worktree
+synopsis PDF / DFO archive cache missing; `test_answers_26`, `test_moments`, and T117's `river_widenings` fail on
+2da3d077 too).
+
+**Phase 2 — side atlas.** Parity `braids_twin → braids`: 301 items changed, sections +87, boundaries +11 net;
+lost cut-points: 3 gauge boundaries (Fraser `gauge__08MH028` and `08MH032`, Pemberton Creek `08MG025` — cuts the
+old sweep put on a water other than the gauge's host; the gate refuses them as another water's) and 325 length
+ids replaced by 339 (length cuts moved off braid-spanned junctions: 2,278 unchanged, 323 moved, 3 dropped, 17
+added; 906 braid-spanned junctions skipped). Sweep: 29 cut cases (20 curated, 9 gauge), 31 braid cut points,
+21 + 3 refused as another water's, 12 + 3 one-sided, 6 line misses, 2 junctions re-homed. Every R14 curated "cut"
+case is cut; South Atnarko is no longer a case at all (with touches measured by geometry it touches the
+Atnarko on one side only, and the line does not cross it). 6 networks still straddle a cut after the sweep: the
+line-misses at Kitsumkalum +1.5 km, Squamish/Ashlu and Tweedsmuir (all R14 "unbound" or edge-anomaly cases),
+gauge 08NM250, gauge 08GA079 and the Exchamsiks cut (whose host is a Skeena side channel, so the line crosses the
+Skeena mainstem 1.75 km away — R14 already said its host blk needs curating). Length cuts: 0 braid cuts, 0
+straddles. Build time +5 min (the length predicate: 9 s → 299 s).
+
+**Phase 2 — binding diff** (side reach vs twin reach, per rule, by bound length per blue line —
+`v2/length_diff.py`; `pipeline.atlas.reach.binding_diff` also run, 470 rules differ in section ids against both
+twin and live): of 470 rules, **392 change section ids only** (no length moves anywhere), **21 braid** (Peace r5
++1,392 m, Adams r1 +717 m, Skeena winter r3 +488 m, Chowade r1 +5,567 m, Morice r4/r5 −719 m, Zymoetz r2 −1,186 m,
+Dean r3/r9/r10 +223 m, Peace Site C rows, Bulkley r5 +92 m, Chuckwalla r2 +102 m, Thompson r5 −187 m …),
+**12 ditch** (Kootenay upper r1–r7 −1,983 m, Serpentine r1/r4 −1,602 m, Trout Creek r2 −1,561 m, Quinsam r3
+−690 m), **1 E15** (Ash r1 −432 m: the Elsie Lake outlet piece E15 placed is now unplaced), **44 by a moved
+length cut** (one 1,021 m Fraser piece near the Region 5/7 line changed its home region when the length cut at
+699,253 m — a braid-spanned junction — moved to 698,232 m: 24 Region 7 / Fraser rules gain it, 20 Region 5 zone
+rules lose it). **0 unexplained.** `rule_ambiguous_cut` stays 95. The reach gate fails on 2 pieces: Ash r1
+(354088143:161) and Chowade r1 (359006631:259).
+
+**Review data:** `handoff/PLAN/braids/v2/cuts.json` (69 records: 20 curated + 9 gauge cuts; refused near curated
+cuts: 21 another water, 12 one side, 5 line misses; 2 re-homed junctions; plus `length_cuts`,
+`residual_straddles`, `reach_gate_failures`, `gauge_cuts_no_longer_made` (25 old sweep cuts) and
+`r14_census_vs_now`) and `v2/ditches.json` (45 ditch sections). Built by `v2/build_cuts.py`,
+`v2/length_diff.py`, `v2/annotate_cuts.py`.
+
+**Not done / open for the owner:** the 6 residual straddles and the 2 reach-gate failures (Ash, Chowade) need a
+decision before any promotion — as built the reach run FAILS on them; the Exchamsiks host blk; whether a gauge
+whose host is a named side channel should still cut its mainstem (3 lost gauge boundaries); whether a length
+cut may move a straddling piece's home region (the 1,021 m Fraser case). Bundle, tiles, card gate and the slow
+suite were not run (phase 3+).
