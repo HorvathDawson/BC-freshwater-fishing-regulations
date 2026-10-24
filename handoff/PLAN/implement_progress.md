@@ -3,7 +3,18 @@
 Restart here. Update this file after EVERY step: what is done, what is running, and the exact next action.
 Logs from timing runs live in the session scratchpad, which a reboot wipes. The numbers that matter are copied here.
 
-## CURRENT STATE (2026-10-24, later)
+## CURRENT STATE (2026-10-24, evening)
+- Live release r-46595c88e76e (T169 Nicomen one panel). Smoke green (8198 app, 207 pytest, 18). Merged app-only:
+  T165, T167, T168, T175, T176, T170/T171, T177 (combine CLEVER+COFFEE, equal weights; run archive
+  data/generated/gauges/feeds.runs/; spots record their TRIP date). T163 dropped.
+- Running: T172 Android smoke agent (holds the heavy.sh lock for the emulator session; JAVA_HOME = Android Studio JBR);
+  queued behind it: local feed republish for T177 (background, writes data/generated/gauges/feeds + starts feeds.runs).
+- Next: read T172's result (problems → T50 lines) → the CLEANUP band (T60 → T70 → T61 → T62 → T63; T72, T73).
+  Then tiles window (T64 incl. unnamed-wetland drop, T85, T75, T113, T129, T152, T155), T166 tidal, T164 salmon,
+  T162 run timing, T173 obstacles, T174 main-river gaps, T178 model re-score (~2026-12-05), native T50 → T74 → owner.
+- Owner questions to Q161 (Q150/Q160/Q161 answered); OWNER-TODO grouped.
+
+## (earlier) CURRENT STATE (2026-10-24, later)
 - Live release r-9cf1fef180a8 (rows 33). On the branch but NOT yet delivered: T169 (one panel per side-channel water —
   Nicomen; deliver needed). App-only and merged (no deliver): T165 dotted-grey no-access, T167 More tab, T168 gauge
   groups + not-reporting fold. Strict app check green after T165 (8101).
