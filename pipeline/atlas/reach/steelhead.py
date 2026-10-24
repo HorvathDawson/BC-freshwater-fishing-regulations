@@ -73,6 +73,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from pipeline.atlas.reach import extent as _resolve
 from pipeline.common import entry_id as EID
+from pipeline.common.names import key
 
 #: The provincial steelhead entry: the streams its base rules bind are the streams that carry the
 #: steelhead rules, and those not known are "possible".
@@ -261,7 +262,8 @@ def load_list(path: Path | None = None) -> list[ListWater]:
 
 
 def _norm(s: str) -> str:
-    return re.sub(r"\s+", " ", str(s or "")).strip().lower()
+    """THE name key (`pipeline.common.names.key`, T61 2.8)."""
+    return key(str(s or ""))
 
 
 def _regions(item) -> set[str]:
