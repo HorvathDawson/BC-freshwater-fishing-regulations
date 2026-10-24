@@ -1,0 +1,284 @@
+<title>Braid Cut Review</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=Source+Sans+3:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one column of map cards, a sticky tab strip; each card = small north-up map, then facts, then the mark. */
+:root {
+  --ground: #f3f5f6; --card: #ffffff; --ink: #18232b; --sub: #586873; --rule: #d7dee2;
+  --host: #8d9ba5; --below: #11798a; --above: #c07a12; --on: #9aa3a9; --cut: #c23a2b; --accent: #11798a;
+  --ok: #1f7a3f; --bad: #b3261e; --unsure: #8a6d00; --chip: #e6ecef;
+  --display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  --body: "Source Sans 3", system-ui, -apple-system, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --ground: #0f1519; --card: #172127; --ink: #e3eaee; --sub: #98a8b2; --rule: #2a3740;
+  --host: #6d7c86; --below: #3fb5c7; --above: #e3a43c; --on: #7d878d; --cut: #ff6b5b; --accent: #3fb5c7;
+  --ok: #5cc47f; --bad: #ff7a70; --unsure: #e2c24a; --chip: #22303a; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --ground: #0f1519; --card: #172127; --ink: #e3eaee; --sub: #98a8b2; --rule: #2a3740;
+  --host: #6d7c86; --below: #3fb5c7; --above: #e3a43c; --on: #7d878d; --cut: #ff6b5b; --accent: #3fb5c7;
+  --ok: #5cc47f; --bad: #ff7a70; --unsure: #e2c24a; --chip: #22303a; color-scheme: dark }
+body { background: var(--ground); color: var(--ink); font: 15px/1.45 var(--body); }
+.wrap { max-width: 760px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 18px 48px; display: grid; gap: 16px; }
+h1 { font: 600 30px/1.05 var(--display); letter-spacing: .01em; margin: 0; text-wrap: balance; }
+.lede { color: var(--sub); margin: 0; max-width: 62ch; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--sub); }
+.legend i { display: inline-block; width: 18px; height: 4px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+.tabs { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--ground);
+  display: flex; gap: 6px; overflow-x: auto; padding-block: 8px; border-bottom: 1px solid var(--rule); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--ground); }
+.tabs button { flex: none; font: 600 15px var(--display); letter-spacing: .03em; text-transform: uppercase;
+  border: 1px solid var(--rule); background: var(--card); color: var(--sub); border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+.tabs button[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: var(--card); }
+.tabs button span { font-family: var(--mono); font-weight: 400; margin-left: 4px; }
+.status { font-size: 13px; color: var(--sub); }
+.notice { background: var(--chip); border-radius: 8px; padding: 10px 12px; font-size: 14px; }
+.list { display: grid; gap: 14px; }
+.card { background: var(--card); border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; display: grid; }
+.card.marked-ok { border-left: 4px solid var(--ok); } .card.marked-wrong { border-left: 4px solid var(--bad); }
+.card.marked-unsure { border-left: 4px solid var(--unsure); }
+.head { padding: 12px 14px 4px; display: grid; gap: 4px; }
+.head h2 { font: 600 21px/1.1 var(--display); margin: 0; letter-spacing: .01em; }
+.head .where { color: var(--sub); font-size: 14px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font: 500 11px var(--mono); text-transform: uppercase; letter-spacing: .04em; background: var(--chip);
+  color: var(--sub); border-radius: 4px; padding: 2px 6px; }
+.chip.warn { color: var(--bad); }
+svg.map { display: block; width: 100%; height: auto; max-width: 100%; background: var(--ground); border-block: 1px solid var(--rule); }
+.facts { padding: 10px 14px; display: grid; gap: 6px; font-size: 14px; }
+.facts .row { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.rules { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.rules li { display: grid; gap: 1px; }
+.rules .rl { color: var(--ink); } .rules .rd { color: var(--sub); font-size: 13px; }
+.plus { color: var(--below); } .minus { color: var(--bad); }
+.mark { padding: 10px 14px 14px; display: grid; gap: 8px; border-top: 1px solid var(--rule); }
+.btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.btns button { flex: 1 1 0; min-width: 84px; font: 600 15px var(--body); padding: 9px 10px; border-radius: 8px;
+  border: 1px solid var(--rule); background: var(--card); color: var(--ink); cursor: pointer; }
+.btns button[data-v="ok"][aria-pressed="true"] { background: var(--ok); border-color: var(--ok); color: var(--card); }
+.btns button[data-v="wrong"][aria-pressed="true"] { background: var(--bad); border-color: var(--bad); color: var(--card); }
+.btns button[data-v="unsure"][aria-pressed="true"] { background: var(--unsure); border-color: var(--unsure); color: var(--card); }
+.btns button:focus-visible, .tabs button:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+textarea { width: 100%; box-sizing: border-box; min-height: 40px; font: 14px var(--body); color: var(--ink);
+  background: var(--ground); border: 1px solid var(--rule); border-radius: 6px; padding: 7px 9px; resize: vertical; }
+.saved { font-size: 12px; color: var(--sub); }
+.q { padding: 12px 14px; display: grid; gap: 8px; }
+.q h2 { font: 600 20px/1.15 var(--display); margin: 0; }
+.q p { margin: 0; max-width: 64ch; }
+.tbl { overflow-x: auto; } table { border-collapse: collapse; font-size: 13px; width: 100%; }
+td, th { text-align: left; padding: 4px 8px 4px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font: 600 12px var(--mono); color: var(--sub); text-transform: uppercase; }
+@media (prefers-reduced-motion: no-preference) { .card { transition: border-color .15s; } }
+</style>
+
+<div class="wrap">
+  <header style="display:grid;gap:8px">
+    <h1>Braid cut review</h1>
+    <p class="lede">Each card is one place where a cut on the mainstem now also cuts a side channel that leaves the river on one side of the cut and rejoins it on the other. Check that the cut line sits where the book's landmark is, and that each braid piece lands on the side you would expect.</p>
+    <div class="legend">
+      <span><i style="background:var(--host)"></i>mainstem</span>
+      <span><i style="background:var(--below)"></i>braid, downstream side</span>
+      <span><i style="background:var(--above)"></i>braid, upstream side</span>
+      <span><i style="background:var(--on)"></i>braid, not split</span>
+      <span><i style="background:var(--cut)"></i>cut line · ● cut point</span>
+    </div>
+    <div class="notice" id="notice" hidden></div>
+  </header>
+  <nav class="tabs" role="tablist" id="tabs"></nav>
+  <div class="status" id="status"></div>
+  <main class="list" id="list"></main>
+</div>
+
+<script>
+const DATA = /*__DATA__*/null;
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const km = (m) => m >= 1000 ? (m / 1000).toFixed(m >= 10000 ? 0 : 1) + " km" : Math.round(m) + " m";
+const signed = (m) => (m > 0 ? "+" : m < 0 ? "−" : "±") + km(Math.abs(m));
+const docId = (id) => id.replace(/[^A-Za-z0-9_-]/g, "_");
+
+const CUT = DATA.cuts.filter((c) => c.gate === "cut");
+const REHOME = DATA.cuts.filter((c) => c.gate.startsWith("rehomed"));
+const LEFT = DATA.cuts.filter((c) => c.gate.startsWith("refused"));
+const QUESTIONS = [
+  { id: "q_gauge_side_channel", title: "Should a gauge on a named side channel still cut its mainstem?",
+    body: `The both-sides rule now refuses gauge cuts whose gauge sits on a different named water. ${DATA.gauge_gone.length} gauge cuts the old sweep made are no longer made, including Fraser 08MH028 and 08MH032 and Pemberton 08MG025. Yes keeps today's behaviour (no cut). No means those gauges cut their mainstem as before.`,
+    list: DATA.gauge_gone.map((g) => `${g.id} — ${g.why}`) },
+  { id: "q_length_home", title: "May a moved length cut change which region a straddling piece belongs to?",
+    body: `Length cuts now avoid junctions a braid spans. ${DATA.length.moved} moved, ${DATA.length.dropped} were dropped and ${DATA.length.added} added; no rule binds a length cut and the sweep cut ${DATA.length.sweep_braid_cuts} braids at them. One side effect: a 1 km Fraser piece that straddles the Region 5/7 line now has most of its length in Region 7, so it takes Region 7's rules instead of Region 5's (44 rule bindings). Yes accepts that; No means length cuts must never move a piece's home region.`,
+    list: Object.entries(DATA.length.home_moves).flatMap(([blk, rs]) => rs.slice(0, 6).map((r) => `blk ${blk}: ${r.rule_id} ${signed(r.delta_m)}`)) },
+];
+const INFO = [
+  { title: "Still to fix before this can ship (Claude)", list: [
+    ...DATA.gate_failures.map((f) => `Reach gate: ${f.rule_id} — section ${f.section} still straddles its cut`),
+    ...DATA.residual.map((r) => `Straddles after the sweep: ${r.split_id} (${r.pieces.length} piece${r.pieces.length > 1 ? "s" : ""})`),
+  ] },
+];
+
+const TABS = [
+  { key: "cut", name: "Cuts", n: CUT.length },
+  { key: "rehome", name: "Re-homed", n: REHOME.length },
+  { key: "left", name: "Left alone", n: LEFT.length },
+  { key: "ditch", name: "Ditches", n: DATA.ditches.length },
+  { key: "q", name: "Questions", n: QUESTIONS.length },
+];
+let tab = "cut";
+try { const t = localStorage.getItem("braid-tab"); if (TABS.some((x) => x.key === t)) tab = t; } catch {}
+const marks = {};
+let db = null, me = null;
+
+/* ---------------- map */
+function mapSvg(c) {
+  const lines = [], add = (pl, cls) => pl && pl.length && lines.push([pl, cls]);
+  (c.host || []).forEach((pl) => add(pl, "host"));
+  (c.pieces || []).forEach((p) => (p.line || []).forEach((pl) => add(pl, p.side === "below" ? "below" : p.side === "above" ? "above" : "on")));
+  if (c.line && c.line.length) add(c.line, "cut");
+  const pts = lines.flatMap(([pl]) => pl);
+  const lat0 = c.pt ? c.pt[0] : pts[0][0], lon0 = c.pt ? c.pt[1] : pts[0][1];
+  const kx = Math.cos(lat0 * Math.PI / 180) * 111320, ky = 110540;
+  const P = ([la, lo]) => [(lo - lon0) * kx, -(la - lat0) * ky];
+  // frame: braid pieces + cut line + 600 m around the cut point (the mainstem may run 3 km each way)
+  const focus = lines.filter(([, k]) => k !== "host").flatMap(([pl]) => pl).map(P).concat([[-600, -600], [600, 600]]);
+  let x0 = Math.min(...focus.map((p) => p[0])), x1 = Math.max(...focus.map((p) => p[0]));
+  let y0 = Math.min(...focus.map((p) => p[1])), y1 = Math.max(...focus.map((p) => p[1]));
+  const W = 400, H = 280, pad = 0.12, w = (x1 - x0) * (1 + 2 * pad), h = (y1 - y0) * (1 + 2 * pad);
+  const s = Math.min(W / w, H / h), cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+  const T = (p) => { const [x, y] = P(p); return [((x - cx) * s + W / 2).toFixed(1), ((y - cy) * s + H / 2).toFixed(1)]; };
+  const stroke = { host: ["var(--host)", 4], below: ["var(--below)", 3], above: ["var(--above)", 3], on: ["var(--on)", 3], cut: ["var(--cut)", 2] };
+  const order = ["host", "on", "below", "above", "cut"];
+  const paths = order.flatMap((k) => lines.filter(([, kk]) => kk === k).map(([pl]) => {
+    const [col, sw] = stroke[k];
+    return `<polyline fill="none" stroke="${col}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round"${k === "cut" ? ' stroke-dasharray="6 4"' : ""} points="${pl.map((p) => T(p).join(",")).join(" ")}"/>`;
+  })).join("");
+  const dots = (c.cuts || []).filter(Boolean).map((p) => { const [x, y] = T(p); return `<circle cx="${x}" cy="${y}" r="5" fill="var(--card)" stroke="var(--cut)" stroke-width="2.5"/>`; }).join("");
+  const pin = c.pt ? (() => { const [x, y] = T(c.pt); return `<circle cx="${x}" cy="${y}" r="3.5" fill="var(--cut)"/>`; })() : "";
+  // scale bar: a round length near a quarter of the width
+  const target = (W / 4) / s, nice = [50, 100, 200, 250, 500, 1000, 2000, 5000].reduce((a, b) => Math.abs(b - target) < Math.abs(a - target) ? b : a);
+  const bw = nice * s;
+  const bar = `<g font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--sub)"><rect x="12" y="${H - 16}" width="${bw.toFixed(1)}" height="3" fill="var(--sub)"/><text x="12" y="${H - 22}">${km(nice)}</text><text x="${W - 22}" y="20">N↑</text></g>`;
+  return `<svg class="map" viewBox="0 0 ${W} ${H}" role="img" aria-label="Map of the cut on ${esc(c.water)}">${paths}${dots}${pin}${bar}</svg>`;
+}
+
+/* ---------------- cards */
+function markBlock(id) {
+  const m = marks[docId(id)] || {};
+  const b = (v, t) => `<button type="button" data-id="${esc(id)}" data-v="${v}" aria-pressed="${m.verdict === v}">${t}</button>`;
+  return `<div class="mark"><div class="btns">${b("ok", "Right")}${b("wrong", "Wrong")}${b("unsure", "Unsure")}</div>
+    <textarea id="n_${docId(id)}" class="note" data-id="${esc(id)}" placeholder="Note (what is wrong, where it should be)">${esc(m.note || "")}</textarea>
+    <span class="saved" data-saved="${esc(id)}">${m.verdict ? "Saved" : ""}</span></div>`;
+}
+const cls = (id) => { const v = marks[docId(id)]?.verdict; return v ? ` marked-${v}` : ""; };
+const gateWords = { "cut": "cut", "rehomed: junction <10 m": "junction within 10 m, re-homed", "refused: another water": "left alone: another water",
+  "refused: one side": "left alone: touches one side only", "refused: line misses": "left alone: cut line misses it" };
+
+function cutCard(c) {
+  const sides = Object.entries(c.lens || {}).map(([k, v]) => `<span>${k === "below" ? "downstream side" : k === "above" ? "upstream side" : "not split"} <b class="num">${km(v)}</b></span>`).join("");
+  const rules = c.rules.length ? `<ul class="rules">${c.rules.map((r) => `<li><span class="rl">${esc(r.label || r.rule)}</span><span class="rd"><span class="num ${r.delta > 0 ? "plus" : r.delta < 0 ? "minus" : ""}">${signed(r.delta)}</span> bound · ${esc(r.rule)}${Object.keys(r.causes).length ? " · " + Object.entries(r.causes).map(([k, v]) => `${esc(k)} ${signed(v)}`).join(", ") : ""}</span></li>`).join("")}</ul>`
+    : `<span class="status">${c.rules_all ? `${c.rules_all} rule${c.rules_all > 1 ? "s" : ""} bound here; none changes length` : "No rule binds this cut"}</span>`;
+  return `<article class="card${cls(c.id)}" id="c_${docId(c.id)}">
+    <div class="head"><h2>${esc(c.water)}</h2><div class="where">${esc(c.label)}</div>
+      <div class="chips"><span class="chip">${esc(c.source)}</span><span class="chip">${esc(gateWords[c.gate] || c.gate)}</span>${c.cuts.length ? `<span class="chip">${c.cuts.length} braid cut${c.cuts.length > 1 ? "s" : ""}</span>` : ""}${c.straddle ? '<span class="chip warn">still straddles</span>' : ""}</div></div>
+    ${mapSvg(c)}
+    <div class="facts"><div class="row">${sides}</div>${rules}</div>
+    ${markBlock(c.id)}</article>`;
+}
+
+function ditchCard(d) {
+  const fake = { water: d.name, host: [], pieces: [{ side: "on", line: d.line }], line: [], cuts: [], pt: null };
+  return `<article class="card${cls("ditch_" + d.id)}">
+    <div class="head"><h2>${esc(d.name)}</h2><div class="where">Ditch-only line (FWA 2300) leaving its river · <span class="num">${km(d.len)}</span> · section ${esc(d.id)}</div>
+    <div class="chips"><span class="chip">${d.rules} rules bound before</span>${d.named_rules.length ? `<span class="chip warn">${d.named_rules.length} water rules</span>` : ""}</div></div>
+    ${d.line && d.line.length ? mapSvg(fake) : ""}
+    ${d.named_rules.length ? `<div class="facts"><ul class="rules">${d.named_rules.map((r) => `<li class="rd">${esc(r)}</li>`).join("")}</ul></div>` : ""}
+    ${markBlock("ditch_" + d.id)}</article>`;
+}
+
+function qCard(q) {
+  return `<article class="card${cls(q.id)}"><div class="q"><h2>${esc(q.title)}</h2><p>${esc(q.body)}</p>
+    ${q.list.length ? `<div class="tbl"><table><tbody>${q.list.map((x) => `<tr><td class="num">${esc(x)}</td></tr>`).join("")}</tbody></table></div>` : ""}</div>
+    <div class="mark"><div class="btns">${["ok", "wrong", "unsure"].map((v, i) => `<button type="button" data-id="${esc(q.id)}" data-v="${v}" aria-pressed="${marks[docId(q.id)]?.verdict === v}">${["Yes", "No", "Not sure"][i]}</button>`).join("")}</div>
+    <textarea id="n_${docId(q.id)}" class="note" data-id="${esc(q.id)}" placeholder="Note">${esc(marks[docId(q.id)]?.note || "")}</textarea><span class="saved" data-saved="${esc(q.id)}"></span></div></article>`;
+}
+function infoCard(i) {
+  return `<article class="card"><div class="q"><h2>${esc(i.title)}</h2><div class="tbl"><table><tbody>${i.list.map((x) => `<tr><td>${esc(x)}</td></tr>`).join("")}</tbody></table></div></div></article>`;
+}
+
+function itemsFor(k) {
+  if (k === "cut") return CUT.map((c) => [c.id, cutCard]);
+  if (k === "rehome") return REHOME.map((c) => [c.id, cutCard]);
+  if (k === "left") return LEFT.map((c) => [c.id, cutCard]);
+  if (k === "ditch") return DATA.ditches.map((d) => ["ditch_" + d.id, ditchCard]);
+  return [];
+}
+function render() {
+  $("#tabs").innerHTML = TABS.map((t) => `<button type="button" role="tab" aria-selected="${t.key === tab}" data-tab="${t.key}">${t.name}<span>${t.n}</span></button>`).join("");
+  let html = "", done = 0, total = 0;
+  if (tab === "q") { html = QUESTIONS.map(qCard).join("") + INFO.map(infoCard).join(""); total = QUESTIONS.length; done = QUESTIONS.filter((q) => marks[docId(q.id)]?.verdict).length; }
+  else {
+    const src = tab === "cut" ? CUT : tab === "rehome" ? REHOME : tab === "left" ? LEFT : null;
+    html = src ? src.map(cutCard).join("") : DATA.ditches.map(ditchCard).join("");
+    const ids = src ? src.map((c) => c.id) : DATA.ditches.map((d) => "ditch_" + d.id);
+    total = ids.length; done = ids.filter((id) => marks[docId(id)]?.verdict).length;
+  }
+  $("#list").innerHTML = html;
+  const hint = { cut: "These are the proposed cuts. Mark each one.", rehome: "A braid joins within 10 m of the cut; it is moved to its side, not cut.",
+    left: "Braids near a cut that the both-sides rule did not cut. Mark any that should have been cut.", ditch: "Ditch-only lines dropped from their river (your Q1).", q: "Two calls only you can make, then what is left for Claude." }[tab];
+  $("#status").textContent = `${hint} ${done} of ${total} marked.`;
+}
+
+/* ---------------- saving (same pattern as the slough page) */
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+async function write(id) {
+  const body = { item: id, verdict: marks[docId(id)]?.verdict || null, note: marks[docId(id)]?.note || "", by: me, at: new Date().toISOString() };
+  try { await db.collection("marks").doc(docId(id)).set(body); }
+  catch (e) {
+    if (e?.code === "resource_exhausted" || e?.code === "unavailable") { await sleep(1200 + Math.random() * 800); await db.collection("marks").doc(docId(id)).set(body); }
+    else throw e;
+  }
+}
+async function save(id, patch) {
+  marks[docId(id)] = { ...(marks[docId(id)] || {}), ...patch };
+  const tag = document.querySelector(`[data-saved="${CSS.escape(id)}"]`);
+  if (!db) { try { localStorage.setItem("braid-marks", JSON.stringify(marks)); } catch {} if (tag) tag.textContent = "Saved in this browser only"; return; }
+  if (tag) tag.textContent = "Saving…";
+  try { await write(id); if (tag) tag.textContent = "Saved"; }
+  catch (e) { if (tag) tag.textContent = "Not saved: " + (e?.message || e?.code || "error") + ". Tap again to retry."; }
+}
+document.addEventListener("click", (e) => {
+  const t = e.target.closest("[data-tab]");
+  if (t) { tab = t.dataset.tab; try { localStorage.setItem("braid-tab", tab); } catch {} render(); window.scrollTo({ top: 0 }); return; }
+  const b = e.target.closest("button[data-v]");
+  if (!b) return;
+  const id = b.dataset.id, v = b.dataset.v;
+  const now = marks[docId(id)]?.verdict === v ? null : v;
+  b.parentElement.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.v === now)));
+  const card = b.closest(".card"); card.classList.remove("marked-ok", "marked-wrong", "marked-unsure"); if (now) card.classList.add("marked-" + now);
+  save(id, { verdict: now });
+});
+let noteTimer = null;
+document.addEventListener("input", (e) => {
+  const n = e.target.closest("textarea.note"); if (!n) return;
+  clearTimeout(noteTimer); noteTimer = setTimeout(() => save(n.dataset.id, { note: n.value }), 700);
+});
+
+render();
+(async () => {
+  try { Object.assign(marks, JSON.parse(localStorage.getItem("braid-marks") || "{}")); render(); } catch {}
+  let c = null;
+  try { c = window.claude; db = c?.use ? await c.use("db") : null; } catch { db = null; }
+  let user = null;
+  try { user = c?.use ? await c.use("user") : null; } catch { user = null; }
+  try { me = user ? await user.id() : null; } catch { me = null; }
+  if (!db) { const n = $("#notice"); n.hidden = false; n.textContent = "Marks are kept in this browser only here, so they will not reach Claude. Open the page signed in to save them."; return; }
+  try {
+    db.collection("marks").onSnapshot((snap) => {
+      snap.docs.forEach((d) => { const v = d.data() || {}; marks[d.id] = { verdict: v.verdict || null, note: v.note || "" }; });
+      if (!document.activeElement?.classList?.contains("note")) render();
+    }, () => {});
+  } catch {}
+})();
+</script>
