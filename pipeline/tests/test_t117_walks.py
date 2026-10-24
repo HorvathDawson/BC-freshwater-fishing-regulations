@@ -249,6 +249,7 @@ UP_ADJ_READERS = {
     ("pipeline/atlas/graph/prune.py", "prune_mainstem_loops"): "rebuilds the adjacency",
     ("pipeline/atlas/graph/windows.py", "polygon_window"): "a polygon's inlets, one level, for its window",
     ("pipeline/atlas/splits/sectionizer.py", "split_graph_at"): "rebuilds the adjacency",
+    ("pipeline/atlas/splits/braid_sweep.py", "_rebuild_adj"): "rebuilds the adjacency after a re-home",
     ("pipeline/atlas/waters/added_streams/ingest.py", "attach_connectors"): "adds edges",
     ("pipeline/atlas/registry/flowing.py", "merge_flowing_polygons"): "polygon neighbours, both directions",
     ("pipeline/atlas/registry/flowing.py", "merge_flowing_polygons.neighbours"): "polygon neighbours",
