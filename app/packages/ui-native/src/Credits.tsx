@@ -14,10 +14,11 @@
  * copy is a second thing to get wrong.
  */
 import { Text, View } from "react-native";
+import { CREDITS_WORDS } from "@app/core";
 import { TYPE } from "./type";
 import { SPACE, type Palette } from "./theme";
 
-export function Credits({ palette, lines, label = "Sources", ink = palette.faint, testID }: {
+export function Credits({ palette, lines, label = CREDITS_WORDS.label, ink = palette.faint, testID }: {
   palette: Palette; lines?: readonly string[]; label?: string;
   /** the text colour (default faint). The regs page passes `sub`: faint is banned as text there (decisions D3, T39) */
   ink?: string;

@@ -43,9 +43,10 @@ import { useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, Animated, Easing, View } from "react-native";
 import { spriteStaircase } from "@app/ui";
 import { FISH_SPRITE } from "./fish-sprite.generated";
+import { SPINNER_WORDS } from "@app/core";
 import type { Palette } from "./theme";
 
-export function FishSpinner({ palette, size = 96, label = "Loading", colour }:
+export function FishSpinner({ palette, size = 96, label = SPINNER_WORDS.loading, colour }:
   { palette: Palette; size?: number; label?: string; colour?: string }) {
   const phase = useRef(new Animated.Value(0)).current;
   const orbit = useRef(new Animated.Value(0)).current;

@@ -21,7 +21,7 @@ import {
   Archivo_400Regular, Archivo_500Medium, Archivo_600SemiBold, Archivo_700Bold, Archivo_800ExtraBold,
 } from "@expo-google-fonts/archivo";
 import { JetBrainsMono_500Medium } from "@expo-google-fonts/jetbrains-mono";
-import { INSTALL_WORDS, installLine, rolledBackLine, startStage } from "@app/core";
+import { INSTALL_WORDS, MAP_CREDITS, installLine, rolledBackLine, startStage } from "@app/core";
 import { httpFeed, loadManifest, type WaterSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import * as platform from "@app/data/release/platform";
@@ -154,7 +154,7 @@ export default function App() {
             {failed}
           </Text>
           <Text style={{ color: palette.faint, fontSize: 12, textAlign: "center" }}>
-            Run `pnpm tiles` to serve the release.
+            {INSTALL_WORDS.serve}
           </Text>
         </View>
       ) : ready && data ? (
@@ -206,22 +206,8 @@ export default function App() {
                  });
                  return answer;
                }}
-               attribution={[
-                 "Basemap © OpenStreetMap contributors · © Protomaps",
-                 "Hydrometric data: Environment and Climate Change Canada",
-                 // REQUIRED VERBATIM by the Province wherever a forecast appears —
-                 // confirmed with the River Forecast Centre. See
-                 // `pipeline/hydro/forecast.py`, which holds the same string.
-                 "Forecast data provided by the BC River Forecast Centre, Province of " +
-                 "British Columbia, and used under the Province's copyright terms " +
-                 "(https://www2.gov.bc.ca/gov/content/home/copyright). Users should use " +
-                 "the information on this website with caution and at their own risk.",
-                 "Stocking: Province of British Columbia, Fisheries Inventory Data Queries",
-                 "Weather from Open-Meteo.com (CC BY 4.0)",
-                 // NO satellite line here: Esri's credit is added by the Shell exactly while its
-                 // imagery is drawn (`withImageryCredit`, @app/core IMAGERY_CREDIT), as the map's
-                 // own attribution control does from the style.
-               ]} />
+               // the map's credits name the publishers the Sources page names (`MAP_CREDITS`, @app/core menu/sources.ts)
+               attribution={MAP_CREDITS} />
         </View>
       ) : (
         // THE LOADING SCREEN, and on a phone's first run the download screen: which step, and how much is down

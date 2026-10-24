@@ -43,6 +43,7 @@ export * from "./gestures";
 export * from "./waterViews";
 export * from "./tabs";
 export * from "./spotWords";
+export * from "./uiWords";
 export * from "./waterNav";
 export * from "./mapRail";
 export * from "./spotPins";

@@ -6,7 +6,7 @@ import { FISH_CREDITS } from "../regs/fish.generated";
 import { ICON_CREDIT } from "../iconSet";
 import { WORDS } from "../regs/words";
 import type { HydatNotice } from "../staleness";
-import { MENU_WORDS } from "./words";
+import { MENU_WORDS, PUBLISHERS } from "./words";
 
 /** One source's last update as the release states it (`sources.<key>`, pack.generated.ts `SourceFact`). */
 export interface SourceDate { readonly date: string | null; readonly title?: string }
@@ -90,3 +90,23 @@ export function sourcesVM(s: { edition: string | null; tiles: string | null }): 
     icons: ICON_CREDIT,
   };
 }
+
+const P = PUBLISHERS;
+/**
+ * (T180) THE MAP'S CREDIT LINES (the Shell's `attribution`, drawn at the foot of the Conditions fold), naming the same
+ * publishers the Sources and credits page does (`PUBLISHERS`). NO satellite line here: Esri's credit is added by the
+ * Shell exactly while its imagery is drawn (`withImageryCredit`, IMAGERY_CREDIT), as the map's own attribution control
+ * does from the style.
+ */
+export const MAP_CREDITS: readonly string[] = [
+  `Basemap ${P.osm} · ${P.protomaps}`,
+  `Hydrometric data: ${P.eccc}`,
+  // REQUIRED VERBATIM by the Province wherever a forecast appears — confirmed with the River Forecast Centre. Kept whole
+  // (not composed) so it can be compared with `pipeline/gauges/feed/forecast.py`, which holds the same string.
+  "Forecast data provided by the BC River Forecast Centre, Province of " +
+  "British Columbia, and used under the Province's copyright terms " +
+  "(https://www2.gov.bc.ca/gov/content/home/copyright). Users should use " +
+  "the information on this website with caution and at their own risk.",
+  `Stocking: ${P.province}, Fisheries Inventory Data Queries`,
+  `Weather from ${P.openMeteo} (${P.ccBy})`,
+];

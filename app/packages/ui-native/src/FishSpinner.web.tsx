@@ -14,6 +14,7 @@
  */
 import { useEffect, useState } from "react";
 import { FISH_SPRITE } from "./fish-sprite.generated";
+import { SPINNER_WORDS } from "@app/core";
 import type { Palette } from "./theme";
 
 const STYLE_ID = "fish-spinner-keyframes";
@@ -31,7 +32,7 @@ function useKeyframes() {
   }, []);
 }
 
-export function FishSpinner({ palette, size = 96, label = "Loading", colour }:
+export function FishSpinner({ palette, size = 96, label = SPINNER_WORDS.loading, colour }:
   { palette: Palette; size?: number; label?: string; colour?: string }) {
   useKeyframes();
   const [still, setStill] = useState(false);

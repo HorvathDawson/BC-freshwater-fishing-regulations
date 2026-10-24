@@ -103,19 +103,8 @@ export function literals(source: string): [kind: "copy" | "figure", text: string
  * ticket T60-copy (move to core words). Deleting a line is the only intended change; a new string belongs in core.
  */
 const KNOWN_COPY: Record<string, readonly string[]> = {
-  // the data credits (the map's attribution line) and the dev-server hint — core's `sourcesVM` already names the publishers
-  "apps/mobile/src/App.tsx": [
-    "(https://www2.gov.bc.ca/gov/content/home/copyright). Users should use", "Basemap © OpenStreetMap contributors · © Protomaps",
-    "British Columbia, and used under the Province's copyright terms", "Forecast data provided by the BC River Forecast Centre, Province of",
-    "Hydrometric data: Environment and Climate Change Canada", "Run `pnpm tiles` to serve the release.",
-    "Stocking: Province of British Columbia, Fisheries Inventory Data Queries", "Weather from Open-Meteo.com (CC BY 4.0)", "pnpm tiles",
-    "the information on this website with caution and at their own risk.",
-  ],
   // the legend ramp's screen-reader sentence, built from parts
   "packages/ui-native/src/Chrome.tsx": ["near the 〈〉 percentile", "〈〉: colours from 〈〉 to", "〈〉; 〈〉 is the middle half of past years"],
-  "packages/ui-native/src/Credits.tsx": ["Sources"],
-  "packages/ui-native/src/FishSpinner.native.tsx": ["Loading"],
-  "packages/ui-native/src/FishSpinner.web.tsx": ["Loading"],
   "packages/ui-native/src/GaugeTrace.tsx": ["How this spot reaches the gauge", "at the gauge", "not known", "on the reach", "so it shows", "the gauge", "this reach"],
   "packages/ui-native/src/Hydrograph.tsx": [
     "No envelope: this station's record is too short to say what is normal here.", "Past TODAY is a model forecast, not a reading.",
@@ -131,8 +120,6 @@ const KNOWN_COPY: Record<string, readonly string[]> = {
   "packages/ui-native/src/search/rows.tsx": [
     "All results", "Could not read what is near this town.", "Water near 〈〉",
   ],
-  // ONE close word for every sheet (T41 Q4): still typed in the one component that draws every sheet
-  "packages/ui-native/src/Sheet.tsx": ["Close", "Done"],
   "packages/ui-native/src/SpotCapture.tsx": [
     "Back", "Cancel", "Earlier day", "Earlier hour", "Later day", "Later hour", "Next", "Now the exact spot", "Pick the water",
     "Reading the water", "Tap the point on 〈〉.", "Tap the stream or lake your spot is on.", "When were you there?",
@@ -157,8 +144,6 @@ const KNOWN_COPY: Record<string, readonly string[]> = {
     "Cloud", "Humidity", "Pressure", "Temp",
   ],
   "packages/ui-native/src/SpotsScreen.tsx": ["NO PHOTO"],
-  "packages/ui-native/src/WaterScreen.tsx": ["Loading this water", "No such water in this bundle.", "no data release is open"],
-  "packages/ui-native/src/WaterViews.tsx": ["Loading this water"],
 };
 
 /**

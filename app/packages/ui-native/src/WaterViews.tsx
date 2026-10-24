@@ -16,6 +16,7 @@
  */
 import { useContext } from "react";
 import { View } from "react-native";
+import { WATER_SCREEN_WORDS } from "@app/core";
 import type { ItemId, Parameter, WaterSource, SectionId } from "@app/data";
 import type { Horizon, PanelFeed } from "@app/ui";
 import type { TileEndpoints } from "@app/map";
@@ -74,7 +75,7 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, p
       {section === null ? (
         sheet.state === "loading" && (
           <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-            <FishSpinner palette={palette} size={110} label="Loading this water" />
+            <FishSpinner palette={palette} size={110} label={WATER_SCREEN_WORDS.loading} />
           </View>
         )
       ) : (

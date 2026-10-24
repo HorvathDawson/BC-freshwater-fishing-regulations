@@ -14,6 +14,21 @@ export const APP_NAME = "Can I Fish This?";
 export const INSEASON_URL =
   "https://www2.gov.bc.ca/gov/content/sports-culture/recreation/fishing-hunting/fishing/fishing-regulations#In-Season-changes";
 
+/**
+ * (T180) WHO PUBLISHES WHAT, named once. The Sources and credits page (`MENU_WORDS.sources.from`) and the map's own
+ * credit lines (`MAP_CREDITS`, sources.ts) both read these, so a publisher's name cannot drift between the two.
+ */
+export const PUBLISHERS = {
+  province: "Province of British Columbia",
+  eccc: "Environment and Climate Change Canada",
+  rfc: "BC River Forecast Centre",
+  osm: "© OpenStreetMap contributors",
+  protomaps: "© Protomaps",
+  openMeteo: "Open-Meteo.com",
+  ccBy: "CC BY 4.0",
+} as const;
+const P = PUBLISHERS;
+
 export const MENU_WORDS = {
   /** The More tab's name and its page's title (T48: the menu lives in the bottom bar). */
   title: "More",
@@ -73,22 +88,22 @@ export const MENU_WORDS = {
       forecast: "River forecasts", weather: "Weather", imagery: "Satellite imagery",
     },
     from: {
-      synopsis: "Province of British Columbia. The printed regulations this app reads.",
-      inseason: "Province of British Columbia. Not read by this app.",
+      synopsis: `${P.province}. The printed regulations this app reads.`,
+      inseason: `${P.province}. Not read by this app.`,
       dfo: "Fisheries and Oceans Canada. The federal salmon limits and closures.",
-      fwa: "Province of British Columbia. Contains information licensed under the Open Government Licence – "
+      fwa: `${P.province}. Contains information licensed under the Open Government Licence – `
         + "British Columbia.",
       tiles: "Drawn for this app from the Freshwater Atlas and the regulations.",
-      basemap: "© OpenStreetMap contributors. © Protomaps.",
+      basemap: `${P.osm}. ${P.protomaps}.`,
       // (owner 2026-10-23, decisions.md "data permissions") ECCC's hydrometric data — HYDAT and the real-time
       // readings — are under the Open Government Licence – Canada; the BC River Forecast Centre's forecasts (CLEVER,
       // COFFEE, ELF) are used with its permission and credited by name
-      hydat: "Environment and Climate Change Canada. Historical hydrometric data, under the Open Government Licence – "
+      hydat: `${P.eccc}. Historical hydrometric data, under the Open Government Licence – `
         + "Canada.",
-      feed: "Environment and Climate Change Canada. Real-time hydrometric data, under the Open Government Licence – "
+      feed: `${P.eccc}. Real-time hydrometric data, under the Open Government Licence – `
         + "Canada.",
-      forecast: "BC River Forecast Centre. The CLEVER, COFFEE and ELF river forecasts, used with permission.",
-      weather: "Weather data by Open-Meteo.com, CC BY 4.0.",
+      forecast: `${P.rfc}. The CLEVER, COFFEE and ELF river forecasts, used with permission.`,
+      weather: `Weather data by ${P.openMeteo}, ${P.ccBy}.`,
       imagery: `${IMAGERY_ATTRIBUTION}. Shown only while online, never stored.`,
     },
     /** the map tiles' build, exact — here and nowhere else (the More tab gives the tiles' state, never the hash) */

@@ -42,6 +42,13 @@ export function waterExit(depth: number, fromTab: string, overSearch = false): {
   return { back: depth > 1 ? WATER_BACK : to, close: `Close, back to ${to}` };
 }
 
+/** (T180) The water screen's own lines: while it loads, a water the bundle does not hold, and no release open. */
+export const WATER_SCREEN_WORDS = {
+  loading: "Loading this water",
+  noSuchWater: "No such water in this bundle.",
+  noRelease: "no data release is open",
+} as const;
+
 /** The one labelled way from a Conditions reach to its water's rules (and its screen-reader hint). */
 export const TO_REGULATIONS = { label: "Regulations", hint: "The fishing regulations for this water" } as const;
 

@@ -7,6 +7,8 @@ export const INSTALL_WORDS = {
   failed: "The map data could not be loaded.",
   firstRunOffline: "The first start needs a connection: the map and regulations download once, then work offline.",
   wifi: "Wi-Fi recommended.",
+  /** (T180) under a failed start, for a developer: the local tile server serves the release */
+  serve: "Run `pnpm tiles` to serve the release.",
 } as const;
 
 const STAGES: Readonly<Record<string, string>> = {

@@ -12,6 +12,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Animated, Easing, Modal, Pressable, ScrollView, Text, View, useWindowDimensions } from "react-native";
 import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
 import { useBackLayer, useLayoutClass, useSheetDrag, type LayoutClass } from "@app/ui";
+import { SHEET_WORDS } from "@app/core";
 import { TYPE } from "./type";
 import { GUTTER, SHEET_DIALOG, SPACE, type Palette } from "./theme";
 import { NATIVE_DRIVER, SHEET_MOTION, useReducedMotion } from "./motion";
@@ -179,7 +180,7 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
       <Modal visible={open} transparent animationType="fade" onRequestClose={requestClose}>
         <GestureHandlerRootView style={{ flex: 1 }}>
           <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: SHEET_DIALOG.inset }}>
-            <Pressable accessibilityLabel="Close" onPress={onClose}
+            <Pressable accessibilityLabel={SHEET_WORDS.close} onPress={onClose}
                        style={{ position: "absolute", top: 0, bottom: 0, left: 0, right: 0, backgroundColor: palette.scrim }} />
             <View testID="sheet-dialog" accessibilityViewIsModal
                   style={{ width: "100%", maxWidth: SHEET_DIALOG.maxWidth, // no window height yet (0: not measured) caps nothing
@@ -191,8 +192,8 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
                                paddingBottom: 10, borderBottomWidth: 1.5,
                                borderBottomColor: palette.ink }}>
                   <Text accessibilityRole="header" style={{ ...SHEET_TITLE, color: palette.ink, flexShrink: 1 }}>{shown.title}</Text>
-                  <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Done" {...DONE_HIT}>
-                    <Text style={{ ...DONE_WORD, color: palette.accent }}>Done</Text>
+                  <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel={SHEET_WORDS.done} {...DONE_HIT}>
+                    <Text style={{ ...DONE_WORD, color: palette.accent }}>{SHEET_WORDS.done}</Text>
                   </Pressable>
                 </View>
                 {shown.sub ? <Text testID="sheet-sub" style={{ ...TYPE.small, color: palette.sub, paddingHorizontal: 18, paddingTop: 6 }}>{shown.sub}</Text> : null}
@@ -217,7 +218,7 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
             only its opacity moves, so the dim neither travels with the sheet nor uncovers a bright band as it leaves. */}
         <Animated.View testID="sheet-scrim" style={{ position: "absolute", top: 0, bottom: 0, left: 0, right: 0,
                                                      backgroundColor: palette.scrim, opacity: dim }}>
-          <Pressable accessibilityLabel="Close" onPress={onClose} style={{ flex: 1 }} />
+          <Pressable accessibilityLabel={SHEET_WORDS.close} onPress={onClose} style={{ flex: 1 }} />
         </Animated.View>
         {/*
           THE SHEET WAS THE LAST ROUNDED THING. It carried a 22px radius on both top corners
@@ -240,9 +241,9 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
                              paddingBottom: 10, borderBottomWidth: 1.5,
                              borderBottomColor: palette.ink }}>
                 <Text accessibilityRole="header" style={{ ...SHEET_TITLE, color: palette.ink, flexShrink: 1 }}>{shown.title}</Text>
-                <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Done"
+                <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel={SHEET_WORDS.done}
                            {...DONE_HIT}>
-                  <Text style={{ ...DONE_WORD, color: palette.accent }}>Done</Text>
+                  <Text style={{ ...DONE_WORD, color: palette.accent }}>{SHEET_WORDS.done}</Text>
                 </Pressable>
               </View>
               {shown.sub ? <Text testID="sheet-sub" style={{ ...TYPE.small, color: palette.sub, paddingHorizontal: 18, paddingTop: 6 }}>{shown.sub}</Text> : null}

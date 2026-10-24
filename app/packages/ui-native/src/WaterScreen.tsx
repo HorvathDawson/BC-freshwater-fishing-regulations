@@ -24,7 +24,7 @@
  */
 import { useContext, useMemo, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
-import { dayRange, regsLapsedNote, WATER_BACK, WORDS, type RegsTarget } from "@app/core";
+import { dayRange, regsLapsedNote, WATER_BACK, WATER_SCREEN_WORDS, WORDS, type RegsTarget } from "@app/core";
 import type { ItemId, WaterSource, SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { mapDayOf, regsDay, useAccessNotice, useAnglerProfile, useDownstreamWater, useLayoutClass, useRegsPage, useRegsStore,
@@ -43,7 +43,6 @@ import { SPACE, type Palette } from "./theme";
 import { WaterFrame, WaterInset, WaterTitle } from "./WaterFrame";
 
 /** Why the page says the regulations are unavailable when no release loader was handed in. */
-const NO_RELEASE = "no data release is open";
 
 export function WaterScreen({ source, item, palette, onBack,
                               loader = null, day = null, onDay, section = null, part = null, fishImages, adiposeImages,
@@ -125,7 +124,7 @@ export function WaterScreen({ source, item, palette, onBack,
   if (item !== null && sheet.state === "loading") {
     return frame(<WaterTitle name={null} palette={palette} />, (
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-        <FishSpinner palette={palette} size={110} label="Loading this water" />
+        <FishSpinner palette={palette} size={110} label={WATER_SCREEN_WORDS.loading} />
       </View>
     ));
   }
@@ -133,7 +132,7 @@ export function WaterScreen({ source, item, palette, onBack,
     return frame(<WaterTitle name={null} palette={palette} />, (
       <WaterInset style={{ paddingTop: SPACE.s4 }}>
         <Text style={{ ...TYPE.body, color: palette.closed }}>
-          {sheet.state === "failed" ? String(sheet.error) : "No such water in this bundle."}
+          {sheet.state === "failed" ? String(sheet.error) : WATER_SCREEN_WORDS.noSuchWater}
         </Text>
       </WaterInset>
     ));
@@ -174,7 +173,7 @@ export function WaterScreen({ source, item, palette, onBack,
   const page = (
     <WaterInset style={{ paddingTop: SPACE.s4, paddingBottom: 32 }}>
       {!loader || regsError
-        ? <Text style={{ ...TYPE.body, color: palette.closed }}>{WORDS.REGS_UNAVAILABLE(regsError?.message ?? NO_RELEASE)}</Text>
+        ? <Text style={{ ...TYPE.body, color: palette.closed }}>{WORDS.REGS_UNAVAILABLE(regsError?.message ?? WATER_SCREEN_WORDS.noRelease)}</Text>
         : <FishSpinner palette={palette} size={64} label={WORDS.REGS_LOADING} />}
     </WaterInset>
   );
