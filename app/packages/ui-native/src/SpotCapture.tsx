@@ -22,7 +22,7 @@
  * water near it, and Next goes straight to step 3 — step 2 is still there, one ‹ Back away, to move the pin.
 
  */
-import { SPOT_CAPTURE_AT, VISIT_QUICK_DAYS, type LatLon, type SectionKey, type VisitSteps } from "@app/core";
+import { SPOT_CAPTURE_AT, SPOT_CAPTURE_WORDS as CW, VISIT_QUICK_DAYS, type LatLon, type SectionKey, type VisitSteps } from "@app/core";
 import { useRef, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import type { WaterSource, SectionId } from "@app/data";
@@ -136,7 +136,7 @@ export function SpotCapture(props: SpotCaptureProps) {
   }
 
   if (step === "details" || step === "saving") {
-    if (!draft) return <Busy palette={palette} label="Reading the water" />;
+    if (!draft) return <Busy palette={palette} label={CW.reading} />;
     // The SAME component that shows a saved spot, in draft mode. What you confirm here is
     // exactly what you get afterwards — which was not true when this screen had its own
     // renderer and quietly showed less.
@@ -172,10 +172,10 @@ export function SpotCapture(props: SpotCaptureProps) {
         </View>
       )}
       <Coach palette={palette}
-             title={step === "water" ? (preset ? SPOT_CAPTURE_AT.title : "Pick the water") : "Now the exact spot"}
+             title={step === "water" ? (preset ? SPOT_CAPTURE_AT.title : CW.pickWater) : CW.exactSpot}
              detail={step === "water"
-               ? (preset ? SPOT_CAPTURE_AT.detail : "Tap the stream or lake your spot is on.")
-               : `Tap the point on ${water?.name ?? "this reach"}.`}
+               ? (preset ? SPOT_CAPTURE_AT.detail : CW.pickWaterDetail)
+               : CW.tapPoint(water?.name ?? null)}
              chose={step === "water" ? water?.name ?? null
                                      : point && `${point.lat.toFixed(4)}, ${point.lon.toFixed(4)}`}
              // Cancel leaves the whole capture: asks first when the draft holds what the reader put in
@@ -211,13 +211,13 @@ function WhenScreen({ palette, steps, onShiftDay, onDay, onHour, water, onBack, 
 
   return (
     <View style={{ flex: 1, backgroundColor: palette.card, padding: 20, gap: 26 }}>
-      <Pressable onPress={onBack} accessibilityRole="button" accessibilityLabel="Back">
-        <IconText name="back" text="Back" style={{ ...TYPE.micro, fontSize: 13, color: palette.accent }} />
+      <Pressable onPress={onBack} accessibilityRole="button" accessibilityLabel={CW.back}>
+        <IconText name="back" text={CW.back} style={{ ...TYPE.micro, fontSize: 13, color: palette.accent }} />
       </Pressable>
       {error ? <Text accessibilityRole="alert" style={{ ...TYPE.small, color: palette.closed }}>{error}</Text> : null}
 
       <View style={{ gap: 6 }}>
-        <Text style={{ ...TYPE.title, color: palette.ink }}>When were you there?</Text>
+        <Text style={{ ...TYPE.title, color: palette.ink }}>{CW.when}</Text>
         <Text style={{ ...TYPE.small, color: palette.sub }}>
           The weather, the flow and the rules are all recorded for this moment
           {water ? ` on ${water}` : ""} — so it is worth getting right.
@@ -243,11 +243,11 @@ function WhenScreen({ palette, steps, onShiftDay, onDay, onHour, water, onBack, 
           ))}
         </View>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 14, paddingTop: 4 }}>
-          <Step palette={palette} label="Earlier day" icon="back" onPress={() => onShiftDay(-1)} />
+          <Step palette={palette} label={CW.earlierDay} icon="back" onPress={() => onShiftDay(-1)} />
           <Text style={{ ...TYPE.bodyStrong, flex: 1, textAlign: "center", color: palette.ink }}>
             {steps.dayText}
           </Text>
-          <Step palette={palette} label="Later day" icon="next" onPress={() => onShiftDay(1)}
+          <Step palette={palette} label={CW.laterDay} icon="next" onPress={() => onShiftDay(1)}
                 disabled={!steps.laterDay} />
         </View>
       </View>
@@ -256,22 +256,22 @@ function WhenScreen({ palette, steps, onShiftDay, onDay, onHour, water, onBack, 
         <Text style={{ ...TYPE.section, fontSize: 10.5, letterSpacing: 1.5,
                        color: palette.faint }}>HOUR</Text>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
-          <Step palette={palette} label="Earlier hour" icon="back"
+          <Step palette={palette} label={CW.earlierHour} icon="back"
                 onPress={() => onHour(hour - 1)} disabled={!steps.earlierHour} />
           <Text style={{ ...TYPE.figureBig, fontSize: 30, flex: 1, textAlign: "center",
                          color: palette.ink }}>
             {steps.hourLabel}
           </Text>
-          <Step palette={palette} label="Later hour" icon="next"
+          <Step palette={palette} label={CW.laterHour} icon="next"
                 onPress={() => onHour(hour + 1)} disabled={!steps.laterHour} />
         </View>
       </View>
 
       <View style={{ flex: 1 }} />
-      <Pressable onPress={onNext} accessibilityRole="button" accessibilityLabel="Next"
+      <Pressable onPress={onNext} accessibilityRole="button" accessibilityLabel={CW.next}
                  style={{ borderRadius: palette.r.box, paddingVertical: 15, alignItems: "center",
                           backgroundColor: palette.accent }}>
-        <Text style={{ ...TYPE.bodyStrong, color: palette.onAccent }}>Next</Text>
+        <Text style={{ ...TYPE.bodyStrong, color: palette.onAccent }}>{CW.next}</Text>
       </Pressable>
     </View>
   );
@@ -312,8 +312,8 @@ function Coach({ palette, title, detail, chose, onCancel, onNext, onNextAsync }:
         </View>
       </View>
       <View style={{ flexDirection: "row", gap: 10 }}>
-        <Button palette={palette} label="Cancel" onPress={onCancel} kind="ghost" />
-        <Button palette={palette} label="Next" onPress={go} />
+        <Button palette={palette} label={CW.cancel} onPress={onCancel} kind="ghost" />
+        <Button palette={palette} label={CW.next} onPress={go} />
       </View>
     </View>
   );

@@ -10,7 +10,7 @@
  * A tab root, not a surface: back from it is the Map tab (the route's tab rule); a spot opened from it is the route's too.
  */
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
-import { SPOTS_MENU } from "@app/core";
+import { SPOTS_LIST_WORDS, SPOTS_MENU } from "@app/core";
 import type { PhotoStore } from "@app/data/spots";
 import { usePhotoUris, type SpotsMenuAddKind, type SpotsMenuRow, type SpotsMenuVM } from "@app/ui";
 import { Icon } from "./icons";
@@ -114,7 +114,7 @@ function SpotRow({ row, palette, onOpen, onShow, photoStore }: {
                    resizeMode="cover" accessibilityLabel="" />
           ) : (
             <Text style={{ ...TYPE.micro, fontSize: 9, fontWeight: "700", letterSpacing: 0.6,
-                           color: palette.faint }}>NO PHOTO</Text>
+                           color: palette.faint }}>{SPOTS_LIST_WORDS.noPhoto}</Text>
           )}
         </View>
         <View style={{ flex: 1, minWidth: 0 }}>

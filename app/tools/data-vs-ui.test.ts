@@ -15,7 +15,7 @@
  *
  * WHAT THE SCAN HOLDS: (1) no figure is typed in a component — every one of them is data or core's (an allowance here
  * says why); (2) the hand-written copy is EXACTLY the frozen list below — the words that were in components when the
- * auditor ran (T60), each kept where it is until ticket T60-copy moves it to core. A NEW string fails here: put it in core
+ * auditor ran (T60), now empty: T180 moved every one to core. A NEW string fails here: put it in core
  * (`WORDS`, `MENU_WORDS`, … beside its screen's other words) and read it from there. A string that LEAVES a component
  * fails too, so the list only ever shrinks on purpose (delete its line).
  *
@@ -99,35 +99,12 @@ export function literals(source: string): [kind: "copy" | "figure", text: string
 }
 
 /**
- * THE FROZEN COPY: every hand-written string in a component when T60 ran, by file. Each is a finding of T60 handed to
- * ticket T60-copy (move to core words). Deleting a line is the only intended change; a new string belongs in core.
+ * THE FROZEN COPY: hand-written strings still allowed in a component, by file, each with why. EMPTY since T180 moved the
+ * 95 strings T60 found into core's words tables (uiWords, SEARCH_BAR, FLOW_LEGEND, TRACE_WORDS, CONDITIONS_WORDS
+ * .hydrograph, the spot tables in spotWords, MAP_CREDITS / INSTALL_WORDS, WATER_SCREEN_WORDS). A new string belongs in
+ * core.
  */
-const KNOWN_COPY: Record<string, readonly string[]> = {
-  "packages/ui-native/src/SpotCapture.tsx": [
-    "Back", "Cancel", "Earlier day", "Earlier hour", "Later day", "Later hour", "Next", "Now the exact spot", "Pick the water",
-    "Reading the water", "Tap the point on 〈〉.", "Tap the stream or lake your spot is on.", "When were you there?",
-  ],
-  "packages/ui-native/src/SpotScreen.tsx": [
-    "Add a title", "Back", "Cancel", "Cancel editing", "Delete", "Delete spot", "Edit", "Edit spot", "Name this spot",
-    "None.", "Notes", "Refresh", "Refresh this spot", "Save changes", "Save spot", "Show on map", "Spots",
-    "What happened, what you used, what the water looked like",
-  ],
-  "packages/ui-native/src/spot/Confirm.tsx": [
-    "Confirm delete", "Delete", "Delete this spot?", "Discard", "Keep editing", "Keep it",
-    "Keep them, or throw them away and go back to what was saved.", "Save and close",
-    "The gauge reading, the weather and the rules that were in force are recorded", "Unsaved changes",
-    "You have unsaved changes.", "nowhere else. This cannot be undone.",
-  ],
-  "packages/ui-native/src/spot/Record.tsx": [
-   
-    "No gauge is entitled to speak for this water, so no reading was recorded. A station draining a far larger watershed would have given a number, and the number would have been wrong.",
-    "No weather was recorded for this spot.", "Weather", "What the water was doing",
-  ],
-  "packages/ui-native/src/spot/WeatherWindow.tsx": [
-    "Cloud", "Humidity", "Pressure", "Temp",
-  ],
-  "packages/ui-native/src/SpotsScreen.tsx": ["NO PHOTO"],
-};
+const KNOWN_COPY: Record<string, readonly string[]> = {};
 
 /**
  * FIGURES a component may type, each with why. NONE: a number on screen is data or core's (T60 moved the chart key's

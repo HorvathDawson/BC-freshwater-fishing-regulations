@@ -21,10 +21,10 @@ export function Window({ weather, palette }: { weather: SpotWeather; palette: Pa
   const cols: [string, WeatherSample | null][] =
     [[SPOT_WINDOW.before, win.before], [SPOT_WINDOW.at, win.at], [SPOT_WINDOW.after, win.after]];
   const rows: [string, (s: WeatherSample) => number | null, string][] = [
-    ["Cloud", (s) => s.cloudPct, "%"],
-    ["Pressure", (s) => s.pressureHpa, ""],
-    ["Humidity", (s) => s.humidityPct, "%"],
-    ["Temp", (s) => s.tempC, "°"],
+    [SPOT_WINDOW.cloud, (s) => s.cloudPct, "%"],
+    [SPOT_WINDOW.pressure, (s) => s.pressureHpa, ""],
+    [SPOT_WINDOW.humidity, (s) => s.humidityPct, "%"],
+    [SPOT_WINDOW.temp, (s) => s.tempC, "°"],
   ];
 
   const fig = (v: number | null, unit: string) =>

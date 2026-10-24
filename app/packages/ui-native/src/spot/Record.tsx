@@ -4,7 +4,7 @@
  */
 import { Text, View } from "react-native";
 import { DAY_PANEL_WORDS, savedGauges, spotReadingFigure, visitDay, type Spot } from "@app/data/spots";
-import { percentileLabel } from "@app/core";
+import { SPOT_RECORD_WORDS, percentileLabel } from "@app/core";
 import { DonorPanel } from "../DonorPanel";
 import { TYPE } from "../type";
 import type { Palette } from "../theme";
@@ -18,7 +18,7 @@ export function WaterRecord({ spot, palette }: { spot: Spot; palette: Palette })
   // Q161: a trip on an earlier day than the save shows that day's gauges, never the save day's (`savedGauges`)
   const gauges = savedGauges(spot);
   return (
-    <Block palette={palette} title="What the water was doing">
+    <Block palette={palette} title={SPOT_RECORD_WORDS.water}>
       {/*
         THE SAME COMPONENT THE CONDITIONS SCREEN USES, on frozen data.
         
@@ -72,9 +72,7 @@ export function WaterRecord({ spot, palette }: { spot: Spot; palette: Palette })
         </>
       ) : (
         <Text style={{ ...TYPE.small, color: palette.sub }}>
-          No gauge is entitled to speak for this water, so no reading was recorded. A
-          station draining a far larger watershed would have given a number, and the
-          number would have been wrong.
+          {SPOT_RECORD_WORDS.noReading}
         </Text>
       )}
     </Block>
@@ -85,7 +83,7 @@ export function WaterRecord({ spot, palette }: { spot: Spot; palette: Palette })
 export function WeatherRecord({ spot, palette }: { spot: Spot; palette: Palette }) {
   const w = spot.weather;
   return (
-    <Block palette={palette} title="Weather">
+    <Block palette={palette} title={SPOT_RECORD_WORDS.weather}>
       {w?.tempC != null ? (
         <>
           <View style={{ flexDirection: "row", alignItems: "baseline", gap: 12,
@@ -109,7 +107,7 @@ export function WeatherRecord({ spot, palette }: { spot: Spot; palette: Palette 
         </>
       ) : (
         <Text style={{ ...TYPE.small, color: palette.sub }}>
-          No weather was recorded for this spot.
+          {SPOT_RECORD_WORDS.noWeather}
         </Text>
       )}
     </Block>

@@ -1,6 +1,7 @@
 /** The spot screen's confirm: a destructive or lossy step, asked first (also SpotCapture's draft question). */
 import { Text, View } from "react-native";
 import { DRAFT_WORDS } from "@app/data/spots";
+import { SPOT_CONFIRM_WORDS } from "@app/core";
 import { TYPE } from "../type";
 import type { Palette } from "../theme";
 import { Button } from "../Button";
@@ -27,31 +28,29 @@ export function Confirm({ palette, kind, onCancel, onConfirm, onSaveInstead }: {
       </View>
     );
   const del = kind === "delete";
+  const w = del ? SPOT_CONFIRM_WORDS.delete : SPOT_CONFIRM_WORDS.discard;
   return (
-    <View accessibilityLabel={del ? "Confirm delete" : "Unsaved changes"}
+    <View accessibilityLabel={w.label}
           style={{ marginHorizontal: 18, marginBottom: 8, padding: 16, borderRadius: palette.r.box,
                    borderWidth: 1, borderColor: del ? palette.closed : palette.line2,
                    backgroundColor: palette.wash, gap: 12 }}>
       <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>
-        {del ? "Delete this spot?" : "You have unsaved changes."}
+        {w.title}
       </Text>
       <Text style={{ ...TYPE.small, color: palette.sub }}>
-        {del
-          ? "The gauge reading, the weather and the rules that were in force are recorded " +
-            "nowhere else. This cannot be undone."
-          : "Keep them, or throw them away and go back to what was saved."}
+        {w.detail}
       </Text>
       <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
-        <Button palette={palette} kind="ghost" label={del ? "Keep it" : "Keep editing"}
+        <Button palette={palette} kind="ghost" label={w.keep}
                 onPress={onCancel} />
         {/* NOT "Save changes" — the footer already has a button with that label, and two
             identically-named buttons on one screen is how somebody presses the wrong one.
             This one saves AND leaves, so it says so. */}
         {onSaveInstead && (
-          <Button palette={palette} label="Save and close" onPress={onSaveInstead} />
+          <Button palette={palette} label={SPOT_CONFIRM_WORDS.saveAndClose} onPress={onSaveInstead} />
         )}
         <Button palette={palette} kind={del ? "danger" : "solid"}
-                label={del ? "Delete" : "Discard"} onPress={onConfirm} />
+                label={w.go} onPress={onConfirm} />
       </View>
     </View>
   );

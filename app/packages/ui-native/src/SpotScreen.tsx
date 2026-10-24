@@ -23,6 +23,7 @@
 import { useState } from "react";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { isUntitled, needsRefresh, refreshReason, spotHeadline, spotLabel, type PhotoStore, type Spot } from "@app/data/spots";
+import { SPOT_WORDS as W } from "@app/core";
 import { leadUpView, useBackLayer, usePhotoUris, type DayFlowView, type LikeVisitView, type PhotoEdit } from "@app/ui";
 import { LeadUpStrip } from "./LeadUpStrip";
 import { LikeVisitStrip } from "./LikeVisitStrip";
@@ -121,18 +122,18 @@ export function SpotScreen(p: SpotScreenProps) {
                      justifyContent: "space-between",
                      paddingHorizontal: 18, paddingTop: 14, paddingBottom: 6, ...MEASURE }}>
         {mode === "edit" ? (
-          <Link palette={palette} label="Cancel editing" text="Cancel" onPress={leaveEdit} />
+          <Link palette={palette} label={W.cancelEditing} text={W.cancel} onPress={leaveEdit} />
         ) : p.onBack ? (
-          <Link palette={palette} label="Back" icon="back"
-                text={mode === "draft" ? "Back" : p.back ?? "Spots"} onPress={p.onBack} />
+          <Link palette={palette} label={W.back} icon="back"
+                text={mode === "draft" ? W.back : p.back ?? W.spots} onPress={p.onBack} />
         ) : <View />}
 
         <View style={{ flexDirection: "row", gap: 18 }}>
           {mode === "view" && p.onEdit && (
-            <Link palette={palette} label="Edit spot" text="Edit" onPress={p.onEdit} />
+            <Link palette={palette} label={W.editSpot} text={W.edit} onPress={p.onEdit} />
           )}
           {mode === "view" && p.onDelete && (
-            <Link palette={palette} label="Delete spot" text="Delete" tone={palette.closed}
+            <Link palette={palette} label={W.deleteSpot} text={W.delete} tone={palette.closed}
                   onPress={() => setConfirm("delete")} />
           )}
         </View>
@@ -161,8 +162,8 @@ export function SpotScreen(p: SpotScreenProps) {
         <View style={{ gap: 4 }}>
           {editable && p.onTitle ? (
             <TextInput value={p.title ?? ""} onChangeText={p.onTitle}
-                       placeholder="Name this spot" placeholderTextColor={palette.faint}
-                       accessibilityLabel="Name this spot"
+                       placeholder={W.name} placeholderTextColor={palette.faint}
+                       accessibilityLabel={W.name}
                        style={{ ...TYPE.title, color: palette.ink }} />
           ) : (
             <Text style={{ ...TYPE.title, color: palette.ink }}>{spotLabel(spot)}</Text>
@@ -172,8 +173,8 @@ export function SpotScreen(p: SpotScreenProps) {
               pick out of twenty. */}
           {!editable && isUntitled(spot) && p.onEdit && (
             <Pressable onPress={p.onEdit} accessibilityRole="button"
-                       accessibilityLabel="Add a title">
-              <Text style={{ ...TYPE.small, color: palette.accent }}>Add a title</Text>
+                       accessibilityLabel={W.addTitle}>
+              <Text style={{ ...TYPE.small, color: palette.accent }}>{W.addTitle}</Text>
             </Pressable>
           )}
           {/* The visit, in the reader's own time (P12b) — the day they were at the water. */}
@@ -195,12 +196,12 @@ export function SpotScreen(p: SpotScreenProps) {
               {refreshReason(spot)}
             </Text>
             <Pressable onPress={p.onRefresh} disabled={p.refreshing}
-                       accessibilityRole="button" accessibilityLabel="Refresh this spot"
+                       accessibilityRole="button" accessibilityLabel={W.refreshSpot}
                        style={{ borderRadius: palette.r.pill, paddingVertical: 8, paddingHorizontal: 14,
                                 backgroundColor: palette.card, borderWidth: 1,
                                 borderColor: palette.line2, opacity: p.refreshing ? 0.5 : 1 }}>
               <Text style={{ ...TYPE.micro, fontSize: 12.5, color: palette.accent }}>
-                {p.refreshing ? "…" : "Refresh"}
+                {p.refreshing ? "…" : W.refresh}
               </Text>
             </Pressable>
           </View>
@@ -215,12 +216,12 @@ export function SpotScreen(p: SpotScreenProps) {
 
         {p.onShowOnMap && (
           <Pressable onPress={p.onShowOnMap} accessibilityRole="button"
-                     accessibilityLabel="Show on map"
+                     accessibilityLabel={W.showOnMap}
                      style={{ flexDirection: "row", alignItems: "center", gap: 10,
                               paddingVertical: 12, paddingHorizontal: 14, borderRadius: palette.r.box,
                               borderWidth: 1, borderColor: palette.line2 }}>
             <Text style={{ ...TYPE.bodyStrong, flex: 1, color: palette.ink }}>
-              Show on map
+              {W.showOnMap}
             </Text>
             <Icon name="next" colour={palette.accent} size={18} />
           </Pressable>
@@ -242,18 +243,18 @@ export function SpotScreen(p: SpotScreenProps) {
           </Block>
         )}
 
-        <Block palette={palette} title="Notes">
+        <Block palette={palette} title={W.notes}>
           {editable && p.onNotes ? (
             <TextInput value={p.notes ?? ""} onChangeText={p.onNotes} multiline
-                       placeholder="What happened, what you used, what the water looked like"
-                       placeholderTextColor={palette.faint} accessibilityLabel="Notes"
+                       placeholder={W.notesHint}
+                       placeholderTextColor={palette.faint} accessibilityLabel={W.notes}
                        style={{ ...TYPE.body, color: palette.ink, minHeight: 96,
                                 textAlignVertical: "top", borderWidth: 1,
                                 borderColor: palette.line, borderRadius: palette.r.box, padding: 12 }} />
           ) : spot.notes.trim() !== "" ? (
             <Text style={{ ...TYPE.body, color: palette.ink }}>{spot.notes}</Text>
           ) : (
-            <Text style={{ ...TYPE.small, color: palette.faint }}>None.</Text>
+            <Text style={{ ...TYPE.small, color: palette.faint }}>{W.noNotes}</Text>
           )}
         </Block>
 
@@ -268,7 +269,7 @@ export function SpotScreen(p: SpotScreenProps) {
         <View style={{ flexDirection: "row", gap: 10, padding: 16, borderTopWidth: 1,
                        borderTopColor: palette.line }}>
           <Button palette={palette}
-                  label={mode === "draft" ? "Save spot" : "Save changes"} onPress={p.onSave} />
+                  label={mode === "draft" ? W.save : W.saveChanges} onPress={p.onSave} />
         </View>
       )}
     </View>
