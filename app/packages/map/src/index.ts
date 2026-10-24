@@ -13,10 +13,12 @@ export { Map } from "./Map";
 export type { MapProps, Camera, MapSpots } from "./map-props";
 export { coloursEachTile, standingInput } from "./colouring";
 export { imageryTiles, type TileEndpoints } from "./endpoints";
+export { runtimeStyle } from "./runtime-style";
+export { baseAdapter, type MapHandle } from "./adapters/contract";
 /** The catalogue a Layers menu is built from. Groups and views come from the generated
  *  style, never from a hand-written list in a component — that is how the two apps end up
  *  offering different layers. */
-export { hiddenLayers, shownLayers, STYLE_META, FIELD_HANDOVER_Z, waterStatusColour, tempBandColour } from "./style";
+export { hiddenLayers, shownLayers, STYLE_META, FIELD_HANDOVER_Z, resolveTheme, waterStatusColour, tempBandColour } from "./style";
 /** The one palette, read: a token's colour, its alpha, and MapLibre's controls from it. */
 export { colour, translucent } from "./chrome";
 /** The route overlay (owner 2026-10-21): routes copied out of the tiles, pins, and their words' slots. */

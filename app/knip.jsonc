@@ -12,6 +12,24 @@
       // tools/: the `pnpm check` gates (node scripts) and the tools test suites vitest runs.
       "entry": ["tools/*.mjs", "tools/**/*.test.ts"],
       "project": ["tools/**/*.{ts,mjs}"],
+      // tools/ imports the packages by name without depending on them; vitest resolves those names by alias
+      // (vitest.config.ts), so knip is told the same aliases — without them every barrel export only a tool reads
+      // looked unused (T63: knip --fix removed `resolveTheme` & co. and 65 tools tests failed).
+      "paths": {
+        "@app/core/regs/testing": ["packages/core/src/regs/testing/index.ts"],
+        "@app/core": ["packages/core/src/index.ts"],
+        "@app/data/fixture": ["packages/data/src/fixture.ts"],
+        "@app/data/spots": ["packages/data/src/spots/index.ts"],
+        "@app/data/sql/node": ["packages/data/src/sql/drivers/node.ts"],
+        "@app/data/release/node": ["packages/data/src/sql/drivers/releaseDir.ts"],
+        "@app/data/release/platform": ["packages/data/src/release/drivers/platform.ts"],
+        "@app/data/release": ["packages/data/src/release/index.ts"],
+        "@app/data/regs": ["packages/data/src/regs/index.ts"],
+        "@app/data": ["packages/data/src/index.ts"],
+        "@app/ui": ["packages/ui/src/index.ts"],
+        "@app/map": ["packages/map/src/index.ts"],
+        "@app/ui-native": ["packages/ui-native/src/index.ts"]
+      },
       // The tools suites render the real packages (react-native-web, the style spec, the basemap) through the
       // workspace packages' own dependencies; the root package does not re-declare them.
       "ignoreDependencies": ["react-native", "react-native-gesture-handler", "@maplibre/maplibre-gl-style-spec",

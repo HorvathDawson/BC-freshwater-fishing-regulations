@@ -28,6 +28,7 @@ export * from "./route";
 export * from "./openWater";
 export * from "./mapModes";
 export * from "./conditionsColour";
+export { pushedRoute } from "./routeColour";
 export * from "./lakeColour";
 export * from "./release";
 export * from "./boot";
