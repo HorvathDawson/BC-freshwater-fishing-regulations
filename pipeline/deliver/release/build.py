@@ -299,9 +299,12 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
         files["regs-sid"] = copy_file(work / "regs-sid.sqlite", {"s": store}, [("s", t, None) for t in SH.SID_TABLES],
                                       {**regs, "format": FORMATS["regs-sid"]})
 
-        return ship(work, files, base["section_handles"], out_root, data_release=data_release, tiles=tiles,
-                    basemap=basemap, valid_until=bmeta.get("valid_until") or None, sources=sources,
-                    bundle=bmeta, regs_versions=json.loads(smeta["layout"]).get("versions") if "layout" in smeta else None)
+        final = ship(work, files, base["section_handles"], out_root, data_release=data_release, tiles=tiles,
+                     basemap=basemap, valid_until=bmeta.get("valid_until") or None, sources=sources,
+                     bundle=bmeta, regs_versions=json.loads(smeta["layout"]).get("versions") if "layout" in smeta else None)
+        from pipeline.deliver.release.manifest import write_latest
+        write_latest(out_root, final.name)              # T72: the pointer every reader asks, not the newest mtime
+        return final
     finally:
         b.close()
         st.close()

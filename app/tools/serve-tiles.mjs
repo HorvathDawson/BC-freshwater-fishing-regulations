@@ -11,7 +11,7 @@
  * them directly; nothing about the client changes, which is the point of the two-storage
  * design (`design/` and the architecture artifact).
  */
-import { createReadStream, statSync, existsSync, readdirSync } from "node:fs";
+import { createReadStream, statSync, existsSync, readdirSync, readFileSync } from "node:fs";
 import { createServer } from "node:http";
 import { fileURLToPath } from "node:url";
 
@@ -74,7 +74,9 @@ function releaseFile(route) {
   const rel = decodeURIComponent(route.slice("/release/".length));
   if (rel.split("/").includes("..")) return undefined;
   if (rel === "manifest.json") {
-    const id = process.env.RELEASE ?? (existsSync(RELEASE_ROOT)
+    // T72: `data/release/LATEST` (written by the release step) names the release; the newest mtime only without one
+    const pointer = `${RELEASE_ROOT}LATEST`;
+    const id = process.env.RELEASE ?? (existsSync(pointer) ? readFileSync(pointer, "utf8").trim() : existsSync(RELEASE_ROOT)
       ? readdirSync(RELEASE_ROOT).filter((d) => d.startsWith("r-"))
           .sort((a, b) => statSync(`${RELEASE_ROOT}${b}`).mtimeMs - statSync(`${RELEASE_ROOT}${a}`).mtimeMs)[0]
       : undefined);

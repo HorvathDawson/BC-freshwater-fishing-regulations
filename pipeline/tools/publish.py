@@ -62,7 +62,7 @@ def plan(release: Path, root: Path) -> List[Put]:
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    ap.add_argument("--release", type=Path, default=None, help="default: the newest data/release/r-*")
+    ap.add_argument("--release", type=Path, default=None, help="default: the release data/release/LATEST names")
     ap.add_argument("--yes", action="store_true", help="upload (without it, print the plan only)")
     a = ap.parse_args(argv)
     root = GENERATED.release
@@ -89,6 +89,7 @@ def main(argv=None) -> int:
         extra = {"ContentType": p.content_type, "CacheControl": p.cache,
                  **({"ContentEncoding": p.encoding} if p.encoding else {})}
         s3.upload_file(str(p.path), os.environ["R2_BUCKET"], p.key, ExtraArgs=extra)
+    (root / "PUBLISHED").write_text(Path(release).name + "\n")      # T72: the prune never removes what R2 serves
     print(f"published {release.name}: {len(puts)} objects, manifest last")
     return 0
 

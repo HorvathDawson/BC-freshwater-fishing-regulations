@@ -21,7 +21,7 @@ from __future__ import annotations
 import re
 import sqlite3
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 FORMAT = "app-manifest/2"
 
@@ -59,13 +59,38 @@ def bundle_block(bundle_meta: dict) -> dict:
     return out
 
 
+LATEST = "LATEST"
+
+
+def write_latest(release_root, rid: str) -> None:
+    """T72: name `rid` as THE release under `release_root` (one line, the id). Written by the release step only — a
+    folder touched later (a copy, a test, an inspection) never becomes current by its mtime."""
+    tmp = Path(release_root) / f".{LATEST}.tmp"
+    tmp.write_text(rid + "\n")
+    tmp.replace(Path(release_root) / LATEST)
+
+
 def latest(release_root) -> Optional[Path]:
-    """THE RELEASE ON DISK: the newest `r-*` folder under `release_root` holding a manifest (by the manifest's mtime —
-    a release id is a content hash, so name order is arbitrary), or None when there is none. One answer for every
-    reader that asks "which release is current" (the curation-review tool's vintage, the fixture tools)."""
+    """THE RELEASE ON DISK: the release `release_root/LATEST` names (T72), else — a root the release step never wrote
+    a pointer into (a test's, an old checkout's) — the newest `r-*` folder holding a manifest (by the manifest's
+    mtime; a release id is a content hash, so name order is arbitrary), or None when there is none. One answer for
+    every reader that asks "which release is current" (publish, the curation-review tool's vintage, the fixture tools)."""
+    root = Path(release_root)
+    pointer = root / LATEST
+    if pointer.is_file():
+        named = root / pointer.read_text().strip()
+        if not (named / "manifest.json").is_file():
+            raise SystemExit(f"release: {pointer} names {named.name}, which has no manifest — re-run the release step")
+        return named
+    dirs = releases(root)
+    return dirs[0] if dirs else None
+
+
+def releases(release_root) -> List[Path]:
+    """Every `r-*` folder under `release_root` holding a manifest, newest manifest first (the prune's order too)."""
     root = Path(release_root)
     dirs = [d for d in root.glob("r-*") if (d / "manifest.json").is_file()] if root.is_dir() else []
-    return max(dirs, key=lambda d: ((d / "manifest.json").stat().st_mtime_ns, d.name)) if dirs else None
+    return sorted(dirs, key=lambda d: ((d / "manifest.json").stat().st_mtime_ns, d.name), reverse=True)
 
 
 _DAY = re.compile(r"^(\d{4})-?(\d{2})-?(\d{2})")
