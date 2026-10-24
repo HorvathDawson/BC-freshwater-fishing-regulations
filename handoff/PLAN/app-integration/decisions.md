@@ -1216,10 +1216,11 @@ local tool's fix-mode writers are retired (T185). The review itself moves to a s
   whenever the slough marks are finished (it takes a second tile rebuild; accepted).
 - **T162 unblocked:** the owner asked PSF and permission is granted ("it is good"). Build run timing from PSF + DFO open
   data (best source per species: DFO for the salmon runs where it is better, PSF for steelhead and where DFO has none).
-  Record PSF's reply and their attribution wording in data/source/runtiming/ when the owner forwards it.
-- **Q163 (default kept until PSF's wording says otherwise):** raw PSF pages stay local only (untracked); only derived
-  data is committed. No history rewrite.
+  PSF asked that their reply not be shared: it is NOT stored anywhere. The app credits "Pacific Salmon Foundation
+  (Salmon Watersheds Program)" and DFO for run timing unless the owner gives other wording.
+- **Q163 (owner: "we don't need to save PSF pages, just the data parsed"):** the three PSF pages are untracked
+  (data/.gitignore) and stay local; only parsed data is kept. No history rewrite.
 - **Q164 (owner: "prefetch reg data before a person clicks"):** prefetch on the web — always the regs file of the
   region in view; core + sql-wasm when the browser is idle and not on Save-Data / a slow connection. Gates (T129)
   measure first paint before any prefetch.
-- **Q162 (explained; Claude's call: swap):** the typed ▾ / ▲ / ▼ in core words become the icon set's chevrons.
+- **Q162 (owner: no preference; Claude's call: swap):** the typed ▾ / ▲ / ▼ in core words become the icon set's chevrons.

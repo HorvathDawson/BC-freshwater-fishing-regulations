@@ -11,10 +11,10 @@ source/hydat.sqlite3
 source/*.gpkg
 source/*.pmtiles
 
-# Run timing: the three Explorer pages beside it ARE tracked — they are the verbatim vendor
-# source a build was made from, and `fishing_synopsis.pdf` sets that precedent. The vector
-# tile cache is not: 748 binary tiles that `pipeline.runtiming.fetch.boundaries` re-fetches
-# in about a minute, and that nothing reads except the polygon stitcher.
+# Run timing (PSF, 2026-10-24 owner): the Explorer pages are NOT tracked — the repo is public and PSF's permission
+# covers the data we parse, not re-hosting their pages. Only fetched.json (what was fetched, when) is tracked; the
+# pages and the 748-tile cache stay local and are re-fetched by pipeline.runtiming.fetch.
+source/runtiming/*.html
 source/runtiming/cu_tiles/
 # Steelhead evidence (pipeline/regs/steelhead/known_waters.py): the accessibility model (6.6 GB)
 # and ~17,000 DataBC records, both re-fetched by the script when missing.
