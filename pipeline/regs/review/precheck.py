@@ -28,6 +28,7 @@ the CLI does not run it (`validate_catalogue` is the gate at ingest).
 """
 from __future__ import annotations
 
+from pipeline.common.entry_id import is_table
 import argparse
 import json
 import sys
@@ -84,7 +85,7 @@ def prechecks(entry: dict, *, binds: bool, run=None, s0: Iterable[str] = (),
     from pipeline.regs.review.coverage import entry_coverage
     from pipeline.regs.review.runfacts import is_curated_pick
     eid = str(entry.get("entry_id", ""))
-    zone = eid.startswith("z")
+    zone = is_table(eid)
     rules = [r for r in entry.get("rules") or [] if isinstance(r, dict)]
     s0 = set(s0)
     got: dict[str, list[dict]] = {k: [] for k in CHECKS}

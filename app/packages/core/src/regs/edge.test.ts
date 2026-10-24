@@ -6,6 +6,7 @@
  */
 import { describe, expect, it } from "vitest";
 import type { Moment } from "../answers.generated";
+import { WEEKDAYS } from "../calendar.generated";
 import { caveatsOf } from "./caveats";
 import { edgeKind, outsideKeep, tidalKeep } from "./edge";
 import { headerOf } from "./header";
@@ -97,7 +98,7 @@ describe("2. unnamed header (D11 a): the store's place name, no part label, no M
 describe("3. timed caveat words (D10 a): an hours window, the card at inside=false, the night closed", () => {
   // all week; moment 0 = outside the window (the card, open), moment 1 = inside it (closed by the stored closure 13)
   const h = { start: { solar: "sunset", offset_min: 60 }, end: { solar: "sunrise", offset_min: -60 } };
-  const ALL7 = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+  const ALL7 = [...WEEKDAYS];
   const M = [{ weekdays: ALL7, hours: { ...h, in: false } }, { weekdays: ALL7, hours: { ...h, in: true } }] as unknown as Moment[];
   const view = (rix: number, base: number, facts: Partial<RuleFacts> = {}): RuleView => {
     const [e, f] = RULE_ROWS[base]!;

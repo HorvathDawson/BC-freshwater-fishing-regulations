@@ -24,6 +24,7 @@ A closure is `rules.closure_grade` (THE ONE CLOSURE PREDICATE), never re-derived
 """
 from __future__ import annotations
 
+from pipeline.common.entry_id import is_table
 import re
 
 TIERS: tuple[str, ...] = ("S0", "P1", "Z", "P2", "P3", "P4", "sweep")
@@ -56,7 +57,7 @@ def risks(entry: dict, *, binds: bool, run=None) -> list[str]:
     eid = str(entry.get("entry_id", ""))
     got = {
         # a zone entry names no water BY DEFINITION: binding no item is not a finding about it
-        "no match": not binds and not eid.startswith("z"),
+        "no match": not binds and not is_table(eid),
         "unresolved": run is not None and bool(run.unresolved_of(eid)),
         "undrawn part": any(r.get("undrawn_part") for r in rules),
         # a cut decided by hand (`cut_pick`) is a decision, not a risk (`runfacts.is_curated_pick`)
@@ -76,7 +77,7 @@ def is_closure_entry(entry: dict) -> bool:
 def entry_tier(entry: dict, *, binds: bool, run=None) -> str:
     """The entry's tier. `binds`: whether its `matched` names an item of the served build; `run`:
     the reach run's facts (`risks`)."""
-    if str(entry.get("entry_id", "")).startswith("z"):
+    if is_table(entry.get("entry_id", "")):
         return "Z"
     if not entry.get("rules"):
         return "sweep"

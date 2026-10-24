@@ -35,6 +35,7 @@ Determinism: every hash is SHA-256 over sorted-key compact JSON, first 16 hex.
 """
 from __future__ import annotations
 
+from pipeline.common.entry_id import is_table, mus_of
 import hashlib
 import json
 import sqlite3
@@ -374,9 +375,9 @@ def entry_binding_fp(entry: Mapping, ctx: Context) -> str:
                     if sp.get("id"))
     named = _splits_named(_split_ids(entry.get("extents")), ctx)
     ov = None
-    if ctx.overrides and not str(entry.get("entry_id", "")).startswith("z"):
+    if ctx.overrides and not is_table(entry.get("entry_id", "")):
         eid = str(entry.get("entry_id", ""))
-        mus = eid.split("@", 1)[1].split("+") if "@" in eid else []
+        mus = list(mus_of(eid))
         got = override_for({"water": entry.get("name", ""), "region": str(entry.get("region", "")),
                             "mu": mus}, ctx.override_index)
         ov = {k: v for k, v in got.items() if k != "note"} if got else None
