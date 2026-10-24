@@ -1,5 +1,5 @@
 // T41 — driving the app's Regulations page on Expo web (react-native-web: `data-testid` from `testID`, roles and names
-// from accessibilityRole / accessibilityLabel). Shared by regs-walk.mjs and compare-regs.mjs.
+// from accessibilityRole / accessibilityLabel). Shared by regs-walk.mjs, compare-regs.mjs and regs-census.mjs.
 import { open } from './cdp.mjs';
 import { PHONE } from './states.mjs';
 
@@ -37,12 +37,17 @@ export async function ready(b, ms = 180000) {
   await sleep(800);
 }
 
-/** a trusted tap at an element's centre (the expression finds it) */
-export async function tap(b, find, what = find) {
-  const box = await b.evaluate(`(() => { const e = ${find}; if (!e) return null; const r = e.getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; })()`);
+/** a trusted tap at an element's centre (the expression finds it); `scroll`: brought into view first */
+export async function tap(b, find, what = find, { scroll = false } = {}) {
+  const box = await b.evaluate(`(() => { const e = ${find}; if (!e) return null;${scroll ? " e.scrollIntoView({ block: 'center' });" : ''} const r = e.getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; })()`);
   if (!box) throw new Error(`nothing to tap: ${what}`);
+  await tapAt(b, box[0], box[1]);
+}
+
+/** a trusted tap at a point (CSS px) */
+export async function tapAt(b, x, y) {
   for (const type of ['mouseMoved', 'mousePressed', 'mouseReleased'])
-    await b.send('Input.dispatchMouseEvent', { type, x: box[0], y: box[1], button: 'left', clickCount: 1 });
+    await b.send('Input.dispatchMouseEvent', { type, x, y, button: 'left', clickCount: 1 });
 }
 
 /** the one scroll's DOM node, and setting its offset (instant) */

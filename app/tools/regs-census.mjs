@@ -14,7 +14,11 @@
 // written it, else the Vedder River. The day is the app's (today): the census is about colour, not the day's answer.
 // Exit 1 when a tab breaks a rule (the same rules as ui-native/src/regs/testing/census.ts).
 import fs from 'node:fs'; import path from 'node:path'; import { fileURLToPath } from 'node:url';
-import { open } from '../design/regs-v11/tools/cdp.mjs';
+import { open } from './regs-web/cdp.mjs';
+import { sleep, tap as tapEl, tapAt, until } from './regs-web/drive.mjs';
+
+/** a trusted tap at the centre of the first element the expression finds, brought into view first */
+const tap = (b, find, what) => tapEl(b, find, what, { scroll: true });
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
@@ -74,22 +78,6 @@ const CENSUS = (tok) => `(() => {
     methods: sect('methods', document.querySelector('[data-testid=regs-methods]')), licence: sect('licence', document.querySelector('[data-testid=regs-licence]')) });
 })()`;
 
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-async function until(b, expr, ms = 20000) {
-  for (let t = 0; t < ms; t += 250) { if (await b.evaluate(expr).catch(() => false)) return true; await sleep(250); }
-  throw new Error(`timed out waiting for ${expr}`);
-}
-/** a trusted tap at the centre of the first element the expression finds */
-async function tap(b, find, what) {
-  const box = JSON.parse(await b.evaluate(`(() => { const e = ${find}; if (!e) return 'null'; e.scrollIntoView({ block: 'center' }); const r = e.getBoundingClientRect(); return JSON.stringify([r.x + r.width / 2, r.y + r.height / 2]); })()`));
-  if (!box) throw new Error(`no ${what} to tap`);
-  await tapAt(b, box[0], box[1]);
-}
-async function tapAt(b, x, y) {
-  await b.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x, y });
-  await b.send('Input.dispatchMouseEvent', { type: 'mousePressed', x, y, button: 'left', clickCount: 1 });
-  await b.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x, y, button: 'left', clickCount: 1 });
-}
 const byLabel = (re) => `[...document.querySelectorAll('[aria-label]')].find(e => ${re}.test(e.getAttribute('aria-label')))`;
 
 const LABEL = { light: /^Light/, dark: /^Dark/, cvd: /^Colour-blind/ };

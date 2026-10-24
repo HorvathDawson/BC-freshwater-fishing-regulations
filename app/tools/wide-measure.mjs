@@ -13,7 +13,7 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 
 const MAC_CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 process.env.CHROME ??= existsSync(MAC_CHROME) ? MAC_CHROME : "google-chrome";
-const { open } = await import("../design/regs-v11/tools/cdp.mjs");
+const { open } = await import("./regs-web/cdp.mjs");
 
 const FONTS = `Promise.all([...document.fonts].map((f) => f.load().catch(() => null))).then(() => document.fonts.ready)
   .then(() => [...document.fonts].filter((f) => f.status === "loaded").map((f) => f.family).sort().join(","))`;

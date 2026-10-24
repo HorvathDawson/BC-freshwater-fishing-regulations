@@ -8,7 +8,7 @@
  * The prototype's "Hatchery or wild?" sheet draws `FISHART.draw('RB', {marks:false, adiMark:true})` and the same with
  * `clipped:true` (regs-v11.html sheetHtml hatch; page v36 adiposeHtml). That drawing is evaluated here from
  * `design/regs-v10/fishart.js` (the file regs-v11.html loads) with a stub `window`, checked to be the same on a second
- * evaluation, and rasterised in headless Chrome (design/regs-v11/tools/cdp.mjs) on a transparent canvas at 800×300:
+ * evaluation, and rasterised in headless Chrome (tools/regs-web/cdp.mjs) on a transparent canvas at 800×300:
  * an RGBA cut-out like the fish photos (D4 — no ground behind a picture). The colours live in the image, never in app
  * code (check-colours): this file only calls `draw`.
  *
@@ -50,7 +50,7 @@ export function adiposeSvgs(src) {
 
 /** The page Chrome renders: each SVG drawn onto a transparent canvas, read back as WebP. */
 async function rasterise(svgs) {
-  const { open } = await import(pathToFileURL(`${app}design/regs-v11/tools/cdp.mjs`).href);
+  const { open } = await import(pathToFileURL(`${app}tools/regs-web/cdp.mjs`).href);
   const dir = mkdtempSync(join(tmpdir(), "emit-adipose-"));
   const page = join(dir, "blank.html");
   writeFileSync(page, "<!doctype html><meta charset=utf-8><body></body>");
