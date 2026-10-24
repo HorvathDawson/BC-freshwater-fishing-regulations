@@ -216,6 +216,7 @@ use that as the sole source of future work."
 | T169 | one gauge panel for one side-channel water (Nicomen grey middle: connector vs adopted lines) | OPEN | — | deliver; Q84 default (a) |
 | T170 | a spot gets the flow of its own day (historical) on refresh or on request | OPEN | — | app (+ feed/release history) |
 | T171 | "Like your visit?": every forecast day uses the flow forecast (no weather-only gaps) | OPEN | — | feed + app |
+| T172 | Android smoke on the emulator (builds, installs, opens, main screens) — before cleanup; full parity stays T50 | OPEN | — | heavy, alone |
 
 ## Order for open tickets
 
