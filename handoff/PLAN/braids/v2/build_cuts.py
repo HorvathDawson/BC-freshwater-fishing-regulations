@@ -269,9 +269,14 @@ for case in sweep["cases"]:
                            k.get("tributary") and k["node"].split(":")[0] == p["blk"] for k in case["crossings"])},
                        "tributary_cut": any(k.get("tributary") and k["node"].split(":")[0] == n.blk
                                             for k in case["crossings"]),
-                       "line": line_ll(ln)})
+                       "line": line_ll(geo[s_])})
         if is_member and sd in ("above", "below"):
             lens[sd] += n.length_m or 0.0
+    # GUARD: each piece carries its OWN geometry — two different sections never share one drawn line
+    # (round 3 shipped every piece with the last shown piece's line)
+    _lines = [json.dumps(p["line"]) for p in pieces if p["line"]]
+    assert len(set(_lines)) == len(_lines), (
+        f"{case['split_id']}: {len(_lines) - len(set(_lines))} piece(s) share another section's line")
     hp = min(by_blk.get(blk, [None]), key=lambda s_: abs(g.nodes[s_].down_m - M) if s_ else 0) if by_blk.get(blk) else None
     water = g.nodes[hp].display_name if hp else ""
     rs = []
