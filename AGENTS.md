@@ -596,6 +596,12 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
       * `"first_last"` + `"membership": "both_sides"` (regions, MU groups, sign zones, restricted
         land), and the curated `area_boundary` splits: AS BEFORE — first entry and last exit
         (`anchors._area_transition_measures`), overlap membership, a straddle carries both regions.
+        A STRADDLER CARRIES BOTH REGIONS' RULES (T183, owner 2026-10-24, reversing T115): a stream piece
+        or lake in two region polygons (each holding more than `SLIVER_M` of it, `regions.holds`; a
+        touch is not membership) takes both zone tables, both regions' per-region rows and both
+        steelhead twins, the most strict per fish (RULINGS Z4). ONE function answers it,
+        `registry.regions.region_sections` / `region_members` (`test_one_region_membership.py` scans for
+        a second copy); the home region (`region_home.json`, `section_home`) is display only.
         Two differences only: a crossing on the outline follows the border's single cut, and a cut
         that would leave a piece under the gate is not made (`area_splits.resolve_area_splits`).
     THE BORDER is cut by the zone rule (`clean_cut.decide`, `border.BORDER_CROSSING_ZONE_M` = 10 m:
