@@ -758,7 +758,7 @@ def rehome_host_edges(graph: StreamGraph, geoms: dict, points: list[SplitPoint])
     for sp in sorted(points, key=lambda x: (x.blk, x.route_measure, x.split_id)):
         blk, M = sp.blk, sp.route_measure
         ps = view.by_blk.get(blk, ())
-        adj = [x for x in ps if abs(g.nodes[x].up_m - M) < 1e-6 or abs(g.nodes[x].down_m - M) < 1e-6]
+        adj = [x for x in ps if abs(g.nodes[x].up_m - M) < 1e-3 or abs(g.nodes[x].down_m - M) < 1e-3]
         for hp in sorted(adj):
             for i in sorted(view.adj.get(hp, ())):
                 e = g.edges[i]
@@ -767,14 +767,13 @@ def rehome_host_edges(graph: StreamGraph, geoms: dict, points: list[SplitPoint])
                 t = g.nodes.get(e.to_node)
                 if t is None or t.kind != NodeKind.stream or t.blk == blk:
                     continue
-                p = view.point_on_piece(e.to_node, e.at_measure)
-                if p is None:
+                # THE SAME MEASURE THE GATE JUDGED BY (`touch_measure`), so the graph after the cut is the graph
+                # the gate predicted: a network it found one-sided cannot come out straddling
+                m = touch_measure(view, e.to_node, i, hp, blk)
+                if m is None or m != m or abs(m - M) < END_M:
                     continue
-                m, d, tgt = view.measure_of(blk, p)
-                if not tgt or tgt == hp or d > 50.0 or abs(m - M) < END_M:
-                    continue
-                cur = view.line(hp)
-                if cur is not None and cur.distance(p) <= d + 1e-6:
+                tgt = _piece_at(g, view.by_blk, blk, m, "lo" if m < M else "hi")
+                if not tgt or tgt == hp:
                     continue
                 g.edges[i] = replace(e, from_node=tgt)
                 view.adj[hp] = [j for j in view.adj.get(hp, ()) if j != i]
