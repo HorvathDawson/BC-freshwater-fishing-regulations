@@ -13,6 +13,7 @@
  *                edition (valid_until 2027-03-31), so the two fixtures state one
  * The regulations half is the regs fixture release (`@app/data/release/node` `openRegsFixture`), cut from a live one.
  */
+import { execFileSync } from "node:child_process";
 import { cpSync, existsSync, mkdtempSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
