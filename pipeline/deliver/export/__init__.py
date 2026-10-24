@@ -35,7 +35,7 @@ THE MODULES, in the order the model is made:
   steelhead    the provincial steelhead set and where steelhead rules apply
   guide_words  every `*_TEXT` table of the guide and the dictionary
   guide        `guide` (its ladder prose: `ladder`; its checked prose examples: `examples`)
-  cases        `guide.cases`: one real test water per mechanism 
+  cases        `guide.cases`: one real test water per mechanism (its words: `cases.json`)
   verdicts     the verdict store every reader answer is looked up in
   closures     what only the bundle's sets say about closures; the gotchas they add
   dictionary   `species`, `field_dictionary`, `index`
