@@ -146,7 +146,7 @@ def test_the_gate_fails_when_title_drops_the_hours(monkeypatch):
 
     def no_hours(x):
         return real({**x, "when": {k: v for k, v in (x.get("when") or {}).items() if k != "hours"}})
-    monkeypatch.setattr(D, "_title", no_hours)
+    monkeypatch.setattr(D.rule, "_title", no_hours)
     with pytest.raises(AnswersError, match="campbell_river.r4.*title.*21:00 to 05:00"):
         _build(CAMPBELL_R4)
 
@@ -156,7 +156,7 @@ def test_the_gate_fails_when_plain_drops_the_weekdays(monkeypatch):
 
     def no_days(x, names=None):
         return real({**x, "when": {k: v for k, v in (x.get("when") or {}).items() if k != "weekdays"}}, names)
-    monkeypatch.setattr(D, "_plain", no_days)
+    monkeypatch.setattr(D.rule, "_plain", no_days)
     with pytest.raises(AnswersError, match="kootenay_lake_lower_west_arm.r3.*plain.*Saturday"):
         _build(LWA_R3)
 
@@ -184,15 +184,16 @@ def test_no_other_answers_module_spells_a_weekday_or_a_time_of_day():
     """`common.py` holds the words; `model.py` only TYPES the weekdays (`Literal[WEEKDAYS]`) and the clock
     fields; every other module asks `when_words`."""
     bad = []
-    for p in sorted(ANSWERS.glob("*.py")):
-        if p.name in ("common.py", "model.py"):
+    for p in sorted(ANSWERS.rglob("*.py")):
+        name = p.relative_to(ANSWERS).as_posix()
+        if name in ("common.py", "model.py"):
             continue
         bad += _offenders(p)
     assert not bad, bad
 
 
 def test_the_pin_catches_a_weekday_spelled_again():
-    p = ANSWERS / "display.py"
+    p = ANSWERS / "display" / "rule.py"
     src = p.read_text(encoding="utf-8")
     assert not _offenders(p, src)
     mutated = src + '\n\ndef _short(days):\n    return "Sat–Sun" if days == ["Saturday", "Sunday"] else ""\n'

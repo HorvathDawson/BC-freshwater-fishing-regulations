@@ -52,8 +52,8 @@ def test_every_possession_line_says_fish_at_home_dont_count(x, want):
 
 def test_the_possession_exception_is_worded_once():
     """One source: the words live in `display.POSSESSION_HOME` and nowhere else in the answers."""
-    hits = [p.name for p in ANSWERS.glob("*.py") if "at home don’t count" in p.read_text()]
-    assert hits == ["display.py"]
+    hits = [p.relative_to(ANSWERS).as_posix() for p in sorted(ANSWERS.rglob("*.py")) if "at home don’t count" in p.read_text()]
+    assert hits == ["display/rule.py"]
     assert X.POSSESSION_HOME == "fish at home don’t count"
 
 

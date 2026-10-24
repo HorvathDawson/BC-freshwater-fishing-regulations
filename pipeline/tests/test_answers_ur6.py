@@ -120,7 +120,7 @@ def test_4_a_keeper_is_what_rules_keeps_says(monkeypatch):
     B, key = _bundle()
     monkeypatch.setattr(BR, "keeps", lambda x: None)
     assert D.paper_licence(B, key, "stream", store=_Store(st_kept=False)) == ["e:ch::r1", "e:st::r1"]
-    src = (Path(D.__file__).read_text().split("def record_kept", 1)[1].split("\ndef ", 1)[0])
+    src = (Path(D.builders.__file__).read_text().split("def record_kept", 1)[1].split("\ndef ", 1)[0])
     assert "dimension" not in src and "keeps(" in src
 
 

@@ -121,10 +121,10 @@ def test_gate_1_only_the_verdicts_call_the_reader():
 
 def test_gate_1_goes_red_on_a_planted_call():
     src = dict(_sources())
-    src["pipeline/deliver/answers/display.py"] += (
+    src["pipeline/deliver/answers/display/rule.py"] += (
         "\n\ndef planted(b, md):\n    from pipeline.deliver.bundle import read\n"
         "    return read.effective_rules_bound(b, False, md, 'RB')\n")
-    assert ("pipeline/deliver/answers/display.py", "planted") in reader_calls(src)
+    assert ("pipeline/deliver/answers/display/rule.py", "planted") in reader_calls(src)
 
 
 # --------------------------------------------------------------------------------------------
@@ -227,10 +227,10 @@ def test_gate_3_the_part_partition_is_written_once():
 
 def test_gate_3_goes_red_on_planted_part_sql():
     src = dict(_sources())
-    src["pipeline/deliver/answers/display.py"] += (
+    src["pipeline/deliver/answers/display/rule.py"] += (
         "\n\ndef planted(db):\n    return db.execute('SELECT r.set_id, p.area_kind FROM "
         "section_ruleset r JOIN province_except p ON p.sid = r.sid')\n")
-    assert ("pipeline/deliver/answers/display.py", "planted") in part_sql(src)
+    assert ("pipeline/deliver/answers/display/rule.py", "planted") in part_sql(src)
 
 
 # --------------------------------------------------------------------------------------------

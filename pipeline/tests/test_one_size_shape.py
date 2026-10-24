@@ -99,14 +99,14 @@ def _old_pick(lengths):
 
 
 def test_the_gate_fails_on_the_old_plain_pick(monkeypatch):
-    monkeypatch.setattr(D, "size_shape", _old_pick)
+    monkeypatch.setattr(D.rule, "size_shape", _old_pick)
     with pytest.raises(AnswersError, match=r"morley_lake.r13c.*none over 60 cm.*below.*90"):
         _build(LT_SLOT)
 
 
 def test_the_gate_fails_on_a_bound_no_band_cuts_at(monkeypatch):
     real = D._plain
-    monkeypatch.setattr(D, "_plain", lambda x, names=None: real(x, names).replace("50 cm (20 in)", "55 cm (22 in)"))
+    monkeypatch.setattr(D.rule, "_plain", lambda x, names=None: real(x, names).replace("50 cm (20 in)", "55 cm (22 in)"))
     with pytest.raises(AnswersError, match=r"trout.r3.*55 cm.*cut points"):
         _build(CEIL)
 
@@ -115,7 +115,7 @@ def test_the_gate_fails_on_a_bound_no_band_cuts_at(monkeypatch):
 
 #: functions that read `lengths` bounds for ANOTHER decision: which side of a cut a fish exactly at it falls
 #: to (`caps.rule_sides`, RULINGS P37), and a licensing document's own lengths (`stamps`, not a rule's)
-ALLOWED = {("display.py", "size_shape"), ("display.py", "cut_points"), ("display.py", "bands"),
+ALLOWED = {("display/rule.py", "size_shape"), ("display/rule.py", "cut_points"), ("display/rule.py", "bands"),
            ("caps.py", "rule_sides"), ("stamps.py", "_len_words"), ("stamps.py", "documents_of"),
            ("stamps.py", "pick")}
 
@@ -138,19 +138,20 @@ def _bounds_readers(name: str, src: str):
 
 def test_no_other_function_reads_lengths_bounds():
     bad = []
-    for p in sorted(ANSWERS.glob("*.py")):
-        if p.name == "model.py":                      # the schema's field names
+    for p in sorted(ANSWERS.rglob("*.py")):
+        name = p.relative_to(ANSWERS).as_posix()
+        if name == "model.py":                        # the schema's field names
             continue
-        bad += _bounds_readers(p.name, p.read_text(encoding="utf-8"))
+        bad += _bounds_readers(name, p.read_text(encoding="utf-8"))
     assert not bad, bad
 
 
 def test_the_pin_catches_a_reinlined_bounds_read():
-    src = (ANSWERS / "display.py").read_text(encoding="utf-8")
+    src = (ANSWERS / "display" / "rule.py").read_text(encoding="utf-8")
     mutated = src.replace('    z = size_shape(ln)                              # T103: the one size shape, `_title`\'s too\n',
                           '    z = size_shape(ln)\n    mn = next((r for r in ln if r.get("min_cm") is not None), None)\n', 1)
     assert mutated != src
-    assert _bounds_readers("display.py", mutated) == [f"display.py:{_line_of(mutated, 'mn = next((r for r in ln if r.get("min_cm")')} _plain"]
+    assert _bounds_readers("display/rule.py", mutated) == [f"display/rule.py:{_line_of(mutated, 'mn = next((r for r in ln if r.get("min_cm")')} _plain"]
 
 
 def _line_of(src: str, needle: str) -> int:

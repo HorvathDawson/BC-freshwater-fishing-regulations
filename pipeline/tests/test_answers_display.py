@@ -124,7 +124,7 @@ def test_part_labels_match_the_page(page, monkeypatch):
     # review C2 (answers 2.1): a part of side channels only now says where they join the river;
     # the page's own words (the golden) said only "N side channels" — read as the page did here,
     # and the new words are pinned in `test_side_channel_parts_say_where_they_join`
-    monkeypatch.setattr(X, "_joining", lambda side: "")
+    monkeypatch.setattr(X.part, "_joining", lambda side: "")
     doc, ws = page_doc(page)
     bad = []
     for want in page["expect"]["waters"]:
