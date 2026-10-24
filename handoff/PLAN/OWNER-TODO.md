@@ -30,7 +30,7 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   Q42 tidal Fraser below Mission (postponed) · Q62, Q63 size-slot and "keep only" wording.
 - **Which gauge speaks (your policy):** Q31 the gauge rule · Q103 diversion
   gauges stop at their canal (24 sections lose every gauge) · Q113 cuts for 38 silent stations (atlas rebuild).
-- **How it looks (taste):** Q134 square spot pins · Q150 the new "own regulations" colour (no access now amber, T165) ·
+- **How it looks (taste):** Q150 the new "own regulations" colour (no access now amber, T165) ·
   Q130 each model's line under Change · Q132 day chips may still use ELF · Q79 "river" vs "stream" on the page ·
   Q91 "no gauge close enough" wording · Q123 how the Map view marks the selected part (built: dim the others; thin halo in
   `app-integration/T151-shots/alt-halo--*`) ·
