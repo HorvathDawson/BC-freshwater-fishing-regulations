@@ -3,7 +3,7 @@
 Every stage of the delivery (the verdicts, the status index, the export, the answers) imports this
 module; none spells a calendar of its own. The constants and the day arithmetic are THE CALENDAR
 SPEC (`pipeline.common.calendar_spec`), which the catalogue's `dates` part reads too and from which
-the app's and the reference page's copies are generated (`python -m pipeline.tools.emit_calendar`);
+the app's and the reference page's copies are generated (`python -m pipeline.tools.emit.calendar`);
 `test_dataflow_gates.py` gate 4 refuses a calendar spelled anywhere else.
 
   Day        1..366 on the LEAP calendar (`calendar_spec.day_index`): Jan 1 = 1, Feb 29 =

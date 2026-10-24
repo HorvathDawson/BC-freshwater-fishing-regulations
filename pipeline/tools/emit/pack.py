@@ -1,7 +1,7 @@
 """Emit THE RELEASE CONTRACT (`pipeline/deliver/release/contract.py`) as TypeScript for the app's release reader.
 
-    python -m pipeline.tools.emit_pack          # write app/packages/data/src/pack.generated.ts
-    python -m pipeline.tools.emit_pack --check  # fail if it is stale or hand-edited (CI; no data needed)
+    python -m pipeline.tools.emit.pack          # write app/packages/data/src/pack.generated.ts
+    python -m pipeline.tools.emit.pack --check  # fail if it is stale or hand-edited (CI; no data needed)
 
 The same pattern as emit_calendar / emit_gauge_policy / answers.model (AGENTS 40): one source, generated copies.
 """
@@ -16,7 +16,7 @@ from pipeline.deliver.release import contract as C
 from pipeline.deliver.release import manifest as M
 
 OUT = REPO_ROOT / "app" / "packages" / "data" / "src" / "pack.generated.ts"
-_BY = "python -m pipeline.tools.emit_pack"
+_BY = "python -m pipeline.tools.emit.pack"
 
 
 def render() -> str:

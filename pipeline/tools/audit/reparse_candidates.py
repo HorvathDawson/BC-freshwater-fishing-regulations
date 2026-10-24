@@ -16,8 +16,8 @@ contain their water, and does now — Little Stawamus Creek, Endako River, Hidde
 bind them. `parse` re-parses exactly the rows missing from the catalogue, so deleting these
 entries is what queues them.
 
-    .venv/bin/python -m pipeline.tools.reparse_candidates            # dry run
-    .venv/bin/python -m pipeline.tools.reparse_candidates --apply    # back up, then delete them
+    .venv/bin/python -m pipeline.tools.audit.reparse_candidates            # dry run
+    .venv/bin/python -m pipeline.tools.audit.reparse_candidates --apply    # back up, then delete them
 
 `--apply` backs up every region file first, and writes through `io.write_entryfile`.
 """

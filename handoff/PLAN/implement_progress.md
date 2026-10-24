@@ -117,7 +117,7 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
 - DONE batch 2: T57 T59 T81 T83 DONE, T70 PARTIAL (c432f6df); strict 7791 + smoke green.
 - RUNNING wf_4b4f5207-c7a: T76 T78 T80 T89 T90 (ride ONE rebuild). After merge: one reach (if any lane needs it) +
   deliver via heavy.sh carrying T59 + T96 Shuswap + this batch; binding diff; regenerate T57 sweep result
-  (`python -m pipeline.tools.unnamed_trib_sweep --write-result` via heavy.sh); fixtures; strict + smoke.
+  (`python -m pipeline.tools.audit.unnamed_trib_sweep --write-result` via heavy.sh); fixtures; strict + smoke.
 
 ## WORK QUEUE — ticket ids only. handoff/PLAN/app-integration/tickets/README.md is the sole source of future work.
 Owner 2026-10-22: "make sure it uses proper ticket system … use that as the sole source of future work." Work that is
@@ -867,7 +867,7 @@ P20 part DONE: stats.json + record() gone.
   pair keeps the last good pair). release.test.ts 7.
 - serve-tiles.mjs serves data/release as R2 will (/release/manifest.json = newest r-*, .gz with Content-Encoding gzip;
   RELEASE / RELEASE_ROOT env). Verified end to end against the scratch release (manifest → core fetched, decoded, verified).
-- pipeline/tools/publish.py (HUMAN-RUN; dry-run by default; --yes uploads with R2_* env via boto3): tiles first, data,
+- pipeline/deliver/release/publish.py (HUMAN-RUN; dry-run by default; --yes uploads with R2_* env via boto3): tiles first, data,
   manifest last; immutable cache headers. test_publish.py 2.
 - LEFT FOR P11: the resumable native variant (.part files) and deleting engine.web/native's duplicated fetch bodies
   (they still open the dev bundle until the reader switches).

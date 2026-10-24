@@ -6,7 +6,7 @@
 <title>Regs v14</title>
 <!-- v14 (round 12, owner 1 3 4 + More), in place on v13 (round 11, owner 2 3 4 6 + answers rows 10 / gear 7 / display 8), in place on v12 (round 10, owner 1 2 3 5), on v11 (round 9 B, C, D2, D3), from v10.1. Every fact on this page is page v36's own words: regs-v11/v36snap.js is a
      script-made snapshot of the page (regs-v11/tools/snap.mjs). The water map is regs-v11/watermap.js, written by
-     `python -m pipeline.tools.water_map_export` from the bundle, the status index and the tile layers of one build.
+     `python -m pipeline.tools.audit.water_map_export` from the bundle, the status index and the tile layers of one build.
      Fish pictures come from the app's manifest (regs-v10/fish.js).
      Hash: #w=vedder&d=1010&p=0&sec=keep|gear|licence&kit=licence|line|…&sheet=…&map=1&br=<braid>&bj=<rule>&age=u16&theme=dark&ts=2&scroll=…&at=<selector>&open=<details selector> -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1826,7 +1826,7 @@ function sheetHtml(k){
 }
 
 /* ---------- C: the water map (overlay for navigating an ALREADY-CHOSEN water; back returns to the same scroll) ----------
-   Everything drawn is regs-v11/watermap.js (pipeline/tools/water_map_export.py): each part of the water and its
+   Everything drawn is regs-v11/watermap.js (pipeline/tools/audit/water_map_export.py): each part of the water and its
    tributaries in the APP's status colours (color.status.* from the map's themes, words from core WATER_STATUS) for the
    page's date, a marker at every boundary, other water faint. Opens on the current part; drag / pinch / wheel to move. */
 const WM = window.WATERMAP;

@@ -36,7 +36,7 @@ reach stops the walk like a named one — not a miss by the walk's rule, listed 
 and `mu_groups` — every rule `within` an MU group against the group's membership and the sections' MU
 stamps (`mu_lines`: the "near an MU line" check; straddling pieces are MARKED in, never cut).
 
-    python -m pipeline.tools.unnamed_trib_sweep [--build ...] [--bundle ...] [--reach ...]
+    python -m pipeline.tools.audit.unnamed_trib_sweep [--build ...] [--bundle ...] [--reach ...]
                                                  [--topo-cache PATH] [--out report.json] [--write-result]
 
 It unpickles the atlas graph (~6 s, a few GB): run it through `scripts/heavy.sh` (AGENTS 18). The
@@ -587,7 +587,7 @@ def mu_sweep(bundle: Path, build: Path, areas_json: Path) -> Dict[str, dict]:
 
 
 #: The committed result: what the live bundle answered, no section handles (they do not survive a rebuild).
-RESULT = Path(__file__).resolve().parents[1] / "tests" / "fixtures" / "t57_trib_sweep.json"
+RESULT = Path(__file__).resolve().parents[2] / "tests" / "fixtures" / "t57_trib_sweep.json"
 
 
 def summary(report: dict) -> dict:

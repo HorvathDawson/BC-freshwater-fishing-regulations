@@ -1,6 +1,6 @@
 """THE RELEASE CONTRACT (P08): every shipped file, its format and, for SQLite files, its tables and columns, as code.
 
-The app reads the release through this contract (`python -m pipeline.tools.emit_pack` writes it to
+The app reads the release through this contract (`python -m pipeline.tools.emit.pack` writes it to
 app/packages/data/src/pack.generated.ts; `--check` fails CI when they drift, with no data needed). `test_release.py`
 holds a BUILT release to it exactly, so the builder cannot add, drop or rename a column without this file (and so the
 app's generated copy) moving with it.

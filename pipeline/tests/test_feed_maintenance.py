@@ -187,11 +187,11 @@ def test_update_hydat_ends_with_the_upload_step():
     text = (Path(__file__).resolve().parents[2] / pub.HYDAT_ACTION).read_text()
     body = text[text.index("set -euo pipefail"):]
     build = body.index("scripts/heavy.sh build 40 -- $PY -m pipeline build")
-    plan = body.index('$PY -m pipeline.tools.publish --release "$REL"\n')
-    upload = body.index('$PY -m pipeline.tools.publish --release "$REL" --yes')
+    plan = body.index('$PY -m pipeline.deliver.release.publish --release "$REL"\n')
+    upload = body.index('$PY -m pipeline.deliver.release.publish --release "$REL" --yes')
     assert build < plan < upload
     # the only --yes sits behind the owner's flag
-    assert body.count("pipeline.tools.publish --release \"$REL\" --yes") == 1
+    assert body.count("pipeline.deliver.release.publish --release \"$REL\" --yes") == 1
     gate = body.rindex('if [ "$UPLOAD" = 1 ]', 0, upload)
     assert build < gate < upload
     assert "R2_ACCOUNT_ID R2_ACCESS_KEY_ID R2_SECRET_ACCESS_KEY R2_BUCKET" in body

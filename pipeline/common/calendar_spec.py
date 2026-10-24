@@ -3,7 +3,7 @@
 The calendar was spelled four times: the catalogue's `dates` part (Python), the delivery's
 `calendar.py` (Python), `@app/core` `statusIndex.ts` (TypeScript) and the reference page's script
 (`page_v36.js`), each with its own month table, cumulative-days table or weekday list. This module
-is the source; `python -m pipeline.tools.emit_calendar` writes the TypeScript / JSON / page JS from
+is the source; `python -m pipeline.tools.emit.calendar` writes the TypeScript / JSON / page JS from
 it, and `--check` fails CI when a generated copy drifts (AGENTS 40). `test_dataflow_gates.py`
 gate 4 refuses a hand-written copy anywhere else.
 

@@ -18,7 +18,7 @@ first (it is FWA's own `WATERBODY_KEY_GROUP_CODE_50K`), names only as the fallba
 1. **A fetch.** No `data/fetch_data.py` step fetches FIDQ yet; the roster `data/source/bc_stocked_waterbodies.json`
    does not exist. The release history (what, when, how many) is weekly feed data, not bundle data.
 2. **A match run and promotion** into `data/curated/stocking/` — `config.yaml` `curated.stocking.matches` is
-   `null` today. `pipeline/tools/check_curated.py` already lists the artifact and reports it `not built`.
+   `null` today. `pipeline/tools/audit/check_curated.py` already lists the artifact and reports it `not built`.
 3. **A bundle writer** for the tables waiting in `pipeline/deliver/bundle/schema.sql`: `stock_water` (the link)
    and `stock_code` (species / stage dictionaries). Both are empty today and named by `cov.skip` in
    `bundle/build.py`. Keep them: the app's dev-bundle query (`app/packages/data/src/bundle/queries.ts`) reads

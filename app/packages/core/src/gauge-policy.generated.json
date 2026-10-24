@@ -1,5 +1,5 @@
 {
-  "_generated_by": "python -m pipeline.tools.emit_gauge_policy",
+  "_generated_by": "python -m pipeline.tools.emit.gauge_policy",
   "_source": "pipeline/gauges/consume/shed.py :: TRUST_BANDS; pipeline/gauges/feed/publish.py :: _TEMP_BANDS; pipeline/gauges/feed/change.py :: the change policy; pipeline/gauges/feed/record.py :: MIN_RECORD_YEARS, QUANTITIES; pipeline/gauges/feed/climatology.py :: PCTILES; pipeline/gauges/consume/panel.py :: MIN_TOTAL_WEIGHT; pipeline/gauges/feed/publish.py :: HORIZONS",
   "bands": [
     "good",

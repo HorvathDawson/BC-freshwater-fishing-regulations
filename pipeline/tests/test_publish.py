@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from pipeline.tools import publish as PUB
+from pipeline.deliver.release import publish as PUB
 
 
 def _release(root: Path) -> Path:

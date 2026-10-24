@@ -42,7 +42,7 @@ from pipeline.tools.export_codec import expand
 HERE = Path(__file__).resolve().parent
 EXPORT_DIR = convert.MAIN_TREE / "data/generated/regs"
 JS = HERE / "page_v36.js"
-#: THE CALENDAR SPEC's page copy (`python -m pipeline.tools.emit_calendar`), inlined ahead of `JS`.
+#: THE CALENDAR SPEC's page copy (`python -m pipeline.tools.emit.calendar`), inlined ahead of `JS`.
 CALENDAR_JS = HERE / "calendar.generated.js"
 
 #: The waters the page offers: v35's 28 (page order; Kootenay Lake's Lower West Arm among them), then

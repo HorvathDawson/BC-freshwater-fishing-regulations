@@ -4,7 +4,7 @@
  * The publisher writes a class onto every temperature reading (`_TEMP_BANDS` in pipeline/gauges/feed/publish.py) and
  * the map colours the gauge dots by it. The Conditions legend used to type "under 18 °C / 18–20 °C / 20 °C and over"
  * into `Shell.tsx` — a second copy of the thresholds that a curated change would have left behind. It now reads the
- * same bands, emitted by `python -m pipeline.tools.emit_gauge_policy`.
+ * same bands, emitted by `python -m pipeline.tools.emit.gauge_policy`.
  */
 import { TEMP_BANDS, type TempBand } from "./gauge-policy.generated";
 

@@ -17,7 +17,7 @@ const SPECS = [
   ['vedder_1010', 'Vedder River', 1010], ['vedder_515', 'Vedder River', 515], ['vedder_615', 'Vedder River', 615],
   ['klwa_1010', 'Kootenay Lake — Lower West Arm', 1010], ['klwa_1012', 'Kootenay Lake — Lower West Arm', 1012],
   ['cow{v}_1010', 'Cowichan River', 1010],
-  // v11: the other parts the water map steps to (pipeline/tools/water_map_export.py groups), so "Show regulations
+  // v11: the other parts the water map steps to (pipeline/tools/audit/water_map_export.py groups), so "Show regulations
   // for this part" has a page to show. One day each: the prototype's "today".
   ['chw{v}_1010', 'Chilliwack River', 1010],
   ['klmb_1010', 'Kootenay Lake — Main Body', 1010], ['kluwa_1010', 'Kootenay Lake — Upper West Arm', 1010],

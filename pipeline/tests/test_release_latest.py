@@ -7,7 +7,7 @@ import time
 import pytest
 
 from pipeline.deliver.release.manifest import latest, write_latest
-from pipeline.tools import prune_releases as P
+from pipeline.deliver.release import prune as P
 
 
 def _rel(root, rid, at):

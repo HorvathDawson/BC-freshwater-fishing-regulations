@@ -3,7 +3,7 @@
  * FIXTURE RELEASE (T10).
  *
  * The regs fixture is the regulations half of a real release — `water`, `regs-<region>`, `regs-sid` and the `core` rows
- * `itemOrd` reads — cut to the waters the golden states name by `python -m pipeline.tools.regs_fixture_release` (the
+ * `itemOrd` reads — cut to the waters the golden states name by `python -m pipeline.deliver.release.regs_fixture` (the
  * release builder's own copy/ship code: every row is the release's bytes, blobs keep their codec) and committed under
  * `packages/data/dev/regs-release/<release id>/`. The regs conformance suite and the ui regs hooks' tests open it when this
  * machine has no live release (CI). Its manifest names no tile set: `openRegsStore(loader)` holds it to no atlas.

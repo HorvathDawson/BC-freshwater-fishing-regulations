@@ -8,7 +8,7 @@ binding its extents made), must turn the same check red. A mutated rule table is
 no file (`read._RULES_BY_PATH`), the established pattern of `test_competition.py`.
 
   Z1   a section's answer is its region base plus the named rows bound to it, every difference named by
-       one row; no section carved out of the base its peers carry (`pipeline.tools.base_deltas`; T57's
+       one row; no section carved out of the base its peers carry (`pipeline.tools.audit.base_deltas`; T57's
        vitest pins the unnamed strata against the release page)
   Z2   Region 2's bass rule binds Mill Lake; Mill Lake's row speaks over it
   Z10  Peaceful Lake stays in the Malcolm Knapp closure; Goose Lake (2.2 % inside) is out
@@ -39,7 +39,7 @@ import pytest
 from pipeline.deliver.bundle import read as R
 from pipeline.deliver.bundle.rules import closure_grade
 from pipeline.tests.conftest import need, BUNDLE_HINT, EXPORT_HINT
-from pipeline.tools import base_deltas as T
+from pipeline.tools.audit import base_deltas as T
 
 pytestmark = pytest.mark.needs_bundle
 

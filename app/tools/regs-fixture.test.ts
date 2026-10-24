@@ -179,7 +179,7 @@ describe("T10 the committed regs fixture release", () => {
     .find((d) => existsSync(join(d, "manifest.json"))) ?? null;
   it.skipIf(!live)(`6. deterministic: rebuilt from ${source} (${live ? "here" : "not on this machine"}), the same bytes`, () => {
     const out = mkdtempSync(join(tmpdir(), "regs-fixture-rebuild-"));
-    execFileSync(join(REPO, ".venv/bin/python"), ["-m", "pipeline.tools.regs_fixture_release", "--release", live!, "--out", out],
+    execFileSync(join(REPO, ".venv/bin/python"), ["-m", "pipeline.deliver.release.regs_fixture", "--release", live!, "--out", out],
                  { cwd: REPO, encoding: "utf8" });
     expect(readdirSync(out)).toEqual([RID]);
     const files = readdirSync(join(out, RID)).sort();

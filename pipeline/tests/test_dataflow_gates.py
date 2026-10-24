@@ -11,7 +11,7 @@ a new spelling can walk past (finding H2: three closure spellings walked past th
   4 calendar  ONE CALENDAR SPEC (`pipeline/common/calendar_spec.py`): its tables (months, month
               lengths, days before each month, weekdays) are spelled there and nowhere else — not
               in Python, not in the app's TypeScript, not in the reference page's JS, whose copies
-              are GENERATED (`python -m pipeline.tools.emit_calendar`); `_day_index` / `_LAST_DAY`
+              are GENERATED (`python -m pipeline.tools.emit.calendar`); `_day_index` / `_LAST_DAY`
               are read in `deliver/calendar.py` and the catalogue only
 
 Each gate is MUTATION-PINNED: a violation planted in a copy of the sources turns it red.
@@ -86,7 +86,7 @@ READER_ORACLES = {
     ("pipeline/tools/export_ui_rules.py", "closures_combine_problems"),
     # T99 / RULINGS Z1: the base-plus-deltas check asks the reader twice (base alone, everything bound) to
     # attribute every difference to a row — a checker of the answers, never a consumer of them
-    ("pipeline/tools/base_deltas.py", "answers"),
+    ("pipeline/tools/audit/base_deltas.py", "answers"),
 }
 
 #: Call sites a later phase removes (phase in the value). Only shrinks.

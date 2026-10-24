@@ -170,7 +170,7 @@ def test_one_definition_of_a_demotion():
 
 
 def test_check_curated_prints_the_surgical_command(tmp_path):
-    from pipeline.tools import check_curated as C
+    from pipeline.tools.audit import check_curated as C
     gauge = next(a for a in C.ARTIFACTS if a.name == "gauge match")
     assert "--only {stations}" in gauge.regenerate
     roster = tmp_path / "roster.json"

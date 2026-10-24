@@ -1,7 +1,7 @@
 """PRUNE OLD RELEASES (T72, audit N10). Dry run by default: it prints what it keeps and what it would remove.
 
-    python -m pipeline.tools.prune_releases            # the list, nothing removed
-    python -m pipeline.tools.prune_releases --yes      # remove them
+    python -m pipeline.deliver.release.prune            # the list, nothing removed
+    python -m pipeline.deliver.release.prune --yes      # remove them
 
 Kept: the release `LATEST` names, the one `PUBLISHED` names (what R2 serves), the newest other release (one to go
 back to), and any `--keep <id>`. Everything else `r-*` under data/release goes. `tiles/` and the pointers are never

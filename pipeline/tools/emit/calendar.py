@@ -1,7 +1,7 @@
 """Emit THE CALENDAR SPEC as TypeScript, JSON and the reference page's JS, so no copy is hand-typed.
 
-    python -m pipeline.tools.emit_calendar          # write them
-    python -m pipeline.tools.emit_calendar --check  # fail if one is stale or hand-edited (CI)
+    python -m pipeline.tools.emit.calendar          # write them
+    python -m pipeline.tools.emit.calendar --check  # fail if one is stale or hand-edited (CI)
 
 WHY THIS EXISTS. The regulations' calendar (day 1..366 on the leap calendar, Feb 29 = 60, the
 month tables, the weekday names) was spelled four times: the catalogue's `dates` part, the
@@ -33,7 +33,7 @@ OUT_JSON = CORE / "calendar.generated.json"
 #: evaluate it ahead of `page_v36.js` (the page's own inlined copy is frozen with its blocks).
 OUT_PAGE_JS = ROOT / "app" / "design" / "regs-v11" / "reference" / "calendar.generated.js"
 
-_BY = "python -m pipeline.tools.emit_calendar"
+_BY = "python -m pipeline.tools.emit.calendar"
 _SRC = "pipeline/common/calendar_spec.py"
 
 

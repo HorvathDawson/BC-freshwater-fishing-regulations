@@ -34,7 +34,7 @@ export const STATUS_CODES: readonly StatusCode[] = ["base", "own", "closed", "ti
 const MAGIC = [0x42, 0x43, 0x53, 0x49]; // "BCSI"
 const VERSION = 2;
 /** The leap calendar's days and the days before each month: THE CALENDAR SPEC, generated from
- *  `pipeline/common/calendar_spec.py` (`python -m pipeline.tools.emit_calendar`), never typed here. */
+ *  `pipeline/common/calendar_spec.py` (`python -m pipeline.tools.emit.calendar`), never typed here. */
 const DAYS = CALENDAR_DAYS;
 
 /**

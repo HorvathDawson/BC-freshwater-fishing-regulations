@@ -18,7 +18,7 @@
 #                         and the deliver stage (its key holds the hydat stamp and clim's hash):
 #                         gauge_clim / gauge_stats / section_panel, and a new release whose manifest dates HYDAT.
 #                         Heavy, so through scripts/heavy.sh: one heavy job at a time, with the memory guard.
-#   5. the upload         the new release to R2 through the release publisher (`pipeline.tools.publish`: tiles,
+#   5. the upload         the new release to R2 through the release publisher (`pipeline.deliver.release.publish`: tiles,
 #                         data files, manifest LAST). Without --upload it prints the plan (spends nothing, sends
 #                         nothing) and the exact command; with --upload it sends, and stops first if an R2_* variable
 #                         is unset. Until the release is uploaded no installed app reads the new HYDAT.
@@ -77,10 +77,10 @@ REL=$($PY -c 'from pipeline.deliver.release.manifest import latest; print(latest
 if [ -z "$REL" ]; then
   echo "   no release under data/release; nothing to upload." >&2; exit 1
 fi
-$PY -m pipeline.tools.publish --release "$REL"
+$PY -m pipeline.deliver.release.publish --release "$REL"
 if [ "$UPLOAD" = 1 ]; then
   r2_ready
-  $PY -m pipeline.tools.publish --release "$REL" --yes
+  $PY -m pipeline.deliver.release.publish --release "$REL" --yes
   sent="uploaded to R2 ($REL)"
 else
   sent="NOT uploaded: the plan is above. To send it (R2_ACCOUNT_ID R2_ACCESS_KEY_ID R2_SECRET_ACCESS_KEY R2_BUCKET set):"
@@ -92,5 +92,5 @@ echo "  HYDAT $(cat data/source/hydat.release): fetched, envelope rebuilt ($FEED
 echo "  feed republished ($FEED/index.json: the hydat notice is gone when current == latest),"
 echo "  bundle and release rebuilt by \`pipeline build\`; release $sent"
 if [ "$UPLOAD" != 1 ]; then
-  echo "       $PY -m pipeline.tools.publish --release $REL --yes"
+  echo "       $PY -m pipeline.deliver.release.publish --release $REL --yes"
 fi

@@ -287,7 +287,7 @@ def percentile_of(value: float | None, band: list[float | None] | None) -> float
 #
 # Not a horizon the models publish — CLEVER runs ten days hourly and ELF thirty daily — but
 # the days a person plans a trip around. Emitted to the app as `FORECAST_DAYS`
-# (`pipeline.tools.emit_gauge_policy`), which core's HORIZONS read (with 0 for now).
+# (`pipeline.tools.emit.gauge_policy`), which core's HORIZONS read (with 0 for now).
 #
 # TEN DAYS (owner, 2026-10-20). Past about five the bounds on both models are wide, and the
 # answer often reads "normal for the season"; the owner wants the ten-day view on the map

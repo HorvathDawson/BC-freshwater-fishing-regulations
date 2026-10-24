@@ -10,7 +10,7 @@
 #   3. pytest -m slow                                       264 tests: determinism and full-build guards (AGENTS 18)
 #   4. check.mjs, every round                               the whole prototype suite
 #   5. card gate on the shipped answers                     problems: 0 (rule 9)
-#   6. the generated-file --checks                          answers model, calendar, gauge policy
+#   6. the generated-file --checks                          python -m pipeline.tools.emit --check (all four)
 #
 # Not run here, because each has its own procedure: the golden re-sync (port/sync.mjs, when the prototype changes),
 # verify_map / pinreplay / quotes (after a sync), the perf gates, and the comprehension-reader gate (manual,
@@ -38,10 +38,7 @@ if [ -n "$REL" ]; then
 else
   echo "── release parity + perf: no data/release/r-* yet (run python -m pipeline.deliver release)"; failed+=("release (none built)")
 fi
-step "answers model --check" "$PY" -m pipeline.deliver.answers.model --check
-step "calendar --check" "$PY" -m pipeline.tools.emit_calendar --check
-step "gauge policy --check" "$PY" -m pipeline.tools.emit_gauge_policy --check
-step "pack --check" "$PY" -m pipeline.tools.emit_pack --check
+step "generated files --check" "$PY" -m pipeline.tools.emit --check
 
 echo "full: $((SECONDS - t0)) s"
 if ((${#failed[@]})); then echo "FAILED: ${failed[*]}"; exit 1; fi

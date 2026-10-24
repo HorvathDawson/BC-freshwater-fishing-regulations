@@ -58,7 +58,7 @@ describe("the trust bands are the pipeline's, not ours", () => {
   // NEAR VEDDER CROSSING speak for the Chilliwack.
   //
   // What the app keeps is the vocabulary, generated from that same Python constant by
-  // `pipeline.tools.emit_gauge_policy`. `--check` in CI fails if the two drift.
+  // `pipeline.tools.emit.gauge_policy`. `--check` in CI fails if the two drift.
   it("carries the floors the pipeline banded on", () => {
     expect(TRUST_FLOOR).toEqual({ good: 0.10, fair: 0.01, weak: 0.001 });
   });

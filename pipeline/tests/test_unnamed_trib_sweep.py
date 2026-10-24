@@ -1,5 +1,5 @@
 """T57 — unnamed streams carry their regulations: a page for every one, and every "and tributaries" rule
-that should reach them (`pipeline.tools.unnamed_trib_sweep`).
+that should reach them (`pipeline.tools.audit.unnamed_trib_sweep`).
 
 No data: the check's rules on small graphs, each a whole value (AGENTS 33). THE KEY RULE — an unnamed
 stream draining into water that carries a walking rule carries it too — is mutation-pinned twice: on a
@@ -21,7 +21,7 @@ from pathlib import Path
 
 import pytest
 
-from pipeline.tools import unnamed_trib_sweep as S
+from pipeline.tools.audit import unnamed_trib_sweep as S
 
 R = ("r1:eve_river@1-10", "eve_river.r1")
 Q = ("r1:other@1-10", "other.r1")
@@ -223,7 +223,7 @@ def test_the_sweep_is_the_committed_result_and_nothing_is_unexplained(request, l
     t, bundle, build, reach, areas = live
     got = S.summary(S.run(build, bundle, reach, areas, t))
     want = json.loads(S.RESULT.read_text(encoding="utf-8"))
-    assert got == want, ("the sweep moved: rerun `python -m pipeline.tools.unnamed_trib_sweep --write-result` "
+    assert got == want, ("the sweep moved: rerun `python -m pipeline.tools.audit.unnamed_trib_sweep --write-result` "
                          "(through scripts/heavy.sh) and explain every new miss in T57")
     assert (got["unexplained"], got["by_rule"]) == (0, {})
     assert {k: (v["bound_not_member"], v["member_not_bound"], v["member_not_stamped"])

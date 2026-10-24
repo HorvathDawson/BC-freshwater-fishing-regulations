@@ -1,6 +1,6 @@
 """THE WATER MAP EXPORT — one chosen water, drawn part by part, coloured by the status index.
 
-    python -m pipeline.tools.water_map_export \
+    python -m pipeline.tools.audit.water_map_export \
         --group vedder=gnis:3062,gnis:8634 --group cowichan=gnis:12227 \
         --group klwa=wbk:-22,wbk:-21,wbk:-20 \
         --date 10-10 --date 10-12 --date 05-15 --date 06-15 \
@@ -53,7 +53,7 @@ from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 from pipeline.common.tolerances import TOUCH_M as _TOUCH_M
 
-REPO = Path(__file__).resolve().parents[2]
+REPO = Path(__file__).resolve().parents[3]
 THEMES = REPO / "app" / "packages" / "map" / "style" / "themes"
 STATUS_TS = REPO / "app" / "packages" / "core" / "src" / "status.ts"
 YEAR = 2026                                    # the prototype's year (Oct 10 2026 is a Saturday)
@@ -626,7 +626,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     from pipeline.tools import export_codec
     from pipeline.tools.export_ui_rules import GUIDE_NAME, OUT as EXPORT
 
-    ap = argparse.ArgumentParser(prog="pipeline.tools.water_map_export",
+    ap = argparse.ArgumentParser(prog="pipeline.tools.audit.water_map_export",
                                  description=__doc__.split("\n\n")[0])
     ap.add_argument("--group", action="append", required=True,
                     help="name=item_id,item_id,... (mouth first where the flow table cannot tell)")
@@ -735,7 +735,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                                       other=read_other(index, _grow(frame.box()), want)))
         print(f"  braid {b['water']}: {len(rows)} rules, cuts {[c['name'] for c in cuts]}")
 
-    out = {"about": {"generated_by": "python -m pipeline.tools.water_map_export",
+    out = {"about": {"generated_by": "python -m pipeline.tools.audit.water_map_export",
                      "section_handles": got["bundle"], "reach_digest": reach["bundle"],
                      "registry": tiles.get("registry"),
                      "dates": [f"{d.month}{d.day:02d}" for d in dates], "year": YEAR,
@@ -745,7 +745,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
            "colours": theme_colours(words, themes),
            "waters": {w["id"]: w for w in waters},
            "braids": braid_maps}
-    head = ("/* The water map's data: written by `python -m pipeline.tools.water_map_export` from the "
+    head = ("/* The water map's data: written by `python -m pipeline.tools.audit.water_map_export` from the "
             "bundle, its status index,\n   the UI export + answers and the tile layers of ONE build "
             f"(section_handles {got['bundle']}, reach {reach['bundle']}). Not hand-edited. */\n")
     a.out.parent.mkdir(parents=True, exist_ok=True)

@@ -309,8 +309,8 @@ def test_every_cores_effective_key_is_the_search_key(rel, tmp_path):
 
 
 def test_the_apps_pack_contract_is_current():
-    from pipeline.tools import emit_pack
-    assert emit_pack.OUT.read_text() == emit_pack.render(), "run: python -m pipeline.tools.emit_pack"
+    from pipeline.tools.emit import pack as emit_pack
+    assert emit_pack.OUT.read_text() == emit_pack.render(), "run: python -m pipeline.tools.emit.pack"
 
 
 # ---- the app's paint decoder reads what this encoder writes (core/src/paint.ts) --------------------------------------

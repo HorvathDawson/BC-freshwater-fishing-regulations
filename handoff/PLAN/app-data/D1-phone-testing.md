@@ -20,7 +20,7 @@ feed; the APK itself carries no data.
 
 ## Option 2 — preview build against a staging server (before sharing with anyone)
 - Staging = an R2 bucket with a public HTTPS URL (the owner's; production hosting is planned on R2 anyway). The owner
-  runs `pipeline/tools/publish.py` (human-run, credentials from env) to upload a release + tiles.
+  runs `pipeline/deliver/release/publish.py` (human-run, credentials from env) to upload a release + tiles.
 - An EAS / local "preview" build profile with `EXPO_PUBLIC_DATA_BASE=https://<staging>`; a standalone APK (sideload or
   Google Play internal-testing track). Release config: no cleartext, real signing key kept by the owner.
 - Test what only a production-like build can: first-run download with progress, resume after a dropped connection, the

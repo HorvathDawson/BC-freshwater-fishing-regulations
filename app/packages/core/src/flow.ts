@@ -278,7 +278,7 @@ export function placeInBand(v: number | null, band: Band | null): BandPlace | nu
  *
  * So the band is read, never computed. `pipeline/gauges/consume/shed.py` decides it once and writes
  * it to `section_gauge.trust`; the names and floors below are generated from that same file
- * so the two cannot drift, and `pipeline.tools.emit_gauge_policy --check` fails the build if
+ * so the two cannot drift, and `pipeline.tools.emit.gauge_policy --check` fails the build if
  * they do. Changing the rule means changing `shed.py` and rebuilding — which is the point.
  *
  * The Fraser at Hope drains 216,600 km2. Without a floor it "describes" every creek in

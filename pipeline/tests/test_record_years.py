@@ -48,7 +48,7 @@ def test_record_years_is_the_quantity_asked():
 def test_one_floor():
     """The climatology, the panel gate and the record module hold the SAME object — and the app reads it generated."""
     assert climatology.MIN_RECORD_YEARS is record.MIN_RECORD_YEARS is P.MIN_RECORD_YEARS == 3
-    from pipeline.tools import emit_gauge_policy as EG
+    from pipeline.tools.emit import gauge_policy as EG
     assert json.loads(EG.render_json())["record"] == {"minYears": MIN_RECORD_YEARS, "quantities": list(QUANTITIES)}
     assert f"export const MIN_RECORD_YEARS = {MIN_RECORD_YEARS};" in EG.render()
     assert not hasattr(climatology, "MIN_YEARS")          # its own constant is gone

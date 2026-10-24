@@ -132,7 +132,7 @@ def test_a_water_never_exits_into_a_water_that_flows_into_it():
 
 
 def test_the_water_map_export_reads_the_same_rules():
-    from pipeline.tools import water_map_export as W
+    from pipeline.tools.audit import water_map_export as W
     assert W.order_parts is T.order_parts and W.split_label is T.split_label
 
 

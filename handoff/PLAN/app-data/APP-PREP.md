@@ -442,7 +442,7 @@ weekday** for weekday and hours rules. Page, app and pipeline answer through one
   weekday).
 
 ## Files
-- `pipeline/common/calendar_spec.py`, `pipeline/tools/emit_calendar.py`
+- `pipeline/common/calendar_spec.py`, `pipeline/tools/emit/calendar.py`
 - `app/packages/core/src/calendar.generated.*`, `app/packages/core/src/statusIndex.ts` (import the cases in its test)
 - `pipeline/deliver/answers/reference/page_v36.js` (:19–31, :132, :1517). **Coordinate:** another agent owns
   `pipeline/deliver/answers` right now.
@@ -497,7 +497,7 @@ shards, writes the paint runs, indexes, vacuums, gzips and hashes. It is the las
 
 ## Files
 - create `pipeline/deliver/release/{__init__,__main__,build,paint,shards,manifest}.py` and one `schema/<file>.sql` per file
-- create `pipeline/tools/emit_pack.py` → `app/packages/data/src/pack.generated.ts` (per-file table/column contract, the paint layout, formats, schema shas, the manifest type; `--check`)
+- create `pipeline/tools/emit/pack.py` → `app/packages/data/src/pack.generated.ts` (per-file table/column contract, the paint layout, formats, schema shas, the manifest type; `--check`)
 - `pipeline/deliver/__main__.py`: the `release` step; `pipeline/common/curated.py`: `GENERATED.release` (= `data/release`)
 - tests: `pipeline/tests/test_release.py`, `test_release_perf.py`, `app/tools/release-perf.test.ts` (node:sqlite + sql.js)
 
@@ -523,7 +523,7 @@ shards, writes the paint runs, indexes, vacuums, gzips and hashes. It is the las
 
 ## Acceptance
 - `pytest pipeline/tests/test_release*.py -m needs_bundle`, run unfiltered
-- `python -m pipeline.tools.emit_pack --check`
+- `python -m pipeline.tools.emit.pack --check`
 - `pnpm -C app exec vitest run release-perf`
 
 ## Notes
@@ -544,7 +544,7 @@ The bundle carries, per named water, everything the prototype's map navigation n
 - the boundary marks between parts (a graph: side channels and lake splits);
 - the water's exit to its receiving water.
 
-The rules are those of `pipeline/tools/water_map_export.py`, moved into the build and made source-of-truth. The
+The rules are those of `pipeline/tools/audit/water_map_export.py`, moved into the build and made source-of-truth. The
 prototype's `watermap.js` is then rebuilt FROM these tables (one implementation).
 
 ## Files
@@ -559,7 +559,7 @@ prototype's `watermap.js` is then rebuilt FROM these tables (one implementation)
                           PRIMARY KEY (ord, mark_ix)) WITHOUT ROWID;
   CREATE TABLE water_exit (ord INTEGER PRIMARY KEY, down_ord INTEGER, down_part INTEGER, label TEXT);
   ```
-- `pipeline/tools/water_map_export.py`: read order and marks from these tables instead of recomputing them
+- `pipeline/tools/audit/water_map_export.py`: read order and marks from these tables instead of recomputing them
 - tests: `pipeline/tests/test_part_geo.py`
 
 ## Rules (stated, pinned)
@@ -609,7 +609,7 @@ App data + tools · Depends on P08, P18 · Blocks P11 · Size 1 day
 - create `app/packages/data/src/fetchVerified.ts` (+ a resumable variant for native, writing `.part` files); delete the duplicated fetch bodies in `bundle/drivers/engine.web.ts:66-85` / `engine.native.ts:59-87` (and the `Content-Length` checks :73 / :66; clear the native 15 s timer)
 - create `app/packages/data/src/manifest.ts` (types from `pack.generated.ts`): `loadManifest`, `diff`, `pair`
 - `app/tools/serve-tiles.mjs`: serve `data/release/` (with `Content-Encoding: gzip` for `.gz`) and Range for the pmtiles
-- create `pipeline/tools/publish.py` (human-run; R2 credentials from env)
+- create `pipeline/deliver/release/publish.py` (human-run; R2 credentials from env)
 
 ## Signatures
 ```ts
@@ -1023,7 +1023,7 @@ and export models pass between steps in memory, and a `--debug-json` flag writes
 - `pipeline/deliver/__main__.py`: `export` → `answers` → `store` → `package` in one process for the model hand-off (the
   bundle and verdicts steps stay separate subprocesses for memory, DATAFLOW P1b)
 - `pipeline/tools/export_ui_rules.py`, `pipeline/deliver/answers/cli.py`, `pipeline/deliver/store/build.py`: take models, not paths; `--debug-json DIR`
-- `pipeline/deliver/answers/reference/page_data.py`, `pipeline/tools/water_map_export.py`, `app/design/regs-v11/port/{taps.py,verify_map.py,sync.mjs}`: read the packages (water / regs-frames / regs-sid) or the debug dump
+- `pipeline/deliver/answers/reference/page_data.py`, `pipeline/tools/audit/water_map_export.py`, `app/design/regs-v11/port/{taps.py,verify_map.py,sync.mjs}`: read the packages (water / regs-frames / regs-sid) or the debug dump
 - about 35 tests that `json.load` the export: switch them to `export_ui_rules.load()` over the in-memory model (AGENTS 58 already says so)
 - `pipeline/gauges/feed/publish.py:644-646`: stop writing `stats.json`. Delete `record(station)` (`app/packages/data/src/feed/http.ts:179,219-223`, no caller). Map colouring reads `index.json` only (MINIMAL-PACKAGING §9).
 - `regs.sqlite` is no longer written by default (its tables live in water / regs-* / regs-sid; owner Q12)

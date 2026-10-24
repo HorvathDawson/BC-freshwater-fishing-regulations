@@ -1,7 +1,7 @@
 """PUBLISH A RELEASE TO R2 (P10). HUMAN-RUN: it spends nothing, but it changes what every installed app downloads.
 
-    python -m pipeline.tools.publish [--release data/release/<r>]          # the plan, nothing uploaded (default)
-    python -m pipeline.tools.publish --release data/release/<r> --yes      # upload it
+    python -m pipeline.deliver.release.publish [--release data/release/<r>]          # the plan, nothing uploaded (default)
+    python -m pipeline.deliver.release.publish --release data/release/<r> --yes      # upload it
 
 ORDER IS THE CONTRACT (MINIMAL-PACKAGING §6.4): the tile version folder (archive, mask, map assets) first, then the data
 files, then `manifest.json` LAST. An app reads the manifest first, so until the last upload lands nobody is pointed at a

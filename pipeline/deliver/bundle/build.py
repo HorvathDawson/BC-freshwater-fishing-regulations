@@ -671,7 +671,7 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
     # It is also the only copy that can never drift, because it ships inside the artifact
     # rather than beside it. The generated TypeScript is a compile-time convenience — a
     # browser cannot import shed.py, and a union type has to exist before the bundle is
-    # opened — and `pipeline.tools.emit_gauge_policy --check` is what keeps THAT honest.
+    # opened — and `pipeline.tools.emit.gauge_policy --check` is what keeps THAT honest.
     from pipeline.gauges.consume.shed import TRUST_BANDS
 
     # The edition this bundle is: the atlas build it came from, and the last day its

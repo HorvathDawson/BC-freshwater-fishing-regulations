@@ -1,5 +1,5 @@
 {
-  "_generated_by": "python -m pipeline.tools.emit_calendar",
+  "_generated_by": "python -m pipeline.tools.emit.calendar",
   "_source": "pipeline/common/calendar_spec.py",
   "months": [
     "Jan",

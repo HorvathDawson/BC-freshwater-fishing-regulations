@@ -160,7 +160,7 @@ The plan already makes it exact:
 
 - **A split fix changes the tributary walk** (the Vedder flooded the Chilliwack). New cut pieces on a braid
   carry tributaries (15 of 18 straddlers do). Contain it with a per-rule binding diff of the side reach against
-  live (`pipeline/tools/audit_split_binding.py`, in the T56 `binding-diff-twin.json` form). Every change must be
+  live (`pipeline/tools/audit/audit_split_binding.py`, in the T56 `binding-diff-twin.json` form). Every change must be
   one of:
   - a row on the R14 page's rule tables;
   - a tributary of a re-cut braid half.
@@ -216,7 +216,7 @@ because rtk has reported a false pass before).
 
 **Phase 2: side atlas (heavy.sh, one job).**
 
-Build to `data/generated/atlas/braids` and run `pipeline/tools/build_parity.py` against `full`. Accept only
+Build to `data/generated/atlas/braids` and run `pipeline/tools/audit/build_parity.py` against `full`. Accept only
 this expected set:
 
 - about 19 curated braid pieces are cut, about 16 net new sections;

@@ -55,28 +55,14 @@ jobs:
       # It never regenerates; it prints the command. Regeneration needs a completed build
       # and a human to read the diff.
       - name: Committed match artifacts are in step with their rosters
-        run: python -m pipeline.tools.check_curated --ci
+        run: python -m pipeline.tools.audit.check_curated --ci
 
-      # The trust bands exist in Python and in TypeScript, because a browser cannot import
-      # shed.py and a union type must exist before a bundle is opened. This re-runs the
-      # generator and fails if the committed output differs, so the two cannot drift.
-      - name: Generated gauge policy is current
-        run: python -m pipeline.tools.emit_gauge_policy --check
-
-      # The answers/2 frame models exist in Python (pydantic) and in TypeScript/JSON Schema for the
-      # page; the generator re-runs and fails on any drift (AGENTS 40, DATAFLOW P7).
-      - name: Generated answers/2 schema and types are current
-        run: python -m pipeline.deliver.answers.model --check
-
-      # THE CALENDAR SPEC (pipeline/common/calendar_spec.py) is the one calendar: the app's
-      # TypeScript/JSON and the reference page's JS are generated from it. This re-runs the
-      # generator and fails if a committed copy is stale or was edited by hand (AGENTS 40).
-      - name: Generated calendar is current
-        run: python -m pipeline.tools.emit_calendar --check
-
-      # THE RELEASE CONTRACT (P08): the app's pack.generated.ts is generated from release/contract.py; no data needed.
-      - name: Generated release contract is current
-        run: python -m pipeline.tools.emit_pack --check
+      # THE GENERATORS (AGENTS 40): the gauge policy (trust bands, temperature, change, record), the answers/2 frame
+      # models, the calendar spec and the release contract each exist in Python and in TypeScript/JSON for the app
+      # (and the reference page's JS). One command re-runs all four and fails if any committed copy is stale or was
+      # edited by hand, so the two sides cannot drift (`pipeline/tools/emit`).
+      - name: Generated files are current (gauge policy, calendar, release contract, answers model)
+        run: python -m pipeline.tools.emit --check
 
       # The no-data tier. A test that reads generated or fetched data (bundle, atlas, reach run,
       # tiles, the gpkg, the DFO cache) carries a needs_* marker and FAILS without it — it never

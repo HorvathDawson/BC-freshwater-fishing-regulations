@@ -33,7 +33,7 @@ full builds and nothing looked wrong.
 ## Regenerating a promoted file
 
 ```
-python -m pipeline.tools.check_curated       # is anything actually stale?
+python -m pipeline.tools.audit.check_curated       # is anything actually stale?
 ```
 
 It prints the command and never runs it. If it says `ok`, there is nothing to do — BC

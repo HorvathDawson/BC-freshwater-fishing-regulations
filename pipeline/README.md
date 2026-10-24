@@ -51,7 +51,7 @@ Entries land in `data/curated/regulations/entries/catalogue/region-*.json`. An a
 
 ```bash
 bash curation-review/run.sh               # review entries, edit splits (validated, backed up)
-python -m pipeline.tools.check_curated    # are the committed match artifacts fresh?
+python -m pipeline.tools.audit.check_curated    # are the committed match artifacts fresh?
 ```
 
 ## Notes

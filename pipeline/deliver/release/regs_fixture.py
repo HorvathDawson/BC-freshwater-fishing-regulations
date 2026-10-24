@@ -2,7 +2,7 @@
 and the `core` rows `itemOrd` reads — cut from a built release to the waters the golden states name, so the app's regs
 conformance runs in `pnpm check` (and CI) with no live data. Committed under `app/packages/data/dev/regs-release/`.
 
-    python -m pipeline.tools.regs_fixture_release [--release <data/release/r-…>] [--taps <taps.json>] [--item ID …]
+    python -m pipeline.deliver.release.regs_fixture [--release <data/release/r-…>] [--taps <taps.json>] [--item ID …]
                                                   [--out app/packages/data/dev/regs-release]
 
 It decides nothing and derives nothing: every row is the release's, copied byte for byte (blobs keep their codec and
@@ -41,7 +41,7 @@ from pipeline.deliver.release import build as B
 from pipeline.deliver.release import shards as SH
 from pipeline.deliver.store.common import unpack
 
-REPO = Path(__file__).resolve().parents[2]
+REPO = Path(__file__).resolve().parents[3]
 TAPS = REPO / "app" / "design" / "regs-v11" / "port" / "golden" / "taps.json"
 OUT = REPO / "app" / "packages" / "data" / "dev" / "regs-release"
 SID_WIDTH = {"section_akey": 2, "section_place": 1}

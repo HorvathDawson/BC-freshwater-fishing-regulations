@@ -10,7 +10,7 @@ but `applies_to` scoped it to blk 360836756 — an unnamed order-1 creek 249 m l
 happens to be the nearest blue line to the pin (50 m, vs 280 m to the Atnarko). The cut landed on
 the ditch, no item carried it, and both rules naming those boundary signs stayed unbound.
 
-    python -m pipeline.tools.audit_split_binding [--build data/generated/atlas/full] [--json]
+    python -m pipeline.tools.audit.audit_split_binding [--build data/generated/atlas/full] [--json]
 
 Verdicts, worst first:
 

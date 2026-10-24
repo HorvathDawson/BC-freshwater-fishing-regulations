@@ -6,7 +6,7 @@ buffered 3km. Resolve; recover each SplitPoint's lon/lat via chain.geometry.inte
 distance (m, EPSG:3005) to the split's `_coord`. Offset splits store `_coord` inconsistently (some =
 base feature, some = final post-offset location), so the score is min(raw, |raw - offset|).
 
-Run:  python -m pipeline.tools.audit_splits [--json]
+Run:  python -m pipeline.tools.audit.audit_splits [--json]
 This reads small bbox windows but touches the full GPKG per waterbody, so it takes a couple minutes.
 """
 

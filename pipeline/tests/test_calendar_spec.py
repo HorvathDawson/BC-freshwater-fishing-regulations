@@ -1,6 +1,6 @@
 """THE CALENDAR SPEC (`pipeline/common/calendar_spec.py`) and its generated copies.
 
-The spec is the one source; `python -m pipeline.tools.emit_calendar` writes the app's TypeScript /
+The spec is the one source; `python -m pipeline.tools.emit.calendar` writes the app's TypeScript /
 JSON and the reference page's JS from it, and `--check` (CI) fails when a copy is stale or was
 edited by hand. Gate 4 in `test_dataflow_gates.py` refuses a hand-written table anywhere else.
 """
@@ -14,7 +14,7 @@ import pytest
 from pipeline.common import calendar_spec as S
 from pipeline.deliver import calendar as CAL
 from pipeline.regs.parsing import catalogue as C
-from pipeline.tools import emit_calendar as EMIT
+from pipeline.tools.emit import calendar as EMIT
 
 
 def test_the_leap_calendar():

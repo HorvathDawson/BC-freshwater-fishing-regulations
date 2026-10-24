@@ -371,7 +371,7 @@ in), so confirm intent before "fixing" it.
 
 ## 4b. Split binding — three left open (2026-08-29)
 
-`python -m pipeline.tools.audit_split_binding` checks the invariant that makes a split usable:
+`python -m pipeline.tools.audit.audit_split_binding` checks the invariant that makes a split usable:
 **some registry item must carry it as a boundary**, because that is the menu an extent is
 authored against. A split can resolve to a perfectly good cut and still be unreachable, with
 nothing in the build saying so — the resolver reports success, the sectionizer drops it, and

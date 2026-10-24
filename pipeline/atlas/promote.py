@@ -6,7 +6,7 @@
 A PROMOTED ATLAS IS IMMUTABLE (`pipeline.common.vintage.promoted_atlas`): the bundle, the status
 index, the export and the tiles all key sections by its `section_handles.txt` digest, and the atlas
 build is not deterministic, so nothing may build INTO the promoted directory. A new atlas is built
-beside it (`<name>_next`) and takes its place here, by rename — after `pipeline.tools.build_parity`
+beside it (`<name>_next`) and takes its place here, by rename — after `pipeline.tools.audit.build_parity`
 has said what changed between the two registries. The previous atlas is kept as `<name>.prev` until
 the next promotion, so the derivatives that still carry its digest can be rebuilt or compared.
 
@@ -45,7 +45,7 @@ def promote(candidate: Path, name: str | None = None, *, dry_run: bool = False,
         raise SystemExit(f"promote: {candidate} already is the promoted build")
     parity = ""
     if target.is_dir():
-        got = subprocess.run([sys.executable, "-m", "pipeline.tools.build_parity",
+        got = subprocess.run([sys.executable, "-m", "pipeline.tools.audit.build_parity",
                               str(target), str(candidate)],
                              capture_output=True, text=True, check=False)
         parity = (got.stdout + got.stderr).strip()

@@ -1,7 +1,7 @@
 """Is any frozen match artifact out of date with the roster it was built from?
 
-    python -m pipeline.tools.check_curated            # human report
-    python -m pipeline.tools.check_curated --ci       # exit 1 if anything needs regenerating
+    python -m pipeline.tools.audit.check_curated            # human report
+    python -m pipeline.tools.audit.check_curated --ci       # exit 1 if anything needs regenerating
 
 THE PROBLEM THIS SOLVES. Three artifacts in this repo are GENERATED but COMMITTED: a slow,
 expensive pass produces them, a human reviews them, and from then on everything downstream

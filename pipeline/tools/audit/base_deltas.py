@@ -34,7 +34,7 @@ reached by the walk, area-row bound, base only — streams and lakes). T57's vit
 (`app/conformance/src/regs/unnamed.sample.release.test.ts`) pins the unnamed strata against the RELEASE's
 page; this pins every stratum against the reader.
 
-    python -m pipeline.tools.base_deltas [--bundle PATH] [--per N]
+    python -m pipeline.tools.audit.base_deltas [--bundle PATH] [--per N]
 """
 from __future__ import annotations
 

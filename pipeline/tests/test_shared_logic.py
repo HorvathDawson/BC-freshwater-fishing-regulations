@@ -92,7 +92,7 @@ def test_the_trust_bands_agree_across_the_language_boundary():
     rules. Pinning the CONSTANTS never had a chance of catching that.
 
     So the floors are no longer written by hand on the TypeScript side at all: they are
-    GENERATED from `TRUST_BANDS` by `pipeline.tools.emit_gauge_policy`, and
+    GENERATED from `TRUST_BANDS` by `pipeline.tools.emit.gauge_policy`, and
     `pipeline/tests/test_gauge_policy.py` fails if the committed output is stale. What is
     left here is the assertion that the app still gets its floors from that generated file
     and has not quietly reintroduced a literal.

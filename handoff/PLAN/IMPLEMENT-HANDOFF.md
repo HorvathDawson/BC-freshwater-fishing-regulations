@@ -135,7 +135,7 @@ There is **no P19** (the numbering skips it).
 18. ★ **P11** · the release reader: native install, update check and atomic swap; web lazy; device perf · P08, P10, N2 ·
     AP L613 · airplane-mode relaunch; a data-only release downloads only the changed files; A1–A11 within budget; web
     cold start = manifest + paint ≈ 0.9 MB.
-    - **Publish (human-run):** after P10/P11, `pipeline/tools/publish.py` uploads tiles + assets, then data, then
+    - **Publish (human-run):** after P10/P11, `pipeline/deliver/release/publish.py` uploads tiles + assets, then data, then
       `manifest.json` last (MINIMAL-PACKAGING §6.4).
 
 ### Stage C — shell and map for the port (needs N2)

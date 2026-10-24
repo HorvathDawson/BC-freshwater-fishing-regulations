@@ -9,7 +9,7 @@ The app draws lines and polygons from the tiles (feature id = sid). The bundle c
               splits make the parts a graph, not a list.
   water_exit  (ord): the water this one flows into (`item_down`), and the receiving water's part it enters.
 
-THE RULES (stated, pinned in test_part_geo.py), moved here from `pipeline/tools/water_map_export.py`, which now imports
+THE RULES (stated, pinned in test_part_geo.py), moved here from `pipeline/tools/audit/water_map_export.py`, which now imports
 `order_parts` and `split_label` from this module (one implementation):
   rank      by the part's km from the mouth (the highest `km_from` of its main-stem runs, else of its side channels;
             `answers.display.part_km`), mouth first; parts with no km go last, in part order.

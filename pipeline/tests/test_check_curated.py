@@ -17,7 +17,7 @@ import json
 import pytest
 
 from pipeline.gauges.liveness import may_speak
-from pipeline.tools import check_curated as C
+from pipeline.tools.audit import check_curated as C
 
 
 def _art(tmp_path, roster_rows, frozen_blob, *, frozen_ids="stations.station"):

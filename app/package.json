@@ -21,13 +21,13 @@
     "spinner:build": "node tools/build-spinner.mjs",
     "spinner:view": "node tools/build-spinner.mjs && open design/fish-sprite.html",
     "tiles": "node tools/serve-tiles.mjs",
-    "regs-fixture": "cd .. && .venv/bin/python -m pipeline.tools.regs_fixture_release",
-    "gauge-policy": "cd .. && .venv/bin/python -m pipeline.tools.emit_gauge_policy --check",
+    "regs-fixture": "cd .. && .venv/bin/python -m pipeline.deliver.release.regs_fixture",
+    "gauge-policy": "cd .. && .venv/bin/python -m pipeline.tools.emit.gauge_policy --check",
     "fish": "node tools/emit-fish.mjs --check",
     "fish:build": "node tools/emit-fish.mjs",
-    "calendar": "cd .. && .venv/bin/python -m pipeline.tools.emit_calendar --check",
+    "calendar": "cd .. && .venv/bin/python -m pipeline.tools.emit.calendar --check",
     "answers": "cd .. && .venv/bin/python -m pipeline.deliver.answers.model --check",
-    "pack": "cd .. && .venv/bin/python -m pipeline.tools.emit_pack --check"
+    "pack": "cd .. && .venv/bin/python -m pipeline.tools.emit.pack --check"
   },
   "devDependencies": {
     "@testing-library/react": "^16.3.3",

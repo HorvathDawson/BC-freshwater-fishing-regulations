@@ -7,7 +7,7 @@
    (`<parent>` keeps `catalogue/region-1.json` and `dfo_salmon/region-1.json` apart). A target that
    does not exist yet (a new curated file before its first write) is listed in the snapshot's
    `ABSENT` file instead. BACKUP_ROOT is `GENERATED.regs.entries_backup / "curation-review"` — the
-   same root `pipeline.tools.reparse_candidates --backup-dir` snapshots into — or
+   same root `pipeline.tools.audit.reparse_candidates --backup-dir` snapshots into — or
    `CURATION_BACKUP_DIR` (the tests point it at a temp dir). It is BOUNDED: the newest
    `CURATION_BACKUP_KEEP` (default 500) snapshots are kept, older ones are pruned after each write.
 

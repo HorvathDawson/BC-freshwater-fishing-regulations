@@ -30,7 +30,7 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
 ## The data model
 
 5. **`item_id` is durable (99.88% across a rebuild). `section_id` is not (94%).**
-   Measured, `pipeline/tools/build_parity.py`. Anything crossing a version boundary — live
+   Measured, `pipeline/tools/audit/build_parity.py`. Anything crossing a version boundary — live
    feeds, deep links, saved pins, bathymetry sheets — binds to `item_id`.
    **`section_id` and `dense_id` must never leave the bundle**: not in a URL, a saved
    preference, a feed, or an API contract.
@@ -116,7 +116,7 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
 ## Builds and tests
 
 17. **Full builds take ~18 min and ~9 GB.** Never rebuild to test a change. Build to a new
-    `--out` and compare with `pipeline/tools/build_parity.py`. `data/generated/atlas/full` and
+    `--out` and compare with `pipeline/tools/audit/build_parity.py`. `data/generated/atlas/full` and
     `data/generated/atlas/full_new` already exist.
 18. **`pytest.ini` deselects the `slow` tests by default** (㊷) — 197 of 2,263 on
     2026-09-29 (`pytest --collect-only -q -m slow`, run unfiltered, not through rtk). Determinism and full-build
@@ -224,7 +224,7 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
 38. **Never regenerate a reviewed artifact to "check something".** Regenerating
     `gauge_match.json` needs a completed build and rewrites 2,324 hand-checked decisions,
     including 23 `NO_MATCH` entries a human verified against the map. Run
-    `python -m pipeline.tools.check_curated` to see whether it is actually stale; it prints
+    `python -m pipeline.tools.audit.check_curated` to see whether it is actually stale; it prints
     the command and never runs it. If it says `ok`, there is nothing to do.
     The matcher writes `data/generated/gauges/match.json` and refuses the curated file; only
     `pipeline.gauges.generate.promote` writes `data/curated/gauges/{matches,candidates}.json`, one
@@ -239,7 +239,7 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
 
 40. **A value that exists on both sides of the Python/TypeScript boundary is generated,
     not typed twice.** `pipeline/gauges/consume/shed.py::TRUST_BANDS` is the source;
-    `python -m pipeline.tools.emit_gauge_policy` writes the TypeScript and JSON, and
+    `python -m pipeline.tools.emit.gauge_policy` writes the TypeScript and JSON, and
     `--check` fails CI when they drift. Three copies of the trust rule once existed — the
     pipeline's, one in `@app/core`, one in `build-fixture.mjs` with a band the pipeline has
     never written — and a test pinning the *constants* passed the whole time, because they

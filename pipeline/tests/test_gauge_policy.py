@@ -17,23 +17,23 @@ import json
 import pytest
 
 from pipeline.gauges.consume.shed import TRUST_BANDS
-from pipeline.tools import emit_gauge_policy as E
+from pipeline.tools.emit import gauge_policy as E
 
 
 def test_the_generated_typescript_is_committed_and_current():
-    assert E.OUT.exists(), f"{E.OUT} missing — run pipeline.tools.emit_gauge_policy"
+    assert E.OUT.exists(), f"{E.OUT} missing — run pipeline.tools.emit.gauge_policy"
     assert E.OUT.read_text(encoding="utf-8") == E.render(), (
         "app/packages/core/src/gauge-policy.generated.ts is stale.\n"
-        "  run: python -m pipeline.tools.emit_gauge_policy")
+        "  run: python -m pipeline.tools.emit.gauge_policy")
 
 
 def test_the_generated_json_is_committed_and_current():
     # Read by `app/tools/build-fixture.mjs`, which is a plain node script and cannot import
     # the TypeScript package. Two renderings, one source.
-    assert E.OUT_JSON.exists(), f"{E.OUT_JSON} missing — run pipeline.tools.emit_gauge_policy"
+    assert E.OUT_JSON.exists(), f"{E.OUT_JSON} missing — run pipeline.tools.emit.gauge_policy"
     assert E.OUT_JSON.read_text(encoding="utf-8") == E.render_json(), (
         "app/packages/core/src/gauge-policy.generated.json is stale.\n"
-        "  run: python -m pipeline.tools.emit_gauge_policy")
+        "  run: python -m pipeline.tools.emit.gauge_policy")
 
 
 def test_check_mode_agrees_with_what_is_on_disk(monkeypatch):

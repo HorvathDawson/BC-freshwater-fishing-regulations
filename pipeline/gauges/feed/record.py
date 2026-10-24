@@ -22,7 +22,7 @@ QUANTITIES: tuple[str, ...] = ("discharge", "level")
 
 #: The shortest record that may rank a reading at all, in years. ONE constant: the climatology will not build an
 #: envelope from fewer (`climatology.build`), and a donor panel will not admit a donor with fewer in the quantity asked
-#: (`pipeline.gauges.consume.panel.eligible`). Mirrored to TypeScript by `pipeline.tools.emit_gauge_policy`.
+#: (`pipeline.gauges.consume.panel.eligible`). Mirrored to TypeScript by `pipeline.tools.emit.gauge_policy`.
 #:
 #: WAS TEN, AND TEN WAS ARBITRARY — see `pipeline.gauges.consume.panel` for the measurement that moved it to three: a short
 #: record makes a percentile coarse, not wrong, and the record factor already prices that (3/20 of a full weight).

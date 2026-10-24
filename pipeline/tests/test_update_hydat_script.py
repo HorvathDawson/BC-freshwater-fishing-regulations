@@ -90,9 +90,9 @@ def test_a_new_hydat_reruns_every_consumer_in_order_on_the_served_feed(tree):
         "heavy|build 40 -- .venv/bin/python -m pipeline build",
         "|-c <release>",
         # (T68) step 5 without --upload: the publisher's PLAN of the newest release; nothing is sent
-        "|-m pipeline.tools.publish --release data/release/r-new",
+        "|-m pipeline.deliver.release.publish --release data/release/r-new",
     ]
-    assert "  .venv/bin/python -m pipeline.tools.publish --release data/release/r-new --yes" in r.stdout
+    assert "  .venv/bin/python -m pipeline.deliver.release.publish --release data/release/r-new --yes" in r.stdout
 
 
 def test_another_feed_dir_is_not_honoured(tree):
@@ -120,7 +120,7 @@ def test_an_unreadable_listing_stops_before_any_rebuild(tree):
 
 
 # T68 review: the R2 upload step, run.
-PLAN = "|-m pipeline.tools.publish --release data/release/r-new"
+PLAN = "|-m pipeline.deliver.release.publish --release data/release/r-new"
 
 
 def test_upload_sends_the_planned_release_once_after_the_build(tree):
@@ -155,4 +155,4 @@ def test_no_release_after_the_build_says_so(tree):
     r = _run(tree, "20261020", "20261020")
     assert r.returncode == 1
     assert "no release under data/release; nothing to upload." in r.stderr
-    assert not any("pipeline.tools.publish" in ln for ln in _log(tree))
+    assert not any("pipeline.deliver.release.publish" in ln for ln in _log(tree))

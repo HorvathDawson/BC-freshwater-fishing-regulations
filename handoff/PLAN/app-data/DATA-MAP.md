@@ -243,7 +243,7 @@ app's queries exist but return empty, so the Layers sheet's "Stocked" mode has n
 | `pipeline/deliver/answers/reference/page_v36.{html,js}` | `page_data.py` (from the three regs JSON files) | 5.3 MB html, js 180 KB | snap.mjs, `port/hydrate.mjs` | stamped, no `--check` (audit F8) |
 | `app/design/regs-v11/v36snap.js` | `regs-v11/tools/snap.mjs` | 15.4 MB | regs-v11.html, check.mjs | unstamped |
 | `regs-v11/oracle.json`, `regs-diagram/data.js` | oracle.mjs / build.mjs | — | check.mjs / the diagram | unstamped; data.js lags |
-| `regs-v11/watermap.js` | `pipeline/tools/water_map_export.py` | 288 KB, **3 waters** | regs-v11 map overlay | stamped. Projected SVG paths, Douglas–Peucker; a geometry copy outside the tiles. |
+| `regs-v11/watermap.js` | `pipeline/tools/audit/water_map_export.py` | 288 KB, **3 waters** | regs-v11 map overlay | stamped. Projected SVG paths, Douglas–Peucker; a geometry copy outside the tiles. |
 | `regs-v11/port/golden/*` | `port/sync.mjs` (golden.mjs, tokens.mjs, inventory.mjs, taps.py, hydrate.mjs) | ≈ 10.9 MB | integration tests (planned) | the port's expected strings |
 
 All five are **design/test artifacts**. They are legitimate as tests, but none may become an app input. The two that

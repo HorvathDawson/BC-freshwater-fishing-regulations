@@ -217,7 +217,7 @@ def preflight(want_tiles: bool) -> None:
     if missing:
         raise SystemExit("build: source data missing — python data/fetch_data.py\n  "
                          + "\n  ".join(missing))
-    rc = subprocess.run([sys.executable, "-m", "pipeline.tools.check_curated", "--ci"]).returncode
+    rc = subprocess.run([sys.executable, "-m", "pipeline.tools.audit.check_curated", "--ci"]).returncode
     if rc:
         raise SystemExit("build: a curated artifact is stale (check_curated --ci above); "
                          "regenerate it with the command it prints, then rebuild")

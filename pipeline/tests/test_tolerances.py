@@ -26,7 +26,7 @@ COPIES = [
     ("pipeline.atlas.reach.extent", "WATERSHED_AT_CUT_M", "WATERSHED_AT_CUT_M"),
     ("pipeline.deliver.bundle.spans", "_AT_M", "AT_CUT_M"),
     ("pipeline.deliver.bundle.topology", "TOUCH_M", "TOUCH_M"),
-    ("pipeline.tools.water_map_export", "TOUCH_M", "TOUCH_M"),
+    ("pipeline.tools.audit.water_map_export", "TOUCH_M", "TOUCH_M"),
     ("pipeline.atlas.graph.tributaries", "CONFLUENCE_NEAR_M", "CONFLUENCE_NEAR_M"),
     ("pipeline.deliver.bundle.continuation", "STUB_M", "STUB_M"),
     ("pipeline.deliver.bundle.continuation", "CONFLUENCE_M", "CONFLUENCE_M"),

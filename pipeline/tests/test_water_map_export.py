@@ -1,4 +1,4 @@
-"""THE WATER MAP EXPORT — `pipeline.tools.water_map_export`, on a tiny synthetic water (no data).
+"""THE WATER MAP EXPORT — `pipeline.tools.audit.water_map_export`, on a tiny synthetic water (no data).
 
   * every section (part or tributary) is drawn in the status the STATUS INDEX gives it on each
     date — read through `status_index.Index`, the app's `statusOn` twin — and a swapped profile
@@ -19,7 +19,7 @@ from datetime import date
 import pytest
 
 from pipeline.deliver import status_index as SI
-from pipeline.tools import water_map_export as W
+from pipeline.tools.audit import water_map_export as W
 
 DATES = [date(2026, 10, 10), date(2026, 5, 15)]
 OCT, MAY = SI.day_of(DATES[0]) - 1, SI.day_of(DATES[1]) - 1

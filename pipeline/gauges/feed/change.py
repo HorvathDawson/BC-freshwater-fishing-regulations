@@ -37,7 +37,7 @@ from pipeline.gauges.feed.forecast import CENTRE_ZONE, instant, step_day
 # colour mean three things.
 CHANGE_DAYS = 10
 
-# WHAT "BIG" MEANS — named, and the same numbers the app words and colours with (`pipeline.tools.emit_gauge_policy`
+# WHAT "BIG" MEANS — named, and the same numbers the app words and colours with (`pipeline.tools.emit.gauge_policy`
 # writes them into core). A RISE is big at twice today's flow or a quarter of the record up for the date; a FALL at half
 # today's flow or a quarter of the record down. Either measure is enough: 0.2 -> 0.6 m3/s on a creek is a percentile
 # jump and a tripling; 400 -> 520 m3/s on the Fraser in freshet may be a quarter of the record and only 1.3x.

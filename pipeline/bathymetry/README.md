@@ -15,7 +15,7 @@ What it is: a survey sheet's waterbody identifier -> the lake it is a chart of. 
 1. **Sources — fetched today.** `data/source/bc_bathymetry_sheets.json` (`fetch_data.fetch_bathymetry_sheets`,
    the WFS sheets layer) and the WSA reference CSV / PDFs (`fetch_data.fetch_bathymetry_pdfs`).
 2. **A matcher.** `generate/match.py` does not exist yet (stocking's `generate/match.py` is the model to copy).
-   `pipeline/tools/check_curated.py` lists the artifact and reports it `not built`.
+   `pipeline/tools/audit/check_curated.py` lists the artifact and reports it `not built`.
 3. **Promotion** into `data/curated/bathymetry/` — `config.yaml` `curated.bathymetry.matches` is `null` today.
 4. **A bundle writer** for the waiting `chart` table (`pipeline/deliver/bundle/schema.sql`; empty, named by
    `cov.skip` in `bundle/build.py`). Keep it: `app/tools/bundle-schema.test.ts` requires it.

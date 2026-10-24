@@ -320,7 +320,7 @@ def bundle_files(work: Path, bundle: Path, b: sqlite3.Connection, base: Dict[str
                  status_index: bytes) -> Dict[str, Path]:
     """The bundle's half of the release — paint, flow-area, core, near, conditions — written into `work`. `base` is
     every file's meta (section_handles, reach_digest). Shared by `build` and the app's fixture release
-    (`pipeline.tools.fixture_release`), so the fixture is cut by the same code as the shipped files."""
+    (`pipeline.deliver.release.fixture`), so the fixture is cut by the same code as the shipped files."""
     files: Dict[str, Path] = {}
     p = work / "paint.bin"
     p.write_bytes(PAINT.encode(status_index, b))
