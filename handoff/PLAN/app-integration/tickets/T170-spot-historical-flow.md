@@ -11,10 +11,18 @@ Refresh (app/packages/data/src/spots/refresh.ts) fills a spot's missing WEATHER 
 means day by day — but the visit day's own reading/percentile comes only from the live feed at capture time. A spot
 saved later for an earlier day, or pinned offline, keeps today's reading or none.
 
+## Owner addition (2026-10-23)
+"we could add in a way to access hydat for specific date measures when online?" — yes: HYDAT itself is a downloadable
+SQLite file (not queryable online), but ECCC serves HYDAT's DAILY MEANS through the MSC GeoMet OGC API
+(`api.weather.gc.ca`, collection `hydrometric-daily-mean`, filtered by station number and date; `hydrometric-realtime`
+for the recent provisional record). Verify the exact endpoint, fields, licence (Open Government Licence – Canada) and
+whether a browser may call it directly (CORS) before building; if not, the feed proxies the one request.
+
 ## Work
 1. The visit day's flow from history: the station's DAILY value for that date — the feed's daily series (ECCC 30-day
-   archive, already refilled by the feed) for recent days, HYDAT for older days (published per station by the feed or a
-   per-station history file in the release; never a live HYDAT query from the app) — ranked against the same climatology
+   archive, already refilled by the feed) for recent days; for older days, WHEN ONLINE, one request to ECCC's GeoMet
+   `hydrometric-daily-mean` (station + date: HYDAT's published daily mean); offline, the request waits (no history
+   file needed unless the owner wants offline backfill — then a per-station history file in the release) — ranked against the same climatology
    the app uses (percentile + words), discharge only for "flow" (never a level standing in, decisions "NEVER MIX
    QUANTITIES"), the donor panel as of that day where the panel is used.
 2. When: automatically on refresh for a spot whose visit day ≠ its capture day (backdated) or whose reading is missing;
