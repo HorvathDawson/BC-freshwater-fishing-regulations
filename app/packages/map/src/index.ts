@@ -13,7 +13,8 @@ export { Map } from "./Map";
 export type { MapProps, Camera, MapChrome, MapMark, MapSpots } from "./map-props";
 export { coloursEachTile, standingInput, type LakeFeed, type ProfileStatus, type StandingFeed } from "./colouring";
 export { imageryTiles, runtimeStyle, type TileEndpoints } from "./runtime-style";
-export { baseAdapter, type MapAdapter, type MapHandle, type SelectionCue } from "./adapters/contract";
+export { baseAdapter, type MapAdapter, type MapHandle } from "./adapters/contract";
+export type { SelectionCue } from "./paint";
 /** The catalogue a Layers menu is built from. Groups and views come from the generated
  *  style, never from a hand-written list in a component — that is how the two apps end up
  *  offering different layers. */

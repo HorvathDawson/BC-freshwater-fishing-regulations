@@ -382,7 +382,7 @@ describe("status colours, as drawn (T47)", () => {
  * NO PUBLIC ACCESS IS A DOTTED GREY (T165, owner 2026-10-23: "maybe the stream color through no access areas should be
  * dotted grey? like under lakes but a little more visible?"). It was a hue of its own — T54's indigo (read as base),
  * T146's spruce / ice cyan (read as "too benign") — and is now a NEUTRAL drawn on its own dotted layer
- * (`stream-noaccess`, adapters/contract.ts `noaccessPaint`), the stream line hidden under it. The warning moved to the
+ * (`stream-noaccess`, paint.ts `noaccessPaint`), the stream line hidden under it. The warning moved to the
  * Regulations page's block (`color.ui.warning`). A grey has no hue to share, so the T146 hue gate (45 degrees off base)
  * became this: the colour is a NEUTRAL (RGB spread within NEUTRAL_SPREAD, like the boundaries), and in normal vision it
  * stands off what it could be read as:

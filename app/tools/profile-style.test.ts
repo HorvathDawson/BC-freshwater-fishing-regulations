@@ -9,7 +9,8 @@
 import { describe, expect, it } from "vitest";
 import { validateStyleMin } from "@maplibre/maplibre-gl-style-spec";
 import type { DayProfiles } from "@app/core";
-import { baseAdapter, paintFor, type MapHandle } from "../packages/map/src/adapters/contract";
+import { baseAdapter, type MapHandle } from "../packages/map/src/adapters/contract";
+import { paintFor } from "../packages/map/src/paint";
 import { NO_VALUES, STYLE_META, colorExpression, resolveTheme, themeNames, type ChannelValues }
   from "../packages/map/src/style";
 import { runtimeStyle } from "../packages/map/src/runtime-style";

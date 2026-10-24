@@ -9,7 +9,8 @@
  */
 import { describe, expect, it } from "vitest";
 import type { DayProfiles } from "@app/core";
-import { baseAdapter, NOACCESS_LAYER, noaccessPaint, paintFor, type MapHandle } from "./adapters/contract";
+import { baseAdapter, type MapHandle } from "./adapters/contract";
+import { NOACCESS_LAYER, noaccessPaint, paintFor } from "./paint";
 import { runtimeStyle } from "./runtime-style";
 import { resolveTheme } from "./style";
 

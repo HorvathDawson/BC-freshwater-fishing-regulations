@@ -19,7 +19,7 @@
  * `faults` is a pure function of a layer order, so the mutation pin runs it on the order before T83.
  */
 import { describe, expect, it } from "vitest";
-import { SELECTION_CASING, SELECTION_RINGS } from "../packages/map/src/adapters/contract";
+import { SELECTION_CASING, SELECTION_RINGS } from "../packages/map/src/paint";
 import { runtimeStyle } from "../packages/map/src/runtime-style";
 import { MAP_STYLE } from "../packages/map/src/style";
 import { COPY_CASING, COPY_FILL, COPY_LINE } from "../packages/map/src/water-copy";

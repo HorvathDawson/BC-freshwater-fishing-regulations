@@ -10,7 +10,8 @@
  */
 import { describe, expect, it } from "vitest";
 import { readingDayOf, type LakeFacts, type StatusCode, type StatusIndex, type SurveyState } from "@app/core";
-import { baseAdapter, paintFor, type MapHandle } from "./adapters/contract";
+import { baseAdapter, type MapHandle } from "./adapters/contract";
+import { paintFor } from "./paint";
 import { Colouring, coloursEachTile, standingInput, statusInput, stockedInput, surveyInput, type LabelTarget,
          type StandingFeed,
          type TileRenderer, type TileSections } from "./colouring";

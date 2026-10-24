@@ -24,7 +24,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { FIELD_HANDOVER_Z, STYLE_META, baseAdapter, resolveTheme, type MapHandle } from "@app/map";
 import { tapOpensWater } from "@app/ui";
-import { paintFor } from "../packages/map/src/adapters/contract";
+import { paintFor } from "../packages/map/src/paint";
 // The style itself is not exported — it is the generated artifact, and reading
 // it here is reading what actually ships rather than a re-export of it.
 const MAP_STYLE = JSON.parse(

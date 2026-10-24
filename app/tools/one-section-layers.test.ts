@@ -45,7 +45,7 @@ import { SECTION_DATA, SECTION_LAYERS, SECTION_SOURCE_LAYERS, TAP_GROUPS, VISIBL
          perSectionLayers, spreadSections, stateTarget } from "../packages/map/src/sections";
 import { LABEL_SOURCE_LAYERS, withoutEngineKeys } from "../packages/map/src/colouring";
 import { TRACE_LAYERS } from "../packages/map/src/trace-geometry";
-import { SELECTION_RINGS } from "../packages/map/src/adapters/contract";
+import { SELECTION_RINGS } from "../packages/map/src/paint";
 
 const APP = fileURLToPath(new URL("..", import.meta.url));
 const ROOTS = ["apps", "packages"];
@@ -99,7 +99,7 @@ const SPELLINGS: [string, string][] = [
  * — keep the list short and the reasons true).
  */
 const DECLARED: Record<string, string> = {
-  "packages/map/src/adapters/contract.ts: object":
+  "packages/map/src/paint.ts: object":
     "SELECTION_RINGS: a ring layer id per POLYGON section layer — perSectionLayers() but the stream, which wears a "
     + "casing; set-equality pinned below",
   "packages/ui/src/mapModes.ts: object":

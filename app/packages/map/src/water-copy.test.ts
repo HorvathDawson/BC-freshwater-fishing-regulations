@@ -5,7 +5,8 @@
 import { describe, expect, it } from "vitest";
 import { onceSink, type StateSink } from "./sections";
 import { WaterCopy, copyIds, mirrorSink, probeZoom, zoomAround, type CopyTarget, type LitFeature } from "./water-copy";
-import { baseAdapter, copyFillPaint, copyLinePaint, paintFor, type MapHandle } from "./adapters/contract";
+import { baseAdapter, type MapHandle } from "./adapters/contract";
+import { copyFillPaint, copyLinePaint, paintFor } from "./paint";
 import { resolveTheme } from "./style";
 
 /** A small creek (two sections, 501 and 502) and the river it joins (900); a lake (700). */

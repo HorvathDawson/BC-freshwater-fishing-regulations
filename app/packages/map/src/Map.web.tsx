@@ -34,7 +34,8 @@ import { longPressWatch, type LongPressWatch } from "./longPress";
 import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, FIT_MAX_ZOOM, MIN_ZOOM, SPOT_PIN, bboxOfGeometry, padBbox, refineFit,
          spotMarkers, unionBbox, type Bbox, type SpotMarker } from "@app/core";
 import { pressSpot, spotsKey } from "./spots";
-import type { MapHandle, SelectionCue } from "./adapters/contract";
+import type { MapHandle } from "./adapters/contract";
+import type { SelectionCue } from "./paint";
 import { hereImage } from "./here-mark";
 import { labelShift, MARK_LABEL_FONT } from "./marks";
 import { EMPTY_TRACE, HERE_IMAGE, tracePaint } from "./trace-overlay";

@@ -13,9 +13,8 @@
 import { describe, expect, it } from "vitest";
 import { nativeAdapter, nativeRenderer, type NativeRefs } from "./adapters/native";
 import { webAdapter, webRenderer, type GlMapSlice } from "./adapters/web";
-import {
-  baseAdapter, CASING_PX, paintFor, SELECTION_CASING, SELECTION_RINGS, type MapHandle, type MapRenderer,
-} from "./adapters/contract";
+import { baseAdapter, type MapHandle, type MapRenderer } from "./adapters/contract";
+import { CASING_PX, paintFor, SELECTION_CASING, SELECTION_RINGS } from "./paint";
 import {
   MAP_STYLE, STYLE_META, colorExpression, isRuntimeLayer, layerIds, resolveTheme,
   toggleableGroups,
@@ -588,7 +587,7 @@ describe("a water's status paints with the map's own colours", () => {
    * width exactly — colour alone tells the statuses apart (tools/water-status-cvd.test.ts).
    */
   it("a status line is the same width as the plain one", async () => {
-    const { paintFor } = await import("./adapters/contract");
+    const { paintFor } = await import("./paint");
     const { resolveTheme } = await import("./style");
     const t = resolveTheme("light");
     for (const layer of ["stream", "lake__edge"]) {

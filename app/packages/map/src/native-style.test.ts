@@ -6,7 +6,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { colour } from "./chrome";
-import { paintFor } from "./adapters/contract";
+import { paintFor } from "./paint";
 import { nativeStyle } from "./native-style";
 import { runtimeStyle } from "./runtime-style";
 import { MAP_STYLE, STYLE_META, resolveTheme } from "./style";

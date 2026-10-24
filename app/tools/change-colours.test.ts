@@ -11,7 +11,7 @@
  *   unmistakable at the ends  a big fall and a big rise far apart, and the two inner stops too;
  *   a reading when steady  steady is a colour a forecast gave, never the ungauged grey that means nothing speaks here;
  *   not the selection     every stop at least MEANING_FLOOR (ΔE2000, normal vision) from `color.highlight`: the river
- *                         you tapped is RINGED in it over its own Change colour (adapters/contract.ts `casingPaint`), so a
+ *                         you tapped is RINGED in it over its own Change colour (paint.ts `casingPaint`), so a
  *                         stop in the highlight's hue hides the ring and makes every river rising that much look selected.
  *                         The first light ramp's big rise sat 6.5 from the light magenta highlight (T52 review);
  *   diverging             each end further from steady than its inner stop.

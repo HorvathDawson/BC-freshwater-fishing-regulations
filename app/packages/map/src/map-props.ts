@@ -10,7 +10,7 @@ import type { ViewStyle } from "react-native";
 import type { TileEndpoints } from "./runtime-style";
 import type { TraceProp } from "./trace-overlay";
 import type { LakeFeed, ProfileStatus, StandingFeed } from "./colouring";
-import type { SelectionCue } from "./adapters/contract";
+import type { SelectionCue } from "./paint";
 
 /** A boundary mark on a water (`MapProps.marks`). `a11y`: what a screen reader says for it. */
 export interface MapMark {
