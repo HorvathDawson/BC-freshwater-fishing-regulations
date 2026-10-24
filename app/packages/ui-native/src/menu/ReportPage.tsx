@@ -4,7 +4,7 @@
  * report goes out through the platform — an email to the contact address (`mailto:`) or the share sheet — and there
  * is no server behind either. The exact message is shown before it goes ("This is what will be sent").
  *
- * Draws `diagnosticRows` / `reportMessage` (core/menu.ts); decides nothing.
+ * Draws `diagnosticRows` / `reportMessage` (core/menu/report.ts); decides nothing.
  */
 import { useMemo, useState } from "react";
 import { Linking, Share, Switch, Text, TextInput, View } from "react-native";

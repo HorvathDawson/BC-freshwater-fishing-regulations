@@ -1,5 +1,5 @@
 /**
- * The menu's reading pages — About, Sources and credits. Each draws one VM from core/menu.ts and decides nothing; a link
+ * The menu's reading pages — About, Sources and credits. Each draws one VM from core/menu/ and decides nothing; a link
  * only says where it goes. (Owner 2026-10-22) Display and Contact are drawn on the More tab itself (`MoreScreen`).
  */
 import { Linking, Pressable, Text, View } from "react-native";

@@ -88,8 +88,8 @@ describe("one place for each kind of thing (T48)", () => {
  * Sources and credits page draws only who publishes each. Before T167 the two pages each carried a name table and a
  * "when" function of their own (three names for one feed: "River flows", "Live gauge readings", "Gauge records") — the
  * second copy this pins against:
- *   the list     one declaration of the sources' order (`SOURCE_ORDER`, core/menu.ts); no other array literal of them
- *   the names    each source's name is written once, in core/menu.ts — here and in every surface
+ *   the list     one declaration of the sources' order (`SOURCE_ORDER`, core/menu/sources.ts); no other array literal of them
+ *   the names    each source's name is written once, in core/menu/words.ts — here and in every surface
  *   freshness    a source's state is judged by `sourceFreshness(` in core alone, and the per-source freshness rows
  *                (`dataVM(`) are composed only for the More tab (core/more.ts `menuVM`); the only UI that draws a
  *                freshness badge is the More tab (and the Regulations page's lapsed-edition dot)
@@ -102,13 +102,13 @@ describe("one list of the data's sources (T167)", () => {
   it("one declaration of the order, and no second array of the source keys anywhere", () => {
     expect({ declared: inAll(/\bexport const SOURCE_ORDER\b/),
              literal: inAll(/["']dfo["']\s*,\s*["']fwa["']/) })
-      .toEqual({ declared: ["packages/core/src/menu.ts"], literal: ["packages/core/src/menu.ts"] });
+      .toEqual({ declared: ["packages/core/src/menu/sources.ts"], literal: ["packages/core/src/menu/sources.ts"] });
   });
 
-  it("each source's name is written once (core/menu.ts) across the app", () => {
+  it("each source's name is written once (core/menu/words.ts) across the app", () => {
     const names = ["In-season changes", "DFO salmon", "Freshwater Atlas", "Live gauge readings", "River forecasts"];
     expect(Object.fromEntries(names.map((n) => [n, inAll(new RegExp(`["'\`]${n}["'\`]`))])))
-      .toEqual(Object.fromEntries(names.map((n) => [n, ["packages/core/src/menu.ts"]])));
+      .toEqual(Object.fromEntries(names.map((n) => [n, ["packages/core/src/menu/words.ts"]])));
   });
 
   it("freshness is judged in core alone and drawn by the More tab alone; Sources and credits draws none", () => {
@@ -118,7 +118,7 @@ describe("one list of the data's sources (T167)", () => {
       badge: where(/\bFreshBadge\b/).filter((p) => !p.endsWith("menu/Fresh.tsx")),
       dot: where(/\bFreshDot\b/).filter((p) => !p.endsWith("menu/Fresh.tsx")),
     }).toEqual({
-      judged: ["packages/core/src/menu.ts", "packages/core/src/more.ts"],
+      judged: ["packages/core/src/menu/freshness.ts", "packages/core/src/more.ts"],
       rows: ["packages/core/src/more.ts"],
       badge: ["packages/ui-native/src/menu/MoreScreen.tsx"],
       dot: ["packages/ui-native/src/menu/MoreScreen.tsx", "packages/ui-native/src/regs/RegsScreen.tsx"],

@@ -14,9 +14,9 @@
  *             accessible label, drawn as a dot. A feed the SERVER has not published lately is the Data block's fact
  *             ("likely out of date"), not a refresh prompt: a tap re-reads the same old index
  *
- * Freshness itself — each source's rule — is `sourceFreshness` (menu.ts) over THE ONE TABLE `STALE_AFTER`
+ * Freshness itself — each source's rule — is `sourceFreshness` (menu/freshness.ts) over THE ONE TABLE `STALE_AFTER`
  * (staleness.ts): the block and the sync dot never disagree. The list of sources is `SOURCE_ORDER` and their names are
- * `MENU_WORDS.sources.names` (menu.ts), read here and by the Sources and credits page; neither is restated.
+ * `MENU_WORDS.sources.names` (menu/words.ts), read here and by the Sources and credits page; neither is restated.
  */
 import {
   contactVM, forecastWhen, FRESHNESS_WORDS, sourceFreshness, isoDayWords, INSEASON_URL, MENU_WORDS, regsLapsed, SOURCE_ORDER,

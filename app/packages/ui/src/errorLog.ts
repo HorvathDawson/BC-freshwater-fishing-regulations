@@ -1,6 +1,6 @@
 /**
  * THE RECENT ERROR LOG: a small in-memory ring of the last errors the app logged, for a problem report's diagnostics
- * (core/menu.ts `Diagnostics.errors`). It lives in memory only — never written to disk, never sent anywhere. The
+ * (core/menu/report.ts `Diagnostics.errors`). It lives in memory only — never written to disk, never sent anywhere. The
  * reader sees every line in the report form and can switch the whole log off before sending; NOTHING here reports
  * on its own (owner 2026-10-21: no background telemetry).
  *

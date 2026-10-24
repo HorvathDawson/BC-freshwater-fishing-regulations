@@ -1,5 +1,5 @@
 /**
- * The menu's words and VMs (core/menu.ts). Whole strings (AGENTS 33): every sentence a page draws is pinned as the
+ * The menu's words and VMs (core/menu/). Whole strings (AGENTS 33): every sentence a page draws is pinned as the
  * reader will see it.
  */
 import { describe, expect, it } from "vitest";

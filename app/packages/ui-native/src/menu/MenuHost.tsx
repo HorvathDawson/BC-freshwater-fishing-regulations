@@ -2,7 +2,7 @@
  * THE MENU'S PAGES, mounted once by the Shell: the page opened from the More tab (`MoreScreen`, T48 — the hamburger's
  * drawer is gone) or from a regulations tab's report link — Glossary, Sources and credits, About, Report a problem.
  * (Owner 2026-10-22) Display and Contact are no pages: the More tab draws them inline; (T167) so is every source's date
- * and freshness. Everything a page says comes from core/menu.ts over facts handed in here — the release's manifest
+ * and freshness. Everything a page says comes from core/menu/ over facts handed in here — the release's manifest
  * (its id, the edition's title), the tile version the map draws, the app's own config (build, contact) and the recent
  * error log. Nothing here is fetched for the menu except the glossary, read from the regs
  * store only while its page is open.
