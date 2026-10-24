@@ -6,7 +6,11 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
-(none right now — Q6 braids answered 2026-10-24; a cut-by-cut review page comes next)
+- **T67 braids — check every cut (phone-friendly):** https://claude.ai/artifact/Et8B4Z6ZbKNNw9mMkJWzFH
+  29 proposed cuts (Right / Wrong / Unsure + note), 2 re-homed, 38 braids left alone, 45 dropped ditches, and two
+  yes/no calls on the Questions tab (a gauge on a named side channel cutting its mainstem; a moved length cut changing
+  a 1 km Fraser piece's region 5 → 7). Nothing is promoted until you have marked them. (Push is off in /config, so no
+  notification was sent.)
 
 ## Reviews
 - **Q114 / T136 — the 30-entry curation pilot** (about an hour): `handoff/PLAN/curation-review/PILOT.md`, then

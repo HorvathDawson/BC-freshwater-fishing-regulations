@@ -111,7 +111,7 @@ use that as the sole source of future work."
 | T64 | tiles: S2 size wins + tile rebuild | OPEN | — | all |
 | T65 | determinism proof (N12) | OPEN | — | all (heavy) |
 | T66 | curation review tool | DONE | a3f66b7c (plan) | plan approved 2026-10-23; build → T96, T97, T133–T136 |
-| T67 | braid splitting as a build step | OPEN | 1497beb0 | owner answered 2026-10-24 (Q6: drop 2300 ditches, no length-cut sweep, no cap, topology gate) → braid_sweep.py → side atlas → ★ owner checks every cut in a review artifact → reach/deliver/tiles |
+| T67 | braid splitting as a build step | OPEN | 1497beb0, ed1a5c0 | build lane done on branch worktree-agent-a56da8d758379fc5a (not merged: side atlas/reach only; 2 reach-gate failures + 6 residual straddles to fix) → ★ owner marks the review page (Et8B4Z6ZbKNNw9mMkJWzFH) → fix, then reach/deliver/tiles |
 | T68 | HYDAT / feed follow-ups | DONE | e25d05fd, 17610988, 0fa29df4, 98817665 | F1/F2 follow-ups in ticket |
 | T69 | search on desktop: keyboard leftovers | DONE | 448ebe1b, 389e451a | — |
 | T70 | cleanup wave 1, app side + stale worktrees + `pnpm clean` | DONE | 52ec4cb5, 799614a5, 4615ee0f, 1e8cbdb5, ac95e09f, a7947f99, de3cb79d, fd3f8c06, ef11d8e4, 17e4fe8f | merger steps done 2026-10-24 (clean + strict green); Q17 dead follow-branch → T63 |
