@@ -1130,3 +1130,6 @@ T146's spruce/cyan and the T165 amber swap; the dash is the owner's chosen secon
 - CLAUDE 2026-10-24 (T165): the "No public access" block heading stays ink — the light amber is 3.0:1 on the card,
   below what words need; the amber is in the bar and tint. Undo: a darker warning-text token.
 - CLAUDE 2026-10-24 (T168): a lake with several stations counts the station that speaks (Shuswap: "1 gauge on this water"); undo: count every station on the lake.
+- CLAUDE 2026-10-24 (T170/T171): `aheadDays` lives in the feed index (+9 KB gzip); ELF appears in the Like-your-visit strip
+  only where no flood model reaches (37 stations), with its caveat; no offline history file in the release; a same-day spot
+  whose gauge was silent at capture offers to fill the day's flow. Undo any by its ticket.

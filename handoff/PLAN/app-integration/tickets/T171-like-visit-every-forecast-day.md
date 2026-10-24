@@ -1,6 +1,6 @@
 # T171 — "Like your visit?": every forecast day uses the flow forecast (no weather-only gaps between forecast days)
 
-Status: DONE — e271b6d2 (feed) + e29d895d (app) + a83a8008 (review fix), lane-T170. Live after a FEED REPUBLISH (owner, below).
+Status: DONE — 3f43c1dd (feed) + ef762537 (app) + 298cee48 (review fix), lane-T170. Live after a FEED REPUBLISH (owner, below).
 
 Source: owner 2026-10-23: "in the how similar is a spot to when the spot was added section sometimes it has gaps and
 says weather only despite gauge forecast on both sides". T51's known gap (its follow-up "+2/+4 flow"): the strip's
@@ -41,7 +41,7 @@ Ships: feed republish (local now; R2 owner) + app. Size: S–M.
   day's model; a feed without it is read at the four horizons as before. `likeDay` (core) names the model on an ELF day
   ("17th percentile forecast by ELF"), adds `caveat` (`CHANGE_LOW_WATER`); the strip's cell says "low-water model"
   under the score and the caveat closes the day's working. "Weather only" / "No flow forecast for this day" only where
-  no model reaches. Review fix (a83a8008): in the hour after local midnight the Centre's tomorrow is the reader's
+  no model reaches. Review fix (298cee48): in the hour after local midnight the Centre's tomorrow is the reader's
   today; the index day keeps its reading.
 
 ## Measured (scratch republish, 2026-10-24T02:08Z, `.../scratchpad/feed`, never into `<repo>/data`)
@@ -82,7 +82,7 @@ and that file + the touched suites re-run green (171). The regs-store parity fil
 - A station with only ELF (08MG013): every day ELF, every day `lowWater` — pinned; app says "low-water model" + caveat.
 - A day past every model: null in both lists, the strip's "No flow forecast for this day: scored on the weather only."
 - A level-only station: no discharge envelope -> no `aheadDays` (and the old horizons have no discharge) -> weather only.
-- Fixed: the Centre-day / local-day edge just past midnight (a83a8008, above).
+- Fixed: the Centre-day / local-day edge just past midnight (298cee48, above).
 - Left: an ELF day ranks ELF's daily value raw (1.06x the gauge in the median, T144) — same as the horizons always did.
 
 ## Rebuild / republish

@@ -1,6 +1,6 @@
 # T170 — A spot gets the flow of its own day (historical), by refresh or on request
 
-Status: DONE — e29d895d (app) + a83a8008, lane-T170 (with T171). App only: no feed, bundle or release change.
+Status: DONE — ef762537 (app) + 298cee48, lane-T170 (with T171). App only: no feed, bundle or release change.
 
 Source: owner 2026-10-23: "spots should be able to get historical flow on a day with a refresh and have option to get
 it". Related: T51 follow-up (a spot backdated to an earlier day froze TODAY's gauge reading and panel, because capture
@@ -52,7 +52,7 @@ licence check in the work list is settled; endpoint and CORS still to verify.
 - Licence: Open Government Licence – Canada (decisions.md, owner 2026-10-23). The app already credits "Hydrometric
   data: Environment and Climate Change Canada".
 
-## As built (e29d895d, a83a8008)
+## As built (ef762537, 298cee48)
 - **The one read** — `flowOnDay(station, date, ports)` (`app/packages/data/src/spots/dayFlow.ts`): a station that
   measures no discharge -> `no-discharge`, nothing asked. Else the feed's "year" series (`gaugeSeries`, the existing
   source): a day on or after the day the feed was written -> `pending` (S1's rule: never freeze a morning); a mean this

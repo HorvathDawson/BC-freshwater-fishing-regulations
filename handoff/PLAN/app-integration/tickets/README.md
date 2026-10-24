@@ -214,8 +214,8 @@ use that as the sole source of future work."
 | T167 | More tab: simpler details, references on their own page, data freshness compact on the main tab, a real desktop layout | DONE | 3af0dbaa, de06c3ae | app; tiles date needs a manifest stamp (follow-up) |
 | T168 | "N gauges in view": split gauges on this water from donor gauges; not-reporting gauges under a closed drop-down (owner 2026-10-24) | DONE | bfee90d9, fcddee67 | app |
 | T169 | one gauge panel for one side-channel water (Nicomen grey middle: connector vs adopted lines) | DONE | 89b8e1a1, d42f0741 | deliver: 24 sections change, all side-channel; Nicomen one panel |
-| T170 | a spot gets the flow of its own day (historical) on refresh or on request | OPEN | — | app (+ feed/release history) |
-| T171 | "Like your visit?": every forecast day uses the flow forecast (no weather-only gaps) | OPEN | — | feed + app |
+| T170 | a spot gets the flow of its own day (historical) on refresh or on request | DONE | ef762537, 298cee48, a09374b0 | app; GeoMet direct from the browser (no proxy) |
+| T171 | "Like your visit?": every forecast day uses the flow forecast (no weather-only gaps) | DONE | 3f43c1dd, ef762537, a09374b0 | feed republish (local; R2 owner) + app |
 | T172 | Android smoke on the emulator (builds, installs, opens, main screens) — before cleanup; full parity stays T50 | OPEN | — | heavy, alone |
 | T173 | fish obstacles layer (falls, dams, culverts) from the BC Data Catalogue | OPEN | — | future |
 | T174 | remaining answered → grey → answered gaps on main rivers (321/84 runs; Gravel Slough connectors) | OPEN | — | deliver; Q153–Q155 |
@@ -299,6 +299,8 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q157 | T165 | The no-access line uses the under-lake route's DASH (dots only in the cvd theme) — switch to true dots? | dash | owner |
 | Q158 | T168 | A renamed continuation's gauge counts as "on this water" (the Vedder lists the Chilliwack's 08MH001 as its own)? | yes | owner |
 | Q159 | T168 | "Reporting, not ranked" gauges fold with the silent ones ("not reporting or not ranked")? | yes | owner |
+| Q160 | T171 | The +1/+3 horizons now take COFFEE after CLEVER at 22 coast stations (one model-per-day rule) — first model, or combine CLEVER + COFFEE per day like Change? | first model | owner |
+| Q161 | T170 | A backdated spot's frozen gauge panel is today's estimate, now labelled "read when this spot was saved" — keep labelled, hide, or recompute for that day? | keep, labelled | owner |
 
 ### Answered (recently, for the record)
 - Q84 (side channel and its river) — owner 2026-10-24 delegated ("do what you think is best just make sure it is sane"): T169 one panel per side-channel water; Q169d (one panel for a long side-channel water) decided yes.
