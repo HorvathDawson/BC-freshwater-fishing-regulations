@@ -165,7 +165,24 @@ function mapSvg(c) {
   const T = (p) => { const [x, y] = P(p); return [((x - cx) * s + W / 2).toFixed(1), ((y - cy) * s + H / 2).toFixed(1)]; };
   const stroke = { host: ["var(--host)", 4], below: ["var(--below)", 3], above: ["var(--above)", 3], on: ["var(--on)", 3], cut: ["var(--cut)", 2], refused: ["var(--refused)", 3.5] };
   const order = ["host", "on", "refused", "below", "above", "cut"];
-  const paths = order.flatMap((k) => lines.filter(([, kk]) => kk === k).map(([pl]) => {
+  // the two halves of the cut, tinted: which side a piece is on reads at a glance (below = downstream, above = upstream)
+  let halves = "";
+  const ref = (c.pieces || []).find((p) => (p.side === "below" || p.side === "above") && p.line && p.line[0] && p.line[0].length);
+  if (c.line && c.line.length >= 2 && ref) {
+    const A = T(c.line[0]).map(Number), B = T(c.line[c.line.length - 1]).map(Number);
+    const dx = B[0] - A[0], dy = B[1] - A[1], L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L, nx = -uy, ny = ux, F = 20000;
+    const mid = ref.line[0][Math.floor(ref.line[0].length / 2)], P = T(mid).map(Number);
+    const sgn = Math.sign((P[0] - A[0]) * nx + (P[1] - A[1]) * ny) || 1;
+    const refSide = ref.side, other = refSide === "below" ? "above" : "below";
+    const half = (s) => { const a = [A[0] - ux * F, A[1] - uy * F], b = [B[0] + ux * F, B[1] + uy * F];
+      return [a, b, [b[0] + nx * F * s, b[1] + ny * F * s], [a[0] + nx * F * s, a[1] + ny * F * s]].map((q) => q.map((v) => v.toFixed(1)).join(",")).join(" "); };
+    // a label inside each half, near the cut point, pushed off the line
+    const C = c.pt ? T(c.pt).map(Number) : [(A[0] + B[0]) / 2, (A[1] + B[1]) / 2];
+    const lab = (s, side) => { const x = Math.min(W - 70, Math.max(70, C[0] + nx * 34 * s)), y = Math.min(H - 30, Math.max(34, C[1] + ny * 34 * s));
+      return `<text class="chrome" x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="middle" font-family="Barlow Condensed, sans-serif" font-size="13" font-weight="600" fill="var(--${side})">${side === "below" ? "downstream side" : "upstream side"}</text>`; };
+    halves = `<polygon points="${half(sgn)}" fill="var(--${refSide})" fill-opacity="0.09"/><polygon points="${half(-sgn)}" fill="var(--${other})" fill-opacity="0.09"/>${lab(sgn, refSide)}${lab(-sgn, other)}`;
+  }
+  const paths = halves + order.flatMap((k) => lines.filter(([, kk]) => kk === k).map(([pl]) => {
     const [col, sw] = stroke[k];
     return `<polyline fill="none" stroke="${col}" stroke-width="${sw}" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"${k === "cut" ? ' stroke-dasharray="6 4"' : ""} points="${pl.map((p) => T(p).join(",")).join(" ")}"/>`;
   })).join("");
