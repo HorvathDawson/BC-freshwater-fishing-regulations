@@ -46,9 +46,6 @@ export const HORIZONS: readonly Horizon[] = [0, ...FORECAST_DAYS, "change"];
 export type DayHorizon = Exclude<Horizon, "change">;
 export const DAY_HORIZONS: readonly DayHorizon[] = HORIZONS.filter((h): h is DayHorizon => typeof h === "number");
 
-/** The expected-change horizon. */
-export const CHANGE: Horizon = "change";
-
 /** A forecast rather than now: every horizon but 0, the Change view included. */
 export const isAhead = (h: Horizon): boolean => h !== 0;
 
@@ -370,14 +367,6 @@ export function donorReads(r: DonorReading, o: DonorAsk = {}): string {
     case "quiet": return "Not reporting today.";
     default: return unreachable(s);
   }
-}
-
-/**
- * A MEMBER THAT REPORTS BUT CANNOT BE RANKED at this horizon — `donorState`'s `unranked`, the one percentile-less
- * member that stays a row.
- */
-export function donorUnranked(r: DonorReading, o: DonorAsk = {}): boolean {
-  return donorState(r, o).kind === "unranked";
 }
 
 /**

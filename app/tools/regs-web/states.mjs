@@ -12,7 +12,6 @@ const GOLDEN = load('golden.json'), TAPS = load('taps.json');
 export const PHONE = { width: 390, height: 844, dpr: 2 };
 /** The port target's ref (the goldens' own `meta.ref`): the prototype is staged there, never read from the working tree. */
 export const REF = GOLDEN.meta.ref;
-export const VERSION = GOLDEN.meta.version;
 export const APP_URL = process.env.REGS_APP_URL || 'http://localhost:8081';
 export const TABS = ['keep', 'gear', 'methods', 'licence'];
 /** The prototype's "today": the day its golden headers call Today (its snapshot's day). The tools put the app's clock there,

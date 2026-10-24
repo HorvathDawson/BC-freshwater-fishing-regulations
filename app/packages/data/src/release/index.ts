@@ -2,13 +2,8 @@
  * THE RELEASE (P08/P10/P11), platform-free: the loader, install/update, and the reader over them. The platform half —
  * how a file is fetched, cached, installed and opened — is `@app/data/release/platform` (`./drivers`).
  */
-export { releaseLoader, ReleaseError, type DbName, type FileName, type Opener, type ReleaseLoader,
-         type ReleaseSource } from "./loader";
-export { install, prune, heldFrom, heldPath, pointerFor, sameSet, rangedDownload, POINTER, type Download,
-         type DownloadTo, type PartFs, type Progress, type ReleaseFs } from "./install";
-export { makeReleaseSource, type SourceOptions } from "./source";
-export { assetsDigest, assetsDir, installAssets, rawFetch, type AssetsBlock, type RawFetch } from "./assets";
-export { bootRelease, releaseTiles, BootError, type BootOptions, type BootStage, type Booted, type RolledBack,
-         type ReleasePlatform } from "./boot";
-export { heldManifest } from "./install";
-export { CROSS, META, RELEASE_QUERIES } from "./queries";
+export { releaseLoader, type DbName, type ReleaseLoader } from "./loader";
+export { heldPath, POINTER, type Progress, type ReleaseFs } from "./install";
+export { makeReleaseSource } from "./source";
+export { assetsDigest } from "./assets";
+export { bootRelease, releaseTiles, BootError, type BootOptions, type Booted, type ReleasePlatform } from "./boot";

@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "check": "pnpm run tickets && pnpm run boundaries && pnpm run platform && pnpm run style && pnpm run colours && pnpm run spinner && pnpm run gauge-policy && pnpm run calendar && pnpm run fish && pnpm run answers && pnpm run pack && pnpm run deps && pnpm run typecheck && pnpm run test",
+    "check": "pnpm run tickets && pnpm run boundaries && pnpm run platform && pnpm run style && pnpm run colours && pnpm run spinner && pnpm run gauge-policy && pnpm run calendar && pnpm run fish && pnpm run answers && pnpm run pack && pnpm run deps && pnpm run knip && pnpm run typecheck && pnpm run test",
     "dev:web": "pnpm --filter @app/mobile run web",
     "dev:android": "pnpm --filter @app/mobile run android",
     "dev:ios": "pnpm --filter @app/mobile run ios",
@@ -15,6 +15,7 @@
     "style:build": "node tools/build-style.mjs",
     "colours": "node tools/check-colours.mjs",
     "deps": "node tools/check-deps.mjs",
+    "knip": "knip --no-progress",
     "tickets": "node tools/check-tickets.mjs",
     "platform": "node tools/check-platform.mjs",
     "spinner": "node tools/build-spinner.mjs && git diff --exit-code packages/ui-native/src/fish-sprite.generated.ts design/fish-sprite.png design/fish-sprite.html",
@@ -32,6 +33,7 @@
   "devDependencies": {
     "@testing-library/react": "^16.3.3",
     "jsdom": "^30.0.1",
+    "knip": "6.40.0",
     "typescript": "~5.9.3",
     "vitest": "^3.2.4"
   },

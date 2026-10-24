@@ -32,7 +32,7 @@ import { unpackBlob } from "./blob";
 import { asBytes, RegsStoreError } from "./errors";
 import { makeReads, type RegsReads } from "./reads";
 
-export { asBytes, RegsStoreError, type RefusalWhy } from "./errors";
+export { asBytes, RegsStoreError } from "./errors";
 
 /** What the store is opened through: the release loader (P11), or any object with its shape (tests). */
 export type RegsLoader = Pick<ReleaseLoader, "release" | "manifest" | "db" | "regionsOf" | "regionDb">;

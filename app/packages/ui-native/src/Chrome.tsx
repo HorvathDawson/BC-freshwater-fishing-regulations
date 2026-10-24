@@ -1,36 +1,14 @@
 /**
- * The furniture that floats over a map: pills, round buttons, and the legend strip.
+ * The furniture that floats over a map: the legend strip and its counts and ramp.
  *
  * Separated from the screens because all four tabs use the same shapes, and because the
  * map itself must never be asked to draw UI — everything here sits above it.
  */
 import { legendCount, legendTickLabel, percentileOrdinal, standing } from "@app/core";
-import { Pressable, ScrollView, Text, View, type ViewStyle } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
-
-/** A floating capsule. Used for the date, the layers button, and map hints. */
-export function Pill({ palette, children, onPress, style, label }: {
-  palette: Palette; children: React.ReactNode; onPress?: () => void;
-  style?: ViewStyle; label?: string;
-}) {
-  const body = (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 8,
-                   backgroundColor: palette.card, borderRadius: palette.r.pill,
-                   // Riffle's chip: 8/14 at 13.5px. The map is the content; its furniture
-                   // should be the smallest thing that is still a comfortable target.
-                   paddingVertical: 8, paddingHorizontal: 14,
-                   borderWidth: 1, borderColor: palette.line2, ...palette.lift, ...style }}>
-      {children}
-    </View>
-  );
-  return onPress
-    ? <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label}>
-        {body}
-      </Pressable>
-    : body;
-}
 
 /**
  * The strip between the map and the tabs.

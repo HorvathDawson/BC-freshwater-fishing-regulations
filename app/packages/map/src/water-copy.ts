@@ -40,8 +40,6 @@ export const COPY_FILL = "water-copy-fill";
 export const COPY_CASING = "water-copy-casing";
 /** A stream's copy, a line under the stream's own (the stream's paint, floored to the highlight width). */
 export const COPY_LINE = "water-copy-line";
-/** Every copy layer, in draw order. */
-export const COPY_LAYERS = [COPY_FILL, COPY_CASING, COPY_LINE] as const;
 /** The source-layers a copy is kept from: a stream's line and a lake's polygon — the per-section ones but the wetland. */
 export type CopyLayer = Exclude<PerSectionLayer, "wetland">;
 export const COPY_SOURCE_LAYERS: readonly CopyLayer[] =

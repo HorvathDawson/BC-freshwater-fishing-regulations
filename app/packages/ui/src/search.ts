@@ -138,19 +138,6 @@ export function useTown(source: WaterSource, place: PlaceHit | null): Async<Town
   );
 }
 
-/**
- * The main map's focus for a water the reader CHOSE — from a search row, or from the list
- * of what is near a town. Same decision, same box and highlight as the search map drew, so
- * the water they picked is the water the map shows when they come back to it.
- */
-export function usePickFocus(source: WaterSource, item: ItemId | null): MapFocus | null {
-  const located = useLocated(source, item);
-  const best = located.state === "ready" ? located.value : null;
-  return useMemo(() => focusFor({ town: null,
-                                  best: best && best.item === item ? best : null }),
-                 [best, item]);
-}
-
 /* ────────────────────────────────────────────────────────────────────────────────────────
  * LOOK, THEN GO.
  *

@@ -15,11 +15,8 @@ import type { RuleKey } from "./line";
 import type { SpeciesBook } from "./names";
 import type { Md } from "./time";
 
-export type {
-  RowsValue, Row, Decided, FishAnswer, GearAnswer, GearValue, StatusFrame, LicenceValue, ProfileAnswer, Holds, TidalHolds,
-  UnderSixteen, RuleFacts, PartFacts, Picker, Choice, Moment, MomentHours, ClockTime, GlossaryTerm, StripState, InheritedLift,
-  Place as AnswersPlace,
-} from "../answers.generated";
+export type { RowsValue, Row, Decided, GearAnswer, GearValue, StatusFrame, LicenceValue, ProfileAnswer, Holds,
+              RuleFacts, PartFacts, Picker, Choice, Moment, GlossaryTerm, StripState, Place as AnswersPlace } from "../answers.generated";
 
 /** A tidal key's frame is {status:"tidal", tidal, note, see, licence}. */
 export type DisplayFrame = StatusFrame | TidalStatus;

@@ -10,6 +10,9 @@ v1's webapp reached `chart.js` + `pdf-lib` + `pdfjs-dist` + `fuse.js` + `suncalc
 
 - `typescript` — the language.
 - `vitest` — test runner; also runs the conformance suite against every `WaterSource`.
+- `knip` — the unused-code guard in `pnpm check` (N23, T63): an unused file, dependency or export fails the check.
+  Dead code regrew between audits while every test stayed green. Allowances, each with its reason, are in
+  `knip.jsonc`. Dev-only; pinned exactly.
 
 - `jsdom` — a DOM for tests, so components are actually MOUNTED rather than inspected as
   source. Ninety-four tests passed while nothing in the workspace had ever rendered; a

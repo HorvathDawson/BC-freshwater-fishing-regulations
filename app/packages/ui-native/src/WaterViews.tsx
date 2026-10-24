@@ -11,7 +11,7 @@
  *               and it opens on the water's first reach until P14 supplies the part's midpoint (`mid_sid`). An
  *               unnamed reach (no registry item) is a frame with `item: null` offering this view and its Regulations
  *               (T53); titled here with the store's name for it, as its Regulations page is.
- *   Map         the water framed and lit on the map (`usePickFocus`, the search's framing); the parts and their steps
+ *   Map         the water framed and lit on the map (`focusFor`, the search's framing); the parts and their steps
  *               are P15's. The canvas pans, so here the swipe listens on the header only.
  */
 import { useContext } from "react";

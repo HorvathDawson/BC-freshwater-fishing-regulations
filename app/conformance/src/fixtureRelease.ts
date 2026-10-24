@@ -149,4 +149,4 @@ export function provinceStoreOf(dir: string | null): string | null {
 }
 
 /** A release folder opened as the app opens one, and the node:sqlite opener: the data drivers' (one copy, T10). */
-export { nodeOpener, openReleaseDir, type ReleaseTamper } from "@app/data/release/node";
+export { nodeOpener, openReleaseDir } from "@app/data/release/node";

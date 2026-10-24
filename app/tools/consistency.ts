@@ -37,14 +37,3 @@ export const code = (src: string): string => src.replace(/\/\*[\s\S]*?\*\//g, ""
 export const files = (roots: readonly string[] = UI_ROOTS): string[] =>
   roots.flatMap((r) => sources(join(APP, r))).map((p) => relative(APP, p)).sort();
 export const read = (f: string): string => code(readFileSync(join(APP, f), "utf8"));
-/** The files whose code matches. */
-export const where = (re: RegExp, roots: readonly string[] = UI_ROOTS): string[] => files(roots).filter((f) => re.test(read(f)));
-/** `path:line` of every match in every file. */
-export function sites(re: RegExp, roots: readonly string[] = UI_ROOTS): string[] {
-  const out: string[] = [];
-  for (const f of files(roots)) {
-    const lines = read(f).split("\n");
-    lines.forEach((l, i) => { if (re.test(l)) out.push(`${f}:${i + 1}`); });
-  }
-  return out;
-}

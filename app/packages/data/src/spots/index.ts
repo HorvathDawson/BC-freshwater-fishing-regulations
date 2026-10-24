@@ -5,34 +5,28 @@
  * cannot defeat platform resolution (which is exactly what happened with the bundle
  * driver: naming the file directly handed the web build the native one).
  */
-export type { Spot, SpotStore, SpotReading, SpotWeather, WeatherSample,
-  WeatherWindow, DailyWeather, DailyGauge, DayPlace, LeadUp } from "./model";
+export type { Spot, SpotReading, SpotWeather, WeatherSample, DailyWeather, DailyGauge, LeadUp } from "./model";
 export { spotLabel, isUntitled } from "./model";
-export { captureSpot, noWeather, type CaptureInput, type WeatherSource } from "./capture";
+export { captureSpot, type WeatherSource } from "./capture";
 export { openSpots, openLayerStore, openLikeStore } from "./store";
-export { openSpotsWith, SpotsCorrupt, type SpotsFs, type SpotsStore } from "./core";
-export { serialised } from "./queue";
-export { openMeteo, OPEN_METEO_ATTRIBUTION } from "./weather";
+export { openSpotsWith, type SpotsFs } from "./core";
+export { openMeteo } from "./weather";
 export { needsRefresh, refreshReason, refreshSpot } from "./refresh";
-export { observedLine, spotHeadline, spotReadingFigure, spotRowLines, weatherTrend,
-         LEAD_UP_WORDS, leadUpDayLabel, leadUpGaugeCells, leadUpGaugeMeta, leadUpGaugeSentence, leadUpGaugeTrend,
-         leadUpGaugePending, leadUpQuantity, leadUpUnit, leadUpRainLine, leadUpWeatherCells, leadUpWeatherPending,
-         leadUpWeatherSentence, skyWord, PHOTO_WORDS, photoFailed, removePhotoLabel, staleSpotsLine } from "./words";
+export { observedLine, spotHeadline, spotReadingFigure, spotRowLines, weatherTrend, LEAD_UP_WORDS, leadUpDayLabel,
+         leadUpGaugeCells, leadUpGaugeMeta, leadUpGaugeSentence, leadUpGaugeTrend, leadUpGaugePending, leadUpQuantity,
+         leadUpUnit, leadUpRainLine, leadUpWeatherCells, leadUpWeatherPending, leadUpWeatherSentence, PHOTO_WORDS,
+         photoFailed, removePhotoLabel, staleSpotsLine } from "./words";
 export { DRAFT_WORDS } from "./words";
 // S1: the week before a visit, and a spot's photographs (the platform pair behind `./photoStore`)
-export { leadUpFor, leadUpMissing, leadUpPendingDays, weekGauge, weekWeather, type FeedIndex } from "./leadup";
-export { isPhotoRef, nextPhotoRef, openPhotosWith, photoExt, photosDropped, PHOTO_MAX_EDGE,
-         type PhotoFiles, type PhotoSource, type PhotoStore, type PickedPhoto } from "./photos";
+export { leadUpPendingDays } from "./leadup";
+export { isPhotoRef, type PhotoSource, type PhotoStore, type PickedPhoto } from "./photos";
 export { openPhotos } from "./photoStore";
 // T51: "Like your visit?" — the inputs to core's `likeDay`, and the last fetched forecast kept for offline
-export { comingConditions, fetchLike, flowAhead, likeStation, NOTHING_FETCHED, readLike, visitConditions, visitHour,
-         writeLike, type FlowModel, type LikeFetched, type LikeIndex, type LikeSources, type LikeStore,
-         type WeatherAhead } from "./likeVisit";
+export { comingConditions, fetchLike, NOTHING_FETCHED, readLike, visitConditions, visitHour, writeLike,
+         type LikeFetched, type LikeSources, type LikeStore } from "./likeVisit";
 // T170: the visit day's flow from the day's record — the one read (`flowOnDay`), HYDAT through GeoMet, the fill
-export { dayFlowAskable, dayFlowStation, fillDayFlow, flowOnDay, geometHydat, GEOMET_DAILY_MEAN, needsDayFlow,
-         readingIsTheDays, visitDay, type DayFlowAnswer, type DayFlowPorts, type HydatDaily,
-         type HydatDay } from "./dayFlow";
+export { dayFlowAskable, dayFlowStation, fillDayFlow, geometHydat, readingIsTheDays, visitDay, type DayFlowAnswer,
+         type HydatDaily } from "./dayFlow";
 // Q161: the trip day's gauge panel for a spot added for an earlier day
-export { fillDayPanel, isBackdated, needsDayPanel, panelOfAnswer, panelOnDay, savedGauges } from "./dayFlow";
+export { savedGauges } from "./dayFlow";
 export { DAY_FLOW_WORDS, DAY_PANEL_WORDS, dayFlowLine } from "./words";
-export type { DayFlow, PanelDay } from "./model";

@@ -31,7 +31,7 @@ import { timeCond, winTxt } from "./time";
 import { ruleBook } from "./book";
 import { WD3, WORDS, pageWaterNoun } from "./words";
 
-export type { CaveatItemVM, CaveatVM } from "./model";
+export type { CaveatVM } from "./model";
 
 /** The families the Keep tab's caveats speak for (renderCard). */
 export const KEEP_FAMS: readonly string[] = Object.freeze(["retention", "access"]);

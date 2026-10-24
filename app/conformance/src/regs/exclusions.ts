@@ -85,7 +85,8 @@ export const D19_POOLED_IDS: readonly string[] = ["klmb_1010"];
 export const D19_GROUPS: readonly { readonly id: string; readonly row: number; readonly title: string }[] = [
   { id: "klmb_1010", row: 2, title: "Rainbow trout" },
 ];
-export const D19_GROUP_REASON = "decisions D19 (a) as built (T80 item 3): the pipeline ships a one-kind group for the row page v36 draws on its legacy card path; the golden has no group to compare it with";
+// Why: decisions D19 (a) as built (T80 item 3): the pipeline ships a one-kind group for the row page v36 draws on its
+// legacy card path; the golden has no group to compare it with.
 /** `groups` without the D19 (a) group(s) of state `id` — each asserted present exactly once. */
 export function comparableGroups<G extends { readonly ctx: { readonly rowIx: number } }>(id: string, groups: readonly G[]): G[] {
   for (const d of D19_GROUPS.filter((x) => x.id === id)) {

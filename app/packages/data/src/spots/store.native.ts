@@ -1,7 +1,7 @@
 /**
  * Spots on a phone: ONE FILE, and not the bundle's.
  *
- * `pins.ts` states the rule this exists to obey — the regulation bundle is replaced
+ * `model.ts` states the rule this exists to obey — the regulation bundle is replaced
  * wholesale on every update (staging, verify, atomic swap), and anything stored inside it
  * is destroyed by an update. A person's notes and photographs are the one thing in this
  * app that cannot be re-downloaded, so they get a file of their own that no update touches.

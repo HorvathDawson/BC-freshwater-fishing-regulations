@@ -10,27 +10,17 @@
  * style spec can express belongs in the style, not here.
  */
 export { Map } from "./Map";
-export type { MapProps, Camera, MapChrome, MapMark, MapSpots } from "./map-props";
-export { coloursEachTile, standingInput, type LakeFeed, type ProfileStatus, type StandingFeed } from "./colouring";
+export type { MapProps, Camera, MapSpots } from "./map-props";
+export { coloursEachTile, standingInput } from "./colouring";
 export { imageryTiles, type TileEndpoints } from "./endpoints";
-export { runtimeStyle } from "./runtime-style";
-export { baseAdapter, type MapAdapter, type MapHandle } from "./adapters/contract";
-export type { SelectionCue } from "./paint";
 /** The catalogue a Layers menu is built from. Groups and views come from the generated
  *  style, never from a hand-written list in a component — that is how the two apps end up
  *  offering different layers. */
-export { toggleableGroups, views, hiddenLayers, shownLayers, STYLE_META, FIELD_HANDOVER_Z, resolveTheme, themeNames,
-         waterStatusColour, tempBandColour,
-         type LayerGroup, type MapView, type Tokens } from "./style";
-export { pillImage, type PillImage } from "./pill";
+export { hiddenLayers, shownLayers, STYLE_META, FIELD_HANDOVER_Z, waterStatusColour, tempBandColour } from "./style";
 /** The one palette, read: a token's colour, its alpha, and MapLibre's controls from it. */
-export { colour, amount, translucent, mapChrome } from "./chrome";
-/** G1: the one gesture policy as each renderer's switches (`web/useMapInstance.ts`; `Map.native.tsx` since N2). */
-export { maplibreGestures, nativeMapGestures, touchRotation,
-         type MaplibreGestureOptions, type NativeMapGestureProps } from "./gestures";
+export { colour, translucent } from "./chrome";
 /** The route overlay (owner 2026-10-21): routes copied out of the tiles, pins, and their words' slots. */
-export { type TracePin, type TraceProp } from "./trace-overlay";
-export { pressSpot, spotsKey, SPOT_EASE_MS } from "./spots";
-export { traceOverlay, type TraceRoute } from "./trace-geometry";
+export { type TraceProp } from "./trace-overlay";
+export { pressSpot } from "./spots";
 /** T124: the per-section source-layers, spelled once, and the pushed data's "every section" key the map fans out. */
-export { perSectionLayers, SECTION_DATA, spreadSections, type PerSectionLayer } from "./sections";
+export { perSectionLayers, spreadSections } from "./sections";

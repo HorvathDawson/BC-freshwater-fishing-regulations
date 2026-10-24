@@ -7,7 +7,12 @@
  * sit under the wrong conditions forever.
  *
  * It is also the only user-authored data in the app, and the only thing that cannot be
- * re-downloaded. `pins.ts` says why it lives in its own store.
+ * re-downloaded. THE RULE THAT MATTERS MOST: spots live in a SEPARATE store from the release. The release is
+ * replaced wholesale on every update (staging -> verify -> atomic swap), and anything stored inside it is destroyed
+ * by an update; a person's notes and photographs must never share a file with data that gets swapped out. No
+ * cross-device sync (decided) — but "no sync" is not "no backup": losing a phone must not silently lose years of
+ * notes, so export/import is a requirement, not a nicety. A spot binds to `item_id` (durable across a rebuild,
+ * 99.88%), never a `section_id` (94%).
  */
 import type { FrozenTrace, ShownQuantity } from "@app/core";
 import type { PanelAnswer } from "../panel";

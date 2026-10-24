@@ -21,7 +21,7 @@ export { FaceBar, ViewTabs, type Face } from "./Faces";
 export { WaterFrame, WaterInset, WaterTitle } from "./WaterFrame";
 export { SpotScreen } from "./SpotScreen";
 export { TabBar, TABS, TAB_BAR, type TabKey } from "./TabBar";
-export { Pill, LegendStrip, LegendCount, LegendRamp } from "./Chrome";
+export { LegendStrip, LegendCount, LegendRamp } from "./Chrome";
 export { Sheet, Choice } from "./Sheet";
 export { EdgeBack } from "./EdgeBack";
 export { ViewSwipe, WaterViewsContext, type WaterViews } from "./ViewSwipe";

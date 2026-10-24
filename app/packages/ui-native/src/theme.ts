@@ -303,18 +303,6 @@ export const THEMES = { light: LIGHT, dark: DARK, cvd: CVD } as const;
 export type ThemeName = keyof typeof THEMES;
 
 /**
- * The flow ramp, low-for-the-date to high, read from the map style.
- *
- * ONE DEFINITION. The legend used to carry its own seven hex values while the map's
- * `standing` mode resolved to three shades of one blue: the legend promised red through
- * cyan and the map drew a wash of blue. A legend that disagrees with its map is worse than
- * no legend, because it teaches the reader a scale that is not there.
- */
-export function flowRamp(theme: string): readonly string[] {
-  return [1, 2, 3, 4, 5, 6, 7].map((i) => colour(theme, `color.flow.f${i}`));
-}
-
-/**
  * (refinement pass) THE RAMP AS THE MAP INTERPOLATES IT: each colour at the percentile its stop names (0, 10, 25, 50, 75,
  * 90, 100 — `colorModes.stream.standing.stops` in the style metadata, which the map's own expression reads), as 0–1.
  * The legend drew the seven colours as seven EQUAL blocks, so a gauge mark at the 20th percentile stood on f2's block

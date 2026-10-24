@@ -16,7 +16,7 @@
 import { ruleBookLine } from "./book";
 import type { GroupTotal, TreeKind, TreeTier } from "../answers.generated";
 /** The store's group shapes the Keep presenters read (`rows_row.group`), for their callers and tests. */
-export type { GroupTotal, Presence, TreeKind, TreeTier } from "../answers.generated";
+export type { GroupTotal, TreeKind, TreeTier } from "../answers.generated";
 import type { CardModel, HydRow } from "./card";
 import { mainRes } from "./card";
 import type { RegsInputs, RuleView } from "./inputs";

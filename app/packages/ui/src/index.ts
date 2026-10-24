@@ -28,8 +28,6 @@ export * from "./route";
 export * from "./openWater";
 export * from "./mapModes";
 export * from "./conditionsColour";
-export { pushedRoute, routeLabels, routeValues, type RouteColourVM, type RouteLabels,
-         type RouteValues } from "./routeColour";
 export * from "./lakeColour";
 export * from "./release";
 export * from "./boot";
@@ -41,8 +39,6 @@ export * from "./imagery";
 export * from "./sync";
 
 export * from "./layout";
-export { gaugeGeoJSON, gaugeLabel, type GaugePoint, type GaugeQuantity }
-  from "./gaugePoints";
 export * from "./gestures";
 export * from "./leave";
 export * from "./menu";

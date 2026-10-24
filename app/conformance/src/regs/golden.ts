@@ -26,8 +26,8 @@ import { golden, oracleRixOver, tapsOnce } from "./oracles";
 import { subcapRuled } from "./subcapTotal";
 import { t100Ruled } from "./t100MapPage";
 
-export { golden, hydrate, HYDRATE, oracleRixOver, REPO, taps, TAPS } from "./oracles";
-export type { Block, Cell, GoldenFile, GoldenSheet, GoldenState, LeapTap, Tap, TapsFile, TapsMeta } from "@app/core/regs/testing";
+export { golden, REPO, taps } from "./oracles";
+export type { Block, GoldenState, Tap, TapsFile } from "@app/core/regs/testing";
 
 /** Is the release at `dir` (its water file's `answers_sha256`, `got`) the build the oracles were cut from (`want`, taps.json
  *  `meta.store.answers_sha256`)? null when it is; else why not. taps.py reads the release's own regs store (P20: no

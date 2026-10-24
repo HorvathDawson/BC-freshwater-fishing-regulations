@@ -1,0 +1,52 @@
+// THE UNUSED-CODE GUARD (N23, T63): `pnpm knip`, run by `pnpm check`. Dead code regrew unnoticed between audits; this
+// fails on an unused file, dependency or export instead. Every allowance below says why — add one only with a reason,
+// never to make the gate pass. Delete dead code (git keeps it); allow-list only what is kept on purpose.
+{
+  "$schema": "https://unpkg.com/knip@6/schema-jsonc.json",
+  // A value exported AND used in its own file is not dead code; the guard is for code nothing reaches.
+  "ignoreExportsUsedInFile": true,
+  // The packages are internal: a package's barrel export nothing imports is dead too, so entry files are checked.
+  "includeEntryExports": true,
+  "workspaces": {
+    ".": {
+      // tools/: the `pnpm check` gates (node scripts) and the tools test suites vitest runs.
+      "entry": ["tools/*.mjs", "tools/**/*.test.ts"],
+      "project": ["tools/**/*.{ts,mjs}"],
+      // The tools suites render the real packages (react-native-web, the style spec, the basemap) through the
+      // workspace packages' own dependencies; the root package does not re-declare them.
+      "ignoreDependencies": ["react-native", "react-native-gesture-handler", "@maplibre/maplibre-gl-style-spec",
+                             "maplibre-gl", "@protomaps/basemaps"]
+    },
+    "packages/core": { "project": ["src/**/*.ts"] },
+    "packages/ui": { "project": ["src/**/*.{ts,tsx}"] },
+    // Metro / react-native-web pick `x.native.ts` / `x.web.ts` for an import of `./x` by platform; knip resolves only
+    // the plain name, so every platform variant is an entry of the packages that have them.
+    "packages/data": { "entry": ["src/**/*.{native,web}.{ts,tsx}"], "project": ["src/**/*.{ts,tsx}"] },
+    "packages/map": { "entry": ["src/**/*.{native,web}.{ts,tsx}"], "project": ["src/**/*.{ts,tsx}"] },
+    "packages/ui-native": { "entry": ["src/**/*.{native,web}.{ts,tsx}"], "project": ["src/**/*.{ts,tsx}"] },
+    "conformance": { "project": ["src/**/*.ts"] },
+    "apps/mobile": {
+      "project": ["src/**/*.{ts,tsx}", "*.js"],
+      // expo-updates is named by app.json's plugin list (a native build input), not imported.
+      "ignoreDependencies": ["expo-updates"]
+    }
+  },
+  "ignoreIssues": {
+    // A platform variant's exports are reached through the plain name (`./open` -> open.native.ts / open.web.ts, typed
+    // by open.d.ts), which knip does not follow; the variants and their .d.ts are checked by tsc against each other.
+    "packages/*/src/**/*.{native,web}.{ts,tsx}": ["exports", "types"],
+    "packages/*/src/**/*.d.ts": ["exports", "types"],
+    // The platform half is imported whole (`import * as platform`) and handed to boot, which knip cannot follow.
+    "packages/data/src/release/drivers/platform.ts": ["exports", "types"],
+    // GENERATED from Python (pipeline.tools.emit.*, pipeline.deliver.answers.model): the whole vocabulary ships, so a
+    // type or constant the app has not reached yet is still part of the contract, and `--check` pins the file whole.
+    "packages/core/src/*.generated.ts": ["exports", "types"],
+    "packages/data/src/*.generated.ts": ["exports", "types"],
+    // PREPARED, NOT FED (owner 2026-10-22): the stocking / charts / releases queries wait for their data
+    // (pipeline/stocking/README.md, pipeline/bathymetry); kept on purpose, not dead.
+    "packages/data/src/sql/queries.ts": ["exports"],
+    // FIT_MAX_ZOOM = ATLAS_MAX_ZOOM is a second NAME on purpose: "the closest a fit goes" and "the atlas's deepest
+    // zoom" are two questions that happen to share an answer today (ladder.test.ts pins both).
+    "packages/core/src/ladder.ts": ["duplicates"]
+  }
+}

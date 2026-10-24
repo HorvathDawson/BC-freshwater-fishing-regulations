@@ -187,7 +187,6 @@ export const layerIds = (): string[] => MAP_STYLE.layers.map((l) => l.id);
 export const FIELD_HANDOVER_Z: number = STYLE_META.field?.handover ?? 0;
 
 export const toggleableGroups = (): LayerGroup[] => STYLE_META.groups.filter((g) => g.toggleable);
-export const views = (): MapView[] => STYLE_META.views;
 
 /**
  * Layers a view does not draw. The LIST lives in the style; the TRIGGER is the app's.

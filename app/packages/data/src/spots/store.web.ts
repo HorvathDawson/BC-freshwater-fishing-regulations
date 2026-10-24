@@ -5,7 +5,7 @@
  * Browser storage is per-origin, per-device, and a person clearing site data clears their
  * notes with it. That is acceptable while the web app is something you open to look at a
  * map, and it is not acceptable once anyone keeps a season's notes in it — at which point
- * this becomes IndexedDB plus the export/import that `pins.ts` calls a requirement.
+ * this becomes IndexedDB plus the export/import that `model.ts` calls a requirement.
  *
  * The phone writes a real file (`store.native.ts`). Nothing above this line can tell.
  */

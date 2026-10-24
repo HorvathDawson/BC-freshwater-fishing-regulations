@@ -21,7 +21,7 @@
 
 import { MIN_RECORD_YEARS, MIN_TOTAL_WEIGHT, type RecordQuantity } from "./gauge-policy.generated";
 
-export { MIN_RECORD_YEARS, RECORD_QUANTITIES, type RecordQuantity } from "./gauge-policy.generated";
+export { MIN_RECORD_YEARS, type RecordQuantity } from "./gauge-policy.generated";
 
 /**
  * A station's record, in years, PER QUANTITY (T110): `{ discharge, level }`, 0 where it has none — the bundle's
@@ -152,7 +152,6 @@ export function interval(e: Estimate): readonly [number, number] {
   const half = Math.max(e.plusMinus, e.spread / 2);
   return [Math.max(0, mid - half), Math.min(100, mid + half)];
 }
-
 
 /* ------------------------------------------------------------------ combining ---- */
 
@@ -489,7 +488,6 @@ function combineVotes(votes: readonly Vote[]): Answer {
     return { ok: false, why: "too-uncertain" };
   return { ok: true, value };
 }
-
 
 /* ------------------------------------------------------------------- the basin field --- */
 
