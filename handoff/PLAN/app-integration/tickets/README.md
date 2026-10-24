@@ -210,6 +210,7 @@ use that as the sole source of future work."
 | T163 | McKinley Creek r1x: catch-and-release only downstream of McKinley Lake (catalogue extent) | OPEN | — | catalogue + reach rerun |
 | T164 | salmon (DFO): finish the dossier, place the 96+7 splits, review the extents, fetch + place current quotas | OPEN | — | umbrella over T95/T132; ★ owner confirms proposed splits |
 | T165 | no public access takes the warning amber; "has its own regulations" gets a new colour | OPEN | — | app style |
+| T166 | tidal areas cut: DFO tidal polygon → one clean cut across each stream (fix partial-channel blobs) | OPEN | — | after cleanup; atlas rebuild; ★ confirm cuts |
 
 ## Order for open tickets
 
