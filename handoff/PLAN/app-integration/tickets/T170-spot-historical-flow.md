@@ -125,7 +125,9 @@ licence check in the work list is settled; endpoint and CORS still to verify.
 3. A same-day spot whose gauge was silent at capture now offers "Get the flow for that day" (filled the next day from
    the feed's daily mean). OK? Default: yes.
 
-## Owner answer (2026-10-24, Q161)
-Keep the backdated spot's saved gauge panel, labelled — and say plainly what it is (the owner asked what "today's
-estimate" meant): "Gauges as read when you saved this spot (Oct 24), not on the visit day (Oct 21)." Follow-up wording
-change in core spots words; pin the whole string.
+## Owner answer (2026-10-24, Q161 → superseded the same day)
+First: keep the backdated spot's panel, labelled. Then the owner: "it should save the date that you set as the time of
+trip in the add a spot" — so CAPTURE records conditions for the TRIP date/time, not the save time: today's trip → the live
+reading; an earlier day → the reading and the panel members' values from that day's history (the one history read,
+`flowOnDay`; offline → pending, filled on refresh). The "read when this spot was saved" label goes away; existing
+backdated spots holding save-time readings are refilled for their trip day. Built in the T177 lane (sent 2026-10-24).
