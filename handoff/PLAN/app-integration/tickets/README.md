@@ -215,6 +215,7 @@ use that as the sole source of future work."
 | T168 | "N gauges in view": split gauges on this water from donor gauges | OPEN | — | app |
 | T169 | one gauge panel for one side-channel water (Nicomen grey middle: connector vs adopted lines) | OPEN | — | deliver; Q84 default (a) |
 | T170 | a spot gets the flow of its own day (historical) on refresh or on request | OPEN | — | app (+ feed/release history) |
+| T171 | "Like your visit?": every forecast day uses the flow forecast (no weather-only gaps) | OPEN | — | feed + app |
 
 ## Order for open tickets
 
