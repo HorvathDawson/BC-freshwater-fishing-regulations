@@ -62,6 +62,8 @@ class FakeGl {
   getCanvas() { return { style: { width: "400px", height: "800px" } }; }
   resize() {}
   getCenter() { return { lng: -122, lat: 49 }; }
+  /** the style and every tile in (T175's water copy asks a settled map at once) */
+  loaded() { return true; }
   getZoom() { return 11; }
   getBounds() { return { getWest: () => -123, getSouth: () => 48, getEast: () => -121, getNorth: () => 50 }; }
   querySourceFeatures() { log.push("querySourceFeatures"); return []; }

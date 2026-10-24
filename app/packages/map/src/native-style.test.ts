@@ -78,9 +78,11 @@ describe("the native style", () => {
     const s = nativeStyle({ ...base, view: "conditions", modes: { stream: "standing", lake: "standing",
                                                                  basin: "standing" } }).style as unknown as S;
     const reading = s.layers.filter((l) => JSON.stringify([l.paint, l.layout]).includes('"feature-state"'))
-      .map((l) => (l as { "source-layer"?: string })["source-layer"]);
+      .map((l) => (l as { "source-layer"?: string; source?: string })["source-layer"]
+                  ?? (l as { source?: string }).source);
     expect(reading.length).toBeGreaterThan(0);
-    expect([...new Set(reading)].sort()).toEqual(["lake", "stream", "wetland"]);
+    // (T175) and the water copy: a GeoJSON source whose features carry the section ids themselves
+    expect([...new Set(reading)].sort()).toEqual(["lake", "stream", "water-copy", "wetland"]);
   });
 
   it("the basin field's values are written into the style, keyed by basin_id (validated: tools/style-valid)", () => {

@@ -19,6 +19,8 @@ import { maplibreGestures, nativeMapGestures } from "./gestures";
 
 /** Every SDK call that matters to the contract, in order, as one string each. */
 const log: string[] = [];
+/** The log without the water copy's mirrored writes (T175): the atlas's own commands. */
+const atlasLog = () => log.filter((x) => !x.includes("water-copy"));
 const fmt = (id: unknown) => `${typeof id}:${String(id)}`;
 /** What a query answers: by the layers it asked for, and whether the asker is the phone (string ids) or the web. */
 let answer: (layers: readonly string[], phone: boolean) => { id?: unknown }[] = () => [];
@@ -59,6 +61,8 @@ class FakeGl {
   project(l: { lng: number; lat: number }) { return { x: Math.round((l.lng + 122.2) * 1000), y: 400 }; }
   /** Its inverse, and a degree of latitude north of 49 is 1000 px up from y 400. */
   unproject([x, y]: [number, number]) { return { lng: x / 1000 - 122.2, lat: 49 + (400 - y) / 1000 }; }
+  /** the style and every tile in (T175's water copy asks a settled map at once) */
+  loaded() { return true; }
   getZoom() { return 9; }
   getBounds() { return { getWest: () => -123, getSouth: () => 48, getEast: () => -121, getNorth: () => 50 }; }
   querySourceFeatures() { return []; }
@@ -227,23 +231,24 @@ describe.each(Object.entries(PLATFORMS))("the map adapter contract: %s", (_name,
   it("pushed colours and the selection go to feature-state by the section's NUMBER id, on its source-layer", async () => {
     const r = render(<P.Map {...base({ data: P.data })} />);
     // on mount the pushed data and the selection are independent effects: which lands first is the renderer's business
-    await waitFor(() => expect([...log].sort()).toEqual([...P.pushed, ...selected(311274, true)].sort()));
+    // (the water copy's own writes — T175, `water-copy.render.test.tsx` — are not the atlas's contract)
+    await waitFor(() => expect(atlasLog().sort()).toEqual([...P.pushed, ...selected(311274, true)].sort()));
     log.length = 0;
     r.rerender(<P.Map {...base({ data: P.data, highlight: [1566515] })} />);
     // the old selection's `selected` key cleared (only that key, per feature: the status colours stay), then the new
     // one set
-    await waitFor(() => expect(log).toEqual([...selected(311274, false), ...selected(1566515, true)]));
+    await waitFor(() => expect(atlasLog()).toEqual([...selected(311274, false), ...selected(1566515, true)]));
   });
 
   it("P15: the rest of the water is `water`, set and cleared with the selection", async () => {
     const water = (id: number, on: boolean) => ["wetland", "lake", "stream"]
       .map((sl) => (on ? `set atlas/${sl} number:${id} {"water":true}` : `remove atlas/${sl} number:${id} water`));
     const r = render(<P.Map {...base({ data: undefined, water: [1235781] })} />);
-    await waitFor(() => expect([...log].sort()).toEqual([...selected(311274, true), ...water(1235781, true)].sort()));
+    await waitFor(() => expect(atlasLog().sort()).toEqual([...selected(311274, true), ...water(1235781, true)].sort()));
     log.length = 0;
     r.rerender(<P.Map {...base({ data: undefined, highlight: [1235781], water: [311274] })} />);
     // every key of the last highlight cleared, per feature (a key a feature does not hold is not sent), then the new
-    await waitFor(() => expect([...log].sort()).toEqual([
+    await waitFor(() => expect(atlasLog().sort()).toEqual([
       ...selected(311274, false), ...water(1235781, false), ...selected(1235781, true), ...water(311274, true)].sort()));
   });
 

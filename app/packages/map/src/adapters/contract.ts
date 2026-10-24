@@ -9,6 +9,7 @@
 import type { Bbox, SectionKey } from "@app/core";
 import { pinCollection, TRACE_PINS_SOURCE, TRACE_SOURCE, type TracePin } from "../trace-overlay";
 import type { TraceCollection } from "../trace-geometry";
+import { COPY_CASING, COPY_FILL, COPY_LINE, type LitFeature } from "../water-copy";
 import { BASEMAP_LABELS, OWN_LABELS, basemapLabelPaint, ownLabelOnImagery } from "../labels";
 import {
   MAP_STYLE, NO_VALUES, STYLE_META, colorExpression, followerMode, followersOf, isRuntimeLayer,
@@ -64,6 +65,23 @@ export function casingPaint(streamWidth: unknown, tokens: Tokens): Record<string
 /** A selected lake's or wetland's ring. */
 export function ringPaint(tokens: Tokens): Record<string, unknown> {
   return { "line-color": tokens["color.highlight"], "line-width": RING_PX, "line-opacity": OUTLINE_SHOWN };
+}
+
+/**
+ * (T175) THE WATER COPY'S LINE (`water-copy.ts`): the stream's own paint for its mode — colour, width, opacity, every
+ * feature-state it reads — with the width floored at the highlight's (`width.stream.highlight`): the copy is drawn as a
+ * highlight, at zooms where the water's own width is a hairline. Inside the zoom curve, as every floor here is.
+ */
+export function copyLinePaint(stream: Record<string, unknown>, tokens: Tokens): Record<string, unknown> {
+  const floor = Number(tokens["width.stream.highlight"]);
+  const w = stream["line-width"];
+  return { ...stream, ...(w !== undefined && Number.isFinite(floor)
+    ? { "line-width": withinZoomCurve(w, (v) => ["max", v, floor]) } : {}) };
+}
+
+/** (T175) A copied lake's fill: the lake's own paint, its fill properties only (a lake's paint is a fill's). */
+export function copyFillPaint(lake: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(Object.entries(lake).filter(([k]) => k.startsWith("fill-") && k !== "fill-pattern"));
 }
 
 /** The dash's opacity for the stream layer in `mode`: 1 where the stream's standing is the -1 sentinel, else 0. */
@@ -159,6 +177,11 @@ export interface MapRenderer {
   visible(): Promise<number[]>;
   /** The box of the given sections' features the tiles have delivered (a searched water's own shape), or null. */
   waterBox(ids: readonly number[]): Promise<Bbox | null>;
+  /**
+   * THE SAME PICK, WITH ITS SHAPES (T175): every piece of the given sections the tiles have delivered, per
+   * source-layer (`WATER_SOURCE_LAYERS`), the id a number. `waterBox` is its extent; the water copy keeps its lines.
+   */
+  litFeatures(ids: readonly number[]): Promise<LitFeature[]>;
   /** The camera's box, `[w, s, e, n]`. */
   bounds(): Promise<Bbox>;
 }
@@ -531,7 +554,13 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
         h.setPaint(SELECTION_CASING, prop, value);
       for (const ring of Object.values(SELECTION_RINGS))
         for (const [prop, value] of Object.entries(ringPaint(tokens))) h.setPaint(ring, prop, value);
+      // (T175) THE WATER COPY'S LINE takes the stream's own paint in the same call — the one colouring pathway
+      const copy = copyLinePaint(out, tokens);
+      for (const [prop, value] of Object.entries(copy)) h.setPaint(COPY_LINE, prop, value);
+      for (const [prop, value] of Object.entries(casingPaint(copy["line-width"], tokens))) h.setPaint(COPY_CASING, prop, value);
     }
+    // (T175) and a copied lake the lake's
+    if (layerId === "lake") for (const [prop, value] of Object.entries(copyFillPaint(out))) h.setPaint(COPY_FILL, prop, value);
   };
   /** Is the field drawn now — its layer in a mode it draws in? */
   const fieldOn = () => STYLE_META.field != null && fieldDrawnIn(modeOf[STYLE_META.field.layer]);

@@ -22,7 +22,8 @@ const HORIZON_HIT = hitProps({ w: 46, h: 33 });
 export function MapScreen({ at, palette, theme, view, modes, groups, hide, show, camera,
                             onLayers, layersChanged = 0, onLongPress, onPressFeature, onMoved, onMapPoint, horizons,
                             highlight, marker, pins, data, status, standing, lakes, gauges, onVisible, onError,
-                            fit, basemap, onImageryError, water, selection, marks, onPressMark, spots, insetTop = 0 }: {
+                            fit, basemap, onImageryError, water, waterLine, selection, marks, onPressMark, spots,
+                            insetTop = 0 }: {
   at: TileEndpoints; palette: Palette; theme: string; view: string;
   groups?: Record<string, boolean>;
   /** Layers this view does not draw — see `hiddenLayers`. Not a user toggle. */
@@ -41,6 +42,8 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
   water?: MapProps["water"];
   /** (T151) How `highlight` is marked — see MapProps.selection. */
   selection?: MapProps["selection"];
+  /** (T175) The water's own line at every zoom — see MapProps.waterLine. */
+  waterLine?: MapProps["waterLine"];
   /** A water's boundary marks (P15) — see MapProps.marks. */
   marks?: MapProps["marks"];
   onPressMark?: MapProps["onPressMark"];
@@ -90,7 +93,7 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
       <Map at={at} theme={theme} view={view} modes={modes} groups={groups} hide={hide} show={show}
            initial={camera}
            onPressFeature={onPressFeature} onMoved={onMoved} onMapPoint={onMapPoint} onLongPress={onLongPress}
-           highlight={highlight} pins={pins} spots={spots} insetTop={insetTop} water={water} selection={selection} marks={marks} onPressMark={onPressMark} marker={marker} data={data} status={status} standing={standing} lakes={lakes}
+           highlight={highlight} pins={pins} spots={spots} insetTop={insetTop} water={water} waterLine={waterLine} selection={selection} marks={marks} onPressMark={onPressMark} marker={marker} data={data} status={status} standing={standing} lakes={lakes}
            gauges={gauges}
            onVisible={onVisible} onError={onError} fit={fit} basemap={basemap} onImageryError={onImageryError} />
 

@@ -94,6 +94,24 @@ export function horizonChipLabel(d: Horizon, on: boolean): string {
   return HORIZON_LABELS[d].accessible + (on ? ", showing" : "");
 }
 
+/**
+ * (T176) WHAT THE CONDITIONS MAP'S LEGEND COUNTS — said as what it is. Its histogram is of the REACHES on screen that
+ * carry a standing (`useConditionsColour`'s `marks`: one per visible section with a value, the sentinels left out), not
+ * of gauges: on Nicomen Slough it read "13 gauges in view" over 13 coloured reaches (T168 review, 2026-10-24). The map
+ * holds no station count for what is in view (its dots are a GeoJSON layer it never reports on), and the browse map has
+ * no "this water" to split the stations by (T168's `gaugeSide` is relative to a section), so the count is relabelled
+ * to what it counts rather than counting something else. Nothing (zero, or a count not yet known) says nothing.
+ */
+export function legendCount(n: number | null | undefined): string | null {
+  if (n === null || n === undefined || !Number.isFinite(n) || n <= 0) return null;
+  return `${n} ${n === 1 ? "reach" : "reaches"} coloured`;
+}
+
+/** (T176) One histogram tick's screen-reader name: how many coloured reaches stand there, and where on the scale. */
+export function legendTickLabel(count: number, where: string): string {
+  return `${count} ${count === 1 ? "reach" : "reaches"} ${where}`;
+}
+
 /* ------------------------------------------------------------------ the words ---- */
 
 /** Fixed words on the conditions surfaces, in one table rather than spelled in JSX. */

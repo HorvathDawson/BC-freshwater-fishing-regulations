@@ -44,6 +44,8 @@ import { Colouring, LABEL_SOURCE_LAYERS, standingInput, statusInput, stockedInpu
          type TileRenderer,
          type Channel, type ChannelInput, type TileSections } from "./colouring";
 import { sourceTiles, tileIds } from "./tile-ids.web";
+import { COPY_CASING, COPY_FILL, COPY_LINE, COPY_SOURCE, EMPTY_COPY, WaterCopy, copyIds, probeZoom, zoomAround,
+         type CopyTarget } from "./water-copy";
 
 /** An empty source, so the gauge layers exist before the first feed tick arrives. */
 const EMPTY_FC = '{"type":"FeatureCollection","features":[]}';
@@ -159,9 +161,25 @@ const forcePublic = () => typeof __DEV__ !== "undefined" && __DEV__
  * the map (a section's label is set once per index, so the renderer's de-dupe has nothing to add); the release swap's
  * clear goes THROUGH the renderer, so its sink forgets what it held there and the highlight put back is really sent.
  */
-const atlasTarget = (m: maplibregl.Map, r: WebRenderer): LabelTarget => ({
-  setState: (sourceLayer, id, s) => m.setFeatureState({ source: "atlas", sourceLayer, id }, s),
-  clearAll: (sourceLayer) => r.clearSourceLayer("atlas", sourceLayer),
+const atlasTarget = (m: maplibregl.Map, r: WebRenderer, copy: WaterCopy, to: CopyTarget): LabelTarget => ({
+  setState: (sourceLayer, id, s) => {
+    m.setFeatureState({ source: "atlas", sourceLayer, id }, s);
+    // (T175) a label for one of the water copy's sections is the copy's label too — the one pathway
+    const fresh = copy.fresh(id, s);
+    if (fresh) to.set(id, fresh);
+  },
+  clearAll: (sourceLayer) => {
+    r.clearSourceLayer("atlas", sourceLayer);
+    // and a clear of its layer clears the copy's (what the engine then puts back, the mirror puts back there too)
+    for (const id of copy.ids)
+      if ((copy.layerOf(id) ?? sourceLayer) === sourceLayer && copy.drop(id)) to.remove(id);
+  },
+});
+
+/** (T175) The water copy's feature-state, on its own source — while the source exists (a style always declares it). */
+const copyTarget = (m: maplibregl.Map): CopyTarget => ({
+  set: (id, s) => { if (m.getSource(COPY_SOURCE)) m.setFeatureState({ source: COPY_SOURCE, id }, s); },
+  remove: (id, key) => { if (m.getSource(COPY_SOURCE)) m.removeFeatureState({ source: COPY_SOURCE, id }, key); },
 });
 
 /**
@@ -219,10 +237,22 @@ function whenAtlas(m: maplibregl.Map, fn: () => void): () => void {
   m.on("styledata", h);
   return () => { m.off("styledata", h); };
 }
+/** (T175) Run `fn` once the water copy's source exists — as `whenTraced`, for the same reason. */
+function whenCopy(m: maplibregl.Map, fn: () => void): () => void {
+  if (m.getSource(COPY_SOURCE)) { fn(); return () => {}; }
+  const h = () => {
+    if (!m.getSource(COPY_SOURCE)) return;
+    m.off("styledata", h);
+    fn();
+  };
+  m.on("styledata", h);
+  return () => { m.off("styledata", h); };
+}
 
 export function Map({ at, theme, view, modes, groups, hide, show, initial, data, onPressFeature,
                      chrome,
-                      onError, onMoved, onMapPoint, onLongPress, highlight, water, selection = "outline", marker, style,
+                      onError, onMoved, onMapPoint, onLongPress, highlight, water, waterLine, selection = "outline", marker,
+                      style,
                       gauges, onVisible, pins, bare, fit, basemap, trace, onImageryError,
                       zoomControls, status, standing, lakes, marks, onPressMark, spots, insetTop = 0 }: MapProps) {
   // read by the map's one `error` handler, which is bound once at construction
@@ -236,6 +266,8 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
    */
   const renderer = useRef<WebRenderer | null>(null);
   const adapter = useRef(baseAdapter("web"));
+  /** (T175) The lines of the water this map lights or holds, kept from the tiles — see `water-copy.ts`. */
+  const copy = useRef(new WaterCopy());
   /** The profile colouring of this map (colour-latency AP) — made with the map, fed by its tiles' load events. */
   const colouring = useRef<Colouring | null>(null);
   const pin = useRef<maplibregl.Marker | null>(null);
@@ -390,7 +422,8 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     m.on("load", addPill);
     m.once("load", () => styledOnce.add(m));
     map.current = m;
-    const r0 = webRenderer(m as never, FIT_MAX_ZOOM);
+    const toCopy = copyTarget(m);
+    const r0 = webRenderer(m as never, FIT_MAX_ZOOM, { copy: () => copy.current, target: () => toCopy });
     renderer.current = r0;
     /*
      * EACH TILE COLOURED IN ITS OWN LOAD EVENT (colour-latency AP).
@@ -406,7 +439,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
      */
     const c = new Colouring(adapter.current);
     colouring.current = c;
-    const target = atlasTarget(m, r0);
+    const target = atlasTarget(m, r0, copy.current, toCopy);
     let scanQueued = false;
     const scan = (kind: string) => {
       scanQueued = false;
@@ -776,7 +809,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     if (!m || !c || !r) return;
     return whenAtlas(m, () => {
       const t0 = performance.now(), c0 = c.calls;
-      c.set(layerHandle(m, r), atlasTarget(m, r), tileRenderer(m, r), channel, input, latestTheme.current);
+      c.set(layerHandle(m, r), atlasTarget(m, r, copy.current, copyTarget(m)), tileRenderer(m, r), channel, input, latestTheme.current);
       devCost({ t: t0, ms: performance.now() - t0, calls: c.calls - c0, kind });
     });
   };
@@ -941,6 +974,94 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     }
     return () => { alive = false; pending(); };
   }, [trace?.key, at.atlas]);
+
+  /**
+   * (T175) THE WATER'S OWN LINE, KEPT — see `water-copy.ts`. Keyed on the water (its ids, and the archive: an id means a
+   * section only within one atlas). Each time the camera settles, the map's own pick (`litFeatures`, the one a fit
+   * measures with) is asked for the water's sections in the tiles it holds; what a zoom has the first time is kept,
+   * given the state its atlas features hold now, and drawn below the zoom the atlas draws it from (the ceiling). With
+   * `waterLine`, while no zoom has shown the water, the camera steps in about a point on it (`probeZoom`), never
+   * against the reader's own pan. A new water drops the copy and its states at once.
+   */
+  const keep = useMemo(() => copyIds(highlight, water, waterLine?.sections),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed on the ids' text
+    [(highlight ?? []).join(","), (water ?? []).join(","), (waterLine?.sections ?? []).join(",")]);
+  const keepKey = keep.join(",");
+  const lineAt = useRef(waterLine?.at ?? null);
+  lineAt.current = waterLine?.at ?? null;
+  const clamps = waterLine != null;
+  const lineIds = useRef<ReadonlySet<number>>(new Set());
+  lineIds.current = useMemo(() => new Set(copyIds(waterLine?.sections)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed on the ids' text
+    [(waterLine?.sections ?? []).join(",")]);
+  useEffect(() => {
+    const m = map.current, r = renderer.current;
+    if (!m || !r) return;
+    const c = copy.current;
+    const to = copyTarget(m);
+    // only a copy that held a water has anything to drop (a map that lights nothing never touches the copy source)
+    const had = c.ids.size > 0;
+    const changed = c.reset(keep, at.atlas) && had;
+    let alive = true, touched = false, busy = false, rounds = 0, lastAt = "";
+    const source = () => m.getSource(COPY_SOURCE) as { setData?: (d: unknown) => void } | undefined;
+    // THE CEILING: the copy stops where the atlas draws the water itself — the deepest kept zoom, or the layer's own
+    // floor in this view (the Conditions field stands the rivers down), whichever is deeper
+    const ceilings = () => {
+      const floorOf = (id: string) => (m.getLayer(id) as { minzoom?: number } | undefined)?.minzoom ?? 0;
+      const line = c.ceiling("stream", floorOf("stream")), fill = c.ceiling("lake", floorOf("lake"));
+      if (line !== null) for (const id of [COPY_CASING, COPY_LINE]) if (m.getLayer(id)) m.setLayerZoomRange(id, 0, line);
+      if (fill !== null && m.getLayer(COPY_FILL)) m.setLayerZoomRange(COPY_FILL, 0, fill);
+    };
+    const draw = () => whenCopy(m, () => { source()?.setData?.(c.collection()); ceilings(); });
+    let pending = changed
+      ? whenCopy(m, () => {
+          if (m.getSource(COPY_SOURCE)) m.removeFeatureState({ source: COPY_SOURCE });
+          source()?.setData?.(EMPTY_COPY);
+        })
+      : c.size ? draw() : () => {};
+    const onStart = (e: { originalEvent?: unknown }) => { if (e.originalEvent) touched = true; };
+    const settle = async () => {
+      if (!alive || busy || !c.ids.size || !m.getSource("atlas")) return;
+      const z = m.getZoom(), ctr = m.getCenter();
+      const here = `${z.toFixed(3)}:${ctr.lng.toFixed(5)},${ctr.lat.toFixed(5)}`;
+      // NOTHING MOVED, NOTHING NEW: `idle` comes again after our own state lands, over the same tiles
+      if (here === lastAt) return;
+      lastAt = here;
+      busy = true;
+      try {
+        const found = await r.litFeatures([...c.ids]);
+        if (!alive) return;
+        const fresh = c.take(found, z);
+        if (fresh.length) {
+          // what the atlas features hold now (the engine labelled them as their tiles arrived) goes on the copy first
+          for (const id of fresh) {
+            const st = c.fresh(id, m.getFeatureState({ source: "atlas", sourceLayer: c.layerOf(id)!, id }) ?? {});
+            if (st) to.set(id, st);
+          }
+          pending(); pending = draw();
+        } else if (c.size) ceilings();
+        // THE WATER decides, not what else is lit: a route's chain down a big river is in the tiles long before its creek
+        const line = lineIds.current;
+        const next = clamps
+          ? probeZoom({ zoom: z, found: found.some((f) => line.has(f.id)), kept: c.keptOf(line), rounds, touched })
+          : null;
+        if (next !== null) {
+          rounds += 1;
+          const cam = zoomAround({ lon: ctr.lng, lat: ctr.lat }, lineAt.current, z, next);
+          m.easeTo({ center: [cam.lon, cam.lat], zoom: cam.zoom, duration: 300 });
+        }
+      } catch (e) {
+        onError?.(e instanceof Error ? e : new Error(String(e)));
+      } finally { busy = false; }
+    };
+    const onIdle = () => { void settle(); };
+    m.on("idle", onIdle);
+    m.on("movestart", onStart);
+    // a map already settled sends no `idle` for a new water: ask now
+    if (c.ids.size && m.loaded()) void settle();
+    return () => { alive = false; pending(); m.off("idle", onIdle); m.off("movestart", onStart); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the water (its ids) and the archive are the key
+  }, [keepKey, at.atlas, clamps]);
 
   // Held in a ref so a caller passing an inline arrow cannot make this effect thrash: the
   // listener registers once and reads the latest callback when it fires.

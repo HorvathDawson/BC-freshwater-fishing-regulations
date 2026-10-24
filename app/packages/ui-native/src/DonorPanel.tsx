@@ -73,9 +73,13 @@ export function donorTone(palette: Palette, row: number | null, quiet: boolean):
   return quiet ? palette.quiet : palette.donor[row % palette.donor.length]!;
 }
 
+/** The middle of a water's box: the point the route map closes in about when no tap says where the reader is. */
+const placeMid = (b: readonly [number, number, number, number] | null | undefined) =>
+  (b ? { lon: (b[0] + b[2]) / 2, lat: (b[1] + b[3]) / 2 } : null);
+
 export function DonorPanel({ palette, value, day, at, theme, from, selected, onSelect,
                              horizon = 0, onHorizon, chain: chainProp, data, standing,
-                             detail, chart, foot, quantity, sides, count }: {
+                             detail, chart, foot, quantity, sides, count, waterLine, place }: {
   palette: Palette; value: PanelAnswer;
   /**
    * The quantity the answer is in, when the caller knows it (the conditions sheet: the one the map paints). Only the
@@ -123,6 +127,10 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
   sides?: GaugeSides;
   /** (T168) The count line: "2 gauges on this water · 5 estimating from other waters · 6 not reporting". */
   count?: string | null;
+  /** (T175) The water's own sections: the route map keeps their line at every zoom, opening no further out than it. */
+  waterLine?: readonly SectionKey[];
+  /** (T175) The water's box, framed with the gauges when no tap says where the reader is (`DonorViewOptions.place`). */
+  place?: readonly [number, number, number, number] | null;
 }) {
   /*
    * MEASURED, NOT ASSUMED. The panel is rendered at every width from a phone to a desktop
@@ -147,7 +155,7 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
   const vm = useDonorView(value, { day, horizon, from: from ?? null,
                                    size: { width: mapWidth, height: mapH },
                                    selected: selected ?? null, pickable: !!onSelect,
-                                   ...(quantity ? { quantity } : {}), sides: sides ?? null });
+                                   ...(quantity ? { quantity } : {}), sides: sides ?? null, place: place ?? null });
 
   if (!vm.ok) {
     // THE NO-ESTIMATE CASE IS THE SAME LAYOUT with fewer blocks: the kicker and the reason
@@ -283,7 +291,8 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
           <View style={{ marginBottom: SPACE.s2 }}>
             <DonorMap vm={map} at={at} theme={theme} palette={palette} toneOf={toneOf}
                       height={mapH} larger={larger} onLarger={setLarger}
-                      highlight={chainProp ?? map.chain} data={data} standing={standing} />
+                      highlight={chainProp ?? map.chain} data={data} standing={standing}
+                      waterLine={waterLine?.length ? { sections: waterLine, at: from ?? placeMid(place) } : undefined} />
           </View>
         )}
 

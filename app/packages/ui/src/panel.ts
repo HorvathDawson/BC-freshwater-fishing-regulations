@@ -573,6 +573,13 @@ export interface DonorViewOptions {
   quantity?: Quantity;
   /** (T168) Each member's side; null or absent: one run, as before. */
   sides?: GaugeSides;
+  /**
+   * (T175) THE WATER ITSELF, where no tap says where the reader is (a water opened from search or the list): its box
+   * [w, s, e, n] from the release (`RegsSource.waterBox`). The route map frames it with the gauges, so the water being
+   * read is on the map it opens with — a lone gauge 20 km down the valley used to fill the frame and the creek was off
+   * it. Ignored when `from` is given: the tap is the place then.
+   */
+  place?: readonly [number, number, number, number] | null;
 }
 
 /** The donor panel's view model, from an answer. Pure: a saved spot builds it from frozen data. */
@@ -602,7 +609,10 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
   const toneOf = (r: DonorRow) => tone.get(r)!;
 
   const placed = shown.filter((r) => r.route?.lat != null && r.route?.lon != null);
-  const camera = panelCamera(placed.map((r) => ({ lat: r.route!.lat, lon: r.route!.lon })),
+  // (T175) no tap: the water's own box stands for the place (both corners), so the water is in the frame
+  const corners = !o.from && o.place
+    ? [{ lat: o.place[1], lon: o.place[0] }, { lat: o.place[3], lon: o.place[2] }] : [];
+  const camera = panelCamera([...placed.map((r) => ({ lat: r.route!.lat, lon: r.route!.lon })), ...corners],
                              o.from, o.size);
   // A gauge AT the tap absorbs "you are here" — two pins on one pixel read as one lost.
   const from = o.from;
@@ -619,7 +629,7 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
    * absorbing words stay on the gauge's own title — it IS the gauge you are standing at.
    */
   const pts = [...placed.map((r) => ({ lat: r.route!.lat!, lon: r.route!.lon! })),
-               ...(from ? [from] : [])];
+               ...(from ? [from] : corners)];
   const drawn = placed.filter((r) => (r.route?.path.length ?? 0) > 0);
   // (T168) on this water first: the key reads own gauges first, and their labels win a crowded map (`rank`)
   const sides = o.sides ?? null;
@@ -777,17 +787,20 @@ export function useGaugeSides(source: RegsSource, section: SectionId | null,
 
 /** `donorView`, memoised for a component. */
 export function useDonorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
-  const { day, horizon, from, size, selected, pickable, quantity, sides } = o;
+  const { day, horizon, from, size, selected, pickable, quantity, sides, place } = o;
   const t = day.getTime();
   const lat = from?.lat;
   const lon = from?.lon;
   const { width, height } = size;
+  const placeKey = place ? place.join(",") : "";
   return useMemo(
     () => donorView(value, { day: new Date(t), horizon,
                              from: lat != null && lon != null ? { lat, lon } : null,
                              size: { width, height }, selected, pickable,
-                             ...(quantity ? { quantity } : {}), sides: sides ?? null }),
-    [value, t, horizon, lat, lon, width, height, selected, pickable, quantity, sides]);
+                             ...(quantity ? { quantity } : {}), sides: sides ?? null,
+                             place: placeKey ? place ?? null : null }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the box by value
+    [value, t, horizon, lat, lon, width, height, selected, pickable, quantity, sides, placeKey]);
 }
 
 /** The lead station's own reading, finished. */

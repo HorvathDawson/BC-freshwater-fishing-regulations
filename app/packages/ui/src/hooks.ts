@@ -29,6 +29,30 @@ export function useWater(source: RegsSource, item: ItemId | null): Async<Water |
   );
 }
 
+/**
+ * (T175) THE SECTIONS A WATER'S CONDITIONS MAP HOLDS AT EVERY ZOOM: the named water's own (`water.sections`), or — an
+ * unnamed reach — the tapped section alone. What `MapProps.waterLine` keeps from the tiles; never a geometry.
+ */
+export function waterLineSections(water: Water | null, item: ItemId | null,
+                                  tapSid: SectionId | null): readonly SectionId[] {
+  if (item !== null && water?.item === item) return water.sections;
+  return tapSid !== null ? [tapSid] : [];
+}
+
+/** `waterLineSections` for a water read from the source (the named water's sections once read; the tap meanwhile). */
+export function useWaterLine(source: RegsSource, item: ItemId | null, tapSid: SectionId | null): readonly SectionId[] {
+  const w = useWater(source, item);
+  const water = w.state === "ready" ? w.value ?? null : null;
+  return useMemo(() => waterLineSections(water, item, tapSid), [water, item, tapSid]);
+}
+
+/** (T175) A water's box from the release (`RegsSource.waterBox`): where its Conditions map frames it without a tap. */
+export function useWaterBox(source: RegsSource, item: ItemId | null):
+    readonly [number, number, number, number] | null {
+  const b = useAsync(() => (item ? source.waterBox(item) : Promise.resolve(null)), `water-box:${item}`, item !== null);
+  return b.state === "ready" ? b.value ?? null : null;
+}
+
 export interface SearchResults {
   waters: readonly NameHit[];
   places: readonly PlaceHit[];

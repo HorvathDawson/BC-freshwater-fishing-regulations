@@ -26,6 +26,7 @@ import { runtimeStyle, type TileEndpoints } from "./runtime-style";
 import { colour } from "./chrome";
 import { ATLAS_SOURCES, SECTION_SOURCE_LAYERS, stateTarget } from "./sections";
 import { STYLE_META } from "./style";
+import { COPY_CASING, COPY_FILL, COPY_LINE } from "./water-copy";
 
 type Json = Record<string, unknown>;
 type StyleLayer = { id: string; paint?: Json; layout?: Json; minzoom?: number; maxzoom?: number };
@@ -41,6 +42,11 @@ export interface NativeStyleInput extends Look {
    * them: layer → feature id → state. Written into the style; a change is a style swap.
    */
   areaData?: Record<string, Record<string, Record<string, unknown>>>;
+  /**
+   * (T175) Where the water copy stops, per kind (`WaterCopy.ceiling`): its layers' `maxzoom`. Null (or absent): nothing
+   * of that kind is kept, and the layer keeps the style's own range.
+   */
+  copyCeiling?: { line: number | null; fill: number | null };
 }
 
 /**
@@ -136,6 +142,12 @@ export function nativeStyle(o: NativeStyleInput): { style: Json; errors: Error[]
       if (l.paint) l.paint = each(l.paint);
       if (l.layout) l.layout = each(l.layout);
     }
+  }
+  // (T175) the water copy stops where the atlas draws the water itself
+  for (const l of s.layers) {
+    const z = l.id === COPY_FILL ? o.copyCeiling?.fill : l.id === COPY_LINE || l.id === COPY_CASING ? o.copyCeiling?.line
+      : undefined;
+    if (z !== undefined && z !== null) { l.minzoom = 0; l.maxzoom = z; }
   }
   // THE GAUGE LABEL WITHOUT ITS PILL (N2-F1): no icon asked for (it would be missing), a halo in the paper instead
   const label = s.layers.find((l) => l.id === "gauge-label");

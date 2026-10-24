@@ -30,15 +30,15 @@ describe("the Conditions legend", () => {
     expect(new Set(flowRampStops("dark").map((s) => s.colour)).size).toBe(7);
   });
 
-  it("says what the scale is and how many gauges it shows, in that order, in words", () => {
+  it("says what the scale is and how many REACHES it colours (T176: never \"gauges in view\"), in that order, in words", () => {
     ramp(LIGHT, "light", [0.05, 0.06, 0.2, 0.55]);
     expect(screen.getByTestId("legend-ramp").textContent)
-      .toBe("Flow vs. past years, this date4 gauges in viewLowNormalHigh");
+      .toBe("Flow vs. past years, this date4 reaches colouredLowNormalHigh");
     expect(screen.getByTestId("legend-bar").getAttribute("aria-label"))
       .toBe("Flow vs. past years, this date: colours from low to high; normal is the middle half of past years");
     cleanup();
     ramp(LIGHT, "light", [0.5]);
-    expect(screen.getByTestId("legend-count").textContent).toBe("1 gauge in view");
+    expect(screen.getByTestId("legend-count").textContent).toBe("1 reach coloured");
     cleanup();
     ramp(LIGHT, "light", []);
     expect([screen.queryByTestId("legend-count"), screen.getByTestId("legend-ramp").textContent])
@@ -51,13 +51,13 @@ describe("the Conditions legend", () => {
     expect([b.left, b.width]).toEqual(["25%", "50%"]);
   });
 
-  it("the histogram: one tick per occupied fortieth, taller where more gauges stand, each named for a screen reader", () => {
+  it("the histogram: one tick per occupied fortieth, taller where more reaches stand, each named for a screen reader", () => {
     ramp(LIGHT, "light", [0.05, 0.06, 0.2, 0.55]);
     const ticks = [...screen.getByTestId("legend-ramp").querySelectorAll("[aria-label$='percentile']")];
     expect(ticks.map((t) => [t.getAttribute("aria-label"), (t as HTMLElement).style.left,
                              ((t as HTMLElement).firstElementChild as HTMLElement).style.height]))
-      .toEqual([["2 gauges near the 6th percentile", "5%", "14px"], ["1 gauge near the 21st percentile", "20%", "7px"],
-                ["1 gauge near the 56th percentile", "55%", "7px"]]);
+      .toEqual([["2 reaches near the 6th percentile", "5%", "14px"], ["1 reach near the 21st percentile", "20%", "7px"],
+                ["1 reach near the 56th percentile", "55%", "7px"]]);
   });
 
   it("its words are `sub` (the T40 contrast floor), never `faint`, in light and dark; the title is ink", () => {
@@ -66,7 +66,7 @@ describe("the Conditions legend", () => {
       const colours = [...screen.getByTestId("legend-ramp").querySelectorAll("div[dir='auto']")]
         .map((e) => `${e.textContent}:${getComputedStyle(e).color}`);
       const rgb = (hex: string) => { const d = document.createElement("div"); d.style.color = hex; return d.style.color; };
-      expect(colours).toEqual([`Flow vs. past years, this date:${rgb(p.ink)}`, `1 gauge in view:${rgb(p.sub)}`,
+      expect(colours).toEqual([`Flow vs. past years, this date:${rgb(p.ink)}`, `1 reach coloured:${rgb(p.sub)}`,
                                `Low:${rgb(p.sub)}`, `Normal:${rgb(p.sub)}`, `High:${rgb(p.sub)}`]);
       cleanup();
     }
@@ -91,10 +91,10 @@ describe("the Conditions legend", () => {
                        describe="Expected change, next 10 days: colours from falling to rising; steady is little change"
                        marks={[0.5, 0.84]} />);
     expect(screen.getByTestId("legend-ramp").textContent)
-      .toBe("Expected change, next 10 days2 gauges in viewFallingSteadyRising");
+      .toBe("Expected change, next 10 days2 reaches colouredFallingSteadyRising");
     const b = screen.getByTestId("legend-normal").style;
     expect([b.left, b.width]).toEqual(["43.6%", "12.8%"]);
     expect([...screen.getByTestId("legend-ramp").querySelectorAll("[aria-label$='flow']")]
-      .map((t) => t.getAttribute("aria-label"))).toEqual(["1 gauge near 1.0× today's flow", "1 gauge near 4× today's flow"]);
+      .map((t) => t.getAttribute("aria-label"))).toEqual(["1 reach near 1.0× today's flow", "1 reach near 4× today's flow"]);
   });
 });

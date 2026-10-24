@@ -89,8 +89,9 @@ describe("the profile colour mode", () => {
         for (const l of style.layers) if (paint[l.id]) { l.paint = { ...l.paint, ...paint[l.id] }; patched++; }
         // the four, the lake's edge, the stream's flow arrows (followers), its "no baseline" dash (off), the no-access dots
         // (T165, on with the day's `no_access` labels) and the selection's outline (the stream's casing, the lake and
-        // wetland rings) — all validated with the real paint
-        expect(patched).toBe(11);
+        // wetland rings), and T175's water copy (the lake's fill, the stream's casing and line) — all validated with the
+        // real paint
+        expect(patched).toBe(14);
         for (const e of validateStyleMin(style as never)) problems.push(`${theme}: ${e.message}`);
       }
     expect(problems).toEqual([]);

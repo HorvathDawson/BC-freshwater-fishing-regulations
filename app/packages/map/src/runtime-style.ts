@@ -19,8 +19,9 @@ import { layers as basemapLayers, namedFlavor } from "@protomaps/basemaps";
 import { ATLAS_MAX_ZOOM, BASEMAP_MAX_ZOOM, TEMP_BANDS } from "@app/core";
 import { MAP_STYLE, STYLE_META, colorExpression, defaultView, resolveTheme, tempBandColour, withFollowers,
          type Tokens } from "./style";
-import { casingPaint, NOACCESS_LAYER, noaccessPaint, nobaselineOpacity, paintFor, ringPaint, SELECTION_CASING, SELECTION_RINGS } from "./adapters/contract";
+import { casingPaint, copyFillPaint, copyLinePaint, NOACCESS_LAYER, noaccessPaint, nobaselineOpacity, paintFor, ringPaint, SELECTION_CASING, SELECTION_RINGS } from "./adapters/contract";
 import { traceLayers, traceSources } from "./trace-overlay";
+import { COPY_CASING, COPY_FILL, COPY_LINE, COPY_SOURCE, EMPTY_COPY } from "./water-copy";
 import { BASEMAP_LABELS, basemapLabelPaint } from "./labels";
 
 export interface TileEndpoints {
@@ -345,6 +346,8 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
       ...fieldSources(at.atlas),
       // THE ROUTE OVERLAY's two sources, empty until a panel fills them — see trace-overlay.ts.
       ...traceSources(),
+      // (T175) THE WATER COPY's source, empty until a map keeps a water's lines — see water-copy.ts.
+      [COPY_SOURCE]: { type: "geojson" as const, data: EMPTY_COPY },
     },
     layers: [
       /**
@@ -476,7 +479,25 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
         const ringed = l.id === lastDrawing("lake") ? ring(SELECTION_RINGS.lake, "lake")
           : l.id === lastDrawing("wetland") ? ring(SELECTION_RINGS.wetland, "wetland") : undefined;
         if (ringed) return [painted, ringed];
+        /*
+         * (T175) THE WATER COPY, directly UNDER the water's own layers: where the atlas draws the water the atlas wins,
+         * and below the zoom it does (the copy's ceiling, set by the map) the copy is the water. Under every label and
+         * pin. Painted with the lake's and the stream's own paint (`copyFillPaint`, `copyLinePaint`) in every view.
+         */
+        const tk = resolveTheme(theme);
+        if (l.id === "lake") return [{
+          id: COPY_FILL, type: "fill" as const, source: COPY_SOURCE, filter: ["==", ["get", "layer"], "lake"],
+          paint: copyFillPaint((painted as { paint?: Record<string, unknown> }).paint ?? {}) }, painted];
         if (l.id !== "stream") return [painted];
+        const copyLine = copyLinePaint((painted as { paint?: Record<string, unknown> }).paint
+                                       ?? paintFor("stream", "plain", tk), tk);
+        const copied = [
+          { id: COPY_CASING, type: "line" as const, source: COPY_SOURCE, filter: ["==", ["get", "layer"], "stream"],
+            layout: { "line-cap": "round" as const, "line-join": "round" as const },
+            paint: casingPaint(copyLine["line-width"], tk) },
+          { id: COPY_LINE, type: "line" as const, source: COPY_SOURCE, filter: ["==", ["get", "layer"], "stream"],
+            layout: { "line-cap": "round" as const, "line-join": "round" as const }, paint: copyLine },
+        ];
         const casing = {
           id: SELECTION_CASING, type: "line" as const, source: "atlas", "source-layer": "stream",
           layout: { "line-cap": "round" as const, "line-join": "round" as const },
@@ -500,7 +521,7 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
          * the stream's own mode (`nobaselineOpacity`): every flow mode reads the number its
          * colour reads, every other mode is 0 — so nothing can leak, and nothing is missing.
          */
-        return [casing, painted,
+        return [...copied, casing, painted,
         /*
          * "MEASURED HERE, BUT NOTHING TO COMPARE IT TO" — DRAWN AS A DASH.
          *

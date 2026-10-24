@@ -19,7 +19,7 @@ import { View } from "react-native";
 import type { ItemId, Parameter, RegsSource, SectionId } from "@app/data";
 import type { Horizon, PanelFeed } from "@app/ui";
 import type { TileEndpoints } from "@app/map";
-import { useAccessNotice, useRegsStore, useUnnamedName, useWater, useWaterName } from "@app/ui";
+import { useAccessNotice, useRegsStore, useUnnamedName, useWater, useWaterBox, useWaterLine, useWaterName } from "@app/ui";
 import type { ReleaseLoader } from "@app/data/release";
 import { ConditionsPanel } from "./ConditionsPanel";
 import { AccessNoticeBlock } from "./regs/AccessNoticeBlock";
@@ -54,6 +54,10 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, p
   // the water is read only when there is no tap to open on
   const sheet = useWater(source, tapSid === null ? item : null);
   const section = tapSid ?? (sheet.state === "ready" ? sheet.value?.sections[0] ?? null : null);
+  // (T175) the water's own sections: the Conditions map keeps their line at every zoom (`MapProps.waterLine`)
+  const line = useWaterLine(source, item, tapSid);
+  // and where it is, for the frame when no tap says where the reader stands
+  const box = useWaterBox(source, from ? null : item);
   // THE WATER'S NAME, in the same place the Regulations view puts it — one water, one header, every view.
   const water = useWaterName(source, section);
   // (T53) an unnamed reach: the store's name for it ("Unnamed stream · Region 1"), the one its Regulations view shows
@@ -81,7 +85,7 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, p
           <ConditionsPanel source={source} section={section} palette={palette}
                            tiles={tiles} theme={theme} feed={feed}
                            parameter={parameter} onParameter={onParameter} from={from}
-                           credits={credits} horizon={horizon} onHorizon={onHorizon} />
+                           credits={credits} horizon={horizon} onHorizon={onHorizon} waterLine={line} waterBox={box} />
         </>
       )}
     </WaterFrame>

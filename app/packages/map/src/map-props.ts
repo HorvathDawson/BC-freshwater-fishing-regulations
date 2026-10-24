@@ -234,6 +234,14 @@ export interface MapProps {
    */
   water?: readonly SectionKey[];
   /**
+   * (T175) THE WATER'S OWN LINE, AT EVERY ZOOM. Every map keeps a copy of what it lights (`highlight`, `water`) the
+   * first time a zoom's tiles carry it, and draws it below that zoom (`water-copy.ts`). Given, this map also keeps the
+   * water's own `sections` (the water a Conditions map is of, lit or not), and — where no zoom has shown any of them
+   * yet — steps in about `at` (a point on the water; the centre without one) until its tiles do: it opens no further
+   * out than the water's own first zoom. Geometry from the tiles only.
+   */
+  waterLine?: { sections: readonly SectionKey[]; at?: { lat: number; lon: number } | null } | null;
+  /**
    * (T151) How `highlight` is marked (`SelectionCue`): "outline" (default — the browse map's tapped or searched water,
    * cased and floored wider) or "dim" (a water's Map view: the part at the same width as the rest, the rest dimmed).
    */

@@ -27,7 +27,7 @@ import { SPACE, type Palette } from "../theme";
 
 /** The map's own props: everything the water map does not decide. */
 export type WaterMapMapProps = Omit<ComponentProps<typeof MapScreen>,
-  "palette" | "highlight" | "water" | "selection" | "marks" | "onPressMark" | "fit" | "onPressFeature">;
+  "palette" | "highlight" | "water" | "waterLine" | "selection" | "marks" | "onPressMark" | "fit" | "onPressFeature">;
 
 export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenWater, onShowRegs, onOtherSection,
                                onCross, onPart }: {
@@ -63,6 +63,8 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
         <MapScreen palette={palette} {...map}
                    highlight={vm?.selected ?? []}
                    water={vm?.water ?? []}
+                   // (T175) the whole water's line at every zoom, and it opens no further out than its first zoom
+                   waterLine={vm ? { sections: [...vm.selected, ...vm.water] } : undefined}
                    selection="dim"
                    marks={vm?.marks.map((m) => ({ lon: m.lon, lat: m.lat, label: m.label, a11y: m.a11y, on: m.on })) ?? []}
                    onPressMark={(i) => { const m = vm?.marks[i]; if (m) act({ type: "mark", ix: m.ix }); }}

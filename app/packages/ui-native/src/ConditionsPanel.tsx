@@ -41,7 +41,7 @@ const W = CONDITIONS_WORDS;
 
 export function ConditionsPanel({ source, section, palette, tiles, theme, colour,
                                   parameter, onParameter, from, feed, scroll = true,
-                                  footer, credits, horizon = 0, onHorizon, day = null }: {
+                                  footer, credits, horizon = 0, onHorizon, day = null, waterLine, waterBox }: {
   source: RegsSource; section: SectionId | null; palette: Palette;
   /** The live index, for the donor panel. Absent offline — it then says so. */
   feed?: PanelFeed;
@@ -66,6 +66,10 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   onHorizon?: (d: Horizon) => void;
   /** The day the answer is for; null is today. */
   day?: Date | null;
+  /** (T175) The water's own sections, kept at every zoom on the route map (`MapProps.waterLine`). */
+  waterLine?: readonly SectionId[];
+  /** (T175) The water's box, framed with the gauges when there is no tap (`DonorViewOptions.place`). */
+  waterBox?: readonly [number, number, number, number] | null;
 }) {
   /*
    * THE SAME QUANTITY THE MAP IS PAINTING. `parameter` is undefined only under
@@ -258,7 +262,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
                   chain={vm.chain} data={vm.route.data} standing={vm.route.standing}
                   onHorizon={onHorizon} quantity={parameter ?? "discharge"}
                   detail={detail} chart={graph}
-                  foot={small} sides={vm.sides} count={vm.count} />
+                  foot={small} sides={vm.sides} count={vm.count} waterLine={waterLine} place={waterBox} />
       {footer}
     </>
   );

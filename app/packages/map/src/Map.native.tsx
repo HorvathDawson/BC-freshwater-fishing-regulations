@@ -36,7 +36,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, Text, View, type LayoutChangeEvent } from "react-native";
 import {
   Camera, GeoJSONSource, Map as MLMap, Marker, VectorSource,
-  type CameraRef, type MapRef, type VectorSourceRef,
+  type CameraRef, type GeoJSONSourceRef, type MapRef, type VectorSourceRef,
 } from "@maplibre/maplibre-react-native";
 import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, FIT_MAX_ZOOM, MIN_ZOOM, SPOT_PIN, fitAtMost, padBbox, refineFit, spotMarkers,
          spotUnder, type Bbox, type SpotMarker, type SectionKey } from "@app/core";
@@ -50,6 +50,7 @@ import { spreadSections } from "./sections";
 import { MARK_LABEL_FONT } from "./marks";
 import { metricScale } from "./scale";
 import type { MapProps } from "./map-props";
+import { COPY_SOURCE, WaterCopy, copyIds, probeZoom, zoomAround, type CopyTarget } from "./water-copy";
 
 /** An empty source, so the gauge layers exist before the first feed tick arrives (as on the web). */
 const EMPTY_FC = '{"type":"FeatureCollection","features":[]}';
@@ -63,11 +64,12 @@ const SCALE_MAX_WIDTH = 92;
 
 type PressEvent = { nativeEvent: { point: [number, number] | { x: number; y: number };
                                    lngLat: [number, number] } | null };
-type RegionEvent = { nativeEvent: { center?: [number, number]; zoom?: number } | null };
+type RegionEvent = { nativeEvent: { center?: [number, number]; zoom?: number; userInteraction?: boolean } | null };
 type Data = NonNullable<MapProps["data"]>;
 
 export function Map({ at, theme, view, modes, groups, hide, show, initial, data, onPressFeature, chrome, onError,
-                      onMoved, onMapPoint, onLongPress, highlight, water, selection = "outline", marker, style, gauges, onVisible, pins, bare, fit,
+                      onMoved, onMapPoint, onLongPress, highlight, water, waterLine, selection = "outline", marker, style, gauges,
+                      onVisible, pins, bare, fit,
                       basemap, marks, onPressMark, spots, onImageryError: _noTileErrors }: MapProps) {
   // `onImageryError` is accepted and never called: the binding has no per-tile error event. A phone learns the imagery
   // is unreachable from `useImageryReach`'s probe instead (satellite is online-only, owner 2026-10-21).
@@ -75,6 +77,9 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   const mapRef = useRef<MapRef | null>(null);
   const camRef = useRef<CameraRef | null>(null);
   const atlasRef = useRef<VectorSourceRef | null>(null);
+  /** (T175) The water copy's GeoJSON source, and the lines it holds — see `water-copy.ts`. */
+  const copyRef = useRef<GeoJSONSourceRef | null>(null);
+  const copy = useRef(new WaterCopy());
   /** The map's size, for the fit padding (the web reads its container). */
   const size = useRef({ width: 0, height: 0 });
   /** A style has finished loading at least once. */
@@ -98,11 +103,21 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     cb.current.onError?.(e instanceof Error ? e : new Error(String(e))), []);
 
   /** The contract's renderer (`adapters/native.ts`) over the binding's refs, read when called: they come and go. */
-  const renderer = useMemo(() => nativeRenderer({
-    map: () => mapRef.current as never,
-    atlas: () => atlasRef.current as never,
-    camera: () => camRef.current as never,
-  }, report), [report]);
+  const renderer = useMemo(() => {
+    // (T175) every state for one of the copy's sections is the copy's too: the one pathway, written twice
+    const toCopy: CopyTarget = {
+      set: (id, s) => { void copyRef.current?.setFeatureState({ id }, s as never).catch(report); },
+      remove: (id, key) => {
+        const src = copyRef.current;
+        if (src) void (key === undefined ? src.removeFeatureState({ id }) : src.removeFeatureState({ id }, key)).catch(report);
+      },
+    };
+    return nativeRenderer({
+      map: () => mapRef.current as never,
+      atlas: () => atlasRef.current as never,
+      camera: () => camRef.current as never,
+    }, report, { copy: () => copy.current, target: () => toCopy });
+  }, [report]);
 
   /*
    * THE DATA, SPLIT BY WHO CAN TAKE IT. The sections (stream, lake, wetland: MVT ids) go to feature-state; a layer keyed
@@ -122,12 +137,14 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
    */
   const gaugesNow = useRef(gauges);
   gaugesNow.current = gauges;
+  /** (T175) Where the copy stops (the zoom the atlas draws the water from), per kind; in the style, so a change swaps it. */
+  const [ceil, setCeil] = useState<{ line: number | null; fill: number | null }>({ line: null, fill: null });
   const look = useMemo(
     () => nativeStyle({ at, theme, view, modes, hide, show, groups, basemap: basemap ?? "map",
-                        gauges: gaugesNow.current ?? EMPTY_FC, areaData: JSON.parse(areaKey) as Data }),
+                        gauges: gaugesNow.current ?? EMPTY_FC, areaData: JSON.parse(areaKey) as Data, copyCeiling: ceil }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [at.atlas, at.basemap, at.glyphs, at.sprite, at.assets, at.outside, theme, view, JSON.stringify(modes ?? {}),
-     JSON.stringify(hide ?? []), JSON.stringify(show ?? []), JSON.stringify(groups ?? {}), basemap, areaKey]);
+     JSON.stringify(hide ?? []), JSON.stringify(show ?? []), JSON.stringify(groups ?? {}), basemap, areaKey, ceil.line, ceil.fill]);
   useEffect(() => { for (const e of look.errors) report(e); }, [look, report]);
 
   const gaugeData = useMemo(() => JSON.parse(gauges ?? EMPTY_FC) as GeoJSON.FeatureCollection, [gauges]);
@@ -198,7 +215,83 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     setDrawn(true);
     void reportVisible();
     void refine.current?.().catch(report);
+    void keepCopy.current?.().catch(report);
   }, [reportVisible, report]);
+
+  /*
+   * (T175) THE WATER'S OWN LINE, KEPT — as on the web (`Map.web.tsx`, `water-copy.ts`). Keyed on the water's ids and
+   * the archive. After each settle's full render the map's own pick (`litFeatures`, the binding's
+   * `querySourceFeatures`) is asked for the water's sections; what a zoom has the first time is kept, given the state
+   * its atlas features hold (`getFeatureState`), and drawn from the copy source below the ceiling. With `waterLine`, while
+   * no zoom has shown the water, the camera steps in about a point on it, never against the reader's own gesture.
+   */
+  const keep = useMemo(() => copyIds(highlight, water, waterLine?.sections),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed on the ids' text
+    [(highlight ?? []).join(","), (water ?? []).join(","), (waterLine?.sections ?? []).join(",")]);
+  const keepKey = keep.join(",");
+  const [copyData, setCopyData] = useState(() => copy.current.collection());
+  const copyStale = useRef(true);
+  const copyTouched = useRef(false);
+  const camNow = useRef({ lon: initial.lon, lat: initial.lat, zoom: initial.zoom });
+  const lineAt = useRef(waterLine?.at ?? null);
+  lineAt.current = waterLine?.at ?? null;
+  const lineIds = useRef<ReadonlySet<number>>(new Set());
+  lineIds.current = useMemo(() => new Set(copyIds(waterLine?.sections)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed on the ids' text
+    [(waterLine?.sections ?? []).join(",")]);
+  const clamps = useRef(false);
+  clamps.current = waterLine != null;
+  const lookNow = useRef(look);
+  lookNow.current = look;
+  const keepCopy = useRef<(() => Promise<void>) | null>(null);
+  useEffect(() => {
+    const c = copy.current;
+    const had = c.ids.size > 0;
+    if (c.reset(keep, at.atlas) && had) {
+      setCopyData(c.collection());
+      setCeil((was) => (was.line === null && was.fill === null ? was : { line: null, fill: null }));
+      void copyRef.current?.removeFeatureState().catch(report);
+      copyTouched.current = false;
+    }
+    let rounds = 0, alive = true, busy = false;
+    copyStale.current = true;
+    keepCopy.current = async () => {
+      if (!alive || busy || !c.ids.size || !rendered.current || !copyStale.current) return;
+      copyStale.current = false;
+      busy = true;
+      try {
+        const at0 = camNow.current;
+        const found = await renderer.litFeatures([...c.ids]);
+        if (!alive) return;
+        const fresh = c.take(found, at0.zoom);
+        if (fresh.length) {
+          // what the atlas features hold now goes on the copy first (later writes are mirrored as they are made)
+          for (const id of fresh) {
+            const held = await atlasRef.current?.getFeatureState({ id, sourceLayer: c.layerOf(id)! }).catch(() => null);
+            const st = c.fresh(id, (held ?? {}) as Record<string, unknown>);
+            if (st) void copyRef.current?.setFeatureState({ id }, st as never).catch(report);
+          }
+          setCopyData(c.collection());
+        }
+        // THE CEILING, from the style this map is drawing (the stream's and the lake's floor in this view)
+        const floorOf = (id: string) =>
+          ((lookNow.current.style.layers as { id: string; minzoom?: number }[]).find((l) => l.id === id)?.minzoom) ?? 0;
+        const line = c.ceiling("stream", floorOf("stream")), fill = c.ceiling("lake", floorOf("lake"));
+        setCeil((was) => (was.line === line && was.fill === fill ? was : { line, fill }));
+        const next = clamps.current
+          ? probeZoom({ zoom: at0.zoom, found: found.some((f) => lineIds.current.has(f.id)),
+                        kept: c.keptOf(lineIds.current), rounds, touched: copyTouched.current })
+          : null;
+        if (next !== null) {
+          rounds += 1;
+          renderer.easeTo(zoomAround(at0, lineAt.current, at0.zoom, next), { duration: 300 });
+        }
+      } finally { busy = false; }
+    };
+    void keepCopy.current().catch(report);
+    return () => { alive = false; keepCopy.current = null; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the water (its ids) and the archive are the key
+  }, [keepKey, at.atlas, renderer, report]);
 
   /*
    * SEND THE CAMERA to a subject, then let the water's own shape frame it (as on the web): after each move settles and
@@ -273,17 +366,23 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     const ne = e.nativeEvent;          // before anything async, as with a press
     if (ne?.center && ne.zoom !== undefined) {
       cb.current.onMoved?.({ lon: ne.center[0], lat: ne.center[1], zoom: ne.zoom });
+      camNow.current = { lon: ne.center[0], lat: ne.center[1], zoom: ne.zoom };
       const next = { lat: ne.center[1], zoom: ne.zoom };
       setScaleAt((was) => (was.lat === next.lat && was.zoom === next.zoom ? was : next));
     }
     // the next full render reports what is on screen (and measures a fit): the tiles for here may not be in yet
     stale.current = true;
+    copyStale.current = true;
+    // (T175) the reader's own pan or pinch: the copy never steps in against it
+    if (ne?.userInteraction) copyTouched.current = true;
   }, []);
 
   // a new style dropped every feature-state (`forget`: send them all again) and may draw other features
   const onStyle = useCallback(() => {
     renderer.forget();
+    copy.current.forgetStates();
     stale.current = true;
+    copyStale.current = true;
     setStyled(true);
     setGen((g) => g + 1);
   }, [renderer]);
@@ -326,6 +425,8 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
                 maxBounds={MAX_BOUNDS} />
         <VectorSource id="atlas" ref={atlasAttached} />
         <GeoJSONSource id="gauges" data={gaugeData} />
+        {/* (T175) the water copy: the style's own source by id, its lines from the tiles (`keepCopy`) */}
+        <GeoJSONSource id={COPY_SOURCE} ref={copyRef} data={copyData as never} />
         {marker ? (
           <Marker id="marker" lngLat={[marker.lon, marker.lat]}>
             <View style={dot(furniture.accent, furniture.card, 16)} />

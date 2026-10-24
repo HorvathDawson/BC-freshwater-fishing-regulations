@@ -4,7 +4,7 @@
  * Separated from the screens because all four tabs use the same shapes, and because the
  * map itself must never be asked to draw UI — everything here sits above it.
  */
-import { percentileOrdinal, standing } from "@app/core";
+import { legendCount, legendTickLabel, percentileOrdinal, standing } from "@app/core";
 import { Pressable, ScrollView, Text, View, type ViewStyle } from "react-native";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 import { TYPE } from "./type";
@@ -145,7 +145,8 @@ const BAR = 10, TICKS = 14;
  *     painted it nearly f3, and squeezed "normal" into one seventh of the bar.
  *   - IT SAYS WHAT THE SCALE IS: a title ("Flow vs. past years, this date") and a bracket under the middle half marked
  *     Normal, with Low and High at the ends — the percentile's meaning without a number. It was three faint 10.5 px words.
- *   - IT SAYS HOW MANY: "12 gauges in view" beside the title, the count the histogram is of.
+ *   - IT SAYS HOW MANY: "12 reaches coloured" beside the title, the count the histogram is of (T176: it read "12 gauges
+ *     in view", but it counts the reaches on screen with a standing — core `legendCount` says what it counts).
  *   - Words in `sub`, not `faint` (T40: a legend's words are read, so they meet the text contrast floor), at 11.5–12 px.
  *   - At most `LEGEND_RAMP_MAX` wide, centred: on a desktop the 1250 px stripe read as decoration.
  */
@@ -157,7 +158,7 @@ export function LegendRamp({ palette, stops, title, low, high, marks, mid, band 
   title: string;
   low: string; high: string;
   /**
-   * Where the gauges currently on screen sit on this scale, 0–1.
+   * Where the reaches currently on screen with a standing sit on this scale, 0–1 (one mark per reach, T176).
    *
    * This is what turns a legend from a key into a READING. Without them the ramp says
    * "there is a scale"; with them it says "and the rivers you are looking at are down
@@ -187,6 +188,7 @@ export function LegendRamp({ palette, stops, title, low, high, marks, mid, band 
   }
   const peak = Math.max(1, ...counts);
   const n = marks?.length ?? 0;
+  const count = legendCount(n);
   const pct = (x: number) => `${Math.round(x * 1000) / 10}%` as const;
   const word = { ...TYPE.small, fontSize: 11.5, lineHeight: 15, color: palette.sub } as const;
 
@@ -196,18 +198,15 @@ export function LegendRamp({ palette, stops, title, low, high, marks, mid, band 
                      marginBottom: 2 }}>
         <Text numberOfLines={1} style={{ ...TYPE.bodyStrong, fontSize: 12.5, lineHeight: 17, color: palette.ink,
                                          flexShrink: 1 }}>{title}</Text>
-        {n > 0 && (
-          <Text testID="legend-count" style={{ ...word, fontSize: 12, lineHeight: 17 }}>
-            {`${n} ${n === 1 ? "gauge" : "gauges"} in view`}
-          </Text>
+        {count !== null && (
+          <Text testID="legend-count" style={{ ...word, fontSize: 12, lineHeight: 17 }}>{count}</Text>
         )}
       </View>
       <View style={{ height: TICKS + BAR }}>
         {counts.map((c, i) => c === 0 ? null : (
           <View key={i}
-                accessibilityLabel={`${c} ${c === 1 ? "gauge" : "gauges"} `
-                                    + (markWords ? markWords((i + 0.5) / BINS)
-                                       : `near the ${percentileOrdinal((i + 0.5) / BINS)} percentile`)}
+                accessibilityLabel={legendTickLabel(c, markWords ? markWords((i + 0.5) / BINS)
+                                                    : `near the ${percentileOrdinal((i + 0.5) / BINS)} percentile`)}
                 style={{ position: "absolute", bottom: BAR, left: pct(i / BINS), width: pct(1 / BINS),
                          paddingHorizontal: 0.5 }}>
             <View style={{ height: Math.max(3, (c / peak) * TICKS), backgroundColor: palette.ink, opacity: 0.8 }} />
