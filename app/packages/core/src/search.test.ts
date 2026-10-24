@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
-  bboxOfGeometry, boxAround, boxOfParts, describeBy, distanceKm, duplicateNames, extentOf, fixOf,
-  matchTier, outlineOf, PLACEHOLDER_MAX, SEARCH_BAR, placeholderFor, waterCaption,
-  searchKey, rankWaters, refineFit, trilaterate, wherePhrase, type Bbox,
+  describeBy, duplicateNames, matchTier, PLACEHOLDER_MAX, SEARCH_BAR, placeholderFor, waterCaption,
+  searchKey, rankWaters, wherePhrase,
   NEAR_KM, kmWords, nearCount, nearRowSub, spokenName, waterRowSub, watersNear, rankPointers, seeLine,
 } from "./search";
+import {
+  bboxOfGeometry, boxAround, boxOfParts, distanceKm, extentOf, fixOf, outlineOf, refineFit, trilaterate, type Bbox,
+} from "./searchGeometry";
 
 const w = (name: string, size: number | null, pieces = 1, matchedAs: string | null = null) =>
   ({ name, kind: /lake/i.test(name) ? "lake" : "stream", size, areaHa: null as number | null,

@@ -21,6 +21,7 @@ export * from "./access";
 export * from "./lakeFacts";
 export * from "./paint";
 export * from "./search";
+export * from "./searchGeometry";
 export * from "./near";
 export * from "./day";
 export * from "./conditions";

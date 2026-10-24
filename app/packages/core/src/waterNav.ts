@@ -26,7 +26,7 @@
  * other water (`crossUp` / `crossDown` say which, and where).
  */
 import { waterNoun, WORDS } from "./regs/words";
-import type { Bbox } from "./search";
+import type { Bbox } from "./searchGeometry";
 
 /** One part of the group as the release stores it, its section ids included (`part_section`). */
 export interface NavPart {
