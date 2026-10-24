@@ -181,12 +181,12 @@ def _offenders(path: Path, src: str = None):
 
 
 def test_no_other_answers_module_spells_a_weekday_or_a_time_of_day():
-    """`common.py` holds the words; `model.py` only TYPES the weekdays (`Literal[WEEKDAYS]`) and the clock
+    """`common.py` holds the words; `model/` only TYPES the weekdays (`Literal[WEEKDAYS]`) and the clock
     fields; every other module asks `when_words`."""
     bad = []
     for p in sorted(ANSWERS.rglob("*.py")):
         name = p.relative_to(ANSWERS).as_posix()
-        if name in ("common.py", "model.py"):
+        if name == "common.py" or name.startswith("model/"):
             continue
         bad += _offenders(p)
     assert not bad, bad

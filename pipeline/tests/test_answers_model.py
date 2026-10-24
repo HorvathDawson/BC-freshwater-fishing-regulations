@@ -1,4 +1,4 @@
-"""THE ANSWERS/2 MODELS (`pipeline/deliver/answers/model.py`, DATAFLOW P7): strict, no extra
+"""THE ANSWERS/2 MODELS (`pipeline/deliver/answers/model/`, DATAFLOW P7): strict, no extra
 field, every nullable field null exactly where its model says; the vocabularies are the closed
 enums; the JSON Schema and the TypeScript the app reads are generated and current."""
 from __future__ import annotations

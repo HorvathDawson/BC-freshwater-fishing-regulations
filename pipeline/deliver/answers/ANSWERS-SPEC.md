@@ -10,7 +10,7 @@ verified 1-to-1 against the consumer page (COMPARISON.md).
   [--verdicts FILE] [--workers N]` (35 s on 4 processes, 3.9 GB peak, measured 2026-10-08; the
   verdicts default to `verdicts.sqlite` beside the bundle). The build refuses to write a file that
   does not decode back to what it built, and validates every value of every section against its
-  answers/2 model first (`model.py`). It is deterministic (4 and 2 workers give the same bytes).
+  answers/2 model first (`model/`). It is deterministic (4 and 2 workers give the same bytes).
 - **Reference decoder** `pipeline/deliver/answers/encode.py` `decode(wire, data)`; one tap is
   `encode.tap(...)`.
 - **One source per fact (DATAFLOW).** Every rule state, every loser's `reason` and `by`: the
@@ -44,7 +44,7 @@ Nobody had consumed answers/1, so there is no migration note (user decision U3).
 | the ladder's fish | the game fish a member rule names, + ST | every fish the verdicts asked |
 | the models | prose in `spec` | `schemas`: every frame's JSON Schema (strict, no extra field) |
 
-The models are `pipeline/deliver/answers/model.py`; `python -m pipeline.deliver.answers.model`
+The models are `pipeline/deliver/answers/model/`; `python -m pipeline.deliver.answers.model`
 writes `app/packages/core/src/answers.generated.{json,ts}` and `--check` fails CI on drift.
 
 ## answers/2.1 (2026-10-08) — moments, closing rules, side channels

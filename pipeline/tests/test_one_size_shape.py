@@ -140,7 +140,7 @@ def test_no_other_function_reads_lengths_bounds():
     bad = []
     for p in sorted(ANSWERS.rglob("*.py")):
         name = p.relative_to(ANSWERS).as_posix()
-        if name == "model.py":                        # the schema's field names
+        if name.startswith("model/"):                 # the schema's field names
             continue
         bad += _bounds_readers(name, p.read_text(encoding="utf-8"))
     assert not bad, bad

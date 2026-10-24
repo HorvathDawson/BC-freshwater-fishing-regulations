@@ -333,7 +333,7 @@ and requires the reader-parity check to fail.
 `python -m pipeline.deliver` is the chain bundle → **verdicts** → status index → export; the answers
 file (`python -m pipeline.deliver.answers.cli build`) is built beside the export pair from the same
 bundle and verdicts. Its format, tap and fields: `pipeline/deliver/answers/ANSWERS-SPEC.md`; its
-types: `pipeline/deliver/answers/model.py` (strict pydantic, JSON Schema in the file's `schemas`,
+types: `pipeline/deliver/answers/model/` (strict pydantic, JSON Schema in the file's `schemas`,
 generated TypeScript in `app/packages/core/src/answers.generated.ts`).
 
 `verdicts.sqlite` sits beside `bundle.sqlite`, stamped with its digests, and is never shipped: it is

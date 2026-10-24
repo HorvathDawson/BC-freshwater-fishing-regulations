@@ -439,7 +439,7 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
     and THE PARTS of every named water (`part`/`part_section`); `python -m pipeline.deliver
     verdicts` writes `verdicts.sqlite` beside it (the traced reader per rule key × reading × fish ×
     origin, typed and CHECKed, never shipped); the status index, the export and the answers
-    (answers/2, `pipeline/deliver/answers/model.py`) LOOK ANSWERS UP there. `test_dataflow_gates.py` refuses a reader
+    (answers/2, `pipeline/deliver/answers/model/`) LOOK ANSWERS UP there. `test_dataflow_gates.py` refuses a reader
     call, a `may_target` read, a part grouping or a calendar spelled anywhere else.
 57. **The 2026-10-03 rulings, as built (Phase 3).** Classified Waters: ONE UNIT PER SECTION — a
     walked section takes the designation of the FIRST classified water it flows into (the nearest
