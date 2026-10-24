@@ -11,7 +11,8 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from pipeline.gauges.feed.publish import (HORIZONS, MODEL_ORDER, forecast_at,
+from pipeline.gauges.feed.change import FLOOD_MODELS
+from pipeline.gauges.feed.publish import (HORIZONS, forecast_at,
                                           forecast_percentiles)
 
 NOW = datetime(2026, 9, 4, 12, 0, tzinfo=timezone.utc)
@@ -79,7 +80,7 @@ def test_it_ranks_against_the_FUTURE_day_not_today():
 def test_it_prefers_the_short_range_model():
     """CLEVER is hourly over ten days and calibrated against the observed hydrograph. ELF
     is a thirty-day seasonal-volume model answering a different question."""
-    assert MODEL_ORDER[0] == "CLEVER"
+    assert FLOOD_MODELS[0] == "CLEVER"           # the one rule: `change.day_model` (T171)
     runs = {"ELF": {"series": daily(NOW, 30, 18.0)},
             "CLEVER": {"series": hourly(NOW, 240, lambda h: 5.0)}}
     got = forecast_percentiles(runs, {"discharge": FLAT}, NOW)

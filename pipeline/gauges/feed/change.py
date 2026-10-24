@@ -143,10 +143,11 @@ def daily_extremes(series: dict, start: datetime, last: date) -> list[tuple[str,
     return [(d, min(vs), max(vs)) for d, vs in sorted(days.items())]
 
 
-def base_of(series: dict, now_local: datetime) -> float | None:
-    """The model's own value NOW: the hourly step nearest the local clock (within 3 h), or a daily model's today."""
+def base_of(series: dict, now_local: datetime, key: str = "mid") -> float | None:
+    """The model's own value NOW: the hourly step nearest the local clock (within 3 h), or a daily model's today.
+    `key` is the trace read (`mid`, or `level_mid` for the stage)."""
     best: tuple[float, float] | None = None
-    for at, v in zip(series.get("at") or [], series.get("mid") or []):
+    for at, v in zip(series.get("at") or [], series.get(key) or []):
         if v is None:
             continue
         t = _local(at)
@@ -282,6 +283,117 @@ def change_source(runs: dict[str, tuple[float, Days]]) -> dict | None:
     return {"models": use, "lowWater": not flood,
             "days": [(d, mean(by_day[d], 1), mean(by_day[d], 2)) for d in sorted(by_day)],
             "reach": {m: runs[m][1][-1][0] for m in use}}
+
+
+# ------------------------------------------------------------------------------- one forecast day, ranked ----
+#
+# T171 (owner 2026-10-23: "sometimes it has gaps and says weather only despite gauge forecast on both sides"). The
+# horizons (`publish.forecast_percentiles`) rank one step at +1/+3/+5/+10; "Like your visit?" needs EVERY day, so the
+# feed also ranks each forecast day's DAILY MEAN (`forecast_days`). Both ask ONE rule for which model answers a day.
+
+# A MODEL WHOSE NUMBERS ARE NOT ON THE GAUGE'S SCALE. COFFEE publishes instantaneous PEAKS (each day's flow times the
+# station's historical instantaneous-to-daily peak ratio, Luo 2018 §3.3): on the 2026-10-23 feed its day 0 sat a median
+# 2.17x the gauge at the 29 stations COFFEE forecasts without CLEVER. Ranked as it stands against a record of daily
+# MEANS, that is a high-flow percentile nobody forecast. So before ranking, a peak model's value is put on the gauge's
+# scale by `observed / base` (base = the model's own today) — the move `run_change` makes for every run's percentile.
+# CLEVER (shifted onto the observed flow at issue) and ELF (1.06x) are ranked as published, as the horizons always were.
+PEAK_MODELS = ("COFFEE",)
+
+# How many forecast days are ranked: the Change's window, the map's last horizon (+10).
+AHEAD_DAYS = CHANGE_DAYS
+
+# An hourly day counts only when its steps cover it: at least this share of the day's steps carry a value. A run that
+# stops partway through a day (issued at 09:00, ending at 08:00 ten days on) has a morning, not a day, and a morning's
+# mean ranked against a record of daily means is a different number.
+DAY_COVER = 0.75
+
+
+def day_model(answers: dict[str, float | None]) -> tuple[str, float, bool] | None:
+    """THE MODEL FOR ONE FORECAST DAY AND ONE QUANTITY — the one rule (T143 + T144; T171 made it one function).
+
+    `answers` is each fresh run's ranked value for that day and quantity (None: it cannot say). Returns
+    `(model, value, lowWater)`: the FIRST FLOOD MODEL that answers, in `FLOOD_MODELS` order (CLEVER, then COFFEE — T143's
+    "each quantity's first model that answers IT"); else the LOW-WATER MODEL, with `lowWater` true (T144: ELF only where
+    no flood model reaches, carrying its caveat); else None. A model this file does not name never answers.
+    The horizons (`publish.forecast_percentiles`) and every ranked day (`forecast_days`) ask this and nothing else.
+    """
+    for m in FLOOD_MODELS:
+        if answers.get(m) is not None:
+            return m, answers[m], False                     # type: ignore[return-value]
+    if answers.get(LOW_WATER_MODEL) is not None:
+        return LOW_WATER_MODEL, answers[LOW_WATER_MODEL], True   # type: ignore[return-value]
+    return None
+
+
+def gauge_scale(model: str, run: dict, now: datetime, observed: float | None, quantity: str = "discharge") -> float | None:
+    """What a model's value is multiplied by before it is ranked: 1 for a model on the gauge's scale; for a PEAK model
+    `observed / base` (its own today), or None — it cannot be ranked — with no reading or no base to scale by."""
+    if model not in PEAK_MODELS:
+        return 1.0
+    key = "level_mid" if quantity == "level" else "mid"
+    base = base_of(run.get("series") or {}, now.astimezone(CENTRE_ZONE).replace(tzinfo=None), key)
+    if not observed or observed <= 0 or base is None or base <= 0:
+        return None
+    return observed / base
+
+
+def day_means(series: dict, key: str = "mid") -> dict[str, float]:
+    """`{Centre day: the mean of the trace's steps that day}` — only for days the trace covers: a daily step names its
+    whole day; an hourly day needs DAY_COVER of its steps (the step read from the run's own spacing). A null is no step."""
+    acc: dict[str, list[float]] = {}
+    times: list[datetime] = []
+    daily: dict[str, float] = {}
+    for at, v in zip(series.get("at") or [], series.get(key) or []):
+        t = _local(at)
+        if t is not None:
+            times.append(t)
+        if v is None or t is None:
+            continue
+        if (named := step_day(series, at)) is not None:
+            daily[named] = float(v)
+            continue
+        acc.setdefault(t.date().isoformat(), []).append(float(v))
+    gaps = sorted(g for g in ((b - a).total_seconds() / 3600.0 for a, b in zip(sorted(times), sorted(times)[1:])) if g > 0)
+    per_day = 24.0 / gaps[len(gaps) // 2] if gaps else 24.0
+    out = {d: sum(vs) / len(vs) for d, vs in acc.items() if len(vs) >= DAY_COVER * per_day}
+    out.update(daily)
+    return out
+
+
+def forecast_days(runs: dict | None, now: datetime, observed: float | None, rank: Rank | None) -> dict | None:
+    """EVERY FORECAST DAY'S DISCHARGE PERCENTILE (T171): `{"from": first day, "discharge": [...], "model": [...],
+    "lowWater": [i, ...]}` for the AHEAD_DAYS Centre days after today, or None when no day can be ranked.
+
+    Each day is the chosen model's DAILY MEAN (`day_means`; a daily model's one step), on the gauge's scale
+    (`gauge_scale`), ranked by `rank(flow, day)` — the station's discharge envelope for THAT day, the same one the
+    horizons and the Change rank against. The model per day is `day_model`'s. A day no model can rank is null in both
+    lists (the app's "weather only", said). `lowWater` lists the indexes of the days the low-water model made — absent
+    when none. A stale run never speaks (`stale`). Discharge only: "Like your visit?" compares flow, never a level.
+    """
+    if not runs or rank is None:
+        return None
+    first = now.astimezone(CENTRE_ZONE).date() + timedelta(days=1)
+    means: dict[str, tuple[dict[str, float], float | None]] = {}
+    for model, run in sorted(runs.items()):
+        series = (run or {}).get("series")
+        if not series or stale(run, now):
+            continue
+        means[model] = (day_means(series), gauge_scale(model, run, now, observed))
+    ps: list[float | None] = []
+    ms: list[str | None] = []
+    low: list[int] = []
+    for k in range(AHEAD_DAYS):
+        d = first + timedelta(days=k)
+        key = d.isoformat()
+        answers = {m: (rank(v[key] * s, d) if key in v and s is not None else None) for m, (v, s) in means.items()}
+        got = day_model(answers)
+        ps.append(round(got[1], 4) if got else None)
+        ms.append(got[0] if got else None)
+        if got and got[2]:
+            low.append(k)
+    if all(p is None for p in ps):
+        return None
+    return {"from": first.isoformat(), "discharge": ps, "model": ms, **({"lowWater": low} if low else {})}
 
 
 def _extreme(c: dict) -> tuple[str, dict]:

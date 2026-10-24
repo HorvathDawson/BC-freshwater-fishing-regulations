@@ -45,6 +45,7 @@ from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from pipeline.common.curated import CURATED, SOURCE
 from pipeline.gauges.feed.climatology import PCTILES
+from pipeline.gauges.feed.change import day_model as _day_model, forecast_days, gauge_scale as _gauge_scale
 from pipeline.gauges.feed.change import stale as _stale_run, station_change
 from pipeline.gauges.feed.forecast import ATTRIBUTION as FORECAST_ATTRIBUTION
 from pipeline.gauges.feed.forecast import CENTRE_ZONE as _CENTRE_ZONE
@@ -289,7 +290,7 @@ def percentile_of(value: float | None, band: list[float | None] | None) -> float
 # TEN DAYS (owner, 2026-10-20). Past about five the bounds on both models are wide, and the
 # answer often reads "normal for the season"; the owner wants the ten-day view on the map
 # regardless, for planning a trip a week and a half out. +10 sits at CLEVER's edge, so it is
-# usually ELF that answers it (see MODEL_ORDER: per horizon, first model that reaches wins),
+# usually ELF that answers it (`change.day_model`: per horizon, the first model that reaches wins),
 # and where no run reaches ten days the horizon is ABSENT — the app reads that as no
 # forecast, never as the +5 value.
 HORIZONS = (1, 3, 5, 10)
@@ -299,11 +300,11 @@ HORIZONS = (1, 3, 5, 10)
 # this and the value is about a different day.
 FORECAST_TOLERANCE_H = 18.0
 
-# CLEVER FIRST. It is the short-range model — hourly, ten days, and calibrated against the
-# observed hydrograph — and +1/+3/+5 are inside its range; +10 is at its very end and is
-# answered by CLEVER only while the run is fresh enough to reach it. ELF is a thirty-day
-# seasonal-volume model; it answers a different question and is the fallback, not the peer.
-MODEL_ORDER = ("CLEVER", "ELF")
+# WHICH MODEL ANSWERS A DAY is not decided here: `change.day_model` is the one rule (T171), asked by the horizons below
+# and by every ranked day (`change.forecast_days`). The first FLOOD model that answers the quantity — CLEVER, the
+# short-range model calibrated against the observed hydrograph, then COFFEE (a peak model, put on the gauge's scale
+# first: `change.gauge_scale`) — else the thirty-day low-water model, which is the fallback, not the peer. +10 sits at
+# CLEVER's very end and is answered by CLEVER only while the run is fresh enough to reach it.
 
 
 def forecast_at(series: dict | None, when: datetime,
@@ -359,8 +360,8 @@ def forecast_at(series: dict | None, when: datetime,
 
 
 def forecast_percentiles(runs: dict | None, envelopes: dict | None,
-                         now: datetime) -> dict[str, dict]:
-    """`{"1": {"discharge": 0.42, "model": "CLEVER"}, ...}` — where the river is HEADING.
+                         now: datetime, observed: dict | None = None) -> dict[str, dict]:
+    """`{"1": {"discharge": 0.42, "model": <the run>}, ...}` — where the river is HEADING.
 
     THE SAME RANKING AS TODAY'S, AGAINST A DIFFERENT DAY. The whole point of a percentile
     for the date is that low in September is not low in June; a forecast three days out must
@@ -380,6 +381,11 @@ def forecast_percentiles(runs: dict | None, envelopes: dict | None,
     372 forecast stations had no level at +1/+3/+5 while the Level chart drew ELF's stage
     forecast. `model` names the run behind the discharge (else the level); `levelModel` is
     written only where the level came from a different run, so a one-model day is unchanged.
+
+    THE MODEL IS `change.day_model`'s (T171): the same rule every ranked day (`forecast_days`) asks, so a horizon and
+    the strip's day agree on who forecast it. That rule brought COFFEE in after CLEVER (T144: ELF only where no flood
+    model reaches); COFFEE's peaks are ranked on the gauge's scale (`observed`, the station's reading now by quantity:
+    `change.gauge_scale`), so without a reading COFFEE cannot answer and the next model does.
     """
     if not runs or not envelopes:
         return {}
@@ -389,17 +395,21 @@ def forecast_percentiles(runs: dict | None, envelopes: dict | None,
         got: dict = {}
         by: dict[str, str] = {}
         for q in ("discharge", "level"):
-            for model in MODEL_ORDER:
-                run = runs.get(model) or {}
-                series = run.get("series")
+            answers: dict[str, float | None] = {}
+            for model, run in sorted(runs.items()):
+                series = (run or {}).get("series")
                 # A RUN PAST `change.STALE_HOURS` IS NOT TODAY'S FORECAST (T52): the feed carried ELF runs from 09-24 and
                 # 10-14 that still answered +3/+5/+10 at 08CG001, a week after the Centre had stopped issuing them.
                 if not series or _stale_run(run, now):
                     continue
-                p = percentile_of(forecast_at(series, when, q), band_for(envelopes.get(q), when))
-                if p is not None:
-                    got[q], by[q] = p, model
-                    break                   # first model that can answer THIS quantity wins; see MODEL_ORDER
+                # a peak model (COFFEE) on the gauge's scale first; None: it cannot be ranked (`change.gauge_scale`)
+                s = _gauge_scale(model, run, now, (observed or {}).get(q), q)
+                v = forecast_at(series, when, q)
+                answers[model] = percentile_of(None if v is None or s is None else v * s,
+                                               band_for(envelopes.get(q), when))
+            # WHICH MODEL ANSWERS THIS DAY, for THIS quantity: `change.day_model`, the one rule (T171)
+            if (pick := _day_model(answers)) is not None:
+                by[q], got[q] = pick[0], pick[1]
         if got:
             # WHICH MODEL SAID SO travels with the number. Two models disagreeing about
             # the same day is a real and frequent thing in the shoulder months, and a
@@ -793,11 +803,12 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
         # would have been recolouring the same value under two labels.
         t_at, t_c = temps.get(r["station"], (None, None))
         flow_env = have.get("discharge")
-        changed = station_change(
-            forecast.get(r["station"]), now, r["discharge"],
-            (lambda v, d, env=flow_env: percentile_of(v, band_for(env, datetime(d.year, d.month, d.day, 12,
-                                                                                  tzinfo=timezone.utc))))
-            if flow_env else None)
+        # A FLOW ON A DAY, ranked against that day's discharge envelope: the Change's percentiles and every ranked
+        # forecast day (`aheadDays`) are one ranking. None: no discharge envelope, nothing to rank against.
+        rank_day = ((lambda v, d, env=flow_env: percentile_of(v, band_for(env, datetime(d.year, d.month, d.day, 12,
+                                                                                         tzinfo=timezone.utc))))
+                    if flow_env else None)
+        changed = station_change(forecast.get(r["station"]), now, r["discharge"], rank_day)
         per = {}
         for q in ("discharge", "level"):
             v = r["level"] if q == "level" else r["discharge"]
@@ -848,7 +859,14 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
             # are not. Absent when no model reaches that far, which the map draws as
             # unmeasured rather than as normal.
             **({"ahead": ahead} if (ahead := forecast_percentiles(
-                forecast.get(r["station"]), have, now)) else {}),
+                forecast.get(r["station"]), have, now,
+                {"discharge": r["discharge"], "level": r["level"]})) else {}),
+            # EVERY FORECAST DAY (T171): each of the next ten Centre days' discharge percentile — the model's DAILY MEAN,
+            # ranked against that day's envelope (the same `rank` the Change uses), the model per day by the one rule
+            # `ahead` asks. "Like your visit?" reads it, so +2 and +4 are no longer weather-only. In the index, not the
+            # station file: the strip reads the cached index every surface reads (measured in the T171 ticket).
+            **({"aheadDays": days} if (days := forecast_days(
+                forecast.get(r["station"]), now, r["discharge"], rank_day)) else {}),
             # THE EXPECTED CHANGE (T52): the largest move a run expects over the next ten days, read day by day so a
             # one-day spike between the sampled horizons is seen (`pipeline.gauges.feed.change`). Beside `ahead`, not in
             # it: `ahead` is keyed by DAY and read by `String(day)`; this is no day. Flow only — `discharge` is the coded
