@@ -787,7 +787,7 @@ def main() -> None:
             split_graph_at(graph, geoms, _sweep.points, fid_index, proximity_pickup=False,
                            applied=applied_splits)
         _rehomed = _bs.apply_rehomes(graph, _sweep.rehomes)
-        _moved = _bs.make_edges_consistent(graph, geoms, _sweep)
+        _moved = _bs.rehome_host_edges(graph, geoms, pts) + _bs.make_edges_consistent(graph, geoms, _sweep)
         _resid = _bs.residual_straddles(graph, geoms, pts)
         print(f"  braid sweep applied: {_rehomed} junction edge(s) re-homed, {len(_moved)} edge(s) made "
               f"side-consistent; {len(_resid)} network(s) still straddle a cut")
@@ -931,8 +931,18 @@ def main() -> None:
             _before = len(graph.nodes)
             split_graph_at(graph, geoms, _len_pts, fid_index, proximity_pickup=False,
                            applied=applied_splits)
-            # a braid's own mouth AT a length cut keeps the side the rest of the braid is on
+            # a braid's own mouth AT a length cut keeps the side the rest of the braid is on, and an edge
+            # FWA's x/y hung on the wrong side of a length cut is re-homed by geometry
             _bs.apply_rehomes(graph, _len_sweep.rehomes)
+            _len_moved = _bs.rehome_host_edges(graph, geoms, _len_pts)
+            _len_resid = _bs.residual_straddles(graph, geoms, _len_pts)
+            print(f"    length cuts: {len(_len_moved)} edge(s) re-homed by geometry; "
+                  f"{len(_len_resid)} network(s) straddle a length cut")
+            _bs.write_record(Path(args.out) / "braid_sweep_length.json", _len_sweep, _len_moved, _len_resid,
+                             stage="length", extra={"skipped_junctions": _skipped})
+            if _len_resid:
+                raise SystemExit(f"{len(_len_resid)} network(s) straddle a length cut after it was made — "
+                                 "see braid_sweep_length.json")
             _named = sum(1 for p in _len_pts if p.label)
             # The share landing at a NAMED tributary is the reviewable number here: those
             # cuts produce a section a reader can locate ("downstream of Sloquet Creek"),

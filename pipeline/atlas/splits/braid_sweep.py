@@ -309,7 +309,7 @@ def touch_measure(view: View, member: str, edge_ix: int, host_node: str, blk: st
         p = Point(e.x, e.y) if (e.x or e.y) else None
     if p is None:
         return None
-    m, _, _ = view.measure_of(blk, p, near=[host_node])
+    m, _, _ = view.measure_of(blk, p)
     return m
 
 
@@ -413,6 +413,25 @@ def judge(view: View, net: Network, host_piece: str) -> Network:
     net.through_own = own
     net.through_other = [x for x in streams if x not in set(own)]
     return net
+
+
+def _side_by_own_cut(g: StreamGraph, net: "Network", sps: list[SplitPoint], blk: str) -> None:
+    """A touch on a host line other than this point's is sided by THAT line's cut of the same split — the
+    graph's own piece first (wholly below / above it), the touch's measure only on the piece holding it."""
+    for t in net.touches:
+        hn = g.nodes[t["host"]]
+        if hn.kind != NodeKind.stream or not hn.blk or hn.blk == blk:
+            continue
+        ms = [x.route_measure for x in sps if x.blk == hn.blk]
+        if not ms:
+            continue
+        mm = min(ms, key=lambda q: abs(q - t["m"]))
+        side = "lo" if t["m"] < mm else "hi"
+        if hn.up_m <= mm + 1e-6 and hn.down_m < mm:
+            side = "lo"
+        elif hn.down_m >= mm - 1e-6:
+            side = "hi"
+        t["side"], t["M"] = side, mm
 
 
 def host_piece_at(view: View, blk: str, M: float) -> Optional[str]:
@@ -526,14 +545,7 @@ def sweep(graph: StreamGraph, geoms: dict, points: list[SplitPoint],
             if fr is None:
                 continue
             for net in networks(view, blk, M, host_all, centre=fr.c):
-                # touches on a host line other than this point's are sided by THAT line's cut
-                for t in net.touches:
-                    hb = g.nodes[t["host"]].blk if g.nodes[t["host"]].kind == NodeKind.stream else blk
-                    if hb and hb != blk:
-                        ms = [s.route_measure for s in sps if s.blk == hb]
-                        mm = min(ms, key=lambda q: abs(q - t["m"]))
-                        t["side"] = "lo" if t["m"] < mm else "hi"
-                        t["M"] = mm
+                _side_by_own_cut(g, net, sps, blk)
                 judge(view, net, hp)
                 cands = net.through_own if net.straddles else (
                     [] if GATE_REFUSES_ONE_SIDE else net.side_channels)
@@ -731,6 +743,49 @@ def make_edges_consistent(graph: StreamGraph, geoms: dict, result: "SweepResult"
     return moved
 
 
+def rehome_host_edges(graph: StreamGraph, geoms: dict, points: list[SplitPoint]) -> list[dict]:
+    """Rule 6 on the HOST, after the cut, for every split point: an edge leaving a host piece that meets the
+    cut (the river flowing into a side channel's head) is placed by `_split_one` from FWA's x/y, which four
+    curated cases carry 0.5-2 km off (South Atnarko among them) — so a one-sided network could be hung on
+    the wrong side of the cut and read as straddling it. Each such edge is re-homed to the host piece its
+    meeting point lies on BY GEOMETRY (the side channel's own line at the edge's measure, projected onto the
+    host). A meeting point within END_M of the cut is a junction AT the cut and is left to rule 5."""
+    if not EDGES_REHOMED_BY_GEOMETRY:
+        return []
+    view = View(graph, geoms)
+    g = graph
+    moved: list[dict] = []
+    for sp in sorted(points, key=lambda x: (x.blk, x.route_measure, x.split_id)):
+        blk, M = sp.blk, sp.route_measure
+        ps = view.by_blk.get(blk, ())
+        adj = [x for x in ps if abs(g.nodes[x].up_m - M) < 1e-6 or abs(g.nodes[x].down_m - M) < 1e-6]
+        for hp in sorted(adj):
+            for i in sorted(view.adj.get(hp, ())):
+                e = g.edges[i]
+                if e.from_node != hp or e.kind == "continuation":
+                    continue
+                t = g.nodes.get(e.to_node)
+                if t is None or t.kind != NodeKind.stream or t.blk == blk:
+                    continue
+                p = view.point_on_piece(e.to_node, e.at_measure)
+                if p is None:
+                    continue
+                m, d, tgt = view.measure_of(blk, p)
+                if not tgt or tgt == hp or d > 50.0 or abs(m - M) < END_M:
+                    continue
+                cur = view.line(hp)
+                if cur is not None and cur.distance(p) <= d + 1e-6:
+                    continue
+                g.edges[i] = replace(e, from_node=tgt)
+                view.adj[hp] = [j for j in view.adj.get(hp, ()) if j != i]
+                view.adj[tgt] = sorted(set(view.adj.get(tgt, ())) | {i})
+                moved.append({"split_id": sp.split_id, "edge": i, "from": hp, "to": tgt, "to_node": e.to_node,
+                              "m": round(m, 1)})
+    if moved:
+        _rebuild_adj(graph)
+    return moved
+
+
 def residual_straddles(graph: StreamGraph, geoms: dict, points: list[SplitPoint]) -> list[dict]:
     """AFTER the cut: every own-water network that still touches both sides of a split's host cut, where
     adjacency across a boundary carrying that split's id is not adjacency (the reach's rule). The atlas-side
@@ -764,6 +819,7 @@ def residual_straddles(graph: StreamGraph, geoms: dict, points: list[SplitPoint]
             view.neighbours = lambda x, _o=orig: [(o, i) for o, i in _o(x) if not severed(x, o)]
             try:
                 for net in networks(view, sp.blk, sp.route_measure, host_all, centre=c):
+                    _side_by_own_cut(g, net, sps, sp.blk)
                     if judge(view, net, hp).straddles and net.through_own:
                         out.append({"split_id": sid, "blk": sp.blk, "M": sp.route_measure,
                                     "pieces": net.through_own})

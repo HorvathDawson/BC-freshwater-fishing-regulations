@@ -78,6 +78,7 @@ def _apply(g, geoms, pts):
     split_graph_at(g, geoms, pts, proximity_pickup=True)
     split_graph_at(g, geoms, res.points, proximity_pickup=False)
     BS.apply_rehomes(g, res.rehomes)
+    BS.rehome_host_edges(g, geoms, pts)
     BS.make_edges_consistent(g, geoms, res)
     return res, BS.residual_straddles(g, geoms, pts)
 
@@ -234,6 +235,30 @@ def test_7_mutation_the_edge_pass_off_leaks_the_braid_across_the_cut(monkeypatch
     lo, hi = _pieces(g, "B")
     # _split_one trusted the x/y: the upper half meets only the host BELOW the cut — a leak
     assert _host_sides_of(g, hi.node_id, 1000) == {"lo"}
+
+
+def _south_atnarko_off_xy():
+    """A one-sided side channel (meets the host at 1300 and 1700, both above the cut) whose head edge FWA
+    places 1 km below the cut by its x/y — South Atnarko's edge anomaly."""
+    G = _G()
+    G.braid("SA", [(1300, 0), (1350, -150), (1650, -150), (1700, 0)], 1300, 1700, xy_head=(400.0, 600.0))
+    return G.done()
+
+
+def test_7b_a_one_sided_networks_edge_with_bad_xy_is_rehomed_so_it_never_reads_as_straddling():
+    g, geoms = _south_atnarko_off_xy()
+    res, resid = _apply(g, geoms, [_cut("c", 1000)])
+    assert res.points == []
+    assert _host_sides_of(g, "SA:0", 1000) == {"hi"}
+    assert resid == []
+
+
+def test_7b_mutation_without_the_host_rehome_it_straddles(monkeypatch):
+    monkeypatch.setattr(BS, "EDGES_REHOMED_BY_GEOMETRY", False)
+    g, geoms = _south_atnarko_off_xy()
+    _, resid = _apply(g, geoms, [_cut("c", 1000)])
+    assert _host_sides_of(g, "SA:0", 1000) == {"lo", "hi"}
+    assert resid
 
 
 # ---------------------------------------------------------------- 8. another water's network
