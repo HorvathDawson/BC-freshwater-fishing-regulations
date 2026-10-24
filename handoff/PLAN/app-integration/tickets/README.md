@@ -206,7 +206,7 @@ use that as the sole source of future work."
 | T159 | gauge auto-promote checks every name the matcher accepted (Arrow Reservoir / Lower Arrow Lake) | OPEN | — | ★ owner runs promote |
 | T160 | 08HB074's standing Comox Lake backwater gets its own Level sentence | DONE | 52462f99, fd99643c | deliver; delivered r-9cf1fef180a8 |
 | T161 | the pipeline ships each fish's leading origin (rows 33); mainRes only reads it | DONE | 23be8123, d0bc72fd, 3bf1e1e1, 3e89b917 | deliver + fixture re-cut (rows 33); delivered r-9cf1fef180a8 |
-| T162 | salmon/steelhead run timing in the app: refresh + regenerate the data, ship a release file, a "Runs" colouring layer + sheet | OPEN | — | feature; size L |
+| T162 | salmon/steelhead run timing in the app: refresh + regenerate the data, ship a release file, a "Runs" colouring layer + sheet | BLOCKED | 24879b00 | PSF terms forbid redistribution (no licence on dataset #90) → ★ owner asks PSF for written permission, or a DFO open-data redesign (no steelhead); Q163 tracked PSF pages in the public repo |
 | T163 | McKinley Creek r1x (reported catch-and-release on the upstream pond) | DROPPED | — | not a defect: r1x is the spring-closure lift (RULINGS L13), whole by design; r1 (the C&R) already stops at the lake |
 | T164 | salmon (DFO): finish the dossier, place the 96+7 splits, review the extents, fetch + place current quotas | OPEN | — | umbrella over T95/T132; ★ owner confirms proposed splits |
 | T165 | no public access: streams dotted grey (owner), warning amber only in the page banner; own keeps amber | DONE | f438d417, bfd82ad6 | app style |
@@ -299,6 +299,7 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q158 | T168 | A renamed continuation's gauge counts as "on this water" (the Vedder lists the Chilliwack's 08MH001 as its own)? | yes | owner |
 | Q159 | T168 | "Reporting, not ranked" gauges fold with the silent ones ("not reporting or not ranked")? | yes | owner |
 | Q162 | T60 | Core words still type glyphs: WORDS.DATE_CARET " ▾", WATER_MAP_WORDS "▲ Upstream"/"▼ Downstream" — swap to the icon set's chevrons? | leave (prototype wording) | owner |
+| Q163 | T162 | data/source/runtiming/*.html (PSF pages, all rights reserved) are tracked in the PUBLIC repo — untrack them (git rm --cached + .gitignore) and purge from history? | untrack now (no history purge) once you say so | owner |
 
 ### Answered (recently, for the record)
 - Q160 — owner 2026-10-24: combine CLEVER + COFFEE on every forecast day, weighted by measured skill → T177. Q161 — owner: a spot records conditions for its TRIP date (not save time) → built in the T177 lane.
