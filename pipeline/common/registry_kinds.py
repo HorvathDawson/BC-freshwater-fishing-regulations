@@ -15,7 +15,7 @@ alphabetically, so a `setdefault` or a "first wins" loop picks the park EVERY ti
 That has now been written wrong three times independently, in three modules, by three
 authors who each had to remember the conflation:
 
-    bundle `_gauges`        123 of 220 lake_gauge rows named a park; 542 of 2,018 gauges
+    bundle gauge tables     123 of 220 lake_gauge rows named a park; 542 of 2,018 gauges
     bundle `_place_water`   35,133 of 352,666 rows offered a park as "water near this town"
     tiles  `_identity`      every tile feature inside a park took the park's id and its
                             slug as a search name

@@ -40,7 +40,7 @@ colour that turns at 2.5x.
 THE PANEL AND THE FORECAST CONSTANTS ride along (T125 item 6): the percentile KNOTS every envelope is built at
 (`PCTILES` in `pipeline/gauges/feed/climatology.py` — the ranking interpolates between them, the standing words break at
 them and the map's percentile ramp stops at them), the panel's refusal floor `MIN_TOTAL_WEIGHT`
-(`pipeline/atlas/gauges/panel.py`) and the forecast days the publisher ranks (`HORIZONS` in
+(`pipeline/gauges/consume/panel.py`) and the forecast days the publisher ranks (`HORIZONS` in
 `pipeline/gauges/feed/publish.py`). Each was typed again in core with a comment saying "mirrors".
 
 THE RECORD FLOOR rides along (T110). `MIN_RECORD_YEARS` in `pipeline/gauges/feed/record.py` is the shortest record the
@@ -54,7 +54,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from pipeline.atlas.gauges.panel import MIN_TOTAL_WEIGHT
+from pipeline.gauges.consume.panel import MIN_TOTAL_WEIGHT
 from pipeline.gauges.consume.shed import TRUST_BANDS
 from pipeline.gauges.feed import change as _change
 from pipeline.gauges.feed.climatology import PCTILES
@@ -109,7 +109,7 @@ def render_json() -> str:
                    "pipeline/gauges/feed/change.py :: the change policy; "
                    "pipeline/gauges/feed/record.py :: MIN_RECORD_YEARS, QUANTITIES; "
                    "pipeline/gauges/feed/climatology.py :: PCTILES; "
-                   "pipeline/atlas/gauges/panel.py :: MIN_TOTAL_WEIGHT; "
+                   "pipeline/gauges/consume/panel.py :: MIN_TOTAL_WEIGHT; "
                    "pipeline/gauges/feed/publish.py :: HORIZONS",
         "bands": [b for b, _ in TRUST_BANDS],
         "floor": {b: f for b, f in TRUST_BANDS},
@@ -194,7 +194,7 @@ export const MIN_RECORD_YEARS = {MIN_RECORD_YEARS};
 
 // The envelope and the panel (T125 item 6). PCTILES in pipeline/gauges/feed/climatology.py, as fractions: every envelope
 // is built at these knots, a reading is ranked between them (`percentileInBand`), the standing words break at them
-// (`standing`) and the map's percentile ramp stops at them. MIN_TOTAL_WEIGHT in pipeline/atlas/gauges/panel.py: below it
+// (`standing`) and the map's percentile ramp stops at them. MIN_TOTAL_WEIGHT in pipeline/gauges/consume/panel.py: below it
 // a panel is too uncertain to answer. HORIZONS in pipeline/gauges/feed/publish.py: the days ahead a forecast is ranked.
 
 /** The percentile knots of a `Band`, ascending. */
@@ -226,7 +226,7 @@ def main() -> int:
                   "pipeline/gauges/feed/publish.py :: _TEMP_BANDS / "
                   "pipeline/gauges/feed/change.py / "
                   "pipeline/gauges/feed/record.py / climatology.py PCTILES / "
-                  "pipeline/atlas/gauges/panel.py MIN_TOTAL_WEIGHT / publish.py HORIZONS", file=sys.stderr)
+                  "pipeline/gauges/consume/panel.py MIN_TOTAL_WEIGHT / publish.py HORIZONS", file=sys.stderr)
         print("  run: python -m pipeline.tools.emit_gauge_policy", file=sys.stderr)
         return 1
     for p, want in stale:

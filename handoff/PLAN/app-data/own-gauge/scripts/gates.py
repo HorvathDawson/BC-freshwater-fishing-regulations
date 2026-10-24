@@ -11,7 +11,7 @@ import pickle
 import sys
 
 sys.path.insert(0, ".")
-from pipeline.atlas.gauges.panel import OWN_SMALLER_RATIO, area_scale, far_limit_km  # noqa: E402
+from pipeline.gauges.consume.panel import OWN_SMALLER_RATIO, area_scale, far_limit_km  # noqa: E402
 
 MAIN = "/Users/dawson.horvath/dev/personal/BC-freshwater-fishing-regulations"
 

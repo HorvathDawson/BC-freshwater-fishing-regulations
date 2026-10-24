@@ -82,7 +82,7 @@ def test_the_knots_the_panel_floor_and_the_forecast_days_are_the_pipelines():
     """T125 item 6: emitted whole, from their one Python home each; the publisher's own ranking reads the knots from
     the climatology too (mutation: re-type `[0.10, 0.25, ...]` in `percentile_of` and the source pin fails)."""
     import inspect
-    from pipeline.atlas.gauges.panel import MIN_TOTAL_WEIGHT
+    from pipeline.gauges.consume.panel import MIN_TOTAL_WEIGHT
     from pipeline.gauges.feed import publish
     from pipeline.gauges.feed.climatology import PCTILES
     got = json.loads(E.render_json())

@@ -13,7 +13,7 @@ HAZELTON) or simply was not transmitting (Chilliwack, six gauges, grey because t
 was quiet). The whole roster ships now and the client combines it.
 """
 
-from pipeline.atlas.gauges.basin_station import roster
+from pipeline.gauges.consume.basins import roster
 
 YEARS = {st: {"discharge": {"years": 40}, "level": {"years": 40}}
          for st in ("S", "small", "big", "mid", "aaa", "bbb", "known", "unknown")}

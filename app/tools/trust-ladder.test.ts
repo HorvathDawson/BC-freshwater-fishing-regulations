@@ -14,7 +14,7 @@ import { CORE_MEMBERS, ERROR_BY_RATIO, MAX_USEFUL_SPREAD, OWN_LEAD_SHARE, estima
   from "@app/core";
 
 const ROOT = fileURLToPath(new URL("../..", import.meta.url));
-const PY = readFileSync(join(ROOT, "pipeline/atlas/gauges/panel.py"), "utf8");
+const PY = readFileSync(join(ROOT, "pipeline/gauges/consume/panel.py"), "utf8");
 
 /** `(10.0, "close", 11.7),` — the tuples out of the Python table. */
 function pythonLadder(): [number, string, number][] {

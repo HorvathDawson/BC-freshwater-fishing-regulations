@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from pipeline.atlas.gauges.build_panels import build, candidates
+from pipeline.gauges.consume.panels import build, candidates
 from pipeline.atlas.graph.drainage import AreaModel
 
 #: area = 1 * mag^1, so a magnitude IS an area here and the arithmetic stays readable.
@@ -385,7 +385,7 @@ def test_the_same_code_condition_is_what_holds_the_side_channel_tests():
     import inspect
     import textwrap
 
-    import pipeline.atlas.gauges.build_panels as bp
+    import pipeline.gauges.consume.panels as bp
 
     src = textwrap.dedent(inspect.getsource(bp.mainstem_of))
     cond = " or o.wsc != node.wsc"

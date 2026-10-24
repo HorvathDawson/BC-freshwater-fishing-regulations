@@ -4,7 +4,7 @@ WHY THIS HAS ITS OWN FILE. The registry stores two kinds of thing and `section_i
 different relation for each — identity for a water, containment for an area. Nothing in the
 type system says so, so it has been written wrong three times independently:
 
-    bundle `_gauges`        123 of 220 lake_gauge rows named a park
+    bundle gauge tables     123 of 220 lake_gauge rows named a park
     bundle `_place_water`   35,133 of 352,666 rows offered a park as "water near this town"
     tiles  `_identity`      every feature inside a park took the park's id and slug
 
@@ -75,7 +75,7 @@ class TestEveryReaderUsesIt:
         return inspect.getsource(getattr(importlib.import_module(module), fn))
 
     def test_the_bundle_gauge_owner_map_filters(self):
-        assert "is_water(" in self._src("pipeline.deliver.bundle.build", "_gauges")
+        assert "is_water(" in self._src("pipeline.gauges.consume.bundle_tables", "write")
 
     def test_the_bundle_place_water_owner_map_filters(self):
         assert "is_water(" in self._src("pipeline.deliver.bundle.build", "_place_water")

@@ -22,8 +22,8 @@ from pathlib import Path
 
 import pytest
 
-import pipeline.atlas.gauges.build_panels as bp
-from pipeline.atlas.gauges.build_panels import build, stream_polygons
+import pipeline.gauges.consume.panels as bp
+from pipeline.gauges.consume.panels import build, stream_polygons
 from pipeline.tests.test_build_panels import MODEL, E, N, g
 
 SLOUGH, RIVER, LAKE = "gnis:21105", "gnis:2", "wbk:9"
@@ -173,7 +173,7 @@ def test_a_polygon_takes_its_own_line_whose_own_gauge_does_not_lead():
     """Whole value. `mid` answers from its own slough's gauge without a lead, and `p_up` takes `mid` — the line
     downstream of it — not `foot`, where the gauge leads 16 km further on. The owner's Q44 clause: "the side channel
     and its own polygons still take their own gauge"."""
-    from pipeline.atlas.gauges.panel import lead_shares, leader_of
+    from pipeline.gauges.consume.panel import lead_shares, leader_of
 
     graph, water_of, donors = _far_slough()
     panels = build(graph, MODEL, donors, water_of=water_of, kind_of=KINDS)

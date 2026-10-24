@@ -2,7 +2,7 @@
  * OWNER 2026-10-22 — a water's own gauge comes first: "own gauge should be main (unless far from click) low magnitude
  * compared to click spot", "it can still use auxiliary gauges", and never across quantities.
  *
- * WHO may lead is the pipeline's (`may_lead` in pipeline/atlas/gauges/panel.py — far and much-smaller are tested
+ * WHO may lead is the pipeline's (`may_lead` in pipeline/gauges/consume/panel.py — far and much-smaller are tested
  * there, pipeline/tests/test_own_gauge.py) and arrives as `Contribution.lead`. These pin what leading MEANS in the
  * arithmetic every screen and the map share; `tools/one-formula.test.ts` runs the same cases through the Python.
  */

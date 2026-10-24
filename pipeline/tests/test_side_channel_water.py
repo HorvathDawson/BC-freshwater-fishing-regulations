@@ -22,8 +22,8 @@ import textwrap
 
 import pytest
 
-import pipeline.atlas.gauges.build_panels as bp
-from pipeline.atlas.gauges.build_panels import branch_points, build, side_channel_waters
+import pipeline.gauges.consume.panels as bp
+from pipeline.gauges.consume.panels import branch_points, build, side_channel_waters
 from pipeline.tests.test_build_panels import AREA, MODEL, E, N, g
 
 RIVER, SLOUGH, CREEK, OTHER, LAKE = "gnis:river", "gnis:slough", "gnis:creek", "gnis:other", "wbk:lake"

@@ -1,7 +1,7 @@
 /**
  * THE PIPELINE AND THE APP MUST BE ONE FORMULA. This test runs both.
  *
- * The weighting exists twice — `pipeline/atlas/gauges/panel.py` decides which donors go in
+ * The weighting exists twice — `pipeline/gauges/consume/panel.py` decides which donors go in
  * the bundle, `packages/core/src/trust.ts` decides what they are worth on screen — and it
  * has to, because one runs in Python at build time and the other in the browser on a tap.
  * Two implementations of one formula drift; that is not a risk, it is a certainty given
@@ -60,7 +60,7 @@ function fromPython(): { errors: number[]; weights: number[]; leaders: (number |
   const script = `
 import json, sys
 sys.path.insert(0, ${JSON.stringify(ROOT)})
-from pipeline.atlas.gauges.panel import error_for, lead_shares, leader_of, weight_of
+from pipeline.gauges.consume.panel import error_for, lead_shares, leader_of, weight_of
 leads = ${JSON.stringify(LEADS)}
 ratios = ${JSON.stringify(RATIOS)}
 years = ${JSON.stringify(YEARS)}
@@ -161,7 +161,7 @@ function answersFromPython(): { answer: { ok: boolean; why?: string; value?: Rec
   const script = `
 import json, sys
 sys.path.insert(0, ${JSON.stringify(ROOT)})
-from pipeline.atlas.gauges.panel import Contribution, answering
+from pipeline.gauges.consume.panel import Contribution, answering
 out = []
 for target, cs in json.loads(${JSON.stringify(JSON.stringify(PANELS))}):
     got, stood = answering(target, [Contribution(x["percentile"], x["role"], x["areaKm2"], x["years"],

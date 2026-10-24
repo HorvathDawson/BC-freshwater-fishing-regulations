@@ -30,7 +30,7 @@ import time
 from pathlib import Path
 
 from pipeline.common.curated import CURATED, GENERATED, REPO_ROOT, SOURCE
-from pipeline.deliver.bundle.build import CLIM_PATH
+from pipeline.gauges.consume.bundle_tables import CLIM_PATH
 
 MANIFEST = GENERATED.bundle.parent / "build-manifest.json"
 # TILES BEFORE DELIVER: tiles read only the atlas, and `pipeline.deliver all` ends with the vintage

@@ -18,8 +18,8 @@ from __future__ import annotations
 import inspect
 import textwrap
 
-import pipeline.atlas.gauges.build_panels as bp
-from pipeline.atlas.gauges.build_panels import build, candidates, own_distances
+import pipeline.gauges.consume.panels as bp
+from pipeline.gauges.consume.panels import build, candidates, own_distances
 from pipeline.tests.test_build_panels import AREA, MODEL, E, N, g
 
 CANAL, UPPER, LOWER, LAKE, SLOUGH = "gnis:canal", "gnis:upper", "gnis:lower", "wbk:lake", "gnis:slough"

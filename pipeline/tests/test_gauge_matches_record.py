@@ -82,8 +82,8 @@ def test_the_atlas_build_writes_the_record_and_the_bundle_checks_it_first():
     """Both ends are wired (the builds themselves are heavy; their source is read)."""
     import importlib
     atlas_build = importlib.import_module("pipeline.atlas.build")
-    bundle_build = importlib.import_module("pipeline.deliver.bundle.build")
+    bundle_build = importlib.import_module("pipeline.gauges.consume.bundle_tables")
     a = inspect.getsource(atlas_build)
     assert "write_record(" in a and "matches_digest(" in a
-    g = inspect.getsource(bundle_build._gauges)
+    g = inspect.getsource(bundle_build.write)
     assert g.index("check_record(") < g.index("read_match(")

@@ -23,9 +23,9 @@ from pathlib import Path
 
 import pytest
 
-from pipeline.atlas.gauges import panel as P
-from pipeline.atlas.gauges.build_panels import build
-from pipeline.atlas.gauges.panel import MEMBERS_PER_QUANTITY, panel_for, weight_of
+from pipeline.gauges.consume import panel as P
+from pipeline.gauges.consume.panels import build
+from pipeline.gauges.consume.panel import MEMBERS_PER_QUANTITY, panel_for, weight_of
 from pipeline.gauges.feed import climatology, record
 from pipeline.gauges.feed.record import MIN_RECORD_YEARS, QUANTITIES, record_years
 from pipeline.tests.test_build_panels import MODEL, E, N, g
@@ -110,7 +110,7 @@ def test_the_member_rows_carry_the_record_per_quantity():
 #: is the reader; climatology.py is the producer (its run summary prints the median); the bundle COPIES clim stats into
 #: `gauge_stats` once. Anything else is a second opinion about how long a record is.
 ALLOWED = {"pipeline/gauges/feed/record.py": 1, "pipeline/gauges/feed/climatology.py": 1,
-           "pipeline/deliver/bundle/build.py": 1}
+           "pipeline/gauges/consume/bundle_tables.py": 1}
 #: `max(m.years)` / `max(discharge_years, level_years)`: a reduction of the per-quantity record back to one number
 #: (adversarial review: the first pattern missed a reduction of a `Member.years` tuple).
 READS = re.compile(r"""\.get\(\s*["']years["']|\[\s*["']years["']\s*\]|"""

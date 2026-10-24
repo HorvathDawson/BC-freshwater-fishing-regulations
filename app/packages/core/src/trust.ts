@@ -2,7 +2,7 @@
  * How wrong a transferred reading is, as a function of how different the two catchments
  * are — and the vocabulary a screen uses to say so.
  *
- * MIRRORS `pipeline/atlas/gauges/panel.py`. `tools/trust-ladder.test.ts` holds the two
+ * MIRRORS `pipeline/gauges/consume/panel.py`. `tools/trust-ladder.test.ts` holds the two
  * equal, the same way the magnitude zoom ladder is held: drift is a red test rather than a
  * screen quietly promising a precision the pipeline never claimed.
  *

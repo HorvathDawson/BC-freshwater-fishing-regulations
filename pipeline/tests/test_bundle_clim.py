@@ -1,7 +1,7 @@
 """The envelope's byte layout, pinned on BOTH sides of the language boundary.
 
 `gauge_clim.bands` is the one place in the bundle where a table stores a hand-packed binary
-record. Python writes it in `deliver/bundle/build.py`; TypeScript reads it in
+record. Python writes it in `gauges/consume/bundle_tables.py`; TypeScript reads it in
 `app/packages/data/src/sql/shared.ts`. Nothing in either language checks the other, and a
 disagreement about the stride or an offset does not raise — it silently yields a seasonal
 band for the wrong time of year, or flow figures off by orders of magnitude, on a screen
@@ -41,8 +41,8 @@ def test_one_pentad_is_twenty_one_bytes_laid_out_as_declared():
 
 
 def test_the_writer_still_writes_this_layout():
-    """If build.py's pack string changes, this test is the thing that notices."""
-    src = (ROOT / "pipeline/deliver/bundle/build.py").read_text(encoding="utf-8")
+    """If bundle_tables.py's pack string changes, this test is the thing that notices."""
+    src = (ROOT / "pipeline/gauges/consume/bundle_tables.py").read_text(encoding="utf-8")
     assert 'struct.pack("<5f"' in src, (
         "the bundler no longer packs five little-endian float32 per pentad")
     assert "buf.append(pe)" in src, "the pentad byte is no longer written first"

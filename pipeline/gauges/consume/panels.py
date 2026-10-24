@@ -25,7 +25,7 @@ import math
 from dataclasses import dataclass
 from typing import Any
 
-from pipeline.atlas.gauges.panel import (
+from pipeline.gauges.consume.panel import (
     MAX_AREA_RATIO, OWN_LEADS_PER_QUANTITY, QUANTITIES, Donor, area_scale, may_lead, panel_for, years_in,
 )
 from pipeline.atlas.graph.drainage import AreaModel
@@ -102,7 +102,7 @@ def flowing(graph, water_of: dict[str, str] | None = None, kind_of: dict[str, st
 
     THE WATER'S KIND, NEVER THE GEOMETRY (owner 2026-10-22 late, "a polygon-only slough or canal gets gauges like a
     stream"). A slough or canal is a stream item (`flowing.py` folds its polygons into the river's item), yet its
-    polygons are `lake:<wbk>` nodes in the graph, and the walk read that `NodeKind` as the water's kind: it counted
+    polygons are `lake:<wbk>` nodes in the graph, and the walk read that node kind as the water's kind: it counted
     the Vedder Canal as a lake crossing, gave no panel to any of the 146 stream-item polygons, and left a canal that is
     ONLY polygons (Seton Canal, Bowman, Lewis, Hansen, Taylor Slough) unmeasured wherever it sat. So a polygon of a
     stream item is a stream here — offered a panel, walked through without ending the relationship, and its own

@@ -195,6 +195,6 @@ def test_every_production_reader_of_the_water_kind_is_handed_the_registry():
     assert not bad, f"called without the registry (reads the node's shape): {bad}"
     # the scan sees the callers it pins
     assert {(p, name) for p, _, name, _ in calls} >= {
-        ("deliver/bundle/build.py", "build_gauge_sheds"), ("deliver/bundle/build.py", "lake_gauge_links"),
+        ("gauges/consume/bundle_tables.py", "build_gauge_sheds"), ("gauges/consume/bundle_tables.py", "lake_gauge_links"),
         ("atlas/reach/build.py", "_stem_to_first_lake"), ("atlas/reach/extent.py", "_watershed_part"),
         ("gauges/consume/shed.py", "is_lake_station")}

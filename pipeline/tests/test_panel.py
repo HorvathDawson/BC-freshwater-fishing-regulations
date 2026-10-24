@@ -6,7 +6,7 @@ import re
 
 import pytest
 
-from pipeline.atlas.gauges.panel import (
+from pipeline.gauges.consume.panel import (
     MAX_AREA_RATIO, MIN_RECORD_YEARS, MEMBERS_PER_QUANTITY, combine, eligible, panel_for,
     share_of, trust_of, weight_of,
 )
@@ -209,7 +209,7 @@ def test_the_record_scale_is_linear_up_to_the_full_mark_and_flat_after():
 
 def test_answering_is_the_apps_answer_shape_and_refusals():
     """`answering` mirrors trust.ts `answering` (parity run in app/tools/one-formula.test.ts); here its whole values."""
-    from pipeline.atlas.gauges.panel import Contribution, answering, estimate
+    from pipeline.gauges.consume.panel import Contribution, answering, estimate
     C = Contribution
     assert estimate(100, []) == {"ok": False, "why": "no-station"}
     assert estimate(100, [C(0.0, "up", 100, 20)]) == {"ok": False, "why": "no-record"}
@@ -247,7 +247,7 @@ def test_every_evaluation_script_marks_the_reserve_as_the_app_does():
     `Contribution`s with no reserve flag, so on a panel of five or more their "app's answer" kept a reserve member the
     app stands back. Every script that builds a `Contribution` asks `reserve_at` (mutation: drop it from one)."""
     from pathlib import Path
-    from pipeline.atlas.gauges.panel import CORE_MEMBERS, reserve_at
+    from pipeline.gauges.consume.panel import CORE_MEMBERS, reserve_at
     assert [reserve_at(i) for i in range(CORE_MEMBERS + 2)] == [False] * CORE_MEMBERS + [True, True]
     repo = Path(__file__).resolve().parents[2]
     ts = (repo / "app/packages/data/src/panel.ts").read_text()

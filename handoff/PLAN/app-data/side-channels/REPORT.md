@@ -3,7 +3,7 @@
 THE ANSWER: the owner is right, and there are two separate defects.
 
 DEFECT 1, THE MAIN CAUSE: `mainstem_of` adopts a reach from another river.
-- Where: pipeline/atlas/gauges/build_panels.py.
+- Where: pipeline/gauges/consume/panels.py.
 - What it does: a side channel (FWA edge type 1100 or 1350) takes "the LARGEST ordinary reach within 4 hops", whatever river that reach is on. Four hops is enough to leave the channel's own river and reach the river that river flows into.
 - Widgeon Slough (sid 60045, watershed code 100-025956, the Pitt's code) walks to the Pitt at hop 1 (1,181 km²) and to the Fraser at hop 2 (64,682 km², code 100). It adopts the Fraser.
 - The Klesilkwa braids (sids 317336 and 317795, code 970-106243-844109) adopt the Skagit (code 970-106243).
@@ -92,7 +92,7 @@ Excluding tidal sloughs is not proposed: there is no tidal data to drive it.
 
 ## Option A — built (2026-10-21, owner decision 2026-10-22 "a is what i want. just follows its own river at that point")
 
-THE CHANGE: one condition in `mainstem_of` (pipeline/atlas/gauges/build_panels.py). A candidate reach is adopted only
+THE CHANGE: one condition in `mainstem_of` (pipeline/gauges/consume/panels.py). A candidate reach is adopted only
 when `o.wsc == node.wsc`. A reach on another code is still walked THROUGH (the 4-hop budget and the "largest" rule are
 unchanged, so the Herrling braid stubs stay fixed), it is just never adopted. No same-code reach in range → the channel
 is not adopted and keeps its own panel (none where its own river is silent). B, C1, C2 and D are NOT built.

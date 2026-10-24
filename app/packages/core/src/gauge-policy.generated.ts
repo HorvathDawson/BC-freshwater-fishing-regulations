@@ -64,7 +64,7 @@ export const MIN_RECORD_YEARS = 3;
 
 // The envelope and the panel (T125 item 6). PCTILES in pipeline/gauges/feed/climatology.py, as fractions: every envelope
 // is built at these knots, a reading is ranked between them (`percentileInBand`), the standing words break at them
-// (`standing`) and the map's percentile ramp stops at them. MIN_TOTAL_WEIGHT in pipeline/atlas/gauges/panel.py: below it
+// (`standing`) and the map's percentile ramp stops at them. MIN_TOTAL_WEIGHT in pipeline/gauges/consume/panel.py: below it
 // a panel is too uncertain to answer. HORIZONS in pipeline/gauges/feed/publish.py: the days ahead a forecast is ranked.
 
 /** The percentile knots of a `Band`, ascending. */

@@ -2,7 +2,7 @@
 
 Reads the LIVE bundle (data/generated/bundle/bundle.sqlite) read-only; `check_release.py` proves the release's
 paint carries the same panels. Weights are the app's (`weightFor` in app/packages/core/src/trust.ts, mirrored by
-pipeline/atlas/gauges/panel.py `weight_of`).
+pipeline/gauges/consume/panel.py `weight_of`).
 
     .venv/bin/python handoff/PLAN/app-data/side-channels/scripts/panels_of.py "Widgeon Slough" "Pitt River"
 """
@@ -11,7 +11,7 @@ import sqlite3
 import sys
 
 sys.path.insert(0, ".")
-from pipeline.atlas.gauges.panel import share_of, weight_of  # noqa: E402
+from pipeline.gauges.consume.panel import share_of, weight_of  # noqa: E402
 
 BUNDLE = "/Users/dawson.horvath/dev/personal/BC-freshwater-fishing-regulations/data/generated/bundle/bundle.sqlite"
 

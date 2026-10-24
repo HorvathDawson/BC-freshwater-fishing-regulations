@@ -20,9 +20,9 @@ import textwrap
 
 import pytest
 
-from pipeline.atlas.gauges import panel as P
-from pipeline.atlas.gauges.build_panels import build
-from pipeline.atlas.gauges.panel import (
+from pipeline.gauges.consume import panel as P
+from pipeline.gauges.consume.panels import build
+from pipeline.gauges.consume.panel import (
     MEMBERS_PER_QUANTITY, OWN_AREA_TRUST, OWN_FAR_FRACTION, OWN_FAR_MIN_KM, OWN_LEAD_SHARE, OWN_LEADS_PER_QUANTITY,
     OWN_SMALLER_RATIO, area_scale, far_limit_km, lead_shares,
     leader_of, may_lead, river_length_km,
@@ -366,7 +366,7 @@ def test_the_floor_is_what_holds_the_main_weight():
 
 
 def _build_mutant(old, new):
-    import pipeline.atlas.gauges.build_panels as bp
+    import pipeline.gauges.consume.panels as bp
     src = textwrap.dedent(inspect.getsource(bp.build))
     assert src.count(old) == 1, f"{old!r} moved; update this pin"
     ns = dict(vars(bp))

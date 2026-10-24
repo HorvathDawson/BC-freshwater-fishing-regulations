@@ -16,8 +16,8 @@ import textwrap
 
 import pytest
 
-import pipeline.atlas.gauges.build_panels as bp
-from pipeline.atlas.gauges.build_panels import build, own_distances
+import pipeline.gauges.consume.panels as bp
+from pipeline.gauges.consume.panels import build, own_distances
 from pipeline.deliver.bundle import continuation as C
 from pipeline.tests.test_build_panels import MODEL, E, N, g
 
@@ -212,7 +212,7 @@ def test_the_vedder_313838_is_led_by_08mh001_in_the_bundle():
     """THE ACCEPTANCE on shipped data, not a toy graph: the Vedder's sections carry the Chilliwack's gauges as own
     (`panel_member.lead`), and with its own 08MH047 retired (no reading: weight 0) `leader_of` — the rule trust.ts
     mirrors — hands the lead to 08MH001."""
-    from pipeline.atlas.gauges.panel import leader_of
+    from pipeline.gauges.consume.panel import leader_of
     from pipeline.tests.conftest import predates
     db = sqlite3.connect(f"file:{_bundle()}?mode=ro", uri=True)
     got = {sid: {st: lead for st, lead in db.execute(

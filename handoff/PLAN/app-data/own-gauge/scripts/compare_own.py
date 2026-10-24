@@ -15,7 +15,7 @@ import sqlite3
 import sys
 
 sys.path.insert(0, ".")
-from pipeline.atlas.gauges.panel import Contribution, answering, reserve_at  # noqa: E402
+from pipeline.gauges.consume.panel import Contribution, answering, reserve_at  # noqa: E402
 
 MAIN = "/Users/dawson.horvath/dev/personal/BC-freshwater-fishing-regulations"
 BUNDLE = MAIN + "/data/generated/bundle/bundle.sqlite"
@@ -30,7 +30,7 @@ def reading(row, q):
     return row.get("percentile") if (row.get("parameter") or "discharge") == q else None
 
 
-# THE APP'S ANSWER, imported — `answering` in pipeline/atlas/gauges/panel.py, which app/tools/one-formula.test.ts
+# THE APP'S ANSWER, imported — `answering` in pipeline/gauges/consume/panel.py, which app/tools/one-formula.test.ts
 # runs beside `answering` in app/packages/core/src/trust.ts (T125 item 7). This script used to port it by hand.
 def estimate(entry, idx, q):
     """-> (percentile 0..100 | None, why, [(station, share)])."""

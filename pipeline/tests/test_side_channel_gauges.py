@@ -20,8 +20,8 @@ import re
 import textwrap
 from pathlib import Path
 
-import pipeline.atlas.gauges.build_panels as bp
-from pipeline.atlas.gauges.build_panels import LARGE_SHARE, across_branch, branch_points, build
+import pipeline.gauges.consume.panels as bp
+from pipeline.gauges.consume.panels import LARGE_SHARE, across_branch, branch_points, build
 from pipeline.tests.test_build_panels import AREA, MODEL, E, N, g
 
 RIVER, SLOUGH, CREEK, CANAL = "gnis:river", "gnis:slough", "gnis:creek", "gnis:canal"

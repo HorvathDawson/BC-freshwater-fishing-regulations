@@ -21,7 +21,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, ".")
-import pipeline.atlas.gauges.build_panels as bp  # noqa: E402
+import pipeline.gauges.consume.panels as bp  # noqa: E402
 from pipeline.common.section_handles import read as read_handles  # noqa: E402
 from pipeline.deliver.bundle.build import _area_model  # noqa: E402
 

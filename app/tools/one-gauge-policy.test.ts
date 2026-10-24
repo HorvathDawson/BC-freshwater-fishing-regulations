@@ -26,7 +26,7 @@ describe("the gauge policy constants", () => {
   it("are the Python's", () => {
     const pct = /PCTILES = \(([^)]*)\)/.exec(read("pipeline/gauges/feed/climatology.py"))![1]!;
     expect(PERCENTILE_KNOTS.map((k) => Math.round(k * 100))).toEqual(pct.split(",").map((x) => Number(x)));
-    expect(MIN_TOTAL_WEIGHT).toBe(Number(/MIN_TOTAL_WEIGHT = ([\d.]+)/.exec(read("pipeline/atlas/gauges/panel.py"))![1]));
+    expect(MIN_TOTAL_WEIGHT).toBe(Number(/MIN_TOTAL_WEIGHT = ([\d.]+)/.exec(read("pipeline/gauges/consume/panel.py"))![1]));
     const days = /^HORIZONS = \(([^)]*)\)/m.exec(read("pipeline/gauges/feed/publish.py"))![1]!;
     expect([...FORECAST_DAYS]).toEqual(days.split(",").map((x) => Number(x)));
   });

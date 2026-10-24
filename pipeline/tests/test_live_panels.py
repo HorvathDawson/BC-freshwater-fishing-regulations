@@ -23,9 +23,9 @@ from pathlib import Path
 
 import pytest
 
-from pipeline.atlas.gauges import panel as P
-from pipeline.atlas.gauges.build_panels import build
-from pipeline.atlas.gauges.panel import (
+from pipeline.gauges.consume import panel as P
+from pipeline.gauges.consume.panels import build
+from pipeline.gauges.consume.panel import (
     CORE_MEMBERS, MEMBERS_PER_QUANTITY, OWN_LEADS_PER_QUANTITY, QUANTITIES, combine, lead_shares, leader_of, panel_for, weight_of,
 )
 from pipeline.tests.test_build_panels import MODEL, E, N, g
@@ -104,10 +104,10 @@ def test_the_build_takes_no_roster_flag():
 
 
 def test_the_bundle_passes_the_panel_build_no_roster_flag():
-    """pipeline/deliver/bundle/build.py calls `build_panels(...)` with the water map, the continuations (T76), the water kinds (a stream
+    """pipeline/gauges/consume/bundle_tables.py calls `build_panels(...)` with the water map, the continuations (T76), the water kinds (a stream
     water's polygons take its answer — test_stream_polygon_panels.py), the measures and the published areas — and
     nothing derived from `realtime`."""
-    src = Path(__file__).resolve().parents[1] / "deliver" / "bundle" / "build.py"
+    src = Path(__file__).resolve().parents[1] / "gauges" / "consume" / "bundle_tables.py"
     calls = [c for c in ast.walk(ast.parse(src.read_text(encoding="utf-8")))
              if isinstance(c, ast.Call) and getattr(c.func, "id", None) == "build_panels"]
     assert len(calls) == 1

@@ -20,7 +20,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, ".")
-from pipeline.atlas.gauges.panel import Contribution, answering, reserve_at, weight_of  # noqa: E402
+from pipeline.gauges.consume.panel import Contribution, answering, reserve_at, weight_of  # noqa: E402
 from pipeline.deliver.release import build as RB  # noqa: E402
 from pipeline.deliver.release import paint as PAINT  # noqa: E402
 from pipeline.gauges.feed.publish import listed_stations, roster_drift  # noqa: E402
@@ -41,7 +41,7 @@ def reading(row, q):
     return row.get("percentile") if (row.get("parameter") or "discharge") == q else None
 
 
-# THE APP'S ANSWER, imported — `answering` in pipeline/atlas/gauges/panel.py, which app/tools/one-formula.test.ts
+# THE APP'S ANSWER, imported — `answering` in pipeline/gauges/consume/panel.py, which app/tools/one-formula.test.ts
 # runs beside `answering` in app/packages/core/src/trust.ts (T125 item 7). This script used to port it by hand.
 def estimate(members, target, idx, q, drop=None):
     """`(percentile 0-100 | None, why, [(station, weight)])` — the app's answer at horizon 0 (`answering`): members
