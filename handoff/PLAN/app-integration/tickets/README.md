@@ -209,6 +209,7 @@ use that as the sole source of future work."
 | T162 | salmon/steelhead run timing in the app: refresh + regenerate the data, ship a release file, a "Runs" colouring layer + sheet | OPEN | — | feature; size L |
 | T163 | McKinley Creek r1x: catch-and-release only downstream of McKinley Lake (catalogue extent) | OPEN | — | catalogue + reach rerun |
 | T164 | salmon (DFO): finish the dossier, place the 96+7 splits, review the extents, fetch + place current quotas | OPEN | — | umbrella over T95/T132; ★ owner confirms proposed splits |
+| T165 | no public access takes the warning amber; "has its own regulations" gets a new colour | OPEN | — | app style |
 
 ## Order for open tickets
 
@@ -270,8 +271,6 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q130 | T144 | Under a combined Change, also draw each model's own line (quieter)? | yes | owner |
 | Q132 | T144 | The +1/+3/+5/+10 chips keep the old model order (CLEVER then ELF) — or follow the Change source too? | keep | owner |
 | Q134 | T145 | Spot pin: a 12 px square (never confused with a round gauge dot) — or round/teardrop? | square | owner |
-| Q137 | T146 | Light no-access is spruce green #00604C (the magenta clashed with the selection outline) — keep, or keep magenta and move the selection colour? | spruce | owner |
-| Q138 | T146 | Colour-blind readers: light no-access line is ~11.5 ΔE from closed/own/base for a dichromat (cvd theme keeps its mauve at 14.5+) — add a dash on no-access lines? | no dash (colour alone carries status) | owner |
 | Q139 | T147 | The no-access block also leads Conditions for a tapped no-access section at full size? | keep | owner |
 | Q140 | T147 | A tapped section outside no-access land on a part that runs through it: show the part's "Some of this part is inside …" banner? | no (the tapped section speaks) | owner |
 | Q142 | T100 | Draw real lake parts (added_lakes rings, as Kootenay) for Shuswap maps A/B/C etc.? (atlas rebuild) | not now; caveat line | owner |
@@ -281,6 +280,7 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q147 | T153 | A pond a steelhead row now takes also gets the zone's lake wording of the steelhead rule (zp:steelhead r1b/r2b/r4b +68 polygons each, z5 r6b +44)? | accept | owner |
 | Q148 | T154 | Promote "dammed widening = lake" (R2 with the dams layer: 26 candidates → LAKE; catches Quinsam and South Nanaimo, not Bonaparte) into the slough candidates, or keep dams as evidence only? | evidence only | owner |
 | Q149 | T154 | Bonaparte (329055141) has no dam in the provincial data — mark it lake by hand on the slough page? | yours on the page | owner |
+| Q150 | T165 | The new colour for "has its own regulations" once no access takes the amber (3 options shot)? | best by the colour gates; swap any time | owner |
 
 ### Answered (recently, for the record)
 - Q1, Q3, Q46, Q48, Q49, Q50, Q51, Q52, Q54, Q56, Q57, Q58, Q61, Q64, Q65, Q66, Q67, Q68, Q70, Q71, Q72, Q73, Q74, Q75, Q76, Q77, Q78, Q80, Q81, Q83, Q85, Q86, Q89, Q92, Q93, Q94, Q96, Q97, Q98, Q101, Q102, Q104, Q105, Q106, Q108, Q109, Q110, Q111, Q115, Q116, Q117, Q118, Q120, Q121, Q122, Q127, Q128, Q129, Q131, Q133, Q135, Q136, Q141, Q143 — decided by Claude 2026-10-23 (owner-question triage, owner asked), decisions.md "CLAUDE 2026-10-23 — owner-question triage"; Q29, Q43, Q59, Q60, Q82, Q88, Q90, Q95, Q99, Q100, Q107, Q112 — already answered or obsolete (same record). The owner reads the record and can reverse any.
