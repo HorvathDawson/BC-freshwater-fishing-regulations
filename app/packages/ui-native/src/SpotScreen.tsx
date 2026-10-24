@@ -21,20 +21,22 @@
  * number in the app; it may not have two explanations.
  */
 import { useState } from "react";
-import { Image, Pressable, ScrollView, Text, TextInput, View } from "react-native";
-import { DAY_PANEL_WORDS, DRAFT_WORDS, isUntitled, needsRefresh, observedLine, PHOTO_WORDS, refreshReason, removePhotoLabel,
-  savedGauges, spotHeadline, spotLabel, spotReadingFigure, visitDay, weatherTrend, type PhotoStore, type Spot, type SpotWeather,
-  type WeatherSample } from "@app/data/spots";
+import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { isUntitled, needsRefresh, refreshReason, spotHeadline, spotLabel, type PhotoStore, type Spot } from "@app/data/spots";
 import { leadUpView, useBackLayer, usePhotoUris, type DayFlowView, type LikeVisitView, type PhotoEdit } from "@app/ui";
 import { LeadUpStrip } from "./LeadUpStrip";
 import { LikeVisitStrip } from "./LikeVisitStrip";
-import { DonorPanel } from "./DonorPanel";
 import { GaugeTrace } from "./GaugeTrace";
-import { percentileLabel, SPOT_WINDOW } from "@app/core";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
 import { Button } from "./Button";
-import { Icon, IconText, type IconName } from "./icons";
+import { Icon } from "./icons";
+import { Confirm } from "./spot/Confirm";
+import { DayFlowBlock } from "./spot/DayFlow";
+import { Block, Link } from "./spot/parts";
+import { WaterRecord, WeatherRecord } from "./spot/Record";
+import { SpotPhotos } from "./spot/SpotPhotos";
+
 
 export type SpotMode = "draft" | "view" | "edit";
 
@@ -94,11 +96,6 @@ export function SpotScreen(p: SpotScreenProps) {
   const editable = mode === "draft" || mode === "edit";
   const [confirm, setConfirm] = useState<"delete" | "discard" | null>(null);
 
-  const r = spot.reading;
-  const fig = spotReadingFigure(r);   // the quantity the reading shows (T106), never whichever value is present
-  // Q161: a trip on an earlier day than the save shows that day's gauges, never the save day's (`savedGauges`)
-  const gauges = savedGauges(spot);
-  const w = spot.weather;
   // S1: the week before the visit, decided in @app/ui; and the photos — the edit's while editing, else the spot's
   const lead = leadUpView(spot.leadUp, spot.reading);
   const pe = editable ? p.photoEdit : undefined;
@@ -209,88 +206,11 @@ export function SpotScreen(p: SpotScreenProps) {
           </View>
         )}
 
-        <Block palette={palette} title="What the water was doing">
-          {/*
-            THE SAME COMPONENT THE CONDITIONS SCREEN USES, on frozen data.
-            
-            This was a hand-rolled copy: a big number, a unit, and a percentile spelled
-            "p4" where the map said "p4th" and the sheet said "p0.4th". It also showed one
-            station where the app had shown a panel of four, so a spot recorded what the
-            app never said.
-            
-            `spot.panel` is the answer `answerFrom` produced at capture time, stored
-            verbatim. `DonorPanel` renders it exactly as it rendered it that day — the
-            range, the words, the donors and what each contributed — with no map, because
-            a saved spot carries no tiles, and no horizon chips, because you cannot
-            re-forecast the past.
-          */}
-          {gauges === "pending" ? (
-            <Text testID="spot-gauges-pending" style={{ ...TYPE.small, color: palette.sub }}>
-              {DAY_PANEL_WORDS.pending(visitDay(spot))}
-            </Text>
-          ) : gauges === "flow" ? (
-            <Text testID="spot-gauges-flow" style={{ ...TYPE.small, color: palette.sub }}>
-              {DAY_PANEL_WORDS.flowOnly}
-            </Text>
-          ) : spot.panel ? (
-            <>
-              <DonorPanel palette={palette} value={spot.panel}
-                          day={new Date(spot.visitedAt)} />
-              {gauges === "day" ? (
-                <Text testID="spot-gauges-day" style={{ ...TYPE.small, color: palette.sub }}>
-                  {DAY_PANEL_WORDS.ofTheDay(visitDay(spot))}
-                </Text>
-              ) : r && <Meta palette={palette} at={r.at} backfilled={r.backfilled}
-                             station={r.station} />}
-            </>
-          ) : r && fig ? (
-            // A spot saved before the estimate was frozen. Its own reading is all there is,
-            // and it is still a true record of that day.
-            <>
-              <View style={{ flexDirection: "row", alignItems: "baseline", gap: 8,
-                             flexWrap: "wrap" }}>
-                <Text style={{ ...TYPE.figureBig, fontSize: 32, color: palette.live }}>
-                  {fig.figure}
-                </Text>
-                <Text style={{ ...TYPE.figure, color: palette.sub }}>{fig.unit}</Text>
-                {r.percentile != null && (
-                  <Text style={{ ...TYPE.figure, color: palette.sub }}>
-                    · {percentileLabel(r.percentile)} against the record
-                  </Text>
-                )}
-              </View>
-              <Meta palette={palette} at={r.at} backfilled={r.backfilled} station={r.station} />
-            </>
-          ) : (
-            <Text style={{ ...TYPE.small, color: palette.sub }}>
-              No gauge is entitled to speak for this water, so no reading was recorded. A
-              station draining a far larger watershed would have given a number, and the
-              number would have been wrong.
-            </Text>
-          )}
-        </Block>
+        <WaterRecord spot={spot} palette={palette} />
 
         {/* the trip day's own flow; in the draft too, where a spot added for an earlier day shows what it read */}
         {df && (mode !== "draft" || df.line || df.status) && (
-          <Block palette={palette} title={df.heading}>
-            {df.line ? (
-              <Text testID="day-flow-line" style={{ ...TYPE.body, color: palette.ink }}>{df.line}</Text>
-            ) : null}
-            {df.status ? (
-              <Text testID="day-flow-status" aria-live="polite"
-                    style={{ ...TYPE.small, color: palette.sub }}>{df.status}</Text>
-            ) : null}
-            {df.action && p.dayFlow?.onAsk ? (
-              <Pressable onPress={p.dayFlow.onAsk} disabled={df.action.busy}
-                         accessibilityRole="button" accessibilityLabel={df.action.label}
-                         aria-disabled={df.action.busy}
-                         style={{ alignSelf: "flex-start", borderRadius: palette.r.pill, paddingVertical: 8,
-                                  paddingHorizontal: 14, backgroundColor: palette.card, borderWidth: 1,
-                                  borderColor: palette.line2, opacity: df.action.busy ? 0.5 : 1 }}>
-                <Text style={{ ...TYPE.micro, fontSize: 12.5, color: palette.accent }}>{df.action.label}</Text>
-              </Pressable>
-            ) : null}
-          </Block>
+          <DayFlowBlock df={df} onAsk={p.dayFlow?.onAsk} palette={palette} />
         )}
 
         {p.onShowOnMap && (
@@ -308,35 +228,7 @@ export function SpotScreen(p: SpotScreenProps) {
 
         {spot.trace && <GaugeTrace trace={spot.trace} palette={palette} />}
 
-        <Block palette={palette} title="Weather">
-          {w?.tempC != null ? (
-            <>
-              <View style={{ flexDirection: "row", alignItems: "baseline", gap: 12,
-                             flexWrap: "wrap" }}>
-                <Text style={{ ...TYPE.figureBig, fontSize: 32, color: palette.ink }}>
-                  {w.tempC}°C
-                </Text>
-                {w.windKph != null && (
-                  <Text style={{ ...TYPE.figure, color: palette.sub }}>
-                    wind {Math.round(w.windKph)} km/h
-                  </Text>
-                )}
-                {w.rain3h != null && (
-                  <Text style={{ ...TYPE.figure, color: palette.sub }}>
-                    rain {w.rain3h} mm
-                  </Text>
-                )}
-              </View>
-              <Window weather={w} palette={palette} />
-              <Meta palette={palette} at={w.at} backfilled={w.backfilled} />
-            </>
-          ) : (
-            <Text style={{ ...TYPE.small, color: palette.sub }}>
-              No weather was recorded for this spot.
-            </Text>
-          )}
-        </Block>
-
+        <WeatherRecord spot={spot} palette={palette} />
 
         {lead && (
           <Block palette={palette} title={lead.heading}>
@@ -366,48 +258,7 @@ export function SpotScreen(p: SpotScreenProps) {
         </Block>
 
         {(photos.length > 0 || (pe && pe.sources.length > 0)) && (
-          <Block palette={palette} title={PHOTO_WORDS.heading}>
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-              {photos.map((ref, i) => {
-                const uri = uris.get(ref);
-                return (
-                  <View key={ref} style={{ width: 104, height: 104, borderRadius: palette.r.box,
-                                           overflow: "hidden", backgroundColor: palette.tint,
-                                           alignItems: "center", justifyContent: "center" }}>
-                    {uri ? (
-                      <Image source={{ uri }} accessibilityLabel=""
-                             style={{ width: 104, height: 104 }} resizeMode="cover" />
-                    ) : uri === null ? (
-                      <Text style={{ ...TYPE.small, fontSize: 11, color: palette.faint, padding: 8,
-                                     textAlign: "center" }}>{PHOTO_WORDS.missing}</Text>
-                    ) : null}
-                    {pe && (
-                      <Pressable onPress={() => { void pe.remove(ref); }} accessibilityRole="button"
-                                 accessibilityLabel={removePhotoLabel(i + 1)}
-                                 style={{ position: "absolute", top: 4, right: 4, width: 28, height: 28,
-                                          borderRadius: 14, alignItems: "center", justifyContent: "center",
-                                          backgroundColor: palette.card }}>
-                        <Icon name="close" colour={palette.ink} size={16} />
-                      </Pressable>
-                    )}
-                  </View>
-                );
-              })}
-            </View>
-            {pe && pe.sources.length > 0 && (
-              <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
-                {pe.sources.map((from) => (
-                  <Button key={from} palette={palette} kind="ghost" grow={false}
-                          label={from === "camera" ? PHOTO_WORDS.camera : PHOTO_WORDS.library}
-                          onPress={pe.busy ? undefined : () => { void pe.add(from); }} />
-                ))}
-              </View>
-            )}
-            {pe?.busy ? <Text style={{ ...TYPE.small, color: palette.sub }}>{PHOTO_WORDS.adding}</Text> : null}
-            {pe?.error ? (
-              <Text accessibilityRole="alert" style={{ ...TYPE.small, color: palette.closed }}>{pe.error}</Text>
-            ) : null}
-          </Block>
+          <SpotPhotos photos={photos} uris={uris} pe={pe} palette={palette} />
         )}
       </ScrollView>
 
@@ -423,159 +274,3 @@ export function SpotScreen(p: SpotScreenProps) {
     </View>
   );
 }
-
-/**
- * The three hours around the visit.
- *
- * A TABLE, not a sentence, because four measures across three hours is a shape the eye
- * reads and prose does not. The trend line under it names the two changes that actually
- * decide an afternoon — the sky and the barometer — and only when both ends are known.
- *
- * Renders nothing when there is no window. An empty grid of dashes would imply we looked.
- */
-function Window({ weather, palette }: { weather: SpotWeather; palette: Palette }) {
-  const win = weather.window;
-  if (!win || (!win.before && !win.at && !win.after)) return null;
-
-  const cols: [string, WeatherSample | null][] =
-    [[SPOT_WINDOW.before, win.before], [SPOT_WINDOW.at, win.at], [SPOT_WINDOW.after, win.after]];
-  const rows: [string, (s: WeatherSample) => number | null, string][] = [
-    ["Cloud", (s) => s.cloudPct, "%"],
-    ["Pressure", (s) => s.pressureHpa, ""],
-    ["Humidity", (s) => s.humidityPct, "%"],
-    ["Temp", (s) => s.tempC, "°"],
-  ];
-
-  const fig = (v: number | null, unit: string) =>
-    v == null ? "—" : `${Math.round(v)}${unit}`;
-
-  return (
-    <View style={{ gap: 8, paddingTop: 4 }}>
-      <View style={{ flexDirection: "row" }}>
-        <View style={{ width: 76 }} />
-        {cols.map(([label]) => (
-          <Text key={label}
-                style={{ ...TYPE.micro, flex: 1, fontSize: 11, textAlign: "right",
-                         color: label === "visit" ? palette.ink : palette.faint }}>
-            {label}
-          </Text>
-        ))}
-      </View>
-      {rows.map(([label, get, unit]) => (
-        <View key={label} style={{ flexDirection: "row", alignItems: "baseline" }}>
-          <Text style={{ ...TYPE.small, width: 76, fontSize: 12, color: palette.sub }}>
-            {label}
-          </Text>
-          {cols.map(([col, s]) => (
-            <Text key={col} accessibilityLabel={`${label} ${col}`}
-                  style={{ ...TYPE.figure, flex: 1, fontSize: 13, textAlign: "right",
-                           color: col === "visit" ? palette.ink : palette.sub }}>
-              {s ? fig(get(s), unit) : "—"}
-            </Text>
-          ))}
-        </View>
-      ))}
-      <Trend win={win} palette={palette} />
-    </View>
-  );
-}
-
-/** What changed across the window, in words — `weatherTrend` in @app/data/spots says it, or says nothing. */
-function Trend({ win, palette }: {
-  win: NonNullable<SpotWeather["window"]>; palette: Palette;
-}) {
-  const said = weatherTrend(win);
-  if (said === null) return null;
-  return (
-    <Text testID="spot-trend" style={{ ...TYPE.small, fontSize: 11.5, color: palette.faint }}>
-      {said}
-    </Text>
-  );
-}
-
-/**
- * A destructive or lossy step, asked before it happens. `draft`: leaving a spot being added that holds what the reader
- * put in (SpotCapture — a back or Cancel), in `DRAFT_WORDS`.
- */
-export function Confirm({ palette, kind, onCancel, onConfirm, onSaveInstead }: {
-  palette: Palette; kind: "delete" | "discard" | "draft";
-  onCancel: () => void; onConfirm: () => void; onSaveInstead?: () => void;
-}) {
-  if (kind === "draft")
-    return (
-      <View accessibilityLabel={DRAFT_WORDS.label}
-            style={{ marginBottom: 4, padding: 16, borderRadius: palette.r.box, borderWidth: 1,
-                     borderColor: palette.line2, backgroundColor: palette.wash, gap: 12 }}>
-        <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>{DRAFT_WORDS.title}</Text>
-        <Text style={{ ...TYPE.small, color: palette.sub }}>{DRAFT_WORDS.detail}</Text>
-        <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
-          <Button palette={palette} kind="ghost" label={DRAFT_WORDS.keep} onPress={onCancel} />
-          <Button palette={palette} kind="solid" label={DRAFT_WORDS.discard} onPress={onConfirm} />
-        </View>
-      </View>
-    );
-  const del = kind === "delete";
-  return (
-    <View accessibilityLabel={del ? "Confirm delete" : "Unsaved changes"}
-          style={{ marginHorizontal: 18, marginBottom: 8, padding: 16, borderRadius: palette.r.box,
-                   borderWidth: 1, borderColor: del ? palette.closed : palette.line2,
-                   backgroundColor: palette.wash, gap: 12 }}>
-      <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>
-        {del ? "Delete this spot?" : "You have unsaved changes."}
-      </Text>
-      <Text style={{ ...TYPE.small, color: palette.sub }}>
-        {del
-          ? "The gauge reading, the weather and the rules that were in force are recorded " +
-            "nowhere else. This cannot be undone."
-          : "Keep them, or throw them away and go back to what was saved."}
-      </Text>
-      <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
-        <Button palette={palette} kind="ghost" label={del ? "Keep it" : "Keep editing"}
-                onPress={onCancel} />
-        {/* NOT "Save changes" — the footer already has a button with that label, and two
-            identically-named buttons on one screen is how somebody presses the wrong one.
-            This one saves AND leaves, so it says so. */}
-        {onSaveInstead && (
-          <Button palette={palette} label="Save and close" onPress={onSaveInstead} />
-        )}
-        <Button palette={palette} kind={del ? "danger" : "solid"}
-                label={del ? "Delete" : "Discard"} onPress={onConfirm} />
-      </View>
-    </View>
-  );
-}
-
-/** When a value was observed, and whether it was filled in after the fact. */
-function Meta({ palette, at, backfilled, station }: {
-  palette: Palette; at: string | null; backfilled?: boolean; station?: string | null;
-}) {
-  return (
-    <Text testID="spot-observed" style={{ ...TYPE.small, fontSize: 11.5, color: palette.faint }}>
-      {observedLine(at, backfilled, station)}
-    </Text>
-  );
-}
-
-function Block({ palette, title, children }: {
-  palette: Palette; title: string; children: React.ReactNode;
-}) {
-  return (
-    <View style={{ gap: 8 }}>
-      <Text style={{ ...TYPE.section, fontSize: 10.5, letterSpacing: 1.6,
-                     color: palette.faint }}>{title.toUpperCase()}</Text>
-      {children}
-    </View>
-  );
-}
-
-function Link({ palette, label, text, onPress, tone, icon }: {
-  palette: Palette; label: string; text: string; onPress: () => void; tone?: string; icon?: IconName;
-}) {
-  const style = { ...TYPE.micro, fontSize: 13, color: tone ?? palette.accent };
-  return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label}>
-      {icon ? <IconText name={icon} text={text} style={style} /> : <Text style={style}>{text}</Text>}
-    </Pressable>
-  );
-}
-

@@ -134,14 +134,23 @@ const KNOWN_COPY: Record<string, readonly string[]> = {
     "Reading the water", "Tap the point on 〈〉.", "Tap the stream or lake your spot is on.", "When were you there?",
   ],
   "packages/ui-native/src/SpotScreen.tsx": [
-    "Add a title", "Back", "Cancel", "Cancel editing", "Cloud", "Confirm delete", "Delete", "Delete spot", "Delete this spot?", "Discard",
-    "Edit", "Edit spot", "Humidity", "Keep editing", "Keep it", "Keep them, or throw them away and go back to what was saved.",
-    "Name this spot",
-    "No gauge is entitled to speak for this water, so no reading was recorded. A station draining a far larger watershed would have given a number, and the number would have been wrong.",
-    "No weather was recorded for this spot.", "None.", "Notes", "Pressure", "Refresh", "Refresh this spot", "Save and close", "Save changes",
-    "Save spot", "Show on map", "Spots", "Temp", "The gauge reading, the weather and the rules that were in force are recorded",
-    "Unsaved changes", "Weather", "What happened, what you used, what the water looked like", "What the water was doing",
+    "Add a title", "Back", "Cancel", "Cancel editing", "Delete", "Delete spot", "Edit", "Edit spot", "Name this spot",
+    "None.", "Notes", "Refresh", "Refresh this spot", "Save changes", "Save spot", "Show on map", "Spots",
+    "What happened, what you used, what the water looked like",
+  ],
+  "packages/ui-native/src/spot/Confirm.tsx": [
+    "Confirm delete", "Delete", "Delete this spot?", "Discard", "Keep editing", "Keep it",
+    "Keep them, or throw them away and go back to what was saved.", "Save and close",
+    "The gauge reading, the weather and the rules that were in force are recorded", "Unsaved changes",
     "You have unsaved changes.", "nowhere else. This cannot be undone.",
+  ],
+  "packages/ui-native/src/spot/Record.tsx": [
+   
+    "No gauge is entitled to speak for this water, so no reading was recorded. A station draining a far larger watershed would have given a number, and the number would have been wrong.",
+    "No weather was recorded for this spot.", "Weather", "What the water was doing",
+  ],
+  "packages/ui-native/src/spot/WeatherWindow.tsx": [
+    "Cloud", "Humidity", "Pressure", "Temp",
   ],
   "packages/ui-native/src/SpotsScreen.tsx": ["NO PHOTO"],
   "packages/ui-native/src/WaterScreen.tsx": ["Loading this water", "No such water in this bundle.", "no data release is open"],

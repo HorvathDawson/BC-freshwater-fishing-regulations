@@ -31,7 +31,8 @@ import { dayFlowView, useBackLayer, useCaptureSpot, type CaptureWater, type Spot
 import type { Camera, TileEndpoints } from "@app/map";
 import { FishSpinner } from "./FishSpinner";
 import { MapScreen } from "./MapScreen";
-import { Confirm, SpotScreen } from "./SpotScreen";
+import { SpotScreen } from "./SpotScreen";
+import { Confirm } from "./spot/Confirm";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
 import { Button } from "./Button";
