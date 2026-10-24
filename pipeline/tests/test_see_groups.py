@@ -152,7 +152,7 @@ def test_one_pointer_printed_in_two_regions_is_one_way_in(corpus):
 
 
 def test_mutation_without_the_cross_row_check_blackwater_is_said_twice(corpus, monkeypatch):
-    monkeypatch.setattr(RULES, "ONE_WAY_IN_ACROSS_ROWS", False)
+    monkeypatch.setattr(RULES.see, "ONE_WAY_IN_ACROSS_ROWS", False)
     assert [r[0] for r in RULES.see_pointer_rows(corpus) if r[1] == "Blackwater River"] == [
         "r5:blackwater_river@5-13", "r7:blackwater_river@7-10"]
 
@@ -199,7 +199,7 @@ def test_every_pointer_is_said_by_the_names_the_book_prints(corpus):
 
 
 def test_mutation_the_shown_name_as_the_pointers_name(corpus, monkeypatch):
-    monkeypatch.setattr(RULES, "see_name", RULES.entry_name)
+    monkeypatch.setattr(RULES.see, "see_name", RULES.entry_name)
     assert _line(corpus, "r2:little_campbell_river@2-4") == ("Campbell River", [("Campbell River", "gnis:7250")])
 
 

@@ -21,7 +21,7 @@ row quota does not. Separately (same day), keeping hatchery steelhead counts tow
 
 ## A row's closed season does not shorten the zone's (the Stein, the Nahatlatch)
 
-**2026-10-05 · zone closures, all regions · `pipeline/deliver/bundle/rules.py`, export `gotchas.closures_combine`**
+**2026-10-05 · zone closures, all regions · `pipeline/deliver/bundle/rules/lifts.py`, export `gotchas.closures_combine`**
 
 The Stein's row prints "**No Fishing** Jan 1-May 31"; Region 3 prints "No Fishing in any stream in
 Region 3 from Jan 1-June 30". It reads as if the row's dates replace the zone's, so the Stein

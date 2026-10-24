@@ -69,7 +69,7 @@ def test_species_survive_as_json_not_python_repr():
 def _cols():
     """The INSERT's own column list, so a test can name a field instead of an index."""
     import re
-    src = Path(rules_mod.__file__).read_text()
+    src = Path(rules_mod.tables.__file__).read_text()
     m = re.search(r'INSERT INTO rule \((.*?)\)\s*"\s*"VALUES', src, re.S)
     return [c.strip() for c in re.sub(r'"\s*"', "", m.group(1)).split(",")]
 

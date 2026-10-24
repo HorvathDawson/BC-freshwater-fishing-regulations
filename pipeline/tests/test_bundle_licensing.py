@@ -388,7 +388,7 @@ def test_the_written_ruleset_is_checked_not_just_the_input(tmp_path, monkeypatch
     the WRITTEN rows is what stops it — the input-side check would not see it."""
     db, run, entries, build = _rules_fixture(tmp_path, [("r1:x@1-1", "x.r1", "s:2")], [])
     real = bundle_rules.intern_sets
-    monkeypatch.setattr(bundle_rules, "intern_sets", lambda rows: (
+    monkeypatch.setattr(bundle_rules.tables, "intern_sets", lambda rows: (
         lambda ss: (ss[0], [s + [("r1:x@1-1", "ghost", "reach")] for s in ss[1]]))(real(rows)))
     with pytest.raises(SystemExit, match="ruleset names rules that are not in `rule`"):
         bundle_rules.write(db, run, entries, _Cov(), build_dir=build)

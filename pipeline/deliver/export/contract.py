@@ -85,7 +85,7 @@ def _need(db: sqlite3.Connection) -> None:
     if missing:
         raise SystemExit(
             f"pipeline.deliver.export: the bundle has no {', '.join(missing)}. Rebuild it with a "
-            f"`pipeline/deliver/bundle/rules.py` that writes `entry.matched` (every matched "
+            f"`pipeline/deliver/bundle/rules/` that writes `entry.matched` (every matched "
             f"item, JSON), `rule.unresolved` (the reach run's 'reason: detail', NULL when "
             f"bound), `rule.exempts` (each lift resolved to its entry, JSON), `item.part_of`, "
             f"the `outside_bc` table (the sections B.C. does not govern), `section_touch` "

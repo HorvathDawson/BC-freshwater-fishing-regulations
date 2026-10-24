@@ -13,7 +13,7 @@ Now:
   * both area-family readers call `regions.area_family_sections`.
 
 Mutation pins:
-  * `rules.WATER_REGIONS_BY_HOME = False` fails `test_a_straddling_piece_homed_elsewhere_is_not_a_region_of_the_water`
+  * `rules.regions.WATER_REGIONS_BY_HOME = False` fails `test_a_straddling_piece_homed_elsewhere_is_not_a_region_of_the_water`
     and `test_the_lift_does_not_carry_into_a_region_the_water_only_straddles_into`.
   * `bundle.build` dropping `home=` on `_rules.write` fails `test_the_bundle_hands_its_home_map_to_the_rules`.
   * an `f"area:{kind}:"` family prefix built outside `regions.py` fails `test_no_second_copy_of_an_area_family`.
@@ -130,12 +130,12 @@ def test_the_bundle_hands_its_home_map_to_the_rules():
                    and isinstance(c.func.value, ast.Name) and c.func.value.id == "_rules"]
     assert len(rules_write) == 1
     assert "home" in {k.arg for k in rules_write[0].keywords}
-    got = list(_calls(ROOT / "deliver" / "bundle" / "rules.py", "regions_of_waters"))
+    got = list(_calls(ROOT / "deliver" / "bundle" / "rules" / "tables.py", "regions_of_waters"))
     assert len(got) == 1 and len(got[0].args) == 3
 
 
 #: Where an `area:<kind>:` family may be read. Everything else asks `regions.area_family_sections`.
-SCANNED = sorted([*(ROOT / "atlas" / "reach").glob("*.py"), *(ROOT / "deliver" / "bundle").glob("*.py")])
+SCANNED = sorted([*(ROOT / "atlas" / "reach").glob("*.py"), *(ROOT / "deliver" / "bundle").rglob("*.py")])
 
 
 @pytest.mark.parametrize("path", SCANNED, ids=lambda p: f"{p.parent.name}/{p.name}")
@@ -153,4 +153,4 @@ def test_no_second_copy_of_an_area_family(path):
 
 def test_the_scan_covers_the_readers_it_unified():
     names = {f"{p.parent.name}/{p.name}" for p in SCANNED}
-    assert {"reach/licensing.py", "bundle/licensing.py", "bundle/rules.py"} <= names
+    assert {"reach/licensing.py", "bundle/licensing.py", "rules/row.py", "rules/regions.py"} <= names

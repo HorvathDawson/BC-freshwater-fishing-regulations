@@ -584,7 +584,7 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
     named_geo = _topology.keep_named(db, build_dir, geoms)
     del graph, geoms, registry_items
     # The regulations. The reach builder resolved which water every rule covers; this only
-    # interns and writes. See pipeline/deliver/bundle/rules.py for why it must not re-derive.
+    # interns and writes. See pipeline/deliver/bundle/rules/ for why it must not re-derive.
     if reaches is not None:
         # A NAMED RUN, for building against a reach run that is not (yet) under
         # GENERATED.reaches — a side build. Held to the same pairing `_reach_run` enforces: a

@@ -3,7 +3,7 @@ a new spelling can walk past (finding H2: three closure spellings walked past th
 
   1 reader    nothing outside `bundle/read/`, `deliver/verdicts/` and the named ORACLES calls
               `effective_rules` / `effective_rules_bound`: every other stage looks the verdict up
-  2 closure   nothing downstream of the bundle reads `may_target` but `bundle/rules.py` (the one
+  2 closure   nothing downstream of the bundle reads `may_target` but `bundle/rules/` (the one
               closure predicate, `closure_grade`, and `catch_and_release`) and the export's record
               writer that ships the field
   3 parts     no SQL naming `province_except` beside `section_ruleset` outside the bundle builder:
@@ -138,12 +138,12 @@ MAY_TARGET_WRITERS = {("pipeline/deliver/export/read.py", "_rule_record")}
 def may_target_reads(sources: dict[str, str]) -> set[tuple[str, str]]:
     """(module, qualname) of every READ of `may_target` — `x["may_target"]`, `x.get("may_target")`,
     `getattr(x, "may_target")`, `x.may_target`, a comparison with "may_target" — downstream of the
-    bundle (`pipeline/deliver`, `pipeline/tools`), outside `bundle/rules.py` and the bundle writer."""
+    bundle (`pipeline/deliver`, `pipeline/tools`), outside `bundle/rules/` and the bundle writer."""
     out: set = set()
     for path, text in sources.items():
         if not path.startswith(("pipeline/deliver/", "pipeline/tools/")):
             continue
-        if path in ("pipeline/deliver/bundle/rules.py", "pipeline/deliver/bundle/build.py"):
+        if path.startswith("pipeline/deliver/bundle/rules/") or path == "pipeline/deliver/bundle/build.py":
             continue
 
         def on(node, where, unit, path=path):

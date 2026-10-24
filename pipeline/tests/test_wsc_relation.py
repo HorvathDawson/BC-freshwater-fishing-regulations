@@ -86,7 +86,7 @@ ALLOWED = {
     # not watershed codes: a source digest, a region code, a message
     ("pipeline/build.py", "hexdigest()[:16]"),
     ("pipeline/deliver/answers/glossary.py", "pages[:2]"),
-    ("pipeline/deliver/bundle/rules.py", "loose[:3]"),
+    ("pipeline/deliver/bundle/rules/presence.py", "loose[:3]"),
 }
 
 

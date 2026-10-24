@@ -40,7 +40,7 @@ TAIL = " It does not apply to the rest of the water."
 def _corpus():
     """(entry, its book facts as the bundle ships them, rule) for every rule of the corpus. The
     bundle's `entry.full_name` is the row's `name`, `entry.verbatim` (the export's `printed`) its
-    `regs_verbatim`, `entry.pages` its `source_pages` (`bundle/rules.py` entry rows)."""
+    `regs_verbatim`, `entry.pages` its `source_pages` (`bundle/rules/tables.py` entry rows)."""
     for f in sorted(CURATED.regulations.entries.catalogue.glob("region-*.json")):
         for e in json.loads(f.read_text(encoding="utf-8"))["entries"]:
             book = {"full_name": e.get("name"), "printed": e.get("regs_verbatim"),

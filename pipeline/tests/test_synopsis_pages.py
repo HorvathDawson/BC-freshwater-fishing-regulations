@@ -112,7 +112,7 @@ def test_superior_closures_cites_only_the_page_its_text_is_on(entries, page_map,
     from pipeline.regs.parsing.catalogue import CatalogueEntry
     e = next(x for x in entries if x["entry_id"] == "zp:superior_closures")
     assert e["source_pages"] == [9]
-    # what the bundle build writes to `entry.pages` (bundle/rules.py: list(ce.source_pages))
+    # what the bundle build writes to `entry.pages` (bundle/rules/tables.py: list(ce.source_pages))
     assert list(CatalogueEntry.model_validate(e).source_pages) == [9]
     assert misplaced([dict(e, source_pages=[9, 10])], page_map, pdf_text) == \
         [("zp:superior_closures", 10)]
