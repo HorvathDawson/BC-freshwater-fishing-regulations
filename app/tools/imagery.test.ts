@@ -17,7 +17,7 @@ import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 import { IMAGERY_CREDIT } from "@app/core";
 import { runtimeStyle } from "@app/map";
-import { imageryTiles } from "../packages/map/src/runtime-style";
+import { imageryTiles } from "../packages/map/src/endpoints";
 import { nativeStyle } from "../packages/map/src/native-style";
 
 const ROOT = fileURLToPath(new URL("../..", import.meta.url));
@@ -54,7 +54,7 @@ describe("the satellite source", () => {
 
   it("EOX and the BC 'Access Only' imagery are gone from the style, the runtime and the app", () => {
     const files = ["app/packages/map/style/layers.source.json", "app/packages/map/style/style.json",
-                   "app/packages/map/src/runtime-style.ts", "app/apps/mobile/src/App.tsx",
+                   "app/packages/map/src/runtime-style.ts", "app/packages/map/src/endpoints.ts", "app/apps/mobile/src/App.tsx",
                    "app/apps/mobile/src/config.ts"];
     expect(files.filter((f) => /eox|openmaps\.gov\.bc\.ca|imagex/i.test(read(f)))).toEqual([]);
   });

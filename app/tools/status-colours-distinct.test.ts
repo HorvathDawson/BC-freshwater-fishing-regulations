@@ -18,7 +18,7 @@
  *                     thin lines and satellite;
  *   temperature       the three bands' dots against each other (cool = open, warm = `color.temp.warm`, critical =
  *                     closed; @app/core `TEMP_BAND_TOKEN`): these meet ONLY as gauge dots, 5 px filled circles in a 2 px
- *                     paper stroke (runtime-style.ts `gauge-dot`), so the dot's pixels are the token — measured as tokens,
+ *                     paper stroke (gaugeDots.ts `gauge-dot`), so the dot's pixels are the token — measured as tokens,
  *                     never as a line antialiased into a ground that is not under them. Warm was `restricted` until
  *                     T83; it is its own hue now, and held off every status (one meaning) and off body ink like one;
  *   boundary          the region and unit boundaries against every status as tokens, and against every status the map

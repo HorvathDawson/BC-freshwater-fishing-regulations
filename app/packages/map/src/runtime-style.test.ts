@@ -29,7 +29,7 @@ describe("runtimeStyle: glyphs and sprites", () => {
  */
 describe("the temperature dots", () => {
   it("paint each band with its own token, the warm one no status's, in every theme", async () => {
-    const { gaugeDotColour } = await import("./runtime-style");
+    const { gaugeDotColour } = await import("./gaugeDots");
     const { resolveTheme, tempBandColour } = await import("./style");
     for (const theme of ["light", "dark", "cvd"]) {
       const t = resolveTheme(theme) as Record<string, string>;
@@ -52,7 +52,7 @@ describe("the temperature dots", () => {
  */
 describe("the flow dots", () => {
   it("interpolate the feature's ramp value over the stream's standing stops, Change's domain included", async () => {
-    const { gaugeDotColour } = await import("./runtime-style");
+    const { gaugeDotColour } = await import("./gaugeDots");
     const e = gaugeDotColour("light", "standing") as unknown[];
     const stops = e.slice(3).filter((_, i) => i % 2 === 0) as number[];
     expect([e.slice(0, 3), stops.some((s) => s < 100), stops.some((s) => s >= 200)])

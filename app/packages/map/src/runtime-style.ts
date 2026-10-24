@@ -16,158 +16,14 @@
  * real URL.
  */
 import { layers as basemapLayers, namedFlavor } from "@protomaps/basemaps";
-import { ATLAS_MAX_ZOOM, BASEMAP_MAX_ZOOM, TEMP_BANDS } from "@app/core";
-import { MAP_STYLE, STYLE_META, colorExpression, defaultView, resolveTheme, tempBandColour, withFollowers,
-         type Tokens } from "./style";
+import { ATLAS_MAX_ZOOM, BASEMAP_MAX_ZOOM } from "@app/core";
+import { MAP_STYLE, STYLE_META, defaultView, resolveTheme, withFollowers, type Tokens } from "./style";
+import { PM_ASSETS, type TileEndpoints } from "./endpoints";
+import { gaugeLayers, gaugeSource } from "./gaugeDots";
 import { casingPaint, copyFillPaint, copyLinePaint, NOACCESS_LAYER, noaccessPaint, nobaselineOpacity, paintFor, ringPaint, SELECTION_CASING, SELECTION_RINGS } from "./paint";
 import { traceLayers, traceSources } from "./trace-overlay";
 import { COPY_CASING, COPY_FILL, COPY_LINE, COPY_SOURCE, EMPTY_COPY } from "./water-copy";
 import { BASEMAP_LABELS, basemapLabelPaint } from "./labels";
-
-export interface TileEndpoints {
-  /** Where the two archives are served from, with byte-range support. */
-  atlas: string;
-  basemap: string;
-  /**
-   * Label glyphs and icons. Protomaps hosts these; a shipped app needs its own copy, since
-   * a map that silently loses every label when offline is worse than one with no labels.
-   */
-  glyphs?: string;
-  sprite?: string;
-  /**
-   * The release's map assets folder (P11/P18, ending in "/"): `fonts/{fontstack}/{range}.pbf` and
-   * `sprites/v4/<light|dark>` under it. The installed folder on a phone (always offline), the
-   * release url on the web. `glyphs`/`sprite` win when given; absent, the Protomaps CDN.
-   */
-  assets?: string;
-  /**
-   * The outside-BC mask: a rectangle with the province punched out, as GeoJSON.
-   * ~61 KB, and changing how it looks never needs a tile rebuild.
-   */
-  outside?: string;
-  /**
-   * The gauges themselves, as GeoJSON points — one per station on screen, each with a
-   * `label` the map draws beside it ("15.7 m³/s · p4th").
-   *
-   * A RUNTIME SOURCE, not a tile layer, because these move every half hour and the tiles
-   * move once a build. It is also only ever a few hundred points, so the whole set can be
-   * handed over on each refresh rather than diffed.
-   */
-  gauges?: string;
-  /**
-   * The satellite imagery's tile template (`imageryTiles`), when the build names one: an ArcGIS Location Platform key
-   * makes it Esri's keyed endpoint. Absent, the style's own (`layers.source.json`, source `imagery`).
-   */
-  imagery?: string;
-}
-
-/** Esri's keyed World Imagery tiles (ArcGIS Location Platform), the same MapServer tile scheme under a token. */
-const ESRI_KEYED = "https://ibasemaps-api.arcgis.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
-
-/**
- * THE SATELLITE TILE TEMPLATE for a build: the style's own (Esri's ArcGIS Online MapServer, as the original app used)
- * with no key, or the Location Platform endpoint with the build's key (`EXPO_PUBLIC_ARCGIS_API_KEY`, set by the owner
- * in the build environment and restricted by referrer/app in the ArcGIS dashboard — never written into the code).
- */
-export function imageryTiles(key: string | null): string {
-  const own = (MAP_STYLE.sources as unknown as Record<string, { tiles?: string[] }>).imagery?.tiles?.[0] ?? "";
-  if (!key) return own;
-  const query = own.includes("?") ? own.slice(own.indexOf("?")) : "";
-  return `${ESRI_KEYED}${query}${query ? "&" : "?"}token=${encodeURIComponent(key)}`;
-}
-
-const PM_ASSETS = "https://protomaps.github.io/basemaps-assets";
-
-/**
- * GeoJSON for a `geojson` source's `data`, parsed.
- *
- * MAPLIBRE TREATS A STRING AS A URL. Handing it the serialised FeatureCollection made the
- * renderer fetch `/%7B%22type%22:%22FeatureCollection%22...%7D` as a relative path; the dev
- * server answered with index.html, and the console filled with
- * `Unexpected token '<', "<!DOCTYPE "... is not valid JSON` — once per map mount, so the
- * count climbed on every tab switch while the app looked fine. The gauge source then began
- * empty and was only rescued by the imperative `setData` in Map.web.tsx.
- *
- * The value stays a STRING across the props boundary on purpose: it changes every half hour
- * and a string is what makes React's identity check cheap. Parsing belongs here, at the one
- * point where it meets the renderer.
- *
- * A malformed payload yields an empty collection rather than throwing: a bad feed must not
- * take the whole map down, and an empty source draws nothing, which is the honest picture.
- */
-function geojsonData(raw: string): unknown {
-  try {
-    return JSON.parse(raw);
-  } catch {
-    return { type: "FeatureCollection", features: [] };
-  }
-}
-
-/**
- * The flow ramp, as an expression over a feature's own `ramp` property (its standing in the channel's units).
- *
- * Shares the stream layer's stops by construction — read from the same style metadata —
- * so a gauge dot and the river under it are painted from one scale. Two ramps would drift.
- */
-/**
- * Water temperature, in the colours this map already uses for "may I fish here".
- *
- * TWO THINGS ARE DELIBERATE AND BOTH ARE THE OPPOSITE OF THE FLOW SCALE.
- *
- * IT IS ABSOLUTE. Every other scale here is relative to a river's own record, because 12
- * m³/s is a flood on one creek and a drought on another. Temperature is not: 20 °C is 20
- * °C on every river in the province, it is where British Columbia closes them, and it is
- * where a released fish starts dying. There is also no history to rank it against — HYDAT
- * carries level, flow and sediment and no temperature at all.
- *
- * COOL AND CRITICAL REUSE THE STATUS COLOURS, and that is not laziness. `open` and `closed`
- * already mean "fishable" and "don't" on this map, and water too warm to release a fish into
- * means exactly that. A temperature ramp of its own was written and deleted: the palette
- * guard caught it colliding with the flow ramp in four places, which was the right complaint
- * about inventing a scale.
- *
- * WARM DOES NOT (T83). It wore `restricted`, and restricted is not "caution" on this map — it
- * is the permit-only hatch, so a warm river's dot said "you need a permit here". It has its
- * own hue, `color.temp.warm`; the band -> token table is @app/core `TEMP_BAND_TOKEN`, read
- * here and by the legend, so the dot and its swatch cannot disagree.
- *
- * The thresholds come from the publisher (`_TEMP_BANDS`) and are POLICY awaiting curation,
- * not physics — the band is carried on the feature rather than recomputed here, so there
- * is one place to change when the real per-river numbers are curated.
- */
-function tempExpression(theme: string): unknown {
-  const t = resolveTheme(theme) as Record<string, string>;
-  return ["match", ["coalesce", ["get", "temperatureBand"], "unknown"],
-          ...TEMP_BANDS.flatMap(([band]) => [band, tempBandColour(theme, band)]),
-          t["color.water.ungauged"]];
-}
-
-/**
- * The gauge dots' colour for a mode, so a view change can repaint them.
- *
- * THE STYLE IS BUILT ONCE, at map creation, and the recolour effect afterwards walks
- * `modes` calling `setLayerMode` per layer. That works for every layer in the generated
- * catalog and silently does nothing for these, because there is no layer whose id is
- * "gauges" — the dots are `gauge-dot` and `gauge-label`, added here from a live feed. So
- * switching from flow to temperature changed which stations were fetched and left them
- * painted on the old scale, which is the most confusing possible half-state: the right
- * roster, in the wrong language.
- */
-export function gaugeDotColour(theme: string, mode: string | undefined): unknown {
-  return mode === "temperature" ? tempExpression(theme) : rampExpression(theme);
-}
-
-function rampExpression(theme: string): unknown {
-  const t = resolveTheme(theme) as Record<string, string>;
-  const mode = STYLE_META.colorModes.stream?.standing as
-    { stops?: [number, { token: string }][] } | undefined;
-  const stops = mode?.stops ?? [];
-  // `ramp` is the dot's value already in the standing channel's units (`toRamp` in @app/ui: a percentile x 100, or the
-  // Change domain 200-300), so the dot reads the river's own stops at every horizon (T126).
-  const out: unknown[] = ["interpolate", ["linear"], ["coalesce", ["get", "ramp"], -1]];
-  for (const [at, ref] of stops) out.push(at, t[ref.token]);
-  return out;
-}
 
 /** The basemap's layers, cut at its first symbol layer so ours can be placed first. */
 function splitBasemap(flavor: Parameters<typeof basemapLayers>[1], tokens: Tokens) {
@@ -286,23 +142,10 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
         '<a href="https://openstreetmap.org/copyright">© OpenStreetMap</a> · © Protomaps' },
       ...externalRasters(at.imagery),
       // `outside` IS a URL — the mask is fetched. `gauges` is not: it is the GeoJSON
-      // itself, so it has to be parsed. See `geojsonData` below for why that distinction
+      // itself, so it has to be parsed. See `geojsonData` (gaugeDots.ts) for why that distinction
       // cost us an error on every map mount.
       ...(at.outside ? { outside: { type: "geojson" as const, data: at.outside } } : {}),
-      ...(at.gauges
-        ? { gauges: { type: "geojson" as const, data: geojsonData(at.gauges),
-                      // ATTRIBUTION RIDES ON THE SOURCE, so MapLibre's own control
-                      // aggregates it with the basemap's rather than the app maintaining a
-                      // second list. It used to appear NOWHERE on the map — the whole list
-                      // lived behind the Layers button, two taps from the data it covers.
-                      //
-                      // This shows on every view, not only Conditions: `Map.web` hands the
-                      // style an empty FeatureCollection when there are no gauges, so the
-                      // source exists from the first frame (which is deliberate — see
-                      // EMPTY_FC there). The credit is therefore always on, which is the
-                      // safe direction to be wrong in.
-                      attribution: "Hydrometric data: Environment and Climate Change Canada" } }
-        : {}),
+      ...(at.gauges ? { gauges: gaugeSource(at.gauges) } : {}),
       atlas: {
         type: "vector" as const,
         url: `pmtiles://${at.atlas}`,
@@ -640,83 +483,7 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
        * outside the province. A second near-white token would only ever hold the same
        * value, and two names for one meaning is how a palette drifts.
        */
-      ...(at.gauges ? [
-        /**
-         * THE PROVINCE, BELOW THE ZOOM WHERE INDIVIDUAL RIVERS MEAN ANYTHING.
-         *
-         * The question at that zoom is not "what is this creek doing" but "is the country
-         * I am driving to wet or dry". The first answer to that was a soft disc per
-         * station, blurred and blended, scattered over the map. It was wrong in three ways
-         * at once and it looked it:
-         *
-         *   · IT WAS ON LAND. A disc around a gauge paints country the gauge says nothing
-         *     about, and the claim a percentile actually makes is about a CATCHMENT being
-         *     wet — which is a shape, not a radius.
-         *   · OVERLAPS INVENTED COLOURS. Two discs blending produced a hue that is not on
-         *     the scale at all, so the reader was shown a value nobody computed.
-         *   · A BLURRED EDGE IS A LIGHTER SHADE, and on a sequential ramp a lighter shade
-         *     is a different number. Every disc faded through half the legend on its way
-         *     out.
-         *
-         * So the light moved onto the water. This is the same ramp, the same values, drawn
-         * as a wide soft line along the RIVER — which is the only thing we have a reading
-         * for. Where there is no water there is no colour, which is the honest picture:
-         * the atlas at z5 keeps the mainstems and the mainstems are exactly what carries a
-         * gauge, so the province reads as a lit river network on quiet ground.
-         *
-         * It is drawn UNDER `stream` so the crisp line stays crisp on top of its own glow,
-         * and it is gone by z9, where the rivers are wide enough to carry the colour
-         * themselves.
-         */
-        { id: "gauge-dot", type: "circle" as const, source: "gauges",
-          // Nothing below z7: at that scale a 5 px dot is noise, and the haze above is
-          // saying the same thing in a form a person can actually read.
-          minzoom: 7,
-          filter: ["<=", ["get", "minz"], ["zoom"]],
-          paint: {
-            "circle-radius": 5,
-            "circle-color": modes.gauges === "temperature"
-              ? tempExpression(theme) : rampExpression(theme),
-            "circle-stroke-width": 2,
-            "circle-stroke-color": paper,
-          } },
-        { id: "gauge-label", type: "symbol" as const, source: "gauges",
-          /**
-           * READ IT BEFORE YOU CAN FISH IT. A reading is a fact about one point on one
-           * river, and at the zoom that river first appears the map is a province — the
-           * number is unreadable clutter over country you are not standing in. Four zooms
-           * past the dot is roughly "a valley on screen", which is where the number starts
-           * to mean something, and never below z8 whatever the river's size, so the Fraser
-           * does not label itself from orbit.
-           */
-          filter: ["all",
-                   [">=", ["zoom"], 8],
-                   ["<=", ["+", ["get", "minz"], 4], ["zoom"]]],
-          layout: {
-            "text-field": ["get", "label"],
-            "text-font": ["Noto Sans Medium"],
-            "text-size": 12,
-            // THE PILL. An SDF-free stretchable image added at runtime (see `pillImage`),
-            // fitted around whatever the text turns out to be — which is what the design
-            // draws and what a halo could only approximate. `icon-text-fit` is the whole
-            // reason this is an icon rather than a background colour: MapLibre has no such
-            // thing for text, and a halo on a busy basemap reads as a smudge.
-            "icon-image": "gauge-pill",
-            "icon-text-fit": "both" as const,
-            "icon-text-fit-padding": [3, 9, 3, 9],
-            "icon-anchor": "left" as const,
-            "icon-offset": [10, 0],
-            "text-offset": [1.05, 0],
-            "text-anchor": "left" as const,
-            // Let a crowded valley drop labels rather than overlap them; the dots stay.
-            "text-allow-overlap": false,
-            "icon-allow-overlap": false,
-            "text-optional": true,
-          },
-          paint: {
-            "text-color": resolveTheme(theme)["color.gauge.dot"] as string,
-          } },
-      ] : []),
+      ...(at.gauges ? gaugeLayers(theme, modes, paper) : []),
       /*
        * THE ROUTE OVERLAY, LAST OF ALL — over every river and every gauge dot. Present in
        * every view and empty unless a route map fills it (`setTrace`), so declaring it costs

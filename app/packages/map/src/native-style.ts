@@ -22,7 +22,8 @@
  */
 import { baseAdapter, type MapHandle } from "./adapters/contract";
 import { applyLook, type Look } from "./look";
-import { runtimeStyle, type TileEndpoints } from "./runtime-style";
+import type { TileEndpoints } from "./endpoints";
+import { runtimeStyle } from "./runtime-style";
 import { colour } from "./chrome";
 import { ATLAS_SOURCES, SECTION_SOURCE_LAYERS, stateTarget } from "./sections";
 import { STYLE_META } from "./style";

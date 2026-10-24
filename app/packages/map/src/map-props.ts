@@ -7,7 +7,7 @@
 import type { SectionKey, SpotMarker, SpotPoint } from "@app/core";
 import type { ReactNode } from "react";
 import type { ViewStyle } from "react-native";
-import type { TileEndpoints } from "./runtime-style";
+import type { TileEndpoints } from "./endpoints";
 import type { TraceProp } from "./trace-overlay";
 import type { LakeFeed, ProfileStatus, StandingFeed } from "./colouring";
 import type { SelectionCue } from "./paint";

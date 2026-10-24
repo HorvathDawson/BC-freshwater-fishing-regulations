@@ -8,7 +8,7 @@
  * the tree, and a map still showing the previous colouring is recoverable where a white screen is not.
  */
 import type { MapAdapter, MapHandle } from "./adapters/contract";
-import { gaugeDotColour } from "./runtime-style";
+import { gaugeDotColour } from "./gaugeDots";
 import { STYLE_META } from "./style";
 
 export interface Look {
