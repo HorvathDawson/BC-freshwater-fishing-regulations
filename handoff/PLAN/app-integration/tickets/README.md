@@ -221,6 +221,7 @@ use that as the sole source of future work."
 | T174 | remaining answered → grey → answered gaps on main rivers (321/84 runs; Gravel Slough connectors) | OPEN | — | deliver; Q153–Q155 |
 | T175 | a water's own line shows at every zoom on its Conditions / water map (copy from tiles, clamp the opening zoom) | OPEN | — | app |
 | T176 | the Conditions legend's "N gauges in view" counts sections, not gauges | OPEN | — | app |
+| T177 | combine CLEVER + COFFEE on every forecast day, weighted by measured skill (owner Q160) | OPEN | — | feed; measurement first |
 
 ## Order for open tickets
 
@@ -299,10 +300,9 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q157 | T165 | The no-access line uses the under-lake route's DASH (dots only in the cvd theme) — switch to true dots? | dash | owner |
 | Q158 | T168 | A renamed continuation's gauge counts as "on this water" (the Vedder lists the Chilliwack's 08MH001 as its own)? | yes | owner |
 | Q159 | T168 | "Reporting, not ranked" gauges fold with the silent ones ("not reporting or not ranked")? | yes | owner |
-| Q160 | T171 | The +1/+3 horizons now take COFFEE after CLEVER at 22 coast stations (one model-per-day rule) — first model, or combine CLEVER + COFFEE per day like Change? | first model | owner |
-| Q161 | T170 | A backdated spot's frozen gauge panel is today's estimate, now labelled "read when this spot was saved" — keep labelled, hide, or recompute for that day? | keep, labelled | owner |
 
 ### Answered (recently, for the record)
+- Q160 — owner 2026-10-24: combine CLEVER + COFFEE on every forecast day, weighted by measured skill → T177. Q161 — keep the backdated spot's panel, labelled (wording made explicit).
 - Q84 (side channel and its river) — owner 2026-10-24 delegated ("do what you think is best just make sure it is sane"): T169 one panel per side-channel water; Q169d (one panel for a long side-channel water) decided yes.
 - Q150 / Q137 / Q138 (no-access look) — owner 2026-10-23: streams dotted grey, warning amber in the page banner, own keeps amber (decisions.md).
 - Q1, Q3, Q46, Q48, Q49, Q50, Q51, Q52, Q54, Q56, Q57, Q58, Q61, Q64, Q65, Q66, Q67, Q68, Q70, Q71, Q72, Q73, Q74, Q75, Q76, Q77, Q78, Q80, Q81, Q83, Q85, Q86, Q89, Q92, Q93, Q94, Q96, Q97, Q98, Q101, Q102, Q104, Q105, Q106, Q108, Q109, Q110, Q111, Q115, Q116, Q117, Q118, Q120, Q121, Q122, Q127, Q128, Q129, Q131, Q133, Q135, Q136, Q141, Q143 — decided by Claude 2026-10-23 (owner-question triage, owner asked), decisions.md "CLAUDE 2026-10-23 — owner-question triage"; Q29, Q43, Q59, Q60, Q82, Q88, Q90, Q95, Q99, Q100, Q107, Q112 — already answered or obsolete (same record). The owner reads the record and can reverse any.

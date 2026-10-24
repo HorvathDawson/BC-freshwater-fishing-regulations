@@ -124,3 +124,8 @@ licence check in the work list is settled; endpoint and CORS still to verify.
    Default: keep it, labelled; the day's own flow sits right under it.
 3. A same-day spot whose gauge was silent at capture now offers "Get the flow for that day" (filled the next day from
    the feed's daily mean). OK? Default: yes.
+
+## Owner answer (2026-10-24, Q161)
+Keep the backdated spot's saved gauge panel, labelled — and say plainly what it is (the owner asked what "today's
+estimate" meant): "Gauges as read when you saved this spot (Oct 24), not on the visit day (Oct 21)." Follow-up wording
+change in core spots words; pin the whole string.
