@@ -4,7 +4,7 @@ constraint list, and the species × size table read off it.
 The owner's model: a TABLE of species × size bands, each cell what you may keep of that fish at that size
 here today, and a HISTORY (what you have kept here and elsewhere today) — "can I keep this one?" answered from
 the table and the combined limits. This module compiles one group's rules and the reader's verdicts (the card
-gate's `Engine`: which rule CHECKS a fish, which COUNTS a kept one) into:
+gate's `Engine` (`engine.py`): which rule CHECKS a fish, which COUNTS a kept one) into:
 
   kinds   the basket's vocabulary: per species the size bands every rule's own cut points draw (merged where
           no rule tells them apart), split by origin only where the rules tell hatchery from wild —
@@ -75,7 +75,7 @@ def _cuts(E, S: str) -> List[float]:
 
 
 def _bands(E, r):
-    from pipeline.deliver.answers.card_check import _bands as b
+    from pipeline.deliver.answers.engine import bands_of as b
     got = E._bands_of[id(r)] = b(r)
     return got
 
@@ -187,7 +187,7 @@ def _kid(S: str, i: int, o: Optional[str]) -> str:
 def system(P, total: str, species: Sequence[str]) -> dict:
     """{kinds, caps, steelhead_cm, table} of one group (the module docstring). `species`: the fish of the
     table (the group's kinds, then the fish its row holds that nobody may keep here)."""
-    from pipeline.deliver.answers.card_check import Engine
+    from pipeline.deliver.answers.engine import Engine
     E = Engine(P, total)
     kinds: List[dict] = []
     for S in species:
