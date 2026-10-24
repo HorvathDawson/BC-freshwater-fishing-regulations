@@ -106,7 +106,7 @@ use that as the sole source of future work."
 | T59 | two rivers meet (Atnarko/Bella Coola); Fraser exit → Annacis | DONE | c5b1e3d0, 36df866f, 463c013b, c432f6df | live in r-36fbc5326506 |
 | T60 | consistency auditors (N16, Fable) | DONE | 2ac30e42, 9259fa16, ed367f33, d02e1448 | six mutation-pinned gates in pnpm check; F1–F5 fixed; copy move → T180; Q162 |
 | T61 | cleanup wave 2: old pathways/duplicates | PARTIAL | 9db616f0, 884fe9c7, 46cab8cd, baeda569, 0ad1a84 | lanes A/B/C merged, rebuilt with no binding change; left: 2.8 name normaliser (owner OK to promote on an explained diff), 2.17 fixture move |
-| T62 | cleanup wave 3: split long files | OPEN | — | all |
+| T62 | cleanup wave 3: split long files | PARTIAL | b619ca7b…bb31281e (app lane) | app lane merged (3.4–3.8, 3.10); pipeline lane running; 3.2 build.py + 3.9 dfo_salmon after braid/names lanes |
 | T63 | cleanup wave 4: docs, tests, knip | OPEN | — | all |
 | T64 | tiles: S2 size wins + tile rebuild | OPEN | — | all |
 | T65 | determinism proof (N12) | OPEN | — | all (heavy) |
@@ -225,6 +225,7 @@ use that as the sole source of future work."
 | T178 | re-score CLEVER vs COFFEE from the run archive (~6 weeks) and set the weights by the verdict | OPEN | — | due ~2026-12-05 |
 | T179 | one cut-placement pass: auto cuts merge into names, real cuts close together stay apart (order-independent) | OPEN | — | heavy (atlas rebuild); after T61 2.8; owner reviews binding diff |
 | T180 | move the remaining ~105 component strings into core words (T60's KNOWN_COPY list empties) | OPEN | — | app; no wording changes |
+| T181 | gauge pill keeps the theme the map was built with (check, then fix) | OPEN | — | app (web map) |
 
 ## Order for open tickets
 
