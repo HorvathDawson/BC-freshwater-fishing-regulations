@@ -214,6 +214,7 @@ use that as the sole source of future work."
 | T167 | More tab: simpler details, references on their own page, data freshness compact on the main tab, a real desktop layout | OPEN | — | app |
 | T168 | "N gauges in view": split gauges on this water from donor gauges | OPEN | — | app |
 | T169 | one gauge panel for one side-channel water (Nicomen grey middle: connector vs adopted lines) | OPEN | — | deliver; Q84 default (a) |
+| T170 | a spot gets the flow of its own day (historical) on refresh or on request | OPEN | — | app (+ feed/release history) |
 
 ## Order for open tickets
 
