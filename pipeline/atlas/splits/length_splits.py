@@ -113,7 +113,7 @@ def _interior_junctions(graph: StreamGraph) -> dict[str, list[tuple[float, str]]
 
 
 def _cuts_in(node, junctions: list[tuple[float, str]], cap_m: float,
-             min_piece_m: float) -> list[tuple[float, str]]:
+             min_piece_m: float, blocked=None) -> list[tuple[float, str]]:
     """Where to cut ONE over-long section, walking from its low end.
 
     Greedy on the LAST junction still inside the cap: it takes the longest piece the cap
@@ -131,17 +131,33 @@ def _cuts_in(node, junctions: list[tuple[float, str]], cap_m: float,
     if not js:
         return []
     name_at = {m: nm for m, nm in junctions}
+    # A JUNCTION A BRAID SPANS IS NOT ELIGIBLE (T67, owner 2026-10-24): `blocked(m)` is the braid sweep's
+    # own gate (`braid_sweep.spans_a_braid`). Asked lazily, in the order the rules below would take the
+    # junctions, so the result is exactly the rules run over the eligible junctions alone.
+    _ok: dict[float, bool] = {}
+
+    def ok(m: float) -> bool:
+        if blocked is None:
+            return True
+        if m not in _ok:
+            _ok[m] = not blocked(m)
+        return _ok[m]
 
     out: list[tuple[float, str]] = []
     anchor, i = node.down_m, 0
     while node.up_m - anchor > cap_m and i < len(js):
         window = [m for m in js[i:] if m - anchor <= cap_m]
+        pick = None
         if window:
-            named = [m for m in window
-                     if name_at.get(m) and m - anchor >= cap_m * PREFER_NAMED_FROM]
-            pick = named[-1] if named else window[-1]
-        else:
-            pick = js[i]                       # nothing fits; overshoot to the next junction
+            pick = next((m for m in reversed(window)
+                         if name_at.get(m) and m - anchor >= cap_m * PREFER_NAMED_FROM and ok(m)), None)
+            if pick is None:
+                pick = next((m for m in reversed(window) if ok(m)), None)
+        if pick is None:
+            # nothing eligible fits; overshoot to the next eligible junction
+            pick = next((m for m in js[i + len(window):] if ok(m)), None)
+            if pick is None:
+                break                          # none eligible in the stretch: a longer section stays
         if pick - anchor < min_piece_m:
             i += 1
             continue
@@ -170,7 +186,8 @@ def _snap(m: float, node, fid_index: dict | None) -> float:
 
 def junction_cuts(graph: StreamGraph, cap_m: float = DEFAULT_CAP_M,
                   min_piece_m: float = MIN_PIECE_M,
-                  fid_index: dict | None = None) -> list[SplitPoint]:
+                  fid_index: dict | None = None, spanned=None,
+                  skipped: list | None = None) -> list[SplitPoint]:
     """Every cut needed to bring sections under ``cap_m``, at interior confluences only.
 
     Resolved against the graph AS IT STANDS, so a river already divided by a lake, a border,
@@ -181,6 +198,10 @@ def junction_cuts(graph: StreamGraph, cap_m: float = DEFAULT_CAP_M,
     stream-segment boundary at the confluence, so the segments repartition cleanly and each
     new piece gets its own order and magnitude rather than sharing its neighbour's. Omit it
     and the cuts still land, within centimetres, on the same places.
+
+    `spanned(blk, m)` (the braid sweep's gate, `braid_sweep.spans_a_braid`) makes a junction a braid spans
+    ineligible: the stage takes the next eligible junction by the same rules, or leaves the stretch long.
+    Each refused junction is appended to `skipped`.
 
     The ids are `length:{blk}:{measure}` — derived from the blue line and the confluence, so
     a rebuild on the same FWA vintage mints the same ones. They are NOT part of any curated
@@ -193,7 +214,14 @@ def junction_cuts(graph: StreamGraph, cap_m: float = DEFAULT_CAP_M,
     for nid, n in graph.nodes.items():
         if n.kind != NodeKind.stream or n.length_m <= cap_m:
             continue
-        for m, name in _cuts_in(n, inner.get(nid, []), cap_m, min_piece_m):
+        blocked = None
+        if spanned is not None:
+            def blocked(m, _blk=n.blk, _nid=nid):
+                hit = bool(spanned(_blk, m))
+                if hit and skipped is not None:
+                    skipped.append({"section": _nid, "blk": _blk, "m": round(m, 2)})
+                return hit
+        for m, name in _cuts_in(n, inner.get(nid, []), cap_m, min_piece_m, blocked=blocked):
             # Snapped LAST, after the choice of junction is made: the choice is about which
             # tributary to cut at, and this only removes the centimetre of slop between the
             # confluence's measure and the segment boundary that is the same place.

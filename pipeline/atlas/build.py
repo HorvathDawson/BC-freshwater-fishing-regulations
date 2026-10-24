@@ -909,11 +909,30 @@ def main() -> None:
         _cap_m = args.max_section_km * 1000.0
         # `fid_index` snaps each cut onto the FWA segment boundary at the confluence, so
         # the pieces repartition cleanly and each gets its OWN order and magnitude.
-        _len_pts = junction_cuts(graph, cap_m=_cap_m, fid_index=fid_index)
+        # A junction a braid spans is never chosen (`braid_sweep.spans_a_braid`, the sweep's own gate).
+        from pipeline.atlas.splits import braid_sweep as _bs
+        _len_view = _bs.View(graph, geoms)
+        _skipped: list = []
+        _len_pts = junction_cuts(graph, cap_m=_cap_m, fid_index=fid_index,
+                                 spanned=lambda blk, m: _bs.spans_a_braid(_len_view, blk, m),
+                                 skipped=_skipped)
+        # THE SWEEP RUNS ON THE LENGTH CUTS TOO (owner 2026-10-24: every split kind, one gate) — and must
+        # find nothing to cut: a length cut that catches a braid means the junction choice failed.
+        _len_sweep = _bs.sweep(graph, geoms, _len_pts, view=_len_view)
+        print(f"  length cap: {len(_skipped)} braid-spanned junction(s) skipped; sweep on the length "
+              f"cuts: {len(_len_sweep.points)} braid cut(s), cases {_len_sweep.counts()}")
+        _bs.write_record(Path(args.out) / "braid_sweep_length.json", _len_sweep, [], [], stage="length",
+                         extra={"skipped_junctions": _skipped})
+        _bad = _bs.length_cut_failures(_len_sweep)
+        if _bad:
+            raise SystemExit(f"{len(_bad)} length cut(s) straddle a braid ({_len_sweep.counts()}): the "
+                             "junction choice failed — see braid_sweep_length.json")
         if _len_pts:
             _before = len(graph.nodes)
             split_graph_at(graph, geoms, _len_pts, fid_index, proximity_pickup=False,
                            applied=applied_splits)
+            # a braid's own mouth AT a length cut keeps the side the rest of the braid is on
+            _bs.apply_rehomes(graph, _len_sweep.rehomes)
             _named = sum(1 for p in _len_pts if p.label)
             # The share landing at a NAMED tributary is the reviewable number here: those
             # cuts produce a section a reader can locate ("downstream of Sloquet Creek"),
