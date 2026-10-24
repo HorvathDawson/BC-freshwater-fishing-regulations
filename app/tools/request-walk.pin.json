@@ -1,0 +1,149 @@
+{
+ "visit | first paint": [
+  "feed:index",
+  "manifest",
+  "mask",
+  "paint"
+ ],
+ "visit | first search": [
+  "core",
+  "near",
+  "wasm"
+ ],
+ "visit | search: show a water": [
+  "water"
+ ],
+ "visit | search: open the water (R3)": [
+  "regs-3"
+ ],
+ "tap named | first paint": [
+  "feed:index",
+  "manifest",
+  "mask",
+  "paint"
+ ],
+ "tap named | map tap: a named water (R2)": [
+  "access",
+  "core",
+  "regs-2",
+  "wasm",
+  "water"
+ ],
+ "tap unnamed | first paint": [
+  "feed:index",
+  "manifest",
+  "mask",
+  "paint"
+ ],
+ "tap unnamed | map tap: an unnamed stream (R2)": [
+  "access",
+  "conditions",
+  "core",
+  "regs-2",
+  "regs-sid",
+  "wasm",
+  "water"
+ ],
+ "conditions | first paint": [
+  "feed:index",
+  "manifest",
+  "mask",
+  "paint"
+ ],
+ "conditions | open Conditions": [
+  "conditions",
+  "core",
+  "flow-area",
+  "wasm"
+ ],
+ "conditions | the Change horizon": [],
+ "spot | first paint": [
+  "feed:index",
+  "manifest",
+  "mask",
+  "paint"
+ ],
+ "spot | the Spots tab": [],
+ "spot | open a spot": [],
+ "region 1 | cold open gnis:21141 (start link)": [
+  "core",
+  "feed:index",
+  "manifest",
+  "paint",
+  "regs-1",
+  "wasm",
+  "water"
+ ],
+ "region 2 | cold open gnis:15333 (start link)": [
+  "core",
+  "feed:index",
+  "manifest",
+  "paint",
+  "regs-2",
+  "wasm",
+  "water"
+ ],
+ "region 3 | cold open gnis:39492 (start link)": [
+  "core",
+  "feed:index",
+  "manifest",
+  "paint",
+  "regs-3",
+  "wasm",
+  "water"
+ ],
+ "region 4 | cold open gnis:37414 (start link)": [
+  "core",
+  "feed:index",
+  "manifest",
+  "paint",
+  "regs-4",
+  "wasm",
+  "water"
+ ],
+ "region 5 | cold open gnis:13744 (start link)": [
+  "core",
+  "feed:index",
+  "manifest",
+  "paint",
+  "regs-5",
+  "wasm",
+  "water"
+ ],
+ "region 6 | cold open gnis:15430 (start link)": [
+  "core",
+  "feed:index",
+  "manifest",
+  "paint",
+  "regs-6",
+  "wasm",
+  "water"
+ ],
+ "region 8 | cold open gnis:32069 (start link)": [
+  "core",
+  "feed:index",
+  "manifest",
+  "paint",
+  "regs-8",
+  "wasm",
+  "water"
+ ],
+ "region 7a | cold open gnis:8018 (start link)": [
+  "core",
+  "feed:index",
+  "manifest",
+  "paint",
+  "regs-7a",
+  "wasm",
+  "water"
+ ],
+ "region 7b | cold open gnis:14619 (start link)": [
+  "core",
+  "feed:index",
+  "manifest",
+  "paint",
+  "regs-7b",
+  "wasm",
+  "water"
+ ]
+}
