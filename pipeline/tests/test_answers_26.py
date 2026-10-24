@@ -323,7 +323,7 @@ def test_no_fish_has_an_empty_answer_anywhere(request):
     w = json.loads(p.read_text())
     sec = w["sections"]["rows"]
     bad = [(k, s) for k, ats in enumerate(sec["at"]) for s, f in enumerate(ats)
-           if any(h is None or x is None for h, x in sec["frames"][f][1].values())
+           if any(h is None or x is None for h, x, *_lead in sec["frames"][f][1].values())  # rows 33 (T161): [h, x, lead]
            and "GR" in sec["frames"][f][1]
            and None in sec["frames"][f][1]["GR"]]
     assert not bad, bad[:5]
