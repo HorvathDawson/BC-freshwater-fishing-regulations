@@ -759,10 +759,10 @@ def test_named_lifts_need_both_rules_to_name_the_fish():
     assert rules_mod._named_lifts("r8:w", trout, closures) == []
     real = rules_mod.AGGREGATE_GROUPS
     try:
-        rules_mod.AGGREGATE_GROUPS = frozenset()
+        rules_mod.lifts.AGGREGATE_GROUPS = frozenset()
         assert [x["entry_id"] for x in rules_mod._named_lifts("r8:w", trout, closures)] == ["z8:c"]
     finally:
-        rules_mod.AGGREGATE_GROUPS = real
+        rules_mod.lifts.AGGREGATE_GROUPS = real
 
 
 # H. REGION 8's BROOK TROUT FROM STREAMS ARE COUNTED APART FROM THE TROUT/CHAR QUOTA.
@@ -1162,10 +1162,10 @@ def test_a_closure_printing_its_own_exemptions_takes_no_derived_lift():
     assert rules_mod._named_lifts("r6:kit", kit, rules_mod.zone_closures(docs)) == []
     real = rules_mod.prints_its_exemptions
     try:
-        rules_mod.prints_its_exemptions = lambda ce, r: False
+        rules_mod.lifts.prints_its_exemptions = lambda ce, r: False
         assert rules_mod._named_lifts("r6:kit", kit, rules_mod.zone_closures(docs))
     finally:
-        rules_mod.prints_its_exemptions = real
+        rules_mod.lifts.prints_its_exemptions = real
 
 
 def test_a_derived_lift_carries_the_lifters_origin_and_sizes():
