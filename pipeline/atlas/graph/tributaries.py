@@ -35,6 +35,7 @@ from dataclasses import dataclass, field
 from typing import Iterable
 
 from pipeline.common.models import NodeKind, StreamGraph
+from pipeline.common.names import key as name_key
 from pipeline.common import fwa_edge_types
 from pipeline.common import tolerances as _tol
 from pipeline.common.utils import wsc
@@ -378,7 +379,7 @@ def confluence_joiners(graph: StreamGraph, blk: str, m: float, *, near: float = 
                        names: tuple[str, ...] = ()) -> frozenset[str]:
     """The mouths of streams on OTHER blue lines joining line `blk` within `near` metres of `m`.
 
-    `names` (lower-cased) keeps only joiners whose display name is one of them — how a point cut's
+    `names` (each a `names.key`) keeps only joiners whose display name keys as one of them — how a point cut's
     label ("… near the Mobbs Creek confluence") says which of the creeks around it it means. With no
     `names`, a joiner carrying the SAME watershed code as the line is a side channel of the river
     itself, not a joining water, and is left out."""
@@ -394,7 +395,7 @@ def confluence_joiners(graph: StreamGraph, blk: str, m: float, *, near: float = 
                     or e.at_measure is None or abs(e.at_measure - m) > near:
                 continue
             if names:
-                if (src.display_name or "").strip().lower() not in names:
+                if name_key(src.display_name or "") not in names:
                     continue
             elif src.wsc and n.wsc and src.wsc == n.wsc:
                 continue

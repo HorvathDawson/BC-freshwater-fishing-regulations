@@ -16,6 +16,7 @@ from dataclasses import dataclass, field
 
 from pipeline.atlas.reach.covered import covered_ids as _covered_ids
 from pipeline.atlas.graph import tributaries as _tribs
+from pipeline.common.names import key as name_key
 from pipeline.atlas.reach import classify as _policy
 from pipeline.atlas.reach.classify import classify, wants_tributaries
 from pipeline.atlas.reach.models import (
@@ -751,7 +752,7 @@ def _joiners_at(graph, registry, owned, entry, words, sid, kind, label, blk, m, 
     a curated confluence cut is its principal line's alone."""
     rows: list[dict] = []
     if kind == "confluence":
-        head = label.split("\u2192")[0].strip().lower()
+        head = name_key(label.split("\u2192")[0])          # the one name key (T61 2.8)
         joiners = _tribs.confluence_joiners(graph, blk, m, names=(head,)) if head else ()
         if principal:
             joiners = joiners or _tribs.confluence_joiners(graph, blk, m)
@@ -759,9 +760,8 @@ def _joiners_at(graph, registry, owned, entry, words, sid, kind, label, blk, m, 
         near = _tribs.confluence_joiners(graph, blk, m,
                                          near=_tribs.CONFLUENCE_NEAR_M)
         joiners = frozenset(j for j in near
-                            if (graph.nodes[j].display_name or "").strip()
-                            and graph.nodes[j].display_name.strip().lower()
-                            in label.lower())
+                            if name_key(graph.nodes[j].display_name or "")
+                            and name_key(graph.nodes[j].display_name) in name_key(label))
     by_name: dict[str, set[str]] = {}
     for j in joiners:
         by_name.setdefault((graph.nodes[j].display_name or "").strip(), set()).add(j)
