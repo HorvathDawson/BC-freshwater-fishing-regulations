@@ -116,7 +116,7 @@ use that as the sole source of future work."
 | T69 | search on desktop: keyboard leftovers | DONE | 448ebe1b, 389e451a | — |
 | T70 | cleanup wave 1, app side + stale worktrees + `pnpm clean` | PARTIAL | 52ec4cb5, 799614a5, 4615ee0f, 1e8cbdb5, ac95e09f, a7947f99, de3cb79d, fd3f8c06, ef11d8e4, 17e4fe8f | merger steps done 2026-10-22; Q17 dead follow-branch → T63 |
 | T71 | one Map entry: drop the regs header's Map button | DONE | 4817a2e7, 40d6a47c | — |
-| T72 | release LATEST pointer + prune old releases | OPEN | — | all |
+| T72 | release LATEST pointer + prune old releases | DONE | 0eb70144 | Q7 answered: 22 old releases pruned |
 | T73 | smaller reach hand-off (N14, disk) | OPEN | — | all (heavy) |
 | T74 | native colouring engine + native map gaps | OPEN | — | all |
 | T75 | basemap in the release manifest | OPEN | — | all |
@@ -255,7 +255,6 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q2 | T54 | Conditions map: keep the flow colour in no-access areas, or mark them there too? | keep flow colour; Tier A gets only the banner on Conditions | owner |
 | Q4 | T55 | Which finder candidates are sloughs/canals to reclassify? 7 grey polygons (Nation, West Road, Honna)? | nothing reclassified without owner review (dry-run + confirm); the 7 stay grey | owner |
 | Q6 | T67 | Braid splitting at build: go, and which plan? | braids stay paused until the owner reads the assessment | owner (BLOCKED until plan) |
-| Q7 | T72 | Prune list for old releases | keep live + LATEST + previous | owner approves list |
 | Q9 | T77 | When to do phone testing D1a / D1b | D1a when the phone is at hand; D1b after the R2 bucket | owner |
 | Q10 | T79 | Imagery go/no-go; SPEC §12 (10 m pack, buffer, sources, licence, server, caps) | no offline imagery before the first native release; skip 10 m; 250 m buffer; online-only on web; pools a study | owner |
 | Q26 | T86 | R2 bucket, contact address, app name "Can I Fish This?" (no ArcGIS key: owner 2026-10-21) | keep the name; staging bucket first; publisher every 30 min | owner (credentials) |
