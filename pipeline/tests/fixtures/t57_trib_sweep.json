@@ -1,11 +1,11 @@
 {
  "bundle": {
-  "reach_digest": "ca80e9c7bb2f4006",
+  "reach_digest": "faba79c782e33afe",
   "rule_ids_sha256": "7fd80bc0f32d2ed4",
-  "section_handles": "d768d6e135e62b99"
+  "section_handles": "a1944923732ccbfc"
  },
  "by_reason": {
-  "barrier": 29,
+  "barrier": 39,
   "bigger_river": 1,
   "river_continuing": 7,
   "stem_ends_at_lake": 70,
@@ -23,10 +23,16 @@
    "r2:nicomekl_river@2-4::nicomekl_river.r3": 4,
    "r2:nicomekl_river@2-4::nicomekl_river.r4": 4,
    "r2:nicomekl_river@2-4::nicomekl_river.r6": 4,
-   "r2:north_alouette_river@2-8::north_alouette_river.r2": 2,
-   "r2:serpentine_river@2-4::serpentine_river.r1": 1,
-   "r2:serpentine_river@2-4::serpentine_river.r4": 1,
-   "r4:kootenay_river_downstream_of_idaho_border@4-7+4-8::kootenay_river_lower.r4": 1,
+   "r2:north_alouette_river@2-8::north_alouette_river.r2": 3,
+   "r2:serpentine_river@2-4::serpentine_river.r1": 2,
+   "r2:serpentine_river@2-4::serpentine_river.r4": 2,
+   "r4:duncan_river@4-19::duncan_river.r1": 1,
+   "r4:duncan_river@4-19::duncan_river.r2": 1,
+   "r4:duncan_river@4-19::duncan_river.r3": 1,
+   "r4:duncan_river@4-19::duncan_river.r4": 1,
+   "r4:duncan_river@4-19::duncan_river.r5": 1,
+   "r4:kootenay_lake_s_tributaries@4-19+4-7::kootenay_lake_tributaries.r1": 1,
+   "r4:kootenay_river_downstream_of_idaho_border@4-7+4-8::kootenay_river_lower.r4": 2,
    "r6:skeena_river@6-10::skeena_river.r1": 2,
    "r7:peace_river_from_hwy_29_bridge_to_the_site_c_dam@7-31::peace_river.r2": 1,
    "r7:peace_river_from_hwy_29_bridge_to_the_site_c_dam@7-31::peace_river.r3": 1
@@ -52,7 +58,7 @@
    "r6:west_road_blackwater_river_s_tributaries@6-1::west_road_river_tributaries.r3": 14
   }
  },
- "frontier": 150,
+ "frontier": 160,
  "mu_groups": {
   "z1:hg_bait_ban_streams::hg_bait_ban_streams.r1": {
    "bound_not_member": 0,
@@ -141,6 +147,6 @@
   "r4:bull_river@4-22::bull_river.r1": 2,
   "r4:st_mary_river@4-20::st_mary_river.r3": 1
  },
- "unnamed_streams": 1179681,
+ "unnamed_streams": 1179745,
  "walking_rules": 477
 }
