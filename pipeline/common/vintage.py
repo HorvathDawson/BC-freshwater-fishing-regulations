@@ -20,6 +20,7 @@ from __future__ import annotations
 import json
 import sqlite3
 from pathlib import Path
+from typing import Optional
 
 
 def tile_vintage(tiles_dir: Path) -> str | None:
@@ -174,7 +175,7 @@ class Artifacts:
     bundle: Path
     status_index: Path
     export: Path            # ui-rules-export.json; the guide, the answers and the stamp sit beside it
-    store: Path
+    store: Optional[Path] = None   # the regs store: only in `deliver all`'s staging (P20 — none is kept)
 
     @property
     def guide(self) -> Path:
@@ -198,9 +199,8 @@ class Artifacts:
     @classmethod
     def canonical(cls) -> "Artifacts":
         from pipeline.common.curated import GENERATED
-        from pipeline.deliver.store import OUT as STORE_OUT
         from pipeline.tools.export_ui_rules import OUT as EXPORT_OUT
-        return cls(GENERATED.bundle / "bundle.sqlite", GENERATED.bundle / "status_index.bin", EXPORT_OUT, STORE_OUT)
+        return cls(GENERATED.bundle / "bundle.sqlite", GENERATED.bundle / "status_index.bin", EXPORT_OUT)
 
 
 def _meta(p: Path) -> dict:
@@ -237,7 +237,7 @@ def report_all(tiles_dir: Path, arts: Artifacts, *, strict: bool = False) -> tup
         if B.get(k) != v and (strict or B.get(k) is not None):
             fail("bundle.sqlite", f"meta {k} {B.get(k)!r} is not this code's {v!r} — rebuild the bundle")
     missing = []
-    for p in (arts.status_index, arts.export, arts.guide, arts.answers, arts.stamp, arts.store):
+    for p in (arts.status_index, arts.export, arts.guide, arts.answers, arts.stamp, *([arts.store] if arts.store else [])):
         if not p.exists():
             missing.append(p.name)
     if missing:
@@ -270,7 +270,7 @@ def report_all(tiles_dir: Path, arts: Artifacts, *, strict: bool = False) -> tup
             fail(arts.stamp.name, f"the card gate found {st.get('problems')} problems")
         if st.get("answers_sha256") != sha:
             fail(arts.stamp.name, "answers_sha256 is not the answers file's: the gate proved other bytes")
-    if arts.store.exists():
+    if arts.store is not None and arts.store.exists():
         S = _meta(arts.store)
         same(arts.store.name, S)
         if S.get("rule_ids_sha256") != rids:

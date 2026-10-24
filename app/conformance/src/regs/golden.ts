@@ -3,11 +3,10 @@
  * hydrate.json), the store a parity suite reads, the per-state `RegsInputs` cache, and `cases(block)`.
  *
  * WHICH STORE (`paritySource`, REGS_PARITY=province|fixture|auto, default auto):
- * - province: the LIVE RELEASE on this machine (`releasePairing`): the province regs.sqlite the oracles were cut from
- *   (taps.json `meta.store.store_digest`) must be here and carry the release's `answers_sha256`.
+ * - province: the LIVE RELEASE on this machine (`releasePairing`): its water file must carry the answers the oracles were
+ *   cut from (taps.json `meta.store.answers_sha256` — taps.py reads the release's own store, P20: no regs.sqlite).
  * - fixture: the COMMITTED regs fixture release (T10, packages/data/dev/regs-release; all 134 golden states), held to
- *   taps.json's section_handles / reach_digest / rule_ids_sha256 — and, when the province store is on this machine, to its
- *   answers_sha256 too. This is the CI path.
+ *   taps.json's section_handles / reach_digest / rule_ids_sha256 and answers_sha256. This is the CI path.
  * - auto: province when paired, else the fixture when paired, else none.
  * None is a SKIP with its reason, never a wall of false failures — unless REGS_STORE_REQUIRED=1 (`paritySkip`).
  *
@@ -17,12 +16,11 @@
  * `parityStore()` is tests.md §1.2's `provinceStore(): Promise<RegsStore | null>`; every parity suite reads through it.
  */
 import { existsSync } from "node:fs";
-import { DatabaseSync } from "node:sqlite";
 import { buildRegsPage, type Day, type RegsInputs, type RegsPage, type RegsTarget, type Weekday, type Who } from "@app/core";
 import type { Block, GoldenState, Tap, TapsFile } from "@app/core/regs/testing";
 import { loadRegsInputs, openRegsStore, RegsStoreError, type RegsLoader, type RegsStore } from "@app/data/regs";
 import { regsFixtureDir } from "@app/data/release/node";
-import { liveRelease, liveReleaseAt, openReleaseDir, regsStoreCandidates } from "../fixtureRelease";
+import { liveRelease, liveReleaseAt, openReleaseDir } from "../fixtureRelease";
 import { EXCLUDE, excluded } from "./exclusions";
 import { golden, oracleRixOver, taps, tapsOnce } from "./oracles";
 import { subcapRuled } from "./subcapTotal";
@@ -31,25 +29,21 @@ import { t100Ruled } from "./t100MapPage";
 export { golden, hydrate, HYDRATE, oracleRixOver, REPO, taps, TAPS } from "./oracles";
 export type { Block, Cell, GoldenFile, GoldenSheet, GoldenState, LeapTap, Tap, TapsFile, TapsMeta } from "@app/core/regs/testing";
 
-/** Where the port tooling's province store (regs.sqlite) is, or why there is none to pair with. The FIRST candidate on
- *  disk is judged: a stale one is a skip with its reason, never passed over for a later one (REGS_STORE pointing at a
- *  stale store must say so). */
-export function provinceStoreAt(candidates: readonly (string | undefined)[] = regsStoreCandidates()):
-  { path: string; reason: null } | { path: null; reason: string } {
-  const path = candidates.find((p): p is string => !!p && existsSync(p));
-  if (!path) return { path: null, reason: `no regs store on this machine (looked at ${candidates.filter(Boolean).join(", ") || "nothing"})` };
-  const db = new DatabaseSync(path, { readOnly: true });
-  try {
-    const got = (db.prepare("SELECT v FROM meta WHERE k = 'store_digest'").get() as { v: string } | undefined)?.v;
-    const want = taps().meta.store.store_digest;
-    return got === want ? { path, reason: null }
-      : { path: null, reason: `${path} is store ${got ?? "(no store_digest)"}, the oracles were cut from ${want}: re-run app/design/regs-v11/port/taps.py` };
-  } finally { db.close(); }
+/** Is the release at `dir` (its water file's `answers_sha256`, `got`) the build the oracles were cut from (`want`, taps.json
+ *  `meta.store.answers_sha256`)? null when it is; else why not. taps.py reads the release's own regs store (P20: no
+ *  regs.sqlite is kept), so the answers digest is the pairing: a release delivered after the goldens is a stale comparison. */
+export function answersVerdict(dir: string, got: string, want: string | null | undefined): string | null {
+  if (!want) return "taps.json names no answers_sha256 (cut before P20): re-run app/design/regs-v11/port/taps.py";
+  return got === want ? null
+    : `release ${dir} carries answers ${got.slice(0, 12)}, the oracles were cut from ${want.slice(0, 12)}: re-run app/design/regs-v11/port/sync.mjs`;
 }
+
+/** A pairing: the paired release's path, or why there is none. */
+export type Pairing = { path: string; reason: null } | { path: null; reason: string };
 
 /** How a store-backed parity suite treats the pairing: run it, or skip it with the reason. REGS_STORE_REQUIRED=1 (a machine
  *  that is meant to prove parity) turns the skip into a failure, so a rebuilt store cannot make `pnpm check` pass silently. */
-export function paritySkip(at: ReturnType<typeof provinceStoreAt>, env: Readonly<Record<string, string | undefined>> = process.env):
+export function paritySkip(at: Pairing, env: Readonly<Record<string, string | undefined>> = process.env):
   { skip: false; fail: null } | { skip: true; fail: null; reason: string } | { skip: true; fail: string } {
   if (at.path !== null) return { skip: false, fail: null };
   const required = !!env.REGS_STORE_REQUIRED && env.REGS_STORE_REQUIRED !== "0";
@@ -100,21 +94,18 @@ const storeAt = (dir: string): Promise<Opened> => {
 };
 
 /**
- * The LIVE RELEASE paired with the oracles: the province store the goldens were cut from (`provinceStoreAt`, taps.json
- * `store_digest`) must exist, the app must accept the release (`openPaired`), and its water file must carry the province
- * store's `answers_sha256`. Else a skip with the reason: a release delivered after the goldens (a pipeline answers change)
- * would make every parity a stale comparison. REGS_STORE_REQUIRED=1 turns the skip into a failure (`paritySkip`).
+ * The LIVE RELEASE paired with the oracles: the app must accept the release (`openPaired`), and its water file must carry
+ * the answers the goldens were cut from (`answersVerdict`). Else a skip with the reason: a release delivered after the
+ * goldens (a pipeline answers change) would make every parity a stale comparison. REGS_STORE_REQUIRED=1 turns the skip
+ * into a failure (`paritySkip`).
  */
-export async function releasePairing(): Promise<{ path: string; reason: null } | { path: null; reason: string }> {
-  const at = provinceStoreAt();
-  if (at.path === null) return { path: null, reason: at.reason };
+export async function releasePairing(): Promise<Pairing> {
   const live = liveReleaseAt(), dir = live.dir;
   if (!dir) return { path: null, reason: live.reason! };
   const opened = await storeAt(dir);
   if (opened.store === null) return { path: null, reason: opened.reason };
-  const want = provinceAnswers(), got = opened.store.meta.answersSha256;
-  return got === want ? { path: dir, reason: null }
-    : { path: null, reason: `release ${dir} carries answers ${got.slice(0, 12)}, the oracles' store ${String(want).slice(0, 12)}: re-run app/design/regs-v11/port/sync.mjs` };
+  const why = answersVerdict(dir, opened.store.meta.answersSha256, provinceAnswers());
+  return why === null ? { path: dir, reason: null } : { path: null, reason: why };
 }
 
 /** The paired LIVE release's store, or null (skip; `releasePairing()` says why). One store per test file. */
@@ -135,13 +126,13 @@ export function parityMode(env: Env = process.env): ParityMode {
   throw new Error(`REGS_PARITY=${v}: expected province, fixture or auto`);
 }
 
-/** What the fixture release's water meta must agree with: taps.json's store digests, and the province store's answers. */
+/** What the fixture release's water meta must agree with: taps.json's store digests and the answers the oracles were cut from. */
 export interface FixtureFacts { readonly sectionHandles: string; readonly reachDigest: string; readonly ruleIdsSha256: string; readonly answersSha256: string }
 
 /**
  * Why the fixture is NOT the oracles' store, or null when it is: its section_handles / reach_digest / rule_ids_sha256 must be
- * taps.json's, and — when the paired province store is on this machine (`provinceAnswers` non-null) — its answers_sha256 the
- * province store's (the release meta carries no store_digest; answers are what a pipeline change moves).
+ * taps.json's, and — when taps.json names them (`provinceAnswers` non-null) — its answers_sha256 the answers the oracles were
+ * cut from (answers are what a pipeline change moves).
  */
 export function fixtureVerdict(fx: FixtureFacts, store: { section_handles: string; reach_digest: string; rule_ids_sha256: string },
                                provinceAnswers: string | null): string | null {
@@ -163,16 +154,11 @@ export function chooseSource(mode: ParityMode, province: string | null, fixture:
   return { label: null, reason: `no paired regs store: province — ${province}; fixture — ${fixture}` };
 }
 
-const provinceAnswers = (): string | null => {
-  const at = provinceStoreAt();
-  if (at.path === null) return null;
-  const db = new DatabaseSync(at.path, { readOnly: true });
-  try { return (db.prepare("SELECT v FROM meta WHERE k = 'answers_sha256'").get() as { v: string } | undefined)?.v ?? null; }
-  finally { db.close(); }
-};
+/** The answers the oracles were cut from (taps.json `meta.store.answers_sha256`); null on a taps.json cut before P20. */
+const provinceAnswers = (): string | null => tapsOnce().meta.store.answers_sha256 ?? null;
 
 type Source = { label: "province" | "fixture"; dir: string; reason: null } | { label: null; dir: null; reason: string };
-/** What the fixture is held to: taps.json's store digests, and the province store's answers (null when it is not here). */
+/** What the fixture is held to: taps.json's store digests and answers (null: a taps.json cut before P20). */
 export interface SourceFacts {
   readonly store: { section_handles: string; reach_digest: string; rule_ids_sha256: string };
   readonly provinceAnswers: () => string | null;

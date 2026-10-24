@@ -57,7 +57,10 @@ export interface LeapTap {
 
 export interface TapsMeta {
   generator: string; golden: string; version: string; year: number;
-  store: { format: string; section_handles: string; reach_digest: string; rule_ids_sha256: string; store_digest: string;
+  // answers_sha256 pairs the oracles with a release (P20: taps.py reads the release's store); store_digest is null when
+  // the release predates `store_meta` (pipeline/deliver/store/release.py)
+  store: { format: string; section_handles: string; reach_digest: string; rule_ids_sha256: string; answers_sha256?: string;
+           store_digest: string | null;
            layout: string };
 }
 

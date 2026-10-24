@@ -109,18 +109,34 @@ const ROOTS = (): string[] => {
   return main ? [REPO, main] : [REPO];
 };
 
-/**
- * The regs store `python -m pipeline.deliver store` writes (data/generated/bundle/regs.sqlite, not in git): the PORT
- * TOOLING's file (taps.py, hydrate.mjs) until P20, and the Python reference decoder's input — never the app's data, which
- * is the release. The first of `regsStoreCandidates()` on disk. null: none.
- */
-export function liveRegsStore(): string | null {
-  return regsStoreCandidates().find((p) => existsSync(p)) ?? null;
+/** This checkout's `.venv/bin/python`, else the main checkout's (a worktree has none of its own); null: neither. */
+export function venvPython(): string | null {
+  return ROOTS().map((root) => join(root, ".venv/bin/python")).find((p) => existsSync(p)) ?? null;
 }
 
-/** Where that store is looked for, in order: $REGS_STORE alone when set, else this checkout's, then the main checkout's. */
-export function regsStoreCandidates(env: Readonly<Record<string, string | undefined>> = process.env): string[] {
-  return env.REGS_STORE ? [env.REGS_STORE] : ROOTS().map((root) => join(root, "data/generated/bundle/regs.sqlite"));
+const PROVINCE = new Map<string, string>();
+/**
+ * THE PROVINCE REGS STORE of the release folder `dir`, as one SQLite file (P20, T61 2.4: no regs.sqlite is kept). The
+ * release ships the store's tables split by reader — water's common tables, the nine regs-<region> shards, regs-sid —
+ * and `pipeline.deliver.store.release.province_store` puts them back together row for row (held to the store's own
+ * store_digest when the release carries it); that is written once per process to a temp file, so a test reads the
+ * same rows with node:sqlite as the Python reference decoder (`Store`) does. Made from the release and nothing else.
+ * null: no `dir`, or no .venv to run the reassembly.
+ */
+export function provinceStoreOf(dir: string | null): string | null {
+  if (!dir) return null;
+  const py = venvPython();
+  if (!py) return null;
+  let p = PROVINCE.get(dir);
+  if (!p) {
+    p = join(mkdtempSync(join(tmpdir(), "province-store-")), "regs.sqlite");
+    execFileSync(py, ["-c", [
+      "import sys", "from pathlib import Path", "from pipeline.deliver.store.release import province_store",
+      "province_store(Path(sys.argv[1])).con.execute('VACUUM INTO ?', (sys.argv[2],))"].join("\n"), dir, p],
+      { cwd: REPO, stdio: ["ignore", "ignore", "inherit"] });
+    PROVINCE.set(dir, p);
+  }
+  return p;
 }
 
 /** A release folder opened as the app opens one, and the node:sqlite opener: the data drivers' (one copy, T10). */

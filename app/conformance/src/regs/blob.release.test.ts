@@ -1,5 +1,6 @@
 /**
- * T02 on the PROVINCE STORE (the port tooling's regs.sqlite, `liveRegsStore()`; skipped without one, a failure under
+ * T02 on the PROVINCE STORE — the live release's regs store put back together from its files (`provinceStoreOf`; P20: no
+ * regs.sqlite is kept; skipped without a paired release, a failure under
  * REGS_STORE_REQUIRED=1): `unpackBlob` decodes what the store holds exactly as the Python reference does.
  *
  * Nothing is typed here. It replaced packages/data blob.test.ts's table of literal ids and JSON prefixes (ladder_frame 1057,
@@ -18,18 +19,18 @@ import { resolve } from "node:path";
 import { inflateRawSync } from "node:zlib";
 import { beforeAll, describe, expect, it } from "vitest";
 import { inflateBlob, unpackBlob } from "@app/data/regs";
-import { liveRegsStore } from "../fixtureRelease";
+import { liveRelease, provinceStoreOf } from "../fixtureRelease";
 import { taps } from "./oracles";
 
 const T = taps();
-const PATH = liveRegsStore();
+const PATH = provinceStoreOf(liveRelease());
 const REQUIRED = !!process.env.REGS_STORE_REQUIRED && process.env.REGS_STORE_REQUIRED !== "0";
 const db = PATH ? new DatabaseSync(PATH, { readOnly: true }) : null;
-const digest = db ? (db.prepare("SELECT v FROM meta WHERE k = 'store_digest'").get() as { v: string } | undefined)?.v : undefined;
+const answers = db ? (db.prepare("SELECT v FROM meta WHERE k = 'answers_sha256'").get() as { v: string } | undefined)?.v : undefined;
 /** The store is the build taps.json was cut from, or the comparison is with another build's ids (a skip with the reason). */
-const paired = !!db && digest === T.meta.store.store_digest;
-const why = !db ? "no regs.sqlite on this machine" : paired ? null
-  : `${PATH} is store ${digest}, taps.json was cut from ${T.meta.store.store_digest}: re-run app/design/regs-v11/port/taps.py`;
+const paired = !!db && !!answers && answers === T.meta.store.answers_sha256;
+const why = !db ? "no release on this machine (or no .venv to reassemble its store)" : paired ? null
+  : `the live release carries answers ${String(answers).slice(0, 12)}, taps.json was cut from ${String(T.meta.store.answers_sha256).slice(0, 12)}: re-run app/design/regs-v11/port/sync.mjs`;
 
 /** Every blob table and its blob column (pipeline/deliver/store/common.py BLOB_COLUMNS), and its key column. */
 const BLOBS = `

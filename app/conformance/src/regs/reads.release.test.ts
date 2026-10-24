@@ -2,8 +2,9 @@
  * T04 on the LIVE release (skipped without one): the reads give the ticket's values (verified against the store,
  * 2026-10-20), every one of the 134 golden taps reads its cell from the release (taps.json), and every frame those taps
  * reach decodes to exactly what the PYTHON reference decoder makes of the same build (`pipeline/deliver/store/decode.py`
- * `Store.answers()` + `encode.py` `CODECS[...].decode_frame`) — run here, over the port tooling's regs.sqlite, when its
- * answers_sha256 is the release's (else that half says why it skipped).
+ * `Store.answers()` + `encode.py` `CODECS[...].decode_frame`) — run here, over the release's own regs store put back together
+ * (`provinceStoreOf`; P20: no regs.sqlite is kept), so the TS reads and the Python decoder read the same rows (no .venv:
+ * that half skips).
  */
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -11,11 +12,11 @@ import { resolve } from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
 import type { LadderFrameWire, VerdictWire } from "@app/core";
 import { openRegsStore, type RegsStore } from "@app/data/regs";
-import { liveRegsStore, liveRelease, openReleaseDir } from "../fixtureRelease";
+import { liveRelease, openReleaseDir, provinceStoreOf } from "../fixtureRelease";
 import { taps } from "./oracles";
 
 const LIVE = liveRelease();
-const STORE = liveRegsStore();
+const STORE = provinceStoreOf(LIVE);
 const T = taps();
 
 /** The Vedder's key and its May 15 / Jun 15 cells (taps.json, the Python reference decoder's over the build the goldens were
@@ -211,7 +212,7 @@ for name, ids in want.items():
 print(json.dumps(out))
 `;
 
-describe.skipIf(!LIVE || !STORE)(`T04 frames = the Python reference decoder's (${STORE ?? "no regs.sqlite"})`, () => {
+describe.skipIf(!LIVE || !STORE)(`T04 frames = the Python reference decoder's (${STORE ? "the release's regs store" : "no .venv"})`, () => {
   it("every frame the 134 golden taps reach, all five families", async () => {
     const st = await openRegsStore(openReleaseDir(LIVE!));
     const ids: Record<string, Map<number, number>> = { ladder: new Map(), rows: new Map(), gear: new Map(), licence: new Map(), display: new Map() };
@@ -220,7 +221,7 @@ describe.skipIf(!LIVE || !STORE)(`T04 frames = the Python reference decoder's ($
       cwd: resolve(__dirname, "../../../.."), encoding: "utf8", maxBuffer: 1 << 28,
       input: JSON.stringify(Object.fromEntries(Object.entries(ids).map(([f, m]) => [f, [...m.keys()]]))),
     })) as { answers_sha256: string; origins: string[]; frames: Record<string, Record<string, unknown>> };
-    expect(py.answers_sha256, "the port tooling's regs.sqlite is the release's build").toBe(st.meta.answersSha256);
+    expect(py.answers_sha256, "the reassembled store is the release's build").toBe(st.meta.answersSha256);
 
     const rules = await st.rules(), s = await st.statics();
     const keys = [...rules.values()].map((r) => `${r.export.entry_id}::${r.export.rule_id}`);

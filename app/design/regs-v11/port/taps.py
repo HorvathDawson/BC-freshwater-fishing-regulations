@@ -1,13 +1,15 @@
 """The phase-0 parity oracle: for every golden state, what the Python reference decoder says the app's tap must resolve.
 
-    .venv/bin/python app/design/regs-v11/port/taps.py [--store data/generated/bundle/regs.sqlite] [--golden app/design/regs-v11/port/golden/golden.json]
+    .venv/bin/python app/design/regs-v11/port/taps.py [--release data/release/r-…] [--golden app/design/regs-v11/port/golden/golden.json]
     -> app/design/regs-v11/port/golden/taps.json
 
 Per state: the water's item id (page v36's export ids, by the snapshot's water name), the part index, the date (2026, the
 prototype's year), the weekday, then the store's answer: item_ord, akey, the segment starts, the moments, the segment index
 (pipeline.deliver.answers.encode.segment_index, inside=False), the cell's five frame ids, and the per-day display frame id
 over the leap calendar (1..366) so the TS year strip can be checked frame by frame. Plus a sample of unnamed section handles
-(handle -> akey, place, the unnamed name). Read-only; no LLM, no network. The store's full digest is not verified (fast).
+(handle -> akey, place, the unnamed name). Read-only; no LLM, no network. The store is the RELEASE's (P20: no regs.sqlite),
+put back together by `pipeline.deliver.store.release.province_store` and held to its store_digest when the release
+carries one (`store_meta`; older releases: `meta.store.store_digest` is null and `answers_sha256` pairs the oracles).
 
 And `leap`: the Feb 29 cases (owner, P06/D31: Feb 29 READS Feb 28's day, 59, on its OWN real weekday), each tapped as
 `encode.tap_key` does (`calendar.reading_day_of` + `calendar_spec.weekday_of`): the Zymoetz below Limonite Creek
@@ -35,7 +37,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(REPO))
-from pipeline.deliver.store.decode import Store            # noqa: E402
+from pipeline.deliver.store.release import province_store  # noqa: E402
 from pipeline.deliver.answers import encode as E           # noqa: E402
 from pipeline.deliver.calendar import day_of, reading_day_of  # noqa: E402
 from pipeline.common.calendar_spec import weekday_of        # noqa: E402
@@ -87,7 +89,7 @@ def same_part(golden, store):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--store", default=str(REPO / "data/generated/bundle/regs.sqlite"))
+    ap.add_argument("--release", default=None, help="the release folder whose regs store to read (default: data/release/LATEST)")
     ap.add_argument("--golden", default=str(REPO / "app/design/regs-v11/port/golden/golden.json"))
     ap.add_argument("--page", default=str(REPO / "app/design/regs-v11/reference/page_v36.html"))
     ap.add_argument("--out", default=str(REPO / "app/design/regs-v11/port/golden/taps.json"))
@@ -98,7 +100,7 @@ def main():
     D = json.loads(re.search(r'<script[^>]*id="data"[^>]*>([\s\S]*?)</script>', html).group(1))
     by_name = {w["name"]: w["id"] for w in D["waters"]}
     G = json.loads(Path(a.golden).read_text())
-    s = Store(a.store, verify=False)
+    s = province_store(Path(a.release) if a.release else None)   # the release IS the store (P20: no regs.sqlite)
     c = s.con
     meta = dict(c.execute("select k, v from meta").fetchall())
     M = s.static("answers.moments")
@@ -181,7 +183,7 @@ def main():
                 "readingDay": rd, "akey": akey, "starts": starts, "moments": moms, "s": si,
                 "cell": dict(zip(("ladder", "rows", "gear", "licence", "display"), cell))}
 
-    out = {"meta": {"generator": "app/design/regs-v11/port/taps.py", "store": {k: meta.get(k) for k in ("format", "section_handles", "reach_digest", "rule_ids_sha256", "store_digest", "layout")},
+    out = {"meta": {"generator": "app/design/regs-v11/port/taps.py", "store": {k: meta.get(k) for k in ("format", "section_handles", "reach_digest", "rule_ids_sha256", "answers_sha256", "store_digest", "layout")},
                     "golden": G["meta"].get("sha"), "version": G["meta"].get("version"), "year": 2026}, "states": {}, "unnamed": [],
            "leap": [leap("zymoetz_20360229", "gnis:3137", 0, 2036, 2, 29), leap("zymoetz_20360228", "gnis:3137", 0, 2036, 2, 28),
                     leap("zymoetz_20280229", "gnis:3137", 0, 2028, 2, 29), leap("zymoetz_20280228", "gnis:3137", 0, 2028, 2, 28)],

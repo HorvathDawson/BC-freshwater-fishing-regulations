@@ -1,12 +1,12 @@
 /**
- * The store pairing the parity suites hang on (`provinceStoreAt`): a stale or absent store must come back as a skip WITH its
- * reason (never a silent pass, never a fail), and REGS_STORE_REQUIRED=1 must turn that skip into a failure, so a machine that
- * is meant to prove parity cannot exit 0 on a rebuilt store.
+ * The pairing the parity suites hang on (`answersVerdict`: the release carries the answers the oracles were cut from; P20 —
+ * no regs.sqlite, taps.py reads the release's own store): a stale release must come back as a skip WITH its reason (never a
+ * silent pass, never a fail), and REGS_STORE_REQUIRED=1 must turn that skip into a failure, so a machine that is meant to
+ * prove parity cannot exit 0 on a rebuilt release.
  */
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { DatabaseSync } from "node:sqlite";
 import { basename } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
 import { KNOWN_VERSIONS } from "@app/core";
@@ -14,51 +14,32 @@ import type { Db, Manifest } from "@app/data";
 import type { RegsLoader } from "@app/data/regs";
 import { regsFixtureDir } from "@app/data/release/node";
 import { liveReleaseAt, openReleaseDir } from "../fixtureRelease";
-import { chooseSource, fixtureVerdict, openPaired, paritySkip, parityMode, provinceStoreAt, resolveSource, summary, taps } from "./golden";
+import { answersVerdict, chooseSource, fixtureVerdict, openPaired, paritySkip, parityMode, resolveSource, summary, taps } from "./golden";
 
 const dir = mkdtempSync(join(tmpdir(), "regs-pairing-"));
 afterAll(() => rmSync(dir, { recursive: true, force: true }));
-const storeWith = (name: string, digest: string | null): string => {
-  const p = join(dir, name), db = new DatabaseSync(p);
-  db.exec("CREATE TABLE meta (k TEXT PRIMARY KEY, v TEXT)");
-  if (digest !== null) db.prepare("INSERT INTO meta VALUES ('store_digest', ?)").run(digest);
-  db.close();
-  return p;
-};
-const want = taps().meta.store.store_digest;
+const want = taps().meta.store.answers_sha256!;
 
-describe("provinceStoreAt: which store, or why none", () => {
-  it("a store at the oracles' digest is the pairing", () => {
-    const p = storeWith("paired.sqlite", want);
-    expect(provinceStoreAt([p])).toEqual({ path: p, reason: null });
+describe("answersVerdict: is the release the build the oracles were cut from, or why not", () => {
+  it("taps.json names the answers it was cut from (taps.py reads the release, P20)", () => {
+    expect(want).toMatch(/^[0-9a-f]{64}$/);
   });
 
-  it("a store at another digest is a skip naming both digests and the re-cut", () => {
-    const p = storeWith("stale.sqlite", "0000000000000000");
-    const at = provinceStoreAt([p]);
-    expect(at.path).toBeNull();
-    expect(at.reason).toContain(p);
-    expect(at.reason).toContain("0000000000000000");
-    expect(at.reason).toContain(want);
-    expect(at.reason).toMatch(/taps\.py/);
+  it("a release carrying the oracles' answers is the pairing", () => {
+    expect(answersVerdict("/r/r-x", want, want)).toBeNull();
   });
 
-  it("a store with no digest at all is a skip, not a pairing", () => {
-    const at = provinceStoreAt([storeWith("nodigest.sqlite", null)]);
-    expect(at.path).toBeNull();
-    expect(at.reason).toMatch(/store undefined|no store_digest/);
+  it("a release carrying other answers is a skip naming the release, both digests and the re-cut", () => {
+    const why = answersVerdict("/r/r-stale", "0".repeat(64), want)!;
+    expect(why).toContain("/r/r-stale");
+    expect(why).toContain("000000000000");
+    expect(why).toContain(want.slice(0, 12));
+    expect(why).toMatch(/sync\.mjs/);
   });
 
-  it("the first candidate that exists is the one judged: a stale first store is not skipped over for a paired one", () => {
-    const stale = storeWith("first-stale.sqlite", "1111111111111111"), paired = storeWith("second-paired.sqlite", want);
-    const at = provinceStoreAt([undefined, join(dir, "missing.sqlite"), stale, paired]);
-    expect(at.path).toBeNull();
-    expect(at.reason).toContain(stale);
-  });
-
-  it("no candidate on disk is a skip with the places looked", () => {
-    const at = provinceStoreAt([undefined, join(dir, "missing.sqlite")]);
-    expect(at).toEqual({ path: null, reason: expect.stringMatching(/no regs store on this machine/) });
+  it("a taps.json cut before P20 (no answers_sha256) pairs with nothing", () => {
+    expect(answersVerdict("/r/r-x", want, undefined)).toMatch(/no answers_sha256.*taps\.py/);
+    expect(answersVerdict("/r/r-x", want, null)).toMatch(/no answers_sha256/);
   });
 });
 

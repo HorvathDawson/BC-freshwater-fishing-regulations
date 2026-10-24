@@ -2,8 +2,9 @@
 
   python -m pipeline.deliver.store build [--bundle FILE] [--export-dir DIR] [--answers FILE]
                                          [--out FILE] [--blobs json|deflate|zdict]
-  python -m pipeline.deliver.store check --store FILE [--answers FILE] [--export-dir DIR]
-      decode the store and compare: the answers bytes identical, the export subset equal
+  python -m pipeline.deliver.store check [--store FILE | --release DIR] [--answers FILE] [--export-dir DIR]
+      decode the store (default: the one the live release holds) and compare: the answers bytes identical,
+      the export subset equal
   python -m pipeline.deliver.store measure --store FILE [--variants DIR …build inputs]
       sizes per table and compressed; with --variants, build every blob codec into DIR and
       measure each
@@ -16,7 +17,7 @@ import sys
 from pathlib import Path
 
 from pipeline.common.curated import GENERATED
-from pipeline.deliver.store import OUT
+from pipeline.deliver.store import DEBUG_OUT
 from pipeline.deliver.store.common import CODECS, StoreError
 
 
@@ -46,14 +47,15 @@ def main(argv=None) -> int:
     sub = ap.add_subparsers(dest="cmd", required=True)
     b = sub.add_parser("build")
     _inputs(b)
-    b.add_argument("--out", type=Path, default=OUT)
+    b.add_argument("--out", type=Path, default=DEBUG_OUT, help="default: the debug copy (no canonical store, P20)")
     b.add_argument("--blobs", choices=CODECS, default="zdict")
     c = sub.add_parser("check")
     _inputs(c)
-    c.add_argument("--store", type=Path, default=OUT)
+    c.add_argument("--store", type=Path, default=None, help="a regs.sqlite; default: the store the release holds")
+    c.add_argument("--release", type=Path, default=None, help="the release folder (default: data/release/LATEST)")
     m = sub.add_parser("measure")
     _inputs(m)
-    m.add_argument("--store", type=Path, default=OUT)
+    m.add_argument("--store", type=Path, default=DEBUG_OUT)
     m.add_argument("--variants", type=Path, default=None,
                    help="build regs.<codec>.sqlite for every blob codec here and measure each")
     a = ap.parse_args(argv)
@@ -66,7 +68,8 @@ def main(argv=None) -> int:
         from pipeline.tools.export_codec import expand
         raw, _A, E, G = load_inputs(a.answers or a.export_dir / "ui-rules-answers.json",
                                     a.export_dir)
-        s = Store(a.store)
+        from pipeline.deliver.store.release import province_store
+        s = Store(a.store) if a.store else province_store(a.release)
         try:
             same = s.answers_bytes(check=False) == raw
             sub_ok = s.export_subset(check=False) == export_subset(expand(E, G))

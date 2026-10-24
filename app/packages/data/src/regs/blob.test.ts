@@ -1,11 +1,11 @@
 /**
  * T02: the regs store's blob codec against the Python reference (`pipeline/deliver/store/common.py` `unpack`).
  * Every byte vector below was produced or checked by Python: the 0x02 one by `common.pack(raw, "zdict", zd)`, the 0x01
- * one decoded by `common.unpack` to the same JSON. The province-store half reads the built store when it is present.
+ * one decoded by `common.unpack` to the same JSON. Every row of the province store, decoded as the Python reference decodes
+ * it and inflated as zlib inflates it, is conformance/src/regs/blob.release.test.ts over the live release (P20: no
+ * regs.sqlite is kept for a package test to open, and this package may not run Python or name node:zlib).
  */
 import { describe, expect, it } from "vitest";
-import { openBundle } from "../bundle/drivers/node";
-import type { Cell, Db } from "../bundle/db";
 import { inflateBlob, RegsBlobError, unpackBlob, utf8 } from "./blob";
 
 const hex = (h: string) => new Uint8Array(h.match(/../g)!.map((b) => parseInt(b, 16)));
@@ -56,30 +56,3 @@ describe("unpackBlob, store-free", () => {
   });
 });
 
-/** The built province store (T03 replaces this literal with DEV_REGS / hasProvinceRegs). Absent in a fresh worktree. */
-const REGS = decodeURIComponent(new URL("../../../../../data/generated/bundle/regs.sqlite", import.meta.url).pathname);
-/** Opened once if it is there (layers.json keeps node:fs out of packages/data; opening is the existence test). */
-const store: Db | null = (() => {
-  try { return openBundle(REGS); } catch { return null; }
-})();
-const hasProvinceRegs = store !== null;
-
-describe.skipIf(!hasProvinceRegs)("unpackBlob, the province store", () => {
-  const db = store!;
-  const bytes = (v: Cell) => new Uint8Array(v as Uint8Array);
-  const dict = async (t: string) => {
-    const r = await db.get("SELECT d FROM zdict WHERE tbl = ?", t);
-    return r ? bytes(r.d) : null;
-  };
-
-  // Each row decoded as the Python reference decodes it (by the golden taps' ids, not literals) is
-  // conformance/src/regs/blob.release.test.ts — this package may not run Python or name node:zlib.
-  it("unpacks every display_frame and display_rule row", async () => {
-    for (const t of ["display_frame", "display_rule"]) {
-      const d = await dict(t);
-      const rows = await db.all(`SELECT j FROM ${t}`);
-      expect(rows.length).toBeGreaterThan(1000);
-      for (const r of rows) unpackBlob(bytes(r.j), d);
-    }
-  });
-});

@@ -179,11 +179,11 @@ def _paths():
 def test_every_unnamed_section_has_a_page():
     """T53's whole-map count = 0: every unnamed section of the bundle has a key in the store, the key has cells,
     and the store names it ("Unnamed stream · Region N") — the page the water screen opens."""
-    from pipeline.deliver.store.decode import Store
+    from pipeline.deliver.store.release import province_store
     bundle, _, _ = _paths()
     db = sqlite3.connect(f"file:{bundle}?mode=ro", uri=True)
     unnamed = [sid for (sid,) in db.execute("SELECT sid FROM section_ruleset WHERE up IS NOT NULL ORDER BY sid")]
-    st = Store(bundle.parent / "regs.sqlite", verify=False)
+    st = province_store()                 # the live release's regs store (P20: no regs.sqlite is kept)
     assert st.meta["reach_digest"] == dict(db.execute("SELECT k, v FROM meta"))["reach_digest"]
     akeys = st.section_akeys()
     with_cells = {a for (a,) in st.con.execute("SELECT DISTINCT akey FROM cell")}

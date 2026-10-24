@@ -8,14 +8,16 @@
     python -m pipeline.deliver card_check [--bundle FILE] [--export-dir DIR]
     python -m pipeline.deliver store [--bundle FILE] [--export-dir DIR] [--out FILE] [--blobs CODEC]
     python -m pipeline.deliver export [--bundle FILE] [--out FILE]
-    python -m pipeline.deliver all --out-dir DIR [--build DIR] [--reaches DIR] [--entries DIR] [--tiles DIR]
+    python -m pipeline.deliver all --out-dir DIR [--build DIR] [--reaches DIR] [--entries DIR] [--tiles DIR] [--debug-json]
 
 The artifacts a client reads — the bundle, the status index, and the export pair
 (`ui-rules-export.json` + `ui-rules-guide.json`, one run) — are three commands
 (`pipeline.deliver.bundle`, `pipeline.deliver.status_index`, `pipeline.tools.export_ui_rules`),
 and each still runs alone — iterating on the export rebuilds only the export. The REGS STORE
-(`regs.sqlite`, `pipeline.deliver.store`) is the last step: the answers and the export words as
-SQLite, built from the files beside it and proved to decode back to them byte for byte. What this adds is
+(`pipeline.deliver.store`) is the release's input: the answers and the export words as SQLite, built from the files
+beside it and proved to decode back to them byte for byte. NO `regs.sqlite` IS KEPT (P20): `all` builds it in its
+staging directory, the release ships its tables (water, regs-<region>, regs-sid), and every reader reads those
+(`pipeline.deliver.store.release.province_store`); `--debug-json` keeps a copy at `store.DEBUG_OUT`. What this adds is
 the CHAIN: `all` writes them all into one directory from one bundle, and every step reads its input from the previous step's
 output and nothing else, so the index and the export are cut from the bundle bytes beside them.
 The vintage line (`pipeline.common.vintage`) and the two digests every artifact carries
@@ -68,16 +70,18 @@ def _step(args: list) -> None:
     subprocess.run([sys.executable, "-m", "pipeline.deliver", *args], check=True)
 
 
-def canonical_homes() -> dict:
-    """Where each file `deliver all` writes lives when no --out-dir is given: {file name: its live path}."""
+def canonical_homes(debug: bool = False) -> dict:
+    """Where each file `deliver all` writes lives when no --out-dir is given: {file name: its live path}. The regs store
+    has no home (P20): it is kept only with `debug` (`--debug-json`), at `store.DEBUG_OUT`."""
     from pipeline.deliver.answers.card_check import STAMP_NAME
-    from pipeline.deliver.store import OUT as _STORE_OUT
+    from pipeline.deliver.store import DEBUG_OUT
     from pipeline.tools.export_ui_rules import OUT as _EXPORT_OUT
     b, r = GENERATED.bundle, _EXPORT_OUT.parent
     return {"bundle.sqlite": b / "bundle.sqlite", "verdicts.sqlite": b / "verdicts.sqlite",
-            "status_index.bin": b / "status_index.bin", "regs.sqlite": _STORE_OUT,
+            "status_index.bin": b / "status_index.bin",
             "ui-rules-export.json": _EXPORT_OUT, "ui-rules-guide.json": r / "ui-rules-guide.json",
-            "ui-rules-answers.json": r / "ui-rules-answers.json", STAMP_NAME: r / STAMP_NAME}
+            "ui-rules-answers.json": r / "ui-rules-answers.json", STAMP_NAME: r / STAMP_NAME,
+            **({"regs.sqlite": DEBUG_OUT} if debug else {})}
 
 
 def _all(a) -> int:
@@ -127,7 +131,10 @@ def _all(a) -> int:
         if not ok:
             print("pipeline.deliver: vintage refused — nothing was promoted", file=sys.stderr)
             return 1
-        homes = canonical_homes()
+        debug = a.debug_json
+        if not debug:                        # P20: the store was the release's input; the release holds its tables
+            (d / "regs.sqlite").unlink(missing_ok=True)
+        homes = canonical_homes(debug)
         # the release folder(s) go to data/release/ (or <out-dir>/release/), whole
         releases = sorted(p for p in (d / "release").iterdir()) if (d / "release").exists() else []
         names = sorted(p.name for p in d.iterdir() if p.name != "release")
@@ -193,12 +200,13 @@ def main(argv=None) -> int:
                     help="the answers' directory (default: the canonical export's)")
     sub.add_parser("release", help="the shipped set: data/release/<data_release>/ (P08); its own flags: "
                                    "python -m pipeline.deliver.release --help")
-    st = sub.add_parser("store", help="the regs store (regs.sqlite) from the answers + export pair")
+    st = sub.add_parser("store", help="the regs store (regs.sqlite) from the answers + export pair — a debug copy: "
+                                      "`all` makes it in staging for the release and keeps none (P20)")
     st.add_argument("--bundle", type=Path, default=GENERATED.bundle / "bundle.sqlite")
     st.add_argument("--export-dir", type=Path, default=None,
                     help="the export pair's and the answers' directory (default: the canonical export's)")
     st.add_argument("--out", type=Path, default=None,
-                    help="default: pipeline.deliver.store.OUT (regs.sqlite beside the bundle)")
+                    help="default: pipeline.deliver.store.DEBUG_OUT (data/generated/debug/regs.sqlite)")
     st.add_argument("--blobs", default="zdict", choices=("json", "deflate", "zdict"))
     al = sub.add_parser("all", help="bundle, then the index and the export from THAT bundle")
     al.add_argument("--build", type=Path, default=None)
@@ -209,13 +217,17 @@ def main(argv=None) -> int:
                          "in this run's release root")
     al.add_argument("--out-dir", type=Path, default=None,
                     help="write bundle.sqlite, status_index.bin, ui-rules-export.json, "
-                         "ui-rules-guide.json, ui-rules-answers.json and regs.sqlite here "
+                         "ui-rules-guide.json, ui-rules-answers.json (and, with --debug-json, regs.sqlite) here "
                          "(default: the canonical paths)")
+    al.add_argument("--debug-json", action="store_true",
+                    help="also keep the regs store the release was cut from (regs.sqlite: in --out-dir, else "
+                         "pipeline.deliver.store.DEBUG_OUT); by default none is kept (P20)")
     a = ap.parse_args(argv)
     if a.step in (None, "all"):
         if a.step is None:
             a.build = a.reaches = a.entries = a.tiles = None
             a.out_dir = None
+            a.debug_json = False
         return _all(a)
     if a.step == "bundle":
         _bundle(a)
@@ -240,11 +252,11 @@ def main(argv=None) -> int:
             raise SystemExit(f"pipeline.deliver: the card gate found problems in {exp / 'ui-rules-answers.json'} "
                              "— nothing was packaged")
     elif a.step == "store":
-        from pipeline.deliver.store import OUT as _STORE_OUT
+        from pipeline.deliver.store import DEBUG_OUT
         from pipeline.deliver.store.__main__ import main as store_main
         from pipeline.tools.export_ui_rules import OUT as _EXPORT_OUT
         exp = a.export_dir or _EXPORT_OUT.parent
-        out = a.out or _STORE_OUT
+        out = a.out or DEBUG_OUT
         if store_main(["build", "--bundle", str(a.bundle), "--export-dir", str(exp),
                        "--out", str(out), "--blobs", a.blobs]):
             raise SystemExit(f"pipeline.deliver: the store was refused — {out} was not written")

@@ -20,6 +20,8 @@ WRITES = {"bundle": ["bundle.sqlite"], "verdicts": ["verdicts.sqlite"], "status_
           "export": ["ui-rules-export.json", "ui-rules-guide.json"],
           "answers": ["ui-rules-answers.json"], "card_check": ["card-check.json"],
           "store": ["regs.sqlite"], "release": []}
+#: what a run keeps: everything but the regs store, which is the release's input only (P20, T61 2.4)
+KEPT = [f for fs in WRITES.values() for f in fs if f != "regs.sqlite"]
 
 
 def _fake_steps(monkeypatch, fail_at=None, vintage_ok=True):
@@ -48,10 +50,9 @@ def _fake_steps(monkeypatch, fail_at=None, vintage_ok=True):
 
 def _live(dest: Path) -> dict:
     dest.mkdir(parents=True, exist_ok=True)
-    for files in WRITES.values():
-        for f in files:
-            (dest / f).write_text(f"old {f}")
-            os.utime(dest / f, (1_000_000_000, 1_000_000_000))
+    for f in KEPT:
+        (dest / f).write_text(f"old {f}")
+        os.utime(dest / f, (1_000_000_000, 1_000_000_000))
     return {f.name: (f.read_text(), f.stat().st_mtime) for f in dest.iterdir() if f.is_file()}
 
 
@@ -84,17 +85,29 @@ def test_a_passing_run_promotes_every_file_and_leaves_no_staging(monkeypatch, tm
     ran = _fake_steps(monkeypatch)
     assert D.main(["all", "--out-dir", str(dest)]) == 0
     assert ran == ["bundle", "verdicts", "status_index", "export", "answers", "card_check", "store", "release"]
-    assert {n: t for n, (t, _m) in _state(dest).items() if n != "release"} == \
-        {f: f"new {f}" for fs in WRITES.values() for f in fs}
+    assert {n: t for n, (t, _m) in _state(dest).items() if n != "release"} == {f: f"new {f}" for f in KEPT}
+    assert not (dest / "regs.sqlite").exists()                      # P20: the store is not kept
     assert (dest / "release" / "r-test" / "manifest.json").read_text() == "new manifest"
     assert [p.name for p in tmp_path.iterdir()] == ["out"]
 
 
+def test_debug_json_keeps_the_regs_store_the_release_was_cut_from(monkeypatch, tmp_path):
+    dest = tmp_path / "out"
+    _live(dest)
+    _fake_steps(monkeypatch)
+    assert D.main(["all", "--out-dir", str(dest), "--debug-json"]) == 0
+    assert (dest / "regs.sqlite").read_text() == "new regs.sqlite"
+
+
 def test_the_canonical_run_promotes_each_file_to_its_own_home():
-    """Without --out-dir the files go to three homes; every file a step writes has one (none is dropped)."""
+    """Without --out-dir the files go to their homes; every file a run keeps has one, and the regs store has none
+    unless --debug-json asks for it (then the debug directory, never beside the bundle)."""
+    from pipeline.deliver.store import DEBUG_OUT
     homes = D.canonical_homes()
-    assert set(homes) == {f for fs in WRITES.values() for f in fs}
-    assert homes["regs.sqlite"].name == "regs.sqlite" and homes["card-check.json"].parent == homes["ui-rules-answers.json"].parent
+    assert set(homes) == set(KEPT) and homes["card-check.json"].parent == homes["ui-rules-answers.json"].parent
+    debug = D.canonical_homes(debug=True)
+    assert set(debug) == set(KEPT) | {"regs.sqlite"} and debug["regs.sqlite"] == DEBUG_OUT
+    assert DEBUG_OUT.parent != homes["bundle.sqlite"].parent
 
 
 def test_the_answers_step_writes_one_file_and_no_gzip_copy(tmp_path):

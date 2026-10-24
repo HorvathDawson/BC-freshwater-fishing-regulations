@@ -96,6 +96,8 @@ def build(release: Path, items: Sequence[str], handles: Sequence[int], out_root:
                 src[name] = p
         con = {k: sqlite3.connect(f"file:{p}?mode=ro", uri=True) for k, p in src.items()}
         meta = {k: dict(c.execute("SELECT k, v FROM meta")) for k, c in con.items()}
+        # the province store's own meta (its store_digest) does not describe a subset of it
+        meta["water"].pop("store_meta", None)
 
         # the kept waters, by core's ord (= water's item_ord, P08)
         ords = dict(con["core"].execute(f"SELECT item_id, ord FROM item WHERE item_id IN ({_strs(items)})"))

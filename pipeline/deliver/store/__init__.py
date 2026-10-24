@@ -1,4 +1,7 @@
-"""THE REGS STORE — `regs.sqlite`, the answers and the export words a client reads, as SQLite (S0).
+"""THE REGS STORE — the answers and the export words a client reads, as SQLite (S0). It is the release step's input
+and is not kept (P20): the release's water / regs-<region> / regs-sid files hold its tables, and `release.py`
+(`province_store`) puts them back together for every Python reader. `regs.sqlite` is written only in staging, or to
+`DEBUG_OUT` on request.
 
     python -m pipeline.deliver store [--bundle FILE] [--export-dir DIR] [--out FILE] [--blobs CODEC]
     python -m pipeline.deliver.store build|check|measure …
@@ -26,8 +29,11 @@ from __future__ import annotations
 
 from pipeline.common.curated import GENERATED
 
-#: The store's canonical path: beside the bundle it is cut from (like `status_index.bin`).
-OUT = GENERATED.bundle / "regs.sqlite"
+#: NO CANONICAL STORE (P20, T61 2.4): the store is the release step's input, made in `deliver all`'s staging directory
+#: and dropped with it; the release ships its tables (water, regs-<region>, regs-sid) and every reader reads those
+#: (`pipeline.deliver.store.release.province_store`). A copy is kept only on request — `deliver all --debug-json`, or
+#: `deliver store` run alone — and goes here, never beside the bundle.
+DEBUG_OUT = GENERATED.base / "debug" / "regs.sqlite"
 
 #: 2 (S1): `place`, `akey.place`, and every section in B.C. keyed (`section_akey`).
 #: 3 (S1b): keys by content (no `akey.place`); `place` is a region set; `section_place`. MUs are

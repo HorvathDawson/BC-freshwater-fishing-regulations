@@ -228,6 +228,17 @@ def test_report_all_strict_refuses_a_missing_artifact_lenient_notes_it(tmp_path:
     assert ok and "not checked" in msg
 
 
+def test_the_canonical_delivery_has_no_regs_store_and_strict_does_not_ask_for_one(tmp_path: Path):
+    """P20 (T61 2.4): no regs.sqlite is kept — the release holds its tables — so the canonical artifacts name none, and
+    a delivery without one passes strict (the staging check, `Artifacts.in_dir`, still holds the store it made)."""
+    from dataclasses import replace
+    assert Artifacts.canonical().store is None
+    arts = _delivery(tmp_path)
+    arts.store.unlink()
+    ok, msg = report_all(tmp_path / "tiles", replace(arts, store=None), strict=True)
+    assert ok, msg
+
+
 def test_report_all_refuses_a_release_file_from_another_atlas(tmp_path: Path):
     arts = _delivery(tmp_path)
     rel = tmp_path / "release" / "r-x"

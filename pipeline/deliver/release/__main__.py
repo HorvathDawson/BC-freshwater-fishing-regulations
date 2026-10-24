@@ -1,4 +1,4 @@
-"""python -m pipeline.deliver.release [--bundle FILE] [--store FILE] [--status-index FILE] [--export-dir DIR]
+"""python -m pipeline.deliver.release [--bundle FILE] --store FILE [--status-index FILE] [--export-dir DIR]
                                     [--out-root DIR] [--data-release ID] [--lake-facts FILE]
                                     [--tiles DIR] [--tiles-release-root DIR]
 
@@ -17,11 +17,11 @@ def main(argv=None) -> int:
     from pipeline.deliver.release import build as B
     from pipeline.deliver.answers.common import BOOK_TITLE
     from pipeline.deliver.release.manifest import sources_block, tiles_block
-    from pipeline.deliver.store import OUT as STORE
     from pipeline.tools.export_ui_rules import OUT as EXPORT
     ap = argparse.ArgumentParser(prog="pipeline.deliver.release", description=__doc__.split("\n\n")[0])
     ap.add_argument("--bundle", type=Path, default=GENERATED.bundle / "bundle.sqlite")
-    ap.add_argument("--store", type=Path, default=STORE)
+    ap.add_argument("--store", type=Path, required=True,
+                    help="the regs store to package (deliver all makes it in its staging directory; P20: none is kept)")
     ap.add_argument("--status-index", type=Path, default=GENERATED.bundle / "status_index.bin")
     ap.add_argument("--export-dir", type=Path, default=EXPORT.parent)
     ap.add_argument("--out-root", type=Path, default=GENERATED.release)

@@ -1,7 +1,9 @@
 """Sanity of the spec's data -> view mapping, before any TypeScript exists: for every golden state, decode the store's
 frames the way contracts.md says the app will, and check the golden (what the prototype drew) agrees.
 
-    .venv/bin/python app/design/regs-v11/port/verify_map.py      # REGS_STORE=<regs.sqlite> to read another (read-only) store
+    .venv/bin/python app/design/regs-v11/port/verify_map.py      # REGS_RELEASE=<data/release/r-…> to read another release
+
+The store is the release's (P20: no regs.sqlite), put back together by `pipeline.deliver.store.release.province_store`.
 
 Checks (each prints passed / states):
   strip.runs     per-day display_frame.strip over 2026 (taps.json displayByDay, Feb 29 dropped), run-length == golden keep.strip.bar[].flex
@@ -18,7 +20,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(REPO))
-from pipeline.deliver.store.decode import Store  # noqa: E402
+from pipeline.deliver.store.release import province_store  # noqa: E402
 
 # OWNER RULING 2026-10-21 (a) (pipeline/docs/GOTCHAS.md): on the Kitimat the store's group tree differs from page v36's by
 # design (app/conformance/src/regs/exclusions.ts KITIMAT_RULED_IDS); their trees are not walked here, every other check runs.
@@ -29,7 +31,8 @@ TROUTISH = set("RB CT EB GB LT DV ST BT CT_ws CT_c".split())   # page_v36.js row
 def main():
     G = json.loads((REPO / "app/design/regs-v11/port/golden/golden.json").read_text())
     T = json.loads((REPO / "app/design/regs-v11/port/golden/taps.json").read_text())
-    s = Store(os.environ.get("REGS_STORE") or str(REPO / "data/generated/bundle/regs.sqlite"), verify=False)
+    rel = os.environ.get("REGS_RELEASE")
+    s = province_store(Path(rel) if rel else None)
     c, cache = s.con, {}
 
     def val(t, i):

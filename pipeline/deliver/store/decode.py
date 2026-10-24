@@ -20,12 +20,19 @@ from pipeline.deliver.store.common import (BLOCK, BLOCK_BITS, BLOB_COLUMNS, EXPO
 
 
 class Store:
-    def __init__(self, path, verify: bool = True):
-        self.path = Path(path)
-        if not self.path.exists():
-            raise FileNotFoundError(f"no store at {self.path} — make it with: "
-                                    "python -m pipeline.deliver store")
-        self.con = sqlite3.connect(f"file:{self.path}?mode=ro", uri=True)
+    """A regs store: a `regs.sqlite` at `path`, or an open connection `con` holding the same tables (the province
+    store reassembled from a release, `pipeline.deliver.store.release.province_store`)."""
+
+    def __init__(self, path=None, verify: bool = True, *, con: Optional[sqlite3.Connection] = None):
+        if con is None:
+            self.path = Path(path)
+            if not self.path.exists():
+                raise FileNotFoundError(f"no store at {self.path} — make one with: python -m pipeline.deliver store "
+                                        "(or read the release: pipeline.deliver.store.release.province_store)")
+            con = sqlite3.connect(f"file:{self.path}?mode=ro", uri=True)
+        else:
+            self.path = Path(path) if path is not None else None
+        self.con = con
         self.meta = dict(self.con.execute("SELECT k, v FROM meta"))
         if self.meta.get("format") != FORMAT:
             raise StoreError(f"store: format {self.meta.get('format')!r} is not {FORMAT!r}")

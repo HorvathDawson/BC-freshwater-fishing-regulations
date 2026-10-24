@@ -118,17 +118,19 @@ def test_the_manifest_names_the_sid_space_not_a_tile_build():
 def rel(request, tmp_path_factory):
     from pipeline.common.curated import GENERATED
     from pipeline.deliver.bundle import read as R
-    from pipeline.deliver.store import OUT as STORE
+    from pipeline.deliver.store.build import build as build_store
     from pipeline.tests.conftest import need, BUNDLE_HINT, EXPORT_HINT
     from pipeline.tools.export_ui_rules import OUT as EXPORT
     bundle = need(request, "bundle", Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE), BUNDLE_HINT)
-    store = need(request, "bundle", STORE, BUNDLE_HINT)
     si = need(request, "bundle", GENERATED.bundle / "status_index.bin", BUNDLE_HINT)
     exp = need(request, "bundle", EXPORT.parent / "ui-rules-answers.json", EXPORT_HINT).parent
     if not sqlite3.connect(f"file:{bundle}?mode=ro", uri=True).execute(
             "SELECT 1 FROM sqlite_master WHERE name = 'part_geo'").fetchone():
         pytest.fail(f"{bundle} predates P09: point UI_EXPORT_BUNDLE at a bundle with part_geo")
     out = tmp_path_factory.mktemp("release")
+    # no regs.sqlite is kept (P20): the store is made here from the answers + export pair, as `deliver all` does
+    store = out / "regs.sqlite"
+    build_store(exp / "ui-rules-answers.json", exp, bundle, store)
     kw = dict(bundle=bundle, store=store, status_index=si, export_dir=exp)
     d = B.build(**kw, out_root=out / "a")
     d2 = B.build(**kw, out_root=out / "b")
@@ -221,6 +223,39 @@ def test_water_regions_and_sid_files_reproduce_the_regs_store(rel, tmp_path):
     for r in SH.REGIONS:
         have = {a for (a,) in files[f"regs-{r}"].execute("SELECT DISTINCT akey FROM cell")}
         assert {a for a, rs in regions.items() if r in rs} == have, r
+
+
+@pytest.mark.needs_bundle
+def test_the_release_is_the_regs_store_put_back_together(rel):
+    """P20 (T61 2.4): no reader needs regs.sqlite. `province_store(release)` reassembles the store from water + the nine
+    shards + regs-sid, row for row and with its own meta (`store_meta`), so it is held to the store's `store_digest`;
+    and one dropped row is refused."""
+    from pipeline.deliver.store.common import StoreError, store_digest
+    from pipeline.deliver.store.decode import Store
+    from pipeline.deliver.store.release import province_store
+    d, _, _, store, _ = rel
+    want = Store(store)
+    got = province_store(d)
+    assert got.meta == want.meta and store_digest(got.con) == want.meta["store_digest"]
+    assert got.answers_bytes() == want.answers_bytes()
+    # mutation: a water file that lost a row (its sha256 re-stated, so only the digest can tell) is refused
+    import shutil
+    bad = d.parent.parent / "bad" / d.name
+    shutil.copytree(d, bad)
+    m = json.loads((bad / "manifest.json").read_text())
+    f = m["files"]["water"]
+    p = bad.parent / f["url"]
+    con = sqlite3.connect(":memory:")
+    con.deserialize(gzip.decompress(p.read_bytes()))
+    assert con.execute("DELETE FROM str WHERE id = (SELECT max(id) FROM str)").rowcount == 1
+    con.commit()
+    raw = con.serialize()
+    import hashlib
+    p.write_bytes(gzip.compress(raw))
+    f["sha256"] = hashlib.sha256(raw).hexdigest()
+    (bad / "manifest.json").write_text(json.dumps(m))
+    with pytest.raises(StoreError, match="reassembled"):
+        province_store(bad)
 
 
 @pytest.mark.needs_bundle

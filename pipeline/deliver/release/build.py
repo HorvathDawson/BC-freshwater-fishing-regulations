@@ -11,7 +11,9 @@ writes paint, derives three per-water flags for search, converts the climatology
   water          the regs store's common tables + display_rule + akey_region,     regs store + bundle
                  part_section, part_geo, part_mark, water_exit,
                  water_continue (which stream goes on as another: the bundle's
-                 own table, bundle/continuation.py)
+                 own table, bundle/continuation.py); meta `store_meta` = the regs
+                 store's own meta, so water + the shards + regs-sid ARE the store
+                 (store/release.py; nothing reads regs.sqlite, P20)
   regs-<region>  cell + the frames its akeys reach (shards.py), × 9               regs store
   regs-sid       section_akey, section_place                                      regs store
   conditions     gauge, section_gauge, lake_gauge, section_down, gauge_clim       bundle
@@ -282,7 +284,10 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
             con.executemany("INSERT INTO akey_region VALUES (?, ?)",
                             sorted((a, r) for a, rs in regions.items() for r in rs))
         water_meta = {**regs, "format": FORMATS["water"], "card_check": json.dumps(stamp, sort_keys=True),
-                      **{k: smeta[k] for k in ("layout", "about_bundle", "blob_codec", "answers_sha256")}}
+                      **{k: smeta[k] for k in ("layout", "about_bundle", "blob_codec", "answers_sha256")},
+                      # the store's own meta, whole: the store is put back together from the release and held to its
+                      # store_digest (store/release.py `province_store`)
+                      "store_meta": json.dumps(smeta, sort_keys=True)}
         files["water"] = copy_file(work / "water.sqlite", {"s": store, "b": bundle},
                                    [("s", t, None) for t in common] + [("b", t, None) for t in WATER_BUNDLE_TABLES],
                                    water_meta, extra=water_extra)
