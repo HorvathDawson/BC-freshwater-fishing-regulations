@@ -44,9 +44,9 @@ from typing import Dict, List, Optional, Tuple
 
 from pipeline.regs.dfo_salmon.entries import ENTRIES_DIR, EntryLocation, load, save
 from pipeline.regs.dfo_salmon.fetch import ALL_SLUGS, PAGES, normalize_slug
-from pipeline.regs.dfo_salmon.locations import normalize
 from pipeline.regs.dfo_salmon.untangle import named_streams
 from pipeline.common.curated import CURATED, GENERATED, SOURCE
+from pipeline.common.names import drop_notes, key
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +79,7 @@ def name_candidates(name: str) -> List[Tuple[str, str]]:
 
     def add(n: str, why: str) -> None:
         n = (n or "").strip(" .,")
-        k = normalize(n)
+        k = _index_key(n)
         if k and k not in seen:
             seen.add(k)
             out.append((n, why))
@@ -170,15 +170,23 @@ class Proposal:
         return self.status == "matched" and bool(self.item_ids)
 
 
+def _index_key(name: str) -> str:
+    """How `matcher.build_name_index` keys a name: THE name key (`names.key`) without its "(...)"
+    notes. Looking a DFO name up under any other key misses the index — `locations.normalize`, used
+    here before T61 2.8, spaces apostrophes, keeps accents and parentheticals, and so keyed 364
+    registry names differently from the index it was asked of ("BLACK'S LAKE", "Brûlé Creek")."""
+    return key(drop_notes(name))
+
+
 def _spelling_suggestions(name: str, name_index: Dict[str, List[str]]) -> List[Dict[str, str]]:
-    key = normalize(name)
-    near = difflib.get_close_matches(key, list(name_index), n=3, cutoff=_FUZZY_FLOOR)
+    k = _index_key(name)
+    near = difflib.get_close_matches(k, list(name_index), n=3, cutoff=_FUZZY_FLOOR)
     out = []
     for n in near:
-        ratio = difflib.SequenceMatcher(None, key, n).ratio()
+        ratio = difflib.SequenceMatcher(None, k, n).ratio()
         # Only offer a near-spelling that keeps the feature word — "Cayeghle River" vs
         # "Eagle River" scores well on letters and is a different river.
-        if key.split()[-1:] != n.split()[-1:]:
+        if k.split()[-1:] != n.split()[-1:]:
             continue
         out.append({"name": n, "item_ids": name_index[n][:3], "ratio": round(ratio, 3)})
     return out
@@ -211,7 +219,7 @@ def propose(ef, registry, name_index, id_index, overrides) -> List[Proposal]:
         # No exact hit. Collect suggestions for the curator; bind nothing.
         sug: List[Dict[str, str]] = []
         for lookup, why in name_candidates(w.name)[1:]:
-            hits = name_index.get(normalize(lookup)) or []
+            hits = name_index.get(_index_key(lookup)) or []
             if hits:
                 sug.append({"kind": "retry", "name": lookup, "why": why,
                             "item_ids": hits[:3],
@@ -236,9 +244,9 @@ def _splits_by_water() -> Dict[str, List[dict]]:
         return {}
     out: Dict[str, List[dict]] = collections.defaultdict(list)
     for wb in json.loads(SPLITS.read_text(encoding="utf-8")).get("waterbodies", []):
-        key = normalize(re.sub(r"\s*\([^)]*\)", "", wb.get("name", "")))
+        k = _index_key(wb.get("name", ""))
         for s in wb.get("splits") or []:
-            out[key].append(s)
+            out[k].append(s)
     return out
 
 
@@ -287,7 +295,7 @@ def worklist(slug: str, entries_dir: Path = ENTRIES_DIR, unbound_only: bool = Fa
             L.append(f"             SET item_ids IN entries/region-{slug}.json "
                      f"(water_id {w.water_id}); a list — one DFO name can be several items")
 
-        curated = splits.get(normalize(w.name)) or []
+        curated = splits.get(_index_key(w.name)) or []
         if curated:
             L.append(f"  splits already curated ({len(curated)}):")
             for sp in curated:

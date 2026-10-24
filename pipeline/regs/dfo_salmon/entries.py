@@ -42,6 +42,7 @@ from pipeline.regs.dfo_salmon.fetch import ALL_SLUGS, PAGES, normalize_slug
 from pipeline.regs.dfo_salmon.cascade import Scope, build_scopes, resolution_chain
 from pipeline.regs.parsing.entry_models import Extent
 from pipeline.regs.dfo_salmon.locations import Location, normalize
+from pipeline.common.names import key
 from pipeline.common.curated import CURATED, GENERATED, SOURCE
 
 logger = logging.getLogger(__name__)
@@ -684,7 +685,7 @@ def _candidates(loc: Location, ef: EntryFile, limit: int = 3) -> List[dict]:
     out = []
     want = set(loc.landmarks)
     for cand in ef.locations:
-        if normalize(cand.water) != normalize(loc.water):
+        if key(cand.water) != key(loc.water):            # the same water's name (names.key)
             continue
         text = difflib.SequenceMatcher(
             None, normalize(cand.source_text.get("specific_area", "")),
