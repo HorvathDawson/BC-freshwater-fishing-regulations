@@ -1,7 +1,8 @@
 # T61 — Cleanup wave 2: merge old pathways and duplicates
 
 Status: PARTIAL — lanes A (9db616f0…a3411ccf), B (46cab8cd…baeda569), C (0a24db3a…884fe9c7) merged; see the Outcome
-sections. Left: 2.8 the one name normaliser (next), 2.17's live-input move into app/fixtures/, stale prose the lanes listed
+sections. Done 2026-10-24: 2.8 the one name normaliser (bb22f3eb…a097e407, promoted in r-5380a42dab54: no binding change, 3
+duplicate aliases dropped). Left: 2.17's live-input move into app/fixtures/, stale prose the lanes listed
 (→ T63). 2.10's tolerances-in-bundle-meta: dropped (owner 2026-10-24: the app never reads them). 2.18 is T48. Source: handoff/PLAN/audit/PLAN.md §2 "Wave 2" (items 2.x), with the owner's corrections: keep
 stocking / bathymetry / salmon code as "prepared"; prove every script unneeded before deleting it.
 Includes the ONE name normaliser (owner accepts a reviewed binding diff), retiring the dev bundle + riffle fixture
