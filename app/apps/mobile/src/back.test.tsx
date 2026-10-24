@@ -211,9 +211,9 @@ async function movesInsideChilliwack(extra: () => string = () => ""): Promise<st
   note(where());
   await view("Conditions"); note(where());
   await view("Map"); await onWaterMap(); note(`${where()} · ${mapWhere()}`);
-  await press("▲ Upstream"); note(`${where()} · ${mapWhere()}`);
-  await press("▼ Downstream"); note(`${where()} · ${mapWhere()}`);
-  await press("▼ Downstream"); note(`${where()} · ${mapWhere()}`);
+  await press("Upstream"); note(`${where()} · ${mapWhere()}`);
+  await press("Downstream"); note(`${where()} · ${mapWhere()}`);
+  await press("Downstream"); note(`${where()} · ${mapWhere()}`);
   await view("Regulations"); note(where());
   await view("Map"); await onWaterMap(); note(`${where()} · ${mapWhere()}`);
   return out;
@@ -264,12 +264,12 @@ async function acrossChilliwackVedder(extra: () => string = () => ""): Promise<s
   await click("tap the map");
   await until(() => screen.queryByText("Chilliwack River") !== null);
   await view("Map"); await onWaterMap();
-  await press("▼ Downstream"); await press("▼ Downstream"); note(`${where()} · ${mapWhere()}`);
-  await press("▼ Downstream into Vedder River");
+  await press("Downstream"); await press("Downstream"); note(`${where()} · ${mapWhere()}`);
+  await press("Downstream into Vedder River");
   await until(() => mapWhere().startsWith("Part 1 of 1")); note(`${where()} · ${mapWhere()}`);
-  await press("▲ Upstream into Chilliwack River");
+  await press("Upstream into Chilliwack River");
   await until(() => mapWhere().startsWith("Part 1 of 4")); note(`${where()} · ${mapWhere()}`);
-  await press("▼ Downstream into Vedder River");
+  await press("Downstream into Vedder River");
   await until(() => mapWhere().startsWith("Part 1 of 1")); note(`${where()} · ${mapWhere()}`);
   return out;
 }

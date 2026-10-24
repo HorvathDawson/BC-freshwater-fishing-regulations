@@ -204,8 +204,9 @@ describe("T40 the Regulations view at 200 % text, laid out in Chrome", () => {
   it("nothing cut, nothing drawn over anything, no sideways scroll — at 1× and at 2×, on a phone and a desktop, sheets too", () => {
     const m = measure([1, 2]);
     expect(problems(m)).toEqual([]);
-    // not vacuous: every page laid out its words, every sheet its title, Done and a body
-    expect(Object.entries(m).filter(([k, v]) => v.lines < (k.startsWith("sheet ") ? 3 : 50)).map(([k, v]) => `${k} ${v.lines}`)).toEqual([]);
+    // not vacuous: every page laid out its words, every sheet its title, Done and a body (45: the date pill's typed ▾
+    // was a text box of its own until T186 drew the set's chevron, so the Vedder's shortest page went 50 → 49)
+    expect(Object.entries(m).filter(([k, v]) => v.lines < (k.startsWith("sheet ") ? 3 : 45)).map(([k, v]) => `${k} ${v.lines}`)).toEqual([]);
     expect(Object.keys(m).filter((k) => k.startsWith("sheet ")).length).toBe(SHEET_KEYS.length * 2 * 2);
     // the evidence: the header's name row and place row grow with the text (two lines each at 2×), and how many line boxes
     expect(Object.fromEntries(Object.entries(m).filter(([k]) => !k.startsWith("sheet ")).map(([k, v]) => [k, `title ${v.title} place ${v.place}`])))
@@ -214,7 +215,7 @@ describe("T40 the Regulations view at 200 % text, laid out in Chrome", () => {
           "glenn_501 desktop 1×": "title 48 place 32",
           "glenn_501 desktop 2×": "title 48 place 65",
           "glenn_501 phone 1×": "title 48 place 32",
-          "glenn_501 phone 2×": "title 62 place 65",
+          "glenn_501 phone 2×": "title 60 place 65",
           "klwa_1010 desktop 1×": "title 48 place 32",
           "klwa_1010 desktop 2×": "title 48 place 65",
           "klwa_1010 phone 1×": "title 48 place 32",
@@ -222,11 +223,11 @@ describe("T40 the Regulations view at 200 % text, laid out in Chrome", () => {
           "vedder_1010 desktop 1×": "title 48 place 32",
           "vedder_1010 desktop 2×": "title 48 place 65",
           "vedder_1010 phone 1×": "title 48 place 32",
-          "vedder_1010 phone 2×": "title 62 place 65",
+          "vedder_1010 phone 2×": "title 60 place 65",
           "vedder_615 desktop 1×": "title 48 place 32",
           "vedder_615 desktop 2×": "title 48 place 65",
           "vedder_615 phone 1×": "title 48 place 32",
-          "vedder_615 phone 2×": "title 62 place 65",
+          "vedder_615 phone 2×": "title 60 place 65",
         }
       `);
   }, 180_000);
