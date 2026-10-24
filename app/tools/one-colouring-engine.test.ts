@@ -99,7 +99,7 @@ describe("one colouring engine", () => {
     expect(cc).toContain("const data = useMemo(() => (pushed ? pushedStandings(standings, basins, horizon) : {}),");
     expect(cc.match(/pushedStandings\(/g)?.length).toBe(2);         // its definition, and that one call
     // the route map's standings
-    const panel = ui("panel.ts");
+    const panel = ui("panel/conditions.ts");
     expect(panel).toContain("const route = useMemo<RouteColourVM>(() => (perTile\n"
       + "    ? { standing: { labels, values: routeValues(labels, standings, horizon) }, data: {} }\n"
       + "    : { standing: null, data: pushedRoute(standings, horizon) }), [perTile, labels, standings, horizon]);");
