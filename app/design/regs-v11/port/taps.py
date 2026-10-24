@@ -62,11 +62,16 @@ T115 = "T115 (owner decision AGENTS 54, tickets/T115-one-region-membership.md): 
 PART_MOVED = {"x15p16_1010": 14,
               # (T67) the Skeena's new part 5 (a side-channel piece of the Ecological Reserve, PART_GONE x19p5) renumbers
               # the parts after it
-              "x19p6_1010": 7, "x19p7_1010": 8}
+              "x19p6_1010": 7, "x19p7_1010": 8,
+              # (T67, T187) the Peace's Dinosaur Lake part is renumbered 6 -> 2 (part order follows rule-set ids), same
+              # label and 1 section again: T187 put the Site C braid piece 359005110:3454 back under the Site C closure
+              "x22p6_1010": 2}
 #: gone states whose water's list of parts is still the golden's (labels and order the Parts sheet draws): not `recut`
 GONE_NOT_RECUT = {"x22p2_1010"}
 #: the reason a water is `recut` (its list of parts is not the golden's), by the state that shows it
-RECUT_WHY = {"x19p6_1010": "T67 (owner 2026-10-24): the Ecological Reserve's side-channel piece 360216962:96 no longer "
+RECUT_WHY = {"x22p6_1010": "T67 (owner 2026-10-24): the Peace's braids are cut at Site C, the 1,200 m signs and the "
+                           "Halfway, so its parts are renumbered (part order follows rule-set ids)",
+             "x19p6_1010": "T67 (owner 2026-10-24): the Ecological Reserve's side-channel piece 360216962:96 no longer "
                            "carries the Skeena section-2 designation and is a part of its own (8 -> 9 parts)"}
 PART_GROWN = {
     "x15p0_1010": f"{T115}: Fraser piece 356364114:699253 (home 7A) merged in from golden part 18",
@@ -81,8 +86,9 @@ PART_GONE = {
                       "in part 6 and the side channel piece 360216962:96 (same rules; it no longer carries the Skeena "
                       "section-2 designation) in part 5, both closed all year, so the page merges two closed parts where "
                       "the golden had one"),
-    "x22p2_1010": (3, "T67 (owner 2026-10-24): the Peace's closed parts hold 6 sections, not 5 — the Site C closure took "
-                      "the braid piece 359013560:165 — and the first is renumbered 2 -> 3 (part order follows rule-set ids)"),
+    "x22p2_1010": (3, "T67 (owner 2026-10-24): the Peace's closed parts hold 7 sections, not 5 — the Site C closure took "
+                      "the braid pieces 359013560:165 and (T187) 359005110:3454 — and the first is renumbered 2 -> 3 "
+                      "(part order follows rule-set ids)"),
     "x15p14_1010": (4, f"{T115}: the golden part (356364114:418405, Region 3 and Region 5 rows) is in part 4 now, with only Region 3's rows"),
     "x15p15_1010": (6, f"{T115}: the golden part (356364114:434930, Region 3 and Region 5 rows) is in part 6 now, with only Region 5's rows"),
     "x15p17_1010": (1, f"{T115}: the golden part (356364114:674465, Region 5 and Region 7A rows) is in part 1 now, with only Region 5's rows"),
@@ -114,12 +120,6 @@ PART_RECOUNTED = {
     "x22p3_1010": (4, f"{T67}: the Halfway braid 359012853 is cut at 3,358 m: 6 -> 7 sections; renumbered 3 -> 4 "
                       f"(part order follows rule-set ids)"),
     "x27p0_1010": (0, f"{T67}: {_GAUGE} on the West Road's side channel 355997348 (124 m): 83 -> 82 sections"),
-    # NOT a benign recount: 359005110:3454, the 1,838.7 m braid piece between the 1,200 m signs and Site C dam, binds
-    # NO Peace row (only the zone and navigation rules), so it shares the Dinosaur Lake part's rule set. The reach's
-    # `_bracket` judges a piece cut off at BOTH ends by the window's own cuts by its line's neighbours, both outside.
-    # It must read "closed all year" (the Site C row). When the reach is fixed this entry fails: take it out.
-    "x22p6_1010": (2, f"{T67} DEFECT (reach `_bracket`): the Site C braid piece 359005110:3454 binds no Peace row and "
-                      f"joined this part: 1 -> 2 sections; renumbered 6 -> 2"),
 }
 _SUB = re.compile(r"^(.*?) · (\d+) sections?(?: · (.*))?$")
 
