@@ -36,11 +36,12 @@ from dataclasses import dataclass, field
 
 from shapely.geometry import Point
 
+from pipeline.common import tolerances as _tol
 from pipeline.common.models import AnchorType, BlkChain, SplitPoint
 
 #: Two computations of ONE intersection point (a chain against two polygons that share the edge
 #: segment) agree to ~1e-9 m; this is that identity, not a positional tolerance.
-SAME_PLACE_M = 1e-6
+SAME_PLACE_M = _tol.SAME_PLACE_M
 
 
 @dataclass
@@ -172,7 +173,7 @@ def decide(g, poly, boundary, zone_m: float, zones_out: dict | None = None
 
 #: A dip shorter than this, standing alone, is the two datasets' positional disagreement, not water
 #: in or out of the area — and a piece this short could not be cut anyway (`sliver_gate.SLIVER_M`).
-DIP_M = 5.0
+DIP_M = _tol.SLIVER_M     # 5 m (pipeline/common/tolerances.py)
 
 
 def decide_rejoin(g, poly, boundary, rejoin_m: float, dip_m: float = DIP_M

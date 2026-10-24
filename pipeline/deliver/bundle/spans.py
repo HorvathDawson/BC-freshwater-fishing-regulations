@@ -60,6 +60,7 @@ from pathlib import Path
 
 from pipeline.atlas.graph.windows import polygon_window
 from pipeline.common.models.registry import bare_split_id
+from pipeline.common.tolerances import AT_CUT_M, at_cut
 from pipeline.deliver.bundle.lines import main_line_of
 from pipeline.deliver.bundle.place_names import area_boundary_name, cut_name, display_case
 
@@ -281,8 +282,8 @@ def compute(nodes: dict, edges, handles: dict[str, int], items: list[tuple[int, 
 
 #: Two positions of one water closer than this (km) are one place.
 _SAME_PLACE_KM = 0.01
-#: A join within this many metres of a cut stands at it.
-_AT_M = 1.0
+#: A join within this many metres of a cut stands at it (`tolerances.at_cut`).
+_AT_M = AT_CUT_M
 
 
 class NameFacts:
@@ -317,7 +318,7 @@ class NameFacts:
     def joining(self, blk: str, m: float) -> list[tuple[str, str]]:
         """(from_node, display_name) of every piece of another blue line flowing in at `m`."""
         return [(fn, fb, dn) for at, fn, fb, dn in self.joins.get(str(blk), ())
-                if abs(at - m) < _AT_M]
+                if at_cut(at, m)]
 
     def landmarks(self, blk: str, own: set[str]) -> list[tuple[float, str]]:
         """(measure, name) of every NAMED water other than `own` flowing into `blk`."""
@@ -437,7 +438,7 @@ def _placed(base: str, f: NameFacts, blk: str, m: float, own: set[str], *,
     """`base` placed by the nearest named water joining the same blue line: "side channel below
     Ucona River" (below = downstream of its mouth). `distance` adds how far."""
     marks = [(abs(at - m), at, nm) for at, nm in f.landmarks(blk, own)
-             if abs(at - m) >= _AT_M and nm.lower() not in base.lower()]
+             if not at_cut(at, m) and nm.lower() not in base.lower()]
     if not marks:
         return base
     d, at, nm = min(marks)

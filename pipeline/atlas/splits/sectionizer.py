@@ -27,6 +27,7 @@ from typing import Optional
 from shapely.geometry import Point
 from shapely.ops import substring
 
+from pipeline.common import tolerances as _tol
 from pipeline.common.models import (BoundaryKind, FlowEdge, NodeKind, SectionBoundary, SplitPoint,
                      StreamGraph)
 
@@ -40,7 +41,7 @@ _ANCHOR_KIND = {"point": BoundaryKind.split, "line": BoundaryKind.split,
 # genuinely distinct curated cuts. Keep it decoupled from SplitDef.proximity_m — that value is the
 # (much larger) tolerance for projecting a coord onto the blue line, not a merge distance. Using it
 # here merged distinct cuts, e.g. a dam and its +100 m offset sibling.
-_MERGE_PROXIMITY_M = 5.0
+_MERGE_PROXIMITY_M = _tol.SLIVER_M     # 5 m: one place (pipeline/common/tolerances.py)
 # SplitDef.proximity_m default (projection tolerance). A SplitPoint carrying exactly this value has an
 # inherited default, not a deliberate pickup radius, so pickup ignores it and uses _MERGE_PROXIMITY_M.
 _DEFAULT_PROJECTION_M = 500.0
@@ -340,7 +341,7 @@ def _alias_onto_lake(graph, blk, sp, by_blk=None) -> tuple[str, float] | None:
 #: dissolved from), and two computations of one intersection agree to ~1e-9 m. This is that identity
 #: — float noise on a shared point — not a positional tolerance: two cuts a millimetre apart are two
 #: places and are both cut.
-SAME_PLACE_M = 1e-6
+SAME_PLACE_M = _tol.SAME_PLACE_M
 
 
 def _coincident(graph, blk, sp, by_blk=None) -> bool:

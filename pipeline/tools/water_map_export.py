@@ -51,6 +51,8 @@ from datetime import date
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
+from pipeline.common.tolerances import TOUCH_M as _TOUCH_M
+
 REPO = Path(__file__).resolve().parents[2]
 THEMES = REPO / "app" / "packages" / "map" / "style" / "themes"
 STATUS_TS = REPO / "app" / "packages" / "core" / "src" / "status.ts"
@@ -63,7 +65,7 @@ TOL = {"part": 2.0, "trib": 6.0, "other": 12.0}  # simplification tolerance, pro
 TRIB_MIN_ORDER = 2                              # Strahler order a tributary line must reach
 OTHER_MIN_ORDER = 4                             # ... and a line of other water
 OTHER_MIN_LAKE_M2 = 200_000                     # a lake of other water
-TOUCH_M = 60                                    # two parts closer than this meet
+TOUCH_M = _TOUCH_M                              # two parts closer than this meet (the bundle's, tolerances.py)
 MARGIN = 0.12                                   # the map's frame past the water, each side
 
 Coords = List[Tuple[float, float]]

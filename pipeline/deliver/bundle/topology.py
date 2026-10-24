@@ -35,7 +35,7 @@ from pathlib import Path
 from collections import defaultdict
 from typing import Dict, List, Optional, Sequence, Tuple
 
-TOUCH_M = 60.0
+from pipeline.common.tolerances import TOUCH_M     # two parts closer than this meet
 
 Geometry = object      # shapely geometry, EPSG:3005
 

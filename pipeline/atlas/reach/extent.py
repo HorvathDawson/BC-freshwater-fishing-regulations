@@ -34,6 +34,7 @@ from pipeline.common.fwa_edge_types import is_main_flow
 from pipeline.common.registry_kinds import area_key
 from pipeline.common.utils.wsc import trim_wsc   # noqa: F401  (used by the moved body)
 from pipeline.common.utils import wsc as _wsc
+from pipeline.common import tolerances as _tol
 
 #: Basins answered from the graph, per graph object — a sub-basin is a full scan of the graph. The
 #: graph is held beside its answer and checked by identity, so a recycled `id()` never serves
@@ -65,7 +66,7 @@ def area_sections(reg, g, key: str) -> set[str] | None:
 #: A tributary whose mouth lies within this many metres of a watershed cut sits AT the cut, and is on
 #: neither side (`Extent.watershed`). A curated confluence split lands on the confluence itself; this
 #: only absorbs the rounding of FWA's millionths (1.4 m a unit on the Fraser).
-WATERSHED_AT_CUT_M = 5.0
+WATERSHED_AT_CUT_M = _tol.WATERSHED_AT_CUT_M     # 5 m, pipeline/common/tolerances.py
 
 #: POLICY (user ruling 2026-09-29, SP-9): a water coded to the RIVER ITSELF that touches no other
 #: water (a floodplain lake) goes to the side of the cut the river piece nearest to it is on

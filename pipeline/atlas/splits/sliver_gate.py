@@ -22,11 +22,12 @@ import json
 from pathlib import Path
 
 from pipeline.common.models import NodeKind, StreamGraph
+from pipeline.common.tolerances import SLIVER_M as _SLIVER_M
 
 #: The shortest piece a cut may leave. Two boundaries closer than this are one place by the
 #: sectionizer's own definition (`sectionizer._MERGE_PROXIMITY_M`); a piece this short is never a
 #: stretch anybody fishes or a regulation describes.
-SLIVER_M = 5.0
+SLIVER_M = _SLIVER_M          # 5 m, pipeline/common/tolerances.py
 
 
 def short_pieces(graph: StreamGraph, min_m: float = SLIVER_M) -> set[str]:

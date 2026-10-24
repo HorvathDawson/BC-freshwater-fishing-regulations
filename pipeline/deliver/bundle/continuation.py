@@ -68,20 +68,21 @@ from typing import Callable, Dict, Iterable, List, Mapping, Optional, Sequence, 
 from pipeline.common.utils.wsc import trim_wsc
 from pipeline.common.utils import wsc as _wsc
 from pipeline.common import entry_id as EID
+from pipeline.common import tolerances as _tol
 from pipeline.deliver.bundle.lines import handle_lengths, line_ends
 
 Line = Tuple[str, int]
 
 #: How far B's line may go on above A's mouth and still be "A's mouth is B's top": the atlas's snapping, not a reach of
 #: B's own (the Chilliwack: 25 m; the real tributaries the first cut shipped joined 238 m and more below).
-STUB_M = 100.0
+STUB_M = _tol.STUB_M                # 100 m (pipeline/common/tolerances.py, as are the two below)
 #: Another inflow this close to A's mouth (or above it) makes it a confluence: the Somass's two rivers 64 m apart, the
 #: Taku's 90, the Fort Nelson's 77, the Thompson's 145.
-CONFLUENCE_M = 200.0
+CONFLUENCE_M = _tol.CONFLUENCE_M    # 200 m
 #: A piece of B itself joining B's top piece this close below A's mouth (or above it) is B going on as itself (the upper
 #: Cottonwood, 448 m below the Swift). Farther down it is B's own side channel rejoining a long top piece (the Bella
 #: Coola's braids join its 14 km top piece 7 km and more below the Atnarko): that leaves only a book pairing to decide.
-OWN_M = 1000.0
+OWN_M = _tol.OWN_M                  # 1000 m
 
 
 class ContinuationError(SystemExit):

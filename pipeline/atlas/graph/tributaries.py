@@ -36,6 +36,7 @@ from typing import Iterable
 
 from pipeline.common.models import NodeKind, StreamGraph
 from pipeline.common import fwa_edge_types
+from pipeline.common import tolerances as _tol
 from pipeline.common.utils import wsc
 
 #: Edges by which a river continues into its own next piece. Crossing one of these OUT of
@@ -349,7 +350,7 @@ CONFLUENCE_WATER_WITHOUT_A_ROW_GOES_WITH_THE_CUT = True
 #: Creek confluence") is a cut at that confluence when the named stream's mouth lies this close to
 #: it, on its own blue line (`reach.build.confluence_excludes`). The Lardeau's signs stand 53 m below
 #: the Mobbs Creek mouth.
-CONFLUENCE_NEAR_M = 150.0
+CONFLUENCE_NEAR_M = _tol.CONFLUENCE_NEAR_M     # 150 m, pipeline/common/tolerances.py
 
 #: A TRIBUTARY WALK NEVER ENTERS THE ENTRY'S OWN WATER (2026-10-10). Every section of an item the
 #: ENTRY matches is governed by the rule's EXTENT — where the rule's words put it — never by the walk
