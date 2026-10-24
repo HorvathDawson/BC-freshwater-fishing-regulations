@@ -194,18 +194,18 @@ use that as the sole source of future work."
 | T147 | "no public access" leads the regulations page | DONE | 01f76c76, e5903a77, 38e6628b, d5d032d8, 1e663952 | app |
 | T148 | sloughs/canals second sweep by FWA feature codes + inside line codes, calibrated on the owner's marks | DONE | 5b8066d7 | (data: handoff/PLAN/sloughs/v2); 2,424 candidates; 275 not-fishing waters drawn as lakes |
 | T149 | review page: slough complexes marked in bulk; intermittent-lake spot check | DONE | e5ba7972 | published v2; ★ owner marks |
-| T150 | drop the regs header's "Parts" button; the part list lives in the Map view | DONE | c3eafff5, 56c68c19, 4f978f5f, 08b842d0, 410dbc63 | app |
-| T151 | water Map view: one line width, selected part by dimming; labels in the loaded face | DONE | c3eafff5, 56c68c19, 4f978f5f, 08b842d0, 410dbc63 | app |
+| T150 | drop the regs header's "Parts" button; the part list lives in the Map view | DONE | c3eafff5, 56c68c19, 4f978f5f, 08b842d0, 410dbc63 | app; delivered r-9cf1fef180a8 |
+| T151 | water Map view: one line width, selected part by dimming; labels in the loaded face | DONE | c3eafff5, 56c68c19, 4f978f5f, 08b842d0, 410dbc63 | app; delivered r-9cf1fef180a8 |
 | T152 | sewage basins, tailing ponds, dumps (275) drawn as fishable lakes | OPEN | — | registry + reach + deliver; tiles window |
-| T153 | a river's rules on unnamed lake polygons on its course (Q124 default, one flag) | DONE | 52462f99, 62e9cb7c | reach rerun: 569 polygons on 154 rivers, 284 rules gain, 0 lose |
-| T154 | a dams layer (BC WRIS, OGL-BC) matched to FWA; T148 R2 reads it | DONE | 23be8123, d8fab861, 216753d7 | fetch layer `dams`; evidence only (Q-T154a) |
+| T153 | a river's rules on unnamed lake polygons on its course (Q124 default, one flag) | DONE | 52462f99, 62e9cb7c | reach rerun: 569 polygons on 154 rivers, 284 rules gain, 0 lose; delivered r-9cf1fef180a8 |
+| T154 | a dams layer (BC WRIS, OGL-BC) matched to FWA; T148 R2 reads it | DONE | 23be8123, d8fab861, 216753d7 | fetch layer `dams`; evidence only (Q-T154a); delivered r-9cf1fef180a8 |
 | T155 | Still Creek and Nelson Creek: book entries with no water (named ditch/canal lines) | OPEN | — | registry + reach + deliver |
-| T156 | test hygiene: hydat sandbox stub release; temp gate fixtures outside the app tree | DONE | 9c6cbd46, 7714418a, 23cee506 | tests |
-| T157 | Conditions follow-ups: switcher states, no record to compare, ELF caveat on map, handover drawn | DONE | 9c6cbd46, 4b82d910, 7714418a, 2c845cf2 | app |
-| T158 | depth contours vs no-access fills: contours held off lake fills, deep navy | DONE | 9c6cbd46, 7714418a, 3d5f19de | app style |
+| T156 | test hygiene: hydat sandbox stub release; temp gate fixtures outside the app tree | DONE | 9c6cbd46, 7714418a, 23cee506 | tests; delivered r-9cf1fef180a8 |
+| T157 | Conditions follow-ups: switcher states, no record to compare, ELF caveat on map, handover drawn | DONE | 9c6cbd46, 4b82d910, 7714418a, 2c845cf2 | app; delivered r-9cf1fef180a8 |
+| T158 | depth contours vs no-access fills: contours held off lake fills, deep navy | DONE | 9c6cbd46, 7714418a, 3d5f19de | app style; delivered r-9cf1fef180a8 |
 | T159 | gauge auto-promote checks every name the matcher accepted (Arrow Reservoir / Lower Arrow Lake) | OPEN | — | ★ owner runs promote |
-| T160 | 08HB074's standing Comox Lake backwater gets its own Level sentence | DONE | 52462f99, fd99643c | deliver |
-| T161 | the pipeline ships each fish's leading origin (rows 33); mainRes only reads it | DONE | 23be8123, d0bc72fd, 3bf1e1e1, 3e89b917 | deliver + fixture re-cut (rows 33) |
+| T160 | 08HB074's standing Comox Lake backwater gets its own Level sentence | DONE | 52462f99, fd99643c | deliver; delivered r-9cf1fef180a8 |
+| T161 | the pipeline ships each fish's leading origin (rows 33); mainRes only reads it | DONE | 23be8123, d0bc72fd, 3bf1e1e1, 3e89b917 | deliver + fixture re-cut (rows 33); delivered r-9cf1fef180a8 |
 | T162 | salmon/steelhead run timing in the app: refresh + regenerate the data, ship a release file, a "Runs" colouring layer + sheet | OPEN | — | feature; size L |
 | T163 | McKinley Creek r1x: catch-and-release only downstream of McKinley Lake (catalogue extent) | OPEN | — | catalogue + reach rerun |
 | T164 | salmon (DFO): finish the dossier, place the 96+7 splits, review the extents, fetch + place current quotas | OPEN | — | umbrella over T95/T132; ★ owner confirms proposed splits |

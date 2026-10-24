@@ -3,7 +3,16 @@
 Restart here. Update this file after EVERY step: what is done, what is running, and the exact next action.
 Logs from timing runs live in the session scratchpad, which a reboot wipes. The numbers that matter are copied here.
 
-## CURRENT STATE (2026-10-23 night)
+## CURRENT STATE (2026-10-24)
+- Batch 7 merged + delivered: release **r-9cf1fef180a8** (rows 33; T153 widenings 569 ponds + 026e7841 steelhead-widening
+  fix after the card gate caught key 2336; T160; T161; T150/T151/T156/T157/T158; T154 dams evidence). Fixtures 71b882ef;
+  smoke green (8082 app, 207 pytest, 18). POLICY_VERSION 28.
+- Restart (machine) wiped the session scratchpad; rebuild.sh/post-release.sh recreated there (copy them into the repo if
+  another wipe is likely).
+- Running: T165 (no-access dotted grey, owner), T167 (More tab), T169 (one panel per side-channel water). Then: T172
+  Android smoke (alone), small batch (T168, T170, T171, T163), then the CLEANUP band.
+
+## (earlier) CURRENT STATE (2026-10-23 night)
 - Merged + delivered: app walk T143–T147, T112/T119, T100 → release **r-8b761969206f** (no binding changed); local feed
   republished (Level answers at +1/+3/+5 at 359 stations; Change = CLEVER+COFFEE). Fixtures ee896281.
 - Smoke: 4 parity fails on x4p_1010 (Shuswap: T100 adds the map page p.28 to book links, house format) — an agent is
