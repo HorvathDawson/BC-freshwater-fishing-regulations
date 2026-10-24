@@ -23,6 +23,7 @@ from shapely.geometry import LineString, Point
 from shapely.strtree import STRtree
 
 from pipeline.common.models import BlkChain
+from pipeline.common.names import key
 
 _TO_ALBERS = Transformer.from_crs("EPSG:4326", "EPSG:3005", always_xy=True)
 _TOL_M = 40.0          # base tol: municipal geometry drifts from FWA
@@ -117,7 +118,7 @@ _NAME_TOL_M = 400.0    # a name-matched FWA stream this close is the same river 
 
 
 def _norm(s: str) -> str:
-    return (s or "").strip().lower()
+    return key(s)                                  # THE name key (`pipeline.common.names`, T61 2.8)
 
 
 def _looks_like_trib(name: str) -> bool:
@@ -192,7 +193,7 @@ def _name_candidate(m: Match) -> Optional[NameCandidate]:
     if not muni:
         return None
     fwa = (m.fwa_name or "").strip()
-    if fwa and fwa.lower() == muni.lower():
+    if fwa and key(fwa) == key(muni):
         return None                                          # same name, nothing to add
     return NameCandidate(target_gnis=_fwa_gnis(m), target_blk=m.fwa_blk, name=muni,
                          display=not fwa, conflict=bool(fwa))
