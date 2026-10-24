@@ -16,9 +16,6 @@ from pipeline.deliver.answers.display.decided import (
 )
 
 
-STATUS_NAMES = ("base", "own", "closed", "tidal")
-
-
 def section_scope(key: tuple, B):
     """The part's status per day reads its rule key (`status_index.set_profile`) — or, on tidal
     water, is the documented tidal state (`common.TIDAL_SCOPE`)."""

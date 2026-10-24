@@ -456,9 +456,6 @@ def picker(W: Water, labels: Sequence[str], closed: Sequence[bool]) -> dict:
     return {"choices": out, "headed": len(heads) >= 2}
 
 
-STEELHEAD_LINES = ("possible_with_rules", "known_with_rules", "known_no_rules")
-
-
 def steelhead_line(presence: Optional[str], has_row: bool) -> Optional[str]:
     """Consumer 5.6's presence line, as a code: `possible` with a steelhead row ("Steelhead rules
     apply here; steelhead may not be present in this water"), `known` with one ("known to be in

@@ -98,10 +98,6 @@ def _days_txt(days: set) -> str:
     return ", ".join(range_txt(a * 100 + b, c * 100 + d) for a, b, c, d in runs(days))
 
 
-#: an inherited lift's lead, by what it lifts (`inherited_kind`)
-INHERITED_KINDS = ("closure", "release", "gear")
-
-
 def inherited_kind(t: dict) -> Optional[str]:
     """What a lifted rule is, for an inherited lift's line: a closure ("Open …"), a release ("… may be
     kept …"), a gear rule ("No bait ban …"); None for a quota (the card names those lifts)."""

@@ -422,11 +422,6 @@ def species_items(P: "Part", model: dict, row: dict, rc: dict) -> List[dict]:
     return out
 
 
-def quota_lines(P: "Part", model: dict, it: dict, row: dict, rc: dict) -> Optional[List[dict]]:
-    """An item's bands (decision F1: every fish of an item has the same)."""
-    return it["q"]
-
-
 def origin_lines(P: "Part", model: dict, S: str) -> List[dict]:
     R = model["R"].get(S)
     if not R:

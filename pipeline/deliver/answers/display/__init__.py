@@ -47,7 +47,7 @@ from pipeline.deliver.answers.display.rule import (
 from pipeline.deliver.answers.display.part import (
     _win_txt, _js_round, Water, part_label, _region, part_place, _THE_LESS, begins_at, end_name, _run_txt,
     _joining, runs_label, _SIGN_WORDS, _end_short, _run_short, short_label, short_labels, part_km,
-    part_labels, picker, STEELHEAD_LINES, steelhead_line,
+    part_labels, picker, steelhead_line,
 )
 from pipeline.deliver.answers.display.decisions import (
     DECISIONS,
@@ -67,9 +67,9 @@ from pipeline.deliver.answers.display.strip import (
 )
 from pipeline.deliver.answers.display.decided import (
     REASON_WORDS, reasons_table, _region_of, _lc_place, trib_owner, _fx, _parts, _days, _days_txt,
-    INHERITED_KINDS, inherited_kind, inherited_line, applies_here, book_pages, licensing_books, add_sources,
+    inherited_kind, inherited_line, applies_here, book_pages, licensing_books, add_sources,
     _unless_words,
 )
 from pipeline.deliver.answers.display.section import (
-    STATUS_NAMES, section_scope, section_prepare, inherited_here, inherited_caution, section_static,
+    section_scope, section_prepare, inherited_here, inherited_caution, section_static,
 )
