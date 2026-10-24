@@ -34,3 +34,29 @@ the laptop on keyed reads). adb/emulator are not on PATH: use $HOME/Library/Andr
   differences table: fixed / deliberate (cited) / open.
 - No UI under a system bar in either nav mode, portrait or landscape; back walk passes on the device.
 - The emulator and Gradle daemons are stopped afterwards (memory).
+
+## Found by T172 (Android smoke, 2026-10-23 — shots in handoff/PLAN/app-integration/T172-shots/)
+- STATUS BAR SWALLOWS THE SEARCH FIELD: the status bar is 136 px (Pixel, API 35) and the top bar's field sits at y 30–146,
+  so only its bottom 10 px take a tap — tapping the field's middle does nothing (`mInputShown=false`). (03, 04)
+- STATUS BAR COVERS HEADERS: "‹ Map" / "‹ Spots" / "‹ Back" back links, the Spots page title, and the spot page's Edit /
+  Delete sit under the clock and icons (Delete is under the battery icon, untappable). (05, 09, 10, 13)
+- GESTURE HANDLE OVER THE TAB BAR: the tab bar ends at the screen bottom (2273–2389 of 2400); the gesture handle is drawn
+  across the CONDITIONS / SPOTS labels. Spot-capture full-width buttons (Next, Save spot) touch the handle. (03, 12)
+- T145 ON A DEVICE: tapping a spot pin does NOTHING — the `Map.native.tsx` `onPress` guard (`spotUnder`) correctly stops
+  the map's tap, but the pin's own press (the `Marker` child's `spots.face` press) never arrives on Android, so the spot
+  neither opens nor selects. Tap-off-clears works. (14, 15, 16)
+- NATIVE MARKERS ESCAPE THE MAP FRAME: after a drag on a water's Map view the spot pin and its label were drawn at the
+  top of the SCREEN, over the header and status bar, outside the map's box (view annotations not clipped). (18)
+- STALE HELD RELEASE → HARD ERROR: a device holding an older installed set (the N1 spike's r-6960fe8201e3) opens to "The
+  map data could not be loaded. paint: version 1 is not 4" and stays there; no fallback to install the served release.
+  An app update over an old install would do the same. Cleared with `pm clear`. (01)
+- T175 NOT VERIFIED: zooming out on a small creek needs a pinch; adb `input` is single-pointer and a one-finger
+  double-tap-drag only panned. Use the emulator window (or multitouch sendevent) here. (17–19)
+- DEV-BUILD WARNINGS: "SafeAreaView has been deprecated" ×5 (RN's SafeAreaView is in use — the insets work here should
+  move to react-native-safe-area-context); MapLibre "Source 'atlas' / 'gauges' / 'water-copy' is in use, cannot remove"
+  ×6 each (a style swap removing live sources); "Invalid geometry in line layer" ×1. The LogBox toast these raise
+  swallows taps on the tab bar under it (dev only).
+- DEV SETUP: the debug build reads JS from localhost:8081 (no expo-dev-client), so Metro on another port needs
+  `adb reverse tcp:8081 tcp:<port>`; the AVD `n1_pixel` boots in airplane mode (`adb shell cmd connectivity
+  airplane-mode disable`); no location fix is set (Spots says "Your location is not available here" — set one with the
+  emulator console/window before judging At my location).
