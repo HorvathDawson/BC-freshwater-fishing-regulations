@@ -53,7 +53,9 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
 - **Parser runs** (`run_parse.sh`, dispatch): human-only; any re-parse is yours to start.
 - **R2 upload** of a new release and of the gauge feed (`publish.py`), with your credentials. The feed now also carries
   T143 (each quantity ranked by its own first model: Level at +1/+3/+5 answers) and T144 (Change = CLEVER + COFFEE,
-  ELF only with the low-water caveat); Claude republished the LOCAL feed (data/generated/gauges/feeds) for :39217. A new release is cut
+  ELF only with the low-water caveat); Claude republished the LOCAL feed (data/generated/gauges/feeds) for :39217. When you set up the feed sync to
+  R2, upload ONLY `data/generated/gauges/feeds/` — not the run archive `data/generated/gauges/feeds.runs/` beside it
+  (T177; it stays local so T178 can score the models in ~6 weeks). A new release is cut
   locally (latest: T128 wording, T114 search keys, T56 Twin Lakes/sloughs/"See X"). The gauge feed also needs a
   republish for T126 (forecast clock 8 h fix, CLEVER summary) and T106 (declared quantity) — no re-fetch needed.
 - **`FEED_NOTIFY_URL`**: set it where the feed cron runs to get one message per new HYDAT release
