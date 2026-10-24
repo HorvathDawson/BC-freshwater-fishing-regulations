@@ -350,6 +350,60 @@ def test_11_shuffled_inputs_give_identical_split_points():
 # ---------------------------------------------------------------- the gate as a predicate
 
 
+def _own_above_other_below():
+    """08NM250's shape: an own piece O meets the host ABOVE the cut, and its only way to the host below is
+    through a creek of another name X."""
+    G = _G()
+    o = G.add("O", [(900, 150), (1300, 150), (1400, 0)])
+    x = G.add("X", [(600, 0), (800, 120), (900, 150)], gnis="55", name="X Creek", wsc="100-7")
+    G.join("H:0", o, G.g.nodes[o].up_m, xy=(1400, 0))       # the host feeds O at 1400
+    G.join(o, x, G.g.nodes[x].up_m, xy=(900, 150))         # O flows into X's head
+    G.join(x, "H:0", 600.0, xy=(600, 0))                   # X joins the host at 600
+    return G.done()
+
+
+def test_a_straddle_carried_by_another_water_is_that_waters_not_the_hosts():
+    g, geoms = _own_above_other_below()
+    res, resid = _apply(g, geoms, [_cut("c", 1000)])
+    assert res.points == [] and resid == []
+    assert {c.gate for c in res.cases} == {"refused: another water"}
+
+
+def test_mutation_without_the_own_path_rule_the_own_piece_reads_as_a_braid(monkeypatch):
+    monkeypatch.setattr(BS, "ONLY_THE_HOSTS_OWN_WATER", False)
+    g, geoms = _own_above_other_below()
+    res, resid = _apply(g, geoms, [_cut("c", 1000)])
+    assert res.points or resid
+
+
+def _area_on_two_lines():
+    """An area edge crossing the host H at 2000 and a tributary T 18 m above its mouth (Tweedsmuir Park): a
+    side piece P meets H at 500 (below H's crossing) and T at 500 (above T's). Two lines, two boundaries."""
+    G = _G()
+    t = G.add("T", [(1000, 0), (1000, 1000)], gnis="5", name="T Creek", wsc="100-3")
+    G.join(t, "H:0", 1000.0, xy=(1000, 0))
+    p = G.add("P", [(500, 0), (700, 300), (1000, 500)])
+    G.join(p, "H:0", 500.0, xy=(500, 0))
+    G.join(t, p, G.g.nodes[p].up_m, xy=(1000, 500))
+    g, geoms = G.done()
+    pts = [SplitPoint(split_id="park", blk=b, route_measure=m, fid="", label="park",
+                      anchor_type=AnchorType.area_boundary, source="curated") for b, m in (("H", 2000.0), ("T", 18.0))]
+    return g, geoms, pts
+
+
+def test_a_polygon_edge_is_judged_on_each_line_alone():
+    g, geoms, pts = _area_on_two_lines()
+    res, resid = _apply(g, geoms, pts)
+    assert res.points == [] and resid == []
+
+
+def test_mutation_sided_across_lines_a_polygon_edge_makes_a_false_straddle(monkeypatch):
+    monkeypatch.setattr(BS, "PER_LINE_ANCHORS", frozenset())
+    g, geoms, pts = _area_on_two_lines()
+    res, resid = _apply(g, geoms, pts)
+    assert res.points or resid or any(c.gate != "refused: one side" for c in res.cases)
+
+
 def test_spans_a_braid_is_the_gate():
     g, geoms = _one_braid()
     v = BS.View(g, geoms)

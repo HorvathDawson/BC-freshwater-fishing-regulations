@@ -402,22 +402,49 @@ def judge(view: View, net: Network, host_piece: str) -> Network:
     for t in far:
         G.add_edge(t["node"], "\x00LO" if t["side"] == "lo" else "\x00HI")
     G.add_edge("\x00LO", "\x00HI")
-    through: set[str] = set()
-    for bc in nx.biconnected_components(G):
-        if "\x00LO" in bc and "\x00HI" in bc:
-            through = set(bc) - {"\x00LO", "\x00HI"}
-            break
+
+    def _block(graph) -> set[str]:
+        for bc in nx.biconnected_components(graph):
+            if "\x00LO" in bc and "\x00HI" in bc:
+                return set(bc) - {"\x00LO", "\x00HI"}
+        return set()
+
+    through = _block(G)
     net.through = sorted(through)
     streams = [x for x in net.through if view.g.nodes[x].kind == NodeKind.stream]
-    own = [x for x in streams if (not ONLY_THE_HOSTS_OWN_WATER) or _same_water(view, host_piece, x)]
+    if not ONLY_THE_HOSTS_OWN_WATER:
+        own = streams
+    else:
+        # THE HOST'S OWN WATER MUST CARRY THE STRADDLE ITSELF: the path from the host below to the host
+        # above is taken through the host's own pieces (and the ponds between them) only. A network whose
+        # only path across the cut runs through another water (08NM250: an own piece above the gauge, a
+        # creek of another name below it) is that water's straddle, not the host's braid — and the reach,
+        # which sees the host's water alone, places the own piece on its one side.
+        mine = {x for x in net.members
+                if view.g.nodes[x].kind != NodeKind.stream or _same_water(view, host_piece, x)}
+        own_block = _block(G.subgraph(mine | {"\x00LO", "\x00HI"}))
+        own = [x for x in streams if x in own_block]
     net.through_own = own
     net.through_other = [x for x in streams if x not in set(own)]
     return net
 
 
+#: Anchors that cut every line they cross by their OWN geometry (a polygon edge, a drawn line): each line's
+#: crossing is its own boundary, so "below" one line's crossing and "below" another's are not one side —
+#: an area edge crossing a tributary 18 m above its mouth and the mainstem 6 km away (Tweedsmuir Park).
+#: A network is judged on the point's own line only.
+PER_LINE_ANCHORS = frozenset({"area_boundary", "mu_boundary", "line"})
+
+
 def _side_by_own_cut(g: StreamGraph, net: "Network", sps: list[SplitPoint], blk: str) -> None:
     """A touch on a host line other than this point's is sided by THAT line's cut of the same split — the
-    graph's own piece first (wholly below / above it), the touch's measure only on the piece holding it."""
+    graph's own piece first (wholly below / above it), the touch's measure only on the piece holding it.
+    For a `PER_LINE_ANCHORS` split such a touch is not a side at all, and is dropped."""
+    kind = getattr(sps[0].anchor_type, "value", str(sps[0].anchor_type)) if sps else ""
+    if kind in PER_LINE_ANCHORS:
+        net.touches = [t for t in net.touches
+                       if g.nodes[t["host"]].kind != NodeKind.stream or g.nodes[t["host"]].blk == blk]
+        return
     for t in net.touches:
         hn = g.nodes[t["host"]]
         if hn.kind != NodeKind.stream or not hn.blk or hn.blk == blk:
