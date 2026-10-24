@@ -1170,7 +1170,9 @@ is never touched). T170's "read when this spot was saved" label is gone. Ticket 
 - **Q6 / T67 braids.** The first review page (artifact Lei1Bt4cCpnvEwessMVyQK, pre-gate) "very much missed the mark":
   e.g. South Atnarko → Atnarko cut a braid off far upstream. Answers to R14:
   - Q1: DROP EDGE_TYPE 2300-only ("manmade secondary flow") ditch lines from river items — side ditches, not the river.
-  - Q2: (explained: automatic 25 km length cuts at junctions) — default kept: no braid sweep at length cuts.
+  - Q2: (explained: automatic 25 km length cuts at junctions) — no braid sweep at length cuts; instead (owner refinement)
+    `length_splits` never PICKS a junction a braid network spans (same both-sides gate); it takes the next eligible
+    junction, or leaves the stretch uncut. Length cuts bind no rule, so only section ids / gauge colouring move.
   - Q4: no cap on the cut line, but a cut may only take a braid that ATTACHES TO THE MAINSTEM ON BOTH SIDES OF THE CUT
     POINT (the topology gate). Nothing touching one side only (bulges, bends, South Atnarko) is ever cut.
   - The owner checks every proposed cut by hand in a review artifact before anything is promoted.
