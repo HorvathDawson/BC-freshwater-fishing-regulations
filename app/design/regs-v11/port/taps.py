@@ -32,10 +32,10 @@ that index. Declared states are themselves checked, so an entry that no longer d
   and rows, but the atlas added or removed sections under it (T67: braid cuts, a ditch leaving its river, moved
   length cuts), so only its section COUNT differs. Tapped and compared whole (`recounted` on the state: the reason and
   the store's count); the parity holds the subtitle to the golden's with the count replaced.
-- CLOSED_MOVED: a "closed all year" golden part (no label to check) is the store's part `ix` now; held to that part
-  being closed all year and the golden index's not. Undeclared, a closed golden state whose store part is open fails.
-- PART_GONE: the golden part's water merged into the store's part `now_in`; no store part has the golden label and
-  count. Written to taps.json `gone` (not `states`), and the parity excludes the state with this reason
+- A "closed all year" golden part (no label to check) is held to the store's part at its index being closed all year
+  (T67: a renumbering put an open part at a closed state's index); one that is not must be declared.
+- PART_GONE: the golden part's water merged into the store's part `now_in` (or, T67, was split or recounted so
+  the page's merged closed list is not the golden's); no store part has the golden label and count. Written to taps.json `gone` (not `states`), and the parity excludes the state with this reason
   (conformance/src/regs/exclusions.ts PART_GONE_IDS).
 """
 import argparse, datetime, json, re, sys
@@ -60,11 +60,14 @@ WD_OF_DAY = {day_of(((_D0 + datetime.timedelta(i)).month, (_D0 + datetime.timede
 # 15 -> 6, 16 -> 14, 17 -> 1, 18 -> 0.
 T115 = "T115 (owner decision AGENTS 54, tickets/T115-one-region-membership.md): a straddling stream piece is its home region's only"
 PART_MOVED = {"x15p16_1010": 14,
-              # (T67) the Skeena's new part 5 (the Exchamsiks-cut side channel, PART_RECOUNTED x19p5) renumbers the rest
+              # (T67) the Skeena's new part 5 (a side-channel piece of the Ecological Reserve, PART_GONE x19p5) renumbers
+              # the parts after it
               "x19p6_1010": 7, "x19p7_1010": 8}
+#: gone states whose water's list of parts is still the golden's (labels and order the Parts sheet draws): not `recut`
+GONE_NOT_RECUT = {"x22p2_1010"}
 #: the reason a water is `recut` (its list of parts is not the golden's), by the state that shows it
-RECUT_WHY = {"x19p6_1010": "T67 (owner 2026-10-24): the Exchamsiks confluence cut runs straight across the Skeena; the "
-                           "side channel 360224434 above it is a part of its own (8 -> 9 parts)"}
+RECUT_WHY = {"x19p6_1010": "T67 (owner 2026-10-24): the Ecological Reserve's side-channel piece 360216962:96 no longer "
+                           "carries the Skeena section-2 designation and is a part of its own (8 -> 9 parts)"}
 PART_GROWN = {
     "x15p0_1010": f"{T115}: Fraser piece 356364114:699253 (home 7A) merged in from golden part 18",
     "x15p1_1010": f"{T115}: Fraser piece 356364114:674465 (home 5) merged in from golden part 17",
@@ -72,6 +75,14 @@ PART_GROWN = {
     "x15p6_1010": f"{T115}: Fraser piece 356364114:434930 (home 5) merged in from golden part 15",
 }
 PART_GONE = {
+    # (T67, r-0ed3c2b2a0a7) two closed states whose golden page counts sections the release re-cut: the app's merged
+    # "Closed all year on N stretches (M sections)" list is the store's, the golden's is the prototype's
+    "x19p5_1010": (6, "T67 (owner 2026-10-24): the Exchamsiks cut split the Skeena's Ecological Reserve part — 6 sections "
+                      "in part 6 and the side channel piece 360216962:96 (same rules; it no longer carries the Skeena "
+                      "section-2 designation) in part 5, both closed all year, so the page merges two closed parts where "
+                      "the golden had one"),
+    "x22p2_1010": (3, "T67 (owner 2026-10-24): the Peace's closed parts hold 6 sections, not 5 — the Site C closure took "
+                      "the braid piece 359013560:165 — and the first is renumbered 2 -> 3 (part order follows rule-set ids)"),
     "x15p14_1010": (4, f"{T115}: the golden part (356364114:418405, Region 3 and Region 5 rows) is in part 4 now, with only Region 3's rows"),
     "x15p15_1010": (6, f"{T115}: the golden part (356364114:434930, Region 3 and Region 5 rows) is in part 6 now, with only Region 5's rows"),
     "x15p17_1010": (1, f"{T115}: the golden part (356364114:674465, Region 5 and Region 7A rows) is in part 1 now, with only Region 5's rows"),
@@ -96,8 +107,6 @@ PART_RECOUNTED = {
     "x19p0_1010": (0, f"{T67}: the Exchamsiks confluence cut runs straight across (Skeena 67,917 m and side channel "
                       f"360224434) and {_LEN}: 44 -> 46 sections"),
     "x19p3_1010": (3, f"{T67}: the Cedarvale cut takes the braid 360243437 (1,069 m): 51 -> 52 sections"),
-    "x19p5_1010": (6, f"{T67}: the Exchamsiks cut on side channel 360224434 made its upper piece a part of its own "
-                      f"(store part 5, 'Side channel, joining 63.2 km from the mouth'): 7 -> 6 sections, part 5 -> 6"),
     "x20p2_1010": (2, f"{T67}: the Thompson's side channel 355995300 is cut at the boundary signs (187 m): 7 -> 8 sections"),
     "x22p0_1010": (0, f"{T67}: the Peace's braids are cut at Site C, the 1,200 m signs and the Halfway (+5 km), "
                       f"07FD002's cut moved 959 -> 836 m, and {_LEN} on 359572348: 54 -> 56 sections"),
@@ -111,12 +120,6 @@ PART_RECOUNTED = {
     # It must read "closed all year" (the Site C row). When the reach is fixed this entry fails: take it out.
     "x22p6_1010": (2, f"{T67} DEFECT (reach `_bracket`): the Site C braid piece 359005110:3454 binds no Peace row and "
                       f"joined this part: 1 -> 2 sections; renumbered 6 -> 2"),
-}
-# (T67) The golden state's part moved without a readable label ("closed all year" — the prototype merges every closed
-# part): {state: (store part_ix, why)}, held to the store part being closed all year at `ix` and not at the golden's.
-CLOSED_MOVED = {
-    "x22p2_1010": (3, f"{T67}: the Peace's first closed part (Clayhurst Ecological Reserve) is renumbered 2 -> 3 "
-                      f"(part order follows rule-set ids)"),
 }
 _SUB = re.compile(r"^(.*?) · (\d+) sections?(?: · (.*))?$")
 
@@ -189,12 +192,6 @@ def main():
                     or (ix != part_ix and same_part(g, parts.get(part_ix, (None, -1)))):
                 raise SystemExit(f"taps: PART_RECOUNTED {sid} -> {ix} does not describe the store: golden {g}, store {got} at {ix}")
             return ix, None
-        if sid in CLOSED_MOVED:
-            ix, _ = CLOSED_MOVED[sid]
-            if g[0] != "closed all year" or closed.get(ix) != 1 or closed.get(part_ix) == 1:
-                raise SystemExit(f"taps: CLOSED_MOVED {sid} -> {ix} does not describe the store: golden {g}, closed "
-                                 f"{closed.get(ix)} at {ix}, {closed.get(part_ix)} at {part_ix}")
-            return ix, None
         if part_ix not in parts:
             raise SystemExit(f"taps: {sid} names part {part_ix} of {item}, the store has parts {min(parts)}..{max(parts)}: "
                              "the release re-cut the water — declare the state in PART_MOVED / PART_GROWN / PART_GONE")
@@ -209,7 +206,7 @@ def main():
         if g[0] == "closed all year" and closed.get(part_ix) != 1:
             # the label cannot tell, the closure can: a renumbering put an open part at a closed state's index (T67)
             raise SystemExit(f"taps: {sid}'s golden part is closed all year, the store's part {part_ix} {parts[part_ix]} is "
-                             "not: the release renumbered the water — declare the state in CLOSED_MOVED")
+                             "not: the release renumbered the water — declare the state in PART_GONE")
         return part_ix, None
 
     def tap(item, part_ix, month, day, weekday):
@@ -276,10 +273,11 @@ def main():
                               **(tap(item, ix, month, day, wd) if item else {"error": "no water"})}
     # the waters whose parts the release re-cut: every state of one sees a different list of parts than the golden's
     for sid in (*PART_MOVED, *PART_GROWN, *PART_GONE):
+        if sid in GONE_NOT_RECUT:
+            continue
         w = by_name[G["states"][sid]["water"]]
         out["recut"][w] = RECUT_WHY.get(sid) or out["recut"].get(w) or T115
-    stale = sorted((set(PART_MOVED) | set(PART_GROWN) | set(PART_GONE) | set(PART_RECOUNTED) | set(CLOSED_MOVED))
-                   - set(G["states"]))
+    stale = sorted((set(PART_MOVED) | set(PART_GROWN) | set(PART_GONE) | set(PART_RECOUNTED)) - set(G["states"]))
     if stale:
         raise SystemExit(f"taps: declared states not in the golden: {stale}")
     # unnamed: an evenly spaced sample of handles whose akey is past the named range
@@ -294,14 +292,12 @@ def main():
     print(f"taps: {len(out['states'])} states ({len(bad)} unresolved: {bad[:5]}), {len(out['unnamed'])} unnamed, {len(out['leap'])} leap -> {a.out}")
     for sid, v in out["states"].items():
         if "goldenPartIx" in v:
-            how = "PART_MOVED" if sid in PART_MOVED else "CLOSED_MOVED" if sid in CLOSED_MOVED else "PART_RECOUNTED"
+            how = "PART_MOVED" if sid in PART_MOVED else "PART_RECOUNTED"
             print(f"taps: {sid} golden part {v['goldenPartIx']} -> store part {v['partIx']} ({how})")
     for sid in PART_GROWN:
         print(f"taps: {sid} part {out['states'][sid]['partIx']} grew (PART_GROWN): {PART_GROWN[sid]}")
     for sid in PART_RECOUNTED:
         print(f"taps: {sid} part {out['states'][sid]['partIx']} recounted (PART_RECOUNTED): {PART_RECOUNTED[sid][1]}")
-    for sid in CLOSED_MOVED:
-        print(f"taps: {sid} closed part -> store part {out['states'][sid]['partIx']} (CLOSED_MOVED): {CLOSED_MOVED[sid][1]}")
     for sid, g in out["gone"].items():
         print(f"taps: {sid} GONE (golden part {g['partIx']}, now in part {g['nowIn']}): {g['reason']}")
     if bad:

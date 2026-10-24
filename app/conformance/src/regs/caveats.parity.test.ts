@@ -29,7 +29,7 @@ afterAll(() => { if (total) console.info(`keep T15b (caveat blocks) parity: ${pa
 
 describe("T15b caveat blocks vs golden keep.order / keep.lines (every state)", () => {
   // (T115) the 4 states whose part the release merged away (x15p14/15/17/18, taps.json `gone`) are not cases
-  it("130/130 states: the same blocks in the same order, and their lines contiguous in keep.lines", async () => {
+  it("128/128 states: the same blocks in the same order, and their lines contiguous in keep.lines", async () => {
     const bad: string[] = [];
     let drawn = 0;
     for await (const c of cases("keep")) {
@@ -43,7 +43,7 @@ describe("T15b caveat blocks vs golden keep.order / keep.lines (every state)", (
       if (got.length) drawn++;
     }
     expect(bad).toEqual([]);
-    expect([total, drawn]).toEqual([130, 9]);
+    expect([total, drawn]).toEqual([128, 9]);
   });
 
   const at = async (id: string) => { for await (const c of cases("keep")) if (c.id === id) return blocks(await c.inputs()); return null; };

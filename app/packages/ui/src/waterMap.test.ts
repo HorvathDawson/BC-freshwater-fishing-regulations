@@ -161,8 +161,8 @@ describe("(T150) the parts of this water, listed under the map — the header's 
 });
 
 // (T67, r-0ed3c2b2a0a7) the Zymoetz's canyon side channel is no part of its own any more: E15's spurious mark is gone
-// and the channel joins the part above the canyon. The Skeena's Exchamsiks confluence cut made a side channel a part of
-// its own, and its Ecological Reserve part is a fork upstream.
+// and the channel joins the part above the canyon. A side-channel piece of the Skeena's Ecological Reserve is a part of
+// its own, and the Reserve's part is a fork upstream.
 describe("a fork upstream: the Skeena's Ecological Reserve", () => {
   it("▲ at the fork opens a chooser, the main stem first; a choice steps there", async () => {
     const g = await loadWaterGroup(st, "gnis:2936");

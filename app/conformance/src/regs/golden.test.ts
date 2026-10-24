@@ -230,8 +230,9 @@ describe("T12 chooseSource", () => {
 
 describe("T12 summary", () => {
   it("the afterAll line: states equal, then each keyed exclusion with what lifts it", () => {
-    // (T115) the 4 states whose part the release merged away are excluded from every block (exclusions PART_GONE_IDS)
-    const GONE = " · 4 excluded (x15p14_1010, x15p15_1010, x15p17_1010, x15p18_1010)";
+    // (T115) the 4 states whose part the release merged away, and (T67) the 2 closed states whose merged closed list the
+    // release re-cut, are excluded from every block (exclusions PART_GONE_IDS)
+    const GONE = " · 6 excluded (x15p14_1010, x15p15_1010, x15p17_1010, x15p18_1010, x19p5_1010, x22p2_1010)";
     expect(summary("methods", 134, 134)).toBe("methods parity: 134/134 states equal" + GONE   // (T32) the Set lines note the prototype's DOM lost, asserted instead
       + " · ^ways\\.list\\.0\\.items\\.\\d+\\.note$ not compared (never — a prototype markup bug, not a regulation)");
     expect(summary("gear", 134, 134)).toBe("gear parity: 134/134 states equal" + GONE   // (T31) the Bella Coola snapshot who-word, asserted instead
@@ -244,6 +245,6 @@ describe("T12 summary", () => {
       + " · ^parts$ not compared (never on this golden — a prototype re-synced on T115's data)"   // (T115) the re-cut Fraser's Parts sheet
       + d19("x18p5_1010\\|o0") + d19("x22p1_1010\\|o1") + d19("x22p3_1010\\|o1")   // (T36 part 2) the legacy pooled card path
       + " · ^rule: not compared (never — T36 test asserts the fold exists, closed, and that its first line starts with the key)");   // the gl:/hatch pages compared since the release ships pdf_pages
-    expect(summary("licence", 133, 134)).toBe("licence parity: 133/134 states equal · 5 excluded (x15p14_1010, x15p15_1010, x15p17_1010, x15p18_1010, x31p_1010)");   // licence 7: the steelhead stamp and the youth alternatives compared
+    expect(summary("licence", 133, 134)).toBe("licence parity: 133/134 states equal · 7 excluded (x15p14_1010, x15p15_1010, x15p17_1010, x15p18_1010, x19p5_1010, x22p2_1010, x31p_1010)");   // licence 7: the steelhead stamp and the youth alternatives compared
   });
 });

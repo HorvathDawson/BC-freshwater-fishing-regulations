@@ -34,7 +34,7 @@ describe("EXCLUDE", () => {
   it("(T115) a state whose part is gone is excluded in every block, with its taps.json reason — and only those states are", () => {
     const blocks = ["header", "keep", "gear", "methods", "licence", "sheets", "pins"] as const;
     const gone = Object.keys(T.gone).sort();
-    expect(gone).toEqual(["x15p14_1010", "x15p15_1010", "x15p17_1010", "x15p18_1010"]);
+    expect(gone).toEqual(["x15p14_1010", "x15p15_1010", "x15p17_1010", "x15p18_1010", "x19p5_1010", "x22p2_1010"]);
     for (const b of blocks) {
       for (const id of gone) expect(excluded(b, id)?.reason, `${b} ${id}`).toBe(`part gone — ${T.gone[id]!.reason}`);
       expect(Object.keys(T.states).filter((id) => excluded(b, id)?.reason.startsWith("part gone")), b).toEqual([]);
@@ -51,11 +51,11 @@ describe("EXCLUDE", () => {
 
   it("the list, by block and key", () => {
     // (T115) first: the 4 gone states × 7 blocks, whole-state; the 4 grown parts' labels; the Parts sheet of the re-cut
-    // Fraser (14 states, T115) and Skeena (8, T67)
-    const gone = ["x15p14_1010", "x15p15_1010", "x15p17_1010", "x15p18_1010"].flatMap(() =>
+    // Fraser (14 states, T115) and Skeena (7, T67); T67's two closed states gone
+    const gone = ["x15p14_1010", "x15p15_1010", "x15p17_1010", "x15p18_1010", "x19p5_1010", "x22p2_1010"].flatMap(() =>
       ["header 1 -", "keep 1 -", "gear 1 -", "methods 1 -", "licence 1 -", "sheets 1 -", "pins 1 -"]);
     expect(EXCLUDE.map((e) => `${e.block} ${e.ids === "*" ? "*" : e.ids.length} ${e.key?.source ?? "-"}`))
-      .toEqual([...gone, "header 4 ^place\\.(full|short)$", "sheets 22 ^parts$", "sheets 1 ^(other:x18p5_1010\\|o0)$", "sheets 1 ^(other:x22p1_1010\\|o1)$", "sheets 1 ^(other:x22p3_1010\\|o1)$",
+      .toEqual([...gone, "header 4 ^place\\.(full|short)$", "sheets 21 ^parts$", "sheets 1 ^(other:x18p5_1010\\|o0)$", "sheets 1 ^(other:x22p1_1010\\|o1)$", "sheets 1 ^(other:x22p3_1010\\|o1)$",
         "sheets * ^rule:", `header ${NO_MAP_LABEL_IDS.length} ^place$`, `header ${GOLDEN_MAP_ACTION_IDS.length} ^action$`,
         `header ${GOLDEN_PARTS_ACTION_IDS.length} ^action$`, "header * ^place\\.shown$",
         "keep 3 ^groups\\.\\d+\\.(tree|worked|lines)$",

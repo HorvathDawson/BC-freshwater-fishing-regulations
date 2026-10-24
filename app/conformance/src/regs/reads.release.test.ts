@@ -164,10 +164,10 @@ describe.skipIf(!LIVE)(`T04 reads on the live release (${LIVE ?? "absent"})`, ()
     expect(s.strip[1]!.label).toBe("closed");
   });
 
-  // (T115) 130: the 4 golden states whose part the release merged away are not tapped (taps.json `gone`)
-  it("15. cell parity: all 130 golden taps read their cell (and their key, segments, part) from the release", async () => {
+  // (T115, T67) 128: the 6 golden states taps.json lists `gone` are not tapped
+  it("15. cell parity: all 128 golden taps read their cell (and their key, segments, part) from the release", async () => {
     const states = Object.entries(T.states);
-    expect([states.length, Object.keys(T.gone).length]).toEqual([130, 4]);
+    expect([states.length, Object.keys(T.gone).length]).toEqual([128, 6]);
     const bad: string[] = [];
     for (const [id, t] of states) {
       const k = await st.akey(t.akey), part = (await st.parts(t.item_ord))[t.partIx]!;

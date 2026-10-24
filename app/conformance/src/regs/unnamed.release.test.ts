@@ -4,9 +4,13 @@
  * header's downstream line from the release's own flow pointers (`downstreamWater`). Rule keys are read from the store's
  * rule set for the section; the words are the page core builds from the store's answer — nothing here assembles a rule.
  *
- *   1408  Region 1, flows into the Eve River: the Eve's tributary closure (Dec 1–May 31) shows.
- *   64035 Region 2, flows into the Salmon River (Langley): the Salmon's tributary closure shows.
- *   59506 Region 6, flows into another unnamed section: the region's base alone, no downstream line.
+ *   354089558:0  Region 1, flows into the Eve River: the Eve's tributary closure (Dec 1–May 31) shows.
+ *   356003196:0  Region 2, flows into the Salmon River (Langley): the Salmon's tributary closure shows.
+ *   355991549:0  Region 6, flows into another unnamed section: the region's base alone, no downstream line.
+ *
+ * A HANDLE IS NOT DURABLE (AGENTS 5): `H` holds the three sections' handles in the atlas whose section-handle digest is
+ * `H_ATLAS`, and the suite refuses another atlas by name rather than tapping whatever section now has the number. On a
+ * new atlas: look the three section ids up in its `section_handles.txt` (the handle is the line number) and re-pin.
  */
 import { beforeAll, describe, expect, it } from "vitest";
 import { buildRegsPage, type RegsPage, type Weekday } from "@app/core";
@@ -16,6 +20,9 @@ import { downstreamWater, type WaterSource, type SectionId } from "@app/data";
 import { liveReleaseAt, openReleaseDir } from "../fixtureRelease";
 
 const at = liveReleaseAt();
+/** The three sections' handles in atlas `H_ATLAS` (section_handles.txt line numbers; r-0ed3c2b2a0a7, T67). */
+const H_ATLAS = "a1944923732ccbfc";
+const H = { eve: 1409, salmon: 64038, base: 59508 } as const;
 /** The page's default angler (decisions.md D8, `@app/ui` DEFAULT_WHO). */
 const ADULT_RESIDENT = { age: "adult", residency: "resident" } as const;
 
@@ -31,6 +38,10 @@ describe.skipIf(!at.dir)(`T53 an unnamed stream's regulations on the live releas
     src = makeReleaseSource(loader);
   });
 
+  it("the pinned handles are this atlas's (else re-pin H from section_handles.txt)", () => {
+    expect(st.meta.sectionHandles).toBe(H_ATLAS);
+  });
+
   /** The page for a tap on `handle` on a day, as the water screen builds it; the store's trib / reach rule keys. */
   async function tap(handle: number, month: number, day: number, weekday: Weekday) {
     const inp = await loadRegsInputs(st, { kind: "section", handle }, { month, day }, weekday, 2026);
@@ -44,20 +55,20 @@ describe.skipIf(!at.dir)(`T53 an unnamed stream's regulations on the live releas
     big: p.keep.banner.big, paras: p.keep.banner.paras,
     chain: p.keep.banner.chain.map((c) => ({ text: c.text, scope: c.scope, rule: c.rule })) };
 
-  it("1408 (Region 1, into the Eve River): Tributary of Eve River; the Eve's tributary closure is the day's banner", async () => {
-    const jan = await tap(1408, 1, 15, "Thursday");
+  it("354089558:0 (Region 1, into the Eve River): Tributary of Eve River; the Eve's tributary closure is the day's banner", async () => {
+    const jan = await tap(H.eve, 1, 15, "Thursday");
     expect([jan.item, jan.page.header.name, jan.page.header.place, jan.trib]).toEqual([null, "Unnamed stream · Region 1",
       { full: "Tributary of Eve River", short: "Tributary of Eve River" }, ["r1:eve_river@1-10::eve_river.r1"]]);
     expect([jan.page.status, banner(jan.page)]).toEqual(["closed", {
       big: [], paras: ["No fishing for any game fish Dec 1–May 31."],
       chain: [{ text: "Dec 1–May 31.", scope: "From downstream", rule: jan.trib[0] }] }]);
     // out of its window the same section is open under the region's base (no banner)
-    const oct = await tap(1408, 10, 22, "Thursday");
+    const oct = await tap(H.eve, 10, 22, "Thursday");
     expect([oct.page.status, banner(oct.page)]).toEqual(["open", null]);
   });
 
-  it("64035 (Region 2, into the Salmon River): Tributary of Salmon River; closed all year by the Salmon's tributary rule", async () => {
-    const t = await tap(64035, 10, 22, "Thursday");
+  it("356003196:0 (Region 2, into the Salmon River): Tributary of Salmon River; closed all year by the Salmon's tributary rule", async () => {
+    const t = await tap(H.salmon, 10, 22, "Thursday");
     expect([t.item, t.page.header.name, t.page.header.place, t.trib]).toEqual([null, "Unnamed stream · Region 2",
       { full: "Tributary of Salmon River", short: "Tributary of Salmon River" }, ["r2:salmon_river@2-4::salmon_river.r1"]]);
     expect([t.page.status, banner(t.page)]).toEqual(["closed", {
@@ -65,8 +76,8 @@ describe.skipIf(!at.dir)(`T53 an unnamed stream's regulations on the live releas
       chain: [{ text: "No fishing for any game fish.", scope: "From downstream", rule: t.trib[0] }] }]);
   });
 
-  it("59506 (Region 6, into an unnamed section): the region's base alone; no downstream line", async () => {
-    const t = await tap(59506, 10, 22, "Thursday");
+  it("355991549:0 (Region 6, into an unnamed section): the region's base alone; no downstream line", async () => {
+    const t = await tap(H.base, 10, 22, "Thursday");
     expect([t.item, t.page.header.name, t.page.header.place, t.trib, t.reach.filter((k) => !/^z(6|p):/.test(k)),
             t.page.status, banner(t.page)])
       .toEqual([null, "Unnamed stream · Region 6", null, [], [], "open", null]);

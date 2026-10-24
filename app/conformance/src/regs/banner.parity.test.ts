@@ -56,8 +56,8 @@ describe.skipIf(gate.skip)("T14 banner vs golden keep.banner", () => {
     passed++;
   });
 
-  it("1. 27 golden states draw a banner", () => {
-    expect(ids.filter((id) => gbanner(id) !== null).length).toBe(27);
+  it("1. 25 tapped golden states draw a banner (27 less T67's two gone closed states)", () => {
+    expect(ids.filter((id) => gbanner(id) !== null).length).toBe(25);
   });
 
   it("2. vedder_615: the strip said 'Closed' and 'Opens Jul 1', so the headline goes; the link keeps its own words", async () => {

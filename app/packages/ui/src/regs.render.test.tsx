@@ -10,7 +10,7 @@ import { afterEach, beforeAll, describe, expect, it } from "vitest";
 import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import type { Day, RegsInputs, RegsTarget, Weekday, Who } from "@app/core";
 import type { ItemId } from "@app/data";
-import { RegsStoreError, type RegsStore } from "@app/data/regs";
+import { openRegsStore, RegsStoreError, type RegsStore } from "@app/data/regs";
 import { openRegsFixture } from "@app/data/release/node";
 import {
   DEFAULT_WHO, loadRegsStore, setAnglerProfile, useAnglerProfile, useRegsPage, useRegsStore, useRegsTarget, useRegulations,
@@ -42,8 +42,10 @@ describe("useRegsStore", () => {
     const { result } = renderHook(() => useRegsStore(openRegsFixture(), { tiles }));
     await waitFor(() => expect(result.current.state).toBe("failed"), { timeout: 10_000 });
     const e = result.current.error!;
+    // the atlas the fixture was cut for, read from the fixture itself (it moves with every `pnpm regs-fixture`)
+    const atlas = (await openRegsStore(openRegsFixture())).meta.sectionHandles;
     expect([e instanceof RegsStoreError, (e as RegsStoreError).why, e.message])
-      .toEqual([true, "digest", `regs store: built for atlas d768d6e135e62b99, the map is ${tiles} — refused`]);
+      .toEqual([true, "digest", `regs store: built for atlas ${atlas}, the map is ${tiles} — refused`]);
   });
 
   it("7. over the fixture: ready, the release's store, paired; re-rendering opens nothing again", async () => {

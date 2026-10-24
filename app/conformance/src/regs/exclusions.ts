@@ -213,8 +213,8 @@ export const RECUT_EXCLUDE: readonly Exclusion[] = [
     reason: "T115 (owner decision AGENTS 54, tickets/T115-one-region-membership.md): the part took in the straddling Fraser piece next to it (taps.json `grown`), so its extent words (the header's full and short label, and the subtitle's label and section count) are not the prototype's; its rows are, and are compared. header.parity asserts the label and subtitle DIFFER (so the entry cannot go stale). (The Parts button whose aria quoted the label is gone: T150, GOLDEN_PARTS_ACTION_IDS)",
     until: "never on this golden — a prototype re-synced on T115's data" }] : []),
   ...(RECUT_IDS.length ? [{ block: "sheets" as const, ids: RECUT_IDS, key: /^parts$/,
-    reason: "the water's parts were re-cut (taps.json `recut`, the reason per water): T115 (owner decision AGENTS 54, tickets/T115-one-region-membership.md) the Fraser's 19 → 15, each straddling piece joining its neighbour; T67 (owner 2026-10-24) the Skeena's 8 → 9, the Exchamsiks confluence cut making a side channel a part of its own. So the Parts sheet lists parts the prototype did not have; every other sheet of these states is compared",
-    until: "never on this golden — a prototype re-synced on T115's and T67's data" }] : []),
+    reason: "T115 (owner decision AGENTS 54, tickets/T115-one-region-membership.md): the Fraser's parts were re-cut (19 → 15: each straddling piece joined its neighbour), and T67 (owner 2026-10-24) the Skeena's (8 → 9: a side-channel piece of the Ecological Reserve is a part of its own); taps.json `recut` gives each water's reason. So the Parts sheet lists parts the prototype did not have; every other sheet of these states is compared",
+    until: "never on this golden — a prototype re-synced on T115's data" }] : []),
 ];
 
 export const EXCLUDE: readonly Exclusion[] = [

@@ -88,8 +88,8 @@ describe("<WaterMapView>", () => {
     expect(bar()).toBe("Part 1 of 4 · Chilliwack River | Vedder Crossing Bridge → Tamihi Rapids Bridge"
       + " | ▼ Downstream into Vedder River | ▲ Upstream | Flows into Vedder River ›");
     expect(lit()).toEqual({
-      highlight: [60210, 60211, 60212, 62453, 62571, 62823, 1235779, 1235780, 1235825],
-      water: [1235781, 1235826, 1235827, 59894, 59900, 61178, 62859, 1235782, 1235783, 1235784, 1235785] });
+      highlight: [60211, 60212, 60213, 62456, 62574, 62826, 1235830, 1235831, 1235876],
+      water: [1235832, 1235877, 1235878, 59895, 59901, 61180, 62862, 1235833, 1235834, 1235835, 1235836] });
     expect(seen.props?.fit).toEqual({ key: "gnis:8634:1", bbox: [-121.966394, 49.071523, -121.836034, 49.097385], refine: false });
     expect(seen.props?.marks?.map((m) => `${m.label ?? "(ring)"} ${m.a11y}`)).toEqual([
       "(ring) Boundary: Chilliwack River Ecological Reserve boundary",
@@ -98,8 +98,8 @@ describe("<WaterMapView>", () => {
     for (let k = 0; k < 3; k += 1) fireEvent.click(screen.getByRole("button", { name: "▲ Upstream" }));
     expect(bar()).toBe("Part 4 of 4 · Chilliwack River | Chilliwack River Ecological Reserve boundary → Source"
       + " | ▼ Downstream | Highest part (off)");
-    // the committed regs fixture's handle of the Chilliwack's part 4 (frozen until `pnpm regs-fixture` re-cuts it)
-    expect([lit().highlight, seen.props?.fit?.key]).toEqual([[1235785], "gnis:8634:3"]);
+    // the committed regs fixture's handle of the Chilliwack's part 4 (frozen until `pnpm regs-fixture` re-cuts it; r-0ed3c2b2a0a7)
+    expect([lit().highlight, seen.props?.fit?.key]).toEqual([[1235836], "gnis:8634:3"]);
     // the disabled end does nothing
     fireEvent.click(screen.getByRole("button", { name: "Highest part" }));
     expect(screen.getByTestId("water-map-where").textContent).toBe("Part 4 of 4 · Chilliwack River");
@@ -140,24 +140,25 @@ describe("<WaterMapView>", () => {
     expect(seen.props?.marks?.[2]?.on).toBe(true);
     fireEvent.click(pop.getByRole("button", { name: "Close" }));
     expect(screen.queryByTestId("water-map-mark")).toBeNull();
-    act(() => seen.props!.onPressFeature!("stream", 1235785));
+    act(() => seen.props!.onPressFeature!("stream", 1235836));
     expect(screen.getByTestId("water-map-where").textContent).toBe("Part 4 of 4 · Chilliwack River");
-    act(() => seen.props!.onPressFeature!("stream", 62410));
+    act(() => seen.props!.onPressFeature!("stream", 62413));
     expect([screen.getByTestId("water-map-where").textContent, calls]).toEqual(["Part 4 of 4 · Chilliwack River",
-      ["part gnis:8634 3", "other 62410"]]);
+      ["part gnis:8634 3", "other 62413"]]);
   }, 30_000);
 
-  it("a side channel: ▲ below the Zymoetz's canyon fork opens the chooser, the main stem first", async () => {
-    mount("gnis:3137", 4);
+  // (T67, r-0ed3c2b2a0a7) the Zymoetz's canyon side channel is no part of its own any more (E15's mark is gone); the
+  // Skeena's Ecological Reserve part is a fork upstream
+  it("a fork upstream: ▲ on the Skeena's Ecological Reserve opens the chooser, the main stem first", async () => {
+    mount("gnis:2936", 6);
     await ready();
-    expect(screen.getByTestId("water-map-name").textContent)
-      .toBe("Zymoetz Canyon lower entrance = transmission-line sign → Zymoetz Canyon upper entrance");
+    expect(screen.getByTestId("water-map-name").textContent).toBe("Within Skeena River Ecological Reserve");
     fireEvent.click(screen.getByRole("button", { name: "▲ Upstream" }));
     const chooser = within(screen.getByRole("dialog", { name: "Which way upstream?" }));
-    expect(chooser.getAllByRole("button").map((b) => b.getAttribute("aria-label"))).toEqual([
-      "Close", "Zymoetz Canyon upper entrance → Limonite Creek confluence", "Side channel"]);
-    fireEvent.click(chooser.getByRole("button", { name: "Side channel" }));
-    expect([screen.queryByRole("dialog"), screen.getByTestId("water-map-name").textContent]).toEqual([null, "Side channel"]);
+    const other = "Skeena River Ecological Reserve boundary → 1.5 km upstream of the Kitsumkalum River confluence";
+    expect(chooser.getAllByRole("button").map((b) => b.getAttribute("aria-label"))).toEqual(["Close", "2 stretches (1)", other]);
+    fireEvent.click(chooser.getByRole("button", { name: other }));
+    expect([screen.queryByRole("dialog"), screen.getByTestId("water-map-name").textContent]).toEqual([null, other]);
   }, 30_000);
 
   it("Android's back closes an open mark, then the chooser, before it leaves the water (back, everywhere)", async () => {
@@ -183,7 +184,7 @@ describe("<WaterMapView>", () => {
     act(() => seen.props!.onPressMark!(2));
     const seenMark = [open(), `${back()} -> ${open()}`, `${back()} -> ${open()}`];
     cleanup(); routes.length = 0;
-    render(<Harness item="gnis:3137" part={4} />);
+    render(<Harness item="gnis:2936" part={6} />);
     await ready();
     fireEvent.click(screen.getByRole("button", { name: "▲ Upstream" }));
     const seenChooser = [open(), `${back()} -> ${open()}`];
@@ -256,10 +257,10 @@ describe("<WaterMapView>", () => {
   }, 30_000);
 
   it("opened by a tap: starts on the tapped section's part (the Regulations view's part)", async () => {
-    mount("gnis:12227", null, 59291);
+    mount("gnis:12227", null, 59293);
     await ready();
     expect(bar()).toBe("Part 3 of 4 · Cowichan River | CNR Bridge (mile 70.2) → Greendale Trestle | ▼ Downstream | ▲ Upstream");
-    expect(lit().highlight).toEqual([59291]);   // the tapped handle given to mount()
+    expect(lit().highlight).toEqual([59293]);   // the tapped handle given to mount()
   }, 30_000);
 
   it("KLWA from the Main Body: the three closure areas; Show regulations for another area names that water", async () => {
