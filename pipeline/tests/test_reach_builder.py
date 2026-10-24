@@ -433,6 +433,7 @@ def test_policy_version_is_bumped_when_classify_changes():
         "order_zero_is_unknown": tributaries.ORDER_ZERO_IS_UNKNOWN,
         "off_line_pieces_follow_their_flow": extent.OFF_LINE_PIECES_FOLLOW_THEIR_FLOW,
         "a_cut_severs_every_line_it_crosses": extent.A_CUT_SEVERS_EVERY_LINE_IT_CROSSES,
+        "a_piece_between_the_windows_cuts_is_inside": extent.A_PIECE_BETWEEN_THE_WINDOWS_CUTS_IS_INSIDE,
         "ambiguous_cut_nearest_the_other_end": extent.AMBIGUOUS_CUT_NEAREST_THE_OTHER_END,
         "mouth_seeds_only_at_the_cut": tributaries.MOUTH_SEEDS_ONLY_AT_THE_CUT,
         "the_walk_never_enters_a_parent": tributaries.THE_WALK_NEVER_ENTERS_A_PARENT,
@@ -449,6 +450,7 @@ def test_policy_version_is_bumped_when_classify_changes():
                      "order_zero_is_unknown": True,
                      "off_line_pieces_follow_their_flow": True,
                      "a_cut_severs_every_line_it_crosses": True,
+                     "a_piece_between_the_windows_cuts_is_inside": True,
                      "ambiguous_cut_nearest_the_other_end": True,
                      "mouth_seeds_only_at_the_cut": True,
                      "the_walk_never_enters_a_parent": True,
@@ -456,7 +458,7 @@ def test_policy_version_is_bumped_when_classify_changes():
                      "one_region_membership": True,
                      "unnamed_lakes_on_the_river_are_the_river": True,
                      "a_steelhead_rivers_widening_is_anadromous": True})
-    assert cache.POLICY_VERSION == "30", "update this pin with the version it was taken at"
+    assert cache.POLICY_VERSION == "31", "update this pin with the version it was taken at"
     assert policy == expected, (
         f"classify.py policy changed to {policy} — bump cache.POLICY_VERSION "
         f"(currently {cache.POLICY_VERSION!r}) and update this test together")

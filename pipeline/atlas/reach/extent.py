@@ -332,16 +332,22 @@ def _by_measure(g, universe: set[str], blk: str, lo: float, hi: float,
     # that carries the window's cut are on opposite sides of it, not neighbours. Without this the two
     # halves of a cut braid hold each other across the cut and read as one straddling component.
     cut_ids: set[str] = set()
+    lo_ids: set[str] = set()                               # the ids of the window's lower cut …
+    hi_ids: set[str] = set()                               # … and of its upper cut
     if A_CUT_SEVERS_EVERY_LINE_IT_CROSSES:
         for nid in universe:
             n = g.nodes.get(nid)
             if n is None or n.blk != blk:
                 continue
             for b in (n.lower_bound, n.upper_bound):
-                if b is not None and b.route_measure is not None and (
-                        abs(b.route_measure - lo) < 0.001 or abs(b.route_measure - hi) < 0.001):
-                    cut_ids.add(str(b.boundary_id))
-                    cut_ids.update(b.aliases or ())
+                if b is None or b.route_measure is None:
+                    continue
+                names = {str(b.boundary_id), *(b.aliases or ())}
+                if abs(b.route_measure - lo) < 0.001:
+                    lo_ids |= names
+                if abs(b.route_measure - hi) < 0.001:
+                    hi_ids |= names
+        cut_ids = lo_ids | hi_ids
 
     def _across_the_cut(a: str, b: str) -> bool:
         na, nb = g.nodes.get(a), g.nodes.get(b)
@@ -471,6 +477,9 @@ def _by_measure(g, universe: set[str], blk: str, lo: float, hi: float,
     # against the placements made above and never against each other, so the order is irrelevant.
     lost: set[str] = set()
     for comp in detached:
+        if 0.0 < lo and hi < float("inf") and _between_the_windows_cuts(g, comp, blk, lo_ids, hi_ids):
+            inside |= comp                                 # T187: cut off by the window's own two cuts
+            continue
         side = _bracket(g, comp, inside, outside, universe)
         if side == "in":
             inside |= comp
@@ -532,6 +541,41 @@ def _by_measure(g, universe: set[str], blk: str, lo: float, hi: float,
 #: window's cut, on any blue line but the cut's principal one, is not adjacency (`_by_measure`). False is
 #: the mutation pin (the cut braid reads as one straddling component again). POLICY_VERSION 29.
 A_CUT_SEVERS_EVERY_LINE_IT_CROSSES = True
+
+#: T187 (2026-10-24): A BRAID PIECE CUT AT BOTH ENDS BY THE WINDOW'S OWN TWO CUTS LIES INSIDE THE WINDOW.
+#: The sweep cuts a braid at both cuts of a short `between` (the Peace's 1.84 km piece of blk 359005110
+#: between "boundary signs 1200 m downstream of Site C dam" and "Site C dam"); the piece is then severed
+#: from both its siblings (`A_CUT_SEVERS_EVERY_LINE_IT_CROSSES`), touches nothing of its water, and
+#: `_bracket` judged it by its own line's placed neighbours — both across a cut, both outside — so it was
+#: put outside and the closure lost it. A cut is a side change, so the bracket's two outside neighbours
+#: are exactly what puts it inside. Narrow on purpose (`_between_the_windows_cuts`): only a detached
+#: component on ONE other blue line, contiguous, whose LOWER end is the window's lower cut and whose
+#: UPPER end is its upper cut (different ids) — a piece merely near a cut, ending at one cut only, or
+#: lying the wrong way round is left to the bracket and the flow path as before. False is the mutation
+#: pin. POLICY_VERSION 31.
+A_PIECE_BETWEEN_THE_WINDOWS_CUTS_IS_INSIDE = True
+
+
+def _between_the_windows_cuts(g, comp: set[str], principal: str, lo_ids: set[str],
+                              hi_ids: set[str]) -> bool:
+    """Is detached `comp` a run of one blue line (not `principal`) from the window's lower cut to its
+    upper cut (`A_PIECE_BETWEEN_THE_WINDOWS_CUTS_IS_INSIDE`)?"""
+    if not A_PIECE_BETWEEN_THE_WINDOWS_CUTS_IS_INSIDE or not lo_ids or not hi_ids:
+        return False
+    lo_only, hi_only = lo_ids - hi_ids, hi_ids - lo_ids    # one id naming both ends tells nothing
+    nodes = [g.nodes.get(n) for n in comp]
+    if any(n is None or not n.blk or n.blk == principal for n in nodes):
+        return False
+    if len({n.blk for n in nodes}) != 1:
+        return False
+    nodes.sort(key=lambda n: n.down_m)
+    if any(abs(a.up_m - b.down_m) > 0.001 for a, b in zip(nodes, nodes[1:])):
+        return False                                       # not one unbroken run of the line
+
+    def _names(b) -> set[str]:
+        return set() if b is None else {str(b.boundary_id), *(b.aliases or ())}
+    return bool(_names(nodes[0].lower_bound) & lo_only) and bool(_names(nodes[-1].upper_bound) & hi_only)
+
 
 #: D5 (owner 2026-10-12): a piece the direct neighbour pass cannot place is placed by its FLOW PATH —
 #: through lakes, ponds, wetlands, other named waters and water outside B.C. (T11) — to the first

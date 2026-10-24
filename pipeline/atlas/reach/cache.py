@@ -119,7 +119,10 @@ from typing import Callable
 #:     (`build.straddle_gate`).
 #: 30: (T67) the D5 flow path never crosses the window's cut either: it does not step between pieces of a
 #:     line meeting at the cut, nor climb through the lake the cut is the edge of (`extent._flow_reach`).
-POLICY_VERSION = "30"
+#: 31: (T187) a detached braid piece cut at BOTH ends by the window's own two cuts (lower end the lower
+#:     cut, upper end the upper cut) lies inside the window
+#:     (`extent.A_PIECE_BETWEEN_THE_WINDOWS_CUTS_IS_INSIDE`): the Peace's 1.84 km piece under Site C.
+POLICY_VERSION = "31"
 
 
 def entry_key(entry: dict, build_id: str, policy_version: str = POLICY_VERSION) -> str:

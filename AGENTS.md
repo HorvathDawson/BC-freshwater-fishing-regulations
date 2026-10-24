@@ -74,7 +74,8 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
     every split kind, along the perpendicular to the ±100 m chord — and never one touching a single side
     (South Atnarko); the reach reads the cut on every line it crosses
     (`extent.A_CUT_SEVERS_EVERY_LINE_IT_CROSSES`) and the run FAILS on a piece still `straddles_the_cut`
-    (`build.straddle_gate`). Length cuts never take a junction a braid spans. A 2300-only ditch with no gnis
+    (`build.straddle_gate`); a braid piece cut at BOTH ends by a `between`'s own two cuts is inside it (RULINGS
+    E18, T187, `extent.A_PIECE_BETWEEN_THE_WINDOWS_CUTS_IS_INSIDE`). Length cuts never take a junction a braid spans. A 2300-only ditch with no gnis
     of its own is in no river item (`registry.build.DITCHES_LEAVE_RIVER_ITEMS`).
 13. **A rule's extents are its own — never inherited from its entry. Never widen a rule
     that names a place it could not bind.** No reader (reach builder, bundle,

@@ -150,3 +150,74 @@ def test_mutation_a_flow_path_across_the_cut_straddles(monkeypatch, make, ref, p
     got = _resolve(g, secs, ref)
     # without the rule the piece lands on the wrong side of the cut, or straddles it
     assert piece in got["sections"] or piece in (got.get("unclassified") or [])
+
+
+# ---------------------------------------------------------------- T187: a braid piece between the window's two cuts
+
+
+def _between(g, secs, op="between", splits=("a", "b")):
+    from pipeline.atlas.reach import extent as X
+    from pipeline.common.models.registry import RegistryBoundary, RegistryItem
+    reg = {"gnis:9": RegistryItem(id="gnis:9", name="X River", kind="stream", section_ids=tuple(secs),
+                                  boundaries=tuple(RegistryBoundary(id=s, label=s, kind="split", ref=f"split:{s}")
+                                                   for s in ("a", "b")))}
+    return X.resolve_extent(reg, g, ["gnis:9"], {"op": op, "splits": list(splits)})
+
+
+def _site_c(lower="split:a", upper="split:b"):
+    """The Peace under Site C: the host H is cut at a (1000, the signs) and b (2000, the dam); the braid B
+    leaves H above b and rejoins it below a, and the sweep cut it at both — so its middle piece B:100 is
+    severed from both siblings and touches nothing of its water (its one other neighbour, the creek T,
+    is in no item). `lower`/`upper` are the ids its own two ends carry."""
+    a, b = _bnd("split:a", 1000.0), _bnd("split:b", 2000.0)
+    nodes = [_s("H:0", "H", 0, 1000, ub=a), _s("H:1000", "H", 1000, 2000, lb=a, ub=b),
+             _s("H:2000", "H", 2000, 3000, lb=b),
+             _s("B:0", "B", 0, 100, ub=_bnd(lower, 100.0)),
+             _s("B:100", "B", 100, 600, lb=_bnd(lower, 100.0), ub=_bnd(upper, 600.0)),
+             _s("B:600", "B", 600, 900, lb=_bnd(upper, 600.0)), _s("T:0", "T", 0, 500)]
+    edges = [("H:2000", "H:1000", 2000.0, "continuation"), ("H:1000", "H:0", 1000.0, "continuation"),
+             ("H:2000", "B:600", 900.0, "confluence"), ("B:600", "B:100", 600.0, "continuation"),
+             ("B:100", "B:0", 100.0, "continuation"), ("B:0", "H:0", 500.0, "confluence"),
+             ("T:0", "B:100", 300.0, "confluence")]
+    return _hand(nodes, edges), ["H:0", "H:1000", "H:2000", "B:0", "B:100", "B:600"]
+
+
+def test_t187_a_braid_piece_cut_at_both_ends_by_the_windows_cuts_is_inside():
+    g, secs = _site_c()
+    for splits in (("a", "b"), ("b", "a")):               # either order names the same window
+        got = _between(g, secs, splits=splits)
+        assert set(got["sections"]) == {"H:1000", "B:100"}
+        assert not got.get("unclassified")
+
+
+def test_t187_mutation_without_the_rule_the_piece_is_put_outside(monkeypatch):
+    from pipeline.atlas.reach import extent as X
+    monkeypatch.setattr(X, "A_PIECE_BETWEEN_THE_WINDOWS_CUTS_IS_INSIDE", False)
+    g, secs = _site_c()
+    got = _between(g, secs)
+    assert set(got["sections"]) == {"H:1000"}                # the defect: judged by its two outside siblings
+
+
+@pytest.mark.parametrize("lower,upper", [
+    ("split:b", "split:a"),        # the wrong way round: its lower end is the window's UPPER cut
+    ("split:a", "split:z"),        # one end only: the other is another cut, merely near the window
+    ("split:z", "split:b"),
+    ("split:a", "split:a"),        # one cut at both ends says nothing about the window
+])
+def test_t187_a_piece_merely_near_the_cuts_is_not_pulled_in(monkeypatch, lower, upper):
+    from pipeline.atlas.reach import extent as X
+    g, secs = _site_c(lower, upper)
+    got = _between(g, secs)
+    assert "B:100" not in got["sections"]
+    monkeypatch.setattr(X, "A_PIECE_BETWEEN_THE_WINDOWS_CUTS_IS_INSIDE", False)
+    assert _between(g, secs) == got                        # the rule did not touch it
+
+
+@pytest.mark.parametrize("op,ids", [("upstream_of", ("a",)), ("downstream_of", ("b",)),
+                                    ("upstream_of", ("b",)), ("downstream_of", ("a",))])
+def test_t187_a_one_cut_window_is_untouched_by_the_rule(monkeypatch, op, ids):
+    from pipeline.atlas.reach import extent as X
+    g, secs = _site_c()
+    got = _between(g, secs, op=op, splits=ids)
+    monkeypatch.setattr(X, "A_PIECE_BETWEEN_THE_WINDOWS_CUTS_IS_INSIDE", False)
+    assert _between(g, secs, op=op, splits=ids) == got
