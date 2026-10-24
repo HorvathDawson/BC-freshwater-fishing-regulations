@@ -1,6 +1,6 @@
 # T70 — Cleanup wave 1, app side: safe deletions, stale worktrees, `pnpm clean`
 
-Status: PARTIAL — 52ec4cb5, 799614a5, 4615ee0f, 1e8cbdb5, ac95e09f, a7947f99, de3cb79d, review ef11d8e4 (lane wf_63a2801d-ce3-3). All code
+Status: DONE — 52ec4cb5, 799614a5, 4615ee0f, 1e8cbdb5, ac95e09f, a7947f99, de3cb79d, review ef11d8e4 (lane wf_63a2801d-ce3-3). All code
 items done; left: three filesystem steps outside a worktree lane (below) and the strict `pnpm check` run at merge.
 
 Source: handoff/PLAN/audit/PLAN.md §2 "Wave 1" items 1.1–1.7, 1.13. The pipeline half landed (7ea5300b, 8f459d98,
@@ -62,3 +62,7 @@ gates green; frozen offline install green; targeted vitest (tools, data, ui, cor
 two map tests, conformance) all green with .venv linked (without it 14 python-spawning tests fail ENOENT — env only).
 TabPending was truly unreachable: `licence` is null iff `inp.key` is null iff `edgeKind` is "outside". One fix:
 ef11d8e4 layers.json ui-native "why" still said "the desktop component set". Nothing else left beyond the merger steps above.
+
+## Merger steps (2026-10-24)
+`pipeline/hack` and both stale worktrees were already gone; `pnpm -C app clean` ran; strict
+`REGS_STORE_REQUIRED=1 pnpm -C app check` green: 365 files / 8212 tests passed, 22 skipped.
