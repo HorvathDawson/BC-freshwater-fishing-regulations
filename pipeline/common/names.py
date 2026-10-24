@@ -32,7 +32,7 @@ Other questions, other functions — kept, and named for what they answer:
   - `drop_notes` — the "(...)" spans removed (the matcher's qualifier strip).
   - `pipeline.common.search_key.search_key` — what the APP's search compares (T114). It must be
     byte-identical to the TypeScript `searchKey`, keeps punctuation (". : —") and so is FINER than
-    `key`: equal search keys always give equal keys (`test_names.py` pins it), not the reverse
+    `key`: equal search keys always give equal keys (`test_name_key.py` pins it), not the reverse
     ("St. Mary's" and "St Marys" are one `key` but two search keys — the gap is T114's to close).
   - `pipeline.deliver.tiles.names.display` — the name SHOWN on the map (case repaired), not a key.
   - `pipeline.atlas.splits.area_catalog.area_id` — an area's id slug, stored in curated files; it
