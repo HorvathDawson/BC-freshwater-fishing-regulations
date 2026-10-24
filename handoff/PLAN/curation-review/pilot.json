@@ -79,10 +79,10 @@
   {
    "tier": "Z",
    "kind": "entry",
-   "id": "zp:no_fishing_buffers",
-   "name": "Fishway and facility buffers",
-   "region": "provincial",
-   "hash": "zp:no_fishing_buffers"
+   "id": "z5:trout_char_quota",
+   "name": "Trout and char daily quota",
+   "region": "5",
+   "hash": "z5:trout_char_quota"
   },
   {
    "tier": "Z",
@@ -95,18 +95,18 @@
   {
    "tier": "Z",
    "kind": "entry",
-   "id": "z4:spring_stream_closure",
-   "name": "Spring stream closure",
+   "id": "z4:trout_char_quota",
+   "name": "Trout and char daily quota",
    "region": "4",
-   "hash": "z4:spring_stream_closure"
+   "hash": "z4:trout_char_quota"
   },
   {
    "tier": "Z",
    "kind": "entry",
-   "id": "z7a:tagging_program",
-   "name": "Omineca tagging studies",
+   "id": "z7a:stocked_lakes",
+   "name": "Stocked lakes",
    "region": "7a",
-   "hash": "z7a:tagging_program"
+   "hash": "z7a:stocked_lakes"
   },
   {
    "tier": "P2",
@@ -245,22 +245,22 @@
   },
   "anchors_recorded": false,
   "reach": {
-   "digest": "b9be92114323aa22",
+   "digest": "ca80e9c7bb2f4006",
    "entries_digest": "4e3f729204098d06",
    "handles": "d768d6e135e62b99",
    "registry_digest": "8c77ba1cd2dc3929"
   },
   "bundle": {
-   "reach_digest": "b9be92114323aa22",
+   "reach_digest": "ca80e9c7bb2f4006",
    "entries_digest": "4e3f729204098d06",
    "section_handles": "d768d6e135e62b99",
    "registry_digest": "8c77ba1cd2dc3929"
   },
   "release": {
-   "id": "r-012fb43aa175",
+   "id": "r-bb4331929428",
    "bundle": {
     "entries_digest": "4e3f729204098d06",
-    "reach_digest": "b9be92114323aa22"
+    "reach_digest": "ca80e9c7bb2f4006"
    }
   }
  }
