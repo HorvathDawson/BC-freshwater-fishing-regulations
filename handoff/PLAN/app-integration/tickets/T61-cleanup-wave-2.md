@@ -113,3 +113,33 @@ d3d6ace7 (dev fixture schema test), f18c5634 (pipeline follow-ups).
 
 `REGS_STORE_REQUIRED=1 pnpm -C app check` (via heavy.sh): `Test Files 362 passed | 4 skipped (366)`,
 `Tests 8164 passed | 23 skipped (8187)`, rc=0.
+
+## Outcome (lane B)
+
+Pipeline structure only; no rule or gauge binding moves (no reach/classify outcome touched; the gauge match file is
+read as before). Commits on the lane B worktree branch, on d376e9b8:
+
+- 2.6 — already done (81bdb4ef: `nodes_for`/`summarise` in `gauges/consume/place.py`, `test_gauge_imports.py`).
+- 2.7 c82d6131 — `atlas/gauges/{panel,build_panels,basin_station}.py` -> `gauges/consume/{panel,panels,basins}.py`;
+  the bundle's gauge tables (`_gauges`, `CLIM_PATH`) -> `gauges/consume/bundle_tables.py:write()`. Path strings in
+  app tests/comments and the generated gauge policy follow (emit --check clean).
+- 2.9 0d9ce822 — `pipeline/deliver/binary.py` (varint / put_varint / read_varint) for status_index, lake_facts,
+  paint; `test_binary.py`. Same bytes (checked against the old writer on 331k values).
+- 2.10 16f30b57 — `pipeline/common/tolerances.py` (SAME_PLACE_M, SLIVER_M, AT_CUT_M + `at_cut()`,
+  WATERSHED_AT_CUT_M, TOUCH_M, CONFLUENCE_NEAR_M 150, STUB_M/CONFLUENCE_M/OWN_M); values unchanged; the 250 m was
+  T108's deleted `_MEET_M`. NOT done: stamping them into bundle meta (changes bundle bytes) — owner call.
+- 2.11 + N9 4fccfc6e — `python -m pipeline build` runs clim -> reach -> tiles -> deliver; clim keyed on the HYDAT
+  stamp, roster, code, year; deliver re-keyed after clim by content (same envelope = no bundle rebuild). A bare
+  `python -m pipeline` refuses. dev-build.sh lost its --full branch. A scratch clim run reproduced the live clim.json
+  byte for byte.
+- 2.12 c431ef11 — `tools/emit/{calendar,gauge_policy,pack}` + `python -m pipeline.tools.emit [--check]` (all four
+  generators, CI + test-full.sh); `deliver/release/{publish,prune,fixture,regs_fixture}`; audits in `tools/audit/`.
+  `python -m pipeline.tools.publish` is now `python -m pipeline.deliver.release.publish` (prune:
+  `pipeline.deliver.release.prune`); every caller and doc updated. export_ui_rules/codec/guide_* left for wave 3.1.
+- 2.13 ce2665d3 — PFMA drainage, the added-streams tidal layer and `_reach_run`'s handle digest raise instead of
+  skipping; `border.stamp_waterbody_membership` had no caller and is deleted.
+- 2.14 62f80ff8 — bundle table `glossary_source`; the answers' glossary reads it (`Book.from_bundle`). Proven equal to
+  the live answers' glossary. NEEDS A DELIVER RUN: until the bundle is rebuilt, every test that builds answers from
+  the live bundle refuses it (no `glossary_source`), and the vintage check sees a new schema_sha256.
+- 2.20 8bc78d32 — `answers/engine.py` holds the keeping Engine; caps.py and card_check import it.
+- 2.21 2e297a46 — `added_streams/mapcheck.py` is the one checker (resolves once, writes both maps); verify_map deleted.
