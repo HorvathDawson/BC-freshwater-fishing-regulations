@@ -164,8 +164,8 @@ def _leaders(src: str, name: str):
 
 def test_no_function_in_answers_but_lead_origin_picks_a_leading_origin():
     got = []
-    for p in sorted(ANSWERS.glob("*.py")):
-        got += _leaders(p.read_text(), p.name)
+    for p in sorted(ANSWERS.rglob("*.py")):
+        got += _leaders(p.read_text(), p.relative_to(ANSWERS).as_posix())
     assert got == ["common.py:lead_origin"]
 
 

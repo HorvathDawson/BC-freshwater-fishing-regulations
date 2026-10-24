@@ -211,7 +211,7 @@ def test_the_label_and_the_rows_words_call_when_words():
         body = body[:body.index("\n    def ", 1) if "\n    def " in body[1:] else len(body)]
         body = body[:body.index("\nclass ")] if "\nclass " in body else body
         assert "when_words(" in body and "MONTHS" not in body, cls
-    rows = (ANSWERS / "rows.py").read_text(encoding="utf-8")
+    rows = (ANSWERS / "rows" / "weekdays.py").read_text(encoding="utf-8")
     for name in ("weekdays_words", "weekdays_short", "weekdays_label", "weekdays_when"):
         body = rows[rows.index(f"def {name}("):]
         body = body[:body.index("\ndef ")]

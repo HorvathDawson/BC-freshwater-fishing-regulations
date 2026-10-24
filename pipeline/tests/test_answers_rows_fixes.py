@@ -203,7 +203,7 @@ def test_humphrys_june_count_collision(built, monkeypatch):
     ct_gb = (["CT", "GB"], "z6:trout_char_quota::trout_char_quota.r7")
     assert backs(card(built, HUMPHRYS, 0, (6, 10))) == (["EB", "LT"], [closure, dv, ct_gb])
     # MUTATION: the page's count comparison drops the release (two fish, like the row's two); nothing else moves
-    monkeypatch.setattr(RW, "_who_n", lambda l, r: None if (not l.get("members") or l.get("general")
+    monkeypatch.setattr(RW.conds, "_who_n", lambda l, r: None if (not l.get("members") or l.get("general")
                         or len(l["members"]) == len(r["members"])) else list(l["members"]))
     assert backs(card(built, HUMPHRYS, 0, (6, 10), lambda *_: None)) == (["EB", "LT"], [closure, dv])
 

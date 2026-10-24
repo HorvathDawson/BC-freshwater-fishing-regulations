@@ -240,7 +240,7 @@ def test_no_closure_test_is_spelled_twice():
                 '               and not r.get("partly_lifted") for r in rows)\n'):
         assert _closure_copies(old, "x.py"), old
     assert not _closure_copies('def f(r):\n    return r.take == 0 and r.may_target and r.x\n', "x.py")
-    assert "_closed_gate" not in (DELIVER / "answers" / "rows.py").read_text()
+    assert "_closed_gate" not in "".join(p.read_text() for p in sorted((DELIVER / "answers" / "rows").glob("*.py")))
 
 
 # --------------------------------------------------------------------------- tidal / homes

@@ -179,8 +179,8 @@ def test_gate_2_goes_red_on_a_planted_spelling():
     for planted in ("v = x.get('may_target')\n    return v is not None and not v",
                     "return x['may_target'] == 0", "return not getattr(x, 'may_target')"):
         src = dict(_sources())
-        src["pipeline/deliver/answers/rows.py"] += f"\n\ndef planted(x):\n    {planted}\n"
-        assert ("pipeline/deliver/answers/rows.py", "planted") in may_target_reads(src), planted
+        src["pipeline/deliver/answers/rows/rule.py"] += f"\n\ndef planted(x):\n    {planted}\n"
+        assert ("pipeline/deliver/answers/rows/rule.py", "planted") in may_target_reads(src), planted
 
 
 # --------------------------------------------------------------------------------------------

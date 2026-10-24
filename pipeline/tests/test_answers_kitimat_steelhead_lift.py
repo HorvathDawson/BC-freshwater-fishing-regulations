@@ -429,7 +429,7 @@ def test_the_ruling_check_fails_on_the_kitimat_only_when_the_raise_is_mutated(re
     the Vedder, whose "+1" is its own data (r2b)."""
     from pipeline.deliver.answers import rows as RW
     data, guide = _export(request)
-    monkeypatch.setattr(RW, "raises", mutate(RW.raises))
+    monkeypatch.setattr(RW.conds, "raises", mutate(RW.raises))
     with pytest.raises(AssertionError) as got:
         _check_plus_one(data, _build_pair(data, guide))
     assert str(got.value).splitlines()[0] == KITIMAT, str(got.value)[:400]

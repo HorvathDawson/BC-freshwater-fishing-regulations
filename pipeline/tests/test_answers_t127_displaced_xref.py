@@ -74,7 +74,7 @@ def test_mutation_the_displaced_pool_cross_references_the_brook_trout_again(perr
     """MUTATION: without the ruling the St. Mary's row says Perry Creek's brook trout count toward its 1 (`against` 1),
     which the reader displaced for them — the words T127 removed."""
     data, _ = perry
-    monkeypatch.setattr(RW, "A_DISPLACED_POOL_IS_NO_CROSS_REFERENCE", False)
+    monkeypatch.setattr(RW.card_model, "A_DISPLACED_POOL_IS_NO_CROSS_REFERENCE", False)
     row = _st_mary(data, _build([PERRY]))
     xs = [it for it in row["items"] if it["xref"]]
     assert xs == [{"members": ["EB"], "bands": None, "back": False, "xref": True, "sub": None, "conds": [],
@@ -85,7 +85,7 @@ def test_mutation_the_displaced_pool_cross_references_the_brook_trout_again(perr
 def test_one_predicate_decides_what_a_fish_counts_toward():
     """No second copy: the `contains` role is read in one place (`counts_toward`), and the three readers — the
     cross-reference, the group's kinds and the outer total — all call it."""
-    src = Path(RW.__file__).read_text()
+    src = "".join(p.read_text() for p in sorted(Path(RW.__file__).parent.glob("*.py")))
     reads = [ln for ln in src.splitlines() if re.search(r"(==|\bin)\s*\(?[^)\n]*\"contains\"", ln)]
     assert len(reads) == 1 and "return m[\"win\"].key == key" in reads[0], reads
     for fn in (RW.build_model, RW.group_of, RW.total_of):

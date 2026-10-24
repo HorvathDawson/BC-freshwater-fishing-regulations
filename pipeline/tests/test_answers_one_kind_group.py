@@ -114,7 +114,7 @@ def test_tranquille_and_a_region_7_brook_trout_lake_are_groups(built):
 def test_mutation_the_old_one_kind_rule_leaves_the_rows_headless(built, monkeypatch):
     """MUTATION: without the ruling the rows are back to no group — klmb's, Tranquille's and Bow Lake's."""
     data, _ = built
-    monkeypatch.setattr(RW, "A_TROUT_CHAR_TOTAL_OF_ONE_KIND_IS_A_GROUP", False)
+    monkeypatch.setattr(RW.groups, "A_TROUT_CHAR_TOTAL_OF_ONE_KIND_IS_A_GROUP", False)
     pools = {p for _i, _s, p in _headless(data, _build(WATERS))}
     assert {KLMB_RB, "r3:tranquille_lake@3-29::tranquille_lake.r1", "r7:bow_lake@7-15::bow_lake.r1"} <= pools
 
@@ -197,7 +197,7 @@ def test_mutation_without_the_ruling_shipped_waters_keep_other_headless_pools(sh
     waters — so the named own pools (klmb's, Tranquille's, Bow Lake's) are what keep this biting either way, never a
     skip."""
     data, before = shipped
-    monkeypatch.setattr(RW, "A_TROUT_CHAR_TOTAL_OF_ONE_KIND_IS_A_GROUP", False)
+    monkeypatch.setattr(RW.groups, "A_TROUT_CHAR_TOTAL_OF_ONE_KIND_IS_A_GROUP", False)
     after, _ = _rebuilt_headless(data, set(before) | set(WATERS))
     left = {p for ps in after.values() for p in ps} - {Z8_EB, DUNCAN_DV}
     assert {KLMB_RB, "r3:tranquille_lake@3-29::tranquille_lake.r1", "r7:bow_lake@7-15::bow_lake.r1"} <= left
@@ -328,7 +328,7 @@ def test_mutation_with_the_displaced_cross_reference_perry_creek_is_held_and_no_
     """MUTATION (T127 off): the St. Mary's row cross-references the brook trout again, so Perry Creek's row is held
     (`parent`) and, by the drawn-row condition, no group — the shape the batch-3 deliver shipped."""
     data, _ = perry
-    monkeypatch.setattr(RW, "A_DISPLACED_POOL_IS_NO_CROSS_REFERENCE", False)
+    monkeypatch.setattr(RW.card_model, "A_DISPLACED_POOL_IS_NO_CROSS_REFERENCE", False)
     model = A.build(BUNDLE, EXPORT_DIR, workers=1, items=[PERRY], sections=["rows", "ladder"], log=lambda *_: None)
     row, parent = _perry(data, model)
     assert (row["members"], parent is not None and data["rule_ids"][parent["pool"]], row.get("group")) \
@@ -341,8 +341,8 @@ def test_mutation_a_one_kind_group_on_a_held_row_fails_the_card_gate(perry, monk
     Creek's brook trout row gets a group again, worded "1" through that cross-reference, and the card gate refuses it
     (the batch-3 deliver's 30 problems, one key here)."""
     data, _ = perry
-    monkeypatch.setattr(RW, "A_DISPLACED_POOL_IS_NO_CROSS_REFERENCE", False)
-    monkeypatch.setattr(RW, "A_ONE_KIND_GROUP_ONLY_ON_A_DRAWN_ROW", False)
+    monkeypatch.setattr(RW.card_model, "A_DISPLACED_POOL_IS_NO_CROSS_REFERENCE", False)
+    monkeypatch.setattr(RW.assemble, "A_ONE_KIND_GROUP_ONLY_ON_A_DRAWN_ROW", False)
     model = A.build(BUNDLE, EXPORT_DIR, workers=1, items=[PERRY], sections=["rows", "ladder"], log=lambda *_: None)
     row, _parent = _perry(data, model)
     assert row["group"]["kinds"] == ["EB"]
@@ -426,7 +426,7 @@ def test_mutation_without_the_totals_group_hold_beattie_bull_trout_is_headless(b
     """MUTATION (`A_ROW_HELD_BY_ITS_TOTALS_GROUP = False`): the bull trout row is unheld and groupless again — the
     headless pool the shipped file carried (T139), so the first test's holder pool is None and fails."""
     data, _ = beattie
-    monkeypatch.setattr(RW, "A_ROW_HELD_BY_ITS_TOTALS_GROUP", False)
+    monkeypatch.setattr(RW.groups, "A_ROW_HELD_BY_ITS_TOTALS_GROUP", False)
     model = A.build(BUNDLE, EXPORT_DIR, workers=1, items=[BEATTIE], sections=["rows"], log=lambda *_: None)
     dv = _row(data, _card(model, BEATTIE, (6, 15)), LIARD_DV)
     assert (dv["members"], dv.get("parent"), dv.get("group")) == (["DV"], None, None)

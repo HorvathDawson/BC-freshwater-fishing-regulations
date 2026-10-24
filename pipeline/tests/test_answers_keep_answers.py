@@ -62,7 +62,7 @@ class _P:
 
 
 def _scope(monkeypatch, members, narrow):
-    monkeypatch.setattr(RW, "badge_of", lambda p: "region")
+    monkeypatch.setattr(RW.wire, "badge_of", lambda p: "region")
     pool = _R("z2:trout_char_quota::trout_char_quota.r1", ["RB", "CT", "ST"], take=4)
     row = {"kind": "keep", "pool": pool, "members": members, "narrow": narrow, "everyone": [], "groups": []}
     return RW.scope_of(_P(), row)
@@ -126,7 +126,7 @@ def test_3_t139_a_row_whose_total_is_another_rules_is_held_by_the_row_carrying_t
 
 
 def test_3_t139_mutation_without_the_second_hold_the_bull_trout_row_is_unheld(monkeypatch):
-    monkeypatch.setattr(RW, "A_ROW_HELD_BY_ITS_TOTALS_GROUP", False)
+    monkeypatch.setattr(RW.groups, "A_ROW_HELD_BY_ITS_TOTALS_GROUP", False)
     trout = _held("lake", ["CT", "EB", "RB"], "zone", draws=["zone"])
     assert [RW.parent_of([trout, _held("liard", ["DV"], "zone")], i) for i in range(2)] == [None, None]
 
