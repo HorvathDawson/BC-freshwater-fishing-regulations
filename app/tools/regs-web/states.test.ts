@@ -40,8 +40,8 @@ describe("regs-web states", () => {
       if (top?.item !== s.item || top.part !== s.part || l.day?.getFullYear() !== y || l.day.getMonth() !== m! - 1 || l.day.getDate() !== d
           || l.regs.tab !== "keep" || l.regs.sheet !== null || l.who !== null || l.theme !== null) wrong.push(id);
     }
-    // (T115) 130: the golden's 134 less the 4 whose part the release merged away (taps.json `gone`)
-    expect({ n: IDS.length, protos: protos.size, apps: apps.size, wrong }).toEqual({ n: 130, protos: 130, apps: 130, wrong: [] });
+    // (T115, T67) 128: the golden's 134 less the 6 whose part the release merged away (taps.json `gone`)
+    expect({ n: IDS.length, protos: protos.size, apps: apps.size, wrong }).toEqual({ n: 128, protos: 128, apps: 128, wrong: [] });
     expect([...IDS, ...GONE].sort()).toEqual(Object.keys(G.states).sort());
     expect(() => stateOf(GONE[0]!)).toThrow(/has no part in the store: T115/);
   });
