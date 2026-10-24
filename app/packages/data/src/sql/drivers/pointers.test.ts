@@ -1,19 +1,14 @@
 /**
- * (owner 2026-10-22) A GROUP NAME THAT ONLY POINTS, as the sources answer it: the bundle's `see_pointer` rows (the
- * pipeline's — `rules.see_pointer_rows`), one hit per pointer row, its waters in the book's order, ordered and cut by
- * core (`rankPointers`). The release asks its `core` copy of the table with the same SQL.
+ * (owner 2026-10-22) A GROUP NAME THAT ONLY POINTS, as the reader answers it: the `see_pointer` rows (the pipeline's —
+ * `rules.see_pointer_rows`, copied whole into the release's `core`), one hit per pointer row, its waters in the book's
+ * order, ordered and cut by core (`rankPointers`).
  *
- * The dev fixture's valley prints no such row, so a copy of it is given the real Tee Pee and Cameron rows.
+ * No committed fixture prints such a row, so a memory release is given the real Tee Pee and Cameron rows.
  */
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { copyFileSync, mkdtempSync } from "node:fs";
-import { join } from "node:path";
-import { DatabaseSync } from "node:sqlite";
-import { DEV_BUNDLE, openBundle } from "./node";
-import { makeBundleSource } from "../source";
+import { beforeAll, describe, expect, it } from "vitest";
+import { memorySource } from "./memoryRelease";
 import * as Q from "../queries";
 import { RELEASE_QUERIES } from "../../release/queries";
-import type { Db } from "../db";
 import type { RegsSource } from "../../index";
 
 const ROWS = [
@@ -24,19 +19,13 @@ const ROWS = [
   ["r8:tee_pee_lakes@8-6", "Tee Pee Lakes", 1, "r8:saturday_lake@8-6", "Saturday Lake", null],
 ] as const;
 
-let db: Db;
 let src: RegsSource;
 beforeAll(() => {
-  const p = join(mkdtempSync(join(process.env.TMPDIR ?? "/tmp", "pointers-")), "bundle.sqlite");
-  copyFileSync(DEV_BUNDLE, p);
-  const w = new DatabaseSync(p);
-  const ins = w.prepare("INSERT INTO see_pointer VALUES (?, ?, ?, ?, ?, ?)");
-  for (const r of ROWS) ins.run(...r);
-  w.close();
-  db = openBundle(p);
-  src = makeBundleSource(db);
+  src = memorySource({ core: (d) => {
+    const ins = d.prepare("INSERT INTO see_pointer VALUES (?, ?, ?, ?, ?, ?)");
+    for (const r of ROWS) ins.run(...r);
+  } });
 });
-afterAll(() => db.close?.());
 
 describe("the group names that only point", () => {
   it("one hit per pointer row, its waters in the book's order (a water that matched nothing has no item)", async () => {

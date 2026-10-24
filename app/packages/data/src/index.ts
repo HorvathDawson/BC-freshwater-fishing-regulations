@@ -65,7 +65,7 @@ export interface BundleInfo {
  * How much is actually in this bundle.
  *
  * EXISTS BECAUSE THE APP MADE THESE UP. `App.tsx` passed `waters={255} reaches={6967}
- * surveyed={35} stations={5}` — figures transcribed from `design/riffle.html`, whose
+ * surveyed={35} stations={5}` — figures transcribed from a design mock-up, whose
  * fixture is one valley. The shipped province bundle holds 19,699 named waters and 2,324
  * stations, and the Layers sheet reported five of them under a heading that reads
  * "EVERY VALUE HAS AN AGE".
@@ -610,13 +610,13 @@ export interface RegsSource {
    * The answer keys of a water's parts — the regulations read a water's page starts from (P11; T01/T03 decode the
    * frames). On the release this opens the files that hold them and nothing else: core, water, and the region file of
    * each key (`loader.regionDb`), so a water in another region fetches that region's file. Empty when the source holds
-   * no regulations (the dev bundle and the fixture do not; a release with no water file does not).
+   * no regulations (the fixture does not; a release with no water file does not).
    */
   regulationKeys(id: ItemId): Promise<readonly number[]>;
 }
 
 /** The driver seam (`Db`: four methods), for the layers that hand one to `@app/data` (T03). */
-export type { Db, Row, Cell } from "./bundle/db";
+export type { Db, Row, Cell } from "./sql/db";
 
 /** User pins — a separate store with a separate lifecycle. See pins.ts. */
 export type { Pin, PinPhoto, PinStore } from "./pins";

@@ -66,7 +66,7 @@ const pan = (dx: number) => [
 ];
 const swipe = (id: string, dx: number) => act(() => { fireGestureHandler(getByGestureTestId(id), pan(dx)); });
 
-const regsShown = () => screen.queryByRole("heading", { name: "Regulations are coming" }) !== null;
+const regsShown = () => screen.queryByText("Regulations unavailable: no data release is open") !== null;
 const panel = () => screen.queryByText(/^panel for /)?.textContent ?? "no panel";
 
 /**

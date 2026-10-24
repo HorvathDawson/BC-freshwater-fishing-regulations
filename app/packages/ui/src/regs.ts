@@ -68,7 +68,7 @@ export function regsGroupOf(loader: RegsLoader): (item: ItemId) => Promise<reado
 
 /**
  * The store for this release. `failed` with a `RegsStoreError` (its `why`: format / version / digest / missing …) → the
- * page says "Regulations unavailable" with the reason. `ready(null)`: no loader (the dev bundle holds no regulations).
+ * page says "Regulations unavailable" with the reason. `ready(null)`: no loader (no release is open — a screen mounted alone in a test).
  */
 export function useRegsStore(loader: RegsLoader | null, expect: RegsExpect = {}): Async<RegsStore | null> {
   const key = `regs-store:${loader ? `${idOf(loader)}:${regsStoreKey(loader, expect)}` : ""}`;

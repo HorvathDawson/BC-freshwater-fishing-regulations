@@ -1,17 +1,17 @@
 /**
- * THE QUERIES, IN THE RELEASE'S FORM (P08): what each bundle query in `../bundle/queries.ts` becomes when the bundle is
+ * THE QUERIES, IN THE RELEASE'S FORM (P08): what each bundle query in `../sql/queries.ts` becomes when the bundle is
  * the release's files (`pack.generated.ts`). Each runs on ONE file. `tools/release-parity.test.ts` holds every one to the
  * bundle form: the same rows, a SEARCH plan (never a SCAN), and the perf budget.
  *
  * NOT HERE, AND WHY: the reads that cross two files become two keyed reads in the release reader (P11 / T04), never a
- * join across files:
- *   NEAR_FOR_ITEMS, WATERS_NEAR, RINGS_FOR_ITEM    near (place_water) → core (item, place)
- *   GAUGES_ON_ITEM                                  core (item_section) → conditions (gauge)
- *   lakeStationsFor                                 conditions + core (the lake road: section → item → lake_gauge)
- *   panelsForSections, BASIN_MEMBERS                paint (decoded arrays, not SQL) + flow-area
- *   STOCKED_ON_ITEM, CHARTS_FOR_ITEM, RELEASES_FOR_NAME   no producer yet: not in the release (the reader answers empty)
+ * join across files (`CROSS` below):
+ *   a water's nearest towns, a town's waters      near (place_water) → core (item, place)
+ *   the gauges on a water                         core (item_section) → conditions (gauge)
+ *   the lake road                                 conditions + core (section → item → lake_gauge)
+ *   panels, basins                                paint (decoded arrays, not SQL) + flow-area
+ *   STOCKED_ON_ITEM, CHARTS_FOR_ITEM, RELEASES_FOR_NAME   PREPARED, NOT FED: not in the release (the reader answers empty)
  */
-import * as B from "../bundle/queries";
+import * as B from "../sql/queries";
 
 export type PackName = "core" | "near" | "conditions" | "water" | "regs-sid";
 

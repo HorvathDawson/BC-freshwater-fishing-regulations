@@ -202,7 +202,7 @@ describe("profile labels and the day's label sets", () => {
     expect([3, 5, 6, 7].map((s) => mapStatusOn(withAccess, s, new Date(2026, 0, 1))))
       .toEqual(["no_access", "own", "base", "no_access"]);
     expect([3, 7].map((s) => statusOn(withAccess, s, new Date(2026, 0, 1)))).toEqual(["closed", "base"]);
-    // no access table (the dev path): nothing is no access
+    // no access table: nothing is no access
     expect(mapStatusOn(ix, 3, new Date(2026, 0, 1))).toBe("closed");
     expect(mapStatusOn(null, 3, new Date())).toBeNull();
   });

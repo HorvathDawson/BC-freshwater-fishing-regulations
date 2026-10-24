@@ -72,8 +72,8 @@ export interface StatusIndex {
   waterCodeOn(item: string, on: Date): StatusCode;
   /**
    * (T54) The release's section access, decoded from the SAME paint as this index (`decodePaint`), so the map's fourth
-   * colour arrives with the day's status and from nothing else. Absent: the file came alone (the dev path's
-   * `status_index.bin`), and nothing is drawn as no access. Never read for a regulation answer (`statusOn`).
+   * colour arrives with the day's status and from nothing else. Absent: the index was decoded alone (not out of
+   * paint), and nothing is drawn as no access. Never read for a regulation answer (`statusOn`).
    */
   readonly access?: SectionAccess | null;
 }

@@ -11,7 +11,7 @@
  */
 import { decodeAccessFile, decodeLakeFacts, decodePaint, decodeFlowArea, type LakeFacts, type Paint,
          type SectionAccess } from "@app/core";
-import type { Db } from "../bundle/db";
+import type { Db } from "../sql/db";
 import type { Manifest } from "../manifest";
 import { type Region } from "../pack.generated";
 

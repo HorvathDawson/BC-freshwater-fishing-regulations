@@ -1,42 +1,49 @@
 /**
- * THE FIXTURE RELEASE, for tests (P11): `python -m pipeline.tools.fixture_release` over a copy of the dev fixture bundle
- * (the release builder's own bundle half), and the node-side pieces a test needs to read it the way the app does — a
- * `fetch` that serves the release folder as R2 / `pnpm tiles` would, and a node:sqlite opener.
+ * THE FIXTURE RELEASES, for tests (P11, T61): the release's BUNDLE half — paint, flow-area, access, core, near,
+ * conditions — committed under `packages/data/dev/fixture-release/`, and the node-side pieces a test needs to read one
+ * the way the app does: a `fetch` that serves the release folder as R2 / `pnpm tiles` would, and a node:sqlite opener.
+ *
+ * They were cut once (2026-10-23) by the release builder's own code (`python -m pipeline.tools.fixture_release`) from
+ * the retired development bundle — the Chilliwack / Harrison valley slice of build 54ea0bb4 — and are frozen: the dev
+ * bundle, its generator and the riffle prototype it was extracted from are gone (T61), so no test needs Python or the dev data path to read a
+ * release. Three, so an update can be tested between two real releases:
+ *   plain        the slice as it was
+ *   lakeGauged   + one `lake_gauge` row (wbk:329177889 08MH103): changes core (item.gauged) and conditions, not paint
+ *   conformance  + three `lake_gauge` rows (two stations in one lake pin "the lowest") and the fixture source's
+ *                edition (valid_until 2027-03-31), so the two fixtures state one
+ * The regulations half is the regs fixture release (`@app/data/release/node` `openRegsFixture`), cut from a live one.
  */
-import { execFileSync } from "node:child_process";
-import { copyFileSync, existsSync, mkdtempSync, readdirSync, readFileSync, statSync } from "node:fs";
-import { DatabaseSync } from "node:sqlite";
+import { cpSync, existsSync, mkdtempSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { gzipSync } from "node:zlib";
 import { KNOWN_VERSIONS, SECTION_NAMES } from "@app/core";
-import { DEV_BUNDLE } from "@app/data/bundle/node";
 
 const REPO = resolve(__dirname, "../../..");
+
+/** Where the committed fixture releases live. */
+export const FIXTURE_RELEASE_ROOT = resolve(REPO, "app/packages/data/dev/fixture-release");
+
+/** The committed fixture releases by what they are (see the header). */
+export const FIXTURE_RELEASES = {
+  plain: "r-6d85601a9b99",
+  lakeGauged: "r-6dfd7c1cf86a",
+  conformance: "r-cc200b480be5",
+} as const;
 
 export interface FixtureRelease {
   /** `<root>/<release id>`: manifest.json + the gzipped files. */
   dir: string;
-  /** The release root every manifest url is relative to. */
+  /** The release root every manifest url is relative to: a temp folder of its own, so a test may write beside it. */
   root: string;
-  /** The bundle the release was cut from (the dev fixture + any `extra` rows). */
-  bundle: string;
 }
 
-/** Build a fixture release; `extra(db)` may add rows to the bundle copy first. */
-export function buildFixtureRelease(validUntil: string | null, extra?: (db: DatabaseSync) => void): FixtureRelease {
+/** A committed fixture release, copied into a temp root of its own (a test writes tile folders and manifests there). */
+export function fixtureRelease(which: keyof typeof FIXTURE_RELEASES): FixtureRelease {
+  const id = FIXTURE_RELEASES[which];
   const root = mkdtempSync(join(tmpdir(), "fixture-release-"));
-  const bundle = join(root, "bundle.sqlite");
-  copyFileSync(DEV_BUNDLE, bundle);
-  if (extra) {
-    const w = new DatabaseSync(bundle);
-    extra(w);
-    w.close();
-  }
-  const args = ["-m", "pipeline.tools.fixture_release", "--bundle", bundle, "--out", root];
-  if (validUntil) args.push("--valid-until", validUntil);
-  const dir = execFileSync(join(REPO, ".venv/bin/python"), args, { cwd: REPO, encoding: "utf8" }).trim();
-  return { dir, root, bundle };
+  cpSync(join(FIXTURE_RELEASE_ROOT, id), join(root, id), { recursive: true });
+  return { dir: join(root, id), root };
 }
 
 /**

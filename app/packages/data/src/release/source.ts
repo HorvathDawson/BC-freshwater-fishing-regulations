@@ -1,13 +1,12 @@
 /**
  * THE RELEASE READER (P11): a RegsSource over the release's files, through the loader (lazy, verified, per file).
  *
- * WHY A SOURCE OF ITS OWN, AND NOT `makeBundleSource` ROUTED OVER FILE HANDLES. A router can send a query to the file
- * that owns its table; it cannot route a JOIN across two files, and the reads that matter most here are exactly those —
- * search's nearest towns (near → core), the gauge for a water (core → conditions), the lake road (core → conditions),
- * the panels (paint's arrays, which are not SQL at all). Routing would have put an "if release" in every one of them.
- * So the two readers ask their own files, and everything that turns rows into an ANSWER is shared (`../bundle/shared`)
- * and held to one conformance suite (`app/conformance`), which now runs against both a hand-written fixture and a
- * release cut by the builder.
+ * THE APP'S ONE DATA READER (the dev bundle reader was retired, T61). It asks each file for its own tables: a query
+ * cannot JOIN across two files, and the reads that matter most here are exactly those — search's nearest towns
+ * (near → core), the gauge for a water (core → conditions), the lake road (core → conditions), the panels (paint's
+ * arrays, which are not SQL at all). Everything that turns rows into an ANSWER lives in `../sql/shared` (the SQL in
+ * `../sql/queries`, written in the pipeline bundle's table names) and is held to one conformance suite
+ * (`app/conformance`), run against a hand-written fixture and a release cut by the builder.
  *
  *   single-file reads    `RELEASE_QUERIES` (`./queries.ts`), each on the file the contract says holds its table
  *   cross-file reads     two KEYED reads joined in code (`CROSS`), never a join across files
@@ -22,13 +21,13 @@
  * regs-<region> on the first water opened in that region.
  */
 import { shownParameter, type WaterFix } from "@app/core";
-import { num, str, type Row } from "../bundle/db";
-import * as BQ from "../bundle/queries";
+import { num, str, type Row } from "../sql/db";
+import * as BQ from "../sql/queries";
 import { boxOfGeoRows, continuedOrds, gaugeWatersOf, link, nearHit, parametersOf, pentadsOf, placesOf, pointerHits, rankNameHits, routesOf, seriesOf, sid,
-         traceDown, withNear, type DownOf } from "../bundle/shared";
-import type { BundleSourceOptions } from "../bundle/source";
-import type { BasinMember, BundleCounts, BundleInfo, GaugeLink, ItemId, NameHit, NearHit, Panel, PanelMember,
-              PlaceHit, PlaceId, PointerHit, RegsSource, SectionId, StationId, Water } from "../index";
+         traceDown, withNear, type DownOf } from "../sql/shared";
+import type { Observations } from "../feed/http";
+import type { Aged, BasinMember, BundleCounts, BundleInfo, GaugeLink, ItemId, NameHit, NearHit, Panel, PanelMember,
+              PlaceHit, PlaceId, PointerHit, Reading, RegsSource, SectionId, StationId, Water } from "../index";
 import type { DbName, ReleaseLoader } from "./loader";
 import { buildStandingClasses, type StandingClasses } from "../standing";
 import { CROSS, META, RELEASE_QUERIES as R } from "./queries";
@@ -45,7 +44,28 @@ async function chunked<T>(keys: readonly T[], each: (part: T[]) => Promise<Row[]
 /** SQLite's BINARY collation on ASCII-and-beyond names, as the bundle's `ORDER BY ... name` sorted them. */
 const binary = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
 
-export function makeReleaseSource(loader: ReleaseLoader, opts: BundleSourceOptions = {}): RegsSource {
+/** What a source is handed beside its data. */
+export interface SourceOptions {
+  /** The live feed. Absent means conditions render as "we could not check", never as a number. */
+  feed?: {
+    now(station: StationId): Promise<Aged<Reading> | null>;
+    /** Raw observations, with no envelope — this source supplies the other half. */
+    observations?(station: StationId): Promise<Observations | null>;
+    /**
+     * The stations transmitting right now — membership IS the answer.
+     *
+     * The release deliberately holds no liveness column: any boolean it baked in would be right the week it was cut
+     * and wrong months later. This is the resident index the map already loads to colour its dots, so asking it costs
+     * a set lookup.
+     *
+     * Absent means we could not check. Then nothing is preferred over anything else, which is correct — an unknown
+     * must not read as "not transmitting".
+     */
+    live?(): Promise<ReadonlySet<string> | null>;
+  };
+}
+
+export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {}): RegsSource {
   const db = (n: DbName) => loader.db(n);
   const all = async (q: { file: string; sql: string }, ...p: (string | number | null)[]) =>
     (await db(q.file as DbName)).all(q.sql, ...p);

@@ -1,11 +1,12 @@
 /**
  * THE WEB OPENER (P11): sql.js over a release file's verified bytes. Plain wasm, no worker, no OPFS, no
- * SharedArrayBuffer — see `bundle/drivers/engine.web.ts` for why the database may not impose cross-origin isolation on
- * the page. Each file is small (MINIMAL-PACKAGING §3 A11: `new SQL.Database(bytes)` 0.4–1.3 ms), so opening per file
+ * SharedArrayBuffer: expo-sqlite's web build wants all three, and SharedArrayBuffer needs the page cross-origin isolated
+ * (COOP + COEP), which would break every cross-origin resource that does not send CORP — starting with the basemap's
+ * font and sprite CDN. The database may not impose a security posture on the rest of the app. Each file is small (MINIMAL-PACKAGING §3 A11: `new SQL.Database(bytes)` 0.4–1.3 ms), so opening per file
  * costs nothing next to its download.
  */
 import initSqlJs, { type Database } from "sql.js";
-import type { Db, Row } from "../../bundle/db";
+import type { Db, Row } from "../../sql/db";
 import type { Opener } from "../loader";
 import type { OpenAt } from "./open";
 

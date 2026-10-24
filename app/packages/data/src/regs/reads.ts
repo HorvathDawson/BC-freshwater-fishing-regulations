@@ -25,7 +25,7 @@ import type {
   AkeyRow, AnswersPlace, CellIds, ContinueRow, DisplayFrame, ExportRule, GearValue, LadderFrameWire, LicenceValue,
   Moment, PartFacts, Picker, RowsValue, RuleFacts, Statics, VerdictWire,
 } from "@app/core";
-import type { Cell, Db, Row } from "../bundle/db";
+import type { Cell, Db, Row } from "../sql/db";
 import { RegsStoreError } from "./errors";
 
 export interface ItemRow {

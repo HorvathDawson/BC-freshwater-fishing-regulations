@@ -2,7 +2,6 @@
 import { describe, expect, it } from "vitest";
 import { parseManifest, type Held, type Manifest } from "@app/data";
 import type { StatusIndex } from "@app/core";
-import { loadStatusIndex } from "./hooks";
 import { pairingOf, pairingView, releaseMapInput, releaseStatus, statusOf, type StatusSource } from "./release";
 
 const H = "d768d6e135e62b99";
@@ -24,16 +23,6 @@ describe("statusOf: one decode per key, and a failure is not kept", () => {
     expect(s.key).toBe("paint:r-1");
     expect(await statusOf(s)).toBe(index);
     expect(paints).toBe(1);
-  });
-});
-
-describe("the dev path's status_index.bin (behind the flag) no longer caches a 404 forever", () => {
-  it("fetches again after a failure", async () => {
-    let calls = 0;
-    const fetcher = (async () => { calls++; return new Response("no", { status: 404 }); }) as unknown as typeof fetch;
-    expect(await loadStatusIndex("p11-u1", H, fetcher)).toBeNull();
-    expect(await loadStatusIndex("p11-u1", H, fetcher)).toBeNull();
-    expect(calls).toBe(2);
   });
 });
 
@@ -103,13 +92,6 @@ describe("the release path with no tile set named proves the pair against the ti
 describe("an unproven pair is said, a pair not yet checked is not", () => {
   it("nothing to check (no input, or still loading) is not 'unproven': no line is drawn for it", async () => {
     expect(await pairingOf(null)).toEqual({ ok: null, data: null, tiles: null, unproven: false });
-  });
-  it("the dev path with no sidecar is unproven; with a matching one it is proven", async () => {
-    const source = { info: async () => ({ sectionHandles: H }) } as never;
-    expect(await pairingOf({ kind: "dev", source, atlasUrl: DRAWN }, sidecar(null).fetcher))
-      .toEqual({ ok: null, data: H, tiles: null, unproven: true });
-    expect(await pairingOf({ kind: "dev", source, atlasUrl: DRAWN }, sidecar({ section_handles: H }).fetcher))
-      .toEqual({ ok: true, data: H, tiles: H, unproven: false });
   });
 });
 

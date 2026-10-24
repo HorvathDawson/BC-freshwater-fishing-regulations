@@ -4,7 +4,7 @@ import { sha256Hex } from "../sha256";
 import { parseManifest, type Manifest } from "../manifest";
 import { releaseLoader, ReleaseError, type DbName } from "./loader";
 import { heldFrom, heldPath, install, POINTER, type ReleaseFs } from "./install";
-import type { Db } from "../bundle/db";
+import type { Db } from "../sql/db";
 
 const enc = (s: string) => new TextEncoder().encode(s);
 const H = "d768d6e135e62b99";

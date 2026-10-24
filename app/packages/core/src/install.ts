@@ -14,8 +14,6 @@ const STAGES: Readonly<Record<string, string>> = {
   install: "Downloading the map and regulations for offline use",
   paint: "Opening the map…",
   fonts: "Loading type…",
-  // the dev bundle path (until P20)
-  bundle: "Opening the map data…",
 };
 
 /** The line for a start-up stage; an unknown stage says nothing rather than something made up. */

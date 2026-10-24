@@ -135,7 +135,7 @@ interface StationFile {
  * envelope — lives in the bundle, because it is derived from a HYDAT release and changes
  * once a year, not once every thirty minutes. Splitting them this way is what lets the
  * feed stay a set of static files addressed by station id and nothing else. The source
- * joins the two halves; see `gaugeSeries` in `bundle/source.ts`.
+ * joins the two halves; see `gaugeSeries` in `release/source.ts`.
  */
 export interface Observations {
   /** When our copy was fetched; null when the file does not say (P02: unknown age, never "now"). */

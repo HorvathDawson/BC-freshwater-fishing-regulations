@@ -30,7 +30,7 @@ import { assetsDigest, bootRelease, heldPath, POINTER, releaseTiles, type Releas
 import { releaseCache } from "../packages/data/src/release/drivers/cache.web";
 import { releaseSource } from "../packages/data/src/release/drivers/source.web";
 import { releaseStatus, statusOf } from "../packages/ui/src/release";
-import { buildFixtureRelease, nodeOpener, releaseFetch, type FixtureRelease } from "../conformance/src/fixtureRelease";
+import { fixtureRelease, nodeOpener, releaseFetch, type FixtureRelease } from "../conformance/src/fixtureRelease";
 
 const BASE = "https://r2.test/release/";
 const DEV_TILES = { atlas: "dev:atlas.pmtiles", basemap: "dev:basemap.pmtiles", outside: "dev:bc_outside.geojson" };
@@ -45,8 +45,8 @@ const web: ReleasePlatform = {
 };
 
 describe("web: a cold start is the manifest and paint, then each file on first need", () => {
-  it("fetches manifest + paint before the first coloured map, and nothing from the dev path", async () => {
-    const fx = buildFixtureRelease(null), log: string[] = [];
+  it("fetches manifest + paint before the first coloured map, and nothing else", async () => {
+    const fx = fixtureRelease("plain"), log: string[] = [];
     const m = JSON.parse(await (await releaseFetch(BASE, fx.dir, [])(`${BASE}manifest.json`)).text()) as Manifest;
     const stages: string[] = [];
     const b = await bootRelease({ manifestUrl: `${BASE}manifest.json`, releaseBase: BASE, wasmBase: "",
@@ -67,7 +67,7 @@ describe("web: a cold start is the manifest and paint, then each file on first n
   });
 
   it("a release that names its tiles and mask is drawn from them", async () => {
-    const fx = buildFixtureRelease(null);
+    const fx = fixtureRelease("plain");
     const b = await bootRelease({ manifestUrl: `${BASE}manifest.json`, releaseBase: BASE, wasmBase: "",
                                   platform: web, fetch: releaseFetch(BASE, fx.dir, []) });
     const named = { ...b, manifest: { ...b.manifest, tiles: { ...b.manifest.tiles,
@@ -84,7 +84,7 @@ describe("web: a cold start is the manifest and paint, then each file on first n
   });
 
   it("N2: a release that names its map assets gives the map their folder (glyphs + sprites, no CDN)", async () => {
-    const fx = buildFixtureRelease(null);
+    const fx = fixtureRelease("plain");
     const b = await bootRelease({ manifestUrl: `${BASE}manifest.json`, releaseBase: BASE, wasmBase: "",
                                   platform: web, fetch: releaseFetch(BASE, fx.dir, []) });
     const named = { ...b, manifest: { ...b.manifest, tiles: { ...b.manifest.tiles,
@@ -185,11 +185,9 @@ const offline = (async () => { throw new TypeError("Network request failed"); })
 
 describe("native: always offline, updated by diff, swapped at the next launch", () => {
   it("installs on first run, opens offline, downloads only what changed, and prunes the old set after", async () => {
-    const r1 = buildFixtureRelease(null);
-    // a second release: three lake stations more, which changes core (item.gauged) and conditions, not paint
-    const r2 = buildFixtureRelease(null, (db) => {
-      db.prepare("INSERT INTO lake_gauge VALUES ('wbk:329177889', '08MH103')").run();
-    });
+    const r1 = fixtureRelease("plain");
+    // a second release: one lake station more, which changes core (item.gauged) and conditions, not paint
+    const r2 = fixtureRelease("lakeGauged");
     const fs = memFs(), log: string[] = [], stages: string[] = [], progress: string[] = [];
     const boot = (f: typeof fetch) => bootRelease({
       manifestUrl: `${BASE}manifest.json`, releaseBase: BASE, wasmBase: "", platform: phone(fs), fetch: f,
@@ -231,7 +229,7 @@ describe("native: always offline, updated by diff, swapped at the next launch", 
 
   it("a TILE-ONLY release (same data_release) is installed, drawn at the next launch, and the old tiles pruned after",
     async () => {
-      const r1 = buildFixtureRelease(null);
+      const r1 = fixtureRelease("plain");
       const v1 = tileVersion(r1, "aaaaaaaaaaaa"), v2 = tileVersion(r1, "bbbbbbbbbbbb");
       const at1 = withTiles(r1, v1), at2 = withTiles(r1, v2);
       const fs = memFs(), log: string[] = [];
@@ -271,7 +269,7 @@ describe("native: always offline, updated by diff, swapped at the next launch", 
 
   it("MAP ASSETS are installed (every file verified) and the map reads its glyphs and sprites from the installed folder",
     async () => {
-      const r1 = buildFixtureRelease(null);
+      const r1 = fixtureRelease("plain");
       const v1 = tileVersion(r1, "aaaaaaaaaaaa");
       const at = withTiles(r1, v1, { id: "map-assets-1", body: { [GLYPHS]: "glyphs", [SPRITE]: "png" } });
       const fs = memFs(), log: string[] = [];
@@ -297,7 +295,7 @@ describe("native: always offline, updated by diff, swapped at the next launch", 
 
   it("an ASSETS-ONLY release fetches only the new assets folder, and the old one is pruned at the next launch",
     async () => {
-      const r1 = buildFixtureRelease(null);
+      const r1 = fixtureRelease("plain");
       const v1 = tileVersion(r1, "aaaaaaaaaaaa");
       const at1 = withTiles(r1, v1, { id: "map-assets-1", body: { [GLYPHS]: "glyphs", [SPRITE]: "png" } });
       const at2 = withTiles(r1, v1, { id: "map-assets-2", body: { [GLYPHS]: "glyphs", [SPRITE]: "png 2" } });
@@ -329,7 +327,7 @@ describe("native: always offline, updated by diff, swapped at the next launch", 
   it("a TILE REBUILD that keeps its assets id still makes the assets folder whole under the new tile version",
     async () => {
       // every tile rebuild is this: new tiles, same map-assets-1, which lives under the tile version's folder
-      const r1 = buildFixtureRelease(null);
+      const r1 = fixtureRelease("plain");
       const v1 = tileVersion(r1, "aaaaaaaaaaaa"), v2 = tileVersion(r1, "bbbbbbbbbbbb");
       const body = { [GLYPHS]: "glyphs", [SPRITE]: "png" };
       const at1 = withTiles(r1, v1, { id: "map-assets-1", body });
@@ -360,7 +358,7 @@ describe("native: always offline, updated by diff, swapped at the next launch", 
 
   it("an update whose assets are not the manifest's is refused before the swap: the held set stays in force",
     async () => {
-      const r1 = buildFixtureRelease(null);
+      const r1 = fixtureRelease("plain");
       const v1 = tileVersion(r1, "aaaaaaaaaaaa");
       const at1 = withTiles(r1, v1, { id: "map-assets-1", body: { [GLYPHS]: "glyphs", [SPRITE]: "png" } });
       const at2 = withTiles(r1, v1, { id: "map-assets-2", body: { [GLYPHS]: "glyphs", [SPRITE]: "png 2" } });
@@ -377,10 +375,8 @@ describe("native: always offline, updated by diff, swapped at the next launch", 
 
   it("a new set that will not open is ROLLED BACK to the one it replaced, said, pruned, and not installed again",
     async () => {
-      const r1 = buildFixtureRelease(null);
-      const r2 = buildFixtureRelease(null, (db) => {
-        db.prepare("INSERT INTO lake_gauge VALUES ('wbk:329177889', '08MH103')").run();
-      });
+      const r1 = fixtureRelease("plain");
+      const r2 = fixtureRelease("lakeGauged");
       const fs = memFs();
       const boot = (f: typeof fetch) => bootRelease({ manifestUrl: `${BASE}manifest.json`, releaseBase: BASE,
                                                        wasmBase: "", platform: phone(fs), fetch: f,
@@ -412,10 +408,8 @@ describe("native: always offline, updated by diff, swapped at the next launch", 
 
   /** r1 installed, then r2 installed by an update (not yet used): the state a launch that opens r2 starts from. */
   async function updated() {
-    const r1 = buildFixtureRelease(null);
-    const r2 = buildFixtureRelease(null, (db) => {
-      db.prepare("INSERT INTO lake_gauge VALUES ('wbk:329177889', '08MH103')").run();
-    });
+    const r1 = fixtureRelease("plain");
+    const r2 = fixtureRelease("lakeGauged");
     const fs = memFs();
     const boot = (f: typeof fetch, failOpen: { error: Error; times: number } | null = null) => bootRelease({
       manifestUrl: `${BASE}manifest.json`, releaseBase: BASE, wasmBase: "", platform: phone(fs, fs, failOpen),
@@ -471,10 +465,8 @@ describe("native: always offline, updated by diff, swapped at the next launch", 
 
   it("a launch killed right after the swap still prunes the set it replaced (PREVIOUS is written before the swap)",
     async () => {
-      const r1 = buildFixtureRelease(null);
-      const r2 = buildFixtureRelease(null, (db) => {
-        db.prepare("INSERT INTO lake_gauge VALUES ('wbk:329177889', '08MH103')").run();
-      });
+      const r1 = fixtureRelease("plain");
+      const r2 = fixtureRelease("lakeGauged");
       const fs = memFs();
       const boot = (f: typeof fetch, disk: ReleaseFs = fs) => bootRelease({
         manifestUrl: `${BASE}manifest.json`, releaseBase: BASE, wasmBase: "",

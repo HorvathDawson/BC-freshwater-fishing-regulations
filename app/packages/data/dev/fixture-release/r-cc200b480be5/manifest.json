@@ -1,0 +1,67 @@
+{
+ "basemap": null,
+ "data_release": "r-cc200b480be5",
+ "files": {
+  "access": {
+   "bytes": 15,
+   "format": "access/1",
+   "gz": 35,
+   "section_handles": "c512dcacaac77da5",
+   "sha256": "24ec53f3749486721f7dab399178cddb3f02841ffb43877f42ea94b21e47b99b",
+   "url": "r-cc200b480be5/access-24ec53f37494.bin.gz"
+  },
+  "conditions": {
+   "bytes": 94208,
+   "format": "conditions/1",
+   "gz": 25695,
+   "section_handles": "c512dcacaac77da5",
+   "sha256": "87bfa84658b5d3f808d1278ddebf5d8e08c5711b5f66419ad809eece18348fd5",
+   "url": "r-cc200b480be5/conditions-87bfa84658b5.sqlite.gz"
+  },
+  "core": {
+   "bytes": 196608,
+   "format": "core/1",
+   "gz": 57687,
+   "section_handles": "c512dcacaac77da5",
+   "sha256": "51fd8b23bdb663f1424764da17748c2683d433947dbb2a78f021b67ae4b3e922",
+   "url": "r-cc200b480be5/core-51fd8b23bdb6.sqlite.gz"
+  },
+  "flow-area": {
+   "bytes": 5749,
+   "format": "flow-area/1",
+   "gz": 1125,
+   "section_handles": "c512dcacaac77da5",
+   "sha256": "8499017c7f64b49b931730695062b3dd4c0b53e38fe730faca41cf50b5ced4e1",
+   "url": "r-cc200b480be5/flow-area-8499017c7f64.bin.gz"
+  },
+  "near": {
+   "bytes": 57344,
+   "format": "near/1",
+   "gz": 20908,
+   "section_handles": "c512dcacaac77da5",
+   "sha256": "3285084f36fe8d1a00f507eb203105de485b555b2dbc5d853bae5db12ce702c4",
+   "url": "r-cc200b480be5/near-3285084f36fe.sqlite.gz"
+  },
+  "paint": {
+   "bytes": 4826,
+   "format": "paint/4",
+   "gz": 1471,
+   "section_handles": "c512dcacaac77da5",
+   "sha256": "46297f86f69ae0b307363d2e0be2741c088e42bcf180f55003439bec4abdd001",
+   "url": "r-cc200b480be5/paint-46297f86f69a.bin.gz"
+  }
+ },
+ "format": "app-manifest/2",
+ "regulations": {
+  "valid_until": "2027-03-31",
+  "versions": null
+ },
+ "tiles": {
+  "assets": null,
+  "compatible": [
+   "c512dcacaac77da5.*"
+  ],
+  "current": null,
+  "mask": null
+ }
+}

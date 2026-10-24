@@ -7,12 +7,11 @@
  *
  * THE DATA IS THE RELEASE (P11): the manifest, then paint, then the Shell (`useReleaseBoot` → `bootRelease`). On the
  * phone the first run downloads the whole release with progress and every later launch opens it from disk, checking for
- * a newer one in the background; on the web each file is fetched on first need into Cache Storage. Nothing on this path
- * reads `/province.sqlite` or `/status_index.bin`: those belong to the development bundle path,
- * `EXPO_PUBLIC_DATA_SOURCE=bundle`, until P20. `atlas.meta.json` is read only while the manifest names no tile set: the
- * map then draws the development tiles, and their stamped `tile_version` is what proves the pair (`pairingOf`).
+ * a newer one in the background; on the web each file is fetched on first need into Cache Storage. It is the only data
+ * path (the development bundle path was retired, T61). `atlas.meta.json` is read only while the manifest names no tile
+ * set: the map then draws the development tiles, and their stamped `tile_version` is what proves the pair (`pairingOf`).
  */
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { SafeAreaView, StatusBar, Text, View, useColorScheme, useWindowDimensions } from "react-native";
 import { useFonts } from "expo-font";
 import {
@@ -23,22 +22,20 @@ import {
 } from "@expo-google-fonts/archivo";
 import { JetBrainsMono_500Medium } from "@expo-google-fonts/jetbrains-mono";
 import { INSTALL_WORDS, installLine, rolledBackLine, startStage } from "@app/core";
-import { makeBundleSource } from "@app/data/bundle";
 import { httpFeed, loadManifest, type RegsSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import * as platform from "@app/data/release/platform";
 import { fillDayFlow, geometHydat, openLayerStore, openLikeStore, openMeteo, openPhotos, openSpots, refreshSpot,
          type DayFlowAnswer, type Spot } from "@app/data/spots";
-import { loadBundle, setSqlWasmUrl, type LoadedBundle } from "@app/data/bundle/open";
 import { FishSpinner, Shell, THEMES, type ThemeName } from "@app/ui-native";
-import { devStatus, LayoutWidthContext, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, useReleaseBoot, useSpots, type MapTiles,
+import { LayoutWidthContext, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, useReleaseBoot, useSpots, type MapTiles,
          type PairingInput, type SpotPhotos, type StatusSource } from "@app/ui";
 import { PHOTO_SOURCES, pickPhoto } from "./pickPhoto";
 import { systemBack } from "./systemBack";
 import { locate } from "./locate";
 import { startLink } from "./startLink";
 
-import { DATA_SOURCE, ENDPOINTS, IMAGERY_TILES, MENU_INFO } from "./config";
+import { ENDPOINTS, IMAGERY_TILES, MENU_INFO } from "./config";
 
 /*
  * THE RECENT ERROR LOG (menu: Report a problem): every console.error the app already logs is also kept in a small
@@ -60,24 +57,6 @@ if (START?.who) setAnglerProfile(START.who);
  * changes.
  */
 const FEED = ENDPOINTS.feed;
-const RELEASE = DATA_SOURCE === "release";
-
-/** THE DEVELOPMENT BUNDLE PATH (`EXPO_PUBLIC_DATA_SOURCE=bundle`, until P20): the whole province.sqlite, as before. */
-function useDevBundle(on: boolean): { bundle: LoadedBundle | null; failed: string | null; stage: string } {
-  const [bundle, setBundle] = useState<LoadedBundle | null>(null);
-  const [failed, setFailed] = useState<string | null>(null);
-  const [stage, setStage] = useState("bundle");
-  useEffect(() => {
-    if (!on) return;
-    let live = true;
-    setSqlWasmUrl(ENDPOINTS.sqlWasm);
-    loadBundle(ENDPOINTS.bundle, undefined, () => { if (live) setStage("bundle"); })
-      .then((b) => { if (live) setBundle(b); else b.close?.(); })
-      .catch((e: unknown) => { if (live) setFailed(e instanceof Error ? e.message : String(e)); });
-    return () => { live = false; };
-  }, [on]);
-  return { bundle, failed, stage };
-}
 
 export default function App() {
   const scheme = useColorScheme();
@@ -106,10 +85,9 @@ export default function App() {
   const feed = useMemo(() => httpFeed(FEED), []);
 
   // THE RELEASE: manifest → (native: install / update) → paint, then the Shell
-  const boot = useReleaseBoot(useMemo(() => (RELEASE ? {
+  const boot = useReleaseBoot(useMemo(() => ({
     manifestUrl: ENDPOINTS.manifest, releaseBase: ENDPOINTS.release, wasmBase: ENDPOINTS.sqlWasm, platform, feed,
-  } : null), [feed]));
-  const dev = useDevBundle(!RELEASE);
+  }), [feed]));
   /**
    * (The sync icon, owner 2026-10-22) What data release the server names NOW — read again by the icon's tap and its
    * poll, to SAY that a newer one exists (installed in the background at the next launch on a phone, by a reload on the
@@ -121,33 +99,25 @@ export default function App() {
     []);
 
   const data = useMemo((): { source: RegsSource; status: StatusSource; pairing: PairingInput;
-                             tiles: MapTiles & { imagery: string }; loader: ReleaseLoader | null } | null => {
-    if (RELEASE) {
-      if (boot.state !== "ready") return null;
-      const b = boot.booted;
-      // the tiles, mask, basemap and map assets from the release when it names them, else the dev server's; the pair
-      // is proven against the tiles DRAWN (`releaseMapInput`, tested in ui/release.test.ts)
-      // T01: the loader goes to the water screen too — the Regulations page reads water / regs-<region> / regs-sid
-      // through it (no regs store file of its own)
-      // the satellite imagery is Esri's, online, on both paths (never in a release): `IMAGERY_TILES`
-      const m = releaseMapInput(b, ENDPOINTS.tiles);
-      return { source: b.source, status: releaseStatus(b.loader), ...m, tiles: { ...m.tiles, imagery: IMAGERY_TILES },
-               loader: b.loader };
-    }
-    if (!dev.bundle) return null;
-    const source = makeBundleSource(dev.bundle, { feed });
-    return { source, status: devStatus(source, ENDPOINTS.tiles.atlas),
-             pairing: { kind: "dev", source, atlasUrl: ENDPOINTS.tiles.atlas },
-             tiles: { ...ENDPOINTS.tiles, imagery: IMAGERY_TILES },
-             loader: null };      // the dev bundle holds no regulations
-  }, [boot, dev.bundle, feed]);
+                             tiles: MapTiles & { imagery: string }; loader: ReleaseLoader } | null => {
+    if (boot.state !== "ready") return null;
+    const b = boot.booted;
+    // the tiles, mask, basemap and map assets from the release when it names them, else the dev server's; the pair
+    // is proven against the tiles DRAWN (`releaseMapInput`, tested in ui/release.test.ts)
+    // T01: the loader goes to the water screen too — the Regulations page reads water / regs-<region> / regs-sid
+    // through it (no regs store file of its own)
+    // the satellite imagery is Esri's, online (never in a release): `IMAGERY_TILES`
+    const m = releaseMapInput(b, ENDPOINTS.tiles);
+    return { source: b.source, status: releaseStatus(b.loader), ...m, tiles: { ...m.tiles, imagery: IMAGERY_TILES },
+             loader: b.loader };
+  }, [boot]);
 
-  const failed = RELEASE ? (boot.state === "failed" ? boot.error.message : null) : dev.failed;
+  const failed = boot.state === "failed" ? boot.error.message : null;
   const firstRunOffline = boot.state === "failed" && boot.firstRunOffline;
-  const stage = RELEASE ? (boot.state === "loading" ? boot.stage : "paint") : dev.stage;
+  const stage = boot.state === "loading" ? boot.stage : "paint";
   const progress = boot.state === "loading" ? boot.progress : null;
   // a phone whose newest set would not open went back to the one it replaced: said, above the map
-  const rolledBack = RELEASE && boot.state === "ready" ? boot.booted.rolledBack : null;
+  const rolledBack = boot.state === "ready" ? boot.booted.rolledBack : null;
 
   const name: ThemeName = theme ?? (scheme === "dark" ? "dark" : "light");
   const palette = THEMES[name];
@@ -195,7 +165,7 @@ export default function App() {
           </Text>
         )}
         <Shell source={data.source} palette={palette} loader={data.loader} menuInfo={MENU_INFO}
-               checkRelease={RELEASE ? checkRelease : null}
+               checkRelease={checkRelease}
                layerStore={layerStore} likeStore={likeStore}
                theme={name} themeName={name}
                onTheme={setTheme} tiles={data.tiles}

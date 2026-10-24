@@ -83,7 +83,7 @@ function walk(dir, out = []) {
 /**
  * MOST SPECIFIC LAYER WINS.
  *
- * A layer may sit inside another — `packages/data/src/bundle/drivers` inside
+ * A layer may sit inside another — `packages/data/src/sql/drivers` inside
  * `packages/data` — and when it does, only the inner rules apply. Without this, checking
  * every layer against every file it contains means an inner layer can only ever be
  * STRICTER than its parent, so the one thing a nested layer is for (a driver naming a
@@ -93,7 +93,7 @@ function walk(dir, out = []) {
  */
 const dirFor = (layer) => {
   // A package layer is named by its package root and its code lives in `src`. A nested
-  // layer is named by the directory itself — `packages/data/src/bundle/drivers` has no
+  // layer is named by the directory itself — `packages/data/src/sql/drivers` has no
   // `src` of its own, and appending one pointed the walk at nothing, so the parent's
   // rules kept applying and the nested layer had no effect at all.
   const withSrc = join(root, layer, "src");

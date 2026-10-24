@@ -6,8 +6,8 @@
  */
 import { deflateSync } from "fflate";
 import { describe, expect, it } from "vitest";
-import { openInMemory } from "../bundle/drivers/node";
-import type { Db } from "../bundle/db";
+import { openInMemory } from "../sql/drivers/node";
+import type { Db } from "../sql/db";
 import type { Manifest } from "../manifest";
 import { RegsBlobError } from "./blob";
 import { openRegsStore, RegsStoreError, type RegsLoader } from "./store";

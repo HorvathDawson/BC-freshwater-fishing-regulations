@@ -1,8 +1,7 @@
 /**
- * WHAT THE TWO READERS SHARE (P11). `makeBundleSource` (one SQLite file, the dev path until P20) and
- * `makeReleaseSource` (the release's files, `../release/source.ts`) ask different files the same questions, so how
- * an ANSWER is made from rows lives here, once: the name ranking, the gauge link, the series join, the downstream walks.
- * Only where the rows come from differs between them.
+ * HOW AN ANSWER IS MADE FROM ROWS (P11), once: the name ranking, the gauge link, the series join, the downstream walks.
+ * `makeReleaseSource` (`../release/source.ts`) asks the release's files and hands the rows here; a test may hand rows
+ * from any SQLite with the pipeline bundle's columns. (Its second reader, the dev bundle's, was retired in T61.)
  */
 import { bandAt, boxOfParts, describeBy, rankPointers, rankWaters, type Band, type Bbox, type NearPlace } from "@app/core";
 import { forecastFor, type Observations } from "../feed/http";

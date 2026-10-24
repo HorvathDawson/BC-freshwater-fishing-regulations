@@ -84,8 +84,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                        checkRelease = null, layerStore, likeStore, onDayFlow, hydat }: {
   source: RegsSource; palette: Palette;
   /**
-   * Where the day's status comes from: the release's paint (P11), or on the dev bundle path status_index.bin. Absent
-   * -> the water is drawn plain.
+   * Where the day's status comes from: the release's paint (P11). Absent -> the water is drawn plain.
    */
   status?: StatusSource | null;
   /** What says the data and the tiles are one pair (P11 `usePairing`). Absent -> not established: nothing coloured. */
@@ -129,7 +128,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   photos?: SpotPhotos;
   /** G1: the platform's own back (Android `BackHandler`, the browser's history), from the app. Absent -> ‹ only. */
   systemBack?: SystemBack | null;
-  /** T01: the release loader (P11), handed to the water screen for its Regulations page. null: the dev bundle. */
+  /** T01: the release loader (P11), handed to the water screen for its Regulations page. null: none (a test). */
   loader?: ReleaseLoader | null;
   /** Where the app opens (a deep link, a test); the map tab when absent. Read once, on mount. */
   initialRoute?: Route;
@@ -143,7 +142,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   menuInfo?: MenuInfo;
   /**
    * (The sync icon) Reads the data release the server names NOW (the manifest's `data_release`), to say when a newer
-   * one is available. Absent: nothing to check (the dev bundle). Its identity must be stable (the app's useCallback).
+   * one is available. Absent: nothing to check. Its identity must be stable (the app's useCallback).
    */
   checkRelease?: (() => Promise<string | null>) | null;
   /**
@@ -302,13 +301,13 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    */
   const [layerChoice, setLayerChoice] = useLayerChoice(layerStore);
   /*
-   * TILES AND BUNDLE FROM ONE ATLAS, or nothing is coloured.
+   * TILES AND DATA FROM ONE ATLAS, or nothing is coloured.
    *
    * A section is an integer handle into the atlas's table, and both artifacts carry it. A
    * mixed pair does not fail to match — it matches the WRONG SECTION, so every colour on
    * screen would be a real reading about a different river. That is the one outcome this
    * app may never produce, and it has happened once already: the tiles were rebuilt and
-   * `bundle.sqlite` was left behind, and the map went quietly grey.
+   * the data was left behind, and the map went quietly grey.
    *
    * COLOUR ONLY ON A PROVEN PAIR (P11, `usePairing`): `ok === true` colours. `false` is a mixed
    * pair, refused and SAID (the banner below); `null` — not established yet, or no tile version

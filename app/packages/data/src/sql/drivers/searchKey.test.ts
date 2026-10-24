@@ -4,8 +4,8 @@
  * ranking keys with the same function. Before, the SQL filtered the raw name (LIKE folds ASCII case only): "barriere"
  * returned none of the six Barrière waters and "childrens" never found Children's Fishing Pond.
  *
- * The store is built in memory: the bundle's own `schema.sql` for the bundle reader, and the release CONTRACT's core and
- * near columns (`PACK_FILES`, generated from `pipeline/deliver/release/contract.py`) for the release reader. The keys are
+ * The store is built in memory from the release CONTRACT's core and near columns (`PACK_FILES`, generated from
+ * `pipeline/deliver/release/contract.py`), behind the release reader. The keys are
  * written by `searchKey`; the pipeline writes them with `search_key`, held to the same case table. They are seeded THIN, as
  * the pipeline stores them (`stored_key`): NULL for the ASCII names whose key is their lower case (Barrie Creek, Dore
  * River, Mabel Lake and its alias), so the reader's `COALESCE(key, lower(text))` is exercised on both branches.
@@ -26,12 +26,8 @@ import { parseManifest } from "../../manifest";
 import { sha256Hex } from "../../sha256";
 import type { Db, Row } from "../db";
 import type { RegsSource } from "../../index";
-import { openInMemory } from "./node";
-import { makeBundleSource } from "../source";
 import * as Q from "../queries";
 import * as R from "../../release/queries";
-
-const SCHEMA = readFileSync(new URL("../../../../../../pipeline/deliver/bundle/schema.sql", import.meta.url), "utf8");
 
 /** [item_id, name, kind, aliases]: the six Barrière waters, the pond, and waters that must NOT match. */
 const WATERS: [string, string, string, string[]][] = [
@@ -50,18 +46,6 @@ const BARRIERE = ["gnis:4", "gnis:5", "gnis:6", "wbk:1", "wbk:2", "wbk:3"];
 /** What the pipeline leaves NULL (`stored_key`): spelled out, not computed, so the test holds no copy of the rule. */
 const THIN = new Set(["Barrie Creek", "Dore River", "Mabel Lake", "Mable Lake"]);
 const stored = (t: string): string | null => (THIN.has(t) ? null : searchKey(t));
-
-const esc = (s: string | null) => (s === null ? "NULL" : `'${s.replace(/'/g, "''")}'`);
-
-function bundleStore(): RegsSource {
-  const seed = WATERS.map(([id, name, kind, aliases], ord) =>
-    `INSERT INTO item (ord, item_id, name, kind, name_key) VALUES (${ord}, ${esc(id)}, ${esc(name)}, ${esc(kind)}, ` +
-    `${esc(stored(name))});` +
-    `INSERT INTO item_section (ord, sid) VALUES (${ord}, ${ord + 1});` +
-    aliases.map((a) => `INSERT INTO alias (item_id, alias, alias_key) VALUES (${esc(id)}, ${esc(a)}, ` +
-                       `${esc(stored(a))});`).join("")).join("\n");
-  return makeBundleSource(openInMemory(SCHEMA, seed));
-}
 
 /** The release's core + near, columns as the contract states them, behind a loader that verifies nothing. */
 function releaseStore(): RegsSource {
@@ -97,7 +81,7 @@ function releaseStore(): RegsSource {
   return makeReleaseSource(loader);
 }
 
-const READERS: [string, () => RegsSource][] = [["the bundle reader", bundleStore], ["the release reader", releaseStore]];
+const READERS: [string, () => RegsSource][] = [["the release reader", releaseStore]];
 
 for (const [reader, store] of READERS) {
   describe(`one search key — ${reader}`, () => {
@@ -140,7 +124,7 @@ for (const [reader, store] of READERS) {
 
 describe("one search key — the pin (no second copy)", () => {
   const read = (p: string) => readFileSync(new URL(p, import.meta.url), "utf8");
-  const MODULES = { "bundle/queries.ts": read("../queries.ts"), "release/queries.ts": read("../../release/queries.ts") };
+  const MODULES = { "sql/queries.ts": read("../queries.ts"), "release/queries.ts": read("../../release/queries.ts") };
 
   it("no LIKE compares a raw name or alias in either query module", () => {
     for (const [file, text] of Object.entries(MODULES))
@@ -155,9 +139,8 @@ describe("one search key — the pin (no second copy)", () => {
     }
   });
 
-  it("both readers bind SEARCH's ?1 with nameNeedle — the query's searchKey — and nothing else", () => {
-    const bundle = read("../source.ts"), release = read("../../release/source.ts");
-    expect(bundle).toMatch(/Q\.nameNeedle\(query\)/);
+  it("the reader binds SEARCH's ?1 with nameNeedle — the query's searchKey — and nothing else", () => {
+    const release = read("../../release/source.ts");
     expect(release).toMatch(/BQ\.nameNeedle\(query\)/);
     expect(Q.nameNeedle(" Barrière_Lake ")).toBe("barriere\\_lake");
   });

@@ -1,7 +1,7 @@
 /**
  * The type scale, in one place.
  *
- * Riffle (`design/riffle.html`) settles three faces and they carry different jobs, so the
+ * Three faces, and they carry different jobs, so the
  * app must not reach for a raw `fontFamily` anywhere else:
  *
  *   display  Bricolage Grotesque — names and headings. Tight tracking, heavy weights.

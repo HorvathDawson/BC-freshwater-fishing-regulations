@@ -103,23 +103,20 @@
       ],
       "why": "must render under react-native AND react-native-web. Touching react-dom breaks the native app; touching a map SDK bypasses @app/map. react-native-svg is allowed HERE and nowhere else: it is a drawing primitive that renders under both, and it is the reason there is no charting library. It is deliberately NOT granted to packages/ui — a hook that could reach for a drawing primitive would start returning elements, and logic would leak into what must stay a purely presentational layer (phone / tablet / desktop are layout classes of these same components, T45). react-native-gesture-handler (G1) is allowed here for the same reason: its GestureDetectors run under both renderers, and they only MEASURE — every threshold and decision is @app/core's (gestures.ts) and every action @app/ui's, so a gesture can never do what its button does not. @react-native-community/netinfo (owner 2026-10-21 late) is named in ONE file, `src/connectivity.native.ts` (the phone half of the connectivity .native/.web pair check-platform holds), loaded lazily so an unlinked module costs only the instant offline switch; `netInfoConnectivity.ts` reads its state and names no module."
     },
-    "packages/data/src/bundle/drivers": {
-      "purpose": "The only place a platform database may be named.",
+    "packages/data/src/sql/drivers": {
+      "purpose": "The node:sqlite driver (tests and tools) and the release-folder reader over it: the only place in packages/data, beside the release drivers, a database may be named.",
       "mayImport": [
         "@app/core",
         "node:sqlite",
         "node:fs",
-        "node:url",
-        "node:path",
-        "expo-sqlite",
-        "sql.js"
+        "node:path"
       ],
       "banned": [
         "react",
         "react-native",
         "react-dom"
       ],
-      "why": "A driver satisfies `Db` — four methods — and nothing above it knows which one it got. That is what lets one query layer serve node:sqlite in tests, a wasm build range-reading R2 on the web, and expo-sqlite on the phone. `packages/data` itself must never name a database: the moment a query reaches for a driver directly, the other two platforms stop being possible."
+      "why": "A driver satisfies `Db` — four methods — and nothing above it knows which one it got. That is what lets one query layer serve node:sqlite here (tests and tools), sql.js on the web and expo-sqlite on the phone (the release drivers). `packages/data` itself must never name a database: the moment a query reaches for a driver directly, the other two platforms stop being possible."
     },
     "packages/data/src/release/drivers": {
       "purpose": "The release's platform adapters (P11): how a release file is fetched, cached, installed and opened on each platform.",

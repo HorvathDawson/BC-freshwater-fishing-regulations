@@ -4,7 +4,7 @@
  * upper parts, the exit's receiving water named from core). The release's own rows: conformance/src/regs/waterGroup.
  */
 import { describe, expect, it } from "vitest";
-import { openInMemory } from "../bundle/drivers/node";
+import { openInMemory } from "../sql/drivers/node";
 import { makeReads, type ReadBase } from "./reads";
 
 const core = openInMemory(`

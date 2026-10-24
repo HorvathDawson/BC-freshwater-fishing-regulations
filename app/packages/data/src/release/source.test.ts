@@ -6,7 +6,7 @@
 import { describe, expect, it } from "vitest";
 import { sha256Hex } from "../sha256";
 import { parseManifest, type Manifest } from "../manifest";
-import type { Db, Row } from "../bundle/db";
+import type { Db, Row } from "../sql/db";
 import type { ItemId } from "../index";
 import { releaseLoader, type DbName } from "./loader";
 import { CROSS } from "./queries";

@@ -257,7 +257,7 @@ export interface SourceDate { readonly date: string | null; readonly title?: str
 export type ReleaseSourceKey = "synopsis" | "dfo" | "fwa" | "basemap" | "hydat";
 
 export interface SourcesInput {
-  /** The manifest's `sources` block; null/absent keys: not recorded (a release built before the block, or the dev bundle). */
+  /** The manifest's `sources` block; null/absent keys: not recorded (a release built before the block). */
   sources: Partial<Record<ReleaseSourceKey, SourceDate>> | null;
   /** The last day the edition is in force (the manifest's `regulations.valid_until`), or null. */
   validUntil: string | null;

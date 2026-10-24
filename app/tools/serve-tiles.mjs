@@ -18,26 +18,17 @@ import { fileURLToPath } from "node:url";
 const repo = fileURLToPath(new URL("../..", import.meta.url));
 const ARCHIVES = {
   "/atlas.pmtiles": `${repo}data/generated/tiles/atlas.pmtiles`,
-  // The vintage sidecar: useVintage compares its section_handles with the bundle's.
+  // The tiles' sidecar: its stamped `tile_version` proves the drawn tiles pair with the release (`pairingOf`) while
+  // the manifest names no tile set of its own.
   "/atlas.meta.json": `${repo}data/generated/tiles/atlas.meta.json`,
   "/basemap.pmtiles": `${repo}data/generated/tiles/basemap.pmtiles`,
-  // The bundle rides along on the same server. In production it sits beside the tiles on
-  // R2 for the same reason: one origin, one set of CORS rules, one thing to make fast.
-  "/bundle.sqlite": `${repo}app/packages/data/dev/bundle.sqlite`,
-  "/province.sqlite": `${repo}data/generated/bundle/bundle.sqlite`,
-  // THE STATUS INDEX — closed / own / base per section and water, by day
-  // (`python -m pipeline.deliver.status_index`). Beside the atlas because it is keyed by the
-  // tiles' feature ids; the app fetches it next to `atlas.pmtiles` and refuses one whose
-  // section_handles differ. `STATUS_INDEX` serves a side build without promoting it.
-  "/status_index.bin": process.env.STATUS_INDEX
-    ?? `${repo}data/generated/bundle/status_index.bin`,
   // The outside-BC mask. A file rather than a tile layer so changing how it looks does
   // not need a fifteen-minute rebuild — see pipeline/deliver/tiles/boundary.py.
   "/bc_outside.geojson": `${repo}data/source/bc_outside.geojson`,
 };
 
 /**
- * sql.js's engine, from the same origin as the bundle it opens.
+ * sql.js's engine, from the same origin as the release files it opens (the web opener, `release/drivers/open.web.ts`).
  *
  * Served as a DIRECTORY rather than one named file: which wasm sql.js asks for depends on
  * which JS build the bundler picked — Metro takes the `browser` field and then requests
@@ -96,18 +87,9 @@ createServer((req, res) => {
   const file = ARCHIVES[route]
     // `basename` and not a join: a route is not allowed to walk out of the wasm directory.
     ?? (/^\/[\w.-]+\.wasm$/.test(route) ? `${WASM_DIR}${route.slice(1)}` : undefined)
-    // TWO GAUGE FEEDS, because a feed is only meaningful PAIRED WITH ITS BUNDLE.
-    //
-    //   /feeds/gauge/*  the fixture feed, matching the fixture bundle. Five stations, and
-    //                   `tools/feed-contract.test.ts` holds it to the contract.
-    //   /feeds/live/*   whatever `python -m pipeline.gauges.feed.publish` last wrote — real ECCC
-    //                   data, matching the PROVINCE bundle.
-    //
-    // They were briefly one directory, and the gate caught it immediately: real stations
-    // appeared that the fixture bundle had never heard of. In production only one of these
-    // exists, sitting in R2, and the app changes a base URL rather than a code path.
-    ?? (/^\/feeds\/gauge\/[\w-]+\.json$/.test(route)
-          ? `${repo}app/packages/data/dev${route}` : undefined)
+    // THE GAUGE FEED: whatever `python -m pipeline.gauges.feed.publish` last wrote — real ECCC data, matching the
+    // release. (The fixture feed, `packages/data/dev/feeds/gauge`, is the tests' and is read from disk, never served.)
+    // In production it sits in R2, and the app changes a base URL rather than a code path.
     ?? (/^\/feeds\/live\/[\w-]+\.json$/.test(route)
           ? `${repo}data/generated/gauges/feeds/${route.split("/").pop()}` : undefined)
     ?? releaseFile(route);
@@ -130,8 +112,8 @@ createServer((req, res) => {
       : "application/octet-stream",
     "Accept-Ranges": "bytes",
   };
-  // A truncated bundle opens as a valid SQLite file and then answers some queries and not
-  // others. The driver checks the length it got against this, so it must be right.
+  // A truncated file opens as a valid SQLite file and then answers some queries and not
+  // others. The client checks the length it got against this, so it must be right.
 
   if (!range) {
     res.writeHead(200, { ...head, "Content-Length": total });

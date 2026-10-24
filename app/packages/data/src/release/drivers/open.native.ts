@@ -6,7 +6,7 @@
  * it on both Android and iOS (N1/N2 are pending). A file that is not installed falls back to the verified bytes.
  */
 import { deserializeDatabaseAsync, openDatabaseAsync, type SQLiteDatabase } from "expo-sqlite";
-import type { Db, Row } from "../../bundle/db";
+import type { Db, Row } from "../../sql/db";
 import type { Opener } from "../loader";
 import type { OpenAt } from "./open";
 

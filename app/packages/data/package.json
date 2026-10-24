@@ -12,14 +12,12 @@
   "exports": {
     ".": "./src/index.ts",
     "./fixture": "./src/fixture.ts",
-    "./bundle": "./src/bundle/source.ts",
-    "./bundle/node": "./src/bundle/drivers/node.ts",
-    "./bundle/open": "./src/bundle/drivers/open.ts",
-    "./release/node": "./src/bundle/drivers/releaseDir.ts",
+    "./release/node": "./src/sql/drivers/releaseDir.ts",
     "./spots": "./src/spots/index.ts",
     "./release": "./src/release/index.ts",
     "./release/platform": "./src/release/drivers/platform.ts",
-    "./regs": "./src/regs/index.ts"
+    "./regs": "./src/regs/index.ts",
+    "./sql/node": "./src/sql/drivers/node.ts"
   },
   "peerDependencies": {
     "expo-file-system": "*",
@@ -29,6 +27,5 @@
   "devDependencies": {
     "expo-sqlite": "57.0.2",
     "sql.js": "^1.14.2"
-  },
-  "$comment_exports": "./bundle/open names a concrete file; the platform split is on the RELATIVE import inside it. A package exports target is not subject to platform extension resolution — naming open.web.ts there does nothing, and naming open.ts there means the web build silently gets the native driver."
+  }
 }

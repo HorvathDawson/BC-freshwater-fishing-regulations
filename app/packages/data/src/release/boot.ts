@@ -22,7 +22,7 @@ import { VerifyError } from "../fetchVerified";
 import { compatible, loadManifest, ManifestError, type Held, type Manifest } from "../manifest";
 import { sha256Hex } from "../sha256";
 import type { RegsSource } from "../index";
-import type { BundleSourceOptions } from "../bundle/source";
+import type { SourceOptions } from "./source";
 import { heldFrom, heldManifest, heldPath, install, pointerFor, POINTER as POINTER_PATH, prune, readHeld, sameSet,
          writeHeld, type Progress, type ReleaseFs } from "./install";
 import { rawFetch } from "./assets";
@@ -57,7 +57,7 @@ export interface BootOptions {
   /** Where sql.js finds its wasm (web). */
   wasmBase: string;
   platform: ReleasePlatform;
-  feed?: BundleSourceOptions["feed"];
+  feed?: SourceOptions["feed"];
   fetch?: typeof fetch;
   onStage?: (s: BootStage) => void;
   onProgress?: (p: Progress) => void;

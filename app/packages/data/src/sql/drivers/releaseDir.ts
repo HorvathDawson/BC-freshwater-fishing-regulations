@@ -35,7 +35,7 @@ const realm = (r: Record<string, unknown>): Row => {
   return r as Row;
 };
 
-/** node:sqlite, read-only, as `Db` (./node's `openBundle`, which this does not import: its module-level URL breaks under jsdom). */
+/** node:sqlite, read-only, as `Db`, every blob in this realm (see `realm`). */
 function openFile(path: string): Db {
   const db = new DatabaseSync(path, { readOnly: true });
   return {

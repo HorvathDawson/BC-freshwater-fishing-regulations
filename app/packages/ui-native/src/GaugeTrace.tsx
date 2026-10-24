@@ -1,5 +1,5 @@
 /**
- * HOW THIS SPOT REACHES THE GAUGE. Drawn to `design/riffle.html`.
+ * HOW THIS SPOT REACHES THE GAUGE.
  *
  * ONE component, TWO sources — which is the whole point of it existing.
  *

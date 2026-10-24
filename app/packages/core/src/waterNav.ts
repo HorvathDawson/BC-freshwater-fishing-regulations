@@ -327,7 +327,7 @@ export const WATER_MAP_WORDS = {
   /** (T150) A row's mark: the part the map (and the Regulations view) is on. */
   partsHere: "✓",
   loading: "Loading the parts of this water",
-  /** No release to read the parts from (the dev bundle), or it could not be read: the map is drawn, unlit. */
+  /** No release to read the parts from, or it could not be read: the map is drawn, unlit. */
   unavailable: "The parts of this water are not available",
 } as const;
 

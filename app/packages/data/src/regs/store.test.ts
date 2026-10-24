@@ -6,8 +6,8 @@
  */
 import { describe, expect, it } from "vitest";
 import { KNOWN_VERSIONS } from "@app/core";
-import { openInMemory } from "../bundle/drivers/node";
-import type { Db } from "../bundle/db";
+import { openInMemory } from "../sql/drivers/node";
+import type { Db } from "../sql/db";
 import type { Manifest } from "../manifest";
 import { releaseLoader, ReleaseError } from "../release/loader";
 import { asBytes, openRegsStore, RegsStoreError, type RegsLoader } from "./store";

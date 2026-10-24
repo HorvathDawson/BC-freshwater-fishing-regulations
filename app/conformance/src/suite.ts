@@ -102,7 +102,7 @@ export function runConformance(name: string, make: () => Promise<RegsSource>,
   // ---- search ----
   T("finds a water by its display name", async (s) => {
     // The name is the SOURCE's own, not a literal: gnis:8634 is "Chilliwack River" in the hand-written fixture and
-    // "Vedder River" in the build the dev bundle and the fixture release were cut from. Searching for what the water
+    // "Vedder River" in the build the fixture releases were cut from. Searching for what the water
     // says it is called must find it, in every source.
     const name = (await s.water(CHILLIWACK))!.name;
     const hits = await s.searchNames(name, 10);

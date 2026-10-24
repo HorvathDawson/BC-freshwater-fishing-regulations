@@ -61,7 +61,7 @@ describe("useRegsStore", () => {
     expect(loader.opened()).toEqual(["water"]);
   });
 
-  it("10. no loader (the dev bundle): ready(null), nothing opened", async () => {
+  it("10. no loader (no release open): ready(null), nothing opened", async () => {
     const { result } = renderHook(() => useRegsStore(null));
     await waitFor(() => expect(result.current.state).toBe("ready"));
     expect(result.current.value).toBeNull();

@@ -7,7 +7,7 @@
  */
 import { describe, expect, it, vi } from "vitest";
 import { httpFeed, lastReportAt } from "./http";
-import { seriesOf } from "../bundle/shared";
+import { seriesOf } from "../sql/shared";
 import type { StationId } from "../index";
 
 const S = "08MH001" as StationId;

@@ -26,7 +26,7 @@
  * tiles drawn and to each other; `meta.store_digest` / `meta.counts` are not in the release files and are not read.
  */
 import { BLOB_CODECS, KNOWN_VERSIONS, REGS_FORMATS, SECTION_NAMES, type SectionName } from "@app/core";
-import type { Cell, Db } from "../bundle/db";
+import type { Cell, Db } from "../sql/db";
 import { ReleaseError, type ReleaseLoader } from "../release/loader";
 import { unpackBlob } from "./blob";
 import { asBytes, RegsStoreError } from "./errors";

@@ -19,7 +19,6 @@ describe("the start-up stages", () => {
     expect(startStage("install")).toBe("Downloading the map and regulations for offline use");
     expect(startStage("paint")).toBe("Opening the map…");
     expect(startStage("fonts")).toBe("Loading type…");
-    expect(startStage("bundle")).toBe("Opening the map data…");
     expect(startStage("nope")).toBe("");
   });
   it("the words a failed start shows", () => {

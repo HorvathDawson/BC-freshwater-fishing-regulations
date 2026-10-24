@@ -46,9 +46,8 @@ const alias = [
   // Subpath exports need their own alias: vitest resolves through these, not through the
   // package's `exports` map, so a new subpath is invisible until it is named here.
   { find: "@app/data/spots", replacement: pkg("data", "src/spots/index.ts") },
-  { find: "@app/data/bundle/node", replacement: pkg("data", "src/bundle/drivers/node.ts") },
-  { find: "@app/data/bundle", replacement: pkg("data", "src/bundle/source.ts") },
-  { find: "@app/data/release/node", replacement: pkg("data", "src/bundle/drivers/releaseDir.ts") },
+  { find: "@app/data/sql/node", replacement: pkg("data", "src/sql/drivers/node.ts") },
+  { find: "@app/data/release/node", replacement: pkg("data", "src/sql/drivers/releaseDir.ts") },
   { find: "@app/data/release/platform", replacement: pkg("data", "src/release/drivers/platform.ts") },
   { find: "@app/data/release", replacement: pkg("data", "src/release/index.ts") },
   { find: "@app/data/regs", replacement: pkg("data", "src/regs/index.ts") },

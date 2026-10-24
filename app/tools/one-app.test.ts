@@ -19,7 +19,7 @@ describe("one app shell", () => {
     const spec = JSON.parse(readFileSync(join(APP, "layers.json"), "utf8"));
     expect(Object.keys(spec.layers)).toEqual([
       "packages/core", "packages/data", "packages/ui", "packages/map", "apps/mobile", "packages/ui-native",
-      "packages/data/src/bundle/drivers", "packages/data/src/release/drivers", "packages/data/src/spots",
+      "packages/data/src/sql/drivers", "packages/data/src/release/drivers", "packages/data/src/spots",
     ]);
   });
 });

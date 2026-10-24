@@ -64,9 +64,9 @@ export interface SyncState {
 
 export function useSync({ feed, release, checkRelease }: {
   feed?: GaugeFeed;
-  /** the data release in use (the loader's), or null (the dev bundle: nothing to compare) */
+  /** the data release in use (the loader's), or null (no release open: nothing to compare) */
   release: string | null;
-  /** reads the release id the server names now; absent: no release to check (the dev bundle) */
+  /** reads the release id the server names now; absent: no release to check */
   checkRelease?: (() => Promise<string | null>) | null;
 }): SyncState {
   const [epoch, setEpoch] = useState(0);

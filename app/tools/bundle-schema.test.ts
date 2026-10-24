@@ -1,36 +1,24 @@
 /**
- * The development fixture and the production bundler must be the same format.
+ * The pipeline bundle's format is defined in ONE place, `pipeline/deliver/bundle/schema.sql`, which the production
+ * bundler executes and the release copies its tables from. Two DDLs would diverge the first time one was edited, and
+ * the failure would appear as a client query returning nothing.
  *
- * They are different programs in different languages — `tools/build-fixture.mjs` in Node
- * and `python -m pipeline.deliver.bundle` — and the whole point of the SQLite decision is that a
- * client reads one shape whichever produced it. Two DDLs would diverge the first time one
- * was edited, and the failure would appear as a client query returning nothing.
- *
- * So there is one file, and this checks both that it is the one being used and that the
- * fixture it produced actually has the contract's tables in it.
+ * (Its second writer, the dev fixture's generator `build-fixture.mjs`, went with the dev bundle in T61; the release
+ * contract's columns are held by `pack.generated.ts` and the pipeline's own tests.)
  */
 import { describe, expect, it } from "vitest";
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { DatabaseSync } from "node:sqlite";
 
 const here = (p: string) => fileURLToPath(new URL(p, import.meta.url));
 const schema = readFileSync(here("../../pipeline/deliver/bundle/schema.sql"), "utf8");
 /** The DDL alone. The comments EXPLAIN what is excluded, so they name it. */
 const ddl = schema.replace(/^\s*--.*$/gm, "").replace(/--.*$/gm, "");
-const fixture = here("../packages/data/dev/bundle.sqlite");
 
 /** Every table the contract defines. */
 const TABLES = [...ddl.matchAll(/CREATE TABLE (\w+)/g)].map((m) => m[1]!);
 
 describe("the bundle format", () => {
-  it("is defined in exactly one place", () => {
-    const builder = readFileSync(here("build-fixture.mjs"), "utf8");
-    expect(builder).toContain("pipeline/deliver/bundle/schema.sql");
-    // no second DDL hiding in the packager
-    expect(builder, "the fixture builder declares its own tables").not.toMatch(/CREATE TABLE/);
-  });
-
   it("declares the tables the app reads", () => {
     // Named individually: if one is dropped, the failure should say which. No regulation
     // table is listed — the app reads none (see `regulations.ts` in @app/core).
@@ -45,14 +33,5 @@ describe("the bundle format", () => {
     // goes stale is always the copy nobody remembered was a copy.
     for (const col of ["geometry", "magnitude", "strahler", "coordinates", "lines"])
       expect(ddl.toLowerCase(), `a column is named ${col}`).not.toContain(col);
-  });
-
-  it("produced a fixture with every table present", () => {
-    expect(existsSync(fixture), "run `pnpm fixture`").toBe(true);
-    const db = new DatabaseSync(fixture, { readOnly: true });
-    const got = new Set(db.prepare(
-      "SELECT name FROM sqlite_master WHERE type='table'").all().map((r) => r.name as string));
-    db.close();
-    for (const t of TABLES) expect(got, `${t} missing from the built fixture`).toContain(t);
   });
 });

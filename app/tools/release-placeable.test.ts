@@ -16,7 +16,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { extentOf } from "@app/core";
 import { parseManifest, verify, type ItemId } from "@app/data";
-import { openBundle } from "@app/data/bundle/node";
+import { openSqlite } from "@app/data/sql/node";
 import { makeReleaseSource, releaseLoader } from "@app/data/release";
 
 const ROOT = resolve(__dirname, "../..");
@@ -41,7 +41,7 @@ describe.skipIf(!REL && !TIER2)("Tier 2: every water in the live release is plac
     }, async (name, bytes) => {
       const p = join(tmp, `${name}.sqlite`);
       writeFileSync(p, await bytes());
-      return openBundle(p);
+      return openSqlite(p);
     });
     const source = makeReleaseSource(loader);
     await loader.db("core");

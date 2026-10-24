@@ -33,7 +33,7 @@ export const NO_MENU_INFO: MenuInfo = Object.freeze({ appBuild: null, contact: n
 
 export function MenuHost({ menu, palette, loader, info = NO_MENU_INFO, tiles, route, day }: {
   menu: MenuControls; palette: Palette;
-  /** the release (null: the dev bundle, which holds no regulations and no manifest) */
+  /** the release (null: none open — a test — so no regulations and no manifest) */
   loader: RegsLoader | null;
   info?: MenuInfo;
   /** the tile version the map draws, or null (About's versions, a report's diagnostics, Sources and credits) */

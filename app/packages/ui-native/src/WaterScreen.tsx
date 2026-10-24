@@ -10,9 +10,9 @@
  * THE REGULATIONS (T21): the store answers for the tapped part on THE ONE DAY (`useRegsStore` → `useRegsTarget` →
  * `useRegulations` → `useRegsPage`, @app/ui), and `RegsScreen` (T23/T29) draws the page under the frame's header: the
  * regs header fixed above ONE scroll of the four tab sections — What you can keep, Gear, Methods, Licence (T21, T34, T35;
- * the Licence tab's angler is `useAnglerProfile`'s, D8 a) — the pin bar over it. With no release loader (the dev bundle
- * holds no regulations), while the store loads, or when it cannot answer, the view draws the name row under
- * the frame's header, then the placeholder / spinner / why.
+ * the Licence tab's angler is `useAnglerProfile`'s, D8 a) — the pin bar over it. With no release loader (a test that
+ * mounts the screen alone; the app always has one), while the store loads, or when it cannot answer, the view draws the
+ * name row under the frame's header, then the spinner / why ("Regulations unavailable: …", never a blank).
  *
  * AN UNNAMED REACH (T53, `item` null): the same view, answered by the tapped section (`RegsTarget` kind "section" —
  * the store's region base plus whatever override reaches it, as the pipeline answered it). Its name is the store's
@@ -30,7 +30,6 @@ import type { ReleaseLoader } from "@app/data/release";
 import { mapDayOf, regsDay, useAccessNotice, useAnglerProfile, useDownstreamWater, useLayoutClass, useRegsPage, useRegsStore,
          useRegsTarget, useRegulations, useWater, type RegsStart } from "@app/ui";
 import { FishSpinner } from "./FishSpinner";
-import { RegulationsPlaceholder } from "./RegulationsPlaceholder";
 import { ViewSwipe, WaterViewsContext } from "./ViewSwipe";
 import type { AdiposeImages, FishImages } from "./regs/types";
 import { DaySheet } from "./regs/DaySheet";
@@ -42,6 +41,9 @@ import { openBook } from "./regs/openBook";
 import { TYPE } from "./type";
 import { SPACE, type Palette } from "./theme";
 import { WaterFrame, WaterInset, WaterTitle } from "./WaterFrame";
+
+/** Why the page says the regulations are unavailable when no release loader was handed in. */
+const NO_RELEASE = "no data release is open";
 
 export function WaterScreen({ source, item, palette, onBack,
                               loader = null, day = null, onDay, section = null, part = null, fishImages, adiposeImages,
@@ -171,8 +173,8 @@ export function WaterScreen({ source, item, palette, onBack,
   // No "Regulations" heading: the strip's selected view already says it.
   const page = (
     <WaterInset style={{ paddingTop: SPACE.s4, paddingBottom: 32 }}>
-      {!loader ? <RegulationsPlaceholder palette={palette} />
-        : regsError ? <Text style={{ ...TYPE.body, color: palette.closed }}>{WORDS.REGS_UNAVAILABLE(regsError.message)}</Text>
+      {!loader || regsError
+        ? <Text style={{ ...TYPE.body, color: palette.closed }}>{WORDS.REGS_UNAVAILABLE(regsError?.message ?? NO_RELEASE)}</Text>
         : <FishSpinner palette={palette} size={64} label={WORDS.REGS_LOADING} />}
     </WaterInset>
   );

@@ -1,14 +1,12 @@
 /**
- * Every query the client makes, in one file.
+ * The client's SQL, in the pipeline bundle's table names (`pipeline/deliver/bundle/schema.sql`), in one file.
  *
- * Written against `pipeline/deliver/bundle/schema.sql` and nothing else. The SQL lives here rather
- * than in the source implementation so that the shape of a read — how many statements, in
- * what order, over which indexes — is reviewable in one place. That matters more than it
- * looks: on the web each of these is a range request (data contract §10). A query added in
- * a component is a round trip nobody counted.
+ * The release copies the bundle's tables into its files, so each query here is either asked of the release file that
+ * holds its table (`../release/queries.ts` `RELEASE_QUERIES`, held to this form by `tools/release-parity.test.ts`) or
+ * is the keyed half of a cross-file read there (`CROSS`). The SQL lives here rather than in the source so that the
+ * shape of a read — how many statements, in what order, over which indexes — is reviewable in one place.
  *
- * No regulation table is read — regulations are not integrated (see `regulations.ts` in
- * @app/core).
+ * No regulation table is read here: the regulations are read through `../regs/`.
  */
 import { searchKey } from "@app/core";
 
@@ -112,16 +110,12 @@ export const SEARCH =
   "         length(m.name), m.name LIMIT ?2";
 
 /**
- * `item.area_ha` arrived with the 2026-09-30 bundle. `%AREA%` in SEARCH and WATERS_NEAR is the
- * column where the bundle has it and NULL where it does not (`hasColumn`), so an app newer than
- * its bundle ranks every lake at size 0 — what it did before the column existed — instead of
- * failing every search. The bundle is fetched apart from the app; either can be the newer.
+ * `item.area_ha` arrived with the 2026-09-30 bundle. `%AREA%` in SEARCH is the column where the
+ * bundle has it and NULL where it does not. The release's own SEARCH (`../release/queries.ts`)
+ * reads `item.area_ha` from core; this fills the bundle form it is held to.
  */
 export const withArea = (sql: string, has: boolean): string =>
   sql.replaceAll("%AREA%", has ? "i.area_ha" : "NULL");
-
-export const HAS_ITEM_AREA =
-  "SELECT 1 AS yes FROM pragma_table_info('item') WHERE name = 'area_ha'";
 
 /** `%` and `_` are LIKE's wildcards; a query containing either means the character. */
 export const likeEscape = (q: string): string => q.replace(/[\\%_]/g, (c) => "\\" + c);
@@ -135,17 +129,6 @@ export function nameNeedle(q: string): string | null {
   const key = searchKey(q);
   return key.length < 2 ? null : likeEscape(key);
 }
-
-/**
- * The towns each of these waters comes within 25 km of, nearest first.
- *
- * `place_water` is keyed by place, so this scans it — about 380,000 rows held in memory,
- * a few tens of milliseconds, once per search rather than once per row.
- */
-export const NEAR_FOR_ITEMS =
-  "SELECT i.item_id, p.name, p.kind, p.lat, p.lon, pw.ckm / 100.0 AS km " +
-  "FROM place_water pw JOIN item i ON i.ord = pw.ord JOIN place p USING(place_id) " +
-  "WHERE i.item_id IN (%IDS%) AND p.lat IS NOT NULL ORDER BY pw.ckm";
 
 /**
  * THE GROUP NAMES THAT ONLY POINT (`see_pointer`, owner 2026-10-22), whose name is the query or starts with it: every
@@ -165,65 +148,6 @@ export const SEARCH_PLACES =
   "               WHEN name LIKE ?1 || '%' ESCAPE '\\' THEN 1 ELSE 2 END), " +
   "         -COALESCE(pop, 0), length(name) LIMIT ?2";
 
-/**
- * Joined on item_id, not on the display name.
- *
- * The precompute used to carry the name and be joined back by it — the classic silent
- * mismatch, and when it missed the source MINTED an ItemId out of the name, producing an
- * id that names no item and routes a tap nowhere.
- */
-export const WATERS_NEAR =
-  // `towns` is how many places the water comes within 25 km of — ONE grouped pass over
-  // place_water for just these waters (it is keyed by place, not by water), the same scan
-  // NEAR_FOR_ITEMS already pays once per search.
-  "WITH near AS (SELECT pw.ord, pw.ckm FROM place_water pw WHERE pw.place_id = ?1), " +
-  "     towns AS (SELECT pw.ord, count(*) AS n FROM place_water pw " +
-  "               WHERE pw.ord IN (SELECT ord FROM near) GROUP BY pw.ord) " +
-  "SELECT i.item_id, i.name, i.kind, n.ckm / 100.0 AS km, " +
-  "       (SELECT max(sg.mag) FROM item_section s JOIN section_gauge sg ON sg.sid = s.sid " +
-  "         WHERE s.ord = i.ord) AS mag, %AREA% AS area_ha, " +
-  "       (SELECT count(*) FROM item_section s WHERE s.ord = i.ord) AS pieces, " +
-  "       COALESCE(t.n, 1) AS towns, " +
-  "       (EXISTS (SELECT 1 FROM item_section s JOIN gauge g ON g.sid = s.sid " +
-  "                WHERE s.ord = i.ord) " +
-  "        OR EXISTS (SELECT 1 FROM lake_gauge lg WHERE lg.item_id = i.item_id)) AS gauged, " +
-  "       EXISTS (SELECT 1 FROM stock_water sw WHERE sw.item_id = i.item_id) AS stocked, " +
-  "       EXISTS (SELECT 1 FROM entry e WHERE e.item_id = i.item_id) AS listed " +
-  "FROM near n JOIN item i ON i.ord = n.ord LEFT JOIN towns t ON t.ord = n.ord " +
-  "ORDER BY n.ckm, i.name LIMIT ?2";
-
-/**
- * WHERE A WATER IS — the evidence the bundle holds, since it holds no geometry.
- *
- * Points ON the water: a hydrometric station whose own reach is one of this water's
- * (`gauge.sid`), and a stocking site matched to it. Then the rings: every town within
- * 25 km and how close the water comes to it. See `fixOf` in @app/core.
- */
-export const GAUGES_ON_ITEM =
-  "SELECT g.lat, g.lon FROM item_section s JOIN item i ON i.ord = s.ord " +
-  "JOIN gauge g ON g.sid = s.sid " +
-  "WHERE i.item_id = ? AND g.lat IS NOT NULL AND g.lon IS NOT NULL";
-
-export const STOCKED_ON_ITEM =
-  "SELECT lat, lon FROM stock_water WHERE item_id = ? AND lat IS NOT NULL AND lon IS NOT NULL";
-
-export const RINGS_FOR_ITEM =
-  "SELECT p.lat, p.lon, pw.ckm / 100.0 AS km FROM place_water pw " +
-  "JOIN item i ON i.ord = pw.ord JOIN place p USING(place_id) " +
-  "WHERE i.item_id = ? AND p.lat IS NOT NULL ORDER BY pw.ckm LIMIT 12";
-
-/**
- * A water's own geometry: the box of every part of it — and of every part of a water that is a PART OF it (a lake
- * split into closure areas owns no section, so no part, of its own). Two keyed halves (item_id is UNIQUE, part_of is
- * indexed), never an OR, so neither half scans.
- */
-export const PART_GEO_FOR_ITEM =
-  "SELECT g.w, g.s, g.e, g.n, g.mid_lon, g.mid_lat FROM item i JOIN part_geo g ON g.ord = i.ord " +
-  "WHERE i.item_id = ?1 " +
-  "UNION ALL " +
-  "SELECT g.w, g.s, g.e, g.n, g.mid_lon, g.mid_lat FROM item i JOIN part_geo g ON g.ord = i.ord " +
-  "WHERE i.part_of = ?1";
-
 // ---- conditions ------------------------------------------------------------------
 /**
  * The gauge for one reach, with the station itself.
@@ -238,12 +162,6 @@ export const GAUGE_FOR_SECTION =
   "FROM section_gauge sg LEFT JOIN gauge g USING(station) " +
   "WHERE sg.sid = ?";
 
-/**
- * A station ON this lake — a LEVEL, not a discharge.
- *
- * Separate accessor because it is a separate measurement. Folding lake stations into
- * `section_gauge` had 11,049 stream sections being told a reservoir's level.
- */
 /** Every station with a position — a few hundred rows, for drawing them on the map. */
 // `mag` rides along because the dot on the map obeys the SAME zoom ladder as the water it
 // measures — see `@app/core/ladder`. Without it every station drew at every zoom.
@@ -256,56 +174,13 @@ export const LAKE_GAUGES =
   "WHERE lg.item_id = ? ORDER BY lg.station";
 
 /**
- * Lakes with a station IN them, and nothing else.
- *
- * A LAKE IS NOT A PANEL AND MUST NOT BE ONE. The donor panel carries a reading from one
- * catchment to another on the argument that they share weather and drainage; a lake's stage
- * is set by its outlet and its own storage, so nothing about a river upstream — or another
- * lake over the ridge — transfers to it. `build_panels` therefore refuses lake nodes
- * outright, which is right, and left every lake grey once the map started colouring from
- * panels alone.
- *
- * This is the lake's own road: section -> item -> lake_gauge. Either a station is in this
- * water or it is not; there is no fraction of a level. A lake with no station stays grey,
- * which is the honest answer and not a gap.
- *
- * A lake with several stations takes the lowest station id, arbitrarily but STABLY — a
- * colour that changes when the query planner changes its mind is worse than either choice.
+ * WHICH WATER EACH STATION STANDS ON, AND THE WATERS JOINED TO A WATER (T168, `RegsSource.gaugeWaters`): the
+ * `water_continue` links touching a set of waters (both directions, each half keyed: `ord` is the primary key,
+ * `next_ord` UNIQUE), and the stations' own water and reach.
  */
-export const lakeStationsFor = (n: number) =>
-  `SELECT it.sid, min(lg.station) AS station
-     FROM item_section it JOIN item i ON i.ord = it.ord
-                          JOIN lake_gauge lg ON lg.item_id = i.item_id
-    WHERE it.sid IN (${placeholders(n)})
-    GROUP BY it.sid`;
-
-/**
- * The panel for each of these sections, members in weight order.
- *
- * TWO STATEMENTS' WORTH OF WORK IN ONE, via the dictionary: `section_panel` is the pointer
- * and `panel_member` is the shared body, so a viewport full of one river's reaches fetches
- * that river's donors once rather than once per reach.
- */
-export const panelsForSections = (n: number) =>
-  `SELECT sp.sid, sp.area_km2 AS target_area,
-          pm.ord, pm.station, pm.role, pm.area_km2 AS donor_area, pm.discharge_years, pm.level_years,
-          pm.regulated, pm.same_river, pm.lead
-     FROM section_panel sp JOIN panel_member pm ON pm.panel_id = sp.panel_id
-    WHERE sp.sid IN (${placeholders(n)})
-    ORDER BY sp.sid, pm.ord`;
-
-/**
- * WHICH WATER A SECTION IS, AND WHICH WATER EACH STATION STANDS ON (T168, `RegsSource.gaugeWaters`): the section's
- * items, the `water_continue` links touching a set of waters (both directions, each half keyed: `ord` is the primary
- * key, `next_ord` UNIQUE), those waters' item ids, and the stations' own water and reach.
- */
-export const ITEMS_OF_SECTION =
-  "SELECT i.ord, i.item_id FROM item_section s JOIN item i ON i.ord = s.ord WHERE s.sid = ?";
 export const continueLinks = (n: number) =>
   `SELECT ord, next_ord FROM water_continue WHERE ord IN (${placeholders(n)}) ` +
   `UNION ALL SELECT ord, next_ord FROM water_continue WHERE next_ord IN (${placeholders(n)})`;
-export const itemIdsForOrds = (n: number) =>
-  `SELECT ord, item_id FROM item WHERE ord IN (${placeholders(n)})`;
 export const gaugeWatersFor = (n: number) =>
   `SELECT station, item_id, sid FROM gauge WHERE station IN (${placeholders(n)})`;
 
@@ -323,31 +198,6 @@ export const CLIM_PARAMETERS =
 export const DOWN_FROM = "SELECT down_sid FROM section_down WHERE sid = ?";
 
 /**
- * Every catchment that has a station, in one read.
- *
- * NO VIEWPORT SCOPING, unlike everything else here, and the reason is the zoom: this is
- * only ever asked at z4–8, where a viewport is a third of British Columbia. Scoping it
- * would mean re-reading most of the table on every pan to save nothing. 9,642 rows.
- */
-export const BASIN_MEMBERS =
-  "SELECT basin_id, station, area_km2, discharge_years, level_years FROM basin_member";
-
-/**
- * THE CONDITIONS MAP'S STATIC HALF, whole (`standingClasses`): every section's panel and target area, every panel's
- * members, and every section of a gauged lake with its lowest station — the rows `panelsForSections` and
- * `lakeStationsFor` read a viewport of, read once.
- */
-export const ALL_SECTION_PANELS = "SELECT sid, panel_id, area_km2 FROM section_panel";
-export const ALL_PANEL_MEMBERS =
-  "SELECT panel_id, ord, station, role, area_km2, discharge_years, level_years, regulated, same_river, lead " +
-  "FROM panel_member ORDER BY panel_id, ord";
-export const ALL_LAKE_SECTIONS =
-  `SELECT it.sid, min(lg.station) AS station
-     FROM item_section it JOIN item i ON i.ord = it.ord
-                          JOIN lake_gauge lg ON lg.item_id = i.item_id
-    GROUP BY it.sid`;
-
-/**
  * Where a set of stations sit — their own reach and their coordinate.
  *
  * The donor panel names stations and says nothing about where they are, because the panel
@@ -363,7 +213,15 @@ export const ALL_LAKE_SECTIONS =
 export const gaugePlaces = (n: number) =>
   `SELECT * FROM gauge WHERE station IN (${placeholders(n)})`;
 
-// ---- lakes -----------------------------------------------------------------------
+// ---- lakes: PREPARED, NOT FED ------------------------------------------------------
+/**
+ * A stocked water's sites, a lake's bathymetric charts and the stocking history, as the pipeline bundle's
+ * `stock_water`, `chart` and `release` tables hold them. No release file carries these tables yet, so the reader
+ * answers `lakeInfo` null and `stockingHistory` empty (`../release/source.ts`); the SQL is kept for when one does.
+ */
+export const STOCKED_ON_ITEM =
+  "SELECT lat, lon FROM stock_water WHERE item_id = ? AND lat IS NOT NULL AND lon IS NOT NULL";
+
 export const CHARTS_FOR_ITEM =
   "SELECT chart_id, title, kind, drafted, scale, area_km2, pdf FROM chart WHERE item_id = ?";
 
@@ -371,19 +229,6 @@ export const RELEASES_FOR_NAME =
   "SELECT date, species, count, stage FROM release WHERE name = ? ORDER BY date DESC";
 
 export const META = "SELECT k, v FROM meta";
-
-/**
- * What the bundle holds, in one statement.
- *
- * ONE ROUND TRIP, because on the web every statement is a range request and this runs to
- * fill in a settings panel — four separate counts would be four. Each is a covered count
- * over a small table or an index, so the whole thing is cheap.
- */
-export const COUNTS =
-  "SELECT (SELECT COUNT(*) FROM item WHERE name <> '')     AS waters, " +
-  "       (SELECT COUNT(*) FROM item_section)              AS reaches, " +
-  "       (SELECT COUNT(DISTINCT item_id) FROM chart)      AS surveyed, " +
-  "       (SELECT COUNT(*) FROM gauge)                     AS stations";
 
 /** `?,?,?` — SQLite has no array binding, and string interpolation of ids is injection. */
 export function placeholders(n: number): string {

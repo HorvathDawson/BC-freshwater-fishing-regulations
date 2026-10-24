@@ -272,7 +272,7 @@ describe("<WaterMapView>", () => {
                                     ["part wbk:-21 0", "regs wbk:-21 part 0"]]);
   }, 30_000);
 
-  it("no release (the dev bundle): the map is drawn unlit and the bar says the parts are not available", async () => {
+  it("no release: the map is drawn unlit and the bar says the parts are not available", async () => {
     mount("gnis:8634", null, null, false);
     await waitFor(() => expect(screen.getByTestId("water-map-status").textContent).toBe("The parts of this water are not available"));
     expect([lit(), seen.props?.fit, seen.props?.marks]).toEqual([{ highlight: [], water: [] }, null, []]);

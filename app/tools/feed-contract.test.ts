@@ -12,10 +12,14 @@
  * the tiles are rebuilt — and nothing anywhere would report it.
  */
 import { describe, expect, it } from "vitest";
-import { readdirSync, readFileSync } from "node:fs";
+import { mkdtempSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { gunzipSync } from "node:zlib";
 import { DatabaseSync } from "node:sqlite";
 import { fileURLToPath } from "node:url";
 import { HORIZONS } from "@app/core";
+import { FIXTURE_RELEASE_ROOT, FIXTURE_RELEASES } from "../conformance/src/fixtureRelease";
 
 const here = (p: string) => fileURLToPath(new URL(p, import.meta.url));
 const FEEDS = here("../packages/data/dev/feeds/gauge");
@@ -107,12 +111,17 @@ describe("the feed / bundle contract", () => {
   it("is fetchable by station id and nothing else", () => {
     // The name of the file IS the whole request. A cron that needed anything more would
     // need the bundle, and then it would need matching, and then it is not a feed.
-    const db = new DatabaseSync(here("../packages/data/dev/bundle.sqlite"));
+    // the stations of the release the fixture feed was cut with: its conditions file's `gauge` table
+    const dir = join(FIXTURE_RELEASE_ROOT, FIXTURE_RELEASES.plain);
+    const conditions = readdirSync(dir).find((f) => f.startsWith("conditions-"))!;
+    const path = join(mkdtempSync(join(tmpdir(), "feed-contract-")), "conditions.sqlite");
+    writeFileSync(path, gunzipSync(readFileSync(join(dir, conditions))));
+    const db = new DatabaseSync(path, { readOnly: true });
     const known = new Set((db.prepare("SELECT station FROM gauge").all() as
       { station: string }[]).map((r) => r.station));
     db.close();
     for (const f of files.filter((x) => x !== "index.json"))
-      expect(known, `${f} is not a station in the bundle`).toContain(f.replace(".json", ""));
+      expect(known, `${f} is not a station in the fixture release`).toContain(f.replace(".json", ""));
   });
 
   it("stamps every feed with when it was fetched, because staleness is the risk", () => {

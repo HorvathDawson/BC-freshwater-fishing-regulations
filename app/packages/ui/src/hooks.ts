@@ -4,7 +4,7 @@
  */
 import { useMemo, useState } from "react";
 import type { GaugeTrace, SectionKey, StatusIndex } from "@app/core";
-import { decodeStatusIndex, mapStatusOn, monthAbbr } from "@app/core";
+import { mapStatusOn } from "@app/core";
 import { FEED_TTL_MS } from "@app/data";
 import type {
   BundleCounts, GaugeFeed, Horizon, ItemId, LakeInfo, NameHit,
@@ -12,7 +12,6 @@ import type {
 } from "@app/data";
 import { useAsync, useDebounced, usePoll, type Async } from "./async";
 import { askOnce, peekAnswer, seriesKey } from "./answers";
-import { buildHydrograph, type Hydrograph } from "./hydrograph";
 import { gaugeGeoJSON, type GaugeQuantity } from "./gaugePoints";
 
 /**
@@ -270,85 +269,12 @@ export function useGaugeGeoJSON(
   return got.state === "ready" ? got.value : null;
 }
 
-/** The chart, as numbers. The component only draws the shapes it is handed (rule 25). */
-/**
- * One chart, in one quantity, over one span.
- *
- * FOUR THINGS THE READER CAN CHANGE, and each of them changes what is being claimed rather
- * than how it looks:
- *
- *   parameter   discharge (the whole river) or level (one cross-section). Not a unit
- *               swap — a stage percentile moves when the channel does and a discharge
- *               percentile does not, so they are different statements about the water.
- *   span        "72h" is what the river is doing; "year" is where today sits in the season.
- *   envelope    always drawn when the bundle has one; its absence is the answer for the
- *               eight stations whose record is too thin to build one.
- *   forecast    drawn when a BC River Forecast Centre model is running, which is seasonal.
- *
- * Passing `parameter` as undefined means "whatever this station measures", which the client
- * genuinely cannot know: 237 BC stations never measure discharge at all.
- */
-export function useHydrograph(
-  source: RegsSource,
-  station: StationId | null,
-  span: "72h" | "year",
-  parameter?: Parameter,
-  model?: string,
-): Async<Hydrograph | null> {
-  const series = useAsync(
-    () => (station ? source.gaugeSeries(station, span, parameter, model)
-                   : Promise.resolve(null)),
-    `series:${station}:${span}:${parameter ?? "auto"}:${model ?? "auto"}`,
-    station !== null,
-  );
-  return useMemo(() => {
-    if (series.state !== "ready") return series as Async<Hydrograph | null>;
-    const s = series.value;
-    if (!s) return { state: "ready", value: null, error: null };
-    const v = s.value;
-    const n = v.values.length;
-    // One stored band covers a short span; a year has one per pentad. A band array that is
-    // neither is a build defect, so it is repeated rather than truncated — a chart with a
-    // short envelope would show the normal range ending mid-frame.
-    const bands = v.band.length === n
-      ? v.band
-      : Array.from({ length: n }, () => v.band[0] ?? null);
-    // REAL DATES on the axis. The seasonal chart used to say Jan/Apr/Jul/Oct whatever year
-    // it was showing, and the 72-hour one said "3d ago" — neither of which tells a reader
-    // where the forecast they are looking at ends.
-    const labels = axisLabels(v.at, v.forecast?.series?.at ?? [], span);
-    return {
-      state: "ready",
-      value: buildHydrograph({
-        values: v.values,
-        bands,
-        at: v.at,
-        xLabels: labels,
-        nowIndex: v.now?.index ?? -1,
-        nowValue: v.now?.value ?? null,
-        priorYears: v.priorYears,
-        forecast: v.forecast?.series
-          ? { at: v.forecast.series.at, mid: v.forecast.series.mid,
-              lo: v.forecast.series.lo, hi: v.forecast.series.hi }
-          : null,
-        // A YEAR OF FLOW SPANS TWO ORDERS OF MAGNITUDE and a linear axis spends nine tenths
-        // of its height on the freshet, flattening the summer — which is the half of the
-        // year anybody is fishing. Level does not: stage is metres above a datum and its
-        // range is narrow, so a log axis there would exaggerate centimetres into a story.
-        log: span === "year" && v.parameter === "discharge",
-      }),
-      error: null,
-    };
-  }, [series, span]);
-}
-
 /**
  * The whole series, not just its shapes — the model runs, the record, the disclaimer.
  *
- * `useHydrograph` returns geometry, which is what a chart draws and nothing a caption can
- * read. The panel needs both, and asking twice is free: both ask through the answer store
- * (`askOnce`, answers.ts) under one `seriesKey`, so the second is the first's promise — it was
- * not before, whatever this comment said: `useAsync` alone shares nothing between callers.
+ * The panel lays the chart out from it (`chart.ts`, `buildHydrograph`) and reads the caption off it. Asking twice is
+ * free: every caller asks through the answer store (`askOnce`, answers.ts) under one `seriesKey`, so the second is the
+ * first's promise — `useAsync` alone shares nothing between callers.
  */
 export function useSeries(
   source: RegsSource, station: StationId | null, span: "72h" | "year",
@@ -386,41 +312,11 @@ export function useGaugeParameters(
 
 
 /**
- * Five labels across whatever the chart actually spans, as real dates.
- *
- * "3d ago / 2d / 1d / now" was fine while the frame ended at now. It stopped being fine the
- * moment a ten-day forecast extended it: the reader could see a ribbon reaching to the
- * right-hand edge and had no way to tell whether that edge was Thursday or a month away.
- *
- * The seasonal axis gets months, because a year labelled by date is unreadable; everything
- * shorter gets day-and-month, with the hour when the whole span is under three days.
- */
-function axisLabels(at: readonly string[], ahead: readonly string[],
-                    span: "72h" | "year"): string[] {
-  const all = [...at, ...ahead].map((t) => Date.parse(t)).filter(Number.isFinite);
-  if (all.length < 2) return [];
-  const t0 = Math.min(...all);
-  const t1 = Math.max(...all);
-  if (span === "year")
-    return ["Jan", "Mar", "May", "Jul", "Sep", "Nov"];
-  const hours = (t1 - t0) / 3_600_000;
-  const fmt = (t: number): string => {
-    const d = new Date(t);
-    // THE READER'S CLOCK (P16), as every other time on the Conditions screen: a tick at
-    // "06h" in UTC is 11 p.m. the evening before in BC.
-    const day = `${d.getDate()} ${monthAbbr(d.getMonth())}`;
-    return hours <= 72 ? `${day} ${String(d.getHours()).padStart(2, "0")}h` : day;
-  };
-  return [0, 0.25, 0.5, 0.75, 1].map((f) => fmt(t0 + (t1 - t0) * f));
-}
-
-
-/**
  * What the Layers sheet says about the data it is sitting on.
  *
  * THE POINT OF THIS HOOK IS THAT THE NUMBERS ARE READ. `App.tsx` used to pass
  * `waters={255} reaches={6967} surveyed={35} stations={5}` and a `fetchedAt` string, all
- * five transcribed by hand from `design/riffle.html` — whose fixture is one valley. Against
+ *  five transcribed by hand from a design mock-up — whose fixture is one valley. Against
  * the shipped province bundle the sheet therefore reported 5 stations where there are
  * 2,324, and an age three days older than the feed it was showing, under a heading that
  * reads "EVERY VALUE HAS AN AGE".
@@ -453,46 +349,6 @@ export function useDataFacts(source: RegsSource, feed?: GaugeFeed, wanted = true
       fetchedAt: index?.fetchedAt ?? null,
     };
   }, `datafacts:${feed ? "feed" : "nofeed"}`, asked);
-}
-
-/**
- * THE DEV PATH ONLY (`EXPO_PUBLIC_DATA_SOURCE=bundle`, until P20): the status index beside the
- * tiles, `status_index.bin`. The app reads the status from the release's paint (`./release.ts`).
- */
-export function statusIndexUrl(atlasUrl: string): string {
-  return atlasUrl.replace(/[^/]*$/, "status_index.bin");
-}
-
-/** One fetch and one decode per URL and digest, whichever screens ask. */
-const STATUS_INDEXES = new Map<string, Promise<StatusIndex | null>>();
-
-/**
- * Fetch and decode the status index, once. `handles` is the bundle's `section_handles`: an
- * index built against any other atlas is REFUSED — its integers name different rivers — and so
- * is any index when the bundle has no digest to hold it to. `reach` is the bundle's
- * `reach_digest`: an index cut from other rule bindings is refused too (null: not held to it). Any failure (no file, a 404, a
- * damaged or refused file) is null: "not asked", never "every water is base" — and it is NOT
- * kept (P11): the next ask fetches again, so a server that was down at start does not leave the
- * map uncoloured for the rest of the session.
- */
-export function loadStatusIndex(url: string, handles: string | null,
-                                fetcher: typeof fetch = fetch,
-                                reach: string | null = null): Promise<StatusIndex | null> {
-  if (!handles) return Promise.resolve(null);
-  const key = `${url}#${handles}#${reach ?? ""}`;
-  let got = STATUS_INDEXES.get(key);
-  if (!got) {
-    got = fetcher(url)
-      .then(async (res) => (res.ok
-        ? decodeStatusIndex(new Uint8Array(await res.arrayBuffer()), handles, reach) : null))
-      .catch((e: unknown) => {
-        console.warn("status index:", e instanceof Error ? e.message : e);
-        return null;
-      })
-      .then((ix) => { if (ix === null) STATUS_INDEXES.delete(key); return ix; });
-    STATUS_INDEXES.set(key, got);
-  }
-  return got;
 }
 
 /**

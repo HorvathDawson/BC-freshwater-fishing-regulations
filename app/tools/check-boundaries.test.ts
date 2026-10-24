@@ -115,7 +115,7 @@ describe("nested layers", () => {
     const spec = JSON.parse(readFileSync(
       fileURLToPath(new URL("../layers.json", import.meta.url)), "utf8"));
     const outer = spec.layers["packages/data"].mayImport;
-    const inner = spec.layers["packages/data/src/bundle/drivers"].mayImport;
+    const inner = spec.layers["packages/data/src/sql/drivers"].mayImport;
     expect(outer).not.toContain("node:sqlite");
     expect(inner).toContain("node:sqlite");
     // and the real tree passes, which is the actual assertion

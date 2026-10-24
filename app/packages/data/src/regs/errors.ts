@@ -1,5 +1,5 @@
 /** The regs store's refusal (T03), shared by the store (store.ts) and its reads (reads.ts). */
-import type { Cell } from "../bundle/db";
+import type { Cell } from "../sql/db";
 
 export type RefusalWhy = "format" | "codec" | "version" | "digest" | "missing" | "damaged";
 

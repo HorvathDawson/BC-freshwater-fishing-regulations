@@ -382,7 +382,7 @@ describe("the glossary page", () => {
     expect(log).toEqual(["register", "unregister"]);
   });
 
-  it("says the dev bundle holds no glossary rather than drawing an empty list", () => {
+  it("says no release holds a glossary rather than drawing an empty list", () => {
     render(<GlossaryPage glossary={{ state: "ready", value: null, error: null }} term={null} onTerm={() => {}}
                          onCloseTerm={() => {}} palette={LIGHT} />);
     expect(screen.getByText("The glossary comes with the regulations data, which this build does not hold.")).toBeTruthy();

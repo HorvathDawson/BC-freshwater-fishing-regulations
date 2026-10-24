@@ -22,7 +22,7 @@
  * packages/, apps/, tools/ and conformance/. Comments are stripped first: a comment that
  * cites the hex a colour USED to be is history, not a colour, and the history is how the
  * next person learns why the value moved. JSON `$comment` strings are skipped for the same
- * reason. design/ is the mock-up archive (`riffle.html` is a picture to match, not code that
+ *  reason. design/ is the mock-up archive (pictures to match, not code that
  * ships) and is not scanned.
  *
  * THE ALLOWLIST IS THE PALETTE AND NOTHING ELSE. Adding a path to it is the one way past

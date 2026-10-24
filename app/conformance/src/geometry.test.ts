@@ -1,17 +1,16 @@
 /**
  * A WATER SPLIT INTO CLOSURE AREAS IS PLACED BY THEM (owner, 2026-10-20). Kootenay, Williston and Shannon lakes are
  * curated lake splits: each closure area is its own item `part_of` the lake, the areas hold every section, and the lake
- * itself owns no section, no part and so no `part_geo` row. The bundle reader's `waterBox` reads the lake's own parts
- * and its areas' — here over a copy of the dev bundle with Kootenay Lake's shape (release r-6960fe8201e3) written in.
+ * itself owns no section, no part and so no `part_geo` row. The release reader's `waterBox` reads the lake's own parts
+ * and its areas' — here over a core and a water file with Kootenay Lake's shape (release r-6960fe8201e3) written in.
  */
-import { copyFileSync, mkdtempSync } from "node:fs";
+import { mkdtempSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { parseManifest, type ItemId } from "@app/data";
-import { makeBundleSource } from "@app/data/bundle";
-import { DEV_BUNDLE, openBundle } from "@app/data/bundle/node";
+import { openSqlite } from "@app/data/sql/node";
 import { makeReleaseSource, releaseLoader } from "@app/data/release";
 
 const AREAS: [number, string, string, [number, number, number, number]][] = [
@@ -19,22 +18,6 @@ const AREAS: [number, string, string, [number, number, number, number]][] = [
   [9003, "wbk:-21", "Kootenay Lake — Upper West Arm", [-117.219097, 49.551213, -116.967467, 49.639755]],
   [9004, "wbk:-22", "Kootenay Lake — Lower West Arm", [-117.468881, 49.447024, -117.213168, 49.592476]],
 ];
-
-function kootenay(): string {
-  const path = join(mkdtempSync(join(tmpdir(), "bundle-geo-")), "bundle.sqlite");
-  copyFileSync(DEV_BUNDLE, path);
-  const w = new DatabaseSync(path);
-  w.exec("INSERT INTO item (ord, item_id, name, kind) VALUES (9001, 'wbk:328974235', 'Kootenay Lake', 'lake')");
-  for (const [ord, id, name, [we, s, e, n]] of AREAS) {
-    w.prepare("INSERT INTO item (ord, item_id, name, kind, part_of) VALUES (?, ?, ?, 'lake', 'wbk:328974235')")
-      .run(ord, id, name);
-    w.prepare("INSERT INTO part (ord, part_ix, province_except, steelhead_water, steelhead_rules, home_regions, " +
-              "tidal, sections, rep_sid) VALUES (?, 0, '', 0, 0, '', 0, 1, 1)").run(ord);
-    w.prepare("INSERT INTO part_geo VALUES (?, 0, 0, 1, ?, ?, ?, ?, ?, ?)").run(ord, (we + e) / 2, (s + n) / 2, we, s, e, n);
-  }
-  w.close();
-  return path;
-}
 
 /**
  * THE RELEASE READER'S SQL, over real SQLite: a core and a water file shaped as the release writes them (core's `item`
@@ -82,20 +65,11 @@ describe("the release reader places every water by its parts — real SQL", () =
       regulations: { valid_until: null, versions: null },
     });
     const loader = releaseLoader(m, { bytes: async () => new Uint8Array() },
-                                 async (name) => openBundle(name === "core" ? f.core : f.water));
+                                 async (name) => openSqlite(name === "core" ? f.core : f.water));
     const src = makeReleaseSource(loader);
     expect(await src.waterBox("wbk:328972518" as ItemId)).toEqual([-130.043061, 53.333981, -129.902673, 53.361987]);
     expect(await src.waterBox("wbk:328974235" as ItemId)).toEqual([-117.468881, 49.246325, -116.479453, 50.180355]);
-    expect(await src.waterBox("wbk:-22" as ItemId)).toEqual([-117.468881, 49.447024, -117.213168, 49.592476]);
-  });
-});
-
-describe("a lake split into closure areas is placed by its areas", () => {
-  it("the lake, owning no part, is the union of its three areas; each area is its own box", async () => {
-    const db = openBundle(kootenay());
-    const src = makeBundleSource(db);
-    expect(await src.waterBox("wbk:328974235" as ItemId)).toEqual([-117.468881, 49.246325, -116.479453, 50.180355]);
     expect(await src.waterBox("wbk:-21" as ItemId)).toEqual([-117.219097, 49.551213, -116.967467, 49.639755]);
-    db.close?.();
+    expect(await src.waterBox("wbk:-22" as ItemId)).toEqual([-117.468881, 49.447024, -117.213168, 49.592476]);
   });
 });

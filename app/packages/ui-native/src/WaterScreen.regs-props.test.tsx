@@ -1,6 +1,6 @@
 /**
  * T01 → T21: the water screen draws the Regulations page from what it is handed — the release loader, the one day, the
- * part. No loader (the dev bundle holds no regulations): the placeholder, and nothing asked of a loader. A loader whose
+ * part. No loader (the screen mounted alone): "Regulations unavailable", and nothing asked of a loader. A loader whose
  * store cannot open: "Regulations unavailable" with the reason, never a blank or a guess. The committed fixture release
  * (T10): the Keep tab of the part named, with its header tabs; Gear / Methods / Licence keep a placeholder.
  */
@@ -16,10 +16,10 @@ import { LIGHT } from "./theme";
 afterEach(cleanup);
 
 describe("<WaterScreen> regulations", () => {
-  it("no loader: the placeholder stands", async () => {
+  it("no loader: says the regulations are unavailable", async () => {
     render(<WaterScreen source={makeFixtureSource()} item={"gnis:8634" as ItemId} palette={LIGHT} />);
     await waitFor(() => expect(screen.getByText("Chilliwack River")).toBeTruthy());
-    expect(screen.getByRole("heading", { name: "Regulations are coming" })).toBeTruthy();
+    expect(screen.getByText("Regulations unavailable: no data release is open")).toBeTruthy();
     expect(screen.queryByTestId("keep-tab")).toBeNull();
   });
 
@@ -41,9 +41,9 @@ describe("<WaterScreen> regulations", () => {
     const tabs = within(screen.getByRole("tablist", { name: "Section" }));
     expect(tabs.getAllByRole("tab").map((t) => [t.textContent, t.getAttribute("aria-selected")]))
       .toEqual([["What you can keep", "true"], ["Gear", "false"], ["Methods", "false"], ["Licence", "false"]]);
-    // the header is not in the scroll; the old frame's placeholder is gone
+    // the header is not in the scroll; no "unavailable" line
     expect(screen.getByTestId("regs-scroll").contains(header)).toBe(false);
-    expect(screen.queryByRole("heading", { name: "Regulations are coming" })).toBeNull();
+    expect(screen.queryByText(/^Regulations unavailable/)).toBeNull();
     expect(screen.getByTestId("keep-strip").textContent).toMatch(/^✕Closed/);
     expect(screen.getByTestId("keep-banner").textContent).toMatch(/^Closed all year/);
     // one scroll: Keep, then the sections; (T34) Gear draws its VM — on a closed-all-year part, its one sentence

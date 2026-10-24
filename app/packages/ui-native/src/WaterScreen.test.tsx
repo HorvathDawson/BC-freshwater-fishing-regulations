@@ -1,7 +1,7 @@
 /**
- * A water's sheet, mounted — with regulations NOT integrated.
+ * A water's sheet, mounted alone — with no release loader, so no regulations to read.
  *
- * The sheet keeps its regulations face and says, in words, that regulations are coming. A
+ * The sheet keeps its regulations face and says, in words, that they are unavailable. A
  * blank space there would read as "no rules apply", which is never true of any BC water.
  */
 import { afterEach, describe, expect, it } from "vitest";
@@ -14,17 +14,11 @@ import { LIGHT } from "./theme";
 afterEach(cleanup);
 
 describe("<WaterScreen>", () => {
-  it("names the water and holds the place where its regulations will go", async () => {
+  it("names the water and says its regulations are unavailable when no release is open", async () => {
     render(<WaterScreen source={makeFixtureSource()} item={"gnis:8634" as ItemId}
                         palette={LIGHT} />);
     await waitFor(() => expect(screen.getByText("Chilliwack River")).toBeTruthy());
-    // The panel's words are what a screen reader reads: the title as a heading, and the sentence
-    // under it — not one container label standing in for both (which hid the sentence).
-    const title = screen.getByRole("heading", { name: "Regulations are coming" });
-    expect(title).toBeTruthy();
-    expect(screen.getByText(/Check the current BC Freshwater Fishing Regulations Synopsis/))
-      .toBeTruthy();
-    expect(screen.queryByLabelText("Regulations are coming")).toBeNull();
+    expect(screen.getByText("Regulations unavailable: no data release is open")).toBeTruthy();
     // Nothing on the sheet claims an outcome.
     for (const word of [/\bCLOSED\b/, /\bRESTRICTED\b/, /\bOPEN\b/])
       expect(screen.queryByText(word)).toBeNull();

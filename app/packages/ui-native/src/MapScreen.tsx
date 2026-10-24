@@ -1,5 +1,5 @@
 /**
- * The map, and the furniture that floats over it. Drawn to `design/riffle.html`.
+ * The map, and the furniture that floats over it.
  *
  * The map is home: you arrive here and every other tab is a way back to one. This component
  * decides nothing about how water is coloured — it names a VIEW and per-layer MODES, and

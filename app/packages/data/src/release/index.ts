@@ -6,7 +6,7 @@ export { releaseLoader, ReleaseError, type DbName, type FileName, type Opener, t
          type ReleaseSource } from "./loader";
 export { install, prune, heldFrom, heldPath, pointerFor, sameSet, rangedDownload, POINTER, type Download,
          type DownloadTo, type PartFs, type Progress, type ReleaseFs } from "./install";
-export { makeReleaseSource } from "./source";
+export { makeReleaseSource, type SourceOptions } from "./source";
 export { assetsDigest, assetsDir, installAssets, rawFetch, type AssetsBlock, type RawFetch } from "./assets";
 export { bootRelease, releaseTiles, BootError, type BootOptions, type BootStage, type Booted, type RolledBack,
          type ReleasePlatform } from "./boot";
