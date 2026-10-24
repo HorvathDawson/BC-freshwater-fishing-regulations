@@ -33,69 +33,23 @@
 import { useEscapeCloses } from "./escapeCloses";
 import { useEffect, useRef, useState } from "react";
 import { Animated, FlatList, Pressable, Text, View, useWindowDimensions } from "react-native";
-import { SEARCH_BAR, WATER_STATUS, nearCount, nearRowSub, spokenName, waterRowSub, watersNear,
-         type StatusIndex, type WaterStatus } from "@app/core";
-import type { ItemId, NameHit, NearHit, PlaceHit } from "@app/data";
-import { isSelected, resultGroups, rowStatus, useBackLayer,
-         type SearchAction, type SearchPick, type SearchSession, type SearchTarget } from "@app/ui";
+import { SEARCH_BAR, type StatusIndex } from "@app/core";
+import type { ItemId } from "@app/data";
+import { useBackLayer, type SearchAction, type SearchPick, type SearchSession } from "@app/ui";
 import { FishSpinner } from "./FishSpinner";
-import { Icon, IconText } from "./icons";
+import { Icon } from "./icons";
 import { NATIVE_DRIVER, useReducedMotion } from "./motion";
 import { TOP_BAR, searchPanelWidth } from "./TopBar";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
 import { count } from "./format";
-
-type Row =
-  | { t: "head"; key: string; label: string; right?: string; back?: boolean; place?: boolean;
-      /** Drawn on the places band — the heading of the places group. */
-      band?: boolean }
-  | { t: "place"; key: string; place: PlaceHit }
-  | { t: "water"; key: string; hit: NameHit; dup: boolean }
-  | { t: "near"; key: string; near: NearHit }
-  /** A group name that only points: its line (`seeLine`) and a way to open each water it names. */
-  | { t: "see"; key: string; line: string; see: readonly { name: string; item: ItemId | null }[] }
-  | { t: "note"; key: string; text: string };
+import { sheetRows } from "./search/rows";
+import { SheetRow } from "./search/SheetRow";
 
 /** How far down the sheet sits at HALF: this share of its full height goes below the screen's edge. */
 export const HALF_DROP = 0.45;
 /** The transition's length, ms (F2–F3 of the approved frames: the dim and the rise together). */
 export const SHEET_MS = 240;
-
-/** The rows the sheet draws, from what the reader picked and what search answered. Pure: the render test reads it. */
-export function sheetRows(pick: SearchPick, s: SearchSession): Row[] {
-  const rows: Row[] = [];
-  const place = pick.town;
-  if (place) {
-    const near = s.town.state === "ready" && s.town.value ? s.town.value.near : [];
-    rows.push({ t: "head", key: "back", label: "All results", back: true,
-                right: s.town.state === "ready" ? nearCount(near.length) : "" });
-    rows.push({ t: "head", key: "near-h", label: `Water near ${place.name}`, place: true });
-    if (s.town.state === "failed")
-      rows.push({ t: "note", key: "fail", text: "Could not read what is near this town." });
-    else if (s.town.state === "ready" && !near.length)
-      rows.push({ t: "note", key: "none", text: watersNear(0, place.name) });
-    for (const n of near) rows.push({ t: "near", key: `n:${n.item}`, near: n });
-  } else if (s.typed) {
-    for (const g of resultGroups(s.results)) {
-      if (g.kind === "places") {
-        rows.push({ t: "head", key: "ph", label: g.title, right: g.note, place: true, band: true });
-        for (const p of g.places) rows.push({ t: "place", key: `p:${p.place}`, place: p });
-      } else if (g.kind === "see") {
-        rows.push({ t: "head", key: "sh", label: g.title });
-        for (const p of g.pointers) rows.push({ t: "see", key: `s:${p.hit.entry}`, line: p.line, see: p.hit.see });
-      } else {
-        rows.push({ t: "head", key: "wh", label: g.title });
-        for (const w of g.waters) rows.push({ t: "water", key: `w:${w.hit.item}`, hit: w.hit, dup: w.dup });
-      }
-    }
-    if (s.none) rows.push({ t: "note", key: "none", text: SEARCH_BAR.none });
-    if (s.failed) rows.push({ t: "note", key: "fail", text: SEARCH_BAR.failed });
-  } else {
-    rows.push({ t: "note", key: "start", text: SEARCH_BAR.start });
-  }
-  return rows;
-}
 
 export function SearchSheet({ open, top, palette, session, pick, onAct, onOpenWater, onClose, statusIndex, total }: {
   /** Search is open (route `search`). Closed: the sheet slides (or fades) away and its rows go. */
@@ -214,210 +168,13 @@ export function SearchSheet({ open, top, palette, session, pick, onAct, onOpenWa
             // at half the sheet's lower part is below the screen's edge: the list ends where the screen does
             contentContainerStyle={{ paddingBottom: half ? drop : 0 }}
             extraData={pick}
-            renderItem={({ item: r }) => {
-              if (r.t === "head")
-                return (
-                  <View style={{ flexDirection: "row", alignItems: "baseline", gap: 10,
-                                 paddingHorizontal: 18, paddingTop: 12, paddingBottom: 8,
-                                 borderTopWidth: r.key === "near-h" || r.key === "back" ? 0 : 1,
-                                 borderTopColor: palette.line,
-                                 backgroundColor: r.band ? palette.placeBand : undefined }}>
-                    {r.back ? (
-                      <Pressable onPress={() => act({ t: "back" })} accessibilityRole="button"
-                                 accessibilityLabel="Back to all results">
-                        <IconText name="back" text={r.label} size={14} gap={2}
-                                  style={{ ...TYPE.section, color: palette.accent }} />
-                      </Pressable>
-                    ) : (
-                      <Text accessibilityRole="header"
-                            style={{ ...TYPE.section, color: r.place ? palette.place : palette.faint }}>
-                        {r.label}
-                      </Text>
-                    )}
-                    {r.right ? (
-                      <Text style={{ ...TYPE.section, marginLeft: "auto",
-                                     // `faint` is under 4.5:1 on the band; `place` is not.
-                                     color: r.band ? palette.place : palette.faint }}>
-                        {r.right}
-                      </Text>
-                    ) : null}
-                  </View>
-                );
-              if (r.t === "note")
-                return (
-                  <Text style={{ ...TYPE.small, color: palette.sub, paddingHorizontal: 18, paddingTop: 10 }}>
-                    {r.text}
-                  </Text>
-                );
-              if (r.t === "see")
-                return (
-                  /*
-                   * A GROUP NAME THAT ONLY POINTS (owner 2026-10-22): its line, then each water it names as its own way
-                   * in — straight to that water (`onOpenWater`, the one opener); a named row that matched no water is
-                   * said in the line and has no button.
-                   */
-                  <View testID={`search-see-${r.key}`}
-                        style={{ borderTopWidth: 1, borderTopColor: palette.line, paddingHorizontal: 18,
-                                 paddingTop: 12, paddingBottom: 14, gap: 10 }}>
-                    <Text style={{ ...TYPE.body, color: palette.ink }}>{r.line}</Text>
-                    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-                      {r.see.filter((t) => t.item !== null).map((t) => (
-                        <Pressable key={`${t.item}:${t.name}`} onPress={() => onOpenWater(t.item!)}
-                                   accessibilityRole="button" accessibilityLabel={SEARCH_BAR.open(t.name)}
-                                   style={({ pressed }) => ({
-                                     flexDirection: "row", alignItems: "center", gap: 2, minHeight: 44,
-                                     paddingLeft: 12, paddingRight: 6, borderWidth: 1.5,
-                                     borderColor: palette.accent, borderRadius: palette.r.box,
-                                     backgroundColor: pressed ? palette.tint : palette.card })}>
-                          <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>{t.name}</Text>
-                          <Icon name="next" colour={palette.accent} size={20} />
-                        </Pressable>
-                      ))}
-                    </View>
-                  </View>
-                );
-              if (r.t === "place") {
-                const t: SearchTarget = { kind: "place", place: r.place };
-                return (
-                  <Hit palette={palette} tone={palette.place} bar band name={r.place.name}
-                       sub={`${cap(r.place.kind)} · every named water around it`}
-                       label={`Show ${r.place.name} on the map`}
-                       onPress={() => act({ t: "select", target: t })} />
-                );
-              }
-              if (r.t === "near") {
-                const t: SearchTarget = { kind: "water", item: r.near.item, name: r.near.name };
-                return (
-                  <Hit palette={palette} tone={palette.accent} name={r.near.name}
-                       status={rowStatus(r.near.item, statusIndex, today)}
-                       sub={nearRowSub(r.near.kind, r.near.km)}
-                       selected={isSelected(pick, t)}
-                       label={`Show ${r.near.name} on the map`}
-                       goLabel={SEARCH_BAR.open(r.near.name)}
-                       onPress={() => act({ t: "select", target: t })}
-                       onGo={() => onOpenWater(r.near.item)} />
-                );
-              }
-              const h = r.hit;
-              const named = spokenName(h.name, h.near);
-              const t: SearchTarget = { kind: "water", item: h.item, name: h.name };
-              return (
-                <Hit palette={palette} tone={palette.accent} name={h.name}
-                     status={rowStatus(h.item, statusIndex, today)}
-                     alias={h.matchedAs !== null ? `also ${h.matchedAs}` : null}
-                     sub={waterRowSub(h.kind, h.near, r.dup)}
-                     strongSub={r.dup}
-                     selected={isSelected(pick, t)}
-                     label={`Show ${named} on the map`}
-                     goLabel={SEARCH_BAR.open(named)}
-                     onPress={() => act({ t: "select", target: t })}
-                     onGo={() => onOpenWater(h.item)} />
-              );
-            }}
+            renderItem={({ item: r }) => (
+              <SheetRow r={r} palette={palette} pick={pick} act={act} onOpenWater={onOpenWater}
+                        statusIndex={statusIndex} today={today} />
+            )}
           />
         )}
       </Animated.View>
     </>
-  );
-}
-
-const cap = (s: string) => (s ? s[0]!.toUpperCase() + s.slice(1) : s);
-
-/**
- * One result. SELECT, THEN GO (`searchStep`): a tap (or Enter) on the row selects it — the main map frames and lights
- * it — and never navigates. Only the SELECTED water row carries the open action: a › at the row's end, labelled
- * "Open <name>", after the row in the tab order (T48: the eye is gone — a place is shown by its tap, and a water's way
- * out opens it). Two separate controls side by side — never one inside the other, which on the web is a button inside
- * a button and reaches a screen reader as one control with two names. The row announces its state with `aria-pressed`
- * (AGENTS 34).
- *
- * `tone` says what kind of thing the row is: the accent for a water, `palette.place` for a town, which also gets a bar
- * down its edge so the two groups cannot be mistaken for each other at a glance.
- */
-function Hit({ palette, tone, bar, band, name, alias, sub, strongSub, selected, label, onPress,
-               goLabel, onGo, status = null }: {
-  palette: Palette; tone: string; bar?: boolean;
-  /**
-   * On the places band. The row takes the band's warm ground, and its secondary line is drawn in the place colour,
-   * because the greys do not hold 4.5:1 on the tint.
-   */
-  band?: boolean; name: string; alias?: string | null;
-  sub: string; strongSub?: boolean; selected?: boolean; label: string;
-  onPress: () => void;
-  /** The selected row's open action (a water's). Absent: the row has none (a place). */
-  goLabel?: string; onGo?: () => void;
-  /**
-   * The water's status (`rowStatus`), a small dot in the colour the map paints it (`palette.waterStatus`), named for a
-   * screen reader. Null — not asked: the status index has not loaded, or was refused for another atlas — draws nothing.
-   */
-  status?: WaterStatus | null;
-}) {
-  const [focus, setFocus] = useState<"row" | "go" | null>(null);
-  // The ring is for the KEYBOARD. A tap focuses the control too, and a ring left round every row the reader clicked
-  // reads as a second, louder selection — so a focus that follows a press is not drawn (what the web calls
-  // :focus-visible).
-  const pressing = useRef(false);
-  const onFocusOf = (which: "row" | "go") => () => {
-    if (!pressing.current) setFocus(which);
-  };
-  const blur = () => { pressing.current = false; setFocus(null); };
-  const press = () => { pressing.current = true; setFocus(null); };
-  const ring = { outlineWidth: 2, outlineStyle: "solid" as const, outlineColor: tone, outlineOffset: -2 };
-  return (
-    <View style={{ flexDirection: "row", alignItems: "stretch",
-                   borderTopWidth: 1, borderTopColor: palette.line,
-                   backgroundColor: band ? palette.placeBand : selected ? palette.wash : palette.card }}>
-      {/* The edge bar: a town's colour always, a water's only while it is selected. */}
-      <View style={{ width: 4, backgroundColor: bar ? tone : selected ? tone : "transparent" }} />
-      <Pressable onPress={onPress} accessibilityRole="button"
-                 accessibilityLabel={status ? `${label}. ${WATER_STATUS[status].label}` : label}
-                 aria-pressed={!!selected}
-                 onPressIn={press}
-                 onFocus={onFocusOf("row")} onBlur={blur}
-                 style={({ pressed }) => ({
-                   flex: 1, minWidth: 0,
-                   paddingLeft: 14, paddingRight: 8, paddingTop: 13, paddingBottom: 14, gap: 4,
-                   backgroundColor: pressed ? palette.tint : "transparent",
-                   ...(focus === "row" ? ring : null),
-                 })}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-          <Text style={{ ...TYPE.name, fontSize: 20, lineHeight: 23, color: palette.ink, flexShrink: 1 }}>
-            {name}
-          </Text>
-          {status ? (
-            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: palette.waterStatus[status] }} />
-          ) : null}
-        </View>
-        {/* The alias line. Without it a matched alias looks like the wrong water. */}
-        {alias ? (
-          <Text style={{ ...TYPE.small, color: band ? palette.place : palette.faint, fontStyle: "italic" }}>
-            {alias}
-          </Text>
-        ) : null}
-        <Text style={{ ...(strongSub ? TYPE.bodyStrong : TYPE.small), fontSize: 13,
-                       color: band ? palette.place : palette.sub }}>{sub}</Text>
-      </Pressable>
-      {/*
-        THE OPEN ACTION — the selected water row's only. 44 × 44, the smallest target a thumb reliably hits, outlined in
-        the row's tone. Focusable on the web in its own right, with a ring, so a keyboard selects with one stop and opens
-        with the next.
-      */}
-      {selected && onGo && goLabel ? (
-        <View style={{ justifyContent: "center", paddingRight: 14, paddingLeft: 4 }}>
-          <Pressable onPress={onGo} accessibilityRole="button" accessibilityLabel={goLabel}
-                     onPressIn={press}
-                     onFocus={onFocusOf("go")} onBlur={blur}
-                     hitSlop={6}
-                     style={({ pressed }) => ({
-                       width: 44, height: 44, alignItems: "center", justifyContent: "center",
-                       borderWidth: 1.5, borderColor: tone, borderRadius: palette.r.box,
-                       backgroundColor: pressed ? tone : palette.card,
-                       ...(focus === "go" ? { ...ring, outlineColor: palette.ink, outlineOffset: 2 } : null),
-                     })}>
-            {({ pressed }) => <Icon name="next" colour={pressed ? palette.card : tone} size={24} />}
-          </Pressable>
-        </View>
-      ) : null}
-    </View>
   );
 }

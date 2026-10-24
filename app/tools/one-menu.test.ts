@@ -59,12 +59,14 @@ describe("one place for each kind of thing (T48)", () => {
 
   it("ONE search: results grouped for the one sheet, mounted only by the Shell, with the field beside it", () => {
     expect({ grouped: where(/\bresultGroups\(/), sheet: where(/<SearchSheet\b/), field: where(/<TopBar\b/) }).toEqual({
-      grouped: ["packages/ui-native/src/SearchSheet.tsx", "packages/ui/src/search.ts"],
+      grouped: ["packages/ui-native/src/search/rows.tsx", "packages/ui/src/search.ts"],
       sheet: ["packages/ui-native/src/Shell.tsx"], field: ["packages/ui-native/src/Shell.tsx"] });
   });
 
   it("no second MapLibre for search: the sheet and the field import no map and draw no MiniMap", () => {
-    const mapless = ["packages/ui-native/src/SearchSheet.tsx", "packages/ui-native/src/TopBar.tsx"]
+    const mapless = ["packages/ui-native/src/SearchSheet.tsx", "packages/ui-native/src/search/rows.tsx",
+                     "packages/ui-native/src/search/SheetRow.tsx", "packages/ui-native/src/search/Hit.tsx",
+                     "packages/ui-native/src/TopBar.tsx"]
       .filter((p) => /from\s+["']@app\/map["']|\bMiniMap\b|<Map\b/.test(read(p)));
     expect(mapless).toEqual([]);
   });

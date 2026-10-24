@@ -124,8 +124,13 @@ const KNOWN_COPY: Record<string, readonly string[]> = {
     "days; the dashed line is the median.",
   ],
   "packages/ui-native/src/SearchSheet.tsx": [
-    "All results", "Back to all results", "Could not read what is near this town.", "Searching", "Show 〈〉 on the map", "Water near 〈〉",
-    "named waters", "〈〉 · every named water around it",
+    "Searching", "named waters",
+  ],
+  "packages/ui-native/src/search/SheetRow.tsx": [
+    "Back to all results", "Show 〈〉 on the map", "〈〉 · every named water around it",
+  ],
+  "packages/ui-native/src/search/rows.tsx": [
+    "All results", "Could not read what is near this town.", "Water near 〈〉",
   ],
   // ONE close word for every sheet (T41 Q4): still typed in the one component that draws every sheet
   "packages/ui-native/src/Sheet.tsx": ["Close", "Done"],
