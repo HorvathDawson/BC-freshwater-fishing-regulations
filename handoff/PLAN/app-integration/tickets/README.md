@@ -228,6 +228,7 @@ use that as the sole source of future work."
 | T181 | gauge pill keeps the theme the map was built with (check, then fix) | DONE | 7c43151a | confirmed (pill, pin, hatches kept the build theme); fixed + render test |
 | T182 | release file splits for the web (section_down, part_geo, nearest town in core, conditions) | OPEN | — | release format; from T129's measurements |
 | T183 | straddling pieces carry BOTH regions' rules (reverses T115, owner 2026-10-24) | OPEN | — | reach + deliver; after the T67 braid merge |
+| T184 | curation review as a shareable phone-friendly artifact (pilot's 30 first, then the queue) | OPEN | — | export from the backend + db marks + importer |
 
 ## Order for open tickets
 
