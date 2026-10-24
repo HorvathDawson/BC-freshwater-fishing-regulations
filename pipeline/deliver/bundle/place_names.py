@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import re
 
+from pipeline.common.names import key as name_key
 from pipeline.common.registry_kinds import area_key
 
 #: A Water Survey of Canada station number at the head of a label: "08HB006 · …".
@@ -124,16 +125,16 @@ _KIND_WORDS = frozenset({"lake", "river", "creek", "reservoir", "pond", "slough"
 
 
 def _which_water(name: str, notes: bool = False) -> frozenset:
-    """The words of a name that say WHICH water it is: accents folded, case dropped, the kind words
-    (`_KIND_WORDS`) left out, and a parenthetical note left out too unless `notes`."""
-    import unicodedata
-    s = unicodedata.normalize("NFKD", name or "").encode("ascii", "ignore").decode().lower()
+    """The words of a name that say WHICH water it is: THE name key's words (`names.key`: accents
+    and case folded, apostrophes deleted), the kind words (`_KIND_WORDS`) left out, and a parenthetical
+    note left out too unless `notes`."""
+    s = name or ""
     while not notes:                               # nested notes: "(… Bighorn (Ram) Forest …)"
         t = re.sub(r"\([^()]*\)", " ", s)
         if t == s:
             break
         s = t
-    return frozenset(w for w in re.findall(r"[a-z0-9]+", s.replace("'", "")) if w not in _KIND_WORDS)
+    return frozenset(w for w in name_key(s).split() if w not in _KIND_WORDS)
 
 
 def row_name(name: str, display_name: str = "") -> str:
