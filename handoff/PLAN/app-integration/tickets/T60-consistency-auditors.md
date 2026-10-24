@@ -1,6 +1,6 @@
 # T60 — Consistency auditors (audit N16)
 
-Status: DONE — 34606600 (fixes), 7e70a909 (the six gates), 0e23effb (style.sha256 re-stamp), c6ba9cd6 (back-layers snapshot), + this ticket commit. Lane: worktree agent-ac8a6de77769cfaac,
+Status: DONE — 2ac30e42 (fixes), 9259fa16 (the six gates), 2633355 (same hash, already on the branch) (style.sha256 re-stamp), ed367f33 (back-layers snapshot), + this ticket commit. Lane: worktree agent-ac8a6de77769cfaac,
 2026-10-23. Leftover copy → proposed ticket "T60-copy" (Outcome F6); owner question Q-T60a (Outcome F9).
 Owner 2026-10-22: Fable-model agents audit the app for consistency.
 
@@ -10,8 +10,8 @@ colouring pathway, back everywhere. Run the auditors on the Fable model; each fi
 
 ## Outcome (2026-10-23, Fable lane)
 
-**Commits** (worktree branch, for the merger into `redesign/stream-sections`): `34606600` fix(app): the findings fixed;
-`7e70a909` check(app): the six gates + `app/tools/consistency.ts` (shared walker / comment stripper); this commit: the
+**Commits** (worktree branch, for the merger into `redesign/stream-sections`): `2ac30e42` fix(app): the findings fixed;
+`9259fa16` check(app): the six gates + `app/tools/consistency.ts` (shared walker / comment stripper); this commit: the
 ticket. `app/package.json` is unchanged: every gate is a vitest file under `app/tools/` (logic project) or
 `app/apps/mobile/src/` (render project), so `pnpm test` — which `pnpm check` runs — runs them; the colour-pathway gate
 reads `scripts.check` from package.json and fails if `colours` or `test` is dropped from it.
@@ -30,7 +30,7 @@ reads `scripts.check` from package.json and fails if `colours` or `test` is drop
 
 **Findings → what was done**
 
-- F1 FIXED (34606600): `regs/KeepBlocks.tsx`, `regs/PlainRow.tsx`, `regs/sheet/Fold.tsx` drew their fold mark as a typed
+- F1 FIXED (2ac30e42): `regs/KeepBlocks.tsx`, `regs/PlainRow.tsx`, `regs/sheet/Fold.tsx` drew their fold mark as a typed
   ▼ ▶ / ▾ ▸ beside a set that has `expand` / `collapse` (N1 says the fold mark is the set's). Now `<Icon>` / `<IconText>`
   like every other fold (GaugeGroups, DonorPanel, ReferenceFold, WaterMapView). No golden pins the glyph; the regs
   suites (KeepTab, SheetBody, Edges, HowToTell, a11y, rhythm) pass.
@@ -64,11 +64,11 @@ reads `scripts.check` from package.json and fails if `colours` or `test` is drop
   the date pill's caret `WORDS.DATE_CARET` (" ▾", the prototype's "Today ▾", pinned by six header/pill tests) and the
   ▲ / ▼ in `WATER_MAP_WORDS` button labels ("▲ Upstream"). Should either become the set's chevron (`expand` /
   `next`)? Default: no — they are prototype wording the owner approved; recorded here, not changed.
-- F12 FIXED (0e23effb): the branch's own `pnpm style` gate was RED — `46cab8cd` edited `style.meta.json` + `tokens.json`
+- F12 FIXED (2633355 (same hash, already on the branch)): the branch's own `pnpm style` gate was RED — `46cab8cd` edited `style.meta.json` + `tokens.json`
   by hand without re-running `pnpm style:build`, so the committed `style.sha256` was stale (`git diff --exit-code` fails
   for everyone). Re-stamped (style.json / meta unchanged by the rebuild; only the sha moves). The main checkout's working
   tree already carried the same new sha, uncommitted.
-- F13 (c6ba9cd6): `tools/back-layers.test.ts`'s "surfaces found today" snapshot listed "SpotScreen: takes onBack" only
+- F13 (ed367f33): `tools/back-layers.test.ts`'s "surfaces found today" snapshot listed "SpotScreen: takes onBack" only
   because the removed bottom button's `? p.onBack : leaveEdit` ternary matched its `onX:` scan; the line is dropped
   (SpotScreen still registers with `useBackLayer`; back.test drives it). Run 2 of the strict check caught it.
 - F10 Back everywhere: no gap — all 17 pushed places show a way back (and back.test's system back agrees).

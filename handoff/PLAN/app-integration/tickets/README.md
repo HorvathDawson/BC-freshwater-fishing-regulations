@@ -104,7 +104,7 @@ use that as the sole source of future work."
 | T57 | unnamed streams: real-data regs sweep incl. trib rules | DONE | 9f434cd3, b846c925, a9455d40, 5dac27c8, 21289c24 | — |
 | T58 | back follow-ups | DONE | 21d41623, 9ec8114a | — |
 | T59 | two rivers meet (Atnarko/Bella Coola); Fraser exit → Annacis | DONE | c5b1e3d0, 36df866f, 463c013b, c432f6df | live in r-36fbc5326506 |
-| T60 | consistency auditors (N16, Fable) | OPEN | — | all |
+| T60 | consistency auditors (N16, Fable) | DONE | 2ac30e42, 9259fa16, ed367f33, d02e1448 | six mutation-pinned gates in pnpm check; F1–F5 fixed; copy move → T180; Q162 |
 | T61 | cleanup wave 2: old pathways/duplicates | PARTIAL | 9db616f0, 884fe9c7, 46cab8cd, baeda569, 0ad1a84 | lanes A/B/C merged, rebuilt with no binding change; left: 2.8 name normaliser (owner OK to promote on an explained diff), 2.17 fixture move |
 | T62 | cleanup wave 3: split long files | OPEN | — | all |
 | T63 | cleanup wave 4: docs, tests, knip | OPEN | — | all |
@@ -224,6 +224,7 @@ use that as the sole source of future work."
 | T177 | combine CLEVER + COFFEE on every forecast day, weighted by measured skill (owner Q160) | DONE | b039349e, 73dd133e, af119f2c | feed republish; equal weights until the archive decides (T178); + spots record the trip day |
 | T178 | re-score CLEVER vs COFFEE from the run archive (~6 weeks) and set the weights by the verdict | OPEN | — | due ~2026-12-05 |
 | T179 | one cut-placement pass: auto cuts merge into names, real cuts close together stay apart (order-independent) | OPEN | — | heavy (atlas rebuild); after T61 2.8; owner reviews binding diff |
+| T180 | move the remaining ~105 component strings into core words (T60's KNOWN_COPY list empties) | OPEN | — | app; no wording changes |
 
 ## Order for open tickets
 
@@ -296,6 +297,7 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q155 | T174 | Gravel Slough's 1425 connector lines take the answer of the polygons around them? | yes (3 sections) | owner |
 | Q158 | T168 | A renamed continuation's gauge counts as "on this water" (the Vedder lists the Chilliwack's 08MH001 as its own)? | yes | owner |
 | Q159 | T168 | "Reporting, not ranked" gauges fold with the silent ones ("not reporting or not ranked")? | yes | owner |
+| Q162 | T60 | Core words still type glyphs: WORDS.DATE_CARET " ▾", WATER_MAP_WORDS "▲ Upstream"/"▼ Downstream" — swap to the icon set's chevrons? | leave (prototype wording) | owner |
 
 ### Answered (recently, for the record)
 - Q160 — owner 2026-10-24: combine CLEVER + COFFEE on every forecast day, weighted by measured skill → T177. Q161 — owner: a spot records conditions for its TRIP date (not save time) → built in the T177 lane.
