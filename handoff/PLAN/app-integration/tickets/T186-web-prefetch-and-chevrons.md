@@ -1,6 +1,12 @@
 # T186 — Web prefetch after first paint (Q164) and the icon set's chevrons in place of typed glyphs (Q162)
 
-Status: DONE (7f4361c0, b5995311) — owner decisions 2026-10-24 (decisions.md Q164, Q162).
+Status: DONE (7f4361c0, b5995311, bde99ac3) — owner decisions 2026-10-24 (decisions.md Q164, Q162).
+
+Strict check (`REGS_STORE_REQUIRED=1 pnpm -C app check`, through heavy.sh, unfiltered): green against
+r-bb4331929428 (the release the walk was cut on: 373 files / 8,208 tests passed, 27 skipped). Against the main
+checkout's newest release r-0ed3c2b2a0a7 (written by another lane during this work) the release-pinned conformance
+suites fail — answers f66888bef6a2 vs the oracles' a5d3c00ae099, moved akeys and handles: re-run
+`app/design/regs-v11/port/sync.mjs` and re-cut the walk pin on that release; nothing in this ticket touches them.
 
 ## Q164 — the web prefetch
 
