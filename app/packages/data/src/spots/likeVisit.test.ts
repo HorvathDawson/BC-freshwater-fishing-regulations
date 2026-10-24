@@ -84,6 +84,16 @@ describe("flowAhead — the feed index's own percentiles, by day", () => {
                   "2026-11-02": { model: "ELF", lowWater: true } } });
   });
 
+  it("review: when the Centre's tomorrow is the reader's today (just past local midnight), today keeps the reading", () => {
+    const row = { percentile: 0.33, discharge: 0.33,
+      aheadDays: { from: "2026-10-24", discharge: [0.9, 0.8, null, null, null, null, null, null, null, null],
+                   model: ["CLEVER", "CLEVER", null, null, null, null, null, null, null, null] } };
+    const at = new Date(2026, 9, 24, 0, 30).getTime();
+    const got = flowAhead({ fetchedAt: new Date(at).toISOString(), stations: { X: row } }, "X", at)!;
+    expect([got.flow["2026-10-24"], got.flow["2026-10-25"], got.models["2026-10-24"], got.models["2026-10-25"]])
+      .toEqual([0.33, 0.8, undefined, { model: "CLEVER" }]);
+  });
+
   it("a day past every model is null and has no model; a varying row keeps each day its own number", () => {
     const row = { percentile: 0.33, discharge: 0.33,
       aheadDays: { from: "2026-10-24", discharge: [0.145, 0.1118, 0.1155, 0.1182, 0.322, null, null, null, null, null],

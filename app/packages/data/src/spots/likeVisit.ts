@@ -114,6 +114,9 @@ export function flowAhead(index: LikeIndex, station: string, now: number):
   const [y, m, d] = days.from.split("-").map(Number) as [number, number, number];
   days.discharge.forEach((p, i) => {
     const date = localDate(new Date(y, m - 1, d + i).getTime());
+    // the index's own day keeps its READING: `from` is the Centre's (PST) tomorrow, which in the hour after local
+    // midnight (PDT) is the reader's today — a forecast never stands in for the reading "now" (review)
+    if (date in flow) return;
     flow[date] = p ?? null;
     const by = days.model[i];
     if (p != null && by) models[date] = { model: by, ...(low.has(i) ? { lowWater: true as const } : {}) };
