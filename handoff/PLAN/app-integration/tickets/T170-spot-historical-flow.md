@@ -125,9 +125,22 @@ licence check in the work list is settled; endpoint and CORS still to verify.
 3. A same-day spot whose gauge was silent at capture now offers "Get the flow for that day" (filled the next day from
    the feed's daily mean). OK? Default: yes.
 
-## Owner answer (2026-10-24, Q161 → superseded the same day)
-First: keep the backdated spot's panel, labelled. Then the owner: "it should save the date that you set as the time of
-trip in the add a spot" — so CAPTURE records conditions for the TRIP date/time, not the save time: today's trip → the live
-reading; an earlier day → the reading and the panel members' values from that day's history (the one history read,
-`flowOnDay`; offline → pending, filled on refresh). The "read when this spot was saved" label goes away; existing
-backdated spots holding save-time readings are refilled for their trip day. Built in the T177 lane (sent 2026-10-24).
+## Owner answer (2026-10-24, Q161) — built in lane T177 (73dd133e)
+First answer: keep the saved panel, labelled "Gauges as read when you saved this spot (Oct 24), not on the visit day
+(Oct 21)." **Superseded the same day** — the owner: "it should save the date that you set as the time of trip in the add
+a spot". So a spot never holds save-day readings for an earlier trip day, and the label is gone:
+- **Capture** for a trip on an earlier local day reads that day's record through the one read (`flowOnDay`): the lead
+  gauge's daily mean (`fillDayFlow` at capture; its reading keeps the station, no value) and the section's panel as now
+  with each member's daily mean that day ranked with core `percentileInBand`, answered by `answerFrom` (`panelOnDay`,
+  `panelDay: {state: "day", date}`). Discharge only; never a level. Offline / the day not over: `panelDay: pending` with
+  the members, filled by a refresh. A trip today: read live, unchanged.
+- **Migration**: a spot saved before this for an earlier day is due a refresh ("The gauges for the day of this visit have
+  not been read yet. They can be filled in from the day's record.") and its panel is refilled for the trip day
+  (`panelOfAnswer` rebuilds the members from the frozen rows). A recorded reading is never rewritten (only no longer
+  shown); a reading taken on the trip day is never touched.
+- **Said**: "Each gauge's daily mean on 20 Oct 2026, the day of the visit." under the trip day's panel; "The gauges for
+  20 Oct 2026 have not been read from their record yet. Refresh fills them in." while pending; "This water's gauge
+  reading for the day of the visit is under Flow that day." with no panel. `DAY_FLOW_WORDS.notTheDay` deleted; the
+  list row shows the trip day's flow.
+- Tests, no-second-copy pin, mutations and the shot of adding a spot for an earlier day: T177 ticket ("Q161") and
+  `../T177-shots/add-earlier-day-*.png`. This answers Q2 above (recompute the panel for that day).

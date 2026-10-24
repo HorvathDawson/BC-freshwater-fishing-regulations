@@ -1137,3 +1137,28 @@ T146's spruce/cyan and the T165 amber swap; the dash is the owner's chosen secon
   with no tap the map frames the water's box plus its gauges; wetlands are not copied; the legend reads "N reaches
   coloured" (it counts reaches; a station count needs on-screen gauge dots — not built). Follow-up: no-access stretches
   should draw DOTTED in the copy too (owner's T165 look), today they leave a gap below the tiles' zoom — T175 Left.
+
+## CLAUDE 2026-10-24 — T177 combining CLEVER and COFFEE (owner reads; reverse any)
+- **One combination for every forecast day** (`change.combine_day`): where CLEVER and COFFEE both reach a day, the day is
+  their weighted geometric mean (COFFEE first put on the gauge's scale); one alone where only it reaches; ELF only where
+  no flood model does, with its low-water caveat. The Change, the +1/+3/+5/+10 horizons and `aheadDays` all use it
+  (T171's first-model rule is gone). A joined day is named `CLEVER+COFFEE` in the feed.
+- **Weights stay EQUAL.** Measured on this machine (T177 ticket): 5 paired stations at lead 1 on ONE issue day
+  (2026-10-22). CLEVER log2 error 0.19, COFFEE 0.72, difference -0.53 +/- 0.56 (1 SE) — one coastal storm COFFEE
+  overcalled 10x makes all of it; without it COFFEE 0.05, CLEVER 0.08. Too few to weigh.
+- **The rule** (`skill.verdict`): equal until the archive holds >= 200 paired cases over >= 20 issue days at a lead;
+  then equal if the mean paired difference is within 2 SE, else inverse-error weights. A person moves `FLOOD_WEIGHTS`
+  with the table; the feed never re-weights itself.
+- **Run archive**: `<feed dir>.runs/<YYYY-MM>.jsonl` beside the feed (never published), closed months gzipped, 14 months
+  kept (~32 MB). Score: `python -m pipeline.gauges.feed.skill --feed data/generated/gauges/feeds`.
+
+## OWNER 2026-10-24 — Q161: a spot records its TRIP day
+"it should save the date that you set as the time of trip in the add a spot". A spot added for an earlier day reads its
+lead gauge's daily mean and its section's panel (each member's daily mean, ranked with core `percentileInBand`) from
+that day's record through the one history read (`flowOnDay`), never the live feed; offline it saves pending and a
+refresh fills it. Spots saved before this for an earlier day are refilled by a refresh (a reading taken on the trip day
+is never touched). T170's "read when this spot was saved" label is gone. Ticket T170 (Owner answer Q161), lane T177.
+- CLAUDE 2026-10-24 (T177): CLEVER and COFFEE stay EQUAL weights until the run archive's verdict (one storm sample is
+  not evidence; T178 re-scores in ~6 weeks); the archive keeps 14 months (~32 MB, beside the feed dir — the R2 sync must
+  upload only the feed dir); COFFEE's day-5 stop is not marked on the strip; a trip-day panel member with no flow that day
+  reads "Not reporting"; a day's flow read at capture still says "filled in from the day's record".
