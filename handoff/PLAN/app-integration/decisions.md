@@ -1162,3 +1162,15 @@ is never touched). T170's "read when this spot was saved" label is gone. Ticket 
   not evidence; T178 re-scores in ~6 weeks); the archive keeps 14 months (~32 MB, beside the feed dir — the R2 sync must
   upload only the feed dir); COFFEE's day-5 stop is not marked on the strip; a trip-day panel member with no flow that day
   reads "Not reporting"; a day's flow read at capture still says "filled in from the day's record".
+
+## OWNER 2026-10-24 — braids (Q6 / T67) and the T165/T131 looks
+
+- **Q156** grey no-access lake fill: good as built. **Q157** dashes: good, keep. **Q134 / Q69** spot pins (square,
+  neutral ink): "much better" — as built.
+- **Q6 / T67 braids.** The first review page (artifact Lei1Bt4cCpnvEwessMVyQK, pre-gate) "very much missed the mark":
+  e.g. South Atnarko → Atnarko cut a braid off far upstream. Answers to R14:
+  - Q1: DROP EDGE_TYPE 2300-only ("manmade secondary flow") ditch lines from river items — side ditches, not the river.
+  - Q2: (explained: automatic 25 km length cuts at junctions) — default kept: no braid sweep at length cuts.
+  - Q4: no cap on the cut line, but a cut may only take a braid that ATTACHES TO THE MAINSTEM ON BOTH SIDES OF THE CUT
+    POINT (the topology gate). Nothing touching one side only (bulges, bends, South Atnarko) is ever cut.
+  - The owner checks every proposed cut by hand in a review artifact before anything is promoted.

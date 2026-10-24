@@ -111,7 +111,7 @@ use that as the sole source of future work."
 | T64 | tiles: S2 size wins + tile rebuild | OPEN | — | all |
 | T65 | determinism proof (N12) | OPEN | — | all (heavy) |
 | T66 | curation review tool | DONE | a3f66b7c (plan) | plan approved 2026-10-23; build → T96, T97, T133–T136 |
-| T67 | braid splitting as a build step | OPEN | 1497beb0 | assessment done (handoff/PLAN/braids/T67-assessment.md) → ★ owner answers R14 Q1/Q2/Q4 → build (braid_sweep.py) → side atlas/reach/deliver/tiles |
+| T67 | braid splitting as a build step | OPEN | 1497beb0 | owner answered 2026-10-24 (Q6: drop 2300 ditches, no length-cut sweep, no cap, topology gate) → braid_sweep.py → side atlas → ★ owner checks every cut in a review artifact → reach/deliver/tiles |
 | T68 | HYDAT / feed follow-ups | DONE | e25d05fd, 17610988, 0fa29df4, 98817665 | F1/F2 follow-ups in ticket |
 | T69 | search on desktop: keyboard leftovers | DONE | 448ebe1b, 389e451a | — |
 | T70 | cleanup wave 1, app side + stale worktrees + `pnpm clean` | DONE | 52ec4cb5, 799614a5, 4615ee0f, 1e8cbdb5, ac95e09f, a7947f99, de3cb79d, fd3f8c06, ef11d8e4, 17e4fe8f | merger steps done 2026-10-24 (clean + strict green); Q17 dead follow-branch → T63 |
@@ -255,7 +255,6 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 |---|---|---|---|---|
 | Q2 | T54 | Conditions map: keep the flow colour in no-access areas, or mark them there too? | keep flow colour; Tier A gets only the banner on Conditions | owner |
 | Q4 | T55 | Which finder candidates are sloughs/canals to reclassify? 7 grey polygons (Nation, West Road, Honna)? | nothing reclassified without owner review (dry-run + confirm); the 7 stay grey | owner |
-| Q6 | T67 | Braid splitting at build: go, and which plan? | braids stay paused until the owner reads the assessment | owner (BLOCKED until plan) |
 | Q9 | T77 | When to do phone testing D1a / D1b | D1a when the phone is at hand; D1b after the R2 bucket | owner |
 | Q10 | T79 | Imagery go/no-go; SPEC §12 (10 m pack, buffer, sources, licence, server, caps) | no offline imagery before the first native release; skip 10 m; 250 m buffer; online-only on web; pools a study | owner |
 | Q26 | T86 | R2 bucket, contact address, app name "Can I Fish This?" (no ArcGIS key: owner 2026-10-21) | keep the name; staging bucket first; publisher every 30 min | owner (credentials) |
@@ -268,7 +267,6 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q47 | T78 | Tidal sentence: closed "Notes and sources" fold, or open under the Level headline? | in the fold | owner |
 | Q62 | T103 | Slot size wording: plain says "none over 60 cm, under 90 cm" where the book says "none between 60 cm and 90 cm" — reword? | keep the existing wording rule (RULINGS P37) | owner |
 | Q63 | T103 | "Keep only lake trout, none over …" can read as "only lake trout may be kept" — reword the house style? | unchanged | owner |
-| Q69 | T131 | Spot pin colour: neutral ink on card, or a hue of its own? | neutral ink | owner |
 | Q79 | T116 | Regs page says "river" for a stream ("this river's rule", "Whole river") while search rows say "Stream" — switch the page to "stream"? | keep "river" on the page | owner |
 | Q87 | T139 | Beattie Lake 7-57: does the Liard watershed's "bull trout 1 (30–50 cm)" sit BESIDE the lake's own "trout 1" (2 a day) or INSIDE it (1 in all)? | beside (the reader's ruling; headline "2 a day per angler") | owner |
 | Q91 | T105 | The 54,386 matched-only sections now say "No gauge on this water is close enough in size" — wording ok? | as built | owner |
@@ -282,7 +280,6 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q126 | T143 | Were you on Level when +1/+3/+5/+10 said "no forecast"? (Flow answered at every horizon on today's feed) | yes, assumed | owner |
 | Q130 | T144 | Under a combined Change, also draw each model's own line (quieter)? | yes | owner |
 | Q132 | T144 | The +1/+3/+5/+10 chips keep the old model order (CLEVER then ELF) — or follow the Change source too? | keep | owner |
-| Q134 | T145 | Spot pin: a 12 px square (never confused with a round gauge dot) — or round/teardrop? | square | owner |
 | Q139 | T147 | The no-access block also leads Conditions for a tapped no-access section at full size? | keep | owner |
 | Q140 | T147 | A tapped section outside no-access land on a part that runs through it: show the part's "Some of this part is inside …" banner? | no (the tapped section speaks) | owner |
 | Q142 | T100 | Draw real lake parts (added_lakes rings, as Kootenay) for Shuswap maps A/B/C etc.? (atlas rebuild) | not now; caveat line | owner |
@@ -297,8 +294,6 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q153 | T174 | A river's own side piece is adopted onto the LARGEST same-code section — use the nearest ANSWERED one instead (84 Flow gaps)? | measure first (T174) | owner |
 | Q154 | T174 | Walk a river's own unowned double-line polygon as the river (as T101 does for stream items' polygons)? | measure first (T174) | owner |
 | Q155 | T174 | Gravel Slough's 1425 connector lines take the answer of the polygons around them? | yes (3 sections) | owner |
-| Q156 | T165 | No-access lakes are filled grey at lake opacity — reads as a heavy slate in light: lighter, or outline-only? | as built (grey fill); say if heavy | owner |
-| Q157 | T165 | The no-access line uses the under-lake route's DASH (dots only in the cvd theme) — switch to true dots? | dash | owner |
 | Q158 | T168 | A renamed continuation's gauge counts as "on this water" (the Vedder lists the Chilliwack's 08MH001 as its own)? | yes | owner |
 | Q159 | T168 | "Reporting, not ranked" gauges fold with the silent ones ("not reporting or not ranked")? | yes | owner |
 

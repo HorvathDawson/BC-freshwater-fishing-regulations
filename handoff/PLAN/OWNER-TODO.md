@@ -6,8 +6,7 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
-- **Q6 / T67 — braid splitting at build** (2026-10-23: "not yet", you read it first). Read `handoff/PLAN/braids/T67-assessment.md`, then answer R14 Q1 (keep
-  ditch-only lines as the river), Q2 (leave automatic confluence cuts out), Q4 (cap the cut-line length; suggested no).
+(none right now — Q6 braids answered 2026-10-24; a cut-by-cut review page comes next)
 
 ## Reviews
 - **Q114 / T136 — the 30-entry curation pilot** (about an hour): `handoff/PLAN/curation-review/PILOT.md`, then
@@ -21,7 +20,7 @@ with the default Claude uses until you answer). Newest first inside each section
 Answered 2026-10-24: Q7 (delete old releases — pruned to live + previous; `python -m pipeline.deliver.release.prune`).
 Answered 2026-10-23: Q5 + Q34–Q41 (curation plan approved, defaults; splits mid-review must work; salmon pass later = T132), Q13 (Claude runs the reader gate), Q44 (no Level from a side channel; Flow only if it carries a large share), Q53 (as built), Q45 (leave unbound).
 
-## Your open questions (36 — each built with a default; the table in tickets/README.md has the wording)
+## Your open questions (31 — each built with a default; the table in tickets/README.md has the wording)
 
 Triaged 2026-10-23: 64 smaller calls were decided by Claude and 12 were already answered or obsolete — all recorded in
 decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any). What is left needs you:
@@ -33,17 +32,17 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   gauges stop at their canal (24 sections lose every gauge) · Q113 cuts for 38 silent stations (atlas rebuild).
 - **How it looks (taste):** Q134 square spot pins · Q150 the new "own regulations" colour (no access now amber, T165) ·
   Q130 each model's line under Change · Q132 day chips may still use ELF · Q79 "river" vs "stream" on the page ·
-  Q91 "no gauge close enough" wording · Q69 spot pin colour · Q123 how the Map view marks the selected part (built: dim the others; thin halo in
+  Q91 "no gauge close enough" wording · Q123 how the Map view marks the selected part (built: dim the others; thin halo in
   `app-integration/T151-shots/alt-halo--*`) ·
   Q2 / Q139 / Q47 no-access and tidal notes on Conditions.
 - **Salmon (T164, new):** confirm the proposed DFO cut points in the review tool when they land in S0 (96 bridges/signs/dams);
   Q145 where and how often the DFO re-fetch runs.
 - **Batch 7:** Q146 re-centre the map when the parts list opens · Q147 steelhead lake wording on newly taken ponds ·
   Q148 dams → "lake" for the slough candidates · Q149 Bonaparte by hand.
-- **No-access look (T165, built):** Q156 grey lake fill too heavy? · Q157 dashes or true dots? Reload :39218 to see it.
+- **No-access look (T165, built):** answered 2026-10-24 (as built).
 - **Gauge gaps on main rivers (T174):** Q153–Q155, measured before anything changes.
 - **Run timing (T162, new):** Q144 default species, passage reaches shown dashed, its own map layer.
-- **Scope and big rebuilds:** Q6 braids · Q10 imagery corridor · Q32 salmon plan · Q125 sewage/tailings/dumps drawn
+- **Scope and big rebuilds:** Q10 imagery corridor · Q32 salmon plan · Q125 sewage/tailings/dumps drawn
   as lakes · Q142 Shuswap lake rings.
 - **Things only you can do or know:** Q114 the 30-entry curation pilot · Q4 slough marks (review page) · Q126 were you
   on Level? · Q119 audit references · Q30 Atnarko campsite signs · Q9 phone testing · Q26 hosting/app name ·
