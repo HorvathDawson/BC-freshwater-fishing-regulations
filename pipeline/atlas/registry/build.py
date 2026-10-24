@@ -17,6 +17,7 @@ from collections import Counter, defaultdict
 from dataclasses import replace
 
 from pipeline.common.models import WATERBODY_KINDS, NameSource, NodeKind, RegistryBoundary, RegistryItem, StreamGraph, StreamNode
+from pipeline.common.names import key
 from pipeline.common.utils.wsc import trim_wsc
 from pipeline.common.utils import wsc as _wsc
 from pipeline.common.water_kind import flows
@@ -121,7 +122,8 @@ STILL_RE = re.compile(r"\b(lake|lakes|pond|reservoir|lagoon)\b", re.I)
 
 
 def _norm_name(s: str) -> str:
-    return " ".join((s or "").split()).casefold()
+    """THE name key (`pipeline.common.names.key`, T61 2.8): "Pend-d'Oreille River" is "Pend D'Oreille River"."""
+    return key(s)
 
 
 def _ref_ids(nodes) -> tuple[str, ...]:
