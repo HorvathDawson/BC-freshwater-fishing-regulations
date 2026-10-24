@@ -179,7 +179,7 @@ def across_branch(share: float) -> frozenset[str]:
     creek gauges 100–400 km up the Fraser that way). The walk calls this for every reading going INTO a side channel,
     and for the readings of the side channel's own gauges going OUT of it (`candidates`); a creek that only drains
     through a slough into the river is a tributary of the river, as before. What the side channel's own gauge says on
-    the side channel is not a crossing, and is untouched (`own_gauges`).
+    the side channel is not a crossing, and is untouched (`water_panel`).
     """
     return frozenset({"discharge"}) if share >= LARGE_SHARE else frozenset()
 
@@ -192,7 +192,7 @@ def _code_child(parent: str, child: str) -> bool:
 
 
 def branch_points(graph, area_of, water_of: dict[str, str] | None, kind_of: dict[str, str] | None,
-                  continues=()) -> dict[tuple[str, str], tuple[float, str]]:
+                  continues=(), channels: dict[str, str] | None = None) -> dict[tuple[str, str], tuple[float, str]]:
     """`(from section, to section) -> (the side channel's share of the river there, the side channel's water)`, for
     every graph edge that crosses a BRANCH POINT — the edges `across_branch` rules on.
 
@@ -218,7 +218,9 @@ def branch_points(graph, area_of, water_of: dict[str, str] | None, kind_of: dict
     Dallas Creek: all of each water's flow goes on, so there is no side channel and no share (adversarial review
     2026-10-23: these were 11 of the 107 edges, and every pair but Bell/Nelson at or above the large-share bar).
 
-    THE SIDE CHANNEL is the smaller of the two waters there. THE SHARE is the smaller water's size over the larger's
+    THE SIDE CHANNEL is the water `side_channel_waters` names a side channel of the other (`channels`: side-channel
+    water -> its river's water) — the same decision the adoption asks (T169); where it names neither, the smaller of
+    the two waters there. THE SHARE is the smaller water's size over the larger's
     AROUND the branch point: the largest drainage among each
     water's sections within `MAINSTEM_HOPS` of the edge. Not the two end sections: FWA cuts a branch point into stubs
     (Nicomen leaves the Fraser through a 2.6 km² "Fraser River" piece beside a 1.4 km² slough line — 0.54 end to end,
@@ -298,13 +300,20 @@ def branch_points(graph, area_of, water_of: dict[str, str] | None, kind_of: dict
         if not (goes_on(a, b, ca) or fed(b, a, cb)):
             continue                                   # one water, another name
         sa, sb = size_near(a, wa), size_near(b, wb)
-        out[(a, b)] = (min(sa, sb) / max(sa, sb) if max(sa, sb) > 0 else 0.0, wa if sa <= sb else wb)
+        if (channels or {}).get(wa) == wb:
+            side = wa
+        elif (channels or {}).get(wb) == wa:
+            side = wb
+        else:
+            side = wa if sa <= sb else wb
+        out[(a, b)] = (min(sa, sb) / max(sa, sb) if max(sa, sb) > 0 else 0.0, side)
     return out
 
 
 def candidates(graph, area_of, donors: list[tuple[str, str, Any, bool]],
                max_ratio: float = MAX_AREA_RATIO, water_of: dict[str, str] | None = None,
-               kind_of: dict[str, str] | None = None, continues=()) -> dict[str, list[tuple]]:
+               kind_of: dict[str, str] | None = None, continues=(),
+               channels: dict[str, str] | None = None) -> dict[str, list[tuple]]:
     """`section -> [(station, role, donor area, years, regulated, lake, same river[, quantities])]`.
 
     `donors` is `(station, its section, years of record per quantity, is regulated)` — already gated on
@@ -315,9 +324,11 @@ def candidates(graph, area_of, donors: list[tuple[str, str, Any, bool]],
     polygon a stream for the walk (`flowing`). Without them a polygon is a lake, as the geometry says. With them the
     walk also knows its BRANCH POINTS (`branch_points`): a reading carried across one keeps only what `across_branch`
     allows, and its record then ends in the frozenset of those quantities (absent: every quantity, as before).
+    `channels` (side-channel water -> its river's water, from `side_channel_waters`) says which water at a branch point
+    is the side channel — the adoption's own answer (T169).
     """
     is_stream = flowing(graph, water_of, kind_of)
-    branches = branch_points(graph, area_of, water_of, kind_of, continues)
+    branches = branch_points(graph, area_of, water_of, kind_of, continues, channels)
     up: dict[str, list[str]] = collections.defaultdict(list)
     down: dict[str, list[str]] = collections.defaultdict(list)
     for e in graph.edges:
@@ -494,23 +505,152 @@ def mainstem_of(graph, area_of) -> dict[str, str]:
     return parent
 
 
-def own_gauges(sec: str, parent: str, water_of: dict[str, str] | None,
-               by_section: dict[str, tuple[int, float | None]],
-               members: dict[int, tuple[Member, ...]]) -> tuple[Member, ...]:
-    """The OWN gauges an adopted side-channel section keeps beside its river's answer (`mainstem_of`) — none, mostly.
+def side_channel_waters(graph, area_of, water_of: dict[str, str] | None, kind_of: dict[str, str] | None,
+                        adopted: dict[str, str], continues=()) -> dict[str, str]:
+    """`side-channel WATER -> the section of the river whose answer the whole water takes` — THE ONE DECISION (T169).
 
-    Q44's last clause (owner 2026-10-23): "the side channel and its own polygons still take their own gauge". A channel
-    that is a WATER OF ITS OWN (Nicomen Slough; not the Fraser's own unnamed side piece) keeps the members its own walk
-    LED with — 08MH085/086 on Nicomen Slough's lines — which the river's panel no longer holds since `across_branch`.
-    The river's members stay beside them, so Flow still answers from the river where the channel's gauge reads only
-    level (Herrling Island's 08MF047, Cannery Channel's 08MH028). A piece of the river's own water — a main-river gauge
-    FWA snapped onto a side piece, Bella Coola at Hagensborg — is the river, and takes the river's answer as before.
+    ONE WATER, ONE PANEL (owner 2026-10-23, T169: "a predicted section flows into unpredicted then back into predicted
+    without reason?"). Nicomen Slough had three answers along its length: its FWA side-channel lines (1100/1350) took
+    the Fraser by adoption (`mainstem_of`), its 1410 connectors and the polygons beside them walked on their own and
+    reached only Nicomen's own 1960-64 level gauges — grey, between two Fraser-coloured pieces — and its foot took both.
+    Line coding is not hydrology: the slough is one water branching from the river and rejoining it.
+
+    A SIDE-CHANNEL WATER is a STREAM water at least one of whose lines `mainstem_of` adopts onto a section of ANOTHER
+    water — Nicomen, Maria, Herrling Island, Morey, Cannery … off the Fraser; Hotsprings, Baldy off the Columbia; East
+    Branch Kootenay; Widgeon off the Pitt (real graph 2026-10-23: 30 waters). The river's own unnamed or same-named
+    side pieces (Bella Coola at Hagensborg) are the river; a water one `water_continue` system joins to its parent
+    (T76) is one river too. A backwater FWA codes like a tributary (Nelson Slough) has no adopted line and is not one:
+    its answer stays the walk's (Q44, T101).
+
+    Its river section is the LARGEST of the river sections its lines were adopted onto (then the id): the river where
+    the channel gives its water back. Every section of the water — lines of every edge type and its polygons — takes
+    that section's answer with the water's own gauges leading it (`water_panel`). `branch_points` asks the same map
+    which water at a branch point is the side channel, so the walk's cut and the adoption cannot name different
+    channels.
     """
-    w = (water_of or {}).get(sec)
-    got = by_section.get(sec)
-    if w is None or w == (water_of or {}).get(parent) or got is None:
-        return ()
-    return tuple(m for m in members[got[0]] if m.lead)
+    water_of = water_of or {}
+    joined = systems(continues)
+    system = lambda w: joined.get(w, w)  # noqa: E731
+    parents: dict[str, list[str]] = collections.defaultdict(list)
+    for sec, parent in adopted.items():
+        w, pw = water_of.get(sec), water_of.get(parent)
+        if w is None or pw is None or system(w) == system(pw) or (kind_of or {}).get(w) != "stream":
+            continue
+        parents[w].append(parent)
+    return {w: max(ps, key=lambda p: (area_of(graph.nodes[p]) or 0.0, p)) for w, ps in sorted(parents.items())}
+
+
+def water_panel(sections: list[str], river: tuple[Member, ...] | None, walked: dict[str, tuple[int, float | None]],
+                members: dict[int, tuple[Member, ...]], measures: dict[str, set[str]] | None) -> tuple[Member, ...]:
+    """The ONE panel of a side-channel water (`side_channel_waters`): its own gauges, then the river's members.
+
+    ITS OWN GAUGES are the members that LED on any of its sections in the walk (`walked`) — 08MH085/086 on Nicomen
+    Slough, Herrling Island's 08MF047, Cannery Channel's 08MH028 — now leading on the whole water, wherever along it a
+    section lies (owner Q44: "the side channel and its own polygons still take their own gauge"; T101 option (b) came
+    with it). Each keeps its best rank along the water (then the station); at most `OWN_LEADS_PER_QUANTITY` per
+    quantity, as on any section. THE RIVER'S MEMBERS follow, its own leads ranked after the water's, so Flow still
+    answers from the river where the channel's gauge reads only level. `river` None: the river is silent and the
+    channel's own gauges speak alone; nothing at all, and the water has no answer.
+    """
+    best: dict[str, tuple[tuple, Member]] = {}
+    for sec in sorted(sections):
+        got = walked.get(sec)
+        for m in members[got[0]] if got else ():
+            # its best rank; then the member as the section it stands IN has it ("up", the same river), then the id
+            rank = (m.lead, m.role != "up", not m.same_river, sec)
+            if m.lead and (m.station not in best or rank < best[m.station][0]):
+                best[m.station] = (rank, m)
+    order = sorted(best, key=lambda st: (best[st][0][0], st))
+    wanted: set[str] = set()
+    for q in QUANTITIES:
+        wanted.update([st for st in order if measures is None or q in measures.get(st, ())][:OWN_LEADS_PER_QUANTITY])
+    order = [st for st in order if st in wanted]
+    mine = tuple(dataclasses.replace(best[st][1], lead=i + 1) for i, st in enumerate(order))
+    first = len(mine)
+    return mine + tuple(dataclasses.replace(m, lead=m.lead + first if m.lead else 0)
+                        for m in river or () if m.station not in wanted)
+
+
+def braid_connectors(graph, area_of, water_of: dict[str, str] | None, adopted: dict[str, str],
+                     waters: dict[str, str], by_section: dict[str, tuple[int, float | None]]) -> dict[str, str | None]:
+    """`unnamed connector section -> the side-channel section whose answer it takes` (None: the river is silent there).
+
+    THE UNNAMED PIECES BETWEEN A RIVER'S SIDE CHANNELS (T169 part 1). FWA draws a braid with more than side-channel
+    lines: 1410 connectors, 1250 construction lines, short 1000 stubs between two 1100s. `mainstem_of` adopts only the
+    1100/1350 lines, so an unnamed piece between two adopted lines walked on its own magnitude — the Herrling Island
+    artefact (creek gauges 400 km away matched on arithmetic), or nothing: a grey or odd piece between two pieces
+    answering for the same river.
+
+    A CONNECTOR is a run of unowned, unadopted stream LINES on one watershed code (connected through each other) whose
+    every neighbour on that code — up and down — answers for ONE river (an adopted line, a section of one of its
+    side-channel waters, or the river's own section), with a side-channel piece among them and at least one on each side
+    (water comes in from the river system and goes back to it). Every piece is smaller than that river there. It takes
+    the answer of its side-channel neighbour, downstream first (the water leaving it), then the larger river, then the
+    id. A neighbour on another code (a creek coming in) is the creek's own business and does not stop it; a lake, an
+    unowned piece outside the run, or another river at either end does — and nothing owned by a water is touched here.
+    """
+    water_of = water_of or {}
+    up: dict[str, list[str]] = collections.defaultdict(list)
+    down: dict[str, list[str]] = collections.defaultdict(list)
+    for e in graph.edges:
+        up[e.to_node].append(e.from_node)
+        down[e.from_node].append(e.to_node)
+
+    def code(x: str) -> str:
+        return getattr(graph.nodes.get(x), "wsc", "") or ""
+
+    def river_of(x: str):
+        """The river `x` answers for, and whether it is a side-channel piece — None: not one river's piece."""
+        if x in adopted:
+            p = adopted[x]
+            return (water_of.get(p) or ("wsc", code(p))), True
+        w = water_of.get(x)
+        if w in waters:
+            return water_of.get(waters[w]), True
+        if w is not None and _kind(graph.nodes.get(x)) == "stream":
+            return w, False
+        return None
+
+    def candidate(x: str) -> bool:
+        node = graph.nodes.get(x)
+        return (node is not None and water_of.get(x) is None and x not in adopted and _kind(node) == "stream"
+                and bool(getattr(node, "wsc", "")))
+
+    out: dict[str, str | None] = {}
+    done: set[str] = set()
+    for start in sorted(graph.nodes):
+        if start in done or not candidate(start):
+            continue
+        c = code(start)
+        run, frontier = {start}, [start]
+        while frontier:
+            frontier = [y for x in frontier for y in up[x] + down[x]
+                        if y not in run and code(y) == c and candidate(y)]
+            run.update(frontier)
+        done |= run
+        ups = {y for x in run for y in up[x] if y not in run and code(y) == c}
+        downs = {y for x in run for y in down[x] if y not in run and code(y) == c}
+        if not ups or not downs:
+            continue
+        ends = {y: river_of(y) for y in ups | downs}
+        if any(v is None for v in ends.values()) or len({v[0] for v in ends.values()}) != 1:
+            continue
+        sides = [y for y, v in ends.items() if v[1]]
+        if not sides:
+            continue
+
+        def river_area(y: str) -> float:
+            got = by_section.get(y)
+            if got is not None and got[1]:
+                return got[1]
+            p = adopted.get(y) or waters.get(water_of.get(y), y)
+            return area_of(graph.nodes[p]) or 0.0
+        pick = max(sides, key=lambda y: (y in downs, river_area(y), y))
+        if any((area_of(graph.nodes[x]) or 0.0) >= river_area(pick) for x in run):
+            continue
+        for x in run:
+            out[x] = pick if pick in by_section else None
+    return out
 
 
 def side_channel_polygons(graph, water_of: dict[str, str], kind_of: dict[str, str],
@@ -735,7 +875,12 @@ def build(graph, model: AreaModel,
     """
     area_of = lambda n: model.area_km2(getattr(n, "stream_magnitude", None),
                                        getattr(n, "wsc", ""))
-    cand = candidates(graph, area_of, donors, max_ratio, water_of=water_of, kind_of=kind_of, continues=continues)
+    # WHICH WATER IS A SIDE CHANNEL OF WHICH RIVER — decided once (`side_channel_waters`), before the walk, so the walk's
+    # branch-point cut and the adoption below ask the same map.
+    adopted = mainstem_of(graph, area_of)
+    waters = side_channel_waters(graph, area_of, water_of, kind_of, adopted, continues) if water_of else {}
+    cand = candidates(graph, area_of, donors, max_ratio, water_of=water_of, kind_of=kind_of, continues=continues,
+                      channels={w: (water_of or {}).get(p) for w, p in waters.items()})
     own = own_distances(graph, water_of, donors, continues, kind_of=kind_of) if water_of else {}
 
     by_section: dict[str, tuple[int, float | None]] = {}
@@ -811,28 +956,19 @@ def build(graph, model: AreaModel,
     # The area comes with it. The channel drains what the river drains; reporting its
     # polygon's 1.4 km² beside the Fraser's panel would be the one number on the screen
     # that contradicts all the others.
-    adopted = mainstem_of(graph, area_of)
+    #
+    # Here: the river's own side pieces (unnamed, or the river's own name — Bella Coola at Hagensborg), one at a time. A
+    # line of a side-channel WATER is not adopted here: the whole water takes one panel below, its own gauges leading
+    # (`water_panel` — which replaced the per-line `own_gauges`, T169).
+    walked = dict(by_section)
     for sec, parent in adopted.items():
-        mine = own_gauges(sec, parent, water_of, by_section, members)
+        if (water_of or {}).get(sec) in waters:
+            continue
         got = by_section.get(parent)
-        if mine and got is None:
-            continue                       # the river is silent; the channel's own gauge still speaks
         if got is None:
             by_section.pop(sec, None)      # the river has no panel; neither can its channel
-        elif not mine:
-            by_section[sec] = got
         else:
-            # ITS OWN GAUGES LEAD, THE RIVER'S MEMBERS FOLLOW — the river's own leads ranked after the channel's, so
-            # the app leads Level with Nicomen's gauge and Flow (which it does not read) with the river's best.
-            first = max(m.lead for m in mine)
-            names = {m.station for m in mine}
-            chosen = mine + tuple(dataclasses.replace(m, lead=m.lead + first if m.lead else 0)
-                                  for m in members[got[0]] if m.station not in names)
-            key = tuple(sorted((m.station, m.role, round(m.area_km2, 3), m.years, m.regulated,
-                                m.same_river, m.lead) for m in chosen))
-            pid = intern.setdefault(key, len(intern))
-            members.setdefault(pid, chosen)
-            by_section[sec] = (pid, got[1])
+            by_section[sec] = got
 
     # A STREAM WATER'S POLYGON THE WALK LEFT UNANSWERED TAKES ITS LINE'S ANSWER — the fallback, see `stream_polygons`.
     # Last, after the side channels, so it takes whatever its line finally says. The same (panel, area) pair, so the
@@ -847,4 +983,35 @@ def build(graph, model: AreaModel,
                 by_section[sec] = by_section[line]
             else:
                 by_section.pop(sec, None)
+
+    def intern_panel(chosen: tuple[Member, ...]) -> int:
+        key = tuple(sorted((m.station, m.role, round(m.area_km2, 3), m.years, m.regulated,
+                            m.same_river, m.lead) for m in chosen))
+        pid = intern.setdefault(key, len(intern))
+        members.setdefault(pid, chosen)
+        return pid
+
+    # ONE PANEL FOR A SIDE-CHANNEL WATER — see `side_channel_waters` and `water_panel`. Last of the water passes, so it
+    # overrides the walk, the per-line adoption and both polygon passes on every section of the water: no section of
+    # Nicomen Slough answers otherwise than the rest.
+    by_water: dict[str, list[str]] = collections.defaultdict(list)
+    for sec, w in (water_of or {}).items():
+        if w in waters and sec in graph.nodes:
+            by_water[w].append(sec)
+    for w, parent in waters.items():
+        got = by_section.get(parent)
+        chosen = water_panel(by_water[w], members[got[0]] if got else None, walked, members, measures)
+        area = got[1] if got else area_of(graph.nodes[parent])
+        for sec in by_water[w]:
+            if chosen:
+                by_section[sec] = (intern_panel(chosen), area)
+            else:
+                by_section.pop(sec, None)
+
+    # THE UNNAMED PIECES BETWEEN ONE RIVER'S SIDE CHANNELS take their answer — see `braid_connectors`.
+    for sec, end in braid_connectors(graph, area_of, water_of, adopted, waters, by_section).items():
+        if end is None:
+            by_section.pop(sec, None)
+        else:
+            by_section[sec] = by_section[end]
     return Panels(by_section=by_section, members=members)

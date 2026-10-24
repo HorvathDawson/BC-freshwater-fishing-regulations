@@ -8,7 +8,7 @@ otherwise no. The side channel and its own polygons still take their own gauge."
 One decision, one function: `build_panels.across_branch`. The graph says where a branch point is
 (`build_panels.branch_points`: the same watershed code on two waters, or a river flowing into a code nested under its
 own), the walk carries what `across_branch` lets through, and an adopted channel keeps its own gauges
-(`build_panels.own_gauges`).
+(`build_panels.water_panel`, T169: one panel for the whole side-channel water).
 
 Fixtures: area = magnitude (MODEL). A side channel carries its river's watershed code; a tributary's code extends it.
 """
@@ -69,8 +69,8 @@ def test_the_branch_points_of_the_miniature_are_its_head_and_its_mouth():
 def test_a_slough_gauge_never_answers_the_river_and_keeps_answering_its_slough():
     """Whole value. N (level, on the slough) is nowhere on the river: not below the mouth, not above the head — and
     still speaks up its own slough's tributary, the creek, which is no branch point. The slough's lines are side
-    channels adopted by the river below (`mainstem_of`), so they take the river's answer — and keep their own gauge N
-    leading it (`own_gauges`), the river's own lead H ranked after. The creek drains through the slough into the
+    channels adopted by the river below (`mainstem_of`), so the slough is a side-channel water and takes ONE panel —
+    the river's answer with its own gauge N leading it (`water_panel`, T169), the river's own lead H ranked after. The creek drains through the slough into the
     river, as any tributary does, so C still speaks for the river below. H does not enter the slough."""
     graph, water, donors, meas = _nicomen()
     got = answers(build(graph, MODEL, donors, water_of=water, kind_of=KINDS, measures=meas))
@@ -80,8 +80,9 @@ def test_a_slough_gauge_never_answers_the_river_and_keeps_answering_its_slough()
         "r_up": river_up,
         "r_mid": river_up,
         "r_down": ((("C", "up", False, 0), ("H", "up", True, 1)), 520.0),
-        # both adopted by r_down, with their own gauge N leading (the river's lead H follows as 2)
-        "s_head": ((("C", "up", False, 0), ("H", "up", True, 2), ("N", "down", True, 1)), 520.0),
+        # one side-channel water, one panel (T169): the river's at its mouth, its own gauge N leading (the river's lead
+        # H follows as 2), N as the section it stands in has it
+        "s_head": ((("C", "up", False, 0), ("H", "up", True, 2), ("N", "up", True, 1)), 520.0),
         "s_foot": ((("C", "up", False, 0), ("H", "up", True, 2), ("N", "up", True, 1)), 520.0),
     }
 
@@ -397,12 +398,12 @@ def test_mutation_pin_the_two_directions_of_the_walk_rule():
 
 
 def test_mutation_pin_the_channel_keeps_its_own_gauge():
-    """`own_gauges` returning nothing: the slough's lines take the river's answer alone, and Nicomen's own gauge is
-    gone from Nicomen Slough."""
+    """`water_panel` (T169: a side-channel water's one panel) keeping none of its own gauges: the slough takes the
+    river's answer alone, and Nicomen's own gauge is gone from Nicomen Slough."""
     graph, water, donors, meas = _nicomen()
-    none = _mutant(bp.own_gauges, "if m.lead)", "if False)")
-    got = _with("own_gauges", none, lambda: answers(build(graph, MODEL, donors, water_of=water, kind_of=KINDS,
-                                                          measures=meas)))
+    none = _mutant(bp.water_panel, "if m.lead and", "if False and")
+    got = _with("water_panel", none, lambda: answers(build(graph, MODEL, donors, water_of=water, kind_of=KINDS,
+                                                           measures=meas)))
     assert "N" not in {m[0] for m in got["s_foot"][0]}
 
 
