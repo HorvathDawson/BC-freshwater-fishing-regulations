@@ -342,3 +342,23 @@ def resolve_split_defs(split_defs: list[SplitDef], chains: list[BlkChain],
                     _emit(sd, blk, c.mouth_measure + m)
 
     return out
+
+
+def confluence_mouths(split_defs: list[SplitDef], chains: list[BlkChain]) -> dict[str, tuple[float, float]]:
+    """{split id: (x, y)} — the tributary's mouth for every CONFLUENCE anchor with no offset, read by the
+    braid sweep (`braid_sweep.confluence_frame`): a confluence's cut runs from the mouth straight across."""
+    by_blk = {c.blk: c for c in chains}
+    by_wsc: dict[str, list[BlkChain]] = defaultdict(list)
+    for c in chains:
+        by_wsc[_trim_wsc(c.fwa_watershed_code)].append(c)
+    out: dict[str, tuple[float, float]] = {}
+    for sd in split_defs:
+        a = sd.anchor
+        if a.type != AnchorType.confluence or a.offset_m:
+            continue
+        trib = _tributary_chain(a, by_blk, by_wsc)
+        if trib is None or trib.geometry is None or trib.geometry.is_empty:
+            continue
+        x, y = trib.geometry.coords[0][:2]
+        out[sd.id] = (float(x), float(y))
+    return out

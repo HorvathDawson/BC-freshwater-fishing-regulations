@@ -15,7 +15,7 @@ from __future__ import annotations
 import random
 
 import pytest
-from shapely.geometry import LineString
+from shapely.geometry import LineString, Point
 
 from pipeline.atlas.splits import braid_sweep as BS
 from pipeline.atlas.splits.sectionizer import split_graph_at
@@ -453,6 +453,35 @@ def test_r3_mutation_without_the_rule_the_creek_goes_wholesale(monkeypatch):
     g, geoms = _braid_with_creeks()
     res, _ = _apply(g, geoms, [_cut("c", 1000)])
     assert [p.blk for p in res.points] == ["B"]
+
+
+def _confluence_on_a_side_channel():
+    """Exchamsiks's shape: the tributary's mouth (1000, 400) lies on a slanted side channel S of the river H;
+    a cut square to S would meet H at x = 1200, straight across from the mouth it meets H at x = 1000."""
+    from dataclasses import replace
+    G = _G()
+    G.braid("S", [(400, 0), (600, 200), (1400, 600), (1600, 0)], 400, 1600)
+    G.g.nodes["H:0"] = replace(G.g.nodes["H:0"], stream_magnitude=10)
+    G.g.nodes["S:0"] = replace(G.g.nodes["S:0"], stream_magnitude=1)
+    g, geoms = G.done()
+    v = BS.View(g, geoms)
+    m = v.measure_of("S", Point(1000, 400))[0]
+    sp = SplitPoint(split_id="conf", blk="S", route_measure=m, fid="", label="conf",
+                    anchor_type=AnchorType.confluence, source="curated")
+    return g, geoms, sp
+
+
+def test_r3_a_confluence_cut_runs_straight_across_from_the_mouth():
+    g, geoms, sp = _confluence_on_a_side_channel()
+    res = BS.sweep(g, geoms, [sp], mouths={"conf": (1000.0, 400.0)})
+    assert [p.blk for p in res.points] == ["H"] and abs(res.points[0].route_measure - 1000.0) < 1.0
+
+
+def test_r3_mutation_square_to_the_side_channel_the_cut_lands_200_m_off(monkeypatch):
+    monkeypatch.setattr(BS, "CONFLUENCE_CUTS_RUN_FROM_THE_MOUTH", False)
+    g, geoms, sp = _confluence_on_a_side_channel()
+    res = BS.sweep(g, geoms, [sp], mouths={"conf": (1000.0, 400.0)})
+    assert [p.blk for p in res.points] == ["H"] and abs(res.points[0].route_measure - 1000.0) > 100.0
 
 
 def test_spans_a_braid_is_the_gate():

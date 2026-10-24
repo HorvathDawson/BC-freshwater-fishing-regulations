@@ -756,7 +756,8 @@ def main() -> None:
         # attaches to the host on BOTH sides of the cut, only the host's own water — judged on the graph
         # BEFORE these cuts are made. Applied after them, below.
         from pipeline.atlas.splits import braid_sweep as _bs
-        _sweep = _bs.sweep(graph, geoms, pts)
+        from pipeline.atlas.splits.anchors import confluence_mouths
+        _sweep = _bs.sweep(graph, geoms, pts, mouths=confluence_mouths(splits, chains))
         print(f"  braid sweep: {len(_sweep.points)} braid cut(s), {len(_sweep.rehomes)} junction "
               f"re-home(s); cases {_sweep.counts()}")
         # Area cuts are the PRIMARY boundary of a closure (never a relabel of an existing one), so

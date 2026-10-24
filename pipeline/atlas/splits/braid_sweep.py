@@ -126,6 +126,15 @@ class View:
         self.wsc_gnis = _wsc_gnis_map(graph)
         self._lines: dict[str, Optional[LineString]] = {}
 
+    def pieces_of_water(self, base: str) -> list[str]:
+        """Every stream piece whose registry key (before any own-name suffix) is `base` — built once."""
+        if not hasattr(self, "_by_water"):
+            self._by_water: dict[str, list[str]] = defaultdict(list)
+            for b in sorted(self.by_blk):
+                for nid in self.by_blk[b]:
+                    self._by_water[water_key(self, nid).partition("|")[0]].append(nid)
+        return self._by_water.get(base, [])
+
     def line(self, nid: str) -> Optional[LineString]:
         if nid not in self._lines:
             self._lines[nid] = _as_line(self.geoms.get(nid))
@@ -239,9 +248,14 @@ class Frame:
     c: Point
     t: tuple[float, float]           # unit tangent, upstream
     line: LineString                 # clipped cut line
+    u: Optional[tuple[float, float]] = None   # the line's own direction when it is not square to `t`
+    orient: float = 1.0
 
     def side(self, p: Point) -> float:
-        return (p.x - self.c.x) * self.t[0] + (p.y - self.c.y) * self.t[1]
+        """Positive above the cut line (the host's upstream side), negative below."""
+        if self.u is None:
+            return (p.x - self.c.x) * self.t[0] + (p.y - self.c.y) * self.t[1]
+        return self.orient * (self.u[0] * (p.y - self.c.y) - self.u[1] * (p.x - self.c.x))
 
 
 def frame(view: View, blk: str, M: float, host: Iterable[str]) -> Optional[Frame]:
@@ -268,6 +282,52 @@ def frame(view: View, blk: str, M: float, host: Iterable[str]) -> Optional[Frame
     line = LineString([(c.x + reach[0] * nrm[0], c.y + reach[0] * nrm[1]),
                        (c.x - reach[1] * nrm[0], c.y - reach[1] * nrm[1])])
     return Frame(blk=blk, M=M, c=c, t=t, line=line)
+
+
+#: How far a confluence's mouth may sit from the river's main channel and still be on it (m).
+OFF_MAIN_M = 50.0
+#: POLICY (owner 2026-10-24, Exchamsiks): A CONFLUENCE CUT RUNS STRAIGHT ACROSS FROM THE MOUTH. When the
+#: tributary's mouth lies on a side channel, its cut line runs from the mouth straight across every channel
+#: to the river's main channel and on across it (`confluence_frame`), not square to the side channel it
+#: landed on. False is the mutation pin.
+CONFLUENCE_CUTS_RUN_FROM_THE_MOUTH = True
+
+
+def confluence_frame(view: View, fr: Frame, mouth: tuple[float, float], hp: str) -> Frame:
+    """The cut line of a confluence whose mouth is off the main channel: from the mouth through the nearest
+    point of the main channel (the host's own water with the greatest stream magnitude within `REACH_M`) and
+    `REACH_M` beyond it. A mouth on the main channel keeps the square frame."""
+    if not CONFLUENCE_CUTS_RUN_FROM_THE_MOUTH:
+        return fr
+    g = view.g
+    m = Point(mouth)
+    best = None
+    host_mag = g.nodes[hp].stream_magnitude or 0
+    cands = []
+    base = water_key(view, hp).partition("|")[0]
+    for nid in view.pieces_of_water(base):
+        n = g.nodes[nid]
+        ln = view.line(nid)
+        if ln is None or ln.distance(m) > REACH_M:
+            continue
+        if not _same_water(view, hp, nid, loose=True):
+            continue
+        cands.append(((n.stream_magnitude or 0), ln.length, nid))
+    if not cands:
+        return fr
+    mag, _, main = max(cands)
+    if mag <= host_mag:
+        return fr
+    q = view.line(main).interpolate(view.line(main).project(m))
+    d = q.distance(m)
+    if d < OFF_MAIN_M:
+        return fr
+    u = ((q.x - m.x) / d, (q.y - m.y) / d)
+    end = Point(q.x + u[0] * REACH_M, q.y + u[1] * REACH_M)
+    line = LineString([(m.x, m.y), (end.x, end.y)])
+    probe = (m.x + fr.t[0] * 10.0, m.y + fr.t[1] * 10.0)
+    cross = u[0] * (probe[1] - m.y) - u[1] * (probe[0] - m.x)
+    return Frame(blk=fr.blk, M=fr.M, c=m, t=fr.t, line=line, u=u, orient=1.0 if cross >= 0 else -1.0)
 
 
 @dataclass
@@ -593,7 +653,7 @@ def _body_side(view: View, fr: Frame, x: str) -> Optional[str]:
 
 
 def sweep(graph: StreamGraph, geoms: dict, points: list[SplitPoint],
-          view: Optional[View] = None) -> SweepResult:
+          view: Optional[View] = None, mouths: Optional[dict] = None) -> SweepResult:
     """The braid cuts (and junction re-homes) every split point in `points` needs, against the graph as it
     stands BEFORE those points are applied. Points of one split id on several blue lines all count as host."""
     view = view or View(graph, geoms)
@@ -618,6 +678,8 @@ def sweep(graph: StreamGraph, geoms: dict, points: list[SplitPoint],
             fr = frame(view, blk, M, host)
             if fr is None:
                 continue
+            if mouths and sid in mouths and getattr(sp.anchor_type, "value", str(sp.anchor_type)) == "confluence":
+                fr = confluence_frame(view, fr, mouths[sid], hp)
             for net in networks(view, blk, M, host_all, centre=fr.c):
                 _side_by_own_cut(g, net, sps, blk)
                 judge(view, net, hp, loose=(sp.source == "gauge"))
@@ -940,6 +1002,8 @@ def write_record(path, result: SweepResult, moved: list[dict], residual: list[di
                            "tributary": bool(k.get("tributary"))} for k in c.crossings],
             "frame_c": [r(c.frame.c.x), r(c.frame.c.y)] if c.frame is not None else None,
             "frame_t": [round(c.frame.t[0], 6), round(c.frame.t[1], 6)] if c.frame is not None else None,
+            "frame_u": ([round(c.frame.u[0], 6), round(c.frame.u[1], 6), c.frame.orient]
+                        if c.frame is not None and c.frame.u is not None else None),
             "frame_line": [[r(a), r(b)] for a, b in c.frame_line],
             "cut_points": [{"blk": p.blk, "m": r(p.route_measure)} for p in c.cut_points],
             "rehomes": [{"edge": list(h["edge"]), "member": h["member"], "side": h["side"]} for h in c.rehomes],
