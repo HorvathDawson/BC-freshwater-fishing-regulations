@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from "vitest";
 import {
-  aboutVM, agoWords, contactVM, diagnosticRows, regsLapsed, regsLapsedNote, sourceFreshness, glossaryRows, isoDayWords,
+  aboutVM, contactVM, diagnosticRows, regsLapsed, regsLapsedNote, sourceFreshness, glossaryRows, isoDayWords,
   mailtoUrl, regsReportWhere, reportMessage, sourcesVM, whereLines, type Diagnostics, type SourceDateKey, type SourcesInput,
 } from "./menu";
 import { FISH_CREDITS } from "./regs/fish.generated";
@@ -12,7 +12,7 @@ import { IMAGERY_ATTRIBUTION, IMAGERY_CREDIT } from "./imagery";
 import { dataVM } from "./more";
 import type { GlossaryTerm } from "./regs/inputs";
 import { MENU_WORDS } from "./menu";
-import { STALE_AFTER_MS } from "./index";
+import { agoWords, STALE_AFTER_MS } from "./freshness";
 import { hydatNotice, STALE_AFTER, type HydatNotice } from "./staleness";
 
 const term = (id: string, t: string, says: string): GlossaryTerm => ({ id, term: t, says, pages: [80], quote: "", source: "" });
@@ -54,8 +54,9 @@ describe("dates", () => {
   it("says how old a live value is, at each edge, in the app's one convention", () => {
     const now = Date.UTC(2026, 9, 21, 18);
     const at = (ms: number) => new Date(now - ms).toISOString();
-    expect(agoWords(at(29 * 60_000), now)).toBe("just now");
-    expect(agoWords(at(30 * 60_000), now)).toBe("1h ago");
+    expect(agoWords(at(20_000), now)).toBe("just now");
+    expect(agoWords(at(29 * 60_000), now)).toBe("29 min ago");
+    expect(agoWords(at(60 * 60_000), now)).toBe("1h ago");
     expect(agoWords(at(47 * 3_600_000), now)).toBe("47h ago");
     expect(agoWords(at(48 * 3_600_000), now)).toBe("2d ago");
     expect(agoWords("not a date", now)).toBe("unknown age");

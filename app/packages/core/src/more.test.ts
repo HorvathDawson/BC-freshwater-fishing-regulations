@@ -280,7 +280,7 @@ describe("the sync icon: fresh, needs a refresh, checking — said aloud", () =>
       "checking | Refresh data: checking now",
       "stale | Refresh data: a newer data release is available; reopen the app to use it",
       "fresh | Refresh data: up to date",
-      "stale | Refresh data: last checked on this device 1h ago",
+      "stale | Refresh data: last checked on this device 31 min ago",
       "stale | Refresh data: last checked on this device 5h ago",
       "stale | Refresh data: river flows could not be reached",
       "fresh | Refresh data: up to date",

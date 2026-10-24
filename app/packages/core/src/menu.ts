@@ -16,6 +16,7 @@
  *                   SEE and switch off, composed for the platform's share sheet or an email — nothing is ever sent
  *                   without the user pressing send, and nothing is sent in the background
  */
+import { agoWords } from "./freshness";
 import { localDate } from "./day";
 import { monthAbbr } from "./flow";
 import { FISH_CREDITS } from "./regs/fish.generated";
@@ -121,13 +122,6 @@ export const MENU_WORDS = {
     /** the map tiles' build, exact — here and nowhere else (the More tab gives the tiles' state, never the hash) */
     version: (v: string) => `Version ${v}`,
   },
-  /** how old a live value is ("Checked 7h ago") — the app's one convention (ui-native format.ts `ago` reads it) */
-  ago: {
-    now: "just now",
-    hours: (n: number) => `${n}h ago`,
-    days: (n: number) => `${n}d ago`,
-    unknown: "unknown age",
-  },
   contact: {
     title: "Contact",
     intro: "Questions, corrections and ideas are welcome.",
@@ -200,18 +194,6 @@ export function isoDayWords(day: string | null | undefined): string | null {
   return `${monthAbbr(mo - 1)} ${d}, ${m[1]}`;
 }
 
-/**
- * "7h ago" — how old a live value is (an ISO instant). Days past 48h, because "72h ago" is arithmetic the reader should
- * not have to do. ONE convention for the app: the Layers sheet's feed age (ui-native format.ts `ago`) is this function.
- */
-export function agoWords(iso: string, now: number): string {
-  const w = MENU_WORDS.ago;
-  const h = Math.round((now - Date.parse(iso)) / 3.6e6);
-  if (!Number.isFinite(h)) return w.unknown;
-  if (h < 1) return w.now;
-  if (h < 48) return w.hours(h);
-  return w.days(Math.round(h / 24));
-}
 
 // ── about ────────────────────────────────────────────────────────────────────────────────────────────────────────────
 

@@ -42,7 +42,8 @@ describe("ago", () => {
   const NOW = Date.parse("2026-09-03T18:00:00Z");
 
   it.each([
-    ["2026-09-03T17:40:00Z", "just now"],
+    ["2026-09-03T17:59:40Z", "just now"],
+    ["2026-09-03T17:40:00Z", "20 min ago"],
     ["2026-09-03T11:00:00Z", "7h ago"],
     ["2026-09-02T17:33:00Z", "24h ago"],
     // Past two days it switches to days, because "72h ago" is arithmetic the reader

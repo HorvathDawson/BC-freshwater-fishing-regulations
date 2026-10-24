@@ -2,7 +2,7 @@
  * HOW LONG EACH FEED STAYS FRESH — THE ONE TABLE (owner 2026-10-22 late: "gauge data is much faster turnover than other
  * feeds"). Every staleness the app judges reads its line here and nowhere else: the More tab's Data block and the Data
  * sources & dates page (`sourceFreshness`, menu.ts), the top bar's sync dot (`syncVM`, more.ts), a gauge reading's age
- * line (`freshness` / `STALE_AFTER_MS`, index.ts) and a forecast run's line (`forecastRunLine`, conditions.ts).
+ * line (`freshness` / `STALE_AFTER_MS`, freshness.ts) and a forecast run's line (`forecastRunLine`, conditions.ts).
  *
  * Each line is set from the feed's REAL publish cadence (handoff/PLAN/app-integration/decisions.md,
  * "CLAUDE 2026-10-22 (owner delegated) — staleness per feed"):

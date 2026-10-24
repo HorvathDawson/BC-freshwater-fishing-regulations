@@ -26,7 +26,7 @@
  */
 import { monthAbbr, percentileOrdinal, weekdayAbbr } from "./flow";
 import { localDate, shiftDay } from "./day";
-import { agoWords } from "./menu";
+import { agoWords } from "./freshness";
 import { CHANGE_LOW_WATER, CHANGE_LOW_WATER_MARK } from "./change";
 
 /** The factors, in the order a day's working lists them. */

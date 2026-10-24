@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { freshness, readingAgeLine, STALE_AFTER_MS } from "./index";
+import { freshness, readingAgeLine, STALE_AFTER_MS } from "./freshness";
 
 const MIN = 60_000, NOW = Date.parse("2026-09-01T12:00:00Z");
 
@@ -29,7 +29,7 @@ describe("readingAgeLine (P02): the finished sentence, whole (AGENTS 33)", () =>
   });
   it("stale says so", () => {
     expect(readingAgeLine(freshness(NOW - 180 * MIN, NOW), at, VAN))
-      .toBe("This gauge's own reading · observed 2026-09-01 at 04:30 PDT · last checked 3 h ago, may be out of date");
+      .toBe("This gauge's own reading · observed 2026-09-01 at 04:30 PDT · last checked 3h ago, may be out of date");
   });
   it("unknown never reads as live", () => {
     expect(readingAgeLine(freshness(null, NOW), at, VAN))
@@ -41,6 +41,6 @@ describe("readingAgeLine (P02): the finished sentence, whole (AGENTS 33)", () =>
   });
   it("days past two days", () => {
     expect(readingAgeLine(freshness(NOW - 3 * 24 * 60 * MIN, NOW), null))
-      .toBe("This gauge's own reading · last checked 3 days ago, may be out of date");
+      .toBe("This gauge's own reading · last checked 3d ago, may be out of date");
   });
 });

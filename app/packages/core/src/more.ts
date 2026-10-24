@@ -19,9 +19,10 @@
  * `MENU_WORDS.sources.names` (menu.ts), read here and by the Sources and credits page; neither is restated.
  */
 import {
-  agoWords, contactVM, forecastWhen, FRESHNESS_WORDS, sourceFreshness, isoDayWords, INSEASON_URL, MENU_WORDS, regsLapsed, SOURCE_ORDER,
+  contactVM, forecastWhen, FRESHNESS_WORDS, sourceFreshness, isoDayWords, INSEASON_URL, MENU_WORDS, regsLapsed, SOURCE_ORDER,
   type ContactVM, type FreshnessVM, type MenuPageKey, type SourceDateKey, type SourcesInput,
 } from "./menu";
+import { agoWords } from "./freshness";
 import { byCadence } from "./staleness";
 
 export const MORE_WORDS = {
