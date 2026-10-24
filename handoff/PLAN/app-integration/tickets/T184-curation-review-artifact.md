@@ -13,7 +13,9 @@ mobile version too) … I could send it to other people to help."
   history in the same shape `POST /api/marks` writes (so `gate pilot-report` and `commit_marks` work unchanged).
 - Helpers: shared from the Share menu (claude.ai accounts; guests by email). Each mark records its reviewer; the page
   shows who has a target open/marked so two people do not double up.
-- Not possible without the live backend: re-binding / searching another water — those become a wrong/unsure mark.
+- Review mode needs no live backend: it writes only marks, and everything it reads is exported per vintage. Fix mode
+  (entry/split edits, /api/check, item search) stays the owner's local tool for acting on marks. After a rebuild the
+  page is re-exported; marks keep their fingerprint (T97) and stay valid unless that target changed.
 
 ## Phases
 1. The 30 pilot targets (handoff/PLAN/curation-review/PILOT.md, list regenerated for the current vintage) → the pilot
