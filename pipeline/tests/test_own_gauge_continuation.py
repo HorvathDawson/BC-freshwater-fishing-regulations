@@ -1,10 +1,11 @@
 """T76 — a water's own gauge across a CONTINUATION (audit N19, owner call 10; T81 Q8: `water_continue` only).
 
-The Vedder (sid 313838) had nothing leading: its own gauge, 08MH047, is retired, and the Chilliwack's gauges belong to
-another water item — though `water_continue` says the Chilliwack goes on as the Vedder. The owner: a river that changes
-its name is ONE system (87ba267c). So a gauge on a `water_continue` predecessor or successor counts as the section's
-OWN gauge — same quantity, same far and area gates (`panel.may_lead`), the distance measured along the water across
-the name change. A tributary, a side channel or the river a water flows into is other water: only `water_continue`.
+The Vedder (its line from 4.7 km; sid 313838 on 2026-10-22) had nothing leading: its own gauge, 08MH047, is retired,
+and the Chilliwack's gauges belong to another water item — though `water_continue` says the Chilliwack goes on as the
+Vedder. The owner: a river that changes its name is ONE system (87ba267c). So a gauge on a `water_continue`
+predecessor or successor counts as the section's OWN gauge — same quantity, same far and area gates
+(`panel.may_lead`), the distance measured along the water across the name change. A tributary, a side channel or the
+river a water flows into is other water: only `water_continue`.
 """
 
 from __future__ import annotations
@@ -201,28 +202,39 @@ def _bundle():
 
 
 VEDDER_LEADS = {
-    # the real graph, before -> after (decisions.md "CLAUDE 2026-10-22 (T76 …)"): before, 08MH047 alone on both
-    313838: {"08MH047": 1, "08MH001": 2, "08MH055": 3},
-    313839: {"08MH001": 1, "08MH047": 2, "08MH055": 3},
+    # Pinned by ROUTE MEASURE on the Vedder's own line (blue line 356363467): the on-stem lines starting at 4,739 m
+    # and 12,724 m, resolved to handles in the bundle (a handle is not durable across a rebuild: AGENTS rule 5, T63).
+    # The real graph, before -> after (decisions.md "CLAUDE 2026-10-22 (T76 …)"): before, 08MH047 alone on both.
+    4739: {"08MH047": 1, "08MH001": 2, "08MH055": 3},
+    12724: {"08MH001": 1, "08MH047": 2, "08MH055": 3},
 }
 
 
+def _vedder_line_at(db, lo_m):
+    found = [sid for (sid,) in db.execute(
+        "SELECT sp.sid FROM item i JOIN item_section s ON s.ord = i.ord JOIN section_span sp ON sp.sid = s.sid "
+        "WHERE i.item_id = 'gnis:3062' AND sp.off_stem = 0 AND sp.shape = 0 AND sp.lo_m = ?", (lo_m,))]
+    assert len(found) == 1, f"the Vedder has {len(found)} on-stem lines starting at {lo_m} m"
+    return found[0]
+
+
 @pytest.mark.needs_bundle
-def test_the_vedder_313838_is_led_by_08mh001_in_the_bundle():
+def test_the_vedder_is_led_by_08mh001_in_the_bundle():
     """THE ACCEPTANCE on shipped data, not a toy graph: the Vedder's sections carry the Chilliwack's gauges as own
     (`panel_member.lead`), and with its own 08MH047 retired (no reading: weight 0) `leader_of` — the rule trust.ts
     mirrors — hands the lead to 08MH001."""
     from pipeline.gauges.consume.panel import leader_of
     from pipeline.tests.conftest import predates
     db = sqlite3.connect(f"file:{_bundle()}?mode=ro", uri=True)
-    got = {sid: {st: lead for st, lead in db.execute(
+    sid = {lo: _vedder_line_at(db, lo) for lo in VEDDER_LEADS}
+    got = {lo: {st: lead for st, lead in db.execute(
         "SELECT m.station, m.lead FROM section_panel p JOIN panel_member m USING (panel_id) "
-        "WHERE p.sid = ? AND m.lead > 0", (sid,))} for sid in VEDDER_LEADS}
-    if got == {313838: {"08MH047": 1}, 313839: {"08MH047": 1}}:
+        "WHERE p.sid = ? AND m.lead > 0", (sid[lo],))} for lo in VEDDER_LEADS}
+    if got == {lo: {"08MH047": 1} for lo in VEDDER_LEADS}:
         predates(f"{_bundle()} predates T76 (the Vedder takes the Chilliwack's gauges as own) — rerun pipeline.deliver")
     assert got == VEDDER_LEADS
     members = db.execute("SELECT m.station, m.lead FROM section_panel p JOIN panel_member m USING (panel_id) "
-                         "WHERE p.sid = 313838 ORDER BY m.station").fetchall()
+                         "WHERE p.sid = ? ORDER BY m.station", (sid[4739],)).fetchall()
     weights = [0.0 if st == "08MH047" else 1.0 for st, _ in members]
     assert members[leader_of([lead for _, lead in members], weights)][0] == "08MH001"
 

@@ -228,20 +228,33 @@ def _stem(db, item_id):
     return rows, panels
 
 
+def _at(db, item_id, lo_m, shape):
+    """The handle of a water's on-stem section starting at route measure `lo_m` — a handle is not durable across a
+    rebuild (AGENTS rule 5, T63's vintage pins), the water and the measure are."""
+    found = [sid for (sid,) in db.execute(
+        "SELECT sp.sid FROM item i JOIN item_section s ON s.ord = i.ord JOIN section_span sp ON sp.sid = s.sid "
+        "WHERE i.item_id = ? AND sp.off_stem = 0 AND sp.lo_m = ? AND sp.shape = ?", (item_id, lo_m, shape))]
+    assert len(found) == 1, f"{item_id}: {len(found)} on-stem {'polygons' if shape else 'lines'} start at {lo_m} m"
+    return found[0]
+
+
 @pytest.mark.needs_bundle
 @pytest.mark.parametrize("item_id, want", [
-    # Nicomen Slough: four stem polygons, each the line just downstream. 1265716 takes the 57 m connector 59620 (FWA
-    # 1410, not adopted by `mainstem_of`), which since T101 answers from the slough's own gauges 08MH085/086 — members
-    # without a lead (17 km away), which still answer (`_far_slough`). Before T101 59620 was unpanelled and 1265716
-    # walked on to 59619 (the Fraser, by adoption).
-    ("gnis:21105", {1453542: 59618, 1453408: 59619, 1265716: 59620, 1265712: 59621}),
-    # Vedder River: the Vedder Canal polygon (4.7 km) takes the line at the mouth.
-    ("gnis:3062", {1957095: 313837}),
+    # Pinned by ROUTE MEASURE on the water's own line ({polygon lo_m: line lo_m}), resolved to handles in the bundle.
+    # Nicomen Slough (blue line 355991886): four stem polygons, each the line just downstream. The polygon at
+    # 17,746 m takes the 57 m connector at 17,689 m (FWA 1410, not adopted by `mainstem_of`), which since T101
+    # answers from the slough's own gauges 08MH085/086 — members without a lead (17 km away), which still answer
+    # (`_far_slough`). Before T101 the connector was unpanelled and that polygon walked on to the line at 16,918 m
+    # (the Fraser, by adoption).
+    ("gnis:21105", {16690: 0, 17079: 16918, 17746: 17689, 21185: 18999}),
+    # Vedder River (blue line 356363467): the Vedder Canal polygon (4.7 km) takes the line at the mouth.
+    ("gnis:3062", {80: 0}),
 ])
 def test_nicomen_and_vedder_polygons_take_their_lines_answer_from_the_bundle(item_id, want):
     """The real stems — sections, shapes and line panels read from the bundle — chained by measure and run through
     the same pass the bundle build runs."""
     db = sqlite3.connect(f"file:{_bundle()}?mode=ro", uri=True)
+    want = {_at(db, item_id, p, 1): _at(db, item_id, line, 0) for p, line in want.items()}
     rows, panels = _stem(db, item_id)
     nodes = [poly(str(sid)) if shape == 1 else N(str(sid), 100) for sid, shape in rows]
     graph = g(nodes, [E(str(a), str(b)) for (a, _), (b, _) in zip(rows, rows[1:])])
