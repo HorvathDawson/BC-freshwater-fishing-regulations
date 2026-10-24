@@ -262,11 +262,9 @@ app says "restricted" (core's `statusWord` is the one vocabulary, and riffle pre
 and it puts a satellite toggle on the map where the app keeps that choice in the Layers
 sheet beside the other things that change what is drawn.
 
-**The fixture bundle is still load-bearing for tests.** The app itself reads the province
-bundle, but `tools/bundle-schema.test.ts`, `packages/data/src/bundle/source.test.ts` and
-`tools/feed-contract.test.ts` run against `packages/data/dev/bundle.sqlite`. Deleting it
-would make the suite depend on a 44 MB uncommitted build artifact. Removing it was asked for
-and not done.
+**The fixture bundle is gone (T61).** The app reads only the release; tests read the committed
+fixture releases (`packages/data/dev/fixture-release/`, `dev/regs-release/`) or a memory release
+built from the release contract (`packages/data/src/sql/drivers/memoryRelease.ts`).
 
 **Map → Conditions flash on tab switch.** A fresh mount is clean; switching tabs shows a
 frame of the wrong colouring.

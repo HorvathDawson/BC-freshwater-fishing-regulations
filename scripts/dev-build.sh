@@ -39,15 +39,9 @@ else
   $PY -m pipeline.gauges.feed.publish --out "$FEED"
 fi
 
-echo "-- app fixture --------------------------------------"
-(cd app && node tools/build-fixture.mjs | tail -3)
-
 echo ""
 echo "-- ready --------------------------------------------"
 echo "  The feed now carries BC River Forecast Centre outlooks (CLEVER / COFFEE / ELF)."
 echo "  They are SEASONAL: outside a model's season it publishes nothing, and a station"
 echo "  with no forecast today is the normal case, not a failure."
-echo "  serve-tiles.mjs serves  /feeds/live/*   real data,    province bundle"
-echo "                          /feeds/gauge/*  fixture data, fixture bundle"
-echo "  Point apps/mobile FEED + BUNDLE at the SAME pair: a feed is only"
-echo "  meaningful with the bundle it was cut against."
+echo "  serve-tiles.mjs serves  /feeds/live/*   real data, beside the release it was cut against."

@@ -5,8 +5,8 @@
  *
  * They were cut once (2026-10-23) by the release builder's own code (`python -m pipeline.tools.fixture_release`) from
  * the retired development bundle — the Chilliwack / Harrison valley slice of build 54ea0bb4 — and are frozen: the dev
- * bundle, its generator and the riffle prototype it was extracted from are gone (T61), so no test needs Python or the dev data path to read a
- * release. Three, so an update can be tested between two real releases:
+ * bundle, its generator and the prototype it was extracted from are gone (T61), so no test needs Python or the dev
+ * data path to read a release. Three, so an update can be tested between two real releases:
  *   plain        the slice as it was
  *   lakeGauged   + one `lake_gauge` row (wbk:329177889 08MH103): changes core (item.gauged) and conditions, not paint
  *   conformance  + three `lake_gauge` rows (two stations in one lake pin "the lowest") and the fixture source's

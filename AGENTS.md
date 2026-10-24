@@ -172,7 +172,7 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
 
 32. **A screen may not assert a fact about the data it is sitting on — it asks.**
     `App.tsx` passed `waters={255} reaches={6967} surveyed={35} stations={5}` and a fixed
-    `fetchedAt`, all transcribed from `design/riffle.html`, whose fixture is one valley. The
+    `fetchedAt`, all transcribed from a design mock-up whose fixture is one valley. The
     shipped bundle holds 19,699 waters and 2,324 stations, and the Layers sheet reported
     five of them under a heading reading "EVERY VALUE HAS AN AGE". Counts come from
     `source.counts()` and the feed's own index. A figure that is not available renders as
