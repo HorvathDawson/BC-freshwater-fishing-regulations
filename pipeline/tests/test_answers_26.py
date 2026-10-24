@@ -384,7 +384,7 @@ def test_a_line_count_says_rod():
 @pytest.mark.needs_bundle
 def test_the_shipped_labels_say_rod():
     data = json.loads((EXPORT_DIR / "ui-rules-export.json").read_text())
-    from pipeline.tools.export_codec import expand
+    from pipeline.deliver.export.codec import expand
     guide = json.loads((EXPORT_DIR / "ui-rules-guide.json").read_text())
     labels = [r["label"] for r in expand(data, guide)["rules"].values()]
     assert any("line (rod) per angler" in t for t in labels)

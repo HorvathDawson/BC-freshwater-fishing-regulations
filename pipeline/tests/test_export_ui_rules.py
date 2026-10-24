@@ -20,16 +20,20 @@ import pytest
 from pipeline.deliver import calendar as CAL
 
 from pipeline.regs.parsing import catalogue as C
-from pipeline.tools import export_ui_rules as X
+from pipeline.deliver.export import (
+    cases as export_cases, checks as export_checks, closures as export_closures, codec as export_codec,
+    contract as export_contract, dictionary as export_dictionary, guide as export_guide,
+    guide_words as export_guide_words, model as export_model, read as export_read
+)
 from pipeline.tests.conftest import need, BUNDLE_HINT
 
-BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or X.BUNDLE)
+BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or export_contract.BUNDLE)
 
 
 @pytest.fixture(scope="module")
 def doc(request) -> dict:
     need(request, "bundle", BUNDLE, BUNDLE_HINT)
-    return X.build(BUNDLE)
+    return export_model.build(BUNDLE)
 
 
 @pytest.fixture(scope="module")
@@ -93,9 +97,9 @@ def test_every_lift_in_the_bundle_reaches_the_export(doc, db):
 @pytest.mark.needs_bundle
 def test_the_lift_check_catches_an_export_that_drops_the_column(db, monkeypatch):
     """Mutation pin: the export as it was — `exempts` not among the rule columns."""
-    monkeypatch.setattr(X, "_RULE_COLUMNS",
-                        tuple(c for c in X._RULE_COLUMNS if c[0] != "exempts"))
-    lost = _lifts_lost(X.build(BUNDLE), db)
+    monkeypatch.setattr(export_read, "_RULE_COLUMNS",
+                        tuple(c for c in export_read._RULE_COLUMNS if c[0] != "exempts"))
+    lost = _lifts_lost(export_model.build(BUNDLE), db)
     assert lost and len(lost) == db.execute(
         "SELECT COUNT(*) FROM rule WHERE exempts IS NOT NULL").fetchone()[0]
 
@@ -127,7 +131,7 @@ def test_a_zone_rule_is_scoped_by_what_it_states_itself(doc):
     assert own, "nothing here was tested"
 
 @pytest.mark.needs_bundle
-@pytest.mark.parametrize("table,idcol", [(t, c) for t, c, _ in X._LIC_TABLES])
+@pytest.mark.parametrize("table,idcol", [(t, c) for t, c, _ in export_read._LIC_TABLES])
 def test_every_licensing_record_appears_exactly_once_with_its_placement(doc, db, table, idcol):
     cols = [r[1] for r in db.execute(f"PRAGMA table_info({table})")]
     rows = [dict(zip(cols, r)) for r in db.execute(f"SELECT * FROM {table}")]
@@ -139,7 +143,7 @@ def test_every_licensing_record_appears_exactly_once_with_its_placement(doc, db,
         record = json.loads(r["record"])
         assert x["fields"] == {k: v for k, v in record.items()
                                if k not in ("kind", "id", "verbatim")}
-        want = r["placement"] if "placement" in r else X.NOT_PLACED
+        want = r["placement"] if "placement" in r else export_guide_words.NOT_PLACED
         assert x["placement"] == want
         if want == "unresolved":
             assert x["provenance"]["uncertain"] and x["provenance"]["why"], x["id"]
@@ -297,7 +301,7 @@ def test_every_rule_says_where_it_holds_and_the_bundle_agrees(doc, db):
         assert (x["binds"] == "nowhere") == x["provenance"]["uncertain"], i
         assert x["fields"].get("undrawn_part") == (p or None), i
     g = doc["guide"]["placement"]["binds"]
-    assert set(g["values"]) == set(X.BINDS_TEXT)
+    assert set(g["values"]) == set(export_guide_words.BINDS_TEXT)
     assert sorted(g["in_part"]) == sorted(i for i, x in doc["rules"].items()
                                           if x["binds"] == "sections_in_part")
 
@@ -306,8 +310,8 @@ def test_every_rule_says_where_it_holds_and_the_bundle_agrees(doc, db):
 def test_the_binds_check_catches_an_export_that_ignores_the_part(db, monkeypatch):
     """Mutation: an export that reads only `uncertain` would ship an undrawn part as a rule that
     holds on the whole water."""
-    monkeypatch.setattr(X, "_binds", lambda r: "nowhere" if r["uncertain"] else "sections")
-    d = X.build(BUNDLE)
+    monkeypatch.setattr(export_read, "_binds", lambda r: "nowhere" if r["uncertain"] else "sections")
+    d = export_model.build(BUNDLE)
     if not any(d["rules"][i]["fields"].get("undrawn_part") for i in d["rules"]):
         pytest.fail("pinned: this bundle has no rule with an undrawn part, so the mutation proves nothing")
     with pytest.raises(AssertionError):
@@ -427,7 +431,7 @@ def test_no_label_starts_with_a_list_marker(doc):
 @pytest.mark.needs_bundle
 def test_a_bound_rule_on_a_cut_point_names_its_place(doc):
     """226 labels read exactly "No fishing" when a cut-point never reached the label."""
-    from pipeline.tools.export_ui_rules import _f
+    from pipeline.deliver.export.guide import _f
     named = [x for x in doc["rules"].values() if not x["provenance"]["uncertain"]
              and any(e.get("splits") for e in _f(x).get("extents") or [])]
     assert named
@@ -497,14 +501,14 @@ def test_counts_are_computed_not_remembered(doc, db):
 # ---------------------------------------------------------------------------------------
 @pytest.mark.needs_bundle
 def test_every_reference_the_export_makes_resolves(doc):
-    assert X.dangling(doc) == []
+    assert export_checks.dangling(doc) == []
 
 
 @pytest.mark.needs_bundle
 def test_every_reference_between_records_resolves(doc):
     """A defect in the CORPUS, not the export — the file ships the list under
     `about.unresolved_references`; this keeps it visible until it is empty."""
-    assert X.corpus_references(doc) == []
+    assert export_checks.corpus_references(doc) == []
     assert doc["about"]["unresolved_references"] == []
 
 
@@ -514,13 +518,13 @@ def test_the_reference_check_catches_a_dangling_id(doc):
                                "guide", "rules", "licensing")}
     bad = dict(bad, rulesets=dict(doc["rulesets"],
                                   extra={"sections": 1, "reach": ["nowhere::x.r1"]}))
-    assert X.dangling(bad) == ["ruleset extra -> nowhere::x.r1"]
+    assert export_checks.dangling(bad) == ["ruleset extra -> nowhere::x.r1"]
     # a water's part naming a set the file does not have
     item = next(iter(doc["waters"]))
     w = dict(doc["waters"][item], parts=[{"ruleset": "99999999", "licensing_set": None,
                                           "sections": 1, "touches": []}])
     bad = dict(bad, rulesets=doc["rulesets"], waters=dict(doc["waters"], **{item: w}))
-    assert X.dangling(bad) == [f"water {item} -> ruleset 99999999"]
+    assert export_checks.dangling(bad) == [f"water {item} -> ruleset 99999999"]
 
 
 # ---------------------------------------------------------------------------------------
@@ -528,7 +532,7 @@ def test_the_reference_check_catches_a_dangling_id(doc):
 # ---------------------------------------------------------------------------------------
 @pytest.mark.needs_bundle
 def test_no_retired_field_appears_anywhere(doc):
-    assert X.retired_keys(doc) == []
+    assert export_checks.retired_keys(doc) == []
 
 
 def _one_rule_doc(doc, mutate):
@@ -551,7 +555,7 @@ def _one_rule_doc(doc, mutate):
     ("a retired type", lambda x: x.update(type="document_required")),
 ])
 def test_the_retired_check_catches_an_injected_key(doc, name, mutate):
-    assert X.retired_keys(_one_rule_doc(doc, mutate)), name
+    assert export_checks.retired_keys(_one_rule_doc(doc, mutate)), name
 
 
 @pytest.mark.needs_bundle
@@ -559,7 +563,7 @@ def test_a_current_key_that_shares_a_retired_name_is_not_flagged(doc):
     """`method` is retired as a RULE field and current as a gear-clause condition."""
     ok = _one_rule_doc(doc, lambda x: x["fields"].update(
         gear=[{"slot": "bait", "allow": ["dead_fin_fish"], "when": {"method": "set_lining"}}]))
-    assert X.retired_keys(ok) == []
+    assert export_checks.retired_keys(ok) == []
 
 
 @pytest.mark.needs_bundle
@@ -567,7 +571,7 @@ def test_the_retired_check_catches_a_licensing_key(doc):
     lid = next(iter(doc["licensing"]))
     x = copy.deepcopy(doc["licensing"][lid])
     x["fields"]["on_retention"] = True
-    assert X.retired_keys({"rules": {}, "licensing": {lid: x}})
+    assert export_checks.retired_keys({"rules": {}, "licensing": {lid: x}})
 
 
 # ---------------------------------------------------------------------------------------
@@ -579,12 +583,12 @@ def test_every_type_kind_slot_and_act_is_explained(doc):
     assert set(g["rule_types"]) == {t.value for t in C.RuleType}
     assert set(g["gear"]["slots"]) == {s.value for s in C.Slot}
     assert set(g["gear"]["conduct"]["acts"]) == set(C.CONDUCT_ACTS)
-    assert set(g["licensing"]["kinds"]) == set(X._licensing_models())
+    assert set(g["licensing"]["kinds"]) == set(export_guide._licensing_models())
     assert set(g["licensing"]["who"]["axes"]) == set(C.WHO_AXES)
     for section in (g["rule_types"], g["gear"]["slots"], g["gear"]["conduct"]["acts"],
                     g["licensing"]["kinds"]):
         assert all(v["means"] for v in section.values())
-    assert X.unexplained(doc) == []
+    assert export_checks.unexplained(doc) == []
 
 
 @pytest.mark.needs_bundle
@@ -598,16 +602,16 @@ def test_every_guide_section_in_the_contents_exists(doc):
                                         ("CLAUSE_TEXT", "unless"),
                                         ("LICENSING_KIND_TEXT", "exemption")])
 def test_a_missing_explanation_is_caught(doc, monkeypatch, table, drop):
-    words = dict(getattr(X, table))
+    words = dict(getattr(export_checks, table))
     words.pop(drop)
-    monkeypatch.setattr(X, table, words)
-    assert any(drop in p for p in X.unexplained(doc))
+    monkeypatch.setattr(export_checks, table, words)
+    assert any(drop in p for p in export_checks.unexplained(doc))
 
 
 @pytest.mark.needs_bundle
 def test_words_for_a_field_the_model_lost_are_caught(doc, monkeypatch):
-    monkeypatch.setattr(X, "RULE_FIELD_TEXT", dict(X.RULE_FIELD_TEXT, when_open="stale"))
-    assert any("when_open" in p for p in X.unexplained(doc))
+    monkeypatch.setattr(export_checks, "RULE_FIELD_TEXT", dict(export_checks.RULE_FIELD_TEXT, when_open="stale"))
+    assert any("when_open" in p for p in export_checks.unexplained(doc))
 
 
 @pytest.mark.needs_bundle
@@ -626,7 +630,7 @@ def test_the_field_dictionary_is_exactly_what_ships(doc):
 
 
 #: EVERY KEY IN THE DATA HAS WORDS (user ask 2026-10-02): where each kind of key is explained.
-#: Read here from the OUTPUT, independently of `export_ui_rules.dictionary_gaps`, which must agree.
+#: Read here from the OUTPUT, independently of `checks.dictionary_gaps`, which must agree.
 _KEYED = {
     "file": lambda doc: [doc],
     "water": lambda doc: list(doc["waters"].values()),
@@ -663,7 +667,7 @@ def test_every_key_in_the_data_has_a_field_dictionary_entry(doc):
     `provenance`) and a licensing record (record, `fields`, `provenance`, `period`), has a
     non-empty `field_dictionary` entry — and `problems` says the same."""
     assert _undescribed(doc) == []
-    assert X.dictionary_gaps(doc) == []
+    assert export_dictionary.dictionary_gaps(doc) == []
     # the new water fields are there, in words
     for k in ("steelhead", "steelhead_source", "tidal", "part_of", "outside_bc"):
         assert doc["field_dictionary"]["water"][k], k
@@ -720,7 +724,7 @@ def test_an_undescribed_key_is_caught(doc, where):
         fd["water"] = {k: v for k, v in fd["water"].items() if k != "steelhead_source"}
         bad = dict(doc, field_dictionary=fd)
     assert _undescribed(bad), where
-    assert X.dictionary_gaps(bad), where
+    assert export_dictionary.dictionary_gaps(bad), where
 
 
 @pytest.mark.needs_bundle
@@ -769,7 +773,7 @@ def test_each_concept_has_a_live_example(doc):
 # ---------------------------------------------------------------------------------------
 @pytest.mark.needs_bundle
 def test_the_output_is_deterministic(doc):
-    assert X.dumps(X.build(BUNDLE)) == X.dumps(doc)
+    assert export_codec.dumps(export_model.build(BUNDLE)) == export_codec.dumps(doc)
 
 
 def test_a_bundle_without_the_columns_is_refused(tmp_path):
@@ -781,7 +785,7 @@ def test_a_bundle_without_the_columns_is_refused(tmp_path):
     con.commit()
     con.close()
     with pytest.raises(SystemExit, match="entry.matched"):
-        X.build(p)
+        export_model.build(p)
 
 
 def test_a_bundle_without_the_exempts_column_is_refused(tmp_path):
@@ -794,7 +798,7 @@ def test_a_bundle_without_the_exempts_column_is_refused(tmp_path):
     con.commit()
     con.close()
     with pytest.raises(SystemExit, match="rule.exempts"):
-        X.build(p)
+        export_model.build(p)
 
 
 @pytest.mark.needs_bundle
@@ -857,7 +861,7 @@ def test_every_case_expects_what_the_reference_answers(doc, db):
     licensing case's `expect_licensing` is exactly its licensing set in the bundle."""
     from pipeline.deliver.bundle import read as RD
     cs = doc["guide"]["cases"]["cases"]
-    assert len(cs) >= len(X.CASE_MECHANISMS)
+    assert len(cs) >= len(export_cases.CASE_MECHANISMS)
     for c in cs:
         sid = _case_section(db, c)
         assert sid is not None, (c["mechanism"], c["water"])
@@ -881,13 +885,13 @@ def test_every_mechanism_has_a_real_case(doc):
     refuses the export. MUTATION: dropping a mechanism's cases makes `case_problems` name it."""
     g = doc["guide"]["cases"]
     assert g["missing"] == []
-    assert {c["mechanism"] for c in g["cases"]} == set(X.CASE_MECHANISMS)
-    assert X.case_problems(doc) == []
+    assert {c["mechanism"] for c in g["cases"]} == set(export_cases.CASE_MECHANISMS)
+    assert export_checks.case_problems(doc) == []
     broken = copy.deepcopy(doc)
     bg = broken["guide"]["cases"]
     bg["cases"] = [c for c in bg["cases"] if c["mechanism"] != "two_regions_lake"]
-    bg["missing"] = sorted(set(X.CASE_MECHANISMS) - {c["mechanism"] for c in bg["cases"]})
-    assert X.case_problems(broken) == ["guide.cases: no real case of two_regions_lake"]
+    bg["missing"] = sorted(set(export_cases.CASE_MECHANISMS) - {c["mechanism"] for c in bg["cases"]})
+    assert export_checks.case_problems(broken) == ["guide.cases: no real case of two_regions_lake"]
 
 
 @pytest.mark.needs_bundle
@@ -981,7 +985,7 @@ def test_an_unidentified_part_reads_as_what_is_true():
     """"on parts" names no place: the sentence says the regulations do not identify the parts.
     The whole composed string is pinned for each shape (AGENTS 33). MUTATION: quoting the part
     for every rule in `not_yet_mapped` fails every assert here."""
-    from pipeline.tools.export_ui_rules import not_yet_mapped
+    from pipeline.deliver.export.read import not_yet_mapped
     tail = " It does not apply to the rest of the water."
     assert not_yet_mapped({"undrawn_part": "on parts"}) == {
         "display": "prominent", "part": "on parts", "identified": False,
@@ -1095,7 +1099,7 @@ def test_the_gotchas_say_where_closures_combine_and_where_a_dated_bait_ban_repla
     # L3: where the shape is printed is read off the rules, never a fixed sentence
     says = g["dated_bait_ban_replaces_zone"]["says"]
     assert "Only Region 1" not in says and "Today Region 1 prints this shape (4 waters)" in says
-    assert X._bait_where(doc["rules"], {}) == ""
+    assert export_closures._bait_where(doc["rules"], {}) == ""
 
 
 FULTON = "r6:fulton_river@6-8"
@@ -1114,7 +1118,7 @@ def test_every_both_hold_claim_is_the_readers(doc, db):
     from pipeline.tests.test_lift_decisions import predates
     predates(db)
     cc = doc["guide"]["gotchas"]["closures_combine"]["entries"]
-    assert X.closures_combine_problems(cc, BUNDLE) == []
+    assert export_closures.closures_combine_problems(cc, BUNDLE) == []
     notes = [n for e in cc.values() for n in e["notes"] if n["kind"] == "row_closure"]
     assert notes and all(n["zone_holds"] and n["example"]["ruleset"] for n in notes)
     # the example is a KEY, resolved in the bundle; no section handle ships (AGENTS 5)
@@ -1137,12 +1141,12 @@ def test_every_both_hold_claim_is_the_readers(doc, db):
                                                 (sid,)).fetchone() is not None,
                "steelhead_rules": db.execute("select 1 from section_steelhead_rules where sid = ?",
                                              (sid,)).fetchone() is not None}
-    assert X.example_sid(example, BUNDLE) is not None
+    assert export_closures.example_sid(example, BUNDLE) is not None
     fake = {FULTON: {"name": "Fulton River", "notes": [{
         "kind": "row_closure", "row_rule": f"{FULTON}::fulton_river.r1", "zone_rule": WINTER6,
         "example": example, "fish": "all",
         "zone_holds": [{"dates": "Jan 1-Apr 30", "runs": [[1, 1, 4, 30]], "fish": "all"}]}]}}
-    assert len(X.closures_combine_problems(fake, BUNDLE)) == 1
+    assert len(export_closures.closures_combine_problems(fake, BUNDLE)) == 1
     # the lifts in part are named: the Nicola's trout Jan 1-Feb 28 (the char and whitefish
     # still closed then), the Thompson's May opening on the sections it binds
     z3 = "z3:spring_stream_closure::spring_stream_closure.r1"
@@ -1193,7 +1197,7 @@ def test_every_annual_quota_with_a_record_duty_is_linked(doc):
     """A page added its own "Record each one you keep on your licence" under the steelhead 10,
     beside the printed steelhead.r4: the duty twice. Each annual quota whose printed record rule
     is in force wherever it is carries `recorded_by`; the record rule lists it in `records_for`."""
-    assert X.record_link_problems(doc) == []
+    assert export_read.record_link_problems(doc) == []
     R = doc["rules"]
     for q, r in RECORD_PAIRS.items():
         assert R[q]["recorded_by"] == r, q
@@ -1218,7 +1222,7 @@ def _cut(doc):
 def test_the_record_link_check_catches_a_dropped_link(doc):
     bad = _cut(doc)
     del bad["rules"]["zp:steelhead::steelhead.r1"]["recorded_by"]
-    got = X.record_link_problems(bad)
+    got = export_read.record_link_problems(bad)
     assert "annual quota zp:steelhead::steelhead.r1: not linked to its record duty " \
            "zp:steelhead::steelhead.r4" in got
 
@@ -1233,7 +1237,7 @@ def test_the_record_link_check_catches_a_duty_not_in_force_where_the_quota_is(do
             if via != "sections" and r in ids:
                 ids.remove(r)
     assert f"annual quota {q}: linked to {r}, which is not its record duty" \
-        in X.record_link_problems(bad)
+        in export_read.record_link_problems(bad)
 
 
 @pytest.mark.needs_bundle
@@ -1247,7 +1251,7 @@ def test_the_record_link_check_catches_an_ambiguous_duty(doc):
             if via != "sections" and "zp:steelhead::steelhead.r4" in ids:
                 ids.append(twin)
     assert any(p.startswith("annual quota zp:steelhead::steelhead.r1: record duty is ambiguous")
-               for p in X.record_link_problems(bad))
+               for p in export_read.record_link_problems(bad))
 
 
 @pytest.mark.needs_bundle
@@ -1260,4 +1264,4 @@ def test_the_record_link_check_reads_fish_origin_and_dates(doc, field, value):
     bad = _cut(doc)
     bad["rules"]["zp:steelhead::steelhead.r4"]["fields"][field] = value
     assert "annual quota zp:steelhead::steelhead.r1: linked to zp:steelhead::steelhead.r4, " \
-           "which is not its record duty" in X.record_link_problems(bad)
+           "which is not its record duty" in export_read.record_link_problems(bad)

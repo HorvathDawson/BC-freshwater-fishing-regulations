@@ -27,7 +27,7 @@ Owner: yes (Q43, the model). Default: keep binding the whole lake, add the area 
 Model: owner Q43 default. Every widened rule keeps binding the WHOLE water (no lake parts, no atlas change) and carries
 an AREA CAVEAT that is pipeline data; the app prints it as stored and words nothing.
 
-- `pipeline/tools/export_ui_rules.py`: `not_yet_mapped(r, verbatim, entry)` gains `map` and cites it in `says`.
+- `pipeline/deliver/export/`: `not_yet_mapped(r, verbatim, entry)` gains `map` and cites it in `says`.
   `book_map(part, verbatim, entry)` is the one place that decides which book map draws a part: a map named in the
   part or the rule's line ("(map A)", "described on map 1"), and its PRINTED page from "see map(s) … on page N" in the
   rule's line, else in the row heading, else the row's own single page where the row says the map is "below". An
@@ -507,7 +507,7 @@ Findings:
    heading's "(see map on page 28 for area closure)" for EVERY identified part on the row. The p.28 Mahood map shows
    only the western tip (Canim River mouth, the Jan 1-June 30 sign line); "within 200 m of the Mahood River outlet"
    (r5-r8) is the lake's far end, off the map. The app would have told anglers "see the map on p.28" for a place
-   that map does not show, and opened p.28 from their book link. Fix: `export_ui_rules.ROW_MAP_DOES_NOT_DRAW`
+   that map does not show, and opened p.28 from their book link. Fix: `export.read.ROW_MAP_DOES_NOT_DRAW`
    (row-name prefix + part pattern, each verified against the printed map); `book_map` returns None for a part in it.
    Tests: `MAPS` drops Mahood r5-r8; `test_a_part_off_the_rows_map_cites_nothing` (Mahood outlet cites nothing, its
    western tip still cites p.28, and every exclusion still matches a widened rule so none goes stale).

@@ -356,8 +356,8 @@ def test_a_catch_and_release_row_lifts_the_zone_quotas_that_name_a_fish(db):
 
 @pytest.mark.needs_bundle
 def test_the_guide_states_the_ruling(db):
-    from pipeline.tools import export_ui_rules as X
-    g = X.build(Path(BUNDLE))["guide"]["ladder"]
+    from pipeline.deliver.export import model as export_model
+    g = export_modelxport_modelxport_model.build(Path(BUNDLE))["guide"]["ladder"]
     assert "effective_rules" in g["reference"]
     assert "PER FISH" in g["per_fish"] and "Trout/char: 5" in g["per_fish"]
     words = g["who_speaks"]
@@ -823,8 +823,8 @@ def test_chilliwack_rainbow_over_50_cm_is_a_steelhead(db):
 
 @pytest.mark.needs_bundle
 def test_the_guide_states_the_rulings_of_the_second_round(db):
-    from pipeline.tools import export_ui_rules as X
-    g = X.build(Path(BUNDLE))["guide"]
+    from pipeline.deliver.export import model as export_model
+    g = export_modelxport_modelxport_model.build(Path(BUNDLE))["guide"]
     lad = g["ladder"]
     assert "SIT BESIDE" in lad["quotas_sit_beside"] and "SAME STATEMENT" in lad["quotas_sit_beside"]
     assert "NAMES THE" in lad["closures"] and "West Road" in lad["closures"]
@@ -1114,8 +1114,8 @@ def test_the_dean_still_sits_beside_region_5(db):
 
 @pytest.mark.needs_bundle
 def test_the_guide_states_rulings_1_to_3(db):
-    from pipeline.tools import export_ui_rules as X
-    lad = X.build(Path(BUNDLE))["guide"]["ladder"]
+    from pipeline.deliver.export import model as export_model
+    lad = export_modelxport_modelxport_model.build(Path(BUNDLE))["guide"]["ladder"]
     q = lad["quotas_sit_beside"]
     assert "CAN NEVER MAKE THE NUMBER BIGGER" not in q and "capped" not in q
     assert "the WATER's number replaces" in q and "never the smaller" in q

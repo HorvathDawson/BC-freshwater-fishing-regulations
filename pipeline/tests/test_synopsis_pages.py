@@ -124,14 +124,14 @@ def test_one_footer_reader():
 
 
 def test_the_export_ships_the_map_and_refuses_an_unmapped_page(page_map):
-    from pipeline.tools import export_ui_rules as X
-    shipped = X.pdf_pages()
+    from pipeline.deliver.export import checks as export_checks, guide as export_guide
+    shipped = export_guide.pdf_pages()
     assert shipped == {str(k): v for k, v in page_map.items()}
     doc = {"guide": {"pdf_pages": shipped},
            "entries": {"a": {"pages": [9]}, "b": {"pages": [81]}}}
-    assert X.pdf_page_problems(doc) == [
+    assert export_checks.pdf_page_problems(doc) == [
         "entry b cites printed page 81, which guide.pdf_pages does not map"]
-    assert X.pdf_page_problems({"guide": {}, "entries": {}})        # an empty map is refused
+    assert export_checks.pdf_page_problems({"guide": {}, "entries": {}})        # an empty map is refused
 
 
 def test_the_design_mock_carries_the_shipped_map_and_links_through_it(page_map):

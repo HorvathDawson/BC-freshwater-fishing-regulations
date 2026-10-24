@@ -151,7 +151,7 @@ BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or GENERATED.bundle / "bundle.s
 
 
 def _export_dir() -> Path:
-    from pipeline.tools.export_ui_rules import OUT
+    from pipeline.deliver.export.contract import OUT
     return Path(os.environ.get("ANSWERS_EXPORT_DIR") or OUT.parent)
 
 

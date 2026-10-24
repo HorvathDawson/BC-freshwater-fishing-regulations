@@ -153,7 +153,7 @@ Each item agrees today or is low impact, so each needs only a pin or a small hel
 
 ## Items
 1. **Closure grade** (answers 9, cross 11): `take == 0 and may_target false` is re-inlined in `rules.py:462, 649`,
-   `labels.py:463` and `export_ui_rules.py:2540`; `status_index.closes` and `verdicts/project.closes` are twins. 0
+   `labels.py:463` and `pipeline/deliver/export/`; `status_index.closes` and `verdicts/project.closes` are twins. 0
    differ today. → extend `test_the_three_readers_ask_closure_grade` to every reader; delete `rows._closed_gate`.
 2. **Does this rule keep a fish?** (answers 8): `yields_to_release` against `display.record_kept`, which regex-reads
    `dimension`. → `rules.keeps()`.

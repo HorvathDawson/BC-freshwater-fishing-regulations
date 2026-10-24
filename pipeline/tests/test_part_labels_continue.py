@@ -228,7 +228,7 @@ def test_lower_ends_on_the_built_export(request):
     from pipeline.deliver.answers import common as C
     from pipeline.deliver.bundle import read as R
     from pipeline.tests.conftest import need, EXPORT_HINT
-    from pipeline.tools.export_codec import expand
+    from pipeline.deliver.export.codec import expand
     d = Path(os.environ.get("ANSWERS_EXPORT_DIR") or Path(R.BUNDLE).parent.parent / "regs")
     need(request, "bundle", d / "ui-rules-export.json", EXPORT_HINT)
     data, guide = C.load_export(d)

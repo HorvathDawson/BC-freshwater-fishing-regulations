@@ -421,7 +421,7 @@ BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or GENERATED.bundle / "bundle.s
 
 
 def _export_dir() -> Path:
-    from pipeline.tools.export_ui_rules import OUT
+    from pipeline.deliver.export.contract import OUT
     return Path(os.environ.get("ANSWERS_EXPORT_DIR") or OUT.parent)
 
 
@@ -439,7 +439,7 @@ def live(request, tmp_path_factory):
 
 @pytest.mark.needs_bundle
 def test_the_live_store_decodes_to_the_answers_bytes_and_the_export_subset(live):
-    from pipeline.tools.export_codec import expand
+    from pipeline.deliver.export.codec import expand
     out, raw, _A, E, G = live
     s = Store(out)
     try:

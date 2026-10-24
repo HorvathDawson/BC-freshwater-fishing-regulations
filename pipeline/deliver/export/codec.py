@@ -1,7 +1,7 @@
 """THE UI EXPORT'S WIRE FORMAT, and its reference decoder.
 
-`export_ui_rules.build()` reads the bundle into ONE reading model — the shape every check in
-`export_ui_rules.problems` proves and every text in `guide` / `field_dictionary` describes. What
+`model.build()` reads the bundle into ONE reading model — the shape every check in
+`checks.problems` proves and every text in `guide` / `field_dictionary` describes. What
 ships is that model ENCODED into two files, written by the same builder from the same bundle and
 stamped with the same digests (`about.bundle`):
 
@@ -9,7 +9,7 @@ stamped with the same digests (`about.bundle`):
     ui-rules-guide.json    `guide` (with `cases`), `field_dictionary` and `species`: how to read it
 
 `compact(doc)` encodes; `expand(data, guide)` is the REFERENCE DECODER and returns exactly the
-model `compact` was given (`export_ui_rules.main` refuses to write a pair that does not decode to
+model `compact` was given (`__main__.main` refuses to write a pair that does not decode to
 it). The encoding loses nothing: every byte it drops is a default, a key, or a value derived from
 what it keeps, each listed in `ENCODING_TEXT`, which `field_dictionary["encoding"]` ships — so a
 client in another language can decode by reading the dictionary alone.
@@ -535,7 +535,7 @@ def _is_int(v) -> bool:
 
 def wire_problems(data: dict, guide: dict) -> list[str]:
     """Every integer reference that does not resolve, every parallel list out of step, every
-    key of the data file the dictionary does not describe. `export_ui_rules.problems` then runs
+    key of the data file the dictionary does not describe. `checks.problems` then runs
     on `expand(data, guide)` for every string reference."""
     out = []
     nR, nL, nB = len(data["rules"]), len(data["licensing"]), len(data["bases"])

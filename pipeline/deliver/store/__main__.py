@@ -22,7 +22,7 @@ from pipeline.deliver.store.common import CODECS, StoreError
 
 
 def _inputs(p: argparse.ArgumentParser) -> None:
-    from pipeline.tools.export_ui_rules import OUT as EXPORT_OUT
+    from pipeline.deliver.export.contract import OUT as EXPORT_OUT
     p.add_argument("--bundle", type=Path, default=GENERATED.bundle / "bundle.sqlite")
     p.add_argument("--export-dir", type=Path, default=EXPORT_OUT.parent)
     p.add_argument("--answers", type=Path, default=None,
@@ -65,7 +65,7 @@ def main(argv=None) -> int:
         from pipeline.deliver.store.build import load_inputs
         from pipeline.deliver.store.common import export_subset
         from pipeline.deliver.store.decode import Store
-        from pipeline.tools.export_codec import expand
+        from pipeline.deliver.export.codec import expand
         raw, _A, E, G = load_inputs(a.answers or a.export_dir / "ui-rules-answers.json",
                                     a.export_dir)
         from pipeline.deliver.store.release import province_store

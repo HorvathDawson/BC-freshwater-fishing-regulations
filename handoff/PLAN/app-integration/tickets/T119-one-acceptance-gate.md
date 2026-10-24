@@ -106,7 +106,7 @@ Rebuild: none (code only; the review app picks it up on restart).
   API/writes/safety + review reaches + T117 walks: all pass (the corpus gate test ran against the live build).
 - Full suite (heavy.sh, unfiltered): 5,158 passed, 15 failed, 28 errors. The 15 fail identically with this change
   stashed (area_boundary curated zones, dataflow gate 4, dfo_salmon archives, entry_id inline parse in review/,
-  export_codec on-disk pair, fixture_release, tidal_gauges, update_hydat_script) — pre-existing, not this lane. The 28
+  export.codec on-disk pair, fixture_release, tidal_gauges, update_hydat_script) — pre-existing, not this lane. The 28
   errors are source-data tests (GeoPackage absent in the worktree).
 
 ## Adversarial review — 2026-10-23

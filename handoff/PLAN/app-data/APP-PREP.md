@@ -1022,9 +1022,9 @@ and export models pass between steps in memory, and a `--debug-json` flag writes
 ## Files
 - `pipeline/deliver/__main__.py`: `export` → `answers` → `store` → `package` in one process for the model hand-off (the
   bundle and verdicts steps stay separate subprocesses for memory, DATAFLOW P1b)
-- `pipeline/tools/export_ui_rules.py`, `pipeline/deliver/answers/cli.py`, `pipeline/deliver/store/build.py`: take models, not paths; `--debug-json DIR`
+- `pipeline/deliver/export/`, `pipeline/deliver/answers/cli.py`, `pipeline/deliver/store/build.py`: take models, not paths; `--debug-json DIR`
 - `pipeline/deliver/answers/reference/page_data.py`, `pipeline/tools/audit/water_map_export.py`, `app/design/regs-v11/port/{taps.py,verify_map.py,sync.mjs}`: read the packages (water / regs-frames / regs-sid) or the debug dump
-- about 35 tests that `json.load` the export: switch them to `export_ui_rules.load()` over the in-memory model (AGENTS 58 already says so)
+- about 35 tests that `json.load` the export: switch them to `export.files.load()` over the in-memory model (AGENTS 58 already says so)
 - `pipeline/gauges/feed/publish.py:644-646`: stop writing `stats.json`. Delete `record(station)` (`app/packages/data/src/feed/http.ts:179,219-223`, no caller). Map colouring reads `index.json` only (MINIMAL-PACKAGING §9).
 - `regs.sqlite` is no longer written by default (its tables live in water / regs-* / regs-sid; owner Q12)
 

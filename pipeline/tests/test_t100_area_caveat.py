@@ -3,8 +3,8 @@ part of its water that nothing draws ("widened": bound to the WHOLE water, `undr
 part) keeps binding the whole water, and the page carries an AREA CAVEAT saying where it holds — and,
 where the book prints a map of the part, citing it ("see map A on p.28 of the regulations").
 
-ONE DECISION, ONE FUNCTION. Which book map a part is drawn on is `export_ui_rules.book_map`; the
-caveat sentence is the export's `not_yet_mapped.says` (`export_ui_rules.not_yet_mapped`); the
+ONE DECISION, ONE FUNCTION. Which book map a part is drawn on is `pipeline.deliver.export.read.book_map`; the
+caveat sentence is the export's `not_yet_mapped.says` (`read.not_yet_mapped`); the
 answers READ it — `display.applies_here` ends a widened rule's `applies` with it and
 `display.book_pages` adds the map's page to its `book`. The app prints `applies` and `book` as
 stored (rule sheet, sources, decided lines, the Keep in-part block's book link); it words nothing.
@@ -32,8 +32,7 @@ import pytest
 from pipeline.common.curated import CURATED
 from pipeline.deliver.answers.common import BOOK_TITLE
 from pipeline.deliver.answers.display import applies_here, book_pages
-from pipeline.tools.export_ui_rules import (ROW_MAP_DOES_NOT_DRAW, book_map, not_yet_mapped,
-                                            undrawn_map_problems)
+from pipeline.deliver.export.read import ROW_MAP_DOES_NOT_DRAW, book_map, not_yet_mapped, undrawn_map_problems
 
 TAIL = " It does not apply to the rest of the water."
 
@@ -256,10 +255,12 @@ def doc(request) -> dict:
     import os
     from pathlib import Path
     from pipeline.tests.conftest import BUNDLE_HINT, need
-    from pipeline.tools import export_ui_rules as X
-    bundle = Path(os.environ.get("UI_EXPORT_BUNDLE") or X.BUNDLE)
+    from pipeline.deliver.export import (
+        checks as export_checks, contract as export_contract, model as export_model
+    )
+    bundle = Path(os.environ.get("UI_EXPORT_BUNDLE") or export_contractxport_contract.BUNDLE)
     need(request, "bundle", bundle, BUNDLE_HINT)
-    return X.build(bundle)
+    return export_modelxport_model.build(bundle)
 
 
 @pytest.mark.needs_bundle
@@ -276,12 +277,14 @@ def test_the_export_carries_the_caveats(doc):
 def test_the_export_gate_refuses_an_unmapped_map_page(doc):
     """T100 review: `undrawn_map_problems` is wired into the export's own gate (`problems`), so an
     export citing a map page the PDF map lacks is refused, not just reported by this test file."""
-    from pipeline.tools import export_ui_rules as X
+    from pipeline.deliver.export import (
+        checks as export_checks, contract as export_contract, model as export_model
+    )
     k = f"{SHUSWAP}.r3"
     mp = doc["rules"][k]["not_yet_mapped"]["map"]
     keep = mp["page"]
     try:
         mp["page"] = 999
-        assert f"{k}: cites {mp['cite']}, which guide.pdf_pages does not map" in X.problems(doc)
+        assert f"{k}: cites {mp['cite']}, which guide.pdf_pages does not map" in export_checksxport_checks.problems(doc)
     finally:
         mp["page"] = keep

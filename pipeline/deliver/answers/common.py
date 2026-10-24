@@ -7,7 +7,7 @@ THE BUNDLE IS LOADED ONCE (`load`): every rule (the reader's own cache, `read._r
 rule set's bindings, every section's rule key and its water kind, the meta digests.
 
 THE RULE ORDER IS THE EXPORT'S. A rule is referred to by its index in the export's `rules` array,
-which is the bundle's rules sorted by `entry_id::rule_id` (`export_codec`: "in `rule_ids` order,
+which is the bundle's rules sorted by `entry_id::rule_id` (`pipeline.deliver.export.codec`: "in `rule_ids` order,
 sorted by entry_id, then rule_id"). `Bundle.index` builds that order from the bundle itself, and
 `check_export` holds it to the shipped export (an export pair cut from another bundle is refused).
 
@@ -166,7 +166,7 @@ def check_export(B: Bundle, data: dict, guide: dict, model: Optional[dict] = Non
     """The export pair must be ONE pair, cut from THIS bundle, and its rule sets must be the
     bundle's — otherwise its integer rule refs would point at other rules. Returns the export's
     rule index, `{"entry::rule": index}`."""
-    from pipeline.tools.export_codec import FORMAT, expand
+    from pipeline.deliver.export.codec import FORMAT, expand
     if data.get("about", {}).get("format") != FORMAT or guide.get("about", {}).get("format") != FORMAT:
         raise AnswersError(f"answers: the export pair is not format {FORMAT}")
     if data["about"]["bundle"] != guide["about"]["bundle"]:

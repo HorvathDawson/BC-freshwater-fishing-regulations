@@ -155,7 +155,7 @@ class Context:
         self.store = VerdictStore.open(verdicts, bundle) if verdicts else None
         #: the lowest section of each licence key (`licence.representatives`, read in the parent)
         self.licence_reps = licence_reps
-        #: the export pair, decoded ONCE (`export_codec.expand`), for the statics (parent only)
+        #: the export pair, decoded ONCE (`pipeline.deliver.export.codec.expand`), for the statics (parent only)
         self.doc = doc
         self.bundle = self.B.path
         self.sets = self.B.sets
@@ -453,7 +453,7 @@ def build(bundle: str, export_dir: Path, *, workers: int = 0, items: Optional[It
     `export` is the pair already read (`load_export`), so a caller holding it does not read it
     twice (M9)."""
     import time
-    from pipeline.tools.export_codec import expand
+    from pipeline.deliver.export.codec import expand
     t0 = time.time()
     verdicts = str(verdicts or Path(bundle).with_name("verdicts.sqlite"))
     data, guide = export if export is not None else load_export(export_dir)

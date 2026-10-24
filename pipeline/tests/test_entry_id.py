@@ -155,14 +155,14 @@ def test_no_ts_reader_of_an_entry_id_region():
 
 def test_the_export_and_the_store_ship_the_parsed_region():
     """The region the app shows is the pipeline's parse, carried end to end: the export's rule provenance
-    (`export_ui_rules`), the codec (dropped on the wire as derivable, refilled by `expand` from the same function) and
+    (`pipeline.deliver.export.read`), the codec (dropped on the wire as derivable, refilled by `expand` from the same function) and
     the store's rule blob."""
     from pipeline.deliver.store import common as SC
-    from pipeline.tools import export_codec as K
-    from pipeline.tools import export_ui_rules as X
+    from pipeline.deliver.export import codec as K
+    from pipeline.deliver.export import guide_words as export_guide_words, read as export_read
     import inspect
-    assert "region" in SC.RULE_PROV_KEEP and "region" in X.PROVENANCE_TEXT
-    assert '"region": EID.region_of(r["entry_id"])' in inspect.getsource(X)
+    assert "region" in SC.RULE_PROV_KEEP and "region" in export_guide_words.PROVENANCE_TEXT
+    assert '"region": EID.region_of(r["entry_id"])' in inspect.getsource(export_read)
     assert [EID.region_of(e) for e in ("z7a:x", "z7b:x", "z5:x", "r6:x@6-1", "r7:w@7-30", "zp:x")] == \
         ["7a", "7b", "5", "6", "7", None]
     src = inspect.getsource(K)

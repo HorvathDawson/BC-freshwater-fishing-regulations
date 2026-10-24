@@ -247,7 +247,7 @@ Made 2026-09-29 by another agent; the artifacts in the table above predate them.
    step 4b still displaces the region's trout/char quota for every origin (the water's own
    hatchery quota speaks).
 2. **`pipeline/regs/parsing/species.py` is deleted.** Scientific names are
-   `catalogue.SCIENTIFIC_NAMES`, which `export_ui_rules.py` reads; `pipeline/tests/test_species.py`
+   `catalogue.SCIENTIFIC_NAMES`, which `pipeline/deliver/export/` reads; `pipeline/tests/test_species.py`
    is deleted; so is `bc_species.csv`, which nothing read (2026-09-29).
 3. **Validators** (`catalogue.py`): a gear `note` (`GearWhen`/`GearSpec`) requires a
    `review_reason`; `lengths` is refused off `retention_limit`; a conditional `any_bait` ban

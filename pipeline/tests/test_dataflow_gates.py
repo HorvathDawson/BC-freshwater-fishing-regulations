@@ -83,7 +83,7 @@ READER = {"effective_rules", "effective_rules_bound"}
 #: Re-ask the reader ON PURPOSE: each checks a stored answer against an output it did not build.
 READER_ORACLES = {
     ("pipeline/deliver/status_index.py", "status_by_reader"),
-    ("pipeline/tools/export_ui_rules.py", "closures_combine_problems"),
+    ("pipeline/deliver/export/closures.py", "closures_combine_problems"),
     # T99 / RULINGS Z1: the base-plus-deltas check asks the reader twice (base alone, everything bound) to
     # attribute every difference to a row — a checker of the answers, never a consumer of them
     ("pipeline/tools/audit/base_deltas.py", "answers"),
@@ -132,7 +132,7 @@ def test_gate_1_goes_red_on_a_planted_call():
 # --------------------------------------------------------------------------------------------
 
 #: The export's record writer ships `may_target` as a field (0/1 -> false/true); it decides nothing.
-MAY_TARGET_WRITERS = {("pipeline/tools/export_ui_rules.py", "_rule_record")}
+MAY_TARGET_WRITERS = {("pipeline/deliver/export/read.py", "_rule_record")}
 
 
 def may_target_reads(sources: dict[str, str]) -> set[tuple[str, str]]:
@@ -192,7 +192,7 @@ PART_WRITERS = {"pipeline/deliver/bundle/build.py", "pipeline/deliver/bundle/der
                 "pipeline/deliver/bundle/licensing.py"}
 
 #: Counts sections per table (the export's `about.sections`): names both tables, groups nothing.
-PART_TALLIES = {("pipeline/tools/export_ui_rules.py", "section_counts")}
+PART_TALLIES = {("pipeline/deliver/export/read.py", "section_counts")}
 
 PARTS_PENDING: dict[tuple[str, str], str] = {
 }
@@ -267,9 +267,9 @@ def test_gate_4_one_calendar():
 
 def test_gate_4_goes_red_on_a_planted_calendar():
     src = dict(_sources())
-    src["pipeline/tools/export_ui_rules.py"] += (
+    src["pipeline/deliver/export/read.py"] += (
         "\n\ndef planted(m, d):\n    return C._day_index(m, d)\n")
-    assert ("pipeline/tools/export_ui_rules.py", "planted") in calendar_uses(src)
+    assert ("pipeline/deliver/export/read.py", "planted") in calendar_uses(src)
 
 
 def _calendar_tables() -> list[tuple]:
@@ -354,7 +354,7 @@ def test_gate_4_one_calendar_spec():
 @pytest.mark.parametrize("path,planted", [
     ("pipeline/deliver/answers/common.py",
      '\n\nDAYS = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")\n'),
-    ("pipeline/tools/export_ui_rules.py",
+    ("pipeline/deliver/export/read.py",
      '\n\nMONTHS = "Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split()\n'),
     ("pipeline/deliver/status_index.py",
      "\n\nLAST = {1: 31, 2: 29, 3: 31, 4: 30, 5: 31, 6: 30, 7: 31, 8: 31, 9: 30, 10: 31, "

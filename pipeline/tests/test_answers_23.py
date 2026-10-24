@@ -187,7 +187,7 @@ def test_the_item_model_holds_ranges_to_a_cross_reference_of_several_fish():
 
 @lru_cache(maxsize=1)
 def _files():
-    from pipeline.tools.export_codec import expand
+    from pipeline.deliver.export.codec import expand
     need(None, "bundle", EXPORT_DIR / "ui-rules-export.json", EXPORT_HINT)
     need(None, "bundle", EXPORT_DIR / "ui-rules-answers.json", EXPORT_HINT)
     data, guide = load_export(EXPORT_DIR)

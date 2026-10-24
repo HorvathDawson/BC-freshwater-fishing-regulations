@@ -71,7 +71,7 @@ walker drops rule carve-outs → 9 tests fail; walker drops licensing → 9; rem
 ## Left / follow-ups
 
 - Out of the ticket's five places but the same shape, left alone (each walks all five already, on another shape):
-  `review/fingerprint.entry_split_ids` / `_placed` (per-record placement fields), `tools/export_ui_rules._extents` (the
+  `review/fingerprint.entry_split_ids` / `_placed` (per-record placement fields), `export.dictionary._extents` (the
   export doc), `flowing.absorbed_refs` (generic deep scan over `ID_KEYS`). Moving them is a refactor with no defect.
 
 ## Checks (2026-10-23, resumed lane)
@@ -80,7 +80,7 @@ walker drops rule carve-outs → 9 tests fail; walker drops licensing → 9; rem
   API/writes/safety + review reaches + T117 walks: all pass (the corpus gate test ran against the live build).
 - Full suite (heavy.sh, unfiltered): 5,158 passed, 15 failed, 28 errors. The 15 fail identically with this change
   stashed (area_boundary curated zones, dataflow gate 4, dfo_salmon archives, entry_id inline parse in review/,
-  export_codec on-disk pair, fixture_release, tidal_gauges, update_hydat_script) — pre-existing, not this lane. The 28
+  export.codec on-disk pair, fixture_release, tidal_gauges, update_hydat_script) — pre-existing, not this lane. The 28
   errors are source-data tests (GeoPackage absent in the worktree).
 
 ## Adversarial review — 2026-10-23

@@ -19,7 +19,7 @@ from pipeline.deliver.answers import answers as A
 from pipeline.deliver.answers import common as C
 from pipeline.deliver.answers import encode as E
 from pipeline.deliver.bundle import read as R
-from pipeline.tools import export_ui_rules as X
+from pipeline.deliver.export import guide_words as export_guide_words
 from pipeline.tests.conftest import need, BUNDLE_HINT, EXPORT_HINT
 
 BUNDLE = os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE
@@ -44,7 +44,7 @@ def built():
 
 
 def test_the_export_and_the_answers_say_the_same_words():
-    assert X.TIDAL_GUIDE.startswith(C.TIDAL_NOTE)
+    assert export_guide_words.TIDAL_GUIDE.startswith(C.TIDAL_NOTE)
     for words in ("different regulation system", "DFO", "Fishing BC app",
                   "Tidal Waters Sport Fishing Licence"):
         assert words in C.TIDAL_NOTE
@@ -54,7 +54,7 @@ def test_the_export_and_the_answers_say_the_same_words():
 @pytest.mark.parametrize("on", [(1, 15), (7, 15), (12, 31)])
 def test_nitinat_lake_is_a_documented_tidal_state_all_year(built, on):
     data, wire = built
-    assert data["waters"][NITINAT]["tidal"]["guide"] == X.TIDAL_GUIDE
+    assert data["waters"][NITINAT]["tidal"]["guide"] == export_guide_words.TIDAL_GUIDE
     k = wire["parts"][NITINAT][0]
     assert wire["keys"][k][C.PART_KEY_FIELDS.index("tidal")] == 1
     t = E.tap(wire, data, NITINAT, 0, *on)

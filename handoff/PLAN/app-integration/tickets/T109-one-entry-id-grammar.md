@@ -8,14 +8,14 @@ Status: DONE — 6c03f5fe (step 1), 89fea9c0 (steps 2 + 3, Python), 1ca9bc00 (le
   region, slug, mus, regions)` + `book_region`, `is_province/is_zone/is_table/is_water_row`, `region_of/zone_region`,
   ONE `region_words` (read.region_words IS it; display.regions_label words through it), `mint_water_row` (batch_exporter
   mints through it, format unchanged). ~70 inline prefix tests and 9 parsers (read.base_region/_entry_region/_book_region,
-  rules._zone_region/_book_region, export_codec._region_of, display._region/_region_of + chapter regex, glossary,
+  rules._zone_region/_book_region, export.codec._region_of, display._region/_region_of + chapter regex, glossary,
   unnamed_trib_sweep, outside._ENTRY_REGION/entry_regions) now go through it. Answers diff EMPTY: export + answers +
   card_check from the live bundle are byte-identical to the live files (answers sha256 0c52b8ce…, card gate 0 problems).
 - Step 3 DONE: pipeline/tests/test_entry_id.py scans every pipeline module (AST) for an inline
   startswith("z"|"r"|"zp"|"zp:"|…) or an entry-id regex outside entry_id.py (mutation: each removed spelling is caught),
   and pins level.ts as the app's one entry-id reader.
 - Review (adversarial): three re-inlined `book_region` copies in bundle/rules.py (`zr[:-1] == region and zr[-1:] in
-  ("a", "b")`, lifts/size lifts/exempt lifts) and two in export_ui_rules (`_zone_words`, the `fam` lambda) now go through
+  ("a", "b")`, lifts/size lifts/exempt lifts) and two in pipeline.deliver.export (`_zone_words`, the `fam` lambda) now go through
   `entry_id.book_region`/`zone_region`/`region_words`; the scan also catches a sliced zone-letter test (mutation-pinned).
   Old-vs-new equivalence checked on all 1534 bundle entry ids; export/guide/answers byte-identical again, card gate 0.
 - Owner question (default kept): `_zone_words` words a 7A closure "Zone A" while the level tag says "Region 7A rule" —

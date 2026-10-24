@@ -26,10 +26,10 @@ from pipeline.deliver.bundle import read as R
 from pipeline.deliver.bundle.place_names import _between, cut_name
 from pipeline.regs.parsing import catalogue as C
 from pipeline.regs.parsing.io import read_all_entries
-from pipeline.tools import export_ui_rules as X
+from pipeline.deliver.export import contract as export_contract, model as export_model, read as export_read
 from pipeline.tests.conftest import need, BUNDLE_HINT
 
-BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or X.BUNDLE)
+BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or export_contract.BUNDLE)
 SHUSWAP = "r3:shuswap_lake_see_maps_on_page_28_includes_little_shuswap_lak@3-26"
 KOOTENAY_MAIN = "wbk:-20"
 DUCK_LAKE = "wbk:329246292"
@@ -53,7 +53,7 @@ def db(request):
 @pytest.fixture(scope="module")
 def doc(request):
     need(request, "bundle", BUNDLE, BUNDLE_HINT)
-    return X.build(BUNDLE)
+    return export_model.build(BUNDLE)
 
 
 def _rule(corpus, eid, rid):
@@ -154,11 +154,11 @@ def test_mutation_a_protected_list_must_be_the_rows_own():
 @pytest.mark.needs_bundle
 def test_the_export_lists_the_protected_fish(doc):
     assert set(doc["species"]["protected"]) == set(C.PROTECTED_FISH)
-    assert X.protected_problems(doc) == []
+    assert export_read.protected_problems(doc) == []
     bad = {"rules": copy.deepcopy(doc["rules"]), "species": doc["species"]}
     bad["rules"]["zp:protected_species::protected_species.r1"]["fields"]["species"] = [
         "PROTECTED_SPECIES"]
-    assert any("names PROTECTED_SPECIES" in p for p in X.protected_problems(bad))
+    assert any("names PROTECTED_SPECIES" in p for p in export_read.protected_problems(bad))
 
 
 # ---------------------------------------------------------------------------------------------
@@ -195,13 +195,13 @@ def test_mutation_a_new_record_duty_reaches_the_paper_licence(corpus):
 
 @pytest.mark.needs_bundle
 def test_the_export_paper_licence_names_every_record_rule(doc):
-    assert X.paper_licence_problems(doc) == []
+    assert export_read.paper_licence_problems(doc) == []
     x = doc["licensing"]["zp:licence_administration#carry_paper_licence"]
-    assert x["records"] == X.recorded_rules(doc["rules"]) and len(x["records"]) == 6
+    assert x["records"] == export_read.recorded_rules(doc["rules"]) and len(x["records"]) == 6
     assert "hatchery steelhead" in x["parts"]["records"] and "hatchery steelhead" in x["label"]
     bad = {"rules": doc["rules"], "licensing": copy.deepcopy(doc["licensing"])}
     bad["licensing"]["zp:licence_administration#carry_paper_licence"]["records"].pop()
-    assert X.paper_licence_problems(bad)
+    assert export_read.paper_licence_problems(bad)
 
 
 # ---------------------------------------------------------------------------------------------

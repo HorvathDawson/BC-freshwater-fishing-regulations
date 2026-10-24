@@ -166,7 +166,7 @@ target keeps it as a separate file, written by the tile step into the tile versi
 ### 2.7 `verdicts.sqlite`
 
 The producer is `python -m pipeline.deliver verdicts`. It is 46.7 MB. Its readers are `status_index.py:209`,
-`export_ui_rules.py:5648` and `answers.py:155/:421`. **It is never shipped. Middle-man** (by design, AGENTS 56).
+`pipeline/deliver/export/verdicts.py` and `answers.py:155/:421`. **It is never shipped. Middle-man** (by design, AGENTS 56).
 
 ### 2.8 `status_index.bin` (BCSI v2)
 
@@ -184,7 +184,7 @@ The producer is `python -m pipeline.deliver status_index` (`pipeline/deliver/sta
 
 ### 2.9 `ui-rules-export.json` + `ui-rules-guide.json`
 
-The producer is `pipeline/tools/export_ui_rules.py` (6.5 k lines, encoded through `export_codec.py`). The files are
+The producer is `pipeline/deliver/export/` (6.5 k lines, encoded through `pipeline/deliver/export/codec.py`). The files are
 6,886,949 B + 1,075,250 B.
 - **Consumers:** answers, store (`store/common.py:170-186` copies a subset), `page_data.py`, `water_map_export`, and
   about 35 tests.

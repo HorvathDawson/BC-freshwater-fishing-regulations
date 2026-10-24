@@ -17,7 +17,7 @@ def main(argv=None) -> int:
     from pipeline.deliver.release import build as B
     from pipeline.deliver.answers.common import BOOK_TITLE
     from pipeline.deliver.release.manifest import sources_block, tiles_block
-    from pipeline.tools.export_ui_rules import OUT as EXPORT
+    from pipeline.deliver.export.contract import OUT as EXPORT
     ap = argparse.ArgumentParser(prog="pipeline.deliver.release", description=__doc__.split("\n\n")[0])
     ap.add_argument("--bundle", type=Path, default=GENERATED.bundle / "bundle.sqlite")
     ap.add_argument("--store", type=Path, required=True,

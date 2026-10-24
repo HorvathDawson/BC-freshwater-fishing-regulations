@@ -664,7 +664,7 @@ def test_the_rancheria_alternative_reaches_the_basin_streams():
 
 def test_export_pins_match_the_corpus():
     """The export's pinned lists (the bundle carries no tributary scope) equal the corpus."""
-    from pipeline.tools import export_ui_rules as X
+    from pipeline.deliver.export import closures as export_closures
     from pipeline.atlas.reach import classify as K
     undrawn, excepted = set(), set()
     for f in sorted(CAT.glob("region-*.json")):
@@ -677,6 +677,6 @@ def test_export_pins_match_the_corpus():
                 if any(t.get("walk_past") and "squamish" in e["entry_id"]
                        for t in r.get("tributary_excludes") or []):
                     excepted.add(e["entry_id"])
-    assert undrawn == set(X.UNDRAWN_PART_TRIBUTARIES)
-    assert excepted == set(X.EXCEPTED_RIVERS_CREEKS_CLOSED)
+    assert undrawn == set(export_closures.UNDRAWN_PART_TRIBUTARIES)
+    assert excepted == set(export_closures.EXCEPTED_RIVERS_CREEKS_CLOSED)
     assert K.UNDRAWN_PART_DOES_NOT_WALK

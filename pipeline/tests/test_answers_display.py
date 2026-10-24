@@ -207,7 +207,7 @@ def _bundle():
 
 def _export(B):
     from pipeline.deliver.answers import common
-    from pipeline.tools import export_codec
+    from pipeline.deliver.export import codec as export_codec
     regs = Path(os.environ.get("ANSWERS_EXPORT_DIR") or os.environ.get("UI_EXPORT_DIR")
                 or Path(B.path).parents[1] / "regs")
     need(None, "bundle", regs / "ui-rules-export.json", EXPORT_HINT)

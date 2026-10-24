@@ -1,4 +1,4 @@
-"""The UI export's wire format (`export_codec`, Phase 4): the encoded pair decodes to EXACTLY the
+"""The UI export's wire format (`pipeline.deliver.export.codec`, Phase 4): the encoded pair decodes to EXACTLY the
 model `build()` makes, its integer references are checked, and nothing a section handle names
 ships.
 
@@ -24,16 +24,19 @@ from pathlib import Path
 import pytest
 
 from pipeline.common import entry_id as EID
-from pipeline.tools import export_codec as K
-from pipeline.tools import export_ui_rules as X
+from pipeline.deliver.export import codec as K
+from pipeline.deliver.export import (
+    checks as export_checks, contract as export_contract, files as export_files, model as export_model,
+    read as export_read
+)
 from pipeline.tests.conftest import need, BUNDLE_HINT, EXPORT_HINT
 
-BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or X.BUNDLE)
+BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or export_contract.BUNDLE)
 
 
 def _words_key(s: dict) -> str:
     """A set's content key written from `field_dictionary.encoding.set_keys` ALONE (not
-    `export_codec.set_key`): SHA-256 of the sorted `<via>:<member id>` lines joined by "\\n",
+    `codec.set_key`): SHA-256 of the sorted `<via>:<member id>` lines joined by "\\n",
     first 12 hex digits."""
     lines = sorted(f"{via}:{i}" for via, ids in s.items() if via != "sections" for i in ids)
     return hashlib.sha256("\n".join(lines).encode("utf-8")).hexdigest()[:12]
@@ -133,7 +136,7 @@ def _tiny() -> dict:
 
 def test_a_hand_made_model_round_trips_through_the_wire():
     doc = _tiny()
-    data, guide = X.encode(doc)
+    data, guide = export_files.encode(doc)
     assert K.expand(_through_json(data), _through_json(guide)) == doc
     assert K.wire_problems(data, guide) == []
     # the shapes are the compact ones
@@ -169,7 +172,7 @@ def test_the_encoder_refuses_what_it_could_not_decode(break_it):
     else:
         doc["entries"]["r1:a::x"] = doc["entries"].pop("r1:a")
     with pytest.raises(K.EncodeError):
-        X.encode(doc)
+        export_files.encode(doc)
 
 
 # ---------------------------------------------------------------------------------------------
@@ -285,15 +288,15 @@ def test_a_set_key_names_the_content_not_the_id():
     moved = {"sections": 2, "reach": ["r1:a::a.r1", "r1:a::a.r2"] + doc["rulesets"]["0"]["reach"]}
     assert K.set_key(moved) != keys["1"]
     assert K.set_key({**doc["rulesets"]["1"], "sections": 99}) == keys["1"], "a count is no member"
-    data, _ = X.encode(doc)
+    data, _ = export_files.encode(doc)
     assert "set_keys" not in data and all("key" not in s for s in data["rulesets"])
     with pytest.raises(K.EncodeError, match="set_keys"):
         K.compact({**doc, "set_keys": {**doc["set_keys"], "rulesets": {**keys, "0": "0" * 12}}},
-                  **X.codec_tables())
+                  **export_files.codec_tables())
 
 
 def test_the_dictionary_words_decode_the_hand_made_model():
-    data, guide = X.encode(_tiny())
+    data, guide = export_files.encode(_tiny())
     assert _decode_from_the_dictionary(_through_json(data), _through_json(guide)) == _tiny()
 
 
@@ -303,12 +306,12 @@ def test_the_dictionary_words_decode_the_hand_made_model():
 @pytest.fixture(scope="module")
 def doc(request) -> dict:
     need(request, "bundle", BUNDLE, BUNDLE_HINT)
-    return X.build(BUNDLE)
+    return export_model.build(BUNDLE)
 
 
 @pytest.fixture(scope="module")
 def pair(doc):
-    data, guide = X.encode(doc)
+    data, guide = export_files.encode(doc)
     return _through_json(data), _through_json(guide)
 
 
@@ -316,13 +319,13 @@ def pair(doc):
 def test_the_shipped_pair_decodes_to_the_model(doc, pair):
     """LOSSLESS: what a reader parses decodes to exactly the model every check proves."""
     assert K.expand(*pair) == doc
-    assert X.problems(K.expand(*pair)) == []
+    assert export_checks.problems(K.expand(*pair)) == []
 
 
 @pytest.mark.needs_bundle
 def test_the_dictionary_words_decode_the_real_pair(doc, pair):
     """F2: the prose in `field_dictionary.encoding` is enough to decode — a decoder written from
-    it alone gives exactly what `export_codec.expand` gives, and the model."""
+    it alone gives exactly what `codec.expand` gives, and the model."""
     assert _decode_from_the_dictionary(*pair) == K.expand(*pair) == doc
 
 
@@ -426,9 +429,9 @@ def test_no_section_handle_ships_in_either_file(pair):
 def test_only_named_lake_edges_ship(doc):
     """21,636 lake edges are in the bundle's `split` table; only the ones an extent, a run or
     `same_place_as` names ship, and every one an extent names does (E2's check, `dangling`)."""
-    named = set(X._split_refs([x["fields"] for x in doc["rules"].values()]))
-    named |= set(X._split_refs([x["fields"] for x in doc["licensing"].values()]))
-    named |= set(X._split_refs([e.get("extents") for e in doc["entries"].values()]))
+    named = set(export_read._split_refs([x["fields"] for x in doc["rules"].values()]))
+    named |= set(export_read._split_refs([x["fields"] for x in doc["licensing"].values()]))
+    named |= set(export_read._split_refs([e.get("extents") for e in doc["entries"].values()]))
     edges = {k for k, x in doc["splits"].items() if x["kind"] == "lake_edge"}
     assert edges and edges <= named | {x.get("same_place_as") for x in doc["splits"].values()}
     assert not [k for k in named if k not in doc["splits"]]
@@ -439,19 +442,19 @@ def test_the_files_on_disk_are_the_bundles_pair(doc):
     """The canonical files are DERIVED from the shipped bundle and must be its pair, byte for
     byte (`python -m pipeline.deliver export` rewrites them). Skipped only where there is nothing
     to compare (the suite pointed at a side bundle); no export written, or a stale pair, fails."""
-    if BUNDLE != X.BUNDLE:
+    if BUNDLE != export_contract.BUNDLE:
         pytest.skip("the suite points at a side bundle; the shipped export is another bundle's")
-    need(None, "bundle", X.OUT, EXPORT_HINT)
-    g = X.guide_path(X.OUT)
-    assert g.is_file(), f"{X.OUT} has no {g.name} beside it"
-    shipped = json.loads(X.OUT.read_text(encoding="utf-8"))
+    need(None, "bundle", export_contract.OUT, EXPORT_HINT)
+    g = export_files.guide_path(export_contract.OUT)
+    assert g.is_file(), f"{export_contract.OUT} has no {g.name} beside it"
+    shipped = json.loads(export_contract.OUT.read_text(encoding="utf-8"))
     assert shipped["about"].get("bundle") == doc["about"]["bundle"], \
         "the shipped export is another bundle's — rerun `python -m pipeline.deliver export`"
-    data, guide = X.encode(doc)
-    assert X.OUT.read_text(encoding="utf-8") == K.dumps(data)
+    data, guide = export_files.encode(doc)
+    assert export_contract.OUT.read_text(encoding="utf-8") == K.dumps(data)
     assert g.read_text(encoding="utf-8") == K.dumps(guide)
-    assert X.load(X.OUT) == doc
-    assert _decode_from_the_dictionary(json.loads(X.OUT.read_text(encoding="utf-8")),
+    assert export_files.load(export_contract.OUT) == doc
+    assert _decode_from_the_dictionary(json.loads(export_contract.OUT.read_text(encoding="utf-8")),
                                        json.loads(g.read_text(encoding="utf-8"))) == doc
 
 
@@ -461,7 +464,8 @@ def test_a_refused_export_fails_the_deliver_command(tmp_path, monkeypatch):
     from pipeline import deliver
     from pipeline.deliver import __main__ as D
     assert deliver is not None
-    monkeypatch.setattr(X, "main", lambda argv=None: 1)
+    from pipeline.deliver.export import __main__ as export_main
+    monkeypatch.setattr(export_main, "main", lambda argv=None: 1)
     with pytest.raises(SystemExit) as e:
         D.main(["export", "--out", str(tmp_path / "x.json")])
     assert e.value.code not in (0, None)

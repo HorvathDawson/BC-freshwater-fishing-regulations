@@ -120,7 +120,7 @@ def rel(request, tmp_path_factory):
     from pipeline.deliver.bundle import read as R
     from pipeline.deliver.store.build import build as build_store
     from pipeline.tests.conftest import need, BUNDLE_HINT, EXPORT_HINT
-    from pipeline.tools.export_ui_rules import OUT as EXPORT
+    from pipeline.deliver.export.contract import OUT as EXPORT
     bundle = need(request, "bundle", Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE), BUNDLE_HINT)
     si = need(request, "bundle", GENERATED.bundle / "status_index.bin", BUNDLE_HINT)
     exp = need(request, "bundle", EXPORT.parent / "ui-rules-answers.json", EXPORT_HINT).parent

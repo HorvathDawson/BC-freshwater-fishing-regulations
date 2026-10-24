@@ -14,7 +14,7 @@ the ones that must be SILENT (or a stated `state`) — and:
 
   * `examples(bundle)` asks the reader for each and returns them with its answer (`expect`); the
     export ships them as `guide.examples` and REFUSES to write when a declared example disagrees
-    with the reader (`export_ui_rules.problems` -> `example_problems`);
+    with the reader (`checks.problems` -> `example_problems`);
   * `prose_gaps(guide, names)` finds every water the ladder and gotcha prose names (by the bundle's
     water names) and refuses one that no example cites from that text and that is not listed in
     `NAMED_NOT_CLAIMED` with the reason it is no reader claim. A new example in prose therefore
@@ -301,7 +301,7 @@ def moment_of(ex: Example, ms: list):
 def examples(bundle: Path | str) -> dict:
     """{id: example as shipped}: the declaration and the reader's answer (`expect`) on its section
     — `expect` is None where no section of the water carries the rules it names."""
-    from pipeline.tools.export_ui_rules import answer_on, verdicts_of
+    from pipeline.deliver.export.verdicts import answer_on, verdicts_of
     store = verdicts_of(Path(bundle))
     db = sqlite3.connect(f"file:{bundle}?mode=ro", uri=True)
     names = dict(db.execute("SELECT item_id, name FROM item"))
@@ -382,6 +382,6 @@ def prose_gaps(guide: dict, water_names, shipped: dict, item_names: dict) -> lis
              for n in (item_names.get(x["water"]["item_id"]) or x["water"]["name"],
                        x.get("named_as")) if n}
     return sorted(f"guide prose {k} names {n!r} but no declared example checks it "
-                  f"(pipeline/tools/guide_examples.py)"
+                  f"(pipeline/deliver/export/examples.py)"
                   for k, n in prose_mentions(guide, water_names)
                   if (k, n) not in cited and (k, n) not in NAMED_NOT_CLAIMED)

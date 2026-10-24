@@ -1,8 +1,8 @@
-"""THE GUIDE'S PROSE EXAMPLES ARE CHECKED (CLEAN round, 2026-10-05; `pipeline/tools/guide_examples.py`).
+"""THE GUIDE'S PROSE EXAMPLES ARE CHECKED (CLEAN round, 2026-10-05; `pipeline/deliver/export/examples.py`).
 
 Every water, date and fish the ladder and gotcha prose argue by is declared as data and re-asked
 here of the reference reader; the export refuses a pair where one disagrees
-(`export_ui_rules.guide_example_problems`, inside `problems`). Three were wrong in prose when they
+(`checks.guide_example_problems`, inside `problems`). Three were wrong in prose when they
 were first declared — the Thompson's 2 "in June", Kakwa Lake's 2 "outranking" the zone's 5, and
 Denetiah Creek's "own bull trout rule" — and each is pinned here by MUTATION: the old claim, declared,
 is refused. `UI_EXPORT_BUNDLE` points the suite at a side bundle.
@@ -16,17 +16,19 @@ from pathlib import Path
 import pytest
 
 from pipeline.deliver.bundle import read as RD
-from pipeline.tools import export_ui_rules as X
-from pipeline.tools import guide_examples as G
+from pipeline.deliver.export import (
+    checks as export_checks, contract as export_contract, model as export_model
+)
+from pipeline.deliver.export import examples as G
 from pipeline.tests.conftest import need, BUNDLE_HINT
 
-BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or X.BUNDLE)
+BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or export_contract.BUNDLE)
 
 
 @pytest.fixture(scope="module")
 def doc(request) -> dict:
     need(request, "bundle", BUNDLE, BUNDLE_HINT)
-    return X.build(BUNDLE)
+    return export_model.build(BUNDLE)
 
 
 @pytest.fixture(scope="module")
@@ -39,7 +41,7 @@ def test_every_declared_example_is_shipped_and_agrees_with_the_reader(doc, shipp
     assert set(shipped) == {e.id for e in G.EXAMPLES}
     assert len(shipped) == len(G.EXAMPLES) >= 57
     assert G.example_problems(shipped) == []
-    assert X.guide_example_problems(doc) == []
+    assert export_checks.guide_example_problems(doc) == []
 
 
 @pytest.mark.needs_bundle
@@ -132,5 +134,5 @@ def test_mutation_prose_naming_an_unchecked_water_is_refused(doc):
     names = {i: w["name"] for i, w in doc["waters"].items()}
     gaps = G.prose_gaps(g, set(names.values()), doc["guide"]["examples"], names)
     assert gaps == ["guide prose ladder.who_speaks names 'Bridge Lake' but no declared example "
-                    "checks it (pipeline/tools/guide_examples.py)"]
+                    "checks it (pipeline/deliver/export/examples.py)"]
     assert G.prose_gaps(doc["guide"], set(names.values()), doc["guide"]["examples"], names) == []

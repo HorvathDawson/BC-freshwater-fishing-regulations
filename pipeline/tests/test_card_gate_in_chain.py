@@ -91,7 +91,7 @@ def test_the_store_refuses_unproved_answers_before_reading_the_bundle(tmp_path, 
 
 def _live():
     from pipeline.deliver.bundle import read as R
-    from pipeline.tools.export_ui_rules import OUT
+    from pipeline.deliver.export.contract import OUT
     return R.BUNDLE, OUT.parent
 
 

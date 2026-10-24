@@ -12,7 +12,7 @@ from pathlib import Path
 import pytest
 
 from pipeline.deliver.bundle import read as R
-from pipeline.tools import export_ui_rules as X
+from pipeline.deliver.export import closures as export_closures
 from pipeline.tests.conftest import need, BUNDLE_HINT
 
 BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE)
@@ -94,16 +94,16 @@ def test_a_zone_tables_restatement_holds_on_its_own_region_only(db):
 def test_every_dated_water_release_under_a_blanket_closure_is_listed_as_known(db):
     """The export refuses one that is not (`RELEASE_UNDER_CLOSURE_KNOWN`); on a bundle from before
     the Nicola lift (RU-2) the Nicola is the one unlisted finding."""
-    got = X.release_under_closure(BUNDLE)
+    got = export_closures.release_under_closure(BUNDLE)
     unlisted = [x["rule"] for x in got if not x.get("known")]
     nicola = db.execute("select 1 from rule where entry_id = 'r3:nicola_river@3-13' and "
                         "rule_id = 'nicola_river.r3x'").fetchone()
     assert unlisted == ([] if nicola else ["r3:nicola_river@3-13::nicola_river.r3"])
     assert [x["rule"] for x in got if x.get("known")] == [
         "r4:duck_lake_permit_required_see_note_on_page_34@4-6::duck_lake.r3"]
-    assert X.release_under_closure_problems({"about": {"release_under_closure": got}}) == [
+    assert export_closures.release_under_closure_problems({"about": {"release_under_closure": got}}) == [
         f"a dated water release speaks under a blanket closure and is not listed as known: {r} "
-        for r in []] or len(X.release_under_closure_problems(
+        for r in []] or len(export_closures.release_under_closure_problems(
             {"about": {"release_under_closure": got}})) == len(unlisted)
 
 
@@ -114,15 +114,15 @@ def test_every_water_quota_silenced_under_a_blanket_closure_is_listed_as_known(d
     one (`quota_under_closure`) and refuses any not in `QUOTA_UNDER_CLOSURE_KNOWN`. Every finding
     is known AND every known entry is found (a stale entry is a list that stopped meaning
     anything). MUTATION: drop one known entry and the export refuses it."""
-    got = X.quota_under_closure(BUNDLE)
+    got = export_closures.quota_under_closure(BUNDLE)
     assert len(got) >= 14, got                  # not vacuous: the review's 14 at least
     assert [x["rule"] for x in got if not x.get("known")] == []
-    assert {x["rule"] for x in got} == {f"{e}::{r}" for e, r in X.QUOTA_UNDER_CLOSURE_KNOWN}
-    assert X.release_under_closure_problems({"about": {"quota_under_closure": got}}) == []
+    assert {x["rule"] for x in got} == {f"{e}::{r}" for e, r in export_closures.QUOTA_UNDER_CLOSURE_KNOWN}
+    assert export_closures.release_under_closure_problems({"about": {"quota_under_closure": got}}) == []
     k = ("r3:nahatlatch_river@3-15", "nahatlatch_river.r3")
-    monkeypatch.delitem(X.QUOTA_UNDER_CLOSURE_KNOWN, k)
-    probs = X.release_under_closure_problems(
-        {"about": {"quota_under_closure": X.quota_under_closure(BUNDLE)}})
+    monkeypatch.delitem(export_closures.QUOTA_UNDER_CLOSURE_KNOWN, k)
+    probs = export_closures.release_under_closure_problems(
+        {"about": {"quota_under_closure": export_closures.quota_under_closure(BUNDLE)}})
     assert len(probs) == 1 and "nahatlatch_river.r3" in probs[0], probs
 
 
@@ -178,9 +178,9 @@ def test_the_check_reads_every_start_day_and_every_fish(tmp_path):
          "when": _dates(2, 1, 6, 30), "_rank": 3},
         {"entry": "r3:w", "rule": "w.r1", "species": ["CT", "RB"], "take": 0, "may_target": 1,
          "when": _dates(1, 1, 2, 28), "_rank": 0}])
-    got = X.release_under_closure(Path(path))
+    got = export_closures.release_under_closure(Path(path))
     assert [(x["rule"], x["date"], x["fish"]) for x in got] == [("r3:w::w.r1", [2, 1], "RB")]
-    assert X.release_under_closure_problems({"about": {"release_under_closure": got}})
+    assert export_closures.release_under_closure_problems({"about": {"release_under_closure": got}})
 
 
 def test_a_zone_7a_or_7b_table_is_region_7_to_the_rows():

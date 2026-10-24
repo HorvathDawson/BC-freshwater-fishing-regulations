@@ -1,9 +1,9 @@
 """THE GUIDE'S `ladder` SECTION: which rules compete for a fish and which one speaks — the
 reference semantics of `pipeline.deliver.bundle.read.effective_rules`, in words, with every user
-ruling that shaped it. Split out of `export_ui_rules.guide` (P4, 2026-10-10) with no change to
-a byte of the output; `export_ui_rules.guide_ladder` calls `ladder` with the export's record picker.
+ruling that shaped it. Split out of `guide.guide` (P4, 2026-10-10) with no change to
+a byte of the output; `guide.guide_ladder` calls `ladder` with the export's record picker.
 
-Every water this prose names is checked against the reader (`guide_examples.prose_gaps`).
+Every water this prose names is checked against the reader (`examples.prose_gaps`).
 """
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ def _f(x):
 
 
 def ladder(pick) -> dict:
-    """`ladder`. `pick` is `export_ui_rules._Pick` over the rules (examples are found in the data,
+    """`ladder`. `pick` is `guide._Pick` over the rules (examples are found in the data,
     never remembered)."""
     ranks = [{"authority": Authority.superior.value, "binds_to": "any", "rank":
               Source(Authority.superior, Scope.water).rank}]

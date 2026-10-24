@@ -205,14 +205,14 @@ settled counters is not a second implementation of settling.
 ## Part 6 — What ships today: `ui-rules-export.json` + `ui-rules-guide.json`
 
     python -m pipeline.deliver export [--bundle B] [--out OUT]
-    PYTHONPATH="$PWD" .venv/bin/python -m pipeline.tools.export_ui_rules [--bundle B] [--out OUT]
+    PYTHONPATH="$PWD" .venv/bin/python -m pipeline.deliver.export [--bundle B] [--out OUT]
         [--guide-out GUIDE] [--pretty]
 
 Written to `data/generated/regs/` (not tracked). Everything is read from `bundle.sqlite`, and
 nothing is sampled or settled. **Two files, one model, one run** (Phase 4, 2026-10-05):
-`export_ui_rules.build()` reads the bundle into one READING MODEL — what every check in
+`export.model.build()` reads the bundle into one READING MODEL — what every check in
 `problems()` proves and every word of `guide` / `field_dictionary` describes — and ships it
-ENCODED by `pipeline/tools/export_codec.py`:
+ENCODED by `pipeline/deliver/export/codec.py`:
 
 | file | holds | raw | gzip -9 |
 |---|---|---|---|
@@ -222,9 +222,9 @@ ENCODED by `pipeline/tools/export_codec.py`:
 Before Phase 4 it was one file of 31.50 MB (indent 1) / 1.81 MB gzipped; `JSON.parse` in node 25
 on a laptop: 56 ms / +48 MB heap then, 18.7 ms / +19 MB now (the guide: 0.9 ms). Both files carry
 the same `about.bundle` (digests `section_handles`, `reach_digest`) and `about.format` (2); never
-pair files whose digests differ. **`export_codec.expand(data, guide)` is the reference decoder**:
+pair files whose digests differ. **`export.codec.expand(data, guide)` is the reference decoder**:
 it returns exactly the model, and `main()` refuses to write a pair that does not decode to it, or
-whose integer references do not resolve (`export_codec.wire_problems`). Every encoding rule is in
+whose integer references do not resolve (`export.codec.wire_problems`). Every encoding rule is in
 `field_dictionary.encoding`, so a decoder in another language needs the dictionary alone.
 
 The data file (sizes compact, this bundle):
@@ -245,7 +245,7 @@ The data file (sizes compact, this bundle):
 `index` is not shipped (the decoder groups the records). Membership is per SET and per named
 WATER, never per section: section handles never leave the bundle (AGENTS 5) — in neither file:
 the guide's closure notes (`gotchas.closures_combine`) name a `ruleset` or an `example` KEY
-{ruleset, anadromous_rainbow, steelhead_rules}, which `export_ui_rules.example_sid` resolves to a
+{ruleset, anadromous_rainbow, steelhead_rules}, which `export.closures.example_sid` resolves to a
 section inside the bundle. Set ids are local to one build; decoded, they are strings (the sets
 are objects keyed "0", "1", …).
 
@@ -341,6 +341,6 @@ the reader's every traced answer (every rule key × reading × asked fish × ori
 looked up by the status index, the export (closure scans, closures-combine notes, cases, guide
 examples) and the answers (ladder, rows, gear, display). Nothing downstream of it calls the reader
 except two named oracles that re-ask it on purpose to check a stored answer
-(`status_index.status_by_reader`, `export_ui_rules.closures_combine_problems`;
+(`status_index.status_by_reader`, `export.closures.closures_combine_problems`;
 `pipeline/tests/test_dataflow_gates.py` gate 1).
 

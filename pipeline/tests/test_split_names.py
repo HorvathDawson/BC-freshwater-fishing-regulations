@@ -24,10 +24,12 @@ import pytest
 
 from pipeline.deliver.bundle import spans as SP
 from pipeline.deliver.bundle.place_names import display_case, is_shouting
-from pipeline.tools import export_ui_rules as X
+from pipeline.deliver.export import (
+    checks as export_checks, contract as export_contract, model as export_model
+)
 from pipeline.tests.conftest import need, BUNDLE_HINT
 
-BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or X.BUNDLE)
+BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or export_contract.BUNDLE)
 
 
 # ---------------------------------------------------------------------------------------------
@@ -170,12 +172,12 @@ def test_distance_words(m, words):
 @pytest.fixture(scope="module")
 def doc(request):
     need(request, "bundle", BUNDLE, BUNDLE_HINT)
-    return X.build(BUNDLE)
+    return export_model.build(BUNDLE)
 
 
 @pytest.mark.needs_bundle
 def test_the_corpus_names_pass(doc):
-    assert X.name_problems(doc) == []
+    assert export_checks.name_problems(doc) == []
 
 
 @pytest.mark.needs_bundle
@@ -187,7 +189,7 @@ def test_within_each_water_split_names_are_unique(doc):
     for sid, x in doc["splits"].items():
         if x["kind"] in ("lake_edge", "border"):
             continue          # named for the lake (or the border): at its inlet AND its outlet
-        for w, km in X._split_waters(x):
+        for w, km in export_checks._split_waters(x):
             seen[(w, x["name"])].append((km, sid))
     for (w, name), at in seen.items():
         if len({sid for _, sid in at}) == 1:
@@ -203,7 +205,7 @@ def test_within_each_water_split_names_are_unique(doc):
 def test_no_confluence_is_named_after_its_own_water(doc):
     S, W = doc["splits"], doc["waters"]
     bad = [(sid, x["name"], w) for sid, x in S.items() if x["kind"] == "confluence"
-           for w, _ in X._split_waters(x)
+           for w, _ in export_checks._split_waters(x)
            if W[w]["name"].lower() in (x["name"].lower(),
                                        x["name"].lower().removesuffix(" confluence"),
                                        x["name"].lower().split(" of the ")[-1]
@@ -320,7 +322,7 @@ def _mutated(doc, fn):
     bad = dict(doc, splits=copy.deepcopy(doc["splits"]), waters=dict(doc["waters"]),
                entries=dict(doc["entries"]))
     fn(bad)
-    return X.name_problems(bad)
+    return export_checks.name_problems(bad)
 
 
 def _rename(sid, name):

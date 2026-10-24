@@ -178,7 +178,7 @@ def test_e_the_vedder_canal_is_the_vedder_river_a_stream_and_no_lake_rule_binds_
     assert bad == []
     data, guide, _ = _files()
     assert data["waters"][VEDDER]["kind"] == "stream"
-    from pipeline.tools.export_codec import expand
+    from pipeline.deliver.export.codec import expand
     m = expand(data, guide)
     for p in data["waters"][VEDDER]["parts"]:
         rs = m["rulesets"][p[0]] if p[0] in m["rulesets"] else m["rulesets"][str(p[0])]
@@ -256,7 +256,7 @@ def test_j_the_glossary_ships_typed_and_covers_the_pages_jargon():
 def test_j_terms_are_generated_from_the_data():
     """The possession example follows the rules' multiplier (MUTATION: 3 daily quotas -> 'three')."""
     data, guide, _ = _files()
-    from pipeline.tools.export_codec import expand
+    from pipeline.deliver.export.codec import expand
     m = expand(data, guide)
     book = G.Book(rows_from_book())
     base = {t["id"]: t for t in G.build(m, book)["terms"]}

@@ -22,10 +22,10 @@ import pytest
 from pipeline.tests.bundle_fixture import finish, section_sets
 
 from pipeline.deliver.bundle.build import SCHEMA, touching_pairs
-from pipeline.tools import export_ui_rules as X
+from pipeline.deliver.export import checks as export_checks, contract as export_contract, read as export_read
 from pipeline.tests.conftest import need, BUNDLE_HINT
 
-BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or X.BUNDLE)
+BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or export_contract.BUNDLE)
 
 
 # ---------------------------------------------------------------------------------------------
@@ -91,7 +91,7 @@ def _bundle(tmp: Path, sets: dict[int, int | None], touch: list[tuple[int, int]]
 
 def _parts(path: Path, item: str = "gnis:1") -> dict[str, list[str]]:
     """ruleset -> the rulesets of the parts it touches, so a test names parts, not indexes."""
-    parts = X.read(path)["waters"][item]["parts"]
+    parts = export_read.read(path)["waters"][item]["parts"]
     return {p["ruleset"]: sorted(parts[j]["ruleset"] for j in p["touches"]) for p in parts}
 
 
@@ -119,7 +119,7 @@ def test_a_stretch_with_no_rule_set_is_a_part_and_touches_like_one(tmp_path):
 
 
 def test_touching_is_symmetric_on_every_part(tmp_path):
-    parts = X.read(_bundle(tmp_path, {0: 7, 1: 8, 2: 9, 3: 7}, [(0, 1), (1, 2), (2, 3)])
+    parts = export_read.read(_bundle(tmp_path, {0: 7, 1: 8, 2: 9, 3: 7}, [(0, 1), (1, 2), (2, 3)])
                    )["waters"]["gnis:1"]["parts"]
     for i, p in enumerate(parts):
         assert i not in p["touches"]
@@ -129,7 +129,7 @@ def test_touching_is_symmetric_on_every_part(tmp_path):
 
 def test_a_pair_across_two_waters_makes_no_touch(tmp_path):
     """The build never writes one; if a bundle did, the export still keeps waters apart."""
-    got = X.read(_bundle(tmp_path, {0: 7, 1: 8}, [(0, 1)], water={1: 2}))["waters"]
+    got = export_read.read(_bundle(tmp_path, {0: 7, 1: 8}, [(0, 1)], water={1: 2}))["waters"]
     assert got["gnis:1"]["parts"][0]["touches"] == []
     assert got["gnis:2"]["parts"][0]["touches"] == []
 
@@ -150,7 +150,7 @@ def test_a_bundle_without_the_table_is_refused(tmp_path):
     db.commit()
     db.close()
     with pytest.raises(SystemExit, match="section_touch"):
-        X.read(path)
+        export_read.read(path)
 
 
 # ---------------------------------------------------------------------------------------------
@@ -167,7 +167,7 @@ def db(request):
 @pytest.fixture(scope="module")
 def waters(request):
     need(request, "bundle", BUNDLE, BUNDLE_HINT)
-    return X.read(BUNDLE)["waters"]
+    return export_read.read(BUNDLE)["waters"]
 
 
 @pytest.mark.needs_bundle
@@ -224,17 +224,17 @@ def test_the_touch_check_catches_a_one_sided_self_or_stray_touch(waters):
     w = waters[item]
     i = next(k for k, p in enumerate(w["parts"]) if p["touches"])
     j = w["parts"][i]["touches"][0]
-    assert X.touch_problems({item: w}) == []
+    assert export_checks.touch_problems({item: w}) == []
 
     one_sided = copy.deepcopy(w)
     one_sided["parts"][j]["touches"].remove(i)
-    assert X.touch_problems({item: one_sided}), "a one-sided touch passed"
+    assert export_checks.touch_problems({item: one_sided}), "a one-sided touch passed"
     itself = copy.deepcopy(w)
     itself["parts"][i]["touches"] = sorted(itself["parts"][i]["touches"] + [i])
-    assert X.touch_problems({item: itself}), "a self touch passed"
+    assert export_checks.touch_problems({item: itself}), "a self touch passed"
     stray = copy.deepcopy(w)
     stray["parts"][i]["touches"].append(len(w["parts"]))
-    assert X.touch_problems({item: stray}), "a touch naming no part passed"
+    assert export_checks.touch_problems({item: stray}), "a touch naming no part passed"
     missing = copy.deepcopy(w)
     del missing["parts"][i]["touches"]
-    assert X.touch_problems({item: missing}), "a part with no touches passed"
+    assert export_checks.touch_problems({item: missing}), "a part with no touches passed"

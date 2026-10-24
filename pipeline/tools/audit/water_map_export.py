@@ -623,8 +623,8 @@ def read_braids(db, meta: dict, reach_dir: Path) -> List[dict]:
 def main(argv: Optional[Sequence[str]] = None) -> int:
     from pipeline.common.curated import GENERATED
     from pipeline.deliver.status_index import Index
-    from pipeline.tools import export_codec
-    from pipeline.tools.export_ui_rules import GUIDE_NAME, OUT as EXPORT
+    from pipeline.deliver.export import codec as export_codec
+    from pipeline.deliver.export.contract import GUIDE_NAME, OUT as EXPORT
 
     ap = argparse.ArgumentParser(prog="pipeline.tools.audit.water_map_export",
                                  description=__doc__.split("\n\n")[0])

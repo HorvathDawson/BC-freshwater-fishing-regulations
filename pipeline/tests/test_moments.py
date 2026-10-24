@@ -236,7 +236,7 @@ DEVELOPER_WORDS = re.compile(r"\bShow this\b|\bshow it\b|\bdisplay\b|\bthe page\
 
 def _angler_texts(data: dict, wire: dict):
     from pipeline.deliver.answers.common import TIDAL_NOTE, TIDAL_STATE
-    from pipeline.tools.export_ui_rules import STEELHEAD_NO_RULES
+    from pipeline.deliver.export.guide_words import STEELHEAD_NO_RULES
     yield "TIDAL_NOTE", TIDAL_NOTE
     yield "TIDAL_STATE.licence", TIDAL_STATE["licence"]
     yield "STEELHEAD_NO_RULES", STEELHEAD_NO_RULES
@@ -257,7 +257,7 @@ def _angler_texts(data: dict, wire: dict):
 @pytest.mark.needs_bundle
 def test_no_shipped_angler_text_carries_a_developer_instruction(shipped):
     wire, data = shipped
-    from pipeline.tools.export_codec import expand
+    from pipeline.deliver.export.codec import expand
     guide = json.loads((EXPORT_DIR / "ui-rules-guide.json").read_text())
     doc = expand(data, guide)
     bad = [(where, t) for where, t in _angler_texts(doc, wire) if DEVELOPER_WORDS.search(t)]

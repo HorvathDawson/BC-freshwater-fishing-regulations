@@ -17,7 +17,7 @@ PER RULE (consumer Stage 2.3, 2.4, 6.3), from the rule's own fields:
              then falls back to the rule's `label`).
 
 PER PART OF A WATER (Stage 3.1, 3.2, 5.6), from the export's decoded model — its waters, parts,
-runs, splits and entries are the bundle's, composed by the export (`export_codec.expand` is the
+runs, splits and entries are the bundle's, composed by the export (`codec.expand` is the
 reference decoder; the pair's `about.bundle` digests must equal the bundle's):
 
     runs     where it runs ("From the mouth up to the Slesse Creek confluence")      `runsLabel`
@@ -511,7 +511,7 @@ def rule_facts(x: dict, rules: Optional[dict] = None) -> dict:
 
 
 # --------------------------------------------------------------------------------------------
-# Per part of a water — read off the export's decoded model (`export_codec.expand`)
+# Per part of a water — read off the export's decoded model (`codec.expand`)
 # --------------------------------------------------------------------------------------------
 
 def cut_words(t: str, n: int) -> str:
@@ -535,7 +535,7 @@ class Water:
     B.C. carry none and are left out), in the page's order — most sections first, the export's
     order among equals — each part's rules its set's `reach` then `trib` ids, each sorted.
 
-    `doc` is the decoded export (`export_codec.expand`); a rule's facts are read from `fields`,
+    `doc` is the decoded export (`codec.expand`); a rule's facts are read from `fields`,
     `provenance.rank`, `parts`, `label`, `verbatim`, `family`, `dimension`, `type`."""
 
     def __init__(self, water_id: str, w: dict, doc: dict):
@@ -1733,7 +1733,7 @@ def book_pages(x: dict, doc: dict) -> List[List[int]]:
     if not pages:
         raise AnswersError(f"display: rule {x['id']} — its entry {x['entry_id']} prints no page")
     # T100: a rule in an undrawn part the book draws on a map (the export's `not_yet_mapped.map`,
-    # `export_ui_rules.book_map`) cites that map's page too — Shuswap's rows on p.32, maps on p.28
+    # `pipeline.deliver.export.read.book_map`) cites that map's page too — Shuswap's rows on p.32, maps on p.28
     mp = (x.get("not_yet_mapped") or {}).get("map")
     if mp and mp["page"] not in pages:
         pages = [*pages, mp["page"]]

@@ -66,7 +66,7 @@ Rebuild that ships it: deliver (no reach, no atlas). It changes no output today.
 ## Left / follow-ups
 - `pipeline/tools/unnamed_trib_sweep.py` keeps its own `area_sections` (a tool that reads its own build), carried
   over from T115.
-- `place_names` / `read` / `export_ui_rules` classify `area:region:` ids by string. That is id parsing, not
+- `place_names` / `read` / `pipeline.deliver.export` classify `area:region:` ids by string. That is id parsing, not
   membership, so it was left alone.
 
 ## Adversarial review (2026-10-23)
@@ -78,7 +78,7 @@ Nothing wrong found; no code change. What was tried:
   - `entry_id._water_regions` reads only the ids' MUs.
   - `extent.area_sections` asks `region_members`.
   - `steelhead.py` tests `area:` only to skip area items.
-  - The remaining `area:region:` string tests (`place_names`, `read`, `export_ui_rules`, `spans`) parse ids and
+  - The remaining `area:region:` string tests (`place_names`, `read`, `pipeline.deliver.export`, `spans`) parse ids and
     do not read membership.
   - So no second copy of the membership is left in the bundle or the reach builder.
 - **The view is the graph's answer.** `HomeView` carries the same two attributes `in_region` reads. The cache key

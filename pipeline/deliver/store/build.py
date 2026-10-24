@@ -185,7 +185,7 @@ def build(answers: Path, export_dir: Path, bundle: Path, out: Path, blobs: str =
         if bad:
             raise StoreError("store: the answers are not proved by the card gate — " + "; ".join(bad))
         stamp = json.loads(Path(answers).with_name(STAMP_NAME).read_text())["card_check"]
-    from pipeline.tools.export_codec import expand
+    from pipeline.deliver.export.codec import expand
     X = expand(E, G)
     sub = export_subset(X)
     b = sqlite3.connect(f"file:{bundle}?mode=ro", uri=True)

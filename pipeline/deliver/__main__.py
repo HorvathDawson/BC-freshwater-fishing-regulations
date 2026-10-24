@@ -12,7 +12,7 @@
 
 The artifacts a client reads — the bundle, the status index, and the export pair
 (`ui-rules-export.json` + `ui-rules-guide.json`, one run) — are three commands
-(`pipeline.deliver.bundle`, `pipeline.deliver.status_index`, `pipeline.tools.export_ui_rules`),
+(`pipeline.deliver.bundle`, `pipeline.deliver.status_index`, `pipeline.deliver.export`),
 and each still runs alone — iterating on the export rebuilds only the export. The REGS STORE
 (`pipeline.deliver.store`) is the release's input: the answers and the export words as SQLite, built from the files
 beside it and proved to decode back to them byte for byte. NO `regs.sqlite` IS KEPT (P20): `all` builds it in its
@@ -55,10 +55,10 @@ def _status_index(bundle: Path, out: Path) -> Path:
 
 
 def _export(bundle: Path, out: Path) -> Path:
-    from pipeline.tools import export_ui_rules as ex
+    from pipeline.deliver.export import __main__ as export_main
     # a REFUSED export (problems, a lossy or dangling encoding) leaves the old pair on disk and
     # must fail the command, never exit 0
-    if ex.main(["--bundle", str(bundle), "--out", str(out)]):
+    if export_main.main(["--bundle", str(bundle), "--out", str(out)]):
         raise SystemExit(f"pipeline.deliver: the export was refused — {out} was not written")
     return out
 
@@ -75,7 +75,7 @@ def canonical_homes(debug: bool = False) -> dict:
     has no home (P20): it is kept only with `debug` (`--debug-json`), at `store.DEBUG_OUT`."""
     from pipeline.deliver.answers.card_check import STAMP_NAME
     from pipeline.deliver.store import DEBUG_OUT
-    from pipeline.tools.export_ui_rules import OUT as _EXPORT_OUT
+    from pipeline.deliver.export.contract import OUT as _EXPORT_OUT
     b, r = GENERATED.bundle, _EXPORT_OUT.parent
     return {"bundle.sqlite": b / "bundle.sqlite", "verdicts.sqlite": b / "verdicts.sqlite",
             "status_index.bin": b / "status_index.bin",
@@ -241,7 +241,7 @@ def main(argv=None) -> int:
         _status_index(a.bundle, a.out)
     elif a.step == "answers":
         from pipeline.deliver.answers.cli import main as answers_main
-        from pipeline.tools.export_ui_rules import OUT as _EXPORT_OUT
+        from pipeline.deliver.export.contract import OUT as _EXPORT_OUT
         exp = a.export_dir or _EXPORT_OUT.parent
         out = a.out or exp / "ui-rules-answers.json"
         rc = answers_main(["build", "--bundle", str(a.bundle), "--export-dir", str(exp),
@@ -250,7 +250,7 @@ def main(argv=None) -> int:
             raise SystemExit(f"pipeline.deliver: the answers were refused — {out} was not written")
     elif a.step == "card_check":
         from pipeline.deliver.answers.card_check import main as card_main
-        from pipeline.tools.export_ui_rules import OUT as _EXPORT_OUT
+        from pipeline.deliver.export.contract import OUT as _EXPORT_OUT
         exp = a.export_dir or _EXPORT_OUT.parent
         if card_main(["--all", "--bundle", str(a.bundle), "--export-dir", str(exp)]):
             raise SystemExit(f"pipeline.deliver: the card gate found problems in {exp / 'ui-rules-answers.json'} "
@@ -258,14 +258,14 @@ def main(argv=None) -> int:
     elif a.step == "store":
         from pipeline.deliver.store import DEBUG_OUT
         from pipeline.deliver.store.__main__ import main as store_main
-        from pipeline.tools.export_ui_rules import OUT as _EXPORT_OUT
+        from pipeline.deliver.export.contract import OUT as _EXPORT_OUT
         exp = a.export_dir or _EXPORT_OUT.parent
         out = a.out or DEBUG_OUT
         if store_main(["build", "--bundle", str(a.bundle), "--export-dir", str(exp),
                        "--out", str(out), "--blobs", a.blobs]):
             raise SystemExit(f"pipeline.deliver: the store was refused — {out} was not written")
     elif a.step == "export":
-        from pipeline.tools.export_ui_rules import OUT as _EXPORT_OUT
+        from pipeline.deliver.export.contract import OUT as _EXPORT_OUT
         _export(a.bundle, a.out or _EXPORT_OUT)
     return 0
 

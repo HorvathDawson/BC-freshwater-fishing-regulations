@@ -20,10 +20,10 @@ from pathlib import Path
 import pytest
 
 from pipeline.deliver.bundle import read as RD
-from pipeline.tools import export_ui_rules as X
+from pipeline.deliver.export import contract as export_contract, model as export_model
 from pipeline.tests.conftest import need, BUNDLE_HINT
 
-BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or X.BUNDLE)
+BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or export_contract.BUNDLE)
 
 Z3 = "z3:trout_char_quota::trout_char_quota"
 #: mechanism -> (water item_id, date, fish, ids that speak, ids that must be absent)
@@ -74,7 +74,7 @@ NEW = {
 @pytest.fixture(scope="module")
 def doc(request) -> dict:
     need(request, "bundle", BUNDLE, BUNDLE_HINT)
-    return X.build(BUNDLE)
+    return export_model.build(BUNDLE)
 
 
 @pytest.fixture(scope="module")

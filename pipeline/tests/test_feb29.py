@@ -105,7 +105,7 @@ def test_no_stored_year_reads_differently_on_day_60(request):
     profile holds the same code on day 60 as on day 59."""
     from pipeline.common.curated import GENERATED
     from pipeline.deliver import status_index as SI
-    from pipeline.tools.export_ui_rules import OUT
+    from pipeline.deliver.export.contract import OUT
     from pipeline.tests.conftest import EXPORT_HINT
     answers = need(request, "bundle", OUT.parent / "ui-rules-answers.json", EXPORT_HINT)
     index = need(request, "bundle", GENERATED.bundle / "status_index.bin", BUNDLE_HINT)
@@ -121,7 +121,7 @@ def test_the_zymoetz_on_friday_2036_02_29_reads_feb_28_and_the_friday_rule(reque
     tap reads Feb 28's day on a Friday, so the rule speaks; on Feb 28's own Thursday it does not, and a Thursday Feb 29
     reads exactly Feb 28."""
     from pipeline.deliver.answers import common as AC, encode as E
-    from pipeline.tools.export_ui_rules import OUT
+    from pipeline.deliver.export.contract import OUT
     from pipeline.tests.conftest import EXPORT_HINT
     exp = need(request, "bundle", OUT.parent / "ui-rules-answers.json", EXPORT_HINT).parent
     wire = _json.loads((exp / "ui-rules-answers.json").read_bytes())

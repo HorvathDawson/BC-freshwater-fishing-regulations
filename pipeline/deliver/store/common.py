@@ -207,7 +207,7 @@ def lic_id_of(l: dict) -> str:
 
 
 def export_subset(X: dict) -> dict:
-    """The export words the store carries, from the DECODED export (`export_codec.expand`)."""
+    """The export words the store carries, from the DECODED export (`pipeline.deliver.export.codec.expand`)."""
     return {
         "rule_ids": list(X["rules"]),
         "licensing_ids": list(X["licensing"]),

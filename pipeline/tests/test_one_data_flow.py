@@ -68,7 +68,7 @@ def test_the_bundle_derives_neither_tidal_nor_outside_nor_homes_nor_stems_twice(
         assert "regions.homes(" not in text and " homes(" not in text, p.name
     spans = (BUNDLE_DIR / "spans.py").read_text()
     assert spans.count("main_line_of(") == 1         # its one call, in `compute` (T118: decided in `lines`)
-    export = (TOOLS / "export_ui_rules.py").read_text()
+    export = "".join(p.read_text() for p in sorted((DELIVER / "export").glob("*.py")))
     assert "steelhead_known k WHERE" not in export    # the view, not its CASE re-spelled
     assert "STEELHEAD_RULE_MEMBERS" not in export     # no by-content second definition
     curation = (REPO_ROOT / "curation-review" / "backend")
@@ -130,10 +130,10 @@ def test_closure_grade_full_partial_none():
 
 def test_the_three_readers_ask_closure_grade():
     from pipeline.deliver import status_index as SI
-    from pipeline.tools import export_ui_rules as X
+    from pipeline.deliver.export import cases as export_cases
     full, part, none = _closure(), _closure(side="west"), _closure(may_target=1)
     assert [SI.is_full_closure(x) for x in (full, part, none)] == [True, False, False]
-    assert [X._closure(x) for x in (full, part, none)] == [True, True, False]
+    assert [export_cases._closure(x) for x in (full, part, none)] == [True, True, False]
     from pipeline.deliver.bundle.read import stricter
     quota = {"type": "retention_limit", "take": 2, "may_target": 1}
     release = {"type": "retention_limit", "take": 0, "may_target": 1}

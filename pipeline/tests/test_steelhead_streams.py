@@ -40,10 +40,13 @@ from pathlib import Path
 import pytest
 
 from pipeline.regs.parsing import catalogue as C
-from pipeline.tools import export_ui_rules as X
+from pipeline.deliver.export import (
+    contract as export_contract, guide_words as export_guide_words, model as export_model,
+    steelhead as export_steelhead
+)
 from pipeline.tests.conftest import need, BUNDLE_HINT
 
-BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or X.BUNDLE)
+BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or export_contract.BUNDLE)
 
 #: The regions whose own tables name steelhead, from the book's regional pages: 1 (p.13 "All
 #: wild steelhead", "2 hatchery steelhead over 50 cm"), 2 (p.21, the same), 3 (p.28 "ALL
@@ -138,7 +141,7 @@ def _lakes_of(raw, regions) -> list:
 
 
 def is_wild_release(r: dict) -> bool:
-    """The catalogue twin of `export_ui_rules.is_wild_steelhead_release`: steelhead alone, take 0,
+    """The catalogue twin of `pipeline.deliver.export.steelhead.is_wild_steelhead_release`: steelhead alone, take 0,
     fishable (not a closure), wild or every origin, no date, size, water kind, record or clause."""
     return (r.get("type") == "retention_limit" and r.get("species") == ["ST"]
             and r.get("take") == 0 and r.get("may_target") is True
@@ -863,17 +866,17 @@ def test_mutation_a_lake_another_line_binds_was_book_known(monkeypatch):
 # ----------------------------------------------------------------------------- the export
 @pytest.fixture(scope="module")
 def doc() -> dict:
-    return X.build(BUNDLE)
+    return export_model.build(BUNDLE)
 
 
 @pytest.mark.needs_bundle
 def test_the_export_shows_no_steelhead_rule_on_a_lake(doc):
-    assert X.steelhead_lake_problems(doc) == []
+    assert export_steelhead.steelhead_lake_problems(doc) == []
     # the two lakes whose rows print "steelhead" keep their own steelhead rule
     for eid in OWN_STEELHEAD_LAKES:
         e = doc["entries"][eid]
         assert "steelhead" in e["printed"].lower()
-        assert any(X.is_steelhead_rule(doc["rules"][i]) for i in e["rules"]), eid
+        assert any(export_steelhead.is_steelhead_rule(doc["rules"][i]) for i in e["rules"]), eid
 
 
 def _lake_part(doc, own: bool):
@@ -897,13 +900,13 @@ def test_the_export_knows_the_wild_releases(doc):
     passes; the hatchery quotas, the annual 10, the record duty, stop-after-quota and the Region 6
     stream closure are not."""
     wild = {i for i, x in doc["rules"].items()
-            if X.is_wild_steelhead_release(x) and x["entry_id"].startswith("z")}
+            if export_steelhead.is_wild_steelhead_release(x) and x["entry_id"].startswith("z")}
     assert wild == WILD
     for i in ("zp:steelhead::steelhead.r1", "zp:steelhead::steelhead.r4",
               "z2:trout_char_quota::trout_char_quota.r3",
               "z6:hatchery_steelhead_stop::hatchery_steelhead_stop.r1",
               "z6:steelhead_stream_closure::steelhead_stream_closure.r1"):
-        assert X.is_steelhead_rule(doc["rules"][i]) and not X.is_wild_steelhead_release(
+        assert export_steelhead.is_steelhead_rule(doc["rules"][i]) and not export_steelhead.is_wild_steelhead_release(
             doc["rules"][i]), i
 
 
@@ -918,9 +921,9 @@ def test_the_export_check_refuses_a_steelhead_rule_on_a_lake(doc, rid):
     steelhead water is refused."""
     bad = _bad(doc)
     item, part = _lake_part(doc, own=False)
-    assert X.steelhead_lake_problems(bad) == []
+    assert export_steelhead.steelhead_lake_problems(bad) == []
     bad["rulesets"][part["ruleset"]].setdefault("reach", []).append(rid)
-    got = X.steelhead_lake_problems(bad)
+    got = export_steelhead.steelhead_lake_problems(bad)
     assert any(p.startswith(f"steelhead rule {rid} shows on") and item in p for p in got), got
 
 
@@ -937,13 +940,13 @@ def test_the_export_check_allows_only_the_lakes_own_row_and_the_release(doc):
     bad["rulesets"][part["ruleset"]].setdefault("reach", []).append(
         "z2:trout_char_quota::trout_char_quota.r3")
     assert any("z2:trout_char_quota::trout_char_quota.r3" in p and LOIS in p
-               for p in X.steelhead_lake_problems(bad))
+               for p in export_steelhead.steelhead_lake_problems(bad))
     bad = _bad(doc)
     for via, v in bad["rulesets"][part["ruleset"]].items():
         if via != "sections":
             bad["rulesets"][part["ruleset"]][via] = [i for i in v if i not in WILD]
     assert any(p.startswith(f"water {LOIS} part 0:") and "wild release" in p
-               for p in X.steelhead_set_problems(bad))
+               for p in export_steelhead.steelhead_set_problems(bad))
 
 
 @pytest.mark.needs_bundle
@@ -952,7 +955,7 @@ def test_the_export_check_refuses_a_province_wide_stamp(doc):
     bad["licensing"] = copy.deepcopy(doc["licensing"])
     bad["licensing"][STAMP]["placement"] = "province"
     assert f"steelhead record {STAMP} is placed province-wide — it holds on every lake" \
-        in X.steelhead_lake_problems(bad)
+        in export_steelhead.steelhead_lake_problems(bad)
     assert json.dumps(doc["licensing"][STAMP]["placement"]) == '"sections"'
 
 
@@ -965,7 +968,7 @@ def test_the_export_carries_steelhead_per_part_and_water(doc):
     its row; the Okanagan known by the list with no steelhead rule. A big rainbow is a steelhead
     exactly on the KNOWN flowing parts, book or list (`steelhead_presence_problems`)."""
     W = doc["waters"]
-    assert X.steelhead_presence_problems(doc) == []
+    assert export_steelhead.steelhead_presence_problems(doc) == []
     assert W["gnis:39492"]["steelhead"] == "known"
     assert W["gnis:39492"]["steelhead_source"] == ["regulations", "curated list"]
     assert W["gnis:39492"]["steelhead_rows"] == [THOMPSON]
@@ -982,8 +985,8 @@ def test_the_export_carries_steelhead_per_part_and_water(doc):
     assert W[KHARTOUM]["steelhead_rows"] == ["r2:khartoum_lake@2-12"]
     assert W[OKANAGAN]["steelhead"] == "known" and W[OKANAGAN]["steelhead_source"] == ["curated list"]
     for p in W[OKANAGAN]["parts"]:
-        assert not any(X.is_steelhead_rule(doc["rules"][i])
-                       for i in X._members(doc["rulesets"], p["ruleset"], doc["rules"]))
+        assert not any(export_steelhead.is_steelhead_rule(doc["rules"][i])
+                       for i in export_steelhead._members(doc["rulesets"], p["ruleset"], doc["rules"]))
         assert not p.get("anadromous_rainbow") and p["steelhead_rules"] is False
     assert W[OKANAGAN]["steelhead_rules"] is False
     assert "steelhead" not in W["gnis:16880"] and "steelhead" not in W["wbk:329291805"]
@@ -993,8 +996,8 @@ def test_the_export_carries_steelhead_per_part_and_water(doc):
     fd = doc["field_dictionary"]["water.parts[]"]
     assert "may not be present" in fd["steelhead"] and "BINDS NO RULE" in fd["steelhead"]
     assert "2026-10-03" in fd["anadromous_rainbow"] and "curated list" in fd["anadromous_rainbow"]
-    assert X.STEELHEAD_NO_RULES in fd["steelhead_rules"]
-    assert X.STEELHEAD_NO_RULES in doc["field_dictionary"]["water"]["steelhead_rules"]
+    assert export_guide_words.STEELHEAD_NO_RULES in fd["steelhead_rules"]
+    assert export_guide_words.STEELHEAD_NO_RULES in doc["field_dictionary"]["water"]["steelhead_rules"]
     assert "steelhead_rows" in doc["field_dictionary"]["water"]
     got = doc["about"]["counts"]["sections"]["steelhead"]
     assert got["known"] > 0 and got["possible"] > 0
@@ -1028,9 +1031,9 @@ def test_the_presence_check_catches_a_mutation(doc, mutate, expect):
     refused."""
     bad = dict(doc)
     bad["waters"] = copy.deepcopy(doc["waters"])
-    assert X.steelhead_presence_problems(bad) == []
+    assert export_steelhead.steelhead_presence_problems(bad) == []
     mutate(bad["waters"])
-    got = X.steelhead_presence_problems(bad)
+    got = export_steelhead.steelhead_presence_problems(bad)
     assert any(expect in p for p in got), got
 
 
@@ -1483,12 +1486,12 @@ def _export_bad(doc):
 
 @pytest.mark.needs_bundle
 def test_the_export_carries_the_provincial_set_on_every_steelhead_row_s_water(doc):
-    assert X.steelhead_set_problems(doc) == []
+    assert export_steelhead.steelhead_set_problems(doc) == []
     for item in (KHARTOUM, LOIS):
         p = doc["waters"][item]["parts"][0]
-        rules = X._members(doc["rulesets"], p["ruleset"], doc["rules"])
-        recs = X._members(doc["licensing_sets"], p["licensing_set"], doc["licensing"])
-        assert X.province_set_missing(rules, recs, doc["rules"], doc["licensing"]) == []
+        rules = export_steelhead._members(doc["rulesets"], p["ruleset"], doc["rules"])
+        recs = export_steelhead._members(doc["licensing_sets"], p["licensing_set"], doc["licensing"])
+        assert export_steelhead.province_set_missing(rules, recs, doc["rules"], doc["licensing"]) == []
         assert f"zp:steelhead#{STAMP_TWIN}" in recs
 
 
@@ -1508,7 +1511,7 @@ def test_the_export_set_check_catches_a_missing_member(doc, item, where, drop, e
     for via, v in table.items():
         if isinstance(v, list):
             table[via] = [i for i in v if i != drop]
-    got = X.steelhead_set_problems(bad) + X.steelhead_lake_problems(bad)
+    got = export_steelhead.steelhead_set_problems(bad) + export_steelhead.steelhead_lake_problems(bad)
     assert any(item in g and expect in g for g in got), got
 
 
@@ -1526,7 +1529,7 @@ def test_the_export_set_check_catches_the_set_where_it_must_not_be(doc, item, wh
         part[where] = "mutant"
         tables["mutant"] = {"sections": part["sections"]}
     tables[part[where]].setdefault("reach", []).append(add)
-    got = X.steelhead_set_problems(bad) + X.steelhead_lake_problems(bad)
+    got = export_steelhead.steelhead_set_problems(bad) + export_steelhead.steelhead_lake_problems(bad)
     assert any(item in g and expect in g for g in got) or any(
         add in g and item in g for g in got), got
 
@@ -1551,7 +1554,7 @@ def test_the_guide_has_a_sample_water_for_each_steelhead_kind(doc):
         speaks = {a["id"] for a in c["expect"] if a["state"] == "speaks"}
         assert any(i.startswith("zp:steelhead::") for i in speaks), c["mechanism"]
         assert any(i.startswith("zp:steelhead#") for i in c["expect_licensing"]), c["mechanism"]
-    assert not any(X.is_steelhead_rule(doc["rules"][a["id"]]) for a in lake["expect"])
+    assert not any(export_steelhead.is_steelhead_rule(doc["rules"][a["id"]]) for a in lake["expect"])
     assert not any(i.startswith("zp:steelhead#") for i in lake["expect_licensing"])
     assert "zp:steelhead::steelhead.r1b" in {a["id"] for a in own["expect"]}
     # 2026-10-06 (FIX D13): a lake a steelhead row binds by ANOTHER line is NOT steelhead water
@@ -1560,7 +1563,7 @@ def test_the_guide_has_a_sample_water_for_each_steelhead_kind(doc):
                      got["steelhead_known_beyond_the_regions"])
     assert other["water"]["kind"] == "lake" and "steelhead" not in other
     assert other["water"]["item_id"] not in STEELHEAD_ROW_LAKES
-    assert not any(X.is_steelhead_rule(doc["rules"][a["id"]]) for a in other["expect"]
+    assert not any(export_steelhead.is_steelhead_rule(doc["rules"][a["id"]]) for a in other["expect"]
                    if a["id"] in doc["rules"])
     assert not any(i.startswith("zp:steelhead#") for i in other["expect_licensing"])
     assert (beyond["steelhead"], beyond["water"]["kind"], beyond.get("anadromous_rainbow")) == (
@@ -1575,12 +1578,12 @@ def test_the_guide_has_a_sample_water_for_each_steelhead_kind(doc):
     lst = got["steelhead_known_by_the_list"]
     assert (lst["steelhead"], lst["water"]["kind"], lst.get("anadromous_rainbow"), lst["fish"]) == (
         "known", "stream", None, "RB")
-    assert X.STEELHEAD_NO_RULES in lst["what_to_show"]
+    assert export_guide_words.STEELHEAD_NO_RULES in lst["what_to_show"]
     if lst["water"]["item_id"] == OKANAGAN:
         assert any(a["id"] == "r8:okanagan_river@8-1::okanagan_river.r5" and a["state"] == "speaks"
                    for a in lst["expect"]), lst["expect"]
     assert doc["waters"][lst["water"]["item_id"]]["steelhead_source"] == ["curated list"]
-    assert not any(X.is_steelhead_rule(doc["rules"][a["id"]]) for a in lst["expect"]
+    assert not any(export_steelhead.is_steelhead_rule(doc["rules"][a["id"]]) for a in lst["expect"]
                    if a["id"] in doc["rules"])
     assert not any(i.startswith("zp:steelhead#") for i in lst["expect_licensing"])
     for m in ("steelhead_known", "steelhead_possible", "lake_no_steelhead",
@@ -1602,28 +1605,28 @@ def test_steelhead_rules_false_is_exactly_the_known_parts_no_steelhead_rule_appl
     for i, w in W.items():
         for p in w["parts"]:
             if p["ruleset"] is not None:
-                assert p["steelhead_rules"] is X.steelhead_rules_apply(doc, p), (i, p)
+                assert p["steelhead_rules"] is export_steelhead.steelhead_rules_apply(doc, p), (i, p)
             else:
                 assert "steelhead_rules" not in p, i
     flagged = {(i, n) for i, w in W.items() for n, p in enumerate(w["parts"])
                if p.get("steelhead_rules") is False and p.get("steelhead") == "known"}
     want = {(i, n) for i, w in W.items() for n, p in enumerate(w["parts"])
-            if p.get("steelhead") == "known" and not X.steelhead_rules_apply(doc, p)}
+            if p.get("steelhead") == "known" and not export_steelhead.steelhead_rules_apply(doc, p)}
     assert flagged == want and flagged
     assert {i for i, w in W.items() if w.get("steelhead_rules") is False} == {
         OKANAGAN, INKANEEP, "gnis:29653"}
     fraser = W["gnis:39325"]
     assert "steelhead_rules" not in fraser
     assert any(p.get("steelhead_rules") is False for p in fraser["parts"])
-    assert any(X.steelhead_rules_apply(doc, p) for p in fraser["parts"])
+    assert any(export_steelhead.steelhead_rules_apply(doc, p) for p in fraser["parts"])
     for p in fraser["parts"]:
         if p.get("steelhead_rules") is False:
             assert not p.get("anadromous_rainbow")
-    assert X.STEELHEAD_NO_RULES == ("Steelhead have been recorded here, but no steelhead rule "
+    assert export_guide_words.STEELHEAD_NO_RULES == ("Steelhead have been recorded here, but no steelhead rule "
                                     "applies: treat any rainbow, however big, as a rainbow trout.")
     bad = copy.deepcopy(doc)
     bad["waters"]["gnis:39325"]["parts"][next(n for n, p in enumerate(fraser["parts"])
-                                              if X.steelhead_rules_apply(doc, p)
+                                              if export_steelhead.steelhead_rules_apply(doc, p)
                                               and p.get("steelhead") == "known")][
         "steelhead_rules"] = False
-    assert any("steelhead_rules False" in x for x in X.steelhead_presence_problems(bad))
+    assert any("steelhead_rules False" in x for x in export_steelhead.steelhead_presence_problems(bad))

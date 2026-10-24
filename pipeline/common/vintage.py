@@ -199,7 +199,7 @@ class Artifacts:
     @classmethod
     def canonical(cls) -> "Artifacts":
         from pipeline.common.curated import GENERATED
-        from pipeline.tools.export_ui_rules import OUT as EXPORT_OUT
+        from pipeline.deliver.export.contract import OUT as EXPORT_OUT
         return cls(GENERATED.bundle / "bundle.sqlite", GENERATED.bundle / "status_index.bin", EXPORT_OUT)
 
 

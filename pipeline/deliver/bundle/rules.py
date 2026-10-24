@@ -253,7 +253,7 @@ def closure_grade(x: dict) -> str | None:
     colours CLOSED on "full" only (`status_index.is_full_closure`); the competition treats any
     closure as a closure that speaks for every fish it covers (`read.effective_rules`) and lets a
     "full" one beat another region's quota (`read.stricter`); the export's sample cases take any
-    closure (`export_ui_rules._closure`). Four spellings with four exclusion lists lived at those
+    closure (`pipeline.deliver.export.cases._closure`). Four spellings with four exclusion lists lived at those
     call sites before; a rule with `side` was a closure to the reader and not to the map.
 
     Reads a bundle rule (`read.rules`: `undrawn_part`) or the export's flattened fields

@@ -612,7 +612,7 @@ def _notes(guide: dict) -> dict:
 def test_c3_the_shipped_guide_says_trout_includes_char(request):
     """Both places the guide gives the app the note carry the whole sentence. MUTATION: a note that no
     longer says char are included — not the sentence."""
-    from pipeline.tools.export_ui_rules import GUIDE_NAME
+    from pipeline.deliver.export.contract import GUIDE_NAME
     path = need(request, "bundle", EXPORT_DIR / GUIDE_NAME, EXPORT_HINT)
     guide = json.loads(path.read_text(encoding="utf-8"))
     assert _notes(guide) == {"species.trout_note": TROUT_NOTE, "gotchas.trout_includes_char.note": TROUT_NOTE}

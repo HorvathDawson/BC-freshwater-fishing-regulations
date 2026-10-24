@@ -26,10 +26,12 @@ from pipeline.tests.bundle_fixture import finish, section_sets
 
 from pipeline.deliver.bundle import spans as SP
 from pipeline.deliver.bundle.build import SCHEMA
-from pipeline.tools import export_ui_rules as X
+from pipeline.deliver.export import (
+    checks as export_checks, contract as export_contract, model as export_model, read as export_read
+)
 from pipeline.tests.conftest import need, BUNDLE_HINT
 
-BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or X.BUNDLE)
+BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or export_contract.BUNDLE)
 
 
 # ---------------------------------------------------------------------------------------------
@@ -160,7 +162,7 @@ def _bundle(tmp: Path, *, spans: bool = True) -> Path:
 
 
 def test_the_export_ships_runs_and_never_a_section(tmp_path):
-    d = X.read(_bundle(tmp_path))
+    d = export_read.read(_bundle(tmp_path))
     parts = {p["ruleset"]: p["runs"] for p in d["waters"]["gnis:1"]["parts"]}
     assert parts == {
         "7": [{"from": "lake_inlet:wbk:5", "to": "one_river__falls", "km_from": 5.0, "km_to": 3.4},
@@ -176,7 +178,7 @@ def test_the_export_ships_runs_and_never_a_section(tmp_path):
 
 def test_a_stream_section_with_no_span_is_refused(tmp_path):
     with pytest.raises(SystemExit, match="section_span"):
-        X.read(_bundle(tmp_path, spans=False))
+        export_read.read(_bundle(tmp_path, spans=False))
 
 
 def test_a_bundle_without_the_span_table_is_refused(tmp_path):
@@ -186,7 +188,7 @@ def test_a_bundle_without_the_span_table_is_refused(tmp_path):
     db.commit()
     db.close()
     with pytest.raises(SystemExit, match="section_span"):
-        X.read(path)
+        export_read.read(path)
 
 
 # ---------------------------------------------------------------------------------------------
@@ -203,7 +205,7 @@ def db(request):
 @pytest.fixture(scope="module")
 def doc(request):
     need(request, "bundle", BUNDLE, BUNDLE_HINT)
-    return X.build(BUNDLE)
+    return export_model.build(BUNDLE)
 
 
 def _runs(doc, item):
@@ -255,7 +257,7 @@ def test_runs_cover_exactly_the_part_s_sections(doc, db):
                 == (rs, ls, pe, sw, st)]
         assert len(part) == 1, item
         assert part[0]["sections"] == len(sids)
-        if X.is_polygon_part(doc["waters"][item], sorted(sids), span):
+        if export_read.is_polygon_part(doc["waters"][item], sorted(sids), span):
             # a stream's polygons its stem does not pass through: one polygon run
             assert part[0]["runs"] == [{"from": None, "to": None, "km_from": None,
                                         "km_to": None, "polygon": "whole"}], item
@@ -275,15 +277,15 @@ def test_every_end_is_a_cut_or_an_end_the_file_names(doc):
     # parts (a slough drawn only as polygons) are one polygon run with none
     ends = [r[k] for w in doc["waters"].values() if w["kind"] == "stream"
             for p in w["parts"] for r in p["runs"] if "polygon" not in r for k in ("from", "to")]
-    assert ends and all(X.valid_end(t, doc) for t in ends), \
-        sorted({t for t in ends if not X.valid_end(t, doc)})[:10]
+    assert ends and all(export_checks.valid_end(t, doc) for t in ends), \
+        sorted({t for t in ends if not export_checks.valid_end(t, doc)})[:10]
     named = [t for t in ends if t in doc["splits"]]
     assert len(named) > 1_000
 
 
 @pytest.mark.needs_bundle
 def test_runs_go_upstream_to_downstream_and_km_never_climbs(doc):
-    assert X.run_problems(doc) == []
+    assert export_checks.run_problems(doc) == []
     for w in doc["waters"].values():
         for p in w["parts"]:
             km = [r["km_from"] for r in p["runs"] if r["km_from"] is not None]
@@ -414,8 +416,8 @@ def test_the_run_checks_catch_a_broken_run(doc, name, mutate, expect):
     part = next(i for i, p in enumerate(doc["waters"][item]["parts"]) if len(p["runs"]) == 3)
     bad = dict(doc, waters={item: copy.deepcopy(doc["waters"][item])})
     mutate(bad["waters"][item]["parts"][part])
-    assert any(expect in p for p in X.run_problems(bad)), name
-    assert X.run_problems(dict(doc, waters={item: doc["waters"][item]})) == []
+    assert any(expect in p for p in export_checks.run_problems(bad)), name
+    assert export_checks.run_problems(dict(doc, waters={item: doc["waters"][item]})) == []
 
 
 # ---------------------------------------------------------------------------------------------
@@ -470,7 +472,7 @@ def _designations(doc):
 def test_every_designation_says_its_period(doc):
     D = _designations(doc)
     assert len(D) == 74
-    assert X.period_problems(doc) == []
+    assert export_checks.period_problems(doc) == []
     kinds = defaultdict(list)
     for i, x in D.items():
         kinds[x["period"]["kind"]].append(i)
@@ -523,7 +525,7 @@ DATED = {"classified": "II", "when": {"dates": [{"from_month": 9, "from_day": 1,
 ])
 def test_a_period_that_cannot_be_read_is_refused(fields, verbatim, match):
     with pytest.raises(SystemExit, match=match):
-        X.designation_period("r9:x#x", fields, verbatim, {"when": "Sep 1-Apr 30"})
+        export_read.designation_period("r9:x#x", fields, verbatim, {"when": "Sep 1-Apr 30"})
 
 
 @pytest.mark.needs_bundle
@@ -534,10 +536,10 @@ def test_the_period_check_catches_a_dropped_or_flipped_period(doc):
                    lambda x: x.update(period={"kind": "sometimes", "says": "x"})):
         bad = copy.deepcopy(doc["licensing"][rid])
         mutate(bad)
-        assert X.period_problems({"licensing": {rid: bad}}), mutate
+        assert export_checks.period_problems({"licensing": {rid: bad}}), mutate
     dated = "r1:copper_creek@6-12#copper_creek"
     bad = copy.deepcopy(doc["licensing"][dated])
     bad["period"] = {"kind": "when_open", "says": "x"}
-    assert X.period_problems({"licensing": {dated: bad}})
-    assert X.period_problems({"licensing": {rid: doc["licensing"][rid],
+    assert export_checks.period_problems({"licensing": {dated: bad}})
+    assert export_checks.period_problems({"licensing": {rid: doc["licensing"][rid],
                                             dated: doc["licensing"][dated]}}) == []

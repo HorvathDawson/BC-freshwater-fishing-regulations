@@ -41,7 +41,7 @@ def test_flows_is_decided_in_the_registry_only():
                      text) and rel not in FLOWS_READERS:
             bad.append(rel)
     assert bad == [], bad
-    text = (PIPELINE / "tools/export_ui_rules.py").read_text()
+    text = "".join(p.read_text() for p in sorted((PIPELINE / "deliver/export").glob("*.py")))
     assert "_flows" not in text and "drawn_as" not in text and "drawn_kind" not in text
     assert "flowing_lake_sections" not in (PIPELINE / "atlas/reach/water_kind.py").read_text()
     assert "FLOW_RE" not in (PIPELINE / "atlas/registry/build.py").read_text()
@@ -92,8 +92,8 @@ def handles(build):
 
 @pytest.fixture(scope="module")
 def doc(db):
-    from pipeline.tools import export_ui_rules as X
-    return X.build(_bundle())
+    from pipeline.deliver.export import model as export_model
+    return export_model.build(_bundle())
 
 
 def _tiles() -> Path:
