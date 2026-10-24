@@ -1270,7 +1270,7 @@
     "sha": "b4107a97c5"
    }
   ],
-  "pipeline/deliver/answers/reference/page_v36.js": [
+  "app/design/regs-v11/reference/page_v36.js": [
    {
     "name": "D",
     "kind": "const",

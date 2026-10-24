@@ -316,7 +316,7 @@ CALENDAR_JS_EXEMPT: set = set()
 
 def _js_sources() -> dict[str, str]:
     roots = [REPO_ROOT / "app" / "packages", REPO_ROOT / "app" / "apps", REPO_ROOT / "app" / "tools",
-             PIPELINE / "deliver" / "answers" / "reference"]
+             REPO_ROOT / "app" / "design" / "regs-v11" / "reference"]
     out = {}
     for root in roots:
         for p in sorted(root.rglob("*")):
@@ -369,9 +369,9 @@ def test_gate_4_goes_red_on_a_planted_python_table(path, planted):
 @pytest.mark.parametrize("path,planted", [
     ("app/packages/core/src/statusIndex.ts",
      "\nconst BEFORE = [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335];\n"),
-    ("pipeline/deliver/answers/reference/page_v36.js",
+    ("app/design/regs-v11/reference/page_v36.js",
      "\nconst DIM2 = [31,28,31,30,31,30,31,31,30,31,30,31];\n"),
-    ("pipeline/deliver/answers/reference/page_v36.js",
+    ("app/design/regs-v11/reference/page_v36.js",
      "\nconst W = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];\n"),
 ])
 def test_gate_4_goes_red_on_a_planted_js_table(path, planted):

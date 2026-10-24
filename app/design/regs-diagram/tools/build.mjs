@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // regs-diagram: pull the waters the diagram page draws out of the page-v36 snapshot (regs-v11/v36snap.js, itself
-// script-made from pipeline/deliver/answers/reference/page_v36.html) into regs-diagram/data.js. Nothing here is
+// script-made from app/design/regs-v11/reference/page_v36.html) into regs-diagram/data.js. Nothing here is
 // hand-written: every number and word the page draws is copied from the snapshot's rows/group fields, the card's own
 // HTML (row titles, pills, summaries), the display strip legend and the rule info (book pages, titles).
 //   node app/design/regs-diagram/tools/build.mjs

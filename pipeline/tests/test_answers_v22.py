@@ -162,13 +162,6 @@ def test_d_mutations_are_refused(region, entry_id, rule_id, mutate):
                                                          for r in e["rules"]]})
 
 
-def test_d_the_page_decides_no_exemption():
-    """The page reads `except`; it computes no exemption of its own (the old `exemptOf` third
-    branch, which asked every fish's roles, is gone)."""
-    js = (Path(E.__file__).parent / "reference" / "page_v36.js").read_text()
-    assert "roles.get(c.r.key)" not in js
-
-
 # --------------------------------------------------------------------------------------------
 # E — the Vedder Canal is a stream
 # --------------------------------------------------------------------------------------------

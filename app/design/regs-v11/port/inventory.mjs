@@ -12,7 +12,7 @@ const argv = process.argv.slice(2), di = argv.indexOf('--diff'), old = di >= 0 ?
 const A = args(argv); fs.mkdirSync(A.out, { recursive: true });
 const S = stage(A.ref);
 
-const TARGETS = [['app/design/regs-v11.html', 'script'], ['pipeline/deliver/answers/reference/page_v36.js', 'js']];
+const TARGETS = [['app/design/regs-v11.html', 'script'], ['app/design/regs-v11/reference/page_v36.js', 'js']];
 function scan(text, mode) {
   // top-level declarations start at column 0 in both files; a nested helper is an indented `const x = … =>` / `function x(`
   // inside a top-level body. A body ends where the next column-0 declaration (or the script's end) starts.

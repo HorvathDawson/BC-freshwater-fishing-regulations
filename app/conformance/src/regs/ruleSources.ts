@@ -20,7 +20,7 @@ import { openRegsStore, type RegsLoader } from "@app/data/regs";
 import { liveRelease, openReleaseDir } from "../fixtureRelease";
 import { REPO } from "./oracles";
 
-const REF = `${REPO}pipeline/deliver/answers/reference/`;
+const REF = `${REPO}app/design/regs-v11/reference/`;
 const PAGE = `${REF}page_v36.html`;
 
 export interface RuleSource {

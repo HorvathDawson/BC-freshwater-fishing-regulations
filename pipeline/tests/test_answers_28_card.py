@@ -97,10 +97,6 @@ def test_over_50_is_said_once_on_its_bucket():
 
 
 # 5 ---------------------------------------------------------------------------------------------
-def test_the_page_draws_no_for_every_kind_checklist_beside_the_buckets():
-    js = (Path(__file__).parents[1] / "deliver/answers/reference/page_v36.js").read_text("utf-8")
-    assert "For every kind" not in js
-    assert re.search(r"group\??\.buckets", js)                  # the card reads the answers' buckets
 
 
 # 6 ---------------------------------------------------------------------------------------------

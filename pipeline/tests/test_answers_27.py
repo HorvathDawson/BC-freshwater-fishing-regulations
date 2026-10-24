@@ -20,7 +20,6 @@ from __future__ import annotations
 
 import json
 import os
-import re
 from pathlib import Path
 
 import pytest
@@ -44,7 +43,6 @@ DUNCAN = "gnis:22255"                 # Region 4: its own ✱ row lifts DV and r
 LARDEAU_CREEK = "gnis:16357"          # Region 4: a Duncan tributary, the lift inherited
 CHILLIWACK_LAKE = "wbk:329083341"     # Region 2 lake: no steelhead, the Q16 pair is one clause
 WATERS = (VEDDER, DUNCAN, LARDEAU_CREEK, CHILLIWACK_LAKE)
-
 
 
 @pytest.fixture(scope="module")
@@ -158,12 +156,6 @@ def test_a_lake_card_is_its_total_with_over_50_on_the_rows(built):
 # --------------------------------------------------------------------------------------------
 # A2. the group line is a block, so its items stay inside it
 # --------------------------------------------------------------------------------------------
-
-def test_the_group_line_is_never_a_paragraph_holding_a_list():
-    js = (Path(E.__file__).parent / "reference" / "page_v36.js").read_text()
-    assert '<p class="gline">${tot}' not in js
-    assert js.count('<div class="gline">${tot}') == 2
-    assert not re.search(r"<p [^>]*>\$\{tot\}", js)
 
 
 # --------------------------------------------------------------------------------------------

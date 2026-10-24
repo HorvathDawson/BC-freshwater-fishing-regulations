@@ -2128,7 +2128,7 @@ async function roundUr5(){
   check('ur5-elsewhere-names-here', EL.cut && !EL.rb, JSON.stringify(EL));
   // (H1) the steelhead look-for tip never says "50 cm or longer" (the book: longer than 50 cm; exactly 50 cm is a rainbow)
   // (H2) every fish name the snapshot carries is the export's species name (Lake whitefish, not the art table's "Whitefish")
-  const ref = fs.readFileSync(path.join(APP, '../pipeline/deliver/answers/reference/page_v36.html'), 'utf8');
+  const ref = fs.readFileSync(path.join(APP, 'design/regs-v11/reference/page_v36.html'), 'utf8');
   const D = JSON.parse(ref.match(/<script type="application\/json" id="data">([\s\S]*?)<\/script>/)[1].replace(/<\\\//g, '</'));
   const ex = {...(D.species?.fish || {})};
   let fish = {};

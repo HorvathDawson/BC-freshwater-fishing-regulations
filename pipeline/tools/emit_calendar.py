@@ -29,8 +29,9 @@ CORE = ROOT / "app" / "packages" / "core" / "src"
 OUT_TS = CORE / "calendar.generated.ts"
 #: The same spec as JSON, for node tools that cannot import a workspace TypeScript package.
 OUT_JSON = CORE / "calendar.generated.json"
-#: The reference page's copy: `page_data.write_html` inlines it ahead of `page_v36.js`.
-OUT_PAGE_JS = ROOT / "pipeline" / "deliver" / "answers" / "reference" / "calendar.generated.js"
+#: The reference page's copy (app/design/regs-v11/reference/): the conformance `pageDecode` and port/hydrate.mjs
+#: evaluate it ahead of `page_v36.js` (the page's own inlined copy is frozen with its blocks).
+OUT_PAGE_JS = ROOT / "app" / "design" / "regs-v11" / "reference" / "calendar.generated.js"
 
 _BY = "python -m pipeline.tools.emit_calendar"
 _SRC = "pipeline/common/calendar_spec.py"

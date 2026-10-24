@@ -16,7 +16,7 @@ import { stage, args, REPO, HERE } from './stage.mjs';
 
 const A = args(); fs.mkdirSync(A.out, { recursive: true });
 const S = stage(A.ref);
-const REF = 'pipeline/deliver/answers/reference/';
+const REF = 'app/design/regs-v11/reference/';
 const INPUTS = ['page_v36.js', 'page_v36.html', 'calendar.generated.js'].map(f => REF + f);
 const atRef = f => A.ref === 'WORKTREE' ? fs.readFileSync(path.join(REPO, f), 'utf8')
   : execFileSync('git', ['-C', REPO, 'show', `${A.ref}:${f}`], { encoding: 'utf8', maxBuffer: 1 << 30 });

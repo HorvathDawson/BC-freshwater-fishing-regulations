@@ -195,15 +195,6 @@ def test_f14_the_group_model_refuses_a_subcap_of_a_kind_outside_the_total():
         M.GroupTotal.model_validate_json(json.dumps({**ok, "kinds": ["CT"], "subcaps": []}))
 
 
-def test_f14_the_page_reads_the_group_sentence_and_the_kept_elsewhere_line():
-    """Page v36 shows `group.says` and `elsewhere` — it no longer words a total or a worked
-    example from the row's (narrowed) number."""
-    js = (Path(E.__file__).parent / "reference" / "page_v36.js").read_text()
-    assert "a day in total, all kinds together" not in js
-    assert "Keep 0 here" not in js and "more here</strong>" not in js
-    assert "row.raw.group" in js and "row.raw.elsewhere" in js
-
-
 # --------------------------------------------------------------------------------------------
 # F13 a size release is an answer
 # --------------------------------------------------------------------------------------------

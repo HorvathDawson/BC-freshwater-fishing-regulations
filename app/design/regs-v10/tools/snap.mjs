@@ -1,4 +1,4 @@
-// Snapshot page v36 for regs-v10: renders pipeline/deliver/answers/reference/page_v36.html in headless Chrome,
+// Snapshot page v36 for regs-v10: renders app/design/regs-v11/reference/page_v36.html in headless Chrome,
 // drives the page's own controls for each state below, and copies the page's own HTML fragments, sheets and data.
 // Nothing is written by hand: every string in the output is read off the rendered page or its embedded answers.
 //   node app/design/regs-v10/tools/snap.mjs            -> app/design/regs-v10/v36snap.js
@@ -7,7 +7,7 @@ import { open } from './cdp.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, '../../../..');
-const FROM = 'pipeline/deliver/answers/reference/page_v36.html';
+const FROM = 'app/design/regs-v11/reference/page_v36.html';
 const OUT = process.argv[2] ? path.resolve(process.argv[2]) : path.join(HERE, '..', 'v36snap.js');
 const YEAR = 2026;   // the prototype's year (Oct 10 2026 is a Saturday: the Kootenay weekend rule)
 

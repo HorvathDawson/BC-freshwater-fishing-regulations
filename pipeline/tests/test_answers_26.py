@@ -205,11 +205,6 @@ def test_the_group_model_requires_the_card():
             M.GroupTotal.model_validate_json(json.dumps(bad))
 
 
-def test_the_page_shows_the_card():
-    js = (Path(E.__file__).parent / "reference" / "page_v36.js").read_text()
-    assert "grp.items" not in js and "cardBlock(row, id)" in js
-
-
 # --------------------------------------------------------------------------------------------
 # 3. the Cowichan's cut names, as the book prints them
 # --------------------------------------------------------------------------------------------
@@ -384,8 +379,6 @@ def test_a_line_count_says_rod():
     assert say(gear=[{"slot": "lines_per_angler", "max": 1}], **{"while": ["set_lining"]}) == \
         "At most 1 line per angler, while set lining"
     assert GE.static_tables()["count_nouns"] == {"lines_per_angler": ["line (rod)", "lines (rods)"]}
-    js = (Path(E.__file__).parent / "reference" / "page_v36.js").read_text()
-    assert "count_nouns" in js and "line${L.c?.max > 1" not in js
 
 
 @pytest.mark.needs_bundle

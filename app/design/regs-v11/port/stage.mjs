@@ -10,7 +10,7 @@ export const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const REPO = path.resolve(HERE, '../../../..');
 export const FILES = ['app/design/regs-v11.html', 'app/design/regs-v11/v36snap.js', 'app/design/regs-v11/watermap.js',
   'app/design/regs-v11/UI-NOTES.md', 'app/design/regs-v10/fish.js', 'app/design/regs-v10/fishart.js',
-  'pipeline/deliver/answers/reference/page_v36.js'];
+  'app/design/regs-v11/reference/page_v36.js'];
 
 const git = (...a) => execFileSync('git', ['-C', REPO, ...a], { encoding: 'utf8', maxBuffer: 1 << 30 });
 

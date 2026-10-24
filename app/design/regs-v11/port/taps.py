@@ -89,7 +89,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--store", default=str(REPO / "data/generated/bundle/regs.sqlite"))
     ap.add_argument("--golden", default=str(REPO / "app/design/regs-v11/port/golden/golden.json"))
-    ap.add_argument("--page", default=str(REPO / "pipeline/deliver/answers/reference/page_v36.html"))
+    ap.add_argument("--page", default=str(REPO / "app/design/regs-v11/reference/page_v36.html"))
     ap.add_argument("--out", default=str(REPO / "app/design/regs-v11/port/golden/taps.json"))
     ap.add_argument("--unnamed", type=int, default=20)
     a = ap.parse_args()

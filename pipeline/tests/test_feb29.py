@@ -80,12 +80,10 @@ def test_the_nicola_below_the_lake_is_catch_and_release_on_feb_29(request):
 
 # ---- P06 (owner 2026-10-20, D31): Feb 29 READS Feb 28's regulations, on its OWN real weekday ------------------
 # One rule, `calendar_spec.reading_day` + `weekday_of`, generated for the app (calendar.generated.ts) and the reference
-# page (calendar.generated.js); the Python readers (status index, tap) ask through `calendar.reading_day_of`.
+# page (app/design/regs-v11/reference/calendar.generated.js); the Python readers (status index, tap) ask through `calendar.reading_day_of`.
 
 import datetime as _dt
 import json as _json
-import shutil as _shutil
-import subprocess as _subprocess
 
 from pipeline.common import calendar_spec as SPEC
 from pipeline.deliver import calendar as CAL
@@ -99,29 +97,6 @@ def test_feb_29_reads_feb_28_on_its_own_weekday():
     assert SPEC.weekday_of(2036, 2, 29) == "Friday" and SPEC.weekday_of(2036, 2, 28) == "Thursday"
     assert {c["date"]: (c["reading_day"], c["weekday"]) for c in SPEC.cases()}["2036-02-29"] == (59, "Friday")
     assert CAL.reading_day_of(_dt.date(2036, 2, 29)) == 59 and CAL.day_of(_dt.date(2036, 2, 29)) == 60
-
-
-def _node(script: str) -> str:
-    node = _shutil.which("node")
-    if node is None:
-        pytest.fail("node is not on PATH: the reference page's calendar cannot be checked")
-    return _subprocess.run([node, "-e", script], check=True, capture_output=True, text=True).stdout
-
-
-def test_the_reference_page_reads_feb_29_as_feb_28_on_its_own_weekday():
-    """The page's generated calendar and its own `weekdayOf` (page_v36.js), evaluated in node: every worked case, and
-    on 2036-02-29 (LEAP_VIEW) the Feb 28 slot is a Friday; on Feb 28 itself it is a Thursday."""
-    from pipeline.deliver.answers.reference import page_data as PD
-    js = PD.JS.read_text()
-    line = next(ln for ln in js.splitlines() if ln.startswith("const weekdayOf = "))
-    script = (PD.CALENDAR_JS.read_text() + "let YEAR = 2036, LEAP_VIEW = false;\n" + line + "\n" +
-              "const cases = CALENDAR.cases.map(c => { const [y, m, d] = c.date.split('-').map(Number);"
-              " return [c.date, readingDayOf(m, d), realWeekdayOf(y, m, d)]; });\n"
-              "const thu = weekdayOf(228); LEAP_VIEW = true; const fri = weekdayOf(228);\n"
-              "console.log(JSON.stringify({cases, thu, fri}));")
-    got = _json.loads(_node(script))
-    assert got["cases"] == [[c["date"], c["reading_day"], c["weekday"]] for c in SPEC.cases()]
-    assert (got["thu"], got["fri"]) == ("Thursday", "Friday")
 
 
 @pytest.mark.needs_bundle
@@ -158,7 +133,6 @@ def test_the_zymoetz_on_friday_2036_02_29_reads_feb_28_and_the_friday_rule(reque
     speaks = lambda lad: {r for f in lad for o in lad[f] for r, v in lad[f][o].items() if v[0] == "speaks"}  # noqa
     assert ZYMOETZ_R10 in speaks(fri) and ZYMOETZ_R10 not in speaks(thu)
     assert E.tap(wire, data, ZYMOETZ, 0, 2, 29, weekday="Thursday")["ladder"] == thu
-
 
 
 def test_held_days_is_the_one_no_dates_means_the_year():

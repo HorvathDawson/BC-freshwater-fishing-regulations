@@ -107,7 +107,7 @@ let RID: Map<number, string> | undefined;
 /** page_v36.html's `#data.rid` (oracle rule number → "entry::rule"), read once. */
 function pageRid(): Map<number, string> {
   if (RID) return RID;
-  const html = readFileSync(`${REPO}pipeline/deliver/answers/reference/page_v36.html`, "utf8");
+  const html = readFileSync(`${REPO}app/design/regs-v11/reference/page_v36.html`, "utf8");
   const m = html.match(/<script[^>]*id="data"[^>]*>([\s\S]*?)<\/script>/);
   if (!m) throw new Error("page_v36.html has no #data");
   return (RID = new Map(Object.entries((JSON.parse(m[1]!) as { rid: Record<string, string> }).rid).map(([k, v]) => [Number(k), v])));

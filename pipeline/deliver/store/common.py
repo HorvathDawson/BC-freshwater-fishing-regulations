@@ -168,7 +168,7 @@ def store_digest(con: sqlite3.Connection) -> str:
 
 # --------------------------------------------------------------------------------------------
 # The export subset the store carries: what a page reads that the answers lack
-# (the consumer page's slice, `pipeline/deliver/answers/reference/page_data.py`: rule text, sources
+# (the consumer page's slice, `archive/pipeline/answers-reference-v36/page_data.py`: rule text, sources
 # and verbatims, licensing records, entries, licences, species, the conduct sentences, the rule and
 # licensing sets a part names, and the waters' and parts' export words).
 # --------------------------------------------------------------------------------------------
