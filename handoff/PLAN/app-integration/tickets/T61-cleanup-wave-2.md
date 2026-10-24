@@ -63,3 +63,53 @@ Acceptance: each item's acceptance from the audit plan; binding diff reviewed wh
 - **Owner run owed:** the next `python -m pipeline.deliver all` (or `pipeline build`) cuts a release carrying
   `store_meta`; then `node app/design/regs-v11/port/sync.mjs` (or `.venv/bin/python app/design/regs-v11/port/taps.py`)
   fills taps.json's `store_digest` again.
+
+## Outcome (lane A)
+
+App-side items 2.1, 2.2, 2.3, 2.15, 2.16, 2.17, 2.19, plus `useHydrograph`, are done. Commits on the lane branch:
+1193af74 (2.1–2.3), 92b31e0a (docs), a2216983 (2.15), b477529d (2.16), ea63325e (2.17), 2951fc4b (2.19),
+d3d6ace7 (dev fixture schema test), f18c5634 (pipeline follow-ups).
+
+- **2.1 deleted:** DATA_SOURCE, useDevBundle, ENDPOINTS.bundle, ui devStatus / statusIndexUrl / loadStatusIndex,
+  the `dev` PairingInput, makeBundleSource (data/src/bundle/source.ts + its test), the engine.* drivers + bundle/open,
+  RegulationsPlaceholder (a WaterScreen with no loader now says "Regulations unavailable: no data release is open"),
+  useHydrograph (+ axisLabels), the start stage "bundle", and the serve-tiles routes /bundle.sqlite, /province.sqlite,
+  /status_index.bin and /feeds/gauge. core decodeStatusIndex stays.
+- **2.2:** db.ts, shared.ts, queries.ts, the node driver and releaseDir.ts now live in data/src/sql/ (layer
+  `packages/data/src/sql/drivers`, node only). BundleSourceOptions is now `SourceOptions` (release/source.ts).
+  `@app/data/bundle*` exports are replaced by `@app/data/sql/node` (`openSqlite`, `openInMemory`). Queries that only the
+  dev reader used are deleted. The stocking / charts / releases SQL is kept and marked PREPARED, NOT FED.
+- **2.3:** dev/bundle.sqlite, build-fixture.mjs, the `fixture` step of pnpm check, dev/fixture-schema.test.ts and
+  design/riffle.html are deleted. Tests now read **committed fixture releases** in
+  `app/packages/data/dev/fixture-release/` (plain / lakeGauged / conformance, ~110 KB each). These were cut once by
+  `pipeline.tools.fixture_release` from the old dev bundle and are now frozen. Tests that need a shape no fixture has
+  use a memory release (`data/src/sql/drivers/memoryRelease.ts`, built from the release contract's columns).
+  release-boot and the conformance suite no longer need Python.
+  - Deleted along with the reader: the bundle-vs-release parity block in conformance/release.test.ts, and
+    conformance/speaker.test.ts (a Tier-2 run over the province bundle through the deleted reader). Its fixture
+    version still runs in release.test.ts.
+  - `pipeline/tools/fixture_release.py` and its test were orphaned (their input was the dev bundle), so they are
+    deleted too. `test_bundle_clim.py` now reads sql/shared.ts.
+- **2.15:** core/freshness.ts holds THE agoWords (plus Freshness, freshness(), readingAgeLine), and core/index.ts is
+  a pure barrel. **Visible change:** ages under an hour now say "N min ago" everywhere (the menu and sync line said
+  "just now" / "1h ago"), and the reading line now says "3h ago" / "3d ago".
+- **2.16:** core/day.ts exports pad2, sameDay ({month, day}) and calendarDayOfYear. regs/names.ts `cap` replaces the
+  four cap1 copies. statusIndex's `dayOfYear` (a READING day) is renamed **`readingDayOf`**, because the generated
+  `readingDay(month, day)` already holds that name. The two day axes are not merged, and each one's doc says so.
+- **2.17:** regs-census, emit-adipose, wide-measure and water-frame-measure use tools/regs-web/{cdp,drive}.mjs
+  (drive.tap gains an opt-in scroll; tapAt is exported). They were syntax-checked but **not run** (they need Chrome
+  and the app).
+- **2.19:** the split is documented in the colouring.ts header. mapModes and the Shell point to it.
+
+**Left / for other lanes:**
+- Moving design/ live inputs (port/golden, states.json, fishart.js) into app/fixtures/ is not done (it touches the
+  taps.py owner).
+- `pipeline/deliver/release/build.py:318` docstring still names `pipeline.tools.fixture_release`.
+- `pipeline/gauges/feed/publish.py` usage line still writes `--out app/packages/data/dev/feeds/gauge` (that fixture
+  feed is kept for tests).
+- `pipeline/stocking/README.md`, emit_gauge_policy.py and test_gauge_policy.py still mention the deleted
+  bundle/queries.ts or build-fixture.mjs in prose.
+- scripts/dev-build.sh: its build-fixture step was removed (the 2.11 lane may also edit this file).
+
+`REGS_STORE_REQUIRED=1 pnpm -C app check` (via heavy.sh): `Test Files 362 passed | 4 skipped (366)`,
+`Tests 8164 passed | 23 skipped (8187)`, rc=0.
