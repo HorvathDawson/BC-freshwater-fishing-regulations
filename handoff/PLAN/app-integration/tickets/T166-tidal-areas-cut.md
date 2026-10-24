@@ -14,6 +14,21 @@ crosses a river it often takes only PART of the channel: the boundary wanders ac
 of crossing it cleanly, leaving slivers ("blobs") of the same reach on both sides. Clipping sections by it directly would
 split a river lengthwise and give one bank tidal rules and the other freshwater rules.
 
+## Owner refinement (2026-10-23)
+"maybe for that ticket we could find every named stream it is near and then where it crosses? we can assume unnamed
+streams tidal boundary is at mouth maybe but named streams we can find real boundary we could also look in the salmon
+regulation for more context on all named streams in there to make sure we captured all boundaries that imply tidal
+location." So the census is driven by NAMED streams:
+- **Named streams:** every named stream (GNIS) the tidal polygon touches or comes near (a buffer, e.g. 2 km of its
+  boundary) gets its own crossing found and cut (steps 1–3 below).
+- **Unnamed streams:** the tidal limit is assumed to be at the MOUTH — no crossing work; the whole unnamed stream is
+  freshwater down to where it meets tidal water. (Listed as a default the owner can revisit, Q151.)
+- **DFO salmon regulations as a second source:** the DFO tidal-boundary notices and every DFO salmon entry
+  (data/curated/regulations/entries/dfo_salmon/, the dossier/splitwork tools of T164) are read for locators that imply a
+  tidal limit ("tidal boundary", "tidal waters", "from the mouth to …", "below the … bridge (tidal)"), and each named
+  stream they mention is checked against the polygon's crossing: agreement confirms the cut; disagreement is listed for
+  the owner; a stream the DFO text names but the polygon misses is added to the census.
+
 ## Work
 1. Census: every stream line and river/lake polygon the tidal boundary crosses; classify each crossing — clean (crosses
    the channel once, near-perpendicular), partial (cuts only part of a channel or polygon), wandering (runs along a
@@ -30,7 +45,8 @@ split a river lengthwise and give one bank tidal rules and the other freshwater 
    rule changes until T98's spec is un-held: the flag ships, the page wording stays K8 until then.
 
 ## Acceptance
-Every crossing classified; no river split lengthwise; every proposed cut reviewed (S0); a test pins a sample of crossings
+Every NAMED stream near the tidal boundary has a reviewed cut (or a stated reason it has none); every DFO locator
+that implies a tidal limit is matched to a cut or listed; unnamed streams default to the mouth; every crossing classified; no river split lengthwise; every proposed cut reviewed (S0); a test pins a sample of crossings
 (Fraser at Mission, Squamish, Skeena, Cowichan) to one cut each.
 
 Depends: cleanup band done; T98 for the rules. Size: M–L (atlas rebuild). Owner: confirm the proposed cuts.

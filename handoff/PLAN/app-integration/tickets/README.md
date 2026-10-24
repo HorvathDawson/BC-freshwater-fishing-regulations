@@ -282,6 +282,7 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q148 | T154 | Promote "dammed widening = lake" (R2 with the dams layer: 26 candidates → LAKE; catches Quinsam and South Nanaimo, not Bonaparte) into the slough candidates, or keep dams as evidence only? | evidence only | owner |
 | Q149 | T154 | Bonaparte (329055141) has no dam in the provincial data — mark it lake by hand on the slough page? | yours on the page | owner |
 | Q150 | T165 | The new colour for "has its own regulations" once no access takes the amber (3 options shot)? | best by the colour gates; swap any time | owner |
+| Q151 | T166 | Unnamed streams: assume their tidal limit is at the mouth (no crossing work)? | yes | owner |
 
 ### Answered (recently, for the record)
 - Q1, Q3, Q46, Q48, Q49, Q50, Q51, Q52, Q54, Q56, Q57, Q58, Q61, Q64, Q65, Q66, Q67, Q68, Q70, Q71, Q72, Q73, Q74, Q75, Q76, Q77, Q78, Q80, Q81, Q83, Q85, Q86, Q89, Q92, Q93, Q94, Q96, Q97, Q98, Q101, Q102, Q104, Q105, Q106, Q108, Q109, Q110, Q111, Q115, Q116, Q117, Q118, Q120, Q121, Q122, Q127, Q128, Q129, Q131, Q133, Q135, Q136, Q141, Q143 — decided by Claude 2026-10-23 (owner-question triage, owner asked), decisions.md "CLAUDE 2026-10-23 — owner-question triage"; Q29, Q43, Q59, Q60, Q82, Q88, Q90, Q95, Q99, Q100, Q107, Q112 — already answered or obsolete (same record). The owner reads the record and can reverse any.
