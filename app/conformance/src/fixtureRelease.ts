@@ -3,7 +3,8 @@
  * conditions — committed under `packages/data/dev/fixture-release/`, and the node-side pieces a test needs to read one
  * the way the app does: a `fetch` that serves the release folder as R2 / `pnpm tiles` would, and a node:sqlite opener.
  *
- * They were cut once (2026-10-23) by the release builder's own code (`python -m pipeline.tools.fixture_release`) from
+ * They were cut once (2026-10-23) by the release builder's own code (`bundle_files` in `pipeline/deliver/release/build.py`,
+ * through a one-off cutter since deleted with its input) from
  * the retired development bundle — the Chilliwack / Harrison valley slice of build 54ea0bb4 — and are frozen: the dev
  * bundle, its generator and the prototype it was extracted from are gone (T61), so no test needs Python or the dev
  * data path to read a release. Three, so an update can be tested between two real releases:

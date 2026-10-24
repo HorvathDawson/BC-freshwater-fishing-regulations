@@ -21,7 +21,7 @@ first (it is FWA's own `WATERBODY_KEY_GROUP_CODE_50K`), names only as the fallba
    `null` today. `pipeline/tools/audit/check_curated.py` already lists the artifact and reports it `not built`.
 3. **A bundle writer** for the tables waiting in `pipeline/deliver/bundle/schema.sql`: `stock_water` (the link)
    and `stock_code` (species / stage dictionaries). Both are empty today and named by `cov.skip` in
-   `bundle/build.py`. Keep them: the app's dev-bundle query (`app/packages/data/src/bundle/queries.ts`) reads
+   `bundle/build.py`. Keep them: the app's prepared query (`app/packages/data/src/sql/queries.ts`, PREPARED, NOT FED) reads
    `stock_water`. The retired name-keyed `release` table is replaced by these.
 4. **The release:** lake values ride in `lakes/1` (`pipeline/deliver/lake_facts.py`), the one landing point —
    owner 2026-10-21, "lake modes prepared, not fed".

@@ -11,8 +11,6 @@
  * ONE RULE, TWO LANGUAGES: `pipeline/common/search_key_cases.json` is the fixture table both sides are tested against
  * (`app/tools/search-key-parity.test.ts`, `pipeline/tests/test_search_key.py`). Change the rule here and there
  * together, with a case.
- *
- * No imports, on purpose: `tools/build-fixture.mjs` imports this file directly to key the development bundle.
  */
 export function searchKey(s: string): string {
   return s.normalize("NFD").replace(/[̀-ͯ]/g, "")

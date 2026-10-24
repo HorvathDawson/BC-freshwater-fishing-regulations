@@ -3,8 +3,8 @@
  *
  * Until now the suite ran against the hand-written fixture alone, which is the tautology audit 01#13 named: the
  * fixture is written to pass it. This runs the same assertions against `makeReleaseSource` over files cut by the
- * release builder's OWN code (`python -m pipeline.tools.fixture_release`: paint, flow-area, access, core, near,
- * conditions), committed as the `conformance` fixture release (`./fixtureRelease.ts`), every one fetched through the
+ * release builder's OWN code (`pipeline/deliver/release/build.py` `bundle_files`: paint, flow-area, access, core, near,
+ * conditions; cut once, then frozen), committed as the `conformance` fixture release (`./fixtureRelease.ts`), every one fetched through the
  * loader and verified against its manifest.
  *
  * WHY A FIXTURE RELEASE AND NOT THE LIVE ONE. A run over the live release would need data CI does not hold and would

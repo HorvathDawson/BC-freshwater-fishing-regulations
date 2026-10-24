@@ -65,13 +65,6 @@ from pipeline.common.curated import REPO_ROOT
 ROOT = REPO_ROOT
 OUT = ROOT / "app" / "packages" / "core" / "src" / "gauge-policy.generated.ts"
 
-#: The same constant as JSON, for the build tools. `app/tools/build-fixture.mjs` is a plain
-#: node script and cannot import a workspace TypeScript package, and the literal it used to
-#: carry instead was a THIRD copy of the vocabulary — the one that invented a `none: 0` band
-#: and wrote 1,785 rows of it into the fixture bundle. Two renderings, one source.
-OUT_JSON = ROOT / "app" / "packages" / "core" / "src" / "gauge-policy.generated.json"
-
-
 def _temp_bands() -> list[tuple[str, float | int | None]]:
     """The publisher's `_TEMP_BANDS` as (name, ceiling) in order; the open-ended last band's ceiling is None.
 
@@ -98,28 +91,6 @@ def _change_policy() -> dict:
             "spikeBack": _num(_change.SPIKE_BACK), "scale": _num(_change.CHANGE_SCALE),
             "codeFloor": _num(_change.CODE_FLOOR), "staleHours": _num(_change.STALE_HOURS),
             "order": list(_change.CHANGE_ORDER)}
-
-
-def render_json() -> str:
-    import json
-    return json.dumps({
-        "_generated_by": "python -m pipeline.tools.emit.gauge_policy",
-        "_source": "pipeline/gauges/consume/shed.py :: TRUST_BANDS; "
-                   "pipeline/gauges/feed/publish.py :: _TEMP_BANDS; "
-                   "pipeline/gauges/feed/change.py :: the change policy; "
-                   "pipeline/gauges/feed/record.py :: MIN_RECORD_YEARS, QUANTITIES; "
-                   "pipeline/gauges/feed/climatology.py :: PCTILES; "
-                   "pipeline/gauges/consume/panel.py :: MIN_TOTAL_WEIGHT; "
-                   "pipeline/gauges/feed/publish.py :: HORIZONS",
-        "bands": [b for b, _ in TRUST_BANDS],
-        "floor": {b: f for b, f in TRUST_BANDS},
-        "temperature": [[b, c] for b, c in _temp_bands()],
-        "change": _change_policy(),
-        "record": {"minYears": MIN_RECORD_YEARS, "quantities": list(QUANTITIES)},
-        "knots": _knots(),
-        "minTotalWeight": _num(MIN_TOTAL_WEIGHT),
-        "forecastDays": list(HORIZONS),
-    }, indent=2) + "\n"
 
 
 def _knots() -> list:
@@ -214,10 +185,10 @@ def main(argv=None) -> int:
                     help="exit 1 if the committed file differs (for CI)")
     a = ap.parse_args(argv)
 
-    stale = [(p, want) for p, want in ((OUT, render()), (OUT_JSON, render_json()))
+    stale = [(p, want) for p, want in ((OUT, render()),)
              if not p.exists() or p.read_text(encoding="utf-8") != want]
     if not stale:
-        print(f"gauge policy up to date: {OUT.name}, {OUT_JSON.name}")
+        print(f"gauge policy up to date: {OUT.name}")
         return 0
     if a.check:
         for p, _ in stale:

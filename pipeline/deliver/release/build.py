@@ -319,8 +319,8 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
 def bundle_files(work: Path, bundle: Path, b: sqlite3.Connection, base: Dict[str, str],
                  status_index: bytes) -> Dict[str, Path]:
     """The bundle's half of the release — paint, flow-area, core, near, conditions — written into `work`. `base` is
-    every file's meta (section_handles, reach_digest). Shared by `build` and the app's fixture release
-    (`pipeline.deliver.release.fixture`), so the fixture is cut by the same code as the shipped files."""
+    every file's meta (section_handles, reach_digest). The app's committed fixture releases
+    (`app/packages/data/dev/fixture-release/`) were cut once by this code and are frozen (T61)."""
     files: Dict[str, Path] = {}
     p = work / "paint.bin"
     p.write_bytes(PAINT.encode(status_index, b))
