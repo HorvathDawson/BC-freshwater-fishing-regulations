@@ -212,6 +212,8 @@ use that as the sole source of future work."
 | T165 | no public access takes the warning amber; "has its own regulations" gets a new colour | OPEN | — | app style |
 | T166 | tidal areas cut: DFO tidal polygon → one clean cut across each stream (fix partial-channel blobs) | OPEN | — | after cleanup; atlas rebuild; ★ confirm cuts |
 | T167 | More tab: simpler details, references on their own page, data freshness compact on the main tab, a real desktop layout | OPEN | — | app |
+| T168 | "N gauges in view": split gauges on this water from donor gauges | OPEN | — | app |
+| T169 | one gauge panel for one side-channel water (Nicomen grey middle: connector vs adopted lines) | OPEN | — | deliver; Q84 default (a) |
 
 ## Order for open tickets
 
