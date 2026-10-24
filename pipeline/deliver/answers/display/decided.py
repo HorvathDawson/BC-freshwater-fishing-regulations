@@ -115,7 +115,7 @@ def inherited_kind(t: dict) -> Optional[str]:
 
 
 def inherited_line(lifter: str, lifted: Sequence[str], doc: dict) -> str:
-    """ROUND11 A3: a lift the tributary walk carries from a ✱ row, in words — whose rule it is (the
+    """RULINGS P12: a lift the tributary walk carries from a ✱ row, in words — whose rule it is (the
     water `applies_trib` names), what it lifts and when: "Open Jul 15–Aug 31: the Quinsam River’s
     exemption from the summer stream closure (MUs 1-1 to 1-6) covers its tributaries." `doc`: the
     export ({rules, entries}) or the bundle's rules by id ({rules})."""
@@ -125,7 +125,7 @@ def inherited_line(lifter: str, lifted: Sequence[str], doc: dict) -> str:
     fx = _fx(x)
     owner = trib_owner(x, doc.get("entries"))
     from pipeline.deliver.answers.common import the_name
-    whose = f"{the_name(owner)}’s"                     # ROUND15 8: "the Quinsam River’s", "Trout Lake’s"
+    whose = f"{the_name(owner)}’s"                     # RULINGS P24: "the Quinsam River’s", "Trout Lake’s"
     days: set = set()
     for t in ts:
         days |= _days(_fx(t).get("when"))
@@ -187,7 +187,7 @@ def applies_here(x: dict, doc: dict) -> Tuple[str, Optional[str]]:
     elif rank == 2:
         say = f"For an area — {_lc_place(name)}" + (f", in {region}." if region else ".")
     elif E.get("kind") == "water":
-        # ROUND13 P (persona): the book named by its title
+        # RULINGS P41: the book named by its title
         say = f"This water’s own row in the {BOOK_TITLE}: {name}."
         trib = f"Inherited from {name}: its row covers its tributaries."
     else:

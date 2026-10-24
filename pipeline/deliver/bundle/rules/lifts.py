@@ -60,14 +60,14 @@ ANY_SIZE = re.compile(r"\(\s*any\s+size\s*\)", re.I)
 
 def prints_any_size(by) -> bool:
     """Does the lifter's own sentence print "(any size)"? The ONE case where overriding the
-    region's size clause is hard to read (user ruling 2026-09-28): does "any size" mean no size
+    region's size clause is hard to read (RULINGS Q5): does "any size" mean no size
     limit at all — overriding "only 1 over 50 cm" — or only no minimum?"""
     return bool(ANY_SIZE.search(by.verbatim or ""))
 
 
 def size_clause_caution(z) -> dict:
     """THE WARNING A LIFT OF A REGION'S SIZE CLAUSE CARRIES — ONLY WHERE THE ROW PRINTS "(ANY
-    SIZE)" (user rulings 2026-09-26, 2026-09-28). A water row printing a larger number for a fish
+    SIZE)" (RULINGS Q4, Q5). A water row printing a larger number for a fish
     than its region allows overrides the region's "only 1 over 50 cm" too, "(any size)" or not.
     Only "(any size)" is ambiguous — no size limit at all, or just no minimum? — so only that lift
     says so, in a field the reader can show (`guide.gotchas`). A row printing its own sizes
@@ -235,7 +235,7 @@ _SEE_TABLES = re.compile(r"\bsee\s+(?:the\s+)?tables?\s+for\s+(?:\w+\s+)*?except
 def sends_to_tables(ce, r) -> bool:
     """Does the closure, or the table it is printed in, SEND THE READER TO THE TABLES for its
     exceptions — "(see tables for exceptions)"? Only such a closure takes a derived lift by
-    naming the fish (user ruling 2026-09-28): the water row naming the fish is then one of the
+    naming the fish (RULINGS L11): the water row naming the fish is then one of the
     exceptions the closure points to. Read off the rule's words, or its entry's (the box
     heading is quoted in the zone entry's `regs_verbatim`)."""
     return bool(_SEE_TABLES.search(r.verbatim or "") or _SEE_TABLES.search(ce.regs_verbatim or ""))
@@ -263,9 +263,9 @@ def zone_closures(docs) -> dict[str, list[tuple[str, object]]]:
     `_named_lifts`. A closure that prints its own exemptions (`prints_its_exemptions`) is not one:
     Kitimat River's "Hatchery steelhead daily quota = 2" lifted Region 6's steelhead stream closure
     on 4,733 sections — wild steelhead and every tributary included — though the closure's own
-    exemption list does not name the Kitimat (user ruling 2026-09-25). And only a closure that
-    SENDS THE READER TO THE TABLES for its exceptions (`sends_to_tables`) is one (user ruling
-    2026-09-28): any other closure is lifted only by an exemption the row prints."""
+    exemption list does not name the Kitimat (RULINGS L12). And only a closure that
+    SENDS THE READER TO THE TABLES for its exceptions (`sends_to_tables`) is one (RULINGS
+    L11): any other closure is lifted only by an exemption the row prints."""
     out: dict[str, list] = {}
     for ce in docs:
         eid = ce.entry_id
@@ -300,8 +300,8 @@ def _kept_lengths(r, fish: frozenset[str]) -> list[dict] | None:
 
 
 def _named_lifts(entry_id: str, r, closures: dict[str, list]) -> list[dict]:
-    """A WATER ROW NAMING A FISH ITS REGION CLOSES LIFTS THAT CLOSURE FOR THAT FISH (user ruling
-    2026-09-25). "Bass: 0 quota, CLOSED TO FISHING (see tables for exceptions)" is Region 8's; the
+    """A WATER ROW NAMING A FISH ITS REGION CLOSES LIFTS THAT CLOSURE FOR THAT FISH (RULINGS
+    L11). "Bass: 0 quota, CLOSED TO FISHING (see tables for exceptions)" is Region 8's; the
     Okanagan River's row prints "bass daily quota = 8" and no exemption, and the ladder never
     displaces a closure — so 5,063 sections showed a water quota under a closure of the same fish,
     and the page had to infer that the row is one of the "exceptions". The book's reading is the
@@ -315,7 +315,7 @@ def _named_lifts(entry_id: str, r, closures: dict[str, list]) -> list[dict]:
     release), and not a clause of another (`within`: its parent lifts). How far it lifts is
     `_lift_terms` (its dates, means and target), narrowed to the fish both name.
 
-    A DERIVED LIFT NEVER REOPENS MORE THAN ITS LIFTER COVERS (user ruling 2026-09-25, Kitimat):
+    A DERIVED LIFT NEVER REOPENS MORE THAN ITS LIFTER COVERS (RULINGS L12, Kitimat):
       origin   a lifter about HATCHERY fish ("Hatchery steelhead … daily quota = 2") lifts only for
                them (`origin`): the closure stands for wild fish;
       size     a lifter keeping only some sizes lifts only for them (`lengths`, the kept bands); a
@@ -370,8 +370,8 @@ def is_size_constraint(lifted_eid: str, z) -> bool:
 
 
 def _any_size_lifts(entry_id: str, r, rules_of: dict[str, dict]) -> list[dict]:
-    """"(ANY SIZE)" DROPS EVERY SIZE CONSTRAINT OF ITS REGION FOR ITS FISH (owner, ROUND13 A,
-    2026-10-16 — settling the Q5 caution's question: no size limit at all, not just no minimum). A
+    """"(ANY SIZE)" DROPS EVERY SIZE CONSTRAINT OF ITS REGION FOR ITS FISH (RULINGS Q5a,
+    settling the Q5 caution's question: no size limit at all, not just no minimum). A
     water row's keeping quota printing "(any size)" lifts every size constraint of its region's tables
     (`is_size_constraint`: the "only 1 over 50 cm" clauses, the "none under/over X cm" rules) for the
     fish both name, whether or not the book prints the exemption: Robb Lake's "Bull trout daily quota
@@ -454,8 +454,7 @@ def lift_kind(lifter_text: str, lifted_eid: str, lifted) -> str | None:
 
 def _equivalent_closures(lifted_eid: str, lifted, regions, blankets: dict[str, list],
                          lifter_text: str = "") -> list:
-    """THE SAME CLOSURE IN THE OTHER REGIONS THE ROW'S WATER LIES IN (user rulings 2026-09-25,
-    2026-09-26).
+    """THE SAME CLOSURE IN THE OTHER REGIONS THE ROW'S WATER LIES IN (RULINGS L5, L6).
 
     A water's own row applies along its whole length, whichever region each piece lies in, and so
     do the exemptions it prints; but each piece takes the ZONE rules of its own region. West Road
@@ -471,7 +470,7 @@ def _equivalent_closures(lifted_eid: str, lifted, regions, blankets: dict[str, l
     Nechako's "Exempt from spring closure" lifted it.
 
     `regions` is `equivalent_regions`' answer for the lifter: never a region where the row's
-    water has an entry of its OWN (user ruling 2026-10-05) — there the book speaks for the water
+    water has an entry of its OWN (RULINGS L6) — there the book speaks for the water
     in that region's table, and a neighbour's exemption does not carry.
 
     A closure of unknown kind in the way of a lift of known kind is refused: the build does not

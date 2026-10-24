@@ -6,7 +6,7 @@ from pipeline.common import entry_id as EID
 from pipeline.deliver.bundle.rules.predicates import _zone_region
 
 
-#: POLICY (T140, owner Q99 2026-10-23): THE REGIONS A ROW'S OWN WATER LIES IN are asked of the ONE
+#: POLICY (T140, RULINGS Z14): THE REGIONS A ROW'S OWN WATER LIES IN are asked of the ONE
 #: region membership (`registry.regions`, T115) with the atlas's home map (`home`): a stream piece
 #: straddling a region line lies in its HOME region only, a lake in every region it touches — the
 #: same members the zone rules and the per-region row limit read. Before, the bundle called
@@ -72,7 +72,7 @@ def own_entry_regions(docs) -> dict[str, frozenset[str]]:
     (`_own_rows`). A row whose every rule is `tributaries_only` (Region 6's and Region 7's "West
     Road River's tributaries") speaks for the tributaries, not for the water, and is not one.
 
-    AN ENTRY, NOT A COVERAGE TEST (review L1, 2026-10-05): `r3:sicamous_narrows` matches the
+    AN ENTRY, NOT A COVERAGE TEST (review L1): `r3:sicamous_narrows` matches the
     Shuswap River and binds its only Region 3 section, so it is the river's Region 3 entry. A
     test that every section of the water in the region is bound by its own rows was tried and
     refused: about 90 waters' own rows miss a boundary sliver (the Shuswap's Region 8 row binds
@@ -87,8 +87,8 @@ def own_entry_regions(docs) -> dict[str, frozenset[str]]:
 def equivalent_regions(ce, rule_id: str, water: dict[str, frozenset[str]],
                        co_bound: dict[tuple[str, str], frozenset[str]],
                        own: dict[str, frozenset[str]]) -> frozenset[str]:
-    """THE OTHER REGIONS A ROW'S PRINTED LIFT CARRIES INTO (`_equivalent_closures`; user rulings
-    2026-09-25/26, 2026-10-05): the regions the row's own water lies in (`regions_of_waters`) and
+    """THE OTHER REGIONS A ROW'S PRINTED LIFT CARRIES INTO (`_equivalent_closures`; RULINGS
+    L5, L6): the regions the row's own water lies in (`regions_of_waters`) and
     those whose zone tables the reach bound beside this rule (`co_bound_regions`: its tributaries)
     — LESS every region where the row's water has an entry of its own (`own_entry_regions`). The
     Fraser has rows in Regions 3, 5 and 7, so Region 5's "Mainstem open all year" never lifts

@@ -106,7 +106,7 @@ def source_of(rule: dict) -> Source:
     place = str(rule.get("entry_name") or "")
     exts = list(rule.get("extents") or [])
     if not EID.is_table(prefix):
-        # AN AREA ROW OF A WATER TABLE (SP-3, 2026-09-29): "CRESTON VALLEY WILDLIFE MANAGEMENT
+        # AN AREA ROW OF A WATER TABLE (RULINGS Z13): "CRESTON VALLEY WILDLIFE MANAGEMENT
         # AREA (CVWMA) WATERS — Bass daily quota = unlimited … EXCEPT Duck Lake (see separate
         # entry)", Bowron Lake Park waters, the Liard River watershed. Every extent is `within` a
         # named area, so the row binds every water of the area — it is not written for one of

@@ -68,7 +68,7 @@ def write_steelhead_presence(db, reaches, ces, sid, cov, registry=None, *,
                 if s not in applies:
                     raise SystemExit(f"steelhead_presence: anadromous on {r['section_id']}, "
                                      f"where no steelhead rule applies")
-                # known by the book or by the curated list (user ruling 2026-10-03)
+                # known by the book or by the curated list (RULINGS S5, S6)
                 if r["steelhead"] != KNOWN or not (r.get("regulations") or r.get("listed")):
                     raise SystemExit(f"steelhead_presence: anadromous on {r['section_id']}, "
                                      f"which is not known steelhead water")

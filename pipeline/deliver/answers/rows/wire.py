@@ -29,7 +29,7 @@ def line_out(l: dict) -> dict:
 
 
 def stored_role(P: "Part", key: str, role: str) -> str:
-    """rows 31 (owner rule 2026-10-21; page v36 ladderHtml): a RECORD-IT RULE THAT DECIDES IS A DUTY. A rule with
+    """RULINGS P46 (page v36 ladderHtml): a RECORD-IT RULE THAT DECIDES IS A DUTY. A rule with
     `record_retention` holding a deciding role (display `WINS`: Kootenay Lake's "Write each rainbow trout over 50 cm
     on your licence", Shuswap's two stamp records, both `floor`) is stored as `duty`, so a row's "How this was
     decided" lists it under "Other rules" — page v36 moved it there in the page; the app only reads the role. The
@@ -112,7 +112,7 @@ def scope_of(P: "Part", row: dict) -> Optional[dict]:
         outer = any(l["t"] == "outer" for l in
                     row["everyone"] + [l for g in row["groups"] for l in g["facts"]])
         apart = any(t is not None and t.k == "pool" and t.rank >= 2 for t in lifts) and not outer
-    # rows 31 (owner rule 2026-10-21; page v36 narrowAll): the narrowing clause binds EVERY fish of the row — the
+    # RULINGS P46 (page v36 narrowAll): the narrowing clause binds EVERY fish of the row — the
     # badge then says "All Region 2 streams", not "Region 2-wide" (the app reads it, never re-derives it)
     narrow_all = n is not None and all(_covers(n, S) for S in row["members"])
     return {"of": who, "entry": p.entry_id if who != "water" else None, "share": share,

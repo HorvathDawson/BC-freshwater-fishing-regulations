@@ -61,7 +61,7 @@ def see_name(ce) -> str:
 
 
 def see_pointer_rows(entries: dict) -> list[tuple]:
-    """`see_pointer`: A GROUP NAME THAT ONLY POINTS (owner 2026-10-22). A row whose only content is
+    """`see_pointer`: A GROUP NAME THAT ONLY POINTS (RULINGS O4). A row whose only content is
     "See …" (`pointer_only`: "TEE PEE LAKES  See Friday, Saturday, and Sunday Lakes") binds nothing
     and draws no line; what it gives a reader is the way to the waters it names. One row per named
     entry, in the pointer's order: (entry_id, name, ix, target_entry, target_name, item_id) — both

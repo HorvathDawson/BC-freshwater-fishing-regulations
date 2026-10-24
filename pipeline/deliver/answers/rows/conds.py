@@ -33,7 +33,7 @@ def _steel_carve(P: "Part", model: dict, l: dict, row: dict) -> bool:
 
 
 def _not_counted(P: "Part", model: dict, row: dict, r: R) -> List[str]:
-    """Decision F12 (user test 2026-10-08; was the page's `exemptOf`): the fish of a row a general
+    """Decision F12 (was the page's `exemptOf`): the fish of a row a general
     size cap does NOT count — fish its rule covers that are kept here but whose answers give the
     cap no role and no line (a lift took them out of it). A rainbow on a steelhead water is never
     one where the cap counts steelhead: a rainbow over 50 cm IS a steelhead there (p.80), so it
@@ -64,7 +64,7 @@ def _not_counted(P: "Part", model: dict, row: dict, r: R) -> List[str]:
 
 
 class Raised(R):
-    """Decision F17 (owner ruling 2026-10-21, the Kitimat): a size clause of a zone's total that a water's
+    """Decision F17 (the Kitimat): a size clause of a zone's total that a water's
     quota of steelhead LIFTED for them, RAISED to that quota for every fish over the size — the tally
     `raises` reads. Its key is the lifting rule's (the number is that rule's; it is said, and encoded,
     as that rule), its fields the clause's with the quota's take, its entry the water's (a water's own
@@ -85,7 +85,7 @@ def raised(c: R, L: R, lifted, take) -> Raised:
 
 
 def raises(P: "Part") -> List[Raised]:
-    """Decision F17 (owner ruling 2026-10-21 on the Kitimat; RULINGS Q16's Region 2 shape). A zone size clause
+    """Decision F17 (the Kitimat; RULINGS Q16's Region 2 shape). A zone size clause
     over X cm with a number K ("1 over 50 cm", Region 6's trout_char_quota.r2, "quota includes hatchery
     steelhead") that the reader says a water's own steelhead quota LIFTED for steelhead (the Kitimat's
     r5 "Hatchery steelhead (>50 cm) daily quota = 2"), where every steelhead that quota keeps is over X and
@@ -534,7 +534,7 @@ def _under(model: dict, S: str, L: R) -> bool:
 
 
 def _shared_counts(P: "Part", model: dict, row: dict, capped: List[dict], n) -> Tuple[list, list]:
-    """Decision F11 (user test 2026-10-08, Babine/Skeena): the units of a row's capped kinds under
+    """Decision F11 (Babine/Skeena): the units of a row's capped kinds under
     every COUNT limit (a take, no size band) that holds more than one of them: the row's narrowing
     clause (a stream or lake share) and every clause `within` the row's pool. A limit merges the
     units it wholly holds into one, worth at most its take; limits holding fewer kinds go first,

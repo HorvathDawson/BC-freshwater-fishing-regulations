@@ -129,7 +129,7 @@ def statement(x: dict) -> tuple:
     zone's (`same_statement`).
 
     THE PRINTED WORD "TROUT" IS ONE STATEMENT, whether or not its row's mention of char takes the
-    char out of it (`catalogue.trout_scope_problems`, user ruling 2026-09-28): Amor Lake's "Trout
+    char out of it (`catalogue.trout_scope_problems`, RULINGS C2): Amor Lake's "Trout
     daily quota = 2" (its row names no char: trout and char) and Region 1's "Trout: 4" (its box
     releases "All char": trout only) both say "trout", so for a trout the lake's 2 replaces the
     4 — and Region 1's char release still binds the char. So a `CHAR` exception on `TROUT_CHAR` is
@@ -148,8 +148,8 @@ def statement(x: dict) -> tuple:
 
 def same_statement(a: dict, b: dict) -> bool:
     """DO TWO QUOTAS SAY THE SAME THING (`statement`: same fish or group, size bounds, origin,
-    water kind, means, target and clock)? Between a water's quota and a zone's (user rulings
-    2026-09-26): when they do, the WATER's number replaces the zone's, larger or smaller —
+    water kind, means, target and clock)? Between a water's quota and a zone's (RULINGS
+    Q4): when they do, the WATER's number replaces the zone's, larger or smaller —
     Tranquille Lake's "kokanee daily quota = 10" over Region 3's "Kokanee: 5", never the smaller
     of the two. When they do not, both speak: the Dean's "Steelhead daily quota = 1" counts
     toward Region 5's "Trout/char: 5". A water row printing a larger number for a fish than the

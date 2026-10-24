@@ -47,7 +47,7 @@ def designations_in_force(db, section: int, on) -> list[dict]:
 def stamp_waived_here(db, section: int, on) -> list[str]:
     """The designations (`entry_id#id`) that waive the Steelhead Stamp OUTRIGHT on this section
     on this day — "(Steelhead Stamp not required)", in force (`Designation.waives_every_stamp`).
-    Where one holds, no steelhead stamp is required (user ruling 2026-10-02)."""
+    Where one holds, no steelhead stamp is required (RULINGS S8)."""
     from pipeline.regs.parsing.catalogue import Designation
     return sorted(f"{d['entry_id']}#{d['id']}" for d in designations_in_force(db, section, on)
                   if Designation.model_validate({k: v for k, v in d.items()
@@ -68,7 +68,7 @@ def requirements_in_force(db, section: int, on) -> dict:
     `"holds"`, and the ones an outright stamp waiver lifts there, under `"waived"`:
     `{entry_id#req_id: [designation]}`;
     under `"also_printed"`, `{entry_id#req_id: [entry_id#req_id, …]}`, the records that RESTATE a
-    holding one (one obligation printed twice is one key; RU-12) — and a zone table's
+    holding one (one obligation printed twice is one key; RULINGS Li12) — and a zone table's
     `on_designation` restatement holds on its own region's designations only.
 
     A requirement holds where it is placed (`requirement_section`; `province` everywhere but its
@@ -81,7 +81,7 @@ def requirements_in_force(db, section: int, on) -> dict:
     `"not_yet_mapped"`, `{entry_id#req_id: part}`, to be SHOWN on the water, as a rule in an undrawn
     part is (`not_yet_mapped`).
 
-    A REQUIREMENT FOR THE OTHER KIND OF WATER DOES NOT HOLD (G5, adopted 2026-10-06): one printed
+    A REQUIREMENT FOR THE OTHER KIND OF WATER DOES NOT HOLD (RULINGS Li8): one printed
     for streams (`water: stream` — the province's Classified Waters Licence,
     `zp:steelhead#steelhead_targeting`) does not hold on a lake or a wetland. A record that
     RESTATES another binds as that record (`as_bound`: its `who`, `satisfied_by` and `water` —
@@ -89,7 +89,7 @@ def requirements_in_force(db, section: int, on) -> dict:
     unnamed part's (the atlas's node kind, S1); only a section with neither keeps it. Listed under
     `"wrong_water"`, `{entry_id#req_id: the water it is for}`, as `waived` lists the waived ones.
 
-    A SUPERIOR AUTHORITY'S REQUIREMENT DISPLACES THE PROVINCIAL ONES (G5, adopted 2026-10-06): where
+    A SUPERIOR AUTHORITY'S REQUIREMENT DISPLACES THE PROVINCIAL ONES (RULINGS Li8): where
     a requirement with `authority: superior` holds (a national park's fishing permit), every other
     holding requirement that has a way to satisfy it (`satisfied_by`, as bound) is NOT VALID there —
     "a federal or park authority's requirement replaces provincial licences". It is moved to
@@ -98,7 +98,7 @@ def requirements_in_force(db, section: int, on) -> dict:
     designation-placed ones.)"""
     desig = designations_in_force(db, section, on)
     have = {"classified_period": bool(desig), "steelhead_period": steelhead_stamp_period(desig, on)}
-    # A ZONE TABLE'S RESTATEMENT HOLDS ON ITS OWN REGION'S DESIGNATIONS ONLY (RU-12, 2026-10-04):
+    # A ZONE TABLE'S RESTATEMENT HOLDS ON ITS OWN REGION'S DESIGNATIONS ONLY (RULINGS Li12):
     # Region 4's "Classified Waters Licence … many East Kootenay rivers (map p.33)" is Region 4's
     # wording and held on the Dean (Region 5) and the Seymour (Region 1) beside the province's.
     desig_regions = {EID.region_of(d["entry_id"]) for d in desig}
@@ -148,7 +148,7 @@ def requirements_in_force(db, section: int, on) -> dict:
         holds[key] = why
         if r.get("restates"):
             restated[key] = f"{r['restates']['entry_id']}#{r['restates']['id']}"
-    # ONE OBLIGATION, PRINTED TWICE, IS ONE KEY (RU-12, 2026-10-04): a record that `restates`
+    # ONE OBLIGATION, PRINTED TWICE, IS ONE KEY (RULINGS Li12): a record that `restates`
     # another (Region 4's Classified Waters Licence line, the Shuswap row's char stamp, the
     # Creston permit on the CVWMA row) is folded into the record it restates when that one holds
     # too — listed under `also_printed` on the restated key, not as an obligation of its own.
@@ -217,7 +217,7 @@ def considered_records(db, section: int, tidal: bool, excepted: set) -> list[str
 def section_kind(db, section: int) -> str | None:
     """The WATER KIND of a section (lake, stream, wetland): the named water's (`item.kind`), else
     its unnamed part's (`unnamed_part.kind`: `reach.water_kind.kind_of`, the graph node's —
-    S1, user ruling 2026-10-10: "we definitely know this from the build"). None only for a section
+    RULINGS K9: "we definitely know this from the build"). None only for a section
     with neither (outside B.C., or a hand-built bundle with no places)."""
     got = db.execute("SELECT i.kind FROM item_section s JOIN item i ON i.ord = s.ord "
                      "WHERE s.sid = ?", (section,)).fetchone()
@@ -230,7 +230,7 @@ def section_kind(db, section: int) -> str | None:
 
 def as_bound(r: dict, requirements: dict) -> dict:
     """A requirement as it binds: one that RESTATES another (`restates`) reads the restated record's
-    `who`, `satisfied_by` and `water` — one obligation printed twice (RU-12). `requirements` is
+    `who`, `satisfied_by` and `water` — one obligation printed twice (RULINGS Li12). `requirements` is
     every requirement record by `entry_id#req_id`."""
     rs = r.get("restates")
     if rs:

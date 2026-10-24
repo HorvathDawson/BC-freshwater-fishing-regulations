@@ -6,7 +6,7 @@ from pipeline.common import entry_id as EID
 from pipeline.deliver.answers.common import AnswersError
 
 
-#: How an unnamed answer is named: the water kind, then the regions it is in (user, 2026-10-10:
+#: How an unnamed answer is named: the water kind, then the regions it is in (the owner:
 #: "for labels … mus just stored in a separate spot, just show regions the section is in"). One
 #: template, here; the app shows the whole string (AGENTS 33).
 PLACE_TEMPLATE = "Unnamed {kind} · {regions}"

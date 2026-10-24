@@ -185,7 +185,7 @@ def end_name(doc: dict, e: Optional[str], side: str = "") -> str:
     if e == "mouth":
         return "the mouth"
     if str(e).startswith("continues:"):
-        # answers 2.8 (owner 2026-10-12): not a mouth — the water goes on under another name; the
+        # RULINGS P10: not a mouth — the water goes on under another name; the
         # place is where that water begins (Chilliwack: "Vedder Crossing Bridge")
         y = e.split(":", 1)[1]
         b = begins_at(doc, y)
@@ -286,13 +286,13 @@ def runs_label(doc: dict, part: dict) -> str:
             t = f"Side channel, {where}" if where else _run_txt(doc, side[0])
         else:
             t = f"{len(side)} side channels" + (f", {where}" if where else "")
-    # ROUND10 W2 (owner 2026-10-16): a part WITH a main run never mentions its side channels —
+    # RULINGS P39: a part WITH a main run never mentions its side channels —
     # they are simply part of it ("… CNR Mile 66 Trestle and 1 side channel" confused the owner)
     return t
 
 
 #: answers 2.7 (A4): a short part label's end names lose the sign-post words the full label keeps.
-#: ROUND10 W3 (owner 2026-10-16): no label cuts a name mid-way ("Sikanni Chief River…" was scary) —
+#: RULINGS P40: no label cuts a name mid-way ("Sikanni Chief River…" was scary) —
 #: an end is said whole however long, and a part with no run shows its full label.
 _SIGN_WORDS = re.compile(r"^(?:the )?(?:fishing )?(?:boundary )?signs? (?:at |near )?", re.I)
 
@@ -390,7 +390,7 @@ def part_labels(W: Water) -> List[str]:
             hint = ""
             if same and not re.match(r"^(The rest of the water|Whole water)", lab):
                 h = re.sub(r"^[^:·]{3,90}: ", "", re.sub(r"^Stretch with: ", "", lab))
-                hint = h.split(" · also ")[0]                 # whole (ROUND10 W3)
+                hint = h.split(" · also ")[0]                 # whole (RULINGS P40)
             out.append((pl + " · " if pl else "") + rl + (f" — {hint}" if hint else ""))
         elif not pl:
             out.append(lab)

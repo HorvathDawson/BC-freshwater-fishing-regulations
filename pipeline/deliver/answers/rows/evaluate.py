@@ -81,7 +81,7 @@ def eval_sp(P: "Part", S: str, o: str) -> Optional[dict]:
     for O in outers:
         setr(O, "contains")
     also = [p for p in by_take if p is not win and p not in outers] if win.k == "pool" else []
-    # ROUND15 3 (owner): a rule of the winner's OWN ROW saying the very same thing (fish, number, days,
+    # RULINGS P21: a rule of the winner's OWN ROW saying the very same thing (fish, number, days,
     # sizes, origin, kind of water) is the same statement printed twice — the Lower West Arm's r5, the
     # combined kokanee quota with the Upper West Arm, modelled as "kokanee 5, Saturday and Sunday" beside r3:
     # it agrees with the winner (one ladder line); its words are the row's note (`restates`)
@@ -237,7 +237,7 @@ _SAME_FIELDS = ("species", "species_except", "take", "unlimited", "when", "lengt
 
 
 def restates(p: R, win: R) -> bool:
-    """ROUND15 3: `p` is a rule of the winner's own row stating exactly what the winner states."""
+    """RULINGS P21: `p` is a rule of the winner's own row stating exactly what the winner states."""
     return p.entry_id == win.entry_id and p.key != win.key and p.via == win.via \
         and all(json.dumps(p.f.get(k), sort_keys=True) == json.dumps(win.f.get(k), sort_keys=True)
                 for k in _SAME_FIELDS)
@@ -296,13 +296,13 @@ def restated_words(r: R) -> str:
 
 
 def same_statement(p: R, win: R) -> bool:
-    """ROUND16 Q2: `p` states exactly what the winner states (same fish, number, days, sizes, origin, water)."""
+    """RULINGS P28: `p` states exactly what the winner states (same fish, number, days, sizes, origin, water)."""
     return p.key != win.key and all(json.dumps(p.f.get(k), sort_keys=True) == json.dumps(win.f.get(k), sort_keys=True)
                                     for k in _SAME_FIELDS)
 
 
 def nearer_than(P: "Part", a: R, b: R) -> bool:
-    """ROUND16 Q2 (owner, the T14 principle — closest wins): `a`'s row is nearer this stream than `b`'s — a's
+    """RULINGS P28 (the T14 principle — closest wins): `a`'s row is nearer this stream than `b`'s — a's
     water drains into b's (`trib_nearer`); else a sits higher on the ladder (`rank`); else, on one rung, a
     water's own row beside a zone table's line naming the water (Williston Lake — Zone B's row beside Zone B's
     "all from Williston Lake and its tributaries")."""
@@ -317,8 +317,8 @@ def nearer_than(P: "Part", a: R, b: R) -> bool:
 
 
 def row_restates(P: "Part", model: dict, row: dict) -> List[dict]:
-    """ROUND15 3: the rules of a row's winners' own rows that restate them, as notes [{r, of, says}].
-    ROUND16 Q2 (owner 2026-10-16): so is ANOTHER row's identical statement, no nearer the stream than the
+    """RULINGS P21: the rules of a row's winners' own rows that restate them, as notes [{r, of, says}].
+    RULINGS P28: so is ANOTHER row's identical statement, no nearer the stream than the
     winner's — shown ONCE, credited to the nearer row, its words a note: Williston Lake — Zone B's
     "Arctic grayling catch and release" with Zone B's table line for "Williston Lake and its tributaries"
     beside it ("Zone B also prints this: “…”"). Never one NEARER than the winner (`nearer_than`)."""

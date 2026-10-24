@@ -162,18 +162,18 @@ def written_name(x: dict, conj: str = " and ") -> str:
     return join([lc(sp_name(c)) for c in w], conj) if w else "fish"
 
 
-#: THE POSSESSION QUOTA'S EXCEPTION, in plain words — ONE source (user ruling Q15/Q39, 2026-10-07:
+#: THE POSSESSION QUOTA'S EXCEPTION, in plain words — ONE source (RULINGS Q15:
 #: "the possession quota … EXCEPT at place of ordinary residence", p.80, is part of the definition
 #: of EVERY possession quota). Every possession line the answers say carries it (`plain`).
 POSSESSION_HOME = "fish at home don’t count"
 
 
 def _home() -> str:
-    """ROUND20g 3 (owner): the exception said as its own sentence after the possession line ("Possession: 2 days’ quota.
+    """RULINGS P43: the exception said as its own sentence after the possession line ("Possession: 2 days’ quota.
     Fish at home don’t count.")."""
     return f"{POSSESSION_HOME[:1].upper()}{POSSESSION_HOME[1:]}."
 
-#: A CLOSURE PRINTED "UNLESS OPENED" (user ruling Z12/Q41, 2026-10-07): a full closure carrying an
+#: A CLOSURE PRINTED "UNLESS OPENED" (RULINGS Z12): a full closure carrying an
 #: advisory proviso (`condition_of`) that names who may open it, said in the user's accepted
 #: words, by the kind of area the closure holds in. A closure with a proviso and no words here is
 #: refused (no fallback).
@@ -184,7 +184,7 @@ UNLESS_OPENED = {
 
 
 def caught_sentence(x: dict) -> str:
-    """A duty for a fish CAUGHT some way (`caught`, user ruling Q38/G6) in plain words: "Any fish
+    """A duty for a fish CAUGHT some way (`caught`, RULINGS G6) in plain words: "Any fish
     snagged — even by accident — must be released." Only a release (`take: 0`) is a shape the
     book prints; anything else is refused."""
     from pipeline.regs.parsing.catalogue import CAUGHT_HOW, OPEN_SUBJECTS
@@ -220,11 +220,11 @@ _MANY = re.compile(r"^(trout|char|trout and char|game fish|fish|bass|whitefish|s
 
 
 def plain(x: dict, names: Optional[str] = None) -> Optional[str]:
-    """`_plain`, and every possession limit with a number ends with its exception (user ruling
-    Q15/Q39: "fish at home don’t count" is part of every possession quota)."""
+    """`_plain`, and every possession limit with a number ends with its exception (RULINGS
+    Q15: "fish at home don’t count" is part of every possession quota)."""
     got = _plain(x, names)
     if got is not None and kind_of(x) == "possession_cap":
-        got = f"{got} {_home()}"     # ROUND20g 3: its own sentence
+        got = f"{got} {_home()}"     # RULINGS P43: its own sentence
     return got
 
 
@@ -279,7 +279,7 @@ def _plain(x: dict, names: Optional[str] = None) -> Optional[str]:
     if closure_grade(x) is not None:                # the page's `may_target === false`
         return wrap("No fishing" if re.search(r"game fish|^fish", sp) else f"No fishing for {sp}")
     if _js(x.get("per_daily")):
-        # THE POSSESSION QUOTA (Q15), ROUND20g 3 (owner: plain words): "2 days’ quota", and fish at home don't count
+        # THE POSSESSION QUOTA (RULINGS Q15, P43: plain words): "2 days’ quota", and fish at home don't count
         # (`plain` adds that sentence)
         n = _num(x["per_daily"])
         times = "the daily quota" if n == 1 else f"{n} days’ quota"
@@ -309,7 +309,7 @@ def _plain(x: dict, names: Optional[str] = None) -> Optional[str]:
     sp += ex_txt
     bits = []
     if take is not None:
-        # ONE fish of several kinds is "or" (any one of them), for a subset too (user 2026-10-10:
+        # ONE fish of several kinds is "or" (any one of them), for a subset too (the owner:
         # "Keep up to 1 cutthroat trout, brown trout or rainbow trout a day"); more than one is "and"
         if _is(take, 1):
             fish = (re.sub(r" and ([^,]+)$", r" or \1", names) if names else nm(" or ")) + ex_txt
@@ -339,7 +339,7 @@ _DASHED = re.compile(r"\b((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-
 
 
 def title(x: dict) -> str:
-    """ROUND16 3 (owner): EVERY rule's title, its effect in words, generated from its fields — never the raw
+    """RULINGS P27: EVERY rule's title, its effect in words, generated from its fields — never the raw
     list item the book prints under a region table ("ALL STEELHEAD" is "Release all steelhead"; "Lake trout,
     Oct 1-Nov 30" is "Release lake trout, Oct 1–Nov 30"; "Bull trout (Dolly Varden) from streams, Aug 1-Oct
     31" is "Release Dolly Varden/bull trout from streams, Aug 1–Oct 31"). The verbatim stays the rule's own
@@ -401,7 +401,7 @@ def _title(x: dict) -> Optional[str]:
     if z["ceil"] is not None:
         sizes.append(f"none over {cm_in(z['ceil'])}")
     if z["slot"]:
-        # ROUND19 2/5: in cm (inches), and a slot keeps its bounds (the boundary standard, RULINGS P37)
+        # RULINGS P34, P37: in cm (inches), and a slot keeps its bounds (the boundary standard, RULINGS P37)
         sizes.append(f"none {band_words(z['slot'][0], z['slot'][1], False, False)}")
     sz = (" (" + ", ".join(sizes) + ")") if sizes else ""
     k = kind_of(x)
@@ -421,7 +421,7 @@ def _title(x: dict) -> Optional[str]:
     return None
 
 
-#: answers 2.8 (D2, owner 2026-10-12): the heading the fishway / fish-facility buffers ("No fishing within
+#: answers 2.8 (D2): the heading the fishway / fish-facility buffers ("No fishing within
 #: 23 m downstream of … any fishway", "within 100 m of any government fish facility", p.9) show under —
 #: on the KEEP side, beside the open/closed strip, never at the bottom of the gear page
 CANT_FISH_TITLE = "Where you can’t fish"

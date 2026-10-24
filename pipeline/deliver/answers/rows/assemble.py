@@ -13,7 +13,7 @@ from pipeline.deliver.answers.rows.groups import elsewhere_of, group_of, parent_
 from pipeline.deliver.answers.rows.presence import place_presence
 
 
-#: T80 follow-up (batch-3 deliver, 2026-10-22): the one-kind trout/char group is for a row DRAWN ON ITS OWN — one no
+#: T80 follow-up: the one-kind trout/char group is for a row DRAWN ON ITS OWN — one no
 #: other pool holds (`parent_of`, rows 31; core `drawnRows` draws no article for a held row). Perry Creek's "brook trout
 #: 20" row is held by the St. Mary's "trout/char 1 on all tributaries" row (which cross-references the brook trout):
 #: a group there was never drawn, and the card worded it "1" through that cross-reference while the reader had
@@ -111,19 +111,19 @@ def produce(P: Part) -> dict:
     for i, o in enumerate(rows):
         if o.get("group") is not None:
             o["group"].update(card_of(P, model, o["group"], rows, i))
-            # ROUND12 4: the card's one list holds the kept-elsewhere examples (`group.worked`)
+            # RULINGS P9: the card's one list holds the kept-elsewhere examples (`group.worked`)
             if o.get("elsewhere") is not None:
                 o["elsewhere"]["ask"] = []
     for o in rows:
         if o.get("elsewhere") is not None:
             o["elsewhere"].pop("lines", None)
-    # rows 31 (owner rule 2026-10-21): the pool row that holds a pooled row's fish (page v36 parentRow), decided here
+    # RULINGS P46: the pool row that holds a pooled row's fish (page v36 parentRow), decided here
     for i, p in parents.items():
         rows[i]["parent"] = p
     from pipeline.deliver.answers.display import steelhead_line
     has_row = not P.rules_off_in_export and any("ST" in r["allMembers"] for r in model["rows"])
     line = steelhead_line(P.presence, has_row)
-    # ROUND15 7 (owner): where the whole water is closed to all fishing (every row closed: the Vedder on Jun
+    # RULINGS P23: where the whole water is closed to all fishing (every row closed: the Vedder on Jun
     # 15) there is no steelhead section to read, and no presence line is needed
     if not all(o["kind"] == "closed" for o in rows if o["all_members"]):
         place_presence(rows, line, P.steelhead_water)

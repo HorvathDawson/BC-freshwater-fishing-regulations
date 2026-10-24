@@ -12,24 +12,24 @@ from pipeline.deliver.answers.rows.groups import _names
 
 
 def weekdays_words(days: Sequence[str]) -> str:
-    """ROUND14 5: a set of weekdays in words — "Monday to Friday", "on Saturdays and Sundays" (T104: said by
+    """RULINGS P17: a set of weekdays in words — "Monday to Friday", "on Saturdays and Sundays" (T104: said by
     `common.when_words`, plain style)."""
     return common.when_words({"weekdays": list(days)}, "plain")
 
 
 def weekdays_short(days: Sequence[str]) -> str:
-    """ROUND15 3: a set of weekdays in a short label — "Sat–Sun", "Mon–Fri", "Mon, Wed" (`when_words`, title)."""
+    """RULINGS P21: a set of weekdays in a short label — "Sat–Sun", "Mon–Fri", "Mon, Wed" (`when_words`, title)."""
     return common.when_words({"weekdays": list(days)}, "title")
 
 
 def weekdays_label(days: Sequence[str]) -> str:
-    """ROUND15 3: a set of weekdays as the status names it — "Weekends", "Weekdays", else the short label
+    """RULINGS P21: a set of weekdays as the status names it — "Weekends", "Weekdays", else the short label
     (`when_words`, status)."""
     return common.when_words({"weekdays": list(days)}, "status")
 
 
 def weekdays_when(days: Sequence[str]) -> str:
-    """ROUND15 3: the days a part holds in words — "Monday to Friday", "Saturday and Sunday" (`when_words`, days)."""
+    """RULINGS P21: the days a part holds in words — "Monday to Friday", "Saturday and Sunday" (`when_words`, days)."""
     return common.when_words({"weekdays": list(days)}, "days")
 
 
@@ -47,12 +47,12 @@ _WEEK_RANK = {"no_limit": 3, "keep": 2, "release": 1, "closed": 0}
 
 
 def say_weekdays(frames: Sequence[dict], moments: Sequence[Optional[dict]]) -> List[dict]:
-    """ROUND14 5 (owner): A WEEKDAY WINDOW SAID AS WEEKDAYS. `frames` are one day's rows frames, one per
+    """RULINGS P17: A WEEKDAY WINDOW SAID AS WEEKDAYS. `frames` are one day's rows frames, one per
     moment (`moments`: `calendar.Moment.as_json`, weekdays and no hours window). Every row of every frame
     whose fish answer differently by weekday carries `week`: Kootenay Lake's Lower West Arm kokanee —
       says    "Keep up to 5 on Saturdays and Sundays; release Monday to Friday" (one sentence);
-      status  (ROUND15 3) "Weekends: keep 5 · Weekdays: release" — the row's status, never one moment's;
-      parts   (ROUND15 3) [{days "Sat–Sun", when "Saturday and Sunday", weekdays, status, n, says "keep up to
+      status  (RULINGS P21) "Weekends: keep 5 · Weekdays: release" — the row's status, never one moment's;
+      parts   (RULINGS P21) [{days "Sat–Sun", when "Saturday and Sunday", weekdays, status, n, says "keep up to
               5", rules [the deciding rule], today}] — how it was decided, each day-part with its rule; `today`
               marks the frame's own moment —
     the same on the Saturday frame and the Monday one, so no moment's card contradicts another. A row's

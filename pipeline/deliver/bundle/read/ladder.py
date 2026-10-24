@@ -25,30 +25,30 @@ from pipeline.deliver.bundle.read.facts import (
 
 _RULES_BY_PATH: dict = {}
 
-#: POLICY (user ruling 2026-10-05, option A): a zone-side size-only clause made moot by an outright
+#: POLICY (RULINGS Q9): a zone-side size-only clause made moot by an outright
 #: release or closure of the same fish is not shown (`effective_rules` step 5b). Named so a test can
 #: switch it off and prove the step is what hides the clause.
 MOOT_SIZE_CLAUSE_HIDDEN = True
 
-#: POLICY (user ruling 2026-10-06, DENETIAH): a water's OWN full closure in force is the most dominant
+#: POLICY (RULINGS Q10): a water's OWN full closure in force is the most dominant
 #: rule — it silences every keeping rule for the fish it covers, of any source and any key, save a
 #: superior authority's (`effective_rules` step 4c). Named so a test can switch it off and prove the
 #: step is what silences them.
 WATER_CLOSURE_DOMINANT = True
 
-#: POLICY (user ruling Q5, 2026-10-07, KETTLE -> GRANBY / WEST KETTLE): a tributary with a row of its
+#: POLICY (RULINGS T4): a tributary with a row of its
 #: own gets BOTH its own row's rules and the rules it inherits by the tributary walk ("Kettle River's
 #: tributaries"), and where the two speak to the same thing (one competition key, one fish) ITS OWN
 #: ROW SPEAKS — before naming: Granby River's own "trout/char daily quota = 1" (upstream of Burrell
 #: Creek) beats the inherited "Rainbow trout catch and release" for a rainbow, although the inherited
 #: line names the fish. A CLOSURE IS NOT A STATEMENT AN OWN ROW OUT-RANKS: an inherited "No Fishing
 #: Jul 25-Sept 15" still closes Granby River on its dates (it gives way only to a lift — a printed
-#: exemption, or a dated opening inside it — exactly as a zone closure does under the 2026-10-05
-#: strict-lift ruling), and an inherited keeping rule an own CLOSURE beats is silenced as before.
+#: exemption, or a dated opening inside it — exactly as a zone closure does under the strict
+#: lift, RULINGS L1), and an inherited keeping rule an own CLOSURE beats is silenced as before.
 #: `effective_rules` step 4; named so a test can switch it off and prove the step decides it.
 OWN_ROW_BEATS_INHERITED = True
 
-#: POLICY (user ruling C-5, 2026-10-08, KETTLE -> GRANBY): INHERITED RULES BEHAVE LIKE ZONE RULES —
+#: POLICY (RULINGS C-5): INHERITED RULES BEHAVE LIKE ZONE RULES —
 #: a rule of the water's own row REPLACES an inherited rule of the same kind (type and dimension)
 #: on every day, as a row's dated bait ban replaces its zone's all-year one (L8). Granby River's
 #: own "bait ban Apr 1-Oct 31" replaces Kettle River's tributaries' all-year "bait ban": on Nov 15
@@ -57,7 +57,7 @@ OWN_ROW_BEATS_INHERITED = True
 #: named so a test can switch it off and prove the step decides it.
 OWN_ROW_REPLACES_INHERITED = True
 
-#: POLICY (owner ruling 2026-10-16, ROUND14 1, RULINGS T14): WHERE TWO ✱ ROWS COMPETE ON A TRIBUTARY,
+#: POLICY (RULINGS T14): WHERE TWO ✱ ROWS COMPETE ON A TRIBUTARY,
 #: THE ROW OF THE WATER NEAREST THAT STREAM WINS — on the Duncan River's tributaries the Duncan's "bull
 #: trout daily quota = 2 (any size)" beats Kootenay Lake's tributaries' "Bull trout catch and release".
 #: Both rules reach the stream by the tributary walk (the `inherited` rung); NEARER is the bundle's
@@ -120,7 +120,7 @@ _NEARER_BY_PATH: dict = {}
 
 
 def _nearer_of(path: str) -> frozenset:
-    """The bundle's `trib_nearer` pairs (ROUND14 1), read once per path. A real bundle without the
+    """The bundle's `trib_nearer` pairs (RULINGS T14), read once per path. A real bundle without the
     table is refused (rebuild it); a hand-made one (no `rule` table) or a test's seeded rule table
     (a path that is no file) has none unless a test seeds `_NEARER_BY_PATH`."""
     got = _NEARER_BY_PATH.get(path)
@@ -213,7 +213,7 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
 
     `at` is the MOMENT asked (`calendar.Moment`: a class of weekdays, inside or outside the key's
     hours window). Asked at one, a weekday or hours rule DECIDES like any other rule — in force at
-    the moments it covers, out at the others (`in_force`; user ruling 2026-10-08). The verdicts
+    the moments it covers, out at the others (`in_force`; RULINGS D4). The verdicts
     ask every moment of every key (`calendar.moments`).
 
       0. A RAINBOW OVER 50 CM IS A STEELHEAD where the bundle says anadromous rainbow are found
@@ -246,12 +246,12 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
            "Trout/char catch and release"); then
            PLACE — `source_of(rule).rank`: this water, then inherited by the tributary walk (a
            water rule reaching this section `via: trib`), then an area, the region, the province.
-         THE WATER'S OWN ROW BEATS WHAT IT INHERITS, BEFORE NAMING (user ruling Q5, 2026-10-07,
+         THE WATER'S OWN ROW BEATS WHAT IT INHERITS, BEFORE NAMING (RULINGS T4,
          `OWN_ROW_BEATS_INHERITED`): a tributary with a row of its own (Granby River under "Kettle
          River's tributaries") gets both, and on one key its own rule speaks — "trout/char daily
          quota = 1" over the inherited "Rainbow trout catch and release" for a rainbow. Never a
          closure either way: an inherited closure is only lifted, an own closure beats as before.
-         THE NEARER ✱ ROW BEATS A FARTHER ONE, BEFORE NAMING (owner ruling 2026-10-16, T14,
+         THE NEARER ✱ ROW BEATS A FARTHER ONE, BEFORE NAMING (RULINGS T14,
          `NEARER_ROW_BEATS_FARTHER`): two rows reaching the stream by the walk, the one whose water
          drains into the other's (`trib_nearer`) speaks — on the Duncan's tributaries the Duncan's
          "bull trout daily quota = 2" over Kootenay Lake's tributaries' bull trout release. Never a
@@ -261,13 +261,13 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
          A rule is displaced only by a better rule of ANOTHER quota family: a `within` clause and
          its parent quota are one statement ("Trout/char: 5, but not more than 3 lake trout")
          and never displace each other. Ties all speak.
-         A RULE THAT IS ITSELF DISPLACED DISPLACES NOTHING (SP-4, 2026-09-29): a rule is out
+         A RULE THAT IS ITSELF DISPLACED DISPLACES NOTHING (RULINGS Q24): a rule is out
          only when a rule that stands beats it (Cheslatta Lake, Nov 15: Region 6's lake trout
          release, overridden by the lake's own dated quota, no longer takes Region 6's
          "Trout/char: 5" and "3 Dolly Varden/bull trout and/or lake trout" with it).
-         A RULE DISPLACES ONLY OVER THE LENGTHS IT SPEAKS ABOUT (`covers`, N-5): "Rainbow trout
+         A RULE DISPLACES ONLY OVER THE LENGTHS IT SPEAKS ABOUT (`covers`, RULINGS Q25): "Rainbow trout
          over 50 cm catch and release" never displaces a quota counting smaller rainbow.
-         A WATER'S QUOTA AND THE ZONE'S (user rulings 2026-09-26), both keeping fish — a quota
+         A WATER'S QUOTA AND THE ZONE'S (RULINGS Q4), both keeping fish — a quota
          written for this water (or reaching it by the walk) and a zone, area or provincial one:
            the SAME statement (`rules.same_statement`: the same fish or group, size bounds,
              origin, water kind, means, target and clock) — the WATER's number replaces the
@@ -280,12 +280,12 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
              daily quota = 10 (any size)" lifts Region 4's "Trout/char: 5" and its "1 rainbow or
              cutthroat over 50 cm" for rainbow, so the 10 speaks alone.
          A DATED ZONE RELEASE OR CLOSURE is never displaced by a water's quota WITH NO DATES OF
-           ITS OWN (user ruling 2026-09-28) unless the water's rule is the exact same statement on
+           ITS OWN (RULINGS Q6) unless the water's rule is the exact same statement on
            the same dates: Shuswap Lake's "Char daily quota = 1" leaves Region 3's "Lake trout
            from Oct 15-Jan 31" release speaking beside it on those dates. Only a lift removes it
            otherwise.
          A WATER ROW PRINTING ITS OWN DATES FOR THE FISH overrides a dated zone release or quota
-           for that fish on the days both hold (user ruling 2026-09-28, second): Cheslatta
+           for that fish on the days both hold (RULINGS Q6): Cheslatta
            Lake's "Lake trout … quotas = 3" (Nov 1-Sept 14) replaces Region 6's "Lake trout from
            Fraser and Skeena Watersheds, Sept 15-Nov 30" release on Nov 1-30. Only for the same
            fish or subject, a quota or release against a release or quota — never a closure.
@@ -294,8 +294,8 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
          Only a lift removes it; it still displaces what ranks below it — and it speaks for every
          fish it covers AS IF IT NAMED IT, so a water's "No Fishing, Nov 1-Apr 30" silences the
          zone's "Burbot: 5" on its dates (read as a group rule, it let the 5 speak beside it).
-     4a. A WATER ROW'S OWN DATES OVERRIDE A ZONE RELEASE LIMITED TO A KIND OF WATER (user
-         ruling 2026-09-29): as `water_dates_override` does for any dated zone release, on the
+     4a. A WATER ROW'S OWN DATES OVERRIDE A ZONE RELEASE LIMITED TO A KIND OF WATER (RULINGS
+         Q7): as `water_dates_override` does for any dated zone release, on the
          base dimension — the release's `water: stream` is part of its dimension, so step 4
          never set it against the row. Michel Creek's own "Trout/char catch and release, June
          15-Mar 31" replaces Region 4's "Trout/char release: in streams from Nov 1-Mar 31" on
@@ -309,7 +309,7 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
          1-Mar 31" silences Region 4's quotas for every trout and char on its streams. A size
          clause of another dimension ("none under 60 cm"), a closure, a water row and another
          region's rule are untouched.
-         GENERALISED (RU-4, 2026-10-04): a zone release printed with NO water kind (and no
+         GENERALISED (RU-4, RULINGS Q12): a zone release printed with NO water kind (and no
          `while` / `when_targeting` condition) displaces its own table's keeping rules in the
          same base dimension whatever THEIR water condition, THE SAME KEY INCLUDED — Region 5's
          "ALL STEELHEAD" release empties "2 per day … from streams" for a steelhead too, and
@@ -318,9 +318,9 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
          its `@` conditions: a size clause with no count ("none under 60 cm", `daily/size`) is
          another one, which 4b and 4c do not reach — step 5b does.
      4c. A FULL CLOSURE DISPLACES THE KEEPING RULES IT BEATS BY THE LADDER WHATEVER THEIR KEY
-         (RU-7, 2026-10-04): a blanket stream closure (`water: stream`) silences the region's
+         (RU-7, RULINGS Q12): a blanket stream closure (`water: stream`) silences the region's
          "5 per day" and "1 over 50 cm" as it silences its own key's "4 from streams".
-         A WATER'S OWN FULL CLOSURE IS THE MOST DOMINANT RULE (user ruling 2026-10-06, DENETIAH):
+         A WATER'S OWN FULL CLOSURE IS THE MOST DOMINANT RULE (RULINGS Q10):
          a full closure written for this water (a row's rule bound here by its own place, not the
          tributary walk, not an area row) silences EVERY rule that would let the fish be kept, of
          any source and any key — zone, area rows, other water rows reached by the walk, other
@@ -328,37 +328,37 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
          1-15" silences the Liard River watershed row's bull trout "1 in possession"; the ladder
          and naming no longer matter there. Only a SUPERIOR authority's rule stands, and the
          closure's own lifters (a rule exempting it in part) speak beside it.
-     4d. A WATER'S SIZE-LIMITED RELEASE MEETS THE ZONE'S SIZE CLAUSE (RU-5, 2026-10-04):
+     4d. A WATER'S SIZE-LIMITED RELEASE MEETS THE ZONE'S SIZE CLAUSE (RU-5, RULINGS Q12):
          Lakelse Lake's "none over 50 cm" displaces Region 6's "no more than 1 over 50 cm" — a
          zone keeping rule whose spoken lengths lie wholly inside the class the water releases.
-      5. A WATER'S RELEASE SILENCES THE ZONE FOR THAT FISH (user ruling, 2026-09-25): an outright
+      5. A WATER'S RELEASE SILENCES THE ZONE FOR THAT FISH (RULINGS Q3): an outright
          release in force here, written for this water or reached by the tributary walk,
          displaces every zone/area/provincial quota that would keep the fish, WHATEVER its
          conditions, when every origin that quota keeps is released here (see step 5 below,
          `rules.release_origins`, `rules.keeps`). Such a release counts even when
          step 4 put it behind a zone release naming the fish, and one step 4 put behind a
          looser zone rule naming the fish (one that lets it be kept) speaks again.
-         AND THE ROW'S OWN UNDATED QUOTA (RU-3, 2026-10-04): a dated outright release OR
+         AND THE ROW'S OWN UNDATED QUOTA (RU-3, RULINGS Q12): a dated outright release OR
          CLOSURE of the same row displaces that row's undated quota for the fish on its dates
          (the Thompson's May catch and release over its "2 per day"; Adams, Big and Sulphurous
          lakes' lake trout releases over their "1 per day"; and, as built, a row's dated
          closure over its own quota — Quatse r1 May 1-Jun 15 over r2, the Region 7 lakes'
          "No fishing Nov 1-Apr 30" over their quotas, Kitimat r2 Mar 16-May 31 over its
          hatchery steelhead 2, the Okanagan's Oct 1-Nov 15 over its perch quota).
-     5b. A ZONE SIZE CLAUSE MADE MOOT BY AN OUTRIGHT RELEASE OF THE SAME FISH is not shown (user
-         ruling 2026-10-05): a zone-side size-only clause ("none under 60 cm") gives way to any
+     5b. A ZONE SIZE CLAUSE MADE MOOT BY AN OUTRIGHT RELEASE OF THE SAME FISH is not shown (RULINGS
+         Q9): a zone-side size-only clause ("none under 60 cm") gives way to any
          surviving outright release or closure in force here — water, zone or superior — that
          releases every origin it keeps, over its lengths: Bonaparte Lake, Nov 1, lake trout shows
          Region 3's release and not the clause. The release or closure itself is untouched.
-      6. TWO REGIONS' BASES — THE MOST STRICT APPLIES (user ruling 2026-09-25). A lake straddling
+      6. TWO REGIONS' BASES — THE MOST STRICT APPLIES (RULINGS Z4). A lake straddling
          a region line binds both regions' zone rules; neither outranks the other (step 4 does not
          set them against each other). Per fish, a zone rule of one region is displaced by a
          `stricter` zone rule of the other: a closure beats open, a release beats a quota, the
          lower of two quotas stating the same thing beats the higher; different statements sit
          beside; gear and method rules of both apply. Two regions' IDENTICAL statements (the
-         same number) are shown once (RU-8, 2026-10-04).
-      0'. A STEELHEAD IS A RAINBOW WHERE NO STEELHEAD RULE APPLIES (RU-6, user ruling
-         2026-10-03): "ST" on a section the provincial steelhead set does not reach
+         same number) are shown once (RU-8, RULINGS Q12).
+      0'. A STEELHEAD IS A RAINBOW WHERE NO STEELHEAD RULE APPLIES (RULINGS
+         S7): "ST" on a section the provincial steelhead set does not reach
          (`steelhead_rules`) is answered as "RB", over every length.
       Rules that never compete pass through with state "shown": `standing`, the information
       family. A "beside" rule neither displaces nor is displaced. Lift-only rules (dimension
@@ -366,8 +366,8 @@ def effective_rules(section: int, on, fish: str, path: str = BUNDLE, *,
       A RULE IN A PART NOBODY HAS DRAWN (`not_yet_mapped`: `undrawn_part` — "No Fishing within 200
       m of Bush-Sullivan Bridge" held on the whole of Kinbasket Lake) is returned with state
       "not_yet_mapped" when it is in force and about the fish, and takes no part in anything
-      above: it displaces nothing, lifts nothing, silences nothing and suspends nothing (user
-      ruling 2026-09-26). It is a place on the water the map cannot show yet, never the water.
+      above: it displaces nothing, lifts nothing, silences nothing and suspends nothing (RULINGS
+      E2). It is a place on the water the map cannot show yet, never the water.
 
     `by_naming=False` ranks by place alone — the ladder before the naming ruling — and exists
     only so an audit can list what the ruling changed.
@@ -435,7 +435,7 @@ def effective_rules_bound(bound, steelhead_here: bool, on, fish: str, path: str 
     which is what lets `pipeline.deliver.status_index` evaluate 2,103 rulesets instead of 1.9 M
     sections. Not a second reading of the ladder: `effective_rules` calls this.
 
-    A STEELHEAD IS A RAINBOW WHERE NO STEELHEAD RULE APPLIES (user ruling 2026-10-03, RU-6): asked
+    A STEELHEAD IS A RAINBOW WHERE NO STEELHEAD RULE APPLIES (RULINGS S7): asked
     about "ST" on a section the provincial steelhead set does not reach (the Okanagan River, the
     Fraser in 7A — `steelhead_rules_here` False), the answer is the RAINBOW's, read over every
     length (no 50 cm cap: the fish is a rainbow of any size there). The export says the same in
@@ -592,7 +592,7 @@ class _Ask:
 
     def water_dates_override(self, o, k) -> bool:
         """A WATER ROW PRINTING ITS OWN DATES FOR THE FISH overrides a dated zone rule for that
-        fish, on the days both hold (user ruling 2026-09-28). Cheslatta and Murray lakes print
+        fish, on the days both hold (RULINGS Q6). Cheslatta and Murray lakes print
         "Lake trout catch and release, Sept 15-Oct 31" and "quotas = 3" (Nov 1-Sept 14); Region
         6 prints "Lake trout from Fraser and Skeena Watersheds, Sept 15-Nov 30" (release). On Nov
         1-30 both are in force and the lake's 3 replaces the region's release; on Sept 15-Oct 31
@@ -625,8 +625,8 @@ class _Ask:
         return True
 
     def zone_line_restated(self, o, k) -> bool:
-        """A ZONE TABLE'S LINE ABOUT ONE WATER, SAID AGAIN BY THAT WATER'S ROW (UI consumer's report,
-        2026-10-03). Region 3 prints "Annual catch quota for Shuswap Lake: … Char-Lake trout and
+        """A ZONE TABLE'S LINE ABOUT ONE WATER, SAID AGAIN BY THAT WATER'S ROW (the UI consumer's
+        report). Region 3 prints "Annual catch quota for Shuswap Lake: … Char-Lake trout and
         Bull trout (Dolly Varden): 5 over 60 cm" (p.28) and the Shuswap row "Char daily quota = 1
         (none under 60 cm), annual quota = 5" (p.32): one limit, printed twice. The zone line names
         the lake (an item extent), so it ranks as the water's own and neither displaced the other —
@@ -642,7 +642,7 @@ class _Ask:
     def beats(self, o, k) -> bool:
         """Does `o` displace `k` for this fish (of another quota family, not two regions' peers)?
 
-        Between a WATER quota and a ZONE quota that both keep fish (user rulings 2026-09-26):
+        Between a WATER quota and a ZONE quota that both keep fish (RULINGS Q4):
           THE SAME STATEMENT (`rules.same_statement`: the same fish or group, size bounds,
             origin, water kind, means, target and clock) — the WATER's number replaces the
             zone's, larger or smaller: never the smaller of the two, and never undone by naming
@@ -653,20 +653,20 @@ class _Ask:
             aggregate by LIFTING the zone's quota for that fish (`exempts`, step 3 — Kootenay
             Lake's "rainbow trout daily quota = 10 (any size)" lifts Region 4's "Trout/char: 5"
             for rainbow), never by this comparison.
-        A DATED ZONE RELEASE OR CLOSURE IS NOT SILENCED BY A WATER'S QUOTA (user ruling
-        2026-09-28): a water rule that lets the fish be kept displaces a zone rule keeping none of
+        A DATED ZONE RELEASE OR CLOSURE IS NOT SILENCED BY A WATER'S QUOTA (RULINGS
+        Q6): a water rule that lets the fish be kept displaces a zone rule keeping none of
         it on printed dates only when it is the EXACT same statement on the same dates
         (`exact_same`). Shuswap Lake's "Char daily quota = 1" names lake trout, and by naming and
         place it silenced Region 3's "Lake trout from Oct 15-Jan 31" release — the stricter rule,
         and no override of it. A lift the row prints, or a derived lift of a closure that sends
         the reader to the tables, still removes it (step 3).
         A WATER ROW WITH DATES OF ITS OWN FOR THE FISH overrides a dated zone release or quota
-        for it on the days both hold (user ruling 2026-09-28, `water_dates_override`): Cheslatta
+        for it on the days both hold (RULINGS Q6, `water_dates_override`): Cheslatta
         Lake's "Lake trout daily and possession quotas = 3" (Nov 1-Sept 14) replaces Region 6's
         "Lake trout from Fraser and Skeena Watersheds, Sept 15-Nov 30" release on Nov 1-30.
         Everything else: the better rung (`order`) displaces.
 
-        A RULE DISPLACES ONLY OVER THE LENGTHS IT SPEAKS ABOUT (`covers`, N-5): "Rainbow trout
+        A RULE DISPLACES ONLY OVER THE LENGTHS IT SPEAKS ABOUT (`covers`, RULINGS Q25): "Rainbow trout
         over 50 cm catch and release" never displaces a rule that speaks about smaller fish."""
         from pipeline.deliver.bundle.rules import same_statement, keeps
         every = self.every
@@ -691,7 +691,7 @@ class _Ask:
         return self.order(o) < self.order(k)
 
     def nearer_over_farther(self, o, k) -> bool:
-        """THE NEARER ✱ ROW BEATS A FARTHER ONE (owner ruling T14, `NEARER_ROW_BEATS_FARTHER`): both
+        """THE NEARER ✱ ROW BEATS A FARTHER ONE (RULINGS T14, `NEARER_ROW_BEATS_FARTHER`): both
         reach this section by the tributary walk as water rows, `o`'s water is nearer the stream than
         `k`'s (`trib_nearer`), and neither is a closure (an inherited closure is only lifted)."""
         return (o[0], k[0]) in self.nearer and self.here[o] == "trib" and self.here[k] == "trib" \
@@ -704,7 +704,7 @@ class _Ask:
         return self.own_over_inherited(o, k) or self.nearer_over_farther(o, k)
 
     def own_over_inherited(self, o, k) -> bool:
-        """THE WATER'S OWN ROW BEATS WHAT IT INHERITS (user ruling Q5, `OWN_ROW_BEATS_INHERITED`):
+        """THE WATER'S OWN ROW BEATS WHAT IT INHERITS (RULINGS T4, `OWN_ROW_BEATS_INHERITED`):
         `o` is written for this water (bound here by its own place, not the walk) and `k` reaches
         it only by the tributary walk, and neither is a closure (an inherited closure is lifted,
         never out-ranked; an own closure already beats every keeper by the ladder)."""
@@ -757,7 +757,7 @@ def _step1_in_force(s: _Ask) -> None:
     state = s.state = {k: in_force(every[k].get("when"), s.on, s.at) for k in here}
     # ONE HALF OF THE CHANNEL (`side`: Kitimat River's "No Fishing on the west half of river …"):
     # the rule holds on part of the section's width, so, like a rule holding some hours, it is
-    # shown BESIDE the rules the other half answers to and displaces none (user ruling 2026-09-28).
+    # shown BESIDE the rules the other half answers to and displaces none (RULINGS E4).
     for k in here:
         if every[k].get("side") and state[k] == "yes":
             state[k] = "part"
@@ -807,7 +807,7 @@ def _step3_lifts(s: _Ask) -> None:
                 partly_by.setdefault(t, []).append(k)
 
 
-# 3b. THE WATER'S OWN ROW REPLACES WHAT IT INHERITS OF THE SAME KIND (user ruling C-5,
+# 3b. THE WATER'S OWN ROW REPLACES WHAT IT INHERITS OF THE SAME KIND (RULINGS C-5,
 #     `OWN_ROW_REPLACES_INHERITED`): an inherited rule (a water row reaching the section by the
 #     tributary walk) gives way, ON EVERY DAY, to a rule of the water's own row of the same type
 #     and dimension that speaks for the fish at least as widely — whether or not the own rule
@@ -858,7 +858,7 @@ def _step2_about_this_fish(s: _Ask) -> None:
 
 def _step4_competition(s: _Ask) -> None:
     """4. COMPETITION, on `(type, dimension)` (see `effective_rules`; `_Ask.beats`)."""
-    # A DISPLACED RULE DISPLACES NOTHING (SP-4, 2026-09-29). At Cheslatta Lake on Nov 15 Region
+    # A DISPLACED RULE DISPLACES NOTHING (RULINGS Q24). At Cheslatta Lake on Nov 15 Region
     # 6's lake trout release (Sept 15-Nov 30) names the fish and so beats the region's "Trout/char:
     # 5" and "3 Dolly Varden/bull trout and/or lake trout"; the lake's own dated "quotas = 3"
     # overrides that release (`water_dates_override`). Read as "beaten by ANY competitor", the
@@ -911,8 +911,8 @@ def _step4_competition(s: _Ask) -> None:
 
 
 def _step4a_water_dates_on_a_water_kind(s: _Ask) -> None:
-    # 4a. A WATER ROW'S OWN DATES OVERRIDE A ZONE RELEASE LIMITED TO A KIND OF WATER (user ruling
-    #     2026-09-29). "Bull trout (Dolly Varden) from streams, Aug 1-Oct 31" carries `water:
+    # 4a. A WATER ROW'S OWN DATES OVERRIDE A ZONE RELEASE LIMITED TO A KIND OF WATER (RULINGS
+    #     Q7). "Bull trout (Dolly Varden) from streams, Aug 1-Oct 31" carries `water:
     #     stream`, part of its dimension (`daily@water=stream`), so it never met a stream row's own
     #     dated "Bull trout daily quota = 1, Sept 1-Oct 31" in step 4, and `water_dates_override`
     #     never ran. It runs here, on the base dimension: a surviving water rule printing its own
@@ -933,7 +933,7 @@ def _step4a_water_dates_on_a_water_kind(s: _Ask) -> None:
 
 
 def _step4b_zone_release(s: _Ask) -> None:
-    # 4b. A ZONE RELEASE LIMITED TO A KIND OF WATER, ON THAT WATER (ZS-2, 2026-09-29). Region 3's
+    # 4b. A ZONE RELEASE LIMITED TO A KIND OF WATER, ON THAT WATER (RULINGS Z9). Region 3's
     #     "Lake trout from Oct 15-Jan 31" (no `water`) meets "Trout/char: 5" and its clauses in
     #     step 4 and displaces them; "Bull trout (Dolly Varden) from streams, Aug 1-Oct 31" carries
     #     `water: stream`, which is part of its dimension, so it met none of them and "Dolly Varden
@@ -944,7 +944,7 @@ def _step4b_zone_release(s: _Ask) -> None:
     #     streams"), never a size clause of another dimension ("none under 60 cm" stays beside),
     #     never a closure (it keeps nothing), never a water row, never another region's rule.
     #     Bound here is being on its kind of water (its extents draw only that kind).
-    #     GENERALISED (RU-4, 2026-10-04): a zone release printed with NO water kind met only the
+    #     GENERALISED (RU-4, RULINGS Q12): a zone release printed with NO water kind met only the
     #     rules of its own key in step 4, so Region 5's "you must release: ALL STEELHEAD" silenced
     #     "Trout/char: 5" and left "2 per day … from streams" (`daily@water=stream`) speaking for a
     #     steelhead on every Region 5 stream. Its own table's keeping rules give way in the same
@@ -999,7 +999,7 @@ def _own_water_closure(s: _Ask, k) -> bool:
 
 def _step4c_closures(s: _Ask) -> None:
     # 4c. A CLOSURE SPEAKS FOR EVERY FISH IT COVERS AS IF IT NAMED IT, WHATEVER ITS KEY (RU-7,
-    #     2026-10-04). Step 4 lets a closure displace the keeping rules of its own key; a blanket
+    #     RULINGS Q12). Step 4 lets a closure displace the keeping rules of its own key; a blanket
     #     stream closure carries `water: stream` (`daily@water=stream`) and so never met the
     #     region's "5 per day" or "1 over 50 cm" (`daily`): Michel Creek on May 1 showed Region 4's
     #     "No fishing in streams, Apr 1-Jun 14" beside its "5 per day". A FULL closure in force
@@ -1009,7 +1009,7 @@ def _step4c_closures(s: _Ask) -> None:
     #     a zone closure here as it does there), over the lengths it covers — never two regions'
     #     peers (step 6 reads those), never its own family. Page noise only: the status index
     #     already read the closure.
-    #     A WATER'S OWN FULL CLOSURE IS THE MOST DOMINANT RULE (user ruling 2026-10-06, DENETIAH).
+    #     A WATER'S OWN FULL CLOSURE IS THE MOST DOMINANT RULE (RULINGS Q10).
     #     Denetiah Creek prints "No fishing, Jul 1-15"; the Liard River watershed row (an AREA row
     #     of the water tables, so `water_side`, which step 5 never lets a water release silence)
     #     prints "Dolly Varden/bull trout — 1 in possession (30-50 cm only)". Step 4 took the
@@ -1055,10 +1055,10 @@ def _released_lengths(x: dict, top: float) -> list | None:
 
 def _step4d_size_release(s: _Ask) -> None:
     # 4d. A WATER'S SIZE-LIMITED RELEASE MEETS THE ZONE'S SIZE CLAUSE FOR THE SAME SIZES (RU-5,
-    #     2026-10-04). Lakelse Lake's "Rainbow trout (none over 50 cm)" is sizes with no count
+    #     RULINGS Q12). Lakelse Lake's "Rainbow trout (none over 50 cm)" is sizes with no count
     #     (`daily/size`); Region 6's "no more than 1 over 50 cm" is a count (`daily`), so the two
     #     never met and the page said "1 over 50 cm" on a lake where none over 50 cm may be kept.
-    #     The stricter-at-water ruling (2026-09-25) and `covers` decide it: a water-side rule
+    #     The stricter-at-water ruling (RULINGS Q3) and `covers` decide it: a water-side rule
     #     RELEASING a size class (a band with take 0) displaces a zone-side keeping rule of the
     #     same base dimension whose spoken lengths lie wholly inside the released class. The
     #     zone's "5 per day" (every length) stays: the 5 still counts the rainbow under 50 cm.
@@ -1094,7 +1094,7 @@ def _beaten_by(s: _Ask, k) -> list:
 
 def _same_row_dated_release(s: _Ask, k) -> bool:
     """A DATED OUTRIGHT RELEASE OF THE SAME ROW DISPLACES THE ROW'S OWN UNDATED QUOTA FOR
-    THE FISH ON ITS DATES (RU-3, 2026-10-04). The Thompson below Kamloops Lake prints "Trout
+    THE FISH ON ITS DATES (RU-3, RULINGS Q12). The Thompson below Kamloops Lake prints "Trout
     and char — 2 per day" and, for its CNR stretch, "trout/char catch and release … May
     1-31"; Adams Lake "Lake trout — release all, Oct 15-Jan 31" beside "bull trout and lake
     trout — 1 per day". Two rules of one row rank alike (same place, same naming), so step 4
@@ -1129,7 +1129,7 @@ def _same_row_releaser(s: _Ask, k):
 
 
 def _step5_water_release(s: _Ask) -> None:
-    # 5. A WATER'S RELEASE SILENCES THE ZONE FOR THAT FISH (user ruling, 2026-09-25). Competition
+    # 5. A WATER'S RELEASE SILENCES THE ZONE FOR THAT FISH (RULINGS Q3). Competition
     #    keys on (type, dimension), and a zone quota's conditions are part of its dimension, so
     #    Coquihalla's "Trout/char (including steelhead) catch and release" never met Region 2's
     #    "2 hatchery steelhead" (`daily@origin=hatchery`) and both spoke. An outright release in
@@ -1156,7 +1156,7 @@ def _step5_water_release(s: _Ask) -> None:
     competes, water_side, zone_side = s.competes, s.water_side, s.zone_side
     for k in s.cand:
         o = release_origins(every[k]) if competes(k) else None
-        # A release a water row's own dates overrode releases nothing here (SP-12): it is not in
+        # A release a water row's own dates overrode releases nothing here (RULINGS Q26): it is not in
         # force at this water on this day, whatever step 4's naming said about it. Nor does an
         # INHERITED release the water's own row beat (Q5): the own row answers for the fish here.
         # Nor a release a NEARER ✱ row beat (T14): the nearer row answers for the fish here.
@@ -1187,8 +1187,8 @@ def _step5_water_release(s: _Ask) -> None:
 
 
 def _step5b_moot_size_clause(s: _Ask) -> None:
-    # 5b. A ZONE SIZE CLAUSE MADE MOOT BY AN OUTRIGHT RELEASE OF THE SAME FISH IS NOT SHOWN (user
-    #     ruling 2026-10-05, CLEAN round, option A — what the consumer's front end already does). A
+    # 5b. A ZONE SIZE CLAUSE MADE MOOT BY AN OUTRIGHT RELEASE OF THE SAME FISH IS NOT SHOWN (RULINGS
+    #     Q9, option A — what the consumer's front end already does). A
     #     clause stating only sizes ("none under 60 cm", `daily/size`) is its own dimension, so
     #     steps 4b/4c (base dimension "daily") never reached it and it spoke beside Region 3's
     #     "Lake trout from Oct 15-Jan 31" on Bonaparte Lake on Nov 1, beside the stream release and
@@ -1221,7 +1221,7 @@ def _step5b_moot_size_clause(s: _Ask) -> None:
 
 
 def _step6_two_regions(s: _Ask) -> None:
-    # 6. TWO REGIONS' BASES: THE MOST STRICT APPLIES (user ruling 2026-09-25). A lake drawn across
+    # 6. TWO REGIONS' BASES: THE MOST STRICT APPLIES (RULINGS Z4). A lake drawn across
     #    a region line binds both regions' zone rules (`registry.regions.in_region`) — Ahbau Lake
     #    (51 % Region 5, 49 % Zone 7A), Mara Lake (61 % Region 3, 39 % Region 8). Neither table
     #    outranks the other by place, so step 4 set them against each other not at all (`peers`);
@@ -1241,7 +1241,7 @@ def _step6_two_regions(s: _Ask) -> None:
         for k in sorted(gone):
             s.lose(k, "stricter_region", next(o for o in sorted(mine)
                                               if peers(o, k) and stricter(every[o], every[k])))
-        # TWO REGIONS' IDENTICAL STATEMENTS ARE ONE (RU-8, 2026-10-04): Ahbau Lake (Regions 5
+        # TWO REGIONS' IDENTICAL STATEMENTS ARE ONE (RU-8, RULINGS Q12): Ahbau Lake (Regions 5
         # and 7A) printed "Trout and char — 5 per day" and "1 over 50 cm" twice, once per table.
         # Of two peers that are the same statement with the same number, one is shown — the
         # lower entry id (z5 before z7a: deterministic, no section lookup; display only, the

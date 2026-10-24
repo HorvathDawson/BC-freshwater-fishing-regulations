@@ -32,7 +32,7 @@ def in_force(when: dict | None, on, at=None) -> str:
 
     `at` is a `calendar.Moment` — a class of weekdays and, where the key holds an hours rule,
     inside or outside its window (`calendar.moments`). Asked at a moment, a weekday or hours rule
-    DECIDES (user ruling 2026-10-08, review D2/G5): "yes" on the weekdays and hours it covers,
+    DECIDES (RULINGS D4): "yes" on the weekdays and hours it covers,
     "no" at the others — Kootenay Lake's Lower West Arm keeps 5 kokanee on a Saturday and releases
     them on a Monday; the Fraser above Mission is closed from one hour after sunset to one hour
     before sunrise and open by day. A moment that straddles a rule's weekdays, or names another
@@ -121,7 +121,7 @@ def _steelhead_min_cm() -> int:
 def steelhead_rules(db, section: int) -> bool:
     """Whether the provincial steelhead rules apply on this section (`section_steelhead_rules`:
     the reach run's `rules`, stored with the presence code). Where they do not, a rainbow of any
-    size is a rainbow (user ruling 2026-10-03). A bundle without the view is refused."""
+    size is a rainbow (RULINGS S7). A bundle without the view is refused."""
     if not db.execute("SELECT 1 FROM sqlite_master WHERE name = 'section_steelhead_rules'") \
             .fetchone():
         if db.execute("SELECT 1 FROM sqlite_master WHERE name = 'rule'").fetchone():
@@ -167,8 +167,8 @@ STEELHEAD_CODES = {1: "known", 2: "possible"}
 
 
 def steelhead_presence(db, section: int) -> str | None:
-    """How sure we are that steelhead are on this section (`section_steelhead`, user rulings
-    2026-10-01/02): "known" (a steelhead row's own water or a rule of one binds it, or the curated
+    """How sure we are that steelhead are on this section (`section_steelhead`, RULINGS
+    S1, S2): "known" (a steelhead row's own water or a rule of one binds it, or the curated
     known-steelhead
     list names its water — a presence indicator that changes no answer by itself;
     `steelhead_water` follows where steelhead rules apply),
@@ -232,7 +232,7 @@ def _spoken_lengths(x: dict, top: float = float("inf")) -> list | None:
 
 def covers(o: dict, k: dict, top: float = float("inf")) -> bool:
     """DOES `o` SPEAK ABOUT EVERY LENGTH `k` DOES? A rule displaces another only over the fish it
-    speaks about (N-5, 2026-09-29): Lakelse Lake's "Rainbow trout over 50 cm catch and release"
+    speaks about (RULINGS Q25): Lakelse Lake's "Rainbow trout over 50 cm catch and release"
     says nothing about a 30 cm rainbow, so it must not silence Region 6's "Trout/char: 5" — the
     5 still counts every rainbow under 50 cm — and Chilko Lake's "no rainbow trout over 70 cm"
     leaves the lake's own "Trout/char daily quota = 2" speaking for rainbow. `top` caps the

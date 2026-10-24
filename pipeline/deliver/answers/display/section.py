@@ -46,7 +46,7 @@ def section_prepare(scope, ctx):
     k = ctx.B.key_ix[scope]
     floor = "own" if st.own(k) else "base"
     none = "none"
-    # ROUND11 A3: the lifting rules this key holds by the tributary walk (a ✱ row's, T13 / T3a)
+    # RULINGS P12: the lifting rules this key holds by the tributary walk (a ✱ row's, T13 / T3a)
     walked = {f"{e}::{r}" for e, r, via in ctx.B.sets[scope.set_id]
               if via == "trib" and ctx.B.rules[(e, r)].get("exempts")}
     by_reading = []
@@ -83,10 +83,10 @@ def section_prepare(scope, ctx):
 
 
 def inherited_here(ctx, k: int, reading: int, walked: set, bound=None) -> List[dict]:
-    """ROUND11 A3: the lifts the tributary walk carries here that THIS reading relies on — every rule
+    """RULINGS P12: the lifts the tributary walk carries here that THIS reading relies on — every rule
     the stored verdicts (origin none, every fish asked) say a walked rule `lifted` — each said by
     `inherited_line`: [{says, by, lifts, caution}] (rules by export index), in export order. A quota lifted
-    (a T3a lift) is left to the card, which names it. ROUND16 Q1 (owner, RULINGS T15): `caution` where a
+    (a T3a lift) is left to the card, which names it. RULINGS T15: `caution` where a
     NEARER water row binding this stream prints no such exemption (`nearer.silent_nearer`) — the lift still
     holds; the caution names both rows (`inherited_caution`), else None."""
     if not walked:
@@ -112,7 +112,7 @@ def inherited_here(ctx, k: int, reading: int, walked: set, bound=None) -> List[d
 
 
 def inherited_caution(B, bound, lifter: str) -> Optional[str]:
-    """ROUND16 Q1 (owner 2026-10-16, RULINGS T15): a farther ✱ row's exemption is applied on every one of its
+    """RULINGS T15: a farther ✱ row's exemption is applied on every one of its
     tributaries, the streams of a nearer row printing none included — and said: "Trout Lake’s row, nearer this
     stream, prints no such exemption; the Duncan River’s is applied here because its row covers all its
     tributaries." (Glenn Creek); the stream's own row: "Wilkie Creek’s own row prints no such exemption; …".

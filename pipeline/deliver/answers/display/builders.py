@@ -77,7 +77,7 @@ def unless_opened_here(closing: Dict[str, List[str]], words: Dict[str, Optional[
 
 
 def closers_of(closing: Sequence[Tuple[int, Sequence[str]]]) -> List[int]:
-    """display 18 (owner rule 2026-10-21): THE CLOSURES THAT CLOSE THE WATER on a closed day — of the decided
+    """RULINGS P46: THE CLOSURES THAT CLOSE THE WATER on a closed day — of the decided
     `closing` ([[rule, [game fish]]], in its order), page v36 closersAt's choice, decided here and only read by the
     app: those closing the most game fish; and, when no single closure closes every game fish any of them closes,
     each that is not wholly inside a closure of more fish. A one-fish closure beside a blanket one (the Province's
@@ -100,8 +100,8 @@ def closed_all_year(store, key_ix: int) -> bool:
 def paper_licence(B, key, kind: Optional[str], store=None) -> List[str]:
     """The record duties that reach this part (7.7 step 7, "Keep a hatchery steelhead? Carry your
     paper licence"): its set's rules with `record_retention` for this kind of water — the
-    `records` of `zp:licence_administration#carry_paper_licence` that bind here. ROUND UR6 4 (owner:
-    the line named hatchery steelhead on the Ape and the Bella Coola, closed to steelhead): with the
+    `records` of `zp:licence_administration#carry_paper_licence` that bind here. RULINGS P45 (the
+    line named hatchery steelhead on the Ape and the Bella Coola, closed to steelhead): with the
     verdicts, only a record rule whose fish may be KEPT here on some day (`record_kept`) — a duty to
     record a fish nobody may keep here is no duty here."""
     out = []

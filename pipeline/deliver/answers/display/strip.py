@@ -50,7 +50,7 @@ def strip_code(display_v: dict, rows_v: dict, gear_v: dict) -> int:
 
 def compose(value: dict, others: Dict[str, dict]) -> dict:
     """The display frame with its strip code (`strip_code`), from the rows and gear frames at the
-    same part key and segment (`answers.Section.compose`). A tidal frame has no strip. ROUND11 A3: an
+    same part key and segment (`answers.Section.compose`). A tidal frame has no strip. RULINGS P12: an
     inherited lift the card already names (a quota lift walked per T3a: "On the Duncan River and its
     tributaries, …") is not said again."""
     if value.get("status") == "tidal":

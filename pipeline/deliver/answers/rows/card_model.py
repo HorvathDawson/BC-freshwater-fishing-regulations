@@ -9,7 +9,7 @@ from pipeline.deliver.answers.rows.rule import INF, _js, _keepish
 from pipeline.deliver.answers.rows.evaluate import counts_toward, eval_sp, main_res
 
 
-#: T127 (2026-10-22, found by the Perry Creek card-gate fix): a pool the reader DISPLACED for a fish yields no "counts
+#: T127 (found by the Perry Creek card-gate fix): a pool the reader DISPLACED for a fish yields no "counts
 #: toward this one" cross-reference — `counts_toward` decides every cross-reference. False only in the mutation pin
 #: (test_answers_t127_displaced_xref.py): the St. Mary's "trout/char 1 on all tributaries" then lists Perry Creek's brook
 #: trout again, though Perry Creek's own "brook trout 20" displaced it (reason own_row).

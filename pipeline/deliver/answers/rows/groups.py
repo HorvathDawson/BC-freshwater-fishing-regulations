@@ -38,7 +38,7 @@ def _names(codes: Sequence[str], conj: str = " or ") -> str:
 
 
 def _names_short(codes: Sequence[str]) -> str:
-    """ROUND16 2: the fish named shortly — a closed group by its name, one missing a member or two as the
+    """RULINGS P26: the fish named shortly — a closed group by its name, one missing a member or two as the
     group "other than" them ("trout and char other than steelhead"), else each fish."""
     g = common.group_for(codes)
     if g:
@@ -55,7 +55,7 @@ def _names_short(codes: Sequence[str]) -> str:
 
 def _range_words(a, b) -> str:
     """A keep range in the book's words (bounds of a keep band are inclusive: "50 cm or less"), in cm AND inches
-    (ROUND19 2: "50 cm (20 in) or less", "over 50 cm (20 in)", "20–30 cm (8–12 in)")."""
+    (RULINGS P34: "50 cm (20 in) or less", "over 50 cm (20 in)", "20–30 cm (8–12 in)")."""
     if not a and (b is None or b == INF):
         return ""
     if not a:
@@ -99,7 +99,7 @@ def _lift_words(P: "Part", by: str, fish: List[str], sized: bool = True) -> str:
 def group_of(P: "Part", model: dict, T: R, own_row: bool = False) -> Optional[dict]:
     """One total on today's card (decision F14): `pool` the total's rule, `total` its number
     ("unlimited" for none), `kinds` every fish of the card counting toward it — the total's own
-    row and every fish with its own row contained by it (F4; steelhead included, user 2026-10-10),
+    row and every fish with its own row contained by it (F4; steelhead included, RULINGS Q23),
     `subcaps` each count or size clause of the total holding some of those kinds here
     ({r, take, water, over_cm, under_cm, of, lifted [{members, by}]} — `of` the kinds it holds,
     `lifted` those a water's own rule lifts out of it). None for a total of one kind with no
@@ -221,7 +221,7 @@ def _kept_origin(model: dict, S: str) -> Optional[str]:
 
 def _line(q: str, a: str, model: dict, kinds: Sequence[str], kept, at: str, here,
           over_cm=None, most: str = "exactly", kind: str = "other_kind", of=None) -> dict:
-    """One line of the card's one list (ROUND12 4): the question and answer, and the basket it starts
+    """One line of the card's one list (RULINGS P9): the question and answer, and the basket it starts
     from — `kept` fish of one kind of `kinds` (the gate takes the first it may keep there) kept at a
     `at` (another stream or lake, or "elsewhere": either; over `over_cm`) — and
     `here`, the most more here (the gate proves it: exactly, or `most` "at_most" for a ceiling the
@@ -242,7 +242,7 @@ def elsewhere_of(P: "Part", model: dict, row: dict, sc: dict, T: R,
     [[question, answer]] worked examples — qualified by what the total's sub-caps lift: on the
     Vedder, Oct 10, "Kept 2 on another stream? Keep 0 here, except hatchery rainbow trout 50 cm or
     less: up to 4 in all" (it was "Keep 0 here": p.22 lifts the stream share for them). `lines` the
-    same examples with the basket each starts from and the number it states (`_line`, ROUND12 4: the
+    same examples with the basket each starts from and the number it states (`_line`, RULINGS P9: the
     card folds them into `group.worked`, its one list)."""
     n, pool, nw = row["daily"], row["pool"], row["narrow"]
     s = _scope_name(sc, pool)
@@ -252,8 +252,8 @@ def elsewhere_of(P: "Part", model: dict, row: dict, sc: dict, T: R,
         other = "lake" if wk == "stream" else "stream"
         mine = next((x for x in (grp or {}).get("subcaps", []) if x["r"] == nw.key), None)
         tot = "unlimited" if T.f.get("unlimited") else T.f.get("take")
-        says = f"Your own limit, counted across every {s} {wk} you fish today."   # ROUND20i 6c (UR4 Maya: "shared" with Dad?)
-        # RULINGS Q23b (owner 2026-10-12): the stream tally counts every trout/char kept from ANY
+        says = f"Your own limit, counted across every {s} {wk} you fish today."   # RULINGS P44
+        # RULINGS Q23b: the stream tally counts every trout/char kept from ANY
         # stream today; a kind THIS water lifts may still go past it here, to its own quota and the
         # total — after n kept on another stream, up to min(its own, total - n) more of it here
         ex = []
@@ -262,7 +262,7 @@ def elsewhere_of(P: "Part", model: dict, row: dict, sc: dict, T: R,
             more = (tot - n) if own is None or tot == "unlimited" else min(own, tot - n) \
                 if tot != "unlimited" else own
             ex.append((_lift_words(P, L["by"], L["members"]), more))
-        # ROUND15 8: no bare "0" in an answer (it reads as a count): "None more here"
+        # RULINGS P24: no bare "0" in an answer (it reads as a count): "None more here"
         a1 = "None more here"
         if ex and tot != "unlimited":
             a1 += ", except " + common.join([f"{w}: up to {_js(m)} more" for w, m in ex], "; ") \
@@ -274,7 +274,7 @@ def elsewhere_of(P: "Part", model: dict, row: dict, sc: dict, T: R,
         unl = tot == "unlimited" or any(x is None for x in lifted_own)
         here1 = None if unl else min(tot - n, sum(m for _w, m in ex)) if ex else 0
         here2 = None if unl else min(tot - 1, n + sum(lifted_own))
-        # ROUND13 P (owner): the lake line says how many are left here after 1 kept there (the gate
+        # RULINGS P41: the lake line says how many are left here after 1 kept there (the gate
         # proves `here`), then why: "Keep 2 more here. Fish from lakes count toward the 4 a day, not
         # toward the 2 from streams."
         if tot == "unlimited":
@@ -308,7 +308,7 @@ def elsewhere_of(P: "Part", model: dict, row: dict, sc: dict, T: R,
             lines = [_line(f"Kept {k} elsewhere today?", a, model, (grp or {}).get("kinds") or row["members"],
                            k, "elsewhere", None if sh is not None else n - k, kind="tally")]
     else:
-        # ROUND16 2 (owner): SPECIFIC — whose limit, its number, and which fish kept elsewhere today count
+        # RULINGS P26: SPECIFIC — whose limit, its number, and which fish kept elsewhere today count
         # toward it (the row's kinds: Ape Creek's char released on Oct 10 are not among them): "The Bella
         # Coola River’s rule: 1 a day here. Brown trout, cutthroat trout or rainbow trout you kept anywhere
         # else today count toward that 1." (was "This river’s own limit. Fish you kept elsewhere today count
@@ -384,7 +384,7 @@ def over_elsewhere(P: "Part", model: dict, row: dict, grp: Optional[dict]) -> Li
 
 
 def parent_of(rows: Sequence[dict], i: int) -> Optional[int]:
-    """rows 31 (owner rule 2026-10-21; page v36 parentRow): THE POOL ROW THAT HOLDS A POOLED ROW — of the stored rows
+    """RULINGS P46 (page v36 parentRow): THE POOL ROW THAT HOLDS A POOLED ROW — of the stored rows
     (`produce`'s, in card order), the first other pooled row holding every fish of row `i` (among its `all_members`,
     or in one of its fact groups) whose facts cross-reference one of them (an `xref` fact: the other pool counts
     them, decision F4); else (T139, `A_ROW_HELD_BY_ITS_TOTALS_GROUP`) the row that carries the group of row `i`'s
@@ -410,7 +410,7 @@ def parent_of(rows: Sequence[dict], i: int) -> Optional[int]:
     return None
 
 
-#: T139 (2026-10-23): a pooled row whose total is ANOTHER rule's, carried as a group on another row, is held by that
+#: T139: a pooled row whose total is ANOTHER rule's, carried as a group on another row, is held by that
 #: row. Beattie Lake (r7, in the Liard River watershed, wbk:329665706): the reader lets the Liard's "bull trout 1
 #: (30-50 cm)" displace the lake's "trout 1" for bull trout, and both count toward Zone B's 5 (`contains`), whose group
 #: sits on the lake's trout row and already says the bull trout (the bucket "LIARD RIVER WATERSHED's rule: Dolly

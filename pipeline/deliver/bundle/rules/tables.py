@@ -304,14 +304,14 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
                    "VALUES (?,?,?,?,?,?)", [(x["sid"], x["entry_id"], x["rule_id"], x["how"],
                                              x["side"], x["share"]) for x in crossing])
     cov.filled("section_straddle", len(crossing))
-    # THE CUTS THAT MATCHED SEVERAL PLACES ON THEIR LINE (owner 2026-10-22, `rule_ambiguous_cut`),
+    # THE CUTS THAT MATCHED SEVERAL PLACES ON THEIR LINE (RULINGS E16, `rule_ambiguous_cut`),
     # READ FROM THE RUN'S DIAGNOSTICS: every candidate and the one the builder took.
     amb = ambiguous_cuts(read_table(reaches, "rule_diagnostic"))
     db.executemany("INSERT INTO rule_ambiguous_cut (entry_id, rule_id, extent, split_id, used, "
                    "candidates, toward) VALUES (?,?,?,?,?,?,?)", amb)
     cov.filled("rule_ambiguous_cut", len(amb))
     # The same resolver places LICENSING records (Thompson below Kamloops Lake, Dean between
-    # Anahim and Iltasyuko), so their choices ship too, keyed by the record (reviewer 2026-10-22).
+    # Anahim and Iltasyuko), so their choices ship too, keyed by the record.
     lamb = ambiguous_cuts(read_table(reaches, "licensing_diagnostic"),
                           table="licensing_diagnostic", id_key="record_id")
     db.executemany("INSERT INTO licensing_ambiguous_cut (entry_id, record_id, extent, split_id, "
@@ -324,7 +324,7 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
 
     # HOW SURE WE ARE THAT STEELHEAD ARE HERE (`section_steelhead`), and WHERE A RAINBOW OVER 50 CM
     # IS A STEELHEAD (p.80, `steelhead_water`). Both from the reach run's `steelhead_presence`
-    # (`pipeline.atlas.reach.steelhead`, user rulings 2026-10-01/02): `known` is every water a rule
+    # (`pipeline.atlas.reach.steelhead`, RULINGS S1, S2): `known` is every water a rule
     # of a steelhead row binds, and every water on the curated known-steelhead list (a presence
     # indicator: it binds no rule); `possible` every other stream the provincial steelhead rules
     # bind. The definition holds on the BOOK's flowing known sections only — never a lake, never
