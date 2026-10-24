@@ -29,6 +29,7 @@ from pathlib import Path
 
 from pipeline.regs.dfo_salmon.dossier import ENTRIES, item_pin, osm_link
 from pipeline.common.curated import GENERATED
+from pipeline.common.names import key as name_key
 from pipeline.common.utils import wsc as _wsc
 
 HISTORY = Path("cache/dfo_salmon/history")
@@ -85,7 +86,7 @@ def cover_candidates(text: str, cuts, water: str = "") -> list[tuple[str, str, i
 
 
 def _norm(s: str) -> str:
-    return re.sub(r"[^a-z0-9]+", " ", (s or "").lower()).strip()
+    return name_key(s)                              # THE name key (`pipeline.common.names`, T61 2.8)
 
 
 _PAGES: dict[str, list[tuple[str, str]]] = {}
@@ -162,7 +163,7 @@ def waters(reg) -> list[dict]:
     by_stream_name: dict[str, list] = {}
     for it in reg.values():
         if it.kind == "stream":
-            by_stream_name.setdefault(it.name.lower(), []).append(it)
+            by_stream_name.setdefault(name_key(it.name), []).append(it)
 
     def wscs(it):
         return [x.split(":", 1)[1] for x in it.ref_ids if x.startswith("wsc:")]
@@ -196,7 +197,7 @@ def waters(reg) -> list[dict]:
                     a = set(st.get("anchor_types") or [])
                     tribs = []
                     for mm in TRIB_RE.finditer(text):
-                        for cand in by_stream_name.get(mm.group(1).lower(), []):
+                        for cand in by_stream_name.get(name_key(mm.group(1)), []):
                             if any(_wsc.is_strictly_below(t, m) for t in wscs(cand) for m in mine):
                                 tribs.append((mm.group(1), cand.id, wscs(cand)[0]))
                     if tribs and not (a & COORD_ANCHORS):
