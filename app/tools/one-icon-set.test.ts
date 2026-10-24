@@ -90,6 +90,35 @@ describe("one icon set (N1)", () => {
     expect(files().filter((f) => drawn.test(read(f)))).toEqual([]);
   });
 
+  /**
+   * (T60 check 4) A TYPED TRIANGLE IS NOT A FOLD MARK EITHER: the regs page's folds (KeepBlocks' caveat, PlainRow's
+   * ladder, a sheet's Fold) drew their open / closed state as the prototype's typed ▼ ▶ ▾ ▸ beside a set that already
+   * has `expand` / `collapse`. The other glyphs a component may still TYPE are words from core (▲ / ▼ in
+   * `WATER_MAP_WORDS`' button labels, the date pill's ▾ caret and ↗ in `WORDS`): a glyph inside a core word is data to a
+   * component, so only a literal typed IN a component is refused here.
+   */
+  it("no component types a triangle or caret as a mark (▼ ▶ ▾ ▸ ▲ ◂ ◃ ◀ ►)", () => {
+    const typed = /["'`][^"'`\n]*[▼▶▾▸▲◂◃◀►▴▵▿][^"'`\n]*["'`]|>\s*[▼▶▾▸▲◂◃◀►▴▵▿]\s*</;
+    expect(files().filter((f) => f.startsWith("packages/ui-native/") || f.startsWith("apps/")).filter((f) => typed.test(read(f))))
+      .toEqual([]);
+  });
+
+  it("MUTATION PIN: each glyph scan catches the spelling it refuses, and leaves a core word's glyph alone", () => {
+    const glyph = /(>\s*[‹✕×←]\s*<)|(["'`][‹✕×←]["'`])|(`[‹←]\s+\$\{)|(["'`][‹←] {2}\w)/;
+    const typed = /["'`][^"'`\n]*[▼▶▾▸▲◂◃◀►▴▵▿][^"'`\n]*["'`]|>\s*[▼▶▾▸▲◂◃◀►▴▵▿]\s*</;
+    const pathData = /["'`]\s*[Mm]\s*-?\d[\d.]*[\s,]+-?\d[\d.]*\s*(?:[LlHhVvCcSsQqTtAaZz]|[\s,]+-?\d)/;
+    expect([
+      glyph.test(code(`<Pressable><Text>‹</Text></Pressable>`.replace("<Text>", ">").replace("</Text>", "<"))),
+      glyph.test(code(`<Text>{"✕"}</Text>`)),
+      typed.test(code("<Text>{`${open ? \"▼\" : \"▶\"} ${head}`}</Text>")),
+      typed.test(code(`<Text aria-hidden>{open ? "▾ " : "▸ "}</Text>`)),
+      typed.test(code(`<Text>▼</Text>`)),
+      pathData.test(code(`<Path d="M15 18l-6-6 6-6" />`)),
+      // a core word carrying a glyph, read by a component, is not a typed mark; nor is a comment
+      typed.test(code(`<Text>{WATER_MAP_WORDS.down}</Text> /* ▼ Downstream */ // ▲ Upstream`)),
+    ]).toEqual([true, true, true, true, true, true, false]);
+  });
+
   it("every icon in the table is used somewhere (how each one draws: ui-native icons.test.tsx)", () => {
     const table = readFileSync(join(APP, ICONS_FILE), "utf8");
     const names = [...table.slice(table.indexOf("export const LUCIDE_NAME"), table.indexOf("};", table.indexOf("export const LUCIDE_NAME")))
