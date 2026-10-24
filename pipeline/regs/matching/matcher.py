@@ -22,8 +22,9 @@ Strategy (conservative — a wrong match is worse than no match):
   3. One hit -> matched. Several -> disambiguate by MU (item.mus ∩ row.mus), else region number. Still
      several, or none -> UNMATCHED (reported, hand-curated), never guessed.
 
-Name normalization folds diacritics ('Barrière'->'barriere') and drops apostrophes/parentheticals so the
-synopsis spelling and the FWA gazetteer spelling compare equal. It KEEPS the Lake/Creek/River type word.
+Name normalization is THE name key (`pipeline.common.names.key`: diacritics folded, apostrophes deleted,
+punctuation to spaces) of the name with its parentheticals dropped, so the synopsis spelling and the FWA
+gazetteer spelling compare equal. It KEEPS the Lake/Creek/River type word.
 """
 
 from __future__ import annotations
@@ -31,12 +32,12 @@ from __future__ import annotations
 import json
 import logging
 import re
-import unicodedata
 from collections import defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from pipeline.common.models import RegistryItem
+from pipeline.common.names import drop_notes, key
 from pipeline.common.registry_kinds import is_water
 from pipeline.common.utils.wsc import trim_wsc
 
@@ -61,32 +62,22 @@ class MatchResult:
     admin_targets: tuple[str, ...] = ()    # curated admin/area targets (parks/WMA/zones) -> resolver
 
 
-def _fold(text: str) -> str:
-    """Fold accented Latin letters to ASCII ('Barrière'->'Barriere') so both spellings key the same."""
-    return "".join(ch for ch in unicodedata.normalize("NFKD", text or "") if not unicodedata.combining(ch))
-
-
 def _norm(s: str) -> str:
-    # Fold diacritics, REMOVE "(...)" spans (a mid-name "(Nanaimo)"/"(Extension)" qualifier, keeping
-    # the LAKE/CREEK type word), drop possessive apostrophes, collapse to single spaces.
-    s = _fold(s).lower()
-    s = re.sub(r"\([^)]*\)", " ", s)
-    s = s.replace("'", "").replace("’", "")
-    s = re.sub(r"[^a-z0-9]+", " ", s)
-    return " ".join(s.split())
+    """THE name key (`pipeline.common.names.key`) of the name with every "(...)" span removed — a
+    mid-name "(Nanaimo)"/"(Extension)" qualifier the registry's spelling does not carry; the
+    LAKE/CREEK type word stays."""
+    return key(drop_notes(s))
 
 
 def _norm_keep(s: str) -> str:
-    """`_norm`, except the "(...)" span STAYS. Only the qualifier discriminator uses this.
+    """`_norm`, except the "(...)" span STAYS: exactly `names.key`. Only the qualifier discriminator uses this.
 
     `_norm` drops parentheticals on purpose: most are a mid-name aside ("(Nanaimo)") that the
     registry's own spelling does not carry, and keeping them would miss every ordinary match. But
     a few parentheticals are not an aside — they are the ONLY thing telling two waters apart, and
     for those the stripped name is not a key at all. See `_pick_override`.
     """
-    s = _fold(s).lower().replace("'", "").replace("\u2019", "")
-    s = re.sub(r"[^a-z0-9]+", " ", s)
-    return " ".join(s.split())
+    return key(s)
 
 
 def parse_reg_mus(row: dict) -> set[str]:
