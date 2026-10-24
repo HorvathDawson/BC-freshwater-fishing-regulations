@@ -297,15 +297,21 @@ def test_the_policy_names_two_flood_models_equally_weighted_and_one_low_water_mo
 
 
 def test_the_source_is_decided_once():
-    """No second copy of the model choice: only `change_source` reads the policy's model names."""
+    """No second copy of the model choice: `change_source` picks the station's runs (flood ones, else ELF), and the one
+    per-day join is `combine_day` (T177) — `change_source` calls it and averages nothing itself; outside the two
+    nothing reads the policy."""
     src = (Path(C.__file__)).read_text(encoding="utf-8")
-    body = src.split("def change_source", 1)[1].split("\ndef ", 1)[0]
-    rest = src.replace(body, "")
-    assert "FLOOD_MODELS" in body and "LOW_WATER_MODEL" in body
-    assert [n for n in ("FLOOD_MODELS if", "LOW_WATER_MODEL in", "FLOOD_WEIGHTS.get") if n in rest] == []
+
+    def body(fn: str) -> str:
+        return src.split(f"def {fn}", 1)[1].split("\ndef ", 1)[0]
+
+    cs, cd = body("change_source"), body("combine_day")
+    rest = src.replace(cs, "").replace(cd, "")
+    assert "FLOOD_MODELS" in cs and "LOW_WATER_MODEL" in cs and "combine_day(" in cs
+    assert [n for n in ("math.exp", "math.log", "FLOOD_WEIGHTS") if n in cs] == []
+    assert [n for n in ("FLOOD_MODELS if", "LOW_WATER_MODEL in", "FLOOD_WEIGHTS[", "FLOOD_WEIGHTS.get") if n in rest] == []
     pub_src = Path(pub.__file__).read_text(encoding="utf-8")
     assert [n for n in ('"CLEVER", "COFFEE"', "FLOOD_MODELS", "LOW_WATER_MODEL", "lowWater") if n in pub_src] == []
-
 
 # ------------------------------------------------------------------------------------------- politeness ----
 

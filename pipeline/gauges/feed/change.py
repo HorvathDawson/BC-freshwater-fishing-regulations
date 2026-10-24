@@ -261,27 +261,29 @@ def change_source(runs: dict[str, tuple[float, Days]]) -> dict | None:
     `runs` is every run that can say, by model, as `run_days` reads it. Returns `{"models": [...], "lowWater": bool,
     "days": [(day, lowest ratio, highest ratio)], "reach": {model: its last day}}` — each day as a ratio to today — or
     None when no run can say:
-      - the FLOOD MODELS that reach a day make it: both → the weighted geometric mean of their ratios (`FLOOD_WEIGHTS`),
-        one → its own; a day past one model's end (COFFEE stops at five) is the other's alone, and `reach` says where
-        each stops;
+      - the FLOOD MODELS present make the window; each day is `combine_day` of those that reach it (T177: both → their
+        weighted geometric mean, one → its own); a day past one model's end (COFFEE stops at five) is the other's alone,
+        and `reach` says where each stops;
       - no flood model → the LOW-WATER MODEL alone, with `lowWater` true (the app's caveat);
       - never the low-water model beside a flood model, and never a model this file does not name.
+    The station-wide choice of WHICH runs (flood ones if any, ELF only when none) is this function's; how a day's
+    values join is `combine_day`'s, the one combination every forecast day in the feed is made by.
     """
     flood = [m for m in FLOOD_MODELS if m in runs]
     use = flood or ([LOW_WATER_MODEL] if LOW_WATER_MODEL in runs else [])
     if not use:
         return None
-    by_day: dict[str, list[tuple[float, float, float]]] = {}
+    by_day: dict[str, dict[str, tuple[float, float]]] = {}
     for m in use:
         base, days = runs[m]
         for d, lo, hi in days:
-            by_day.setdefault(d, []).append((FLOOD_WEIGHTS.get(m, 1.0), lo / base, hi / base))
+            by_day.setdefault(d, {})[m] = (lo / base, hi / base)
 
-    def mean(said: list[tuple[float, float, float]], k: int) -> float:
-        return math.exp(sum(s[0] * math.log(max(s[k], 1e-9)) for s in said) / sum(s[0] for s in said))
+    def joined(d: str, k: int) -> float:
+        return combine_day({m: v[k] for m, v in by_day[d].items()})[1]      # type: ignore[index]
 
     return {"models": use, "lowWater": not flood,
-            "days": [(d, mean(by_day[d], 1), mean(by_day[d], 2)) for d in sorted(by_day)],
+            "days": [(d, joined(d, 0), joined(d, 1)) for d in sorted(by_day)],
             "reach": {m: runs[m][1][-1][0] for m in use}}
 
 
@@ -308,21 +310,36 @@ AHEAD_DAYS = CHANGE_DAYS
 DAY_COVER = 0.75
 
 
-def day_model(answers: dict[str, float | None]) -> tuple[str, float, bool] | None:
-    """THE MODEL FOR ONE FORECAST DAY AND ONE QUANTITY — the one rule (T143 + T144; T171 made it one function).
+def combine_day(values: dict[str, float | None]) -> tuple[tuple[str, ...], float, bool] | None:
+    """THE ONE COMBINATION OF A FORECAST DAY (T177; T171 made the per-day rule one function, T144 the policy).
 
-    `answers` is each fresh run's ranked value for that day and quantity (None: it cannot say). Returns
-    `(model, value, lowWater)`: the FIRST FLOOD MODEL that answers, in `FLOOD_MODELS` order (CLEVER, then COFFEE — T143's
-    "each quantity's first model that answers IT"); else the LOW-WATER MODEL, with `lowWater` true (T144: ELF only where
-    no flood model reaches, carrying its caveat); else None. A model this file does not name never answers.
-    The horizons (`publish.forecast_percentiles`) and every ranked day (`forecast_days`) ask this and nothing else.
+    `values` is each fresh run's value for ONE day and ONE quantity, already on the gauge's scale (`gauge_scale`) — or
+    a ratio to the model's own today (the Change) — None where it cannot say. Returns `(models, value, lowWater)`:
+      - every FLOOD MODEL that answers, joined: their weighted geometric mean (`FLOOD_WEIGHTS`; logs averaged, the way
+        the donor pathway averages a change) — CLEVER and COFFEE together where both reach the day, one alone where
+        only it does, its value exactly as given. In a JOIN a value at or under zero counts as 1e-9 (a forecast of no
+        flow pulls the mean down; never a crash);
+      - else the LOW-WATER MODEL alone, `lowWater` true (T144: ELF only where no flood model reaches, carrying its
+        caveat; never beside a flood model);
+      - else None. A model this file does not name never answers.
+    The Change (`change_source`), the +1/+3/+5/+10 horizons (`publish.forecast_percentiles`) and every ranked day
+    (`forecast_days`) ask this and nothing else; it replaced T171's first-model `day_model`.
     """
-    for m in FLOOD_MODELS:
-        if answers.get(m) is not None:
-            return m, answers[m], False                     # type: ignore[return-value]
-    if answers.get(LOW_WATER_MODEL) is not None:
-        return LOW_WATER_MODEL, answers[LOW_WATER_MODEL], True   # type: ignore[return-value]
+    flood = [(m, float(values[m])) for m in FLOOD_MODELS if values.get(m) is not None]   # type: ignore[arg-type]
+    if len(flood) == 1:
+        return (flood[0][0],), flood[0][1], False         # one model is its own value, exactly (no log round trip)
+    if flood:
+        w = sum(FLOOD_WEIGHTS[m] for m, _ in flood)
+        v = math.exp(sum(FLOOD_WEIGHTS[m] * math.log(max(x, 1e-9)) for m, x in flood) / w)
+        return tuple(m for m, _ in flood), v, False
+    if values.get(LOW_WATER_MODEL) is not None:
+        return (LOW_WATER_MODEL,), float(values[LOW_WATER_MODEL]), True    # type: ignore[arg-type]
     return None
+
+
+def model_name(models: tuple[str, ...]) -> str:
+    """How the feed names the model(s) behind a day: `CLEVER`, or `CLEVER+COFFEE` where they were joined."""
+    return "+".join(models)
 
 
 def gauge_scale(model: str, run: dict, now: datetime, observed: float | None, quantity: str = "discharge") -> float | None:
@@ -364,9 +381,10 @@ def forecast_days(runs: dict | None, now: datetime, observed: float | None, rank
     """EVERY FORECAST DAY'S DISCHARGE PERCENTILE (T171): `{"from": first day, "discharge": [...], "model": [...],
     "lowWater": [i, ...]}` for the AHEAD_DAYS Centre days after today, or None when no day can be ranked.
 
-    Each day is the chosen model's DAILY MEAN (`day_means`; a daily model's one step), on the gauge's scale
-    (`gauge_scale`), ranked by `rank(flow, day)` — the station's discharge envelope for THAT day, the same one the
-    horizons and the Change rank against. The model per day is `day_model`'s. A day no model can rank is null in both
+    Each day is every fresh run's DAILY MEAN (`day_means`; a daily model's one step) on the gauge's scale
+    (`gauge_scale`), joined by `combine_day` (T177: CLEVER and COFFEE together where both reach the day — `model` then
+    reads `CLEVER+COFFEE`, `model_name`), then ranked by `rank(flow, day)` — the station's discharge envelope for THAT
+    day, the same one the horizons and the Change rank against. A day no model can rank is null in both
     lists (the app's "weather only", said). `lowWater` lists the indexes of the days the low-water model made — absent
     when none. A stale run never speaks (`stale`). Discharge only: "Like your visit?" compares flow, never a level.
     """
@@ -385,11 +403,11 @@ def forecast_days(runs: dict | None, now: datetime, observed: float | None, rank
     for k in range(AHEAD_DAYS):
         d = first + timedelta(days=k)
         key = d.isoformat()
-        answers = {m: (rank(v[key] * s, d) if key in v and s is not None else None) for m, (v, s) in means.items()}
-        got = day_model(answers)
-        ps.append(round(got[1], 4) if got else None)
-        ms.append(got[0] if got else None)
-        if got and got[2]:
+        got = combine_day({m: (v[key] * s if key in v and s is not None else None) for m, (v, s) in means.items()})
+        p = rank(got[1], d) if got else None
+        ps.append(round(p, 4) if p is not None else None)
+        ms.append(model_name(got[0]) if got and p is not None else None)
+        if got and p is not None and got[2]:
             low.append(k)
     if all(p is None for p in ps):
         return None

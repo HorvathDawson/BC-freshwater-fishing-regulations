@@ -45,8 +45,10 @@ from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from pipeline.common.curated import CURATED, SOURCE
 from pipeline.gauges.feed.climatology import PCTILES
-from pipeline.gauges.feed.change import day_model as _day_model, forecast_days, gauge_scale as _gauge_scale
+from pipeline.gauges.feed.change import combine_day as _combine_day, forecast_days, gauge_scale as _gauge_scale
+from pipeline.gauges.feed.change import model_name as _model_name
 from pipeline.gauges.feed.change import stale as _stale_run, station_change
+from pipeline.gauges.feed import skill as _skill
 from pipeline.gauges.feed.forecast import ATTRIBUTION as FORECAST_ATTRIBUTION
 from pipeline.gauges.feed.forecast import CENTRE_ZONE as _CENTRE_ZONE
 from pipeline.gauges.feed.forecast import instant as _instant
@@ -290,7 +292,7 @@ def percentile_of(value: float | None, band: list[float | None] | None) -> float
 # TEN DAYS (owner, 2026-10-20). Past about five the bounds on both models are wide, and the
 # answer often reads "normal for the season"; the owner wants the ten-day view on the map
 # regardless, for planning a trip a week and a half out. +10 sits at CLEVER's edge, so it is
-# usually ELF that answers it (`change.day_model`: per horizon, the first model that reaches wins),
+# usually ELF that answers it (`change.combine_day`: the flood models that reach it, else ELF),
 # and where no run reaches ten days the horizon is ABSENT — the app reads that as no
 # forecast, never as the +5 value.
 HORIZONS = (1, 3, 5, 10)
@@ -300,11 +302,12 @@ HORIZONS = (1, 3, 5, 10)
 # this and the value is about a different day.
 FORECAST_TOLERANCE_H = 18.0
 
-# WHICH MODEL ANSWERS A DAY is not decided here: `change.day_model` is the one rule (T171), asked by the horizons below
-# and by every ranked day (`change.forecast_days`). The first FLOOD model that answers the quantity — CLEVER, the
-# short-range model calibrated against the observed hydrograph, then COFFEE (a peak model, put on the gauge's scale
-# first: `change.gauge_scale`) — else the thirty-day low-water model, which is the fallback, not the peer. +10 sits at
-# CLEVER's very end and is answered by CLEVER only while the run is fresh enough to reach it.
+# WHICH MODELS ANSWER A DAY is not decided here: `change.combine_day` is the one combination (T177), asked by the
+# horizons below, by every ranked day (`change.forecast_days`) and by the Change. The FLOOD models that answer the
+# quantity — CLEVER, the short-range model calibrated against the observed hydrograph, and COFFEE (a peak model, put on
+# the gauge's scale first: `change.gauge_scale`) — joined where both reach the day; else the thirty-day low-water model,
+# which is the fallback, not the peer. +10 sits at CLEVER's very end and is answered by CLEVER only while the run is
+# fresh enough to reach it.
 
 
 def forecast_at(series: dict | None, when: datetime,
@@ -382,10 +385,12 @@ def forecast_percentiles(runs: dict | None, envelopes: dict | None,
     forecast. `model` names the run behind the discharge (else the level); `levelModel` is
     written only where the level came from a different run, so a one-model day is unchanged.
 
-    THE MODEL IS `change.day_model`'s (T171): the same rule every ranked day (`forecast_days`) asks, so a horizon and
-    the strip's day agree on who forecast it. That rule brought COFFEE in after CLEVER (T144: ELF only where no flood
-    model reaches); COFFEE's peaks are ranked on the gauge's scale (`observed`, the station's reading now by quantity:
-    `change.gauge_scale`), so without a reading COFFEE cannot answer and the next model does.
+    THE VALUE IS `change.combine_day`'s (T177): every fresh run's step for the day on the gauge's scale, CLEVER and
+    COFFEE joined where both reach it (`model` reads `CLEVER+COFFEE`), ELF only where no flood model does — the same
+    combination every ranked day (`forecast_days`) and the Change make, so a horizon, the strip's day and the Change
+    agree on who forecast it. COFFEE's peaks are put on the gauge's scale first (`observed`, the station's reading now by
+    quantity: `change.gauge_scale`), so without a reading COFFEE cannot answer and CLEVER (or ELF) speaks alone. The
+    joined value is ranked once, against the day's envelope.
     """
     if not runs or not envelopes:
         return {}
@@ -395,7 +400,7 @@ def forecast_percentiles(runs: dict | None, envelopes: dict | None,
         got: dict = {}
         by: dict[str, str] = {}
         for q in ("discharge", "level"):
-            answers: dict[str, float | None] = {}
+            values: dict[str, float | None] = {}
             for model, run in sorted(runs.items()):
                 series = (run or {}).get("series")
                 # A RUN PAST `change.STALE_HOURS` IS NOT TODAY'S FORECAST (T52): the feed carried ELF runs from 09-24 and
@@ -405,11 +410,12 @@ def forecast_percentiles(runs: dict | None, envelopes: dict | None,
                 # a peak model (COFFEE) on the gauge's scale first; None: it cannot be ranked (`change.gauge_scale`)
                 s = _gauge_scale(model, run, now, (observed or {}).get(q), q)
                 v = forecast_at(series, when, q)
-                answers[model] = percentile_of(None if v is None or s is None else v * s,
-                                               band_for(envelopes.get(q), when))
-            # WHICH MODEL ANSWERS THIS DAY, for THIS quantity: `change.day_model`, the one rule (T171)
-            if (pick := _day_model(answers)) is not None:
-                by[q], got[q] = pick[0], pick[1]
+                values[model] = None if v is None or s is None else v * s
+            # WHICH MODELS ANSWER THIS DAY, for THIS quantity, and how they join: `change.combine_day` (T177)
+            pick = _combine_day(values)
+            p = percentile_of(pick[1], band_for(envelopes.get(q), when)) if pick is not None else None
+            if pick is not None and p is not None:
+                by[q], got[q] = _model_name(pick[0]), p
         if got:
             # WHICH MODEL SAID SO travels with the number. Two models disagreeing about
             # the same day is a real and frequent thing in the shoulder months, and a
@@ -923,6 +929,15 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
         stamps = [t for t in [newest] + [c.get("issuedAt") for c in changed[0].values()] if t]
         newest = max(stamps) if stamps else newest
 
+    # KEEP EVERY RUN, SMALL, SO THE MODELS CAN BE SCORED (T177, `skill`): beside the feed directory, never in it. A
+    # by-product: a failure here is printed and costs the feed nothing.
+    try:
+        archived = _skill.append_runs(out, forecast, now, {r["station"]: r["discharge"] for r in got})
+    except Exception as exc:                                    # noqa: BLE001
+        archived = {"added": 0, "error": str(exc)}
+    print(f"  runs     {archived.get('added', 0)} new run(s) archived for scoring"
+          + (f" ({archived['error']})" if archived.get("error") else ""))
+
     # PROVENANCE TRAVELS WITH THE NUMBERS. Every percentile in this file was computed
     # against one HYDAT release; saying which lets a reader — and a later bug hunt — know
     # what the number was measured against, and lets the app show the record length behind
@@ -960,6 +975,7 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
             "stale": stale, "latest": latest_release, "maintenance": maintenance,
             "withPercentile": sum(1 for v in index.values() if v["percentile"] is not None),
             "archive": {"asked": len(gappy), "filled": sum(1 for v in backfill.values() if v)},
+            "runArchive": archived,
             "gapsBeyondWindow": beyond_window}
 
 

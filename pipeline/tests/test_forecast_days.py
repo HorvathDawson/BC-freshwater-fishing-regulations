@@ -2,7 +2,9 @@
 
 owner 2026-10-23: "in the how similar is a spot to when the spot was added section sometimes it has gaps and says weather
 only despite gauge forecast on both sides". The strip read the four sampled horizons, so +2 and +4 had no flow. The feed
-now ranks each of the next ten days' daily mean, the model per day by `change.day_model` — the same rule the horizons ask.
+now ranks each of the next ten days' daily mean, the models per day joined by `change.combine_day` (T177; T171's
+first-model `day_model` is gone) — the one combination the horizons and the Change ask too. The combination itself, its
+no-second-copy pin and the skill archive are in `test_forecast_combine.py`.
 
 The fixtures under `fixtures/gauge_feed/forecast_days/` are real station files from the feed of 2026-10-23T20:41Z (runs
 without their `change`, the reading, the clim envelopes, and the index's `ahead` as it was published): 08MH001 Chilliwack
@@ -42,44 +44,7 @@ def recorded(station: str):
     return days, ahead, r
 
 
-# --------------------------------------------------------------------------------------------- the one rule ----
-
-@pytest.mark.parametrize("answers, want", [
-    ({"CLEVER": 0.4, "COFFEE": 0.6, "ELF": 0.8}, ("CLEVER", 0.4, False)),
-    ({"CLEVER": None, "COFFEE": 0.6, "ELF": 0.8}, ("COFFEE", 0.6, False)),
-    ({"COFFEE": 0.6, "ELF": 0.8}, ("COFFEE", 0.6, False)),
-    ({"ELF": 0.8}, ("ELF", 0.8, True)),
-    ({"CLEVER": None, "COFFEE": None, "ELF": 0.8}, ("ELF", 0.8, True)),
-    ({"CLEVER": None, "ELF": None}, None),
-    ({}, None),
-    ({"GUESS": 0.5}, None),                         # a model the policy does not name never answers
-    ({"GUESS": 0.5, "ELF": 0.1}, ("ELF", 0.1, True)),
-    ({"CLEVER": 0.0, "ELF": 0.9}, ("CLEVER", 0.0, False)),   # a percentile of 0 is an answer, not a gap
-])
-def test_the_model_for_a_day_is_the_first_flood_model_else_elf_marked_low_water(answers, want):
-    assert C.day_model(answers) == want
-
-
-def test_the_rule_is_one_function_asked_by_the_horizons_and_by_every_day():
-    """NO SECOND COPY (T171): the per-day model choice is `day_model` alone. `forecast_days` and the horizons'
-    `forecast_percentiles` both ask it; neither walks the model names itself, and the publisher names no model."""
-    src = Path(C.__file__).read_text(encoding="utf-8")
-
-    def body(fn: str, text: str = src) -> str:
-        return text.split(f"def {fn}", 1)[1].split("\ndef ", 1)[0]
-
-    rule = body("day_model")
-    assert "FLOOD_MODELS" in rule and "LOW_WATER_MODEL" in rule
-    rest = src.replace(rule, "").replace(body("change_source"), "")
-    # outside the two deciders (a day: `day_model`; the station's Change: `change_source`) nothing reads the policy
-    assert [n for n in ("in FLOOD_MODELS", "FLOOD_MODELS if", "LOW_WATER_MODEL in", "answers.get(LOW_WATER")
-            if n in rest] == []
-    assert "day_model(" in body("forecast_days")
-    pub_src = Path(pub.__file__).read_text(encoding="utf-8")
-    assert "_day_model(" in body("forecast_percentiles", pub_src)
-    assert [n for n in ('"CLEVER"', '"COFFEE"', '"ELF"', "MODEL_ORDER", "FLOOD_MODELS", "LOW_WATER_MODEL", "lowWater")
-            if n in pub_src] == []
-
+# ------------------------------------------------------------------------------------------ the gauge scale ----
 
 def test_a_peak_model_is_put_on_the_gauges_scale_and_the_others_are_not():
     """COFFEE's numbers are instantaneous peaks (its day 0 here is 2.7 against a reading of 0.691 m3/s): ranked as
@@ -97,10 +62,11 @@ def test_a_peak_model_is_put_on_the_gauges_scale_and_the_others_are_not():
 # ------------------------------------------------------------------------------------------- recorded days ----
 
 def test_chilliwack_every_day_carries_flow_and_the_tenth_is_elfs():
-    """+2 and +4 (the strip's gaps) are CLEVER's; CLEVER's run ends on 1 Nov, so 2 Nov is ELF's, marked low-water."""
+    """+2 and +4 (the strip's gaps) carry flow: CLEVER and COFFEE joined while COFFEE reaches (24-27 Oct, T177), CLEVER
+    alone to 1 Nov, and 2 Nov is ELF's, marked low-water."""
     days, _, _ = recorded("08MH001")
     assert days == {"from": "2026-10-24", "discharge": [0.05] * 10,
-                    "model": ["CLEVER"] * 9 + ["ELF"], "lowWater": [9]}
+                    "model": ["CLEVER+COFFEE"] * 4 + ["CLEVER"] * 5 + ["ELF"], "lowWater": [9]}
 
 
 def test_a_station_with_coffee_and_elf_takes_coffee_for_its_five_days_then_elf_with_the_caveat():
@@ -128,7 +94,7 @@ def test_a_ranked_day_agrees_with_the_horizon_on_the_same_day():
 
 
 def test_the_horizons_now_take_coffee_before_elf():
-    """T171's one rule moved the horizons too: at 08DB013 +1 and +3 were ELF's (no CLEVER), now COFFEE's (a flood
+    """T171's one rule (T177's combination since) moved the horizons too: at 08DB013 +1 and +3 were ELF's (no CLEVER), now COFFEE's (a flood
     model reaches them); the level still ELF's (COFFEE forecasts no stage); +5 and +10 unchanged."""
     _, ahead, r = recorded("08DB013")
     live = r["liveAhead"]
@@ -136,9 +102,14 @@ def test_the_horizons_now_take_coffee_before_elf():
     assert [live[h]["model"] for h in ("1", "3", "5", "10")] == ["ELF"] * 4
     assert ahead["1"]["levelModel"] == "ELF" and ahead["1"]["level"] == live["1"]["level"]
     assert (ahead["5"], ahead["10"]) == (live["5"], live["10"])
-    # and where CLEVER runs nothing moved
+    # where CLEVER runs, T177 joins COFFEE in on the days both reach (+1, +3); the values here sit in the bottom tenth
+    # either way (0.05); +5 and +10 unchanged
     _, ahead_c, rc = recorded("08MH001")
-    assert ahead_c == rc["liveAhead"]
+    live_c = rc["liveAhead"]
+    assert [ahead_c[h]["model"] for h in ("1", "3", "5", "10")] == ["CLEVER+COFFEE", "CLEVER+COFFEE", "CLEVER", "ELF"]
+    assert [live_c[h]["model"] for h in ("1", "3", "5", "10")] == ["CLEVER", "CLEVER", "CLEVER", "ELF"]
+    assert [ahead_c[h]["discharge"] for h in ("1", "3")] == [live_c[h]["discharge"] for h in ("1", "3")] == [0.05, 0.05]
+    assert (ahead_c["5"], ahead_c["10"]) == (live_c["5"], live_c["10"])
 
 
 # ------------------------------------------------------------------------------------------- built days ----
