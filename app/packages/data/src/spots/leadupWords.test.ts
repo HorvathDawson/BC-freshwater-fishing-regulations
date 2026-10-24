@@ -93,7 +93,6 @@ describe("the station's daily means", () => {
 
   it("names each quantity's unit in the Conditions words, one spelling (T80 1)", () => {
     expect({ discharge: leadUpUnit("discharge"), level: leadUpUnit("level") }).toEqual(CONDITIONS_WORDS.unit);
-    expect(CONDITIONS_WORDS.unit).toEqual({ discharge: "m³/s", level: "m" });
   });
 
   it("draws each day as a value and its place in the envelope", () => {

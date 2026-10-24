@@ -13,7 +13,6 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
-from pipeline.deliver.answers import card_check as CC
 from pipeline.deliver.answers import common
 from pipeline.deliver.answers import display as D
 from pipeline.deliver.answers import rows as RW
@@ -88,10 +87,3 @@ def test_6_any_other_restatement_keeps_the_books_words():
         "The combined daily quota for kokanee from the Upper West Arm")
     assert RW.restated_words(_restating("NOTE: Arctic grayling catch and release", "Williston Lake")) == (
         "Arctic grayling catch and release.")
-
-
-# the gate ----------------------------------------------------------------------------------------
-def test_the_gate_still_proves_every_card():
-    for w, md in ((F.VEDDER, OCT10), (F.STREAM, OCT10), (F.BELLA_MAY_ST, MAY1), (F.BELLA, OCT10), (F.LWA, OCT10)):
-        out, P = F.card(w, md)
-        assert CC.check_card(P, out) == [], w

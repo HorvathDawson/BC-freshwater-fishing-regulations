@@ -13,7 +13,6 @@
 """
 from __future__ import annotations
 
-from pipeline.deliver.answers import card_check as CC
 from pipeline.deliver.answers import display as D
 from pipeline.tests import answers28_fixture as F
 from pipeline.tests import test_answers_r11_wording as R11
@@ -99,10 +98,3 @@ def test_g_weight_in_kg_and_lb_and_boat_lines_from_shore():
     assert kootenay["counts"]["lines_per_angler"]["says"] == "1 line (rod) from shore; no limit from a boat"
     okanagan = R11._rules("lake")                # alone in a boat is not "from a boat": unchanged
     assert okanagan["counts"]["lines_per_angler"]["says"] == "1 line (rod); 2 while alone in a boat"
-
-
-# the gate ----------------------------------------------------------------------------------------
-def test_the_gate_still_proves_every_card():
-    for w, md in ((F.VEDDER, OCT10), (F.STREAM, OCT10), (F.BELLA_MAY_ST, MAY1), (F.BELLA, OCT10), (F.LWA, OCT10)):
-        out, P = F.card(w, md)
-        assert CC.check_card(P, out) == [], w

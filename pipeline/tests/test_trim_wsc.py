@@ -23,10 +23,6 @@ class TestTrimWsc:
     def test_empty_string(self):
         assert trim_wsc("") == ""
 
-    def test_none_like(self):
-        # Callers pass str(...) or "", never None — but "" is the canonical empty
-        assert trim_wsc("") == ""
-
     def test_idempotent(self):
         trimmed = "930-508366-413291"
         assert trim_wsc(trimmed) == trimmed

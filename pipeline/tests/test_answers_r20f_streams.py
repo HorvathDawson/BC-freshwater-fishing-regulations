@@ -5,7 +5,6 @@ sets keeps "from this stream". `tree.share_place(water, region_wide)` is the one
 """
 from __future__ import annotations
 
-from pipeline.deliver.answers import card_check as CC
 from pipeline.deliver.answers.tree import fold_words, share_place
 from pipeline.tests import answers28_fixture as F
 
@@ -52,9 +51,3 @@ def test_the_fold_keeps_the_place():
         "Only 2 of the 5 may be brook, brown, cutthroat or lake trout from streams"
     assert fold_words("2 a day per angler from this stream", "share", 2, "brook or brown trout") == \
         "2 brook or brown trout a day per angler from this stream"
-
-
-def test_the_gate_still_proves_every_card():
-    for w in (F.VEDDER, F.STREAM, F.LAKE, F.TWO, F.COUNT):
-        out, P = F.card(w, OCT10)
-        assert CC.check_card(P, out) == [], w

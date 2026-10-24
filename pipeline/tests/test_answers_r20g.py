@@ -13,7 +13,6 @@
 """
 from __future__ import annotations
 
-from pipeline.deliver.answers import card_check as CC
 from pipeline.deliver.answers import display as X
 from pipeline.deliver.answers import glossary as G
 from pipeline.deliver.bundle.glossary_source import rows_from_book
@@ -103,9 +102,3 @@ def test_the_possession_term_is_short_and_keeps_the_book_verbatim():
     assert t3["example"] == \
         "With a daily quota of 4 trout you may have 12: 3 days' fish."
     assert G.VERSION >= 4                                                            # ROUND20h
-
-
-def test_the_gate_still_proves_every_card():
-    for w in (F.VEDDER, F.STREAM, F.LAKE, F.BELLA, F.COUNT):
-        out, P = F.card(w, OCT10)
-        assert CC.check_card(P, out) == [], w

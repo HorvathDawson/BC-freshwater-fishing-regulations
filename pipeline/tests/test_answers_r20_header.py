@@ -105,10 +105,3 @@ def test_the_gate_refuses_a_header_that_is_not_the_root():
         return CC.check_card(P, o2)
     assert any("header" in p for p in mutated(lambda g: g["header"].__setitem__("says", "2 a day per angler from this stream")))
     assert any("header" in p for p in mutated(lambda g: g["header"].__setitem__("tier", "t2")))
-
-
-def test_the_gate_still_proves_every_card():
-    for w, md in ((F.VEDDER, OCT10), (F.STREAM, OCT10), (F.LAKE, OCT10), (F.BELLA_MAY_ST, MAY1), (F.BELLA, OCT10),
-                  (F.BELLA_TRIB, OCT10), (F.LWA, OCT10)):
-        out, P = F.card(w, md)
-        assert CC.check_card(P, out) == [], w

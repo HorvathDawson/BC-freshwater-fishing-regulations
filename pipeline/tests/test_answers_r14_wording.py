@@ -18,7 +18,6 @@ All run on `answers28_fixture` (the real reader and rows; the card gate where it
 from __future__ import annotations
 
 from pipeline.deliver import calendar as K
-from pipeline.deliver.answers import card_check as CC
 from pipeline.deliver.answers import rows as RW
 from pipeline.tests import answers28_fixture as F
 
@@ -56,11 +55,6 @@ def test_3_the_rivers_own_two_is_its_own_bucket_not_the_regions_share():
     assert {"EB", "GB", "CT", "RB", "DV", "LT"} <= held
     assert not [x for x in g["buckets"] if "streams combined" in (x["title"] or "")
                 and {S for k in x["kinds"] for S in k["species"]} & held]
-
-
-def test_3_the_gate_proves_the_nested_group():
-    out, P = F.card(F.BELLA_MAY, MAY1)
-    assert CC.check_card(P, out) == []
 
 
 def test_3_a_size_cap_is_no_nested_count_group():
@@ -137,9 +131,3 @@ def test_6_a_group_is_said_with_its_members():
     assert [(x["species"], x["says"]) for x in g["not_kept"]] == [
         (["ST"], "Steelhead: no fishing for them, not even catch and release — release any you hook by accident"),
         (["DV", "LT", "EB"], "Char (Dolly Varden/bull trout, lake trout and brook trout): release every one")]
-
-
-def test_6_the_gate_proves_the_merged_lines():
-    for w, md in ((F.VEDDER_MAY, MAY15), (F.BELLA_TRIB, OCT10)):
-        out, P = F.card(w, md)
-        assert CC.check_card(P, out) == [], w

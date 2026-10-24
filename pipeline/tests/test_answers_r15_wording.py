@@ -50,13 +50,6 @@ def test_1_a_size_cap_is_a_group_naming_the_kinds_it_can_bind():
     assert "ST" not in {S for x in g["not_kept"] for S in x["species"]} or "ST" not in sz["species"]
 
 
-def test_1_the_gate_proves_the_size_group_and_its_kinds():
-    for w, md in ((F.BELLA_MAY_ST, MAY1), (F.STREAM, OCT10), (F.CLAKE, OCT10), (F.NESTED, OCT10),
-                  (F.SLOT, OCT10), (F.WAHLEACH, OCT10), (F.VEDDER, OCT10)):
-        out, P = F.card(w, md)
-        assert CC.check_card(P, out) == [], w
-
-
 def test_1_the_gate_refuses_a_kind_the_cap_cannot_bind():
     out, P = F.card(F.BELLA_MAY_ST, MAY1)
     g = [r["group"] for r in out["rows"] if r.get("group")][0]

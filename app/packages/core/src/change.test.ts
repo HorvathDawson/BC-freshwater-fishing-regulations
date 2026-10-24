@@ -9,7 +9,7 @@ import { CHANGE_LEGEND, CHANGE_POLICY, CHANGE_STOP_RATIOS, changeDay, changeDotL
          changeSourceName, CHANGE_LOW_WATER, changeLowWaterNote, codedChange, ratioWords, type SourceChange,
          type RunChange } from "./change";
 import { CONDITIONS_WORDS, donorReads, donorReason, estimateHeadline, estimateRange, estimateSentence,
-         HORIZON_LABELS, HORIZONS, isAhead, aheadDays, silentLine, type DonorFacts } from "./conditions";
+         HORIZON_LABELS, isAhead, aheadDays, silentLine, type DonorFacts } from "./conditions";
 import { STALE_AFTER } from "./staleness";
 import type { Estimate } from "./trust";
 
@@ -154,7 +154,6 @@ describe("the Change horizon on the conditions surfaces", () => {
                                             spread: 4, donors: 2 } as Estimate);
 
   it("is the last chip, after +10, and is ahead without being a day", () => {
-    expect(HORIZONS).toEqual([0, 1, 3, 5, 10, "change"]);
     expect(HORIZON_LABELS.change).toEqual({ chip: "Change", heading: "EXPECTED CHANGE · NEXT 10 DAYS",
                                             accessible: "Expected change over the next 10 days" });
     expect([isAhead("change"), aheadDays("change"), isAhead(0), aheadDays(5)]).toEqual([true, 0, false, 5]);

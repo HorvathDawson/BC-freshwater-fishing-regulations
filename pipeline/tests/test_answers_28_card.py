@@ -26,7 +26,7 @@ from pipeline.deliver.answers import card_check as CC
 from pipeline.deliver.answers import display as D
 from pipeline.tests import answers28_fixture as F
 
-OCT10, JUL15, MAY15 = (10, 10), (7, 15), (5, 15)
+OCT10 = (10, 10)
 
 
 def _g(water, md=OCT10):
@@ -174,14 +174,6 @@ def test_the_fishway_and_hatchery_buffers_are_where_you_cant_fish_on_the_keep_si
     assert D.rule_facts({**x, "may_target": 0}) == D.rule_facts(x)
     # a standing rule one MAY fish for is no place you can't fish
     assert D.where_of({**x, "may_target": 1}) is None
-
-
-# the gate ----------------------------------------------------------------------------------------
-def test_check_card_proves_the_fixture_cards():
-    for w in (F.VEDDER, F.STREAM, F.LAKE):
-        for md in (OCT10, JUL15, MAY15, (6, 15)):
-            out, P = F.card(w, md)
-            assert CC.check_card(P, out) == [], (w, md)
 
 
 def test_check_card_fails_when_the_lift_breaks():

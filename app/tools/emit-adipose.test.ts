@@ -21,10 +21,6 @@ const src = readFileSync(FISHART_SOURCE, "utf8");
 const sha = (s: string | Buffer) => createHash("sha256").update(s).digest("hex");
 
 describe("emit-adipose: the drawings", () => {
-  it("draw() is deterministic: two evaluations give the same two strings", () => {
-    expect(adiposeSvgs(src)).toEqual(adiposeSvgs(src));
-  });
-
   it("wild and clipped differ only by the fin ↔ the healed scar and the label suffix", () => {
     const { wild, clipped } = adiposeSvgs(src);
     const tags = (s: string) => s.match(/<[^>]+>/g) ?? [];

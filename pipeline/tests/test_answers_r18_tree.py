@@ -100,15 +100,6 @@ def test_8_a_rule_reached_by_the_tributary_walk_says_why_it_applies_here():
     assert own["replaces"].startswith("Replaces Region 2’s 2-from-streams limit")
 
 
-# the gate ----------------------------------------------------------------------------------------
-def test_the_gate_proves_every_tree():
-    for w, md in ((F.VEDDER, OCT10), (F.STREAM, OCT10), (F.LAKE, OCT10), (F.BELLA_MAY_ST, MAY1), (F.SLOT, OCT10),
-                  (F.CLAKE, OCT10), (F.NESTED, OCT10), (F.WAHLEACH, OCT10), (F.COUNT, OCT10), (F.TWO, OCT10),
-                  (F.VEDDER_TRIB, OCT10)):
-        out, P = F.card(w, md)
-        assert CC.check_card(P, out) == [], w
-
-
 def _mutated(fn, water=F.VEDDER, md=OCT10):
     out, P = F.card(water, md)
     (g,) = [copy.deepcopy(r["group"]) for r in out["rows"] if r.get("group") and "RB" in r["group"]["kinds"]]

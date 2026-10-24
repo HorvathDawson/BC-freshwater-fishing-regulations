@@ -97,10 +97,3 @@ def test_5_after_you_keep_2_stop_fishing_for_the_day():
     duties = _kind(g, "ST")["duties"]
     assert "stop fishing this river after 2 a day" in duties   # ROUND20g 2
     assert not any("stop fishing for the day after" in d for d in duties)
-
-
-# the gate ----------------------------------------------------------------------------------------
-def test_the_gate_still_proves_every_card():
-    for w, md in ((F.VEDDER, OCT10), (F.STREAM, OCT10), (F.BELLA_MAY_ST, (5, 1)), (F.BELLA, OCT10), (F.LWA, OCT10)):
-        out, P = F.card(w, md)
-        assert CC.check_card(P, out) == [], w

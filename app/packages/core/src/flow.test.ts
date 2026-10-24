@@ -63,10 +63,9 @@ describe("the trust bands are the pipeline's, not ours", () => {
     expect(TRUST_FLOOR).toEqual({ good: 0.10, fair: 0.01, weak: 0.001 });
   });
 
-  it("has a sentence for every band the bundle can store", () => {
-    for (const band of ["good", "fair", "weak"] as const) {
-      expect(trustWord(band)).toBeTruthy();
-    }
+  it("has words for every band the bundle can store", () => {
+    expect(["good", "fair", "weak"].map((b) => trustWord(b as "good")))
+      .toEqual(["this water", "a major branch of it", "the trend, not the level"]);
   });
 
   it("has no band meaning `no gauge` — that is an absent row, not a value", () => {

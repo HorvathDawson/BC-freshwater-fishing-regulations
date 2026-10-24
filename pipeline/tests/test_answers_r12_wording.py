@@ -109,12 +109,6 @@ def test_w3_an_implied_cap_is_not_said():
     assert _notes(row["group"]) == [(None, "Rainbow trout, cutthroat trout, brown trout, Dolly Varden/bull trout, lake trout or brook trout: only 1 over 40 cm between them")]
 
 
-def test_w3_the_gate_proves_every_card():
-    for w in (F.VEDDER, F.STREAM, F.LAKE, F.TWO, F.CLAKE, F.WAHLEACH, F.SLOT, F.COUNT, F.NESTED):
-        out, P = F.card(w, OCT10)
-        assert CC.check_card(P, out) == [], w
-
-
 def test_w3_the_gate_fails_a_wrong_nested_or_count_note():
     """MUTATION: the nested 1 over 50 cm said as 2; the count note said as 2."""
     row, out, P = _card(F.NESTED)

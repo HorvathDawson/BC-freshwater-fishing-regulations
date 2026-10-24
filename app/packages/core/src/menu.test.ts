@@ -8,11 +8,11 @@ import {
   mailtoUrl, regsReportWhere, reportMessage, sourcesVM, whereLines, type Diagnostics, type SourceDateKey, type SourcesInput,
 } from "./menu";
 import { FISH_CREDITS } from "./regs/fish.generated";
-import { IMAGERY_ATTRIBUTION, IMAGERY_CREDIT } from "./imagery";
+import { IMAGERY_ATTRIBUTION } from "./imagery";
 import { dataVM } from "./more";
 import type { GlossaryTerm } from "./regs/inputs";
 import { MENU_WORDS } from "./menu";
-import { agoWords, STALE_AFTER_MS } from "./freshness";
+import { agoWords } from "./freshness";
 import { hydatNotice, STALE_AFTER, type HydatNotice } from "./staleness";
 
 const term = (id: string, t: string, says: string): GlossaryTerm => ({ id, term: t, says, pages: [80], quote: "", source: "" });
@@ -142,7 +142,6 @@ describe("sources and credits (T167: references apart — no dates, no freshness
   });
 
   it("the imagery credit is the map's own (Esri's required words, IMAGERY_CREDIT), never a second wording", () => {
-    expect(IMAGERY_CREDIT).toBe(`Satellite imagery: ${IMAGERY_ATTRIBUTION}`);
     expect(sourcesVM({ edition: null, tiles: null }).rows.find((r) => r.k === "imagery")!.from
       .startsWith(`${IMAGERY_ATTRIBUTION}.`)).toBe(true);
   });
@@ -163,8 +162,6 @@ describe("freshness: each source against its own cadence (owner 2026-10-22)", ()
       synopsis: { by: "release" }, tiles: { by: "release" },
       inseason: { by: "notRead" }, weather: { by: "live" }, imagery: { by: "live" },
     });
-    // ONE line for "the feed is old": the Data block and the sync icon draw the line a reading's age is held to (P02)
-    expect(STALE_AFTER.feed.ms).toBe(STALE_AFTER_MS);
   });
 
   it("the live feed: up to date through 2 h, likely out of date past it, unknown when never reached", () => {

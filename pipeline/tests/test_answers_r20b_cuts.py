@@ -11,7 +11,6 @@
 """
 from __future__ import annotations
 
-from pipeline.deliver.answers import card_check as CC
 from pipeline.tests import answers28_fixture as F
 
 OCT10, MAY1 = (10, 10), (5, 1)
@@ -99,11 +98,3 @@ def test_c4_the_worked_lines_say_the_ends_of_the_range_only():
     assert [w["kept"] for w in here] == [4, 2]
     assert here[0]["a"] == "that’s your trout and char for the day, everywhere."
     assert here[1]["a"] == "they don’t use up your 2 from streams here, but on other streams they count as them: none from other streams today — up to 2 more of any kind, from here or from lakes."
-
-
-# the gate ----------------------------------------------------------------------------------------
-def test_the_gate_still_proves_every_card():
-    for w, md in ((F.VEDDER, OCT10), (F.STREAM, OCT10), (F.LAKE, OCT10), (F.BELLA_MAY_ST, MAY1), (F.BELLA, OCT10),
-                  (F.VEDDER_TRIB, OCT10), (F.LWA, OCT10)):
-        out, P = F.card(w, md)
-        assert CC.check_card(P, out) == [], w

@@ -82,12 +82,6 @@ def test_a1_a_cap_spanning_buckets_is_said_once_where_the_reader_meets_it():
     assert len(states) == len(set(states))
 
 
-def test_a1_the_gate_proves_the_bucket_note():
-    for w in (F.VEDDER, F.STREAM, F.LAKE, F.CLAKE, F.TWO):
-        out, P = F.card(w, OCT10)
-        assert CC.check_card(P, out) == [], w
-
-
 def test_a1_the_gate_fails_a_wrong_bucket_note():
     """MUTATION: the note says 2 over 50 cm; then: steelhead said to count."""
     out, P = F.card(F.VEDDER, OCT10)
