@@ -20,6 +20,7 @@ import { useCappedScale } from "../textScale";
 import { WaterTitle } from "../WaterFrame";
 import { GUTTER, type Palette } from "../theme";
 import { RegsPress } from "./RegsPress";
+import { Icon } from "../icons";
 
 /** The selected tab, from the pin store (T29) or any source with the same two methods. */
 export interface TabSource { subscribe(fn: () => void): () => void; getTab(): Tab }
@@ -64,7 +65,10 @@ export function RegsHeader({ header: h, palette, tabs, onDate, onTab, side = fal
   );
 }
 
-/** The date pill: the status dot, "Today ▾" / the weekday over the date; a press asks "Which day?" (T49). */
+/**
+ * The date pill: the status dot, "Today" / the weekday and the set's chevron (`expand`, T186: the typed ▾ it replaced
+ * was a glyph in a word) over the date; a press asks "Which day?" (T49).
+ */
 export function DatePill({ h, palette, onDate }: { h: HeaderVM; palette: Palette; onDate: () => void }) {
   const dot = h.dot === "open" ? palette.open : h.dot === "closed" ? palette.closed : palette.sub;
   return (
@@ -72,9 +76,10 @@ export function DatePill({ h, palette, onDate }: { h: HeaderVM; palette: Palette
                style={{ minHeight: 44, paddingHorizontal: 6, gap: 6, flexDirection: "row", alignItems: "center" }}>
       <View testID="regs-dot" style={{ width: 8, height: 8, backgroundColor: dot }} />
       <View>
-        <Text maxFontSizeMultiplier={CAPPED_SCALE} style={[TYPE.metaHeavy, { color: palette.accent }]}>
-          {h.dayWord}<Text maxFontSizeMultiplier={CAPPED_SCALE} style={{ fontSize: 10 }}>{WORDS.DATE_CARET}</Text>
-        </Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
+          <Text maxFontSizeMultiplier={CAPPED_SCALE} style={[TYPE.metaHeavy, { color: palette.accent }]}>{h.dayWord}</Text>
+          <Icon name="expand" colour={palette.accent} size={12} />
+        </View>
         <Text maxFontSizeMultiplier={CAPPED_SCALE} style={[TYPE.metaSemi, { lineHeight: 14.98, color: palette.sub }]}>{h.date}</Text>
       </View>
     </RegsPress>

@@ -19,7 +19,7 @@ import { describe, expect, it } from "vitest";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
-import { ICON_CREDIT, ICON_SET } from "@app/core";
+import { ICON_CREDIT, ICON_SET, WATER_MAP_WORDS, WORDS } from "@app/core";
 
 const APP = fileURLToPath(new URL("..", import.meta.url));
 const ROOTS = ["apps/mobile/src", "packages/ui/src", "packages/ui-native/src", "packages/map/src"];
@@ -93,14 +93,30 @@ describe("one icon set (N1)", () => {
   /**
    * (T60 check 4) A TYPED TRIANGLE IS NOT A FOLD MARK EITHER: the regs page's folds (KeepBlocks' caveat, PlainRow's
    * ladder, a sheet's Fold) drew their open / closed state as the prototype's typed ▼ ▶ ▾ ▸ beside a set that already
-   * has `expand` / `collapse`. The other glyphs a component may still TYPE are words from core (▲ / ▼ in
-   * `WATER_MAP_WORDS`' button labels, the date pill's ▾ caret and ↗ in `WORDS`): a glyph inside a core word is data to a
-   * component, so only a literal typed IN a component is refused here.
+   * has `expand` / `collapse`. Nor is a triangle inside a CORE WORD a way round it (T186, Q162): the water map's ▲ / ▼
+   * step labels and the date pill's ▾ caret were the last such words and are the set's chevrons now — the next test
+   * refuses one coming back.
    */
   it("no component types a triangle or caret as a mark (▼ ▶ ▾ ▸ ▲ ◂ ◃ ◀ ►)", () => {
     const typed = /["'`][^"'`\n]*[▼▶▾▸▲◂◃◀►▴▵▿][^"'`\n]*["'`]|>\s*[▼▶▾▸▲◂◃◀►▴▵▿]\s*</;
     expect(files().filter((f) => f.startsWith("packages/ui-native/") || f.startsWith("apps/")).filter((f) => typed.test(read(f))))
       .toEqual([]);
+  });
+
+  /**
+   * (T186, Q162) NO TRIANGLE OR CARET IN A CORE WORD: a glyph typed into a word reaches every component that draws the
+   * word, past the scan above. `WORDS` and `WATER_MAP_WORDS` are read as values (functions called with a probe), so a
+   * word composed at run time is caught too. ↗ (an outbound link) is not a triangle and stays a word's.
+   */
+  it("no core word carries a triangle or caret (▼ ▶ ▾ ▸ ▲ ◂ ◃ ◀ ►)", () => {
+    const tri = /[▼▶▾▸▲◂◃◀►▴▵▿]/;
+    const strings = (o: Record<string, unknown>) => Object.entries(o).flatMap(([k, v]) =>
+      typeof v === "string" ? [[k, v]] : typeof v === "function" ? [[k, String((v as (...a: unknown[]) => unknown)("x", "x"))]] : []);
+    const bad = [...strings(WORDS as unknown as Record<string, unknown>), ...strings(WATER_MAP_WORDS as unknown as Record<string, unknown>)]
+      .filter(([, v]) => tri.test(v!));
+    expect(bad).toEqual([]);
+    expect([WATER_MAP_WORDS.up, WATER_MAP_WORDS.down, WATER_MAP_WORDS.upInto, WATER_MAP_WORDS.downInto, "DATE_CARET" in WORDS])
+      .toEqual(["Upstream", "Downstream", "Upstream into", "Downstream into", false]);
   });
 
   it("MUTATION PIN: each glyph scan catches the spelling it refuses, and leaves a core word's glyph alone", () => {
@@ -114,9 +130,11 @@ describe("one icon set (N1)", () => {
       typed.test(code(`<Text aria-hidden>{open ? "▾ " : "▸ "}</Text>`)),
       typed.test(code(`<Text>▼</Text>`)),
       pathData.test(code(`<Path d="M15 18l-6-6 6-6" />`)),
-      // a core word carrying a glyph, read by a component, is not a typed mark; nor is a comment
+      // a core word read by a component is not a typed mark (the word itself is held by the test above); nor a comment
       typed.test(code(`<Text>{WATER_MAP_WORDS.down}</Text> /* ▼ Downstream */ // ▲ Upstream`)),
-    ]).toEqual([true, true, true, true, true, true, false]);
+      // and the word scan catches a glyph coming back into a word
+      /[▼▶▾▸▲◂◃◀►▴▵▿]/.test("▼ Downstream"),
+    ]).toEqual([true, true, true, true, true, true, false, true]);
   });
 
   it("every icon in the table is used somewhere (how each one draws: ui-native icons.test.tsx)", () => {

@@ -211,8 +211,9 @@ export const WORDS = Object.freeze({
   LOOKS_LIKE: (name: string) => `${name} — what it looks like`,   // (T40) a fish picture's name: the fish first
   REGS_LOADING: "Loading the regulations",
   REGS_UNAVAILABLE: (why: string) => `Regulations unavailable: ${why}`,
-  // ── T23 the regs header (prototype hdr: the pill's caret, the tab row's name; sheetHtml 'date': the day sheet's title) ──
-  DATE_CARET: " ▾", TABS_LABEL: "Section", DAY_SHEET_TITLE: "Which day?",
+  // ── T23 the regs header (prototype hdr: the tab row's name; sheetHtml 'date': the day sheet's title). The pill's caret
+  // is the icon set's chevron (`expand`), drawn by the pill (T186, Q162) — no glyph in a word ──
+  TABS_LABEL: "Section", DAY_SHEET_TITLE: "Which day?",
 } as const);
 
 /** (T116) The kinds of water the atlas names: the keys of a place's `names`. */

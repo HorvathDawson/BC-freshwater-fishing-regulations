@@ -86,7 +86,7 @@ describe("<WaterMapView>", () => {
     mount("gnis:8634", 1);
     await ready();
     expect(bar()).toBe("Part 1 of 4 · Chilliwack River | Vedder Crossing Bridge → Tamihi Rapids Bridge"
-      + " | ▼ Downstream into Vedder River | ▲ Upstream | Flows into Vedder River ›");
+      + " | Downstream into Vedder River | Upstream | Flows into Vedder River ›");
     expect(lit()).toEqual({
       highlight: [60211, 60212, 60213, 62456, 62574, 62826, 1235830, 1235831, 1235876],
       water: [1235832, 1235877, 1235878, 59895, 59901, 61180, 62862, 1235833, 1235834, 1235835, 1235836] });
@@ -95,15 +95,15 @@ describe("<WaterMapView>", () => {
       "(ring) Boundary: Chilliwack River Ecological Reserve boundary",
       "Tamihi Rapids Bridge Boundary: Tamihi Rapids Bridge",
       "(ring) Boundary: fishing boundary signs 100 m below the Slesse Creek confluence"]);
-    for (let k = 0; k < 3; k += 1) fireEvent.click(screen.getByRole("button", { name: "▲ Upstream" }));
+    for (let k = 0; k < 3; k += 1) fireEvent.click(screen.getByRole("button", { name: "Upstream" }));
     expect(bar()).toBe("Part 4 of 4 · Chilliwack River | Chilliwack River Ecological Reserve boundary → Source"
-      + " | ▼ Downstream | Highest part (off)");
+      + " | Downstream | Highest part (off)");
     // the committed regs fixture's handle of the Chilliwack's part 4 (frozen until `pnpm regs-fixture` re-cuts it; r-0ed3c2b2a0a7)
     expect([lit().highlight, seen.props?.fit?.key]).toEqual([[1235836], "gnis:8634:3"]);
     // the disabled end does nothing
     fireEvent.click(screen.getByRole("button", { name: "Highest part" }));
     expect(screen.getByTestId("water-map-where").textContent).toBe("Part 4 of 4 · Chilliwack River");
-    fireEvent.click(screen.getByRole("button", { name: "▼ Downstream" }));
+    fireEvent.click(screen.getByRole("button", { name: "Downstream" }));
     expect(screen.getByTestId("water-map-where").textContent).toBe("Part 3 of 4 · Chilliwack River");
   }, 30_000);
 
@@ -111,7 +111,7 @@ describe("<WaterMapView>", () => {
     const calls = mount("gnis:8634", 1);
     await ready();
     fireEvent.click(screen.getByRole("link", { name: "Flows into Vedder River ›" }));
-    fireEvent.click(screen.getByRole("button", { name: "▲ Upstream" }));
+    fireEvent.click(screen.getByRole("button", { name: "Upstream" }));
     expect(screen.queryByTestId("water-map-exit")).toBeNull();           // only at the lowest part
     fireEvent.click(screen.getByRole("button", { name: "Show regulations for this part" }));
     // the step is handed on as the frame's part (one water screen), before Show regulations names it
@@ -153,7 +153,7 @@ describe("<WaterMapView>", () => {
     mount("gnis:2936", 6);
     await ready();
     expect(screen.getByTestId("water-map-name").textContent).toBe("Within Skeena River Ecological Reserve");
-    fireEvent.click(screen.getByRole("button", { name: "▲ Upstream" }));
+    fireEvent.click(screen.getByRole("button", { name: "Upstream" }));
     const chooser = within(screen.getByRole("dialog", { name: "Which way upstream?" }));
     const other = "Skeena River Ecological Reserve boundary → 1.5 km upstream of the Kitsumkalum River confluence";
     expect(chooser.getAllByRole("button").map((b) => b.getAttribute("aria-label"))).toEqual(["Close", "2 stretches (1)", other]);
@@ -186,7 +186,7 @@ describe("<WaterMapView>", () => {
     cleanup(); routes.length = 0;
     render(<Harness item="gnis:2936" part={6} />);
     await ready();
-    fireEvent.click(screen.getByRole("button", { name: "▲ Upstream" }));
+    fireEvent.click(screen.getByRole("button", { name: "Upstream" }));
     const seenChooser = [open(), `${back()} -> ${open()}`];
     expect([...seenMark, ...seenChooser]).toEqual([
       "fishing boundary signs 100 m below the Slesse Creek confluence · water",
@@ -229,16 +229,16 @@ describe("<WaterMapView>", () => {
     const calls = mount("gnis:3062", 0);
     await ready();
     // (the fixture's core does not hold the Sumas River, so the Vedder's mouth has no exit here)
-    expect(bar()).toBe("Part 1 of 1 | Vedder River | Lowest part (off) | ▲ Upstream into Chilliwack River");
+    expect(bar()).toBe("Part 1 of 1 | Vedder River | Lowest part (off) | Upstream into Chilliwack River");
     // the words wrap (two lines at most, then cut with an ellipsis) inside the half-width button at 390 px
-    expect(stepText("up")).toEqual({ text: "▲ Upstream into Chilliwack River", lines: 2, align: "center" });
-    fireEvent.click(screen.getByRole("button", { name: "▲ Upstream into Chilliwack River" }));
+    expect(stepText("up")).toEqual({ text: "Upstream into Chilliwack River", lines: 2, align: "center" });
+    fireEvent.click(screen.getByRole("button", { name: "Upstream into Chilliwack River" }));
     cleanup();
     const more = mount("gnis:8634", 1);
     await ready();
     expect(bar()).toBe("Part 1 of 4 · Chilliwack River | Vedder Crossing Bridge → Tamihi Rapids Bridge"
-      + " | ▼ Downstream into Vedder River | ▲ Upstream | Flows into Vedder River ›");
-    fireEvent.click(screen.getByRole("button", { name: "▼ Downstream into Vedder River" }));
+      + " | Downstream into Vedder River | Upstream | Flows into Vedder River ›");
+    fireEvent.click(screen.getByRole("button", { name: "Downstream into Vedder River" }));
     // the map did not move inside the water: each is the caller's to open (through openWater, Map in front)
     expect([screen.getByTestId("water-map-where").textContent, [...calls, ...more]]).toEqual([
       "Part 1 of 4 · Chilliwack River", ["cross gnis:8634 at 1", "cross gnis:3062 at 0"]]);
@@ -247,7 +247,7 @@ describe("<WaterMapView>", () => {
   it("a fork going down: ▼ on the Zymoetz's source part offers the main stem, then the lake part", async () => {
     const calls = mount("gnis:3137", 3);
     await ready();
-    fireEvent.click(screen.getByRole("button", { name: "▼ Downstream" }));
+    fireEvent.click(screen.getByRole("button", { name: "Downstream" }));
     const chooser = within(screen.getByRole("dialog", { name: "Which way downstream?" }));
     expect(chooser.getAllByRole("button").map((b) => b.getAttribute("aria-label"))).toEqual([
       "Close", "Zymoetz Canyon upper entrance → Limonite Creek confluence", "A lake → McDonell Lake outlet"]);
@@ -259,18 +259,18 @@ describe("<WaterMapView>", () => {
   it("opened by a tap: starts on the tapped section's part (the Regulations view's part)", async () => {
     mount("gnis:12227", null, 59293);
     await ready();
-    expect(bar()).toBe("Part 3 of 4 · Cowichan River | CNR Bridge (mile 70.2) → Greendale Trestle | ▼ Downstream | ▲ Upstream");
+    expect(bar()).toBe("Part 3 of 4 · Cowichan River | CNR Bridge (mile 70.2) → Greendale Trestle | Downstream | Upstream");
     expect(lit().highlight).toEqual([59293]);   // the tapped handle given to mount()
   }, 30_000);
 
   it("KLWA from the Main Body: the three closure areas; Show regulations for another area names that water", async () => {
     const calls = mount("wbk:-20", 0);
     await ready();
-    expect(bar()).toBe("Part 3 of 3 | Kootenay Lake — Main Body | ▼ Downstream | Highest part (off)");
+    expect(bar()).toBe("Part 3 of 3 | Kootenay Lake — Main Body | Downstream | Highest part (off)");
     expect([screen.getByTestId("water-map-whole").textContent, seen.props?.marks]).toEqual(["⤢ Whole lake", []]);
-    fireEvent.click(screen.getByRole("button", { name: "▼ Downstream" }));
+    fireEvent.click(screen.getByRole("button", { name: "Downstream" }));
     fireEvent.click(screen.getByRole("button", { name: "Show regulations for this part" }));
-    expect([bar(), calls]).toEqual(["Part 2 of 3 | Kootenay Lake — Upper West Arm | ▼ Downstream | ▲ Upstream",
+    expect([bar(), calls]).toEqual(["Part 2 of 3 | Kootenay Lake — Upper West Arm | Downstream | Upstream",
                                     ["part wbk:-21 0", "regs wbk:-21 part 0"]]);
   }, 30_000);
 

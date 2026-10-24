@@ -57,7 +57,7 @@ describe("<RegsHeader> over every golden header", () => {
     mount(headerOf(id));
     expect(drawn()).toEqual({
       name: g.name,
-      pill: [g.dateAria, `${g.day} ▾${g.date}`],
+      pill: [g.dateAria, `${g.day}${g.date}`],
       buttons: 0,
       place: g.place?.full ?? "",
       tabs: g.tabs.map((t, i) => [t.text, i === 0 ? "true" : "false"]),
@@ -70,7 +70,7 @@ describe("<RegsHeader>", () => {
     mount(headerOf("vedder_1010"));
     expect(drawn()).toEqual({
       name: "Vedder River",
-      pill: ["Change date, now Oct 10", "Today ▾Oct 10"],
+      pill: ["Change date, now Oct 10", "TodayOct 10"],
       buttons: 0,
       place: "Mouth → Vedder Crossing Bridge",
       tabs: [["What you can keep", "true"], ["Gear", "false"], ["Methods", "false"], ["Licence", "false"]],
@@ -81,7 +81,7 @@ describe("<RegsHeader>", () => {
 
   it("vedder_615: the weekday and the closed dot", () => {
     mount(headerOf("vedder_615"));
-    expect(screen.getByTestId("regs-date").textContent).toBe("Mon ▾Jun 15");
+    expect(screen.getByTestId("regs-date").textContent).toBe("MonJun 15");
     expect(screen.getByTestId("regs-dot").style.backgroundColor).toBe(rgb(LIGHT.closed));
   });
 

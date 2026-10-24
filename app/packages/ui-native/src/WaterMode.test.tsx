@@ -231,8 +231,8 @@ describe("the water's Map view and the rest of the water screen agree (P15 follo
 
   it("ONE WATER SCREEN: ▲ twice on the map, then Regulations — the page is on the STEPPED part, and so is the map again", async () => {
     await onMap(CHILLIWACK, 1);
-    fireEvent.click(screen.getByRole("button", { name: "▲ Upstream" }));
-    fireEvent.click(screen.getByRole("button", { name: "▲ Upstream" }));
+    fireEvent.click(screen.getByRole("button", { name: "Upstream" }));
+    fireEvent.click(screen.getByRole("button", { name: "Upstream" }));
     const stepped = where();
     fireEvent.click(screen.getByRole("tab", { name: "Regulations" }));
     await until(() => screen.queryByTestId("regs-on") !== null);
@@ -251,13 +251,13 @@ describe("the water's Map view and the rest of the water screen agree (P15 follo
      "is the Map tab", async () => {
     await onMap("gnis:3062", 0);
     const seen = [where()];
-    fireEvent.click(screen.getByRole("button", { name: "▲ Upstream into Chilliwack River" }));
+    fireEvent.click(screen.getByRole("button", { name: "Upstream into Chilliwack River" }));
     await until(() => where().startsWith("Part 1 of 4 · Chilliwack River"));
     seen.push(`${where()} | ${screen.getByLabelText("Back").textContent}`);
-    fireEvent.click(screen.getByRole("button", { name: "▼ Downstream into Vedder River" }));
+    fireEvent.click(screen.getByRole("button", { name: "Downstream into Vedder River" }));
     await until(() => where().startsWith("Part 1 of 1"));
     seen.push(`${where()} | ${screen.getByLabelText("Back").textContent}`);
-    fireEvent.click(screen.getByRole("button", { name: "▲ Upstream into Chilliwack River" }));
+    fireEvent.click(screen.getByRole("button", { name: "Upstream into Chilliwack River" }));
     await until(() => where().startsWith("Part 1 of 4"));
     seen.push(`${where()} | ${screen.getByLabelText("Back").textContent}`);
     act(() => { fireEvent.click(screen.getByLabelText("Back")); });

@@ -37,7 +37,7 @@ describe("<WaterScreen> regulations", () => {
     await waitFor(() => expect(screen.getByTestId("keep-tab")).toBeTruthy(), { timeout: 20_000 });
     const header = screen.getByTestId("regs-header");
     expect(within(header).getByRole("heading").textContent).toBe("Chilliwack River");
-    expect(within(header).getByRole("button", { name: "Change date, now Oct 10" }).textContent).toBe("Sat ▾Oct 10");
+    expect(within(header).getByRole("button", { name: "Change date, now Oct 10" }).textContent).toBe("SatOct 10");
     const tabs = within(screen.getByRole("tablist", { name: "Section" }));
     expect(tabs.getAllByRole("tab").map((t) => [t.textContent, t.getAttribute("aria-selected")]))
       .toEqual([["What you can keep", "true"], ["Gear", "false"], ["Methods", "false"], ["Licence", "false"]]);

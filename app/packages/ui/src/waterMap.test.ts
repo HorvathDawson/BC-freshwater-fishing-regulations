@@ -37,16 +37,16 @@ describe("the Chilliwack: ▼ / ▲ through its four parts, the ends disabled, t
     expect(s.at).toBe(0);
     expect(bar(g, s)).toBe("Part 1 of 4 · Chilliwack River | Vedder Crossing Bridge → Tamihi Rapids Bridge"
       // ▼ at the mouth part goes on into the Vedder (`water_continue`); "Flows into" stays
-      + " | ▼ Downstream into Vedder River | ▲ Upstream | Flows into Vedder River ›");
+      + " | Downstream into Vedder River | Upstream | Flows into Vedder River ›");
     expect(view(g, s).exit).toEqual({ label: "Flows into Vedder River ›", item: "gnis:3062", part: 0 });
     const seen = [bar(g, s)];
     for (let k = 0; k < 4; k += 1) { s = run(g, s, { type: "up" }); seen.push(bar(g, s)); }
     expect(seen.slice(1)).toEqual([
-      "Part 2 of 4 · Chilliwack River | Tamihi Rapids Bridge → 100 m below the Slesse Creek confluence | ▼ Downstream | ▲ Upstream",
-      "Part 3 of 4 · Chilliwack River | 100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundary | ▼ Downstream | ▲ Upstream",
-      "Part 4 of 4 · Chilliwack River | Chilliwack River Ecological Reserve boundary → Source | ▼ Downstream | Highest part (off)",
+      "Part 2 of 4 · Chilliwack River | Tamihi Rapids Bridge → 100 m below the Slesse Creek confluence | Downstream | Upstream",
+      "Part 3 of 4 · Chilliwack River | 100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundary | Downstream | Upstream",
+      "Part 4 of 4 · Chilliwack River | Chilliwack River Ecological Reserve boundary → Source | Downstream | Highest part (off)",
       // ▲ at the top changes nothing
-      "Part 4 of 4 · Chilliwack River | Chilliwack River Ecological Reserve boundary → Source | ▼ Downstream | Highest part (off)",
+      "Part 4 of 4 · Chilliwack River | Chilliwack River Ecological Reserve boundary → Source | Downstream | Highest part (off)",
     ]);
     s = run(g, s, { type: "down" }, { type: "down" }, { type: "down" }, { type: "down" });
     expect(s).toEqual(waterMapStart(0));
@@ -167,7 +167,7 @@ describe("a fork upstream: the Skeena's Ecological Reserve", () => {
   it("▲ at the fork opens a chooser, the main stem first; a choice steps there", async () => {
     const g = await loadWaterGroup(st, "gnis:2936");
     const reserve = waterMapStart(1);
-    expect(view(g, reserve).up).toEqual({ label: "▲ Upstream", aria: "▲ Upstream", disabled: false, fork: true, cross: null });
+    expect(view(g, reserve).up).toEqual({ label: "Upstream", aria: "Upstream", disabled: false, fork: true, cross: null });
     const open = run(g, reserve, { type: "up" });
     expect(open).toEqual({ ...reserve, choosing: "up" });
     expect(view(g, open).chooser).toEqual({ title: "Which way upstream?", close: "Close", options: [
@@ -212,7 +212,7 @@ describe("every part is reached by ▼ / ▲ (P15 review: the Zymoetz's lake par
   it("the Zymoetz's source part: ▼ is a fork, the main stem first, then the lake part (its only way in)", async () => {
     const g = await loadWaterGroup(st, "gnis:3137");
     const source = waterMapStart(4);
-    expect(view(g, source).down).toEqual({ label: "▼ Downstream", aria: "▼ Downstream", disabled: false, fork: true,
+    expect(view(g, source).down).toEqual({ label: "Downstream", aria: "Downstream", disabled: false, fork: true,
                                            cross: null });
     const open = run(g, source, { type: "down" });
     expect([open.choosing, view(g, open).chooser]).toEqual(["down", { title: "Which way downstream?", close: "Close",
@@ -230,10 +230,10 @@ describe("across waters: the Vedder goes on from the Chilliwack (`water_continue
     const g = await loadWaterGroup(st, "gnis:3062");
     const v = view(g, waterMapStart(0));
     expect([v.up, v.down, bar(g, waterMapStart(0))]).toEqual([
-      { label: "▲ Upstream into Chilliwack River", aria: "▲ Upstream into Chilliwack River", disabled: false,
+      { label: "Upstream into Chilliwack River", aria: "Upstream into Chilliwack River", disabled: false,
         fork: false, cross: { item: "gnis:8634", part: 1 } },
       { label: "Lowest part", aria: "Lowest part", disabled: true, fork: false, cross: null },
-      "Part 1 of 1 | Vedder River | Lowest part (off) | ▲ Upstream into Chilliwack River"]);
+      "Part 1 of 1 | Vedder River | Lowest part (off) | Upstream into Chilliwack River"]);
     // ▲ is not a step inside the group: the state does not move (the caller opens the Chilliwack)
     expect(run(g, waterMapStart(0), { type: "up" })).toEqual(waterMapStart(0));
   });
@@ -241,7 +241,7 @@ describe("across waters: the Vedder goes on from the Chilliwack (`water_continue
   it("the Chilliwack: ▼ at its lowest part names the Vedder's part 0, and 'Flows into' stays; no other part crosses", async () => {
     const g = await loadWaterGroup(st, "gnis:8634");
     expect([view(g, waterMapStart(0)).down, view(g, waterMapStart(0)).exit?.label]).toEqual([
-      { label: "▼ Downstream into Vedder River", aria: "▼ Downstream into Vedder River", disabled: false, fork: false,
+      { label: "Downstream into Vedder River", aria: "Downstream into Vedder River", disabled: false, fork: false,
         cross: { item: "gnis:3062", part: 0 } }, "Flows into Vedder River ›"]);
     expect(g.parts.map((_, i) => [view(g, waterMapStart(i)).down.cross, view(g, waterMapStart(i)).up.cross]))
       .toEqual([[{ item: "gnis:3062", part: 0 }, null], [null, null], [null, null], [null, null]]);
@@ -260,24 +260,24 @@ describe("Cowichan, Vedder and the Kootenay Lake West Arm", () => {
   it("Cowichan: four parts in a line; at the mouth no exit (the sea)", async () => {
     const g = await loadWaterGroup(st, "gnis:12227");
     expect(g.parts.map((_, i) => bar(g, waterMapStart(i)))).toEqual([
-      "Part 1 of 4 · Cowichan River | Mouth → CNR Mile 66 Trestle | Lowest part (off) | ▲ Upstream",
-      "Part 2 of 4 · Cowichan River | CNR Mile 66 Trestle → CNR Bridge (mile 70.2) | ▼ Downstream | ▲ Upstream",
-      "Part 3 of 4 · Cowichan River | CNR Bridge (mile 70.2) → Greendale Trestle | ▼ Downstream | ▲ Upstream",
-      "Part 4 of 4 · Cowichan River | Greendale Trestle → Cowichan Lake outlet | ▼ Downstream | Highest part (off)"]);
+      "Part 1 of 4 · Cowichan River | Mouth → CNR Mile 66 Trestle | Lowest part (off) | Upstream",
+      "Part 2 of 4 · Cowichan River | CNR Mile 66 Trestle → CNR Bridge (mile 70.2) | Downstream | Upstream",
+      "Part 3 of 4 · Cowichan River | CNR Bridge (mile 70.2) → Greendale Trestle | Downstream | Upstream",
+      "Part 4 of 4 · Cowichan River | Greendale Trestle → Cowichan Lake outlet | Downstream | Highest part (off)"]);
   });
 
   it("Vedder: one part; its mouth is its end (its ▲ goes on into the Chilliwack, above)", async () => {
     const g = await loadWaterGroup(st, "gnis:3062");
-    expect(bar(g, waterMapStart(0))).toBe("Part 1 of 1 | Vedder River | Lowest part (off) | ▲ Upstream into Chilliwack River");
+    expect(bar(g, waterMapStart(0))).toBe("Part 1 of 1 | Vedder River | Lowest part (off) | Upstream into Chilliwack River");
   });
 
   it("KLWA: the lake's three closure areas in the prototype's order, stepped by their exits, out into the Kootenay River; no placed marks", async () => {
     const g = await loadWaterGroup(st, "wbk:-20");
     expect(waterMapStartIx(g, "wbk:-20", 0)).toBe(2);
     expect(g.parts.map((_, i) => bar(g, waterMapStart(i)))).toEqual([
-      "Part 1 of 3 | Kootenay Lake — Lower West Arm | Lowest part (off) | ▲ Upstream | Flows into Kootenay River ›",
-      "Part 2 of 3 | Kootenay Lake — Upper West Arm | ▼ Downstream | ▲ Upstream",
-      "Part 3 of 3 | Kootenay Lake — Main Body | ▼ Downstream | Highest part (off)"]);
+      "Part 1 of 3 | Kootenay Lake — Lower West Arm | Lowest part (off) | Upstream | Flows into Kootenay River ›",
+      "Part 2 of 3 | Kootenay Lake — Upper West Arm | Downstream | Upstream",
+      "Part 3 of 3 | Kootenay Lake — Main Body | Downstream | Highest part (off)"]);
     expect([view(g, waterMapStart(2)).marks, view(g, waterMapStart(2)).whole.label]).toEqual([[], "⤢ Whole lake"]);
     // Show regulations for a closure area names THAT item
     expect(view(g, waterMapStart(0)).regs).toEqual({ label: "Show regulations for this part", item: "wbk:-22", partIx: 0 });

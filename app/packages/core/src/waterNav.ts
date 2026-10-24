@@ -300,13 +300,17 @@ export function groupBounds(g: WaterGroup): Bbox | null {
   return out;
 }
 
-/** The water map's words, whole (composed here so a test pins the finished string, AGENTS rule 33). */
+/**
+ * The water map's words, whole (composed here so a test pins the finished string, AGENTS rule 33). The step buttons'
+ * chevrons are the icon set's (`collapse` / `expand`), drawn by the button beside these words (T186, Q162): no glyph is
+ * typed into a word.
+ */
 export const WATER_MAP_WORDS = {
-  down: "▼ Downstream",
-  up: "▲ Upstream",
-  /** ▼ / ▲ into ANOTHER water (`water_continue`): the button says where it goes (owner 2026-10-21 late). */
-  downInto: "▼ Downstream into",
-  upInto: "▲ Upstream into",
+  down: "Downstream",
+  up: "Upstream",
+  /** Down / up into ANOTHER water (`water_continue`): the button says where it goes (owner 2026-10-21 late). */
+  downInto: "Downstream into",
+  upInto: "Upstream into",
   lowest: "Lowest part",
   highest: "Highest part",
   regs: "Show regulations for this part",
@@ -355,7 +359,7 @@ export function wholeAria(g: WaterGroup, i: number, whole: boolean): string {
   return WATER_MAP_WORDS.whole(waterNoun(g.parts[i]?.kind ?? "stream", "page"));
 }
 
-/** ▲ / ▼ into another water, on the button and to a screen reader alike: "▲ Upstream into Chilliwack River". */
+/** Up / down into another water, on the button and to a screen reader alike: "Upstream into Chilliwack River". */
 export function crossLabel(dir: "up" | "down", c: NavCross): string {
   return `${dir === "up" ? WATER_MAP_WORDS.upInto : WATER_MAP_WORDS.downInto} ${c.name}`;
 }

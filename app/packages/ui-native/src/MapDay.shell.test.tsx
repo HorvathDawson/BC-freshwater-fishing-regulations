@@ -108,7 +108,7 @@ describe("the one day, from the map's calendar and the page's pill", () => {
     fireEvent.click(pill());
     seen.push(look());
     press("Back to today");
-    await waitFor(() => expect(pill().textContent).toBe("Today ▾Oct 21"));
+    await waitFor(() => expect(pill().textContent).toBe("TodayOct 21"));
     seen.push(`pill ${pill().textContent}`);
     // the page's reload for the new day did not close its sheet: back closes it, then leaves the water
     seen.push(`back ${back()}: ${look()} | ${screen.queryByTestId("regs-header") ? "on the water" : "left"}`);
@@ -121,9 +121,9 @@ describe("the one day, from the map's calendar and the page's pill", () => {
       "map Wed Oct 21 2026 | button Today | Closed today | sheet: Showing today, Wednesday, October 21",
       "map Sat Oct 10 2026 | button Sat, Oct 10 | Closed on Oct 10 | sheet: Showing Saturday, October 10",
       "map Sat Oct 10 2026 | button Sat, Oct 10 | Closed on Oct 10 | no sheet",
-      "pill Sat ▾Oct 10",
+      "pill SatOct 10",
       "map gone | button none | no legend | sheet: Showing Saturday, October 10",
-      "pill Today ▾Oct 21",
+      "pill TodayOct 21",
       "back true: map gone | button none | no legend | no sheet | on the water",
       "back true",
       "map Wed Oct 21 2026 | button Today | Closed today | no sheet",

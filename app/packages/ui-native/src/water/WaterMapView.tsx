@@ -181,15 +181,19 @@ function PartsList({ list, palette, act }: {
 function Step({ dir, palette, label, aria, disabled, onPress }: {
   dir: "up" | "down"; palette: Palette; label: string; aria: string; disabled: boolean; onPress: () => void;
 }) {
+  // (T186, Q162) the way's chevron is the icon set's — up `collapse`, down `expand` — beside the words, never a typed
+  // ▲ / ▼; an end ("Lowest part") goes nowhere and draws none
   return (
     <Pressable onPress={disabled ? undefined : onPress} disabled={disabled} accessibilityRole="button"
                accessibilityLabel={aria} aria-disabled={disabled}
                style={{ flex: 1, minWidth: 0, minHeight: 52, alignItems: "center", justifyContent: "center",
+                        flexDirection: "row", gap: 4,
                         paddingHorizontal: SPACE.s2, paddingVertical: 4, borderWidth: 1.5,
                         borderColor: palette.ink, borderStyle: disabled ? "dashed" : "solid" }}>
+      {!disabled && <Icon name={dir === "up" ? "collapse" : "expand"} colour={palette.ink} size={18} />}
       <Text numberOfLines={2} ellipsizeMode="tail" testID={`water-map-step-${dir}`}
             style={{ ...TYPE.bodyStrong, fontFamily: disabled ? TYPE.bodyStrong.fontFamily : TYPE.metaBold.fontFamily,
-                     textAlign: "center", color: disabled ? palette.sub : palette.ink }}>{label}</Text>
+                     flexShrink: 1, textAlign: "center", color: disabled ? palette.sub : palette.ink }}>{label}</Text>
     </Pressable>
   );
 }

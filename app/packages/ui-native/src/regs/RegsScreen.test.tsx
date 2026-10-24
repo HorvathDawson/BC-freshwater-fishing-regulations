@@ -57,7 +57,7 @@ describe("<RegsScreen>", () => {
     expect({ text: header.textContent, ids: [...header.querySelectorAll("[data-testid]")].map((e) => e.getAttribute("data-testid")) })
       .toEqual(before);
     // (the place label twice: the shown label, then its invisible measuring twin)
-    expect(before.text).toBe("Vedder RiverToday ▾Oct 10Mouth → Vedder Crossing BridgeMouth → Vedder Crossing BridgeWhat you can keepGearMethodsLicence");
+    expect(before.text).toBe("Vedder RiverTodayOct 10Mouth → Vedder Crossing BridgeMouth → Vedder Crossing BridgeWhat you can keepGearMethodsLicence");
   });
 
   it("one scroll: exactly one vertical scroll container on the screen", () => {

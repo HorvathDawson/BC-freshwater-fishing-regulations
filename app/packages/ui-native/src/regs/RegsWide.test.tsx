@@ -16,7 +16,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { Text } from "react-native";
 import type { LayoutClass } from "@app/ui";
-import { WORDS, type PinAnchor, type PinLine, type RegsPage } from "@app/core";
+import { type PinAnchor, type PinLine, type RegsPage } from "@app/core";
 import { LIGHT } from "../theme";
 import { WaterFrame } from "../WaterFrame";
 import { RegsScreen, type RegsScreenProps } from "./RegsScreen";
@@ -61,7 +61,7 @@ describe("T45 the Regulations view on a wide screen: same words, another arrange
     const seen: Record<string, string> = {};
     for (const c of CLASSES) { mount(id, c); seen[c] = text("regs-view"); cleanup(); }
     const h = PAGES[id]!.header;
-    const date = `${h.dayWord}${WORDS.DATE_CARET}${h.date}`, place = h.place ? `${h.place.full}${h.place.full}` : "";
+    const date = `${h.dayWord}${h.date}`, place = h.place ? `${h.place.full}${h.place.full}` : "";
     const tabs = "What you can keepGearMethodsLicence";
     // (owner call 3: T71 Map, T150 Parts) the header draws no action: the name, the pill, the place, the tabs
     const phoneHead = `${h.name}${date}${place}${tabs}`;
@@ -77,7 +77,7 @@ describe("T45 the Regulations view on a wide screen: same words, another arrange
     mount("vedder_1010", "desktop");
     expect([text("regs-header"), text("regs-side")]).toEqual([
       "Vedder RiverMouth → Vedder Crossing BridgeMouth → Vedder Crossing Bridge",
-      "Today ▾Oct 10What you can keepGearMethodsLicence",
+      "TodayOct 10What you can keepGearMethodsLicence",
     ]);
   });
 
