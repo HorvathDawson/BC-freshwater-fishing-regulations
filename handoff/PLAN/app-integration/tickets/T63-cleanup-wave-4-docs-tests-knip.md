@@ -1,6 +1,7 @@
 # T63 — Cleanup wave 4: docs, the big test cleanup, unused-code guard
 
-Status: OPEN. Source: handoff/PLAN/audit/PLAN.md §2 "Wave 4" + owner: "a big test cleanup".
+Status: DONE — 341fff64…9867bc86 (lane), merged 2026-10-24; strict app check 367 files / 8173 tests green, full pytest
+5406 passed with 0 errors (synopsis_pages isolation fixed). Left on purpose: two slow tests, page v36 oracle (owner call 2). Source: handoff/PLAN/audit/PLAN.md §2 "Wave 4" + owner: "a big test cleanup".
 - Docs: one current map of the pipeline and the app; stale docs archived (git keeps history).
 - Tests: remove tautologies and duplicates, keep whole-value + mutation-pinned tests, faster suites.
 - knip in `pnpm check` (N23).

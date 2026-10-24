@@ -107,7 +107,7 @@ use that as the sole source of future work."
 | T60 | consistency auditors (N16, Fable) | DONE | 2ac30e42, 9259fa16, ed367f33, d02e1448 | six mutation-pinned gates in pnpm check; F1–F5 fixed; copy move → T180; Q162 |
 | T61 | cleanup wave 2: old pathways/duplicates | PARTIAL | 9db616f0, 884fe9c7, 46cab8cd, baeda569, 0ad1a84, bb22f3eb, a097e407 | lanes A/B/C + 2.8 normaliser merged and promoted (r-5380a42dab54, no binding change); left: 2.17 fixture move → T63 |
 | T62 | cleanup wave 3: split long files | PARTIAL | b619ca7b…bb31281e, 7b946345…66b81aa6 | app + pipeline lanes merged (byte-identical outputs; live r-bb4331929428); left: 3.2 atlas/build.py, 3.9 dfo_salmon (after the braid lane) |
-| T63 | cleanup wave 4: docs, tests, knip | OPEN | — | all |
+| T63 | cleanup wave 4: docs, tests, knip | DONE | 341fff64, 11d29685, 9c22614a, 9867bc86 | MAP.md ×2, 16+ duplicate tests gone, knip in check, synopsis isolation fixed, 2.17 fixtures moved |
 | T64 | tiles: S2 size wins + tile rebuild | OPEN | — | all |
 | T65 | determinism proof (N12) | OPEN | — | all (heavy) |
 | T66 | curation review tool | DONE | a3f66b7c (plan) | plan approved 2026-10-23; build → T96, T97, T133–T136 |
