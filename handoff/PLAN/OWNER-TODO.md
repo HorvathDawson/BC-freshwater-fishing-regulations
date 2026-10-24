@@ -18,9 +18,10 @@ with the default Claude uses until you answer). Newest first inside each section
   (40 intermittent "lakes" on a stream's course + 10 isolated ones). If the spot check says the on-course ones are not
   lakes, say so and Claude runs a dry run of folding them (10,676) before anything changes.
 
+Answered 2026-10-24: Q7 (delete old releases — pruned to live + previous; `python -m pipeline.deliver.release.prune`).
 Answered 2026-10-23: Q5 + Q34–Q41 (curation plan approved, defaults; splits mid-review must work; salmon pass later = T132), Q13 (Claude runs the reader gate), Q44 (no Level from a side channel; Flow only if it carries a large share), Q53 (as built), Q45 (leave unbound).
 
-## Your open questions (37 — each built with a default; the table in tickets/README.md has the wording)
+## Your open questions (36 — each built with a default; the table in tickets/README.md has the wording)
 
 Triaged 2026-10-23: 64 smaller calls were decided by Claude and 12 were already answered or obsolete — all recorded in
 decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any). What is left needs you:
@@ -43,7 +44,7 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
 - **Gauge gaps on main rivers (T174):** Q153–Q155, measured before anything changes.
 - **Run timing (T162, new):** Q144 default species, passage reaches shown dashed, its own map layer.
 - **Scope and big rebuilds:** Q6 braids · Q10 imagery corridor · Q32 salmon plan · Q125 sewage/tailings/dumps drawn
-  as lakes · Q142 Shuswap lake rings · Q7 which old releases to delete.
+  as lakes · Q142 Shuswap lake rings.
 - **Things only you can do or know:** Q114 the 30-entry curation pilot · Q4 slough marks (review page) · Q126 were you
   on Level? · Q119 audit references · Q30 Atnarko campsite signs · Q9 phone testing · Q26 hosting/app name ·
   Q28 iOS timing · Q27 sign-off walk.
@@ -51,7 +52,8 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
 ## Things only you can run or provide
 
 - **Parser runs** (`run_parse.sh`, dispatch): human-only; any re-parse is yours to start.
-- **R2 upload** of a new release and of the gauge feed (`publish.py`), with your credentials. The feed now also carries
+- **R2 upload** of a new release and of the gauge feed (`pipeline.deliver.release.publish`), with your credentials: `python -m pipeline.deliver.release.publish --release data/release/$(cat data/release/LATEST) --yes`
+  (moved from pipeline.tools.publish by T61; it records data/release/PUBLISHED so the prune keeps it). The feed now also carries
   T143 (each quantity ranked by its own first model: Level at +1/+3/+5 answers) and T144 (Change = CLEVER + COFFEE,
   ELF only with the low-water caveat); Claude republished the LOCAL feed (data/generated/gauges/feeds) for :39217. When you set up the feed sync to
   R2, upload ONLY `data/generated/gauges/feeds/` — not the run archive `data/generated/gauges/feeds.runs/` beside it
