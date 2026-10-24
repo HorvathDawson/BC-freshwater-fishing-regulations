@@ -429,6 +429,32 @@ def test_r3_mutation_without_the_rule_the_gauge_leaves_its_mainstem(monkeypatch)
     assert res.points == []
 
 
+def _braid_with_creeks():
+    """The standard braid, with two nameless creeks on it (08LF023's shape): T joins the braid above the cut
+    and its course runs back across the cut line; U joins below and never crosses it."""
+    G = _G()
+    G.braid("B", BRAID, 800, 1200)
+    t = G.add("T", [(1100, 100), (1000, 250), (900, 400)], wsc="100-5")
+    G.join(t, "B:0", 361.8, xy=(1100, 100))
+    u = G.add("U", [(900, 100), (900, 400)], wsc="100-6")
+    G.join(u, "B:0", 161.8, xy=(900, 100))
+    return G.done()
+
+
+def test_r3_a_creek_on_a_braid_whose_course_crosses_the_cut_is_cut_too():
+    g, geoms = _braid_with_creeks()
+    res, resid = _apply(g, geoms, [_cut("c", 1000)])
+    assert sorted(p.blk for p in res.points) == ["B", "T"] and resid == []
+    assert len(_pieces(g, "T")) == 2 and len(_pieces(g, "U")) == 1   # U never crosses: whole, with its side
+
+
+def test_r3_mutation_without_the_rule_the_creek_goes_wholesale(monkeypatch):
+    monkeypatch.setattr(BS, "TRIBUTARIES_CROSSING_THE_CUT_ARE_CUT", False)
+    g, geoms = _braid_with_creeks()
+    res, _ = _apply(g, geoms, [_cut("c", 1000)])
+    assert [p.blk for p in res.points] == ["B"]
+
+
 def test_spans_a_braid_is_the_gate():
     g, geoms = _one_braid()
     v = BS.View(g, geoms)

@@ -547,6 +547,43 @@ def length_cut_failures(result: "SweepResult") -> list["Case"]:
         list(result.cases)
 
 
+#: POLICY (owner 2026-10-24): a tributary hanging off a cut braid whose own course crosses the cut line is
+#: cut there too (`_crossing_tributaries`). False is the mutation pin (the creek goes wholesale with the braid
+#: half it joins).
+TRIBUTARIES_CROSSING_THE_CUT_ARE_CUT = True
+
+
+def _crossing_tributaries(view: View, net: Network, hp: str, fr: Frame, loose: bool) -> list[dict]:
+    """The network's DANGLING stream pieces (not through — tributaries of the braid) whose own line crosses
+    the cut line at least `END_M` from their ends, each at its crossing nearest the cut point. Only the host's
+    own water and nameless creeks (no gnis, no name: in no item); another named water is never cut."""
+    g = view.g
+    out = []
+    through = set(net.through)
+    for x in net.members:
+        n = g.nodes[x]
+        if x in through or n.kind != NodeKind.stream:
+            continue
+        nameless = not n.gnis_id and not n.display_name and not water_key(view, x).startswith("ditch:")
+        if not (nameless or _same_water(view, hp, x, loose)):
+            continue
+        ln = view.line(x)
+        if ln is None:
+            continue
+        best = None
+        for q in _points(fr.line.intersection(ln)):
+            mm = view.measure_on_piece(x, q)
+            to_end = min(mm - n.down_m, view.usable_up(x) - mm)
+            if to_end < END_M:
+                continue
+            k = {"node": x, "m": mm, "dist": q.distance(fr.c), "to_end": to_end, "x": q.x, "y": q.y, "used": False}
+            if best is None or k["dist"] < best["dist"]:
+                best = k
+        if best is not None:
+            out.append(best)
+    return sorted(out, key=lambda k: k["node"])
+
+
 def _body_side(view: View, fr: Frame, x: str) -> Optional[str]:
     ln = view.line(x)
     if ln is None:
@@ -658,6 +695,22 @@ def sweep(graph: StreamGraph, geoms: dict, points: list[SplitPoint],
                         out_pts.append(p)
                     if not best:
                         case.gate = "cut (already cut by this split)"
+                    # A TRIBUTARY ON THE BRAID takes the side where it joins the braid — and only if its own
+                    # course never crosses the cut line; one that does is cut there too, so no part of it is
+                    # sided by network membership (owner 2026-10-24: Chowade, 08KH006, 08LF023).
+                    if TRIBUTARIES_CROSSING_THE_CUT_ARE_CUT:
+                        for x in _crossing_tributaries(view, net, hp, fr, sp.source == "gauge"):
+                            if x["node"] in done:
+                                continue
+                            done.add(x["node"])
+                            x["used"] = True
+                            x["tributary"] = True
+                            case.crossings.append(x)
+                            p = SplitPoint(split_id=sid, blk=g.nodes[x["node"]].blk, route_measure=float(x["m"]),
+                                           fid="", label=sp.label, anchor_type=sp.anchor_type, source=sp.source,
+                                           concern=f"tributary of a braid cut across {sid}")
+                            case.cut_points.append(p)
+                            out_pts.append(p)
                 elif crossings:
                     case.gate = "refused: junction <10 m"     # the line meets it only at a piece's end
                 else:
@@ -883,7 +936,10 @@ def write_record(path, result: SweepResult, moved: list[dict], residual: list[di
             "touches": [{"node": t["node"], "host": t["host"], "m": r(t["m"]), "side": t["side"]}
                         for t in c.touches],
             "crossings": [{"node": k["node"], "m": r(k["m"]), "dist": r(k["dist"]), "to_end": r(k["to_end"]),
-                           "x": r(k["x"]), "y": r(k["y"]), "used": k["used"]} for k in c.crossings],
+                           "x": r(k["x"]), "y": r(k["y"]), "used": k["used"],
+                           "tributary": bool(k.get("tributary"))} for k in c.crossings],
+            "frame_c": [r(c.frame.c.x), r(c.frame.c.y)] if c.frame is not None else None,
+            "frame_t": [round(c.frame.t[0], 6), round(c.frame.t[1], 6)] if c.frame is not None else None,
             "frame_line": [[r(a), r(b)] for a, b in c.frame_line],
             "cut_points": [{"blk": p.blk, "m": r(p.route_measure)} for p in c.cut_points],
             "rehomes": [{"edge": list(h["edge"]), "member": h["member"], "side": h["side"]} for h in c.rehomes],
