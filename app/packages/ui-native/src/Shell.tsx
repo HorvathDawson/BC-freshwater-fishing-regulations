@@ -325,7 +325,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
    */
   const statusIndex = useStatusIndex(status);
   const statusOk = statusIndex !== null && paired;
-  /** Whether this platform's map colours each tile itself (`profile`, web) or takes pushed data (`status`, native). */
+  /** Whether this platform's map colours each tile itself (`profile`, web) or takes pushed data (`status`, native):
+   *  the split is described once, in @app/map `colouring.ts`. */
   const perTile = coloursEachTile(Platform.OS);
   // THE LAKE MODES' VALUES (Stocked, Depth): the release's lake facts, labelled per tile by the same engine
   const lakeFeed = useLakeColour({ source, perTile, paired, today: new Date() });

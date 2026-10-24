@@ -42,7 +42,8 @@ export interface MapModeInput {
    * The renderer colours each tile as it arrives from the index it is handed (`MapProps.status`, the `profile` mode —
    * colour-latency AP). The web map does; the native map (N2) has no per-tile event and reads only pushed `data` in
    * the `status` mode — told `profile` it painted every water plain with no error (colour-ap review). REQUIRED, so
-   * no caller can forget which renderer it draws on: `coloursEachTile(Platform.OS)` from @app/map.
+   * no caller can forget which renderer it draws on: `coloursEachTile(Platform.OS)` from @app/map. The whole split,
+   * per channel, is written down once: the header of @app/map `colouring.ts`.
    */
   perTile: boolean;
   /**

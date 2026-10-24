@@ -30,6 +30,24 @@
  *
  * Platform-free on purpose: the renderer hands in each tile's ids per source-layer and a target that sets state, so
  * every sequence is tested as plain code (`colouring.test.ts`), not through a browser.
+ *
+ * TWO COLOUR MODES, SPLIT BY PLATFORM — the one place this is written down (T61 2.19; N4/T47 removes the split). The
+ * engine above runs only where the map labels each tile as it arrives, which today is the WEB map (`coloursEachTile`
+ * below, the Shell's `perTile`). The native map (`Map.native.tsx`, N2) has no per-tile load event, so it is coloured
+ * the older way, by data PUSHED for the sections on screen:
+ *
+ *                  web (per tile)                                native (pushed)
+ *   status         mode `profile`; `MapProps.status` = the       mode `status`; `statusData` (@app/ui hooks.ts) =
+ *                  index + the day, on both tabs                 every visible section's code, Map tab only
+ *   standing       `MapProps.standing` = the classes + their     `data` = every visible section's standing
+ *                  values (`useConditionsColour`)                (`usePanelStandings` → `setData`)
+ *   lake modes     `survey` / `stocked` labels (`useLakeColour`)  plain: no per-tile event, no values pushed
+ *
+ * Who decides what: `mapModes` (@app/ui mapModes.ts) picks the mode from `perTile`; `statusFeed` (same file) and
+ * `useConditionsColour` (@app/ui conditionsColour.ts) pick the matching feed, so a mode and its data are always chosen
+ * together; `nativeStyle` (native-style.ts) refuses `profile`, which the native map would draw plain with no error. Both
+ * paths read the same arithmetic (core `statusOn` / `mapStatusOn`, data `sectionStanding`), so a section cannot be
+ * coloured differently by the two — they differ in WHEN a colour arrives, never in which.
  */
 import { readingDayOf, dayProfiles, profileLabel, stockRecency, type LakeFacts, type StatusIndex } from "@app/core";
 import type { ChannelValues, MapAdapter, MapHandle } from "./adapters/contract";
