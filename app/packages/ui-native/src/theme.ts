@@ -67,9 +67,14 @@ export interface Palette {
    */
   placeBand: string;
   /**
-   * (T147) THE NO-ACCESS BLOCK'S GROUND: the fourth map colour (`waterStatus.no_access`) laid at NO_ACCESS_BAND over the
-   * card, so the block that leads a no-access water's Regulations page is that colour at a glance and the words on it
-   * stay ink, the link included (held 7:1, theme.test.ts).
+   * (T165) THE WARNING on a page — `color.ui.warning`, a reference to the amber `status.own` (owner 2026-10-23: the map
+   * draws no-access water dotted grey; the warning lives in the Regulations page's block): the block's bar.
+   */
+  warning: string;
+  /**
+   * (T147, T165) THE NO-ACCESS BLOCK'S GROUND: the warning amber laid at NO_ACCESS_BAND over the card, so the block that
+   * leads a no-access water's Regulations page reads as a warning at a glance and the words on it stay ink, the link
+   * included (held 7:1, theme.test.ts). Before T165 it was the map's no-access colour, now a grey.
    */
   noAccessBand: string;
   /** Stocking recency ramp, most recent first. Rule 29: every bucket coloured. */
@@ -261,7 +266,8 @@ export function paletteFor(theme: string): Palette {
     live: c("color.ui.live"), attention: c("color.ui.attention"),
     spot: { mark: c("color.ui.spot"), ground: c("color.ui.spot-ground") },
     place: c("color.label.place"), placeBand: c("color.ui.place-band"),
-    noAccessBand: laid(waterStatusColour(theme, "no_access"), c("color.ui.card"), NO_ACCESS_BAND),
+    warning: c("color.ui.warning"),
+    noAccessBand: laid(c("color.ui.warning"), c("color.ui.card"), NO_ACCESS_BAND),
     stock: [c("color.stock.season"), c("color.stock.year"), c("color.stock.recent"),
             c("color.stock.decade"), c("color.stock.old")],
     donor: [c("color.ui.donor.1"), c("color.ui.donor.2"), c("color.ui.donor.3"),

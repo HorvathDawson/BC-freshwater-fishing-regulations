@@ -54,7 +54,7 @@ const LINES: readonly Status[] = ["closed", "own", "base", "restricted", "no_acc
 const WATER: readonly [Status, Status][] = [["closed", "base"], ["own", "base"]];
 const PERMIT: readonly [Status, Status][] = [["restricted", "closed"], ["restricted", "own"], ["restricted", "base"]];
 /**
- * (T54) NO PUBLIC ACCESS, the fourth map colour: a section mostly inside no-access land, drawn as a line or a lake fill
+ * (T54, T165) NO PUBLIC ACCESS, the fourth map colour — a dotted grey since T165: a section mostly inside no-access land, drawn as a line or a lake fill
  * beside the three water statuses (and over the closed crimson of the no-access area's own hatch), so it is held to them
  * as tokens, thin lines, lake fills and over satellite; and against the permit hatch as tokens, lines and satellite.
  */
@@ -106,22 +106,22 @@ const FLOOR: Record<Theme, Record<string, number>> = {
            permitToken: 22, permitLine: 16, permitSat: 15,
            temperature: 27.5,
            boundaryToken: 20, boundaryLine: 13,
-           accessToken: 16.5, accessLine: 11.5, accessLake: 11.5, accessSat: 10,
-           accessPermitToken: 21, accessPermitLine: 11.5, accessPermitSat: 11, accessBoundaryToken: 14.5, accessBoundaryLine: 1.5 },
+           accessToken: 25, accessLine: 14, accessLake: 14, accessSat: 13.5,
+           accessPermitToken: 17.5, accessPermitLine: 12.5, accessPermitSat: 11.5, accessBoundaryToken: 13.5, accessBoundaryLine: 1 },
   dark:  { ownerToken: 21.5, ownerLine: 21, ownerLake: 22, ownerSat: 18.5,
            waterToken: 29.5, waterLine: 19, waterLake: 23.5, waterSat: 18,
            permitToken: 15, permitLine: 13.5, permitSat: 10.5,
            temperature: 15,
            boundaryToken: 15, boundaryLine: 15.5,
-           accessToken: 28, accessLine: 22.5, accessLake: 27, accessSat: 16.5,
-           accessPermitToken: 12, accessPermitLine: 9.5, accessPermitSat: 7, accessBoundaryToken: 15.5, accessBoundaryLine: 9.5 },
+           accessToken: 12.5, accessLine: 8.5, accessLake: 12, accessSat: 8,
+           accessPermitToken: 12.5, accessPermitLine: 8, accessPermitSat: 8, accessBoundaryToken: 8.5, accessBoundaryLine: 15.5 },
   cvd:   { ownerToken: 29, ownerLine: 21, ownerLake: 29.5, ownerSat: 17.5,
            waterToken: 49, waterLine: 34, waterLake: 47, waterSat: 33.5,
            permitToken: 23, permitLine: 17.5, permitSat: 16,
            temperature: 25,
            boundaryToken: 20, boundaryLine: 12.5,
-           accessToken: 23, accessLine: 14.5, accessLake: 23.5, accessSat: 14,
-           accessPermitToken: 15.5, accessPermitLine: 10.5, accessPermitSat: 9, accessBoundaryToken: 15.5, accessBoundaryLine: 3 },
+           accessToken: 25, accessLine: 14.5, accessLake: 23.5, accessSat: 13.5,
+           accessPermitToken: 14, accessPermitLine: 10, accessPermitSat: 8.5, accessBoundaryToken: 17.5, accessBoundaryLine: 2.5 },
 };
 
 /** The reasons, once each (T47 part 2, T83 Q16: lift where cheap, else a recorded exception). */
@@ -141,48 +141,39 @@ const WHY = {
                 "ink rules on or off); the boundary is told apart by dash and width, and is drawn under the water (T83)",
   boundaryLine: "a 3 px grey edge and a 0.6-coverage status line both wash toward a pale ground; a boundary is told apart " +
                 "by dash and width, and since T83 it is drawn UNDER the water lines, so where they cross the status wins",
-  accessPermit: "no public access against the permit hatch (T54): the fourth colour was searched against the three water " +
-                "statuses first (the pairs it is drawn beside); the hatch is thin strokes laid over AREAS, never over the " +
-                "no-access land a no-access stream runs through (that land is hatched in closed crimson)",
-  lightAccess: "light no public access is a SPRUCE (T146, owner 2026-10-23: T54's indigo 'is very similar to base regs'; " +
-               "T146 review: the first build's magenta was the selection outline's hue): a hue family of its own, 113 " +
-               "degrees of LCh hue off base, 180 off the magenta selection and 80 off every status. Measured over the sRGB " +
-               "cube (step 4, handoff/PLAN/app-integration/T146-shots/frontier.mjs, selection.mjs): every colour 40 degrees " +
-               "or more off the light base stands at most 12.2 from closed, own or base for a dichromat as a thin line, " +
-               "because red, orange and blue already take the colour-blind space and only an indigo beside base clears 20; " +
-               "held off the selection too, the best is this spruce at 11.5 (the magenta stood 12.0). So the light theme " +
-               "holds the normal-vision floors (T146 tests below) and gives up the dichromat one: a colour-blind reader's " +
-               "theme (cvd) keeps its mauve, 14.5 and up from every water status (owner question Q-T146a)",
-  accessBoundary: "no public access against the grey boundary (T146): the spruce (light, 1.8 as lines for a protanope) and " +
-                  "the ice cyan (dark) sit near the neutral's lightness for some reader; the boundary is dashed, wider and " +
-                  "drawn UNDER the water lines (T83), so where they cross the status wins",
-  darkAccessPermit: "dark no public access, an ICE CYAN (T146), against the lilac permit hatch: the cyan was searched against " +
-                    "the three water statuses it is drawn beside (22.6 as a line, from 12.7 for T54's ochre); the hatch is " +
-                    "laid over permit AREAS, never over the no-access land a no-access stream runs through",
-  cvdAccess: "colour-blind no public access, a greyed mauve (T54): every blue sat under 20 from the plum restricted in " +
-             "normal vision, every violet under 11 from closed or base as a line, and the mauve, the searched best against " +
-             "the three water statuses (15.0 as a line), is a neutral the grey boundary sits on (15.9 tokens, 3.1 lines); " +
-             "the boundary is dashed, wider and drawn under the water, so where they cross the status wins",
+  greyAccess: "no public access is a GREY drawn DOTTED (T165, owner 2026-10-23: 'dotted grey … like under lakes but a " +
+              "little more visible'), its own layer (`stream-noaccess`); the stream line under it is hidden. A neutral " +
+              "shares no hue with any status, so it parts from them by LIGHTNESS alone, which a thin line over a pale or " +
+              "dark ground washes toward; the dot pattern is the main cue and the grey the second (searched over every " +
+              "neutral: handoff/PLAN/app-integration/T165-shots/grey.mjs, inside the style build's ΔE76 12). Dark binds " +
+              "worst: the rose closed sits at the grey's own lightness for a protanope (8.5 as lines, 12.8 as tokens) — " +
+              "every lighter grey meets the boundary and missing greys, every darker one the ground",
+  greyPermit: "no public access's grey against the permit hatch's plum / lilac (T165): the hatch is thin strokes laid over " +
+              "permit AREAS, never over the no-access land a no-access stream runs through, and it is hatched where the " +
+              "stream is dotted",
+  greyBoundary: "no public access's grey against the grey boundary (T165): two neutrals, told apart by pattern and weight — " +
+                "the boundary is a wide line (3 px region, dashed unit) drawn UNDER the water, the no-access water a " +
+                "dotted 1.2-2.8 px line over it — and by lightness in normal vision (light 25+, dark the boundary the lighter)",
 } as const;
 /** Every floor under 20, by theme and key, and why. Whole: a floor newly under 20, or one lifted past it, fails. */
 const UNDER_20: Record<string, string> = {
   "light ownerSat": WHY.satellite, "light permitLine": WHY.permit, "light permitSat": WHY.permit,
   "light boundaryLine": WHY.boundaryLine,
-  "light accessToken": WHY.lightAccess, "light accessLine": WHY.lightAccess, "light accessLake": WHY.lightAccess,
-  "light accessSat": WHY.lightAccess, "light accessPermitLine": WHY.accessPermit,
-  "light accessPermitSat": WHY.accessPermit, "light accessBoundaryToken": WHY.accessBoundary,
-  "light accessBoundaryLine": WHY.accessBoundary,
+  "light accessLine": WHY.greyAccess, "light accessLake": WHY.greyAccess, "light accessSat": WHY.satellite,
+  "light accessPermitToken": WHY.greyPermit, "light accessPermitLine": WHY.greyPermit, "light accessPermitSat": WHY.greyPermit,
+  "light accessBoundaryToken": WHY.greyBoundary, "light accessBoundaryLine": WHY.greyBoundary,
   "dark ownerSat": WHY.satellite, "dark waterLine": WHY.darkBase, "dark waterSat": WHY.satellite,
   "dark permitToken": WHY.permit, "dark permitLine": WHY.permit, "dark permitSat": WHY.permit,
   "dark temperature": WHY.darkWarm, "dark boundaryToken": WHY.darkBoundary, "dark boundaryLine": WHY.darkBoundary,
-  "dark accessSat": WHY.satellite, "dark accessPermitToken": WHY.darkAccessPermit,
-  "dark accessPermitLine": WHY.darkAccessPermit, "dark accessPermitSat": WHY.darkAccessPermit,
-  "dark accessBoundaryToken": WHY.darkBoundary, "dark accessBoundaryLine": WHY.accessBoundary,
+  "dark accessToken": WHY.greyAccess, "dark accessLine": WHY.greyAccess, "dark accessLake": WHY.greyAccess,
+  "dark accessSat": WHY.satellite, "dark accessPermitToken": WHY.greyPermit,
+  "dark accessPermitLine": WHY.greyPermit, "dark accessPermitSat": WHY.greyPermit,
+  "dark accessBoundaryToken": WHY.greyBoundary, "dark accessBoundaryLine": WHY.greyBoundary,
   "cvd ownerSat": WHY.satellite, "cvd permitLine": WHY.permit, "cvd permitSat": WHY.permit,
   "cvd boundaryLine": WHY.boundaryLine,
-  "cvd accessLine": WHY.cvdAccess, "cvd accessSat": WHY.satellite, "cvd accessPermitToken": WHY.accessPermit,
-  "cvd accessPermitLine": WHY.accessPermit, "cvd accessPermitSat": WHY.accessPermit,
-  "cvd accessBoundaryToken": WHY.cvdAccess, "cvd accessBoundaryLine": WHY.cvdAccess,
+  "cvd accessLine": WHY.greyAccess, "cvd accessSat": WHY.satellite, "cvd accessPermitToken": WHY.greyPermit,
+  "cvd accessPermitLine": WHY.greyPermit, "cvd accessPermitSat": WHY.greyPermit,
+  "cvd accessBoundaryToken": WHY.greyBoundary, "cvd accessBoundaryLine": WHY.greyBoundary,
 };
 /** One meaning per colour: every two statuses, adjacent or not, and every status against body ink, in normal vision. */
 const MEANING_FLOOR = 20;
@@ -388,51 +379,70 @@ describe("status colours, as drawn (T47)", () => {
 });
 
 /*
- * NO PUBLIC ACCESS IS NOT BASE, TO THE OWNER'S EYE (T146). T54's light indigo cleared every floor above — 23.4 from base
- * as tokens for the worst reader, 32.8 in normal vision — and the owner still read it as base ("the no public access
- * color is awkward too. it is very similar to base regs", 2026-10-23): both were BLUE, 23 degrees of hue apart. A ΔE
- * floor cannot see a shared hue family, so this holds the hue itself, in normal vision, in the two themes a reader with
- * normal vision uses (cvd is the dichromat's theme and is held above): no public access at least ACCESS_HUE degrees of
- * LCh hue off base, and at least ACCESS_NORMAL apart from base as a token, a thin line over every ground and a lake fill.
- * The line and lake floors are 26 (the first build held 30, its magenta's 32.3 / 37.3): the spruce that replaced it (T146
- * review, the magenta was the selection's hue) stands 26.5 / 26.5, the indigo the owner read as base 24.4 as a line, and
- * the hue floor is what tells a family apart.
+ * NO PUBLIC ACCESS IS A DOTTED GREY (T165, owner 2026-10-23: "maybe the stream color through no access areas should be
+ * dotted grey? like under lakes but a little more visible?"). It was a hue of its own — T54's indigo (read as base),
+ * T146's spruce / ice cyan (read as "too benign") — and is now a NEUTRAL drawn on its own dotted layer
+ * (`stream-noaccess`, adapters/contract.ts `noaccessPaint`), the stream line hidden under it. The warning moved to the
+ * Regulations page's block (`color.ui.warning`). A grey has no hue to share, so the T146 hue gate (45 degrees off base)
+ * became this: the colour is a NEUTRAL (RGB spread within NEUTRAL_SPREAD, like the boundaries), and in normal vision it
+ * stands off what it could be read as:
+ *   base              the blue every other water wears — as a token, a thin line over every ground, a lake fill;
+ *   water.ungauged    the Conditions map's "nothing speaks here" grey (one meaning per colour, MEANING_FLOOR);
+ *   water.unmapped    the status mode's own `missing` grey, a SOLID line: told apart by the dots first, lightness second;
+ *   the under-lake route  the dotted thread through a lake (`under_lake`: `water.route` at `opacity.route`), which the
+ *                     dots are modelled on — told apart by weight and strength (1.2-2.8 px at full strength against
+ *                     0.8-2.4 px at 0.35) and, here, by colour as drawn on every ground.
+ * The floors are what the built greys reach, rounded down to 0.5 (searched: T165-shots/grey.mjs). The dichromat pairs are
+ * held as drawn above (`WHY.greyAccess`). The one low number is dark against the solid missing grey (8.3: the dark
+ * boundary, missing and closed colours fill the mid lightnesses, and a darker grey is lost on the dark ground); the
+ * missing grey is only tidal water and water outside B.C., and it is a solid line where no access is dotted.
  */
-const ACCESS_HUE = 45;
-const ACCESS_NORMAL = { token: 35, line: 26, lake: 26 };
-function apartFromBase(th: "light" | "dark", t: Record<string, unknown>): string[] {
-  const [x, b] = [t["color.status.no_access"] as string, t["color.status.base"] as string];
+const GREY_NORMAL: Record<Theme, { baseToken: number; baseLine: number; baseLake: number; unmapped: number; route: number }> = {
+  light: { baseToken: 31.5, baseLine: 17.5, baseLake: 17.5, unmapped: 22, route: 21.5 },
+  dark:  { baseToken: 33.5, baseLine: 24, baseLake: 30.5, unmapped: 8, route: 26 },
+  cvd:   { baseToken: 34.5, baseLine: 16, baseLake: 29, unmapped: 22, route: 26.5 },
+};
+function greyFailures(th: Theme, t: Record<string, unknown>): string[] {
+  const f = GREY_NORMAL[th];
+  const x = t["color.status.no_access"] as string;
   const out: string[] = [];
-  const d = Math.abs(lch(x).h - lch(b).h) % 360;
-  const hue = d > 180 ? 360 - d : d;
-  if (hue < ACCESS_HUE) out.push(`${th}: no_access ${x} is base's hue ${b}: ${hue.toFixed(1)} degrees < ${ACCESS_HUE}`);
+  const v = parseHex(x);
+  const spread = Math.max(...v) - Math.min(...v);
+  if (spread > NEUTRAL_SPREAD) out.push(`${th}: no_access ${x} is a hue, not a grey (RGB spread ${spread})`);
+  const b = t["color.status.base"] as string;
   const lakeA = t["opacity.lake"] as number;
-  const line = Math.min(...GROUND[th].map((g) => deltaE(over(x, g, LINE), over(b, g, LINE))));
-  const lake = deltaE(over(x, LAKE_GROUND[th], lakeA), over(b, LAKE_GROUND[th], lakeA));
-  for (const [what, v, floor] of [["token", deltaE(x, b), ACCESS_NORMAL.token], ["thin line", line, ACCESS_NORMAL.line],
-                                  ["lake fill", lake, ACCESS_NORMAL.lake]] as const)
-    if (v < floor) out.push(`${th}: no_access ${x} vs base ${b} as a ${what}, normal vision ${v.toFixed(1)} < ${floor}`);
+  const hold = (what: string, d: number, floor: number) => {
+    if (d < floor) out.push(`${th}: no_access ${x} vs ${what}, normal vision ${d.toFixed(1)} < ${floor}`);
+  };
+  hold(`base ${b} as a token`, deltaE(x, b), f.baseToken);
+  hold(`base ${b} as a thin line`, Math.min(...GROUND[th].map((g) => deltaE(over(x, g, LINE), over(b, g, LINE)))), f.baseLine);
+  hold(`base ${b} as a lake fill`, deltaE(over(x, LAKE_GROUND[th], lakeA), over(b, LAKE_GROUND[th], lakeA)), f.baseLake);
+  hold(`water.ungauged ${t["color.water.ungauged"]}`, deltaE(x, t["color.water.ungauged"] as string), MEANING_FLOOR);
+  hold(`water.unmapped ${t["color.water.unmapped"]}`, deltaE(x, t["color.water.unmapped"] as string), f.unmapped);
+  const route = t["color.water.route"] as string, ro = t["opacity.route"] as number;
+  hold(`the under-lake route ${route} as drawn`,
+       Math.min(...GROUND[th].map((g) => deltaE(over(x, g, EDGE), over(route, g, ro)))), f.route);
   return out;
 }
 
 /*
- * NO PUBLIC ACCESS IS NOT THE SELECTION (T146 adversarial review). The first T146 build, a magenta #F01C84, cleared every
- * floor above and the hue gate against base, and sat 10.4 (normal vision) from `color.highlight` — the light theme's
- * selection outline, a magenta too (LCh hue 351 against 359). On the water's Map view the part you are on is cased in
- * the highlight, so a selected no-access stretch was magenta inside magenta (no outline to see) and every unselected
- * no-access tributary beside it read as selected: the owner's complaint about base, moved onto the selection. A tapped
- * water's casing and a no-access line meet on every water map, so they are held apart the way no access is held off
- * base: at least ACCESS_HUE degrees of LCh hue, at least MEANING_FLOOR as tokens, and a thin no-access line at least
- * SELECTION_LINE from the casing beside it over every ground — normal vision, light and dark (cvd's orange highlight
- * stands far off its mauve, and the colour-blind reader's pairs are held by tools/cvd.test.ts).
+ * NO PUBLIC ACCESS IS NOT THE SELECTION (T146 adversarial review). The first T146 build, a magenta #F01C84, sat 10.4
+ * (normal vision) from `color.highlight` — the light theme's selection outline, a magenta too (LCh hue 351 against 359):
+ * a selected no-access stretch was magenta inside magenta and every unselected no-access tributary read as selected. So no
+ * access stays at least ACCESS_HUE degrees of LCh hue off the selection (a grey, chroma under GREY_CHROMA, has no hue to
+ * share and skips that line), at least MEANING_FLOOR as tokens, and a thin no-access line at least SELECTION_LINE from the
+ * casing beside it over every ground — normal vision, light and dark.
  */
+const ACCESS_HUE = 45;
+const GREY_CHROMA = 10;
 const SELECTION_LINE = 20;
 function apartFromSelection(th: "light" | "dark", t: Record<string, unknown>): string[] {
   const [x, s] = [t["color.status.no_access"] as string, t["color.highlight"] as string];
   const out: string[] = [];
   const d = Math.abs(lch(x).h - lch(s).h) % 360;
   const hue = d > 180 ? 360 - d : d;
-  if (hue < ACCESS_HUE) out.push(`${th}: no_access ${x} is the selection's hue ${s}: ${hue.toFixed(1)} degrees < ${ACCESS_HUE}`);
+  if (lch(x).C >= GREY_CHROMA && hue < ACCESS_HUE)
+    out.push(`${th}: no_access ${x} is the selection's hue ${s}: ${hue.toFixed(1)} degrees < ${ACCESS_HUE}`);
   const token = deltaE(x, s);
   if (token < MEANING_FLOOR) out.push(`${th}: no_access ${x} vs the selection ${s} as tokens, normal vision ${token.toFixed(1)} < ${MEANING_FLOOR}`);
   const line = Math.min(...GROUND[th].map((g) => deltaE(over(x, g, LINE), over(s, g, EDGE))));
@@ -441,19 +451,49 @@ function apartFromSelection(th: "light" | "dark", t: Record<string, unknown>): s
   return out;
 }
 
-describe("no public access is not base (T146)", () => {
-  it("stands a hue family apart from base, and far from it as drawn, in normal vision — light and dark", () => {
-    expect((["light", "dark"] as const).flatMap((th) => apartFromBase(th, resolveTheme(th)))).toEqual([]);
+/*
+ * OWN KEEPS ITS AMBER (T165: "own regulations" is not moved; the amber is also the page's warning, `color.ui.warning`, a
+ * reference to it). Held as hue and strength: LCh hue inside OWN_HUE (Okabe & Ito's orange / yellow) and chroma at least
+ * OWN_CHROMA, every theme; and the warning is that same colour.
+ */
+const OWN_HUE = [50, 100] as const;
+const OWN_CHROMA = 60;
+function ownIsAmber(th: Theme, t: Record<string, unknown>): string[] {
+  const o = t["color.status.own"] as string;
+  const { h, C } = lch(o);
+  const out: string[] = [];
+  if (h < OWN_HUE[0] || h > OWN_HUE[1] || C < OWN_CHROMA)
+    out.push(`${th}: own ${o} is not the amber: LCh hue ${h.toFixed(0)}, chroma ${C.toFixed(0)}`);
+  if (t["color.ui.warning"] !== o) out.push(`${th}: the warning ${t["color.ui.warning"]} is not own's amber ${o}`);
+  return out;
+}
+
+describe("no public access is a dotted grey; own keeps its amber (T165)", () => {
+  for (const th of THEMES)
+    it(`no access is a neutral, apart from base, the ungauged and missing greys and the under-lake route — ${th}`, () => {
+      expect(greyFailures(th, resolveTheme(th))).toEqual([]);
+    });
+
+  it("fails T54's indigo and T146's spruce and ice cyan: hues, not greys (mutation pin)", () => {
+    const hue = (th: Theme, x: string) => greyFailures(th, resolveTheme(th, de({ "color.status.no_access": x })))
+      .filter((f) => f.includes("is a hue"));
+    expect([hue("light", "~2A00E0"), hue("light", "~00604C"), hue("dark", "~50E4FF")]).toEqual(de([
+      ["light: no_access ~2A00E0 is a hue, not a grey (RGB spread 224)"],
+      ["light: no_access ~00604C is a hue, not a grey (RGB spread 96)"],
+      ["dark: no_access ~50E4FF is a hue, not a grey (RGB spread 175)"]]));
   });
 
-  it("fails T54's indigo, which the owner read as base (mutation pin)", () => {
-    expect(apartFromBase("light", resolveTheme("light", de({ "color.status.no_access": "~2A00E0" })))).toEqual(de([
-      "light: no_access ~2A00E0 is base's hue ~608AE5: 23.2 degrees < 45",
-      "light: no_access ~2A00E0 vs base ~608AE5 as a token, normal vision 32.8 < 35",
-      "light: no_access ~2A00E0 vs base ~608AE5 as a thin line, normal vision 24.4 < 26"]));
+  it("fails a no-access grey painted in the ungauged or the missing grey (mutation pin)", () => {
+    for (const th of THEMES) {
+      const t = resolveTheme(th) as Record<string, string>;
+      for (const k of ["color.water.ungauged", "color.water.unmapped"]) {
+        const f = greyFailures(th, resolveTheme(th, { "color.status.no_access": t[k]! }));
+        expect([th, k, f.some((x) => x.includes(`vs ${k.slice(6)} `) && x.includes("normal vision 0.0"))]).toEqual([th, k, true]);
+      }
+    }
   });
 
-  it("stands a hue family apart from the selection outline, in normal vision — light and dark (T146 review)", () => {
+  it("stands apart from the selection outline, in normal vision — light and dark (T146 review)", () => {
     expect((["light", "dark"] as const).flatMap((th) => apartFromSelection(th, resolveTheme(th)))).toEqual([]);
   });
 
@@ -464,12 +504,14 @@ describe("no public access is not base (T146)", () => {
       "light: no_access ~F01C84 as a thin line vs the selection's casing ~c2187a, normal vision 10.3 < 20"]));
   });
 
-  it("fails the dark theme's no access painted in base's own deep blue (mutation pin)", () => {
-    expect(apartFromBase("dark", resolveTheme("dark", de({ "color.status.no_access": "~0368EB" })))).toEqual(de([
-      "dark: no_access ~0368EB is base's hue ~0368EB: 0.0 degrees < 45",
-      "dark: no_access ~0368EB vs base ~0368EB as a token, normal vision 0.0 < 35",
-      "dark: no_access ~0368EB vs base ~0368EB as a thin line, normal vision 0.0 < 26",
-      "dark: no_access ~0368EB vs base ~0368EB as a lake fill, normal vision 0.0 < 26"]));
+  it("own keeps the amber in every theme, and the page's warning is that amber", () => {
+    expect(THEMES.flatMap((th) => ownIsAmber(th, resolveTheme(th)))).toEqual([]);
+  });
+
+  it("fails own moved off the amber, and a warning with a hex of its own (mutation pin)", () => {
+    expect(ownIsAmber("light", resolveTheme("light", de({ "color.status.own": "~207050" })))).toEqual(de([
+      "light: own ~207050 is not the amber: LCh hue 161, chroma 34",
+      "light: the warning ~D08404 is not own's amber ~207050"]));
   });
 });
 
@@ -532,7 +574,9 @@ describe("depth contours are seen on every lake (T158)", () => {
     });
 
   it("fails the dark contour cyan that T146's ice-cyan no public access swallowed (mutation pin)", () => {
-    expect(contourFailures("dark", resolveTheme("dark", de({ "color.contour.line": "~4FD0E8" })))).toEqual(de([
+    // (T165: no public access is a grey now; the pin keeps the ice cyan it was written against)
+    expect(contourFailures("dark", resolveTheme("dark", de({ "color.contour.line": "~4FD0E8", "color.status.no_access": "~50E4FF" }))))
+      .toEqual(de([
       "dark: depth contours ~4FD0E8 on a color.survey.digitised ~30D0D4 lake, normal vision 5.7 < 15",
       "dark: depth contours ~4FD0E8 on a color.survey.digitised ~30D0D4 lake 4.0 < 12 (tritan (vienot))",
       "dark: depth contours ~4FD0E8 on a color.status.no_access ~50E4FF lake, normal vision 1.0 < 15",

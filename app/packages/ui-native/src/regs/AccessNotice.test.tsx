@@ -20,7 +20,7 @@ const rgb = (hex: string) => {
 };
 
 describe("T54: the access notice on the Regulations page", () => {
-  it("the no-access banner leads the page, in the fourth colour, and its link shows the map", () => {
+  it("the no-access banner leads the page, in the warning amber, and its link shows the map", () => {
     const notice = accessNotice([{ area: { tier: "no_access", name: "Coquitlam Watershed" }, share: 1 }])!;
     let moved = 0;
     render(<RegsScreen page={page} palette={LIGHT} actions={NOOP} onDate={() => {}} access={notice}
@@ -29,10 +29,14 @@ describe("T54: the access notice on the Regulations page", () => {
     expect(banner.textContent).toBe("No public accessThis section is inside Coquitlam Watershed. The public may not go "
       + "there, so you can't fish here. The regulations below are the Province's; they don't give you access."
       + "Show area on map");
-    // (T147) a block in the fourth colour: its bar, its tint as the ground, the legend's swatch beside a large title
-    expect([banner.style.borderLeftColor, banner.style.borderLeftWidth, banner.style.backgroundColor,
-            screen.getByTestId("access-swatch").style.backgroundColor])
-      .toEqual([rgb(LIGHT.waterStatus.no_access), "6px", rgb(LIGHT.noAccessBand), rgb(LIGHT.waterStatus.no_access)]);
+    // (T147, T165) a block in the WARNING amber — its bar, its tint as the ground — and beside a large title the
+    // legend's own swatch: the map's dotted grey line, every dot in the no-access grey
+    expect([banner.style.borderLeftColor, banner.style.borderLeftWidth, banner.style.backgroundColor])
+      .toEqual([rgb(LIGHT.warning), "6px", rgb(LIGHT.noAccessBand)]);
+    expect(LIGHT.warning).toBe(LIGHT.waterStatus.own);
+    const dots = [...screen.getByTestId("access-swatch").querySelector("[data-testid=swatch-dotted]")!.children]
+      .map((d) => (d as HTMLElement).style.backgroundColor);
+    expect([dots.length, [...new Set(dots)]]).toEqual([4, [rgb(LIGHT.waterStatus.no_access)]]);
     expect([screen.getByTestId("access-title").textContent, screen.getByTestId("access-title").getAttribute("role")])
       .toEqual(["No public access", "heading"]);
     // first in the scroll: before the Keep tab

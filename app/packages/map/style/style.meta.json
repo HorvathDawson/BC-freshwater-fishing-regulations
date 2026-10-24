@@ -2324,7 +2324,7 @@
       "color.status.closed": "#8F0006",
       "color.status.own": "#D08404",
       "color.status.base": "#3695D8",
-      "color.status.no_access": "#705864",
+      "color.status.no_access": "#5E565E",
       "width.stream.base": 1,
       "width.stream.highlight": 3.2,
       "width.stream.water": 2.4,
@@ -2410,6 +2410,7 @@
       "color.ui.on-accent": "#FFFFFF",
       "color.ui.live": "#04879B",
       "color.ui.attention": "#15181C",
+      "color.ui.warning": "#D08404",
       "color.ui.spot": "#15181C",
       "color.ui.spot-ground": "#FFFFFF",
       "color.ui.place-band": "#FBF0E6",
@@ -2444,7 +2445,7 @@
       "color.status.closed": "#FF3B6D",
       "color.status.own": "#FFD307",
       "color.status.base": "#0368EB",
-      "color.status.no_access": "#50E4FF",
+      "color.status.no_access": "#9C9A98",
       "color.water.route": "#3F5C6B",
       "color.lake.fill": "#205579",
       "color.lake.edge": "#6FA8C4",
@@ -2525,6 +2526,7 @@
       "color.ui.on-accent": "#100A22",
       "color.ui.live": "#37D6EA",
       "color.ui.attention": "#F0F2F0",
+      "color.ui.warning": "#FFD307",
       "color.ui.spot": "#F0F2F0",
       "color.ui.spot-ground": "#15181B",
       "color.ui.place-band": "#231A12",
@@ -2554,7 +2556,7 @@
       "color.status.closed": "#8F0006",
       "color.status.own": "#D08404",
       "color.status.base": "#608AE5",
-      "color.status.no_access": "#00604C",
+      "color.status.no_access": "#5E565E",
       "width.stream.base": 1,
       "width.stream.highlight": 3.2,
       "width.stream.water": 2.4,
@@ -2640,6 +2642,7 @@
       "color.ui.on-accent": "#FFFFFF",
       "color.ui.live": "#04879B",
       "color.ui.attention": "#15181C",
+      "color.ui.warning": "#D08404",
       "color.ui.spot": "#15181C",
       "color.ui.spot-ground": "#FFFFFF",
       "color.ui.place-band": "#FBF0E6",
@@ -2691,7 +2694,7 @@
     "color.status.own": {
       "type": "color",
       "themeable": true,
-      "$comment": "A WATER WITH ITS OWN REGULATIONS — the synopsis names it. Amber: Okabe & Ito's orange (light, darkened to hold the 3:1 a status colour must hold on the panel) and yellow (dark). Amber sits on the blue–yellow axis every dichromat keeps, so it parts from `status.base` for protan, deutan and tritan alike, and from `status.closed` by LIGHTNESS, which no deficiency removes. Never the plain water colour: that is `water.mapped`, and a status colouring that reused it repainted the plain map the moment it changed."
+      "$comment": "A WATER WITH ITS OWN REGULATIONS — the synopsis names it. Amber: Okabe & Ito's orange (light, darkened to hold the 3:1 a status colour must hold on the panel) and yellow (dark). Amber sits on the blue–yellow axis every dichromat keeps, so it parts from `status.base` for protan, deutan and tritan alike, and from `status.closed` by LIGHTNESS, which no deficiency removes. Never the plain water colour: that is `water.mapped`, and a status colouring that reused it repainted the plain map the moment it changed. It is also the WARNING on a page (`color.ui.warning`, T165): the no-public-access block's bar and tint."
     },
     "color.status.base": {
       "type": "color",
@@ -2701,7 +2704,7 @@
     "color.status.no_access": {
       "type": "color",
       "themeable": true,
-      "$comment": "NO PUBLIC ACCESS (T54) — the FOURTH map colour, and not a regulation: a section MOSTLY inside land the public may not enter (the `no_access` layer's closed land: the Coquitlam, Seymour and Capilano watersheds, military ranges), drawn over whatever its regulations say, on the regulations map only (@app/core `access.ts`, `noPublicAccess`). Searched against every status as drawn (tokens, thin lines, lake fills, over satellite), the grounds, body ink, the missing grey, the highlight and the boundaries, for every reader (tools/status-colours-distinct.test.ts, tools/water-status-cvd.test.ts): a SPRUCE in light (T146: T54's indigo, the one hue that cleared closed / own / base by 20 for a dichromat, read as base to the owner; every hue 40 degrees or more off the light base sits ~12 from one water status for a dichromat, so light holds the normal-vision hue floors and the colour-blind reader has the cvd theme. Not a magenta: the first T146 build's #F01C84 was the hue of `color.highlight`, the selection outline, so a tapped part was magenta inside magenta and every no-access tributary beside it read as selected — held off the selection by tools/status-colours-distinct.test.ts); an ICE CYAN in dark (T146: 22.6 from every water status as a thin line for every reader, where T54's ochre stood 12.7 from closed); a greyed MAUVE in the colour-blind theme, where every blue sat under 20 from its plum restricted for any reader and a slate under 12 from the town labels."
+      "$comment": "NO PUBLIC ACCESS (T54, T165) — not a regulation: a section MOSTLY inside land the public may not enter (the `no_access` layer's closed land: the Coquitlam, Seymour and Capilano watersheds, military ranges), on the regulations map only (@app/core `access.ts`, `noPublicAccess`). A GREY drawn DOTTED (owner 2026-10-23, T165: \"maybe the stream color through no access areas should be dotted grey? like under lakes but a little more visible?\"): the stream line is hidden there and `stream-noaccess` (runtime-style.ts, its own layer because `line-dasharray` cannot vary per feature) draws the dots, so the PATTERN is the main cue; a no-access lake is filled in this grey. The warning itself is on the Regulations page (`color.ui.warning`, the T147 block). A grey has no hue, so it is held by lightness (handoff/PLAN/app-integration/T165-shots/grey.mjs, tools/status-colours-distinct.test.ts): a dark warm grey in light and cvd, darker than the solid `water.unmapped` grey and the dashed boundaries; a warm mid grey in dark, between the deep-blue base and the lighter boundary and missing greys. Before T165 it was a hue of its own (T54 indigo, T146 spruce / ice cyan), which the owner found 'too benign'."
     },
     "color.flow.f1": {
       "type": "color",
@@ -3075,6 +3078,11 @@
       "type": "color",
       "themeable": true,
       "$comment": "ATTENTION, not a water's status: the sync icon's needs-a-refresh dot and a source's 'likely out of date' badge. It sits beside water drawn in the status colours, so it is none of them (it was the closed red, and a red dot over the map read as 'closed'). The ink: neutral, and the strongest mark on the card."
+    },
+    "color.ui.warning": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T165) THE WARNING on a page: the no-public-access block that leads a Regulations page (T147) — its bar and its tint. Owner 2026-10-23: the warning lives in the banner, in the amber, while the map draws no-access water dotted grey. A REFERENCE to `color.status.own` in every theme, never a second hex: one amber, so the gates that hold the amber off every other status hold this too, and it can be given its own value later in one place."
     },
     "color.ui.spot": {
       "type": "color",

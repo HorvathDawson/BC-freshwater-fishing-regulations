@@ -88,7 +88,7 @@ export const ACCESS_WORDS = {
 
 /**
  * The notice that opens a Regulations page: the banner (`no_access`) or the gentle note (`restricted`). (T147) The banner
- * LEADS the page: its `title` is the fact in two words, drawn large in the fourth colour's block, and `text` says what it
+ * LEADS the page: its `title` is the fact in two words, drawn large in the warning block (T165: the amber), and `text` says what it
  * means in plain words; the gentle note has no title (one small line, T54 Q1: permit-only land is this tier).
  */
 export interface AccessNotice {

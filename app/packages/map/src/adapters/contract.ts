@@ -71,6 +71,48 @@ export function nobaselineOpacity(mode: string): unknown {
   return mode === "standing" ? ["case", ["==", ["to-number", ["feature-state", "standing"], 0], -1], 1, 0] : 0;
 }
 
+/**
+ * (T165) NO PUBLIC ACCESS IS A DOTTED GREY LINE (owner 2026-10-23: "maybe the stream color through no access areas should
+ * be dotted grey? like under lakes but a little more visible?"). `line-dasharray` cannot vary per feature, so — like
+ * `stream-nobaseline` — the dots are their own runtime layer over every stream (`runtime-style.ts`), shown only where
+ * the stream's mode paints the section `no_access`, and the `stream` layer itself is hidden there (`paintFor`), so the
+ * gaps are gaps. Which sections those are is the colouring's own answer: the profile mode's day (@app/core
+ * `dayProfiles`, `no_access` labels) or the categorical mode's `no_access` member — never a second test of access.
+ */
+export const NOACCESS_LAYER = "stream-noaccess";
+
+/** Where `mode` paints a stream section `no_access`, as a boolean expression; null where the mode never does. */
+export function noAccessShown(layerId: string, mode: string, values: ChannelValues | null = NO_VALUES): unknown | null {
+  const m = STYLE_META.colorModes[layerId]?.[mode];
+  if (!m || !("categories" in m) || !m.categories["no_access"]) return null;
+  if (m.scale === "profile") {
+    const labels = (values ?? NO_VALUES).status?.no_access ?? [];
+    return labels.length ? ["in", ["coalesce", ["feature-state", m.property], ""], ["literal", [...labels]]] : null;
+  }
+  if (m.scale === "categorical") return ["==", ["feature-state", m.property], "no_access"];
+  return null;
+}
+
+/** The dots' opacity for the stream layer in `mode`: 1 on a no-access section, else 0 (every mode without one). */
+export function noaccessOpacity(mode: string, values: ChannelValues | null = NO_VALUES): unknown {
+  const shown = noAccessShown("stream", mode, values);
+  return shown === null ? 0 : ["case", shown, 1, 0];
+}
+
+/**
+ * The dots' paint: `color.status.no_access` (the legend's grey), a little stronger than the under-lake route it is
+ * modelled on (`under_lake`: `width.underlake` 0.5 → 1.5 px at `opacity.route`, `dash.route`) — a thicker line at full
+ * strength (1.2 → 2.8 px against the route's 0.8 → 2.4 at 0.35), with the route's own dash, so it reads as the same idea ("not water for you") without fading into the ground.
+ */
+export function noaccessPaint(mode: string, tokens: Tokens, values: ChannelValues | null = NO_VALUES): Record<string, unknown> {
+  return {
+    "line-color": tokens["color.status.no_access"],
+    "line-width": ["interpolate", ["linear"], ["zoom"], 6, 1.2, 10, 1.6, 13, 2.2, 16, 2.8],
+    "line-dasharray": tokens["dash.route"],
+    "line-opacity": noaccessOpacity(mode, values),
+  };
+}
+
 /** The thin platform-specific part each adapter supplies. */
 export interface MapHandle {
   setVisibility(layerId: string, visible: boolean): void;
@@ -318,6 +360,12 @@ export function paintFor(layerId: string, mode: string, tokens: Tokens,
         : o;
   }
 
+  // (T165) a no-access stream section is drawn by its dots (`NOACCESS_LAYER`), never as a solid line under them
+  if (layerId === "stream" && type === "line") {
+    const shown = noAccessShown(layerId, mode, values);
+    if (shown !== null) out["line-opacity"] = withinZoomCurve(out["line-opacity"] ?? 1, (v) => ["case", shown, 0, v]);
+  }
+
   out = dimTheOthers(layerId, type, out, tokens);
 
   /**
@@ -476,6 +524,8 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
     if (layerId === "stream") {
       h.setPaint(NOBASELINE_LAYER, "line-opacity", nobaselineOpacity(mode));
       h.setPaint(NOBASELINE_LAYER, "line-color", tokens["color.water.ungauged"]);
+      // (T165) and so do the no-access dots: shown where this mode (and its day) paints a section no_access
+      for (const [prop, value] of Object.entries(noaccessPaint(mode, tokens, values))) h.setPaint(NOACCESS_LAYER, prop, value);
       // the selection's outline goes with the stream: its width is the stream's, its colour the theme's
       for (const [prop, value] of Object.entries(casingPaint(out["line-width"], tokens)))
         h.setPaint(SELECTION_CASING, prop, value);

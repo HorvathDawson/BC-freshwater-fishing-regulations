@@ -57,6 +57,15 @@ export const WATER_STATUS: Readonly<Record<WaterStatus, { label: string; token: 
   no_access: { label: ACCESS_WORDS.legend, token: "color.status.no_access" },
 };
 
+/**
+ * (T165) HOW EACH STATUS'S LINE IS DRAWN: every regulation answer is a solid line; no public access is DOTTED (owner
+ * 2026-10-23: "dotted grey … like under lakes but a little more visible"), on the map (`stream-noaccess`) and in its
+ * legend swatch alike. Not a key of `WATER_STATUS`, which holds only a label and a colour (no status is a wider line).
+ */
+export const WATER_STATUS_LINE: Readonly<Record<WaterStatus, "solid" | "dotted">> = {
+  closed: "solid", own: "solid", base: "solid", no_access: "dotted",
+};
+
 /** The file's code as a status: `tidal` and `outside` are not one, so they read null. */
 export function statusOfCode(code: StatusCode): WaterStatus | null {
   return code === "closed" || code === "own" || code === "base" ? code : null;

@@ -12,7 +12,8 @@
  *               so it is drawn OVER the fill (the reason the boundaries were moved up from first place, see `mu`)
  *   boundaries  region, region__edge, mu, mu__edge
  *   water lines lake__edge (a lake's status shoreline, `outline.drawAfter`), the selection ring and casing, stream,
- *               stream-nobaseline — the answer, drawn last, so where a boundary crosses a water the water's colour wins
+ *               stream-nobaseline, stream-noaccess (T165's dots) — the answer, drawn last, so where a boundary crosses a
+ *               water the water's colour wins
  *
  * `faults` is a pure function of a layer order, so the mutation pin runs it on the order before T83.
  */
@@ -25,7 +26,7 @@ const BOUNDARIES = ["region", "region__edge", "mu", "mu__edge"];
 /** The water's polygons: a boundary is drawn over these. */
 const FILLS = ["lake", "lake_flowing", "wetland", "wetland_flowing"];
 /** The lines that carry a water's colour (status, flow, stocking) — and what outlines a selected one. */
-const WATER_LINES = ["lake__edge", SELECTION_RINGS.lake, SELECTION_CASING, "stream", "stream-nobaseline"];
+const WATER_LINES = ["lake__edge", SELECTION_RINGS.lake, SELECTION_CASING, "stream", "stream-nobaseline", "stream-noaccess"];
 
 /** Every way an order breaks the rule, one sentence each; empty = the order is right. Layers absent are skipped. */
 export function faults(ids: readonly string[]): string[] {
@@ -53,14 +54,14 @@ describe("boundaries sit under the water's status lines and over its fills (T83)
     expect(faults(ids)).toEqual([]);
   });
 
-  it("the style the map is actually given — with the selection outlines and the no-baseline dash — in every theme", () => {
+  it("the style the map is actually given — with the selection outlines, the no-baseline dash and the no-access dots — in every theme", () => {
     for (const theme of ["light", "dark", "cvd"]) {
       const s = runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles" } as never, theme) as unknown as
         { layers: { id: string; type: string }[] };
       const ids = geometry(s.layers);
       expect([theme, faults(ids)]).toEqual([theme, []]);
-      expect([theme, ids.slice(ids.indexOf("mu__edge"), ids.indexOf("stream-nobaseline") + 1)]).toEqual([theme,
-        ["mu__edge", "lake__edge", SELECTION_RINGS.lake, SELECTION_CASING, "stream", "stream-nobaseline"]]);
+      expect([theme, ids.slice(ids.indexOf("mu__edge"), ids.indexOf("stream-noaccess") + 1)]).toEqual([theme,
+        ["mu__edge", "lake__edge", SELECTION_RINGS.lake, SELECTION_CASING, "stream", "stream-nobaseline", "stream-noaccess"]]);
     }
   });
 

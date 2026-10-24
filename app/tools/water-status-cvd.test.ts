@@ -67,15 +67,13 @@ function ground(theme: string, flavor: string): [string, string][] {
 /** Between any two statuses. ~20 is "a different category at a glance" on a thin line. */
 const STATUS_FLOOR = 20;
 /**
- * (T54, T146) THE FOURTH COLOUR, no public access, against the three as tokens. Dark holds well past the status floor:
- * its ice cyan stands 28.5 off the deep-blue base for the worst reader (T54's ochre stood 15.7 off closed). Light cannot:
- * the owner read T54's indigo as base (T146), and every hue 40 degrees or more off the light base is at most ~12 from
- * closed, own or base for some dichromat as a line (tools/status-colours-distinct.test.ts `WHY.lightAccess`); the spruce
- * (T146 review: the first build's magenta was the selection outline's hue) stands 16.8 off closed under protan (Viénot)
- * as tokens. A colour-blind reader's theme is `cvd`, held by tools/cvd.test.ts and the status-colours gate. Owner
- * question Q-T146a.
+ * (T54, T165) THE FOURTH STATUS, no public access, against the three as tokens. Since T165 it is a GREY drawn DOTTED
+ * (owner 2026-10-23), so the pattern is its first cue and colour its second; a neutral parts from the statuses by
+ * lightness alone. Light's slate stands 25.1 off closed for the worst reader; dark's mid grey only 12.8 — the rose
+ * closed sits at its lightness for a protanope (tools/status-colours-distinct.test.ts `WHY.greyAccess`), and a dotted
+ * grey line beside a solid rose one is still two different marks.
  */
-const ACCESS_FLOOR: Record<"light" | "dark", number> = { light: 16.5, dark: 28 };
+const ACCESS_FLOOR: Record<"light" | "dark", number> = { light: 25, dark: 12.5 };
 /** A status line against the ground under it. */
 const GROUND_FLOOR = 15;
 /**

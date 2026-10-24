@@ -19,7 +19,7 @@ import { layers as basemapLayers, namedFlavor } from "@protomaps/basemaps";
 import { ATLAS_MAX_ZOOM, BASEMAP_MAX_ZOOM, TEMP_BANDS } from "@app/core";
 import { MAP_STYLE, STYLE_META, colorExpression, defaultView, resolveTheme, tempBandColour, withFollowers,
          type Tokens } from "./style";
-import { casingPaint, nobaselineOpacity, paintFor, ringPaint, SELECTION_CASING, SELECTION_RINGS } from "./adapters/contract";
+import { casingPaint, NOACCESS_LAYER, noaccessPaint, nobaselineOpacity, paintFor, ringPaint, SELECTION_CASING, SELECTION_RINGS } from "./adapters/contract";
 import { traceLayers, traceSources } from "./trace-overlay";
 import { BASEMAP_LABELS, basemapLabelPaint } from "./labels";
 
@@ -532,7 +532,19 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
                            6, 1.2, 10, 2, 14, 3.2],
             "line-dasharray": [2.5, 2],
             "line-opacity": nobaselineOpacity(mode ?? "plain"),
-          }}];
+          }},
+        /*
+         * (T165) NO PUBLIC ACCESS — DRAWN DOTTED GREY (owner 2026-10-23), the under-lake route's idea a little
+         * stronger. Its own layer for the same reason as the dash above; the stream layer hides the section under it
+         * (`paintFor`), and the adapter repaints it with the stream's mode and day (`noaccessPaint`). Built with no day
+         * (nothing is no-access until a day is installed), so the first frame draws no dots.
+         */
+        {
+          id: NOACCESS_LAYER, type: "line" as const, source: "atlas",
+          "source-layer": "stream",
+          layout: { "line-cap": "butt" as const, "line-join": "round" as const },
+          paint: noaccessPaint(mode ?? "plain", resolveTheme(theme)),
+        }];
       }),
       /*
        * The basemap's own labels, AFTER ours — see the split above. They still draw; they

@@ -11,7 +11,7 @@
  */
 import { CHANGE_LEGEND, changeMarkWords, chooseLayer, chooseShow, dayLabel, dayRange, layersVM, placeholderFor, syncVM,
          spotBack, TEMP_LEGEND,
-         unprovenLine, WATER_STATUS, WATER_STATUSES, waterExit, waterLegend, withImageryCredit,
+         unprovenLine, WATER_STATUS, WATER_STATUS_LINE, WATER_STATUSES, waterExit, waterLegend, withImageryCredit,
          type SectionKey } from "@app/core";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Keyboard, Platform, Text, View, useWindowDimensions, type TextInput } from "react-native";
@@ -942,7 +942,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
               <MapDayButton palette={palette} day={mapDay} onPress={() => setDayOpen(true)} />
               {WATER_STATUSES.map((s) => (
                 <LegendCount key={s} palette={palette} colour={palette.waterStatus[s]}
-                             line
+                             line dotted={WATER_STATUS_LINE[s] === "dotted"}
                              label={s === "closed" ? (mapDay ? `Closed on ${dayLabel(mapDay)}` : "Closed today")
                                     : WATER_STATUS[s].label} />
               ))}

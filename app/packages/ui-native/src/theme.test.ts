@@ -6,7 +6,14 @@
  * "you are here" marker, on a map whose whole job is to say which of five pins is you.
  */
 import { describe, expect, it } from "vitest";
-import { CVD, DARK, LIGHT, type Palette } from "./theme";
+import { CVD, DARK, LIGHT, NO_ACCESS_BAND, type Palette } from "./theme";
+
+/** `fill` laid over `under` at `a`, as one opaque colour (what the block's tint is). */
+const laidOver = (fill: string, under: string, a: number) => {
+  const p = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+  const [f, u] = [p(fill), p(under)];
+  return `#${f.map((c, i) => Math.round(c * a + u[i]! * (1 - a)).toString(16).padStart(2, "0")).join("")}`;
+};
 
 /** CIE L*a*b* via sRGB, matching `tools/build-style.mjs` so the two guards agree. */
 function lab(hex: string): [number, number, number] {
@@ -99,7 +106,8 @@ describe.each([["light", LIGHT], ["dark", DARK], ["cvd", CVD]] as const)(
 
 describe("(T147) the no-access block's ground", () => {
   for (const [name, p] of [["light", LIGHT], ["dark", DARK], ["cvd", CVD]] as const)
-    it(`is the fourth colour at a glance, and its words read — ${name}`, () => {
+    it(`is the warning amber at a glance (T165: color.ui.warning), and its words read — ${name}`, () => {
+      expect([name, p.noAccessBand]).toEqual([name, laidOver(p.warning, p.card, NO_ACCESS_BAND)]);
       // seen as a tint of the card, never as plain card
       expect([name, deltaE(p.noAccessBand, p.card) >= 3]).toEqual([name, true]);
       // every word on the block is ink, its link too (bold, underlined: the dark accent falls under 4.5:1 on the band)

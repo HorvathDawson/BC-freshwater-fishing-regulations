@@ -4,26 +4,28 @@
  * `@app/ui` `useAccessNotice` says for which section or part; the link shows the area on the water's map.
  *
  * (T147, owner 2026-10-23: "make the no public access a bigger part of the regulations at the top and more obvious")
- * The banner LEADS the page as a block in the fourth map colour: a thick bar of it down the left, its tint as the ground
- * (`palette.noAccessBand`), the legend's line swatch beside a large title ("No public access", the legend's own words),
- * then the plain-words body and the link — every word in ink, which holds 7:1 on the tint. The gentle note stays one
- * small grey line (T54 Q1: permit-only land is this tier).
+ * The banner LEADS the page as a block in the WARNING amber (T165, `palette.warning`: the map draws the water dotted
+ * grey, the warning lives here): a thick bar of it down the left, its tint as the ground (`palette.noAccessBand`), the
+ * legend's own swatch — the map's dotted grey line — beside a large title ("No public access", the legend's own words),
+ * then the plain-words body and the link — every word in ink, which holds 7:1 on the tint (the amber itself is under
+ * 3:1 on the card, so it is never the words). The gentle note stays one small grey line (T54 Q1: permit-only land).
  */
 import { Text, View } from "react-native";
 import type { AccessNotice } from "@app/core";
 import { TYPE } from "../type";
 import { GUTTER, RADIUS, type Palette } from "../theme";
 import { RegsPress } from "./RegsPress";
+import { DottedSwatch } from "../Chrome";
 
 export function AccessNoticeBlock({ notice, palette, onMap }: { notice: AccessNotice; palette: Palette; onMap?: () => void }) {
   if (notice.tier === "no_access") {
-    const colour = palette.waterStatus.no_access;
+    const colour = palette.warning;
     return (
       <View testID="access-banner" style={{ marginTop: 10, marginBottom: 4, marginHorizontal: GUTTER, borderRadius: RADIUS.box,
                                             backgroundColor: palette.noAccessBand, borderLeftWidth: 6, borderLeftColor: colour,
                                             paddingTop: 12, paddingBottom: onMap ? 2 : 12, paddingLeft: 12, paddingRight: 14 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-          <View testID="access-swatch" style={{ width: 22, height: 5, borderRadius: RADIUS.pill, backgroundColor: colour }} />
+          <View testID="access-swatch"><DottedSwatch colour={palette.waterStatus.no_access} width={22} /></View>
           <Text testID="access-title" accessibilityRole="header" style={[TYPE.tier, { color: palette.ink, flex: 1 }]}>
             {notice.title}
           </Text>

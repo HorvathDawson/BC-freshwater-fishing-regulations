@@ -19,10 +19,11 @@
 import { createContext, useContext } from "react";
 import { Linking, Pressable, ScrollView, Text, View } from "react-native";
 import { useLayoutClass } from "@app/ui";
-import { menuVM, WATER_STATUSES, type DataInput, type MenuPageKey, type MoreVM } from "@app/core";
+import { menuVM, WATER_STATUS_LINE, WATER_STATUSES, type DataInput, type MenuPageKey, type MoreVM } from "@app/core";
 import { TYPE } from "../type";
 import { GUTTER, MORE_WIDE, SPACE, THEMES, type Palette, type ThemeName } from "../theme";
 import { FreshDot, FreshBadge } from "./Fresh";
+import { DottedSwatch } from "../Chrome";
 import { Icon } from "../icons";
 
 export interface MoreScreenProps {
@@ -238,7 +239,9 @@ function DisplayTiles({ vm, palette, theme, onTheme }: {
                     <View style={{ backgroundColor: p.card, borderWidth: 1, borderColor: p.line, padding: 6, gap: 4 }}>
                       <View style={{ width: "55%", height: 4, backgroundColor: p.ink }} />
                       {WATER_STATUSES.map((s, i) => (
-                        <View key={s} style={{ width: `${88 - i * 18}%`, height: 3, backgroundColor: p.waterStatus[s] }} />
+                        WATER_STATUS_LINE[s] === "dotted"
+                          ? <DottedSwatch key={s} colour={p.waterStatus[s]} width={36} />
+                          : <View key={s} style={{ width: `${88 - i * 18}%`, height: 3, backgroundColor: p.waterStatus[s] }} />
                       ))}
                     </View>
                   </View>
