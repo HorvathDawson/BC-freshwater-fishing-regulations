@@ -211,20 +211,8 @@ def _ids(ans) -> set:
     return {a["id"] for a in ans}
 
 
-def cases(d: dict, bundle: Path) -> dict:
-    from pipeline.deliver.bundle.rules import release_origins, same_statement
-    K = _Cases(d, bundle)
-    R, RD = K.R, K.RD
-    rid = lambda k: f"{k[0]}::{k[1]}"                              # noqa: E731
-    water = lambda k: EID.is_water_row(k[0]) and R[k]["_rank"] == 0  # noqa: E731
-    zone = lambda k: EID.is_table(k[0]) and R[k]["_rank"] >= 2   # noqa: E731
-    got: dict = {}
-
-    def add(mech, case):
-        if case is not None:
-            got.setdefault(mech, []).append(case)
-
-    # zone_only: no water row binds; the region's trout/char quota speaks for a rainbow
+# zone_only: no water row binds; the region's trout/char quota speaks for a rainbow
+def _find_zone_only(K, rid, add):
     def t(m):
         if any(EID.is_water_row(k[0]) for k in m):
             return
@@ -235,7 +223,9 @@ def cases(d: dict, bundle: Path) -> dict:
                              lambda a: any(EID.is_table(i) and "trout_char_quota" in i
                                            for i in _speaking(a))))
 
-    # quota_beside: same fish or group, a size bound or other difference, smaller at the water
+
+# quota_beside: same fish or group, a size bound or other difference, smaller at the water
+def _find_quota_beside(K, R, RD, rid, water, zone, add, same_statement):
     def t(m):
         for w in m:
             a = R[w]
@@ -255,7 +245,9 @@ def cases(d: dict, bundle: Path) -> dict:
             add("quota_beside", case)
             break
 
-    # larger_replaces: a water row's lift of the zone's aggregate for the fish it names larger
+
+# larger_replaces: a water row's lift of the zone's aggregate for the fish it names larger
+def _find_larger_replaces(K, R, rid, water, zone, add):
     def t(m):
         for w in m:
             a = R[w]
@@ -276,7 +268,9 @@ def cases(d: dict, bundle: Path) -> dict:
             add("larger_replaces", case)
             break
 
-    # same_statement: the water's larger number replaces the zone's
+
+# same_statement: the water's larger number replaces the zone's
+def _find_same_statement(K, R, rid, water, zone, add, same_statement):
     def t(m):
         for w in m:
             for z in m:
@@ -291,7 +285,9 @@ def cases(d: dict, bundle: Path) -> dict:
             add("same_statement", case)
             break
 
-    # water_release: an outright release silencing a zone quota of another dimension
+
+# water_release: an outright release silencing a zone quota of another dimension
+def _find_water_release(K, R, rid, water, zone, add, release_origins):
     def t(m):
         for w in m:
             a = R[w]
@@ -311,7 +307,9 @@ def cases(d: dict, bundle: Path) -> dict:
             add("water_release", case)
             break
 
-    # naming_beats_group / water_names_fish / within_clause_parent_level
+
+# naming_beats_group / water_names_fish / within_clause_parent_level
+def _find_naming_beats_group(K, R, RD, rid, water, zone, add, release_origins):
     def t(m):
         for z in m:
             b = R[z]
@@ -376,7 +374,9 @@ def cases(d: dict, bundle: Path) -> dict:
             add("within_clause_parent_level", case)
             break
 
-    # water_closure_silences_zone: a water's dated closure over the zone's named quota
+
+# water_closure_silences_zone: a water's dated closure over the zone's named quota
+def _find_water_closure_silences_zone(K, R, RD, rid, water, zone, add):
     def t(m):
         for w in m:
             a = R[w]
@@ -397,7 +397,9 @@ def cases(d: dict, bundle: Path) -> dict:
             add("water_closure_silences_zone", case)
             break
 
-    # lifts: derived, printed over a species closure, blanket, equivalent, one fish, partly
+
+# lifts: derived, printed over a species closure, blanket, equivalent, one fish, partly
+def _find_lifts(K, R, rid, water, zone, add):
     def lifts(test):
         def t(m):
             for w in m:
@@ -467,8 +469,11 @@ def cases(d: dict, bundle: Path) -> dict:
     add("partly_lifted", lift_cases(
         "partly_lifted", lambda w, x, z: not full(x), lifted_fish,
         lambda w, x, z: lambda a: any(i["id"] == rid(z) and i.get("partly_lifted") for i in a)))
+    return full, lift_cases, lifted_fish
 
-    # closure_prints_its_exemptions: a region's species closure a water row names, not lifted
+
+# closure_prints_its_exemptions: a region's species closure a water row names, not lifted
+def _find_closure_prints_its_exemptions(K, R, RD, rid, water, zone, add):
     def t(m):
         for z in m:
             b = R[z]
@@ -490,9 +495,11 @@ def cases(d: dict, bundle: Path) -> dict:
             add("closure_prints_its_exemptions", case)
             break
 
-    # two_regions_lake: two regions' tables on one lake, the stricter displacing the other. Never a
-    # lake the book divides into parts (Williston: its Zone A and Zone B halves each take one
-    # table) — the parent's own section there is the sliver the parts leave, not the lake.
+
+# two_regions_lake: two regions' tables on one lake, the stricter displacing the other. Never a
+# lake the book divides into parts (Williston: its Zone A and Zone B halves each take one
+# table) — the parent's own section there is the sliver the parts leave, not the lake.
+def _find_two_regions_lake(K, R, RD, rid, water, zone, add):
     divided = {w["part_of"] for w in K.d["waters"].values() if w.get("part_of")}
     for s in K.sets:
         item, part = K.first_part[s]
@@ -526,8 +533,11 @@ def cases(d: dict, bundle: Path) -> dict:
         if found:
             add("two_regions_lake", found)
             break
+    return divided
 
-    # home_region_differs: a stream piece whose zone rules are another region's than its row's
+
+# home_region_differs: a stream piece whose zone rules are another region's than its row's
+def _find_home_region_differs(K, RD, rid, water, zone, add):
     fam = lambda r: EID.book_region(r) if r else r              # noqa: E731
     for s in K.sets:
         item, part = K.first_part[s]
@@ -546,7 +556,9 @@ def cases(d: dict, bundle: Path) -> dict:
             add("home_region_differs", case)
             break
 
-    # pointer: a pointer-only row's water carries its target's rules
+
+# pointer: a pointer-only row's water carries its target's rules
+def _find_pointer(K, add):
     for eid, e in sorted(K.d["entries"].items()):
         if not e.get("see") or e["rules"] or e["licensing"]:
             continue
@@ -566,7 +578,9 @@ def cases(d: dict, bundle: Path) -> dict:
                 add("pointer", case)
                 break
 
-    # steelhead_water: a rainbow rule over 50 cm only speaks for no rainbow
+
+# steelhead_water: a rainbow rule over 50 cm only speaks for no rainbow
+def _find_steelhead_water(K, R, RD, rid, add):
     for it, p in K.parts:
         if not (p.get("anadromous_rainbow") and p["ruleset"]):
             continue
@@ -580,7 +594,9 @@ def cases(d: dict, bundle: Path) -> dict:
                 add("steelhead_water", case)
                 break
 
-    # steelhead: known | possible streams, a lake with none, an own-row steelhead lake
+
+# steelhead: known | possible streams, a lake with none, an own-row steelhead lake
+def _find_steelhead(K, rid, add):
     def steelhead_case(mech, part_test, check, fish="ST"):
         for it, p in K.parts:
             w = K.d["waters"][it]
@@ -621,10 +637,14 @@ def cases(d: dict, bundle: Path) -> dict:
                    and p.get("steelhead") == "known" and p.get("anadromous_rainbow")
                    and "regulations" in (w.get("steelhead_source") or ())
                    and not _in_steelhead_region(m), has_province)
-    # 2026-10-02: the curated list is a presence indicator — a listed water outside the steelhead
-    # regions is known and carries no steelhead rule (the Okanagan River in Region 8); 2026-10-03:
-    # no steelhead rule applies there (`steelhead_rules: false`), so a rainbow of any size is a
-    # rainbow — the case asks about a rainbow, and the water's own rainbow line answers
+    return steelhead_case
+
+
+# 2026-10-02: the curated list is a presence indicator — a listed water outside the steelhead
+# regions is known and carries no steelhead rule (the Okanagan River in Region 8); 2026-10-03:
+# no steelhead rule applies there (`steelhead_rules: false`), so a rainbow of any size is a
+# rainbow — the case asks about a rainbow, and the water's own rainbow line answers
+def _find_steelhead_known_by_the_list(K, steelhead_case):
     steelhead_case("steelhead_known_by_the_list", lambda w, p, m: w["kind"] == "stream"
                    and w["entries"]
                    and p.get("steelhead") == "known" and p.get("steelhead_rules") is False
@@ -635,7 +655,9 @@ def cases(d: dict, bundle: Path) -> dict:
                    lambda a: not any(is_steelhead_rule(K.d["rules"][i]) for i in _ids(a)
                                      if i in K.d["rules"]), fish="RB")
 
-    # dated rules, in and out of force (the same water, fish and part)
+
+# dated rules, in and out of force (the same water, fish and part)
+def _find_dated_in_and_out_of_force(K, R, rid, water, add):
     def t(m):
         for w in m:
             a = R[w]
@@ -655,7 +677,9 @@ def cases(d: dict, bundle: Path) -> dict:
             add("dated_out_of_force", outside)
             break
 
-    # semicolon_dated_clause: "A; B, <dates>" — A all year
+
+# semicolon_dated_clause: "A; B, <dates>" — A all year
+def _find_semicolon_dated_clause(K, R, rid, add):
     for s in K.sets:
         item, part = K.first_part[s]
         m = K.members[s]
@@ -681,7 +705,9 @@ def cases(d: dict, bundle: Path) -> dict:
                 add("semicolon_dated_clause", case)
                 break
 
-    # one rule of a kind, in the answer on a day it is in force
+
+# one rule of a kind, in the answer on a day it is in force
+def _find_single_rules(K, R, rid, water, add):
     def single(mech, test, check=None, state="yes", pick=None):
         for s in K.sets:
             item, part = K.first_part[s]
@@ -699,9 +725,12 @@ def cases(d: dict, bundle: Path) -> dict:
                 if case:
                     add(mech, case)
                     return
+    return single
 
-    # a rule held some hours or weekdays DECIDES at the moments it covers (user ruling
-    # 2026-10-08): asked at the first moment it is in force, it speaks
+
+# a rule held some hours or weekdays DECIDES at the moments it covers (user ruling
+# 2026-10-08): asked at the first moment it is in force, it speaks
+def _find_part_day_decides(RD, rid, single):
     part_day = lambda x: bool((x.get("when") or {}).get("hours") or (x.get("when") or {})
                               .get("weekdays"))
     single("part_day_decides", lambda k, x: part_day(x),
@@ -709,8 +738,11 @@ def cases(d: dict, bundle: Path) -> dict:
            state="part",
            pick=lambda x, on, ms: next((i for i, m in enumerate(ms)
                                         if RD.in_force(x.get("when"), on, m) == "yes"), None))
-    # suspended_while: no rule carries it today; a licensing record does ("Steelhead Stamp not
-    # required until reopened to steelhead fishing") — the case asks on a day its closure speaks.
+
+
+# suspended_while: no rule carries it today; a licensing record does ("Steelhead Stamp not
+# required until reopened to steelhead fishing") — the case asks on a day its closure speaks.
+def _find_suspended_while(K, R, rid, water, add, single):
     for it, p in K.parts:
         if not (p["ruleset"] and p["licensing_set"]):
             continue
@@ -771,9 +803,11 @@ def cases(d: dict, bundle: Path) -> dict:
                 add("gear_only", case)
                 break
 
-    # ---- sample waters added 2026-09-26 ----------------------------------------------------
-    # clause_only_lift: a water number lifting only a clause; the fish still counts toward the
-    # parent aggregate, which speaks
+
+# ---- sample waters added 2026-09-26 ----------------------------------------------------
+# clause_only_lift: a water number lifting only a clause; the fish still counts toward the
+# parent aggregate, which speaks
+def _find_clause_only_lift(R, rid, water, zone, add, full, lift_cases, lifted_fish):
     def parent(z):
         return (z[0], R[z]["within"]) if R[z].get("within") else None
     add("clause_only_lift", lift_cases(
@@ -785,7 +819,9 @@ def cases(d: dict, bundle: Path) -> dict:
         lambda w, x, z: lambda a: rid(w) in _speaking(a) and rid(z) not in _ids(a)
         and rid(parent(z)) in _speaking(a)))
 
-    # dated_lift: on a day the lifter's dates exclude, the lifted rule speaks again
+
+# dated_lift: on a day the lifter's dates exclude, the lifted rule speaks again
+def _find_dated_lift(K, R, RD, rid, water, add, lifted_fish):
     def dated_lift_cases():
         for s in K.sets:
             item, part = K.first_part[s]
@@ -809,7 +845,9 @@ def cases(d: dict, bundle: Path) -> dict:
             add("dated_lift", case)
             break
 
-    # same_statement_smaller: the water's smaller number replaces the zone's same statement
+
+# same_statement_smaller: the water's smaller number replaces the zone's same statement
+def _find_same_statement_smaller(K, R, rid, water, zone, add, same_statement):
     def t(m):
         for w in m:
             for z in m:
@@ -825,7 +863,9 @@ def cases(d: dict, bundle: Path) -> dict:
             add("same_statement_smaller", case)
             break
 
-    # streams_only_zone_clause: "2 from streams" speaking on a stream
+
+# streams_only_zone_clause: "2 from streams" speaking on a stream
+def _find_streams_only_zone_clause(K, R, rid, zone, add):
     for s in K.sets:
         item, part = K.first_part[s]
         if K.d["waters"][item]["kind"] != "stream":
@@ -844,7 +884,9 @@ def cases(d: dict, bundle: Path) -> dict:
             add("streams_only_zone_clause", case)
             break
 
-    # two_regions_closure / two_regions_release: what displaced the other region's rule
+
+# two_regions_closure / two_regions_release: what displaced the other region's rule
+def _find_two_regions_closure(K, R, RD, rid, zone, add, divided):
     shut = _closure                                                   # the one predicate
     released = lambda x: catch_and_release(x) and not x.get("lengths")  # noqa: E731
     for mech, how in (("two_regions_closure", shut), ("two_regions_release", released)):
@@ -884,7 +926,9 @@ def cases(d: dict, bundle: Path) -> dict:
                 break
         add(mech, found)
 
-    # keep_beside_release: a clause keeping some of a fish beside a release of the others
+
+# keep_beside_release: a clause keeping some of a fish beside a release of the others
+def _find_keep_beside_release(K, R, rid, add):
     def t(m):
         for k1 in m:
             a = R[k1]
@@ -906,7 +950,9 @@ def cases(d: dict, bundle: Path) -> dict:
             add("keep_beside_release", case)
             break
 
-    # undrawn_closure: an undrawn closure shown as a note while the zone speaks (Kinbasket first)
+
+# undrawn_closure: an undrawn closure shown as a note while the zone speaks (Kinbasket first)
+def _find_undrawn_closure(K, R, RD, rid, zone, add):
     order = sorted(K.sets, key=lambda s_: (not any("kinbasket" in k[0]
                                                     for k in K.members[s_]), int(s_)))
     for s in order:
@@ -928,7 +974,9 @@ def cases(d: dict, bundle: Path) -> dict:
             add("undrawn_closure", case)
             break
 
-    # size_clause_caution: a lift of a region size clause, carrying its caution
+
+# size_clause_caution: a lift of a region size clause, carrying its caution
+def _find_size_clause_caution(R, rid, water, add, lift_cases, lifted_fish):
     add("size_clause_caution", lift_cases(
         "size_clause_caution",
         # only a row printing "(any size)" carries the caution (user ruling 2026-09-28)
@@ -937,7 +985,9 @@ def cases(d: dict, bundle: Path) -> dict:
         lifted_fish,
         lambda w, x, z: lambda a: rid(w) in _speaking(a) and rid(z) not in _ids(a)))
 
-    # named sample waters: Kootenay Lake's rainbow 10, the Dean beside, a straddling lake
+
+# named sample waters: Kootenay Lake's rainbow 10, the Dean beside, a straddling lake
+def _find_named_sample_waters(K, R, RD, rid, zone, add):
     def named(mech, entry_prefix, fish, check, rule_test=lambda x: True, on=None):
         eids = sorted(e for e in K.d["entries"] if e.startswith(entry_prefix))
         for eid in eids:
@@ -1009,11 +1059,13 @@ def cases(d: dict, bundle: Path) -> dict:
             break
     add("straddling_named_lake", straddle)
 
-    # ---- CLEAN round (2026-10-05): one clean case per RU ruling, and the two lakes the consumer
-    # asked about. Each is a NAMED water (by item id where the name repeats), its first part whose
-    # rule set holds every rule of `because`, on a fixed day; the `expect` is the reference
-    # reader's (`effective_rules`), and the check is what the mechanism claims of it. A check that
-    # fails leaves the case out, and `missing` says so.
+
+# ---- CLEAN round (2026-10-05): one clean case per RU ruling, and the two lakes the consumer
+# asked about. Each is a NAMED water (by item id where the name repeats), its first part whose
+# rule set holds every rule of `because`, on a fixed day; the `expect` is the reference
+# reader's (`effective_rules`), and the check is what the mechanism claims of it. A check that
+# fails leaves the case out, and `missing` says so.
+def _find_clean_round_cases(K, rid, add):
     def water_case(mech, item, on, fish, because, check):
         w = K.d["waters"].get(item)
         for p_ in (w or {}).get("parts", []):
@@ -1069,7 +1121,9 @@ def cases(d: dict, bundle: Path) -> dict:
             add(mech, water_case(mech, item, on, fish, sorted(set(speak) | set(absent)),
                                  says(speak, absent)))
 
-    # licensing, the province's exceptions, and water outside B.C.
+
+# licensing, the province's exceptions, and water outside B.C.
+def _find_licensing(K, add):
     L = K.d["licensing"]
 
     def lic_case(mech, test, part_test=lambda p: True):
@@ -1096,6 +1150,54 @@ def cases(d: dict, bundle: Path) -> dict:
                 if case:
                     add("outside_bc", case)
                     break
+
+
+def cases(d: dict, bundle: Path) -> dict:
+    from pipeline.deliver.bundle.rules import release_origins, same_statement
+    K = _Cases(d, bundle)
+    R, RD = K.R, K.RD
+    rid = lambda k: f"{k[0]}::{k[1]}"                              # noqa: E731
+    water = lambda k: EID.is_water_row(k[0]) and R[k]["_rank"] == 0  # noqa: E731
+    zone = lambda k: EID.is_table(k[0]) and R[k]["_rank"] >= 2   # noqa: E731
+    got: dict = {}
+
+    def add(mech, case):
+        if case is not None:
+            got.setdefault(mech, []).append(case)
+
+    # THE FINDERS, one block of the old body each, in this order: a mechanism several of them find
+    # lists its cases in the order they ran
+    _find_zone_only(K, rid, add)
+    _find_quota_beside(K, R, RD, rid, water, zone, add, same_statement)
+    _find_larger_replaces(K, R, rid, water, zone, add)
+    _find_same_statement(K, R, rid, water, zone, add, same_statement)
+    _find_water_release(K, R, rid, water, zone, add, release_origins)
+    _find_naming_beats_group(K, R, RD, rid, water, zone, add, release_origins)
+    _find_water_closure_silences_zone(K, R, RD, rid, water, zone, add)
+    full, lift_cases, lifted_fish = _find_lifts(K, R, rid, water, zone, add)
+    _find_closure_prints_its_exemptions(K, R, RD, rid, water, zone, add)
+    divided = _find_two_regions_lake(K, R, RD, rid, water, zone, add)
+    _find_home_region_differs(K, RD, rid, water, zone, add)
+    _find_pointer(K, add)
+    _find_steelhead_water(K, R, RD, rid, add)
+    steelhead_case = _find_steelhead(K, rid, add)
+    _find_steelhead_known_by_the_list(K, steelhead_case)
+    _find_dated_in_and_out_of_force(K, R, rid, water, add)
+    _find_semicolon_dated_clause(K, R, rid, add)
+    single = _find_single_rules(K, R, rid, water, add)
+    _find_part_day_decides(RD, rid, single)
+    _find_suspended_while(K, R, rid, water, add, single)
+    _find_clause_only_lift(R, rid, water, zone, add, full, lift_cases, lifted_fish)
+    _find_dated_lift(K, R, RD, rid, water, add, lifted_fish)
+    _find_same_statement_smaller(K, R, rid, water, zone, add, same_statement)
+    _find_streams_only_zone_clause(K, R, rid, zone, add)
+    _find_two_regions_closure(K, R, RD, rid, zone, add, divided)
+    _find_keep_beside_release(K, R, rid, add)
+    _find_undrawn_closure(K, R, RD, rid, zone, add)
+    _find_size_clause_caution(R, rid, water, add, lift_cases, lifted_fish)
+    _find_named_sample_waters(K, R, RD, rid, zone, add)
+    _find_clean_round_cases(K, rid, add)
+    _find_licensing(K, add)
 
     return {
         "reading": "SAMPLE WATERS for the UI to look at and build against while it is being "
