@@ -27,6 +27,10 @@ export function useMapInstance(refs: WebMapRefs,
   // read by the map's one `error` handler, which is bound once at construction
   const imageryError = useRef(onImageryError);
   imageryError.current = onImageryError;
+  // (T181) the theme NOW, for the generated images: the map is built once per set of archives, so a closure over
+  // `theme` would repaint the pill in the theme the map was built with after every light / dark / cvd switch
+  const themeNow = useRef(theme);
+  themeNow.current = theme;
   useEffect(() => {
     if (!host.current) return;
     registerPMTiles();
@@ -134,7 +138,7 @@ export function useMapInstance(refs: WebMapRefs,
      * `styleimagemissing` is the belt to that brace: MapLibre fires it the moment a layer
      * asks for an image it does not have, so the pill arrives however the ordering falls.
      */
-    const addPill = () => addImages(m, theme);
+    const addPill = () => addImages(m, themeNow.current);
     pill.current = addPill;
     m.on("styleimagemissing", (e: { id: string }) => {
       if (isGeneratedImage(e.id))
