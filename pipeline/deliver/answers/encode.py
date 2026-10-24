@@ -89,6 +89,7 @@ SPEC = {
                  "(absent, never empty), `counts`",
         "spec": "this dictionary",
         "schemas": "{section | section.table: JSON Schema} — every frame's and static table's "
+                   # SHIPPED TEXT, kept verbatim by T62: it names the pre-split path; changing it changes the release (owner's call).
                    "model (`pipeline/deliver/answers/model.py`: strict, no extra field; each "
                    "nullable field null exactly where its model says)",
         "fish": "[fish code] — the leaf species codes (`ui-rules-guide.json` `species`) the "

@@ -107,6 +107,7 @@ ENCODING_TEXT = {
              "`field_dictionary`, `species`). Both carry the same `about.bundle` (digests "
              "`section_handles`, `reach_digest`); never pair files whose digests differ. The "
              "rest of this dictionary describes the DECODED records; this section says how the "
+             # SHIPPED TEXT, kept verbatim by T62: it names the pre-split path; changing it changes the release (owner's call).
              "data file encodes them. `pipeline/tools/export_codec.py` `expand(data, guide)` is "
              "the reference decoder",
     "data file keys": {
@@ -408,6 +409,7 @@ def compact(doc: dict, *, family_of_type: dict, rank: dict) -> tuple[dict, dict]
     }
     guide = {"about": {"what": "How to read ui-rules-export.json: the guide, the field "
                                "dictionary and the species list. Written with it, from the same "
+                               # SHIPPED TEXT, kept verbatim by T62: it names the pre-split path; changing it changes the release (owner's call).
                                "bundle, by pipeline/tools/export_ui_rules.py.",
                        "bundle": doc["about"]["bundle"], "format": FORMAT},
              **{k: doc[k] for k in GUIDE_KEYS}}

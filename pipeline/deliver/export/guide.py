@@ -138,6 +138,7 @@ def guide_contents() -> dict:
                    "combine (a row's and its zone's: both hold), dated bait bans that replace "
                    "the zone's",
         "examples": "EVERY water, date and fish the prose above uses as an example, as data "
+                    # SHIPPED TEXT, kept verbatim by T62: it names the pre-split path; changing it changes the release (owner's call).
                     "(`pipeline/tools/guide_examples.py`): the rules it says speak and the ones "
                     "it says are silent, and the reference reader's answer (`expect`). The "
                     "export refuses to write when the two disagree, and refuses prose naming a "
