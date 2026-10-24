@@ -188,9 +188,9 @@ def _items(db: sqlite3.Connection, build_dir: Path, registry_items: list[dict],
                     for i in items))
     cov.filled("item", len(ords))
 
-    # Normalised the way the TILE normalises its search haystack — same function, imported.
-    # The registry carries both cases of many strings ("EAST WHITE RIVER" and "East White
-    # River"); `pipeline/deliver/tiles/names.normalise` folds them, and this used to compare raw,
+    # A variant is a NEW alias only when its name key (`names.key`, through `tiles.names.normalise`)
+    # is new. The registry carries both cases of many strings ("EAST WHITE RIVER" and "East White
+    # River"); the key folds them, and this used to compare raw,
     # so the tile dropped ~3,000 shouting duplicates and the bundle kept them. Two search
     # paths that disagree about what a distinct name is will return different results for
     # the same query, which is the one thing a search index may not do.

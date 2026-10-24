@@ -67,17 +67,14 @@ def test_normalise_folds_the_case_that_caused_it():
     assert normalise("Chilliwack  River") == normalise("Chilliwack River")
 
 
-def test_normalise_does_not_yet_fold_a_possessive():
-    """A known limit, pinned so it is a decision rather than a surprise.
-
-    Punctuation becomes a SPACE, so "St. Mary's Lake" and "St Marys Lake" are two names to
-    this function. They are one lake to a person, and someone typing either should find it.
-    Changing it would change the tile's search haystack as well as the bundle's — which is
-    now the point: there is one function, so it is one decision, made once.
-    """
+def test_normalise_folds_a_possessive():
+    """DECIDED (T61 2.8): an apostrophe is DELETED, not spaced, so "St. Mary's Lake" and "St Marys Lake"
+    are one name — the same answer the regulation matcher always gave. `normalise` IS `names.key`."""
+    from pipeline.common.names import key
     from pipeline.deliver.tiles.names import normalise
 
-    assert normalise("St. Mary's Lake") != normalise("St Marys Lake")
+    assert normalise("St. Mary's Lake") == normalise("St Marys Lake") == "st marys lake"
+    assert normalise is not key and normalise("Joe's Lake") == key("Joe's Lake")
 
 
 def test_the_trust_bands_agree_across_the_language_boundary():
