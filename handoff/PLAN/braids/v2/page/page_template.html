@@ -111,6 +111,9 @@ const QUESTIONS = [
   { id: "q_length_home", title: "May a moved length cut change which region a straddling piece belongs to?",
     body: `Length cuts now avoid junctions a braid spans. ${DATA.length.moved} moved, ${DATA.length.dropped} were dropped and ${DATA.length.added} added; no rule binds a length cut and the sweep cut ${DATA.length.sweep_braid_cuts} braids at them. One side effect: a 1 km Fraser piece that straddles the Region 5/7 line now has most of its length in Region 7, so it takes Region 7's rules instead of Region 5's (44 rule bindings). Yes accepts that; No means length cuts must never move a piece's home region.`,
     list: Object.entries(DATA.length.home_moves).flatMap(([blk, rs]) => rs.slice(0, 6).map((r) => `blk ${blk}: ${r.rule_id} ${signed(r.delta_m)}`)) },
+  { id: "q_exchamsiks_host", title: "Exchamsiks: cut the Skeena mainstem, not its side channel?",
+    body: "The curated split \"Exchamsiks River into Skeena River\" resolves onto a Skeena side channel, so the sweep cut the mainstem 1.75 km away and the braid still straddles. The proposed fix pins the split to the mainstem line (blk 360887278) and lets it project from 1.5 km away (the Exchamsiks mouth is 1,252 m from the mainstem). Yes applies this change to data/curated/waters/splits.json.",
+    list: ["applies_to: { wsc: \"400\" }  →  { blk: \"360887278\" }", "adds proximity_m: 1500"] },
 ];
 const INFO = [
   { title: "Still to fix before this can ship (Claude)", list: [
