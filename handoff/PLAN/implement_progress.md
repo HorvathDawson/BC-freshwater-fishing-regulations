@@ -3,7 +3,21 @@
 Restart here. Update this file after EVERY step: what is done, what is running, and the exact next action.
 Logs from timing runs live in the session scratchpad, which a reboot wipes. The numbers that matter are copied here.
 
-## CURRENT STATE (2026-10-24, night — owner asleep)
+## CURRENT STATE (2026-10-24, morning)
+- Live release **r-bb4331929428** (LATEST). Cleanup band done: T60, T61 (incl. 2.8 name normaliser, PROMOTED — no
+  binding change, 3 duplicate aliases dropped), T62 (app + pipeline lanes; byte-identical outputs), T63 (MAP.md docs,
+  knip in check, synopsis isolation fixed), T70, T72. Strict app check 8173 green; full pytest 5406 passed, 0 errors.
+  Deps: main checkout installed knip (`pnpm -C app install --frozen-lockfile --offline`).
+- Owner: **braid review page https://claude.ai/artifact/Et8B4Z6ZbKNNw9mMkJWzFH** (marks in its db, collection
+  "marks"; read with ArtifactData list). Push is off in /config.
+- Running: T67 braid lane (branch worktree-agent-a56da8d758379fc5a, NOT merged: fixing 2 reach-gate failures + 6
+  residual straddles, rebasing onto the moved branch, regenerating cuts.json → rebuild the page with
+  handoff/PLAN/braids/v2/page/build_page.py and republish the same file path); T180 + T181 app lane.
+- Waiting on the braid merge (same files): T62 3.2 atlas/build.py + 3.9 dfo_salmon, T73 reach hand-off.
+- Next after that: tiles window (T64 + unnamed-wetland drop, T85, T75, T113, T129, T152, T155), T166, T164, T162,
+  T173, T174, T179 (one cut-placement pass, after braids), T178 (~2026-12-05), native T50 → T74 → owner.
+
+## (earlier) CURRENT STATE (2026-10-24, night — owner asleep)
 - Live release **r-d6ef0ca7eab4** (data/release/LATEST; :39217 serves it). T61 lanes A/B/C merged; rebuild bound
   nothing differently; strict app check green (8162); full pytest 5343 passed (4 synopsis_pages order-dependent → T63).
 - Done tonight: T172 (Android smoke → 9 lines in T50), T70, T72 (LATEST/PUBLISHED pointers, prune; 22 old releases
