@@ -136,7 +136,8 @@ def _all(a) -> int:
             (d / "regs.sqlite").unlink(missing_ok=True)
         homes = canonical_homes(debug)
         # the release folder(s) go to data/release/ (or <out-dir>/release/), whole
-        releases = sorted(p for p in (d / "release").iterdir()) if (d / "release").exists() else []
+        # only the r-* folders: the release step's LATEST pointer is re-written below, once the folder is in place (T72)
+        releases = sorted(p for p in (d / "release").glob("r-*") if p.is_dir()) if (d / "release").exists() else []
         names = sorted(p.name for p in d.iterdir() if p.name != "release")
         unknown = [n for n in names if dest is None and n not in homes]
         if unknown:
@@ -152,6 +153,9 @@ def _all(a) -> int:
             if (rel_root / r.name).exists():          # the same content id: identical bytes, replaced whole
                 shutil.rmtree(rel_root / r.name)
             os.replace(r, rel_root / r.name)
+        if releases:
+            from pipeline.deliver.release.manifest import write_latest
+            write_latest(rel_root, releases[-1].name)
         print(f"pipeline.deliver: promoted {len(names)} files to {dest or 'their canonical homes'}"
               + (f" and release {', '.join(r.name for r in releases)} to {rel_root}" if releases else ""))
         return 0

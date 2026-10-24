@@ -38,6 +38,7 @@ def _fake_steps(monkeypatch, fail_at=None, vintage_ok=True):
             r = Path(args[args.index("--out-root") + 1]) / "r-test"
             r.mkdir(parents=True)
             (r / "manifest.json").write_text("new manifest")
+            (r.parent / "LATEST").write_text("r-test\n")    # the release step names it (T72)
             return
         out = Path(args[args.index("--out") + 1]).parent if "--out" in args else Path(args[args.index("--export-dir") + 1])
         for f in WRITES[name]:
@@ -120,3 +121,16 @@ def test_the_answers_step_writes_one_file_and_no_gzip_copy(tmp_path):
     assert sorted(p.name for p in tmp_path.iterdir()) == ["ui-rules-answers.json"]
     assert out.read_bytes() == b'{"a":1}\n' and sizes["raw"] == 8
     assert not any(n.endswith(".gz") for n in D.canonical_homes())
+
+
+def test_a_live_latest_pointer_is_replaced_not_treated_as_a_release(monkeypatch, tmp_path):
+    """T72 (2026-10-24 build): the promote moved the staged LATEST onto the live one with rmtree and crashed after
+    the files were promoted. Only r-* folders are promoted; LATEST is re-written once the folder is in place."""
+    dest = tmp_path / "out"
+    _live(dest)
+    (dest / "release").mkdir()
+    (dest / "release" / "LATEST").write_text("r-old\n")
+    _fake_steps(monkeypatch)
+    assert D.main(["all", "--out-dir", str(dest)]) == 0
+    assert (dest / "release" / "LATEST").read_text().strip() == "r-test"
+    assert sorted(p.name for p in (dest / "release").iterdir()) == ["LATEST", "r-test"]
