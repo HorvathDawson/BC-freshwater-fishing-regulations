@@ -54,7 +54,7 @@ export type { ShellProps } from "./shell/props";
 
 export function Shell(p: ShellProps) {
   const { source, palette, theme, tiles, spots = [], onSaveSpot, weather, feed, photos, loader = null, locate = null,
-          menuInfo, checkRelease = null, hydat } = p;
+          menuInfo, checkRelease = null, releaseNamed = null, hydat } = p;
   const nav = useShellNav({ source, loader, systemBack: p.systemBack ?? null, initialRoute: p.initialRoute });
   const { route, go, tab, frame, adding, openSpot, back, backLayers } = nav;
   /*
@@ -103,7 +103,7 @@ export function Shell(p: ShellProps) {
    * THE SYNC STATE (owner 2026-10-22): when the flows were last published, whether a newer data release exists, and the
    * icon's refresh — ONE reading of the feed's age for the top bar's icon and More's Data block alike.
    */
-  const syncState = useSync({ feed, release: loader?.release ?? null, checkRelease });
+  const syncState = useSync({ feed, release: loader?.release ?? null, checkRelease, named: releaseNamed });
   const col = useMapColouring({ source, feed, status: p.status ?? null, pairing: p.pairing ?? null, tiles,
                                 layerStore: p.layerStore, attribution: p.attribution, mapTab: nav.mapTab, mapDay,
                                 epoch: syncState.epoch });

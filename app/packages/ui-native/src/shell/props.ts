@@ -75,6 +75,11 @@ export interface ShellProps {
    */
   checkRelease?: (() => Promise<string | null>) | null;
   /**
+   * (T129) The release the server named when this launch read its manifest, standing in for `checkRelease`'s first ask
+   * (`useSync` `named`): the web's boot read it an instant before. Absent or null (the phone): the first check asks.
+   */
+  releaseNamed?: string | null;
+  /**
    * Where the Layers sheet's choice is kept across a reload (`@app/data/spots` `openLayerStore`): the Spots switch and
    * every other (owner 2026-10-22). Absent: the defaults, kept for the session only.
    */

@@ -79,3 +79,32 @@ describe("useSync: (T68) the newest forecast run's issue time rides the same rea
     expect(got).toEqual(["2026-10-22T12:53:00", null, undefined, undefined]);
   });
 });
+
+describe("useSync: (T129) the web's boot read answers the first release check", () => {
+  const noIndex = feedOf(() => null);              // one feed: its identity is an effect dependency
+  function Named({ named, check, out }: { named: string | null; check: () => Promise<string | null>;
+                                          out: { s?: SyncState } }) {
+    out.s = useSync({ feed: noIndex, release: "r-1", checkRelease: check, named });
+    return null;
+  }
+
+  it("named: no second manifest request at mount; a tap asks the server, and says a newer release", async () => {
+    let asks = 0;
+    const check = async () => { asks++; return "r-2"; };
+    const out: { s?: SyncState } = {};
+    render(<Named named="r-1" check={check} out={out} />);
+    await settle();
+    expect([asks, out.s!.newRelease]).toEqual([0, null]);
+    act(() => out.s!.refresh());
+    await act(async () => { await new Promise((r) => setTimeout(r, 700)); });
+    expect([asks, out.s!.newRelease]).toEqual([1, "r-2"]);
+  });
+
+  it("not named (a phone: its boot opened the held set): the first check asks", async () => {
+    let asks = 0;
+    const out: { s?: SyncState } = {};
+    render(<Named named={null} check={async () => { asks++; return "r-2"; }} out={out} />);
+    await settle();
+    expect([asks, out.s!.newRelease]).toEqual([1, "r-2"]);
+  });
+});

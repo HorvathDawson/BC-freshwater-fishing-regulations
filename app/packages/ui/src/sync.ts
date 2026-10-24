@@ -62,12 +62,18 @@ export interface SyncState {
   readonly refresh: () => void;
 }
 
-export function useSync({ feed, release, checkRelease }: {
+export function useSync({ feed, release, checkRelease, named = null }: {
   feed?: GaugeFeed;
   /** the data release in use (the loader's), or null (no release open: nothing to compare) */
   release: string | null;
   /** reads the release id the server names now; absent: no release to check */
   checkRelease?: (() => Promise<string | null>) | null;
+  /**
+   * (T129) the release id the server named when this launch read its manifest — the web's boot, an instant before the
+   * Shell mounted — which answers the FIRST check instead of asking the server again (a second manifest request on
+   * every web visit). The poll and a tap still ask. null (the phone, whose boot opened the HELD set): the first check asks.
+   */
+  named?: string | null;
 }): SyncState {
   const [epoch, setEpoch] = useState(0);
   const tick = usePoll(SYNC_POLL_MS, !!feed || !!checkRelease);
@@ -81,18 +87,19 @@ export function useSync({ feed, release, checkRelease }: {
     let live = true;
     setSt((s) => ({ ...s, checking: true }));
     const asked = epoch > 0;
+    const first = epoch === 0 && tick === 0 && named !== null;
     Promise.all([
       feed ? feed.index().then((i) => ({ at: i?.fetchedAt ?? null, hydat: noticeOf(i), forecast: forecastOf(i) }),
                                () => ({ at: null, hydat: null, forecast: undefined }))
            : Promise.resolve({ at: null, hydat: null, forecast: undefined }),
-      checkRelease ? checkRelease().catch(() => null) : Promise.resolve(null),
+      checkRelease ? (first ? Promise.resolve(named) : checkRelease().catch(() => null)) : Promise.resolve(null),
       asked ? new Promise((r) => setTimeout(r, SYNC_MIN_CHECK_MS)) : null,
     ]).then(([idx, latest]) => {
       if (live) setSt({ feedFetchedAt: idx.at, checkedAt: idx.at !== null ? Date.now() : null, latest,
                         hydatNotice: idx.hydat, forecastIssuedAt: idx.forecast, checking: false });
     });
     return () => { live = false; };
-  }, [feed, checkRelease, epoch, tick]);
+  }, [feed, checkRelease, epoch, tick, named]);
   const refresh = useCallback(() => { feed?.refresh?.(); setEpoch((e) => e + 1); }, [feed]);
   const newRelease = st.latest !== null && release !== null && st.latest !== release ? st.latest : null;
   return { feedFetchedAt: st.feedFetchedAt, checkedAt: st.checkedAt, newRelease, hydatNotice: st.hydatNotice,

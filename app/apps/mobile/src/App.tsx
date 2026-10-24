@@ -12,7 +12,7 @@
  * set: the map then draws the development tiles, and their stamped `tile_version` is what proves the pair (`pairingOf`).
  */
 import { useCallback, useMemo, useState } from "react";
-import { SafeAreaView, StatusBar, Text, View, useColorScheme, useWindowDimensions } from "react-native";
+import { Platform, SafeAreaView, StatusBar, Text, View, useColorScheme, useWindowDimensions } from "react-native";
 import { useFonts } from "expo-font";
 import {
   BricolageGrotesque_700Bold, BricolageGrotesque_800ExtraBold,
@@ -166,6 +166,9 @@ export default function App() {
         )}
         <Shell source={data.source} palette={palette} loader={data.loader} menuInfo={MENU_INFO}
                checkRelease={checkRelease}
+               // T129: the web's boot read the server's manifest an instant ago; the sync icon's first check takes that
+               // read rather than a second request (a phone's boot opened its HELD set, so its first check still asks)
+               releaseNamed={Platform.OS === "web" ? data.loader.manifest.data_release : null}
                layerStore={layerStore} likeStore={likeStore}
                theme={name} themeName={name}
                onTheme={setTheme} tiles={data.tiles}
