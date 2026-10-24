@@ -39,6 +39,7 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   Q145 where and how often the DFO re-fetch runs.
 - **Batch 7:** Q146 re-centre the map when the parts list opens · Q147 steelhead lake wording on newly taken ponds ·
   Q148 dams → "lake" for the slough candidates · Q149 Bonaparte by hand.
+- **No-access look (T165, built):** Q156 grey lake fill too heavy? · Q157 dashes or true dots? Reload :39218 to see it.
 - **Gauge gaps on main rivers (T174):** Q153–Q155, measured before anything changes.
 - **Run timing (T162, new):** Q144 default species, passage reaches shown dashed, its own map layer.
 - **Scope and big rebuilds:** Q6 braids · Q10 imagery corridor · Q32 salmon plan · Q125 sewage/tailings/dumps drawn

@@ -209,7 +209,7 @@ use that as the sole source of future work."
 | T162 | salmon/steelhead run timing in the app: refresh + regenerate the data, ship a release file, a "Runs" colouring layer + sheet | OPEN | — | feature; size L |
 | T163 | McKinley Creek r1x (reported catch-and-release on the upstream pond) | DROPPED | — | not a defect: r1x is the spring-closure lift (RULINGS L13), whole by design; r1 (the C&R) already stops at the lake |
 | T164 | salmon (DFO): finish the dossier, place the 96+7 splits, review the extents, fetch + place current quotas | OPEN | — | umbrella over T95/T132; ★ owner confirms proposed splits |
-| T165 | no public access: streams dotted grey (owner), warning amber only in the page banner; own keeps amber | OPEN | — | app style |
+| T165 | no public access: streams dotted grey (owner), warning amber only in the page banner; own keeps amber | DONE | f438d417, bfd82ad6 | app style |
 | T166 | tidal areas cut: DFO tidal polygon → one clean cut across each stream (fix partial-channel blobs) | OPEN | — | after cleanup; atlas rebuild; ★ confirm cuts |
 | T167 | More tab: simpler details, references on their own page, data freshness compact on the main tab, a real desktop layout | DONE | 3af0dbaa, de06c3ae | app; tiles date needs a manifest stamp (follow-up) |
 | T168 | "N gauges in view": split gauges on this water from donor gauges; not-reporting gauges under a closed drop-down (owner 2026-10-24) | OPEN | — | app |
@@ -294,6 +294,8 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q153 | T174 | A river's own side piece is adopted onto the LARGEST same-code section — use the nearest ANSWERED one instead (84 Flow gaps)? | measure first (T174) | owner |
 | Q154 | T174 | Walk a river's own unowned double-line polygon as the river (as T101 does for stream items' polygons)? | measure first (T174) | owner |
 | Q155 | T174 | Gravel Slough's 1425 connector lines take the answer of the polygons around them? | yes (3 sections) | owner |
+| Q156 | T165 | No-access lakes are filled grey at lake opacity — reads as a heavy slate in light: lighter, or outline-only? | as built (grey fill); say if heavy | owner |
+| Q157 | T165 | The no-access line uses the under-lake route's DASH (dots only in the cvd theme) — switch to true dots? | dash | owner |
 
 ### Answered (recently, for the record)
 - Q84 (side channel and its river) — owner 2026-10-24 delegated ("do what you think is best just make sure it is sane"): T169 one panel per side-channel water; Q169d (one panel for a long side-channel water) decided yes.

@@ -1126,3 +1126,6 @@ T146's spruce/cyan and the T165 amber swap; the dash is the owner's chosen secon
 - "Sources and credits" is linked once, as a row among the pages (Glossary / About / Report).
 - The Synopsis and DFO are credited by publisher (no licence line): both are government publications the app reads and
   cites; a terms line is added if either publisher's terms ask for one.
+
+- CLAUDE 2026-10-24 (T165): the "No public access" block heading stays ink — the light amber is 3.0:1 on the card,
+  below what words need; the amber is in the bar and tint. Undo: a darker warning-text token.
