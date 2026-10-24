@@ -1119,3 +1119,10 @@ Answered / obsolete (removed from the table):
 Streams through no-access land draw as a dotted grey line (the under-lake style, a little stronger); no-access lakes grey;
 the regulations page leads with the amber "No public access" block (T147); "own regulations" keeps amber. Supersedes
 T146's spruce/cyan and the T165 amber swap; the dash is the owner's chosen second channel (was Q138). Ticket T165.
+
+## CLAUDE 2026-10-24 — T167 small calls (owner reads; reverse any)
+- Map tiles on the More tab shows its pairing state, not a date: the release records no tile build date. A real date
+  needs the tile build to stamp one in the manifest — rides the tiles window (T64/T75); undo: show the hash.
+- "Sources and credits" is linked once, as a row among the pages (Glossary / About / Report).
+- The Synopsis and DFO are credited by publisher (no licence line): both are government publications the app reads and
+  cites; a terms line is added if either publisher's terms ask for one.
