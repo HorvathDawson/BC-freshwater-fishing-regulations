@@ -132,7 +132,6 @@ const registeredSurfaces = () => new Set(drawing().flatMap((p) =>
  * decision, said in app/HANDOFF-ui.md's table — not a way past the scan.
  */
 const COVERED: Record<string, string> = {
-  "packages/ui-native/src/Shell.tsx#Shell: takes onBack": "the Shell IS the route layer (useEdgeBack); `onBack: back` hands that one back to the water's ‹",
   "packages/ui-native/src/WaterScreen.tsx#WaterScreen: takes onBack": "the on-screen ‹; system back is the Shell's route layer (water → tab)",
   "packages/ui-native/src/WaterFrame.tsx#WaterFrame: takes onBack": "T44: hands the on-screen ‹ to the FaceBar it draws (a view mounted alone); system back is the Shell's route layer",
   "packages/ui-native/src/TopBar.tsx#TopBar: takes onClose (TopBarProps)": "T48: the field's ‹ and Escape; search open is ROUTE state (route `search`), so system back closes it through the Shell's route layer, first",
@@ -196,7 +195,9 @@ describe("back, everywhere: every surface registers a back layer", () => {
       "packages/ui-native/src/LayersSheet.tsx#LayersSheet: takes onClose",
       "packages/ui-native/src/SearchSheet.tsx#SearchSheet: takes onClose",
       "packages/ui-native/src/Sheet.tsx#Sheet: a Modal",
-      "packages/ui-native/src/Shell.tsx#Shell: takes onBack",
+      // (T62 3.4) the route layer's `onBack: back` moved into shell/useShellNav (a hook); the Shell is now found by the
+      // sheet it opens itself (Layers, the map's day), each handed to its registered <Sheet>
+      "packages/ui-native/src/Shell.tsx#Shell: opens dayOpen",
       "packages/ui-native/src/SpotCapture.tsx#WhenScreen: takes onBack",
       "packages/ui-native/src/SpotCapture.tsx#Coach: takes onCancel",
       "packages/ui-native/src/SpotDropSheet.tsx#SpotDropSheet: takes onCancel",

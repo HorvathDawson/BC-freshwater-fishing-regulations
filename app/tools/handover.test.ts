@@ -52,8 +52,8 @@ print(json.dumps({"handover": BASIN_HANDOVER_Z, "basinMax": b.maxzoom,
  * What the app thinks, read from the app: the Shell must READ the style's number (`FIELD_HANDOVER_Z`), never type one.
  */
 function fromShell(): number {
-  const src = readFileSync(`${ROOT}app/packages/ui-native/src/Shell.tsx`, "utf8");
-  if (!/const HANDOVER_Z = FIELD_HANDOVER_Z;/.test(src)) throw new Error("Shell.tsx types its own handover");
+  const src = readFileSync(`${ROOT}app/packages/ui-native/src/shell/useMapColouring.ts`, "utf8");
+  if (!/const HANDOVER_Z = FIELD_HANDOVER_Z;/.test(src)) throw new Error("the Shell types its own handover");
   return FIELD_HANDOVER_Z;
 }
 

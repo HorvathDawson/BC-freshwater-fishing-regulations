@@ -49,8 +49,8 @@ describe("one place for each kind of thing (T48)", () => {
 
   it("the spots list is defined in mapRail.ts, built by the Shell and drawn by the Spots tab alone", () => {
     expect({ vm: where(/\bspotsMenu\(/), drawn: where(/<SpotsScreen\b/) })
-      .toEqual({ vm: ["packages/ui-native/src/Shell.tsx", "packages/ui/src/mapRail.ts"],
-                drawn: ["packages/ui-native/src/Shell.tsx"] });
+      .toEqual({ vm: ["packages/ui-native/src/shell/BrowseHost.tsx", "packages/ui/src/mapRail.ts"],
+                drawn: ["packages/ui-native/src/shell/BrowseHost.tsx"] });
   });
 
   it("ONE capture flow: an addSpot route action is built only by mapRail.ts (and reduced by the route)", () => {

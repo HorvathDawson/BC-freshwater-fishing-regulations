@@ -40,7 +40,7 @@ describe("one water screen: one way in, one Conditions panel", () => {
     expect([wm.match(/openWater\(\{[^}]*\}\)/g), wm.match(/\{ type: "cross"[^}]*\}/g), where(/["']cross["']/)]).toEqual([
       ['openWater({ item, part, view: "regs", group })'], ['{ type: "cross", item, part }'],
       ["packages/ui/src/route.ts", "packages/ui/src/waterMap.ts"]]);
-    const shell = readFileSync(join(APP, "packages/ui-native/src/Shell.tsx"), "utf8");
+    const shell = readFileSync(join(APP, "packages/ui-native/src/shell/WaterModeHost.tsx"), "utf8");
     expect([shell.includes("onCross={(id, p) => go(crossAction(id, p))}"),
             shell.includes("onPart={(id, p) => go(partAction(item, id, p))}")]).toEqual([true, true]);
   });

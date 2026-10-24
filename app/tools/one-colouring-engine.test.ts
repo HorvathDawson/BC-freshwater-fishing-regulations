@@ -128,7 +128,9 @@ describe("one colouring engine", () => {
   });
 
   it("the Shell takes the Conditions colouring from `useConditionsColour` alone, the lake values from `useLakeColour`", () => {
-    const shell = read("packages/ui-native/src/Shell.tsx");
+    // the Shell's code: Shell.tsx and its parts (T62 3.4) — the colouring hook and the browse map it hands it to
+    const shell = ["Shell.tsx", "shell/useMapColouring.ts", "shell/BrowseHost.tsx"]
+      .map((f) => read(`packages/ui-native/src/${f}`)).join("\n");
     expect(shell).toMatch(/useConditionsColour\(/);
     expect(shell).toContain("standing={cond.standing}");
     expect(shell).not.toMatch(/usePanelStandings|useBasinStandings/);
