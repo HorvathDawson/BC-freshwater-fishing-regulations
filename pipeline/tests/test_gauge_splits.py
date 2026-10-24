@@ -23,7 +23,7 @@ def _s(station="08AA001", realtime=True, name="TEST RIVER AT NOWHERE"):
 class TestWhatIsEmitted:
     def test_a_gauge_anchor_at_the_stations_own_coordinate(self):
         # The published coordinate, untouched. Everything after it — projection, the
-        # perpendicular sweep across a braid, offsets, proximity pickup — is the resolver's
+        # braid sweep (`braid_sweep`), offsets, proximity pickup — is the resolver's
         # job, which is why this emits a definition and not a finished cut.
         rows = split_defs([_m()], [_s()])
         assert len(rows) == 1

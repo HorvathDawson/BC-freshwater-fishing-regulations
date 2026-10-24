@@ -289,38 +289,9 @@ def test_real_splits_json_resolves_on_bella_coola_extract():
     assert all("WSC check failed" not in p.concern for p in bb)
 
 
-# --------------------------------------------------------------------------- #
-# A point split sweeps a perpendicular line across the braid plain
-# --------------------------------------------------------------------------- #
-
-def test_perpendicular_cut_uses_the_averaged_bearing():
-    """One kinked vertex at the cut must not throw the line off square to the valley."""
-    from shapely.geometry import LineString
-    from pipeline.atlas.splits.anchors import perpendicular_cut
-
-    straight = LineString([(0, 0), (500, 0), (1000, 0)])
-    kinked = LineString([(0, 0), (490, 0), (500, 18), (510, 0), (1000, 0)])
-    a = perpendicular_cut(straight, 500.0, half_len=100.0)
-    b = perpendicular_cut(kinked, kinked.project(__import__("shapely").geometry.Point(500, 18)),
-                          half_len=100.0)
-    # both should run roughly north-south (perpendicular to an east-west channel)
-    for line in (a, b):
-        (x0, _), (x1, _) = line.coords[0], line.coords[-1]
-        assert abs(x1 - x0) < 40, f"cut line is not square to the channel: dx={x1 - x0:.0f}"
-
-
-def test_only_a_channel_crossing_the_line_is_cut():
-    """A side channel passing from one side to the other spans it; an oxbow bulging across and
-    returning does not."""
-    from shapely.geometry import LineString
-    from pipeline.atlas.splits.anchors import _spans, perpendicular_cut
-
-    main = LineString([(0, 0), (1000, 0)])
-    cut = perpendicular_cut(main, 500.0, half_len=400.0)
-    crosses = LineString([(400, -200), (500, -210), (600, 200)])   # ends on opposite sides
-    oxbow = LineString([(300, 150), (520, 260), (350, 50)])        # bulges across, both ends west
-    assert _spans(crosses, cut) is True
-    assert _spans(oxbow, cut) is False
+# A point split no longer sweeps a perpendicular line across the braid plain here: the braid sweep
+# (`braid_sweep`, T67) cuts side channels on the graph, behind the topology gate —
+# `test_braid_sweep.py`.
 
 
 def test_area_boundary_cut_that_would_leave_a_sliver_is_not_made():

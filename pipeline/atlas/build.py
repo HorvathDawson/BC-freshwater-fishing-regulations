@@ -752,6 +752,13 @@ def main() -> None:
                       for s in splits if s.anchor.type == AnchorType.area_boundary]
         area_polys = get_area_polys(fwa, area_specs, bbox=bbox) if area_specs else None
         pts = resolve_split_defs(splits, chains, mu_polys=mu_polys, area_polys=area_polys)
+        # THE BRAID SWEEP (T67): which side channels each cut must also cut — only a network that
+        # attaches to the host on BOTH sides of the cut, only the host's own water — judged on the graph
+        # BEFORE these cuts are made. Applied after them, below.
+        from pipeline.atlas.splits import braid_sweep as _bs
+        _sweep = _bs.sweep(graph, geoms, pts)
+        print(f"  braid sweep: {len(_sweep.points)} braid cut(s), {len(_sweep.rehomes)} junction "
+              f"re-home(s); cases {_sweep.counts()}")
         # Area cuts are the PRIMARY boundary of a closure (never a relabel of an existing one), so
         # they run with proximity-pickup OFF and separately from the pickup-enabled point/line/lake
         # cuts. Everything still runs BEFORE any tributary walk so each piece is a first-class node.
@@ -772,6 +779,19 @@ def main() -> None:
                     marked = mark_inside_area(graph, geoms, poly, s.label, blks=blks)
                     print(f"  area '{s.label}': cut {sum(1 for p in area_pts if p.split_id == s.id)} "
                           f"crossing(s), flagged {marked} inside piece(s)")
+        # The braid cuts, in their OWN pass with pickup OFF: each sits at least `END_M` inside its piece,
+        # so it never lands on, relabels or aliases a lake edge or any other boundary. Then the edges
+        # touching the networks are made consistent by geometry, the junctions at a cut re-homed, and
+        # what still straddles is reported (the reach's gate holds it at 0).
+        if _sweep.points:
+            split_graph_at(graph, geoms, _sweep.points, fid_index, proximity_pickup=False,
+                           applied=applied_splits)
+        _rehomed = _bs.apply_rehomes(graph, _sweep.rehomes)
+        _moved = _bs.make_edges_consistent(graph, geoms, _sweep)
+        _resid = _bs.residual_straddles(graph, geoms, pts)
+        print(f"  braid sweep applied: {_rehomed} junction edge(s) re-homed, {len(_moved)} edge(s) made "
+              f"side-consistent; {len(_resid)} network(s) still straddle a cut")
+        _bs.write_record(Path(args.out) / "braid_sweep.json", _sweep, _moved, _resid, stage="curated")
         n_pick = sum(1 for s in applied_splits if s.picked_up)
         print(f"  resolved {len(pts)} curated split point(s) ({n_pick} picked up existing "
               f"boundaries) -> {len(graph.nodes)} nodes")
