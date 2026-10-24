@@ -45,11 +45,7 @@ def is_steelhead_record(x: dict) -> bool:
 #: The provincial steelhead entry, and the regions whose own tables name steelhead (p.13, 21, 28,
 #: 42, 49; 4, 7A, 7B and 8 print no steelhead rule — 7A's Stellako prints only a stamp waiver).
 PROVINCE_STEELHEAD = "zp:steelhead"
-
-
 STEELHEAD_REGIONS = ("1", "2", "3", "5", "6")
-
-
 #: THE PROVINCIAL STEELHEAD SET (book p.6, `zp:steelhead`), each member by what it says — so a
 #: twin (`steelhead.r1b`, the stamp's `steelhead_targeting_known`) is the same member.
 PROVINCE_SET = ("annual hatchery quota", "wild release", "record duty", "stamp")

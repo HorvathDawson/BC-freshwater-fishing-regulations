@@ -11,14 +11,11 @@ from pipeline.common.curated import GENERATED
 
 
 BUNDLE = GENERATED.bundle / "bundle.sqlite"
-
-
 OUT = GENERATED.base / "regs" / "ui-rules-export.json"
 
 
 #: THE GUIDE FILE, written beside the data file by the same run (`codec`, C-E).
 GUIDE_NAME = "ui-rules-guide.json"
-
 
 # --------------------------------------------------------------------------------------------
 # What the bundle must carry, and what it must never carry
@@ -49,7 +46,6 @@ REQUIRED_COLUMNS = {"entry": ("matched", "see"),
                               "same_place_as", "lake_id"),
                     "item_alias": ("alias", "item_id")}
 
-
 #: FIELD NAMES THE MODEL NO LONGER HAS. None may appear as a key anywhere in the output.
 RETIRED_ANYWHERE = frozenset({
     "windows", "windows_are", "from_time", "to_time", "when_open",
@@ -63,8 +59,6 @@ RETIRED_ANYWHERE = frozenset({
     "parse_review", "revisit", "reference_only", "display_location", "location_text",
     "document_required", "access_permission",
 })
-
-
 #: Names that are current somewhere else in the model (`method` is a gear slot and a clause
 #: condition, `document` a licence-terms field, `kind` the licensing discriminator, `dates` a
 #: field of `when`) and retired only as a key on a RULE.
@@ -72,8 +66,6 @@ RETIRED_ON_RULE = RETIRED_ANYWHERE | frozenset({
     "method", "document", "allocation", "reason", "kind", "dates", "weekdays", "lure", "bait",
     "scope_text", "tributaries",
 })
-
-
 #: Rule types that were retired into `CatalogueEntry.licensing`.
 RETIRED_TYPES = frozenset({"document_required", "access_permission",
                            "angling_from_vessel_prohibited"})

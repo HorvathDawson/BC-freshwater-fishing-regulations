@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from typing import Dict, List, Optional, Sequence, Tuple
+
 from pipeline.deliver.answers import common
 from pipeline.deliver.answers.rows.rule import _js
 from pipeline.deliver.answers.rows.wire import _num

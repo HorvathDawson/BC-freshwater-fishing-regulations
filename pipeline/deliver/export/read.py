@@ -58,8 +58,6 @@ _RULE_COLUMNS = (("when_", "when"), ("while_", "while"), ("species", "species"),
                  ("may_target", "may_target"), ("standing", "standing"),
                  ("exempts", "exempts"), ("extent_text", "extent_text"),
                  ("undrawn_part", "undrawn_part"))
-
-
 #: Of those, the ones the bundle stores as JSON text.
 _JSON_COLUMNS = frozenset({"when_", "while_", "species", "species_except", "exempts"})
 
@@ -213,16 +211,9 @@ def not_yet_mapped(r: dict, verbatim: str = "", entry: dict | None = None) -> di
 #: closure)"), or that it is printed with the row ("map 1, (see below)", "(see map below)"). Book
 #: page numbers are PRINTED pages (the book's own address, as `entries[].pages`).
 _MAP_NAMED = re.compile(r"\bmap\s+([A-Z]|\d{1,2})\b")
-
-
 _MAP_TAG = re.compile(r"\s*\(\s*map\s+(?:[A-Z]|\d{1,2})\s*\)")
-
-
 _SEE_MAP_ON_PAGE = re.compile(r"\bsee\s+(maps?)\s+(?:[A-Z]\s+|\d{1,2}\s+)?on\s+page\s+(\d{1,3})\b", re.I)
-
-
 _SEE_MAP_BELOW = re.compile(r"\bsee\s+(maps?)\s+below\b|\bmap\s+(?:[A-Z]|\d{1,2}),?\s*\(see\s+below\)", re.I)
-
 
 #: A ROW'S MAP THAT DOES NOT DRAW EVERY PART ON THE ROW (T100 review). A row heading's "(see map on
 #: page N)" is the row's, not each rule's: a part the printed map does not show must not cite it.
@@ -336,11 +327,7 @@ _LIC_TABLES = (("designation", "designation_id", True), ("not_classified", "not_
 #: the water's open time); this says so explicitly, derived from the record's own verbatim and
 #: `when`, and refuses a designation whose period cannot be read off it.
 _WHEN_OPEN = re.compile(r"\bwhen(?:/where)?\s+open\b", re.I)
-
-
 _ALL_YEAR = re.compile(r"\ball\s+year\b", re.I)
-
-
 _PRINTS_DATES = re.compile(r"\b(?:jan|feb|mar|apr|may|june?|july?|aug|sept?|oct|nov|dec)[a-z]*\.?\s*\d",
                            re.I)
 
@@ -376,8 +363,6 @@ def designation_period(rid: str, fields: dict, verbatim: str, parts: dict) -> di
 
 #: "(Steelhead Stamp not required)" with no "unless" — `catalogue.Designation.waives_every_stamp`.
 _UNLESS = re.compile(r"\bunless\b", re.I)
-
-
 _MARKUP = re.compile(r"\*\*|\[[^\]]*\]")
 
 

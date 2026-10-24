@@ -23,7 +23,6 @@ from pipeline.deliver.bundle.rules.predicates import AGGREGATE_GROUPS, _zone_reg
 LIFT_KEYS = ("entry_id", "rule_id", "note", "species", "when_targeting", "while", "when",
              "origin", "lengths", "basis", "equivalent", "caution")
 
-
 #: `caution.kind` on a lift of a REGION'S SIZE CLAUSE (`size_clause_caution`).
 SIZE_CLAUSE_OVERRIDE = "size_clause_override"
 
@@ -79,12 +78,9 @@ def size_clause_caution(z) -> dict:
                     f"the row prints '(any size)' — whether that means no size limit at all or "
                     f"only no minimum size, the book does not say"}
 
-
 #: `basis` on a lift the book does not print as an exemption but states by NAMING THE FISH (see
 #: `_named_lifts`). Absent = the rule's own printed `exempts`.
 NAMES_THE_FISH = "names_the_fish"
-
-
 #: `basis` on a lift derived from a water row printing "(ANY SIZE)" (`_any_size_lifts`).
 ANY_SIZE_BASIS = "any_size"
 
@@ -230,8 +226,6 @@ def _is_species_closure(r) -> bool:
 
 #: "(No exceptions)" — Region 4's "White Sturgeon: 0 quota, CLOSED TO FISHING (No exceptions)".
 _NO_EXCEPTIONS = re.compile(r"\bno exceptions?\b", re.I)
-
-
 #: "(see tables for exceptions)" — Region 8's "Region 8 Daily Quotas (See tables for exceptions)"
 #: box, where "Bass: 0 quota, CLOSED TO FISHING" is printed (p.68).
 _SEE_TABLES = re.compile(r"\bsee\s+(?:the\s+)?tables?\s+for\s+(?:\w+\s+)*?exceptions\b",

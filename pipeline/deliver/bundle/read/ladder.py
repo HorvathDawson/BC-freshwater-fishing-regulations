@@ -25,19 +25,16 @@ from pipeline.deliver.bundle.read.facts import (
 
 _RULES_BY_PATH: dict = {}
 
-
 #: POLICY (user ruling 2026-10-05, option A): a zone-side size-only clause made moot by an outright
 #: release or closure of the same fish is not shown (`effective_rules` step 5b). Named so a test can
 #: switch it off and prove the step is what hides the clause.
 MOOT_SIZE_CLAUSE_HIDDEN = True
-
 
 #: POLICY (user ruling 2026-10-06, DENETIAH): a water's OWN full closure in force is the most dominant
 #: rule — it silences every keeping rule for the fish it covers, of any source and any key, save a
 #: superior authority's (`effective_rules` step 4c). Named so a test can switch it off and prove the
 #: step is what silences them.
 WATER_CLOSURE_DOMINANT = True
-
 
 #: POLICY (user ruling Q5, 2026-10-07, KETTLE -> GRANBY / WEST KETTLE): a tributary with a row of its
 #: own gets BOTH its own row's rules and the rules it inherits by the tributary walk ("Kettle River's
@@ -51,7 +48,6 @@ WATER_CLOSURE_DOMINANT = True
 #: `effective_rules` step 4; named so a test can switch it off and prove the step decides it.
 OWN_ROW_BEATS_INHERITED = True
 
-
 #: POLICY (user ruling C-5, 2026-10-08, KETTLE -> GRANBY): INHERITED RULES BEHAVE LIKE ZONE RULES —
 #: a rule of the water's own row REPLACES an inherited rule of the same kind (type and dimension)
 #: on every day, as a row's dated bait ban replaces its zone's all-year one (L8). Granby River's
@@ -60,7 +56,6 @@ OWN_ROW_BEATS_INHERITED = True
 #: water's quota meets a zone's) and closures still combine (L20). `effective_rules` step 3b;
 #: named so a test can switch it off and prove the step decides it.
 OWN_ROW_REPLACES_INHERITED = True
-
 
 #: POLICY (owner ruling 2026-10-16, ROUND14 1, RULINGS T14): WHERE TWO ✱ ROWS COMPETE ON A TRIBUTARY,
 #: THE ROW OF THE WATER NEAREST THAT STREAM WINS — on the Duncan River's tributaries the Duncan's "bull
@@ -73,15 +68,11 @@ OWN_ROW_REPLACES_INHERITED = True
 #: 4; named so a test can switch it off and prove the step decides it.
 NEARER_ROW_BEATS_FARTHER = True
 
-
 #: The states of a rule that is IN the answer (`effective_rules`). With `trace=True` the answer also
 #: holds the rules that took part and lost, each with a state outside this set ("lifted",
 #: "displaced", "moot"), its `reason` (`LOSS_REASONS`) and `by` (the rule that beat it).
 SPEAKERS = ("speaks", "beside", "shown", "not_yet_mapped")
-
-
 SPEAKER_STATES = frozenset(SPEAKERS)
-
 
 #: Why a rule that took part lost — one reason per rule, the step that removed it first.
 LOSS_REASONS = {
@@ -101,14 +92,11 @@ LOSS_REASONS = {
     "nearer_row": "displaced",               # step 4: the nearer ✱ row beats a farther one (T14)
 }
 
-
 #: The states a loser takes (`LOSS_REASONS` values, in their first order): lifted, displaced, moot.
 LOSER_STATES = tuple(dict.fromkeys(LOSS_REASONS.values()))
 
-
 #: The origins a reader may ask about (`effective_rules(origin=…)`); None = not known.
 ASKABLE_ORIGINS = ("hatchery", "wild")
-
 
 #: How a rule reaches a section (`ruleset.via`): by its own extents, or by the tributary walk.
 VIAS = ("reach", "trib")

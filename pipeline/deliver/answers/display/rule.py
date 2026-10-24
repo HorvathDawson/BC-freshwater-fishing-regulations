@@ -10,7 +10,6 @@ from pipeline.deliver.answers.common import (
 )
 from pipeline.deliver.bundle.rules import closure_grade
 
-
 INF = float("inf")
 
 

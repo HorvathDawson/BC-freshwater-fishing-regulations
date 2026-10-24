@@ -126,7 +126,6 @@ RELEASE_UNDER_CLOSURE_KNOWN: dict[tuple[str, str], str] = {
         "the row's release does not lift the stream closure); the lake itself is not a stream",
 }
 
-
 #: A WATER ROW'S KEEPING QUOTA, IN FORCE, SILENCED WHILE A BLANKET ZONE CLOSURE SPEAKS (review F5).
 #: Since RU-7 a full closure silences the keepers it beats whatever their key, so a missed
 #: exemption shaped like a QUOTA (a row's "2 per day" the book means to hold through the zone's
@@ -646,7 +645,6 @@ UNDRAWN_PART_TRIBUTARIES = (
     "r1:mamin_river@6-13::mamin_river.r3",
     "r7:dinosaur_lake_reservoir_downstream_of_w_a_c_bennett_dam@7-31::dinosaur_lake.r1",
 )
-
 
 #: Rows closing their tributaries EXCEPT named rivers, whose excepted rivers' creeks stay closed
 #: (user ruling Q6, 2026-10-07; `tributary_excludes` with `walk_past`). Pinned against the corpus by

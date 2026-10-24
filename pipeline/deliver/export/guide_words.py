@@ -113,7 +113,6 @@ TOUCHES_TEXT = (
     "groups of the graph whose edges are `touches`, among the parts that qualify — never every "
     "qualifying part of the water.")
 
-
 #: WHAT A TIDAL WATER MEANS TO AN ANGLER — the page's words for `waters[item].tidal`, from the
 #: book's own note (p.17, Nitinat Lake).
 #: The first sentences ARE the answers layer's own (`answers.common.TIDAL_NOTE`, FIX D12: "tidal
@@ -123,14 +122,11 @@ TOUCHES_TEXT = (
 #: show it is in the field dictionary (`TIDAL_TEXT["guide"]`), never in the data.
 TIDAL_GUIDE = TIDAL_NOTE
 
-
 #: How sure we are that steelhead are present (user ruling 2026-10-01) — on a part, and rolled up on
 #: the water.
 #: What to show on a KNOWN part no steelhead rule applies to (`steelhead_rules: false`).
 STEELHEAD_NO_RULES = ("Steelhead have been recorded here, but no steelhead rule applies: treat "
                       "any rainbow, however big, as a rainbow trout.")
-
-
 STEELHEAD_TEXT = (
     "HOW SURE WE ARE THAT STEELHEAD ARE HERE — a PRESENCE INDICATOR for display. \"known\": "
     "steelhead are known to be here, for one of two reasons (`steelhead_source`). "
@@ -166,7 +162,6 @@ STEELHEAD_TEXT = (
     "book or by the list alike (the Cowichan River); never on a lake, a \"possible\" stream, or "
     "a part with `steelhead_rules: false` (user ruling 2026-10-03: 'if no steelhead rules exist, "
     "rainbow rules still apply to a steelhead').")
-
 
 #: `guide.pdf_pages` — the one printed -> PDF page map (`pipeline.common.synopsis_pages`).
 PDF_PAGES_TEXT = (
@@ -220,7 +215,6 @@ FILE_TEXT = {
              "decoder groups the records (`encoding.index`)",
 }
 
-
 #: A water, key by key (`waters[item_id]`).
 #: THE CASING RULE every displayed name follows — one text for waters, entries and splits.
 OFFICIAL_NAME_TEXT = (
@@ -230,7 +224,6 @@ OFFICIAL_NAME_TEXT = (
     "words lower after the first ('Dewdney and Glide Islands'), acronyms kept ('CNR', 'CFB', "
     "'CVWMA'), 'Mc' and an O'/D'/L' prefix kept ('McKenny', 'O'Rourke'), lower case after any "
     "other apostrophe ('Field's Lease'). A name that has any lower-case letter is shown as written")
-
 
 WATER_TEXT = {
     "name": "the water's name, as a reader writes it (never all capitals — see `official_name`)",
@@ -282,7 +275,6 @@ WATER_TEXT = {
              "— see `water.tidal`",
 }
 
-
 #: `waters[item].tidal`, key by key.
 TIDAL_TEXT = {
     "sections": "how many of the water's sections are tidal",
@@ -291,7 +283,6 @@ TIDAL_TEXT = {
              "Show them at the top of the water, and never read its sections as 'open under "
              "the general rules'.",
 }
-
 
 #: A water's part, field by field.
 WATER_PART_TEXT = {
@@ -329,7 +320,6 @@ WATER_PART_TEXT = {
             "river's wide reach drawn as a polygon ON its stem runs with the line through it",
 }
 
-
 #: One run of a part, field by field.
 RUN_TEXT = {
     "from": "the run's UPSTREAM end: an end token (`placement.runs.ends`) — a cut-point id (a key "
@@ -349,7 +339,6 @@ RUN_TEXT = {
                "slough drawn only as polygons): `whole` (the run is the whole polygon), or — on a "
                "lake PART (`part_of`) — the part's own name ('Williston Lake — Nation Arm')",
 }
-
 
 #: The end tokens a run's `from` / `to` take. One vocabulary with `spans.end_token`.
 END_TEXT = {
@@ -386,7 +375,6 @@ END_TEXT = {
     "source": "the water's own upstream end with no cut — its source, or where it takes its "
               "name (the Thompson at Kamloops)",
 }
-
 
 #: One cut in `splits`, field by field.
 SPLIT_TEXT = {
@@ -430,7 +418,6 @@ SPLIT_TEXT = {
                "Absent when the waterbody is not a named water",
 }
 
-
 #: A designation's classified period (`licensing[*].period`, designations only).
 #: `licensing[].stamp_waiver` — see `add_stamp_waivers`.
 STAMP_WAIVER_TEXT = {
@@ -446,7 +433,6 @@ STAMP_WAIVER_TEXT = {
             "still apply",
 }
 
-
 PERIOD_TEXT = {
     "kind": "when_open: the water is Classified whenever it is open (the book prints 'Class II "
             "water when open' or 'when/where open' — no dates, by design: licensing is consulted "
@@ -456,7 +442,6 @@ PERIOD_TEXT = {
     "says": "the sentence to show: 'Classified (Class II) whenever this water is open', 'Class I "
             "all year', or 'Classified (Class II) Sep 1-Apr 30'",
 }
-
 
 TYPE_TEXT = {
     "retention_limit": "How many of a fish you may keep, on which clock, of which sizes. A "
@@ -488,7 +473,6 @@ TYPE_TEXT = {
     "facility": "What is there — a launch, an accessible pier. Governs nothing.",
 }
 
-
 TYPE_CAN_CLOSE = {
     "retention_limit": "Yes — `take: 0` with `may_target: false` and no `while`, and not "
                        "`standing`, means you may not fish for those species at all. On "
@@ -496,7 +480,6 @@ TYPE_CAN_CLOSE = {
     "angler_closure": "For the anglers in `closed_to` only.",
     "method_rule": "Closes a method (a `ban` on the `method` slot), never the water.",
 }
-
 
 FAMILY_TEXT = {
     "retention": "what you may keep",
@@ -506,7 +489,6 @@ FAMILY_TEXT = {
     "conduct": "what you must do",
     "information": "what the book tells you; governs nothing",
 }
-
 
 SLOT_TEXT = {
     "bait": "what is on the hook: any_bait, fin_fish, roe, invertebrate, dead_fin_fish, …",
@@ -532,7 +514,6 @@ SLOT_TEXT = {
     "light_to_hook_mm": "distance from a light to the hook, in millimetres",
 }
 
-
 #: The book's two fly-only laws, verbatim from its Definitions page, and how each is encoded. They
 #: are DIFFERENT laws — a float or a sinker is lawful under one and not the other — and the corpus
 #: encodes each where the book prints it; a reader must never merge them.
@@ -555,7 +536,6 @@ FLY_DEFINITIONS = {
     },
 }
 
-
 CLAUSE_TEXT = {
     "slot": "what the clause constrains — see `slots`",
     "of": "which members of the slot it speaks about; absent = all of them",
@@ -574,7 +554,6 @@ CLAUSE_TEXT = {
     "unless": "conditions (each a `GearWhen`) that lift this clause",
 }
 
-
 GEAR_WHEN_TEXT = {
     "water": "stream | lake",
     "method": "while fishing by this method",
@@ -586,7 +565,6 @@ GEAR_WHEN_TEXT = {
             "review_reason",
 }
 
-
 GEAR_SPEC_TEXT = {
     "attached_to": "what it must be attached to (fishing_line)",
     "attachment": "how it is attached (quick_release)",
@@ -594,7 +572,6 @@ GEAR_SPEC_TEXT = {
     "opening_shape": "the shape of a trap opening (circular)",
     "note": "a property the closed vocabulary cannot say; costs a review_reason",
 }
-
 
 #: The model's rule fields that a reader of this file meets, in words.
 RULE_FIELD_TEXT = {
@@ -667,7 +644,6 @@ RULE_FIELD_TEXT = {
             "whole width by it (`gotchas.one_side_of_channel`)",
 }
 
-
 #: THE PARTS OF A LINE, in words. Checked against `catalogue.LABEL_PARTS` and
 #: `catalogue.LICENSING_PARTS` (see `_registries`), so a part the model gains is refused until it is
 #: explained here.
@@ -693,8 +669,6 @@ PART_TEXT = {
     "suspended": "'not while “<the rule it sleeps under>” is in force'",
     "notice": "the DFO fishery notice it was published in",
 }
-
-
 LICENSING_PART_TEXT = {
     "who": "the anglers it is about",
     "what": "the fact: a designation's class, 'Not a Classified Water', the document sold, "
@@ -725,7 +699,6 @@ LICENSING_PART_TEXT = {
                "(`fields.undrawn_part`) — shown as a place not yet mapped, never required of the "
                "whole water",
 }
-
 
 #: Keys on an exported rule record outside `fields`.
 RECORD_TEXT = {
@@ -765,7 +738,6 @@ RECORD_TEXT = {
                    "`retention.record_duty`",
 }
 
-
 PROVENANCE_TEXT = {
     "entry_name": "the entry's display name",
     "region": "the book region its entry id names, lower case (`z7a:…` -> \"7a\", `r6:…` -> \"6\"; null for the "
@@ -780,7 +752,6 @@ PROVENANCE_TEXT = {
     "uncertain": "the reach builder could not place it; it binds no section",
     "why": "the reach builder's reason, when uncertain",
 }
-
 
 LICENSING_RECORD_TEXT = {
     "id": "`entry_id#record_id`",
@@ -818,7 +789,6 @@ LICENSING_RECORD_TEXT = {
                     "Neither lifts the Classified Waters Licence or a steelhead rule",
 }
 
-
 LICENSING_KIND_TEXT = {
     "designation": "A FACT about a water: while `when` holds, the bound sections are a "
                    "Classified Water of class `classified` (I or II), in licence unit `unit`. "
@@ -841,7 +811,6 @@ LICENSING_KIND_TEXT = {
     "alternative": "A place where another document ALSO satisfies a requirement "
                    "(`alternative_to`). It only ever adds a path.",
 }
-
 
 LICENSING_FIELD_TEXT = {
     "classified": "I | II",
@@ -908,7 +877,6 @@ LICENSING_FIELD_TEXT = {
     "alternative_to": "{entry_id, id}: the requirement this adds a path to",
 }
 
-
 DOING_TEXT = {
     "fishing": "any sport fishing at all",
     "targeting": "fishing FOR `species`",
@@ -917,7 +885,6 @@ DOING_TEXT = {
                           "(which fish: rules with `record_retention`)",
     "guiding": "acting as an angling guide",
 }
-
 
 WHEN_TEXT = {
     "dates": "[{from_month, from_day, to_month, to_day}] — calendar ranges, no year, both ends "
@@ -928,7 +895,6 @@ WHEN_TEXT = {
     "unparsed": "a printed season nobody could read, verbatim. The rule is UNCERTAIN in time — "
                 "never read it as all year",
 }
-
 
 #: One resolved lift, as the bundle ships it (`pipeline.deliver.bundle.rules.LIFT_KEYS`).
 LIFT_TEXT = {
@@ -993,7 +959,6 @@ LIFT_TEXT = {
                "sizes, or none, lifts the clause with no caution. See `gotchas`",
 }
 
-
 LENGTH_TEXT = {
     "min_cm": "lower bound; absent = open. Inclusive, EXCEPT on a range with take 0 (see `closed`)",
     "max_cm": "upper bound; absent = open. Inclusive, EXCEPT on a range with take 0 (see `closed`)",
@@ -1004,7 +969,6 @@ LENGTH_TEXT = {
               "cm' keeps a 30.0 cm fish, 'no trout over 50 cm' keeps a 50.0 cm one; user ruling "
               "2026-10-07, `catalogue.EXACT_BOUND_IS_LEGAL`)",
 }
-
 
 WHO_TEXT = {
     "residency": "resident (of B.C.) | non_resident (not a B.C. resident, but a Canadian citizen "
@@ -1017,7 +981,6 @@ WHO_TEXT = {
             "Accompanied Water (printed p.4); not a partition: most anglers are no one's companion",
 }
 
-
 PATH_TEXT = {
     "hold": "hold ALL of these documents",
     "accompanied_by": "be accompanied by an angler in `who` holding what this fishing requires "
@@ -1027,7 +990,6 @@ PATH_TEXT = {
              "count against. Render it (an asterisk, a line); it is not arithmetic.",
 }
 
-
 VIA_TEXT = {
     "reach": "the record names this water (or area) and binds it directly",
     "trib": "it reached this section by the tributary walk from a water whose entry includes "
@@ -1036,13 +998,11 @@ VIA_TEXT = {
     "contested": "a designation on a section a not_classified record also binds — say 'check'",
 }
 
-
 #: A rule set or licensing set (`rulesets[id]`, `licensing_sets[id]`), key by key.
 SET_TEXT = {
     "sections": "how many sections carry this set",
     **{k: f"the member ids that reach these sections this way — {v}" for k, v in VIA_TEXT.items()},
 }
-
 
 PLACEMENT_TEXT = {
     "sections": "bound to sections; find them through `licensing_sets`",
@@ -1059,7 +1019,6 @@ PLACEMENT_TEXT = {
                   "'none needed'",
     NOT_PLACED: "licence_terms and exemptions are never bound to a place",
 }
-
 
 ENTRY_TEXT = {
     "kind": "province | zone | area | water — see `entries`",

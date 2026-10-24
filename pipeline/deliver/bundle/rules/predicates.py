@@ -52,7 +52,6 @@ def release_origins(x: dict) -> frozenset[str] | None:
 #: only for some fish, some gear, some part or some shore — it is PARTIAL (`closure_grade`).
 CLOSURE_CONDITIONS = ("lengths", "origin", "while", "caught", "when_targeting", "within", "side")
 
-
 #: What `closure_grade` answers for a closure (None: not one), in wire order (`types.ClosureGrade`).
 CLOSURE_GRADES = ("full", "partial")
 
