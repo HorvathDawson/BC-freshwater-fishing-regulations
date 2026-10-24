@@ -1173,6 +1173,8 @@ is never touched). T170's "read when this spot was saved" label is gone. Ticket 
   - Q2: (explained: automatic 25 km length cuts at junctions) — no braid sweep at length cuts; instead (owner refinement)
     `length_splits` never PICKS a junction a braid network spans (same both-sides gate); it takes the next eligible
     junction, or leaves the stretch uncut. Length cuts bind no rule, so only section ids / gauge colouring move.
+    Then (owner follow-up) the braid sweep runs on EVERY split kind, no exemption by kind: at length cuts it must cut
+    nothing, and that is a build check.
   - Q4: no cap on the cut line, but a cut may only take a braid that ATTACHES TO THE MAINSTEM ON BOTH SIDES OF THE CUT
     POINT (the topology gate). Nothing touching one side only (bulges, bends, South Atnarko) is ever cut.
   - The owner checks every proposed cut by hand in a review artifact before anything is promoted.
