@@ -8,6 +8,8 @@ import {
   mailtoUrl, regsReportWhere, reportMessage, sourcesVM, whereLines, type Diagnostics, type SourceDateKey, type SourcesInput,
 } from "./menu";
 import { FISH_CREDITS } from "./regs/fish.generated";
+import { IMAGERY_ATTRIBUTION, IMAGERY_CREDIT } from "./imagery";
+import { dataVM } from "./more";
 import type { GlossaryTerm } from "./regs/inputs";
 import { MENU_WORDS } from "./menu";
 import { STALE_AFTER_MS } from "./index";
@@ -91,52 +93,46 @@ describe("about", () => {
   });
 });
 
-describe("data sources & dates", () => {
-  const now = Date.UTC(2026, 9, 21, 18);
-  it("dates each source from the release's own block and from what the app fetched", () => {
-    const vm = sourcesVM({
-      sources: { synopsis: { title: "2025–2027 BC Freshwater Fishing Regulations Synopsis", date: null },
-                 dfo: { date: "2026-08-28" }, fwa: { date: "2026-07-15" }, basemap: { date: "2026-03-05" },
-                 hydat: { date: "2026-07-17" } },
-      validUntil: null, tiles: "d768d6e135e62b99.c9f9604f12bf", feedFetchedAt: new Date(now - 7 * 3_600_000).toISOString(), now,
-      forecastIssuedAt: new Date(now - 7 * 3_600_000).toISOString(),
-    });
-    expect(vm.intro).toBe("Every answer in this app comes from one of these. Each says when it was last updated.");
+describe("sources and credits (T167: references apart — no dates, no freshness)", () => {
+  it("names every source as the More tab does, says who publishes it and on what terms, whole", () => {
+    const vm = sourcesVM({ edition: "2025–2027 BC Freshwater Fishing Regulations Synopsis",
+                           tiles: "d768d6e135e62b99.c9f9604f12bf" });
+    expect(vm.intro).toBe("Who publishes the data this app reads, and on what terms.");
     expect(vm.rows).toEqual([
-      { k: "synopsis", name: "2025–2027 BC Freshwater Fishing Regulations Synopsis",
-        what: "The Province of British Columbia's printed regulations, read water by water",
-        when: "Date not recorded in this release", badge: { kind: "unknown", label: "Unknown" } },
-      { k: "inseason", name: "In-season regulation changes",
-        what: "The Province's changes to the Synopsis, announced during the season",
-        when: "Not read by this app: check them before you fish", badge: { kind: "unknown", label: "Not read" } },
-      { k: "dfo", name: "Fisheries and Oceans Canada salmon regulations",
-        what: "The federal salmon limits, openings and closures for B.C.'s fresh water, by region",
-        when: "Updated Aug 28, 2026", badge: { kind: "fresh", label: "Up to date" } },
-      { k: "fwa", name: "B.C. Freshwater Atlas",
-        what: "Every stream and lake on the map, from the Province of British Columbia",
-        when: "Updated Jul 15, 2026", badge: { kind: "fresh", label: "Up to date" } },
-      { k: "tiles", name: "Map tiles", what: "The atlas drawn for the map, with every regulation's section in it",
-        when: "Version d768d6e135e62b99.c9f9604f12bf", badge: { kind: "unknown", label: "Unknown" } },
-      { k: "basemap", name: "Basemap", what: "Roads, towns and terrain: © OpenStreetMap contributors, Protomaps",
-        when: "Updated Mar 5, 2026", badge: { kind: "fresh", label: "Up to date" } },
-      { k: "hydat", name: "Gauge records (HYDAT)",
-        what: "Past years of flow and level, Environment and Climate Change Canada", when: "Updated Jul 17, 2026",
-        badge: { kind: "fresh", label: "Up to date" } },
-      { k: "feed", name: "Live gauge readings", what: "Environment and Climate Change Canada",
-        when: "Checked 7h ago", badge: { kind: "stale", label: "Likely out of date" } },
-      { k: "forecast", name: "River forecasts", what: "The BC River Forecast Centre's models, issued daily in season",
-        when: "Issued 7h ago", badge: { kind: "fresh", label: "Up to date" } },
-      { k: "weather", name: "Weather", what: "Open-Meteo.com (CC BY 4.0)", when: "Fetched when a spot is saved",
-        badge: { kind: "live", label: "Live" } },
-      { k: "imagery", name: "Satellite imagery", what: "Shown only while online; never stored on this device",
-        when: "Live, when online", badge: { kind: "live", label: "Live" } },
+      { k: "synopsis", name: "Synopsis", from: "Province of British Columbia. The printed regulations this app reads.",
+        detail: "2025–2027 BC Freshwater Fishing Regulations Synopsis" },
+      { k: "inseason", name: "In-season changes", from: "Province of British Columbia. Not read by this app.", detail: null },
+      { k: "dfo", name: "DFO salmon", from: "Fisheries and Oceans Canada. The federal salmon limits and closures.",
+        detail: null },
+      { k: "fwa", name: "Freshwater Atlas", from: "Province of British Columbia. Contains information licensed under the "
+        + "Open Government Licence – British Columbia.", detail: null },
+      { k: "tiles", name: "Map tiles", from: "Drawn for this app from the Freshwater Atlas and the regulations.",
+        detail: "Version d768d6e135e62b99.c9f9604f12bf" },
+      { k: "basemap", name: "Basemap", from: "© OpenStreetMap contributors. © Protomaps.", detail: null },
+      { k: "hydat", name: "HYDAT", from: "Environment and Climate Change Canada. Historical hydrometric data, under the "
+        + "Open Government Licence – Canada.", detail: null },
+      { k: "feed", name: "Live gauge readings", from: "Environment and Climate Change Canada. Real-time hydrometric data, "
+        + "under the Open Government Licence – Canada.", detail: null },
+      { k: "forecast", name: "River forecasts",
+        from: "BC River Forecast Centre. The CLEVER, COFFEE and ELF river forecasts, used with permission.", detail: null },
+      { k: "weather", name: "Weather", from: "Weather data by Open-Meteo.com, CC BY 4.0.", detail: null },
+      { k: "imagery", name: "Satellite imagery", from: "Powered by Esri · Source: Esri, Vantor, Earthstar Geographics, "
+        + "and the GIS User Community. Shown only while online, never stored.", detail: null },
     ]);
-    expect(vm.footnote).toBe("The Province's in-season changes and Fisheries and Oceans Canada's notices can change a "
-      + "regulation at short notice. Check them before you fish.");
+  });
+
+  it("carries no date and no freshness word — those are the More tab's, drawn once", () => {
+    const vm = sourcesVM({ edition: null, tiles: null });
+    const text = JSON.stringify(vm.rows);
+    expect([/\b20\d\d-\d\d-\d\d\b|\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d+, 20\d\d\b/.test(text),
+            /Up to date|[Oo]ut of date|Unknown|Newer release out/.test(text), "badge" in vm.rows[0]!, "when" in vm.rows[0]!])
+      .toEqual([false, false, false, false]);
+    // no edition, no tile version: nothing said, never a placeholder
+    expect(vm.rows.filter((r) => r.detail !== null)).toEqual([]);
   });
 
   it("(T43) credits every fish picture the app can show, once: the manifest's own lines (FISH_CREDITS), under \"Fish pictures\"", () => {
-    const vm = sourcesVM({ sources: null, validUntil: null, tiles: null, feedFetchedAt: null, now });
+    const vm = sourcesVM({ edition: null, tiles: null });
     expect(vm.pictures.label).toBe("Fish pictures");
     expect(vm.pictures.lines).toBe(FISH_CREDITS);
     expect([vm.pictures.lines.length, vm.pictures.lines[0], vm.pictures.lines.at(-1)]).toEqual([39,
@@ -144,41 +140,10 @@ describe("data sources & dates", () => {
       "Yellow perch — Freshwater Fisheries Society of BC (GoFishBC)"]);
   });
 
-  it("says how long the edition is in force when the release dates no printing", () => {
-    const vm = sourcesVM({ sources: { synopsis: { title: "2025–2027 Synopsis", date: null } }, validUntil: "2027-03-31",
-                           tiles: null, feedFetchedAt: null, now });
-    expect(vm.rows[0]).toEqual({ k: "synopsis", name: "2025–2027 Synopsis",
-      what: "The Province of British Columbia's printed regulations, read water by water", when: "Valid to Mar 31, 2027",
-      badge: { kind: "fresh", label: "Up to date" } });
-    // a printing date, when one is recorded, is what the row says
-    expect(sourcesVM({ sources: { synopsis: { title: "S", date: "2025-03-20" } }, validUntil: "2027-03-31", tiles: null,
-                       feedFetchedAt: null, now }).rows[0]!.when).toBe("Updated Mar 20, 2025");
-  });
-
-  it("says not recorded where the release has no block (an older release, the dev bundle) — never today's date", () => {
-    const vm = sourcesVM({ sources: null, validUntil: null, tiles: null, feedFetchedAt: null, now });
-    expect(Object.fromEntries(vm.rows.map((r) => [r.k, r.when]))).toEqual({
-      synopsis: "Date not recorded in this release", inseason: "Not read by this app: check them before you fish",
-      dfo: "Date not recorded in this release",
-      fwa: "Date not recorded in this release", tiles: "Date not recorded in this release",
-      basemap: "Date not recorded in this release", hydat: "Date not recorded in this release",
-      feed: "Not checked yet", forecast: "Not checked yet", weather: "Fetched when a spot is saved",
-      imagery: "Live, when online",
-    });
-    expect(vm.rows[0]!.name).toBe("Freshwater Fishing Regulations Synopsis");
-  });
-
-  it("refuses a malformed date rather than printing it", () => {
-    const vm = sourcesVM({ sources: { fwa: { date: "July" }, dfo: { date: "2026-02-30x" } }, validUntil: "soon",
-                           tiles: null, feedFetchedAt: "yesterday", now });
-    expect(vm.rows.find((r) => r.k === "fwa")!.when).toBe("Date not recorded in this release");
-    expect(vm.rows.find((r) => r.k === "dfo")!.when).toBe("Date not recorded in this release");
-    expect(vm.rows.find((r) => r.k === "synopsis")!.when).toBe("Date not recorded in this release");
-    expect(vm.rows.find((r) => r.k === "feed")!.when).toBe("Not checked yet");
-    // and a date it cannot read is UNKNOWN, never fresh
-    expect(vm.rows.map((r) => `${r.k} ${r.badge.label}`)).toEqual(["synopsis Unknown", "inseason Not read",
-      "dfo Unknown", "fwa Unknown", "tiles Unknown", "basemap Unknown", "hydat Unknown", "feed Unknown",
-      "forecast Unknown", "weather Live", "imagery Live"]);
+  it("the imagery credit is the map's own (Esri's required words, IMAGERY_CREDIT), never a second wording", () => {
+    expect(IMAGERY_CREDIT).toBe(`Satellite imagery: ${IMAGERY_ATTRIBUTION}`);
+    expect(sourcesVM({ edition: null, tiles: null }).rows.find((r) => r.k === "imagery")!.from
+      .startsWith(`${IMAGERY_ATTRIBUTION}.`)).toBe(true);
   });
 });
 
@@ -216,11 +181,11 @@ describe("freshness: each source against its own cadence (owner 2026-10-22)", ()
             fc({ forecastIssuedAt: undefined, feedFetchedAt: iso(H) }), fc({})]).toEqual([
       "forecast Up to date", "forecast Likely out of date", "forecast Up to date", "forecast Likely out of date",
       "forecast Unknown", "forecast Unknown"]);
-    const row = (s: Partial<SourcesInput>) => sourcesVM({ sources: null, validUntil: null, tiles: null, feedFetchedAt: null,
-                                                         now, ...s }).rows.find((r) => r.k === "forecast")!.when;
+    const row = (s: Partial<SourcesInput>) => dataVM({ sources: null, validUntil: null, tiles: null, feedFetchedAt: null,
+                                                      now, newRelease: null, ...s }).rows.find((r) => r.k === "forecast")!.when;
     expect([row({ forecastIssuedAt: iso(5 * H), feedFetchedAt: iso(H) }), row({ forecastIssuedAt: null, feedFetchedAt: iso(H) }),
             row({ feedFetchedAt: iso(H) }), row({})]).toEqual([
-      "Issued 5h ago", "No forecast running now", "Not stated by the gauge feed", "Not checked yet"]);
+      "Issued 5h ago", "None running now", "No date recorded", "Not checked yet"]);
   });
 
   it("each release-dated source at its edge: the day inside, the day past", () => {
@@ -302,19 +267,17 @@ describe("freshness: each source against its own cadence (owner 2026-10-22)", ()
       ]);
     });
 
-    it("the Data sources page's HYDAT row, whole: the release's date, and the notice's badge", () => {
-      const row = (n: HydatNotice | null) => sourcesVM({
+    it("the More tab's HYDAT row, whole: the release's date, and the notice's state", () => {
+      const row = (n: HydatNotice | null) => dataVM({
         sources: { hydat: { date: "2026-07-17" } }, validUntil: null, tiles: null, feedFetchedAt: null, now,
-        hydatNotice: n,
-      }).rows.find((r) => r.k === "hydat");
-      const words = { k: "hydat", name: "Gauge records (HYDAT)",
-                      what: "Past years of flow and level, Environment and Climate Change Canada",
-                      when: "Updated Jul 17, 2026" };
-      expect([row("due"), row({ current: "2026-07-17" }), row({ current: "2026-10-20" }), row(null)]).toEqual([
-        { ...words, badge: { kind: "stale", label: "Newer release out" } },
-        { ...words, badge: { kind: "fresh", label: "Up to date" } },
-        { ...words, badge: { kind: "stale", label: "Newer release out" } },
-        { ...words, badge: { kind: "fresh", label: "Up to date" } },
+        hydatNotice: n, newRelease: null,
+      }).rows.find((r) => r.k === "hydat")!;
+      expect([row("due"), row({ current: "2026-07-17" }), row({ current: "2026-10-20" }), row(null)]
+        .map((r) => `${r.shown} | ${r.label}`)).toEqual([
+        "Jul 17, 2026 · Newer release out | HYDAT: Jul 17, 2026. Newer release out.",
+        "Jul 17, 2026 | HYDAT: Jul 17, 2026. Up to date.",
+        "Jul 17, 2026 · Newer release out | HYDAT: Jul 17, 2026. Newer release out.",
+        "Jul 17, 2026 | HYDAT: Jul 17, 2026. Up to date.",
       ]);
     });
 

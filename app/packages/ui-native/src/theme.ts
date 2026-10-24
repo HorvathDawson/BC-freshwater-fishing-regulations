@@ -190,6 +190,17 @@ export const REGS_WIDE = { measure: 560, side: 264 } as const;
 export const SHEET_DIALOG = { maxWidth: 640, inset: 24, maxHeight: 0.82 } as const;
 
 /**
+ * T167 — THE MORE TAB AND ITS PAGES ON A WIDE SCREEN (owner 2026-10-23: "on desktop it feels a little lacking"):
+ *
+ *   maxWidth   the More tab's two columns together (the data's freshness beside the settings and pages), centred
+ *   gap        between the two columns
+ *   data       the data column's share of the row (the settings column takes 1)
+ *   page       a menu page's reading column (Sources and credits, About, Report a problem, the Glossary), centred
+ *   phone      nothing: a phone draws one edge-to-edge column, as before
+ */
+export const MORE_WIDE = { maxWidth: 1040, gap: 24, data: 1.15, page: 680 } as const;
+
+/**
  * T46 — A FISH PICTURE never scales with the window (owner: "on desktop … they become hugeeee"):
  *
  *   maxWidth   the most a picture is ever drawn (a phone's sheet is 358 px across, so a phone never reaches it)

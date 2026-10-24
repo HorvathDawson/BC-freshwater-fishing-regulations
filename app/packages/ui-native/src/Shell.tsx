@@ -504,7 +504,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                checking: syncState.checking,
                newRelease: syncState.newRelease, now: Date.now() })
     : null;
-  /** What More's Data block and the Data sources page read: the release's dates, the pair, the feed's age. */
+  /** What More's Data block reads (T167: the only place a source's date and freshness are drawn): the release's dates, the pair, the feed's age. */
   const dataFacts = {
     sources: loader?.manifest?.sources ?? null, validUntil: loader?.manifest?.regulations?.valid_until ?? null,
     tiles: vintage.tiles ?? null, tilesPaired: vintage.ok, feedFetchedAt: syncState.feedFetchedAt, now: Date.now(),
@@ -963,8 +963,6 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                      onCancel={rail.cancelDrop} onContinue={rail.continueDrop} />
       {/* the menu's pages: each open level a back layer (back closes a term, then the page) */}
       <MenuHost menu={menu} palette={palette} loader={loader} info={menuInfo} tiles={vintage.tiles ?? null}
-                feedFetchedAt={syncState.feedFetchedAt} tilesPaired={vintage.ok} newRelease={syncState.newRelease}
-                hydatNotice={syncState.hydatNotice} forecastIssuedAt={syncState.forecastIssuedAt}
                 route={route} day={mapDay} />
     </View>
     </MenuContext.Provider>

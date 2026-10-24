@@ -11,9 +11,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { Linking, Share, Text } from "react-native";
-import { FISH_CREDITS, MENU_WORDS, regsReportWhere, type DataInput, type GlossaryTerm, type HydatNotice, type RegsPage } from "@app/core";
+import { FISH_CREDITS, MENU_WORDS, regsReportWhere, type DataInput, type GlossaryTerm, type RegsPage } from "@app/core";
 import type { RegsLoader } from "@app/data/regs";
-import { BackLayerContext, ERROR_LOG, routeWhere, useBack, useMenu, useRoute, type Back, type BackLayers,
+import { BackLayerContext, ERROR_LOG, LayoutWidthContext, routeWhere, useBack, useMenu, useRoute, type Back, type BackLayers,
          type MenuControls } from "@app/ui";
 import { LIGHT, type ThemeName } from "../theme";
 import { GlossaryPage } from "./GlossaryPage";
@@ -38,28 +38,27 @@ const DATA: DataInput = {
   forecastIssuedAt: new Date(NOW - 9 * 3.6e6).toISOString(),
 };
 
-/** The Shell's wiring, and nothing else: the one back, the menu, the More tab and the host. */
-function App({ info = INFO, loader = null, out, data = DATA, theme = "light", onTheme = () => {}, hydatNotice,
-               forecastIssuedAt, feedFetchedAt = null }: {
+/** The Shell's wiring, and nothing else: the one back, the menu, the More tab and the host — at a window width. */
+function App({ info = INFO, loader = null, out, data = DATA, theme = "light", onTheme = () => {}, width = null }: {
   info?: MenuInfo; loader?: RegsLoader | null; out: { back?: Back }; data?: DataInput;
-  theme?: ThemeName; onTheme?: (t: ThemeName) => void; hydatNotice?: HydatNotice | null;
-  forecastIssuedAt?: string | null; feedFetchedAt?: string | null;
+  theme?: ThemeName; onTheme?: (t: ThemeName) => void; width?: number | null;
 }) {
   const [route, go] = useRoute();
   const b = useBack(route, go, null);
   out.back = b;
   const menu = useMenu();
   return (
-    <BackLayerContext.Provider value={b.layers}>
-      <MenuContext.Provider value={menu}>
-        <MoreScreen palette={LIGHT} data={data} back="Map" onBack={b.back} contact={info.contact}
-                    theme={theme} onTheme={onTheme}
-                    onPick={(k) => (k === "report" ? menu.report(routeWhere(route, null)) : menu.show(k))} />
-        <MenuHost menu={menu} palette={LIGHT} loader={loader} info={info} tiles="d768d6e135e62b99.c9f9604f12bf"
-                  tilesPaired feedFetchedAt={feedFetchedAt} route={route} day={null} hydatNotice={hydatNotice}
-                  forecastIssuedAt={forecastIssuedAt} />
-      </MenuContext.Provider>
-    </BackLayerContext.Provider>
+    <LayoutWidthContext.Provider value={width}>
+      <BackLayerContext.Provider value={b.layers}>
+        <MenuContext.Provider value={menu}>
+          <MoreScreen palette={LIGHT} data={data} back="Map" onBack={b.back} contact={info.contact}
+                      theme={theme} onTheme={onTheme}
+                      onPick={(k) => (k === "report" ? menu.report(routeWhere(route, null)) : menu.show(k))} />
+          <MenuHost menu={menu} palette={LIGHT} loader={loader} info={info} tiles="d768d6e135e62b99.c9f9604f12bf"
+                    route={route} day={null} />
+        </MenuContext.Provider>
+      </BackLayerContext.Provider>
+    </LayoutWidthContext.Provider>
   );
 }
 
@@ -76,7 +75,7 @@ const pick = (id: string) => { act(() => { fireEvent.click(screen.getByTestId(id
 const text = (id: string) => screen.getByTestId(id).textContent;
 const said = (id: string) => screen.getByTestId(id).getAttribute("aria-label");
 
-describe("the More tab (T48; owner 2026-10-22 refinement)", () => {
+describe("the More tab (T48; owner 2026-10-22 refinement; T167)", () => {
   it("top to bottom: back to the previous tab, the title, Data, Display, the pages as rows, Contact — the only list", () => {
     render(<App out={{}} />);
     expect({
@@ -88,35 +87,66 @@ describe("the More tab (T48; owner 2026-10-22 refinement)", () => {
       headings: ["More", "Data", "Display", "Contact"],
       rows: [
         "GlossaryWhat the regulations' words mean",
+        "Sources and creditsWho publishes the data, and on what terms",
         "AboutWhat this app is, and what it is not",
         "Report a problemSomething wrong, missing or confusing",
       ],
     });
   });
 
-  it("the Data block is always there: one summary badge, one line per source with its date, said aloud in full", () => {
+  it("(T167) the Data block: one summary badge, the in-season warning, then EVERY source as one row — drawn compact, " +
+     "said aloud in full", () => {
     render(<App out={{}} />);
     expect({
       summary: text("data-summary"),
-      lines: screen.getAllByTestId(/^data-line-/).map((e) => e.getAttribute("aria-label")),
-      shown: text("data-line-feed"),
-      block: said("more-data"),
+      warning: text("data-inseason"),
+      drawn: screen.getAllByTestId(/^data-row-/).map((e) => e.textContent),
+      aloud: screen.getAllByTestId(/^data-row-/).map((e) => e.getAttribute("aria-label")),
     }).toEqual({
       summary: "1 likely out of date",
-      lines: [
-        "Regulations: 2025–2027 edition. Unknown",
-        "In-season changes: Check the Province's notices. Not read",
-        "River flows: Checked 27h ago. Likely out of date",
-        "Forecasts: Issued 9h ago. Up to date",
-        "Weather: With each saved spot. Live",
-        "Map: Matches the data. Up to date",
-        "Basemap: Updated Mar 5, 2026. Up to date",
-        "Satellite imagery: Online only. Live",
+      warning: "In-season changes are not read"
+        + "The Province can change a regulation during the season. Check its notices before you fish."
+        + "Province's in-season changes ↗",
+      drawn: [
+        "Synopsis2025–2027 edition",
+        "DFO salmonNo date recorded",
+        "Freshwater AtlasNo date recorded",
+        "Map tilesMatches the data",
+        "BasemapMar 5, 2026",
+        "HYDATNo date recorded",
+        "Live gauge readings27h ago · Likely out of date",
+        "River forecastsIssued 9h ago",
+        "WeatherPer saved spot",
+        "Satellite imageryOnline only",
       ],
-      shown: "River flowsChecked 27h ago",
-      block: "Data sources & dates. 1 likely out of date",
+      aloud: [
+        "Synopsis: 2025–2027 edition. Unknown.",
+        "DFO salmon: No date recorded. Unknown.",
+        "Freshwater Atlas: No date recorded. Unknown.",
+        "Map tiles: Matches the data. Up to date.",
+        "Basemap: Mar 5, 2026. Up to date.",
+        "HYDAT: No date recorded. Unknown.",
+        "Live gauge readings: 27h ago. Likely out of date.",
+        "River forecasts: Issued 9h ago. Up to date.",
+        "Weather: Per saved spot. Live.",
+        "Satellite imagery: Online only. Live.",
+      ],
     });
+    // each row's dot is its state's shape: filled for an age, a ring for none
+    expect(screen.getAllByTestId(/^data-row-/).map((e) => e.querySelector("[data-testid^=fresh-]")!.getAttribute("data-testid")))
+      .toEqual(["fresh-unknown", "fresh-unknown", "fresh-unknown", "fresh-fresh", "fresh-fresh", "fresh-unknown",
+                "fresh-stale", "fresh-fresh", "fresh-live", "fresh-live"]);
+    // the map tiles say their state, never their hash, on the tab
+    expect(text("more-data")).not.toContain("d768d6e1");
     expect(screen.queryByTestId("data-new-release")).toBeNull();
+  });
+
+  it("(T167) the in-season warning's link opens the Province's in-season changes", () => {
+    const open = vi.spyOn(Linking, "openURL").mockResolvedValue(true);
+    render(<App out={{}} />);
+    press("Province's in-season changes");
+    expect(open.mock.calls).toEqual([[
+      "https://www2.gov.bc.ca/gov/content/sports-culture/recreation/fishing-hunting/fishing/fishing-regulations#In-Season-changes"]]);
   });
 
   it("a newer release is said at the top of the block, and in its badge", () => {
@@ -125,10 +155,31 @@ describe("the More tab (T48; owner 2026-10-22 refinement)", () => {
       .toEqual(["Newer data available", "A newer data release is available. Reopen the app to use it."]);
   });
 
-  it("the Data block opens the detailed references; back closes them to the tab", () => {
+  it("(T167) a phone: one column, the data first; a wide screen: the data in its own column beside the rest", () => {
+    const where = (id: string) => {
+      const el = screen.getByTestId(id);
+      return el.closest("[data-testid=more-column-data]") ? "data"
+        : el.closest("[data-testid=more-column-rest]") ? "rest" : "single";
+    };
+    const ids = ["more-data", "display-palette", "menu-item-sources", "more-contact"];
+    const layouts: Record<string, string[]> = {};
+    for (const width of [390, 1000, 1280, 1600]) {
+      render(<App out={{}} width={width} />);
+      layouts[width] = [screen.queryByTestId("more-columns") ? "columns" : "one", ...ids.map(where)];
+      cleanup();
+    }
+    expect(layouts).toEqual({
+      390: ["one", "single", "single", "single", "single"],
+      1000: ["columns", "data", "rest", "rest", "rest"],
+      1280: ["columns", "data", "rest", "rest", "rest"],
+      1600: ["columns", "data", "rest", "rest", "rest"],
+    });
+  });
+
+  it("the Sources and credits row opens the references; back closes them to the tab", () => {
     const out: { back?: Back } = {};
     render(<App out={out} />);
-    pick("more-data");
+    pick("menu-item-sources");
     expect(screen.getByTestId("menu-page-sources")).toBeTruthy();
     let r = false;
     act(() => { r = out.back!.back(); });
@@ -187,56 +238,44 @@ describe("a page", () => {
     let r = false;
     act(() => { r = out.back!.back(); });
     settle();
-    expect([r, screen.queryByTestId("menu-page-about"), screen.getAllByTestId(/^menu-item-/).length]).toEqual([true, null, 3]);
+    expect([r, screen.queryByTestId("menu-page-about"), screen.getAllByTestId(/^menu-item-/).length]).toEqual([true, null, 4]);
     act(() => { r = out.back!.back(); });
     expect(r).toBe(false);
   });
 
-  it("(T68) Data sources & dates: the host hands the feed's forecast word to the forecasts row", () => {
-    const iso = (h: number) => new Date(Date.now() - h * 3.6e6).toISOString();
-    const rows: string[] = [];
-    for (const f of [iso(5), null, undefined]) {
-      render(<App out={{}} feedFetchedAt={iso(1)} forecastIssuedAt={f} />);
-      pick("more-data");
-      rows.push(text("source-forecast"));
-      cleanup();
-    }
-    expect(rows).toEqual([
-      "River forecastsThe BC River Forecast Centre's models, issued daily in seasonIssued 5h agoUp to date",
-      "River forecastsThe BC River Forecast Centre's models, issued daily in seasonNo forecast running nowUp to date",
-      "River forecastsThe BC River Forecast Centre's models, issued daily in seasonNot stated by the gauge feedUnknown",
-    ]);
-  });
-
-  it("Data sources & dates: the release's own dates, 'not recorded' where it states none, each with its badge", () => {
+  it("(T167) Sources and credits: every source by the More tab's name, who publishes it, the edition and the tile " +
+     "build — and no date or freshness anywhere on it", () => {
     const loader = {
       release: "r-0efa5d05fc92",
-      manifest: { data_release: "r-0efa5d05fc92", regulations: { valid_until: null, versions: null },
+      manifest: { data_release: "r-0efa5d05fc92", regulations: { valid_until: "2027-03-31", versions: null },
                   sources: { synopsis: { title: "2025–2027 BC Freshwater Fishing Regulations Synopsis", date: null },
                              fwa: { date: "2026-07-15" }, hydat: { date: "2026-07-17" } } },
     } as unknown as RegsLoader;
     render(<App out={{}} loader={loader} />);
-    pick("more-data");
-    const row = (k: string) => text(`source-${k}`);
-    expect([row("synopsis"), row("fwa"), row("dfo"), row("tiles"), row("feed")]).toEqual([
-      "2025–2027 BC Freshwater Fishing Regulations Synopsis"
-        + "The Province of British Columbia's printed regulations, read water by waterDate not recorded in this release"
-        + "Unknown",
-      "B.C. Freshwater AtlasEvery stream and lake on the map, from the Province of British ColumbiaUpdated Jul 15, 2026"
-        + "Up to date",
-      "Fisheries and Oceans Canada salmon regulations"
-        + "The federal salmon limits, openings and closures for B.C.'s fresh water, by regionDate not recorded in this release"
-        + "Unknown",
-      "Map tilesThe atlas drawn for the map, with every regulation's section in it"
-        + "Version d768d6e135e62b99.c9f9604f12bfUp to date",
-      "Live gauge readingsEnvironment and Climate Change CanadaNot checked yetUnknown",
+    pick("menu-item-sources");
+    const page = screen.getByTestId("menu-page-sources");
+    expect(page.querySelector("[role=header], [role=heading]")?.textContent).toBe("Sources and credits");
+    expect(screen.getAllByTestId(/^source-(?!detail-)/).map((e) => e.textContent)).toEqual([
+      "SynopsisProvince of British Columbia. The printed regulations this app reads."
+        + "2025–2027 BC Freshwater Fishing Regulations Synopsis",
+      "In-season changesProvince of British Columbia. Not read by this app.",
+      "DFO salmonFisheries and Oceans Canada. The federal salmon limits and closures.",
+      "Freshwater AtlasProvince of British Columbia. Contains information licensed under the Open Government Licence – "
+        + "British Columbia.",
+      "Map tilesDrawn for this app from the Freshwater Atlas and the regulations.Version d768d6e135e62b99.c9f9604f12bf",
+      "Basemap© OpenStreetMap contributors. © Protomaps.",
+      "HYDATEnvironment and Climate Change Canada. Historical hydrometric data, under the Open Government Licence – Canada.",
+      "Live gauge readingsEnvironment and Climate Change Canada. Real-time hydrometric data, under the Open Government "
+        + "Licence – Canada.",
+      "River forecastsBC River Forecast Centre. The CLEVER, COFFEE and ELF river forecasts, used with permission.",
+      "WeatherWeather data by Open-Meteo.com, CC BY 4.0.",
+      "Satellite imageryPowered by Esri · Source: Esri, Vantor, Earthstar Geographics, and the GIS User Community. "
+        + "Shown only while online, never stored.",
     ]);
-    // (T68) the forecasts' own row: no feed reached, no word
-    expect(row("forecast")).toBe("River forecastsThe BC River Forecast Centre's models, issued daily in season"
-      + "Not checked yetUnknown");
-    // no notice word passed (an index from before notices): HYDAT by its age, inside 548 days — up to date
-    expect(row("hydat")).toBe("Gauge records (HYDAT)Past years of flow and level, Environment and Climate Change Canada"
-      + "Updated Jul 17, 2026Up to date");
+    // references only: the More tab's dates and dots are not drawn a second time here
+    expect([page.querySelectorAll("[data-testid^=fresh-]").length,
+            /Up to date|out of date|Jul 15, 2026|Jul 17, 2026|Mar 31, 2027/.test(page.textContent ?? "")])
+      .toEqual([0, false]);
     // (T43) the app's one list of fish picture credits, every line whole, after the sources
     const pics = screen.getByTestId("sources-fish-credits");
     expect([...pics.querySelectorAll("div[dir=auto]")].map((e) => e.textContent)).toEqual(["FISH PICTURES", ...FISH_CREDITS]);
@@ -248,30 +287,16 @@ describe("a page", () => {
       + "All other copyright (c) for Lucide are held by Lucide Contributors 2022."]);
   });
 
-  it("the HYDAT row reads the feed's notice: due says 'Newer release out'; clear is up to date however old only when " +
-     "the release carries that HYDAT, else the app has not caught up; no word, its age (owner 2026-10-22 late)", () => {
-    const at = (date: string, hydatNotice: HydatNotice | null | undefined) => {
-      const loader = {
-        release: "r-0efa5d05fc92",
-        manifest: { data_release: "r-0efa5d05fc92", regulations: { valid_until: null, versions: null },
-                    sources: { hydat: { date } } },
-      } as unknown as RegsLoader;
-      render(<App out={{}} loader={loader} hydatNotice={hydatNotice} />);
-      pick("more-data");
-      const got = text("source-hydat");
+  it("(T167) a menu page on a wide screen reads in a centred column; a phone's is the full width", () => {
+    const widths: (string | null)[] = [];
+    for (const width of [390, 1280]) {
+      render(<App out={{}} width={width} />);
+      pick("menu-item-sources");
+      const col = screen.getByTestId("source-synopsis").parentElement!.parentElement as HTMLElement;
+      widths.push(col.style.maxWidth || null);
       cleanup();
-      return got;
-    };
-    const head = "Gauge records (HYDAT)Past years of flow and level, Environment and Climate Change Canada";
-    expect([at("2026-07-17", "due"), at("2023-01-10", { current: "2023-01-10" }),
-            at("2026-07-17", { current: "2026-10-20" }), at("2023-01-10", null), at("2023-01-10", undefined)])
-      .toEqual([
-        `${head}Updated Jul 17, 2026Newer release out`,
-        `${head}Updated Jan 10, 2023Up to date`,
-        `${head}Updated Jul 17, 2026Newer release out`,
-        `${head}Updated Jan 10, 2023Likely out of date`,
-        `${head}Updated Jan 10, 2023Likely out of date`,
-      ]);
+    }
+    expect(widths).toEqual([null, "680px"]);
   });
 });
 
@@ -400,7 +425,7 @@ describe("the report link at the foot of the Regulations page", () => {
         <BackLayerContext.Provider value={b.layers}>
           <MenuContext.Provider value={menu}>
             <ReportLink page={page} palette={LIGHT} />
-            <MenuHost menu={menu} palette={LIGHT} loader={null} info={INFO} tiles={null} feedFetchedAt={null}
+            <MenuHost menu={menu} palette={LIGHT} loader={null} info={INFO} tiles={null}
                       route={route} day={null} />
           </MenuContext.Provider>
         </BackLayerContext.Provider>);

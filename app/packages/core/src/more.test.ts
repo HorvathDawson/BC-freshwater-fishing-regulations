@@ -1,9 +1,11 @@
 /**
  * The More tab and the sync icon (more.ts), whole strings (AGENTS 33): the Data block every reader sees at the top of
- * More, its summary badge, the tab's sections, and the sync icon's three states as said aloud.
+ * More — (T167) every source the app reads, one row each, and the in-season warning — its summary badge, the tab's
+ * sections, and the sync icon's three states as said aloud.
  */
 import { describe, expect, it } from "vitest";
-import { dataVM, menuVM, syncVM, type DataInput } from "./more";
+import { DATA_ROWS, dataVM, menuVM, syncVM, type DataInput } from "./more";
+import { SOURCE_ORDER } from "./menu";
 import { STALE_AFTER } from "./staleness";
 
 const NOW = Date.parse("2026-10-22T18:00:00Z");
@@ -17,118 +19,162 @@ const LIVE: DataInput = {
   feedFetchedAt: new Date(NOW - 27 * H).toISOString(), now: NOW, newRelease: null,
   forecastIssuedAt: new Date(NOW - 9 * H).toISOString(),
 };
-const lines = (d: DataInput) => dataVM(d).lines.map((l) => `${l.name} · ${l.when} · ${l.badge.label}`);
+/** a row as drawn (name | right-hand text) and as said aloud */
+const rows = (d: DataInput) => dataVM(d).rows.map((r) => `${r.name} | ${r.shown}`);
+const row = (d: Partial<DataInput>, k: string) => dataVM({ ...LIVE, ...d }).rows.find((r) => r.k === k)!;
+const sum = (d: DataInput) => { const v = dataVM(d); return `${v.summary.kind}: ${v.summary.label}`; };
 
-describe("the Data block: always at the top of More, one line per source", () => {
-  it("each line names the source, its date in few words and its freshness — the owner's seven and the forecasts, in " +
-     "order", () => {
-    expect(lines(LIVE)).toEqual([
-      "Regulations · 2025–2027 edition · Unknown",
-      "In-season changes · Check the Province's notices · Not read",
-      "River flows · Checked 27h ago · Likely out of date",
-      "Forecasts · Issued 9h ago · Up to date",
-      "Weather · With each saved spot · Live",
-      "Map · Matches the data · Up to date",
-      "Basemap · Updated Mar 5, 2026 · Up to date",
-      "Satellite imagery · Online only · Live",
+describe("the Data block: always on More, compact — every source, one row each (T167)", () => {
+  it("every source the app reads, in the owner's names and order: the date or age, the state in words only when " +
+     "stale", () => {
+    expect(rows(LIVE)).toEqual([
+      "Synopsis | 2025–2027 edition",
+      "DFO salmon | Aug 28, 2026",
+      "Freshwater Atlas | Jul 15, 2026",
+      "Map tiles | Matches the data",
+      "Basemap | Mar 5, 2026",
+      "HYDAT | Jul 17, 2026",
+      "Live gauge readings | 27h ago · Likely out of date",
+      "River forecasts | Issued 9h ago",
+      "Weather | Per saved spot",
+      "Satellite imagery | Online only",
     ]);
   });
 
-  it("the regulations line: the last day in force, else the printing, else the edition's years, else not recorded", () => {
-    const syn = (d: Partial<DataInput>) => dataVM({ ...LIVE, ...d }).lines[0]!.when;
+  it("every row is said aloud whole: name, date, state — the state the dot draws", () => {
+    expect(dataVM(LIVE).rows.map((r) => r.label)).toEqual([
+      "Synopsis: 2025–2027 edition. Unknown.",
+      "DFO salmon: Aug 28, 2026. Up to date.",
+      "Freshwater Atlas: Jul 15, 2026. Up to date.",
+      "Map tiles: Matches the data. Up to date.",
+      "Basemap: Mar 5, 2026. Up to date.",
+      "HYDAT: Jul 17, 2026. Up to date.",
+      "Live gauge readings: 27h ago. Likely out of date.",
+      "River forecasts: Issued 9h ago. Up to date.",
+      "Weather: Per saved spot. Live.",
+      "Satellite imagery: Online only. Live.",
+    ]);
+  });
+
+  it("the rows are the app's ONE source list (SOURCE_ORDER) less the in-season changes, which are the warning", () => {
+    expect([...DATA_ROWS]).toEqual(SOURCE_ORDER.filter((k) => k !== "inseason"));
+    expect(dataVM(LIVE).rows.map((r) => r.k)).toEqual([...DATA_ROWS]);
+  });
+
+  it("the in-season changes: never a row, always the warning, with the Province's page", () => {
+    expect(dataVM(LIVE).inseason).toEqual({
+      title: "In-season changes are not read",
+      text: "The Province can change a regulation during the season. Check its notices before you fish.",
+      link: { label: "Province's in-season changes",
+              url: "https://www2.gov.bc.ca/gov/content/sports-culture/recreation/fishing-hunting/fishing/fishing-regulations#In-Season-changes" },
+    });
+  });
+
+  it("the map tiles row gives the tiles' state, never their hash (the version is the Sources page's)", () => {
+    expect([row({ tilesPaired: true }, "tiles"), row({ tilesPaired: false }, "tiles"), row({ tilesPaired: null }, "tiles")]
+      .map((r) => `${r.shown} / ${r.label}`)).toEqual([
+      "Matches the data / Map tiles: Matches the data. Up to date.",
+      "Out of step with the data · Likely out of date / Map tiles: Out of step with the data. Likely out of date.",
+      "Not proven / Map tiles: Not proven. Unknown.",
+    ]);
+    expect(dataVM(LIVE).rows.some((r) => r.shown.includes("d768d6e1") || r.label.includes("d768d6e1"))).toBe(false);
+  });
+
+  it("the synopsis row: the last day in force, else the printing, else the edition's years, else not recorded", () => {
+    const syn = (d: Partial<DataInput>) => row(d, "synopsis").shown;
     expect([
       syn({ validUntil: "2027-03-31" }),
       syn({ sources: { synopsis: { title: "S", date: "2025-03-20" } } }),
       syn({ sources: null }),
-    ]).toEqual(["Valid to Mar 31, 2027", "Printed Mar 20, 2025", "Date not recorded"]);
+    ]).toEqual(["Valid to Mar 31, 2027", "Printed Mar 20, 2025", "No date recorded"]);
   });
 
-  it("past the last day the regulations line says OUT of date (not 'likely') and the block counts it", () => {
+  it("a dated source with no date recorded, or one that is not a day, says so — never a guess", () => {
+    expect([row({ sources: { ...LIVE.sources, dfo: { date: null } } }, "dfo"),
+            row({ sources: { ...LIVE.sources, fwa: { date: "July" } } }, "fwa")].map((r) => r.label))
+      .toEqual(["DFO salmon: No date recorded. Unknown.", "Freshwater Atlas: No date recorded. Unknown."]);
+  });
+
+  it("past the last day the synopsis row says OUT of date (not 'likely') and the block leads with it", () => {
     // the reader's own calendar: the evening of the last day is still in force, the next morning is not
     const at = (now: number) => {
-      // every other source dated the same week, so the regulations line is the only one that can go stale
+      // every other source dated the same week, so the synopsis row is the only one that can go stale
       const day = { date: new Date(now - 7 * 24 * H).toISOString().slice(0, 10) };
       const sources = { synopsis: LIVE.sources!.synopsis, dfo: day, fwa: day, basemap: day, hydat: day };
       const v = dataVM({ ...LIVE, sources, validUntil: "2027-03-31", feedFetchedAt: new Date(now - H).toISOString(),
                          forecastIssuedAt: new Date(now - H).toISOString(), now });
-      return `${v.lines[0]!.name} · ${v.lines[0]!.when} · ${v.lines[0]!.badge.kind} ${v.lines[0]!.badge.label} | ${v.summary.label}`;
+      return `${v.rows[0]!.name} | ${v.rows[0]!.shown} | ${v.summary.label}`;
     };
     expect([at(new Date(2027, 2, 31, 23, 59).getTime()), at(new Date(2027, 3, 1, 0, 1).getTime())]).toEqual([
-      "Regulations · Valid to Mar 31, 2027 · fresh Up to date | All up to date",
-      "Regulations · Valid to Mar 31, 2027 · stale Out of date | Regulations out of date",
+      "Synopsis | Valid to Mar 31, 2027 | All up to date",
+      "Synopsis | Valid to Mar 31, 2027 · Out of date | Regulations out of date",
     ]);
   });
 
-  it("HYDAT (on Details alone) follows the feed's notice: due counts as out of date, current never by age; the " +
-     "sync icon never hears of it", () => {
+  it("HYDAT follows the feed's notice: due is a newer release, current never by age; the sync icon never hears of it", () => {
     const fresh: DataInput = { ...LIVE, validUntil: "2027-03-31", feedFetchedAt: new Date(NOW - H).toISOString() };
     const old = { ...fresh.sources, hydat: { date: "2023-01-01" } };
-    const sum = (d: DataInput) => { const v = dataVM(d); return `${v.summary.kind}: ${v.summary.label}`; };
+    const hy = (d: DataInput) => `${dataVM(d).rows.find((r) => r.k === "hydat")!.shown} | ${sum(d)}`;
     expect([
-      sum({ ...fresh, hydatNotice: "due" }),
-      sum({ ...fresh, hydatNotice: { current: "2023-01-01" }, sources: old }),
+      hy({ ...fresh, hydatNotice: "due" }),
+      hy({ ...fresh, hydatNotice: { current: "2023-01-01" }, sources: old }),
       // the feed is clear on a newer HYDAT than the release carries: the app's data has not caught up
-      sum({ ...fresh, hydatNotice: { current: "2026-07-17" }, sources: old }),
-      sum({ ...fresh, hydatNotice: null, sources: old }),
-      sum({ ...fresh, sources: old }),
+      hy({ ...fresh, hydatNotice: { current: "2026-07-17" }, sources: old }),
+      hy({ ...fresh, hydatNotice: null, sources: old }),
     ]).toEqual([
-      "stale: 1 likely out of date · see Details",
-      "fresh: All up to date",
-      "stale: 1 likely out of date · see Details",
-      "stale: 1 likely out of date · see Details",
-      "stale: 1 likely out of date · see Details",
+      "Jul 17, 2026 · Newer release out | stale: 1 likely out of date",
+      "Jan 1, 2023 | fresh: All up to date",
+      "Jan 1, 2023 · Newer release out | stale: 1 likely out of date",
+      "Jan 1, 2023 · Likely out of date | stale: 1 likely out of date",
     ]);
-    // the block draws no HYDAT line; the notice adds no line and no "newer data" note (that is the DATA release)
-    expect(lines({ ...fresh, hydatNotice: "due" })).toEqual(lines(fresh));
+    // the notice adds no "newer data" note (that is the DATA release)
     expect(dataVM({ ...fresh, hydatNotice: "due" }).newRelease).toBeNull();
   });
 
-  it("a lapsed edition leads the summary (never folded into a 'likely' count); other stale lines follow it", () => {
+  it("a lapsed edition leads the summary (never folded into a 'likely' count); other stale rows follow it", () => {
     const now = new Date(2027, 3, 1, 9).getTime();
     const day = { date: new Date(now - 7 * 24 * H).toISOString().slice(0, 10) };
     const sources = { synopsis: LIVE.sources!.synopsis, dfo: day, fwa: day, basemap: day, hydat: day };
     const base: DataInput = { ...LIVE, sources, validUntil: "2027-03-31", feedFetchedAt: new Date(now - H).toISOString(),
                               forecastIssuedAt: new Date(now - H).toISOString(), now };
-    const sum = (d: DataInput) => { const v = dataVM(d); return `${v.summary.kind}: ${v.summary.label}`; };
     expect([
       sum(base),
       sum({ ...base, tilesPaired: false }),
-      sum({ ...base, sources: { ...sources, dfo: { date: "2026-01-01" } } }),
+      sum({ ...base, tilesPaired: false, sources: { ...sources, dfo: { date: "2026-01-01" } } }),
       sum({ ...base, newRelease: "r-new" }),
     ]).toEqual([
       "stale: Regulations out of date",
       "stale: Regulations out of date · 1 likely out of date",
-      "stale: Regulations out of date · 1 more in Details",
+      "stale: Regulations out of date · 2 likely out of date",
       "stale: Newer data available",
     ]);
   });
 
-  it("a newer release known: the regulations and the map lines are likely out of date; the flows keep their own hours", () => {
+  it("a newer release known: the synopsis and the map tiles are likely out of date; the flows keep their own hours", () => {
     const fresh: DataInput = { ...LIVE, validUntil: "2027-03-31", feedFetchedAt: new Date(NOW - H).toISOString() };
-    expect(lines({ ...fresh, newRelease: "r-new" })).toEqual([
-      "Regulations · Valid to Mar 31, 2027 · Likely out of date",
-      "In-season changes · Check the Province's notices · Not read",
-      "River flows · Checked 1h ago · Up to date",
-      "Forecasts · Issued 9h ago · Up to date",
-      "Weather · With each saved spot · Live",
-      "Map · Matches the data · Likely out of date",
-      "Basemap · Updated Mar 5, 2026 · Up to date",
-      "Satellite imagery · Online only · Live",
+    expect(rows({ ...fresh, newRelease: "r-new" })).toEqual([
+      "Synopsis | Valid to Mar 31, 2027 · Likely out of date",
+      "DFO salmon | Aug 28, 2026",
+      "Freshwater Atlas | Jul 15, 2026",
+      "Map tiles | Matches the data · Likely out of date",
+      "Basemap | Mar 5, 2026",
+      "HYDAT | Jul 17, 2026",
+      "Live gauge readings | 1h ago",
+      "River forecasts | Issued 9h ago",
+      "Weather | Per saved spot",
+      "Satellite imagery | Online only",
     ]);
   });
 
-  it("the River flows line at its 2 h edge, whole: a minute inside, a minute past", () => {
-    const flows = (ago: number) => dataVM({ ...LIVE, feedFetchedAt: new Date(NOW - ago).toISOString() })
-      .lines.find((l) => l.k === "feed")!;
-    expect([flows(2 * H - 60_000), flows(2 * H + 60_000)].map((l) => `${l.name} · ${l.when} · ${l.badge.label}`))
-      .toEqual(["River flows · Checked 2h ago · Up to date", "River flows · Checked 2h ago · Likely out of date"]);
+  it("the live gauge readings at their 2 h edge, whole: a minute inside, a minute past", () => {
+    const flows = (ago: number) => row({ feedFetchedAt: new Date(NOW - ago).toISOString() }, "feed");
+    expect([flows(2 * H - 60_000), flows(2 * H + 60_000)].map((r) => r.label))
+      .toEqual(["Live gauge readings: 2h ago. Up to date.", "Live gauge readings: 2h ago. Likely out of date."]);
+    expect(STALE_AFTER.feed).toMatchObject({ by: "age" });
   });
 
-  it("(T68) the Forecasts line, from the feed index's newest run: whole, at its 36 h edge, none running, no word", () => {
-    const fc = (d: Partial<DataInput>) => {
-      const l = dataVM({ ...LIVE, ...d }).lines.find((x) => x.k === "forecast")!;
-      return `${l.name} · ${l.when} · ${l.badge.label}`;
-    };
+  it("(T68) the river forecasts row, from the feed index's newest run: whole, at its 36 h edge, none running, no word", () => {
+    const fc = (d: Partial<DataInput>) => row(d, "forecast").label;
     expect([
       fc({ forecastIssuedAt: new Date(NOW - 36 * H + 60_000).toISOString() }),
       fc({ forecastIssuedAt: new Date(NOW - 36 * H - 60_000).toISOString() }),
@@ -139,12 +185,12 @@ describe("the Data block: always at the top of More, one line per source", () =>
       fc({ forecastIssuedAt: undefined }),
       fc({ forecastIssuedAt: undefined, feedFetchedAt: null }),
     ]).toEqual([
-      "Forecasts · Issued 36h ago · Up to date",
-      "Forecasts · Issued 36h ago · Likely out of date",
-      "Forecasts · None running now · Up to date",
-      "Forecasts · None running now · Likely out of date",
-      "Forecasts · Date not recorded · Unknown",
-      "Forecasts · Not checked yet · Unknown",
+      "River forecasts: Issued 36h ago. Up to date.",
+      "River forecasts: Issued 36h ago. Likely out of date.",
+      "River forecasts: None running now. Up to date.",
+      "River forecasts: None running now. Likely out of date.",
+      "River forecasts: No date recorded. Unknown.",
+      "River forecasts: Not checked yet. Unknown.",
     ]);
   });
 
@@ -153,76 +199,56 @@ describe("the Data block: always at the top of More, one line per source", () =>
     const fresh: DataInput = { ...LIVE, validUntil: "2027-03-31" };
     const v = dataVM({ ...fresh, feedFetchedAt: new Date(NOW - 3 * H).toISOString(),
                        forecastIssuedAt: new Date(NOW - 3 * H).toISOString() });
-    expect(v.lines.filter((l) => l.k === "feed" || l.k === "forecast").map((l) => `${l.k} ${l.badge.label}`))
+    expect(v.rows.filter((r) => r.k === "feed" || r.k === "forecast").map((r) => `${r.k} ${r.badge.label}`))
       .toEqual(["feed Likely out of date", "forecast Up to date"]);
-    const sum = (d: DataInput) => { const x = dataVM(d); return `${x.summary.kind}: ${x.summary.label}`; };
     expect(sum({ ...fresh, feedFetchedAt: new Date(NOW - H).toISOString(),
                  forecastIssuedAt: new Date(NOW - 40 * H).toISOString() })).toBe("stale: 1 likely out of date");
   });
 
-  it("the map line by the proven pair; the flows line before the feed answers", () => {
-    const at = (d: Partial<DataInput>, k: string) => dataVM({ ...LIVE, ...d }).lines.find((l) => l.k === k)!;
-    expect([at({ tilesPaired: false }, "tiles"), at({ tilesPaired: null }, "tiles"), at({ feedFetchedAt: null }, "feed")]
-      .map((l) => `${l.when} · ${l.badge.label}`))
-      .toEqual(["Out of step with the data · Likely out of date", "Not proven · Unknown", "Not checked yet · Unknown"]);
-  });
-
-  it("ONE summary badge for the block: a newer release, else how many are stale, else unknown, else all up to date", () => {
+  it("ONE summary badge: a newer release, else how many rows are stale (every source counts), else unknown, else fresh", () => {
     const fresh: DataInput = { ...LIVE, validUntil: "2027-03-31", feedFetchedAt: new Date(NOW - H).toISOString() };
-    const sum = (d: DataInput) => { const v = dataVM(d); return `${v.summary.kind}: ${v.summary.label}`; };
     expect([
       sum({ ...LIVE, newRelease: "r-new" }),
       sum({ ...LIVE, tilesPaired: false }),
       sum(LIVE),
+      // DFO past its cadence: a row like any other, so it counts (there is no second list to send the reader to)
+      sum({ ...fresh, sources: { ...fresh.sources, dfo: { date: "2026-01-01" } } }),
       sum({ ...fresh, validUntil: null }),
+      sum({ ...fresh, sources: { ...fresh.sources, fwa: undefined } }),
       sum(fresh),
     ]).toEqual([
       "stale: Newer data available",
       "stale: 2 likely out of date",
       "stale: 1 likely out of date",
+      "stale: 1 likely out of date",
+      "unknown: Some dates not recorded",
       "unknown: Some dates not recorded",
       "fresh: All up to date",
     ]);
+    // the summary's count is the number of stale dots drawn, whatever the mix
+    const odd: DataInput = { ...LIVE, tilesPaired: false, sources: { ...LIVE.sources, dfo: { date: "2026-01-01" } } };
+    expect([sum(odd), dataVM(odd).rows.filter((r) => r.badge.kind === "stale").length])
+      .toEqual(["stale: 3 likely out of date", 3]);
     expect([dataVM({ ...LIVE, newRelease: "r-new" }).newRelease, dataVM(LIVE).newRelease])
       .toEqual(["A newer data release is available. Reopen the app to use it.", null]);
-  });
-
-  it("the summary counts ONLY the lines the block draws: a stale source listed on Details alone sends the reader there", () => {
-    // DFO, the atlas (FWA) and HYDAT are on the Data sources & dates page, not in the block: with DFO past its 120 days
-    // (Dec 26, 2026 on the live dates) the block must not say "2 likely out of date" over one red dot
-    const fresh: DataInput = { ...LIVE, validUntil: "2027-03-31", feedFetchedAt: new Date(NOW - H).toISOString() };
-    const oldDfo = { ...fresh.sources, dfo: { date: "2026-01-01" } };
-    const sum = (d: DataInput) => { const v = dataVM(d); return `${v.summary.kind}: ${v.summary.label}`; };
-    const dots = (d: DataInput) => dataVM(d).lines.filter((l) => l.badge.kind === "stale").length;
-    expect([
-      sum({ ...fresh, sources: oldDfo }),
-      sum({ ...LIVE, sources: { ...LIVE.sources, dfo: { date: "2026-01-01" } } }),
-      sum({ ...fresh, sources: { ...fresh.sources, fwa: undefined } }),
-    ]).toEqual([
-      "stale: 1 likely out of date · see Details",
-      "stale: 1 likely out of date · 1 more in Details",
-      "unknown: Some dates not recorded · see Details",
-    ]);
-    expect([dots({ ...fresh, sources: oldDfo }), dots({ ...LIVE, sources: { ...LIVE.sources, dfo: { date: "2026-01-01" } } })])
-      .toEqual([0, 1]);
   });
 });
 
 describe("the More tab, top to bottom", () => {
-  it("back to the previous tab, the Data block, Display, the pages as rows, Contact inline", () => {
+  it("back to the previous tab, the Data block, Display, the pages as rows (Sources and credits once), Contact inline", () => {
     const vm = menuVM({ data: LIVE, back: "Conditions", contact: null });
     expect({
-      title: vm.title, back: vm.back, data: [vm.data.title, vm.data.details, vm.data.detailsLabel, vm.data.detailsHint],
-      display: vm.display, rows: vm.rows, contact: vm.contact,
+      title: vm.title, back: vm.back, data: vm.data.title, display: vm.display, rows: vm.rows, contact: vm.contact,
     }).toEqual({
       title: "More",
       back: { to: "Conditions", label: "Back to Conditions" },
-      data: ["Data", "Details", "Data sources & dates", "Every source, its date and where it comes from"],
+      data: "Data",
       display: { title: "Display", palette: "Colours",
                  note: "The colour-blind palette changes the hues and nothing else. It has a light ground only.",
                  options: [{ k: "light", t: "Light" }, { k: "dark", t: "Dark" }, { k: "cvd", t: "Colour-blind" }] },
       rows: [
         { k: "glossary", label: "Glossary", hint: "What the regulations' words mean" },
+        { k: "sources", label: "Sources and credits", hint: "Who publishes the data, and on what terms" },
         { k: "about", label: "About", hint: "What this app is, and what it is not" },
         { k: "report", label: "Report a problem", hint: "Something wrong, missing or confusing" },
       ],

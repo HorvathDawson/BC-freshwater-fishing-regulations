@@ -1,17 +1,17 @@
 /**
  * THE MENU'S PAGES, mounted once by the Shell: the page opened from the More tab (`MoreScreen`, T48 — the hamburger's
- * drawer is gone) or from a regulations tab's report link — Glossary, Data sources & dates, About, Report a problem.
- * (Owner 2026-10-22) Display and Contact are no pages: the More tab draws them inline. Everything a page
- * says comes from core/menu.ts over facts handed in here — the release's manifest (its id, `sources`, the edition's
- * valid-until), the tile version the map draws, when the gauge feed was last fetched, the app's own config (build,
- * contact) and the recent error log. Nothing here is fetched for the menu except the glossary, read from the regs
+ * drawer is gone) or from a regulations tab's report link — Glossary, Sources and credits, About, Report a problem.
+ * (Owner 2026-10-22) Display and Contact are no pages: the More tab draws them inline; (T167) so is every source's date
+ * and freshness. Everything a page says comes from core/menu.ts over facts handed in here — the release's manifest
+ * (its id, the edition's title), the tile version the map draws, the app's own config (build, contact) and the recent
+ * error log. Nothing here is fetched for the menu except the glossary, read from the regs
  * store only while its page is open.
  *
  * Each open level is a back layer (G1): back closes a glossary term, then the page.
  */
 import { useMemo } from "react";
 import { Platform } from "react-native";
-import { aboutVM, dayLabel, MENU_WORDS, SYNOPSIS_PDF, sourcesVM, type HydatNotice } from "@app/core";
+import { aboutVM, dayLabel, MENU_WORDS, SYNOPSIS_PDF, sourcesVM } from "@app/core";
 import type { RegsLoader } from "@app/data/regs";
 import { ERROR_LOG, routeWhere, useGlossary, type MenuControls, type Route } from "@app/ui";
 import type { Palette } from "../theme";
@@ -31,24 +31,13 @@ export interface MenuInfo {
 /** No build facts: the build states none and the owner has supplied no contact yet. */
 export const NO_MENU_INFO: MenuInfo = Object.freeze({ appBuild: null, contact: null });
 
-export function MenuHost({ menu, palette, loader, info = NO_MENU_INFO, tiles, tilesPaired = null, feedFetchedAt, route,
-                           day, newRelease = null, hydatNotice = null, forecastIssuedAt }: {
+export function MenuHost({ menu, palette, loader, info = NO_MENU_INFO, tiles, route, day }: {
   menu: MenuControls; palette: Palette;
   /** the release (null: the dev bundle, which holds no regulations and no manifest) */
   loader: RegsLoader | null;
   info?: MenuInfo;
-  /** the tile version the map draws, or null */
+  /** the tile version the map draws, or null (About's versions, a report's diagnostics, Sources and credits) */
   tiles: string | null;
-  /** the tiles and the data proven one pair (P11 `usePairing`'s `ok`): the map tiles' freshness */
-  tilesPaired?: boolean | null;
-  /** when the gauge feed was last fetched (its ISO instant), or null */
-  feedFetchedAt: string | null;
-  /** a newer data release the server names (the sync icon's re-read), or null: the regulations and map rows go stale */
-  newRelease?: string | null;
-  /** what the gauge feed's index says about HYDAT (`hydatNotice`, core staleness.ts), or null: its age decides */
-  hydatNotice?: HydatNotice | null;
-  /** (T68) the feed index's newest forecast run: its instant, null (none held), or undefined (no word) */
-  forecastIssuedAt?: string | null;
   /** where the reader is now (the Shell's route) and the map's day (null = today) — a report is prefilled with them */
   route: Route;
   day: Date | null;
@@ -90,8 +79,7 @@ export function MenuHost({ menu, palette, loader, info = NO_MENU_INFO, tiles, ti
         )}
       </MenuPage>
       {page("sources", <SourcesPage palette={palette} vm={sourcesVM({
-        sources: m?.sources ?? null, validUntil: m?.regulations?.valid_until ?? null, tiles, tilesPaired, feedFetchedAt,
-        newRelease, hydatNotice, forecastIssuedAt, now: Date.now() })} />)}
+        edition: m?.sources?.synopsis?.title ?? null, tiles })} />)}
       {page("about", <AboutPage palette={palette} vm={aboutVM({
         appBuild: info.appBuild, release: loader?.release ?? null, tiles,
         edition: m?.sources?.synopsis?.title ?? null }, SYNOPSIS_PDF)} />)}

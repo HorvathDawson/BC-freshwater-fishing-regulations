@@ -66,8 +66,9 @@ export const SATELLITE_OFFLINE =
  * take it from the service, and it changed from "Maxar" to "Vantor" in 2025). The map's own attribution carries the
  * same words from the style (`layers.source.json`, source `imagery`); `tools/imagery.test.ts` holds the two equal.
  */
-export const IMAGERY_CREDIT =
-  "Satellite imagery: Powered by Esri · Source: Esri, Vantor, Earthstar Geographics, and the GIS User Community";
+export const IMAGERY_ATTRIBUTION =
+  "Powered by Esri · Source: Esri, Vantor, Earthstar Geographics, and the GIS User Community";
+export const IMAGERY_CREDIT = `Satellite imagery: ${IMAGERY_ATTRIBUTION}`;
 
 /** The app's credit lines for the ground drawn: Esri's added only while satellite is. */
 export const withImageryCredit = (lines: readonly string[], drawn: Basemap): readonly string[] =>

@@ -1,6 +1,6 @@
 /**
- * A SOURCE'S FRESHNESS, drawn (owner 2026-10-22): the More tab's Data block and the Data sources & dates page draw the
- * same badge from the same rule (`sourceFreshness`, core/menu.ts), so the two never disagree.
+ * A SOURCE'S FRESHNESS, drawn (owner 2026-10-22): the More tab's Data block (T167: the one list of sources and their
+ * freshness) and the Regulations page's lapsed note draw it from one rule (`sourceFreshness`, core/menu.ts).
  *
  *   fresh    a filled dot in `live` (the app's live-data teal)
  *   stale    a filled dot in `attention` — the one state that asks the reader to look; never a water-status hue, since

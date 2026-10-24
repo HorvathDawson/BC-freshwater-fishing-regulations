@@ -1,16 +1,16 @@
 /**
  * THE MENU (owner 2026-10-21; T48: the bottom bar's MORE tab — the top-left hamburger and its drawer are gone, moved,
- * never copied). (Owner 2026-10-22, refinement pass) The More tab itself shows the data's sourceFreshness, the display options
- * and Contact INLINE (more.ts `menuVM`); what opens as a page over it is Glossary, Data sources & dates (the detailed
- * references), About and Report a problem. Every word they draw and every sentence they compose is here or in more.ts,
- * where a test can pin the finished string (AGENTS 33); the components draw these VMs and decide nothing.
+ * never copied). (Owner 2026-10-22, refinement pass; T167 2026-10-23) The More tab itself shows every source's date and
+ * freshness, the display options and Contact INLINE (more.ts `menuVM`); what opens as a page over it is Glossary,
+ * Sources and credits (who publishes each source, and on what terms), About and Report a problem. Every word they draw
+ * and every sentence they compose is here or in more.ts, where a test can pin the finished string (AGENTS 33); the
+ * components draw these VMs and decide nothing.
  *
  *   glossaryRows    the glossary's list, searched — the release's own terms (`answers.glossary`, the same terms the
  *                   regs page's `gl:` sheets open); a term's definition is `glossBlocks` (regs/sheets.ts), never a copy
  *   aboutVM         what the app is, the authority disclaimer, the official synopsis, the versions
- *   sourcesVM       every source the app reads, the date it was last updated and its freshness badge (more.ts
- *                   `sourceFreshness`) — from the release manifest's `sources` (the pipeline reads them off its inputs) and from
- *                   what the app itself fetched; a date nobody recorded says so, never a guess
+ *   sourcesVM       every source the app reads, who publishes it and its licence, the edition / tile build in use —
+ *                   references only; each source's date and freshness (`sourceFreshness`) are the More tab's
  *   contactVM       the ONE contact value (app config), or a placeholder until the owner supplies it
  *   diagnosticRows / reportMessage / mailtoUrl   a problem report: what the user wrote plus the diagnostics they can
  *                   SEE and switch off, composed for the platform's share sheet or an email — nothing is ever sent
@@ -20,6 +20,7 @@ import { localDate } from "./day";
 import { monthAbbr } from "./flow";
 import { FISH_CREDITS } from "./regs/fish.generated";
 import { ICON_CREDIT } from "./iconSet";
+import { IMAGERY_ATTRIBUTION } from "./imagery";
 import { WORDS } from "./regs/words";
 import type { GlossaryTerm } from "./regs/inputs";
 import type { HeaderVM, RegsTarget, Tab } from "./regs/model";
@@ -33,13 +34,20 @@ export type MenuPageKey = "glossary" | "sources" | "about" | "report";
 /** The app's name as the menu writes it (app.json's display name is the slug; the owner names the product). */
 export const APP_NAME = "Can I Fish This?";
 
+/**
+ * (T167) WHERE THE PROVINCE POSTS ITS IN-SEASON CHANGES — the section of its fishing-regulations page that lists them
+ * by region (anchor `#In-Season-changes`, read 2026-10-23). The app does not read them; the More tab links here.
+ */
+export const INSEASON_URL =
+  "https://www2.gov.bc.ca/gov/content/sports-culture/recreation/fishing-hunting/fishing/fishing-regulations#In-Season-changes";
+
 export const MENU_WORDS = {
   /** The More tab's name and its page's title (T48: the menu lives in the bottom bar). */
   title: "More",
   back: "Back",
   items: {
     glossary: { label: "Glossary", hint: "What the regulations' words mean" },
-    sources: { label: "Data sources & dates", hint: "Where each answer comes from, and how fresh it is" },
+    sources: { label: "Sources and credits", hint: "Who publishes the data, and on what terms" },
     about: { label: "About", hint: "What this app is, and what it is not" },
     report: { label: "Report a problem", hint: "Something wrong, missing or confusing" },
   } satisfies Record<MenuPageKey, { label: string; hint: string }>,
@@ -79,41 +87,39 @@ export const MENU_WORDS = {
     devBundle: "Development bundle",
     notStated: "Not stated",
   },
+  /**
+   * (T167, owner 2026-10-23: "separate out references to a separate thing") THE SOURCES — one name each, the same on
+   * the More tab's freshness list and on the Sources and credits page (the owner's own names) — and who publishes
+   * each, on what terms. Dates and freshness are the More tab's alone (more.ts `dataVM`); this page carries none.
+   */
   sources: {
-    intro: "Every answer in this app comes from one of these. Each says when it was last updated.",
-    notRecorded: "Date not recorded in this release",
-    updated: (day: string) => `Updated ${day}`,
-    validTo: (day: string) => `Valid to ${day}`,
-    notRead: "Not read by this app: check them before you fish",
-    version: (v: string) => `Version ${v}`,
-    checked: (ago: string) => `Checked ${ago}`,
-    notChecked: "Not checked yet",
-    /** (T68) the forecasts: the newest run's issue time, none held by the feed, or a feed that does not say */
-    issued: (ago: string) => `Issued ${ago}`,
-    noneRunning: "No forecast running now",
-    notStated: "Not stated by the gauge feed",
-    live: "Live, when online",
-    perSpot: "Fetched when a spot is saved",
-    checkFirst: "The Province's in-season changes and Fisheries and Oceans Canada's notices can change a regulation at "
-      + "short notice. Check them before you fish.",
-    /** What each source is, in the order the screen lists them: the regulations, the map, the water, the sky. The
-     *  imagery's provider is the map's own attribution (the style), never restated here. */
-    rows: {
-      synopsis: { name: "Freshwater Fishing Regulations Synopsis",
-                  what: "The Province of British Columbia's printed regulations, read water by water" },
-      inseason: { name: "In-season regulation changes",
-                  what: "The Province's changes to the Synopsis, announced during the season" },
-      dfo: { name: "Fisheries and Oceans Canada salmon regulations",
-             what: "The federal salmon limits, openings and closures for B.C.'s fresh water, by region" },
-      fwa: { name: "B.C. Freshwater Atlas", what: "Every stream and lake on the map, from the Province of British Columbia" },
-      tiles: { name: "Map tiles", what: "The atlas drawn for the map, with every regulation's section in it" },
-      basemap: { name: "Basemap", what: "Roads, towns and terrain: © OpenStreetMap contributors, Protomaps" },
-      hydat: { name: "Gauge records (HYDAT)", what: "Past years of flow and level, Environment and Climate Change Canada" },
-      feed: { name: "Live gauge readings", what: "Environment and Climate Change Canada" },
-      forecast: { name: "River forecasts", what: "The BC River Forecast Centre's models, issued daily in season" },
-      weather: { name: "Weather", what: "Open-Meteo.com (CC BY 4.0)" },
-      imagery: { name: "Satellite imagery", what: "Shown only while online; never stored on this device" },
+    intro: "Who publishes the data this app reads, and on what terms.",
+    names: {
+      synopsis: "Synopsis", inseason: "In-season changes", dfo: "DFO salmon", fwa: "Freshwater Atlas",
+      tiles: "Map tiles", basemap: "Basemap", hydat: "HYDAT", feed: "Live gauge readings",
+      forecast: "River forecasts", weather: "Weather", imagery: "Satellite imagery",
     },
+    from: {
+      synopsis: "Province of British Columbia. The printed regulations this app reads.",
+      inseason: "Province of British Columbia. Not read by this app.",
+      dfo: "Fisheries and Oceans Canada. The federal salmon limits and closures.",
+      fwa: "Province of British Columbia. Contains information licensed under the Open Government Licence – "
+        + "British Columbia.",
+      tiles: "Drawn for this app from the Freshwater Atlas and the regulations.",
+      basemap: "© OpenStreetMap contributors. © Protomaps.",
+      // (owner 2026-10-23, decisions.md "data permissions") ECCC's hydrometric data — HYDAT and the real-time
+      // readings — are under the Open Government Licence – Canada; the BC River Forecast Centre's forecasts (CLEVER,
+      // COFFEE, ELF) are used with its permission and credited by name
+      hydat: "Environment and Climate Change Canada. Historical hydrometric data, under the Open Government Licence – "
+        + "Canada.",
+      feed: "Environment and Climate Change Canada. Real-time hydrometric data, under the Open Government Licence – "
+        + "Canada.",
+      forecast: "BC River Forecast Centre. The CLEVER, COFFEE and ELF river forecasts, used with permission.",
+      weather: "Weather data by Open-Meteo.com, CC BY 4.0.",
+      imagery: `${IMAGERY_ATTRIBUTION}. Shown only while online, never stored.`,
+    },
+    /** the map tiles' build, exact — here and nowhere else (the More tab gives the tiles' state, never the hash) */
+    version: (v: string) => `Version ${v}`,
   },
   /** how old a live value is ("Checked 7h ago") — the app's one convention (ui-native format.ts `ago` reads it) */
   ago: {
@@ -284,11 +290,13 @@ export interface SourcesInput {
   now: number;
 }
 
-export type SourceDateKey = keyof typeof MENU_WORDS.sources.rows;
+export type SourceDateKey = keyof typeof MENU_WORDS.sources.names;
 
-export interface SourceDateRowVM {
-  readonly k: SourceDateKey; readonly name: string; readonly what: string; readonly when: string;
-  readonly badge: FreshnessVM;
+/** (T167) One source on the Sources and credits page: its name, who publishes it, and its exact edition or build. */
+export interface SourceCreditVM {
+  readonly k: SourceDateKey; readonly name: string; readonly from: string;
+  /** the synopsis's edition title, the map tiles' version — the exact thing in use, or null */
+  readonly detail: string | null;
 }
 
 // ── freshness ────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -428,46 +436,27 @@ export const SOURCE_ORDER: readonly SourceDateKey[] =
 /** (T43) the app's one list of fish picture credits: every picture it can show (the manifest's lines, emitted). */
 export interface SourcesPicturesVM { readonly label: string; readonly lines: readonly string[] }
 
-export function sourcesVM(s: SourcesInput): {
-  intro: string; rows: readonly SourceDateRowVM[]; footnote: string; pictures: SourcesPicturesVM;
+export interface SourcesVM {
+  readonly intro: string;
+  readonly rows: readonly SourceCreditVM[];
+  /** (T43) every fish picture the app can show, credited once */
+  readonly pictures: SourcesPicturesVM;
   /** (N1) the icon set's credit: Lucide's ISC notice, which every copy must carry */
-  icons: SourcesPicturesVM;
-} {
+  readonly icons: SourcesPicturesVM;
+}
+
+/**
+ * (T167) THE SOURCES AND CREDITS PAGE: each source's name and who publishes it, in the More tab's order; the exact
+ * edition (the synopsis's title, as the release states it) and the map tiles' build version where known. No dates, no
+ * freshness: those are the More tab's list (more.ts `dataVM`), drawn there once.
+ */
+export function sourcesVM(s: { edition: string | null; tiles: string | null }): SourcesVM {
   const w = MENU_WORDS.sources;
-  const dated = (f: SourceDate | undefined) => {
-    const d = isoDayWords(f?.date);
-    return d ? w.updated(d) : w.notRecorded;
-  };
-  const when = (k: SourceDateKey): string => {
-    switch (k) {
-      case "synopsis": {
-        // the printing's own date when recorded, else how long the edition is in force, else not recorded
-        const printed = isoDayWords(s.sources?.synopsis?.date);
-        const until = isoDayWords(s.validUntil);
-        return printed ? w.updated(printed) : until ? w.validTo(until) : w.notRecorded;
-      }
-      case "inseason": return w.notRead;
-      case "dfo": case "fwa": case "basemap": case "hydat": return dated(s.sources?.[k]);
-      case "tiles": return s.tiles ? w.version(s.tiles) : w.notRecorded;
-      case "feed": return s.feedFetchedAt !== null && Number.isFinite(Date.parse(s.feedFetchedAt))
-        ? w.checked(agoWords(s.feedFetchedAt, s.now)) : w.notChecked;
-      case "forecast": return forecastWhen(s, { issued: w.issued, none: w.noneRunning, notSaid: w.notStated,
-                                                notChecked: w.notChecked });
-      case "weather": return w.perSpot;
-      case "imagery": return w.live;
-    }
-  };
+  const detail = (k: SourceDateKey): string | null =>
+    k === "synopsis" ? s.edition : k === "tiles" && s.tiles ? w.version(s.tiles) : null;
   return {
     intro: w.intro,
-    rows: SOURCE_ORDER.map((k) => ({
-      k,
-      // the edition's own title where the release names it ("2025–2027 BC Freshwater Fishing Regulations Synopsis")
-      name: k === "synopsis" ? s.sources?.synopsis?.title ?? w.rows[k].name : w.rows[k].name,
-      what: w.rows[k].what,
-      when: when(k),
-      badge: sourceFreshness(k, s),
-    })),
-    footnote: w.checkFirst,
+    rows: SOURCE_ORDER.map((k) => ({ k, name: w.names[k], from: w.from[k], detail: detail(k) })),
     // (T43) the regs page's foot lists only its own pictures' lines; this is the whole list, once
     pictures: { label: WORDS.FISH_PICTURES, lines: FISH_CREDITS },
     icons: ICON_CREDIT,
