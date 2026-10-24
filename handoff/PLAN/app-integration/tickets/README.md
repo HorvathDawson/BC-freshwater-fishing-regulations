@@ -229,6 +229,7 @@ use that as the sole source of future work."
 | T182 | release file splits for the web (section_down, part_geo, nearest town in core, conditions) | OPEN | — | release format; from T129's measurements |
 | T183 | straddling pieces carry BOTH regions' rules (reverses T115, owner 2026-10-24) | OPEN | — | reach + deliver; after the T67 braid merge |
 | T184 | curation review as a shareable phone-friendly artifact (pilot's 30 first, then the queue) | OPEN | — | export from the backend + db marks + importer |
+| T185 | marks → tickets → proposed edits (side rebuild + binding diff) → owner accepts in an artifact → one commit each; fix mode loses its writers | OPEN | — | after T184 |
 
 ## Order for open tickets
 

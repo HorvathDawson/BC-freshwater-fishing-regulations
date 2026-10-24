@@ -1205,3 +1205,8 @@ All 41 become STREAM water. The book's own entry `r8:okanagan_river_oxbows@8-1` 
 River downstream of McIntyre Dam and upstream of Vaseux Lake are EXEMPT from the spring closure") must keep binding
 every one of them after the change — a binding diff proves it — so they read as streams with their own exemption, not
 as Okanagan River mainstem. Applied with the slough fold (dry run first, per the bulk-reclassify rule).
+
+## OWNER 2026-10-24 — no tool writes the catalogue
+The curation review must not update files directly. Marks are the review's only output; changes reach curated entries
+and splits as proposals the owner accepts (side rebuild + binding diff shown), applied as one commit per ticket. The
+local tool's fix-mode writers are retired (T185). The review itself moves to a shareable artifact (T184).

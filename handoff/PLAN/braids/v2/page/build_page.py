@@ -29,8 +29,16 @@ def rule_row(r):
             "causes": {k: round(v) for k, v in (r.get("delta_by_cause_m") or {}).items() if round(v)}}
 
 
-def slim_cut(c):
+def signature(c):
+    """What the owner looked at: the gate, the braid cut points and each piece's side."""
+    return json.dumps([c["gate"], sorted(map(tuple, (b.get("point") or [] for b in c.get("braid_cuts") or []))),
+                       sorted((p.get("section"), p.get("side")) for p in c.get("pieces") or [])])
+
+
+def slim_cut(c, before):
+    sig = signature(c)
     return r5({
+        "why": c.get("why") or "", "changed": before.get(c["split_id"]) not in (None, sig) if before else False,
         "id": c["split_id"], "label": c.get("label") or c["split_id"], "water": c.get("water") or "",
         "source": c.get("source"), "gate": c["gate"], "anchor": c.get("anchor_type"),
         "pt": c.get("cut_point"), "line": c.get("cut_line") or [], "host": c.get("host") or [],
@@ -47,7 +55,12 @@ def slim_cut(c):
 def main():
     d = json.loads((V2 / "cuts.json").read_text())
     dd = json.loads((V2 / "ditches.json").read_text())
-    cuts = [slim_cut(c) for c in d["cuts"]]
+    prev = V2 / "cuts.r2.json"     # the round the owner marked: a card whose cut moved since is flagged
+    before = {}
+    if prev.exists():
+        for c in json.loads(prev.read_text())["cuts"]:
+            before[c["split_id"]] = signature(c)
+    cuts = [slim_cut(c, before) for c in d["cuts"]]
     ditches = [r5({"id": x["section"], "name": x.get("name") or "(unnamed)", "len": round(x.get("length_m") or 0),
                    "rules": len(x.get("rules_before") or []),
                    "named_rules": [r for r in x.get("rules_before") or [] if not r.startswith("z")],
