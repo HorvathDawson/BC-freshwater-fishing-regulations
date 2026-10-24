@@ -173,7 +173,7 @@ use that as the sole source of future work."
 | T126 | forecast reading bugs: CLEVER times 8 h off, 5-day summary on a 10-day run, dots ignore horizon | DONE | e3688e2b, c7ccec1f, d7b9ed24 | live after a feed republish (owner R2 upload) |
 | T127 | displaced rule still shows "counts toward" and bounds the card gate | DONE | 2a0458f2, 358b5076, 77566458 | live after the next deliver |
 | T128 | sub-cap line names its total ("of your 5 trout and char a day in streams, up to 2 may be…") | DONE | 59aba774, c7d9f57f, 77566458, c410ca42, e839d0cd, 6d768bd6, bb46f5f1, 001e8ffd | — |
-| T129 | web request budget: gate first-paint / per-tap bytes, not only the release total | OPEN | — | all |
+| T129 | web request budget: gate first-paint / per-tap bytes, not only the release total | DONE | 3d0cc66a, 4183a2f4, 950dfaeb, 16794d00 | bytes table + WEB_BUDGET gates (release step + app test) + pinned request walk; splits → T182 |
 | T130 | Conditions: zoom out further before the basin heat map; Change chip greyed under Level | DONE | b4f3a40f, cd95bb63, b5218057, c9d48ea7 | Q-T130a/b (defaults built) |
 | T131 | spot pins look better and open the spot on tap | DONE | 00398a3b, fafcd21a, 64b96b55 | Q-T131-1..5 (defaults built); native tap with T50 |
 | T132 | curation review: salmon (DFO) pass | OPEN | — | later, after the first pass |
@@ -226,6 +226,7 @@ use that as the sole source of future work."
 | T179 | one cut-placement pass: auto cuts merge into names, real cuts close together stay apart (order-independent) | OPEN | — | heavy (atlas rebuild); after T61 2.8; owner reviews binding diff |
 | T180 | move the remaining ~105 component strings into core words (T60's KNOWN_COPY list empties) | DONE | 71179834, b54c69c1, bc7bc016, 462f8488 | KNOWN_COPY 95 → 0, no wording change; map gaugeDots attribution noted |
 | T181 | gauge pill keeps the theme the map was built with (check, then fix) | DONE | 7c43151a | confirmed (pill, pin, hatches kept the build theme); fixed + render test |
+| T182 | release file splits for the web (section_down, part_geo, nearest town in core, conditions) | OPEN | — | release format; from T129's measurements |
 
 ## Order for open tickets
 
@@ -300,6 +301,7 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q159 | T168 | "Reporting, not ranked" gauges fold with the silent ones ("not reporting or not ranked")? | yes | owner |
 | Q162 | T60 | Core words still type glyphs: WORDS.DATE_CARET " ▾", WATER_MAP_WORDS "▲ Upstream"/"▼ Downstream" — swap to the icon set's chevrons? | leave (prototype wording) | owner |
 | Q163 | T162 | data/source/runtiming/*.html (PSF pages, all rights reserved) are tracked in the PUBLIC repo — untrack them (git rm --cached + .gitignore) and purge from history? | untrack now (no history purge) once you say so | owner |
+| Q164 | T182 | Prefetch core + sql-wasm (1.75 MB) right after first paint on the web? Faster first search/tap/Conditions; a map-only visitor pays 1.75 MB | no prefetch | owner |
 
 ### Answered (recently, for the record)
 - Q160 — owner 2026-10-24: combine CLEVER + COFFEE on every forecast day, weighted by measured skill → T177. Q161 — owner: a spot records conditions for its TRIP date (not save time) → built in the T177 lane.
