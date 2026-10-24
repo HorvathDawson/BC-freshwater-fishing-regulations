@@ -19,10 +19,15 @@
  * FLOW WEIGHS MOST (the owner cares about flow) and is FLOW ONLY: the gauge's DISCHARGE percentile for the date, never
  * a level (decisions.md "NEVER MIX QUANTITIES"). A visit with no flow is scored on the weather alone, said as that
  * ("No flow then to compare"); a coming day no forecast reaches the same ("No flow forecast for this day").
+ *
+ * EVERY COMING DAY'S FLOW IS A FORECAST DAY (T171): the feed ranks each of the next ten days (`aheadDays`), the model
+ * per day by the publisher's one rule (the first flood model, else ELF). A day ELF made is scored like any other and
+ * SAYS so — the factor names the model and the day carries the low-water caveat (`CHANGE_LOW_WATER`, T144).
  */
 import { monthAbbr, percentileOrdinal, weekdayAbbr } from "./flow";
 import { localDate, shiftDay } from "./day";
 import { agoWords } from "./menu";
+import { CHANGE_LOW_WATER, CHANGE_LOW_WATER_MARK } from "./change";
 
 /** The factors, in the order a day's working lists them. */
 export type LikeFactorKey = "flow" | "temp" | "rain" | "wind" | "cloud";
@@ -56,6 +61,9 @@ export const LIKE_RAIN_DAYS = 3;
 export interface LikeConditions {
   /** The gauge's DISCHARGE percentile for the date, 0–1. Never a level. */
   flow: number | null;
+  /** A coming day's: the model that forecast `flow` (T171), and whether it is the low-water model (ELF, T144). */
+  flowModel?: string | null;
+  flowLowWater?: boolean;
   tempC: number | null;
   /** Rain over the LIKE_RAIN_DAYS days before, mm. */
   rainMm: number | null;
@@ -85,6 +93,8 @@ export interface LikeDay {
   basis: "all" | "weather" | null;
   /** Why flow is not in it, when it is not ("No flow then to compare."), else null. */
   note: string | null;
+  /** The low-water caveat when the day's flow is ELF's forecast (T171; `CHANGE_LOW_WATER`), else null. */
+  caveat: string | null;
   factors: LikeFactor[];
 }
 
@@ -119,6 +129,8 @@ export const LIKE_WORDS = {
   nothingThen: "Nothing was recorded at this visit to compare with: no flow, no weather.",
   never: "The forecast has not been fetched yet. It is fetched when you are online.",
   weatherOnly: "weather only",
+  /** The cell's mark on a day whose flow the low-water model forecast (T171). */
+  lowWater: CHANGE_LOW_WATER_MARK,
   dash: "—",
   reads: READS,
   labels: LABELS,
@@ -185,19 +197,22 @@ export function likeDay(then: LikeConditions, that: LikeConditions & { date: str
     }
     const l = likeness(k, a, b);
     const share = LIKE_WEIGHTS[k] / total;
-    const when = k === "flow" ? (o.today ? "now" : "forecast") : k === "rain" ? "forecast" : `forecast${at}`;
+    // a low-water day names its model: "5th percentile forecast by ELF" (T171)
+    const flowWhen = o.today ? "now" : that.flowLowWater ? `forecast by ${that.flowModel ?? "a low-water model"}` : "forecast";
+    const when = k === "flow" ? flowWhen : k === "rain" ? "forecast" : `forecast${at}`;
     return { key: k, likeness: l, share,
              line: `${label}: ${said(k, a)} then, ${said(k, b)} ${when}. ${cap(apart(k, a, b))}: ${pct(l)} alike, `
                + `${pct(share)} of the score.` };
   });
   if (!known.length)
-    return { date: that.date, score: null, read: null, basis: null, note: LIKE_WORDS.noScore, factors };
+    return { date: that.date, score: null, read: null, basis: null, note: LIKE_WORDS.noScore, caveat: null, factors };
   const s01 = factors.reduce((s, f) => s + (f.likeness ?? 0) * f.share, 0);
   const flowIn = known.includes("flow");
   return {
     date: that.date, score: Math.round(s01 * 100), read: likeRead(s01),
     basis: flowIn ? "all" : "weather",
     note: flowIn ? null : then.flow === null ? LIKE_WORDS.noFlowThen : LIKE_WORDS.noFlowAhead,
+    caveat: flowIn && !o.today && that.flowLowWater ? CHANGE_LOW_WATER : null,
     factors,
   };
 }

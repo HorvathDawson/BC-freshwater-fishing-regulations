@@ -26,5 +26,11 @@ export { isPhotoRef, nextPhotoRef, openPhotosWith, photoExt, photosDropped, PHOT
 export { openPhotos } from "./photoStore";
 // T51: "Like your visit?" — the inputs to core's `likeDay`, and the last fetched forecast kept for offline
 export { comingConditions, fetchLike, flowAhead, likeStation, NOTHING_FETCHED, readLike, visitConditions, visitHour,
-         writeLike, type LikeFetched, type LikeIndex, type LikeSources, type LikeStore,
+         writeLike, type FlowModel, type LikeFetched, type LikeIndex, type LikeSources, type LikeStore,
          type WeatherAhead } from "./likeVisit";
+// T170: the visit day's flow from the day's record — the one read (`flowOnDay`), HYDAT through GeoMet, the fill
+export { dayFlowAskable, dayFlowStation, fillDayFlow, flowOnDay, geometHydat, GEOMET_DAILY_MEAN, needsDayFlow,
+         readingIsTheDays, visitDay, type DayFlowAnswer, type DayFlowPorts, type HydatDaily,
+         type HydatDay } from "./dayFlow";
+export { DAY_FLOW_WORDS, dayFlowLine } from "./words";
+export type { DayFlow } from "./model";

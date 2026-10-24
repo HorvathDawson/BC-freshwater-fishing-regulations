@@ -21,7 +21,7 @@
 // would eventually disagree about the same reading (AGENTS rule 23).
 import { shownParameter, standing, type SourceChange } from "@app/core";
 import type { Aged, Forecast, Parameter, Reading, StationId } from "../index";
-import type { StationChange } from "../panel";
+import type { AheadDays, StationChange } from "../panel";
 
 /** The forecast exactly as the publisher writes it — both quantities, unpicked. */
 interface RawForecast extends Omit<Forecast, "series" | "disclaimer"> {
@@ -102,6 +102,8 @@ interface IndexFile {
     ahead?: Record<string, { discharge?: number; level?: number; model?: string; levelModel?: string }>;
     /** The expected change over the next ten days (T52), flow only: `discharge` is the coded ratio, `ratio` the ratio. */
     change?: StationChange;
+    /** Every forecast day's discharge percentile (T171, publish `change.forecast_days`); read by spots' `flowAhead`. */
+    aheadDays?: AheadDays;
   }>;
 }
 

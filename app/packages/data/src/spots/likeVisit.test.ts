@@ -49,13 +49,68 @@ describe("visitConditions — the frozen record only", () => {
 });
 
 describe("flowAhead — the feed index's own percentiles, by day", () => {
-  it("now and each horizon on the index's day; discharge only; +2 and +4 not there", () => {
+  it("a feed from before T171 (no aheadDays): now and each horizon on the index's day; discharge only", () => {
     const idx = { fetchedAt: new Date(2026, 9, 22, 6).toISOString(), stations: {
       "08MH016": { percentile: 0.3, parameter: "level" as const, discharge: 0.5, level: 0.3,
                    ahead: { "1": { discharge: 0.55, level: 0.9 }, "3": { discharge: 0.6 }, "5": { level: 0.1 } } } } };
-    expect(flowAhead(idx, "08MH016", NOW)).toEqual({
-      "2026-10-22": 0.5, "2026-10-23": 0.55, "2026-10-25": 0.6, "2026-10-27": null, "2026-11-01": null });
+    expect(flowAhead(idx, "08MH016", NOW)).toEqual({ flow: {
+      "2026-10-22": 0.5, "2026-10-23": 0.55, "2026-10-25": 0.6, "2026-10-27": null, "2026-11-01": null }, models: {} });
     expect(flowAhead(idx, "08XX000", NOW)).toBeNull();
+  });
+
+  /**
+   * T171 — THE CHILLIWACK (08MH001) row of the feed republished with `aheadDays` (2026-10-24T02:08Z, this lane's
+   * scratch republish): CLEVER every day to 1 Nov, ELF on 2 Nov. +2 and +4 now carry flow.
+   */
+  const CHILLIWACK = { percentile: 0.05, parameter: "discharge" as const, discharge: 0.05, level: 0.05,
+    ahead: { "1": { discharge: 0.05, level: 0.05, model: "CLEVER", levelModel: "ELF" },
+             "3": { discharge: 0.05, level: 0.05, model: "CLEVER", levelModel: "ELF" },
+             "5": { discharge: 0.05, level: 0.05, model: "CLEVER", levelModel: "ELF" },
+             "10": { discharge: 0.05, level: 0.05, model: "ELF" } },
+    aheadDays: { from: "2026-10-24", discharge: [0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05],
+                 model: ["CLEVER", "CLEVER", "CLEVER", "CLEVER", "CLEVER", "CLEVER", "CLEVER", "CLEVER", "CLEVER", "ELF"],
+                 lowWater: [9] } };
+  const AT = new Date(2026, 9, 23, 19, 8).getTime();
+
+  it("every forecast day from aheadDays, by its own date, with its model; ELF's day marked low-water", () => {
+    expect(flowAhead({ fetchedAt: new Date(AT).toISOString(), stations: { "08MH001": CHILLIWACK } }, "08MH001", AT))
+      .toEqual({
+        flow: { "2026-10-23": 0.05, "2026-10-24": 0.05, "2026-10-25": 0.05, "2026-10-26": 0.05, "2026-10-27": 0.05,
+                "2026-10-28": 0.05, "2026-10-29": 0.05, "2026-10-30": 0.05, "2026-10-31": 0.05, "2026-11-01": 0.05,
+                "2026-11-02": 0.05 },
+        models: { "2026-10-24": { model: "CLEVER" }, "2026-10-25": { model: "CLEVER" }, "2026-10-26": { model: "CLEVER" },
+                  "2026-10-27": { model: "CLEVER" }, "2026-10-28": { model: "CLEVER" }, "2026-10-29": { model: "CLEVER" },
+                  "2026-10-30": { model: "CLEVER" }, "2026-10-31": { model: "CLEVER" }, "2026-11-01": { model: "CLEVER" },
+                  "2026-11-02": { model: "ELF", lowWater: true } } });
+  });
+
+  it("a day past every model is null and has no model; a varying row keeps each day its own number", () => {
+    const row = { percentile: 0.33, discharge: 0.33,
+      aheadDays: { from: "2026-10-24", discharge: [0.145, 0.1118, 0.1155, 0.1182, 0.322, null, null, null, null, null],
+                   model: ["COFFEE", "COFFEE", "COFFEE", "COFFEE", "ELF", null, null, null, null, null],
+                   lowWater: [4] } };
+    const got = flowAhead({ fetchedAt: new Date(AT).toISOString(), stations: { "08DB013": row } }, "08DB013", AT)!;
+    expect([got.flow["2026-10-24"], got.flow["2026-10-25"], got.flow["2026-10-26"], got.flow["2026-10-27"],
+            got.flow["2026-10-28"], got.flow["2026-10-29"]]).toEqual([0.145, 0.1118, 0.1155, 0.1182, 0.322, null]);
+    expect([got.models["2026-10-25"], got.models["2026-10-28"], got.models["2026-10-29"]])
+      .toEqual([{ model: "COFFEE" }, { model: "ELF", lowWater: true }, undefined]);
+  });
+});
+
+describe("T171 — the strip's coming days on a republished feed", () => {
+  const AT = new Date(2026, 9, 23, 19, 8).getTime();
+  it("Chilliwack: +2 and +4 carry flow (CLEVER's), never weather-only", async () => {
+    const idx = { fetchedAt: new Date(AT).toISOString(), stations: { "08MH001": {
+      percentile: 0.05, parameter: "discharge" as const, discharge: 0.05,
+      aheadDays: { from: "2026-10-24", discharge: [0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.1, 0.1, 0.1, 0.2],
+                   model: ["CLEVER", "CLEVER", "CLEVER", "CLEVER", "CLEVER", "CLEVER", "CLEVER", "CLEVER", "CLEVER",
+                           "ELF"], lowWater: [9] } } } };
+    const spot = base({ reading: { station: "08MH001", discharge: 11, level: null, percentile: 0.05, at: "x" } });
+    const { fetched } = await fetchLike(spot, NOTHING_FETCHED, { feed: { index: async () => idx } }, AT);
+    expect(comingConditions(fetched, likeDays(AT), "09:00").map((c) => [c.date, c.flow, c.flowModel ?? null,
+                                                                         c.flowLowWater ?? null])).toEqual([
+      ["2026-10-23", 0.05, null, null], ["2026-10-24", 0.05, "CLEVER", false], ["2026-10-25", 0.06, "CLEVER", false],
+      ["2026-10-26", 0.07, "CLEVER", false], ["2026-10-27", 0.08, "CLEVER", false]]);
   });
 });
 
@@ -91,7 +146,8 @@ describe("fetchLike — both halves over the last fetched", () => {
       feed: { index: async () => ({ stations: { "08MH016": { percentile: 0.4, discharge: 0.4 } } }) },
     }, NOW);
     expect(got).toEqual({ offline: false, fetched: { weather: w, weatherAt: NOW, flowAt: NOW, flowNow: "2026-10-22",
-      flow: { "2026-10-22": 0.4, "2026-10-23": null, "2026-10-25": null, "2026-10-27": null, "2026-11-01": null } } });
+      flow: { "2026-10-22": 0.4, "2026-10-23": null, "2026-10-25": null, "2026-10-27": null, "2026-11-01": null },
+      flowModels: {} } });
   });
 
   it("the day the reading NOW is for is the index's own day: a feed published yesterday reads now as yesterday's",

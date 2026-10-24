@@ -89,7 +89,7 @@ describe("<SpotsScreen>", () => {
   it("counts the spots with something still to fill in, and refreshes them", () => {
     const calls = mount([spot(), spot({ id: "s2", weather: { at: "x" } as never })], { refresh: true });
     expect(screen.getByTestId("spots-stale").textContent)
-      .toBe("2 spots are missing the weather from the day they were pinned, or the week before it.");
+      .toBe("2 spots are missing the weather or the flow from the day they were pinned, or the week before it.");
     fireEvent.click(screen.getByRole("button", { name: "Refresh spots" }));
     expect(calls).toEqual(["refresh"]);
   });

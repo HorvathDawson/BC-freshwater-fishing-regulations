@@ -154,11 +154,11 @@ export function leadUpGaugeMeta(station: string, backfilled?: boolean): string {
   return [station, "daily means", backfilled ? "filled in afterwards" : null].filter(Boolean).join(" · ");
 }
 
-/** The Spots list's banner over spots with something still to fill in (the visit's weather, or the week before). */
+/** The Spots list's banner over spots with something still to fill in (the visit's weather or flow (T170), or the week before). */
 export function staleSpotsLine(n: number): string {
   return n === 1
-    ? "1 spot is missing the weather from the day it was pinned, or the week before it."
-    : `${n} spots are missing the weather from the day they were pinned, or the week before it.`;
+    ? "1 spot is missing the weather or the flow from the day it was pinned, or the week before it."
+    : `${n} spots are missing the weather or the flow from the day they were pinned, or the week before it.`;
 }
 
 /** The lead-up's fixed sentences. */
@@ -188,6 +188,54 @@ export function leadUpGaugePending(n: number): string {
   return n === 1
     ? "The station had not published 1 of these days yet. Refresh fills it in."
     : `The station had not published ${n} of these days yet. Refresh fills them in.`;
+}
+
+/* ---- T170: the visit day's flow, from the day's record ----------------------------------------------------------- */
+
+/** "15 Aug 2024" — a day said in full, for a record's date. */
+const fullDay = (date: string): string => {
+  const [y, m, d] = date.split("-").map(Number) as [number, number, number];
+  return `${d} ${monthAbbr(m - 1)} ${y}`;
+};
+
+/** Where a filled day's mean came from, in words. */
+const DAY_SOURCE = { feed: "ECCC's daily mean, provisional", hydat: "HYDAT daily mean" } as const;
+
+export const DAY_FLOW_WORDS = {
+  heading: "Flow that day",
+  /** The refresh line for a spot whose visit day's flow was never asked for. */
+  notRecorded: "The flow on the day of this visit was not recorded — it can be filled in from the day's record.",
+  action: "Get the flow for that day",
+  asking: "Asking for the flow on that day…",
+  offline: "Offline: the flow for that day will be asked for when you are back online.",
+  pending: "That day is not over in the gauge's record yet. Try again tomorrow.",
+  /** Over a frozen estimate that was read when the spot was saved, not on the visit's day. */
+  notTheDay: (savedOn: string): string =>
+    `The estimate above was read when this spot was saved (${fullDay(savedOn)}), not on the day of the visit.`,
+} as const;
+
+/**
+ * The visit day's flow said whole, or why there is none: "19.6 m³/s, the 34th percentile for the date — filled in from
+ * the day's record (HYDAT daily mean, 15 Aug 2024)." Null when it was never asked for.
+ */
+export function dayFlowLine(df: Spot["dayFlow"]): string | null {
+  if (!df) return null;
+  const on = fullDay(df.date);
+  if (df.state === "not-published")
+    return `The flow for ${on} is not published yet: it is older than ECCC's recent record and not in HYDAT yet. `
+      + "Try again later.";
+  if (df.state === "none")
+    return df.why === "no-discharge"
+      ? `The record for ${on} holds no flow for station ${df.station}: it measures water level, and a level never `
+        + "stands in for a flow."
+      : `Station ${df.station}'s record holds no flow for ${on}.`;
+  const p = df.place;
+  const where = p === null ? "no record to rank it against"
+    : p === "below" ? "at or below the 10th percentile for the date"
+    : p === "above" ? "at or above the 90th percentile for the date"
+    : `the ${percentileOrdinal(p)} percentile for the date`;
+  return `${figure(df.discharge, "discharge")} ${UNIT.discharge}, ${where} — filled in from the day's record `
+    + `(${DAY_SOURCE[df.source]}, ${on}).`;
 }
 
 /* ---- S1: photographs ---------------------------------------------------------------------------------------------- */

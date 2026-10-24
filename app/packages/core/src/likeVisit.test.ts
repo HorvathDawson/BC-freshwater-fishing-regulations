@@ -13,7 +13,7 @@ const NOW = new Date(2026, 9, 22, 10).getTime();
 describe("likeDay — the score", () => {
   it("an identical day is 100 %, very similar, every factor 100 % alike with its weight as its share", () => {
     expect(likeDay(THEN, same(), { hour: "09:00" })).toEqual({
-      date: "2026-10-24", score: 100, read: "very similar", basis: "all", note: null,
+      date: "2026-10-24", score: 100, read: "very similar", basis: "all", note: null, caveat: null,
       factors: [
         { key: "flow", likeness: 1, share: 0.45,
           line: "Flow: 42nd percentile then, 42nd percentile forecast. The same: 100% alike, 45% of the score." },
@@ -76,6 +76,22 @@ describe("likeDay — missing data, said", () => {
     expect([d.score, d.basis, d.note, d.factors[0]!.line]).toEqual([
       100, "weather", "No flow forecast for this day: scored on the weather only.",
       "Flow: no flow forecast for this day. Not scored."]);
+  });
+
+  it("T171: a day ELF forecast is scored, names its model, and carries the low-water caveat", () => {
+    const d = likeDay(THEN, same({ flow: 0.17, flowModel: "ELF", flowLowWater: true }));
+    expect([d.score, d.basis, d.note, d.caveat, d.factors[0]!.line]).toEqual([
+      78, "all", null,
+      "ELF is a low-water model: it carries the river's recent fall forward and has no rain or snowmelt in it, so it "
+        + "cannot see a rise coming.",
+      "Flow: 42nd percentile then, 17th percentile forecast by ELF. 25 points lower: 50% alike, 45% of the score."]);
+    // a flood model's day says "forecast" and carries no caveat; nor does today's reading, whoever forecast it
+    const c = likeDay(THEN, same({ flow: 0.17, flowModel: "CLEVER", flowLowWater: false }));
+    expect([c.caveat, c.factors[0]!.line]).toEqual([null,
+      "Flow: 42nd percentile then, 17th percentile forecast. 25 points lower: 50% alike, 45% of the score."]);
+    expect(likeDay(THEN, same({ flow: 0.17, flowModel: "ELF", flowLowWater: true }), { today: true }).caveat).toBeNull();
+    // no flow that day: no caveat to carry, whatever model was named
+    expect(likeDay(THEN, same({ flow: null, flowModel: "ELF", flowLowWater: true })).caveat).toBeNull();
   });
 
   it("a weather value missing on one side is left out and named, never guessed", () => {

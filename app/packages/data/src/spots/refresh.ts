@@ -23,14 +23,16 @@ import type { LeadUp, Spot } from "./model";
 import type { WeatherSource } from "./capture";
 import { declaredQuantity, fillDays, gaugeDayPending, leadUpMissing, leadUpUnread, weatherDayPending, weekGauge, weekWeather,
          type FeedIndex } from "./leadup";
-import { LEAD_UP_WORDS } from "./words";
+import { DAY_FLOW_WORDS, LEAD_UP_WORDS } from "./words";
+import { dayFlowAskable, fillDayFlow, needsDayFlow, type HydatDaily } from "./dayFlow";
 
 /** Is anything on this spot still unknown, and worth another try? */
 export function needsRefresh(spot: Spot): boolean {
   // A gauge reading that was never available is not the same as one that cannot exist:
   // a spot on water no station speaks for has `reading: null` forever, and asking again
   // will never change it. The weather, and the week before, are retryable.
-  return spot.weather === null || leadUpMissing(spot.leadUp);
+  // T170: and the visit day's flow, when the reading is not the day's and it has never been asked for
+  return spot.weather === null || leadUpMissing(spot.leadUp) || needsDayFlow(spot);
 }
 
 /** One line for the UI. Null when there is nothing outstanding. */
@@ -38,6 +40,7 @@ export function refreshReason(spot: Spot): string | null {
   if (spot.weather === null) return "No weather was recorded — it can be filled in from the day this was pinned.";
   if (leadUpUnread(spot.leadUp)) return LEAD_UP_WORDS.notRecorded;
   if (leadUpMissing(spot.leadUp)) return LEAD_UP_WORDS.someDaysPending;
+  if (needsDayFlow(spot)) return DAY_FLOW_WORDS.notRecorded;
   return null;
 }
 
@@ -47,10 +50,13 @@ export function refreshReason(spot: Spot): string | null {
  *
  * `source` reads the station's daily means for the week before; without it, that half is left to be asked again.
  * `feed` (the live index) tells a station the feed does not carry from a feed that could not be reached.
+ * `history` (T170): HYDAT and the device's online word, for the visit day's own flow (`fillDayFlow`): asked for a spot
+ * whose reading is not the day's, and again while HYDAT has not published the day.
  */
 export async function refreshSpot(spot: Spot, weather: WeatherSource, source?: RegsSource,
-                                  feed?: FeedIndex): Promise<Spot> {
-  if (!needsRefresh(spot)) return spot;
+                                  feed?: FeedIndex,
+                                  history?: { hydat?: HydatDaily; online?: () => boolean }): Promise<Spot> {
+  if (!needsRefresh(spot) && !dayFlowAskable(spot)) return spot;
   let next = spot;
   if (spot.weather === null) {
     // `visitedAt`, never `createdAt`: a spot typed up a week later must be backfilled with
@@ -61,6 +67,11 @@ export async function refreshSpot(spot: Spot, weather: WeatherSource, source?: R
   if (leadUpMissing(spot.leadUp)) {
     const filled = await fillLeadUp(spot, weather, source, feed);
     if (filled) next = { ...next, leadUp: filled };
+  }
+  if (source && dayFlowAskable(spot)) {
+    // THE DAY'S OWN FLOW (T170), through the one read; a reading taken on the day is never touched (`dayFlowAskable`)
+    const got = await fillDayFlow(next, { source, ...history });
+    if (got.spot !== next) next = { ...next, dayFlow: got.spot.dayFlow };
   }
   return next === spot ? spot : { ...next, updatedAt: Date.now() };
 }

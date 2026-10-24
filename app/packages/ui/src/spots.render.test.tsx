@@ -54,7 +54,9 @@ describe("useSpots (P01)", () => {
     const days = leadUpDays(visit);
     const saved = {
       id: "s1", createdAt: visit, updatedAt: visit, visitedAt: visit, lat: 49.1, lon: -121.96, item: null,
-      waterName: null, title: "", notes: "", photos: [], reading: null, trace: null, panel: null,
+      waterName: null, title: "", notes: "", photos: [], trace: null, panel: null,
+      // a reading taken on the visit day (T170): what is outstanding here is the week alone
+      reading: { station: "08MH001", discharge: 40, level: null, percentile: 0.5, at: new Date(visit).toISOString() },
       weather: { tempC: 14, windKph: 8, windDir: 210, rain3h: 0, pressureHpa: 1014, code: 3, window: null, at: "x" },
       leadUp: {
         weather: days.map((date) => ({ date, maxC: 20, minC: 9, precipMm: 0, windMaxKph: 10, code: 1 })),

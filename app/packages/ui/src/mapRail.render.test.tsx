@@ -32,7 +32,7 @@ describe("spotsMenu", () => {
         { id: "s2", title: "Vedder River", lines: "2026-08-30 · no gauge · no weather\n49.0974, -121.9675",
           photo: null, showLabel: "Show Vedder River on the map" },
       ],
-      stale: "2 spots are missing the weather from the day they were pinned, or the week before it.",
+      stale: "2 spots are missing the weather or the flow from the day they were pinned, or the week before it.",
       adds: [{ k: "mine", label: "At my location", detail: "" },
              { k: "pick", label: "Pick on the map", detail: "Go to the map and tap the place" }],
       note: null,

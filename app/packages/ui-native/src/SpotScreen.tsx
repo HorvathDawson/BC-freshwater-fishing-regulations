@@ -24,7 +24,7 @@ import { useState } from "react";
 import { Image, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { DRAFT_WORDS, isUntitled, needsRefresh, observedLine, PHOTO_WORDS, refreshReason, removePhotoLabel, spotHeadline,
   spotLabel, spotReadingFigure, weatherTrend, type PhotoStore, type Spot, type SpotWeather, type WeatherSample } from "@app/data/spots";
-import { leadUpView, useBackLayer, usePhotoUris, type LikeVisitView, type PhotoEdit } from "@app/ui";
+import { leadUpView, useBackLayer, usePhotoUris, type DayFlowView, type LikeVisitView, type PhotoEdit } from "@app/ui";
 import { LeadUpStrip } from "./LeadUpStrip";
 import { LikeVisitStrip } from "./LikeVisitStrip";
 import { DonorPanel } from "./DonorPanel";
@@ -74,6 +74,11 @@ export interface SpotScreenProps {
    * no strip (a draft has no visit to compare with yet).
    */
   likeVisit?: LikeVisitView | null;
+  /**
+   * T170, a saved spot only: the visit day's own flow from the day's record, and "Get the flow for that day"
+   * (`useDayFlow`). Absent, or a null view: nothing to say (no station, or the reading is the day's own).
+   */
+  dayFlow?: { view: DayFlowView | null; onAsk: (() => void) | null };
 }
 
 /**
@@ -96,6 +101,7 @@ export function SpotScreen(p: SpotScreenProps) {
   const pe = editable ? p.photoEdit : undefined;
   const photos = pe ? pe.refs : spot.photos;
   const uris = usePhotoUris(p.photoStore, photos);
+  const df = p.dayFlow?.view ?? null;
 
   // Edit with nothing changed is not a decision worth interrupting someone for.
   const leaveEdit = () => (p.dirty ? setConfirm("discard") : p.onDiscard?.());
@@ -247,7 +253,33 @@ export function SpotScreen(p: SpotScreenProps) {
               number would have been wrong.
             </Text>
           )}
+          {/* T170: a frozen estimate read on another day than the visit's says so — it is not "then" */}
+          {mode !== "draft" && df?.notTheDay ? (
+            <Text testID="spot-not-the-day" style={{ ...TYPE.small, color: palette.sub }}>{df.notTheDay}</Text>
+          ) : null}
         </Block>
+
+        {mode !== "draft" && df && (
+          <Block palette={palette} title={df.heading}>
+            {df.line ? (
+              <Text testID="day-flow-line" style={{ ...TYPE.body, color: palette.ink }}>{df.line}</Text>
+            ) : null}
+            {df.status ? (
+              <Text testID="day-flow-status" aria-live="polite"
+                    style={{ ...TYPE.small, color: palette.sub }}>{df.status}</Text>
+            ) : null}
+            {df.action && p.dayFlow?.onAsk ? (
+              <Pressable onPress={p.dayFlow.onAsk} disabled={df.action.busy}
+                         accessibilityRole="button" accessibilityLabel={df.action.label}
+                         aria-disabled={df.action.busy}
+                         style={{ alignSelf: "flex-start", borderRadius: palette.r.pill, paddingVertical: 8,
+                                  paddingHorizontal: 14, backgroundColor: palette.card, borderWidth: 1,
+                                  borderColor: palette.line2, opacity: df.action.busy ? 0.5 : 1 }}>
+                <Text style={{ ...TYPE.micro, fontSize: 12.5, color: palette.accent }}>{df.action.label}</Text>
+              </Pressable>
+            ) : null}
+          </Block>
+        )}
 
         {p.onShowOnMap && (
           <Pressable onPress={p.onShowOnMap} accessibilityRole="button"

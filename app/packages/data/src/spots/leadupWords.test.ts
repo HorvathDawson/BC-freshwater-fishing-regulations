@@ -186,8 +186,8 @@ describe("the fixed words", () => {
 
   it("counts the spots with something still to fill in, whole", () => {
     expect([1, 3].map(staleSpotsLine)).toEqual([
-      "1 spot is missing the weather from the day it was pinned, or the week before it.",
-      "3 spots are missing the weather from the day they were pinned, or the week before it."]);
+      "1 spot is missing the weather or the flow from the day it was pinned, or the week before it.",
+      "3 spots are missing the weather or the flow from the day they were pinned, or the week before it."]);
   });
 
   it("labels each photo's remove button apart", () => {

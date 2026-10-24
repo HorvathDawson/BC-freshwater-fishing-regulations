@@ -134,6 +134,19 @@ export interface StationChange {
   back?: string;
 }
 
+/**
+ * EVERY FORECAST DAY'S DISCHARGE PERCENTILE (T171; the publisher's `change.forecast_days`): the ten Centre days after
+ * the feed's today, `from` first. Each day is the chosen model's daily mean ranked against that day's envelope; the model
+ * per day is the publisher's one rule (the first flood model, CLEVER then COFFEE; else ELF). `lowWater` lists the
+ * indexes of the days ELF made (absent: none). A day no model can rank is null in both lists. Flow only.
+ */
+export interface AheadDays {
+  from: string;
+  discharge: readonly (number | null)[];
+  model: readonly (string | null)[];
+  lowWater?: readonly number[];
+}
+
 type Index = { stations: Record<string, { percentile: number | null;
                                           discharge?: number | null;
                                           level?: number | null;
@@ -142,6 +155,8 @@ type Index = { stations: Record<string, { percentile: number | null;
                                           observedAt?: string | null;
                                           /** Forecast percentiles, keyed by days ahead. */
                                           ahead?: Ahead;
+                                          /** Every forecast day's discharge percentile (T171); absent on an older feed. */
+                                          aheadDays?: AheadDays;
                                           /** Whether any forecast run is held for it (the series is in its own file). */
                                           forecast?: boolean;
                                           /** The expected change over the next ten days (T52). Flow only. */

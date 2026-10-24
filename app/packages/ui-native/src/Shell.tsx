@@ -21,13 +21,13 @@ import { bottomBarShown, frameViews, spotSaveFailed, useMapModes, useOpenWater, 
          regsGroupOf, showRegsActions, usePhotoEdit, useRoute, waterFrame,
          type BrowseTab, type FlowParam, type RegsStart, type Route, type SpotPhotos } from "@app/ui";
 import { BackLayerContext, edgeBackDepth, useBack, useEdgeBack, useMenu, useOnLeave, useViewSwipe, type SystemBack } from "@app/ui";
-import { mapPointTap, routeWhere, spotPins, spotsMenu, useLayerChoice, useLikeVisit, useMapRail, type LayerStore,
+import { mapPointTap, routeWhere, spotPins, spotsMenu, useDayFlow, useLayerChoice, useLikeVisit, useMapRail, type LayerStore,
          type Locate } from "@app/ui";
 import { useConditionsColour, useDataFacts, useGaugeGeoJSON, useSync, useLakeColour, lakeModesReady, lakeValuesCarried,
          NO_SEARCH, searchStep, type SearchAction, type SearchMemory, useSearchSession, usePairing, useRegulationKeys,
          useStatusIndex, statusFeed, useHorizon, useHorizonPick, flowHorizon, horizonChips, tapOpensWater, useImageryReach, type Horizon, type PairingInput,
          type StatusSource } from "@app/ui";
-import type { LikeStore, Spot, WeatherSource } from "@app/data/spots";
+import type { DayFlowAnswer, LikeStore, Spot, WeatherSource } from "@app/data/spots";
 import { FIELD_HANDOVER_Z, hiddenLayers, shownLayers,
          type Camera, type MapSpots, type TileEndpoints, coloursEachTile, imageryTiles } from "@app/map";
 import { connectivity } from "./connectivity";
@@ -81,7 +81,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
                        spots = [], onSaveSpot, weather, onRefreshSpots, onDeleteSpot, refreshing, feed,
                        spotsError, attribution, fishImages, adiposeImages, photos, status = null, pairing = null,
                        systemBack = null, loader = null, initialRoute, initialDay = null, regsStart = null, locate = null, menuInfo,
-                       checkRelease = null, layerStore, likeStore }: {
+                       checkRelease = null, layerStore, likeStore, onDayFlow }: {
   source: RegsSource; palette: Palette;
   /**
    * Where the day's status comes from: the release's paint (P11), or on the dev bundle path status_index.bin. Absent
@@ -103,6 +103,11 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   weather?: WeatherSource;
   /** Fill in what spots could not know when they were made. */
   onRefreshSpots?: () => void | Promise<void>;
+  /**
+   * T170: ask for one spot's visit-day flow from the day's record and save it (`fillDayFlow`); resolves to what was
+   * learned (null: nothing to ask). Absent -> the spot sheet shows the record and offers no action.
+   */
+  onDayFlow?: (spot: Spot) => Promise<DayFlowAnswer | null>;
   /** Awaited like a save: a rejection is shown and the spot stays open (P01). */
   onDeleteSpot?: (id: string) => void | Promise<void>;
   /** The spots could not be read (a corrupt file, set aside): said in the Spots menu, never an empty list (P01). */
@@ -554,6 +559,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
   // T51: the open spot against the coming days — the feed the rest of the app reads, and the weather port; asked
   // again when the device comes back online
   const like = useLikeVisit(viewing, { weather, feed }, likeStore, Date.now, connectivity);
+  // T170: the visit day's own flow, and the action that asks for it (waits offline, asks again when back)
+  const dayFlow = useDayFlow(viewing, onDayFlow, connectivity);
   if (viewing) {
     const dirty = edit !== null
       && (edit.title !== viewing.title || edit.notes !== viewing.notes
@@ -566,7 +573,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, tiles,
       <View style={{ flex: 1, backgroundColor: palette.card }}>
         <View style={{ flex: 1 }}>
           <SpotScreen spot={viewing} palette={palette}
-                      mode={edit ? "edit" : "view"} likeVisit={like}
+                      mode={edit ? "edit" : "view"} likeVisit={like} dayFlow={dayFlow}
                       photoStore={photos?.store} photoEdit={edit ? photoEdit : undefined}
                       title={edit?.title} notes={edit?.notes}
                       onTitle={edit ? (t) => setEdit({ ...edit, title: t }) : undefined}

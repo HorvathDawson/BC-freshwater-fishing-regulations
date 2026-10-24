@@ -156,6 +156,30 @@ export interface LeadUp {
   parameter?: ShownQuantity | null;
 }
 
+/**
+ * THE VISIT DAY'S FLOW, FROM THE DAY'S RECORD (T170) — for a spot whose reading was not taken on that day (saved later
+ * for an earlier day, or with no reading at all). Filled by a refresh or by "Get the flow for that day", never over a
+ * reading taken on the day (`readingIsTheDays`). DISCHARGE ONLY: a level never stands in for a flow.
+ *
+ *   filled         the day's daily mean, where it came from, and its place in the station's envelope for that day
+ *   none           asked, and there is none: the station measures no flow (`no-discharge`), or its record holds nothing
+ *                  for that day (`no-record`). Settled; not asked again by a refresh.
+ *   not-published  past the feed's record and not yet in HYDAT: asked again by every refresh and on request.
+ */
+export type DayFlow =
+  | { state: "filled"; station: string; date: string;
+      /** m³/s, the day's mean. */
+      discharge: number;
+      /** 0–1 against the station's envelope for that day (core `percentileInBand`, the feed's ranking); null: no envelope. */
+      percentile: number | null;
+      place: DayPlace | null;
+      /** `feed`: ECCC's daily means as the feed keeps them (this year, provisional); `hydat`: HYDAT's published daily mean. */
+      source: "feed" | "hydat";
+      /** When it was filled (device time). */
+      filledAt: number }
+  | { state: "none"; station: string; date: string; why: "no-discharge" | "no-record"; askedAt: number }
+  | { state: "not-published"; station: string; date: string; askedAt: number };
+
 export interface Spot {
   id: string;
   /** When the record was made. Bookkeeping — not when the person was at the water. */
@@ -223,6 +247,8 @@ export interface Spot {
    * existed, which reads exactly as null — not recorded — and a refresh fills it in.
    */
   leadUp?: LeadUp | null;
+  /** The visit day's flow from the day's record (T170); absent until asked, and on a spot whose reading is the day's. */
+  dayFlow?: DayFlow | null;
 }
 
 /** Where spots live. One file on a phone, browser storage on the web. */

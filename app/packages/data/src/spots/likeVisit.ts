@@ -11,11 +11,15 @@
  * frozen donor panel, which was asked in discharge; else its reading when that reading was a discharge only), and
  * each coming day's is the same station's. A level is never read here (decisions.md "NEVER MIX QUANTITIES").
  *
- * A DAY NO HORIZON REACHES HAS NO FLOW. The feed ranks a forecast for +1, +3, +5 and +10 days; the strip's +2 and +4
- * are scored on the weather alone and say so — never filled from a neighbour.
+ * EVERY FORECAST DAY HAS ITS OWN FLOW (T171). The feed ranks each of the next ten days (`aheadDays`: the day's mean,
+ * the model per day by the publisher's one rule), so +2 and +4 carry flow like the rest. A day NO model reaches has no
+ * flow and is scored on the weather alone, said — never filled from a neighbour. A day ELF made carries its model, and
+ * the strip says it is a low-water forecast. A feed from before T171 (no `aheadDays`) is read at its four horizons, as
+ * T51 did, until it is republished.
  */
 import { DAY_HORIZONS, LIKE_RAIN_DAYS, localDate, shiftDay, type LikeConditions } from "@app/core";
 import { spotReadingFigure } from "./words";
+import { readingIsTheDays } from "./dayFlow";
 import { reading } from "../panel";
 import type { Spot } from "./model";
 
@@ -34,8 +38,10 @@ export interface LikeIndex { fetchedAt?: string; stations: Readonly<Record<strin
 export interface LikeFetched {
   weather: WeatherAhead | null;
   weatherAt: number | null;
-  /** The station's discharge percentile by LOCAL day, for the days a horizon reaches. */
+  /** The station's discharge percentile by LOCAL day, for the days the feed ranks (today, and each forecast day). */
   flow: Record<string, number | null> | null;
+  /** Which model forecast each day's `flow` (T171), and whether it is the low-water model; absent on an older cache. */
+  flowModels?: Record<string, FlowModel> | null;
   flowAt: number | null;
   /**
    * The local day `flow`'s reading NOW (horizon 0) is for — the index's own day, which is not always the device's
@@ -44,6 +50,9 @@ export interface LikeFetched {
    */
   flowNow?: string | null;
 }
+
+/** The model behind a forecast day's flow (T171): its name as the feed carries it, and `lowWater` when it is ELF's. */
+export interface FlowModel { model: string; lowWater?: true }
 
 export const NOTHING_FETCHED: LikeFetched =
   { weather: null, weatherAt: null, flow: null, flowAt: null, flowNow: null };
@@ -64,7 +73,11 @@ export function visitConditions(spot: Spot): LikeConditions {
   // the panel was asked in discharge (capture.ts `panelFor`); a bare reading's percentile is a flow only when the
   // reading shows a discharge (core `shownParameter` through `spotReadingFigure`, T106) — a legacy spot that declares
   // nothing and holds only a level ranked that level, never a flow
-  const flow = row?.percentile ?? (r && spotReadingFigure(r)?.quantity === "discharge" ? r.percentile : null);
+  const taken = row?.percentile ?? (r && spotReadingFigure(r)?.quantity === "discharge" ? r.percentile : null);
+  // THE VISIT DAY'S FLOW (T170): the frozen reading only when it was taken ON that day; else the day's own record,
+  // filled in (`dayFlow`), else none — never the reading of the day the spot happened to be saved on
+  const df = spot.dayFlow;
+  const flow = readingIsTheDays(spot) ? taken : df?.state === "filled" ? df.percentile : null;
   const w = spot.weather;
   const lead = spot.leadUp?.weather ?? null;
   const last = lead ? lead.slice(-LIKE_RAIN_DAYS) : [];
@@ -80,15 +93,32 @@ export function visitConditions(spot: Spot): LikeConditions {
 }
 
 /**
- * The station's discharge percentile for each day a horizon reaches, keyed by local day from the index's own
- * `fetchedAt` (the day its horizons count from; the device's day when it carries none). Null when the station is not
- * in the index — the feed does not carry it.
+ * THE ONE READ OF A STATION'S COMING FLOW for the strip: its discharge percentile now, keyed by the index's own day
+ * (`fetchedAt`; the device's day when it carries none), and each forecast day's — `aheadDays` keyed by its own dates
+ * (T171), else, on a feed from before it, the four horizons by the index's day. With the model behind each forecast
+ * day. Null when the station is not in the index — the feed does not carry it.
  */
-export function flowAhead(index: LikeIndex, station: string, now: number): Record<string, number | null> | null {
+export function flowAhead(index: LikeIndex, station: string, now: number):
+  { flow: Record<string, number | null>; models: Record<string, FlowModel> } | null {
   const row = index.stations[station];
   if (!row) return null;
   const base = indexDay(index, now);
-  return Object.fromEntries(DAY_HORIZONS.map((h) => [localDate(shiftDay(base, h).getTime()), reading(row, "discharge", h)]));
+  const days = row.aheadDays;
+  if (!days) {
+    return { flow: Object.fromEntries(DAY_HORIZONS.map((h) => [localDate(shiftDay(base, h).getTime()),
+                                                               reading(row, "discharge", h)])), models: {} };
+  }
+  const flow: Record<string, number | null> = { [localDate(base.getTime())]: reading(row, "discharge", 0) };
+  const models: Record<string, FlowModel> = {};
+  const low = new Set(days.lowWater ?? []);
+  const [y, m, d] = days.from.split("-").map(Number) as [number, number, number];
+  days.discharge.forEach((p, i) => {
+    const date = localDate(new Date(y, m - 1, d + i).getTime());
+    flow[date] = p ?? null;
+    const by = days.model[i];
+    if (p != null && by) models[date] = { model: by, ...(low.has(i) ? { lowWater: true as const } : {}) };
+  });
+  return { flow, models };
 }
 
 /** The day the index's horizons count from: its own `fetchedAt`, else the device's now. */
@@ -111,8 +141,9 @@ export function comingConditions(f: LikeFetched, days: readonly string[], hour: 
   };
   return days.map((date) => {
     const h = f.weather?.hours.find((x) => x.at === `${date}T${hour}`);
-    return { date, flow: f.flow?.[date] ?? null, tempC: h?.tempC ?? null, rainMm: rainOf(date),
-             windKph: h?.windKph ?? null, cloudPct: h?.cloudPct ?? null };
+    const by = f.flowModels?.[date];
+    return { date, flow: f.flow?.[date] ?? null, ...(by ? { flowModel: by.model, flowLowWater: !!by.lowWater } : {}),
+             tempC: h?.tempC ?? null, rainMm: rainOf(date), windKph: h?.windKph ?? null, cloudPct: h?.cloudPct ?? null };
   });
 }
 
@@ -134,10 +165,13 @@ export async function fetchLike(spot: Spot, had: LikeFetched, src: LikeSources, 
     station && src.feed ? src.feed.index().catch(() => null) : Promise.resolve(null),
   ]);
   const flowAsked = !!(station && src.feed);
-  const flow = idx && station ? flowAhead(idx, station, now) : undefined;
+  const ahead = idx && station ? flowAhead(idx, station, now) : undefined;
+  const flow = ahead === undefined ? undefined : ahead?.flow ?? null;
   const fetched: LikeFetched = {
     weather: w ?? had.weather, weatherAt: w ? now : had.weatherAt,
     flow: flow !== undefined ? flow : had.flow,
+    ...(ahead === undefined ? (had.flowModels !== undefined ? { flowModels: had.flowModels } : {})
+      : { flowModels: ahead?.models ?? null }),
     flowAt: flow !== undefined ? now : had.flowAt,
     flowNow: flow === undefined ? had.flowNow ?? null : flow ? localDate(indexDay(idx!, now).getTime()) : null,
   };

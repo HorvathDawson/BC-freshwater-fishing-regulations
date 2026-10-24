@@ -56,7 +56,10 @@ const source = (over: Partial<RegsSource> = {}): RegsSource => ({
   lakeStationsFor: async () => new Map(),
   gaugeForSection: async () => ({ station: "08MH001", name: "Vedder", trust: "good", reachMagnitude: 40,
                                   gaugeMagnitude: 80, lon: -121.96, lat: 49.09 }),
-  gaugeNow: async () => null,
+  // A READING TAKEN ON THE VISIT DAY (T170): so these spots' own flow is the day's, and every "nothing outstanding"
+  // below is about the week alone — a spot with no reading of its day would also ask for the day's flow (dayFlow.test)
+  gaugeNow: async () => ({ fetchedAt: VISIT, value: { discharge: 20, level: 1.0, percentile: 0.3, standing: "normal",
+                                                      at: new Date(VISIT).toISOString() } }),
   traceToGauge: async () => [],
   gaugeParameters: async () => ["discharge", "level"],
   gaugeSeries: async (_s: string, _span: string, p?: Parameter) => p === "level"

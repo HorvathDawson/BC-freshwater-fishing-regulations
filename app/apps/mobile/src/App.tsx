@@ -27,8 +27,8 @@ import { makeBundleSource } from "@app/data/bundle";
 import { httpFeed, loadManifest, type RegsSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import * as platform from "@app/data/release/platform";
-import { openLayerStore, openLikeStore, openMeteo, openPhotos, openSpots, refreshSpot,
-         type Spot } from "@app/data/spots";
+import { fillDayFlow, geometHydat, openLayerStore, openLikeStore, openMeteo, openPhotos, openSpots, refreshSpot,
+         type DayFlowAnswer, type Spot } from "@app/data/spots";
 import { loadBundle, setSqlWasmUrl, type LoadedBundle } from "@app/data/bundle/open";
 import { FishSpinner, Shell, THEMES, type ThemeName } from "@app/ui-native";
 import { devStatus, LayoutWidthContext, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, useReleaseBoot, useSpots, type MapTiles,
@@ -93,6 +93,8 @@ export default function App() {
   // Open-Meteo: no key, and it has an archive endpoint — which is what lets a spot pinned
   // with no signal be filled in later from the day it was actually made.
   const weather = useMemo(() => openMeteo(), []);
+  // T170: HYDAT's daily means through ECCC GeoMet, for a spot's visit day older than the feed's record (one GET each)
+  const hydat = useMemo(() => geometHydat(), []);
   // S1: a spot's photographs — files beside the spots file on a phone, IndexedDB in a browser — and the platform's
   // picker (`./pickPhoto.native.ts` / `.web.ts`). The user's own: never in a release, never uploaded.
   const photos = useMemo<SpotPhotos>(
@@ -216,9 +218,22 @@ export default function App() {
                  // through `patch`: a spot deleted or edited meanwhile is never overwritten (P01)
                  // the source reads the station's daily means for a spot's week before (S1); the feed's index tells a
                  // station it does not carry (settled) from a feed not reached (asked again)
-                 try { await spotsHook.refresh((s) => refreshSpot(s, weather, data.source, feed)); }
+                 // (T170) and HYDAT for the visit day's own flow where the reading is not the day's
+                 try { await spotsHook.refresh((s) => refreshSpot(s, weather, data.source, feed, { hydat })); }
                  catch { /* said by spotsHook.error; the list keeps what was saved */ }
                  finally { setRefreshing(false); }
+               }}
+               onDayFlow={async (spot) => {
+                 // T170 "Get the flow for that day": that one spot, through the same fill a refresh uses; the others
+                 // come back as they are (no write), and an edit made meanwhile wins (`refresh`'s patch)
+                 let answer: DayFlowAnswer | null = null;
+                 await spotsHook.refresh(async (s) => {
+                   if (s.id !== spot.id) return s;
+                   const got = await fillDayFlow(s, { source: data.source, hydat });
+                   answer = got.answer;
+                   return got.spot;
+                 });
+                 return answer;
                }}
                attribution={[
                  "Basemap © OpenStreetMap contributors · © Protomaps",

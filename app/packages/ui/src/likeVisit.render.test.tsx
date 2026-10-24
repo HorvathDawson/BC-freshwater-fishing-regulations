@@ -75,6 +75,26 @@ describe("likeVisitView", () => {
     });
   });
 
+  it("T171: every forecast day carries flow; a day ELF forecast says 'low-water model' and gives the caveat", () => {
+    const every: LikeFetched = { ...FETCHED,
+      flow: { "2026-10-22": 0.42, "2026-10-23": 0.67, "2026-10-24": 0.42, "2026-10-25": 0.42, "2026-10-26": 0.17 },
+      flowModels: { "2026-10-23": { model: "CLEVER" }, "2026-10-24": { model: "CLEVER" },
+                    "2026-10-25": { model: "COFFEE" }, "2026-10-26": { model: "ELF", lowWater: true } } };
+    const v = likeVisitView(spot, every, false, NOW);
+    expect(v.days!.map((d) => [d.date, d.score, d.basis])).toEqual([
+      ["2026-10-22", "100%", null], ["2026-10-23", "68%", null], ["2026-10-24", "100%", null],
+      ["2026-10-25", "100%", null], ["2026-10-26", "78%", "low-water model"]]);
+    expect(v.days![4]!.why).toEqual([
+      "Flow: 42nd percentile then, 17th percentile forecast by ELF. 25 points lower: 50% alike, 45% of the score.",
+      "Air temperature: 14°C then, 14°C forecast at 09:00. The same: 100% alike, 20% of the score.",
+      "Rain in the 3 days before: 3 mm then, 3 mm forecast. The same: 100% alike, 20% of the score.",
+      "Wind: 8 km/h then, 8 km/h forecast at 09:00. The same: 100% alike, 10% of the score.",
+      "Cloud: 40% then, 40% forecast at 09:00. The same: 100% alike, 5% of the score.",
+      "ELF is a low-water model: it carries the river's recent fall forward and has no rain or snowmelt in it, so it "
+        + "cannot see a rise coming.",
+    ]);
+  });
+
   it("today's flow is called NOW only when it is the gauge's reading for today, not yesterday's forecast for it", () => {
     // fetched yesterday: yesterday's reading and its +1 forecast, which is today's value
     const stale: LikeFetched = { ...FETCHED, flow: { "2026-10-21": 0.42, "2026-10-22": 0.42 }, flowNow: "2026-10-21" };

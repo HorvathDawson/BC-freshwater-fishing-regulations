@@ -22,7 +22,7 @@ export interface LikeDayVM {
   score: string;
   /** "Very similar" / "Similar" / "Different"; null with no score. */
   read: string | null;
-  /** "weather only" when flow is not in the score. */
+  /** "weather only" when flow is not in the score; "low-water model" when ELF forecast the day's flow (T171). */
   basis: string | null;
   /** The day said whole (a screen reader, a test). */
   label: string;
@@ -61,9 +61,10 @@ export function likeVisitView(spot: Spot, f: LikeFetched, offline: boolean, now:
     const h = likeDayHead(d.date, now);
     return { date: d.date, top: h.top, sub: h.sub, score: likeScoreText(d),
              read: d.read ? LIKE_WORDS.reads[d.read] : null,
-             basis: d.basis === "weather" ? LIKE_WORDS.weatherOnly : null,
+             // under the score: "weather only" with no flow, "low-water model" when ELF forecast the flow (T171)
+             basis: d.basis === "weather" ? LIKE_WORDS.weatherOnly : d.caveat ? LIKE_WORDS.lowWater : null,
              label: likeDayLabel(d, now),
-             why: [...(d.note ? [d.note] : []), ...d.factors.map((x) => x.line)] };
+             why: [...(d.note ? [d.note] : []), ...d.factors.map((x) => x.line), ...(d.caveat ? [d.caveat] : [])] };
   });
   return { ...base, days: vms, note: null };
 }
