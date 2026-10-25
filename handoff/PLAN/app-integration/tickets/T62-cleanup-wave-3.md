@@ -1,6 +1,6 @@
 # T62 — Cleanup wave 3: split long files, make it easy for a human to follow
 
-Status: PARTIAL — app lane b619ca7b…bb31281e merged; pipeline lane (3.1, 3.3) merged; 3.2 + 3.9 after the braid and names lanes. Source: handoff/PLAN/audit/PLAN.md §2 "Wave 3". Includes Shell.tsx (re-spec P14/P17 against today's
+Status: PARTIAL — app lane b619ca7b…bb31281e merged; pipeline lane (3.1, 3.3) merged; 3.9 merged (dfo_salmon); 3.2 rides the next side atlas. Source: handoff/PLAN/audit/PLAN.md §2 "Wave 3". Includes Shell.tsx (re-spec P14/P17 against today's
 shell first, N13), export_ui_rules, other files over the size line. Behaviour unchanged: tests green before/after.
 
 ## Outcome (app lane)
@@ -93,3 +93,10 @@ HEAD, placed at the same path.
 - the answers spec's schemas line
 
 Each carries a comment saying so. Rewording them changes the release.
+
+## Outcome (3.9, dfo_salmon)
+
+- `whatchanged.py` had no callers: moved (history kept) to `archive/pipeline/regs/dfo_salmon/`; the one GOTCHAS.md mention now says so.
+- Kept `feed`, `validate`, `splitwork`: tests import them, so they are not dead.
+- `pipeline/regs/dfo_salmon/README.md` gained an index linking the folder's docs (CASCADE, CURATION, DATAFLOW, DESIGN, MAPPING, PLAN) and `pipeline/docs/19-dfo-salmon-pipeline.md`. No doc was rewritten; no links broke.
+- 3.2 (atlas/build.py) needs a build: rides the next side atlas.

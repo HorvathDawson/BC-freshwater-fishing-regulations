@@ -3,6 +3,20 @@
 Scrapes and structures the federal **salmon** regulations for BC's eight freshwater
 regions from `pac.dfo-mpo.gc.ca`.
 
+**Docs in this folder**
+
+| doc | what it is |
+|---|---|
+| [CASCADE.md](CASCADE.md) | the Region 6 cascade, plainly |
+| [CURATION.md](CURATION.md) | what is manual, and how to do the manual part |
+| [DATAFLOW.md](DATAFLOW.md) | splitting location from regulation |
+| [DESIGN.md](DESIGN.md) | data types, matching, the curation workflow |
+| [MAPPING.md](MAPPING.md) | mapping DFO locations onto entries |
+| [PLAN.md](PLAN.md) | keeping the data fresh on a schedule |
+| [pipeline/docs/19-dfo-salmon-pipeline.md](../../docs/19-dfo-salmon-pipeline.md) | the two-halves overview |
+
+This file covers the scraper, parser and untangler.
+
 > **This is a different authority from the Synopsis.** Salmon in non-tidal BC water is
 > managed by DFO (federal); everything else is the provincial Synopsis this repo is
 > built on. Every DFO page says so itself: *"This table refers to fishing for salmon

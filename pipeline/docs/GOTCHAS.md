@@ -89,7 +89,7 @@ affected, and each change mints a locator that looks new.
 Why it reads as several: the locator id is a fingerprint of `section|water|specific_area`, so re-worded
 scope text mints a *new* locator rather than updating the old one. That is the design — the old one
 goes dormant and revives if the wording returns — but it means **wording drift looks exactly like a
-new regulation**. `whatchanged` diffs rules on structure for this reason; locators have no such
+new regulation**. `whatchanged` (archived under `archive/pipeline/regs/dfo_salmon/`) diffs rules on structure for this reason; locators have no such
 defence, and a curator is the only thing that spots it.
 
 Check before assuming two: same water, same section, same rules, landmark in the same place. If all
