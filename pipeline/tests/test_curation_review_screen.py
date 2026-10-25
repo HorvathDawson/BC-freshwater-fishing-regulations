@@ -31,7 +31,12 @@ REPO = Path(__file__).resolve().parents[2]
 BACKEND = REPO / "curation-review" / "backend"
 ADAM = "r1:adam_river_except_eve_river@1-10"
 ZONE = "z4:trout_char_quota"
-_MODS = ("app", "reuse", "model_api", "answer", "synopsis_pages", "writes", "review", "evidence")
+_MODS = ("app", "reuse", "model_api", "answer", "synopsis_pages", "writes", "review", "evidence",
+         "dfo")
+#: T164: a DFO location with no extent yet, and the tributary whose confluence it names
+CAMPBELL = "1:campbell-river:downstream-of-the-confluence-with"
+_QUINSAM = {"ref": "n1", "anchor": "confluence", "name": "Quinsam River", "item_id": "gnis:27883",
+            "side": "downstream"}
 EXTRACTION_HINT = "python -m pipeline.regs.extraction.extract_synopsis"
 
 pytestmark = [pytest.mark.needs_atlas, pytest.mark.needs_source]
@@ -173,14 +178,18 @@ _HEAVY_READS = {"/api/items/{item_id}/geojson", "/api/items/{item_id}/tributarie
                 "/api/entries/{entry_id}/rules/{rule_id}/resolved", "/basemap/bc.pmtiles",
                 "/api/synopsis.pdf"}
 _PARAMS = {"entry_id": ADAM, "rule_id": "adam_river.r1",
-           "item_id": "gnis:28136", "filename": "page_016_row_000.png", "printed": "14"}
+           "item_id": "gnis:28136", "filename": "page_016_row_000.png", "printed": "14",
+           "location_id": CAMPBELL}
 #: T191: the extent-fix editor's reads — a split search, a water search, a preview that resolves
 _FIX = {"scope": "adam_river.r1", "op": "upstream_of",
         "points": [{"kind": "split", "split_id": "adam_river__hwy_19_bridge"}]}
 _QUERY = {"/api/answer": {"sid": 1, "date": "2026-07-01",
                                                                "fish": "rainbow_trout"},
           "/api/splits/search": {"q": "adam"}, "/api/items/search": {"q": "adam"},
-          "/api/entries/{entry_id}/extent-preview": {"fix": json.dumps(_FIX)}}
+          "/api/entries/{entry_id}/extent-preview": {"fix": json.dumps(_FIX)},
+          "/api/dfo/locations/{location_id}/anchor": {"split": json.dumps(_QUINSAM)},
+          "/api/dfo/locations/{location_id}/extent-preview": {"fix": json.dumps(
+              {"scope": "entry", "op": "whole", "points": []})}}
 
 
 def test_the_extent_fix_reads_search_and_preview_without_writing(env):
@@ -243,6 +252,60 @@ def test_no_request_writes_anything_but_a_mark(env):
     assert re.fullmatch(r"backups/\d{8}T\d{6}\.\d{6}Z-mark/[^/]+/marks\.jsonl", backups[0]), changed
     assert json.loads(after["marks.jsonl"].decode().strip())["target"] == ADAM
     assert _stamps(CURATED.base) == curated, "a route wrote under data/curated"
+
+
+# --------------------------------------------------------------------------- T164: DFO mode
+
+def test_the_dfo_queue_counts_and_filters_every_location(env):
+    """T164: one row per scraped DFO location, with progress counts and the filters."""
+    c = env["client"]
+    rows = c.get("/api/dfo/queue", params={"status": ""}).json()
+    prog = c.get("/api/dfo/progress").json()
+    assert prog["all"]["total"] == len(rows) > 100
+    assert sum(prog["all"]["by_state"].values()) == len(rows)
+    need = c.get("/api/dfo/queue", params={"need": "needs_cut"}).json()
+    assert need and all(r["state"] == "needs_cut" and r["need"]["missing"] > 0 for r in need)
+    assert any(r["id"] == CAMPBELL for r in c.get("/api/dfo/queue", params={"q": "quinsam"}).json())
+    assert c.get("/api/dfo/queue", params={"need": "nope"}).status_code == 422
+
+
+def test_a_dfo_anchor_is_checked_and_a_new_split_rides_the_mark_only(env):
+    """T164: a new split's anchor resolves on the water (a tributary's mouth snaps onto it; a
+    stream that is not its tributary is refused, so is a map point on another water); a DFO mark
+    carries the new split with its resolved point and an extent fix naming it — and the only file
+    that changes is the marks store (never splits.json or the DFO entry files)."""
+    c = env["client"]
+    url = f"/api/dfo/locations/{CAMPBELL}/anchor"
+    got = c.get(url, params={"split": json.dumps(_QUINSAM)}).json()
+    assert got["ok"] and got["on_item"] == "gnis:39532" and got["distance_m"] < 50, got
+    far = c.get(url, params={"split": json.dumps({"ref": "x", "anchor": "confluence",
+                                                  "name": "Fraser River"})}).json()
+    assert far["ok"] is False and "not its tributary" in far["why"]
+    off = c.get(url, params={"split": json.dumps({"ref": "x", "anchor": "bridge",
+                                                  "coord": [-123.1, 49.3]})}).json()
+    assert off["ok"] is False and "click on the water" in off["why"]
+    assert c.get(url, params={"split": json.dumps({"ref": "x", "anchor": "bridge"})}).status_code == 422
+    detail = c.get(f"/api/dfo/locations/{CAMPBELL}").json()
+    assert detail["verbatim"]["specific_area"].startswith("downstream of the confluence")
+    assert any(h["name"] == "Quinsam River" for h in detail["hints"])
+    curated = _stamps(CURATED.base)
+    body = {"scope": "dfo", "target": CAMPBELL, "answers": {"T": "y", "R": "y", "P": "n"},
+            "problem": "split missing", "note": "no Quinsam cut", "reviewer": "tester",
+            "new_splits": [_QUINSAM],
+            "extent_fix": [{"scope": "entry", "op": "downstream_of",
+                            "points": [{"kind": "new", "split_id": "n1"}]}]}
+    r = c.post("/api/marks", json=body)
+    assert r.status_code == 200, r.text
+    ns = r.json()["new_splits"][0]
+    assert ns["blk"] and ns["measure"] and ns["coord"] and ns["on_item"] == "gnis:39532"
+    bad = {**body, "new_splits": [{"ref": "n1", "anchor": "confluence", "name": "Fraser River"}]}
+    assert c.post("/api/marks", json=bad).status_code == 422
+    dangling = {**body, "new_splits": []}
+    assert c.post("/api/marks", json=dangling).status_code == 422
+    assert _stamps(CURATED.base) == curated, "a DFO mark wrote under data/curated"
+    row = next(x for x in c.get("/api/dfo/queue", params={"q": "quinsam"}).json() if x["id"] == CAMPBELL)
+    assert row["verify"] == "wrong" and row["new_splits"] == 1
+    assert c.get("/api/dfo/progress").json()["all"]["new_splits"] >= 1
 
 
 # --------------------------------------------------------------------------- progress

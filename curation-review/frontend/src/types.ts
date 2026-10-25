@@ -389,7 +389,7 @@ export interface PendingBuild {
 
 /** One mark in force, with its status against its target NOW (`GET /api/marks`). */
 export interface MarkView {
-  scope: "entry" | "rule" | "split";
+  scope: "entry" | "rule" | "split" | "dfo";
   target: string;
   rule_id: string | null;
   verdict: "verified" | "wrong" | "unsure" | "deferred";
@@ -651,7 +651,7 @@ export interface Mode {
   /** the app the answer is checked in (its start link) */
   app_url: string;
   /** the checks each scope a reviewer marks answers (`marks.CHECKS`; an entry, a zone entry's rule) */
-  checks: Record<"entry" | "rule", Check[]>;
+  checks: Record<"entry" | "rule", Check[]> & { dfo?: Check[] };
   /** the problem categories a "wrong" mark names, by check (`marks.PROBLEMS`) */
   problems: Record<Check, string[]>;
   /** T135: the pre-check codes (`precheck.CHECKS`) */
@@ -748,7 +748,7 @@ export interface Progress { tiers: TierProgress[]; overall: TierProgress; facts?
 /** What the reviewer sends (`POST /api/marks`); the server stamps the rest. No `verdict`: the
  *  answers decide it (`marks.verdict_from_answers`) — except `deferred`, which is the reviewer's own call. */
 export interface MarkPost {
-  scope: "entry" | "rule";
+  scope: "entry" | "rule" | "dfo";
   target: string;
   rule_id?: string | null;
   verdict?: "deferred";
@@ -764,12 +764,14 @@ export interface MarkPost {
   lake_split_later?: boolean;
   /** T191: the reviewer's proposed extent(s), one per scope — `marks.ExtentFix` */
   extent_fix?: ExtentFix[];
+  /** T164: NEW splits proposed (`marks.NewSplit`) — proposals only, never splits.json */
+  new_splits?: NewSplit[];
 }
 
 /** T191: the catalogue's extent ops (`marks.OP_POINTS`), by their own names */
 export type ExtentOp = "whole" | "upstream_of" | "downstream_of" | "between" | "within" | "rest"
   | "steelhead_waters";
-export type FixPointKind = "split" | "confluence" | "lake_inlet" | "lake_outlet" | "coord";
+export type FixPointKind = "split" | "confluence" | "lake_inlet" | "lake_outlet" | "coord" | "new";
 export interface FixPoint {
   kind: FixPointKind;
   split_id?: string;
@@ -832,4 +834,96 @@ export interface EntryScopeWords {
   name_except: string | null;
   /** the rules that walk their tributaries */
   rules_walking: string[];
+}
+
+// --------------------------------------------------------------------------- T164: DFO review mode
+
+/** what a NEW split is anchored to (`marks.AnchorKind`) */
+export type AnchorKind = "confluence" | "lake_inlet" | "lake_outlet" | "bridge" | "dam" | "sign"
+  | "coord" | "split";
+/** T164: a NEW split proposed in a mark (`marks.NewSplit`) — the server checks its anchor and
+ *  stamps where it resolved (blk, measure, coord) */
+export interface NewSplit {
+  ref: string;
+  anchor: AnchorKind;
+  name?: string | null;
+  item_id?: string | null;
+  split_id?: string | null;
+  /** the water it cuts (a registry id); none = the location's water */
+  on_item?: string | null;
+  /** [lon, lat] */
+  coord?: [number, number] | null;
+  blk?: string | null;
+  measure?: number | null;
+  /** which side of the cut the extent lies on */
+  side?: "upstream" | "downstream" | null;
+  /** + upstream, - downstream of the anchor */
+  offset_m?: number | null;
+  quote?: string;
+  note?: string;
+}
+/** GET /api/dfo/locations/{id}/anchor */
+export interface AnchorCheck {
+  ok: boolean;
+  why: string | null;
+  coord?: [number, number];
+  blk?: string;
+  measure?: number;
+  on_item?: string;
+  distance_m?: number;
+  words?: string;
+  item_id?: string;
+}
+export type DfoState = "needs_cut" | "bound" | "unbound" | "no_water";
+export interface DfoRow {
+  id: string;
+  region: string;
+  kind: string;
+  water: string;
+  water_id: string | null;
+  items: string[];
+  section: string | null;
+  status: "active" | "dormant";
+  text: string;
+  op: string | null;
+  anchors: string[];
+  n_rows: number;
+  n_rules: number;
+  need: { op: string | null; points: number | null; have: number; bound: boolean; missing: number };
+  state: DfoState;
+  duplicate_of: string | null;
+  verify: VerifyStatus;
+  reasons: string[];
+  new_splits: number;
+}
+export interface DfoCount {
+  total: number;
+  done: number;
+  by_verify: Record<string, number>;
+  by_state: Record<string, number>;
+  new_splits: number;
+}
+export interface DfoProgress { all: DfoCount; active: DfoCount; regions: Record<string, DfoCount> }
+export interface DfoExtent { op: string; splits?: string[]; item_id?: string; item_ids?: string[] }
+export interface DfoDetail {
+  row: DfoRow;
+  location: {
+    location_id: string; water: string; section: string | null; status: string; kind: string;
+    source_text: { waters?: string; specific_area?: string; op?: string; anchor_types?: string[] };
+    binding: { extents: DfoExtent[]; tributaries: boolean | null; tributaries_only: boolean;
+               tributary_excludes: DfoExtent[]; notes: string[]; spatial_caveat: boolean };
+    duplicate_of: string | null;
+  };
+  water: { water_id: string; name: string; item_ids: string[]; tributaries: boolean | null;
+           match: { status?: string; via?: string } } | null;
+  items: { id: string; name: string; kind: string | null; mus: string[]; n_sections: number }[];
+  page_url: string | null;
+  verbatim: { waters: string; specific_area: string };
+  rows: string[];
+  rules: { rule_id: string; label: string; verbatim: string }[];
+  need: DfoRow["need"];
+  splits: EntrySplits;
+  hints: { name: string; anchor: AnchorKind; items: ItemHit[] }[];
+  siblings: { id: string; text: string; status: string; section: string | null }[];
+  mark: (MarkView & { new_splits?: NewSplit[] }) | null;
 }

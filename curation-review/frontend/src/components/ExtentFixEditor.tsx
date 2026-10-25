@@ -23,10 +23,13 @@ const SOURCES: { v: string; kind: FixPointKind; words: string }[] = [
   { v: "lake_inlet", kind: "lake_inlet", words: "NEW: a lake's inlet" },
   { v: "lake_outlet", kind: "lake_outlet", words: "NEW: a lake's outlet" },
   { v: "coord", kind: "coord", words: "NEW: click the map" },
+  // T164: a NEW split proposed in the same mark (the DFO mode's "add a split"), by its ref
+  { v: "new", kind: "new", words: "a NEW split proposed below" },
 ];
 
 export function pointWords(p: FixPoint, splitName: (id: string) => string): string {
   if (p.kind === "split") return p.split_id ? splitName(p.split_id) : "—";
+  if (p.kind === "new") return p.split_id ? `NEW split ${p.split_id}` : "—";
   if (p.kind === "coord") return p.coord ? `${p.coord[1].toFixed(5)}, ${p.coord[0].toFixed(5)}` : "click the map";
   const what = p.kind === "confluence" ? "confluence of" : p.kind === "lake_inlet" ? "inlet of" : "outlet of";
   return `${what} ${p.name || p.item_id || "—"}`;
@@ -49,6 +52,12 @@ interface Props {
   onPick: (cb: ((ll: [number, number]) => void) | null) => void;
   /** the coordinates of a split drawn on this map, to mark it in the preview */
   splitAt: (id: string) => [number, number] | null;
+  /** T164: the NEW splits proposed in this mark (a point may name one by its ref) */
+  newSplits?: NamedRef[];
+  /** T164: which point sources to offer (`SOURCES`' values); default every one but "new" */
+  sources?: string[];
+  /** T164: the preview call (default: the catalogue entry's extent-preview) */
+  previewFn?: (fix: ExtentFix) => Promise<ExtentPreview>;
 }
 
 /* THE EXTENT-FIX EDITOR (T191). The reviewer proposes the extent — op, 1 or 2 split points, the
@@ -56,7 +65,9 @@ interface Props {
    file; T185 turns it into a proposed edit. The preview is the builder's own resolve on an
    in-memory copy (GET /extent-preview); a NEW point cannot be previewed until it is built. */
 export function ExtentFixEditor({ scope, entryId, currentOp, mapSplits, waters, value, onChange,
-                                  onPreview, onPick, splitAt }: Props) {
+                                  onPreview, onPick, splitAt, newSplits = [], sources,
+                                  previewFn }: Props) {
+  const offered = SOURCES.filter((x) => (sources ? sources.includes(x.v) : x.v !== "new"));
   const [open, setOpen] = useState(!!value);
   const [ops, setOps] = useState<ExtentOpInfo[]>(FALLBACK_OPS);
   useEffect(() => { loadOps().then(setOps); }, []);
@@ -91,7 +102,8 @@ export function ExtentFixEditor({ scope, entryId, currentOp, mapSplits, waters, 
   async function runPreview() {
     setBusy(true);
     try {
-      const got = await api.extentPreview(entryId, { ...fix, points: fix.points.slice(0, want) });
+      const trimmed = { ...fix, points: fix.points.slice(0, want) };
+      const got = await (previewFn ? previewFn(trimmed) : api.extentPreview(entryId, trimmed));
       setPreview(got);
       const pts: GeoJSON.Feature[] = fix.points.slice(0, want).flatMap((p, i) => {
         const at = p.kind === "coord" ? p.coord : p.kind === "split" && p.split_id ? splitAt(p.split_id) : null;
@@ -143,7 +155,7 @@ export function ExtentFixEditor({ scope, entryId, currentOp, mapSplits, waters, 
       {Array.from({ length: want }, (_, i) => (
         <PointPicker key={`${fix.op}-${i}`} n={i + 1} of={want} point={fix.points[i]} mapSplits={mapSplits}
           onPoint={(p) => setPoint(i, p)} picking={pickAt === i} onPickMap={() => pick(i)}
-          splitName={splitName} />
+          splitName={splitName} offered={offered} newSplits={newSplits} />
       ))}
       <div className="fix-row">
         <span className="k">on</span>
@@ -189,9 +201,11 @@ export function ExtentFixEditor({ scope, entryId, currentOp, mapSplits, waters, 
   );
 }
 
-function PointPicker({ n, of, point, mapSplits, onPoint, picking, onPickMap, splitName }: {
+function PointPicker({ n, of, point, mapSplits, onPoint, picking, onPickMap, splitName, offered,
+                      newSplits }: {
   n: number; of: number; point?: FixPoint; mapSplits: NamedRef[]; onPoint: (p: FixPoint) => void;
   picking: boolean; onPickMap: () => void; splitName: (id: string) => string;
+  offered: typeof SOURCES; newSplits: NamedRef[];
 }) {
   const [src, setSrc] = useState<string>(
     !point ? "map" : point.kind === "split" ? (mapSplits.some((s) => s.id === point.split_id) ? "map" : "search")
@@ -201,13 +215,20 @@ function PointPicker({ n, of, point, mapSplits, onPoint, picking, onPickMap, spl
     <div className="fix-row fix-point">
       <span className="k">point{of > 1 ? ` ${n}` : ""}</span>
       <select aria-label={`point ${n} source`} value={src} onChange={(e) => setSrc(e.target.value)}>
-        {SOURCES.map((s) => <option key={s.v} value={s.v}>{s.words}</option>)}
+        {offered.map((s) => <option key={s.v} value={s.v}>{s.words}</option>)}
       </select>
       {src === "map" && (
         <select aria-label={`point ${n} split`} value={point?.kind === "split" ? point.split_id ?? "" : ""}
           onChange={(e) => e.target.value && onPoint({ kind: "split", split_id: e.target.value })}>
           <option value="">— pick a split —</option>
           {mapSplits.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+        </select>
+      )}
+      {src === "new" && (
+        <select aria-label={`point ${n} new split`} value={point?.kind === "new" ? point.split_id ?? "" : ""}
+          onChange={(e) => e.target.value && onPoint({ kind: "new", split_id: e.target.value })}>
+          <option value="">{newSplits.length ? "— pick a new split —" : "— add a split below first —"}</option>
+          {newSplits.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
         </select>
       )}
       {src === "search" && <SplitSearch onPick={(h) => onPoint({ kind: "split", split_id: h.id })} />}
@@ -222,7 +243,7 @@ function PointPicker({ n, of, point, mapSplits, onPoint, picking, onPickMap, spl
           {picking ? "click the map… (cancel)" : "click the map"}
         </button>
       )}
-      {point && (src === "map" ? false : true) && (
+      {point && src !== "map" && src !== "new" && (
         <span className="fix-chosen" title={JSON.stringify(point)}>→ {pointWords(point, splitName)}</span>
       )}
     </div>
@@ -242,7 +263,7 @@ function useSearch<T>(fn: (q: string) => Promise<T[]>) {
   return { q, setQ, hits, clear: () => { setQ(""); setHits([]); } };
 }
 
-function SplitSearch({ onPick }: { onPick: (h: SplitHit) => void }) {
+export function SplitSearch({ onPick }: { onPick: (h: SplitHit) => void }) {
   const s = useSearch(api.searchSplits);
   return (
     <span className="fix-search">
@@ -260,7 +281,7 @@ function SplitSearch({ onPick }: { onPick: (h: SplitHit) => void }) {
   );
 }
 
-function ItemSearch({ kind, placeholder, onPick, onText }: {
+export function ItemSearch({ kind, placeholder, onPick, onText }: {
   kind?: string; placeholder: string; onPick: (h: ItemHit) => void; onText?: (t: string) => void;
 }) {
   const s = useSearch((q) => api.searchItems(q, kind));

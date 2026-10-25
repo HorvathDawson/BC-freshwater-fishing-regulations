@@ -9,6 +9,10 @@ import { QueueList } from "./components/QueueList";
 import { EntryDetail } from "./components/EntryDetail";
 import { ProgressBar } from "./components/ProgressBar";
 import { isTyping, keepSelected, nextUnsure, paceSamples, recordPace } from "./review";
+import { DFO_HASH, DfoReview } from "./components/DfoReview";
+
+/** T164: the URL hash opens the DFO review mode (`#dfo/<location_id>`) */
+const inDfo = () => decodeURIComponent(window.location.hash.slice(1)).startsWith(DFO_HASH);
 
 /** THE REVIEW TIERS (PLAN §3, `tiers.TIERS`) — entries only: a split point is checked by proxy on
  *  the map of each entry whose rules name it (T184), never as a target of its own. */
@@ -20,6 +24,8 @@ const TIERS: Tier[] = ["P1", "Z", "P2", "P3", "P4", "sweep"];
 export default function App() {
   // the checks, the problem categories and the commands the server reviews with
   const [mode, setMode] = useState<Mode | null>(null);
+  // T164: the DFO salmon extents review — the same app, the same one write (a mark)
+  const [dfo, setDfo] = useState(inDfo);
   const [regions, setRegions] = useState<RegionSummary[]>([]);
   // THE ONE QUEUE (T135, PLAN §3): every region, in the review order, by default
   const [region, setRegion] = useState(ALL_REGIONS);
@@ -90,6 +96,7 @@ export default function App() {
   useEffect(() => {
     const open = () => {
       const id = decodeURIComponent(window.location.hash.slice(1));
+      if (id.startsWith(DFO_HASH)) { setDfo(true); return; }
       if (!id) return;
       setSelected(id);
       openedAt.current = Date.now();
@@ -170,6 +177,13 @@ export default function App() {
     else api.entry(selected).then(setDetail).catch(() => {});
   }, [loadRows, loadProgress, selected]);
 
+  if (dfo && mode) {
+    return <DfoReview mode={mode} onLeave={() => {
+      window.history.replaceState(null, "", window.location.pathname);
+      setDfo(false);
+    }} />;
+  }
+
   return (
     <div className="app">
       <FilterBar
@@ -194,14 +208,19 @@ export default function App() {
           loadPending();
           setReloadKey((k) => k + 1);
         }}
-        slot={pilotSize > 0 ? (
+        slot={<>
+          <button className="btn small" data-testid="dfo-tab" title="T164: review every scraped DFO salmon extent"
+            onClick={() => { window.history.replaceState(null, "", `#${DFO_HASH}`); setDfo(true); }}>
+            DFO salmon extents
+          </button>
+          {pilotSize > 0 ? (
           <button className={`btn small pilot-toggle${pilot ? " on" : ""}`} data-testid="pilot-toggle"
             aria-pressed={pilot} onClick={() => setPilot((p) => !p)}>
             {pilot
               ? `Pilot: ${rows.filter((r) => r.reviewed || (r.verify && r.verify !== "unmarked")).length}/${pilotSize} marked — show all`
               : `Show the ${pilotSize} pilot entries`}
           </button>
-        ) : null}
+        ) : null}</>}
         moreSet={tier ? 1 : 0}
         more={
           <>

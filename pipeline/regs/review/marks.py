@@ -42,7 +42,7 @@ class StaleReason(str, Enum):
 #: the order reasons are reported in (and the order of the enum)
 STALE_REASONS: tuple[StaleReason, ...] = tuple(StaleReason)
 
-Scope = Literal["entry", "rule", "split"]
+Scope = Literal["entry", "rule", "split", "dfo"]
 Verdict = Literal["verified", "wrong", "unsure", "deferred"]
 Answer = Literal["y", "n", "?"]
 #: T189: the reviewer's call on tributaries — the water's tributaries should be in, or out
@@ -52,7 +52,11 @@ ENTRY_KEY = "entry"
 #: the checks each scope answers (PLAN §2: T text, R rules, P place, A answer; a split is a place)
 CHECKS: dict[str, tuple[str, ...]] = {"entry": ("T", "R", "P", "A"),
                                       "rule": ("T", "R", "P", "A"),
-                                      "split": ("P",)}
+                                      "split": ("P",),
+                                      # T164: a DFO salmon location (`review.dfo`) — T the notice's
+                                      # words for the place, R its scraped rows, P the extent lands
+                                      # right. No A yet: the app serves no DFO rule (T164 step 5)
+                                      "dfo": ("T", "R", "P")}
 
 #: THE PROBLEM CATEGORIES a "wrong" mark names (PLAN §2), grouped by the check that finds them.
 #: The review screen offers exactly these; the store keeps any string (an old mark stays valid).
@@ -61,7 +65,7 @@ PROBLEMS: dict[str, tuple[str, ...]] = {
     "R": ("clause missing", "rule invented", "species", "quota", "size", "dates", "gear",
           "tributary scope"),
     "P": ("wrong water", "split misplaced", "ambiguous cut pick", "tributary walk over-reaches",
-          "undrawn part / unresolved place"),
+          "undrawn part / unresolved place", "split missing"),
     "A": ("app answer differs", "open/closed wrong"),
 }
 
@@ -94,6 +98,8 @@ REFUSAL_WORDS: tuple[tuple[str, str], ...] = (
     ("a mark needs the reviewer's name", "Type your name first: every mark names its reviewer."),
     ("an extent fix is proposed on a wrong or unsure mark",
      "A proposed extent fix says the extent is wrong: answer P n (or ?) to record it."),
+    ("a new split is proposed on a wrong or unsure mark",
+     "A proposed new split says the extent is missing a cut: answer P n (or ?) to record it."),
 )
 
 
@@ -141,7 +147,8 @@ OP_WORDS: dict[str, str] = {"whole": "whole", "upstream_of": "upstream",
 #: the others are a NEW point, by the anchor types the atlas resolves (`AnchorType`, T164):
 #: `confluence` (a named tributary's mouth), `lake_inlet` / `lake_outlet` (a lake's edge where the
 #: water enters / leaves it — a `lake` anchor) and `coord` (a map click, lon/lat — a `point` anchor).
-PointKind = Literal["split", "confluence", "lake_inlet", "lake_outlet", "coord"]
+#: T164: `new` is a NEW split proposed in the same mark (`Mark.new_splits`), its `ref` in `split_id`.
+PointKind = Literal["split", "confluence", "lake_inlet", "lake_outlet", "coord", "new"]
 
 
 class FixPoint(BaseModel):
@@ -156,9 +163,10 @@ class FixPoint(BaseModel):
 
     @model_validator(mode="after")
     def _anchored(self) -> "FixPoint":
-        if self.kind == "split":
+        if self.kind in ("split", "new"):
             if not (self.split_id or "").strip():
-                raise ValueError("a split point names its split")
+                raise ValueError("a split point names its split" if self.kind == "split"
+                                 else "a new-split point names the proposal (its ref)")
         elif self.kind == "coord":
             if self.coord is None:
                 raise ValueError("a map point needs its coordinates")
@@ -196,6 +204,63 @@ class ExtentFix(BaseModel):
             raise ValueError("within names its area; no other op does")
         if len(set(self.items)) != len(self.items):
             raise ValueError("an extent fix lists each item once")
+        return self
+
+
+#: T164: WHAT A NEW SPLIT IS ANCHORED TO — every anchor a DFO notice names a place by. `confluence`
+#: (a named tributary's mouth), `lake_inlet` / `lake_outlet` (where the water enters / leaves a lake),
+#: `bridge`, `dam`, `sign` (a crossing, a dam or a boundary sign — placed by a map point), `coord`
+#: (a bare map point) and `split` (an existing curated split, reused for this water).
+AnchorKind = Literal["confluence", "lake_inlet", "lake_outlet", "bridge", "dam", "sign", "coord",
+                     "split"]
+#: the anchors placed by a map point (the reviewer clicks where the bridge / dam / sign is)
+COORD_ANCHORS = ("bridge", "dam", "sign", "coord")
+#: the anchors found from a named registry item (the tributary, the lake)
+ITEM_ANCHORS = ("confluence", "lake_inlet", "lake_outlet")
+#: which side of the cut the extent lies on
+Side = Literal["upstream", "downstream"]
+
+
+def _in_bc(coord) -> bool:
+    lon, lat = coord
+    return -140.0 <= lon <= -113.0 and 48.0 <= lat <= 60.5
+
+
+class NewSplit(BaseModel):
+    """A NEW SPLIT PROPOSED IN A MARK (T164): a cut the extent needs that splits.json does not
+    have. No tool writes it to splits.json: T185 turns it into a proposal the owner accepts.
+    `ref` names it inside the mark (an extent fix's point `{kind: new, split_id: ref}`); `on_item`
+    is the water it cuts; `blk` / `measure` / `coord` are where the server resolved it (stamped at
+    the mark's write by the review app's `dfo.check_anchor`); `side` is which side of the cut the
+    extent lies on; `offset_m` an offset from the anchor along the water (+ upstream, - down:
+    "500 m below the bridge" is -500); `quote` the notice's words it came from."""
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    ref: str = Field(..., min_length=1, max_length=40)
+    anchor: AnchorKind
+    name: Optional[str] = Field(default=None, description="the tributary / lake / bridge named")
+    item_id: Optional[str] = Field(default=None, description="the tributary's or lake's registry id")
+    split_id: Optional[str] = Field(default=None, description="anchor split: the curated split")
+    on_item: Optional[str] = Field(default=None, description="the water it cuts (registry id)")
+    coord: Optional[tuple[float, float]] = Field(default=None, description="(lon, lat)")
+    blk: Optional[str] = None
+    measure: Optional[float] = None
+    side: Optional[Side] = None
+    offset_m: Optional[float] = None
+    quote: str = ""
+    note: str = ""
+
+    @model_validator(mode="after")
+    def _anchored(self) -> "NewSplit":
+        if self.coord is not None and not _in_bc(self.coord):
+            raise ValueError(f"a new split's point is in BC (lon, lat), not at {list(self.coord)}")
+        if self.anchor in COORD_ANCHORS and self.coord is None:
+            raise ValueError(f"a new split at a {self.anchor} needs its point: click the map")
+        if self.anchor in ITEM_ANCHORS and not ((self.name or "").strip()
+                                                or (self.item_id or "").strip()):
+            raise ValueError(f"a new split at a {self.anchor.replace('_', ' ')} names its "
+                             + ("tributary" if self.anchor == "confluence" else "lake"))
+        if self.anchor == "split" and not (self.split_id or "").strip():
+            raise ValueError("a new split on an existing split names that split")
         return self
 
 
@@ -252,6 +317,9 @@ class Mark(BaseModel):
     #: or a rule id), on the same keys as `tributaries`. Only on a wrong or unsure mark: those are
     #: the marks that become tickets (`tickets.TICKET_VERDICTS`), and a fix says the extent is wrong.
     extent_fix: list[ExtentFix] = Field(default_factory=list)
+    #: T164: NEW SPLITS the reviewer proposes (a cut the extent needs that does not exist) — on a
+    #: wrong or unsure mark, like an extent fix; never written to splits.json (T185).
+    new_splits: list[NewSplit] = Field(default_factory=list)
 
     @field_validator("reviewer")
     @classmethod
@@ -322,6 +390,20 @@ class Mark(BaseModel):
                 raise ValueError(f"an extent fix names {bad}: not "
                                  + ("this mark's rule" if self.scope == "rule"
                                     else "the entry or one of its rules"))
+        refs = [n.ref for n in self.new_splits]
+        if self.new_splits:
+            if self.scope == "split":
+                raise ValueError("a split mark proposes no new split")
+            if self.verdict not in ("wrong", "unsure"):
+                raise ValueError("a new split is proposed on a wrong or unsure mark")
+            if len(set(refs)) != len(refs):
+                raise ValueError("each new split has its own ref")
+        dangling = sorted({p.split_id for f in self.extent_fix for p in f.points
+                           if p.kind == "new"} - set(refs))
+        if dangling:
+            raise ValueError(f"an extent fix names new split(s) {dangling} the mark does not propose")
+        if self.scope == "dfo" and (self.rule_id is not None or keys != ["entry"]):
+            raise ValueError("a DFO mark holds exactly its location's prints")
         if self.lake_split_later and self.scope == "split":
             raise ValueError("a lake split later is marked on an entry or a rule, not a split")
         return self
@@ -338,7 +420,8 @@ class Mark(BaseModel):
 
 #: fields a line leaves out while they hold their default (T189 added them): a mark without them
 #: is the same line it was before they existed
-_OMIT_DEFAULT = {"tributaries": {}, "lake_split_later": False, "extent_fix": []}
+_OMIT_DEFAULT = {"tributaries": {}, "lake_split_later": False, "extent_fix": [],
+                 "new_splits": []}
 
 
 def line(mark: Mark) -> str:
@@ -562,6 +645,10 @@ def target_prints(mark: Mark, entries: Mapping[str, Mapping], ctx) -> Optional["
     on disk. Ticket export (`tickets.statuses_now`) and the false-stale gate (`gate.stale_report`)
     both ask here (T136 adversarial review: the gate had grown its own copy)."""
     from pipeline.regs.review import fingerprint as F
+    if mark.scope == "dfo":                       # T164: a DFO location (`review.dfo`)
+        from pipeline.regs.review import dfo as D
+        got = D.prints_of(mark.target)
+        return Prints.model_validate(got) if got is not None else None
     if mark.scope == "split":
         try:
             return Prints.model_validate(F.split_fingerprints(mark.target, ctx))

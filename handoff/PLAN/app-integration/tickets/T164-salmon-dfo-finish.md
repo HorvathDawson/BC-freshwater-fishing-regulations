@@ -61,3 +61,23 @@ will be placed; make sure it can use more than just coord placements (confluence
   only coordinates. Each proposal says which kind and why (the locator text it came from, the evidence source).
 - Placing a split is still a proposal the owner accepts (T185: no tool writes the catalogue) — accepted proposals land
   as reviewed commits, then the rebuild; the review continues on the new build.
+
+## Outcome — the DFO review mode in the local review app (2026-10-25)
+
+DONE (the "DFO review app" part; steps 1, 2, 4, 5 stay OPEN). The app is usable on its own, no credits:
+`bash curation-review/run.sh`, then **DFO salmon extents** in the top bar (or `#dfo/<location_id>`).
+- **Queue:** every scraped DFO location (346: 247 live, 99 dormant), the notice's words verbatim, its scraped rows,
+  its curated extent; filters region / live-dormant / extent state (needs a cut 154, no extent 53, no water 19, bound
+  120) / mark / text; progress marked/total overall, live, per region, and new splits proposed. j / k, y n ?, Enter.
+- **Map:** the water, every cut on it labelled, what the extent binds now (`build_reach`, magenta), proposals amber.
+- **Mark** (scope `dfo`, the same store and the one write `POST /api/marks`): T R P (no A until step 5), an extent fix
+  (T191 editor; a point may name a new split), and **new splits** (`marks.NewSplit`: anchor confluence / lake inlet /
+  lake outlet / bridge / dam / sign / map point / existing split, name, item, the water it cuts, side, offset, the
+  notice's words). Anchors are checked server-side (`GET /api/dfo/locations/{id}/anchor`: a click snaps to the water
+  ≤500 m, a tributary's mouth ≤300 m, a lake's edge) and the resolved blk / measure / point is stamped into the mark.
+  Nothing writes splits.json or the DFO entry files; tickets carry `- **New splits:**` for T185.
+- Prints (`pipeline/regs/review/dfo.py`): text = the notice's words, meaning = the scraped rows (R stale on a
+  re-scrape), binding = the curated geography (P stale only when it moves).
+Checks: `test_review_dfo.py`, `test_curation_review_screen.py` (queue, anchors, a DFO mark changes only the store),
+the safety pins unchanged; frontend `tsc -b`. Screenshots (Campbell River r1, a Quinsam confluence split + extent
+fix; a confluence + a sign by map click) were taken on :18918, not committed.

@@ -1005,6 +1005,10 @@ def marks_view(target: str | None = None, scope: str | None = None) -> list[dict
                     now = Prints.model_validate(F.split_fingerprints(tgt, ctx))
                 except KeyError:
                     now = None
+            elif m.scope == "dfo":                     # T164: a DFO location
+                import dfo
+                got = dfo._locations().get(tgt)
+                now = dfo._now(got[1], got[2]) if got else None
             else:
                 now = _prints(entries[tgt]) if tgt in entries else None
             out.append(_mark_view(m, now))
@@ -1247,25 +1251,33 @@ def post_mark(body: dict) -> dict:
     from pipeline.regs.review import marks as M
     from pipeline.regs.review import vintage as V
     scope, target = body.get("scope"), str(body.get("target") or "")
-    if scope not in ("entry", "rule"):
+    if scope not in ("entry", "rule", "dfo"):
         raise ValueError(f"a mark is on an entry or one of its rules, not a {scope}")
-    ctx = _review_context()
     with writes.LOCK, M.store_lock(MARKS_PATH):          # threads, then other processes
-        found = _find(target)
-        if found is None:
-            raise KeyError(target)
-        e = found[1]
-        M.refuse_on_gate(target, check_entry(e)["errors"])
-        V.refuse_unbuilt(scope, body.get("answers") or {}, entry_vintage(e))
-        prints = F.entry_fingerprints(e, ctx, rule_id=body.get("rule_id")
-                                      if scope == "rule" else None)
-        pages = body.get("pages") or [p for p in e.get("source_pages") or []
-                                      if isinstance(p, int)]
-        mark = M.Mark.model_validate({**body, "date": _dt.date.today().isoformat(),
-                                      "pdf_sha256": _pdf_sha256(), "pages": pages,
-                                      "prints": prints})
+        if scope == "dfo":
+            # T164: a DFO salmon location — its prints from `review.dfo`, each NEW split's anchor
+            # checked and its resolved point stamped (`dfo.mark_for`); the same one commit below
+            import dfo
+            mark, now = dfo.mark_for(body, date=_dt.date.today().isoformat(),
+                                     pdf_sha256=_pdf_sha256())
+        else:
+            ctx = _review_context()
+            found = _find(target)
+            if found is None:
+                raise KeyError(target)
+            e = found[1]
+            M.refuse_on_gate(target, check_entry(e)["errors"])
+            V.refuse_unbuilt(scope, body.get("answers") or {}, entry_vintage(e))
+            prints = F.entry_fingerprints(e, ctx, rule_id=body.get("rule_id")
+                                          if scope == "rule" else None)
+            pages = body.get("pages") or [p for p in e.get("source_pages") or []
+                                          if isinstance(p, int)]
+            mark = M.Mark.model_validate({**body, "date": _dt.date.today().isoformat(),
+                                          "pdf_sha256": _pdf_sha256(), "pages": pages,
+                                          "prints": prints})
+            now = None
         writes.commit([(MARKS_PATH, M.appended(MARKS_PATH, [mark]))], "mark")
-    return _mark_view(mark, _prints(e))
+    return _mark_view(mark, now if scope == "dfo" else _prints(e))
 
 
 def entry_answer_context(entry_id: str) -> dict | None:

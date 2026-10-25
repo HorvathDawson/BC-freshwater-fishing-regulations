@@ -26,6 +26,11 @@ import type {
   ExtentPreview,
   ItemHit,
   SplitHit,
+  AnchorCheck,
+  DfoDetail,
+  DfoProgress,
+  DfoRow,
+  NewSplit,
 } from "./types";
 
 async function getJSON<T>(url: string): Promise<T> {
@@ -134,5 +139,22 @@ export const api = {
     getJSON<ItemHit[]>(`/api/items/search?q=${encodeURIComponent(q)}${kind ? `&kind=${kind}` : ""}`),
   extentPreview: (entryId: string, fix: ExtentFix) =>
     getJSON<ExtentPreview>(`/api/entries/${encodeURIComponent(entryId)}/extent-preview?fix=` +
+      encodeURIComponent(JSON.stringify(fix))),
+
+  // --- T164: the DFO review mode (reads; a DFO mark goes through postMark, scope "dfo") ---
+  dfoQueue: (f: { region?: string; status?: string; need?: string; verify?: string; q?: string }) => {
+    const p = new URLSearchParams();
+    for (const [k, v] of Object.entries(f)) if (v) p.set(k, v);
+    const qs = p.toString();
+    return getJSON<DfoRow[]>(`/api/dfo/queue${qs ? `?${qs}` : ""}`);
+  },
+  dfoProgress: () => getJSON<DfoProgress>("/api/dfo/progress"),
+  dfoLocation: (id: string) => getJSON<DfoDetail>(`/api/dfo/locations/${encodeURIComponent(id)}`),
+  dfoReach: (id: string) => getJSON<ExtentPreview>(`/api/dfo/locations/${encodeURIComponent(id)}/reach`),
+  dfoAnchor: (id: string, split: NewSplit) =>
+    getJSON<AnchorCheck>(`/api/dfo/locations/${encodeURIComponent(id)}/anchor?split=` +
+      encodeURIComponent(JSON.stringify(split))),
+  dfoExtentPreview: (id: string, fix: ExtentFix) =>
+    getJSON<ExtentPreview>(`/api/dfo/locations/${encodeURIComponent(id)}/extent-preview?fix=` +
       encodeURIComponent(JSON.stringify(fix))),
 };

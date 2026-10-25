@@ -79,6 +79,8 @@ def _work(mark) -> list[str]:
              + (" — the owner's call (PLAN §6 Q3)." if mark.verdict == "unsure" else "."),
              "2. A reviewed change to the curated files (T185): a proposal the owner accepts "
              + ("(the split in `data/curated/waters/splits.json`)." if split
+                else "(the DFO location's binding in `data/curated/regulations/entries/dfo_salmon/`;"
+                     " a new split in `data/curated/waters/splits.json`)." if mark.scope == "dfo"
                 else "(the entry in its region file; a cut pick is the extent's `cut_pick`)."),
              "3. Rebuild, then the mark goes stale and the target re-queues for review:"]
     lines += [f"   - `{c}`" for c in cmds]
@@ -117,12 +119,21 @@ def ticket_text(mark, *, entry: Mapping | None = None, split: Mapping | None = N
         lines.append("- **Extent fix:** `" + json.dumps(
             [f.model_dump(mode="json", exclude_none=True) for f in mark.extent_fix],
             ensure_ascii=False, separators=(",", ":")) + "`")
+    if mark.new_splits:
+        # T164: THE NEW SPLITS proposed, machine-readable on one line (T185 builds them; read back
+        # by `parse_ticket`) and in words under "## Proposed new splits"
+        lines.append("- **New splits:** `" + json.dumps(
+            [n.model_dump(mode="json", exclude_none=True, exclude_defaults=True) | {"ref": n.ref,
+             "anchor": n.anchor} for n in mark.new_splits],
+            ensure_ascii=False, separators=(",", ":")) + "`")
     if status and status.get("status") == "stale":
         lines.append("- **Now:** changed since marked (" + ", ".join(status.get("reasons") or [])
                      + ") — read it again before fixing")
     lines += ["", "## What the reviewer said", ""] + _quote(mark.note) + [""]
     if mark.extent_fix:
         lines += ["## Proposed extent", ""] + [f"- {fix_words(f)}" for f in mark.extent_fix] + [""]
+    if mark.new_splits:
+        lines += ["## Proposed new splits", ""] + [f"- {new_split_words(n)}" for n in mark.new_splits] + [""]
     if entry is not None:
         lines += ["## The entry", ""]
         lines.append(f"{entry.get('name', '')} (`{entry.get('entry_id', '')}`), printed p. "
@@ -185,6 +196,7 @@ def parse_ticket(text: str) -> dict:
                             filter(None, got.get("Tributaries", "").split(" · "))),
         "lake_split_later": got.get("Lake split later") == "yes",
         "extent_fix": json.loads(tick(got["Extent fix"])) if "Extent fix" in got else [],
+        "new_splits": json.loads(tick(got["New splits"])) if "New splits" in got else [],
     }
 
 
@@ -192,11 +204,36 @@ def point_words(p) -> str:
     """One proposed split point in words (T191)."""
     if p.kind == "split":
         return f"split `{p.split_id}`"
+    if p.kind == "new":
+        return f"the NEW split `{p.split_id}` (below)"
     if p.kind == "coord":
         return f"NEW point at {p.coord[1]:.5f}, {p.coord[0]:.5f} (lat, lon)"
     what = {"confluence": "NEW cut at the confluence of", "lake_inlet": "NEW cut at the inlet of",
             "lake_outlet": "NEW cut at the outlet of"}[p.kind]
     return f"{what} {p.name or p.item_id}" + (f" (`{p.item_id}`)" if p.name and p.item_id else "")
+
+
+def new_split_words(n) -> str:
+    """One proposed NEW split (`marks.NewSplit`, T164) in words."""
+    what = {"confluence": "at the confluence of", "lake_inlet": "at the inlet of",
+            "lake_outlet": "at the outlet of", "bridge": "at the bridge", "dam": "at the dam",
+            "sign": "at the sign", "coord": "at a map point", "split": "on the existing split"}[n.anchor]
+    who = n.split_id if n.anchor == "split" else (n.name or n.item_id or "")
+    words = f"`{n.ref}`: {what}" + (f" {who}" if who else "")
+    if n.item_id and n.name and n.anchor != "split":
+        words += f" (`{n.item_id}`)"
+    if n.coord:
+        words += f" · {n.coord[1]:.5f}, {n.coord[0]:.5f} (lat, lon)"
+    if n.on_item:
+        words += f" · cuts `{n.on_item}`" + (f" at blk {n.blk} m {n.measure:.0f}"
+                                             if n.blk and n.measure is not None else "")
+    if n.offset_m:
+        words += f" · {abs(n.offset_m):.0f} m {'above' if n.offset_m > 0 else 'below'} it"
+    if n.side:
+        words += f" · the extent is {n.side} of it"
+    if n.quote:
+        words += f" · \"{n.quote}\""
+    return words
 
 
 def fix_words(f) -> str:
@@ -222,7 +259,9 @@ def mark_fields(mark) -> dict:
             "note": mark.note, "reviewer": mark.reviewer, "date": mark.date,
             "pages": list(mark.pages), "pdf_sha256": mark.pdf_sha256,
             "tributaries": dict(mark.tributaries), "lake_split_later": mark.lake_split_later,
-            "extent_fix": [f.model_dump(mode="json", exclude_none=True) for f in mark.extent_fix]}
+            "extent_fix": [f.model_dump(mode="json", exclude_none=True) for f in mark.extent_fix],
+            "new_splits": [n.model_dump(mode="json", exclude_none=True, exclude_defaults=True)
+                           | {"ref": n.ref, "anchor": n.anchor} for n in mark.new_splits]}
 
 
 def export(marks: Iterable, *, entries: Mapping[str, Mapping] | None = None,

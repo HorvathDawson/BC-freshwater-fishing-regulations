@@ -27,6 +27,13 @@ delete / rename were removed with their routes, and `test_curation_review_safety
 backend module but `writes.py` writes a file, its one caller being the mark.
 `test_curation_review_screen` calls every route and proves nothing under `data/curated` changed.
 
+**DFO salmon extents (T164).** The top bar's "DFO salmon extents" (or `#dfo/<location_id>`) opens
+the second queue: every scraped DFO location, its notice words and rows, its extent on the map. A
+DFO mark (scope `dfo`, T R P) carries an extent fix and NEW split proposals by anchor (confluence,
+lake inlet / outlet, bridge, dam, sign, map point, existing split), each checked by
+`GET /api/dfo/locations/{id}/anchor` and stamped with where it resolved — in the mark only; T185
+turns it into a reviewed change.
+
 ## What is reviewed: entries, and splits by proxy (T184)
 
 - **Entries only.** The queue holds entries; there is no split-point tier (the old S0) and no split

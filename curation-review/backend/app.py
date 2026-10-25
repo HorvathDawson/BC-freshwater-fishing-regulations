@@ -132,8 +132,9 @@ def get_pilot():
     return reuse.pilot_targets()
 
 
-#: what a reviewer marks: an entry, or one rule of a zone entry (T184: entries only)
-REVIEW_SCOPES = ("entry", "rule")
+#: what a reviewer marks: an entry, or one rule of a zone entry (T184: entries only); T164: a DFO
+#: salmon location (the DFO review mode)
+REVIEW_SCOPES = ("entry", "rule", "dfo")
 
 
 class MarkPayload(BaseModel):
@@ -159,6 +160,10 @@ class MarkPayload(BaseModel):
     #: T191: the reviewer's proposed extent(s) — `marks.ExtentFix` {scope, op, points, items,
     #: tributaries, area?}; validated by the mark model, never applied to a file
     extent_fix: list[dict] = []
+    #: T164: NEW splits the reviewer proposes — `marks.NewSplit` {ref, anchor, name?, item_id?,
+    #: split_id?, on_item?, coord?, side?, offset_m?, quote, note}; each anchor is checked and its
+    #: resolved point stamped by the server; never written to splits.json (T185)
+    new_splits: list[dict] = []
 
 
 @app.post("/api/marks")
@@ -430,6 +435,89 @@ def extent_preview(entry_id: str, fix: str, limit: int = 6000):
     got = reuse.extent_preview(entry_id, f, limit=limit)
     if got is None:
         raise HTTPException(404, f"entry {entry_id} not found")
+    return got
+
+
+# --------------------------------------------------------------------------- T164: DFO review mode
+# All READS: the DFO salmon locations, their map, and a proposed new split's anchor resolved. A
+# DFO mark (scope "dfo") is posted through the one write, POST /api/marks.
+
+@app.get("/api/dfo/queue")
+def dfo_queue(region: str | None = None, status: str | None = None, need: str | None = None,
+              verify: str | None = None, q: str | None = None):
+    """THE DFO QUEUE: every scraped DFO location (`dfo.queue`), filtered — `status` active |
+    dormant, `need` needs_cut | bound | unbound | no_water, `verify` the mark (todo = unmarked or
+    stale), `q` a substring of the water or the notice's words."""
+    import dfo
+    if need and need not in dfo.NEEDS:
+        raise HTTPException(422, [{"path": "need", "msg": "need is one of " + ", ".join(dfo.NEEDS)}])
+    if verify and verify not in dfo.VERIFIES:
+        raise HTTPException(422, [{"path": "verify",
+                                   "msg": "verify is one of " + ", ".join(dfo.VERIFIES)}])
+    return dfo.queue(region=region, status=status, need=need, verify=verify, q=q)
+
+
+@app.get("/api/dfo/progress")
+def dfo_progress():
+    """Marked / total for the DFO queue, overall, live-page only and per region."""
+    import dfo
+    return dfo.progress()
+
+
+@app.get("/api/dfo/locations/{location_id:path}/reach")
+def dfo_reach(location_id: str, limit: int = 6000):
+    """What the location's curated extent binds NOW (`build_reach`), as geometry."""
+    import dfo
+    got = dfo.reach(location_id, limit=limit)
+    if got is None:
+        raise HTTPException(404, f"DFO location {location_id} not found")
+    return got
+
+
+@app.get("/api/dfo/locations/{location_id:path}/anchor")
+def dfo_anchor(location_id: str, split: str):
+    """A PROPOSED NEW SPLIT's anchor resolved, READ ONLY (`dfo.check_anchor`): `split` is one
+    `marks.NewSplit` as JSON. 422 for a malformed one; `ok: false` and why when it does not land."""
+    import json as _json
+    import dfo
+    from pydantic import ValidationError
+    from pipeline.regs.review import marks as M
+    try:
+        ns = M.NewSplit.model_validate(_json.loads(split))
+    except (ValueError, ValidationError) as ex:
+        raise HTTPException(422, [{"path": "split", "msg": M.refusal_words(
+            ex.errors()[0]["msg"] if isinstance(ex, ValidationError) else str(ex))}])
+    try:
+        return dfo.check_anchor(location_id, ns)
+    except KeyError:
+        raise HTTPException(404, f"DFO location {location_id} not found")
+
+
+@app.get("/api/dfo/locations/{location_id:path}/extent-preview")
+def dfo_extent_preview(location_id: str, fix: str, limit: int = 6000):
+    """A proposed extent (`marks.ExtentFix`) on a DFO location resolved, READ ONLY."""
+    import json as _json
+    import dfo
+    from pydantic import ValidationError
+    from pipeline.regs.review import marks as M
+    try:
+        f = M.ExtentFix.model_validate(_json.loads(fix))
+    except (ValueError, ValidationError) as ex:
+        raise HTTPException(422, str(ex))
+    got = dfo.extent_preview(location_id, f, limit=limit)
+    if got is None:
+        raise HTTPException(404, f"DFO location {location_id} not found")
+    return got
+
+
+@app.get("/api/dfo/locations/{location_id:path}")
+def dfo_location(location_id: str):
+    """One DFO location: the notice's words verbatim, its scraped rows, its curated extent, the
+    cuts on its water as labelled map points, anchor hints and the mark in force."""
+    import dfo
+    got = dfo.detail(location_id)
+    if got is None:
+        raise HTTPException(404, f"DFO location {location_id} not found")
     return got
 
 
