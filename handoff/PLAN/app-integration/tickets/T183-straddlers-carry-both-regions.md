@@ -116,3 +116,58 @@ the reserve's lower mainstem crossing (63,480 m, LS-1's "over-requires, the safe
 was only on a side channel then), so 360887278:63480 and :66554, 360216952:0 and 360216962:3522 still carry Skeena
 River 2 though they are below the Exchamsiks. Now that T67 put the Exchamsiks cut on the mainstem at 67,917 m, the
 extent can start there — a catalogue proposal for the owner (no tool writes the catalogue).
+
+## Outcome, part 2 (2026-10-24 evening) — owner answers applied; card gate 0; ready to promote
+
+Owner answers (decisions.md "OWNER 2026-10-24 — T183 follow-ups"): stricter wins per cap across two regions; keep the
+5 m minimum (E9 updated); Skeena "section 2" from the Exchamsiks cut.
+
+Commits (on top of the rebase onto redesign/stream-sections): 1f8587b9 (curated: Skeena River 2 — ONLY that entry),
+d9969cea (RULINGS E9), adc5f79e (Skeena tests + extent comment), 599bb11e (stricter-of-every-cap: reader, card, badge,
+fixtures, RULINGS Z4, AGENTS 59).
+
+**Stricter wins, as built.**
+- Reader step 6 (`ladder.A_NARROWER_CAP_NEVER_DISPLACES_A_WIDER`): a quota displaces the other region's only when it
+  holds every fish that one holds. `same_statement` keeps a CHAR exception out of the statement (RULINGS C2), so Region
+  6's "1 trout from streams July 1-Oct 31" had displaced Zone 7A's "2 from streams" for every trout — leaving a rainbow
+  counted toward no stream share (the engine kept 3). Both bind now: 2 in all. Only two-region sections run step 6.
+- Card group (`rows.groups.STRADDLERS_TAKE_BOTH_TABLES_CAPS`, `_peer_totals`): a zone total that lost "same as peer"
+  to the other region's identical total brings its clauses into the winner's group; of two clauses saying the same
+  thing, the one the reader kept (the stricter); a peer clause that SPEAKS for a fish holds it. A two-table group says
+  no "kept elsewhere" example (elsewhere in which region? Region 3's closed January streams vs Region 5's open ones).
+- Size caps (`card.TWO_TABLES_SIZE_CAPS_BOTH_BIND`): a kind one region's size cap leaves out but the other's same-size
+  cap holds is not "not counting" — Copper Creek/Similkameen: "Steelhead, brown trout or lake trout: only 1 over 50 cm"
+  and "Brown trout, lake trout or brook trout: only 1 over 50 cm", no "— 2 if one is a hatchery steelhead" (→ 1).
+- Badge: `scope.both` ("Regions 3 and 5"), additive to rows 33 (model, encode text, generated TS); app `scopeOf` says
+  it ("All Regions 3 and 5 streams" / "Regions 2 and 8-wide"; vitest pinned). Sources: every rule's `applies` already
+  names its own table.
+- Fixture `fixtures/t183_two_regions.json`: the REAL rule sets of five pieces (Fraser 356364114:418405 3+5, Big Bend
+  356345623:58 6+7A, Contact 359554864:0 6+7B, West Road 356364550:209816 5+6, Copper 356392178:0 2+8);
+  `test_t183_two_regions_card.py`: Fraser → 2 from streams, Big Bend → 2 (Jul and Jan), Contact → 2, West Road → 1,
+  Copper → 1 over 50 cm, every card proved by the card gate; 3 mutation pins (one per flag).
+
+Card after (Jul 15): Fraser "2 a day per angler from streams", bucket "all Region 5 streams combined", badge Regions 3
+and 5; Big Bend/Nechako/Contact "2 from streams"; West Road "1 from streams"; Similkameen/Copper/Bonnevier 2 from
+streams, the two 1-over-50 groups, no steelhead extra.
+
+**Side reach** `data/generated/scratch/t183/reach2` (T183 + Skeena; the reach code is otherwise T183's): T183's binding
+diff vs live is unchanged from part 1 (the table above — 1,386 gained / 3 lost, all on the 58 straddling stream pieces).
+**Skeena separately** (`binding_diff reach reach2`): 0 rules; 1 licensing record, `skeena_river_2` −7 sections, +0:
+360887278:63480 and :66554 (mainstem 63,480–67,917 m, below the Exchamsiks), 360216952:0, 360216962:3522,
+360222898:0, 360224434:0, :7 — all below the Exchamsiks confluence. Mainstem in section 2: 60,481 m → 56,044 m. No
+ambiguous cut left on the record (one candidate on the Skeena). The 3 `straddles_the_cut` pieces at the Kitsumkalum end
+(360220078/098/099) were there before.
+
+**Side deliver** `deliver all --out-dir data/generated/scratch/t183/deliver2 --reaches …/reach2`: every step passed,
+**card gate 0** (7,731 cards, 17,268 groups), vintage agrees, release r-1a9cffebc946 written into the scratch dir.
+**Base + deltas** over all 218 straddlers × 4 days × every fish: 16,788 differences, all attributed; no carve-out.
+
+**Tests:** answers/competition/reach/bundle/rulings suites 1,566 pass on live data (the 2 T183 bundle tests fail on the
+live bundle by design, pass on the side bundle). On the side bundle, `test_region_homes`, `test_rulings_pinned`,
+`test_dataflow_gates`, `test_zone_decisions`, `test_competition`, licensing pass; 6 golden-oracle tests
+(`test_answers_*_live`, state x15p16_1010) fail because T183 renumbers the Fraser's parts — the two straddling
+pieces 418405/434930 become a part of their own (part 14; the golden's part 14 is now 15, and 674465/698232 part 16).
+**The golden taps need a re-cut after promotion** (like 6832c8ad), not a code change.
+
+**Promote:** `scripts/heavy.sh build 40 -- .venv/bin/python -m pipeline build` (reach + deliver, no atlas, no tiles),
+then re-cut the golden taps/fixtures on the new release.
