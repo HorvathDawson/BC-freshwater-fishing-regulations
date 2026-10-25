@@ -1,6 +1,6 @@
 # T64 — Tiles: size wins (S2) + the pending tile rebuild
 
-Status: OPEN. One tile build covers: parcels from z11 (style already asks for it), basins coverage simplify (100 m),
+Status: PARTIAL — code done 2026-10-24; the tiles-window build, shots and after-numbers are left (see Outcome).
 and the S2 easy size wins. Never replace the tiles dir: promote pmtiles + meta + layers/*.geojsonl file by file.
 Tiles and bundle share a vintage (rebuild both or check the handle digest). Acceptance: size table before/after;
 private land visible from z11; no basin seams; strict + smoke.
@@ -40,3 +40,23 @@ own, only zone rules or an area entry (e.g. "Liard River watershed").
   fill from the basemap's landuse layer can stand in visually if the look suffers).
 - Status colours: a dropped wetland never had a status of its own; check no section's colour disappears (the drop list
   holds no section a status index row colours).
+
+## Outcome
+Code done 2026-10-24 (tiles window); the build, the shots and the after-column are the owner's run. Size table:
+`handoff/PLAN/app-data/S2-tile-size-easy-wins.md` "Measured 2026-10-24".
+- Already in code before this window, and shipping with this build: parcels from z11, basins as one 100 m coverage.
+- **Unnamed wetlands** (owner addition): `tiles.export.wetland_is_drawn` keeps a wetland in a registry item (named,
+  or folded into a river: a slough/side channel), a stream-kind polygon, or one with a gazetted name; every other
+  wetland is left out of the tiles and listed in `layers/undrawn.json` (counts in `atlas.meta.json` `undrawn`). The
+  graph, atlas and reach are untouched. Measured on the live bundle: 333,526 wetland features (111.1 MB of the 548 MB
+  atlas); 333,471 go (332,937 zone-only, 460 area-row-only — Liard watershed etc., 74 with no rule set), 55 stay
+  (54 wetland items, 1 folded into a stream). No wetland is bound by a water row (reach or walk) or gauged today.
+  26,079 of those dropped carry `section_access` rows (no-access land); the land fill still draws there.
+- **The gate:** `bundle.undrawn.check` (in the bundle build, after access) refuses a bundle in which an undrawn section
+  is in an item, gauged, or bound by a water row — so a later data release that binds one asks for a tile rebuild
+  instead of drawing nothing. Note: the 460 area-row-only wetlands DID carry the status index's "own regulations"
+  colour (an area row counts as own); dropping them is what the owner asked ("including ... admin area regs like liard").
+- Tests: `test_wetland_drop.py` (keep classes, the undrawn list, zone/area may go unseen, water row/item/gauge refuse,
+  the sidecar/list pairing).
+- Left for the build: wetland-heavy shots (Fort Nelson, the Chilcotin), z11 private land, basin seams, strict + smoke.
+  If the look suffers, the basemap keeps OSM `wetland` landuse (T85 filter) as a stand-in one style layer away.

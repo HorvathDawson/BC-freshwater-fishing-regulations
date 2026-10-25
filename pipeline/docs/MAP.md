@@ -27,7 +27,7 @@ one atlas and one registry. Heavy: one at a time through `scripts/heavy.sh`.
 | **atlas** | `atlas/build.py`; `atlas/graph/` (network, prune, tributaries, windows), `atlas/splits/` (sectionizer, anchors, area cuts, border, sliver gate), `atlas/registry/` (named waters, flowing-polygon fold, regions), `atlas/waters/` (added lakes/streams), `atlas/sidecars.py`, `atlas/promote.py` | FWA gpkg, `CURATED.splits`, names, areas | `data/generated/atlas/<build>/`: graph, `registry.json`, `section_handles.txt`, sidecars |
 | **clim** | `gauges/feed/climatology.py` | HYDAT | `clim.json` (the gauge envelope) |
 | **reach** | `atlas/reach/` (`cli.py`, `build.py`, `classify.py`, `extent.py`, `licensing.py`, `steelhead.py`, `cache.py`) | atlas, the catalogue corpus (`data/curated/regulations/entries/catalogue/`) | `data/generated/reaches/<run>/`: per-rule bindings, `report.json`, diagnostics |
-| **tiles** | `deliver/tiles/` (`tippe.py`, `layers.py`, `names.py`, `basemap.py`) | atlas | `data/generated/tiles/`: `atlas.pmtiles`, `atlas.meta.json`, `layers/` (never the basemap) |
+| **tiles** | `deliver/tiles/` (`tippe.py`, `layers.py`, `names.py`, `basemap.py`) | atlas | `data/generated/tiles/`: `atlas.pmtiles` (z4–13, T85), `atlas.meta.json`, `layers/` + `layers/undrawn.json` (the sections left out on purpose, T64; the bundle's `bundle/undrawn.py` proves none was needed), never the basemap |
 | **deliver** | `deliver/__main__.py` `all` | atlas, reach run, tiles, curated corpus, `clim.json` | `data/release/r-<id>/` + `LATEST` |
 
 **Deliver, step by step** (`python -m pipeline.deliver all`; each step its own process, each reads only the previous
@@ -60,12 +60,15 @@ step's output; nothing is promoted unless every step and the vintage check pass)
 | live gauge feed | `gauges/feed/publish.py` (+ `forecast.py`, `change.py`, `notify.py`) | the feed the app polls; `scripts/dev-build.sh`, `scripts/update-hydat.sh` |
 | generated app code | `tools/emit/` (`calendar`, `gauge_policy`, `pack`) + `deliver/answers/model --check` | `--check` in `pnpm check` and CI |
 | audits | `tools/audit/` (`build_parity.py`, `check_curated.py`, …) | read-only reports |
+| basemap | `deliver/tiles/basemap.py` | the OSM ground: clip, filter to what the style draws (T85), release as `data/release/basemap/<id>/` + `tiles/basemap.meta.json` (T75); the release names it |
+| tile sizes | `tools/audit/tile_sizes.py` | bytes per zoom and layer of a pmtiles archive (the S2 size table) |
 | PREPARED, NOT FED | `stocking/`, `bathymetry/`, `runtiming/` | kept on purpose (owner 2026-10-22); each README says what feeds it |
 
 ## Shared ground
 
 - `common/curated.py` — `CURATED` / `GENERATED` / `SOURCE`: the only way to name a path (AGENTS 36, 41).
-- `common/` — names key (`names.py`), tolerances, section handles, entry ids, synopsis page map, vintage.
+- `common/` — names key (`names.py`), tolerances, section handles, entry ids, synopsis page map, vintage, not-fishing
+  water (`fishing_water.py`, T152: sewage basins / tailing ponds / dumps, stamped by the atlas, out of every binding).
 - Data kinds: authored / reviewed / generated (AGENTS 35). Never regenerate a reviewed artifact to check it.
 
 ## Tests
