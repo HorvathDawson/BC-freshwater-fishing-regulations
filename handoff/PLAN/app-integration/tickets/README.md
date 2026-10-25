@@ -227,9 +227,9 @@ use that as the sole source of future work."
 | T180 | move the remaining ~105 component strings into core words (T60's KNOWN_COPY list empties) | DONE | 71179834, b54c69c1, bc7bc016, 462f8488 | KNOWN_COPY 95 → 0, no wording change; map gaugeDots attribution noted |
 | T181 | gauge pill keeps the theme the map was built with (check, then fix) | DONE | 7c43151a | confirmed (pill, pin, hatches kept the build theme); fixed + render test |
 | T182 | release file splits for the web (section_down, part_geo, nearest town in core, conditions) | OPEN | — | release format; from T129's measurements |
-| T183 | straddling pieces carry BOTH regions' rules (reverses T115, owner 2026-10-24) | OPEN | — | reach + deliver; after the T67 braid merge |
-| T184 | keep the local curation review app and clean it up: entries only (splits by proxy on the map), human-reviewed state, artifact path removed | OPEN | 3660047b, 38890e42, 20922678 (artifact, retired) | owner 2026-10-24; pilot page deleted |
-| T185 | marks → tickets → proposed edits (side rebuild + binding diff) → owner accepts in an artifact → one commit each; fix mode loses its writers | OPEN | — | after T184 |
+| T183 | straddling pieces carry BOTH regions' rules (reverses T115, owner 2026-10-24) | DONE | 64f92990..1ba63301, 1ca8bfda | promoted r-98c43091c440; stricter wins, 5 m minimum, Skeena 2 from Exchamsiks; card gate 0 |
+| T184 | keep the local curation review app and clean it up: entries only (splits by proxy on the map), human-reviewed state, artifact path removed | DONE | 2bacfc7d..dabd3b8b | pilot regenerated for r-98c43091c440; owner runs it locally |
+| T185 | marks → tickets → proposed edits (side rebuild + binding diff) → owner accepts in an artifact → one commit each; fix mode loses its writers | OPEN | 8d9383df, c76a9fd8 (writers removed) | marks → tickets → proposals still to build |
 | T186 | web prefetch after first paint (region's regs file; core + wasm on idle) + core-words chevrons (Q164, Q162) | DONE | d54842ec, b8b5b357, 0a129a14 | first tap still fetches water + access → T182 |
 | T187 | a braid piece between one window's two cuts is inside it (Peace Site C closure, 359005110:3454) | DONE | 13027245, 525ab99e, 0bc22c70 | found by the post-braid check; 1 rule changes |
 | T188 | get found in search: per-water static pages, sitemap, structured data, Search Console, outreach plan (no spam bots) | OPEN | — | domain canifishthis.ca; full rules per water page |

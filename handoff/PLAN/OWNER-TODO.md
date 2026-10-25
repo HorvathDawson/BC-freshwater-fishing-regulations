@@ -19,11 +19,9 @@ with the default Claude uses until you answer). Newest first inside each section
   notification was sent.)
 
 ## Reviews
-- **Curation pilot (Q114):** back on the LOCAL review app (owner 2026-10-24; the artifact was deleted). T184
-  cleans the app up first (entries only; splits checked by proxy on each entry's map; a human-reviewed state), then
-  the 30-entry pilot runs there.
-
-- **Q114 / T136 — the 30-entry curation pilot** (about an hour): `handoff/PLAN/curation-review/PILOT.md`, then
+- **Q114 / T136 — the 30-entry curation pilot, READY** (about an hour; T184 done: local app, entries only, splits
+  labelled on each entry's map, human-reviewed state). `bash curation-review/run.sh` → http://127.0.0.1:5173, open
+  the 30 links in `handoff/PLAN/curation-review/PILOT.md`, then
   `python -m pipeline.regs.review.gate pilot-report --pilot handoff/PLAN/curation-review/pilot.json`.
 - **Q4 / T55 + T149 — slough and canal candidates (page v2).** https://claude.ai/artifact/Es3Mokt7Fs2yNvm7JgQua8 — your 98
   marks are kept. New: revised classes with feature-code evidence (2,424 candidates), a **Complexes** view (one mark sets
