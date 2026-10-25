@@ -62,3 +62,10 @@ def test_a_shouting_tile_name_fails_the_export(tmp_path, monkeypatch):
     write, close = export._writer(tmp_path, BY_NAME["lake"])
     write({"type": "Point", "coordinates": [0, 0]}, {"section_id": 1, "name": display("O'ROURKE LAKE")}, 4)
     assert close() == 1
+
+
+def test_a_digit_inside_a_word_is_a_letter_not_a_break():
+    # SENĆOŦEN spelling (T113 tiles guard, 2026-10-25): "JAJI7EM" is one word written in capitals by convention.
+    from pipeline.deliver.bundle.place_names import is_shouting
+    assert not is_shouting("JAJI7EM and Kw'ulh Marine Park [a.k.a Sandy Island")
+    assert is_shouting("MITE LAKE") and is_shouting("BLUEY 1")

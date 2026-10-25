@@ -211,8 +211,13 @@ def is_shouting(name: str) -> bool:
     if name and name == name.upper() and display_case(name) != name:
         return True
     run = 0
-    for w in re.findall(r"[^\W\d_]+(?:'[^\W\d_]+)?", name or ""):
+    # A word is a whole run of letters AND digits: in SENĆOŦEN spelling a digit is a letter ("JAJI7EM", 7 = the
+    # glottal stop), written in capitals by convention — never two shouting words, and never shouting at all.
+    for w in re.findall(r"[^\W_]+(?:'[^\W_]+)?", name or ""):
         bare = w.replace("'", "")
+        if any(c.isdigit() for c in bare):
+            run = 0
+            continue
         if len(bare) >= 2 and bare == bare.upper() and bare not in ACRONYMS:
             run += 1
             if run >= 2:
