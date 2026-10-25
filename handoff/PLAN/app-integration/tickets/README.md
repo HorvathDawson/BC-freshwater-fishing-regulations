@@ -234,7 +234,7 @@ use that as the sole source of future work."
 | T187 | a braid piece between one window's two cuts is inside it (Peace Site C closure, 359005110:3454) | DONE | 13027245, 525ab99e, 0bc22c70 | found by the post-braid check; 1 rule changes |
 | T188 | get found in search: per-water static pages, sitemap, structured data, Search Console, outreach plan (no spam bots) | OPEN | — | domain canifishthis.ca; full rules per water page |
 | T189 | curation review from the pilot: source pinned, each rule's extent in words (tributaries, carve-outs), entry extent on top, tributary + lake-split calls in the mark, one pre-check per fact | DONE | 106dbc83 | owner re-runs the pilot on it |
-| T190 | a two-region piece's decision ladder heads both regions' rules with one region | OPEN | — | app only (decided.ts) |
+| T190 | a two-region piece's decision ladder heads both regions' rules with one region | DONE | 5a6cb255 | app only (decided.ts) |
 
 ## Order for open tickets
 
@@ -287,7 +287,7 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q119 | T125 | Audit references for item 8 "answers 12" (fish-list wording) and "reach 11" (double computation) — the copies could not be found from the ticket? | left open | owner |
 | Q123 | T151 | How the water Map view marks the selected part without bold lines? | dim the other parts; one line width | owner |
 | Q124 | T153 | Does a river row's rule apply to an UNNAMED lake polygon its main flow runs through (book "river" includes its widenings unless it names the lake)? | yes for unnamed polygons covered on both sides; a named lake never takes the river's row | owner |
-| Q125 | T152 | Sewage basins / tailing ponds / dumps: draw them at all? | a muted non-water fill, no tap, no rules | owner |
+| Q125 | T152 | Sewage basins / tailing ponds / dumps: draw them at all? | a muted non-water fill, no tap, no rules | answered 10-24: muted fill (built) |
 | Q126 | T143 | Were you on Level when +1/+3/+5/+10 said "no forecast"? (Flow answered at every horizon on today's feed) | yes, assumed | owner |
 | Q130 | T144 | Under a combined Change, also draw each model's own line (quieter)? | yes | owner |
 | Q132 | T144 | The +1/+3/+5/+10 chips keep the old model order (CLEVER then ELF) — or follow the Change source too? | keep | owner |
