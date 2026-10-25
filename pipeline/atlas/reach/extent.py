@@ -631,9 +631,9 @@ def _nearest_pair(a, b):
 #: -> "lower" | "upper" | a route measure), that candidate is taken BEFORE
 #: `AMBIGUOUS_CUT_NEAREST_THE_OTHER_END` looks at the cut, and the general rule then sees only the
 #: pinned candidate (the other cut of a `between` still follows the general rule, toward the pinned
-#: one). The known case: skeena_river_2 starts at the Skeena River Ecological Reserve's LOWER
-#: mainstem crossing (LS-1), a stand-in for the Exchamsiks confluence, where the general rule would
-#: take the upper one. The diagnostic records every candidate, the one taken, `toward: "curated"`,
+#: one). The case it was built for: skeena_river_2 started at the Skeena River Ecological Reserve's
+#: LOWER mainstem crossing (LS-1), a stand-in for the Exchamsiks confluence; since 2026-10-24 (owner,
+#: T67's mainstem Exchamsiks cut) the record starts at the confluence itself and names no pick. The diagnostic records every candidate, the one taken, `toward: "curated"`,
 #: `reason: "curated"` and the curated `pick`. False ignores the field (the mutation pin). Not in
 #: the reach cache's POLICY_VERSION: a rule's extents (`cut_pick` with them) are in its entry key,
 #: and licensing records are placed fresh every run.

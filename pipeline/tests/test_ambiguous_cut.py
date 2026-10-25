@@ -384,33 +384,33 @@ CAYOOSH = "r3:cayoosh_creek@3-16"
 
 @pytest.mark.needs_atlas
 @pytest.mark.slow
-def test_skeena_river_2_keeps_the_reserves_lower_mainstem_crossing(real):
-    """Owner 2026-10-22: skeena_river_2 ("from Exchamsiks River to 1.5 km upstream of Kitsumkalum",
-    Class II) deliberately starts at the Skeena River Ecological Reserve's LOWER mainstem crossing
-    (~63,480 m) as a stand-in for the Exchamsiks confluence (LS-1). The general rule would take the
-    upper crossing (66,554) and drop licensing sections; the curated `cut_pick` keeps the lower one.
-    Read from the live curated data."""
+def test_skeena_river_2_starts_at_the_exchamsiks_mainstem_cut(real):
+    """Owner 2026-10-24: skeena_river_2 ("from Exchamsiks River to 1.5 km upstream of Kitsumkalum", p.53, Class II)
+    starts at the Exchamsiks confluence cut, which T67 put on the mainstem (360887278 at 67,917 m) — no longer the
+    Skeena River Ecological Reserve's lower crossing (63,480 m, LS-1's stand-in, `cut_pick` lower). On the
+    matched water the cut has one candidate: no ambiguous cut, and no mainstem piece below 67,917 m binds."""
     from pipeline.atlas.reach.build import build_reach
     from pipeline.atlas.reach.licensing import as_rule
     g, reg, corpus = real
     e, rec = next((e, r) for e in corpus.values() for r in e.get("licensing") or []
                   if r.get("id") == SKEENA_2)
-    _b, diags = build_reach(e, as_rule(rec, rec["extents"]), reg, g, regional=False)
-    amb = {d.payload["split_id"]: d.payload for d in diags if d.kind == "ambiguous_cut"}
-    got = amb[SKEENA_RESERVE]
-    assert round(got["used"]) == 63480, got
-    assert any(abs(x - 66554.7) < 1 for x in got["candidates"]), got
-    assert got["toward"] == "curated" and got["reason"] == "curated"
+    b, diags = build_reach(e, as_rule(rec, rec["extents"]), reg, g, regional=False)
+    amb = {d.payload["split_id"] for d in diags if d.kind == "ambiguous_cut"}
+    assert SKEENA_EXCHAMSIKS not in amb and SKEENA_RESERVE not in amb
+    main = [g.nodes[s] for s in b.sections if s.startswith("360887278:")]
+    assert main and min(n.down_m for n in main) >= 67917 - 1
 
 
-def test_skeena_river_2_states_its_crossing_in_the_curated_data():
-    """No atlas: the record carries the structured pick, never only the prose of its review_reason."""
+def test_skeena_river_2_starts_at_the_exchamsiks_in_the_curated_data():
+    """No atlas: the record's lower cut is the Exchamsiks confluence, and it carries no stand-in pick."""
     import json
     path = Path(__file__).resolve().parents[2] / "data/curated/regulations/entries/catalogue/region-6.json"
     data = json.loads(path.read_text())
     rec = next(r for e in data["entries"] for r in e.get("licensing") or [] if r["id"] == SKEENA_2)
-    assert rec["extents"][0]["cut_pick"] == {SKEENA_RESERVE: "lower"}
+    assert rec["extents"][0]["splits"][0] == SKEENA_EXCHAMSIKS
+    assert "cut_pick" not in rec["extents"][0]
 
 
 SKEENA_2 = "skeena_river_2"
 SKEENA_RESERVE = "area:SKEENA RIVER ECOLOGICAL RESERVE"
+SKEENA_EXCHAMSIKS = "skeena_river__exchamsiks_river_into_skeena_river"
