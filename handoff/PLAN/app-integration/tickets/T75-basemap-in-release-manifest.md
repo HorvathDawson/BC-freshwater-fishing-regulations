@@ -1,6 +1,6 @@
 # T75 — The basemap in the release manifest (audit N18, P18b)
 
-Status: OPEN.
+Status: PARTIAL — code done 2026-10-24; the tiles-window build, shots and after-numbers are left (see Outcome).
 
 Source: the live `r-98ded5f443e1/manifest.json` has `basemap: null`; `release/build.py` takes a `basemap` argument but
 deliver never passes one; `release/manifest.py` allows `{id,url,bytes,sha256} | null`. Native cannot install the ground

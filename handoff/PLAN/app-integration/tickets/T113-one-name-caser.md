@@ -1,6 +1,6 @@
 # T113 — One name caser: map labels say "O'rourke Lake", the card says "O'Rourke Lake"
 
-Status: OPEN.
+Status: PARTIAL — code done 2026-10-24; the tiles-window build, shots and after-numbers are left (see Outcome).
 
 Source: owner 2026-10-22 (unify checks that decide the same thing); unification audit 2026-10-22, finding answers 6
 (CONFIRMED on `data/generated/tiles/layers/*.geojsonl` and `bundle.sqlite`). Related to T61 2.8 (one name

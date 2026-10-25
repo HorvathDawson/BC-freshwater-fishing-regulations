@@ -1,6 +1,6 @@
 # T152 — Sewage basins, tailing ponds and dumps are drawn as fishable lakes
 
-Status: OPEN
+Status: PARTIAL — code done 2026-10-24; the tiles-window build, shots and after-numbers are left (see Outcome).
 
 Source: T148 census (handoff/PLAN/sloughs/v2/census.md table B), 2026-10-23.
 

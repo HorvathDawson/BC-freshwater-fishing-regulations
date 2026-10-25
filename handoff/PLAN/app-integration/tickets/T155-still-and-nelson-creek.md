@@ -1,6 +1,6 @@
 # T155 — Still Creek and Nelson Creek: book entries with no water (ditch/canal lines that are no item)
 
-Status: OPEN
+Status: DONE (83463771, 2026-10-24: every entry binds; no change needed — see Outcome).
 
 Source: T148 census table C, 2026-10-23.
 

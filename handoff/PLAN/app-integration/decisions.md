@@ -1249,3 +1249,18 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
   (crawlable text is what ranks, and an angler searching wants the answer on the page), today's open/closed line,
   the book page, a prominent "Open in the app" link and the "not a legal document — check the synopsis" line. Generated
   from the same release as the app, so the page and the app can never disagree; no interactive features on the page.
+
+## CLAUDE 2026-10-24 — tiles window calls (owner reads; reverse any)
+- (T85) The basemap drops OSM `stream` LINES (−242 MB of 918): the style draws them only from z14, under our FWA
+  streams; OSM-only creeks carry no regulation. Undo: `basemap.WATER_LINES_KEPT += ("stream",)` and rebuild the basemap.
+- (T85) Atlas archive to z13, top zoom at −S 5 (≈ the old z14's 4 m); `FIT_MAX_ZOOM` stays 14 so no fit moves; camera
+  stays z18. Undo: `ladder.MAX_ZOOM` / `ATLAS_MAX_ZOOM` back to 14, `(2, 13), (0, 14)` on the ladder.
+- (T85) The basemap keeps OSM `wetland` landuse (52 MB, not drawn today) as the possible stand-in for T64's dropped
+  wetlands. Undo: drop it from `LANDUSE_STANDIN`.
+- (T64) A wetland is drawn when it is in a registry item, stream-kind, or gazetted-named; everything else is left out
+  (333,471), including the 460 under area-only rows (Liard) that carried the "own regulations" colour — as the owner
+  asked. The bundle refuses a release that would need one drawn.
+- (T152) Sewage basins, tailing ponds, dumps are NOT drawn (Q125 default was a muted fill; built undrawn, the layer
+  `not_fishing_water` is in the tiles so a fill is one style entry).
+- (T113) The 35 all-capitals `entry.name` values stay the book's spelling in the bundle (the export cases them and keeps
+  `official_name`).

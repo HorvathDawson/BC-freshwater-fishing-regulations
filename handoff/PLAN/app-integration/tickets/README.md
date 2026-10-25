@@ -108,7 +108,7 @@ use that as the sole source of future work."
 | T61 | cleanup wave 2: old pathways/duplicates | PARTIAL | 9db616f0, 884fe9c7, 46cab8cd, baeda569, 0ad1a84, bb22f3eb, a097e407 | lanes A/B/C + 2.8 normaliser merged and promoted (r-5380a42dab54, no binding change); left: 2.17 fixture move → T63 |
 | T62 | cleanup wave 3: split long files | PARTIAL | b619ca7b…bb31281e, 7b946345…66b81aa6 | app + pipeline lanes merged (byte-identical outputs; live r-bb4331929428); left: 3.2 atlas/build.py, 3.9 dfo_salmon (after the braid lane) |
 | T63 | cleanup wave 4: docs, tests, knip | DONE | 341fff64, 11d29685, 9c22614a, 9867bc86 | MAP.md ×2, 16+ duplicate tests gone, knip in check, synopsis isolation fixed, 2.17 fixtures moved |
-| T64 | tiles: S2 size wins + tile rebuild | OPEN | — | all |
+| T64 | tiles: S2 size wins + tile rebuild | PARTIAL | — | all |
 | T65 | determinism proof (N12) | OPEN | — | all (heavy) |
 | T66 | curation review tool | DONE | a3f66b7c (plan) | plan approved 2026-10-23; build → T96, T97, T133–T136 |
 | T67 | braid splitting as a build step | OPEN | 1497beb0, ed1a5c0 | build lane done on branch worktree-agent-a56da8d758379fc5a (not merged: side atlas/reach only; 2 reach-gate failures + 6 residual straddles to fix) → ★ owner marks the review page (Et8B4Z6ZbKNNw9mMkJWzFH) → fix, then reach/deliver/tiles |
@@ -119,7 +119,7 @@ use that as the sole source of future work."
 | T72 | release LATEST pointer + prune old releases | DONE | 0eb70144 | Q7 answered: 22 old releases pruned |
 | T73 | smaller reach hand-off (N14, disk) | OPEN | — | all (heavy) |
 | T74 | native colouring engine + native map gaps | OPEN | — | all |
-| T75 | basemap in the release manifest | OPEN | — | all |
+| T75 | basemap in the release manifest | PARTIAL | — | all |
 | T76 | own gauge across a continuation (Vedder) | DONE | ce29990c, 2470ef08, f648ab5c, 4fba2181, e5dfe217 | live in r-36fbc5326506 |
 | T77 | D1 phone testing | OPEN | — | all (owner) |
 | T78 | tidal/backwater disclosure on Level | DONE | 4d35d021, c0412c4d, 8185dd28, 5aec64f3, ca52fa7c, c0ea4eb9 | live; Q47–Q49 |
@@ -129,7 +129,7 @@ use that as the sole source of future work."
 | T82 | T41 leftovers: reader gate run, caveat box O3, sheet height O5 | DONE | f7075463, d8997fbd, 663242b1, 7b9cf940 | — |
 | T83 | map: boundaries under water, warm dot, sub-20 pairs | DONE | 111bd363, cbd3e139, e61a6e7d, 7bb14b79, a9dae070 | — |
 | T84 | ticket-ledger guard | DONE | caf5ef52 | — |
-| T85 | native install size: z13 overzoom + landuse filter (D32) | OPEN | — | all (heavy) |
+| T85 | native install size: z13 overzoom + landuse filter (D32) | PARTIAL | — | all (heavy) |
 | T86 | production hosting + ship config | OPEN | — | all (owner) |
 | T87 | owner sign-off walk, then final clean-up | OPEN | — | all (owner) |
 | T88 | iOS build | OPEN | — | all (owner timing) |
@@ -157,7 +157,7 @@ use that as the sole source of future work."
 | T110 | record years per quantity (Level-mode weights) | DONE | ad835645, 31ade2ee, 999b2659, c97c4a98 | delivered r-b518a2b507fa (paint/4) |
 | T111 | every cut reaches the walk (second extent's window dropped) | DONE | ea894c8a, 271b2747, b8c00620 | no binding moved; leftovers → T141; delivered r-941dcc149b17 |
 | T112 | one entry walker over catalogue extents | DONE | 9cde1fbe, f99cd705, 05a8b704 | no rebuild (review app restart) |
-| T113 | one name caser for tiles and bundle (O'rourke) | OPEN | — | all (tiles window + deliver) |
+| T113 | one name caser for tiles and bundle (O'rourke) | PARTIAL | — | all (tiles window + deliver) |
 | T114 | one search key for SQL filter and ranking (barriere) | DONE | ebc435e5, 6a9384d3, 21021abb, e7c4d3ca, 4ae97a60, 48f712e9, 2683568e | delivered r-e88ea8112b1a (core 1.09 MB) |
 | T115 | one home-filtered region membership (12 Fraser pairs) | DONE | e0461d31, 2699715d, 330c029e, b8c00620 | 12 Fraser + 3 steelhead-twin + 1 licensing pair removed; leftovers → T140; delivered r-941dcc149b17 |
 | T116 | one water noun: wetlands called "river" | DONE | 4cf77c7a, 86e6ad40, 0c533d4a, 91b2952e | — |
@@ -196,10 +196,10 @@ use that as the sole source of future work."
 | T149 | review page: slough complexes marked in bulk; intermittent-lake spot check | DONE | e5ba7972 | published v2; ★ owner marks |
 | T150 | drop the regs header's "Parts" button; the part list lives in the Map view | DONE | c3eafff5, 56c68c19, 4f978f5f, 08b842d0, 410dbc63 | app; delivered r-9cf1fef180a8 |
 | T151 | water Map view: one line width, selected part by dimming; labels in the loaded face | DONE | c3eafff5, 56c68c19, 4f978f5f, 08b842d0, 410dbc63 | app; delivered r-9cf1fef180a8 |
-| T152 | sewage basins, tailing ponds, dumps (275) drawn as fishable lakes | OPEN | — | registry + reach + deliver; tiles window |
+| T152 | sewage basins, tailing ponds, dumps (275) drawn as fishable lakes | PARTIAL | — | registry + reach + deliver; tiles window |
 | T153 | a river's rules on unnamed lake polygons on its course (Q124 default, one flag) | DONE | 52462f99, 62e9cb7c | reach rerun: 569 polygons on 154 rivers, 284 rules gain, 0 lose; delivered r-9cf1fef180a8 |
 | T154 | a dams layer (BC WRIS, OGL-BC) matched to FWA; T148 R2 reads it | DONE | 23be8123, d8fab861, 216753d7 | fetch layer `dams`; evidence only (Q-T154a); delivered r-9cf1fef180a8 |
-| T155 | Still Creek and Nelson Creek: book entries with no water (named ditch/canal lines) | OPEN | — | registry + reach + deliver |
+| T155 | Still Creek and Nelson Creek: book entries with no water (named ditch/canal lines) | DONE | 83463771 | measured: all three entries bind (99, 6, 9 sections); no change |
 | T156 | test hygiene: hydat sandbox stub release; temp gate fixtures outside the app tree | DONE | 9c6cbd46, 7714418a, 23cee506 | tests; delivered r-9cf1fef180a8 |
 | T157 | Conditions follow-ups: switcher states, no record to compare, ELF caveat on map, handover drawn | DONE | 9c6cbd46, 4b82d910, 7714418a, 2c845cf2 | app; delivered r-9cf1fef180a8 |
 | T158 | depth contours vs no-access fills: contours held off lake fills, deep navy | DONE | 9c6cbd46, 7714418a, 3d5f19de | app style; delivered r-9cf1fef180a8 |

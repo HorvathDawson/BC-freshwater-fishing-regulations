@@ -19,6 +19,11 @@ with the default Claude uses until you answer). Newest first inside each section
   notification was sent.)
 
 ## Reviews
+- **Tiles window (T64, T75, T85, T113, T152) — after your rebuild:** look at the map (wetland-heavy Fort Nelson and the
+  Chilcotin without unnamed wetlands; z13–z18 bends on the Fraser/Vedder now overzoomed from z13; Vancouver's dense z13
+  tiles; no OSM creeks under ours at z14+) and say if the look suffers — the basemap's OSM wetland fill is one style layer
+  away. Q125: should sewage basins / tailing ponds / dumps draw as a muted fill (built: not drawn)? Calls to reverse:
+  decisions.md "CLAUDE 2026-10-24 — tiles window calls". Option with numbers: basemap to z13 too (about −289 MB more).
 - **Q114 / T136 — the 30-entry curation pilot, READY** (about an hour; T184 done: local app, entries only, splits
   labelled on each entry's map, human-reviewed state). `bash curation-review/run.sh` → http://127.0.0.1:5173, open
   the 30 links in `handoff/PLAN/curation-review/PILOT.md`, then
@@ -61,6 +66,20 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   Q28 iOS timing · Q27 sign-off walk.
 
 ## Things only you can run or provide
+
+- **The tiles-window rebuild (T64, T75, T85, T113, T152)** — one basemap build, then one atlas + everything after it:
+  ```
+  mv data/generated/reaches/full data/generated/reaches/full_pre_tw        # keep the old run for the binding diff
+  scripts/heavy.sh basemap 20 -- .venv/bin/python -m pipeline.deliver.tiles.basemap --out data/generated/scratch/basemap/basemap.pmtiles
+  cp data/generated/scratch/basemap/basemap.pmtiles data/generated/scratch/basemap/basemap.meta.json data/generated/tiles/
+  scripts/heavy.sh tiles-window 30 -- .venv/bin/python -m pipeline build --atlas --promote
+  ```
+  Then diff: `python -m pipeline.atlas.reach.binding_diff data/generated/reaches/full_pre_tw data/generated/reaches/full`
+  (expected: only the 275 not-fishing polygons leave zone/area rules — `rule_diagnostic.jsonl` kind `not_fishing_water`
+  — plus the atlas's usual non-determinism); `python -m pipeline.tools.audit.tile_sizes data/generated/tiles/atlas.pmtiles`
+  and `.../basemap.pmtiles` against the S2 table (expected about 295 MB and 650 MB); the deliver log's "undrawn: 333,471
+  section(s) left out ..., none needed"; `grep -c "O'rourke" data/generated/tiles/layers/lake.geojsonl` = 0 (T113 list:
+  `app-integration/T113-name-changes.tsv`); the strict vintage line at the end.
 
 - **Parser runs** (`run_parse.sh`, dispatch): human-only; any re-parse is yours to start.
 - **R2 upload** of a new release and of the gauge feed (`pipeline.deliver.release.publish`), with your credentials: `python -m pipeline.deliver.release.publish --release data/release/$(cat data/release/LATEST) --yes`
