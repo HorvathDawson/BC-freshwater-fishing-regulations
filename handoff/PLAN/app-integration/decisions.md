@@ -1264,3 +1264,8 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
   `not_fishing_water` is in the tiles so a fill is one style entry).
 - (T113) The 35 all-capitals `entry.name` values stay the book's spelling in the bundle (the export cases them and keeps
   `official_name`).
+
+## 2026-10-24 — tiles window calls (owner)
+- Q125: sewage basins, tailing ponds and dumps (T152 `not_fishing_water`) DRAW as a muted fill — never as a lake.
+- Basemap to z13 too (≈ −289 MB), on two conditions: no feature may be lost (measure feature counts / kinds
+  z14-sourced vs z13) and the map must still overzoom past z13.

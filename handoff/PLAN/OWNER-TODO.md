@@ -19,11 +19,10 @@ with the default Claude uses until you answer). Newest first inside each section
   notification was sent.)
 
 ## Reviews
-- **Tiles window (T64, T75, T85, T113, T152) — after your rebuild:** look at the map (wetland-heavy Fort Nelson and the
+- **Tiles window (T64, T75, T85, T113, T152) — after the rebuild (Claude runs it after the pilot):** look at the map (wetland-heavy Fort Nelson and the
   Chilcotin without unnamed wetlands; z13–z18 bends on the Fraser/Vedder now overzoomed from z13; Vancouver's dense z13
   tiles; no OSM creeks under ours at z14+) and say if the look suffers — the basemap's OSM wetland fill is one style layer
-  away. Q125: should sewage basins / tailing ponds / dumps draw as a muted fill (built: not drawn)? Calls to reverse:
-  decisions.md "CLAUDE 2026-10-24 — tiles window calls". Option with numbers: basemap to z13 too (about −289 MB more).
+  away. (Q125 answered: muted fill; basemap to z13 if no feature is lost and overzoom holds — decisions.md.)
 - **Q114 / T136 — the 30-entry curation pilot, READY** (about an hour; T184 done: local app, entries only, splits
   labelled on each entry's map, human-reviewed state). `bash curation-review/run.sh` → http://127.0.0.1:5173, open
   the 30 links in `handoff/PLAN/curation-review/PILOT.md`, then
