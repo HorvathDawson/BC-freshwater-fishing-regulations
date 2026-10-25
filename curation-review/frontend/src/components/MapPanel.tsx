@@ -298,10 +298,11 @@ export function MapPanel({
                      "text-opacity": ["case", ["get", "_on"], 1, 0.35] } },
           // T191: THE PROPOSED EXTENT — magenta, over the item, under the labels
           { id: "preview-fill", type: "fill", source: "preview",
-            filter: ["==", ["geometry-type"], "Polygon"],
+            filter: ["in", ["geometry-type"], ["literal", ["Polygon", "MultiPolygon"]]],
             paint: { "fill-color": "#db2777", "fill-opacity": 0.3 } },
+          // a reach is MultiLineString as often as LineString; a lake's outline draws here too
           { id: "preview-lines", type: "line", source: "preview",
-            filter: ["==", ["geometry-type"], "LineString"],
+            filter: ["!=", ["geometry-type"], "Point"],
             paint: { "line-color": "#db2777", "line-width": 5, "line-opacity": 0.8 } },
           { id: "preview-pts", type: "circle", source: "preview",
             filter: ["==", ["geometry-type"], "Point"],

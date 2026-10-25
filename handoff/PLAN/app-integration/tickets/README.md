@@ -235,6 +235,8 @@ use that as the sole source of future work."
 | T188 | get found in search: per-water static pages, sitemap, structured data, Search Console, outreach plan (no spam bots) | OPEN | — | domain canifishthis.ca; full rules per water page |
 | T189 | curation review from the pilot: source pinned, each rule's extent in words (tributaries, carve-outs), entry extent on top, tributary + lake-split calls in the mark, one pre-check per fact | DONE | 106dbc83 | owner re-runs the pilot on it |
 | T190 | a two-region piece's decision ladder heads both regions' rules with one region | DONE | 5a6cb255 | app only (decided.ts) |
+| T190 | a two-region piece's decision ladder heads both regions' rules with one region | OPEN | — | app only (decided.ts) |
+| T191 | curation review: one-row top bar (secondary filters fold), "fix extent" per rule + entry (op, 1-2 points: map split / any split / NEW confluence, lake inlet/outlet, map click; items; tributaries; read-only preview) as Mark.extent_fix, in tickets for T185 | DONE | 031eeb0c | owner tries it in the pilot |
 
 ## Order for open tickets
 
