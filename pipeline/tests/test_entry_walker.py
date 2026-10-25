@@ -233,6 +233,8 @@ RULE_READERS = {
     # resolves each rule's reach for the map
     ("curation-review/backend/reuse.py", "entry_reaches"),
     ("curation-review/backend/reuse.py", "rule_resolved_reach"),
+    # T191: read-only resolve; puts a proposed extent on a deepcopy of the entry, writes nothing
+    ("curation-review/backend/reuse.py", "extent_preview"),
 }
 
 

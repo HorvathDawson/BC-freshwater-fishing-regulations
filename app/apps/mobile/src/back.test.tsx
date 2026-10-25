@@ -473,7 +473,8 @@ describe("Android's back, surface by surface (HANDOFF-ui 'Back, everywhere')", (
     const searching = where();
     await openFromSearch();
     expect([searching, ...backs(2)]).toEqual([
-      "search · tab Map", "water Chilliwack River on Regulations · no bar", "handled -> tab Map", "ANDROID -> tab Map"]);
+      // T203: a search result lands on Map (owner decision)
+      "search · tab Map", "water Chilliwack River on Map · no bar", "handled -> tab Map", "ANDROID -> tab Map"]);
   });
 
   it("(T48) search over the Conditions map: a town's list steps back to all results, then search closes, then the tab " +
@@ -690,7 +691,7 @@ describe("the browser's back (systemBack.web: the History API) does the same", (
     const viaBack = await walk(async () => { window.history.back(); });
     const viaClose = await walk(() => click("Close, back to Map"));
     const seen = ["tab Map [entry 0]", "search · tab Map [entry 1]",
-                  "water Chilliwack River on Regulations · no bar [entry 1]", "tab Map [entry 0]"];
+                  "water Chilliwack River on Map · no bar [entry 1]", "tab Map [entry 0]"];
     expect({ viaBack, viaClose }).toEqual({ viaBack: seen, viaClose: seen });
   }, 60_000);
 });

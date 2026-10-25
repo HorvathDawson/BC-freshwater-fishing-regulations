@@ -104,8 +104,9 @@ describe("T10 the committed regs fixture release", () => {
   it("1. one release under the root, its manifest naming its files and no tile set; every file cut from one release", () => {
     expect(readdirSync(REGS_FIXTURE_ROOT).filter((n) => n.startsWith("r-"))).toEqual([RID]);
     expect(MAN.data_release).toBe(RID);
+    // T182: the split release carries a `geo` file
     expect(Object.keys(MAN.files).sort()).toEqual(
-      ["core", "regs-1", "regs-2", "regs-3", "regs-4", "regs-5", "regs-6", "regs-7a", "regs-7b", "regs-8", "regs-sid", "water"]);
+      ["core", "geo", "regs-1", "regs-2", "regs-3", "regs-4", "regs-5", "regs-6", "regs-7a", "regs-7b", "regs-8", "regs-sid", "water"]);
     expect(MAN.tiles.current).toBeNull();
     const of = new Set(Object.values(DB).map((d) => meta(d).fixture_of));
     expect(of.size).toBe(1);
@@ -166,7 +167,7 @@ describe("T10 the committed regs fixture release", () => {
       expect([n, m.section_handles, m.reach_digest, m.rule_ids_sha256]).toEqual([n, g.section_handles, g.reach_digest, g.rule_ids_sha256]);
     }
     expect(Object.fromEntries(Object.entries(MAN.files).map(([n, f]) => [n, f.format]))).toEqual({
-      core: "core/1", water: "water/1", "regs-sid": "regs-sid/1",
+      core: "core/1", geo: "geo/1", water: "water/1", "regs-sid": "regs-sid/1",
       ...Object.fromEntries(["1", "2", "3", "4", "5", "6", "7a", "7b", "8"].map((r) => [`regs-${r}`, "regs-region/1"])) });
   });
 
