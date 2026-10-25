@@ -15,9 +15,9 @@ Running lanes (priority = review app usable while credits are out):
 - T164 DFO review mode inside curation-review (add splits as proposals in marks).
 Next, in order: merge those → side atlas `scripts/heavy.sh atlas 30 -- .venv/bin/python -m pipeline build --atlas`
 (first try stopped on 3 dam slivers, fixed by the anchors) → reach on full_next + binding_diff, explain every change →
-promote (`build --promote`, carries T73/T182/basemap) → re-cut taps/fixtures, one full check → regenerate the pilot
-(`python -m pipeline.regs.review.gate pilot --json handoff/PLAN/curation-review/pilot.json --md ...`) → restart the
-review app (backend :8787, screen :5183) for the owner.
+promote (`build --promote`, carries T73/T182/basemap) → re-cut taps/fixtures, one full check → restart the review
+app (backend :8787, screen :5183) for the owner's REAL review (curation + DFO extents). Pilot DROPPED (owner 2026-10-25:
+no time).
 Stopped for credits (restart later): T185 marks→proposals, SEO T192–T198, T62 3.9 (3.2 rides the next side atlas).
 Last band: T199 run timing, T200 stocked, T201 bathy, T202 tile sizes.
 
