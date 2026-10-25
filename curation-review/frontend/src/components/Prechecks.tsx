@@ -7,7 +7,7 @@ interface Props {
 const m = (x: number) => `${Math.round(x).toLocaleString()} m`;
 
 /* WHAT A MACHINE SAYS BEFORE THE REVIEWER READS (T135, PLAN §4 phase 4): the pre-checks (severity A
-   facts first, then B heuristics — `precheck.prechecks`, the save gate included), every cut the
+   facts first, then B heuristics — `precheck.prechecks`, the gate included), every cut the
    reach run chose between (ruling E16 — the P check asks whether the pick is right; fix mode's
    extent editor holds the `cut_pick` that overrides it), and the second-pass agent's findings on
    the parse when any exist. Read only. */

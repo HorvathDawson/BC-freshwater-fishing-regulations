@@ -22,7 +22,7 @@ const WORD: Record<string, string> = {
   deferred: "deferred", stale: "changed since marked",
 };
 
-export function markWords(m?: MarkView): string | undefined {
+function markWords(m?: MarkView): string | undefined {
   if (!m) return undefined;
   return WORD[m.status] + (m.status === "stale" && m.reasons.length ? ` (${m.reasons.join(", ")})` : "");
 }
@@ -30,7 +30,7 @@ export function markWords(m?: MarkView): string | undefined {
 const open = (m?: MarkView) => !m || m.status === "stale" || m.status === "unmarked";
 
 /** P and A wait while the entry awaits its build (T133: only T and R can be marked). */
-export function heldWhileAwaiting(awaiting: boolean): Partial<Record<Check, string>> {
+function heldWhileAwaiting(awaiting: boolean): Partial<Record<Check, string>> {
   return awaiting
     ? { P: "awaiting build — where it binds is another vintage's",
         A: "awaiting build — the app's answer is another vintage's" }

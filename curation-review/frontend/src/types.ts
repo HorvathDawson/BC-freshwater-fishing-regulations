@@ -1,10 +1,9 @@
 // TypeScript mirror of the API.md shapes — the entry is a `CatalogueEntry`
-// (pipeline/regs/parsing/catalogue.py), in its own shape. Nothing of the retired prose model is
-// declared here: the backend refuses those fields, and a field declared here invites a control
-// that saves one.
-// Kept in one file on purpose (throwaway internal tool).
+// (pipeline/regs/parsing/catalogue.py), in its own shape, READ ONLY: the screen writes one thing, a
+// mark (T185 retired the editors). Nothing of the retired prose model is declared here.
+// Kept in one file on purpose (internal tool).
 
-/** An extent op — the values come from `/api/vocab` (`entry_models.Op`), not from here. */
+/** An extent op (`entry_models.Op`). */
 export type Op = string;
 
 /** What the PARSE and the build left (`reuse.entry_status`) — never review progress; the marks are
@@ -25,8 +24,8 @@ export type Status =
 export type EntryKind = "zone" | "water";
 
 // ---- Entry model (catalogue.py) -------------------------------------------
-// Every key below is the model's own JSON key (`while`, `except` — the aliases), so a validator
-// error's `path` (`rules.2.gear.0.except`) names the control that edits it.
+// Every key below is the model's own JSON key (`while`, `except` — the aliases), so a gate
+// error's `path` (`rules.2.gear.0.except`) names the field it is about.
 
 /** One extent: a plain dict on the model, read by the resolver as `entry_models.Extent`. */
 export interface Extent {
@@ -324,65 +323,10 @@ export interface See {
   unresolved?: string;
 }
 
-// ---- Model vocabulary (GET /api/vocab — read off catalogue.py) ----------
-
-export interface Vocab {
-  rule_types: { type: string; family: string }[];
-  licensing_kinds: string[];
-  slots: { slot: string; shape: "set" | "spec" | "count" | "measured" }[];
-  methods: string[];
-  while: string[];
-  /** the `means` / `devices` a `while` clause may name (catalogue.WHILE_MEANS / WHILE_DEVICES) */
-  while_means: string[];
-  while_devices: string[];
-  conduct: { act: string; words: string }[];
-  documents: { doc: string; words: string; provincial: boolean }[];
-  periods: string[];
-  water_kinds: string[];
-  channel_sides: string[];
-  life_stages: string[];
-  /** catalogue.ClosureKind — the season a blanket closure is NAMED for (rule `closure_kind`) */
-  closure_kinds: string[];
-  origins: string[];
-  obligations: string[];
-  vessel_aspects: string[];
-  propulsion_levels: string[];
-  angler_states: string[];
-  solar: string[];
-  weekdays: string[];
-  who_axes: Record<string, string[]>;
-  exemptable_defaults: string[];
-  doing_acts: string[];
-  requirement_on: string[];
-  authority: string[];
-  classified: string[];
-  terms_sold: string[];
-  terms_covers: string[];
-  terms_allocation: string[];
-  terms_needs: string[];
-  path_quota: string[];
-  extent_ops: string[];
-  extent_keys: string[];
-  feature_types: string[];
-  species: SpeciesOption[];
-  /** OPEN strings in the model: tokens the corpus already uses, offered as suggestions only */
-  gear_members: Record<string, string[]>;
-  must_be: Record<string, string[]>;
-  area_kinds: string[];
-}
-
-/** A validator error addressed to the field it is about: `rules.2.gear.0.max`. */
+/** An error addressed to the field it is about (`rules.2.gear.0.max`), or to none (`""`). */
 export interface FieldError {
   path: string;
   msg: string;
-}
-
-/** POST /api/check — what a save would refuse, and the labels the app will show. */
-export interface CheckResult {
-  ok: boolean;
-  errors: FieldError[];
-  warnings: FieldError[];
-  labels: { rules: (string | null)[]; licensing: (string | null)[] };
 }
 
 // ---- API response shapes --------------------------------------------------
@@ -497,21 +441,6 @@ export interface Boundary {
   } | null; // live splits.json values
 }
 
-export interface SpeciesOption {
-  code: string;
-  name: string;
-  is_group: boolean;
-  members?: string[];
-}
-
-export interface SplitRef {
-  entry_id: string;
-  region: string;
-  rule_id: string;
-  label: string;
-  entry_name: string;
-}
-
 export interface Item {
   id: string;
   name: string;
@@ -519,13 +448,6 @@ export interface Item {
   variants: string[];
   mus: string[];
   boundaries: Boundary[];
-}
-
-export interface MatchInfo {
-  item_id: string | null;
-  status: string;
-  reason: string;
-  candidates: unknown[];
 }
 
 export interface AlsoItem {
@@ -554,8 +476,6 @@ export interface UnusedSplit {
 export interface EntryDetail {
   entry: Entry;
   region: string;
-  /** a live-match SUGGESTION, only when `matched` is empty — never the entry's water */
-  match: MatchInfo | null;
   item: Item | null; // `boundaries` is the union over the item AND `also_items`
   also_items: AlsoItem[]; // a combined override's other items — the entry covers these too
   /** Which part of the book this came from — see `EntryKind`. */
@@ -567,62 +487,6 @@ export interface EntryDetail {
   marks?: MarkView[];
   /** T133: whether the binding and the answer on screen are this entry's */
   vintage?: Vintage;
-}
-
-// ---- What an angler is told (the live bundle) -------------------------------------------------
-
-export interface BundleMeta {
-  built: string;
-  version?: string;
-  reach_digest?: string;
-  [k: string]: string | undefined;
-}
-
-/** GET /api/entries/{id}/bundle — the bundle's copy of this entry beside the file's. */
-export interface EntryInBundle {
-  /** T133: the entry's vintage; while it awaits its build only this (and `awaiting`) is sent */
-  vintage: Vintage;
-  awaiting: boolean;
-  bundle?: BundleMeta;
-  in_bundle?: boolean;
-  /** false when a rule's label OR its section count in the bundle differs from the file now
-   *  (`vintage.bundle_matches`) */
-  bundle_matches: boolean;
-  /** rule_id -> what differs ("label", "sections: 1 in the bundle, 2 now", "not in the bundle") */
-  mismatches?: Record<string, string[]>;
-  /** rules one entry alone cannot count now (a complement, the steelhead set) */
-  unchecked?: string[];
-  rules?: { rule_id: string; label_bundle: string | null; label_now: string | null;
-            n_sections: number; n_sections_now: number | null; unresolved: string | null }[];
-  licensing?: { kind: string; id: string; label: string; unresolved: string | null;
-                n_sections: number; n_waters: number; waters: { name: string; n: number }[] }[];
-}
-
-export interface AnswerPiece {
-  sid: number;
-  n_sections: number;
-  rules: { rule_id: string; via: string }[];
-}
-
-export interface AnswerWater {
-  item_id: string;
-  name: string;
-  n_sections: number;
-  pieces: AnswerPiece[];
-}
-
-/** GET /api/answer — `read.effective_rules` at one section, one day, one fish. */
-export interface Answer {
-  sid: number;
-  date: string;
-  fish: string;
-  waters: string[];
-  tidal: string | null;
-  rules: { entry_id: string; rule_id: string; entry_name: string; state: string; type: string;
-           label: string; verbatim: string | null; via: string | null;
-           undrawn_part: string | null; standing: boolean }[];
-  licensing: { kind: string; entry_id: string; id: string; via: string; label: string }[];
-  bundle: BundleMeta;
 }
 
 /** One split whose cut lands at more than one measure on the same blue line, so the reach shown is
@@ -710,22 +574,9 @@ export interface RuleResolved {
   error?: string;
 }
 
-export interface ItemSearchResult {
-  id: string;
-  name: string;
-  kind: string;
-  mus: string[];
-}
-
-export interface SaveResult {
-  ok: boolean;
-  errors: FieldError[];
-}
-
 export interface GeoJSON {
   type: string;
   features: unknown[];
-  _todo?: string;
 }
 
 /** What the curator left on a cut-point (`reuse.split_review`): its `_note` — how it was placed and
@@ -740,15 +591,15 @@ export interface SplitReview {
 
 export type Check = "T" | "R" | "P" | "A";
 export type CheckAnswer = "y" | "n" | "?";
-export type Tier = "S0" | "P1" | "Z" | "P2" | "P3" | "P4" | "sweep";
+/** the review tiers (PLAN §3, `tiers.TIERS`) — entries only (T184: the S0 split tier is gone) */
+export type Tier = "P1" | "Z" | "P2" | "P3" | "P4" | "sweep";
 
-/** GET /api/mode — review (marks only) or the owner's fix mode. */
+/** GET /api/mode — what the server reviews with (review mode, the only mode). */
 export interface Mode {
-  fix: boolean;
   /** the app the answer is checked in (its start link) */
   app_url: string;
-  /** the checks each scope answers (`marks.CHECKS`) */
-  checks: Record<"entry" | "rule" | "split", Check[]>;
+  /** the checks each scope a reviewer marks answers (`marks.CHECKS`; an entry, a zone entry's rule) */
+  checks: Record<"entry" | "rule", Check[]>;
   /** the problem categories a "wrong" mark names, by check (`marks.PROBLEMS`) */
   problems: Record<Check, string[]>;
   /** T135: the pre-check codes (`precheck.CHECKS`) */
@@ -823,7 +674,7 @@ export interface ReviewView {
   date: string;
   /** a zone entry's rules carry their impact line and their own answer link */
   rules: { rule_id: string; impact?: string; answer?: AnswerLink }[];
-  /** T135: the pre-checks, the save gate included */
+  /** T135: the pre-checks, the gate included */
   prechecks: Precheck[];
   /** T135: rule id -> the cuts the builder chose between */
   ambiguous_cuts: Record<string, RunAmbiguousCut[]>;
@@ -839,29 +690,13 @@ export interface QueueFacts {
   why: string | null;
 }
 
-/** GET /api/review/splits — a split card (tier S0). */
-export interface SplitCard {
-  split_id: string;
-  label: string | null;
-  kind: string | null;
-  waterbody: string | null;
-  grade: "L" | "M" | "H" | null;
-  note: string;
-  s0: boolean;
-  item_id: string | null;
-  status: VerifyStatus;
-  verdict: string | null;
-  reasons: string[];
-  vintage: Vintage | null;
-}
-
 export interface TierProgress { tier: Tier | "all"; total: number; done: number; stale: number; todo: number }
 export interface Progress { tiers: TierProgress[]; overall: TierProgress; facts?: QueueFacts }
 
 /** What the reviewer sends (`POST /api/marks`); the server stamps the rest. No `verdict`: the
  *  answers decide it (`marks.verdict_from_answers`) — except `deferred`, which is the reviewer's own call. */
 export interface MarkPost {
-  scope: "entry" | "rule" | "split";
+  scope: "entry" | "rule";
   target: string;
   rule_id?: string | null;
   verdict?: "deferred";

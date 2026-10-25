@@ -2,13 +2,13 @@
 // reader can check. What a verdict IS, what is stale, what tier an entry is in: the server's
 // (`pipeline.regs.review`), never decided here.
 
-import type { Check, CheckAnswer, QueueRow, SplitCard, VerifyStatus } from "./types";
+import type { Check, CheckAnswer, QueueRow } from "./types";
 
 /** The four checks, in the order PLAN §2 works them, with the question each one asks. */
 export const QUESTIONS: Record<Check, string> = {
   T: "Text — the book says what we stored (the row / passage against the raw name and the regs)",
   R: "Rules — every clause is a rule, nothing invented (species, quota, size, dates, gear, tributaries)",
-  P: "Place — the rules land on the right water (matched, split points, ambiguous cut, tributary walk)",
+  P: "Place — the rules land on the right water and extent: matched, every split the map labels (a wrong cut is Place: wrong here), ambiguous cut, tributary walk",
   A: "Answer — the app's page for a sample day says the same thing, open or closed",
 };
 
@@ -53,14 +53,6 @@ export function keepSelected(fresh: QueueRow[], old: QueueRow[], selected: strin
   let pos = 0;
   fresh.forEach((r, i) => { if (before.has(r.entry_id)) pos = i + 1; });
   return [...fresh.slice(0, pos), old[at], ...fresh.slice(pos)];
-}
-
-/** THE S0 CARDS AT THE HEAD OF THE ONE QUEUE (T135): the split points still to verify, under the
- *  same review filter as the entries ("" every card, "todo" every one not verified, else that
- *  status). Their order is the server's (`tiers.split_rank`). */
-export function splitsInQueue(cards: SplitCard[], verify: VerifyStatus | "todo" | ""): SplitCard[] {
-  return cards.filter((c) => c.s0 && (verify === "" || (verify === "todo" ? c.status !== "verified"
-    : c.status === verify)));
 }
 
 /** A ZONE ENTRY'S NEXT RULE after `keys[at]` is marked: the next one still open after it, then

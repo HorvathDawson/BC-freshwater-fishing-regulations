@@ -1,47 +1,26 @@
 import { useEffect } from "react";
-import type { QueueFacts, QueueRow, SplitCard } from "../types";
+import type { QueueFacts, QueueRow } from "../types";
 
 interface Props {
   rows: QueueRow[];
   selected: string | null;
   loading: boolean;
   onSelect: (entryId: string) => void;
-  /** T135: tier S0 — the split points still to verify — at the head of the one queue */
-  splits?: SplitCard[];
-  selectedSplit?: string | null;
-  onSelectSplit?: (splitId: string) => void;
   /** which reach run the risk factors were read from (or why none) */
   facts?: QueueFacts;
 }
 
-/** One split card's row (tier S0) — in the one queue and in the split list alike. */
-export function SplitRow({ c, selected, onSelect }: { c: SplitCard; selected: boolean; onSelect: () => void }) {
-  return (
-    <div data-entry={`split:${c.split_id}`}
-      className={`queue-row${selected ? " selected" : ""}`} onClick={onSelect}>
-      <div className="name">{c.label || c.split_id}</div>
-      <div className="meta">
-        {c.s0 && <span className="badge tier" title="review tier (PLAN §3)">S0</span>}
-        {c.grade && <span className="badge warn">grade {c.grade}</span>}
-        {c.status !== "unmarked" && <span className={`verify-chip ${c.status}`}>{c.status}</span>}
-        {c.vintage && c.vintage.state !== "current" && <span className="verify-chip stale">awaiting build</span>}
-        <span className="dim">{c.waterbody}</span>
-      </div>
-    </div>
-  );
-}
-
-export function QueueList({ rows, selected, loading, onSelect, splits = [], selectedSplit = null,
-                            onSelectSplit, facts }: Props) {
+/* THE ONE QUEUE (T135): entries only (T184) — a split point is checked by proxy on the map of
+   each entry whose rules name it. */
+export function QueueList({ rows, selected, loading, onSelect, facts }: Props) {
   // keep the open entry in view as the reviewer steps through with prev / next
   useEffect(() => {
-    const at = selectedSplit ? `split:${selectedSplit}` : selected;
-    if (!at) return;
-    document.querySelector(`[data-entry="${CSS.escape(at)}"]`)
+    if (!selected) return;
+    document.querySelector(`[data-entry="${CSS.escape(selected)}"]`)
       ?.scrollIntoView({ block: "nearest" });
-  }, [selected, selectedSplit, rows, splits]);
+  }, [selected, rows]);
   if (loading) return <div className="queue"><div className="empty-state">Loading…</div></div>;
-  if (!rows.length && !splits.length)
+  if (!rows.length)
     return (
       <div className="queue">
         <div className="empty-state">No entries for this filter.</div>
@@ -59,15 +38,6 @@ export function QueueList({ rows, selected, loading, onSelect, splits = [], sele
         <div className="queue-group warn" title={facts.why ?? ""}>
           no reach run — the ambiguous-cut and unresolved factors are not known
         </div>
-      )}
-      {splits.length > 0 && (
-        <>
-          <div className="queue-group">S0 — split points to verify (a wrong cut is wrong everywhere)</div>
-          {splits.map((c) => (
-            <SplitRow key={`s-${c.split_id}`} c={c} selected={selectedSplit === c.split_id}
-              onSelect={() => onSelectSplit?.(c.split_id)} />
-          ))}
-        </>
       )}
       {rows.map((r) => {
         const group = byTier && r.tier ? `tier:${r.tier}` : `kind:${r.kind}`;
@@ -148,7 +118,7 @@ const TIER_HEAD: Record<string, string> = {
   P4: "P4 — plain entries",
   sweep: "Sweep — pointer and empty rows",
 };
-const TIER_ORDER = ["S0", "P1", "Z", "P2", "P3", "P4", "sweep"];
+const TIER_ORDER = ["P1", "Z", "P2", "P3", "P4", "sweep"];
 
 /** whether the rows run in tier order (the review order), so the headings are the tiers' */
 function isTierOrdered(rows: QueueRow[]): boolean {

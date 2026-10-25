@@ -1,20 +1,17 @@
 """The review screen IN A BROWSER (T142): what only a real page can show.
 
-    draft guard   fix mode: an unsaved edit is never left by one key — `j` asks first; "cancel"
-                  stays on the entry with the edit, "OK" moves on (T134 adversarial review, which
-                  had no browser test because the frontend has no test runner)
     blur          clicking an answer button gives the focus back, so the next Enter RECORDS the
                   mark instead of re-clicking that button (T134 left-over)
+    j             the next entry opens on one key, with no editor to guard (T185 retired them)
 
-Runs the real backend (uvicorn, FIX MODE, over temp copies of the catalogue, splits.json and the
-marks store; an empty reach dir, so every entry awaits its build and only T and R are answered) and
-the real Vite dev server, each on a FREE PORT of its own (never the owner's 39217 / 39218 / 8787 /
-5173), and drives them with Playwright's Chromium. Slow (a cold backend loads the registry): `-m slow`.
+Runs the real backend (uvicorn, review mode — the only mode — over temp copies of the catalogue,
+splits.json and the marks store; an empty reach dir, so every entry awaits its build and only T and
+R are answered) and the real Vite dev server, each on a FREE PORT of its own (never the owner's
+39217 / 39218 / 8787 / 5173), and drives them with Playwright's Chromium. Slow (a cold backend loads
+the registry): `-m slow`.
 
-Mutation pins, run by hand on 2026-10-23 (lane-T135): the blur removed from `Checklist.tsx` ->
-`test_enter_after_clicking_an_answer_records_the_mark` fails (no mark: Enter re-clicked "R ?");
-`go` in `App.tsx` without its `window.confirm` -> `test_the_draft_guard_asks_before_j_leaves_an_edit`
-fails (no dialog).
+Mutation pin, run by hand on 2026-10-23 (lane-T135): the blur removed from `Checklist.tsx` ->
+`test_enter_after_clicking_an_answer_records_the_mark` fails (no mark: Enter re-clicked "R ?").
 """
 from __future__ import annotations
 
@@ -78,7 +75,7 @@ def site(request, tmp_path_factory):
     (root / "marks.jsonl").write_text("")
     (root / "run").mkdir()
     api_port, vite_port = _free_port(), _free_port()
-    env = {**os.environ, "CURATION_FIX": "1", "CURATION_ENTRIES_DIR": str(cat),
+    env = {**os.environ, "CURATION_ENTRIES_DIR": str(cat),
            "CURATION_SPLITS_JSON": str(root / "splits.json"), "CURATION_MARKS": str(root / "marks.jsonl"),
            "CURATION_BACKUP_DIR": str(root / "backups"), "CURATION_REACH_DIR": str(root / "run"),
            "CURATION_VITE_PORT": str(vite_port), "CURATION_API": f"http://127.0.0.1:{api_port}",
@@ -112,7 +109,6 @@ def _open(site, entry_id: str):
     page = site["browser"].new_page()
     page.goto(site["url"] + "#" + entry_id)
     page.wait_for_selector('[data-testid="entry-review"]', timeout=180_000)
-    page.wait_for_selector('[data-testid="mode"]:has-text("FIX MODE")', timeout=30_000)
     return page
 
 
@@ -120,27 +116,16 @@ def _hash(page) -> str:
     return page.evaluate("decodeURIComponent(window.location.hash.slice(1))")
 
 
-def test_the_draft_guard_asks_before_j_leaves_an_edit(site):
+def test_j_opens_the_next_entry_with_no_question(site):
+    """No editor, so nothing to guard: `j` moves on at once (the draft dialog is gone with fix mode)."""
     page = _open(site, ADAM)
-    page.fill('input[aria-label="scope_note"]', "an unsaved edit")
-    page.locator('[data-testid="raw-name"]').click()              # the focus leaves the field
+    page.locator('[data-testid="raw-name"]').click()
     asked: list[str] = []
-
-    def dismiss(d):
-        asked.append(d.message)
-        d.dismiss()
-    page.once("dialog", dismiss)
-    page.keyboard.press("j")
-    page.wait_for_timeout(500)
-    assert asked == ["This entry has unsaved edits. Leave it and discard them?"]
-    assert _hash(page) == ADAM                                    # cancel: still here
-    assert page.input_value('input[aria-label="scope_note"]') == "an unsaved edit"
-
-    page.once("dialog", lambda d: d.accept())
+    page.on("dialog", lambda d: (asked.append(d.message), d.dismiss()))
     page.keyboard.press("j")
     page.wait_for_function(f"decodeURIComponent(location.hash.slice(1)) !== {json.dumps(ADAM)}",
                            timeout=60_000)
-    assert _hash(page) != ADAM                                    # OK: moved on, edit dropped
+    assert asked == [] and _hash(page) != ADAM
     page.close()
 
 

@@ -2,27 +2,15 @@
 // All calls are relative to /api (Vite proxies to http://127.0.0.1:8787).
 
 import type {
-  CheckResult,
   EntryKind,
   FieldError,
-  Vocab,
-  Boundary,
   EntryDetail,
   EntryReaches,
-  Entry,
   GeoJSON,
-  ItemSearchResult,
   QueueRow,
   RegionSummary,
-  SaveResult,
-  SpeciesOption,
-  SplitRef,
-  SplitReview,
   Status,
   RuleResolved,
-  Answer,
-  AnswerWater,
-  EntryInBundle,
   PendingBuild,
   QueueOrder,
   VerifyStatus,
@@ -30,7 +18,6 @@ import type {
   MarkPost,
   Mode,
   ReviewView,
-  SplitCard,
   Progress,
   Tier,
 } from "./types";
@@ -43,12 +30,7 @@ async function getJSON<T>(url: string): Promise<T> {
   return (await res.json()) as T;
 }
 
-export interface ValidationError extends Error {
-  errors: string[];
-  status: number;
-}
-
-/** A refused entry save: the model's errors, each addressed to a field. */
+/** A refused mark: the server's reasons, each addressed to a field (or none). */
 export interface EntryRefused extends Error {
   fieldErrors: FieldError[];
 }
@@ -59,26 +41,6 @@ function asFieldErrors(detail: unknown): FieldError[] {
     d && typeof d === "object" && "msg" in (d as object)
       ? { path: String((d as FieldError).path ?? ""), msg: String((d as FieldError).msg) }
       : { path: "", msg: typeof d === "string" ? d : JSON.stringify(d) });
-}
-
-// PUT write path. Returns {ok, errors} on 200; throws an EntryRefused carrying the addressed
-// errors on 422 (FastAPI puts them under `detail`).
-async function writeEntry(url: string, body: Record<string, unknown>): Promise<SaveResult> {
-  const res = await fetch(url, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (res.status === 422) {
-    const payload = await res.json().catch(() => ({}));
-    const err = new Error("validation failed") as EntryRefused;
-    err.fieldErrors = asFieldErrors(payload?.detail ?? payload?.errors);
-    throw err;
-  }
-  if (!res.ok) {
-    throw new Error(`${res.status} ${res.statusText} for ${url}`);
-  }
-  return (await res.json()) as SaveResult;
 }
 
 let pageMap: Promise<Record<string, number>> | null = null;
@@ -106,32 +68,6 @@ export const api = {
   entry: (entryId: string) =>
     getJSON<EntryDetail>(`/api/entries/${encodeURIComponent(entryId)}`),
 
-  searchItems: (q: string) =>
-    getJSON<ItemSearchResult[]>(`/api/items/search?q=${encodeURIComponent(q)}`),
-
-  itemBoundaries: (itemId: string) =>
-    getJSON<Boundary[]>(`/api/items/${encodeURIComponent(itemId)}/boundaries`),
-
-  itemTributaries: (itemId: string) =>
-    getJSON<{ id: string; name: string }[]>(`/api/items/${encodeURIComponent(itemId)}/tributaries`),
-
-  species: () => getJSON<SpeciesOption[]>("/api/species"),
-
-  /** every option list the editors offer, read off the catalogue model */
-  vocab: () => getJSON<Vocab>("/api/vocab"),
-
-  /** validate a draft without writing: errors (addressed), warnings, and the generated labels */
-  check: async (entry: Entry, region: string, signal?: AbortSignal): Promise<CheckResult> => {
-    const res = await fetch("/api/check", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ region, entry }),
-      signal,
-    });
-    if (!res.ok) throw new Error(`${res.status} ${res.statusText} for /api/check`);
-    return (await res.json()) as CheckResult;
-  },
-
   /** per-rule, per-extent resolved reach — what to highlight on the map */
   reaches: (entryId: string) =>
     getJSON<EntryReaches>(`/api/entries/${encodeURIComponent(entryId)}/reaches`),
@@ -149,80 +85,8 @@ export const api = {
   tributaryGeojson: (itemId: string) =>
     getJSON<GeoJSON>(`/api/items/${encodeURIComponent(itemId)}/tributaries/geojson`),
 
-  save: (entryId: string, region: string, entry: Entry) =>
-    writeEntry(`/api/entries/${encodeURIComponent(entryId)}`, { region, entry }),
-
-  // --- splits.json editing (an atlas rebuild run from a terminal applies it) ---
-  getSplit: (splitId: string) =>
-    getJSON<{
-      split: Record<string, unknown>; waterbody: string; applies_to: unknown; review: SplitReview;
-    }>(
-      `/api/splits/${encodeURIComponent(splitId)}`,
-    ),
-
-  saveSplit: async (splitId: string, patch: Record<string, unknown>): Promise<SaveResult> => {
-    const res = await fetch(`/api/splits/${encodeURIComponent(splitId)}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ patch }),
-    });
-    if (res.status === 422) {
-      const p = await res.json().catch(() => ({}));
-      const d = (p && (p.detail ?? p.errors)) as unknown;
-      const err = new Error("validation failed") as ValidationError;
-      err.errors = Array.isArray(d) ? d.map(String) : [String(d ?? "validation failed")];
-      err.status = 422;
-      throw err;
-    }
-    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-    return (await res.json()) as SaveResult;
-  },
-
-  deleteSplit: async (splitId: string): Promise<SaveResult> => {
-    const res = await fetch(`/api/splits/${encodeURIComponent(splitId)}`, { method: "DELETE" });
-    if (res.status === 409) {
-      // still bound: the backend lists every rule / DFO location naming the split
-      const p = await res.json().catch(() => ({}));
-      const d = (p && (p.detail ?? p.errors)) as unknown;
-      const err = new Error("split is still bound") as ValidationError;
-      err.errors = Array.isArray(d) ? d.map(String) : [String(d ?? "split is still bound")];
-      err.status = 409;
-      throw err;
-    }
-    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-    return (await res.json()) as SaveResult;
-  },
-
-  splitRefs: (splitId: string) =>
-    getJSON<SplitRef[]>(`/api/splits/${encodeURIComponent(splitId)}/refs`),
-
-  renameSplit: async (
-    splitId: string,
-    newId: string,
-  ): Promise<{ ok: boolean; new_id: string; updated_rules: SplitRef[]; failed_rules: SplitRef[] }> => {
-    const res = await fetch(`/api/splits/${encodeURIComponent(splitId)}/rename`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ new_id: newId }),
-    });
-    if (res.status === 422) {
-      const p = await res.json().catch(() => ({}));
-      const d = (p && (p.detail ?? p.errors)) as unknown;
-      const err = new Error("rename failed") as ValidationError;
-      err.errors = Array.isArray(d) ? d.map(String) : [String(d ?? "rename failed")];
-      err.status = 422;
-      throw err;
-    }
-    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-    return await res.json();
-  },
-
   // --- review marks (T97: the append-only store; T134: the review screen makes them) ---
-  /** the marks in force, each with its status and stale reasons now */
-  marks: (target?: string) =>
-    getJSON<MarkView[]>(`/api/marks${target ? `?target=${encodeURIComponent(target)}` : ""}`),
-
-  /** THE ONE WRITE OF REVIEW MODE: a mark. Throws an EntryRefused with the server's reasons. */
+  /** THE ONE WRITE OF THE APP: a mark. Throws an EntryRefused with the server's reasons. */
   postMark: async (mark: MarkPost): Promise<MarkView> => {
     const res = await fetch("/api/marks", {
       method: "POST",
@@ -238,49 +102,14 @@ export const api = {
     return (await res.json()) as MarkView;
   },
 
-  /** review or fix mode, the app's address, the checks and the problem categories */
+  /** the app's address, the checks and the problem categories */
   mode: () => getJSON<Mode>("/api/mode"),
   /** what the checklist is answered from: evidence, coverage, tier, impact, the app link */
   review: (entryId: string, date?: string) =>
     getJSON<ReviewView>(`/api/entries/${encodeURIComponent(entryId)}/review` +
       (date ? `?date=${encodeURIComponent(date)}` : "")),
-  /** the split cards (tier S0 unless `all`) */
-  splitCards: (all = false) => getJSON<SplitCard[]>(`/api/review/splits${all ? "?all=true" : ""}`),
   progress: () => getJSON<Progress>("/api/review/progress"),
-  /** fix mode: the splits.json groups on an item — where a new split may go */
-  splitGroups: (itemId: string) =>
-    getJSON<{ name: string; applies_to: Record<string, unknown>; n_splits: number }[]>(
-      `/api/items/${encodeURIComponent(itemId)}/split-groups`),
-  /** fix mode: ADD a split (it then waits in the pending-build panel for the owner's atlas build) */
-  addSplit: async (body: {
-    split: Record<string, unknown>; waterbody?: string | null;
-    new_waterbody?: { name: string; applies_to: Record<string, unknown> } | null;
-  }): Promise<SaveResult> => {
-    const res = await fetch("/api/splits", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    if (!res.ok) {
-      const p = await res.json().catch(() => ({}));
-      const d = (p && (p.detail ?? p.errors)) as unknown;
-      const err = new Error("add split refused") as ValidationError;
-      err.errors = Array.isArray(d) ? d.map(String) : [String(d ?? `${res.status}`)];
-      err.status = res.status;
-      throw err;
-    }
-    return (await res.json()) as SaveResult;
-  },
-
   /** T133: every entry and split awaiting its build, and the command(s) to run */
   pendingBuild: () => getJSON<PendingBuild>("/api/build"),
 
-  // --- what an angler is told: the live bundle ---
-  entryBundle: (entryId: string) =>
-    getJSON<EntryInBundle>(`/api/entries/${encodeURIComponent(entryId)}/bundle`),
-  answerWaters: (entryId: string, q = "") =>
-    getJSON<AnswerWater[]>(
-      `/api/entries/${encodeURIComponent(entryId)}/answer/waters?q=${encodeURIComponent(q)}`),
-  answer: (sid: number, date: string, fish: string) =>
-    getJSON<Answer>(`/api/answer?sid=${sid}&date=${encodeURIComponent(date)}&fish=${encodeURIComponent(fish)}`),
 };

@@ -5,7 +5,7 @@ import { answerKey, checkKey, getReviewer, isTyping, nextCheck, setReviewer } fr
 import { blankChecklist, type ChecklistState } from "./Checklist";
 
 export interface MarkTarget {
-  scope: "entry" | "rule" | "split";
+  scope: "entry" | "rule";
   target: string;
   rule_id?: string | null;
   checks: Check[];
@@ -23,12 +23,12 @@ interface Opts {
   link?: string | null;
   /** `m` */
   onToggleMap?: () => void;
-  /** reset every checklist when this changes (another entry / split opened) */
+  /** reset every checklist when this changes (another entry opened) */
   resetOn: string;
 }
 
 /* THE MARKING, ONE PLACE (T134): the checklist state per target, the keys, and the one write —
-   POST /api/marks. Used by the entry review and the split card alike. The keys: t r p a pick a
+   POST /api/marks. Used by the entry review (an entry, or a zone entry's rules). The keys: t r p a pick a
    check; y n ? answer it and move to the next unanswered one; Enter records the mark; o opens the
    app's page; m the map. (j k u move through the list — the screen's.) */
 export function useMarking({ key, mark, onRecorded, link, onToggleMap, resetOn }: Opts) {

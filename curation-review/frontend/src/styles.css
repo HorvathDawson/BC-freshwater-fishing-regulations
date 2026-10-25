@@ -167,11 +167,7 @@ body {
   border-color: var(--ok-border);
   color: var(--ok-text);
 }
-.badge.lock {
-  background: var(--ok-bg);
-  border-color: var(--ok-border);
-  color: var(--ok-text);
-}
+
 .badge.unused-marker {
   background: #fff9db;
   border-color: #e0c14c;
@@ -189,26 +185,6 @@ body {
   background: #e7f0ff;
   border-color: #9dbdf0;
   color: #274d80;
-}
-.actions .revisit {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: var(--muted);
-  margin-right: auto;
-}
-.actions .revisit-note {
-  font-family: inherit;
-  font-size: 12px;
-  padding: 3px 6px;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  min-width: 220px;
-}
-.actions .revisit-note:disabled {
-  background: #f2f3f5;
-  color: var(--muted);
 }
 
 /* ---- detail sections ---- */
@@ -236,12 +212,6 @@ body {
   padding-bottom: 4px;
 }
 
-/* original regs + parsed rules stacked in one column (map is its own column now) */
-.stacked {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
 .verbatim {
   background: var(--panel);
   border: 1px solid var(--border);
@@ -281,19 +251,7 @@ body {
   gap: 8px;
   align-items: baseline;
 }
-.field input.grow,
-.field textarea.grow {
-  width: 100%;
-  box-sizing: border-box;
-  font-family: inherit;
-  font-size: 12px;
-  padding: 4px 6px;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-}
-.field textarea.grow {
-  font-family: ui-monospace, "SF Mono", Menlo, monospace;
-}
+
 .rule .rule-id {
   color: var(--muted);
   font-size: 11px;
@@ -323,42 +281,6 @@ body {
   margin-right: 6px;
 }
 
-/* ---- rule edit form: consistent label-over-control column ---- */
-.rule-edit {
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px dashed var(--border);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.rule-edit .field {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin: 0;
-}
-.rule-edit .field > .k {
-  margin: 0;
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--muted);
-}
-.rule-edit .field > .hint {
-  font-size: 11px;
-  color: var(--muted);
-}
-.rule-edit > .field > select {
-  align-self: flex-start;
-  min-width: 190px;
-  font-family: inherit;
-  font-size: 12px;
-  padding: 4px 6px;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  background: var(--panel);
-}
 .human-binding {
   font-style: italic;
 }
@@ -437,40 +359,7 @@ body {
   font-weight: 600;
   white-space: nowrap;
 }
-.split-editor {
-  margin-top: 10px;
-  border-top: 1px dashed var(--border);
-  padding-top: 8px;
-}
-.split-editor-head {
-  font-weight: 600;
-  margin-bottom: 6px;
-}
-.split-editor .fld {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin-bottom: 6px;
-}
-.split-editor .fld > span {
-  color: var(--muted);
-  font-size: 11px;
-}
-.split-editor input,
-.split-editor textarea {
-  font-family: ui-monospace, "SF Mono", Menlo, monospace;
-  font-size: 12px;
-  padding: 4px 6px;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  width: 100%;
-  box-sizing: border-box;
-}
-.split-editor-actions {
-  display: flex;
-  gap: 8px;
-  margin: 6px 0;
-}
+
 .btn.danger {
   background: #fee2e2;
   border-color: #fca5a5;
@@ -495,14 +384,7 @@ body {
   word-break: break-word;
   color: var(--muted);
 }
-.rebuild-note {
-  background: var(--warn-bg, #fef3c7);
-  border: 1px solid #f59e0b;
-  border-radius: 4px;
-  padding: 5px 8px;
-  margin-top: 6px;
-  font-size: 12px;
-}
+
 /* which resolved reach a rule lands on — the same label the map's picker uses */
 .reach-tag {
   display: inline-flex;
@@ -603,37 +485,7 @@ body {
   color: #991b1b;
   border: 1px solid #f87171;
 }
-.split-rename {
-  margin-top: 10px;
-  border-top: 1px dashed var(--border);
-  padding-top: 8px;
-}
-.split-refs {
-  margin-top: 4px;
-  font-size: 12px;
-}
-.split-refs ul {
-  margin: 4px 0 0;
-  padding-left: 18px;
-}
-.split-refs code {
-  background: #eef0f3;
-  padding: 0 3px;
-  border-radius: 3px;
-}
-.coord-row {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-}
-.coord-row input {
-  width: 110px;
-}
-.coord-row .show-map {
-  font-size: 12px;
-  color: var(--muted);
-  white-space: nowrap;
-}
+
 .source-image {
   position: sticky;
   top: 34px;           /* under the sticky verify bar (48px tall, stuck at -14px) */
@@ -653,71 +505,6 @@ body {
   border: 1px solid var(--border);
   border-radius: 6px;
   background: #fff;
-}
-.dates-editor {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  align-items: center;
-}
-.dates-editor .date-row {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-}
-.dates-editor .date-row input {
-  width: 140px;
-}
-.dates-editor .x {
-  border: none;
-  background: none;
-  cursor: pointer;
-  color: var(--muted);
-  font-size: 14px;
-  line-height: 1;
-  padding: 0 2px;
-}
-.excludes .extent-row {
-  flex-wrap: wrap;
-}
-.excl-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  flex-wrap: wrap;
-}
-.excl-item input {
-  width: 150px;
-}
-.excl-results {
-  display: inline-flex;
-  gap: 4px;
-  flex-wrap: wrap;
-}
-.species-picker {
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  align-items: center;
-}
-.species-chip {
-  background: #eef0f3;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 1px 4px 1px 6px;
-  font-size: 12px;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-.species-chip .x {
-  border: none;
-  background: none;
-  cursor: pointer;
-  color: #991b1b;
-  font-size: 14px;
-  line-height: 1;
-  padding: 0 2px;
 }
 
 /* ---- unused warning ---- */
@@ -824,29 +611,6 @@ body {
   display: inline-block;
 }
 
-/* ---- edit controls ---- */
-.edit-panel {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 12px;
-}
-.extent-row {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  flex-wrap: wrap;
-  margin-bottom: 6px;
-}
-.extent-row select,
-.extent-row input {
-  font-size: 12px;
-  padding: 3px 5px;
-}
-.split-multi {
-  min-width: 160px;
-  min-height: 60px;
-}
 .tag-input {
   display: flex;
   flex-wrap: wrap;
@@ -884,49 +648,6 @@ body {
   font-size: 12px;
 }
 
-/* ---- attach item ---- */
-.attach {
-  background: var(--danger-bg);
-  border: 1px solid var(--danger-border);
-  border-radius: 6px;
-  padding: 12px;
-}
-.attach input[type="text"] {
-  width: 100%;
-  padding: 5px 7px;
-  font-size: 13px;
-}
-.search-results {
-  list-style: none;
-  margin: 8px 0 0;
-  padding: 0;
-  max-height: 200px;
-  overflow: auto;
-  border: 1px solid var(--border);
-  border-radius: 5px;
-  background: #fff;
-}
-.search-results li {
-  padding: 6px 8px;
-  border-bottom: 1px solid var(--border);
-  cursor: pointer;
-}
-.search-results li:hover {
-  background: #eef2ff;
-}
-
-/* ---- actions ---- */
-.actions {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  margin-top: 18px;
-  padding-top: 14px;
-  border-top: 1px solid var(--border);
-  position: sticky;
-  bottom: 0;
-  background: var(--bg);
-}
 button.btn {
   font-size: 13px;
   padding: 7px 14px;
@@ -997,8 +718,7 @@ button.btn:disabled {
 .prechecks .sev-A { color:var(--danger-text); }
 .prechecks .sev-B { color:var(--muted); }
 .amb-cut { font-size:12px; margin:2px 0; }
-.cut-pick { display:inline-flex; gap:4px; align-items:center; font-size:12px; margin-left:6px; }
-.cut-pick input { width:90px; }
+
 .tickets-link { font-size:12px; }
 
 /* ---- model editors (components/model, model.tsx) ---- */
@@ -1021,63 +741,29 @@ button.btn:disabled {
 }
 .mfield > .v { min-width: 0; }
 .mfield .mfield { grid-template-columns: 110px 1fr; }
-.mfield.has-error { border-color: var(--danger-border); background: var(--danger-bg); }
-.mfield.named-error { border-color: var(--warn-border); background: var(--warn-bg); }
-.mfield input.grow, .mfield textarea.grow {
-  width: 100%;
-  box-sizing: border-box;
-  font-size: 12px;
-  padding: 3px 6px;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-}
-.mfield textarea.grow { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+
 .field-error { color: var(--danger-text); font-size: 11px; margin-top: 2px; }
-.field-errors {
-  background: var(--danger-bg);
-  border: 1px solid var(--danger-border);
-  border-radius: 4px;
-  padding: 4px 8px;
-  margin: 4px 0;
-}
+
 .hint { color: var(--muted); font-size: 11px; }
-.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 10px; }
-.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 10px; }
-.grid2 .mfield, .grid3 .mfield { grid-template-columns: 1fr; gap: 1px; }
+
 .group { border-top: 1px solid var(--border); margin-top: 6px; padding-top: 4px; }
 .group > summary { cursor: pointer; font-weight: 600; font-size: 12px; color: #374151; }
 .group.hot > summary { color: var(--danger-text); }
-.clause, .sub-record {
+.clause {
   border: 1px solid var(--border);
   border-radius: 5px;
   padding: 4px 6px;
   margin: 4px 0;
   background: #fafbfc;
 }
-.clause-head, .band-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-.band-row .mfield { grid-template-columns: auto auto; margin: 0; }
-.row-tools { display: inline-flex; gap: 2px; }
-.row-tools button:disabled { opacity: 0.3; }
+
 .checks { display: flex; flex-wrap: wrap; gap: 2px 10px; }
 .check { display: inline-flex; align-items: center; gap: 3px; font-size: 12px; }
-.radio-row { display: inline-flex; gap: 10px; margin-right: 8px; }
-.who-axis { display: flex; flex-wrap: wrap; gap: 2px 8px; align-items: center; }
-.gear-when { border-left: 2px solid var(--border); padding-left: 6px; }
-.unless-row { display: flex; gap: 4px; align-items: flex-start; }
+
 .btn.small { padding: 1px 8px; font-size: 11px; margin-top: 3px; }
-.raw-json summary { cursor: pointer; font-size: 11px; color: var(--muted); }
-.raw-json textarea {
-  width: 100%;
-  box-sizing: border-box;
-  font-family: ui-monospace, "SF Mono", Menlo, monospace;
-  font-size: 11px;
-}
-.rule.has-error { border-color: var(--danger-border); }
-.extent-area, .extent-limits { display: block; width: 100%; }
-.extent-limits summary { cursor: pointer; font-size: 11px; }
+
 .identity-fields table td.k { font-family: ui-monospace, monospace; color: var(--muted); padding-right: 10px; }
-.warnings { margin: 6px 0; font-size: 12px; }
-.add-record select { font-size: 12px; }
+
 .ref { display: inline-flex; gap: 6px; }
 
 /* ---- review pass: the reviewer's mark, progress, and the way to the next entry ---- */
@@ -1134,8 +820,7 @@ button.btn:disabled {
 .answer-result .state.speaks { color: var(--ok-text); }
 .answer-result .state.beside { color: var(--accent); }
 .answer-result .state.not_yet_mapped { color: var(--warn-text); }
-.attach-more { margin-top: 4px; }
-.attach-more input[type="text"] { width: 100%; padding: 5px 8px; font-size: 13px; }
+
 .page-image { max-height: 420px; overflow-y: auto; margin-top: 6px; border: 1px solid var(--border); background: #fff; }
 .page-image img { width: 100%; display: block; }
 .source-image.with-page { position: static; }
@@ -1152,12 +837,9 @@ code.cmd { font-size: 11px; padding: 1px 6px; border: 1px solid var(--warn-borde
 .pending-build { padding: 6px 10px; background: var(--warn-bg); border: 1px solid var(--warn-border); color: var(--warn-text); border-radius: 4px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 
 /* ---- T134: the review screen — evidence first, the checklist, the verdict bar ---- */
-.mode-chip { font-size: 11px; padding: 2px 8px; border-radius: 10px; border: 1px solid var(--border); white-space: nowrap; }
-.mode-chip.review { background: var(--ok-bg); border-color: var(--ok-border); color: var(--ok-text); }
-.mode-chip.fix { background: var(--danger-bg); border-color: var(--danger-border); color: var(--danger-text); font-weight: 600; }
 .review-progress { display: inline-flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .tier-chip { font-size: 11px; padding: 1px 6px; border-radius: 3px; border: 1px solid var(--border); background: #eef0f3; white-space: nowrap; }
-.tier-chip.tier-S0, .tier-chip.tier-P1 { border-color: var(--danger-border); color: var(--danger-text); }
+.tier-chip.tier-P1 { border-color: var(--danger-border); color: var(--danger-text); }
 .tier-chip.tier-Z { border-color: var(--accent); color: var(--accent); }
 
 .evidence { margin-bottom: 10px; }

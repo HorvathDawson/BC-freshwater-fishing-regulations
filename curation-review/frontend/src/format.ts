@@ -1,13 +1,9 @@
-import type { Boundary, Extent, EntryReaches, ReachIdentity } from "./types";
+import type { Extent, EntryReaches, ReachIdentity } from "./types";
 
-export function boundaryLabel(id: string, boundaries: Boundary[]): string {
-  const b = boundaries.find((x) => x.id === id);
-  return b ? b.label || b.id : id;
-}
-
-// Human-readable text for one extent, e.g. "upstream of Foo Falls".
-export function humanExtent(ex: Extent, boundaries: Boundary[]): string {
-  const lbls = (ex.splits ?? []).map((s) => boundaryLabel(s, boundaries));
+/** Human-readable text for one extent, e.g. "upstream of Foo Falls" — each split by its NAME
+ *  (`names`: split id -> name; an id with none reads as itself). */
+export function humanExtent(ex: Extent, names: Record<string, string>): string {
+  const lbls = (ex.splits ?? []).map((s) => names[s] ?? s);
   switch (ex.op) {
     case "whole":
       return "whole reach";
@@ -25,32 +21,6 @@ export function humanExtent(ex: Extent, boundaries: Boundary[]): string {
       return ex.op;
   }
 }
-
-// Raw form, e.g. "upstream_of[foo_falls]".
-export function rawExtent(ex: Extent): string {
-  const parts = [...(ex.splits ?? [])];
-  if (ex.area_id) parts.push(`area=${ex.area_id}`);
-  return `${ex.op}[${parts.join(", ")}]`;
-}
-
-// How many split ids an op requires (UI arity enforcement).
-export function splitArity(op: Extent["op"]): number | null {
-  switch (op) {
-    case "whole":
-    case "rest":
-      return 0;
-    case "upstream_of":
-    case "downstream_of":
-      return 1;
-    case "between":
-      return 2;
-    case "within":
-      return null; // area-based; splits optional
-    default:
-      return null;
-  }
-}
-
 
 // Distinct reaches get a short stable label so the rules list and the map call them the same thing.
 // Several rules almost always share one reach — the Chilliwack's four gear/harvest rules below Vedder

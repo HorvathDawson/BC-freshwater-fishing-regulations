@@ -19,8 +19,6 @@ interface Props {
   selectedSplitId?: string | null;
   /** clicking a split marker selects it */
   onSelectSplit?: (id: string | null) => void;
-  /** a live splits.json point coord to preview on the map (the "show on map" toggle) */
-  pendingPoint?: { lon: number; lat: number } | null;
   /** bumped after a graph rebuild — refetch geometry even if the item id is unchanged */
   reloadKey?: number;
   /** fly to just this covered item's geometry (a combined entry's per-water focus) */
@@ -105,7 +103,7 @@ function bounds(fc: GeoJSON.FeatureCollection): maplibregl.LngLatBoundsLike | nu
 
 export function MapPanel({
   itemId, alsoItemIds = [], referencedSplitIds = [], unusedSplitIds = [], selectedSplitId = null,
-  onSelectSplit, pendingPoint = null, reloadKey = 0, focusItemId = null,
+  onSelectSplit, reloadKey = 0, focusItemId = null,
   reaches = null, rules = [], reachOf = {}, entryId = null,
 }: Props) {
   const [showTribs, setShowTribs] = useState(false);
@@ -191,7 +189,6 @@ export function MapPanel({
           protomaps: { type: "vector", url: BASEMAP_URL, maxzoom: 15 },
           item: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
           tribs: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
-          pending: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
           measure: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
         },
         layers: [
@@ -246,9 +243,6 @@ export function MapPanel({
             layout: { "text-field": ["get", "label"], "text-size": 11, "text-offset": [0, 1.1],
                       "text-anchor": "top", "text-font": ["Noto Sans Regular"] },
             paint: { "text-halo-color": "#fff", "text-halo-width": 1.5 } },
-          { id: "pending-point", type: "circle", source: "pending",
-            paint: { "circle-radius": 8, "circle-color": "#db2777",
-                     "circle-stroke-color": "#fff", "circle-stroke-width": 2 } },
           { id: "measure-line", type: "line", source: "measure",
             filter: ["==", ["geometry-type"], "LineString"],
             paint: { "line-color": "#7c3aed", "line-width": 2, "line-dasharray": [2, 1] } },
@@ -299,27 +293,6 @@ export function MapPanel({
     };
     if (m.isStyleLoaded()) run(); else m.once("load", run);
   }, [selectedSplitId]);
-
-  // Live "show on map" point (from the split editor's coord fields).
-  useEffect(() => {
-    const m = map.current;
-    if (!m) return;
-    const run = () => {
-      const src = m.getSource("pending") as maplibregl.GeoJSONSource | undefined;
-      if (!src) return;
-      if (pendingPoint) {
-        src.setData({
-          type: "FeatureCollection",
-          features: [{ type: "Feature", properties: {},
-            geometry: { type: "Point", coordinates: [pendingPoint.lon, pendingPoint.lat] } }],
-        });
-        m.flyTo({ center: [pendingPoint.lon, pendingPoint.lat], zoom: Math.max(m.getZoom(), 13), duration: 500 });
-      } else {
-        src.setData({ type: "FeatureCollection", features: [] });
-      }
-    };
-    if (m.isStyleLoaded()) run(); else m.once("load", run);
-  }, [pendingPoint]);
 
   // Load geometry when the item changes. A combined entry covers several registry items, so the
   // map draws the UNION — otherwise "CHILLIWACK / VEDDER RIVERS" showed only the Chilliwack half.
