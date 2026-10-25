@@ -690,16 +690,21 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
     section count, the bundle's (`fingerprint.rule_section_counts`) against the builder's now
     (`vintage.bundle_matches`). The review app re-reads the digests by file stamp: a rebuild clears it with no restart.
     `check_corpus` and the build stage keys are unchanged.
-66. **Review mode writes one thing: a mark** (T134). The review app's editors' routes are registered only in fix mode
-    (`run.sh --fix`, `CURATION_FIX=1`, `app.register_fix_routes`); `test_curation_review_safety` pins review mode to
-    exactly `POST /api/marks`. Never add a write route to review mode. The verdict is `marks.verdict_from_answers`, the
+66. **The review app writes one thing: a mark** (T134, T185). There is no fix mode: the editors and their routes
+    were removed (2026-10-24), and a fix is a reviewed change to the curated files, never the app's.
+    `test_curation_review_safety` pins the app to exactly `POST /api/marks` and that no backend module but
+    `writes.py` writes a file (its one caller: the mark); the screen test's route sweep proves nothing under
+    `data/curated` changes. Never add a write route. The verdict is `marks.verdict_from_answers`, the
     tiers `regs/review/tiers.py`, the coverage strip `regs/review/coverage.py` (its fold IS `squash`) — one function each.
 67. **The review queue has one order and one reader of the run** (T135). The order is `tiers.queue_rank` (tier, the
-    most urgent risk factor `tiers.RISKS`, the severity-A pre-checks) with the S0 split points first (`split_rank`);
+    most urgent risk factor `tiers.RISKS`, the severity-A pre-checks). ENTRIES ONLY (T184): no split is a review
+    target — a split is checked by proxy on the map of each entry whose rules name it (`reuse.entry_split_points`,
+    every one labelled), a wrong one is that entry's "Place: wrong", and a split mark is refused (the old ones stay
+    readable);
     the run's ambiguous cuts / unresolved rules reach the review side only through `regs/review/runfacts.py` (a run
     without `report.json` is still being written and is refused, never read as "no findings"); the pre-checks are
     `precheck.prechecks`, a ticket `tickets.ticket_text` / `parse_ticket` (a round trip). "Commit marks" is
     `commit_marks` — `git commit --only` of the marks store — a CLI the screen prints, never a review-mode route.
-    The S0 set is `tiers.s0_split_ids`; a cut decided by hand is `runfacts.is_curated_pick` (a hint, never the
+    The splits still to verify are `tiers.splits_to_verify` (the `split_to_verify` pre-check); a cut decided by hand is `runfacts.is_curated_pick` (a hint, never the
     `ambiguous cut` risk); a CLI that judges marks reads the vintage through `fingerprint.Context.on_disk` and
     the corpus through `io.read_entryfile` with the registry — as the review app does.

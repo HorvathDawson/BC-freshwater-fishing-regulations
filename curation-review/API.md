@@ -4,17 +4,19 @@ Backend base URL (dev): `http://127.0.0.1:8787`. All responses JSON. No auth. St
 `bash curation-review/backend/run.sh`. Makes **no LLM calls** — pure local file review, safe to run
 out of parsing credits.
 
-**Write model:** `data/curated/regulations/entries/catalogue/region-*.json` are the SINGLE SOURCE OF
-TRUTH. Curator edits are written straight back to them through `pipeline.regs.parsing.io.write_entryfile`
-(see `README.md`). There is no confirm/lock: a catalogue entry has no such field.
-
-**Two modes (T134).** REVIEW MODE (the default) registers the reads and ONE write,
-`POST /api/marks`. FIX MODE (`run.sh --fix`, `CURATION_FIX=1`) also registers the editors:
-`POST /api/check`, `PUT /api/entries/{id}`, `POST /api/splits`, `PUT` / `DELETE /api/splits/{id}`,
-`POST /api/splits/{id}/rename`. In review mode those answer 404 / 405 from the router.
-`GET /api/mode` → `{fix, app_url, checks: {entry, rule, split}, problems: {T, R, P, A: [..]},
+**Write model: ONE write, a mark** (T134, T185). The app reads the catalogue region files
+(`data/curated/regulations/entries/catalogue/region-*.json`, the single source of truth) and
+splits.json, and appends reviewers' marks to the marks store — `POST /api/marks` is its only write
+route. The editors' routes (`POST /api/check`, `PUT /api/entries/{id}`, split add / save / delete /
+rename — the retired fix mode) are gone: a request to one is refused by the router (404 / 405). A
+fix is a reviewed change to the curated files (T185), never this app's.
+`GET /api/mode` → `{app_url, checks: {entry, rule}, problems: {T, R, P, A: [..]},
 prechecks: {code: {severity, what}}, commands: {commit_marks, tickets, prechecks}}` (T135: the
 commands the screen PRINTS for the human; it runs none).
+
+**Entries only (T184).** No split is a review target: the queue, the tiers and the pilot are
+entries; a split is checked BY PROXY on the map of each entry whose rules name it
+(`GET /api/entries/{id}/splits`), and a wrong one is a "Place: wrong" mark on such an entry.
 
 ---
 
@@ -50,10 +52,8 @@ covers all of them.
 {
   "entry": { ...a CatalogueEntry — see pipeline/regs/parsing/catalogue.py; each rule AND each
              licensing record also carries its generated `label` (catalogue.label /
-             catalogue.licensing_label), which is not stored and is dropped again on save... },
+             catalogue.licensing_label), which is not stored... },
   "region": "2",
-  "match": null,   // or, ONLY when `matched` is empty: the live matcher's SUGGESTION for the attach
-                   // flow — { "item_id", "status", "reason", "candidates" }. Never the entry's water.
   "item": { "id":"gnis:8634", "name":"Chilliwack River", "kind":"stream", "variants":[], "mus":[],
             "boundaries":[ { "id":"chilliwack_vedder_rivers__tamihi_rapids_bridge",
                              "label":"Tamihi Rapids Bridge", "kind":"split",
@@ -65,7 +65,9 @@ covers all of them.
   "related_entries": [ {"entry_id":"r2:vedder_river@2-2","region":"2","name":"VEDDER RIVER",
                         "n_rules":1,"pointer":true,"shared_items":[{"id":"gnis:3062","name":"Vedder River"}]} ],
   "unused_curated_splits": [ {"id":"foo_falls","label":"Foo Falls","anchor_type":"confluence"} ],
-  "source_image": "row_00123.png"   // matched from the synopsis rows by regs_verbatim
+  "source_image": "row_00123.png",  // matched from the synopsis rows by regs_verbatim
+  "marks": [...], "vintage": {...},   // the marks in force; one vintage on screen (below)
+  "reviewed": {"by": ["Ann"], "on": "2026-10-24", "holds": true}   // or null (T184, below)
 }
 ```
 `item.boundaries` is the **union over the item AND `also_items`**, each tagged with its owning
@@ -79,44 +81,15 @@ build's registry, via `pipeline.atlas.reach.covered.covered_ids` with no matcher
 
 **The entry is the model, whole.** `entry.rules[]` are `CatalogueRule`s and `entry.licensing[]` are
 `LicensingRecord`s (`kind` ∈ designation | not_classified | requirement | licence_terms | exemption |
-alternative); `pipeline/regs/parsing/catalogue.py` is the definition. Every field is editable in the
-app except the pass-through ones (`entry_id`, `name`, `display_name`, `region`, `regs_verbatim`,
-`source_pages`, `symbols`), which come from the synopsis row and are refused if changed.
+alternative); `pipeline/regs/parsing/catalogue.py` is the definition. The app shows it and edits none
+of it; the pass-through fields (`entry_id`, `name`, `display_name`, `region`, `regs_verbatim`,
+`source_pages`, `symbols`) come from the synopsis row.
 
 - **`Extent.op`** ∈ `whole | upstream_of | downstream_of | between | within` (from `entry_models.Op`);
   `splits` are boundary **ids** from `item.boundaries`. `Extent.item_id` scopes the extent to ONE
   covered item. Also `item_ids`, `area_id`, `area_kind`, `feature_types`, `within_area`,
   `outside_area`, `outside_areas` — the keys of `entry_models.Extent`.
 - **`tributary_excludes`** — per-rule / per-designation tributary carve-outs, extents of the same shape.
-
-### POST /api/check   (validate a draft — writes nothing)
-Body: `{ "region":"2", "entry": {...the draft...} }`
-→ `{ "ok": bool, "errors": [{path, msg}], "warnings": [{path, msg}],
-     "labels": { "rules": [label|null, ...], "licensing": [label|null, ...] } }`
-
-`errors` is everything a save would refuse — the model (`CatalogueEntry`), the pass-through fields,
-the split ids — each ADDRESSED to a field in the entry's own JSON keys: `rules.2.gear.0.max`,
-`licensing.0.classified` (the union's `kind` tag is dropped from the path), `rules.1` for a rule-level
-message, `""` for the entry. An entry-level message that names a rule id or a licensing id is split
-and addressed to it. `labels` is the generated label of every rule and record that validates on its
-own (`null` where it does not). `warnings` are extent shapes `entry_models.Extent` would reject,
-reported and not refused (the corpus carries some today). The editor calls this on every edit.
-
-### PUT /api/entries/{entry_id}   (save an edit)
-Body: `{ "region":"2", "entry": {...the entry as served...} }`
-→ `200 {"ok":true,"errors":[]}` · `422 {detail:[{path, msg}, ...]}` — the same errors `/api/check`
-returns. On success the file is written through `pipeline.regs.parsing.io.write_entryfile` (every other
-entry byte-for-byte as it was; the whole file validated as written). Saving an entry unchanged
-rewrites nothing.
-
-### GET /api/vocab
-Every option list the editors offer, READ OFF the model: rule types + family, licensing kinds, gear
-slots + shape (set | spec | count | measured), methods, `while` tokens, conduct acts + words,
-documents + words, periods, water kinds, origins, obligations, vessel aspects, propulsion levels,
-angler states, Who axes, exemptable defaults, `Doing.act`, `Requirement.on`, licence-terms literals,
-path quota, extent ops/keys, feature types, species (`KNOWN_SPECIES` + words + members). Open-string
-fields (gear member tokens, `must_be`, `area_kind`) come with the tokens the corpus already uses, as
-suggestions only.
 
 ### GET /api/entries/{entry_id}/reaches
 What each rule actually selects on the map — the answer to "show me what this rule covers".
@@ -152,8 +125,8 @@ one of the waters, or the other water's cut falls outside the scope and the reac
 A boundary is looked up by the REF its kind implies (`split:{id}` for a curated cut, `lake:{wbk}` for
 a lake outlet), so reaches bounded by a lake resolve like any other.
 
-Reaches come from the built graph and the SAVED entry: a save is reflected on the next call (the
-UI refetches after every save), unsaved edits are not. `verdict` is the builder's answer per rule
+Reaches come from the built graph and the entry as it is in its file (a change to the file is
+reflected on the next call). `verdict` is the builder's answer per rule
 (`outcome`, `reason`, `n_sections`, `sections`, `diagnostics`) — what ships; the UI binds and
 highlights from it, and falls back to the raw per-extent resolve only when it is absent.
 
@@ -162,16 +135,16 @@ highlights from it, and falls back to the raw per-extent resolve only when it is
 ## The review pass
 
 ### GET /api/entries?…&verify=&order=
-`verify` ∈ `unmarked | verified | wrong | unsure | deferred | stale | todo` (todo = not currently
-verified); `order` ∈ `risk` (default) `| book` (region, printed page, chapter before tables, file
+`verify` ∈ `unmarked | verified | wrong | unsure | deferred | stale | todo | recheck` (todo = not
+currently verified — human-reviewed; recheck = human-reviewed once and changed since, T184); `order` ∈ `risk` (default) `| book` (region, printed page, chapter before tables, file
 order); anything else `422`. **`risk` is the review order (T135, PLAN §3):** by tier, within a tier the
 most urgent risk factor (`tiers.RISKS`: no match, unresolved, undrawn part, ambiguous cut, cut, several
-waters, flag), then the more severity-A pre-checks, then the book's order (`tiers.queue_rank`). The
-split points (S0) lead it: `GET /api/review/splits`, ordered by `tiers.split_rank`. Each row also carries `page` (first printed page), `pointer` (a "See X" row with no
-rules), `verify`, `verify_note` and `mark_reasons` (the stale reasons). `GET /api/regions` adds
+waters, flag), then the more severity-A pre-checks, then the book's order (`tiers.queue_rank`).
+Entries only (T184). Each row also carries `page` (first printed page), `pointer` (a "See X" row with
+no rules), `verify`, `verify_note`, `mark_reasons` (the stale reasons) and `reviewed` (below). `GET /api/regions` adds
 `by_verify` counts.
 
-`tier` filters on the review tier (`S0` is the split cards'; `P1 | Z | P2 | P3 | P4 | sweep`,
+`tier` filters on the review tier (`P1 | Z | P2 | P3 | P4 | sweep`,
 `pipeline.regs.review.tiers.entry_tier`); each row carries `tier`, `risks` (most urgent first) and
 `prechecks: {A, B}` (how many findings of each severity, `precheck.prechecks`). The `unresolved` and
 `ambiguous cut` factors come from the served reach run (`runfacts.RunFacts`: `rule_diagnostic` /
@@ -183,7 +156,8 @@ Every **wrong** and **unsure** mark in force as ticket text (`pipeline.regs.revi
 `[{name, text}]`, or one Markdown text. Read only — the owner files them (PLAN §6 Q3). A ticket carries
 the mark's own fields (scope, target, rule, verdict, answers, problem, the reviewer's note, reviewer,
 date, printed pages, the book's sha256), the entry or split it is about, what changed since (when the
-mark went stale) and the work: fix mode, then the rebuild that ships it. `tickets.parse_ticket` reads
+mark went stale) and the work: a reviewed change to the curated files (T185), then the rebuild
+that ships it. `tickets.parse_ticket` reads
 the mark's fields back (the round trip is a test). CLI: `python -m pipeline.regs.review.tickets --out <dir>`
 — the same text, "what changed since" included (`tickets.statuses_now` for both); two marks whose
 targets slug to one file name are refused, never written over each other.
@@ -196,8 +170,10 @@ migration's rewrite adds none). Not an endpoint: review mode writes one thing, a
 the command.
 
 ### POST /api/marks  (T97)
-Body `{scope: entry | rule | split, target, rule_id?, verdict?: verified | wrong | unsure | deferred,
-answers: {T, R, P, A: y | n | ?}, problem?, note, reviewer, pages?}` (a split answers `P` only).
+Body `{scope: entry | rule, target, rule_id?, verdict?: verified | wrong | unsure | deferred,
+answers: {T, R, P, A: y | n | ?}, problem?, note, reviewer, pages?, seconds?}`. **T184:** scope
+`split` is refused (`422`, "A split is not marked on its own: check it on the map of an entry whose
+rules name it, and mark that entry's Place wrong…").
 **T134:** with no `verdict` the answers decide it (`marks.verdict_from_answers`: any n → wrong, else
 any ? → unsure, all y → verified; `422` while a check is unanswered); `deferred` is only ever sent.
 **T142:** a refusal is said in the reviewer's words (`marks.refusal_words` / `unanswered_words`), with
@@ -209,10 +185,18 @@ The server stamps `date`, `pdf_sha256` (the repo PDF) and the target's fingerpri
 (`pipeline.regs.review.fingerprint`), and APPENDS the mark to `data/curated/regulations/review/marks.jsonl`
 (or `CURATION_MARKS`) through the backed-up commit. `422` for a mark the model refuses (`verified`
 needs every check `y`; `wrong` a `n`, a problem and a note; no reviewer; an unknown field) or an
-entry that FAILS THE GATE; `404` for an unknown entry, rule or split. → the mark with `status` and
+entry that FAILS THE GATE; `404` for an unknown entry or rule. → the mark with `status` and
 `reasons`. **T133:** also `422` ("awaiting build …", with the command to run) when the target is
-AWAITING ITS BUILD and the mark answers anything but `T` and `R` — so no `verified` mark, and no
-split mark, until the reach run, the bundle and the release are this entry's (below).
+AWAITING ITS BUILD and the mark answers anything but `T` and `R` — so no `verified` mark until the reach run, the bundle and the release are this entry's
+(below).
+
+### Human-reviewed (T184)
+An entry is HUMAN-REVIEWED when its mark in force is `verified` — every check (T R P A) answered y —
+or, a zone entry, when every rule's is. `GET /api/entries/{id}` and each queue row carry
+`reviewed: {by: [reviewer, …], on: <latest date>, holds}` (null when never reviewed): `holds` is false
+once the entry's fingerprint moved (text, rules or extent — the mark's typed stale reasons, T97), when
+it is back in the queue for a re-check (`verify=recheck`). The screen shows "Human-reviewed by X on
+date", and "Was human-reviewed … changed since: re-check it".
 
 ### One vintage on screen (T133)
 `GET /api/entries/{id}` carries `vintage: {state: current | "awaiting build", reasons, splits,
@@ -240,14 +224,15 @@ deferred | stale`) and `reasons` (`book text changed | rule changed | binding mo
 rule marks, the same shape).
 
 ### GET /api/marks/splits
-→ `{split_id: {status, verdict, reasons}}` for every split in splits.json; a split nobody has
-confirmed is `unmarked` (a split added mid-review queues itself).
+→ `{split_id: {status, verdict, reasons, vintage}}` for every split in splits.json — the OLD split
+marks' status (history since T184; most read `unmarked`). A split whose old mark went stale is one
+still to verify (`tiers.splits_to_verify`, the `split_to_verify` pre-check).
 
 ### The review screen (T134)
 - `GET /api/entries/{id}/review?date=` → `{entry_id, name (the RAW name — the heading),
   display_name, kind, region, tier, risks, evidence, coverage, vintage, answer, date, rules,
   prechecks, ambiguous_cuts, parse_findings, run}`. T135: `prechecks` `[{code, severity: A | B,
-  rule_id, what}]` (`precheck.prechecks`, the save gate included); `ambiguous_cuts` `{rule_id:
+  rule_id, what}]` (`precheck.prechecks`, the gate included); `ambiguous_cuts` `{rule_id:
   [{split_id, extent, used, candidates, toward}]}` (the run's; `toward: curated` = a `cut_pick`);
   `parse_findings` the second-pass agent's lines (`io.read_review_findings`; none exist yet); `run`
   `{run: digest | null, why}`.
@@ -262,15 +247,16 @@ confirmed is `unmarked` (a split added mid-review queues itself).
 - `GET /api/entries/{id}/evidence/crop.png` — the row (water column above regulation column) or
   passage at 2.6 px/pt; `…/evidence/page.png` — the printed page with it marked. `404` naming the
   command when the sidecar is missing.
-- `GET /api/review/splits?all=` → the split cards (tier S0 unless `all`; S0 includes a split whose
-  mark went stale): `[{split_id, label, kind,
-  waterbody, grade, note, s0, item_id, status, verdict, reasons, vintage}]`, to-do first, grade L
-  first.
 - `GET /api/review/progress` → `{tiers: [{tier, total, done, stale, todo}], overall, facts}` (done =
   a mark in force: verified, wrong, unsure, deferred; `facts` = `{run, why}`, the reach run the
-  risk factors were read from).
-- `GET /api/items/{item_id}/split-groups` → the splits.json groups on the item (fix mode's add-split
-  form).
+  risk factors were read from). Entries only: the tiers are P1 Z P2 P3 P4 sweep.
+- `GET /api/entries/{id}/splits` (T184) → EVERY SPLIT THE ENTRY'S RULES NAME (its scope and
+  licensing records too), as a FeatureCollection of Points: `properties` `{split_id, label (the
+  built label, else splits.json's, else the boundary's), water (its splits.json waterbody; a lake
+  boundary, the item it is on), name ("WATER: label"), rules: [rule ids naming it], parts: ["entry
+  scope" | licensing ids], to_verify (an open auto-proposal or a "Verify:" note), grade, item_id}`,
+  plus `unplaced: [{…the same, why}]` for an id the served atlas has no point for — listed, never
+  dropped. `404` for an unknown entry. The map draws and labels each (the proxy check of a split).
 
 ## What an angler is told (the live bundle)
 
@@ -307,29 +293,10 @@ shipped as the UI export's `guide.pdf_pages`); `GET /api/synopsis.pdf` serves th
 
 ---
 
-## Registry lookups
-
-### GET /api/items/search?q=
-→ `[{ "id":"gnis:5480", "name":"Amor De Cosmos Creek", "kind":"stream", "mus":[...] }]` — for attaching
-an item to a `no_registry` entry (put the chosen id into `entry.matched`).
-
-### GET /api/items/{item_id}/boundaries
-Bindable splits/boundaries for an arbitrary item — the cross-item and tributary-exclude pickers.
-
-### GET /api/items/{item_id}/tributaries
-→ `[{ "id":"gnis:1234", "name":"Slesse Creek" }]` — named streams whose mouth flows into this item,
-read from the graph's flow edges. The carve-out picker's dropdown.
-
-### GET /api/species
-→ `[{ "code":"TROUT_CHAR", "name":"Trout and char", "is_group":true, "members":[...] }]` — every code
-a rule may name (`catalogue.KNOWN_SPECIES`), with the model's words. Also inside `/api/vocab`.
-
----
-
 ## Map
 
 ### GET /api/items/{item_id}/geojson
-Stream sections + curated split points in EPSG:4326, to overlay the web-mercator PMTiles basemap.
+Stream sections + curated split points (+ a point inside each lake boundary) in EPSG:4326, to overlay the web-mercator PMTiles basemap.
 Line features carry `node_id` (matches `reaches[].sections`) and `item_id`; point features carry
 `split_id` and `auto`. `properties.kind` is `stream | side_channel | split | waterbody`.
 
@@ -401,52 +368,12 @@ Serves `data/bc.pmtiles`, honouring HTTP Range requests (the pmtiles protocol ne
 
 ---
 
-## Editing splits.json
-
-These write the hand-curated split source, `data/curated/waters/splits.json`. **An atlas rebuild,
-run by the owner from a terminal (`python -m pipeline build --atlas`, through
-`scripts/heavy.sh`), is required for any of them to take effect** — until then the map still shows
-the as-built geometry. No endpoint starts a process.
-
-### GET /api/splits/{split_id}
-→ `{ "split": {...}, "waterbody": "CHILLIWACK RIVER", "applies_to": {...}, "review": {"note": "…",
-"grade": "L" | "M" | "H" | null} }` · 404 if not in splits.json. `review` is the curator's `_note`
-and the auto-proposal grade it opens with (`[auto-proposal L]`), null when the cut is not an open
-auto-proposal (`reuse.split_review`). Each bindable boundary's `live` carries the same `review`.
-
-FIX MODE ONLY for the writes below (T134).
-
-### POST /api/splits  (T134: add a split mid-review)
-Body `{split: {id, label?, kind, anchor, note?, _note?, applies_to?}, waterbody?: <a group's
-name> | new_waterbody?: {name, applies_to}}` → `{ok, errors, split, waterbody}`. Validated by the
-pipeline's split loader; a duplicate id is refused. The note is stamped "Verify: added in fix mode
-<date> …" (tier S0). `GET /api/build` then lists the split with the atlas commands.
-
-### PUT /api/splits/{split_id}
-Body `{ "patch": {label?, note?, kind?, anchor?} }` → `{ok, errors}`. A new anchor MOVES the split;
-a moved split not already in S0 has its note stamped "Verify: moved in fix mode <date> …"
-(`reuse.fix_mode_stamp`, the add's stamp), so it is confirmed again after the rebuild.
-
-### DELETE /api/splits/{split_id}
-→ `{ok, errors}` · 404 if absent.
-
-### GET /api/splits/{split_id}/refs
-→ `[{entry_id, region, rule_id, label, entry_name}]` — the rules binding this split. The impact
-preview before a rename.
-
-### POST /api/splits/{split_id}/rename
-Body `{ "new_id": "..." }` → `{ok, new_id, updated_rules[], failed_rules[]}`. Renames the split AND
-rewrites every rule that binds it, so a rename never strands a binding.
-
----
-
-
-### UI must-haves (from the spec)
-- Side-by-side **original `regs_verbatim`** ↔ **parsed rules** (each rule's binding shown human + raw).
-- The item's **bindable boundaries** menu (curated splits flagged via `boundaries[].curated`), spanning
-  every item a combined entry covers.
-- **Highlight unused curated splits** (`unused_curated_splits[]`) — a curated cut no rule used.
+### UI must-haves
+- The book first (the row / passage, legible), then the checklist (T R P A) with the verdict bar.
+- Every rule's generated label and quote, WHERE it binds (its splits by name), the builder's answer.
+- **Every split the rules name, labelled on the map** (T184) — the proxy check of a split.
+- The item's **bindable boundaries** (curated splits flagged via `boundaries[].curated`), spanning
+  every item a combined entry covers; **unused curated splits** (`unused_curated_splits[]`).
 - **Show reach** per rule, with the straddling / ambiguous-cut warnings surfaced.
 - **Related entries** — jump to the other synopsis rows over the same water.
-- **Save edit** (PUT), and the **attach-item** flow for `no_registry`.
-- Queue filterable by region + status, attention-first (already sorted by the API).
+- **Human-reviewed** on the entry and in the queue (T184); the queue in the review order.
