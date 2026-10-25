@@ -1272,3 +1272,10 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
 - Q125: sewage basins, tailing ponds and dumps (T152 `not_fishing_water`) DRAW as a muted fill — never as a lake.
 - Basemap to z13 too (≈ −289 MB), on two conditions: no feature may be lost (measure feature counts / kinds
   z14-sourced vs z13) and the map must still overzoom past z13.
+
+## 2026-10-24 — T179 owner answers
+- Gauge joins the nearest named cut within 400 m on either side: confirmed.
+- "Curated cuts always exist in their location": an authored cut NEVER moves. Auto boundaries (gauge, area, border,
+  length) within 5 m join the authored point, not the reverse. A lake edge / natural line end within 5 m cannot move
+  either: the authored point stays and the pair is reported (split_conflicts.json) for the owner, never a silent
+  snap. Exception: the 8 `at_edge` splits, whose curated location IS the lake edge/end (the owner's own setting).
