@@ -1959,3 +1959,16 @@ def readiness() -> dict:
     done = [d["step"] for d in _READY["done"]]
     return {**{k: _READY[k] for k in ("ready", "warming", "seconds", "error")},
             "done": list(_READY["done"]), "todo": [n for n, _ in WARM_STEPS if n not in done]}
+
+
+#: the pilot the gate wrote (`pipeline.regs.review.gate pilot --json`)
+PILOT_JSON = _ROOT / "handoff/PLAN/curation-review/pilot.json"
+
+
+def pilot_targets() -> list[dict]:
+    """The pilot's targets in its order, or [] with no pilot file. Read each call: a regenerated pilot shows at once."""
+    if not PILOT_JSON.exists():
+        return []
+    import json
+    return [{k: t.get(k) for k in ("tier", "id", "name", "region")}
+            for t in json.loads(PILOT_JSON.read_text())["targets"]]

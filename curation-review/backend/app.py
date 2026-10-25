@@ -104,7 +104,7 @@ def get_regions():
 @app.get("/api/entries")
 def get_entries(region: str | None = None, status: str | None = None,
                 kind: str | None = None, verify: str | None = None,
-                order: str = "risk", tier: str | None = None):
+                order: str = "risk", tier: str | None = None, pilot: bool = False):
     """THE ONE QUEUE (T135): every region unless `region` names one. `kind` is zone | water — the
     region chapters or the water tables. `verify` is the reviewer's mark (unmarked | verified |
     wrong | unsure | deferred | stale | todo | recheck — human-reviewed, changed since); `tier` the
@@ -117,8 +117,19 @@ def get_entries(region: str | None = None, status: str | None = None,
     if status and status not in reuse.STATUSES:
         raise HTTPException(422, [{"path": "status",
                                    "msg": "status is one of " + ", ".join(reuse.STATUSES)}])
-    return reuse.queue(region=region, status=status, kind=kind, verify=verify, order=order,
+    rows = reuse.queue(region=region, status=status, kind=kind, verify=verify, order=order,
                        tier=tier)
+    if pilot:
+        # THE PILOT (T136): only its targets, in the pilot's own order (handoff/PLAN/curation-review/pilot.json)
+        at = {t["id"]: i for i, t in enumerate(reuse.pilot_targets())}
+        rows = sorted((r for r in rows if r["entry_id"] in at), key=lambda r: at[r["entry_id"]])
+    return rows
+
+
+@app.get("/api/pilot")
+def get_pilot():
+    """The pilot's targets (tier, id, name, region), in order; [] when there is no pilot file."""
+    return reuse.pilot_targets()
 
 
 #: what a reviewer marks: an entry, or one rule of a zone entry (T184: entries only)

@@ -53,9 +53,13 @@ export const api = {
 
   regions: () => getJSON<RegionSummary[]>("/api/regions"),
 
+  /** the pilot's targets in order (T136); [] with no pilot */
+  pilot: () => getJSON<{ tier: string; id: string; name: string; region: string }[]>("/api/pilot"),
+
   entries: (region?: string, status?: Status | "", kind?: EntryKind | "",
-            verify?: ReviewFilter, order?: QueueOrder, tier?: Tier | "") => {
+            verify?: ReviewFilter, order?: QueueOrder, tier?: Tier | "", pilot?: boolean) => {
     const p = new URLSearchParams();
+    if (pilot) p.set("pilot", "true");
     if (tier) p.set("tier", tier);
     if (region) p.set("region", region);
     if (status) p.set("status", status);
