@@ -146,6 +146,13 @@ def _write_sidecar(build_dir: Path, out_dir: Path, tile_version: str) -> None:
     meta = {"section_handles": digest_for(build_dir), "build": build_dir.name,
             "registry": registry_digest_for(build_dir),     # P2: names and kinds too (informational, P18)
             "tile_version": tile_version}                    # P18: also stamped inside the archive
+    # T64: how many sections each layer left out on purpose (`layers/undrawn.json`); the bundle
+    # build requires that file whenever this says anything was left out
+    from pipeline.deliver.tiles.export import UNDRAWN_FILE
+    u = out_dir / "layers" / UNDRAWN_FILE
+    if u.exists():
+        got = json.loads(u.read_text(encoding="utf-8"))
+        meta["undrawn"] = {k: len(v) for k, v in sorted(got.items()) if not k.startswith("$")}
     p = out_dir / "atlas.meta.json"
     p.write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8")
     print(f"{p}  {meta}")

@@ -656,6 +656,10 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
     from pipeline.common.section_handles import digest_for as _handles_of
     from pipeline.deliver.bundle import access as _access
     _access.write(db, Path(tiles) if tiles else GENERATED.tiles, handles=_handles_of(build_dir), cov=cov)
+    # WHAT THE TILES LEFT OUT (T64: unnamed wetlands in no item) must be answered by land or area alone
+    if _reaches is not None:
+        from pipeline.deliver.bundle import undrawn as _undrawn
+        _undrawn.check(db, Path(tiles) if tiles else GENERATED.tiles, cov=cov)
     # THE BOOK'S WORDS THE GLOSSARY QUOTES (plan 2.14): copied in, so the answers read them from here
     from pipeline.deliver.bundle import glossary_source as _glossary_source
     _glossary_source.write(db, cov)

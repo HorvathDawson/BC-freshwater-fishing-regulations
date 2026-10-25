@@ -264,6 +264,28 @@ def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None) 
     return {"stream": n, "under_lake": n_ul}
 
 
+#: THE UNDRAWN LIST (T64): the section handles the tile export left out on purpose, by layer, in
+#: `<layers>/UNDRAWN_FILE`. The bundle build reads it (`bundle.undrawn.check`) and refuses one a
+#: water rule, an item or a gauge would need on the map; `atlas.meta.json` states the counts.
+UNDRAWN_FILE = "undrawn.json"
+
+
+def wetland_is_drawn(nid: str, node, owners: "Owners") -> bool:
+    """IS THIS WETLAND POLYGON DRAWN? (T64, owner 2026-10-23: "removing all unnamed wetlands without
+    direct regulation ... including dropping ones only regulated by admin area regs like liard").
+
+    KEPT: a polygon in a registry water item — a named wetland, a slough or side channel folded into
+    a river (`registry.flowing`), any item a row can name — or a stream-kind polygon, or one with a
+    gazetted name of its own. DROPPED: every other wetland — unnamed and in no item, so only zone and
+    area-only rules (watershed / admin-area rows like the Liard) can bind it, and its colour was never
+    its own. The graph, the atlas and the reach are unchanged: this cuts the DRAWN polygon only. The
+    bundle build proves the cut (`bundle.undrawn.check`: no dropped polygon is bound by a water rule,
+    owned by an item or gauged)."""
+    if owners.name.get(nid) or owners.kind.get(nid) == "stream":
+        return True
+    return bool((node.display_name or "").strip() or node.name_tuples)
+
+
 def export_waterbodies(build_dir: Path, gpkg: str, out_dir: Path) -> dict:
     """Standing water — from the graph, exactly like streams.
 
@@ -294,12 +316,16 @@ def export_waterbodies(build_dir: Path, gpkg: str, out_dir: Path) -> dict:
 
     writers: dict[str, tuple] = {}
     no_geom = ghosts = 0
+    undrawn: list[int] = []
     for nid, node in graph.nodes.items():
         kind = _kind(node)
         if kind not in ("lake", "wetland"):
             continue
         if nid in owners.ghosts:
             ghosts += 1
+            continue
+        if kind == "wetland" and not wetland_is_drawn(nid, node, owners):
+            undrawn.append(sid[nid])
             continue
         g = geoms.get(nid)
         if g is None or g.is_empty:
@@ -327,8 +353,14 @@ def export_waterbodies(build_dir: Path, gpkg: str, out_dir: Path) -> dict:
             "area_m2": round(g.area),
         }, ladder.zoom_for_area(g.area, spec.minzoom))
     counts = {lname: close() for lname, (_, close) in writers.items()}
+    (out_dir / UNDRAWN_FILE).write_text(json.dumps({
+        "$comment": "Section handles the tile export did not draw on purpose (T64: unnamed wetlands "
+                    "in no item, bound only by zone / area-only rules). Read by the bundle build "
+                    "(pipeline.deliver.bundle.undrawn), which refuses one a water rule, item or gauge needs.",
+        "wetland": sorted(undrawn)}, separators=(",", ":")) + "\n", encoding="utf-8")
     for lname, n in counts.items():
         print(f"  {lname:<14} {n:>9,}")
+    print(f"  wetland not drawn  {len(undrawn):>9,}  (unnamed, in no item: `{UNDRAWN_FILE}`)")
     if no_geom:
         print(f"  ({no_geom:,} waterbody nodes had no polygon — see build.py minting)")
     if ghosts:
