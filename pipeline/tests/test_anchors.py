@@ -163,6 +163,20 @@ def _lake_chain():
     return build_blk_chains(fids, {"W": "lake"})
 
 
+def test_lake_anchor_edge_picks_one_boundary():
+    """A dam at a lake's outlet names that edge only (T179, owner 2026-10-25): both edges would give the
+    split two measures and every reach using it an ambiguous cut."""
+    for edge, want in (("outlet", [100]), ("inlet", [200])):
+        sd = SplitDef.from_dict({"id": "dam", "blk": "X",
+                                 "anchor": {"type": "lake", "wbk": "W", "edge": edge}})
+        assert [round(p.route_measure) for p in resolve_split_defs([sd], _lake_chain())] == want
+    for bad in ({"type": "lake", "wbk": "W", "edge": "mouth"},
+                {"type": "lake", "wbk": "W", "edge": "outlet", "offset_m": 5, "offset_dir": "upstream"},
+                {"type": "point", "coord": [0, 0], "edge": "outlet"}):
+        with pytest.raises(ValueError):
+            SplitAnchor.from_dict(bad)
+
+
 def test_lake_anchor_offset_upstream_measures_from_where_the_river_LEAVES():
     # "100 m upstream of the lake" starts at the lake's upstream exit (200), not its entry.
     sd = SplitDef(id="lk", blk="X", anchor=SplitAnchor(

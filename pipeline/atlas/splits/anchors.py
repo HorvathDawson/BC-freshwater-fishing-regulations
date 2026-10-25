@@ -277,8 +277,11 @@ def resolve_split_defs(split_defs: list[SplitDef], chains: list[BlkChain],
                 if not a.offset_m:
                     # No offset: both boundaries, as no-op splits (the lake already split the BLK) —
                     # emitted for matching / completeness.
-                    _emit(sd, blk, enters)
-                    _emit(sd, blk, leaves)
+                    # `edge` picks one: the outlet is where the river enters the lake run going up.
+                    if a.edge != "inlet":
+                        _emit(sd, blk, enters)
+                    if a.edge != "outlet":
+                        _emit(sd, blk, leaves)
                     continue
                 # OFFSET: one real cut, measured from the end of the lake the offset runs away from —
                 # "100 m upstream of Mitchell Lake" starts where the river LEAVES the lake, "500 m

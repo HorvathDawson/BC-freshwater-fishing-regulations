@@ -595,6 +595,19 @@ def test_a_curated_split_a_sliver_from_a_lake_edge_stays_reported_and_proposed()
     assert sorted(s["node"] for s in SG.slivers(g, before)) == ["1:3000", "1:998"]
 
 
+def test_an_area_boundary_split_is_never_offered_a_re_anchoring():
+    """Owner 2026-10-25 (T179): a park boundary is not a confluence — Tweedsmuir's and Pinnacles' upstream
+    boundaries landed 13-20 m from their tributaries' mouths and were offered `confluence` anchors. An
+    area_boundary cut gets no proposal; a point the same distance away still does (the mutation pin)."""
+    from pipeline.atlas.splits.sectionizer import place_points
+    lake = _lake(1000, "329016195", "Great Central Lake")
+    for anchor, want in ((AnchorType.area_boundary, 0), (AnchorType.point, 2)):
+        g, proposals = _line((0, 1000, None, lake)), []
+        place_points(g, [_p("park_mouth", 15.0, anchor=anchor), _p("park_lake", 990.0, anchor=anchor)],
+                     proposals=proposals)
+        assert len(proposals) == want, anchor
+
+
 def test_authorship_is_the_source_never_the_id_spelling():
     g = _line((0, 1000, None, _lake(1000)))
     split_graph_at(g, {}, [_p("gauge__looks_minted", 999.0, source="curated")])

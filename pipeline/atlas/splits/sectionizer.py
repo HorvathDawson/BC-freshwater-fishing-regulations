@@ -28,8 +28,8 @@ from shapely.geometry import LineString, Point
 from shapely.ops import substring
 
 from pipeline.common import tolerances as _tol
-from pipeline.common.models import (BoundaryKind, FlowEdge, NodeKind, SectionBoundary, SplitPoint,
-                     StreamGraph)
+from pipeline.common.models import (AnchorType, BoundaryKind, FlowEdge, NodeKind, SectionBoundary,
+                                    SplitPoint, StreamGraph)
 
 _ANCHOR_KIND = {"point": BoundaryKind.split, "line": BoundaryKind.split,
                 "confluence": BoundaryKind.confluence, "mu_boundary": BoundaryKind.mu,
@@ -299,10 +299,12 @@ def _plan_blk(graph, blk, sps, nids, conflicts=None, proposals=None) -> list[_Pl
     # mouth (a `confluence` anchor) is offered a re-anchoring there — placement unchanged, the cut stands
     # where it is. A source end or a minted cut offers no anchor: proposed only for the sliver conflict
     # itself (report-only). The nearest wins; a cut standing ON a place (taken there) needs none.
+    # An AREA boundary (a park's edge) is offered nothing: it is not a confluence or a lake, whatever
+    # it lands near (owner 2026-10-25, Tweedsmuir / Pinnacles; the conflict is still reported).
     if proposals is not None:
         offer = []
         for sp in authored:
-            if sp.at_edge:
+            if sp.at_edge or sp.anchor_type == AnchorType.area_boundary:
                 continue
             on = taken.get(id(sp))
             if on is not None and abs((on.from_m if on.from_m is not None else on.m)

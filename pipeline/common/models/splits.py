@@ -33,6 +33,8 @@ class SplitAnchor:
     offset_m: float = 0.0         # point/confluence: shift the cut this many metres ALONG the
     offset_dir: str = ""          # channel, in offset_dir ("upstream"|"downstream"). 0 => no shift.
     wbk: str = ""                 # lake
+    edge: str = ""                # lake, no offset: "outlet" | "inlet" — only that boundary (a dam);
+                                  # "" emits both (T179 re-anchors, owner 2026-10-25)
     mu_a: str = ""                # mu_boundary (one side)
     mu_b: str = ""                # mu_boundary (other side)
     tributary_blk: str = ""       # confluence: the tributary's BLK (an id, not a name)
@@ -57,6 +59,9 @@ class SplitAnchor:
             raise ValueError("confluence anchor needs tributary_blk or tributary_wsc")
         if t == AnchorType.lake and not d.get("wbk"):
             raise ValueError("lake anchor needs wbk")
+        edge = str(d.get("edge", ""))
+        if edge and (t != AnchorType.lake or edge not in ("inlet", "outlet") or d.get("offset_m")):
+            raise ValueError("edge is 'inlet'|'outlet' on a lake anchor without offset_m")
         if t == AnchorType.area_boundary and not (d.get("area_layer") and d.get("area_name")):
             raise ValueError("area_boundary anchor needs area_layer and area_name")
         offset_m = float(d.get("offset_m", 0.0))
@@ -74,7 +79,7 @@ class SplitAnchor:
             coord=(float(coord[0]), float(coord[1])) if coord else None,
             coords=coords, is_lonlat=bool(d.get("is_lonlat", False)),
             offset_m=offset_m, offset_dir=offset_dir,
-            wbk=str(d.get("wbk", "")), mu_a=str(d.get("mu_a", "")), mu_b=str(d.get("mu_b", "")),
+            wbk=str(d.get("wbk", "")), edge=edge, mu_a=str(d.get("mu_a", "")), mu_b=str(d.get("mu_b", "")),
             tributary_blk=str(d.get("tributary_blk", "")),
             tributary_wsc=str(d.get("tributary_wsc", "")),
             area_layer=str(d.get("area_layer", "")),
