@@ -198,7 +198,8 @@ def _boundary(b) -> RegistryBoundary | None:
     else:
         rid = bid or _slug(b.label)     # outlet / headwaters
     return RegistryBoundary(id=rid, label=b.label or "", kind=b.kind.value, ref=bid, wbk=wbk,
-                            aliases=tuple(b.aliases or ()))
+                            aliases=tuple(b.aliases or ()),
+                            names=tuple(getattr(b, "names", ()) or ()))
 
 
 def _expand(aliases, item_slug: str) -> tuple[str, ...]:
@@ -372,11 +373,12 @@ def build_registry(graph: StreamGraph, prof=None, pinned: dict[str, str] | None 
                     # the LOWER bound of the piece above, and an alias is recorded on just one of those
                     # edges. Skipping the repeat outright dropped the alias whenever the un-aliased
                     # edge happened to be seen first, so merge instead of discarding.
-                    if rb.aliases:
+                    if rb.aliases or rb.names:
                         prev = bmap[seen_refs[rb.ref]]
                         merged = tuple(dict.fromkeys((*prev.aliases, *rb.aliases)))
-                        if merged != prev.aliases:
-                            bmap[seen_refs[rb.ref]] = replace(prev, aliases=merged)
+                        names = tuple(sorted(set(prev.names) | set(rb.names)))
+                        if merged != prev.aliases or names != prev.names:
+                            bmap[seen_refs[rb.ref]] = replace(prev, aliases=merged, names=names)
                     continue
                 # curated split ids are already globally unique + encode context; auto boundaries
                 # (lake/outlet/headwaters) are item-prefixed so a shared lake stays unique per river.
@@ -386,7 +388,7 @@ def build_registry(graph: StreamGraph, prof=None, pinned: dict[str, str] | None 
                 while rid in bmap:
                     rid = f"{base}_{i}"; i += 1
                 bmap[rid] = RegistryBoundary(id=rid, label=rb.label, kind=rb.kind, ref=rb.ref,
-                                             wbk=rb.wbk, aliases=rb.aliases)
+                                             wbk=rb.wbk, aliases=rb.aliases, names=rb.names)
                 seen_refs[rb.ref] = rid
         registry[iid] = RegistryItem(
             id=iid, name=name, kind=kind, variants=variants,

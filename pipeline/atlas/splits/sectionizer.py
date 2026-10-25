@@ -85,6 +85,10 @@ SAME_SPOT_M = _tol.AT_CUT_M          # 1 m
 #: How far an `at_edge` cut reaches for the lake edge / natural end / minted boundary it stands at. The
 #: eight curated cuts that used to carry a pickup radius in `proximity_m` (30-300 m) set `at_edge`.
 AT_EDGE_M = 300.0
+#: How far a lake edge (or the line's own mouth, offered as a `confluence` anchor) may stand from an
+#: authored cut and still draw a RE-ANCHOR PROPOSAL (owner 2026-10-24: 25 m). Placement ignores it: the
+#: cut stands where it is; only under `AUTHORED_MERGE_M` is the pair also a sliver conflict.
+PROPOSAL_M = 25.0
 #: An auto family's merge distance is its own positional uncertainty. A GAUGE is a published station
 #: coordinate projected onto its channel (`gauges.consume.cuts.PROXIMITY_M`, 400 m — the value the old
 #: pickup read, one-sidedly, as its radius); area, border and length cuts are exact geometry, so they
@@ -106,8 +110,24 @@ def minted_id(split_id: str) -> bool:
     placement above never asks this; it reads `source`."""
     sid = str(split_id or "")
     sid = sid[len("split:"):] if sid.startswith("split:") else sid
-    head = sid.split("__")[0] if "__" in sid else sid.split(":")[0]
-    return head in AUTO_SOURCES
+    # `gauge__<station>`, or `<family>:...` — read by its FIRST separator, so an area slug carrying a
+    # double underscore (`area:x__y`) is still minted and a curated `stamp_river__lake` is not
+    return sid.startswith("gauge__") or (":" in sid and sid.split(":", 1)[0] in AUTO_SOURCES)
+
+
+def _other_names(label: str, *labels) -> tuple[str, ...]:
+    """Every name at a place but the canonical `label`, sorted, once (`SectionBoundary.names`)."""
+    return tuple(sorted({str(x) for x in labels if x} - {str(label or "")}))
+
+
+def _union_bound(a: SectionBoundary, b: SectionBoundary) -> SectionBoundary:
+    """One boundary seen on the two pieces it separates: whatever either copy carries, kept."""
+    if a is b or b is None or a.boundary_id != b.boundary_id:
+        return a
+    al = tuple(sorted(set(a.aliases or ()) | set(b.aliases or ())))
+    nm = tuple(sorted(set(a.names or ()) | set(b.names or ())))
+    return a if (al == tuple(a.aliases or ()) and nm == tuple(a.names or ())) else \
+        replace(a, aliases=al, names=nm)
 
 
 def _rank(source: str) -> int:
@@ -166,7 +186,9 @@ def _proposal(graph, blk, sp: SplitPoint, q: "_Place", kind: str, d: float) -> d
     split-alias lake boundaries use; note it emits both of the lake's edges on the blk) or, at the
     line's own mouth, a `confluence` anchor on the blk itself. A source end has no anchor: report only."""
     out = {"split_id": sp.split_id, "blk": blk, "kind": kind, "edge": q.edge or "",
-           "distance_m": round(d, 2), "split_m": round(sp.route_measure, 2), "edge_m": round(q.m, 2)}
+           "distance_m": round(d, 2), "split_m": round(sp.route_measure, 2), "edge_m": round(q.m, 2),
+           # under `AUTHORED_MERGE_M` the pair is also a sliver conflict (split_conflicts.json)
+           "band": "0-5m" if d < AUTHORED_MERGE_M else f"5-{int(PROPOSAL_M)}m"}
     if _is_lake(q.bnd):
         wbk = str(q.bnd.boundary_id).split(":", 1)[1]
         lake = graph.nodes.get(f"lake:{wbk}")
@@ -203,6 +225,8 @@ def _plan_blk(graph, blk, sps, nids, conflicts=None, proposals=None) -> list[_Pl
                     standing[m] = _Place(m, b, existing=True, end=(m <= lo or m >= hi), edge=edge)
                 elif p.bnd is None and b is not None:
                     p.bnd, p.edge = b, edge
+                elif b is not None:                    # both copies: no alias or name left behind
+                    p.bnd = _union_bound(p.bnd, b)
     existing = sorted(standing.values(), key=lambda p: p.m)
 
     def _shiftable(q: _Place, M: float) -> bool:
@@ -256,19 +280,46 @@ def _plan_blk(graph, blk, sps, nids, conflicts=None, proposals=None) -> list[_Pl
                                   "at_m": round(m1, 2), "distance_m": round(m2 - m1, 2)})
     # An authored point a sliver from a lake edge / natural end: it stays, the pair is reported, and a
     # re-anchoring is PROPOSED (it is usually meant to BE at the lake) for the owner to accept.
+    def _kind(q: _Place) -> str:
+        return "lake_edge" if _is_lake(q.bnd) else "line_end" if q.end else "minted_edge"
+
     seen: set[int] = set()
+    sliver: set[tuple[int, int]] = set()               # (point, place) pairs reported as conflicts
     for d, _m, _k, sp, q in sorted(near, key=lambda t: t[:3]):
         if id(sp) in taken or id(sp) in seen:
             continue
         seen.add(id(sp))
-        kind = "lake_edge" if _is_lake(q.bnd) else "line_end" if q.end else "minted_edge"
+        sliver.add((id(sp), id(q)))
         mine = f"split:{sp.split_id}"
         other = str(q.bnd.boundary_id) if q.bnd is not None else f"end:{q.edge or 'bare'}"
         if conflicts is not None:
-            conflicts.append({"blk": blk, "kind": kind, "ids": sorted({mine, other}),
+            conflicts.append({"blk": blk, "kind": _kind(q), "ids": sorted({mine, other}),
                               "at_m": round(min(q.m, sp.route_measure), 2), "distance_m": round(d, 2)})
-        if proposals is not None:
-            proposals.append(_proposal(graph, blk, sp, q, kind, d))
+    # PROPOSALS (owner 2026-10-24): an authored cut within `PROPOSAL_M` of a lake edge or of its line's
+    # mouth (a `confluence` anchor) is offered a re-anchoring there — placement unchanged, the cut stands
+    # where it is. A source end or a minted cut offers no anchor: proposed only for the sliver conflict
+    # itself (report-only). The nearest wins; a cut standing ON a place (taken there) needs none.
+    if proposals is not None:
+        offer = []
+        for sp in authored:
+            if sp.at_edge:
+                continue
+            on = taken.get(id(sp))
+            if on is not None and abs((on.from_m if on.from_m is not None else on.m)
+                                      - sp.route_measure) <= _tol.SAME_PLACE_M:
+                continue
+            for q in existing:
+                if q is on:
+                    continue
+                d = abs(q.m - sp.route_measure)
+                anchored = _is_lake(q.bnd) or (q.end and q.edge == "mouth")
+                if (anchored and _tol.SAME_PLACE_M < d < PROPOSAL_M) or (id(sp), id(q)) in sliver:
+                    offer.append((d, q.m, _key(sp), sp, q))
+        done: set[int] = set()
+        for d, _m, _k, sp, q in sorted(offer, key=lambda t: t[:3]):
+            if id(sp) not in done:
+                done.add(id(sp))
+                proposals.append(_proposal(graph, blk, sp, q, _kind(q), d))
 
     # 2. AUTO: the nearest standing boundary or authored place within the family's distance (an
     #    authored place within at least `AUTHORED_MERGE_M`: it joins the name, at the name's measure) —
@@ -317,21 +368,27 @@ def _place_boundary(place: _Place) -> SectionBoundary:
     canon = _canonical(place)
     old = place.bnd
     ids: set[str] = {f"split:{s.split_id}" for s in place.members}
+    # EVERY NAME TOO (owner 2026-10-24): each member's label, and the standing boundary's own
+    labels = [s.label or s.split_id for s in place.members]
     if old is not None:
         ids.add(str(old.boundary_id))
         ids.update(old.aliases or ())
+        labels += [old.label, *(old.names or ())]
     if isinstance(canon, SectionBoundary):
-        return replace(canon, aliases=tuple(sorted(ids - {str(canon.boundary_id)})))
+        return replace(canon, aliases=tuple(sorted(ids - {str(canon.boundary_id)})),
+                       names=_other_names(canon.label, *labels))
     mine = f"split:{canon.split_id}"
     # CARRYING THE REF IS NOT CARRYING THE NAME: a displaced lake edge's ref is `lake:{wbk}`, which no
     # rule writes; the registry spells the bindable id from the LABEL (`registry.build._expand`), so the
     # label travels (the Sproat reach). A displaced split's ref already is its name.
     if old is not None and old.label and not str(old.boundary_id).startswith("split:"):
         ids.add(f"label:{old.label}")
+    label = canon.label or canon.split_id
     return SectionBoundary(boundary_id=mine,
                            kind=_ANCHOR_KIND.get(canon.anchor_type.value, BoundaryKind.split),
-                           route_measure=place.m, label=(canon.label or canon.split_id),
-                           aliases=tuple(sorted(ids - {mine})), source=canon.source)
+                           route_measure=place.m, label=label,
+                           aliases=tuple(sorted(ids - {mine})), source=canon.source,
+                           names=_other_names(label, *labels))
 
 
 def _stream_nids_by_blk(graph, blks) -> dict[str, list[str]]:
@@ -445,7 +502,8 @@ def _alias_onto_lake(graph, blk, sp, by_blk=None) -> tuple[str, float] | None:
             return None                               # deep inside the lake: not this edge
         if want in (target.aliases or ()):
             return target.boundary_id, dist
-        merged = replace(target, aliases=tuple(target.aliases or ()) + (want,))
+        merged = replace(target, aliases=tuple(target.aliases or ()) + (want,),
+                         names=_other_names(target.label, *(target.names or ()), sp.label))
         for other in nids:                            # the bound is shared by the pieces it separates
             n = graph.nodes.get(other)
             if n is None:
@@ -502,11 +560,14 @@ def _coincident(graph, blk, sp, by_blk=None) -> bool:
         prior = set(hit.aliases or ()) | {str(hit.boundary_id)}
         if hit.label and not str(hit.boundary_id).startswith("split:"):
             prior.add(f"label:{hit.label}")
+        label = sp.label or sp.split_id
         merged = SectionBoundary(boundary_id=mine, kind=kind, route_measure=hit.route_measure,
-                                 label=(sp.label or sp.split_id),
-                                 aliases=tuple(sorted(prior - {mine})))
+                                 label=label, aliases=tuple(sorted(prior - {mine})),
+                                 source=sp.source,
+                                 names=_other_names(label, hit.label, *(hit.names or ())))
     else:
-        merged = replace(hit, aliases=tuple(hit.aliases or ()) + (mine,))
+        merged = replace(hit, aliases=tuple(hit.aliases or ()) + (mine,),
+                         names=_other_names(hit.label, *(hit.names or ()), sp.label))
     for nid in nids:                                  # the bound is shared by the pieces it separates
         n = graph.nodes.get(nid)
         if n is None or n.kind != NodeKind.stream or n.blk != blk:

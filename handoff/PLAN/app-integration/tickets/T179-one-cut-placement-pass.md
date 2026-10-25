@@ -97,5 +97,26 @@ Predicted binding diff (from the live `splits.resolved.json`; lake edges need th
   confluence proposal. Mutation-checked: letting the authored take a near lake/end fails 2, not
   shifting the minted cut fails 3, dropping the auto 5 m join fails 1.
 
+Follow-up 2 (owner 2026-10-24, code only):
+- Proposals reach 25 m (`PROPOSAL_M`): a curated cut within 25 m of a lake edge or its line's mouth gets a
+  re-anchor proposal with `band` "0-5m" / "5-25m"; placement unchanged; only < 5 m is also a conflict (a
+  source end / minted cut: sliver-only, as before). Expect more proposals than conflicts after the rebuild.
+- A merged place keeps every id AND name: new `SectionBoundary.names` / `RegistryBoundary.names` (every
+  other label at the place; registry.json writes it when non-empty). Alias-loss holes closed: the
+  registry's flowing-polygon fold kept only the last copy of a shared boundary (now unions aliases +
+  names); a standing place read one piece's copy of its bound (now unions both); `_coincident`'s border
+  case dropped `source` (read back as authored) and the cut's name; an area point placed WITH another
+  point is now cut in the aliased call, so a lake-side alias keeps its id; `minted_id` reads the family
+  by its first separator. Review app: aliases via `bare_split_id` (a `lake:` ref no longer became a bare
+  number), `names` served, label "canonical (also: …)", an extent naming an alias marks the cut used, a
+  merged splits.json id is no longer listed "new/pending".
+- Tests: `test_merged_place_binds.py` (sectionizer → registry → `resolve_extent`: every alias id binds the
+  same sections as the canonical id, upstream/downstream/between; mutation-checked — dropping member ids
+  in `_place_boundary`, registry aliases, or `answers_to`'s alias half fails it); sectionizer tests for
+  the 25 m band, names in any order, border source, `minted_id` (mutations: radius 5, no `anchored`
+  gate, dropping the standing name each fail one).
+- No POLICY_VERSION bump: no reach code changed; the graph/registry differences ride the pending
+  rebuild that 34 already marks.
+
 Left: atlas rebuild, reach run, rule AND gauge binding diff reviewed (subtract an old-vs-old diff: the
 atlas is not deterministic); every moved binding explained before promote.

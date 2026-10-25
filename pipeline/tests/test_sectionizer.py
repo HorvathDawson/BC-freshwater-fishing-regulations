@@ -526,7 +526,8 @@ def test_a_curated_split_a_sliver_from_an_end_stays_and_is_reported():
     assert conflicts == [{"blk": "1", "kind": "line_end", "ids": ["end:source", "split:talchako"],
                           "at_m": 997.0, "distance_m": 3.0}]
     assert proposals == [{"split_id": "talchako", "blk": "1", "kind": "line_end", "edge": "source",
-                          "distance_m": 3.0, "split_m": 997.0, "edge_m": 1000.0, "anchor": None}]
+                          "distance_m": 3.0, "split_m": 997.0, "edge_m": 1000.0, "band": "0-5m",
+                          "anchor": None}]
     assert [s["node"] for s in SG.slivers(g, before)] == ["1:997"]
 
     # at the MOUTH end the line's own confluence is the anchor offered
@@ -737,3 +738,92 @@ def test_the_aliases_add_no_cut():
     pts = [SplitPoint("area:5", "X", m, "", "R5", AnchorType.area_boundary) for m in (120.0, 250.0)]
     split_graph_at(g, {}, pts)
     assert {nid for nid, n in g.nodes.items() if n.blk == "X"} == {"X:0", "X:120", "X:250"}
+
+
+# ------------------------------------------------------------------------------------------
+# T179 follow-up 2 (owner 2026-10-24): proposals reach 25 m; a merged place keeps every name
+# ------------------------------------------------------------------------------------------
+def test_a_lake_or_mouth_within_25_m_draws_a_proposal_and_the_cut_never_moves():
+    """Within `PROPOSAL_M` of a lake edge or the line's mouth an authored cut is OFFERED the anchor, with
+    its distance band; placement is untouched (it stands where it is) and only under 5 m is the pair
+    also a sliver conflict. A source end offers no anchor, so past the sliver it draws nothing."""
+    from pipeline.atlas.splits.sectionizer import PROPOSAL_M, place_points
+    from pipeline.common.models import NodeKind, StreamNode
+    assert PROPOSAL_M == 25.0
+
+    def line():
+        lake = _lake(1000, "329016195", "Great Central Lake")
+        g = _line((0, 1000, None, lake), (3000, 4000, _lake(3000, "329016195", "Great Central Lake"), None))
+        g.nodes["lake:329016195"] = StreamNode(node_id="lake:329016195", kind=NodeKind.lake,
+                                               wbk="329016195", gnis_id="17501")
+        return g
+    pts = [_p("bridge_below", 988.0), _p("far_bridge", 960.0), _p("weir_above", 3003.0),
+           _p("mouth_bridge", 20.0), _p("near_source", 3988.0)]
+    conflicts, proposals = [], []
+    placed = place_points(line(), pts, conflicts=conflicts, proposals=proposals)
+    assert {p.split_id: p.route_measure for p in placed} == \
+        {p.split_id: p.route_measure for p in pts}, "no cut moves"
+    got = {p["split_id"]: (p["kind"], p["edge"], p["distance_m"], p["band"], p["anchor"]) for p in proposals}
+    assert got == {
+        "bridge_below": ("lake_edge", "outlet", 12.0, "5-25m", {"type": "lake", "wbk": "329016195"}),
+        "weir_above": ("lake_edge", "inlet", 3.0, "0-5m", {"type": "lake", "wbk": "329016195"}),
+        "mouth_bridge": ("line_end", "mouth", 20.0, "5-25m", {"type": "confluence", "tributary_blk": "1"}),
+    }, "far_bridge (40 m) and near_source (a source end, 12 m) draw nothing"
+    assert [(c["kind"], c["ids"]) for c in conflicts] == [
+        ("lake_edge", ["lake:329016195", "split:weir_above"])], "only the 3 m pair is a sliver"
+    g = line()
+    split_graph_at(g, {}, pts)
+    assert sorted({m for m, *_ in _bounds(g)}) == [20.0, 960.0, 988.0, 1000.0, 3000.0, 3003.0, 3988.0]
+
+
+def test_a_merged_place_carries_every_name_and_every_id():
+    """Authored + authored under 1 m + gauge + area at one place, and a cut aliased onto a lake's edge:
+    the place keeps the canonical name, every other id is an alias and every other NAME is in
+    `names` — whatever order the points arrive in."""
+    import random
+    pts = [_p("bridge", 500.0, label="Old Bridge"), _p("bridge_again", 500.4, label="Old Bridge (dup)"),
+           _p("gauge__08XX001", 650.0, source="gauge", label="Test R near town"),
+           _p("area:9", 500.0, source="area", label="Region 9", anchor=AnchorType.area_boundary)]
+    want = ("split:bridge", "Old Bridge",
+            ("split:area:9", "split:bridge_again", "split:gauge__08XX001"),
+            ("Old Bridge (dup)", "Region 9", "Test R near town"))
+    rng = random.Random(7)
+    for _ in range(12):
+        g = _line((0, 1000, None, None))
+        split_graph_at(g, {}, rng.sample(pts, len(pts)))
+        b = g.nodes["1:0"].upper_bound
+        assert (b.boundary_id, b.label, b.aliases, b.names) == want
+        assert g.nodes["1:500"].lower_bound == b
+
+    # lake-side: a dam projecting into the lake run is the edge's alias, its name with it
+    g = _line((0, 1000, None, _lake(1000)), (3000, 4000, _lake(3000), None))
+    split_graph_at(g, {}, [_p("dam", 1010.0, label="Sproat dam")], aliased=[])
+    edge = g.nodes["1:0"].upper_bound
+    assert (edge.label, edge.aliases, edge.names) == ("Sproat Lake", ("split:dam",), ("Sproat dam",))
+
+    # a split taking a lake's edge carries the lake's name (and the `label:` the registry binds by)
+    g = _line((0, 1000, None, _lake(1000)))
+    split_graph_at(g, {}, [_p("dam", 990.0, label="Sproat dam", at_edge=True)])
+    edge = g.nodes["1:0"].upper_bound
+    assert (edge.label, edge.names) == ("Sproat dam", ("Sproat Lake",))
+    assert "label:Sproat Lake" in edge.aliases
+
+
+def test_a_border_coincident_with_a_cut_keeps_its_source_and_the_cuts_name():
+    """`_coincident`'s border case built a fresh boundary: it lost `source` (read back as AUTHORED) and the
+    standing cut's name."""
+    from pipeline.common.models import BoundaryKind, SectionBoundary
+    reg = SectionBoundary("split:area:5", BoundaryKind.area, 500.0, "Region 5", source="area")
+    g = _line((0, 500, None, reg), (500, 1000, reg, None))
+    split_graph_at(g, {}, [_p("border:1:0", 500.0, source="border", label="B.C. border",
+                              anchor=AnchorType.border)], exact=True)
+    b = g.nodes["1:0"].upper_bound
+    assert (b.boundary_id, b.source, b.names) == ("split:border:1:0", "border", ("Region 5",))
+    assert "split:area:5" in b.aliases
+
+
+def test_minted_id_reads_the_family_by_its_first_separator():
+    from pipeline.atlas.splits.sectionizer import minted_id
+    assert minted_id("gauge__08HB008") and minted_id("split:area:6") and minted_id("area:x__y")
+    assert minted_id("border:360512399:0") and minted_id("length:356559402:23614")
+    assert not minted_id("stamp_river__great_central_lake") and not minted_id("gauge_road_bridge")

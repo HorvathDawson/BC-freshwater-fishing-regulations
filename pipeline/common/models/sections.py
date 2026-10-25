@@ -25,6 +25,11 @@ class SectionBoundary:
     # edge). The sectionizer's placement reads authorship from it (`sectionizer.is_authored`), never
     # from the id's spelling (T179).
     source: str = ""
+    # THE OTHER NAMES AT THIS PLACE (T179 follow-up, owner 2026-10-24: "a merged place carries every
+    # name and every id"): the label of every id in `aliases` that had one — the authored point written
+    # twice, the gauge, area, border or length cut that joined it, the lake whose edge it is — sorted,
+    # the canonical `label` never repeated. Shown as "label (also: ...)"; ids still bind via `aliases`.
+    names: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)

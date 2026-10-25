@@ -75,6 +75,22 @@ THREADED_JOINS = False
 _WATER = ("stream", "lake", "wetland")
 
 
+def _union_by_id(bounds) -> list:
+    """The folded parts' boundaries, once per id — a cut-point two parts both carry keeps EVERY alias and
+    name either copy holds (a `{b.id: b}` fold kept the last copy and dropped the first's aliases)."""
+    out: dict = {}
+    for b in bounds:
+        prev = out.get(b.id)
+        if prev is None:
+            out[b.id] = b
+            continue
+        al = tuple(dict.fromkeys((*b.aliases, *prev.aliases)))
+        nm = tuple(sorted(set(prev.names) | set(b.names)))
+        # the last copy stands (as the old fold had it), carrying the first's ids and names too
+        out[b.id] = b if (al == b.aliases and nm == b.names) else replace(b, aliases=al, names=nm)
+    return list(out.values())
+
+
 def _norm(s: str) -> str:
     """THE name key (`pipeline.common.names.key`, T61 2.8)."""
     return key(s)
@@ -276,7 +292,7 @@ def merge_flowing_polygons(registry: dict[str, RegistryItem], graph, polys: dict
         secs += sorted(s for s in gap_pieces if s not in set(secs))
         own_wbks = _own_polygon_wbks(secs)
         bounds, lost = [], []
-        for b in {b.id: b for p in parts for b in p.boundaries}.values():
+        for b in _union_by_id(b for p in parts for b in p.boundaries):
             if b.kind == "lake" and b.wbk in own_wbks:
                 if b.aliases:
                     lost.append(b.id)

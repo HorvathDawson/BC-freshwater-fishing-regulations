@@ -1283,3 +1283,8 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
   reported, each pair writes a PROPOSAL to `split_lake_anchor_proposals.json` (next to split_conflicts.json) to
   re-curate it as a `lake` anchor (wbk + gnis, inlet/outlet, distance) — or, at the line's own mouth, a
   `confluence` anchor on its blk; a source end is report-only. Never applied: the owner accepts each (T185).
+- Follow-up 2: the PROPOSAL radius is 25 m (`sectionizer.PROPOSAL_M`) — a curated cut within 25 m of a lake edge or
+  its line's mouth gets a re-anchor proposal with its distance `band` ("0-5m" | "5-25m"); placement unchanged, only
+  under 5 m is it also a sliver conflict (a source end / minted cut stays sliver-only, no anchor). A MERGED PLACE
+  CARRIES EVERY NAME AND EVERY ID: all ids in `aliases` (any binds), every other label in `SectionBoundary.names` →
+  `RegistryBoundary.names`; the review app labels it "canonical (also: …)".

@@ -817,8 +817,14 @@ def main() -> None:
         # Area cuts run in their own call because each is followed by its inside marking; they are
         # placed with the rest above. Everything still runs BEFORE any tributary walk so each piece is
         # a first-class node.
-        area_pts = [p for p in pts if p.anchor_type == AnchorType.area_boundary]
-        other_pts = [p for p in pts if p.anchor_type != AnchorType.area_boundary]
+        # An area point PLACED WITH another point (same blk + measure) is cut with it, so where that
+        # place lands in a lake run and becomes the edge's alias, the area id is aliased too — a merged
+        # place keeps every id (owner 2026-10-24); in its own call it found no piece and vanished.
+        _shared = {(p.blk, p.route_measure) for p in pts if p.anchor_type != AnchorType.area_boundary}
+        area_pts = [p for p in pts if p.anchor_type == AnchorType.area_boundary
+                    and (p.blk, p.route_measure) not in _shared]
+        _alone = {id(p) for p in area_pts}
+        other_pts = [p for p in pts if id(p) not in _alone]
         aliased_splits: list = []
         split_graph_at(graph, geoms, other_pts, fid_index,
                        applied=applied_splits, aliased=aliased_splits)

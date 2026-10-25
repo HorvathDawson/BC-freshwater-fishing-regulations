@@ -35,6 +35,7 @@ from pipeline.atlas.reach.classify import wants_tributaries as _wants_tributarie
 from pipeline.atlas.reach import extent as _resolve
 from pipeline.common.curated import CURATED, GENERATED, SOURCE
 from pipeline.atlas.splits.sectionizer import minted_id as _auto_split
+from pipeline.common.models.registry import bare_split_id
 from pipeline.atlas.splits.splits import splits_on
 
 _ROOT = Path(__file__).resolve().parents[2]
@@ -356,8 +357,12 @@ def _boundary_dict(b) -> dict:
     # `aliases`: other curated split ids this same cut-point answers to (a split that landed inside a
     # lake run and was recorded on the lake's boundary rather than dropped). Surfaced so the picker can
     # say what a boundary represents instead of it silently standing for more than its own label.
+    # Each alias as a rule names it (`registry.bare_split_id`: only the graph's `split:` strip — the old
+    # split-at-the-first-colon turned `split:area:5` right but `lake:329016195` into a bare number).
+    # `names`: every other NAME at the place (`SectionBoundary.names`), shown "label (also: …)".
     return {"id": b.id, "label": b.label, "kind": b.kind, "ref": b.ref, "wbk": b.wbk,
-            "aliases": [str(a).split(":", 1)[-1] for a in (getattr(b, "aliases", ()) or ())],
+            "aliases": [bare_split_id(str(a)) for a in (getattr(b, "aliases", ()) or ())],
+            "names": list(getattr(b, "names", ()) or ()),
             "curated": str(b.ref or "").startswith("split:"),
             # a position the pipeline minted (a gauge, a length or area cut), not a split anyone
             # authored in splits.json — so neither "orphan" when splits.json lacks it, nor an
@@ -388,6 +393,10 @@ def unused_curated_splits(e: dict, item: dict | None) -> list[dict]:
     # rules' extents alone, so the two Skeena cuts only its classified-water record binds (the
     # Kitsumkalum confluence, the Ecological Reserve) were listed "unused" (T119 review).
     used = {sid for _path, ex, _role in iter_extents(e) for sid in (ex.get("splits") or ())}
+    # A rule naming ANY id a cut-point answers to uses it — a merged place's alias binds it too.
+    for b in _boundaries(item):
+        if used & set(b.answers_to()):
+            used.add(b.id)
     meta = _splits_meta()
     out = []
     for sid in sorted(curated - used):
@@ -421,12 +430,17 @@ def bindable(item) -> list[dict]:
         if str(b.ref or "").startswith("split:"):
             d["meta"] = split_meta(b.id)          # as-built resolved values
         out[b.id] = d
+    # a curated split that MERGED into another place is that place under another id, not "pending"
+    alias_of = {a: b.id for b in _boundaries(item) for a in b.answers_to()[1:]}
     for sp in _item_split_source(item):
         sid = sp.get("id")
         if not sid:
             continue
         live = {"label": sp.get("label"), "kind": sp.get("kind"),
                 "anchor": sp.get("anchor"), "note": sp.get("note"), "review": split_review(sp)}
+        if sid not in out and alias_of.get(sid) in out:
+            out[alias_of[sid]].setdefault("alias_live", {})[sid] = live
+            continue
         if sid in out:
             out[sid]["in_splits"] = True
             out[sid]["live"] = live

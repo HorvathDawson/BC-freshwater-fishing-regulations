@@ -450,6 +450,10 @@ export interface Boundary {
   curated: boolean;
   /** a cut the build minted itself (gauge__…, length:…, area:…) — never in splits.json */
   minted?: boolean;
+  /** every other id this cut-point answers to (a rule naming any of them binds it) */
+  aliases?: string[];
+  /** the other NAMES at this place (merged gauge/area/border/length, lake, a second authored point) */
+  names?: string[];
   item_id?: string; // which registry item this cut-point belongs to (combined entries)
   meta?: Record<string, unknown> | null; // AS-BUILT split metadata (anchor_type, route_measure, blk, …)
   in_graph?: boolean; // baked into the current graph build

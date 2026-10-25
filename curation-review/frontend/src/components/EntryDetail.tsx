@@ -27,6 +27,12 @@ interface Props {
   onMarked: (final: boolean) => void;
 }
 
+// A merged place carries every name (owner 2026-10-24): "canonical (also: …)".
+function splitLabel(b: Boundary): string {
+  const base = (b.live?.label ?? b.label) || b.id;
+  return b.names && b.names.length ? `${base} (also: ${b.names.join(", ")})` : base;
+}
+
 // Curated-split state vs the built graph, for the colour-coded chip badge.
 function boundaryState(b: Boundary): { cls: string; text: string; title: string } | null {
   if (!b.curated) return null;
@@ -184,7 +190,7 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
     for (const b of boundaries) {
       if (seen.has(b.id) || !b.curated) continue;
       seen.add(b.id);
-      out.push({ id: b.id, name: `${(b.live?.label ?? b.label) || b.id} (${b.kind}${
+      out.push({ id: b.id, name: `${splitLabel(b)} (${b.kind}${
         b.live?.label || b.label ? ` · ${b.id.split("__").pop()}` : ""})` });
     }
     return out;
@@ -494,7 +500,7 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
                     onClick={() => setSelBoundary((cur) => (cur === b.id ? null : b.id))}>
                     {b.curated ? "★ " : ""}
                     <span title={b.live && b.live.label !== b.label ? `built: ${b.label}` : undefined}>
-                      {(b.live?.label ?? b.label) || b.id}
+                      {splitLabel(b)}
                     </span>
                     <span className="anchor">{b.kind}</span>
                     {alsoItems.length > 0 && b.item_id && (
@@ -522,7 +528,7 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
               ];
               return (
                 <div className="split-info">
-                  <strong>{b.curated ? "Curated split" : "Boundary"}: {b.label || b.id}</strong>
+                  <strong>{b.curated ? "Curated split" : "Boundary"}: {splitLabel(b)}</strong>
                   <table>
                     <tbody>
                       {rows.filter(([, v]) => v !== undefined && v !== null && v !== "").map(([k, v]) => (
