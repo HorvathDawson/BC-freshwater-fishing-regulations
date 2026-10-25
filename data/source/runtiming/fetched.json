@@ -23,5 +23,11 @@
     "landing": "https://data.salmonwatersheds.ca/result?datasetid=90",
     "updated": "2024-09-10",
     "source_data_from": ["LGL Ltd.", "Fisheries and Oceans Canada", "Pacific Salmon Commission"]
+  },
+  "permission": {
+    "granted": "2026-10-24",
+    "what": "derived run-timing curves and CU-based reach assignments, shipped in the free app (T162)",
+    "attribution": "Pacific Salmon Foundation (Salmon Watersheds Program)",
+    "note": "Asked for by the owner and granted in writing. PSF asked that its reply not be shared: it is not stored. The pages themselves are not tracked (Q163): only the parsed data is."
   }
 }

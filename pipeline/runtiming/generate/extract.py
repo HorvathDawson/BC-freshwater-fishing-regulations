@@ -128,7 +128,8 @@ def _dates(daily: list[float]) -> tuple[str, tuple[str, str]]:
     return fmt(peak), (fmt(out.get(0.05, 0)), fmt(out.get(0.95, 364)))
 
 
-def main(src: Path, out: Path, review: Path | None) -> None:
+def runs_from_page(src: Path, review: Path | None) -> dict[int, Run]:
+    """Every conservation unit on the saved run-timing page, with its curve and label (T162: `parse` reads this)."""
     html = (src / "run-timing.html").read_text()
     raw = flight(html)
     rows = _rows(raw)
@@ -176,7 +177,11 @@ def main(src: Path, out: Path, review: Path | None) -> None:
             quality=q, quality_word=RATINGS[q],
             peak_date=peak, span=span,
         )
+    return runs
 
+
+def main(src: Path, out: Path, review: Path | None) -> None:
+    runs = runs_from_page(src, review)
     write_runs(out / "runs.json", runs, {
         "source": "https://www.salmonexplorer.ca/explore/data/run-timing/",
         "units": len(runs),

@@ -49,7 +49,8 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   Q148 dams → "lake" for the slough candidates · Q149 Bonaparte by hand.
 - **No-access look (T165, built):** answered 2026-10-24 (as built).
 - **Gauge gaps on main rivers (T174):** Q153–Q155, measured before anything changes.
-- **Run timing (T162, new):** Q144 default species, passage reaches shown dashed, its own map layer.
+- **Run timing (T162, data + plan):** read `handoff/PLAN/runtiming/PLAN.md` and say go or not for the app; Q144
+  (steelhead first, passage on a paler ramp, its own layer) and the release total (~14.92 of 15 MB with `runs`).
 - **Scope and big rebuilds:** Q10 imagery corridor · Q32 salmon plan · Q142 Shuswap lake rings.
 - **Things only you can do or know:** Q114 the 30-entry curation pilot · Q4 slough marks (review page) · Q126 were you
   on Level? · Q119 audit references · Q30 Atnarko campsite signs · Q9 phone testing · Q26 hosting/app name ·

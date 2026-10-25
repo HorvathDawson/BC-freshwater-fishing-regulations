@@ -16,6 +16,9 @@ source/*.pmtiles
 # pages and the 748-tile cache stay local and are re-fetched by pipeline.runtiming.fetch.
 source/runtiming/*.html
 source/runtiming/cu_tiles/
+# DFO NuSEDS (Open Government Licence – Canada, T162): 227 MB of CSV, re-fetched by pipeline.runtiming.fetch.nuseds;
+# only the parsed timings (data/curated/runtiming/timing.json) are tracked.
+source/runtiming/dfo/
 # Steelhead evidence (pipeline/regs/steelhead/known_waters.py): the accessibility model (6.6 GB)
 # and ~17,000 DataBC records, both re-fetched by the script when missing.
 source/steelhead/

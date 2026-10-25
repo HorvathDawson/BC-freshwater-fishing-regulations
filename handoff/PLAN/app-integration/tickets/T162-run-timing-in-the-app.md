@@ -1,6 +1,6 @@
 # T162 — Salmon and steelhead run timing in the app: refresh the data, ship it, colour the map by when fish are there
 
-Status: OPEN
+Status: PARTIAL — data + plan; app integration awaits owner
 
 Source: owner 2026-10-23: "add a ticket for adding run timing info that we scraped into the app too. will have to create
 the feed … we started implementing a run timing with the stream network on when fish would have to be passing through an
@@ -45,7 +45,22 @@ coloring layer)." Related: T95 / T132 (salmon regulations; the owner said 2026-1
 Depends: nothing blocking; heavy (generate needs the atlas) → one at a time via scripts/heavy.sh. Size: L.
 Rebuild: runtiming fetch + generate, release (new file), app.
 
-## Outcome (2026-10-24) — STOPPED at step 1: the terms forbid redistribution
+## Outcome (2026-10-24, reopened) — PARTIAL: data + plan; app integration awaits owner
+
+Reopened after PSF granted permission (their reply is not stored or quoted anywhere). Owner scope (same day): the data
+and an integration plan only, nothing in the app.
+
+- **Data:** `python -m pipeline.runtiming.parse` -> `data/curated/runtiming/timing.json` (tracked): 329 PSF CU curves +
+  4,944 DFO NuSEDS stream records (new `fetch/nuseds.py`, OGL – Canada). The three PSF pages are untracked
+  (gitignored, Q163); `fetched.json` records the permission and attribution, not the reply.
+  Tests: `pipeline/tests/test_runtiming_parse.py`.
+- **Plan:** `handoff/PLAN/runtiming/PLAN.md` — binding at delivery (spawning / passage / observed, with the guards a
+  prototype run on the live atlas found), the `runs/1` release file (866 kB gz; the total would be ~14.92 of 15 MB),
+  the Fish runs colouring, the runs sheet, credits, and the open questions (Q144, the size gate).
+- **Not done (owner's call):** any deliver, release or app change. A prototype of all of it was built, measured and
+  reverted (not committed).
+
+## Outcome (2026-10-24) — STOPPED at step 1: the terms forbid redistribution (superseded above)
 
 Nothing was fetched, regenerated, shipped or built. The brief was to record the dataset's licence first and stop if it
 forbids redistribution; it does.

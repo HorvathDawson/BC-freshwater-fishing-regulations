@@ -171,11 +171,13 @@ class Domain(BaseModel):
 
 
 class RunTiming(BaseModel):
-    """Authored run-timing curation. See `data/curated/runtiming/review.json`."""
+    """Run timing: the authored curation (`review.json`) and the parsed timings deliver reads (`timing.json`,
+    `pipeline/runtiming/timing.py`)."""
 
     model_config = ConfigDict(frozen=True)
 
     review: FilePath
+    timing: Path
 
     _abs = field_validator("*", mode="before")(_absolute)
 

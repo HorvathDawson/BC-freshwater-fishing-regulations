@@ -51,8 +51,8 @@ generated:
     feeds: "data/generated/gauges/feeds"               # per-station published JSON
     match: "data/generated/gauges/match.json"          # the matcher's raw output; `promote` reads it (T94)
 
-  # Run timing (pipeline/runtiming/generate): runs.json, the section->CU index, the
-  # deduplicated profiles and the colour cube. Re-runnable from data/source/runtiming/.
+  # Run timing: the CU polygons `pipeline.runtiming.parse` stitches from the cached Explorer
+  # tiles (cu_polygons.geojson, read by `pipeline.deliver runs`). Re-runnable from data/source/runtiming/.
   runtiming: "data/generated/runtiming"
   # THE SHIPPED SET (MINIMAL-PACKAGING §1; P08/P18), apart from every build artifact: data/release/<data_release>/,
   # data/release/tiles/<tile_version>/ (geometry-only atlas, the outside-BC mask, map assets), data/release/basemap/.
@@ -136,6 +136,9 @@ curated:
   # is a water an angler will look up and find nothing for — see `coverage_gaps`.
   runtiming:
     review: "data/curated/runtiming/review.json"
+    # PARSED, not authored (T162): every PSF CU curve and DFO NuSEDS stream timing, rewritten by
+    # `python -m pipeline.runtiming.parse`; tracked because the fetched pages are not.
+    timing: "data/curated/runtiming/timing.json"
 
   # --- matches: machine-produced, human-reviewed ---------------------------------
   #
