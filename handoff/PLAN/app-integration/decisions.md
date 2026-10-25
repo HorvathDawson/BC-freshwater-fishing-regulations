@@ -1229,3 +1229,13 @@ local tool's fix-mode writers are retired (T185). The review itself moves to a s
 Every proposed braid cut, re-home and left-alone card marked right on round 3 (artifact Et8B4Z6ZbKNNw9mMkJWzFH). The
 Ditches tab needs nothing (Q1 already decided: ditch-only lines leave their river). T67 merged and promoted with a
 full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
+
+## OWNER 2026-10-24 — T183 follow-ups
+- **Two regions' limits on one piece: stricter wins.** An angler on a straddling piece is under both regions' rules,
+  so every cap (total and each sub-cap, e.g. "from streams") is the stricter of the two, and the card shows that
+  combined group. Region 2 vs 8 hatchery steelhead over 50 cm → 1.
+- **A touch is not membership: 5 m minimum** (SLIVER_M) inside a region polygon. Supersedes RULINGS E9's Contact Creek
+  example (its 2.8 m in Region 6 does not bring Region 6's rules).
+- **Skeena "section 2" starts at the Exchamsiks cut** (book p.53: Exchamsiks River to 1.5 km above Kitsumkalum),
+  not the Ecological Reserve's crossing. Applied as one reviewed curated change with its binding diff (T185 rule:
+  the owner approved this proposal here).
