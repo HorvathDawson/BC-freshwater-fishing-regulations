@@ -18,4 +18,9 @@ with the default Claude uses until you answer). Newest first inside each section
   a moved length cut changing a 1 km Fraser piece's region 5 → 7; the Exchamsiks curated-split fix). Nothing is promoted until you have marked them. (Push is off in /config, so no
   notification was sent.)
 
+- **SEO / domain (T188 plan, T198):** confirm you own canifishthis.ca and canifishthis.com; at the registrar/DNS set
+  .com and www to 301 to https://canifishthis.ca. Once hosting (T86) is live: add Domain properties in Google Search
+  Console (DNS TXT), import to Bing Webmaster, submit /sitemap.xml, and give Claude the tokens. Later, send the
+  outreach by hand (T197). Plan: handoff/PLAN/seo/PLAN.md sections 4 and 7.
+
 ## Reviews

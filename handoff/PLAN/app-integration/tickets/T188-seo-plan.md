@@ -1,6 +1,6 @@
 # T188 — Get found in search: an SEO plan and the work it needs
 
-Status: OPEN. Owner 2026-10-24: "how to create bots or something that promote SEO or build a plan to do SEO and get
+Status: PARTIAL — plan done (handoff/PLAN/seo/PLAN.md); the build is T192-T198. Owner 2026-10-24: "how to create bots or something that promote SEO or build a plan to do SEO and get
 us up in the search results."
 
 ## Principle
