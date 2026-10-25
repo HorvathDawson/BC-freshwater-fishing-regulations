@@ -1825,7 +1825,7 @@ def entry_split_points(entry_id: str) -> dict | None:
                  or (getattr(b, "label", None) if b is not None else None) or sid)
         props = {"split_id": sid, "label": label, "water": water,
                  "name": f"{water}: {label}" if water else label, **by,
-                 "to_verify": bool(sp) and split_needs_verify(sp),
+                 "to_verify": split_needs_verify(sp) if sp else False,
                  "grade": split_grade(sp) if sp else None, "item_id": on_item}
         geom = None
         if sid in meta:                               # a cut on a line: its point on the section
