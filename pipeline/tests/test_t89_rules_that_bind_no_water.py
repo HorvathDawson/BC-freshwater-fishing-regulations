@@ -206,6 +206,17 @@ def test_rainbow_alley_is_in_the_nilkitkwa_rows_scope():
         "r6:nilkitkwa_lake@6-8::nilkitkwa_lake.r4 binds gnis:17687, outside its row's scope"]
 
 
+def test_caribou_creek_slough_is_in_the_caribou_creek_rows_scope():
+    """r1's `whole` of Caribou Creek slough (wbk:329262655, a stream item on lake:329262655) bound
+    nothing: the row's bare `whole` scope is the creek alone, and `build._clip` dropped the slough
+    (T179 side build: rule_section held only 356563426:1353). MUTATION: the bare scope misses it."""
+    e = _entries("4")["r4:caribou_creek@4-15"]
+    assert e["extents"] == [{"op": "whole"}, {"op": "whole", "item_id": "wbk:329262655"}]
+    assert scope_misses(e) == []
+    assert scope_misses({**e, "extents": [{"op": "whole"}]}) == [
+        "r4:caribou_creek@4-15::caribou_creek.r1 binds wbk:329262655, outside its row's scope"]
+
+
 @pytest.mark.parametrize("region,entry_id", [
     ("1", "r1:nanaimo_river@1-5"), ("6", "r6:nilkitkwa_lake@6-8"), ("6", "r6:fulton_river@6-8"),
     ("7", "r7:endako_river@7-12")])
