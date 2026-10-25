@@ -3,7 +3,21 @@
 Restart here. Update this file after EVERY step: what is done, what is running, and the exact next action.
 Logs from timing runs live in the session scratchpad, which a reboot wipes. The numbers that matter are copied here.
 
-## CURRENT STATE (2026-10-24, morning)
+## CURRENT STATE (2026-10-24, evening)
+- Live release **r-efd336f5dd3e**: T67 braids promoted (full `pipeline build --atlas --promote`, atlas + tiles new;
+  binding diff = predicted table, 0 unexplained) + T187 (Peace Site C piece back under its closure; 1 rule). Strict
+  app check 8159 green, full pytest green, request walk 31/31 PASS, card gate 0.
+- Merged today: T186 (web prefetch + chevrons), T184 phase 1 (curation pilot artifact
+  https://claude.ai/artifact/DSnzYbemqcTLbUXJud3DLp — owner marks, Claude imports with
+  `pipeline.regs.review.import_artifact_marks`), T180/T181, T129, T62/T63, T61.
+- Owner decisions today (decisions.md): braids accepted; T183 both regions (reverses T115); T185 no tool writes the
+  catalogue; order braids → T183 → tiles window → native → slough fold; T162 PSF permission (reply not stored; credit
+  PSF + DFO); Q162–Q164 settled; Okanagan oxbows → streams (in the slough fold).
+- Running: T183 lane (side reach + binding diff + card gate; also checks the Skeena reserve section-2 licensing).
+- Next: promote T183 → tiles window (T64, T85, T75, T113, T152, T155) → T62 3.2/3.9 + T73 → T179 → native (T50…).
+  T162 run timing after braids (PSF + DFO). T182 web splits. Owner: slough marks (151 so far), curation pilot.
+
+## (earlier) CURRENT STATE (2026-10-24, morning)
 - Live release **r-bb4331929428** (LATEST). Cleanup band done: T60, T61 (incl. 2.8 name normaliser, PROMOTED — no
   binding change, 3 duplicate aliases dropped), T62 (app + pipeline lanes; byte-identical outputs), T63 (MAP.md docs,
   knip in check, synopsis isolation fixed), T70, T72. Strict app check 8173 green; full pytest 5406 passed, 0 errors.
