@@ -1303,3 +1303,7 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
   US border split and the Region 4 line (12 m) MERGE; the BC border is GENERATED from the region polygons (one source),
   so border and region lines coincide. Area-vs-area pairs 10–20 m (Clayhurst / 7B, Chilkoot / 6) are left as they are.
   The build reports every curated cut 5–25 m from any other boundary.
+- Koocanusa (owner 2026-10-25): the split is the reservoir's INLET ("upstream of Koocanusa"). Rule: a lake-anchored cut's
+  edge follows the extent's direction (upstream of the lake → inlet, downstream → outlet), and the lake itself binds
+  only when it lies wholly inside the extent (as fixed before). The new explicit `edge` on lake anchors must agree with
+  this; check it in the binding diff.

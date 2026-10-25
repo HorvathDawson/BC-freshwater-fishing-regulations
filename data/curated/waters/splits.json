@@ -5102,7 +5102,7 @@
      "anchor": {
       "type": "lake",
       "wbk": "328961702",
-      "edge": "outlet"
+      "edge": "inlet"
      },
      "note": "",
      "_note": "Split authored in splits.json: 'kootenay_koocanusa' (lake). — authored split: kootenay_koocanusa [curated 2026-08-10 signs/other batch] [reservoir u/s end = Montana border ~49.0,-115.18; matches burbot-boundary] [T179 2026-10-25 owner-accepted] re-anchored on Lake Koocanusa (wbk 328961702) outlet; the point stood 0.0 m from that edge.",
