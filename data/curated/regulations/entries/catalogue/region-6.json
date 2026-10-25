@@ -7885,19 +7885,16 @@
       {
        "op": "between",
        "splits": [
-        "area:SKEENA RIVER ECOLOGICAL RESERVE",
+        "skeena_river__exchamsiks_river_into_skeena_river",
         "skeena_river__kitsumkalum_river_into_skeena_river_u1500m"
-       ],
-       "cut_pick": {
-        "area:SKEENA RIVER ECOLOGICAL RESERVE": "lower"
-       }
+       ]
       }
      ],
      "steelhead_stamp_waived": {
       "verbatim": "Steelhead Stamp not mandatory for Skeena River 2 unless fishing for steelhead."
      },
      "verbatim": "There are two separate Class II waters on the Skeena River (non-residents and non-resident aliens require separate licences describing which section they are fishing): (a) from Exchamsiks River to 1.5 km upstream of Kitsumkalum River (known as \"Skeena River 2\"), July 1-Sept 30",
-     "review_reason": "LS-1: the Exchamsiks confluence cut lies only on a Skeena side channel (blk 360216952), so a between from it never met the Kitsumkalum cut on the mainstem and bound 2 sections. The reach starts at the Skeena River Ecological Reserve's lower mainstem crossing (m 63,480), the nearest mainstem cut: ~1.5 km below the Exchamsiks mouth, so it over-requires the licence there (the safe direction). A mainstem split at the Exchamsiks needs an atlas rebuild.",
+     "review_reason": "From the Exchamsiks confluence cut (owner 2026-10-24, book p.53: from Exchamsiks River to 1.5 km upstream of Kitsumkalum River). T67 put that cut on the mainstem (360887278 at 67,917 m); before it the cut lay only on side channel 360216952 and the reach stood in at the Skeena River Ecological Reserve's lower mainstem crossing (m 63,480, LS-1), over-requiring the licence below the Exchamsiks.",
      "kind": "designation"
     },
     {
