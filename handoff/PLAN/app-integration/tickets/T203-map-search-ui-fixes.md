@@ -18,10 +18,11 @@ Source: owner 2026-10-25, using the app.
 4. **Kanaka Creek part 1 ("112 Avenue bridge → Cliff Park Falls"): the falls' label sits on the bridge.** The splits
    are right in the atlas (blk 356352191: bridge at 7,196.9 m, falls at 8,206.6 m, 1 km apart), so the end labels are
    placed wrong in the app (swapped ends, or labelled at the gauge 08MH076 boundary 20.7 m below the bridge — that
-   sliver goes away with T179's gauge merge). Find which and fix the end-label placement.
+   sliver goes away with T179's gauge merge). Find which and fix the end-label placement. Owner: Chilliwack's labels
+   looked right last checked — diff what Kanaka does differently (a reference that works).
 5. **Non-adjacent stretches in one part** (Kanaka part 2 = below the bridge + above the falls): by design a part groups
-   every stretch with the same rules ("Two stretches: …"). Owner to say if the map should show/select them as separate
-   stretches; at minimum the map must make clear they are two places.
+   every stretch with the same rules ("Two stretches: …"). Owner 2026-10-25: the map treats non-adjacent stretches as
+   SEPARATE stretches (each selectable on its own, its own label); only adjacent ones stay one stretch.
 
 ## Done when
 Each fixed with a test (layout-shift / tap target, search → map route, highlight contrast check on amber + cvd) and
