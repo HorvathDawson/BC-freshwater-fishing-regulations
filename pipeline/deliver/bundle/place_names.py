@@ -52,7 +52,7 @@ _AREA_KIND_WORDS = {
 #: allowlist of the "no displayed name is all caps" check (`is_shouting`).
 ACRONYMS = frozenset({
     "BC", "BCR", "CFB", "CFS", "CNR", "CPR", "CVWMA", "FSR", "IPP", "MF", "MU", "MUS", "OSM", "PGE",
-    "QFN", "RTA", "UBC", "US", "USA", "WMA", "WSC", "II", "III", "IV", "VI", "VII", "VIII", "IX"})
+    "QFN", "RTA", "UBC", "US", "USA", "WMA", "WSC", "OMM", "CD", "II", "III", "IV", "VI", "VII", "VIII", "IX"})
 #: Small words a title keeps in lower case after its first word.
 _SMALL = frozenset({"a", "an", "and", "at", "by", "de", "du", "for", "in", "la", "le", "of", "on",
                     "or", "the", "to"})
