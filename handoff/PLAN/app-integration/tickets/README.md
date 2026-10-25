@@ -247,6 +247,7 @@ use that as the sole source of future work."
 | T200 | stocked lakes: feed the prepared Stocked mode | OPEN | — | last band; source + licence (owner) |
 | T201 | bathymetry: feed the prepared Depth mode and draw contours | OPEN | — | last band; source + licence (owner); tile budget |
 | T202 | tile size optimizations (basemap z13 options, attributes, precision, simplification) | OPEN | — | last band; size table + owner look per change |
+| T203 | app UI: jumpy "Flows into" chip over navigation, search always lands on the map, amber highlight | OPEN | — | after the review app work (credits) |
 
 ## Order for open tickets
 
