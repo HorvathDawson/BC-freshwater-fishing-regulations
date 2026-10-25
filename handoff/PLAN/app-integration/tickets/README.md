@@ -246,6 +246,7 @@ use that as the sole source of future work."
 | T199 | run timing in the app: implement and refine (T162 data + plan) | OPEN | — | last band, with T200/T201; owner go + Q144 first |
 | T200 | stocked lakes: feed the prepared Stocked mode | OPEN | — | last band; source + licence (owner) |
 | T201 | bathymetry: feed the prepared Depth mode and draw contours | OPEN | — | last band; source + licence (owner); tile budget |
+| T202 | tile size optimizations (basemap z13 options, attributes, precision, simplification) | OPEN | — | last band; size table + owner look per change |
 
 ## Order for open tickets
 
@@ -267,7 +268,7 @@ code. Heavy jobs run one at a time through scripts/heavy.sh (≤ 4 workers). ★
 5. **Tiles window (one tile build):** T64 + T85, then T75; T129 (web request budget) alongside.
 6. **Native and shipping:** T50 (alone, heavy) → T74 → T77 ★ → T86 ★ → T88 ★. T65 (determinism, heavy) in a quiet gap.
 7. **Last:** T95 ★, T98 ★ (POSTPONED), T87 ★ (sign-off walk, then delete app/design).
-8. **Data feeds at the end (owner 2026-10-25):** T199 run timing, T200 stocked lakes, T201 bathymetry / depth maps.
+8. **Data feeds at the end (owner 2026-10-25):** T199 run timing, T200 stocked lakes, T201 bathymetry / depth maps, T202 tile size optimizations.
 
 ## Owner questions
 
