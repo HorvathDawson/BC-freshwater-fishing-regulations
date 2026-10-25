@@ -3,7 +3,25 @@
 Restart here. Update this file after EVERY step: what is done, what is running, and the exact next action.
 Logs from timing runs live in the session scratchpad, which a reboot wipes. The numbers that matter are copied here.
 
-## CURRENT STATE (2026-10-24, evening)
+## CURRENT STATE (2026-10-25, credits ~6% — conserve)
+
+Live release r-98c43091c440 (T183). Merged, NOT built: T179 one-pass cuts + follow-ups (authored never moves, 25 m
+lake/mouth proposals, merged places keep every id+name, POLICY 34), tiles window (T64/T75/T85/T113/T152 + Q125 fill),
+T73 (.gz reach), T182 (web file splits), T189/T191 review screen, T190, T162 data+plan.
+Running lanes (priority = review app usable while credits are out):
+- apply accepted split proposals (7 lake anchors; Cayoosh lake wbk 329505890 → part of Cayoosh Creek; Caribou wetland
+  wbk 329262655 under Caribou AND Burton (Trout) Creek) — decisions.md 2026-10-25 block;
+- park boundary splits fix + BC border from region polygons (Moyie merges) + close_pairs.json report;
+- T164 DFO review mode inside curation-review (add splits as proposals in marks).
+Next, in order: merge those → side atlas `scripts/heavy.sh atlas 30 -- .venv/bin/python -m pipeline build --atlas`
+(first try stopped on 3 dam slivers, fixed by the anchors) → reach on full_next + binding_diff, explain every change →
+promote (`build --promote`, carries T73/T182/basemap) → re-cut taps/fixtures, one full check → regenerate the pilot
+(`python -m pipeline.regs.review.gate pilot --json handoff/PLAN/curation-review/pilot.json --md ...`) → restart the
+review app (backend :8787, screen :5183) for the owner.
+Stopped for credits (restart later): T185 marks→proposals, SEO T192–T198, T62 3.9 (3.2 rides the next side atlas).
+Last band: T199 run timing, T200 stocked, T201 bathy, T202 tile sizes.
+
+## (earlier) CURRENT STATE (2026-10-24, evening)
 - Live release **r-efd336f5dd3e**: T67 braids promoted (full `pipeline build --atlas --promote`, atlas + tiles new;
   binding diff = predicted table, 0 unexplained) + T187 (Peace Site C piece back under its closure; 1 rule). Strict
   app check 8159 green, full pytest green, request walk 31/31 PASS, card gate 0.
