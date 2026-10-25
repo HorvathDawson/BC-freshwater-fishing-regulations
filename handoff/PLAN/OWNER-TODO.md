@@ -22,7 +22,8 @@ with the default Claude uses until you answer). Newest first inside each section
 - **Tiles window (T64, T75, T85, T113, T152) — after the rebuild (Claude runs it after the pilot):** look at the map (wetland-heavy Fort Nelson and the
   Chilcotin without unnamed wetlands; z13–z18 bends on the Fraser/Vedder now overzoomed from z13; Vancouver's dense z13
   tiles; no OSM creeks under ours at z14+) and say if the look suffers — the basemap's OSM wetland fill is one style layer
-  away. (Q125 answered: muted fill; basemap to z13 if no feature is lost and overzoom holds — decisions.md.)
+  away. (Q125 answered: muted fill — built, T152.) Basemap z13: measured NOT lossless (street/path/FSR names and a few kinds exist
+  only at z14; T85), so it stays z14 — say if −289 MB is worth losing them.
 - **Q114 / T136 — the 30-entry curation pilot, READY** (about an hour; T184 done: local app, entries only, splits
   labelled on each entry's map, human-reviewed state). `bash curation-review/run.sh` → http://127.0.0.1:5173, open
   the 30 links in `handoff/PLAN/curation-review/PILOT.md`, then
@@ -58,8 +59,7 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
 - **No-access look (T165, built):** answered 2026-10-24 (as built).
 - **Gauge gaps on main rivers (T174):** Q153–Q155, measured before anything changes.
 - **Run timing (T162, new):** Q144 default species, passage reaches shown dashed, its own map layer.
-- **Scope and big rebuilds:** Q10 imagery corridor · Q32 salmon plan · Q125 sewage/tailings/dumps drawn
-  as lakes · Q142 Shuswap lake rings.
+- **Scope and big rebuilds:** Q10 imagery corridor · Q32 salmon plan · Q142 Shuswap lake rings.
 - **Things only you can do or know:** Q114 the 30-entry curation pilot · Q4 slough marks (review page) · Q126 were you
   on Level? · Q119 audit references · Q30 Atnarko campsite signs · Q9 phone testing · Q26 hosting/app name ·
   Q28 iOS timing · Q27 sign-off walk.

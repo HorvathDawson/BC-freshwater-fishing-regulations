@@ -27,6 +27,16 @@ Measured, decided, built in code 2026-10-24; takes effect at the tiles-window bu
   (+ `wetland`, kept as T64's possible stand-in) and of `water` only river lines (OSM `stream` lines: −242 MB, drawn by
   the style only at z14+ under our FWA streams) — about −268 MB of 918. Held to the style by
   `app/tools/basemap-filter.test.ts` (mutation-checked) and `pipeline/tests/test_basemap_filter.py`.
-- Not done, recorded with numbers: basemap z13 (−289 MB more), dropping the `section_id` property (~6.6%).
+- Not done, recorded with numbers: dropping the `section_id` property (~6.6%).
+- **Basemap z13 (owner 2026-10-24: "if no feature is lost"): measured NOT lossless — the basemap stays z14.** The
+  zoom-cap audit (`tiles/basemap.audit_zoom_cap`, `python -m pipeline.deliver.tiles.basemap --audit-zoom 13`) builds
+  two small real extents twice through the build's own path (`_trim`: extract + feature filter), to z14 and to z13, and
+  compares every feature kind (layer, kind, kind_detail) and named feature: Squamish loses 6 kinds (path sidewalk /
+  crossing, other living_street / ladder, rail narrow_gauge, landuse pedestrian — a drawn kind) and 426 names (nearly
+  all minor-road and path names: Protomaps names minor roads only from z14); Lac Le Jeune loses 75 names, its forest
+  service roads among them. `MAX_ZOOM` stays 14; `--max-zoom 13` is refused while the audit loses anything. The −289 MB
+  is forgone unless the owner accepts the loss (OWNER-TODO). Tests: `pipeline/tests/test_basemap_zoom_audit.py`
+  (tippecanoe fixtures: a z14-only kind and name reported lost, a filtered-out line not counted, a clean cap passes,
+  the build refuses a lossy cap).
 - Still to verify after the build: shots at z13–z18 (Fraser Valley bends, Vancouver dense tiles), the size table's
   "after" column.

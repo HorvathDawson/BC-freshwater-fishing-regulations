@@ -1262,6 +1262,9 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
   asked. The bundle refuses a release that would need one drawn.
 - (T152) Sewage basins, tailing ponds, dumps are NOT drawn (Q125 default was a muted fill; built undrawn, the layer
   `not_fishing_water` is in the tiles so a fill is one style entry).
+- (T85, Q125 follow-up) The basemap STAYS z14: the owner's condition for z13 ("no feature may be lost") fails —
+  `basemap.audit_zoom_cap` finds 6 kinds and 426 names (Squamish), 75 names (Lac Le Jeune) only at z14. Undo: accept the
+  loss and build with `--max-zoom 13` after relaxing the audit.
 - (T113) The 35 all-capitals `entry.name` values stay the book's spelling in the bundle (the export cases them and keeps
   `official_name`).
 

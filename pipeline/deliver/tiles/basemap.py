@@ -13,8 +13,9 @@ copy tiles they keep (the feature filter re-encodes the tiles it thins, at the s
        roughly a third of it. Tiles that do not touch the province are the largest single
        category of waste and the easiest to be sure about.
 
-    2. CAP AT z14.  Our atlas stops at z14, so a z15 basemap is ground under water that is
-       not there. It is also the most expensive level in the archive by a wide margin.
+    2. CAP AT z14.  A z15 basemap is the most expensive level in the archive by a wide margin, and
+       the map overzooms the z14 tile past it. NOT z13 (T85, measured): Protomaps keeps some kinds
+       and every minor-road name for z14 only, so a z13 cap loses features — see `audit_zoom_cap`.
 
     3. DROP LAYERS NOBODY LOOKS AT.  Buildings and points of interest. Not `landuse`:
        dropping that was a mistake — the Protomaps style draws ELEVEN layers from it, and
@@ -105,10 +106,8 @@ def _boundary_4326(src: Path, out: Path) -> Path:
     return out
 
 
-def build(src: Path, out: Path, boundary: Path) -> Path:
-    for tool in ("pmtiles", "tile-join"):
-        if shutil.which(tool) is None:
-            raise FileNotFoundError(f"{tool} is not on $PATH")
+def build(src: Path, out: Path, boundary: Path, maxzoom: int = MAX_ZOOM) -> Path:
+    _tools()
     if not src.exists():
         raise FileNotFoundError(f"{src} not found")
 
@@ -117,27 +116,119 @@ def build(src: Path, out: Path, boundary: Path) -> Path:
 
     with tempfile.TemporaryDirectory() as tmp:
         region = _boundary_4326(boundary, Path(tmp) / "bc.geojson")
-        clipped = Path(tmp) / "clipped.pmtiles"
-
         print(f"  {src.name}  {before / 1e9:.2f} GB")
-        print(f"  1. clipping to British Columbia (+{BUFFER_M / 1000:.0f} km) and z<={MAX_ZOOM}")
-        _run(["pmtiles", "extract", str(src), str(clipped),
-              f"--region={region}", f"--maxzoom={MAX_ZOOM}"])
-        step1 = clipped.stat().st_size
-        print(f"     {step1 / 1e9:.2f} GB  ({100 * (1 - step1 / before):.0f}% smaller)")
-
+        print(f"  1. clipping to British Columbia (+{BUFFER_M / 1000:.0f} km) and z<={maxzoom}")
         print(f"  2. dropping {', '.join(DROP)}")
         print(f"  3. keeping only the landuse kinds and water lines the style draws "
               f"(water lines dropped: {', '.join(WATER_LINES_DROPPED)})")
-        # Keeping by name, not excluding: a future Protomaps schema that adds a layer
-        # should not start shipping it without anyone deciding to.
-        _run(["tile-join", "-f", "-o", str(out), "--no-tile-size-limit",
-              *[a for lyr in KEEP for a in ("-l", lyr)],
-              "-j", json.dumps(feature_filter(), separators=(",", ":")), str(clipped)])
+        _trim(src, out, Path(tmp), [f"--region={region}"], maxzoom)
 
     after = out.stat().st_size
     print(f"  ✅ {after / 1e9:.2f} GB  ({100 * (1 - after / before):.0f}% smaller overall)")
     return out
+
+
+def _tools() -> None:
+    for tool in ("pmtiles", "tile-join"):
+        if shutil.which(tool) is None:
+            raise FileNotFoundError(f"{tool} is not on $PATH")
+
+
+def _trim(src: Path, out: Path, tmp: Path, clip: list[str], maxzoom: int) -> None:
+    """Cuts 1-4 of the build, over `clip` (`--region=<geojson>` for the province, `--bbox=...` for an audit
+    extent): the ONE code path the build and the zoom-cap audit share, so the audit measures what ships."""
+    clipped = tmp / f"clipped-z{maxzoom}.pmtiles"
+    _run(["pmtiles", "extract", str(src), str(clipped), *clip, f"--maxzoom={maxzoom}"])
+    # Keeping by name, not excluding: a future Protomaps schema that adds a layer
+    # should not start shipping it without anyone deciding to.
+    _run(["tile-join", "-f", "-o", str(out), "--no-tile-size-limit",
+          *[a for lyr in KEEP for a in ("-l", lyr)],
+          "-j", json.dumps(feature_filter(), separators=(",", ":")), str(clipped)])
+
+
+# THE ZOOM-CAP AUDIT (T85; owner 2026-10-24: "basemap to z13 too, on two conditions: no feature may be lost —
+# measure feature counts / kinds z14-sourced vs z13 — and the map must still overzoom past z13").
+#
+# A cap is free only if the capped tile holds everything the deeper one does, because the map overzooms the capped
+# tile in its place. Protomaps does not promise that: it gives some kinds a minimum zoom of 14 and strips minor-road
+# names below z14. So the audit BUILDS the basemap twice over small real extents — `_trim`, the build's own path, to
+# `deep` and to `cap` — and compares the deep build's deepest tiles with the capped build's: every feature kind
+# (layer, kind, kind_detail) and every named feature (layer, kind, name) of the deep build must still be in the
+# capped one. Fragment counts are reported, not compared: a z13 tile covers four z14 tiles, so a line crossing them
+# is one fragment instead of four.
+#
+# MEASURED 2026-10-24 (`python -m pipeline.deliver.tiles.basemap --audit-zoom 13`): NOT lossless. Squamish loses 6
+# kinds (path sidewalk / crossing, other living_street / ladder, rail narrow_gauge, landuse pedestrian — drawn by the
+# style) and 426 names, nearly all minor-road and path names; Lac Le Jeune loses 75 names, its forest service roads
+# among them (how an angler reaches the lake). So MAX_ZOOM stays 14, and a shallower `--max-zoom` is refused unless
+# its audit is clean.
+AUDIT_EXTENTS = {
+    "squamish (town)": (-123.18, 49.68, -123.10, 49.74),
+    "lac le jeune (rural)": (-120.52, 50.44, -120.42, 50.50),
+}
+
+
+def census(archive: Path, zoom: int) -> tuple[dict, set]:
+    """The features of `archive`'s tiles at `zoom`: fragments per (layer, kind, kind_detail), and the set of
+    (layer, kind, name) named features. Read with `tippecanoe-decode`, which ships with `tile-join`."""
+    from collections import Counter
+    r = subprocess.run(["tippecanoe-decode", f"-Z{zoom}", f"-z{zoom}", str(archive)],
+                       capture_output=True, text=True)
+    if r.returncode != 0:
+        raise RuntimeError(f"tippecanoe-decode failed ({r.returncode})\n{r.stderr[-3000:]}")
+    kinds: Counter = Counter()
+    names: set = set()
+    for tile in json.loads(r.stdout).get("features", []):
+        for layer in tile.get("features", []):
+            lyr = layer["properties"]["layer"]
+            for f in layer.get("features", []):
+                p = f.get("properties") or {}
+                kinds[(lyr, p.get("kind"), p.get("kind_detail"))] += 1
+                if p.get("name"):
+                    names.add((lyr, p.get("kind"), p["name"]))
+    return dict(kinds), names
+
+
+def zoom_cap_loss(deep: tuple[dict, set], capped: tuple[dict, set]) -> dict:
+    """What the capped census lacks: `kinds` (kind -> fragments in the deep build) and `names`. Empty: lossless."""
+    (dk, dn), (ck, cn) = deep, capped
+    return {"kinds": {k: n for k, n in dk.items() if k not in ck}, "names": sorted(dn - cn, key=str)}
+
+
+def audit_zoom_cap(src: Path, cap: int, deep: int = MAX_ZOOM, extents: dict | None = None) -> dict:
+    """Per extent: the deep build's tiles at `deep` vs the capped build's at `cap` (`zoom_cap_loss`), with both
+    fragment counts per kind for the record."""
+    _tools()
+    if shutil.which("tippecanoe-decode") is None:
+        raise FileNotFoundError("tippecanoe-decode is not on $PATH")
+    out = {}
+    for label, bbox in (extents or AUDIT_EXTENTS).items():
+        with tempfile.TemporaryDirectory() as tmp:
+            t = Path(tmp)
+            clip = ["--bbox=" + ",".join(str(v) for v in bbox)]
+            built = {}
+            for z in (deep, cap):
+                _trim(src, t / f"z{z}.pmtiles", t, clip, z)
+                built[z] = census(t / f"z{z}.pmtiles", z)
+        dk, ck = built[deep][0], built[cap][0]
+        out[label] = {**zoom_cap_loss(built[deep], built[cap]),
+                      "fragments": {k: (dk.get(k, 0), ck.get(k, 0)) for k in sorted(set(dk) | set(ck), key=str)}}
+    return out
+
+
+def lossless(report: dict) -> bool:
+    return all(not r["kinds"] and not r["names"] for r in report.values())
+
+
+def print_audit(report: dict, cap: int, deep: int = MAX_ZOOM) -> None:
+    for label, r in report.items():
+        print(f"  z{deep} -> z{cap}  {label}: {len(r['kinds'])} kinds lost, {len(r['names'])} names lost")
+        for k, n in sorted(r["kinds"].items(), key=str):
+            print(f"     kind lost  {k}  ({n} fragments at z{deep})")
+        for n in r["names"][:20]:
+            print(f"     name lost  {n}")
+        if len(r["names"]) > 20:
+            print(f"     ... and {len(r['names']) - 20} more names")
 
 
 def _run(cmd: list[str]) -> None:
@@ -207,9 +298,22 @@ def main(argv=None) -> int:
     ap.add_argument("--release-only", action="store_true",
                     help="do not rebuild: release the archive already at --out (stamp its version, copy it)")
     ap.add_argument("--no-release", action="store_true", help="build only (a scratch build)")
+    ap.add_argument("--max-zoom", type=int, default=MAX_ZOOM,
+                    help=f"cap the build here (default {MAX_ZOOM}); a shallower cap must pass the zoom-cap audit")
+    ap.add_argument("--audit-zoom", type=int, metavar="CAP",
+                    help=f"audit only: does a CAP build lose a feature the z{MAX_ZOOM} build has? (small extents)")
     a = ap.parse_args(argv)
+    if a.audit_zoom is not None:
+        report = audit_zoom_cap(SOURCE / "bc.pmtiles", a.audit_zoom)
+        print_audit(report, a.audit_zoom)
+        return 0 if lossless(report) else 1
     if not a.release_only:
-        build(SOURCE / "bc.pmtiles", a.out, SOURCE / "bc_boundary.geojson")
+        if a.max_zoom < MAX_ZOOM:
+            report = audit_zoom_cap(SOURCE / "bc.pmtiles", a.max_zoom)
+            print_audit(report, a.max_zoom)
+            if not lossless(report):
+                raise SystemExit(f"basemap: a z{a.max_zoom} cap loses features the z{MAX_ZOOM} build has — refused")
+        build(SOURCE / "bc.pmtiles", a.out, SOURCE / "bc_boundary.geojson", a.max_zoom)
     if not a.no_release:
         to_release(a.out, a.release_root, a.out.parent)
     return 0

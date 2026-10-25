@@ -54,9 +54,9 @@ lake 71.9, mu 40.0, under_lake 24.3, parcel 17.5, park 14.7, watershed 8.1, rest
 | atlas z13 max + overzoom (top zoom at −S 5 ≈ old z14's 4 m) | T85 | atlas about −140 MB (z14 315.7 goes; z13 takes most of its content: est. 0.8–0.9×) — measure after build | none expected at z13+ (same ground tolerance); dense z13 tiles in cities | BUILT, needs shots |
 | basemap: OSM stream lines (drawn only z14+, under our FWA streams) | T85 | basemap −242 MB | OSM-only creeks (no FWA line, no regulation) vanish at z14+ | BUILT (CLAUDE call, reversible) |
 | basemap: landuse kinds the style never draws (parks, residential, farmland, bare rock …) | T85 | basemap −26 MB | none (not drawn) | BUILT |
-| basemap z13 max + overzoom | — | basemap about −289 MB more (z14 after the filters) | roads/coast/labels coarser past z13 | OPTION (owner) |
+| basemap z13 max + overzoom | T85 | basemap about −289 MB more (z14 after the filters) — forgone | NOT lossless (T85 audit, 2026-10-24): street, path and FSR names, sidewalks, living streets, pedestrian areas exist only at z14 | NOT DONE: stays z14 (owner condition failed) |
 | drop `section_id` property (the MVT id carries it) | — | atlas ~6.6% (P18 note) | none, but the web style's `promoteId` and taps read the property: app work | OPTION |
 | parcels from z11, basins one-coverage 100 m | T64 | +2 MB / ±0 | private land visible from z11; no basin seams | in code since 10-22; ships with this build |
 
-Expected after the build: atlas about 295 MB (from 548), basemap about 650 MB (from 918): about −520 MB per native
+Expected after the build: atlas about 295 MB (from 548), basemap about 650 MB (from 918; still z14 — the z13 cap failed its no-loss audit): about −520 MB per native
 install (D32 estimated −345).
