@@ -1298,3 +1298,8 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
   creeks' regulations.
 - REJECT the confluence proposals for Tweedsmuir Park upstream boundary (10) and Baker Creek / Pinnacles Park: park
   boundaries are not confluences; the proposal finder skips area/park boundary splits.
+- Close pairs (owner 2026-10-25): park boundary splits need investigation and a revision so they work (Tweedsmuir
+  eastern/upstream 0.02 m, Baker Creek / Pinnacles downstream/upstream 0.03 m — both ends on one point). Moyie River
+  US border split and the Region 4 line (12 m) MERGE; the BC border is GENERATED from the region polygons (one source),
+  so border and region lines coincide. Area-vs-area pairs 10–20 m (Clayhurst / 7B, Chilkoot / 6) are left as they are.
+  The build reports every curated cut 5–25 m from any other boundary.
