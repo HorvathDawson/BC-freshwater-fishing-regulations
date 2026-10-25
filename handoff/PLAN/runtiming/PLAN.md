@@ -64,3 +64,5 @@ count; per section (sid ascending): sid delta, profile, tens of km to the sea + 
 - The 15 MB total gate (above).
 - Native colouring waits on N2's per-tile labelling.
 - Yearly refresh, owner-run: `fetch.explorer`, `fetch.boundaries`, `fetch.nuseds`, then `parse`; commit `timing.json`.
+
+Prototype (reverted, not applied): `integration-prototype.patch` beside this file — the app/deliver wiring the numbers above came from; a starting point if the owner says go.
