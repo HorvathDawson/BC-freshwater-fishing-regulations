@@ -48,3 +48,16 @@ and Cowichan with their dates. Each step its own measured diff.
 - Q145: where the DFO re-fetch runs and how often (default: with the gauge feed cron, weekly + a notice on change).
 Depends: T97–T136 (review tool, done), T154 (dams layer, merged). Size: L. Supersedes T95's "write the plan" (PLAN.md
 exists) — T95 closes into this ticket.
+
+## Owner 2026-10-24: a review app for the DFO extents (in the local review app, T184)
+"Make the app for this too — basically all extents in the web data scraped should be shown with a map and the splits
+will be placed; make sure it can use more than just coord placements (confluence ones etc.)."
+- A DFO mode/queue in the LOCAL curation review app (one tool, T184): every scraped DFO water and each of its extents
+  (the notice's own wording shown verbatim as the evidence), drawn on the map with the PROPOSED splits placed and
+  labelled, the reach each extent resolves to highlighted, and the T/R/P/A checks (P = the extent lands right).
+- Split proposals use EVERY anchor type the atlas resolves (`pipeline/atlas/splits/anchors.py` AnchorType): point
+  (coordinate → perpendicular cut), line, confluence (a tributary's mouth, straight across — the T67 rule), lake edge,
+  MU/zone boundary, area boundary (park/reserve), and offsets ("500 m below X", "5 km above the confluence") — not
+  only coordinates. Each proposal says which kind and why (the locator text it came from, the evidence source).
+- Placing a split is still a proposal the owner accepts (T185: no tool writes the catalogue) — accepted proposals land
+  as reviewed commits, then the rebuild; the review continues on the new build.

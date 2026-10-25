@@ -232,7 +232,7 @@ use that as the sole source of future work."
 | T185 | marks → tickets → proposed edits (side rebuild + binding diff) → owner accepts in an artifact → one commit each; fix mode loses its writers | OPEN | — | after T184 |
 | T186 | web prefetch after first paint (region's regs file; core + wasm on idle) + core-words chevrons (Q164, Q162) | DONE | d54842ec, b8b5b357, 0a129a14 | first tap still fetches water + access → T182 |
 | T187 | a braid piece between one window's two cuts is inside it (Peace Site C closure, 359005110:3454) | DONE | 13027245, 525ab99e, 0bc22c70 | found by the post-braid check; 1 rule changes |
-| T188 | get found in search: per-water static pages, sitemap, structured data, Search Console, outreach plan (no spam bots) | OPEN | — | after T86 domain; owner Q on page depth |
+| T188 | get found in search: per-water static pages, sitemap, structured data, Search Console, outreach plan (no spam bots) | OPEN | — | domain canifishthis.ca; full rules per water page |
 
 ## Order for open tickets
 
@@ -266,7 +266,7 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q4 | T55 | Which finder candidates are sloughs/canals to reclassify? 7 grey polygons (Nation, West Road, Honna)? | nothing reclassified without owner review (dry-run + confirm); the 7 stay grey | owner |
 | Q9 | T77 | When to do phone testing D1a / D1b | D1a when the phone is at hand; D1b after the R2 bucket | owner |
 | Q10 | T79 | Imagery go/no-go; SPEC §12 (10 m pack, buffer, sources, licence, server, caps) | no offline imagery before the first native release; skip 10 m; 250 m buffer; online-only on web; pools a study | owner |
-| Q26 | T86 | R2 bucket, contact address, app name "Can I Fish This?" (no ArcGIS key: owner 2026-10-21) | keep the name; staging bucket first; publisher every 30 min | owner (credentials) |
+| Q26 | T86 | R2 bucket, contact address (domain decided: canifishthis.ca, .com redirects; name \"Can I Fish This?\") (no ArcGIS key: owner 2026-10-21) | keep the name; staging bucket first; publisher every 30 min | owner (credentials) |
 | Q27 | T87 | Sign-off: the app looks right; delete app/design | hold until the owner walks it | owner |
 | Q28 | T88 | When to build iOS | after the Android ship | owner |
 | Q30 | T91 | Where the Atnarko campsite boundary signs are | keep the current binding until confirmed | owner |

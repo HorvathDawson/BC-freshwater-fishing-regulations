@@ -15,7 +15,7 @@ would put the site at risk. Automation is for OUR pages (generating one good pag
    publish time (the bundle is the only source), so they refresh with every release.
 2. Technical: sitemap.xml (all water pages), robots.txt, canonical URLs, titles/descriptions per water, schema.org
    structured data (Place / BodyOfWater, plus FAQ where the page answers a question), fast first paint (T129/T182
-   budgets), mobile-first, HTTPS, clean URLs (/water/vedder-river).
+   budgets), mobile-first, HTTPS, clean URLs (https://canifishthis.ca/water/vedder-river).
 3. Measure: Google Search Console + Bing Webmaster (owner accounts): submit the sitemap, watch impressions/queries.
 4. Content that earns links: "what's open this weekend" per region, opening-day calendars, closures that changed this
    year (from the release diff) — pages people share and fishing clubs/forums link to.
@@ -23,5 +23,6 @@ would put the site at risk. Automation is for OUR pages (generating one good pag
    announcement, not automated posts. App-store listings (T86/T88) with keywords.
 6. Local trust signals: an About page (who made it, data sources: the provincial synopsis, ECCC, DFO, PSF), the
    "not a legal document — check the synopsis" line, contact.
-Owner decisions: the domain/app name (T86, Q26); whether water pages show the full rules or a summary + app link.
+Decided 2026-10-24: domain canifishthis.ca (canifishthis.com redirects); water pages show the FULL rules in plain
+words + today's line + the book page + "Open in the app" (decisions.md).
 Depends: T86 hosting (a domain), T182 (lighter pages). Size: M (pages + sitemap + data) + ongoing.

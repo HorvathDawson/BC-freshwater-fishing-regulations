@@ -1239,3 +1239,13 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
 - **Skeena "section 2" starts at the Exchamsiks cut** (book p.53: Exchamsiks River to 1.5 km above Kitsumkalum),
   not the Ecological Reserve's crossing. Applied as one reviewed curated change with its binding diff (T185 rule:
   the owner approved this proposal here).
+
+## OWNER 2026-10-24 — domain; DFO review app; water pages
+- **Domain: canifishthis.ca** (primary); **canifishthis.com redirects to .ca**. App name stays "Can I Fish This?" (Q26
+  domain part answered; R2 bucket/contact still open). Used by T86 hosting and T188 SEO (canonical URLs on .ca).
+- **T164:** the DFO salmon extents get a review mode in the local review app — every scraped extent on a map with the
+  proposed splits placed, using every anchor type (confluence, offsets, lake/MU/area edges), not only coordinates.
+- **T188 water pages (owner: "what you think is best" → Claude's call): the FULL rules for that water in plain words**
+  (crawlable text is what ranks, and an angler searching wants the answer on the page), today's open/closed line,
+  the book page, a prominent "Open in the app" link and the "not a legal document — check the synopsis" line. Generated
+  from the same release as the app, so the page and the app can never disagree; no interactive features on the page.
