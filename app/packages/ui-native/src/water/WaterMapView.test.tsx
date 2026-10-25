@@ -281,4 +281,25 @@ describe("<WaterMapView>", () => {
     await waitFor(() => expect(screen.getByTestId("water-map-status").textContent).toBe("The parts of this water are not available"));
     expect([lit(), seen.props?.fit, seen.props?.marks]).toEqual([{ highlight: [], water: [] }, null, []]);
   });
+
+  it("(T203) the exit chip is the LAST control: the steps and Show regulations never move under a finger", async () => {
+    mount("gnis:8634", 1);
+    await ready();
+    const order = (ids: string[]) => ids.map((id) => screen.getByTestId(id))
+      .sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1)).map((e) => e.dataset.testid);
+    expect(order(["water-map-exit", "water-map-regs", "water-map-step-down", "water-map-step-up"]))
+      .toEqual(["water-map-step-down", "water-map-step-up", "water-map-regs", "water-map-exit"]);
+    // Show regulations sits straight under the steps row, with or without the chip
+    const under = () => screen.getByTestId("water-map-regs").previousElementSibling?.contains(screen.getByTestId("water-map-step-down"));
+    expect(under()).toBe(true);
+    fireEvent.click(screen.getByRole("button", { name: "Upstream" }));
+    expect([screen.queryByTestId("water-map-exit"), under()]).toEqual([null, true]);
+  }, 30_000);
+
+  it("(T203) opened for a search result (`whole`): the camera frames the WHOLE water, offering 'This part'", async () => {
+    render(<WaterMapView loader={loader} item={"gnis:8634" as ItemId} part={null} tapSid={null} palette={LIGHT} map={MAP} whole
+                         onOpenWater={() => {}} onShowRegs={() => {}} onOtherSection={() => {}} onCross={() => {}} />);
+    await ready();
+    expect([screen.getByTestId("water-map-whole").textContent, seen.props?.fit?.key]).toEqual(["This part", "gnis:8634:whole"]);
+  }, 30_000);
 });

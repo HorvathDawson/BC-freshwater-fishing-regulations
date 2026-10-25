@@ -30,6 +30,8 @@ export interface WaterOpen {
   view?: View;
   /** Opened from a search result: the search is consumed (route `fromSearch`) — back lands on the map. */
   fromSearch?: boolean;
+  /** (T203) With view "map": the Map opens framed on the whole water. */
+  whole?: boolean;
   /** (T58) The water's split-lake areas, itself among them (`siblingItems`): another area of a lake held is that lake. */
   group?: readonly ItemId[];
 }
@@ -44,7 +46,8 @@ export function openWater(o: WaterOpen): RouteAction {
   const a: RouteAction = { type: "openWater", item: o.item, tapSid: o.tapSid ?? null, at: o.at ?? null,
                           part: o.part ?? null, view: views.includes(asked) ? asked : views[0]!,
                           ...(o.group ? { group: o.group } : {}) };
-  return o.fromSearch ? { ...a, fromSearch: true } : a;
+  const w = o.whole && a.view === "map" ? { ...a, whole: true } : a;
+  return o.fromSearch ? { ...w, fromSearch: true } : w;
 }
 
 /**
@@ -71,7 +74,7 @@ export interface WaterOpener {
   /** A water by its id (a spot, a deep path). */
   item(item: ItemId, view?: View): void;
   /** A water picked from search's results: the search is consumed, so back lands on the map (route `fromSearch`). */
-  searched(item: ItemId, view?: View): void;
+  searched(item: ItemId): void;
 }
 
 export interface OpenerOptions {
@@ -110,7 +113,8 @@ export function waterOpener(source: Pick<WaterSource, "itemForSection">, go: (a:
     flow: (item, build) => settle(async (groupOf) => build(groupOf ? await groupOf(item) : undefined)),
     // nothing to wait on: at once, and any open still in flight is overtaken
     item: (item, view = "regs") => { latest += 1; go(openWater({ item, view })); },
-    searched: (item, view = "regs") => { latest += 1; go(openWater({ item, view, fromSearch: true })); },
+    // (T203) a result ALWAYS opens the water's Map, the whole water shown, from Conditions or Regs alike
+    searched: (item) => { latest += 1; go(openWater({ item, view: "map", whole: true, fromSearch: true })); },
   };
 }
 

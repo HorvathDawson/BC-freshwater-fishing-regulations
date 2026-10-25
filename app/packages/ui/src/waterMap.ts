@@ -62,7 +62,7 @@ export type WaterMapAction =
   /** (T150) Open or close the list of parts. */
   | { type: "list" };
 
-export const waterMapStart = (at: number): WaterMapState => ({ at, whole: false, mark: null, choosing: null, list: false });
+export const waterMapStart = (at: number, whole = false): WaterMapState => ({ at, whole, mark: null, choosing: null, list: false });
 
 const go = (at: number): WaterMapState => waterMapStart(at);
 const ways = (g: WaterGroup, at: number, dir: "up" | "down") => (dir === "up" ? stepsUp(g, at) : stepsDown(g, at));
@@ -300,7 +300,9 @@ export interface WaterMap {
  */
 export function useWaterMap(store: RegsStore | null, item: ItemId | null, part: number | null,
                             tapSid: SectionId | null,
-                            onPart?: (item: ItemId, partIx: number) => void): Async<WaterMap | null> {
+                            onPart?: (item: ItemId, partIx: number) => void,
+                            /** (T203) Start framed on the whole water (a search result's Map). */
+                            wholeFirst = false): Async<WaterMap | null> {
   const read = useRef<{ item: ItemId; g: WaterGroup } | null>(null);
   const inRead = !!item && !!read.current && read.current.g.parts.some((p) => p.item === item);
   const group = useWaterGroup(store, inRead ? read.current!.item : item);
@@ -309,11 +311,11 @@ export function useWaterMap(store: RegsStore | null, item: ItemId | null, part: 
   const startPart = part ?? (target.value?.kind === "part" ? target.value.partIx : null);
   const waiting = part === null && target.state === "loading" && store !== null;
   const g = group.value;
-  const key = `${group.state}:${item ?? ""}:${startPart ?? ""}`;
+  const key = `${group.state}:${item ?? ""}:${startPart ?? ""}:${wholeFirst ? "w" : ""}`;
   const [held, setHeld] = useState<{ key: string; s: WaterMapState } | null>(null);
   // the state as the last step left it, ahead of the render, so two taps before a render are two steps
   const latest = useRef<{ key: string; s: WaterMapState } | null>(null);
-  const s = held && held.key === key ? held.s : g && item ? waterMapStart(waterMapStartIx(g, item, startPart)) : null;
+  const s = held && held.key === key ? held.s : g && item ? waterMapStart(waterMapStartIx(g, item, startPart), wholeFirst) : null;
   const vm = useMemo(() => (g && s ? waterMapView(g, s) : null), [g, s]);
   // no store (no release, or not open yet: the caller says which) or no water: nothing to walk
   if (store === null || item === null) return { state: "ready", value: null, error: null };

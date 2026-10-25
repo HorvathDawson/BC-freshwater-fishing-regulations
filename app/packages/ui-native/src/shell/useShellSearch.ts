@@ -17,7 +17,7 @@ import type { ShellNav } from "./useShellNav";
 export function useShellSearch({ source, nav, camera }: {
   source: WaterSource; nav: ShellNav; camera: MutableRefObject<Camera>;
 }) {
-  const { route, go, browse, tab, opener } = nav;
+  const { route, go, browse, opener } = nav;
   const searching = browse.search;
   /** The screen's width: a wide one draws search as a panel beside the map (`searchPanelWidth`). */
   const screenWidth = useWindowDimensions().width;
@@ -94,7 +94,7 @@ export function useShellSearch({ source, nav, camera }: {
     }
     searchMoved.current = false;            // the camera from before search is not put back: the water is the subject
     setSearchMemory(NO_SEARCH);             // the search is consumed, its text with it
-    opener.searched(id, tab === "conditions" ? "conditions" : "regs");
+    opener.searched(id);
   };
   /** One step of search (`searchStep`): a pick lowers the sheet to half, so the keyboard goes with it. */
   const searchAct = (a: SearchAction) => {

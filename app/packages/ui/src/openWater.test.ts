@@ -161,3 +161,24 @@ describe("(T58) the opener: a split lake's areas, and a late lookup dropped", ()
     expect(blind.sent.map((a) => a.type)).toEqual(["back", "openWater"]);
   });
 });
+
+describe("(T203) a search result ALWAYS lands on the water's Map, the whole water shown", () => {
+  it("from the Map tab and from Conditions alike: the Map view, `whole`, search consumed; a part step drops `whole`", () => {
+    const sent: RouteAction[] = [];
+    waterOpener(source, (a) => sent.push(a)).searched(VEDDER);
+    expect(sent).toEqual([{ type: "openWater", item: VEDDER, tapSid: null, at: null, part: null, view: "map", whole: true,
+                            fromSearch: true }]);
+    for (const base of [mapTab, condMap]) {
+      const r = reduce({ ...base, search: true } as Route, sent[0]!);
+      expect([waterFrame(r)?.view, waterFrame(r)?.whole]).toEqual(["map", true]);
+      // back lands on the map searched over, search closed
+      expect(reduce(r, { type: "back" })).toEqual({ ...base, search: false });
+      const stepped = reduce(r, { type: "part", part: 1 });
+      expect([waterFrame(stepped)?.part, waterFrame(stepped)?.whole]).toEqual([1, undefined]);
+    }
+  });
+
+  it("`whole` is only ever carried by a Map view", () => {
+    expect(openWater({ item: VEDDER, view: "regs", whole: true })).not.toHaveProperty("whole");
+  });
+});

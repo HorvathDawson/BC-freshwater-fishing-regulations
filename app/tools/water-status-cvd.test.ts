@@ -124,6 +124,15 @@ describe("a water's status, for a colour-blind reader", () => {
       }
     });
 
+    it(`(T203) the part's halo (color.highlight) holds on EVERY water colour, amber (own) included — ${name}`, () => {
+      const t = resolveTheme(name) as Record<string, string>;
+      for (const s of WATER_STATUSES) {
+        const w = worst(colour(s), t["color.highlight"]!);
+        expect(w.dE, `${name}: halo ${t["color.highlight"]} vs ${s} ${colour(s)}, under ${w.under}`)
+          .toBeGreaterThanOrEqual(s === "no_access" ? 7 : NEIGHBOUR_FLOOR);   // the grey is DOTTED: its pattern is the first cue
+      }
+    });
+
     it(`keeps the town apart from every warm mark on the map it stands on — ${name}`, () => {
       /*
        * THE PAIR THIS PALETTE PASS UNIFIED AWAY. The town was an orange, and under

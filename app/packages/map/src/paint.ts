@@ -40,18 +40,25 @@ export const SELECTION_RINGS = { lake: "selection-ring-lake", wetland: "selectio
 export const CASING_PX = 2.5;
 export const RING_PX = 3;
 const SELECTED = ["boolean", ["feature-state", "selected"], false];
-const OUTLINE_SHOWN = ["case", SELECTED, 1, 0];
+/**
+ * (T203) THE PART'S HALO. Dimming the others alone did not read when the water is amber (own rules) or any colour close
+ * to its dimmed self: the part you are on is also ringed in `color.highlight`, at HALF the outline (`PART_HALO_PX` each
+ * side, no width floor, no thicker line — T151's "no bold" holds), so it holds on every water colour the same way the
+ * browse map's outline does (tools/water-status-cvd.test.ts holds highlight apart from every status, cvd included).
+ */
+export const PART_HALO_PX = 1.25;
+const OUTLINE_SHOWN = ["case", SELECTED, 1, PART, 1, 0];
 
 /** The stream casing's paint: the stream's own width (`streamWidth`, with its floors) plus the outline each side. */
 export function casingPaint(streamWidth: unknown, tokens: Tokens): Record<string, unknown> {
   return { "line-color": tokens["color.highlight"],
-           "line-width": withinZoomCurve(streamWidth, (v) => ["+", v, 2 * CASING_PX]),
+           "line-width": withinZoomCurve(streamWidth, (v) => ["+", v, ["case", PART, 2 * PART_HALO_PX, 2 * CASING_PX]]),
            "line-opacity": OUTLINE_SHOWN };
 }
 
 /** A selected lake's or wetland's ring. */
 export function ringPaint(tokens: Tokens): Record<string, unknown> {
-  return { "line-color": tokens["color.highlight"], "line-width": RING_PX, "line-opacity": OUTLINE_SHOWN };
+  return { "line-color": tokens["color.highlight"], "line-width": ["case", PART, PART_HALO_PX * 2, RING_PX], "line-opacity": OUTLINE_SHOWN };
 }
 
 /**

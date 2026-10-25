@@ -30,7 +30,7 @@ export type WaterMapMapProps = Omit<ComponentProps<typeof MapScreen>,
   "palette" | "highlight" | "water" | "waterLine" | "selection" | "marks" | "onPressMark" | "fit" | "onPressFeature">;
 
 export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenWater, onShowRegs, onOtherSection,
-                               onCross, onPart }: {
+                               onCross, onPart, whole = false }: {
   loader: ReleaseLoader | null;
   item: ItemId;
   /** The frame's part (null: the part the Regulations view opens for `tapSid`). */
@@ -48,9 +48,11 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
   onCross: (item: ItemId, part: number) => void;
   /** A step to another part: the frame's part from now on (a split lake's other area: that water). */
   onPart?: (item: ItemId, partIx: number) => void;
+  /** (T203) Open framed on the whole water (from a search result). */
+  whole?: boolean;
 }) {
   const store = useRegsStore(loader);
-  const wm = useWaterMap(store.value ?? null, item, part, tapSid, onPart);
+  const wm = useWaterMap(store.value ?? null, item, part, tapSid, onPart, whole);
   const vm = wm.value?.vm ?? null;
   const act = wm.value?.act ?? (() => {});
   const status = store.error || wm.error ? WATER_MAP_WORDS.unavailable
@@ -103,13 +105,6 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
                       onPress={() => (st.cross ? onCross(st.cross.item as ItemId, st.cross.part) : act({ type: dir }))} />
               ))}
             </View>
-            {vm.exit && (
-              <Pressable onPress={() => onOpenWater(vm.exit!.item as ItemId, vm.exit!.part)} accessibilityRole="link"
-                         accessibilityLabel={vm.exit.label} testID="water-map-exit"
-                         style={{ minHeight: 44, justifyContent: "center", marginTop: 4 }}>
-                <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{vm.exit.label}</Text>
-              </Pressable>
-            )}
             <Pressable onPress={() => onShowRegs(vm.regs.item as ItemId, vm.regs.partIx)} accessibilityRole="button"
                        accessibilityLabel={vm.regs.label} testID="water-map-regs"
                        style={{ minHeight: 52, marginTop: 8, alignItems: "center", justifyContent: "center",
@@ -118,6 +113,15 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
                 {vm.regs.label}
               </Text>
             </Pressable>
+            {/* (T203) LAST: it appears with the part (only at the mouth), so it sits below every other control — the steps
+                and "Show regulations" never move under a finger. */}
+            {vm.exit && (
+              <Pressable onPress={() => onOpenWater(vm.exit!.item as ItemId, vm.exit!.part)} accessibilityRole="link"
+                         accessibilityLabel={vm.exit.label} testID="water-map-exit"
+                         style={{ minHeight: 44, justifyContent: "center", marginTop: 8 }}>
+                <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{vm.exit.label}</Text>
+              </Pressable>
+            )}
           </>
         ) : (
           <Text style={{ ...TYPE.body, color: palette.sub }} testID="water-map-status">{status}</Text>

@@ -67,6 +67,8 @@ export interface WaterFrame {
    * water alone, or one opened where its areas were not asked (from browse mode, where nothing is held to match).
    */
   group?: readonly ItemId[];
+  /** (T203) The water Map opens on the WHOLE water (a search result's: the reader picks the section there). A step to another part drops it. */
+  whole?: boolean;
 }
 /** A spot being added: at the point the reader gave (a long press, a tap in pick mode, their location), or none yet. */
 export interface AddingSpot { at: LatLon | null }
@@ -111,7 +113,9 @@ export type RouteAction =
        * (Owner 2026-10-22 late, "back from a searched water lands on the map") Opened from a search result: the search
        * is consumed — `from` is the map underneath with search CLOSED, so back and × land on the map, not the list.
        */
-      fromSearch?: boolean }
+      fromSearch?: boolean;
+      /** (T203) The water Map opens framed on the whole water. */
+      whole?: boolean }
   /** (T48) Open or close search over the map on screen. */
   | { type: "search"; open: boolean }
   | { type: "view"; view: View }
@@ -181,7 +185,8 @@ const opened = (a: Extract<RouteAction, { type: "openWater" }>): WaterFrame | nu
   const tapSid = a.tapSid ?? null;
   const f: WaterFrame = { item: a.item, part: a.part ?? null, tapSid, at: tapSid !== null ? a.at ?? null : null,
                           view: a.view ?? "regs",
-                          ...(a.item !== null && a.group && a.group.length > 1 ? { group: a.group } : {}) };
+                          ...(a.item !== null && a.group && a.group.length > 1 ? { group: a.group } : {}),
+                          ...(a.whole && (a.view ?? "regs") === "map" ? { whole: true } : {}) };
   if (f.item === null && tapSid === null) return null;
   return frameViews(f).includes(f.view) ? f : null;
 };
@@ -225,11 +230,11 @@ export function reduce(r: Route, a: RouteAction): Route {
   }
   switch (a.type) {
     case "openSpot": return { ...r, spot: a.id };
-    case "view": return frameViews(top(r)).includes(a.view) ? withTop(r, { view: a.view }) : r;
+    case "view": return frameViews(top(r)).includes(a.view) ? withTop(r, { view: a.view, whole: undefined }) : r;
     case "part":
       if (top(r).item === null) return r;
-      return a.item === undefined || a.item === top(r).item ? withTop(r, { part: a.part })
-        : withTop(r, { item: a.item, part: a.part, tapSid: null, at: null });
+      return a.item === undefined || a.item === top(r).item ? withTop(r, { part: a.part, whole: undefined })
+        : withTop(r, { item: a.item, part: a.part, tapSid: null, at: null, whole: undefined });
     case "flowInto": {
       const f = opened({ type: "openWater", item: a.item, part: a.part });
       return f === null ? r : enter(r, f);

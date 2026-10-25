@@ -14,7 +14,7 @@ import { describe, expect, it } from "vitest";
 import { nativeAdapter, nativeRenderer, type NativeRefs } from "./adapters/native";
 import { webAdapter, webRenderer, type GlMapSlice } from "./adapters/web";
 import { baseAdapter, type MapHandle, type MapRenderer } from "./adapters/contract";
-import { CASING_PX, paintFor, SELECTION_CASING, SELECTION_RINGS } from "./paint";
+import { CASING_PX, PART_HALO_PX, paintFor, SELECTION_CASING, SELECTION_RINGS } from "./paint";
 import {
   MAP_STYLE, STYLE_META, colorExpression, isRuntimeLayer, layerIds, resolveTheme,
   toggleableGroups,
@@ -356,7 +356,9 @@ describe("the style adapter (platform-free: one implementation, tested for what 
       .toEqual([true, true, true, true]);
     const layer = (id: string) => style.layers.find((l: { id: string }) => l.id === id) as unknown as
       { type: string; "source-layer": string; paint: Record<string, unknown> };
-    const shown = ["case", ["boolean", ["feature-state", "selected"], false], 1, 0];
+    // (T203) the part of a water's Map ("dim") is haloed too, at half the outline
+    const shown = ["case", ["boolean", ["feature-state", "selected"], false], 1,
+                   ["boolean", ["feature-state", "part"], false], 1, 0];
     for (const theme of ["light", "dark", "cvd"]) {
       const tk = resolveTheme(theme);
       const s = runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles" } as never, theme, {});
@@ -370,7 +372,8 @@ describe("the style adapter (platform-free: one implementation, tested for what 
     const w = paintFor("stream", "plain", resolveTheme("light"))["line-width"] as unknown[];
     const cw = layer(SELECTION_CASING).paint["line-width"] as unknown[];
     expect([cw.slice(0, 3), cw.slice(3).filter((_, i) => i % 2 === 1)]).toEqual([
-      w.slice(0, 3), w.slice(3).filter((_, i) => i % 2 === 1).map((v) => ["+", v, 2 * CASING_PX])]);
+      w.slice(0, 3), w.slice(3).filter((_, i) => i % 2 === 1).map((v) => ["+", v, ["case", ["boolean", ["feature-state", "part"], false],
+        2 * PART_HALO_PX, 2 * CASING_PX]])]);
   });
 
   it("a theme or mode change repaints the outline with the stream (one paint path)", () => {
