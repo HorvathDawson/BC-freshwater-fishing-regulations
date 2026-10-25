@@ -3,7 +3,22 @@
 Restart here. Update this file after EVERY step: what is done, what is running, and the exact next action.
 Logs from timing runs live in the session scratchpad, which a reboot wipes. The numbers that matter are copied here.
 
-## CURRENT STATE (2026-10-25, credits ~6% — conserve)
+## CURRENT STATE (2026-10-25, late — credits minimal, stopped)
+
+LIVE: r-46a602244714 — T179 split work promoted (one-pass cuts, authored never moves, 1 m snap / build error near
+polygon+lake edges, 25 m lake-anchor proposals, merged places keep all ids+names, park side/exclude, Moyie border anchor,
+close_pairs.json), owner-accepted anchors (6 dams + Terzaghi + Caribou bridge; Koocanusa INLET), Cayoosh polygon folded
+into Cayoosh Creek, Caribou slough under Caribou + Burton; tiles window (T64 wetlands out, T85 z13 overzoom, T113, T152
+not-fishing + Q125 fill, T75); T73 gz reach; T182 split files. T179, T64 DONE. Checks: pytest 5512 green; app check
+green except release-budget (request-walk needs the T203 landing update, then `--pin` — in T203 follow-up).
+Review app (backend :8787, screen :5183) on the live data: curation review (T189/T191 fix-extent) + DFO extents mode
+(T164, new splits as proposals). Pilot DROPPED; owner does the real review.
+Merged this round also: T190, T62 3.9, T203 items 1-3 (T204 = stretches + meeting marks, needs pipeline), T162 data +
+plan, tickets T199-T202 last band.
+NEXT when credits return: T203 request-walk + T182 pin; T185 marks → proposals; T204; SEO T192-T198; T62 3.2 (needs
+`--gnis` build_parity); native T50 → T74; slough fold after the owner's marks; last band T199-T202.
+
+## (earlier) CURRENT STATE (2026-10-25, credits ~6% — conserve)
 
 Live release r-98c43091c440 (T183). Merged, NOT built: T179 one-pass cuts + follow-ups (authored never moves, 25 m
 lake/mouth proposals, merged places keep every id+name, POLICY 34), tiles window (T64/T75/T85/T113/T152 + Q125 fill),
