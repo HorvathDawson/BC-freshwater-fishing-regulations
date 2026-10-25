@@ -1229,6 +1229,10 @@
        "splits": [
         "burton_creek__woden_creek_into_burton_trout_creek"
        ]
+      },
+      {
+       "op": "whole",
+       "item_id": "wbk:329262655"
       }
      ],
      "extent_text": "from Woden Creek to Hwy 6 bridge",
@@ -1423,6 +1427,10 @@
         "caribou_creek__rodd_creek_into_caribou_creek",
         "caribou_creek__hwy_6_bridge"
        ]
+      },
+      {
+       "op": "whole",
+       "item_id": "wbk:329262655"
       }
      ]
     }

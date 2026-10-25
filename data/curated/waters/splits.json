@@ -338,17 +338,14 @@
     {
      "id": "campbell_river__ladore_dam",
      "label": "Ladore Dam",
-     "kind": "point",
+     "kind": "lake",
      "anchor": {
-      "type": "point",
-      "coord": [
-       -125.38949,
-       50.01217
-      ],
-      "is_lonlat": true
+      "type": "lake",
+      "wbk": "329069968",
+      "edge": "outlet"
      },
      "note": "",
-     "_note": "[auto-proposal L] Ladore Dam (Lower Campbell Lake outlet into John Hart Lake) on Campbell system - channel downstream of Ladore Dam. Candidate coord [-125.42, 50.02]. OSM: https://www.openstreetmap.org/?mlat=50.02000&mlon=-125.42000#map=15/50.02000/-125.42000. Verify: Locate Ladore Dam (between Lower Campbell Lake and John Hart Lake) on a map; candidate is a rough estimate.. 'John Hart Lake's tributaries - channel downstream of Ladore Dam.' Ladore Dam discharges from Lower Campbell Lake into John Hart Lake. Exact dam not confirmed in FWA; candidate is an approximate estimate near the John Hart Lake head - verify on BC Hydro map. — [human-review 2026-08-04 curated] Point split at Ladore Dam face on Campbell River mainstem (blk 354154635); confirmed dam-face not John Hart Lake inlet. authored split: ladore_dam.",
+     "_note": "[auto-proposal L] Ladore Dam (Lower Campbell Lake outlet into John Hart Lake) on Campbell system - channel downstream of Ladore Dam. Candidate coord [-125.42, 50.02]. OSM: https://www.openstreetmap.org/?mlat=50.02000&mlon=-125.42000#map=15/50.02000/-125.42000. Verify: Locate Ladore Dam (between Lower Campbell Lake and John Hart Lake) on a map; candidate is a rough estimate.. 'John Hart Lake's tributaries - channel downstream of Ladore Dam.' Ladore Dam discharges from Lower Campbell Lake into John Hart Lake. Exact dam not confirmed in FWA; candidate is an approximate estimate near the John Hart Lake head - verify on BC Hydro map. — [human-review 2026-08-04 curated] Point split at Ladore Dam face on Campbell River mainstem (blk 354154635); confirmed dam-face not John Hart Lake inlet. authored split: ladore_dam. [T179 2026-10-25 owner-accepted] re-anchored on Campbell Lake (wbk 329069968) outlet; the point stood 4.6 m from that edge.",
      "_coord": [
       -125.38949,
       50.01217
@@ -2051,17 +2048,14 @@
     {
      "id": "stamp_river__great_central_lake_dam",
      "label": "Great Central Lake dam",
-     "kind": "point",
+     "kind": "lake",
      "anchor": {
-      "type": "point",
-      "coord": [
-       -124.99219,
-       49.32835
-      ],
-      "is_lonlat": true
+      "type": "lake",
+      "wbk": "329016195",
+      "edge": "outlet"
      },
      "note": "",
-     "_note": "[auto-proposal H] Great Central Lake dam (Stamp River head) on Stamp River (Ash R confluence -> Great Central Lake dam). Candidate coord [-124.99219, 49.32835]. OSM: https://www.openstreetmap.org/?mlat=49.32835&mlon=-124.99219#map=15/49.32835/-124.99219. Verify: Confirm the Great Central Lake dam (upstream bound); downstream end = Ash River confluence (~[-124.978,49.362]).. Same dam as great-central-lake-4ff0ab: the Great Central Lake outlet dam is the head of the Stamp River. Coord = FWA stream exit from Great Central Lake polygon. Reach runs from the Ash River confluence up to this dam. [structural-split 2026-08-05 from \"from the confluence with Ash River upstream to the Great Cen\"] boundary=Great Central Lake dam [human-review 2026-08-06] Great Central Lake outlet dam [-124.99219, 49.32835]. [hint-fix 2026-08-06 lake_reach->dam_weir_fence]",
+     "_note": "[auto-proposal H] Great Central Lake dam (Stamp River head) on Stamp River (Ash R confluence -> Great Central Lake dam). Candidate coord [-124.99219, 49.32835]. OSM: https://www.openstreetmap.org/?mlat=49.32835&mlon=-124.99219#map=15/49.32835/-124.99219. Verify: Confirm the Great Central Lake dam (upstream bound); downstream end = Ash River confluence (~[-124.978,49.362]).. Same dam as great-central-lake-4ff0ab: the Great Central Lake outlet dam is the head of the Stamp River. Coord = FWA stream exit from Great Central Lake polygon. Reach runs from the Ash River confluence up to this dam. [structural-split 2026-08-05 from \"from the confluence with Ash River upstream to the Great Cen\"] boundary=Great Central Lake dam [human-review 2026-08-06] Great Central Lake outlet dam [-124.99219, 49.32835]. [hint-fix 2026-08-06 lake_reach->dam_weir_fence] [T179 2026-10-25 owner-accepted] re-anchored on Great Central Lake (wbk 329016195) outlet; the point stood 0.49 m from that edge.",
      "_coord": [
       -124.99219,
       49.32835
@@ -3470,17 +3464,14 @@
     {
      "id": "bridge_river__terzaghi_dam",
      "label": "Terzaghi Dam",
-     "kind": "point",
+     "kind": "lake",
      "anchor": {
-      "type": "point",
-      "coord": [
-       -122.22183,
-       50.78767
-      ],
-      "is_lonlat": true
+      "type": "lake",
+      "wbk": "329505189",
+      "edge": "outlet"
      },
      "note": "",
-     "_note": "[auto-proposal H] Terzaghi Dam (Carpenter Lake outlet) on Bridge River (Terzaghi Dam -> Yalakom River). Candidate coord [-122.22175, 50.78765]. OSM: https://www.openstreetmap.org/?mlat=50.78765&mlon=-122.22175#map=15/50.78765/-122.22175. Verify: Confirm cut at Carpenter Lake outlet (Terzaghi Dam); downstream end = Yalakom R mouth ~[-122.173,50.863].. Terzaghi Dam impounds Carpenter Lake on the Bridge River. Coord = FWA-computed Bridge River blue-line exit from the Carpenter Lake polygon; matches the known Terzaghi Dam location. Reach ends at the Yalakom River confluence. [structural-split 2026-08-05 from \"from Terzaghi Dam to Yalakom River\"] boundary=Terzaghi Dam [human-review 2026-08-06 OSM dam] Terzaghi Dam.",
+     "_note": "[auto-proposal H] Terzaghi Dam (Carpenter Lake outlet) on Bridge River (Terzaghi Dam -> Yalakom River). Candidate coord [-122.22175, 50.78765]. OSM: https://www.openstreetmap.org/?mlat=50.78765&mlon=-122.22175#map=15/50.78765/-122.22175. Verify: Confirm cut at Carpenter Lake outlet (Terzaghi Dam); downstream end = Yalakom R mouth ~[-122.173,50.863].. Terzaghi Dam impounds Carpenter Lake on the Bridge River. Coord = FWA-computed Bridge River blue-line exit from the Carpenter Lake polygon; matches the known Terzaghi Dam location. Reach ends at the Yalakom River confluence. [structural-split 2026-08-05 from \"from Terzaghi Dam to Yalakom River\"] boundary=Terzaghi Dam [human-review 2026-08-06 OSM dam] Terzaghi Dam. [T179 2026-10-25 owner-accepted] re-anchored on Carpenter Lake (wbk 329505189) outlet; the point stood 6.0 m from that edge.",
      "_coord": [
       -122.22183,
       50.78767
@@ -4215,17 +4206,14 @@
     {
      "id": "caribou_creek__hwy_6_bridge",
      "label": "Hwy 6 bridge",
-     "kind": "point",
+     "kind": "lake",
      "anchor": {
-      "type": "point",
-      "coord": [
-       -117.88906,
-       49.98134
-      ],
-      "is_lonlat": true
+      "type": "lake",
+      "wbk": "329262655",
+      "edge": "outlet"
      },
      "note": "",
-     "_note": "[auto-proposal L] Hwy 6 bridge over Caribou Creek on Caribou Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Hwy 6 bridge over Caribou Creek (Arrow Lakes, near Burton); map.. Reach = 'from Rodd Creek to Hwy 6 bridge'. Caribou Creek enters Lower Arrow Lake near Burton where Hwy 6 crosses it. Public highway -> not in FWA; map/OSM-confirmable. [structural-split 2026-08-05 from “from Rodd Creek to Hwy 6 bridge”] boundary=Hwy 6 bridge [curated 2026-08-09 verify-batch] [Hwy 6 x Caribou Ck]",
+     "_note": "[auto-proposal L] Hwy 6 bridge over Caribou Creek on Caribou Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Hwy 6 bridge over Caribou Creek (Arrow Lakes, near Burton); map.. Reach = 'from Rodd Creek to Hwy 6 bridge'. Caribou Creek enters Lower Arrow Lake near Burton where Hwy 6 crosses it. Public highway -> not in FWA; map/OSM-confirmable. [structural-split 2026-08-05 from “from Rodd Creek to Hwy 6 bridge”] boundary=Hwy 6 bridge [curated 2026-08-09 verify-batch] [Hwy 6 x Caribou Ck] [T179 2026-10-25 owner-accepted] re-anchored on lake 329262655 (wbk 329262655) outlet; the point stood 10.41 m from that edge.",
      "_coord": [
       -117.88906,
       49.98134
@@ -4304,17 +4292,14 @@
     {
      "id": "columbia_river__revelstoke_dam",
      "label": "Revelstoke Dam",
-     "kind": "point",
+     "kind": "lake",
      "anchor": {
-      "type": "point",
-      "coord": [
-       -118.19268,
-       51.04956
-      ],
-      "is_lonlat": true
+      "type": "lake",
+      "wbk": "329484653",
+      "edge": "outlet"
      },
      "note": "",
-     "_note": "[auto-proposal H] Revelstoke Dam (Revelstoke Lake outlet) on Columbia River (Revelstoke Dam -> Hwy 1 bridge). Candidate coord [-118.19266, 51.04957]. OSM: https://www.openstreetmap.org/?mlat=51.04957&mlon=-118.19266#map=15/51.04957/-118.19266. Verify: Confirm cut at Revelstoke Dam (Revelstoke Lake outlet); downstream end = Hwy 1 bridge in Revelstoke.. Revelstoke Dam impounds Revelstoke Lake on the Columbia. Coord = FWA Columbia exit from Revelstoke Lake polygon; matches known Revelstoke Dam. Reach ends at the Hwy 1 bridge in Revelstoke. [structural-split 2026-08-05 from \"from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke\"] boundary=Revelstoke Dam [human-review 2026-08-06 OSM dam] Revelstoke Dam.",
+     "_note": "[auto-proposal H] Revelstoke Dam (Revelstoke Lake outlet) on Columbia River (Revelstoke Dam -> Hwy 1 bridge). Candidate coord [-118.19266, 51.04957]. OSM: https://www.openstreetmap.org/?mlat=51.04957&mlon=-118.19266#map=15/51.04957/-118.19266. Verify: Confirm cut at Revelstoke Dam (Revelstoke Lake outlet); downstream end = Hwy 1 bridge in Revelstoke.. Revelstoke Dam impounds Revelstoke Lake on the Columbia. Coord = FWA Columbia exit from Revelstoke Lake polygon; matches known Revelstoke Dam. Reach ends at the Hwy 1 bridge in Revelstoke. [structural-split 2026-08-05 from \"from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke\"] boundary=Revelstoke Dam [human-review 2026-08-06 OSM dam] Revelstoke Dam. [T179 2026-10-25 owner-accepted] re-anchored on Revelstoke Lake (wbk 329484653) outlet; the point stood 1.95 m from that edge.",
      "_coord": [
       -118.19268,
       51.04956
@@ -5113,17 +5098,14 @@
     {
      "id": "kootenay_river__kootenay_koocanusa",
      "label": "Koocanusa Reservoir u/s end",
-     "kind": "point",
+     "kind": "lake",
      "anchor": {
-      "type": "point",
-      "coord": [
-       -115.18181,
-       49.00001
-      ],
-      "is_lonlat": true
+      "type": "lake",
+      "wbk": "328961702",
+      "edge": "outlet"
      },
      "note": "",
-     "_note": "Split authored in splits.json: 'kootenay_koocanusa' (lake). — authored split: kootenay_koocanusa [curated 2026-08-10 signs/other batch] [reservoir u/s end = Montana border ~49.0,-115.18; matches burbot-boundary]",
+     "_note": "Split authored in splits.json: 'kootenay_koocanusa' (lake). — authored split: kootenay_koocanusa [curated 2026-08-10 signs/other batch] [reservoir u/s end = Montana border ~49.0,-115.18; matches burbot-boundary] [T179 2026-10-25 owner-accepted] re-anchored on Lake Koocanusa (wbk 328961702) outlet; the point stood 0.0 m from that edge.",
      "_coord": [
       -115.18181,
       49.00001
@@ -8753,17 +8735,14 @@
     {
      "id": "peace_river__peace_canyon_dam",
      "label": "Peace Canyon Dam",
-     "kind": "point",
+     "kind": "lake",
      "anchor": {
-      "type": "point",
-      "coord": [
-       -121.99444,
-       55.98194
-      ],
-      "is_lonlat": true
+      "type": "lake",
+      "wbk": "329657308",
+      "edge": "outlet"
      },
      "note": "",
-     "_note": "[osm-candidate 2026-08-05] [-122.19498, 56.0152]; [-122.19422, 56.01571] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [structural-split 2026-08-05 from \"between Peace Canyon Dam and Hwy 29 Bridge\"] boundary=Peace Canyon Dam [human-review 2026-08-06] Peace Canyon Dam (user coord).",
+     "_note": "[osm-candidate 2026-08-05] [-122.19498, 56.0152]; [-122.19422, 56.01571] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [structural-split 2026-08-05 from \"between Peace Canyon Dam and Hwy 29 Bridge\"] boundary=Peace Canyon Dam [human-review 2026-08-06] Peace Canyon Dam (user coord). [T179 2026-10-25 owner-accepted] re-anchored on Dinosaur Lake (wbk 329657308) outlet; the point stood 0.0 m from that edge.",
      "_coord": [
       -121.99444,
       55.98194

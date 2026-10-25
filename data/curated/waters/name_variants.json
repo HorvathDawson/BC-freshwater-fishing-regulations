@@ -72905,5 +72905,35 @@
     "note": "BC Hydro power canal from Seton Lake to the Seton generating station on the Fraser (book p.32 row 'SETON RIVER (includes BC Hydro Power Canal upstream of the dam up to signs located on Seton Lake)'). FWA manmade polygon, no GNIS name; blk 355995374. [geo-a 2026-10-07]"
    }
   ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329505890"
+   ]
+  },
+  "names": [
+   {
+    "name": "Cayoosh Creek",
+    "source": "override",
+    "display": true,
+    "note": "Owner 2026-10-25 (decisions.md 'T179 split proposals'): this FWA lakes-layer polygon (GB15300000, no GNIS name, MU 3-16, at Cayoosh falls) is NOT a lake: it is part of Cayoosh Creek, a stream piece with stream regulations. Naming it the creek puts it through the flowing-polygon fold (registry.flowing rule 2, same name + contact), which joins it to gnis:37767 as kind stream, so r3:cayoosh_creek@3-16 binds it. Cayoosh falls stays a plain cut."
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329262655"
+   ]
+  },
+  "names": [
+   {
+    "name": "Caribou Creek slough",
+    "source": "override",
+    "display": true,
+    "note": "Owner 2026-10-25 (decisions.md 'T179 split proposals'): this FWA lakes-layer polygon (GB15300000, no GNIS name, MU 4-15) is the Caribou Creek / Burton (Trout) Creek confluence wetland-slough and carries BOTH creeks' regulations. A slough name makes it flow (registry.flowing rule 5: a stream item of its own, wbk:329262655 — a name of either creek would fold it into that one creek), and caribou_creek.r1 and burton_creek.r1 each name it in an extent. The Hwy 6 bridge split is anchored on its outlet."
+   }
+  ]
  }
 ]
