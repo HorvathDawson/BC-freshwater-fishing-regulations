@@ -130,6 +130,12 @@ def attribute(base_ans: Sequence[dict], page_ans: Sequence[dict], rules: dict) -
                 and (x is None or x.get("by") != y.get("by")):
             # the base lost it to a rule an override has since removed from the page (SP-4)
             found = [o for o in [root(y["by"], p)] if o]
+        if not found and x is not None and x["state"] in R.LOSER_STATES and x.get("by") \
+                and (b.get(x["by"]) or {}).get("state") in R.LOSER_STATES:
+            # the page lost it to a base rule that the BASE had lost — revived on the page because an
+            # override removed what beat it there (T183: a straddler's two tables, a water row lifting
+            # one region's spring closure, so the other region's identical quota is shown instead)
+            found = [o for o in [root(b[x["by"]]["by"], p)] if o]
         if x is not None and x.get("partly_lifted"):
             found += [o for o in x.get("lifted_in_part_by") or [] if over(o)]
         ents = sorted({entry(o) for o in found})

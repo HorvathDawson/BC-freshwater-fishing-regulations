@@ -181,6 +181,34 @@ def test_the_steelhead_twin_s_region_is_the_one_membership(monkeypatch):
     assert twin({"area_id": "area:region:5"}) == [("r6b", {"f5:0", "lake:L"})]
 
 
+# ------------------------------------------------- Z1 on a straddler's two tables (T183 side run)
+
+def test_z1_names_the_row_that_revived_the_other_regions_identical_quota():
+    """Willow River (a Zone 7A row) lifts both regions' spring closures on a piece in Regions 5 and 7A.
+    In the base alone, Zone 7A's closure beats Region 5's bass quota (stricter region) and Zone 7A's
+    identical quota speaks; on the page the closures are lifted, Region 5's quota speaks and Zone 7A's
+    is shown once, under it (same as peer). That swap is the row's doing: `attribute` names it.
+    MUTATION (the revived-displacer branch removed): Zone 7A's quota is unattributable."""
+    from pipeline.tools.audit import base_deltas as BD
+    q5, q7, c5, c7 = ("z5:species_quotas", "r2"), ("z7a:species_quotas", "r2"), \
+        ("z5:spring", "r1"), ("z7a:spring", "r1")
+    willow = ("r7:willow_river@7-9", "willow_river.r1")
+    rules = {k: {"_rank": 3} for k in (q5, q7, c5, c7)}
+    rules[willow] = {"_rank": 1}
+
+    def x(k, state, by=None):
+        return {"entry": k[0], "rule": k[1], "state": state, "by": by and f"{by[0]}::{by[1]}",
+                "reason": None}
+
+    base = [x(q5, "displaced", c7), x(q7, "speaks"), x(c5, "speaks"), x(c7, "speaks")]
+    page = [x(q5, "speaks"), x(q7, "displaced", q5), x(c5, "lifted", willow), x(c7, "lifted", willow),
+            x(willow, "speaks")]
+    got = {d.rule: d.row for d in BD.attribute(base, page, rules)}
+    assert got["z7a:species_quotas::r2"] == "r7:willow_river@7-9"
+    assert got["z5:species_quotas::r2"] == "r7:willow_river@7-9"
+    assert None not in got.values()
+
+
 # ------------------------------------------------------------- a touch is not membership (T183)
 
 def test_a_region_holds_a_piece_only_past_a_sliver():
