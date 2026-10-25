@@ -233,6 +233,7 @@ use that as the sole source of future work."
 | T186 | web prefetch after first paint (region's regs file; core + wasm on idle) + core-words chevrons (Q164, Q162) | DONE | d54842ec, b8b5b357, 0a129a14 | first tap still fetches water + access → T182 |
 | T187 | a braid piece between one window's two cuts is inside it (Peace Site C closure, 359005110:3454) | DONE | 13027245, 525ab99e, 0bc22c70 | found by the post-braid check; 1 rule changes |
 | T188 | get found in search: per-water static pages, sitemap, structured data, Search Console, outreach plan (no spam bots) | OPEN | — | domain canifishthis.ca; full rules per water page |
+| T190 | a two-region piece's decision ladder heads both regions' rules with one region | OPEN | — | app only (decided.ts) |
 
 ## Order for open tickets
 
