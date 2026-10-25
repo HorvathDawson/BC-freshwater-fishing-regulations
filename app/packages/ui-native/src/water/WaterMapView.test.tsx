@@ -148,15 +148,17 @@ describe("<WaterMapView>", () => {
   }, 30_000);
 
   // (T67, r-0ed3c2b2a0a7) the Zymoetz's canyon side channel is no part of its own any more (E15's mark is gone); the
-  // Skeena's Ecological Reserve part is a fork upstream
+  // Skeena's Ecological Reserve part is a fork upstream. (T183, r-98c43091c440) Skeena section 2 starts at the Exchamsiks
+  // cut: the Reserve is part 5 now (part 6 is the Exchamsiks host channel above the cut, still section 2), and its ▲ is
+  // part 0 (which took in the mainstem up to the Exchamsiks) or that channel
   it("a fork upstream: ▲ on the Skeena's Ecological Reserve opens the chooser, the main stem first", async () => {
-    mount("gnis:2936", 6);
+    mount("gnis:2936", 5);
     await ready();
     expect(screen.getByTestId("water-map-name").textContent).toBe("Within Skeena River Ecological Reserve");
     fireEvent.click(screen.getByRole("button", { name: "Upstream" }));
     const chooser = within(screen.getByRole("dialog", { name: "Which way upstream?" }));
-    const other = "Skeena River Ecological Reserve boundary → 1.5 km upstream of the Kitsumkalum River confluence";
-    expect(chooser.getAllByRole("button").map((b) => b.getAttribute("aria-label"))).toEqual(["Close", "2 stretches (1)", other]);
+    const other = "Side channel";
+    expect(chooser.getAllByRole("button").map((b) => b.getAttribute("aria-label"))).toEqual(["Close", "3 stretches", other]);
     fireEvent.click(chooser.getByRole("button", { name: other }));
     expect([screen.queryByRole("dialog"), screen.getByTestId("water-map-name").textContent]).toEqual([null, other]);
   }, 30_000);
@@ -184,7 +186,7 @@ describe("<WaterMapView>", () => {
     act(() => seen.props!.onPressMark!(2));
     const seenMark = [open(), `${back()} -> ${open()}`, `${back()} -> ${open()}`];
     cleanup(); routes.length = 0;
-    render(<Harness item="gnis:2936" part={6} />);
+    render(<Harness item="gnis:2936" part={5} />);   // (T183) the Skeena's Ecological Reserve is part 5
     await ready();
     fireEvent.click(screen.getByRole("button", { name: "Upstream" }));
     const seenChooser = [open(), `${back()} -> ${open()}`];

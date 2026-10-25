@@ -182,8 +182,8 @@ describe.skipIf(gate.skip)("T18 quota tree", () => {
       });
     }
     // the golden's own counts: 27 folded kinds, 127 tiers (Kitimat's ruled trees have as many of each); (T115) the 4 states whose part the release merged away (x15p14/15/17/18, taps.json `gone`) are not cases: their 3 tiers
-    // (x15p17 1, x15p18 2) go with them
-    expect([folded, checked]).toEqual([27, 127]);
+    // (x15p17 1, x15p18 2) go with them; (T183) and the West Road's x27p1 (its Region 6 stretch shares part 0's rules now, taps.json `gone`): its 1 tier goes with it
+    expect([folded, checked]).toEqual([27, 126]);
   });
 
   it("12. property (r20e/r20f): a drawn share under an ' across ' total reads 'Only N of the M …', N a big number, M ≠ N", async () => {

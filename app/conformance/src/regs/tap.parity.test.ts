@@ -27,10 +27,10 @@ const MOMENT_SPLITS: Readonly<Record<string, number>> = {
   klwa_1010: 1, klwa_1012: 0, x17p3_1010: 7, x17p4_1010: 9, x19p6_1010: 6, x15p7_1010: 4, x32p0_1010: 5,
 };
 
-// (T115, T67) 128 tapped + 6 taps.json lists `gone` = the golden's 134
-it("the oracle: 128 tapped golden states (+ 6 gone), 4 Feb 29 cases, at the golden this port targets", () => {
+// (T115, T67, T183) 127 tapped + 7 taps.json lists `gone` = the golden's 134
+it("the oracle: 127 tapped golden states (+ 7 gone), 4 Feb 29 cases, at the golden this port targets", () => {
   expect([ids.length, T.leap.length, T.meta.generator, T.meta.version, T.meta.year])
-    .toEqual([128, 4, "app/design/regs-v11/port/taps.py", "v38", 2026]);
+    .toEqual([127, 4, "app/design/regs-v11/port/taps.py", "v38", 2026]);
   for (const [id, s] of Object.entries(MOMENT_SPLITS)) expect([id, T.states[id]!.s, T.states[id]!.moments !== null]).toEqual([id, s, true]);
 });
 

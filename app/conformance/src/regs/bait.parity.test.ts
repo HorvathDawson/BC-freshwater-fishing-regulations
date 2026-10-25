@@ -52,8 +52,9 @@ describe.skipIf(gate.skip)("T31 bait vs golden gear.bait (and the whole Gear tab
     passed++;
   });
 
-  // (T115) the 4 states whose part the release merged away (x15p14/15/17/18, taps.json `gone`) are not cases: each had bait, the ban note and a dated Now line
-  it("1. tallies: 103 with bait, 63 with the ban note, 64 with a dated line (63 Now), 20 All year", async () => {
+  // (T115) the 4 states whose part the release merged away (x15p14/15/17/18, taps.json `gone`) are not cases: each had bait, the ban note and a dated Now line;
+  // (T183) and the West Road's x27p1 (its Region 6 stretch shares part 0's rules now, taps.json `gone`) neither: bait, the ban note, a dated Now line
+  it("1. tallies: 102 with bait, 62 with the ban note, 63 with a dated line (62 Now), 20 All year", async () => {
     const t = { bait: 0, notes: 0, dated: 0, now: 0, allYear: 0 };
     for (const id of ids) {
       const b = (await gearOf(id))!.bait;
@@ -61,7 +62,7 @@ describe.skipIf(gate.skip)("T31 bait vs golden gear.bait (and the whole Gear tab
       t.bait++; if (b.notes.length) t.notes++; if (b.dated.length) t.dated++;
       if (b.dated.some((d) => d.chip === "Now")) t.now++; if (b.dated.some((d) => d.when === "All year")) t.allYear++;
     }
-    expect(t).toEqual({ bait: 103, notes: 63, dated: 64, now: 63, allYear: 20 });
+    expect(t).toEqual({ bait: 102, notes: 62, dated: 63, now: 62, allYear: 20 });
   });
 
   it("mutation pins: a swapped column, a lost note, a wrong chip or a reordered item fails the comparison", async () => {

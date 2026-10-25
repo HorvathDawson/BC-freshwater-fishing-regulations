@@ -21,6 +21,12 @@ interface GHeader { name: string; day: string; date: string; dateAria: string; d
 const G = golden();
 const gate = await parityGate();
 const ids = caseIds("header");
+/** (T183, r-98c43091c440) the ticket's literals: a part whose own label and rows are the golden's but whose short label a
+ *  sibling re-cut changed. Skeena section 2 starts at the Exchamsiks now, so part 0 is "3 stretches" (it was "2 stretches
+ *  (1)") and part 4's short label no longer carries its long label to tell the two apart: the store's short is "2 stretches". */
+const RELABELED: Readonly<Record<string, { full: string; short: string }>> = {
+  x19p4_1010: { full: "2 stretches", short: "2 stretches" },
+};
 
 async function headerFor(id: string): Promise<HeaderVM> {
   const inp = (await inputsOf(id))!, place = makePlace(inp), s = settle(inp, place), r = requestOf(id);
@@ -56,10 +62,12 @@ describe.skipIf(gate.skip)("T16 header vs golden header", () => {
     // (T115) a part that took in a merged piece (exclusions PART_GROWN_IDS): its label is not the prototype's — asserted to differ
     const grown = excluded("header", id, "place.full") !== null;
     if (grown) expect(v.place && { full: v.place.full, short: v.place.short }).not.toEqual(g.place && { full: g.place.full, short: g.place.short });
+    // (T183) a sibling-relabelled part: the golden's label is the old one (asserted to differ, so the entry cannot go stale)
+    if (RELABELED[id]) expect(g.place && { full: g.place.full, short: g.place.short }).not.toEqual(RELABELED[id]);
     const { action: _golden, ...rest } = g;
     expect({ name: v.name, day: v.dayWord, date: v.date, dateAria: v.dateAria, dot: v.dot, place: noMap || grown ? null : v.place,
              tabs: v.tabs.map((t) => ({ sec: t.tab, text: t.label })) })
-      .toEqual({ ...rest, place: grown ? null : g.place && { full: g.place.full, short: g.place.short } });
+      .toEqual({ ...rest, place: grown ? null : RELABELED[id] ?? (g.place && { full: g.place.full, short: g.place.short }) });
     passed++;
   });
 

@@ -186,6 +186,9 @@ export const LEGACY_POOL_SHEETS: readonly string[] = ["x18p5_1010 other:x18p5_10
  * `states`; every block excludes exactly those, each with its taps.json reason. Not the Fraser's other states: x15p16 is
  * tapped at its renumbered part (taps.py PART_MOVED) and x15p0/1/4/6 at their grown parts (PART_GROWN), compared whole
  * except the extent words (PART_GROWN_EXCLUDE).
+ * (T183, r-98c43091c440: a straddling piece carries both regions' rules again, reversing T115) the four stay gone: the
+ * straddling pieces are parts of their own again, but their rows add Region 5's zone and r5's Fraser rows r1 / r6, which
+ * the prototype's page did not draw. The West Road's x27p1 (its Region 6 stretch now shares part 0's rules) joins them.
  */
 export const PART_GONE_IDS: readonly string[] = Object.keys(tapsOnce().gone ?? {});
 const BLOCKS: readonly Block[] = ["header", "keep", "gear", "methods", "licence", "sheets", "pins"];
@@ -210,10 +213,10 @@ export function recountedSub(sub: string, n: number): string {
 export const RECUT_IDS: readonly string[] = Object.entries(tapsOnce().states).filter(([, t]) => t.item in (tapsOnce().recut ?? {})).map(([id]) => id);
 export const RECUT_EXCLUDE: readonly Exclusion[] = [
   ...(PART_GROWN_IDS.length ? [{ block: "header" as const, ids: PART_GROWN_IDS, key: /^place\.(full|short)$/,
-    reason: "T115 (owner decision AGENTS 54, tickets/T115-one-region-membership.md): the part took in the straddling Fraser piece next to it (taps.json `grown`), so its extent words (the header's full and short label, and the subtitle's label and section count) are not the prototype's; its rows are, and are compared. header.parity asserts the label and subtitle DIFFER (so the entry cannot go stale). (The Parts button whose aria quoted the label is gone: T150, GOLDEN_PARTS_ACTION_IDS)",
+    reason: "T115 (owner decision AGENTS 54, tickets/T115-one-region-membership.md), then T183 (owner 2026-10-24) and T67: the part's extent changed — the Skeena's section 2 starts at the Exchamsiks, the West Road's straddling pieces are parts of their own (taps.json `grown`) — so its extent words (the header's full and short label, and the subtitle's label and section count) are not the prototype's; its rows are, and are compared. header.parity asserts the label and subtitle DIFFER (so the entry cannot go stale). (The Parts button whose aria quoted the label is gone: T150, GOLDEN_PARTS_ACTION_IDS)",
     until: "never on this golden — a prototype re-synced on T115's data" }] : []),
   ...(RECUT_IDS.length ? [{ block: "sheets" as const, ids: RECUT_IDS, key: /^parts$/,
-    reason: "T115 (owner decision AGENTS 54, tickets/T115-one-region-membership.md): the Fraser's parts were re-cut (19 → 15: each straddling piece joined its neighbour), and T67 (owner 2026-10-24) the Skeena's (8 → 9: a side-channel piece of the Ecological Reserve is a part of its own); T67/T187 the Peace's (the Site C closure takes two braid pieces and is renumbered); taps.json `recut` gives each water's reason. So the Parts sheet lists parts the prototype did not have; every other sheet of these states is compared",
+    reason: "T115 (owner decision AGENTS 54, tickets/T115-one-region-membership.md): the Fraser's parts were re-cut (19 → 15: each straddling piece joined its neighbour; T183 made them parts again, 15 → 17), T183 the West Road's (3 → 5), and T67 (owner 2026-10-24) the Skeena's (8 → 9: a channel piece of the Ecological Reserve is a part of its own — since T183 the Exchamsiks host channel above the cut, still section 2); T67/T187 the Peace's (the Site C closure takes two braid pieces and is renumbered); taps.json `recut` gives each water's reason. So the Parts sheet lists parts the prototype did not have; every other sheet of these states is compared",
     until: "never on this golden — a prototype re-synced on T115's data" }] : []),
 ];
 

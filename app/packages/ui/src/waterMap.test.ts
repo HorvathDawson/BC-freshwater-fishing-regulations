@@ -163,25 +163,30 @@ describe("(T150) the parts of this water, listed under the map — the header's 
 // (T67, r-0ed3c2b2a0a7) the Zymoetz's canyon side channel is no part of its own any more: E15's spurious mark is gone
 // and the channel joins the part above the canyon. A side-channel piece of the Skeena's Ecological Reserve is a part of
 // its own, and the Reserve's part is a fork upstream.
+// (T183, r-98c43091c440) Skeena section 2 starts at the Exchamsiks cut: the Reserve below the cut lost it (with the side
+// channel piece 360216962:96, one part again, part 5, the lowest on the map) and the mainstem from the Reserve up to the
+// Exchamsiks joined part 0 ("3 stretches"). The part of its own is now the Exchamsiks host channel ABOVE the cut
+// (360216952:1017, part 6, still section 2): the Reserve's ▲ is part 0 (the main stem) or that channel.
 describe("a fork upstream: the Skeena's Ecological Reserve", () => {
   it("▲ at the fork opens a chooser, the main stem first; a choice steps there", async () => {
     const g = await loadWaterGroup(st, "gnis:2936");
-    const reserve = waterMapStart(1);
-    expect(view(g, reserve).up).toEqual({ label: "Upstream", aria: "Upstream", disabled: false, fork: true, cross: null });
+    const reserve = waterMapStart(0);
+    expect([view(g, reserve).current.name, view(g, reserve).up])
+      .toEqual(["Within Skeena River Ecological Reserve", { label: "Upstream", aria: "Upstream", disabled: false, fork: true, cross: null }]);
     const open = run(g, reserve, { type: "up" });
     expect(open).toEqual({ ...reserve, choosing: "up" });
     expect(view(g, open).chooser).toEqual({ title: "Which way upstream?", close: "Close", options: [
-      { ix: 3, item: "gnis:2936", partIx: 0, name: "2 stretches (1)", note: "Skeena River" },
-      { ix: 2, item: "gnis:2936", partIx: 1,
-        name: "Skeena River Ecological Reserve boundary → 1.5 km upstream of the Kitsumkalum River confluence", note: "Skeena River" }] });
+      { ix: 2, item: "gnis:2936", partIx: 0, name: "3 stretches", note: "Skeena River" },
+      { ix: 8, item: "gnis:2936", partIx: 6, name: "Side channel", note: "Skeena River" }] });
     expect(run(g, open, { type: "choose", to: 2 })).toEqual(waterMapStart(2));
-    expect(run(g, open, { type: "choose", to: 3 })).toEqual(waterMapStart(3));
+    expect(run(g, open, { type: "choose", to: 8 })).toEqual(waterMapStart(8));
     // not one of the ways up: nothing
-    expect(run(g, open, { type: "choose", to: 0 })).toBe(open);
+    expect(run(g, open, { type: "choose", to: 1 })).toBe(open);
     expect(run(g, open, { type: "closeChooser" })).toEqual(reserve);
-    // the side channel's own ▲ is the main stem, no chooser
-    expect([view(g, waterMapStart(0)).current.name, view(g, waterMapStart(0)).up.fork]).toEqual(["Side channel", false]);
-    expect(run(g, waterMapStart(0), { type: "up" })).toEqual(waterMapStart(3));
+    // the host channel above the cut is the highest part, and its own ▼ is a fork (section 2 and the Reserve meet it at
+    // the Exchamsiks cut)
+    const side = view(g, waterMapStart(8));
+    expect([side.current.name, side.up.disabled, side.down.fork]).toEqual(["Side channel", true, true]);
   });
 });
 

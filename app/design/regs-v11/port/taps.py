@@ -64,8 +64,8 @@ T67 = "T67 (owner 2026-10-24, decisions.md \"braids accepted\"; RULINGS E17, AGE
 _LEN = "the automatic length cuts moved off braid-spanned junctions (owner Q2)"
 _GAUGE = "the old perpendicular sweep's gauge cuts are gone"
 PART_MOVED = {"x15p16_1010": 15,
-              # (T67) the Skeena's new part 5 (a side-channel piece of the Ecological Reserve, PART_GONE x19p5) renumbers
-              # the parts after it
+              # (T67, then T183) the Skeena's Ecological Reserve is two parts (PART_GONE x19p5: 5 below the Exchamsiks cut,
+              # 6 the host channel above it), which renumbers the parts after them
               "x19p6_1010": 7, "x19p7_1010": 8}
               # (T187) x22p6 (the Peace's Dinosaur Lake part) is back to its golden place and size: part 6, 1 section
 #: gone states whose water's list of parts is still the golden's (labels and order the Parts sheet draws): not `recut`
@@ -73,8 +73,13 @@ GONE_NOT_RECUT: set[str] = set()
 #: the reason a water is `recut` (its list of parts is not the golden's), by the state that shows it
 RECUT_WHY = {"x22p2_1010": "T67 (owner 2026-10-24): the Peace's braids are cut at Site C, the 1,200 m signs and the "
                            "Halfway, so its parts are renumbered (part order follows rule-set ids)",
-             "x19p6_1010": "T67 (owner 2026-10-24): the Ecological Reserve's side-channel piece 360216962:96 no longer "
-                           "carries the Skeena section-2 designation and is a part of its own (8 -> 9 parts)"}
+             "x19p6_1010": "T67 (owner 2026-10-24) and T183 (owner 2026-10-24: Skeena section 2 starts at the Exchamsiks "
+                           "cut): the Ecological Reserve's Exchamsiks host channel above the cut, 360216952:1017, keeps the "
+                           "section-2 designation the rest of the Reserve lost, and is a part of its own (8 -> 9 parts)",
+             # (T183) the straddling pieces are parts of their own again (T115's merge undone, two regions' rules)
+             "x15p16_1010": f"{T183}: the Fraser's straddling pieces are parts of their own again (15 -> 17 parts; the "
+                            f"golden has 19)",
+             "x27p0_1010": f"{T183}: the West Road's straddling pieces are parts of their own (3 -> 5 parts)"}
 PART_GROWN = {
     "x27p0_1010": f"{T183}: the West Road's pieces on the Region 5 / 6 / 7A lines are parts of their own; part 0 is 79 sections",
     "x27p2_1010": f"{T183}: the West Road's side channel above Charleson Creek (Region 5 and 7A) is part 3 now; part 2 is the mouth stretch",
@@ -82,19 +87,24 @@ PART_GROWN = {
                   f"the mainstem from the Ecological Reserve up to the Exchamsiks left section 2 and joined this part "
                   f"(3 stretches, 44 -> 48 sections)",
     "x19p1_1010": "T183 (owner 2026-10-24): Skeena section 2 starts at the Exchamsiks confluence, not the Ecological Reserve boundary (61 -> 59 sections; the extent changed, the rows did not)",
-    "x15p14_1010": f"{T183}: Fraser pieces 356364114:418405 and :434930 (both Region 3 and Region 5) are one part now",
 }
 PART_GONE = {
     "x27p1_1010": (0, f"{T183}: the West Road's Region 6 stretch below Carnlick Creek shares its rules with part 0 now"),
     "x15p17_1010": (16, f"{T183}: the golden part (356364114:674465, Region 5 and Region 7A) shares its rules with 699253 and is in part 16 now"),
     "x15p18_1010": (16, f"{T183}: the golden part (356364114:699253, Region 5 and Region 7A) shares its rules with 674465 and is in part 16 now"),
     "x15p15_1010": (14, f"{T183}: the golden part (356364114:434930, Region 3 and Region 5) has the same rules as 418405 and is in part 14 now"),
+    # not PART_GROWN: the rows differ too. The prototype's two-region page on 418405 drew Region 3's zone and r5's Fraser
+    # rows r2-r4; T183 binds Region 5's zone rules (p.42) and r5 r1 / r6 there as well (tickets/T183 "so 14, not 12")
+    "x15p14_1010": (14, f"{T183}: the golden part (356364114:418405, Region 3 and Region 5) is in part 14 with :434930, "
+                        f"which also carries Region 5's zone rules and the Region 5 Fraser rows r1 and r6 the prototype's "
+                        f"page did not draw, so its rows are not the golden's"),
     # (T67, r-0ed3c2b2a0a7) two closed states whose golden page counts sections the release re-cut: the app's merged
     # "Closed all year on N stretches (M sections)" list is the store's, the golden's is the prototype's
-    "x19p5_1010": (6, "T67 (owner 2026-10-24): the Exchamsiks cut split the Skeena's Ecological Reserve part — 6 sections "
-                      "in part 6 and the side channel piece 360216962:96 (same rules; it no longer carries the Skeena "
-                      "section-2 designation) in part 5, both closed all year, so the page merges two closed parts where "
-                      "the golden had one"),
+    "x19p5_1010": (5, "T67 (owner 2026-10-24): the Exchamsiks cut split the Skeena's Ecological Reserve part, and T183 "
+                      "(owner 2026-10-24) started Skeena section 2 at the cut — below it, 6 sections (the side channel "
+                      "piece 360216962:96 among them) in part 5; above it, the Exchamsiks host channel 360216952:1017, "
+                      "still section 2, in part 6; both closed all year, so the page merges two closed parts where the "
+                      "golden had one"),
     "x22p2_1010": (3, "T67 (owner 2026-10-24): the Peace's closed parts hold 7 sections, not 5 — the Site C closure took "
                       "the braid pieces 359013560:165 and (T187) 359005110:3454 — and the first is renumbered 2 -> 3 "
                       "(part order follows rule-set ids)"),

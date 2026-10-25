@@ -97,10 +97,16 @@ describe("(T53) <WaterScreen> for an unnamed reach: the store's page for the tap
     const handle = await baseOnlyUnnamed();
     const { page, trib, reach } = await storePage(handle, null);
     await open(handle);
+    // (T183, 1ca8bfda: taps.json's unnamed sample is half streams) the fixture's one base-only stream (445526, Region 8)
+    // lies in a park: the PROVINCE's superior closure (zp:superior_closures, "Federal / parks") closes it all year. A
+    // province rule, so the page is still the base alone; the banner, whole, is the store page's, its chain that rule
+    const b = page.keep.banner!;
     expect([within(screen.getByTestId("regs-header")).getByRole("heading").textContent,
-            screen.getByTestId("regs-place").textContent, screen.queryByTestId("keep-banner"),
+            screen.getByTestId("regs-place").textContent, screen.getByTestId("keep-banner").textContent,
             screen.getByTestId("keep-strip").textContent?.startsWith("✓Open")])
-      .toEqual([page.header.name, "", null, true]);
+      .toEqual([page.header.name, "",
+                b.big.join("") + b.paras.join("") + b.chain.map((c) => `${c.text} ${c.scope}${WORDS.SOURCE}${plain(c.book)}`).join(""), false]);
+    expect([b.big, b.chain.map((c) => c.rule.split("::")[0])]).toEqual([["Closed all year"], ["zp:superior_closures"]]);
     expect(page.header.name).toMatch(/^Unnamed stream · Regions? \d/);
     // the reach rules are the zones of the section's own region(s) and the province's, nothing else
     const zones = new Set(["zp", ...[...page.header.name.matchAll(/\d[AB]?/g)].map((m) => `z${m[0].toLowerCase()}`)]);

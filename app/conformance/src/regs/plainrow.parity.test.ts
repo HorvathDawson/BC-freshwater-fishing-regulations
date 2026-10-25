@@ -33,8 +33,9 @@ let passed = 0, total = 0, rows = 0;
 afterAll(() => { if (total) console.info(`keep T19b (plain rows) parity: ${passed}/${total} states equal, ${rows} non-pool plain rows · klmb_1010's pooled row not compared (D19)`); });
 
 describe("T19b plain rows vs golden keep.plainRows (every state)", () => {
-  // (T115) the 4 states whose part the release merged away (x15p14/15/17/18, taps.json `gone`) are not cases: their 4 plain rows go with them
-  it("128/128 states: every non-pool plain row's lines equal the golden", async () => {
+  // (T115) the 4 states whose part the release merged away (x15p14/15/17/18, taps.json `gone`) are not cases: their 4 plain rows go with them;
+  // (T183) and the West Road's x27p1 (its Region 6 stretch shares part 0's rules now, taps.json `gone`) neither (no plain row)
+  it("127/127 states: every non-pool plain row's lines equal the golden", async () => {
     const bad: string[] = [];
     for await (const c of cases("keep")) {
       total++;
@@ -45,7 +46,7 @@ describe("T19b plain rows vs golden keep.plainRows (every state)", () => {
       if (eq.ok) passed++; else bad.push(`${c.id}: ${got.length} rows vs ${want.length}\n${each.map((e) => ("diff" in e ? e.diff : "")).join("\n")}`);
     }
     expect(bad).toEqual([]);
-    expect([total, rows]).toEqual([128, 27]);
+    expect([total, rows]).toEqual([127, 27]);
   });
 
   const at = async (id: string) => { for await (const c of cases("keep")) if (c.id === id) return rowsOf(await c.inputs()); return null; };
