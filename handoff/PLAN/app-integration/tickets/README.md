@@ -243,6 +243,9 @@ use that as the sole source of future work."
 | T189 | curation review from the pilot: source pinned, each rule's extent in words (tributaries, carve-outs), entry extent on top, tributary + lake-split calls in the mark, one pre-check per fact | DONE | 106dbc83 | owner re-runs the pilot on it |
 | T190 | a two-region piece's decision ladder heads both regions' rules with one region | DONE | 5a6cb255 | app only (decided.ts) |
 | T191 | curation review: one-row top bar (secondary filters fold), "fix extent" per rule + entry (op, 1-2 points: map split / any split / NEW confluence, lake inlet/outlet, map click; items; tributaries; read-only preview) as Mark.extent_fix, in tickets for T185 | DONE | 031eeb0c | owner tries it in the pilot |
+| T199 | run timing in the app: implement and refine (T162 data + plan) | OPEN | — | last band, with T200/T201; owner go + Q144 first |
+| T200 | stocked lakes: feed the prepared Stocked mode | OPEN | — | last band; source + licence (owner) |
+| T201 | bathymetry: feed the prepared Depth mode and draw contours | OPEN | — | last band; source + licence (owner); tile budget |
 
 ## Order for open tickets
 
@@ -264,6 +267,7 @@ code. Heavy jobs run one at a time through scripts/heavy.sh (≤ 4 workers). ★
 5. **Tiles window (one tile build):** T64 + T85, then T75; T129 (web request budget) alongside.
 6. **Native and shipping:** T50 (alone, heavy) → T74 → T77 ★ → T86 ★ → T88 ★. T65 (determinism, heavy) in a quiet gap.
 7. **Last:** T95 ★, T98 ★ (POSTPONED), T87 ★ (sign-off walk, then delete app/design).
+8. **Data feeds at the end (owner 2026-10-25):** T199 run timing, T200 stocked lakes, T201 bathymetry / depth maps.
 
 ## Owner questions
 
