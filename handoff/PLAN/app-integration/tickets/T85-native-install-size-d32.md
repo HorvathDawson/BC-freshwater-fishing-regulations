@@ -40,3 +40,13 @@ Measured, decided, built in code 2026-10-24; takes effect at the tiles-window bu
   the build refuses a lossy cap).
 - Still to verify after the build: shots at z13–z18 (Fraser Valley bends, Vancouver dense tiles), the size table's
   "after" column.
+
+## Parked (owner 2026-10-24: "we can look at this more later")
+Basemap z13 stays open as a later decision, not dropped. Measured loss at z13 vs z14:
+- Squamish: 6 feature kinds gone (pedestrian landuse — drawn — plus sidewalks, crossings, living streets) and 426
+  names, nearly all street and path names.
+- Lac Le Jeune: 75 names, including forest service roads (the ones an angler drives to reach a lake).
+- Saving forgone: about −289 MB of the 650 MB basemap.
+Options to weigh when it is picked up: accept the loss; keep z14 only where it adds features (urban / road-dense tiles)
+and cap the rest at z13; or carry the lost names (FSRs first) into a small z14 label layer over a z13 basemap.
+Re-measure with `python -m pipeline.deliver.tiles.basemap --audit-zoom 13`.
