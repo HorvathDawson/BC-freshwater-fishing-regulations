@@ -3530,13 +3530,13 @@
      "anchor": {
       "type": "point",
       "coord": [
-       -121.98259,
-       50.6571
+       -121.9825923,
+       50.6572974
       ],
       "is_lonlat": true
      },
      "note": "",
-     "_note": "FISS Database: survey_id 15309 - OBJECTID: 71737068 -- Lat: 50.65710° N, Lon: 121.98259° W",
+     "_note": "FISS Database: survey_id 15309 - OBJECTID: 71737068 -- Lat: 50.65710° N, Lon: 121.98259° W. Point moved 2026-10-25 (owner) to the downstream edge of polygon wbk 329505890 (FWA, blk 356364387 measure 1771.30): the FISS coord fell 4.83 m inside the creek's own polygon.",
      "_coord": [
       -121.98259,
       50.6571
