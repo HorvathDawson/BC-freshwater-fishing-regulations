@@ -565,34 +565,41 @@ def test_at_edge_never_takes_another_authored_cut():
     assert _at(g, 1000)[1] == "split:someone_elses_bridge"
 
 
-def test_a_curated_split_a_sliver_from_a_lake_edge_stays_reported_and_proposed():
-    """Owner 2026-10-24: the authored point stays, the pair is a `lake_edge` conflict, and — since a cut
-    that close is usually meant to BE at the lake — a re-anchoring on the lake is PROPOSED (written,
-    never applied). The lake keeps its edge; the 1.5 m piece between stops the sliver gate."""
-    from pipeline.atlas.splits import sliver_gate as SG
-    from pipeline.atlas.splits.sectionizer import place_points
-    from pipeline.common.models import NodeKind, StreamNode
-    lake = _lake(1000, "329016195", "Great Central Lake")
-    g = _line((0, 1000, None, lake), (3000, 4000, _lake(3000, "329016195", "Great Central Lake"), None))
-    g.nodes["lake:329016195"] = StreamNode(node_id="lake:329016195", kind=NodeKind.lake,
-                                           wbk="329016195", gnis_id="17501")
-    before = SG.short_pieces(g)
+def test_a_curated_split_a_sliver_outside_a_lake_edge_snaps_within_1_m_and_stops_beyond():
+    """Owner 2026-10-25 (one rule, both sides of a polygon edge): an authored point on the line within
+    `FOLD_SNAP_M` (1 m) of a lake edge snaps onto it — the lake keeps its edge, the point is its alias;
+    1-5 m out it STOPS the build naming the split, the wbk, the edge coordinate and the lake anchor.
+    Never a sliver, never a silent move > 1 m."""
+    import pytest
+    from pipeline.atlas.splits.sectionizer import FOLD_SNAP_M, place_points
+    from pipeline.common.models import FlowEdge, NodeKind, StreamNode
+    assert FOLD_SNAP_M == 1.0
+
+    def line():
+        g = _line((0, 1000, None, _lake(1000, "329016195", "Great Central Lake")),
+                  (3000, 4000, _lake(3000, "329016195", "Great Central Lake"), None))
+        g.nodes["lake:329016195"] = StreamNode(node_id="lake:329016195", kind=NodeKind.lake,
+                                               wbk="329016195", gnis_id="17501")
+        # the edges where the line leaves / enters the lake (EPSG:3005)
+        g.edges += [FlowEdge("lake:329016195", "1:0", 1000.0, x=1000000.0, y=500000.0, kind="lake_out"),
+                    FlowEdge("1:3000", "lake:329016195", 3000.0, x=1001000.0, y=501000.0, kind="lake_in")]
+        return g
+    for sid, m in (("dam_below", 998.5), ("weir_above", 3004.0)):
+        with pytest.raises(SystemExit, match=rf"split {sid} stands .* outside the edge of lake wbk "
+                                             rf"329016195.*lon/lat \[-1\d\d\.\d+, \d\d\.\d+\].*"
+                                             rf"\"type\": \"lake\""):
+            place_points(line(), [_p(sid, m)])
+    # at 1 m or less: snapped onto the edge, no conflict, no proposal, no sliver
     conflicts, proposals = [], []
-    pts = [_p("dam_below", 998.5), _p("weir_above", 3004.0)]
-    placed = place_points(g, pts, conflicts=conflicts, proposals=proposals)
+    pts = [_p("dam_below", 999.0), _p("weir_above", 3000.4)]
+    placed = place_points(line(), pts, conflicts=conflicts, proposals=proposals)
     assert sorted((p.split_id, p.route_measure, p.picked_up) for p in placed) == \
-        [("dam_below", 998.5, False), ("weir_above", 3004.0, False)], "neither moves"
-    assert [(c["kind"], c["ids"], c["distance_m"]) for c in conflicts] == [
-        ("lake_edge", ["lake:329016195", "split:dam_below"], 1.5),
-        ("lake_edge", ["lake:329016195", "split:weir_above"], 4.0)]
-    assert [(p["split_id"], p["edge"], p["wbk"], p["gnis_id"], p["lake"], p["anchor"]) for p in proposals] == [
-        ("dam_below", "outlet", "329016195", "17501", "Great Central Lake",
-         {"type": "lake", "wbk": "329016195"}),
-        ("weir_above", "inlet", "329016195", "17501", "Great Central Lake",
-         {"type": "lake", "wbk": "329016195"})]
+        [("dam_below", 1000.0, True), ("weir_above", 3000.0, True)]
+    assert conflicts == [] and proposals == []
+    g = line()
     split_graph_at(g, {}, pts)
-    assert _at(g, 1000)[1:3] == ("lake:329016195", "Great Central Lake")
-    assert sorted(s["node"] for s in SG.slivers(g, before)) == ["1:3000", "1:998"]
+    assert _pieces(g) == [(0.0, 1000.0), (3000.0, 4000.0)]
+    assert "lake:329016195" in _at(g, 1000)[3] and _at(g, 1000)[1] == "split:dam_below"
 
 
 def test_an_area_boundary_split_is_never_offered_a_re_anchoring():
@@ -611,7 +618,7 @@ def test_an_area_boundary_split_is_never_offered_a_re_anchoring():
 def test_authorship_is_the_source_never_the_id_spelling():
     g = _line((0, 1000, None, _lake(1000)))
     split_graph_at(g, {}, [_p("gauge__looks_minted", 999.0, source="curated")])
-    assert _at(g, 999)[1] == "split:gauge__looks_minted", "a curated id spelled like a gauge is authored"
+    assert _at(g, 1000)[1] == "split:gauge__looks_minted", "a curated id spelled like a gauge is authored"
     g = _line((0, 1000, None, _lake(1000)))
     split_graph_at(g, {}, [_p("looks_curated", 999.0, source="gauge")])
     assert _at(g, 1000)[1] == "lake:329016196", "a gauge spelled like a curated id still defers"
@@ -770,7 +777,7 @@ def test_a_lake_or_mouth_within_25_m_draws_a_proposal_and_the_cut_never_moves():
         g.nodes["lake:329016195"] = StreamNode(node_id="lake:329016195", kind=NodeKind.lake,
                                                wbk="329016195", gnis_id="17501")
         return g
-    pts = [_p("bridge_below", 988.0), _p("far_bridge", 960.0), _p("weir_above", 3003.0),
+    pts = [_p("bridge_below", 988.0), _p("far_bridge", 960.0), _p("weir_above", 3008.0),
            _p("mouth_bridge", 20.0), _p("near_source", 3988.0)]
     conflicts, proposals = [], []
     placed = place_points(line(), pts, conflicts=conflicts, proposals=proposals)
@@ -779,14 +786,13 @@ def test_a_lake_or_mouth_within_25_m_draws_a_proposal_and_the_cut_never_moves():
     got = {p["split_id"]: (p["kind"], p["edge"], p["distance_m"], p["band"], p["anchor"]) for p in proposals}
     assert got == {
         "bridge_below": ("lake_edge", "outlet", 12.0, "5-25m", {"type": "lake", "wbk": "329016195"}),
-        "weir_above": ("lake_edge", "inlet", 3.0, "0-5m", {"type": "lake", "wbk": "329016195"}),
+        "weir_above": ("lake_edge", "inlet", 8.0, "5-25m", {"type": "lake", "wbk": "329016195"}),
         "mouth_bridge": ("line_end", "mouth", 20.0, "5-25m", {"type": "confluence", "tributary_blk": "1"}),
     }, "far_bridge (40 m) and near_source (a source end, 12 m) draw nothing"
-    assert [(c["kind"], c["ids"]) for c in conflicts] == [
-        ("lake_edge", ["lake:329016195", "split:weir_above"])], "only the 3 m pair is a sliver"
+    assert conflicts == [], "under 5 m a lake edge snaps or stops (the stream-side rule): no conflict here"
     g = line()
     split_graph_at(g, {}, pts)
-    assert sorted({m for m, *_ in _bounds(g)}) == [20.0, 960.0, 988.0, 1000.0, 3000.0, 3003.0, 3988.0]
+    assert sorted({m for m, *_ in _bounds(g)}) == [20.0, 960.0, 988.0, 1000.0, 3000.0, 3008.0, 3988.0]
 
 
 def test_a_merged_place_carries_every_name_and_every_id():

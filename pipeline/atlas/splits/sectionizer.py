@@ -89,6 +89,10 @@ AT_EDGE_M = 300.0
 #: authored cut and still draw a RE-ANCHOR PROPOSAL (owner 2026-10-24: 25 m). Placement ignores it: the
 #: cut stands where it is; only under `AUTHORED_MERGE_M` is the pair also a sliver conflict.
 PROPOSAL_M = 25.0
+#: How far an authored point inside a polygon the registry folds into its stream may move to that
+#: polygon's nearer edge (owner 2026-10-25: the tolerance an authored point may move to avoid a
+#: sliver). Farther in, the build STOPS and names the edge coordinate to curate (`_fold_refusal`).
+FOLD_SNAP_M = 1.0
 #: An auto family's merge distance is its own positional uncertainty. A GAUGE is a published station
 #: coordinate projected onto its channel (`gauges.consume.cuts.PROXIMITY_M`, 400 m — the value the old
 #: pickup read, one-sidedly, as its radius); area, border and length cuts are exact geometry, so they
@@ -159,6 +163,47 @@ def _fold_wbks(graph, fold):
         return frozenset(fold)
     from pipeline.atlas.registry.flowing import folding_polygon_wbks
     return folding_polygon_wbks(graph)
+
+
+def _edge_lonlat(graph, wbk: str, blk: str, m: float, low: bool) -> Optional[tuple[float, float]]:
+    """(lon, lat) of a folded polygon's edge on ``blk`` at measure ``m``: the graph's `lake_out` edge
+    into the piece below (``low``) or `lake_in` edge from the piece above (EPSG:3005 -> 4326)."""
+    lake = f"lake:{wbk}"
+    for e in graph.edges:
+        other = e.to_node if low else e.from_node
+        if (e.from_node if low else e.to_node) != lake or e.kind != ("lake_out" if low else "lake_in"):
+            continue
+        n = graph.nodes.get(other)
+        if n is None or n.blk != blk or abs((n.up_m if low else n.down_m) - m) > _tol.SAME_PLACE_M:
+            continue
+        if not e.x and not e.y:
+            return None
+        from pyproj import Transformer
+        lon, lat = Transformer.from_crs(3005, 4326, always_xy=True).transform(e.x, e.y)
+        return round(lon, 7), round(lat, 7)
+    return None
+
+
+def _fold_refusal(graph, blk, sp: SplitPoint, q: "_Place", low: bool, d: float,
+                  inside: bool = True) -> SystemExit:
+    """An authored cut more than `FOLD_SNAP_M` from a polygon edge it would have to move onto — inside
+    a folded polygon, or a sliver (< `AUTHORED_MERGE_M`) outside a folded polygon / real lake on its
+    line: never moved in silence (owner 2026-10-25). The build stops and names the edge coordinate."""
+    wbk = _bound_wbk(q.bnd)
+    ll = _edge_lonlat(graph, wbk, blk, q.m, low)
+    at = f"[{ll[0]}, {ll[1]}]" if ll else "unknown (no edge coordinate on the graph)"
+    where = (f"{d:.2f} m inside polygon wbk {wbk}, which the registry folds into its stream" if inside
+             else f"{d:.2f} m outside the edge of {'lake' if not q.fold else 'polygon'} wbk {wbk} "
+                  f"(a sliver under {AUTHORED_MERGE_M:g} m)")
+    fix = ("" if inside or q.fold else
+           " It is lake-anchored already: its waterbody run ends off the graph's lake edge." if
+           sp.anchor_type == AnchorType.lake else
+           f" Preferred: re-anchor it on the lake (anchor {{\"type\": \"lake\", \"wbk\": \"{wbk}\"}}, "
+           f"the proposal in split_lake_anchor_proposals.json).")
+    return SystemExit(
+        f"atlas build: split {sp.split_id} stands {where} (blk {blk}); an authored cut moves at most "
+        f"{FOLD_SNAP_M:g} m. Set its point in data/curated/waters/splits.json to the edge, lon/lat "
+        f"{at} (measure {q.m:.2f}).{fix}")
 
 
 def _key(sp: SplitPoint):
@@ -258,8 +303,9 @@ def _plan_blk(graph, blk, sps, nids, conflicts=None, proposals=None, fold=frozen
 
     # THE RIVER'S OWN POLYGON (owner 2026-10-25, Cayoosh Falls in wbk 329505890): the gap between the
     # piece below a folded polygon and the piece above it is the river, drawn as a polygon. An authored
-    # point inside it has no piece to cut, so it is cut at the polygon's nearer edge as a plain point —
-    # never aliased onto the polygon as if it were a lake (the fold drops that edge and refuses the alias).
+    # point inside it has no piece to cut. Within `FOLD_SNAP_M` of the nearer edge it is cut there as a
+    # plain point — never aliased onto the polygon as if it were a lake (the fold drops that edge and
+    # refuses the alias). Farther in, the build STOPS naming the edge to curate: never moved in silence.
     fold_gaps: list[tuple[_Place, _Place]] = []
     if fold:
         ordered = sorted(pieces, key=lambda n: n.down_m)
@@ -280,37 +326,57 @@ def _plan_blk(graph, blk, sps, nids, conflicts=None, proposals=None, fold=frozen
     # 1. AUTHORED — never moves. (a) An `at_edge` point takes a standing lake edge / end / minted
     #    boundary within `AT_EDGE_M`; any other point takes only the same point, or a minted cut within
     #    `AUTHORED_MERGE_M`, which moves onto IT. Nearest pair first, one authored point per place. A
-    #    lake edge / end within `AUTHORED_MERGE_M` is `near`: reported, never taken. (b) The rest join an
+    #    polygon / lake edge within `AUTHORED_MERGE_M` of a point on the line is snapped onto within
+    #    `FOLD_SNAP_M` and STOPS the build beyond it; a line end there is `near`: reported, never
+    #    taken. (b) The rest join an
     #    authored name on the same spot, or stand as their own cut.
     authored = sorted((s for s in sps if is_authored(s.source)), key=_key)
     takeable = [q for q in existing if not q.authored_names()]
     pairs, near = [], []
     in_fold: set[int] = set()                          # authored points inside a folded polygon
+    snapped: set[int] = set()                          # authored points snapped onto a polygon edge
+    outside: list = []                                 # (d, sp, edge) 1-5 m outside a polygon edge
     for sp in authored:
         M = sp.route_measure
         for lo_q, hi_q in fold_gaps:
             if lo_q.m + _tol.SAME_PLACE_M < M < hi_q.m - _tol.SAME_PLACE_M:
                 in_fold.add(id(sp))
-                for q in (lo_q, hi_q):
-                    if q in takeable:
-                        pairs.append((abs(q.m - M), q.m, _key(sp), sp, q))
+                low = (M - lo_q.m) <= (hi_q.m - M)
+                d = (M - lo_q.m) if low else (hi_q.m - M)
+                if d > FOLD_SNAP_M:
+                    raise _fold_refusal(graph, blk, sp, lo_q if low else hi_q, low, d)
+                q = lo_q if low else hi_q                  # the nearer edge only: never moved > 1 m
+                if q in takeable:
+                    pairs.append((d, q.m, _key(sp), sp, q))
         if id(sp) in in_fold:
             continue
+        on_piece = any(n.down_m < M < n.up_m for n in pieces)
         for q in takeable:
             d = abs(q.m - sp.route_measure)
             if d <= _tol.SAME_PLACE_M or (sp.at_edge and d < AT_EDGE_M):
                 pairs.append((d, q.m, _key(sp), sp, q))
             elif not sp.at_edge and d < AUTHORED_MERGE_M:
-                if _shiftable(q, sp.route_measure):
+                if _is_lake(q.bnd) and on_piece:
+                    # THE STREAM SIDE (owner 2026-10-25): a point on the line a sliver OUTSIDE a polygon
+                    # edge (folded or a real lake) snaps onto it within `FOLD_SNAP_M`; farther, it stops.
+                    if d <= FOLD_SNAP_M:
+                        pairs.append((d, q.m, _key(sp), sp, q))
+                        snapped.add(id(sp))
+                    else:
+                        outside.append((d, sp, q))
+                elif _shiftable(q, sp.route_measure):
                     pairs.append((d, q.m, _key(sp), sp, q))
                 else:
                     near.append((d, q.m, _key(sp), sp, q))
+    for d, sp, q in sorted(outside, key=lambda t: (t[0], _key(t[1]))):
+        if id(sp) not in snapped:
+            raise _fold_refusal(graph, blk, sp, q, q.edge == "outlet", d, inside=False)
     taken: dict[int, _Place] = {}
     for _d, _m, _k, sp, q in sorted(pairs, key=lambda t: t[:3]):
         if id(sp) not in taken and not q.members:
             q.members.append(sp)
             taken[id(sp)] = q
-            if (not sp.at_edge and id(sp) not in in_fold
+            if (not sp.at_edge and id(sp) not in in_fold and id(sp) not in snapped
                     and abs(q.m - sp.route_measure) > _tol.SAME_PLACE_M):
                 q.from_m, q.m = q.m, sp.route_measure      # the minted cut moves, not the name
     new: list[_Place] = []
@@ -356,7 +422,8 @@ def _plan_blk(graph, blk, sps, nids, conflicts=None, proposals=None, fold=frozen
     if proposals is not None:
         offer = []
         for sp in authored:
-            if sp.at_edge or sp.anchor_type == AnchorType.area_boundary or id(sp) in in_fold:
+            if (sp.at_edge or sp.anchor_type == AnchorType.area_boundary or id(sp) in in_fold
+                    or id(sp) in snapped):
                 continue
             on = taken.get(id(sp))
             if on is not None and abs((on.from_m if on.from_m is not None else on.m)

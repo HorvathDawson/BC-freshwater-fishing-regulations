@@ -1307,3 +1307,8 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
   edge follows the extent's direction (upstream of the lake → inlet, downstream → outlet), and the lake itself binds
   only when it lies wholly inside the extent (as fixed before). The new explicit `edge` on lake anchors must agree with
   this; check it in the binding diff.
+- Authored cuts at a polygon edge (owner 2026-10-25, replaces part of 974621af): one rule, both sides of a folding
+  polygon's or a real lake's edge — an authored point within 1 m snaps onto the edge (`sectionizer.FOLD_SNAP_M`); farther
+  inside a folded polygon, or 1–5 m outside any polygon/lake edge on its line, the build STOPS naming the split id, the
+  wbk and the edge lon/lat to put in splits.json (a real lake also names the lake-anchor proposal). Never a sliver, never
+  a silent move > 1 m. Cayoosh Falls re-curated to wbk 329505890's downstream edge [-121.9825923, 50.6572974].

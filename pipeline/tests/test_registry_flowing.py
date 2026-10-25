@@ -248,12 +248,25 @@ def _cayoosh():
                                      "name_tuples": (NameTuple("Cayoosh Creek", NameSource.gazette, gnis_id="37767"),)})
     g.nodes["lake:5"] = StreamNode(**{**g.nodes["lake:5"].__dict__, "display_name": "Cayoosh Creek",
                                       "name_tuples": (NameTuple("Cayoosh Creek", NameSource.override),)})
+    # the polygon's edges on the creek (EPSG:3005): the downstream one is FWA's, wbk 329505890 on blk
+    # 356364387 at measure 1771.30 (`lake_out`); the upstream one is made up
+    g.edges = [FlowEdge(e.from_node, e.to_node, e.at_measure, kind=e.kind,
+                        x=1283727.959 if e.kind == "lake_out" else 1283531.858,
+                        y=634978.585 if e.kind == "lake_out" else 634879.961) for e in g.edges]
     return g
 
 
-def _falls():
+#: Cayoosh Falls as FISS placed it: 4.83 m inside the creek's own polygon (blk measure 1776.13).
+FISS_M = 104.83
+#: The curated point after the owner's fix (2026-10-25): the polygon's downstream edge, which FWA
+#: projects 0.0017 m below it — on the creek, within `FOLD_SNAP_M`.
+CURATED_M = 100.0 - 0.0017
+EDGE_LONLAT = [-121.9825923, 50.6572974]
+
+
+def _falls(m=FISS_M):
     from pipeline.common.models import AnchorType, SplitPoint
-    return SplitPoint("cayoosh_creek__cayoosh_falls", "K", 104.83, "", "Cayoosh Falls",
+    return SplitPoint("cayoosh_creek__cayoosh_falls", "K", m, "", "Cayoosh Falls",
                       AnchorType.point, source="curated")
 
 
@@ -273,37 +286,76 @@ def test_the_fold_predicate_names_the_polygon_a_creek_and_no_real_lake():
     assert F.folding_polygon_wbks(g2) == frozenset()          # no names on the graph: nothing folds
 
 
-def test_a_cut_inside_a_folded_polygon_is_a_plain_cut_not_a_lake_alias(_no_pfma):
-    """Cayoosh Falls (owner 2026-10-25). Treated as a lake, the falls was aliased onto the polygon's edge
-    and the fold refused the build; now it cuts the creek at the polygon's nearer edge as a plain point:
-    no alias, no `lake_edge` conflict, no lake-anchor proposal, and the fold keeps it."""
-    from pipeline.atlas.registry.build import build_registry
-    from pipeline.atlas.splits.sectionizer import place_points, split_graph_at
-
-    # THE REFUSAL, reproduced: the old placement (no folded polygons known) aliases it onto the lake
-    g = _cayoosh()
-    aliased: list = []
+def test_a_cut_inside_a_folded_polygon_over_1_m_stops_the_build_naming_the_edge(_no_pfma):
+    """Owner 2026-10-25: an authored cut inside a polygon the registry folds into its stream is never
+    moved to the edge in silence. Over `FOLD_SNAP_M` (1 m) the build STOPS naming the split, the wbk and
+    the edge's lon/lat to curate; the FISS Cayoosh Falls (4.83 m in) is that case."""
+    from pipeline.atlas.splits.sectionizer import FOLD_SNAP_M, place_points, split_graph_at
+    assert FOLD_SNAP_M == 1.0
+    want = (r"split cayoosh_creek__cayoosh_falls stands 4\.83 m inside polygon wbk 5, which the "
+            r"registry folds.*lon/lat \[-121\.9825923, 50\.6572974\]")
+    with pytest.raises(SystemExit, match=want):
+        place_points(_cayoosh(), [_falls()])
+    with pytest.raises(SystemExit, match=want):
+        split_graph_at(_cayoosh(), {}, [_falls()])
+    with pytest.raises(SystemExit, match=r"1\.01 m inside polygon wbk 5"):
+        place_points(_cayoosh(), [_falls(101.01)])
+    with pytest.raises(SystemExit, match=r"1\.20 m inside polygon wbk 5.*lon/lat \[-121\.9854421"):
+        place_points(_cayoosh(), [_falls(198.8)])                # nearer the upstream edge
+    # the refusal before the fold (no folded polygons known): it aliases onto the "lake" and the
+    # fold refuses the registry — what 974621af fixed, still true of the unfolded placement
+    g, aliased = _cayoosh(), []
     split_graph_at(g, {}, [_falls()], aliased=aliased, fold_wbks=frozenset())
     assert aliased == [("cayoosh_creek__cayoosh_falls", "lake:5", 4.8)]
     with pytest.raises(SystemExit, match="aliased onto its own polygon"):
-        merge_flowing_polygons(build_registry(g, pinned={}), g)
+        merge_flowing_polygons(build_registry_(g), g)
 
-    # the fix: the polygon folds, so the falls is a plain cut on the creek
+
+def build_registry_(g):
+    from pipeline.atlas.registry.build import build_registry
+    return build_registry(g, pinned={})
+
+
+@pytest.mark.parametrize("m", [101.0, 100.6, 99.0, 99.6, CURATED_M])
+def test_a_cut_within_1_m_of_a_folded_polygon_edge_snaps_to_a_plain_cut(_no_pfma, m):
+    """Inside (101.0, 100.6) or outside on the creek (99.0, 99.6) — one rule, both sides: within 1 m the
+    cut snaps onto the polygon's edge as a plain point: no alias, no conflict, no proposal, the fold
+    keeps it. CURATED_M is Cayoosh Falls as now curated: it passes."""
+    from pipeline.atlas.splits.sectionizer import place_points, split_graph_at
     g = _cayoosh()
     conflicts, proposals, aliased = [], [], []
-    placed = place_points(g, [_falls()], conflicts=conflicts, proposals=proposals)
+    placed = place_points(g, [_falls(m)], conflicts=conflicts, proposals=proposals)
     assert [(p.split_id, p.route_measure) for p in placed] == [("cayoosh_creek__cayoosh_falls", 100.0)]
-    split_graph_at(g, {}, placed, aliased=aliased, conflicts=conflicts)
+    split_graph_at(g, {}, [_falls(m)], aliased=aliased, conflicts=conflicts)
     assert aliased == [] and conflicts == [] and proposals == []
+    assert sorted((n.down_m, n.up_m) for n in g.nodes.values() if n.blk == "K") == [(0, 100), (200, 300)]
     b = g.nodes["K:0"].upper_bound
-    assert (b.boundary_id, b.kind, b.route_measure) == ("split:cayoosh_creek__cayoosh_falls",
-                                                        BoundaryKind.split, 100.0)
-    assert "lake:5" not in b.aliases and not any(a.startswith("label:") for a in b.aliases)
-    out = merge_flowing_polygons(build_registry(g, pinned={}), g)
+    assert b.route_measure == 100.0 and "split:cayoosh_creek__cayoosh_falls" in \
+        {b.boundary_id, *b.aliases}
+    out = merge_flowing_polygons(build_registry_(g), g)
     creek = out["gnis:37767"]
     assert "lake:5" in creek.section_ids and creek.kind == "stream"
     assert "cayoosh_creek__cayoosh_falls" in {x.id for x in creek.boundaries}
-    assert not [x for x in creek.boundaries if x.kind == "lake"]
+
+
+def test_a_cut_1_to_5_m_outside_a_folded_polygon_edge_stops_the_build(_no_pfma):
+    """The stream side of the same rule: 1-5 m below the polygon on the creek is a sliver — stop and
+    name the edge (no lake-anchor advice: the polygon is the creek, not a lake)."""
+    from pipeline.atlas.splits.sectionizer import place_points
+    for m, d in ((98.99, "1.01"), (96.0, "4.00")):
+        with pytest.raises(SystemExit, match=rf"stands {d} m outside the edge of polygon wbk 5 .*"
+                                             r"lon/lat \[-121\.9825923, 50\.6572974\] \(measure 100\.00\)\.$"):
+            place_points(_cayoosh(), [_falls(m)])
+    place_points(_cayoosh(), [_falls(94.0)])                    # 6 m out: its own cut, no stop
+
+
+def test_the_curated_cayoosh_falls_is_the_polygon_edge():
+    """The curated edit (owner 2026-10-25): the point is the FWA edge the build names above."""
+    from pathlib import Path
+    path = Path(__file__).resolve().parents[2] / "data/curated/waters/splits.json"
+    rows = json.loads(path.read_text())["waterbodies"]
+    pt = [s for w in rows for s in w.get("splits", []) if s["id"] == "cayoosh_creek__cayoosh_falls"]
+    assert [s["anchor"]["coord"] for s in pt] == [EDGE_LONLAT]
 
 
 def test_a_cut_inside_a_real_lake_is_still_aliased_and_the_guard_still_fires(_no_pfma):
