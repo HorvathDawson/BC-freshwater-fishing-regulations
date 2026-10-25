@@ -305,6 +305,13 @@ def export_waterbodies(build_dir: Path, gpkg: str, out_dir: Path) -> dict:
         if g is None or g.is_empty:
             no_geom += 1
             continue
+        if getattr(node, "not_fishing", ""):
+            # NOT FISHING WATER (T152): no water layer, no identity — the decorative layer only.
+            spec = BY_NAME["not_fishing_water"]
+            if spec.name not in writers:
+                writers[spec.name] = _writer(out_dir, spec)
+            writers[spec.name][0](_to4326(g, tf), {}, ladder.zoom_for_area(g.area, spec.minzoom))
+            continue
         lname = "wetland" if kind == "wetland" else "lake"
         spec = BY_NAME[lname]
         if lname not in writers:

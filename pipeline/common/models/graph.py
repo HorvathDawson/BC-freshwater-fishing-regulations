@@ -73,6 +73,11 @@ class StreamNode:
     # (`registry.basins.node_basin_code`) reads it. The book's own definition of a watershed is
     # "all the streams and lakes that drain the land into a named waterbody" (p80).
     basin_wsc: str = ""
+    # NOT FISHING WATER (T152): the FWA FEATURE_CODE when this polygon is a sewage settling basin,
+    # a mine tailing pond or a dump (`pipeline.common.fishing_water.NOT_FISHING_WATER`), else "".
+    # Stamped once by the atlas build; the reach takes the node out of every binding and the tiles
+    # draw it in no water layer. A pickle from before the field reads the default.
+    not_fishing: str = ""
 
     @property
     def is_barrier(self) -> bool:

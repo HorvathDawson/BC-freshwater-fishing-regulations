@@ -125,7 +125,10 @@ from typing import Callable
 #: 32: (T183, owner 2026-10-24, REVERSES 26/T115) A STRADDLER CARRIES BOTH REGIONS' RULES: the one region
 #:     membership is raw (`registry.regions.STRADDLERS_IN_EVERY_REGION`) — a stream piece in two region
 #:     polygons takes both zone tables, both regions' per-region rows and both steelhead twins.
-POLICY_VERSION = "32"
+#: 33: (T152) NOT FISHING WATER: a sewage settling basin, mine tailing pond or dump (the polygon's FWA
+#:     FEATURE_CODE, stamped by the atlas as `StreamNode.not_fishing`) is taken out of every binding
+#:     (`classify.apply_limits`, limit `not_fishing_water`).
+POLICY_VERSION = "33"
 
 
 def entry_key(entry: dict, build_id: str, policy_version: str = POLICY_VERSION) -> str:

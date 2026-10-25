@@ -58,6 +58,17 @@
       "ladder": "area",
       "flows": null
     },
+    "not_fishing_water": {
+      "geometry": "polygon",
+      "attrs": [],
+      "featureId": null,
+      "decorative": true,
+      "mvtId": false,
+      "minzoom": 9,
+      "maxzoom": 14,
+      "ladder": "area",
+      "flows": null
+    },
     "contour": {
       "geometry": "line",
       "attrs": [

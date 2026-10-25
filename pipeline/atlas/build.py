@@ -45,6 +45,32 @@ def get_wetland_wbks(fwa: FWADataAccessor, bbox=None) -> set[str]:
     return out
 
 
+def get_not_fishing_codes(fwa: FWADataAccessor, bbox=None) -> dict[str, str]:
+    """{wbk: FEATURE_CODE} for every `manmade` polygon that is NOT FISHING WATER (T152,
+    `fishing_water.NOT_FISHING_WATER`). Attributes only."""
+    from pipeline.common.fishing_water import is_not_fishing
+    if "manmade" not in fwa.layer_names:
+        return {}
+    gdf = fwa.get_layer("manmade", columns=["WATERBODY_KEY", "FEATURE_CODE"], bbox=bbox, geometry=False)
+    return {str(w): str(c).strip().upper() for w, c in zip(gdf["WATERBODY_KEY"], gdf["FEATURE_CODE"])
+            if w and is_not_fishing(str(c or ""))}
+
+
+def stamp_not_fishing(graph, codes: dict[str, str]) -> dict[str, int]:
+    """Stamp `StreamNode.not_fishing` on each `lake:{wbk}` node `codes` names; returns {code: n}.
+    Sorted, so the graph does not depend on the hash seed."""
+    from dataclasses import replace
+    got: dict[str, int] = {}
+    for wbk in sorted(codes):
+        nid = f"lake:{wbk}"
+        node = graph.nodes.get(nid)
+        if node is None:
+            continue
+        graph.nodes[nid] = replace(node, not_fishing=codes[wbk])
+        got[codes[wbk]] = got.get(codes[wbk], 0) + 1
+    return got
+
+
 def get_all_waterbody_wbks(fwa: FWADataAccessor, bbox=None) -> set[str]:
     """Every WATERBODY_KEY in the province, across all three waterbody layers.
 
@@ -581,6 +607,11 @@ def main() -> None:
             for c, a, g in zip(_ws["FWA_WATERSHED_CODE"], _ws["AREA_HA"], _ws.geometry)))
         print(f"  basin_wsc: {_bc['given']:,} of {_bc['codeless_lakes']:,} lakes with no FWA code "
               f"lie in a named watershed")
+    # NOT FISHING WATER (T152): sewage settling basins, mine tailing ponds and dumps are minted
+    # like any polygon (a creek may run through one), then stamped from their FEATURE_CODE — the
+    # one place the fact is decided (`pipeline.common.fishing_water`).
+    _nf = stamp_not_fishing(graph, get_not_fishing_codes(fwa, bbox))
+    print(f"  not fishing water: {sum(_nf.values())} polygon node(s) stamped {dict(sorted(_nf.items()))}")
     _tick("name variants (whole-feature)")
 
     _moved_tribs: list = []

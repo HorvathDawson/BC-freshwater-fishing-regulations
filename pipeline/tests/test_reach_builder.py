@@ -408,6 +408,7 @@ def test_policy_version_is_bumped_when_classify_changes():
         "area_carve_outs_unbind": classify.AREA_CARVE_OUTS_UNBIND,
         "feature_types_after_walk": classify.FEATURE_TYPES_AFTER_WALK,
         "outside_bc_subtracted": classify.OUTSIDE_BC_SUBTRACTED,
+        "not_fishing_water_subtracted": classify.NOT_FISHING_WATER_SUBTRACTED,
         "walk_before_area": classify.WALK_BEFORE_AREA,
         "complement_unknown_if_a_sibling_does_not_bind":
             classify.COMPLEMENT_UNKNOWN_IF_A_SIBLING_DOES_NOT_BIND,
@@ -416,6 +417,7 @@ def test_policy_version_is_bumped_when_classify_changes():
     expected = {"straddlers_included_for": [], "ambiguous_cut_is_fatal": False,
                 "partial_extents_bind": True, "area_carve_outs_unbind": True,
                 "feature_types_after_walk": True, "outside_bc_subtracted": True,
+                "not_fishing_water_subtracted": True,
                 "walk_before_area": True,
                 "complement_unknown_if_a_sibling_does_not_bind": True,
                 "complement_withholds_straddlers": True}
@@ -458,7 +460,7 @@ def test_policy_version_is_bumped_when_classify_changes():
                      "straddlers_in_every_region": True,
                      "unnamed_lakes_on_the_river_are_the_river": True,
                      "a_steelhead_rivers_widening_is_anadromous": True})
-    assert cache.POLICY_VERSION == "32", "update this pin with the version it was taken at"
+    assert cache.POLICY_VERSION == "33", "update this pin with the version it was taken at"
     assert policy == expected, (
         f"classify.py policy changed to {policy} — bump cache.POLICY_VERSION "
         f"(currently {cache.POLICY_VERSION!r}) and update this test together")

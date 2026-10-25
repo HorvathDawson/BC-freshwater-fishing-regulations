@@ -134,6 +134,16 @@ WATER: tuple[LayerSpec, ...] = (
             "sort, so it was 2.6% of the archive answering nothing.",
     ),
     LayerSpec(
+        name="not_fishing_water", geometry="polygon", ladder="area", minzoom=9, decorative=True,
+        attrs=(),
+        why="NOT FISHING WATER (T152): sewage settling basins, mine tailing ponds and dumps — FWA "
+            "polygons that hold water and that no rule speaks of (`pipeline.common.fishing_water`, "
+            "stamped by the atlas as `StreamNode.not_fishing`). They were drawn in `lake` and read as "
+            "lakes with the region's rules; now no rule binds them, so they are no section anyone can "
+            "tap. Their own layer so the style may draw them as a muted non-water fill (the owner's "
+            "call, OWNER-TODO T152) without ever styling them as water. Decorative: no identity.",
+    ),
+    LayerSpec(
         name="contour", geometry="line", ladder="contour", minzoom=11,
         attrs=("item", "depth_m", "index"),
         why="Digitised lake bathymetry (WHSE_FISH.BATH_LAKE_BATHYMETRIC_SP). The scanned "

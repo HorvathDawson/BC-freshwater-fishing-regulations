@@ -27,6 +27,7 @@ from pipeline.atlas.registry import regions as _regions
 from pipeline.atlas.registry.flowing import absorbed_refs
 from pipeline.atlas.reach.steelhead import Presence as _SteelheadPresence
 from pipeline.atlas.reach import steelhead as _steelhead
+from pipeline.common.fishing_water import not_fishing_sections
 from pipeline.atlas.reach.outside import (
     outside_bc, region_limit, rowed_waters, shared_waters, tidal_owner,
 )
@@ -329,7 +330,7 @@ def _bind_steelhead_waters(rules, records, known, bindings, licensing, registry,
         pool, _ = _policy.apply_limits(
             pool, kinds={str(t).lower() for t in ex.get("feature_types") or ()},
             kind_of=lambda s: _resolve._kind_of(graph, s, registry), outside=outside,
-            tidal=tidal_limit(e, tidal))
+            tidal=tidal_limit(e, tidal), not_fishing=not_fishing_sections(graph))
         cut = ((_regions.area_family_sections(registry, ex["outside_area_kind"], graph)
                 or frozenset()) if ex.get("outside_area_kind") else frozenset())
         kept = tuple(sorted(pool - taken - cut)) if missing is None else ()
@@ -454,6 +455,7 @@ def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None,
         kind_of=lambda s: _resolve._kind_of(graph, s, registry),
         outside=outside,
         reasons=why,
+        not_fishing=not_fishing_sections(graph),
     )
     widened = sorted({p for got in per if got for p in (got.get("widened") or ())})
     if widened:

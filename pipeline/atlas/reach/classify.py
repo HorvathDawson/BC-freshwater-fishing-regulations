@@ -73,6 +73,11 @@ WALK_BEFORE_AREA = True
 #: does not govern it; 181 sections past the border carried a rule set with no provincial rule.
 OUTSIDE_BC_SUBTRACTED = True
 
+#: NOT FISHING WATER is subtracted from every binding too (T152, `pipeline.common.fishing_water`):
+#: a sewage settling basin, mine tailing pond or dump is no water any rule speaks of — 12 Fort Nelson
+#: sewage basins carried the "Liard River watershed" area rule.
+NOT_FISHING_WATER_SUBTRACTED = True
+
 
 #: "OTHER PARTS" IS THE REST OF THE WATER AFTER ITS SIBLINGS (`Extent` op `rest`, resolved in
 #: `build.build_reach`). If any named sibling does not bind — unresolved, pending its walk — the
@@ -126,6 +131,7 @@ def classify(
     kind_of=None,
     outside: frozenset | set | None = None,
     reasons: list[list[tuple[str, str]]] | None = None,
+    not_fishing: frozenset | set | None = None,
 ) -> tuple[RuleBinding, list[Diagnostic]]:
     """Turn one rule's per-extent resolutions into a binding plus its diagnostics.
 
@@ -329,7 +335,8 @@ def classify(
     # Kettle, the Flathead), and tributary walks down into Idaho, Montana, Alberta and the Yukon.
     # REPORTED, never silent: the count is a diagnostic, and a rule left with nothing is
     # unresolved for that reason rather than bound to no water. (Both limits: `apply_limits`.)
-    sections, steps = apply_limits(sections, kinds=kinds, kind_of=kind_of, outside=outside)
+    sections, steps = apply_limits(sections, kinds=kinds, kind_of=kind_of, outside=outside,
+                                   not_fishing=not_fishing)
     via_trib = tuple(s for s in via_trib if s in sections)
     for limit, before, after in steps:
         if limit == "feature_types":
@@ -345,17 +352,25 @@ def classify(
             if not after:
                 return unresolved(Reason.outside_bc,
                                   f"every section it selects ({before - after}) is outside B.C.")
+        elif limit == "not_fishing_water" and before != after:
+            diags.append(Diagnostic(entry_id, rid, "not_fishing_water", {
+                "removed": before - after, "kept": after}))
+            if not after:
+                return unresolved(Reason.no_sections,
+                                  f"every section it selects ({before - after}) is not fishing water "
+                                  "(a sewage basin, tailing pond or dump)")
 
     return RuleBinding(entry_id, rid, Outcome.bound, tuple(sorted(sections)),
                        via_tributary=via_trib), diags
 
 
 def apply_limits(sections, *, kinds=frozenset(), kind_of=None, outside=None,
-                 tidal=None) -> tuple[set[str], list[tuple[str, int, int]]]:
+                 tidal=None, not_fishing=None) -> tuple[set[str], list[tuple[str, int, int]]]:
     """THE GLOBAL LIMITS EVERY BINDING TAKES, in their one order (T125 item 5): the rule's feature
     kinds (`feature_types`, after the walk — `FEATURE_TYPES_AFTER_WALK`), water outside B.C.
     (`OUTSIDE_BC_SUBTRACTED`), then tidal water (the corpus's `outside.tidal_sections`, taken out
-    of every row not itself marked tidal). Returns the kept sections and, for each limit that
+    of every row not itself marked tidal), then NOT FISHING WATER (T152: a sewage basin, tailing
+    pond or dump, `fishing_water.not_fishing_sections`) out of every binding. Returns the kept sections and, for each limit that
     applies (is given), `(limit, before, after)` — the caller reports and decides an emptied
     binding's reason. `classify` asks it for the first two, `build._without_tidal` for the third,
     and the steelhead twins (`build._bind_steelhead_waters`) for all three, so a twin can never
@@ -366,7 +381,9 @@ def apply_limits(sections, *, kinds=frozenset(), kind_of=None, outside=None,
             ("feature_types", bool(kinds) and kind_of is not None and FEATURE_TYPES_AFTER_WALK,
              lambda s: kind_of(s) in kinds),
             ("outside_bc", bool(outside) and OUTSIDE_BC_SUBTRACTED, lambda s: s not in outside),
-            ("tidal", bool(tidal), lambda s: s not in tidal)):
+            ("tidal", bool(tidal), lambda s: s not in tidal),
+            ("not_fishing_water", bool(not_fishing) and NOT_FISHING_WATER_SUBTRACTED,
+             lambda s: s not in not_fishing)):
         if on:
             before = len(kept)
             kept = {s for s in kept if keep(s)}
