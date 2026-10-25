@@ -19,6 +19,7 @@ with the default Claude uses until you answer). Newest first inside each section
   notification was sent.)
 
 ## Reviews
+- **T179 — confirm 400 m:** a gauge now joins the nearest NAMED cut within 400 m either side (7 gauges 20–232 m below a curated cut merge into it; 08GC006/007, 97 m apart, share one boundary). Curated cuts 1–5 m apart are both kept and stop the build (`split_conflicts.json`). Say if 400 m is right; it lands with the after-pilot atlas build.
 - **Tiles window (T64, T75, T85, T113, T152) — after the rebuild (Claude runs it after the pilot):** look at the map (wetland-heavy Fort Nelson and the
   Chilcotin without unnamed wetlands; z13–z18 bends on the Fraser/Vedder now overzoomed from z13; Vancouver's dense z13
   tiles; no OSM creeks under ours at z14+) and say if the look suffers — the basemap's OSM wetland fill is one style layer
