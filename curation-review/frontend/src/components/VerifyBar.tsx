@@ -1,4 +1,4 @@
-import type { MarkView, Vintage, VerifyStatus } from "../types";
+import type { MarkView, Reviewed, Vintage, VerifyStatus } from "../types";
 
 /** Where the open entry sits in the list being worked through. */
 export interface QueueNav {
@@ -23,6 +23,8 @@ interface Props {
   nav?: QueueNav;
   /** T133: whether the reach run, bundle and release on disk are this entry's */
   vintage?: Vintage;
+  /** T184: the human-reviewed state — who verified it on every check, when, and whether it holds */
+  reviewed?: Reviewed | null;
 }
 
 /* The marks in force on this entry (T97) — READ ONLY. A mark lives in the append-only store
@@ -32,10 +34,25 @@ interface Props {
    ONE VINTAGE (T133): while the entry AWAITS ITS BUILD the bar says so, why, and what the owner
    runs; the binding and the answer on screen are then another vintage's, and only T and R can be
    marked. It clears by itself once the rebuild lands (the server re-reads the digests). */
-export function VerifyBar({ entryId, marks, nav, vintage }: Props) {
+export function VerifyBar({ entryId, marks, nav, vintage, reviewed }: Props) {
   const shown = marks ?? [];
   return (
     <div className="verify-bar" data-testid="verify-bar" data-entry={entryId}>
+      {/* HUMAN-REVIEWED (T184): verified on every check (T R P A) — and it says so until the entry's
+          text, rules or extent change, when it is back for a re-check (T97: the mark goes stale). */}
+      {reviewed && (
+        <div className={`verify-row reviewed${reviewed.holds ? "" : " recheck"}`} data-testid="reviewed">
+          {reviewed.holds ? (
+            <span className="verify-chip verified">
+              ✓ Human-reviewed by {reviewed.by.join(", ")} on {reviewed.on}
+            </span>
+          ) : (
+            <span className="verify-chip stale">
+              Was human-reviewed by {reviewed.by.join(", ")} on {reviewed.on} — changed since: re-check it
+            </span>
+          )}
+        </div>
+      )}
       {vintage && vintage.state !== "current" && (
         <div className="verify-row awaiting-build" data-testid="awaiting-build">
           <span className="verify-chip stale" title={vintage.reasons.join("; ")}>

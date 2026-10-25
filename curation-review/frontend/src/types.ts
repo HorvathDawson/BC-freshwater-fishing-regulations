@@ -342,6 +342,19 @@ export interface RegionSummary {
 /** The reviewer's mark on an entry, from the marks store `marks.jsonl` (never in the entry; T97).
  *  `stale` = it was marked, then something it was held against changed — `mark_reasons` says what. */
 export type VerifyStatus = "unmarked" | "verified" | "wrong" | "unsure" | "deferred" | "stale";
+/** The review filter: a mark's status, `todo` (not human-reviewed now), or `recheck` (human-reviewed
+ *  once, changed since — back for a re-check, T184). */
+export type ReviewFilter = VerifyStatus | "todo" | "recheck" | "";
+
+/** THE HUMAN-REVIEWED STATE (T184, `reuse._entry_mark_state`): who verified the entry on every check
+ *  and when; `holds` false once its text, rules or extent changed since (T97 staleness) — then it
+ *  is back in the queue for a re-check. */
+export interface Reviewed {
+  by: string[];
+  on: string;
+  holds: boolean;
+}
+
 /** Why a mark no longer holds (`pipeline.regs.review.marks.StaleReason`). */
 export type StaleReason =
   | "book text changed" | "rule changed" | "binding moved" | "answer changed" | "awaiting build";
@@ -412,6 +425,8 @@ export interface QueueRow {
   verify?: VerifyStatus;
   verify_note?: string;
   mark_reasons?: StaleReason[];
+  /** T184: human-reviewed (by whom, when, and whether it still holds), or null */
+  reviewed?: Reviewed | null;
   /** T133: is this entry built (`Vintage.state`), and if not why */
   vintage?: Vintage["state"];
   vintage_reasons?: string[];
@@ -485,6 +500,8 @@ export interface EntryDetail {
   source_image: string | null; // synopsis row-crop image filename, if found
   /** the marks in force on this entry (its entry mark, its rule marks) */
   marks?: MarkView[];
+  /** T184: human-reviewed (by whom, when, and whether it still holds), or null */
+  reviewed?: Reviewed | null;
   /** T133: whether the binding and the answer on screen are this entry's */
   vintage?: Vintage;
 }
@@ -523,6 +540,34 @@ export interface EntryReaches {
   /** the BUILDER's answer per rule — outcome + the sections that actually ship, tributaries
    *  already expanded. `rules` above is the raw per-extent resolve and has no tributaries. */
   verdict?: Record<string, RuleVerdict>;
+}
+
+/** One split the entry's rules name (GET /api/entries/{id}/splits, `reuse.entry_split_points`) —
+ *  what the map labels so the reviewer checks the cut BY PROXY (T184: no split is a review target). */
+export interface NamedSplit {
+  split_id: string;
+  /** the built label (else splits.json's, else the boundary's) — what the map writes */
+  label: string;
+  /** its splits.json waterbody (a lake boundary: the water it is on) */
+  water: string;
+  /** "WATER: label" */
+  name: string;
+  /** the rule ids that name it, in rule order */
+  rules: string[];
+  /** any other part that names it: "entry scope", a licensing record's id */
+  parts: string[];
+  /** an open auto-proposal or a "Verify:" note (`tiers.split_needs_verify`) */
+  to_verify: boolean;
+  grade: "L" | "M" | "H" | null;
+  item_id: string | null;
+}
+
+export interface EntrySplits {
+  type: "FeatureCollection";
+  features: { type: "Feature"; geometry: { type: "Point"; coordinates: [number, number] };
+              properties: NamedSplit }[];
+  /** named, but the served atlas has no point for it — listed, never dropped */
+  unplaced: (NamedSplit & { why: string })[];
 }
 
 export interface RuleVerdict {

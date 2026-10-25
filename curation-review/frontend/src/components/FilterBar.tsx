@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { QueueOrder, RegionSummary, Status, VerifyStatus } from "../types";
+import type { QueueOrder, RegionSummary, ReviewFilter, Status, VerifyStatus } from "../types";
 
 /** What the parse and the build left (never review progress — that is the "review" filter). */
 const STATUSES: Status[] = [
@@ -20,16 +20,19 @@ interface Props {
   onStatus: (s: Status | "") => void;
   onRefresh: () => void;
   slot?: ReactNode;
-  verify: VerifyStatus | "todo" | "";
-  onVerify: (v: VerifyStatus | "todo" | "") => void;
+  verify: ReviewFilter;
+  onVerify: (v: ReviewFilter) => void;
   order: QueueOrder;
   onOrder: (o: QueueOrder) => void;
 }
 
-const REVIEW: [VerifyStatus | "todo" | "", string][] = [
-  ["", "all"], ["todo", "to do (not verified)"], ["unmarked", "never marked"],
+/** The review filter. "human-reviewed" is a verified mark — every check y — that still holds (T184);
+ *  "back for a re-check" is one that was, and whose text, rules or extent changed since. */
+const REVIEW: [ReviewFilter, string][] = [
+  ["", "all"], ["todo", "to do (not human-reviewed)"], ["unmarked", "never marked"],
+  ["recheck", "back for a re-check (reviewed, changed since)"],
   ["stale", "changed since marked"], ["wrong", "wrong"], ["unsure", "unsure"],
-  ["deferred", "deferred"], ["verified", "verified"],
+  ["deferred", "deferred"], ["verified", "human-reviewed"],
 ];
 
 export function FilterBar({
@@ -93,10 +96,11 @@ export function FilterBar({
       <div>
         <label>review</label>
         <select value={verify} aria-label="review filter"
-          onChange={(e) => onVerify(e.target.value as VerifyStatus | "todo" | "")}>
+          onChange={(e) => onVerify(e.target.value as ReviewFilter)}>
           {REVIEW.map(([v, w]) => {
             const n = v === "" ? current?.total
               : v === "todo" ? (current ? current.total - done : undefined)
+              : v === "recheck" ? undefined
               : current?.by_verify?.[v as VerifyStatus] ?? 0;
             return <option key={v} value={v}>{w}{n != null ? ` (${n})` : ""}</option>;
           })}
@@ -111,7 +115,7 @@ export function FilterBar({
       </div>
       {current && (
         <span className="progress" data-testid="progress"
-          title="verified against the book (a mark on an entry changed since does not count)">
+          title="human-reviewed: verified on every check against the book (a mark on an entry changed since does not count)">
           <span className="bar"><i style={{ width: `${current.total ? (100 * done) / current.total : 0}%` }} /></span>
           {region === ALL_REGIONS ? "all" : `region ${region}`} {done} / {current.total}
           {progress && <span className="dim"> · all {progress.verified} / {progress.total}</span>}

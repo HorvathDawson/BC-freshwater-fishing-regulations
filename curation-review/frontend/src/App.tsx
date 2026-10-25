@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "./api";
 import type {
   EntryDetail as EntryDetailT, Mode, PendingBuild, Progress, QueueOrder, QueueRow, RegionSummary,
-  Status, Tier, VerifyStatus,
+  ReviewFilter, Status, Tier,
 } from "./types";
 import { ALL_REGIONS, FilterBar } from "./components/FilterBar";
 import { QueueList } from "./components/QueueList";
@@ -27,7 +27,7 @@ export default function App() {
   const [tier, setTier] = useState<Tier | "">("");
   // the reviewer's pass: which marks to list, and in what order — the review order by default
   // (tier, then the most urgent risk factor; T135), or the book's (region, page)
-  const [verify, setVerify] = useState<VerifyStatus | "todo" | "">("");
+  const [verify, setVerify] = useState<ReviewFilter>("");
   const [order, setOrder] = useState<QueueOrder>("risk");
   const [rows, setRows] = useState<QueueRow[]>([]);
   const [loadingRows, setLoadingRows] = useState(false);

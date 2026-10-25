@@ -893,3 +893,11 @@ code.cmd { font-size: 11px; padding: 1px 6px; border: 1px solid var(--warn-borde
 
 /* review mode: the evidence column gets more room (the crop reads closer to its rendered 2.6 px/pt) */
 .review-mode .detail-map { flex-basis: 34%; }
+
+/* T184: the splits the rules name — the proxy check of a split */
+.rule-where { font-size: 12px; margin: 2px 0; }
+.rule-where .k { color: var(--muted, #6b7280); font-size: 11px; text-transform: uppercase; letter-spacing: .03em; }
+.named-splits { margin: 0; padding-left: 18px; font-size: 12px; }
+.named-splits li { margin: 2px 0; }
+.named-splits li.selected > a { font-weight: 600; }
+.named-splits .badge { margin-left: 6px; }

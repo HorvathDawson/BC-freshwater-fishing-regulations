@@ -14,7 +14,7 @@ export default defineConfig({
   server: {
     port: PORT,
     // LOOPBACK ONLY, IPv4 (T96). `true` bound every interface, so anyone on the network could
-    // reach the editor; `false` (Vite's `localhost`) resolves to ::1 on macOS and refuses the
+    // reach the screen; `false` (Vite's `localhost`) resolves to ::1 on macOS and refuses the
     // `http://127.0.0.1:5173` run.sh prints. The backend's CORS admits exactly this origin.
     host: "127.0.0.1",
     strictPort: true,

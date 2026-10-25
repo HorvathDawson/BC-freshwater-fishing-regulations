@@ -254,6 +254,63 @@ def test_a_mark_is_held_against_the_fingerprints_not_the_bytes(env, fresh_marks,
     assert _entry_mark(env, BULL)["status"] == "verified"
 
 
+def _row(env, eid, **params):
+    return next((x for x in env["client"].get("/api/entries", params={"region": eid[1], **params}
+                                               ).json() if x["entry_id"] == eid), None)
+
+
+@pytest.mark.needs_bundle
+def test_an_entry_verified_on_every_check_is_human_reviewed_until_it_changes(env, fresh_marks,
+                                                                             as_built):
+    """T184: verified on all checks -> "Human-reviewed by X on date", on the entry and in the queue
+    (`reviewed`, and the review filter `verified`); its fingerprint moves (an edit to the file) ->
+    it is back for a re-check (`holds` false, the filter `recheck`), still naming who reviewed it;
+    the file put back -> reviewed again. A mark short of every check (unsure) is not reviewed."""
+    import datetime as dt
+    _the_bundle()
+    today = dt.date.today().isoformat()
+    assert _get(env, BULL)["reviewed"] is None and _row(env, BULL)["reviewed"] is None
+    assert _mark(env, BULL, verdict=None, answers={"T": "y", "R": "?"}).status_code == 200
+    assert _get(env, BULL)["reviewed"] is None                      # unsure: not reviewed
+    assert _mark(env, BULL, reviewer="Ann").status_code == 200
+    want = {"by": ["Ann"], "on": today, "holds": True}
+    assert _get(env, BULL)["reviewed"] == want and _row(env, BULL)["reviewed"] == want
+    assert _row(env, BULL, verify="verified") is not None
+    assert _row(env, BULL, verify="recheck") is None
+    path = _file_of(env, BULL)
+    before = path.read_bytes()
+    doc = json.loads(before)
+    e = next(x for x in doc["entries"] if x["entry_id"] == BULL)
+    e["rules"][0]["verbatim"] = e["rules"][0]["verbatim"] + " "     # the rules' text moved
+    e["regs_verbatim"] = e["regs_verbatim"] + " (reprinted)"        # and the book text
+    path.write_text(json.dumps(doc, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+    try:
+        assert _get(env, BULL)["reviewed"] == {**want, "holds": False}
+        assert _row(env, BULL, verify="recheck")["reviewed"] == {**want, "holds": False}
+        assert _row(env, BULL, verify="verified") is None
+        assert _row(env, BULL, verify="todo") is not None
+    finally:
+        path.write_bytes(before)
+    assert _get(env, BULL)["reviewed"] == want
+
+
+@pytest.mark.needs_bundle
+def test_a_zone_entry_is_human_reviewed_when_every_rule_is(env, fresh_marks, as_built):
+    """A zone entry is marked rule by rule: reviewed only once EVERY rule holds a verified mark —
+    by all who marked them, on the latest date."""
+    _the_bundle()
+    zone = min((eid for eid, (_, e) in _entries(env["dir"]).items()
+                if eid.startswith("z") and len(e.get("rules") or []) >= 2),
+               key=lambda eid: len(_entries(env["dir"])[eid][1]["rules"]))
+    rids = [r["rule_id"] for r in _entries(env["dir"])[zone][1]["rules"]]
+    for i, rid in enumerate(rids):
+        assert _get(env, zone)["reviewed"] is None, rid
+        r = _mark(env, zone, scope="rule", rule_id=rid, reviewer=["Ann", "Bo"][i % 2])
+        assert r.status_code == 200, r.text
+    assert _get(env, zone)["reviewed"]["by"] == sorted({"Ann", "Bo"} if len(rids) > 1 else {"Ann"})
+    assert _get(env, zone)["reviewed"]["holds"] is True
+
+
 @pytest.mark.needs_bundle
 def test_a_mark_is_refused_without_what_it_needs(env, fresh_marks, as_built):
     _the_bundle()
@@ -365,6 +422,61 @@ def test_loaders_keep_cache_clear(env):
     reuse = env["reuse"]
     for fn in (reuse._registry, reuse._graph, reuse._geoms):
         assert callable(fn.cache_clear)
+
+
+# --------------------------------------------------------------------------- #
+# T184: every split the rules name is on the map, labelled — the proxy check of a split
+# --------------------------------------------------------------------------- #
+
+def _named_in_file(env, eid) -> dict[str, set[str]]:
+    from pipeline.regs.parsing.catalogue_parts.walk import iter_extents
+    _, e = _entries(env["dir"])[eid]
+    out: dict[str, set[str]] = {}
+    for path, ex, _role in iter_extents(e):
+        who = e["rules"][path[1]]["rule_id"] if path[0] == "rules" else None
+        for sid in ex.get("splits") or ():
+            out.setdefault(sid, set()).update({who} if who else set())
+    return out
+
+
+@pytest.mark.parametrize("eid", ["r1:ash_river@1-7", "r5:dean_river@5-9",
+                                 "r1:adam_river_except_eve_river@1-10", "r4:bull_river@4-22"])
+def test_every_split_the_rules_name_is_labelled_on_the_map(env, eid):
+    """GET /api/entries/{id}/splits: EXACTLY the split ids the entry's extents name (rules, scope,
+    licensing — `walk.iter_extents`), each a Point with its label, its water, its name ("WATER:
+    label") and the rules that name it — lake boundaries (Ash River's Elsie and Dickson lakes, the
+    Dean's Anahim Lake) included: they had no point at all, because the lake geometry `mapping`
+    makes holds tuples and `_rep_point` read lists only."""
+    got = env["client"].get(f"/api/entries/{eid}/splits").json()
+    want = _named_in_file(env, eid)
+    feats = {f["properties"]["split_id"]: f for f in got["features"]}
+    assert set(feats) | {u["split_id"] for u in got["unplaced"]} == set(want)
+    assert got["unplaced"] == [], got["unplaced"]
+    for sid, f in feats.items():
+        p = f["properties"]
+        assert f["geometry"]["type"] == "Point" and len(f["geometry"]["coordinates"]) == 2
+        assert p["label"] and p["water"] and p["name"] == f"{p['water']}: {p['label']}"
+        assert set(p["rules"]) == want[sid], sid
+    assert env["client"].get("/api/entries/r9:nope/splits").status_code == 404
+
+
+def test_a_named_split_still_to_verify_says_so(env):
+    """The Hwy 19 bridge over the Adam is an open auto-proposal, grade L: its point says so (the map
+    draws it amber) — the pre-check `split_to_verify` names the same cut."""
+    got = env["client"].get("/api/entries/r1:adam_river_except_eve_river@1-10/splits").json()
+    p = next(f["properties"] for f in got["features"]
+             if f["properties"]["split_id"] == "adam_river__hwy_19_bridge")
+    assert (p["label"], p["to_verify"], p["grade"]) == ("Hwy 19 bridge", True, "L")
+    assert p["name"] == "ADAM RIVER (except Eve River): Hwy 19 bridge"
+
+
+def test_a_lake_s_point_is_inside_it(env):
+    """`_rep_point` takes the tuples `shapely.geometry.mapping` writes, and gives a point INSIDE."""
+    from shapely.geometry import Point, box, mapping, shape
+    sq = mapping(box(0, 0, 2, 2).union(box(5, 5, 6, 6)))             # a MultiPolygon, of tuples
+    pt = env["reuse"]._rep_point(sq)
+    assert pt is not None and shape(sq).contains(Point(pt))
+    assert env["reuse"]._rep_point(None) is None and env["reuse"]._rep_point({"type": "Point"}) is None
 
 
 # --------------------------------------------------------------------------- #

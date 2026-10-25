@@ -6,6 +6,7 @@ import type {
   FieldError,
   EntryDetail,
   EntryReaches,
+  EntrySplits,
   GeoJSON,
   QueueRow,
   RegionSummary,
@@ -13,7 +14,7 @@ import type {
   RuleResolved,
   PendingBuild,
   QueueOrder,
-  VerifyStatus,
+  ReviewFilter,
   MarkView,
   MarkPost,
   Mode,
@@ -53,7 +54,7 @@ export const api = {
   regions: () => getJSON<RegionSummary[]>("/api/regions"),
 
   entries: (region?: string, status?: Status | "", kind?: EntryKind | "",
-            verify?: VerifyStatus | "todo" | "", order?: QueueOrder, tier?: Tier | "") => {
+            verify?: ReviewFilter, order?: QueueOrder, tier?: Tier | "") => {
     const p = new URLSearchParams();
     if (tier) p.set("tier", tier);
     if (region) p.set("region", region);
@@ -71,6 +72,10 @@ export const api = {
   /** per-rule, per-extent resolved reach — what to highlight on the map */
   reaches: (entryId: string) =>
     getJSON<EntryReaches>(`/api/entries/${encodeURIComponent(entryId)}/reaches`),
+
+  /** every split the entry's rules name, as labelled map points (T184: the proxy check) */
+  splits: (entryId: string) =>
+    getJSON<EntrySplits>(`/api/entries/${encodeURIComponent(entryId)}/splits`),
 
   geojson: (itemId: string) =>
     getJSON<GeoJSON>(`/api/items/${encodeURIComponent(itemId)}/geojson`),
@@ -111,5 +116,4 @@ export const api = {
   progress: () => getJSON<Progress>("/api/review/progress"),
   /** T133: every entry and split awaiting its build, and the command(s) to run */
   pendingBuild: () => getJSON<PendingBuild>("/api/build"),
-
 };

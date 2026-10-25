@@ -107,10 +107,10 @@ def get_entries(region: str | None = None, status: str | None = None,
                 order: str = "risk", tier: str | None = None):
     """THE ONE QUEUE (T135): every region unless `region` names one. `kind` is zone | water — the
     region chapters or the water tables. `verify` is the reviewer's mark (unmarked | verified |
-    wrong | unsure | deferred | stale | todo); `tier` the review tier (PLAN §3); `status` what the
-    parse left (`reuse.STATUSES`); `order` is risk (the review order: tier, the most urgent risk
-    factor, the severity-A pre-checks, then the book — `tiers.queue_rank`) or book (region, page,
-    then the page's order)."""
+    wrong | unsure | deferred | stale | todo | recheck — human-reviewed, changed since); `tier` the
+    review tier (PLAN §3); `status` what the parse left (`reuse.STATUSES`); `order` is risk (the
+    review order: tier, the most urgent risk factor, the severity-A pre-checks, then the book —
+    `tiers.queue_rank`) or book (region, page, then the page's order)."""
     if order not in reuse.QUEUE_ORDERS:
         raise HTTPException(422, [{"path": "order",
                                    "msg": "order is " + " or ".join(reuse.QUEUE_ORDERS)}])
@@ -350,6 +350,17 @@ def rule_resolved(entry_id: str, rule_id: str, limit: int = 6000):
 def entry_reaches(entry_id: str):
     """Per-rule, per-extent section ids — the REACH each rule selects, for map highlighting."""
     return reuse.entry_reaches(entry_id)
+
+
+@app.get("/api/entries/{entry_id}/splits")
+def entry_splits(entry_id: str):
+    """EVERY SPLIT THE ENTRY'S RULES NAME, as labelled map points (T184: a split is reviewed by
+    proxy, on the map of each entry that uses it) — `reuse.entry_split_points`; the ones the served
+    atlas cannot place are listed in `unplaced` with why."""
+    got = reuse.entry_split_points(entry_id)
+    if got is None:
+        raise HTTPException(404, f"entry {entry_id} not found")
+    return got
 
 
 @app.get("/api/row-image/{filename}")

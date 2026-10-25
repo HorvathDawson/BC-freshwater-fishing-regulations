@@ -69,10 +69,20 @@ export function QueueList({ rows, selected, loading, onSelect, facts }: Props) {
             )}
           </div>
           <div className="meta">
-            {r.verify && r.verify !== "unmarked" && (
+            {r.reviewed?.holds ? (
+              <span className="verify-chip verified" data-testid="reviewed-chip"
+                title={`human-reviewed by ${r.reviewed.by.join(", ")} on ${r.reviewed.on}`}>
+                ✓ reviewed · {r.reviewed.by.join(", ")} · {r.reviewed.on}
+              </span>
+            ) : r.reviewed ? (
+              <span className="verify-chip stale" data-testid="recheck-chip"
+                title={`human-reviewed by ${r.reviewed.by.join(", ")} on ${r.reviewed.on}; changed since: ${(r.mark_reasons ?? []).join(", ")}`}>
+                re-check · reviewed {r.reviewed.on}, changed since
+              </span>
+            ) : r.verify && r.verify !== "unmarked" && (
               <span className={`verify-chip ${r.verify}`}
                 title={r.verify === "stale" ? (r.mark_reasons ?? []).join(", ") : (r.verify_note || r.verify)}>
-                {r.verify === "verified" ? "✓ verified" : r.verify === "stale" ? "changed since marked" : r.verify}
+                {r.verify === "stale" ? "changed since marked" : r.verify}
               </span>
             )}
             {r.vintage && r.vintage !== "current" && (

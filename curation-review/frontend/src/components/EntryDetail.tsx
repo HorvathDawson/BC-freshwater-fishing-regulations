@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import type { Boundary, EntryDetail as EntryDetailT, EntryReaches, Mode, ReviewView } from "../types";
+import type {
+  Boundary, EntryDetail as EntryDetailT, EntryReaches, EntrySplits, Mode, ReviewView,
+} from "../types";
 import { api } from "../api";
-import { describeDiagnostic, reachIdentities } from "../format";
+import { describeDiagnostic, humanExtent, reachIdentities } from "../format";
 import { VerifyBar, type QueueNav } from "./VerifyBar";
 import { Evidence } from "./Evidence";
 import { EntryReview } from "./EntryReview";
@@ -82,6 +84,25 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
   useEffect(() => { api.synopsisPages().then(setPdfPages).catch(() => {}); }, []);
   const rules = entry.rules ?? [];
   const licensing = entry.licensing ?? [];
+  // EVERY SPLIT THE RULES NAME (T184): labelled on the map and listed below, so the reviewer
+  // checks each cut by proxy — a wrong one is this entry's "Place: wrong"
+  const [named, setNamed] = useState<EntrySplits | null>(null);
+  useEffect(() => {
+    let live = true;
+    api.splits(entry.entry_id).then((s) => { if (live) setNamed(s); })
+      .catch(() => { if (live) setNamed(null); });
+    return () => { live = false; };
+  }, [entry, reloadKey]);
+  // split id -> its name, for each rule's "where" line
+  const splitNames = useMemo(() => {
+    const m: Record<string, string> = {};
+    for (const b of boundaries) m[b.id] = (b.live?.label ?? b.label) || b.id;
+    for (const s of [...(named?.features ?? []).map((f) => f.properties), ...(named?.unplaced ?? [])])
+      m[s.split_id] = s.label;
+    return m;
+  }, [boundaries, named]);
+  const referenced = useMemo(
+    () => rules.flatMap((r) => (r.extents ?? []).flatMap((ex) => ex.splits ?? [])), [rules]);
 
   // Which distinct reach each rule lands on. Several rules almost always share one, and the authored
   // extent text ("downstream of Vedder Crossing Bridge") does not reveal which WATER that is.
@@ -125,7 +146,8 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
     <div className="detail review-mode">
       <div className={`detail-cols${mapBig ? " map-big" : ""}`}>
         <div className="detail-content">
-      <VerifyBar entryId={entry.entry_id} marks={detail.marks} nav={nav} vintage={detail.vintage} />
+      <VerifyBar entryId={entry.entry_id} marks={detail.marks} nav={nav} vintage={detail.vintage}
+        reviewed={detail.reviewed} />
       {/* EVIDENCE FIRST, THEN THE CHECKLIST (T134): the raw name, the legible crop, the page with
           it marked and the coverage strip; then T/R/P/A with the verdict bar always visible. */}
       {view ? (
@@ -332,6 +354,14 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
                   {rule.label ?? <span className="dim">— does not validate —</span>}
                 </div>
                 {rule.verbatim && <div className="rule-verbatim">{rule.verbatim}</div>}
+                {(rule.extents ?? []).length > 0 && (
+                  <div className="rule-where" data-testid={`where-${rule.rule_id}`}
+                    title="where the rule binds, each split by its name — the map labels them">
+                    <span className="k">where</span>{" "}
+                    {(rule.extents ?? []).map((ex) => humanExtent(ex, splitNames)).join("; ")}
+                    {rule.includes_tributaries ? " · and its tributaries" : ""}
+                  </div>
+                )}
                 {rule.review_reason && (
                   <div className="review-flag"><strong>⚠ review_reason</strong> {rule.review_reason}</div>
                 )}
@@ -391,6 +421,40 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
           ))}
         </div>
       </div>
+
+      {/* THE SPLITS THE RULES NAME (T184): the proxy check — each is drawn and labelled on the
+          map; clicking one flies to it. A cut in the wrong place is a "Place: wrong" mark here. */}
+      {named && (named.features.length + named.unplaced.length) > 0 && (
+        <div className="section" data-testid="named-splits">
+          <h3>Splits the rules name ({named.features.length + named.unplaced.length})</h3>
+          <div className="dim" style={{ marginBottom: 6 }}>
+            Each is labelled on the map with its name. Check it sits where the book says; a cut in
+            the wrong place is a <strong>Place: wrong</strong> mark on this entry (problem “split
+            misplaced”).
+          </div>
+          <ul className="named-splits">
+            {named.features.map((f) => f.properties).map((s) => (
+              <li key={s.split_id} className={selBoundary === s.split_id ? "selected" : ""}>
+                <a href="#" onClick={(ev) => { ev.preventDefault(); setSelBoundary(s.split_id); }}
+                  title={s.split_id}>{s.name}</a>
+                <span className="dim"> — {[...s.rules.map((r) => r.split(".").pop()), ...s.parts].join(", ")}</span>
+                {s.to_verify && (
+                  <span className="badge warn" title="an open auto-proposal or a Verify: note in splits.json">
+                    to verify{s.grade ? ` · grade ${s.grade}` : ""}
+                  </span>
+                )}
+              </li>
+            ))}
+            {named.unplaced.map((s) => (
+              <li key={s.split_id}>
+                <span title={s.split_id}>{s.name}</span>
+                <span className="dim"> — {[...s.rules.map((r) => r.split(".").pop()), ...s.parts].join(", ")}</span>
+                <span className="badge warn">not on the map: {s.why}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Bindable boundaries */}
       <div className="section">
@@ -480,7 +544,7 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
             itemId={mapItemId}
             alsoItemIds={alsoItems.map((a) => a.id)}
             focusItemId={focusItemId}
-            referencedSplitIds={rules.flatMap((r) => (r.extents ?? []).flatMap((ex) => ex.splits ?? []))}
+            referencedSplitIds={referenced}
             unusedSplitIds={unused_curated_splits.map((u) => u.id)}
             selectedSplitId={selBoundary}
             onSelectSplit={setSelBoundary}
@@ -493,6 +557,7 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
             reachOf={reachOf}
             entryId={entry.entry_id}
             reloadKey={reloadKey}
+            namedSplits={named}
           />
         </div>
       </div>

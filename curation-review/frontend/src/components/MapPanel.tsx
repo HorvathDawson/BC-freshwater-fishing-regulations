@@ -4,7 +4,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { Protocol } from "pmtiles";
 import { layers, LIGHT } from "@protomaps/basemaps";
 import { api } from "../api";
-import type { EntryReaches, ReachIdentity, RuleResolved } from "../types";
+import type { EntryReaches, EntrySplits, ReachIdentity, RuleResolved } from "../types";
 
 interface Props {
   itemId: string | null;
@@ -31,7 +31,15 @@ interface Props {
   reachOf?: Record<string, ReachIdentity>;
   /** the entry being reviewed — needed to ask for a RULE's tributary expansion */
   entryId?: string | null;
+  /** EVERY SPLIT THE ENTRY'S RULES NAME (GET /api/entries/{id}/splits), drawn and LABELLED with its
+   *  name wherever it is — on this water or another (T184: a split is reviewed by proxy, here) */
+  namedSplits?: EntrySplits | null;
 }
+
+/** a named split's colour: amber while it is still to verify (an open auto-proposal / "Verify:"),
+ *  else dark — the label says which cut it is either way */
+const NAMED_COLOR = "#111827";
+const NAMED_TO_VERIFY = "#d97706";
 
 // Same basemap the webapp uses: the bc.pmtiles vector source + protomaps LIGHT layers. Served by the
 // backend at /basemap/bc.pmtiles (Range-capable) and proxied by Vite. Web-mercator, so the item
@@ -65,9 +73,11 @@ function fmtDist(m: number): string {
 // which stream is which instead of one undifferentiated blue blob. Primary keeps the original blue.
 export const ITEM_COLORS = ["#2563eb", "#c2410c", "#7c3aed", "#0f766e", "#b91c1c", "#a16207"];
 
-// Tag each split feature with a `_color` + `_note` so the circle layer can data-drive its colour.
+// Tag each split feature with a `_color` + `_note` so the circle layer can data-drive its colour, and
+// `_named` when the entry's rules name it (its label is the named-split layer's, drawn once).
 function colorize(fc: GeoJSON.FeatureCollection, ref: Set<string>, unused: Set<string>,
-                  itemColor: Map<string, string>, reach: Set<string>): GeoJSON.FeatureCollection {
+                  itemColor: Map<string, string>, reach: Set<string>,
+                  named: Set<string>): GeoJSON.FeatureCollection {
   return {
     type: "FeatureCollection",
     features: (fc.features ?? []).map((f) => {
@@ -82,6 +92,7 @@ function colorize(fc: GeoJSON.FeatureCollection, ref: Set<string>, unused: Set<s
         const id = String(p.split_id ?? "");
         p._color = p.auto ? "#0891b2" : splitColor(id, ref, unused);   // auto lake boundary = teal
         p._note = p.auto ? "lake" : ref.has(id) ? "bound" : unused.has(id) ? "UNUSED" : "";
+        p._named = named.has(id);
       }
       return { ...f, properties: p };
     }),
@@ -104,7 +115,7 @@ function bounds(fc: GeoJSON.FeatureCollection): maplibregl.LngLatBoundsLike | nu
 export function MapPanel({
   itemId, alsoItemIds = [], referencedSplitIds = [], unusedSplitIds = [], selectedSplitId = null,
   onSelectSplit, reloadKey = 0, focusItemId = null,
-  reaches = null, rules = [], reachOf = {}, entryId = null,
+  reaches = null, rules = [], reachOf = {}, entryId = null, namedSplits = null,
 }: Props) {
   const [showTribs, setShowTribs] = useState(false);
   const [nTribs, setNTribs] = useState<number | null>(null);
@@ -130,6 +141,9 @@ export function MapPanel({
   measuring.current = measure;
 
   const refSet = useMemo(() => new Set(referencedSplitIds), [referencedSplitIds]);
+  const namedFc = useRef<GeoJSON.FeatureCollection | null>(null);
+  const namedIds = useMemo(() => new Set((namedSplits?.features ?? []).map((f) => f.properties.split_id)),
+    [namedSplits]);
   // Which rule's reach is drawn. The map owns this: it is a way of LOOKING at the geometry, so it
   // belongs with the other view controls rather than scattered down the rules list.
   const [shownReach, setShownReach] = useState<string | null>(null);
@@ -189,6 +203,7 @@ export function MapPanel({
           protomaps: { type: "vector", url: BASEMAP_URL, maxzoom: 15 },
           item: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
           tribs: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
+          named: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
           measure: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
         },
         layers: [
@@ -239,10 +254,27 @@ export function MapPanel({
             paint: { "circle-radius": 6, "circle-color": ["get", "_color"],
                      "circle-stroke-color": "#fff", "circle-stroke-width": 2 } },
           { id: "item-labels", type: "symbol", source: "item",
-            filter: ["==", ["geometry-type"], "Point"],
+            filter: ["all", ["==", ["geometry-type"], "Point"], ["!=", ["get", "_named"], true]],
             layout: { "text-field": ["get", "label"], "text-size": 11, "text-offset": [0, 1.1],
                       "text-anchor": "top", "text-font": ["Noto Sans Regular"] },
             paint: { "text-halo-color": "#fff", "text-halo-width": 1.5 } },
+          // THE SPLITS THE ENTRY'S RULES NAME (T184): every one drawn and labelled with its name,
+          // over everything else — the proxy check of a split is reading its name where it sits.
+          // With a rule's reach shown, the splits that rule does not name fade.
+          { id: "named-points", type: "circle", source: "named",
+            paint: { "circle-radius": 7,
+                     "circle-color": ["case", ["get", "to_verify"], NAMED_TO_VERIFY, NAMED_COLOR],
+                     "circle-stroke-color": "#fff", "circle-stroke-width": 2.5,
+                     "circle-opacity": ["case", ["get", "_on"], 1, 0.3],
+                     "circle-stroke-opacity": ["case", ["get", "_on"], 1, 0.3] } },
+          { id: "named-labels", type: "symbol", source: "named",
+            layout: { "text-field": ["get", "label"], "text-size": 12, "text-offset": [0, 1.15],
+                      "text-anchor": "top", "text-font": ["Noto Sans Medium"],
+                      "text-allow-overlap": true, "text-ignore-placement": true,
+                      "text-max-width": 14 },
+            paint: { "text-color": ["case", ["get", "to_verify"], "#92400e", NAMED_COLOR],
+                     "text-halo-color": "#fff", "text-halo-width": 2,
+                     "text-opacity": ["case", ["get", "_on"], 1, 0.35] } },
           { id: "measure-line", type: "line", source: "measure",
             filter: ["==", ["geometry-type"], "LineString"],
             paint: { "line-color": "#7c3aed", "line-width": 2, "line-dasharray": [2, 1] } },
@@ -269,8 +301,15 @@ export function MapPanel({
       const sid = f?.properties?.split_id;
       if (sid != null) onSelect.current?.(String(sid));
     });
-    m.on("mouseenter", "item-points", () => { m.getCanvas().style.cursor = "pointer"; });
-    m.on("mouseleave", "item-points", () => { m.getCanvas().style.cursor = ""; });
+    m.on("click", "named-points", (e) => {
+      if (measuring.current) return;
+      const sid = e.features?.[0]?.properties?.split_id;
+      if (sid != null) onSelect.current?.(String(sid));
+    });
+    for (const layer of ["item-points", "named-points"]) {
+      m.on("mouseenter", layer, () => { m.getCanvas().style.cursor = "pointer"; });
+      m.on("mouseleave", layer, () => { m.getCanvas().style.cursor = ""; });
+    }
     return () => { map.current?.remove(); map.current = null; };
   }, []);
 
@@ -282,9 +321,10 @@ export function MapPanel({
       if (!m.getLayer("item-selected")) return;
       m.setFilter("item-selected", ["==", ["get", "split_id"], selectedSplitId ?? "__none__"]);
       const fc = lastFc.current;
-      if (selectedSplitId && fc) {
-        const hit = (fc.features ?? []).find(
-          (f) => f.properties?.kind === "split" && String(f.properties?.split_id) === selectedSplitId,
+      if (selectedSplitId && (fc || namedFc.current)) {
+        const hit = [...(fc?.features ?? []), ...(namedFc.current?.features ?? [])].find(
+          (f) => (f.properties?.kind === "split" || f.properties?.kind === "named_split")
+            && String(f.properties?.split_id) === selectedSplitId,
         );
         if (hit && hit.geometry?.type === "Point") {
           m.flyTo({ center: hit.geometry.coordinates as [number, number], zoom: Math.max(m.getZoom(), 12), duration: 500 });
@@ -320,7 +360,40 @@ export function MapPanel({
   }, [itemId, alsoKey, reloadKey]);
 
   // Recolour when the referenced/unused sets change (rule edits) without refetching.
-  useEffect(() => { applyData(false); /* eslint-disable-next-line */ }, [refSet, unusedSet, itemColor, reachSet]);
+  useEffect(() => { applyData(false); /* eslint-disable-next-line */ }, [refSet, unusedSet, itemColor, reachSet, namedIds]);
+
+  // THE NAMED SPLITS (T184): drawn and labelled; `_on` is whether the rule whose reach is shown
+  // names it (every split is on while none is shown). When one lies outside the view — a cut on
+  // another water — the view widens to hold them all, so no named split is off-screen unseen.
+  useEffect(() => {
+    const m = map.current;
+    if (!m) return;
+    const run = () => {
+      const src = m.getSource("named") as maplibregl.GeoJSONSource | undefined;
+      if (!src) return;
+      const fc = {
+        type: "FeatureCollection",
+        features: (namedSplits?.features ?? []).map((f) => ({
+          ...f, properties: { ...f.properties, kind: "named_split",
+                              _on: !shownReach || f.properties.rules.includes(shownReach) } })),
+      } as GeoJSON.FeatureCollection;
+      namedFc.current = fc;
+      src.setData(fc);
+      if (!fc.features.length || shownReach) return;
+      const view = m.getBounds();
+      const off = fc.features.some((f) => {
+        const [x, y] = (f.geometry as GeoJSON.Point).coordinates;
+        return !view.contains([x, y]);
+      });
+      if (off) {
+        const all = { type: "FeatureCollection",
+                      features: [...(lastFc.current?.features ?? []), ...fc.features] } as GeoJSON.FeatureCollection;
+        const b = bounds(all);
+        if (b) m.fitBounds(b, { padding: 50, maxZoom: 14, duration: 300 });
+      }
+    };
+    if (m.isStyleLoaded()) run(); else m.once("load", run);
+  }, [namedSplits, shownReach]);
 
   // Tributaries (opt-in): one level up from every covered water.
   useEffect(() => {
@@ -405,7 +478,7 @@ export function MapPanel({
     const run = () => {
       const src = m.getSource("item") as maplibregl.GeoJSONSource | undefined;
       if (!src) return;
-      const colored = colorize(fc, refSet, unusedSet, itemColor, reachSet);
+      const colored = colorize(fc, refSet, unusedSet, itemColor, reachSet, namedIds);
       src.setData(colored);
       if (fit) {
         const b = bounds(colored);
@@ -421,6 +494,12 @@ export function MapPanel({
         {itemId == null ? "no matched item — no geometry"
           : count == null ? "loading…"
           : `${count} feature(s) · webapp basemap (bc.pmtiles)`}
+        {namedSplits && (namedSplits.features.length + namedSplits.unplaced.length) > 0 && (
+          <span data-testid="named-split-count">
+            {" · "}{namedSplits.features.length} split{namedSplits.features.length === 1 ? "" : "s"} the rules name, labelled
+            {namedSplits.unplaced.length > 0 && `, ${namedSplits.unplaced.length} not placed`}
+          </span>
+        )}
       </div>
       <div className="map-tools">
         {/* One rule's reach at a time. Highlighting several at once would just paint the whole
@@ -544,6 +623,8 @@ export function MapPanel({
       <div ref={container} style={{ width: "100%", height: "100%" }} />
       <div className="map-legend">
         {shownReach && <span><i style={{ background: "#22c55e", height: 6 }} /> reach</span>}
+        <span><i style={{ background: NAMED_COLOR }} /> split a rule names (labelled)</span>
+        <span><i style={{ background: NAMED_TO_VERIFY }} /> … still to verify</span>
         <span><i style={{ background: "#16a34a" }} /> bound by a rule</span>
         <span><i style={{ background: "#d97706" }} /> curated · unused</span>
         <span><i style={{ background: "#dc2626" }} /> other split</span>

@@ -770,7 +770,8 @@ def queue(region: str | None = None, status: str | None = None,
 
     `verify` filters on the reviewer's mark (`MARK_STATUSES`): unmarked | verified | wrong |
     unsure | deferred | stale (marked, then changed — `mark_reasons` says why); `todo` is
-    everything not currently verified. `tier` filters on the review tier (`tiers.entry_tier`, PLAN §3:
+    everything not currently verified (human-reviewed); `recheck` the entries human-reviewed once
+    whose fingerprint has moved since (T184: back for a re-check). `tier` filters on the review tier (`tiers.entry_tier`, PLAN §3:
     P1 Z P2 P3 P4 sweep)."""
     from pipeline.regs.review import tiers as T
     from pipeline.regs.review.precheck import severe as _severe
@@ -794,7 +795,9 @@ def queue(region: str | None = None, status: str | None = None,
             continue
         mst = _entry_mark_state(e, states)
         vst = mst["status"]
-        if verify and not (vst == verify or (verify == "todo" and vst != "verified")):
+        rev = mst["reviewed"]
+        if verify and not (vst == verify or (verify == "todo" and vst != "verified")
+                           or (verify == "recheck" and rev is not None and not rev["holds"])):
             continue
         pages = [p for p in (e.get("source_pages") or []) if isinstance(p, int)]
         vin = entry_vintage(e, on)
@@ -816,6 +819,8 @@ def queue(region: str | None = None, status: str | None = None,
             "pointer": bool(e.get("see")) and not e.get("rules"),
             "verify": vst,
             "verify_note": mst["note"],
+            # T184: human-reviewed — by whom, when, and whether it still holds
+            "reviewed": mst["reviewed"],
             "mark_reasons": mst["reasons"],
             "vintage": vin["state"],             # current | awaiting build (T133)
             "vintage_reasons": vin["reasons"],
@@ -913,28 +918,47 @@ def _mark_view(m, now) -> dict:
 def _entry_mark_state(e: dict, states: dict[str, list]) -> dict:
     """The queue's one word for an entry's marks: its entry mark's status; for an entry marked
     per rule (zone entries), stale / wrong / unsure / deferred if any rule mark is, verified when
-    every rule holds a verified mark, else unmarked. `reasons` are the stale reasons."""
+    every rule holds a verified mark, else unmarked. `reasons` are the stale reasons.
+
+    `reviewed` is THE HUMAN-REVIEWED STATE (T184): the reviewers and the (latest) date of the
+    verified mark(s) — every check answered y, `marks.verdict_from_answers` — that make the entry
+    reviewed, with `holds`: true while they hold; false once its fingerprint moved (text, rules or
+    extent — T97's `marks.stale_reasons`), when it is back in the queue for a re-check. None when no
+    verified mark ever covered it (a zone entry: one on every rule)."""
     from pipeline.regs.review import marks as M
     ms = states.get(e["entry_id"]) or []
     if not ms:
-        return {"status": "unmarked", "note": "", "reasons": []}
+        return {"status": "unmarked", "note": "", "reasons": [], "reviewed": None}
     now = _prints(e)
+
+    def reviewed(verified: list, holds: bool) -> dict:
+        return {"by": sorted({m.reviewer for m in verified}),
+                "on": max(m.date for m in verified), "holds": holds}
+
     entry_mark = next((m for m in ms if m.scope == "entry"), None)
     if entry_mark is not None:
         st = M.status(entry_mark, now)
-        return {"status": st["status"], "note": entry_mark.note, "reasons": st["reasons"]}
+        return {"status": st["status"], "note": entry_mark.note, "reasons": st["reasons"],
+                "reviewed": reviewed([entry_mark], st["status"] == "verified")
+                if entry_mark.verdict == "verified" else None}
     sts = [(m, M.status(m, now)) for m in ms if m.scope == "rule"]
+    every = {r.get("rule_id") for r in e.get("rules") or []}
+    # a zone entry WAS reviewed when every rule's mark in force was a verified one
+    was = ([m for m, _ in sts] if every and all(m.verdict == "verified" for m, _ in sts)
+           and every <= {m.rule_id for m, _ in sts} | {M.held_rule(m, now) for m, _ in sts}
+           else [])
     for word in ("stale", "wrong", "unsure", "deferred"):
         hit = [(m, st) for m, st in sts if st["status"] == word]
         if hit:
             return {"status": word, "note": hit[0][0].note,
                     "reasons": sorted({r for _, st in hit for r in st["reasons"]},
-                                      key=[x.value for x in M.STALE_REASONS].index)}
+                                      key=[x.value for x in M.STALE_REASONS].index),
+                    "reviewed": reviewed(was, False) if was else None}
     # the rule each verified mark is on NOW — a renumbered rule keeps its mark (`marks.held_rule`)
     marked = {M.held_rule(m, now) for m, st in sts if st["status"] == "verified"}
-    every = {r.get("rule_id") for r in e.get("rules") or []}
-    return {"status": "verified" if every and every <= marked else "unmarked", "note": "",
-            "reasons": []}
+    done = bool(every) and every <= marked
+    return {"status": "verified" if done else "unmarked", "note": "", "reasons": [],
+            "reviewed": reviewed([m for m, _ in sts], True) if done else None}
 
 
 def entry_marks(entry_id: str) -> list[dict]:
@@ -1260,6 +1284,7 @@ def entry_detail(entry_id: str) -> dict | None:
             continue
         item = _item_for_entry(e)
         vintage = entry_vintage(e)          # of the entry AS READ, before labels are stamped on
+        reviewed = _entry_mark_state(e, _mark_states())["reviewed"]       # likewise
         lab = model_api.labels(e, ENTRIES_DIR, _place_namer())
         e = dict(e,
                  rules=[dict(r, label=lab["rules"][i] or r.get("verbatim", ""))
@@ -1283,6 +1308,8 @@ def entry_detail(entry_id: str) -> dict | None:
             "unused_curated_splits": unused_curated_splits(e, item),
             "source_image": entry_source_image(e),
             "marks": entry_marks(entry_id),
+            # T184: HUMAN-REVIEWED (by whom, when; `holds` false = changed since, re-check)
+            "reviewed": reviewed,
             # ONE VINTAGE ON SCREEN (T133): "current", or "awaiting build" with why and what to
             # run — the binding and the answer are this entry's only when current
             "vintage": vintage,
@@ -1295,14 +1322,18 @@ def entry_detail(entry_id: str) -> dict | None:
 # --------------------------------------------------------------------------- #
 
 def _rep_point(geom: dict | None) -> list[float] | None:
-    """A representative lon/lat point for a GeoJSON geometry (its first coordinate) — used to drop a
-    clickable marker at a lake boundary's location."""
-    if not geom:
+    """A representative lon/lat point INSIDE a GeoJSON geometry (shapely's `representative_point`)
+    — used to drop a clickable, labelled marker at a lake boundary's location. A geometry made by
+    `shapely.geometry.mapping` holds TUPLES: reading it for lists only found nothing, so every lake
+    boundary (and every lake a rule names) had no marker (T184)."""
+    if not geom or not geom.get("coordinates"):
         return None
-    c = geom.get("coordinates")
-    while isinstance(c, list) and c and isinstance(c[0], list):
-        c = c[0]
-    return c if isinstance(c, list) and len(c) >= 2 and isinstance(c[0], (int, float)) else None
+    from shapely.geometry import shape
+    try:
+        p = shape(geom).representative_point()
+    except Exception:  # noqa: BLE001 — a malformed geometry has no point; the caller lists it
+        return None
+    return None if p.is_empty else [p.x, p.y]
 
 
 
@@ -1732,6 +1763,86 @@ def item_geojson(item_id: str) -> dict:
     return {"type": "FeatureCollection", "features": feats}
 
 
+@lru_cache(maxsize=1)
+def _boundary_index() -> dict[str, tuple[str, object]]:
+    """Every cut-point id of the served registry — each boundary's own id AND every alias it answers
+    to (`answers_to`) — -> (the item it is on, the boundary). First item (sorted) wins a collision."""
+    out: dict[str, tuple[str, object]] = {}
+    reg = _registry()
+    for iid in sorted(reg):
+        for b in reg[iid].boundaries:
+            for sid in b.answers_to():
+                out.setdefault(sid, (iid, b))
+    return out
+
+
+def _split_records() -> dict[str, tuple[str, dict]]:
+    """splits.json split id -> (its waterbody's name, the split record)."""
+    return {sp["id"]: (str(wb.get("name") or ""), sp)
+            for wb in _load_splits().get("waterbodies", []) for sp in wb.get("splits", [])
+            if sp.get("id")}
+
+
+def entry_split_points(entry_id: str) -> dict | None:
+    """EVERY SPLIT THE ENTRY'S RULES NAME, as map points labelled with their names (T184): the
+    proxy check of a split. No split is a review target of its own; the reviewer sees each cut an
+    entry's rules (its scope, its licensing records) bind, where the served atlas put it, under its
+    own name — a wrong one is that entry's "Place: wrong".
+
+    A FeatureCollection of Points, one per split id, each with `split_id`, `label` (the built label,
+    else splits.json's, else the boundary's), `water` (its splits.json waterbody; a lake boundary,
+    the item it is on), `name` ("WATER: label"), `rules` (the rule ids that name it, in rule order) and `parts` (any other part that
+    does: "entry scope", a licensing record's id), `to_verify` (an open auto-proposal or a
+    "Verify:" note — `tiers.split_needs_verify`) and `grade`. Where the built atlas has no point
+    for an id (not built yet, or a cut with no location of its own) it is listed in `unplaced`
+    with why, never dropped. None: no such entry."""
+    from pipeline.regs.review.tiers import split_grade, split_needs_verify
+    found = _find(entry_id)
+    if found is None:
+        return None
+    e = found[1]
+    named: dict[str, dict] = {}
+    rules = e.get("rules") or []
+    for path, ex, _role in iter_extents(e):
+        if path[0] == "rules":
+            who, key = rules[path[1]].get("rule_id"), "rules"
+        elif path[0] == "licensing":
+            who, key = (e.get("licensing") or [])[path[1]].get("id"), "parts"
+        else:
+            who, key = "entry scope", "parts"
+        for sid in ex.get("splits") or ():
+            got = named.setdefault(sid, {"rules": [], "parts": []})
+            if who and who not in got[key]:
+                got[key].append(who)
+    meta, records, bounds = _splits_meta(), _split_records(), _boundary_index()
+    feats, unplaced = [], []
+    for sid, by in named.items():
+        water, sp = records.get(sid, ("", {}))
+        on_item, b = bounds.get(sid, (None, None))
+        if not water and on_item in _registry():          # a lake boundary: the water it is on
+            water = _registry()[on_item].name
+        label = ((meta.get(sid) or {}).get("label") or sp.get("label")
+                 or (getattr(b, "label", None) if b is not None else None) or sid)
+        props = {"split_id": sid, "label": label, "water": water,
+                 "name": f"{water}: {label}" if water else label, **by,
+                 "to_verify": bool(sp) and split_needs_verify(sp),
+                 "grade": split_grade(sp) if sp else None, "item_id": on_item}
+        geom = None
+        if sid in meta:                               # a cut on a line: its point on the section
+            f = _geo(_split_point(sid), "named_split", {})
+            geom = f["geometry"] if f else None
+        elif b is not None and getattr(b, "wbk", None):   # a lake boundary: the lake's own point
+            lake = _features("lakes", [str(b.wbk)], "split")
+            pt = _rep_point(lake[0].get("geometry")) if lake else None
+            geom = {"type": "Point", "coordinates": pt} if pt else None
+        if geom is None:
+            unplaced.append({**props, "why": "not in the served atlas yet — awaiting its build"
+                             if sp and sid not in meta else "the served atlas has no point for it"})
+            continue
+        feats.append({"type": "Feature", "geometry": geom, "properties": props})
+    return {"type": "FeatureCollection", "features": feats, "unplaced": unplaced}
+
+
 # --------------------------------------------------------------------------- #
 # splits.json (the hand-curated split source of truth) — read only
 # --------------------------------------------------------------------------- #
@@ -1805,7 +1916,7 @@ def check_entry(entry_dict: dict) -> dict:
 _BUILD_CACHES = (_registry, _place_namer_for, _splits_meta, _split_points_attrs,
                  _blk_to_item, _graph, _geoms, _wbk_polys,
                  _blk_index, _review_context_for, _built_atlas, _built_for, _splits_context_for,
-                 _run_facts_for)
+                 _run_facts_for, _boundary_index)
 
 
 # --------------------------------------------------------------------------- #
