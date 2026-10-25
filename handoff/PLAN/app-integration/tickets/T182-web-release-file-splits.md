@@ -1,6 +1,6 @@
 # T182 — Release file splits for the web's first search, tap and Conditions (from T129)
 
-Status: PARTIAL — code + tests in; the first split release and the walk's re-cut are the owner's runs (Outcome).
+Status: PARTIAL (134a859c) — code + tests in; the first split release and the walk's re-cut are the owner's runs (Outcome).
 Source: T129's measured walk on r-bb4331929428 (its ticket has the byte table) — proposals that change the
 release format, so not done there.
 

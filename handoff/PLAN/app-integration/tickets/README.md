@@ -117,7 +117,7 @@ use that as the sole source of future work."
 | T70 | cleanup wave 1, app side + stale worktrees + `pnpm clean` | DONE | 52ec4cb5, 799614a5, 4615ee0f, 1e8cbdb5, ac95e09f, a7947f99, de3cb79d, fd3f8c06, ef11d8e4, 17e4fe8f | merger steps done 2026-10-24 (clean + strict green); Q17 dead follow-branch → T63 |
 | T71 | one Map entry: drop the regs header's Map button | DONE | 4817a2e7, 40d6a47c | — |
 | T72 | release LATEST pointer + prune old releases | DONE | 0eb70144 | Q7 answered: 22 old releases pruned |
-| T73 | smaller reach hand-off (N14, disk) | PARTIAL | (this) | owner: convert full + full_prev through heavy.sh, binding diff, record sizes (ticket) |
+| T73 | smaller reach hand-off (N14, disk) | PARTIAL | e375cc61 | owner: convert full + full_prev through heavy.sh, binding diff, record sizes (ticket) |
 | T74 | native colouring engine + native map gaps | OPEN | — | all |
 | T75 | basemap in the release manifest | PARTIAL | — | all |
 | T76 | own gauge across a continuation (Vedder) | DONE | ce29990c, 2470ef08, f648ab5c, 4fba2181, e5dfe217 | live in r-36fbc5326506 |
@@ -226,7 +226,7 @@ use that as the sole source of future work."
 | T179 | one cut-placement pass: auto cuts merge into names, real cuts close together stay apart (order-independent) | PARTIAL | deef0cec | code + unit tests merged; left: atlas rebuild + binding diff (rule AND gauge), owner reviews — see ticket Outcome |
 | T180 | move the remaining ~105 component strings into core words (T60's KNOWN_COPY list empties) | DONE | 71179834, b54c69c1, bc7bc016, 462f8488 | KNOWN_COPY 95 → 0, no wording change; map gaugeDots attribution noted |
 | T181 | gauge pill keeps the theme the map was built with (check, then fix) | DONE | 7c43151a | confirmed (pill, pin, hatches kept the build theme); fixed + render test |
-| T182 | release file splits for the web (section_down, part_geo, nearest town in core, conditions) | PARTIAL | (this) | owner: test_release on a build, deliver, re-cut the walk pin (ticket); feed headers → T86 |
+| T182 | release file splits for the web (section_down, part_geo, nearest town in core, conditions) | PARTIAL | 134a859c | owner: test_release on a build, deliver, re-cut the walk pin (ticket); feed headers → T86 |
 | T183 | straddling pieces carry BOTH regions' rules (reverses T115, owner 2026-10-24) | DONE | 64f92990..1ba63301, 1ca8bfda | promoted r-98c43091c440; stricter wins, 5 m minimum, Skeena 2 from Exchamsiks; card gate 0 |
 | T184 | keep the local curation review app and clean it up: entries only (splits by proxy on the map), human-reviewed state, artifact path removed | DONE | 2bacfc7d..dabd3b8b | pilot regenerated for r-98c43091c440; owner runs it locally |
 | T185 | marks → tickets → proposed edits (side rebuild + binding diff) → owner accepts in an artifact → one commit each; fix mode loses its writers | OPEN | 8d9383df, c76a9fd8 (writers removed) | marks → tickets → proposals still to build |

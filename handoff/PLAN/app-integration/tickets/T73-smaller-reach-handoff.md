@@ -1,6 +1,6 @@
 # T73 — Smaller reach hand-off (audit N14)
 
-Status: PARTIAL — code + tests in (see Outcome); the full-run conversion and its numbers are the owner's heavy run.
+Status: PARTIAL (e375cc61) — code + tests in (see Outcome); the full-run conversion and its numbers are the owner's heavy run.
 
 Source: `data/generated/reaches/full/rule_section.jsonl` is ~20 GB (20,100,603,190 B on 2026-10-22); the reach step
 writes plain JSONL (`atlas/reach/io.py`); full_twin doubles it (~95 GB with copies); the disk was 89% full (103 GiB free)
