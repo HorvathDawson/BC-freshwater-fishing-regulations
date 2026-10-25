@@ -126,6 +126,15 @@ describe("ladderOf, the Keep tab's form", () => {
       "Rainbow only. | Daily limit | Rule book p.13 ↗", "Sentence 2. for cutthroat | Size | Rule book p.13 ↗",
       "Missing from the answers file: the sentence for e3::r3 said for CT (display.rules[].subsets) | null | "]);
   });
+  it("(T190) a piece in two regions: one region step per region, each its own rules; one region keeps one step", () => {
+    const a = rule(1, { name: "Region 3" }), b = rule(2, { name: "Region 5" }), c = rule(3, { name: "Region 3" });
+    const e = env([a, b, c], { RB: { H: [[1, "governs", null], [2, "governs", null], [3, "governs", null]] } });
+    expect(flat(ladderOf(row(), e)).filter((x) => x.startsWith("L ") || x.includes("|"))).toEqual([
+      "L Region 3", "Sentence 1. | Daily limit | Rule book p.13 ↗", "Sentence 3. | Daily limit | Rule book p.13 ↗",
+      "L Region 5", "Sentence 2. | Daily limit | Rule book p.13 ↗"]);
+    const one = env([a, c], { RB: { H: [[1, "governs", null], [3, "governs", null]] } });
+    expect(flat(ladderOf(row(), one)).filter((x) => x.startsWith("L "))).toEqual(["L Region 3"]);
+  });
   it("no stored role at all: the row's own winning rule governs", () => {
     const w = rule(1, { rank: 0 });
     expect(flat(ladderOf(row({ win: w }), env([w], {})))).toEqual(["Q What you can keep", "= Release every one here.", "L Elk River", "Sentence 1. | Daily limit | Rule book p.13 ↗"]);

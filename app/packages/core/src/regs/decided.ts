@@ -155,10 +155,16 @@ export function ladderOf(row: HydRow, env: LadderEnv, members?: readonly string[
     return w.missing ? { text: w.text, tag: null, rule: null, won: true, applies: [], book: [] }
       : { text: w.text, tag: wonTag(it), rule: it.r.key, won: true, applies: applies(it.r), book: ruleBook(it.r) };
   };
+  // (T190) A step per level — and at the region level, per REGION: a piece in two regions (T183) carries both regions'
+  // rules, and one "Region 3" heading over Region 5's lines named the wrong table. One region: one step, as before.
   const steps = (list: readonly LadderItem[]): LadderStepVM[] => {
-    const by = new Map<number, LadderItem[]>();
-    [...list].sort((a, b) => b.r.rank - a.r.rank).forEach((it) => { const g = by.get(it.r.rank); if (g) g.push(it); else by.set(it.r.rank, [it]); });
-    return [...by].map(([k, its]) => {
+    const by = new Map<string, { k: number; its: LadderItem[] }>();
+    [...list].sort((a, b) => b.r.rank - a.r.rank).forEach((it) => {
+      const key = it.r.rank === 3 ? `3|${it.r.export.prov.entry_name || ""}` : String(it.r.rank);
+      const g = by.get(key);
+      if (g) g.its.push(it); else by.set(key, { k: it.r.rank, its: [it] });
+    });
+    return [...by.values()].map(({ k, its }) => {
       const name = its[0]!.r.export.prov.entry_name || "";
       return { level: k === 3 ? name || WORDS.THE_REGION : k === 2 && name.length < 40 ? name : levelHead(k, inp), lines: its.map(line) };
     });
