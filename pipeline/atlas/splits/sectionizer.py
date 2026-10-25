@@ -386,8 +386,13 @@ def _place_boundary(place: _Place) -> SectionBoundary:
     if old is not None and old.label and not str(old.boundary_id).startswith("split:"):
         ids.add(f"label:{old.label}")
     label = canon.label or canon.split_id
+    kind = _ANCHOR_KIND.get(canon.anchor_type.value, BoundaryKind.split)
+    if kind == BoundaryKind.border and is_authored(canon.source):
+        # a CURATED split on the border ("U.S. border") is a named cut like any point: the border id
+        # rides as an alias; `border` kind stays the minted outline's own (the bundle's `bc_border`)
+        kind = BoundaryKind.split
     return SectionBoundary(boundary_id=mine,
-                           kind=_ANCHOR_KIND.get(canon.anchor_type.value, BoundaryKind.split),
+                           kind=kind,
                            route_measure=place.m, label=label,
                            aliases=tuple(sorted(ids - {mine})), source=canon.source,
                            names=_other_names(label, *labels))

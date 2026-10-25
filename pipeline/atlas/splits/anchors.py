@@ -97,7 +97,13 @@ def _cross_measure(g, a, b, boundary) -> float:
 
 
 def _area_transition_measures(g, poly, boundary) -> list[float]:
-    """First-enter + last-exit cut measures for a stream crossing an area polygon. Absorbs
+    """The measures of `_area_transition_ends` (mouth-first)."""
+    return [m for _end, m in _area_transition_ends(g, poly, boundary)]
+
+
+def _area_transition_ends(g, poly, boundary) -> list[tuple[str, float]]:
+    """``[(end, measure)]``, end "downstream" (where the water LEAVES the area: the first entry walking
+    up from the mouth) then "upstream" (where it ENTERS: the last exit). First-enter + last-exit cut measures for a stream crossing an area polygon. Absorbs
     boundary-following oscillation (a stream weaving along the edge): cut once where it FIRST enters
     the polygon and once where it LAST exits — everything between is treated as inside. <=2 cuts (1 if
     it runs to its headwater inside or starts inside at the mouth; 0 if it never enters)."""
@@ -130,14 +136,14 @@ def _area_transition_measures(g, poly, boundary) -> list[float]:
         if not ms:
             return []
         lo, hi = min(ms), max(ms)
-        return ([lo] if lo > 0 else []) + ([hi] if hi < g.length else [])
+        return ([("downstream", lo)] if lo > 0 else []) + ([("upstream", hi)] if hi < g.length else [])
     first_in = inside.index(True)
     last_in = len(inside) - 1 - inside[::-1].index(True)
-    out: list[float] = []
+    out: list[tuple[str, float]] = []
     if first_in > 0:                                   # mouth outside -> cut where it enters
-        out.append(_cross_measure(g, coords[first_in - 1], coords[first_in], boundary))
+        out.append(("downstream", _cross_measure(g, coords[first_in - 1], coords[first_in], boundary)))
     if last_in < len(coords) - 1:                      # source outside -> cut where it exits
-        out.append(_cross_measure(g, coords[last_in], coords[last_in + 1], boundary))
+        out.append(("upstream", _cross_measure(g, coords[last_in], coords[last_in + 1], boundary)))
     return out
 
 
@@ -175,7 +181,10 @@ POINTS_LAND_ON_LIVE_CHANNELS = True
 def resolve_split_defs(split_defs: list[SplitDef], chains: list[BlkChain],
                        mu_polys: Optional[dict] = None,
                        area_polys: Optional[dict] = None,
-                       live_blks: Optional[set] = None) -> list[SplitPoint]:
+                       live_blks: Optional[set] = None,
+                       border_cuts: Optional[dict] = None) -> list[SplitPoint]:
+    """``border_cuts`` {blk: [absolute measures]} — the border pass's own cuts (`border.apply_border`
+    cuts_out), which a `border` anchor lands on exactly."""
     by_blk = {c.blk: c for c in chains}
     by_wsc: dict[str, list[BlkChain]] = defaultdict(list)   # keyed by TRIMMED wsc (authored form)
     for c in chains:
@@ -293,6 +302,31 @@ def resolve_split_defs(split_defs: list[SplitDef], chains: list[BlkChain],
                 m, concern = _apply_offset(base - c.mouth_measure, c.length_m, a)
                 _emit(sd, blk, c.mouth_measure + m, concern=concern, offset=a.offset_m)
 
+        elif a.type == AnchorType.border:
+            # THE BORDER IS ONE LINE (owner 2026-10-25): the B.C. outline is the outer edge of the
+            # region polygons, and the border pass has already cut every line crossing it. A curated
+            # "U.S. border" lands ON that cut — the same float — so placement makes one boundary of the
+            # curated name, the border and the region line (the Moyie's hand point stood 12 m off).
+            # With a `coord` the crossing nearest it is taken (one channel, like a point); without,
+            # every border cut of the target.
+            cands = [(blk, m) for blk, c in targets for m in (border_cuts or {}).get(blk, ())]
+            if not cands:
+                import logging
+                logging.getLogger(__name__).warning(
+                    "border split %s: no border cut on its target (border pass off, or the water never "
+                    "crosses the outline) — not cut", sd.id)
+                continue
+            if a.coord is not None:
+                p = _pt(a.coord, a.is_lonlat)
+
+                def _gap(bm):
+                    c = by_blk[bm[0]]
+                    return abs(c.mouth_measure + c.geometry.project(p) - bm[1]) + c.geometry.distance(p)
+
+                cands = [min(cands, key=lambda bm: (_gap(bm), bm))]
+            for blk, m in sorted(cands):
+                _emit(sd, blk, m)
+
         elif a.type == AnchorType.mu_boundary:
             if not mu_polys:
                 continue
@@ -340,21 +374,73 @@ def resolve_split_defs(split_defs: list[SplitDef], chains: list[BlkChain],
             # Tweedsmuir split cut the Talchako 0.26 m and 3.7 m from its ends, Ape Creek 1.35 m.
             from pipeline.atlas.splits.sliver_gate import SLIVER_M
             scope = _target_blks(sd, chains, descendants=a.wsc_descendants)
+            # `side` picks ONE END of the park stretch on the NAMED line (the target's own blks): an
+            # "upstream boundary" split no longer also cuts the downstream end, where the entry's
+            # "downstream boundary" point stands (Baker Creek / Pinnacles: 0.03 m apart, T179). Each
+            # descendant keeps both ends — its inside flag needs the stretch closed at both.
+            named = set(_target_blks(sd, chains)) if a.side else set()
+            excluded = set(a.exclude_gnis)
             for blk in scope:
                 c = by_blk.get(blk)
                 if c is None or c.geometry is None or c.geometry.is_empty:
                     continue
-                ms = _area_transition_measures(c.geometry, poly, boundary)
+                if excluded and c.gnis_id in excluded:
+                    continue
+                crossings = _area_transition_ends(c.geometry, poly, boundary)
+                ms = [m for _end, m in crossings]
                 ends = [0.0, c.geometry.length]
                 ends += [e - c.mouth_measure for r in (c.waterbody_runs or ())
                          for e in (r.down_m, r.up_m)]
-                for m in ms:
+                for end, m in crossings:
+                    if blk in named and end != a.side:
+                        continue
                     others = [x for x in ms if x != m]
                     if any(abs(e - m) < SLIVER_M for e in ends + others):
                         continue
                     _emit(sd, blk, c.mouth_measure + m)
 
+    same_entry_conflicts(split_defs, out)
     return out
+
+
+#: Two cuts of ONE splits.json entry closer than this on one line are one point (`SLIVER_M`, 5 m).
+SAME_ENTRY_M = 5.0
+
+
+def same_entry_conflicts(split_defs: list[SplitDef], points: list[SplitPoint],
+                         raise_: bool = True) -> list[dict]:
+    """TWO BOUNDARIES OF ONE ENTRY ON ONE POINT IS AN ERROR, NEVER A SILENT MERGE (owner 2026-10-25).
+
+    One entry's splits name different places on its water ("upstream boundary", "downstream
+    boundary"): two of them within `SAME_ENTRY_M` on one blue line means one resolved to the wrong
+    place (Tweedsmuir eastern / upstream 0.02 m, Baker Creek / Pinnacles 0.03 m: both on one crossing).
+    Placement would fold them into one boundary carrying both ids, and a rule reading one end would
+    silently read the other. Returns the pairs; raises ``ValueError`` naming them unless ``raise_`` is
+    False. Different entries may share a point (the Thompson mouth is named by the Fraser entry and
+    by the Thompson entry)."""
+    entry = {sd.id: sd.entry for sd in split_defs if sd.entry}
+    by: dict[tuple[str, str], list[SplitPoint]] = defaultdict(list)
+    for p in points:
+        e = entry.get(p.split_id)
+        if e:
+            by[(e, p.blk)].append(p)
+    found: list[dict] = []
+    for (e, blk), ps in sorted(by.items()):
+        ps = sorted(ps, key=lambda p: p.route_measure)
+        for i, a in enumerate(ps):
+            for b in ps[i + 1:]:
+                if b.route_measure - a.route_measure >= SAME_ENTRY_M:
+                    break
+                if a.split_id != b.split_id:
+                    found.append({"entry": e, "blk": blk, "ids": sorted([a.split_id, b.split_id]),
+                                  "distance_m": round(b.route_measure - a.route_measure, 3)})
+    if found and raise_:
+        raise ValueError(
+            f"{len(found)} pair(s) of one splits.json entry's cuts on one point (< {SAME_ENTRY_M:g} m): "
+            "one of each pair resolved to the wrong place; fix the entry (an area_boundary split takes "
+            "`side`): " + "; ".join(f"{f['entry']}: {' ~ '.join(f['ids'])} ({f['distance_m']} m, blk "
+                                    f"{f['blk']})" for f in found[:12]))
+    return found
 
 
 def confluence_mouths(split_defs: list[SplitDef], chains: list[BlkChain]) -> dict[str, tuple[float, float]]:

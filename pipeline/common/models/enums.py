@@ -54,7 +54,8 @@ class AnchorType(str, Enum):
     lake = "lake"              # a lake polygon boundary (wbk)
     mu_boundary = "mu_boundary"  # the shared boundary line between two MUs
     confluence = "confluence"    # a cut line at where a tributary BLK meets the mainstem
-    border = "border"           # the BC provincial outline (auto, not hand-authored)
+    border = "border"           # the BC provincial outline: the auto border pass, or a curated split
+                                # naming its crossing (`anchors.resolve_split_defs`, border_cuts)
     area_boundary = "area_boundary"  # an admin/park polygon boundary; cut a named water + its WSC
                                 # descendants where they cross it, then flag INSIDE pieces (in_areas).
     gauge = "gauge"             # a hydrometric station's own position on the blue line it measures.

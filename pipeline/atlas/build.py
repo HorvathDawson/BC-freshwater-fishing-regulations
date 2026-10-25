@@ -783,7 +783,8 @@ def main() -> None:
                       for s in splits if s.anchor.type == AnchorType.area_boundary]
         area_polys = get_area_polys(fwa, area_specs, bbox=bbox) if area_specs else None
         pts = resolve_split_defs(splits, chains, mu_polys=mu_polys, area_polys=area_polys,
-                                 live_blks={n.blk for n in graph.nodes.values() if n.blk})
+                                 live_blks={n.blk for n in graph.nodes.values() if n.blk},
+                                 border_cuts=border_cuts)
         # ONE PLACEMENT (T179): where every curated + gauge point will stand, decided together and
         # before anything is cut, so the braid sweep below judges each cut where it is made.
         _conflicts: list = []
@@ -1068,6 +1069,11 @@ def main() -> None:
     # the SOURCE that made it can be fixed. FWA's own short pieces are not cuts and are not counted.
     from pipeline.atlas.splits.sliver_gate import check as _sliver_check
     _sliver_check(graph, _short_before_cuts, _straddlers, Path(args.out))
+    # THE CLOSE-PAIR REPORT (T179, owner 2026-10-25): every curated cut 5-25 m from any other boundary
+    # (curated, gauge, area, border, length, lake edge, line end) -> close_pairs.json. A report, not a gate.
+    from pipeline.atlas.splits.close_pairs import report as _close_pairs
+    Path(args.out).mkdir(parents=True, exist_ok=True)
+    _close_pairs(graph, Path(args.out))
 
     # MANAGEMENT UNITS. Separate pass from area membership, and unconditional, because the two
     # are different kinds of fact: `in_areas` is membership of a REGULATED area and exists only

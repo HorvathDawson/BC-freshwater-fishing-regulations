@@ -120,3 +120,35 @@ Follow-up 2 (owner 2026-10-24, code only):
 
 Left: atlas rebuild, reach run, rule AND gauge binding diff reviewed (subtract an old-vs-old diff: the
 atlas is not deterministic); every moved binding explained before promote.
+
+Close pairs (owner 2026-10-25, code only; side atlas pending):
+- Park boundaries — cause: an `area_boundary` split cuts BOTH ends of the park stretch on every line
+  (first-enter + last-exit) whatever its label says, and a curated point sat on one of those ends.
+  Baker Creek: the "upstream boundary" split also cut the downstream end (7093.95 m), 0.03 m from the
+  "downstream boundary" point (7093.92). Tweedsmuir: the Atnarko crosses the park ONCE (enters from the
+  east at 63793.1 m, inside to its mouth), so "eastern" and "upstream" are one place by geography; the
+  tributary split cut it again 0.02 m from the point. Fix: `SplitAnchor.side` ("upstream" = where the
+  water enters the area, "downstream" = where it leaves) picks one end on the NAMED line (descendants
+  keep both, so their inside flag stays closed); `exclude_gnis` leaves a named water to its own split.
+  splits.json: Baker area split `side: upstream` (-> 8066.6 m), Tweedsmuir area split `exclude_gnis
+  [17209]` (still flagged inside). Verified on real data (Baker, Atnarko extracts).
+- Guard: `anchors.same_entry_conflicts` — two cuts of ONE splits.json entry within 5 m on one line
+  raise in `resolve_split_defs` (the build stops, both ids named); `SplitDef.entry` = the waterbody
+  name. Different entries may share a point (Thompson mouth, Coal Ck bridge, Meziadin, Halfway).
+- Corpus measure (live splits.resolved.json, every curated area_boundary split vs any other cut
+  < 25 m): only 4 curated area_boundary splits exist; failing pairs = Tweedsmuir eastern/upstream
+  0.02 m and Baker/Pinnacles downstream/upstream 0.03 m. Others: Wood River/Hamber on the Region 4
+  line 0.0 m (one place, fine); Moyie U.S. border vs area:4 12.25 m (below).
+- Border: the outline already IS the regions' outer edge (`bc_boundary`: exact union of the wmu units
+  the regions dissolve from; checked exactly equal, and the Moyie crosses both at 69.942 m from its
+  line start). The 12 m came from the HAND point. New authored anchor `{"type": "border"}` lands ON
+  the border pass's own cut (`border_cuts`; `coord` only picks the crossing); placement joins it with
+  the border cut, and the region cut follows the border: one boundary, curated id canonical, kind
+  `split`, `border:`/`area:4` aliases. Moyie switched (42628.3 -> 42640.55 m). Test:
+  `test_close_pairs.py::test_moyie_us_border_and_the_region_4_line_are_one_boundary`.
+- Report: `close_pairs.py` — the build writes `close_pairs.json` + prints a count by kind: every
+  curated cut 5–25 m from any other boundary (curated, gauge, area, border, length, lake edge, line
+  end) on its line, read off the finished graph. Not a gate.
+- Expect in the side atlas: Baker loses the 7093.95 area cut on the mainstem (point stands alone),
+  Tweedsmuir's Atnarko 63793 is cut by the point only, Moyie's border/region/curated are one boundary
+  (anchor digests change for these 3 entries: registry resync per memory).

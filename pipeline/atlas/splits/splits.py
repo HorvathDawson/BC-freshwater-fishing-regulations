@@ -152,6 +152,7 @@ def _flatten_waterbodies(data: dict) -> tuple[list[dict], list[tuple[str, str]]]
                 untargeted.append((wb.get("name", "?"), s["id"]))
             d.pop("applies_to", None)
             d.update(tgt)                                        # flat target for SplitDef.from_dict
+            d["entry"] = str(wb.get("name") or "")
             flat.append(d)
     return flat, untargeted
 

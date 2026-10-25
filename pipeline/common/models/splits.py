@@ -20,6 +20,11 @@ class SplitAnchor:
     - lake        : the lake polygon boundary (wbk).
     - mu_boundary : the shared boundary line between mu_a and mu_b (needs BOTH).
     - confluence  : an auto cut line where tributary_blk meets the target mainstem.
+    - border      : where the target crosses the B.C. outline — the outer edge of the region polygons
+                    (`bc_boundary`: the exact union of the units the regions dissolve from). Lands ON
+                    the border pass's own cut, so the curated name, the border and the region line are
+                    one boundary (Moyie "U.S. border": a hand point 12 m off it, T179). `coord` is only
+                    a hint picking the crossing when the line crosses more than once.
 
     A ``point``/``confluence``/``lake`` anchor may carry an ALONG-CHANNEL offset: the cut lands
     ``offset_m`` metres ``offset_dir`` ("upstream"|"downstream") from the projected coord/mouth,
@@ -43,6 +48,17 @@ class SplitAnchor:
     area_name_field: str = ""     # area_boundary: the layer field to match on (e.g. PROTECTED_LANDS_NAME)
     area_name: str = ""           # area_boundary: the value to match (e.g. "GARIBALDI PARK")
     wsc_descendants: bool = False # area_boundary: target the whole WSC subtree (prefix) not exact WSC
+    # area_boundary: WHICH END of the area this split is on the NAMED line (the target's own blks;
+    # descendants always keep both ends, so their inside flag stays exact). "upstream" = where the
+    # water ENTERS the area (the last exit walking up from the mouth), "downstream" = where it LEAVES
+    # (the first entry), "" = both. One park stretch has two ends: without this an "upstream boundary"
+    # split cut both, and its downstream crossing sat 0.03 m from the entry's own "downstream
+    # boundary" point (Baker Creek / Pinnacles, T179 close pairs 2026-10-25).
+    side: str = ""
+    # area_boundary: named waters (gnis ids) in scope this split does NOT cut, because another split of
+    # the entry already owns their crossing (Tweedsmuir: the Atnarko enters the park once, at the
+    # "eastern boundary" point; the tributary split cut it again 0.02 m away). Still flagged inside.
+    exclude_gnis: tuple[str, ...] = ()
 
     @classmethod
     def from_dict(cls, d: Mapping[str, Any]) -> "SplitAnchor":
@@ -64,6 +80,14 @@ class SplitAnchor:
             raise ValueError("edge is 'inlet'|'outlet' on a lake anchor without offset_m")
         if t == AnchorType.area_boundary and not (d.get("area_layer") and d.get("area_name")):
             raise ValueError("area_boundary anchor needs area_layer and area_name")
+        side = str(d.get("side", ""))
+        if side not in ("", "upstream", "downstream"):
+            raise ValueError(f"side must be 'upstream' or 'downstream', got {side!r}")
+        if side and t != AnchorType.area_boundary:
+            raise ValueError(f"side only valid on an area_boundary anchor, not {t.value}")
+        exclude_gnis = tuple(str(g) for g in d.get("exclude_gnis", ()) or ())
+        if exclude_gnis and t != AnchorType.area_boundary:
+            raise ValueError(f"exclude_gnis only valid on an area_boundary anchor, not {t.value}")
         offset_m = float(d.get("offset_m", 0.0))
         offset_dir = str(d.get("offset_dir", ""))
         if offset_m < 0:
@@ -86,6 +110,7 @@ class SplitAnchor:
             area_name_field=str(d.get("area_name_field", "")),
             area_name=str(d.get("area_name", "")),
             wsc_descendants=bool(d.get("wsc_descendants", False)),
+            side=side, exclude_gnis=exclude_gnis,
         )
 
 
@@ -114,6 +139,8 @@ class SplitDef:
     at_edge: bool = False         # the cut stands at a lake edge / natural end (`SplitPoint.at_edge`)
     concern: str = ""             # optional free-text caveat (inferred name, multi-crossing collapse,
                                   # unresolved) — surfaced in splits.resolved.json + the gpkg, never silent
+    entry: str = ""               # the splits.json waterbody entry it was authored under (its `name`);
+                                  # two cuts of ONE entry on one point is an error (`anchors.resolve_split_defs`)
 
     @classmethod
     def from_dict(cls, d: Mapping[str, Any]) -> "SplitDef":
@@ -122,7 +149,7 @@ class SplitDef:
             raise ValueError(f"split {d.get('id')!r}: at most one of blk/wsc/gnis_id, got {targets}")
         anchor = SplitAnchor.from_dict(d["anchor"])
         if anchor.type in (AnchorType.point, AnchorType.gauge, AnchorType.confluence,
-                           AnchorType.area_boundary) and not targets:
+                           AnchorType.area_boundary, AnchorType.border) and not targets:
             raise ValueError(f"split {d.get('id')!r}: {anchor.type.value} anchor requires a target (blk/wsc/gnis_id)")
         return cls(
             id=str(d["id"]), anchor=anchor,
@@ -131,6 +158,7 @@ class SplitDef:
             label=str(d.get("label", "")), proximity_m=float(d.get("proximity_m", 500.0)),
             at_edge=bool(d.get("at_edge", False)),
             concern=str(d.get("_concern", d.get("concern", ""))),
+            entry=str(d.get("entry", "")),
         )
 
 

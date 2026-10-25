@@ -5317,9 +5317,9 @@
     {
      "id": "moyie_river__u_s_border",
      "label": "U.S. border",
-     "kind": "point",
+     "kind": "border",
      "anchor": {
-      "type": "point",
+      "type": "border",
       "coord": [
        -116.17899,
        49.00046
@@ -5327,7 +5327,7 @@
       "is_lonlat": true
      },
      "note": "",
-     "_note": "[auto-proposal L] bridge at south end of Moyie Lake (to U.S. border) on Moyie River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the road bridge at the south end of Moyie Lake (Hwy 3/95 corridor); map.. Reach = 'bridge at south end of Moyie Lake to U.S. border'. Road bridge at the Moyie Lake outlet near Moyie townsite; not name-matched in FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “from bridge at south end of Moyie Lake to U.S. border”] boundary=U.S. border [curated 2026-08-10 signs/other batch] [49th parallel x Moyie; no-powered-boats reach endpoint]",
+     "_note": "[T179 close pairs 2026-10-25] anchor border: lands ON the border pass's cut (the B.C. outline = the region polygons' outer edge; blk 356570342 @ 42640.55 m), one boundary with the Region 4 line. The hand point projected to 42628.3 m, 12 m off; the coord now only picks the crossing. [auto-proposal L] bridge at south end of Moyie Lake (to U.S. border) on Moyie River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the road bridge at the south end of Moyie Lake (Hwy 3/95 corridor); map.. Reach = 'bridge at south end of Moyie Lake to U.S. border'. Road bridge at the Moyie Lake outlet near Moyie townsite; not name-matched in FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “from bridge at south end of Moyie Lake to U.S. border”] boundary=U.S. border [curated 2026-08-10 signs/other batch] [49th parallel x Moyie; no-powered-boats reach endpoint]",
      "_coord": [
       -116.17899,
       49.00046
@@ -5813,10 +5813,13 @@
       "area_layer": "parks_bc",
       "area_name": "TWEEDSMUIR PARK",
       "area_name_field": "PROTECTED_LANDS_NAME",
-      "wsc_descendants": true
+      "wsc_descendants": true,
+      "exclude_gnis": [
+       "17209"
+      ]
      },
      "note": "",
-     "_note": "[curated 2026-08-09 park-pins] [user pin; closure ALSO includes Tenas Lake WBK 329021804 @52.16039,-125.71141] [TRIB-SPLIT NOTE: like Garibaldi/Pitt — the park-boundary closure also applies to tributaries within the park; each tributary must be split at the Tweedsmuir boundary (tributary inheritance / authored area_boundary split), not just the mainstem]",
+     "_note": "[T179 close pairs 2026-10-25] exclude_gnis 17209: the Atnarko crosses the park ONCE (enters from the east at blk 360879335 @ 63793.1 m, inside to its mouth) and that crossing is the entry's own 'eastern boundary' point; this split cut it again 0.02 m away (two cuts of one entry on one point is now an error). The Atnarko is still flagged inside. [curated 2026-08-09 park-pins] [user pin; closure ALSO includes Tenas Lake WBK 329021804 @52.16039,-125.71141] [TRIB-SPLIT NOTE: like Garibaldi/Pitt — the park-boundary closure also applies to tributaries within the park; each tributary must be split at the Tweedsmuir boundary (tributary inheritance / authored area_boundary split), not just the mainstem]",
      "_coord": [
       -126.21191,
       52.42673
@@ -5960,10 +5963,11 @@
       "area_layer": "parks_bc",
       "area_name": "PINNACLES PARK",
       "area_name_field": "PROTECTED_LANDS_NAME",
-      "wsc_descendants": true
+      "wsc_descendants": true,
+      "side": "upstream"
      },
      "note": "",
-     "_note": "[curated 2026-08-08 manual-review batch=baker-5-13] [FWA PINNACLES PARK polygon u/s-most x Baker Creek]",
+     "_note": "[T179 close pairs 2026-10-25] side upstream: on Baker Creek this split cuts only where the creek ENTERS the park (blk 356354559 @ 8066.6 m); it also cut the downstream end (7093.95 m), 0.03 m from the entry's own 'downstream boundary' point. Tributaries keep both ends. [curated 2026-08-08 manual-review batch=baker-5-13] [FWA PINNACLES PARK polygon u/s-most x Baker Creek]",
      "_coord": [
       -122.56171,
       52.97322
