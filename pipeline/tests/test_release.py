@@ -325,12 +325,86 @@ def test_the_web_budget_prices_each_moment_and_fails_a_crossed_gate(tmp_path):
     size = (tmp_path / "manifest.json").stat().st_size
     got = B.web_moments(tmp_path)
     assert got["first_paint"] == (size + 1000 + 62, ["manifest", "paint", "mask"])
-    assert got["first_tap"][1][-1] == "regs-8" and got["first_tap"][0] == 3 * 1000 + 108
+    assert got["first_tap"][1][-1] == "regs-8" and got["first_tap"][0] == 4 * 1000 + 108
     assert not [p for p in B.gate_problems(tmp_path) if p.startswith("web ")]
     files["regs-3"]["gz"] = C.WEB_BUDGET["first_tap_unnamed"]["gate"]
     (tmp_path / "manifest.json").write_text(json.dumps(m))
     assert sorted(p.split(":")[0] for p in B.gate_problems(tmp_path) if p.startswith("web ")) == \
         ["web first_tap", "web first_tap_unnamed"]
+
+
+def test_t182_each_moment_fetches_only_the_files_holding_what_it_reads():
+    """(T182) The tables T129 found riding in a file the moment did not otherwise need have files of their own: an
+    unnamed tap reads `down` (section_down), not conditions; Conditions opens conditions + flow-area (the lake road is
+    conditions' own `lake_section`), not core and not the climatology; the first search reads core alone. Pinned on the
+    contract, so a table moved back fails here before a release is cut."""
+    from pipeline.deliver.release import contract as C
+    where = {t: f for f, spec in C.FILES.items() for t in spec["tables"] if t != "meta"}
+    assert (where["section_down"], where["gauge_clim"], where["part_geo"], where["lake_section"], where["item_near"]) \
+        == ("down", "climate", "geo", "conditions", "core")
+    assert "conditions" not in C.WEB_BUDGET["first_tap_unnamed"]["files"]
+    assert C.WEB_BUDGET["conditions_open"]["files"] == ["flow-area", "conditions"]
+    assert C.WEB_BUDGET["first_search"]["files"] == ["core"]
+    assert set(B.FORMATS) == set(C.FILES)
+
+
+def _rings(con, rows, places):
+    con.executescript("CREATE TABLE b.place_water (place_id INTEGER, ckm INTEGER, ord INTEGER);"
+                      "CREATE TABLE main.place (place_id INTEGER PRIMARY KEY, osm TEXT, name TEXT, kind TEXT, pop INTEGER,"
+                      " lat REAL, lon REAL);")
+    con.executemany("INSERT INTO b.place_water VALUES (?, ?, ?)", rows)
+    con.executemany("INSERT INTO main.place VALUES (?, '', ?, ?, NULL, ?, 0)", places)
+
+
+def test_t182_item_near_ships_the_town_the_search_row_names_and_its_exact_ties():
+    """`core_near`: per water, the ring towns at the smallest distance + kind handicap, in exact hundredths of a km —
+    the one(s) `describeBy` can name. Fernie (a city 4.4 km off) beats the locality on the bank (0.1 km + 6); two
+    localities both on the water tie and both ship (the app breaks the tie by name); a town with no position is never
+    one; an unknown kind weighs the unknown handicap."""
+    con = sqlite3.connect(":memory:")
+    con.execute("ATTACH ':memory:' AS b")
+    _rings(con, [(1, 440, 10), (2, 10, 10),            # water 10: Fernie (city) 4.4 km, Mosquito Flats (locality) 0.1
+                 (3, 0, 20), (4, 0, 20), (1, 900, 20),  # water 20: two localities ON it, Fernie 9 km (9 > 0 + 6? no: 9)
+                 (5, 0, 30), (6, 700, 30),              # water 30: the nearest has no position; a hamlet 7 km
+                 (7, 100, 40), (2, 650, 40)],           # water 40: an unknown kind 1 km (+6 = 7) vs a locality 6.5 (12.5)
+           [(1, "Fernie", "city", 49.5), (2, "Mosquito Flats", "locality", 49.5), (3, "Bravo", "locality", 50.0),
+            (4, "Alpha", "locality", 50.0), (5, "Nowhere", "town", None), (6, "Elko", "hamlet", 49.3),
+            (7, "Odd", "camp", 49.1)])
+    B.core_near(con)
+    assert con.execute("SELECT ord, place_id, ckm FROM item_near ORDER BY ord, place_id").fetchall() == [
+        (10, 1, 440), (20, 3, 0), (20, 4, 0), (30, 6, 700), (40, 7, 100)]
+    # MUTATION: the nearest town alone (no handicap) names Mosquito Flats for the Elk — the pin above tells them apart
+    assert con.execute("SELECT place_id FROM b.place_water WHERE ord = 10 ORDER BY ckm LIMIT 1").fetchone() == (2,)
+    from pipeline.deliver.release import contract as C
+    assert max(C.NEAR_HANDICAP_KM.values()) <= C.NEAR_HANDICAP_UNKNOWN_KM
+
+
+def test_t182_lake_section_is_the_lowest_station_over_every_lake_holding_the_section():
+    con = sqlite3.connect(":memory:")
+    con.execute("ATTACH ':memory:' AS b")
+    con.executescript("""
+        CREATE TABLE b.item (ord INTEGER PRIMARY KEY, item_id TEXT);
+        CREATE TABLE b.item_section (ord INTEGER, sid INTEGER);
+        CREATE TABLE b.lake_gauge (item_id TEXT, station TEXT);
+        INSERT INTO b.item VALUES (1, 'wbk:1'), (2, 'wbk:2'), (3, 'gnis:3');
+        INSERT INTO b.item_section VALUES (1, 100), (1, 101), (2, 101), (3, 102);
+        INSERT INTO b.lake_gauge VALUES ('wbk:1', '08MH103'), ('wbk:1', '08MH090'), ('wbk:2', '08MH001');
+    """)
+    B.lake_section(con)
+    # 100: lake 1's lowest; 101: in lakes 1 and 2, the lowest of both; 102: no gauged lake, no row
+    assert con.execute("SELECT sid, station FROM lake_section ORDER BY sid").fetchall() == [
+        (100, "08MH090"), (101, "08MH001")]
+
+
+def test_t182_geo_is_part_geo_in_integer_microdegrees():
+    con = sqlite3.connect(":memory:")
+    con.execute("CREATE TABLE part_geo (ord INTEGER, part_ix INTEGER, rank INTEGER, mid_sid INTEGER, mid_lon REAL, "
+                "mid_lat REAL, w REAL, s REAL, e REAL, n REAL)")
+    con.execute("INSERT INTO part_geo VALUES (11837, 0, 0, 7, -129.984551, 53.344782, -130.043061, 53.333981, "
+                "-129.902673, 53.361987)")
+    B.geo_e6(con)
+    assert con.execute("SELECT * FROM part_geo").fetchall() == [
+        (11837, 0, 0, 7, -129984551, 53344782, -130043061, 53333981, -129902673, 53361987)]
 
 
 # ---- the app's paint decoder reads what this encoder writes (core/src/paint.ts) --------------------------------------

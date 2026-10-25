@@ -195,6 +195,8 @@ export async function openRegsStore(loader: RegsLoader, expect: RegsExpect = {})
     },
     /** core: only `itemOrd` (item_id -> ord, its UNIQUE index); the loader holds it to the manifest. */
     async core(): Promise<Db> { live(); return opened(loader.db("core"), !loader.manifest.files.core); },
+    /** (T182) the water map's boxes (`part_geo`): the geo file, or water in a release cut before the move. */
+    async geo(): Promise<Db> { live(); return loader.manifest.files.geo ? opened(loader.db("geo"), false) : water; },
   };
   const { clear, ...reads } = makeReads({ ...files, val });
   return {

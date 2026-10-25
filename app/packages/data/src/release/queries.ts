@@ -5,15 +5,31 @@
  *
  * NOT HERE, AND WHY: the reads that cross two files become two keyed reads in the release reader (P11 / T04), never a
  * join across files (`CROSS` below):
- *   a water's nearest towns, a town's waters      near (place_water) → core (item, place)
+ *   a water's nearest towns, a town's waters      near (place_water) → core (item, place); a search row's one town
+ *                                                 is core's own `item_near` + `place` (T182)
  *   the gauges on a water                         core (item_section) → conditions (gauge)
- *   the lake road                                 conditions + core (section → item → lake_gauge)
+ *   the lake road                                 conditions' `lake_section` (T182); before it, conditions + core
+ *                                                 (section → item → lake_gauge)
  *   panels, basins                                paint (decoded arrays, not SQL) + flow-area
  *   STOCKED_ON_ITEM, CHARTS_FOR_ITEM, RELEASES_FOR_NAME   PREPARED, NOT FED: not in the release (the reader answers empty)
  */
 import * as B from "../sql/queries";
 
-export type PackName = "core" | "near" | "conditions" | "water" | "regs-sid";
+export type PackName = "core" | "near" | "conditions" | "water" | "regs-sid" | "down" | "climate" | "geo";
+
+/**
+ * (T182) THE TABLES THAT MOVED INTO FILES OF THEIR OWN, and the file each was read from before: `section_down` (down)
+ * and `gauge_clim` (climate) out of conditions, `part_geo` (geo) out of water. A query names its table's file now; a
+ * release cut before the move (its manifest names no such file — the committed fixture releases, an older live one)
+ * holds the table in the old file, and `fileFor` reads it there. Nothing else falls back: a file the manifest does not
+ * name and that is not here is refused by the loader.
+ */
+export const MOVED_FROM: Readonly<Partial<Record<PackName, PackName>>> = { down: "conditions", climate: "conditions",
+                                                                            geo: "water" };
+
+/** The file that holds a query's table in THIS release (`MOVED_FROM`). */
+export const fileFor = (files: Readonly<Record<string, unknown>>, file: PackName): PackName =>
+  files[file] ? file : MOVED_FROM[file] ?? file;
 
 export interface ReleaseQuery {
   file: PackName;
@@ -62,8 +78,8 @@ export const CROSS = {
    */
   GEO_ORDS: { file: "core", sql:
     "SELECT ord FROM item WHERE item_id = ?1 UNION ALL SELECT ord FROM item WHERE part_of = ?1" },
-  /** water: the parts' boxes, integer microdegrees (`part_geo`'s primary key is (ord, part_ix)). */
-  PART_GEO_FOR_ORDS: (n: number) => ({ file: "water", sql:
+  /** geo: the parts' boxes, integer microdegrees (`part_geo`'s primary key is (ord, part_ix)). */
+  PART_GEO_FOR_ORDS: (n: number) => ({ file: "geo", sql:
     `SELECT w, s, e, n, mid_lon, mid_lat FROM part_geo WHERE ord IN (${ids(n)})` }),
   ORDS_FOR_ITEMS: (n: number) => ({ file: "core", sql: `SELECT ord, item_id FROM item WHERE item_id IN (${ids(n)})` }),
   ITEMS_FOR_ORDS: (n: number) => ({ file: "core", sql:
@@ -84,6 +100,20 @@ export const CROSS = {
     `SELECT ord, place_id, ckm FROM place_water WHERE ord IN (${ids(n)}) ORDER BY ckm, place_id` }),
   TOWNS_FOR_ORDS: (n: number) => ({ file: "near", sql:
     `SELECT ord, count(*) AS n FROM place_water WHERE ord IN (${ids(n)}) GROUP BY ord` }),
+  /**
+   * (T182) core: each water's "near X" town(s) — the ring towns at the smallest distance + kind handicap, the ones
+   * `describeBy` can name (pipeline `build.core_near`) — so a search's result lines read core, not near. Its primary key
+   * is (ord, place_id). Absent from a core cut before it (`HAS_ITEM_NEAR`): rings are read from near as before.
+   */
+  NEAR_TOWNS_FOR_ORDS: (n: number) => ({ file: "core", sql:
+    `SELECT ord, place_id, ckm FROM item_near WHERE ord IN (${ids(n)}) ORDER BY ckm, place_id` }),
+  HAS_ITEM_NEAR: { file: "core", sql: "SELECT 1 AS x FROM sqlite_master WHERE type = 'table' AND name = 'item_near'" },
+  /** (T182) conditions: the lake road per section (`lake_section`: the lowest station over every lake holding it). */
+  LAKE_SECTIONS: (n: number) => ({ file: "conditions", sql:
+    `SELECT sid, station FROM lake_section WHERE sid IN (${ids(n)})` }),
+  ALL_LAKE_SECTIONS: { file: "conditions", sql: "SELECT sid, station FROM lake_section" },
+  HAS_LAKE_SECTION: { file: "conditions", sql:
+    "SELECT 1 AS x FROM sqlite_master WHERE type = 'table' AND name = 'lake_section'" },
   /** conditions: stations standing on these sections. */
   GAUGES_AT: (n: number) => ({ file: "conditions", sql:
     `SELECT lat, lon FROM gauge WHERE sid IN (${ids(n)}) AND lat IS NOT NULL AND lon IS NOT NULL` }),
@@ -125,8 +155,8 @@ export const RELEASE_QUERIES: Record<string, ReleaseQuery> = {
   GAUGE_FOR_SECTION: { file: "conditions", sql: B.GAUGE_FOR_SECTION, bundle: B.GAUGE_FOR_SECTION },
   GAUGE_POINTS: { file: "conditions", sql: B.GAUGE_POINTS, bundle: B.GAUGE_POINTS },
   LAKE_GAUGES: { file: "conditions", sql: B.LAKE_GAUGES, bundle: B.LAKE_GAUGES },
-  CLIM_PARAMETERS: { file: "conditions", sql: B.CLIM_PARAMETERS, bundle: B.CLIM_PARAMETERS },
-  DOWN_FROM: { file: "conditions", sql: B.DOWN_FROM, bundle: B.DOWN_FROM },
+  CLIM_PARAMETERS: { file: "climate", sql: B.CLIM_PARAMETERS, bundle: B.CLIM_PARAMETERS },
+  DOWN_FROM: { file: "down", sql: B.DOWN_FROM, bundle: B.DOWN_FROM },
   /** The bands are float16 in the release (clim/2); the parity test compares the decoded values. */
-  CLIMATOLOGY: { file: "conditions", sql: B.CLIMATOLOGY, bundle: B.CLIMATOLOGY },
+  CLIMATOLOGY: { file: "climate", sql: B.CLIMATOLOGY, bundle: B.CLIMATOLOGY },
 };

@@ -4,7 +4,8 @@
  *
  *   web      `source` = fetchVerified from `${base}${url}` (Cache Storage by immutable url, cache.web.ts); `open` = sql.js
  *            over the bytes. Lazy: paint first, core next, water + regs-<region> on the first water in a region (a tap in
- *            another region fetches that region's file), regs-sid on the first unnamed tap, near / conditions on first use.
+ *            another region fetches that region's file), regs-sid + down on the first unnamed tap, geo with the first
+ *            water map or "show on the map", near / conditions / climate on first use (T182).
  *   native   `source` = the installed file (install.ts put every file on disk, sha-verified); `open` = expo-sqlite in place.
  *
  * Every SQLite file is checked on open: its meta.format is the manifest's and its meta.section_handles the release's.
@@ -16,7 +17,7 @@ import type { Manifest } from "../manifest";
 import { type Region } from "../pack.generated";
 
 export type FileName = "paint" | "flow-area" | "lakes" | "access" | "core" | "near" | "water" | `regs-${Region}` | "regs-sid"
-  | "conditions";
+  | "conditions" | "down" | "climate" | "geo";
 export type DbName = Exclude<FileName, "paint" | "flow-area" | "lakes" | "access">;
 
 export interface ReleaseSource {

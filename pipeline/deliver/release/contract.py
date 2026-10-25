@@ -45,19 +45,32 @@ FILES = {
         # a group name that only points ("Tee Pee Lakes: see Friday Lake, …"), the bundle's table as it is. ADDITIVE,
         # so still core/1: a core without it is one the app's pointer search answers nothing from (the committed regs
         # fixture's core, like its missing `place`, is cut to what its suite asks)
-        "see_pointer": ["entry_id", "name", "ix", "target_entry", "target_name", "item_id"]}},
+        "see_pointer": ["entry_id", "name", "ix", "target_entry", "target_name", "item_id"],
+        # (T182) each water's "near X" town(s) (build.core_near): a search's result line reads core alone. ADDITIVE,
+        # so still core/1: a core without it is read the old way (near's place_water)
+        "item_near": ["ord", "place_id", "ckm"]}},
     "near": {"format": "near/1", "kind": "sqlite", "tables": {
         "meta": ["k", "v"], "place_water": ["place_id", "ckm", "ord"]}},
+    # (T182) the tables T129 measured riding in a file a moment did not otherwise need moved into files of their own:
+    # `section_down` (down), `gauge_clim` (climate) out of conditions, `part_geo` (geo) out of water; and conditions
+    # gained `lake_section` (build.lake_section), so it answers the lake road without core. The app reads a release cut
+    # before the move the old way: a moved table is read from its old file when the manifest names no new one
+    # (`app/packages/data/src/release/queries.ts` `MOVED_FROM`).
     "conditions": {"format": "conditions/1", "kind": "sqlite", "tables": {
         # `tidal` (T78), `backwater` (T160): ADDITIVE, last, defaulted — still conditions/1; an older release is read
         # as 0 (no flag)
         "gauge": ["station", "name", "item_id", "sid", "lon", "lat", "area_km2", "mag", "matched_by", "match_m",
                   "tidal", "backwater"],
-        "gauge_clim": ["station", "parameter", "bands"],
         "lake_gauge": ["item_id", "station"],
+        "lake_section": ["sid", "station"],
         "meta": ["k", "v"],
-        "section_down": ["sid", "down_sid"],
         "section_gauge": ["sid", "station", "trust", "mag"]}},
+    "down": {"format": "down/1", "kind": "sqlite", "tables": {
+        "meta": ["k", "v"], "section_down": ["sid", "down_sid"]}},
+    "climate": {"format": "climate/1", "kind": "sqlite", "tables": {
+        "meta": ["k", "v"], "gauge_clim": ["station", "parameter", "bands"]}},
+    "geo": {"format": "geo/1", "kind": "sqlite", "tables": {
+        "meta": ["k", "v"], "part_geo": ["ord", "part_ix", "rank", "mid_sid", "mid_lon", "mid_lat", "w", "s", "e", "n"]}},
     "water": {"format": "water/1", "kind": "sqlite", "tables": {
         "akey": ["akey", "ruleset", "licensing_set", "steelhead_water", "steelhead", "steelhead_rules",
                  "province_except", "home_region", "kind", "tidal", "seg", "mom", "nseg"],
@@ -71,7 +84,6 @@ FILES = {
         "meta": ["k", "v"],
         "part": ["item_ord", "part_ix", "akey", "ord", "label_s", "short_s", "runs_s", "place_s", "hint_s", "km",
                  "closed_all_year", "paper_licence", "xp", "sections", "xruns"],
-        "part_geo": ["ord", "part_ix", "rank", "mid_sid", "mid_lon", "mid_lat", "w", "s", "e", "n"],
         "part_mark": ["ord", "mark_ix", "lon", "lat", "label", "down_part", "up_parts"],
         "part_section": ["ord", "sid", "part_ix"],
         "picker": _FRAME,
@@ -94,10 +106,10 @@ FILES = {
 
 #: what the units of the transformed columns are (the app's decoders read these)
 UNITS = {
-    "water.part_geo.mid_lon": "microdegrees", "water.part_geo.mid_lat": "microdegrees",
-    "water.part_geo.w": "microdegrees", "water.part_geo.s": "microdegrees", "water.part_geo.e": "microdegrees",
-    "water.part_geo.n": "microdegrees", "water.part_mark.lon": "microdegrees", "water.part_mark.lat": "microdegrees",
-    "conditions.gauge_clim.bands": "clim/2: [u8 pentad, 5 x float16 LE] records",
+    "geo.part_geo.mid_lon": "microdegrees", "geo.part_geo.mid_lat": "microdegrees",
+    "geo.part_geo.w": "microdegrees", "geo.part_geo.s": "microdegrees", "geo.part_geo.e": "microdegrees",
+    "geo.part_geo.n": "microdegrees", "water.part_mark.lon": "microdegrees", "water.part_mark.lat": "microdegrees",
+    "climate.gauge_clim.bands": "clim/2: [u8 pentad, 5 x float16 LE] records",
     "flow-area": "flow-area/1: 'BCFA', u8 1, one LEB128 varint per paint section (sid order) = round(km2 x 1000)",
     "paint": "paint/4: see pipeline/deliver/release/paint.py",
     "access": "access/1: 'BCAX', u8 1, 8 bytes section_handles, then an access half (pipeline/deliver/release/paint.py)",
@@ -106,6 +118,14 @@ UNITS = {
              "(0 never); days since 1900-01-01 (pipeline/deliver/lake_facts.py)",
 }
 REGIONS = SH.REGIONS
+
+#: (T182) the kind handicaps (km) a search row's "near X" weighs a town by — `@app/core` search.ts `HANDICAP_KM`, the
+#: smallest distance + handicap wins (an unknown kind: `NEAR_HANDICAP_UNKNOWN_KM`). `build.core_near` ships each
+#: water's winner(s) by them into core's `item_near`; emitted into pack.generated.ts and held EQUAL to the app's by
+#: `packages/data/src/release/nearTown.test.ts`, so the two cannot drift apart.
+NEAR_HANDICAP_KM = {"city": 0, "town": 0.5, "village": 3, "suburb": 3, "neighbourhood": 4, "quarter": 4,
+                    "hamlet": 5, "locality": 6}
+NEAR_HANDICAP_UNKNOWN_KM = 6
 
 #: (T129) THE WEB REQUEST BUDGET. The release total (`build.TOTAL_GATE`) is what a PHONE holds; a web visitor fetches
 #: lazily (MINIMAL-PACKAGING §2, the app's `release/loader.ts`), and nothing gated those paths. Per moment of a first
@@ -116,16 +136,23 @@ REGIONS = SH.REGIONS
 #: holds the live release and the pin to it. Gates set 2026-10-24 from r-bb4331929428 with 10-15 % headroom (measured in
 #: the comments; the T129 ticket's table). The sql.js engine (sql-wasm, 659 kB) rides with the first SQLite file opened
 #: and is not a release file: it is not priced here.
+#: (T182) re-cut for the split files. Measured by cutting the new files from r-98c43091c440's own (the builder's code
+#: on that release's tables; T182 ticket): before → after, gates ~10-15 % over the after.
 WEB_BUDGET = {
     # the coloured map, Map tab (measured 1,024,306: manifest 5,888 + paint 955,855 + mask 62,563)
     "first_paint": {"files": ["manifest", "paint", "mask"], "gate": 1_150_000},
+    # the first search: core alone — each result's "near X" is core's `item_near` (was core + near: 3,082,554 →
+    # 1,217,684)
+    "first_search": {"files": ["core"], "gate": 1_400_000},
     # the first tap on a NAMED water on the map, largest region: sid -> water (core), the page (water + the region
-    # file) and the tapped section's access note (measured 4,436,131, regs-6)
-    "first_tap": {"files": ["core", "water", "access", "regs-{region}"], "gate": 5_000_000},
-    # the first tap on an UNNAMED stream (most streams): + its key (regs-sid) and conditions, whose `section_down` the
-    # header's "Tributary of ..." walks (measured 8,530,859, regs-6)
-    "first_tap_unnamed": {"files": ["core", "water", "access", "regs-{region}", "regs-sid", "conditions"],
-                          "gate": 9_500_000},
-    # the Conditions tab: gauges + climatology, the panels' areas, core for the lakes' gauges (measured 4,156,368)
-    "conditions_open": {"files": ["core", "flow-area", "conditions"], "gate": 4_700_000},
+    # file), the water map's boxes (geo, read with the page's access note) and the tapped section's access note
+    # (4,501,206 → 4,627,390, regs-6: core + 126 kB for item_near; part_geo moved, not added)
+    "first_tap": {"files": ["core", "water", "geo", "access", "regs-{region}"], "gate": 5_200_000},
+    # the first tap on an UNNAMED stream (most streams): + its key (regs-sid) and the flow pointers (down) the header's
+    # "Tributary of ..." walks — no longer all of conditions (8,590,503 → 5,892,308, regs-6)
+    "first_tap_unnamed": {"files": ["core", "water", "access", "regs-{region}", "regs-sid", "down"],
+                          "gate": 6_600_000},
+    # the Conditions tab: gauges and the lake road (conditions' `lake_section`, so no core), the panels' areas; the
+    # climatology (climate) waits for a chart (4,151,534 → 997,511)
+    "conditions_open": {"files": ["flow-area", "conditions"], "gate": 1_150_000},
 }

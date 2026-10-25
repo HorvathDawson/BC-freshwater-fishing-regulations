@@ -19,6 +19,7 @@ formats the app reads. What it keeps:
   regs-sid       the blocks holding the kept waters' sections and the golden unnamed handles, every OTHER slot zeroed
                  (a slot that is kept always names a kept key)
   core           `item`, `item_section`, `alias`, `item_alias` of the kept waters; no places
+  geo            (T182, when the source release has one) `part_geo` of the kept waters — water then has none
 
 Kept keys = the kept waters' parts' keys ∪ the keys of the kept section slots. Kept waters = taps.json `states[*].item`
 ∪ `leap[*].item` ∪ `--item`. Every file's meta is the source's (format, digests, layout, codec, answers sha) plus
@@ -90,7 +91,7 @@ def build(release: Path, items: Sequence[str], handles: Sequence[int], out_root:
     try:
         src: Dict[str, Path] = {}
         for name, e in man["files"].items():
-            if name in ("water", "core", "regs-sid") or name.startswith("regs-"):
+            if name in ("water", "core", "regs-sid", "geo") or name.startswith("regs-"):
                 p = tmp / f"{name}.sqlite"
                 p.write_bytes(gzip.decompress((release.parent / e["url"]).read_bytes()))
                 src[name] = p
@@ -150,6 +151,10 @@ def build(release: Path, items: Sequence[str], handles: Sequence[int], out_root:
             else:
                 plan.append(("s", t, None))
         files["water"] = B.copy_file(work / "water.sqlite", {"s": src["water"]}, plan, {**meta["water"], **fix})
+        # (T182) a release cut with the split files holds the water map's boxes in `geo`: the kept waters' rows
+        if "geo" in src:
+            files["geo"] = B.copy_file(work / "geo.sqlite", {"s": src["geo"]},
+                                       [("s", "part_geo", f"WHERE ord IN ({_ids(kept_ords)})")], {**meta["geo"], **fix})
 
         zd = dict(con["water"].execute("SELECT tbl, d FROM zdict"))
         for r in sorted(regions):

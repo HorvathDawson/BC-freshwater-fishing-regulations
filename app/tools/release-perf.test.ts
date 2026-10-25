@@ -16,7 +16,7 @@ import { readFileSync, writeFileSync, mkdtempSync } from "node:fs";
 import { gunzipSync } from "node:zlib";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { RELEASE_QUERIES } from "../packages/data/src/release/queries";
+import { fileFor, RELEASE_QUERIES, type PackName } from "../packages/data/src/release/queries";
 
 const ROOT = resolve(__dirname, "../..");
 const REL = process.env.RELEASE_DIR ? resolve(ROOT, process.env.RELEASE_DIR) : null;
@@ -36,6 +36,9 @@ function open(name: string): DatabaseSync {
   return files[name]!;
 }
 const bundle = () => (files.__bundle ??= new DatabaseSync(BUNDLE!, { readOnly: true }));
+/** (T182) the file holding a query's table in THIS release (a release cut before the split: the old file). */
+const at = (file: PackName): string =>
+  fileFor(JSON.parse(readFileSync(join(REL!, "manifest.json"), "utf8")).files, file);
 
 /** A seeded sample of a column's values (deterministic: every nth row). */
 function sample(sql: string, n: number): unknown[] {
@@ -93,7 +96,7 @@ function params(name: string): unknown[][] {
 describe.skipIf(!live)("release parity + perf (Tier 2: RELEASE_DIR + BUNDLE)", () => {
   for (const [name, q] of Object.entries(RELEASE_QUERIES)) {
     it(`${name}: the release answers like the bundle`, () => {
-      const rq = open(q.file).prepare(q.sql), bq = bundle().prepare(q.bundle);
+      const rq = open(at(q.file)).prepare(q.sql), bq = bundle().prepare(q.bundle);
       for (const p of params(name)) {
         const got = rq.all(...(p as never[])), want = bq.all(...(p as never[]));
         if (name === "CLIMATOLOGY") {
@@ -116,7 +119,7 @@ describe.skipIf(!live)("release parity + perf (Tier 2: RELEASE_DIR + BUNDLE)", (
                    "CLIM_PARAMETERS", "DOWN_FROM", "CLIMATOLOGY"];
     for (const n of keyed) {
       const q = RELEASE_QUERIES[n]!;
-      const plan = open(q.file).prepare(`EXPLAIN QUERY PLAN ${q.sql}`).all(...(params(n)[0] as never[]))
+      const plan = open(at(q.file)).prepare(`EXPLAIN QUERY PLAN ${q.sql}`).all(...(params(n)[0] as never[]))
         .map((r) => String((r as Row).detail));
       expect([n, plan.filter((d) => /^SCAN /.test(d))]).toEqual([n, []]);
     }

@@ -48,6 +48,13 @@ export const PACK_FILES: Record<string, PackFile> = {files};
  */
 export const WEB_BUDGET: Record<string, {{ files: readonly string[]; gate: number }}> = {json.dumps(C.WEB_BUDGET, indent=2)};
 
+/**
+ * (T182) The kind handicaps (km) core's `item_near` was cut by — the towns a search row's "near X" can name. Held
+ * equal to `@app/core` search.ts's own by a test: the release and the app weigh a town the same way.
+ */
+export const NEAR_HANDICAP_KM: Record<string, number> = {json.dumps(C.NEAR_HANDICAP_KM, sort_keys=True)};
+export const NEAR_HANDICAP_UNKNOWN_KM = {json.dumps(C.NEAR_HANDICAP_UNKNOWN_KM)};
+
 /** Units of the columns the release transforms (the decoders read these). */
 export const PACK_UNITS: Record<string, string> = {json.dumps(C.UNITS, indent=2, sort_keys=True)};
 

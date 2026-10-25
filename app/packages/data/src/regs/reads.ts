@@ -124,6 +124,8 @@ export interface ReadBase {
   region(akey: number): Promise<Db>;
   sid(): Promise<Db>;
   core(): Promise<Db>;
+  /** (T182) the file holding `part_geo`: geo, or — a release cut before the move, a hand-built base — water. */
+  geo?(): Promise<Db>;
   val<T = unknown>(table: string, blob: Cell): T;
 }
 
@@ -155,7 +157,7 @@ const damaged = (what: string) => new RegsStoreError("damaged", `regs store: ${w
 const n = (c: Cell): number => Number(c);
 const nn = (c: Cell): number | null => (c === null || c === undefined ? null : Number(c));
 const json = <T>(c: Cell): T => JSON.parse(String(c)) as T;
-/** A microdegree column (`PACK_UNITS` water.part_geo / part_mark) in degrees. */
+/** A microdegree column (`PACK_UNITS` geo.part_geo / water.part_mark) in degrees. */
 const micro = (c: Cell): number => Number(c) / 1e6;
 
 export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
@@ -383,9 +385,9 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
     }),
 
     navRows: (ord) => once("navRows", ord, async () => {
-      const w = await base.water();
+      const w = await base.water(), g = base.geo ? await base.geo() : w;
       const [geo, marks, sections, exit] = await Promise.all([
-        w.all("SELECT part_ix, rank, mid_sid, mid_lon, mid_lat, w, s, e, n FROM part_geo WHERE ord = ? ORDER BY rank, part_ix", ord),
+        g.all("SELECT part_ix, rank, mid_sid, mid_lon, mid_lat, w, s, e, n FROM part_geo WHERE ord = ? ORDER BY rank, part_ix", ord),
         w.all("SELECT mark_ix, lon, lat, label, down_part, up_parts FROM part_mark WHERE ord = ? ORDER BY mark_ix", ord),
         w.all("SELECT sid, part_ix FROM part_section WHERE ord = ? ORDER BY sid", ord),
         w.get("SELECT down_ord, down_part FROM water_exit WHERE ord = ?", ord)]);

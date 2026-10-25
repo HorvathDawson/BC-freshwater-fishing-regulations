@@ -134,13 +134,15 @@ export interface NearPlace extends LatLon {
  * handicapped distance wins: a city a few km off beats a hamlet on the bank, but a
  * locality ON the water still beats a city 20 km away.
  */
-const HANDICAP_KM: Record<string, number> = {
+export const HANDICAP_KM: Readonly<Record<string, number>> = {
   city: 0, town: 0.5, village: 3, suburb: 3, neighbourhood: 4, quarter: 4,
   hamlet: 5, locality: 6,
 };
+/** A kind not listed above. (T182) The release cuts core's `item_near` by these two — held equal by a test. */
+export const UNKNOWN_HANDICAP_KM = 6;
 export function describeBy(near: readonly NearPlace[]): NearPlace | null {
   if (!near.length) return null;
-  const cost = (p: NearPlace) => p.km + (HANDICAP_KM[p.kind] ?? 6);
+  const cost = (p: NearPlace) => p.km + (HANDICAP_KM[p.kind] ?? UNKNOWN_HANDICAP_KM);
   return [...near].sort((a, b) => cost(a) - cost(b) || a.name.localeCompare(b.name))[0]!;
 }
 

@@ -67,6 +67,17 @@ describe("the water map's reads", () => {
       { ord: 1, part: 0, otherPart: 1, item: "gnis:1", name: "River" }, null, null, null]);
   });
 
+  it("T182: a split release's boxes are the geo file's (`base.geo`); the rest stays water's", async () => {
+    const geo = openInMemory(`
+      CREATE TABLE part_geo (ord INTEGER NOT NULL, part_ix INTEGER NOT NULL, rank INTEGER NOT NULL, mid_sid INTEGER NOT NULL,
+        mid_lon INTEGER NOT NULL, mid_lat INTEGER NOT NULL, w INTEGER, s INTEGER, e INTEGER, n INTEGER,
+        PRIMARY KEY (ord, part_ix));`, `
+      INSERT INTO part_geo VALUES (1, 0, 0, 9, -120000000, 50000000, NULL, NULL, NULL, NULL);`);
+    const r = makeReads({ core: async () => core, water: async () => water, geo: async () => geo } as unknown as ReadBase);
+    const nav = await r.navRows(1);
+    expect([nav.geo, nav.sections.length]).toEqual([[{ partIx: 0, rank: 0, midSid: 9, mid: [-120, 50], box: null }], 3]);
+  });
+
   it("navRows on a release cut before `water_continue`: no continuation, everything else as before", async () => {
     const r = makeReads({ core: async () => core, water: async () => older } as unknown as ReadBase);
     expect(await r.navRows(1)).toEqual({ geo: [], marks: [], sections: [], exit: null, continuesAs: null,

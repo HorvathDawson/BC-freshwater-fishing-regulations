@@ -21,6 +21,21 @@ export const PACK_FILES: Record<string, PackFile> = {
     "kind": "bin",
     "tables": {}
   },
+  "climate": {
+    "format": "climate/1",
+    "kind": "sqlite",
+    "tables": {
+      "gauge_clim": [
+        "station",
+        "parameter",
+        "bands"
+      ],
+      "meta": [
+        "k",
+        "v"
+      ]
+    }
+  },
   "conditions": {
     "format": "conditions/1",
     "kind": "sqlite",
@@ -39,22 +54,17 @@ export const PACK_FILES: Record<string, PackFile> = {
         "tidal",
         "backwater"
       ],
-      "gauge_clim": [
-        "station",
-        "parameter",
-        "bands"
-      ],
       "lake_gauge": [
         "item_id",
+        "station"
+      ],
+      "lake_section": [
+        "sid",
         "station"
       ],
       "meta": [
         "k",
         "v"
-      ],
-      "section_down": [
-        "sid",
-        "down_sid"
       ],
       "section_gauge": [
         "sid",
@@ -90,6 +100,11 @@ export const PACK_FILES: Record<string, PackFile> = {
         "alias",
         "item_id"
       ],
+      "item_near": [
+        "ord",
+        "place_id",
+        "ckm"
+      ],
       "item_section": [
         "sid",
         "ord"
@@ -117,10 +132,46 @@ export const PACK_FILES: Record<string, PackFile> = {
       ]
     }
   },
+  "down": {
+    "format": "down/1",
+    "kind": "sqlite",
+    "tables": {
+      "meta": [
+        "k",
+        "v"
+      ],
+      "section_down": [
+        "sid",
+        "down_sid"
+      ]
+    }
+  },
   "flow-area": {
     "format": "flow-area/1",
     "kind": "bin",
     "tables": {}
+  },
+  "geo": {
+    "format": "geo/1",
+    "kind": "sqlite",
+    "tables": {
+      "meta": [
+        "k",
+        "v"
+      ],
+      "part_geo": [
+        "ord",
+        "part_ix",
+        "rank",
+        "mid_sid",
+        "mid_lon",
+        "mid_lat",
+        "w",
+        "s",
+        "e",
+        "n"
+      ]
+    }
   },
   "lakes": {
     "format": "lakes/1",
@@ -843,18 +894,6 @@ export const PACK_FILES: Record<string, PackFile> = {
         "sections",
         "xruns"
       ],
-      "part_geo": [
-        "ord",
-        "part_ix",
-        "rank",
-        "mid_sid",
-        "mid_lon",
-        "mid_lat",
-        "w",
-        "s",
-        "e",
-        "n"
-      ],
       "part_mark": [
         "ord",
         "mark_ix",
@@ -945,14 +984,21 @@ export const WEB_BUDGET: Record<string, { files: readonly string[]; gate: number
     ],
     "gate": 1150000
   },
+  "first_search": {
+    "files": [
+      "core"
+    ],
+    "gate": 1400000
+  },
   "first_tap": {
     "files": [
       "core",
       "water",
+      "geo",
       "access",
       "regs-{region}"
     ],
-    "gate": 5000000
+    "gate": 5200000
   },
   "first_tap_unnamed": {
     "files": [
@@ -961,33 +1007,39 @@ export const WEB_BUDGET: Record<string, { files: readonly string[]; gate: number
       "access",
       "regs-{region}",
       "regs-sid",
-      "conditions"
+      "down"
     ],
-    "gate": 9500000
+    "gate": 6600000
   },
   "conditions_open": {
     "files": [
-      "core",
       "flow-area",
       "conditions"
     ],
-    "gate": 4700000
+    "gate": 1150000
   }
 };
+
+/**
+ * (T182) The kind handicaps (km) core's `item_near` was cut by — the towns a search row's "near X" can name. Held
+ * equal to `@app/core` search.ts's own by a test: the release and the app weigh a town the same way.
+ */
+export const NEAR_HANDICAP_KM: Record<string, number> = {"city": 0, "hamlet": 5, "locality": 6, "neighbourhood": 4, "quarter": 4, "suburb": 3, "town": 0.5, "village": 3};
+export const NEAR_HANDICAP_UNKNOWN_KM = 6;
 
 /** Units of the columns the release transforms (the decoders read these). */
 export const PACK_UNITS: Record<string, string> = {
   "access": "access/1: 'BCAX', u8 1, 8 bytes section_handles, then an access half (pipeline/deliver/release/paint.py)",
-  "conditions.gauge_clim.bands": "clim/2: [u8 pentad, 5 x float16 LE] records",
+  "climate.gauge_clim.bands": "clim/2: [u8 pentad, 5 x float16 LE] records",
   "flow-area": "flow-area/1: 'BCFA', u8 1, one LEB128 varint per paint section (sid order) = round(km2 x 1000)",
+  "geo.part_geo.e": "microdegrees",
+  "geo.part_geo.mid_lat": "microdegrees",
+  "geo.part_geo.mid_lon": "microdegrees",
+  "geo.part_geo.n": "microdegrees",
+  "geo.part_geo.s": "microdegrees",
+  "geo.part_geo.w": "microdegrees",
   "lakes": "lakes/1: 'BCLK', u8 1, 8 bytes section_handles, LEB128 asof+1, LEB128 count, then per section (sid ascending) LEB128 sid delta, u8 survey (0 none, 1 sheet, 2 digitised), LEB128 stocked day+1 (0 never); days since 1900-01-01 (pipeline/deliver/lake_facts.py)",
   "paint": "paint/4: see pipeline/deliver/release/paint.py",
-  "water.part_geo.e": "microdegrees",
-  "water.part_geo.mid_lat": "microdegrees",
-  "water.part_geo.mid_lon": "microdegrees",
-  "water.part_geo.n": "microdegrees",
-  "water.part_geo.s": "microdegrees",
-  "water.part_geo.w": "microdegrees",
   "water.part_mark.lat": "microdegrees",
   "water.part_mark.lon": "microdegrees"
 };

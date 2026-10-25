@@ -83,12 +83,66 @@ const openGeo = async (name: DbName): Promise<Db> => {
   const all = async (sql: string, ...p: unknown[]): Promise<Row[]> => {
     if (sql.startsWith("SELECT k, v FROM meta")) return [{ k: "format", v: fmt(name) }, { k: "section_handles", v: H }];
     if (name === "core" && sql === CROSS.GEO_ORDS.sql) return (ORDS[String(p[0])] ?? []).map((ord) => ({ ord }));
-    if (name === "water" && sql === CROSS.PART_GEO_FOR_ORDS(p.length).sql)
+    if ((name === "water" || name === "geo") && sql === CROSS.PART_GEO_FOR_ORDS(p.length).sql)
       return p.flatMap((o) => GEO[Number(o)] ?? []);
     throw new Error(`unexpected ${name}: ${sql}`);
   };
   return { all, get: async (sql: string, ...p: unknown[]) => (await all(sql, ...p))[0] };
 };
+
+describe("T182: a release with the split files reads each moved table from its own file", () => {
+  it("show on the map: Kooryet Lake's box from core + geo — not the whole water file", async () => {
+    const loader = releaseLoader(manifest(["core", "water", "geo"]), bytes, openGeo);
+    expect(await makeReleaseSource(loader).waterBox("wbk:328972518" as ItemId))
+      .toEqual([-130.043061, 53.333981, -129.902673, 53.361987]);
+    expect(loader.opened()).toEqual(["core", "geo"]);
+  });
+
+  /** Every SQL a file is asked, by file; `tables` says which tables each file holds (meta's are every file's). */
+  const recording = (tables: Record<string, string[]>) => {
+    const asked: [string, string][] = [];
+    const open = async (name: DbName): Promise<Db> => {
+      const all = async (sql: string, ...p: unknown[]): Promise<Row[]> => {
+        if (sql.startsWith("SELECT k, v FROM meta")) return [{ k: "format", v: fmt(name) }, { k: "section_handles", v: H }];
+        asked.push([name, sql]);
+        const m = /name = '(\w+)'/.exec(sql);
+        if (sql.includes("sqlite_master")) return (tables[name] ?? []).includes(m![1]!) ? [{ x: 1 }] : [];
+        if (sql.includes("FROM section_down")) return p[0] === 5 ? [{ down_sid: 6 }] : [];
+        if (sql.includes("FROM lake_section")) return [{ sid: 7, station: "08MH103" }];
+        if (sql.includes("FROM item_section s JOIN item i")) return [{ sid: 7, item_id: "wbk:1" }];
+        if (sql.includes("FROM lake_gauge")) return [{ item_id: "wbk:1", station: "08MH090" }];
+        return [];
+      };
+      return { all, get: async (sql: string, ...p: unknown[]) => (await all(sql, ...p))[0] };
+    };
+    return { asked, open };
+  };
+  const files = (asked: [string, string][], what: RegExp) => [...new Set(asked.filter(([, s]) => what.test(s)).map(([f]) => f))];
+
+  it("the downstream walk reads down; the climatology reads climate; the lake road is conditions' lake_section", async () => {
+    const r = recording({ conditions: ["lake_section"] });
+    const loader = releaseLoader(manifest(["core", "conditions", "down", "climate"]), bytes, r.open);
+    const src = makeReleaseSource(loader);
+    expect(await src.traceToGauge(5 as never)).toEqual([5, 6]);
+    await src.gaugeParameters("08MH001" as never);
+    expect(await src.lakeStationsFor([7 as never])).toEqual(new Map([[7, "08MH103"]]));
+    expect([files(r.asked, /section_down/), files(r.asked, /gauge_clim/), files(r.asked, /lake_section|lake_gauge/)])
+      .toEqual([["down"], ["climate"], ["conditions"]]);
+    expect(loader.opened()).toEqual(["down", "climate", "conditions"]);          // no core for the lake road
+  });
+
+  it("a release cut before the split: the same reads from the old files (conditions; core + conditions for lakes)", async () => {
+    const r = recording({});
+    const loader = releaseLoader(manifest(["core", "conditions"]), bytes, r.open);
+    const src = makeReleaseSource(loader);
+    expect(await src.traceToGauge(5 as never)).toEqual([5, 6]);
+    await src.gaugeParameters("08MH001" as never);
+    expect(await src.lakeStationsFor([7 as never])).toEqual(new Map([[7, "08MH090"]]));
+    expect([files(r.asked, /section_down/), files(r.asked, /gauge_clim/), files(r.asked, /FROM lake_gauge/)])
+      .toEqual([["conditions"], ["conditions"], ["conditions"]]);
+    expect(loader.opened()).toEqual(["conditions", "core"]);
+  });
+});
 
 describe("makeReleaseSource.waterBox: every water placed by its own geometry", () => {
   it("Kooryet Lake's box is its part_geo, in degrees — read from core, then water", async () => {

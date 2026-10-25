@@ -6,18 +6,22 @@ writes paint, derives three per-water flags for search, converts the climatology
   paint          the status index + the flow paint + the no-access rows (paint.py) status_index.bin + bundle
   access         the gentler access tiers: permit, reserve, private (T54)        bundle (section_access)
   core           item (+ size, gauged, has_rows), alias, item_alias, item_section, place, bundle
-                 see_pointer (a group name that only points: search leads to the waters it names)
+                 see_pointer (a group name that only points: search leads to the waters it names),
+                 item_near (T182: the town each search row names, so the first search needs no `near`)
   near           place_water                                                      bundle
   water          the regs store's common tables + display_rule + akey_region,     regs store + bundle
-                 part_section, part_geo, part_mark, water_exit,
+                 part_section, part_mark, water_exit,
                  water_continue (which stream goes on as another: the bundle's
                  own table, bundle/continuation.py); meta `store_meta` = the regs
                  store's own meta, so water + the shards + regs-sid ARE the store
                  (store/release.py; nothing reads regs.sqlite, P20)
   regs-<region>  cell + the frames its akeys reach (shards.py), × 9               regs store
   regs-sid       section_akey, section_place                                      regs store
-  conditions     gauge, section_gauge, lake_gauge, section_down, gauge_clim       bundle
-                 (bands float16: clim/2)
+  conditions     gauge, section_gauge, lake_gauge, lake_section (T182: the lake   bundle
+                 road per section, so Conditions needs no core)
+  down           section_down (T182: an unnamed tap's "Tributary of ..." walk)    bundle
+  climate        gauge_clim, bands float16: clim/2 (T182: off the Conditions map) bundle
+  geo            part_geo (T182: "show on the map" without the whole water file)  bundle
   flow-area      the panel target areas, one varint per paint section (paint.py)  bundle
   lakes          OPTIONAL, absent today: per lake section, surveyed / last        a lakes/1 file, only when
                  stocked — the Depth and Stocked modes' values (lakes/1)          handed one (`lakes=`); no feed
@@ -46,16 +50,17 @@ from pipeline.deliver.release import paint as PAINT
 from pipeline.deliver.release import shards as SH
 
 #: every file and its format (bumped when a reader must refuse an older one)
-FORMATS = {"paint": PAINT.FORMAT, "flow-area": PAINT.AREA_FORMAT, "access": PAINT.ACCESS_FORMAT,"core": "core/1", "near": "near/1", "water": "water/1", "regs-sid": "regs-sid/1",
-           "conditions": "conditions/1", "lakes": LF.FORMAT, **{f"regs-{r}": "regs-region/1" for r in SH.REGIONS}}
+FORMATS = {name: spec["format"] for name, spec in C.FILES.items()}
 #: the gzip size gates (MINIMAL-PACKAGING §2; P08 test 7)
 SIZE_GATES = {"paint": 1_000_000, "access": 300_000, "core": 1_300_000, "lakes": 100_000,**{f"regs-{r}": 1_500_000 for r in SH.REGIONS}}
 TOTAL_GATE = 15_000_000  # owner 2026-10-22 (Q55): raised from 14,000,000 — room for T128 wording + the lakes file
 
 CORE_TABLES = ("item", "alias", "item_alias", "item_section", "place", "see_pointer")
 NEAR_TABLES = ("place_water",)
-COND_TABLES = ("gauge", "section_gauge", "lake_gauge", "section_down", "gauge_clim")
-WATER_BUNDLE_TABLES = ("part_section", "part_geo", "part_mark", "water_exit")
+COND_TABLES = ("gauge", "section_gauge", "lake_gauge")
+DOWN_TABLES = ("section_down",)
+CLIMATE_TABLES = ("gauge_clim",)
+WATER_BUNDLE_TABLES = ("part_section", "part_mark", "water_exit")
 F16_MAX = 65504.0
 
 
@@ -158,6 +163,49 @@ def _core_flags(con: sqlite3.Connection) -> None:
     con.execute("DROP TABLE item_section")
     con.execute("ALTER TABLE item_section_k RENAME TO item_section")
     con.execute("CREATE INDEX section_by_item ON item_section(ord)")
+    core_near(con)
+
+
+def core_near(con: sqlite3.Connection, schema: str = "b") -> None:
+    """(T182) `item_near`: per water, the town(s) a search row's "near X" names, so the first search reads core alone,
+    not the 2 MB `near` file. The app's `describeBy` (`@app/core` search.ts) names the ring town with the smallest
+    distance + kind handicap; this ships every town AT that smallest cost, in exact hundredths of a km
+    (`contract.NEAR_HANDICAP_KM`, held equal to the app's by a test), and the app's `describeBy` still picks among them
+    (a tie is its name order to break) — so the row reads exactly as it did from every ring, at one row per water. A
+    town with no position never names a water (the app's ring read skips it). `schema` holds `place_water`; `place` is
+    core's own."""
+    cost = " ".join(f"WHEN '{k}' THEN {int(round(v * 100))}" for k, v in sorted(C.NEAR_HANDICAP_KM.items()))
+    con.execute("CREATE TABLE item_near (ord INTEGER NOT NULL, place_id INTEGER NOT NULL, ckm INTEGER NOT NULL, "
+                "PRIMARY KEY (ord, place_id)) WITHOUT ROWID")
+    con.execute(f"""
+        WITH ring AS (SELECT pw.ord, pw.place_id, pw.ckm,
+                             pw.ckm + (CASE p.kind {cost} ELSE {int(round(C.NEAR_HANDICAP_UNKNOWN_KM * 100))} END) AS c
+                      FROM {schema}.place_water pw JOIN main.place p ON p.place_id = pw.place_id AND p.lat IS NOT NULL),
+             best AS (SELECT ord, min(c) AS m FROM ring GROUP BY ord)
+        INSERT INTO item_near SELECT r.ord, r.place_id, min(r.ckm) FROM ring r JOIN best USING (ord)
+        WHERE r.c = best.m GROUP BY r.ord, r.place_id ORDER BY r.ord, r.place_id""")
+
+
+def lake_section(con: sqlite3.Connection, schema: str = "b") -> None:
+    """(T182) `lake_section`: THE LAKE ROAD per section — the lowest station over every gauged lake holding it (the
+    rule the app's `lakeStationsFor` and the Conditions map's lake classes apply), so Conditions opens without core.
+    `schema` holds `item`, `item_section` and `lake_gauge`."""
+    con.execute("CREATE TABLE lake_section (sid INTEGER PRIMARY KEY, station TEXT NOT NULL)")
+    con.execute(f"INSERT INTO lake_section SELECT s.sid, min(lg.station) FROM {schema}.item_section s "
+                f"JOIN {schema}.item i ON i.ord = s.ord JOIN {schema}.lake_gauge lg ON lg.item_id = i.item_id "
+                "GROUP BY s.sid ORDER BY s.sid")
+
+
+def geo_e6(con: sqlite3.Connection) -> None:
+    """`part_geo` (copied from the bundle in degrees) as integer microdegrees (~0.1 m): a REAL is 8 bytes, these ~4."""
+    con.execute("CREATE TABLE part_geo_e6 (ord INTEGER NOT NULL, part_ix INTEGER NOT NULL, rank INTEGER NOT NULL, "
+                "mid_sid INTEGER NOT NULL, mid_lon INTEGER NOT NULL, mid_lat INTEGER NOT NULL, w INTEGER, "
+                "s INTEGER, e INTEGER, n INTEGER, PRIMARY KEY (ord, part_ix)) WITHOUT ROWID")
+    e6 = lambda c: f"CAST(round({c} * 1000000) AS INTEGER)"  # noqa: E731
+    con.execute(f"INSERT INTO part_geo_e6 SELECT ord, part_ix, rank, mid_sid, {e6('mid_lon')}, {e6('mid_lat')}, "
+                f"{e6('w')}, {e6('s')}, {e6('e')}, {e6('n')} FROM part_geo ORDER BY ord, part_ix")
+    con.execute("DROP TABLE part_geo")
+    con.execute("ALTER TABLE part_geo_e6 RENAME TO part_geo")
 
 
 def clim_f16(bands: bytes) -> bytes:
@@ -174,7 +222,7 @@ def clim_f16(bands: bytes) -> bytes:
     return bytes(out)
 
 
-def _conditions_extra(con: sqlite3.Connection) -> None:
+def _climate_extra(con: sqlite3.Connection) -> None:
     rows = con.execute("SELECT rowid, bands FROM gauge_clim").fetchall()
     con.executemany("UPDATE gauge_clim SET bands = ? WHERE rowid = ?", [(clim_f16(b), r) for r, b in rows])
 
@@ -279,15 +327,8 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
                   if t not in SH.SHARD_TABLES and t not in SH.SID_TABLES and t != "meta"]
 
         def water_extra(con):
-            # camera hints as integer microdegrees (~0.1 m): a REAL is 8 bytes, these are ~4
-            con.execute("CREATE TABLE part_geo_e6 (ord INTEGER NOT NULL, part_ix INTEGER NOT NULL, rank INTEGER NOT NULL, "
-                        "mid_sid INTEGER NOT NULL, mid_lon INTEGER NOT NULL, mid_lat INTEGER NOT NULL, w INTEGER, "
-                        "s INTEGER, e INTEGER, n INTEGER, PRIMARY KEY (ord, part_ix)) WITHOUT ROWID")
+            # camera hints as integer microdegrees (~0.1 m): a REAL is 8 bytes, these are ~4 (part_geo: the geo file)
             e6 = lambda c: f"CAST(round({c} * 1000000) AS INTEGER)"  # noqa: E731
-            con.execute(f"INSERT INTO part_geo_e6 SELECT ord, part_ix, rank, mid_sid, {e6('mid_lon')}, {e6('mid_lat')}, "
-                        f"{e6('w')}, {e6('s')}, {e6('e')}, {e6('n')} FROM part_geo ORDER BY ord, part_ix")
-            con.execute("DROP TABLE part_geo")
-            con.execute("ALTER TABLE part_geo_e6 RENAME TO part_geo")
             con.execute("CREATE TABLE part_mark_e6 (ord INTEGER NOT NULL, mark_ix INTEGER NOT NULL, lon INTEGER NOT NULL, "
                         "lat INTEGER NOT NULL, label TEXT, down_part INTEGER NOT NULL, up_parts TEXT NOT NULL, "
                         "PRIMARY KEY (ord, mark_ix)) WITHOUT ROWID")
@@ -343,7 +384,8 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
 
 def bundle_files(work: Path, bundle: Path, b: sqlite3.Connection, base: Dict[str, str],
                  status_index: bytes) -> Dict[str, Path]:
-    """The bundle's half of the release — paint, flow-area, core, near, conditions — written into `work`. `base` is
+    """The bundle's half of the release — paint, flow-area, access, core, near, conditions, down, climate, geo —
+    written into `work`. `base` is
     every file's meta (section_handles, reach_digest). The app's committed fixture releases
     (`app/packages/data/dev/fixture-release/`) were cut once by this code and are frozen (T61)."""
     files: Dict[str, Path] = {}
@@ -362,8 +404,13 @@ def bundle_files(work: Path, bundle: Path, b: sqlite3.Connection, base: Dict[str
                               {**base, "format": FORMATS["near"]})
     files["conditions"] = copy_file(work / "conditions.sqlite", {"b": bundle},
                                     [("b", t, None) for t in COND_TABLES],
-                                    {**base, "format": FORMATS["conditions"], "clim": "clim/2"},
-                                    extra=_conditions_extra)
+                                    {**base, "format": FORMATS["conditions"]}, extra=lake_section)
+    files["down"] = copy_file(work / "down.sqlite", {"b": bundle}, [("b", t, None) for t in DOWN_TABLES],
+                              {**base, "format": FORMATS["down"]})
+    files["climate"] = copy_file(work / "climate.sqlite", {"b": bundle}, [("b", t, None) for t in CLIMATE_TABLES],
+                                 {**base, "format": FORMATS["climate"], "clim": "clim/2"}, extra=_climate_extra)
+    files["geo"] = copy_file(work / "geo.sqlite", {"b": bundle}, [("b", "part_geo", None)],
+                             {**base, "format": FORMATS["geo"]}, extra=geo_e6)
     return files
 
 

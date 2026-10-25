@@ -24,3 +24,10 @@ with the default Claude uses until you answer). Newest first inside each section
   outreach by hand (T197). Plan: handoff/PLAN/seo/PLAN.md sections 4 and 7.
 
 ## Reviews
+
+## Human runs (heavy, one at a time through scripts/heavy.sh)
+
+- **T73 — shrink the reach hand-off (19 GB → ≈ 0.6 GB):** convert `reaches/full` to a side dir, binding-diff it
+  (expect "no binding changed"), then convert `full` + `full_prev` in place; commands in the T73 ticket's Outcome.
+- **T182 — the split release files:** `test_release.py` on a build, `deliver all`, then re-cut the browser walk pin
+  (`app/tools/request-walk.mjs --pin`); commands in the T182 ticket's Outcome.

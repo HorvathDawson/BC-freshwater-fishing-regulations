@@ -9,6 +9,9 @@ Imagery WITHOUT a key ("this is a non profit app"); `EXPO_PUBLIC_ARCGIS_API_KEY`
 
 ## Work
 Owner creates the R2 bucket and confirms name + contact. A scheduled publish.py runner (30 min).
+The feed sync (T182 item 5, from T129): `index.json` sent `Content-Encoding: gzip` (352.6 → 46.7 kB, every first
+paint) with a short `Cache-Control` (it changes every 30 min, e.g. `public, max-age=300`); the release's own headers
+are already right (`deliver/release/publish.py`).
 Build config refuses a release build with no contact.
 
 ## Acceptance

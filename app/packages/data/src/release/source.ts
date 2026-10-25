@@ -16,9 +16,12 @@
  *                        search's `stocked` false
  *   regulations          `regulationKeys`: core → water → the key's region file (`loader.regionDb`)
  *
- * What it opens, and when, is the loader's to say: paint at start, core on the first tap or search, near on the first
- * near-search or result line, conditions on the first gauge question, flow-area on the first panel, water and
- * regs-<region> on the first water opened in that region.
+ * What it opens, and when, is the loader's to say: paint at start, core on the first tap or search (a result's "near X"
+ * is core's `item_near`), near on the first near-search, conditions on the first gauge question (the lake road is its
+ * `lake_section`), down on the first downstream walk, climate on the first chart, flow-area on the first panel, geo on
+ * the first water map or box, water and regs-<region> on the first water opened in that region. A release cut before
+ * T182 holds down / climate / geo's tables in their old files and has no `item_near` / `lake_section`: each read then
+ * goes the old way (`fileFor`; the two has-table checks below).
  */
 import { shownParameter, type WaterFix } from "@app/core";
 import { num, str, type Row } from "../sql/db";
@@ -30,7 +33,7 @@ import type { Aged, BasinMember, BundleCounts, BundleInfo, GaugeLink, ItemId, Na
               PlaceHit, PlaceId, PointerHit, Reading, WaterSource, SectionId, StationId, Water } from "../index";
 import type { DbName, ReleaseLoader } from "./loader";
 import { buildStandingClasses, type StandingClasses } from "../standing";
-import { CROSS, META, RELEASE_QUERIES as R } from "./queries";
+import { CROSS, fileFor, META, RELEASE_QUERIES as R, type PackName } from "./queries";
 
 /** The lowest SQLite parameter ceiling any driver may have been compiled with. */
 const CHUNK = 500;
@@ -67,10 +70,18 @@ export interface SourceOptions {
 
 export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {}): WaterSource {
   const db = (n: DbName) => loader.db(n);
+  /** The file a query's table is in, in this release (T182 `MOVED_FROM`). */
+  const at = (q: { file: string }) => fileFor(loader.manifest.files, q.file as PackName) as DbName;
   const all = async (q: { file: string; sql: string }, ...p: (string | number | null)[]) =>
-    (await db(q.file as DbName)).all(q.sql, ...p);
+    (await db(at(q))).all(q.sql, ...p);
   const get = async (q: { file: string; sql: string }, ...p: (string | number | null)[]) =>
-    (await db(q.file as DbName)).get(q.sql, ...p);
+    (await db(at(q))).get(q.sql, ...p);
+  /** Whether a file holds a table added after the committed fixture releases were cut (T182), asked once. */
+  const has = (q: { file: string; sql: string }): (() => Promise<boolean>) => {
+    let p: Promise<boolean> | null = null;
+    return () => (p ??= get(q).then((r) => !!r, (e) => { p = null; throw e; }));
+  };
+  const hasItemNear = has(CROSS.HAS_ITEM_NEAR), hasLakeSection = has(CROSS.HAS_LAKE_SECTION);
   const down: DownOf = async (at) => {
     const r = await get(R.DOWN_FROM!, at);
     return r ? sid(r.down_sid) : null;
@@ -104,10 +115,39 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
     return out;
   }
 
-  /** sid → the lowest station in a lake holding it (core: section → items; conditions: items → lake_gauge). */
+  /**
+   * A search row's town(s) for these waters (core: `item_near`, then `place`), rows shaped like `ringsFor`'s: what
+   * `describeBy` names from every ring is among them (pipeline `build.core_near`). A core without `item_near` reads
+   * every ring from near, as before.
+   */
+  async function townsFor(items: readonly string[]): Promise<Row[]> {
+    if (!(await hasItemNear())) return ringsFor(items);
+    const ords = await chunked(items, (c) => all(CROSS.ORDS_FOR_ITEMS(c.length), ...c));
+    if (!ords.length) return [];
+    const itemOf = new Map(ords.map((r) => [Number(r.ord), str(r.item_id)]));
+    const near = await chunked([...itemOf.keys()], (c) => all(CROSS.NEAR_TOWNS_FOR_ORDS(c.length), ...c));
+    const placeIds = [...new Set(near.map((r) => Number(r.place_id)))];
+    const places = new Map((await chunked(placeIds, (c) => all(CROSS.PLACES(c.length), ...c)))
+      .map((p) => [Number(p.place_id), p]));
+    return near.flatMap((r) => {
+      const p = places.get(Number(r.place_id));
+      return p ? [{ item_id: itemOf.get(Number(r.ord))!, name: p.name, kind: p.kind, lat: p.lat, lon: p.lon,
+                    km: Number(r.ckm) / 100 }] : [];
+    });
+  }
+
+  /**
+   * sid → the lowest station in a lake holding it: conditions' `lake_section` (T182); a conditions cut before it, the
+   * two keyed halves (core: section → items; conditions: items → lake_gauge).
+   */
   async function lakeRoad(sections: readonly SectionId[]): Promise<Map<SectionId, StationId>> {
     const out = new Map<SectionId, StationId>();
     if (!sections.length) return out;
+    if (await hasLakeSection()) {
+      for (const r of await chunked(sections, (c) => all(CROSS.LAKE_SECTIONS(c.length), ...c)))
+        out.set(sid(r.sid), str(r.station) as StationId);
+      return out;
+    }
     const owners = await chunked(sections, (c) => all(CROSS.ITEMS_FOR_SECTIONS(c.length), ...c));
     const items = [...new Set(owners.map((r) => str(r.item_id)))];
     const lakes = new Map((await chunked(items, (c) => all(CROSS.LAKE_STATIONS(c.length), ...c)))
@@ -161,6 +201,24 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
     }
     return out;
   }));
+  /**
+   * THE LAKE ROAD, whole: every section of a gauged lake, the lowest station over every lake holding it —
+   * conditions' `lake_section` as it is (T182), or, cut before it, built from lake_gauge + core's sections.
+   */
+  async function wholeLakeRoad(): Promise<Map<number, StationId>> {
+    const lakes = new Map<number, StationId>();
+    if (await hasLakeSection()) {
+      for (const r of await all(CROSS.ALL_LAKE_SECTIONS)) lakes.set(Number(r.sid), str(r.station) as StationId);
+      return lakes;
+    }
+    const stationOf = new Map((await all(CROSS.ALL_LAKE_STATIONS)).map((r) => [str(r.item_id), str(r.station)]));
+    for (const r of await chunked([...stationOf.keys()], (c) => all(CROSS.SECTIONS_FOR_ITEMS(c.length), ...c))) {
+      const st = stationOf.get(str(r.item_id))!, s = Number(r.sid), had = lakes.get(s);
+      if (had === undefined || st < had) lakes.set(s, st as StationId);
+    }
+    return lakes;
+  }
+
   /** The Conditions map's classes, built once per source (`standingClasses`). */
   let classes: Promise<StandingClasses> | null = null;
 
@@ -202,7 +260,7 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
       if (needle === null || limit < 1) return [];
       const rows = await all(R.SEARCH!, needle, Math.max(limit * 3, 60));
       const hits = rankNameHits(query, rows, limit);
-      return hits.length ? withNear(hits, await ringsFor(hits.map((h) => h.item))) : hits;
+      return hits.length ? withNear(hits, await townsFor(hits.map((h) => h.item))) : hits;
     },
 
     async searchPointers(q, limit): Promise<readonly PointerHit[]> {
@@ -256,8 +314,8 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
     },
 
     async waterBox(item) {
-      // no water file (a release cut without regulations, like the fixture's): no geometry, and `locate` places it
-      if (!loader.manifest.files.water) return null;
+      // no geometry file (a release cut without regulations, like the fixture's): no box, and `locate` places it
+      if (!loader.manifest.files[at(CROSS.PART_GEO_FOR_ORDS(1))]) return null;
       const ords = (await all(CROSS.GEO_ORDS, item)).map((r) => Number(r.ord));
       if (!ords.length) return null;
       return boxOfGeoRows(await chunked(ords, (c) => all(CROSS.PART_GEO_FOR_ORDS(c.length), ...c)), 1_000_000);
@@ -294,15 +352,8 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
 
     standingClasses() {
       return (classes ??= (async () => {
-        const [paint, members, area, basins, lakeRows] = await Promise.all([
-          loader.paint(), membersOf(), loader.flowArea(), basinsOf(), all(CROSS.ALL_LAKE_STATIONS)]);
-        // THE LAKE ROAD, whole: every section of a gauged lake, the lowest station over every lake holding it
-        const stationOf = new Map(lakeRows.map((r) => [str(r.item_id), str(r.station)]));
-        const lakes = new Map<number, StationId>();
-        for (const r of await chunked([...stationOf.keys()], (c) => all(CROSS.SECTIONS_FOR_ITEMS(c.length), ...c))) {
-          const st = stationOf.get(str(r.item_id))!, s = Number(r.sid), had = lakes.get(s);
-          if (had === undefined || st < had) lakes.set(s, st as StationId);
-        }
+        const [paint, members, area, basins, lakes] = await Promise.all([
+          loader.paint(), membersOf(), loader.flowArea(), basinsOf(), wholeLakeRoad()]);
         // paint's runs, in its section order — the order flow-area's target areas follow (`indexOf` above)
         const { starts, counts, panels } = paint.runs;
         function* sections() {
