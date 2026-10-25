@@ -27,8 +27,8 @@ const AT = { lat: 49.1, lon: -121.9 };
 const source = { itemForSection: async (s: SectionId) => (s === SID ? VEDDER : s === UNNAMED ? null : CHILLIWACK) };
 const COND: Route = reduce(HOME, { type: "tab", tab: "conditions" });
 
-/** A frame's PLACE: everything but the view in front. */
-const place = (f: WaterFrame | null) => (f === null ? null : (({ view: _v, ...rest }) => rest)(f));
+/** A frame's PLACE: everything but the view in front (and, T203, how the Map first frames it: `whole`). */
+const place = (f: WaterFrame | null) => (f === null ? null : (({ view: _v, whole: _w, ...rest }) => rest)(f));
 /** Where each route ends: the frame on screen, as a place. */
 const landed = (r: Route) => place(waterFrame(r));
 /** Every way into a water, named, each as a function from a start route to the route it lands on. */

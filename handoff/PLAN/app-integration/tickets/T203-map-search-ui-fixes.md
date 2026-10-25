@@ -1,6 +1,6 @@
 # T203 — app UI: jumpy "Flows into" chip, search lands on the map, amber highlight
 
-Status: OPEN
+Status: PARTIAL
 
 Source: owner 2026-10-25, using the app.
 
@@ -27,3 +27,23 @@ Source: owner 2026-10-25, using the app.
 ## Done when
 Each fixed with a test (layout-shift / tap target, search → map route, highlight contrast check on amber + cvd) and
 owner phone check.
+
+## Outcome (2026-10-25, items 1-3 built; 4-5 need release data)
+- **1 (built)**: the "Flows into" chip is now the LAST control of the map's bar, below "Show regulations": the steps and
+  that button never move when the chip appears (only at the mouth part). Test: `WaterMapView.test.tsx` (DOM order, and the
+  button under the steps row with or without the chip).
+- **2 (built)**: `opener.searched(item)` ALWAYS opens the water's Map, the whole water shown (route `openWater` /
+  frame `whole`, only on a Map view, dropped by a part step or a view change; `useWaterMap(..., wholeFirst)`), from
+  Conditions or Regs alike. Tests: `openWater.test.ts`, `WaterMapView.test.tsx`, `Search.shell.test.tsx` (updated).
+- **3 (built)**: the water Map's selected part ("dim" cue) now also carries a half-width halo in `color.highlight`
+  (`PART_HALO_PX` 1.25 px a side, no width floor), so it reads on amber. Tests: `parity.test.ts` (casing/ring shown by
+  `part`), `tools/water-status-cvd.test.ts` (halo vs every status incl. amber, all CVD models; no-access grey is dotted: 7).
+  Not checked by eye on a phone.
+- **4, 5 (NOT built)**: the app cannot do them from the release. Diagnosis (bundle.sqlite, Kanaka ord 455): the part graph
+  makes ONE `part_mark` per PAIR of parts (`topology.py`, "middle of their nearest points"), but part 2 (below the bridge +
+  above the falls) meets part 1 at TWO places; the bundle holds one mark, "Cliff Park Falls", and none for the bridge.
+  Chilliwack works because its parts are a chain, each pair meeting once. The release carries no section adjacency
+  (`section_span` / `section_touch` are not in it), and sid order is not adjacency (Chilliwack's part sids interleave with
+  other parts'), so stretches cannot be derived app-side. Needed first (pipeline, a release rebuild): one mark per
+  meeting point, and a per-part stretch list (`part_stretch`: sids grouped by adjacency); then the app lights one stretch
+  at a time and labels each stretch's ends. Follow-up: T203b (not yet filed).
