@@ -370,6 +370,39 @@ def _boundary_dict(b) -> dict:
             "minted": _auto_split(b.id)}
 
 
+def cut_label(b, meta: dict | None = None, water: str = "") -> str:
+    """What a reviewer should read on a cut the pipeline MINTED (not one anyone authored): its kind and
+    specifics, never the water's name it falls back to ("Iskut River" on seven dots told nothing).
+    The kind is in the id (`sectionizer.minted_id`): `gauge__08HB008`, `length:<blk>:<m>`,
+    `area:<N>` / `area:<park>`, `border:<blk>:<n>`; a lake edge is a `lake` boundary."""
+    sid = str(b.id)
+    base = sid[len("split:"):] if sid.startswith("split:") else sid
+    label = str((meta or {}).get("label") or getattr(b, "label", "") or "").strip()
+    if getattr(b, "kind", "") == "lake" and not _auto_split(sid):
+        lake = label if label and not label.startswith("lake ") else ""
+        return f"lake edge · {lake}" if lake else "lake edge"
+    if base.startswith("gauge__"):
+        stn = base[len("gauge__"):]
+        name = label.split("·", 1)[1].strip() if "·" in label else (label if label != stn else "")
+        return f"gauge {stn} · {name}" if name else f"gauge {stn}"
+    fam, _, rest = base.partition(":")
+    if fam == "length":
+        try:
+            km = f"{float(rest.rsplit(':', 1)[1]) / 1000:.1f} km"
+        except (IndexError, ValueError):
+            km = ""
+        at = label if label and label != water and label != base else ""
+        return " · ".join(x for x in ("length cut", km, at) if x)
+    if fam == "area":
+        if re.fullmatch(r"\d+[A-Za-z]?", rest):
+            return f"Region {rest} line"
+        name = re.sub(r"\s*\[\d+\]$", "", rest).strip()
+        return f"{name} boundary"
+    if fam == "border":
+        return label if label and label != base else "BC border"
+    return label or base
+
+
 def _curated_split_ids(item) -> set[str]:
     """Boundary ids that are CURATED splits (ref 'split:*') — not lake/outlet/headwaters auto-boundaries."""
     return {b.id for b in _boundaries(item) if str(b.ref or "").startswith("split:")}
@@ -1771,6 +1804,15 @@ def item_geojson(item_id: str) -> dict:
     split_ids = list(_curated_split_ids(item))
     if split_ids:
         feats += _features("split_points", split_ids, "split")
+        # a pipeline-minted cut (gauge / length / area / border) is labelled by its kind, and flagged so
+        # the client draws it small and muted with a hover label (only rule-named splits are labelled)
+        by_id = {b.id: b for b in _boundaries(item)}
+        for f in feats:
+            pr = f["properties"]
+            b = by_id.get(pr.get("split_id")) if pr.get("kind") == "split" else None
+            if b is not None and _auto_split(b.id):
+                pr["label"] = cut_label(b, _splits_meta().get(b.id), item.name)
+                pr["minted"] = True
 
     # Auto (non-curated) LAKE boundaries have no split_point; surface each as a clickable point at the
     # lake's location so a curator can "see where it is" — same select/fly machinery as curated splits.
@@ -1783,8 +1825,9 @@ def item_geojson(item_id: str) -> dict:
             if b and pt:
                 feats.append({"type": "Feature",
                               "geometry": {"type": "Point", "coordinates": pt},
-                              "properties": {"kind": "split", "split_id": b.id, "label": b.label,
-                                             "anchor_type": "lake", "auto": True}})
+                              "properties": {"kind": "split", "split_id": b.id,
+                                             "label": cut_label(b), "anchor_type": "lake",
+                                             "auto": True, "minted": True}})
 
     return {"type": "FeatureCollection", "features": feats}
 

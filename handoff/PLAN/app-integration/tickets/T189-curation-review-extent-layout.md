@@ -48,3 +48,10 @@ awaiting-build banner says them). Kept: the pilot toggle and its order (2b80b005
 `test_review_marks.py` (calls, refusals, unchanged old lines, the lake-split list, ticket round
 trip); the curation-review suites; frontend `tsc -b`. Screenshots: Iskut River (r6), Hatzic Lake
 and Slough (r2).
+
+## Follow-up: automatic cuts labelled by kind
+On the map, every pipeline-minted cut (length / gauge / area / border / lake edge) was labelled with the
+water's name ("Iskut River" x7). `reuse.cut_label` now names it by kind and specifics ("length cut ·
+70.3 km · McLymont Creek", "gauge 08HB023 · <station>", "Region 6 line", "<park> boundary", "lake edge ·
+<lake>"); item_geojson flags them `minted`. MapPanel draws unnamed ones small and muted (`item-cuts`), no
+always-on label, label on hover/tap, with a legend entry. Test: `test_curation_review_cut_labels.py`.

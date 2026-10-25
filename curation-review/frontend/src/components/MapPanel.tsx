@@ -62,6 +62,8 @@ if (!g.__pmAdded) {
   g.__pmAdded = true;
 }
 
+const CUT_COLOR = "#94a3b8";   // muted slate: an automatic cut no rule names
+
 function splitColor(id: string, ref: Set<string>, unused: Set<string>): string {
   return ref.has(id) ? "#16a34a" : unused.has(id) ? "#d97706" : "#dc2626";
 }
@@ -101,6 +103,8 @@ function colorize(fc: GeoJSON.FeatureCollection, ref: Set<string>, unused: Set<s
         p._color = p.auto ? "#0891b2" : splitColor(id, ref, unused);   // auto lake boundary = teal
         p._note = p.auto ? "lake" : ref.has(id) ? "bound" : unused.has(id) ? "UNUSED" : "";
         p._named = named.has(id);
+        // a cut the pipeline minted that no rule names: small, muted, labelled on hover/tap only
+        p._muted = Boolean(p.minted) && !p._named && !ref.has(id);
       }
       return { ...f, properties: p };
     }),
@@ -271,11 +275,18 @@ export function MapPanel({
             paint: { "circle-radius": 11, "circle-color": "rgba(0,0,0,0)",
                      "circle-stroke-color": "#111", "circle-stroke-width": 3 } },
           { id: "item-points", type: "circle", source: "item",
-            filter: ["==", ["geometry-type"], "Point"],
+            filter: ["all", ["==", ["geometry-type"], "Point"], ["!=", ["get", "_muted"], true]],
             paint: { "circle-radius": 6, "circle-color": ["get", "_color"],
                      "circle-stroke-color": "#fff", "circle-stroke-width": 2 } },
+          // AUTOMATIC CUTS (length / gauge / area / border / lake edge): small and muted, no
+          // always-on label — the kind and specifics show on hover or tap
+          { id: "item-cuts", type: "circle", source: "item",
+            filter: ["all", ["==", ["geometry-type"], "Point"], ["==", ["get", "_muted"], true]],
+            paint: { "circle-radius": 3.5, "circle-color": CUT_COLOR, "circle-opacity": 0.85,
+                     "circle-stroke-color": "#fff", "circle-stroke-width": 1 } },
           { id: "item-labels", type: "symbol", source: "item",
-            filter: ["all", ["==", ["geometry-type"], "Point"], ["!=", ["get", "_named"], true]],
+            filter: ["all", ["==", ["geometry-type"], "Point"], ["!=", ["get", "_named"], true],
+                     ["!=", ["get", "_muted"], true]],
             layout: { "text-field": ["get", "label"], "text-size": 11, "text-offset": [0, 1.1],
                       "text-anchor": "top", "text-font": ["Noto Sans Regular"] },
             paint: { "text-halo-color": "#fff", "text-halo-width": 1.5 } },
@@ -349,7 +360,24 @@ export function MapPanel({
       const sid = e.features?.[0]?.properties?.split_id;
       if (sid != null) onSelect.current?.(String(sid));
     });
-    for (const layer of ["item-points", "named-points"]) {
+    // automatic cuts: label on hover, and on tap (touch has no hover)
+    const tip = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 8,
+                                       className: "cut-tip" });
+    const showTip = (e: maplibregl.MapLayerMouseEvent) => {
+      const f = e.features?.[0];
+      if (!f || f.geometry.type !== "Point") return;
+      tip.setLngLat(f.geometry.coordinates as [number, number])
+         .setText(String(f.properties?.label ?? "")).addTo(m);
+    };
+    m.on("mouseenter", "item-cuts", showTip);
+    m.on("mouseleave", "item-cuts", () => tip.remove());
+    m.on("click", "item-cuts", (e) => {
+      if (measuring.current) return;
+      showTip(e);
+      const sid = e.features?.[0]?.properties?.split_id;
+      if (sid != null) onSelect.current?.(String(sid));
+    });
+    for (const layer of ["item-points", "item-cuts", "named-points"]) {
       m.on("mouseenter", layer, () => { m.getCanvas().style.cursor = "pointer"; });
       m.on("mouseleave", layer, () => { m.getCanvas().style.cursor = ""; });
     }
@@ -687,6 +715,7 @@ export function MapPanel({
         <span><i style={{ background: "#16a34a" }} /> bound by a rule</span>
         <span><i style={{ background: "#d97706" }} /> curated · unused</span>
         <span><i style={{ background: "#dc2626" }} /> other split</span>
+        <span><i style={{ background: CUT_COLOR, width: 7, height: 7 }} /> automatic cut (hover/tap)</span>
       </div>
     </div>
   );
