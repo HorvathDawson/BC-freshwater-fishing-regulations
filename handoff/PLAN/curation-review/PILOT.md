@@ -1,15 +1,23 @@
 # The 30-entry pilot — how to run it (one page)
 
-PLAN.md §4 phase 5: before weeks of review, a person **other than the builder** reviews 30 targets
+PLAN.md §4 phase 5: before weeks of review, a person **other than the builder** reviews 30 ENTRIES
 spread across the tiers. It answers two questions: how long a real entry takes (the plan's 90 hours
 assume ≤ 1.5 min for a simple one), and whether the tool ever stops the reviewer. Accepted when
 every target is marked and **no tool blocker** is reported.
+
+**Entries only (T184, owner 2026-10-24).** What is reviewed is the ENTRY: parsed correctly (T text,
+R rules), landing on the right water and extent (P), and the app's answer agreeing (A); verified on
+all four, it is saved **human-reviewed**. A split point is NOT a target of its own: it is checked
+**by proxy** — on each entry's map every split its rules name is drawn and **labelled with its
+name** (amber while it is still an auto-proposal / "Verify:"), each rule says where it binds with
+its splits by name, and the entry lists "Splits the rules name". A cut in the wrong place is a
+**P: wrong** mark on that entry, problem "split misplaced".
 
 ## Before (the owner, ~5 minutes)
 
 1. The vintage on screen must be one build: `python -m pipeline build --no-tiles --dry-run` shows
    nothing to run (or run it through `scripts/heavy.sh`).
-2. Start the tool in **review mode** and wait for the ready signal:
+2. Start the tool and wait for the ready signal:
    ```bash
    bash curation-review/run.sh                      # backend :8787, screen http://127.0.0.1:5173
    curl -s http://127.0.0.1:8787/api/ready          # wait for "ready": true (each step is timed)
@@ -21,7 +29,10 @@ every target is marked and **no tool blocker** is reported.
 - Type your name in the verdict bar once. Open each target below by its link (the URL holds the
   target, so a reload resumes where you were). Review it as you would for real: **t r p a** pick a
   check, **y n ?** answer it, **Enter** records the mark; **o** opens the angler's page, **m** the map.
-  A zone entry (tier Z) is marked rule by rule; a split point (tier S0) has one check, P.
+  A zone entry (tier Z) is marked rule by rule.
+- **P is where the splits are checked**: read each labelled split on the map against the book (the
+  right bridge, falls, confluence; the right side of it). A misplaced one is P **n**, problem
+  "split misplaced", and a note naming the split.
 - The screen times you from opening a target (or from your previous mark on a zone entry's rules) to
   each mark; the time is stored with the mark (`seconds`). Work at your normal pace; a break is fine
   — say so in the next mark's note.
@@ -35,56 +46,57 @@ every target is marked and **no tool blocker** is reported.
 ```bash
 python -m pipeline.regs.review.gate pilot-report --pilot handoff/PLAN/curation-review/pilot.json
 python -m pipeline.regs.review.commit_marks        # the marks are review history: commit them
+python -m pipeline.regs.review.tickets --out <dir> # the wrong / unsure marks as tickets (T185)
 ```
 
 The report gives, per tier and overall, targets marked, the median and mean seconds per target, the
 defects found (wrong / unsure, with their problem) and every `TOOL:` note. `passes` is true when all
 30 are marked and there is no tool blocker. Note the median time per tier beside PLAN §3's hours.
+An entry verified on every check shows "Human-reviewed by <you> on <date>" from then on.
 
 ## The targets
 
 `python -m pipeline.regs.review.gate pilot --json handoff/PLAN/curation-review/pilot.json --md <file>`
-picked them from the review queue: per tier, targets spread evenly through the queue's own order,
+picked them from the review queue: per tier, entries spread evenly through the queue's own order,
 among those **unmarked and built** (an entry awaiting its build can only be half answered). Tier
-quotas: S0 4 · P1 6 · Z 4 · P2 4 · P3 4 · P4 6 · sweep 2. If the vintage changes before the pilot,
-re-run that command (the list is a vintage's).
+quotas (entries only): P1 7 · Z 5 · P2 4 · P3 5 · P4 7 · sweep 2. If the vintage changes before the
+pilot, re-run that command (the list is a vintage's).
 
-Regenerated 2026-10-24 for release `r-0ed3c2b2a0a7` (one build: atlas, reach, bundle and release agree;
-`pilot.json` `vintage`). Against r-bb4331929428 the Z tier moved (four new zone entries); the rebuild to
-r-0ed3c2b2a0a7 the same day left all 30 targets the same.
-The pilot also runs on the shareable artifact page (T184, `curation-review/artifact/`): its marks come
-back through `python -m pipeline.regs.review.import_artifact_marks`.
+Regenerated 2026-10-24 (T184) for release `r-98c43091c440` (one build: atlas, reach run, bundle and
+release agree — `pilot.json` `vintage`), over the catalogue as the owner's checkout holds it (with
+T183's region-6 edit), the marks store empty. The S0 split-point quota of the earlier list is gone;
+P2 and the sweep pick the same entries as before.
 
 <!-- the table below is generated by `gate pilot --md` -->
 | # | tier | target | open |
 |---|---|---|---|
-| 1 | S0 | CARIBOU CREEK: Hwy 6 bridge (`caribou_creek__hwy_6_bridge`) | http://127.0.0.1:5173/#split%3Acaribou_creek__hwy_6_bridge |
-| 2 | S0 | LUSSIER RIVER: Premier Lake road bridge (`lussier_river__premier_lake_road_bridge`) | http://127.0.0.1:5173/#split%3Alussier_river__premier_lake_road_bridge |
-| 3 | S0 | SALMON RIVER: 232 Street (`salmon_river__232_street`) | http://127.0.0.1:5173/#split%3Asalmon_river__232_street |
-| 4 | S0 | KOOTENAY RIVER (downstream of Idaho border): Brilliant Dam (`kootenay_river__brilliant_dam`) | http://127.0.0.1:5173/#split%3Akootenay_river__brilliant_dam |
-| 5 | P1 | STAVE RIVER (`r2:stave_river@2-8`) | http://127.0.0.1:5173/#r2%3Astave_river%402-8 |
-| 6 | P1 | HALFWAY RIVER (`r7:halfway_river@7-34`) | http://127.0.0.1:5173/#r7%3Ahalfway_river%407-34 |
-| 7 | P1 | THOMPSON RIVER (downstream of signs at Kamloops Lake outlet to the confluence with Fraser River) (`r3:thompson_river_downstream_of_signs_at_kamloops_lake_outlet_t@3-13+3-14+3-18`) | http://127.0.0.1:5173/#r3%3Athompson_river_downstream_of_signs_at_kamloops_lake_outlet_t%403-13%2B3-14%2B3-18 |
-| 8 | P1 | BULKLEY RIVER (`r6:bulkley_river@6-9`) | http://127.0.0.1:5173/#r6%3Abulkley_river%406-9 |
-| 9 | P1 | WEAVER LAKE and WEAVER CREEK (`r2:weaver_lake_and_weaver_creek@2-19`) | http://127.0.0.1:5173/#r2%3Aweaver_lake_and_weaver_creek%402-19 |
-| 10 | P1 | MISSION CREEK (`r8:mission_creek@8-10`) | http://127.0.0.1:5173/#r8%3Amission_creek%408-10 |
-| 11 | Z | Trout and char daily quota (`z5:trout_char_quota`) | http://127.0.0.1:5173/#z5%3Atrout_char_quota |
-| 12 | Z | Allowable methods (`zp:allowable_methods`) | http://127.0.0.1:5173/#zp%3Aallowable_methods |
-| 13 | Z | Trout and char daily quota (`z4:trout_char_quota`) | http://127.0.0.1:5173/#z4%3Atrout_char_quota |
-| 14 | Z | Stocked lakes (`z7a:stocked_lakes`) | http://127.0.0.1:5173/#z7a%3Astocked_lakes |
-| 15 | P2 | ZEBALLOS LAKE (`r1:zeballos_lake@1-12`) | http://127.0.0.1:5173/#r1%3Azeballos_lake%401-12 |
-| 16 | P2 | MENZIES LAKE (`r3:menzies_lake@3-13`) | http://127.0.0.1:5173/#r3%3Amenzies_lake%403-13 |
-| 17 | P2 | TEEPEE LAKE (adjacent to West Road River) (`r5:teepee_lake_adjacent_to_west_road_river@5-13`) | http://127.0.0.1:5173/#r5%3Ateepee_lake_adjacent_to_west_road_river%405-13 |
-| 18 | P2 | PORTAGE LAKE (`r7:portage_lake@7-16`) | http://127.0.0.1:5173/#r7%3Aportage_lake%407-16 |
-| 19 | P3 | ELK LAKE (`r1:elk_lake@1-1`) | http://127.0.0.1:5173/#r1%3Aelk_lake%401-1 |
-| 20 | P3 | MARBLE ("Link") RIVER (only between Victoria and Alice lakes) (`r1:marble_link_river_only_between_victoria_and_alice_lakes@1-13`) | http://127.0.0.1:5173/#r1%3Amarble_link_river_only_between_victoria_and_alice_lakes%401-13 |
-| 21 | P3 | SALMO RIVER (`r4:salmo_river@4-8`) | http://127.0.0.1:5173/#r4%3Asalmo_river%404-8 |
-| 22 | P3 | LA SALLE LAKES (`r7:la_salle_lakes@7-3`) | http://127.0.0.1:5173/#r7%3Ala_salle_lakes%407-3 |
-| 23 | P4 | MATHESON LAKE (`r1:matheson_lake@1-2`) | http://127.0.0.1:5173/#r1%3Amatheson_lake%401-2 |
-| 24 | P4 | WIDGEON CREEK (`r2:widgeon_creek@2-8`) | http://127.0.0.1:5173/#r2%3Awidgeon_creek%402-8 |
-| 25 | P4 | UPPER KANE LAKE (`r3:upper_kane_lake@3-13`) | http://127.0.0.1:5173/#r3%3Aupper_kane_lake%403-13 |
-| 26 | P4 | BOOTJACK LAKE (`r5:bootjack_lake@5-2`) | http://127.0.0.1:5173/#r5%3Abootjack_lake%405-2 |
-| 27 | P4 | KITEEN RIVER (`r6:kiteen_river@6-15`) | http://127.0.0.1:5173/#r6%3Akiteen_river%406-15 |
-| 28 | P4 | CLIFFORD (Cliff ) LAKE (`r8:clifford_cliff_lake@8-5`) | http://127.0.0.1:5173/#r8%3Aclifford_cliff_lake%408-5 |
+| 1 | P1 | HATZIC LAKE AND SLOUGH (`r2:hatzic_lake_and_slough@2-8`) | http://127.0.0.1:5173/#r2%3Ahatzic_lake_and_slough%402-8 |
+| 2 | P1 | DRAGON LAKE (`r5:dragon_lake@5-2`) | http://127.0.0.1:5173/#r5%3Adragon_lake%405-2 |
+| 3 | P1 | ISKUT RIVER (`r6:iskut_river@6-21`) | http://127.0.0.1:5173/#r6%3Aiskut_river%406-21 |
+| 4 | P1 | SPROAT RIVER (`r1:sproat_river@1-7`) | http://127.0.0.1:5173/#r1%3Asproat_river%401-7 |
+| 5 | P1 | TREPANIER RIVER (`r8:trepanier_river@8-8`) | http://127.0.0.1:5173/#r8%3Atrepanier_river%408-8 |
+| 6 | P1 | HALFWAY RIVER (`r4:halfway_river@4-31`) | http://127.0.0.1:5173/#r4%3Ahalfway_river%404-31 |
+| 7 | P1 | PEACHLAND CREEK (`r8:peachland_creek@8-8`) | http://127.0.0.1:5173/#r8%3Apeachland_creek%408-8 |
+| 8 | Z | Trout and char daily quota (`z2:trout_char_quota`) | http://127.0.0.1:5173/#z2%3Atrout_char_quota |
+| 9 | Z | Okanagan Lake Dam fish passage (`z8:okanagan_dam_tagging`) | http://127.0.0.1:5173/#z8%3Aokanagan_dam_tagging |
+| 10 | Z | Single barbless hook (`z2:single_barbless_hook`) | http://127.0.0.1:5173/#z2%3Asingle_barbless_hook |
+| 11 | Z | Spring stream closure (`z5:spring_stream_closure`) | http://127.0.0.1:5173/#z5%3Aspring_stream_closure |
+| 12 | Z | Set lining (`z7b:set_lining`) | http://127.0.0.1:5173/#z7b%3Aset_lining |
+| 13 | P2 | ZEBALLOS LAKE (`r1:zeballos_lake@1-12`) | http://127.0.0.1:5173/#r1%3Azeballos_lake%401-12 |
+| 14 | P2 | MENZIES LAKE (`r3:menzies_lake@3-13`) | http://127.0.0.1:5173/#r3%3Amenzies_lake%403-13 |
+| 15 | P2 | TEEPEE LAKE (adjacent to West Road River) (`r5:teepee_lake_adjacent_to_west_road_river@5-13`) | http://127.0.0.1:5173/#r5%3Ateepee_lake_adjacent_to_west_road_river%405-13 |
+| 16 | P2 | PORTAGE LAKE (`r7:portage_lake@7-16`) | http://127.0.0.1:5173/#r7%3Aportage_lake%407-16 |
+| 17 | P3 | KINBASKET (McNaughton) LAKE'S TRIBUTARIES (`r4:kinbasket_mcnaughton_lake_s_tributaries@4-36`) | http://127.0.0.1:5173/#r4%3Akinbasket_mcnaughton_lake_s_tributaries%404-36 |
+| 18 | P3 | STRAWBERRY SLOUGH (`r2:strawberry_slough@2-8`) | http://127.0.0.1:5173/#r2%3Astrawberry_slough%402-8 |
+| 19 | P3 | MICHEL CREEK (upstream of the easternmost Hwy 3 bridge) (`r4:michel_creek_upstream_of_the_easternmost_hwy_3_bridge@4-23`) | http://127.0.0.1:5173/#r4%3Amichel_creek_upstream_of_the_easternmost_hwy_3_bridge%404-23 |
+| 20 | P3 | GRANBY RIVER (`r8:granby_river@8-15`) | http://127.0.0.1:5173/#r8%3Agranby_river%408-15 |
+| 21 | P3 | NORTH CAMERON LAKE (`r7:north_cameron_lake@7-31`) | http://127.0.0.1:5173/#r7%3Anorth_cameron_lake%407-31 |
+| 22 | P4 | LITTLE MAIN LAKE (Quadra Island) (`r1:little_main_lake_quadra_island@1-15`) | http://127.0.0.1:5173/#r1%3Alittle_main_lake_quadra_island%401-15 |
+| 23 | P4 | MAMQUAM RIVER (`r2:mamquam_river@2-7`) | http://127.0.0.1:5173/#r2%3Amamquam_river%402-7 |
+| 24 | P4 | MONTE CREEK (`r3:monte_creek@3-20`) | http://127.0.0.1:5173/#r3%3Amonte_creek%403-20 |
+| 25 | P4 | LOWER HALGRAVE LAKE (`r4:lower_halgrave_lake@4-34`) | http://127.0.0.1:5173/#r4%3Alower_halgrave_lake%404-34 |
+| 26 | P4 | JACOBIE LAKE (`r5:jacobie_lake@5-2`) | http://127.0.0.1:5173/#r5%3Ajacobie_lake%405-2 |
+| 27 | P4 | TCHESINKUT LAKE (`r6:tchesinkut_lake@6-4`) | http://127.0.0.1:5173/#r6%3Atchesinkut_lake%406-4 |
+| 28 | P4 | FRAZER LAKE (`r8:frazer_lake@8-9`) | http://127.0.0.1:5173/#r8%3Afrazer_lake%408-9 |
 | 29 | sweep | TEE PEE LAKES (`r8:tee_pee_lakes@8-6`) | http://127.0.0.1:5173/#r8%3Atee_pee_lakes%408-6 |
 | 30 | sweep | WANETA RESERVOIR (`r4:waneta_reservoir@4-8`) | http://127.0.0.1:5173/#r4%3Awaneta_reservoir%404-8 |
