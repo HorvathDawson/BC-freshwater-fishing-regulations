@@ -25,7 +25,7 @@ from pipeline.common.models import NodeKind, StreamGraph
 from pipeline.common.tolerances import SLIVER_M as _SLIVER_M
 
 #: The shortest piece a cut may leave. Two boundaries closer than this are one place by the
-#: sectionizer's own definition (`sectionizer._MERGE_PROXIMITY_M`); a piece this short is never a
+#: sectionizer's own definition (`sectionizer.AUTHORED_MERGE_M`); a piece this short is never a
 #: stretch anybody fishes or a regulation describes.
 SLIVER_M = _SLIVER_M          # 5 m, pipeline/common/tolerances.py
 

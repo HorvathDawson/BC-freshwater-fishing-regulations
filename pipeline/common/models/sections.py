@@ -21,6 +21,10 @@ class SectionBoundary:
     # recorded here instead, on the boundary that stands at the same place, so the split id still
     # resolves and the boundary can say everything it represents.
     aliases: tuple[str, ...] = ()
+    # Who made it (`SplitPoint.source`: "curated", "gauge", "area", "border", "length"; "" for a lake
+    # edge). The sectionizer's placement reads authorship from it (`sectionizer.is_authored`), never
+    # from the id's spelling (T179).
+    source: str = ""
 
 
 @dataclass(frozen=True)

@@ -36,15 +36,255 @@ _ANCHOR_KIND = {"point": BoundaryKind.split, "line": BoundaryKind.split,
                 "lake": BoundaryKind.lake, "border": BoundaryKind.border,
                 "area_boundary": BoundaryKind.area}
 
-# Route-measure radius for merge/pickup. Deliberately tiny: pickup should only reuse a boundary that
-# is effectively COINCIDENT (a lake edge / border split the curated point sits on), never collapse two
-# genuinely distinct curated cuts. Keep it decoupled from SplitDef.proximity_m — that value is the
-# (much larger) tolerance for projecting a coord onto the blue line, not a merge distance. Using it
-# here merged distinct cuts, e.g. a dam and its +100 m offset sibling.
-_MERGE_PROXIMITY_M = _tol.SLIVER_M     # 5 m: one place (pipeline/common/tolerances.py)
-# SplitDef.proximity_m default (projection tolerance). A SplitPoint carrying exactly this value has an
-# inherited default, not a deliberate pickup radius, so pickup ignores it and uses _MERGE_PROXIMITY_M.
-_DEFAULT_PROJECTION_M = 500.0
+# ------------------------------------------------------------------------------------------------
+# ONE PLACEMENT PASS (T179, owner 2026-10-24: "splits can merge with lake or gauge or other auto
+# generated splits, but also handle real splits close together").
+#
+# The old pass cut one split at a time and decided "same place?" as each arrived (`_pickup`), so the
+# result hung on ORDER and on `proximity_m` — one field read as both the projection tolerance and a
+# pickup radius, with 500 m as an "inherited" sentinel. A gauge running second relabelled the boundary
+# it reused (25 boundaries showed a station code), a gauge running first was never merged at all, and
+# authorship was read off the id spelling (`gauge__`, `area:`, ...).
+#
+# Now, per blue line, every position is COLLECTED first — the boundaries already standing (lake edges,
+# earlier passes' cuts, the natural ends) and every new point — and then PLACED:
+#   1. An AUTHORED point (`SplitPoint.source` "curated" or "", set where it is minted) takes a lake edge,
+#      a natural end or a minted boundary standing within `AUTHORED_MERGE_M` (the Stamp dam 0.5 m from
+#      Great Central Lake); an `at_edge` point reaches `AT_EDGE_M` for one (the Bella Coola head, 58 m).
+#      Nearest pair first. Two AUTHORED positions are never merged by distance — both are real — unless
+#      they are one spot written twice (`SAME_SPOT_M`: the Thompson mouth authored on both waters, the
+#      Region 2/3 line on the Spuzzum confluence). Closer than `SLIVER_M` but not one spot, both are cut,
+#      the pair is reported as a CONFLICT and the sliver gate stops the build: fix the source (the
+#      2026-10-06 ruling — no snap, no merge, no metre floor).
+#   2. An AUTO point (gauge / area / border / length) joins the nearest standing boundary or authored
+#      place within its family's `MERGE_M`; the rest cluster among themselves. It never takes a BARE
+#      natural end (that would name the end with a station code) and never relabels a name.
+#   3. Naming: an authored name wins; a lake edge yields only to an authored split (its label travels
+#      as `label:` so the registry still spells the bindable id); among auto ids border > area > gauge
+#      > length. Every other id at the place is an alias, so every id still binds.
+# Then each place is cut once. The same inputs in any order give the same boundaries.
+# ------------------------------------------------------------------------------------------------
+
+#: Families the pipeline mints. Authorship is the point's `source`, set where each family is minted
+#: (`anchors._emit`, `border`, `area_splits`, `clean_cut`, `length_splits`) — never parsed from an id.
+AUTO_SOURCES = frozenset({"gauge", "area", "border", "length"})
+
+#: An authored point this close to a lake edge, a natural end or a minted boundary IS at it: the piece
+#: between would be a sliver (pipeline/common/tolerances.py).
+AUTHORED_MERGE_M = _tol.SLIVER_M     # 5 m
+#: Two AUTHORED points closer than this are one spot written twice and share one boundary. Farther
+#: apart they are two cuts, however close.
+SAME_SPOT_M = _tol.AT_CUT_M          # 1 m
+#: How far an `at_edge` cut reaches for the lake edge / natural end / minted boundary it stands at. The
+#: eight curated cuts that used to carry a pickup radius in `proximity_m` (30-300 m) set `at_edge`.
+AT_EDGE_M = 300.0
+#: An auto family's merge distance is its own positional uncertainty. A GAUGE is a published station
+#: coordinate projected onto its channel (`gauges.consume.cuts.PROXIMITY_M`, 400 m — the value the old
+#: pickup read, one-sidedly, as its radius); area, border and length cuts are exact geometry, so they
+#: join only what IS the same point (`SAME_PLACE_M`, float identity — the 2026-10-06 ruling).
+MERGE_M = {"gauge": 400.0, "length": _tol.SAME_PLACE_M, "area": _tol.SAME_PLACE_M,
+           "border": _tol.SAME_PLACE_M}
+#: Which auto id names a place no authored name stands at.
+_AUTO_RANK = {"border": 0, "area": 1, "gauge": 2, "length": 3}
+
+
+def is_authored(source: str) -> bool:
+    """A position somebody wrote (a curated split; a lake edge, `source` ""), not one the pipeline minted."""
+    return str(source or "") not in AUTO_SOURCES
+
+
+def minted_id(split_id: str) -> bool:
+    """For a reader holding only an ID (the registry, the review app, the bundle): is it a family the
+    pipeline mints — `gauge__08HB008`, `area:6`, `border:360512399:0`, `length:356559402:23614`? The
+    placement above never asks this; it reads `source`."""
+    sid = str(split_id or "")
+    sid = sid[len("split:"):] if sid.startswith("split:") else sid
+    head = sid.split("__")[0] if "__" in sid else sid.split(":")[0]
+    return head in AUTO_SOURCES
+
+
+def _rank(source: str) -> int:
+    return -1 if is_authored(source) else _AUTO_RANK.get(str(source), len(_AUTO_RANK))
+
+
+def _merge_m(sp: SplitPoint) -> float:
+    return MERGE_M.get(sp.source, _tol.SAME_PLACE_M)
+
+
+def _is_lake(b: Optional[SectionBoundary]) -> bool:
+    return b is not None and b.kind == BoundaryKind.lake
+
+
+def _key(sp: SplitPoint):
+    return (sp.route_measure, sp.split_id, sp.source)
+
+
+class _Place:
+    """One place on a blue line: a position already standing (a piece end) or a new cut."""
+    __slots__ = ("m", "bnd", "existing", "end", "members")
+
+    def __init__(self, m, bnd=None, existing=False, end=False):
+        self.m, self.bnd, self.existing, self.end = m, bnd, existing, end
+        self.members: list[SplitPoint] = []
+
+    def authored_names(self) -> list[str]:
+        """The authored names already here: a curated cut standing, or authored points placed here."""
+        out = []
+        if self.bnd is not None and is_authored(self.bnd.source) and not _is_lake(self.bnd):
+            out.append(str(self.bnd.boundary_id))
+        return out + [f"split:{s.split_id}" for s in self.members if is_authored(s.source)]
+
+
+def _nearest(places, M: float, r: float):
+    best = None
+    for p in places:
+        d = abs(p.m - M)
+        if (d < r or d <= _tol.SAME_PLACE_M) and (best is None or (d, p.m) < (abs(best.m - M), best.m)):
+            best = p
+    return best
+
+
+def _plan_blk(graph, blk, sps, nids, conflicts=None) -> list[_Place]:
+    """COLLECT then PLACE every point of one blue line (the block comment above). Returns the places that
+    received a point, mouth to source. Pure: nothing is cut or relabelled here."""
+    pieces = [graph.nodes[n] for n in nids
+              if graph.nodes.get(n) is not None and graph.nodes[n].kind == NodeKind.stream
+              and graph.nodes[n].blk == blk]
+    standing: dict[float, _Place] = {}
+    if pieces:
+        lo = min(n.down_m for n in pieces)
+        hi = max(n.up_m for n in pieces)
+        for n in pieces:
+            for m, b in ((n.down_m, n.lower_bound), (n.up_m, n.upper_bound)):
+                p = standing.get(m)
+                if p is None:
+                    standing[m] = _Place(m, b, existing=True, end=(m <= lo or m >= hi))
+                elif p.bnd is None and b is not None:
+                    p.bnd = b
+    existing = sorted(standing.values(), key=lambda p: p.m)
+
+    # 1. AUTHORED. (a) Each takes a standing lake edge / end / minted boundary within reach, nearest pair
+    #    first, one authored point per place. (b) The rest join an authored name on the same spot, or
+    #    stand as their own cut.
+    authored = sorted((s for s in sps if is_authored(s.source)), key=_key)
+    takeable = [q for q in existing if not q.authored_names()]
+    pairs = []
+    for sp in authored:
+        reach = AT_EDGE_M if sp.at_edge else AUTHORED_MERGE_M
+        for q in takeable:
+            d = abs(q.m - sp.route_measure)
+            if d < reach or d <= _tol.SAME_PLACE_M:
+                pairs.append((d, q.m, _key(sp), sp, q))
+    taken: dict[int, _Place] = {}
+    for _d, _m, _k, sp, q in sorted(pairs, key=lambda t: t[:3]):
+        if id(sp) not in taken and not q.members:
+            q.members.append(sp)
+            taken[id(sp)] = q
+    new: list[_Place] = []
+    named = [q for q in existing if q.authored_names()]
+    for sp in authored:
+        if id(sp) in taken:
+            continue
+        p = _nearest(named + [q for q in existing if q.members] + new, sp.route_measure, SAME_SPOT_M)
+        if p is None:
+            p = _Place(sp.route_measure)
+            new.append(p)
+        p.members.append(sp)
+    if conflicts is not None:                          # too close to be two stretches, too far to be one
+        held = sorted((p.m, p.authored_names()) for p in existing + new if p.authored_names())
+        for (m1, n1), (m2, n2) in zip(held, held[1:]):
+            if m2 - m1 < _tol.SLIVER_M:
+                conflicts.append({"blk": blk, "ids": sorted(set(n1) | set(n2)), "at_m": round(m1, 2),
+                                  "distance_m": round(m2 - m1, 2)})
+
+    # 2. AUTO: the nearest standing boundary or authored place within the family's distance — never a
+    #    BARE natural end. What is left clusters among itself, mouth to source.
+    anchors = [p for p in existing if not (p.end and p.bnd is None)] + new
+    rest: list[SplitPoint] = []
+    for sp in sorted((s for s in sps if not is_authored(s.source)), key=_key):
+        p = _nearest(anchors, sp.route_measure, _merge_m(sp))
+        if p is not None:
+            p.members.append(sp)
+        else:
+            rest.append(sp)
+    clusters: list[_Place] = []
+    for sp in rest:
+        c = clusters[-1] if clusters else None
+        if c is not None and sp.route_measure - c.m < min([_merge_m(sp)] + [_merge_m(s) for s in c.members]):
+            c.members.append(sp)
+        else:
+            c = _Place(sp.route_measure)
+            c.members.append(sp)
+            clusters.append(c)
+    for c in clusters:                                # the place is its best-ranked member's
+        c.m = min(c.members, key=lambda s: (_rank(s.source),) + _key(s)).route_measure
+    return sorted((p for p in existing + new + clusters if p.members), key=lambda p: (p.m, not p.existing))
+
+
+def _canonical(place: _Place):
+    """Who names the place: a standing authored name, else the nearest authored member, else a lake edge,
+    else the best-ranked auto id (standing or new). A SectionBoundary (it keeps its id) or a SplitPoint."""
+    old = place.bnd
+    auth = [s for s in place.members if is_authored(s.source)]
+    if old is not None and is_authored(old.source) and not _is_lake(old):
+        return old
+    if auth:
+        return min(auth, key=lambda s: (abs(s.route_measure - place.m),) + _key(s))
+    if old is not None and is_authored(old.source):
+        return old                                     # a lake edge: auto never relabels a name
+    best = min(place.members, key=lambda s: (_rank(s.source), abs(s.route_measure - place.m)) + _key(s))
+    if old is not None and _rank(old.source) <= _rank(best.source):
+        return old
+    return best
+
+
+def _place_boundary(place: _Place) -> SectionBoundary:
+    """The one boundary standing at `place`: the canonical name, every other id an alias."""
+    canon = _canonical(place)
+    old = place.bnd
+    ids: set[str] = {f"split:{s.split_id}" for s in place.members}
+    if old is not None:
+        ids.add(str(old.boundary_id))
+        ids.update(old.aliases or ())
+    if isinstance(canon, SectionBoundary):
+        return replace(canon, aliases=tuple(sorted(ids - {str(canon.boundary_id)})))
+    mine = f"split:{canon.split_id}"
+    # CARRYING THE REF IS NOT CARRYING THE NAME: a displaced lake edge's ref is `lake:{wbk}`, which no
+    # rule writes; the registry spells the bindable id from the LABEL (`registry.build._expand`), so the
+    # label travels (the Sproat reach). A displaced split's ref already is its name.
+    if old is not None and old.label and not str(old.boundary_id).startswith("split:"):
+        ids.add(f"label:{old.label}")
+    return SectionBoundary(boundary_id=mine,
+                           kind=_ANCHOR_KIND.get(canon.anchor_type.value, BoundaryKind.split),
+                           route_measure=place.m, label=(canon.label or canon.split_id),
+                           aliases=tuple(sorted(ids - {mine})), source=canon.source)
+
+
+def _stream_nids_by_blk(graph, blks) -> dict[str, list[str]]:
+    out: dict[str, list[str]] = defaultdict(list)
+    for nid, n in graph.nodes.items():
+        if n.kind == NodeKind.stream and n.blk and (blks is None or n.blk in blks):
+            out[n.blk].append(nid)
+    return out
+
+
+def place_points(graph: StreamGraph, split_points: list[SplitPoint],
+                 conflicts: Optional[list] = None) -> list[SplitPoint]:
+    """Where each point WILL stand, without cutting: a copy at its place's measure, `picked_up` when it
+    joins a standing boundary or another point's cut. Lets a caller judge what depends on the cut (the
+    braid sweep) at the place the cut is made. Idempotent: `split_graph_at` places the result where this
+    said. ``conflicts`` collects every authored join `CONFLICT_M` or more apart."""
+    nids = _stream_nids_by_blk(graph, {sp.blk for sp in split_points})
+    by_blk: dict[str, list[SplitPoint]] = defaultdict(list)
+    for sp in split_points:
+        by_blk[sp.blk].append(sp)
+    out: list[SplitPoint] = []
+    for blk in sorted(by_blk):
+        for place in _plan_blk(graph, blk, by_blk[blk], nids.get(blk, ()), conflicts):
+            canon = None if place.existing else _canonical(place)
+            for sp in place.members:
+                out.append(replace(sp, route_measure=place.m, picked_up=place.existing or sp is not canon))
+    return out
 
 
 def _rebuild_adj(edges):
@@ -82,196 +322,6 @@ def _repartition(member_fids, fid_index, lo, hi):
             order = fo if order is None else (max(order, fo) if fo is not None else order)
             mag = fm if mag is None else (max(mag, fm) if fm is not None else mag)
     return order, mag, tuple(kept)
-
-
-def _blk_extent(graph, blk, by_blk=None):
-    nids = by_blk.get(blk, ()) if by_blk is not None else graph.nodes
-    ds = [graph.nodes[nid].down_m for nid in nids
-          if graph.nodes[nid].kind == NodeKind.stream and graph.nodes[nid].blk == blk]
-    us = [graph.nodes[nid].up_m for nid in nids
-          if graph.nodes[nid].kind == NodeKind.stream and graph.nodes[nid].blk == blk]
-    return (min(ds), max(us)) if ds else (None, None)
-
-
-def _pickup(graph, blk, sp, by_blk=None) -> bool:
-    """Proximity pickup (docs/04): if an existing INTERIOR boundary on ``blk`` (a lake edge, a
-    border split, or an earlier curated cut) sits within the merge radius (``_MERGE_PROXIMITY_M``,
-    or an explicitly authored ``sp.proximity_m``) of this split's measure, RELABEL it with this split
-    instead of cutting a near-duplicate. Returns True if it
-    picked up an existing boundary (so the caller skips the cut). A natural mouth or source end
-    is reachable too, but only by a CURATED split and only where the end is bare or carries a
-    lake edge — see the long comment below."""
-    lo_ext, hi_ext = _blk_extent(graph, blk, by_blk)
-    if lo_ext is None:
-        return False
-    M = sp.route_measure
-    blk_nids = list(by_blk.get(blk, ())) if by_blk is not None else list(graph.nodes)
-    # Merge radius: an explicitly authored pickup radius wins, else the tiny coincident-only default.
-    # NOT SplitDef.proximity_m (that's the projection tolerance) — see _MERGE_PROXIMITY_M.
-    radius = sp.proximity_m if 0.0 < sp.proximity_m < _DEFAULT_PROJECTION_M else _MERGE_PROXIMITY_M
-    best_m, best_d = None, radius
-    for nid in blk_nids:
-        n = graph.nodes[nid]
-        if n.kind != NodeKind.stream or n.blk != blk:
-            continue
-        for m, bnd in ((n.down_m, n.lower_bound), (n.up_m, n.upper_bound)):
-            if m <= lo_ext or m >= hi_ext:
-                # THE END OF THE LINE IS NOT NOTHING.
-                #
-                # The first version of this refused every natural end, on the reasoning that a
-                # mouth is where the water stops being itself, so snapping a cut there turns
-                # "downstream of X" into the whole river. That danger is real, but it is the
-                # RADIUS that holds it off, not this test: a split only reaches an end it is
-                # already within a few metres of, and at that distance "the whole river" and
-                # "all but 58 m of it" are not two different rivers. What the refusal actually
-                # produced was the sliver — a cut a stone's throw from the end, and a stretch
-                # the page draws as 0 km with a name on both sides of it.
-                #
-                # Two ends may now be taken, for opposite reasons:
-                #
-                #   a LAKE EDGE, because it is a real named bound and rules bind to it. The Stamp
-                #   River is the case: its blue line stops at 20,232 m, the Great Central Lake
-                #   edge sits ON that end, and the dam at the lake's outlet resolves 0.5 m away —
-                #   refused purely for being at the end, leaving two boundaries at one place.
-                #
-                #   a BARE END, because there is nothing there to lose. No boundary object means
-                #   no id, no alias, nothing a rule could already be bound to — the pickup only
-                #   moves the cut onto the end and names it. The Bella Coola is the case: its
-                #   head is the confluence where the Talchako meets the Atnarko, FWA leaves no
-                #   boundary there, and the curated Talchako split landed 58 m below it. That
-                #   58 m became its own stretch, "From Talchako River -> Bella Coola River To the
-                #   head", which is not a reach anybody wrote a regulation about.
-                #
-                # Any OTHER bound at an end is still refused — an end already claimed by another
-                # curated split is a collision, not a pickup.
-                #
-                # AND ONLY A CURATED SPLIT MAY TAKE AN END AT ALL.
-                #
-                # NOT because a minted split is a lesser name — rules bind to twelve `gauge__`
-                # stations across all seven catalogue files, and `parse_context` shows those ids
-                # to the parser on purpose. The reason is narrower: a pickup RELABELS, and the
-                # relabel can destroy a name something else resolves THROUGH. `gauge__08HB008`
-                # sat half a metre from the Sproat Lake edge — inside any radius, so distance was
-                # never going to catch it — and taking that edge cost `sproat_river__sproat_lake`
-                # the boundary it resolves through, collapsing "No Fishing from Sproat Lake to the
-                # Hwy 4 signs" to an empty reach. The displaced id IS carried forward as an alias,
-                # and it did not save the reach because the alias was the wbk ref rather than the
-                # bindable name — fixed below, see the `label:` note in the `prior` loop. The
-                # naming rule stands anyway: a minted id is not worth a relabel.
-                #
-                # So this is a naming rule, not a geometric one, and the radius cannot stand in
-                # for it. Two known gaps, both deliberate to leave until the alias path is sound:
-                # this test runs only in the natural-end branch, so an auto split may still
-                # relabel an INTERIOR lake edge; and it reads authorship off the id spelling,
-                # which is a list that has already been wrong once — it belongs on SplitPoint,
-                # set where each family is minted.
-                # A LAKE EDGE at the end is the one exception for an auto split: it may DEFER to
-                # it (the edge keeps its id, kind and label; the minted id joins as an alias, below)
-                # — there is no name to lose, and the cut it would otherwise make is a sliver: the
-                # Quinsam's gauge 08HD034 sits 1.95 m below Lower Quinsam Lake's edge.
-                at_lake = bnd is not None and str(bnd.boundary_id).startswith("lake:")
-                if _auto_split(sp.split_id) and not at_lake:
-                    continue
-                if bnd is not None and not at_lake:
-                    continue
-            d = abs(m - M)
-            if d <= best_d:
-                best_m, best_d = m, d
-    if best_m is None:
-        return False
-    # Pickup RELABELS the boundary it reuses, so every id that already named this position has to be
-    # carried forward as an alias or it is destroyed. The Region 2/3 MU boundary on the Fraser lands
-    # at exactly the same measure as the Spuzzum Creek confluence — the region boundary follows the
-    # creek — so whichever was cut second silently erased the other, and the rule bound to the loser
-    # ("between Spuzzum Creek and Hell's Gate") resolved to nothing with no indication why.
-    prior: set[str] = set()
-    incumbent = None
-    for nid in blk_nids:
-        n = graph.nodes[nid]
-        if n.kind != NodeKind.stream or n.blk != blk:
-            continue
-        for b in (n.lower_bound, n.upper_bound):
-            if b is not None and abs(b.route_measure - best_m) < 1e-6:
-                prior.add(b.boundary_id)
-                prior.update(b.aliases or ())
-                if incumbent is None and _is_authored(b.boundary_id):
-                    incumbent = b
-                # CARRYING THE REF IS NOT CARRYING THE NAME.
-                #
-                # A split's ref is literally `split:` + the id a rule binds, so carrying the ref
-                # carries the name with it. A lake's is `lake:329016195` — a wbk nobody writes. The
-                # id a rule actually binds is the one the REGISTRY derives from the label
-                # (`stamp_river__great_central_lake`), and that spelling existed nowhere in the
-                # alias, so a displaced lake edge came back unbindable even though it was "kept".
-                # That is why the Sproat alias did not save the reach.
-                #
-                # The label travels instead of a slug: this module must not own a second copy of
-                # the readable-id rule, or the two spellings drift and the alias silently stops
-                # matching again. `registry.build` owns it and expands `label:` — see `_expand`.
-                if b.label and not str(b.boundary_id).startswith("split:"):
-                    prior.add(f"label:{b.label}")
-    mine = f"split:{sp.split_id}"
-    if _auto_split(sp.split_id) and incumbent is not None:
-        # DEFERRING MEANS KEEPING THE NAME, NOT JUST THE POSITION.
-        #
-        # `build.py` orders gauge cuts after the curated ones and says why: "authored geometry is
-        # the primary boundary; a gauge defers to it." The pickup did the opposite. It always
-        # handed the id AND the label to the INCOMING split, so running second is what made the
-        # gauge win — 25 boundaries province-wide were displaying a station code in place of the
-        # thing the regulation names: "signs 80 m downstream of adult fish counting fence" on the
-        # Babine, "tidal boundary at papermill dam" on the Somass, "signs 50 m downstream of Likely
-        # Bridge" on the Quesnel. Each one still RESOLVED — the displaced id is an alias — so
-        # nothing failed; the water was just labelled with a number nobody writes on a page.
-        #
-        # An auto split is a position, not a name (`_AUTO_SPLIT_PREFIXES`). So it takes the
-        # position and leaves the name alone: the incumbent keeps id, kind and label, and the
-        # minted id joins as an alias. Both still bind — `parse_context` prints an alias as "also
-        # written", and ingest rewrites it to the canonical id — so this only changes WHICH of the
-        # pair is canonical, in favour of the one a person authored.
-        #
-        # This is the interior half of the rule the natural-end branch above already enforces.
-        bnd = replace(incumbent, aliases=tuple(sorted((prior | {mine}) - {incumbent.boundary_id})))
-    else:
-        bnd = SectionBoundary(boundary_id=mine,
-                              kind=_ANCHOR_KIND.get(sp.anchor_type.value, BoundaryKind.split),
-                              route_measure=best_m, label=(sp.label or sp.split_id),
-                              aliases=tuple(sorted(prior - {mine})))
-    for nid in blk_nids:
-        n = graph.nodes[nid]
-        if n.kind != NodeKind.stream or n.blk != blk:
-            continue
-        if abs(n.up_m - best_m) < 1e-6:
-            graph.nodes[nid] = replace(n, upper_bound=bnd)
-        if abs(n.down_m - best_m) < 1e-6:
-            graph.nodes[nid] = replace(n, lower_bound=bnd)
-    return True
-
-
-#: Split families the pipeline mints itself. They are positions, not names anybody binds to, so
-#: they may never relabel a named boundary at a natural end — see `_pickup`.
-_AUTO_SPLIT_PREFIXES = frozenset({"gauge", "area", "border", "length"})
-
-
-def _auto_split(split_id: str) -> bool:
-    """A split the pipeline minted itself, by either of the two spellings it uses.
-
-    `gauge__08HB008` separates with a double underscore; `area:6`, `border:360512399:0` and
-    `length:356559402:23614` separate with a colon. Testing only the first — which is what the
-    first version of this did — let every area, border and length split through.
-    """
-    head = split_id.split("__")[0] if "__" in split_id else split_id.split(":")[0]
-    return head in _AUTO_SPLIT_PREFIXES
-
-
-def _is_authored(boundary_id: str) -> bool:
-    """Is this boundary a NAME (something a page could say), rather than a minted position?
-
-    A curated split and a lake edge are both names — "McIntyre Dam", "Great Central Lake" — and a
-    rule can bind either. `gauge__08NM247`, `area:6`, `border:…` and `length:…` are positions the
-    pipeline invented. The distinction is what lets an auto split defer instead of relabel.
-    """
-    bid = str(boundary_id or "")
-    return bool(bid) and not _auto_split(bid[len("split:"):] if bid.startswith("split:") else bid)
 
 
 _ALIAS_MAX_FROM_EDGE_M = 3000.0   # how far into the lake a split may sit and still mean its edge
@@ -394,8 +444,10 @@ def _coincident(graph, blk, sp, by_blk=None) -> bool:
 
 
 def _split_one(graph, geoms, blk, sp, fid_index, by_blk=None, edges_by_to=None,
-               edges_by_from=None) -> bool:
-    M = sp.route_measure
+               edges_by_from=None, bnd: Optional[SectionBoundary] = None) -> bool:
+    """Cut the piece around ``sp.route_measure``; the new bound is ``bnd`` (a placed boundary) or one
+    minted from ``sp``."""
+    M = sp.route_measure if bnd is None else bnd.route_measure
     pid = _find_piece(graph, blk, M, by_blk)
     if pid is None:
         return False                          # measure at a boundary / in a lake / off-blk
@@ -403,9 +455,10 @@ def _split_one(graph, geoms, blk, sp, fid_index, by_blk=None, edges_by_to=None,
     if hi_id == pid or hi_id in graph.nodes:
         return False                          # degenerate or id collision — skip
     P = graph.nodes[pid]
-    bnd = SectionBoundary(boundary_id=f"split:{sp.split_id}",
-                          kind=_ANCHOR_KIND.get(sp.anchor_type.value, BoundaryKind.split),
-                          route_measure=M, label=(sp.label or sp.split_id))
+    if bnd is None:
+        bnd = SectionBoundary(boundary_id=f"split:{sp.split_id}",
+                              kind=_ANCHOR_KIND.get(sp.anchor_type.value, BoundaryKind.split),
+                              route_measure=M, label=(sp.label or sp.split_id), source=sp.source)
 
     cx = cy = 0.0
     g = geoms.get(pid)
@@ -480,59 +533,87 @@ def _split_one(graph, geoms, blk, sp, fid_index, by_blk=None, edges_by_to=None,
 
 
 def split_graph_at(graph: StreamGraph, geoms: dict, split_points: list[SplitPoint],
-                   fid_index: Optional[dict] = None, proximity_pickup: bool = False,
-                   applied: Optional[list] = None, aliased: Optional[list] = None) -> StreamGraph:
-    """Subdivide piece nodes at curated ``split_points`` (in place); rebuild adjacency.
+                   fid_index: Optional[dict] = None, exact: bool = False,
+                   applied: Optional[list] = None, aliased: Optional[list] = None,
+                   conflicts: Optional[list] = None) -> StreamGraph:
+    """Subdivide piece nodes at ``split_points`` (in place); rebuild adjacency.
 
-    Splits on one BLK are applied mouth→source so each lands in the current top piece.
+    Each blue line's points are PLACED together first (`_plan_blk`: collect every standing position and
+    every point, merge auto into names, keep real cuts apart) and each place is then cut once, so the
+    result does not depend on the order the points arrive in. ``exact`` skips placement — every point is
+    cut where it is unless it IS a standing boundary (`_coincident`): the braid cuts, which must sit on
+    the chord their host cut was judged by.
     ``fid_index`` (fid -> (down_m, up_m, order, magnitude)) enables per-piece order/magnitude
     re-partitioning; omit it (synthetic tests) to keep the parent piece's values.
-    ``proximity_pickup``: reuse an existing interior boundary (lake/border/earlier cut) within
-    ``proximity_m`` instead of cutting a near-duplicate — how the Kootenay "Idaho border" and
-    "Koocanusa Reservoir" curated points snap onto the auto border splits (docs/04).
-    ``applied`` (optional): each SplitPoint that landed is appended, with ``picked_up`` set — the
-    record the gpkg ``split_points`` layer + ``splits.resolved.json`` consume.
-    ``aliased`` (optional): ``(split_id, boundary_id)`` for each split that could not be cut and was
-    recorded as an ALIAS on an existing boundary instead — see ``_alias_onto_nearest``.
+    ``applied`` (optional): each SplitPoint, at the measure it was placed at, with ``picked_up`` set when
+    it joined a standing boundary or another point's cut — the record ``splits.resolved.json`` consumes.
+    ``aliased`` (optional): ``(split_id, boundary_id, distance)`` for each split that could not be cut
+    because it landed in a lake run and was recorded as an ALIAS on the lake's edge (`_alias_onto_lake`).
+    ``conflicts`` (optional): authored cuts joined because they stood under `AUTHORED_MERGE_M` apart.
     """
     from dataclasses import replace as _replace
     # Indexes built ONCE (maintained incrementally by _split_one): node ids per blk, and edge ids per
     # to_node. They turn each split's piece-find + tributary-reattach from O(all nodes)+O(all edges)
     # into O(local) — the fix for the border stage's ~1600s split cost.
-    node_by_blk: dict[str, list[str]] = defaultdict(list)
-    for nid, n in graph.nodes.items():
-        if n.kind == NodeKind.stream and n.blk:
-            node_by_blk[n.blk].append(nid)
+    node_by_blk = _stream_nids_by_blk(graph, None)
     edges_by_to: dict[str, list[int]] = defaultdict(list)
     edges_by_from: dict[str, list[int]] = defaultdict(list)
     for i, e in enumerate(graph.edges):
         edges_by_to[e.to_node].append(i)
         edges_by_from[e.from_node].append(i)
 
+    def _lake_alias(blk, sp):
+        # No piece to cut. If it landed in a LAKE RUN, record it as another name for that lake's
+        # boundary instead of dropping it silently; anything else stays missing. Only for a caller that
+        # asked (`aliased` given) — the CURATED pass, whose split ids rules actually bind.
+        if aliased is not None:
+            got = _alias_onto_lake(graph, blk, sp, node_by_blk)
+            if got is not None:
+                aliased.append((sp.split_id, got[0], round(got[1], 1)))
+
     sp_by_blk: dict[str, list[SplitPoint]] = defaultdict(list)
     for sp in split_points:
         sp_by_blk[sp.blk].append(sp)
-    for blk, sps in sp_by_blk.items():
-        for sp in sorted(sps, key=lambda s: s.route_measure):
-            picked = _pickup(graph, blk, sp, node_by_blk) if proximity_pickup else False
-            if not picked:
+    placed_by_blk: dict[str, list[SplitPoint]] = defaultdict(list)   # where each point stands
+    for blk in sorted(sp_by_blk):
+        sps = sp_by_blk[blk]
+        if exact:
+            for sp in sorted(sps, key=_key):
                 picked = _coincident(graph, blk, sp, node_by_blk)
+                if not picked and not _split_one(graph, geoms, blk, sp, fid_index, node_by_blk,
+                                                 edges_by_to, edges_by_from):
+                    _lake_alias(blk, sp)
+                placed_by_blk[blk].append(sp)
+                if applied is not None:
+                    applied.append(_replace(sp, picked_up=picked))
+            continue
+        for place in _plan_blk(graph, blk, sps, node_by_blk.get(blk, ()), conflicts):
+            bnd = _place_boundary(place)
+            canon = _canonical(place)
             cut = False
-            if not picked:
-                cut = _split_one(graph, geoms, blk, sp, fid_index, node_by_blk, edges_by_to,
-                                 edges_by_from)
-                if not cut and aliased is not None:
-                    # No piece to cut. If it landed in a LAKE RUN, record it as another name for that
-                    # lake's boundary instead of dropping it silently; anything else stays missing.
-                    # Only for a caller that asked (`aliased` given) — the CURATED pass, whose split
-                    # ids rules actually bind. The border pass shares this function but mints
-                    # `border:{blk}:{m}` ids that nothing binds, so aliasing them is pure noise.
-                    got = _alias_onto_lake(graph, blk, sp, node_by_blk)
-                    if got is not None:
-                        aliased.append((sp.split_id, got[0], round(got[1], 1)))
-            if applied is not None:
-                applied.append(_replace(sp, picked_up=picked))
-    _name_the_crossings(graph, sp_by_blk, node_by_blk)
+            if place.existing:
+                for nid in node_by_blk.get(blk, ()):        # the bound is shared by the pieces it separates
+                    n = graph.nodes[nid]
+                    patch = {}
+                    if abs(n.up_m - place.m) < 1e-6:
+                        patch["upper_bound"] = bnd
+                    if abs(n.down_m - place.m) < 1e-6:
+                        patch["lower_bound"] = bnd
+                    if patch:
+                        graph.nodes[nid] = _replace(n, **patch)
+            else:
+                cut = _split_one(graph, geoms, blk, canon, fid_index, node_by_blk, edges_by_to,
+                                 edges_by_from, bnd=bnd)
+                if not cut:
+                    for sp in place.members:
+                        _lake_alias(blk, sp)
+            for sp in place.members:
+                at = _replace(sp, route_measure=place.m,
+                              picked_up=place.existing or (cut and sp is not canon))
+                placed_by_blk[blk].append(at)
+                if applied is not None:
+                    applied.append(at)
+    _name_the_crossings(graph, placed_by_blk, node_by_blk)
     graph.up_adj, graph.down_adj = _rebuild_adj(graph.edges)
     return graph
 

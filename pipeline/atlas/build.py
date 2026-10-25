@@ -723,10 +723,10 @@ def main() -> None:
         # written by `match` (raw) then `promote` (the curated file, T94) and read
         # by this and by `pipeline.deliver.bundle`. `pipeline/gauges/consume/cuts.py` draws the flow.
         #
-        # AFTER the curated ones, and that order is load-bearing rather than tidy: proximity
-        # pickup means a station near a hand-authored boundary REUSES it instead of cutting a
-        # near-duplicate a few metres away, and a split can only pick up a boundary that is
-        # already there. Authored geometry is the primary boundary; a gauge defers to it.
+        # Their ORDER no longer matters (T179): the sectionizer places every point of a blue line
+        # together, and a station within `sectionizer.MERGE_M["gauge"]` of a hand-authored boundary,
+        # a lake edge or another cut joins it as an alias instead of cutting a near-duplicate.
+        # Authored geometry is the primary boundary; a gauge defers to it.
         #
         # Appended rather than resolved separately so there is ONE resolver, one set of rules
         # about braids and offsets and proximity, and one place a curator reviews every cut in
@@ -776,7 +776,7 @@ def main() -> None:
     if splits:
         from pipeline.atlas.splits.anchors import resolve_split_defs
         from pipeline.common.models import AnchorType
-        from pipeline.atlas.splits.sectionizer import split_graph_at
+        from pipeline.atlas.splits.sectionizer import place_points, split_graph_at
         mu_polys = (get_mu_polys(fwa) if any(s.anchor.type == AnchorType.mu_boundary for s in splits)
                     else None)
         area_specs = [(s.anchor.area_layer, s.anchor.area_name_field, s.anchor.area_name)
@@ -784,27 +784,43 @@ def main() -> None:
         area_polys = get_area_polys(fwa, area_specs, bbox=bbox) if area_specs else None
         pts = resolve_split_defs(splits, chains, mu_polys=mu_polys, area_polys=area_polys,
                                  live_blks={n.blk for n in graph.nodes.values() if n.blk})
+        # ONE PLACEMENT (T179): where every curated + gauge point will stand, decided together and
+        # before anything is cut, so the braid sweep below judges each cut where it is made.
+        _conflicts: list = []
+        pts = place_points(graph, pts, conflicts=_conflicts)
+        if _conflicts:
+            # Two authored cuts closer than a sliver and not one spot: both are cut, so the sliver gate
+            # below stops the build on them. Named here, where the cause is.
+            print(f"  ** {len(_conflicts)} pair(s) of authored cuts too close to be two stretches — "
+                  "fix the source (split_conflicts.json):")
+            for _c in _conflicts[:20]:
+                print(f"      {' ~ '.join(_c['ids'])}  ({_c['distance_m']} m, blk {_c['blk']})")
+        Path(args.out).mkdir(parents=True, exist_ok=True)
+        (Path(args.out) / "split_conflicts.json").write_text(json.dumps(_conflicts, indent=1) + "\n")
         # THE BRAID SWEEP (T67): which side channels each cut must also cut — only a network that
         # attaches to the host on BOTH sides of the cut, only the host's own water — judged on the graph
         # BEFORE these cuts are made. Applied after them, below.
         from pipeline.atlas.splits import braid_sweep as _bs
         from pipeline.atlas.splits.anchors import confluence_mouths
-        _sweep = _bs.sweep(graph, geoms, pts, mouths=confluence_mouths(splits, chains))
+        # A minted point that JOINED a place makes no cut of its own: the place's name cuts, and is
+        # swept. (The old pass swept a deferring gauge at its own measure, up to 400 m from any cut.)
+        from pipeline.atlas.splits.sectionizer import is_authored as _authored
+        _swept = [p for p in pts if not (p.picked_up and not _authored(p.source))]
+        _sweep = _bs.sweep(graph, geoms, _swept, mouths=confluence_mouths(splits, chains))
         print(f"  braid sweep: {len(_sweep.points)} braid cut(s), {len(_sweep.rehomes)} junction "
               f"re-home(s); cases {_sweep.counts()}")
-        # Area cuts are the PRIMARY boundary of a closure (never a relabel of an existing one), so
-        # they run with proximity-pickup OFF and separately from the pickup-enabled point/line/lake
-        # cuts. Everything still runs BEFORE any tributary walk so each piece is a first-class node.
+        # Area cuts run in their own call because each is followed by its inside marking; they are
+        # placed with the rest above. Everything still runs BEFORE any tributary walk so each piece is
+        # a first-class node.
         area_pts = [p for p in pts if p.anchor_type == AnchorType.area_boundary]
         other_pts = [p for p in pts if p.anchor_type != AnchorType.area_boundary]
         aliased_splits: list = []
-        split_graph_at(graph, geoms, other_pts, fid_index, proximity_pickup=True,
+        split_graph_at(graph, geoms, other_pts, fid_index,
                        applied=applied_splits, aliased=aliased_splits)
         if area_pts:
             from pipeline.atlas.splits.anchors import _target_blks
             from pipeline.atlas.splits.border import mark_inside_area
-            split_graph_at(graph, geoms, area_pts, fid_index, proximity_pickup=False,
-                           applied=applied_splits)
+            split_graph_at(graph, geoms, area_pts, fid_index, applied=applied_splits)
             for s in splits:
                 poly = (area_polys or {}).get(s.anchor.area_name) if s.anchor.type == AnchorType.area_boundary else None
                 if poly is not None:
@@ -812,16 +828,16 @@ def main() -> None:
                     marked = mark_inside_area(graph, geoms, poly, s.label, blks=blks)
                     print(f"  area '{s.label}': cut {sum(1 for p in area_pts if p.split_id == s.id)} "
                           f"crossing(s), flagged {marked} inside piece(s)")
-        # The braid cuts, in their OWN pass with pickup OFF: each sits at least `END_M` inside its piece,
+        # The braid cuts, in their OWN pass, EXACT (not placed): each sits at least `END_M` inside its piece,
         # so it never lands on, relabels or aliases a lake edge or any other boundary. Then the edges
         # touching the networks are made consistent by geometry, the junctions at a cut re-homed, and
         # what still straddles is reported (the reach's gate holds it at 0).
         if _sweep.points:
-            split_graph_at(graph, geoms, _sweep.points, fid_index, proximity_pickup=False,
+            split_graph_at(graph, geoms, _sweep.points, fid_index, exact=True,
                            applied=applied_splits)
         _rehomed = _bs.apply_rehomes(graph, _sweep.rehomes)
-        _moved = _bs.rehome_host_edges(graph, geoms, pts) + _bs.make_edges_consistent(graph, geoms, _sweep)
-        _resid = _bs.residual_straddles(graph, geoms, pts)
+        _moved = _bs.rehome_host_edges(graph, geoms, _swept) + _bs.make_edges_consistent(graph, geoms, _sweep)
+        _resid = _bs.residual_straddles(graph, geoms, _swept)
         print(f"  braid sweep applied: {_rehomed} junction edge(s) re-homed, {len(_moved)} edge(s) made "
               f"side-consistent; {len(_resid)} network(s) still straddle a cut")
         _bs.write_record(Path(args.out) / "braid_sweep.json", _sweep, _moved, _resid, stage="curated")
@@ -915,7 +931,7 @@ def main() -> None:
                 live = {n.blk for n in graph.nodes.values()}
                 apts = [p for p in apts if p.blk in live]
                 before = len(applied_splits)
-                split_graph_at(graph, geoms, apts, fid_index, proximity_pickup=False, applied=applied_splits)
+                split_graph_at(graph, geoms, apts, fid_index, applied=applied_splits)
                 done = len(applied_splits) - before
                 note = "" if done == len(apts) else f"  ** {len(apts) - done} not applied **"
                 print(f"  area '{ad['id']}': {len(polys)} polygon(s), "
@@ -938,7 +954,7 @@ def main() -> None:
     if args.max_section_km and args.max_section_km > 0:
         from pipeline.common.models import NodeKind as _LenNK
         from pipeline.atlas.splits.length_splits import junction_cuts
-        from pipeline.atlas.splits.sectionizer import split_graph_at
+        from pipeline.atlas.splits.sectionizer import place_points, split_graph_at
         _cap_m = args.max_section_km * 1000.0
         # `fid_index` snaps each cut onto the FWA segment boundary at the confluence, so
         # the pieces repartition cleanly and each gets its OWN order and magnitude.
@@ -949,6 +965,7 @@ def main() -> None:
         _len_pts = junction_cuts(graph, cap_m=_cap_m, fid_index=fid_index,
                                  spanned=lambda blk, m: _bs.spans_a_braid(_len_view, blk, m),
                                  skipped=_skipped)
+        _len_pts = place_points(graph, _len_pts)        # T179: placed before the sweep judges them
         # THE SWEEP RUNS ON THE LENGTH CUTS TOO (owner 2026-10-24: every split kind, one gate) — and must
         # find nothing to cut: a length cut that catches a braid means the junction choice failed.
         _len_sweep = _bs.sweep(graph, geoms, _len_pts, view=_len_view)
@@ -962,8 +979,7 @@ def main() -> None:
                              "junction choice failed — see braid_sweep_length.json")
         if _len_pts:
             _before = len(graph.nodes)
-            split_graph_at(graph, geoms, _len_pts, fid_index, proximity_pickup=False,
-                           applied=applied_splits)
+            split_graph_at(graph, geoms, _len_pts, fid_index, applied=applied_splits)
             # a braid's own mouth AT a length cut keeps the side the rest of the braid is on, and an edge
             # FWA's x/y hung on the wrong side of a length cut is re-homed by geometry
             _bs.apply_rehomes(graph, _len_sweep.rehomes)

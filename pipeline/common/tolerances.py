@@ -11,7 +11,7 @@ ONE PLACE
     SAME_PLACE_M       two computations of ONE point agree to ~1e-9 m; this is float identity, not a positional
                        tolerance (`sectionizer._coincident`, `clean_cut`, `border`).
     SLIVER_M           the shortest piece a cut may leave; two boundaries closer than this are one place
-                       (`sliver_gate.SLIVER_M`, `sectionizer._MERGE_PROXIMITY_M`, `clean_cut.DIP_M`).
+                       (`sliver_gate.SLIVER_M`, `sectionizer.AUTHORED_MERGE_M`, `clean_cut.DIP_M`).
 
 AT THE CUT
     AT_CUT_M           a join within this of a cut stands AT it (`at_cut`; the bundle's cut names, `spans`).

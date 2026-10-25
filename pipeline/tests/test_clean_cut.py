@@ -127,7 +127,7 @@ def test_membership_of_a_clean_area_is_the_cutters_inside_not_an_overlap_test():
 
 # ---- one place, one cut ---------------------------------------------------------------------------
 def _sp(sid, m, anchor):
-    return SplitPoint(sid, "X", m, "", sid, anchor, source="t")
+    return SplitPoint(sid, "X", m, "", sid, anchor, source=sid.split(":")[0])
 
 
 def test_a_region_cut_at_the_border_cut_is_its_alias_and_the_border_keeps_the_name():

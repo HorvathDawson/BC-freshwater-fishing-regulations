@@ -36,8 +36,8 @@ THE RULE, made exact:
    carry x/y 0.5–2 km off.
 
 The braid SplitPoints carry the host split's `split_id`, label, anchor type and source, with
-`concern: "braid cut …"`; `build.py` applies them in their own `split_graph_at` call with proximity pickup
-OFF, and each crossing is at least `END_M` inside its piece, so a braid cut never lands on, relabels or
+`concern: "braid cut …"`; `build.py` applies them in their own `split_graph_at` call with `exact=True`
+(not placed: T179), and each crossing is at least `END_M` inside its piece, so a braid cut never lands on, relabels or
 aliases a lake edge or any other boundary.
 
 Pure geometry and topology, sorted iteration, no clocks. The same gate decides where the automatic length

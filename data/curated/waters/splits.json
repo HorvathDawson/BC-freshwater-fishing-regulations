@@ -253,7 +253,8 @@
       -125.33989,
       50.04179
      ],
-     "proximity_m": 60.0
+     "proximity_m": 60.0,
+     "at_edge": true
     },
     {
      "id": "campbell_river__strathcona_dam_100_m_downstream",
@@ -2706,6 +2707,7 @@
      "label": "Vedder Crossing Bridge",
      "kind": "point",
      "proximity_m": 30,
+     "at_edge": true,
      "anchor": {
       "type": "point",
       "coord": [
@@ -2714,7 +2716,7 @@
       ],
       "is_lonlat": true
      },
-     "note": "targets the VEDDER (gnis 3062), not the waterbody's primary Chilliwack (8634). Vedder Crossing is where the Chilliwack becomes the Vedder, so on the Chilliwack blue line it falls at measure 0 — the natural mouth, where a boundary already exists — and the cut silently did nothing. On the Vedder it is interior (12925 of 12950) and cuts. 2026-10-10 (user: 'above Vedder Crossing shouldn't exist for the Vedder — it should be where Vedder turns into Chilliwack'): the bridge projects to 12,923.7 m, but FWA draws the Vedder blue line on to 12,950.7 m — 1.6 m to the Chilliwack mouth (12,925.3) then a 25.4 m dead-end Vedder stub. A cut at the projection left that 27 m as a Vedder stretch ABOVE the crossing. proximity_m 30 lets the cut pick up the Vedder line's bare END (sectionizer._pickup), so the bridge IS the Vedder's top and the Vedder has no water above it; the Chilliwack starts there.",
+     "note": "targets the VEDDER (gnis 3062), not the waterbody's primary Chilliwack (8634). Vedder Crossing is where the Chilliwack becomes the Vedder, so on the Chilliwack blue line it falls at measure 0 — the natural mouth, where a boundary already exists — and the cut silently did nothing. On the Vedder it is interior (12925 of 12950) and cuts. 2026-10-10 (user: 'above Vedder Crossing shouldn't exist for the Vedder — it should be where Vedder turns into Chilliwack'): the bridge projects to 12,923.7 m, but FWA draws the Vedder blue line on to 12,950.7 m — 1.6 m to the Chilliwack mouth (12,925.3) then a 25.4 m dead-end Vedder stub. A cut at the projection left that 27 m as a Vedder stretch ABOVE the crossing. at_edge lets the cut take the Vedder line's bare END (sectionizer placement, T179; proximity_m 30 is only the projection tolerance now), so the bridge IS the Vedder's top and the Vedder has no water above it; the Chilliwack starts there.",
      "_note": "[auto-proposal L] Tamihi Rapids Bridge & Vedder Crossing Bridge on Chilliwack/Vedder River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Tamihi (Rapids) Bridge and Vedder Crossing Bridge on the Chilliwack/Vedder; both well-known -> review.. Reach between two named road bridges near Chilliwack (MU 2-?). Both are public bridges (not FWA). The FSR crossings found (CENTRE/RADIUM at 37-47 km) are far upstream in the Chilliwack valley, not these lower bridges. [structural-split 2026-08-05 from “downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge”] boundary=Vedder Crossing Bridge [curated 2026-08-07 manual-review batch=chilliwack] [Vedder Crossing Bridge]",
      "_coord": [
       -121.9646,
@@ -4393,7 +4395,8 @@
       -117.77353,
       49.34196
      ],
-     "proximity_m": 80.0
+     "proximity_m": 80.0,
+     "at_edge": true
     },
     {
      "id": "columbia_river__washington_state_border",
@@ -5077,7 +5080,8 @@
       -117.46642,
       49.4676
      ],
-     "proximity_m": 300.0
+     "proximity_m": 300.0,
+     "at_edge": true
     },
     {
      "id": "kootenay_river__brilliant_dam",
@@ -5400,7 +5404,8 @@
       -117.61186,
       49.0039
      ],
-     "proximity_m": 80.0
+     "proximity_m": 80.0,
+     "at_edge": true
     },
     {
      "id": "pend_d_oreille_river__seven_mile_dam",
@@ -5897,7 +5902,8 @@
      "applies_to": {
       "wsc": "910-275583"
      },
-     "proximity_m": 100.0
+     "proximity_m": 100.0,
+     "at_edge": true
     },
     {
      "id": "atnarko_bella_coola_rivers_includes_tributaries_exce__young_creek_into_atnarko_river",
@@ -9262,7 +9268,8 @@
       -115.35084,
       49.49944
      ],
-     "proximity_m": 60.0
+     "proximity_m": 60.0,
+     "at_edge": true
     },
     {
      "id": "bull_river__galbraith_creek_confl",
@@ -9450,7 +9457,8 @@
      },
      "note": "",
      "_note": "[dfo-salmon 2026-09-02] DFO r2: 'downstream of the confluence of Cedar Creek and Hyde Creek.' Only the HYDE CREEK end is written here — the 'Cedar Creek' in that text resolves to gnis:11727 in the Kootenays (wsc 300-432687-...), a name collision, and the real Cedar Creek is still to be identified. Derived from FWA topology, not a coordinate: Hyde Creek's wsc 100-025956-070515-996760 is a child of the mainstem's, which is the test that distinguished it from same-named creeks in other watersheds.",
-     "proximity_m": 30.0
+     "proximity_m": 30.0,
+     "at_edge": true
     }
    ]
   },

@@ -128,7 +128,11 @@ from typing import Callable
 #: 33: (T152) NOT FISHING WATER: a sewage settling basin, mine tailing pond or dump (the polygon's FWA
 #:     FEATURE_CODE, stamped by the atlas as `StreamNode.not_fishing`) is taken out of every binding
 #:     (`classify.apply_limits`, limit `not_fishing_water`).
-POLICY_VERSION = "33"
+#: 34: (T179, owner 2026-10-24) ONE CUT-PLACEMENT PASS: the atlas places every cut of a blue line together
+#:     (`sectionizer._plan_blk`) — a gauge joins a name within 400 m on EITHER side, two authored cuts are
+#:     never merged by distance, `at_edge` replaces the per-split pickup radii — so the sections a rule
+#:     binds move. No classify.py outcome changed; the bump marks the binding diff.
+POLICY_VERSION = "34"
 
 
 def entry_key(entry: dict, build_id: str, policy_version: str = POLICY_VERSION) -> str:

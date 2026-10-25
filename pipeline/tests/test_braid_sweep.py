@@ -75,8 +75,8 @@ def _cut(sid, m, blk="H", source="curated"):
 def _apply(g, geoms, pts):
     """What build.py does: sweep on the uncut graph, cut the hosts, cut the braids, edges, re-homes."""
     res = BS.sweep(g, geoms, pts)
-    split_graph_at(g, geoms, pts, proximity_pickup=True)
-    split_graph_at(g, geoms, res.points, proximity_pickup=False)
+    split_graph_at(g, geoms, pts)
+    split_graph_at(g, geoms, res.points, exact=True)
     BS.apply_rehomes(g, res.rehomes)
     BS.rehome_host_edges(g, geoms, pts)
     BS.make_edges_consistent(g, geoms, res)

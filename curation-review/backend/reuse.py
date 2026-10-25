@@ -34,7 +34,7 @@ from pipeline.atlas.reach.build import entry_scope as _entry_scope
 from pipeline.atlas.reach.classify import wants_tributaries as _wants_tributaries
 from pipeline.atlas.reach import extent as _resolve
 from pipeline.common.curated import CURATED, GENERATED, SOURCE
-from pipeline.atlas.splits.sectionizer import _auto_split
+from pipeline.atlas.splits.sectionizer import minted_id as _auto_split
 from pipeline.atlas.splits.splits import splits_on
 
 _ROOT = Path(__file__).resolve().parents[2]

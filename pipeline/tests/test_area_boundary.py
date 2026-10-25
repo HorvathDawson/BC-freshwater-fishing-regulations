@@ -60,7 +60,7 @@ def _split_def():
 def _apply(chains, graph, geoms):
     sd = _split_def()
     pts = resolve_split_defs([sd], chains, area_polys={"Garibaldi Park": PARK})
-    split_graph_at(graph, geoms, pts, proximity_pickup=False)
+    split_graph_at(graph, geoms, pts)
     blks = set(_target_blks(sd, chains, descendants=True))
     n = mark_inside_area(graph, geoms, PARK, "Garibaldi Park", blks=blks)
     return pts, blks, n

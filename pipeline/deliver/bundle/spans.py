@@ -73,7 +73,7 @@ PREFIXED_ENDS = ("lake_inlet:", "lake_outlet:", "confluence:", "region_line:", "
 #: The atlas names a region's polygon `area:<region>`; every other `area:` is a park, a reserve
 #: or a group of management units, and keeps its split id.
 REGION_AREA = re.compile(r"^area:([1-8]|7A|7B)$")
-#: Split families the atlas mints itself (`sectionizer._AUTO_SPLIT_PREFIXES`): positions, not
+#: Split families the atlas mints itself (`sectionizer.minted_id`, by id: an alias carries no source): positions, not
 #: names. One standing at a run's end gives way to an authored alias at the same place.
 _AUTO = ("gauge__", "area:", "border:", "length:")
 

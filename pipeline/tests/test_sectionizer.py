@@ -75,29 +75,31 @@ def test_tributary_edge_reattaches_by_measure():
     assert {"M:0", "U:0"} <= tributary_node_ids(g, "X:120")
 
 
-def test_proximity_pickup_reuses_nearby_boundary():
-    """A curated split within proximity_m of an EXISTING boundary reuses + relabels it instead of
-    cutting a near-duplicate (how Kootenay 'Idaho border' snaps onto the auto border split)."""
+def test_a_curated_split_takes_a_minted_boundary_beside_it():
+    """A curated split a few metres from a MINTED boundary (the auto border split) is that boundary:
+    it takes the place and the name, and the minted id stays an alias (how the Kootenay "Idaho border"
+    point lands on the border cut)."""
     g, _ = _graph()
-    split_graph_at(g, {}, [SplitPoint("A", "X", 120.0, "", "A", AnchorType.point)])
+    split_graph_at(g, {}, [SplitPoint("border:X:0", "X", 120.0, "", "BC boundary", AnchorType.border,
+                                      source="border")])
     before = set(g.nodes)
     applied: list = []
-    near = SplitPoint("border_pickup", "X", 123.0, "", "Idaho border", AnchorType.point,
-                      proximity_m=10.0)
-    split_graph_at(g, {}, [near], proximity_pickup=True, applied=applied)
+    near = SplitPoint("idaho_border", "X", 123.0, "", "Idaho border", AnchorType.point, source="curated")
+    split_graph_at(g, {}, [near], applied=applied)
     assert set(g.nodes) == before                        # no new node — reused the 120 boundary
-    assert applied[0].picked_up is True
-    assert g.nodes["X:0"].upper_bound.label == "Idaho border"   # boundary relabelled
-    assert g.nodes["X:120"].lower_bound.label == "Idaho border"
+    assert applied[0].picked_up is True and applied[0].route_measure == 120.0
+    b = g.nodes["X:0"].upper_bound
+    assert b.boundary_id == "split:idaho_border" and b.label == "Idaho border"
+    assert "split:border:X:0" in b.aliases and g.nodes["X:120"].lower_bound == b
 
 
-def test_proximity_pickup_far_split_still_cuts():
-    """Outside proximity_m, a curated split cuts normally (no false pickup)."""
+def test_a_far_split_still_cuts():
+    """Beyond `AUTHORED_MERGE_M` a curated split cuts normally (no false pickup)."""
     g, _ = _graph()
     split_graph_at(g, {}, [SplitPoint("A", "X", 120.0, "", "A", AnchorType.point)])
     applied: list = []
-    far = SplitPoint("C", "X", 250.0, "", "C", AnchorType.point, proximity_m=10.0)
-    split_graph_at(g, {}, [far], proximity_pickup=True, applied=applied)
+    far = SplitPoint("C", "X", 250.0, "", "C", AnchorType.point)
+    split_graph_at(g, {}, [far], applied=applied)
     assert "X:250" in g.nodes and applied[0].picked_up is False
 
 
@@ -327,248 +329,277 @@ def test_a_caller_that_did_not_ask_gets_no_aliases():
     assert g.nodes["10:5000"].lower_bound.aliases == ()
 
 
-def test_pickup_keeps_the_id_of_the_boundary_it_reuses():
-    """Two curated splits can land on the SAME measure — the Fraser's Region 2/3 MU boundary sits
-    exactly on the Spuzzum Creek confluence, because the region boundary follows the creek. Pickup
-    relabels the boundary it reuses, so without carrying the displaced id forward the second split
-    silently erases the first, and any rule bound to the loser resolves to nothing."""
-    from dataclasses import replace
-    from pipeline.common.models import BoundaryKind, NodeKind, SectionBoundary, StreamGraph, StreamNode
-    from pipeline.atlas.splits.sectionizer import _pickup
-    from pipeline.common.models.splits import SplitPoint
-
-    first = SectionBoundary(boundary_id="split:spuzzum", kind=BoundaryKind.confluence,
-                            route_measure=500.0, label="Spuzzum Creek")
-    g = StreamGraph()
-    g.nodes = {
-        "1:0":   StreamNode(node_id="1:0", kind=NodeKind.stream, blk="1", down_m=0.0, up_m=500.0,
-                            upper_bound=first),
-        "1:500": StreamNode(node_id="1:500", kind=NodeKind.stream, blk="1", down_m=500.0, up_m=900.0,
-                            lower_bound=first),
-    }
-    from pipeline.common.models.splits import AnchorType
-    sp = SplitPoint(split_id="region_2_to_3", blk="1", route_measure=500.0, fid="",
-                    label="Region 2/3", anchor_type=AnchorType.point)
-    assert _pickup(g, "1", sp, {"1": ["1:0", "1:500"]}) is True
-    got = g.nodes["1:0"].upper_bound
-    assert got.boundary_id == "split:region_2_to_3"
-    assert "split:spuzzum" in (got.aliases or ()), "the displaced id must survive as an alias"
-
-
-# --- pickup at a natural end (the Bella Coola / Stamp / Sproat matrix) ---------------------
-#
-# A split a few metres from where a blue line stops is the shape that draws a 0 km stretch. The
-# three cases below are the three answers, and they differ by what is sitting ON that end.
-
-def _one_block(head_bound=None):
-    """A single stream node 0..1000 — both its ends ARE the block's extent, so any pickup there
-    is a natural-end pickup. `head_bound` is whatever sits on the source end, or None for bare."""
+# ------------------------------------------------------------------------------------------
+# ONE PLACEMENT PASS (T179) — collect every position on a line, then place; order never matters
+# ------------------------------------------------------------------------------------------
+def _line(*pieces):
+    """Blue line "1" made of `(down, up, lower_bound, upper_bound)` stream pieces, no edges."""
     from pipeline.common.models import NodeKind, StreamGraph, StreamNode
     g = StreamGraph()
-    g.nodes = {"1:0": StreamNode(node_id="1:0", kind=NodeKind.stream, blk="1",
-                                 down_m=0.0, up_m=1000.0, upper_bound=head_bound)}
-    return g, {"1": ["1:0"]}
+    g.nodes = {f"1:{int(d)}": StreamNode(node_id=f"1:{int(d)}", kind=NodeKind.stream, blk="1",
+                                         down_m=float(d), up_m=float(u), length_m=float(u - d),
+                                         lower_bound=lb, upper_bound=ub)
+               for d, u, lb, ub in pieces}
+    g.edges, g.up_adj, g.down_adj = [], {}, {}
+    return g
 
 
-def _sp(split_id, m=950.0, proximity_m=100.0):
-    from pipeline.common.models.splits import AnchorType, SplitPoint
-    return SplitPoint(split_id=split_id, blk="1", route_measure=m, fid="",
-                      label=split_id, anchor_type=AnchorType.point, proximity_m=proximity_m)
+def _p(sid, m, source="curated", label=None, anchor=AnchorType.point, **kw):
+    return SplitPoint(split_id=sid, blk="1", route_measure=float(m), fid="", label=label or sid,
+                      anchor_type=anchor, source=source, **kw)
 
 
-def test_pickup_takes_a_bare_natural_end():
-    """The Bella Coola. Its head is the confluence where the Talchako meets the Atnarko; FWA
-    leaves no boundary object there, and the curated Talchako split resolved 58 m below it. The
-    58 m became its own stretch — "From Talchako River -> Bella Coola River To the head" — which
-    is not a reach anybody wrote a regulation about. A bare end has no id and no alias, so there
-    is nothing to destroy by naming it."""
-    from pipeline.atlas.splits.sectionizer import _pickup
-    g, by_blk = _one_block(head_bound=None)
-    assert _pickup(g, "1", _sp("bella_coola__talchako_river"), by_blk) is True
-    got = g.nodes["1:0"].upper_bound
-    assert got.boundary_id == "split:bella_coola__talchako_river"
-    assert got.route_measure == 1000.0, "the cut moves onto the end, not near it"
-    assert got.aliases == (), "a bare end displaces no id"
-
-
-def test_pickup_takes_a_lake_edge_at_a_natural_end_and_keeps_its_id():
-    """The Stamp. Its blue line stops at the Great Central Lake edge, and the dam at the lake's
-    outlet resolves half a metre away — two boundaries at one place. The lake edge is a real bound
-    that rules resolve through, so it has to survive the relabel as an alias."""
+def _lake(m, wbk="329016196", label="Sproat Lake"):
     from pipeline.common.models import BoundaryKind, SectionBoundary
-    from pipeline.atlas.splits.sectionizer import _pickup
-    lake = SectionBoundary(boundary_id="lake:329016196", kind=BoundaryKind.lake,
-                           route_measure=1000.0, label="Great Central Lake")
-    g, by_blk = _one_block(head_bound=lake)
-    assert _pickup(g, "1", _sp("stamp_river__great_central_lake_dam"), by_blk) is True
-    got = g.nodes["1:0"].upper_bound
-    assert got.boundary_id == "split:stamp_river__great_central_lake_dam"
-    assert "lake:329016196" in (got.aliases or ()), "the lake edge must survive as an alias"
+    return SectionBoundary(boundary_id=f"lake:{wbk}", kind=BoundaryKind.lake, route_measure=float(m),
+                           label=label)
 
 
-def test_pickup_refuses_a_natural_end_for_an_auto_split():
-    """The Sproat regression — an auto split may never RELABEL an end; it may only defer to a lake
-    edge there (alias), and never take a bare end. A pickup relabels, and for a split the pipeline minted itself that
-    is pure loss — nothing binds to `gauge__08HB008` by name, while `sproat_river__sproat_lake`
-    resolves THROUGH the lake edge it would overwrite, collapsing "No Fishing from Sproat Lake to
-    the Hwy 4 signs" to an empty reach.
+def _bounds(g):
+    """Every boundary on line 1: {(measure, id, label, aliases)}."""
+    return {(round(b.route_measure, 3), b.boundary_id, b.label, tuple(b.aliases or ()))
+            for n in g.nodes.values() if n.blk == "1"
+            for b in (n.lower_bound, n.upper_bound) if b is not None}
 
-    Both spellings are covered on purpose: the first version of the test split on `__` only, so
-    every `area:`, `border:` and `length:` split walked straight through it."""
+
+def _at(g, m):
+    got = {b for b in _bounds(g) if abs(b[0] - m) < 1e-6}
+    assert len(got) == 1, got
+    return next(iter(got))
+
+
+def _pieces(g):
+    return sorted((n.down_m, n.up_m) for n in g.nodes.values() if n.blk == "1")
+
+
+def test_sproat_a_gauge_half_a_metre_from_a_lake_edge_keeps_the_lake_name():
+    """`gauge__08HB008` sat 0.5 m from the Sproat Lake edge; taking the edge cost
+    `sproat_river__sproat_lake` the boundary it resolves through. A minted id never relabels a name:
+    the edge keeps id, kind and label, the station joins as an alias — at an end and in the interior."""
+    g = _line((0, 1000, None, _lake(1000)))
+    split_graph_at(g, {}, [_p("gauge__08HB008", 999.5, source="gauge")])
+    assert _pieces(g) == [(0.0, 1000.0)], "no sliver cut"
+    assert _at(g, 1000) == (1000.0, "lake:329016196", "Sproat Lake", ("split:gauge__08HB008",))
+
+    kid = _lake(500, "329385415", "Kidprice Lake")
+    g = _line((0, 500, None, kid), (800, 1000, _lake(800, "329385415", "Kidprice Lake"), None))
+    split_graph_at(g, {}, [_p("gauge__08ED001", 501.0, source="gauge")])
+    assert _at(g, 500)[1:3] == ("lake:329385415", "Kidprice Lake")
+    assert "split:gauge__08ED001" in _at(g, 500)[3]
+
+
+def test_spuzzum_an_mu_line_on_a_confluence_keeps_both_names():
+    """The Region 2/3 boundary on the Fraser lands exactly on the Spuzzum Creek confluence. Both are
+    authored and both bind: one boundary, the one standing keeps the name, the other is an alias —
+    and a displaced split carries no `label:` (its ref already is its name)."""
     from pipeline.common.models import BoundaryKind, SectionBoundary
-    from pipeline.atlas.splits.sectionizer import _pickup
-    for auto in ("gauge__08HB008", "area:6", "border:360512399:0", "length:356559402:23614"):
-        lake = SectionBoundary(boundary_id="lake:329016196", kind=BoundaryKind.lake,
-                               route_measure=1000.0, label="Sproat Lake")
-        g, by_blk = _one_block(head_bound=lake)
-        # BOUND round (2026-10-06): an auto split DEFERS to a lake edge at an end instead of cutting
-        # a sliver beside it (the Quinsam's gauge 08HD034, 1.95 m below its lake): the edge keeps
-        # its id, kind and label — the Sproat name survives — and the minted id is an alias.
-        assert _pickup(g, "1", _sp(auto), by_blk) is True, f"{auto} defers to the lake edge"
-        b = g.nodes["1:0"].upper_bound
-        assert b.boundary_id == "lake:329016196" and b.label == "Sproat Lake"
-        assert f"split:{auto}" in b.aliases
-
-        g, by_blk = _one_block(head_bound=None)
-        assert _pickup(g, "1", _sp(auto), by_blk) is False, f"{auto} must not take a bare end"
-
-
-def test_pickup_refuses_an_end_another_curated_split_already_holds():
-    """Only bare and lake ends are takeable. An end already named by another curated split is a
-    collision — two authored names for one place — and wants curation, not a silent relabel."""
-    from pipeline.common.models import BoundaryKind, SectionBoundary
-    from pipeline.atlas.splits.sectionizer import _pickup
-    other = SectionBoundary(boundary_id="split:someone_elses_bridge", kind=BoundaryKind.split,
-                            route_measure=1000.0, label="Someone Else's Bridge")
-    g, by_blk = _one_block(head_bound=other)
-    assert _pickup(g, "1", _sp("my_dam"), by_blk) is False
-    assert g.nodes["1:0"].upper_bound.boundary_id == "split:someone_elses_bridge"
-
-
-def test_pickup_at_an_end_still_obeys_the_radius():
-    """The radius is what keeps "downstream of X" from becoming the whole river: a split only ever
-    reaches an end it was already a few metres from. Without an authored proximity_m the default is
-    coincident-only, so the same 50 m gap that is picked up above is cut normally here."""
-    from pipeline.atlas.splits.sectionizer import _pickup
-    g, by_blk = _one_block(head_bound=None)
-    assert _pickup(g, "1", _sp("bella_coola__talchako_river", proximity_m=0.0), by_blk) is False
-    assert g.nodes["1:0"].upper_bound is None, "nothing authored -> nothing snapped"
-
-
-def test_a_displaced_lake_edge_keeps_the_name_a_rule_BINDS_not_just_its_wbk():
-    """**The half of the Sproat bug the alias never covered.**
-
-    "The displaced id is carried forward" was true and not enough. A split's ref is `split:` + the
-    id a rule binds, so carrying the ref carries the name. A lake's is `lake:329016195` — a wbk
-    nobody writes. What a rule binds is the readable id the registry derives from the LABEL, and
-    that spelling was recorded nowhere, so a kept lake edge came back unbindable.
-
-    The label travels; `registry.build._expand` spells it, so there is one readable-id rule."""
-    from pipeline.common.models import BoundaryKind, SectionBoundary
-    from pipeline.atlas.splits.sectionizer import _pickup
-    lake = SectionBoundary(boundary_id="lake:329016195", kind=BoundaryKind.lake,
-                           route_measure=1000.0, label="Great Central Lake")
-    g, by_blk = _one_block(head_bound=lake)
-    assert _pickup(g, "1", _sp("stamp_river__great_central_lake_dam"), by_blk) is True
-    aliases = g.nodes["1:0"].upper_bound.aliases or ()
-    assert "lake:329016195" in aliases, "the ref still travels"
-    assert "label:Great Central Lake" in aliases, "and so does the name the registry spells from"
-
-
-def test_a_displaced_split_carries_no_label_because_its_ref_is_already_the_name():
-    """`split:spuzzum_creek_into_fraser_river` already contains the bindable id, and the lookup
-    tries both spellings. A `label:` alias on top would be a second name for one place — the
-    collision the registry disambiguates with `_2` suffixes — for no gain.
-
-    The Fraser case: the Region 2/3 MU boundary lands at exactly the Spuzzum confluence because the
-    region boundary follows the creek, so one curated cut relabels another."""
-    from pipeline.common.models import (BoundaryKind, NodeKind, SectionBoundary, StreamGraph,
-                                        StreamNode)
-    from pipeline.atlas.splits.sectionizer import _pickup
     creek = SectionBoundary("split:fraser_river__spuzzum_creek_into_fraser_river",
-                            BoundaryKind.confluence, 500.0, "Spuzzum Creek → Fraser River")
-    g = StreamGraph()
-    g.nodes = {
-        "1:0": StreamNode(node_id="1:0", kind=NodeKind.stream, blk="1",
-                          down_m=0.0, up_m=500.0, upper_bound=creek),
-        "1:500": StreamNode(node_id="1:500", kind=NodeKind.stream, blk="1",
-                            down_m=500.0, up_m=1000.0, lower_bound=creek),
-    }
-    assert _pickup(g, "1", _sp("fraser_river__region_2_3_boundary", m=500.0),
-                   {"1": ["1:0", "1:500"]}) is True
-    assert g.nodes["1:0"].upper_bound.aliases == (
-        "split:fraser_river__spuzzum_creek_into_fraser_river",)
+                            BoundaryKind.confluence, 500.0, "Spuzzum Creek → Fraser River",
+                            source="curated")
+    g = _line((0, 500, None, creek), (500, 1000, creek, None))
+    split_graph_at(g, {}, [_p("fraser_river__region_2_3_boundary", 500.0, anchor=AnchorType.mu_boundary)])
+    b = _at(g, 500)
+    assert b[1] == "split:fraser_river__spuzzum_creek_into_fraser_river"
+    assert b[3] == ("split:fraser_river__region_2_3_boundary",)
+
+    # both new, in one call, a hair apart (the Thompson mouth authored on both waters): one spot
+    g = _line((0, 1000, None, None))
+    conflicts: list = []
+    split_graph_at(g, {}, [_p("b_region", 500.02), _p("a_creek", 500.0)], conflicts=conflicts)
+    assert _pieces(g) == [(0.0, 500.0), (500.0, 1000.0)] and conflicts == []
+    assert _at(g, 500)[1:] == ("split:a_creek", "a_creek", ("split:b_region",))
 
 
-def test_an_auto_split_defers_to_an_authored_boundary_instead_of_renaming_it():
-    """**`build.py` already promised this and the pickup broke it.**
-
-    Gauge cuts are applied after the curated ones, and the comment there says why: "authored
-    geometry is the primary boundary; a gauge defers to it." But a pickup handed the id AND the
-    label to the incoming split, so running second is exactly what made the gauge win. 25
-    boundaries province-wide displayed a station code in place of the thing the page names —
-    "signs 80 m downstream of adult fish counting fence" became `08EC013 · Babine River At Outlet
-    Of Nilkitkw`.
-
-    Nothing failed, which is why it lasted: the displaced id survives as an alias and still
-    resolves. Only the name was wrong. An auto split is a position, so it takes the position.
-    """
-    from pipeline.common.models import BoundaryKind, NodeKind, SectionBoundary, StreamGraph, StreamNode
-    from pipeline.atlas.splits.sectionizer import _pickup
-    signs = SectionBoundary("split:babine_river__signs_80_m_downstream_of_fence",
-                            BoundaryKind.split, 500.0, "signs 80 m downstream of the fence")
-    g = StreamGraph()
-    g.nodes = {
-        "1:0": StreamNode(node_id="1:0", kind=NodeKind.stream, blk="1",
-                          down_m=0.0, up_m=500.0, upper_bound=signs),
-        "1:500": StreamNode(node_id="1:500", kind=NodeKind.stream, blk="1",
-                            down_m=500.0, up_m=1000.0, lower_bound=signs),
-    }
-    assert _pickup(g, "1", _sp("gauge__08EC013", m=500.0), {"1": ["1:0", "1:500"]}) is True
-    got = g.nodes["1:0"].upper_bound
-    assert got.boundary_id == "split:babine_river__signs_80_m_downstream_of_fence"
-    assert got.label == "signs 80 m downstream of the fence", "the authored NAME survives"
-    assert "split:gauge__08EC013" in got.aliases, "the station still binds, as an alias"
+def test_two_curated_cuts_20_m_apart_stay_two():
+    """Both are real, however close: distance never merges two authored cuts."""
+    g = _line((0, 1000, None, None))
+    conflicts: list = []
+    split_graph_at(g, {}, [_p("signs_upstream", 520.0), _p("bridge", 500.0)], conflicts=conflicts)
+    assert _pieces(g) == [(0.0, 500.0), (500.0, 520.0), (520.0, 1000.0)]
+    assert _at(g, 500)[1] == "split:bridge" and _at(g, 520)[1] == "split:signs_upstream"
+    assert conflicts == []
 
 
-def test_an_auto_split_defers_to_an_interior_lake_edge_too():
-    """The gap the old comment admitted: the auto-split rule ran only in the natural-end branch, so
-    an interior lake edge was fair game. `08ED001 · Nanika River At Outlet Of Kidprice` is what that
-    looks like — the lake is the thing with a name, and the station took it."""
-    from pipeline.common.models import BoundaryKind, NodeKind, SectionBoundary, StreamGraph, StreamNode
-    from pipeline.atlas.splits.sectionizer import _pickup
-    lake = SectionBoundary("lake:329385415", BoundaryKind.lake, 500.0, "Kidprice Lake")
-    g = StreamGraph()
-    g.nodes = {
-        "1:0": StreamNode(node_id="1:0", kind=NodeKind.stream, blk="1",
-                          down_m=0.0, up_m=500.0, upper_bound=lake),
-        "1:500": StreamNode(node_id="1:500", kind=NodeKind.stream, blk="1",
-                            down_m=500.0, up_m=1000.0, lower_bound=lake),
-    }
-    assert _pickup(g, "1", _sp("gauge__08ED001", m=500.0), {"1": ["1:0", "1:500"]}) is True
-    got = g.nodes["1:0"].upper_bound
-    assert got.boundary_id == "lake:329385415" and got.label == "Kidprice Lake"
-    assert "split:gauge__08ED001" in got.aliases
+def test_curated_cuts_too_close_for_two_stretches_are_both_cut_and_reported():
+    """Under a sliver apart but not one spot: both are cut (never silently collapsed), the pair is a
+    conflict, and the sliver gate stops the build on the piece between — fix the source."""
+    from pipeline.atlas.splits import sliver_gate as SG
+    g = _line((0, 1000, None, None))
+    before = SG.short_pieces(g)
+    conflicts: list = []
+    split_graph_at(g, {}, [_p("a", 300.0), _p("b", 302.5)], conflicts=conflicts)
+    assert _pieces(g) == [(0.0, 300.0), (300.0, 302.5), (302.5, 1000.0)]
+    assert conflicts == [{"blk": "1", "ids": ["split:a", "split:b"], "at_m": 300.0, "distance_m": 2.5}]
+    assert [s["node"] for s in SG.slivers(g, before)] == ["1:300"]
 
 
-def test_a_curated_split_still_relabels_an_auto_one():
-    """The deferral is one-directional. A curator authoring a name AT a minted position is the
-    whole point of authoring it — that is how `gauge__08EB005` became "above Babine River"."""
-    from pipeline.common.models import BoundaryKind, NodeKind, SectionBoundary, StreamGraph, StreamNode
-    from pipeline.atlas.splits.sectionizer import _pickup
-    gauge = SectionBoundary("split:gauge__08EB005", BoundaryKind.split, 500.0, "08EB005 · Skeena")
-    g = StreamGraph()
-    g.nodes = {
-        "1:0": StreamNode(node_id="1:0", kind=NodeKind.stream, blk="1",
-                          down_m=0.0, up_m=500.0, upper_bound=gauge),
-        "1:500": StreamNode(node_id="1:500", kind=NodeKind.stream, blk="1",
-                            down_m=500.0, up_m=1000.0, lower_bound=gauge),
-    }
-    assert _pickup(g, "1", _sp("skeena_river__above_babine_river", m=500.0),
-                   {"1": ["1:0", "1:500"]}) is True
-    got = g.nodes["1:0"].upper_bound
-    assert got.boundary_id == "split:skeena_river__above_babine_river"
-    assert "split:gauge__08EB005" in got.aliases
+def test_a_gauge_defers_to_an_authored_cut_on_either_side():
+    """The old pickup ran in measure order, so a station ABOVE a curated cut deferred and one BELOW it
+    cut a stretch of its own (08MH024, 20 m below the CPR bridge at Mission). Now both join, and the
+    authored name stands (the Babine signs, not `08EC013`)."""
+    for gm in (480.0, 520.0, 101.0, 899.0):
+        g = _line((0, 1000, None, None))
+        split_graph_at(g, {}, [_p("gauge__08EC013", gm, source="gauge", label="08EC013 · Babine"),
+                               _p("babine_signs", 500.0, label="signs 80 m downstream of the fence")])
+        assert _pieces(g) == [(0.0, 500.0), (500.0, 1000.0)], gm
+        assert _at(g, 500)[1:] == ("split:babine_signs", "signs 80 m downstream of the fence",
+                                   ("split:gauge__08EC013",))
+
+
+def test_a_gauge_beyond_its_merge_distance_cuts():
+    from pipeline.atlas.splits.sectionizer import MERGE_M
+    g = _line((0, 2000, None, None))
+    split_graph_at(g, {}, [_p("signs", 500.0), _p("gauge__X", 500.0 + MERGE_M["gauge"] + 1, source="gauge")])
+    assert len(_pieces(g)) == 3
+
+
+def test_a_curated_split_relabels_a_standing_gauge():
+    """One-directional: a curator authoring a name at a minted position names it (`gauge__08EB005`
+    became "above Babine River")."""
+    from pipeline.common.models import BoundaryKind, SectionBoundary
+    gauge = SectionBoundary("split:gauge__08EB005", BoundaryKind.split, 500.0, "08EB005 · Skeena",
+                            source="gauge")
+    g = _line((0, 500, None, gauge), (500, 1000, gauge, None))
+    split_graph_at(g, {}, [_p("skeena_river__above_babine_river", 500.22)])
+    assert _at(g, 500)[1:] == ("split:skeena_river__above_babine_river", "skeena_river__above_babine_river",
+                               ("split:gauge__08EB005",))
+
+
+def test_an_auto_split_never_takes_a_bare_end():
+    """A bare end has no name to lose, but a station code there would be the end's only name."""
+    for src in ("gauge", "area", "border", "length"):
+        g = _line((0, 1000, None, None))
+        split_graph_at(g, {}, [_p(f"{src}:x", 999.0, source=src)])
+        assert _pieces(g) == [(0.0, 999.0), (999.0, 1000.0)], src
+
+
+def test_a_curated_split_takes_a_bare_end_within_a_sliver_and_at_edge_reaches_further():
+    """The Bella Coola head: FWA leaves no boundary where the Talchako meets the Atnarko, and the
+    Talchako split resolved 58 m below it — a 58 m stretch nobody wrote a rule about. 3 m away is the
+    end; 58 m away it is the end only when the split says it stands there (`at_edge`)."""
+    g = _line((0, 1000, None, None))
+    split_graph_at(g, {}, [_p("talchako", 997.0)])
+    assert _pieces(g) == [(0.0, 1000.0)] and _at(g, 1000)[1] == "split:talchako"
+
+    g = _line((0, 1000, None, None))
+    split_graph_at(g, {}, [_p("talchako", 942.0)])
+    assert _pieces(g) == [(0.0, 942.0), (942.0, 1000.0)], "no at_edge: an ordinary cut"
+
+    g = _line((0, 1000, None, None))
+    split_graph_at(g, {}, [_p("talchako", 942.0, at_edge=True)])
+    assert _pieces(g) == [(0.0, 1000.0)] and _at(g, 1000) == (1000.0, "split:talchako", "talchako", ())
+
+
+def test_stamp_an_at_edge_dam_takes_the_lake_edge_and_the_lake_still_binds():
+    """The dam at Great Central Lake's outlet names the edge; the lake's ref AND its label travel as
+    aliases, because a rule binds the readable id the registry spells from the label."""
+    g = _line((0, 1000, None, _lake(1000, "329016195", "Great Central Lake")))
+    split_graph_at(g, {}, [_p("stamp_dam", 960.0, label="Stamp dam", at_edge=True)])
+    assert _pieces(g) == [(0.0, 1000.0)]
+    assert _at(g, 1000) == (1000.0, "split:stamp_dam", "Stamp dam",
+                            ("label:Great Central Lake", "lake:329016195"))
+
+
+def test_at_edge_never_takes_another_authored_cut():
+    from pipeline.common.models import BoundaryKind, SectionBoundary
+    other = SectionBoundary("split:someone_elses_bridge", BoundaryKind.split, 1000.0, "Bridge",
+                            source="curated")
+    g = _line((0, 1000, None, other))
+    split_graph_at(g, {}, [_p("my_dam", 960.0, at_edge=True)])
+    assert _pieces(g) == [(0.0, 960.0), (960.0, 1000.0)]
+    assert _at(g, 1000)[1] == "split:someone_elses_bridge"
+
+
+def test_authorship_is_the_source_never_the_id_spelling():
+    g = _line((0, 1000, None, _lake(1000)))
+    split_graph_at(g, {}, [_p("gauge__looks_minted", 999.0, source="curated")])
+    assert _at(g, 1000)[1] == "split:gauge__looks_minted", "a curated id spelled like a gauge is authored"
+    g = _line((0, 1000, None, _lake(1000)))
+    split_graph_at(g, {}, [_p("looks_curated", 999.0, source="gauge")])
+    assert _at(g, 1000)[1] == "lake:329016196", "a gauge spelled like a curated id still defers"
+
+
+def test_minted_ids_name_a_place_by_rank_and_join_only_the_same_point():
+    """Area and border cuts are exact geometry: they join only the same point (1.5 m is two places —
+    the 2026-10-06 ruling), and where they do, the border names it over a region line over a gauge."""
+    g = _line((0, 1000, None, None))
+    split_graph_at(g, {}, [_p("gauge__G", 400.0, source="gauge"),
+                           _p("area:5", 400.0 + 1e-9, source="area", anchor=AnchorType.area_boundary)])
+    assert _at(g, 400)[1] == "split:area:5" and _at(g, 400)[3] == ("split:gauge__G",)
+    g = _line((0, 1000, None, None))
+    split_graph_at(g, {}, [_p("area:5", 400.0, source="area", anchor=AnchorType.area_boundary),
+                           _p("length:1:401", 401.5, source="length")])
+    assert len(_pieces(g)) == 3
+
+
+def _mixed():
+    """Every family on one line with a lake run at 500..800: who meets whom is the whole matrix."""
+    lake = _lake(500, "7", "Mid Lake")
+    pts = [_p("a_curated", 300.0), _p("gauge__near_a", 300.4, source="gauge"),
+           _p("gauge__below_lake", 499.5, source="gauge"),
+           _p("b_curated", 1200.0), _p("c_curated", 1220.0), _p("gauge__near_b", 1100.0, source="gauge"),
+           _p("area:5", 1500.0, source="area", anchor=AnchorType.area_boundary),
+           _p("length:1:1500", 1500.0 + 1e-9, source="length"),
+           _p("head_dam", 1960.0, at_edge=True), _p("d_twice", 1700.0), _p("e_twice", 1700.3)]
+    return (lambda: _line((0, 500, None, lake), (800, 2000, _lake(800, "7", "Mid Lake"), None))), pts
+
+
+def test_the_same_inputs_in_any_order_give_identical_boundaries():
+    """The acceptance shuffle: one call, every permutation sampled, the same boundaries, pieces and
+    `picked_up` record."""
+    import random
+    make, pts = _mixed()
+    want = None
+    rnd = random.Random(179)
+    for _ in range(40):
+        order = pts[:]
+        rnd.shuffle(order)
+        g, applied = make(), []
+        split_graph_at(g, {}, order, applied=applied)
+        got = (_bounds(g), _pieces(g),
+               sorted((a.split_id, round(a.route_measure, 3), a.picked_up) for a in applied))
+        if want is None:
+            want = got
+        assert got == want
+    bounds, pieces, applied = want
+    assert pieces == [(0.0, 300.0), (300.0, 500.0), (800.0, 1200.0), (1200.0, 1220.0), (1220.0, 1500.0),
+                      (1500.0, 1700.0), (1700.0, 2000.0)]
+    names = {b[1]: b[3] for b in bounds}
+    assert names["split:a_curated"] == ("split:gauge__near_a",)
+    assert (500.0, "lake:7", "Mid Lake", ("split:gauge__below_lake",)) in bounds
+    assert (800.0, "lake:7", "Mid Lake", ()) in bounds
+    assert names["split:b_curated"] == ("split:gauge__near_b",)
+    assert names["split:area:5"] == ("split:length:1:1500",)
+    assert names["split:d_twice"] == ("split:e_twice",)
+    assert names["split:head_dam"] == () and "split:c_curated" in names
+
+
+def test_place_points_says_where_split_graph_at_cuts():
+    """`place_points` is the plan the braid sweep judges; cutting the plan cuts the same graph."""
+    from pipeline.atlas.splits.sectionizer import place_points
+    make, pts = _mixed()
+    g1, a1 = make(), []
+    split_graph_at(g1, {}, pts, applied=a1)
+    g2 = make()
+    placed = place_points(g2, pts)
+    a2: list = []
+    split_graph_at(g2, {}, placed, applied=a2)
+    assert _bounds(g1) == _bounds(g2) and _pieces(g1) == _pieces(g2)
+    key = lambda a: (a.split_id, round(a.route_measure, 3), a.picked_up)  # noqa: E731
+    assert sorted(map(key, placed)) == sorted(map(key, a1)) == sorted(map(key, a2))
+
+
+def test_across_two_passes_an_authored_point_takes_a_minted_one_within_a_sliver():
+    """Passes still exist (border before curated, length after). Across them an authored point takes a
+    minted boundary only within `AUTHORED_MERGE_M`, so the names agree either way round; that is why
+    the build places the curated and gauge points in ONE call."""
+    def run(first, second):
+        g = _line((0, 1000, None, None))
+        split_graph_at(g, {}, first)
+        split_graph_at(g, {}, second)
+        return {b[1]: b[3] for b in _bounds(g)}
+    a, gz = [_p("signs", 500.0)], [_p("gauge__G", 503.0, source="gauge")]
+    assert run(a, gz) == run(gz, a) == {"split:signs": ("split:gauge__G",)}
 
 
 # ------------------------------------------------------------------------------------------

@@ -104,7 +104,9 @@ class SplitDef:
     gnis_id: str = ""
     stream_name: str = ""
     label: str = ""
-    proximity_m: float = 500.0    # max distance a channel may be from the cut geometry
+    proximity_m: float = 500.0    # max distance a channel may be from the cut geometry (projection
+                                  # only — never a merge radius, T179)
+    at_edge: bool = False         # the cut stands at a lake edge / natural end (`SplitPoint.at_edge`)
     concern: str = ""             # optional free-text caveat (inferred name, multi-crossing collapse,
                                   # unresolved) — surfaced in splits.resolved.json + the gpkg, never silent
 
@@ -122,6 +124,7 @@ class SplitDef:
             blk=str(d.get("blk", "")), wsc=str(d.get("wsc", "")),
             gnis_id=str(d.get("gnis_id", "")), stream_name=str(d.get("stream_name", "")),
             label=str(d.get("label", "")), proximity_m=float(d.get("proximity_m", 500.0)),
+            at_edge=bool(d.get("at_edge", False)),
             concern=str(d.get("_concern", d.get("concern", ""))),
         )
 
@@ -136,16 +139,19 @@ class SplitPoint:
     label: str
     anchor_type: AnchorType
     offset_m: float = 0.0   # distance from the cut geometry to the channel crossing (review aid)
-    proximity_m: float = 0.0  # authored pickup radius (carried from SplitDef) — reuse an existing
-                            # boundary within this many route-metres instead of cutting a duplicate
     concern: str = ""       # carried from SplitDef.concern (+ resolver-added caveats)
-    picked_up: bool = False # True => this curated split reused an existing (lake/border) boundary
-                            # within proximity instead of cutting a new one (docs/04 proximity pickup)
+    picked_up: bool = False # True => the sectionizer placed this point on a boundary already standing
+                            # or on another point's cut instead of cutting its own (T179 placement)
     # THE AUTHORED OFFSET (SplitAnchor.offset_m/offset_dir: "100 m downstream of the falls") — not
     # `offset_m` above, which is the resolver's review aid. Carried into splits.resolved.json so the
     # bundle names the cut ("100 m downstream of the Morrison Creek confluence") from the atlas.
     anchor_offset_m: float = 0.0
     anchor_offset_dir: str = ""
     # Where the cut came from: "curated" (splits.json), "gauge" (gauge_match.json), "area",
-    # "length", "border". The bundle takes a cut's book name from the CURATED rows only.
+    # "length", "border". The bundle takes a cut's book name from the CURATED rows only. It is also
+    # the point's AUTHORSHIP (`sectionizer.is_authored`): set where each family is minted, never read
+    # off the id's spelling.
     source: str = ""
+    # Carried from SplitDef.at_edge: the cut stands AT a lake edge / the line's end / a minted boundary
+    # nearby (a dam at a lake outlet), so placement takes that place (`sectionizer.AT_EDGE_M`).
+    at_edge: bool = False

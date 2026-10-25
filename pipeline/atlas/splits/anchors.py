@@ -185,7 +185,7 @@ def resolve_split_defs(split_defs: list[SplitDef], chains: list[BlkChain],
     def _emit(sd, blk, m, concern="", offset=0.0):
         out.append(SplitPoint(split_id=sd.id, blk=blk, route_measure=float(m), fid="",
                               label=(sd.label or sd.id), anchor_type=sd.anchor.type,
-                              offset_m=float(offset), proximity_m=sd.proximity_m,
+                              offset_m=float(offset), at_edge=sd.at_edge,
                               concern=(concern or sd.concern),
                               anchor_offset_m=float(sd.anchor.offset_m or 0.0),
                               anchor_offset_dir=str(sd.anchor.offset_dir or ""),
