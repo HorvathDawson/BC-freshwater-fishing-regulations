@@ -252,9 +252,10 @@ def test_a_run_is_byte_identical_when_written_twice(tmp_path):
     res = _result([("e1", "r1", ["s2", "s1"], None), ("e2", "r1", None, Reason.no_registry)])
     write_run(tmp_path / "a", res, [])
     write_run(tmp_path / "b", res, [])
-    for name in ("rule_section", "rule_unresolved", "rule_extent", "rule_diagnostic"):
-        a = (tmp_path / "a" / f"{name}.jsonl").read_bytes()
-        b = (tmp_path / "b" / f"{name}.jsonl").read_bytes()
+    for name in ("rule_section.jsonl.gz", "rule_unresolved.jsonl", "rule_extent.jsonl",
+                 "rule_diagnostic.jsonl"):
+        a = (tmp_path / "a" / name).read_bytes()
+        b = (tmp_path / "b" / name).read_bytes()
         assert a == b, name
 
 

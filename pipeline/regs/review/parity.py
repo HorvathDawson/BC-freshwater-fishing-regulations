@@ -15,7 +15,8 @@ answers `needs_corpus` by design (`build_reach`; AGENTS 54). Anything else is un
 gate (exit 1). The run must be of THIS corpus on THIS atlas (`check_vintage`), or the comparison
 would be measuring a rebuild, not the two implementations: the CLI refuses otherwise.
 
-The run's `rule_section.jsonl` is ~20 GB (one row per rule x section): it is STREAMED in its own
+The run's bindings (`rule_section.jsonl.gz`, T73; ~20 GB as the old one-row-per-rule-x-section
+`rule_section.jsonl`, still read) are STREAMED in their own
 sorted order, one rule's sections in memory at a time, beside the app's answer for that rule's entry.
 Heavy (the app loads the graph; reading the run is IO): run it through `scripts/heavy.sh`.
 """
@@ -95,31 +96,23 @@ def report(diffs: Mapping[tuple[str, str], dict], n_rules: int) -> dict:
 # --------------------------------------------------------------------------------------------
 
 def _row(line: str) -> tuple[str, str, str]:
-    """(entry_id, rule_id, section_id) of a `rule_section.jsonl` line. The writer's own form
-    (`io._write_jsonl`: sorted keys, compact) is split on its quotes — 20 GB through `json.loads`
-    is most of the run's time; any other line is parsed as JSON."""
-    p = line.split('"')
-    if (len(p) == 17 and p[1] == "entry_id" and p[5] == "rule_id" and p[13] == "section_id"
-            and "\\" not in line):
-        return p[3], p[7], p[15]
-    r = json.loads(line)
-    return r["entry_id"], r["rule_id"], r["section_id"]
+    """(entry_id, rule_id, section_id) of a pre-T73 `rule_section.jsonl` line (`io._legacy_row`)."""
+    from pipeline.atlas.reach.io import _legacy_row
+    return _legacy_row(line)[:3]
 
 
 def run_sections(path: Path) -> Iterator[tuple[str, Iterator[tuple[str, frozenset]]]]:
     """The run's bound rules, entry by entry: (entry_id, iterator of (rule_id, sections)), in the
-    file's sorted order (a file out of order is refused, never misread)."""
+    file's sorted order (a file out of order is refused, never misread). `path` is the bindings
+    file in either form (`io.rule_section_file`), or the run directory."""
+    from pipeline.atlas.reach.io import iter_rule_sections, rule_section_file
+    p = Path(path)
+    if p.is_dir():
+        p = rule_section_file(p)
+
     def rows():
-        last = None
-        with Path(path).open(encoding="utf-8") as fh:
-            for n, line in enumerate(fh, 1):
-                if not line.strip():
-                    continue
-                k = _row(line)
-                if last is not None and k <= last:
-                    raise ValueError(f"{path}:{n}: rows out of order ({last} then {k})")
-                last = k
-                yield k
+        for e, r, s, _scope in iter_rule_sections(p):
+            yield e, r, s
     for eid, er in groupby(rows(), key=lambda k: k[0]):
         yield eid, ((rid, frozenset(s for _, _, s in rr))
                     for rid, rr in groupby(er, key=lambda k: k[1]))
@@ -246,7 +239,7 @@ def main(argv: list[str] | None = None) -> int:
         if i % 100 == 0 or i == n:
             print(f"  {i:,}/{n:,} entries  {time.time() - t0:,.0f}s", flush=True)
 
-    bound = ((eid, rr) for eid, rr in run_sections(reach_dir / "rule_section.jsonl")
+    bound = ((eid, rr) for eid, rr in run_sections(reach_dir)
              if not a.only or eid in a.only)
     from pipeline.regs.review.runfacts import RunFacts
     unresolved = {k: v for k, v in run_unresolved(RunFacts.read(reach_dir)).items()

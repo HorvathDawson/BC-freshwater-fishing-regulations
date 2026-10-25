@@ -105,10 +105,8 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
 
     `home` is the atlas's region home map (`registry.regions.home_view`), which the bundle build
     takes off the graph it already holds; `None` reads it from `build_dir` (loading `graph.pkl`)."""
-    sections_file = reaches / "rule_section.jsonl"
-    if not sections_file.exists():          # P2: a skip here rendered every water open
-        raise SystemExit(f"no rule_section.jsonl in the reach run at {reaches} — re-run "
-                         "pipeline.atlas.reach.cli")
+    from pipeline.atlas.reach.io import iter_rule_sections, rule_section_file
+    sections_file = rule_section_file(reaches)  # RAISES when absent (P2: a skip rendered every water open)
 
     # THE 88, FIRST. A rule nobody could place must never render as "no rules here" — it can
     # only ever raise "unknown" — so the flag has to be on the rule row itself, and it is
@@ -170,11 +168,11 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
     bound_rules: set[tuple[str, str]] = set()
 
     def _noting(rows):
-        for r in rows:
-            bound_rules.add((r["entry_id"], r["rule_id"]))
-            yield r
+        for e, rid, s, scope in rows:
+            bound_rules.add((e, rid))
+            yield {"entry_id": e, "rule_id": rid, "section_id": s, "scope": scope}
 
-    section_set, sets = intern_sets(_noting(_jsonl(sections_file)))
+    section_set, sets = intern_sets(_noting(iter_rule_sections(sections_file)))
     own_rows = _own_rows([ce for _, ce in docs])
     co_bound = co_bound_regions(sets, own_rows)
     own = own_entry_regions([ce for _, ce in docs])

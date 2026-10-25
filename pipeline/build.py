@@ -181,7 +181,7 @@ def tiles_key(build_dir: Path) -> dict:
 def outputs(build_dir: Path) -> dict[str, list[Path]]:
     reach = GENERATED.reaches / build_dir.name
     return {"clim": [Path(CLIM_PATH)],
-            "reach": [reach / "report.json", reach / "rule_section.jsonl"],
+            "reach": [reach / "report.json", reach / "rule_section.jsonl.gz"],  # T73: the gzip form
             "deliver": [GENERATED.bundle / "bundle.sqlite", GENERATED.bundle / "verdicts.sqlite",
                         GENERATED.bundle / "status_index.bin", GENERATED.release / "LATEST"],
             "tiles": [GENERATED.tiles / "atlas.pmtiles", GENERATED.tiles / "atlas.meta.json"]}

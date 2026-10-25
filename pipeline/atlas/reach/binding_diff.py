@@ -6,7 +6,8 @@
 The gate before promoting a reach rerun (memory: "split fixes change the trib walk" — diff the rule
 bindings, not just atlas parity). `reach.cli --against` answers the same question but reads the old
 run whole into memory (`io.read_run`), which a 19 GB `rule_section.jsonl` does not survive; this
-walks both files side by side instead, holding one row of each at a time.
+walks both files side by side instead, holding one row of each at a time. Either run may be in the
+T73 form (`rule_section.jsonl.gz`) or the old one: an old-vs-converted diff is the T73 proof.
 
 Compared, per (entry, rule) or (entry, record):
   * `rule_section`        — sections gained / lost, and sections whose `scope` changed (reach ↔ trib)
@@ -49,7 +50,14 @@ class Change:
 
 
 def _rows(path: Path, owner: str) -> Iterator[tuple[tuple[str, str, str], str]]:
-    """((entry_id, owner_id, section_id), scope) for each row, checking the sort order."""
+    """((entry_id, owner_id, section_id), scope) for each row, checking the sort order. The rule
+    bindings are read through `io.iter_rule_sections`, so either form (T73's gzip, or a pre-T73 run's
+    plain JSONL) diffs against either."""
+    if owner == "rule_id":
+        from pipeline.atlas.reach.io import iter_rule_sections
+        for e, r, s, scope in iter_rule_sections(path):
+            yield (e, r, s), scope
+        return
     last = None
     with path.open(encoding="utf-8") as fh:
         for n, line in enumerate(fh, 1):
@@ -103,11 +111,15 @@ def _unresolved(path: Path) -> dict[tuple[str, str], str]:
 
 def diff_runs(before: str | Path, after: str | Path) -> dict:
     """The whole comparison, as a JSON-able dict."""
+    from pipeline.atlas.reach.io import rule_section_file
     before, after = Path(before), Path(after)
+    files = []
     for d in (before, after):
-        if not (d / "rule_section.jsonl").exists():
-            raise FileNotFoundError(f"{d} has no rule_section.jsonl — not a reach run")
-    rules = diff_sections(before / "rule_section.jsonl", after / "rule_section.jsonl")
+        try:
+            files.append(rule_section_file(d))
+        except SystemExit as e:
+            raise FileNotFoundError(f"{d}: not a reach run ({e})") from None
+    rules = diff_sections(*files)
     ub, ua = _unresolved(before / "rule_unresolved.jsonl"), _unresolved(after / "rule_unresolved.jsonl")
     unresolved = {f"{e}::{r}": {"before": ub.get((e, r)), "after": ua.get((e, r))}
                   for (e, r) in sorted(set(ub) | set(ua)) if ub.get((e, r)) != ua.get((e, r))}

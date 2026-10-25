@@ -117,7 +117,7 @@ use that as the sole source of future work."
 | T70 | cleanup wave 1, app side + stale worktrees + `pnpm clean` | DONE | 52ec4cb5, 799614a5, 4615ee0f, 1e8cbdb5, ac95e09f, a7947f99, de3cb79d, fd3f8c06, ef11d8e4, 17e4fe8f | merger steps done 2026-10-24 (clean + strict green); Q17 dead follow-branch → T63 |
 | T71 | one Map entry: drop the regs header's Map button | DONE | 4817a2e7, 40d6a47c | — |
 | T72 | release LATEST pointer + prune old releases | DONE | 0eb70144 | Q7 answered: 22 old releases pruned |
-| T73 | smaller reach hand-off (N14, disk) | OPEN | — | all (heavy) |
+| T73 | smaller reach hand-off (N14, disk) | PARTIAL | (this) | owner: convert full + full_prev through heavy.sh, binding diff, record sizes (ticket) |
 | T74 | native colouring engine + native map gaps | OPEN | — | all |
 | T75 | basemap in the release manifest | PARTIAL | — | all |
 | T76 | own gauge across a continuation (Vedder) | DONE | ce29990c, 2470ef08, f648ab5c, 4fba2181, e5dfe217 | live in r-36fbc5326506 |
