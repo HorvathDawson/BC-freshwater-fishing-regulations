@@ -155,7 +155,11 @@ NAMED = [("Coquitlam River", "gnis:19986", "Coquitlam Watershed"), ("Seymour Riv
 def test_the_named_watersheds_hold_their_rivers_and_lakes():
     """Measured 2026-10-22 on the live tiles: Coquitlam 785 / Seymour 544 / Capilano 875 sections mostly inside (of 789 /
     544 / 880 touching); 4,028 (sid, area) rows over 50% province-wide (4,023 sections: 5 sit in two nested military
-    areas). Held to 95% of those (the atlas build is not bit-identical)."""
+    areas). Held to 95% of those (the atlas build is not bit-identical).
+    Re-pinned 2026-10-25 (r-9b51c28ce0fe, T64): the tiles no longer draw unnamed zone-only wetlands (`layers/undrawn.json`,
+    333,471) and access is measured on the tiles' own sections, so the undrawn wetlands carry no rows — 3,603 rows over 50%
+    (Camp Chilcoten 1,052 -> 743, Greater Victoria Water Supply Area 590 -> 492, the three watersheds -13); the no-access
+    land fill still draws there."""
     from pipeline.common.curated import GENERATED
     bundle = os.environ.get("UI_EXPORT_BUNDLE") or GENERATED.bundle / "bundle.sqlite"
     db = sqlite3.connect(f"file:{bundle}?mode=ro", uri=True)
@@ -165,7 +169,7 @@ def test_the_named_watersheds_hold_their_rivers_and_lakes():
                              "WHERE a.tier = 'no_access' AND s.permille > 500 GROUP BY a.name"))
     assert [mostly.get(n, 0) >= k for n, k in (("Coquitlam Watershed", 745), ("Seymour Watershed", 516),
                                                 ("Capilano Watershed", 831))] == [True, True, True], mostly
-    assert sum(mostly.values()) >= 3826
+    assert sum(mostly.values()) >= 3423
     for water, iid, area in NAMED:
         got = db.execute("""SELECT MAX(s.permille) FROM section_access s JOIN access_area a ON a.ix = s.area
                             JOIN item_section i ON i.sid = s.sid JOIN item t ON t.ord = i.ord

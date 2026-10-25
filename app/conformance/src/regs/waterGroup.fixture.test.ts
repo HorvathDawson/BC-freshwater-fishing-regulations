@@ -30,16 +30,16 @@ describe("the water map's group from the fixture release", () => {
       "fishing boundary signs 100 m below the Slesse Creek confluence: 1 → 2"]);
     expect(steps(g)).toEqual(["-|1", "0|2", "1|3", "2|-"]);
     expect(g.exit).toEqual({ item: "gnis:3062", name: "Vedder River", part: 0 });
-    // the committed regs fixture's own handles (frozen until `pnpm regs-fixture` re-cuts it over a new atlas; r-0ed3c2b2a0a7)
-    expect(navSections(g, 0).selected).toEqual([60211, 60212, 60213, 62456, 62574, 62826, 1235830, 1235831, 1235876]);
+    // the committed regs fixture's own handles (frozen until `pnpm regs-fixture` re-cuts it over a new atlas; r-46a602244714, T179)
+    expect(navSections(g, 0).selected).toEqual([60210, 60211, 60212, 62455, 62573, 62825, 1235822, 1235823, 1235868]);
     expect(g.parts[0]!.box).toEqual([-121.966394, 49.071523, -121.836034, 49.097385]);
   });
 
   it("Vedder: one part, named by its water", async () => {
     const g = await loadWaterGroup(st, "gnis:3062");
-    // the committed regs fixture's own handles (frozen until `pnpm regs-fixture` re-cuts it over a new atlas; r-0ed3c2b2a0a7)
+    // the committed regs fixture's own handles (frozen until `pnpm regs-fixture` re-cuts it over a new atlas; r-46a602244714, T179)
     expect([names(g), steps(g), navSections(g, 0).selected]).toEqual([
-      ["Vedder River"], ["-|-"], [62413, 313851, 313852, 313853, 1957146]]);
+      ["Vedder River"], ["-|-"], [62412, 313848, 313849, 313850, 1957138]]);
   });
 
   it("Cowichan: four parts in a line", async () => {
@@ -66,8 +66,10 @@ describe("the water map's group from the fixture release", () => {
       "Mouth → Zymoetz Canyon lower entrance = transmission-line sign",
       "Zymoetz Canyon lower entrance = transmission-line sign → Zymoetz Canyon upper entrance",
       "Zymoetz Canyon upper entrance → Limonite Creek confluence",
-      "A lake → McDonell Lake outlet", "Limonite Creek confluence → Source"]);
-    // ▼ from the source is a fork: the main stem, then "A lake → McDonell Lake outlet" — its only way in (P15 review)
+      // (T179) the cut 3000 m below McDonell Lake is an authored lake-offset split: it names its end (it read "A lake")
+      // and parts the source part's run there, so that part is two stretches
+      "McDonell Lake (3000 m downstream) → McDonell Lake outlet", "Limonite Creek confluence → Source (2 stretches)"]);
+    // ▼ from the source is a fork: the main stem, then "McDonell Lake (3000 m downstream) → McDonell Lake outlet" — its only way in (P15 review)
     expect(steps(g)).toEqual(["-|1", "0|2", "1|4", "2|4", "2,3|-"]);
   });
 

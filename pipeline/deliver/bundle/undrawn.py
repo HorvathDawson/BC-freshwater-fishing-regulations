@@ -22,6 +22,8 @@ import json
 import sqlite3
 from pathlib import Path
 
+from pipeline.common import entry_id as EID
+
 
 def load(tiles: Path) -> dict[str, list[int]]:
     """{layer: [section handle]} the tiles left out on purpose; {} for tiles that left nothing out."""
@@ -49,7 +51,7 @@ def problems(db: sqlite3.Connection, undrawn: dict[str, list[int]]) -> list[str]
         return []
     kind_of = dict(db.execute("SELECT item_id, kind FROM item"))
     water_entry = {e for e, iid in db.execute("SELECT entry_id, item_id FROM entry")
-                   if not e.startswith("z") and iid and kind_of.get(iid, "area") != "area"}
+                   if not EID.is_table(e) and iid and kind_of.get(iid, "area") != "area"}
     water_sets = {s for s, e in db.execute("SELECT set_id, entry_id FROM ruleset") if e in water_entry}
     out: list[str] = []
     owned = {s for (s,) in db.execute("SELECT sid FROM item_section")} & sids

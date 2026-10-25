@@ -100,6 +100,11 @@ def end_token(bound, side: str, *, lake_item, tributary=None, own: str | None = 
         return "source" if side == "up" else "mouth"
     bid = str(bound.boundary_id)
     kind = getattr(bound.kind, "value", bound.kind)
+    if kind == "lake" and bid.startswith("split:") and not _is_auto(bid[len("split:"):]):
+        # T179: an AUTHORED lake-anchored split displaces the lake edge it stands on (the authored name
+        # wins, `sectionizer._canonical`), so its id is `split:…`, not `lake:{wbk}` — it is the end's
+        # name ("the Ladore Dam"), never "a lake outlet" from an id that names no lake
+        return bid[len("split:"):]
     if kind == "lake" or bid.startswith("lake:"):
         got = lake_item(bid.split(":", 1)[1])
         item, ikind = got if got else (None, None)

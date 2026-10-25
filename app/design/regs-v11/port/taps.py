@@ -86,6 +86,13 @@ PART_GROWN = {
     "x19p0_1010": f"{T67}: the Exchamsiks confluence cut runs straight across and {_LEN}; then T183 (owner 2026-10-24): "
                   f"the mainstem from the Ecological Reserve up to the Exchamsiks left section 2 and joined this part "
                   f"(3 stretches, 44 -> 48 sections)",
+    "x9p0_1010": "T179 (owner 2026-10-25, decisions.md Koocanusa): the Koocanusa cut moved from the reservoir's outlet "
+                 "(356570348:431810, where the hand point stood) to its INLET (490242), so this 1-section piece below "
+                 "the lake now ends at the lake's outlet, not the curated 'u/s end' name (label only; same piece, same rows)",
+    "x9p1_1010": f"{T67}: the Kootenay's ditch-only line 356365735:0 (1,982.6 m) left the river item (owner Q1, "
+                 f"DITCHES_LEAVE_RIVER_ITEMS); 3 length cuts on 356570348 moved: 52 -> 51 sections; then T179 (owner "
+                 f"2026-10-25, decisions.md Koocanusa): the authored cut now stands on the reservoir's inlet (490242) and "
+                 f"names it, so the part starts at 'the Koocanusa Reservoir upstream end', not 'Lake Koocanusa' (same rows)",
     "x19p1_1010": "T183 (owner 2026-10-24): Skeena section 2 starts at the Exchamsiks confluence, not the Ecological Reserve boundary (61 -> 59 sections; the extent changed, the rows did not)",
 }
 PART_GONE = {
@@ -114,9 +121,11 @@ PART_GONE = {
 # atlas full.prev vs the bundle of atlas full): every part below keeps its label and rows; only its section count moved.
 # {state: (store part_ix, why)} — the golden part is the store's part `ix`, same label, another section count
 PART_RECOUNTED = {
+    "x21p2_1010": (2, "T179 (owner 2026-10-24, one cut-placement pass): gauge 08NK030 stood 232 m from the curated Elko "
+                      "Dam cut and now joins it (gauge an alias), so the piece between is gone: 3 -> 2 sections"),
+    "x17p1_1010": (1, "T179 (owner 2026-10-24, one cut-placement pass): gauge 08EC001 stood 88 m from the curated Fort "
+                      "Babine Bridge cut and now joins it (gauge an alias), so the sliver between is gone: 2 -> 1 sections"),
     "x15p0_1010": (0, f"{T183}: a Fraser piece at the Region 5 / 7A line carries both regions' rules and joined part 16: 109 -> 108 sections"),
-    "x9p1_1010": (1, f"{T67}: the Kootenay's ditch-only line 356365735:0 (1,982.6 m) left the river item (owner Q1, "
-                     f"DITCHES_LEAVE_RIVER_ITEMS); 3 length cuts on 356570348 moved: 52 -> 51 sections"),
     "x13p3_1010": (3, f"{T67}: the Dean's side channel 360227736 is cut at the 0.5 km sign (421 m): 2 -> 3 sections"),
     "x15p2_1010": (2, f"{T67}: on the Fraser mainstem {_GAUGE} (94,834 / 108,135 / 111,137 / 122,096 / 132,550 / "
                       f"148,097 m) and {_LEN} (93,822 / 116,370 / 135,999 m): 40 -> 36 sections"),

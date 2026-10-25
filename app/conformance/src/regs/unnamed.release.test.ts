@@ -20,9 +20,10 @@ import { downstreamWater, type WaterSource, type SectionId } from "@app/data";
 import { liveReleaseAt, openReleaseDir } from "../fixtureRelease";
 
 const at = liveReleaseAt();
-/** The three sections' handles in atlas `H_ATLAS` (section_handles.txt line numbers; r-0ed3c2b2a0a7, T67). */
-const H_ATLAS = "a1944923732ccbfc";
-const H = { eve: 1409, salmon: 64038, base: 59508 } as const;
+/** The three sections' handles in atlas `H_ATLAS` (section_handles.txt line numbers; r-46a602244714, T179: the one
+ * placement pass dropped a sliver ahead of the Salmon / base sections, each one line earlier). */
+const H_ATLAS = "d28a6a14df3aced2";
+const H = { eve: 1409, salmon: 64037, base: 59507 } as const;
 /** The page's default angler (decisions.md D8, `@app/ui` DEFAULT_WHO). */
 const ADULT_RESIDENT = { age: "adult", residency: "resident" } as const;
 

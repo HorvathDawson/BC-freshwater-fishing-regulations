@@ -50,6 +50,11 @@ LAKES = {"329083341": ("wbk:329083341", "lake")}.get      # wbk -> (the water, i
     (_b("lake:329083341", "lake"), "up", "lake_outlet:wbk:329083341"),
     (_b("lake:329083341", "lake"), "down", "lake_inlet:wbk:329083341"),
     (_b("lake:1", "lake"), "down", "lake_inlet"),                       # not a named water
+    # T179: an authored lake-anchored split standing on the edge names it (was "a lake outlet")
+    (_b("split:campbell_river__ladore_dam", "lake", aliases=("lake:329083341",)), "up",
+     "campbell_river__ladore_dam"),
+    (_b("split:kootenay_river__kootenay_koocanusa", "lake", aliases=("lake:329083341",)), "down",
+     "kootenay_river__kootenay_koocanusa"),
     (_b("split:border:356566436:1", "border"), "down", "bc_border"),
     (_b("split:area:6", "area"), "up", "region_line:6"),
     (_b("split:area:7B", "area"), "up", "region_line:7B"),

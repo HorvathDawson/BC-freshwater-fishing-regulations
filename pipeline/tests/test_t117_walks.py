@@ -224,6 +224,8 @@ UP_ADJ_READERS = {
     ("pipeline/atlas/registry/flowing.py", "merge_flowing_polygons"): "polygon neighbours, both directions",
     ("pipeline/atlas/registry/flowing.py", "merge_flowing_polygons.neighbours"): "polygon neighbours",
     ("pipeline/atlas/registry/flowing.py", "merge_flowing_polygons.threading"): "polygon threading",
+    ("pipeline/atlas/registry/flowing.py", "folding_polygon_wbks.neighbours"):
+        "T179 (1991e487): a polygon's neighbours, one level — the fold's rule 1/2 read before split placement",
     # placement on a cut's own line (AGENTS 11: by measure, never a flow walk)
     ("pipeline/atlas/reach/extent.py", "_across_the_junction"): "pieces meeting a line end, one level",
     ("pipeline/atlas/reach/extent.py", "_by_measure._nbrs"): "braid neighbours inside the universe",

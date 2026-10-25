@@ -54,11 +54,13 @@ describe("EXCLUDE", () => {
     // (T115) first: the 4 gone states × 7 blocks, whole-state; the 4 grown parts' labels; the Parts sheet of the re-cut
     // Fraser (14 states, T115) and Skeena (7, T67); T67's two closed states gone. (T183) the Fraser's 4 stay gone (two
     // regions' rules again, but not the prototype's rows), x27p1 is gone too; the grown parts are now the Skeena's x19p0/1
-    // and the West Road's x27p0/2, and the West Road's 2 tapped states join the re-cut Parts sheets (25 -> 27)
+    // and the West Road's x27p0/2, and the West Road's 2 tapped states join the re-cut Parts sheets (25 -> 27). (T179)
+    // the Koocanusa cut moved to the reservoir's inlet: the Kootenay's x9p0/1 are grown (4 -> 6) and its 8 tapped
+    // states join the re-cut Parts sheets (27 -> 35)
     const gone = ["x15p14_1010", "x15p15_1010", "x15p17_1010", "x15p18_1010", "x19p5_1010", "x22p2_1010", "x27p1_1010"].flatMap(() =>
       ["header 1 -", "keep 1 -", "gear 1 -", "methods 1 -", "licence 1 -", "sheets 1 -", "pins 1 -"]);
     expect(EXCLUDE.map((e) => `${e.block} ${e.ids === "*" ? "*" : e.ids.length} ${e.key?.source ?? "-"}`))
-      .toEqual([...gone, "header 4 ^place\\.(full|short)$", "sheets 27 ^parts$", "sheets 1 ^(other:x18p5_1010\\|o0)$", "sheets 1 ^(other:x22p1_1010\\|o1)$", "sheets 1 ^(other:x22p3_1010\\|o1)$",
+      .toEqual([...gone, "header 6 ^place\\.(full|short)$", "sheets 35 ^parts$", "sheets 1 ^(other:x18p5_1010\\|o0)$", "sheets 1 ^(other:x22p1_1010\\|o1)$", "sheets 1 ^(other:x22p3_1010\\|o1)$",
         "sheets * ^rule:", `header ${NO_MAP_LABEL_IDS.length} ^place$`, `header ${GOLDEN_MAP_ACTION_IDS.length} ^action$`,
         `header ${GOLDEN_PARTS_ACTION_IDS.length} ^action$`, "header * ^place\\.shown$",
         "keep 3 ^groups\\.\\d+\\.(tree|worked|lines)$",

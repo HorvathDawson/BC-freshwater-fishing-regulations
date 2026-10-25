@@ -223,7 +223,7 @@ describe("every part is reached by ▼ / ▲ (P15 review: the Zymoetz's lake par
     expect([open.choosing, view(g, open).chooser]).toEqual(["down", { title: "Which way downstream?", close: "Close",
       options: [
         { ix: 2, item: "gnis:3137", partIx: 0, name: "Zymoetz Canyon upper entrance → Limonite Creek confluence", note: "Zymoetz River" },
-        { ix: 3, item: "gnis:3137", partIx: 2, name: "A lake → McDonell Lake outlet", note: "Zymoetz River" }] }]);
+        { ix: 3, item: "gnis:3137", partIx: 2, name: "McDonell Lake (3000 m downstream) → McDonell Lake outlet", note: "Zymoetz River" }] }]);
     expect(run(g, open, { type: "choose", to: 3 })).toEqual(waterMapStart(3));
     // not a way down: nothing
     expect(run(g, open, { type: "choose", to: 4 })).toBe(open);

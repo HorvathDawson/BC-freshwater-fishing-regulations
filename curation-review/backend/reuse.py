@@ -1912,8 +1912,12 @@ def entry_split_points(entry_id: str) -> dict | None:
         if sid in meta:                               # a cut on a line: its point on the section
             f = _geo(_split_point(sid), "named_split", {})
             geom = f["geometry"] if f else None
-        elif b is not None and getattr(b, "wbk", None):   # a lake boundary: the lake's own point
-            lake = _features("lakes", [str(b.wbk)], "split")
+        # a lake boundary: the lake's own point — also a curated cut whose point stood on the LAKE side of the
+        # edge it took (T179: Aberfeldie Dam; its measure is in no section, the lake rides as a `lake:` alias)
+        wbk = None if b is None else (getattr(b, "wbk", None) or next(
+            (a[len("lake:"):] for a in (getattr(b, "aliases", None) or ()) if a.startswith("lake:")), None))
+        if geom is None and wbk:
+            lake = _features("lakes", [str(wbk)], "split")
             pt = _rep_point(lake[0].get("geometry")) if lake else None
             geom = {"type": "Point", "coordinates": pt} if pt else None
         if geom is None:

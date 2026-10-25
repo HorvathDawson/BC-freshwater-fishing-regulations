@@ -1,6 +1,6 @@
 # T64 — Tiles: size wins (S2) + the pending tile rebuild
 
-Status: PARTIAL — code done 2026-10-24; the tiles-window build, shots and after-numbers are left (see Outcome).
+Status: DONE — ebfbba7d, 05096efd (built and promoted with r-9b51c28ce0fe, 2026-10-25; the map look is on OWNER-TODO).
 and the S2 easy size wins. Never replace the tiles dir: promote pmtiles + meta + layers/*.geojsonl file by file.
 Tiles and bundle share a vintage (rebuild both or check the handle digest). Acceptance: size table before/after;
 private land visible from z11; no basin seams; strict + smoke.
@@ -60,3 +60,10 @@ Code done 2026-10-24 (tiles window); the build, the shots and the after-column a
   the sidecar/list pairing).
 - Left for the build: wetland-heavy shots (Fort Nelson, the Chilcotin), z11 private land, basin seams, strict + smoke.
   If the look suffers, the basemap keeps OSM `wetland` landuse (T85 filter) as a stand-in one style layer away.
+
+## Outcome — DONE (2026-10-25, built and promoted with r-9b51c28ce0fe)
+- After: atlas.pmtiles 548.3 -> 228.2 MB, basemap.pmtiles 918.4 -> 875.8 MB (T85 alongside); `undrawn` 333,471 wetlands.
+- Knock-on (expected): access is measured on the tiles' own sections, so undrawn wetlands carry no `section_access` rows —
+  no-access rows over 50% 4,028 -> 3,603 (Camp Chilcoten 1,052 -> 743, Greater Victoria WSA 590 -> 492, the three
+  watersheds -13). `test_section_access` re-pinned (>= 3,423, 95%); the per-watershed floors still hold.
+- Left with the owner (OWNER-TODO "Map look"): the wetland-heavy shots (Fort Nelson, the Chilcotin).

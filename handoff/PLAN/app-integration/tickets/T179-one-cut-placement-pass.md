@@ -1,6 +1,6 @@
 # T179 — One cut-placement pass: auto cuts merge into names, real cuts stay apart
 
-Status: PARTIAL (code deef0cec; build + binding diff pending). Owner 2026-10-24: "would it be better to revise how this is done? So that splits can merge with lake or
+Status: DONE — deef0cec, 53f3819e, b93c95a6, 5c1ddc90, 6d7fd98e, cb858630 (promoted r-9b51c28ce0fe; post-promote fix in r-46a602244714). Owner 2026-10-24: "would it be better to revise how this is done? So that splits can merge with lake or
 gauge or other auto generated splits, but also handle real splits close together? This just feels fragile."
 
 ## Why (what is fragile today)
@@ -152,3 +152,20 @@ Close pairs (owner 2026-10-25, code only; side atlas pending):
 - Expect in the side atlas: Baker loses the 7093.95 area cut on the mainstem (point stands alone),
   Tweedsmuir's Atnarko 63793 is cut by the point only, Moyie's border/region/curated are one boundary
   (anchor digests change for these 3 entries: registry resync per memory).
+
+## Outcome — DONE (2026-10-25: promoted r-9b51c28ce0fe, then r-46a602244714)
+- Koocanusa checked on the reach + atlas data: the cut honours `edge: inlet` — `kootenay_river__kootenay_koocanusa`
+  stands at 356570348:490242, the top of the Lake Koocanusa run (431808–490242); part 0 (356570348:431761, 1 section) is
+  the 47 m below the outlet, so "From the B.C. border up to the Lake Koocanusa outlet" is right. The golden's "…up to the
+  Koocanusa Reservoir upstream end" was the old hand point's name standing on the OUTLET.
+- Defect found and fixed (`spans.end_token`): an AUTHORED lake-anchored split displaces the lake edge it stands on
+  (`split:<id>`, kind lake), and the end token looked the split id up as a wbk — so the end read "a lake" / "a lake
+  outlet" (Ladore Dam, Great Central Lake dam, Peace Canyon Dam, Terzaghi dam, Caribou Hwy 6 bridge, the Koocanusa inlet,
+  the Zymoetz's 3000 m-below-McDonell cut). It now names the authored split. Pinned in `test_part_runs.py`.
+- taps declarations: x9p0 PART_GROWN (label), x9p1 RECOUNTED -> GROWN (now starts "the Koocanusa Reservoir upstream end"),
+  x17p1 (08EC001 joins Fort Babine Bridge, 2 -> 1) and x21p2 (08NK030 joins Elko Dam, 3 -> 2) RECOUNTED — the gauge
+  joins predicted above. App pins re-cut for the new handles (a sliver gone ahead of them: -1 / -8) and the Zymoetz words.
+- Also following from T179: the review app's split map listed Aberfeldie Dam "unplaced" (a curated point on the LAKE
+  side of the edge it took; its measure lies in no section) — it now takes the alias lake's point (`reuse.py`);
+  `folding_polygon_wbks.neighbours` (1991e487) classified in `test_t117_walks`; the Moyie border anchor (53f3819e) left
+  grade L: 119 -> 118 in `test_review_screen`.

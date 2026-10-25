@@ -108,7 +108,7 @@ use that as the sole source of future work."
 | T61 | cleanup wave 2: old pathways/duplicates | PARTIAL | 9db616f0, 884fe9c7, 46cab8cd, baeda569, 0ad1a84, bb22f3eb, a097e407 | lanes A/B/C + 2.8 normaliser merged and promoted (r-5380a42dab54, no binding change); left: 2.17 fixture move → T63 |
 | T62 | cleanup wave 3: split long files | PARTIAL | b619ca7b…bb31281e, 7b946345…66b81aa6 | app + pipeline lanes merged (byte-identical outputs; live r-bb4331929428); 3.9 dfo_salmon done (whatchanged archived, README index); left: 3.2 atlas/build.py (rides the next side atlas) |
 | T63 | cleanup wave 4: docs, tests, knip | DONE | 341fff64, 11d29685, 9c22614a, 9867bc86 | MAP.md ×2, 16+ duplicate tests gone, knip in check, synopsis isolation fixed, 2.17 fixtures moved |
-| T64 | tiles: S2 size wins + tile rebuild | PARTIAL | — | all |
+| T64 | tiles: S2 size wins + tile rebuild | DONE | ebfbba7d, 05096efd | built and promoted with r-9b51c28ce0fe: atlas.pmtiles 548 -> 228 MB, basemap 918 -> 876 MB; map look on OWNER-TODO |
 | T65 | determinism proof (N12) | OPEN | — | all (heavy) |
 | T66 | curation review tool | DONE | a3f66b7c (plan) | plan approved 2026-10-23; build → T96, T97, T133–T136 |
 | T67 | braid splitting as a build step | OPEN | 1497beb0, ed1a5c0 | build lane done on branch worktree-agent-a56da8d758379fc5a (not merged: side atlas/reach only; 2 reach-gate failures + 6 residual straddles to fix) → ★ owner marks the review page (Et8B4Z6ZbKNNw9mMkJWzFH) → fix, then reach/deliver/tiles |
@@ -223,7 +223,7 @@ use that as the sole source of future work."
 | T176 | the Conditions legend's "N gauges in view" counts sections, not gauges | DONE | e8999343, 1f46e968 | app: "N reaches coloured" |
 | T177 | combine CLEVER + COFFEE on every forecast day, weighted by measured skill (owner Q160) | DONE | b039349e, 73dd133e, af119f2c | feed republish; equal weights until the archive decides (T178); + spots record the trip day |
 | T178 | re-score CLEVER vs COFFEE from the run archive (~6 weeks) and set the weights by the verdict | OPEN | — | due ~2026-12-05 |
-| T179 | one cut-placement pass: auto cuts merge into names, real cuts close together stay apart (order-independent) | PARTIAL | deef0cec | code + unit tests merged; left: atlas rebuild + binding diff (rule AND gauge), owner reviews — see ticket Outcome |
+| T179 | one cut-placement pass: auto cuts merge into names, real cuts close together stay apart (order-independent) | DONE | deef0cec, 53f3819e, b93c95a6, 5c1ddc90, 6d7fd98e, cb858630 | promoted r-9b51c28ce0fe; Koocanusa cut verified at the inlet; authored lake-anchor ends named again (r-46a602244714) |
 | T180 | move the remaining ~105 component strings into core words (T60's KNOWN_COPY list empties) | DONE | 71179834, b54c69c1, bc7bc016, 462f8488 | KNOWN_COPY 95 → 0, no wording change; map gaugeDots attribution noted |
 | T181 | gauge pill keeps the theme the map was built with (check, then fix) | DONE | 7c43151a | confirmed (pill, pin, hatches kept the build theme); fixed + render test |
 | T182 | release file splits for the web (section_down, part_geo, nearest town in core, conditions) | PARTIAL | 134a859c | owner: test_release on a build, deliver, re-cut the walk pin (ticket); feed headers → T86 |
