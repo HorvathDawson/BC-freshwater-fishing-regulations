@@ -181,7 +181,6 @@ def _app(a):
                    ("CURATION_RELEASE_ROOT", a.release)):
         if v is not None:
             os.environ[env] = str(v)
-    os.environ.setdefault("CURATION_FIX", "0")
     sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "curation-review" / "backend"))
     import reuse                                               # noqa: E402
     return reuse

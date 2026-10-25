@@ -111,8 +111,8 @@ def review_view(entry_id: str, day: str | None = None) -> dict | None:
         "region": region,
         "tier": T.entry_tier(e, binds=item is not None, run=run),
         "risks": T.risks(e, binds=item is not None, run=run),
-        # T135: what a machine says before the reviewer reads (the save gate included), the cuts
-        # the builder chose between (ruling E16; a `cut_pick` in fix mode overrides), and the
+        # T135: what a machine says before the reviewer reads (the gate included), the cuts
+        # the builder chose between (ruling E16; an extent's `cut_pick` overrides), and the
         # second-pass agent's findings on the parse (none exist yet)
         "prechecks": reuse.entry_prechecks(e, run=run, gate=True),
         "ambiguous_cuts": {rid: list(cuts) for rid, cuts in

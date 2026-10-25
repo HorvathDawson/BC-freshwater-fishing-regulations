@@ -1,11 +1,11 @@
-"""Curation review phase 3 (T134) THROUGH THE REVIEW APP, in REVIEW MODE (the default).
+"""Curation review phase 3 (T134) THROUGH THE REVIEW APP, in REVIEW MODE (the only mode, T185).
 
 The FastAPI app (curation-review/backend) runs with `TestClient` over TEMP COPIES of the catalogue,
 splits.json and the marks store, and the real atlas, bundle and synopsis extraction (read only).
 The row-box sidecar is made here by the one-off helper itself, for page 16 (no credits).
 
-  * no review-mode request writes anything but a mark — every read route is called, then a mark
-    is posted, and only the marks store (and its backup) changed;
+  * no request writes anything but a mark — every read route is called, then a mark is posted,
+    and only the marks store (and its backup) changed; NOTHING under data/curated changed (T185);
   * Adam River shows "ADAM RIVER (except Eve River)" and a readable crop: its row, the water column
     above the regulation column, rendered at 2.6 px/pt (the old crop was the 530 pt row at 24 %);
   * a zone entry is found on its chapter page by text, and each rule carries its impact line;
@@ -58,7 +58,7 @@ def env(request, tmp_path_factory):
                                    "pdf_sha256": hashlib.sha256(default_pdf().read_bytes()).hexdigest(),
                                    "raw_data_sha256": hashlib.sha256(raw.read_bytes()).hexdigest()}))
     mp = pytest.MonkeyPatch()
-    for k, v in {"CURATION_FIX": "0", "CURATION_ENTRIES_DIR": cat,
+    for k, v in {"CURATION_ENTRIES_DIR": cat,
                  "CURATION_SPLITS_JSON": root / "splits.json", "CURATION_MARKS": root / "marks.jsonl",
                  "CURATION_BACKUP_DIR": root / "backups", "CURATION_ROW_BOXES": sidecar}.items():
         mp.setenv(k, str(v))
@@ -67,7 +67,7 @@ def env(request, tmp_path_factory):
         sys.modules.pop(mod, None)
     import app as app_mod                                     # noqa: E402
     import reuse                                              # noqa: E402
-    assert app_mod.FIX is False and reuse.ENTRIES_DIR == cat
+    assert reuse.ENTRIES_DIR == cat
     from fastapi.testclient import TestClient
     yield {"client": TestClient(app_mod.app), "app": app_mod, "root": root, "reuse": reuse}
     mp.undo()
@@ -171,9 +171,9 @@ def test_the_impact_line_whole():
 _HEAVY_READS = {"/api/items/{item_id}/geojson", "/api/items/{item_id}/tributaries/geojson",
                 "/api/entries/{entry_id}/rules/{rule_id}/resolved", "/basemap/bc.pmtiles",
                 "/api/synopsis.pdf"}
-_PARAMS = {"entry_id": ADAM, "rule_id": "adam_river.r1", "split_id": "adam_river__hwy_19_bridge",
+_PARAMS = {"entry_id": ADAM, "rule_id": "adam_river.r1",
            "item_id": "gnis:28136", "filename": "page_016_row_000.png", "printed": "14"}
-_QUERY = {"/api/items/search": {"q": "adam"}, "/api/answer": {"sid": 1, "date": "2026-07-01",
+_QUERY = {"/api/answer": {"sid": 1, "date": "2026-07-01",
                                                                "fish": "rainbow_trout"}}
 
 
@@ -181,10 +181,21 @@ def _snapshot(root: Path) -> dict[str, bytes]:
     return {str(p.relative_to(root)): p.read_bytes() for p in sorted(root.rglob("*")) if p.is_file()}
 
 
-def test_no_review_mode_request_writes_anything_but_a_mark(env):
+def _stamps(root: Path) -> dict[str, tuple[int, int]]:
+    return {str(p.relative_to(root)): (p.stat().st_mtime_ns, p.stat().st_size)
+            for p in sorted(root.rglob("*")) if p.is_file()}
+
+
+def test_no_request_writes_anything_but_a_mark(env):
     """PLAN §4 phase 3 accept: every read route answers, and then a mark; the only bytes that
-    changed are the marks store's — and the backup the store's write took of it first."""
+    changed are the marks store's — and the backup the store's write took of it first.
+    THE T185 PIN: the one write route is the mark's, and NOTHING under data/curated (the real
+    catalogue, splits.json, overrides, marks store) changes while every route is called."""
     c, app = env["client"], env["app"].app
+    writes = {(m, r.path) for r in app.routes for m in getattr(r, "methods", None) or ()
+              if m not in ("GET", "HEAD")}
+    assert writes == {("POST", "/api/marks")}, writes
+    curated = _stamps(CURATED.base)
     before = _snapshot(env["root"])
     called = []
     for r in app.routes:
@@ -194,7 +205,7 @@ def test_no_review_mode_request_writes_anything_but_a_mark(env):
         got = c.get(url, params=_QUERY.get(r.path))
         assert got.status_code < 500, (url, got.text[:300])
         called.append(r.path)
-    assert len(called) >= 25, called
+    assert len(called) >= 20, called
     assert _snapshot(env["root"]) == before                   # reads: nothing written
     r = c.post("/api/marks", json={"scope": "entry", "target": ADAM, "answers": {"T": "y", "R": "?"},
                                    "reviewer": "tester"})
@@ -205,6 +216,7 @@ def test_no_review_mode_request_writes_anything_but_a_mark(env):
     assert "marks.jsonl" in changed and len(backups) == 1, changed
     assert re.fullmatch(r"backups/\d{8}T\d{6}\.\d{6}Z-mark/[^/]+/marks\.jsonl", backups[0]), changed
     assert json.loads(after["marks.jsonl"].decode().strip())["target"] == ADAM
+    assert _stamps(CURATED.base) == curated, "a route wrote under data/curated"
 
 
 # --------------------------------------------------------------------------- progress
@@ -245,29 +257,6 @@ PLAIN_SPLIT = "adams_river__signs_200_m_downstream_of_salmon_viewing_platforms"
 def _card(env, split_id):
     import review
     return next((c for c in review.split_queue() if c["split_id"] == split_id), None)
-
-
-def test_a_moved_split_is_a_split_point_to_confirm_again(env):
-    """Owner 2026-10-23: a split added OR MOVED in fix mode is confirmed in S0 after the rebuild.
-    `save_split` with a new anchor stamps "Verify: moved in fix mode …" (`reuse.fix_mode_stamp`, the
-    add's stamp); the same anchor saved again stamps nothing."""
-    reuse = env["reuse"]
-    path = Path(reuse.SPLITS_JSON_PATH)
-    original = path.read_text()
-    try:
-        assert _card(env, PLAIN_SPLIT) is None                        # not S0 before
-        sp = reuse.get_split(PLAIN_SPLIT)["split"]
-        assert reuse.save_split(PLAIN_SPLIT, {"anchor": sp["anchor"]})["ok"]
-        assert reuse.get_split(PLAIN_SPLIT)["split"]["_note"] == sp["_note"]   # not moved
-        moved = {**sp["anchor"], "offset_m": 250}
-        got = reuse.save_split(PLAIN_SPLIT, {"anchor": moved})
-        assert got["ok"], got
-        assert got["split"]["_note"] == f"{reuse.fix_mode_stamp('moved')} {sp['_note']}"
-        assert reuse.fix_mode_stamp("moved").startswith("Verify: moved in fix mode ")
-        card = _card(env, PLAIN_SPLIT)
-        assert (card["s0"], card["status"]) == (True, "unmarked")
-    finally:
-        path.write_text(original)
 
 
 def test_a_split_mark_gone_stale_is_listed_in_s0(env):

@@ -7,6 +7,9 @@
                 curated catalogue)
   split notes   each split's curator note (`_note`) and auto-proposal grade reach the frontend: 151
                 cut-points are still auto-proposals and the tool hid every word of that
+  one write     the app serves reads and one write, a mark; no backend module but `writes.py`
+                writes a file, and its one caller is the mark (T185: the fix-mode writers are
+                retired)
 
 Runs the backend against TEMP COPIES of the files it could write; reads no generated data.
 """
@@ -40,7 +43,6 @@ def env(tmp_path_factory):
     splits = tmp / "splits.json"
     shutil.copy2(CURATED.waters.splits, splits)
     mp = pytest.MonkeyPatch()
-    mp.setenv("CURATION_FIX", "0")                       # review mode, the default (T134)
     mp.setenv("CURATION_ENTRIES_DIR", str(cat))
     (tmp / "marks.jsonl").write_text("")
     mp.setenv("CURATION_MARKS", str(tmp / "marks.jsonl"))
@@ -135,23 +137,29 @@ def test_the_backend_binds_loopback_only():
     ("https://evil.example", None),
 ])
 def test_cors_admits_only_the_vite_origin(env, origin, allowed):
-    r = env["client"].options("/api/splits/x", headers={
-        "Origin": origin, "Access-Control-Request-Method": "PUT"})
+    r = env["client"].options("/api/marks", headers={
+        "Origin": origin, "Access-Control-Request-Method": "POST"})
     assert r.headers.get("access-control-allow-origin") == allowed
-    got = env["client"].get("/api/splits/adam_river__hwy_19_bridge", headers={"Origin": origin})
+    got = env["client"].get("/api/synopsis/pages", headers={"Origin": origin})
     assert got.headers.get("access-control-allow-origin") == allowed
+
+
+def test_cors_offers_no_write_method_but_the_mark_s():
+    """The browser is told GET and POST (the mark) only — PUT and DELETE were the editors'."""
+    src = (BACKEND / "app.py").read_text(encoding="utf-8")
+    assert 'allow_methods=["GET", "POST"]' in src
 
 
 # --------------------------------------------------------------------------- split notes
 
 def test_a_split_carries_its_curator_note_and_grade(env):
-    """GET /api/splits/{id} sends `review`: the `_note` the curator wrote and the auto-proposal
-    grade read from it (`[auto-proposal L]`), so `SplitEditor` can show what still needs checking."""
+    """`reuse.split_review` — what an entry's boundaries carry as `live.review` (`bindable`): the
+    `_note` the curator wrote and the auto-proposal grade read from it (`[auto-proposal L]`), so
+    the review screen shows what still needs checking on a cut-point an entry's rules name."""
     sid = "adam_river__hwy_19_bridge"
     raw = next(sp for wb in json.loads(CURATED.waters.splits.read_text())["waterbodies"]
                for sp in wb["splits"] if sp["id"] == sid)
-    got = env["client"].get(f"/api/splits/{sid}").json()
-    assert got["review"] == {"note": raw["_note"], "grade": "L"}
+    assert env["reuse"].split_review(raw) == {"note": raw["_note"], "grade": "L"}
 
 
 @pytest.mark.parametrize("note,grade", [
@@ -183,13 +191,15 @@ def test_the_hwy_19_bridge_note_is_on_the_bridge_not_the_eve_river_confluence():
         "bridge auto-proposal text that sat here is the bridge's (adam_river__hwy_19_bridge).")
 
 
-# --------------------------------------------------------------------------- two modes (T134)
+# --------------------------------------------------------------------------- one write (T134, T185)
 
-#: every route fix mode adds — the editors (PLAN §4 phase 3)
-FIX_ROUTES = {("POST", "/api/check"), ("PUT", "/api/entries/{entry_id}"),
-              ("PUT", "/api/splits/{split_id}"), ("POST", "/api/splits"),
-              ("DELETE", "/api/splits/{split_id}"), ("POST", "/api/splits/{split_id}/rename")}
+#: THE ONE WRITE the app serves: a mark. The editors' routes (entry save and the draft check,
+#: split add / move / delete / rename — the retired fix mode) are gone, not hidden behind a flag.
 MARK_ROUTE = {("POST", "/api/marks")}
+#: what the retired editors were asked, so a request to one is shown refused
+RETIRED = (("POST", "/api/check"), ("PUT", "/api/entries/{entry_id}"),
+           ("PUT", "/api/splits/{split_id}"), ("POST", "/api/splits"),
+           ("DELETE", "/api/splits/{split_id}"), ("POST", "/api/splits/{split_id}/rename"))
 
 
 def _writes_of(fastapi_app) -> set[tuple[str, str]]:
@@ -198,33 +208,43 @@ def _writes_of(fastapi_app) -> set[tuple[str, str]]:
             if m not in ("GET", "HEAD")}
 
 
-def _load_app(monkeypatch, fix: str):
+def _load_app(monkeypatch, env_value: str | None):
     import importlib.util
-    monkeypatch.setenv("CURATION_FIX", fix)
-    spec = importlib.util.spec_from_file_location(f"app_mode_{fix}", BACKEND / "app.py")
+    if env_value is None:
+        monkeypatch.delenv("CURATION_FIX", raising=False)
+    else:
+        monkeypatch.setenv("CURATION_FIX", env_value)
+    spec = importlib.util.spec_from_file_location("app_mode_probe", BACKEND / "app.py")
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
 
 
-def test_review_mode_serves_one_write_a_mark(env):
-    """Review mode (the default) exposes only POST /api/marks and reads (PLAN §4 phase 3)."""
-    assert env["app"].FIX is False
+def test_the_app_serves_one_write_a_mark(env):
+    """Reads and POST /api/marks — nothing else writes (PLAN §4 phase 3, T185)."""
     assert _writes_of(env["app"].app) == MARK_ROUTE
 
 
-def test_fix_mode_adds_exactly_the_editors(env, monkeypatch):
-    assert _writes_of(_load_app(monkeypatch, "1").app) == MARK_ROUTE | FIX_ROUTES
-    # anything but "1" is review mode: a typo never opens the editors
-    for value in ("0", "", "true", "yes"):
-        assert _writes_of(_load_app(monkeypatch, value).app) == MARK_ROUTE, value
+def test_no_switch_opens_a_writer(env, monkeypatch):
+    """The old fix-mode switch (`CURATION_FIX=1`, `run.sh --fix`) opens nothing: there is no
+    second mode, and neither run script offers one."""
+    for value in (None, "0", "1", "true"):
+        mod = _load_app(monkeypatch, value)
+        assert _writes_of(mod.app) == MARK_ROUTE, value
+        assert not hasattr(mod, "FIX") and not hasattr(mod, "register_fix_routes")
+    for sh in (TOOL / "run.sh", BACKEND / "run.sh"):
+        assert "--fix" not in sh.read_text(encoding="utf-8") and \
+            "CURATION_FIX" not in sh.read_text(encoding="utf-8"), sh
 
 
 def test_the_one_write_check_is_pinned_by_mutation(env, monkeypatch):
-    """MUTATION: an app that registers the fix router whatever the flag (the `if FIX:` dropped)
-    fails `test_review_mode_serves_one_write_a_mark`'s check."""
-    mod = _load_app(monkeypatch, "0")
-    mod.register_fix_routes(mod.app)
+    """MUTATION: an app with any further write route fails `test_the_app_serves_one_write_a_mark`'s
+    check."""
+    mod = _load_app(monkeypatch, None)
+
+    @mod.app.put("/api/entries/{entry_id}")
+    def _a_writer(entry_id: str):                  # pragma: no cover — never called
+        return {}
     assert _writes_of(mod.app) != MARK_ROUTE
 
 
@@ -232,9 +252,9 @@ def _snapshot(root: Path) -> dict[str, bytes]:
     return {str(p.relative_to(root)): p.read_bytes() for p in sorted(root.rglob("*")) if p.is_file()}
 
 
-def test_a_fix_request_in_review_mode_is_refused_and_writes_nothing(env):
-    """Every editor's request, sent to a review-mode server, is refused by the router (404/405) and
-    leaves every byte of the catalogue, splits.json, the marks store and the backups as it was."""
+def test_a_retired_editor_request_is_refused_and_writes_nothing(env):
+    """Every retired editor's request is refused by the router (404/405) and leaves every byte of
+    the catalogue, splits.json, the marks store and the backups as it was."""
     c = env["client"]
     root = Path(env["reuse"].SPLITS_JSON_PATH).parent
     before = _snapshot(root)
@@ -245,8 +265,61 @@ def test_a_fix_request_in_review_mode_is_refused_and_writes_nothing(env):
             c.post("/api/splits", json={"split": {"id": "x"}, "waterbody": "x"}),
             c.delete(f"/api/splits/{sid}"),
             c.post(f"/api/splits/{sid}/rename", json={"new_id": "y"})]
-    assert [r.status_code in (404, 405) for r in sent] == [True] * len(FIX_ROUTES)
+    assert [r.status_code in (404, 405) for r in sent] == [True] * len(RETIRED)
     assert _snapshot(root) == before
+
+
+#: the calls that write a file — `writes.py` is the one module that may make them. By name
+#: wherever they are called (a Path's, a module's) ...
+_FILE_WRITERS = {"write_text", "write_bytes", "atomic_write", "copy2", "copyfile", "copytree",
+                 "rmtree", "mkdir", "makedirs", "touch", "unlink", "write_entryfile", "mkstemp"}
+#: ... and these only on a module that writes with them (`str.replace`, `list.append` are not)
+_MODULE_WRITERS = {"os": {"replace", "rename", "remove"}, "shutil": {"copy", "move"},
+                   "writes": {"commit", "backup"}, "M": {"append"}, "marks": {"append"},
+                   "io": {"write_entryfile", "atomic_write"}}
+
+
+def _write_calls(src: str) -> list[tuple[str, str]]:
+    """(enclosing top-level function, called name) for each call of a file writer in `src`, and
+    for each `open(..., "w"/"a"/"x")`."""
+    out = []
+    for fn in ast.parse(src).body:
+        if not isinstance(fn, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            continue
+        for n in ast.walk(fn):
+            if not isinstance(n, ast.Call):
+                continue
+            f = n.func
+            name = f.attr if isinstance(f, ast.Attribute) else getattr(f, "id", None)
+            owner = f.value.id if isinstance(f, ast.Attribute) and isinstance(f.value, ast.Name) \
+                else None
+            if name in _FILE_WRITERS or name in _MODULE_WRITERS.get(owner, ()):
+                out.append((fn.name, name))
+            elif name == "open" and any(isinstance(a, ast.Constant) and isinstance(a.value, str)
+                                        and set(a.value) & set("wax") for a in n.args[1:]):
+                out.append((fn.name, "open"))
+    return out
+
+
+def test_the_only_file_write_is_the_mark_s_commit():
+    """THE PIN (T185): no backend module but `writes.py` writes a file, and the one call into it
+    is `reuse.post_mark`'s `writes.commit` of the marks store. Every editor's writer — entry save,
+    split save / add / delete / rename — called `writes.commit` on the catalogue or splits.json."""
+    got = {py.name: _write_calls(py.read_text(encoding="utf-8"))
+           for py in sorted(BACKEND.glob("*.py")) if py.name != "writes.py"}
+    assert {k: v for k, v in got.items() if v} == {"reuse.py": [("post_mark", "commit")]}
+    src = (BACKEND / "reuse.py").read_text(encoding="utf-8")
+    assert "writes.commit([(MARKS_PATH, M.appended(MARKS_PATH, [mark]))], \"mark\")" in src
+
+
+def test_the_write_pin_is_pinned_by_mutation():
+    """MUTATION: a module that writes the catalogue — the retired `save_entry` shape — is seen."""
+    src = ("def save_entry(region, e):\n"
+           "    writes.commit([(ENTRIES_DIR / 'region-1.json', text)], 'save-entry')\n"
+           "def note(p):\n"
+           "    with open(p, 'w') as f:\n"
+           "        f.write('x')\n")
+    assert _write_calls(src) == [("save_entry", "commit"), ("note", "open")]
 
 
 def test_a_mark_without_a_verdict_takes_the_answers_verdict():

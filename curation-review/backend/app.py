@@ -2,10 +2,15 @@
 
 Run it via the helper (sets PYTHONPATH to the repo root so `import pipeline...` works, and runs from
 this dir so `import reuse` works — the folder name has a hyphen so it can't be a package):
-    bash curation-review/backend/run.sh          # -> http://127.0.0.1:8787  (review mode)
-    bash curation-review/backend/run.sh --fix    # the owner's fix mode
+    bash curation-review/backend/run.sh          # -> http://127.0.0.1:8787
 
 Makes NO LLM calls — pure local file review. Safe to run any time, including out of parsing credits.
+
+REVIEW MODE ONLY (T134, T185): the app serves reads and ONE write, a mark (`POST /api/marks`). A
+reviewer cannot change the catalogue or splits.json however they click: the editors and their routes
+(entry save, the draft check, split add / move / delete / rename — the old "fix mode") are gone. A
+wrong or unsure mark becomes a ticket (`python -m pipeline.regs.review.tickets`); the fix is made in
+the curated files by a reviewed change, never by this app (T185).
 """
 
 from __future__ import annotations
@@ -14,31 +19,21 @@ import os
 import re
 from collections import Counter
 
-from fastapi import APIRouter, FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel, ConfigDict
 
 import reuse
 
-#: THE TWO MODES (T134, PLAN §4 phase 3). REVIEW (the default) serves reads and ONE write, a mark
-#: (`POST /api/marks`): a reviewer cannot change the catalogue or splits.json however they click.
-#: FIX (`bash curation-review/run.sh --fix`, which sets CURATION_FIX=1; the owner only) adds the
-#: editors' routes — entry save and the draft check, split add / move (save) / delete / rename.
-#: Decided once, at import: the fix routes are not REGISTERED in review mode, so a request to one
-#: is refused by the router (404/405), never by a handler that checks a flag.
-FIX = os.environ.get("CURATION_FIX") == "1"
-
 app = FastAPI(title="Curation Review")
-#: the routes only fix mode registers (`register_fix_routes` at the bottom of this file)
-fix = APIRouter()
 #: THE ONLY ORIGIN THE BROWSER MAY CALL FROM: the Vite dev server, which binds 127.0.0.1 only
 #: (`frontend/vite.config.ts`). It proxies `/api`, so the app itself never needs CORS; this is what
-#: stops another page the reviewer has open from reading or writing the catalogue (T96: it was `*`).
-#: `CURATION_VITE_PORT` moves it with Vite's port (a second copy of the tool beside the owner's).
+#: stops another page the reviewer has open from reading the review or posting a mark (T96: it was
+#: `*`). `CURATION_VITE_PORT` moves it with Vite's port (a second copy of the tool beside the owner's).
 VITE_ORIGIN = f"http://127.0.0.1:{os.environ.get('CURATION_VITE_PORT', '5173')}"
 app.add_middleware(
-    CORSMiddleware, allow_origins=[VITE_ORIGIN], allow_methods=["GET", "PUT", "POST", "DELETE"],
+    CORSMiddleware, allow_origins=[VITE_ORIGIN], allow_methods=["GET", "POST"],
     allow_headers=["Content-Type"],
 )
 
@@ -75,12 +70,12 @@ def get_ready():
 
 @app.get("/api/mode")
 def get_mode():
-    """What this server is: review or fix mode, the app the answer is checked in, the checks each
-    scope answers and the problem categories a "wrong" mark names (`marks.PROBLEMS`)."""
+    """What this server is: the app the answer is checked in, the checks each scope answers and the
+    problem categories a "wrong" mark names (`marks.PROBLEMS`). Review mode is the only mode."""
     import answer
     from pipeline.regs.review.marks import CHECKS, PROBLEMS
     from pipeline.regs.review.precheck import CHECKS as PRECHECKS
-    return {"fix": FIX, "app_url": answer.APP_URL,
+    return {"app_url": answer.APP_URL,
             "checks": {k: list(v) for k, v in CHECKS.items()},
             "problems": {k: list(v) for k, v in PROBLEMS.items()},
             # T135: the pre-check codes (severity, meaning) and the commands the screen PRINTS —
@@ -324,78 +319,6 @@ def get_entry(entry_id: str):
     return d
 
 
-@app.get("/api/vocab")
-def get_vocab():
-    """Every option list the editors offer — rule types, slots, conduct acts, documents, Who axes,
-    species, … — READ OFF the catalogue model (`model_api.vocab`). Served rather than hardcoded in
-    the UI: the rule-type picker once listed six retired kinds, every one of which the model
-    refused."""
-    return reuse.vocab()
-
-
-@app.get("/api/items/search")
-def search(q: str):
-    return reuse.search_items(q)
-
-
-@app.get("/api/species")
-def species():
-    """Every species code a rule may name (`catalogue.KNOWN_SPECIES`), with the model's words."""
-    return reuse.species_list()
-
-
-@app.get("/api/items/{item_id}/boundaries")
-def item_boundaries(item_id: str):
-    """Bindable splits/boundaries for an arbitrary item — for tributary-exclude / cross-item pickers."""
-    return reuse.item_bindable(item_id)
-
-
-@app.get("/api/items/{item_id}/tributaries")
-def item_tributaries(item_id: str):
-    """Named tributaries of an item — the carve-out picker's dropdown."""
-    return reuse.item_tributaries(item_id)
-
-
-@app.get("/api/items/{item_id}/split-groups")
-def item_split_groups(item_id: str):
-    """The splits.json waterbody groups on this item — where a new split may go (fix mode)."""
-    return reuse.split_groups(item_id)
-
-
-# --------------------------------------------------------------------------- fix mode: editors
-
-class SavePayload(BaseModel):
-    region: str
-    entry: dict
-
-
-class CheckPayload(BaseModel):
-    region: str | None = None
-    entry: dict
-
-
-@fix.post("/api/check")
-def check(body: CheckPayload):
-    """Validate a DRAFT without writing it: `{ok, errors, warnings, labels}`. `errors` are what a
-    save would refuse, each `{path, msg}` addressed to the field (`rules.2.gear.0.max`);
-    `labels` is the generated label of every rule and licensing record that validates on its own,
-    so the editor shows what the app will say while the curator types. FIX MODE: it writes
-    nothing, but only the editor asks it."""
-    return reuse.check_entry(body.entry, body.region)
-
-
-@fix.put("/api/entries/{entry_id}")
-def save(entry_id: str, body: SavePayload):
-    if body.entry.get("entry_id") != entry_id:
-        raise HTTPException(422, [{"path": "entry_id",
-                                   "msg": f"the body is entry {body.entry.get('entry_id')!r}, "
-                                          f"the URL is {entry_id!r}"}])
-    res = reuse.save_entry(body.region, body.entry)
-    if not res["ok"]:
-        raise HTTPException(422, res["errors"])
-    return res
-
-
 @app.get("/api/items/{item_id}/geojson")
 def item_geojson(item_id: str):
     """Stream sections + curated split points for the map, in EPSG:4326 (lon/lat) to overlay the
@@ -426,72 +349,6 @@ def rule_resolved(entry_id: str, rule_id: str, limit: int = 6000):
 def entry_reaches(entry_id: str):
     """Per-rule, per-extent section ids — the REACH each rule selects, for map highlighting."""
     return reuse.entry_reaches(entry_id)
-
-
-@app.get("/api/splits/{split_id}")
-def get_split(split_id: str):
-    d = reuse.get_split(split_id)
-    if d is None:
-        raise HTTPException(404, f"split {split_id} not in splits.json")
-    return d
-
-
-class SplitPatch(BaseModel):
-    patch: dict
-
-
-@fix.put("/api/splits/{split_id}")
-def save_split(split_id: str, body: SplitPatch):
-    """Edit a split in splits.json (label/note/kind/anchor — a new anchor MOVES it). Needs the
-    owner's atlas build to take effect: `GET /api/build` lists it and the commands."""
-    res = reuse.save_split(split_id, body.patch)
-    if not res["ok"]:
-        raise HTTPException(422, res["errors"])
-    return res
-
-
-class NewSplit(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    split: dict
-    waterbody: str | None = None          # a waterbody group already in splits.json
-    new_waterbody: dict | None = None     # {name, applies_to} for a new group
-
-
-@fix.post("/api/splits")
-def add_split(body: NewSplit):
-    """ADD a split to splits.json (owner 2026-10-23: add splits mid-review, rebuild, continue). The
-    pending-build panel (`GET /api/build`) then lists it with the commands the owner runs."""
-    res = reuse.add_split(body.model_dump())
-    if not res["ok"]:
-        raise HTTPException(422, res["errors"])
-    return res
-
-
-@fix.delete("/api/splits/{split_id}")
-def delete_split(split_id: str):
-    res = reuse.delete_split(split_id)
-    if not res["ok"]:
-        raise HTTPException(res.get("status", 404), res["errors"])
-    return res
-
-
-@app.get("/api/splits/{split_id}/refs")
-def split_refs(split_id: str):
-    """Rules that bind this split id — the impact preview before a rename."""
-    return reuse.split_refs(split_id)
-
-
-class RenamePayload(BaseModel):
-    new_id: str
-
-
-@fix.post("/api/splits/{split_id}/rename")
-def rename_split(split_id: str, body: RenamePayload):
-    """Rename a split id + rewrite every rule that binds it. Rebuild to reconcile the graph."""
-    res = reuse.rename_split(split_id, body.new_id)
-    if not res["ok"]:
-        raise HTTPException(422, res["errors"])
-    return res
 
 
 @app.get("/api/row-image/{filename}")
@@ -539,13 +396,3 @@ def basemap():
     if not reuse.BASEMAP_PMTILES.exists():
         raise HTTPException(404, f"{reuse.BASEMAP_PMTILES} not found")
     return FileResponse(reuse.BASEMAP_PMTILES, media_type="application/octet-stream")
-
-
-def register_fix_routes(target: FastAPI) -> None:
-    """Add the editors' routes to `target` as plain routes (not an included router, which newer
-    FastAPI keeps as one opaque entry in `app.routes`). Called once, below, in fix mode only."""
-    target.router.routes.extend(fix.routes)
-
-
-if FIX:
-    register_fix_routes(app)

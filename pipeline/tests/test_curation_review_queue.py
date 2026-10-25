@@ -50,7 +50,7 @@ def env(request, tmp_path_factory):
          "reason": "no_sections_for_items", "rule_id": rid}) + "\n"
         for rid in ("frog_lake.r1", "frog_lake.r2")))
     mp = pytest.MonkeyPatch()
-    for k, v in {"CURATION_FIX": "0", "CURATION_ENTRIES_DIR": cat,
+    for k, v in {"CURATION_ENTRIES_DIR": cat,
                  "CURATION_SPLITS_JSON": root / "splits.json", "CURATION_MARKS": root / "marks.jsonl",
                  "CURATION_BACKUP_DIR": root / "backups", "CURATION_REACH_DIR": run}.items():
         mp.setenv(k, str(v))
@@ -59,7 +59,7 @@ def env(request, tmp_path_factory):
         sys.modules.pop(mod, None)
     import app as app_mod                                     # noqa: E402
     import reuse                                              # noqa: E402
-    assert app_mod.FIX is False and reuse.REACH_DIR == run
+    assert reuse.REACH_DIR == run
     from fastapi.testclient import TestClient
     yield {"client": TestClient(app_mod.app), "root": root, "reuse": reuse}
     mp.undo()

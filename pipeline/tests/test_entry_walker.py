@@ -30,7 +30,6 @@ from __future__ import annotations
 
 import ast
 import copy
-import importlib.util
 from pathlib import Path
 
 import pytest
@@ -205,22 +204,6 @@ def test_a_split_parent_may_be_subtracted_never_bound():
     got = [p for p, _m in refs_to_parents_at(FIVE, parents)]
     assert got == [p for p, _i in iter_item_refs(FIVE) if ref_key(p) != "outside_items"]
     assert len(got) == 6
-
-
-def _model_api():
-    spec = importlib.util.spec_from_file_location(
-        "model_api_t112", REPO / "curation-review" / "backend" / "model_api.py")
-    m = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(m)
-    return m
-
-
-def test_the_apps_extent_warnings_see_all_five_places():
-    e = copy.deepcopy(FIVE)
-    for _p, ex, _r in iter_extents(e):
-        ex["bogus"] = 1
-    got = [w["path"] for w in _model_api().warnings_of(e) if "not in the Extent model" in w["msg"]]
-    assert got == [".".join(map(str, p)) for p, _r, _s in WANT]
 
 
 # --- the grep pin -----------------------------------------------------------------------------

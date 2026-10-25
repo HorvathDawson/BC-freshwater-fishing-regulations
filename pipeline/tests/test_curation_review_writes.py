@@ -1,14 +1,14 @@
-"""The curation-review app's WRITES: validated, backed up, all or nothing, and never served stale.
+"""THE ONE WRITE of the curation-review app — a mark — backed up, all or nothing, never served stale.
 
-Runs the backend (curation-review/backend) against TEMP COPIES of every curated file it writes —
-the catalogue region files, the DFO salmon entry files, splits.json, the marks store —
-with backups going to a temp dir (`CURATION_BACKUP_DIR`). Never the real files.
+Runs the backend (curation-review/backend) against TEMP COPIES of the curated files it reads (the
+catalogue region files, splits.json) and the marks store it appends to, with backups going to a
+temp dir (`CURATION_BACKUP_DIR`). Never the real files. The editors' writes (entry save, split
+save / delete / rename) are retired (T185): `test_curation_review_api.py` pins that no route
+writes under data/curated.
 
-  save_split    validated by the pipeline's own split loader; an invalid split is a 422 naming
-                the loader's reason, and nothing is written
-  rename_split  rewrites splits.json + every catalogue/DFO extent binding the id, or nothing:
-                a failure injected into the SECOND file write leaves every file byte-identical
-  backups       every write first copies its target, byte-identical, into a timestamped snapshot
+  commit        `writes.commit` backs every target up, byte-identical, into a timestamped snapshot
+                first, and a failure injected into the SECOND file write leaves every file as it was
+  a mark        backs the store up and only appends
   caches        a build-derived cache follows the file on disk (`reuse.ensure_fresh`), and every
                 cache in reuse.py is either dropped on a rebuild or declared static
 """
@@ -31,26 +31,22 @@ _MODS = ("app", "reuse", "model_api", "answer", "synopsis_pages", "writes",
 
 @pytest.fixture
 def env(tmp_path):
-    """A fresh temp copy of every curated file the app writes, and the app pointed at it."""
-    cat, dfo, bak = tmp_path / "catalogue", tmp_path / "dfo_salmon", tmp_path / "backups"
-    cat.mkdir(), dfo.mkdir()
+    """A fresh temp copy of the curated files the app reads, the marks store, and the app pointed
+    at them."""
+    cat, bak = tmp_path / "catalogue", tmp_path / "backups"
+    cat.mkdir()
     for p in sorted(CURATED.regulations.entries.catalogue.glob("region-*.json")):
         shutil.copy2(p, cat / p.name)
-    for p in sorted(CURATED.regulations.entries.dfo_salmon.glob("region-*.json")):
-        shutil.copy2(p, dfo / p.name)
     splits = tmp_path / "waters" / "splits.json"
     splits.parent.mkdir()
     shutil.copy2(CURATED.waters.splits, splits)
     mp = pytest.MonkeyPatch()
     mp.setenv("CURATION_ENTRIES_DIR", str(cat))
-    # these tests drive the EDITORS: fix mode (T134; review mode registers no write but a mark)
-    mp.setenv("CURATION_FIX", "1")
     marks = tmp_path / "review" / "marks.jsonl"          # the store is checked in, empty
     marks.parent.mkdir()
     marks.write_text("")
     mp.setenv("CURATION_MARKS", str(marks))
     mp.setenv("CURATION_SPLITS_JSON", str(splits))
-    mp.setenv("CURATION_DFO_ENTRIES_DIR", str(dfo))
     mp.setenv("CURATION_BACKUP_DIR", str(bak))
     mp.syspath_prepend(str(BACKEND))
     for mod in _MODS:
@@ -59,11 +55,10 @@ def env(tmp_path):
     import reuse                                              # noqa: E402
     import writes                                             # noqa: E402
     assert reuse.ENTRIES_DIR == cat and reuse.SPLITS_JSON_PATH == splits
-    assert reuse.DFO_ENTRIES_DIR == dfo and writes.BACKUP_ROOT == bak
+    assert writes.BACKUP_ROOT == bak
     from fastapi.testclient import TestClient
     yield {"client": TestClient(app_mod.app), "reuse": reuse, "writes": writes, "tmp": tmp_path,
-           "cat": cat, "dfo": dfo, "splits": splits, "backups": bak, "mp": mp,
-           "marks": marks}
+           "cat": cat, "splits": splits, "backups": bak, "mp": mp, "marks": marks}
     mp.undo()
     for mod in _MODS:
         sys.modules.pop(mod, None)
@@ -81,21 +76,9 @@ def as_built(env):
     env["mp"].setattr(env["reuse"], "split_vintage", lambda sid, on=None: dict(now))
 
 
-def _files(env) -> dict[Path, bytes]:
-    out = {env["splits"]: env["splits"].read_bytes()}
-    for d in (env["cat"], env["dfo"]):
-        out.update({p: p.read_bytes() for p in sorted(d.glob("region-*.json"))})
-    return out
-
-
 def _snapshots(env) -> list[Path]:
     root = env["backups"]
     return sorted(d for d in root.iterdir() if d.is_dir()) if root.exists() else []
-
-
-def _split_ids(splits: Path) -> list[str]:
-    d = json.loads(splits.read_text(encoding="utf-8"))
-    return [s["id"] for w in d["waterbodies"] for s in w["splits"]]
 
 
 def _fail_on_call(env, n: int):
@@ -156,124 +139,8 @@ def test_backups_are_bounded(env):
 
 
 # --------------------------------------------------------------------------- #
-# save_split — the pipeline's split model decides
+# The one write: a mark, appended
 # --------------------------------------------------------------------------- #
-
-def _a_split(env, anchor_type: str) -> str:
-    d = json.loads(env["splits"].read_text(encoding="utf-8"))
-    return next(s["id"] for w in d["waterbodies"] for s in w["splits"]
-                if s["anchor"]["type"] == anchor_type)
-
-
-@pytest.mark.parametrize("anchor, why", [
-    ({"type": "lake"}, "lake anchor needs wbk"),
-    ({"type": "line", "coords": [[1, 2]]}, "line anchor needs >=2 coords"),
-    ({"type": "no_such_anchor"}, "no_such_anchor"),
-    ({"type": "point", "coord": [1, 2], "offset_m": 50}, "offset_m requires offset_dir"),
-])
-def test_save_split_refuses_what_the_split_model_refuses(env, anchor, why):
-    sid = _a_split(env, "point")
-    before = _files(env)
-    r = env["client"].put(f"/api/splits/{sid}", json={"patch": {"anchor": anchor}})
-    assert r.status_code == 422, r.text
-    assert why in r.text, r.text
-    assert _files(env) == before, "a refused split must write nothing"
-    assert _snapshots(env) == [], "a refused split must not even back up"
-
-
-def test_save_split_writes_one_split_and_backs_up_first(env):
-    sid = _a_split(env, "point")
-    before = env["splits"].read_bytes()
-    r = env["client"].put(f"/api/splits/{sid}", json={"patch": {"label": "Test label"}})
-    assert r.status_code == 200, r.text
-    after = env["splits"].read_bytes()
-    assert after.endswith(b"}\n"), "the file keeps its trailing newline"
-    old = json.loads(before)
-    for w in old["waterbodies"]:
-        for s in w["splits"]:
-            if s["id"] == sid:
-                s["label"] = "Test label"
-    assert json.loads(after) == old, "only that split's label changed"
-    snap, = _snapshots(env)
-    assert next(snap.rglob("splits.json")).read_bytes() == before, \
-        "the backup is the file exactly as it was before the save"
-
-
-# --------------------------------------------------------------------------- #
-# rename_split — every reference, or nothing
-# --------------------------------------------------------------------------- #
-
-def _bound_in(d: Path, sid: str) -> list[Path]:
-    return [p for p in sorted(d.glob("region-*.json"))
-            if f'"{sid}"' in p.read_text(encoding="utf-8")]
-
-
-def _renameable(env) -> str:
-    """A split bound by BOTH a catalogue file and a DFO file, and named in no pipeline code."""
-    reuse = env["reuse"]
-    for sid in _split_ids(env["splits"]):
-        if len(_bound_in(env["cat"], sid)) and _bound_in(env["dfo"], sid) \
-                and not reuse._split_in_code(sid):
-            return sid
-    raise AssertionError("no split is bound by both the catalogue and the DFO files")
-
-
-def test_rename_refuses_a_split_named_in_pipeline_code(env):
-    before = _files(env)
-    r = env["client"].post("/api/splits/skeena_river__cnr_railway_bridge_terrace/rename",
-                           json={"new_id": "skeena_river__renamed"})
-    assert r.status_code == 422 and "pipeline/regs/dfo_salmon/entries.py" in r.text, r.text
-    assert _files(env) == before
-
-
-@pytest.mark.needs_atlas
-def test_rename_is_all_or_nothing_when_the_second_write_fails(env):
-    sid = _renameable(env)
-    before = _files(env)
-    _fail_on_call(env, 2)
-    r = env["client"].post(f"/api/splits/{sid}/rename", json={"new_id": "renamed_for_test"})
-    assert r.status_code == 422 and "restored" in r.text, r.text
-    assert _files(env) == before, \
-        "splits.json was written first; a failed region file must put it back, byte for byte"
-
-
-@pytest.mark.needs_atlas
-def test_rename_rewrites_every_reference(env):
-    sid, new = _renameable(env), "renamed_for_test"
-    before = _files(env)
-    touched = {env["splits"], *_bound_in(env["cat"], sid), *_bound_in(env["dfo"], sid)}
-    n_refs = sum(p.read_text(encoding="utf-8").count(f'"{sid}"') for p in touched)
-    r = env["client"].post(f"/api/splits/{sid}/rename", json={"new_id": new})
-    assert r.status_code == 200, r.text
-    body = r.json()
-    assert body["updated_rules"] and body["updated_dfo_files"] and body["failed_rules"] == []
-    now = _files(env)
-    assert not any(f'"{sid}"'.encode() in b for b in now.values()), "the old id is gone everywhere"
-    assert sum(b.count(f'"{new}"'.encode()) for b in now.values()) == n_refs
-    assert {p for p in now if now[p] != before[p]} == touched, "no other file was rewritten"
-    for p in touched:                       # only the id changed, nothing else in the file
-        assert now[p].decode().replace(f'"{new}"', f'"{sid}"') == before[p].decode(), p.name
-    snap, = _snapshots(env)
-    for p in touched:
-        assert (snap / p.parent.name / p.name).read_bytes() == before[p], p
-
-
-# --------------------------------------------------------------------------- #
-# Every other write: backed up first
-# --------------------------------------------------------------------------- #
-
-@pytest.mark.needs_atlas
-def test_entry_save_backs_up_the_file_first(env):
-    path = min(env["cat"].glob("region-*.json"), key=lambda p: p.stat().st_size)
-    region = path.stem.split("region-", 1)[1]
-    eid = json.loads(path.read_text(encoding="utf-8"))["entries"][0]["entry_id"]
-    served = env["client"].get(f"/api/entries/{eid}").json()["entry"]
-    before = path.read_bytes()
-    r = env["client"].put(f"/api/entries/{eid}", json={"region": region, "entry": served})
-    assert r.status_code == 200, r.text
-    snap, = _snapshots(env)
-    assert (snap / "catalogue" / path.name).read_bytes() == before
-
 
 def _post_mark(c, eid: str, **over):
     body = {"scope": "entry", "target": eid, "verdict": "verified",
@@ -329,98 +196,3 @@ def test_every_cache_is_dropped_on_a_rebuild_or_declared_static(env):
     assert cached - built - static == set(), "a cache neither dropped on rebuild nor static"
     assert not (built & static)
 
-
-# --------------------------------------------------------------------------- #
-# A rename carries verified marks over; any other edit still makes them stale
-# --------------------------------------------------------------------------- #
-
-def _entry_binding(env, sid: str) -> tuple[str, str]:
-    """(region, entry_id) of the smallest catalogue entry binding `sid`."""
-    best = None
-    for p in _bound_in(env["cat"], sid):
-        for e in json.loads(p.read_text(encoding="utf-8"))["entries"]:
-            s = json.dumps(e)
-            if f'"{sid}"' in s and (best is None or len(s) < best[0]):
-                best = (len(s), p.stem.split("region-", 1)[1], e["entry_id"])
-    assert best, sid
-    return best[1], best[2]
-
-
-def _mark_state(env, eid: str) -> dict:
-    ms = env["client"].get(f"/api/entries/{eid}").json()["marks"]
-    entry_mark, = [m for m in ms if m["scope"] == "entry"]
-    return entry_mark
-
-
-@pytest.mark.needs_atlas
-def test_rename_carries_marks_and_other_edits_still_stale_them(env, as_built):
-    c, sid, new = env["client"], _renameable(env), "renamed_for_test"
-    region, eid = _entry_binding(env, sid)
-    assert _post_mark(c, eid).status_code == 200
-    assert c.post("/api/marks", json={"scope": "split", "target": sid, "verdict": "verified",
-                                      "answers": {"P": "y"}, "reviewer": "tester"}
-                  ).status_code == 200
-    assert _mark_state(env, eid)["status"] == "verified"
-    before_store = env["marks"].read_bytes()
-    n_snaps = len(_snapshots(env))
-    r = c.post(f"/api/splits/{sid}/rename", json={"new_id": new})
-    assert r.status_code == 200, r.text
-    assert eid in r.json()["carried_marks"] and new in r.json()["carried_marks"]
-    got = _mark_state(env, eid)
-    assert got["status"] == "verified", "only the split id changed — the mark stands"
-    assert got["carried_by"] == f"rename-split {sid} -> {new}"
-    assert c.get("/api/marks/splits").json()[new]["status"] == "verified"
-    snap = _snapshots(env)[n_snaps]                 # the rename's ONE snapshot holds the store
-    assert (snap / "review" / "marks.jsonl").read_bytes() == before_store
-    assert env["marks"].read_bytes().startswith(before_store), "carried, never edited"
-    entry = c.get(f"/api/entries/{eid}").json()["entry"]
-    entry["scope_note"] = (entry.get("scope_note") or "") + " curator edit"
-    r = c.put(f"/api/entries/{eid}", json={"region": region, "entry": entry})
-    assert r.status_code == 200, r.text
-    got = _mark_state(env, eid)
-    assert (got["status"], got["reasons"]) == ("stale", ["rule changed"])
-
-
-@pytest.mark.needs_atlas
-def test_rename_rolls_the_carried_marks_back_too(env, as_built):
-    c, sid = env["client"], _renameable(env)
-    _, eid = _entry_binding(env, sid)
-    assert _post_mark(c, eid).status_code == 200
-    store = env["marks"]
-    before = {**_files(env), store: store.read_bytes()}
-    _fail_on_call(env, 3)
-    r = c.post(f"/api/splits/{sid}/rename", json={"new_id": "renamed_for_test"})
-    assert r.status_code == 422, r.text
-    assert {**_files(env), store: store.read_bytes()} == before
-
-
-# --------------------------------------------------------------------------- #
-# delete_split is refused while anything binds the split
-# --------------------------------------------------------------------------- #
-
-@pytest.mark.needs_atlas
-def test_delete_of_a_bound_split_is_refused_listing_every_binder(env):
-    sid = _renameable(env)                           # bound by the catalogue AND a DFO file
-    before = _files(env)
-    r = env["client"].delete(f"/api/splits/{sid}")
-    assert r.status_code == 409, r.text
-    detail = r.json()["detail"]
-    refs = env["reuse"].split_refs(sid)
-    assert refs and all(f"{x['entry_id']} · {x['rule_id']}" in detail for x in refs)
-    assert any(d.startswith("dfo_salmon/") for d in detail), "the DFO binders are listed too"
-    assert _files(env) == before and _snapshots(env) == [], "nothing written, nothing backed up"
-
-
-@pytest.mark.needs_atlas
-def test_delete_of_an_unbound_split_writes_and_backs_up(env):
-    reuse = env["reuse"]
-    every = "".join(p.read_text(encoding="utf-8") for d in (env["cat"], env["dfo"])
-                    for p in d.glob("region-*.json"))
-    sid = next(s for s in _split_ids(env["splits"]) if f'"{s}"' not in every)
-    before = env["splits"].read_bytes()
-    r = env["client"].delete(f"/api/splits/{sid}")
-    assert r.status_code == 200, r.text
-    assert sid not in _split_ids(env["splits"])
-    snap, = _snapshots(env)
-    assert next(snap.rglob("splits.json")).read_bytes() == before
-    assert reuse.split_refs(sid) == []

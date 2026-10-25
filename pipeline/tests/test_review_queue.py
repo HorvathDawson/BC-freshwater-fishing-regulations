@@ -376,7 +376,7 @@ Rules:
 ## Work
 
 1. Fix R (rules).
-2. Fix mode: `bash curation-review/run.sh --fix` (the entry's editors; a cut pick is the extent's `cut_pick`).
+2. A reviewed change to the curated files (T185): a proposal the owner accepts (the entry in its region file; a cut pick is the extent's `cut_pick`).
 3. Rebuild, then the mark goes stale and the target re-queues for review:
    - `scripts/heavy.sh build 30 -- python -m pipeline build --no-tiles`
 """

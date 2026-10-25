@@ -7,7 +7,8 @@ reach report's and the bundle's digests, a release manifest cut by `release.buil
 "build" below writes those files and the SAME client asks again — the app re-reads them by their
 stamps, as it does when the owner's rebuild lands in a terminal.
 
-  * an entry edit: that entry reads "awaiting build" (the pending-build panel lists it, alone, with
+  * an entry edit (made in its region file — a reviewed change, T185; the app writes none): that
+    entry reads "awaiting build" (the pending-build panel lists it, alone, with
     the command), a verified mark is refused and a T/R-only mark taken; the reach run alone does not
     clear it; deliver does;
   * a split added mid-review (owner 2026-10-23): the entries on its water await the atlas, the new
@@ -60,8 +61,7 @@ def app_env(request, tmp_path_factory):
         os.symlink(real / name, atlas / name)
     shutil.copy2(real / "splits.resolved.json", atlas / "splits.resolved.json")
     mp = pytest.MonkeyPatch()
-    # fix mode: the split flow saves splits.json through the editor's route (T134)
-    for k, v in {"CURATION_FIX": "1", "CURATION_ENTRIES_DIR": cat,
+    for k, v in {"CURATION_ENTRIES_DIR": cat,
                  "CURATION_SPLITS_JSON": tmp / "splits.json",
                  "CURATION_MARKS": tmp / "marks.jsonl", "CURATION_BACKUP_DIR": tmp / "backups",
                  "CURATION_REACH_DIR": tmp / "reach", "CURATION_RELEASE_ROOT": tmp / "release",
@@ -158,6 +158,22 @@ def _entry_mark(env, eid):
     return next((m for m in _get(env, eid)["marks"] if m["scope"] == "entry"), None)
 
 
+def _edit_in_file(env, eid, change):
+    """Change entry `eid` IN ITS REGION FILE (`change(entry)`), as a reviewed change to the curated
+    files lands (T185) — the app has no writer. Returns the file's bytes before, to put back."""
+    path = next(p for p in sorted(env["cat"].glob("region-*.json"))
+                if f'"{eid}"' in p.read_text(encoding="utf-8"))
+    before = path.read_bytes()
+    doc = json.loads(before)
+    change(next(e for e in doc["entries"] if e["entry_id"] == eid))
+    path.write_text(json.dumps(doc, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+    return path, before
+
+
+def _flip_tributaries(e):
+    e["rules"][2]["includes_tributaries"] = e["rules"][2].get("includes_tributaries") is False
+
+
 CUR = (V.CURRENT, [])
 
 
@@ -165,12 +181,7 @@ def test_an_entry_edit_awaits_reach_and_deliver_then_clears_without_a_restart(ap
     env = app_env
     assert _vintage(env, BULL) == CUR
     assert env["client"].get("/api/build").json()["entries"] == []
-    d = _get(env, BULL)
-    region, before = d["region"], copy.deepcopy(d["entry"])
-    edited = copy.deepcopy(before)
-    edited["rules"][2]["includes_tributaries"] = edited["rules"][2].get("includes_tributaries") is False
-    r = env["client"].put(f"/api/entries/{BULL}", json={"region": region, "entry": edited})
-    assert r.status_code == 200, r.text
+    path, before = _edit_in_file(env, BULL, _flip_tributaries)
     try:
         want = (V.AWAITING, [V.Waiting.reach_entry.value, V.Waiting.bundle_entry.value])
         assert _vintage(env, BULL) == want
@@ -199,7 +210,7 @@ def test_an_entry_edit_awaits_reach_and_deliver_then_clears_without_a_restart(ap
         r = _mark(env, BULL)
         assert r.status_code == 200 and r.json()["status"] == "verified", r.text
     finally:
-        env["client"].put(f"/api/entries/{BULL}", json={"region": region, "entry": before})
+        path.write_bytes(before)
         run_reach(env)
         deliver(env)
 
@@ -266,77 +277,11 @@ def test_the_app_gate_is_pinned_by_mutation(app_env, monkeypatch):
     """The refusal is `vintage.refuse_unbuilt`, asked by the app: without it the same verified
     mark on an entry awaiting its build is taken."""
     env = app_env
-    d = _get(env, BULL)
-    region, before = d["region"], copy.deepcopy(d["entry"])
-    edited = copy.deepcopy(before)
-    edited["rules"][2]["includes_tributaries"] = edited["rules"][2].get("includes_tributaries") is False
-    assert env["client"].put(f"/api/entries/{BULL}", json={"region": region, "entry": edited}
-                             ).status_code == 200
+    path, before = _edit_in_file(env, BULL, _flip_tributaries)
     try:
         assert _vintage(env, BULL)[0] == V.AWAITING
         assert _mark(env, BULL).status_code == 422
         monkeypatch.setattr(V, "refuse_unbuilt", lambda scope, answers, state: None)
         assert _mark(env, BULL).status_code == 200, "the mutation must let the mark through"
     finally:
-        env["client"].put(f"/api/entries/{BULL}", json={"region": region, "entry": before})
-
-
-# -- T134: fix mode adds a split; the pending-build panel lists it; review mode cannot -----------
-
-def _review_mode_app(monkeypatch):
-    """A SECOND app over the same files, in review mode (the module decides at import)."""
-    import importlib.util
-    monkeypatch.setenv("CURATION_FIX", "0")
-    spec = importlib.util.spec_from_file_location("app_review_mode", BACKEND / "app.py")
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    from fastapi.testclient import TestClient
-    return TestClient(mod.app)
-
-
-def test_fix_mode_adds_a_split_the_panel_lists_it_and_review_mode_cannot(app_env, monkeypatch):
-    """T134 acceptance: "Fix mode: add a split, save → the pending-build panel lists it and the
-    exact commands; review mode never writes it." Then the owner's rebuild lands and the split is
-    a split point to confirm (tier S0), with no restart, and a review-mode mark confirms it."""
-    env = app_env
-    splits_path = env["tmp"] / "splits.json"
-    original = splits_path.read_text()
-    name = "ADAM RIVER (except Eve River)"
-    body = {"split": {"id": "adam_river__t134_point", "label": "T134 test point", "kind": "point",
-                      "anchor": {"type": "point", "coord": [-126.2, 50.4], "is_lonlat": True}},
-            "waterbody": name}
-    review = _review_mode_app(monkeypatch)
-    r = review.post("/api/splits", json=body)
-    assert r.status_code in (404, 405), r.text                 # review mode: no such route
-    assert splits_path.read_text() == original                 # … and nothing written
-    r = env["client"].post("/api/splits", json=body)           # fix mode
-    assert r.status_code == 200, r.text
-    try:
-        added = json.loads(splits_path.read_text())
-        got = next(s for w in added["waterbodies"] if w["name"] == name for s in w["splits"]
-                   if s["id"] == body["split"]["id"])
-        assert got["_note"].startswith("Verify: added in fix mode ")      # tier S0
-        pend = env["client"].get("/api/build").json()
-        assert pend["splits"] == [{"split_id": body["split"]["id"],
-                                   "reasons": [V.Waiting.split_unbuilt.value]}]
-        assert pend["commands"] == V.rebuild_commands([V.Waiting.split_unbuilt],
-                                                      env["reuse"].rebuild_target())
-        assert [c.split(" -- ", 1)[-1].split()[2] for c in pend["commands"]] == [
-            "pipeline.atlas.build", "pipeline.atlas.reach.cli", "pipeline.atlas.reach.binding_diff",
-            "pipeline.atlas.promote", "pipeline.atlas.reach.cli", "pipeline.deliver.tiles",
-            "pipeline.deliver"]
-        card = next(c for c in env["client"].get("/api/review/splits").json()
-                    if c["split_id"] == body["split"]["id"])
-        assert (card["s0"], card["status"], card["vintage"]["state"], card["item_id"]) == (
-            True, "unmarked", V.AWAITING, "gnis:28136")
-        assert review.post("/api/splits", json=body).status_code in (404, 405)
-        record_atlas(env)                                      # the owner's rebuild lands
-        card = next(c for c in env["client"].get("/api/review/splits").json()
-                    if c["split_id"] == body["split"]["id"])
-        assert card["vintage"]["state"] == V.CURRENT
-        r = review.post("/api/marks", json={"scope": "split", "target": body["split"]["id"],
-                                            "answers": {"P": "y"}, "reviewer": "tester"})
-        assert r.status_code == 200 and r.json()["status"] == "verified", r.text
-    finally:
-        splits_path.write_text(original)
-        record_atlas(env)
+        path.write_bytes(before)

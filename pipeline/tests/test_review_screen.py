@@ -170,7 +170,7 @@ def test_no_second_copy_of_the_tier_the_grade_the_flag_the_strip_or_the_verdict(
     hits: dict[str, list] = {k: [] for k in (
         "def entry_tier(", "def split_grade(", "def split_needs_verify(", "def flagged(",
         r"\[auto-proposal ([A-Z])\]", "def coverage(", "def verdict_from_answers(", "def find_passage(",
-        "def app_part(", "def fix_mode_stamp(", "in fix mode {")}
+        "def app_part(")}
     for p, text in _py_sources():
         if p.name.startswith("test_"):
             continue
@@ -186,10 +186,7 @@ def test_no_second_copy_of_the_tier_the_grade_the_flag_the_strip_or_the_verdict(
         "def coverage(": ["pipeline/regs/review/coverage.py"],
         "def verdict_from_answers(": ["pipeline/regs/review/marks.py"],
         "def find_passage(": ["curation-review/backend/evidence.py"],
-        "def app_part(": ["curation-review/backend/answer.py"],
-        # the note a fix-mode add OR move stamps (S0): one function (adversarial review)
-        "def fix_mode_stamp(": ["curation-review/backend/reuse.py"],
-        "in fix mode {": ["curation-review/backend/reuse.py"]}
+        "def app_part(": ["curation-review/backend/answer.py"]}
 
 
 # --------------------------------------------------------------------------- the row boxes

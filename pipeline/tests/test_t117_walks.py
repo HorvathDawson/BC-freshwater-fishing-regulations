@@ -18,7 +18,6 @@ from __future__ import annotations
 import ast
 import dataclasses
 import inspect
-import sys
 import textwrap
 from pathlib import Path
 
@@ -151,34 +150,6 @@ def test_joining_is_the_walk_s_first_step():
     assert T.joining(g, {"H:0"}) == {"C:0"}
 
 
-def test_the_picker_offers_what_the_walk_would_take(monkeypatch):
-    """M4: the review app's tributary picker offers the named streams the walk's first step enters."""
-    backend = ROOT / "curation-review" / "backend"
-    if str(backend) not in sys.path:
-        sys.path.insert(0, str(backend))
-    import reuse
-
-    @dataclasses.dataclass
-    class Item:
-        id: str
-        name: str
-        kind: str
-        section_ids: tuple
-    g = _joining_river()
-    items = {"k": Item("k", "Kay Creek", "stream", ("K:500",)), "c": Item("c", "Chehalis", "stream", ("C:0", "C:500")),
-             "kc": Item("kc", "Kay Creek", "stream", ("K:0",)), "hs": Item("hs", "Harrison", "stream", ("HS:0",)),
-             "x": Item("x", "Canal", "stream", ("X:0",))}
-    monkeypatch.setattr(reuse, "_graph", lambda: g)
-    monkeypatch.setattr(reuse, "_registry", lambda: items)
-    monkeypatch.setattr(reuse, "_blk_to_item", lambda: {"K": "kc", "HS": "hs", "X": "x", "C": "c"})
-    reuse.item_tributaries.cache_clear()
-    try:
-        assert reuse.item_tributaries("kc") == []                       # the Harrison's channel is not offered
-        assert reuse.item_tributaries("c") == [{"id": "kc", "name": "Kay Creek"}]   # the canal is not
-    finally:
-        reuse.item_tributaries.cache_clear()
-
-
 # --- M5: the pin ------------------------------------------------------------------------------------------------
 
 #: Every production walk that climbs a water, and the name through which it asks the one entry check.
@@ -193,7 +164,6 @@ WALKS = {
     ("pipeline/tools/audit/unnamed_trib_sweep.py", "step_refusal"): "may_enter",
     ("pipeline/tools/audit/unnamed_trib_sweep.py", "_subtree"): "may_enter",
     ("pipeline/atlas/waters/added_streams/harness.py", "run"): "subtree",
-    ("curation-review/backend/reuse.py", "item_tributaries"): "joining",
     ("curation-review/backend/reuse.py", "item_tributary_geojson"): "joining",
 }
 

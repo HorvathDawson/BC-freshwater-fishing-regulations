@@ -1,37 +1,28 @@
 """Data layer for the curation-review app — **reuses pipeline code, reimplements nothing.**
 
-- Matching an entry -> registry item is done by `pipeline.regs.matching.matcher` (the exact matcher the
-  pipeline uses), so the review tool resolves geometry/boundaries the same way the build does.
-- Validation on save is `pipeline.regs.parsing.catalogue.CatalogueEntry` + a split-id check, and the
-  write is `pipeline.regs.parsing.io.write_entryfile`, which validates the whole file as written.
+- An entry's water is its `matched` (`pipeline.atlas.reach.covered`, the builder's own reading), so
+  the review tool resolves geometry/boundaries the same way the build does.
+- The gate a mark is refused on is `pipeline.regs.parsing.validate_catalogue.gate` (`check_entry`).
 - "Unused curated splits" counts curated (`ref="split:*"`) boundaries no extent binds, so
   lake/outlet/headwaters auto-boundaries don't count.
 
-Write model: `data/curated/regulations/entries/catalogue/region-*.json` are the SINGLE SOURCE OF TRUTH.
-Curator decisions are written straight back to them. There is no lock: a catalogue entry has no such
-field. A re-parse (`run_parse.sh repass`) will not overwrite an entry edited here — ingest keeps any
-entry whose file copy differs from the one it last wrote, and reports it.
+READ ONLY but for one write, a reviewer's mark (`post_mark`, appended to the marks store through
+`writes.commit`). The catalogue region files and splits.json are read, never written: a fix is a
+reviewed change to the curated files (T185), not something this app does.
 """
 
 from __future__ import annotations
 
-import copy
 import json
 import math
 import os
 import re
-import shutil
-import tempfile
 import threading
 from functools import lru_cache
 from pathlib import Path
 
-from pipeline.regs.matching.matcher import (
-    MatchResult, build_id_index, build_name_index, build_override_index, load_overrides, match_row,
-)
 from pipeline.regs.parsing import io
-from pipeline.regs.parsing.catalogue_parts.walk import iter_extent_lists, iter_extents
-from pipeline.regs.parsing.catalogue import CatalogueRule, label as rule_label
+from pipeline.regs.parsing.catalogue_parts.walk import iter_extents
 from pipeline.atlas.reach.covered import covered_ids as _pipeline_covered_ids
 import answer
 import model_api
@@ -43,13 +34,12 @@ from pipeline.atlas.reach.build import entry_scope as _entry_scope
 from pipeline.atlas.reach.classify import wants_tributaries as _wants_tributaries
 from pipeline.atlas.reach import extent as _resolve
 from pipeline.common.curated import CURATED, GENERATED, SOURCE
-from pipeline.common.registry_kinds import is_water
 from pipeline.atlas.splits.sectionizer import _auto_split
 from pipeline.atlas.splits.splits import splits_on
 
 _ROOT = Path(__file__).resolve().parents[2]
-#: The catalogue region files the app reads AND WRITES. `CURATION_ENTRIES_DIR` points it at a copy
-#: — the API tests and a headless click-through run against a temp copy, never the real files.
+#: The catalogue region files the app reads (never writes). `CURATION_ENTRIES_DIR` points it at a
+#: copy — the API tests and a headless click-through run against a temp copy.
 ENTRIES_DIR = (Path(os.environ["CURATION_ENTRIES_DIR"]) if os.environ.get("CURATION_ENTRIES_DIR")
                else CURATED.regulations.entries.catalogue)
 # The build the app SERVES. `project_config.review_build_dir` is the one name for it — see
@@ -66,14 +56,10 @@ GRAPH_PKL_PATH = _BUILD / "graph.pkl"
 GEOMS_PKL_PATH = _BUILD / "geometries.pkl"
 WBK_POLYS_PKL_PATH = _BUILD / "waterbody_polys.pkl"
 BASEMAP_PMTILES = SOURCE / "bc.pmtiles"                  # the webapp's basemap (web-mercator)
-#: THE hand-curated split source (editable here). `CURATION_SPLITS_JSON` points it at a copy (tests).
+#: THE hand-curated split source (read here, never written). `CURATION_SPLITS_JSON` points it at a
+#: copy (tests).
 SPLITS_JSON_PATH = (Path(os.environ["CURATION_SPLITS_JSON"]) if os.environ.get("CURATION_SPLITS_JSON")
                     else CURATED.waters.splits)
-#: The DFO salmon entry files — their locations bind curated split ids too, so a split rename
-#: rewrites them. `CURATION_DFO_ENTRIES_DIR` points it at a copy (tests).
-DFO_ENTRIES_DIR = (Path(os.environ["CURATION_DFO_ENTRIES_DIR"])
-                   if os.environ.get("CURATION_DFO_ENTRIES_DIR")
-                   else CURATED.regulations.entries.dfo_salmon)
 ROW_IMAGES_DIR = GENERATED.regs.extraction / "row_images"  # source synopsis row crops
 #: THE REVIEWERS' MARKS (T97): the append-only store `pipeline.regs.review.marks` reads — never a
 #: field of an entry. `CURATION_MARKS` points it at a copy (tests).
@@ -98,7 +84,7 @@ if os.environ.get("CURATION_BUNDLE"):
 
 
 # --------------------------------------------------------------------------- #
-# Registry + matcher indices (expensive — built once)
+# Registry (expensive — built once)
 # --------------------------------------------------------------------------- #
 
 #: ONE loader at a time for the big artifacts. FastAPI runs these sync endpoints on a thread pool
@@ -130,8 +116,8 @@ def _place_namer():
     """The bundle's own place-namer over the registry this app serves — so a label names a rule's
     place (a cut-point's curated label, an area's name) exactly as the bundle's label does.
 
-    KEYED ON splits.json's stamp: it carries every split's label, and a split edited in this app
-    (or by hand) must name itself by its new label on the next request, not after a restart."""
+    KEYED ON splits.json's stamp: it carries every split's label, and a split edited by hand must
+    name itself by its new label on the next request, not after a restart."""
     return _place_namer_for(_stamp((SPLITS_JSON_PATH,)))
 
 
@@ -140,13 +126,6 @@ def _place_namer_for(_key: tuple):
     from pipeline.deliver.bundle.place_names import PlaceNamer, area_names, split_labels
     return PlaceNamer(_registry(), split_labels(json.loads(
         SPLITS_JSON_PATH.read_text(encoding="utf-8"))), area_names(Path(REGISTRY_PATH).parent))
-
-
-@lru_cache(maxsize=1)
-def _indices():
-    reg = _registry()
-    overrides = load_overrides(OVERRIDES_PATH if OVERRIDES_PATH.exists() else None)
-    return build_name_index(reg), build_id_index(reg), build_override_index(overrides)
 
 
 @lru_cache(maxsize=1)
@@ -256,21 +235,9 @@ def _ident(e: dict) -> dict:
     return {"name": e.get("name", ""), "region": str(e.get("region", "")), "mus": mus}
 
 
-def match_identity(name: str, region: str, mus: list[str]) -> MatchResult:
-    """Resolve an entry's identity to a registry item **via the pipeline matcher** (same logic, same
-    overrides as the build). `region`/`mus` are adapted to the row shape the matcher expects."""
-    reg = _registry()
-    name_index, id_index, ov_index = _indices()
-    row = {"water": name, "region": region, "mu": list(mus or [])}
-    return match_row(0, row, reg, name_index, id_index, ov_index)
-
-
 # --------------------------------------------------------------------------- #
 # Entry loading
 # --------------------------------------------------------------------------- #
-
-_read_entryfile = io.read_entryfile                      # shared helper (io is the single home)
-
 
 def regions() -> list[str]:
     """Region ids that have a catalogue region file (e.g. ['1','2',...])."""
@@ -278,8 +245,8 @@ def regions() -> list[str]:
 
 
 def load_region(region: str) -> dict[str, dict]:
-    """Entries for a region. The region files are the SINGLE SOURCE OF TRUTH — curator edits are written back
-    here. Read through the corpus' one read point, so an id this registry folded into another
+    """Entries for a region. The region files are the SINGLE SOURCE OF TRUTH. Read through the
+    corpus' one read point, so an id this registry folded into another
     (`registry.flowing`) names its item here as it does in the reach run and the bundle."""
     return io.read_entryfile(ENTRIES_DIR / f"region-{region}.json", registry=_registry())
 
@@ -372,14 +339,6 @@ def _item_for_entry(e: dict):
     """The primary registry item of an entry: the first of its `matched` this build has, or None."""
     ids = _covered_ids(e)
     return _registry()[ids[0]] if ids else None
-
-
-def _suggest_match(e: dict) -> MatchResult:
-    """A LIVE re-match of the entry's name, SHOWN to a curator attaching an item to an entry whose
-    `matched` is empty. A suggestion only: it never becomes the entry's water until the curator
-    attaches it and saves."""
-    ident = _ident(e)
-    return match_identity(ident["name"], ident["region"], ident["mus"])
 
 
 def _also_items(e: dict) -> list[dict]:
@@ -495,12 +454,6 @@ def _combined_bindable(item, e: dict) -> list[dict]:
     return list(out.values())
 
 
-def item_bindable(item_id: str) -> list[dict]:
-    """The bindable union for an arbitrary item id — used when a tributary exclude / cross-item extent
-    scopes to a different item and needs that item's splits in the picker."""
-    return bindable(_registry().get(item_id))
-
-
 @lru_cache(maxsize=1)
 def _blk_to_item() -> dict[str, str]:
     """blk -> owning registry item id (from each item's `blk:` ref_ids). Lets us map a graph node
@@ -511,33 +464,6 @@ def _blk_to_item() -> dict[str, str]:
             if r.startswith("blk:"):
                 out[r.split(":", 1)[1]] = it.id
     return out
-
-
-@lru_cache(maxsize=1024)
-def item_tributaries(item_id: str) -> list[dict]:
-    """Named tributaries of an item, for the carve-out picker — **graph only**. A tributary is a named
-    stream whose mouth flows into one of the item's graph nodes (its section_ids, plus the lake node for
-    a lake). Reads the graph's flow edges (confluence + lake_in), so it works identically for streams
-    and lakes. Pick a tributary, then a reach on it (upstream_of a point excludes it + everything above,
-    so deeper tributaries are reached through the first-order one they flow into).
-
-    WHAT JOINS IT is the tributary walk's own first step (`tributaries.joining`, T117): what the walk
-    from this item would enter, by the walk's one entry check — not every edge into it."""
-    it = _registry().get(item_id)
-    if it is None:
-        return []
-    nodes = set(it.section_ids)
-    if it.id.startswith("wbk:"):
-        nodes.add("lake:" + it.id.split(":", 1)[1])   # tributaries point at the lake node
-    from pipeline.atlas.graph.tributaries import joining
-    blk2item = _blk_to_item()
-    cand = {blk2item[b] for src in joining(_graph(), nodes)
-            if (b := str(src).split(":", 1)[0]) in blk2item}
-    cand.discard(item_id)
-    reg = _registry()
-    out = [{"id": i, "name": reg[i].name}
-           for i in cand if reg.get(i) and reg[i].kind == "stream" and reg[i].name]
-    return sorted(out, key=lambda d: d["name"])
 
 
 # --------------------------------------------------------------------------- #
@@ -1050,7 +976,7 @@ def marks_view(target: str | None = None, scope: str | None = None) -> list[dict
 
 def split_mark_states() -> dict[str, dict]:
     """splits.json split id -> its mark status now (`marks.split_states`), and whether the served
-    atlas holds it as authored (`vintage`: a split added in fix mode reads "awaiting build" until
+    atlas holds it as authored (`vintage`: a split added by hand reads "awaiting build" until
     the atlas is rebuilt and promoted)."""
     from pipeline.regs.review import marks as M
     ctx = _review_context()
@@ -1196,12 +1122,9 @@ def s0_split_ids() -> frozenset[str]:
 
 def entry_prechecks(e: dict, *, run=None, s0=None, gate: bool = False) -> list[dict]:
     """`precheck.prechecks` for one entry against the served build and run. `gate`: also run the
-    save gate (`check_entry`; the open entry only — the queue does not run it for every row)."""
+    gate (`check_entry`; the open entry only — the queue does not run it for every row)."""
     from pipeline.regs.review.precheck import prechecks
-    errs = None
-    if gate:
-        found = _find(e["entry_id"])
-        errs = check_entry(e, found[0] if found else None)["errors"]
+    errs = check_entry(e)["errors"] if gate else None
     return prechecks(e, binds=_item_for_entry(e) is not None,
                      run=run if run is not None else run_facts(),
                      s0=s0 if s0 is not None else s0_split_ids(), gate_errors=errs)
@@ -1294,8 +1217,8 @@ def post_mark(body: dict) -> dict:
             found = _find(target)
             if found is None:
                 raise KeyError(target)
-            region, e = found
-            M.refuse_on_gate(target, check_entry(e, region)["errors"])
+            e = found[1]
+            M.refuse_on_gate(target, check_entry(e)["errors"])
             V.refuse_unbuilt(scope, body.get("answers") or {}, entry_vintage(e))
             prints = F.entry_fingerprints(e, ctx, rule_id=body.get("rule_id")
                                           if scope == "rule" else None)
@@ -1307,20 +1230,6 @@ def post_mark(body: dict) -> dict:
         writes.commit([(MARKS_PATH, M.appended(MARKS_PATH, [mark]))], "mark")
     now = M.Prints.model_validate(prints) if scope == "split" else _prints(e)
     return _mark_view(mark, now)
-
-
-def _carry_rename(before: dict, after: dict, old_id: str, new_id: str, new_splits: dict) -> list:
-    """The marks a split rename re-stamps (`review.carry_marks`): a rename moves nothing, so it
-    declares EVERY entry and the split itself unchanged; only marks that held before are carried."""
-    from pipeline.regs.review import carry_marks
-    from pipeline.regs.review import fingerprint as F
-    from pipeline.regs.review import marks as M
-    ctx_b = _review_context()
-    ctx_a = F.Context(splits=new_splits, overrides=ctx_b.overrides, registry=ctx_b.registry,
-                      bundle=ctx_b.bundle)
-    return carry_marks(before, after, marks=M.load(MARKS_PATH), unchanged=set(after),
-                       by=f"rename-split {old_id} -> {new_id}", ctx_before=ctx_b, ctx_after=ctx_a,
-                       renamed_splits={old_id: new_id})
 
 
 def entry_answer_context(entry_id: str) -> dict | None:
@@ -1347,10 +1256,7 @@ def entry_detail(entry_id: str) -> dict | None:
 
     The entry is served with each rule's and each licensing record's GENERATED `label` stamped on
     it — `catalogue.label` / `catalogue.licensing_label`, the functions the bundle uses, so the
-    curator reads exactly what the reader will. `save_entry` strips them again.
-
-    `match` is a SUGGESTION, filled only when `matched` is empty: the live matcher's answer for the
-    row's name, for the attach flow. It is never the entry's water until attached and saved."""
+    curator reads exactly what the reader will."""
     for reg_id, e in _all_entries():
         if e["entry_id"] != entry_id:
             continue
@@ -1362,16 +1268,10 @@ def entry_detail(entry_id: str) -> dict | None:
                         for i, r in enumerate(e.get("rules") or [])],
                  licensing=[dict(x, label=lab["licensing"][i] or x.get("verbatim", ""))
                             for i, x in enumerate(e.get("licensing") or [])])
-        match = None
-        if item is None and entry_kind(e) == "water":
-            mr = _suggest_match(e)
-            match = {"item_id": mr.item_id, "status": mr.status, "reason": mr.reason,
-                     "candidates": list(mr.candidates)}
         return {
             "entry": e,
             "kind": entry_kind(e),
             "region": reg_id,
-            "match": match,
             "item": None if not item else {
                 "id": item.id, "name": item.name, "kind": item.kind,
                 "variants": list(item.variants), "mus": list(item.mus),
@@ -1390,35 +1290,6 @@ def entry_detail(entry_id: str) -> dict | None:
             "vintage": vintage,
         }
     return None
-
-
-def species_list() -> list[dict]:
-    """Every species code a rule may name — `catalogue.KNOWN_SPECIES`, with the model's own words
-    for it and, for a group, its members. It was read from `species.COMMON_NAME`, the official CSV
-    list, which is a different vocabulary: it offered codes the model refuses."""
-    return sorted(model_api.vocab([])["species"], key=lambda d: d["name"].lower())
-
-
-def vocab() -> dict:
-    """Every option list the editors offer, read off the model (see `model_api.vocab`)."""
-    return model_api.vocab([e for _, e in _all_entries()])
-
-
-def search_items(q: str, limit: int = 20) -> list[dict]:
-    """Registry search by name/variant substring — for attaching an item to a no_registry entry."""
-    ql = q.lower().strip()
-    if not ql:
-        return []
-    out = []
-    for it in _registry().values():
-        if not is_water(it):
-            continue
-        names = [it.name, *it.variants]
-        if any(ql in (n or "").lower() for n in names):
-            out.append({"id": it.id, "name": it.name, "kind": it.kind, "mus": list(it.mus)})
-            if len(out) >= limit:
-                break
-    return out
 
 
 # --------------------------------------------------------------------------- #
@@ -1864,58 +1735,14 @@ def item_geojson(item_id: str) -> dict:
 
 
 # --------------------------------------------------------------------------- #
-# Editing splits.json (the hand-curated split source of truth)
+# splits.json (the hand-curated split source of truth) — read only
 # --------------------------------------------------------------------------- #
-# splits.json is now hand-curated directly (waterbody-splits.json + build_splits are gone). Edits here
-# write it in place; they take effect only after an atlas rebuild the owner runs from a terminal
+# A split edited by hand takes effect only after an atlas rebuild the owner runs from a terminal
 # (`python -m pipeline build --atlas`, through scripts/heavy.sh — the app starts no process), because
-# splits are baked into the graph's section boundaries.
-
-_SPLIT_EDITABLE = {"label", "note", "kind", "anchor"}
-
+# splits are baked into the graph's section boundaries; `GET /api/build` lists it until then.
 
 def _load_splits() -> dict:
     return json.loads(SPLITS_JSON_PATH.read_text(encoding="utf-8"))
-
-
-def _dump_splits(data: dict) -> str:
-    # match the file's existing format (1-space indent, real UTF-8, trailing newline) so a 1-split
-    # edit is a 1-split diff, not a whole-file reformat (ensure_ascii=True would escape every → / —
-    # / “ ” and churn the file; the missing newline used to churn its last line on every save)
-    return json.dumps(data, indent=1, ensure_ascii=False) + "\n"
-
-
-def split_errors(data: dict, touched: set[str]) -> list[str]:
-    """What THE PIPELINE'S split loader would make of `data` (`pipeline.atlas.splits.splits`:
-    `_flatten_waterbodies` + `SplitDef.from_dict`, the path `load_split_defs` takes at build).
-
-    The file-level faults the loader RAISES on (wrong shape, a split with no resolvable target,
-    a duplicate id) are checked over the whole file. A split `SplitDef.from_dict` refuses, the
-    loader only logs and SKIPS — the cut silently vanishes from the next build — so the app
-    refuses it here, for the splits this write `touched` (an untouched bad split is the build's
-    warning to report, not a reason to block an unrelated edit)."""
-    from pipeline.atlas.splits.splits import _flatten_waterbodies
-    from pipeline.common.models import SplitDef
-    if not isinstance(data, dict) or not isinstance(data.get("waterbodies"), list):
-        return ['splits.json must be the by-waterbody shape {"waterbodies": [...]}']
-    errs: list[str] = []
-    try:
-        flat, untargeted = _flatten_waterbodies(data)
-    except Exception as ex:  # noqa: BLE001 — a malformed waterbody / applies_to
-        return [f"splits.json: {ex}"]
-    errs += [f"split {sid!r} ({wb}): no resolvable target — its waterbody's applies_to is null "
-             f"and it has no applies_to of its own" for wb, sid in untargeted]
-    for d in flat:
-        if d["id"] in touched:
-            try:
-                SplitDef.from_dict(d)
-            except Exception as ex:  # noqa: BLE001 — ValueError/KeyError/TypeError from the model
-                errs.append(f"split {d['id']!r}: {ex}")
-    ids = [d["id"] for d in flat]
-    dupes = sorted({i for i in ids if ids.count(i) > 1})
-    if dupes:
-        errs.append(f"duplicate split ids: {dupes}")
-    return errs
 
 
 def split_review(sp: dict) -> dict:
@@ -1927,74 +1754,6 @@ def split_review(sp: dict) -> dict:
     `tiers.split_grade`, the one reading of it (tier S0 asks the same function)."""
     from pipeline.regs.review.tiers import split_grade
     return {"note": str(sp.get("_note") or ""), "grade": split_grade(sp)}
-
-
-def _waterbody_of(data: dict, split_id: str):
-    """(waterbody group, split) of `split_id` in splits.json `data`, or (None, None)."""
-    for wb in data.get("waterbodies", []):
-        for sp in wb.get("splits", []):
-            if sp.get("id") == split_id:
-                return wb, sp
-    return None, None
-
-
-#: what a NEW split may carry (fix mode): its id, the cut, and its words
-_SPLIT_NEW = {"id", "label", "kind", "anchor", "note", "_note", "applies_to"}
-
-
-def add_split(body: dict) -> dict:
-    """ADD A SPLIT to splits.json (fix mode; owner 2026-10-23 "add splits and rebuild then continue
-    review"). `body`: `split` (`id`, `label`, `kind`, `anchor`, optional `note` / `_note` /
-    `applies_to`) and where it goes — `waterbody` (the name of a group already in the file) or
-    `new_waterbody` `{name, applies_to}`. Validated by the pipeline's own split loader
-    (`split_errors`) before anything is written; a duplicate id is refused. Nothing is built: the
-    split reads "awaiting build" (`GET /api/build` lists it with the commands) until the owner's
-    atlas build, binding diff and promote land, and then it is queued for its own split mark."""
-    sp = body.get("split")
-    if not isinstance(sp, dict) or not str(sp.get("id") or "").strip():
-        return {"ok": False, "errors": ["split must be an object with an id"]}
-    bad = sorted(set(sp) - _SPLIT_NEW)
-    if bad:
-        return {"ok": False, "errors": [f"not a field of a new split: {bad}; allowed: "
-                                        f"{sorted(_SPLIT_NEW)}"]}
-    if not re.fullmatch(r"[a-z0-9_]+", sp["id"]):
-        return {"ok": False, "errors": [f"split id {sp['id']!r}: lower case, digits and _ only"]}
-    if not (isinstance(sp.get("anchor"), dict) and sp["anchor"].get("type")):
-        return {"ok": False, "errors": ["anchor must be an object with a 'type'"]}
-    with writes.LOCK:
-        data = _load_splits()
-        if _waterbody_of(data, sp["id"])[1] is not None:
-            return {"ok": False, "errors": [f"split {sp['id']!r} is already in splits.json"]}
-        # A NEW SPLIT IS TIER S0 (owner: "the new split appears in tier S0 to confirm"): its note
-        # opens with "Verify:", which `tiers.split_needs_verify` reads — until a split mark
-        # confirms it on the built map, it is a split point still to verify like any other.
-        stamp = fix_mode_stamp("added")
-        new = {"id": sp["id"], "label": sp.get("label") or sp["id"], "kind": sp.get("kind"),
-               "anchor": copy.deepcopy(sp["anchor"]), "note": sp.get("note") or "",
-               "_note": f"{stamp} {sp.get('_note') or ''}".strip(),
-               **({"applies_to": sp["applies_to"]} if sp.get("applies_to") else {})}
-        name = body.get("waterbody")
-        if name:
-            wb = next((w for w in data.get("waterbodies", []) if w.get("name") == name), None)
-            if wb is None:
-                return {"ok": False, "errors": [f"no waterbody group {name!r} in splits.json"]}
-        else:
-            nw = body.get("new_waterbody") or {}
-            if not nw.get("name") or not isinstance(nw.get("applies_to"), dict):
-                return {"ok": False, "errors": ["say where the split goes: `waterbody` (a group "
-                                                "in splits.json) or `new_waterbody` {name, "
-                                                "applies_to}"]}
-            if any(w.get("name") == nw["name"] for w in data.get("waterbodies", [])):
-                return {"ok": False, "errors": [f"a waterbody group {nw['name']!r} exists — "
-                                                f"name it as `waterbody`"]}
-            wb = {"name": nw["name"], "applies_to": nw["applies_to"], "splits": []}
-            data.setdefault("waterbodies", []).append(wb)
-        wb.setdefault("splits", []).append(new)
-        errs = split_errors(data, {new["id"]})
-        if errs:
-            return {"ok": False, "errors": errs}
-        writes.commit([(SPLITS_JSON_PATH, _dump_splits(data))], "add-split")
-        return {"ok": True, "errors": [], "split": new, "waterbody": wb["name"]}
 
 
 @lru_cache(maxsize=1)
@@ -2015,293 +1774,6 @@ def split_item(sp: dict, wb: dict) -> str | None:
     idx = _ref_items()
     got = sorted({idx[r] for r in refs if r in idx})
     return got[0] if got else None
-
-
-def split_groups(item_id: str) -> list[dict]:
-    """The splits.json waterbody groups whose `applies_to` names this item (`applies_keys` over its
-    ref_ids) — where the add-split form offers to put a new cut, with the target a new group would
-    take."""
-    from pipeline.atlas.splits.splits import applies_keys
-    item = _registry().get(item_id)
-    if item is None:
-        return []
-    refs = set(item.ref_ids)
-    return [{"name": wb.get("name"), "applies_to": wb.get("applies_to"),
-             "n_splits": len(wb.get("splits") or [])}
-            for wb in _load_splits().get("waterbodies", [])
-            if applies_keys(wb.get("applies_to")) & refs]
-
-
-def get_split(split_id: str) -> dict | None:
-    """The raw editable split record from splits.json + which waterbody it's under, and its
-    `review` (`split_review`)."""
-    for wb in _load_splits().get("waterbodies", []):
-        for sp in wb.get("splits", []):
-            if sp.get("id") == split_id:
-                return {"split": sp, "waterbody": wb.get("name"), "applies_to": wb.get("applies_to"),
-                        "review": split_review(sp)}
-    return None
-
-
-def fix_mode_stamp(action: str) -> str:
-    """THE NOTE A FIX-MODE CHANGE TO A SPLIT POINT OPENS WITH (owner 2026-10-23: "add splits and
-    rebuild then continue review with the new splits"): "Verify: <added|moved> in fix mode <date>
-    — confirm on the built map." It puts the split in tier S0 (`tiers.split_needs_verify` reads
-    "Verify:") until a split mark confirms it where the owner's build put it."""
-    import datetime as _dt
-    return f"Verify: {action} in fix mode {_dt.date.today().isoformat()} — confirm on the built map."
-
-
-def save_split(split_id: str, patch: dict) -> dict:
-    """Apply a patch (label / note / kind / anchor) to a split in splits.json and write it back.
-    The patched file is validated by the pipeline's own split loader (`split_errors`) first; an
-    invalid split is refused and nothing is written. Returns {ok, errors, split}. A graph rebuild
-    is required for the change to take effect."""
-    if not isinstance(patch, dict):
-        return {"ok": False, "errors": ["patch must be an object"]}
-    bad = [k for k in patch if k not in _SPLIT_EDITABLE]
-    if bad:
-        return {"ok": False, "errors": [f"not editable: {bad}; allowed: {sorted(_SPLIT_EDITABLE)}"]}
-    if "anchor" in patch and not (isinstance(patch["anchor"], dict) and patch["anchor"].get("type")):
-        return {"ok": False, "errors": ["anchor must be an object with a 'type'"]}
-    with writes.LOCK:
-        data = _load_splits()
-        target = next((sp for wb in data.get("waterbodies", []) for sp in wb.get("splits", [])
-                       if sp.get("id") == split_id), None)
-        if target is None:
-            return {"ok": False, "errors": [f"split {split_id} not found in splits.json"]}
-        moved = "anchor" in patch and patch["anchor"] != target.get("anchor")
-        target.update(copy.deepcopy(patch))
-        # A MOVED SPLIT IS A SPLIT POINT TO CONFIRM AGAIN (T134 adversarial review): its old mark
-        # goes stale with its anchor, but a split whose note asked for no check was not in S0, so
-        # the review queue never showed it again. The move stamps it as an add does.
-        from pipeline.regs.review.tiers import split_needs_verify
-        if moved and not split_needs_verify(target):
-            target["_note"] = f"{fix_mode_stamp('moved')} {target.get('_note') or ''}".strip()
-        errs = split_errors(data, {split_id})
-        if errs:
-            return {"ok": False, "errors": errs}
-        writes.commit([(SPLITS_JSON_PATH, _dump_splits(data))], "save-split")
-        return {"ok": True, "errors": [], "split": target}
-
-
-def _dfo_split_refs(split_id: str) -> list[dict]:
-    """Every DFO salmon location / scope whose binding names this split id."""
-    out: list[dict] = []
-    for path in sorted(Path(DFO_ENTRIES_DIR).glob("region-*.json")):
-        doc = json.loads(path.read_text(encoding="utf-8"))
-        for key, idk in (("locations", "location_id"), ("scopes", "scope_id")):
-            for x in doc.get(key) or []:
-                if _swap_split(copy.deepcopy(x), split_id, split_id):
-                    out.append({"file": f"dfo_salmon/{path.name}", "kind": key[:-1],
-                                "id": x.get(idk) or x.get("id", ""),
-                                "name": x.get("water") or x.get("name", "")})
-    return out
-
-
-def delete_split(split_id: str) -> dict:
-    """Remove a split from splits.json (e.g. a duplicate/mis-anchored cut). Rebuild to apply.
-
-    REFUSED WHILE ANYTHING BINDS IT (user, 2026-10-09): a deleted split a rule still names leaves
-    that rule bound to nothing. The refusal (`status` 409) lists every catalogue entry/rule and
-    every DFO salmon location naming it; nothing is written or backed up."""
-    with writes.LOCK:
-        refs, dfo = split_refs(split_id), _dfo_split_refs(split_id)
-        if refs or dfo:
-            return {"ok": False, "status": 409,
-                    "errors": [f"split '{split_id}' is still bound by {len(refs)} catalogue "
-                               f"rule(s) and {len(dfo)} DFO location(s) — unbind or rename first"]
-                    + [f"{r['entry_id']} · {r['rule_id']}" for r in refs]
-                    + [f"{d['file']} · {d['id']}" for d in dfo],
-                    "refs": refs, "dfo_refs": dfo}
-        data = _load_splits()
-        for wb in data.get("waterbodies", []):
-            splits = wb.get("splits", [])
-            for i, sp in enumerate(splits):
-                if sp.get("id") == split_id:
-                    del splits[i]
-                    errs = split_errors(data, set())
-                    if errs:
-                        return {"ok": False, "errors": errs}
-                    writes.commit([(SPLITS_JSON_PATH, _dump_splits(data))], "delete-split")
-                    return {"ok": True, "errors": []}
-    return {"ok": False, "errors": [f"split {split_id} not found in splits.json"]}
-
-
-def _extent_lists(e: dict):
-    """(part id, label, extents list) for every place an entry stores extents (`walk`, T112): its
-    scope, each rule's extents and tributary excludes, each licensing record's."""
-    for path, exts, _role in iter_extent_lists(e):
-        if path[0] == "extents":
-            yield "(entry scope)", "the entry's own reach", exts
-        elif path[0] == "rules":
-            r = e["rules"][path[1]]
-            yield r["rule_id"], _label(r), exts
-        else:
-            x = e["licensing"][path[1]]
-            yield x.get("id", ""), f"{x.get('kind')}: {x.get('verbatim', '')}", exts
-
-
-def split_refs(split_id: str) -> list[dict]:
-    """Every rule, licensing record or entry scope whose extents bind this split id (across the
-    catalogue region files). The IMPACT PREVIEW for a rename — the exact scope it rewrites."""
-    out: list[dict] = []
-    for region in regions():
-        for eid, e in load_region(region).items():
-            seen: set = set()
-            for part, label, exts in _extent_lists(e):
-                if part not in seen and any(split_id in (ex.get("splits") or []) for ex in exts):
-                    seen.add(part)
-                    out.append({"entry_id": eid, "region": region, "rule_id": part,
-                                "label": label, "entry_name": e.get("name", "")})
-    return out
-
-
-def _swap_split(obj, old_id: str, new_id: str) -> int:
-    """Rewrite `old_id` -> `new_id` in every `splits` list anywhere under `obj` (in place); return
-    how many it rewrote. Generic on purpose: an extent is an extent wherever the model nests it
-    (entry scope, rules, licensing, tributary excludes; a DFO location's binding)."""
-    n = 0
-    if isinstance(obj, dict):
-        for k, v in obj.items():
-            if k == "splits" and isinstance(v, list) and all(isinstance(s, str) for s in v):
-                if old_id in v:
-                    n += v.count(old_id)
-                    obj[k] = [new_id if s == old_id else s for s in v]
-            else:
-                n += _swap_split(v, old_id, new_id)
-    elif isinstance(obj, list):
-        for v in obj:
-            n += _swap_split(v, old_id, new_id)
-    return n
-
-
-def _render_entryfile(path: Path, region: str, entries) -> str:
-    """The text `io.write_entryfile` would write to `path` — produced by running it on a staged
-    copy, so the pipeline's own writer orders, serialises and VALIDATES the file (raising on an
-    invalid one) without the real file being touched."""
-    with tempfile.TemporaryDirectory() as td:
-        staged = Path(td) / Path(path).name
-        if Path(path).exists():
-            shutil.copy2(path, staged)
-        io.write_entryfile(staged, region, entries)
-        return staged.read_text(encoding="utf-8")
-
-
-def _render_dfo(slug: str, doc: dict) -> str:
-    """A DFO entry file's text, as `dfo_salmon.entries.save` writes it — validated by reading it
-    back through `entries.load` and requiring the round trip to give the same document."""
-    from pipeline.regs.dfo_salmon import entries as D
-    text = json.dumps(doc, indent=2, ensure_ascii=False) + "\n"
-    with tempfile.TemporaryDirectory() as td:
-        (Path(td) / f"region-{slug}.json").write_text(text, encoding="utf-8")
-        back = D.load(slug, Path(td)).to_dict()
-    if json.loads(json.dumps(back)) != json.loads(text):
-        raise ValueError(f"DFO region-{slug}.json does not round-trip through entries.load")
-    return text
-
-
-def _split_in_code(split_id: str) -> list[str]:
-    """Pipeline source files that name this split id literally (e.g. the DFO B(i)/B(ii) divide,
-    `CNR_BRIDGE`). A rename cannot rewrite code, so it is refused while any does."""
-    hits = []
-    for p in sorted((_ROOT / "pipeline").rglob("*.py")):
-        if "tests" in p.parts:
-            continue
-        try:
-            if f'"{split_id}"' in p.read_text(encoding="utf-8"):
-                hits.append(str(p.relative_to(_ROOT)))
-        except (OSError, UnicodeDecodeError):
-            continue
-    return hits
-
-
-def rename_split(old_id: str, new_id: str) -> dict:
-    """Rename a split id in splits.json AND rewrite every extent that binds it — the catalogue
-    region files and the DFO salmon entry files — ALL OR NOTHING.
-
-    Every new file is computed and validated first (splits.json by the pipeline's split loader,
-    each region file by `io.write_entryfile` on a staged copy, each DFO file by a round trip
-    through its loader); only then is anything written, through `writes.commit`, which backs every
-    target up and restores the ones already written if a later write fails. So a failure can no
-    longer leave rules bound to an id splits.json no longer has. Union validation means the new id
-    is bindable immediately; a rebuild reconciles the graph."""
-    import re as _re
-    new_id = (new_id or "").strip()
-    if not _re.fullmatch(r"[a-z0-9_]+", new_id):
-        return {"ok": False, "errors": ["new id must be lowercase letters, digits, underscores"]}
-    in_code = _split_in_code(old_id)
-    if in_code:
-        return {"ok": False, "errors": [f"split '{old_id}' is named in pipeline code ({', '.join(in_code)}) "
-                                        f"— rename it there by hand, with this, in one change"]}
-    from pipeline.regs.review import marks as M
-    with writes.LOCK, M.store_lock(MARKS_PATH):        # it may append carried marks
-        data = _load_splits()
-        all_ids = {sp.get("id") for wb in data.get("waterbodies", []) for sp in wb.get("splits", [])}
-        if new_id in all_ids:
-            return {"ok": False, "errors": [f"id '{new_id}' already exists in splits.json"]}
-        renamed = False
-        for wb in data.get("waterbodies", []):
-            for sp in wb.get("splits", []):
-                if sp.get("id") == old_id:
-                    sp["id"] = new_id
-                    renamed = True
-        if not renamed:
-            return {"ok": False, "errors": [f"split '{old_id}' not found in splits.json"]}
-        errs = split_errors(data, {new_id})
-        if errs:
-            return {"ok": False, "errors": errs}
-        changes: list[tuple[Path, str]] = [(SPLITS_JSON_PATH, _dump_splits(data))]
-        refs = split_refs(old_id)                      # the preview's rows, for the report
-
-        carried: list[str] = []
-        before_corpus: dict[str, dict] = {}
-        after_corpus: dict[str, dict] = {}
-        swapped: set[str] = set()
-        try:
-            for region in regions():                   # catalogue: read RAW, rewrite only split ids
-                path = ENTRIES_DIR / f"region-{region}.json"
-                entries = io.read_entryfile(path)
-                before_corpus.update(load_region(region))
-                for eid, e in entries.items():
-                    if _swap_split(e, old_id, new_id):
-                        swapped.add(eid)
-                if any(eid in swapped for eid in entries):
-                    changes.append((path, _render_entryfile(path, region, entries.values())))
-                after_corpus.update({eid: _canonical(e) for eid, e in entries.items()})
-            # CARRY THE MARKS OVER (user, 2026-10-09; T97): an entry whose ONLY change is the renamed
-            # id, and the split's own mark, are declared unchanged — `review.carry_marks` re-stamps
-            # the marks that held before; a mark already stale stays stale.
-            new_marks = _carry_rename(before_corpus, after_corpus, old_id, new_id, data)
-            if new_marks:
-                changes.append((MARKS_PATH, M.appended(MARKS_PATH, new_marks)))
-                carried = sorted({m.target for m in new_marks})
-            dfo: list[str] = []
-            for path in sorted(Path(DFO_ENTRIES_DIR).glob("region-*.json")):
-                doc = json.loads(path.read_text(encoding="utf-8"))
-                n = _swap_split(doc.get("locations") or [], old_id, new_id)
-                n += _swap_split(doc.get("scopes") or [], old_id, new_id)
-                if n:
-                    slug = path.stem.split("region-", 1)[1]
-                    changes.append((path, _render_dfo(slug, doc)))
-                    dfo.append(path.name)
-        except Exception as ex:  # noqa: BLE001 — nothing has been written yet
-            return {"ok": False, "errors": [f"refused, nothing written: {ex}"]}
-        try:
-            snap = writes.commit(changes, "rename-split")
-        except Exception as ex:  # noqa: BLE001 — commit restored what it had written
-            return {"ok": False, "errors": [f"write failed, every file restored: {ex}"]}
-    return {"ok": True, "errors": [], "new_id": new_id, "updated_rules": refs, "failed_rules": [],
-            "updated_dfo_files": dfo, "carried_marks": carried, "files": [str(p) for p, _ in changes], "backup": str(snap)}
-
-
-def _label(rule: dict) -> str:
-    """The generated line for one rule, for the split-rename impact preview. A rule too malformed
-    to render shows its verbatim, so a curator looking at it still sees something."""
-    try:
-        return rule_label(CatalogueRule.model_validate(rule)) or (rule.get("verbatim") or "")
-    except Exception:                                    # noqa: BLE001
-        return (rule.get("verbatim") or "")
 
 
 def _cut_points(iid: str):
@@ -2341,66 +1813,19 @@ def _gate(data: dict):
     return model_api.check(data, menu=cut_point_menu(data, _cut_points), registry=_registry())
 
 
-def _checked(entry_dict: dict, region: str | None) -> tuple:
-    """(the gate's model or None, `check_entry`'s answer). One run of the gate serves a check and a
-    save, so a save writes exactly the entry the check accepted — with the gate's rewrites."""
-    data = model_api.strip_served(entry_dict)
-    labels = model_api.labels(data, ENTRIES_DIR, _place_namer())
-    entry, errs = _gate(data)
-    # WHAT THE APP ADDS TO THE GATE is about the EDIT, not the entry: an app edits entries, it does
-    # not create or move them, and the synopsis row's own fields are not edited here.
-    found = _find(str(data.get("entry_id", "")))
-    if found is None:
-        errs.append({"path": "entry_id", "msg": f"{data.get('entry_id')!r} is not an entry in "
-                     f"the catalogue — the app edits entries, it does not create or move them"})
-    else:
-        on_region, on_disk = found
-        if region is not None and region != on_region:
-            errs.append({"path": "region", "msg": f"the entry is in region-{on_region}.json, not "
-                                                 f"region-{region}.json"})
-        errs += model_api.pass_through_changes(on_disk, data)
-    return entry, {"ok": not errs, "errors": errs, "warnings": model_api.warnings_of(data),
-                   "labels": labels}
-
-
-def check_entry(entry_dict: dict, region: str | None = None) -> dict:
-    """EVERYTHING a save would refuse, without writing: THE GATE (`validate_catalogue.gate` — the
+def check_entry(entry_dict: dict) -> dict:
+    """THE GATE AN ENTRY IS MARKED AGAINST (PLAN §4 phase 1): `validate_catalogue.gate` — the
     model, the checks after it, absorbed ids, split parents, every split id against the cut-points
-    it may bind) and the edit's own limits (the pass-through fields, the entry's region). Plus the
-    generated label of every rule and record, so the editor shows what the app will say while the
-    curator types. `{ok, errors, warnings, labels}`; each error is `{path, msg}` with `path` in the
-    entry's own JSON keys (`rules.2.gear.0.max`)."""
-    return _checked(entry_dict, region)[1]
-
-
-def save_entry(region: str, entry_dict: dict) -> dict:
-    """Validate an edited entry (the gate, `check_entry`) and write it back to its region file, the
-    single source of truth — AS THE GATE RETURNED IT, so an alias split id or an exemption's book
-    name is stored in its canonical spelling, exactly as ingest stores it. The file's new text is
-    produced by `io.write_entryfile` on a staged copy — every other entry in the file is written
-    back exactly as it was read, and the whole file is validated as written — then committed
-    through `writes.commit`, which backs the file up first. Returns `{ok, errors}`.
-
-    There is no confirm/lock — a catalogue entry has no such field; a re-parse leaves an entry
-    edited here alone (see the module doc)."""
-    entry, res = _checked(entry_dict, region)
-    if not res["ok"]:
-        return {"ok": False, "errors": res["errors"]}
-    path = ENTRIES_DIR / f"region-{region}.json"
-    with writes.LOCK:
-        existing: dict[str, object] = dict(io.read_entryfile(path, missing_ok=True))
-        existing[entry.entry_id] = entry
-        try:
-            text = _render_entryfile(path, region, existing.values())
-            writes.commit([(path, text)], "save-entry")
-        except Exception as ex:  # noqa: BLE001
-            return {"ok": False, "errors": [{"path": "", "msg": f"file: {ex}"}]}
-    return {"ok": True, "errors": []}
+    it may bind — with the build this app serves. A mark on an entry that fails it is refused
+    (`marks.refuse_on_gate`), and the open entry's pre-checks show it. `{ok, errors}`; each error is
+    `{path, msg}` with `path` in the entry's own JSON keys (`rules.2.gear.0.max`). Writes nothing."""
+    _, errs = _gate(model_api.strip_served(entry_dict))
+    return {"ok": not errs, "errors": errs}
 
 
 #: Every cache read from the served build — what `invalidate_caches` drops.
-_BUILD_CACHES = (_registry, _place_namer_for, _indices, _splits_meta, _split_points_attrs,
-                 _blk_to_item, item_tributaries, _graph, _geoms, _wbk_polys,
+_BUILD_CACHES = (_registry, _place_namer_for, _splits_meta, _split_points_attrs,
+                 _blk_to_item, _graph, _geoms, _wbk_polys,
                  _blk_index, _review_context_for, _built_atlas, _built_for, _splits_context_for,
                  _ref_items, _run_facts_for)
 
@@ -2410,11 +1835,11 @@ _BUILD_CACHES = (_registry, _place_namer_for, _indices, _splits_meta, _split_poi
 # --------------------------------------------------------------------------- #
 
 #: What a cold backend loads before its first entry answers quickly, in the order a first entry
-#: needs it: the registry and the matcher (the queue), the bundle's facts (marks), the vintage and the
-#: reach run's facts (awaiting build, risk factors), the graph (reaches) and the section geometry
-#: (the map). The queue itself is computed last, once, so every one of its readers is warm.
+#: needs it: the registry (the queue), the bundle's facts (marks), the vintage and the reach run's
+#: facts (awaiting build, risk factors), the graph (reaches) and the section geometry (the map). The
+#: queue itself is computed last, once, so every one of its readers is warm.
 WARM_STEPS: tuple[tuple[str, str], ...] = (
-    ("registry", "_registry"), ("matcher", "_indices"), ("bundle facts", "_review_context"),
+    ("registry", "_registry"), ("bundle facts", "_review_context"),
     ("vintage", "built"), ("reach run facts", "run_facts"), ("graph", "_graph"),
     ("geometry", "_geoms"), ("queue", "queue"),
 )

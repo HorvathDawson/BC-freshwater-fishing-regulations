@@ -1,4 +1,6 @@
 """EVERY write the app makes to curated data goes through here: back up, then commit, all or nothing.
+There is one such write, a reviewer's mark appended to the marks store (`reuse.post_mark`); the
+catalogue and splits.json are never written by the app (T185).
 
     commit([(path, text), ...], action)
 
@@ -15,11 +17,10 @@
    written until all of it is ready. Each file is then written by temp file + `os.replace`
    (`io.atomic_write`), so no single file is ever half-written. If ANY write fails, every file
    already written in this commit is put back to its pre-commit bytes (or removed, if it did not
-   exist), and the error is re-raised. A split rename touches splits.json and every region file
-   that binds the split: a failure mid-way can no longer leave a rule naming a split that is gone.
+   exist), and the error is re-raised.
 
 `LOCK` serialises the app's read-compute-commit sequences (FastAPI runs sync endpoints on a
-thread pool), so two saves to one region file cannot interleave and drop one of them.
+thread pool), so two marks posted at once cannot interleave and drop one of them.
 """
 from __future__ import annotations
 

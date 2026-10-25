@@ -3,7 +3,8 @@ force becomes ticket text the owner files (PLAN §6 Q3: reviewers mark, the owne
 
     ticket_text(mark, ...)   one mark -> a Markdown ticket: what was marked, the answers, the
                              problem, the reviewer's note, the entry or split it is about, and the
-                             work (fix in fix mode, then the rebuild that ships it)
+                             work (a reviewed change to the curated files, T185, then the
+                             rebuild that ships it)
     parse_ticket(text)       the mark's fields back from a ticket — THE ROUND TRIP: what the owner
                              files is exactly what the reviewer said (`test_review_queue.py`)
     export(marks, ...)       the marks in force whose verdict is wrong or unsure, as tickets
@@ -75,9 +76,9 @@ def _work(mark) -> list[str]:
     what = ", ".join(f"{k} ({CHECK_WORDS[k]})" for k in sorted(checks, key="TRPA".index))
     lines = [f"1. {'Decide' if mark.verdict == 'unsure' else 'Fix'} {what or 'the mark'}"
              + (" — the owner's call (PLAN §6 Q3)." if mark.verdict == "unsure" else "."),
-             "2. Fix mode: `bash curation-review/run.sh --fix` "
-             + ("(the split card: move / delete / rename)." if split
-                else "(the entry's editors; a cut pick is the extent's `cut_pick`)."),
+             "2. A reviewed change to the curated files (T185): a proposal the owner accepts "
+             + ("(the split in `data/curated/waters/splits.json`)." if split
+                else "(the entry in its region file; a cut pick is the extent's `cut_pick`)."),
              "3. Rebuild, then the mark goes stale and the target re-queues for review:"]
     lines += [f"   - `{c}`" for c in cmds]
     return lines

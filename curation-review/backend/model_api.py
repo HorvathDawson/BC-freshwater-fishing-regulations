@@ -1,35 +1,22 @@
-"""The catalogue model, as the review app sees it: its vocabularies, its labels, its errors.
+"""The catalogue model, as the review app sees it: its labels and the gate's errors.
 
-Nothing here decides anything. Every list is READ OFF `pipeline.regs.parsing.catalogue` (an
-enum, a `Literal`, a registry dict), so an option the model adds or drops reaches the editor
-without an edit here — the rule-type picker once listed six retired kinds the model refused.
-Every label is `catalogue.label` / `catalogue.licensing_label`, the functions the bundle uses.
-Every error is the model's own `ValidationError`, re-addressed to the field it is about.
-
-Three things the model does not carry and this module has to say where they come from:
-
-  * gear member tokens (`bait: ban [any_bait]`) are OPEN strings in the model. The editor offers
-    the tokens the corpus already uses as suggestions, labelled as such; any token may be typed.
-  * `area_kind` is an open string on an extent too; same treatment.
-  * `while` is `catalogue.WHILE_TOKENS` — the means (`Method` members) and the two devices
-    (`downrigger`, `light`) — read off the model's own named constants (see `_while_tokens`).
+Nothing here decides anything. Every label is `catalogue.label` / `catalogue.licensing_label`, the
+functions the bundle uses. Every error is the gate's (`validate_catalogue.gate`) or the model's own
+`ValidationError`, re-addressed to the field it is about. The app writes no entry (T185), so what
+the editors needed — the vocabularies, the draft's extent warnings — is gone.
 """
 
 from __future__ import annotations
 
-import calendar
 import json
 import re
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Literal, Union, get_args, get_origin
+from typing import Literal, Union, get_args, get_origin
 
 from pydantic import TypeAdapter, ValidationError
 
-from pipeline.common.models.enums import NodeKind
 from pipeline.regs.parsing import catalogue as C
-from pipeline.regs.parsing.catalogue_parts.walk import iter_extents
-from pipeline.regs.parsing.entry_models import Extent, Op
 
 #: Keys the app STAMPS on what it serves and removes before validation — the generated label of
 #: each rule and each licensing record. Anything else the model does not know is refused.
@@ -39,7 +26,7 @@ _RECORD = TypeAdapter(C.LicensingRecord)
 
 
 # --------------------------------------------------------------------------- #
-# Vocabulary
+# The model's closed vocabularies (the licensing kinds an error path drops)
 # --------------------------------------------------------------------------- #
 
 def _unwrap(tp):
@@ -63,97 +50,6 @@ def _values(model, field: str) -> list[str]:
     if isinstance(tp, type) and issubclass(tp, C.Enum):
         return [m.value for m in tp]
     raise TypeError(f"{model.__name__}.{field} is not a closed vocabulary")
-
-
-def _slot_shape(s: C.Slot) -> str:
-    if s in C._SET_SLOTS:
-        return "set"
-    if s in C._SPEC_SLOTS:
-        return "spec"
-    if s in C._MEASURED:
-        return "measured"
-    return "count"
-
-
-def _while_tokens() -> list[str]:
-    """Every token `CatalogueRule.while` accepts — `catalogue.WHILE_TOKENS`, the named constant
-    the validator itself checks against. (This used to PROBE the validator, because one token,
-    `alone_in_a_boat`, was a literal known only inside it; that token is gone and the vocabulary
-    is a constant: means, `WHILE_MEANS`, and devices, `WHILE_DEVICES`.)"""
-    return sorted(C.WHILE_TOKENS)
-
-
-def _corpus_tokens(entries: list[dict]) -> dict:
-    """Open-string values the corpus already uses — offered as suggestions, never as a closed set."""
-    gear: dict[str, set] = {}
-    must_be: dict[str, set] = {}
-    area_kinds: set = set()
-    for e in entries:
-        for r in e.get("rules") or []:
-            for c in r.get("gear") or []:
-                slot = c.get("slot", "")
-                for k in ("allow", "only", "ban", "except", "members", "of"):
-                    gear.setdefault(slot, set()).update(c.get(k) or [])
-                must_be.setdefault(slot, set()).update(c.get("must_be") or [])
-        for _path, x, _role in iter_extents(e):
-            if x.get("area_kind"):
-                area_kinds.add(x["area_kind"])
-    return {"gear_members": {k: sorted(v) for k, v in gear.items() if v},
-            "must_be": {k: sorted(v) for k, v in must_be.items() if v},
-            "area_kinds": sorted(area_kinds)}
-
-
-def vocab(entries: list[dict]) -> dict:
-    """Every option list the editors offer, read off the model."""
-    kinds = [get_args(m.model_fields["kind"].annotation)[0]
-             for m in get_args(get_args(C.LicensingRecord)[0])]
-    species = []
-    for code in sorted(C.KNOWN_SPECIES):
-        members = C.SPECIES_GROUPS.get(code)
-        species.append({"code": code, "name": C._SPECIES_WORDS.get(code, code),
-                        "is_group": code in C.SPECIES_GROUPS,
-                        "members": list(members) if members else []})
-    return {
-        "rule_types": [{"type": t.value, "family": C._FAMILY[t]} for t in C.RuleType],
-        "licensing_kinds": kinds,
-        "slots": [{"slot": s.value, "shape": _slot_shape(s)} for s in C.Slot],
-        "methods": [m.value for m in C.Method],
-        "while": _while_tokens(),
-        "while_means": sorted(C.WHILE_MEANS),
-        "while_devices": sorted(C.WHILE_DEVICES),
-        "conduct": [{"act": k, "words": v} for k, v in C.CONDUCT_ACTS.items()],
-        "documents": [{"doc": d.value, "words": C._DOC_WORDS.get(d.value, d.value),
-                       "provincial": d.value in C.PROVINCIAL_ANGLER_DOCUMENTS}
-                      for d in C.Document],
-        "periods": _values(C.CatalogueRule, "period"),
-        "water_kinds": _values(C.CatalogueRule, "water"),
-        "channel_sides": _values(C.CatalogueRule, "side"),
-        "life_stages": _values(C.CatalogueRule, "life_stage"),
-        "closure_kinds": _values(C.CatalogueRule, "closure_kind"),
-        "origins": _values(C.CatalogueRule, "origin"),
-        "obligations": _values(C.CatalogueRule, "obligation"),
-        "vessel_aspects": _values(C.CatalogueRule, "aspect"),
-        "propulsion_levels": _values(C.CatalogueRule, "level"),
-        "angler_states": _values(C.GearWhen, "angler"),
-        "solar": [s.value for s in C.Solar],
-        "weekdays": list(calendar.day_name),
-        "who_axes": {k: list(v) for k, v in C.WHO_AXES.items()},
-        "exemptable_defaults": sorted(C.EXEMPTABLE_DEFAULTS),
-        "doing_acts": _values(C.Doing, "act"),
-        "requirement_on": _values(C.Requirement, "on"),
-        "authority": _values(C.Requirement, "authority"),
-        "classified": _values(C.Designation, "classified"),
-        "terms_sold": _values(C.LicenceTerms, "sold"),
-        "terms_covers": _values(C.LicenceTerms, "covers"),
-        "terms_allocation": _values(C.LicenceTerms, "allocation"),
-        "terms_needs": _values(C.LicenceTerms, "needs"),
-        "path_quota": _values(C.Path, "quota"),
-        "extent_ops": [o.value for o in Op],
-        "extent_keys": list(Extent.model_fields),
-        "feature_types": [k.value for k in NodeKind],
-        "species": species,
-        **_corpus_tokens(entries),
-    }
 
 
 # --------------------------------------------------------------------------- #
@@ -280,7 +176,7 @@ def strip_served(entry: dict) -> dict:
 
 def labels(entry: dict, entries_dir: Path, namer=None) -> dict:
     """The generated label of every rule and record that validates ON ITS OWN, and None for one
-    that does not — so a curator sees the other rules' labels while fixing one.
+    that does not — so a reviewer sees the other rules' labels beside one the model refuses.
 
     `namer` is the bundle's own `place_names.PlaceNamer` over the build the app serves, so a rule
     bound by a cut-point or an area names its place here exactly as the bundle's label does."""
@@ -319,38 +215,16 @@ def labels(entry: dict, entries_dir: Path, namer=None) -> dict:
 
 
 # --------------------------------------------------------------------------- #
-# The draft check
+# The gate
 # --------------------------------------------------------------------------- #
 
-def warnings_of(entry: dict) -> list[dict]:
-    """Extent shapes the model stores as plain dicts, checked against `entry_models.Extent` — the
-    shape the resolver reads. REPORTED, NOT REFUSED: `CatalogueEntry` stores extents as dicts and
-    refuses only what it checks itself (a bare `whole` beside `extent_text`, an extent-level
-    `includes_tributaries`, `feature_types` on some extents and not others). `feature_types` on a
-    non-`within` op is valid now — the builder applies it after the walk."""
-    out: list[dict] = []
-    known = set(Extent.model_fields)
-
-    for path, x, _role in iter_extents(entry):           # every extent the entry holds (T112)
-        extra = sorted(set(x) - known)
-        if extra:
-            out.append(_err(list(path), f"extent keys {extra} are not in the Extent model "
-                                        f"(the resolver may not read them)"))
-        try:
-            Extent.model_validate(x)
-        except ValidationError as ex:
-            for e in ex.errors():
-                out.append(_err(list(path) + list(e["loc"]), _clean_msg(e["msg"])))
-    return out
-
-
 def check(entry: dict, *, menu: dict | None, registry) -> tuple[C.CatalogueEntry | None, list[dict]]:
-    """Validate a draft through THE GATE (`validate_catalogue.gate`) — the one ingest runs: the
+    """Validate an entry through THE GATE (`validate_catalogue.gate`) — the one ingest runs: the
     model, every number in its own verbatim, a sub-limit inside its parent, a lift inside what it
     lifts, no lake that is cut into parts, no absorbed item id (`registry`), every split id a
     cut-point it may bind (`menu`, `validate_catalogue.cut_point_menu`; an alias is stored
-    canonically). Returns the model (or None) — carrying the gate's rewrites, so a save writes the
-    canonical form — and the addressed errors; an entry with any error is not saved.
+    canonically). Returns the model (or None) — carrying the gate's rewrites — and the addressed
+    errors; an entry with any error cannot be marked (`marks.refuse_on_gate`).
 
     ONE GATE (T119). The app used to run only the model, so a curator saved `take: 15` on a rule
     whose sentence says 20 and the save went through; then it ran its own partial set beside the
@@ -367,14 +241,3 @@ def check(entry: dict, *, menu: dict | None, registry) -> tuple[C.CatalogueEntry
     return v.entry, errs
 
 
-def pass_through_changes(before: dict, after: dict) -> list[dict]:
-    """The fields the app may not change: they come from the synopsis row via the batch, and
-    `entry_id` encodes them (see the Identity panel). Changing them here would desync the entry
-    from the row a re-parse compares it to."""
-    out = []
-    for k in ("entry_id", "name", "display_name", "region", "regs_verbatim", "source_pages",
-              "symbols"):
-        if before.get(k) != after.get(k):
-            out.append(_err([k], f"`{k}` is passed through from the synopsis row and is not "
-                                 f"edited here"))
-    return out

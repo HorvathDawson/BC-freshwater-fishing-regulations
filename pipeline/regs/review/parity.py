@@ -204,7 +204,6 @@ def _load_app(build: Path, entries: Path):
     the code a reviewer's screen runs, imported as the app imports it."""
     os.environ["CURATION_BUILD"] = str(build)
     os.environ["CURATION_ENTRIES_DIR"] = str(entries)
-    os.environ.setdefault("CURATION_FIX", "0")
     backend = Path(__file__).resolve().parents[3] / "curation-review" / "backend"
     sys.path.insert(0, str(backend))
     import reuse                                               # noqa: E402
