@@ -13,8 +13,13 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
 - Owner decisions today (decisions.md): braids accepted; T183 both regions (reverses T115); T185 no tool writes the
   catalogue; order braids → T183 → tiles window → native → slough fold; T162 PSF permission (reply not stored; credit
   PSF + DFO); Q162–Q164 settled; Okanagan oxbows → streams (in the slough fold).
-- Running: T183 lane (side reach + binding diff + card gate; also checks the Skeena reserve section-2 licensing).
-- Next: promote T183 → tiles window (T64, T85, T75, T113, T152, T155) → T62 3.2/3.9 + T73 → T179 → native (T50…).
+- Running (2026-10-24 late): T183 lane round 2 (stricter wins across regions, 5 m membership, Skeena section 2 from
+  Exchamsiks as its own commit; side build, card gate must be 0 → Claude promotes with `pipeline build`); T184 lane
+  (local review app cleanup: entries only, splits by proxy, human-reviewed state, artifact code removed, fix-mode writers
+  removed = T185 part). Pilot artifact DELETED (owner). New: T188 SEO (canifishthis.ca, full-rule water pages); T164
+  gets a DFO review mode with all anchor types.
+- Next: promote T183 → merge T184 → owner runs the 30-entry pilot locally → tiles window (T64, T85, T75, T113, T152,
+  T155) → T62 3.2/3.9 + T73 → T179 → T162 → native (T50…).
   T162 run timing after braids (PSF + DFO). T182 web splits. Owner: slough marks (151 so far), curation pilot.
 
 ## (earlier) CURRENT STATE (2026-10-24, morning)
