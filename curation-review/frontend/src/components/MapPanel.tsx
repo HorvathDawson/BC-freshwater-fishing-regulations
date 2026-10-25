@@ -99,6 +99,14 @@ function colorize(fc: GeoJSON.FeatureCollection, ref: Set<string>, unused: Set<s
   };
 }
 
+/** Run `fn` once the map's own sources exist. `isStyleLoaded()` is false again whenever tiles are
+ *  loading, so "isStyleLoaded() ? fn() : once('load', fn)" waited for a "load" that had ALREADY fired
+ *  and never ran — the named splits (T184) were silently not drawn when they arrived mid-load. */
+function whenReady(m: maplibregl.Map, fn: () => void): void {
+  if (m.getSource("item")) fn();
+  else m.once("styledata", () => whenReady(m, fn));
+}
+
 function bounds(fc: GeoJSON.FeatureCollection): maplibregl.LngLatBoundsLike | null {
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
   const walk = (c: unknown) => {
@@ -331,7 +339,7 @@ export function MapPanel({
         }
       }
     };
-    if (m.isStyleLoaded()) run(); else m.once("load", run);
+    whenReady(m, run);
   }, [selectedSplitId]);
 
   // Load geometry when the item changes. A combined entry covers several registry items, so the
@@ -392,7 +400,7 @@ export function MapPanel({
         if (b) m.fitBounds(b, { padding: 50, maxZoom: 14, duration: 300 });
       }
     };
-    if (m.isStyleLoaded()) run(); else m.once("load", run);
+    whenReady(m, run);
   }, [namedSplits, shownReach]);
 
   // Tributaries (opt-in): one level up from every covered water.
@@ -431,7 +439,7 @@ export function MapPanel({
           src.setData({ type: "FeatureCollection", features });
         });
     };
-    if (m.isStyleLoaded()) run(); else m.once("load", run);
+    whenReady(m, run);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showTribs, itemId, alsoKey, reloadKey, shownReach, entryId]);
 
@@ -462,7 +470,7 @@ export function MapPanel({
         feats.push({ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: pts } });
       src.setData({ type: "FeatureCollection", features: feats });
     };
-    if (m.isStyleLoaded()) run(); else m.once("load", run);
+    whenReady(m, run);
   }, [pts]);
 
   useEffect(() => {
@@ -485,7 +493,7 @@ export function MapPanel({
         if (b) m.fitBounds(b, { padding: 40, maxZoom: 14, duration: 0 });
       }
     };
-    if (m.isStyleLoaded()) run(); else m.once("load", run);
+    whenReady(m, run);
   }
 
   return (
