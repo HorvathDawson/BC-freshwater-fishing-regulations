@@ -280,7 +280,7 @@ def append(path: Path, marks: Sequence[Mark]) -> None:
 
 def refuse_on_gate(target: str, gate_errors: Sequence) -> None:
     """MARKS ARE REFUSED ON AN ENTRY THAT FAILS THE GATE (PLAN §4 phase 1): what the reviewer would
-    sign off is not what ingest accepts. `gate_errors` is the save gate's answer for the entry as
+    sign off is not what ingest accepts. `gate_errors` is the gate's answer for the entry as
     it is on disk (the review app's `check_entry`, `validate_catalogue` beneath it)."""
     if gate_errors:
         msgs = [e.get("msg", str(e)) if isinstance(e, Mapping) else str(e) for e in gate_errors]

@@ -9,7 +9,8 @@ The row-box sidecar is made here by the one-off helper itself, for page 16 (no c
   * Adam River shows "ADAM RIVER (except Eve River)" and a readable crop: its row, the water column
     above the regulation column, rendered at 2.6 px/pt (the old crop was the 530 pt row at 24 %);
   * a zone entry is found on its chapter page by text, and each rule carries its impact line;
-  * progress counts every entry and every S0 split point.
+  * progress counts every entry (entries only — T184: no S0 split tier);
+  * a split mark is refused; the split marks in the store stay readable.
 """
 from __future__ import annotations
 
@@ -221,12 +222,12 @@ def test_no_request_writes_anything_but_a_mark(env):
 
 # --------------------------------------------------------------------------- progress
 
-def test_progress_counts_every_entry_and_every_s0_split_point(env):
+def test_progress_counts_every_entry(env):
     p = env["client"].get("/api/review/progress").json()
     tiers = {t["tier"]: t for t in p["tiers"]}
-    assert list(tiers) == ["S0", "P1", "Z", "P2", "P3", "P4", "sweep"]
-    assert tiers["Z"]["total"] == 132 and tiers["S0"]["total"] == 150
-    assert p["overall"]["total"] == 1525 + 150
+    assert list(tiers) == ["P1", "Z", "P2", "P3", "P4", "sweep"]
+    assert tiers["Z"]["total"] == 132
+    assert p["overall"]["total"] == 1525
     assert p["overall"]["total"] == sum(t["total"] for t in p["tiers"])
     assert all(t["todo"] == t["total"] - t["done"] for t in p["tiers"])
 
@@ -250,31 +251,40 @@ def test_a_sidecar_cut_from_another_pdf_is_refused_by_name(env, monkeypatch, tmp
     assert env["client"].get(f"/api/entries/{ADAM}/evidence/crop.png").status_code == 404
 
 
-#: a confirmed point whose note asks for no check — not in S0 until something changes it
+#: a confirmed point whose note asks for no check
 PLAIN_SPLIT = "adams_river__signs_200_m_downstream_of_salmon_viewing_platforms"
 
 
-def _card(env, split_id):
-    import review
-    return next((c for c in review.split_queue() if c["split_id"] == split_id), None)
-
-
-def test_a_split_mark_gone_stale_is_listed_in_s0(env):
-    """A split confirmed, then changed by hand (not through the tool, so no stamp): its mark is
-    stale and S0 lists it again — the queue never stops showing a point to confirm."""
-    reuse = env["reuse"]
-    path = Path(reuse.SPLITS_JSON_PATH)
-    original = path.read_text()
+def test_a_split_is_not_marked_but_its_old_marks_stay_readable(env):
+    """T184 (owner 2026-10-24): no split is a review target — a split mark is refused, in the
+    reviewer's words (check it on an entry's map; a wrong cut is that entry's Place: wrong). The
+    split marks already in the store are history, kept: still served, still read stale when the
+    split moves (and a stale one is a split to verify again, `tiers.split_needs_verify`)."""
+    from pipeline.regs.review import fingerprint as F
+    from pipeline.regs.review import marks as M
+    reuse, c = env["reuse"], env["client"]
+    r = c.post("/api/marks", json={"scope": "split", "target": PLAIN_SPLIT, "answers": {"P": "y"},
+                                   "reviewer": "tester"})
+    assert r.status_code == 422 and "is not marked on its own" in r.text, r.text
+    assert "split" not in c.get("/api/mode").json()["checks"]
+    path, store = Path(reuse.SPLITS_JSON_PATH), Path(reuse.MARKS_PATH)
+    original, marks_before = path.read_text(), store.read_text()
+    old = M.Mark(scope="split", target=PLAIN_SPLIT, verdict="verified", answers={"P": "y"},
+                 reviewer="earlier", date="2026-10-23", pdf_sha256="0" * 64,
+                 prints=M.Prints.model_validate(F.split_fingerprints(PLAIN_SPLIT,
+                                                                     reuse._review_context())))
     try:
-        r = env["client"].post("/api/marks", json={"scope": "split", "target": PLAIN_SPLIT,
-                                                   "answers": {"P": "y"}, "reviewer": "tester"})
-        assert r.status_code == 200 and r.json()["status"] == "verified", r.text
-        assert _card(env, PLAIN_SPLIT) is None                        # confirmed, not S0
+        store.write_text(marks_before + M.line(old))
+        got = c.get("/api/marks", params={"scope": "split"}).json()
+        assert [(m["target"], m["status"]) for m in got] == [(PLAIN_SPLIT, "verified")]
+        assert c.get("/api/marks/splits").json()[PLAIN_SPLIT]["status"] == "verified"
+        assert PLAIN_SPLIT not in reuse.splits_to_verify()
         path.write_text(_shift(original))
-        card = _card(env, PLAIN_SPLIT)
-        assert card is not None and (card["s0"], card["status"]) == (True, "stale"), card
+        assert c.get("/api/marks/splits").json()[PLAIN_SPLIT]["status"] == "stale"
+        assert PLAIN_SPLIT in reuse.splits_to_verify()
     finally:
         path.write_text(original)
+        store.write_text(marks_before)
 
 
 def _shift(text: str) -> str:

@@ -11,9 +11,10 @@ stamps, as it does when the owner's rebuild lands in a terminal.
     entry reads "awaiting build" (the pending-build panel lists it, alone, with
     the command), a verified mark is refused and a T/R-only mark taken; the reach run alone does not
     clear it; deliver does;
-  * a split added mid-review (owner 2026-10-23): the entries on its water await the atlas, the new
-    split is queued and refused a mark until built, the old mark on that water reads "binding
-    moved"; once the atlas holds the split (promote) the entries clear and the split can be marked.
+  * a split added mid-review (owner 2026-10-23): the entries on its water await the atlas and the
+    pending-build panel lists the split, the old mark on that water reads "binding moved"; once
+    the atlas holds the split (promote) the entries clear and review continues on them — the split
+    itself is checked through them (T184: no split is a review target).
 """
 from __future__ import annotations
 
@@ -251,11 +252,8 @@ def test_a_split_added_mid_review_clears_after_the_rebuild_without_a_restart(app
         assert _vintage(env, other) == CUR                       # another water: untouched
         assert _entry_mark(env, eid)["reasons"] == ["binding moved"]
         states = env["client"].get("/api/marks/splits").json()
-        assert states[new["id"]]["status"] == "unmarked"         # queued for its own mark
         assert states[new["id"]]["vintage"]["state"] == V.AWAITING
-        split_mark = {"scope": "split", "target": new["id"], "verdict": "verified",
-                      "answers": {"P": "y"}, "reviewer": "tester"}
-        r = env["client"].post("/api/marks", json=split_mark)
+        r = _mark(env, eid)                                      # P and A wait for the build
         assert r.status_code == 422 and "awaiting build" in r.text, r.text
         pend = env["client"].get("/api/build").json()
         assert set(on_water) <= {x["entry_id"] for x in pend["entries"]}
@@ -265,8 +263,6 @@ def test_a_split_added_mid_review_clears_after_the_rebuild_without_a_restart(app
         assert _vintage(env, eid) == CUR
         assert env["client"].get("/api/build").json() | {"built": None} == {
             "built": None, "entries": [], "splits": [], "splits_checked": "anchors", "commands": []}
-        r = env["client"].post("/api/marks", json=split_mark)
-        assert r.status_code == 200, r.text
         assert _mark(env, eid).status_code == 200                # review continues
     finally:
         splits_path.write_text(original)

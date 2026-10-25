@@ -761,8 +761,7 @@ def queue(region: str | None = None, status: str | None = None,
     """Review queue rows — ONE QUEUE ACROSS ALL REGIONS by default (`region` None).
 
     `order="risk"` (the default, T135 / PLAN §3, §4 phase 4) is the review order: by tier (P1 Z P2
-    P3 P4 sweep — the split points, S0, come first and are `review.split_queue`'s), within a tier
-    the most urgent risk factor first, then the most severity-A pre-checks, then the book's order
+    P3 P4 sweep; entries only, T184), within a tier the most urgent risk factor first, then the most severity-A pre-checks, then the book's order
     (`tiers.queue_rank`, the one ordering function).
 
     `order="book"` is the order to go through EVERY entry in: by region, then the page it is
@@ -772,7 +771,7 @@ def queue(region: str | None = None, status: str | None = None,
     `verify` filters on the reviewer's mark (`MARK_STATUSES`): unmarked | verified | wrong |
     unsure | deferred | stale (marked, then changed — `mark_reasons` says why); `todo` is
     everything not currently verified. `tier` filters on the review tier (`tiers.entry_tier`, PLAN §3:
-    P1 Z P2 P3 P4 sweep — split points, S0, are `split_queue`'s)."""
+    P1 Z P2 P3 P4 sweep)."""
     from pipeline.regs.review import tiers as T
     from pipeline.regs.review.precheck import severe as _severe
     if order not in QUEUE_ORDERS:
@@ -780,7 +779,7 @@ def queue(region: str | None = None, status: str | None = None,
     states = _mark_states()
     on = built()                      # the vintage on disk, read once for every row (T133)
     run = run_facts()                 # the reach run's facts, read once (T135)
-    s0 = s0_split_ids()
+    to_verify = splits_to_verify()
     rows = []
     src =[(region, e) for eid, e in load_region(region).items()] if region else _all_entries()
     for pos, (reg_id, e) in enumerate(src):
@@ -799,7 +798,7 @@ def queue(region: str | None = None, status: str | None = None,
             continue
         pages = [p for p in (e.get("source_pages") or []) if isinstance(p, int)]
         vin = entry_vintage(e, on)
-        found = entry_prechecks(e, run=run, s0=s0)
+        found = entry_prechecks(e, run=run, to_verify=to_verify)
         n_a = _severe(found)
         rows.append({
             "entry_id": e["entry_id"],
@@ -1111,23 +1110,24 @@ def _run_facts_for(_key: tuple):
         return None
 
 
-def s0_split_ids() -> frozenset[str]:
-    """The split points still to verify (tier S0, `tiers.split_needs_verify` with each split's mark
+def splits_to_verify() -> frozenset[str]:
+    """The split points still to verify (`tiers.split_needs_verify` with each split's old mark's
     status now) — what a rule binding through one is pre-checked for (`split_to_verify`)."""
     from pipeline.regs.review import marks as M
     from pipeline.regs.review import tiers as T
     states = M.split_states(M.load(MARKS_PATH), _review_context())
-    return T.s0_split_ids(_load_splits(), {k: v.get("status") for k, v in states.items()})
+    return T.splits_to_verify(_load_splits(), {k: v.get("status") for k, v in states.items()})
 
 
-def entry_prechecks(e: dict, *, run=None, s0=None, gate: bool = False) -> list[dict]:
+def entry_prechecks(e: dict, *, run=None, to_verify=None, gate: bool = False) -> list[dict]:
     """`precheck.prechecks` for one entry against the served build and run. `gate`: also run the
     gate (`check_entry`; the open entry only — the queue does not run it for every row)."""
     from pipeline.regs.review.precheck import prechecks
     errs = check_entry(e)["errors"] if gate else None
     return prechecks(e, binds=_item_for_entry(e) is not None,
                      run=run if run is not None else run_facts(),
-                     s0=s0 if s0 is not None else s0_split_ids(), gate_errors=errs)
+                     to_verify=to_verify if to_verify is not None else splits_to_verify(),
+                     gate_errors=errs)
 
 
 def queue_facts() -> dict:
@@ -1201,35 +1201,33 @@ def post_mark(body: dict) -> dict:
     date and the book's sha256 stamped here, appended to the store through the backed-up commit.
     REFUSED (ValueError) on an entry that fails the gate, and on a target AWAITING BUILD for any
     answer but T and R (`vintage.refuse_unbuilt`, T133: a verified mark needs the entry's digest
-    the same in the reach run, the bundle and the release); KeyError for an unknown target."""
+    the same in the reach run, the bundle and the release); KeyError for an unknown target.
+    ENTRIES ONLY (T184): an entry or one of its rules; a split is checked by proxy, on the map of
+    an entry whose rules name it, and is refused here (ValueError)."""
     import datetime as _dt
     from pipeline.regs.review import fingerprint as F
     from pipeline.regs.review import marks as M
     from pipeline.regs.review import vintage as V
     scope, target = body.get("scope"), str(body.get("target") or "")
+    if scope not in ("entry", "rule"):
+        raise ValueError(f"a mark is on an entry or one of its rules, not a {scope}")
     ctx = _review_context()
     with writes.LOCK, M.store_lock(MARKS_PATH):          # threads, then other processes
-        if scope == "split":
-            prints = F.split_fingerprints(target, ctx)                 # KeyError: not in splits.json
-            V.refuse_unbuilt(scope, body.get("answers") or {}, split_vintage(target))
-            pages = body.get("pages") or []
-        else:
-            found = _find(target)
-            if found is None:
-                raise KeyError(target)
-            e = found[1]
-            M.refuse_on_gate(target, check_entry(e)["errors"])
-            V.refuse_unbuilt(scope, body.get("answers") or {}, entry_vintage(e))
-            prints = F.entry_fingerprints(e, ctx, rule_id=body.get("rule_id")
-                                          if scope == "rule" else None)
-            pages = body.get("pages") or [p for p in e.get("source_pages") or []
-                                          if isinstance(p, int)]
+        found = _find(target)
+        if found is None:
+            raise KeyError(target)
+        e = found[1]
+        M.refuse_on_gate(target, check_entry(e)["errors"])
+        V.refuse_unbuilt(scope, body.get("answers") or {}, entry_vintage(e))
+        prints = F.entry_fingerprints(e, ctx, rule_id=body.get("rule_id")
+                                      if scope == "rule" else None)
+        pages = body.get("pages") or [p for p in e.get("source_pages") or []
+                                      if isinstance(p, int)]
         mark = M.Mark.model_validate({**body, "date": _dt.date.today().isoformat(),
                                       "pdf_sha256": _pdf_sha256(), "pages": pages,
                                       "prints": prints})
         writes.commit([(MARKS_PATH, M.appended(MARKS_PATH, [mark]))], "mark")
-    now = M.Prints.model_validate(prints) if scope == "split" else _prints(e)
-    return _mark_view(mark, now)
+    return _mark_view(mark, _prints(e))
 
 
 def entry_answer_context(entry_id: str) -> dict | None:
@@ -1751,29 +1749,9 @@ def split_review(sp: dict) -> dict:
     is a low-confidence machine placement nobody has confirmed. The tool used to send neither, so a
     reviewer saw a confident cut where the file said "Verify: …" (T96). `grade` is None for a cut
     that is not an open auto-proposal; only a LEADING tag counts (a later one is history) —
-    `tiers.split_grade`, the one reading of it (tier S0 asks the same function)."""
+    `tiers.split_grade`, the one reading of it (`tiers.split_needs_verify` asks it too)."""
     from pipeline.regs.review.tiers import split_grade
     return {"note": str(sp.get("_note") or ""), "grade": split_grade(sp)}
-
-
-@lru_cache(maxsize=1)
-def _ref_items() -> dict[str, str]:
-    """registry ref_id (`gnis:…`, `wsc:…`, `blk:…`) -> the first item carrying it."""
-    out: dict[str, str] = {}
-    for iid in sorted(_registry()):
-        for ref in _registry()[iid].ref_ids:
-            out.setdefault(ref, iid)
-    return out
-
-
-def split_item(sp: dict, wb: dict) -> str | None:
-    """The registry item a split is cut on — the one its target (its own `applies_to`, else its
-    waterbody's, `applies_keys`) names; the split card's map opens on it."""
-    from pipeline.atlas.splits.splits import applies_keys
-    refs = applies_keys(sp.get("applies_to")) or applies_keys(wb.get("applies_to"))
-    idx = _ref_items()
-    got = sorted({idx[r] for r in refs if r in idx})
-    return got[0] if got else None
 
 
 def _cut_points(iid: str):
@@ -1827,7 +1805,7 @@ def check_entry(entry_dict: dict) -> dict:
 _BUILD_CACHES = (_registry, _place_namer_for, _splits_meta, _split_points_attrs,
                  _blk_to_item, _graph, _geoms, _wbk_polys,
                  _blk_index, _review_context_for, _built_atlas, _built_for, _splits_context_for,
-                 _ref_items, _run_facts_for)
+                 _run_facts_for)
 
 
 # --------------------------------------------------------------------------- #

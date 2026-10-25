@@ -290,7 +290,9 @@ def test_a_mark_is_refused_on_an_entry_that_fails_the_gate(env, fresh_marks):
 
 
 @pytest.mark.needs_bundle
-def test_a_split_gets_its_own_mark(env, fresh_marks, as_built):
+def test_a_split_is_no_review_target(env, fresh_marks, as_built):
+    """T184: a split is checked by proxy on its entries' maps — a split mark is refused and the
+    store is untouched."""
     _the_bundle()
     states = env["client"].get("/api/marks/splits").json()
     sid = sorted(states)[0]
@@ -298,10 +300,9 @@ def test_a_split_gets_its_own_mark(env, fresh_marks, as_built):
     r = env["client"].post("/api/marks", json={"scope": "split", "target": sid,
                                                "verdict": "verified", "answers": {"P": "y"},
                                                "reviewer": "tester"})
-    assert r.status_code == 200, r.text
-    assert env["client"].get("/api/marks/splits").json()[sid]["status"] == "verified"
-    assert [m["target"] for m in env["client"].get("/api/marks", params={"scope": "split"}
-                                                   ).json()] == [sid]
+    assert r.status_code == 422 and "is not marked on its own" in r.text, r.text
+    assert fresh_marks.read_text() == ""
+    assert env["client"].get("/api/marks/splits").json()[sid]["status"] == "unmarked"
 
 
 def test_book_order_is_region_then_page(env):

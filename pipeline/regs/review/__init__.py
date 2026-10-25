@@ -9,8 +9,9 @@
                   bundle and the release, on the served atlas (`entry_state`); "awaiting build"
                   allows only T and R (`refuse_unbuilt`); "bundle matches" per rule (`bundle_matches`)
     coverage      phase 3 (T134): the coverage strip — which words of the row no rule quotes
-    tiers         phase 3 (T134): PLAN §3's tiers (S0 P1 Z P2 P3 P4 sweep) for progress and ETA;
-                  phase 4 (T135): the risk factors and THE ORDER of the one queue (`queue_rank`)
+    tiers         phase 3 (T134): PLAN §3's entry tiers (P1 Z P2 P3 P4 sweep; the S0 split tier
+                  went, T184) for progress and ETA; phase 4 (T135): the risk factors and THE
+                  ORDER of the one queue (`queue_rank`)
     runfacts      phase 4 (T135): what the reach run says of a rule (ambiguous cuts, unresolved,
                   unplaced pieces) — the one reader of the run's diagnostics on the review side
     precheck      phase 4 (T135): the pre-checks (severity A facts, B heuristics) + CLI

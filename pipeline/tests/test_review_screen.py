@@ -2,7 +2,7 @@
 
     coverage     the strip: which words of the row no rule quotes — found by THE comparison
                  normaliser (`squash`), mapped back to the characters a reviewer reads
-    tiers        PLAN §3's tiers (S0 P1 Z P2 P3 P4 sweep) and the S0 split test
+    tiers        PLAN §3's entry tiers (P1 Z P2 P3 P4 sweep) and the splits-to-verify test
     row boxes    the one-off helper's check that a box is the extraction's row (no credits)
     evidence     a zone passage found on its printed page by text; the Adam River row legible
 
@@ -145,8 +145,9 @@ def test_s0_is_an_open_auto_proposal_or_a_verify_note():
 def test_the_corpus_tiers_match_plan_section_3():
     """PLAN §3 counted P1 227, Z 132, P2 261, P3 116, P4 730, sweep 59 and S0 165 (120 L) on
     2026-10-22. Measured here from the corpus alone (no match = an empty `matched`; the served
-    build decides it in the tool): within the day's drift, and S0 is the 150 notes that still
-    ask for a check (PLAN counted 15 more whose "VERIFY" was answered by a later human review)."""
+    build decides it in the tool): within the day's drift. The old S0 tier (T184: gone; its splits
+    are checked by proxy on their entries' maps) is the 150 notes that still ask for a check — a
+    rule binding through one carries the `split_to_verify` pre-check."""
     from collections import Counter
     got = Counter(T.entry_tier(e, binds=bool(e.get("matched"))) for e in _corpus())
     assert got["Z"] == 132
@@ -155,8 +156,8 @@ def test_the_corpus_tiers_match_plan_section_3():
         assert abs(got[tier] - plan) <= 3, (tier, got[tier], plan)
     splits = [s for wb in json.loads(CURATED.waters.splits.read_text())["waterbodies"]
               for s in wb["splits"]]
-    s0 = [s for s in splits if T.split_needs_verify(s)]
-    assert (len(splits), len(s0), Counter(T.split_grade(s) for s in s0)["L"]) == (409, 150, 119)
+    held = [s for s in splits if T.split_needs_verify(s)]
+    assert (len(splits), len(held), Counter(T.split_grade(s) for s in held)["L"]) == (409, 150, 119)
 
 
 def _py_sources():
@@ -230,7 +231,7 @@ def test_the_helper_reads_the_adam_river_row_where_the_extractor_cropped_it():
 # --------------------------------------------------------------------------- adversarial review
 
 def test_the_strip_and_the_gate_agree_on_every_quote_of_the_corpus():
-    """The strip calls a quote "in the row" exactly when the save gate does (`CatalogueEntry`'s
+    """The strip calls a quote "in the row" exactly when the gate does (`CatalogueEntry`'s
     chain of custody: `squash(quote) in squash(regs_verbatim)` — the RAW row, while the strip
     shows `clean_verbatim` of it). Over every rule and licensing quote of the corpus."""
     disagree, n = [], 0
@@ -315,9 +316,9 @@ def test_the_render_lock_is_pinned_by_mutation():
     assert int(got.stdout.strip().splitlines()[-1]) > 0, got.stdout
 
 
-def test_s0_holds_a_split_whose_mark_went_stale():
-    """A confirmed split point whose anchor or kind changed since is to confirm again: its mark is
-    stale, and S0 lists it whatever its note says."""
+def test_a_split_whose_old_mark_went_stale_is_to_verify_again():
+    """A confirmed split point whose anchor or kind changed since is to confirm again: its old mark
+    is stale, and the pre-check names it whatever its note says."""
     plain = {"_note": "[human-review 2026-08-06] placed on the bridge"}
     assert [T.split_needs_verify(plain, s) for s in (None, "unmarked", "verified", "stale")] == [
         False, False, False, True]

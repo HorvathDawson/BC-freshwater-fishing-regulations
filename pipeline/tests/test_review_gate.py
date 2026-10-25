@@ -27,6 +27,7 @@ from pipeline.common.curated import GENERATED, REPO_ROOT
 from pipeline.regs.review import gate as G
 from pipeline.regs.review import marks as M
 from pipeline.regs.review import parity as P
+from pipeline.regs.review import tiers as T
 from pipeline.regs.review import vintage as V
 
 REPO = Path(__file__).resolve().parents[2]
@@ -389,32 +390,34 @@ def _rows():
     return rows
 
 
-def _cards():
-    return [{"split_id": f"s{i}", "label": f"L{i}", "waterbody": "W", "s0": True, "status": "unmarked",
-             "vintage": {"state": "current"}} for i in range(8)]
-
-
 def test_pilot_pick_spreads_each_tier_over_what_can_be_finished_now():
-    got = G.pilot_pick(_rows(), _cards())
+    got = G.pilot_pick(_rows())
     ids = [t["id"] for t in got["targets"]]
-    assert ids == ["s1", "s3", "s5", "s7",
-                   "P1-2", "P1-4", "P1-6", "P1-7", "P1-9", "P1-11",
+    assert ids == ["P1-2", "P1-4", "P1-5", "P1-7", "P1-8", "P1-9", "P1-11",
                    "Z-0", "Z-1", "Z-2", "Z-3",
                    "P2-0", "P2-1", "P2-2",
-                   "P3-1", "P3-3", "P3-5", "P3-7",
-                   "P4-2", "P4-7", "P4-12", "P4-17", "P4-22", "P4-27",
+                   "P3-0", "P3-2", "P3-4", "P3-6", "P3-8",
+                   "P4-2", "P4-6", "P4-10", "P4-15", "P4-19", "P4-23", "P4-27",
                    "sweep-1", "sweep-3"]
-    assert got["short"] == {"P2": 1}
-    assert got["targets"][0] == {"tier": "S0", "kind": "split", "id": "s1", "name": "W: L1", "hash": "split:s1"}
+    assert got["short"] == {"Z": 1, "P2": 1}
+    assert got["targets"][0] == {"tier": "P1", "kind": "entry", "id": "P1-2", "name": "P1 2",
+                                 "region": "1", "hash": "P1-2"}
     assert sum(G.PILOT_QUOTAS.values()) == 30
+
+
+def test_the_pilot_is_entries_only():
+    """T184 (owner 2026-10-24): every pilot target is an ENTRY — no S0 split-point quota, and no
+    split card is asked for; a split is checked by proxy on its entries' maps."""
+    assert "S0" not in G.PILOT_QUOTAS and set(G.PILOT_QUOTAS) == set(T.TIERS)
+    assert {t["kind"] for t in G.pilot_pick(_rows())["targets"]} == {"entry"}
 
 
 def test_the_pilot_filter_is_pinned_by_mutation(monkeypatch):
     """Mutation: a pick that ignores the vintage (an entry awaiting its build is picked) ->
     `test_pilot_pick_spreads_each_tier_over_what_can_be_finished_now` changes."""
     rows = [dict(r, vintage="current") for r in _rows()]
-    assert [t["id"] for t in G.pilot_pick(rows, _cards())["targets"]][4:10] != \
-        ["P1-2", "P1-4", "P1-6", "P1-7", "P1-9", "P1-11"]
+    assert [t["id"] for t in G.pilot_pick(rows)["targets"]][:7] != \
+        ["P1-2", "P1-4", "P1-5", "P1-7", "P1-8", "P1-9", "P1-11"]
 
 
 def test_pilot_report_reads_the_marks_store():
@@ -445,9 +448,10 @@ def test_pilot_report_reads_the_marks_store():
     assert got["targets"][1]["defects"] == [{"verdict": "wrong", "problem": "quota", "note": "says 2, book says 1"}]
     assert got["targets"][0]["seconds"] == 40.0          # the carried copy is not the reviewer's time
     assert got["passes"] is False                          # a tool blocker
-    md = G.pilot_markdown({"targets": [{"tier": "S0", "id": "s1", "name": "W: L", "hash": "split:s1"}]})
+    md = G.pilot_markdown({"targets": [{"tier": "P4", "id": "r1:elk_lake@1-1", "name": "ELK LAKE",
+                                        "hash": "r1:elk_lake@1-1"}]})
     assert md == ("| # | tier | target | open |\n|---|---|---|---|\n"
-                  "| 1 | S0 | W: L (`s1`) | http://127.0.0.1:5173/#split%3As1 |\n")
+                  "| 1 | P4 | ELK LAKE (`r1:elk_lake@1-1`) | http://127.0.0.1:5173/#r1%3Aelk_lake%401-1 |\n")
 
 
 def test_a_mark_records_the_reviewers_time():
@@ -548,7 +552,7 @@ def test_a_rule_less_zone_entry_is_no_pilot_target():
              "vintage": "current"},
             {"entry_id": "z:ok", "tier": "Z", "kind": "zone", "n_rules": 3, "verify": "unmarked",
              "vintage": "current"}]
-    got = G.pilot_pick(rows, [], quotas={"Z": 2})
+    got = G.pilot_pick(rows, quotas={"Z": 2})
     assert ([t["id"] for t in got["targets"]], got["short"]) == (["z:ok"], {"Z": 1})
 
 

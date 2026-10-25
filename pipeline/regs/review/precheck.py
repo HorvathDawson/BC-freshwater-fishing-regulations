@@ -16,14 +16,15 @@ measured over the corpus in `test_review_queue.py` (`test_the_prechecks_measured
 orders by the count of severity-A findings (`tiers.queue_rank`); the review screen lists them.
 
 CLI (reads the catalogue, splits.json, the marks store, the bundle and the reach run; writes
-nothing). A split's S0 is `tiers.s0_split_ids` with its mark's status now, as on the screen:
+nothing). The splits still to verify are `tiers.splits_to_verify` with each split's mark status
+now, as on the screen:
 
     python -m pipeline.regs.review.precheck                       # counts per code
     python -m pipeline.regs.review.precheck --list [--severity A] [--code ambiguous_cut]
     python -m pipeline.regs.review.precheck --entry r1:ash_river@1-7
     python -m pipeline.regs.review.precheck --json > prechecks.json
 
-The save gate (`gate`) is the review tool's own (`model_api.check`), run when an entry is opened;
+The gate (`gate`) is the review tool's own (`model_api.check`), run when an entry is opened;
 the CLI does not run it (`validate_catalogue` is the gate at ingest).
 """
 from __future__ import annotations
@@ -38,14 +39,15 @@ from typing import Iterable, Mapping, Sequence
 
 #: code -> (severity, what it means). THE ONE TABLE.
 CHECKS: dict[str, tuple[str, str]] = {
-    "gate": ("A", "fails the save gate — it cannot be marked until it is fixed"),
+    "gate": ("A", "fails the gate — it cannot be marked until it is fixed"),
     "binds_nothing": ("A", "the water row's `matched` names no item of this build — it binds nothing"),
     "unresolved": ("A", "the reach run could not bind this rule"),
     "unplaced_pieces": ("A", "the reach run left pieces of this rule's water unplaced (reported, "
                              "never guessed)"),
     "ambiguous_cut": ("A", "a cut matched several places on its line; the builder took one by "
                            "ruling E16 — check the pick"),
-    "split_to_verify": ("A", "binds through a split point still to verify (tier S0)"),
+    "split_to_verify": ("A", "binds through a split point still to verify (an open auto-proposal "
+                             "or a Verify: note) — check its place on the map"),
     "parser_uncertain": ("A", "the parser flagged it (`review_reason`)"),
     "unresolved_locator": ("A", "names a place nothing draws (`unresolved_locators`)"),
     "undrawn_part": ("A", "applies to a part of its water nothing draws (`undrawn_part`)"),
@@ -74,20 +76,20 @@ def _fmt_m(v) -> str:
     return f"{float(v):,.0f} m"
 
 
-def prechecks(entry: dict, *, binds: bool, run=None, s0: Iterable[str] = (),
+def prechecks(entry: dict, *, binds: bool, run=None, to_verify: Iterable[str] = (),
               gate_errors: Sequence | None = None) -> list[dict]:
     """Every finding on one entry, in `CHECKS` order, then rule order.
 
     `binds`: whether its `matched` names an item of the served build (zone entries name none and
     are never `binds_nothing`); `run`: the reach run's facts (`runfacts.RunFacts`; None: the
-    run-based codes are not claimed); `s0`: the ids of the split points still to verify;
-    `gate_errors`: the save gate's errors for the entry, when the caller ran it."""
+    run-based codes are not claimed); `to_verify`: the ids of the split points still to verify;
+    `gate_errors`: the gate's errors for the entry, when the caller ran it."""
     from pipeline.regs.review.coverage import entry_coverage
     from pipeline.regs.review.runfacts import is_curated_pick
     eid = str(entry.get("entry_id", ""))
     zone = is_table(eid)
     rules = [r for r in entry.get("rules") or [] if isinstance(r, dict)]
-    s0 = set(s0)
+    to_verify = set(to_verify)
     got: dict[str, list[dict]] = {k: [] for k in CHECKS}
     if gate_errors:
         msgs = [e.get("msg", str(e)) if isinstance(e, Mapping) else str(e) for e in gate_errors]
@@ -115,7 +117,7 @@ def prechecks(entry: dict, *, binds: bool, run=None, s0: Iterable[str] = (),
                                                     f"{_fmt_m(p.get('used'))} (toward {p.get('toward')})"))
     for r in rules:
         rid = r.get("rule_id")
-        held = sorted(set(_splits_of(r)) & s0)
+        held = sorted(set(_splits_of(r)) & to_verify)
         if held:
             got["split_to_verify"].append(finding("split_to_verify", rid, ", ".join(held)))
         if r.get("review_reason"):
@@ -161,9 +163,10 @@ def corpus_findings(entries: Sequence[dict], *, registry_ids, run, splits: dict,
                     split_status: Mapping[str, str] | None = None) -> dict[str, list[dict]]:
     """entry_id -> its findings, over a corpus (the CLI and the tests)."""
     from pipeline.atlas.reach.covered import covered_ids
-    from pipeline.regs.review.tiers import s0_split_ids
-    s0 = s0_split_ids(splits, split_status)
-    return {e["entry_id"]: prechecks(e, binds=bool(covered_ids(e, registry_ids)), run=run, s0=s0)
+    from pipeline.regs.review.tiers import splits_to_verify
+    held = splits_to_verify(splits, split_status)
+    return {e["entry_id"]: prechecks(e, binds=bool(covered_ids(e, registry_ids)), run=run,
+                                     to_verify=held)
             for e in entries}
 
 
@@ -176,7 +179,7 @@ def main(argv: list[str] | None = None) -> int:
                     help="the reach run (default: the served build's, data/generated/reaches/<build>)")
     ap.add_argument("--entries", type=Path, default=CURATED.regulations.entries.catalogue)
     ap.add_argument("--marks", type=Path, default=CURATED.regulations.review.marks,
-                    help="the marks store (a split whose mark went stale is S0 again)")
+                    help="the marks store (a split whose old mark went stale is to verify again)")
     ap.add_argument("--entry", action="append", default=[], help="only this entry (repeatable)")
     ap.add_argument("--code", action="append", default=[], help="only this code (repeatable)")
     ap.add_argument("--severity", choices=SEVERITIES)
@@ -218,7 +221,7 @@ def main(argv: list[str] | None = None) -> int:
         if a.code and code not in a.code or a.severity and sev != a.severity:
             continue
         if code == "gate":
-            print(f"  {sev} {code:<20}   (not run here: the review tool's save gate runs on the open entry)")
+            print(f"  {sev} {code:<20}   (not run here: the review tool's gate runs on the open entry)")
             continue
         print(f"  {sev} {code:<20} {n[code]:>5} finding(s) on {ents[code]:>4} entries — {what}")
     return 0

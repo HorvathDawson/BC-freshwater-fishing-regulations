@@ -75,8 +75,10 @@ def get_mode():
     import answer
     from pipeline.regs.review.marks import CHECKS, PROBLEMS
     from pipeline.regs.review.precheck import CHECKS as PRECHECKS
+    # the checks a reviewer answers: an entry's, and a zone entry's rule's (a split is no review
+    # target — T184 — though old split marks stay readable through GET /api/marks)
     return {"app_url": answer.APP_URL,
-            "checks": {k: list(v) for k, v in CHECKS.items()},
+            "checks": {k: list(v) for k, v in CHECKS.items() if k in REVIEW_SCOPES},
             "problems": {k: list(v) for k, v in PROBLEMS.items()},
             # T135: the pre-check codes (severity, meaning) and the commands the screen PRINTS —
             # it runs neither (review mode writes one thing, a mark)
@@ -119,12 +121,16 @@ def get_entries(region: str | None = None, status: str | None = None,
                        tier=tier)
 
 
+#: what a reviewer marks: an entry, or one rule of a zone entry (T184: entries only)
+REVIEW_SCOPES = ("entry", "rule")
+
+
 class MarkPayload(BaseModel):
     """What a reviewer sends; the fingerprints, the date and the book's sha256 are stamped by the
     server (`reuse.post_mark`), never taken from the client."""
     model_config = ConfigDict(extra="forbid")
-    scope: str                       # entry | rule | split
-    target: str                      # entry_id, or a split id
+    scope: str                       # entry | rule (REVIEW_SCOPES)
+    target: str                      # entry_id
     rule_id: str | None = None       # scope rule
     #: verified | wrong | unsure | deferred; omitted -> `marks.verdict_from_answers` the answers (T134)
     verdict: str | None = None
@@ -147,11 +153,14 @@ def post_mark(body: MarkPayload):
     from pipeline.regs.review.marks import (CHECKS, refusal_words, unanswered_words,
                                             verdict_from_answers)
     data = body.model_dump()
+    if body.scope not in REVIEW_SCOPES:
+        raise HTTPException(422, [{"path": "scope", "msg": (
+            "A split is not marked on its own: check it on the map of an entry whose rules name "
+            "it, and mark that entry's Place wrong if the cut is in the wrong place."
+            if body.scope == "split" else f"scope is one of {list(REVIEW_SCOPES)}")}])
     # A REFUSAL IS SAID IN THE REVIEWER'S WORDS (T142, `marks.refusal_words`): what to do, never
     # the model's "Value error, …" — and with no field path, which means nothing at the screen.
     if data["verdict"] is None:
-        if body.scope not in CHECKS:
-            raise HTTPException(422, [{"path": "scope", "msg": f"scope is one of {sorted(CHECKS)}"}])
         data["verdict"] = verdict_from_answers(body.scope, body.answers)
         if data["verdict"] is None:
             raise HTTPException(422, [{"path": "", "msg": unanswered_words(
@@ -177,8 +186,8 @@ def get_marks(target: str | None = None, scope: str | None = None):
 
 @app.get("/api/marks/splits")
 def get_split_marks():
-    """Every split in splits.json -> its mark status now; a split added since the last review
-    reads `unmarked`, queued for its own `split` mark."""
+    """Every split in splits.json -> its old split mark's status now (`unmarked` for most). Split
+    marks are HISTORY (T184): none is taken any more, the ones in the store stay readable."""
     return reuse.split_mark_states()
 
 
@@ -217,14 +226,6 @@ def review_tickets_md():
     got = review.tickets()
     body = SEPARATOR.join(t["text"] for t in got) if got else "No wrong or unsure marks in force.\n"
     return Response(body, media_type="text/markdown; charset=utf-8")
-
-
-@app.get("/api/review/splits")
-def review_splits(all: bool = False):
-    """The split cards (tier S0: split points still to verify; `all` for every split), each with
-    its note, grade, water, mark status and build state."""
-    import review
-    return review.split_queue(only_to_verify=not all)
 
 
 @app.get("/api/entries/{entry_id}/review")

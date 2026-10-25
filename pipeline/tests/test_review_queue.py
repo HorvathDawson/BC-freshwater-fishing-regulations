@@ -2,7 +2,7 @@
 marks commit — each decided in one function, each pinned whole and by mutation.
 
     runfacts     what the reach run says of a rule (ambiguous cuts, unresolved, unplaced pieces)
-    tiers        the risk factors (now with the run's) and THE ORDER (`queue_rank`, `split_rank`)
+    tiers        the risk factors (now with the run's) and THE ORDER (`queue_rank`; entries only, T184)
     precheck     severity A facts / B heuristics; measured over the corpus and the reach run
     tickets      wrong / unsure marks -> ticket text -> the mark's fields again (the round trip)
     commit_marks `git commit --only` of the marks store: nothing else moves
@@ -128,14 +128,14 @@ def test_a_cut_decided_by_hand_is_not_an_ambiguous_cut_risk(run):
     assert dict(both.open_ambiguous_of("r1:a@1-1")) == {"x.r1": (dict(AMB, split_id="b"),)}
 
 
-def test_s0_is_one_function_of_splits_json_and_the_marks():
-    """`tiers.s0_split_ids`: an open auto-proposal or a "Verify:" note, or a split whose mark went
-    stale — the review app (`reuse.s0_split_ids`) and the pre-check CLI both ask it."""
+def test_the_splits_to_verify_are_one_function_of_splits_json_and_the_marks():
+    """`tiers.splits_to_verify`: an open auto-proposal or a "Verify:" note, or a split whose old mark
+    went stale — the review app (`reuse.splits_to_verify`) and the pre-check CLI both ask it."""
     splits = {"waterbodies": [{"splits": [
         {"id": "a", "_note": "[auto-proposal M] x"}, {"id": "b", "_note": "Verify: the bridge"},
         {"id": "c", "_note": "[human-review] ok"}, {"id": "d", "_note": ""}]}]}
-    assert T.s0_split_ids(splits) == frozenset({"a", "b"})
-    assert T.s0_split_ids(splits, {"c": "stale", "d": "verified"}) == frozenset({"a", "b", "c"})
+    assert T.splits_to_verify(splits) == frozenset({"a", "b"})
+    assert T.splits_to_verify(splits, {"c": "stale", "d": "verified"}) == frozenset({"a", "b", "c"})
 
 
 def test_the_run_moves_an_entry_into_a_risk_tier(run):
@@ -146,7 +146,7 @@ def test_the_run_moves_an_entry_into_a_risk_tier(run):
 
 
 def test_the_queue_order_whole(run):
-    """THE ONE ORDER: S0 split points, then by tier, then the most urgent risk factor, then the
+    """THE ONE ORDER: entries only (T184), by tier, then the most urgent risk factor, then the
     more severity-A pre-checks the earlier; the book's order breaks the rest (the caller's)."""
     entries = {
         "plain quota": (_e("r1:p@1-1", [QUOTA]), 0),
@@ -162,10 +162,7 @@ def test_the_queue_order_whole(run):
     }
     ranks = {k: T.queue_rank(e, binds=bool(e["matched"]), run=run, severe=n)
              for k, (e, n) in entries.items()}
-    ranks["split L"] = T.split_rank({"id": "s1", "_note": "[auto-proposal L] x"})
-    ranks["split, Verify:"] = T.split_rank({"id": "s2", "_note": "Verify: the bridge"})
     assert sorted(ranks, key=ranks.get) == [
-        "split L", "split, Verify:",
         "closure, no match", "closure, undrawn", "closure, ambiguous", "closure, cut, 3 A",
         "closure, cut", "zone", "plain closure", "quota, unresolved", "plain quota", "pointer"]
 
@@ -178,11 +175,11 @@ def test_the_queue_order_is_pinned_by_mutation(run, monkeypatch):
         test_the_queue_order_whole(run)
 
 
-def test_a_split_not_to_verify_has_no_place_in_the_queue():
-    with pytest.raises(ValueError, match="not a point to verify"):
-        T.split_rank({"id": "done", "_note": "[human-review] confirmed"})
-    # but one whose mark went stale is S0 again (T134 owner rule), L first
-    assert T.split_rank({"id": "x", "_note": ""}, "stale") == (0, 3, 0)
+def test_no_split_is_a_review_target():
+    """T184 (owner 2026-10-24): the queue is entries only — no S0 tier, no split rank; a split is
+    checked by proxy on the map of each entry whose rules name it."""
+    assert "S0" not in T.TIERS and T.TIERS == ("P1", "Z", "P2", "P3", "P4", "sweep")
+    assert not hasattr(T, "split_rank") and not hasattr(T, "s0_split_ids")
 
 
 # --------------------------------------------------------------------------- pre-checks
@@ -193,18 +190,19 @@ def test_every_precheck_on_one_entry_whole(run):
              undrawn_part="near the dam", verbatim="No fishing"),
     ], matched=("gnis:9",), regs_verbatim="No fishing; bait ban near the old Hwy 19 bridge pilings",
         licensing=[{"id": "l1", "kind": "designation", "review_reason": "class?"}])
-    got = P.prechecks(e, binds=False, run=run, s0={"a"},
+    got = P.prechecks(e, binds=False, run=run, to_verify={"a"},
                       gate_errors=[{"path": "", "msg": "take 15 is not in its verbatim"}])
     assert got == [
         {"code": "gate", "severity": "A", "rule_id": None,
-         "what": "fails the save gate — it cannot be marked until it is fixed: take 15 is not in its verbatim"},
+         "what": "fails the gate — it cannot be marked until it is fixed: take 15 is not in its verbatim"},
         {"code": "binds_nothing", "severity": "A", "rule_id": None,
          "what": "the water row's `matched` names no item of this build — it binds nothing: gnis:9"},
         {"code": "ambiguous_cut", "severity": "A", "rule_id": "x.r1",
          "what": "a cut matched several places on its line; the builder took one by ruling E16 — "
                  "check the pick: a at 12,420 m, 14,995 m; took 14,995 m (toward b)"},
         {"code": "split_to_verify", "severity": "A", "rule_id": "x.r1",
-         "what": "binds through a split point still to verify (tier S0): a"},
+         "what": "binds through a split point still to verify (an open auto-proposal or a "
+                 "Verify: note) — check its place on the map: a"},
         {"code": "parser_uncertain", "severity": "A", "rule_id": "x.r1",
          "what": "the parser flagged it (`review_reason`): dates unclear"},
         {"code": "parser_uncertain", "severity": "A", "rule_id": "l1",
@@ -516,9 +514,9 @@ def _py_sources():
 
 def test_no_second_copy_of_the_order_the_prechecks_the_tickets_or_the_run_reader():
     hits: dict[str, list] = {k: [] for k in (
-        "def queue_rank(", "def split_rank(", "def prechecks(", "def ticket_text(",
+        "def queue_rank(", "def prechecks(", "def ticket_text(",
         "def parse_ticket(", "def commit_marks(", "def refusal_words(", "def risks(",
-        "def s0_split_ids(", "def is_curated_pick(", "def statuses_now(", "def on_disk(")}
+        "def splits_to_verify(", "def is_curated_pick(", "def statuses_now(", "def on_disk(")}
     run_readers = []
     for p, text in _py_sources():
         if p.name.startswith("test_"):
@@ -533,21 +531,20 @@ def test_no_second_copy_of_the_order_the_prechecks_the_tickets_or_the_run_reader
             run_readers.append(rel)
     assert hits == {
         "def queue_rank(": ["pipeline/regs/review/tiers.py"],
-        "def split_rank(": ["pipeline/regs/review/tiers.py"],
         "def prechecks(": ["pipeline/regs/review/precheck.py"],
         "def ticket_text(": ["pipeline/regs/review/tickets.py"],
         "def parse_ticket(": ["pipeline/regs/review/tickets.py"],
         "def commit_marks(": ["pipeline/regs/review/commit_marks.py"],
         "def refusal_words(": ["pipeline/regs/review/marks.py"],
         "def risks(": ["pipeline/regs/review/tiers.py"],
-        "def s0_split_ids(": ["pipeline/regs/review/tiers.py", "curation-review/backend/reuse.py"],
+        "def splits_to_verify(": ["pipeline/regs/review/tiers.py", "curation-review/backend/reuse.py"],
         "def is_curated_pick(": ["pipeline/regs/review/runfacts.py"],
         "def statuses_now(": ["pipeline/regs/review/tickets.py"],
         "def on_disk(": ["pipeline/regs/review/fingerprint.py"],
     }
     assert run_readers == ["pipeline/regs/review/runfacts.py"]
-    # T135 adversarial review: the S0 set is `tiers.s0_split_ids` (reuse's is the disk read around
-    # it), a curated pick `runfacts.is_curated_pick` — never re-derived beside them
+    # T135 adversarial review: the splits to verify are `tiers.splits_to_verify` (reuse's is the disk
+    # read around it), a curated pick `runfacts.is_curated_pick` — never re-derived beside them
     for p, text in _py_sources():
         rel = str(p.relative_to(REPO))
         if p.name.startswith("test_") or not rel.startswith(("curation-review/",

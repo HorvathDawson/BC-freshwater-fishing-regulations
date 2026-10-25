@@ -14,8 +14,9 @@ was rebuilt — and the atlas is not deterministic. A mark stale with ONLY built
 rebuild whose inputs are the same, staled a reviewer's work for nothing: a false stale. The gate is
 0 (`stale_report`'s `build_only`), measured across a real rebuild (the T136 end-to-end).
 
-THE PILOT. A person other than the builder reviews 30 targets spread across the tiers (`pilot_pick`)
-in the review screen; every mark records the screen's clock (`Mark.seconds`) and the verdict, so the
+THE PILOT. A person other than the builder reviews 30 ENTRIES spread across the tiers (`pilot_pick`)
+in the review screen — entries only (T184): a split point is checked by proxy on the map of each entry
+whose rules name it, never as a target of its own; every mark records the screen's clock (`Mark.seconds`) and the verdict, so the
 report is read off the marks store (`pilot_report`): time per entry by tier, the defects found (wrong /
 unsure marks and their problem), and the tool blockers (a mark whose note starts "TOOL:", the
 reviewer's word for "the tool stopped me" — the how-to says so). Accepted when no tool blocker.
@@ -29,9 +30,9 @@ import sys
 from pathlib import Path
 from typing import Iterable, Mapping, Optional, Sequence
 
-#: How many pilot targets each tier gives (PLAN §4 phase 5: 30 across the tiers). S0 targets are
-#: split points; the rest entries.
-PILOT_QUOTAS: dict[str, int] = {"S0": 4, "P1": 6, "Z": 4, "P2": 4, "P3": 4, "P4": 6, "sweep": 2}
+#: How many pilot targets each tier gives (PLAN §4 phase 5: 30 across the tiers) — every one an
+#: ENTRY (T184: the S0 split-point tier is gone; a zone entry, tier Z, is marked rule by rule).
+PILOT_QUOTAS: dict[str, int] = {"P1": 7, "Z": 5, "P2": 4, "P3": 5, "P4": 7, "sweep": 2}
 #: a mark whose note starts with this is the reviewer reporting that the TOOL blocked them
 TOOL_BLOCKER = "TOOL:"
 
@@ -76,28 +77,20 @@ def _spread(items: Sequence, q: int) -> list:
     return [items[int((k + 0.5) * n / q)] for k in range(q)]
 
 
-def pilot_pick(rows: Sequence[Mapping], cards: Sequence[Mapping],
-               quotas: Mapping[str, int] = PILOT_QUOTAS) -> dict:
-    """THE PILOT LIST: per tier, `quotas[tier]` targets spread evenly through the one queue's order
-    (`rows`: the review queue, risk order; `cards`: the S0 split cards, in theirs) among those a
-    reviewer can finish now — unmarked and BUILT (an entry awaiting its build can only be half
-    answered). Returns {targets: [...], short: {tier: how many the tier could not give}}."""
+def pilot_pick(rows: Sequence[Mapping], quotas: Mapping[str, int] = PILOT_QUOTAS) -> dict:
+    """THE PILOT LIST: per tier, `quotas[tier]` ENTRIES spread evenly through the one queue's order
+    (`rows`: the review queue, risk order) among those a reviewer can finish now — unmarked and
+    BUILT (an entry awaiting its build can only be half answered). Returns {targets: [...], short:
+    {tier: how many the tier could not give}}."""
     out, short = [], {}
     for tier, q in quotas.items():
-        if tier == "S0":
-            pool = [c for c in cards if c.get("s0", True) and c.get("status") == "unmarked"
-                    and (c.get("vintage") or {}).get("state") == "current"]
-            got = [{"tier": "S0", "kind": "split", "id": c["split_id"],
-                    "name": f"{c.get('waterbody')}: {c.get('label')}", "hash": f"split:{c['split_id']}"}
-                   for c in _spread(pool, q)]
-        else:
-            # a zone entry is marked rule by rule: one with no rules (licensing records only) can
-            # never be finished, so it is no pilot target (T136 adversarial review)
-            pool = [r for r in rows if r.get("tier") == tier and r.get("verify") == "unmarked"
-                    and r.get("vintage") == "current"
-                    and not (r.get("kind") == "zone" and not r.get("n_rules"))]
-            got = [{"tier": tier, "kind": "entry", "id": r["entry_id"], "name": r.get("name"),
-                    "region": r.get("region"), "hash": r["entry_id"]} for r in _spread(pool, q)]
+        # a zone entry is marked rule by rule: one with no rules (licensing records only) can
+        # never be finished, so it is no pilot target (T136 adversarial review)
+        pool = [r for r in rows if r.get("tier") == tier and r.get("verify") == "unmarked"
+                and r.get("vintage") == "current"
+                and not (r.get("kind") == "zone" and not r.get("n_rules"))]
+        got = [{"tier": tier, "kind": "entry", "id": r["entry_id"], "name": r.get("name"),
+                "region": r.get("region"), "hash": r["entry_id"]} for r in _spread(pool, q)]
         out += got
         if len(got) < q:
             short[tier] = q - len(got)
@@ -105,9 +98,10 @@ def pilot_pick(rows: Sequence[Mapping], cards: Sequence[Mapping],
 
 
 def _finished(ms: Sequence, rules: Optional[Sequence[str]]) -> bool:
-    """Is a target DONE by its marks `ms`: a split or water entry, any mark; an entry marked rule by
-    rule (no entry mark — a zone entry), a mark on EVERY one of its `rules` (a zone entry with one
-    rule of ten marked is not done). `rules` None: not known, any mark counts."""
+    """Is a target DONE by its marks `ms`: a water entry, any mark; an entry marked rule by rule
+    (no entry mark — a zone entry), a mark on EVERY one of its `rules` (a zone entry with one rule of
+    ten marked is not done). `rules` None: not known, any mark counts. (A pilot list made before
+    T184 may still name a split target: any mark counts for it.)"""
     if not ms:
         return False
     if rules is None or any(m.scope != "rule" for m in ms):
@@ -191,7 +185,7 @@ def main(argv: list[str] | None = None) -> int:
                                  description=__doc__.split("\n\n")[0])
     sub = ap.add_subparsers(dest="cmd", required=True)
     for name, what in (("stale", "every mark in force: held, stale by an edit, stale by a rebuild alone"),
-                       ("pilot", "the 30-target pilot list from the review queue"),
+                       ("pilot", "the 30-entry pilot list from the review queue"),
                        ("pilot-report", "the pilot's time per entry, defects and tool blockers")):
         p = sub.add_parser(name, help=what)
         p.add_argument("--marks", type=Path, default=None, help="default: the curated store")
@@ -219,8 +213,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  BUILD-ONLY STALE {r['scope']} {r['target']}{'#' + r['rule_id'] if r['rule_id'] else ''}: "
                   f"{r['reasons']} moved {r['moved']}")
     elif a.cmd == "pilot":
-        import review                                          # noqa: E402 — the backend's screen module
-        got = pilot_pick(reuse.queue(order="risk"), review.split_queue(True))
+        got = pilot_pick(reuse.queue(order="risk"))
         got["vintage"] = reuse.built().summary()
         print(pilot_markdown(got, url=a.url))
         if a.md:

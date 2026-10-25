@@ -113,10 +113,11 @@ def test_the_run_s_facts_reach_the_queue_and_the_screen(env, queue):
     assert p["facts"] == {"run": "fixture-run", "why": None}
 
 
-def test_a_split_added_mid_review_heads_the_queue_and_moves_no_entry(env, queue):
-    """Owner 2026-10-23 (T135 acceptance): a split added after review began is in tier S0 on the
-    next load — the split cards that lead the one queue — and no entry re-queues: the entries'
-    rows (marks, tiers, order) are as they were."""
+def test_a_split_added_mid_review_is_checked_through_its_entries(env, queue):
+    """Owner 2026-10-23 (T135 acceptance), re-read by T184 (2026-10-24, entries only): a split
+    added after review began is NO review target of its own — no split card, no S0 tier, progress
+    counts entries alone — and it is checked by proxy: the entry on its water re-queues (its mark
+    stale, "binding moved"), and no other entry moves."""
     reuse = env["reuse"]
     path = Path(reuse.SPLITS_JSON_PATH)
     original = path.read_text()
@@ -134,17 +135,15 @@ def test_a_split_added_mid_review_heads_the_queue_and_moves_no_entry(env, queue)
         data = json.loads(original)
         wb = data["waterbodies"][0]
         new = {**wb["splits"][0], "id": "t135_added_split", "label": "added mid-review",
-               "_note": "Verify: added in fix mode 2026-10-23 — confirm on the built map"}
+               "_note": "Verify: added by hand 2026-10-23 — confirm on the built map"}
         wb["splits"].append(new)
         path.write_text(json.dumps(data, indent=1, ensure_ascii=False) + "\n")
         c = env["client"]
-        cards = c.get("/api/review/splits").json()
-        assert "t135_added_split" in [x["split_id"] for x in cards]
-        card = next(x for x in cards if x["split_id"] == "t135_added_split")
-        assert (card["s0"], card["status"]) == (True, "unmarked")
-        p = c.get("/api/review/progress").json()
-        assert next(t for t in p["tiers"] if t["tier"] == "S0")["total"] == len(cards)
+        assert c.get("/api/review/splits").status_code == 404           # no split cards
         after = c.get("/api/entries").json()
+        p = c.get("/api/review/progress").json()
+        assert [t["tier"] for t in p["tiers"]] == ["P1", "Z", "P2", "P3", "P4", "sweep"]
+        assert p["overall"]["total"] == len(after)                      # entries alone
         # T135 adversarial review: with an empty store nothing COULD go stale, so "no entry
         # re-queues" was vacuous. With marks: the entry on the split's own water (Adam River —
         # `fingerprint.entry_binding_fp` holds every split on the entry's waters, T133) goes stale,

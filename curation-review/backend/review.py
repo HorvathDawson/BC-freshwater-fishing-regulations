@@ -3,7 +3,6 @@
     review_view(entry_id)   evidence first (where it is printed, a legible crop, the coverage
                             strip), the tier and its risk factors, each rule's impact, and the
                             answer: the app's own page by its start link
-    split_queue()           tier S0 — the split points still to verify, each as a card
     progress()              done / to do per tier and overall, for the progress bar and the ETA
     tickets()               T135: the wrong and unsure marks in force, as ticket text
 
@@ -129,43 +128,10 @@ def review_view(entry_id: str, day: str | None = None) -> dict | None:
     }
 
 
-def split_queue(only_to_verify: bool = True) -> list[dict]:
-    """The split cards: every split point (tier S0 alone by default — an open auto-proposal, a
-    "Verify:" note, or a split mark gone stale), its note and grade, its water, its mark status and whether the atlas holds it
-    as authored. Order: not yet done (unmarked, stale) first, then grade L, M, H, ungraded, then
-    the waterbody's name — PLAN §3 "L grade first"."""
-    from pipeline.regs.review import tiers as T
-    data = reuse._load_splits()
-    states = reuse.split_mark_states()
-    out = []
-    for wb in data.get("waterbodies", []):
-        for sp in wb.get("splits", []):
-            sid = sp.get("id")
-            if not sid:
-                continue
-            st = states.get(sid) or {"status": "unmarked", "verdict": None, "reasons": [],
-                                     "vintage": None}
-            s0 = T.split_needs_verify(sp, st["status"])
-            if only_to_verify and not s0:
-                continue
-            out.append({"split_id": sid, "label": sp.get("label"), "kind": sp.get("kind"),
-                        "waterbody": wb.get("name"), "grade": T.split_grade(sp),
-                        "note": str(sp.get("_note") or ""), "s0": s0,
-                        "item_id": reuse.split_item(sp, wb),
-                        "status": st["status"], "verdict": st.get("verdict"),
-                        "reasons": st.get("reasons") or [], "vintage": st.get("vintage"),
-                        # the one queue's order (`tiers.split_rank`); a split not in S0 after
-                        "_rank": T.split_rank(sp, st["status"]) if s0 else (len(T.TIERS), 9, 0)})
-    out.sort(key=lambda r: (r["status"] in DONE, r["_rank"], str(r["waterbody"]), r["split_id"]))
-    for r in out:
-        del r["_rank"]
-    return out
-
-
 def progress() -> dict:
-    """Done / to do per tier and overall. `done` is a mark in force (verified, wrong, unsure,
-    deferred); `stale` a mark that no longer holds (it counts as to do); S0 counts the split
-    points still to verify."""
+    """Done / to do per tier and overall — entries only (T184: a split point is checked by proxy,
+    on its entries' maps). `done` is a mark in force (verified, wrong, unsure, deferred); `stale` a
+    mark that no longer holds (it counts as to do)."""
     from pipeline.regs.review import tiers as T
     tiers = {t: {"tier": t, "total": 0, "done": 0, "stale": 0} for t in T.TIERS}
     for r in reuse.queue():
@@ -173,11 +139,6 @@ def progress() -> dict:
         t["total"] += 1
         t["done"] += r["verify"] in DONE
         t["stale"] += r["verify"] == "stale"
-    for s in split_queue():
-        t = tiers["S0"]
-        t["total"] += 1
-        t["done"] += s["status"] in DONE
-        t["stale"] += s["status"] == "stale"
     rows = list(tiers.values())
     for t in rows:
         t["todo"] = t["total"] - t["done"]

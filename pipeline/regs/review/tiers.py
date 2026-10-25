@@ -1,8 +1,6 @@
-"""THE REVIEW TIERS (PLAN §3) — which pile an entry or a split point is reviewed in, and THE ORDER
-of the one review queue (T135, PLAN §4 phase 4).
+"""THE REVIEW TIERS (PLAN §3) — which pile an ENTRY is reviewed in, and THE ORDER of the one review
+queue (T135, PLAN §4 phase 4).
 
-    S0     split points still to verify (an open auto-proposal, a note that says "Verify:", or a
-           split mark gone stale)
     P1     closures with a risk factor
     Z      zone entries (the region chapters and the provincial pages)
     P2     plain closures
@@ -17,8 +15,16 @@ cut matched several places on its line and the builder took one, ruling E16), th
 waters`, `flag` (a parser review_reason or an unresolved locator). `unresolved` and `ambiguous cut`
 come from the reach run (`runfacts.RunFacts`); without a run they are not known and not claimed.
 
-One function each: `entry_tier` for an entry, `split_needs_verify` for a split, `queue_rank` /
-`split_rank` for a place in the one queue. The review screen's progress, ETA and queue count by them.
+ENTRIES ONLY (T184, owner 2026-10-24). A split point is no review target of its own: it is
+checked BY PROXY, on the map of every entry whose rules name it (each split drawn and labelled with
+its name), and a wrong one is a "Place: wrong" mark on such an entry. What is left of the old S0 tier
+is a pre-check: a rule binding through a split still to verify (`split_needs_verify`: an open
+auto-proposal, a "Verify:" note, or an old split mark gone stale) says so (`precheck`
+`split_to_verify`), so the reviewer looks at that cut on the map.
+
+One function each: `entry_tier` for an entry, `queue_rank` for its place in the one queue,
+`split_needs_verify` / `splits_to_verify` for the splits a pre-check names. The review screen's
+progress, ETA and queue count by them.
 
 A closure is `rules.closure_grade` (THE ONE CLOSURE PREDICATE), never re-derived here.
 """
@@ -27,7 +33,7 @@ from __future__ import annotations
 from pipeline.common.entry_id import is_table
 import re
 
-TIERS: tuple[str, ...] = ("S0", "P1", "Z", "P2", "P3", "P4", "sweep")
+TIERS: tuple[str, ...] = ("P1", "Z", "P2", "P3", "P4", "sweep")
 
 #: THE RISK FACTORS, most urgent first (PLAN §3: P1 "starts with the rows that bind nothing, the
 #: unresolved closures, the closures with undrawn parts and the closures with ambiguous cuts")
@@ -90,8 +96,7 @@ def entry_tier(entry: dict, *, binds: bool, run=None) -> str:
 def queue_rank(entry: dict, *, binds: bool, run=None, severe: int = 0) -> tuple[int, int, int]:
     """THE ENTRY'S PLACE IN THE ONE REVIEW QUEUE (PLAN §3, §4 phase 4), to sort by before the
     book's order: its tier (`TIERS`), then its most urgent risk factor (`RISKS`; none sorts last),
-    then the more severity-A pre-checks (`precheck`, `severe`) the earlier. Split points (tier S0,
-    `split_rank`) come before every entry."""
+    then the more severity-A pre-checks (`precheck`, `severe`) the earlier."""
     tier = entry_tier(entry, binds=binds, run=run)
     got = risks(entry, binds=binds, run=run)
     return (TIERS.index(tier), RISKS.index(got[0]) if got else len(RISKS), -severe)
@@ -105,30 +110,18 @@ def split_grade(split: dict) -> str | None:
 
 
 def split_needs_verify(split: dict, mark_status: str | None = None) -> bool:
-    """Tier S0: an open auto-proposal, a note asking for a check ("Verify: …"), or a split mark
-    that went STALE (`mark_status`, the split's mark state): a confirmed point whose anchor or kind
-    changed since is a point to confirm again, never one the queue stops showing."""
+    """A split point still to verify: an open auto-proposal, a note asking for a check
+    ("Verify: …"), or an old split mark that went STALE (`mark_status`, the split's mark state —
+    split marks are history now, T184, but one that no longer holds is not a confirmation)."""
     return (split_grade(split) is not None or "Verify:" in str(split.get("_note") or "")
             or mark_status == "stale")
 
 
-def s0_split_ids(splits: dict, mark_status: dict | None = None) -> frozenset[str]:
-    """THE SPLIT POINTS STILL TO VERIFY (tier S0) in a splits.json: `split_needs_verify` of each
-    with its mark status now (`mark_status`: split id -> status, from `marks.split_states`). What a
-    rule binding through one is pre-checked for (`precheck` `split_to_verify`) — the review app and
-    the pre-check CLI both ask here."""
+def splits_to_verify(splits: dict, mark_status: dict | None = None) -> frozenset[str]:
+    """THE SPLIT POINTS STILL TO VERIFY in a splits.json: `split_needs_verify` of each with its mark
+    status now (`mark_status`: split id -> status, from `marks.split_states`). What a rule binding
+    through one is pre-checked for (`precheck` `split_to_verify`) — the review app and the
+    pre-check CLI both ask here."""
     mark_status = mark_status or {}
     return frozenset(sp["id"] for wb in splits.get("waterbodies", []) for sp in wb.get("splits", [])
                      if sp.get("id") and split_needs_verify(sp, mark_status.get(sp["id"])))
-
-
-#: S0 order: L grade first (PLAN §3), then M, H, then a "Verify:" note with no grade
-GRADE_ORDER = {"L": 0, "M": 1, "H": 2, None: 3}
-
-
-def split_rank(split: dict, mark_status: str | None = None) -> tuple[int, int, int]:
-    """A split point's place in the one queue: tier S0, before every entry (`TIERS`), L grade
-    first (`GRADE_ORDER`). A split that is not S0 has no place in the queue: ValueError."""
-    if not split_needs_verify(split, mark_status):
-        raise ValueError(f"split {split.get('id')} is not a point to verify (tier S0)")
-    return (TIERS.index("S0"), GRADE_ORDER.get(split_grade(split), 9), 0)
