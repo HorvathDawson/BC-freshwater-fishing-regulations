@@ -280,10 +280,28 @@ def report_all(tiles_dir: Path, arts: Artifacts, *, strict: bool = False) -> tup
     # THE RELEASE (P08): every shipped file names the bundle's sid space
     rel = arts.bundle.parent / "release"
     for man in sorted(rel.glob("*/manifest.json")) if rel.exists() else []:
-        files = json.loads(man.read_text(encoding="utf-8")).get("files", {})
+        doc = json.loads(man.read_text(encoding="utf-8"))
+        files = doc.get("files", {})
         off = sorted(n for n, e in files.items() if e.get("section_handles") != want["section_handles"])
         if off:
             fail(f"release {man.parent.name}", f"files from another atlas: {off}")
+        # T75: a release that names a basemap points at bytes that are there
+        bm = doc.get("basemap") or {}
+        if bm.get("url"):
+            p = rel / bm["url"]
+            if not p.exists() or p.stat().st_size != bm.get("bytes"):
+                fail(f"release {man.parent.name}", f"its basemap {bm['url']} is missing or not {bm.get('bytes')} bytes")
+    # T75: THE CURRENT RELEASE NAMES THE BASEMAP RELEASED BESIDE THE TILES (`tiles.basemap.to_release`'s sidecar)
+    side = Path(tiles_dir) / "basemap.meta.json"
+    if side.exists() and rel.exists():
+        from pipeline.deliver.release.manifest import latest
+        cur = latest(rel)
+        if cur is not None:
+            named = (json.loads((cur / "manifest.json").read_text(encoding="utf-8")).get("basemap") or {}).get("id")
+            held = json.loads(side.read_text(encoding="utf-8")).get("basemap_version")
+            if named != held:
+                fail(f"release {cur.name}", f"names basemap {named!r}, but the basemap released beside the tiles is "
+                                            f"{held!r} — re-run the release step")
     if not bad:
         lines.append(f"  vintage: every artifact agrees (handles {want['section_handles']}, reach {want['reach_digest']}, "
                      f"rule ids {rids})")

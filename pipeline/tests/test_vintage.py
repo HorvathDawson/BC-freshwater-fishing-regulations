@@ -247,3 +247,23 @@ def test_report_all_refuses_a_release_file_from_another_atlas(tmp_path: Path):
                                                              "water": {"section_handles": "0" * 16}}}))
     ok, msg = report_all(tmp_path / "tiles", arts, strict=True)
     assert not ok and "water" in msg and "core" not in msg.split("release r-x")[1]
+
+
+def test_report_all_refuses_a_release_whose_basemap_is_not_there_or_not_the_current_one(tmp_path: Path):
+    """T75: a manifest's basemap points at bytes on disk, and the current release names the basemap released beside
+    the tiles (`tiles.basemap.to_release`'s sidecar)."""
+    arts = _delivery(tmp_path)
+    root = tmp_path / "release"
+    rel = root / "r-x"
+    rel.mkdir(parents=True)
+    bm = {"id": "basemap-aaaaaaaaaaaa", "url": "basemap/basemap-aaaaaaaaaaaa/basemap-aaaaaaaaaaaa.pmtiles", "bytes": 3}
+    (rel / "manifest.json").write_text(json.dumps({"files": {}, "basemap": bm}))
+    ok, msg = report_all(tmp_path / "tiles", arts, strict=True)
+    assert not ok and "missing" in msg
+    (root / bm["url"]).parent.mkdir(parents=True)
+    (root / bm["url"]).write_bytes(b"abc")
+    assert report_all(tmp_path / "tiles", arts, strict=True)[0]
+    (tmp_path / "tiles").mkdir(exist_ok=True)
+    (tmp_path / "tiles" / "basemap.meta.json").write_text(json.dumps({"basemap_version": "basemap-bbbbbbbbbbbb"}))
+    ok, msg = report_all(tmp_path / "tiles", arts, strict=True)
+    assert not ok and "basemap-bbbbbbbbbbbb" in msg

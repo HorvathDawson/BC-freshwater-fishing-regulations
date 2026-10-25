@@ -204,3 +204,29 @@ def tiles_block(release_root, handles16: str, tiles_meta) -> Optional[dict]:
         out["assets"] = {"id": a.parent.name, "url": f"tiles/{v.name}/{a.parent.name}/",
                          "files_sha256": files_sha256(a), "pin": json.loads(a.read_text())["pin"]}
     return out
+
+
+def basemap_block(release_root, basemap_meta) -> Optional[dict]:
+    """`basemap`: `{id, url, bytes, sha256}` of the released basemap (T75), or None when none has been released yet
+    (no `basemap.meta.json` beside the tiles: the app then keeps the ground it holds, or none).
+
+    Which basemap is current is what the sidecar the basemap step wrote says (`tiles.basemap.to_release`), never "the
+    last folder". Its released copy is hashed again here, so a manifest can never name bytes it does not point at; a
+    sidecar naming a folder that is missing or holds other bytes is refused."""
+    import json
+    from pipeline.deliver.tiles.version import sha256_file
+    meta = Path(basemap_meta)
+    if not meta.exists():
+        return None
+    m = json.loads(meta.read_text())
+    vid = m.get("basemap_version")
+    if not vid:
+        return None
+    p = Path(release_root) / "basemap" / vid / f"{vid}.pmtiles"
+    if not p.exists():
+        raise SystemExit(f"release: the basemap is {vid} but {p} is missing — "
+                         "python -m pipeline.deliver.tiles.basemap --release-only")
+    sha = sha256_file(p)
+    if sha != m.get("sha256") or p.stat().st_size != m.get("bytes"):
+        raise SystemExit(f"release: {p} is not the basemap {meta} describes — re-run the basemap release")
+    return {"id": vid, "url": f"basemap/{vid}/{vid}.pmtiles", "bytes": p.stat().st_size, "sha256": sha}

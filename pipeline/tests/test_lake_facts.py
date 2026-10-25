@@ -119,6 +119,7 @@ def test_the_release_ships_lakes_only_when_handed_a_file(monkeypatch, tmp_path):
     monkeypatch.setattr(B, "sizes", lambda d: {})
     monkeypatch.setattr(B, "gate_problems", lambda d: [])
     monkeypatch.setattr(M, "tiles_block", lambda *a: None)
+    monkeypatch.setattr(M, "basemap_block", lambda *a: None)
     st = ["--store", str(tmp_path / "regs.sqlite")]          # required: no regs.sqlite is kept (P20)
     assert RM.main(["--bundle", str(bundle), *st]) == 0
     assert RM.main(["--bundle", str(bundle), *st, "--lake-facts", str(tmp_path / "lakes.bin")]) == 0

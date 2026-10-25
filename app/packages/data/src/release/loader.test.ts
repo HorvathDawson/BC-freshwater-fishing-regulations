@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { sha256Hex } from "../sha256";
 import { parseManifest, type Manifest } from "../manifest";
 import { releaseLoader, ReleaseError, type DbName } from "./loader";
-import { heldFrom, heldPath, install, POINTER, type ReleaseFs } from "./install";
+import { heldFrom, heldPath, install, POINTER, prune, type ReleaseFs } from "./install";
 import type { Db } from "../sql/db";
 
 const enc = (s: string) => new TextEncoder().encode(s);
@@ -157,5 +157,54 @@ describe("install / update (native, always offline)", () => {
     await expect(install(manifest({ core: "c3" }, "r-3"), fs, server({ core: "WRONG" }, log), "https://r2/", held))
       .rejects.toThrow(/sha mismatch/);
     expect((await heldFrom(fs))!.release).toBe("r-1");
+  });
+});
+
+describe("the basemap (T75): installed with the release, kept until its id moves, never half-swapped", () => {
+  const ground = (b: string) => enc(`PMTiles ${b}`);
+  const withBasemap = (m: Manifest, id: string | null, body = id ?? ""): Manifest => ({
+    ...m, basemap: id === null ? null
+      : { id, url: `basemap/${id}/${id}.pmtiles`, bytes: ground(body).length, sha256: sha256Hex(ground(body)) },
+  }) as Manifest;
+  const disk = (fs: ReturnType<typeof memFs>, streamed: string[], serve: (url: string) => Uint8Array) =>
+    async (url: string, path: string, e: { bytes: number; sha256: string }, onBytes?: (n: number) => void) => {
+      streamed.push(path);
+      const b = serve(url);
+      if (sha256Hex(b) !== e.sha256) throw new Error(`sha mismatch for ${url}`);
+      onBytes?.(b.length);
+      await fs.write(`${path}.part`, b);
+      await fs.rename(`${path}.part`, path);
+    };
+
+  it("streams on first install, not on a data-only update, again when its id moves; the old one is pruned", async () => {
+    const fs = memFs(), log: string[] = [], streamed: string[] = [];
+    const serve = (url: string) => ground(url.includes("basemap-bbb") ? "basemap-bbb" : "basemap-aaa");
+    const m1 = withBasemap(manifest({ core: "c1" }), "basemap-aaa");
+    const held = await install(m1, fs, server({ core: "c1" }, log), "https://r2/", null, () => {}, disk(fs, streamed, serve));
+    expect(streamed).toEqual(["release/basemap/basemap-aaa/basemap-aaa.pmtiles"]);
+    expect(held.basemap).toBe("basemap-aaa");
+    streamed.length = 0;
+    const m2 = withBasemap(manifest({ core: "c2" }, "r-2"), "basemap-aaa");
+    const held2 = await install(m2, fs, server({ core: "c2" }, log), "https://r2/", held, () => {}, disk(fs, streamed, serve));
+    expect(streamed).toEqual([]);                              // the ground is not fetched again for a data release
+    const m3 = withBasemap(manifest({ core: "c2" }, "r-3"), "basemap-bbb");
+    const held3 = await install(m3, fs, server({ core: "c2" }, log), "https://r2/", held2, () => {}, disk(fs, streamed, serve));
+    expect(streamed).toEqual(["release/basemap/basemap-bbb/basemap-bbb.pmtiles"]);
+    expect(held3.basemap).toBe("basemap-bbb");
+    await prune(fs, held2, m2, held3, m3);
+    expect(await fs.exists("release/basemap/basemap-aaa/basemap-aaa.pmtiles")).toBe(false);
+    expect(await fs.exists("release/basemap/basemap-bbb/basemap-bbb.pmtiles")).toBe(true);
+  });
+
+  it("a basemap whose bytes are not the manifest's leaves the old set in force", async () => {
+    const fs = memFs(), log: string[] = [], streamed: string[] = [];
+    const m1 = withBasemap(manifest({ core: "c1" }), "basemap-aaa");
+    const held = await install(m1, fs, server({ core: "c1" }, log), "https://r2/", null, () => {},
+                               disk(fs, streamed, () => ground("basemap-aaa")));
+    const m2 = withBasemap(manifest({ core: "c2" }, "r-2"), "basemap-bbb");
+    await expect(install(m2, fs, server({ core: "c2" }, log), "https://r2/", held, () => {},
+                         disk(fs, streamed, () => ground("WRONG")))).rejects.toThrow(/sha mismatch/);
+    const now = (await heldFrom(fs))!;
+    expect([now.release, now.basemap]).toEqual(["r-1", "basemap-aaa"]);
   });
 });

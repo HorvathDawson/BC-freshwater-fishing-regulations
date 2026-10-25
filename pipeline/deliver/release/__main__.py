@@ -16,7 +16,7 @@ from pipeline.common.curated import GENERATED, SOURCE
 def main(argv=None) -> int:
     from pipeline.deliver.release import build as B
     from pipeline.deliver.answers.common import BOOK_TITLE
-    from pipeline.deliver.release.manifest import sources_block, tiles_block
+    from pipeline.deliver.release.manifest import basemap_block, sources_block, tiles_block
     from pipeline.deliver.export.contract import OUT as EXPORT
     ap = argparse.ArgumentParser(prog="pipeline.deliver.release", description=__doc__.split("\n\n")[0])
     ap.add_argument("--bundle", type=Path, default=GENERATED.bundle / "bundle.sqlite")
@@ -39,6 +39,8 @@ def main(argv=None) -> int:
         "section_handles"]
     d = B.build(bundle=a.bundle, store=a.store, status_index=a.status_index, export_dir=a.export_dir,
                 out_root=a.out_root, data_release=a.data_release, lakes=a.lake_facts, tiles=tiles_block(a.tiles_release_root, handles, a.tiles / "atlas.meta.json"),
+                # T75: the released basemap (its sidecar beside the tiles), so a native install can fetch the ground
+                basemap=basemap_block(a.tiles_release_root, a.tiles / "basemap.meta.json"),
                 # the date each source was last updated, read from the fetched inputs (the app's Data sources screen)
                 sources=sources_block(SOURCE, synopsis_title=BOOK_TITLE, dfo_rules=GENERATED.regs.dfo_salmon / "rules"))
     sz = B.sizes(d)

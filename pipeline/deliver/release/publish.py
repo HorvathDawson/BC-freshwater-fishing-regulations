@@ -3,7 +3,8 @@
     python -m pipeline.deliver.release.publish [--release data/release/<r>]          # the plan, nothing uploaded (default)
     python -m pipeline.deliver.release.publish --release data/release/<r> --yes      # upload it
 
-ORDER IS THE CONTRACT (MINIMAL-PACKAGING §6.4): the tile version folder (archive, mask, map assets) first, then the data
+ORDER IS THE CONTRACT (MINIMAL-PACKAGING §6.4): the tile version folder (archive, mask, map assets) first, the basemap
+(T75, when the manifest names one), then the data
 files, then `manifest.json` LAST. An app reads the manifest first, so until the last upload lands nobody is pointed at a
 file that is not there yet. Every file but the manifest is named by its content and never changes: it is sent
 `Cache-Control: immutable`. The manifest is `no-cache`. Data files are stored gzipped and sent `Content-Encoding: gzip`
@@ -42,7 +43,7 @@ def _type(p: Path) -> str:
 
 
 def plan(release: Path, root: Path) -> List[Put]:
-    """Every upload, in order: tiles (+ mask + assets), the data files, then the manifest. Keys are relative to `root`
+    """Every upload, in order: tiles (+ mask + assets), the basemap, the data files, then the manifest. Keys are relative to `root`
     (data/release), which is the bucket's layout."""
     m = json.loads((release / "manifest.json").read_text())
     out: List[Put] = []
@@ -51,6 +52,12 @@ def plan(release: Path, root: Path) -> List[Put]:
         vdir = root / "tiles" / t["current"]["id"]
         for p in sorted(x for x in vdir.rglob("*") if x.is_file()):
             out.append(Put(str(p.relative_to(root)), p, _type(p), None, IMMUTABLE))
+    bm = m.get("basemap")
+    if bm:                                   # T75: the ground, beside the tiles and before any data file
+        p = root / bm["url"]
+        if not p.exists():
+            raise SystemExit(f"publish: {p} is the manifest's basemap but missing")
+        out.append(Put(bm["url"], p, _type(p), None, IMMUTABLE))
     for name, e in sorted(m["files"].items()):
         p = root / e["url"]
         if not p.exists():

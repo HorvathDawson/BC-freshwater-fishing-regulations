@@ -147,7 +147,44 @@ def _run(cmd: list[str]) -> None:
         raise RuntimeError(f"{cmd[0]} failed ({r.returncode})\n{r.stderr[-3000:]}")
 
 
-if __name__ == "__main__":
+#: THE BASEMAP'S VERSION (T75): `basemap-<sha12 of the archive>`, content-addressed like a tile version, so a
+#: rebuilt basemap is a new id and an unchanged one is the same id (the app downloads it only when the id moves).
+META = "basemap.meta.json"
+
+
+def version_of(archive: Path) -> str:
+    from pipeline.deliver.tiles.version import sha256_file
+    return f"basemap-{sha256_file(archive, 12)}"
+
+
+def to_release(archive: Path, release_root: Path, meta_dir: Path) -> dict:
+    """`<release_root>/basemap/<id>/basemap-<id>.pmtiles` (immutable: an existing folder with other bytes is
+    refused) and `<meta_dir>/basemap.meta.json` — `{basemap_version, bytes, sha256}`, the sidecar the release step
+    names the basemap from (`release.manifest.basemap_block`). Returns the sidecar."""
+    from pipeline.deliver.tiles.version import sha256_file
+    vid = version_of(archive)
+    final = Path(release_root) / "basemap" / vid
+    dst = final / f"{vid}.pmtiles"
+    sha = sha256_file(archive)
+    if final.exists():
+        if not dst.exists() or sha256_file(dst) != sha:
+            raise SystemExit(f"basemap: {final} exists with other bytes — a released basemap is immutable")
+    else:
+        stage = final.with_name(f".{vid}.staging")
+        shutil.rmtree(stage, ignore_errors=True)
+        stage.mkdir(parents=True)
+        try:
+            shutil.copy2(archive, stage / dst.name)
+            stage.rename(final)
+        finally:
+            shutil.rmtree(stage, ignore_errors=True)
+    meta = {"basemap_version": vid, "bytes": archive.stat().st_size, "sha256": sha}
+    (Path(meta_dir) / META).write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8")
+    print(f"  released: {final}  {meta}")
+    return meta
+
+
+def main(argv=None) -> int:
     # DELIBERATELY ITS OWN ENTRY POINT, and nothing else calls it.
     #
     # This is the OSM half: take Protomaps' 4.36 GB planet extract, clip it to BC and drop
@@ -156,12 +193,27 @@ if __name__ == "__main__":
     # `python -m pipeline.deliver.tiles`, which is the ATLAS build and runs on every
     # geometry change. The basemap changes when Protomaps publishes, which is rarely.
     #
-    #     python -m pipeline.deliver.tiles.basemap   the OSM ground: clip + reduce
+    #     python -m pipeline.deliver.tiles.basemap   the OSM ground: clip + reduce, then release it
     #     python -m pipeline.deliver.tiles           the atlas: our water, from a build
     #
-    # `parents[3]`, not [2]: this module sits at pipeline/deliver/tiles/, and the move that
-    # added `deliver/` silently repointed the output at pipeline/output/. Asserted rather
-    # than trusted, for the same reason `common/curated.py` asserts its root.
-    build(SOURCE / "bc.pmtiles",
-          GENERATED.tiles / "basemap.pmtiles",
-          SOURCE / "bc_boundary.geojson")
+    # T75: the built archive is RELEASED like a tile version — `data/release/basemap/<id>/` and the sidecar
+    # `basemap.meta.json` beside it — so the next `python -m pipeline.deliver release` names it in the manifest
+    # (`basemap: {id, url, bytes, sha256}`) and a native install fetches it with a sha check.
+    import argparse
+    ap = argparse.ArgumentParser(prog="python -m pipeline.deliver.tiles.basemap")
+    ap.add_argument("--out", type=Path, default=GENERATED.tiles / "basemap.pmtiles",
+                    help="the basemap archive (default: the tiles dir's; its sidecar is written beside it)")
+    ap.add_argument("--release-root", type=Path, default=GENERATED.release)
+    ap.add_argument("--release-only", action="store_true",
+                    help="do not rebuild: release the archive already at --out (stamp its version, copy it)")
+    ap.add_argument("--no-release", action="store_true", help="build only (a scratch build)")
+    a = ap.parse_args(argv)
+    if not a.release_only:
+        build(SOURCE / "bc.pmtiles", a.out, SOURCE / "bc_boundary.geojson")
+    if not a.no_release:
+        to_release(a.out, a.release_root, a.out.parent)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
