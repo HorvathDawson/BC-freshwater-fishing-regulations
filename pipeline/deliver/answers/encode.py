@@ -477,7 +477,10 @@ SPEC = {
                     "limit or releases; a keep document where it keeps or has no limit (any size); none on a closed row; "
                     "absent where none. Draw them under an Other fish row and under a row drawn without a group "
                     "(\"You need White Sturgeon Conservation Licence › only if you fish for white sturgeon, even to "
-                    "release them\").",
+                    "release them\"). "
+                    "T183 (owner 2026-10-24, additive): on a piece in two regions a keep row's group takes the stricter of "
+                    "BOTH regions' caps, and its badge carries `scope.both` — the two regions in the book's words "
+                    "(\"Regions 3 and 5\") — to say in place of the pool's own region; absent elsewhere.",
         },
         "gear": {
             "what": "Stage 7.1-7.6, the gear answer per part key and segment (`gear.resolve`): "

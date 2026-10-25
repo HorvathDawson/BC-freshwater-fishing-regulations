@@ -9,7 +9,8 @@ from pipeline.deliver.answers.rows.card_model import build_model
 from pipeline.deliver.answers.rows.conds import eff_cap, keep_range, origin_lines, row_conds, species_items
 from pipeline.deliver.answers.rows.part import Part
 from pipeline.deliver.answers.rows.wire import _num, cond_out, fact_out, res_out, scope_of
-from pipeline.deliver.answers.rows.groups import elsewhere_of, group_of, parent_of, total_of
+from pipeline.common import entry_id as EID
+from pipeline.deliver.answers.rows.groups import elsewhere_of, group_of, parent_of, total_of, two_tables
 from pipeline.deliver.answers.rows.presence import place_presence
 
 
@@ -104,6 +105,12 @@ def produce(P: Part) -> dict:
             if T is not None:                                  # decision F14
                 grp = groups[T.key]
                 o["group"] = grp if home[T.key] == id(row) else None
+                if two_tables(grp) and o["scope"] is not None and o["scope"]["of"] == "region":
+                    # T183 (owner 2026-10-24): the row's caps come from TWO regions' tables (a straddling
+                    # piece; the stricter of each) — the badge names both ("Regions 3 and 5")
+                    o["scope"]["both"] = EID.region_words(sorted(
+                        {EID.zone_region(k.split("::", 1)[0]) for k in [grp["pool"], *(x["r"] for x in grp["subcaps"])]}
+                        - {None}))
                 o["elsewhere"] = elsewhere_of(P, model, row, o["scope"], T, grp) \
                     if o["scope"] is not None else None
         rows.append(o)

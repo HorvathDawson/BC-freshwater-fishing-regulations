@@ -3,7 +3,7 @@
 
 export type Accompanied = { "holding": string; "who": Record<string, unknown> };
 export type AlsoCounts = { "tier": null | string; "by": null | number; "n": number; "over_cm": number; "then": readonly (TreeThen)[]; "species": readonly (string)[]; "says": string };
-export type Badge = { "of": "water" | "area" | "region" | "bc"; "entry": null | string; "share": boolean; "apart": boolean; "narrow_all": boolean };
+export type Badge = { "of": "water" | "area" | "region" | "bc"; "entry": null | string; "share": boolean; "apart": boolean; "narrow_all": boolean; "both"?: null | string };
 export type BaitPick = { "element": "worms" | "roe" | "invertebrate" | "fin_fish"; "ok": boolean; "by": [number, number] | null; "why"?: null | string; "carry_kg"?: null | number; "also_allowed"?: null | readonly (Circumstance)[]; "excepted_from"?: ExceptedFrom | null };
 export type Bucket = { "title": null | string; "cap": null | number; "by": number; "why": "share" | "rule" | "total"; "kinds": readonly (CardKind)[]; "groups": readonly (SubGroup)[]; "notes": readonly (BucketNote)[]; "replaces": Replaces | null; "sizes"?: readonly (SizeGroup)[]; "between"?: null | string };
 export type BucketNote = { "says": string; "n": number; "over_cm": number; "kinds": readonly (string)[]; "not_counting": readonly (string)[]; "then": readonly (NoteThen)[] };

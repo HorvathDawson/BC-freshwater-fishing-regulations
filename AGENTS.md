@@ -599,7 +599,9 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
         A STRADDLER CARRIES BOTH REGIONS' RULES (T183, owner 2026-10-24, reversing T115): a stream piece
         or lake in two region polygons (each holding more than `SLIVER_M` of it, `regions.holds`; a
         touch is not membership) takes both zone tables, both regions' per-region rows and both
-        steelhead twins, the most strict per fish (RULINGS Z4). ONE function answers it,
+        steelhead twins, the most strict per fish (RULINGS Z4) — every cap the stricter of the two, a narrower cap
+        never displacing a wider one (`ladder.A_NARROWER_CAP_NEVER_DISPLACES_A_WIDER`), the card's group taking the
+        peer table's caps (`rows.groups._peer_totals`) and naming both regions (`scope.both`). ONE function answers it,
         `registry.regions.region_sections` / `region_members` (`test_one_region_membership.py` scans for
         a second copy); the home region (`region_home.json`, `section_home`) is display only.
         Two differences only: a crossing on the outline follows the border's single cut, and a cut

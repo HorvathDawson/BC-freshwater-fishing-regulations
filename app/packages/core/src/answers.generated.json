@@ -2907,6 +2907,18 @@
        "title": "Apart",
        "type": "boolean"
       },
+      "both": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Both"
+      },
       "entry": {
        "anyOf": [
         {

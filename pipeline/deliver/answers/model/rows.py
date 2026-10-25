@@ -338,6 +338,9 @@ class Badge(Model):
     #: rows 31 (owner rule 2026-10-21, page v36 narrowAll): the row's narrowing clause binds every one of its fish
     #: (false where the row has none) — with `share`, the badge reads "All Region 2 streams", else "Region 2-wide"
     narrow_all: StrictBool
+    #: T183 (owner 2026-10-24): on a piece in two regions, the row's caps are the stricter of TWO regions' tables —
+    #: the regions in the book's words ("Regions 3 and 5"), said in place of the pool's own region. Absent elsewhere.
+    both: Optional[StrictStr] = None
 
     @model_validator(mode="after")
     def _entry_iff_not_water(self):

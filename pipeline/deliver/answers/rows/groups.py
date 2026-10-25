@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 from typing import Dict, List, Optional, Sequence
+from pipeline.common import entry_id as EID
 from pipeline.deliver.answers import common
 from pipeline.deliver.answers.rows.rule import INF, R, _bands, _covers, _js, _keep_range, _keepish
 from pipeline.deliver.answers.rows.evaluate import counts_toward, main_res
@@ -79,6 +80,37 @@ def _clauses(P: "Part", T: R) -> List[R]:
     return [r for r in out if r.k in ("subcap", "sizecap")]
 
 
+#: OWNER 2026-10-24 (T183 follow-ups): ON A PIECE IN TWO REGIONS, EVERY CAP IS THE STRICTER OF THE TWO REGIONS'.
+#: A straddling piece binds both regions' tables; where both print the same total ("Trout/char: 5" in Region 3 and
+#: Region 5) the reader shows one (`same_as_peer`, the lower entry id) and the other is `replaced` by it. Its
+#: clauses still speak — Region 5's "2 from streams" is what holds an angler on the Fraser piece in Regions 3 and 5
+#: to 2 — so the group of the winning total takes the PEER total's clauses too (`_peer_totals`), and of two clauses
+#: saying the same thing the stricter, which the reader already kept (`stricter_region`). False = one table's
+#: clauses only (the mutation pin: the card says 5 where 2 may be kept; the card gate refuses it).
+STRADDLERS_TAKE_BOTH_TABLES_CAPS = True
+
+
+def _peer_totals(P: "Part", model: dict, T: R, kinds: Sequence[str]) -> List[R]:
+    """The OTHER REGION'S totals this zone total `T` stands for here: a zone table's total of another region,
+    replaced by `T` (`same_as_peer`) for a fish counting toward `T`. Empty off a straddler."""
+    if not (STRADDLERS_TAKE_BOTH_TABLES_CAPS and EID.is_zone(T.entry_id)):
+        return []
+    mine = EID.zone_region(T.entry_id)
+    out: List[R] = []
+    for S in kinds:
+        m = _kept(model, S)
+        for k, v in (m["roles"] if m else {}).items():
+            r = P.by_key.get(k)
+            if r is not None and r not in out and v.get("role") == "replaced" and v.get("by") == T.key \
+                    and EID.is_zone(r.entry_id) and EID.zone_region(r.entry_id) != mine and r.k == T.k:
+                out.append(r)
+    return out
+
+
+def _peer_entries(peers: Sequence[R]) -> set:
+    return {r.entry_id for r in peers}
+
+
 def _clause_take(c: R):
     """A clause's number: its own, or its band's ("[{min_cm: 50, take: 1}]")."""
     if c.f.get("take") is not None:
@@ -112,10 +144,14 @@ def group_of(P: "Part", model: dict, T: R, own_row: bool = False) -> Optional[di
     if not kinds:
         return None
     # the stream (or lake) share first, then the count clauses, then the size clauses
-    chain = sorted(_clauses(P, T), key=lambda c: (0 if c.f.get("water") else 1 if c.k == "subcap"
-                                                  else 2, -sum(_covers(c, S) for S in kinds),
-                                                  _clause_take(c) or 0))
-    in_chain = {c.key for c in chain} | {T.key}
+    peers = _peer_totals(P, model, T, kinds)
+    own = _clauses(P, T)
+    theirs = [c for X in peers for c in _clauses(P, X) if c not in own]
+    chain = sorted(own + theirs, key=lambda c: (0 if c.f.get("water") else 1 if c.k == "subcap"
+                                                else 2, -sum(_covers(c, S) for S in kinds),
+                                                _clause_take(c) or 0))
+    in_chain = {c.key for c in chain} | {T.key} | {X.key for X in peers}
+    tables = {T.entry_id} | _peer_entries(peers)
     unlimited = bool(T.f.get("unlimited"))
     total = "unlimited" if unlimited else _num(T.f.get("take"))
     subcaps = []
@@ -124,6 +160,18 @@ def group_of(P: "Part", model: dict, T: R, own_row: bool = False) -> Optional[di
         for S in kinds:
             m = _kept(model, S)
             v = m["roles"].get(c.key) or {}
+            by = P.by_key.get(v.get("by")) if v.get("by") else None
+            if peers and v.get("role") == "replaced" and by is not None and by.entry_id in tables \
+                    and by.entry_id != c.entry_id:
+                # the other region's stricter clause replaced it (two tables, one piece): that one
+                # holds the fish, and this one is not said
+                continue
+            if c in theirs and _covers(c, S) \
+                    and ((P.verdict(S, m["o"]).get(c.key) or [None])[0] == "speaks"):
+                # the other region's clause SPEAKS for the fish (the reader's word): it holds it,
+                # though the fish's own line is the winning table's narrower clause
+                held.append(S)
+                continue
             # a clause the card's lines fold into an equal-sized one of the same total (Region 2's
             # "2 over 50 cm" beside "1 over 50 cm, not steelhead": Q16) still holds the fish
             if m.get("narrow") is c or v.get("role") in ("narrows", "limit") \
@@ -149,9 +197,10 @@ def group_of(P: "Part", model: dict, T: R, own_row: bool = False) -> Optional[di
         # a size clause another of the total makes redundant on this card — the same band, holding
         # every kind it holds, with no larger number (Region 1's "2 over 50 cm" beside "1 over 50
         # cm" on a lake with no steelhead) — is not said twice
-        if band and any(o["over_cm"] == sc["over_cm"] and o["under_cm"] == sc["under_cm"]
-                        and set(held) <= set(o["of"]) and o["take"] <= sc["take"]
-                        for o in subcaps):
+        if any(o["over_cm"] == sc["over_cm"] and o["under_cm"] == sc["under_cm"]
+               and set(held) <= set(o["of"]) and o["take"] <= sc["take"]
+               and (band or (peers and o["water"] == sc["water"])) for o in subcaps):
+            # (two tables, T183: the other region's same clause, no stricter, is not said twice either)
             continue
         subcaps.append(sc)
         # decision F17: the tally a water's steelhead quota raises the clause to, over every fish the clause
@@ -332,7 +381,20 @@ def elsewhere_of(P: "Part", model: dict, row: dict, sc: dict, T: R,
                      f" They also count toward {whose} {written_name_of(T)}, which has no daily "
                      f"limit.")
     lines += over_elsewhere(P, model, row, grp)
+    if two_tables(grp):
+        # A PIECE IN TWO REGIONS (T183): "kept 1 elsewhere today" has no one answer — a stream in which
+        # region? Region 3's closed January streams and Region 5's open ones are both "elsewhere" to a
+        # piece lying in both. No worked example is said; the group's caps say the day
+        lines = []
     return {"says": says, "ask": [[x["q"], x["a"]] for x in lines], "lines": lines}
+
+
+def two_tables(grp: Optional[dict]) -> bool:
+    """Does this group draw its caps from TWO regions' tables (a straddling piece, `_peer_totals`)?"""
+    if not grp:
+        return False
+    regions = {EID.zone_region(k.split("::", 1)[0]) for k in [grp["pool"], *(s["r"] for s in grp["subcaps"])]}
+    return len(regions - {None}) > 1
 
 
 def over_elsewhere(P: "Part", model: dict, row: dict, grp: Optional[dict]) -> List[dict]:

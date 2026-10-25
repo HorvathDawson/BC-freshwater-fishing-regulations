@@ -70,6 +70,8 @@ export function scopeOf(row: HydRow): string | null {
   const s = row.scope;
   if (!s) return null;
   if (s.of === "bc") return WORDS.BC;
+  // T183: a piece in two regions — the row's caps are the stricter of both regions' tables; the store names both
+  if (s.of === "region" && s.both) return s.both;
   if (s.of === "region" || s.of === "area") return row.pool?.export.prov.entry_name || (s.of === "area" ? WORDS.THE_AREA : WORDS.THE_REGION_LC);
   return null;
 }

@@ -32,6 +32,12 @@ describe("scopeBadge (page v36 scopeBadge + rowHtml's rewrite)", () => {
     const part = cardOf([{ ...TROUT_ROW, scope: { ...TROUT_ROW.scope!, narrow_all: false } }]);
     expect(scopeBadge(part.rows[0]!, part, inp)).toBe("Region 2-wide");
   });
+  it("T183: a piece in two regions — the stored `scope.both` names both regions' tables", () => {
+    const both = cardOf([{ ...TROUT_ROW, scope: { ...TROUT_ROW.scope!, both: "Regions 2 and 8" } }]);
+    expect(scopeBadge(both.rows[0]!, both, inp)).toBe("All Regions 2 and 8 streams");
+    const wide = cardOf([{ ...TROUT_ROW, scope: { of: "region", entry: "r2", share: false, apart: false, narrow_all: false, both: "Regions 2 and 8" } }]);
+    expect(scopeBadge(wide.rows[0]!, wide, inp)).toBe("Regions 2 and 8-wide");
+  });
   it("the badge reads the stored narrow_all, never the narrowing rule's species (owner rule 2026-10-21)", () => {
     // KO is not among the narrowing rule's fish: page v36 narrowAll would say false; the store says true, and wins
     const stored = cardOf([{ ...TROUT_ROW, members: ["RB", "KO"] }]);

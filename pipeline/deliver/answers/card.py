@@ -52,6 +52,12 @@ import re
 from typing import Dict, List, Optional, Sequence, Tuple
 
 from pipeline.deliver.answers import common
+from pipeline.deliver.answers.rows.groups import two_tables
+
+#: OWNER 2026-10-24 (T183 follow-ups): on a piece in two regions BOTH regions' size caps bind; a kind one leaves
+#: out that the other's holds is not "not counting" (`_say_caps`). False = each cap read alone (the mutation pin:
+#: the Similkameen card offers a second hatchery steelhead over 50 cm; the card gate refuses it).
+TWO_TABLES_SIZE_CAPS_BOTH_BIND = True
 
 INF = math.inf
 _WATER_NOUNS = {"river": "river", "rivers": "river", "creek": "creek", "creeks": "creek",
@@ -452,6 +458,15 @@ def _say_caps(P, model: dict, grp: dict, kinds: Sequence[str], info: Dict[str, d
             if o is sc:
                 aside += [S for S in t["of"] if S not in sc["of"] and S in info and info[S]["hi"] > cm
                           and S not in aside]
+        if TWO_TABLES_SIZE_CAPS_BOTH_BIND and two_tables(grp):
+            # OWNER 2026-10-24 (T183): a piece in two regions is under BOTH regions' size caps. A kind this
+            # cap leaves out but the other region's cap at the same size holds, sharing kinds with this one,
+            # is NOT "not counting": Region 2's "1 over 50 cm (2 hatchery steelhead allowed)" beside Region
+            # 8's "1 over 50 cm" on the Similkameen — a steelhead over 50 cm after a brown trout over 50 cm
+            # is Region 8's second; so 1, not 2 (and the tree's "— 2 if one is a hatchery steelhead" goes)
+            aside = [S for S in aside if not any(
+                o is not sc and o["over_cm"] == cm and o["under_cm"] is None and S in o["of"]
+                and set(o["of"]) & set(sc["of"]) for o in sizes)]
         # ROUND15 1 (owner): a size cap is a BOXED GROUP like the count groups, naming EXACTLY the kinds it
         # can bind today — kept and able to pass the size (Bella Coola May 1: brown trout, Dolly Varden/bull
         # trout, lake trout and brook trout; never cutthroat ≤33 cm, rainbow ≤50 cm or a closed steelhead)
