@@ -45,6 +45,10 @@ STALE_REASONS: tuple[StaleReason, ...] = tuple(StaleReason)
 Scope = Literal["entry", "rule", "split"]
 Verdict = Literal["verified", "wrong", "unsure", "deferred"]
 Answer = Literal["y", "n", "?"]
+#: T189: the reviewer's call on tributaries — the water's tributaries should be in, or out
+Tributaries = Literal["include", "exclude"]
+#: the key a `Mark.tributaries` call on the ENTRY's own scope is made under (any other is a rule id)
+ENTRY_KEY = "entry"
 #: the checks each scope answers (PLAN §2: T text, R rules, P place, A answer; a split is a place)
 CHECKS: dict[str, tuple[str, ...]] = {"entry": ("T", "R", "P", "A"),
                                       "rule": ("T", "R", "P", "A"),
@@ -162,6 +166,14 @@ class Mark(BaseModel):
     #: T136 pilot's "time per entry". None for a mark made outside the screen (a migration's copy,
     #: a script).
     seconds: Optional[float] = Field(default=None, ge=0)
+    #: THE REVIEWER'S CALL ON TRIBUTARIES (T189), structured, never a file edit (T185: a mark is
+    #: the only write): `"entry"` (the entry's own scope) or a rule id -> "include" (it should
+    #: take in its tributaries) or "exclude" (it should not). Only what the reviewer said is
+    #: here; a key left out is no call. A rule mark calls only its own rule.
+    tributaries: dict[str, Tributaries] = Field(default_factory=dict)
+    #: T189: "in the future this will need a lake split" (owner, on Dragon Lake) — the target is
+    #: a lake divided into areas, deferred (RULINGS K5); `lake_splits_later` lists every one.
+    lake_split_later: bool = False
 
     @field_validator("reviewer")
     @classmethod
@@ -205,6 +217,20 @@ class Mark(BaseModel):
                 raise ValueError("an entry or rule mark holds the text and the entry record")
             if self.scope == "rule" and sorted(keys) != sorted(["entry", f"rule:{self.rule_id}"]):
                 raise ValueError("a rule mark holds the entry record and its own rule's")
+        if self.tributaries:
+            if self.scope == "split":
+                raise ValueError("a split mark makes no tributary call")
+            if self.scope == "rule":
+                ok = {self.rule_id}
+            else:
+                ok = {ENTRY_KEY} | {k.split(":", 1)[1] for k in keys if k.startswith("rule:")}
+            bad = sorted(set(self.tributaries) - ok)
+            if bad:
+                raise ValueError(f"a tributary call names {bad}: not "
+                                 + ("this mark's rule" if self.scope == "rule"
+                                    else "the entry or one of its rules"))
+        if self.lake_split_later and self.scope == "split":
+            raise ValueError("a lake split later is marked on an entry or a rule, not a split")
         return self
 
     @property
@@ -217,10 +243,18 @@ class Mark(BaseModel):
 # The store
 # --------------------------------------------------------------------------------------------
 
+#: fields a line leaves out while they hold their default (T189 added them): a mark without them
+#: is the same line it was before they existed
+_OMIT_DEFAULT = {"tributaries": {}, "lake_split_later": False}
+
+
 def line(mark: Mark) -> str:
     """THE ONE SERIALISATION of a mark: one compact JSON line, keys in model order."""
-    return json.dumps(json.loads(mark.model_dump_json()), ensure_ascii=False,
-                      separators=(",", ":")) + "\n"
+    got = json.loads(mark.model_dump_json())
+    for k, v in _OMIT_DEFAULT.items():
+        if got.get(k) == v:
+            got.pop(k)
+    return json.dumps(got, ensure_ascii=False, separators=(",", ":")) + "\n"
 
 
 def load(path: Path) -> list[Mark]:
@@ -293,6 +327,15 @@ def latest(marks: Iterable[Mark]) -> dict[tuple, Mark]:
     for m in marks:
         out[m.key] = m
     return out
+
+
+def lake_splits_later(marks: Iterable[Mark]) -> list[dict]:
+    """THE DEFERRED LAKE-SPLIT LIST, AS REVIEWERS FEED IT (T189; RULINGS K5, T100): every target
+    whose mark IN FORCE says "needs a lake split later", in the store's order — {target, rule_id,
+    reviewer, date, note}. A later mark without the flag takes the target off the list."""
+    return [{"target": m.target, "rule_id": m.rule_id, "reviewer": m.reviewer, "date": m.date,
+             "note": m.note}
+            for m in latest(marks).values() if m.lake_split_later]
 
 
 # --------------------------------------------------------------------------------------------

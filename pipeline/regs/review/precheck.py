@@ -59,6 +59,9 @@ CHECKS: dict[str, tuple[str, str]] = {
 SEVERITIES = ("A", "B")
 #: `unquoted_text`: how many characters of the row no rule quotes before it is a finding (PLAN §3)
 UNQUOTED_OVER = 15
+#: how the undrawn-part normaliser opens the `review_reason` it writes: such a reason IS the
+#: `undrawn_part` finding, not a second, parser's one (T189)
+UNDRAWN_REASON = "Held on the whole water as an undrawn part (a note, never coloured by it)"
 
 
 def finding(code: str, rule_id: str | None, detail: str = "") -> dict:
@@ -120,13 +123,20 @@ def prechecks(entry: dict, *, binds: bool, run=None, to_verify: Iterable[str] = 
         held = sorted(set(_splits_of(r)) & to_verify)
         if held:
             got["split_to_verify"].append(finding("split_to_verify", rid, ", ".join(held)))
-        if r.get("review_reason"):
-            got["parser_uncertain"].append(finding("parser_uncertain", rid, str(r["review_reason"])))
+        reason = str(r.get("review_reason") or "")
+        part = str(r.get("undrawn_part") or "")
+        if reason and not (part and reason.startswith(UNDRAWN_REASON)):
+            got["parser_uncertain"].append(finding("parser_uncertain", rid, reason))
         if r.get("unresolved_locators"):
             got["unresolved_locator"].append(finding(
                 "unresolved_locator", rid, "; ".join(map(str, r["unresolved_locators"]))))
-        if r.get("undrawn_part"):
-            got["undrawn_part"].append(finding("undrawn_part", rid, str(r["undrawn_part"])))
+        if part:
+            # ONE FINDING FOR ONE FACT (T189): the normaliser that held these rules as an undrawn
+            # part also wrote that into `review_reason` (126 rules), so `parser_uncertain` said it
+            # a second time. The parser's why is kept, on this finding.
+            why = reason[len(UNDRAWN_REASON):].lstrip(" :") if reason.startswith(UNDRAWN_REASON) else ""
+            got["undrawn_part"].append(finding("undrawn_part", rid,
+                                               part + (f" — the parser: {why}" if why else "")))
     for x in entry.get("licensing") or []:
         if isinstance(x, dict) and x.get("review_reason"):
             got["parser_uncertain"].append(finding("parser_uncertain", x.get("id"),

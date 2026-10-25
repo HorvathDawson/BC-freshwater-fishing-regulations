@@ -152,6 +152,10 @@ class MarkPayload(BaseModel):
     pages: list[int] = []            # printed pages read (default: the entry's source_pages)
     #: the reviewer's time on the target before this mark, by the screen's clock (T136 pilot)
     seconds: float | None = None
+    #: T189: the reviewer's call on tributaries — "entry" or a rule id -> include | exclude
+    tributaries: dict[str, str] = {}
+    #: T189: the target needs a lake split later (a lake divided into areas; RULINGS K5)
+    lake_split_later: bool = False
 
 
 @app.post("/api/marks")
@@ -227,6 +231,14 @@ def review_tickets():
     --out <dir>` writes the same text to files)."""
     import review
     return review.tickets()
+
+
+@app.get("/api/review/lake-splits")
+def review_lake_splits():
+    """THE DEFERRED LAKE-SPLIT LIST as reviewers feed it (T189, `marks.lake_splits_later`): every
+    target whose mark in force says "needs a lake split later". Read only."""
+    from pipeline.regs.review import marks as M
+    return M.lake_splits_later(M.load(reuse.MARKS_PATH))
 
 
 @app.get("/api/review/tickets.md")

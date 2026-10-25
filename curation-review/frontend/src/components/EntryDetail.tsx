@@ -1,14 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import type {
-  Boundary, EntryDetail as EntryDetailT, EntryReaches, EntrySplits, Mode, ReviewView,
+  Boundary, EntryDetail as EntryDetailT, EntryReaches, EntrySplits, Mode, NamedSplit, ReviewView,
+  RuleScopeWords, TribCall,
 } from "../types";
 import { api } from "../api";
-import { describeDiagnostic, humanExtent, reachIdentities } from "../format";
+import { describeDiagnostic, reachIdentities } from "../format";
 import { VerifyBar, type QueueNav } from "./VerifyBar";
 import { Evidence } from "./Evidence";
-import { EntryReview } from "./EntryReview";
-import { Prechecks } from "./Prechecks";
+import { EntryReview, markWords, useEntryReview, type MarkExtras } from "./EntryReview";
+import { Finding, findingsOf, Prechecks } from "./Prechecks";
 import { ITEM_COLORS, MapPanel } from "./MapPanel";
+import { VerdictBar } from "./useMarking";
 
 interface Props {
   detail: EntryDetailT;
@@ -42,18 +44,40 @@ function boundaryState(b: Boundary): { cls: string; text: string; title: string 
 }
 
 /* The book the entries were read from: the repo's copy, served by the backend. `source_pages`
-   are PRINTED page numbers and the PDF's index differs by 2-6 (the unnumbered centre gloss), so a
-   link goes through the printed -> PDF map. It used to put the printed number straight into
-   gov.bc.ca's `#page=`, which opened two to six pages early — Region 4's tables for the Dean. */
+   are PRINTED page numbers and the PDF's index differs by 2-6, so a link goes through the
+   printed -> PDF map. */
 const SYNOPSIS_PDF = "/api/synopsis.pdf";
 
-/* ONE ENTRY UNDER REVIEW (T134, T184). READ ONLY: the screen writes one thing, a mark (the
-   checklist in `EntryReview`); a wrong entry is a mark that becomes a ticket, and the fix is a
-   reviewed change to the curated files (T185) — there are no editors here. Evidence first, then
-   the checklist with the verdict bar always visible, then what the checklist is answered from:
-   the entry's waters, its scope, every rule with where it binds, its licensing, and the map. */
+/** T189: the reviewer's tributary call on one target — "should include" / "should not"; clicking
+ *  the call already made takes it back. Recorded in the mark (`Mark.tributaries`), never a file. */
+function TribCallButtons({ k, extras }: { k: string; extras: MarkExtras }) {
+  const now = extras.trib[k];
+  const b = (call: TribCall, words: string) => (
+    <button type="button" className={`ans trib-call${now === call ? " on" : ""}`}
+      aria-pressed={now === call} data-trib-call={`${k}:${call}`}
+      onClick={(ev) => { ev.currentTarget.blur(); extras.setTrib(k, now === call ? null : call); }}>
+      {words}
+    </button>
+  );
+  return (
+    <span className="trib-calls" title="your call, recorded with the mark">
+      {b("include", "should include")}{b("exclude", "should not")}
+    </span>
+  );
+}
+
+/** A yes / no chip. */
+const YesNo = ({ yes, words }: { yes: boolean; words?: string }) => (
+  <span className={`yn ${yes ? "yn-yes" : "yn-no"}`}>{words ?? (yes ? "yes" : "no")}</span>
+);
+
+/* ONE ENTRY UNDER REVIEW (T134, T184, T189). READ ONLY: the screen writes one thing, a mark.
+   THE LAYOUT (T189, the owner's pilot): the source — the row as printed and as parsed — pinned at
+   the top of the pane; the entry's own extent; one block per rule (its label and the words it
+   quotes, then WHERE it holds in plain words, tributaries yes or no, carve-outs, and a click to
+   draw it on the map); licensing; the checklist; the verdict bar pinned at the foot. Each fact is
+   shown once: a pre-check on a rule is in that rule's block, the splits a rule names are on it. */
 export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMarked }: Props) {
-  // T134: what the checklist is answered from — evidence, coverage, tier, impact, the app link
   const [view, setView] = useState<ReviewView | null>(null);
   const [viewDate, setViewDate] = useState<string | undefined>(undefined);
   const [viewError, setViewError] = useState("");
@@ -70,22 +94,34 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
   const entry = detail.entry;
   const related = detail.related_entries ?? [];
   const boundaries = item?.boundaries ?? [];
-
-  // A combined override puts several registry items behind ONE synopsis row ("CHILLIWACK / VEDDER
-  // RIVERS"; the Fraser plus its named channels) — the boundary list below is their union.
   const alsoItems = detail.also_items ?? [];
-  // Every water this entry covers, primary first — a combined entry must be reviewable as a whole
-  // AND water-by-water, so each is clickable to focus the map on just that body.
   const coveredItems = item ? [{ id: item.id, name: item.name, kind: item.kind }, ...alsoItems] : [];
   const [focusItemId, setFocusItemId] = useState<string | null>(null);
-  const [selBoundary, setSelBoundary] = useState<string | null>(null); // clicked split -> map highlight + info
-  const [reaches, setReaches] = useState<EntryReaches | null>(null); // resolved reach per rule/extent
+  const [selBoundary, setSelBoundary] = useState<string | null>(null);
+  const [showRule, setShowRule] = useState<{ id: string | null; n: number }>({ id: null, n: 0 });
+  const [reaches, setReaches] = useState<EntryReaches | null>(null);
   const [pdfPages, setPdfPages] = useState<Record<string, number>>({});
   useEffect(() => { api.synopsisPages().then(setPdfPages).catch(() => {}); }, []);
   const rules = entry.rules ?? [];
   const licensing = entry.licensing ?? [];
-  // EVERY SPLIT THE RULES NAME (T184): labelled on the map and listed below, so the reviewer
-  // checks each cut by proxy — a wrong one is this entry's "Place: wrong"
+
+  // T189: the tributary calls and "lake split later", per entry — carried by the mark
+  const [trib, setTribs] = useState<Record<string, TribCall>>({});
+  const [lakeSplit, setLakeSplit] = useState(false);
+  useEffect(() => { setTribs({}); setLakeSplit(false); setShowRule({ id: null, n: 0 }); },
+    [entry.entry_id]);
+  const extras: MarkExtras = {
+    trib, lakeSplit, setLakeSplit,
+    setTrib: (k, call) => setTribs((t) => {
+      const next = { ...t };
+      if (call) next[k] = call; else delete next[k];
+      return next;
+    }),
+  };
+  const r = useEntryReview({ detail, view, mode, onMarked, onToggleMap: () => setMapBig((x) => !x),
+                             extras });
+
+  // EVERY SPLIT THE RULES NAME (T184): labelled on the map; each rule block lists its own
   const [named, setNamed] = useState<EntrySplits | null>(null);
   useEffect(() => {
     let live = true;
@@ -93,40 +129,23 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
       .catch(() => { if (live) setNamed(null); });
     return () => { live = false; };
   }, [entry, reloadKey]);
-  // split id -> its name, for each rule's "where" line
-  const splitNames = useMemo(() => {
-    const m: Record<string, string> = {};
-    for (const b of boundaries) m[b.id] = (b.live?.label ?? b.label) || b.id;
-    for (const s of [...(named?.features ?? []).map((f) => f.properties), ...(named?.unplaced ?? [])])
-      m[s.split_id] = s.label;
+  const namedBy = useMemo(() => {
+    const m: Record<string, NamedSplit & { why?: string; placed: boolean }> = {};
+    for (const f of named?.features ?? []) m[f.properties.split_id] = { ...f.properties, placed: true };
+    for (const u of named?.unplaced ?? []) m[u.split_id] = { ...u, placed: false };
     return m;
-  }, [boundaries, named]);
+  }, [named]);
   const referenced = useMemo(
-    () => rules.flatMap((r) => (r.extents ?? []).flatMap((ex) => ex.splits ?? [])), [rules]);
+    () => rules.flatMap((x) => (x.extents ?? []).flatMap((ex) => ex.splits ?? [])), [rules]);
+  const reachOf = useMemo(() => reachIdentities(reaches, rules.map((x) => x.rule_id)),
+    [reaches, rules]);
 
-  // Which distinct reach each rule lands on. Several rules almost always share one, and the authored
-  // extent text ("downstream of Vedder Crossing Bridge") does not reveal which WATER that is.
-  const reachOf = useMemo(
-    () => reachIdentities(reaches, rules.map((r) => r.rule_id)),
-    [reaches, rules],
-  );
-
-  // registry id -> name, over every water this entry covers
-  const itemNames = useMemo(() => {
-    const m: Record<string, string> = {};
-    if (detail.item) m[detail.item.id] = detail.item.name;
-    for (const a of detail.also_items ?? []) m[a.id] = a.name;
-    return m;
-  }, [detail]);
-
-  // The resolved reach is the entry as it is in the file + the built graph: refetched when the
-  // entry changes on disk (a reviewed change lands) or a rebuild lands.
   const [reachBusy, setReachBusy] = useState(false);
   useEffect(() => {
     let live = true;
     setReachBusy(true);
     api.reaches(entry.entry_id)
-      .then((r) => { if (live) setReaches(r); })
+      .then((x) => { if (live) setReaches(x); })
       .catch(() => { if (live) setReaches(null); })
       .finally(() => { if (live) setReachBusy(false); });
     return () => { live = false; };
@@ -134,410 +153,356 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
 
   const matched = entry.matched ?? [];
   const mapItemId = item?.id ?? matched[0] ?? null;
-  // A catalogue entry records the items it covers in `matched`; a water row with none is unbound.
-  const isNoRegistry = detail.kind !== "zone" && item == null;
-
-  // Flag when the printed synopsis symbol (`symbols`, copied from the row at ingest) says the reg
-  // extends to tributaries but the entry's `includes_tributaries` is off.
+  const zone = detail.kind === "zone";
+  const isNoRegistry = !zone && item == null;
   const symbolSaysTributaries = (entry.symbols ?? []).some((s: string) => /incl.*trib/i.test(s));
   const tribFlagMismatch = symbolSaysTributaries && entry.includes_tributaries === false;
+  const es = view?.scope.entry;
+  const itemColor = (id: string) =>
+    ITEM_COLORS[Math.max(0, coveredItems.findIndex((c) => c.id === id)) % ITEM_COLORS.length];
+
+  function splitChip(id: string, name: string) {
+    const s = namedBy[id];
+    return (
+      <button type="button" className={`split-chip${selBoundary === id ? " selected" : ""}`}
+        title={`${id} — click to fly to it on the map`} onClick={() => setSelBoundary(id)}>
+        {name}
+        {s?.to_verify && <span className="badge warn">to verify{s.grade ? ` · ${s.grade}` : ""}</span>}
+        {s && !s.placed && <span className="badge warn">not on the map: {s.why}</span>}
+      </button>
+    );
+  }
+
+  /** WHERE ONE RULE HOLDS (T189): the extent in words, then tributaries, carve-outs, the
+   *  binding, and the pre-checks on it. */
+  function ruleExtent(rid: string, sw: RuleScopeWords) {
+    const found = view ? findingsOf(view, rid) : [];
+    const undrawn = found.find((f) => f.code === "undrawn_part");
+    const parserWhy = undrawn?.what.split(" — the parser: ")[1];
+    // the extent shows the undrawn part and the unresolved places: their findings are not repeated
+    const rest = found.filter((f) => f.code !== "undrawn_part" && f.code !== "unresolved_locator");
+    const otherItems = sw.items.filter((i) => !matched.includes(i.id) || matched.length > 1);
+    return (
+      <div className="rule-extent" data-testid={`where-${rid}`}>
+        <div className="ext-row">
+          <span className="k">where</span>
+          <span className="ext-where">{sw.where}</span>
+          <button type="button" className="btn small" data-testid={`show-${rid}`}
+            onClick={() => setShowRule((s) => ({ id: rid, n: s.n + 1 }))}
+            title="draw this rule's reach on the map">show on map</button>
+        </div>
+        {sw.book_says && sw.book_says !== sw.where && (
+          <div className="ext-row"><span className="k">book</span>“{sw.book_says}”</div>
+        )}
+        {otherItems.length > 0 && (
+          <div className="ext-row"><span className="k">on</span>
+            {otherItems.map((i) => (
+              <span key={i.id} className="item-ref" style={{ borderBottomColor: itemColor(i.id) }}
+                title={i.id}>{i.name}</span>
+            ))}
+          </div>
+        )}
+        {sw.splits.length > 0 && (
+          <div className="ext-row"><span className="k">splits</span>
+            {sw.splits.map((s) => <span key={s.id}>{splitChip(s.id, s.name)}</span>)}
+          </div>
+        )}
+        {sw.in_part && (
+          <div className="ext-row warn-row"><span className="k">only in</span>
+            <span>“{sw.in_part}” — <strong>not drawn</strong>: a note on the water, never colouring it
+              {parserWhy && <span className="dim"> · the parser: {parserWhy}</span>}</span>
+          </div>
+        )}
+        {sw.side && <div className="ext-row"><span className="k">side</span>{sw.side} half only</div>}
+        {sw.unresolved.length > 0 && (
+          <div className="ext-row warn-row"><span className="k">unplaced</span>
+            names a place nothing draws: {sw.unresolved.join("; ")}</div>
+        )}
+        <div className="ext-row" data-testid={`trib-${rid}`}>
+          <span className="k">tributaries</span>
+          <YesNo yes={sw.tributaries.yes} words={sw.tributaries.only ? "tributaries only" : undefined} />
+          <span className="dim">{sw.tributaries.why}</span>
+          <TribCallButtons k={rid} extras={extras} />
+        </div>
+        <div className="ext-row" data-testid={`carve-${rid}`}>
+          <span className="k">carve-outs</span>
+          {sw.carve_outs.length + sw.exceptions.length === 0 ? <span className="dim">none</span> : (
+            <span>{[...sw.carve_outs, ...sw.exceptions].join(" · ")}</span>
+          )}
+        </div>
+        {(() => {
+          const v = reaches?.verdict?.[rid];
+          if (!v) return reachBusy ? <div className="ext-row dim">binding: computing…</div> : null;
+          const bound = v.outcome === "bound";
+          const preview = detail.vintage && detail.vintage.state !== "current";
+          return (
+            <div className={`binding${bound ? "" : " unbound"}`} data-testid={`binding-${rid}`}>
+              {preview && <span className="badge warn" title="awaiting build: not what the bundle ships yet">preview</span>}{" "}
+              <strong>{bound ? `binds ${v.n_sections.toLocaleString()} section(s)` : `${v.outcome}`}</strong>
+              {v.reason && <> · {v.reason}{v.detail ? `: ${v.detail}` : ""}</>}
+              {v.tributaries_pending && <> · <span className="warn-text">tributaries pending</span></>}
+              {/* an ambiguous cut is its pre-check below (candidates and pick), not repeated here */}
+              {v.diagnostics.some((d) => d.kind !== "ambiguous_cut") && (
+                <ul>{v.diagnostics.filter((d) => d.kind !== "ambiguous_cut")
+                  .map((d, i) => <li key={i}>{describeDiagnostic(d)}</li>)}</ul>
+              )}
+            </div>
+          );
+        })()}
+        {rest.length > 0 && <ul className="rule-findings">{rest.map((f, i) => <Finding key={i} f={f} />)}</ul>}
+      </div>
+    );
+  }
 
   return (
     <div className="detail review-mode">
       <div className={`detail-cols${mapBig ? " map-big" : ""}`}>
         <div className="detail-content">
-      <VerifyBar entryId={entry.entry_id} marks={detail.marks} nav={nav} vintage={detail.vintage}
-        reviewed={detail.reviewed} />
-      {/* EVIDENCE FIRST, THEN THE CHECKLIST (T134): the raw name, the legible crop, the page with
-          it marked and the coverage strip; then T/R/P/A with the verdict bar always visible. */}
-      {view ? (
-        <>
-          <Evidence view={view} pdfPages={pdfPages} />
-          <Prechecks view={view} />
-          <EntryReview detail={detail} view={view} mode={mode} onMarked={onMarked}
-            onToggleMap={() => setMapBig((x) => !x)} onDate={setViewDate} />
-        </>
-      ) : (
-        <div className="section dim">{viewError || "loading the evidence…"}</div>
-      )}
-      {/* Identity header */}
-      <div className="entry-head">
-        <div className="sub">
-          <span>region {entry.region || detail.region}</span>
-          {entry.entry_id.includes("@") && (
-            <span>MU {entry.entry_id.split("@")[1].split("+").join(", ")}</span>
-          )}
-          <span className={`badge ${isNoRegistry ? "no_registry" : "confirmed"}`}>
-            {isNoRegistry ? "NO REGISTRY" : detail.kind === "zone" ? "zone" : "matched"}
-          </span>
-          {item ? (
-            <span className="dim">
-              item:{" "}
-              {coveredItems.map((ci, i) => (
-                <span key={ci.id}>
-                  {i > 0 && " + "}
-                  <a
-                    href="#"
-                    title={`${ci.id} — click to focus the map on this water`}
-                    style={{ borderBottom: `2px solid ${ITEM_COLORS[i % ITEM_COLORS.length]}` }}
-                    onClick={(ev) => {
-                      ev.preventDefault();
-                      setFocusItemId((cur) => (cur === ci.id ? null : ci.id));
-                    }}
-                  >
-                    {ci.name}
-                  </a>
-                </span>
-              ))}
-              {focusItemId && (
-                <button className="btn" style={{ padding: "0 6px", marginLeft: 6 }}
-                        onClick={() => setFocusItemId(null)}>
-                  show all
-                </button>
-              )}
-            </span>
-          ) : detail.kind === "zone" ? (
-            /* A regional rule names no water on purpose. */
-            <span className="chip-tag new" title="a regional or provincial rule — its reach is an area, carried on its rules, not a named water">
-              regional rule · applies by area
-            </span>
+          <VerifyBar entryId={entry.entry_id} marks={detail.marks} nav={nav} vintage={detail.vintage}
+            reviewed={detail.reviewed} />
+          {/* THE SOURCE, PINNED (T189): the row as printed and as parsed stay at the top while the
+              rules scroll under them — the reviewer reads a rule against the book without
+              scrolling up and down. */}
+          {view ? (
+            <div className="source-pin" data-testid="source-pin">
+              <Evidence view={view} pdfPages={pdfPages} />
+            </div>
           ) : (
-            <span className="dim">item: none — `matched` is empty, so this entry binds nothing</span>
+            <div className="section dim">{viewError || "loading the evidence…"}</div>
           )}
-        </div>
-        {related.length > 0 && (
-          <div className="dim" style={{ marginTop: 4 }}>
-            Same water, reviewed separately:{" "}
-            {related.map((r, i) => (
-              <span key={r.entry_id}>
-                {i > 0 && ", "}
-                <a
-                  href="#"
-                  onClick={(ev) => { ev.preventDefault(); onNavigate?.(r.entry_id); }}
-                  title={`covers ${r.shared_items.map((x) => x.name).join(", ")} — ${r.n_rules} rule(s)`}
-                >
-                  {r.name}
+
+          {/* THE ENTRY'S OWN EXTENT (T189): which waters, where, tributaries, carve-outs — it clips
+              every rule below. */}
+          <div className="section entry-scope" data-testid="entry-scope">
+            <div className="scope-head">
+              <h3>This entry</h3>
+              <span className="dim">region {entry.region || detail.region}</span>
+              {entry.entry_id.includes("@") && (
+                <span className="dim">MU {entry.entry_id.split("@")[1].split("+").join(", ")}</span>
+              )}
+              {isNoRegistry && <span className="badge no_registry">NO REGISTRY — binds nothing</span>}
+              {zone && <span className="chip-tag new" title="a regional or provincial rule — its reach is an area, carried on its rules">regional rule · applies by area</span>}
+            </div>
+            <div className="ext-row">
+              <span className="k">waters</span>
+              {coveredItems.length > 0 ? coveredItems.map((ci) => (
+                <a key={ci.id} href="#" className={`item-ref${focusItemId === ci.id ? " on" : ""}`}
+                  title={`${ci.id} — click to focus the map on this water`}
+                  style={{ borderBottomColor: itemColor(ci.id) }}
+                  onClick={(ev) => { ev.preventDefault(); setFocusItemId((c) => (c === ci.id ? null : ci.id)); }}>
+                  {ci.name}
                 </a>
-                {r.pointer && <span className="badge"> ↪ pointer</span>}
-              </span>
-            ))}
-          </div>
-        )}
-        {/* PASS-THROUGH FIELDS, copied from the synopsis row by the batch; `entry_id` encodes the
-            row (name slug + the MUs it was printed under). */}
-        <details className="identity-fields">
-          <summary className="dim">identity (pass-through from the synopsis row)</summary>
-          <table>
-            <tbody>
-              <tr><td className="k">entry_id</td><td><code>{entry.entry_id}</code></td></tr>
-              <tr><td className="k">name</td><td>{entry.name}</td></tr>
-              <tr><td className="k">display_name</td><td>{entry.display_name || <span className="dim">—</span>}</td></tr>
-              <tr><td className="k">region</td><td>{entry.region || <span className="dim">—</span>}</td></tr>
-              <tr><td className="k">source_pages</td><td>{(entry.source_pages ?? []).join(", ") || "—"}</td></tr>
-              <tr><td className="k">symbols</td><td title="the printed glyphs, 1:1 — a cross-check, never a binding">
-                {(entry.symbols ?? []).length ? (entry.symbols ?? []).map((g) => <span key={g} className="tag">{g}</span>) : <span className="dim">none printed</span>}
-              </td></tr>
-            </tbody>
-          </table>
-        </details>
-      </div>
-
-      {/* matched — the items this entry covers. AUTHORITATIVE: empty binds nothing. A zone entry
-          binds by its AREA, carried on its rules (T134). */}
-      <div className="section">
-        <div className="mfield">
-          <span className="k">matched</span>
-          <div className="v">
-            <span className="tag-input">
-              {matched.map((id) => (
-                <span className="tag" key={id}>
-                  {itemNames[id] ?? id} <span className="dim">{id}</span>
-                </span>
-              ))}
-              {matched.length === 0 && <span className="dim">none</span>}
-            </span>
-            <div className="hint">{detail.kind === "zone"
-              ? "a regional rule names no water: it binds by the area on its rules"
-              : "the registry items this row regulates, primary first — empty means it binds nothing"}</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Unused curated splits warning */}
-      {unused_curated_splits.length > 0 && (
-        <div className="section">
-          <div className="unused-warning">
-            <strong>⚠ Unused curated splits</strong>
-            <div>Curated cut(s) never used by any rule:</div>
-            <ul>
-              {unused_curated_splits.map((u) => (
-                <li key={u.id}>
-                  <strong>{u.label}</strong>{" "}
+              )) : <span className="dim">{zone ? "none — it binds by the area on its rules" : "none: `matched` names no item of this build"}</span>}
+              {focusItemId && <button className="btn small" onClick={() => setFocusItemId(null)}>show all</button>}
+            </div>
+            {es && (
+              <>
+                <div className="ext-row"><span className="k">where</span>{es.where}</div>
+                <div className="ext-row" data-testid="trib-entry">
+                  <span className="k">tributaries</span>
+                  <YesNo yes={es.tributaries.yes}
+                    words={es.tributaries.stated ? undefined : "not stated (no)"} />
                   <span className="dim">
-                    ({u.id}
-                    {u.anchor_type ? ` · ${u.anchor_type}` : ""})
+                    {es.rules_walking.length} of {rules.length} rule{rules.length === 1 ? "" : "s"} walk
+                    their tributaries
                   </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      )}
-
-      {/* The source row crop and the page are the EVIDENCE panel's (T134, above): legible, with the
-          row or passage marked on its page. Every other printed page of the entry (seven MU 6-1
-          lakes are printed twice) is linked here. */}
-      {(entry.source_pages ?? []).length > 1 && (
-        <div className="section dim">
-          also printed on{" "}
-          {(entry.source_pages ?? []).map((n: number, i: number) => (
-            <span key={n}>
-              {i > 0 && ", "}
-              <a href={`${SYNOPSIS_PDF}#page=${pdfPages[String(n)] ?? n}`} target="_blank" rel="noreferrer">p.{n}</a>
-              {" "}(<a href={`/api/synopsis/page/${n}.png`} target="_blank" rel="noreferrer">page image</a>)
-            </span>
-          ))}
-        </div>
-      )}
-
-      {/* The entry's own fields: its reach (which CLIPS every rule, and is never a rule's reach),
-          whether it includes tributaries, and the scope note. */}
-      <div className="section">
-        <h3>Entry scope (clips every rule)</h3>
-        <div className="scope-read" data-testid="scope-read">
-          <div><span className="k">extents</span> <code>{JSON.stringify(entry.extents ?? [])}</code></div>
-          <div><span className="k">includes_tributaries</span>{" "}
-            {entry.includes_tributaries == null ? <span className="dim">not stated by the row</span>
-              : String(entry.includes_tributaries)}</div>
-          {entry.scope_note && <div><span className="k">scope_note</span> {entry.scope_note}</div>}
-          {(entry.see ?? []).length > 0 && <div><span className="k">see</span> <code>{JSON.stringify(entry.see)}</code></div>}
-          {entry.anadromous_rainbow && <div><span className="k">anadromous_rainbow</span> true</div>}
-          {tribFlagMismatch && (
-            <div className="trib-warning">⚠ The printed symbol says <strong>[Includes Tributaries]</strong> but
-              <code> includes_tributaries</code> is false.</div>
-          )}
-        </div>
-      </div>
-
-      {/* Every rule and every licensing record as the app will say it — the GENERATED label — with
-          the sentence it quotes and where it binds. The row itself is the coverage strip above. */}
-      <div className="section">
-        <h3>Rules ({rules.length})</h3>
-        <div className="dim" style={{ marginBottom: 6 }}>
-          Each rule: the generated label (what the app says), the sentence it quotes, and WHERE it
-          binds — the reach builder's answer for the entry as it is in the file
-          {reachBusy ? " (computing…)" : ""}.
-        </div>
-        {(entry.see ?? []).length > 0 && rules.length === 0 && (
-          <div className="dim">A pointer row: it carries no rules of its own; the entry it points to does.</div>
-        )}
-        <div className="rules-list">
-          {rules.map((rule) => {
-            const rc = reachOf[rule.rule_id];
-            return (
-              <div className={`rule${rule.review_reason ? " flagged" : ""}`}
-                   key={rule.rule_id} data-rule={rule.rule_id}>
-                <div className="rule-head">
-                  <span className="badge">{rule.type}</span>
-                  <span className="rule-id">{rule.rule_id}</span>
-                  {rc ? (
-                    <span className="reach-tag" style={{ borderColor: rc.color, color: rc.color }}
-                      title={`reach ${rc.key}: ${rc.n} section${rc.n === 1 ? "" : "s"} on ${rc.waters.join(", ")}`}>
-                      <i style={{ background: rc.color }} />
-                      {rc.key} · {rc.waters.join(", ") || "—"} · {rc.n}
+                  <TribCallButtons k="entry" extras={extras} />
+                </div>
+                {tribFlagMismatch && (
+                  <div className="ext-row warn-row">⚠ The printed symbol says <strong>[Includes
+                    Tributaries]</strong> but the entry says no.</div>
+                )}
+                <div className="ext-row" data-testid="carve-entry">
+                  <span className="k">carve-outs</span>
+                  {es.carve_outs.length === 0 && !es.name_except ? <span className="dim">none</span> : (
+                    <span>
+                      {es.carve_outs.join(" · ")}
+                      {es.name_except && <>{es.carve_outs.length ? " · " : ""}the heading says “{es.name_except}”</>}
                     </span>
-                  ) : reaches ? (
-                    <span className="badge warn" title="this rule's extent does not resolve to any geometry">no reach</span>
-                  ) : null}
+                  )}
                 </div>
-                <div className="label" title="GENERATED by catalogue.label — what the app will say">
-                  {rule.label ?? <span className="dim">— does not validate —</span>}
-                </div>
-                {rule.verbatim && <div className="rule-verbatim">{rule.verbatim}</div>}
-                {(rule.extents ?? []).length > 0 && (
-                  <div className="rule-where" data-testid={`where-${rule.rule_id}`}
-                    title="where the rule binds, each split by its name — the map labels them">
-                    <span className="k">where</span>{" "}
-                    {(rule.extents ?? []).map((ex) => humanExtent(ex, splitNames)).join("; ")}
-                    {rule.includes_tributaries ? " · and its tributaries" : ""}
-                  </div>
-                )}
-                {rule.review_reason && (
-                  <div className="review-flag"><strong>⚠ review_reason</strong> {rule.review_reason}</div>
-                )}
-                {rule.undrawn_part && (
-                  <div className="review-flag"><strong>not yet mapped</strong> holds only in “{String(rule.undrawn_part)}”,
-                    which nothing draws — shown as a note on the water, never colouring it</div>
-                )}
-                {(rule.unresolved_locators ?? []).length > 0 && (
-                  <div className="review-flag"><strong>unresolved place</strong> {(rule.unresolved_locators ?? []).join("; ")}</div>
-                )}
-                {(() => {
-                  const v = reaches?.verdict?.[rule.rule_id];
-                  if (!v) return null;
-                  const bound = v.outcome === "bound";
-                  // T133: until the entry is built this is the builder's answer for the file NOW,
-                  // not what the bundle ships — a preview, never the binding to sign off
-                  const preview = detail.vintage && detail.vintage.state !== "current";
-                  return (
-                    <div className={`binding${bound ? "" : " unbound"}`} data-testid={`binding-${rule.rule_id}`}>
-                      {preview && <span className="badge warn" title="awaiting build: not what the bundle ships yet">preview</span>}{" "}
-                      <strong>{bound ? `binds ${v.n_sections.toLocaleString()} section(s)` : `${v.outcome}`}</strong>
-                      {v.reason && <> · {v.reason}{v.detail ? `: ${v.detail}` : ""}</>}
-                      {rule.side && <> · {String(rule.side)} half only</>}
-                      {v.tributaries_pending && <> · <span className="warn-text">tributaries pending</span></>}
-                      {v.diagnostics.length > 0 && (
-                        <ul>{v.diagnostics.map((d, i) => <li key={i}>{describeDiagnostic(d)}</li>)}</ul>
+              </>
+            )}
+            {entry.scope_note && <div className="ext-row"><span className="k">note</span>{entry.scope_note}</div>}
+            {(entry.see ?? []).length > 0 && (
+              <div className="ext-row"><span className="k">see</span>
+                {(entry.see ?? []).map((s) => s.verbatim).join("; ")}
+                {rules.length === 0 && <span className="dim"> — a pointer row: the entry it points to carries the rules</span>}
+              </div>
+            )}
+            {entry.anadromous_rainbow && <div className="ext-row"><span className="k">steelhead</span>anadromous rainbow trout are found here</div>}
+            {related.length > 0 && (
+              <div className="ext-row"><span className="k">same water</span>
+                {related.map((x) => (
+                  <a key={x.entry_id} href="#" className="item-ref"
+                    onClick={(ev) => { ev.preventDefault(); onNavigate?.(x.entry_id); }}
+                    title={`covers ${x.shared_items.map((y) => y.name).join(", ")} — ${x.n_rules} rule(s)`}>
+                    {x.name}{x.pointer ? " ↪" : ""}
+                  </a>
+                ))}
+              </div>
+            )}
+            {(entry.source_pages ?? []).length > 1 && (
+              <div className="ext-row"><span className="k">printed</span>
+                {(entry.source_pages ?? []).map((n: number) => (
+                  <a key={n} href={`${SYNOPSIS_PDF}#page=${pdfPages[String(n)] ?? n}`} target="_blank" rel="noreferrer">p.{n}</a>
+                ))}
+              </div>
+            )}
+            {unused_curated_splits.length > 0 && (
+              <div className="ext-row warn-row"><span className="k">unused</span>
+                curated cut(s) no rule uses: {unused_curated_splits.map((u) => u.label).join(", ")}</div>
+            )}
+            <details className="identity-fields">
+              <summary className="dim">identity</summary>
+              <div className="dim"><code>{entry.entry_id}</code>
+                {entry.display_name ? ` · shown as “${entry.display_name}”` : ""}
+                {" · symbols: "}{(entry.symbols ?? []).join(", ") || "none printed"}</div>
+            </details>
+          </div>
+
+          {view && <Prechecks view={view} />}
+
+          {/* ONE BLOCK PER RULE (T189): what it says, then where it holds. */}
+          <div className="section">
+            <h3>Rules ({rules.length})</h3>
+            <div className="rules-list">
+              {rules.map((rule, i) => {
+                const rc = reachOf[rule.rule_id];
+                const sw = view?.scope.rules[rule.rule_id];
+                const mk = r.zone ? r.marksBy[rule.rule_id] : undefined;
+                return (
+                  <div className={`rule${r.zone && i === r.at ? " active" : ""}`}
+                    key={rule.rule_id} data-rule={rule.rule_id}>
+                    <div className="rule-head">
+                      <span className="badge">{rule.type}</span>
+                      <span className="rule-id">{rule.rule_id}</span>
+                      {rc ? (
+                        <span className="reach-tag" style={{ borderColor: rc.color, color: rc.color }}
+                          title={`reach ${rc.key}: ${rc.n} section${rc.n === 1 ? "" : "s"} on ${rc.waters.join(", ")}`}>
+                          <i style={{ background: rc.color }} />
+                          {rc.key} · {rc.n}
+                        </span>
+                      ) : reaches ? (
+                        <span className="badge warn" title="this rule's extent does not resolve to any geometry">no reach</span>
+                      ) : null}
+                      {mk && <span className={`verify-chip ${mk.status}`}>{markWords(mk)}</span>}
+                      {r.zone && i !== r.at && (
+                        <button type="button" className="btn small" onClick={() => r.setAt(i)}>mark this rule</button>
                       )}
                     </div>
+                    <div className="label" title="GENERATED by catalogue.label — what the app will say">
+                      {rule.label ?? <span className="dim">— does not validate —</span>}
+                    </div>
+                    {rule.verbatim && rule.verbatim !== rule.label && (
+                      <div className="rule-verbatim">{rule.verbatim}</div>
+                    )}
+                    {sw ? ruleExtent(rule.rule_id, sw)
+                      : <div className="dim">{viewError ? "" : "where it holds: loading…"}</div>}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {licensing.length > 0 && (
+            <div className="section">
+              <h3>Licensing ({licensing.length})</h3>
+              <div className="dim" style={{ marginBottom: 6 }}>
+                What you must hold, and what this water is. Never votes on open/closed.
+              </div>
+              <div className="rules-list">
+                {licensing.map((rec) => {
+                  const found = view ? findingsOf(view, rec.id) : [];
+                  return (
+                    <div className="rule" key={rec.id} data-record={rec.id}>
+                      <div className="rule-head">
+                        <span className="badge">{rec.kind}</span>
+                        <span className="rule-id">{rec.id}</span>
+                      </div>
+                      <div className="label" title="GENERATED by catalogue.licensing_label — what the app will say">
+                        {rec.label ?? <span className="dim">— does not validate —</span>}
+                      </div>
+                      {rec.verbatim && rec.verbatim !== rec.label && <div className="rule-verbatim">{rec.verbatim}</div>}
+                      {found.length > 0 && <ul className="rule-findings">{found.map((f, j) => <Finding key={j} f={f} />)}</ul>}
+                    </div>
                   );
-                })()}
+                })}
               </div>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="section">
-        <h3>Licensing ({licensing.length})</h3>
-        <div className="dim" style={{ marginBottom: 6 }}>
-          What you must hold, and what this water is. Never votes on open/closed.
-        </div>
-        <div className="rules-list">
-          {licensing.map((rec) => (
-            <div className={`rule${rec.review_reason ? " flagged" : ""}`} key={rec.id} data-record={rec.id}>
-              <div className="rule-head">
-                <span className="badge">{rec.kind}</span>
-                <span className="rule-id">{rec.id}</span>
-              </div>
-              <div className="label" title="GENERATED by catalogue.licensing_label — what the app will say">
-                {rec.label ?? <span className="dim">— does not validate —</span>}
-              </div>
-              {rec.verbatim && <div className="rule-verbatim">{rec.verbatim}</div>}
-              {rec.review_reason && (
-                <div className="review-flag"><strong>⚠ review_reason</strong> {String(rec.review_reason)}</div>
-              )}
             </div>
-          ))}
-        </div>
-      </div>
+          )}
 
-      {/* THE SPLITS THE RULES NAME (T184): the proxy check — each is drawn and labelled on the
-          map; clicking one flies to it. A cut in the wrong place is a "Place: wrong" mark here. */}
-      {named && (named.features.length + named.unplaced.length) > 0 && (
-        <div className="section" data-testid="named-splits">
-          <h3>Splits the rules name ({named.features.length + named.unplaced.length})</h3>
-          <div className="dim" style={{ marginBottom: 6 }}>
-            Each is labelled on the map with its name. Check it sits where the book says; a cut in
-            the wrong place is a <strong>Place: wrong</strong> mark on this entry (problem “split
-            misplaced”).
-          </div>
-          <ul className="named-splits">
-            {named.features.map((f) => f.properties).map((s) => (
-              <li key={s.split_id} className={selBoundary === s.split_id ? "selected" : ""}>
-                <a href="#" onClick={(ev) => { ev.preventDefault(); setSelBoundary(s.split_id); }}
-                  title={s.split_id}>{s.name}</a>
-                <span className="dim"> — {[...s.rules.map((r) => r.split(".").pop()), ...s.parts].join(", ")}</span>
-                {s.to_verify && (
-                  <span className="badge warn" title="an open auto-proposal or a Verify: note in splits.json">
-                    to verify{s.grade ? ` · grade ${s.grade}` : ""}
-                  </span>
-                )}
-              </li>
-            ))}
-            {named.unplaced.map((s) => (
-              <li key={s.split_id}>
-                <span title={s.split_id}>{s.name}</span>
-                <span className="dim"> — {[...s.rules.map((r) => r.split(".").pop()), ...s.parts].join(", ")}</span>
-                <span className="badge warn">not on the map: {s.why}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+          {view && <EntryReview r={r} view={view} mode={mode} extras={extras} onDate={setViewDate} />}
 
-      {/* Bindable boundaries */}
-      <div className="section">
-        <h3>
-          Bindable boundaries{" "}
-          {item ? `(${[item.name, ...alsoItems.map((a) => a.name)].join(" + ")})` : ""}
-        </h3>
-        {boundaries.length === 0 ? (
-          <div className="dim">No boundaries (no matched item / auto-only).</div>
-        ) : (
-          <div className="boundaries">
-            {boundaries.map((b) => (
-              <button
-                type="button"
-                className={`boundary-chip${b.curated ? " curated" : ""}${selBoundary === b.id ? " selected" : ""}`}
-                key={b.id}
-                title={`${b.ref || ""} ${b.wbk || ""}`}
-                onClick={() => setSelBoundary((cur) => (cur === b.id ? null : b.id))}
-              >
-                {b.curated ? "★ " : ""}
-                <span title={b.live && b.live.label !== b.label ? `built: ${b.label}` : undefined}>
-                  {(b.live?.label ?? b.label) || b.id}
-                </span>
-                <span className="anchor">{b.kind}</span>
-                {alsoItems.length > 0 && b.item_id && (
-                  <span
-                    className="anchor"
-                    title={`this cut-point is on ${b.item_id} — an item_id-scoped extent may only bind cut-points on its own water`}
-                    style={{ color: ITEM_COLORS[
-                      Math.max(0, coveredItems.findIndex((c) => c.id === b.item_id)) % ITEM_COLORS.length] }}
-                  >
-                    {coveredItems.find((c) => c.id === b.item_id)?.name ?? b.item_id}
-                  </span>
-                )}
-                {(() => {
-                  const st = boundaryState(b);
-                  return st ? <span className={`chip-tag ${st.cls}`} title={st.title}>{st.text}</span> : null;
-                })()}
-              </button>
-            ))}
-          </div>
-        )}
-        <div className="dim" style={{ marginTop: 6 }}>
-          ★ = curated split · click a boundary to highlight it on the map + see its details · lake/auto boundaries show teal
-        </div>
-        {(() => {
-          const b = boundaries.find((x) => x.id === selBoundary);
-          if (!b) return null;
-          const m = (b.meta ?? {}) as Record<string, unknown>;
-          const rows: [string, unknown][] = [
-            ["id", b.id], ["label", b.label], ["kind", b.kind], ["ref", b.ref],
-            ["anchor_type", m.anchor_type], ["route_measure", m.route_measure], ["blk", m.blk],
-            ["picked_up", m.picked_up], ["offset_m", m.offset_m], ["concern", m.concern],
-            ["tributary_wsc", m.tributary_wsc], ["wbk", b.wbk],
-          ];
-          return (
-            <div className="split-info">
-              <strong>{b.curated ? "Curated split" : "Boundary"}: {b.label || b.id}</strong>
-              <div className="dim">as built in the current graph</div>
-              <table>
-                <tbody>
-                  {rows.filter(([, v]) => v !== undefined && v !== null && v !== "").map(([k, v]) => (
-                    <tr key={k}><td className="k">{k}</td><td>{String(v)}</td></tr>
-                  ))}
-                </tbody>
-              </table>
-              <div className="dim" style={{ marginTop: 4 }}>
-                {b.in_graph ? "✓ in graph" : "✗ not in graph"} · {b.in_splits ? "✓ in splits.json" : "✗ not in splits.json"}
-                {b.in_splits && !b.in_graph && " — new split, pending rebuild"}
-                {b.in_graph && b.in_splits && b.live && b.live.label !== b.label && " — edited in splits.json, pending rebuild"}
-                {b.in_graph && !b.in_splits && b.curated && " — in graph but removed from splits.json (will vanish on rebuild)"}
+          {/* The item's cut-points — every boundary it could bind, beyond the ones the rules name
+              (those are on their rules). Closed by default. */}
+          <details className="section boundaries-box">
+            <summary>
+              Bindable boundaries ({boundaries.length}){" "}
+              {item ? <span className="dim">on {[item.name, ...alsoItems.map((a) => a.name)].join(" + ")}</span> : ""}
+            </summary>
+            {boundaries.length === 0 ? (
+              <div className="dim">No boundaries (no matched item / auto-only).</div>
+            ) : (
+              <div className="boundaries">
+                {boundaries.map((b) => (
+                  <button type="button"
+                    className={`boundary-chip${b.curated ? " curated" : ""}${selBoundary === b.id ? " selected" : ""}`}
+                    key={b.id} title={`${b.ref || ""} ${b.wbk || ""}`}
+                    onClick={() => setSelBoundary((cur) => (cur === b.id ? null : b.id))}>
+                    {b.curated ? "★ " : ""}
+                    <span title={b.live && b.live.label !== b.label ? `built: ${b.label}` : undefined}>
+                      {(b.live?.label ?? b.label) || b.id}
+                    </span>
+                    <span className="anchor">{b.kind}</span>
+                    {alsoItems.length > 0 && b.item_id && (
+                      <span className="anchor" style={{ color: itemColor(b.item_id) }}>
+                        {coveredItems.find((c) => c.id === b.item_id)?.name ?? b.item_id}
+                      </span>
+                    )}
+                    {(() => {
+                      const st = boundaryState(b);
+                      return st ? <span className={`chip-tag ${st.cls}`} title={st.title}>{st.text}</span> : null;
+                    })()}
+                  </button>
+                ))}
               </div>
-              {!b.curated && <div className="dim">auto boundary (lake/outlet/headwaters) — not a curated split</div>}
-              {b.curated && b.live?.review?.note && (
-                <div className={"split-review" + (b.live.review.grade ? " proposal" : "")}>
-                  {b.live.review.grade && <div className="split-review-grade">auto-proposal, grade <strong>{b.live.review.grade}</strong></div>}
-                  <div className="split-review-note">{b.live.review.note}</div>
+            )}
+            {(() => {
+              const b = boundaries.find((x) => x.id === selBoundary);
+              if (!b) return null;
+              const m = (b.meta ?? {}) as Record<string, unknown>;
+              const rows: [string, unknown][] = [
+                ["id", b.id], ["label", b.label], ["kind", b.kind], ["ref", b.ref],
+                ["anchor_type", m.anchor_type], ["route_measure", m.route_measure], ["blk", m.blk],
+                ["picked_up", m.picked_up], ["offset_m", m.offset_m], ["concern", m.concern],
+                ["tributary_wsc", m.tributary_wsc], ["wbk", b.wbk],
+              ];
+              return (
+                <div className="split-info">
+                  <strong>{b.curated ? "Curated split" : "Boundary"}: {b.label || b.id}</strong>
+                  <table>
+                    <tbody>
+                      {rows.filter(([, v]) => v !== undefined && v !== null && v !== "").map(([k, v]) => (
+                        <tr key={k}><td className="k">{k}</td><td>{String(v)}</td></tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <div className="dim" style={{ marginTop: 4 }}>
+                    {b.in_graph ? "✓ in graph" : "✗ not in graph"} · {b.in_splits ? "✓ in splits.json" : "✗ not in splits.json"}
+                  </div>
+                  {b.curated && b.live?.review?.note && (
+                    <div className={"split-review" + (b.live.review.grade ? " proposal" : "")}>
+                      {b.live.review.grade && <div className="split-review-grade">auto-proposal, grade <strong>{b.live.review.grade}</strong></div>}
+                      <div className="split-review-note">{b.live.review.note}</div>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          );
-        })()}
-      </div>
+              );
+            })()}
+          </details>
+
+          <VerdictBar checks={r.checks} m={r.m} held={r.held} />
         </div>
         <div className="detail-map">
           <MapPanel
@@ -549,15 +514,12 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
             selectedSplitId={selBoundary}
             onSelectSplit={setSelBoundary}
             reaches={reaches}
-            rules={rules.map((r) => ({
-              rule_id: r.rule_id,
-              type: r.type,
-              label: r.label,
-            }))}
+            rules={rules.map((x) => ({ rule_id: x.rule_id, type: x.type, label: x.label }))}
             reachOf={reachOf}
             entryId={entry.entry_id}
             reloadKey={reloadKey}
             namedSplits={named}
+            showRule={showRule}
           />
         </div>
       </div>

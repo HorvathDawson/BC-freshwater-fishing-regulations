@@ -1776,6 +1776,18 @@ def _boundary_index() -> dict[str, tuple[str, object]]:
     return out
 
 
+def entry_scope_words(e: dict) -> dict:
+    """THE ENTRY'S EXTENT AND EVERY RULE'S, IN PLAIN WORDS (T189, `scope_words`): named by the
+    bundle's own place-namer, a cut it cannot name by its built or splits.json label."""
+    from pipeline.regs.review import scope_words as S
+    labels = {sid: sp.get("label") for sid, (_, sp) in _split_records().items() if sp.get("label")}
+    labels.update({sid: m["label"] for sid, m in _splits_meta().items() if m.get("label")})
+    names = S.namer_names(_place_namer(), labels)
+    return {"entry": S.entry_scope(e, names),
+            "rules": {r.get("rule_id"): S.rule_scope(r, e, names)
+                      for r in e.get("rules") or [] if isinstance(r, dict)}}
+
+
 def _split_records() -> dict[str, tuple[str, dict]]:
     """splits.json split id -> (its waterbody's name, the split record)."""
     return {sp["id"]: (str(wb.get("name") or ""), sp)

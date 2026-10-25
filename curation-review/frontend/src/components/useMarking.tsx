@@ -25,13 +25,15 @@ interface Opts {
   onToggleMap?: () => void;
   /** reset every checklist when this changes (another entry opened) */
   resetOn: string;
+  /** T189: what the mark carries besides the checks (tributary calls, a lake split later) */
+  extra?: Pick<MarkPost, "tributaries" | "lake_split_later">;
 }
 
 /* THE MARKING, ONE PLACE (T134): the checklist state per target, the keys, and the one write —
    POST /api/marks. Used by the entry review (an entry, or a zone entry's rules). The keys: t r p a pick a
    check; y n ? answer it and move to the next unanswered one; Enter records the mark; o opens the
    app's page; m the map. (j k u move through the list — the screen's.) */
-export function useMarking({ key, mark, onRecorded, link, onToggleMap, resetOn }: Opts) {
+export function useMarking({ key, mark, onRecorded, link, onToggleMap, resetOn, extra }: Opts) {
   const enabled = (c: Check) => !mark.held[c];
   const first = mark.checks.find(enabled) ?? mark.checks[0];
   const [states, setStates] = useState<Record<string, ChecklistState>>({});
@@ -61,6 +63,9 @@ export function useMarking({ key, mark, onRecorded, link, onToggleMap, resetOn }
       scope: mark.scope, target: mark.target, rule_id: mark.rule_id ?? null, answers,
       problem: state.problem || null, note: state.note, reviewer: reviewer.trim(),
       seconds: Math.round((Date.now() - since.current) / 100) / 10,
+      ...(extra?.tributaries && Object.keys(extra.tributaries).length
+        ? { tributaries: extra.tributaries } : {}),
+      ...(extra?.lake_split_later ? { lake_split_later: true } : {}),
       ...(defer ? { verdict: "deferred" as const } : {}),
     };
     setBusy(true);
@@ -79,7 +84,7 @@ export function useMarking({ key, mark, onRecorded, link, onToggleMap, resetOn }
   }
 
   const latest = useRef({ state, submit, link, onToggleMap, mark });
-  latest.current = { state, submit, link, onToggleMap, mark };
+  latest.current = { state, submit, link, onToggleMap, mark };   // `submit` closes over `extra`
   useEffect(() => {
     const onKey = (ev: KeyboardEvent) => {
       if (isTyping(ev.target) || ev.metaKey || ev.ctrlKey || ev.altKey) return;

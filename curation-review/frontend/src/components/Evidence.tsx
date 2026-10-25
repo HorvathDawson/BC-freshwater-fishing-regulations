@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import type { ReviewView } from "../types";
 
 interface Props {
@@ -13,8 +12,6 @@ interface Props {
    strip: the printed words no rule quotes. */
 export function Evidence({ view, pdfPages }: Props) {
   const ev = view.evidence;
-  const [showPage, setShowPage] = useState(false);
-  useEffect(() => { setShowPage(false); }, [view.entry_id]);
   const cov = view.coverage;
   const printed = ev.printed ?? null;
   return (
@@ -55,24 +52,17 @@ export function Evidence({ view, pdfPages }: Props) {
         </a>
       )}
       <div className="evidence-actions">
+        {/* the page opens in a tab of its own: the evidence is pinned at the top of the pane
+            (T189), and a whole page inside it would push everything else off the screen */}
         {ev.page_url && (
-          <button type="button" className="btn small" data-testid="show-page"
-            onClick={() => setShowPage((x) => !x)}>
-            {showPage ? "hide the page" : `show page ${printed ?? ""} with it marked`}
-          </button>
+          <a className="btn small" data-testid="show-page" href={ev.page_url} target="_blank"
+            rel="noreferrer">page {printed ?? ""} with it marked</a>
         )}
         {ev.row_image && (
           <a className="dim" href={ev.row_image} target="_blank" rel="noreferrer"
             title="the extractor's own crop: the whole table row at 400 dpi">the extractor's row crop</a>
         )}
       </div>
-      {showPage && ev.page_url && (
-        <div className="page-image">
-          <a href={ev.page_url} target="_blank" rel="noreferrer" title="open full size">
-            <img src={ev.page_url} alt={`printed page ${printed} with the entry marked`} />
-          </a>
-        </div>
-      )}
       <div className="coverage" data-testid="coverage"
         title="the row as stored: green is quoted by a rule or record, red underlined is quoted by none">
         {cov.segments.map((s, i) => (

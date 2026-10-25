@@ -110,13 +110,14 @@ def review_view(entry_id: str, day: str | None = None) -> dict | None:
         "region": region,
         "tier": T.entry_tier(e, binds=item is not None, run=run),
         "risks": T.risks(e, binds=item is not None, run=run),
-        # T135: what a machine says before the reviewer reads (the gate included), the cuts
-        # the builder chose between (ruling E16; an extent's `cut_pick` overrides), and the
-        # second-pass agent's findings on the parse (none exist yet)
+        # T135: what a machine says before the reviewer reads (the gate included; an ambiguous
+        # cut's candidates and pick are in its `ambiguous_cut` finding — T189: they were also
+        # served as a second list, and the screen showed each cut twice), and the second-pass
+        # agent's findings on the parse (none exist yet)
         "prechecks": reuse.entry_prechecks(e, run=run, gate=True),
-        "ambiguous_cuts": {rid: list(cuts) for rid, cuts in
-                           (run.ambiguous_of(entry_id) if run is not None else {}).items()},
         "parse_findings": reuse.parse_review_findings().get(entry_id, []),
+        # T189: the entry's extent and each rule's, in plain words
+        "scope": reuse.entry_scope_words(e),
         "run": reuse.queue_facts(),
         "evidence": _evidence(e, image_key),
         "coverage": entry_coverage(e),

@@ -18,6 +18,7 @@ only into `--out`, or prints — the same text as the review app's `/api/review/
     python -m pipeline.regs.review.tickets                    # every ticket, to stdout
     python -m pipeline.regs.review.tickets --out <dir>        # one file per ticket
     python -m pipeline.regs.review.tickets --verdict wrong    # only wrong (or unsure)
+    python -m pipeline.regs.review.tickets --lake-splits      # T189: the deferred lake-split list
 """
 from __future__ import annotations
 
@@ -106,6 +107,10 @@ def ticket_text(mark, *, entry: Mapping | None = None, split: Mapping | None = N
               f"- **Date:** {mark.date}",
               "- **Printed pages:** " + (", ".join(str(p) for p in mark.pages) or "—"),
               f"- **Book:** sha256 `{mark.pdf_sha256}`"]
+    if mark.tributaries:
+        lines.append("- **Tributaries:** " + " · ".join(f"{k} {v}" for k, v in mark.tributaries.items()))
+    if mark.lake_split_later:
+        lines.append("- **Lake split later:** yes")
     if status and status.get("status") == "stale":
         lines.append("- **Now:** changed since marked (" + ", ".join(status.get("reasons") or [])
                      + ") — read it again before fixing")
@@ -168,6 +173,9 @@ def parse_ticket(text: str) -> dict:
         "note": _unquote(lines[start:end]), "reviewer": got["Reviewer"], "date": got["Date"],
         "pages": [] if got["Printed pages"] == "—" else [int(p) for p in got["Printed pages"].split(", ")],
         "pdf_sha256": got["Book"].removeprefix("sha256 ").strip("`"),
+        "tributaries": dict(part.rsplit(" ", 1) for part in
+                            filter(None, got.get("Tributaries", "").split(" · "))),
+        "lake_split_later": got.get("Lake split later") == "yes",
     }
 
 
@@ -176,7 +184,8 @@ def mark_fields(mark) -> dict:
     return {"scope": mark.scope, "target": mark.target, "rule_id": mark.rule_id,
             "verdict": mark.verdict, "answers": dict(mark.answers), "problem": mark.problem,
             "note": mark.note, "reviewer": mark.reviewer, "date": mark.date,
-            "pages": list(mark.pages), "pdf_sha256": mark.pdf_sha256}
+            "pages": list(mark.pages), "pdf_sha256": mark.pdf_sha256,
+            "tributaries": dict(mark.tributaries), "lake_split_later": mark.lake_split_later}
 
 
 def export(marks: Iterable, *, entries: Mapping[str, Mapping] | None = None,
@@ -237,7 +246,14 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--entries", type=Path, default=CURATED.regulations.entries.catalogue)
     ap.add_argument("--verdict", choices=TICKET_VERDICTS, action="append")
     ap.add_argument("--out", type=Path, help="write one file per ticket here (else stdout)")
+    ap.add_argument("--lake-splits", action="store_true",
+                    help="the targets reviewers marked 'needs a lake split later' (T189), as JSON")
     a = ap.parse_args(argv)
+    if a.lake_splits:
+        from pipeline.regs.review.marks import lake_splits_later
+        json.dump(lake_splits_later(load(a.marks)), sys.stdout, indent=1, ensure_ascii=False)
+        print()
+        return 0
     from pipeline.regs.review.precheck import _corpus
     # what changed since each mark, against the vintage on disk — as the review app's export says it
     ctx = Context.on_disk(CURATED.waters.splits, CURATED.regulations.overrides,

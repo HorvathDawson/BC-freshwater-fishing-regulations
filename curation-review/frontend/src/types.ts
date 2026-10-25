@@ -402,6 +402,8 @@ export interface MarkView {
   carried_by: string | null;
   /** the reviewer's time on the target before this mark (the screen's clock; T136 pilot) */
   seconds?: number | null;
+  tributaries?: Record<string, TribCall>;
+  lake_split_later?: boolean;
   status: VerifyStatus;
   reasons: StaleReason[];
 }
@@ -721,8 +723,8 @@ export interface ReviewView {
   rules: { rule_id: string; impact?: string; answer?: AnswerLink }[];
   /** T135: the pre-checks, the gate included */
   prechecks: Precheck[];
-  /** T135: rule id -> the cuts the builder chose between */
-  ambiguous_cuts: Record<string, RunAmbiguousCut[]>;
+  /** T189: the entry's extent and every rule's, in plain words (`scope_words`) */
+  scope: { entry: EntryScopeWords; rules: Record<string, RuleScopeWords> };
   /** T135: the second-pass agent's findings on the parse (none exist yet) */
   parse_findings: string[];
   /** T135: the reach run the risk factors were read from, or why there is none */
@@ -751,4 +753,43 @@ export interface MarkPost {
   reviewer: string;
   /** seconds on the target before this mark — the screen's clock (T136: the pilot's time per entry) */
   seconds?: number;
+  /** T189: the reviewer's call on tributaries — "entry" or a rule id -> include | exclude */
+  tributaries?: Record<string, TribCall>;
+  /** T189: the target needs a lake split later (a lake divided into areas; RULINGS K5) */
+  lake_split_later?: boolean;
+}
+
+/** T189: a reviewer's tributary call — the water's tributaries should be in, or out */
+export type TribCall = "include" | "exclude";
+
+export interface NamedRef { id: string; name: string }
+
+/** T189 (`scope_words.rule_scope`): where one rule holds, in words. */
+export interface RuleScopeWords {
+  where: string;
+  /** the book's own words for the place (`extent_text`), when the parse kept them */
+  book_says: string | null;
+  items: NamedRef[];
+  splits: NamedRef[];
+  /** holds only in this part, which nothing draws */
+  in_part: string | null;
+  side: string | null;
+  unresolved: string[];
+  /** the reach builder's answer (`classify.wants_tributaries`) and where it comes from */
+  tributaries: { yes: boolean; only: boolean; why: string };
+  carve_outs: string[];
+  /** the zone defaults it is not subject to (`exempts`) */
+  exceptions: string[];
+}
+
+/** T189 (`scope_words.entry_scope`): the entry's own scope, which clips every rule. */
+export interface EntryScopeWords {
+  items: NamedRef[];
+  where: string;
+  tributaries: { yes: boolean; stated: boolean };
+  carve_outs: string[];
+  /** the heading's own exception ("except Eve River") */
+  name_except: string | null;
+  /** the rules that walk their tributaries */
+  rules_walking: string[];
 }

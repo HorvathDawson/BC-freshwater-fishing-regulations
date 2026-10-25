@@ -98,7 +98,7 @@ def test_the_run_s_facts_reach_the_queue_and_the_screen(env, queue):
     rows = {r["entry_id"]: r for r in queue}
     assert "ambiguous cut" in rows[ASH]["risks"] and "unresolved" in rows[FROG]["risks"]
     v = env["client"].get(f"/api/entries/{ASH}/review").json()
-    assert v["ambiguous_cuts"] == {"ash_river.r1": [AMB]}
+    assert "ambiguous_cuts" not in v      # T189: the cut is its finding, never a second list
     assert v["run"] == {"run": "fixture-run", "why": None}
     amb = [f for f in v["prechecks"] if f["code"] == "ambiguous_cut"]
     assert amb == [{"code": "ambiguous_cut", "severity": "A", "rule_id": "ash_river.r1",

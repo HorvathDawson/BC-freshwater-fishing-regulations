@@ -905,3 +905,33 @@ code.cmd { font-size: 11px; padding: 1px 6px; border: 1px solid var(--warn-borde
 /* T136: the pilot toggle stands out while it is the queue */
 .pilot-toggle { white-space: nowrap; }
 .pilot-toggle.on { background: #f5b301; color: #1a1a1a; font-weight: 600; border-color: #c98f00; }
+
+/* ---- T189: the source pinned, the entry's extent, one block per rule ---- */
+/* the row as printed and as parsed stay at the top of the pane (under the sticky verify bar) */
+.source-pin { position: sticky; top: 34px; z-index: 4; background: var(--bg); margin: 0 -18px 10px; padding: 6px 18px 6px; border-bottom: 2px solid var(--border); max-height: 46vh; overflow-y: auto; box-shadow: 0 4px 6px -6px rgba(0,0,0,.25); }
+.source-pin .evidence { margin-bottom: 0; }
+.source-pin .evidence-head h2 { font-size: 16px; margin: 2px 0; }
+.source-pin .coverage { margin-top: 4px; }
+.entry-scope { border: 1px solid var(--border); border-radius: 4px; padding: 8px 10px; background: var(--panel); }
+.scope-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; margin-bottom: 4px; }
+.scope-head h3 { margin: 0; }
+.ext-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: baseline; font-size: 13px; margin: 3px 0; }
+.ext-row > .k { flex: 0 0 82px; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .03em; }
+.ext-row.warn-row { color: var(--warn-text); }
+.ext-where { font-weight: 600; }
+.item-ref { border-bottom: 2px solid var(--border); text-decoration: none; color: inherit; padding: 0 1px; }
+.item-ref.on { background: #eef4ff; }
+.rule-extent { margin-top: 6px; padding: 6px 8px; border-left: 3px solid var(--accent); background: #f8fafc; border-radius: 0 4px 4px 0; }
+.rule.active { outline: 2px solid var(--accent); }
+.rule-findings { margin: 4px 0 0; padding-left: 18px; font-size: 12px; }
+.split-chip { font-size: 12px; padding: 1px 6px; border: 1px solid var(--border); border-radius: 10px; background: #fff; cursor: pointer; }
+.split-chip.selected { border-color: var(--accent); background: #eef4ff; }
+.split-chip .badge { margin-left: 4px; }
+.yn { font-size: 11px; font-weight: 600; padding: 0 6px; border-radius: 3px; border: 1px solid var(--border); }
+.yn-yes { background: var(--ok-bg); color: var(--ok-text); border-color: var(--ok-border); }
+.yn-no { background: #eef0f3; color: var(--muted); }
+.trib-calls { display: inline-flex; gap: 4px; margin-left: auto; }
+.trib-call { font-weight: 500; font-size: 11px; }
+.trib-call.on { background: #eef4ff; border-color: var(--accent); color: var(--accent); }
+.lake-split-later { display: inline-flex; gap: 6px; align-items: center; margin: 6px 0 0; font-size: 12px; }
+.boundaries-box > summary { cursor: pointer; font-weight: 600; }

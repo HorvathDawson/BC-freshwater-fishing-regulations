@@ -34,6 +34,9 @@ interface Props {
   /** EVERY SPLIT THE ENTRY'S RULES NAME (GET /api/entries/{id}/splits), drawn and LABELLED with its
    *  name wherever it is — on this water or another (T184: a split is reviewed by proxy, here) */
   namedSplits?: EntrySplits | null;
+  /** T189: a rule block's "show on the map" — draw this rule's reach (`n` bumps on each click,
+   *  so clicking the same rule again draws it again after the reviewer picked another) */
+  showRule?: { id: string | null; n: number };
 }
 
 /** a named split's colour: amber while it is still to verify (an open auto-proposal / "Verify:"),
@@ -123,7 +126,7 @@ function bounds(fc: GeoJSON.FeatureCollection): maplibregl.LngLatBoundsLike | nu
 export function MapPanel({
   itemId, alsoItemIds = [], referencedSplitIds = [], unusedSplitIds = [], selectedSplitId = null,
   onSelectSplit, reloadKey = 0, focusItemId = null,
-  reaches = null, rules = [], reachOf = {}, entryId = null, namedSplits = null,
+  reaches = null, rules = [], reachOf = {}, entryId = null, namedSplits = null, showRule,
 }: Props) {
   const [showTribs, setShowTribs] = useState(false);
   const [nTribs, setNTribs] = useState<number | null>(null);
@@ -156,6 +159,7 @@ export function MapPanel({
   // belongs with the other view controls rather than scattered down the rules list.
   const [shownReach, setShownReach] = useState<string | null>(null);
   useEffect(() => { setShownReach(null); }, [itemId, reloadKey, reaches]);
+  useEffect(() => { if (showRule) setShownReach(showRule.id); }, [showRule]);
 
   const shownExtents = shownReach ? (reaches?.rules?.[shownReach] ?? []) : [];
   // The sections a rule SHIPS with — the builder's verdict (tributaries walked, `rest` resolved

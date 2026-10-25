@@ -171,7 +171,11 @@ the command.
 
 ### POST /api/marks  (T97)
 Body `{scope: entry | rule, target, rule_id?, verdict?: verified | wrong | unsure | deferred,
-answers: {T, R, P, A: y | n | ?}, problem?, note, reviewer, pages?, seconds?}`. **T184:** scope
+answers: {T, R, P, A: y | n | ?}, problem?, note, reviewer, pages?, seconds?, tributaries?,
+lake_split_later?}`. **T189:** `tributaries` `{"entry" | rule_id: include | exclude}` is the
+reviewer's call (a rule mark calls only its own rule); `lake_split_later` puts the target on the
+deferred lake-split list (`GET /api/review/lake-splits`, `marks.lake_splits_later`; CLI
+`python -m pipeline.regs.review.tickets --lake-splits`). Both live in the mark — never a file edit. **T184:** scope
 `split` is refused (`422`, "A split is not marked on its own: check it on the map of an entry whose
 rules name it, and mark that entry's Place wrong…").
 **T134:** with no `verdict` the answers decide it (`marks.verdict_from_answers`: any n → wrong, else
@@ -231,10 +235,13 @@ still to verify (`tiers.splits_to_verify`, the `split_to_verify` pre-check).
 ### The review screen (T134)
 - `GET /api/entries/{id}/review?date=` → `{entry_id, name (the RAW name — the heading),
   display_name, kind, region, tier, risks, evidence, coverage, vintage, answer, date, rules,
-  prechecks, ambiguous_cuts, parse_findings, run}`. T135: `prechecks` `[{code, severity: A | B,
-  rule_id, what}]` (`precheck.prechecks`, the gate included); `ambiguous_cuts` `{rule_id:
-  [{split_id, extent, used, candidates, toward}]}` (the run's; `toward: curated` = a `cut_pick`);
-  `parse_findings` the second-pass agent's lines (`io.read_review_findings`; none exist yet); `run`
+  prechecks, parse_findings, scope, run}`. T135: `prechecks` `[{code, severity: A | B,
+  rule_id, what}]` (`precheck.prechecks`, the gate included; an ambiguous cut's candidates and
+  pick are its `ambiguous_cut` / `cut_picked` finding — T189 removed the second copy,
+  `ambiguous_cuts`); T189: `scope` `{entry: {items, where, tributaries: {yes, stated}, carve_outs,
+  name_except, rules_walking}, rules: {rule_id: {where, book_says, items, splits, in_part, side,
+  unresolved, tributaries: {yes, only, why}, carve_outs, exceptions}}}` — each extent in plain
+  words (`pipeline.regs.review.scope_words`, the bundle's place-namer); `parse_findings` the second-pass agent's lines (`io.read_review_findings`; none exist yet); `run`
   `{run: digest | null, why}`.
   `evidence`: `{kind: row | passage | none | missing, printed, pdf_page, boxes, found, total, why,
   crop_url, page_url, row_image}` — a water row's box from `row_boxes.json`

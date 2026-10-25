@@ -60,7 +60,7 @@ export function VerifyBar({ entryId, marks, nav, vintage, reviewed }: Props) {
           </span>
           <span className="dim">{vintage.reasons.join("; ")}
             {vintage.splits.length > 0 && ` (${vintage.splits.join(", ")})`}</span>
-          {vintage.commands.map((c) => <code key={c} className="cmd">{c}</code>)}
+          {/* the commands are the screen's awaiting-build banner's, said once there (T189) */}
         </div>
       )}
       <div className="verify-row">

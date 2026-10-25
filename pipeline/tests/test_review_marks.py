@@ -742,3 +742,67 @@ def test_the_real_bundle_reads_every_rule_and_twice_the_same():
     assert len(a.rule_answer) == n
     assert a == b
     assert all(not str(k).startswith("sid") for v in a.rule_reach.values() for k, *_ in v)
+
+
+# --------------------------------------------------------------------------------------------
+# T189: the reviewer's tributary call and "needs a lake split later" — in the mark, structured
+# --------------------------------------------------------------------------------------------
+
+def test_a_tributary_call_is_kept_on_the_entry_and_its_rules(world):
+    m = _m(world, tributaries={"entry": "include", "adam_river.r2": "exclude"})
+    assert m.tributaries == {"entry": "include", "adam_river.r2": "exclude"}
+    assert M.Mark.model_validate_json(M.line(m)) == m
+
+
+@pytest.mark.parametrize("calls", [
+    {"entry": "yes"},                          # not include / exclude
+    {"no_such.r9": "include"},                 # not a rule of the entry
+])
+def test_a_tributary_call_names_the_entry_or_its_rules_and_says_include_or_exclude(world, calls):
+    with pytest.raises(ValueError):
+        _m(world, tributaries=calls)
+
+
+def test_a_rule_mark_calls_only_its_own_rule_and_a_split_mark_neither(world):
+    rule_mark = next(m for m in world["marks"] if m.scope == "rule")
+    base = json.loads(rule_mark.model_dump_json())
+    ok = M.Mark.model_validate({**base, "tributaries": {"adam_river.r1": "exclude"}})
+    assert ok.tributaries == {"adam_river.r1": "exclude"}
+    for bad in ({"entry": "include"}, {"adam_river.r2": "include"}):
+        with pytest.raises(ValueError):
+            M.Mark.model_validate({**base, "tributaries": bad})
+    split = json.loads(next(m for m in world["marks"] if m.scope == "split").model_dump_json())
+    with pytest.raises(ValueError):
+        M.Mark.model_validate({**split, "tributaries": {"entry": "include"}})
+    with pytest.raises(ValueError):
+        M.Mark.model_validate({**split, "lake_split_later": True})
+
+
+def test_a_line_without_the_t189_fields_is_the_line_it_always_was(world):
+    """A mark with no call and no lake split writes no new key: the store's old lines are what
+    such a mark still writes."""
+    m = world["marks"][0]
+    got = json.loads(M.line(m))
+    assert "tributaries" not in got and "lake_split_later" not in got
+    assert M.Mark.model_validate(got) == m
+
+
+def test_the_lake_split_list_is_the_marks_in_force_that_say_so(world):
+    a = _m(world, verdict="deferred", answers={}, note="map-defined bay closure",
+           lake_split_later=True)
+    assert M.lake_splits_later([a, world["marks"][1]]) == [
+        {"target": a.target, "rule_id": None, "reviewer": a.reviewer, "date": a.date,
+         "note": "map-defined bay closure"}]
+    later = a.model_copy(update={"lake_split_later": False})
+    assert M.lake_splits_later([a, later]) == []             # a later mark takes it off
+
+
+def test_a_ticket_carries_the_calls_and_the_lake_split(world):
+    from pipeline.regs.review import tickets as TK
+    m = _m(world, verdict="wrong", answers={"T": "y", "R": "y", "P": "n", "A": "y"},
+           problem="tributary scope", note="should walk", lake_split_later=True,
+           tributaries={"entry": "include", "adam_river.r1": "exclude"})
+    text = TK.ticket_text(m)
+    assert "- **Tributaries:** entry include · adam_river.r1 exclude" in text
+    assert "- **Lake split later:** yes" in text
+    assert TK.parse_ticket(text) == TK.mark_fields(m)

@@ -1,26 +1,4 @@
-import type { Extent, EntryReaches, ReachIdentity } from "./types";
-
-/** Human-readable text for one extent, e.g. "upstream of Foo Falls" — each split by its NAME
- *  (`names`: split id -> name; an id with none reads as itself). */
-export function humanExtent(ex: Extent, names: Record<string, string>): string {
-  const lbls = (ex.splits ?? []).map((s) => names[s] ?? s);
-  switch (ex.op) {
-    case "whole":
-      return "whole reach";
-    case "upstream_of":
-      return `upstream of ${lbls[0] ?? "?"}`;
-    case "downstream_of":
-      return `downstream of ${lbls[0] ?? "?"}`;
-    case "between":
-      return `between ${lbls[0] ?? "?"} and ${lbls[1] ?? "?"}`;
-    case "within":
-      return `within ${ex.area_id ?? lbls.join(" & ") ?? "?"}`;
-    case "rest":
-      return `the rest of the water, after ${(ex.siblings ?? []).join(", ") || "?"}`;
-    default:
-      return ex.op;
-  }
-}
+import type { EntryReaches, ReachIdentity } from "./types";
 
 // Distinct reaches get a short stable label so the rules list and the map call them the same thing.
 // Several rules almost always share one reach — the Chilliwack's four gear/harvest rules below Vedder
