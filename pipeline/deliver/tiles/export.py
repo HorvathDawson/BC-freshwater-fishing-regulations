@@ -21,6 +21,7 @@ from pathlib import Path
 
 from pipeline.deliver.tiles import ladder
 from pipeline.deliver.tiles.layers import BY_NAME, LayerSpec
+from pipeline.deliver.bundle.place_names import is_shouting
 from pipeline.deliver.tiles.names import display
 
 _ROUND = 6                      # ~11 cm; tippecanoe quantises to the tile grid anyway
@@ -35,11 +36,17 @@ def _writer(out_dir: Path, spec: LayerSpec):
     fh = (out_dir / f"{spec.name}.geojsonl").open("w")
     allowed = set(spec.attrs)
     n = 0
+    shouting: list[str] = []
 
     def write(geom: dict, props: dict, minzoom: int) -> None:
         nonlocal n
         clean = {k: v for k, v in props.items()
                  if k in allowed and v is not None and v != ""}
+        # A MAP LABEL NEVER SHOUTS (T113): the same check the export runs on every shown name
+        # (`place_names.is_shouting`, acronyms allowed). `display` makes it true by construction;
+        # this is what fails the build the day a name reaches a tile some other way.
+        if isinstance(clean.get("name"), str) and is_shouting(clean["name"]):
+            shouting.append(clean["name"])
         fh.write(json.dumps({
             "type": "Feature", "geometry": geom, "properties": clean,
             "tippecanoe": {"layer": spec.name,
@@ -50,6 +57,10 @@ def _writer(out_dir: Path, spec: LayerSpec):
 
     def close() -> int:
         fh.close()
+        if shouting:
+            raise SystemExit(f"{spec.name}: {len(shouting)} tile name(s) still in capitals, e.g. "
+                             f"{sorted(set(shouting))[:5]} — every shown name goes through "
+                             "`tiles.names.display` (T113)")
         return n
 
     return write, close

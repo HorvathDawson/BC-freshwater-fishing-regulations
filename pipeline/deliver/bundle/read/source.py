@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import FrozenSet
 from pipeline.common import entry_id as EID
+from pipeline.deliver.bundle.place_names import words_display
 from pipeline.deliver.bundle.read.records import rid
 
 
@@ -80,7 +81,7 @@ def _area_words(area_id: str) -> str:
                    lambda m: "MUs " + m.group(1) + "-" + m.group(2)
                    + ((" " + ("to" if "to" in m.group(0) else "and") + " " + m.group(3) + "-"
                        + m.group(4)) if m.group(3) else ""), words)
-    return words.title() if kind in ("wma", "national_parks") else words
+    return words_display(words) if kind in ("wma", "national_parks") else words
 
 
 def source_of(rule: dict) -> Source:
@@ -134,7 +135,7 @@ def source_of(rule: dict) -> Source:
     other_kinds = [k for k in kinds if k and k != "region"]
     if other or other_kinds:
         label = ", ".join(_area_words(a) for a in other) or ", ".join(
-            k.replace("_", " ").title() for k in other_kinds)
+            words_display(k.replace("_", " ")) for k in other_kinds)
         return Source(auth, Scope.area, region, label)
     regions = frozenset(a.split(":")[-1] for a in areas if a.startswith("area:region:"))
     if auth is Authority.province and regions and "region" not in kinds:

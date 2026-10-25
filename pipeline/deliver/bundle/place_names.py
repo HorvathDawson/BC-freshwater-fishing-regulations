@@ -118,6 +118,18 @@ def display_case(name: str) -> str:
     return _WORD.sub(one, name)
 
 
+def words_display(words: str) -> str:
+    """Lower-case WORDS (an id slug's, an area kind's: "creston valley", "national parks") as a title,
+    by the one caser (`display_case`, T113) — never `str.title()`, which capitalises the small words
+    and every letter after an apostrophe. A lone short word is a word here, not an acronym ("elk" ->
+    "Elk"), unless `ACRONYMS` names it ("wma" -> "WMA")."""
+    up = (words or "").upper()
+    shown = display_case(up)
+    if len(up.split()) == 1 and shown == up and up not in ACRONYMS:
+        return up.capitalize()
+    return shown
+
+
 #: The words that say what KIND of water a name is, not which one: they never tell two names apart.
 #: The plurals are NOT here — "Cameron Lakes" is the group, "South Cameron Lake" one of it.
 _KIND_WORDS = frozenset({"lake", "river", "creek", "reservoir", "pond", "slough", "channel", "the",

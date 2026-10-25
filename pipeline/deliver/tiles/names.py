@@ -13,6 +13,7 @@ from __future__ import annotations
 import re
 
 from pipeline.common.names import key
+from pipeline.deliver.bundle.place_names import display_case
 
 _WS = re.compile(r"\s+")
 
@@ -27,10 +28,11 @@ def normalise(s: str) -> str:
 
 
 def display(name: str) -> str:
-    """A name fit for the map. Registry variants arrive SHOUTING; titlecase them, but
-    never touch a name that already has mixed case — 'Sts'a'í:les' and 'McArthur' are
-    correct as given and titlecasing would wreck both."""
-    n = _WS.sub(" ", (name or "").strip())
-    if not n or n != n.upper():
-        return n
-    return " ".join(w if len(w) <= 1 else w[0] + w[1:].lower() for w in n.split(" "))
+    """A name fit for the map, cased by THE ONE CASER (`bundle.place_names.display_case`, T113): the
+    card shows the same words (the export's `waters[].name` is `display_case` of the same registry
+    name), so the map label and the card can never disagree. Registry variants arrive SHOUTING
+    ("O'ROURKE LAKE" -> "O'Rourke Lake", "MCDONALD CREEK PARK" -> "McDonald Creek Park"); a name
+    already in mixed case keeps it ('Sts'a'í:les', 'McArthur') save its shouted runs. This used to be
+    a plain title-caser of its own, which gave "O'rourke Lake" and "Mcdonald Creek Park" on ~90
+    features while the card said otherwise. Only whitespace is this module's own."""
+    return display_case(_WS.sub(" ", (name or "").strip()))

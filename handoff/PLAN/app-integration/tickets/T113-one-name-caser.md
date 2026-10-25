@@ -29,3 +29,18 @@ Proof is a reviewed behaviour change: the list of names that change in tiles and
 
 Rebuild: tiles + deliver. Tiles and bundle must share a vintage (memory `tiles-bundle-same-vintage`), so this rides
 the tiles window (T64). Depends: T64 timing. Size: S. Owner: no.
+
+## Outcome
+Code done 2026-10-24 (tiles window); takes effect at the next tile build (labels) + deliver.
+- `tiles/names.display` = whitespace + `place_names.display_case` (the export's card caser), so label == card by
+  construction. `read/source.py`'s two `.title()` calls go through `place_names.words_display` (same caser).
+- Gate: `tiles/export._writer` fails the export on any tile name `is_shouting` would flag. Pin:
+  `test_one_name_caser.py` (cases, a grep that `.title()`/`.capitalize()` live only in `place_names.py`, and the
+  export gate by mutation).
+- Behaviour change, measured on the live registry + layers: `handoff/PLAN/app-integration/T113-name-changes.tsv`:
+  18 registry items (O'Rourke Lake, "Moss Pothole" Lakes ×7, Hart Lake (Fort St. James), #14A …) and 85 admin
+  features (Akamina-Kishinena Park, McDonald Creek Park, Dune Za Keyih Park [A.K.A. Frog-Gataga Park] …).
+- The 35 all-capitals bundle `entry.name` values are KEPT as the book's spelling: the export shows them
+  `display_case`d and keeps the raw one as `official_name` (export `checks.py` already refuses a shouting shown
+  name). Casing them in the bundle would drop `official_name`; not done.
+- Not unified: `atlas/graph/names._display_case` (atlas-side node labels; the tile re-cases them through `display`).

@@ -1,0 +1,143 @@
+# T113: registry names whose MAP LABEL changes (old tile caser -> display_case)
+# item_id	registry name	old label	new label
+wbk:329021840	#14A	#14a	#14A
+wbk:329123625	O'ROURKE LAKE	O'rourke Lake	O'Rourke Lake
+wbk:329178164	"MOSS POTHOLE" LAKES	"moss Pothole" Lakes	"Moss Pothole" Lakes
+wbk:329178222	"MOSS POTHOLE" LAKES	"moss Pothole" Lakes	"Moss Pothole" Lakes
+wbk:329178228	"MOSS POTHOLE" LAKES	"moss Pothole" Lakes	"Moss Pothole" Lakes
+wbk:329178235	"MOSS POTHOLE" LAKES	"moss Pothole" Lakes	"Moss Pothole" Lakes
+wbk:329178239	"MOSS POTHOLE" LAKES	"moss Pothole" Lakes	"Moss Pothole" Lakes
+wbk:329178304	"MOSS POTHOLE" LAKES	"moss Pothole" Lakes	"Moss Pothole" Lakes
+wbk:329178406	"MOSS POTHOLE" LAKES	"moss Pothole" Lakes	"Moss Pothole" Lakes
+wbk:329238149	FISH LAKE (unnamed lake approx. 2 km northwest of McClinchy Lake)	FISH LAKE (unnamed lake approx. 2 km northwest of McClinchy Lake)	Fish Lake (unnamed lake approx. 2 km northwest of McClinchy Lake)
+wbk:329353216	HART LAKE (Fort St. James)	HART LAKE (Fort St. James)	Hart Lake (Fort St. James)
+wbk:329520282	"BLUEY LAKE POTHOLES"	"bluey Lake Potholes"	"Bluey Lake Potholes"
+wbk:329520659	"BLUEY LAKE POTHOLES"	"bluey Lake Potholes"	"Bluey Lake Potholes"
+wbk:329520676	"BLUEY LAKE POTHOLES"	"bluey Lake Potholes"	"Bluey Lake Potholes"
+wbk:329521064	"BLUEY LAKE POTHOLES"	"bluey Lake Potholes"	"Bluey Lake Potholes"
+wbk:329521324	"BLUEY LAKE POTHOLES"	"bluey Lake Potholes"	"Bluey Lake Potholes"
+wbk:329522486	"BLUEY LAKE POTHOLES"	"bluey Lake Potholes"	"Bluey Lake Potholes"
+wbk:329522575	"BLUEY LAKE POTHOLES"	"bluey Lake Potholes"	"Bluey Lake Potholes"
+# bundle entry.name all capitals (book spelling, kept; the export shows display_case): 35
+r1:strathcona_park_waters@1-9	STRATHCONA PARK WATERS
+r2:alouette_river@2-8	ALOUETTE RIVER
+r2:jerry_sulina_park_pond@2-8	JERRY SULINA PARK POND
+r2:moss_pothole_lakes@2-18	"MOSS POTHOLE" LAKES
+r2:still_creek@2-8	STILL CREEK
+r4:arrow_lakes@4-15+4-32	ARROW LAKES
+r4:arrow_lakes_tributaries	ARROW LAKES' TRIBUTARIES
+r4:creston_valley_wildlife_management_area_cvwma_waters@4-6	CRESTON VALLEY WILDLIFE MANAGEMENT AREA (CVWMA) WATERS
+r4:mackenzie_creek@4-21	MACKENZIE CREEK
+r4:seven_mile_reservoir@4-8	SEVEN MILE RESERVOIR
+r4:seven_mile_reservoir_s_tributaries@4-8	SEVEN MILE RESERVOIR'S TRIBUTARIES
+r4:waneta_reservoir@4-8	WANETA RESERVOIR
+r4:waneta_reservoir_s_tributaries@4-8	WANETA RESERVOIR'S TRIBUTARIES
+r4:whiteswan_lake_s_inlet_outlet_streams@4-24	WHITESWAN LAKE'S INLET & OUTLET STREAMS
+r4:whitetail_lake_s_inlet_outlet_streams@4-26	WHITETAIL LAKE'S INLET & OUTLET STREAMS
+r5:basalt_lake@6-1	BASALT LAKE
+r5:frog_lake@5-6	FROG LAKE
+r5:gatcho_lake@6-1	GATCHO LAKE
+r5:hidden_lake@5-6	HIDDEN LAKE
+r5:naglico_lake@6-1	NAGLICO LAKE
+r5:pettry_lake@6-1	PETTRY LAKE
+r5:redfern_lake@5-15	REDFERN LAKE
+r5:secret_lake@5-6	SECRET LAKE
+r5:square_lake@5-6	SQUARE LAKE
+r5:squirrel_lake@6-1	SQUIRREL LAKE
+r5:wentworth_lakes@5-13	WENTWORTH LAKES
+r6:basalt_lake@6-1	BASALT LAKE
+r6:chilkoot_trail_national_historic_park_waters@6-28	CHILKOOT TRAIL NATIONAL HISTORIC PARK WATERS
+r6:gatcho_lake@6-1	GATCHO LAKE
+r6:lost_lake@6-15	LOST LAKE
+r6:naglico_lake@6-1	NAGLICO LAKE
+r6:pettry_lake@6-1	PETTRY LAKE
+r6:skeena_river_kispiox_river_confluence@6-8	SKEENA RIVER/KISPIOX RIVER CONFLUENCE
+r6:squirrel_lake@6-1	SQUIRREL LAKE
+r7:endako_river@7-12	ENDAKO RIVER
+# admin tile features whose label changes: 85
+# layer	area_id	old label	new label
+park	AKAMINA-KISHINENA PARK	Akamina-kishinena Park	Akamina-Kishinena Park
+park	ANCIENT FOREST/CHUN T'OH WHUDUJUT PARK	Ancient Forest/chun T'oh Whudujut Park	Ancient Forest/Chun T'oh Whudujut Park
+park	ANCIENT FOREST/CHUN T'OH WHUDUJUT PROTECTED AREA	Ancient Forest/chun T'oh Whudujut Protected Area	Ancient Forest/Chun T'oh Whudujut Protected Area
+park	ATLIN/A TEIX'GI AAN TLEIN PARK	Atlin/a Teix'gi Aan Tlein Park	Atlin/A Teix'gi Aan Tlein Park
+park	BABINE LAKE MARINE PARK - HOOK (DEEP BAY) SITE	Babine Lake Marine Park - Hook (deep Bay) Site	Babine Lake Marine Park - Hook (Deep Bay) Site
+park	BABINE MOUNTAINS TRAILS (Park Act Section 6)	BABINE MOUNTAINS TRAILS (Park Act Section 6)	Babine Mountains Trails (Park Act Section 6)
+park	BURNIE-SHEA PARK	Burnie-shea Park	Burnie-Shea Park
+park	CLOSE-TO-THE-EDGE PARK	Close-to-the-edge Park	Close-To-The-Edge Park
+park	CLOSE-TO-THE-EDGE PROTECTED AREA	Close-to-the-edge Protected Area	Close-To-The-Edge Protected Area
+park	DALA-KILDALA RIVERS ESTUARIES PARK	Dala-kildala Rivers Estuaries Park	Dala-Kildala Rivers Estuaries Park
+park	DENISON-BONNEAU PARK	Denison-bonneau Park	Denison-Bonneau Park
+park	DUNE ZA KEYIH PARK [A.K.A. FROG-GATAGA PARK]	Dune Za Keyih Park [a.k.a. Frog-gataga Park]	Dune Za Keyih Park [A.K.A. Frog-Gataga Park]
+park	DUNE ZA KEYIH PROTECTED AREA (A.K.A. FROG-GATAGA P	Dune Za Keyih Protected Area (a.k.a. Frog-gataga P	Dune Za Keyih Protected Area (A.K.A. Frog-Gataga P
+park	E.C. MANNING PARK	E.c. Manning Park	E.C. Manning Park
+park	F.H. BARBER PARK	F.h. Barber Park	F.H. Barber Park
+park	FINGER-TATUK PARK	Finger-tatuk Park	Finger-Tatuk Park
+park	FINLAY-RUSSEL PARK	Finlay-russel Park	Finlay-Russel Park
+park	FINLAY-RUSSEL PROTECTED AREA	Finlay-russel Protected Area	Finlay-Russel Protected Area
+park	FOCH-GILTTOYEES PARK	Foch-gilttoyees Park	Foch-Gilttoyees Park
+park	FOCH-GILTTOYEES PROTECTED AREA	Foch-gilttoyees Protected Area	Foch-Gilttoyees Protected Area
+park	GRAHAM-LAURIER PARK	Graham-laurier Park	Graham-Laurier Park
+park	HARBOUR-DUDGEON LAKES PARK	Harbour-dudgeon Lakes Park	Harbour-Dudgeon Lakes Park
+park	HATHAYIM MARINE PARK [A.K.A. VON DONOP MARINE PARK	Hathayim Marine Park [a.k.a. Von Donop Marine Park	Hathayim Marine Park [A.K.A. Von Donop Marine Park
+park	HEATHER-DINA LAKES PARK	Heather-dina Lakes Park	Heather-Dina Lakes Park
+park	HEIGHT OF THE ROCKIES PARK	Height Of The Rockies Park	Height of the Rockies Park
+park	HOLE-IN-THE-WALL PARK	Hole-in-the-wall Park	Hole-In-The-Wall Park
+park	HOMATHKO RIVER-TATLAYOKO PROTECTED AREA	Homathko River-tatlayoko Protected Area	Homathko River-Tatlayoko Protected Area
+park	HWSALU-UTSUM PARK	Hwsalu-utsum Park	Hwsalu-Utsum Park
+park	JAJI7EM and KW'ULH MARINE PARK [a.k.a Sandy Island	JAJI7EM and KW'ULH MARINE PARK [a.k.a Sandy Island	JAJI7EM and Kw'ulh Marine Park [a.k.a Sandy Island
+park	JUAN DE FUCA PARK	Juan De Fuca Park	Juan de Fuca Park
+park	KENTUCKY-ALLEYNE PARK	Kentucky-alleyne Park	Kentucky-Alleyne Park
+park	KHUTZEYMATEEN PARK [A.K.A. KHUTZEYMATEEN/K'TZIM-A-	Khutzeymateen Park [a.k.a. Khutzeymateen/k'tzim-a-	Khutzeymateen Park [A.K.A. Khutzeymateen/K'tzim-A-
+park	KING GEORGE VI PARK	King George Vi Park	King George VI Park
+park	KLIN-SE-ZA PARK	Klin-se-za Park	Klin-Se-Za Park
+park	KLINSE-ZA/TWIN SISTERS PARK	Klinse-za/twin Sisters Park	Klinse-Za/Twin Sisters Park
+park	KLINSE-ZA/TWIN SISTERS PROTECTED AREA	Klinse-za/twin Sisters Protected Area	Klinse-Za/Twin Sisters Protected Area
+park	LAC DU BOIS GRASSLANDS PROTECTED AREA	Lac Du Bois Grasslands Protected Area	Lac du Bois Grasslands Protected Area
+park	LAC LA HACHE PARK	Lac La Hache Park	Lac la Hache Park
+park	LAC LE JEUNE PARK	Lac Le Jeune Park	Lac le Jeune Park
+park	LANZ AND COX ISLANDS PARK	Lanz And Cox Islands Park	Lanz and Cox Islands Park
+park	MCCONNELL LAKE PARK	Mcconnell Lake Park	McConnell Lake Park
+park	MCDONALD CREEK PARK	Mcdonald Creek Park	McDonald Creek Park
+park	MUQQIWN/BROOKS PENINSULA PARK	Muqqiwn/brooks Peninsula Park	Muqqiwn/Brooks Peninsula Park
+park	NENEIKEKH/NANIKA-KIDPRICE PARK	Neneikekh/nanika-kidprice Park	Neneikekh/Nanika-Kidprice Park
+park	NISGA'A MEMORIAL LAVA BED CORRIDOR PROTECTED AREA (No.2)	NISGA'A MEMORIAL LAVA BED CORRIDOR PROTECTED AREA (No.2)	Nisga'a Memorial Lava Bed Corridor Protected Area (No.2)
+park	PINE LE MORAY PARK	Pine Le Moray Park	Pine le Moray Park
+park	RAINBOW/Q'IWENTEM PARK	Rainbow/q'iwentem Park	Rainbow/Q'iwentem Park
+park	REDFERN-KEILY PARK	Redfern-keily Park	Redfern-Keily Park
+park	SANTA GERTRUDIS-BOCA DEL INFIERNO PARK	Santa Gertrudis-boca Del Infierno Park	Santa Gertrudis-Boca Del Infierno Park
+park	SAY NUTH KHAW YUM PARK [A.K.A. INDIAN ARM PARK]	Say Nuth Khaw Yum Park [a.k.a. Indian Arm Park]	Say Nuth Khaw Yum Park [A.K.A. Indian Arm Park]
+park	SAYSUTSHUN (NEWCASTLE ISLAND MARINE) PARK	Saysutshun (newcastle Island Marine) Park	Saysutshun (Newcastle Island Marine) Park
+park	SUGARBOWL-GRIZZLY DEN PARK	Sugarbowl-grizzly Den Park	Sugarbowl-Grizzly Den Park
+park	SUGARBOWL-GRIZZLY DEN PROTECTED AREA	Sugarbowl-grizzly Den Protected Area	Sugarbowl-Grizzly Den Protected Area
+park	SUN-OKA BEACH PARK	Sun-oka Beach Park	Sun-Oka Beach Park
+park	Sx̱ótsaqel / CHILLIWACK LAKE PARK	Sx̱ótsaqel / CHILLIWACK LAKE PARK	Sx̱ótsaqel / Chilliwack Lake Park
+park	TA CH'ILA PARK [A.K.A. BOYA LAKE PARK]	Ta Ch'ila Park [a.k.a. Boya Lake Park]	Ta Ch'ila Park [A.K.A. Boya Lake Park]
+park	TAHSISH-KWOIS PARK	Tahsish-kwois Park	Tahsish-Kwois Park
+park	TATSHENSHINI-ALSEK PARK	Tatshenshini-alsek Park	Tatshenshini-Alsek Park
+park	THUNDERBIRD'S NEST (T'IITSK'IN PAAWATS) PROTECTED	Thunderbird's Nest (t'iitsk'in Paawats) Protected	Thunderbird's Nest (T'iitsk'in Paawats) Protected
+park	TOP OF THE WORLD PARK	Top Of The World Park	Top of the World Park
+park	TS'IL?OS PARK	Ts'il?os Park	Ts'il?Os Park
+park	Tplaqín / ENDERBY CLIFFS PARK	Tplaqín / ENDERBY CLIFFS PARK	Tplaqín / Enderby Cliffs Park
+eco_reserve	ANNE VALLEE (TRIANGLE ISLAND) ECOLOGICAL RESERVE	Anne Vallee (triangle Island) Ecological Reserve	Anne Vallee (Triangle Island) Ecological Reserve
+eco_reserve	BLUE/DEASE RIVERS ECOLOGICAL RESERVE	Blue/dease Rivers Ecological Reserve	Blue/Dease Rivers Ecological Reserve
+eco_reserve	BYERS/CONROY/HARVEY/SINNETT ISLANDS ECOLOGICAL RES	Byers/conroy/harvey/sinnett Islands Ecological Res	Byers/Conroy/Harvey/Sinnett Islands Ecological Res
+eco_reserve	CAMPBELL BROWN (KALAMALKA LAKE) ECOLOGICAL RESERVE	Campbell Brown (kalamalka Lake) Ecological Reserve	Campbell Brown (Kalamalka Lake) Ecological Reserve
+eco_reserve	DEWDNEY AND GLIDE ISLANDS ECOLOGICAL RESERVE	Dewdney And Glide Islands Ecological Reserve	Dewdney and Glide Islands Ecological Reserve
+eco_reserve	DUKE OF EDINBURGH (PINE/STORM/TREE ISLETS) ECOLOGI	Duke Of Edinburgh (pine/storm/tree Islets) Ecologi	Duke of Edinburgh (Pine/Storm/Tree Islets) Ecologi
+eco_reserve	KINGCOME RIVER/ATLATZI RIVER ECOLOGICAL RESERVE	Kingcome River/atlatzi River Ecological Reserve	Kingcome River/Atlatzi River Ecological Reserve
+eco_reserve	MCQUEEN CREEK ECOLOGICAL RESERVE	Mcqueen Creek Ecological Reserve	McQueen Creek Ecological Reserve
+eco_reserve	MERIDIAN ROAD (VANDERHOOF) ECOLOGICAL RESERVE	Meridian Road (vanderhoof) Ecological Reserve	Meridian Road (Vanderhoof) Ecological Reserve
+eco_reserve	MOORE/MCKENNY/WHITMORE ISLANDS ECOLOGICAL RESERVE	Moore/mckenny/whitmore Islands Ecological Reserve	Moore/McKenny/Whitmore Islands Ecological Reserve
+eco_reserve	ROBSON BIGHT (MICHAEL BIGG) ECOLOGICAL RESERVE	Robson Bight (michael Bigg) Ecological Reserve	Robson Bight (Michael Bigg) Ecological Reserve
+eco_reserve	TSI-EZISH ECOLOGICAL RESERVE	Tsi-ezish Ecological Reserve	Tsi-Ezish Ecological Reserve
+eco_reserve	VLADIMIR J. KRAJINA (PORT CHANAL) ECOLOGICAL RESER	Vladimir J. Krajina (port Chanal) Ecological Reser	Vladimir J. Krajina (Port Chanal) Ecological Reser
+wma	CRANBERRY MARSH/STARRATT WILDLIFE MANAGEMENT AREA	Cranberry Marsh/starratt Wildlife Management Area	Cranberry Marsh/Starratt Wildlife Management Area
+wma	DEWDROP-ROSSEAU WILDLIFE MANAGEMENT AREA	Dewdrop-rosseau Wildlife Management Area	Dewdrop-Rosseau Wildlife Management Area
+wma	KISHKOSH SITE-KISHKOSH AND KITKIATA INLETS WMA	Kishkosh Site-kishkosh And Kitkiata Inlets Wma	Kishkosh Site-Kishkosh and Kitkiata Inlets WMA
+wma	KITKIATA SITE-KISHKOSH AND KITKIATA INLETS WMA	Kitkiata Site-kishkosh And Kitkiata Inlets Wma	Kitkiata Site-Kishkosh and Kitkiata Inlets WMA
+wma	LAZO MARSH-NORTH EAST COMOX WILDLIFE MANAGEMENT AR	Lazo Marsh-north East Comox Wildlife Management Ar	Lazo Marsh-North East Comox Wildlife Management Ar
+wma	LhAi:lt/HARRISON-CHEHALIS WILDLIFE MANAGEMENT AREA	LhAi:lt/HARRISON-CHEHALIS WILDLIFE MANAGEMENT AREA	LhAi:lt/Harrison-Chehalis Wildlife Management Area
+wma	MCTAGGART-COWAN/NSEK'INIW'T WILDLIFE MANAGEMENT AR	Mctaggart-cowan/nsek'iniw't Wildlife Management Ar	McTaggart-Cowan/Nsek'iniw't Wildlife Management Ar
+wma	PARKSVILLE-QUALICUM BEACH WILDLIFE MANAGEMENT AREA	Parksville-qualicum Beach Wildlife Management Area	Parksville-Qualicum Beach Wildlife Management Area
+wma	PITT-ADDINGTON MARSH WILDLIFE MANAGEMENT AREA	Pitt-addington Marsh Wildlife Management Area	Pitt-Addington Marsh Wildlife Management Area
+wma	S'amunu WILDLIFE MANAGEMENT AREA	S'amunu WILDLIFE MANAGEMENT AREA	S'amunu Wildlife Management Area
