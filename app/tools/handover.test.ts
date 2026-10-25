@@ -233,7 +233,7 @@ describe("the basin/river handover", () => {
       // T130: the handover (z8) or the layer's own floor where that is later — a release, never a second rule
       stream: 8, "selection-casing": 8, stream__arrows: 10, lake: 8, lake__edge: 8,
       "stream-nobaseline": 8, water_river: 9, stream__label: 11, lake__label: 8, lake_flowing: 8,
-      wetland: 8, wetland_flowing: 8, under_lake: 8, contour: 8,
+      not_fishing_water: 8, wetland: 8, wetland_flowing: 8, under_lake: 8, contour: 8,
       // and the areas and the gauges (review 2026-10-22: hatches at Liumchen and gauge dots drawn on the field)
       indigenous_land: 8, indigenous_land__edge: 11, indigenous_land__label: 9,
       no_access: 8, no_access__edge: 10, no_access__label: 9,
@@ -254,7 +254,7 @@ describe("the basin/river handover", () => {
     a.setLayerMode(h, "basin", "plain", "light");
     expect(shown.basin).toBe(false);
     expect(shown.basin__edge).toBe(false);
-    expect(floor).toMatchObject({ stream: 0, "stream-nobaseline": 0, water_river: 9, lake__label: 8, wetland: 0,
+    expect(floor).toMatchObject({ stream: 0, "stream-nobaseline": 0, water_river: 9, lake__label: 8, wetland: 0, not_fishing_water: 0,
                                   no_access__label: 9, park_closed__label: 7, "gauge-dot": 7, "gauge-label": 0 });
   });
 });

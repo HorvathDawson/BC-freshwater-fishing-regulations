@@ -39,3 +39,12 @@ Code done 2026-10-24 (tiles window); takes effect at the next atlas build → re
   `test_reach_builder` policy pin, `test_tiles` inventory.
 - Owner question Q125 (draw them at all?) is in OWNER-TODO: built as NOT drawn by our tiles (the basemap may still show
   OSM water there); a muted fill is one style entry on `not_fishing_water`.
+- **Q125 answered (owner 2026-10-24): drawn as a muted fill, never as a lake — built 2026-10-24.** Style layer
+  `not_fishing_water` (`app/packages/map/style/layers.source.json`, after `lake_flowing`): a static fill in its own
+  ground-colour token `color.notfishing.fill` (light/cvd #BDB3A0, dark #9A8C75; `opacity.notfishing` 0.45 / 0.35), no
+  `featureIdProperty`, not highlightable, in no tap group, not in the visible set, not promoted; covered by the
+  Conditions field like the other water fills. Web and native both draw it from the one generated style (native is
+  `runtimeStyle` + `applyLook`); style hash 86ad2d77 → 744419e1. Pinned: `packages/map/src/not-fishing-water.test.ts`
+  (web + native fill over its own source-layer, never the lake colour, no id/tap/highlight), `tools/tile-contract.test.ts`
+  (no longer undrawn), `tools/layer-order.test.ts` (a fill under the boundaries). Shows once the next atlas build ships
+  the layer.

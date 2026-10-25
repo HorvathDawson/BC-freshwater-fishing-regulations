@@ -26,7 +26,7 @@ import { COPY_CASING, COPY_FILL, COPY_LINE } from "../packages/map/src/water-cop
 
 const BOUNDARIES = ["region", "region__edge", "mu", "mu__edge"];
 /** The water's polygons: a boundary is drawn over these. */
-const FILLS = ["lake", "lake_flowing", "wetland", "wetland_flowing", COPY_FILL];
+const FILLS = ["lake", "lake_flowing", "not_fishing_water", "wetland", "wetland_flowing", COPY_FILL];
 /** The lines that carry a water's colour (status, flow, stocking) — and what outlines a selected one. */
 const WATER_LINES = ["lake__edge", SELECTION_RINGS.lake, COPY_CASING, COPY_LINE, SELECTION_CASING, "stream",
                      "stream-nobaseline", "stream-noaccess"];
@@ -51,7 +51,7 @@ describe("boundaries sit under the water's status lines and over its fills (T83)
   it("the generated style, from the lakes to the streams, whole", () => {
     const ids = geometry(MAP_STYLE.layers as { id: string; type: string }[]);
     expect(ids.slice(ids.indexOf("lake"), ids.indexOf("stream") + 1)).toEqual([
-      "lake", "lake_flowing", "contour", "under_lake",
+      "lake", "lake_flowing", "not_fishing_water", "contour", "under_lake",
       "region", "region__edge", "mu", "mu__edge",
       "lake__edge", "stream"]);
     expect(faults(ids)).toEqual([]);

@@ -19,6 +19,7 @@
     "color.lake.fill": "#205579",
     "color.lake.edge": "#6FA8C4",
     "color.wetland.fill": "#3F7759",
+    "color.notfishing.fill": "#9A8C75",
     "color.contour.line": "#000040",
     "color.park.fill": "#22371f",
     "color.park.edge": "#4e7a44",
@@ -29,6 +30,7 @@
     "width.lake.edge": 0.8,
     "width.admin.edge": 1.2,
     "opacity.wetland": 0.28,
+    "opacity.notfishing": 0.35,
     "opacity.lake": 0.85,
     "width.underlake": 1.6,
     "dash.route": [

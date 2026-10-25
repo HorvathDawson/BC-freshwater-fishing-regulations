@@ -316,6 +316,15 @@
       ]
     },
     {
+      "id": "not_fishing_water",
+      "type": "fill",
+      "source": "atlas",
+      "source-layer": "not_fishing_water",
+      "layout": {
+        "visibility": "visible"
+      }
+    },
+    {
       "id": "contour",
       "type": "line",
       "source": "atlas",

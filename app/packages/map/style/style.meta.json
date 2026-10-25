@@ -70,6 +70,7 @@
         "basin": "standing",
         "lake_flowing": "standing",
         "wetland_flowing": "standing",
+        "not_fishing_water": "plain",
         "parcel_private__edge": "plain",
         "indigenous_land__edge": "plain",
         "no_access__edge": "plain",
@@ -127,6 +128,7 @@
         "basin": "plain",
         "lake_flowing": "plain",
         "wetland_flowing": "plain",
+        "not_fishing_water": "plain",
         "parcel_private__edge": "plain",
         "indigenous_land__edge": "plain",
         "no_access__edge": "plain",
@@ -173,6 +175,7 @@
         "basin": "plain",
         "lake_flowing": "plain",
         "wetland_flowing": "plain",
+        "not_fishing_water": "plain",
         "parcel_private__edge": "plain",
         "indigenous_land__edge": "plain",
         "no_access__edge": "plain",
@@ -219,6 +222,7 @@
         "basin": "plain",
         "lake_flowing": "plain",
         "wetland_flowing": "plain",
+        "not_fishing_water": "plain",
         "parcel_private__edge": "plain",
         "indigenous_land__edge": "plain",
         "no_access__edge": "plain",
@@ -292,6 +296,7 @@
     "wetland_flowing": "water",
     "lake": "water",
     "lake_flowing": "water",
+    "not_fishing_water": "water",
     "contour": "depth",
     "under_lake": "water",
     "region": "admin",
@@ -1042,6 +1047,15 @@
           "field": "profile"
         },
         "$comment": "THE DAY'S STATUS, the fast way (colour-latency study, AP). Feature-state `p` holds the section's PROFILE label (`profileLabel` in @app/core: `p<n>`, or `b` for a section the index does not list), set by the renderer once per section per session as each tile arrives; the DAY lives in the paint as one match over the labels (`dayProfiles` in @app/core, beside `statusOfCode`), so a day change is one paint property and no per-section call. Same three tokens as `status`, so a search row's dot and this line cannot disagree. `missing` is a label in no set — no profile pushed yet, or tidal / outside B.C. — and wears the neutral `water.unmapped` grey, never base. With no day installed (no proven pair, or the index withdrawn) the adapter paints the layer's plain mode instead: not asked is never drawn as an answer."
+      }
+    },
+    "not_fishing_water": {
+      "plain": {
+        "label": "Not fishing water",
+        "scale": "static",
+        "color": {
+          "token": "color.notfishing.fill"
+        }
       }
     },
     "contour": {
@@ -2159,6 +2173,7 @@
     "wetland_flowing": "opacity.wetland",
     "lake": "opacity.lake",
     "lake_flowing": "opacity.lake",
+    "not_fishing_water": "opacity.notfishing",
     "under_lake": "opacity.route",
     "region": "opacity.admin.fill",
     "mu": "opacity.admin.fill"
@@ -2181,6 +2196,7 @@
       "lake__edge": 0,
       "lake__label": 8,
       "lake_flowing": 0,
+      "not_fishing_water": 0,
       "wetland": 0,
       "wetland_flowing": 0,
       "under_lake": 0,
@@ -2334,6 +2350,7 @@
       "color.lake.fill": "#94C9E0",
       "color.lake.edge": "#4E88A6",
       "color.wetland.fill": "#75AE8C",
+      "color.notfishing.fill": "#BDB3A0",
       "color.contour.line": "#000040",
       "color.park.fill": "#cfe3b4",
       "color.park.edge": "#7d9c5c",
@@ -2344,6 +2361,7 @@
       "width.lake.edge": 0.8,
       "width.admin.edge": 1.2,
       "opacity.wetland": 0.3,
+      "opacity.notfishing": 0.45,
       "opacity.lake": 0.9,
       "width.underlake": 1.6,
       "dash.route": [
@@ -2450,6 +2468,7 @@
       "color.lake.fill": "#205579",
       "color.lake.edge": "#6FA8C4",
       "color.wetland.fill": "#3F7759",
+      "color.notfishing.fill": "#9A8C75",
       "color.contour.line": "#000040",
       "color.park.fill": "#22371f",
       "color.park.edge": "#4e7a44",
@@ -2460,6 +2479,7 @@
       "width.lake.edge": 0.8,
       "width.admin.edge": 1.2,
       "opacity.wetland": 0.28,
+      "opacity.notfishing": 0.35,
       "opacity.lake": 0.85,
       "width.underlake": 1.6,
       "dash.route": [
@@ -2566,6 +2586,7 @@
       "color.lake.fill": "#64B5F6",
       "color.lake.edge": "#4E88A6",
       "color.wetland.fill": "#81C784",
+      "color.notfishing.fill": "#BDB3A0",
       "color.contour.line": "#000040",
       "color.park.fill": "#cfe3b4",
       "color.park.edge": "#7d9c5c",
@@ -2576,6 +2597,7 @@
       "width.lake.edge": 0.8,
       "width.admin.edge": 1.2,
       "opacity.wetland": 0.45,
+      "opacity.notfishing": 0.45,
       "opacity.lake": 0.6,
       "width.underlake": 1.6,
       "dash.route": [
@@ -2795,6 +2817,11 @@
       "themeable": true,
       "$comment": "marsh and swamp"
     },
+    "color.notfishing.fill": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "sewage basins, tailing ponds, dumps (T152, Q125): a muted GROUND colour, never a water one — it holds water, and none of it is fishing water"
+    },
     "color.contour.line": {
       "type": "color",
       "themeable": true,
@@ -2841,6 +2868,11 @@
       "type": "number",
       "themeable": true,
       "$comment": "Wetland is the largest layer by area in the province and it is CONTEXT, not an answer. At full opacity it painted over every river it surrounds."
+    },
+    "opacity.notfishing": {
+      "type": "number",
+      "themeable": true,
+      "$comment": "A wash: the shape is there so the gap in the water reads as land use, not to be looked at."
     },
     "opacity.lake": {
       "type": "number",

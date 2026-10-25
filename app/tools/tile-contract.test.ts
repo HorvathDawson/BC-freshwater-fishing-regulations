@@ -225,11 +225,9 @@ describe("the style and the tiles agree", () => {
     //              Regulations are not integrated, so it is not drawn; it comes back with
     //              them (see `regulations.ts` in @app/core).
     //   wma, watershed  built for regulation scopes; nothing in the app draws them yet.
-    //   not_fishing_water  sewage basins, tailing ponds, dumps (T152): taken out of the lake
-    //              layer; whether to draw them as a muted fill is the owner's call (OWNER-TODO).
     const drawn = new Set(source.layers.map((l) => l.sourceLayer));
     const undrawn = Object.keys(contract.layers).filter((n) => !drawn.has(n));
-    expect(undrawn).toEqual(["not_fishing_water", "sign_zone", "wma", "watershed"]);
+    expect(undrawn).toEqual(["sign_zone", "wma", "watershed"]);
   });
 });
 

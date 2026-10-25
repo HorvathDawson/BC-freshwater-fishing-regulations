@@ -835,6 +835,7 @@
             "lake__edge",
             "lake__label",
             "lake_flowing",
+            "not_fishing_water",
             "wetland",
             "wetland_flowing",
             "under_lake",
@@ -1620,6 +1621,27 @@
       "$comment": "A STREAM'S POLYGON — a river's wide reach, a slough, a canal (the Vedder Canal, the Stellako's) — drawn from the `lake` source-layer but in STREAM colours, in every mode (user ruling 2026-10-03: a slough is a stream everywhere, and must look like one). The tile's `water` property is the registry's water kind, the same `item.kind` the bundle carries, so the map and the sheet cannot disagree about what the water is; `lake` draws the rest (its inverse filter). No label and no outline: the river's own route is written into the `stream` layer under this polygon's section id (pipeline tiles/export.py), which carries the name along the line and fills the hole at the zooms the polygon is not yet drawn at. Status is pushed on the `lake` source-layer (`statusData`), and feature-state is per source-layer, so this layer sees it. Not in `highlight`'s own id space: `selected` on `lake` already lights it."
     },
     {
+      "id": "not_fishing_water",
+      "group": "water",
+      "source": "atlas",
+      "sourceLayer": "not_fishing_water",
+      "geometry": "polygon",
+      "highlightable": false,
+      "colorModes": {
+        "plain": {
+          "label": "Not fishing water",
+          "scale": "static",
+          "color": {
+            "token": "color.notfishing.fill"
+          }
+        }
+      },
+      "opacity": {
+        "token": "opacity.notfishing"
+      },
+      "$comment": "NOT FISHING WATER (T152, Q125 owner 2026-10-24): sewage settling basins, mine tailing ponds and dumps. They hold water and no rule speaks of them, so they are drawn as a MUTED FILL in a ground colour — never in a water colour, never as a lake: a lake-blue polygon reads as water you may fish under the region's rules. NO featureIdProperty and not highlightable, deliberately, as `under_lake`: the tile layer is `decorative` (pipeline layers.py — no attributes, no id), so it is in no tap group (src/sections.ts `TAP_GROUPS`) and a tap on one resolves to nothing. Static in every view; covered by the Conditions field like the other water fills."
+    },
+    {
       "id": "contour",
       "group": "depth",
       "source": "atlas",
@@ -2108,7 +2130,8 @@
         "gauges": "standing",
         "basin": "standing",
         "lake_flowing": "standing",
-        "wetland_flowing": "standing"
+        "wetland_flowing": "standing",
+        "not_fishing_water": "plain"
       },
       "hide": [
         "mu",
@@ -2140,7 +2163,8 @@
         "gauges": "temperature",
         "basin": "plain",
         "lake_flowing": "plain",
-        "wetland_flowing": "plain"
+        "wetland_flowing": "plain",
+        "not_fishing_water": "plain"
       },
       "$comment": "THE WATER IS DRAWN PLAIN AND THE ANSWER IS ON THE DOTS. Every other view colours the river, because a flow percentile can be carried from a gauge to the water around it. Temperature cannot yet — that needs the donor panel — and colouring a river from a station 40 km away would be inventing a number for water nobody measured. So the stations say what they read and the rivers say nothing, which is the truth today.\\n\\nIt is also a different SET of stations: 274 of the 439 publish a temperature against 361 that publish a discharge, and they are not the same 274."
     },
@@ -2165,7 +2189,8 @@
         "gauges": "standing",
         "basin": "plain",
         "lake_flowing": "plain",
-        "wetland_flowing": "plain"
+        "wetland_flowing": "plain",
+        "not_fishing_water": "plain"
       }
     },
     {
@@ -2190,7 +2215,8 @@
         "gauges": "standing",
         "basin": "plain",
         "lake_flowing": "plain",
-        "wetland_flowing": "plain"
+        "wetland_flowing": "plain",
+        "not_fishing_water": "plain"
       },
       "$comment": "THE DEFAULT, because regulations are not integrated. The Map tab draws water in its neutral colour; the per-layer modes the app sets (stocked, surveyed, standing) are applied over this. The `regulations` view and the `closure` colour mode it used were removed with the regulation integration — see app/packages/core/src/regulations.ts."
     }
