@@ -133,7 +133,7 @@ def test_a_closure_is_the_one_closure_predicate():
     assert [T.entry_tier(_e("r1:a@1-1", [r]), binds=True) for r in (partial, release)] == ["P1", "P4"]
 
 
-def test_s0_is_an_open_auto_proposal_or_a_verify_note():
+def test_a_split_to_verify_is_an_open_auto_proposal_or_a_verify_note():
     got = [T.split_needs_verify({"_note": n}) for n in (
         "[auto-proposal L] Hwy 19 bridge …", "Verify: confirm the bridge", "[human-review] done",
         "[osm-candidate] (VERIFY). [human-review 2026-08-06]", "", None)]

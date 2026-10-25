@@ -10,7 +10,7 @@ Mutations, each named where it fails:
   M1 `may_enter` always None in `subtree`        -> test_subtree_climbs_as_the_walk_climbs
   M2 the stem's step not asked                   -> test_the_stem_to_the_first_lake_stops_at_a_canal
   M3 the shed's climb not asked (switch off)     -> test_the_gauge_shed_climbs_as_the_walk_climbs
-  M4 the picker reads raw edges again            -> test_the_picker_offers_what_the_walk_would_take
+  M4 (retired with the review app's tributary picker, T185 — its editors are gone)
   M5 a walk outside tributaries.py climbs by hand -> test_no_production_walk_climbs_by_its_own_rules
 """
 from __future__ import annotations
