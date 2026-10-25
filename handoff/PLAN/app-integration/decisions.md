@@ -1288,3 +1288,13 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
   under 5 m is it also a sliver conflict (a source end / minted cut stays sliver-only, no anchor). A MERGED PLACE
   CARRIES EVERY NAME AND EVERY ID: all ids in `aliases` (any binds), every other label in `SectionBoundary.names` →
   `RegistryBoundary.names`; the review app labels it "canonical (also: …)".
+
+## 2026-10-25 — T179 split proposals (owner)
+- ACCEPT lake anchors: Ladore dam (Campbell L.), Great Central Lake dam (Stamp R.), Revelstoke dam, Kootenay/Koocanusa,
+  Peace Canyon dam (Dinosaur L.), Terzaghi dam (Carpenter L.), Caribou Creek Hwy 6 bridge (lake wbk 329262655).
+- Cayoosh: lake wbk 329505890 is NOT a lake — it is part of Cayoosh Creek: a stream piece with stream regulations,
+  bound by the Cayoosh Creek entry. Cayoosh Falls then stays a plain cut (no lake to anchor to).
+- Caribou: lake wbk 329262655 is the Caribou Creek / Burton (Trout) Creek confluence wetland-slough: it carries BOTH
+  creeks' regulations.
+- REJECT the confluence proposals for Tweedsmuir Park upstream boundary (10) and Baker Creek / Pinnacles Park: park
+  boundaries are not confluences; the proposal finder skips area/park boundary splits.
