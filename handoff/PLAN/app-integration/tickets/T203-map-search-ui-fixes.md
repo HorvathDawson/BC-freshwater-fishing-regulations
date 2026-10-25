@@ -47,3 +47,9 @@ owner phone check.
   other parts'), so stretches cannot be derived app-side. Needed first (pipeline, a release rebuild): one mark per
   meeting point, and a per-part stretch list (`part_stretch`: sids grouped by adjacency); then the app lights one stretch
   at a time and labels each stretch's ends. Follow-up: T203b (not yet filed).
+
+## Follow-up (2026-10-25)
+`app/tools/request-walk.mjs` still waits for `regs-header` after a search result (search now lands on the Map) and its
+unnamed-stream tap opens "" — update the walk for the T203 landing, then re-pin it on the split release
+(`node app/tools/request-walk.mjs --url http://localhost:39218 --pin`; T182). Until then `release-budget`'s
+"live release is split, pin is not" check fails — the only red in `pnpm -C app check`.
