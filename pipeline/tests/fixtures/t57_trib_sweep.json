@@ -1,6 +1,6 @@
 {
  "bundle": {
-  "reach_digest": "c62585cb8aae61fb",
+  "reach_digest": "9911e0d430f625a1",
   "rule_ids_sha256": "7fd80bc0f32d2ed4",
   "section_handles": "a1944923732ccbfc"
  },
@@ -9,7 +9,7 @@
   "bigger_river": 1,
   "river_continuing": 7,
   "stem_ends_at_lake": 70,
-  "within_area": 43
+  "within_area": 46
  },
  "by_region": {},
  "by_rule": {},
@@ -53,12 +53,12 @@
   },
   "within_area": {
    "r2:pitt_river@2-8::pitt_river.r1": 1,
-   "r6:west_road_blackwater_river_s_tributaries@6-1::west_road_river_tributaries.r1": 14,
-   "r6:west_road_blackwater_river_s_tributaries@6-1::west_road_river_tributaries.r2": 14,
-   "r6:west_road_blackwater_river_s_tributaries@6-1::west_road_river_tributaries.r3": 14
+   "r6:west_road_blackwater_river_s_tributaries@6-1::west_road_river_tributaries.r1": 15,
+   "r6:west_road_blackwater_river_s_tributaries@6-1::west_road_river_tributaries.r2": 15,
+   "r6:west_road_blackwater_river_s_tributaries@6-1::west_road_river_tributaries.r3": 15
   }
  },
- "frontier": 160,
+ "frontier": 163,
  "mu_groups": {
   "z1:hg_bait_ban_streams::hg_bait_ban_streams.r1": {
    "bound_not_member": 0,

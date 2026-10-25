@@ -4,179 +4,19 @@
   "month": 10
  },
  "gear": {
-  "bait": {
-   "dated": [
-    {
-     "chip": "Now",
-     "inForce": true,
-     "says": "bait ban",
-     "when": "All year"
-    }
-   ],
-   "label": "Bait",
-   "list": [
-    {
-     "col": "no",
-     "head": "Not allowed",
-     "items": [
-      {
-       "mark": "✕",
-       "name": "Worms",
-       "note": null,
-       "terms": []
-      },
-      {
-       "mark": "✕",
-       "name": "Roe (fish eggs)",
-       "note": null,
-       "terms": []
-      },
-      {
-       "mark": "✕",
-       "name": "Water insects and crayfish",
-       "note": null,
-       "terms": []
-      },
-      {
-       "mark": "✕",
-       "name": "Fish or fish parts",
-       "note": null,
-       "terms": []
-      }
-     ]
-    }
-   ],
-   "notes": [
-    [
-     {
-      "s": "No natural bait of any kind while the ban runs. ",
-      "t": "text"
-     },
-     {
-      "ids": [
-       "bait_ban"
-      ],
-      "t": "term"
-     }
-    ]
-   ],
-   "src": {
-    "aria": "Sources: Region 1",
-    "keys": [
-     "z1:bait_ban_streams::bait_ban_streams.r1"
-    ],
-    "open": "srcs:bait",
-    "pages": [
-     {
-      "pdf": 15,
-      "printed": 13
-     }
-    ],
-    "who": "Region 1 ›"
-   }
-  },
-  "closed": null,
+  "bait": null,
+  "closed": "No fishing here on any day of the year.",
   "closedMore": [],
-  "day": "Today, Oct 10",
-  "lines": [
-   {
-    "changes": [],
-    "k": "lines",
-    "label": "Lines",
-    "src": {
-     "aria": "Sources: Province",
-     "keys": [
-      "zp:terminal_tackle::terminal_tackle.r1"
-     ],
-     "open": "srcs:gl|lines",
-     "pages": [
-      {
-       "pdf": 10,
-       "printed": 8
-      }
-     ],
-     "who": "Province ›"
-    },
-    "terms": [],
-    "valueTerms": [
-     []
-    ],
-    "values": [
-     "1 line"
-    ]
-   },
-   {
-    "changes": [],
-    "k": "hook",
-    "label": "Hooks",
-    "src": {
-     "aria": "Sources: Province, Region 1",
-     "keys": [
-      "zp:terminal_tackle::terminal_tackle.r6",
-      "z1:single_barbless_hook::single_barbless_hook.r1"
-     ],
-     "open": "srcs:gl|hook",
-     "pages": [
-      {
-       "pdf": 10,
-       "printed": 8
-      },
-      {
-       "pdf": 15,
-       "printed": 13
-      }
-     ],
-     "who": "Province · Region 1 ›"
-    },
-    "terms": [
-     "single_barbless_hook"
-    ],
-    "valueTerms": [
-     [],
-     [
-      "single_barbless_hook"
-     ]
-    ],
-    "values": [
-     "One hook, lure or fly",
-     "Single barbless hook, no trebles"
-    ]
-   },
-   {
-    "changes": [],
-    "k": "weight",
-    "label": "Weight on the line",
-    "src": {
-     "aria": "Sources: Province",
-     "keys": [
-      "zp:terminal_tackle::terminal_tackle.r4"
-     ],
-     "open": "srcs:gl|weight",
-     "pages": [
-      {
-       "pdf": 10,
-       "printed": 8
-      }
-     ],
-     "who": "Province ›"
-    },
-    "terms": [],
-    "valueTerms": [
-     []
-    ],
-    "values": [
-     "Up to 1 kg (2.2 lb)"
-    ]
-   }
-  ],
+  "day": null,
+  "lines": [],
   "mode": null
  },
  "header": {
   "date": "Oct 10",
   "dateAria": "Change date, now Oct 10",
   "dayWord": "Today",
-  "dot": "open",
-  "name": "Unnamed stream · Region 1",
+  "dot": "closed",
+  "name": "Unnamed stream · Region 8",
   "place": null,
   "tabs": [
    {
@@ -198,532 +38,54 @@
   ]
  },
  "keep": {
-  "banner": null,
-  "caveats": [],
-  "groups": [
-   {
-    "head": {
-     "form": "a",
-     "lead": [
-      {
-       "s": "2",
-       "size": "big",
-       "t": "num"
-      },
-      {
-       "s": " ",
-       "t": "text"
-      },
-      {
-       "s": "a day per angler from streams",
-       "t": "text"
-      }
-     ],
-     "leadN": 2,
-     "nolimit": false,
-     "ofTotal": true,
-     "rootTier": "t1",
-     "shareOf": null,
-     "terms": [],
-     "whyHere": null,
-     "words": [
-      {
-       "s": "4",
-       "size": "big",
-       "t": "num"
-      },
-      {
-       "s": " ",
-       "t": "text"
-      },
-      {
-       "s": "a day per angler across Region 1, excluding Haida Gwaii, lakes included",
-       "t": "text"
-      }
-     ]
-    },
-    "more": {
-     "open": "src:r0",
-     "text": "See every regulation line ›"
-    },
-    "notKept": [],
-    "origin": {
+  "banner": {
+   "big": [
+    "Closed all year"
+   ],
+   "chain": [
+    {
      "book": [
       {
-       "pdf": 15,
-       "printed": 13,
+       "pdf": 11,
+       "printed": 9,
        "t": "book"
       }
      ],
-     "howtell": true,
-     "says": [
-      {
-       "s": "Keep hatchery fish only — wild trout go back.",
-       "t": "text"
-      }
-     ],
-     "tag": null
-    },
-    "pinLine": {
-     "cls": "g two",
-     "sub": "(of 4 across Region 1, excluding Haida Gwaii)",
-     "text": "Trout · 2 a day from streams"
-    },
-    "quiet": null,
-    "row": 0,
-    "scope": null,
-    "title": "Trout",
-    "tree": [
-     {
-      "band": false,
-      "children": [
-       {
-        "band": true,
-        "children": [
-         {
-          "also": [],
-          "duty": null,
-          "folded": false,
-          "kind": "Brown trout, cutthroat trout and rainbow trout",
-          "pictures": [
-           {
-            "caption": "Brown trout ›",
-            "code": "GB",
-            "name": "Brown trout",
-            "open": "sp:GB",
-            "sil": false
-           },
-           {
-            "caption": "Coastal cutthroat trout ›",
-            "code": "CT",
-            "name": "Cutthroat trout",
-            "open": "sp:CT",
-            "sil": false
-           },
-           {
-            "caption": "Rainbow trout ›",
-            "code": "RB",
-            "name": "Rainbow trout",
-            "open": "sp:RB",
-            "sil": false
-           }
-          ],
-          "presence": null,
-          "qualifiers": null,
-          "says": [
-           {
-            "s": "Of your 2 trout a day in streams, up to ",
-            "t": "text"
-           },
-           {
-            "s": "2",
-            "size": "inline",
-            "t": "num"
-           },
-           {
-            "s": " may be hatchery brown, cutthroat or rainbow trout",
-            "t": "text"
-           }
-          ],
-          "size": {
-           "rule": false,
-           "text": "any size"
-          },
-          "species": [
-           "GB",
-           "CT",
-           "RB"
-          ],
-          "stamps": [],
-          "t": "kind",
-          "zero": false
-         },
-         {
-          "also": [],
-          "duty": [
-           {
-            "s": "10 a year · Record each on your licence right away",
-            "t": "text"
-           },
-           {
-            "s": " ",
-            "t": "text"
-           },
-           {
-            "open": {
-             "tab": "licence"
-            },
-            "s": "Steelhead stamp ›",
-            "t": "link"
-           }
-          ],
-          "folded": false,
-          "kind": "Steelhead",
-          "pictures": [
-           {
-            "caption": "Steelhead ›",
-            "code": "ST",
-            "name": "Steelhead",
-            "open": "sp:ST",
-            "sil": false
-           }
-          ],
-          "presence": [
-           {
-            "s": "Steelhead rules apply here; steelhead may not be present in this water.",
-            "t": "text"
-           },
-           {
-            "s": " ",
-            "t": "text"
-           },
-           {
-            "ids": [
-             "steelhead"
-            ],
-            "t": "term"
-           }
-          ],
-          "qualifiers": null,
-          "says": [
-           {
-            "s": "Of your 2 trout a day in streams, up to ",
-            "t": "text"
-           },
-           {
-            "s": "2",
-            "size": "inline",
-            "t": "num"
-           },
-           {
-            "s": " may be hatchery steelhead only — wild steelhead go back",
-            "t": "text"
-           },
-           {
-            "s": " ",
-            "t": "text"
-           },
-           {
-            "open": "hatch",
-            "s": "How to tell ›",
-            "t": "link"
-           }
-          ],
-          "size": {
-           "rule": false,
-           "text": "any size"
-          },
-          "species": [
-           "ST"
-          ],
-          "stamps": [],
-          "t": "kind",
-          "zero": false
-         }
-        ],
-        "folded": false,
-        "kicker": null,
-        "line": [
-         {
-          "s": "Of these, only ",
-          "t": "text"
-         },
-         {
-          "s": "1",
-          "size": "big",
-          "t": "num"
-         },
-         {
-          "s": " may be over 50 cm (20 in) — ",
-          "t": "text"
-         },
-         {
-          "s": "2",
-          "size": "big2",
-          "t": "num"
-         },
-         {
-          "s": " if one is a hatchery steelhead",
-          "t": "text"
-         }
-        ],
-        "n": 1,
-        "origin": null,
-        "relation": null,
-        "short": "of those, 1 over 50 cm (2 if one is a hatchery steelhead)",
-        "sub": null,
-        "t": "tier",
-        "tid": "t3",
-        "tier": "size"
-       }
-      ],
-      "folded": true,
-      "kicker": null,
-      "line": [],
-      "n": 2,
-      "origin": null,
-      "relation": null,
-      "short": "2 of them from streams",
-      "sub": null,
-      "t": "tier",
-      "tid": "t2",
-      "tier": "share"
-     }
-    ],
-    "worked": {
-     "label": "How it adds up",
-     "lines": [
-      {
-       "a": "None more here",
-       "at": "elsewhere",
-       "q": "Kept 2 on another stream?"
-      },
-      {
-       "a": "Keep 2 more here. Fish from lakes count toward the 4 a day, not toward the 2 from streams.",
-       "at": "elsewhere",
-       "q": "Kept 1 at a lake?"
-      },
-      {
-       "a": "It counts here too: at most 2 over 50 cm (20 in) a day in all — only 1 of them may be anything other than a steelhead.",
-       "at": "elsewhere",
-       "q": "Kept trout over 50 cm (20 in) elsewhere today?"
-      }
-     ],
-     "says": "Your own limit, counted across every Region 1, excluding Haida Gwaii stream you fish today."
-    },
-    "year": null
-   }
-  ],
+     "rule": "zp:superior_closures::superior_closures.r3",
+     "scope": "Federal / parks",
+     "text": "No fishing for any game fish."
+    }
+   ],
+   "kind": "closed",
+   "merged": null,
+   "paras": [],
+   "reopen": null
+  },
+  "caveats": [],
+  "groups": [],
   "inherited": null,
   "order": [
    "strip",
-   {
-    "group": 0
-   },
-   {
-    "plain": 0
-   },
-   "otherFish",
-   "possession",
+   "banner",
    "whereNot"
   ],
-  "otherFish": [
-   {
-    "name": "Kokanee",
-    "open": "other:o0",
-    "sizeHint": null,
-    "stamps": [],
-    "thumb": "KO",
-    "tone": "release",
-    "value": "release",
-    "week": null
-   },
-   {
-    "name": "Bass",
-    "open": "other:o1",
-    "sizeHint": null,
-    "stamps": [],
-    "thumb": "LMB",
-    "tone": "nolimit",
-    "value": "no limit",
-    "week": null
-   },
-   {
-    "name": "Yellow perch",
-    "open": "other:o2",
-    "sizeHint": null,
-    "stamps": [],
-    "thumb": "YP",
-    "tone": "nolimit",
-    "value": "no limit",
-    "week": null
-   },
-   {
-    "name": "White sturgeon",
-    "open": "other:o3",
-    "sizeHint": null,
-    "stamps": [],
-    "thumb": "WSG",
-    "tone": "closed",
-    "value": "closed",
-    "week": null
-   },
-   {
-    "name": "Crayfish",
-    "open": "other:o4",
-    "sizeHint": null,
-    "stamps": [],
-    "thumb": null,
-    "tone": "keep",
-    "value": "25 a day",
-    "week": null
-   },
-   {
-    "name": "Protected species",
-    "open": "other:o5",
-    "sizeHint": null,
-    "stamps": [],
-    "thumb": null,
-    "tone": "closed",
-    "value": "closed",
-    "week": null
-   }
-  ],
-  "otherFishKey": [
-   {
-    "says": "You may fish for it, but every one you catch must go back into the water, quickly and carefully. You can't keep any.",
-    "status": "release",
-    "term": "catch_and_release"
-   },
-   {
-    "says": "You may not fish for it at all, not even to release it. If you catch one by accident, release it at once.",
-    "status": "closed",
-    "term": "no_fishing_for"
-   }
-  ],
+  "otherFish": null,
+  "otherFishKey": [],
   "outside": null,
-  "plainRows": [
-   {
-    "ladder": {
-     "label": "How this was decided",
-     "lost": [],
-     "sections": [
-      {
-       "q": "What you can keep",
-       "result": "Release every one here.",
-       "steps": [
-        {
-         "level": "Region 1, excluding Haida Gwaii",
-         "lines": [
-          {
-           "applies": [
-            "From the Region 1 table — Region 1, excluding Haida Gwaii."
-           ],
-           "book": [
-            {
-             "pdf": 15,
-             "printed": 13,
-             "t": "book"
-            }
-           ],
-           "rule": "z1:trout_quota::trout_quota.r7",
-           "tag": "Release",
-           "text": [
-            {
-             "s": "Release every char.",
-             "t": "text"
-            }
-           ],
-           "won": true
-          }
-         ]
-        }
-       ]
-      },
-      {
-       "q": "Other rules",
-       "result": null,
-       "steps": [
-        {
-         "level": "Region 1",
-         "lines": [
-          {
-           "applies": [
-            "From the Region 1 table — all of Region 1."
-           ],
-           "book": [
-            {
-             "pdf": 15,
-             "printed": 13,
-             "t": "book"
-            }
-           ],
-           "rule": "z1:possession_quota::possession_quota.r1",
-           "tag": "Carry limit",
-           "text": [
-            {
-             "s": "Possession: 2 days’ quota. Fish at home don’t count.",
-             "t": "text"
-            }
-           ],
-           "won": true
-          }
-         ]
-        }
-       ]
-      }
-     ]
-    },
-    "more": {
-     "open": "src:r1",
-     "text": "See every regulation line ›"
-    },
-    "names": null,
-    "pill": {
-     "kind": "release",
-     "term": "catch_and_release",
-     "text": "↩ Release"
-    },
-    "presence": null,
-    "release": {
-     "names": "Brook trout · Dolly Varden/bull trout · Lake trout",
-     "pictures": [
-      {
-       "caption": "Brook trout ›",
-       "code": "EB",
-       "name": "Brook trout",
-       "open": "sp:EB",
-       "sil": false
-      },
-      {
-       "caption": "Bull trout ›",
-       "code": "DV",
-       "name": "Dolly Varden/bull trout",
-       "open": "sp:DV",
-       "sil": false
-      },
-      {
-       "caption": "Lake trout ›",
-       "code": "LT",
-       "name": "Lake trout",
-       "open": "sp:LT",
-       "sil": false
-      }
-     ]
-    },
-    "row": 1,
-    "scope": null,
-    "sum": "You can fish for them, but release every one. No keeping at any time of year.",
-    "title": "Char",
-    "week": null,
-    "whichFish": null
-   }
-  ],
-  "possession": {
-   "label": "Possession",
-   "open": "pos:pos",
-   "rule": "z1:possession_quota::possession_quota.r1",
-   "says": "Possession: 2 days’ quota. Fish at home don’t count.",
-   "term": "possession_quota",
-   "value": "2 days’ quota"
-  },
+  "plainRows": [],
+  "possession": null,
   "strip": {
    "legend": [
     {
-     "bit": 0,
-     "label": "open",
-     "mark": "✓"
-    },
-    {
-     "bit": 16,
-     "label": "bait ban",
-     "mark": null
+     "bit": 1,
+     "label": "closed",
+     "mark": "✕"
     }
    ],
    "line": [
     {
      "kind": "status",
-     "text": "Open"
+     "text": "Closed"
     },
     {
      "kind": "when",
@@ -746,11 +108,11 @@
    ],
    "runs": [
     {
-     "bits": 16,
+     "bits": 1,
      "days": 365
     }
    ],
-   "status": "open",
+   "status": "closed",
    "todayAt": 0.7726027397260274
   },
   "whereNot": {
@@ -797,302 +159,24 @@
   }
  },
  "licence": {
-  "axes": [
-   {
-    "aria": "Who is fishing?",
-    "axis": "age",
-    "options": [
-     {
-      "checked": true,
-      "text": "16 or older",
-      "value": "adult"
-     },
-     {
-      "checked": false,
-      "text": "Under 16",
-      "value": "u16"
-     }
-    ]
-   },
-   {
-    "aria": "Who is fishing?",
-    "axis": "res",
-    "options": [
-     {
-      "checked": true,
-      "text": "B.C. resident",
-      "value": "resident"
-     },
-     {
-      "checked": false,
-      "text": "Canadian, other province",
-      "value": "non_resident"
-     },
-     {
-      "checked": false,
-      "text": "From outside Canada",
-      "value": "non_resident_alien"
-     }
-    ]
-   }
-  ],
-  "blocks": [
-   {
-    "body": "Licence unit: Kakweiken River. Steelhead Stamp needed Apr 1–Jun 30, whatever you fish for; at any other time only to fish for steelhead.",
-    "cls": "classbox",
-    "head": "Classified (Class II) Apr 1-Oct 31",
-    "source": "licsrc:adult",
-    "terms": [
-     "classified_waters"
-    ]
-   },
-   {
-    "cls": "needs",
-    "items": [
-     {
-      "name": "Basic angling licence",
-      "price": "$41.15 a year · $11.43 a day · $22.86 for 8 days",
-      "terms": [],
-      "when": "Needed to fish at all"
-     },
-     {
-      "name": "Classified Waters Licence",
-      "price": "$17.15 a year",
-      "terms": [
-       "classified_waters"
-      ],
-      "when": "Needed while it’s classified: class II Apr 1-Oct 31"
-     }
-    ],
-    "label": "You need",
-    "onlyIf": {
-     "items": [
-      {
-       "name": "Steelhead Conservation Surcharge Stamp",
-       "price": "$28.57 a year",
-       "terms": [
-        "steelhead_stamp"
-       ],
-       "when": "Only if you fish for steelhead, even to release them"
-      },
-      {
-       "name": "Conservation Surcharge Stamp for salmon",
-       "price": "$17.14 a year",
-       "terms": [
-        "conservation_surcharge"
-       ],
-       "when": "Only if you keep salmon (not kokanee)"
-      }
-     ],
-     "label": "Also, only if…"
-    },
-    "priceNote": "Prices as printed for 2025–2027, before tax. Today’s prices: gov.bc.ca/fish-licence"
-   },
-   {
-    "cards": [
-     {
-      "forWho": "For every angler:",
-      "label": "You need an angling guide licence or an assistant angling guide licence to guide anglers.",
-      "paths": [
-       "angling guide licence",
-       "assistant angling guide licence"
-      ]
-     }
-    ],
-    "cls": "lostlist lopen",
-    "label": "If you are guiding other anglers"
-   }
-  ],
-  "label": "B.C. resident, 16 or older",
-  "question": "Who is fishing?",
-  "questionTerms": [
-   "under_16"
-  ],
-  "src": {
-   "aria": "Sources: Province, Classified water, This water",
-   "open": "licsrc:adult",
-   "who": "Province · Classified water · This water ›"
-  }
+  "axes": [],
+  "blocks": [],
+  "label": "",
+  "question": null,
+  "questionTerms": [],
+  "src": null
  },
  "methods": {
   "boats": null,
-  "closed": null,
+  "closed": "No fishing here on any day of the year.",
   "closedMore": [],
-  "reference": {
-   "groups": [
-    {
-     "head": "When you catch a fish",
-     "items": [
-      "Any fish snagged — even by accident — must be released."
-     ]
-    },
-    {
-     "head": "When you release a fish",
-     "items": [
-      "Gently, back in the water",
-      "Without harming it"
-     ]
-    },
-    {
-     "head": "When you keep a fish",
-     "items": [
-      "It stays kept: no swapping for a bigger one",
-      "Don’t waste it",
-      "Don’t hold it alive (no stringer or livewell)",
-      "Leave head, tail and fins on until home",
-      "No canning or filleting until home",
-      "Don’t freeze fish into one block: each must stay countable",
-      "Each fish must stay identifiable and measurable"
-     ]
-    },
-    {
-     "head": "Carrying fish",
-     "items": [
-      "Never more than your legal limit",
-      "Licence at hand while you travel with fish",
-      "Carrying someone else’s fish? Have their signed letter",
-      "Taking fish out of B.C.? Show the letter if asked",
-      "Given fish? Keep the signed letter until eaten"
-     ]
-    },
-    {
-     "head": "Never",
-     "items": [
-      "Sell, buy or trade your catch",
-      "Keep or move live fish or crayfish",
-      "Release aquarium fish",
-      "Put gear in the water during a closure",
-      "Interfere with a fur trap",
-      "Cross private, posted or reserve land without permission"
-     ]
-    }
-   ],
-   "label": "Reference",
-   "src": {
-    "aria": "Sources: Province",
-    "keys": [
-     "zp:prohibited_methods::prohibited_methods.r3",
-     "zp:further_prohibitions::further_prohibitions.r3",
-     "zp:conduct::conduct.r2",
-     "zp:conduct::conduct.r10",
-     "zp:conduct::conduct.r1",
-     "zp:conduct::conduct.r7",
-     "zp:conduct::conduct.r5",
-     "zp:preparing_catch::preparing_catch.r1",
-     "zp:preparing_catch::preparing_catch.r2",
-     "zp:transporting_catch::transporting_catch.r3",
-     "zp:transporting_catch::transporting_catch.r2",
-     "zp:transporting_catch::transporting_catch.r1",
-     "zp:transporting_catch::transporting_catch.r4",
-     "zp:transporting_catch::transporting_catch.r5",
-     "zp:transporting_catch::transporting_catch.r6",
-     "zp:conduct::conduct.r3",
-     "zp:conduct::conduct.r4",
-     "zp:conduct::conduct.r9",
-     "zp:further_prohibitions::further_prohibitions.r1",
-     "zp:further_prohibitions::further_prohibitions.r2",
-     "zp:conduct::conduct.r6"
-    ],
-    "open": "srcs:always",
-    "pages": [
-     {
-      "pdf": 10,
-      "printed": 8
-     },
-     {
-      "pdf": 12,
-      "printed": 10
-     }
-    ],
-    "who": "Province ›"
-   },
-   "sub": "21 rules that apply everywhere",
-   "title": "Handling fish"
-  },
-  "ways": {
-   "label": "Ways to fish",
-   "list": [
-    {
-     "col": "ok",
-     "head": "Allowed",
-     "items": [
-      {
-       "mark": "✓",
-       "name": "Angling (rod and line)",
-       "note": "with a downrigger: attached to your line by a quick-release · with a light: submerged, attached to the line, within 1 m of the hook",
-       "terms": []
-      },
-      {
-       "mark": "✓",
-       "name": "Crayfish traps",
-       "note": "release anything in the trap that isn’t a crayfish",
-       "terms": []
-      }
-     ]
-    },
-    {
-     "col": "no",
-     "head": "Not allowed",
-     "items": [
-      {
-       "mark": "✕",
-       "name": "Set lines",
-       "note": null,
-       "terms": []
-      },
-      {
-       "mark": "✕",
-       "name": "Spear or bow",
-       "note": null,
-       "terms": []
-      },
-      {
-       "mark": "✕",
-       "name": "Nets",
-       "note": null,
-       "terms": []
-      },
-      {
-       "mark": "✕",
-       "name": "Snagging",
-       "note": null,
-       "terms": []
-      },
-      {
-       "mark": "✕",
-       "name": "Chumming",
-       "note": null,
-       "terms": []
-      }
-     ]
-    }
-   ],
-   "src": {
-    "aria": "Sources: Province",
-    "keys": [
-     "zp:terminal_tackle::terminal_tackle.r7",
-     "zp:crayfish_trapping::crayfish_trapping.r1",
-     "zp:set_lining::set_lining.r1b",
-     "zp:spear_fishing::spear_fishing.r3",
-     "zp:prohibited_methods::prohibited_methods.r1",
-     "zp:prohibited_methods::prohibited_methods.r2",
-     "zp:prohibited_methods::prohibited_methods.r4"
-    ],
-    "open": "srcs:ways",
-    "pages": [
-     {
-      "pdf": 10,
-      "printed": 8
-     }
-    ],
-    "who": "Province ›"
-   }
-  }
+  "reference": null,
+  "ways": null
  },
  "sheets": {},
- "status": "open",
+ "status": "closed",
  "target": {
-  "handle": 1178362,
+  "handle": 445526,
   "kind": "section"
  },
  "terms": {

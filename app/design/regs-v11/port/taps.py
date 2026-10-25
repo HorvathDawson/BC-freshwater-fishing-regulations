@@ -58,8 +58,12 @@ WD_OF_DAY = {day_of(((_D0 + datetime.timedelta(i)).month, (_D0 + datetime.timede
 # own: golden x15p14/15/17/18) now carry their home region's rows and merge with the neighbouring part; the Fraser has 15
 # parts (0..14), not 19. Measured old r-b518a2b507fa -> new by part_section: old 0..13 -> same index, 14 -> 4,
 # 15 -> 6, 16 -> 14, 17 -> 1, 18 -> 0.
+T183 = "T183 (owner 2026-10-24, tickets/T183): a straddling stream piece carries both regions' rules again (reverses T115)"
 T115 = "T115 (owner decision AGENTS 54, tickets/T115-one-region-membership.md): a straddling stream piece is its home region's only"
-PART_MOVED = {"x15p16_1010": 14,
+T67 = "T67 (owner 2026-10-24, decisions.md \"braids accepted\"; RULINGS E17, AGENTS 12)"
+_LEN = "the automatic length cuts moved off braid-spanned junctions (owner Q2)"
+_GAUGE = "the old perpendicular sweep's gauge cuts are gone"
+PART_MOVED = {"x15p16_1010": 15,
               # (T67) the Skeena's new part 5 (a side-channel piece of the Ecological Reserve, PART_GONE x19p5) renumbers
               # the parts after it
               "x19p6_1010": 7, "x19p7_1010": 8}
@@ -72,12 +76,19 @@ RECUT_WHY = {"x22p2_1010": "T67 (owner 2026-10-24): the Peace's braids are cut a
              "x19p6_1010": "T67 (owner 2026-10-24): the Ecological Reserve's side-channel piece 360216962:96 no longer "
                            "carries the Skeena section-2 designation and is a part of its own (8 -> 9 parts)"}
 PART_GROWN = {
-    "x15p0_1010": f"{T115}: Fraser piece 356364114:699253 (home 7A) merged in from golden part 18",
-    "x15p1_1010": f"{T115}: Fraser piece 356364114:674465 (home 5) merged in from golden part 17",
-    "x15p4_1010": f"{T115}: Fraser piece 356364114:418405 (home 3) merged in from golden part 14",
-    "x15p6_1010": f"{T115}: Fraser piece 356364114:434930 (home 5) merged in from golden part 15",
+    "x27p0_1010": f"{T183}: the West Road's pieces on the Region 5 / 6 / 7A lines are parts of their own; part 0 is 79 sections",
+    "x27p2_1010": f"{T183}: the West Road's side channel above Charleson Creek (Region 5 and 7A) is part 3 now; part 2 is the mouth stretch",
+    "x19p0_1010": f"{T67}: the Exchamsiks confluence cut runs straight across and {_LEN}; then T183 (owner 2026-10-24): "
+                  f"the mainstem from the Ecological Reserve up to the Exchamsiks left section 2 and joined this part "
+                  f"(3 stretches, 44 -> 48 sections)",
+    "x19p1_1010": "T183 (owner 2026-10-24): Skeena section 2 starts at the Exchamsiks confluence, not the Ecological Reserve boundary (61 -> 59 sections; the extent changed, the rows did not)",
+    "x15p14_1010": f"{T183}: Fraser pieces 356364114:418405 and :434930 (both Region 3 and Region 5) are one part now",
 }
 PART_GONE = {
+    "x27p1_1010": (0, f"{T183}: the West Road's Region 6 stretch below Carnlick Creek shares its rules with part 0 now"),
+    "x15p17_1010": (16, f"{T183}: the golden part (356364114:674465, Region 5 and Region 7A) shares its rules with 699253 and is in part 16 now"),
+    "x15p18_1010": (16, f"{T183}: the golden part (356364114:699253, Region 5 and Region 7A) shares its rules with 674465 and is in part 16 now"),
+    "x15p15_1010": (14, f"{T183}: the golden part (356364114:434930, Region 3 and Region 5) has the same rules as 418405 and is in part 14 now"),
     # (T67, r-0ed3c2b2a0a7) two closed states whose golden page counts sections the release re-cut: the app's merged
     # "Closed all year on N stretches (M sections)" list is the store's, the golden's is the prototype's
     "x19p5_1010": (6, "T67 (owner 2026-10-24): the Exchamsiks cut split the Skeena's Ecological Reserve part — 6 sections "
@@ -87,19 +98,13 @@ PART_GONE = {
     "x22p2_1010": (3, "T67 (owner 2026-10-24): the Peace's closed parts hold 7 sections, not 5 — the Site C closure took "
                       "the braid pieces 359013560:165 and (T187) 359005110:3454 — and the first is renumbered 2 -> 3 "
                       "(part order follows rule-set ids)"),
-    "x15p14_1010": (4, f"{T115}: the golden part (356364114:418405, Region 3 and Region 5 rows) is in part 4 now, with only Region 3's rows"),
-    "x15p15_1010": (6, f"{T115}: the golden part (356364114:434930, Region 3 and Region 5 rows) is in part 6 now, with only Region 5's rows"),
-    "x15p17_1010": (1, f"{T115}: the golden part (356364114:674465, Region 5 and Region 7A rows) is in part 1 now, with only Region 5's rows"),
-    "x15p18_1010": (0, f"{T115}: the golden part (356364114:699253, Region 5 and Region 7A rows) is in part 0 now, with only Region 7A's rows"),
 }
 # (T67, r-0ed3c2b2a0a7: braids cut at build, ditch-only lines leave their river, length cuts skip braid-spanned
 # junctions, the old perpendicular gauge sweep removed). Measured against r-bb4331929428 by section id (registry of
 # atlas full.prev vs the bundle of atlas full): every part below keeps its label and rows; only its section count moved.
-T67 = "T67 (owner 2026-10-24, decisions.md \"braids accepted\"; RULINGS E17, AGENTS 12)"
-_LEN = "the automatic length cuts moved off braid-spanned junctions (owner Q2)"
-_GAUGE = "the old perpendicular sweep's gauge cuts are gone"
 # {state: (store part_ix, why)} — the golden part is the store's part `ix`, same label, another section count
 PART_RECOUNTED = {
+    "x15p0_1010": (0, f"{T183}: a Fraser piece at the Region 5 / 7A line carries both regions' rules and joined part 16: 109 -> 108 sections"),
     "x9p1_1010": (1, f"{T67}: the Kootenay's ditch-only line 356365735:0 (1,982.6 m) left the river item (owner Q1, "
                      f"DITCHES_LEAVE_RIVER_ITEMS); 3 length cuts on 356570348 moved: 52 -> 51 sections"),
     "x13p3_1010": (3, f"{T67}: the Dean's side channel 360227736 is cut at the 0.5 km sign (421 m): 2 -> 3 sections"),
@@ -108,8 +113,6 @@ PART_RECOUNTED = {
     "x15p3_1010": (3, f"{T67}: {_GAUGE} on the Fraser's side channels 355992485 and 355994872, and 08MH028's cut "
                       f"moved 578 -> 545 m: 30 -> 29 sections"),
     "x18p0_1010": (0, f"{T67}: on the Columbia (356570372) {_LEN}: 4 cuts -> 5, 132 -> 133 sections"),
-    "x19p0_1010": (0, f"{T67}: the Exchamsiks confluence cut runs straight across (Skeena 67,917 m and side channel "
-                      f"360224434) and {_LEN}: 44 -> 46 sections"),
     "x19p3_1010": (3, f"{T67}: the Cedarvale cut takes the braid 360243437 (1,069 m): 51 -> 52 sections"),
     "x20p2_1010": (2, f"{T67}: the Thompson's side channel 355995300 is cut at the boundary signs (187 m): 7 -> 8 sections"),
     "x22p0_1010": (0, f"{T67}: the Peace's braids are cut at Site C, the 1,200 m signs and the Halfway (+5 km), "
@@ -117,7 +120,6 @@ PART_RECOUNTED = {
     "x22p1_1010": (1, f"{T67}: the Peace braids 359005110 / 359013560 cut at Site C dam, and {_LEN}: 29 -> 30 sections"),
     "x22p3_1010": (4, f"{T67}: the Halfway braid 359012853 is cut at 3,358 m: 6 -> 7 sections; renumbered 3 -> 4 "
                       f"(part order follows rule-set ids)"),
-    "x27p0_1010": (0, f"{T67}: {_GAUGE} on the West Road's side channel 355997348 (124 m): 83 -> 82 sections"),
 }
 _SUB = re.compile(r"^(.*?) · (\d+) sections?(?: · (.*))?$")
 
@@ -278,13 +280,19 @@ def main():
     stale = sorted((set(PART_MOVED) | set(PART_GROWN) | set(PART_GONE) | set(PART_RECOUNTED)) - set(G["states"]))
     if stale:
         raise SystemExit(f"taps: declared states not in the golden: {stale}")
-    # unnamed: an evenly spaced sample of handles whose akey is past the named range
+    # unnamed: an evenly spaced sample of handles whose akey is past the named range, half streams and half the rest
+    # (wetlands outnumber streams at the top of the handle range; T183's sample held 3 streams, none on its region's base)
     akeys = s.section_akeys()
     first = s.static("answers.unnamed")["first"]
     hs = sorted(h for h, k in akeys.items() if k and k - 1 >= first)
-    step = max(1, len(hs) // max(1, a.unnamed))
-    for h in hs[::step][: a.unnamed]:
-        out["unnamed"].append({"handle": h, "akey": s.akey_of(h), "place": s.place_of(h), "name": s.unnamed_name(h)})
+    pool = hs[::max(1, len(hs) // max(1, a.unnamed * 20))]
+    named = [(h, s.unnamed_name(h)) for h in pool]
+    streams = [p for p in named if p[1].startswith("Unnamed stream")]
+    rest = [p for p in named if not p[1].startswith("Unnamed stream")]
+    half = a.unnamed // 2
+    pick = [g[::max(1, len(g) // max(1, n))][:n] for g, n in ((streams, half), (rest, a.unnamed - half))]
+    for h, name in sorted(pick[0] + pick[1]):
+        out["unnamed"].append({"handle": h, "akey": s.akey_of(h), "place": s.place_of(h), "name": name})
     Path(a.out).write_text(json.dumps(out, indent=1))
     bad = [k for k, v in out["states"].items() if "error" in v]
     print(f"taps: {len(out['states'])} states ({len(bad)} unresolved: {bad[:5]}), {len(out['unnamed'])} unnamed, {len(out['leap'])} leap -> {a.out}")
