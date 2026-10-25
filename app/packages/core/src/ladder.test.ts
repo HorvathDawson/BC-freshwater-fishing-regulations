@@ -27,7 +27,7 @@ describe("the zoom ceilings", () => {
   it("the camera goes four zooms past the tiles; the sources stop where their archives stop", () => {
     expect({ min: MIN_ZOOM, atlas: ATLAS_MAX_ZOOM, basemap: BASEMAP_MAX_ZOOM, camera: CAMERA_MAX_ZOOM,
              fit: FIT_MAX_ZOOM })
-      .toEqual({ min: 4, atlas: 14, basemap: 14, camera: 18, fit: 14 });
+      .toEqual({ min: 4, atlas: 13, basemap: 14, camera: 18, fit: 14 });
   });
 
   it("no source's deepest zoom is the camera's — a source raised to it fetches tiles that do not exist", () => {
@@ -35,9 +35,9 @@ describe("the zoom ceilings", () => {
   });
 
   it("the ladder's bottom rung is the atlas's deepest zoom, not the camera's", () => {
-    // every reach exists at z14; a gauge on an unnumbered creek appears with it, not four zooms later
+    // every reach exists at z13 (T85); a gauge on an unnumbered creek appears with it, not five zooms later
     expect([MAGNITUDE_LADDER[MAGNITUDE_LADDER.length - 1], zoomForMagnitude(0), zoomForMagnitude(null)])
-      .toEqual([[0, 14], 14, 14]);
+      .toEqual([[0, 13], 13, 13]);
   });
 
   it("there is no bare MAX_ZOOM to reach for: every caller names which ceiling it means", () => {

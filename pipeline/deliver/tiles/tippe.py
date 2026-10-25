@@ -117,6 +117,16 @@ LOW_BAND_MAX = 8
 #: -- for a tolerance nobody can see at the only scale it is ever drawn at.
 SIMPLIFICATION = 10
 
+#: THE ARCHIVE'S TOP ZOOM IS OVERZOOMED NOW (T85, D32: the archive stops at z13 and the camera goes to
+#: z18), so the paragraph above no longer holds at the top: there the tolerance is magnified 2x-32x.
+#: 5 units of a z13 tile (4,096 across, ~3.2 km at 49 N) is ~4 m on the ground — the same ground
+#: error the old z14 top zoom had at 10 units — so overzoomed z13 draws no coarser than z14 did.
+#: Every OTHER zoom keeps `SIMPLIFICATION`. NOT FREE, AND NOT -315 MB: the z13 tile now holds every
+#: reach (magnitude 0-1 drew from z14 only), at the old z14's ground tolerance, so it grows toward the
+#: old z14's content; ESTIMATED (unmeasured until the build) at 0.8-0.9x of it — net about -140 MB on
+#: top of T64's wetland cut. The -S curve above says tolerance moves bytes little (10 -> 4: +16%).
+SIMPLIFICATION_AT_MAX = 5
+
 
 def check() -> None:
     for tool in ("tippecanoe", "tile-join"):
@@ -204,7 +214,7 @@ def _run(cmd: list[str]) -> None:
         raise RuntimeError(f"{cmd[0]} failed ({r.returncode})\n{r.stderr[-3000:]}")
 
 
-def build(layer_dir: Path, out: Path, *, minzoom: int = 4, maxzoom: int = 14,
+def build(layer_dir: Path, out: Path, *, minzoom: int = 4, maxzoom: int = 13,
           name: str = "atlas", verbose: bool = False) -> Path:
     check()
     files = [layer_dir / f"{s.name}.geojsonl" for s in ALL]
@@ -225,7 +235,7 @@ def build(layer_dir: Path, out: Path, *, minzoom: int = 4, maxzoom: int = 14,
             print(f"  tippecanoe -> {out.name}  ({len(inputs)} layers, single pass)")
             _run(["tippecanoe", "-o", str(out), "--force", f"--name={name}",
                   f"--attribution={attribution}",
-                  *_common(minzoom, maxzoom, SIMPLIFICATION, verbose),
+                  *_common(minzoom, maxzoom, SIMPLIFICATION_AT_MAX, verbose),
                   *[str(f) for f in inputs]])
         return out
 
@@ -251,12 +261,11 @@ def build(layer_dir: Path, out: Path, *, minzoom: int = 4, maxzoom: int = 14,
               *[str(f) for f in low_files]])
 
         print(f"  tippecanoe -> z{LOW_BAND_MAX + 1}-{maxzoom}  ({len(high_files)} layers, all features)")
-        # SIMPLIFICATION here too, not 1 — see the constant. The band's maximum IS the
-        # archive's maximum, and the camera cannot go past it, so there is nothing to hold
-        # detail in reserve for.
+        # The band's maximum IS the archive's maximum, and the camera overzooms it (T85), so it
+        # takes `SIMPLIFICATION_AT_MAX` — never 1 (see the constants).
         _run(["tippecanoe", "-o", str(high), "--force", f"--name={name}",
               f"--attribution={attribution}",
-              *_common(LOW_BAND_MAX + 1, maxzoom, SIMPLIFICATION, verbose),
+              *_common(LOW_BAND_MAX + 1, maxzoom, SIMPLIFICATION_AT_MAX, verbose),
               *[str(f) for f in high_files]])
 
         # tile-join names the output after its inputs unless told otherwise, so the name

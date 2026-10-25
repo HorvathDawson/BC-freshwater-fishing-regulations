@@ -5,7 +5,7 @@ import time
 from pathlib import Path
 
 from project_config import get_config
-from pipeline.deliver.tiles import export, tippe
+from pipeline.deliver.tiles import export, ladder, tippe
 from pipeline.common.curated import CURATED, GENERATED, SOURCE
 
 
@@ -18,7 +18,8 @@ def main() -> None:
     ap.add_argument("--places", default=str(SOURCE / "bc_places.json"))
     ap.add_argument("--out", default=str(GENERATED.tiles))
     ap.add_argument("--minzoom", type=int, default=4)
-    ap.add_argument("--maxzoom", type=int, default=14)
+    ap.add_argument("--maxzoom", type=int, default=ladder.MAX_ZOOM,
+                    help="the archive's deepest zoom (T85: 13; the app overzooms it to z18)")
     ap.add_argument("--limit", type=int, default=None,
                     help="only the first N sections — for a fast smoke test")
     ap.add_argument("--skip-water", action="store_true")

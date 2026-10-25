@@ -326,7 +326,7 @@ describe("the gauge dots climb the same ladder as the water", () => {
     expect(zoomForMagnitude(273576)).toBe(4);
     expect(zoomForMagnitude(12)).toBe(11);
     // No magnitude is not a small magnitude — it goes to the bottom, never hidden.
-    expect(zoomForMagnitude(null)).toBe(14);
+    expect(zoomForMagnitude(null)).toBe(13);   // the bottom rung is z13 since T85
   });
 });
 

@@ -48,7 +48,7 @@ describe("each source stops where its archive stops", () => {
       ladder: pyConst("pipeline/deliver/tiles/ladder.py", "MAX_ZOOM"),
       basemap: BASEMAP_MAX_ZOOM,
       basemapBuild: pyConst("pipeline/deliver/tiles/basemap.py", "MAX_ZOOM"),
-    }).toEqual({ atlas: 14, contract: 14, ladder: 14, basemap: 14, basemapBuild: 14 });
+    }).toEqual({ atlas: 13, contract: 13, ladder: 13, basemap: 14, basemapBuild: 14 });
   });
 
   for (const theme of THEMES)
@@ -76,8 +76,8 @@ describe("each source stops where its archive stops", () => {
         .toEqual({ atlas: true, basemap: true, basins: true, imagery: true });
     });
 
-  it("a fit stops at the atlas's deepest zoom; the camera goes four past it", () => {
-    expect({ fit: FIT_MAX_ZOOM, camera: CAMERA_MAX_ZOOM - ATLAS_MAX_ZOOM }).toEqual({ fit: ATLAS_MAX_ZOOM, camera: 4 });
+  it("a fit stops at z14, one past the atlas's z13 (T85 kept the fits); the camera goes five past the atlas", () => {
+    expect({ fit: FIT_MAX_ZOOM - ATLAS_MAX_ZOOM, camera: CAMERA_MAX_ZOOM - ATLAS_MAX_ZOOM }).toEqual({ fit: 1, camera: 5 });
   });
 });
 

@@ -39,3 +39,24 @@ the MVT ids (P18).
 - The easy wins applied (tile rebuild via heavy.sh; promote file by file; release names the new tile version), the
   rest recorded as options with numbers.
 - Tile tests, release parity and placeability green; colours and taps unchanged at z4–18.
+
+## Measured 2026-10-24 (tiles window: T64, T85) — live archives, bytes per layer per zoom
+Read-only scan of the shipped archives (each unique tile once, its gzip bytes shared by its layers' raw share).
+**atlas.pmtiles 548.3 MB** (z14 315.7, z13 131.7, z12 57.8, z11 26.4, ≤z10 15.6): stream 254.4, wetland 111.1,
+lake 71.9, mu 40.0, under_lake 24.3, parcel 17.5, park 14.7, watershed 8.1, rest 5.0.
+**basemap.pmtiles 918.4 MB** (z14 447.9, z13 259.3, z12 97.3, ≤z11 112.9): water 408.1 (of it OSM `stream` lines
+241.8, polygons 108.5), landuse 375.1 (wood 221.3, wetland 52.0, glacier 26.7, forest 10.9, park 8.9, nature_reserve
+5.7, residential 4.0 …), roads 78.1, earth 44.8, boundaries 7.4, places 3.1.
+
+| candidate | ticket | saves (est.) | visual cost | status |
+|---|---|---|---|---|
+| unnamed wetlands in no item not drawn | T64 | atlas −111 MB (333,471 of 333,526 polygons; 99.9% of the layer) | marsh fill gone outside named/folded wetlands; the no-access land fill still shows; basemap `wetland` landuse kept as a stand-in (not drawn today) | BUILT, needs shots |
+| atlas z13 max + overzoom (top zoom at −S 5 ≈ old z14's 4 m) | T85 | atlas about −140 MB (z14 315.7 goes; z13 takes most of its content: est. 0.8–0.9×) — measure after build | none expected at z13+ (same ground tolerance); dense z13 tiles in cities | BUILT, needs shots |
+| basemap: OSM stream lines (drawn only z14+, under our FWA streams) | T85 | basemap −242 MB | OSM-only creeks (no FWA line, no regulation) vanish at z14+ | BUILT (CLAUDE call, reversible) |
+| basemap: landuse kinds the style never draws (parks, residential, farmland, bare rock …) | T85 | basemap −26 MB | none (not drawn) | BUILT |
+| basemap z13 max + overzoom | — | basemap about −289 MB more (z14 after the filters) | roads/coast/labels coarser past z13 | OPTION (owner) |
+| drop `section_id` property (the MVT id carries it) | — | atlas ~6.6% (P18 note) | none, but the web style's `promoteId` and taps read the property: app work | OPTION |
+| parcels from z11, basins one-coverage 100 m | T64 | +2 MB / ±0 | private land visible from z11; no basin seams | in code since 10-22; ships with this build |
+
+Expected after the build: atlas about 295 MB (from 548), basemap about 650 MB (from 918): about −520 MB per native
+install (D32 estimated −345).

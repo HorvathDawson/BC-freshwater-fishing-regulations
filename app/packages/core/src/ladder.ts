@@ -19,27 +19,30 @@
 /** (minimum magnitude, first zoom drawn), descending — mirrors `pipeline/deliver/tiles/ladder.py`. */
 export const MAGNITUDE_LADDER: readonly (readonly [number, number])[] = [
   [20000, 4], [5000, 5], [1000, 6], [250, 7], [100, 8],
-  [50, 9], [20, 10], [10, 11], [5, 12], [2, 13], [0, 14],
+  [50, 9], [20, 10], [10, 11], [5, 12], [0, 13],
 ];
 
 export const MIN_ZOOM = 4;
 
 /**
  * THE DEEPEST ZOOM THE ATLAS ARCHIVE HOLDS — the ladder's bottom rung (`MAGNITUDE_LADDER`), and the `maxzoom` the map
- * gives the atlas SOURCE. Read from the archive's own header (`atlas.pmtiles`: min 4, max 14, 2026-10-21) and from
- * `pipeline/deliver/tiles/tile-contract.json`; `tools/overzoom.test.ts` holds this to both.
+ * gives the atlas SOURCE. Read from the archive's own header and from `pipeline/deliver/tiles/tile-contract.json`;
+ * `tools/overzoom.test.ts` holds this to both. z13 since T85 (decisions D32, 2026-10-24): z14 was 58% of the archive,
+ * and the z13 tile is simplified at its top zoom to the old z14's ground error (`tippe.SIMPLIFICATION_AT_MAX`), so the
+ * camera's overzoom draws it no coarser. AN ARCHIVE BUILT TO z14 STILL SERVES: the source asks for z13 and overzooms.
  *
  * There used to be one `MAX_ZOOM` here, used for the ladder, the camera and the fit alike. Those are three different
  * questions, and overzoom (owner 2026-10-21) is exactly where they come apart: the camera goes past the tiles, the
  * tiles do not. So there is no bare MAX_ZOOM any more — every caller names which ceiling it means.
  */
-export const ATLAS_MAX_ZOOM = 14;
+export const ATLAS_MAX_ZOOM = 13;
 
 /** The basemap archive's deepest zoom (`basemap.pmtiles` header; `pipeline/deliver/tiles/basemap.py` MAX_ZOOM). */
 export const BASEMAP_MAX_ZOOM = 14;
 
 /**
- * HOW FAR THE CAMERA MAY GO — four zooms past the tiles, which MapLibre OVERZOOMS: the z14 tile is drawn magnified
+ * HOW FAR THE CAMERA MAY GO — past the tiles (four zooms past the basemap's z14, five past the atlas's z13), which
+ * MapLibre OVERZOOMS: the deepest tile is drawn magnified
  * (vector geometry re-tessellated, so lines and labels stay sharp; rasters scaled), no tile past a source's own
  * `maxzoom` is ever requested. "Keeps the resolution of the lower zoom", as the owner asked.
  *
@@ -54,12 +57,13 @@ export const BASEMAP_MAX_ZOOM = 14;
 export const CAMERA_MAX_ZOOM = 18;
 
 /**
- * THE CLOSEST A FIT GOES — a searched water, a highlighted section, a town. The atlas's own deepest zoom: a fit frames
+ * THE CLOSEST A FIT GOES — a searched water, a highlighted section, a town. z14 (the atlas's deepest zoom until T85,
+ * kept when the archive moved to z13 so no fit changed; z14 overzooms the z13 tile): a fit frames
  * the subject in its country (z14 is a phone ~2.5 km across), and anything closer is the reader's choice to make with a
  * pinch, not ours to make for a 40 m pond. The web passes it as `fitBounds`'s `maxZoom`; the native binding's
  * `fitBounds` takes no such option, so the box is widened first (`fitAtMost`).
  */
-export const FIT_MAX_ZOOM = ATLAS_MAX_ZOOM;
+export const FIT_MAX_ZOOM = 14;
 
 /**
  * Where the camera may go. `[[west, south], [east, north]]`, MapLibre's `maxBounds` shape.

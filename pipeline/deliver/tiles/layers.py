@@ -37,7 +37,7 @@ class LayerSpec:
     """The complete property list. Anything not here is dropped at export."""
     why: str
     minzoom: int = 4
-    maxzoom: int = 14
+    maxzoom: int = ladder.MAX_ZOOM
     ladder: str = "none"
     """magnitude | area | contour | none — which function in ladder.py stamps minzoom."""
     simplify: bool = True
@@ -80,7 +80,7 @@ class LayerSpec:
 
 WATER: tuple[LayerSpec, ...] = (
     LayerSpec(
-        name="stream", geometry="line", ladder="magnitude", maxzoom=14, mvt_id=True,
+        name="stream", geometry="line", ladder="magnitude", mvt_id=True,
         flows="mouth_to_source",
         attrs=("section_id", "name", "ord"),
         why="Every flowing reach, and the route through a polygon that is a STREAM's own (a "

@@ -12,7 +12,7 @@
       "decorative": false,
       "mvtId": true,
       "minzoom": 4,
-      "maxzoom": 14,
+      "maxzoom": 13,
       "ladder": "magnitude",
       "flows": "mouth_to_source"
     },
@@ -28,7 +28,7 @@
       "decorative": false,
       "mvtId": true,
       "minzoom": 4,
-      "maxzoom": 14,
+      "maxzoom": 13,
       "ladder": "area",
       "flows": null
     },
@@ -39,7 +39,7 @@
       "decorative": true,
       "mvtId": false,
       "minzoom": 10,
-      "maxzoom": 14,
+      "maxzoom": 13,
       "ladder": "area",
       "flows": null
     },
@@ -54,7 +54,7 @@
       "decorative": false,
       "mvtId": true,
       "minzoom": 9,
-      "maxzoom": 14,
+      "maxzoom": 13,
       "ladder": "area",
       "flows": null
     },
@@ -65,7 +65,7 @@
       "decorative": true,
       "mvtId": false,
       "minzoom": 9,
-      "maxzoom": 14,
+      "maxzoom": 13,
       "ladder": "area",
       "flows": null
     },
@@ -80,7 +80,7 @@
       "decorative": false,
       "mvtId": false,
       "minzoom": 11,
-      "maxzoom": 14,
+      "maxzoom": 13,
       "ladder": "contour",
       "flows": null
     },
@@ -95,7 +95,7 @@
       "decorative": false,
       "mvtId": false,
       "minzoom": 6,
-      "maxzoom": 14,
+      "maxzoom": 13,
       "ladder": "area",
       "flows": null
     },
@@ -109,7 +109,7 @@
       "decorative": false,
       "mvtId": false,
       "minzoom": 7,
-      "maxzoom": 14,
+      "maxzoom": 13,
       "ladder": "area",
       "flows": null
     },
@@ -124,7 +124,7 @@
       "decorative": false,
       "mvtId": false,
       "minzoom": 9,
-      "maxzoom": 14,
+      "maxzoom": 13,
       "ladder": "area",
       "flows": null
     },
@@ -138,7 +138,7 @@
       "decorative": false,
       "mvtId": false,
       "minzoom": 7,
-      "maxzoom": 14,
+      "maxzoom": 13,
       "ladder": "area",
       "flows": null
     },
@@ -154,7 +154,7 @@
       "decorative": false,
       "mvtId": false,
       "minzoom": 8,
-      "maxzoom": 14,
+      "maxzoom": 13,
       "ladder": "area",
       "flows": null
     },
@@ -169,7 +169,7 @@
       "decorative": false,
       "mvtId": false,
       "minzoom": 9,
-      "maxzoom": 14,
+      "maxzoom": 13,
       "ladder": "area",
       "flows": null
     },
@@ -183,7 +183,7 @@
       "decorative": false,
       "mvtId": false,
       "minzoom": 5,
-      "maxzoom": 14,
+      "maxzoom": 13,
       "ladder": "area",
       "flows": null
     },
@@ -194,7 +194,7 @@
       "decorative": true,
       "mvtId": false,
       "minzoom": 11,
-      "maxzoom": 14,
+      "maxzoom": 13,
       "ladder": "none",
       "flows": null
     },
@@ -221,7 +221,7 @@
       "decorative": false,
       "mvtId": false,
       "minzoom": 7,
-      "maxzoom": 14,
+      "maxzoom": 13,
       "ladder": "none",
       "flows": null
     },
@@ -277,12 +277,8 @@
       12
     ],
     [
-      2,
-      13
-    ],
-    [
       0,
-      14
+      13
     ]
   ]
 }

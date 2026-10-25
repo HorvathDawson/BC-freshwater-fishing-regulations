@@ -84,8 +84,8 @@ describe("WaterCopy: kept from the tiles, the first time a zoom has them", () =>
 describe("probeZoom: where no zoom has shown the water, step in", () => {
   const ask = (o: Partial<Parameters<typeof probeZoom>[0]>) =>
     probeZoom({ zoom: 8, found: false, kept: 0, rounds: 0, touched: false, ...o });
-  it("one whole zoom at a time, until the tiles carry it, and no further than the atlas's z14", () => {
-    expect([ask({}), ask({ zoom: 8.6 }), ask({ zoom: 13.2 }), ask({ zoom: 14 })]).toEqual([9, 9, 14, null]);
+  it("one whole zoom at a time, until the tiles carry it, and no further than the atlas's z13 (T85)", () => {
+    expect([ask({}), ask({ zoom: 8.6 }), ask({ zoom: 12.2 }), ask({ zoom: 13 })]).toEqual([9, 9, 13, null]);
   });
   it("never once it is found or kept, against the reader's own move, or past the budget", () => {
     expect([ask({ found: true }), ask({ kept: 1 }), ask({ touched: true }), ask({ rounds: 10 }), ask({ rounds: 9 })])

@@ -38,7 +38,7 @@ def test_magnitude_ladder_measured_thresholds():
     assert ladder.zoom_for_magnitude(100) == 8         # 11,947
     assert ladder.zoom_for_magnitude(20) == 10         # 59,906
     assert ladder.zoom_for_magnitude(5) == 12          # 217,568
-    assert ladder.zoom_for_magnitude(1) == 14          # all 2,053,299
+    assert ladder.zoom_for_magnitude(1) == 13          # all 2,053,299 (z13 is the bottom since T85)
 
 
 def test_unmeasured_magnitude_is_drawn_last_never_dropped():

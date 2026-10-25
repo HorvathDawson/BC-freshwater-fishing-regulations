@@ -11,9 +11,15 @@ not Strahler order. Order jumps in big steps — 578 features at >=7, then 10,76
 almost everything. Magnitude is nearly continuous and it drops small tributaries
 while keeping whole big rivers, which is the picture people expect.
 
-    magnitude >=   20000    1000     250     100      50      20      10       5       2       1
-    features          101   1,122   4,569  11,947  24,049  59,906 114,251 217,568 597,596 2,053,299
-    zoom                4       6       7       8       9      10      11      12      13      14
+    magnitude >=   20000    1000     250     100      50      20      10       5       0
+    features          101   1,122   4,569  11,947  24,049  59,906 114,251 217,568 2,053,299
+    zoom                4       6       7       8       9      10      11      12      13
+
+THE ARCHIVE STOPS AT z13 (T85, decisions D32, 2026-10-24): every reach is drawn from z13, the
+bottom rung, and MapLibre overzooms the z13 tile to the camera's z18. z14 was 58% of the atlas
+(315.7 of 548.3 MB, measured on the live archive; the new z13 takes on most of its content, see
+`tippe.SIMPLIFICATION_AT_MAX`); the z13 tile is simplified at the top zoom with
+`tippe.SIMPLIFICATION_AT_MAX`, which holds the ground error of the old z14 (about 4 m).
 
 POLYGONS use area against the size of a pixel at that zoom, so a lake appears when
 it is big enough to see rather than when a hand-picked hectare threshold says so.
@@ -26,11 +32,13 @@ import math
 # (minimum magnitude, zoom the feature first appears at). Descending.
 MAGNITUDE_LADDER: tuple[tuple[int, int], ...] = (
     (20000, 4), (5000, 5), (1000, 6), (250, 7), (100, 8),
-    (50, 9), (20, 10), (10, 11), (5, 12), (2, 13), (0, 14),
+    (50, 9), (20, 10), (10, 11), (5, 12), (0, 13),
 )
 
 MIN_ZOOM = 4
-MAX_ZOOM = 14
+#: The archive's deepest zoom (T85: was 14). `app/packages/core/src/ladder.ts` ATLAS_MAX_ZOOM is held to
+#: it (`test_tiles.py`, `tools/overzoom.test.ts`).
+MAX_ZOOM = 13
 
 # Web-mercator ground resolution at the equator, metres per pixel at z0 (256 px tiles).
 _EQUATOR_M_PER_PX_Z0 = 156543.03392804097
