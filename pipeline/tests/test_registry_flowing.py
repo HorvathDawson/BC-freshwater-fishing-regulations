@@ -229,6 +229,102 @@ def test_merging_twice_changes_nothing():
     assert merge_flowing_polygons(once, g) == once
 
 
+# ------------------------------------------------------------ a cut inside the river's own polygon
+
+def _cayoosh():
+    """Cayoosh Creek (gnis 37767, blk K): piece K:0 (0-100) -> FWA lakes-layer polygon lake:5 (100-200)
+    -> piece K:200 (200-300). The polygon is named the creek by a name variant (owner 2026-10-25), so the
+    fold joins it to the creek; it is not a lake. Cayoosh Falls was authored 4.83 m inside it."""
+    from pipeline.common.models import NameSource, NameTuple
+    lo = SectionBoundary("lake:5", BoundaryKind.lake, 100.0, "Lake 5")
+    hi = SectionBoundary("lake:5", BoundaryKind.lake, 200.0, "Lake 5")
+    g = _graph({"K:0": S, "lake:5": L, "K:200": S},
+               [("K:200", "lake:5", 200.0), ("lake:5", "K:0", 100.0)],
+               blks={"K:0": "K", "K:200": "K"}, measures={"K:0": (0, 100), "K:200": (200, 300)},
+               bounds={"K:0": (None, lo), "K:200": (hi, None)})
+    for nid in ("K:0", "K:200"):
+        g.nodes[nid] = StreamNode(**{**g.nodes[nid].__dict__, "gnis_id": "37767", "wsc": "100",
+                                     "display_name": "Cayoosh Creek",
+                                     "name_tuples": (NameTuple("Cayoosh Creek", NameSource.gazette, gnis_id="37767"),)})
+    g.nodes["lake:5"] = StreamNode(**{**g.nodes["lake:5"].__dict__, "display_name": "Cayoosh Creek",
+                                      "name_tuples": (NameTuple("Cayoosh Creek", NameSource.override),)})
+    return g
+
+
+def _falls():
+    from pipeline.common.models import AnchorType, SplitPoint
+    return SplitPoint("cayoosh_creek__cayoosh_falls", "K", 104.83, "", "Cayoosh Falls",
+                      AnchorType.point, source="curated")
+
+
+@pytest.fixture
+def _no_pfma(monkeypatch):
+    from pipeline.atlas.splits import pfma_drainage
+    monkeypatch.setattr(pfma_drainage, "basin_areas", lambda *a, **kw: {})
+
+
+def test_the_fold_predicate_names_the_polygon_a_creek_and_no_real_lake():
+    g = _cayoosh()
+    assert F.folding_polygon_wbks(g) == {"5"}
+    g.nodes["lake:5"] = StreamNode(**{**g.nodes["lake:5"].__dict__, "display_name": "Cayoosh Lake",
+                                      "name_tuples": ()})
+    assert F.folding_polygon_wbks(g) == frozenset()          # a lake's name does not flow
+    g2, _reg = _river()
+    assert F.folding_polygon_wbks(g2) == frozenset()          # no names on the graph: nothing folds
+
+
+def test_a_cut_inside_a_folded_polygon_is_a_plain_cut_not_a_lake_alias(_no_pfma):
+    """Cayoosh Falls (owner 2026-10-25). Treated as a lake, the falls was aliased onto the polygon's edge
+    and the fold refused the build; now it cuts the creek at the polygon's nearer edge as a plain point:
+    no alias, no `lake_edge` conflict, no lake-anchor proposal, and the fold keeps it."""
+    from pipeline.atlas.registry.build import build_registry
+    from pipeline.atlas.splits.sectionizer import place_points, split_graph_at
+
+    # THE REFUSAL, reproduced: the old placement (no folded polygons known) aliases it onto the lake
+    g = _cayoosh()
+    aliased: list = []
+    split_graph_at(g, {}, [_falls()], aliased=aliased, fold_wbks=frozenset())
+    assert aliased == [("cayoosh_creek__cayoosh_falls", "lake:5", 4.8)]
+    with pytest.raises(SystemExit, match="aliased onto its own polygon"):
+        merge_flowing_polygons(build_registry(g, pinned={}), g)
+
+    # the fix: the polygon folds, so the falls is a plain cut on the creek
+    g = _cayoosh()
+    conflicts, proposals, aliased = [], [], []
+    placed = place_points(g, [_falls()], conflicts=conflicts, proposals=proposals)
+    assert [(p.split_id, p.route_measure) for p in placed] == [("cayoosh_creek__cayoosh_falls", 100.0)]
+    split_graph_at(g, {}, placed, aliased=aliased, conflicts=conflicts)
+    assert aliased == [] and conflicts == [] and proposals == []
+    b = g.nodes["K:0"].upper_bound
+    assert (b.boundary_id, b.kind, b.route_measure) == ("split:cayoosh_creek__cayoosh_falls",
+                                                        BoundaryKind.split, 100.0)
+    assert "lake:5" not in b.aliases and not any(a.startswith("label:") for a in b.aliases)
+    out = merge_flowing_polygons(build_registry(g, pinned={}), g)
+    creek = out["gnis:37767"]
+    assert "lake:5" in creek.section_ids and creek.kind == "stream"
+    assert "cayoosh_creek__cayoosh_falls" in {x.id for x in creek.boundaries}
+    assert not [x for x in creek.boundaries if x.kind == "lake"]
+
+
+def test_a_cut_inside_a_real_lake_is_still_aliased_and_the_guard_still_fires(_no_pfma):
+    """The guard is not loosened: a polygon that does NOT fold (a real lake) still takes the alias, and a
+    cut aliased onto a polygon the fold DOES take is still refused."""
+    from pipeline.atlas.splits.sectionizer import split_graph_at
+    g = _cayoosh()
+    g.nodes["lake:5"] = StreamNode(**{**g.nodes["lake:5"].__dict__, "display_name": "Seton Lake",
+                                      "name_tuples": ()})
+    aliased: list = []
+    split_graph_at(g, {}, [_falls()], aliased=aliased)
+    assert aliased == [("cayoosh_creek__cayoosh_falls", "lake:5", 4.8)]
+    # ...and the fold still refuses an alias on its own polygon (the X River's lake 1)
+    g2, reg = _river()
+    reg["gnis:1"] = _item("gnis:1", "X River", "stream", ["r0", "r1", "r2", "r3"], boundaries=[
+        RegistryBoundary("x_river__lake_1", "lake 1", "lake", ref="lake:1", wbk="1",
+                         aliases=("split:x_river__falls",))])
+    with pytest.raises(SystemExit, match="aliased onto its own polygon"):
+        merge_flowing_polygons(reg, g2)
+
+
 # ------------------------------------------------------------------ the one water kind
 
 def test_kind_of_is_the_owners_kind_else_the_nodes():

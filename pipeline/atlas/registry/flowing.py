@@ -120,6 +120,61 @@ def _own_polygon_wbks(section_ids) -> set[str]:
     return {s.split(":", 1)[1] for s in section_ids if s.startswith("lake:")}
 
 
+def folding_polygon_wbks(graph) -> frozenset[str]:
+    """The wbks of the polygons `merge_flowing_polygons` will join to a STREAM by rule 1 or 2, read off
+    the GRAPH — for the split placement, which runs before any registry exists.
+
+    Such a polygon is part of its river (F6), not another water: a curated cut that lands in it is a
+    cut on the river, so it must not be aliased onto the polygon's "lake" edge (the fold drops that
+    edge and refuses the alias: Cayoosh Falls in wbk 329505890, owner 2026-10-25). The test mirrors the
+    fold on the names the graph already carries (`apply_name_variants` runs before the splits): a lake
+    or wetland node whose display name FLOWS and that carries the gnis of a stream piece (rule 1), or
+    touches — through at most `MAX_GAP` unnamed line pieces — a stream piece answering to the same
+    name (rule 2)."""
+    nodes = graph.nodes
+    stream_gnis = {n.gnis_id for n in nodes.values() if _kind(n) == "stream" and n.gnis_id}
+
+    def piece_names(n) -> set[str]:
+        return {_norm(x) for x in (n.display_name, *(t.name for t in n.name_tuples)) if x}
+
+    def neighbours(sid: str):
+        for ei in graph.up_adj.get(sid, ()):
+            yield graph.edges[ei].from_node
+        for ei in graph.down_adj.get(sid, ()):
+            yield graph.edges[ei].to_node
+
+    out: set[str] = set()
+    for sid, n in nodes.items():
+        if _kind(n) not in ("lake", "wetland") or not n.wbk or not n.display_name \
+                or not flows(_kind(n), n.display_name):
+            continue
+        gn = {n.gnis_id, *(t.gnis_id for t in n.name_tuples)} - {""}
+        if gn & stream_gnis:
+            out.add(n.wbk)                                   # rule 1
+            continue
+        want = _norm(n.display_name)
+        q = deque([(sid, 0)])
+        seen = {sid}
+        while q:
+            s, gap = q.popleft()
+            hit = False
+            for o in neighbours(s):
+                m = nodes.get(o)
+                if o in seen or m is None or _kind(m) != "stream":
+                    continue
+                seen.add(o)
+                names = piece_names(m)
+                if want in names:
+                    hit = True                               # rule 2
+                    break
+                if not names and gap < MAX_GAP:
+                    q.append((o, gap + 1))
+            if hit:
+                out.add(n.wbk)
+                break
+    return frozenset(out)
+
+
 def merge_flowing_polygons(registry: dict[str, RegistryItem], graph, polys: dict | None = None,
                            report: dict | None = None) -> dict[str, RegistryItem]:
     """Fold flowing polygons into their water (module docstring). Returns a NEW dict; `report`

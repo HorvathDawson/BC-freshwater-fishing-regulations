@@ -142,16 +142,37 @@ def _is_lake(b: Optional[SectionBoundary]) -> bool:
     return b is not None and b.kind == BoundaryKind.lake
 
 
+def _bound_wbk(b: Optional[SectionBoundary]) -> str:
+    """The wbk a lake boundary (`lake:{wbk}`) stands at; "" for any other boundary."""
+    sid = str(getattr(b, "boundary_id", "") or "")
+    return sid.split(":", 1)[1] if _is_lake(b) and sid.startswith("lake:") else ""
+
+
+def _folds(b: Optional[SectionBoundary], fold) -> bool:
+    """A lake edge onto a polygon the registry folds into its stream (`registry.flowing`): part of the
+    river, not another water — no lake-side alias, no `lake_edge` conflict, no lake-anchor proposal."""
+    return bool(fold) and _bound_wbk(b) in fold
+
+
+def _fold_wbks(graph, fold):
+    if fold is not None:
+        return frozenset(fold)
+    from pipeline.atlas.registry.flowing import folding_polygon_wbks
+    return folding_polygon_wbks(graph)
+
+
 def _key(sp: SplitPoint):
     return (sp.route_measure, sp.split_id, sp.source)
 
 
 class _Place:
     """One place on a blue line: a position already standing (a piece end) or a new cut."""
-    __slots__ = ("m", "bnd", "existing", "end", "members", "edge", "from_m")
+    __slots__ = ("m", "bnd", "existing", "end", "members", "edge", "from_m", "fold")
 
     def __init__(self, m, bnd=None, existing=False, end=False, edge=""):
         self.m, self.bnd, self.existing, self.end, self.edge = m, bnd, existing, end, edge
+        #: The edge of a polygon the registry folds into this stream (`_folds`): not a lake edge.
+        self.fold = False
         self.members: list[SplitPoint] = []
         #: A standing MINTED cut moved onto an authored point: the measure it stood at (`_shift_cut`).
         self.from_m: Optional[float] = None
@@ -201,7 +222,7 @@ def _proposal(graph, blk, sp: SplitPoint, q: "_Place", kind: str, d: float) -> d
     return out
 
 
-def _plan_blk(graph, blk, sps, nids, conflicts=None, proposals=None) -> list[_Place]:
+def _plan_blk(graph, blk, sps, nids, conflicts=None, proposals=None, fold=frozenset()) -> list[_Place]:
     """COLLECT then PLACE every point of one blue line (the block comment above). Returns the places that
     received a point, mouth to source. Pure: nothing is cut or relabelled here."""
     pieces = [graph.nodes[n] for n in nids
@@ -227,7 +248,26 @@ def _plan_blk(graph, blk, sps, nids, conflicts=None, proposals=None) -> list[_Pl
                     p.bnd, p.edge = b, edge
                 elif b is not None:                    # both copies: no alias or name left behind
                     p.bnd = _union_bound(p.bnd, b)
+    for p in standing.values():
+        p.fold = _folds(p.bnd, fold)
     existing = sorted(standing.values(), key=lambda p: p.m)
+
+    def _lake(q: _Place) -> bool:
+        """A lake edge that IS another water's (a folded polygon's edge is the river's own)."""
+        return _is_lake(q.bnd) and not q.fold
+
+    # THE RIVER'S OWN POLYGON (owner 2026-10-25, Cayoosh Falls in wbk 329505890): the gap between the
+    # piece below a folded polygon and the piece above it is the river, drawn as a polygon. An authored
+    # point inside it has no piece to cut, so it is cut at the polygon's nearer edge as a plain point —
+    # never aliased onto the polygon as if it were a lake (the fold drops that edge and refuses the alias).
+    fold_gaps: list[tuple[_Place, _Place]] = []
+    if fold:
+        ordered = sorted(pieces, key=lambda n: n.down_m)
+        for below, above in zip(ordered, ordered[1:]):
+            ub, lb = below.upper_bound, above.lower_bound
+            if (_folds(ub, fold) and _folds(lb, fold) and ub.boundary_id == lb.boundary_id
+                    and below.up_m < above.down_m):
+                fold_gaps.append((standing[below.up_m], standing[above.down_m]))
 
     def _shiftable(q: _Place, M: float) -> bool:
         """A standing minted cut with a piece on each side, movable to M without crossing another."""
@@ -245,7 +285,17 @@ def _plan_blk(graph, blk, sps, nids, conflicts=None, proposals=None) -> list[_Pl
     authored = sorted((s for s in sps if is_authored(s.source)), key=_key)
     takeable = [q for q in existing if not q.authored_names()]
     pairs, near = [], []
+    in_fold: set[int] = set()                          # authored points inside a folded polygon
     for sp in authored:
+        M = sp.route_measure
+        for lo_q, hi_q in fold_gaps:
+            if lo_q.m + _tol.SAME_PLACE_M < M < hi_q.m - _tol.SAME_PLACE_M:
+                in_fold.add(id(sp))
+                for q in (lo_q, hi_q):
+                    if q in takeable:
+                        pairs.append((abs(q.m - M), q.m, _key(sp), sp, q))
+        if id(sp) in in_fold:
+            continue
         for q in takeable:
             d = abs(q.m - sp.route_measure)
             if d <= _tol.SAME_PLACE_M or (sp.at_edge and d < AT_EDGE_M):
@@ -260,7 +310,8 @@ def _plan_blk(graph, blk, sps, nids, conflicts=None, proposals=None) -> list[_Pl
         if id(sp) not in taken and not q.members:
             q.members.append(sp)
             taken[id(sp)] = q
-            if not sp.at_edge and abs(q.m - sp.route_measure) > _tol.SAME_PLACE_M:
+            if (not sp.at_edge and id(sp) not in in_fold
+                    and abs(q.m - sp.route_measure) > _tol.SAME_PLACE_M):
                 q.from_m, q.m = q.m, sp.route_measure      # the minted cut moves, not the name
     new: list[_Place] = []
     named = [q for q in existing if q.authored_names()]
@@ -281,7 +332,8 @@ def _plan_blk(graph, blk, sps, nids, conflicts=None, proposals=None) -> list[_Pl
     # An authored point a sliver from a lake edge / natural end: it stays, the pair is reported, and a
     # re-anchoring is PROPOSED (it is usually meant to BE at the lake) for the owner to accept.
     def _kind(q: _Place) -> str:
-        return "lake_edge" if _is_lake(q.bnd) else "line_end" if q.end else "minted_edge"
+        return ("lake_edge" if _lake(q) else "polygon_edge" if q.fold
+                else "line_end" if q.end else "minted_edge")
 
     seen: set[int] = set()
     sliver: set[tuple[int, int]] = set()               # (point, place) pairs reported as conflicts
@@ -304,7 +356,7 @@ def _plan_blk(graph, blk, sps, nids, conflicts=None, proposals=None) -> list[_Pl
     if proposals is not None:
         offer = []
         for sp in authored:
-            if sp.at_edge or sp.anchor_type == AnchorType.area_boundary:
+            if sp.at_edge or sp.anchor_type == AnchorType.area_boundary or id(sp) in in_fold:
                 continue
             on = taken.get(id(sp))
             if on is not None and abs((on.from_m if on.from_m is not None else on.m)
@@ -314,7 +366,7 @@ def _plan_blk(graph, blk, sps, nids, conflicts=None, proposals=None) -> list[_Pl
                 if q is on:
                     continue
                 d = abs(q.m - sp.route_measure)
-                anchored = _is_lake(q.bnd) or (q.end and q.edge == "mouth")
+                anchored = _lake(q) or (q.end and q.edge == "mouth")
                 if (anchored and _tol.SAME_PLACE_M < d < PROPOSAL_M) or (id(sp), id(q)) in sliver:
                     offer.append((d, q.m, _key(sp), sp, q))
         done: set[int] = set()
@@ -373,9 +425,10 @@ def _place_boundary(place: _Place) -> SectionBoundary:
     # EVERY NAME TOO (owner 2026-10-24): each member's label, and the standing boundary's own
     labels = [s.label or s.split_id for s in place.members]
     if old is not None:
-        ids.add(str(old.boundary_id))
         ids.update(old.aliases or ())
-        labels += [old.label, *(old.names or ())]
+        if not place.fold:                             # a folded polygon is no water of its own
+            ids.add(str(old.boundary_id))
+            labels += [old.label, *(old.names or ())]
     if isinstance(canon, SectionBoundary):
         return replace(canon, aliases=tuple(sorted(ids - {str(canon.boundary_id)})),
                        names=_other_names(canon.label, *labels))
@@ -383,7 +436,8 @@ def _place_boundary(place: _Place) -> SectionBoundary:
     # CARRYING THE REF IS NOT CARRYING THE NAME: a displaced lake edge's ref is `lake:{wbk}`, which no
     # rule writes; the registry spells the bindable id from the LABEL (`registry.build._expand`), so the
     # label travels (the Sproat reach). A displaced split's ref already is its name.
-    if old is not None and old.label and not str(old.boundary_id).startswith("split:"):
+    if old is not None and old.label and not place.fold \
+            and not str(old.boundary_id).startswith("split:"):
         ids.add(f"label:{old.label}")
     label = canon.label or canon.split_id
     kind = _ANCHOR_KIND.get(canon.anchor_type.value, BoundaryKind.split)
@@ -408,19 +462,22 @@ def _stream_nids_by_blk(graph, blks) -> dict[str, list[str]]:
 
 def place_points(graph: StreamGraph, split_points: list[SplitPoint],
                  conflicts: Optional[list] = None,
-                 proposals: Optional[list] = None) -> list[SplitPoint]:
+                 proposals: Optional[list] = None, fold_wbks=None) -> list[SplitPoint]:
     """Where each point WILL stand, without cutting: a copy at its place's measure, `picked_up` when it
     joins a standing boundary or another point's cut. Lets a caller judge what depends on the cut (the
     braid sweep) at the place the cut is made. Idempotent: `split_graph_at` places the result where this
     said. ``conflicts`` collects every authored point a sliver from another authored point, a lake edge
-    or a line end; ``proposals`` the lake / mouth re-anchorings offered for the latter two."""
+    or a line end; ``proposals`` the lake / mouth re-anchorings offered for the latter two.
+    ``fold_wbks``: the polygons the registry folds into their stream (`_folds`); None reads them off the
+    graph (`registry.flowing.folding_polygon_wbks`)."""
+    fold = _fold_wbks(graph, fold_wbks)
     nids = _stream_nids_by_blk(graph, {sp.blk for sp in split_points})
     by_blk: dict[str, list[SplitPoint]] = defaultdict(list)
     for sp in split_points:
         by_blk[sp.blk].append(sp)
     out: list[SplitPoint] = []
     for blk in sorted(by_blk):
-        for place in _plan_blk(graph, blk, by_blk[blk], nids.get(blk, ()), conflicts, proposals):
+        for place in _plan_blk(graph, blk, by_blk[blk], nids.get(blk, ()), conflicts, proposals, fold):
             canon = None if place.stands else _canonical(place)
             for sp in place.members:
                 out.append(replace(sp, route_measure=place.m, picked_up=place.stands or sp is not canon))
@@ -467,7 +524,7 @@ def _repartition(member_fids, fid_index, lo, hi):
 _ALIAS_MAX_FROM_EDGE_M = 3000.0   # how far into the lake a split may sit and still mean its edge
 
 
-def _alias_onto_lake(graph, blk, sp, by_blk=None) -> tuple[str, float] | None:
+def _alias_onto_lake(graph, blk, sp, by_blk=None, fold=frozenset()) -> tuple[str, float] | None:
     """Record a curated split that could NOT be cut as an alias on the LAKE it landed in.
 
     A cut is refused when its measure falls where the blue line has no stream piece, and on this data
@@ -500,6 +557,8 @@ def _alias_onto_lake(graph, blk, sp, by_blk=None) -> tuple[str, float] | None:
             return None
         if not (str(lo_b.boundary_id).startswith("lake:") and lo_b.boundary_id == hi_b.boundary_id):
             return None                               # a gap, but not a lake run — leave it alone
+        if _folds(lo_b, fold):
+            return None                               # the river's own polygon, not a lake (`_folds`)
         # attach to the nearer edge: one lake has two bounds, and aliasing both would give the split
         # two measures and make every reach that uses it ambiguous
         target, node, end = ((lo_b, below, "upper_bound") if (M - below.up_m) <= (above.down_m - M)
@@ -772,7 +831,7 @@ def _split_one(graph, geoms, blk, sp, fid_index, by_blk=None, edges_by_to=None,
 def split_graph_at(graph: StreamGraph, geoms: dict, split_points: list[SplitPoint],
                    fid_index: Optional[dict] = None, exact: bool = False,
                    applied: Optional[list] = None, aliased: Optional[list] = None,
-                   conflicts: Optional[list] = None) -> StreamGraph:
+                   conflicts: Optional[list] = None, fold_wbks=None) -> StreamGraph:
     """Subdivide piece nodes at ``split_points`` (in place); rebuild adjacency.
 
     Each blue line's points are PLACED together first (`_plan_blk`: collect every standing position and
@@ -787,8 +846,10 @@ def split_graph_at(graph: StreamGraph, geoms: dict, split_points: list[SplitPoin
     ``aliased`` (optional): ``(split_id, boundary_id, distance)`` for each split that could not be cut
     because it landed in a lake run and was recorded as an ALIAS on the lake's edge (`_alias_onto_lake`).
     ``conflicts`` (optional): authored cuts joined because they stood under `AUTHORED_MERGE_M` apart.
+    ``fold_wbks`` (optional): the polygons folded into their stream (`place_points`); None reads the graph.
     """
     from dataclasses import replace as _replace
+    fold = _fold_wbks(graph, fold_wbks)
     # Indexes built ONCE (maintained incrementally by _split_one): node ids per blk, and edge ids per
     # to_node. They turn each split's piece-find + tributary-reattach from O(all nodes)+O(all edges)
     # into O(local) — the fix for the border stage's ~1600s split cost.
@@ -804,7 +865,7 @@ def split_graph_at(graph: StreamGraph, geoms: dict, split_points: list[SplitPoin
         # boundary instead of dropping it silently; anything else stays missing. Only for a caller that
         # asked (`aliased` given) — the CURATED pass, whose split ids rules actually bind.
         if aliased is not None:
-            got = _alias_onto_lake(graph, blk, sp, node_by_blk)
+            got = _alias_onto_lake(graph, blk, sp, node_by_blk, fold)
             if got is not None:
                 aliased.append((sp.split_id, got[0], round(got[1], 1)))
 
@@ -824,7 +885,7 @@ def split_graph_at(graph: StreamGraph, geoms: dict, split_points: list[SplitPoin
                 if applied is not None:
                     applied.append(_replace(sp, picked_up=picked))
             continue
-        for place in _plan_blk(graph, blk, sps, node_by_blk.get(blk, ()), conflicts):
+        for place in _plan_blk(graph, blk, sps, node_by_blk.get(blk, ()), conflicts, fold=fold):
             bnd = _place_boundary(place)
             canon = _canonical(place)
             cut = False
