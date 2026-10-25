@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import type { AnswerLink, Check, EntryDetail, MarkView, Mode, ReviewView, TribCall } from "../types";
+import type {
+  AnswerLink, Check, EntryDetail, ExtentFix, MarkView, Mode, ReviewView, TribCall,
+} from "../types";
 import { Checklist } from "./Checklist";
 import { useMarking } from "./useMarking";
 import { nextOpenRule } from "../review";
@@ -11,6 +13,9 @@ export interface MarkExtras {
   setTrib: (key: string, call: TribCall | null) => void;
   lakeSplit: boolean;
   setLakeSplit: (on: boolean) => void;
+  /** T191: the proposed extent per scope ("entry" or a rule id) — `Mark.extent_fix` */
+  fixes: Record<string, ExtentFix>;
+  setFix: (key: string, fix: ExtentFix | null) => void;
 }
 
 interface Opts {
@@ -74,7 +79,9 @@ export function useEntryReview({ detail, view, mode, onMarked, onToggleMap, extr
     key, resetOn: detail.entry.entry_id, link: link.url, onToggleMap,
     mark: { scope: zone ? "rule" : "entry", target: detail.entry.entry_id,
             rule_id: zone ? key : null, checks, held },
-    extra: { tributaries: trib, lake_split_later: extras.lakeSplit },
+    extra: { tributaries: trib, lake_split_later: extras.lakeSplit,
+             // a rule mark carries only its own rule's fix; an entry mark every one made
+             extent_fix: Object.values(extras.fixes).filter((f) => !zone || f.scope === key) },
     onRecorded: () => {
       const next = nextOpenRule(keys, at, (k) => open(marksBy[k]));
       const final = !zone || next < 0;

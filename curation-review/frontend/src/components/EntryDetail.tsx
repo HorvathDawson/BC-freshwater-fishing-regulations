@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import type {
-  Boundary, EntryDetail as EntryDetailT, EntryReaches, EntrySplits, Mode, NamedSplit, ReviewView,
-  RuleScopeWords, TribCall,
+  Boundary, EntryDetail as EntryDetailT, EntryReaches, EntrySplits, ExtentFix, Mode, NamedRef,
+  NamedSplit, ReviewView, RuleScopeWords, TribCall,
 } from "../types";
+import { ExtentFixEditor } from "./ExtentFixEditor";
 import { api } from "../api";
 import { describeDiagnostic, reachIdentities } from "../format";
 import { VerifyBar, type QueueNav } from "./VerifyBar";
@@ -108,10 +109,21 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
   // T189: the tributary calls and "lake split later", per entry — carried by the mark
   const [trib, setTribs] = useState<Record<string, TribCall>>({});
   const [lakeSplit, setLakeSplit] = useState(false);
-  useEffect(() => { setTribs({}); setLakeSplit(false); setShowRule({ id: null, n: 0 }); },
-    [entry.entry_id]);
+  // T191: the proposed extents (in the mark), the preview drawn, and a map-click pick in progress
+  const [fixes, setFixes] = useState<Record<string, ExtentFix>>({});
+  const [fixPreview, setFixPreview] = useState<GeoJSON.FeatureCollection | null>(null);
+  const [pickCb, setPickCb] = useState<{ cb: ((ll: [number, number]) => void) | null }>({ cb: null });
+  useEffect(() => {
+    setTribs({}); setLakeSplit(false); setShowRule({ id: null, n: 0 });
+    setFixes({}); setFixPreview(null); setPickCb({ cb: null });
+  }, [entry.entry_id]);
   const extras: MarkExtras = {
-    trib, lakeSplit, setLakeSplit,
+    trib, lakeSplit, setLakeSplit, fixes,
+    setFix: (k, fix) => setFixes((f) => {
+      const next = { ...f };
+      if (fix) next[k] = fix; else delete next[k];
+      return next;
+    }),
     setTrib: (k, call) => setTribs((t) => {
       const next = { ...t };
       if (call) next[k] = call; else delete next[k];
@@ -160,6 +172,33 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
   const es = view?.scope.entry;
   const itemColor = (id: string) =>
     ITEM_COLORS[Math.max(0, coveredItems.findIndex((c) => c.id === id)) % ITEM_COLORS.length];
+
+  // T191: the splits already on this map — the ones the rules name, then the items' boundaries
+  const mapSplits = useMemo(() => {
+    const out: NamedRef[] = [];
+    const seen = new Set<string>();
+    for (const f of named?.features ?? []) {
+      seen.add(f.properties.split_id);
+      out.push({ id: f.properties.split_id, name: f.properties.name || f.properties.label });
+    }
+    for (const b of boundaries) {
+      if (seen.has(b.id) || !b.curated) continue;
+      seen.add(b.id);
+      out.push({ id: b.id, name: `${(b.live?.label ?? b.label) || b.id} (${b.kind}${
+        b.live?.label || b.label ? ` · ${b.id.split("__").pop()}` : ""})` });
+    }
+    return out;
+  }, [named, boundaries]);
+  const splitAt = (id: string): [number, number] | null =>
+    (named?.features ?? []).find((f) => f.properties.split_id === id)?.geometry.coordinates ?? null;
+  function fixEditor(scope: string, currentOp?: string) {
+    return (
+      <ExtentFixEditor scope={scope} entryId={entry.entry_id} currentOp={currentOp}
+        mapSplits={mapSplits} waters={coveredItems.map((c) => ({ id: c.id, name: c.name }))}
+        value={fixes[scope]} onChange={(f) => extras.setFix(scope, f)}
+        onPreview={setFixPreview} onPick={(cb) => setPickCb({ cb })} splitAt={splitAt} />
+    );
+  }
 
   function splitChip(id: string, name: string) {
     const s = namedBy[id];
@@ -250,6 +289,7 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
           );
         })()}
         {rest.length > 0 && <ul className="rule-findings">{rest.map((f, i) => <Finding key={i} f={f} />)}</ul>}
+        {fixEditor(rid, rules.find((x) => x.rule_id === rid)?.extents?.[0]?.op)}
       </div>
     );
   }
@@ -323,6 +363,8 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
                 </div>
               </>
             )}
+            {/* T191: the entry's own extent, proposed (a zone entry is marked rule by rule) */}
+            {!zone && fixEditor("entry", (entry.extents ?? [])[0]?.op)}
             {entry.scope_note && <div className="ext-row"><span className="k">note</span>{entry.scope_note}</div>}
             {(entry.see ?? []).length > 0 && (
               <div className="ext-row"><span className="k">see</span>
@@ -520,6 +562,8 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
             reloadKey={reloadKey}
             namedSplits={named}
             showRule={showRule}
+            preview={fixPreview}
+            onPick={pickCb.cb}
           />
         </div>
       </div>

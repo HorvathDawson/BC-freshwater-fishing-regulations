@@ -194,19 +194,17 @@ export default function App() {
           loadPending();
           setReloadKey((k) => k + 1);
         }}
-        slot={
+        slot={pilotSize > 0 ? (
+          <button className={`btn small pilot-toggle${pilot ? " on" : ""}`} data-testid="pilot-toggle"
+            aria-pressed={pilot} onClick={() => setPilot((p) => !p)}>
+            {pilot
+              ? `Pilot: ${rows.filter((r) => r.reviewed || (r.verify && r.verify !== "unmarked")).length}/${pilotSize} marked — show all`
+              : `Show the ${pilotSize} pilot entries`}
+          </button>
+        ) : null}
+        moreSet={tier ? 1 : 0}
+        more={
           <>
-            {pilotSize > 0 && (
-              <div>
-                <label>pilot</label>
-                <button className={`btn pilot-toggle${pilot ? " on" : ""}`} data-testid="pilot-toggle"
-                  aria-pressed={pilot} onClick={() => setPilot((p) => !p)}>
-                  {pilot
-                    ? `Pilot: ${rows.filter((r) => r.reviewed || (r.verify && r.verify !== "unmarked")).length}/${pilotSize} marked — show all`
-                    : `Show the ${pilotSize} pilot entries`}
-                </button>
-              </div>
-            )}
             <div>
               <label>tier</label>
               <select value={tier} aria-label="tier" onChange={(e) => setTier(e.target.value as Tier | "")}>

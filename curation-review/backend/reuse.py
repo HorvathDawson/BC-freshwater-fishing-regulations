@@ -1866,6 +1866,114 @@ def _load_splits() -> dict:
     return json.loads(SPLITS_JSON_PATH.read_text(encoding="utf-8"))
 
 
+# --------------------------------------------------------------------------- T191: extent fix
+# READS ONLY. The reviewer's proposed extent lives in the mark (`marks.ExtentFix`); these find the
+# points it names and resolve it for a preview on an IN-MEMORY copy of the entry.
+
+def search_splits(q: str, limit: int = 30) -> list[dict]:
+    """Curated splits whose id, label or water contains `q` (case-folded): {id, label, water, kind}."""
+    want = q.strip().casefold()
+    if len(want) < 2:
+        return []
+    out = []
+    for sid, (water, sp) in _split_records().items():
+        hay = f"{sid} {sp.get('label') or ''} {water}".casefold()
+        if want in hay:
+            out.append({"id": sid, "label": sp.get("label") or sid, "water": water,
+                        "kind": (sp.get("anchor") or {}).get("type")})
+            if len(out) >= limit:
+                break
+    return out
+
+
+def search_items(q: str, kind: str | None = None, limit: int = 30) -> list[dict]:
+    """Registry items whose name (or a variant) contains `q`: {id, name, kind, mus}. `kind`
+    narrows to stream / lake / wetland."""
+    want = q.strip().casefold()
+    if len(want) < 2:
+        return []
+    out = []
+    for iid, it in _registry().items():
+        if kind and it.kind != kind:
+            continue
+        if want in it.name.casefold() or any(want in v.casefold() for v in it.variants or ()):
+            out.append({"id": iid, "name": it.name, "kind": it.kind, "mus": list(it.mus)[:4]})
+    out.sort(key=lambda x: (not x["name"].casefold().startswith(want), len(x["name"]), x["name"]))
+    return out[:limit]
+
+
+def extent_preview(entry_id: str, fix, limit: int = 6000) -> dict | None:
+    """WHAT A PROPOSED EXTENT (`marks.ExtentFix`) WOULD BIND, by the builder's own `build_reach`
+    on a COPY of the entry with that extent in place (rule scope: the rule's `extents` and
+    `includes_tributaries`; entry scope: the entry's `extents` and `includes_tributaries`, every
+    rule then bound under it). Nothing is written. A NEW point (confluence, lake inlet/outlet, a
+    map point) is not a split yet, so the extent cannot be resolved: `resolvable: false` and why —
+    T185 builds the split, and the review continues on that build. None: no such entry."""
+    import copy
+    found = _find(entry_id)
+    if found is None:
+        return None
+    e = copy.deepcopy(found[1])
+    new = [p for p in fix.points if p.kind != "split"]
+    if new:
+        return {"resolvable": False, "why": "a NEW point (" + ", ".join(p.kind for p in new)
+                + ") is not a split yet: it is resolved once T185 builds it — the fix is kept "
+                "in the mark as proposed", "n_sections": None}
+    if fix.op in ("rest", "steelhead_waters"):
+        return {"resolvable": False, "why": f"op {fix.op} resolves against its siblings / the "
+                "whole corpus, not on its own", "n_sections": None}
+    ex: dict = {"op": fix.op, "splits": [p.split_id for p in fix.points]}
+    if len(fix.items) == 1:
+        ex["item_id"] = fix.items[0]
+    elif fix.items:
+        ex["item_ids"] = list(fix.items)
+    if fix.op == "within":
+        area = str(fix.area)
+        ex["area_id"] = area if area.startswith("area:") else None
+        if ex["area_id"] is None:
+            return {"resolvable": False, "why": "within needs an area id (area:…) to preview",
+                    "n_sections": None}
+    rules = e.get("rules") or []
+    if fix.scope == "entry":
+        e["extents"] = [ex]
+        if fix.tributaries is not None:
+            e["includes_tributaries"] = fix.tributaries
+        targets = rules
+    else:
+        rule = next((r for r in rules if r.get("rule_id") == fix.scope), None)
+        if rule is None:
+            return {"resolvable": False, "why": f"no rule {fix.scope} on {entry_id}",
+                    "n_sections": None}
+        rule["extents"] = [ex]
+        if fix.tributaries is not None:
+            rule["includes_tributaries"] = fix.tributaries
+        targets = [rule]
+    reg, graph = _registry(), _graph()
+    covered = _covered_ids(e)
+    reasons: list = []
+    got = _resolve.resolve_extent(reg, graph, covered, ex, reasons=reasons)
+    if got is None:
+        return {"resolvable": False, "why": "the extent does not resolve: " + "; ".join(
+            f"{c}{': ' + d if d else ''}" for c, d in reasons) if reasons
+            else "the extent does not resolve", "n_sections": 0}
+    clip, _failed = _scope_sections(e, covered)
+    # the ENTRY's scope is drawn as itself (the stretch every rule is clipped to); a RULE's as the
+    # builder binds it (clipped, its tributaries walked)
+    total: set[str] = set(got.get("sections") or ()) if fix.scope == "entry" else set()
+    outcomes = {}
+    for r in targets:
+        binding, _d = _build_reach(e, r, reg, graph, covered=covered, clip=clip,
+                                   shared=_shared_waters(), tidal=_tidal(), owned=_rowed_waters())
+        outcomes[r.get("rule_id")] = binding.outcome.value
+        if fix.scope != "entry":
+            total |= set(binding.sections)
+    ids = sorted(total)
+    return _json_safe({"resolvable": True, "why": None, "n_sections": len(ids),
+                       "outcomes": outcomes, "truncated": len(ids) > limit,
+                       "geojson": {"type": "FeatureCollection",
+                                   "features": _sections_geojson(ids[:limit], "preview")}})
+
+
 def split_review(sp: dict) -> dict:
     """WHAT THE CURATOR LEFT ON A CUT-POINT: its `_note` (the history of how it was placed, and
     what is still to verify) and the auto-proposal GRADE that note opens with — `[auto-proposal L]`

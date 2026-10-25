@@ -42,15 +42,40 @@ body {
 }
 
 /* ---- filter bar ---- */
+/* T191: one row (~32px) + a 2px progress line; the rest folds under "filters" */
+.filterbar-wrap { flex: 0 0 auto; background: var(--panel); border-bottom: 1px solid var(--border); }
 .filterbar {
   display: flex;
-  gap: 16px;
+  gap: 10px;
   align-items: center;
-  padding: 8px 14px;
+  padding: 3px 10px;
   background: var(--panel);
-  border-bottom: 1px solid var(--border);
-  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  min-height: 0;
 }
+.filterbar select { max-width: 230px; }
+.filterbar .progress.slim { font-size: 12px; }
+.filterbar-line { height: 2px; background: #e5e7eb; }
+.filterbar-line i { display: block; height: 100%; background: var(--ok-border); }
+.filterbar-more { flex-wrap: wrap; border-top: 1px solid var(--border); padding: 4px 10px; gap: 14px; }
+
+/* T191: the extent-fix editor */
+.extent-fix { margin-top: 6px; padding: 6px 8px; border: 1px dashed #db2777; border-radius: 4px; background: #fdf2f8; font-size: 12px; }
+.extent-fix .fix-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 3px 0; }
+.extent-fix .fix-row .k { color: var(--muted); min-width: 70px; }
+.extent-fix .spacer { flex: 1; }
+.extent-fix select, .extent-fix input { font-size: 12px; padding: 2px 4px; max-width: 260px; }
+.extent-fix .fix-check { display: inline-flex; gap: 3px; align-items: center; }
+.extent-fix .fix-chosen { color: #9d174d; font-weight: 600; }
+.extent-fix .chip-tag .x { border: 0; background: none; cursor: pointer; padding: 0 0 0 3px; }
+.fix-search { position: relative; display: inline-block; }
+.fix-hits { position: absolute; z-index: 30; left: 0; top: 100%; min-width: 320px; max-height: 240px; overflow-y: auto;
+  margin: 2px 0 0; padding: 0; list-style: none; background: var(--panel); border: 1px solid var(--border);
+  box-shadow: 0 4px 12px rgba(0,0,0,.12); }
+.fix-hits li { padding: 4px 8px; cursor: pointer; }
+.fix-hits li:hover { background: #fce7f3; }
+.fix-open { margin-top: 4px; }
 .filterbar label {
   color: var(--muted);
   margin-right: 4px;

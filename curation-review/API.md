@@ -175,7 +175,18 @@ answers: {T, R, P, A: y | n | ?}, problem?, note, reviewer, pages?, seconds?, tr
 lake_split_later?}`. **T189:** `tributaries` `{"entry" | rule_id: include | exclude}` is the
 reviewer's call (a rule mark calls only its own rule); `lake_split_later` puts the target on the
 deferred lake-split list (`GET /api/review/lake-splits`, `marks.lake_splits_later`; CLI
-`python -m pipeline.regs.review.tickets --lake-splits`). Both live in the mark — never a file edit. **T184:** scope
+`python -m pipeline.regs.review.tickets --lake-splits`). Both live in the mark — never a file edit.
+**T191:** `extent_fix?` `[{scope: "entry" | rule_id, op, points: [{kind: split | confluence |
+lake_inlet | lake_outlet | coord, split_id?, name?, item_id?, coord?: [lon, lat]}], items: [registry
+id], tributaries?: bool | null, area?}]` — the reviewer's proposed extent (`marks.ExtentFix`): `op` is
+the catalogue's own (`marks.OP_POINTS`: whole 0, upstream_of 1, downstream_of 1, between 2, within /
+rest / steelhead_waters 0), one fix per scope, a rule mark fixes only its rule, only on a wrong or
+unsure mark. In the ticket as `- **Extent fix:**` JSON (`parse_ticket` reads it back) for T185.
+Its reads: `GET /api/extent-fix/ops` (ops, point counts, the owner's words), `GET
+/api/splits/search?q=` (curated splits by id / label / water), `GET /api/items/search?q=&kind=`
+(registry items by name), `GET /api/entries/{id}/extent-preview?fix=<ExtentFix JSON>` →
+`{resolvable, why, n_sections, outcomes, truncated, geojson}` — `build_reach` on an in-memory copy;
+a NEW point is `resolvable: false` until T185 builds it. **T184:** scope
 `split` is refused (`422`, "A split is not marked on its own: check it on the map of an entry whose
 rules name it, and mark that entry's Place wrong…").
 **T134:** with no `verdict` the answers decide it (`marks.verdict_from_answers`: any n → wrong, else

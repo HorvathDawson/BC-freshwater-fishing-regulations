@@ -111,10 +111,18 @@ def ticket_text(mark, *, entry: Mapping | None = None, split: Mapping | None = N
         lines.append("- **Tributaries:** " + " · ".join(f"{k} {v}" for k, v in mark.tributaries.items()))
     if mark.lake_split_later:
         lines.append("- **Lake split later:** yes")
+    if mark.extent_fix:
+        # T191: THE PROPOSED EXTENT, machine-readable on one line (T185 builds the edit from it;
+        # `parse_ticket` reads it back) and in words under "## Proposed extent"
+        lines.append("- **Extent fix:** `" + json.dumps(
+            [f.model_dump(mode="json", exclude_none=True) for f in mark.extent_fix],
+            ensure_ascii=False, separators=(",", ":")) + "`")
     if status and status.get("status") == "stale":
         lines.append("- **Now:** changed since marked (" + ", ".join(status.get("reasons") or [])
                      + ") — read it again before fixing")
     lines += ["", "## What the reviewer said", ""] + _quote(mark.note) + [""]
+    if mark.extent_fix:
+        lines += ["## Proposed extent", ""] + [f"- {fix_words(f)}" for f in mark.extent_fix] + [""]
     if entry is not None:
         lines += ["## The entry", ""]
         lines.append(f"{entry.get('name', '')} (`{entry.get('entry_id', '')}`), printed p. "
@@ -176,7 +184,35 @@ def parse_ticket(text: str) -> dict:
         "tributaries": dict(part.rsplit(" ", 1) for part in
                             filter(None, got.get("Tributaries", "").split(" · "))),
         "lake_split_later": got.get("Lake split later") == "yes",
+        "extent_fix": json.loads(tick(got["Extent fix"])) if "Extent fix" in got else [],
     }
+
+
+def point_words(p) -> str:
+    """One proposed split point in words (T191)."""
+    if p.kind == "split":
+        return f"split `{p.split_id}`"
+    if p.kind == "coord":
+        return f"NEW point at {p.coord[1]:.5f}, {p.coord[0]:.5f} (lat, lon)"
+    what = {"confluence": "NEW cut at the confluence of", "lake_inlet": "NEW cut at the inlet of",
+            "lake_outlet": "NEW cut at the outlet of"}[p.kind]
+    return f"{what} {p.name or p.item_id}" + (f" (`{p.item_id}`)" if p.name and p.item_id else "")
+
+
+def fix_words(f) -> str:
+    """A proposed extent (`marks.ExtentFix`) in words: scope, op (the owner's word), points,
+    items and tributaries."""
+    from pipeline.regs.review.marks import OP_WORDS
+    who = "the entry" if f.scope == "entry" else f"rule `{f.scope}`"
+    pts = " and ".join(point_words(p) for p in f.points)
+    words = f"{who}: {OP_WORDS[f.op]}" + (f" {pts}" if pts else "")
+    if f.area:
+        words += f" {f.area}"
+    if f.items:
+        words += " · on " + ", ".join(f"`{i}`" for i in f.items)
+    if f.tributaries is not None:
+        words += " · tributaries " + ("included" if f.tributaries else "not included")
+    return words
 
 
 def mark_fields(mark) -> dict:
@@ -185,7 +221,8 @@ def mark_fields(mark) -> dict:
             "verdict": mark.verdict, "answers": dict(mark.answers), "problem": mark.problem,
             "note": mark.note, "reviewer": mark.reviewer, "date": mark.date,
             "pages": list(mark.pages), "pdf_sha256": mark.pdf_sha256,
-            "tributaries": dict(mark.tributaries), "lake_split_later": mark.lake_split_later}
+            "tributaries": dict(mark.tributaries), "lake_split_later": mark.lake_split_later,
+            "extent_fix": [f.model_dump(mode="json", exclude_none=True) for f in mark.extent_fix]}
 
 
 def export(marks: Iterable, *, entries: Mapping[str, Mapping] | None = None,

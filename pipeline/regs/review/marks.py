@@ -92,6 +92,8 @@ REFUSAL_WORDS: tuple[tuple[str, str], ...] = (
     ("unsure needs a check answered ?", "Unsure needs a check answered ? and none answered n."),
     ("deferred needs a note saying why", "To defer, write a note saying why."),
     ("a mark needs the reviewer's name", "Type your name first: every mark names its reviewer."),
+    ("an extent fix is proposed on a wrong or unsure mark",
+     "A proposed extent fix says the extent is wrong: answer P n (or ?) to record it."),
 )
 
 
@@ -123,6 +125,78 @@ def refusal_words(msg: str, field: str | None = None) -> str:
         if phrase in m:
             return words
     return m
+
+
+#: T191: THE EXTENT OPS A REVIEWER CAN PROPOSE, by the catalogue's own names (`entry_models.Op`),
+#: and how many split points each takes. The screen shows the owner's words (`OP_WORDS`).
+#: `within` names an area instead of points; `rest` and `steelhead_waters` take neither (their
+#: siblings are the entry's other rules — the proposal says which in the note).
+OP_POINTS: dict[str, int] = {"whole": 0, "upstream_of": 1, "downstream_of": 1, "between": 2,
+                             "within": 0, "rest": 0, "steelhead_waters": 0}
+OP_WORDS: dict[str, str] = {"whole": "whole", "upstream_of": "upstream",
+                            "downstream_of": "downstream", "between": "between",
+                            "within": "within an area", "rest": "the rest of the water",
+                            "steelhead_waters": "steelhead waters"}
+#: T191: what a proposed split point is anchored to. `split`: a curated split (splits.json id);
+#: the others are a NEW point, by the anchor types the atlas resolves (`AnchorType`, T164):
+#: `confluence` (a named tributary's mouth), `lake_inlet` / `lake_outlet` (a lake's edge where the
+#: water enters / leaves it — a `lake` anchor) and `coord` (a map click, lon/lat — a `point` anchor).
+PointKind = Literal["split", "confluence", "lake_inlet", "lake_outlet", "coord"]
+
+
+class FixPoint(BaseModel):
+    """One split point of a proposed extent (T191). Never a file edit: T185 turns it into a
+    proposal (an existing split's id, or a NEW split of this anchor type)."""
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    kind: PointKind
+    split_id: Optional[str] = Field(default=None, description="kind split: the curated split's id")
+    name: Optional[str] = Field(default=None, description="the tributary (confluence) or lake named")
+    item_id: Optional[str] = Field(default=None, description="its registry id, when picked")
+    coord: Optional[tuple[float, float]] = Field(default=None, description="kind coord: (lon, lat)")
+
+    @model_validator(mode="after")
+    def _anchored(self) -> "FixPoint":
+        if self.kind == "split":
+            if not (self.split_id or "").strip():
+                raise ValueError("a split point names its split")
+        elif self.kind == "coord":
+            if self.coord is None:
+                raise ValueError("a map point needs its coordinates")
+            lon, lat = self.coord
+            if not (-140.0 <= lon <= -113.0 and 48.0 <= lat <= 60.5):
+                raise ValueError(f"a map point is in BC (lon, lat), not at {list(self.coord)}")
+        elif not ((self.name or "").strip() or (self.item_id or "").strip()):
+            raise ValueError(f"a {self.kind} point names its "
+                             + ("tributary" if self.kind == "confluence" else "lake"))
+        return self
+
+
+class ExtentFix(BaseModel):
+    """THE REVIEWER'S PROPOSED EXTENT for the entry's scope or one rule (T191): `op` (the
+    catalogue's own name, `OP_POINTS`), its split points (as many as the op takes), the items it
+    holds on (registry ids; empty = the entry's own waters) and whether it takes in its
+    tributaries (None = no call). Recorded in the mark; T185 turns it into a proposed edit."""
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    scope: str = Field(..., min_length=1, description='"entry" or a rule id')
+    op: str
+    points: list[FixPoint] = Field(default_factory=list)
+    items: list[str] = Field(default_factory=list)
+    tributaries: Optional[bool] = None
+    area: Optional[str] = Field(default=None, description="op within: the area (id or name)")
+
+    @model_validator(mode="after")
+    def _shape(self) -> "ExtentFix":
+        if self.op not in OP_POINTS:
+            raise ValueError(f"an extent fix's op is one of {list(OP_POINTS)}, not {self.op!r}")
+        want = OP_POINTS[self.op]
+        if len(self.points) != want:
+            raise ValueError(f"extent op {OP_WORDS[self.op]} takes {want} split point"
+                             f"{'' if want == 1 else 's'}, not {len(self.points)}")
+        if (self.op == "within") != bool((self.area or "").strip()):
+            raise ValueError("within names its area; no other op does")
+        if len(set(self.items)) != len(self.items):
+            raise ValueError("an extent fix lists each item once")
+        return self
 
 
 class RecordPrint(BaseModel):
@@ -174,6 +248,10 @@ class Mark(BaseModel):
     #: T189: "in the future this will need a lake split" (owner, on Dragon Lake) — the target is
     #: a lake divided into areas, deferred (RULINGS K5); `lake_splits_later` lists every one.
     lake_split_later: bool = False
+    #: T191: THE REVIEWER'S PROPOSED EXTENT FIX(ES), structured — at most one per scope ("entry"
+    #: or a rule id), on the same keys as `tributaries`. Only on a wrong or unsure mark: those are
+    #: the marks that become tickets (`tickets.TICKET_VERDICTS`), and a fix says the extent is wrong.
+    extent_fix: list[ExtentFix] = Field(default_factory=list)
 
     @field_validator("reviewer")
     @classmethod
@@ -229,6 +307,21 @@ class Mark(BaseModel):
                 raise ValueError(f"a tributary call names {bad}: not "
                                  + ("this mark's rule" if self.scope == "rule"
                                     else "the entry or one of its rules"))
+        if self.extent_fix:
+            if self.scope == "split":
+                raise ValueError("a split mark proposes no extent fix")
+            if self.verdict not in ("wrong", "unsure"):
+                raise ValueError("an extent fix is proposed on a wrong or unsure mark")
+            scopes = [f.scope for f in self.extent_fix]
+            if len(set(scopes)) != len(scopes):
+                raise ValueError("one extent fix per scope")
+            ok = ({self.rule_id} if self.scope == "rule" else
+                  {ENTRY_KEY} | {k.split(":", 1)[1] for k in keys if k.startswith("rule:")})
+            bad = sorted(set(scopes) - ok)
+            if bad:
+                raise ValueError(f"an extent fix names {bad}: not "
+                                 + ("this mark's rule" if self.scope == "rule"
+                                    else "the entry or one of its rules"))
         if self.lake_split_later and self.scope == "split":
             raise ValueError("a lake split later is marked on an entry or a rule, not a split")
         return self
@@ -245,7 +338,7 @@ class Mark(BaseModel):
 
 #: fields a line leaves out while they hold their default (T189 added them): a mark without them
 #: is the same line it was before they existed
-_OMIT_DEFAULT = {"tributaries": {}, "lake_split_later": False}
+_OMIT_DEFAULT = {"tributaries": {}, "lake_split_later": False, "extent_fix": []}
 
 
 def line(mark: Mark) -> str:

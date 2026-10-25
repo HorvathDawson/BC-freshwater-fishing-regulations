@@ -37,6 +37,11 @@ interface Props {
   /** T189: a rule block's "show on the map" — draw this rule's reach (`n` bumps on each click,
    *  so clicking the same rule again draws it again after the reviewer picked another) */
   showRule?: { id: string | null; n: number };
+  /** T191: the proposed extent's preview (its sections, and its points as `kind: fix_point`),
+   *  drawn in magenta over everything; null clears it */
+  preview?: GeoJSON.FeatureCollection | null;
+  /** T191: while set, a map click is a NEW split point (lon, lat) for the extent-fix editor */
+  onPick?: ((lnglat: [number, number]) => void) | null;
 }
 
 /** a named split's colour: amber while it is still to verify (an open auto-proposal / "Verify:"),
@@ -127,7 +132,10 @@ export function MapPanel({
   itemId, alsoItemIds = [], referencedSplitIds = [], unusedSplitIds = [], selectedSplitId = null,
   onSelectSplit, reloadKey = 0, focusItemId = null,
   reaches = null, rules = [], reachOf = {}, entryId = null, namedSplits = null, showRule,
+  preview = null, onPick = null,
 }: Props) {
+  const picking = useRef(onPick);
+  picking.current = onPick;
   const [showTribs, setShowTribs] = useState(false);
   const [nTribs, setNTribs] = useState<number | null>(null);
   // What the selected rule resolves to (builder's answer), or null when we fell back to the
@@ -217,6 +225,7 @@ export function MapPanel({
           tribs: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
           named: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
           measure: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
+          preview: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
         },
         layers: [
           ...layers("protomaps", LIGHT),
@@ -287,6 +296,23 @@ export function MapPanel({
             paint: { "text-color": ["case", ["get", "to_verify"], "#92400e", NAMED_COLOR],
                      "text-halo-color": "#fff", "text-halo-width": 2,
                      "text-opacity": ["case", ["get", "_on"], 1, 0.35] } },
+          // T191: THE PROPOSED EXTENT — magenta, over the item, under the labels
+          { id: "preview-fill", type: "fill", source: "preview",
+            filter: ["==", ["geometry-type"], "Polygon"],
+            paint: { "fill-color": "#db2777", "fill-opacity": 0.3 } },
+          { id: "preview-lines", type: "line", source: "preview",
+            filter: ["==", ["geometry-type"], "LineString"],
+            paint: { "line-color": "#db2777", "line-width": 5, "line-opacity": 0.8 } },
+          { id: "preview-pts", type: "circle", source: "preview",
+            filter: ["==", ["geometry-type"], "Point"],
+            paint: { "circle-radius": 8, "circle-color": "#db2777",
+                     "circle-stroke-color": "#fff", "circle-stroke-width": 2.5 } },
+          { id: "preview-labels", type: "symbol", source: "preview",
+            filter: ["==", ["geometry-type"], "Point"],
+            layout: { "text-field": ["get", "label"], "text-size": 12, "text-offset": [0, -1.3],
+                      "text-anchor": "bottom", "text-font": ["Noto Sans Medium"],
+                      "text-allow-overlap": true },
+            paint: { "text-color": "#9d174d", "text-halo-color": "#fff", "text-halo-width": 2 } },
           { id: "measure-line", type: "line", source: "measure",
             filter: ["==", ["geometry-type"], "LineString"],
             paint: { "line-color": "#7c3aed", "line-width": 2, "line-dasharray": [2, 1] } },
@@ -303,6 +329,10 @@ export function MapPanel({
     const m = map.current;
     // measure mode: each click drops a point (a 3rd click starts over)
     m.on("click", (e) => {
+      if (picking.current) {                         // T191: a NEW point for the extent fix
+        picking.current([Number(e.lngLat.lng.toFixed(6)), Number(e.lngLat.lat.toFixed(6))]);
+        return;
+      }
       if (!measuring.current) return;
       const p: [number, number] = [e.lngLat.lng, e.lngLat.lat];
       setPts((prev) => (prev.length >= 2 ? [p] : [...prev, p]));
@@ -479,8 +509,24 @@ export function MapPanel({
 
   useEffect(() => {
     const m = map.current;
-    if (m) m.getCanvas().style.cursor = measure ? "crosshair" : "";
-  }, [measure]);
+    if (m) m.getCanvas().style.cursor = measure || onPick ? "crosshair" : "";
+  }, [measure, onPick]);
+
+  // T191: the proposed extent's preview; fit to it when it carries sections
+  useEffect(() => {
+    const m = map.current;
+    if (!m) return;
+    whenReady(m, () => {
+      const src = m.getSource("preview") as maplibregl.GeoJSONSource | undefined;
+      if (!src) return;
+      const fc = preview ?? { type: "FeatureCollection", features: [] };
+      src.setData(fc);
+      if ((preview?.features ?? []).some((f) => f.geometry?.type !== "Point")) {
+        const b = bounds(fc as GeoJSON.FeatureCollection);
+        if (b) m.fitBounds(b, { padding: 50, maxZoom: 13, duration: 500 });
+      }
+    });
+  }, [preview]);
 
   const measureDist = pts.length === 2 ? haversine(pts[0], pts[1]) : null;
 

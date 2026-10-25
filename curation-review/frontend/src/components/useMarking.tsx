@@ -26,7 +26,7 @@ interface Opts {
   /** reset every checklist when this changes (another entry opened) */
   resetOn: string;
   /** T189: what the mark carries besides the checks (tributary calls, a lake split later) */
-  extra?: Pick<MarkPost, "tributaries" | "lake_split_later">;
+  extra?: Pick<MarkPost, "tributaries" | "lake_split_later" | "extent_fix">;
 }
 
 /* THE MARKING, ONE PLACE (T134): the checklist state per target, the keys, and the one write —
@@ -66,6 +66,7 @@ export function useMarking({ key, mark, onRecorded, link, onToggleMap, resetOn, 
       ...(extra?.tributaries && Object.keys(extra.tributaries).length
         ? { tributaries: extra.tributaries } : {}),
       ...(extra?.lake_split_later ? { lake_split_later: true } : {}),
+      ...(extra?.extent_fix?.length ? { extent_fix: extra.extent_fix } : {}),
       ...(defer ? { verdict: "deferred" as const } : {}),
     };
     setBusy(true);

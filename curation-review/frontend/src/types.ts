@@ -404,6 +404,7 @@ export interface MarkView {
   seconds?: number | null;
   tributaries?: Record<string, TribCall>;
   lake_split_later?: boolean;
+  extent_fix?: ExtentFix[];
   status: VerifyStatus;
   reasons: StaleReason[];
 }
@@ -757,6 +758,41 @@ export interface MarkPost {
   tributaries?: Record<string, TribCall>;
   /** T189: the target needs a lake split later (a lake divided into areas; RULINGS K5) */
   lake_split_later?: boolean;
+  /** T191: the reviewer's proposed extent(s), one per scope — `marks.ExtentFix` */
+  extent_fix?: ExtentFix[];
+}
+
+/** T191: the catalogue's extent ops (`marks.OP_POINTS`), by their own names */
+export type ExtentOp = "whole" | "upstream_of" | "downstream_of" | "between" | "within" | "rest"
+  | "steelhead_waters";
+export type FixPointKind = "split" | "confluence" | "lake_inlet" | "lake_outlet" | "coord";
+export interface FixPoint {
+  kind: FixPointKind;
+  split_id?: string;
+  name?: string;
+  item_id?: string;
+  /** kind coord: [lon, lat] */
+  coord?: [number, number];
+}
+/** T191: a proposed extent, recorded IN THE MARK (never a file edit; T185 proposes the edit) */
+export interface ExtentFix {
+  scope: string;              // "entry" or a rule id
+  op: ExtentOp;
+  points: FixPoint[];
+  items: string[];
+  tributaries?: boolean | null;
+  area?: string | null;
+}
+export interface ExtentOpInfo { op: ExtentOp; points: number; words: string }
+export interface SplitHit { id: string; label: string; water: string; kind?: string | null }
+export interface ItemHit { id: string; name: string; kind: string; mus: string[] }
+export interface ExtentPreview {
+  resolvable: boolean;
+  why: string | null;
+  n_sections: number | null;
+  outcomes?: Record<string, string>;
+  truncated?: boolean;
+  geojson?: GeoJSON;
 }
 
 /** T189: a reviewer's tributary call — the water's tributaries should be in, or out */

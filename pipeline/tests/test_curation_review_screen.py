@@ -174,8 +174,33 @@ _HEAVY_READS = {"/api/items/{item_id}/geojson", "/api/items/{item_id}/tributarie
                 "/api/synopsis.pdf"}
 _PARAMS = {"entry_id": ADAM, "rule_id": "adam_river.r1",
            "item_id": "gnis:28136", "filename": "page_016_row_000.png", "printed": "14"}
+#: T191: the extent-fix editor's reads — a split search, a water search, a preview that resolves
+_FIX = {"scope": "adam_river.r1", "op": "upstream_of",
+        "points": [{"kind": "split", "split_id": "adam_river__hwy_19_bridge"}]}
 _QUERY = {"/api/answer": {"sid": 1, "date": "2026-07-01",
-                                                               "fish": "rainbow_trout"}}
+                                                               "fish": "rainbow_trout"},
+          "/api/splits/search": {"q": "adam"}, "/api/items/search": {"q": "adam"},
+          "/api/entries/{entry_id}/extent-preview": {"fix": json.dumps(_FIX)}}
+
+
+def test_the_extent_fix_reads_search_and_preview_without_writing(env):
+    """T191: the editor's reads. Ops are the catalogue's own names; a split and a water are found
+    by name; a fix on an existing split previews through the builder (sections + geometry); a NEW
+    point says it cannot be previewed until it is built; a malformed fix is a 422."""
+    c = env["client"]
+    ops = {o["op"]: (o["points"], o["words"]) for o in c.get("/api/extent-fix/ops").json()["ops"]}
+    assert ops["between"] == (2, "between") and ops["upstream_of"] == (1, "upstream")
+    assert any(h["id"] == "adam_river__hwy_19_bridge"
+               for h in c.get("/api/splits/search", params={"q": "hwy 19"}).json())
+    assert any(h["name"] == "Adam River" for h in c.get("/api/items/search", params={"q": "adam"}).json())
+    got = c.get(f"/api/entries/{ADAM}/extent-preview", params={"fix": json.dumps(_FIX)}).json()
+    assert got["resolvable"] and got["n_sections"] > 0 and got["geojson"]["features"], got
+    new = {**_FIX, "points": [{"kind": "confluence", "name": "Eve River"}]}
+    got = c.get(f"/api/entries/{ADAM}/extent-preview", params={"fix": json.dumps(new)}).json()
+    assert got["resolvable"] is False and "NEW point" in got["why"]
+    bad = {**_FIX, "op": "between"}                                      # 1 point of 2
+    assert c.get(f"/api/entries/{ADAM}/extent-preview",
+                 params={"fix": json.dumps(bad)}).status_code == 422
 
 
 def _snapshot(root: Path) -> dict[str, bytes]:

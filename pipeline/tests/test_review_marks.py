@@ -806,3 +806,82 @@ def test_a_ticket_carries_the_calls_and_the_lake_split(world):
     assert "- **Tributaries:** entry include · adam_river.r1 exclude" in text
     assert "- **Lake split later:** yes" in text
     assert TK.parse_ticket(text) == TK.mark_fields(m)
+
+
+# --------------------------------------------------------------------------------------------
+# T191: a proposed extent fix — in the mark, structured, round-tripped through the ticket
+# --------------------------------------------------------------------------------------------
+
+_WRONG_P = {"verdict": "wrong", "answers": {"T": "y", "R": "y", "P": "n", "A": "y"},
+            "problem": "split misplaced", "note": "ends at the wrong bridge"}
+_FIXES = [
+    {"scope": "adam_river.r1", "op": "between",
+     "points": [{"kind": "split", "split_id": "adam_river__hwy_19_bridge"},
+                {"kind": "confluence", "name": "Eve River", "item_id": "gnis:1"}],
+     "items": ["gnis:2"], "tributaries": True},
+    {"scope": "entry", "op": "upstream_of", "points": [{"kind": "coord", "coord": [-125.5, 50.2]}]},
+    {"scope": "adam_river.r2", "op": "downstream_of",
+     "points": [{"kind": "lake_outlet", "name": "Adam Lake"}], "tributaries": False},
+]
+
+
+def test_the_extent_ops_are_the_catalogues_own():
+    from pipeline.regs.parsing.entry_models import Op
+    assert set(M.OP_POINTS) == {o.value for o in Op} == set(M.OP_WORDS)
+    assert (M.OP_POINTS["whole"], M.OP_POINTS["upstream_of"], M.OP_POINTS["downstream_of"],
+            M.OP_POINTS["between"]) == (0, 1, 1, 2)
+    assert [M.OP_WORDS[k] for k in ("whole", "upstream_of", "downstream_of", "between")] == \
+        ["whole", "upstream", "downstream", "between"]
+
+
+def test_an_extent_fix_is_kept_in_the_mark_and_its_line(world):
+    m = _m(world, **_WRONG_P, extent_fix=_FIXES)
+    assert [f.op for f in m.extent_fix] == ["between", "upstream_of", "downstream_of"]
+    assert m.extent_fix[1].points[0].coord == (-125.5, 50.2)
+    assert M.Mark.model_validate_json(M.line(m)) == m
+    assert "extent_fix" not in json.loads(M.line(world["marks"][0]))    # old lines unchanged
+
+
+@pytest.mark.parametrize("fix", [
+    {"scope": "entry", "op": "between", "points": [{"kind": "split", "split_id": "a"}]},  # 1 of 2
+    {"scope": "entry", "op": "whole", "points": [{"kind": "split", "split_id": "a"}]},    # whole: 0
+    {"scope": "entry", "op": "from"},                                   # not a catalogue op
+    {"scope": "entry", "op": "within"},                                 # within names its area
+    {"scope": "entry", "op": "upstream_of", "points": [{"kind": "split"}]},             # no id
+    {"scope": "entry", "op": "upstream_of", "points": [{"kind": "confluence"}]},        # no name
+    {"scope": "entry", "op": "upstream_of", "points": [{"kind": "coord", "coord": [2.3, 48.8]}]},
+    {"scope": "no_such.r9", "op": "whole"},                             # not a rule of the entry
+    {"scope": "entry", "op": "whole", "items": ["gnis:1", "gnis:1"]},
+])
+def test_a_malformed_extent_fix_is_refused(world, fix):
+    with pytest.raises(ValueError):
+        _m(world, **_WRONG_P, extent_fix=[fix])
+
+
+def test_an_extent_fix_rides_a_wrong_or_unsure_mark_once_per_scope(world):
+    fix = {"scope": "entry", "op": "whole"}
+    with pytest.raises(ValueError, match="wrong or unsure"):
+        _m(world, extent_fix=[fix])                                     # a verified mark
+    with pytest.raises(ValueError, match="once|one extent fix"):
+        _m(world, **_WRONG_P, extent_fix=[fix, fix])
+    assert M.refusal_words("Value error, an extent fix is proposed on a wrong or unsure mark") \
+        .startswith("A proposed extent fix says the extent is wrong")
+    rule_mark = json.loads(next(m for m in world["marks"] if m.scope == "rule").model_dump_json())
+    ok = M.Mark.model_validate({**rule_mark, **_WRONG_P,
+                                "extent_fix": [{"scope": "adam_river.r1", "op": "whole"}]})
+    assert ok.extent_fix[0].scope == "adam_river.r1"
+    with pytest.raises(ValueError):                                     # a rule mark: its rule only
+        M.Mark.model_validate({**rule_mark, **_WRONG_P, "extent_fix": [fix]})
+
+
+def test_a_ticket_carries_the_extent_fix_and_reads_it_back(world):
+    from pipeline.regs.review import tickets as TK
+    m = _m(world, **_WRONG_P, extent_fix=_FIXES)
+    text = TK.ticket_text(m)
+    assert "- **Extent fix:** `[" in text and "## Proposed extent" in text
+    assert ("- rule `adam_river.r1`: between split `adam_river__hwy_19_bridge` and NEW cut at the "
+            "confluence of Eve River (`gnis:1`) · on `gnis:2` · tributaries included") in text
+    assert "- the entry: upstream NEW point at 50.20000, -125.50000 (lat, lon)" in text
+    got = TK.parse_ticket(text)
+    assert got == TK.mark_fields(m)
+    assert [M.ExtentFix.model_validate(f) for f in got["extent_fix"]] == list(m.extent_fix)

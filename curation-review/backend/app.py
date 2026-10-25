@@ -156,6 +156,9 @@ class MarkPayload(BaseModel):
     tributaries: dict[str, str] = {}
     #: T189: the target needs a lake split later (a lake divided into areas; RULINGS K5)
     lake_split_later: bool = False
+    #: T191: the reviewer's proposed extent(s) — `marks.ExtentFix` {scope, op, points, items,
+    #: tributaries, area?}; validated by the mark model, never applied to a file
+    extent_fix: list[dict] = []
 
 
 @app.post("/api/marks")
@@ -381,6 +384,50 @@ def entry_splits(entry_id: str):
     proxy, on the map of each entry that uses it) — `reuse.entry_split_points`; the ones the served
     atlas cannot place are listed in `unplaced` with why."""
     got = reuse.entry_split_points(entry_id)
+    if got is None:
+        raise HTTPException(404, f"entry {entry_id} not found")
+    return got
+
+
+# --------------------------------------------------------------------------- T191: extent fix
+# All READS: the editor proposes an extent INTO THE MARK (`Mark.extent_fix`); nothing here writes.
+
+@app.get("/api/extent-fix/ops")
+def extent_fix_ops():
+    """The ops a fix can propose — the catalogue's own names, their point counts, the owner's
+    words — and the point anchor kinds."""
+    from typing import get_args
+    from pipeline.regs.review import marks as M
+    return {"ops": [{"op": k, "points": n, "words": M.OP_WORDS[k]} for k, n in M.OP_POINTS.items()],
+            "point_kinds": list(get_args(M.PointKind))}
+
+
+@app.get("/api/splits/search")
+def splits_search(q: str = "", limit: int = 30):
+    """Curated splits (splits.json) whose id, label or water contains `q`."""
+    return reuse.search_splits(q, limit=limit)
+
+
+@app.get("/api/items/search")
+def items_search(q: str = "", kind: str | None = None, limit: int = 30):
+    """Registry items whose name contains `q` (a tributary, a lake, an item the extent holds on)."""
+    return reuse.search_items(q, kind=kind, limit=limit)
+
+
+@app.get("/api/entries/{entry_id}/extent-preview")
+def extent_preview(entry_id: str, fix: str, limit: int = 6000):
+    """THE PROPOSED EXTENT RESOLVED, READ ONLY (`reuse.extent_preview`): `fix` is one
+    `marks.ExtentFix` as JSON. Resolved by the builder's own `build_reach` on an in-memory copy of
+    the entry; a NEW point (not yet a split) cannot be resolved until T185 builds it, and the
+    answer says so (`resolvable: false`, `why`)."""
+    import json as _json
+    from pydantic import ValidationError
+    from pipeline.regs.review import marks as M
+    try:
+        f = M.ExtentFix.model_validate(_json.loads(fix))
+    except (ValueError, ValidationError) as ex:
+        raise HTTPException(422, str(ex))
+    got = reuse.extent_preview(entry_id, f, limit=limit)
     if got is None:
         raise HTTPException(404, f"entry {entry_id} not found")
     return got

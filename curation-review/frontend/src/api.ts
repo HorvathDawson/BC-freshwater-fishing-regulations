@@ -21,6 +21,11 @@ import type {
   ReviewView,
   Progress,
   Tier,
+  ExtentFix,
+  ExtentOpInfo,
+  ExtentPreview,
+  ItemHit,
+  SplitHit,
 } from "./types";
 
 async function getJSON<T>(url: string): Promise<T> {
@@ -120,4 +125,14 @@ export const api = {
   progress: () => getJSON<Progress>("/api/review/progress"),
   /** T133: every entry and split awaiting its build, and the command(s) to run */
   pendingBuild: () => getJSON<PendingBuild>("/api/build"),
+
+  // --- T191: the extent-fix editor (reads only; the fix rides the mark) ---
+  extentOps: () => getJSON<{ ops: ExtentOpInfo[]; point_kinds: string[] }>("/api/extent-fix/ops"),
+  searchSplits: (q: string) =>
+    getJSON<SplitHit[]>(`/api/splits/search?q=${encodeURIComponent(q)}`),
+  searchItems: (q: string, kind?: string) =>
+    getJSON<ItemHit[]>(`/api/items/search?q=${encodeURIComponent(q)}${kind ? `&kind=${kind}` : ""}`),
+  extentPreview: (entryId: string, fix: ExtentFix) =>
+    getJSON<ExtentPreview>(`/api/entries/${encodeURIComponent(entryId)}/extent-preview?fix=` +
+      encodeURIComponent(JSON.stringify(fix))),
 };
