@@ -75,10 +75,10 @@ def test_tributary_edge_reattaches_by_measure():
     assert {"M:0", "U:0"} <= tributary_node_ids(g, "X:120")
 
 
-def test_a_curated_split_takes_a_minted_boundary_beside_it():
-    """A curated split a few metres from a MINTED boundary (the auto border split) is that boundary:
-    it takes the place and the name, and the minted id stays an alias (how the Kootenay "Idaho border"
-    point lands on the border cut)."""
+def test_a_minted_boundary_beside_a_curated_split_moves_to_it():
+    """A curated split a few metres from a MINTED boundary (the auto border split) is that boundary —
+    but an authored cut never moves (owner 2026-10-24): the border cut shifts onto the authored measure,
+    the authored id names it and the minted id is an alias (the Kootenay "Idaho border" point)."""
     g, _ = _graph()
     split_graph_at(g, {}, [SplitPoint("border:X:0", "X", 120.0, "", "BC boundary", AnchorType.border,
                                       source="border")])
@@ -86,11 +86,37 @@ def test_a_curated_split_takes_a_minted_boundary_beside_it():
     applied: list = []
     near = SplitPoint("idaho_border", "X", 123.0, "", "Idaho border", AnchorType.point, source="curated")
     split_graph_at(g, {}, [near], applied=applied)
-    assert set(g.nodes) == before                        # no new node — reused the 120 boundary
-    assert applied[0].picked_up is True and applied[0].route_measure == 120.0
-    b = g.nodes["X:0"].upper_bound
-    assert b.boundary_id == "split:idaho_border" and b.label == "Idaho border"
-    assert "split:border:X:0" in b.aliases and g.nodes["X:120"].lower_bound == b
+    assert set(g.nodes) == before                        # no new node: the 120 cut moved
+    assert applied[0].picked_up is False and applied[0].route_measure == 123.0
+    lo, hi = g.nodes["X:0"], g.nodes["X:120"]
+    assert (lo.up_m, hi.down_m) == (123.0, 123.0) and lo.length_m == 123.0
+    b = lo.upper_bound
+    assert b.boundary_id == "split:idaho_border" and b.label == "Idaho border" and b.route_measure == 123.0
+    assert "split:border:X:0" in b.aliases and hi.lower_bound == b
+    assert "M:0" in tributaries_between(g, "X:120"), "Mid Creek (@150) stays above"
+
+
+def test_shifting_a_cut_rehomes_geometry_and_the_edges_it_passes():
+    """The minted cut at 500 moves to the authored 497: the 3 m of line and a tributary joining at
+    498 go to the upper piece, the continuation edge moves with the cut, each piece keeps its own
+    attributes (an out-of-B.C. flag stays on its side)."""
+    from pipeline.common.models import BoundaryKind, FlowEdge, SectionBoundary
+    border = SectionBoundary("split:border:1:500", BoundaryKind.border, 500.0, "BC boundary",
+                             source="border")
+    g = _line((0, 500, None, border), (500, 1000, border, None))
+    g.nodes["1:500"] = __import__("dataclasses").replace(g.nodes["1:500"], out_of_bc=True)
+    g.nodes["T:0"] = __import__("dataclasses").replace(g.nodes["1:0"], node_id="T:0", blk="T",
+                                                       lower_bound=None, upper_bound=None)
+    g.edges = [FlowEdge("1:500", "1:0", 500.0, 500.0, 0.0, kind="continuation"),
+               FlowEdge("T:0", "1:0", 498.0, 498.0, 0.0)]
+    geoms = {"1:0": LineString([(0, 0), (500, 0)]), "1:500": LineString([(500, 0), (1000, 0)])}
+    split_graph_at(g, geoms, [_p("idaho_border", 497.0)])
+    assert _pieces(g) == [(0.0, 497.0), (497.0, 1000.0)]
+    assert geoms["1:0"].length == 497.0 and geoms["1:500"].length == 503.0
+    assert g.edges[0].at_measure == 497.0 and (g.edges[0].x, g.edges[0].y) == (497.0, 0.0)
+    assert g.edges[1].to_node == "1:500", "the tributary at 498 is above the cut now"
+    assert g.nodes["1:500"].out_of_bc and not g.nodes["1:0"].out_of_bc
+    assert _at(g, 497)[1:] == ("split:idaho_border", "idaho_border", ("split:border:1:500",))
 
 
 def test_a_far_split_still_cuts():
@@ -429,7 +455,8 @@ def test_curated_cuts_too_close_for_two_stretches_are_both_cut_and_reported():
     conflicts: list = []
     split_graph_at(g, {}, [_p("a", 300.0), _p("b", 302.5)], conflicts=conflicts)
     assert _pieces(g) == [(0.0, 300.0), (300.0, 302.5), (302.5, 1000.0)]
-    assert conflicts == [{"blk": "1", "ids": ["split:a", "split:b"], "at_m": 300.0, "distance_m": 2.5}]
+    assert conflicts == [{"blk": "1", "kind": "authored_pair", "ids": ["split:a", "split:b"], "at_m": 300.0,
+                          "distance_m": 2.5}]
     assert [s["node"] for s in SG.slivers(g, before)] == ["1:300"]
 
 
@@ -453,16 +480,27 @@ def test_a_gauge_beyond_its_merge_distance_cuts():
     assert len(_pieces(g)) == 3
 
 
-def test_a_curated_split_relabels_a_standing_gauge():
+def test_a_curated_split_relabels_a_standing_gauge_and_the_gauge_moves():
     """One-directional: a curator authoring a name at a minted position names it (`gauge__08EB005`
-    became "above Babine River")."""
+    became "above Babine River") — at the AUTHORED measure: the minted cut moves, the name never does."""
     from pipeline.common.models import BoundaryKind, SectionBoundary
     gauge = SectionBoundary("split:gauge__08EB005", BoundaryKind.split, 500.0, "08EB005 · Skeena",
                             source="gauge")
     g = _line((0, 500, None, gauge), (500, 1000, gauge, None))
     split_graph_at(g, {}, [_p("skeena_river__above_babine_river", 500.22)])
-    assert _at(g, 500)[1:] == ("split:skeena_river__above_babine_river", "skeena_river__above_babine_river",
-                               ("split:gauge__08EB005",))
+    assert _pieces(g) == [(0.0, 500.22), (500.22, 1000.0)]
+    assert _at(g, 500.22)[1:] == ("split:skeena_river__above_babine_river",
+                                  "skeena_river__above_babine_river", ("split:gauge__08EB005",))
+
+
+def test_an_auto_point_within_a_sliver_joins_the_authored_measure():
+    """Area / border / length cuts join only the same point of each other, but an AUTHORED place within
+    `AUTHORED_MERGE_M` they join — at the authored measure."""
+    for src in ("area", "border", "length"):
+        g = _line((0, 1000, None, None))
+        split_graph_at(g, {}, [_p(f"{src}:x", 503.0, source=src), _p("signs", 500.0)])
+        assert _pieces(g) == [(0.0, 500.0), (500.0, 1000.0)], src
+        assert _at(g, 500)[1:] == ("split:signs", "signs", (f"split:{src}:x",)), src
 
 
 def test_an_auto_split_never_takes_a_bare_end():
@@ -473,13 +511,29 @@ def test_an_auto_split_never_takes_a_bare_end():
         assert _pieces(g) == [(0.0, 999.0), (999.0, 1000.0)], src
 
 
-def test_a_curated_split_takes_a_bare_end_within_a_sliver_and_at_edge_reaches_further():
-    """The Bella Coola head: FWA leaves no boundary where the Talchako meets the Atnarko, and the
-    Talchako split resolved 58 m below it — a 58 m stretch nobody wrote a rule about. 3 m away is the
-    end; 58 m away it is the end only when the split says it stands there (`at_edge`)."""
+def test_a_curated_split_a_sliver_from_an_end_stays_and_is_reported():
+    """An authored cut never moves: 3 m from the line's source end it is cut where it stands, the pair
+    is a `line_end` conflict, the sliver gate stops the build on the 3 m piece, and the proposal has
+    no anchor to offer (a source end has none)."""
+    from pipeline.atlas.splits import sliver_gate as SG
+    from pipeline.atlas.splits.sectionizer import place_points
     g = _line((0, 1000, None, None))
+    before = SG.short_pieces(g)
+    conflicts, proposals = [], []
+    place_points(g, [_p("talchako", 997.0)], conflicts=conflicts, proposals=proposals)
     split_graph_at(g, {}, [_p("talchako", 997.0)])
-    assert _pieces(g) == [(0.0, 1000.0)] and _at(g, 1000)[1] == "split:talchako"
+    assert _pieces(g) == [(0.0, 997.0), (997.0, 1000.0)]
+    assert conflicts == [{"blk": "1", "kind": "line_end", "ids": ["end:source", "split:talchako"],
+                          "at_m": 997.0, "distance_m": 3.0}]
+    assert proposals == [{"split_id": "talchako", "blk": "1", "kind": "line_end", "edge": "source",
+                          "distance_m": 3.0, "split_m": 997.0, "edge_m": 1000.0, "anchor": None}]
+    assert [s["node"] for s in SG.slivers(g, before)] == ["1:997"]
+
+    # at the MOUTH end the line's own confluence is the anchor offered
+    g, proposals = _line((0, 1000, None, None)), []
+    place_points(g, [_p("mouth_sign", 2.0)], proposals=proposals)
+    assert proposals[0]["edge"] == "mouth"
+    assert proposals[0]["anchor"] == {"type": "confluence", "tributary_blk": "1"}
 
     g = _line((0, 1000, None, None))
     split_graph_at(g, {}, [_p("talchako", 942.0)])
@@ -510,10 +564,40 @@ def test_at_edge_never_takes_another_authored_cut():
     assert _at(g, 1000)[1] == "split:someone_elses_bridge"
 
 
+def test_a_curated_split_a_sliver_from_a_lake_edge_stays_reported_and_proposed():
+    """Owner 2026-10-24: the authored point stays, the pair is a `lake_edge` conflict, and — since a cut
+    that close is usually meant to BE at the lake — a re-anchoring on the lake is PROPOSED (written,
+    never applied). The lake keeps its edge; the 1.5 m piece between stops the sliver gate."""
+    from pipeline.atlas.splits import sliver_gate as SG
+    from pipeline.atlas.splits.sectionizer import place_points
+    from pipeline.common.models import NodeKind, StreamNode
+    lake = _lake(1000, "329016195", "Great Central Lake")
+    g = _line((0, 1000, None, lake), (3000, 4000, _lake(3000, "329016195", "Great Central Lake"), None))
+    g.nodes["lake:329016195"] = StreamNode(node_id="lake:329016195", kind=NodeKind.lake,
+                                           wbk="329016195", gnis_id="17501")
+    before = SG.short_pieces(g)
+    conflicts, proposals = [], []
+    pts = [_p("dam_below", 998.5), _p("weir_above", 3004.0)]
+    placed = place_points(g, pts, conflicts=conflicts, proposals=proposals)
+    assert sorted((p.split_id, p.route_measure, p.picked_up) for p in placed) == \
+        [("dam_below", 998.5, False), ("weir_above", 3004.0, False)], "neither moves"
+    assert [(c["kind"], c["ids"], c["distance_m"]) for c in conflicts] == [
+        ("lake_edge", ["lake:329016195", "split:dam_below"], 1.5),
+        ("lake_edge", ["lake:329016195", "split:weir_above"], 4.0)]
+    assert [(p["split_id"], p["edge"], p["wbk"], p["gnis_id"], p["lake"], p["anchor"]) for p in proposals] == [
+        ("dam_below", "outlet", "329016195", "17501", "Great Central Lake",
+         {"type": "lake", "wbk": "329016195"}),
+        ("weir_above", "inlet", "329016195", "17501", "Great Central Lake",
+         {"type": "lake", "wbk": "329016195"})]
+    split_graph_at(g, {}, pts)
+    assert _at(g, 1000)[1:3] == ("lake:329016195", "Great Central Lake")
+    assert sorted(s["node"] for s in SG.slivers(g, before)) == ["1:3000", "1:998"]
+
+
 def test_authorship_is_the_source_never_the_id_spelling():
     g = _line((0, 1000, None, _lake(1000)))
     split_graph_at(g, {}, [_p("gauge__looks_minted", 999.0, source="curated")])
-    assert _at(g, 1000)[1] == "split:gauge__looks_minted", "a curated id spelled like a gauge is authored"
+    assert _at(g, 999)[1] == "split:gauge__looks_minted", "a curated id spelled like a gauge is authored"
     g = _line((0, 1000, None, _lake(1000)))
     split_graph_at(g, {}, [_p("looks_curated", 999.0, source="gauge")])
     assert _at(g, 1000)[1] == "lake:329016196", "a gauge spelled like a curated id still defers"

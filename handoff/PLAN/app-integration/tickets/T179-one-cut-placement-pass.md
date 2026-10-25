@@ -47,9 +47,19 @@ Built as designed, in `pipeline/atlas/splits/sectionizer.py` (`_plan_blk` collec
 - Authorship = `SplitPoint.source` / new `SectionBoundary.source`, set where each family is minted;
   `_auto_split`/`_pickup` and the 500 m sentinel are gone (`minted_id` stays for readers holding only an
   id: review app, bundle).
-- Authored: takes a lake edge / natural end / minted boundary within 5 m (SLIVER_M); never merged with
-  another authored cut by distance unless one spot (<1 m, AT_CUT_M); 1–5 m apart both are cut and the pair
-  goes to `split_conflicts.json` (the sliver gate then stops the build — 2026-10-06 ruling).
+- Authored: NEVER MOVES (owner 2026-10-24, follow-up commit). A minted boundary within 5 m (SLIVER_M) —
+  a standing border/gauge cut, or an area/border/length/gauge point in the same call — joins it AT THE
+  AUTHORED MEASURE: a standing cut is shifted (`_shift_cut`: both pieces keep id + attributes, geometry,
+  fids and the edges in between re-homed), the authored id canonical, the minted id an alias. A lake
+  edge / natural end within 5 m is not taken: the point is cut where it stands, the pair goes to
+  `split_conflicts.json` (`kind` lake_edge / line_end) and a re-anchoring proposal to
+  `split_lake_anchor_proposals.json` (lake: wbk, gnis_id, inlet/outlet, distance, `anchor` {type lake,
+  wbk}; mouth: `confluence` on its own blk; source end: `anchor` null). The sliver gate then stops the
+  build on the < 5 m piece — except a point on the LAKE side of the edge, which has no piece to cut and
+  becomes the edge's alias as before (no sliver, build continues; still reported). Never merged with
+  another authored cut by distance unless one spot (<1 m, AT_CUT_M); 1–5 m apart both are cut and the
+  pair goes to `split_conflicts.json` (`kind` authored_pair; the sliver gate stops the build —
+  2026-10-06 ruling).
 - `proximity_m` is projection-only. The 8 curated pickup radii became `"at_edge": true` (reach 300 m to a
   lake edge, end or minted boundary — never another authored cut); their `proximity_m` values stay as
   projection tolerances (unchanged projection).
@@ -71,7 +81,21 @@ Predicted binding diff (from the live `splits.resolved.json`; lake edges need th
 - Area cuts standing on a gauge boundary now name it (area canonical, gauge alias): end tokens only.
 - The 8 `at_edge` waters: unchanged if each radius took a lake edge / end; any that took another
   curated cut now cut separately — check Waneta (Pend d'Oreille) and Corra Linn first.
-- split_conflicts.json expected `[]` (current authored pairs are all < 0.03 m).
+- split_conflicts.json: authored pairs expected none (all < 0.03 m). NOT expected empty any more:
+  of the 23 curated points the live atlas records as picked up, the 8 `at_edge` are unchanged and the 2
+  lake anchors (Adams, Pennask) and the Thompson mouth sit exactly on their place; the other 12 either
+  stood > 5 m off (already cut separately under deef0cec) or < 5 m off and now: shift a minted cut
+  (Kootenay Idaho border onto the border cut) or stay + conflict + proposal at a lake edge / end — Stamp
+  (Great Central Lake dam, 0.5 m: a lake_edge conflict; stream side → the gate STOPS the build, the fix
+  is to accept the proposal or set at_edge), Morice/Bulkley (resolved at 0.0: a mouth line_end,
+  confluence proposal), and any of Ladore, Revelstoke, Koocanusa, Peace Canyon, Cayoosh, Elk railway,
+  Meziadin, Halfway within 5 m. Exact list needs the graph (atlas rebuild).
+- Follow-up unit tests: minted border cut shifts to the authored 123 m (Idaho border); shift re-homes
+  geometry / trib edge / continuation / out_of_bc per side; standing gauge moves to the authored
+  500.22 m; area/border/length within 5 m join the authored measure; lake edge 1.5 m / 4 m (outlet /
+  inlet) stay + conflict + lake proposal + slivers; source end 3 m stays (report-only), mouth gets a
+  confluence proposal. Mutation-checked: letting the authored take a near lake/end fails 2, not
+  shifting the minted cut fails 3, dropping the auto 5 m join fails 1.
 
 Left: atlas rebuild, reach run, rule AND gauge binding diff reviewed (subtract an old-vs-old diff: the
 atlas is not deterministic); every moved binding explained before promote.

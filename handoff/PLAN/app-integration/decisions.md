@@ -1279,3 +1279,7 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
   length) within 5 m join the authored point, not the reverse. A lake edge / natural line end within 5 m cannot move
   either: the authored point stays and the pair is reported (split_conflicts.json) for the owner, never a silent
   snap. Exception: the 8 `at_edge` splits, whose curated location IS the lake edge/end (the owner's own setting).
+- A curated cut within 5 m of a lake edge / line end is usually meant to BE there: besides staying put and being
+  reported, each pair writes a PROPOSAL to `split_lake_anchor_proposals.json` (next to split_conflicts.json) to
+  re-curate it as a `lake` anchor (wbk + gnis, inlet/outlet, distance) — or, at the line's own mouth, a
+  `confluence` anchor on its blk; a source end is report-only. Never applied: the owner accepts each (T185).

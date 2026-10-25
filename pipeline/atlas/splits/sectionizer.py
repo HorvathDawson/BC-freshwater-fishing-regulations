@@ -24,7 +24,7 @@ from collections import defaultdict
 from dataclasses import replace
 from typing import Optional
 
-from shapely.geometry import Point
+from shapely.geometry import LineString, Point
 from shapely.ops import substring
 
 from pipeline.common import tolerances as _tol
@@ -48,16 +48,22 @@ _ANCHOR_KIND = {"point": BoundaryKind.split, "line": BoundaryKind.split,
 #
 # Now, per blue line, every position is COLLECTED first — the boundaries already standing (lake edges,
 # earlier passes' cuts, the natural ends) and every new point — and then PLACED:
-#   1. An AUTHORED point (`SplitPoint.source` "curated" or "", set where it is minted) takes a lake edge,
-#      a natural end or a minted boundary standing within `AUTHORED_MERGE_M` (the Stamp dam 0.5 m from
-#      Great Central Lake); an `at_edge` point reaches `AT_EDGE_M` for one (the Bella Coola head, 58 m).
-#      Nearest pair first. Two AUTHORED positions are never merged by distance — both are real — unless
+#   1. An AUTHORED point (`SplitPoint.source` "curated" or "", set where it is minted) NEVER MOVES (owner
+#      2026-10-24). A minted boundary standing within `AUTHORED_MERGE_M` (a border cut from the earlier
+#      pass) joins IT: that cut is shifted onto the authored measure (`_shift_cut`), the authored id is
+#      canonical, the minted id an alias. A lake edge or a natural line end within `AUTHORED_MERGE_M` is
+#      NOT taken: the point is cut where it stands, the pair goes to `split_conflicts.json` (kind
+#      `lake_edge` / `line_end`) with a proposal to re-anchor the split on the lake / its own mouth
+#      (`split_lake_anchor_proposals.json` — the owner accepts it; no tool writes splits.json), and the
+#      sliver gate stops the build on the piece between. Only an `at_edge` point (its curated location
+#      IS the edge: the Stamp dam, the Bella Coola head, 58 m) still takes a lake edge, a natural end or
+#      a minted boundary within `AT_EDGE_M`, nearest pair first. Two AUTHORED positions are never merged by distance — both are real — unless
 #      they are one spot written twice (`SAME_SPOT_M`: the Thompson mouth authored on both waters, the
 #      Region 2/3 line on the Spuzzum confluence). Closer than `SLIVER_M` but not one spot, both are cut,
 #      the pair is reported as a CONFLICT and the sliver gate stops the build: fix the source (the
 #      2026-10-06 ruling — no snap, no merge, no metre floor).
 #   2. An AUTO point (gauge / area / border / length) joins the nearest standing boundary or authored
-#      place within its family's `MERGE_M`; the rest cluster among themselves. It never takes a BARE
+#      place within its family's `MERGE_M`, and any authored place within `AUTHORED_MERGE_M`; the rest cluster among themselves. It never takes a BARE
 #      natural end (that would name the end with a station code) and never relabels a name.
 #   3. Naming: an authored name wins; a lake edge yields only to an authored split (its label travels
 #      as `label:` so the registry still spells the bindable id); among auto ids border > area > gauge
@@ -69,8 +75,9 @@ _ANCHOR_KIND = {"point": BoundaryKind.split, "line": BoundaryKind.split,
 #: (`anchors._emit`, `border`, `area_splits`, `clean_cut`, `length_splits`) — never parsed from an id.
 AUTO_SOURCES = frozenset({"gauge", "area", "border", "length"})
 
-#: An authored point this close to a lake edge, a natural end or a minted boundary IS at it: the piece
-#: between would be a sliver (pipeline/common/tolerances.py).
+#: A minted boundary (or auto point) this close to an authored point joins it, at the authored measure;
+#: a lake edge or natural end this close is a conflict — the piece between would be a sliver
+#: (pipeline/common/tolerances.py).
 AUTHORED_MERGE_M = _tol.SLIVER_M     # 5 m
 #: Two AUTHORED points closer than this are one spot written twice and share one boundary. Farther
 #: apart they are two cuts, however close.
@@ -121,11 +128,18 @@ def _key(sp: SplitPoint):
 
 class _Place:
     """One place on a blue line: a position already standing (a piece end) or a new cut."""
-    __slots__ = ("m", "bnd", "existing", "end", "members")
+    __slots__ = ("m", "bnd", "existing", "end", "members", "edge", "from_m")
 
-    def __init__(self, m, bnd=None, existing=False, end=False):
-        self.m, self.bnd, self.existing, self.end = m, bnd, existing, end
+    def __init__(self, m, bnd=None, existing=False, end=False, edge=""):
+        self.m, self.bnd, self.existing, self.end, self.edge = m, bnd, existing, end, edge
         self.members: list[SplitPoint] = []
+        #: A standing MINTED cut moved onto an authored point: the measure it stood at (`_shift_cut`).
+        self.from_m: Optional[float] = None
+
+    @property
+    def stands(self) -> bool:
+        """Already cut where it is: nothing to cut or move, only to relabel."""
+        return self.existing and self.from_m is None
 
     def authored_names(self) -> list[str]:
         """The authored names already here: a curated cut standing, or authored points placed here."""
@@ -135,51 +149,95 @@ class _Place:
         return out + [f"split:{s.split_id}" for s in self.members if is_authored(s.source)]
 
 
-def _nearest(places, M: float, r: float):
+def _nearest(places, M: float, r: float, r_named: Optional[float] = None):
+    """The nearest place within `r` (`r_named` for a place an authored name stands at)."""
     best = None
     for p in places:
         d = abs(p.m - M)
-        if (d < r or d <= _tol.SAME_PLACE_M) and (best is None or (d, p.m) < (abs(best.m - M), best.m)):
+        rr = r_named if (r_named is not None and p.authored_names()) else r
+        if (d < rr or d <= _tol.SAME_PLACE_M) and (best is None or (d, p.m) < (abs(best.m - M), best.m)):
             best = p
     return best
 
 
-def _plan_blk(graph, blk, sps, nids, conflicts=None) -> list[_Place]:
+def _proposal(graph, blk, sp: SplitPoint, q: "_Place", kind: str, d: float) -> dict:
+    """A PROPOSAL (never applied — no tool writes splits.json, T185) to re-curate an authored point a
+    sliver from a lake edge / line end as anchored ON it: a `lake` anchor (wbk — the anchor the
+    split-alias lake boundaries use; note it emits both of the lake's edges on the blk) or, at the
+    line's own mouth, a `confluence` anchor on the blk itself. A source end has no anchor: report only."""
+    out = {"split_id": sp.split_id, "blk": blk, "kind": kind, "edge": q.edge or "",
+           "distance_m": round(d, 2), "split_m": round(sp.route_measure, 2), "edge_m": round(q.m, 2)}
+    if _is_lake(q.bnd):
+        wbk = str(q.bnd.boundary_id).split(":", 1)[1]
+        lake = graph.nodes.get(f"lake:{wbk}")
+        out.update(lake=q.bnd.label or "", wbk=wbk, gnis_id=getattr(lake, "gnis_id", "") or "",
+                   anchor={"type": "lake", "wbk": wbk})
+    elif q.edge == "mouth":
+        out.update(anchor={"type": "confluence", "tributary_blk": blk})
+    else:
+        out.update(anchor=None)
+    return out
+
+
+def _plan_blk(graph, blk, sps, nids, conflicts=None, proposals=None) -> list[_Place]:
     """COLLECT then PLACE every point of one blue line (the block comment above). Returns the places that
     received a point, mouth to source. Pure: nothing is cut or relabelled here."""
     pieces = [graph.nodes[n] for n in nids
               if graph.nodes.get(n) is not None and graph.nodes[n].kind == NodeKind.stream
               and graph.nodes[n].blk == blk]
     standing: dict[float, _Place] = {}
+    below_at: set[float] = set()                       # measures a piece ends at (a piece below)
+    above_at: set[float] = set()                       # measures a piece starts at (a piece above)
     if pieces:
         lo = min(n.down_m for n in pieces)
         hi = max(n.up_m for n in pieces)
         for n in pieces:
-            for m, b in ((n.down_m, n.lower_bound), (n.up_m, n.upper_bound)):
+            below_at.add(n.up_m)
+            above_at.add(n.down_m)
+            # a lake bounding a piece's TOP is the lake's outlet; bounding its BOTTOM, the inlet
+            for m, b, edge in ((n.down_m, n.lower_bound, "inlet"), (n.up_m, n.upper_bound, "outlet")):
+                if not _is_lake(b):
+                    edge = "mouth" if m <= lo else "source" if m >= hi else ""
                 p = standing.get(m)
                 if p is None:
-                    standing[m] = _Place(m, b, existing=True, end=(m <= lo or m >= hi))
+                    standing[m] = _Place(m, b, existing=True, end=(m <= lo or m >= hi), edge=edge)
                 elif p.bnd is None and b is not None:
-                    p.bnd = b
+                    p.bnd, p.edge = b, edge
     existing = sorted(standing.values(), key=lambda p: p.m)
 
-    # 1. AUTHORED. (a) Each takes a standing lake edge / end / minted boundary within reach, nearest pair
-    #    first, one authored point per place. (b) The rest join an authored name on the same spot, or
-    #    stand as their own cut.
+    def _shiftable(q: _Place, M: float) -> bool:
+        """A standing minted cut with a piece on each side, movable to M without crossing another."""
+        if q.end or _is_lake(q.bnd) or q.m not in below_at or q.m not in above_at:
+            return False
+        i = existing.index(q)
+        return ((i == 0 or existing[i - 1].m < M) and
+                (i == len(existing) - 1 or M < existing[i + 1].m))
+
+    # 1. AUTHORED — never moves. (a) An `at_edge` point takes a standing lake edge / end / minted
+    #    boundary within `AT_EDGE_M`; any other point takes only the same point, or a minted cut within
+    #    `AUTHORED_MERGE_M`, which moves onto IT. Nearest pair first, one authored point per place. A
+    #    lake edge / end within `AUTHORED_MERGE_M` is `near`: reported, never taken. (b) The rest join an
+    #    authored name on the same spot, or stand as their own cut.
     authored = sorted((s for s in sps if is_authored(s.source)), key=_key)
     takeable = [q for q in existing if not q.authored_names()]
-    pairs = []
+    pairs, near = [], []
     for sp in authored:
-        reach = AT_EDGE_M if sp.at_edge else AUTHORED_MERGE_M
         for q in takeable:
             d = abs(q.m - sp.route_measure)
-            if d < reach or d <= _tol.SAME_PLACE_M:
+            if d <= _tol.SAME_PLACE_M or (sp.at_edge and d < AT_EDGE_M):
                 pairs.append((d, q.m, _key(sp), sp, q))
+            elif not sp.at_edge and d < AUTHORED_MERGE_M:
+                if _shiftable(q, sp.route_measure):
+                    pairs.append((d, q.m, _key(sp), sp, q))
+                else:
+                    near.append((d, q.m, _key(sp), sp, q))
     taken: dict[int, _Place] = {}
     for _d, _m, _k, sp, q in sorted(pairs, key=lambda t: t[:3]):
         if id(sp) not in taken and not q.members:
             q.members.append(sp)
             taken[id(sp)] = q
+            if not sp.at_edge and abs(q.m - sp.route_measure) > _tol.SAME_PLACE_M:
+                q.from_m, q.m = q.m, sp.route_measure      # the minted cut moves, not the name
     new: list[_Place] = []
     named = [q for q in existing if q.authored_names()]
     for sp in authored:
@@ -194,15 +252,31 @@ def _plan_blk(graph, blk, sps, nids, conflicts=None) -> list[_Place]:
         held = sorted((p.m, p.authored_names()) for p in existing + new if p.authored_names())
         for (m1, n1), (m2, n2) in zip(held, held[1:]):
             if m2 - m1 < _tol.SLIVER_M:
-                conflicts.append({"blk": blk, "ids": sorted(set(n1) | set(n2)), "at_m": round(m1, 2),
-                                  "distance_m": round(m2 - m1, 2)})
+                conflicts.append({"blk": blk, "kind": "authored_pair", "ids": sorted(set(n1) | set(n2)),
+                                  "at_m": round(m1, 2), "distance_m": round(m2 - m1, 2)})
+    # An authored point a sliver from a lake edge / natural end: it stays, the pair is reported, and a
+    # re-anchoring is PROPOSED (it is usually meant to BE at the lake) for the owner to accept.
+    seen: set[int] = set()
+    for d, _m, _k, sp, q in sorted(near, key=lambda t: t[:3]):
+        if id(sp) in taken or id(sp) in seen:
+            continue
+        seen.add(id(sp))
+        kind = "lake_edge" if _is_lake(q.bnd) else "line_end" if q.end else "minted_edge"
+        mine = f"split:{sp.split_id}"
+        other = str(q.bnd.boundary_id) if q.bnd is not None else f"end:{q.edge or 'bare'}"
+        if conflicts is not None:
+            conflicts.append({"blk": blk, "kind": kind, "ids": sorted({mine, other}),
+                              "at_m": round(min(q.m, sp.route_measure), 2), "distance_m": round(d, 2)})
+        if proposals is not None:
+            proposals.append(_proposal(graph, blk, sp, q, kind, d))
 
-    # 2. AUTO: the nearest standing boundary or authored place within the family's distance — never a
-    #    BARE natural end. What is left clusters among itself, mouth to source.
+    # 2. AUTO: the nearest standing boundary or authored place within the family's distance (an
+    #    authored place within at least `AUTHORED_MERGE_M`: it joins the name, at the name's measure) —
+    #    never a BARE natural end. What is left clusters among itself, mouth to source.
     anchors = [p for p in existing if not (p.end and p.bnd is None)] + new
     rest: list[SplitPoint] = []
     for sp in sorted((s for s in sps if not is_authored(s.source)), key=_key):
-        p = _nearest(anchors, sp.route_measure, _merge_m(sp))
+        p = _nearest(anchors, sp.route_measure, _merge_m(sp), max(_merge_m(sp), AUTHORED_MERGE_M))
         if p is not None:
             p.members.append(sp)
         else:
@@ -269,21 +343,23 @@ def _stream_nids_by_blk(graph, blks) -> dict[str, list[str]]:
 
 
 def place_points(graph: StreamGraph, split_points: list[SplitPoint],
-                 conflicts: Optional[list] = None) -> list[SplitPoint]:
+                 conflicts: Optional[list] = None,
+                 proposals: Optional[list] = None) -> list[SplitPoint]:
     """Where each point WILL stand, without cutting: a copy at its place's measure, `picked_up` when it
     joins a standing boundary or another point's cut. Lets a caller judge what depends on the cut (the
     braid sweep) at the place the cut is made. Idempotent: `split_graph_at` places the result where this
-    said. ``conflicts`` collects every authored join `CONFLICT_M` or more apart."""
+    said. ``conflicts`` collects every authored point a sliver from another authored point, a lake edge
+    or a line end; ``proposals`` the lake / mouth re-anchorings offered for the latter two."""
     nids = _stream_nids_by_blk(graph, {sp.blk for sp in split_points})
     by_blk: dict[str, list[SplitPoint]] = defaultdict(list)
     for sp in split_points:
         by_blk[sp.blk].append(sp)
     out: list[SplitPoint] = []
     for blk in sorted(by_blk):
-        for place in _plan_blk(graph, blk, by_blk[blk], nids.get(blk, ()), conflicts):
-            canon = None if place.existing else _canonical(place)
+        for place in _plan_blk(graph, blk, by_blk[blk], nids.get(blk, ()), conflicts, proposals):
+            canon = None if place.stands else _canonical(place)
             for sp in place.members:
-                out.append(replace(sp, route_measure=place.m, picked_up=place.existing or sp is not canon))
+                out.append(replace(sp, route_measure=place.m, picked_up=place.stands or sp is not canon))
     return out
 
 
@@ -443,6 +519,99 @@ def _coincident(graph, blk, sp, by_blk=None) -> bool:
     return True
 
 
+def _concat(a, b):
+    """Two pieces' lines, end to end (the lower ends where the upper starts)."""
+    if a is None or a.is_empty:
+        return b
+    if b is None or b.is_empty:
+        return a
+    try:
+        return LineString(list(a.coords) + list(b.coords)[1:])
+    except (NotImplementedError, AttributeError):          # a MultiLineString: merge what touches
+        from shapely.ops import linemerge
+        return linemerge([a, b])
+
+
+def _shift_cut(graph, geoms, blk, frm: float, bnd: SectionBoundary, fid_index, by_blk=None,
+               edges_by_to=None, edges_by_from=None) -> bool:
+    """Move the standing cut at ``frm`` to ``bnd.route_measure`` — a MINTED cut joining an authored
+    point a sliver away (an authored cut never moves, owner 2026-10-24). The two pieces it separates
+    keep their own ids and attributes (an out-of-B.C. flag stays on its side); their measures,
+    geometry, fids and the edges between ``frm`` and the new measure are re-homed, and the bound on
+    both becomes ``bnd``. False (nothing changed) when there is no piece on each side or the move
+    would cross another boundary."""
+    M = bnd.route_measure
+    nids = list(by_blk.get(blk, ())) if by_blk is not None else list(graph.nodes)
+    lo = hi = None
+    for nid in nids:
+        n = graph.nodes.get(nid)
+        if n is None or n.kind != NodeKind.stream or n.blk != blk:
+            continue
+        if abs(n.up_m - frm) < 1e-6:
+            lo = nid
+        elif abs(n.down_m - frm) < 1e-6:
+            hi = nid
+    if lo is None or hi is None:
+        return False
+    A, B = graph.nodes[lo], graph.nodes[hi]
+    if not (A.down_m < M < B.up_m):
+        return False
+    gA, gB = geoms.get(lo), geoms.get(hi)
+    full = _concat(gA, gB)
+    cx = cy = 0.0
+    if full is not None and not full.is_empty:
+        a = min(max(M - A.down_m, 0.0), full.length)
+        pt = full.interpolate(a)
+        cx, cy = pt.x, pt.y
+        geoms[lo] = substring(full, 0.0, a)
+        geoms[hi] = substring(full, a, full.length)
+    fids = tuple(dict.fromkeys(tuple(A.member_fids) + tuple(B.member_fids)))
+    lo_ord, lo_mag, lo_fids = _repartition(fids, fid_index, A.down_m, M)
+    hi_ord, hi_mag, hi_fids = _repartition(fids, fid_index, M, B.up_m)
+    graph.nodes[lo] = replace(A, up_m=M, length_m=max(M - A.down_m, 0.0), upper_bound=bnd,
+                              stream_order=lo_ord if fid_index else A.stream_order,
+                              stream_magnitude=lo_mag if fid_index else A.stream_magnitude,
+                              member_fids=lo_fids if fid_index else A.member_fids)
+    graph.nodes[hi] = replace(B, down_m=M, length_m=max(B.up_m - M, 0.0), lower_bound=bnd,
+                              stream_order=hi_ord if fid_index else B.stream_order,
+                              stream_magnitude=hi_mag if fid_index else B.stream_magnitude,
+                              member_fids=hi_fids if fid_index else B.member_fids)
+
+    def _leaves_above(e) -> Optional[bool]:
+        if full is None or full.is_empty or (not e.x and not e.y):
+            return None
+        return A.down_m + full.project(Point(e.x, e.y)) >= M
+
+    def _move(i, field, new):
+        old = getattr(graph.edges[i], field)
+        graph.edges[i] = replace(graph.edges[i], **{field: new})
+        idx = edges_by_to if field == "to_node" else edges_by_from
+        if idx is not None:
+            idx[old] = [j for j in idx.get(old, []) if j != i]
+            idx.setdefault(new, []).append(i)
+
+    cand_to = (list(edges_by_to.get(lo, [])) + list(edges_by_to.get(hi, []))) if edges_by_to is not None \
+        else [i for i, e in enumerate(graph.edges) if e.to_node in (lo, hi)]
+    cand_from = (list(edges_by_from.get(lo, [])) + list(edges_by_from.get(hi, []))) \
+        if edges_by_from is not None else [i for i, e in enumerate(graph.edges) if e.from_node in (lo, hi)]
+    for i in sorted(set(cand_to) | set(cand_from)):
+        e = graph.edges[i]
+        if e.kind == "continuation" and e.from_node == hi and e.to_node == lo:
+            graph.edges[i] = replace(e, at_measure=M, x=cx, y=cy)      # the cut itself
+            continue
+        if i in cand_to:                                 # a tributary IN: by its measure
+            want = hi if e.at_measure >= M else lo
+            if e.to_node != want:
+                _move(i, "to_node", want)
+        if i in cand_from:                               # a flow OUT: by where it leaves the line
+            above = _leaves_above(graph.edges[i])
+            if above is not None:
+                want = hi if above else lo
+                if graph.edges[i].from_node != want:
+                    _move(i, "from_node", want)
+    return True
+
+
 def _split_one(graph, geoms, blk, sp, fid_index, by_blk=None, edges_by_to=None,
                edges_by_from=None, bnd: Optional[SectionBoundary] = None) -> bool:
     """Cut the piece around ``sp.route_measure``; the new bound is ``bnd`` (a placed boundary) or one
@@ -591,7 +760,14 @@ def split_graph_at(graph: StreamGraph, geoms: dict, split_points: list[SplitPoin
             bnd = _place_boundary(place)
             canon = _canonical(place)
             cut = False
-            if place.existing:
+            if place.from_m is not None:
+                # a standing MINTED cut joins the authored point: it moves, the name does not
+                cut = _shift_cut(graph, geoms, blk, place.from_m, bnd, fid_index, node_by_blk,
+                                 edges_by_to, edges_by_from)
+                if not cut:          # refused: cut the name where it is anyway; the sliver gate sees it
+                    cut = _split_one(graph, geoms, blk, canon, fid_index, node_by_blk,
+                                     edges_by_to, edges_by_from, bnd=bnd)
+            elif place.existing:
                 for nid in node_by_blk.get(blk, ()):        # the bound is shared by the pieces it separates
                     n = graph.nodes[nid]
                     patch = {}
@@ -609,7 +785,7 @@ def split_graph_at(graph: StreamGraph, geoms: dict, split_points: list[SplitPoin
                         _lake_alias(blk, sp)
             for sp in place.members:
                 at = _replace(sp, route_measure=place.m,
-                              picked_up=place.existing or (cut and sp is not canon))
+                              picked_up=place.stands or (cut and sp is not canon))
                 placed_by_blk[blk].append(at)
                 if applied is not None:
                     applied.append(at)

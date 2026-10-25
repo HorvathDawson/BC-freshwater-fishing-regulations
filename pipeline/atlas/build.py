@@ -787,16 +787,21 @@ def main() -> None:
         # ONE PLACEMENT (T179): where every curated + gauge point will stand, decided together and
         # before anything is cut, so the braid sweep below judges each cut where it is made.
         _conflicts: list = []
-        pts = place_points(graph, pts, conflicts=_conflicts)
+        _proposals: list = []
+        pts = place_points(graph, pts, conflicts=_conflicts, proposals=_proposals)
         if _conflicts:
-            # Two authored cuts closer than a sliver and not one spot: both are cut, so the sliver gate
-            # below stops the build on them. Named here, where the cause is.
-            print(f"  ** {len(_conflicts)} pair(s) of authored cuts too close to be two stretches — "
-                  "fix the source (split_conflicts.json):")
+            # An authored cut a sliver from another authored cut, a lake edge or a line end (it never
+            # moves): it is cut where it stands, so the sliver gate below stops the build on the piece
+            # between — unless it lies on the lake side, where it becomes the edge's alias. Named here.
+            print(f"  ** {len(_conflicts)} authored cut(s) a sliver from another boundary — fix the "
+                  "source (split_conflicts.json; re-anchorings in split_lake_anchor_proposals.json):")
             for _c in _conflicts[:20]:
-                print(f"      {' ~ '.join(_c['ids'])}  ({_c['distance_m']} m, blk {_c['blk']})")
+                print(f"      [{_c['kind']}] {' ~ '.join(_c['ids'])}  ({_c['distance_m']} m, blk {_c['blk']})")
         Path(args.out).mkdir(parents=True, exist_ok=True)
         (Path(args.out) / "split_conflicts.json").write_text(json.dumps(_conflicts, indent=1) + "\n")
+        # PROPOSED, never applied: the owner accepts each into splits.json (T185 — no tool writes it).
+        (Path(args.out) / "split_lake_anchor_proposals.json").write_text(
+            json.dumps(_proposals, indent=1) + "\n")
         # THE BRAID SWEEP (T67): which side channels each cut must also cut — only a network that
         # attaches to the host on BOTH sides of the cut, only the host's own water — judged on the graph
         # BEFORE these cuts are made. Applied after them, below.
