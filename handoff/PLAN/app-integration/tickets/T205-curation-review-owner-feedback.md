@@ -1,6 +1,6 @@
 # T205 — Curation review: zone entries without a map, species and sizes per rule, no pilot, a compact check widget
 
-Status: DONE
+Status: DONE (7a55e651)
 
 Source: the owner on the local curation review app (T189/T191/T164), 2026-10-26.
 

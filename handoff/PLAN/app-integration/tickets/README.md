@@ -249,7 +249,7 @@ use that as the sole source of future work."
 | T202 | tile size optimizations (basemap z13 options, attributes, precision, simplification) | OPEN | — | last band; size table + owner look per change |
 | T203 | app UI: jumpy "Flows into" chip over navigation, search always lands on the map, amber highlight | PARTIAL | 969f8ff3 | items 1-3 built; 4-5 (Kanaka end labels, non-adjacent stretches) need release data: one mark per meeting point + part stretches - see ticket Outcome |
 | T204 | a part's separate stretches and a mark at every place two parts meet (T203 items 4–5) | OPEN | — | pipeline + deliver rebuild + app |
-| T205 | curation review: zone entries without a map, species + sizes per rule, pilot removed, compact T/R/P/A widget, bigger show-on-map | DONE | — | owner tries it |
+| T205 | curation review: zone entries without a map, species + sizes per rule, pilot removed, compact T/R/P/A widget, bigger show-on-map | DONE | 7a55e651 | owner tries it |
 
 ## Order for open tickets
 
