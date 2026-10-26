@@ -5787,20 +5787,6 @@
          "rows": [
           {
            "book": [],
-           "key": "z2:trout_char_quota::trout_char_quota.r3",
-           "notes": [],
-           "quote": "2 hatchery steelhead over 50 cm allowed",
-           "role": "Beaten by “No Fishing for steelhead Fraser River Mainstem Aug 15-Dec 31” · for steelhead",
-           "title": "At most 2 hatchery steelhead over 50 cm (20 in) a day",
-           "trib": false
-          }
-         ],
-         "where": "Region 2 · region-wide"
-        },
-        {
-         "rows": [
-          {
-           "book": [],
            "key": "z2:hatchery_steelhead_stop::hatchery_steelhead_stop.r1",
            "notes": [],
            "quote": "When you have caught and retained your daily quota of hatchery steelhead from any water, you must stop fishing that water for the remainder of that day.",
@@ -5888,7 +5874,7 @@
      ],
      "k": "fold",
      "open": false,
-     "summary": "Overruled (8)"
+     "summary": "Overruled (7)"
     }
    ],
    "key": "src:r0",

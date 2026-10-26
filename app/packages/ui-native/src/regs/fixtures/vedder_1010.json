@@ -5744,10 +5744,10 @@
            "t": "book"
           }
          ],
-         "key": "z2:trout_char_quota::trout_char_quota.r3",
-         "quote": "2 hatchery steelhead over 50 cm allowed",
+         "key": "z2:trout_char_quota::trout_char_quota.r2b",
+         "quote": "1 over 50 cm (2 hatchery steelhead over 50 cm allowed)",
          "role": "A limit inside the total · for steelhead",
-         "title": "At most 2 hatchery steelhead over 50 cm (20 in) a day"
+         "title": "At most 2 trout or char over 50 cm (20 in) a day"
         },
         {
          "book": [
@@ -5807,20 +5807,6 @@
          "rows": [
           {
            "book": [],
-           "key": "z2:trout_char_quota::trout_char_quota.r2b",
-           "notes": [],
-           "quote": "1 over 50 cm (2 hatchery steelhead over 50 cm allowed)",
-           "role": "Beaten by “1 over 50 cm” · for cutthroat trout, Dolly Varden/bull trout, brook trout, brown trout and lake trout",
-           "title": "At most 2 trout or char over 50 cm (20 in) a day",
-           "trib": false
-          }
-         ],
-         "where": "Region 2 · region-wide"
-        },
-        {
-         "rows": [
-          {
-           "book": [],
            "key": "z2:trout_char_quota::trout_char_quota.r7",
            "notes": [],
            "quote": "All wild steelhead",
@@ -5866,7 +5852,7 @@
      ],
      "k": "fold",
      "open": false,
-     "summary": "Overruled (4)"
+     "summary": "Overruled (3)"
     }
    ],
    "key": "src:r0",

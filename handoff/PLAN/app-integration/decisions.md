@@ -1312,3 +1312,9 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
   inside a folded polygon, or 1–5 m outside any polygon/lake edge on its line, the build STOPS naming the split id, the
   wbk and the edge lon/lat to put in splits.json (a real lake also names the lake-anchor proposal). Never a sliver, never
   a silent move > 1 m. Cayoosh Falls re-curated to wbk 329505890's downstream edge [-121.9825923, 50.6572974].
+- Overlapping rules retired (owner 2026-10-26, accepted all 4 of handoff/PLAN/curation-review/overlapping-rules.md):
+  `z1:trout_quota.r3` and `z2:trout_char_quota.r3` ("2 hatchery steelhead over 50 cm allowed") are gone. The steelhead's
+  2 is r2b's total (RULINGS Q16 unchanged), and "hatchery" comes from the wild-steelhead release. z1 r2b's verbatim now carries
+  ", see table for exceptions)". `khartoum_lake.r3` / `lois_lake.r3` (hatchery rainbow = 6) are gone too, since the 6-in-the-aggregate rule
+  implies them. Their `exempts` of `trout_char_quota.r3` were dropped. Khartoum's "(see diagram on page 13)" survives only
+  in `regs_verbatim`.

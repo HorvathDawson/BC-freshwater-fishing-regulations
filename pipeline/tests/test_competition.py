@@ -810,7 +810,7 @@ def test_chilliwack_rainbow_over_50_cm_is_a_steelhead(db):
     assert f"{eid}::chilliwack_vedder_rivers.r6" in may
     assert f"{tc}::trout_char_quota.r1" not in may and f"{tc}::trout_char_quota.r2" not in may
     st = _kept(sid, (5, 15), "ST")
-    assert {f"{tc}::trout_char_quota.r3", f"{tc}::trout_char_quota.r7"} <= st
+    assert {f"{tc}::trout_char_quota.r2b", f"{tc}::trout_char_quota.r7"} <= st
     jul = _kept(sid, (7, 15), "RB")
     assert {f"{eid}::chilliwack_vedder_rivers.r9", f"{tc}::trout_char_quota.r1"} <= jul
     assert f"{tc}::trout_char_quota.r2" not in jul

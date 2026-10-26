@@ -85,7 +85,8 @@ describe.skipIf(pairing.skip)(`T09 loadRegsInputs on the live release (${at.path
   it("5. ape_501: a rule the part reaches by the tributary walk ranks 1", async () => {
     const r = requestOf("ape_501");
     const inp = await loadRegsInputs(st, r.target, r.day, r.weekday, 2026);
-    const v = inp.rules.get(1644);
+    // by durable key, not rix: a rule retired ahead of it renumbers it (2026-10-26 Khartoum/Lois r3 moved 1644 -> 1642)
+    const v = inp.rules.byKey!("r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r10")!;
     expect([v.via, v.rank]).toEqual(["trib", 1]);
   });
 

@@ -206,12 +206,12 @@ EXAMPLES: tuple[Example, ...] = (
       says="a steelhead row's closure binds it, but its own row prints no steelhead (user ruling "
            "2026-10-06): a big rainbow is a rainbow under Region 5's trout quota"),
     E("gravel_slough_is_a_stream", ("ladder.steelhead_definition",), "gnis:8009", "07-01", "ST",
-      (f"{Z2}.r3", f"{Z2}.r7")),
+      (f"{Z2}.r2b", f"{Z2}.r7")),
     E("maria_slough_is_a_stream", ("ladder.steelhead_definition",), "gnis:13499", "07-01", "ST",
       (f"{Z2}.r7",)),
     # ---- ladder.water_release -------------------------------------------------------------------
     E("coquihalla_release_silences_hatchery_steelhead", ("ladder.water_release",), "gnis:19983",
-      "12-01", "ST", ("r2:coquihalla_river@2-17::coquihalla_river.r6",), (f"{Z2}.r3",)),
+      "12-01", "ST", ("r2:coquihalla_river@2-17::coquihalla_river.r6",), (f"{Z2}.r2b",)),
     E("vedder_hatchery_cutthroat_release_may", ("ladder.water_release",), "gnis:3062", "05-15",
       "CT", (f"{CHILLIWACK}.r7",), (f"{Z2}.r1",), named_as="Chilliwack River"),
     E("morris_wild_release_leaves_the_4", ("ladder.water_release",), "wbk:329177943", "07-01",

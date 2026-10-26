@@ -52,6 +52,8 @@ def test_every_rows_stored_year_is_page_v36s_day_status(built, sid):
     want = oracle["dayStatus"]
     if sid in KITIMAT_RULED:
         want = [_nov_jun_released(runs) if i == KITIMAT_RULED[sid] else runs for i, runs in enumerate(want)]
+    if sid in OVERLAP_RETIRED:
+        want = [runs for i, runs in enumerate(want) if i != OVERLAP_RETIRED[sid]]
     assert [r["year"] for r in frame["rows"]] == want
 
 
@@ -59,6 +61,10 @@ def test_every_rows_stored_year_is_page_v36s_day_status(built, sid):
 #: Region 6's Nov 1-June 30 stream release, where page v36 (the oracle) lifted it. The ONE row that differs per state
 #: (index) is the row the ruling changes; every other row of these states, and every other state, must equal the page.
 KITIMAT_RULED = {"x14p0_1010": 2, "x14p1_1010": 2, "x14p2_1010": 2}
+#: OWNER 2026-10-26 (handoff/PLAN/curation-review/overlapping-rules.md): Lois Lake's "hatchery rainbow trout = 6"
+#: (lois_lake.r3) is retired as implied by "rainbow trout/hatchery steelhead = 6 in the aggregate" (r4). The page's own
+#: rainbow row (index 1, pool r3) folds into the aggregate's row; every other row must still equal the page.
+OVERLAP_RETIRED = {"x25p_1010": 1}
 NOV1, JUN30 = 305, 181          # book day-of-year (365-day year; Feb 29 is not a book day)
 
 

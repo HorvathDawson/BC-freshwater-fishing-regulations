@@ -163,6 +163,19 @@ def test_d_mutations_are_refused(region, entry_id, rule_id, mutate):
                                                          for r in e["rules"]]})
 
 
+@pytest.mark.parametrize("region,entry_id,pfx", [("1", "z1:trout_quota", "trout_quota"),
+                                                 ("2", "z2:trout_char_quota", "trout_char_quota")])
+def test_d_r2b_is_the_tables_own_steelhead_quota(region, entry_id, pfx):
+    """Owner 2026-10-26 (overlapping-rules.md): the ST-only r3 is retired; r2b ("… (2 hatchery steelhead over
+    50 cm allowed …)") is the table's own steelhead quota at 50 cm, so r2 still leaves ST out. Mutation: r2b
+    that no longer prints steelhead leaves r2's exclusion with nothing to stand on."""
+    e = _zone(region, entry_id)
+    assert not any(r["rule_id"] == f"{pfx}.r3" for r in e["rules"])
+    rules = [C.CatalogueRule.model_validate({**r, "verbatim": "1 over 50 cm"} if r["rule_id"] == f"{pfx}.r2b" else r)
+             for r in e["rules"]]
+    assert [p for p in C.steelhead_scope_problems(entry_id, rules) if p.startswith(f"{pfx}.r2:")]
+
+
 # --------------------------------------------------------------------------------------------
 # E — the Vedder Canal is a stream
 # --------------------------------------------------------------------------------------------

@@ -313,16 +313,16 @@ _STAVE = {"op": "whole", "item_id": "wbk:329291805", "feature_types": ["lake"]}
         area_id="area:region:5"),                               # a zone twin outside its zone
     lambda raw: _r(raw, "z2:trout_char_quota", "trout_char_quota.r7")["extents"].append(
         {"op": "whole", "item_id": KHARTOUM, "feature_types": ["lake"]}),  # the release, not a twin
-    lambda raw: _r(raw, "z2:trout_char_quota", "trout_char_quota.r3")["extents"].append(
-        {"op": "whole", "item_id": KHARTOUM, "feature_types": ["lake"]}),    # hatchery 2 on a lake
+    lambda raw: _r(raw, "z2:hatchery_steelhead_stop", "hatchery_steelhead_stop.r1")["extents"].append(
+        {"op": "whole", "item_id": KHARTOUM, "feature_types": ["lake"]}),    # stop-after-quota on a lake
     lambda raw: _r(raw, "zp:steelhead", "steelhead.r1").pop("water"),
     lambda raw: _r(raw, "zp:steelhead", "steelhead.r4")["extents"].append(
         {"op": "within", "area_id": "area:region:4", "feature_types": ["stream"]}),
     lambda raw: raw["zp:steelhead"]["licensing"][0]["extents"][0].pop("feature_types"),
     lambda raw: _r(raw, "z6:hatchery_steelhead_stop", "hatchery_steelhead_stop.r1")[
         "extents"][0].pop("feature_types"),                     # stop-after-quota onto lakes
-    lambda raw: _r(raw, "z2:trout_char_quota", "trout_char_quota.r3")[
-        "extents"][0].pop("feature_types"),                     # the hatchery 2 onto lakes
+    lambda raw: _r(raw, "z2:hatchery_steelhead_stop", "hatchery_steelhead_stop.r1")[
+        "extents"][0].pop("feature_types"),                     # Region 2's stop-after-quota onto lakes
 ])
 def test_the_scope_check_catches_a_steelhead_rule_that_reaches_a_lake(raw, mutate):
     bad = copy.deepcopy(raw)
@@ -903,7 +903,7 @@ def test_the_export_knows_the_wild_releases(doc):
             if export_steelhead.is_wild_steelhead_release(x) and x["entry_id"].startswith("z")}
     assert wild == WILD
     for i in ("zp:steelhead::steelhead.r1", "zp:steelhead::steelhead.r4",
-              "z2:trout_char_quota::trout_char_quota.r3",
+              "z2:hatchery_steelhead_stop::hatchery_steelhead_stop.r1",
               "z6:hatchery_steelhead_stop::hatchery_steelhead_stop.r1",
               "z6:steelhead_stream_closure::steelhead_stream_closure.r1"):
         assert export_steelhead.is_steelhead_rule(doc["rules"][i]) and not export_steelhead.is_wild_steelhead_release(
@@ -914,7 +914,7 @@ def test_the_export_knows_the_wild_releases(doc):
 @pytest.mark.parametrize("rid", ["zp:steelhead::steelhead.r2",                 # the wild release
                                  "z1:trout_quota::trout_quota.r5",             # a zone release
                                  "zp:steelhead::steelhead.r1", "zp:steelhead::steelhead.r4",
-                                 "z2:trout_char_quota::trout_char_quota.r3",
+                                 "z2:hatchery_steelhead_stop::hatchery_steelhead_stop.r1",
                                  "z6:hatchery_steelhead_stop::hatchery_steelhead_stop.r1"])
 def test_the_export_check_refuses_a_steelhead_rule_on_a_lake(doc, rid):
     """Mutation: any steelhead rule — a wild release included — put on a lake that is not known
@@ -929,8 +929,8 @@ def test_the_export_check_refuses_a_steelhead_rule_on_a_lake(doc, rid):
 
 @pytest.mark.needs_bundle
 def test_the_export_check_allows_only_the_lakes_own_row_and_the_release(doc):
-    """On Lois Lake: Lois Lake's own steelhead rule and the wild releases; Region 2's "2 hatchery
-    steelhead" put there is refused, and so is Lois without the provincial wild release."""
+    """On Lois Lake: Lois Lake's own steelhead rule and the wild releases; Region 2's stream-only
+    "stop fishing after the hatchery steelhead quota" put there is refused, and so is Lois without the provincial wild release."""
     part = doc["waters"][LOIS]["parts"][0]
     ids = [i for via, v in doc["rulesets"][part["ruleset"]].items() if via != "sections"
            for i in v]
@@ -938,8 +938,8 @@ def test_the_export_check_allows_only_the_lakes_own_row_and_the_release(doc):
             "z2:trout_char_quota::trout_char_quota.r7b"} <= set(ids), ids
     bad = _bad(doc)
     bad["rulesets"][part["ruleset"]].setdefault("reach", []).append(
-        "z2:trout_char_quota::trout_char_quota.r3")
-    assert any("z2:trout_char_quota::trout_char_quota.r3" in p and LOIS in p
+        "z2:hatchery_steelhead_stop::hatchery_steelhead_stop.r1")
+    assert any("z2:hatchery_steelhead_stop::hatchery_steelhead_stop.r1" in p and LOIS in p
                for p in export_steelhead.steelhead_lake_problems(bad))
     bad = _bad(doc)
     for via, v in bad["rulesets"][part["ruleset"]].items():

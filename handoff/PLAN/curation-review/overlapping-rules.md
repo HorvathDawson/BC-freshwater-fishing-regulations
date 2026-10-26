@@ -1,4 +1,4 @@
-# Overlapping rules — proposal (owner to accept; catalogue untouched, T185)
+# Overlapping rules — ACCEPTED by owner 2026-10-26 (all 4) and applied; see decisions.md
 
 Owner, 2026-10-26, on `z2:trout_char_quota`: "these 3 could be combined into 2: a steelhead one and an
 except-steelhead one. Look for others like that."
