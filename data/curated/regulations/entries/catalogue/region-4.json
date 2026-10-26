@@ -1225,10 +1225,9 @@
      "may_target": false,
      "extents": [
       {
-       "op": "between",
+       "op": "downstream_of",
        "splits": [
-        "burton_creek__woden_creek_into_burton_trout_creek",
-        "burton_creek__hwy_6_bridge"
+        "burton_creek__woden_creek_into_burton_trout_creek"
        ]
       },
       {
@@ -7186,7 +7185,7 @@
        "op": "between",
        "splits": [
         "kootenay_river__cpr",
-        "kootenay_river__navigation_dolphin_2000_m_downstream"
+        "kootenay_river__kootenay_lake_main_body"
        ],
        "item_id": "gnis:14097"
       }
