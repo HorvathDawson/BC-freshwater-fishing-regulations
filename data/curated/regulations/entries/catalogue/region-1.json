@@ -5414,7 +5414,7 @@
       {
        "op": "upstream_of",
        "splits": [
-        "heber_river__top_of_lower_canyon_1300_m_upstream"
+        "heber_river__top_of_lower_canyon"
        ]
       }
      ],
@@ -5433,7 +5433,7 @@
       {
        "op": "downstream_of",
        "splits": [
-        "heber_river__top_of_lower_canyon_1300_m_upstream"
+        "heber_river__top_of_lower_canyon"
        ]
       }
      ],
@@ -5456,7 +5456,7 @@
        "op": "between",
        "splits": [
         "heber_river__saunders_creek_into_heber_river",
-        "heber_river__top_of_lower_canyon_1300_m_upstream"
+        "heber_river__top_of_lower_canyon"
        ]
       }
      ],
@@ -6473,7 +6473,7 @@
       {
        "op": "between",
        "splits": [
-        "kokish_river__log_boom_90_m_upstream",
+        "kokish_river__log_boom_above_ipp_intake",
         "kokish_river__signs_at_the_tail_of_the_canyon_pool_300_m_downstream"
        ]
       }
@@ -10928,7 +10928,7 @@
        "op": "between",
        "splits": [
         "somass_river__tidal_boundary_at_papermill_dam",
-        "somass_river__boundary_signs_1km_u_s"
+        "somass_river__signs_1_km_above_papermill_dam"
        ]
       }
      ],
@@ -12101,7 +12101,7 @@
       {
        "op": "downstream_of",
        "splits": [
-        "tlell_river__tidal_boundary_sign_1500_m_upstream"
+        "tlell_river__tidal_sign_1_5_km_above_hwy_16_bridge"
        ]
       }
      ]
@@ -13526,14 +13526,13 @@
      "may_target": false,
      "extents": [
       {
-       "op": "whole"
+       "op": "between",
+       "splits": [
+        "wahpeeto_creek__falls_4_5_km_above_wakeman",
+        "wahpeeto_creek__100_m_below_falls_4_5_km_above_wakeman"
+       ]
       }
-     ],
-     "unresolved_locators": [
-      "within 100 m downstream of the falls situated approximately 4.5 km upstream of Wakeman River"
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): the closure is bounded above by 'the falls', which has no bindable split id in the menu; only the point 100 m downstream of the falls ('wahpeeto_creek__within_100_m_downstream') is listed, and a single point cannot express the bounded reach between the falls and that point",
-     "undrawn_part": "within 100 m downstream of the falls situated approximately 4.5 km upstream of Wakeman River"
+     ]
     }
    ]
   },
@@ -13979,7 +13978,7 @@
        "op": "between",
        "splits": [
         "yakoun_river__yakoun_lake",
-        "yakoun_river__yakoun_lake_14533_m_downstream"
+        "yakoun_river__signs_13_km_below_yakoun_lake"
        ]
       }
      ]

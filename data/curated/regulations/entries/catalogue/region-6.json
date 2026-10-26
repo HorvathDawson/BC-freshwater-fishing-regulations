@@ -1509,7 +1509,7 @@
        "op": "between",
        "splits": [
         "bulkley_river__moricetown_witset_canyon_top",
-        "bulkley_river__in_moricetown_canyon_or_within_100_m_downstream"
+        "bulkley_river__100_m_below_moricetown_canyon"
        ]
       }
      ],
@@ -8995,7 +8995,7 @@
        "op": "between",
        "splits": [
         "tahltan_river__boundary_signs_400_m_upstream_of_tahltan_river_bridge",
-        "tahltan_river__th_750_m_upstream"
+        "tahltan_river__landslide_750_m_above_tahltan_bridge"
        ]
       }
      ],

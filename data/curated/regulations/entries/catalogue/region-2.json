@@ -743,7 +743,7 @@
        "op": "between",
        "splits": [
         "brem_river__1st_falls",
-        "brem_river__the_upstream_edge_of_1st_falls_100_m_downstream"
+        "brem_river__100_m_below_1st_falls"
        ]
       }
      ]
@@ -8432,7 +8432,7 @@
       {
        "op": "upstream_of",
        "splits": [
-        "ruby_creek__ruby_lake_to_fishing_boundary_signs_100_m_downstream"
+        "ruby_creek__signs_100_m_below_ruby_lake"
        ]
       }
      ]

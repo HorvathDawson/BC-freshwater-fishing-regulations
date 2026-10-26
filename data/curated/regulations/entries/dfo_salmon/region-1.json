@@ -3188,7 +3188,7 @@
             "op": "between",
             "splits": [
               "somass_river__tidal_boundary_at_papermill_dam",
-              "somass_river__boundary_signs_1km_u_s"
+              "somass_river__signs_1_km_above_papermill_dam"
             ]
           }
         ],
@@ -4094,7 +4094,7 @@
             "op": "between",
             "splits": [
               "somass_river__tidal_boundary_at_papermill_dam",
-              "somass_river__boundary_signs_1km_u_s"
+              "somass_river__signs_1_km_above_papermill_dam"
             ]
           }
         ],
@@ -4321,7 +4321,7 @@
             "op": "between",
             "splits": [
               "somass_river__tidal_boundary_at_papermill_dam",
-              "somass_river__boundary_signs_1km_u_s"
+              "somass_river__signs_1_km_above_papermill_dam"
             ]
           }
         ],
@@ -5124,7 +5124,7 @@
             "op": "between",
             "splits": [
               "somass_river__west_coast_river_lodge_east",
-              "somass_river__boundary_signs_1km_u_s"
+              "somass_river__signs_1_km_above_papermill_dam"
             ]
           }
         ],

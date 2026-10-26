@@ -188,8 +188,8 @@
             {
               "op": "between",
               "splits": [
-                "anzac_river__within_500_m_downstream",
-                "anzac_river__within_500_m_upstream"
+                "anzac_river__500_m_below_upper_anzac_bridge",
+                "anzac_river__500_m_above_upper_anzac_bridge"
               ]
             }
           ],
@@ -1693,7 +1693,7 @@
             {
               "op": "downstream_of",
               "splits": [
-                "chichouyenily_creek__fishing_boundary_signs_near_its_mouth_400_m_upstream"
+                "chichouyenily_creek__signs_400_m_above_williston_lake"
               ]
             }
           ],
@@ -7083,7 +7083,7 @@
               "op": "between",
               "splits": [
                 "murray_river__kinuseo_falls",
-                "murray_river__signs_about_2000_m_downstream"
+                "murray_river__signs_2_km_below_kinuseo_falls"
               ]
             }
           ],
@@ -7480,7 +7480,7 @@
               "op": "between",
               "splits": [
                 "nechako_river__cheslatta_river_into_nechako_river",
-                "nechako_river__boundary_sign_5000_m_downstream"
+                "nechako_river__sign_5_km_below_cheslatta_river"
               ]
             }
           ]
@@ -7502,7 +7502,7 @@
             {
               "op": "between",
               "splits": [
-                "nechako_river__boundary_sign_5000_m_downstream",
+                "nechako_river__sign_5_km_below_cheslatta_river",
                 "nechako_river__hwy_27_bridge"
               ]
             }
@@ -9806,7 +9806,7 @@
             {
               "op": "downstream_of",
               "splits": [
-                "thorn_creek__point"
+                "thorn_creek__500_m_above_attichika_creek"
               ]
             }
           ],
@@ -10201,7 +10201,7 @@
               "op": "between",
               "splits": [
                 "tupper_river__swan_lake",
-                "tupper_river__within_100_m_downstream"
+                "tupper_river__100_m_below_swan_lake_weir"
               ]
             }
           ],
@@ -10577,7 +10577,7 @@
             {
               "op": "downstream_of",
               "splits": [
-                "weston_creek__signs_near_its_mouth_400_m_upstream"
+                "weston_creek__signs_400_m_above_williston_lake"
               ]
             }
           ],

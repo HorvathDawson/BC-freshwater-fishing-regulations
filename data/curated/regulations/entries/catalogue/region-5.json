@@ -9091,7 +9091,7 @@
       {
        "op": "between",
        "splits": [
-        "mitchell_river__within_100_m_downstream",
+        "mitchell_river__100_m_below_mitchell_lake_weir",
         "mitchell_river__mitchell_lake"
        ]
       }

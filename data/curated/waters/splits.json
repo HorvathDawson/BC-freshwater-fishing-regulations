@@ -812,8 +812,8 @@
    },
    "splits": [
     {
-     "id": "heber_river__top_of_lower_canyon_1300_m_upstream",
-     "label": "top of lower canyon, (1300 m upstream)",
+     "id": "heber_river__top_of_lower_canyon",
+     "label": "top of the lower canyon (1.3 km above Gold River)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -826,7 +826,7 @@
       "offset_dir": "upstream"
      },
      "note": "anchor moved onto the Heber-Gold confluence, the datum its own note names (\"base=Heber-Gold confluence, +1300m up the Heber\"). The coord had been the already-offset point 1226 m up, so the 1300 m was applied twice.",
-     "_note": "[curated 2026-08-08 manual-review batch=heber-1-9] [base=Heber-Gold confluence, +1300m up the Heber; canyon not cleanly mappable, use distance ref]",
+     "_note": "[curated 2026-08-08 manual-review batch=heber-1-9] [base=Heber-Gold confluence, +1300m up the Heber; canyon not cleanly mappable, use distance ref] [split-name audit 2026-10-26] renamed from `heber_river__top_of_lower_canyon_1300_m_upstream` / \"top of lower canyon, (1300 m upstream)\": the old name was a phrase fragment that named no place, so the parser could not match it.",
      "_coord": [
       -126.04194,
       49.78249
@@ -910,8 +910,8 @@
      ]
     },
     {
-     "id": "kokish_river__log_boom_90_m_upstream",
-     "label": "log boom (90 m upstream)",
+     "id": "kokish_river__log_boom_above_ipp_intake",
+     "label": "log boom ~100 m above the IPP intake",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -924,7 +924,7 @@
       "offset_dir": "upstream"
      },
      "note": "",
-     "_note": "[structural-split 2026-08-05 from \"from the log boom located approximately 100 m upstream of th\"] boundary=log boom located approximately 100 m upstream of the IPP intake [curated 2026-08-07 manual-review batch=kokish] [log boom]",
+     "_note": "[structural-split 2026-08-05 from \"from the log boom located approximately 100 m upstream of th\"] boundary=log boom located approximately 100 m upstream of the IPP intake [curated 2026-08-07 manual-review batch=kokish] [log boom] [split-name audit 2026-10-26] renamed from `kokish_river__log_boom_90_m_upstream` / \"log boom (90 m upstream)\": the old name was a phrase fragment that named no place, so the parser could not match it.",
      "_coord": [
       -126.81277,
       50.46393
@@ -1801,8 +1801,8 @@
      ]
     },
     {
-     "id": "somass_river__boundary_signs_1km_u_s",
-     "label": "boundary signs ~1km u/s",
+     "id": "somass_river__signs_1_km_above_papermill_dam",
+     "label": "fishing boundary signs ~1 km above Papermill Dam",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1813,7 +1813,7 @@
       "is_lonlat": true
      },
      "note": "",
-     "_note": "[manual anchor 2026-08-09] upstream end of the Somass No-Fishing reach; southern end of Collins Farm/Arrow Vale Campground on Hector Rd (user pin); ~1km u/s of Paper Mill Dam. [dfo-salmon 2026-09-02] THE POINT IS CORRECT — do not move it. DFO has reworded this same boundary three times and its stated distance disagrees with the pin; that is wording and measurement drift, not a different feature. Archived region-1 pages: 20230215 'white triangular fishing boundary signs approximately 0.5 km upstream (Falls Road Gravel Pit and the southernmost end of Collins Farm/Arrow Vale Campground-Hector Road)'; 20231003 and 20240124 a bare 'approximately 0.5 km upstream'; 20240624 onward including the live page 'approximately 0.5km to the northeast corner of Collins Farm'. The pin resolves 1,304 m above the Papermill Dam cut, so DFO's '0.5 km' is loose and its 'southernmost end' / 'northeast corner' name two corners of one farm. Recorded so the next reader does not re-open it.",
+     "_note": "[manual anchor 2026-08-09] upstream end of the Somass No-Fishing reach; southern end of Collins Farm/Arrow Vale Campground on Hector Rd (user pin); ~1km u/s of Paper Mill Dam. [dfo-salmon 2026-09-02] THE POINT IS CORRECT — do not move it. DFO has reworded this same boundary three times and its stated distance disagrees with the pin; that is wording and measurement drift, not a different feature. Archived region-1 pages: 20230215 'white triangular fishing boundary signs approximately 0.5 km upstream (Falls Road Gravel Pit and the southernmost end of Collins Farm/Arrow Vale Campground-Hector Road)'; 20231003 and 20240124 a bare 'approximately 0.5 km upstream'; 20240624 onward including the live page 'approximately 0.5km to the northeast corner of Collins Farm'. The pin resolves 1,304 m above the Papermill Dam cut, so DFO's '0.5 km' is loose and its 'southernmost end' / 'northeast corner' name two corners of one farm. Recorded so the next reader does not re-open it. [split-name audit 2026-10-26] renamed from `somass_river__boundary_signs_1km_u_s` / \"boundary signs ~1km u/s\": the old name was a phrase fragment that named no place, so the parser could not match it.",
      "_coord": [
       -124.86386,
       49.28193
@@ -2089,8 +2089,8 @@
    },
    "splits": [
     {
-     "id": "tlell_river__tidal_boundary_sign_1500_m_upstream",
-     "label": "tidal boundary sign (1500 m upstream)",
+     "id": "tlell_river__tidal_sign_1_5_km_above_hwy_16_bridge",
+     "label": "tidal boundary sign 1.5 km above Hwy 16 Bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2103,7 +2103,7 @@
       "offset_dir": "upstream"
      },
      "note": "",
-     "_note": "[auto-proposal L] Hwy 16 Bridge over Tlell River (tidal sign 1.5 km up) on Tlell River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 16 bridge over the Tlell River (Haida Gwaii) and the tidal-boundary sign 1.5 km upstream; review.. Reg = 'tidal boundary sign 1.5 km above the Hwy 16 Bridge'. Public highway bridge on Graham Island -> map/OSM-confirmable; not in FWA. [curated 2026-08-09 verify-batch] [base=Hwy 16 bridge; +1.5km u/s -> tidal sign 53.56925,-131.93788; VERIFY upstream dir] [direction CONFIRMED: mouth is north, upstream=south, +1.5km sign correct]",
+     "_note": "[auto-proposal L] Hwy 16 Bridge over Tlell River (tidal sign 1.5 km up) on Tlell River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 16 bridge over the Tlell River (Haida Gwaii) and the tidal-boundary sign 1.5 km upstream; review.. Reg = 'tidal boundary sign 1.5 km above the Hwy 16 Bridge'. Public highway bridge on Graham Island -> map/OSM-confirmable; not in FWA. [curated 2026-08-09 verify-batch] [base=Hwy 16 bridge; +1.5km u/s -> tidal sign 53.56925,-131.93788; VERIFY upstream dir] [direction CONFIRMED: mouth is north, upstream=south, +1.5km sign correct] [split-name audit 2026-10-26] renamed from `tlell_river__tidal_boundary_sign_1500_m_upstream` / \"tidal boundary sign (1500 m upstream)\": the old name was a phrase fragment that named no place, so the parser could not match it.",
      "_coord": [
       -131.94296,
       53.58185
@@ -2192,8 +2192,27 @@
    },
    "splits": [
     {
-     "id": "wahpeeto_creek__within_100_m_downstream",
-     "label": "within (100 m downstream)",
+     "id": "wahpeeto_creek__falls_4_5_km_above_wakeman",
+     "label": "the falls (4.5 km above Wakeman River)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -126.46897,
+       51.16963
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "_note": "[split-name audit 2026-10-26] the falls themselves (FISS 29119, the same coordinate the 100 m-below cut is offset from), so \"within 100 m downstream of the falls\" binds as a reach between two cuts.",
+     "_coord": [
+      -126.46897,
+      51.16963
+     ]
+    },
+    {
+     "id": "wahpeeto_creek__100_m_below_falls_4_5_km_above_wakeman",
+     "label": "100 m below the falls (4.5 km above Wakeman River)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2206,7 +2225,7 @@
       "offset_dir": "downstream"
      },
      "note": "",
-     "_note": "[curated 2026-08-09 bridge+confl batch] [falls=FISS 29119 51.16963,-126.46897; boundary 100m d/s] [FIX 2026-08-09: stored as falls + 100m d/s OFFSET; falls=FISS 29119]",
+     "_note": "[curated 2026-08-09 bridge+confl batch] [falls=FISS 29119 51.16963,-126.46897; boundary 100m d/s] [FIX 2026-08-09: stored as falls + 100m d/s OFFSET; falls=FISS 29119] [split-name audit 2026-10-26] renamed from `wahpeeto_creek__within_100_m_downstream` / \"within (100 m downstream)\": the old name was a phrase fragment that named no place, so the parser could not match it.",
      "_coord": [
       -126.46897,
       51.16963
@@ -2249,8 +2268,8 @@
    },
    "splits": [
     {
-     "id": "yakoun_river__yakoun_lake_14533_m_downstream",
-     "label": "fishing boundary signs (Yakoun Guardian Program survey)",
+     "id": "yakoun_river__signs_13_km_below_yakoun_lake",
+     "label": "fishing boundary signs ~13 km below Yakoun Lake",
      "kind": "lake",
      "anchor": {
       "type": "point",
@@ -2261,7 +2280,7 @@
       "is_lonlat": true
      },
      "note": "point at the surveyed sign position from the Yakoun Guardian Program 2021-22 report (53.43396,-132.27866); no offset — the coordinate IS the landmark.",
-     "_note": "[lake-class: lake_split] Yakoun Lake outlet + offset downstream. — [lake-bound-auto] OFFSET: Yakoun Lake outlet is auto; the downstream offset point needs authoring. [coord=temp reference; split via FWA target lake WBK] datum=wbk (lake edge); offset {m,dir} authoritative; anchor coord is a cache — resolver derives datum from wbk, dir-aware for multi-poly [2026-08-12 ground-truth: Yakoun Guardian Program 2021-22 https://a100.gov.bc.ca/pub/acat/documents/r59755/Yakoun_River_Guardian_Program_2021_to_2022_1658515143855_91B155D8B6.pdf places the boundary signs at 53.43396,-132.27866 = 14.53 km d/s of the lake outlet (snapped). Reg says \"~13 km\" but real is 14.5 km; the round-number 13 km offset landed 1.26 km short — m corrected 13000->14533.]",
+     "_note": "[lake-class: lake_split] Yakoun Lake outlet + offset downstream. — [lake-bound-auto] OFFSET: Yakoun Lake outlet is auto; the downstream offset point needs authoring. [coord=temp reference; split via FWA target lake WBK] datum=wbk (lake edge); offset {m,dir} authoritative; anchor coord is a cache — resolver derives datum from wbk, dir-aware for multi-poly [2026-08-12 ground-truth: Yakoun Guardian Program 2021-22 https://a100.gov.bc.ca/pub/acat/documents/r59755/Yakoun_River_Guardian_Program_2021_to_2022_1658515143855_91B155D8B6.pdf places the boundary signs at 53.43396,-132.27866 = 14.53 km d/s of the lake outlet (snapped). Reg says \"~13 km\" but real is 14.5 km; the round-number 13 km offset landed 1.26 km short — m corrected 13000->14533.] [split-name audit 2026-10-26] renamed from `yakoun_river__yakoun_lake_14533_m_downstream` / \"fishing boundary signs (Yakoun Guardian Program survey)\": the old name was a phrase fragment that named no place, so the parser could not match it.",
      "_coord": [
       -132.25451,
       53.34094
@@ -2416,8 +2435,8 @@
      ]
     },
     {
-     "id": "brem_river__the_upstream_edge_of_1st_falls_100_m_downstream",
-     "label": "the upstream edge of 1st falls (100 m downstream)",
+     "id": "brem_river__100_m_below_1st_falls",
+     "label": "100 m below the 1st falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2430,7 +2449,7 @@
       "offset_dir": "downstream"
      },
      "note": "",
-     "_note": "100 m downstream of the falls point in brem-river-cbd540-a (-124.67551,50.44991). Author in splits.json as a point offset: anchor = that falls point, offset_m 100, offset_dir downstream. [audit-fix 2026-08-11 (2-reviewer agreement)] [offset authored: anchor=1st falls (sibling brem-river-cbd540-a), 100m downstream]",
+     "_note": "100 m downstream of the falls point in brem-river-cbd540-a (-124.67551,50.44991). Author in splits.json as a point offset: anchor = that falls point, offset_m 100, offset_dir downstream. [audit-fix 2026-08-11 (2-reviewer agreement)] [offset authored: anchor=1st falls (sibling brem-river-cbd540-a), 100m downstream] [split-name audit 2026-10-26] renamed from `brem_river__the_upstream_edge_of_1st_falls_100_m_downstream` / \"the upstream edge of 1st falls (100 m downstream)\": the old name was a phrase fragment that named no place, so the parser could not match it.",
      "_coord": [
       -124.67551,
       50.44991
@@ -3113,7 +3132,7 @@
    "splits": [
     {
      "id": "pitt_river__garibaldi_pitt",
-     "label": "within Garibaldi Park",
+     "label": "Garibaldi Park boundary",
      "kind": "area_boundary",
      "anchor": {
       "type": "area_boundary",
@@ -3123,7 +3142,7 @@
       "wsc_descendants": true
      },
      "note": "",
-     "_note": "Split authored in splits.json: 'garibaldi_pitt' (area_boundary). — authored split: garibaldi_pitt [audit-fix 2026-08-11 (2-reviewer agreement)] [splits-inline from splits.json garibaldi_pitt (Garibaldi Park boundary)]",
+     "_note": "Split authored in splits.json: 'garibaldi_pitt' (area_boundary). — authored split: garibaldi_pitt [audit-fix 2026-08-11 (2-reviewer agreement)] [splits-inline from splits.json garibaldi_pitt (Garibaldi Park boundary)] [split-name audit 2026-10-26] relabelled from \"within Garibaldi Park\": the old name was a phrase fragment that named no place, so the parser could not match it.",
      "applies_to": {
       "wsc": "100-025956"
      }
@@ -3156,8 +3175,8 @@
    },
    "splits": [
     {
-     "id": "ruby_creek__ruby_lake_to_fishing_boundary_signs_100_m_downstream",
-     "label": "Ruby Lake to fishing boundary signs (100 m downstream)",
+     "id": "ruby_creek__signs_100_m_below_ruby_lake",
+     "label": "fishing boundary signs 100 m below Ruby Lake",
      "kind": "lake",
      "anchor": {
       "type": "lake",
@@ -3166,7 +3185,7 @@
       "offset_dir": "downstream"
      },
      "note": "",
-     "_note": "[lake-class: lake_split] Ruby Lake outlet (up) + boundary signs (down) — lake anchor + point. — [lake-bound-auto] MIXED: Ruby Lake outlet is auto; the downstream boundary-signs point needs authoring. [coord=temp reference; split via FWA target lake WBK] datum=wbk (lake edge); offset {m,dir} authoritative; anchor coord is a cache — resolver derives datum from wbk, dir-aware for multi-poly",
+     "_note": "[lake-class: lake_split] Ruby Lake outlet (up) + boundary signs (down) — lake anchor + point. — [lake-bound-auto] MIXED: Ruby Lake outlet is auto; the downstream boundary-signs point needs authoring. [coord=temp reference; split via FWA target lake WBK] datum=wbk (lake edge); offset {m,dir} authoritative; anchor coord is a cache — resolver derives datum from wbk, dir-aware for multi-poly [split-name audit 2026-10-26] renamed from `ruby_creek__ruby_lake_to_fishing_boundary_signs_100_m_downstream` / \"Ruby Lake to fishing boundary signs (100 m downstream)\": the old name was a phrase fragment that named no place, so the parser could not match it.",
      "_coord": [
       -123.97475,
       49.71037
@@ -5777,8 +5796,8 @@
    },
    "splits": [
     {
-     "id": "woodbury_creek__falls_at_small_hydro_structure_800_m_upstream",
-     "label": "falls at small hydro structure (800 m upstream)",
+     "id": "woodbury_creek__falls_at_small_hydro_above_hwy_31",
+     "label": "falls at the small hydro structure (800 m above Hwy 31 bridge)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -5791,7 +5810,7 @@
       "offset_dir": "upstream"
      },
      "note": "",
-     "_note": "[curated 2026-08-09 verify-batch] [base=Hwy 31 bridge; +800m u/s -> falls 49.78085,-116.91037]",
+     "_note": "[curated 2026-08-09 verify-batch] [base=Hwy 31 bridge; +800m u/s -> falls 49.78085,-116.91037] [split-name audit 2026-10-26] renamed from `woodbury_creek__falls_at_small_hydro_structure_800_m_upstream` / \"falls at small hydro structure (800 m upstream)\": the old name was a phrase fragment that named no place, so the parser could not match it.",
      "_coord": [
       -116.90699,
       49.77499
@@ -6413,8 +6432,8 @@
    },
    "splits": [
     {
-     "id": "mitchell_river__within_100_m_downstream",
-     "label": "within (100 m downstream)",
+     "id": "mitchell_river__100_m_below_mitchell_lake_weir",
+     "label": "100 m below the Mitchell Lake outlet weir",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -6427,7 +6446,7 @@
       "offset_dir": "downstream"
      },
      "note": "",
-     "_note": "[human-review 2026-08-06] Mitchell Lake Dam, BC dam layer D810486-00 [-120.74136, 52.84601]; 100 m radius. buffer→two offset points; 100 m radius = ±100 m",
+     "_note": "[human-review 2026-08-06] Mitchell Lake Dam, BC dam layer D810486-00 [-120.74136, 52.84601]; 100 m radius. buffer→two offset points; 100 m radius = ±100 m [split-name audit 2026-10-26] renamed from `mitchell_river__within_100_m_downstream` / \"within (100 m downstream)\": the old name was a phrase fragment that named no place, so the parser could not match it.",
      "_coord": [
       -120.74136,
       52.84601
@@ -6435,8 +6454,8 @@
      "_offset_m": 100
     },
     {
-     "id": "mitchell_river__within_100_m_upstream",
-     "label": "within (100 m upstream)",
+     "id": "mitchell_river__100_m_above_mitchell_lake_weir",
+     "label": "100 m above the Mitchell Lake outlet weir",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -6449,7 +6468,7 @@
       "offset_dir": "upstream"
      },
      "note": "",
-     "_note": "[human-review 2026-08-06] Mitchell Lake Dam, BC dam layer D810486-00 [-120.74136, 52.84601]; 100 m radius. buffer→two offset points; 100 m radius = ±100 m",
+     "_note": "[human-review 2026-08-06] Mitchell Lake Dam, BC dam layer D810486-00 [-120.74136, 52.84601]; 100 m radius. buffer→two offset points; 100 m radius = ±100 m [split-name audit 2026-10-26] renamed from `mitchell_river__within_100_m_upstream` / \"within (100 m upstream)\": the old name was a phrase fragment that named no place, so the parser could not match it.",
      "_coord": [
       -120.74136,
       52.84601
@@ -6873,8 +6892,8 @@
      ]
     },
     {
-     "id": "bulkley_river__in_moricetown_canyon_or_within_100_m_downstream",
-     "label": "in Moricetown Canyon or within (100 m downstream)",
+     "id": "bulkley_river__100_m_below_moricetown_canyon",
+     "label": "100 m below Moricetown/Witset Canyon",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -6887,7 +6906,7 @@
       "offset_dir": "downstream"
      },
      "note": "",
-     "_note": "[curated 2026-08-09 Moricetown/Witset Canyon split; user pins; offset landing [-127.32429, 55.0164]]",
+     "_note": "[curated 2026-08-09 Moricetown/Witset Canyon split; user pins; offset landing [-127.32429, 55.0164]] [split-name audit 2026-10-26] renamed from `bulkley_river__in_moricetown_canyon_or_within_100_m_downstream` / \"in Moricetown Canyon or within (100 m downstream)\": the old name was a phrase fragment that named no place, so the parser could not match it.",
      "_coord": [
       -127.3256,
       55.01592
@@ -7828,8 +7847,8 @@
      "_offset_m": 400
     },
     {
-     "id": "tahltan_river__th_750_m_upstream",
-     "label": "th (750 m upstream)",
+     "id": "tahltan_river__landslide_750_m_above_tahltan_bridge",
+     "label": "landslide ~750 m above Tahltan River Bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7842,7 +7861,7 @@
       "offset_dir": "upstream"
      },
      "note": "",
-     "_note": "[auto-proposal L] Tahltan River Bridge on Telegraph Creek Road (signs ~400 m up) on Tahltan River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Tahltan River Bridge on the Telegraph Creek Road and signs ~400 m upstream; map.. Road bridge on the Telegraph Creek Road; landmark = boundary signs ~400 m upstream of it. Not in FWA/FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “from boundary signs located approximately 400 m upstream from the Tahltan RIver Bridge on the Telegraph Creek Road to th”] boundary=th [curated 2026-08-09 manual-review batch=tahltan-nass-skook] [base=Tahltan River Bridge; +750m u/s -> 58.01745,-130.97143]",
+     "_note": "[auto-proposal L] Tahltan River Bridge on Telegraph Creek Road (signs ~400 m up) on Tahltan River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Tahltan River Bridge on the Telegraph Creek Road and signs ~400 m upstream; map.. Road bridge on the Telegraph Creek Road; landmark = boundary signs ~400 m upstream of it. Not in FWA/FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “from boundary signs located approximately 400 m upstream from the Tahltan RIver Bridge on the Telegraph Creek Road to th”] boundary=th [curated 2026-08-09 manual-review batch=tahltan-nass-skook] [base=Tahltan River Bridge; +750m u/s -> 58.01745,-130.97143] [split-name audit 2026-10-26] renamed from `tahltan_river__th_750_m_upstream` / \"th (750 m upstream)\": the old name was a phrase fragment that named no place, so the parser could not match it.",
      "_coord": [
       -130.97779,
       58.01341
@@ -7941,8 +7960,8 @@
    },
    "splits": [
     {
-     "id": "anzac_river__within_500_m_downstream",
-     "label": "within (500 m downstream)",
+     "id": "anzac_river__500_m_below_upper_anzac_bridge",
+     "label": "500 m below the Upper Anzac bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7955,7 +7974,7 @@
       "offset_dir": "downstream"
      },
      "note": "",
-     "_note": "[curated 2026-08-09: Upper Anzac bridge, UTM 10 552426/6093011; No-Fishing 500m radius buffer around this point] buffer→two offset points; 500 m radius = ±500 m",
+     "_note": "[curated 2026-08-09: Upper Anzac bridge, UTM 10 552426/6093011; No-Fishing 500m radius buffer around this point] buffer→two offset points; 500 m radius = ±500 m [split-name audit 2026-10-26] renamed from `anzac_river__within_500_m_downstream` / \"within (500 m downstream)\": the old name was a phrase fragment that named no place, so the parser could not match it.",
      "_coord": [
       -122.18081,
       54.98124
@@ -7963,8 +7982,8 @@
      "_offset_m": 500
     },
     {
-     "id": "anzac_river__within_500_m_upstream",
-     "label": "within (500 m upstream)",
+     "id": "anzac_river__500_m_above_upper_anzac_bridge",
+     "label": "500 m above the Upper Anzac bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7977,7 +7996,7 @@
       "offset_dir": "upstream"
      },
      "note": "",
-     "_note": "[curated 2026-08-09: Upper Anzac bridge, UTM 10 552426/6093011; No-Fishing 500m radius buffer around this point] buffer→two offset points; 500 m radius = ±500 m",
+     "_note": "[curated 2026-08-09: Upper Anzac bridge, UTM 10 552426/6093011; No-Fishing 500m radius buffer around this point] buffer→two offset points; 500 m radius = ±500 m [split-name audit 2026-10-26] renamed from `anzac_river__within_500_m_upstream` / \"within (500 m upstream)\": the old name was a phrase fragment that named no place, so the parser could not match it.",
      "_coord": [
       -122.18081,
       54.98124
@@ -8108,8 +8127,8 @@
    },
    "splits": [
     {
-     "id": "chichouyenily_creek__fishing_boundary_signs_near_its_mouth_400_m_upstream",
-     "label": "fishing boundary signs near its mouth (400 m upstream)",
+     "id": "chichouyenily_creek__signs_400_m_above_williston_lake",
+     "label": "fishing boundary signs near the mouth (400 m above Williston Lake)",
      "kind": "lake",
      "anchor": {
       "type": "lake",
@@ -8118,7 +8137,7 @@
       "offset_dir": "upstream"
      },
      "note": "",
-     "_note": "[curated 2026-08-10 signs/other batch] [base=mouth +400m u/s -> 55.34138,-123.20916; closure d/s to mouth] [datum-fix 2026-08-29] Was a point anchor on the curated 'mouth' coord + 400 m upstream. That coord sits at the FWA line's measure-0 end, which for a Williston Lake tributary is inside the LAKE — the line runs on through the lake, and the creek only leaves the shoreline thousands of metres up. The cut therefore landed in open water with no stream piece to cut, was dropped, and no item ever carried the boundary; the rule's locator stayed unresolved. Re-anchored to the Williston Lake polygon boundary + 400 m upstream, which is what 'signs near its mouth' means. Old coord kept in _coord as provenance. [2026-09-11] Re-anchored from Williston Lake's original waterbody (328961697) to 'Williston Lake — Zone A' (-18). The lake is now cut into its four named waters, so the polygon this creek's mouth meets is Zone A's — the original key bounds nothing on this creek any more and the split stopped resolving. The creek's mouth is inside Zone A and 23-32 km from the next nearest part, so there is nothing ambiguous about which.",
+     "_note": "[curated 2026-08-10 signs/other batch] [base=mouth +400m u/s -> 55.34138,-123.20916; closure d/s to mouth] [datum-fix 2026-08-29] Was a point anchor on the curated 'mouth' coord + 400 m upstream. That coord sits at the FWA line's measure-0 end, which for a Williston Lake tributary is inside the LAKE — the line runs on through the lake, and the creek only leaves the shoreline thousands of metres up. The cut therefore landed in open water with no stream piece to cut, was dropped, and no item ever carried the boundary; the rule's locator stayed unresolved. Re-anchored to the Williston Lake polygon boundary + 400 m upstream, which is what 'signs near its mouth' means. Old coord kept in _coord as provenance. [2026-09-11] Re-anchored from Williston Lake's original waterbody (328961697) to 'Williston Lake — Zone A' (-18). The lake is now cut into its four named waters, so the polygon this creek's mouth meets is Zone A's — the original key bounds nothing on this creek any more and the split stopped resolving. The creek's mouth is inside Zone A and 23-32 km from the next nearest part, so there is nothing ambiguous about which. [split-name audit 2026-10-26] renamed from `chichouyenily_creek__fishing_boundary_signs_near_its_mouth_400_m_upstream` / \"fishing boundary signs near its mouth (400 m upstream)\": the old name was a phrase fragment that named no place, so the parser could not match it.",
      "_coord": [
       -123.21401,
       55.33908
@@ -8188,8 +8207,8 @@
    },
    "splits": [
     {
-     "id": "gagnon_creek__fishing_boundary_signs_near_its_mouth_400_m_upstream",
-     "label": "fishing boundary signs near its mouth (400 m upstream)",
+     "id": "gagnon_creek__signs_400_m_above_williston_lake",
+     "label": "fishing boundary signs near the mouth (400 m above Williston Lake)",
      "kind": "lake",
      "anchor": {
       "type": "lake",
@@ -8198,7 +8217,7 @@
       "offset_dir": "upstream"
      },
      "note": "",
-     "_note": "[curated 2026-08-10 signs/other batch] [base=mouth +400m u/s -> 55.27125,-123.15816; closure d/s to mouth] [datum-fix 2026-08-29] Was a point anchor on the curated 'mouth' coord + 400 m upstream. That coord sits at the FWA line's measure-0 end, which for a Williston Lake tributary is inside the LAKE — the line runs on through the lake, and the creek only leaves the shoreline thousands of metres up. The cut therefore landed in open water with no stream piece to cut, was dropped, and no item ever carried the boundary; the rule's locator stayed unresolved. Re-anchored to the Williston Lake polygon boundary + 400 m upstream, which is what 'signs near its mouth' means. Old coord kept in _coord as provenance. [2026-09-11] Re-anchored from Williston Lake's original waterbody (328961697) to 'Williston Lake — Zone A' (-18). The lake is now cut into its four named waters, so the polygon this creek's mouth meets is Zone A's — the original key bounds nothing on this creek any more and the split stopped resolving. The creek's mouth is inside Zone A and 23-32 km from the next nearest part, so there is nothing ambiguous about which.",
+     "_note": "[curated 2026-08-10 signs/other batch] [base=mouth +400m u/s -> 55.27125,-123.15816; closure d/s to mouth] [datum-fix 2026-08-29] Was a point anchor on the curated 'mouth' coord + 400 m upstream. That coord sits at the FWA line's measure-0 end, which for a Williston Lake tributary is inside the LAKE — the line runs on through the lake, and the creek only leaves the shoreline thousands of metres up. The cut therefore landed in open water with no stream piece to cut, was dropped, and no item ever carried the boundary; the rule's locator stayed unresolved. Re-anchored to the Williston Lake polygon boundary + 400 m upstream, which is what 'signs near its mouth' means. Old coord kept in _coord as provenance. [2026-09-11] Re-anchored from Williston Lake's original waterbody (328961697) to 'Williston Lake — Zone A' (-18). The lake is now cut into its four named waters, so the polygon this creek's mouth meets is Zone A's — the original key bounds nothing on this creek any more and the split stopped resolving. The creek's mouth is inside Zone A and 23-32 km from the next nearest part, so there is nothing ambiguous about which. [split-name audit 2026-10-26] renamed from `gagnon_creek__fishing_boundary_signs_near_its_mouth_400_m_upstream` / \"fishing boundary signs near its mouth (400 m upstream)\": the old name was a phrase fragment that named no place, so the parser could not match it.",
      "_coord": [
       -123.16404,
       55.26994
@@ -8317,8 +8336,8 @@
      }
     },
     {
-     "id": "nechako_river__boundary_sign_5000_m_downstream",
-     "label": "boundary sign (5000 m downstream)",
+     "id": "nechako_river__sign_5_km_below_cheslatta_river",
+     "label": "boundary sign 5 km below Cheslatta River",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -8331,7 +8350,7 @@
       "offset_dir": "downstream"
      },
      "note": "",
-     "_note": "[structural-split 2026-08-05 from \"from Cheslatta River to a boundary sign 5 km downstream\"] boundary=boundary sign 5 km downstream [curated 2026-08-08 manual-review batch=nechako] [boundary sign 5km d/s of Cheslatta confl; exact sign unknown, use distance]",
+     "_note": "[structural-split 2026-08-05 from \"from Cheslatta River to a boundary sign 5 km downstream\"] boundary=boundary sign 5 km downstream [curated 2026-08-08 manual-review batch=nechako] [boundary sign 5km d/s of Cheslatta confl; exact sign unknown, use distance] [split-name audit 2026-10-26] renamed from `nechako_river__boundary_sign_5000_m_downstream` / \"boundary sign (5000 m downstream)\": the old name was a phrase fragment that named no place, so the parser could not match it.",
      "_coord": [
       -124.93582,
       53.64476
@@ -8477,8 +8496,8 @@
    },
    "splits": [
     {
-     "id": "thorn_creek__point",
-     "label": "point",
+     "id": "thorn_creek__500_m_above_attichika_creek",
+     "label": "500 m above Attichika Creek",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -8489,7 +8508,7 @@
       "is_lonlat": true
      },
      "note": "",
-     "_note": "[structural-split 2026-08-05 from \"from Attichika Creek to a point 500 m upstream\"] boundary=point 500 m upstream [curated 2026-08-10 needs-pin batch2] [+500m along FWA Thorne Ck blk 359557375]",
+     "_note": "[structural-split 2026-08-05 from \"from Attichika Creek to a point 500 m upstream\"] boundary=point 500 m upstream [curated 2026-08-10 needs-pin batch2] [+500m along FWA Thorne Ck blk 359557375] [split-name audit 2026-10-26] renamed from `thorn_creek__point` / \"point\": the old name was a phrase fragment that named no place, so the parser could not match it.",
      "_coord": [
       -126.68522,
       56.92409
@@ -8504,8 +8523,8 @@
    },
    "splits": [
     {
-     "id": "weston_creek__signs_near_its_mouth_400_m_upstream",
-     "label": "signs near its mouth (400 m upstream)",
+     "id": "weston_creek__signs_400_m_above_williston_lake",
+     "label": "fishing boundary signs near the mouth (400 m above Williston Lake)",
      "kind": "lake",
      "anchor": {
       "type": "lake",
@@ -8514,7 +8533,7 @@
       "offset_dir": "upstream"
      },
      "note": "",
-     "_note": "[curated 2026-08-10 signs/other batch] [base=mouth +400m u/s -> 55.80973,-123.75827; closure d/s to mouth] [datum-fix 2026-08-29] Was a point anchor on the curated 'mouth' coord + 400 m upstream. That coord sits at the FWA line's measure-0 end, which for a Williston Lake tributary is inside the LAKE — the line runs on through the lake, and the creek only leaves the shoreline thousands of metres up. The cut therefore landed in open water with no stream piece to cut, was dropped, and no item ever carried the boundary; the rule's locator stayed unresolved. Re-anchored to the Williston Lake polygon boundary + 400 m upstream, which is what 'signs near its mouth' means. Old coord kept in _coord as provenance. [2026-09-11] Re-anchored from Williston Lake's original waterbody (328961697) to 'Williston Lake — Zone A' (-18). The lake is now cut into its four named waters, so the polygon this creek's mouth meets is Zone A's — the original key bounds nothing on this creek any more and the split stopped resolving. The creek's mouth is inside Zone A and 23-32 km from the next nearest part, so there is nothing ambiguous about which.",
+     "_note": "[curated 2026-08-10 signs/other batch] [base=mouth +400m u/s -> 55.80973,-123.75827; closure d/s to mouth] [datum-fix 2026-08-29] Was a point anchor on the curated 'mouth' coord + 400 m upstream. That coord sits at the FWA line's measure-0 end, which for a Williston Lake tributary is inside the LAKE — the line runs on through the lake, and the creek only leaves the shoreline thousands of metres up. The cut therefore landed in open water with no stream piece to cut, was dropped, and no item ever carried the boundary; the rule's locator stayed unresolved. Re-anchored to the Williston Lake polygon boundary + 400 m upstream, which is what 'signs near its mouth' means. Old coord kept in _coord as provenance. [2026-09-11] Re-anchored from Williston Lake's original waterbody (328961697) to 'Williston Lake — Zone A' (-18). The lake is now cut into its four named waters, so the polygon this creek's mouth meets is Zone A's — the original key bounds nothing on this creek any more and the split stopped resolving. The creek's mouth is inside Zone A and 23-32 km from the next nearest part, so there is nothing ambiguous about which. [split-name audit 2026-10-26] renamed from `weston_creek__signs_near_its_mouth_400_m_upstream` / \"signs near its mouth (400 m upstream)\": the old name was a phrase fragment that named no place, so the parser could not match it.",
      "_coord": [
       -123.76351,
       55.80768
@@ -8625,8 +8644,8 @@
      ]
     },
     {
-     "id": "murray_river__signs_about_2000_m_downstream",
-     "label": "signs about (2000 m downstream)",
+     "id": "murray_river__signs_2_km_below_kinuseo_falls",
+     "label": "signs ~2 km below Kinuseo Falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -8639,7 +8658,7 @@
       "offset_dir": "downstream"
      },
      "note": "",
-     "_note": "[structural-split 2026-08-05 from \"from Kinuseo Falls to signs about 2 km downstream\"] boundary=signs about 2 km downstream [hint-fix 2026-08-06 falls_obstacle->boundary_signs] [human-review 2026-08-06] anchor=Kinuseo Falls; offset_m=2000 offset_dir=downstream.",
+     "_note": "[structural-split 2026-08-05 from \"from Kinuseo Falls to signs about 2 km downstream\"] boundary=signs about 2 km downstream [hint-fix 2026-08-06 falls_obstacle->boundary_signs] [human-review 2026-08-06] anchor=Kinuseo Falls; offset_m=2000 offset_dir=downstream. [split-name audit 2026-10-26] renamed from `murray_river__signs_about_2000_m_downstream` / \"signs about (2000 m downstream)\": the old name was a phrase fragment that named no place, so the parser could not match it.",
      "_coord": [
       -121.19108,
       54.78398
@@ -8818,8 +8837,8 @@
    },
    "splits": [
     {
-     "id": "tupper_river__within_100_m_downstream",
-     "label": "within (100 m downstream)",
+     "id": "tupper_river__100_m_below_swan_lake_weir",
+     "label": "100 m below the Swan Lake outlet weir",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -8832,7 +8851,7 @@
       "offset_dir": "downstream"
      },
      "note": "",
-     "_note": " [human-review 2026-08-05] SINGLE split (lake edge auto-splits upstream end); anchor=Swan Lake (wbk 329328382); offset_m=100 offset_dir=downstream. Prior coord was Tupper CREEK; now Tupper RIVER.",
+     "_note": "[human-review 2026-08-05] SINGLE split (lake edge auto-splits upstream end); anchor=Swan Lake (wbk 329328382); offset_m=100 offset_dir=downstream. Prior coord was Tupper CREEK; now Tupper RIVER. [split-name audit 2026-10-26] renamed from `tupper_river__within_100_m_downstream` / \"within (100 m downstream)\": the old name was a phrase fragment that named no place, so the parser could not match it.",
      "_coord": [
       -120.02747,
       55.52696
