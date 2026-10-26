@@ -1318,3 +1318,27 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
   ", see table for exceptions)". `khartoum_lake.r3` / `lois_lake.r3` (hatchery rainbow = 6) are gone too, since the 6-in-the-aggregate rule
   implies them. Their `exempts` of `trout_char_quota.r3` were dropped. Khartoum's "(see diagram on page 13)" survives only
   in `regs_verbatim`.
+- Zone daily quotas merged (owner 2026-10-26, the RECOMMENDED set of handoff/PLAN/curation-review/zone-entry-merges.md):
+  each region's trout/char quota and "Other daily quotas" are ONE entry `zN:daily_quotas` (z1 z2 z3 z4 z5 z6 z7a z7b z8),
+  named after the book's box ("Region N Daily Quotas" / "Zone A|B Daily Quotas"); 7B's Arctic grayling block joins its
+  table. Every `rule_id` is kept, only the entry id moved (rule keys `zN:daily_quotas::trout_char_quota.rK`); every exempt
+  `entry_id` was rewritten (R4 79, R7 62). Not merged: possession, the General Regulations block (entry-level
+  `default_id` lifts), 7B bait + set lining, the Skeena advisories, and the 7B Dolly Varden NOTE (printed under
+  Possession Quotas, not in the quota box). Page v36's oracle keys are renamed at load (`oracles.ts ORACLE_ENTRY_RENAMED`).
+- Halfway cuts (owner 2026-10-26): both `halfway_river__*` cuts were cut on the PEACE (applies_to wsc 200-948755). The
+  confluence point is now `peace_river__halfway_river_into_peace_river`; `halfway_river__…_u5000m` was the same anchor
+  as `peace_river__…_u5000m` and merged into it. The Halfway's own closure ("from confluence with Peace River to
+  fishing boundary signs approximately 5 km upstream, Mar 1-June 30") binds `downstream_of`
+  `halfway_river__fishing_boundary_signs_5_km_above_peace_river` (the Halfway's mouth + 5000 m up the Halfway) instead
+  of an undrawn part on the whole river.
+- T206 (owner 2026-10-26): the page-v36 oracle is amended, not re-cut — each retired r3 key and each state it moves is
+  a named, reasoned exclusion or re-pin (`oracles.ts ORACLE_RETIRED`, exclusions.ts T206).
+- Splits to verify (owner 2026-10-26): every split in splits.json was placed by hand, so a `_note` (an "[auto-proposal L] … Verify:" one included) is history, never "to verify". `tiers.split_needs_verify` = `"verify": true` or a stale mark; corpus count 0 (was 150), split_to_verify pre-check 164 -> 0; tests re-pinned (Z 132 -> 122 and 1525 -> 1515 entries are the zone-quota merge 6335f73d, unresolved 29 -> 25 measured). Supersedes Q94's S0 rule.
+
+## 2026-10-26 — unused curated cuts (owner)
+- There are no orphans: every curated cut was added for a reason (often an unlabelled DFO place). Never delete one;
+  find the rule or DFO scope that uses it, or show it as an open high-severity item in the review tool.
+- Bind the 10 the T207 audit could match (Burton r1, Kootenay lower r1 navigation dolphin, 8 DFO scopes).
+- Missing splits and unused curated cuts are HIGH severity in the review tool.
+- Cranberry: the DFO falls point is the top of Cranberry River Canyon — add it as a curated split (confidence medium,
+  note saying so); the downstream sign stays "needs a split (owner to locate)".
