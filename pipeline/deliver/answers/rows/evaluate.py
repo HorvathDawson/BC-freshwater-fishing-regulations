@@ -16,6 +16,15 @@ def _stable_sort(xs, key):
     return sorted(xs, key=key)
 
 
+def closure_order(r) -> tuple:
+    """Which of several closures speaking for a fish governs: the nearest rank, then the one naming
+    the most fish (the page's own order, settle.ts `closing`). Never the entry key: Region 4's
+    invasive-species notice (bass, pike, walleye, perch) ties on rank with the quota box's "0, CLOSED"
+    lines, and breaking that by key split the one folded row into five when `z4:species_quotas`
+    became `z4:daily_quotas` (T206, owner 2026-10-26)."""
+    return (r.rank, -len(r.species))
+
+
 def eval_sp(P: "Part", S: str, o: str) -> Optional[dict]:
     """The decided answer for fish `S` of origin `o`: status, winner, the day's number after the
     winner's clauses, every line, every rule's role — or None (no rule in scope speaks)."""
@@ -45,7 +54,7 @@ def eval_sp(P: "Part", S: str, o: str) -> Optional[dict]:
     partly = [r for r in A if verdict[r.key][1]]
     steelhead = S == "RB" and P.steelhead_water
     pools = [r for r in A if r.k == "pool"]
-    closed = _stable_sort([r for r in A if is_closure_gate(r.f, r.k)], key=lambda r: r.rank)
+    closed = _stable_sort([r for r in A if is_closure_gate(r.f, r.k)], key=closure_order)
     rel = _stable_sort([r for r in A if r.k == "gate" and not is_closure_gate(r.f, r.k)], key=lambda r: r.rank)
 
     def tk(r):
