@@ -9,9 +9,47 @@ the topology graph exists; `resolve_splits` uses anchors.py and is a stub until 
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 from pipeline.common.models import BlkChain, SplitDef, SplitPoint
+
+#: Words a split label may not START with: they open a phrase ("within 100 m downstream of the falls
+#: ...", "in Moricetown Canyon or within ...", "signs about 2 km ..."), not a place.
+_LEAD_FRAGMENT = frozenset({"within", "in", "or", "and", "of", "to", "from", "at", "about",
+                            "approximately", "approx", "near", "its", "situated", "located"})
+#: ... nor END with (a phrase cut off mid-way: "in Moricetown Canyon or within").
+_TAIL_FRAGMENT = _LEAD_FRAGMENT | {"the", "a"}
+#: Words that name no place on their own: with nothing else outside the parentheses the label is a
+#: bare distance or a bare sign ("within (100 m downstream)", "boundary sign (5000 m downstream)",
+#: "th (750 m upstream)", "point").
+_NO_PLACE = _TAIL_FRAGMENT | {"upstream", "downstream", "above", "below", "m", "km", "sign", "signs",
+                              "boundary", "fishing", "point", "th", "u/s", "d/s"}
+
+
+def label_problem(label: str) -> str:
+    """Why a split's `label` is not a place name, or "" when it is.
+
+    THE LABEL IS WHAT THE PARSER MATCHES. A rule's `extents.splits` is chosen from a menu that shows
+    each cut-point by its label (`parse_context.render_boundary_menu`), so a label cut out of the
+    regulation's phrase — "within (100 m downstream)" for "within 100 m downstream of the falls
+    situated approximately 4.5 km upstream of Wakeman River" — names nothing the parser can match the
+    text against. Wahpeeto Creek's closure was held undrawn for exactly that (owner 2026-10-26); 22
+    curated labels had the defect. A label must name the place: "100 m below the falls (4.5 km above
+    Wakeman River)"."""
+    text = re.sub(r"\([^)]*\)", " ", label or "").strip(" ,;:-")
+    words = re.findall(r"[A-Za-z][A-Za-z'&./]*|\d+(?:\.\d+)?", text)
+    if not words:
+        return "names no place (nothing outside its parentheses)"
+    if words[0].lower() in _LEAD_FRAGMENT:
+        return f"is a phrase fragment (starts with {words[0]!r})"
+    if words[-1].lower() in _TAIL_FRAGMENT:
+        return f"is a phrase fragment (ends with {words[-1]!r})"
+    if re.search(r"\b(Lake|River|Creek|Falls|Bridge|Dam)\s+to\b", text):
+        return "is a reach ('X to Y'), not a place"
+    if not any(w.lower() not in _NO_PLACE and not w[0].isdigit() and len(w) > 2 for w in words):
+        return "names no place (only distances, directions or sign words)"
+    return ""
 
 
 def _norm_target(applies: dict | None) -> dict:
@@ -173,7 +211,14 @@ def load_split_defs(path: str) -> list[SplitDef]:
             "the flat {\"splits\": [...]} shape is retired; put each split under a waterbody and "
             "its target in `applies_to`")
     entries, untargeted = _flatten_waterbodies(data)
-    if untargeted:                           # a null-applies_to waterbody whose split has no own target
+    bad_labels = [(e["id"], e.get("label", ""), why) for e in entries
+                  if e.get("label") and (why := label_problem(e["label"]))]
+    if bad_labels:                           # the parser cannot match a cut whose label names no place
+        raise ValueError(
+            "splits.json validation: split label(s) that name no place (`label_problem`) — name the "
+            "place, e.g. \"100 m below the falls (4.5 km above Wakeman River)\": "
+            + "; ".join(f"{sid} {lbl!r} {why}" for sid, lbl, why in bad_labels[:12]))
+    if untargeted:                          # a null-applies_to waterbody whose split has no own target
         raise ValueError(
             "splits.json validation: split(s) with no resolvable target (waterbody applies_to is "
             "null and the split has no applies_to of its own): "

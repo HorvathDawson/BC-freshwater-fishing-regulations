@@ -183,3 +183,50 @@ def test_every_waterbody_block_targets_a_real_registry_item():
                 bad.append(f"{wb.get('name')!r} -> {t} ({len(wb.get('splits') or [])} split(s) stranded)")
     assert not bad, ("waterbody block(s) whose applies_to resolves to NOTHING — their splits are "
                      "silently stranded:\n  " + "\n  ".join(bad))
+
+
+# ---- a split's label names a place (split-name audit, owner 2026-10-26) ---------------------------
+# The parser binds a rule to a cut by reading the cut's LABEL in its boundary menu. Wahpeeto Creek's
+# "within 100 m downstream of the falls ..." stayed an undrawn note while a cut labelled
+# "within (100 m downstream)" sat on the water unused: the label was a fragment of the phrase.
+
+@pytest.mark.parametrize("label", [
+    "within (100 m downstream)", "within (500 m upstream)", "th (750 m upstream)",
+    "in Moricetown Canyon or within (100 m downstream)", "signs about (2000 m downstream)",
+    "boundary sign (5000 m downstream)", "point", "boundary signs ~1km u/s", "within Garibaldi Park",
+    "Ruby Lake to fishing boundary signs (100 m downstream)",
+    "fishing boundary signs (Yakoun Guardian Program survey)",
+])
+def test_label_problem_refuses_a_phrase_fragment(label):
+    from pipeline.atlas.splits.splits import label_problem
+    assert label_problem(label)
+
+
+@pytest.mark.parametrize("label", [
+    "100 m below the falls (4.5 km above Wakeman River)", "Kinuseo Falls", "Eve River → Adam River",
+    "Hwy 19 bridge", "the falls", "downstream end of Forrest Kerr Canyon",
+    "above Babine River (WSC gauge 08EB005)", "the Forks fishing boundary signs, 1 km downstream",
+    "the northern entrance to the upper most railway tunnel", "Dickson Falls (30 m downstream)",
+    "signs 50 m upstream of Likely Bridge", "Garibaldi Park boundary",
+])
+def test_label_problem_accepts_a_place(label):
+    from pipeline.atlas.splits.splits import label_problem
+    assert label_problem(label) == ""
+
+
+def test_the_loader_refuses_a_label_that_names_no_place(tmp_path):
+    body = json.loads(json.dumps(_SAMPLE_SPLITS))
+    body["waterbodies"][0]["splits"][1]["label"] = "within (100 m downstream)"
+    p = tmp_path / "splits.json"
+    p.write_text(json.dumps(body))
+    with pytest.raises(ValueError, match="name no place"):
+        load_split_defs(str(p))
+
+
+def test_every_curated_label_names_a_place():
+    """The corpus: every label in splits.json passes `label_problem` (22 did not before the audit)."""
+    from pipeline.atlas.splits.splits import label_problem
+    body = json.loads(CURATED.waters.splits.read_text(encoding="utf-8"))
+    bad = [f"{s['id']}: {s.get('label')!r} {label_problem(s.get('label', ''))}"
+           for wb in body["waterbodies"] for s in wb["splits"] if label_problem(s.get("label", ""))]
+    assert not bad, "\n  ".join(["split label(s) that name no place:"] + bad)

@@ -380,13 +380,19 @@ def test_l16_chimney_creek_is_open_all_year_below_brunson_lake_only(db):
 
 # ============================================================================================ T8
 ANZAC_ROW, ANZAC = "r7:anzac_river@7-23", "gnis:7607"
+#: The Anzac window's two cuts (renamed 2026-10-26 from `anzac_river__within_500_m_*`, a phrase fragment;
+#: a bundle built before the rename still carries the old ids, which `_window` falls back to).
+ANZAC_CUTS = (("anzac_river__500_m_below_upper_anzac_bridge", "anzac_river__within_500_m_downstream"),
+              ("anzac_river__500_m_above_upper_anzac_bridge", "anzac_river__within_500_m_upstream"))
 
 
 def _window(db, item: str, *splits: str) -> tuple:
     """The measure window (m) between a water's printed cuts, from the bundle's `split`."""
     at = []
     for sp in splits:
-        (a,), = db.execute("SELECT at FROM split WHERE split_id = ?", (sp,)).fetchall()
+        names = sp if isinstance(sp, tuple) else (sp,)     # (current id, id an older bundle carries)
+        (a,), = next(r for n in names if (r := db.execute(
+            "SELECT at FROM split WHERE split_id = ?", (n,)).fetchall()))
         at += [round(m * 1000) for i, m in json.loads(a) if i == item]
     return min(at), max(at)
 
@@ -401,7 +407,7 @@ def _t8(db, reach=None, trib=None) -> dict:
     """The Anzac spot: which of the river's joining pieces (off-stem sections, placed at the measure where
     they join) the closure binds, inside and outside its 500 m window; and its tributaries against the
     river's own walk upstream of the North Anzac (r2, the same ✱ row)."""
-    lo, hi = _window(db, ANZAC, "anzac_river__within_500_m_downstream", "anzac_river__within_500_m_upstream")
+    lo, hi = _window(db, ANZAC, *ANZAC_CUTS)
     reach = _bound_to(db, ANZAC_ROW, "anzac_river.r1", "reach") if reach is None else reach
     trib = _bound_to(db, ANZAC_ROW, "anzac_river.r1", "trib") if trib is None else trib
     river_walk = _bound_to(db, ANZAC_ROW, "anzac_river.r2", "trib")
@@ -423,7 +429,7 @@ def test_t8_a_spot_closure_closes_the_tributaries_joining_within_the_spot(db):
     assert _t8(db) == {"joining_inside_bound": [True], "joining_outside_bound": [False],
                        "tributaries": True, "fewer_than_the_rivers_walk": True}
     assert _bound_to(db, "r5:mitchell_river@5-15", "mitchell_river.r1", "trib") == set()
-    lo, hi = _window(db, ANZAC, "anzac_river__within_500_m_downstream", "anzac_river__within_500_m_upstream")
+    lo, hi = _window(db, ANZAC, *ANZAC_CUTS)
     outside = next(s for s in _sections(db, ANZAC)
                    if _off_stem(db, s)[1] and _off_stem(db, s)[0] is not None
                    and not lo - 5 <= _off_stem(db, s)[0] <= hi + 5)
