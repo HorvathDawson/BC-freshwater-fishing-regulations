@@ -9500,9 +9500,11 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "no registry match — attach an item and bind extents"
+     ]
     }
+   ],
+   "matched": [
+    "gnis:12042"
    ]
   },
   {

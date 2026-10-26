@@ -7232,5 +7232,19 @@
   "gnis_ids": [
    "27659"
   ]
+ },
+ {
+  "type": "override",
+  "criteria": {
+   "name_verbatim": "MACKENZIE CREEK",
+   "region": "REGION 4 - Kootenay",
+   "mus": [
+    "4-21"
+   ]
+  },
+  "note": "BOOK ERRATUM (owner 2026-10-26): the synopsis prints MACKENZIE CREEK under MU 4-21 (Region 4, printed p.38); that is a typo for MU 4-31 — it is the Mackenzie Creek in MU 4-31 (GNIS 12042). No Mackenzie Creek exists in 4-21. Recorded in pipeline/docs/GOTCHAS.md.",
+  "gnis_ids": [
+   "12042"
+  ]
  }
 ]
