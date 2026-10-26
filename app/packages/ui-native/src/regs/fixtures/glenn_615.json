@@ -530,7 +530,7 @@
     "week": null
    },
    {
-    "name": "Bass",
+    "name": "Largemouth bass, northern pike, smallmouth bass, walleye and yellow perch",
     "open": "other:o3",
     "sizeHint": null,
     "stamps": [],
@@ -540,38 +540,8 @@
     "week": null
    },
    {
-    "name": "Yellow perch",
-    "open": "other:o4",
-    "sizeHint": null,
-    "stamps": [],
-    "thumb": "YP",
-    "tone": "closed",
-    "value": "closed",
-    "week": null
-   },
-   {
-    "name": "Northern pike",
-    "open": "other:o5",
-    "sizeHint": null,
-    "stamps": [],
-    "thumb": "NP",
-    "tone": "closed",
-    "value": "closed",
-    "week": null
-   },
-   {
-    "name": "Walleye",
-    "open": "other:o6",
-    "sizeHint": null,
-    "stamps": [],
-    "thumb": "WP",
-    "tone": "closed",
-    "value": "closed",
-    "week": null
-   },
-   {
     "name": "White sturgeon",
-    "open": "other:o7",
+    "open": "other:o4",
     "sizeHint": null,
     "stamps": [],
     "thumb": "WSG",
@@ -581,7 +551,7 @@
    },
    {
     "name": "Crayfish",
-    "open": "other:o8",
+    "open": "other:o5",
     "sizeHint": null,
     "stamps": [],
     "thumb": null,
@@ -591,7 +561,7 @@
    },
    {
     "name": "Protected species",
-    "open": "other:o9",
+    "open": "other:o6",
     "sizeHint": null,
     "stamps": [],
     "thumb": null,
@@ -2334,132 +2304,26 @@
        "sil": false
       },
       {
+       "caption": "Northern pike ›",
+       "code": "NP",
+       "name": "Northern pike",
+       "open": "sp:NP",
+       "sil": false
+      },
+      {
        "caption": "Smallmouth bass ›",
        "code": "SMB",
        "name": "Smallmouth bass",
        "open": "sp:SMB",
        "sil": false
-      }
-     ]
-    },
-    {
-     "k": "value",
-     "text": [
-      {
-       "s": "⊘ Closed",
-       "t": "text"
       },
       {
-       "s": " ",
-       "t": "text"
+       "caption": "Walleye ›",
+       "code": "WP",
+       "name": "Walleye",
+       "open": "sp:WP",
+       "sil": false
       },
-      {
-       "ids": [
-        "no_fishing_for"
-       ],
-       "t": "term"
-      }
-     ]
-    },
-    {
-     "k": "para",
-     "text": [
-      {
-       "s": "Don’t fish for them. If one bites, carefully release it. All year.",
-       "t": "text"
-      }
-     ]
-    },
-    {
-     "k": "head",
-     "text": "How this was decided"
-    },
-    {
-     "k": "ladder",
-     "q": "What you can keep",
-     "result": "Closed here.",
-     "steps": [
-      {
-       "level": "Region 4",
-       "lines": [
-        {
-         "applies": [
-          "From the Region 4 table — all of Region 4."
-         ],
-         "book": [
-          {
-           "pdf": 36,
-           "printed": 34,
-           "t": "book"
-          }
-         ],
-         "rule": "z4:daily_quotas::species_quotas.r1",
-         "tag": "Closed",
-         "text": [
-          {
-           "s": "No fishing for bass.",
-           "t": "text"
-          }
-         ],
-         "won": true
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "k": "ladder",
-     "q": "Other rules",
-     "result": null,
-     "steps": [
-      {
-       "level": "Region 4",
-       "lines": [
-        {
-         "applies": [
-          "From the Region 4 table — all of Region 4."
-         ],
-         "book": [
-          {
-           "pdf": 36,
-           "printed": 34,
-           "t": "book"
-          }
-         ],
-         "rule": "z4:possession_quota::possession_quota.r1",
-         "tag": "Carry limit",
-         "text": [
-          {
-           "s": "Possession: 2 days’ quota. Fish at home don’t count.",
-           "t": "text"
-          }
-         ],
-         "won": true
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "k": "link",
-     "line": [
-      {
-       "open": "src:r5",
-       "s": "See every regulation line ›",
-       "t": "link"
-      }
-     ]
-    }
-   ],
-   "key": "other:o3",
-   "sub": null,
-   "title": "Bass"
-  },
-  "other:o4": {
-   "blocks": [
-    {
-     "k": "pictures",
-     "pics": [
       {
        "caption": "Yellow perch ›",
        "code": "YP",
@@ -2520,11 +2384,138 @@
            "t": "book"
           }
          ],
-         "rule": "z4:daily_quotas::species_quotas.r11",
+         "rule": "z4:invasive_species_notice::invasive_species_notice.r1",
          "tag": "Closed",
          "text": [
           {
-           "s": "No fishing for yellow perch.",
+           "s": "No fishing for bass, yellow perch, northern pike and walleye: the Kootenay Region, except waters listed in the tables",
+           "t": "text"
+          }
+         ],
+         "won": true
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "k": "ladder",
+     "q": "Other rules",
+     "result": null,
+     "steps": [
+      {
+       "level": "Region 4",
+       "lines": [
+        {
+         "applies": [
+          "From the Region 4 table — all of Region 4."
+         ],
+         "book": [
+          {
+           "pdf": 36,
+           "printed": 34,
+           "t": "book"
+          }
+         ],
+         "rule": "z4:possession_quota::possession_quota.r1",
+         "tag": "Carry limit",
+         "text": [
+          {
+           "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+           "t": "text"
+          }
+         ],
+         "won": true
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "k": "link",
+     "line": [
+      {
+       "open": "src:r5",
+       "s": "See every regulation line ›",
+       "t": "link"
+      }
+     ]
+    }
+   ],
+   "key": "other:o3",
+   "sub": null,
+   "title": "Largemouth bass, northern pike, smallmouth bass, walleye and yellow perch"
+  },
+  "other:o4": {
+   "blocks": [
+    {
+     "k": "pictures",
+     "pics": [
+      {
+       "caption": "White sturgeon ›",
+       "code": "WSG",
+       "name": "White sturgeon",
+       "open": "sp:WSG",
+       "sil": false
+      }
+     ]
+    },
+    {
+     "k": "value",
+     "text": [
+      {
+       "s": "⊘ Closed",
+       "t": "text"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "ids": [
+        "no_fishing_for"
+       ],
+       "t": "term"
+      }
+     ]
+    },
+    {
+     "k": "para",
+     "text": [
+      {
+       "s": "Don’t fish for them. If one bites, carefully release it. All year.",
+       "t": "text"
+      }
+     ]
+    },
+    {
+     "k": "head",
+     "text": "How this was decided"
+    },
+    {
+     "k": "ladder",
+     "q": "What you can keep",
+     "result": "Closed here.",
+     "steps": [
+      {
+       "level": "Region 4",
+       "lines": [
+        {
+         "applies": [
+          "From the Region 4 table — all of Region 4."
+         ],
+         "book": [
+          {
+           "pdf": 36,
+           "printed": 34,
+           "t": "book"
+          }
+         ],
+         "rule": "z4:daily_quotas::species_quotas.r9",
+         "tag": "Closed",
+         "text": [
+          {
+           "s": "No fishing for white sturgeon.",
            "t": "text"
           }
          ],
@@ -2580,38 +2571,26 @@
    ],
    "key": "other:o4",
    "sub": null,
-   "title": "Yellow perch"
+   "title": "White sturgeon"
   },
   "other:o5": {
    "blocks": [
     {
-     "k": "pictures",
-     "pics": [
-      {
-       "caption": "Northern pike ›",
-       "code": "NP",
-       "name": "Northern pike",
-       "open": "sp:NP",
-       "sil": false
-      }
-     ]
+     "k": "rowTitle",
+     "scope": "Region 4-wide",
+     "title": "Crayfish"
     },
     {
      "k": "value",
      "text": [
       {
-       "s": "⊘ Closed",
-       "t": "text"
+       "s": "25",
+       "size": "big",
+       "t": "num"
       },
       {
-       "s": " ",
+       "s": "a day",
        "t": "text"
-      },
-      {
-       "ids": [
-        "no_fishing_for"
-       ],
-       "t": "term"
       }
      ]
     },
@@ -2619,7 +2598,7 @@
      "k": "para",
      "text": [
       {
-       "s": "Don’t fish for them. If one bites, carefully release it. All year.",
+       "s": "Shared with all of Region 4 today.",
        "t": "text"
       }
      ]
@@ -2631,7 +2610,7 @@
     {
      "k": "ladder",
      "q": "What you can keep",
-     "result": "Closed here.",
+     "result": "25 a day here, for all of Region 4 together.",
      "steps": [
       {
        "level": "Region 4",
@@ -2647,11 +2626,11 @@
            "t": "book"
           }
          ],
-         "rule": "z4:daily_quotas::species_quotas.r7",
-         "tag": "Closed",
+         "rule": "z4:daily_quotas::species_quotas.r3",
+         "tag": "Daily limit",
          "text": [
           {
-           "s": "No fishing for northern pike.",
+           "s": "Keep up to 25 crayfish a day.",
            "t": "text"
           }
          ],
@@ -2707,22 +2686,10 @@
    ],
    "key": "other:o5",
    "sub": null,
-   "title": "Northern pike"
+   "title": "Crayfish"
   },
   "other:o6": {
    "blocks": [
-    {
-     "k": "pictures",
-     "pics": [
-      {
-       "caption": "Walleye ›",
-       "code": "WP",
-       "name": "Walleye",
-       "open": "sp:WP",
-       "sil": false
-      }
-     ]
-    },
     {
      "k": "value",
      "text": [
@@ -2746,10 +2713,26 @@
      "k": "para",
      "text": [
       {
-       "s": "Don’t fish for them. If one bites, carefully release it. All year.",
+       "s": "Don’t fish for them. If one bites, carefully release it.",
        "t": "text"
       }
      ]
+    },
+    {
+     "body": [
+      {
+       "k": "para",
+       "text": [
+        {
+         "s": "Cultus Lake sculpin · Enos Lake stickleback · Misty Lake stickleback · Nooksack dace · Paxton Lake stickleback · Rocky Mountain sculpin · Salish sucker · Shorthead sculpin · Vananda Creek stickleback · Vancouver lamprey · Western brook lamprey (Morrison Creek population) · White sturgeon (Nechako, Upper Fraser, Kootenay and Columbia populations)",
+         "t": "text"
+        }
+       ]
+      }
+     ],
+     "k": "fold",
+     "open": false,
+     "summary": "Which fish (12)"
     },
     {
      "k": "head",
@@ -2761,57 +2744,24 @@
      "result": "Closed here.",
      "steps": [
       {
-       "level": "Region 4",
+       "level": "Federal law",
        "lines": [
         {
          "applies": [
-          "From the Region 4 table — all of Region 4."
+          "Set by a federal or park authority — everywhere in B.C."
          ],
          "book": [
           {
-           "pdf": 36,
-           "printed": 34,
+           "pdf": 11,
+           "printed": 9,
            "t": "book"
           }
          ],
-         "rule": "z4:daily_quotas::species_quotas.r8",
+         "rule": "zp:protected_species::protected_species.r1",
          "tag": "Closed",
          "text": [
           {
-           "s": "No fishing for walleye.",
-           "t": "text"
-          }
-         ],
-         "won": true
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "k": "ladder",
-     "q": "Other rules",
-     "result": null,
-     "steps": [
-      {
-       "level": "Region 4",
-       "lines": [
-        {
-         "applies": [
-          "From the Region 4 table — all of Region 4."
-         ],
-         "book": [
-          {
-           "pdf": 36,
-           "printed": 34,
-           "t": "book"
-          }
-         ],
-         "rule": "z4:possession_quota::possession_quota.r1",
-         "tag": "Carry limit",
-         "text": [
-          {
-           "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+           "s": "No fishing for Cultus Lake sculpin, Enos Lake stickleback, Misty Lake stickleback, Nooksack dace, Paxton Lake stickleback, Rocky Mountain sculpin, shorthead sculpin, Salish sucker, Vananda Creek stickleback, vancouver lamprey, western brook lamprey (Morrison Creek population) and white sturgeon (Nechako, Upper Fraser, Kootenay and Columbia populations).",
            "t": "text"
           }
          ],
@@ -2834,7 +2784,7 @@
    ],
    "key": "other:o6",
    "sub": null,
-   "title": "Walleye"
+   "title": "Protected species"
   },
   "pos:pos": {
    "blocks": [
