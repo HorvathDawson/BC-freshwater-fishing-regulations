@@ -151,6 +151,14 @@ no rules), `verify`, `verify_note`, `mark_reasons` (the stale reasons) and `revi
 `rule_unresolved`, read only when `report.json` says the run is complete); with no run they are not
 claimed and `GET /api/review/progress` `facts` says why.
 
+**Severity (owner 2026-10-26).** Each row (and `GET /api/entries/{id}/review`) carries `severity`
+(`high | medium | low | none`, `pipeline.regs.review.severity.entry_severity`) and `severity_reasons`
+(most severe first — the chip's hover). The `risk` order puts severity FIRST, then `tiers.queue_rank`.
+`severity` filters on it: a level, or `issues` (high + medium); anything else `422`. High: parser
+flag, missing split (a named undrawn part, an unresolved locator), unresolved, unplaced, ambiguous
+cut, binds nothing, failed gate, unused curated cut. Medium: split to verify, quote not in row.
+Low: cuts its water, several waters, a cut decided by hand, unquoted text, an "on parts" note.
+
 ### GET /api/review/tickets  ·  GET /api/review/tickets.md  (T135)
 Every **wrong** and **unsure** mark in force as ticket text (`pipeline.regs.review.tickets`):
 `[{name, text}]`, or one Markdown text. Read only — the owner files them (PLAN §6 Q3). A ticket carries
