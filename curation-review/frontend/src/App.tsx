@@ -35,9 +35,6 @@ export default function App() {
   // (tier, then the most urgent risk factor; T135), or the book's (region, page)
   const [verify, setVerify] = useState<ReviewFilter>("");
   const [order, setOrder] = useState<QueueOrder>("risk");
-  // THE PILOT FIRST (T136): while a pilot file exists the queue opens on its 30 targets, in its order
-  const [pilotSize, setPilotSize] = useState(0);
-  const [pilot, setPilot] = useState(true);
   const [rows, setRows] = useState<QueueRow[]>([]);
   const [loadingRows, setLoadingRows] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
@@ -54,7 +51,6 @@ export default function App() {
   useEffect(() => {
     api.mode().then(setMode).catch((e) => setError(`mode: ${e}`));
     api.regions().then(setRegions).catch((e) => setError(String(e)));
-    api.pilot().then((t) => { setPilotSize(t.length); if (!t.length) setPilot(false); }).catch(() => setPilot(false));
   }, []);
 
   const loadProgress = useCallback(() => {
@@ -68,12 +64,12 @@ export default function App() {
     if (!region) return;
     setLoadingRows(true);
     api
-      .entries(region === ALL_REGIONS ? undefined : region, status, "", verify, order, tier, pilot)
+      .entries(region === ALL_REGIONS ? undefined : region, status, "", verify, order, tier)
       // THE OPEN ENTRY STAYS IN THE LIST after it is marked (a "to do" filter drops it otherwise)
       .then((fresh) => setRows((old) => keepSelected(fresh, old, selectedRef.current)))
       .catch((e) => setError(String(e)))
       .finally(() => setLoadingRows(false));
-  }, [region, status, verify, order, tier, pilot]);
+  }, [region, status, verify, order, tier]);
 
   useEffect(() => {
     loadRows();
@@ -212,15 +208,7 @@ export default function App() {
           <button className="btn small" data-testid="dfo-tab" title="T164: review every scraped DFO salmon extent"
             onClick={() => { window.history.replaceState(null, "", `#${DFO_HASH}`); setDfo(true); }}>
             DFO salmon extents
-          </button>
-          {pilotSize > 0 ? (
-          <button className={`btn small pilot-toggle${pilot ? " on" : ""}`} data-testid="pilot-toggle"
-            aria-pressed={pilot} onClick={() => setPilot((p) => !p)}>
-            {pilot
-              ? `Pilot: ${rows.filter((r) => r.reviewed || (r.verify && r.verify !== "unmarked")).length}/${pilotSize} marked — show all`
-              : `Show the ${pilotSize} pilot entries`}
-          </button>
-        ) : null}</>}
+          </button></>}
         moreSet={tier ? 1 : 0}
         more={
           <>

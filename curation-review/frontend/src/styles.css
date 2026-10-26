@@ -882,13 +882,22 @@ code.cmd { font-size: 11px; padding: 1px 6px; border: 1px solid var(--warn-borde
 .entry-review { margin: 8px 0 14px; }
 .checklist { border: 1px solid var(--border); border-radius: 4px; background: var(--panel); }
 .checklist-head { padding: 6px 10px; border-bottom: 1px solid var(--border); }
-.check-row { display: flex; gap: 8px; align-items: center; padding: 5px 10px; cursor: pointer; border-left: 3px solid transparent; }
-.check-row.active { background: #eef4ff; border-left-color: var(--accent); }
-.check-row.held { opacity: .55; cursor: default; }
-.check-row kbd, .answer-link kbd { font-family: ui-monospace, Menlo, monospace; font-size: 11px; padding: 0 5px; border: 1px solid var(--border); border-radius: 3px; background: #f7f7f9; }
-.check-q { flex: 1; }
-.check-a { display: inline-flex; gap: 4px; }
-.ans { min-width: 26px; padding: 2px 6px; border: 1px solid var(--border); border-radius: 3px; background: #fff; cursor: pointer; font-weight: 600; }
+.check-seg-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; padding: 8px 10px 4px; }
+.check-seg { display: flex; flex-direction: column; gap: 3px; padding: 4px 6px; border: 1px solid transparent; border-radius: 4px; cursor: pointer; }
+.check-seg.active { background: #eef4ff; border-color: var(--accent); }
+.check-seg.held { opacity: .55; cursor: default; }
+.check-seg-label { font-size: 12px; font-weight: 600; white-space: nowrap; }
+.check-seg-held { font-size: 11px; }
+.seg { display: inline-flex; }
+.seg .ans { flex: 1; border-radius: 0; margin-left: -1px; }
+.seg .ans:first-child { border-radius: 3px 0 0 3px; margin-left: 0; }
+.seg .ans:last-child { border-radius: 0 3px 3px 0; }
+.check-help { padding: 0 10px 4px; font-size: 12px; }
+.check-help ul { margin: 4px 0 2px 16px; padding: 0; }
+.check-help li { margin: 2px 0; }
+.check-help kbd, .check-seg kbd, .answer-link kbd { font-family: ui-monospace, Menlo, monospace; font-size: 11px; padding: 0 5px; border: 1px solid var(--border); border-radius: 3px; background: #f7f7f9; }
+@media (max-width: 700px) { .check-seg-row { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.ans { min-width: 28px; padding: 3px 6px; border: 1px solid var(--border); border-radius: 3px; background: #fff; cursor: pointer; font-weight: 600; }
 .ans.on.ans-y { background: var(--ok-bg); border-color: var(--ok-border); color: var(--ok-text); }
 .ans.on.ans-n { background: var(--danger-bg); border-color: var(--danger-border); color: var(--danger-text); }
 .ans.on.ans-q { background: var(--warn-bg); border-color: var(--warn-border); color: var(--warn-text); }
@@ -927,9 +936,6 @@ code.cmd { font-size: 11px; padding: 1px 6px; border: 1px solid var(--warn-borde
 .named-splits li.selected > a { font-weight: 600; }
 .named-splits .badge { margin-left: 6px; }
 
-/* T136: the pilot toggle stands out while it is the queue */
-.pilot-toggle { white-space: nowrap; }
-.pilot-toggle.on { background: #f5b301; color: #1a1a1a; font-weight: 600; border-color: #c98f00; }
 
 /* ---- T189: the source pinned, the entry's extent, one block per rule ---- */
 /* the row as printed and as parsed stay at the top of the pane (under the sticky verify bar) */
@@ -960,3 +966,13 @@ code.cmd { font-size: 11px; padding: 1px 6px; border: 1px solid var(--warn-borde
 .trib-call.on { background: #eef4ff; border-color: var(--accent); color: var(--accent); }
 .lake-split-later { display: inline-flex; gap: 6px; align-items: center; margin: 6px 0 0; font-size: 12px; }
 .boundaries-box > summary { cursor: pointer; font-weight: 600; }
+
+/* ---- T205: species + sizes in each rule block, the show-on-map button, zone entries without a map ---- */
+.rule-species { margin: 4px 0 6px; font-size: 12px; }
+.rule-species table { border-collapse: collapse; }
+.rule-species td { padding: 2px 10px 2px 0; vertical-align: top; }
+.rule-species .sp-name { font-weight: 600; white-space: nowrap; }
+.sp-bands { margin: 0; padding-left: 16px; }
+.show-map-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; margin: 6px 0 4px; font-size: 13px; font-weight: 600; background: var(--accent); color: #fff; border: 1px solid var(--accent); border-radius: 5px; cursor: pointer; }
+.show-map-btn:hover { filter: brightness(1.1); }
+.zone-no-map { padding: 18px; font-size: 13px; color: var(--muted); }

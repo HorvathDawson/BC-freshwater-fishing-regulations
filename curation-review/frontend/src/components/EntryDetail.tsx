@@ -8,6 +8,7 @@ import { api } from "../api";
 import { describeDiagnostic, reachIdentities } from "../format";
 import { VerifyBar, type QueueNav } from "./VerifyBar";
 import { Evidence } from "./Evidence";
+import { RuleSpecies } from "./RuleSpecies";
 import { EntryReview, markWords, useEntryReview, type MarkExtras } from "./EntryReview";
 import { Finding, findingsOf, Prechecks } from "./Prechecks";
 import { ITEM_COLORS, MapPanel } from "./MapPanel";
@@ -98,6 +99,8 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
     return () => { live = false; };
   }, [detail.entry, viewDate, reloadKey]);
   const { item, unused_curated_splits } = detail;
+  // a ZONE entry holds region-wide (T205): its reach is an area far too large to load or draw
+  const zone = detail.kind === "zone";
   const entry = detail.entry;
   const related = detail.related_entries ?? [];
   const boundaries = item?.boundaries ?? [];
@@ -143,6 +146,7 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
   const [named, setNamed] = useState<EntrySplits | null>(null);
   useEffect(() => {
     let live = true;
+    if (zone) { setNamed(null); return; }
     api.splits(entry.entry_id).then((s) => { if (live) setNamed(s); })
       .catch(() => { if (live) setNamed(null); });
     return () => { live = false; };
@@ -161,6 +165,7 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
   const [reachBusy, setReachBusy] = useState(false);
   useEffect(() => {
     let live = true;
+    if (zone) { setReaches(null); setReachBusy(false); return; }
     setReachBusy(true);
     api.reaches(entry.entry_id)
       .then((x) => { if (live) setReaches(x); })
@@ -171,7 +176,6 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
 
   const matched = entry.matched ?? [];
   const mapItemId = item?.id ?? matched[0] ?? null;
-  const zone = detail.kind === "zone";
   const isNoRegistry = !zone && item == null;
   const symbolSaysTributaries = (entry.symbols ?? []).some((s: string) => /incl.*trib/i.test(s));
   const tribFlagMismatch = symbolSaysTributaries && entry.includes_tributaries === false;
@@ -232,9 +236,6 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
         <div className="ext-row">
           <span className="k">where</span>
           <span className="ext-where">{sw.where}</span>
-          <button type="button" className="btn small" data-testid={`show-${rid}`}
-            onClick={() => setShowRule((s) => ({ id: rid, n: s.n + 1 }))}
-            title="draw this rule's reach on the map">show on map</button>
         </div>
         {sw.book_says && sw.book_says !== sw.where && (
           <div className="ext-row"><span className="k">book</span>“{sw.book_says}”</div>
@@ -445,6 +446,14 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
                     {rule.verbatim && rule.verbatim !== rule.label && (
                       <div className="rule-verbatim">{rule.verbatim}</div>
                     )}
+                    <RuleSpecies rule={rule} />
+                    {!zone && (
+                      <button type="button" className="show-map-btn" data-testid={`show-${rule.rule_id}`}
+                        onClick={() => setShowRule((x) => ({ id: rule.rule_id, n: x.n + 1 }))}
+                        title="draw this rule's reach on the map">
+                        <span aria-hidden="true">&#9906;</span> Show on map
+                      </button>
+                    )}
                     {sw ? ruleExtent(rule.rule_id, sw)
                       : <div className="dim">{viewError ? "" : "where it holds: loading…"}</div>}
                   </div>
@@ -553,6 +562,14 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
           <VerdictBar checks={r.checks} m={r.m} held={r.held} />
         </div>
         <div className="detail-map">
+          {zone ? (
+            <div className="zone-no-map" data-testid="zone-no-map">
+              <strong>No map for a zone entry.</strong> Its rules hold region-wide ({entry.region || detail.region}):
+              the reach is an area far too large to load or draw, so nothing is fetched. Check the
+              text and the rules against the printed passage on the left; where a rule holds is in
+              its block, in words.
+            </div>
+          ) : (
           <MapPanel
             itemId={mapItemId}
             alsoItemIds={alsoItems.map((a) => a.id)}
@@ -571,6 +588,7 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
             preview={fixPreview}
             onPick={pickCb.cb}
           />
+          )}
         </div>
       </div>
     </div>

@@ -118,8 +118,6 @@ caches drop themselves when the served files change, with no restart.
   with the served reach run's; only a typed cause explains a difference (`parity.EXPLAINED`).
 - **False stale.** `python -m pipeline.regs.review.gate stale` reads every mark in force: held,
   stale by an edit, stale by a rebuild alone (`build_only` — the false stales; the gate is 0).
-- **Pilot.** `handoff/PLAN/curation-review/PILOT.md`: 30 ENTRIES across the tiers; every mark keeps
-  the screen's clock (`seconds`); `python -m pipeline.regs.review.gate pilot-report --pilot <list>`.
 - **A rehearsal on copies.** Every path the tool reads can point at a copy: `CURATION_ENTRIES_DIR`,
   `CURATION_SPLITS_JSON`, `CURATION_MARKS`, `CURATION_BACKUP_DIR` (inputs) and `CURATION_BUILD`,
   `CURATION_REACH_DIR`, `CURATION_BUNDLE`, `CURATION_RELEASE_ROOT` (= the bundle's directory +

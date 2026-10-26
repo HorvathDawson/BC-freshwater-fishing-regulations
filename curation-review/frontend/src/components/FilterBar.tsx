@@ -19,7 +19,7 @@ interface Props {
   onRegion: (r: string) => void;
   onStatus: (s: Status | "") => void;
   onRefresh: () => void;
-  /** kept on the one row (the pilot toggle) */
+  /** kept on the one row (the DFO tab) */
   slot?: ReactNode;
   /** in the collapsible area (tier, the per-tier progress and the output commands) */
   more?: ReactNode;
@@ -45,7 +45,7 @@ function readOpen(): boolean {
   try { return window.localStorage.getItem(MORE_KEY) === "1"; } catch { return false; }
 }
 
-/* THE TOP BAR, ONE ROW (T191): region, review, the pilot toggle and a slim progress line stay in
+/* THE TOP BAR, ONE ROW (T191): region, review, and a slim progress line stay in
    view; status, order, tier, refresh and the output commands fold into "filters", so the detail
    pane gets the height. A filter set in the fold is counted on its button, so it is never hidden. */
 export function FilterBar({

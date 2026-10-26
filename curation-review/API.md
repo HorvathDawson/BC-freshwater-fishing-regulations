@@ -14,7 +14,7 @@ fix is a reviewed change to the curated files (T185), never this app's.
 prechecks: {code: {severity, what}}, commands: {commit_marks, tickets, prechecks}}` (T135: the
 commands the screen PRINTS for the human; it runs none).
 
-**Entries only (T184).** No split is a review target: the queue, the tiers and the pilot are
+**Entries only (T184).** No split is a review target: the queue, and the tiers are
 entries; a split is checked BY PROXY on the map of each entry whose rules name it
 (`GET /api/entries/{id}/splits`), and a wrong one is a "Place: wrong" mark on such an entry.
 
