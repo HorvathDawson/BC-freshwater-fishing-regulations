@@ -1340,5 +1340,7 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
   find the rule or DFO scope that uses it, or show it as an open high-severity item in the review tool.
 - Bind the 10 the T207 audit could match (Burton r1, Kootenay lower r1 navigation dolphin, 8 DFO scopes).
 - Missing splits and unused curated cuts are HIGH severity in the review tool.
-- Cranberry: the DFO falls point is the top of Cranberry River Canyon — add it as a curated split (confidence medium,
-  note saying so); the downstream sign stays "needs a split (owner to locate)".
+- Cranberry: the DFO falls point (55.56407, -128.68426) is the top of Cranberry River Canyon — add it as a curated
+  split LABELLED AS THE FALLS ("Cranberry River falls (top of the canyon)"), confidence medium, note saying so and citing
+  the 2026-08 needs-pin row `cranberry-river-699352-a` (its only link: OSM, Cranberry–Kiteen junction 55.51394,-128.8105,
+  reference only); the downstream sign stays "needs a split (owner to locate)".
