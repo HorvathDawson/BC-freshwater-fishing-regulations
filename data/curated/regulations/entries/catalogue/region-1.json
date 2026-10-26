@@ -13705,14 +13705,13 @@
      "includes_tributaries": false,
      "extents": [
       {
-       "op": "whole"
+       "op": "between",
+       "splits": [
+        "white_river__100_m_below_salmon_viewing_platform",
+        "white_river__100_m_above_salmon_viewing_platform"
+       ]
       }
-     ],
-     "unresolved_locators": [
-      "between fishing boundary signs at the salmon viewing pool"
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'the salmon viewing pool' boundary signs are not in the bindable-boundaries menu; no split id names this location",
-     "undrawn_part": "between fishing boundary signs at the salmon viewing pool"
+     ]
     },
     {
      "rule_id": "white_river.r2",

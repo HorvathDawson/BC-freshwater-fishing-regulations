@@ -684,6 +684,52 @@
    ]
   },
   {
+   "name": "FULTON RIVER",
+   "applies_to": {
+    "gnis_id": "12586"
+   },
+   "splits": [
+    {
+     "id": "fulton_river__spawning_channels_downstream_end",
+     "label": "downstream end of the stretch opposite the spawning channels",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -126.16333458031991,
+       54.815818169271566
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "_note": "[T207 2026-10-26 owner] downstream end of 'Angling permitted in Fulton River opposite the spawning channels, as signed' (owner's point; FWA Fulton River blk 360887178 is 9.9 m away).",
+     "_coord": [
+      -126.16333458031991,
+      54.815818169271566
+     ]
+    },
+    {
+     "id": "fulton_river__spawning_channels_upstream_end",
+     "label": "upstream end of the stretch opposite the spawning channels",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -126.19109698273877,
+       54.8113311414053
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "_note": "[T207 2026-10-26 owner] upstream end of 'Angling permitted in Fulton River opposite the spawning channels, as signed' (owner's point; FWA Fulton River blk 360887178 is 6.1 m away).",
+     "_coord": [
+      -126.19109698273877,
+      54.8113311414053
+     ]
+    }
+   ]
+  },
+  {
    "name": "GOLD RIVER",
    "applies_to": {
     "gnis_id": "17593"
@@ -2257,6 +2303,50 @@
      "_coord": [
       -125.91741,
       50.30805
+     ]
+    },
+    {
+     "id": "white_river__100_m_below_salmon_viewing_platform",
+     "label": "pool signs 100 m below the salmon viewing platform",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -125.91343149143957,
+       50.30722590144278
+      ],
+      "is_lonlat": true,
+      "offset_m": 100,
+      "offset_dir": "downstream"
+     },
+     "confidence": "low",
+     "note": "",
+     "_note": "[T207 2026-10-26 owner] the salmon viewing pool is 100 m below to 100 m above the salmon viewing platform (owner's point; FWA White River blk 354154853 is 8.5 m away), cut along the channel 100 m downstream of it. Low confidence: the platform point and the pool's extent are approximate; the book only says 'between fishing boundary signs at the salmon viewing pool'.",
+     "_coord": [
+      -125.91343149143957,
+      50.30722590144278
+     ]
+    },
+    {
+     "id": "white_river__100_m_above_salmon_viewing_platform",
+     "label": "pool signs 100 m above the salmon viewing platform",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -125.91343149143957,
+       50.30722590144278
+      ],
+      "is_lonlat": true,
+      "offset_m": 100,
+      "offset_dir": "upstream"
+     },
+     "confidence": "low",
+     "note": "",
+     "_note": "[T207 2026-10-26 owner] the salmon viewing pool is 100 m below to 100 m above the salmon viewing platform (owner's point; FWA White River blk 354154853 is 8.5 m away), cut along the channel 100 m upstream of it. Low confidence: the platform point and the pool's extent are approximate; the book only says 'between fishing boundary signs at the salmon viewing pool'.",
+     "_coord": [
+      -125.91343149143957,
+      50.30722590144278
      ]
     }
    ]
@@ -6152,6 +6242,7 @@
      "id": "chuckwalla_river__fishing_boundary_signs_at_ten_mile_pool_200_m_downstream",
      "label": "fishing boundary signs at Ten Mile Pool (200 m downstream)",
      "kind": "point",
+     "confidence": "low",
      "anchor": {
       "type": "point",
       "coord": [
@@ -6174,6 +6265,7 @@
      "id": "chuckwalla_river__fishing_boundary_signs_at_ten_mile_pool_100_m_upstream",
      "label": "fishing boundary signs at Ten Mile Pool (100 m upstream)",
      "kind": "point",
+     "confidence": "low",
      "anchor": {
       "type": "point",
       "coord": [
