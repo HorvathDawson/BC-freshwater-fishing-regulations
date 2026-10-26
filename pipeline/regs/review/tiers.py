@@ -46,6 +46,23 @@ CUT_OPS = frozenset({"between", "upstream_of", "downstream_of", "rest"})
 _AUTO_PROPOSAL = re.compile(r"^\[auto-proposal ([A-Z])\]")
 
 
+def area_matched(entry: dict) -> list[str]:
+    """MATCHED BY AREA (owner 2026-10-26): the area ids a water row binds through, when it names no
+    registry item but EVERY rule carries an area extent (`within` + `area_id`, or a `within_area`)
+    — "Chilkoot Trail National Historic Park Waters" binds every water inside the site. Such a row
+    binds by its area, so it is not `no match` / `binds_nothing`. [] when any rule has none."""
+    rules = [r for r in entry.get("rules") or [] if isinstance(r, dict)]
+    out: list[str] = []
+    for r in rules:
+        got = [x.get("area_id") if x.get("op") == "within" else x.get("within_area")
+               for x in r.get("extents") or [] if isinstance(x, dict)]
+        got = [a for a in got if a]
+        if not got:
+            return []
+        out += [a for a in got if a not in out]
+    return out
+
+
 def unidentified_part(rule: dict) -> bool:
     """THE BOOK SAYS "ON PARTS" AND NOTHING MORE (T207, owner 2026-10-26): the rule is held as an
     `undrawn_part` that names no place (`catalogue.part_identifies_place`: "on parts", "on part",
@@ -80,6 +97,7 @@ def risks(entry: dict, *, binds: bool, run=None) -> list[str]:
     rules = entry.get("rules") or []
     exts = [x for r in rules for x in r.get("extents") or [] if isinstance(x, dict)]
     eid = str(entry.get("entry_id", ""))
+    binds = binds or bool(area_matched(entry))
     got = {
         # a zone entry names no water BY DEFINITION: binding no item is not a finding about it
         "no match": not binds and not is_table(eid),

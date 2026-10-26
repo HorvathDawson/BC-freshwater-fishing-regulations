@@ -67,7 +67,10 @@ def test_the_order_is_pinned_by_mutation(monkeypatch):
 def test_the_corpus_severities_measured():
     """Measured 2026-10-26 on the catalogue alone (no reach run, no unused-cut count, no split to
     verify): 137 high (mostly parser flags and named undrawn parts), 353 low (cuts, several waters,
-    unquoted text), 1025 none. With the run, its unresolved / ambiguous / unplaced rules join high."""
+    unquoted text), 1025 none. With the run, its unresolved / ambiguous / unplaced rules join high.
+    Re-pinned 2026-10-26 (owner): 126 high, 358 low, 1031 none — the six area rows with no item are
+    matched by area, not "binds nothing" (`tiers.area_matched`), and Mackenzie Creek (book MU typo
+    4-21 -> 4-31) now matches its creek."""
     from collections import Counter
 
     from pipeline.regs.review import tiers as T
@@ -76,5 +79,22 @@ def test_the_corpus_severities_measured():
     for e in _corpus():
         b = bool(e.get("matched"))
         got[S.entry_severity(P.prechecks(e, binds=b), risks=T.risks(e, binds=b))["level"]] += 1
-    for lv, want in {"high": 137, "low": 353, "none": 1025}.items():
+    for lv, want in {"high": 126, "low": 358, "none": 1031}.items():
         assert abs(got[lv] - want) <= max(3, want // 20), (lv, got[lv], want)
+
+
+def test_an_area_row_with_no_item_is_matched_by_area_not_binds_nothing():
+    """Owner 2026-10-26: Chilkoot Trail NHP Waters names no registry item, but its rule carries a
+    `within` area extent — it binds by area. Not `no match`, not `binds_nothing`, not high. A row
+    whose rules are not ALL on an area still binds nothing."""
+    from pipeline.regs.review import tiers as T
+    area = {"op": "within", "area_id": "area:chilkoot_trail:chilkoot_trail_national_historic_site"}
+    e = {"entry_id": "r6:chilkoot@6-28", "rules": [{"rule_id": "c.r1", "extents": [area]}]}
+    assert T.area_matched(e) == [area["area_id"]]
+    assert "no match" not in T.risks(e, binds=False)
+    found = P.prechecks(e, binds=False)
+    assert not any(x["code"] == "binds_nothing" for x in found)
+    assert S.entry_severity(found)["level"] != "high"
+    half = {**e, "rules": e["rules"] + [{"rule_id": "c.r2", "extents": [{"op": "whole"}]}]}
+    assert T.area_matched(half) == [] and "no match" in T.risks(half, binds=False)
+    assert any(x["code"] == "binds_nothing" for x in P.prechecks(half, binds=False))

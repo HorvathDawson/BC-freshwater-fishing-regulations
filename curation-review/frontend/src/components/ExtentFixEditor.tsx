@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../api";
 import type {
-  ExtentFix, ExtentOp, ExtentOpInfo, ExtentPreview, FixPoint, FixPointKind, ItemHit, NamedRef, SplitHit,
+  AreaHit, ExtentFix, ExtentOp, ExtentOpInfo, ExtentPreview, FixPoint, FixPointKind, ItemHit, NamedRef, SplitHit,
 } from "../types";
 
 /** The owner's words for the ops, until the server's list arrives (`marks.OP_WORDS` is the source). */
@@ -148,8 +148,7 @@ export function ExtentFixEditor({ scope, entryId, currentOp, mapSplits, waters, 
           ))}
         </select>
         {fix.op === "within" && (
-          <input className="fix-text" placeholder="area id (area:…) or name" value={fix.area ?? ""}
-            onChange={(e) => set({ area: e.target.value || null })} />
+          <AreaSearch value={fix.area ?? null} onPick={(a) => set({ area: a })} scope={scope} />
         )}
       </div>
       {Array.from({ length: want }, (_, i) => (
@@ -276,6 +275,50 @@ export function SplitSearch({ onPick }: { onPick: (h: SplitHit) => void }) {
             </li>
           ))}
         </ul>
+      )}
+    </span>
+  );
+}
+
+/** THE "WITHIN AN AREA" PICK LIST (owner 2026-10-26: the op showed no areas). The atlas's areas
+ *  (`/api/areas/search`) are listed as soon as the box has focus, narrowed by what is typed; a pick
+ *  records the area id, and the chosen area is shown beside the box. */
+export function AreaSearch({ value, onPick, scope }: {
+  value: string | null; onPick: (id: string | null) => void; scope: string;
+}) {
+  const [q, setQ] = useState("");
+  const [open, setOpen] = useState(false);
+  const [hits, setHits] = useState<AreaHit[]>([]);
+  const [names, setNames] = useState<Record<string, string>>({});
+  useEffect(() => {
+    if (!open) return;
+    let live = true;
+    const t = window.setTimeout(() => api.searchAreas(q).then((h) => {
+      if (!live) return;
+      setHits(h);
+      setNames((m) => ({ ...m, ...Object.fromEntries(h.map((x) => [x.id, x.name])) }));
+    }).catch(() => {}), 150);
+    return () => { live = false; window.clearTimeout(t); };
+  }, [q, open]);
+  return (
+    <span className="fix-search" data-testid={`fix-area-${scope}`}>
+      <input placeholder="search areas (park, reserve, region…)" value={q} aria-label={`area ${scope}`}
+        onFocus={() => setOpen(true)} onBlur={() => window.setTimeout(() => setOpen(false), 200)}
+        onChange={(e) => setQ(e.target.value)} />
+      {open && hits.length > 0 && (
+        <ul className="fix-hits">
+          {hits.map((h) => (
+            <li key={h.id} onMouseDown={(e) => e.preventDefault()}
+              onClick={() => { onPick(h.id); setQ(""); setOpen(false); }}>
+              {h.name} <span className="dim">{h.id}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+      {value && (
+        <span className="chip-tag new" title={value}>{names[value] ?? value}
+          <button type="button" className="x" onClick={() => onPick(null)}>×</button>
+        </span>
       )}
     </span>
   );

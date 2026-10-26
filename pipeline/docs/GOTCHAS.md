@@ -6,6 +6,24 @@ code now handles belong in the code's comments, not here.
 
 ---
 
+## Book errata: an MU printed wrong (Mackenzie Creek "4-21" is 4-31)
+
+**2026-10-26 · owner ruling · Region 4, `r4:mackenzie_creek@4-21` · `data/curated/regulations/overrides.json`**
+
+The synopsis prints MACKENZIE CREEK ("No Fishing", printed p.38) under **MU 4-21**. There is no Mackenzie
+Creek in 4-21; the book means the one in **MU 4-31** (`gnis:12042`). It reads as a water the registry is
+missing — it is a typo in the book.
+
+The fix is an ordinary override keyed on the row AS PRINTED (`name_verbatim` + the printed MU 4-21)
+naming the right item; the entry id keeps the printed MU (`@4-21`) because it is minted from the row,
+not the item. Do not "correct" the id or the MU in the corpus.
+
+Known book errata (add new ones here): **Mackenzie Creek MU 4-21 → 4-31.** The Region 5 placeholders
+(Redfern, Secret, Frog, Hidden, Square, Chipmunk lakes) are `not_found` overrides whose notes say "may
+be a typo" — unconfirmed, not errata.
+
+---
+
 ## A water's undated hatchery-steelhead quota does not lift the zone's Nov-Jun release (the Kitimat)
 
 **2026-10-21 · owner ruling · Region 6, `kitimat_river.r5` vs `z6 trout_char_quota.r7` · test `test_answers_kitimat_steelhead_lift.py`**

@@ -797,6 +797,46 @@ def entry_kind(e: dict) -> str:
     return "zone" if str(e.get("entry_id", "")).startswith("z") else "water"
 
 
+def _area_matched(e: dict) -> list[str]:
+    from pipeline.regs.review.tiers import area_matched
+    return area_matched(e) if entry_kind(e) == "water" else []
+
+
+def matched_areas(e: dict) -> list[dict]:
+    """MATCHED BY AREA (owner 2026-10-26): [{id, name}] of the areas a water row with no registry
+    item binds through (every rule has an area extent, `tiers.area_matched`); [] otherwise. The
+    screen says "matched by area: <name>" instead of NO REGISTRY."""
+    ids = _area_matched(e)
+    if not ids:
+        return []
+    names = _area_name_map()
+    return [{"id": a, "name": names.get(a) or a} for a in ids]
+
+
+def _area_name_map() -> dict[str, str]:
+    """{area id: name} of the served atlas, re-read when its area catalogue changes (a rebuild)."""
+    return _area_name_map_for(_stamp((Path(REGISTRY_PATH).parent / "area_catalog.gpkg",)))
+
+
+@lru_cache(maxsize=1)
+def _area_name_map_for(_key: tuple) -> dict[str, str]:
+    from pipeline.deliver.bundle.place_names import area_names
+    try:
+        return area_names(Path(REGISTRY_PATH).parent)
+    except FileNotFoundError:
+        return {}
+
+
+def search_areas(q: str, limit: int = 30) -> list[dict]:
+    """The atlas's areas (`area_catalog.gpkg`) whose id or name contains `q` (case-folded):
+    [{id, name}] — the "within an area" op's pick list. An empty `q` lists the first `limit`."""
+    want = q.strip().casefold()
+    out = [{"id": a, "name": n} for a, n in _area_name_map().items()
+           if not want or want in f"{a} {n}".casefold()]
+    out.sort(key=lambda x: (not x["name"].casefold().startswith(want), len(x["name"]), x["name"]))
+    return out[:limit]
+
+
 def entry_status(e: dict, item: dict | None) -> str:
     """One coarse status for the queue's badge and filter — what the PARSE and the build left, not
     review progress (the reviewer's marks are `verify`). T135 (PLAN §4 phase 4): `parser-uncertain`
@@ -806,7 +846,7 @@ def entry_status(e: dict, item: dict | None) -> str:
     # the definition of it. Saying otherwise put all 132 at the top of the queue.
     if entry_kind(e) == "zone":
         return "parser-uncertain" if _flagged(e) else "zone"
-    if item is None:              # `matched` names no item this build has: it binds nothing
+    if item is None and not _area_matched(e):   # no item and no area on every rule: binds nothing
         return "no_registry"
     if _flagged(e):
         return "parser-uncertain"
@@ -894,6 +934,7 @@ def queue(region: str | None = None, status: str | None = None,
             "n_rules": len(e.get("rules", [])),
             "matched_item_id": item.id if item else None,
             "matched_item_name": item.name if item else None,
+            "matched_areas": [] if item else matched_areas(e),   # matched by area (no item)
             "also_item_ids": [a["id"] for a in _also_items(e)],      # combined-override items
             "unused_curated_splits": n_unused,
             "page": min(pages) if pages else None,
@@ -1406,6 +1447,7 @@ def entry_detail(entry_id: str) -> dict | None:
                 "boundaries": _combined_bindable(item, e),
             },
             "also_items": _also_items(e),      # a combined override's other items (Vedder, …)
+            "matched_areas": [] if item else matched_areas(e),   # matched by area (no item)
             "related_entries": related_entries(entry_id),   # other rows over the same water
             "unused_curated_splits": unused_curated_splits(e, item),
             "source_image": entry_source_image(e),

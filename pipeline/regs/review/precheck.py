@@ -106,7 +106,8 @@ def prechecks(entry: dict, *, binds: bool, run=None, to_verify: Iterable[str] = 
         msgs = [e.get("msg", str(e)) if isinstance(e, Mapping) else str(e) for e in gate_errors]
         got["gate"].append(finding("gate", None, "; ".join(msgs[:3])
                                    + (f" (+{len(msgs) - 3} more)" if len(msgs) > 3 else "")))
-    if not zone and rules and not binds:
+    from pipeline.regs.review.tiers import area_matched
+    if not zone and rules and not binds and not area_matched(entry):
         got["binds_nothing"].append(finding("binds_nothing", None,
                                             ", ".join(entry.get("matched") or []) or "matched is empty"))
     if run is not None:

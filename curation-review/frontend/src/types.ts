@@ -421,6 +421,8 @@ export interface QueueRow {
   n_rules: number;
   matched_item_id: string | null;
   matched_item_name: string | null;
+  /** MATCHED BY AREA: no registry item, but every rule binds through these areas */
+  matched_areas?: AreaHit[];
   also_item_ids: string[]; // a combined override's OTHER items (Chilliwack/Vedder, Fraser + channels)
   unused_curated_splits: number;
   /** the first page the row is printed on */
@@ -513,6 +515,8 @@ export interface EntryDetail {
   region: string;
   item: Item | null; // `boundaries` is the union over the item AND `also_items`
   also_items: AlsoItem[]; // a combined override's other items — the entry covers these too
+  /** MATCHED BY AREA: no registry item, but every rule binds through these areas */
+  matched_areas?: AreaHit[];
   /** Which part of the book this came from — see `EntryKind`. */
   kind?: EntryKind;
   related_entries: RelatedEntry[]; // other synopsis rows over the same water
@@ -811,6 +815,8 @@ export interface ExtentFix {
 export interface ExtentOpInfo { op: ExtentOp; points: number; words: string }
 export interface SplitHit { id: string; label: string; water: string; kind?: string | null }
 export interface ItemHit { id: string; name: string; kind: string; mus: string[] }
+/** One atlas area (`/api/areas/search`): the "within an area" op's pick list. */
+export interface AreaHit { id: string; name: string }
 export interface ExtentPreview {
   resolvable: boolean;
   why: string | null;

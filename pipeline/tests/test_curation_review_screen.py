@@ -214,6 +214,24 @@ def test_the_extent_fix_reads_search_and_preview_without_writing(env):
                  params={"fix": json.dumps(bad)}).status_code == 422
 
 
+def test_the_within_op_lists_the_atlas_areas_and_an_area_row_is_matched_by_area(env):
+    """Owner 2026-10-26: the "within an area" op showed no area list. The areas are listed (an
+    empty search lists some; a name narrows it) and the editor picks from that list. An area row
+    with no registry item (Chilkoot) says "matched by area", never no_registry."""
+    c = env["client"]
+    assert len(c.get("/api/areas/search").json()) > 0
+    chil = "area:chilkoot_trail:chilkoot_trail_national_historic_site"
+    hits = c.get("/api/areas/search", params={"q": "chilkoot"}).json()
+    assert hits and hits[0]["id"] == chil and "Chilkoot" in hits[0]["name"]
+    eid = "r6:chilkoot_trail_national_historic_park_waters@6-28"
+    d = c.get(f"/api/entries/{eid}").json()
+    assert d["item"] is None and [a["id"] for a in d["matched_areas"]] == [chil]
+    row, = [r for r in c.get("/api/entries", params={"region": "6"}).json() if r["entry_id"] == eid]
+    assert row["status"] != "no_registry" and row["severity"] != "high", row
+    src = (REPO / "curation-review/frontend/src/components/ExtentFixEditor.tsx").read_text()
+    assert "<AreaSearch" in src and "api.searchAreas" in src
+
+
 def _snapshot(root: Path) -> dict[str, bytes]:
     return {str(p.relative_to(root)): p.read_bytes() for p in sorted(root.rglob("*")) if p.is_file()}
 

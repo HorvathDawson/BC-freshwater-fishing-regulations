@@ -181,7 +181,8 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
 
   const matched = entry.matched ?? [];
   const mapItemId = item?.id ?? matched[0] ?? null;
-  const isNoRegistry = !zone && item == null;
+  const byArea = detail.matched_areas ?? [];
+  const isNoRegistry = !zone && item == null && byArea.length === 0;
   const symbolSaysTributaries = (entry.symbols ?? []).some((s: string) => /incl.*trib/i.test(s));
   const tribFlagMismatch = symbolSaysTributaries && entry.includes_tributaries === false;
   const es = view?.scope.entry;
@@ -346,6 +347,12 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
                 <span className="dim">MU {entry.entry_id.split("@")[1].split("+").join(", ")}</span>
               )}
               {isNoRegistry && <span className="badge no_registry">NO REGISTRY — binds nothing</span>}
+              {!zone && item == null && byArea.length > 0 && (
+                <span className="chip-tag new" data-testid="matched-by-area"
+                  title="no registry item — every rule binds through this area">
+                  matched by area: {byArea.map((a) => a.name).join(", ")}
+                </span>
+              )}
               {zone && <span className="chip-tag new" title="a regional or provincial rule — its reach is an area, carried on its rules">regional rule · applies by area</span>}
             </div>
             <div className="ext-row">

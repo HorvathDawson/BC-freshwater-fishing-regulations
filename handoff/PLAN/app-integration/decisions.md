@@ -1376,3 +1376,15 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
   or "issues" (high + medium).
 - T209: vessel restrictions on the water page and the map sheet (390 `vessel_rule` rules; ticket has counts and
   examples).
+
+## 2026-10-26 — Mackenzie Creek erratum, area matches, area picker (owner)
+- MACKENZIE CREEK (Region 4, printed p.38): the book's "MU 4-21" is a TYPO for 4-31. The entry matches the Mackenzie Creek
+  in MU 4-31 (`gnis:12042`) through an ordinary override keyed on the printed row (`overrides.json`, name + MU 4-21). The
+  entry id keeps the printed `@4-21`. Recorded as a book erratum in pipeline/docs/GOTCHAS.md (the errata list lives there).
+- An entry with no registry item whose EVERY rule carries an area extent (`within` + `area_id`, or `within_area`) is
+  MATCHED BY AREA, not `no_registry`: the review app shows "matched by area: <area>", and it is neither `no match` nor
+  `binds_nothing` (so not high severity). `pipeline.regs.review.tiers.area_matched`. Data for such entries is not changed:
+  Chilkoot Trail NHP Waters already binds through `area:chilkoot_trail:chilkoot_trail_national_historic_site`.
+- Area sweep: every water row naming an area whose rules have NO area extent is fixed the same way
+  (handoff/PLAN/curation-review/area-matches.md lists the outcome).
+- The extent-fix editor's "within an area" op lists the atlas's areas (search + pick, `GET /api/areas/search`).

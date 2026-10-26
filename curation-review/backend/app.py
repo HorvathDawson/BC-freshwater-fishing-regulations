@@ -409,6 +409,12 @@ def splits_search(q: str = "", limit: int = 30):
     return reuse.search_splits(q, limit=limit)
 
 
+@app.get("/api/areas/search")
+def areas_search(q: str = "", limit: int = 30):
+    """The atlas's areas whose id or name contains `q` — the "within an area" op's pick list."""
+    return reuse.search_areas(q, limit=limit)
+
+
 @app.get("/api/items/search")
 def items_search(q: str = "", kind: str | None = None, limit: int = 30):
     """Registry items whose name contains `q` (a tributary, a lake, an item the extent holds on)."""

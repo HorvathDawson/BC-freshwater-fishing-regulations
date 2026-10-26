@@ -25,6 +25,7 @@ import type {
   ExtentFix,
   ExtentOpInfo,
   ExtentPreview,
+  AreaHit,
   ItemHit,
   SplitHit,
   AnchorCheck,
@@ -135,6 +136,8 @@ export const api = {
   extentOps: () => getJSON<{ ops: ExtentOpInfo[]; point_kinds: string[] }>("/api/extent-fix/ops"),
   searchSplits: (q: string) =>
     getJSON<SplitHit[]>(`/api/splits/search?q=${encodeURIComponent(q)}`),
+  searchAreas: (q: string) =>
+    getJSON<AreaHit[]>(`/api/areas/search?q=${encodeURIComponent(q)}`),
   searchItems: (q: string, kind?: string) =>
     getJSON<ItemHit[]>(`/api/items/search?q=${encodeURIComponent(q)}${kind ? `&kind=${kind}` : ""}`),
   extentPreview: (entryId: string, fix: ExtentFix) =>

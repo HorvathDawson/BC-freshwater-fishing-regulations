@@ -106,6 +106,11 @@ export function QueueList({ rows, selected, loading, onSelect, facts }: Props) {
             {r.page != null && <span className="dim">p.{r.page}</span>}
             {r.pointer && <span className="badge">pointer</span>}
             {r.status !== "plain" && <span className={`badge ${r.status}`}>{r.status}</span>}
+            {!r.matched_item_id && (r.matched_areas ?? []).length > 0 && (
+              <span className="dim" title={(r.matched_areas ?? []).map((a) => a.id).join(", ")}>
+                matched by area: {(r.matched_areas ?? []).map((a) => a.name).join(", ")}
+              </span>
+            )}
             {r.mus.length > 0 && <span>MU {r.mus.join(", ")}</span>}
             <span className="dim">{r.n_rules} rule{r.n_rules === 1 ? "" : "s"}</span>
           </div>
