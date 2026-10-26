@@ -57,6 +57,34 @@ def _states() -> dict:
     return {m.target: m for m in M.latest(M.load(reuse.MARKS_PATH)).values() if m.scope == "dfo"}
 
 
+def _proposals() -> list[dict]:
+    """T210: THE PROPOSED SPLITS of EVERY mark (superseded ones too), deduped by anchor
+    (`marks.proposals`): one per distinct cut, the first proposal's name kept, with the marks that
+    proposed it. Read only — the store is never edited."""
+    from pipeline.regs.review import marks as M
+    return M.proposals(M.load(reuse.MARKS_PATH))
+
+
+def _proposal_view(p: dict) -> dict:
+    n = p["split"]
+    return {"id": p["id"], "anchor": n.anchor, "name": n.name, "item_id": n.item_id,
+            "split_id": n.split_id, "on_item": n.on_item, "coord": list(n.coord) if n.coord else None,
+            "blk": n.blk, "measure": n.measure, "side": n.side, "offset_m": n.offset_m,
+            "quote": n.quote, "marks": p["marks"], "n_marks": len(p["marks"])}
+
+
+def _on_river(p: dict, items: list[str], blks: set[str]) -> bool:
+    n = p["split"]
+    return bool(n.on_item in items or (n.blk and str(n.blk) in blks))
+
+
+def proposed_on(items: list[str]) -> list[dict]:
+    """The proposed splits (deduped) that cut this river — its item(s), or a blk of their line
+    sections — whichever location or entry on it is open."""
+    blks = {str(n.blk) for _nid, n, _g in _line_sections(items)} if items else set()
+    return [_proposal_view(p) for p in _proposals() if _on_river(p, items, blks)]
+
+
 def _now(loc, water):
     from pipeline.regs.review.marks import Prints
     return Prints.model_validate(D.prints(loc, water, DFO_TYPED))
@@ -135,9 +163,10 @@ def progress() -> dict:
         done = sum(1 for r in rs if r["verify"] not in ("unmarked", "stale"))
         return {"total": len(rs), "done": done, "by_verify": dict(Counter(r["verify"] for r in rs)),
                 "by_state": dict(Counter(r["state"] for r in rs)),
-                "new_splits": sum(r["new_splits"] for r in rs)}
+                "new_splits": sum(r["new_splits"] for r in rs)}   # carried by marks (overlaps)
     regions = sorted({r["region"] for r in rows}, key=lambda s: (int(re.sub(r"\D", "", s) or 0), s))
-    return {"all": count(rows), "active": count([r for r in rows if r["status"] == "active"]),
+    allc = {**count(rows), "new_splits": len(_proposals())}      # T210: distinct cuts, not copies
+    return {"all": allc, "active": count([r for r in rows if r["status"] == "active"]),
             "regions": {s: count([r for r in rows if r["region"] == s]) for s in regions}}
 
 
@@ -257,7 +286,8 @@ def detail(location_id: str) -> dict | None:
         "page_url": D.page_url(slug), "verbatim": {"waters": st.get("waters") or loc.get("water"),
                                                    "specific_area": st.get("specific_area") or ""},
         "rows": rows, "rules": labels, "need": D.need(loc),
-        "splits": _splits_fc(loc, water), "hints": _hints(loc, water), "siblings": siblings,
+        "splits": _splits_fc(loc, water),
+        "proposed": proposed_on(list((water or {}).get("item_ids") or [])), "hints": _hints(loc, water), "siblings": siblings,
         "mark": ({**json.loads(m.model_dump_json()), **v} if m is not None else None),
     })
 
@@ -523,15 +553,17 @@ def _item_of(nid: str, items) -> str | None:
 def mark_for(body: dict, *, date: str, pdf_sha256: str):
     """THE `Mark` A DFO PAYLOAD MAKES: prints of the location NOW, each new split's anchor checked
     (`check_anchor`; refused, ValueError, when it does not land) and its resolved point stamped.
-    Returns (mark, prints now). KeyError: no such location. Writes nothing — `reuse.post_mark`
-    commits the mark."""
+    T210: a new split that names a cut already proposed (any mark, `marks.proposals`) REUSES that
+    proposal's id (the mark's own ref and its extent fix's points are renamed to it); one whose ref
+    is taken by another cut gets a free ref. Returns (mark, prints now, reused: [{ref, id, name}]).
+    KeyError: no such location. Writes nothing — `reuse.post_mark` commits the mark."""
     from pipeline.regs.review import marks as M
     got = _locations().get(str(body.get("target") or ""))
     if got is None:
         raise KeyError(body.get("target"))
     _slug, loc, water = got
     now = D.prints(loc, water, DFO_TYPED)
-    stamped = []
+    stamped: list[dict] = []
     for raw in body.get("new_splits") or []:
         ns = M.NewSplit.model_validate(raw)
         res = check_anchor(loc["location_id"], ns)
@@ -542,7 +574,43 @@ def mark_for(body: dict, *, date: str, pdf_sha256: str):
         if res.get("item_id") and not ns.item_id:
             upd["item_id"] = res["item_id"]
         stamped.append(ns.model_copy(update=upd).model_dump(mode="json"))
+    stamped, rename, reused = _dedupe_against_store(stamped)
+    fixes = [{**f, "points": [{**p, "split_id": rename.get(p.get("split_id"), p.get("split_id"))}
+                              if p.get("kind") == "new" else p for p in f.get("points") or []]}
+             for f in body.get("extent_fix") or []]
     data = {**body, "rule_id": None, "new_splits": stamped, "date": date,
+            **({"extent_fix": fixes} if fixes else {}),
             "pdf_sha256": pdf_sha256, "pages": [], "prints": now}
     mark = M.Mark.model_validate(data)
-    return mark, M.Prints.model_validate(now)
+    return mark, M.Prints.model_validate(now), reused
+
+
+def _dedupe_against_store(stamped: list[dict]) -> tuple[list[dict], dict, list[dict]]:
+    """The mark's stamped new splits with duplicates folded (T210): a split at an anchor already
+    proposed — by an earlier mark, or twice in this one — takes that proposal's id and is said to be
+    reused; a ref another cut holds is renamed. -> (splits, {old ref: ref}, reused)."""
+    from pipeline.regs.review import marks as M
+    known = [(p["id"], p["split"]) for p in _proposals()]
+    out: list[dict] = []
+    rename: dict[str, str] = {}
+    reused: list[dict] = []
+    for raw in stamped:
+        ns = M.NewSplit.model_validate(raw)
+        hit = next(((pid, q) for pid, q in known if M.same_anchor(ns, q)), None)
+        if hit is not None:
+            pid, q = hit
+            rename[ns.ref] = pid
+            reused.append({"ref": ns.ref, "id": pid, "name": q.name or q.anchor})
+            if any(o["ref"] == pid for o in out):
+                continue
+            out.append({**raw, "ref": pid})
+            continue
+        ref, k = ns.ref, 1
+        taken = {pid for pid, _ in known} | {o["ref"] for o in out}
+        while ref in taken:
+            k += 1
+            ref = f"{ns.ref}-{k}"
+        rename[ns.ref] = ref
+        known.append((ref, ns))
+        out.append({**raw, "ref": ref})
+    return out, rename, reused

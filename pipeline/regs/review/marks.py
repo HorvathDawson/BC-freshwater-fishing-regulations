@@ -378,7 +378,12 @@ class Mark(BaseModel):
         if self.extent_fix:
             if self.scope == "split":
                 raise ValueError("a split mark proposes no extent fix")
-            if self.verdict not in ("wrong", "unsure"):
+            # T210: a DFO location whose extent is the existing cuts (no NEW point, no new split)
+            # may say Place y: the cuts are right and the fix only names the extent to curate
+            only_existing = (self.scope == "dfo" and not self.new_splits
+                             and all(p.kind == "split" for f in self.extent_fix for p in f.points))
+            if self.verdict not in ("wrong", "unsure") and not (
+                    only_existing and self.verdict == "verified"):
                 raise ValueError("an extent fix is proposed on a wrong or unsure mark")
             scopes = [f.scope for f in self.extent_fix]
             if len(set(scopes)) != len(scopes):
@@ -678,3 +683,67 @@ def status(mark: Mark | None, now: Prints | Mapping | None) -> dict:
             "reasons": [r.value for r in reasons]}
 
 
+# --------------------------------------------------------------------------------------------
+# Proposed splits, shared (T210)
+# --------------------------------------------------------------------------------------------
+
+#: two proposals this close (metres along one blk, or on the ground) are one cut
+SAME_CUT_M = 10.0
+
+
+def _norm(s: Optional[str]) -> str:
+    return " ".join((s or "").casefold().split())
+
+
+def _ground_m(a, b) -> float:
+    import math
+    (x1, y1), (x2, y2) = a, b
+    k = 111_320.0
+    return math.hypot((x1 - x2) * k * math.cos(math.radians((y1 + y2) / 2)), (y1 - y2) * k)
+
+
+def same_anchor(a: NewSplit, b: NewSplit) -> bool:
+    """Do two proposed new splits name the SAME cut? The same confluence / lake anchor (the same
+    tributary or lake, the same offset), or the same blk with the measure within `SAME_CUT_M`, or
+    coordinates within `SAME_CUT_M`. The name, side and quote are not part of it."""
+    if (a.offset_m or 0) == (b.offset_m or 0):
+        if a.anchor == b.anchor and a.anchor in ("confluence", "lake_inlet", "lake_outlet"):
+            if a.item_id and b.item_id:
+                return a.item_id == b.item_id and (not a.on_item or not b.on_item
+                                                   or a.on_item == b.on_item)
+            if not a.item_id and not b.item_id and _norm(a.name) and _norm(a.name) == _norm(b.name):
+                return True
+        if a.anchor == b.anchor == "split" and a.split_id == b.split_id:
+            return True
+    if (a.blk and a.blk == b.blk and a.measure is not None and b.measure is not None
+            and abs(a.measure - b.measure) <= SAME_CUT_M):
+        return True
+    if a.coord and b.coord and _ground_m(a.coord, b.coord) <= SAME_CUT_M:
+        return True
+    return False
+
+
+def proposals(marks: Iterable[Mark]) -> list[dict]:
+    """THE PROPOSED SPLITS, SHARED AND DEDUPED: every `new_splits` entry of EVERY mark (superseded
+    ones too — the store is the history), one proposal per distinct cut (`same_anchor`), in the
+    order first proposed. Each is {id, split (the FIRST proposal's `NewSplit`, so its first name),
+    marks: [{target, ref, reviewer, date}]}. `id` is the first proposal's ref, made unique with a
+    `-2` suffix when another cut already holds it. Read only; the store is never edited."""
+    out: list[dict] = []
+    seen: list[list[NewSplit]] = []
+    for m in marks:
+        for n in m.new_splits:
+            i = next((k for k, grp in enumerate(seen) if any(same_anchor(n, q) for q in grp)), None)
+            if i is None:
+                pid, k = n.ref, 1
+                while any(p["id"] == pid for p in out):
+                    k += 1
+                    pid = f"{n.ref}-{k}"
+                out.append({"id": pid, "split": n, "marks": []})
+                seen.append([])
+                i = len(out) - 1
+            seen[i].append(n)
+            who = {"target": m.target, "ref": n.ref, "reviewer": m.reviewer, "date": m.date}
+            if who not in out[i]["marks"]:
+                out[i]["marks"].append(who)
+    return out

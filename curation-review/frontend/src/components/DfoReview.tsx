@@ -2,24 +2,40 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api, type EntryRefused } from "../api";
 import type {
   AnchorCheck, AnchorKind, Check, CheckAnswer, DfoDetail, DfoProgress, DfoRow, EntrySplits, ExtentFix,
-  ExtentPreview, Mode, NamedRef, NewSplit,
+  ExtentPreview, Mode, NamedRef, NewSplit, ProposedSplit,
 } from "../types";
 import { getReviewer, isTyping, setReviewer } from "../review";
 import { MapPanel } from "./MapPanel";
-import { ExtentFixEditor, ItemSearch, SplitSearch } from "./ExtentFixEditor";
+import { ExtentFixEditor } from "./ExtentFixEditor";
 
-/** The anchor kinds a NEW split can take (`marks.AnchorKind`), in the reviewer's words. */
-const ANCHORS: { v: AnchorKind; words: string }[] = [
-  { v: "confluence", words: "confluence of a named tributary" },
-  { v: "lake_outlet", words: "a lake's outlet" },
-  { v: "lake_inlet", words: "a lake's inlet" },
-  { v: "bridge", words: "a bridge (click it on the map)" },
-  { v: "dam", words: "a dam / hatchery fence (click it)" },
-  { v: "sign", words: "boundary signs (click them)" },
-  { v: "coord", words: "a map point (click it)" },
-  { v: "split", words: "an existing curated split" },
+/** T210: the anchor types a NEW split is added by — click the river, pick one of these, confirm. */
+const ANCHORS: { v: AnchorKind; words: string; word: string }[] = [
+  { v: "confluence", words: "confluence", word: "confluence" },
+  { v: "lake_inlet", words: "lake inlet", word: "inlet" },
+  { v: "lake_outlet", words: "lake outlet", word: "outlet" },
+  { v: "bridge", words: "bridge", word: "bridge" },
+  { v: "dam", words: "dam", word: "dam" },
+  { v: "sign", words: "sign", word: "boundary sign" },
+  { v: "coord", words: "here", word: "point" },
 ];
-const CLICKED: AnchorKind[] = ["bridge", "dam", "sign", "coord"];
+const ITEM_ANCHORS: AnchorKind[] = ["confluence", "lake_inlet", "lake_outlet"];
+/** two clicks this close (m) are one cut — the server folds them the same way (`marks.SAME_CUT_M`) */
+const SAME_CUT_M = 10;
+const groundM = (a: [number, number], b: [number, number]) =>
+  Math.hypot((a[0] - b[0]) * 111320 * Math.cos(((a[1] + b[1]) / 2) * Math.PI / 180), (a[1] - b[1]) * 111320);
+/** the proposal that is the same cut as this resolved anchor, if any (same blk within 10 m, or the
+ *  same point within 10 m) */
+function sameCut(list: ProposedSplit[], got: AnchorCheck): ProposedSplit | undefined {
+  return list.find((p) =>
+    (p.blk && got.blk && p.blk === got.blk && p.measure != null && got.measure != null
+      && Math.abs(p.measure - got.measure) <= SAME_CUT_M)
+    || (p.coord && got.coord && groundM(p.coord, got.coord) <= SAME_CUT_M));
+}
+const asNewSplit = (p: ProposedSplit, quote: string): NewSplit => ({
+  ref: p.id, anchor: p.anchor, name: p.name, item_id: p.item_id, split_id: p.split_id,
+  on_item: p.on_item, coord: p.coord, blk: p.blk, measure: p.measure, side: p.side,
+  offset_m: p.offset_m, quote: p.quote || quote,
+});
 const CHECKS: Check[] = ["T", "R", "P"];
 const QUESTIONS: Record<string, string> = {
   T: "The notice's words for the place read right (water + specific area, against the DFO page)?",
@@ -57,6 +73,7 @@ export function DfoReview({ mode, onLeave }: Props) {
   });
   const [detail, setDetail] = useState<DfoDetail | null>(null);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
 
   const loadRows = useCallback(() => {
     api.dfoQueue(filters).then(setRows).catch((e) => setError(String(e)));
@@ -149,6 +166,8 @@ export function DfoReview({ mode, onLeave }: Props) {
         </div>
         <div className="filterbar-line"><div style={{ width: `${pct}%`, height: "100%", background: "var(--accent)" }} /></div>
       </div>
+      {notice && <div className="notice" data-testid="dfo-notice" style={{ margin: 8 }}>{notice}{" "}
+        <button className="btn" style={{ padding: "2px 8px" }} onClick={() => setNotice("")}>dismiss</button></div>}
       {error && <div className="errors" style={{ margin: 8 }}>{error}{" "}
         <button className="btn" style={{ padding: "2px 8px" }} onClick={() => setError("")}>dismiss</button></div>}
       <div className="main">
@@ -177,7 +196,9 @@ export function DfoReview({ mode, onLeave }: Props) {
           <DfoLocation key={detail.row.id} detail={detail} mode={mode}
             nav={{ pos: idx + 1, total: rows.length, onNext: next ? () => open(next) : undefined,
                    onPrev: prev ? () => open(prev) : undefined }}
-            onMarked={() => {
+            onMarked={(reused) => {
+              setNotice(reused.length
+                ? `already proposed — reused: ${reused.map((r) => `${r.name} (${r.id})`).join(", ")}` : "");
               loadRows();
               if (next) open(next);
               else api.dfoLocation(detail.row.id).then(setDetail).catch(() => {});
@@ -200,7 +221,7 @@ const newRef = (taken: string[]) => {
 function DfoLocation({ detail, mode, nav, onMarked }: {
   detail: DfoDetail; mode: Mode;
   nav: { pos: number; total: number; onNext?: () => void; onPrev?: () => void };
-  onMarked: () => void;
+  onMarked: (reused: { ref: string; id: string; name: string }[]) => void;
 }) {
   const id = detail.row.id;
   const was = detail.mark;
@@ -226,6 +247,8 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
   }, [id]);
 
   const items: NamedRef[] = detail.items.map((i) => ({ id: i.id, name: i.name }));
+  // T210: the proposals other marks made on this river (deduped), not yet carried by this mark
+  const shared = detail.proposed.filter((p) => !splits.some((n) => n.ref === p.id));
   const mapSplits: NamedRef[] = detail.splits.features.map((f) => ({ id: f.properties.split_id, name: f.properties.name }));
   const splitAt = (sid: string) => {
     const f = detail.splits.features.find((x) => x.properties.split_id === sid);
@@ -237,6 +260,13 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
     ...detail.splits,
     features: [
       ...detail.splits.features,
+      ...shared.flatMap((p) => p.coord ? [{
+        type: "Feature" as const, geometry: { type: "Point" as const, coordinates: p.coord },
+        properties: { split_id: `proposed:${p.id}`, label: `PROPOSED ${p.name || p.anchor}`
+                        + (p.n_marks > 1 ? ` (${p.n_marks} marks)` : ""),
+                      water: "", name: `PROPOSED ${p.name || p.anchor}`, rules: ["extent"], parts: [],
+                      to_verify: true, grade: null, item_id: p.on_item },
+      }] : []),
       ...splits.flatMap((n) => {
         const at = checks[n.ref]?.coord ?? n.coord;
         return at ? [{
@@ -247,7 +277,7 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
         }] : [];
       }),
     ],
-  }), [detail.splits, splits, checks]);
+  }), [detail.splits, detail.proposed, splits, checks]);
 
   const reachFc = (reach?.geojson ?? null) as GeoJSON.FeatureCollection | null;
   const preview = fixPreview ?? reachFc;
@@ -260,14 +290,19 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
     setReviewer(reviewer.trim());
     setBusy(true);
     try {
-      await api.postMark({
+      // a point of the fix that names a split another mark proposed rides in this mark too
+      // (the mark is self-contained); the server folds it back onto the proposal's id
+      const used = fix ? fix.points.filter((p) => p.kind === "new").map((p) => p.split_id) : [];
+      const carried = [...splits, ...shared.filter((p) => used.includes(p.id))
+        .map((p) => asNewSplit(p, detail.verbatim.specific_area))];
+      const got = await api.postMark({
         scope: "dfo", target: id, answers, problem: problem || null, note, reviewer: reviewer.trim(),
         seconds: Math.round((Date.now() - since.current) / 100) / 10,
         ...(fix ? { extent_fix: [fix] } : {}),
-        ...(splits.length ? { new_splits: splits } : {}),
+        ...(carried.length ? { new_splits: carried } : {}),
         ...(defer ? { verdict: "deferred" as const } : {}),
       });
-      onMarked();
+      onMarked(got.reused ?? []);
     } catch (e) {
       const fe = (e as EntryRefused).fieldErrors;
       setErrors(fe ? fe.map((x) => (x.path ? `${x.path}: ` : "") + x.msg) : [String(e)]);
@@ -368,7 +403,7 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
           </div>
 
           <NewSplits id={id} items={detail.items} hints={detail.hints} quote={detail.verbatim.specific_area}
-            value={splits} onChange={setSplits} checks={checks}
+            op={detail.need.op} shared={shared} value={splits} onChange={setSplits} checks={checks}
             onChecked={(ref, c) => setChecks((m) => ({ ...m, [ref]: c }))}
             onPick={(cb) => setPick({ cb })} picking={!!pick.cb} />
 
@@ -377,7 +412,10 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
               mapSplits={mapSplits} waters={items} value={fix ?? undefined}
               onChange={(f) => setFix(f)} onPreview={(fc) => setFixPreview(fc)}
               onPick={(cb) => setPick({ cb })} splitAt={splitAt}
-              newSplits={splits.map((n) => ({ id: n.ref, name: `${n.ref}: ${anchorWords(n)}` }))}
+              newSplits={[
+                ...splits.map((n) => ({ id: n.ref, name: `${n.ref}: ${anchorWords(n)}` })),
+                ...shared.map((p) => ({ id: p.id, name: `${p.id}: ${proposedWords(p)} (proposed)` })),
+              ]}
               sources={["map", "search", "new"]}
               previewFn={(f) => api.dfoExtentPreview(id, f)} />
           </div>
@@ -412,6 +450,11 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
               <button className="btn small" disabled={busy} onClick={() => void submit(true)}>defer</button>
               {(fix || splits.length > 0) && <span className="dim">carries {splits.length ? `${splits.length} new split${splits.length === 1 ? "" : "s"}` : ""}{fix && splits.length ? " + " : ""}{fix ? "an extent fix" : ""} — proposals only (T185)</span>}
             </div>
+            {answers.P === "y" && (splits.length > 0 || (fix?.points ?? []).some((p) => p.kind !== "split")) && (
+              <div className="warn-text" data-testid="dfo-p-hint">
+                A cut that is not built yet (a new or proposed split) means Place is ? or n. With only the existing
+                cuts, Place y records as it is.</div>
+            )}
             {errors.length > 0 && <div className="errors">{errors.map((e, i) => <div key={i}>{e}</div>)}</div>}
           </div>
           {was?.new_splits && was.new_splits.length > 0 && (
@@ -432,6 +475,12 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
   );
 }
 
+export function proposedWords(p: ProposedSplit): string {
+  return anchorWords({ ref: p.id, anchor: p.anchor, name: p.name, item_id: p.item_id,
+                       split_id: p.split_id, offset_m: p.offset_m, side: p.side })
+    + (p.n_marks > 1 ? ` · proposed on ${p.n_marks} marks` : "");
+}
+
 export function anchorWords(n: NewSplit): string {
   const off = n.offset_m ? `${Math.abs(n.offset_m)} m ${n.offset_m > 0 ? "above" : "below"} ` : "";
   const what = n.anchor === "confluence" ? `confluence of ${n.name || n.item_id || "?"}`
@@ -442,41 +491,81 @@ export function anchorWords(n: NewSplit): string {
   return off + what + (n.side ? ` · extent ${n.side}` : "");
 }
 
-/* NEW SPLIT PROPOSALS (T164): a cut the extent needs that does not exist yet. Each is checked on the
-   server (GET /anchor: snapped to the water, a tributary's mouth, a lake's edge) and drawn on the map;
-   it is recorded in the mark, never in splits.json. */
-function NewSplits({ id, items, hints, quote, value, onChange, checks, onChecked, onPick, picking }: {
-  id: string; items: DfoDetail["items"]; hints: DfoDetail["hints"]; quote: string;
+/* NEW SPLIT PROPOSALS (T164, simplified T210): click the river -> pick an anchor type -> confirm.
+   The name and the side are pre-filled from the anchor, the notice and the extent; editing them is
+   optional. The server checks the anchor (GET /anchor: snapped to the water, a tributary's mouth, a
+   lake's edge). A cut already proposed (on any mark, any location on this river) is the SAME split:
+   shown below as proposed, reused here, never entered twice. Recorded in the mark, never in
+   splits.json. */
+function NewSplits({ id, items, hints, quote, op, shared, value, onChange, checks, onChecked, onPick,
+                     picking }: {
+  id: string; items: DfoDetail["items"]; hints: DfoDetail["hints"]; quote: string; op: string | null;
+  shared: ProposedSplit[];
   value: NewSplit[]; onChange: (v: NewSplit[]) => void;
   checks: Record<string, AnchorCheck>; onChecked: (ref: string, c: AnchorCheck) => void;
   onPick: (cb: ((ll: [number, number]) => void) | null) => void; picking: boolean;
 }) {
-  const blank = (): NewSplit => ({ ref: "", anchor: "confluence", on_item: items[0]?.id ?? null, quote, side: null });
-  const [draft, setDraft] = useState<NewSplit>(blank);
+  const sideOf = (): NewSplit["side"] =>
+    op === "downstream_of" ? "downstream" : op === "upstream_of" ? "upstream" : null;
+  const hintFor = (a: AnchorKind) => hints.find((h) =>
+    a === "confluence" ? h.anchor === "confluence" : a.startsWith("lake") ? h.anchor.startsWith("lake") : false);
+  const nameFor = (a: AnchorKind): Partial<NewSplit> => {
+    if (ITEM_ANCHORS.includes(a)) {
+      const h = hintFor(a);
+      return { name: h?.items[0]?.name ?? h?.name ?? null, item_id: h?.items[0]?.id ?? null };
+    }
+    const w = ANCHORS.find((x) => x.v === a)!.word;
+    return { name: `${w} on ${items[0]?.name ?? "the river"}`, item_id: null };
+  };
+  const [clicked, setClicked] = useState<[number, number] | null>(null);
+  const [draft, setDraft] = useState<NewSplit | null>(null);
   const [said, setSaid] = useState<AnchorCheck | null>(null);
+  const [reusedWords, setReusedWords] = useState("");
   const [busy, setBusy] = useState(false);
-  const upd = (p: Partial<NewSplit>) => { setSaid(null); setDraft((d) => ({ ...d, ...p })); };
 
-  async function add() {
+  const choose = (a: AnchorKind) => {
+    setSaid(null);
+    setDraft({ ref: "", anchor: a, on_item: items[0]?.id ?? null, quote, side: sideOf(),
+               coord: ITEM_ANCHORS.includes(a) ? null : clicked, ...nameFor(a) });
+  };
+  const startPick = () => {
+    setReusedWords(""); setSaid(null); setDraft(null);
+    onPick((ll) => { setClicked(ll); onPick(null); });
+  };
+  const reset = () => { setClicked(null); setDraft(null); setSaid(null); onPick(null); };
+
+  async function confirm() {
+    if (!draft) return;
     setBusy(true);
-    const ref = newRef(value.map((v) => v.ref));
-    const ns = { ...draft, ref };
+    const ref = newRef([...value.map((v) => v.ref), ...shared.map((p) => p.id)]);
+    const ns = { ...draft, ref, name: (draft.name || "").trim() || null };
     try {
       const got = await api.dfoAnchor(id, ns);
       setSaid(got);
-      if (got.ok) {
-        onChecked(ref, got);
-        onChange([...value, ns]);
-        setDraft(blank());
-        setSaid(null);
+      if (!got.ok) return;
+      // the same cut as one already in this mark (same blk within 10 m)
+      const mine = value.find((n) => checks[n.ref]?.blk === got.blk && checks[n.ref]?.measure != null
+        && got.measure != null && Math.abs((checks[n.ref].measure as number) - got.measure) <= SAME_CUT_M);
+      if (mine) { setReusedWords(`already proposed — reused (${mine.ref})`); reset(); return; }
+      // ... or one another mark proposed
+      const dup = sameCut(shared, got);
+      if (dup) {
+        onChange([...value, asNewSplit(dup, quote)]);
+        setReusedWords(`already proposed — reused (${dup.id}: ${proposedWords(dup)})`);
+        reset();
+        return;
       }
+      onChecked(ref, got);
+      onChange([...value, ns]);
+      setReusedWords("");
+      reset();
     } catch (e) {
       setSaid({ ok: false, why: String(e) });
     } finally {
       setBusy(false);
     }
   }
-  const clicked = CLICKED.includes(draft.anchor);
+  const needsItem = draft && ITEM_ANCHORS.includes(draft.anchor) && !(draft.name || "").trim();
   return (
     <div className="section extent-fix" data-testid="dfo-new-splits">
       <div className="fix-row"><strong>New splits</strong>
@@ -489,73 +578,61 @@ function NewSplits({ id, items, hints, quote, value, onChange, checks, onChecked
           <button type="button" className="btn small" onClick={() => onChange(value.filter((x) => x.ref !== n.ref))}>remove</button>
         </div>
       ))}
-      {hints.length > 0 && (
-        <div className="fix-row">
-          <span className="k">the notice names</span>
-          {hints.map((h) => (
-            <button key={h.name} type="button" className="split-chip" title={h.items.map((i) => i.id).join(", ")}
-              onClick={() => upd(CLICKED.includes(h.anchor) ? { anchor: h.anchor, name: null, item_id: null, coord: null }
-                : { anchor: h.anchor, name: h.items[0]?.name ?? h.name, item_id: h.items[0]?.id ?? null, coord: null })}>
-              {h.anchor === "confluence" ? "⤚ " : h.anchor.startsWith("lake") ? "◯ " : "✚ "}{h.name}
-              {h.items.length || CLICKED.includes(h.anchor) ? "" : " (not found)"}
-            </button>
+      {shared.length > 0 && (
+        <div data-testid="dfo-proposed">
+          <div className="fix-row"><span className="k">already proposed</span>
+            <span className="dim">on this river, by any mark — amber on the map; pick one as a point in the extent below</span></div>
+          {shared.map((p) => (
+            <div key={p.id} className="fix-row" data-testid={`dfo-proposed-${p.id}`}>
+              <span className="chip-tag new">{p.id}</span>
+              <span>{proposedWords(p)}</span>
+              <span className="dim" title={p.marks.map((m) => `${m.target} (${m.reviewer})`).join("\n")}>
+                {p.marks[0]?.target.split(":").slice(1).join(":")}{p.n_marks > 1 ? ` +${p.n_marks - 1}` : ""}</span>
+              <button type="button" className="btn small" onClick={() => onChange([...value, asNewSplit(p, quote)])}>
+                this location needs it too</button>
+            </div>
           ))}
         </div>
       )}
-      <div className="fix-row">
-        <span className="k">anchor</span>
-        <select aria-label="new split anchor" value={draft.anchor}
-          onChange={(e) => upd({ anchor: e.target.value as AnchorKind, coord: null, item_id: null, name: null, split_id: null })}>
-          {ANCHORS.map((a) => <option key={a.v} value={a.v}>{a.words}</option>)}
-        </select>
-        {(draft.anchor === "confluence" || draft.anchor === "lake_inlet" || draft.anchor === "lake_outlet") && (
-          <>
-            <ItemSearch kind={draft.anchor === "confluence" ? "stream" : "lake"}
-              placeholder={draft.anchor === "confluence" ? "tributary name…" : "lake name…"}
-              onPick={(h) => upd({ name: h.name, item_id: h.id })} onText={(t) => upd({ name: t, item_id: null })} />
-            {draft.name && <span className="fix-chosen">→ {draft.name}{draft.item_id ? ` (${draft.item_id})` : ""}</span>}
-          </>
-        )}
-        {draft.anchor === "split" && (
-          <>
-            <SplitSearch onPick={(h) => upd({ split_id: h.id, name: h.label })} />
-            {draft.split_id && <span className="fix-chosen">→ {draft.split_id}</span>}
-          </>
-        )}
-        {clicked && (
-          <>
-            <input className="fix-text" placeholder="its name (e.g. Highway 19 bridge)" value={draft.name ?? ""}
-              onChange={(e) => upd({ name: e.target.value || null })} />
-            <button type="button" className={`btn small${picking ? " primary" : ""}`} data-testid="dfo-pick"
-              onClick={() => {
-                if (picking) { onPick(null); return; }
-                onPick((ll) => { upd({ coord: ll }); onPick(null); });
-              }}>{picking ? "click the map… (cancel)" : draft.coord ? "move it" : "click the map"}</button>
-            {draft.coord && <span className="fix-chosen">→ {draft.coord[1].toFixed(5)}, {draft.coord[0].toFixed(5)}</span>}
-          </>
-        )}
-      </div>
-      <div className="fix-row">
-        <span className="k">cuts</span>
-        <select aria-label="the water it cuts" value={draft.on_item ?? ""} onChange={(e) => upd({ on_item: e.target.value || null })}>
-          {items.map((i) => <option key={i.id} value={i.id}>{i.name}</option>)}
-        </select>
-        <span className="k">extent is</span>
-        {([[null, "—"], ["upstream", "upstream"], ["downstream", "downstream"]] as [NewSplit["side"], string][]).map(([v, w]) => (
-          <button key={w} type="button" className={`ans trib-call${(draft.side ?? null) === v ? " on" : ""}`}
-            aria-pressed={(draft.side ?? null) === v} onClick={() => upd({ side: v })}>{w}</button>
-        ))}
-        <span className="dim">of it</span>
-        <span className="k">offset m</span>
-        <input className="fix-text" style={{ width: 70 }} type="number" placeholder="+up / −down" value={draft.offset_m ?? ""}
-          onChange={(e) => upd({ offset_m: e.target.value === "" ? null : Number(e.target.value) })} />
-      </div>
-      <div className="fix-row">
-        <span className="k">from the words</span>
-        <input className="fix-text" style={{ flex: 1 }} value={draft.quote ?? ""} onChange={(e) => upd({ quote: e.target.value })} />
-        <button type="button" className="btn small primary" disabled={busy || !items.length} data-testid="dfo-add-split"
-          onClick={() => void add()}>{busy ? "checking…" : "check + add"}</button>
-      </div>
+      {reusedWords && <div className="fix-row notice" data-testid="dfo-reused">{reusedWords}</div>}
+      {!clicked && (
+        <div className="fix-row">
+          <button type="button" className={`btn small${picking ? " primary" : ""}`} data-testid="dfo-pick"
+            disabled={!items.length}
+            onClick={() => { if (picking) onPick(null); else startPick(); }}>
+            {picking ? "click the river on the map… (cancel)" : "+ add a split: click the river"}</button>
+        </div>
+      )}
+      {clicked && (
+        <>
+          <div className="fix-row">
+            <span className="k">this point is</span>
+            {ANCHORS.map((a) => (
+              <button key={a.v} type="button" className={`ans trib-call${draft?.anchor === a.v ? " on" : ""}`}
+                aria-pressed={draft?.anchor === a.v} data-testid={`dfo-anchor-${a.v}`}
+                onClick={() => choose(a.v)}>{a.words}</button>
+            ))}
+            <span className="dim">{clicked[1].toFixed(5)}, {clicked[0].toFixed(5)}</span>
+            <button type="button" className="btn small" onClick={reset}>cancel</button>
+          </div>
+          {draft && (
+            <div className="fix-row" data-testid="dfo-split-draft">
+              <span className="k">name</span>
+              <input className="fix-text" aria-label="split name" value={draft.name ?? ""}
+                onChange={(e) => { setSaid(null); setDraft({ ...draft, name: e.target.value || null,
+                  item_id: ITEM_ANCHORS.includes(draft.anchor) ? null : draft.item_id }); }} />
+              {needsItem && <span className="warn-text">name the {draft.anchor === "confluence" ? "tributary" : "lake"}</span>}
+              <span className="k">extent is</span>
+              {([[null, "—"], ["upstream", "upstream"], ["downstream", "downstream"]] as [NewSplit["side"], string][]).map(([v, w]) => (
+                <button key={w} type="button" className={`ans trib-call${(draft.side ?? null) === v ? " on" : ""}`}
+                  aria-pressed={(draft.side ?? null) === v} onClick={() => setDraft({ ...draft, side: v })}>{w}</button>
+              ))}
+              <button type="button" className="btn small primary" disabled={busy || !!needsItem}
+                data-testid="dfo-add-split" onClick={() => void confirm()}>{busy ? "checking…" : "confirm"}</button>
+            </div>
+          )}
+        </>
+      )}
       {said && !said.ok && <div className="fix-row warn-text" data-testid="dfo-anchor-refused">not added: {said.why}</div>}
     </div>
   );

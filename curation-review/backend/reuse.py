@@ -1330,9 +1330,10 @@ def post_mark(body: dict) -> dict:
             # T164: a DFO salmon location — its prints from `review.dfo`, each NEW split's anchor
             # checked and its resolved point stamped (`dfo.mark_for`); the same one commit below
             import dfo
-            mark, now = dfo.mark_for(body, date=_dt.date.today().isoformat(),
-                                     pdf_sha256=_pdf_sha256())
+            mark, now, reused = dfo.mark_for(body, date=_dt.date.today().isoformat(),
+                                             pdf_sha256=_pdf_sha256())
         else:
+            reused = []
             ctx = _review_context()
             found = _find(target)
             if found is None:
@@ -1349,7 +1350,10 @@ def post_mark(body: dict) -> dict:
                                           "prints": prints})
             now = None
         writes.commit([(MARKS_PATH, M.appended(MARKS_PATH, [mark]))], "mark")
-    return _mark_view(mark, now if scope == "dfo" else _prints(e))
+    view = _mark_view(mark, now if scope == "dfo" else _prints(e))
+    if reused:                       # T210: "already proposed — reused", said back to the screen
+        view = {**view, "reused": reused}
+    return view
 
 
 def entry_answer_context(entry_id: str) -> dict | None:

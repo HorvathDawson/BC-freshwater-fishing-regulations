@@ -87,8 +87,28 @@ def _work(mark) -> list[str]:
     return lines
 
 
+def ticketed(mark, verdicts: Sequence[str] = TICKET_VERDICTS) -> bool:
+    """Does this mark become a ticket? Its verdict is one asked for, or (T210) it is a DFO mark that
+    says Place y and still carries an extent to curate from the existing cuts."""
+    return mark.verdict in verdicts or (mark.verdict == "verified" and bool(mark.extent_fix))
+
+
+def _shared_note(mark, n, shared: Sequence[Mapping] | None) -> str:
+    """T210: what a ticket says of a proposed split other marks proposed too: it is ONE cut,
+    first proposed by the earliest mark (`marks.proposals`)."""
+    for p in shared or ():
+        if any(w["target"] == mark.target and w["ref"] == n.ref for w in p["marks"]):
+            first = p["marks"][0]
+            if first["target"] == mark.target and first["ref"] == n.ref:
+                others = len(p["marks"]) - 1
+                return f" · also proposed on {others} other mark(s) — ONE cut `{p['id']}`" if others else ""
+            return (f" · ALREADY PROPOSED as `{p['id']}` ({p['split'].name or p['split'].anchor}, first on "
+                    f"`{first['target']}`) — the same cut, build it once")
+    return ""
+
+
 def ticket_text(mark, *, entry: Mapping | None = None, split: Mapping | None = None,
-                status: Mapping | None = None) -> str:
+                status: Mapping | None = None, shared: Sequence[Mapping] | None = None) -> str:
     """One mark as a Markdown ticket. `entry` (the entry it marks, for its name, row and rules),
     `split` (a split mark's split) and `status` (the mark's status now: `{status, reasons}`) are
     context only — `parse_ticket` reads the mark's own fields back, never these."""
@@ -133,7 +153,7 @@ def ticket_text(mark, *, entry: Mapping | None = None, split: Mapping | None = N
     if mark.extent_fix:
         lines += ["## Proposed extent", ""] + [f"- {fix_words(f)}" for f in mark.extent_fix] + [""]
     if mark.new_splits:
-        lines += ["## Proposed new splits", ""] + [f"- {new_split_words(n)}" for n in mark.new_splits] + [""]
+        lines += ["## Proposed new splits", ""] + [f"- {new_split_words(n)}{_shared_note(mark, n, shared)}" for n in mark.new_splits] + [""]
     if entry is not None:
         lines += ["## The entry", ""]
         lines.append(f"{entry.get('name', '')} (`{entry.get('entry_id', '')}`), printed p. "
@@ -271,11 +291,13 @@ def export(marks: Iterable, *, entries: Mapping[str, Mapping] | None = None,
     """(file name, ticket text) for every mark IN FORCE (`marks.latest`) whose verdict is one of
     `verdicts`, in the store's order. `statuses` (mark key -> `{status, reasons}`) adds what changed
     since; a mark no longer in force (superseded) is never a ticket."""
-    from pipeline.regs.review.marks import latest
+    from pipeline.regs.review.marks import latest, proposals
+    marks = list(marks)
+    shared = proposals(marks)             # T210: every mark's new splits, one entry per distinct cut
     out = []
     seen: dict[str, tuple] = {}
     for key, m in latest(marks).items():
-        if m.verdict not in verdicts:
+        if not ticketed(m, verdicts):
             continue
         name = ticket_name(m)
         if name in seen:                 # two targets slugged alike: one file would overwrite the other
@@ -284,7 +306,7 @@ def export(marks: Iterable, *, entries: Mapping[str, Mapping] | None = None,
         out.append((name, ticket_text(
             m, entry=(entries or {}).get(m.target) if m.scope != "split" else None,
             split=(splits or {}).get(m.target) if m.scope == "split" else None,
-            status=(statuses or {}).get(key))))
+            status=(statuses or {}).get(key), shared=shared)))
     return out
 
 
@@ -297,7 +319,7 @@ def statuses_now(marks: Iterable, *, entries: Mapping[str, Mapping], ctx,
     from pipeline.regs.review.marks import latest, status, target_prints
     out: dict[tuple, dict] = {}
     for key, m in latest(marks).items():
-        if m.verdict not in verdicts:
+        if not ticketed(m, verdicts):
             continue
         st = status(m, target_prints(m, entries, ctx))
         out[key] = {"status": st["status"], "reasons": st["reasons"]}

@@ -405,6 +405,8 @@ export interface MarkView {
   tributaries?: Record<string, TribCall>;
   lake_split_later?: boolean;
   extent_fix?: ExtentFix[];
+  /** T210: new splits this mark proposed that another mark had already proposed (reused ids) */
+  reused?: { ref: string; id: string; name: string }[];
   status: VerifyStatus;
   reasons: StaleReason[];
 }
@@ -893,6 +895,24 @@ export interface AnchorCheck {
   words?: string;
   item_id?: string;
 }
+/** T210: a PROPOSED split, shared — every mark's `new_splits` deduped by anchor (`marks.proposals`),
+ *  the first proposal's name kept, with the marks that proposed it */
+export interface ProposedSplit {
+  id: string;
+  anchor: AnchorKind;
+  name: string | null;
+  item_id: string | null;
+  split_id: string | null;
+  on_item: string | null;
+  coord: [number, number] | null;
+  blk: string | null;
+  measure: number | null;
+  side: "upstream" | "downstream" | null;
+  offset_m: number | null;
+  quote: string;
+  marks: { target: string; ref: string; reviewer: string; date: string }[];
+  n_marks: number;
+}
 export type DfoState = "needs_cut" | "bound" | "unbound" | "no_water";
 export interface DfoRow {
   id: string;
@@ -942,6 +962,8 @@ export interface DfoDetail {
   rules: { rule_id: string; label: string; verbatim: string }[];
   need: DfoRow["need"];
   splits: EntrySplits;
+  /** T210: the proposed splits on this river, from ALL marks, deduped */
+  proposed: ProposedSplit[];
   hints: { name: string; anchor: AnchorKind; items: ItemHit[] }[];
   siblings: { id: string; text: string; status: string; section: string | null }[];
   mark: (MarkView & { new_splits?: NewSplit[] }) | null;

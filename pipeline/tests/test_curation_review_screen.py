@@ -385,3 +385,44 @@ def _shift(text: str) -> str:
             if sp["id"] == PLAIN_SPLIT:
                 sp["anchor"]["offset_m"] = 250
     return json.dumps(data, indent=1, ensure_ascii=False) + "\n"
+
+
+def test_a_proposed_split_is_shared_on_the_river_and_never_entered_twice(env):
+    """T210: a split proposed on one DFO location shows (once) on every location on the same river;
+    a second mark proposing the same anchor reuses the first's id and says so; Place y rides an
+    extent fix made of existing cuts; and the only file that changes is the marks store."""
+    c = env["client"]
+    other = CAMPBELL + "~2"
+    assert c.get(f"/api/dfo/locations/{other}").status_code == 200
+    curated = _stamps(CURATED.base)
+    first = {"scope": "dfo", "target": CAMPBELL, "answers": {"T": "y", "R": "y", "P": "n"},
+             "problem": "split missing", "note": "no Quinsam cut", "reviewer": "tester",
+             "new_splits": [{**_QUINSAM, "ref": "n1"}]}
+    r = c.post("/api/marks", json=first)
+    assert r.status_code == 200, r.text
+    seen = c.get(f"/api/dfo/locations/{other}").json()["proposed"]
+    assert [p["id"] for p in seen].count("n1") == 1 and seen[0]["coord"] and seen[0]["n_marks"] >= 1
+    # another location proposes the same confluence under another ref and name: reused, not added
+    again = {**first, "target": other, "new_splits": [{**_QUINSAM, "ref": "n7", "name": "Quinsam"}],
+             "extent_fix": [{"scope": "entry", "op": "downstream_of",
+                             "points": [{"kind": "new", "split_id": "n7"}]}]}
+    r = c.post("/api/marks", json=again)
+    assert r.status_code == 200, r.text
+    got = r.json()
+    assert [n["ref"] for n in got["new_splits"]] == ["n1"]                  # the first one's id
+    assert got["extent_fix"][0]["points"][0]["split_id"] == "n1"            # the fix follows it
+    assert got["reused"] == [{"ref": "n7", "id": "n1", "name": "Quinsam River"}]
+    once = [p for p in c.get(f"/api/dfo/locations/{CAMPBELL}").json()["proposed"]
+            if p["anchor"] == "confluence" and p["item_id"] == "gnis:27883"]
+    assert len(once) == 1 and once[0]["n_marks"] == 2 and once[0]["name"] == "Quinsam River"
+    # the progress bar counts the cut once
+    assert c.get("/api/dfo/progress").json()["all"]["new_splits"] == len(
+        c.get(f"/api/dfo/locations/{CAMPBELL}").json()["proposed"])
+    # Place y with an extent made of existing cuts only is recorded as it is (no new split)
+    fix = {"scope": "entry", "op": "downstream_of", "points": [{"kind": "split", "split_id": "x"}]}
+    yes = {"scope": "dfo", "target": other, "answers": {"T": "y", "R": "y", "P": "y"},
+           "reviewer": "tester", "extent_fix": [fix]}
+    r = c.post("/api/marks", json=yes)
+    assert r.status_code == 200 and r.json()["verdict"] == "verified", r.text
+    assert c.post("/api/marks", json={**yes, "new_splits": [_QUINSAM]}).status_code == 422
+    assert _stamps(CURATED.base) == curated, "a DFO mark wrote under data/curated"

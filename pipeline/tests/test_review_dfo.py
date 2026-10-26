@@ -120,3 +120,60 @@ def test_a_ticket_carries_the_new_splits_and_reads_them_back(tmp_path):
     got = T.parse_ticket(text)
     assert got == T.mark_fields(m)
     assert M.NewSplit.model_validate(got["new_splits"][0]) == m.new_splits[0]
+
+
+# --------------------------------------------------------------------------- T210: shared proposals
+
+def _marks_with(tmp_path, *specs):
+    """One DFO mark per (target, new_splits) — the same fixture world, different targets."""
+    ent, typed = _world(tmp_path)
+    p = D.prints_of(LOC, ent, typed)
+    return [_mark(p, target=target, new_splits=ns, reviewer=f"r{i}")
+            for i, (target, ns) in enumerate(specs)]
+
+
+def test_the_same_anchor_is_one_proposed_split_whoever_proposed_it(tmp_path):
+    q = {"ref": "n2", "anchor": "confluence", "name": "Quinsam River", "item_id": "gnis:27883",
+         "on_item": "gnis:1", "blk": "354", "measure": 4199.5, "coord": (-125.294097, 50.037899)}
+    again = {**q, "ref": "n3", "name": "quinsam"}                       # same tributary, other ref + name
+    near = {**BRIDGE, "ref": "n4", "blk": "354", "measure": 4205.0, "on_item": "gnis:1"}   # 5.5 m on
+    far = {**BRIDGE, "ref": "n5", "blk": "354", "measure": 4300.0, "on_item": "gnis:1",
+           "coord": (-125.2, 50.1)}
+    marks = _marks_with(tmp_path, ("a", [q]), ("b", [again]), ("c", [near]), ("d", [far]),
+                        ("e", [{**BRIDGE, "ref": "n6", "coord": (-125.29409, 50.03790)}]))
+    got = M.proposals(marks)
+    assert [p["id"] for p in got] == ["n2", "n5"]                       # the first name/ref kept
+    assert got[0]["split"].name == "Quinsam River"
+    assert [w["target"] for w in got[0]["marks"]] == ["a", "b", "c", "e"]
+    assert [w["target"] for w in got[1]["marks"]] == ["d"]
+    assert M.proposals([]) == []
+
+
+def test_a_clashing_ref_on_another_cut_gets_a_free_id(tmp_path):
+    a = {**BRIDGE, "ref": "n1", "coord": (-125.3, 50.0)}
+    b = {**BRIDGE, "ref": "n1", "coord": (-125.1, 50.2)}
+    assert [p["id"] for p in M.proposals(_marks_with(tmp_path, ("a", [a]), ("b", [b])))] == ["n1", "n1-2"]
+
+
+def test_place_y_may_carry_an_extent_fix_on_existing_cuts_only(tmp_path):
+    ent, typed = _world(tmp_path)
+    p = D.prints_of(LOC, ent, typed)
+    ok = {"scope": "entry", "op": "downstream_of", "points": [{"kind": "split", "split_id": "a_split"}]}
+    yes = {"verdict": "verified", "answers": {"T": "y", "R": "y", "P": "y"}, "problem": None, "note": ""}
+    assert _mark(p, **yes, extent_fix=[ok]).verdict == "verified"       # the cuts are right: Place y
+    new = {"scope": "entry", "op": "downstream_of", "points": [{"kind": "coord", "coord": (-125.3, 50.0)}]}
+    with pytest.raises(ValueError, match="wrong or unsure"):
+        _mark(p, **yes, extent_fix=[new])                               # a cut that does not exist yet
+    with pytest.raises(ValueError, match="wrong or unsure"):
+        _mark(p, **yes, new_splits=[BRIDGE])
+
+
+def test_a_ticket_says_a_split_is_already_proposed(tmp_path):
+    q = {"ref": "n2", "anchor": "confluence", "name": "Quinsam River", "item_id": "gnis:27883",
+         "on_item": "gnis:1", "blk": "354", "measure": 4199.5, "coord": (-125.294097, 50.037899)}
+    marks = _marks_with(tmp_path, ("a", [q]), ("b", [{**q, "ref": "n3"}]))
+    tickets = dict(T.export(marks))
+    first, second = tickets["review-wrong-dfo-a.md"], tickets["review-wrong-dfo-b.md"]
+    assert "also proposed on 1 other mark" in first and "ONE cut `n2`" in first
+    assert "ALREADY PROPOSED as `n2`" in second and "first on `a`" in second
+    assert T.parse_ticket(second)["new_splits"][0]["ref"] == "n3"       # the mark's own line unchanged

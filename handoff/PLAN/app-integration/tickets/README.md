@@ -254,7 +254,7 @@ use that as the sole source of future work."
 | T208 | show rules that hold on an undrawn part of a lake ("area at the outlet … map 1") clearly, linked to the synopsis map | OPEN | — | future; lake splits stay deferred |
 | T207 | "on parts" is a note; unused-cut false positives (28 true); split confidence end to end; White/Fulton/Chuckwalla/Cranberry cuts | PARTIAL | — | next build (owner); owner decides the 28 unused cuts; Cranberry canyon point |
 | T209 | vessel restrictions in the app: boats line (electric only, no powered boats, power cap, speed, towing, no vessels) on the water page + map sheet | OPEN | — | 390 vessel_rule rules; electric_only kW decision |
-| T210 | DFO review mode: proposed splits shared along the river, Place y without a new split, simpler new-split UI | OPEN | — | review app; after the final rebuild lane |
+| T210 | DFO review mode: proposed splits shared along the river, Place y without a new split, simpler new-split UI | DONE | (this commit) | proposals deduped across all marks (2 distinct; 1 duplicate pair folded), server reuses ids, Place y with existing-cut fix, 3-step new-split UI; owner tries it |
 
 ## Order for open tickets
 
