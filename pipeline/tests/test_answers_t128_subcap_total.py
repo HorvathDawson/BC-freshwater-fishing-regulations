@@ -175,7 +175,7 @@ def _live_group(live, item, md, pool):
 
 @pytest.mark.needs_bundle
 def test_a_region_2_stream_names_its_2_from_streams(live):
-    g = _live_group(live, R2_STREAM, (1, 15), "z2:trout_char_quota::trout_char_quota.r1")
+    g = _live_group(live, R2_STREAM, (1, 15), "z2:daily_quotas::trout_char_quota.r1")
     assert g["header"]["says"] == "4 a day per angler across Region 2, lakes included"
     assert [s for s, _ in _kinds(g)] == [
         S2 + "up to 2 may be hatchery brook, brown or cutthroat trout",
@@ -186,7 +186,7 @@ def test_a_region_2_stream_names_its_2_from_streams(live):
 
 @pytest.mark.needs_bundle
 def test_a_region_1_stream_names_its_2_trout_from_streams(live):
-    g = _live_group(live, R1_STREAM, (6, 15), "z1:trout_quota::trout_quota.r1")
+    g = _live_group(live, R1_STREAM, (6, 15), "z1:daily_quotas::trout_quota.r1")
     assert [s for s, _ in _kinds(g)] == [
         "Of your 2 trout a day in streams, up to 2 may be hatchery brown, cutthroat or rainbow trout",
         "Of your 2 trout a day in streams, up to 2 may be hatchery steelhead only — wild steelhead go back"]
@@ -194,7 +194,7 @@ def test_a_region_1_stream_names_its_2_trout_from_streams(live):
 
 @pytest.mark.needs_bundle
 def test_a_region_6_lake_names_its_5(live):
-    g = _live_group(live, R6_LAKE, (7, 10), "z6:trout_char_quota::trout_char_quota.r1")
+    g = _live_group(live, R6_LAKE, (7, 10), "z6:daily_quotas::trout_char_quota.r1")
     assert [s for s, _ in _kinds(g)] == [
         "Of your 5 trout and char a day, up to 5 may be brook trout",
         "Of your 5 trout and char a day, only 3 may be lake trout",
@@ -204,7 +204,7 @@ def test_a_region_6_lake_names_its_5(live):
 
 @pytest.mark.needs_bundle
 def test_kootenay_main_body_the_trout_total_names_its_5_the_one_kind_rainbow_group_nothing(live):
-    g = _live_group(live, KLMB, OCT10, "z4:trout_char_quota::trout_char_quota.r1")
+    g = _live_group(live, KLMB, OCT10, "z4:daily_quotas::trout_char_quota.r1")
     assert _kinds(g) == [
         ("Up to 1 may be Dolly Varden/bull trout", "Of the 1 a day: up to 1 may be Dolly Varden/bull trout, any size"),
         ("Of your 5 trout and char a day, up to 5 may be brook, brown, cutthroat or lake trout",
@@ -222,13 +222,13 @@ def test_a_lake_rule_for_some_fish_is_not_your_trout_and_char(live):
     (p.30: "Rainbow trout daily quota = 2", "bull trout daily quota = 1") read "Of your 3 trout and char a day under this
     lake’s rule" right above "Of your 5 trout and char a day" — two totals for the same fish; Adams Lake ("Daily quota = 1
     bull trout or lake trout") read "Of your 1 trout and char a day". The tier is named by its number and whose it is."""
-    g = _live_group(live, KAMLOOPS, (7, 10), "z3:trout_char_quota::trout_char_quota.r1")
+    g = _live_group(live, KAMLOOPS, (7, 10), "z3:daily_quotas::trout_char_quota.r1")
     assert [s for s, _ in _kinds(g)] == [
         "Of the 3 a day under this lake’s rule, only 1 may be Dolly Varden/bull trout",
         "Of the 3 a day under this lake’s rule, only 2 may be rainbow trout",
         "Of your 5 trout and char a day, up to 5 may be brook, brown or cutthroat trout",
         "Of your 5 trout and char a day, only 1 may be lake trout"]
-    g = _live_group(live, ADAMS, (7, 10), "z3:trout_char_quota::trout_char_quota.r1")
+    g = _live_group(live, ADAMS, (7, 10), "z3:daily_quotas::trout_char_quota.r1")
     assert _kinds(g) == [
         ("Of the 1 a day under this lake’s rule, up to 1 may be Dolly Varden/bull trout",
          "Of the 1 a day under this lake’s rule, up to 1 may be Dolly Varden/bull trout, 80 cm (31 in) or longer"),

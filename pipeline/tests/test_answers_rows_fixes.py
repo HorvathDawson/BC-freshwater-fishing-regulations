@@ -121,7 +121,7 @@ def displace(*tails, fish=None, origins=("none", "hatchery", "wild")):
 @pytest.mark.needs_bundle
 def test_anderson_brook_brown_cutthroat_up_to_4_only_1_over_50(built):
     data = built[0]
-    row = row_of(built, card(built, ANDERSON, 0, (7, 1)), "z3:trout_char_quota::trout_char_quota.r1")
+    row = row_of(built, card(built, ANDERSON, 0, (7, 1)), "z3:daily_quotas::trout_char_quota.r1")
     members = [S for it in row["items"] for S in it["members"]]
     assert len(members) == len(set(members))
     eb = item_of(row, "EB")
@@ -136,8 +136,8 @@ def test_anderson_brook_brown_cutthroat_up_to_4_only_1_over_50(built):
     assert cap["general"] and cap["of"] is None and "except" not in cap
     assert _rid(data, cap["r"]).endswith("trout_char_quota.r3")
     # MUTATION: without the bull/lake trout 60 cm minimum their range moves; brook trout's does not
-    m = row_of(built, card(built, ANDERSON, 0, (7, 1), displace("z3:trout_char_quota::trout_char_quota.r4b")),
-               "z3:trout_char_quota::trout_char_quota.r1")
+    m = row_of(built, card(built, ANDERSON, 0, (7, 1), displace("z3:daily_quotas::trout_char_quota.r4b")),
+               "z3:daily_quotas::trout_char_quota.r1")
     assert item_of(m, "DV")["bands"] != [[60, None, 1]]
     assert item_of(m, "EB")["bands"] == [[0, 50, 4], [50, None, 1]]
 
@@ -149,7 +149,7 @@ def test_anderson_brook_brown_cutthroat_up_to_4_only_1_over_50(built):
 @pytest.mark.needs_bundle
 def test_chilliwack_lake_no_wild_trout_over_50(built):
     data = built[0]
-    row = row_of(built, card(built, CHILLIWACK_L, 0, (7, 15)), "z2:trout_char_quota::trout_char_quota.r1")
+    row = row_of(built, card(built, CHILLIWACK_L, 0, (7, 15)), "z2:daily_quotas::trout_char_quota.r1")
     o2 = [(i, c) for i, c in enumerate(row["conds"]) if c["c"] == "origin2"]
     assert len(o2) == 1
     i, c = o2[0]
@@ -159,7 +159,7 @@ def test_chilliwack_lake_no_wild_trout_over_50(built):
     assert i in item_of(row, "RB")["conds"]
     # MUTATION: without the lake's wild size rule the wild answer is the hatchery's: no line
     m = row_of(built, card(built, CHILLIWACK_L, 0, (7, 15), displace("chilliwack_lake.r1")),
-               "z2:trout_char_quota::trout_char_quota.r1")
+               "z2:daily_quotas::trout_char_quota.r1")
     assert not any(c["c"] == "origin2" for c in m["conds"])
 
 
@@ -178,7 +178,7 @@ def test_kitimat_february_cutthroat_and_brown_go_back(built):
     (`test_humphrys_june_count_collision`, T80 2)."""
     data = built[0]
     t = card(built, KITIMAT, 1, (2, 15))
-    row = row_of(built, t, "z6:trout_char_quota::trout_char_quota.r1")
+    row = row_of(built, t, "z6:daily_quotas::trout_char_quota.r1")
     assert sorted(row["members"]) == ["EB", "LT"]
     back = [c for c in row["conds"] if c["c"] == "back" and sorted(c["who"]) == ["CT", "GB", "ST"]]
     assert back and _rid(data, back[0]["r"]).endswith("trout_char_quota.r7")
@@ -196,11 +196,11 @@ def test_humphrys_june_count_collision(built, monkeypatch):
     hatchery steelhead joined its release)."""
     data = built[0]
     def backs(t):
-        row = row_of(built, t, "z6:trout_char_quota::trout_char_quota.r1")
+        row = row_of(built, t, "z6:daily_quotas::trout_char_quota.r1")
         return sorted(row["members"]), [(sorted(c["who"]), _rid(data, c["r"])) for c in row["conds"] if c["c"] == "back"]
     closure = (["ST"], "z6:steelhead_stream_closure::steelhead_stream_closure.r1")
-    dv = (["DV"], "z6:trout_char_quota::trout_char_quota.r5")
-    ct_gb = (["CT", "GB"], "z6:trout_char_quota::trout_char_quota.r7")
+    dv = (["DV"], "z6:daily_quotas::trout_char_quota.r5")
+    ct_gb = (["CT", "GB"], "z6:daily_quotas::trout_char_quota.r7")
     assert backs(card(built, HUMPHRYS, 0, (6, 10))) == (["EB", "LT"], [closure, dv, ct_gb])
     # MUTATION: the page's count comparison drops the release (two fish, like the row's two); nothing else moves
     monkeypatch.setattr(RW.conds, "_who_n", lambda l, r: None if (not l.get("members") or l.get("general")
@@ -215,7 +215,7 @@ def test_humphrys_june_count_collision(built, monkeypatch):
 @pytest.mark.needs_bundle
 def test_vedder_hatchery_rainbow_4_of_the_regions_4(built):
     t = card(built, VEDDER, MOUTH, (1, 15))
-    row = row_of(built, t, "z2:trout_char_quota::trout_char_quota.r1")
+    row = row_of(built, t, "z2:daily_quotas::trout_char_quota.r1")
     assert row["daily"] == 2                                   # the stream share
     rb = item_of(row, "RB")
     assert rb["xref"] and rb["against"] == 4
@@ -226,9 +226,9 @@ def test_vedder_hatchery_rainbow_4_of_the_regions_4(built):
     assert any(l["t"] == "outer" for l in own["everyone"])
     # MUTATION: if the water's rule did not lift the stream share, the 2 would hold for it
     def keep_share(ladder, rid):
-        k = rid("z2:trout_char_quota::trout_char_quota.r4")
+        k = rid("z2:daily_quotas::trout_char_quota.r4")
         ladder["RB"]["hatchery"][k] = ["speaks", None, None, None]
-    m = row_of(built, card(built, VEDDER, MOUTH, (1, 15), keep_share), "z2:trout_char_quota::trout_char_quota.r1")
+    m = row_of(built, card(built, VEDDER, MOUTH, (1, 15), keep_share), "z2:daily_quotas::trout_char_quota.r1")
     assert item_of(m, "RB")["against"] == 2
 
 
@@ -293,7 +293,7 @@ def test_thompson_below_kamloops_lake_zone_1_over_50(built):
     row = row_of(built, card(built, THOMPSON, 0, (8, 15)), "thompson_river_downstream_of_kamloops_lake.r2")
     assert item_of(row, "CT")["bands"] == [[35, 50, 2], [50, None, 1]]
     # MUTATION: without the zone's '1 over 50 cm' the water's 2 holds to the top
-    m = row_of(built, card(built, THOMPSON, 0, (8, 15), displace("z3:trout_char_quota::trout_char_quota.r3")),
+    m = row_of(built, card(built, THOMPSON, 0, (8, 15), displace("z3:daily_quotas::trout_char_quota.r3")),
                "thompson_river_downstream_of_kamloops_lake.r2")
     assert item_of(m, "CT")["bands"] == [[35, None, 2]]
 
@@ -303,7 +303,7 @@ def test_region8_every_shared_cap_counts(built):
     """Region 8 streams: 4 a day, only 1 over 50 cm AND only 2 over 30 cm — both general caps of
     the real card reach the real daily limit (the page reads only the first). No shipped card has
     two kinds whose own range starts at 30 cm, so the real caps are fed two such kinds."""
-    row = row_of(built, card(built, R8_STREAM, 0, (1, 1)), "z8:trout_char_quota::trout_char_quota.r1")
+    row = row_of(built, card(built, R8_STREAM, 0, (1, 1)), "z8:daily_quotas::trout_char_quota.r1")
     general = [(c["a"], c["take"]) for c in row["conds"]
                if c["c"] == "cap" and not c.get("who") and c.get("general")]
     assert sorted(general) == [(30, 2), (50, 1)]

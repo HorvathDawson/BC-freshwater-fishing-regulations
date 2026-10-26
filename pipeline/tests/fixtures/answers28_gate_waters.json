@@ -3,8 +3,8 @@
  "rules": [
   {
    "dimension": "daily",
-   "entry": "z5:trout_char_quota",
-   "entry_id": "z5:trout_char_quota",
+   "entry": "z5:daily_quotas",
+   "entry_id": "z5:daily_quotas",
    "entry_name": "Region 5",
    "extent_text": null,
    "extents": [
@@ -34,8 +34,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z5:trout_char_quota",
-   "entry_id": "z5:trout_char_quota",
+   "entry": "z5:daily_quotas",
+   "entry_id": "z5:daily_quotas",
    "entry_name": "Region 5",
    "extent_text": null,
    "extents": [
@@ -71,8 +71,8 @@
   },
   {
    "dimension": "daily@water=stream",
-   "entry": "z5:trout_char_quota",
-   "entry_id": "z5:trout_char_quota",
+   "entry": "z5:daily_quotas",
+   "entry_id": "z5:daily_quotas",
    "entry_name": "Region 5",
    "extent_text": null,
    "extents": [
@@ -107,8 +107,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z5:trout_char_quota",
-   "entry_id": "z5:trout_char_quota",
+   "entry": "z5:daily_quotas",
+   "entry_id": "z5:daily_quotas",
    "entry_name": "Region 5",
    "extent_text": null,
    "extents": [
@@ -139,8 +139,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z5:trout_char_quota",
-   "entry_id": "z5:trout_char_quota",
+   "entry": "z5:daily_quotas",
+   "entry_id": "z5:daily_quotas",
    "entry_name": "Region 5",
    "extent_text": null,
    "extents": [
@@ -171,8 +171,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z5:trout_char_quota",
-   "entry_id": "z5:trout_char_quota",
+   "entry": "z5:daily_quotas",
+   "entry_id": "z5:daily_quotas",
    "entry_name": "Region 5",
    "extent_text": null,
    "extents": [
@@ -205,8 +205,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z5:trout_char_quota",
-   "entry_id": "z5:trout_char_quota",
+   "entry": "z5:daily_quotas",
+   "entry_id": "z5:daily_quotas",
    "entry_name": "Region 5",
    "extent_text": null,
    "extents": [
@@ -243,8 +243,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z5:trout_char_quota",
-   "entry_id": "z5:trout_char_quota",
+   "entry": "z5:daily_quotas",
+   "entry_id": "z5:daily_quotas",
    "entry_name": "Region 5",
    "extent_text": null,
    "extents": [
@@ -284,8 +284,8 @@
   },
   {
    "dimension": "daily@water=stream",
-   "entry": "z5:trout_char_quota",
-   "entry_id": "z5:trout_char_quota",
+   "entry": "z5:daily_quotas",
+   "entry_id": "z5:daily_quotas",
    "entry_name": "Region 5",
    "extent_text": null,
    "extents": [
@@ -364,7 +364,7 @@
    "entry_name": "Marshall Creek",
    "exempts": [
     {
-     "entry_id": "z2:trout_char_quota",
+     "entry_id": "z2:daily_quotas",
      "note": "20-30 cm",
      "rule_id": "trout_char_quota.r8",
      "when": {
@@ -435,7 +435,7 @@
    "entry_name": "Coquitlam River",
    "exempts": [
     {
-     "entry_id": "z2:trout_char_quota",
+     "entry_id": "z2:daily_quotas",
      "note": "20-30 cm only",
      "rule_id": "trout_char_quota.r8",
      "when": {
@@ -511,7 +511,7 @@
    "entry_name": "Polley Lake",
    "exempts": [
     {
-     "entry_id": "z5:trout_char_quota",
+     "entry_id": "z5:daily_quotas",
      "note": "a larger number for this fish than the region allows: it overrides the region's size clause too (user ruling 2026-09-26); the book's intent is hard to read — the lift carries a caution",
      "rule_id": "trout_char_quota.r2"
     }
@@ -697,7 +697,7 @@
    "entry_name": "Ross Lake",
    "exempts": [
     {
-     "entry_id": "z2:trout_char_quota",
+     "entry_id": "z2:daily_quotas",
      "note": "counted apart from the regional trout/char quota: the row's 5 replaces the region's number for brook trout",
      "rule_id": "trout_char_quota.r1",
      "species": [
@@ -705,7 +705,7 @@
      ]
     },
     {
-     "entry_id": "z2:trout_char_quota",
+     "entry_id": "z2:daily_quotas",
      "note": "a larger number for this fish than the region allows: it overrides the region's size clause too (user ruling 2026-09-26); the book's intent is hard to read — the lift carries a caution",
      "rule_id": "trout_char_quota.r2",
      "species": [
@@ -713,7 +713,7 @@
      ]
     },
     {
-     "entry_id": "z2:trout_char_quota",
+     "entry_id": "z2:daily_quotas",
      "note": "a larger number for this fish than the region allows: it overrides the region's size clause too (user ruling 2026-09-26); the book's intent is hard to read — the lift carries a caution",
      "rule_id": "trout_char_quota.r2b",
      "species": [

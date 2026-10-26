@@ -141,11 +141,11 @@ def _all_species_is_game_fish(rule: "CatalogueRule") -> Optional[str]:
 #: in its entry (`_printed_windows_carried`); an entry listed here that no longer needs it is
 #: refused too, so the list cannot go stale.
 WINDOWS_HELD_ELSEWHERE: dict = {
-    ("z7b:trout_char_quota", "Oct 16-Aug 14"):
+    ("z7b:daily_quotas", "Oct 16-Aug 14"):
         "the NOTE's retention window for bull trout. Retention is allowed only in the Liard River "
         "watershed, whose row prints its own 'Oct 16-Aug 14' quota; everywhere else in Zone B "
         "r10 releases bull trout all year (user ruling 2026-09-24)",
-    ("z7b:trout_char_quota", "Aug 15-Oct 15"):
+    ("z7b:daily_quotas", "Aug 15-Oct 15"):
         "the Liard half of r9's sentence. Outside the Liard row's Oct 16-Aug 14 its quota is not "
         "in force and r10's all-year release speaks there — which is Aug 15-Oct 15",
     ("r7:endako_river@7-12", "Nov 15-Jun 30"):

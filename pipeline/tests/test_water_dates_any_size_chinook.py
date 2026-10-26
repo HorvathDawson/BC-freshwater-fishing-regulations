@@ -166,7 +166,7 @@ def test_cheslatta_and_murray_on_the_built_bundle(eid, lake):
     need(None, "bundle", BUNDLE, BUNDLE_HINT)
     db = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
     sid = _sid(db, eid, f"{lake}.r2")
-    zone = "z6:trout_char_quota::trout_char_quota.r8"
+    zone = "z6:daily_quotas::trout_char_quota.r8"
     bound = {f"{e}::{r}" for e, r in db.execute(
         "select r.entry_id, r.rule_id from ruleset r join section_ruleset sr on "
         "sr.set_id = r.set_id where sr.sid = ?", (sid,))}

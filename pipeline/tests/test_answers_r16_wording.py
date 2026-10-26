@@ -37,7 +37,7 @@ def test_2_a_waters_own_limit_says_whose_its_number_and_what_counts():
 
 # 3 ---------------------------------------------------------------------------------------------
 def _rule(**f):
-    return {"entry": "z5:trout_char_quota", "rule": "x.r1", "type": "retention_limit", "family": "retention",
+    return {"entry": "z5:daily_quotas", "rule": "x.r1", "type": "retention_limit", "family": "retention",
             "dimension": "daily", "species_except": [], **f}
 
 
@@ -142,7 +142,7 @@ def test_q2_an_identical_statement_of_a_farther_row_is_shown_once():
            "entry_name": "Williston Lake — Zone B", "type": "retention_limit", "family": "retention",
            "dimension": "daily", "species": ["GR"], "species_except": [], "take": 0, "may_target": 1,
            "extents": [{"op": "whole"}], "verbatim": "Arctic grayling catch and release"}
-    zone = {**row, "entry": "z7b:arctic_grayling", "rule": "arctic_grayling.r5", "entry_name": "Zone B",
+    zone = {**row, "entry": "z7b:daily_quotas", "rule": "arctic_grayling.r5", "entry_name": "Zone B",
             "verbatim": "all from Williston Lake and its tributaries"}
     for x in (row, zone):
         x["_rank"] = read.source_of(x).rank

@@ -116,8 +116,8 @@ def test_mara_lake_takes_both_regions_bases_and_keeps_region_8s_row(db):
     CPR bridge". A lake straddling a region line takes BOTH bases (user ruling 2026-09-25), the
     most strict applying — Region 8's "Bass: 0 quota, CLOSED TO FISHING" among them."""
     got = _bound(db, MARA)
-    assert ("z3:trout_char_quota", "trout_char_quota.r1") in got
-    assert ("z8:trout_char_quota", "trout_char_quota.r1") in got
+    assert ("z3:daily_quotas", "trout_char_quota.r1") in got
+    assert ("z8:daily_quotas", "trout_char_quota.r1") in got
     assert ("r8:mara_lake@8-26", "mara_lake.r2") in got
     assert any(e == SHUSWAP for e, _ in got)
     # no rule of Region 8 takes it out by hand
@@ -128,8 +128,8 @@ def test_mara_lake_takes_both_regions_bases_and_keeps_region_8s_row(db):
 @pytest.mark.needs_bundle
 def test_ahbau_lake_takes_region_5_and_zone_7a_bases(db):
     got = _bound(db, AHBAU)
-    assert ("z5:trout_char_quota", "trout_char_quota.r1") in got
-    assert ("z7a:trout_char_quota", "trout_char_quota.r1") in got
+    assert ("z5:daily_quotas", "trout_char_quota.r1") in got
+    assert ("z7a:daily_quotas", "trout_char_quota.r1") in got
 
 
 @pytest.mark.needs_atlas
@@ -178,19 +178,19 @@ def test_ahbau_and_mara_the_most_strict_applies(db):
     mara = _lake_sid(db, MARA)
     got = {f"{x['entry']}::{x['rule']}" for x in R.effective_rules(mara, (7, 1), "SMB", BUNDLE)
            if x["state"] == "speaks" and x["type"] == "retention_limit"}
-    assert "z8:species_quotas::species_quotas.r1" in got
+    assert "z8:daily_quotas::species_quotas.r1" in got
     assert all(x.get("take") == 0 for x in R.effective_rules(mara, (7, 1), "SMB", BUNDLE)
                if x["state"] == "speaks" and x["type"] == "retention_limit"
                and x["entry"].startswith("z"))
     ahbau = _lake_sid(db, AHBAU)
     rb = {f"{x['entry']}::{x['rule']}" for x in R.effective_rules(ahbau, (7, 1), "RB", BUNDLE)
           if x["state"] == "speaks"}
-    assert "z5:trout_char_quota::trout_char_quota.r1" in rb
-    assert "z7a:trout_char_quota::trout_char_quota.r1" not in rb
+    assert "z5:daily_quotas::trout_char_quota.r1" in rb
+    assert "z7a:daily_quotas::trout_char_quota.r1" not in rb
     # positive control: Zone 7A's copy IS bound on the lake — it is dropped, not absent
     assert db.execute(
         "select 1 from section_ruleset sr join ruleset r on r.set_id = sr.set_id where sr.sid = ? "
-        "and r.entry_id = 'z7a:trout_char_quota' and r.rule_id = 'trout_char_quota.r1'",
+        "and r.entry_id = 'z7a:daily_quotas' and r.rule_id = 'trout_char_quota.r1'",
         (ahbau,)).fetchone()
 
 

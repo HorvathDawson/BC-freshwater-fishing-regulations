@@ -69,8 +69,8 @@ FIXTURE = Path(__file__).parent / "fixtures" / "answers28_region2.json"
 #: the reader's rule table for the fixture is seeded under this path (never a file)
 PATH = "fixture:answers28_region2"
 LIFT = "r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4::chilliwack_vedder_rivers.r9"
-SHARE = "z2:trout_char_quota::trout_char_quota.r4"
-TOTAL = "z2:trout_char_quota::trout_char_quota.r1"
+SHARE = "z2:daily_quotas::trout_char_quota.r4"
+TOTAL = "z2:daily_quotas::trout_char_quota.r1"
 FISH = ("RB", "CT", "EB", "GB", "DV", "LT", "ST")
 ORIGINS = ("none", "hatchery", "wild")
 
@@ -166,7 +166,7 @@ _R12 = {
     7: ("r2:slot_lake@2-3", "Slot Lake", [
         ("slot_lake.r1", {"label": "Rainbow trout — 2 per day", "species": ["RB"], "take": 2,
                           "verbatim": "Rainbow trout daily quota = 2",
-                          "exempts": [{"entry_id": "z2:trout_char_quota", "rule_id": r, "species": ["RB"],
+                          "exempts": [{"entry_id": "z2:daily_quotas", "rule_id": r, "species": ["RB"],
                                        "note": "the lake's own rainbow sizes replace the over-50 cm caps"}
                                       for r in ("trout_char_quota.r2", "trout_char_quota.r2b")]}),
         ("slot_lake.r2", {"label": "Rainbow trout (no more than 1, none between 60 cm and 90 cm)", "species": ["RB"],
@@ -309,7 +309,7 @@ def _second_lift(r9: dict) -> dict:
              take=3, lengths=None, when=None, verbatim="hatchery cutthroat trout: daily quota = 3",
              label="Cutthroat trout — 3 per day, hatchery only",
              parts=json.dumps({"what": "Cutthroat trout — 3 per day", "conditions": "hatchery only"}),
-             exempts=[{"entry_id": "z2:trout_char_quota", "rule_id": "trout_char_quota.r4",
+             exempts=[{"entry_id": "z2:daily_quotas", "rule_id": "trout_char_quota.r4",
                        "species": ["CT"], "note": "hatchery cutthroat trout quota = 3 replaces '2 from streams'"}])
     return {k: v for k, v in x.items() if v is not None or k in r9 and r9[k] is None}
 

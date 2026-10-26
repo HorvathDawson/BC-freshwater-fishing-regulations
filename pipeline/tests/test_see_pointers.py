@@ -95,7 +95,7 @@ def test_every_pointer_lands(corpus):
                 assert t in corpus, (eid, t)
     # + South Thompson River, Young Creek (review, 2026-09-25); + Region 4's Kootenay Lake annual
     # quota line, now a pointer to the Main Body row that states it (ruling G, 2026-09-26)
-    assert n == 76      # + Kitimat -> zp:steelhead (2026-09-29); + Nahatlatch Lake -> z3:trout_char_quota (Q37, 2026-10-07); + Endako 7A -> its Region 6 twin (T89)
+    assert n == 76      # + Kitimat -> zp:steelhead (2026-09-29); + Nahatlatch Lake -> z3:daily_quotas (Q37, 2026-10-07); + Endako 7A -> its Region 6 twin (T89)
 
 
 def test_no_pointer_row_binds_a_rule(corpus):

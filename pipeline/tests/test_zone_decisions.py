@@ -55,12 +55,12 @@ def test_a_rule_that_only_lifts_never_competes(corpus):
     province's and the region's "release all wild steelhead" on the five mainstems."""
     lift = _rule(corpus, "z6:steelhead_stream_closure", "steelhead_stream_closure.r2")
     assert lift.lift_only and lift.dimension == "lift"
-    for eid, rid in (("zp:steelhead", "steelhead.r2"), ("z6:trout_char_quota", "trout_char_quota.r9")):
+    for eid, rid in (("zp:steelhead", "steelhead.r2"), ("z6:daily_quotas", "trout_char_quota.r9")):
         other = _rule(corpus, eid, rid)
         assert (lift.type, lift.dimension) != (other.type, other.dimension)
     # a lift with a number of its own is not lift-only: it states a quota AND lifts
     both = _r(type="retention_limit", species=["BASS"], unlimited=True,
-              exempts=[{"target": "species_quotas.r1", "entry_id": "z4:species_quotas"}],
+              exempts=[{"target": "species_quotas.r1", "entry_id": "z4:daily_quotas"}],
               extents=[{"op": "whole"}])
     assert not both.lift_only and both.dimension == "daily"
 
@@ -79,24 +79,24 @@ def test_a_rules_conditions_are_in_its_key(corpus):
     """zp "release all wild steelhead" (daily, origin wild) must not share a key with Region 6's
     "Trout/char: 5" — or the region's number silences the release."""
     wild = _rule(corpus, "zp:steelhead", "steelhead.r2")
-    region = _rule(corpus, "z6:trout_char_quota", "trout_char_quota.r1")
+    region = _rule(corpus, "z6:daily_quotas", "trout_char_quota.r1")
     # the wild release binds lakes and streams (user ruling 2026-10-01): no water kind in its key;
     # the record duty stays streams-only, and the water kind is a condition of its own
     assert wild.dimension == "daily@origin=wild" and region.dimension == "daily"
     assert _rule(corpus, "zp:steelhead", "steelhead.r4").dimension == \
         "daily@origin=hatchery&water=stream&record"
-    streams = _rule(corpus, "z5:trout_char_quota", "trout_char_quota.r3")      # "2 from streams"
+    streams = _rule(corpus, "z5:daily_quotas", "trout_char_quota.r3")      # "2 from streams"
     assert streams.dimension == "daily@water=stream"
     setline = _rule(corpus, "zp:set_lining", "set_lining.r3")
     assert setline.dimension == "daily@while=set_lining"
-    size = _rule(corpus, "z2:trout_char_quota", "trout_char_quota.r5b")      # "none under 60 cm"
+    size = _rule(corpus, "z2:daily_quotas", "trout_char_quota.r5b")      # "none under 60 cm"
     assert size.dimension == "daily/size"
 
 
 def test_a_water_quota_still_replaces_the_zone_quota_for_the_same_thing(corpus):
     """The intended displacement: a water's plain quota shares the zone's plain key."""
     water = _rule(corpus, "r2:deer_lake_burnaby@2-8", "deer_lake_burnaby.r1")   # Trout/char 2
-    zone = _rule(corpus, "z2:trout_char_quota", "trout_char_quota.r1")         # Trout/char 4
+    zone = _rule(corpus, "z2:daily_quotas", "trout_char_quota.r1")         # Trout/char 4
     assert (water.type, water.dimension) == (zone.type, zone.dimension) == ("retention_limit",
                                                                             "daily")
 
@@ -108,7 +108,7 @@ def test_the_zone_exception_a_quota_no_longer_displaces_is_an_explicit_lift(corp
                       "peace_river.r2"),
                      ("r7:peace_river_from_hwy_29_bridge_to_the_site_c_dam@7-31", "peace_river.r1")):
         assert [(x["entry_id"], x["rule_id"]) for x in _lifts(corpus, eid, rid)] == [
-            ("z7b:species_quotas", "species_quotas.r5")]
+            ("z7b:daily_quotas", "species_quotas.r5")]
 
 
 # ============================================================================ decision 3
@@ -214,7 +214,7 @@ def test_region_4_reopened_species_lift_the_closure_and_the_notice(corpus):
                 continue
             n += 1
             got = {(x["entry_id"], x["rule_id"]) for x in _lifts(corpus, ce.entry_id, r.rule_id)}
-            want = {("z4:species_quotas", closed[s]) for s in sp} | {
+            want = {("z4:daily_quotas", closed[s]) for s in sp} | {
                 ("z4:invasive_species_notice", "invasive_species_notice.r1")}
             assert got == want, (ce.entry_id, r.rule_id)
     assert n == 52
@@ -222,7 +222,7 @@ def test_region_4_reopened_species_lift_the_closure_and_the_notice(corpus):
 
 # ============================================================================ decision 7
 def test_zone_b_bull_trout_are_catch_and_release_and_the_liard_row_speaks(corpus):
-    z = {r.rule_id: r for r in corpus["z7b:trout_char_quota"].rules}
+    z = {r.rule_id: r for r in corpus["z7b:daily_quotas"].rules}
     bt = z["trout_char_quota.r10"]
     assert bt.species == ["DV"] and bt.take == 0 and bt.may_target is True
     assert bt.extents == [{"op": "within", "area_id": "area:region:7b"}]
@@ -235,8 +235,8 @@ def test_zone_b_bull_trout_are_catch_and_release_and_the_liard_row_speaks(corpus
 
 # ============================================================================ decision 8
 def test_steelhead_over_50_are_not_in_the_trout_one_over_50(corpus):
-    for eid, rid in (("z1:trout_quota", "trout_quota.r2"),
-                     ("z2:trout_char_quota", "trout_char_quota.r2")):
+    for eid, rid in (("z1:daily_quotas", "trout_quota.r2"),
+                     ("z2:daily_quotas", "trout_char_quota.r2")):
         r = _rule(corpus, eid, rid)
         # Region 1's box gives char a RELATED line of their own ("All char" release beside the trout
         # quotas), so its trout lines exclude CHAR (RULINGS C2, 2026-10-07 — (b) of AGENTS 46)
@@ -341,7 +341,7 @@ def test_cutthroat_is_one_fish(corpus):
     """The book lists 'Cutthroat Trout' (p.80); the official table's westslope and coastal
     sub-species are not on it, so CT is a fish, not a group (user ruling 2026-09-26)."""
     assert C.expand_species(["CT"]) == ["CT"]
-    r4 = _rule(corpus, "z4:trout_char_quota", "trout_char_quota.r2")
+    r4 = _rule(corpus, "z4:daily_quotas", "trout_char_quota.r2")
     assert "CT" in C.expand_species(list(r4.species))
     # one fish in the book's words: a cutthroat quota is not "all species combined"
     assert label(_rule(corpus, "r1:cowichan_lake_including_bear_lake@1-4", "cowichan_lake.r1")) \
@@ -364,11 +364,11 @@ def test_set_lining_is_banned_outside_the_lakes_that_lift_it(corpus):
 
 
 def test_the_under_30_size_rules_have_no_rule_level_take(corpus):
-    for eid, rid in (("z6:trout_char_quota", "trout_char_quota.r6"),
-                     ("z7a:trout_char_quota", "trout_char_quota.r9"),
-                     ("z7b:trout_char_quota", "trout_char_quota.r7"),
-                     ("z7b:arctic_grayling", "arctic_grayling.r2"),
-                     ("z1:hg_quota", "hg_quota.r5"), ("z2:trout_char_quota", "trout_char_quota.r8")):
+    for eid, rid in (("z6:daily_quotas", "trout_char_quota.r6"),
+                     ("z7a:daily_quotas", "trout_char_quota.r9"),
+                     ("z7b:daily_quotas", "trout_char_quota.r7"),
+                     ("z7b:daily_quotas", "arctic_grayling.r2"),
+                     ("z1:hg_quota", "hg_quota.r5"), ("z2:daily_quotas", "trout_char_quota.r8")):
         r = _rule(corpus, eid, rid)
         assert r.take is None and r.lengths and r.dimension.startswith("daily/size"), (eid, rid)
 
@@ -391,7 +391,7 @@ def test_gear_and_bait_hold_in_streams_not_from_them(corpus):
                                                     "terminal_tackle.r4"))
     assert "within 1 m of the hook" in label(_rule(corpus, "zp:terminal_tackle",
                                                     "terminal_tackle.r5"))
-    assert "excluding" not in label(_rule(corpus, "z2:species_quotas", "species_quotas.r1"))
+    assert "excluding" not in label(_rule(corpus, "z2:daily_quotas", "species_quotas.r1"))
 
 
 # ============================================================================ placement (bundle)
@@ -402,7 +402,7 @@ BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or "data/generated/bundle/bundl
 def db(request):
     need(request, "bundle", BUNDLE, BUNDLE_HINT)
     con = sqlite3.connect(str(BUNDLE))
-    have = con.execute("select count(*) from rule where entry_id='z7b:trout_char_quota' "
+    have = con.execute("select count(*) from rule where entry_id='z7b:daily_quotas' "
                        "and rule_id='trout_char_quota.r10'").fetchone()[0]
     if not have:
         predates(f"{BUNDLE} predates the zone decisions — point UI_EXPORT_BUNDLE at a side build")
@@ -426,7 +426,7 @@ def test_set_lining_ban_binds_the_province(db):
 @pytest.mark.needs_bundle
 @pytest.mark.slow
 def test_zone_b_bull_trout_placement(db):
-    zone = _sections(db, "z7b:trout_char_quota", "trout_char_quota.r10")
+    zone = _sections(db, "z7b:daily_quotas", "trout_char_quota.r10")
     liard = _sections(db, "r7:liard_river_watershed_see_map_on_page_63@7-53",
                       "liard_river_watershed.r2")
     assert len(zone) > 300_000 and liard < zone

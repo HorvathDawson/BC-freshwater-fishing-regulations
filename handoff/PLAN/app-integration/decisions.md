@@ -1331,8 +1331,8 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
   fishing boundary signs approximately 5 km upstream, Mar 1-June 30") binds `downstream_of`
   `halfway_river__fishing_boundary_signs_5_km_above_peace_river` (the Halfway's mouth + 5000 m up the Halfway) instead
   of an undrawn part on the whole river.
-- T206 (owner 2026-10-26): the page-v36 oracle is amended, not re-cut — each retired r3 key and each state it moves is
-  a named, reasoned exclusion or re-pin (`oracles.ts ORACLE_RETIRED`, exclusions.ts T206).
+- T206 (owner 2026-10-26): the page-v36 oracle is amended, not re-cut — each retired r3 key and each state it moves
+  is a named, reasoned exclusion or re-pin, never a broad oracle refresh.
 - Splits to verify (owner 2026-10-26): every split in splits.json was placed by hand, so a `_note` (an "[auto-proposal L] … Verify:" one included) is history, never "to verify". `tiers.split_needs_verify` = `"verify": true` or a stale mark; corpus count 0 (was 150), split_to_verify pre-check 164 -> 0; tests re-pinned (Z 132 -> 122 and 1525 -> 1515 entries are the zone-quota merge 6335f73d, unresolved 29 -> 25 measured). Supersedes Q94's S0 rule.
 
 ## 2026-10-26 — unused curated cuts (owner)

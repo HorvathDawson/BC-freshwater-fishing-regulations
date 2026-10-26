@@ -48,7 +48,7 @@ def test_a1_the_share_bucket_says_the_over_50_cap_once_steelhead_aside():
     assert share["notes"] == []
     assert share["sizes"] == [{"says": "Cutthroat trout, brown trout, Dolly Varden/bull trout, lake trout or "
                                        "brook trout: only 1 over 50 cm between them",
-                               "n": 1, "over_cm": 50, "by": "z2:trout_char_quota::trout_char_quota.r2",
+                               "n": 1, "over_cm": 50, "by": "z2:daily_quotas::trout_char_quota.r2",
                                "species": ["CT", "GB", "DV", "LT", "EB"], "not_counting": ["ST"], "then": []}]
     assert g["buckets"][0]["sizes"] == []                       # this river's rule: rainbows ≤ 50 cm
     assert not any(w in t for t in _row_notes(g) for w in SIZE_WORDS), _row_notes(g)

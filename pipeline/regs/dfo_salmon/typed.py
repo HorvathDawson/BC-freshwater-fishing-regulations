@@ -25,7 +25,7 @@ Getting that backwards is the 605-rule defect `pipeline/regs/parsing/catalogue.p
 prevent, so it is asserted here rather than inferred from `take`.
 
 A size sub-limit is a SEPARATE rule pointing at its parent with `within`, which is the convention
-the synopsis corpus already uses (`z2:trout_char_quota.r2` is "1 over 50 cm" within "Trout/char: 4").
+the synopsis corpus already uses (`z2:daily_quotas.r2` is "1 over 50 cm" within "Trout/char: 4").
 `"4 per day, only 2 over 50 cm"` is therefore two rules, not one rule with two numbers — a shape
 that cannot say "2 over 50" and lose the 4.
 

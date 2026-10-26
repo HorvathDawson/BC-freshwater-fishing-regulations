@@ -61,20 +61,20 @@ PROVINCE_RULES = ("steelhead.r1", "steelhead.r1b", "steelhead.r2", "steelhead.r2
 #: province) — the steelhead rules an own-row steelhead lake carries.
 WILD_RELEASES = {
     ("zp:steelhead", "steelhead.r2"),                 # "All wild steelhead must be released."
-    ("z1:trout_quota", "trout_quota.r5"),             # p.13 "All wild steelhead"
+    ("z1:daily_quotas", "trout_quota.r5"),             # p.13 "All wild steelhead"
     ("z1:hg_quota", "hg_quota.r6"),                   # p.13 Haida Gwaii, the same line
-    ("z2:trout_char_quota", "trout_char_quota.r7"),   # p.21 "All wild steelhead"
-    ("z3:trout_char_quota", "trout_char_quota.r5"),   # p.28 "ALL STEELHEAD"
-    ("z5:trout_char_quota", "trout_char_quota.r6"),   # p.42 "ALL STEELHEAD"
-    ("z6:trout_char_quota", "trout_char_quota.r9"),   # p.49 "all wild steelhead"
+    ("z2:daily_quotas", "trout_char_quota.r7"),   # p.21 "All wild steelhead"
+    ("z3:daily_quotas", "trout_char_quota.r5"),   # p.28 "ALL STEELHEAD"
+    ("z5:daily_quotas", "trout_char_quota.r6"),   # p.42 "ALL STEELHEAD"
+    ("z6:daily_quotas", "trout_char_quota.r9"),   # p.49 "all wild steelhead"
     # the TWINS: the same lines, bound to the book-known waters their base does not bind
     ("zp:steelhead", "steelhead.r2b"),
-    ("z1:trout_quota", "trout_quota.r5b"),
+    ("z1:daily_quotas", "trout_quota.r5b"),
     ("z1:hg_quota", "hg_quota.r6b"),
-    ("z2:trout_char_quota", "trout_char_quota.r7b"),
-    ("z3:trout_char_quota", "trout_char_quota.r5b"),
-    ("z5:trout_char_quota", "trout_char_quota.r6b"),
-    ("z6:trout_char_quota", "trout_char_quota.r9b"),
+    ("z2:daily_quotas", "trout_char_quota.r7b"),
+    ("z3:daily_quotas", "trout_char_quota.r5b"),
+    ("z5:daily_quotas", "trout_char_quota.r6b"),
+    ("z6:daily_quotas", "trout_char_quota.r9b"),
 }
 #: the twins, by the rule they repeat — the wild releases (user ruling 2026-10-01), and the rest of
 #: the provincial set: the annual hatchery 10 and its record duty (user ask 2026-10-02). A twin of a
@@ -82,12 +82,12 @@ WILD_RELEASES = {
 TWINS = {("zp:steelhead", "steelhead.r2b"): "steelhead.r2",
          ("zp:steelhead", "steelhead.r1b"): "steelhead.r1",
          ("zp:steelhead", "steelhead.r4b"): "steelhead.r4",
-         ("z1:trout_quota", "trout_quota.r5b"): "trout_quota.r5",
+         ("z1:daily_quotas", "trout_quota.r5b"): "trout_quota.r5",
          ("z1:hg_quota", "hg_quota.r6b"): "hg_quota.r6",
-         ("z2:trout_char_quota", "trout_char_quota.r7b"): "trout_char_quota.r7",
-         ("z3:trout_char_quota", "trout_char_quota.r5b"): "trout_char_quota.r5",
-         ("z5:trout_char_quota", "trout_char_quota.r6b"): "trout_char_quota.r6",
-         ("z6:trout_char_quota", "trout_char_quota.r9b"): "trout_char_quota.r9"}
+         ("z2:daily_quotas", "trout_char_quota.r7b"): "trout_char_quota.r7",
+         ("z3:daily_quotas", "trout_char_quota.r5b"): "trout_char_quota.r5",
+         ("z5:daily_quotas", "trout_char_quota.r6b"): "trout_char_quota.r6",
+         ("z6:daily_quotas", "trout_char_quota.r9b"): "trout_char_quota.r9"}
 #: the stamp's twin, bound to the known steelhead waters the stamp does not reach
 STAMP_TWIN = "steelhead_targeting_known"
 #: the provincial twins' one extent: the known steelhead waters minus their base
@@ -247,7 +247,7 @@ def test_the_qualifying_regions_are_the_ones_whose_tables_name_steelhead(raw):
 def test_every_provincial_and_zone_steelhead_rule_binds_streams_only(raw):
     assert steelhead_scope_problems(raw) == []
     # the zone rules keep their competition key (no `water`): "ALL STEELHEAD" is still `daily`
-    z3 = C.CatalogueEntry.model_validate(raw["z3:trout_char_quota"])
+    z3 = C.CatalogueEntry.model_validate(raw["z3:daily_quotas"])
     assert next(r for r in z3.rules if r.rule_id == "trout_char_quota.r5").dimension == "daily"
     e = raw["zp:steelhead"]
     assert [r["rule_id"] for r in e["rules"]] == list(PROVINCE_RULES)
@@ -279,7 +279,7 @@ _STAVE = {"op": "whole", "item_id": "wbk:329291805", "feature_types": ["lake"]}
         extents=[{"op": "within", "area_kind": "region"}]),     # the release in Regions 4, 7, 8
     lambda raw: _r(raw, "zp:steelhead", "steelhead.r2").update(water="stream"),   # its key moves
     lambda raw: _r(raw, "zp:steelhead", "steelhead.r2")["extents"][0].pop("feature_types"),
-    lambda raw: _r(raw, "z6:trout_char_quota", "trout_char_quota.r9")["extents"][0].pop(
+    lambda raw: _r(raw, "z6:daily_quotas", "trout_char_quota.r9")["extents"][0].pop(
         "feature_types"),                                       # a zone release onto lakes
     lambda raw: _r(raw, "zp:steelhead", "steelhead.r2b")["extents"].append(_STAVE),  # Stave too
     lambda raw: _r(raw, "zp:steelhead", "steelhead.r2b")["extents"].pop(),     # no place at all
@@ -301,17 +301,17 @@ _STAVE = {"op": "whole", "item_id": "wbk:329291805", "feature_types": ["lake"]}
     lambda raw: _r(raw, "zp:steelhead", "steelhead.r4b").update(water="stream"),  # "in streams"
     lambda raw: _r(raw, "zp:steelhead", "steelhead.r1b")["extents"].append(_STAVE),  # a 3rd lake
     lambda raw: raw["zp:steelhead"]["licensing"][1]["extents"].append(_STAVE),  # stamp on Stave
-    lambda raw: _r(raw, "z2:trout_char_quota", "trout_char_quota.r7b").update(take=1),
-    lambda raw: _r(raw, "z2:trout_char_quota", "trout_char_quota.r7b").update(
+    lambda raw: _r(raw, "z2:daily_quotas", "trout_char_quota.r7b").update(take=1),
+    lambda raw: _r(raw, "z2:daily_quotas", "trout_char_quota.r7b").update(
         extents=_lakes_of(raw, ("2",))),                        # back to hand-picked lakes
-    lambda raw: raw["z5:trout_char_quota"].update(rules=[
-        r for r in raw["z5:trout_char_quota"]["rules"]
+    lambda raw: raw["z5:daily_quotas"].update(rules=[
+        r for r in raw["z5:daily_quotas"]["rules"]
         if r["rule_id"] != "trout_char_quota.r6b"]),            # Region 5 without its twin
-    lambda raw: _r(raw, "z1:trout_quota", "trout_quota.r5b")["extents"][0].pop(
+    lambda raw: _r(raw, "z1:daily_quotas", "trout_quota.r5b")["extents"][0].pop(
         "outside_area"),                                        # Region 1's release onto Haida Gwaii
-    lambda raw: _r(raw, "z3:trout_char_quota", "trout_char_quota.r5b")["extents"][0].update(
+    lambda raw: _r(raw, "z3:daily_quotas", "trout_char_quota.r5b")["extents"][0].update(
         area_id="area:region:5"),                               # a zone twin outside its zone
-    lambda raw: _r(raw, "z2:trout_char_quota", "trout_char_quota.r7")["extents"].append(
+    lambda raw: _r(raw, "z2:daily_quotas", "trout_char_quota.r7")["extents"].append(
         {"op": "whole", "item_id": KHARTOUM, "feature_types": ["lake"]}),  # the release, not a twin
     lambda raw: _r(raw, "z2:hatchery_steelhead_stop", "hatchery_steelhead_stop.r1")["extents"].append(
         {"op": "whole", "item_id": KHARTOUM, "feature_types": ["lake"]}),    # stop-after-quota on a lake
@@ -427,8 +427,8 @@ def test_a_lake_carries_a_steelhead_rule_only_when_a_steelhead_row_binds_it(db):
     # every wild release is in the bundle but Region 1's two twins: no lake of Region 1 is bound
     # by a steelhead row, so they are unresolved (`no_sections`), not shipped as rules on nothing
     shipped = {x for (x,) in db.execute(STEELHEAD_RULES)} & WILD
-    assert WILD - shipped <= {"z1:trout_quota::trout_quota.r5b", "z1:hg_quota::hg_quota.r6b",
-                              "z5:trout_char_quota::trout_char_quota.r6b"}   # Tenas was Region 5's only
+    assert WILD - shipped <= {"z1:daily_quotas::trout_quota.r5b", "z1:hg_quota::hg_quota.r6b",
+                              "z5:daily_quotas::trout_char_quota.r6b"}   # Tenas was Region 5's only
     book = _book_lakes(db)
     assert book == STEELHEAD_ROW_LAKES, book ^ STEELHEAD_ROW_LAKES
     assert _known_lakes(db) == book                 # the list names no lake (only sloughs)
@@ -446,7 +446,7 @@ def test_a_lake_carries_a_steelhead_rule_only_when_a_steelhead_row_binds_it(db):
 
 #: the lake copies of the provincial set, and Region 2's release
 LAKE_SET = {"zp:steelhead::steelhead.r1b", "zp:steelhead::steelhead.r2b",
-            "zp:steelhead::steelhead.r4b", "z2:trout_char_quota::trout_char_quota.r7b"}
+            "zp:steelhead::steelhead.r4b", "z2:daily_quotas::trout_char_quota.r7b"}
 
 
 @pytest.mark.needs_bundle
@@ -663,7 +663,7 @@ def test_a_listed_river_outside_the_steelhead_regions_is_known_with_no_steelhead
         if item_id == OKANAGAN:
             assert "r8:okanagan_river@8-1::okanagan_river.r5" in rb, rb   # every rainbow released
         else:
-            assert "z8:trout_char_quota::trout_char_quota.r2" in rb, rb   # "1 over 50 cm"
+            assert "z8:daily_quotas::trout_char_quota.r2" in rb, rb   # "1 over 50 cm"
 
 
 COWICHAN = "gnis:12227"
@@ -704,7 +704,7 @@ def test_the_list_changes_answers_only_through_steelhead_water(db, tmp_path):
     got = answers(plain, secs)
     assert got != base
     rb = {r for (sid, fish, day), xs in got.items() if fish == "RB" and day == (1, 15)
-          for e, r, st in xs if st == "speaks" and e == "z1:trout_quota"}
+          for e, r, st in xs if st == "speaks" and e == "z1:daily_quotas"}
     assert "trout_quota.r2" in rb, rb
     # what a build WITHOUT the list writes for these sections: no `steelhead_known` row, their
     # rule sets "possible" with steelhead rules applying (an R1 stream carries the provincial
@@ -787,7 +787,7 @@ def test_the_walk_is_gone_past_the_steelhead_regions(db, item_id, name):
             # RULES round's FIX batch (the whole creek is the lake's inlet): closed, not Region 8's
             assert "r3:pennask_creek@3-12::pennask_creek.r1" in rb, (name, rb)
         else:
-            assert "z8:trout_char_quota::trout_char_quota.r2" in rb, (name, rb)
+            assert "z8:daily_quotas::trout_char_quota.r2" in rb, (name, rb)
 
 
 def _presence_fixture(SH, NS):
@@ -912,7 +912,7 @@ def test_the_export_knows_the_wild_releases(doc):
 
 @pytest.mark.needs_bundle
 @pytest.mark.parametrize("rid", ["zp:steelhead::steelhead.r2",                 # the wild release
-                                 "z1:trout_quota::trout_quota.r5",             # a zone release
+                                 "z1:daily_quotas::trout_quota.r5",             # a zone release
                                  "zp:steelhead::steelhead.r1", "zp:steelhead::steelhead.r4",
                                  "z2:hatchery_steelhead_stop::hatchery_steelhead_stop.r1",
                                  "z6:hatchery_steelhead_stop::hatchery_steelhead_stop.r1"])
@@ -935,7 +935,7 @@ def test_the_export_check_allows_only_the_lakes_own_row_and_the_release(doc):
     ids = [i for via, v in doc["rulesets"][part["ruleset"]].items() if via != "sections"
            for i in v]
     assert {"r2:lois_lake@2-12::lois_lake.r4", "zp:steelhead::steelhead.r2b",
-            "z2:trout_char_quota::trout_char_quota.r7b"} <= set(ids), ids
+            "z2:daily_quotas::trout_char_quota.r7b"} <= set(ids), ids
     bad = _bad(doc)
     bad["rulesets"][part["ruleset"]].setdefault("reach", []).append(
         "z2:hatchery_steelhead_stop::hatchery_steelhead_stop.r1")
@@ -1116,9 +1116,9 @@ def test_the_flag_test_catches_a_flagged_lake(raw):
 # ------------------------------------------------------------ a lake answers to no steelhead rule
 @pytest.mark.needs_bundle
 @pytest.mark.parametrize("item_id,name,over50", [
-    ("wbk:329385412", "Morice Lake", "z6:trout_char_quota::trout_char_quota.r2"),    # Region 6
-    ("wbk:329291805", "Stave Lake", "z2:trout_char_quota::trout_char_quota.r2"),     # Region 2
-    ("wbk:329400588", "Murtle Lake", "z3:trout_char_quota::trout_char_quota.r3"),    # Region 3
+    ("wbk:329385412", "Morice Lake", "z6:daily_quotas::trout_char_quota.r2"),    # Region 6
+    ("wbk:329291805", "Stave Lake", "z2:daily_quotas::trout_char_quota.r2"),     # Region 2
+    ("wbk:329400588", "Murtle Lake", "z3:daily_quotas::trout_char_quota.r3"),    # Region 3
 ])
 def test_a_lake_answers_to_no_steelhead_rule(db, item_id, name, over50):
     """A lake whose own row does not name steelhead carries no steelhead rule (295c4ac3's
@@ -1334,7 +1334,7 @@ def test_tenas_lake_is_not_steelhead_water_by_another_rows_closure(db, raw):
         assert not {f"zp:steelhead::{r}" for r in ("steelhead.r1b", "steelhead.r2b",
                                                    "steelhead.r4b")} & on
         assert not on & PROVINCE
-        assert "z5:trout_char_quota::trout_char_quota.r6b" not in on
+        assert "z5:daily_quotas::trout_char_quota.r6b" not in on
         assert f"zp:steelhead#{STAMP_TWIN}" not in _requirements_on(db, sid)
         assert R.steelhead_presence(db, sid) != "known"
         assert not db.execute("SELECT 1 FROM steelhead_water WHERE sid = ?", (sid,)).fetchone()

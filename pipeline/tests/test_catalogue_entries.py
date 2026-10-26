@@ -188,7 +188,7 @@ def test_a_rule_quotes_its_OWN_region_not_another():
     Matching a verbatim against the whole reference corpus lets one region's sentence sit in
     another region's rule and still pass. It happened: `z7a:tagging_program` stored Region 3's
     notice, sending Omineca anglers to the Kamloops office on a Kamloops number, and
-    `z7a:trout_char_quota`'s passage carried Region 8's entire quota list.
+    `z7a:daily_quotas`'s passage carried Region 8's entire quota list.
 
     A rule must be traceable to the chapter it claims to come from. Provincial rules may quote any
     provincial source; regional rules may quote their own chapter or a provincial one, because a

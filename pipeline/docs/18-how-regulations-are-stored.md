@@ -32,7 +32,7 @@ Bennett Lake's daily quota is two rules — the quota, and the size clause that 
 
 ```
 bennett_lake.r1   type: retention_limit   species: ["LT"]   take: 2
-                  exempts: [{target: trout_char_quota.r2, entry_id: z6:trout_char_quota}]
+                  exempts: [{target: trout_char_quota.r2, entry_id: z6:daily_quotas}]
                            (Region 6's "1 over 50 cm": the lake's own sizes replace it)
                   → "Lake trout — 2 per day — lifts trout char quota for lake trout"
 bennett_lake.r2   type: retention_limit   species: ["LT"]   take: 1   within: bennett_lake.r1
@@ -179,7 +179,7 @@ row's rule is the whole water, `[{op: whole}]`, or a stretch of it cut at named 
 **5. If you cannot bind it, say so.** Give a `review_reason` that says why. An honest flag beats a
 wrong guess; 210 of the 3,317 rules carry one today.
 
-The result — `z3:trout_char_quota`, labels exactly as `catalogue.label()` generates them:
+The result — `z3:daily_quotas`, labels exactly as `catalogue.label()` generates them:
 
 ```
   Trout and char — 5 per day, all species combined

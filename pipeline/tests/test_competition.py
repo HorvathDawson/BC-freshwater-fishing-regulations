@@ -28,7 +28,7 @@ BUNDLE = str(Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE))
 DAILY = ("retention_limit", "daily")
 
 KAKWA, CECILIA = "r7:kakwa_lake@7-19", "r7:cecilia_lake@7-19"
-ZB = "z7b:trout_char_quota"
+ZB = "z7b:daily_quotas"
 LIARD = "r7:liard_river_watershed_see_map_on_page_63@7-53"
 WILLISTON = "r7:williston_lake_in_zone_b@7-31+7-36"
 TCHES = "r6:tchesinkut_lake@6-4"
@@ -270,7 +270,7 @@ def test_a_within_clause_is_named_at_its_parents_level(db):
     sid = _sid(db, "r4:quinn_creek@4-22", "quinn_creek.r1")
     got = _speaks(sid, (7, 1), "DV")
     assert "r4:quinn_creek@4-22::quinn_creek.r1" in got
-    assert not {k for k in got if k.startswith("z4:trout_char_quota::")}
+    assert not {k for k in got if k.startswith("z4:daily_quotas::")}
 
 
 @pytest.mark.needs_bundle
@@ -291,7 +291,7 @@ def test_tchesinkut_february_and_july_are_the_regions(db):
     its "3 Dolly Varden/bull trout and/or lake trout" are one statement and do not displace one
     another; in March the lake's release speaks."""
     sid = _sid(db, TCHES, "tchesinkut_lake.r1")
-    region = {f"z6:trout_char_quota::trout_char_quota.r{k}" for k in (1, 2, 3)}
+    region = {f"z6:daily_quotas::trout_char_quota.r{k}" for k in (1, 2, 3)}
     assert _speaks(sid, (2, 10), "LT") == region
     assert _speaks(sid, (7, 10), "LT") == region
     assert _speaks(sid, (3, 10), "LT") == {f"{TCHES}::tchesinkut_lake.r1"}
@@ -307,7 +307,7 @@ def test_koocanusa_bull_trout_are_released_nov_to_mar_only(db):
     rel = {f"{KOOC}::koocanusa_reservoir.r1"}
     assert _speaks(sid, (11, 1), "DV") == rel and _speaks(sid, (3, 31), "DV") == rel
     assert _speaks(sid, (12, 1), "DV") == rel
-    zone = {"z4:trout_char_quota::trout_char_quota.r1", "z4:trout_char_quota::trout_char_quota.r4"}
+    zone = {"z4:daily_quotas::trout_char_quota.r1", "z4:daily_quotas::trout_char_quota.r4"}
     assert _speaks(sid, (4, 1), "DV") == zone and _speaks(sid, (6, 1), "DV") == zone
     size = ("retention_limit", "daily/size")
     assert _speaks(sid, (12, 1), "DV", size) == _speaks(sid, (6, 1), "DV", size) == {
@@ -553,7 +553,7 @@ def test_coquihalla_releases_every_trout_and_steelhead_below_the_tunnels_in_wint
     for fish in ("ST", "RB", "CT", "DV"):
         got = _kept(sid, (12, 1), fish)
         assert f"{eid}::coquihalla_river.r6" in got, fish
-        assert not {x for x in got if x.startswith(("z2:trout_char_quota::", "zp:steelhead::"))
+        assert not {x for x in got if x.startswith(("z2:daily_quotas::", "zp:steelhead::"))
                     and x.split("::")[1] in ("trout_char_quota.r1", "trout_char_quota.r2",
                                              "trout_char_quota.r3", "trout_char_quota.r4",
                                              "trout_char_quota.r5", "trout_char_quota.r5b",
@@ -569,11 +569,11 @@ def test_chilliwack_releases_every_cutthroat_in_may(db):
     sid = _sid(db, eid, "chilliwack_vedder_rivers.r7", direct=True)
     may = _kept(sid, (5, 15), "CT")
     assert f"{eid}::chilliwack_vedder_rivers.r7" in may
-    assert "z2:trout_char_quota::trout_char_quota.r6" in may
+    assert "z2:daily_quotas::trout_char_quota.r6" in may
     for rid in ("trout_char_quota.r1", "trout_char_quota.r2", "trout_char_quota.r4",
                 "trout_char_quota.r8"):
-        assert f"z2:trout_char_quota::{rid}" not in may, rid
-    assert "z2:trout_char_quota::trout_char_quota.r1" in _kept(sid, (8, 1), "CT")
+        assert f"z2:daily_quotas::{rid}" not in may, rid
+    assert "z2:daily_quotas::trout_char_quota.r1" in _kept(sid, (8, 1), "CT")
 
 
 def test_a_looser_zone_rule_naming_the_fish_never_beats_a_waters_release(tmp_path):
@@ -690,11 +690,11 @@ def test_kitimat_dodd_and_morris_quotas_sit_beside_the_regions(db):
     kit = "r6:kitimat_river_angling_regulations_for_the_kitimat_river_are@6-3"
     sid = _sid(db, kit, "kitimat_river.r5")
     got = _kept(sid, (8, 1), "ST")
-    assert {f"{kit}::kitimat_river.r5", "z6:trout_char_quota::trout_char_quota.r1"} <= got
+    assert {f"{kit}::kitimat_river.r5", "z6:daily_quotas::trout_char_quota.r1"} <= got
     for eid, rid in (("r2:dodd_lake@2-12", "dodd_lake.r1"), ("r2:morris_lake@2-19", "morris_lake.r2")):
         sid = _sid(db, eid, rid)
         got = _kept(sid, (8, 1), "RB")
-        assert {f"{eid}::{rid}", "z2:trout_char_quota::trout_char_quota.r1"} <= got, eid
+        assert {f"{eid}::{rid}", "z2:daily_quotas::trout_char_quota.r1"} <= got, eid
 
 
 # G. A WATER ROW NAMING A FISH ITS REGION CLOSES LIFTS THAT CLOSURE FOR THAT FISH.
@@ -708,11 +708,11 @@ def test_a_water_row_naming_the_closed_fish_lifts_the_closure(db):
     for fish in ("LMB", "SMB"):
         got = _kept(sid, (7, 15), fish)
         assert f"{eid}::okanagan_river.r2" in got and \
-            "z8:species_quotas::species_quotas.r1" not in got, fish
+            "z8:daily_quotas::species_quotas.r1" not in got, fish
     (ex,) = db.execute("select exempts from rule where entry_id = ? and rule_id = ?",
                        (eid, "okanagan_river.r2")).fetchone()
     lift = [x for x in json.loads(ex) if x["rule_id"] == "species_quotas.r1"]
-    assert lift and lift[0]["basis"] == "names_the_fish" and lift[0]["entry_id"] == "z8:species_quotas"
+    assert lift and lift[0]["basis"] == "names_the_fish" and lift[0]["entry_id"] == "z8:daily_quotas"
 
 
 @pytest.mark.needs_bundle
@@ -771,7 +771,7 @@ def test_region_8_brook_trout_from_streams_are_counted_apart(db):
     """p.68: "Trout/char: 5, but not more than … 4 from streams … And you may retain: 20 brook trout
     from streams". On a stream a brook trout answers to its 20 only; on a lake (where the 20 does
     not bind) to the trout/char 5."""
-    tc = "z8:trout_char_quota"
+    tc = "z8:daily_quotas"
     sid = _sid(db, tc, "trout_char_quota.r5")
     got = _kept(sid, (8, 1), "EB")
     assert f"{tc}::trout_char_quota.r5" in got
@@ -803,7 +803,7 @@ def test_chilliwack_rainbow_over_50_cm_is_a_steelhead(db):
     released. July-April: the row's "hatchery rainbow trout … 50 cm or less: daily quota = 4" beside
     the region's 4."""
     eid = "r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4"
-    tc = "z2:trout_char_quota"
+    tc = "z2:daily_quotas"
     sid = _sid(db, eid, "chilliwack_vedder_rivers.r6", direct=True)
     assert db.execute("select 1 from steelhead_water where sid = ?", (sid,)).fetchone()
     may = _kept(sid, (5, 15), "RB")
@@ -843,7 +843,7 @@ def test_the_guide_states_the_rulings_of_the_second_round(db):
 #      larger or smaller (never the smaller of the two);
 #   3. only DIFFERENT statements sit beside each other (the Dean's 1 counts toward the 5).
 KOOTENAY = "r4:kootenay_lake_main_body_for_location_see_map_on_page_34@4-19"
-Z4 = "z4:trout_char_quota"
+Z4 = "z4:daily_quotas"
 DEAN = "r5:dean_river@5-9"
 
 
@@ -899,7 +899,7 @@ def test_lois_lakes_aggregate_6_replaces_region_2s_4_for_rainbow_and_steelhead(d
     "2 hatchery steelhead over 50 cm": both are lifted for those fish, and so is the region's "1
     over 50 cm" for rainbow (a larger number overrides the size clause, with a caution — user
     ruling 2026-09-26); a cutthroat still answers to the 4 and its clause."""
-    eid, Z2 = "r2:lois_lake@2-12", "z2:trout_char_quota"
+    eid, Z2 = "r2:lois_lake@2-12", "z2:daily_quotas"
     sid = _sid(db, eid, "lois_lake.r4")
     rb = _kept(sid, (7, 1), "RB")
     assert {f"{eid}::lois_lake.r1", f"{eid}::lois_lake.r4"} <= rb
@@ -923,7 +923,7 @@ def test_a_larger_row_overrides_the_zones_size_clause_with_a_caution(db):
     2026-09-26, reversing R8): the 20 speaks alone. It prints no size at all, so the lift carries
     NO caution (user ruling 2026-09-28: only "(any size)" is hard to read); Kootenay Lake's
     "rainbow trout daily quota = 10 (any size)" does."""
-    eid, Z8 = "r8:jewel_lake@8-14", "z8:trout_char_quota"
+    eid, Z8 = "r8:jewel_lake@8-14", "z8:daily_quotas"
     got = _kept(_sid(db, eid, "jewel_lake.r1"), (7, 1), "EB")
     assert f"{eid}::jewel_lake.r1" in got
     assert not {f"{Z8}::trout_char_quota.r1", f"{Z8}::trout_char_quota.r2"} & got, got
@@ -947,7 +947,7 @@ def test_region_5s_trout_8_is_trout_char_and_replaces_the_5(db):
     replaces Region 5's "Trout/char: 5" for a brook trout too (no 8 trout BESIDE 5 char). The 8
     overrides the region's "1 over 50 cm" (user ruling 2026-09-26, with a caution); its other
     clauses stay ("2 lake trout", "1 Dolly Varden/bull trout")."""
-    eid, Z5 = "r5:bootjack_lake@5-2", "z5:trout_char_quota"
+    eid, Z5 = "r5:bootjack_lake@5-2", "z5:daily_quotas"
     sid = _sid(db, eid, "bootjack_lake.r1")
     for f in ("RB", "EB", "LT"):
         got = _kept(sid, (7, 1), f)
@@ -1083,8 +1083,8 @@ def test_the_same_statement_the_waters_number_wins_larger_or_smaller(tmp_path):
 
 @pytest.mark.needs_bundle
 @pytest.mark.parametrize("eid,rid,zone_rule,fish", [
-    ("r3:tranquille_lake@3-29", "tranquille_lake.r2", "z3:species_quotas::species_quotas.r4", "KO"),
-    ("r6:teslin_lake@6-25", "teslin_lake.r4", "z6:species_quotas::species_quotas.r1", "GR"),
+    ("r3:tranquille_lake@3-29", "tranquille_lake.r2", "z3:daily_quotas::species_quotas.r4", "KO"),
+    ("r6:teslin_lake@6-25", "teslin_lake.r4", "z6:daily_quotas::species_quotas.r1", "GR"),
 ])
 def test_a_larger_same_statement_at_a_real_water_wins(db, eid, rid, zone_rule, fish):
     """Tranquille Lake (p.32) "kokanee daily quota = 10" over Region 3's "Kokanee: 5"; Teslin Lake
@@ -1101,7 +1101,7 @@ def test_the_dean_still_sits_beside_region_5(db):
     `same_statement` always true the Dean's 1 displaces the 5 and this fails."""
     sid = _sid(db, DEAN, "dean_river.r6",
                without=((DEAN, "dean_river.r2"), (DEAN, "dean_river.r4")))
-    both = {f"{DEAN}::dean_river.r6", "z5:trout_char_quota::trout_char_quota.r1"}
+    both = {f"{DEAN}::dean_river.r6", "z5:daily_quotas::trout_char_quota.r1"}
     assert both <= _kept(sid, (7, 1), "RB")
     import pipeline.deliver.bundle.rules as rules_mod
     real = rules_mod.same_statement
@@ -1237,8 +1237,8 @@ def test_every_derived_lift_is_region_8s_bass_or_perch(db):
             if x.get("basis") == "names_the_fish":
                 n += 1
                 assert (x["entry_id"], x["rule_id"]) in {
-                    ("z8:species_quotas", "species_quotas.r1"),
-                    ("z8:species_quotas", "species_quotas.r9")}, (eid, rid, x)
+                    ("z8:daily_quotas", "species_quotas.r1"),
+                    ("z8:daily_quotas", "species_quotas.r9")}, (eid, rid, x)
     assert n == 34
 
 
@@ -1384,7 +1384,7 @@ def test_kitimat_closes_every_tributary_mar16_may31_and_only_hatchery_fish_are_l
     assert f"{KITIMAT}::kitimat_river.r2b" not in _speaks(below, (6, 15), "RB")
     main = _sid(db, KITIMAT, "kitimat_river.r4")
     got = {f"{x['entry']}::{x['rule']}": x for x in R.effective_rules(main, (11, 15), "RB", BUNDLE)}
-    z6 = "z6:trout_char_quota::trout_char_quota.r7"
+    z6 = "z6:daily_quotas::trout_char_quota.r7"
     assert got[f"{KITIMAT}::kitimat_river.r4"]["state"] == "speaks"
     assert got[z6]["state"] == "speaks" and got[z6].get("partly_lifted")
 
@@ -1668,12 +1668,12 @@ def test_region_5s_steelhead_release_empties_its_2_from_streams(db):
     """RU-4 on a Region 5 stream with no row: for a steelhead only the release (and the
     provincial steelhead rules) speak; the "2 per day … from streams" is gone."""
     _p3(db)
-    sid = _sid(db, "z5:trout_char_quota", "trout_char_quota.r3", without=(("r5:%", None),))
+    sid = _sid(db, "z5:daily_quotas", "trout_char_quota.r3", without=(("r5:%", None),))
     got = _speaks_any(sid, (7, 1), "ST")
-    assert "z5:trout_char_quota::trout_char_quota.r6" in got
-    assert "z5:trout_char_quota::trout_char_quota.r3" not in got
+    assert "z5:daily_quotas::trout_char_quota.r6" in got
+    assert "z5:daily_quotas::trout_char_quota.r3" not in got
     # positive control: the "2 from streams" is `daily@water=stream` and speaks for a rainbow
-    assert "z5:trout_char_quota::trout_char_quota.r3" in _speaks(
+    assert "z5:daily_quotas::trout_char_quota.r3" in _speaks(
         sid, (7, 1), "RB", key=("retention_limit", "daily@water=stream"))
 
 
@@ -1684,8 +1684,8 @@ def test_lakelse_lakes_none_over_50_displaces_region_6s_1_over_50(db):
     got = {f"{x['entry']}::{x['rule']}" for x in R.effective_rules(sid, (7, 1), "RB", BUNDLE)
            if x["state"] == "speaks" and x["type"] == "retention_limit"}
     assert "r6:lakelse_lake@6-11::lakelse_lake.r1" in got
-    assert "z6:trout_char_quota::trout_char_quota.r1" in got
-    assert "z6:trout_char_quota::trout_char_quota.r2" not in got
+    assert "z6:daily_quotas::trout_char_quota.r1" in got
+    assert "z6:daily_quotas::trout_char_quota.r2" not in got
 
 
 @pytest.mark.needs_bundle
@@ -1709,11 +1709,11 @@ def test_michel_creek_in_may_shows_the_closure_without_region_4s_quotas(db):
     got = _speaks_any(sid, (5, 1), "CT")
     assert "z4:spring_stream_closure::spring_stream_closure.r1" in _speaks(
         sid, (5, 1), "CT", key=("retention_limit", "daily@water=stream"))
-    assert "z4:trout_char_quota::trout_char_quota.r1" not in got
-    assert "z4:trout_char_quota::trout_char_quota.r2" not in got
+    assert "z4:daily_quotas::trout_char_quota.r1" not in got
+    assert "z4:daily_quotas::trout_char_quota.r2" not in got
     # positive control: on 1 Jul (no closure) Region 4's quotas speak on the same section
     jul = _speaks(sid, (7, 1), "CT")
-    assert "z4:trout_char_quota::trout_char_quota.r1" in jul
+    assert "z4:daily_quotas::trout_char_quota.r1" in jul
 
 
 @pytest.mark.needs_bundle
@@ -1721,10 +1721,10 @@ def test_ahbau_lake_prints_region_5s_5_per_day_once(db):
     _p3(db)
     sid = db.execute(
         "select min(sr.sid) from section_ruleset sr join ruleset a on a.set_id = sr.set_id "
-        "join ruleset b on b.set_id = sr.set_id where a.entry_id = 'z5:trout_char_quota' and "
-        "b.entry_id = 'z7a:trout_char_quota' and a.rule_id = 'trout_char_quota.r1' and "
+        "join ruleset b on b.set_id = sr.set_id where a.entry_id = 'z5:daily_quotas' and "
+        "b.entry_id = 'z7a:daily_quotas' and a.rule_id = 'trout_char_quota.r1' and "
         "b.rule_id = 'trout_char_quota.r1'").fetchone()[0]
     assert sid is not None
     got = _speaks(sid, (7, 1), "RB")
-    assert "z5:trout_char_quota::trout_char_quota.r1" in got
-    assert "z7a:trout_char_quota::trout_char_quota.r1" not in got
+    assert "z5:daily_quotas::trout_char_quota.r1" in got
+    assert "z7a:daily_quotas::trout_char_quota.r1" not in got

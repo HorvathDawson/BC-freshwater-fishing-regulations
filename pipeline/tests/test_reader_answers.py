@@ -28,7 +28,7 @@ BUNDLE = os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE
 DENETIAH = "r7:denetiah_creek@7-52::denetiah_creek.r1"            # "No fishing, Jul 1-15"
 LIARD = "r7:liard_river_watershed_see_map_on_page_63@7-53::liard_river_watershed"
 KITIMAT = "r6:kitimat_river_angling_regulations_for_the_kitimat_river_are@6-3::kitimat_river"
-Z6 = "z6:trout_char_quota::trout_char_quota"
+Z6 = "z6:daily_quotas::trout_char_quota"
 
 
 def _tiny(tmp_path, rules, via=None):
@@ -291,9 +291,9 @@ def test_a_lifted_rule_and_a_moot_clause_are_traced(db):
     kootenay = "r4:kootenay_lake_main_body_for_location_see_map_on_page_34@4-19::" \
                "kootenay_lake_main_body.r4"
     got = _said(_sid(db, "wbk:-20", kootenay), (7, 1), "RB", trace=True)
-    z4 = got["z4:trout_char_quota::trout_char_quota.r1"]
+    z4 = got["z4:daily_quotas::trout_char_quota.r1"]
     assert (z4["state"], z4["reason"], z4["by"]) == ("lifted", "lifted", kootenay)
-    z3 = "z3:trout_char_quota::trout_char_quota"
+    z3 = "z3:daily_quotas::trout_char_quota"
     got = _said(_sid(db, "wbk:329054723"), (11, 1), "LT", trace=True)
     clause = got[f"{z3}.r4b"]
     assert (clause["state"], clause["reason"], clause["by"]) == \
@@ -393,7 +393,7 @@ def test_a_closure_on_part_of_a_water_dominates_like_a_whole_water_closure(db, f
         assert got[CHILLIWACK_R1]["state"] == "speaks"
         assert not [k for k, x in got.items() if x["state"] == "speaks" and keeps(x)]
         silenced = {k for k, x in got.items() if x.get("reason") == "water_closure"}
-        assert "z2:trout_char_quota::trout_char_quota.r4" in silenced
+        assert "z2:daily_quotas::trout_char_quota.r4" in silenced
         assert all(got[k]["by"] == CHILLIWACK_R1 for k in silenced)
     monkeypatch.setattr(R.ladder, "WATER_CLOSURE_DOMINANT", False)
     got = _said(min(parts[False]), (7, 15), fish, trace=True)

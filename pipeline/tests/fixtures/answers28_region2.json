@@ -3,8 +3,8 @@
  "rules": [
   {
    "dimension": "daily",
-   "entry": "z2:trout_char_quota",
-   "entry_id": "z2:trout_char_quota",
+   "entry": "z2:daily_quotas",
+   "entry_id": "z2:daily_quotas",
    "entry_name": "Region 2",
    "extent_text": null,
    "extents": [
@@ -34,8 +34,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z2:trout_char_quota",
-   "entry_id": "z2:trout_char_quota",
+   "entry": "z2:daily_quotas",
+   "entry_id": "z2:daily_quotas",
    "entry_name": "Region 2",
    "extent_text": null,
    "extents": [
@@ -73,8 +73,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z2:trout_char_quota",
-   "entry_id": "z2:trout_char_quota",
+   "entry": "z2:daily_quotas",
+   "entry_id": "z2:daily_quotas",
    "entry_name": "Region 2",
    "extent_text": null,
    "extents": [
@@ -110,8 +110,8 @@
   },
   {
    "dimension": "daily@origin=hatchery",
-   "entry": "z2:trout_char_quota",
-   "entry_id": "z2:trout_char_quota",
+   "entry": "z2:daily_quotas",
+   "entry_id": "z2:daily_quotas",
    "entry_name": "Region 2",
    "extent_text": null,
    "extents": [
@@ -151,8 +151,8 @@
   },
   {
    "dimension": "daily@origin=hatchery&water=stream",
-   "entry": "z2:trout_char_quota",
-   "entry_id": "z2:trout_char_quota",
+   "entry": "z2:daily_quotas",
+   "entry_id": "z2:daily_quotas",
    "entry_name": "Region 2",
    "extent_text": null,
    "extents": [
@@ -188,8 +188,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z2:trout_char_quota",
-   "entry_id": "z2:trout_char_quota",
+   "entry": "z2:daily_quotas",
+   "entry_id": "z2:daily_quotas",
    "entry_name": "Region 2",
    "extent_text": null,
    "extents": [
@@ -221,8 +221,8 @@
   },
   {
    "dimension": "daily/size",
-   "entry": "z2:trout_char_quota",
-   "entry_id": "z2:trout_char_quota",
+   "entry": "z2:daily_quotas",
+   "entry_id": "z2:daily_quotas",
    "entry_name": "Region 2",
    "extent_text": null,
    "extents": [
@@ -259,8 +259,8 @@
   },
   {
    "dimension": "daily@origin=wild&water=stream",
-   "entry": "z2:trout_char_quota",
-   "entry_id": "z2:trout_char_quota",
+   "entry": "z2:daily_quotas",
+   "entry_id": "z2:daily_quotas",
    "entry_name": "Region 2",
    "extent_text": null,
    "extents": [
@@ -295,8 +295,8 @@
   },
   {
    "dimension": "daily@origin=wild",
-   "entry": "z2:trout_char_quota",
-   "entry_id": "z2:trout_char_quota",
+   "entry": "z2:daily_quotas",
+   "entry_id": "z2:daily_quotas",
    "entry_name": "Region 2",
    "extent_text": null,
    "extents": [
@@ -330,8 +330,8 @@
   },
   {
    "dimension": "daily/size@origin=hatchery&water=stream",
-   "entry": "z2:trout_char_quota",
-   "entry_id": "z2:trout_char_quota",
+   "entry": "z2:daily_quotas",
+   "entry_id": "z2:daily_quotas",
    "entry_name": "Region 2",
    "extent_text": null,
    "extents": [
@@ -604,7 +604,7 @@
    "entry_name": "Chilliwack River",
    "exempts": [
     {
-     "entry_id": "z2:trout_char_quota",
+     "entry_id": "z2:daily_quotas",
      "note": "hatchery rainbow trout quota = 4 replaces '2 from streams'",
      "rule_id": "trout_char_quota.r4",
      "species": [
@@ -622,7 +622,7 @@
      }
     },
     {
-     "entry_id": "z2:trout_char_quota",
+     "entry_id": "z2:daily_quotas",
      "note": "of any length 50 cm or less",
      "rule_id": "trout_char_quota.r8",
      "species": [

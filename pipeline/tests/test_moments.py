@@ -122,7 +122,7 @@ def test_the_lower_west_arm_keeps_5_kokanee_at_weekends_and_releases_them_on_wee
     assert weekday[f"{LWA}.r4"] == "speaks" and f"{LWA}.r3" not in weekday
     assert weekend[f"{LWA}.r3"] == "speaks" and f"{LWA}.r4" not in weekend
     # Region 4's kokanee quota is displaced on both
-    assert "displaced" in {s for r, s in weekday.items() if r.startswith("z4:species_quotas")}
+    assert "displaced" in {s for r, s in weekday.items() if r.startswith("z4:daily_quotas")}
     with pytest.raises(SystemExit):
         store.on_day(key, jul_4, "KO", "none")                # a moment must be named
 

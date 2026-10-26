@@ -104,7 +104,7 @@ def _province():
 def _zone5():
     """Region 5's "ALL STEELHEAD" on its streams, and its twin on Region 5's book-known waters."""
     base = [{"op": "within", "area_id": "area:region:5", "feature_types": ["stream"]}]
-    return {"entry_id": "z5:trout_char_quota", "matched": [],
+    return {"entry_id": "z5:daily_quotas", "matched": [],
             "rules": [_rule("trout_char_quota.r6", extents=base),
                       _rule("trout_char_quota.r6b", extents=TWIN(
                           "trout_char_quota.r6", area_id="area:region:5",
@@ -220,11 +220,11 @@ def test_the_corpus_twins_are_steelhead_waters_of_their_base():
     lic = {x.id: x.extents for x in e.licensing}
     assert lic["steelhead_targeting_known"] == TWIN("steelhead_targeting",
                                                     outside_area_kind="national_parks")
-    for eid, base in (("z1:trout_quota", "trout_quota.r5"), ("z1:hg_quota", "hg_quota.r6"),
-                      ("z2:trout_char_quota", "trout_char_quota.r7"),
-                      ("z3:trout_char_quota", "trout_char_quota.r5"),
-                      ("z5:trout_char_quota", "trout_char_quota.r6"),
-                      ("z6:trout_char_quota", "trout_char_quota.r9")):
+    for eid, base in (("z1:daily_quotas", "trout_quota.r5"), ("z1:hg_quota", "hg_quota.r6"),
+                      ("z2:daily_quotas", "trout_char_quota.r7"),
+                      ("z3:daily_quotas", "trout_char_quota.r5"),
+                      ("z5:daily_quotas", "trout_char_quota.r6"),
+                      ("z6:daily_quotas", "trout_char_quota.r9")):
         rules = {r["rule_id"]: r for r in raw[eid]["rules"]}
         (bx,) = rules[base]["extents"]
         want = {"op": "steelhead_waters", "siblings": [base], "area_id": bx["area_id"]}
@@ -424,7 +424,7 @@ def test_a_lake_another_line_of_a_steelhead_row_binds_is_not_steelhead_water(mon
     got = _run([_province(), _zone5(), _atnarko()])
     assert _code(got, "lk") is None and _code(got, "a5") == "known"
     assert not (TWINS | SET) & _on(got, "lk")
-    assert "z5:trout_char_quota::trout_char_quota.r6b" not in _on(got, "lk")
+    assert "z5:daily_quotas::trout_char_quota.r6b" not in _on(got, "lk")
     assert "steelhead_targeting_known" not in _recs_on(got, "lk")
     assert "r5:atnarko_river@5-11::atnarko.r1" in _on(got, "lk"), "the closure itself still binds"
     assert SET <= _on(got, "a5") and not TWINS & _on(got, "a5")
@@ -441,14 +441,14 @@ def test_a_lake_whose_own_row_prints_steelhead_carries_the_set():
     got = _run([_province(), _zone5(), _atnarko(), _tenas_own()])
     assert _code(got, "lk") == "known"
     assert TWINS <= _on(got, "lk") and not SET & _on(got, "lk")
-    assert "z5:trout_char_quota::trout_char_quota.r6b" in _on(got, "lk")
-    assert "z5:trout_char_quota::trout_char_quota.r6" not in _on(got, "lk")
+    assert "z5:daily_quotas::trout_char_quota.r6b" in _on(got, "lk")
+    assert "z5:daily_quotas::trout_char_quota.r6" not in _on(got, "lk")
     assert "steelhead_targeting_known" in _recs_on(got, "lk")
     r = _row(got, "lk")
     assert (r["kind"], r["regulations"], r["anadromous"]) == ("lake", True, False)
     got = _run([_province(), _zone5(), _atnarko()], [{"item_id": "wbk:9"}])
     assert _code(got, "lk") == "known" and not (TWINS | {
-        "z5:trout_char_quota::trout_char_quota.r6b"}) & _on(got, "lk")
+        "z5:daily_quotas::trout_char_quota.r6b"}) & _on(got, "lk")
 
 
 def test_the_zone_twin_keeps_to_its_own_area_and_to_lakes():
@@ -456,7 +456,7 @@ def test_the_zone_twin_keeps_to_its_own_area_and_to_lakes():
     reach the Vedder Canal (Region 2), which the Chilliwack row makes book-known; and it never binds
     a stream, even one inside the area that its base leaves (a piece homed in another region)."""
     got = _run([_province(), _zone5(), _chilliwack()])
-    assert "z5:trout_char_quota::trout_char_quota.r6b" not in _on(got, "vc")
+    assert "z5:daily_quotas::trout_char_quota.r6b" not in _on(got, "vc")
     # the canal is a STREAM (`water_kind.kind_of`): Region 2's base binds it, not the twins
     assert SET <= _on(got, "vc") and not TWINS & _on(got, "vc")
     z = _zone5()
@@ -468,9 +468,9 @@ def test_the_zone_twin_keeps_to_its_own_area_and_to_lakes():
     REG["area:region:5b"] = _item("area:region:5b", ["a5"], kind="area")
     try:
         got = _run([_province(), z, _atnarko(), _tenas_own()])
-        assert "z5:trout_char_quota::trout_char_quota.r6" not in _on(got, "a5")
-        assert "z5:trout_char_quota::trout_char_quota.r6b" not in _on(got, "a5")
-        assert "z5:trout_char_quota::trout_char_quota.r6b" in _on(got, "lk")
+        assert "z5:daily_quotas::trout_char_quota.r6" not in _on(got, "a5")
+        assert "z5:daily_quotas::trout_char_quota.r6b" not in _on(got, "a5")
+        assert "z5:daily_quotas::trout_char_quota.r6b" in _on(got, "lk")
     finally:
         REG.pop("area:region:5b")
 

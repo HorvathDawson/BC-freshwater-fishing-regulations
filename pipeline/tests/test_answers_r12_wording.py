@@ -101,7 +101,7 @@ def test_w3_nested_caps_in_order_on_one_note():
     assert (note["n"], note["over_cm"]) == (2, 30)
     assert [(t["n"], t["over_cm"]) for t in note["then"]] == [(1, 50)]
     states = [s["r"] for s in row["group"]["states"]]
-    assert "z2:trout_char_quota::trout_char_quota.r2" in states and len(states) == len(set(states))
+    assert "z2:daily_quotas::trout_char_quota.r2" in states and len(states) == len(set(states))
 
 
 def test_w3_an_implied_cap_is_not_said():

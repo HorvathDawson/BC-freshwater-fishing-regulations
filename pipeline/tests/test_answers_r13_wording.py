@@ -110,7 +110,7 @@ def test_d_the_own_rule_bucket_says_what_it_replaces():
     assert own["title"] == "This river’s rule"
     assert own["replaces"] == {
         "says": "Replaces Region 2’s 2-from-streams limit and 30 cm minimum size for hatchery rainbow trout",
-        "rules": [F.SHARE, "z2:trout_char_quota::trout_char_quota.r8"]}
+        "rules": [F.SHARE, "z2:daily_quotas::trout_char_quota.r8"]}
     assert share["replaces"] is None
 
 

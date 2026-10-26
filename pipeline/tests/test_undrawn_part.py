@@ -185,7 +185,7 @@ def test_a_lift_names_what_it_lifts_in_words_never_by_slug():
                      {"rule_id": "trout_char_winter_release.r1", "type": "retention_limit",
                       "verbatim": "release", "species": ["TROUT_CHAR"], "take": 0,
                       "may_target": True, "extents": [{"op": "whole"}]}])
-    quota = entry("z4:species_quotas", "Other daily quotas", "Region 4", [
+    quota = entry("z4:daily_quotas", "Other daily quotas", "Region 4", [
         {"rule_id": "species_quotas.r1", "type": "retention_limit", "verbatim": "Bass: 0",
          "species": ["BASS"], "take": 0, "may_target": False, "extents": [{"op": "whole"}]}])
     lake = entry("r4:columbia_lake_s_tributaries@4-25", "COLUMBIA LAKE'S TRIBUTARIES",
@@ -206,7 +206,7 @@ def test_a_lift_names_what_it_lifts_in_words_never_by_slug():
     assert label(dutch) == "Columbia lake s tributaries lifted"      # the slug, with nothing
     duncan = lifter([{"default_id": "trout_char_winter_release"}], species=["DV"])
     assert label(duncan, entries=entries) == "Trout and char winter release lifted for dolly varden/bull trout"
-    bass = lifter([{"target": "species_quotas.r1", "entry_id": "z4:species_quotas"}],
+    bass = lifter([{"target": "species_quotas.r1", "entry_id": "z4:daily_quotas"}],
                   species=["BASS"], take=5)
     assert label_parts(bass, entries=entries)["lifts"] == "lifts “No fishing for bass”"
 

@@ -170,7 +170,7 @@ def _answer(data, model, md, fish, origin):
 def _rung(data, model, md, fish, origin, rule):
     """The reader's verdict on one zone rule: [state, partly lifted by, reason, by]."""
     _, ladder = _at(data, model, md)
-    return ladder[fish][origin][f"z6:trout_char_quota::trout_char_quota.{rule}"]
+    return ladder[fish][origin][f"z6:daily_quotas::trout_char_quota.{rule}"]
 
 
 # ---- the expected answers, from the text (module docstring) ---------------------------------
@@ -270,7 +270,7 @@ def _check_text_decided(data, model):
     # is displaced by the Nov-Jun release in Dec — never lifted
     assert _rung(data, model, AUG15, "ST", "wild", "r2") == ["speaks", None, None, None]
     assert _rung(data, model, DEC1, "ST", "wild", "r2") == \
-        ["displaced", None, "zone_release", "z6:trout_char_quota::trout_char_quota.r7"]
+        ["displaced", None, "zone_release", "z6:daily_quotas::trout_char_quota.r7"]
 
 
 # ---- the tests ------------------------------------------------------------------------------
@@ -305,7 +305,7 @@ def test_kitimat_pool_says_the_hatchery_steelhead_count_toward_a_2_over_50_tally
     def caps(md):
         rows, _ = _at(data, model, md)
         (pool,) = [r for r in rows["rows"] if r.get("pool") is not None and
-                   data["rule_ids"][r["pool"]] == "z6:trout_char_quota::trout_char_quota.r1"]
+                   data["rule_ids"][r["pool"]] == "z6:daily_quotas::trout_char_quota.r1"]
         return [{**c, "r": _name(data["rule_ids"], c["r"])} for c in pool["conds"] if c["c"] == "cap"]
     assert caps(AUG15) == CAP_CONDS_RULING
     # December (ruling (a)): the steelhead are released, so there is no steelhead tally — r2's plain 1 over 50 cm
@@ -320,8 +320,8 @@ OCT10 = (10, 10)
 #: (water, the day, the trout/char total, the origin of the cutthroat it keeps): the Vedder on the
 #: prototype's own day (regs-v11 `vedder_1010`), where Region 2 keeps hatchery trout only from
 #: streams; the Kitimat in August, where Region 6 keeps either origin
-PARITY = ((VEDDER, OCT10, "z2:trout_char_quota::trout_char_quota.r1", "hatchery"),
-          (KITIMAT, AUG15, "z6:trout_char_quota::trout_char_quota.r1", "wild"))
+PARITY = ((VEDDER, OCT10, "z2:daily_quotas::trout_char_quota.r1", "hatchery"),
+          (KITIMAT, AUG15, "z6:daily_quotas::trout_char_quota.r1", "wild"))
 
 
 def _baskets(origin):

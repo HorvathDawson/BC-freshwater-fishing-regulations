@@ -233,7 +233,7 @@ def test_really_2_a_day_on_the_pages_own_ladder():
     assert lt["real_daily"]["all"] and lt["real_daily"]["sum"] == 2     # "Really 2 a day here"
     # mutation: without the page's lake-trout clause in force the cap is gone
     for o in ladder["LT"].values():
-        o.pop("z7b:trout_char_quota::trout_char_quota.r4", None)
+        o.pop("z7b:daily_quotas::trout_char_quota.r4", None)
     P2 = RW.Part(B, rk.set_id, rk.steelhead_water, rk.steelhead_rules, kd["kind"], kd["steelhead"],
                  ladder, md, RW.open_states(ctx, rk, md))
     lt2 = next(r for r in RW.produce(P2)["rows"] if r["pool"] and r["pool"].endswith("::peace_river.r4"))
@@ -250,7 +250,7 @@ def test_peace_river_on_our_ladder_keeps_the_lakes_own_3(built):
     row = next(r for r in t["rows"]["rows"] if r["pool"] is not None
                and _rid(data, r["pool"]) == "peace_river.r4")
     assert row["daily"] == 3 and row["real_daily"] is None
-    lt = t["ladder"]["LT"]["wild"]["z7b:trout_char_quota::trout_char_quota.r4"]
+    lt = t["ladder"]["LT"]["wild"]["z7b:daily_quotas::trout_char_quota.r4"]
     assert lt[0] == "displaced" and lt[3].endswith("::peace_river.r4")
 
 
@@ -263,7 +263,7 @@ def test_chilliwack_stream_share_and_hatchery_only(built):
     row = next(r for r in t["rows"] if r["pool"] is not None
                and _rid(data, r["pool"]) == "trout_char_quota.r1")
     assert row["daily"] == 2 and _rid(data, row["narrow"]) == "trout_char_quota.r4"
-    assert row["scope"] == {"of": "region", "entry": "z2:trout_char_quota", "share": True,
+    assert row["scope"] == {"of": "region", "entry": "z2:daily_quotas", "share": True,
                             "apart": False, "narrow_all": True}         # rows 31: r4 binds every fish
     origin = [l for l in row["everyone"] if l["t"] == "origin"]
     assert origin and origin[0]["o"] == "wild" and origin[0]["keepO"] == "hatchery"

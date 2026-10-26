@@ -44,11 +44,41 @@ function zone7Ruled(id: string, state: unknown): unknown {
   return out;
 }
 
+/**
+ * (2026-10-26 owner, handoff/PLAN/curation-review/zone-entry-merges.md) The zone DAILY QUOTA merge: each region's
+ * trout/char quota and "Other daily quotas" (7B: and its Arctic grayling block) are one entry, `zN:daily_quotas`, as the
+ * book prints them ("Region N Daily Quotas"). Every rule_id was kept; only the entry id moved, and the binding diff showed
+ * the same sections under the new keys. Page v36 predates it, so its keys are renamed ONCE at load — in golden.json,
+ * hydrate.json and #data.rid — and nothing else in the oracle moves. `ENTRY_RENAMES` counts what it did per file
+ * (asserted in exclusions.test.ts); an entry here the oracle no longer names throws, so a re-cut oracle retires it.
+ */
+export const ORACLE_ENTRY_RENAMED: Readonly<Record<string, string>> = {
+  "z1:trout_quota": "z1:daily_quotas", "z1:species_quotas": "z1:daily_quotas",
+  "z2:trout_char_quota": "z2:daily_quotas", "z2:species_quotas": "z2:daily_quotas",
+  "z3:trout_char_quota": "z3:daily_quotas", "z3:species_quotas": "z3:daily_quotas",
+  "z4:trout_char_quota": "z4:daily_quotas", "z4:species_quotas": "z4:daily_quotas",
+  "z5:trout_char_quota": "z5:daily_quotas", "z5:species_quotas": "z5:daily_quotas",
+  "z6:trout_char_quota": "z6:daily_quotas", "z6:species_quotas": "z6:daily_quotas",
+  "z7a:trout_char_quota": "z7a:daily_quotas", "z7a:species_quotas": "z7a:daily_quotas",
+  "z7b:trout_char_quota": "z7b:daily_quotas", "z7b:arctic_grayling": "z7b:daily_quotas", "z7b:species_quotas": "z7b:daily_quotas",
+  "z8:trout_char_quota": "z8:daily_quotas", "z8:species_quotas": "z8:daily_quotas",
+};
+const RENAMED_RE = new RegExp(`\\b(${Object.keys(ORACLE_ENTRY_RENAMED).join("|")})(?![a-z_])`, "g");
+export const ENTRY_RENAMES: Record<string, number> = {};
+function entryRenamed(file: string, text: string): string {
+  let n = 0;
+  const out = text.replace(RENAMED_RE, (m) => { n++; return ORACLE_ENTRY_RENAMED[m]!; });
+  if (n === 0) throw new Error(`${file}: names none of ORACLE_ENTRY_RENAMED — the oracle was re-cut; drop the map`);
+  ENTRY_RENAMES[file] = n;
+  return out;
+}
+
 let G: GoldenFile | undefined;
-/** golden.json (8.6 MB), parsed once per test file, with the T109 zone-level ruling applied (`zone7Ruled`). */
+/** golden.json (8.6 MB), parsed once per test file, with the zone daily-quota entry renames (`entryRenamed`) and the T109
+ *  zone-level ruling applied (`zone7Ruled`). */
 export function golden(): GoldenFile {
   if (G) return G;
-  const raw = JSON.parse(readFileSync(`${GOLDEN_DIR}golden.json`, "utf8")) as GoldenFile & { states: Record<string, unknown> };
+  const raw = JSON.parse(entryRenamed("golden.json", readFileSync(`${GOLDEN_DIR}golden.json`, "utf8"))) as GoldenFile & { states: Record<string, unknown> };
   for (const id of Object.keys(raw.states)) raw.states[id] = zone7Ruled(id, raw.states[id]) as never;
   return (G = raw);
 }
@@ -86,7 +116,7 @@ export function pinsOracle(): PinsOracle {
 let H: Hydrate | undefined;
 /** hydrate.json (T06/T07/T08's oracle), parsed once per test file. */
 export function hydrate(): Hydrate {
-  return (H ??= JSON.parse(readFileSync(HYDRATE, "utf8")) as Hydrate);
+  return (H ??= JSON.parse(entryRenamed("hydrate.json", readFileSync(HYDRATE, "utf8"))) as Hydrate);
 }
 
 /** `oracleRix` over any rule set keyed by rix (a store's `rules()`, a RuleSource's `stored`). */
@@ -107,7 +137,7 @@ let RID: Map<number, string> | undefined;
 /** page_v36.html's `#data.rid` (oracle rule number → "entry::rule"), read once. */
 function pageRid(): Map<number, string> {
   if (RID) return RID;
-  const html = readFileSync(`${REPO}app/design/regs-v11/reference/page_v36.html`, "utf8");
+  const html = entryRenamed("page_v36.html", readFileSync(`${REPO}app/design/regs-v11/reference/page_v36.html`, "utf8"));
   const m = html.match(/<script[^>]*id="data"[^>]*>([\s\S]*?)<\/script>/);
   if (!m) throw new Error("page_v36.html has no #data");
   return (RID = new Map(Object.entries((JSON.parse(m[1]!) as { rid: Record<string, string> }).rid).map(([k, v]) => [Number(k), v])));

@@ -110,7 +110,7 @@ from pipeline.tests.conftest import need, predates, BUNDLE_HINT
 
 HG_MUS = {"6-12", "6-13"}
 HG_QUOTA = {"z1:hg_quota"}
-REGION_1_QUOTAS = {"z1:trout_quota", "z1:species_quotas"}
+REGION_1_QUOTAS = {"z1:daily_quotas", "z1:daily_quotas"}
 #: Written for every stream of Region 1, Haida Gwaii included — the book's own preamble says
 #: "all streams of Region 1 and Haida Gwaii (MUs 6-12, 6-13)".
 BOTH = {"z1:single_barbless_hook"}

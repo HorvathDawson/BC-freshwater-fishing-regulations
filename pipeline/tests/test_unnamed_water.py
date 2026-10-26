@@ -227,9 +227,9 @@ def test_an_unnamed_stream_in_a_park_takes_the_park_row_over_the_zone(built):
     h, win, roles, row = _rb(t, X)
     assert (h["status"], h["daily"], win) == ("keep", 1, f"{BOWRON}::bowron_lake_park_waters.r1")
     # tiered: the park's row governs and REPLACES the zone's size line; the zone's total still holds
-    assert ("z5:trout_char_quota::trout_char_quota.r2", "replaced",
+    assert ("z5:daily_quotas::trout_char_quota.r2", "replaced",
             f"{BOWRON}::bowron_lake_park_waters.r1") in roles
-    assert ("z5:trout_char_quota::trout_char_quota.r1", "also", None) in roles
+    assert ("z5:daily_quotas::trout_char_quota.r1", "also", None) in roles
     assert row["scope"] == {"of": "area", "entry": BOWRON, "share": False, "apart": False, "narrow_all": False}
     assert t["display"]["status"] == "own"                 # an area row beyond the zone base
 
@@ -247,8 +247,8 @@ def test_a_plain_unnamed_stream_reads_the_zone_base(built):
     # Jul 1: the zone's 4 a day, the region's stream share
     _, t = _tap(A, X, up, (7, 1))
     h, win, _, row = _rb(t, X)
-    assert (h["status"], h["daily"], win) == ("keep", 4, "z3:trout_char_quota::trout_char_quota.r1")
-    assert row["scope"] == {"of": "region", "entry": "z3:trout_char_quota", "share": True,
+    assert (h["status"], h["daily"], win) == ("keep", 4, "z3:daily_quotas::trout_char_quota.r1")
+    assert row["scope"] == {"of": "region", "entry": "z3:daily_quotas", "share": True,
                             "apart": False, "narrow_all": True}
     assert t["display"]["status"] == "base"
 
@@ -261,8 +261,8 @@ def test_an_unnamed_wetland_is_a_wetland_and_reads_the_zone_base(built):
     assert _name(db, A, up, "5") == "Unnamed wetland · Region 5"
     assert A["keys"][k][7] == "wetland"
     h, win, _, row = _rb(t, X)
-    assert (h["status"], h["daily"], win) == ("keep", 5, "z5:trout_char_quota::trout_char_quota.r1")
-    assert row["scope"]["of"] == "region" and row["scope"]["entry"] == "z5:trout_char_quota"
+    assert (h["status"], h["daily"], win) == ("keep", 5, "z5:daily_quotas::trout_char_quota.r1")
+    assert row["scope"]["of"] == "region" and row["scope"]["entry"] == "z5:daily_quotas"
     # no rule for streams is bound to it (the kind the rules were placed by is the answer's), and
     # the reader's kind of its sections is the place's
     from pipeline.deliver.bundle import read

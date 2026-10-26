@@ -63,20 +63,20 @@ class _P:
 
 def _scope(monkeypatch, members, narrow):
     monkeypatch.setattr(RW.wire, "badge_of", lambda p: "region")
-    pool = _R("z2:trout_char_quota::trout_char_quota.r1", ["RB", "CT", "ST"], take=4)
+    pool = _R("z2:daily_quotas::trout_char_quota.r1", ["RB", "CT", "ST"], take=4)
     row = {"kind": "keep", "pool": pool, "members": members, "narrow": narrow, "everyone": [], "groups": []}
     return RW.scope_of(_P(), row)
 
 
 def test_2_narrow_all_is_the_narrowing_clause_binding_every_fish_of_the_row(monkeypatch):
-    r4 = _R("z2:trout_char_quota::trout_char_quota.r4", ["RB", "CT", "ST"], water="stream", take=2)
-    r4_no_st = _R("z2:trout_char_quota::trout_char_quota.r4", ["RB", "CT", "ST"], ["ST"], water="stream", take=2)
+    r4 = _R("z2:daily_quotas::trout_char_quota.r4", ["RB", "CT", "ST"], water="stream", take=2)
+    r4_no_st = _R("z2:daily_quotas::trout_char_quota.r4", ["RB", "CT", "ST"], ["ST"], water="stream", take=2)
     assert _scope(monkeypatch, ["CT", "RB", "ST"], r4) == {
-        "of": "region", "entry": "z2:trout_char_quota", "share": True, "apart": False, "narrow_all": True}
+        "of": "region", "entry": "z2:daily_quotas", "share": True, "apart": False, "narrow_all": True}
     assert _scope(monkeypatch, ["CT", "RB", "ST"], r4_no_st)["narrow_all"] is False   # ST excepted
     assert _scope(monkeypatch, ["CT", "DV"], r4)["narrow_all"] is False               # DV not named
     assert _scope(monkeypatch, ["CT"], None) == {
-        "of": "region", "entry": "z2:trout_char_quota", "share": False, "apart": False, "narrow_all": False}
+        "of": "region", "entry": "z2:daily_quotas", "share": False, "apart": False, "narrow_all": False}
 
 
 # 3. parent -------------------------------------------------------------------------------------------------------

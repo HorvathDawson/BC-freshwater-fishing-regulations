@@ -107,7 +107,7 @@ def test_fraser_in_regions_3_and_5_is_2_from_streams():
     row, g = _trout(out)
     assert g["headline"]["n"] == 2 and "from streams" in g["headline"]["says"]
     share = [s for s in g["subcaps"] if s["water"] == "stream"]
-    assert [(s["r"], s["take"]) for s in share] == [("z5:trout_char_quota::trout_char_quota.r3", 2)]
+    assert [(s["r"], s["take"]) for s in share] == [("z5:daily_quotas::trout_char_quota.r3", 2)]
     assert row["scope"]["both"] == "Regions 3 and 5"
     assert g["worked"] == []
     assert CC.check_card(P, out) == []
@@ -120,7 +120,7 @@ def test_big_bend_in_regions_6_and_7a_both_stream_caps_bind():
         out, P = _card("big_bend_6_7a", md)
         _row, g = _trout(out)
         assert g["headline"]["n"] == 2, (md, g["headline"])
-        z7a = next(s for s in g["subcaps"] if s["r"] == "z7a:trout_char_quota::trout_char_quota.r3")
+        z7a = next(s for s in g["subcaps"] if s["r"] == "z7a:daily_quotas::trout_char_quota.r3")
         assert {"RB", "EB"} <= set(z7a["of"]) or md == JAN15
         assert CC.check_card(P, out) == [], md
 

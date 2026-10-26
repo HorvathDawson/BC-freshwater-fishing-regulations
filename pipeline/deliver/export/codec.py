@@ -81,7 +81,7 @@ SET_KEY_HEX = 12
 
 def set_key(s: dict) -> str:
     """A decoded set's content key: the first `SET_KEY_HEX` hex digits of the SHA-256 of its
-    members as UTF-8 lines `<via>:<member id>` (`reach:z3:trout_char_quota::trout_char_quota.r1`),
+    members as UTF-8 lines `<via>:<member id>` (`reach:z3:daily_quotas::trout_char_quota.r1`),
     sorted, joined by a single "\\n" — `sections` excluded (a count, not a member)."""
     lines = sorted(f"{via}:{i}" for via, ids in s.items() if via != "sections" for i in ids)
     return hashlib.sha256("\n".join(lines).encode("utf-8")).hexdigest()[:SET_KEY_HEX]
@@ -185,7 +185,7 @@ ENCODING_TEXT = {
     "set_keys": "not shipped: `set_keys.rulesets[set id]` / `set_keys.licensing_sets[set id]` "
                 "is the first " + str(SET_KEY_HEX) + " hex digits of the SHA-256 of the DECODED "
                 "set's members as UTF-8 lines `<via>:<member id>` (e.g. "
-                "`reach:z3:trout_char_quota::trout_char_quota.r1`), sorted (code-point order), joined by one \"\\n\" "
+                "`reach:z3:daily_quotas::trout_char_quota.r1`), sorted (code-point order), joined by one \"\\n\" "
                 "(no trailing newline); `sections` is not a member",
 }
 

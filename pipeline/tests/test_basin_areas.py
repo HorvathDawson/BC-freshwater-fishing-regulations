@@ -103,8 +103,8 @@ WHOLE_WATERSHEDS = {
     ("z6:iskut_fraser_closure", "iskut_fraser_closure.r2"): ["area:basin:100-"],
     ("z6:skeena_nass_bait_ban", "skeena_nass_bait_ban.r1"): ["area:basin:400-"],
     ("z6:skeena_nass_bait_ban", "skeena_nass_bait_ban.r2"): ["area:basin:500-"],
-    ("z6:trout_char_quota", "trout_char_quota.r8"): ["area:basin:100-", "area:basin:400-"],
-    ("z7b:trout_char_quota", "trout_char_quota.r9"): ["area:basin:200-948755-"],
+    ("z6:daily_quotas", "trout_char_quota.r8"): ["area:basin:100-", "area:basin:400-"],
+    ("z7b:daily_quotas", "trout_char_quota.r9"): ["area:basin:200-948755-"],
     ("z5:steelhead_management", "steelhead_management.r1"): ["area:basin:100-342455-"],
 }
 

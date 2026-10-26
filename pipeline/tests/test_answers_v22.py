@@ -150,8 +150,8 @@ def test_d_every_zone_table_obeys_the_steelhead_scope_rule():
 
 
 @pytest.mark.parametrize("region,entry_id,rule_id,mutate", [
-    ("2", "z2:trout_char_quota", "trout_char_quota.r2", lambda x: {**x, "species_except": []}),
-    ("6", "z6:trout_char_quota", "trout_char_quota.r2", lambda x: {**x, "species_except": ["ST"]}),
+    ("2", "z2:daily_quotas", "trout_char_quota.r2", lambda x: {**x, "species_except": []}),
+    ("6", "z6:daily_quotas", "trout_char_quota.r2", lambda x: {**x, "species_except": ["ST"]}),
 ])
 def test_d_mutations_are_refused(region, entry_id, rule_id, mutate):
     e = _zone(region, entry_id)
@@ -163,8 +163,8 @@ def test_d_mutations_are_refused(region, entry_id, rule_id, mutate):
                                                          for r in e["rules"]]})
 
 
-@pytest.mark.parametrize("region,entry_id,pfx", [("1", "z1:trout_quota", "trout_quota"),
-                                                 ("2", "z2:trout_char_quota", "trout_char_quota")])
+@pytest.mark.parametrize("region,entry_id,pfx", [("1", "z1:daily_quotas", "trout_quota"),
+                                                 ("2", "z2:daily_quotas", "trout_char_quota")])
 def test_d_r2b_is_the_tables_own_steelhead_quota(region, entry_id, pfx):
     """Owner 2026-10-26 (overlapping-rules.md): the ST-only r3 is retired; r2b ("… (2 hatchery steelhead over
     50 cm allowed …)") is the table's own steelhead quota at 50 cm, so r2 still leaves ST out. Mutation: r2b

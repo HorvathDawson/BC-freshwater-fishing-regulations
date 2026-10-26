@@ -478,7 +478,7 @@ def test_every_curated_entry_passes_the_ingest_gate():
         errors = [x for x in errors if not x.startswith("ADVISORY")]
         if errors:
             refused[e["entry_id"]] = errors
-    assert (len(entries), refused) == (1525, {})
+    assert (len(entries), refused) == (1515, {})   # 1525 - 10: the zone daily-quota merge (2026-10-26)
 
 
 @pytest.mark.parametrize("lift,target,mine,theirs", [

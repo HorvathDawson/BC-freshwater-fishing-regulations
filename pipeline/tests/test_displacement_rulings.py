@@ -226,7 +226,7 @@ def _says(sid, on, fish) -> set:
 def test_lakelse_and_chilko_keep_their_quotas_for_rainbow(db):
     lk = "r6:lakelse_lake@6-11"
     got = _says(_sid(db, lk, "lakelse_lake.r1"), (7, 15), "RB")
-    assert {f"{lk}::lakelse_lake.r1", "z6:trout_char_quota::trout_char_quota.r1"} <= got
+    assert {f"{lk}::lakelse_lake.r1", "z6:daily_quotas::trout_char_quota.r1"} <= got
     ck = "r5:chilko_lake@5-4"
     got = _says(_sid(db, ck, "chilko_lake.r1"), (7, 15), "RB")
     assert {f"{ck}::chilko_lake.r1", f"{ck}::chilko_lake.r2"} <= got
@@ -248,7 +248,7 @@ def test_duck_lake_answers_to_its_own_row_not_the_cvwmas(db):
 def test_cheslatta_keeps_region_6s_quotas_on_nov_1_to_30(db):
     ch = "r6:cheslatta_lake@6-4"
     got = _says(_sid(db, ch, "cheslatta_lake.r2"), (11, 15), "LT")
-    q = "z6:trout_char_quota::trout_char_quota."
+    q = "z6:daily_quotas::trout_char_quota."
     assert {f"{ch}::cheslatta_lake.r2", q + "r1", q + "r3"} <= got
     assert q + "r8" not in got
 

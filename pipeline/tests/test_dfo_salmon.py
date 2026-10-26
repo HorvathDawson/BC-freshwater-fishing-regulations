@@ -2158,7 +2158,7 @@ def test_the_count_survives_the_words_between_it_and_per_day(gear, take):
 
 
 def test_a_size_sublimit_is_its_own_rule_pointing_at_its_parent():
-    """`z2:trout_char_quota.r2` is the convention: "1 over 50 cm" WITHIN "Trout/char: 4".
+    """`z2:daily_quotas.r2` is the convention: "1 over 50 cm" WITHIN "Trout/char: 4".
     One rule carrying both numbers is the shape that loses the 4."""
     parent, sub = _typed(limits_gear="4 per day, only 2 over 50 cm.")
     assert (parent.take, parent.lengths) == (4, None)

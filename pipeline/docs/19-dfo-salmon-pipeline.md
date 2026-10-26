@@ -186,7 +186,7 @@ Three things it must get right, each one a defect the repo has already paid for 
   it and release it". `no_fishing → False`, `non_retention → True`. A bare `"0 per day"` says
   neither, so it publishes the conservative way and is flagged for review rather than guessed.
 * **A size sub-limit is its own rule**, pointing at its parent with `within` — the convention
-  `z2:trout_char_quota` already uses. `"4 per day, only 2 over 50 cm"` is two rules; one rule
+  `z2:daily_quotas` already uses. `"4 per day, only 2 over 50 cm"` is two rules; one rule
   carrying both numbers is the shape that loses the 4.
 * **A gear rule is scoped by what you fish FOR, not what you may keep.** `species` on a bait ban
   reads narrower than the law; `when_targeting` is the scope the tables state.

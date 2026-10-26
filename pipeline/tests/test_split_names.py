@@ -282,25 +282,30 @@ def test_thompson_cnr_bridges(doc):
 @pytest.mark.needs_bundle
 def test_peace_halfway_keeps_its_offsets(doc):
     S = doc["splits"]
-    got = {sid: (S[sid]["name"], S[sid]["km"], S[sid].get("same_place_as")) for sid in (
+    got = {sid: (S[sid]["name"], S[sid]["km"]) for sid in (
         "peace_river__halfway_river_into_peace_river_d5000m",
-        "halfway_river__halfway_river_into_peace_river",
-        "halfway_river__halfway_river_into_peace_river_u5000m",
+        "peace_river__halfway_river_into_peace_river",
         "peace_river__halfway_river_into_peace_river_u5000m")}
     assert {k: v[0] for k, v in got.items()} == {
         "peace_river__halfway_river_into_peace_river_d5000m":
             "5 km downstream of the Halfway River confluence",
-        "halfway_river__halfway_river_into_peace_river": "Halfway River confluence",
-        "halfway_river__halfway_river_into_peace_river_u5000m":
-            "5 km upstream of the Halfway River confluence",
+        "peace_river__halfway_river_into_peace_river": "Halfway River confluence",
         "peace_river__halfway_river_into_peace_river_u5000m":
             "5 km upstream of the Halfway River confluence"}
-    # the two upstream ids are one curated cut authored twice: one place, one name
-    assert got["peace_river__halfway_river_into_peace_river_u5000m"][2] == \
-        "halfway_river__halfway_river_into_peace_river_u5000m"
+    # owner 2026-10-26: the two upstream ids were one Peace cut authored twice — merged into the peace_river__ id, and
+    # the confluence point (cut on the Peace) renamed from halfway_river__; no halfway_river__ id is cut on the Peace
+    assert "halfway_river__halfway_river_into_peace_river_u5000m" not in S
+    assert "halfway_river__halfway_river_into_peace_river" not in S
     kms = [v[1] for v in got.values()]
     assert kms[1] - kms[0] == pytest.approx(5) and kms[2] - kms[1] == pytest.approx(5)
-    assert kms[3] == kms[2]
+
+
+@pytest.mark.needs_bundle
+def test_halfway_closure_is_cut_on_the_halfway(doc):
+    # "No Fishing from confluence with Peace River to fishing boundary signs approximately 5 km upstream" (p.65) is a
+    # Halfway reach: its cut lies on the Halfway (gnis 36111), not the Peace
+    x = doc["splits"]["halfway_river__fishing_boundary_signs_5_km_above_peace_river"]
+    assert x["water_id"] == "gnis:36111"
 
 
 @pytest.mark.needs_bundle

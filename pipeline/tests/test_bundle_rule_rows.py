@@ -175,7 +175,7 @@ RULES_OF = {
         "steelhead_stream_closure.r1": _cr("steelhead_stream_closure.r1")},
     "z4:trout_char_winter_release": {"trout_char_winter_release.r1": _cr(
         "trout_char_winter_release.r1", species=["TROUT_CHAR"], may_target=True)},
-    "z4:species_quotas": {"species_quotas.r5": _cr("species_quotas.r5", species=["KO"])},
+    "z4:daily_quotas": {"species_quotas.r5": _cr("species_quotas.r5", species=["KO"])},
     "zp:bait": {"bait.r1": _bait("bait.r1")},
     "r1:x@1-1": {"x.r1": _cr("x.r1"), "x.r2": _cr("x.r2")},
 }
@@ -204,8 +204,8 @@ def test_exempts_ship_resolved_to_each_rule_they_lift():
         {"entry_id": "z7a:spring_stream_closure", "rule_id": "spring_stream_closure.r2"}]
     # a target in another entry, named — KO lifts KO outright
     assert _lifts("r4:upper_arrow@4-31", [{"target": "species_quotas.r5",
-                                           "entry_id": "z4:species_quotas"}],
-                  species=["KO"]) == [{"entry_id": "z4:species_quotas",
+                                           "entry_id": "z4:daily_quotas"}],
+                  species=["KO"]) == [{"entry_id": "z4:daily_quotas",
                                        "rule_id": "species_quotas.r5"}]
     # a target in this entry
     assert _lifts("r1:x@1-1", [{"target": "x.r2"}], **all_) == [
@@ -447,7 +447,7 @@ def test_every_exemption_in_the_corpus_lifts_a_real_rule_or_says_why():
         # REGION 8's "And you may retain: 20 brook trout from streams" (p.68) is counted APART
         # from the trout/char quota: it lifts the quota and its clauses for brook trout only
         # (user ruling 2026-09-25).
-        *[("z8:trout_char_quota", "trout_char_quota.r5", f"trout_char_quota.r{k}")
+        *[("z8:daily_quotas", "trout_char_quota.r5", f"trout_char_quota.r{k}")
           for k in (1, 2, 3, 4)],
         ("zp:bait", "bait.r2", "bait.r1"), ("zp:bait", "bait.r3", "bait.r1"),
         ("zp:spear_fishing", "spear_fishing.r2", "spear_fishing.r1"),

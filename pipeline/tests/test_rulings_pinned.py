@@ -154,11 +154,11 @@ def test_z1_no_section_is_carved_out_of_its_base(db):
     key = next(k for k, g in sorted(groups.items(), key=str)
                if k[0] == "4" and k[2] == "lake" and sum(n for n, _ in g.values()) > 10)
     (base, (n, sid)), = groups[key].items()
-    drop = ("z4:trout_char_quota", "trout_char_quota.r1")
+    drop = ("z4:daily_quotas", "trout_char_quota.r1")
     cut = {**groups, key: {base: (n - 1, sid), base - {drop}: (1, -1)}}
     assert T.peer_problems(cut) == \
         [f"Region 4 MUs {key[1]} lake: 1 section (sid -1) lacks ['{drop[0]}::{drop[1]}'] that its {n - 1} peers carry"]
-    stray = ("z2:species_quotas", "species_quotas.r1")
+    stray = ("z2:daily_quotas", "species_quotas.r1")
     extra = {**groups, key: {base: (n - 1, sid), base | {stray}: (1, -1)}}
     assert T.peer_problems(extra) == \
         [f"Region 4 MUs {key[1]} lake: 1 section (sid -1) carries ['{stray[0]}::{stray[1]}'] that its {n - 1} peers do not"]
@@ -201,7 +201,7 @@ def test_z1_a_region_4_lake_with_no_row_answers_exactly_region_4s_table(db):
     bound = {(e, r) for e, r, _ in T.bind(db, sid)}
     assert bound == table
     # MUTATION: Region 4's "Trout/char: 5" left off the lake
-    assert bound - {("z4:trout_char_quota", "trout_char_quota.r1")} != table
+    assert bound - {("z4:daily_quotas", "trout_char_quota.r1")} != table
 
 
 def test_z1_kootenay_lakes_rainbow_10_is_traced_to_the_kootenay_lake_row(db):
@@ -223,14 +223,14 @@ def test_z1_kootenay_lakes_rainbow_10_is_traced_to_the_kootenay_lake_row(db):
         "z4:kootenay_lake_boundaries::kootenay_lake_boundaries.r2": (None, "shown", "z4:kootenay_lake_boundaries"),
         "zp:kootenay_rainbow_stamp::kootenay_rainbow_stamp.r1": (None, "speaks", "zp:kootenay_rainbow_stamp"),
         # the rainbow 10 lifts Region 4's "Trout/char: 5" and its "1 over 50 cm" for rainbow
-        "z4:trout_char_quota::trout_char_quota.r1": ("speaks", "lifted", main),
-        "z4:trout_char_quota::trout_char_quota.r2": ("speaks", "lifted", main),
+        "z4:daily_quotas::trout_char_quota.r1": ("speaks", "lifted", main),
+        "z4:daily_quotas::trout_char_quota.r2": ("speaks", "lifted", main),
     }
     ten = {R.rid(x): (x["take"], x["species"]) for x in page if x["state"] == "speaks" and x.get("take") == 10}
     assert ten == {f"{main}::kootenay_lake_main_body.r4": (10, ["RB"])}
     # MUTATION
     bound = T.bind(db, sid)
-    drop = next(x for x in bound if x[0] == "z4:trout_char_quota" and x[1].endswith(".r1"))
+    drop = next(x for x in bound if x[0] == "z4:daily_quotas" and x[1].endswith(".r1"))
     _base, _ = T.answers(db, sid, (7, 1), "RB", BUNDLE, bound, rules)
     _, page2 = T.answers(db, sid, (7, 1), "RB", BUNDLE, [x for x in bound if x != drop], rules)
     lost = [d for d in T.attribute(_base, page2, rules) if d.row is None]
@@ -243,7 +243,7 @@ def test_z1_the_base_belongs_to_the_sections_regions(db):
     rules = R._rules_of(BUNDLE)
     bound = T.bind(db, sid)
     assert T.base_problems(db, sid, bound, rules) == []
-    stray = ("z2:species_quotas", "species_quotas.r1", "reach")
+    stray = ("z2:daily_quotas", "species_quotas.r1", "reach")
     assert T.base_problems(db, sid, bound + [stray], rules) == \
         [f"{sid}: base rules of Region 2 bound outside it (['4'])"]
     no4 = [x for x in bound if R.base_region(x[0]) != "4"]
@@ -253,7 +253,7 @@ def test_z1_the_base_belongs_to_the_sections_regions(db):
 # ============================================================================================ Z2
 MILL = "wbk:329291901"
 MILL_ROW = "r2:mill_lake_abbotsford@2-4"
-R2_BASS = "z2:species_quotas::species_quotas.r1"
+R2_BASS = "z2:daily_quotas::species_quotas.r1"
 
 
 def _mill(db, path=BUNDLE) -> dict:
@@ -267,7 +267,7 @@ def test_z2_region_2s_bass_rule_binds_mill_lake_and_the_lakes_row_speaks_over_it
     """"Bass: 20" binds Mill Lake (the exclusion is not encoded); the lake's "bass daily quota = 4"
     displaces it. MUTATION: the row's quota no longer about bass — Region 2's 20 speaks again."""
     sid, = _sections(db, MILL)
-    assert ("z2:species_quotas", "species_quotas.r1", "reach") in T.bind(db, sid)
+    assert ("z2:daily_quotas", "species_quotas.r1", "reach") in T.bind(db, sid)
     assert _mill(db) == {R2_BASS: ("displaced", f"{MILL_ROW}::mill_lake.r2"),
                          f"{MILL_ROW}::mill_lake.r2": ("speaks", None)}
     bad = _mutated(**{f"{MILL_ROW}::mill_lake.r2": {"species": ["RB"]}})
@@ -309,7 +309,7 @@ def _q20(db, path=BUNDLE) -> dict:
         a, b = _ask(db, lake, day, "DV", path), _ask(db, river, day, "DV", path)
         out[day] = (_speakers(a, lambda k: k.startswith(AL)),
                     _speakers(b, lambda k: k.startswith(AR)),
-                    _speakers(b, lambda k: k.startswith("z3:trout_char_quota")))
+                    _speakers(b, lambda k: k.startswith("z3:daily_quotas")))
     return out
 
 
@@ -320,8 +320,8 @@ def test_q20_only_lines_that_print_dates_are_dated(db):
     quota dated (Jul 1-30) — gone Sept 15; the river's undated — it speaks Sept 15."""
     lk = [f"{AL}::adams_lake.r3", f"{AL}::adams_lake.r4", f"{AL}::adams_lake.r6"]
     rv0, rv = [f"{AR}::adams_river_upstream.r3"], [f"{AR}::adams_river_upstream.r{i}" for i in (3, 4, 5)]
-    zone = ["z3:trout_char_quota::trout_char_quota.r" + x for x in ("1", "2", "3", "4", "4b")]
-    want = {(3, 1): (lk, rv0, []), (7, 15): (lk, rv, zone), (9, 15): (lk, rv0, ["z3:trout_char_quota::trout_char_quota.r6"]),
+    zone = ["z3:daily_quotas::trout_char_quota.r" + x for x in ("1", "2", "3", "4", "4b")]
+    want = {(3, 1): (lk, rv0, []), (7, 15): (lk, rv, zone), (9, 15): (lk, rv0, ["z3:daily_quotas::trout_char_quota.r6"]),
             (11, 15): (lk, rv, zone), (12, 1): (lk, rv, zone)}
     assert _q20(db) == want
     july = {"when": {"dates": [{"from_month": 7, "from_day": 1, "to_month": 7, "to_day": 30}]}}

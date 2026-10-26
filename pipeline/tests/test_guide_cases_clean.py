@@ -25,7 +25,7 @@ from pipeline.tests.conftest import need, BUNDLE_HINT
 
 BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or export_contract.BUNDLE)
 
-Z3 = "z3:trout_char_quota::trout_char_quota"
+Z3 = "z3:daily_quotas::trout_char_quota"
 #: mechanism -> (water item_id, date, fish, ids that speak, ids that must be absent)
 NEW = {
     "same_row_dated_release": ("gnis:39492", "05-15", "RB",
@@ -35,22 +35,22 @@ NEW = {
                                 "@3-13+3-14+3-18::thompson_river_downstream_of_kamloops_lake.r2"]),
     "same_row_dated_closure": ("wbk:329303451", "12-15", "RB", ["r2:alta_lake@2-9::alta_lake.r1"],
                                ["r2:alta_lake@2-9::alta_lake.r2"]),
-    "zone_release_any_water": (None, "05-15", "GR", ["z7b:arctic_grayling::arctic_grayling.r4"],
-                               ["z7b:arctic_grayling::arctic_grayling.r1",
-                                "z7b:arctic_grayling::arctic_grayling.r3"]),
+    "zone_release_any_water": (None, "05-15", "GR", ["z7b:daily_quotas::arctic_grayling.r4"],
+                               ["z7b:daily_quotas::arctic_grayling.r1",
+                                "z7b:daily_quotas::arctic_grayling.r3"]),
     "size_release_vs_size_clause": (None, "07-01", "RB",
                                     ["r6:lakelse_lake@6-11::lakelse_lake.r1",
-                                     "z6:trout_char_quota::trout_char_quota.r1"],
-                                    ["z6:trout_char_quota::trout_char_quota.r2"]),
+                                     "z6:daily_quotas::trout_char_quota.r1"],
+                                    ["z6:daily_quotas::trout_char_quota.r2"]),
     "closure_any_key": (None, "05-01", "CT", ["z4:spring_stream_closure::spring_stream_closure.r1"],
-                        ["z4:trout_char_quota::trout_char_quota.r1",
-                         "z4:trout_char_quota::trout_char_quota.r2",
-                         "z4:trout_char_quota::trout_char_quota.r3"]),
+                        ["z4:daily_quotas::trout_char_quota.r1",
+                         "z4:daily_quotas::trout_char_quota.r2",
+                         "z4:daily_quotas::trout_char_quota.r3"]),
     "two_regions_same_statement": (None, "07-01", "RB",
-                                   ["z5:trout_char_quota::trout_char_quota.r1",
-                                    "z5:trout_char_quota::trout_char_quota.r2"],
-                                   ["z7a:trout_char_quota::trout_char_quota.r1",
-                                    "z7a:trout_char_quota::trout_char_quota.r2"]),
+                                   ["z5:daily_quotas::trout_char_quota.r1",
+                                    "z5:daily_quotas::trout_char_quota.r2"],
+                                   ["z7a:daily_quotas::trout_char_quota.r1",
+                                    "z7a:daily_quotas::trout_char_quota.r2"]),
     "zone_size_clause_moot": ("wbk:329054723", "11-01", "LT",
                               [f"{Z3}.r7"], [f"{Z3}.r4b", f"{Z3}.r1", f"{Z3}.r4"]),
     "water_release_silences_size_clause": ("wbk:329518152", "11-01", "LT",
@@ -58,16 +58,16 @@ NEW = {
                                            [f"{Z3}.r7", f"{Z3}.r4b", f"{Z3}.r1"]),
     "bridge_lake_same_statement": ("wbk:329060770", "07-01", "LT",
                                    ["r5:bridge_lake@5-2::bridge_lake.r1",
-                                    "z5:trout_char_quota::trout_char_quota.r1"],
-                                   ["z5:trout_char_quota::trout_char_quota.r5"]),
+                                    "z5:daily_quotas::trout_char_quota.r1"],
+                                   ["z5:daily_quotas::trout_char_quota.r5"]),
     "bridge_lake_dated_zone_release": ("wbk:329060770", "11-15", "LT",
                                        ["r5:bridge_lake@5-2::bridge_lake.r1",
-                                        "z5:trout_char_quota::trout_char_quota.r7"], []),
+                                        "z5:daily_quotas::trout_char_quota.r7"], []),
     "alta_lake_clause_size_release": ("wbk:329303451", "07-01", "RB",
                                       ["r2:alta_lake@2-9::alta_lake.r2",
                                        "r2:alta_lake@2-9::alta_lake.r3",
-                                       "z2:trout_char_quota::trout_char_quota.r2"],
-                                      ["z2:trout_char_quota::trout_char_quota.r1"]),
+                                       "z2:daily_quotas::trout_char_quota.r2"],
+                                      ["z2:daily_quotas::trout_char_quota.r1"]),
 }
 
 

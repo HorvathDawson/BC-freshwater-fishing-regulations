@@ -1017,18 +1017,18 @@ def _find_named_sample_waters(K, R, RD, rid, zone, add):
     add("trout_word_same_statement", named(
         "trout_word_same_statement", "r1:amor_lake@", "RB",
         lambda w, zs: lambda a: rid(w) in _speaking(a)
-        and "z1:trout_quota::trout_quota.r1" not in _ids(a),
+        and "z1:daily_quotas::trout_quota.r1" not in _ids(a),
         lambda x: _keeps(x) and "TROUT_CHAR" in (x.get("species") or [])))
     add("dated_zone_release_stands", named(
         "dated_zone_release_stands", "r3:shuswap_lake_see_maps", "LT",
         lambda w, zs: lambda a: rid(w) in _speaking(a)
-        and "z3:trout_char_quota::trout_char_quota.r7" in _speaking(a),
+        and "z3:daily_quotas::trout_char_quota.r7" in _speaking(a),
         lambda x: _keeps(x) and "CHAR" in (x.get("species") or []) and x.get("take") == 1,
         on=(11, 1)))
     add("water_dates_override", named(
         "water_dates_override", "r6:cheslatta_lake", "LT",
         lambda w, zs: lambda a: rid(w) in _speaking(a)
-        and "z6:trout_char_quota::trout_char_quota.r8" not in _speaking(a),
+        and "z6:daily_quotas::trout_char_quota.r8" not in _speaking(a),
         lambda x: _keeps(x) and x.get("species") == ["LT"] and x.get("take") == 3
         and not x.get("within"), on=(11, 15)))
     add("one_side_beside", named(
@@ -1086,11 +1086,11 @@ def _find_clean_round_cases(K, rid, add):
     thompson = "r3:thompson_river_downstream_of_signs_at_kamloops_lake_outlet_t@3-13+3-14+3-18::" \
                "thompson_river_downstream_of_kamloops_lake"
     alta, bridge = "r2:alta_lake@2-9::alta_lake", "r5:bridge_lake@5-2::bridge_lake"
-    z2, z3, z4 = "z2:trout_char_quota::trout_char_quota", "z3:trout_char_quota::trout_char_quota", \
-        "z4:trout_char_quota::trout_char_quota"
-    z5, z6, z7a = "z5:trout_char_quota::trout_char_quota", "z6:trout_char_quota::trout_char_quota", \
-        "z7a:trout_char_quota::trout_char_quota"
-    gr = "z7b:arctic_grayling::arctic_grayling"
+    z2, z3, z4 = "z2:daily_quotas::trout_char_quota", "z3:daily_quotas::trout_char_quota", \
+        "z4:daily_quotas::trout_char_quota"
+    z5, z6, z7a = "z5:daily_quotas::trout_char_quota", "z6:daily_quotas::trout_char_quota", \
+        "z7a:daily_quotas::trout_char_quota"
+    gr = "z7b:daily_quotas::arctic_grayling"
     for mech, item, on, fish, speak, absent in (
             # RU-3: the CNR stretch's May release over the row's undated 2 (gnis:39492 is the
             # Thompson's item id; its CNR-stretch part carries both)

@@ -537,7 +537,7 @@ def test_exempts_names_one_thing_and_names_it_by_id():
     from pipeline.regs.parsing.catalogue import Exempts
 
     assert Exempts(default_id="spring_stream_closure").target is None
-    assert Exempts(target="species_quotas.r5", entry_id="z4:species_quotas").entry_id
+    assert Exempts(target="species_quotas.r5", entry_id="z4:daily_quotas").entry_id
     for bad in ({}, {"default_id": "a", "target": "a.r1"},
                 {"target": "Columbia Lake's tributaries closure"},
                 {"default_id": "set_lining.r1b"},

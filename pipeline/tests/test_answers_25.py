@@ -42,7 +42,7 @@ GLENN = "gnis:10457"                 # Glenn Creek, a ✱ tributary of the Dunca
 HUMPHRYS = "gnis:2046"               # Humphrys Creek, a ✱ tributary of the Kitimat (Region 6)
 WATERS = (VEDDER, GLENN, HUMPHRYS)
 VR = "r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4::chilliwack_vedder_rivers"
-Z2 = "z2:trout_char_quota::trout_char_quota"
+Z2 = "z2:daily_quotas::trout_char_quota"
 
 
 @pytest.fixture(scope="module")
@@ -242,9 +242,9 @@ def test_f13_a_size_release_answers_only_when_it_releases_the_whole_range():
 
 @pytest.mark.needs_bundle
 @pytest.mark.parametrize("item,zone,share,lifter,fish", [
-    (GLENN, "z4:trout_char_quota::trout_char_quota.r1", "z4:trout_char_quota::trout_char_quota.r3",
+    (GLENN, "z4:daily_quotas::trout_char_quota.r1", "z4:daily_quotas::trout_char_quota.r3",
      "duncan_river.r4", "RB"),
-    (HUMPHRYS, "z6:trout_char_quota::trout_char_quota.r1", "z6:trout_char_quota::trout_char_quota.r4",
+    (HUMPHRYS, "z6:daily_quotas::trout_char_quota.r1", "z6:daily_quotas::trout_char_quota.r4",
      "kitimat_river.r4", "RB"),
 ])
 def test_t3_a_global_star_row_carries_its_exemption_to_its_tributaries(built, item, zone, share,

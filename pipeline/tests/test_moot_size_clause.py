@@ -32,7 +32,7 @@ def _tiny(tmp_path, rules):
     return _tiny_one(d, rules)
 
 BUNDLE = os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE
-Z3 = "z3:trout_char_quota::trout_char_quota"
+Z3 = "z3:daily_quotas::trout_char_quota"
 R4B = f"{Z3}.r4b"                                           # Region 3 "none under 60 cm"
 BONAPARTE, ELEVEN_MILE, PEACE = "wbk:329054723", "gnis:8623", "gnis:14619"
 RESERVE = ("zp:superior_closures", "superior_closures.r3")  # "prohibited in Ecological Reserves"
@@ -105,7 +105,7 @@ def test_a_superior_closure_hides_the_zone_clause(db, monkeypatch):
     """The Peace River inside the Clayhurst Ecological Reserve (Zone 7B), Jan 1, lake trout:
     'Fishing is prohibited in Ecological Reserves' is a superior closure; Zone 7B's 'none under
     30 cm' for lake trout is not shown under it. Off: it was."""
-    z7b = "z7b:trout_char_quota::trout_char_quota.r7"
+    z7b = "z7b:daily_quotas::trout_char_quota.r7"
     now, then = _both_ways(monkeypatch, _sid(db, PEACE, RESERVE), (1, 1), "LT")
     assert now["::".join(RESERVE)]["state"] == "speaks"
     assert z7b not in now and z7b in then

@@ -57,7 +57,7 @@ def test_nothing_inherits_the_entry():
 def test_a_region_table_with_a_carve_out_it_cannot_draw_is_still_the_region():
     """"Bass: 20, excluding Mill Lake": the rule states Region 2 and the carve-out as a locator
     (which keeps it unbound); its scope is its own `within area:region:2`."""
-    s = source_of(_rule(entry="z2:species_quotas", extents=[
+    s = source_of(_rule(entry="z2:daily_quotas", extents=[
         {"op": "within", "area_id": "area:region:2"}], unresolved_locators=["Mill Lake"]))
     assert s.scope is Scope.region
 

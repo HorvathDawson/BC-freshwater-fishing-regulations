@@ -303,7 +303,7 @@ Owner (round 20g 1–3).
 1. **The origin rule sits on the tier whose scope it shares.** Region 2's table (printed p.21) says "Trout/char: 4 … 2 from
    streams (must be hatchery)" and "And you must release: • Wild trout/char from streams • All wild steelhead • Hatchery
    trout/char under 30 cm from streams" ("NOTE: There is no general minimum size limit for trout in lakes"); the rule row
-   `z2:trout_char_quota.r6` is `daily@origin=wild&water=stream`. Wild trout may be kept in Region 2 LAKES, so "Keep hatchery
+   `z2:daily_quotas.r6` is `daily@origin=wild&water=stream`. Wild trout may be kept in Region 2 LAKES, so "Keep hatchery
    fish only — wild trout and char go back" is the stream share's, not the 4's. `card.origin_place`: where every kind's other
    origin is sent back by rules holding on the share's water only (their `water`) and the total counts every water, the
    SHARE tier carries `origin` — "From streams, keep hatchery fish only — wild trout and char go back." (the place from

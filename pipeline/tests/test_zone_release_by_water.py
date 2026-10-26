@@ -23,7 +23,7 @@ from pipeline.deliver.bundle import read as R
 from pipeline.tests.conftest import need, BUNDLE_HINT
 
 BUNDLE = str(Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE))
-Z3, Z4 = "z3:trout_char_quota", "z4:trout_char_quota"
+Z3, Z4 = "z3:daily_quotas", "z4:daily_quotas"
 Z4W = "z4:trout_char_winter_release"
 ANDERSON, ANDREEN, CAHILTY = "gnis:10017", "gnis:10035", "wbk:-6"     # R3 creek, R4 creek, R3 lake
 

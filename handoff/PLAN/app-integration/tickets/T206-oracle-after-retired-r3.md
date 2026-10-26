@@ -28,3 +28,17 @@ The answers did not change (card_check passed). Only the oracle's wording and ru
 
 Already re-pinned: `inputs.release.test.ts` ape_501 is now looked up by key (rix 1644 -> 1642), and the pytest Lois year strip
 uses `OVERLAP_RETIRED`.
+
+## 2026-10-26 — after the zone daily-quota merge (release r-daf44e264890)
+Done: `oracles.ts ORACLE_ENTRY_RENAMED` renames page v36's zone-quota entry ids at load (golden.json, hydrate.json,
+#data.rid) — the merge kept every rule_id and the binding diff showed the same sections under the new keys. Taps,
+regs-fixture and harness re-cut on r-daf44e264890.
+
+BLOCKED (owner call): the merge also moved Region 4's Other fish rows. Bass, pike, walleye, yellow perch closures tie on
+rank between `z4:invasive_species_notice.r1` and the quota box's own "0, CLOSED" lines; the tie breaks by key order
+(`P.cands`, rix order), so `z4:daily_quotas` (d) now wins where `z4:species_quotas` (s) lost to `invasive_…` (i). The
+answer is the same (closed) but the one folded row "Largemouth bass, northern pike, smallmouth bass, walleye and yellow
+perch" becomes 5 rows citing the box lines (glenn, klwa fixtures; sheets/others/keep reds on Region 4 states). Regions 3
+and 5 (`bass_perch_illegal`, `bass_illegal`) still sort first and are unchanged. Choose: accept it (re-pin as a reasoned
+exclusion) or make the tie-break name-independent (code, then deliver + re-cut). The retired-r3 amendment
+(`ORACLE_RETIRED`) waits on that call so both land as one set of exclusions.

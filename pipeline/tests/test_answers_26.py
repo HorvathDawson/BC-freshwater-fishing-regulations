@@ -238,7 +238,7 @@ def test_the_splits_sidecar_carries_the_curated_label():
 
 @pytest.mark.needs_bundle
 @pytest.mark.parametrize("md, win", [((1, 15), "r7:clearwater_creek@7-31::clearwater_creek.r1"),
-                                     ((5, 20), "z7b:arctic_grayling::arctic_grayling.r4"),
+                                     ((5, 20), "z7b:daily_quotas::arctic_grayling.r4"),
                                      ((8, 1), "r7:clearwater_creek@7-31::clearwater_creek.r1")])
 def test_clearwater_creeks_arctic_grayling_are_released(built, md, win):
     """The creek's row: "Catch and release"; Zone B: "Arctic grayling … all from Williston Lake and
@@ -303,14 +303,14 @@ def test_the_reader_breaks_a_cycle_at_the_own_row():
 
 def test_a_null_answer_where_the_zone_took_part_is_refused():
     out = {"fish": {"GR": {"hatchery": None, "wild": {"status": "release"}}}}
-    lad = {"GR": {"hatchery": {"z7b:arctic_grayling::arctic_grayling.r1":
+    lad = {"GR": {"hatchery": {"z7b:daily_quotas::arctic_grayling.r1":
                                ["displaced", None, "ladder", "x"]}}}
-    by_id = {"z7b:arctic_grayling::arctic_grayling.r1": {"type": "retention_limit"}}
+    by_id = {"z7b:daily_quotas::arctic_grayling.r1": {"type": "retention_limit"}}
     with pytest.raises(AnswersError):
         RW.no_answer_gate(out, lad, by_id, "test")
     # no zone quota took part: null is an answer ("no rule in scope speaks")
     RW.no_answer_gate(out, {"GR": {"hatchery": {}}}, by_id, "test")
-    RW.no_answer_gate(out, {"GR": {"hatchery": {"z7b:arctic_grayling::arctic_grayling.r1":
+    RW.no_answer_gate(out, {"GR": {"hatchery": {"z7b:daily_quotas::arctic_grayling.r1":
                                                 ["shown", None, None, None]}}}, by_id, "test")
 
 
@@ -348,11 +348,11 @@ def test_every_rule_carries_its_book_pages_and_why_it_applies(built):
     assert r5["book"] == [[15, 17]]                       # printed p.15 = PDF p.17
     assert r5["applies"] == ("This water’s own row in the 2025–2027 BC Freshwater Fishing Regulations Synopsis: "
                             "Cowichan River.")             # ROUND13 P: the book by its title
-    g5 = rules[ix["z7b:arctic_grayling::arctic_grayling.r5"]]
+    g5 = rules[ix["z7b:daily_quotas::arctic_grayling.r5"]]
     assert g5["applies"] == "From the Region 7B table, for Williston Lake."
     assert g5["applies_trib"] == ("Inherited from Williston Lake: the Region 7B table covers its "
                                   "tributaries.")
-    assert rules[ix["z2:trout_char_quota::trout_char_quota.r1"]]["applies"] == \
+    assert rules[ix["z2:daily_quotas::trout_char_quota.r1"]]["applies"] == \
         "From the Region 2 table — all of Region 2."
     lift = rules[ix["r1:nitinat_river@1-4::nitinat_river.r1"]]
     assert "It lifts “No fishing in streams, Jul 15-Aug 31" in lift["applies"]

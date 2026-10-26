@@ -129,18 +129,18 @@ def test_region_6_and_region_1_trout_lines_are_trout_only(corpus):
     CLARIFIED), so their bare 'trout' count/release lines exclude it; their 'Trout/char' lines keep
     it, and Region 6's size line 'Trout under 30 cm from any stream' (no char size line beside it)
     covers char. The label says 'Trout'."""
-    assert "CHAR" not in _rule(corpus, "z6:trout_char_quota", "trout_char_quota.r6").species_except
-    for eid, rid in (("z6:trout_char_quota", "trout_char_quota.r4"),
-                     ("z6:trout_char_quota", "trout_char_quota.r7"),
-                     ("z1:trout_quota", "trout_quota.r1"), ("z1:trout_quota", "trout_quota.r2"),
-                     ("z1:trout_quota", "trout_quota.r4"), ("z1:trout_quota", "trout_quota.r6")):
+    assert "CHAR" not in _rule(corpus, "z6:daily_quotas", "trout_char_quota.r6").species_except
+    for eid, rid in (("z6:daily_quotas", "trout_char_quota.r4"),
+                     ("z6:daily_quotas", "trout_char_quota.r7"),
+                     ("z1:daily_quotas", "trout_quota.r1"), ("z1:daily_quotas", "trout_quota.r2"),
+                     ("z1:daily_quotas", "trout_quota.r4"), ("z1:daily_quotas", "trout_quota.r6")):
         r = _rule(corpus, eid, rid)
         assert "CHAR" in r.species_except and r.species == ["TROUT_CHAR"], (eid, rid)
         lab = C.label(r)
         assert lab.startswith(("Trout —", "Trout (", "Trout other than")), lab
         assert "char" not in lab.lower(), lab
-    for eid, rid in (("z6:trout_char_quota", "trout_char_quota.r1"),
-                     ("z6:trout_char_quota", "trout_char_quota.r2"),
+    for eid, rid in (("z6:daily_quotas", "trout_char_quota.r1"),
+                     ("z6:daily_quotas", "trout_char_quota.r2"),
                      ("z1:hg_quota", "hg_quota.r1")):
         assert "CHAR" not in _rule(corpus, eid, rid).species_except, (eid, rid)
 
@@ -227,7 +227,7 @@ def test_the_book_answers_on_real_sections():
     trout."""
     need(None, "bundle", BUNDLE, BUNDLE_HINT)
     db = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
-    sp = db.execute("select species_except from rule where entry_id='z1:trout_quota' and "
+    sp = db.execute("select species_except from rule where entry_id='z1:daily_quotas' and "
                     "rule_id='trout_quota.r1'").fetchone()
     if not sp or "CHAR" not in (sp[0] or ""):
         predates(f"{BUNDLE} predates the 2026-09-28 rulings — point UI_EXPORT_BUNDLE at one")
@@ -239,12 +239,12 @@ def test_the_book_answers_on_real_sections():
                                if x["state"] == "speaks" and x["type"] == "retention_limit"}
     amor = sid("r1:amor_lake@1-10", "amor_lake.r1")
     assert "r1:amor_lake@1-10::amor_lake.r1" in speaks(amor, "RB", (7, 1))
-    assert "z1:trout_quota::trout_quota.r1" not in speaks(amor, "RB", (7, 1))
-    assert "z1:trout_quota::trout_quota.r7" in speaks(amor, "DV", (7, 1))
+    assert "z1:daily_quotas::trout_quota.r1" not in speaks(amor, "RB", (7, 1))
+    assert "z1:daily_quotas::trout_quota.r7" in speaks(amor, "DV", (7, 1))
     assert "r1:amor_lake@1-10::amor_lake.r1" not in speaks(amor, "DV", (7, 1))
-    stream = sid("z6:trout_char_quota", "trout_char_quota.r7")
-    assert "z6:trout_char_quota::trout_char_quota.r7" in speaks(stream, "RB", (12, 1))
-    assert "z6:trout_char_quota::trout_char_quota.r7" not in speaks(stream, "EB", (12, 1))
+    stream = sid("z6:daily_quotas", "trout_char_quota.r7")
+    assert "z6:daily_quotas::trout_char_quota.r7" in speaks(stream, "RB", (12, 1))
+    assert "z6:daily_quotas::trout_char_quota.r7" not in speaks(stream, "EB", (12, 1))
 
 
 # ================================================================ B — dated zone releases stand
@@ -302,7 +302,7 @@ def test_shuswap_lake_trout_are_released_oct_15_to_jan_31():
                      "r.via = 'reach'", (eid, "shuswap_lake.r9")).fetchone()[0]
     got = {f"{x['entry']}::{x['rule']}": x["state"]
            for x in R.effective_rules(sid, (11, 1), "LT", BUNDLE)}
-    assert got.get("z3:trout_char_quota::trout_char_quota.r7") == "speaks"
+    assert got.get("z3:daily_quotas::trout_char_quota.r7") == "speaks"
     assert got.get(f"{eid}::shuswap_lake.r9") == "speaks"
 
 
@@ -330,8 +330,8 @@ def test_only_a_closure_sending_the_reader_to_the_tables_takes_a_derived_lift():
 def test_every_derived_lift_is_of_a_closure_that_sends_the_reader_to_the_tables(corpus):
     docs = list(corpus.values())
     got = {(e, r.rule_id) for rows in RM.zone_closures(docs).values() for e, r in rows}
-    assert got == {("z8:species_quotas", "species_quotas.r1"),
-                   ("z8:species_quotas", "species_quotas.r9")}
+    assert got == {("z8:daily_quotas", "species_quotas.r1"),
+                   ("z8:daily_quotas", "species_quotas.r9")}
 
 
 # ================================================================ C — one half of the channel

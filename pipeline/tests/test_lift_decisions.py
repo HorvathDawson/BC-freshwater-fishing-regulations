@@ -116,7 +116,7 @@ def test_the_stein_is_closed_on_june_15_by_region_3s_spring_closure(db):
     # both on May 15; and from July 1 the water is open (the zone quota speaks)
     assert {Z3_SPRING, f"{STEIN}::stein_river.r1"} <= _closures(sid, (5, 15), "RB")
     assert _closures(sid, (7, 15), "RB") == set()
-    assert "z3:trout_char_quota::trout_char_quota.r2" in _speaks(sid, (7, 15), "RB")
+    assert "z3:daily_quotas::trout_char_quota.r2" in _speaks(sid, (7, 15), "RB")
 
 
 # ---- 2. Nahatlatch below the lake: both closures, closed to Jun 30 -----------------------------

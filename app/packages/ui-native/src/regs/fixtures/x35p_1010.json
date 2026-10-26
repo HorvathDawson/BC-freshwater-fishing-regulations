@@ -1774,7 +1774,7 @@
            "t": "book"
           }
          ],
-         "rule": "z6:species_quotas::species_quotas.r4",
+         "rule": "z6:daily_quotas::species_quotas.r4",
          "tag": "Daily limit",
          "text": [
           {
@@ -2194,7 +2194,7 @@
            "t": "book"
           }
          ],
-         "rule": "z6:species_quotas::species_quotas.r3",
+         "rule": "z6:daily_quotas::species_quotas.r3",
          "tag": "Daily limit",
          "text": [
           {
@@ -2464,7 +2464,7 @@
            "t": "book"
           }
          ],
-         "rule": "z6:species_quotas::species_quotas.r2",
+         "rule": "z6:daily_quotas::species_quotas.r2",
          "tag": "Daily limit",
          "text": [
           {
@@ -2591,7 +2591,7 @@
            "t": "book"
           }
          ],
-         "rule": "z6:species_quotas::species_quotas.r8",
+         "rule": "z6:daily_quotas::species_quotas.r8",
          "tag": "Closed",
          "text": [
           {
@@ -5029,7 +5029,7 @@
            "t": "book"
           }
          ],
-         "key": "z6:trout_char_quota::trout_char_quota.r1",
+         "key": "z6:daily_quotas::trout_char_quota.r1",
          "quote": "Trout/char: 5",
          "role": "Sets the number",
          "title": "Keep up to 5 trout and char a day"
@@ -5042,7 +5042,7 @@
            "t": "book"
           }
          ],
-         "key": "z6:trout_char_quota::trout_char_quota.r2",
+         "key": "z6:daily_quotas::trout_char_quota.r2",
          "quote": "1 over 50 cm (quota includes hatchery steelhead)",
          "role": "A limit inside the total",
          "title": "At most 1 trout or char over 50 cm (20 in) a day"
@@ -5068,7 +5068,7 @@
            "t": "book"
           }
          ],
-         "key": "z6:trout_char_quota::trout_char_quota.r3",
+         "key": "z6:daily_quotas::trout_char_quota.r3",
          "quote": "3 Dolly Varden/bull trout and/or lake trout combined",
          "role": "A limit inside the total · for Dolly Varden/bull trout",
          "title": "At most 3 Dolly Varden/bull trout and lake trout a day"

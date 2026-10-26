@@ -47,7 +47,7 @@ BY_DESIGN = frozenset({
     # the steelhead quota twins: their siblings bind every book-known steelhead water in the area (z1 trout r5b,
     # z5 r6b and z6 r9b left this list in T153: a steelhead river's unnamed widening is that river's lake water)
     ("z1:hg_quota", "hg_quota.r6b"),
-    ("z3:trout_char_quota", "trout_char_quota.r5b"),
+    ("z3:daily_quotas", "trout_char_quota.r5b"),
     # working exclusions: the Columbia / Kootenay tributary rows carry no tributary rule of their own
     ("r4:kinbasket_mcnaughton_lake_s_tributaries@4-36", "kinbasket_lake_tributaries.r2"),
     ("r4:kootenay_lake_s_tributaries@4-19+4-7", "kootenay_lake_tributaries.r2"),

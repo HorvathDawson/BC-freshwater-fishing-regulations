@@ -437,15 +437,15 @@ def test_q45_an_unrelated_char_rule_leaves_char_in_the_trout_size_limit():
 def test_q45_a_related_char_rule_makes_the_trout_line_trout_only():
     """Region 1: "2 from streams (must be hatchery)" beside the table's "All char" release — both
     govern how many you keep: trout only. MUTATION: drop the exclusion -> refused."""
-    rules = {x["rule_id"]: x for x in _entries("1")["z1:trout_quota"]["rules"]}
+    rules = {x["rule_id"]: x for x in _entries("1")["z1:daily_quotas"]["rules"]}
     r4 = C.CatalogueRule.model_validate(rules["trout_quota.r4"])
     r7 = C.CatalogueRule.model_validate(rules["trout_quota.r7"])
     assert C.related_rules(r4, r7) and "CHAR" in r4.species_except
     all_rules = [C.CatalogueRule.model_validate(x) for x in rules.values()]
-    assert not [p for p in C.trout_scope_problems("z1:trout_quota", "", all_rules) if "trout_quota.r4" in p]
+    assert not [p for p in C.trout_scope_problems("z1:daily_quotas", "", all_rules) if "trout_quota.r4" in p]
     mutated = [C.CatalogueRule.model_validate({**rules["trout_quota.r4"], "species_except": []})
                if x.rule_id == "trout_quota.r4" else x for x in all_rules]
-    assert [p for p in C.trout_scope_problems("z1:trout_quota", "", mutated) if "trout_quota.r4" in p]
+    assert [p for p in C.trout_scope_problems("z1:daily_quotas", "", mutated) if "trout_quota.r4" in p]
 
 
 def test_q45_explicit_exclusion_in_the_text_counts():
@@ -459,8 +459,8 @@ def test_q45_explicit_exclusion_in_the_text_counts():
     ("2", "r2:alta_lake@2-9", "alta_lake.r3", True),                              # 1 char none under 60: size
     ("3", "r3:coldwater_river@3-13", "coldwater_river.r2", False),               # size vs bull trout release
     ("3", "r3:nicola_river@3-13", "nicola_river.r3", True),                       # release vs bull trout release
-    ("6", "z6:trout_char_quota", "trout_char_quota.r6", False),                    # size vs char releases
-    ("6", "z6:trout_char_quota", "trout_char_quota.r7", True),                     # stream release vs DV stream release
+    ("6", "z6:daily_quotas", "trout_char_quota.r6", False),                    # size vs char releases
+    ("6", "z6:daily_quotas", "trout_char_quota.r7", True),                     # stream release vs DV stream release
 ])
 def test_q45_corpus_reading_by_relatedness(region, entry_id, rule_id, trout_only):
     r = _rule(region, entry_id, rule_id)
@@ -608,7 +608,7 @@ def test_dead_fin_fish_for_sturgeon_where_p8_lists_it():
         {"op": "downstream_of", "splits": ["harrison_river__harrison_lake"], "item_id": "gnis:15333"}]
 
 
-@pytest.mark.parametrize("region,entry_id", [("1", "z1:trout_quota"), ("2", "z2:trout_char_quota")])
+@pytest.mark.parametrize("region,entry_id", [("1", "z1:daily_quotas"), ("2", "z2:daily_quotas")])
 def test_q44_at_most_two_over_50_in_total(region, entry_id):
     rs = {x["rule_id"]: x for x in _entries(region)[entry_id]["rules"]}
     tot = [x for x in rs.values() if x.get("take") == 2 and x.get("within")
@@ -631,7 +631,7 @@ def test_fix_khartoum_lois_wild_steelhead_count_none(entry_id, parent):
 
 def test_fix_lonzo_window_lifts_the_hatchery_under_30_release():
     r = _rule("2", "r2:lonzo_marshall_creek@2-4", "lonzo_creek.r2")
-    assert {"entry_id": "z2:trout_char_quota", "target": "trout_char_quota.r8"}.items() <= r["exempts"][0].items()
+    assert {"entry_id": "z2:daily_quotas", "target": "trout_char_quota.r8"}.items() <= r["exempts"][0].items()
 
 
 # ---------------------------------------------------------------------------------------------

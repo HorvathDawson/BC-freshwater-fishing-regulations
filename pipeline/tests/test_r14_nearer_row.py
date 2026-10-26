@@ -26,7 +26,7 @@ from pipeline.deliver.bundle import read
 
 DUNCAN = "r4:duncan_river@4-19"
 KOOT = "r4:kootenay_lake_s_tributaries@4-19+4-7"
-ZONE = "z4:trout_char_quota"
+ZONE = "z4:daily_quotas"
 
 
 # graph -------------------------------------------------------------------------------------------

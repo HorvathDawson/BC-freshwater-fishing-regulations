@@ -1000,8 +1000,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z2:species_quotas",
-   "entry_id": "z2:species_quotas",
+   "entry": "z2:daily_quotas",
+   "entry_id": "z2:daily_quotas",
    "entry_name": "Region 2",
    "extent_text": null,
    "extents": [
@@ -1031,8 +1031,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z2:species_quotas",
-   "entry_id": "z2:species_quotas",
+   "entry": "z2:daily_quotas",
+   "entry_id": "z2:daily_quotas",
    "entry_name": "Region 2",
    "extent_text": null,
    "extents": [
@@ -1062,8 +1062,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z2:species_quotas",
-   "entry_id": "z2:species_quotas",
+   "entry": "z2:daily_quotas",
+   "entry_id": "z2:daily_quotas",
    "entry_name": "Region 2",
    "extent_text": null,
    "extents": [
@@ -1093,8 +1093,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z2:species_quotas",
-   "entry_id": "z2:species_quotas",
+   "entry": "z2:daily_quotas",
+   "entry_id": "z2:daily_quotas",
    "entry_name": "Region 2",
    "extent_text": null,
    "extents": [
@@ -1124,8 +1124,8 @@
   },
   {
    "dimension": "daily@water=stream",
-   "entry": "z2:species_quotas",
-   "entry_id": "z2:species_quotas",
+   "entry": "z2:daily_quotas",
+   "entry_id": "z2:daily_quotas",
    "entry_name": "Region 2",
    "extent_text": null,
    "extents": [
@@ -1159,8 +1159,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z2:species_quotas",
-   "entry_id": "z2:species_quotas",
+   "entry": "z2:daily_quotas",
+   "entry_id": "z2:daily_quotas",
    "entry_name": "Region 2",
    "extent_text": null,
    "extents": [
@@ -1190,8 +1190,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z2:species_quotas",
-   "entry_id": "z2:species_quotas",
+   "entry": "z2:daily_quotas",
+   "entry_id": "z2:daily_quotas",
    "entry_name": "Region 2",
    "extent_text": null,
    "extents": [
@@ -1221,8 +1221,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z2:trout_char_quota",
-   "entry_id": "z2:trout_char_quota",
+   "entry": "z2:daily_quotas",
+   "entry_id": "z2:daily_quotas",
    "entry_name": "Region 2",
    "extent_text": null,
    "extents": [
@@ -1252,8 +1252,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z2:trout_char_quota",
-   "entry_id": "z2:trout_char_quota",
+   "entry": "z2:daily_quotas",
+   "entry_id": "z2:daily_quotas",
    "entry_name": "Region 2",
    "extent_text": null,
    "extents": [
@@ -1291,8 +1291,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z2:trout_char_quota",
-   "entry_id": "z2:trout_char_quota",
+   "entry": "z2:daily_quotas",
+   "entry_id": "z2:daily_quotas",
    "entry_name": "Region 2",
    "extent_text": null,
    "extents": [
@@ -1328,8 +1328,8 @@
   },
   {
    "dimension": "daily@origin=hatchery",
-   "entry": "z2:trout_char_quota",
-   "entry_id": "z2:trout_char_quota",
+   "entry": "z2:daily_quotas",
+   "entry_id": "z2:daily_quotas",
    "entry_name": "Region 2",
    "extent_text": null,
    "extents": [
@@ -1369,8 +1369,8 @@
   },
   {
    "dimension": "daily@origin=hatchery&water=stream",
-   "entry": "z2:trout_char_quota",
-   "entry_id": "z2:trout_char_quota",
+   "entry": "z2:daily_quotas",
+   "entry_id": "z2:daily_quotas",
    "entry_name": "Region 2",
    "extent_text": null,
    "extents": [
@@ -1406,8 +1406,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z2:trout_char_quota",
-   "entry_id": "z2:trout_char_quota",
+   "entry": "z2:daily_quotas",
+   "entry_id": "z2:daily_quotas",
    "entry_name": "Region 2",
    "extent_text": null,
    "extents": [
@@ -1439,8 +1439,8 @@
   },
   {
    "dimension": "daily/size",
-   "entry": "z2:trout_char_quota",
-   "entry_id": "z2:trout_char_quota",
+   "entry": "z2:daily_quotas",
+   "entry_id": "z2:daily_quotas",
    "entry_name": "Region 2",
    "extent_text": null,
    "extents": [
@@ -1477,8 +1477,8 @@
   },
   {
    "dimension": "daily@origin=wild&water=stream",
-   "entry": "z2:trout_char_quota",
-   "entry_id": "z2:trout_char_quota",
+   "entry": "z2:daily_quotas",
+   "entry_id": "z2:daily_quotas",
    "entry_name": "Region 2",
    "extent_text": null,
    "extents": [
@@ -1513,8 +1513,8 @@
   },
   {
    "dimension": "daily@origin=wild",
-   "entry": "z2:trout_char_quota",
-   "entry_id": "z2:trout_char_quota",
+   "entry": "z2:daily_quotas",
+   "entry_id": "z2:daily_quotas",
    "entry_name": "Region 2",
    "extent_text": null,
    "extents": [
@@ -1548,8 +1548,8 @@
   },
   {
    "dimension": "daily/size@origin=hatchery&water=stream",
-   "entry": "z2:trout_char_quota",
-   "entry_id": "z2:trout_char_quota",
+   "entry": "z2:daily_quotas",
+   "entry_id": "z2:daily_quotas",
    "entry_name": "Region 2",
    "extent_text": null,
    "extents": [
@@ -1727,8 +1727,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z3:species_quotas",
-   "entry_id": "z3:species_quotas",
+   "entry": "z3:daily_quotas",
+   "entry_id": "z3:daily_quotas",
    "entry_name": "Region 3",
    "extent_text": null,
    "extents": [
@@ -1758,8 +1758,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z3:species_quotas",
-   "entry_id": "z3:species_quotas",
+   "entry": "z3:daily_quotas",
+   "entry_id": "z3:daily_quotas",
    "entry_name": "Region 3",
    "extent_text": null,
    "extents": [
@@ -1789,8 +1789,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z3:species_quotas",
-   "entry_id": "z3:species_quotas",
+   "entry": "z3:daily_quotas",
+   "entry_id": "z3:daily_quotas",
    "entry_name": "Region 3",
    "extent_text": null,
    "extents": [
@@ -1820,8 +1820,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z3:species_quotas",
-   "entry_id": "z3:species_quotas",
+   "entry": "z3:daily_quotas",
+   "entry_id": "z3:daily_quotas",
    "entry_name": "Region 3",
    "extent_text": null,
    "extents": [
@@ -1851,8 +1851,8 @@
   },
   {
    "dimension": "daily@water=stream",
-   "entry": "z3:species_quotas",
-   "entry_id": "z3:species_quotas",
+   "entry": "z3:daily_quotas",
+   "entry_id": "z3:daily_quotas",
    "entry_name": "Region 3",
    "extent_text": null,
    "extents": [
@@ -1886,8 +1886,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z3:species_quotas",
-   "entry_id": "z3:species_quotas",
+   "entry": "z3:daily_quotas",
+   "entry_id": "z3:daily_quotas",
    "entry_name": "Region 3",
    "extent_text": null,
    "extents": [
@@ -1917,8 +1917,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z3:species_quotas",
-   "entry_id": "z3:species_quotas",
+   "entry": "z3:daily_quotas",
+   "entry_id": "z3:daily_quotas",
    "entry_name": "Region 3",
    "extent_text": null,
    "extents": [
@@ -1948,8 +1948,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z3:species_quotas",
-   "entry_id": "z3:species_quotas",
+   "entry": "z3:daily_quotas",
+   "entry_id": "z3:daily_quotas",
    "entry_name": "Region 3",
    "extent_text": null,
    "extents": [
@@ -2024,8 +2024,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z3:trout_char_quota",
-   "entry_id": "z3:trout_char_quota",
+   "entry": "z3:daily_quotas",
+   "entry_id": "z3:daily_quotas",
    "entry_name": "Region 3",
    "extent_text": null,
    "extents": [
@@ -2055,8 +2055,8 @@
   },
   {
    "dimension": "daily@water=stream",
-   "entry": "z3:trout_char_quota",
-   "entry_id": "z3:trout_char_quota",
+   "entry": "z3:daily_quotas",
+   "entry_id": "z3:daily_quotas",
    "entry_name": "Region 3",
    "extent_text": null,
    "extents": [
@@ -2091,8 +2091,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z3:trout_char_quota",
-   "entry_id": "z3:trout_char_quota",
+   "entry": "z3:daily_quotas",
+   "entry_id": "z3:daily_quotas",
    "entry_name": "Region 3",
    "extent_text": null,
    "extents": [
@@ -2128,8 +2128,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z3:trout_char_quota",
-   "entry_id": "z3:trout_char_quota",
+   "entry": "z3:daily_quotas",
+   "entry_id": "z3:daily_quotas",
    "entry_name": "Region 3",
    "extent_text": null,
    "extents": [
@@ -2161,8 +2161,8 @@
   },
   {
    "dimension": "daily/size",
-   "entry": "z3:trout_char_quota",
-   "entry_id": "z3:trout_char_quota",
+   "entry": "z3:daily_quotas",
+   "entry_id": "z3:daily_quotas",
    "entry_name": "Region 3",
    "extent_text": null,
    "extents": [
@@ -2199,8 +2199,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z3:trout_char_quota",
-   "entry_id": "z3:trout_char_quota",
+   "entry": "z3:daily_quotas",
+   "entry_id": "z3:daily_quotas",
    "entry_name": "Region 3",
    "extent_text": null,
    "extents": [
@@ -2233,8 +2233,8 @@
   },
   {
    "dimension": "daily@water=stream",
-   "entry": "z3:trout_char_quota",
-   "entry_id": "z3:trout_char_quota",
+   "entry": "z3:daily_quotas",
+   "entry_id": "z3:daily_quotas",
    "entry_name": "Region 3",
    "extent_text": null,
    "extents": [
@@ -2278,8 +2278,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z3:trout_char_quota",
-   "entry_id": "z3:trout_char_quota",
+   "entry": "z3:daily_quotas",
+   "entry_id": "z3:daily_quotas",
    "entry_name": "Region 3",
    "extent_text": null,
    "extents": [
@@ -2426,8 +2426,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z5:species_quotas",
-   "entry_id": "z5:species_quotas",
+   "entry": "z5:daily_quotas",
+   "entry_id": "z5:daily_quotas",
    "entry_name": "Region 5",
    "extent_text": null,
    "extents": [
@@ -2457,8 +2457,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z5:species_quotas",
-   "entry_id": "z5:species_quotas",
+   "entry": "z5:daily_quotas",
+   "entry_id": "z5:daily_quotas",
    "entry_name": "Region 5",
    "extent_text": null,
    "extents": [
@@ -2488,8 +2488,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z5:species_quotas",
-   "entry_id": "z5:species_quotas",
+   "entry": "z5:daily_quotas",
+   "entry_id": "z5:daily_quotas",
    "entry_name": "Region 5",
    "extent_text": null,
    "extents": [
@@ -2519,8 +2519,8 @@
   },
   {
    "dimension": "daily@water=stream",
-   "entry": "z5:species_quotas",
-   "entry_id": "z5:species_quotas",
+   "entry": "z5:daily_quotas",
+   "entry_id": "z5:daily_quotas",
    "entry_name": "Region 5",
    "extent_text": null,
    "extents": [
@@ -2554,8 +2554,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z5:species_quotas",
-   "entry_id": "z5:species_quotas",
+   "entry": "z5:daily_quotas",
+   "entry_id": "z5:daily_quotas",
    "entry_name": "Region 5",
    "extent_text": null,
    "extents": [
@@ -2634,8 +2634,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z5:trout_char_quota",
-   "entry_id": "z5:trout_char_quota",
+   "entry": "z5:daily_quotas",
+   "entry_id": "z5:daily_quotas",
    "entry_name": "Region 5",
    "extent_text": null,
    "extents": [
@@ -2665,8 +2665,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z5:trout_char_quota",
-   "entry_id": "z5:trout_char_quota",
+   "entry": "z5:daily_quotas",
+   "entry_id": "z5:daily_quotas",
    "entry_name": "Region 5",
    "extent_text": null,
    "extents": [
@@ -2702,8 +2702,8 @@
   },
   {
    "dimension": "daily@water=stream",
-   "entry": "z5:trout_char_quota",
-   "entry_id": "z5:trout_char_quota",
+   "entry": "z5:daily_quotas",
+   "entry_id": "z5:daily_quotas",
    "entry_name": "Region 5",
    "extent_text": null,
    "extents": [
@@ -2738,8 +2738,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z5:trout_char_quota",
-   "entry_id": "z5:trout_char_quota",
+   "entry": "z5:daily_quotas",
+   "entry_id": "z5:daily_quotas",
    "entry_name": "Region 5",
    "extent_text": null,
    "extents": [
@@ -2770,8 +2770,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z5:trout_char_quota",
-   "entry_id": "z5:trout_char_quota",
+   "entry": "z5:daily_quotas",
+   "entry_id": "z5:daily_quotas",
    "entry_name": "Region 5",
    "extent_text": null,
    "extents": [
@@ -2802,8 +2802,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z5:trout_char_quota",
-   "entry_id": "z5:trout_char_quota",
+   "entry": "z5:daily_quotas",
+   "entry_id": "z5:daily_quotas",
    "entry_name": "Region 5",
    "extent_text": null,
    "extents": [
@@ -2836,8 +2836,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z5:trout_char_quota",
-   "entry_id": "z5:trout_char_quota",
+   "entry": "z5:daily_quotas",
+   "entry_id": "z5:daily_quotas",
    "entry_name": "Region 5",
    "extent_text": null,
    "extents": [
@@ -2877,8 +2877,8 @@
   },
   {
    "dimension": "daily@water=stream",
-   "entry": "z5:trout_char_quota",
-   "entry_id": "z5:trout_char_quota",
+   "entry": "z5:daily_quotas",
+   "entry_id": "z5:daily_quotas",
    "entry_name": "Region 5",
    "extent_text": null,
    "extents": [
@@ -3346,8 +3346,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z6:species_quotas",
-   "entry_id": "z6:species_quotas",
+   "entry": "z6:daily_quotas",
+   "entry_id": "z6:daily_quotas",
    "entry_name": "Region 6",
    "extent_text": null,
    "extents": [
@@ -3377,8 +3377,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z6:species_quotas",
-   "entry_id": "z6:species_quotas",
+   "entry": "z6:daily_quotas",
+   "entry_id": "z6:daily_quotas",
    "entry_name": "Region 6",
    "extent_text": null,
    "extents": [
@@ -3408,8 +3408,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z6:species_quotas",
-   "entry_id": "z6:species_quotas",
+   "entry": "z6:daily_quotas",
+   "entry_id": "z6:daily_quotas",
    "entry_name": "Region 6",
    "extent_text": null,
    "extents": [
@@ -3439,8 +3439,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z6:species_quotas",
-   "entry_id": "z6:species_quotas",
+   "entry": "z6:daily_quotas",
+   "entry_id": "z6:daily_quotas",
    "entry_name": "Region 6",
    "extent_text": null,
    "extents": [
@@ -3470,8 +3470,8 @@
   },
   {
    "dimension": "daily@water=stream",
-   "entry": "z6:species_quotas",
-   "entry_id": "z6:species_quotas",
+   "entry": "z6:daily_quotas",
+   "entry_id": "z6:daily_quotas",
    "entry_name": "Region 6",
    "extent_text": null,
    "extents": [
@@ -3505,8 +3505,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z6:species_quotas",
-   "entry_id": "z6:species_quotas",
+   "entry": "z6:daily_quotas",
+   "entry_id": "z6:daily_quotas",
    "entry_name": "Region 6",
    "extent_text": null,
    "extents": [
@@ -3536,8 +3536,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z6:species_quotas",
-   "entry_id": "z6:species_quotas",
+   "entry": "z6:daily_quotas",
+   "entry_id": "z6:daily_quotas",
    "entry_name": "Region 6",
    "extent_text": null,
    "extents": [
@@ -3567,8 +3567,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z6:species_quotas",
-   "entry_id": "z6:species_quotas",
+   "entry": "z6:daily_quotas",
+   "entry_id": "z6:daily_quotas",
    "entry_name": "Region 6",
    "extent_text": null,
    "extents": [
@@ -3730,8 +3730,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z6:trout_char_quota",
-   "entry_id": "z6:trout_char_quota",
+   "entry": "z6:daily_quotas",
+   "entry_id": "z6:daily_quotas",
    "entry_name": "Region 6",
    "extent_text": null,
    "extents": [
@@ -3761,8 +3761,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z6:trout_char_quota",
-   "entry_id": "z6:trout_char_quota",
+   "entry": "z6:daily_quotas",
+   "entry_id": "z6:daily_quotas",
    "entry_name": "Region 6",
    "extent_text": null,
    "extents": [
@@ -3798,8 +3798,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z6:trout_char_quota",
-   "entry_id": "z6:trout_char_quota",
+   "entry": "z6:daily_quotas",
+   "entry_id": "z6:daily_quotas",
    "entry_name": "Region 6",
    "extent_text": null,
    "extents": [
@@ -3831,8 +3831,8 @@
   },
   {
    "dimension": "daily@water=stream",
-   "entry": "z6:trout_char_quota",
-   "entry_id": "z6:trout_char_quota",
+   "entry": "z6:daily_quotas",
+   "entry_id": "z6:daily_quotas",
    "entry_name": "Region 6",
    "extent_text": null,
    "extents": [
@@ -3879,8 +3879,8 @@
   },
   {
    "dimension": "daily@water=stream",
-   "entry": "z6:trout_char_quota",
-   "entry_id": "z6:trout_char_quota",
+   "entry": "z6:daily_quotas",
+   "entry_id": "z6:daily_quotas",
    "entry_name": "Region 6",
    "extent_text": null,
    "extents": [
@@ -3914,8 +3914,8 @@
   },
   {
    "dimension": "daily/size@water=stream",
-   "entry": "z6:trout_char_quota",
-   "entry_id": "z6:trout_char_quota",
+   "entry": "z6:daily_quotas",
+   "entry_id": "z6:daily_quotas",
    "entry_name": "Region 6",
    "extent_text": null,
    "extents": [
@@ -3955,8 +3955,8 @@
   },
   {
    "dimension": "daily@water=stream",
-   "entry": "z6:trout_char_quota",
-   "entry_id": "z6:trout_char_quota",
+   "entry": "z6:daily_quotas",
+   "entry_id": "z6:daily_quotas",
    "entry_name": "Region 6",
    "extent_text": null,
    "extents": [
@@ -4002,8 +4002,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z6:trout_char_quota",
-   "entry_id": "z6:trout_char_quota",
+   "entry": "z6:daily_quotas",
+   "entry_id": "z6:daily_quotas",
    "entry_name": "Region 6",
    "extent_text": "Fraser and Skeena watersheds in Region 6",
    "extents": [
@@ -4049,8 +4049,8 @@
   },
   {
    "dimension": "daily@origin=wild",
-   "entry": "z6:trout_char_quota",
-   "entry_id": "z6:trout_char_quota",
+   "entry": "z6:daily_quotas",
+   "entry_id": "z6:daily_quotas",
    "entry_name": "Region 6",
    "extent_text": null,
    "extents": [
@@ -4293,8 +4293,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z7a:species_quotas",
-   "entry_id": "z7a:species_quotas",
+   "entry": "z7a:daily_quotas",
+   "entry_id": "z7a:daily_quotas",
    "entry_name": "Zone A",
    "extent_text": null,
    "extents": [
@@ -4324,8 +4324,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z7a:species_quotas",
-   "entry_id": "z7a:species_quotas",
+   "entry": "z7a:daily_quotas",
+   "entry_id": "z7a:daily_quotas",
    "entry_name": "Zone A",
    "extent_text": null,
    "extents": [
@@ -4355,8 +4355,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z7a:species_quotas",
-   "entry_id": "z7a:species_quotas",
+   "entry": "z7a:daily_quotas",
+   "entry_id": "z7a:daily_quotas",
    "entry_name": "Zone A",
    "extent_text": null,
    "extents": [
@@ -4386,8 +4386,8 @@
   },
   {
    "dimension": "daily@water=stream",
-   "entry": "z7a:species_quotas",
-   "entry_id": "z7a:species_quotas",
+   "entry": "z7a:daily_quotas",
+   "entry_id": "z7a:daily_quotas",
    "entry_name": "Zone A",
    "extent_text": null,
    "extents": [
@@ -4421,8 +4421,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z7a:species_quotas",
-   "entry_id": "z7a:species_quotas",
+   "entry": "z7a:daily_quotas",
+   "entry_id": "z7a:daily_quotas",
    "entry_name": "Zone A",
    "extent_text": null,
    "extents": [
@@ -4452,8 +4452,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z7a:species_quotas",
-   "entry_id": "z7a:species_quotas",
+   "entry": "z7a:daily_quotas",
+   "entry_id": "z7a:daily_quotas",
    "entry_name": "Zone A",
    "extent_text": null,
    "extents": [
@@ -4557,8 +4557,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z7a:trout_char_quota",
-   "entry_id": "z7a:trout_char_quota",
+   "entry": "z7a:daily_quotas",
+   "entry_id": "z7a:daily_quotas",
    "entry_name": "Zone A",
    "extent_text": null,
    "extents": [
@@ -4588,8 +4588,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z7a:trout_char_quota",
-   "entry_id": "z7a:trout_char_quota",
+   "entry": "z7a:daily_quotas",
+   "entry_id": "z7a:daily_quotas",
    "entry_name": "Zone A",
    "extent_text": null,
    "extents": [
@@ -4625,8 +4625,8 @@
   },
   {
    "dimension": "daily@water=stream",
-   "entry": "z7a:trout_char_quota",
-   "entry_id": "z7a:trout_char_quota",
+   "entry": "z7a:daily_quotas",
+   "entry_id": "z7a:daily_quotas",
    "entry_name": "Zone A",
    "extent_text": null,
    "extents": [
@@ -4661,8 +4661,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z7a:trout_char_quota",
-   "entry_id": "z7a:trout_char_quota",
+   "entry": "z7a:daily_quotas",
+   "entry_id": "z7a:daily_quotas",
    "entry_name": "Zone A",
    "extent_text": null,
    "extents": [
@@ -4693,8 +4693,8 @@
   },
   {
    "dimension": "daily@water=stream",
-   "entry": "z7a:trout_char_quota",
-   "entry_id": "z7a:trout_char_quota",
+   "entry": "z7a:daily_quotas",
+   "entry_id": "z7a:daily_quotas",
    "entry_name": "Zone A",
    "extent_text": null,
    "extents": [
@@ -4728,8 +4728,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z7a:trout_char_quota",
-   "entry_id": "z7a:trout_char_quota",
+   "entry": "z7a:daily_quotas",
+   "entry_id": "z7a:daily_quotas",
    "entry_name": "Zone A",
    "extent_text": null,
    "extents": [
@@ -4769,8 +4769,8 @@
   },
   {
    "dimension": "daily/size",
-   "entry": "z7a:trout_char_quota",
-   "entry_id": "z7a:trout_char_quota",
+   "entry": "z7a:daily_quotas",
+   "entry_id": "z7a:daily_quotas",
    "entry_name": "Zone A",
    "extent_text": null,
    "extents": [
@@ -4806,8 +4806,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z7b:arctic_grayling",
-   "entry_id": "z7b:arctic_grayling",
+   "entry": "z7b:daily_quotas",
+   "entry_id": "z7b:daily_quotas",
    "entry_name": "Zone B",
    "extent_text": null,
    "extents": [
@@ -4837,8 +4837,8 @@
   },
   {
    "dimension": "daily/size",
-   "entry": "z7b:arctic_grayling",
-   "entry_id": "z7b:arctic_grayling",
+   "entry": "z7b:daily_quotas",
+   "entry_id": "z7b:daily_quotas",
    "entry_name": "Zone B",
    "extent_text": null,
    "extents": [
@@ -4874,8 +4874,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z7b:arctic_grayling",
-   "entry_id": "z7b:arctic_grayling",
+   "entry": "z7b:daily_quotas",
+   "entry_id": "z7b:daily_quotas",
    "entry_name": "Zone B",
    "extent_text": null,
    "extents": [
@@ -4911,8 +4911,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z7b:arctic_grayling",
-   "entry_id": "z7b:arctic_grayling",
+   "entry": "z7b:daily_quotas",
+   "entry_id": "z7b:daily_quotas",
    "entry_name": "Zone B",
    "extent_text": null,
    "extents": [
@@ -5296,8 +5296,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z7b:species_quotas",
-   "entry_id": "z7b:species_quotas",
+   "entry": "z7b:daily_quotas",
+   "entry_id": "z7b:daily_quotas",
    "entry_name": "Zone B",
    "extent_text": null,
    "extents": [
@@ -5327,8 +5327,8 @@
   },
   {
    "dimension": "daily@water=stream",
-   "entry": "z7b:species_quotas",
-   "entry_id": "z7b:species_quotas",
+   "entry": "z7b:daily_quotas",
+   "entry_id": "z7b:daily_quotas",
    "entry_name": "Zone B",
    "extent_text": null,
    "extents": [
@@ -5372,8 +5372,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z7b:species_quotas",
-   "entry_id": "z7b:species_quotas",
+   "entry": "z7b:daily_quotas",
+   "entry_id": "z7b:daily_quotas",
    "entry_name": "Zone B",
    "extent_text": null,
    "extents": [
@@ -5403,8 +5403,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z7b:species_quotas",
-   "entry_id": "z7b:species_quotas",
+   "entry": "z7b:daily_quotas",
+   "entry_id": "z7b:daily_quotas",
    "entry_name": "Zone B",
    "extent_text": null,
    "extents": [
@@ -5434,8 +5434,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z7b:species_quotas",
-   "entry_id": "z7b:species_quotas",
+   "entry": "z7b:daily_quotas",
+   "entry_id": "z7b:daily_quotas",
    "entry_name": "Zone B",
    "extent_text": null,
    "extents": [
@@ -5465,8 +5465,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z7b:species_quotas",
-   "entry_id": "z7b:species_quotas",
+   "entry": "z7b:daily_quotas",
+   "entry_id": "z7b:daily_quotas",
    "entry_name": "Zone B",
    "extent_text": null,
    "extents": [
@@ -5496,8 +5496,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z7b:species_quotas",
-   "entry_id": "z7b:species_quotas",
+   "entry": "z7b:daily_quotas",
+   "entry_id": "z7b:daily_quotas",
    "entry_name": "Zone B",
    "extent_text": null,
    "extents": [
@@ -5527,8 +5527,8 @@
   },
   {
    "dimension": "daily@water=stream",
-   "entry": "z7b:species_quotas",
-   "entry_id": "z7b:species_quotas",
+   "entry": "z7b:daily_quotas",
+   "entry_id": "z7b:daily_quotas",
    "entry_name": "Zone B",
    "extent_text": null,
    "extents": [
@@ -5562,8 +5562,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z7b:species_quotas",
-   "entry_id": "z7b:species_quotas",
+   "entry": "z7b:daily_quotas",
+   "entry_id": "z7b:daily_quotas",
    "entry_name": "Zone B",
    "extent_text": null,
    "extents": [
@@ -5593,8 +5593,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z7b:species_quotas",
-   "entry_id": "z7b:species_quotas",
+   "entry": "z7b:daily_quotas",
+   "entry_id": "z7b:daily_quotas",
    "entry_name": "Zone B",
    "extent_text": null,
    "extents": [
@@ -5630,8 +5630,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z7b:species_quotas",
-   "entry_id": "z7b:species_quotas",
+   "entry": "z7b:daily_quotas",
+   "entry_id": "z7b:daily_quotas",
    "entry_name": "Zone B",
    "extent_text": null,
    "extents": [
@@ -5661,8 +5661,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z7b:species_quotas",
-   "entry_id": "z7b:species_quotas",
+   "entry": "z7b:daily_quotas",
+   "entry_id": "z7b:daily_quotas",
    "entry_name": "Zone B",
    "extent_text": null,
    "extents": [
@@ -5698,8 +5698,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z7b:trout_char_quota",
-   "entry_id": "z7b:trout_char_quota",
+   "entry": "z7b:daily_quotas",
+   "entry_id": "z7b:daily_quotas",
    "entry_name": "Zone B",
    "extent_text": null,
    "extents": [
@@ -5729,8 +5729,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z7b:trout_char_quota",
-   "entry_id": "z7b:trout_char_quota",
+   "entry": "z7b:daily_quotas",
+   "entry_id": "z7b:daily_quotas",
    "entry_name": "Zone B",
    "extent_text": null,
    "extents": [
@@ -5760,8 +5760,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z7b:trout_char_quota",
-   "entry_id": "z7b:trout_char_quota",
+   "entry": "z7b:daily_quotas",
+   "entry_id": "z7b:daily_quotas",
    "entry_name": "Zone B",
    "extent_text": null,
    "extents": [
@@ -5797,8 +5797,8 @@
   },
   {
    "dimension": "daily@water=stream",
-   "entry": "z7b:trout_char_quota",
-   "entry_id": "z7b:trout_char_quota",
+   "entry": "z7b:daily_quotas",
+   "entry_id": "z7b:daily_quotas",
    "entry_name": "Zone B",
    "extent_text": null,
    "extents": [
@@ -5833,8 +5833,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z7b:trout_char_quota",
-   "entry_id": "z7b:trout_char_quota",
+   "entry": "z7b:daily_quotas",
+   "entry_id": "z7b:daily_quotas",
    "entry_name": "Zone B",
    "extent_text": null,
    "extents": [
@@ -5865,8 +5865,8 @@
   },
   {
    "dimension": "daily@water=stream",
-   "entry": "z7b:trout_char_quota",
-   "entry_id": "z7b:trout_char_quota",
+   "entry": "z7b:daily_quotas",
+   "entry_id": "z7b:daily_quotas",
    "entry_name": "Zone B",
    "extent_text": null,
    "extents": [
@@ -5910,8 +5910,8 @@
   },
   {
    "dimension": "daily/size",
-   "entry": "z7b:trout_char_quota",
-   "entry_id": "z7b:trout_char_quota",
+   "entry": "z7b:daily_quotas",
+   "entry_id": "z7b:daily_quotas",
    "entry_name": "Zone B",
    "extent_text": null,
    "extents": [
@@ -5947,8 +5947,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z7b:trout_char_quota",
-   "entry_id": "z7b:trout_char_quota",
+   "entry": "z7b:daily_quotas",
+   "entry_id": "z7b:daily_quotas",
    "entry_name": "Zone B",
    "extent_text": null,
    "extents": [
@@ -6093,8 +6093,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z8:species_quotas",
-   "entry_id": "z8:species_quotas",
+   "entry": "z8:daily_quotas",
+   "entry_id": "z8:daily_quotas",
    "entry_name": "Region 8",
    "extent_text": null,
    "extents": [
@@ -6124,8 +6124,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z8:species_quotas",
-   "entry_id": "z8:species_quotas",
+   "entry": "z8:daily_quotas",
+   "entry_id": "z8:daily_quotas",
    "entry_name": "Region 8",
    "extent_text": null,
    "extents": [
@@ -6155,8 +6155,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z8:species_quotas",
-   "entry_id": "z8:species_quotas",
+   "entry": "z8:daily_quotas",
+   "entry_id": "z8:daily_quotas",
    "entry_name": "Region 8",
    "extent_text": null,
    "extents": [
@@ -6186,8 +6186,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z8:species_quotas",
-   "entry_id": "z8:species_quotas",
+   "entry": "z8:daily_quotas",
+   "entry_id": "z8:daily_quotas",
    "entry_name": "Region 8",
    "extent_text": null,
    "extents": [
@@ -6217,8 +6217,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z8:species_quotas",
-   "entry_id": "z8:species_quotas",
+   "entry": "z8:daily_quotas",
+   "entry_id": "z8:daily_quotas",
    "entry_name": "Region 8",
    "extent_text": null,
    "extents": [
@@ -6248,8 +6248,8 @@
   },
   {
    "dimension": "daily@water=stream",
-   "entry": "z8:species_quotas",
-   "entry_id": "z8:species_quotas",
+   "entry": "z8:daily_quotas",
+   "entry_id": "z8:daily_quotas",
    "entry_name": "Region 8",
    "extent_text": null,
    "extents": [
@@ -6283,8 +6283,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z8:species_quotas",
-   "entry_id": "z8:species_quotas",
+   "entry": "z8:daily_quotas",
+   "entry_id": "z8:daily_quotas",
    "entry_name": "Region 8",
    "extent_text": null,
    "extents": [
@@ -6314,8 +6314,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z8:species_quotas",
-   "entry_id": "z8:species_quotas",
+   "entry": "z8:daily_quotas",
+   "entry_id": "z8:daily_quotas",
    "entry_name": "Region 8",
    "extent_text": null,
    "extents": [
@@ -6345,8 +6345,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z8:species_quotas",
-   "entry_id": "z8:species_quotas",
+   "entry": "z8:daily_quotas",
+   "entry_id": "z8:daily_quotas",
    "entry_name": "Region 8",
    "extent_text": null,
    "extents": [
@@ -6449,8 +6449,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z8:trout_char_quota",
-   "entry_id": "z8:trout_char_quota",
+   "entry": "z8:daily_quotas",
+   "entry_id": "z8:daily_quotas",
    "entry_name": "Region 8",
    "extent_text": null,
    "extents": [
@@ -6480,8 +6480,8 @@
   },
   {
    "dimension": "daily",
-   "entry": "z8:trout_char_quota",
-   "entry_id": "z8:trout_char_quota",
+   "entry": "z8:daily_quotas",
+   "entry_id": "z8:daily_quotas",
    "entry_name": "Region 8",
    "extent_text": null,
    "extents": [
@@ -6517,8 +6517,8 @@
   },
   {
    "dimension": "daily@water=stream",
-   "entry": "z8:trout_char_quota",
-   "entry_id": "z8:trout_char_quota",
+   "entry": "z8:daily_quotas",
+   "entry_id": "z8:daily_quotas",
    "entry_name": "Region 8",
    "extent_text": null,
    "extents": [
@@ -6553,8 +6553,8 @@
   },
   {
    "dimension": "daily@water=stream",
-   "entry": "z8:trout_char_quota",
-   "entry_id": "z8:trout_char_quota",
+   "entry": "z8:daily_quotas",
+   "entry_id": "z8:daily_quotas",
    "entry_name": "Region 8",
    "extent_text": null,
    "extents": [
@@ -6594,12 +6594,12 @@
   },
   {
    "dimension": "daily@water=stream",
-   "entry": "z8:trout_char_quota",
-   "entry_id": "z8:trout_char_quota",
+   "entry": "z8:daily_quotas",
+   "entry_id": "z8:daily_quotas",
    "entry_name": "Region 8",
    "exempts": [
     {
-     "entry_id": "z8:trout_char_quota",
+     "entry_id": "z8:daily_quotas",
      "note": "And you may retain: 20 brook trout from streams \u2014 counted apart from the trout/char quota",
      "rule_id": "trout_char_quota.r1",
      "species": [
@@ -6607,7 +6607,7 @@
      ]
     },
     {
-     "entry_id": "z8:trout_char_quota",
+     "entry_id": "z8:daily_quotas",
      "note": "And you may retain: 20 brook trout from streams \u2014 counted apart from the trout/char quota",
      "rule_id": "trout_char_quota.r2",
      "species": [
@@ -6615,7 +6615,7 @@
      ]
     },
     {
-     "entry_id": "z8:trout_char_quota",
+     "entry_id": "z8:daily_quotas",
      "note": "And you may retain: 20 brook trout from streams \u2014 counted apart from the trout/char quota",
      "rule_id": "trout_char_quota.r3",
      "species": [
@@ -6623,7 +6623,7 @@
      ]
     },
     {
-     "entry_id": "z8:trout_char_quota",
+     "entry_id": "z8:daily_quotas",
      "note": "And you may retain: 20 brook trout from streams \u2014 counted apart from the trout/char quota",
      "rule_id": "trout_char_quota.r4",
      "species": [
@@ -6663,8 +6663,8 @@
   },
   {
    "dimension": "daily@water=stream",
-   "entry": "z8:trout_char_quota",
-   "entry_id": "z8:trout_char_quota",
+   "entry": "z8:daily_quotas",
+   "entry_id": "z8:daily_quotas",
    "entry_name": "Region 8",
    "extent_text": null,
    "extents": [
@@ -9439,42 +9439,42 @@
      "reach"
     ],
     [
-     "z6:species_quotas",
+     "z6:daily_quotas",
      "species_quotas.r1",
      "reach"
     ],
     [
-     "z6:species_quotas",
+     "z6:daily_quotas",
      "species_quotas.r2",
      "reach"
     ],
     [
-     "z6:species_quotas",
+     "z6:daily_quotas",
      "species_quotas.r3",
      "reach"
     ],
     [
-     "z6:species_quotas",
+     "z6:daily_quotas",
      "species_quotas.r4",
      "reach"
     ],
     [
-     "z6:species_quotas",
+     "z6:daily_quotas",
      "species_quotas.r5",
      "reach"
     ],
     [
-     "z6:species_quotas",
+     "z6:daily_quotas",
      "species_quotas.r6",
      "reach"
     ],
     [
-     "z6:species_quotas",
+     "z6:daily_quotas",
      "species_quotas.r7",
      "reach"
     ],
     [
-     "z6:species_quotas",
+     "z6:daily_quotas",
      "species_quotas.r8",
      "reach"
     ],
@@ -9499,47 +9499,47 @@
      "reach"
     ],
     [
-     "z6:trout_char_quota",
+     "z6:daily_quotas",
      "trout_char_quota.r1",
      "reach"
     ],
     [
-     "z6:trout_char_quota",
+     "z6:daily_quotas",
      "trout_char_quota.r2",
      "reach"
     ],
     [
-     "z6:trout_char_quota",
+     "z6:daily_quotas",
      "trout_char_quota.r3",
      "reach"
     ],
     [
-     "z6:trout_char_quota",
+     "z6:daily_quotas",
      "trout_char_quota.r4",
      "reach"
     ],
     [
-     "z6:trout_char_quota",
+     "z6:daily_quotas",
      "trout_char_quota.r5",
      "reach"
     ],
     [
-     "z6:trout_char_quota",
+     "z6:daily_quotas",
      "trout_char_quota.r6",
      "reach"
     ],
     [
-     "z6:trout_char_quota",
+     "z6:daily_quotas",
      "trout_char_quota.r7",
      "reach"
     ],
     [
-     "z6:trout_char_quota",
+     "z6:daily_quotas",
      "trout_char_quota.r8",
      "reach"
     ],
     [
-     "z6:trout_char_quota",
+     "z6:daily_quotas",
      "trout_char_quota.r9",
      "reach"
     ],
@@ -9574,32 +9574,32 @@
      "reach"
     ],
     [
-     "z7a:species_quotas",
+     "z7a:daily_quotas",
      "species_quotas.r1",
      "reach"
     ],
     [
-     "z7a:species_quotas",
+     "z7a:daily_quotas",
      "species_quotas.r2",
      "reach"
     ],
     [
-     "z7a:species_quotas",
+     "z7a:daily_quotas",
      "species_quotas.r3",
      "reach"
     ],
     [
-     "z7a:species_quotas",
+     "z7a:daily_quotas",
      "species_quotas.r4",
      "reach"
     ],
     [
-     "z7a:species_quotas",
+     "z7a:daily_quotas",
      "species_quotas.r5",
      "reach"
     ],
     [
-     "z7a:species_quotas",
+     "z7a:daily_quotas",
      "species_quotas.r6",
      "reach"
     ],
@@ -9614,37 +9614,37 @@
      "reach"
     ],
     [
-     "z7a:trout_char_quota",
+     "z7a:daily_quotas",
      "trout_char_quota.r1",
      "reach"
     ],
     [
-     "z7a:trout_char_quota",
+     "z7a:daily_quotas",
      "trout_char_quota.r2",
      "reach"
     ],
     [
-     "z7a:trout_char_quota",
+     "z7a:daily_quotas",
      "trout_char_quota.r3",
      "reach"
     ],
     [
-     "z7a:trout_char_quota",
+     "z7a:daily_quotas",
      "trout_char_quota.r4",
      "reach"
     ],
     [
-     "z7a:trout_char_quota",
+     "z7a:daily_quotas",
      "trout_char_quota.r6",
      "reach"
     ],
     [
-     "z7a:trout_char_quota",
+     "z7a:daily_quotas",
      "trout_char_quota.r8",
      "reach"
     ],
     [
-     "z7a:trout_char_quota",
+     "z7a:daily_quotas",
      "trout_char_quota.r9",
      "reach"
     ],
@@ -10069,42 +10069,42 @@
      "reach"
     ],
     [
-     "z6:species_quotas",
+     "z6:daily_quotas",
      "species_quotas.r1",
      "reach"
     ],
     [
-     "z6:species_quotas",
+     "z6:daily_quotas",
      "species_quotas.r2",
      "reach"
     ],
     [
-     "z6:species_quotas",
+     "z6:daily_quotas",
      "species_quotas.r3",
      "reach"
     ],
     [
-     "z6:species_quotas",
+     "z6:daily_quotas",
      "species_quotas.r4",
      "reach"
     ],
     [
-     "z6:species_quotas",
+     "z6:daily_quotas",
      "species_quotas.r5",
      "reach"
     ],
     [
-     "z6:species_quotas",
+     "z6:daily_quotas",
      "species_quotas.r6",
      "reach"
     ],
     [
-     "z6:species_quotas",
+     "z6:daily_quotas",
      "species_quotas.r7",
      "reach"
     ],
     [
-     "z6:species_quotas",
+     "z6:daily_quotas",
      "species_quotas.r8",
      "reach"
     ],
@@ -10129,62 +10129,62 @@
      "reach"
     ],
     [
-     "z6:trout_char_quota",
+     "z6:daily_quotas",
      "trout_char_quota.r1",
      "reach"
     ],
     [
-     "z6:trout_char_quota",
+     "z6:daily_quotas",
      "trout_char_quota.r2",
      "reach"
     ],
     [
-     "z6:trout_char_quota",
+     "z6:daily_quotas",
      "trout_char_quota.r3",
      "reach"
     ],
     [
-     "z6:trout_char_quota",
+     "z6:daily_quotas",
      "trout_char_quota.r4",
      "reach"
     ],
     [
-     "z6:trout_char_quota",
+     "z6:daily_quotas",
      "trout_char_quota.r5",
      "reach"
     ],
     [
-     "z6:trout_char_quota",
+     "z6:daily_quotas",
      "trout_char_quota.r6",
      "reach"
     ],
     [
-     "z6:trout_char_quota",
+     "z6:daily_quotas",
      "trout_char_quota.r7",
      "reach"
     ],
     [
-     "z6:trout_char_quota",
+     "z6:daily_quotas",
      "trout_char_quota.r9",
      "reach"
     ],
     [
-     "z7b:arctic_grayling",
+     "z7b:daily_quotas",
      "arctic_grayling.r1",
      "reach"
     ],
     [
-     "z7b:arctic_grayling",
+     "z7b:daily_quotas",
      "arctic_grayling.r2",
      "reach"
     ],
     [
-     "z7b:arctic_grayling",
+     "z7b:daily_quotas",
      "arctic_grayling.r3",
      "reach"
     ],
     [
-     "z7b:arctic_grayling",
+     "z7b:daily_quotas",
      "arctic_grayling.r4",
      "reach"
     ],
@@ -10239,102 +10239,102 @@
      "reach"
     ],
     [
-     "z7b:species_quotas",
+     "z7b:daily_quotas",
      "species_quotas.r1",
      "reach"
     ],
     [
-     "z7b:species_quotas",
+     "z7b:daily_quotas",
      "species_quotas.r10",
      "reach"
     ],
     [
-     "z7b:species_quotas",
+     "z7b:daily_quotas",
      "species_quotas.r11",
      "reach"
     ],
     [
-     "z7b:species_quotas",
+     "z7b:daily_quotas",
      "species_quotas.r12",
      "reach"
     ],
     [
-     "z7b:species_quotas",
+     "z7b:daily_quotas",
      "species_quotas.r2",
      "reach"
     ],
     [
-     "z7b:species_quotas",
+     "z7b:daily_quotas",
      "species_quotas.r3",
      "reach"
     ],
     [
-     "z7b:species_quotas",
+     "z7b:daily_quotas",
      "species_quotas.r4",
      "reach"
     ],
     [
-     "z7b:species_quotas",
+     "z7b:daily_quotas",
      "species_quotas.r5",
      "reach"
     ],
     [
-     "z7b:species_quotas",
+     "z7b:daily_quotas",
      "species_quotas.r6",
      "reach"
     ],
     [
-     "z7b:species_quotas",
+     "z7b:daily_quotas",
      "species_quotas.r7",
      "reach"
     ],
     [
-     "z7b:species_quotas",
+     "z7b:daily_quotas",
      "species_quotas.r8",
      "reach"
     ],
     [
-     "z7b:species_quotas",
+     "z7b:daily_quotas",
      "species_quotas.r9",
      "reach"
     ],
     [
-     "z7b:trout_char_quota",
+     "z7b:daily_quotas",
      "trout_char_quota.r1",
      "reach"
     ],
     [
-     "z7b:trout_char_quota",
+     "z7b:daily_quotas",
      "trout_char_quota.r10",
      "reach"
     ],
     [
-     "z7b:trout_char_quota",
+     "z7b:daily_quotas",
      "trout_char_quota.r2",
      "reach"
     ],
     [
-     "z7b:trout_char_quota",
+     "z7b:daily_quotas",
      "trout_char_quota.r3",
      "reach"
     ],
     [
-     "z7b:trout_char_quota",
+     "z7b:daily_quotas",
      "trout_char_quota.r4",
      "reach"
     ],
     [
-     "z7b:trout_char_quota",
+     "z7b:daily_quotas",
      "trout_char_quota.r6",
      "reach"
     ],
     [
-     "z7b:trout_char_quota",
+     "z7b:daily_quotas",
      "trout_char_quota.r7",
      "reach"
     ],
     [
-     "z7b:trout_char_quota",
+     "z7b:daily_quotas",
      "trout_char_quota.r8",
      "reach"
     ],
@@ -10739,87 +10739,87 @@
      "reach"
     ],
     [
-     "z2:species_quotas",
+     "z2:daily_quotas",
      "species_quotas.r1",
      "reach"
     ],
     [
-     "z2:species_quotas",
+     "z2:daily_quotas",
      "species_quotas.r2",
      "reach"
     ],
     [
-     "z2:species_quotas",
+     "z2:daily_quotas",
      "species_quotas.r3",
      "reach"
     ],
     [
-     "z2:species_quotas",
+     "z2:daily_quotas",
      "species_quotas.r4",
      "reach"
     ],
     [
-     "z2:species_quotas",
+     "z2:daily_quotas",
      "species_quotas.r5",
      "reach"
     ],
     [
-     "z2:species_quotas",
+     "z2:daily_quotas",
      "species_quotas.r6",
      "reach"
     ],
     [
-     "z2:species_quotas",
+     "z2:daily_quotas",
      "species_quotas.r7",
      "reach"
     ],
     [
-     "z2:trout_char_quota",
+     "z2:daily_quotas",
      "trout_char_quota.r1",
      "reach"
     ],
     [
-     "z2:trout_char_quota",
+     "z2:daily_quotas",
      "trout_char_quota.r2",
      "reach"
     ],
     [
-     "z2:trout_char_quota",
+     "z2:daily_quotas",
      "trout_char_quota.r2b",
      "reach"
     ],
     [
-     "z2:trout_char_quota",
+     "z2:daily_quotas",
      "trout_char_quota.r3",
      "reach"
     ],
     [
-     "z2:trout_char_quota",
+     "z2:daily_quotas",
      "trout_char_quota.r4",
      "reach"
     ],
     [
-     "z2:trout_char_quota",
+     "z2:daily_quotas",
      "trout_char_quota.r5",
      "reach"
     ],
     [
-     "z2:trout_char_quota",
+     "z2:daily_quotas",
      "trout_char_quota.r5b",
      "reach"
     ],
     [
-     "z2:trout_char_quota",
+     "z2:daily_quotas",
      "trout_char_quota.r6",
      "reach"
     ],
     [
-     "z2:trout_char_quota",
+     "z2:daily_quotas",
      "trout_char_quota.r7",
      "reach"
     ],
     [
-     "z2:trout_char_quota",
+     "z2:daily_quotas",
      "trout_char_quota.r8",
      "reach"
     ],
@@ -10839,47 +10839,47 @@
      "reach"
     ],
     [
-     "z8:species_quotas",
+     "z8:daily_quotas",
      "species_quotas.r1",
      "reach"
     ],
     [
-     "z8:species_quotas",
+     "z8:daily_quotas",
      "species_quotas.r2",
      "reach"
     ],
     [
-     "z8:species_quotas",
+     "z8:daily_quotas",
      "species_quotas.r3",
      "reach"
     ],
     [
-     "z8:species_quotas",
+     "z8:daily_quotas",
      "species_quotas.r4",
      "reach"
     ],
     [
-     "z8:species_quotas",
+     "z8:daily_quotas",
      "species_quotas.r5",
      "reach"
     ],
     [
-     "z8:species_quotas",
+     "z8:daily_quotas",
      "species_quotas.r6",
      "reach"
     ],
     [
-     "z8:species_quotas",
+     "z8:daily_quotas",
      "species_quotas.r7",
      "reach"
     ],
     [
-     "z8:species_quotas",
+     "z8:daily_quotas",
      "species_quotas.r8",
      "reach"
     ],
     [
-     "z8:species_quotas",
+     "z8:daily_quotas",
      "species_quotas.r9",
      "reach"
     ],
@@ -10894,32 +10894,32 @@
      "reach"
     ],
     [
-     "z8:trout_char_quota",
+     "z8:daily_quotas",
      "trout_char_quota.r1",
      "reach"
     ],
     [
-     "z8:trout_char_quota",
+     "z8:daily_quotas",
      "trout_char_quota.r2",
      "reach"
     ],
     [
-     "z8:trout_char_quota",
+     "z8:daily_quotas",
      "trout_char_quota.r3",
      "reach"
     ],
     [
-     "z8:trout_char_quota",
+     "z8:daily_quotas",
      "trout_char_quota.r4",
      "reach"
     ],
     [
-     "z8:trout_char_quota",
+     "z8:daily_quotas",
      "trout_char_quota.r5",
      "reach"
     ],
     [
-     "z8:trout_char_quota",
+     "z8:daily_quotas",
      "trout_char_quota.r6",
      "reach"
     ],
@@ -11354,42 +11354,42 @@
      "reach"
     ],
     [
-     "z3:species_quotas",
+     "z3:daily_quotas",
      "species_quotas.r1",
      "reach"
     ],
     [
-     "z3:species_quotas",
+     "z3:daily_quotas",
      "species_quotas.r2",
      "reach"
     ],
     [
-     "z3:species_quotas",
+     "z3:daily_quotas",
      "species_quotas.r3",
      "reach"
     ],
     [
-     "z3:species_quotas",
+     "z3:daily_quotas",
      "species_quotas.r4",
      "reach"
     ],
     [
-     "z3:species_quotas",
+     "z3:daily_quotas",
      "species_quotas.r5",
      "reach"
     ],
     [
-     "z3:species_quotas",
+     "z3:daily_quotas",
      "species_quotas.r6",
      "reach"
     ],
     [
-     "z3:species_quotas",
+     "z3:daily_quotas",
      "species_quotas.r7",
      "reach"
     ],
     [
-     "z3:species_quotas",
+     "z3:daily_quotas",
      "species_quotas.r8",
      "reach"
     ],
@@ -11399,42 +11399,42 @@
      "reach"
     ],
     [
-     "z3:trout_char_quota",
+     "z3:daily_quotas",
      "trout_char_quota.r1",
      "reach"
     ],
     [
-     "z3:trout_char_quota",
+     "z3:daily_quotas",
      "trout_char_quota.r2",
      "reach"
     ],
     [
-     "z3:trout_char_quota",
+     "z3:daily_quotas",
      "trout_char_quota.r3",
      "reach"
     ],
     [
-     "z3:trout_char_quota",
+     "z3:daily_quotas",
      "trout_char_quota.r4",
      "reach"
     ],
     [
-     "z3:trout_char_quota",
+     "z3:daily_quotas",
      "trout_char_quota.r4b",
      "reach"
     ],
     [
-     "z3:trout_char_quota",
+     "z3:daily_quotas",
      "trout_char_quota.r5",
      "reach"
     ],
     [
-     "z3:trout_char_quota",
+     "z3:daily_quotas",
      "trout_char_quota.r6",
      "reach"
     ],
     [
-     "z3:trout_char_quota",
+     "z3:daily_quotas",
      "trout_char_quota.r7",
      "reach"
     ],
@@ -11454,67 +11454,67 @@
      "reach"
     ],
     [
-     "z5:species_quotas",
+     "z5:daily_quotas",
      "species_quotas.r1",
      "reach"
     ],
     [
-     "z5:species_quotas",
+     "z5:daily_quotas",
      "species_quotas.r2",
      "reach"
     ],
     [
-     "z5:species_quotas",
+     "z5:daily_quotas",
      "species_quotas.r3",
      "reach"
     ],
     [
-     "z5:species_quotas",
+     "z5:daily_quotas",
      "species_quotas.r4",
      "reach"
     ],
     [
-     "z5:species_quotas",
+     "z5:daily_quotas",
      "species_quotas.r5",
      "reach"
     ],
     [
-     "z5:trout_char_quota",
+     "z5:daily_quotas",
      "trout_char_quota.r1",
      "reach"
     ],
     [
-     "z5:trout_char_quota",
+     "z5:daily_quotas",
      "trout_char_quota.r2",
      "reach"
     ],
     [
-     "z5:trout_char_quota",
+     "z5:daily_quotas",
      "trout_char_quota.r3",
      "reach"
     ],
     [
-     "z5:trout_char_quota",
+     "z5:daily_quotas",
      "trout_char_quota.r4",
      "reach"
     ],
     [
-     "z5:trout_char_quota",
+     "z5:daily_quotas",
      "trout_char_quota.r5",
      "reach"
     ],
     [
-     "z5:trout_char_quota",
+     "z5:daily_quotas",
      "trout_char_quota.r6",
      "reach"
     ],
     [
-     "z5:trout_char_quota",
+     "z5:daily_quotas",
      "trout_char_quota.r7",
      "reach"
     ],
     [
-     "z5:trout_char_quota",
+     "z5:daily_quotas",
      "trout_char_quota.r8",
      "reach"
     ],
@@ -11949,27 +11949,27 @@
      "reach"
     ],
     [
-     "z5:species_quotas",
+     "z5:daily_quotas",
      "species_quotas.r1",
      "reach"
     ],
     [
-     "z5:species_quotas",
+     "z5:daily_quotas",
      "species_quotas.r2",
      "reach"
     ],
     [
-     "z5:species_quotas",
+     "z5:daily_quotas",
      "species_quotas.r3",
      "reach"
     ],
     [
-     "z5:species_quotas",
+     "z5:daily_quotas",
      "species_quotas.r4",
      "reach"
     ],
     [
-     "z5:species_quotas",
+     "z5:daily_quotas",
      "species_quotas.r5",
      "reach"
     ],
@@ -11979,42 +11979,42 @@
      "reach"
     ],
     [
-     "z5:trout_char_quota",
+     "z5:daily_quotas",
      "trout_char_quota.r1",
      "reach"
     ],
     [
-     "z5:trout_char_quota",
+     "z5:daily_quotas",
      "trout_char_quota.r2",
      "reach"
     ],
     [
-     "z5:trout_char_quota",
+     "z5:daily_quotas",
      "trout_char_quota.r3",
      "reach"
     ],
     [
-     "z5:trout_char_quota",
+     "z5:daily_quotas",
      "trout_char_quota.r4",
      "reach"
     ],
     [
-     "z5:trout_char_quota",
+     "z5:daily_quotas",
      "trout_char_quota.r5",
      "reach"
     ],
     [
-     "z5:trout_char_quota",
+     "z5:daily_quotas",
      "trout_char_quota.r6",
      "reach"
     ],
     [
-     "z5:trout_char_quota",
+     "z5:daily_quotas",
      "trout_char_quota.r7",
      "reach"
     ],
     [
-     "z5:trout_char_quota",
+     "z5:daily_quotas",
      "trout_char_quota.r8",
      "reach"
     ],
@@ -12069,42 +12069,42 @@
      "reach"
     ],
     [
-     "z6:species_quotas",
+     "z6:daily_quotas",
      "species_quotas.r1",
      "reach"
     ],
     [
-     "z6:species_quotas",
+     "z6:daily_quotas",
      "species_quotas.r2",
      "reach"
     ],
     [
-     "z6:species_quotas",
+     "z6:daily_quotas",
      "species_quotas.r3",
      "reach"
     ],
     [
-     "z6:species_quotas",
+     "z6:daily_quotas",
      "species_quotas.r4",
      "reach"
     ],
     [
-     "z6:species_quotas",
+     "z6:daily_quotas",
      "species_quotas.r5",
      "reach"
     ],
     [
-     "z6:species_quotas",
+     "z6:daily_quotas",
      "species_quotas.r6",
      "reach"
     ],
     [
-     "z6:species_quotas",
+     "z6:daily_quotas",
      "species_quotas.r7",
      "reach"
     ],
     [
-     "z6:species_quotas",
+     "z6:daily_quotas",
      "species_quotas.r8",
      "reach"
     ],
@@ -12129,47 +12129,47 @@
      "reach"
     ],
     [
-     "z6:trout_char_quota",
+     "z6:daily_quotas",
      "trout_char_quota.r1",
      "reach"
     ],
     [
-     "z6:trout_char_quota",
+     "z6:daily_quotas",
      "trout_char_quota.r2",
      "reach"
     ],
     [
-     "z6:trout_char_quota",
+     "z6:daily_quotas",
      "trout_char_quota.r3",
      "reach"
     ],
     [
-     "z6:trout_char_quota",
+     "z6:daily_quotas",
      "trout_char_quota.r4",
      "reach"
     ],
     [
-     "z6:trout_char_quota",
+     "z6:daily_quotas",
      "trout_char_quota.r5",
      "reach"
     ],
     [
-     "z6:trout_char_quota",
+     "z6:daily_quotas",
      "trout_char_quota.r6",
      "reach"
     ],
     [
-     "z6:trout_char_quota",
+     "z6:daily_quotas",
      "trout_char_quota.r7",
      "reach"
     ],
     [
-     "z6:trout_char_quota",
+     "z6:daily_quotas",
      "trout_char_quota.r8",
      "reach"
     ],
     [
-     "z6:trout_char_quota",
+     "z6:daily_quotas",
      "trout_char_quota.r9",
      "reach"
     ],

@@ -2187,7 +2187,7 @@
            "t": "book"
           }
          ],
-         "rule": "z5:species_quotas::species_quotas.r4",
+         "rule": "z5:daily_quotas::species_quotas.r4",
          "tag": "Release",
          "text": [
           {
@@ -2255,7 +2255,7 @@
              "t": "book"
             }
            ],
-           "rule": "z5:species_quotas::species_quotas.r3",
+           "rule": "z5:daily_quotas::species_quotas.r3",
            "tag": "Replaced by the Region 5 rule",
            "text": [
             {
@@ -2502,7 +2502,7 @@
            "t": "book"
           }
          ],
-         "rule": "z5:species_quotas::species_quotas.r2",
+         "rule": "z5:daily_quotas::species_quotas.r2",
          "tag": "Daily limit",
          "text": [
           {
@@ -5252,7 +5252,7 @@
            "t": "book"
           }
          ],
-         "key": "z5:trout_char_quota::trout_char_quota.r1",
+         "key": "z5:daily_quotas::trout_char_quota.r1",
          "quote": "Trout/char: 5",
          "role": "The group total this counts toward · for cutthroat trout, Dolly Varden/bull trout, brook trout, brown trout, lake trout and rainbow trout",
          "title": "Keep up to 5 trout and char a day"
@@ -5265,7 +5265,7 @@
            "t": "book"
           }
          ],
-         "key": "z5:trout_char_quota::trout_char_quota.r2",
+         "key": "z5:daily_quotas::trout_char_quota.r2",
          "quote": "1 over 50 cm",
          "role": "A limit inside the total · for cutthroat trout, Dolly Varden/bull trout, brook trout, brown trout and lake trout",
          "title": "At most 1 trout or char over 50 cm (20 in) a day"
@@ -5278,7 +5278,7 @@
            "t": "book"
           }
          ],
-         "key": "z5:trout_char_quota::trout_char_quota.r3",
+         "key": "z5:daily_quotas::trout_char_quota.r3",
          "quote": "2 from streams",
          "role": "Lowers the number · for cutthroat trout, Dolly Varden/bull trout, brook trout, brown trout, lake trout and rainbow trout",
          "title": "At most 2 trout and char a day from streams"
@@ -5304,7 +5304,7 @@
            "t": "book"
           }
          ],
-         "key": "z5:trout_char_quota::trout_char_quota.r4",
+         "key": "z5:daily_quotas::trout_char_quota.r4",
          "quote": "1 Dolly Varden/bull trout",
          "role": "A limit inside the total · for Dolly Varden/bull trout",
          "title": "At most 1 Dolly Varden/bull trout a day"
@@ -5317,7 +5317,7 @@
            "t": "book"
           }
          ],
-         "key": "z5:trout_char_quota::trout_char_quota.r5",
+         "key": "z5:daily_quotas::trout_char_quota.r5",
          "quote": "2 lake trout",
          "role": "A limit inside the total · for lake trout",
          "title": "At most 2 lake trout a day"
@@ -5364,7 +5364,7 @@
          "rows": [
           {
            "book": [],
-           "key": "z5:trout_char_quota::trout_char_quota.r6",
+           "key": "z5:daily_quotas::trout_char_quota.r6",
            "notes": [],
            "quote": "ALL STEELHEAD",
            "role": "Beaten by “No Fishing for steelhead” · for steelhead",

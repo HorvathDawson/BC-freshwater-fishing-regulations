@@ -190,7 +190,7 @@ def test_z1_names_the_row_that_revived_the_other_regions_identical_quota():
     is shown once, under it (same as peer). That swap is the row's doing: `attribute` names it.
     MUTATION (the revived-displacer branch removed): Zone 7A's quota is unattributable."""
     from pipeline.tools.audit import base_deltas as BD
-    q5, q7, c5, c7 = ("z5:species_quotas", "r2"), ("z7a:species_quotas", "r2"), \
+    q5, q7, c5, c7 = ("z5:daily_quotas", "r2"), ("z7a:daily_quotas", "r2"), \
         ("z5:spring", "r1"), ("z7a:spring", "r1")
     willow = ("r7:willow_river@7-9", "willow_river.r1")
     rules = {k: {"_rank": 3} for k in (q5, q7, c5, c7)}
@@ -204,8 +204,8 @@ def test_z1_names_the_row_that_revived_the_other_regions_identical_quota():
     page = [x(q5, "speaks"), x(q7, "displaced", q5), x(c5, "lifted", willow), x(c7, "lifted", willow),
             x(willow, "speaks")]
     got = {d.rule: d.row for d in BD.attribute(base, page, rules)}
-    assert got["z7a:species_quotas::r2"] == "r7:willow_river@7-9"
-    assert got["z5:species_quotas::r2"] == "r7:willow_river@7-9"
+    assert got["z7a:daily_quotas::r2"] == "r7:willow_river@7-9"
+    assert got["z5:daily_quotas::r2"] == "r7:willow_river@7-9"
     assert None not in got.values()
 
 

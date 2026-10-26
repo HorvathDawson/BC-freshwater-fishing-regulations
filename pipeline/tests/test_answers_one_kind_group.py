@@ -34,7 +34,7 @@ EXPORT_DIR = Path(os.environ.get("ANSWERS_EXPORT_DIR") or Path(R.BUNDLE).parent.
 KLMB, ANGELO, TRANQUILLE, DUNCAN_TRIB = "wbk:-20", "gnis:10053", "wbk:329563842", "gnis:12861"
 BOW_LAKE = "wbk:329343476"                     # Region 7: its own brook trout quota
 WATERS = (KLMB, ANGELO, TRANQUILLE, DUNCAN_TRIB, BOW_LAKE)
-Z8_EB = "z8:trout_char_quota::trout_char_quota.r5"             # "20 brook trout from streams" (Angelo Creek)
+Z8_EB = "z8:daily_quotas::trout_char_quota.r5"             # "20 brook trout from streams" (Angelo Creek)
 KLMB_RB = "r4:kootenay_lake_main_body_for_location_see_map_on_page_34@4-19::kootenay_lake_main_body.r4"
 TROUT_CHAR = dict(C._closed_groups())["TROUT_CHAR"]
 
@@ -123,7 +123,7 @@ def test_mutation_the_old_one_kind_rule_leaves_the_rows_headless(built, monkeypa
 def test_other_fish_totals_of_one_kind_stay_without_a_group(built):
     """The ruling is trout/char only: Kootenay's crayfish 25 a day (an Other fish row) keeps no group."""
     data, model = built
-    row = _row(data, _card(model, KLMB, (10, 10)), "z4:species_quotas::species_quotas.r3")
+    row = _row(data, _card(model, KLMB, (10, 10)), "z4:daily_quotas::species_quotas.r3")
     assert (row["members"], row.get("group")) == (["CRA"], None)
 
 
@@ -376,7 +376,7 @@ def test_mutation_a_one_kind_trout_group_on_a_held_row_is_refused_by_the_model(b
 BEATTIE = "wbk:329665706"
 BEATTIE_TROUT = "r7:beattie_lake@7-57::beattie_lake.r2"
 LIARD_DV = "r7:liard_river_watershed_see_map_on_page_63@7-53::liard_river_watershed.r2"
-Z7B_TOTAL = "z7b:trout_char_quota::trout_char_quota.r1"
+Z7B_TOTAL = "z7b:daily_quotas::trout_char_quota.r1"
 LIARD_BUCKET = "LIARD RIVER WATERSHED (see map on page 63)’s rule"
 
 

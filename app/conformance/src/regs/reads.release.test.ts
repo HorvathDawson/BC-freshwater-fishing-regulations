@@ -84,12 +84,12 @@ describe.skipIf(!LIVE)(`T04 reads on the live release (${LIVE ?? "absent"})`, ()
     expect(r.spp).toEqual(["RB", "CT", "LMB", "SMB", "BCB", "CRA", "KO", "LW", "MW", "WSG", "ST", "GB", "DV", "LT", "EB"]);
     expect(r.steelhead_line).toBe("known_with_rules");
     expect(r.rows.map((x) => x.kind)).toEqual(["keep", "release", "keep", "keep", "keep", "release", "keep", "closed"]);
-    expect({ pool: r.rows[0]!.pool, daily: r.rows[0]!.daily }).toEqual({ pool: rix("z2:trout_char_quota::trout_char_quota.r1"), daily: 2 });
+    expect({ pool: r.rows[0]!.pool, daily: r.rows[0]!.daily }).toEqual({ pool: rix("z2:daily_quotas::trout_char_quota.r1"), daily: 2 });
     const lmb = r.fish.LMB!.hatchery!;
     expect({ status: lmb.status, daily: lmb.daily, win: lmb.win })
-      .toEqual({ status: "keep", daily: 20, win: rix("z2:species_quotas::species_quotas.r1") });
+      .toEqual({ status: "keep", daily: 20, win: rix("z2:daily_quotas::species_quotas.r1") });
     expect({ h: r.fish.RB!.hatchery!.win, w: r.fish.RB!.wild!.win })
-      .toEqual({ h: rix(`${VEDDER}.r6`), w: rix("z2:trout_char_quota::trout_char_quota.r6") });
+      .toEqual({ h: rix(`${VEDDER}.r6`), w: rix("z2:daily_quotas::trout_char_quota.r6") });
     // rows 30: each row's stored year strip — page v36's own dayStatus for vedder_515 (hydrate.json), read, not derived
     expect(r.rows.map((x) => x.year)).toEqual([
       [["keep", 151], ["closed", 30], ["keep", 184]], [["release", 151], ["closed", 30], ["release", 184]],
@@ -139,7 +139,7 @@ describe.skipIf(!LIVE)(`T04 reads on the live release (${LIVE ?? "absent"})`, ()
       entry: "r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4", rule: "chilliwack_vedder_rivers.r8" });
     expect({ kind: r.facts.kind, closure: (r.facts as { closure?: boolean }).closure, book: (r.facts as { book?: unknown }).book })
       .toEqual({ kind: "gate", closure: true, book: [[22, 24]] });
-    expect(rules.get(rix("z2:trout_char_quota::trout_char_quota.r2"))!.facts.kind).toBe("sizecap");
+    expect(rules.get(rix("z2:daily_quotas::trout_char_quota.r2"))!.facts.kind).toBe("sizecap");
     const rs = await st.ruleset((await st.akey(VA)).ruleset);
     expect({ sections: rs.sections, reach: rs.reach.length, trib: rs.trib, hasJune: rs.reach.includes(rix(`${VEDDER}.r8`)) })
       .toEqual({ sections: 5, reach: 101, trib: [], hasJune: true });

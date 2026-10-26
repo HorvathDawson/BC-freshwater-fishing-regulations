@@ -30,13 +30,13 @@ import sqlite3
 from dataclasses import dataclass, field
 from pathlib import Path
 
-Z2, Z3, Z4 = ("z2:trout_char_quota::trout_char_quota", "z3:trout_char_quota::trout_char_quota",
-              "z4:trout_char_quota::trout_char_quota")
-Z5, Z6, Z7A, Z7B, Z8 = ("z5:trout_char_quota::trout_char_quota",
-                        "z6:trout_char_quota::trout_char_quota",
-                        "z7a:trout_char_quota::trout_char_quota",
-                        "z7b:trout_char_quota::trout_char_quota",
-                        "z8:trout_char_quota::trout_char_quota")
+Z2, Z3, Z4 = ("z2:daily_quotas::trout_char_quota", "z3:daily_quotas::trout_char_quota",
+              "z4:daily_quotas::trout_char_quota")
+Z5, Z6, Z7A, Z7B, Z8 = ("z5:daily_quotas::trout_char_quota",
+                        "z6:daily_quotas::trout_char_quota",
+                        "z7a:daily_quotas::trout_char_quota",
+                        "z7b:daily_quotas::trout_char_quota",
+                        "z8:daily_quotas::trout_char_quota")
 THOMPSON = ("r3:thompson_river_downstream_of_signs_at_kamloops_lake_outlet_t@3-13+3-14+3-18::"
             "thompson_river_downstream_of_kamloops_lake")
 CHILLIWACK = ("r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4::"
@@ -71,10 +71,10 @@ E = Example
 EXAMPLES: tuple[Example, ...] = (
     # ---- ladder.closures ----------------------------------------------------------------------
     E("clearwater_closure_silences_burbot", ("ladder.closures",), "wbk:329472485", "11-15", "BB",
-      ("r7:clearwater_lake@7-31::clearwater_lake.r1",), ("z7b:species_quotas::species_quotas.r1",),
+      ("r7:clearwater_lake@7-31::clearwater_lake.r1",), ("z7b:daily_quotas::species_quotas.r1",),
       says="the lake's closure silences Zone B's 'Burbot: 5'"),
     E("okanagan_bass_lifts_region_8_closure", ("ladder.closures",), "gnis:32069", "07-01", "SMB",
-      ("r8:okanagan_river@8-1::okanagan_river.r2",), ("z8:species_quotas::species_quotas.r1",),
+      ("r8:okanagan_river@8-1::okanagan_river.r2",), ("z8:daily_quotas::species_quotas.r1",),
       says="'bass daily quota = 8' lifts Region 8's bass closure"),
     E("west_road_row_never_reopens_steelhead_closure", ("ladder.closures",), "gnis:26104",
       "06-01", "ST", (Z6_STEELHEAD_CLOSURE,),
@@ -97,13 +97,13 @@ EXAMPLES: tuple[Example, ...] = (
       ("r3:tranquille_lake@3-29::tranquille_lake.r1",), (f"{Z3}.r1",)),
     E("tranquille_kokanee_10", ("ladder.quotas_sit_beside", "ladder.counted_apart"),
       "wbk:329563842", "07-01", "KO", ("r3:tranquille_lake@3-29::tranquille_lake.r2",),
-      ("z3:species_quotas::species_quotas.r4",), says="the lake's 10 replaces Region 3's 5"),
+      ("z3:daily_quotas::species_quotas.r4",), says="the lake's 10 replaces Region 3's 5"),
     E("lois_lake_6_in_the_aggregate", ("ladder.counted_apart", "ladder.quotas_sit_beside"),
       "wbk:329197058", "07-01", "RB", ("r2:lois_lake@2-12::lois_lake.r4",), (f"{Z2}.r1",)),
     E("khartoum_lake_6_in_the_aggregate", ("ladder.counted_apart",), "wbk:329197063", "07-01",
       "RB", ("r2:khartoum_lake@2-12::khartoum_lake.r5",), (f"{Z2}.r1",)),
     E("teslin_grayling_4", ("ladder.quotas_sit_beside",), "wbk:328961703", "07-01", "GR",
-      ("r6:teslin_lake@6-25::teslin_lake.r4",), ("z6:species_quotas::species_quotas.r1",)),
+      ("r6:teslin_lake@6-25::teslin_lake.r4",), ("z6:daily_quotas::species_quotas.r1",)),
     E("shuswap_annual_quota_one_limit", ("ladder.quotas_sit_beside",), "wbk:329518145", "07-01",
       "RB", (f"{SHUSWAP}.r8",), ("z3:shuswap_annual::shuswap_annual.r1",),
       says="the zone line naming Shuswap and the row's annual 5 are one limit; the row's speaks"),

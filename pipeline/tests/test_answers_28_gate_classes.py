@@ -102,8 +102,8 @@ def kind_rows(g: dict) -> Dict[str, Tuple[dict, dict]]:
     return {S: (b, k) for b in g["buckets"] for k in b["kinds"] for S in k["species"]}
 
 
-Z2 = "z2:trout_char_quota::trout_char_quota.r1"
-Z5 = "z5:trout_char_quota::trout_char_quota.r1"
+Z2 = "z2:daily_quotas::trout_char_quota.r1"
+Z5 = "z5:daily_quotas::trout_char_quota.r1"
 
 
 def test_every_class_water_passes_the_gate():
