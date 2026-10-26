@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "./api";
 import type {
   EntryDetail as EntryDetailT, Mode, PendingBuild, Progress, QueueOrder, QueueRow, RegionSummary,
-  ReviewFilter, Severity, SeverityFilter, Status, Tier,
+  ReviewFilter, EntrySeverity, SeverityFilter, Status, Tier,
 } from "./types";
 import { ALL_REGIONS, FilterBar } from "./components/FilterBar";
 import { QueueList } from "./components/QueueList";
@@ -18,7 +18,7 @@ const inDfo = () => decodeURIComponent(window.location.hash.slice(1)).startsWith
  *  the map of each entry whose rules name it (T184), never as a target of its own. */
 const TIERS: Tier[] = ["P1", "Z", "P2", "P3", "P4", "sweep"];
 /** the entry severities (`severity.LEVELS`), the review order's first key (owner 2026-10-26) */
-const SEVERITIES: Severity[] = ["high", "medium", "low", "none"];
+const SEVERITIES: EntrySeverity[] = ["high", "medium", "low", "none"];
 
 /* THE REVIEW SCREEN (T134, T184): the one queue on the left, the open entry on the right. It writes
    one thing, a reviewer's mark; there is no other mode (T185 retired the editors). The URL's hash is

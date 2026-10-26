@@ -1,5 +1,4 @@
-import { useEffect } from "react";
-import type { QueueFacts, QueueRow, Severity } from "../types";
+import type { EntrySeverity, QueueFacts, QueueRow } from "../types";
 
 interface Props {
   rows: QueueRow[];
@@ -129,7 +128,7 @@ const TIER_HEAD: Record<string, string> = {
 const TIER_ORDER = ["P1", "Z", "P2", "P3", "P4", "sweep"];
 
 /** the severities' headings in the review order (`severity.LEVELS`) */
-const SEV_HEAD: Record<Severity, string> = {
+const SEV_HEAD: Record<EntrySeverity, string> = {
   high: "High — a real issue to review",
   medium: "Medium — a cut or extent risk",
   low: "Low — facts and hints only",
@@ -150,7 +149,7 @@ function isOrdered(rows: QueueRow[], key: (r: QueueRow) => string | undefined, o
 
 /** THE ONE SEVERITY CHIP (owner 2026-10-26): high / medium say there is something to review; low is
  *  dim; none shows nothing. The reasons are the hover. */
-export function SeverityChip({ level, reasons }: { level: Severity; reasons?: string[] }) {
+export function SeverityChip({ level, reasons }: { level: EntrySeverity; reasons?: string[] }) {
   if (level === "none") return null;
   return (
     <span className={`sev-chip sev-${level}`} data-testid="severity-chip"

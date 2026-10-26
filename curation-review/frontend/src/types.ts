@@ -442,15 +442,15 @@ export interface QueueRow {
   /** T135: how many pre-check findings, by severity (A facts, B heuristics; I notes are not counted) */
   prechecks?: { A: number; B: number };
   /** owner 2026-10-26: is there a real issue to review (`severity.entry_severity`) — the one chip */
-  severity?: Severity;
+  severity?: EntrySeverity;
   /** why, most severe first ("high: parser-uncertain (x.r1)") — the chip's hover */
   severity_reasons?: string[];
 }
 
 /** An entry's severity (`severity.LEVELS`), the queue's first order (owner 2026-10-26). */
-export type Severity = "high" | "medium" | "low" | "none";
+export type EntrySeverity = "high" | "medium" | "low" | "none";
 /** the queue's severity filter (`severity.FILTERS`): a level, or high + medium */
-export type SeverityFilter = Severity | "issues" | "";
+export type SeverityFilter = EntrySeverity | "issues" | "";
 
 export interface Boundary {
   id: string;
@@ -736,7 +736,7 @@ export interface ReviewView {
   tier: Tier;
   risks: string[];
   /** owner 2026-10-26: the one severity chip and its reasons */
-  severity: Severity;
+  severity: EntrySeverity;
   severity_reasons: string[];
   evidence: Evidence;
   coverage: { segments: CoverageSegment[]; unquoted_chars: number; missing: string[] };
