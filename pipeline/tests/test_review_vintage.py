@@ -535,7 +535,7 @@ def _py_sources():
 def test_no_second_copy_of_the_vintage_the_digests_or_the_counts():
     hits = {"def entry_digest(": [], "def entry_state(": [], "def refuse_unbuilt(": [],
             "def bundle_matches(": [], "def split_anchor(": [], "def anchor_digest(": [],
-            "ON s.set_id = r.set_id WHERE r.entry_id": [], "def latest(release_root": [],
+            "ON s.set_id = r.set_id GROUP BY r.entry_id, r.rule_id": [], "def latest(release_root": [],
             "<newest-release picker>": []}
     for p, text in _py_sources():
         for k in hits:
@@ -549,7 +549,7 @@ def test_no_second_copy_of_the_vintage_the_digests_or_the_counts():
     assert hits["def bundle_matches("] == ["pipeline/regs/review/vintage.py"]
     assert hits["def split_anchor("] == ["pipeline/atlas/splits/splits.py"]
     assert hits["def anchor_digest("] == ["pipeline/atlas/splits/splits.py"]
-    assert hits["ON s.set_id = r.set_id WHERE r.entry_id"] == ["pipeline/regs/review/fingerprint.py"]
+    assert hits["ON s.set_id = r.set_id GROUP BY r.entry_id, r.rule_id"] == ["pipeline/regs/review/fingerprint.py"]
     assert hits["<newest-release picker>"] == ["pipeline/deliver/release/manifest.py"]
     assert hits["def latest(release_root"] == ["pipeline/deliver/release/manifest.py"]
     # nor in the shell: `ls -t data/release/r-*` was a second answer (by folder mtime) in
