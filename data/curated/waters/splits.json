@@ -8576,44 +8576,27 @@
    },
    "splits": [
     {
-     "id": "halfway_river__halfway_river_into_peace_river",
-     "label": "Halfway River → Peace River",
-     "kind": "confluence",
+     "id": "halfway_river__fishing_boundary_signs_5_km_above_peace_river",
+     "label": "fishing boundary signs approx. 5 km above the Peace River confluence",
+     "kind": "point",
      "anchor": {
-      "type": "confluence",
-      "tributary_wsc": "200-948755-837217-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
-      "_name": "Halfway River"
-     },
-     "note": "",
-     "_note": "Confluence = mouth of Halfway River. Author as confluence anchor tributary_wsc=200-948755-837217-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=56.21055&mlon=-121.44457#map=15/56.21055/-121.44457",
-     "_coord": [
-      -121.44457,
-      56.21055
-     ],
-     "applies_to": {
-      "wsc": "200-948755"
-     }
-    },
-    {
-     "id": "halfway_river__halfway_river_into_peace_river_u5000m",
-     "label": "Halfway River → Peace River (5000 m upstream)",
-     "kind": "confluence",
-     "anchor": {
-      "type": "confluence",
-      "tributary_wsc": "200-948755-837217-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "type": "point",
+      "coord": [
+       -121.44457,
+       56.21055
+      ],
+      "is_lonlat": true,
       "offset_m": 5000,
-      "offset_dir": "upstream",
-      "_name": "Halfway River"
+      "offset_dir": "upstream"
      },
      "note": "",
-     "_note": "5000 m upstream of the Halfway River confluence. Author as confluence anchor tributary_wsc=200-948755-837217-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 + offset_m 5000, offset_dir upstream. OSM: https://www.openstreetmap.org/?mlat=56.22651&mlon=-121.48495#map=15/56.22651/-121.48495",
+     "_note": "[2026-10-26 owner Halfway fix] 'No Fishing from confluence with Peace River to fishing boundary signs approximately 5 km upstream' (p.65). The mouth of the Halfway (OSM 56.21055,-121.44457) projected onto the Halfway itself, then 5000 m up the Halfway. The book's 'approximately 5 km' — same reading as the Peace's own 5 km cuts.",
      "_coord": [
       -121.44457,
       56.21055
      ],
-     "_offset_m": 5000,
      "applies_to": {
-      "wsc": "200-948755"
+      "wsc": "200-948755-837217"
      }
     }
    ]
@@ -8712,6 +8695,25 @@
      ]
     },
     {
+     "id": "peace_river__halfway_river_into_peace_river",
+     "label": "Halfway River → Peace River",
+     "kind": "confluence",
+     "anchor": {
+      "type": "confluence",
+      "tributary_wsc": "200-948755-837217-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Halfway River"
+     },
+     "note": "",
+     "_note": "Confluence = mouth of Halfway River. Author as confluence anchor tributary_wsc=200-948755-837217-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=56.21055&mlon=-121.44457#map=15/56.21055/-121.44457 [2026-10-26 owner: was halfway_river__halfway_river_into_peace_river; it is cut on the Peace (applies_to wsc 200-948755), so it belongs to the Peace]",
+     "_coord": [
+      -121.44457,
+      56.21055
+     ],
+     "applies_to": {
+      "wsc": "200-948755"
+     }
+    },
+    {
      "id": "peace_river__halfway_river_into_peace_river_u5000m",
      "label": "Halfway River → Peace River (5000 m upstream)",
      "kind": "confluence",
@@ -8723,7 +8725,7 @@
       "_name": "Halfway River"
      },
      "note": "",
-     "_note": "5000 m upstream of the Halfway River confluence. Author as confluence anchor tributary_wsc=200-948755-837217-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 + offset_m 5000, offset_dir upstream. OSM: https://www.openstreetmap.org/?mlat=56.18908&mlon=-121.50767#map=15/56.18908/-121.50767 (offset along the Peace mainstem)",
+     "_note": "5000 m upstream of the Halfway River confluence. Author as confluence anchor tributary_wsc=200-948755-837217-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 + offset_m 5000, offset_dir upstream. OSM: https://www.openstreetmap.org/?mlat=56.18908&mlon=-121.50767#map=15/56.18908/-121.50767 (offset along the Peace mainstem) [2026-10-26 owner: merged halfway_river__halfway_river_into_peace_river_u5000m into this id (same anchor, same Peace target, same label); its OSM hint was 56.22651,-121.48495]",
      "_coord": [
       -121.44457,
       56.21055

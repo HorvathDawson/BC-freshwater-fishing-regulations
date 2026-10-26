@@ -459,7 +459,7 @@
      "exempts": [
       {
        "target": "species_quotas.r1",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -485,7 +485,7 @@
      "exempts": [
       {
        "target": "species_quotas.r11",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -637,7 +637,7 @@
      "exempts": [
       {
        "target": "species_quotas.r1",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -663,7 +663,7 @@
      "exempts": [
       {
        "target": "species_quotas.r11",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -716,12 +716,12 @@
      "exempts": [
       {
        "target": "trout_char_quota.r3",
-       "entry_id": "z4:trout_char_quota",
+       "entry_id": "z4:daily_quotas",
        "note": "the stream's own quota replaces '2 from streams'"
       },
       {
        "target": "trout_char_quota.r1",
-       "entry_id": "z4:trout_char_quota",
+       "entry_id": "z4:daily_quotas",
        "note": "counted apart from the regional trout/char quota: the row's 8 replaces the region's number for brook trout"
       }
      ]
@@ -787,7 +787,7 @@
      "exempts": [
       {
        "target": "species_quotas.r1",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -813,7 +813,7 @@
      "exempts": [
       {
        "target": "species_quotas.r11",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -857,7 +857,7 @@
      "exempts": [
       {
        "target": "trout_char_quota.r1",
-       "entry_id": "z4:trout_char_quota",
+       "entry_id": "z4:daily_quotas",
        "note": "counted apart from the regional trout/char quota: the row's 20 replaces the region's number for brook trout"
       }
      ]
@@ -933,7 +933,7 @@
      "exempts": [
       {
        "target": "trout_char_quota.r1",
-       "entry_id": "z4:trout_char_quota",
+       "entry_id": "z4:daily_quotas",
        "note": "counted apart from the regional trout/char quota: the row's 20 replaces the region's number for brook trout"
       }
      ]
@@ -984,7 +984,7 @@
      "exempts": [
       {
        "target": "trout_char_quota.r1",
-       "entry_id": "z4:trout_char_quota",
+       "entry_id": "z4:daily_quotas",
        "note": "counted apart from the regional trout/char quota: the row's 20 replaces the region's number for brook trout"
       }
      ]
@@ -1988,7 +1988,7 @@
      "exempts": [
       {
        "target": "species_quotas.r1",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -2179,7 +2179,7 @@
      "exempts": [
       {
        "target": "species_quotas.r1",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -2209,7 +2209,7 @@
      "exempts": [
       {
        "target": "species_quotas.r5",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "kokanee may be kept on this reach of the river"
       }
      ],
@@ -2235,7 +2235,7 @@
      "exempts": [
       {
        "target": "species_quotas.r8",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -2265,7 +2265,7 @@
      "exempts": [
       {
        "target": "species_quotas.r7",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -2297,7 +2297,7 @@
      "exempts": [
       {
        "target": "species_quotas.r1",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -2635,7 +2635,7 @@
      "exempts": [
       {
        "target": "species_quotas.r1",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -2667,7 +2667,7 @@
      "exempts": [
       {
        "target": "species_quotas.r11",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -2936,7 +2936,7 @@
      "exempts": [
       {
        "target": "species_quotas.r1",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -3003,7 +3003,7 @@
      "exempts": [
       {
        "target": "species_quotas.r1",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -3029,7 +3029,7 @@
      "exempts": [
       {
        "target": "species_quotas.r11",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -3210,12 +3210,12 @@
      "exempts": [
       {
        "target": "trout_char_quota.r3",
-       "entry_id": "z4:trout_char_quota",
+       "entry_id": "z4:daily_quotas",
        "note": "the stream's own quota replaces '2 from streams'"
       },
       {
        "target": "trout_char_quota.r2",
-       "entry_id": "z4:trout_char_quota",
+       "entry_id": "z4:daily_quotas",
        "note": "(any size): the row's 5 replaces '1 rainbow trout or cutthroat trout over 50 cm'"
       }
      ]
@@ -3239,7 +3239,7 @@
      "exempts": [
       {
        "target": "trout_char_quota.r3",
-       "entry_id": "z4:trout_char_quota",
+       "entry_id": "z4:daily_quotas",
        "note": "the stream's own quota replaces '2 from streams'"
       }
      ]
@@ -4436,7 +4436,7 @@
      "exempts": [
       {
        "target": "species_quotas.r1",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -4462,7 +4462,7 @@
      "exempts": [
       {
        "target": "species_quotas.r11",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -5172,7 +5172,7 @@
      "exempts": [
       {
        "target": "species_quotas.r1",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -5198,7 +5198,7 @@
      "exempts": [
       {
        "target": "species_quotas.r11",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -5477,7 +5477,7 @@
      "exempts": [
       {
        "target": "species_quotas.r1",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -5503,7 +5503,7 @@
      "exempts": [
       {
        "target": "species_quotas.r11",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -5676,7 +5676,7 @@
      "exempts": [
       {
        "target": "species_quotas.r11",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -5984,7 +5984,7 @@
      "exempts": [
       {
        "target": "species_quotas.r1",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -6010,7 +6010,7 @@
      "exempts": [
       {
        "target": "species_quotas.r11",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -6308,7 +6308,7 @@
      "exempts": [
       {
        "target": "species_quotas.r1",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -6661,7 +6661,7 @@
      "exempts": [
       {
        "target": "species_quotas.r1",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -6687,7 +6687,7 @@
      "exempts": [
       {
        "target": "species_quotas.r11",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -6894,12 +6894,12 @@
      "exempts": [
       {
        "target": "trout_char_quota.r1",
-       "entry_id": "z4:trout_char_quota",
+       "entry_id": "z4:daily_quotas",
        "note": "counted apart from the regional trout/char quota: the row's 10 (any size) replaces the region's number for rainbow trout"
       },
       {
        "target": "trout_char_quota.r2",
-       "entry_id": "z4:trout_char_quota",
+       "entry_id": "z4:daily_quotas",
        "note": "counted apart from the regional trout/char quota: the row's 10 (any size) replaces the region's number for rainbow trout"
       }
      ]
@@ -7292,7 +7292,7 @@
      "exempts": [
       {
        "target": "species_quotas.r8",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -7322,7 +7322,7 @@
      "exempts": [
       {
        "target": "species_quotas.r7",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -7352,7 +7352,7 @@
      "exempts": [
       {
        "target": "species_quotas.r1",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -8008,12 +8008,12 @@
      "exempts": [
       {
        "target": "trout_char_quota.r3",
-       "entry_id": "z4:trout_char_quota",
+       "entry_id": "z4:daily_quotas",
        "note": "the stream's own quota replaces '2 from streams'"
       },
       {
        "target": "trout_char_quota.r2",
-       "entry_id": "z4:trout_char_quota",
+       "entry_id": "z4:daily_quotas",
        "note": "(any size): the row's 5 replaces '1 rainbow trout or cutthroat trout over 50 cm'"
       }
      ]
@@ -8034,7 +8034,7 @@
      "exempts": [
       {
        "target": "trout_char_quota.r3",
-       "entry_id": "z4:trout_char_quota",
+       "entry_id": "z4:daily_quotas",
        "note": "the stream's own quota replaces '2 from streams'"
       }
      ]
@@ -8114,12 +8114,12 @@
      "exempts": [
       {
        "target": "trout_char_quota.r3",
-       "entry_id": "z4:trout_char_quota",
+       "entry_id": "z4:daily_quotas",
        "note": "the stream's own quota replaces '2 from streams'"
       },
       {
        "target": "trout_char_quota.r1",
-       "entry_id": "z4:trout_char_quota",
+       "entry_id": "z4:daily_quotas",
        "note": "counted apart from the regional trout/char quota: the row's 20 replaces the region's number for brook trout"
       }
      ]
@@ -8306,7 +8306,7 @@
      "exempts": [
       {
        "target": "species_quotas.r1",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -8332,7 +8332,7 @@
      "exempts": [
       {
        "target": "species_quotas.r11",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -8940,7 +8940,7 @@
      "exempts": [
       {
        "target": "species_quotas.r11",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -9105,7 +9105,7 @@
      "exempts": [
       {
        "target": "species_quotas.r11",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -9323,7 +9323,7 @@
      "exempts": [
       {
        "target": "species_quotas.r1",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -9349,7 +9349,7 @@
      "exempts": [
       {
        "target": "species_quotas.r11",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -9919,7 +9919,7 @@
      "exempts": [
       {
        "target": "species_quotas.r11",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -10756,7 +10756,7 @@
      "exempts": [
       {
        "target": "trout_char_quota.r1",
-       "entry_id": "z4:trout_char_quota",
+       "entry_id": "z4:daily_quotas",
        "note": "counted apart from the regional trout/char quota: the row's 20 replaces the region's number for brook trout"
       }
      ]
@@ -10881,7 +10881,7 @@
      "exempts": [
       {
        "target": "species_quotas.r8",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -10907,7 +10907,7 @@
      "exempts": [
       {
        "target": "species_quotas.r7",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -10933,7 +10933,7 @@
      "exempts": [
       {
        "target": "species_quotas.r11",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -10959,7 +10959,7 @@
      "exempts": [
       {
        "target": "species_quotas.r1",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -11138,12 +11138,12 @@
      "exempts": [
       {
        "target": "trout_char_quota.r3",
-       "entry_id": "z4:trout_char_quota",
+       "entry_id": "z4:daily_quotas",
        "note": "the stream's own quota replaces '2 from streams'"
       },
       {
        "target": "trout_char_quota.r1",
-       "entry_id": "z4:trout_char_quota",
+       "entry_id": "z4:daily_quotas",
        "note": "counted apart from the regional trout/char quota: the row's 20 replaces the region's number for brook trout"
       }
      ]
@@ -11313,7 +11313,7 @@
      "exempts": [
       {
        "target": "trout_char_quota.r1",
-       "entry_id": "z4:trout_char_quota",
+       "entry_id": "z4:daily_quotas",
        "note": "counted apart from the regional trout/char quota: the row's 20 replaces the region's number for brook trout"
       }
      ]
@@ -11637,7 +11637,7 @@
      "exempts": [
       {
        "target": "species_quotas.r1",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -12024,7 +12024,7 @@
      "exempts": [
       {
        "target": "species_quotas.r1",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -12720,7 +12720,7 @@
      "exempts": [
       {
        "target": "species_quotas.r1",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -13234,7 +13234,7 @@
      "exempts": [
       {
        "target": "species_quotas.r1",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -13280,7 +13280,7 @@
      "exempts": [
       {
        "target": "species_quotas.r1",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -13306,7 +13306,7 @@
      "exempts": [
       {
        "target": "species_quotas.r11",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -13498,7 +13498,7 @@
      "exempts": [
       {
        "target": "trout_char_quota.r1",
-       "entry_id": "z4:trout_char_quota",
+       "entry_id": "z4:daily_quotas",
        "note": "counted apart from the regional trout/char quota: the row's 20 replaces the region's number for brook trout"
       }
      ]
@@ -13708,7 +13708,7 @@
      "exempts": [
       {
        "target": "species_quotas.r5",
-       "entry_id": "z4:species_quotas"
+       "entry_id": "z4:daily_quotas"
       }
      ]
     },
@@ -14059,7 +14059,7 @@
      "exempts": [
       {
        "target": "species_quotas.r1",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -14085,7 +14085,7 @@
      "exempts": [
       {
        "target": "species_quotas.r11",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -14448,7 +14448,7 @@
      "exempts": [
       {
        "target": "trout_char_quota.r3",
-       "entry_id": "z4:trout_char_quota",
+       "entry_id": "z4:daily_quotas",
        "note": "the stream's own quota replaces '2 from streams'"
       }
      ],
@@ -14478,17 +14478,17 @@
      "exempts": [
       {
        "target": "species_quotas.r2",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
       },
       {
        "target": "species_quotas.r4",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
       },
       {
        "target": "species_quotas.r6",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
       }
      ],
@@ -14574,7 +14574,7 @@
      "exempts": [
       {
        "target": "trout_char_quota.r1",
-       "entry_id": "z4:trout_char_quota",
+       "entry_id": "z4:daily_quotas",
        "note": "counted apart from the regional trout/char quota: the row's 20 replaces the region's number for brook trout"
       }
      ]
@@ -15015,7 +15015,7 @@
      "exempts": [
       {
        "target": "species_quotas.r11",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -15149,7 +15149,7 @@
      "exempts": [
       {
        "target": "species_quotas.r1",
-       "entry_id": "z4:species_quotas",
+       "entry_id": "z4:daily_quotas",
        "note": "reopened on this water"
       },
       {
@@ -15635,11 +15635,11 @@
    ]
   },
   {
-   "entry_id": "z4:species_quotas",
-   "name": "Other daily quotas",
+   "entry_id": "z4:daily_quotas",
+   "name": "Region 4 Daily Quotas",
    "display_name": "Region 4",
    "region": "4",
-   "regs_verbatim": "Bass: 0 quota, CLOSED TO FISHING. Burbot: 2. Crayfish: 25. Kokanee: 15 (none from streams), no more than 5 over 30 cm. Northern pike: 0 quota, CLOSED TO FISHING. Walleye: 0 quota, CLOSED TO FISHING. White Sturgeon: 0 quota, CLOSED TO FISHING (No exceptions). Whitefish: 15 (all species combined). Yellow perch: 0 quota, CLOSED TO FISHING.",
+   "regs_verbatim": "Region 4 Daily Quotas. Trout/char: 5, but not more than 1 rainbow trout or cutthroat trout over 50 cm, 2 from streams, 1 bull trout (Dolly Varden) of any size.\nBass: 0 quota, CLOSED TO FISHING. Burbot: 2. Crayfish: 25. Kokanee: 15 (none from streams), no more than 5 over 30 cm. Northern pike: 0 quota, CLOSED TO FISHING. Walleye: 0 quota, CLOSED TO FISHING. White Sturgeon: 0 quota, CLOSED TO FISHING (No exceptions). Whitefish: 15 (all species combined). Yellow perch: 0 quota, CLOSED TO FISHING.",
    "source_pages": [
     34
    ],
@@ -15650,6 +15650,79 @@
     }
    ],
    "rules": [
+    {
+     "rule_id": "trout_char_quota.r1",
+     "type": "retention_limit",
+     "verbatim": "Trout/char: 5",
+     "species": [
+      "TROUT_CHAR"
+     ],
+     "take": 5,
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:4"
+      }
+     ]
+    },
+    {
+     "rule_id": "trout_char_quota.r2",
+     "type": "retention_limit",
+     "verbatim": "1 rainbow trout or cutthroat trout over 50 cm",
+     "species": [
+      "RB",
+      "CT"
+     ],
+     "take": 1,
+     "within": "trout_char_quota.r1",
+     "lengths": [
+      {
+       "min_cm": 50
+      }
+     ],
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:4"
+      }
+     ]
+    },
+    {
+     "rule_id": "trout_char_quota.r3",
+     "type": "retention_limit",
+     "verbatim": "2 from streams",
+     "species": [
+      "TROUT_CHAR"
+     ],
+     "take": 2,
+     "within": "trout_char_quota.r1",
+     "water": "stream",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:4",
+       "feature_types": [
+        "stream"
+       ]
+      }
+     ]
+    },
+    {
+     "rule_id": "trout_char_quota.r4",
+     "type": "retention_limit",
+     "verbatim": "1 bull trout (Dolly Varden) of any size",
+     "species": [
+      "DV"
+     ],
+     "take": 1,
+     "within": "trout_char_quota.r1",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:4"
+      }
+     ]
+    },
     {
      "rule_id": "species_quotas.r1",
      "type": "retention_limit",
@@ -15906,97 +15979,6 @@
      "type": "advisory",
      "verbatim": "When fishing the tributaries of the following lakes, check for special regulations in the tables under both the name of the tributary and the name of the lake (such as “Columbia Lake’s tributaries”): Columbia, Connor, Duncan, Kinbasket, Kootenay, Lake Revelstoke, Little Slocan, Lower Arrow, Premier, Slocan, Trout, Upper Arrow, Waneta Reservoir, Whiteswan.",
      "obligation": "should",
-     "extents": [
-      {
-       "op": "within",
-       "area_id": "area:region:4"
-      }
-     ]
-    }
-   ]
-  },
-  {
-   "entry_id": "z4:trout_char_quota",
-   "name": "Trout and char daily quota",
-   "display_name": "Region 4",
-   "region": "4",
-   "regs_verbatim": "Region 4 Daily Quotas. Trout/char: 5, but not more than 1 rainbow trout or cutthroat trout over 50 cm, 2 from streams, 1 bull trout (Dolly Varden) of any size.",
-   "source_pages": [
-    34
-   ],
-   "extents": [
-    {
-     "op": "within",
-     "area_id": "area:region:4"
-    }
-   ],
-   "rules": [
-    {
-     "rule_id": "trout_char_quota.r1",
-     "type": "retention_limit",
-     "verbatim": "Trout/char: 5",
-     "species": [
-      "TROUT_CHAR"
-     ],
-     "take": 5,
-     "extents": [
-      {
-       "op": "within",
-       "area_id": "area:region:4"
-      }
-     ]
-    },
-    {
-     "rule_id": "trout_char_quota.r2",
-     "type": "retention_limit",
-     "verbatim": "1 rainbow trout or cutthroat trout over 50 cm",
-     "species": [
-      "RB",
-      "CT"
-     ],
-     "take": 1,
-     "within": "trout_char_quota.r1",
-     "lengths": [
-      {
-       "min_cm": 50
-      }
-     ],
-     "extents": [
-      {
-       "op": "within",
-       "area_id": "area:region:4"
-      }
-     ]
-    },
-    {
-     "rule_id": "trout_char_quota.r3",
-     "type": "retention_limit",
-     "verbatim": "2 from streams",
-     "species": [
-      "TROUT_CHAR"
-     ],
-     "take": 2,
-     "within": "trout_char_quota.r1",
-     "water": "stream",
-     "extents": [
-      {
-       "op": "within",
-       "area_id": "area:region:4",
-       "feature_types": [
-        "stream"
-       ]
-      }
-     ]
-    },
-    {
-     "rule_id": "trout_char_quota.r4",
-     "type": "retention_limit",
-     "verbatim": "1 bull trout (Dolly Varden) of any size",
-     "species": [
-      "DV"
-     ],
-     "take": 1,
-     "within": "trout_char_quota.r1",
      "extents": [
       {
        "op": "within",

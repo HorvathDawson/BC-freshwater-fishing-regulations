@@ -14618,186 +14618,12 @@
    ]
   },
   {
-   "entry_id": "z1:species_quotas",
-   "name": "Other daily quotas",
+   "entry_id": "z1:daily_quotas",
+   "name": "Region 1 Daily Quotas",
    "display_name": "Region 1, excluding Haida Gwaii",
    "region": "1",
    "scope_note": "The chapter header reads '(excluding Haida Gwaii)', and Haida Gwaii's own quota table is printed beside it. Recorded as `outside_area` on every extent: it is what the book prints, not a precedence rule inferred from it.",
-   "regs_verbatim": "Bass: unlimited (see water specific regulations table for exceptions and mercury advisory on this page). Crayfish: 25. Kokanee: 5 (none from streams). White Sturgeon: catch and release only. Yellow perch: unlimited.",
-   "source_pages": [
-    13
-   ],
-   "extents": [
-    {
-     "op": "within",
-     "area_id": "area:region:1",
-     "outside_area": "area:mu_group:management_units_6_12_and_6_13"
-    }
-   ],
-   "rules": [
-    {
-     "rule_id": "species_quotas.r1",
-     "type": "retention_limit",
-     "verbatim": "Bass: unlimited",
-     "species": [
-      "BASS"
-     ],
-     "unlimited": true,
-     "extents": [
-      {
-       "op": "within",
-       "area_id": "area:region:1",
-       "outside_area": "area:mu_group:management_units_6_12_and_6_13"
-      }
-     ]
-    },
-    {
-     "rule_id": "species_quotas.r2",
-     "type": "retention_limit",
-     "verbatim": "Crayfish: 25",
-     "species": [
-      "CRA"
-     ],
-     "take": 25,
-     "extents": [
-      {
-       "op": "within",
-       "area_id": "area:region:1",
-       "outside_area": "area:mu_group:management_units_6_12_and_6_13"
-      }
-     ]
-    },
-    {
-     "rule_id": "species_quotas.r3",
-     "type": "retention_limit",
-     "verbatim": "Kokanee: 5",
-     "species": [
-      "KO"
-     ],
-     "take": 5,
-     "extents": [
-      {
-       "op": "within",
-       "area_id": "area:region:1",
-       "outside_area": "area:mu_group:management_units_6_12_and_6_13"
-      }
-     ]
-    },
-    {
-     "rule_id": "species_quotas.r4",
-     "type": "retention_limit",
-     "verbatim": "none from streams",
-     "species": [
-      "KO"
-     ],
-     "take": 0,
-     "may_target": true,
-     "water": "stream",
-     "extents": [
-      {
-       "op": "within",
-       "area_id": "area:region:1",
-       "outside_area": "area:mu_group:management_units_6_12_and_6_13",
-       "feature_types": [
-        "stream"
-       ]
-      }
-     ]
-    },
-    {
-     "rule_id": "species_quotas.r5",
-     "type": "retention_limit",
-     "verbatim": "White Sturgeon: catch and release only",
-     "species": [
-      "WSG"
-     ],
-     "take": 0,
-     "may_target": true,
-     "extents": [
-      {
-       "op": "within",
-       "area_id": "area:region:1",
-       "outside_area": "area:mu_group:management_units_6_12_and_6_13"
-      }
-     ]
-    },
-    {
-     "rule_id": "species_quotas.r6",
-     "type": "retention_limit",
-     "verbatim": "Yellow perch: unlimited",
-     "species": [
-      "YP"
-     ],
-     "unlimited": true,
-     "extents": [
-      {
-       "op": "within",
-       "area_id": "area:region:1",
-       "outside_area": "area:mu_group:management_units_6_12_and_6_13"
-      }
-     ]
-    }
-   ]
-  },
-  {
-   "entry_id": "z1:summer_stream_closure",
-   "name": "Summer stream closure",
-   "display_name": "Streams of MUs 1-1 to 1-6",
-   "region": "1",
-   "regs_verbatim": "Summer closure: No Fishing in any stream in Management Units 1-1 to 1-6 from July 15-Aug 31 (see water specific regulations table for exceptions).",
-   "source_pages": [
-    13
-   ],
-   "extents": [
-    {
-     "op": "within",
-     "area_id": "area:mu_group:management_units_1_1_to_1_6",
-     "feature_types": [
-      "stream"
-     ]
-    }
-   ],
-   "rules": [
-    {
-     "rule_id": "summer_stream_closure.r1",
-     "type": "retention_limit",
-     "verbatim": "Summer closure: No Fishing in any stream in Management Units 1-1 to 1-6 from July 15-Aug 31 (see water specific regulations table for exceptions).",
-     "species": [
-      "ALL_GAME_FISH"
-     ],
-     "when": {
-      "dates": [
-       {
-        "from_month": 7,
-        "from_day": 15,
-        "to_month": 8,
-        "to_day": 31
-       }
-      ]
-     },
-     "take": 0,
-     "may_target": false,
-     "water": "stream",
-     "closure_kind": "summer",
-     "extents": [
-      {
-       "op": "within",
-       "area_id": "area:mu_group:management_units_1_1_to_1_6",
-       "feature_types": [
-        "stream"
-       ]
-      }
-     ]
-    }
-   ]
-  },
-  {
-   "entry_id": "z1:trout_quota",
-   "name": "Trout daily quota",
-   "display_name": "Region 1, excluding Haida Gwaii",
-   "region": "1",
-   "scope_note": "The chapter header reads '(excluding Haida Gwaii)', and Haida Gwaii's own quota table is printed beside it. Recorded as `outside_area` on every extent: it is what the book prints, not a precedence rule inferred from it.",
-   "regs_verbatim": "Region 1 Daily Quotas (excluding Haida Gwaii). Trout: 4, but not more than 1 over 50 cm (2 hatchery steelhead over 50 cm allowed, see table for exceptions), 2 from streams (must be hatchery). And you must release: All wild steelhead, All wild trout from streams, All char (includes Dolly Varden). NOTE: There is no general minimum size limit for trout in lakes or hatchery origin trout in streams.",
+   "regs_verbatim": "Region 1 Daily Quotas (excluding Haida Gwaii). Trout: 4, but not more than 1 over 50 cm (2 hatchery steelhead over 50 cm allowed, see table for exceptions), 2 from streams (must be hatchery). And you must release: All wild steelhead, All wild trout from streams, All char (includes Dolly Varden). NOTE: There is no general minimum size limit for trout in lakes or hatchery origin trout in streams.\nBass: unlimited (see water specific regulations table for exceptions and mercury advisory on this page). Crayfish: 25. Kokanee: 5 (none from streams). White Sturgeon: catch and release only. Yellow perch: unlimited.",
    "source_pages": [
     13
    ],
@@ -15004,6 +14830,160 @@
        "op": "within",
        "area_id": "area:region:1",
        "outside_area": "area:mu_group:management_units_6_12_and_6_13"
+      }
+     ]
+    },
+    {
+     "rule_id": "species_quotas.r1",
+     "type": "retention_limit",
+     "verbatim": "Bass: unlimited",
+     "species": [
+      "BASS"
+     ],
+     "unlimited": true,
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:1",
+       "outside_area": "area:mu_group:management_units_6_12_and_6_13"
+      }
+     ]
+    },
+    {
+     "rule_id": "species_quotas.r2",
+     "type": "retention_limit",
+     "verbatim": "Crayfish: 25",
+     "species": [
+      "CRA"
+     ],
+     "take": 25,
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:1",
+       "outside_area": "area:mu_group:management_units_6_12_and_6_13"
+      }
+     ]
+    },
+    {
+     "rule_id": "species_quotas.r3",
+     "type": "retention_limit",
+     "verbatim": "Kokanee: 5",
+     "species": [
+      "KO"
+     ],
+     "take": 5,
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:1",
+       "outside_area": "area:mu_group:management_units_6_12_and_6_13"
+      }
+     ]
+    },
+    {
+     "rule_id": "species_quotas.r4",
+     "type": "retention_limit",
+     "verbatim": "none from streams",
+     "species": [
+      "KO"
+     ],
+     "take": 0,
+     "may_target": true,
+     "water": "stream",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:1",
+       "outside_area": "area:mu_group:management_units_6_12_and_6_13",
+       "feature_types": [
+        "stream"
+       ]
+      }
+     ]
+    },
+    {
+     "rule_id": "species_quotas.r5",
+     "type": "retention_limit",
+     "verbatim": "White Sturgeon: catch and release only",
+     "species": [
+      "WSG"
+     ],
+     "take": 0,
+     "may_target": true,
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:1",
+       "outside_area": "area:mu_group:management_units_6_12_and_6_13"
+      }
+     ]
+    },
+    {
+     "rule_id": "species_quotas.r6",
+     "type": "retention_limit",
+     "verbatim": "Yellow perch: unlimited",
+     "species": [
+      "YP"
+     ],
+     "unlimited": true,
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:1",
+       "outside_area": "area:mu_group:management_units_6_12_and_6_13"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "entry_id": "z1:summer_stream_closure",
+   "name": "Summer stream closure",
+   "display_name": "Streams of MUs 1-1 to 1-6",
+   "region": "1",
+   "regs_verbatim": "Summer closure: No Fishing in any stream in Management Units 1-1 to 1-6 from July 15-Aug 31 (see water specific regulations table for exceptions).",
+   "source_pages": [
+    13
+   ],
+   "extents": [
+    {
+     "op": "within",
+     "area_id": "area:mu_group:management_units_1_1_to_1_6",
+     "feature_types": [
+      "stream"
+     ]
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "summer_stream_closure.r1",
+     "type": "retention_limit",
+     "verbatim": "Summer closure: No Fishing in any stream in Management Units 1-1 to 1-6 from July 15-Aug 31 (see water specific regulations table for exceptions).",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 15,
+        "to_month": 8,
+        "to_day": 31
+       }
+      ]
+     },
+     "take": 0,
+     "may_target": false,
+     "water": "stream",
+     "closure_kind": "summer",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:mu_group:management_units_1_1_to_1_6",
+       "feature_types": [
+        "stream"
+       ]
       }
      ]
     }

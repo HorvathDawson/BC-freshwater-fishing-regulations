@@ -150,11 +150,11 @@
    ]
   },
   {
-   "entry_id": "z7b:trout_char_quota",
-   "name": "Trout and char daily quota",
+   "entry_id": "z7b:daily_quotas",
+   "name": "Zone B Daily Quotas",
    "display_name": "Zone B",
    "region": "7b",
-   "regs_verbatim": "Zone B Daily Quotas. Trout/char: 5, but not more than 1 over 50 cm, 2 from streams, 2 lake trout, 1 bull trout. NOTE: Bull trout may only be retained from Oct 16-Aug 14. These fish may only be from the Liard River watershed (or other specified waters) and only 30-50 cm in length. And you must release: Rainbow trout of any size from streams, May 1-June 15, Lake trout under 30 cm, Lake trout of any size, Sept 15-Oct 31, Bull trout from the Liard River watershed Aug 15-Oct 15, and from the Peace River watershed all year.",
+   "regs_verbatim": "Zone B Daily Quotas. Trout/char: 5, but not more than 1 over 50 cm, 2 from streams, 2 lake trout, 1 bull trout. NOTE: Bull trout may only be retained from Oct 16-Aug 14. These fish may only be from the Liard River watershed (or other specified waters) and only 30-50 cm in length. And you must release: Rainbow trout of any size from streams, May 1-June 15, Lake trout under 30 cm, Lake trout of any size, Sept 15-Oct 31, Bull trout from the Liard River watershed Aug 15-Oct 15, and from the Peace River watershed all year.\nArctic grayling: 2 (none under 30 cm and only 1 over 45 cm). And you must release: any size, May 1-June 15, all from Williston Lake and its tributaries.\nBurbot: 5. Goldeye: 10. Inconnu: 1. Kokanee: 10 (none from streams, except Peace River). Northern pike: 3 (only 1 over 90 cm). Walleye: 3 (only 1 over 70 cm). And you must release: all from streams, Apr 1-May 15. Whitefish: 15 (all species combined). Yellow perch: 5.",
    "source_pages": [
     64
    ],
@@ -348,25 +348,7 @@
       }
      ],
      "review_reason": "THE NOTE'S IMPLICATION, as the user settled it (2026-09-24): bull trout may be kept only from the Liard River watershed or other specified waters, so across Zone B they are catch and release. The Liard row (r7:liard_river_watershed…@7-53) and every row printing its own bull trout limit speak over it at the water's rank."
-    }
-   ]
-  },
-  {
-   "entry_id": "z7b:arctic_grayling",
-   "name": "Arctic grayling",
-   "display_name": "Zone B",
-   "region": "7b",
-   "regs_verbatim": "Arctic grayling: 2 (none under 30 cm and only 1 over 45 cm). And you must release: any size, May 1-June 15, all from Williston Lake and its tributaries.",
-   "source_pages": [
-    64
-   ],
-   "extents": [
-    {
-     "op": "within",
-     "area_id": "area:region:7b"
-    }
-   ],
-   "rules": [
+    },
     {
      "rule_id": "arctic_grayling.r1",
      "type": "retention_limit",
@@ -483,25 +465,7 @@
      ],
      "extent_text": "Williston Lake and its tributaries",
      "review_reason": "BOUND — watershed: the named water plus its tributary walk. Water-scoped with includes_tributaries."
-    }
-   ]
-  },
-  {
-   "entry_id": "z7b:species_quotas",
-   "name": "Other daily quotas",
-   "display_name": "Zone B",
-   "region": "7b",
-   "regs_verbatim": "Burbot: 5. Goldeye: 10. Inconnu: 1. Kokanee: 10 (none from streams, except Peace River). Northern pike: 3 (only 1 over 90 cm). Walleye: 3 (only 1 over 70 cm). And you must release: all from streams, Apr 1-May 15. Whitefish: 15 (all species combined). Yellow perch: 5.",
-   "source_pages": [
-    64
-   ],
-   "extents": [
-    {
-     "op": "within",
-     "area_id": "area:region:7b"
-    }
-   ],
-   "rules": [
+    },
     {
      "rule_id": "species_quotas.r1",
      "type": "retention_limit",

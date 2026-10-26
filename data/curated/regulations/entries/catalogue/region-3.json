@@ -6710,7 +6710,7 @@
     {
      "verbatim": "see page 28 in this section for bull trout daily quota",
      "entry_ids": [
-      "z3:trout_char_quota"
+      "z3:daily_quotas"
      ]
     }
    ]
@@ -10162,12 +10162,12 @@
      "exempts": [
       {
        "target": "trout_char_quota.r1",
-       "entry_id": "z3:trout_char_quota",
+       "entry_id": "z3:daily_quotas",
        "note": "counted apart from the regional trout/char quota: the row's 8 replaces the region's number for rainbow trout"
       },
       {
        "target": "trout_char_quota.r3",
-       "entry_id": "z3:trout_char_quota",
+       "entry_id": "z3:daily_quotas",
        "note": "a larger number for this fish than the region allows: it overrides the region's size clause too (user ruling 2026-09-26); the book's intent is hard to read — the lift carries a caution"
       }
      ]
@@ -11052,11 +11052,11 @@
    ]
   },
   {
-   "entry_id": "z3:species_quotas",
-   "name": "Other daily quotas",
+   "entry_id": "z3:daily_quotas",
+   "name": "Region 3 Daily Quotas",
    "display_name": "Region 3",
    "region": "3",
-   "regs_verbatim": "Bass: 0 quota, CLOSED TO FISHING. Burbot: 2. Crayfish: 25. Kokanee: 5 (none from streams). Whitefish: 15 (all species combined). White Sturgeon: CATCH AND RELEASE ONLY. Yellow Perch: 0 quota, CLOSED TO FISHING.",
+   "regs_verbatim": "Region 3 Daily Quotas. Trout/char: 5, but not more than: 4 from streams, 1 over 50 cm, 1 bull trout (Dolly Varden) or lake trout, none under 60 cm. And you must release: ALL STEELHEAD, Bull trout (Dolly Varden) from streams, Aug 1-Oct 31, Lake trout from Oct 15-Jan 31.\nBass: 0 quota, CLOSED TO FISHING. Burbot: 2. Crayfish: 25. Kokanee: 5 (none from streams). Whitefish: 15 (all species combined). White Sturgeon: CATCH AND RELEASE ONLY. Yellow Perch: 0 quota, CLOSED TO FISHING.",
    "source_pages": [
     28
    ],
@@ -11067,6 +11067,200 @@
     }
    ],
    "rules": [
+    {
+     "rule_id": "trout_char_quota.r1",
+     "type": "retention_limit",
+     "verbatim": "Trout/char: 5",
+     "species": [
+      "TROUT_CHAR"
+     ],
+     "take": 5,
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:3"
+      }
+     ]
+    },
+    {
+     "rule_id": "trout_char_quota.r2",
+     "type": "retention_limit",
+     "verbatim": "4 from streams",
+     "species": [
+      "TROUT_CHAR"
+     ],
+     "take": 4,
+     "within": "trout_char_quota.r1",
+     "water": "stream",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:3",
+       "feature_types": [
+        "stream"
+       ]
+      }
+     ]
+    },
+    {
+     "rule_id": "trout_char_quota.r3",
+     "type": "retention_limit",
+     "verbatim": "1 over 50 cm",
+     "species": [
+      "TROUT_CHAR"
+     ],
+     "take": 1,
+     "within": "trout_char_quota.r1",
+     "lengths": [
+      {
+       "min_cm": 50
+      }
+     ],
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:3"
+      }
+     ]
+    },
+    {
+     "rule_id": "trout_char_quota.r4",
+     "type": "retention_limit",
+     "verbatim": "1 bull trout (Dolly Varden) or lake trout",
+     "species": [
+      "DV",
+      "LT"
+     ],
+     "take": 1,
+     "within": "trout_char_quota.r1",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:3"
+      }
+     ]
+    },
+    {
+     "rule_id": "trout_char_quota.r4b",
+     "type": "retention_limit",
+     "verbatim": "none under 60 cm",
+     "species": [
+      "DV",
+      "LT"
+     ],
+     "lengths": [
+      {
+       "max_cm": 60,
+       "take": 0
+      }
+     ],
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:3"
+      }
+     ]
+    },
+    {
+     "rule_id": "trout_char_quota.r5",
+     "type": "retention_limit",
+     "verbatim": "ALL STEELHEAD",
+     "species": [
+      "ST"
+     ],
+     "take": 0,
+     "may_target": true,
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:3",
+       "feature_types": [
+        "stream"
+       ]
+      }
+     ],
+     "review_reason": "User ruling 2026-10-01 (third): the wild-steelhead release binds STREAMS of the zone's own area (`feature_types: [stream]`, no `water`, so its competition key is unchanged) — 295c4ac3's reading of \"lakes and streams\" as every lake is reverted. A lake gets it only when its own row names steelhead."
+    },
+    {
+     "rule_id": "trout_char_quota.r5b",
+     "type": "retention_limit",
+     "verbatim": "ALL STEELHEAD",
+     "species": [
+      "ST"
+     ],
+     "take": 0,
+     "may_target": true,
+     "extents": [
+      {
+       "op": "steelhead_waters",
+       "siblings": [
+        "trout_char_quota.r5"
+       ],
+       "area_id": "area:region:3",
+       "feature_types": [
+        "lake",
+        "wetland"
+       ]
+      }
+     ],
+     "review_reason": "User ruling 2026-10-02: a lake (or other non-stream water) a STEELHEAD ROW is written for or binds — by any rule of a water row that names steelhead, flags anadromous rainbow or prints the Steelhead Stamp — gets its region's zone steelhead release too (Tenas Lake, by the Atnarko/Bella Coola spring closure, gets Region 5's; Khartoum and Lois get Region 2's). The same line as trout_char_quota.r5, bound to the book-known steelhead LAKES (and wetlands) inside the zone's own area that trout_char_quota.r5 does not bind (op steelhead_waters: the reach builder's book-known set, never the curated steelhead list, within area:region:3, lakes and wetlands only — a stream piece answers to the zone it is homed in, which trout_char_quota.r5 already decides — minus trout_char_quota.r5's sections). A rule of its own because a non-area extent on trout_char_quota.r5 would rank it as a water rule on every stream it binds (`read.source_of`) and change its competition key; no `water`, as trout_char_quota.r5 has none."
+    },
+    {
+     "rule_id": "trout_char_quota.r6",
+     "type": "retention_limit",
+     "verbatim": "Bull trout (Dolly Varden) from streams, Aug 1-Oct 31",
+     "species": [
+      "DV"
+     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 8,
+        "from_day": 1,
+        "to_month": 10,
+        "to_day": 31
+       }
+      ]
+     },
+     "take": 0,
+     "may_target": true,
+     "water": "stream",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:3",
+       "feature_types": [
+        "stream"
+       ]
+      }
+     ]
+    },
+    {
+     "rule_id": "trout_char_quota.r7",
+     "type": "retention_limit",
+     "verbatim": "Lake trout from Oct 15-Jan 31",
+     "species": [
+      "LT"
+     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 10,
+        "from_day": 15,
+        "to_month": 1,
+        "to_day": 31
+       }
+      ]
+     },
+     "take": 0,
+     "may_target": true,
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:3"
+      }
+     ]
+    },
     {
      "rule_id": "species_quotas.r1",
      "type": "retention_limit",
@@ -11283,218 +11477,6 @@
      },
      "verbatim": "a Steelhead Stamp is mandatory when fishing most Classified Waters regardless of the species being angled for",
      "kind": "requirement"
-    }
-   ]
-  },
-  {
-   "entry_id": "z3:trout_char_quota",
-   "name": "Trout and char daily quota",
-   "display_name": "Region 3",
-   "region": "3",
-   "regs_verbatim": "Region 3 Daily Quotas. Trout/char: 5, but not more than: 4 from streams, 1 over 50 cm, 1 bull trout (Dolly Varden) or lake trout, none under 60 cm. And you must release: ALL STEELHEAD, Bull trout (Dolly Varden) from streams, Aug 1-Oct 31, Lake trout from Oct 15-Jan 31.",
-   "source_pages": [
-    28
-   ],
-   "extents": [
-    {
-     "op": "within",
-     "area_id": "area:region:3"
-    }
-   ],
-   "rules": [
-    {
-     "rule_id": "trout_char_quota.r1",
-     "type": "retention_limit",
-     "verbatim": "Trout/char: 5",
-     "species": [
-      "TROUT_CHAR"
-     ],
-     "take": 5,
-     "extents": [
-      {
-       "op": "within",
-       "area_id": "area:region:3"
-      }
-     ]
-    },
-    {
-     "rule_id": "trout_char_quota.r2",
-     "type": "retention_limit",
-     "verbatim": "4 from streams",
-     "species": [
-      "TROUT_CHAR"
-     ],
-     "take": 4,
-     "within": "trout_char_quota.r1",
-     "water": "stream",
-     "extents": [
-      {
-       "op": "within",
-       "area_id": "area:region:3",
-       "feature_types": [
-        "stream"
-       ]
-      }
-     ]
-    },
-    {
-     "rule_id": "trout_char_quota.r3",
-     "type": "retention_limit",
-     "verbatim": "1 over 50 cm",
-     "species": [
-      "TROUT_CHAR"
-     ],
-     "take": 1,
-     "within": "trout_char_quota.r1",
-     "lengths": [
-      {
-       "min_cm": 50
-      }
-     ],
-     "extents": [
-      {
-       "op": "within",
-       "area_id": "area:region:3"
-      }
-     ]
-    },
-    {
-     "rule_id": "trout_char_quota.r4",
-     "type": "retention_limit",
-     "verbatim": "1 bull trout (Dolly Varden) or lake trout",
-     "species": [
-      "DV",
-      "LT"
-     ],
-     "take": 1,
-     "within": "trout_char_quota.r1",
-     "extents": [
-      {
-       "op": "within",
-       "area_id": "area:region:3"
-      }
-     ]
-    },
-    {
-     "rule_id": "trout_char_quota.r4b",
-     "type": "retention_limit",
-     "verbatim": "none under 60 cm",
-     "species": [
-      "DV",
-      "LT"
-     ],
-     "lengths": [
-      {
-       "max_cm": 60,
-       "take": 0
-      }
-     ],
-     "extents": [
-      {
-       "op": "within",
-       "area_id": "area:region:3"
-      }
-     ]
-    },
-    {
-     "rule_id": "trout_char_quota.r5",
-     "type": "retention_limit",
-     "verbatim": "ALL STEELHEAD",
-     "species": [
-      "ST"
-     ],
-     "take": 0,
-     "may_target": true,
-     "extents": [
-      {
-       "op": "within",
-       "area_id": "area:region:3",
-       "feature_types": [
-        "stream"
-       ]
-      }
-     ],
-     "review_reason": "User ruling 2026-10-01 (third): the wild-steelhead release binds STREAMS of the zone's own area (`feature_types: [stream]`, no `water`, so its competition key is unchanged) — 295c4ac3's reading of \"lakes and streams\" as every lake is reverted. A lake gets it only when its own row names steelhead."
-    },
-    {
-     "rule_id": "trout_char_quota.r5b",
-     "type": "retention_limit",
-     "verbatim": "ALL STEELHEAD",
-     "species": [
-      "ST"
-     ],
-     "take": 0,
-     "may_target": true,
-     "extents": [
-      {
-       "op": "steelhead_waters",
-       "siblings": [
-        "trout_char_quota.r5"
-       ],
-       "area_id": "area:region:3",
-       "feature_types": [
-        "lake",
-        "wetland"
-       ]
-      }
-     ],
-     "review_reason": "User ruling 2026-10-02: a lake (or other non-stream water) a STEELHEAD ROW is written for or binds — by any rule of a water row that names steelhead, flags anadromous rainbow or prints the Steelhead Stamp — gets its region's zone steelhead release too (Tenas Lake, by the Atnarko/Bella Coola spring closure, gets Region 5's; Khartoum and Lois get Region 2's). The same line as trout_char_quota.r5, bound to the book-known steelhead LAKES (and wetlands) inside the zone's own area that trout_char_quota.r5 does not bind (op steelhead_waters: the reach builder's book-known set, never the curated steelhead list, within area:region:3, lakes and wetlands only — a stream piece answers to the zone it is homed in, which trout_char_quota.r5 already decides — minus trout_char_quota.r5's sections). A rule of its own because a non-area extent on trout_char_quota.r5 would rank it as a water rule on every stream it binds (`read.source_of`) and change its competition key; no `water`, as trout_char_quota.r5 has none."
-    },
-    {
-     "rule_id": "trout_char_quota.r6",
-     "type": "retention_limit",
-     "verbatim": "Bull trout (Dolly Varden) from streams, Aug 1-Oct 31",
-     "species": [
-      "DV"
-     ],
-     "when": {
-      "dates": [
-       {
-        "from_month": 8,
-        "from_day": 1,
-        "to_month": 10,
-        "to_day": 31
-       }
-      ]
-     },
-     "take": 0,
-     "may_target": true,
-     "water": "stream",
-     "extents": [
-      {
-       "op": "within",
-       "area_id": "area:region:3",
-       "feature_types": [
-        "stream"
-       ]
-      }
-     ]
-    },
-    {
-     "rule_id": "trout_char_quota.r7",
-     "type": "retention_limit",
-     "verbatim": "Lake trout from Oct 15-Jan 31",
-     "species": [
-      "LT"
-     ],
-     "when": {
-      "dates": [
-       {
-        "from_month": 10,
-        "from_day": 15,
-        "to_month": 1,
-        "to_day": 31
-       }
-      ]
-     },
-     "take": 0,
-     "may_target": true,
-     "extents": [
-      {
-       "op": "within",
-       "area_id": "area:region:3"
-      }
-     ]
     }
    ]
   }

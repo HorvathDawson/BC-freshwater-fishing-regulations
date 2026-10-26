@@ -2152,12 +2152,12 @@
      "exempts": [
       {
        "target": "trout_char_quota.r1",
-       "entry_id": "z8:trout_char_quota",
+       "entry_id": "z8:daily_quotas",
        "note": "counted apart from the regional trout/char quota: the row's 20 replaces the region's number for brook trout"
       },
       {
        "target": "trout_char_quota.r2",
-       "entry_id": "z8:trout_char_quota",
+       "entry_id": "z8:daily_quotas",
        "note": "a larger number for this fish than the region allows: it overrides the region's size clause too (user ruling 2026-09-26); the book's intent is hard to read — the lift carries a caution"
       }
      ]
@@ -6550,12 +6550,12 @@
    ]
   },
   {
-   "entry_id": "z8:species_quotas",
-   "name": "Other daily quotas",
+   "entry_id": "z8:daily_quotas",
+   "name": "Region 8 Daily Quotas",
    "display_name": "Region 8",
    "region": "8",
-   "scope_note": "Crappie is BCB and sits under OTHER, NOT under BASS. If BS expanded to include BCB, z8 would close crappie and permit 20 of them in one chapter.",
-   "regs_verbatim": "Bass: 0 quota, CLOSED TO FISHING (see tables for exceptions). Burbot: 2. Crappie: 20. Crayfish: 25. Kokanee: 5 (none from streams). Walleye: 8. Whitefish: 15 (all species combined). Yellow perch: 0 quota, CLOSED TO FISHING (see tables for exceptions).",
+   "scope_note": "Brook trout sit OUTSIDE the 4-from-streams limit: the chapter prints 'And you may retain' under a separate heading. EB is a strict subset of TROUT_CHAR with take 20 > 4, so it REPLACES for brook trout and the parent re-renders on its residual species. Species containment must be tested before sections — both rules cover identical section sets.\n\nCrappie is BCB and sits under OTHER, NOT under BASS. If BS expanded to include BCB, z8 would close crappie and permit 20 of them in one chapter.",
+   "regs_verbatim": "Region 8 Daily Quotas. Trout/char: 5, but not more than 1 over 50 cm, 4 from streams (only 2 over 30 cm). And you may retain: 20 brook trout from streams. And you must release: Bull trout (Dolly Varden) from streams.\nBass: 0 quota, CLOSED TO FISHING (see tables for exceptions). Burbot: 2. Crappie: 20. Crayfish: 25. Kokanee: 5 (none from streams). Walleye: 8. Whitefish: 15 (all species combined). Yellow perch: 0 quota, CLOSED TO FISHING (see tables for exceptions).",
    "source_pages": [
     68
    ],
@@ -6566,6 +6566,144 @@
     }
    ],
    "rules": [
+    {
+     "rule_id": "trout_char_quota.r1",
+     "type": "retention_limit",
+     "verbatim": "Trout/char: 5",
+     "species": [
+      "TROUT_CHAR"
+     ],
+     "take": 5,
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:8"
+      }
+     ]
+    },
+    {
+     "rule_id": "trout_char_quota.r2",
+     "type": "retention_limit",
+     "verbatim": "1 over 50 cm",
+     "species": [
+      "TROUT_CHAR"
+     ],
+     "take": 1,
+     "within": "trout_char_quota.r1",
+     "lengths": [
+      {
+       "min_cm": 50
+      }
+     ],
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:8"
+      }
+     ]
+    },
+    {
+     "rule_id": "trout_char_quota.r3",
+     "type": "retention_limit",
+     "verbatim": "4 from streams",
+     "species": [
+      "TROUT_CHAR"
+     ],
+     "take": 4,
+     "within": "trout_char_quota.r1",
+     "water": "stream",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:8",
+       "feature_types": [
+        "stream"
+       ]
+      }
+     ]
+    },
+    {
+     "rule_id": "trout_char_quota.r4",
+     "type": "retention_limit",
+     "verbatim": "only 2 over 30 cm",
+     "species": [
+      "TROUT_CHAR"
+     ],
+     "take": 2,
+     "within": "trout_char_quota.r3",
+     "lengths": [
+      {
+       "min_cm": 30
+      }
+     ],
+     "water": "stream",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:8",
+       "feature_types": [
+        "stream"
+       ]
+      }
+     ]
+    },
+    {
+     "rule_id": "trout_char_quota.r5",
+     "type": "retention_limit",
+     "verbatim": "20 brook trout from streams",
+     "species": [
+      "EB"
+     ],
+     "take": 20,
+     "water": "stream",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:8",
+       "feature_types": [
+        "stream"
+       ]
+      }
+     ],
+     "exempts": [
+      {
+       "target": "trout_char_quota.r1",
+       "note": "And you may retain: 20 brook trout from streams — counted apart from the trout/char quota"
+      },
+      {
+       "target": "trout_char_quota.r2",
+       "note": "And you may retain: 20 brook trout from streams — counted apart from the trout/char quota"
+      },
+      {
+       "target": "trout_char_quota.r3",
+       "note": "And you may retain: 20 brook trout from streams — counted apart from the trout/char quota"
+      },
+      {
+       "target": "trout_char_quota.r4",
+       "note": "And you may retain: 20 brook trout from streams — counted apart from the trout/char quota"
+      }
+     ]
+    },
+    {
+     "rule_id": "trout_char_quota.r6",
+     "type": "retention_limit",
+     "verbatim": "Bull trout (Dolly Varden) from streams",
+     "species": [
+      "DV"
+     ],
+     "take": 0,
+     "may_target": true,
+     "water": "stream",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:8",
+       "feature_types": [
+        "stream"
+       ]
+      }
+     ]
+    },
     {
      "rule_id": "species_quotas.r1",
      "type": "retention_limit",
@@ -6786,163 +6924,6 @@
       {
        "op": "within",
        "area_id": "area:region:8"
-      }
-     ]
-    }
-   ]
-  },
-  {
-   "entry_id": "z8:trout_char_quota",
-   "name": "Trout and char daily quota",
-   "display_name": "Region 8",
-   "region": "8",
-   "scope_note": "Brook trout sit OUTSIDE the 4-from-streams limit: the chapter prints 'And you may retain' under a separate heading. EB is a strict subset of TROUT_CHAR with take 20 > 4, so it REPLACES for brook trout and the parent re-renders on its residual species. Species containment must be tested before sections — both rules cover identical section sets.",
-   "regs_verbatim": "Region 8 Daily Quotas. Trout/char: 5, but not more than 1 over 50 cm, 4 from streams (only 2 over 30 cm). And you may retain: 20 brook trout from streams. And you must release: Bull trout (Dolly Varden) from streams.",
-   "source_pages": [
-    68
-   ],
-   "extents": [
-    {
-     "op": "within",
-     "area_id": "area:region:8"
-    }
-   ],
-   "rules": [
-    {
-     "rule_id": "trout_char_quota.r1",
-     "type": "retention_limit",
-     "verbatim": "Trout/char: 5",
-     "species": [
-      "TROUT_CHAR"
-     ],
-     "take": 5,
-     "extents": [
-      {
-       "op": "within",
-       "area_id": "area:region:8"
-      }
-     ]
-    },
-    {
-     "rule_id": "trout_char_quota.r2",
-     "type": "retention_limit",
-     "verbatim": "1 over 50 cm",
-     "species": [
-      "TROUT_CHAR"
-     ],
-     "take": 1,
-     "within": "trout_char_quota.r1",
-     "lengths": [
-      {
-       "min_cm": 50
-      }
-     ],
-     "extents": [
-      {
-       "op": "within",
-       "area_id": "area:region:8"
-      }
-     ]
-    },
-    {
-     "rule_id": "trout_char_quota.r3",
-     "type": "retention_limit",
-     "verbatim": "4 from streams",
-     "species": [
-      "TROUT_CHAR"
-     ],
-     "take": 4,
-     "within": "trout_char_quota.r1",
-     "water": "stream",
-     "extents": [
-      {
-       "op": "within",
-       "area_id": "area:region:8",
-       "feature_types": [
-        "stream"
-       ]
-      }
-     ]
-    },
-    {
-     "rule_id": "trout_char_quota.r4",
-     "type": "retention_limit",
-     "verbatim": "only 2 over 30 cm",
-     "species": [
-      "TROUT_CHAR"
-     ],
-     "take": 2,
-     "within": "trout_char_quota.r3",
-     "lengths": [
-      {
-       "min_cm": 30
-      }
-     ],
-     "water": "stream",
-     "extents": [
-      {
-       "op": "within",
-       "area_id": "area:region:8",
-       "feature_types": [
-        "stream"
-       ]
-      }
-     ]
-    },
-    {
-     "rule_id": "trout_char_quota.r5",
-     "type": "retention_limit",
-     "verbatim": "20 brook trout from streams",
-     "species": [
-      "EB"
-     ],
-     "take": 20,
-     "water": "stream",
-     "extents": [
-      {
-       "op": "within",
-       "area_id": "area:region:8",
-       "feature_types": [
-        "stream"
-       ]
-      }
-     ],
-     "exempts": [
-      {
-       "target": "trout_char_quota.r1",
-       "note": "And you may retain: 20 brook trout from streams — counted apart from the trout/char quota"
-      },
-      {
-       "target": "trout_char_quota.r2",
-       "note": "And you may retain: 20 brook trout from streams — counted apart from the trout/char quota"
-      },
-      {
-       "target": "trout_char_quota.r3",
-       "note": "And you may retain: 20 brook trout from streams — counted apart from the trout/char quota"
-      },
-      {
-       "target": "trout_char_quota.r4",
-       "note": "And you may retain: 20 brook trout from streams — counted apart from the trout/char quota"
-      }
-     ]
-    },
-    {
-     "rule_id": "trout_char_quota.r6",
-     "type": "retention_limit",
-     "verbatim": "Bull trout (Dolly Varden) from streams",
-     "species": [
-      "DV"
-     ],
-     "take": 0,
-     "may_target": true,
-     "water": "stream",
-     "extents": [
-      {
-       "op": "within",
-       "area_id": "area:region:8",
-       "feature_types": [
-        "stream"
-       ]
       }
      ]
     }

@@ -778,12 +778,12 @@
           "exempts": [
             {
               "target": "trout_char_quota.r1",
-              "entry_id": "z7a:trout_char_quota",
+              "entry_id": "z7a:daily_quotas",
               "note": "counted apart from the regional trout/char quota: the row's 10 replaces the region's number for brook trout"
             },
             {
               "target": "trout_char_quota.r2",
-              "entry_id": "z7a:trout_char_quota",
+              "entry_id": "z7a:daily_quotas",
               "note": "a larger number for this fish than the region allows: it overrides the region's size clause too (user ruling 2026-09-26); the book's intent is hard to read — the lift carries a caution"
             }
           ]
@@ -889,57 +889,57 @@
           "exempts": [
             {
               "target": "arctic_grayling.r1",
-              "entry_id": "z7b:arctic_grayling",
+              "entry_id": "z7b:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             },
             {
               "target": "arctic_grayling.r3",
-              "entry_id": "z7b:arctic_grayling",
+              "entry_id": "z7b:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             },
             {
               "target": "species_quotas.r1",
-              "entry_id": "z7b:species_quotas",
+              "entry_id": "z7b:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             },
             {
               "target": "species_quotas.r2",
-              "entry_id": "z7b:species_quotas",
+              "entry_id": "z7b:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             },
             {
               "target": "species_quotas.r3",
-              "entry_id": "z7b:species_quotas",
+              "entry_id": "z7b:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             },
             {
               "target": "species_quotas.r4",
-              "entry_id": "z7b:species_quotas",
+              "entry_id": "z7b:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             },
             {
               "target": "species_quotas.r6",
-              "entry_id": "z7b:species_quotas",
+              "entry_id": "z7b:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             },
             {
               "target": "species_quotas.r7",
-              "entry_id": "z7b:species_quotas",
+              "entry_id": "z7b:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             },
             {
               "target": "species_quotas.r8",
-              "entry_id": "z7b:species_quotas",
+              "entry_id": "z7b:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             },
             {
               "target": "species_quotas.r9",
-              "entry_id": "z7b:species_quotas",
+              "entry_id": "z7b:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             },
             {
               "target": "species_quotas.r12",
-              "entry_id": "z7b:species_quotas",
+              "entry_id": "z7b:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             }
           ]
@@ -1001,12 +1001,12 @@
           "exempts": [
             {
               "target": "trout_char_quota.r1",
-              "entry_id": "z7a:trout_char_quota",
+              "entry_id": "z7a:daily_quotas",
               "note": "counted apart from the regional trout/char quota: the row's 10 replaces the region's number for brook trout"
             },
             {
               "target": "trout_char_quota.r2",
-              "entry_id": "z7a:trout_char_quota",
+              "entry_id": "z7a:daily_quotas",
               "note": "a larger number for this fish than the region allows: it overrides the region's size clause too (user ruling 2026-09-26); the book's intent is hard to read — the lift carries a caution"
             }
           ]
@@ -1116,12 +1116,12 @@
           "exempts": [
             {
               "target": "trout_char_quota.r1",
-              "entry_id": "z7a:trout_char_quota",
+              "entry_id": "z7a:daily_quotas",
               "note": "counted apart from the regional trout/char quota: the row's 10 replaces the region's number for brook trout"
             },
             {
               "target": "trout_char_quota.r2",
-              "entry_id": "z7a:trout_char_quota",
+              "entry_id": "z7a:daily_quotas",
               "note": "a larger number for this fish than the region allows: it overrides the region's size clause too (user ruling 2026-09-26); the book's intent is hard to read — the lift carries a caution"
             }
           ]
@@ -2172,47 +2172,47 @@
           "exempts": [
             {
               "target": "species_quotas.r1",
-              "entry_id": "z7b:species_quotas",
+              "entry_id": "z7b:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             },
             {
               "target": "species_quotas.r2",
-              "entry_id": "z7b:species_quotas",
+              "entry_id": "z7b:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             },
             {
               "target": "species_quotas.r3",
-              "entry_id": "z7b:species_quotas",
+              "entry_id": "z7b:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             },
             {
               "target": "species_quotas.r4",
-              "entry_id": "z7b:species_quotas",
+              "entry_id": "z7b:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             },
             {
               "target": "species_quotas.r6",
-              "entry_id": "z7b:species_quotas",
+              "entry_id": "z7b:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             },
             {
               "target": "species_quotas.r7",
-              "entry_id": "z7b:species_quotas",
+              "entry_id": "z7b:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             },
             {
               "target": "species_quotas.r8",
-              "entry_id": "z7b:species_quotas",
+              "entry_id": "z7b:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             },
             {
               "target": "species_quotas.r9",
-              "entry_id": "z7b:species_quotas",
+              "entry_id": "z7b:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             },
             {
               "target": "species_quotas.r12",
-              "entry_id": "z7b:species_quotas",
+              "entry_id": "z7b:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             }
           ]
@@ -2292,57 +2292,57 @@
           "exempts": [
             {
               "target": "species_quotas.r1",
-              "entry_id": "z7b:species_quotas",
+              "entry_id": "z7b:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             },
             {
               "target": "species_quotas.r2",
-              "entry_id": "z7b:species_quotas",
+              "entry_id": "z7b:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             },
             {
               "target": "species_quotas.r3",
-              "entry_id": "z7b:species_quotas",
+              "entry_id": "z7b:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             },
             {
               "target": "species_quotas.r4",
-              "entry_id": "z7b:species_quotas",
+              "entry_id": "z7b:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             },
             {
               "target": "species_quotas.r6",
-              "entry_id": "z7b:species_quotas",
+              "entry_id": "z7b:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             },
             {
               "target": "species_quotas.r7",
-              "entry_id": "z7b:species_quotas",
+              "entry_id": "z7b:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             },
             {
               "target": "species_quotas.r8",
-              "entry_id": "z7b:species_quotas",
+              "entry_id": "z7b:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             },
             {
               "target": "species_quotas.r9",
-              "entry_id": "z7b:species_quotas",
+              "entry_id": "z7b:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             },
             {
               "target": "species_quotas.r12",
-              "entry_id": "z7b:species_quotas",
+              "entry_id": "z7b:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             },
             {
               "target": "arctic_grayling.r1",
-              "entry_id": "z7b:arctic_grayling",
+              "entry_id": "z7b:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's grayling quota does not reopen it"
             },
             {
               "target": "arctic_grayling.r3",
-              "entry_id": "z7b:arctic_grayling",
+              "entry_id": "z7b:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's grayling quota does not reopen it"
             }
           ]
@@ -4000,7 +4000,7 @@
           "exempts": [
             {
               "target": "trout_char_quota.r2",
-              "entry_id": "z7b:trout_char_quota",
+              "entry_id": "z7b:daily_quotas",
               "note": "the lake's own lake trout sizes replace '1 over 50 cm': it keeps more than one lake trout over 50 cm"
             }
           ],
@@ -4087,11 +4087,12 @@
           "may_target": false,
           "extents": [
             {
-              "op": "whole"
+              "op": "downstream_of",
+              "splits": [
+                "halfway_river__fishing_boundary_signs_5_km_above_peace_river"
+              ]
             }
-          ],
-          "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): no split id matches the Peace River confluence / 5 km boundary-sign reach",
-          "undrawn_part": "from confluence with Peace River to fishing boundary signs approximately 5 km upstream"
+          ]
         },
         {
           "rule_id": "halfway_river.r2",
@@ -5222,12 +5223,12 @@
           "exempts": [
             {
               "target": "trout_char_quota.r1",
-              "entry_id": "z7a:trout_char_quota",
+              "entry_id": "z7a:daily_quotas",
               "note": "counted apart from the regional trout/char quota: the row's 10 replaces the region's number for brook trout"
             },
             {
               "target": "trout_char_quota.r2",
-              "entry_id": "z7a:trout_char_quota",
+              "entry_id": "z7a:daily_quotas",
               "note": "a larger number for this fish than the region allows: it overrides the region's size clause too (user ruling 2026-09-26); the book's intent is hard to read — the lift carries a caution"
             }
           ]
@@ -7022,7 +7023,7 @@
           "exempts": [
             {
               "target": "trout_char_quota.r2",
-              "entry_id": "z7b:trout_char_quota",
+              "entry_id": "z7b:daily_quotas",
               "note": "the lake's own lake trout sizes replace '1 over 50 cm': it keeps more than one lake trout over 50 cm"
             }
           ]
@@ -7931,7 +7932,7 @@
           "exempts": [
             {
               "target": "species_quotas.r5",
-              "entry_id": "z7b:species_quotas",
+              "entry_id": "z7b:daily_quotas",
               "note": "none from streams, except Peace River"
             }
           ]
@@ -7987,7 +7988,7 @@
           "exempts": [
             {
               "target": "species_quotas.r5",
-              "entry_id": "z7b:species_quotas",
+              "entry_id": "z7b:daily_quotas",
               "note": "none from streams, except Peace River"
             }
           ]
@@ -8052,7 +8053,7 @@
           "exempts": [
             {
               "target": "trout_char_quota.r3",
-              "entry_id": "z7b:trout_char_quota",
+              "entry_id": "z7b:daily_quotas",
               "note": "the river's own lake trout quota replaces '2 from streams'"
             }
           ]
@@ -8221,67 +8222,67 @@
           "exempts": [
             {
               "target": "species_quotas.r2",
-              "entry_id": "z7a:species_quotas",
+              "entry_id": "z7a:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             },
             {
               "target": "species_quotas.r3",
-              "entry_id": "z7a:species_quotas",
+              "entry_id": "z7a:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             },
             {
               "target": "arctic_grayling.r1",
-              "entry_id": "z7b:arctic_grayling",
+              "entry_id": "z7b:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             },
             {
               "target": "arctic_grayling.r3",
-              "entry_id": "z7b:arctic_grayling",
+              "entry_id": "z7b:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             },
             {
               "target": "species_quotas.r1",
-              "entry_id": "z7b:species_quotas",
+              "entry_id": "z7b:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             },
             {
               "target": "species_quotas.r2",
-              "entry_id": "z7b:species_quotas",
+              "entry_id": "z7b:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             },
             {
               "target": "species_quotas.r3",
-              "entry_id": "z7b:species_quotas",
+              "entry_id": "z7b:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             },
             {
               "target": "species_quotas.r4",
-              "entry_id": "z7b:species_quotas",
+              "entry_id": "z7b:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             },
             {
               "target": "species_quotas.r6",
-              "entry_id": "z7b:species_quotas",
+              "entry_id": "z7b:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             },
             {
               "target": "species_quotas.r7",
-              "entry_id": "z7b:species_quotas",
+              "entry_id": "z7b:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             },
             {
               "target": "species_quotas.r8",
-              "entry_id": "z7b:species_quotas",
+              "entry_id": "z7b:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             },
             {
               "target": "species_quotas.r9",
-              "entry_id": "z7b:species_quotas",
+              "entry_id": "z7b:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             },
             {
               "target": "species_quotas.r12",
-              "entry_id": "z7b:species_quotas",
+              "entry_id": "z7b:daily_quotas",
               "note": "the water's catch and release covers this fish; the zone's species quota does not reopen it"
             }
           ]
@@ -10258,12 +10259,12 @@
           "exempts": [
             {
               "target": "trout_char_quota.r1",
-              "entry_id": "z7a:trout_char_quota",
+              "entry_id": "z7a:daily_quotas",
               "note": "counted apart from the regional trout/char quota: the row's 10 replaces the region's number for brook trout"
             },
             {
               "target": "trout_char_quota.r2",
-              "entry_id": "z7a:trout_char_quota",
+              "entry_id": "z7a:daily_quotas",
               "note": "a larger number for this fish than the region allows: it overrides the region's size clause too (user ruling 2026-09-26); the book's intent is hard to read — the lift carries a caution"
             }
           ]
@@ -10305,12 +10306,12 @@
           "exempts": [
             {
               "target": "trout_char_quota.r1",
-              "entry_id": "z7a:trout_char_quota",
+              "entry_id": "z7a:daily_quotas",
               "note": "counted apart from the regional trout/char quota: the row's 10 replaces the region's number for brook trout"
             },
             {
               "target": "trout_char_quota.r2",
-              "entry_id": "z7a:trout_char_quota",
+              "entry_id": "z7a:daily_quotas",
               "note": "a larger number for this fish than the region allows: it overrides the region's size clause too (user ruling 2026-09-26); the book's intent is hard to read — the lift carries a caution"
             }
           ]
@@ -11020,7 +11021,7 @@
           "exempts": [
             {
               "target": "trout_char_quota.r4",
-              "entry_id": "z7b:trout_char_quota",
+              "entry_id": "z7b:daily_quotas",
               "note": "the lake's own lake trout quota (3) replaces '2 lake trout'"
             }
           ]

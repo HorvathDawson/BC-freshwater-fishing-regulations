@@ -2100,7 +2100,7 @@
      "exempts": [
       {
        "target": "trout_char_quota.r2",
-       "entry_id": "z5:trout_char_quota",
+       "entry_id": "z5:daily_quotas",
        "note": "a larger number for this fish than the region allows: it overrides the region's size clause too (user ruling 2026-09-26); the book's intent is hard to read — the lift carries a caution"
       }
      ]
@@ -5602,7 +5602,7 @@
      "exempts": [
       {
        "target": "trout_char_quota.r2",
-       "entry_id": "z5:trout_char_quota",
+       "entry_id": "z5:daily_quotas",
        "note": "a larger number for this fish than the region allows: it overrides the region's size clause too (user ruling 2026-09-26); the book's intent is hard to read — the lift carries a caution"
       }
      ]
@@ -7520,7 +7520,7 @@
      "exempts": [
       {
        "target": "trout_char_quota.r2",
-       "entry_id": "z5:trout_char_quota",
+       "entry_id": "z5:daily_quotas",
        "note": "a larger number for this fish than the region allows: it overrides the region's size clause too (user ruling 2026-09-26); the book's intent is hard to read — the lift carries a caution"
       }
      ]
@@ -7744,7 +7744,7 @@
      "exempts": [
       {
        "target": "trout_char_quota.r2",
-       "entry_id": "z5:trout_char_quota",
+       "entry_id": "z5:daily_quotas",
        "note": "a larger number for this fish than the region allows: it overrides the region's size clause too (user ruling 2026-09-26); the book's intent is hard to read — the lift carries a caution"
       }
      ]
@@ -9341,7 +9341,7 @@
      "exempts": [
       {
        "target": "trout_char_quota.r2",
-       "entry_id": "z5:trout_char_quota",
+       "entry_id": "z5:daily_quotas",
        "note": "a larger number for this fish than the region allows: it overrides the region's size clause too (user ruling 2026-09-26); the book's intent is hard to read — the lift carries a caution"
       }
      ]
@@ -9456,7 +9456,7 @@
      "exempts": [
       {
        "target": "trout_char_quota.r2",
-       "entry_id": "z5:trout_char_quota",
+       "entry_id": "z5:daily_quotas",
        "note": "a larger number for this fish than the region allows: it overrides the region's size clause too (user ruling 2026-09-26); the book's intent is hard to read — the lift carries a caution"
       }
      ]
@@ -9898,7 +9898,7 @@
      "exempts": [
       {
        "target": "trout_char_quota.r2",
-       "entry_id": "z5:trout_char_quota",
+       "entry_id": "z5:daily_quotas",
        "note": "a larger number for this fish than the region allows: it overrides the region's size clause too (user ruling 2026-09-26); the book's intent is hard to read — the lift carries a caution"
       }
      ]
@@ -10028,7 +10028,7 @@
      "exempts": [
       {
        "target": "trout_char_quota.r2",
-       "entry_id": "z5:trout_char_quota",
+       "entry_id": "z5:daily_quotas",
        "note": "(any size): the lake's 5 lake trout replaces '1 over 50 cm'"
       }
      ]
@@ -13512,196 +13512,11 @@
    ]
   },
   {
-   "entry_id": "z5:species_quotas",
-   "name": "Other daily quotas",
+   "entry_id": "z5:daily_quotas",
+   "name": "Region 5 Daily Quotas",
    "display_name": "Region 5",
    "region": "5",
-   "regs_verbatim": "Bass: 0 quota, CLOSED TO ALL FISHING. Burbot: 5. Kokanee: 5 (none from streams). Whitefish: 15 (all species combined).",
-   "source_pages": [
-    42
-   ],
-   "extents": [
-    {
-     "op": "within",
-     "area_id": "area:region:5"
-    }
-   ],
-   "rules": [
-    {
-     "rule_id": "species_quotas.r1",
-     "type": "retention_limit",
-     "verbatim": "Bass: 0 quota, CLOSED TO ALL FISHING",
-     "species": [
-      "BASS"
-     ],
-     "take": 0,
-     "may_target": false,
-     "extents": [
-      {
-       "op": "within",
-       "area_id": "area:region:5"
-      }
-     ]
-    },
-    {
-     "rule_id": "species_quotas.r2",
-     "type": "retention_limit",
-     "verbatim": "Burbot: 5",
-     "species": [
-      "BB"
-     ],
-     "take": 5,
-     "extents": [
-      {
-       "op": "within",
-       "area_id": "area:region:5"
-      }
-     ]
-    },
-    {
-     "rule_id": "species_quotas.r3",
-     "type": "retention_limit",
-     "verbatim": "Kokanee: 5",
-     "species": [
-      "KO"
-     ],
-     "take": 5,
-     "extents": [
-      {
-       "op": "within",
-       "area_id": "area:region:5"
-      }
-     ]
-    },
-    {
-     "rule_id": "species_quotas.r4",
-     "type": "retention_limit",
-     "verbatim": "none from streams",
-     "species": [
-      "KO"
-     ],
-     "take": 0,
-     "may_target": true,
-     "water": "stream",
-     "extents": [
-      {
-       "op": "within",
-       "area_id": "area:region:5",
-       "feature_types": [
-        "stream"
-       ]
-      }
-     ]
-    },
-    {
-     "rule_id": "species_quotas.r5",
-     "type": "retention_limit",
-     "verbatim": "Whitefish: 15 (all species combined)",
-     "species": [
-      "WHITEFISH"
-     ],
-     "take": 15,
-     "extents": [
-      {
-       "op": "within",
-       "area_id": "area:region:5"
-      }
-     ]
-    }
-   ]
-  },
-  {
-   "entry_id": "z5:spring_stream_closure",
-   "name": "Spring stream closure",
-   "display_name": "Fraser and Thompson watersheds in Region 5",
-   "region": "5",
-   "regs_verbatim": "Spring closure: No fishing in any stream in Fraser River Watershed of Region 5 (including the Thompson River Watershed) from Apr 1-June 30, EXCEPT the mainstem of the Fraser River and other streams listed in the tables.",
-   "source_pages": [
-    42
-   ],
-   "extents": [
-    {
-     "op": "within",
-     "area_id": "area:region:5",
-     "feature_types": [
-      "stream"
-     ]
-    }
-   ],
-   "rules": [
-    {
-     "rule_id": "spring_stream_closure.r1",
-     "type": "retention_limit",
-     "verbatim": "Spring closure: No fishing in any stream in Fraser River Watershed of Region 5 (including the Thompson River Watershed) from Apr 1-June 30, EXCEPT the mainstem of the Fraser River and other streams listed in the tables.",
-     "species": [
-      "ALL_GAME_FISH"
-     ],
-     "when": {
-      "dates": [
-       {
-        "from_month": 4,
-        "from_day": 1,
-        "to_month": 6,
-        "to_day": 30
-       }
-      ]
-     },
-     "take": 0,
-     "may_target": false,
-     "water": "stream",
-     "closure_kind": "spring",
-     "extents": [
-      {
-       "op": "within",
-       "area_id": "area:basin:100-",
-       "within_area": "area:region:5",
-       "feature_types": [
-        "stream"
-       ],
-       "outside_items": [
-        "gnis:39325"
-       ]
-      }
-     ],
-     "extent_text": "Fraser and Thompson watersheds in Region 5, except the Fraser mainstem"
-    }
-   ]
-  },
-  {
-   "entry_id": "z5:steelhead_management",
-   "name": "Steelhead management changes",
-   "display_name": "Chilcotin River watershed",
-   "region": "5",
-   "regs_verbatim": "Steelhead Management Changes. In response to declining abundance of Fraser Basin steelhead, steelhead fisheries within the Chilcotin River Watershed may be closed.",
-   "source_pages": [
-    42
-   ],
-   "rules": [
-    {
-     "rule_id": "steelhead_management.r1",
-     "type": "advisory",
-     "verbatim": "In response to declining abundance of Fraser Basin steelhead, steelhead fisheries within the Chilcotin River Watershed may be closed.",
-     "extents": [
-      {
-       "op": "within",
-       "area_id": "area:basin:100-342455-",
-       "within_area": "area:region:5",
-       "feature_types": [
-        "stream"
-       ]
-      }
-     ],
-     "extent_text": "Chilcotin River watershed",
-     "review_reason": "BOUND — watershed: the FWA basin of the Chilcotin (code 100-342455-) in Region 5. Conditional ('may be closed'). RECOVERED — absent from the corpus. User ruling 2026-10-01: steelhead rules bind STREAMS only — the province's only in the regions whose own tables name steelhead (1, 2, 3, 5, 6) — and never a lake unless the lake's own row mentions steelhead (big lake rainbow fall under the rainbow size quota, not the steelhead quota). The book prints this rule for the whole region. Bound to streams by `feature_types: [stream]` only — no `water`, so its competition key (and every stream answer) is unchanged."
-    }
-   ]
-  },
-  {
-   "entry_id": "z5:trout_char_quota",
-   "name": "Trout and char daily quota",
-   "display_name": "Region 5",
-   "region": "5",
-   "regs_verbatim": "Region 5 Daily Quotas. Trout/char: 5, but not more than 1 over 50 cm, 2 from streams, 1 Dolly Varden/bull trout, 2 lake trout. And you must release: ALL STEELHEAD, Lake trout, Oct 1-Nov 30, Bull trout (Dolly Varden) from streams, Aug 1-Oct 31.",
+   "regs_verbatim": "Region 5 Daily Quotas. Trout/char: 5, but not more than 1 over 50 cm, 2 from streams, 1 Dolly Varden/bull trout, 2 lake trout. And you must release: ALL STEELHEAD, Lake trout, Oct 1-Nov 30, Bull trout (Dolly Varden) from streams, Aug 1-Oct 31.\nBass: 0 quota, CLOSED TO ALL FISHING. Burbot: 5. Kokanee: 5 (none from streams). Whitefish: 15 (all species combined).",
    "source_pages": [
     42
    ],
@@ -13899,6 +13714,173 @@
        ]
       }
      ]
+    },
+    {
+     "rule_id": "species_quotas.r1",
+     "type": "retention_limit",
+     "verbatim": "Bass: 0 quota, CLOSED TO ALL FISHING",
+     "species": [
+      "BASS"
+     ],
+     "take": 0,
+     "may_target": false,
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:5"
+      }
+     ]
+    },
+    {
+     "rule_id": "species_quotas.r2",
+     "type": "retention_limit",
+     "verbatim": "Burbot: 5",
+     "species": [
+      "BB"
+     ],
+     "take": 5,
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:5"
+      }
+     ]
+    },
+    {
+     "rule_id": "species_quotas.r3",
+     "type": "retention_limit",
+     "verbatim": "Kokanee: 5",
+     "species": [
+      "KO"
+     ],
+     "take": 5,
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:5"
+      }
+     ]
+    },
+    {
+     "rule_id": "species_quotas.r4",
+     "type": "retention_limit",
+     "verbatim": "none from streams",
+     "species": [
+      "KO"
+     ],
+     "take": 0,
+     "may_target": true,
+     "water": "stream",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:5",
+       "feature_types": [
+        "stream"
+       ]
+      }
+     ]
+    },
+    {
+     "rule_id": "species_quotas.r5",
+     "type": "retention_limit",
+     "verbatim": "Whitefish: 15 (all species combined)",
+     "species": [
+      "WHITEFISH"
+     ],
+     "take": 15,
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:5"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "entry_id": "z5:spring_stream_closure",
+   "name": "Spring stream closure",
+   "display_name": "Fraser and Thompson watersheds in Region 5",
+   "region": "5",
+   "regs_verbatim": "Spring closure: No fishing in any stream in Fraser River Watershed of Region 5 (including the Thompson River Watershed) from Apr 1-June 30, EXCEPT the mainstem of the Fraser River and other streams listed in the tables.",
+   "source_pages": [
+    42
+   ],
+   "extents": [
+    {
+     "op": "within",
+     "area_id": "area:region:5",
+     "feature_types": [
+      "stream"
+     ]
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "spring_stream_closure.r1",
+     "type": "retention_limit",
+     "verbatim": "Spring closure: No fishing in any stream in Fraser River Watershed of Region 5 (including the Thompson River Watershed) from Apr 1-June 30, EXCEPT the mainstem of the Fraser River and other streams listed in the tables.",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 4,
+        "from_day": 1,
+        "to_month": 6,
+        "to_day": 30
+       }
+      ]
+     },
+     "take": 0,
+     "may_target": false,
+     "water": "stream",
+     "closure_kind": "spring",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:basin:100-",
+       "within_area": "area:region:5",
+       "feature_types": [
+        "stream"
+       ],
+       "outside_items": [
+        "gnis:39325"
+       ]
+      }
+     ],
+     "extent_text": "Fraser and Thompson watersheds in Region 5, except the Fraser mainstem"
+    }
+   ]
+  },
+  {
+   "entry_id": "z5:steelhead_management",
+   "name": "Steelhead management changes",
+   "display_name": "Chilcotin River watershed",
+   "region": "5",
+   "regs_verbatim": "Steelhead Management Changes. In response to declining abundance of Fraser Basin steelhead, steelhead fisheries within the Chilcotin River Watershed may be closed.",
+   "source_pages": [
+    42
+   ],
+   "rules": [
+    {
+     "rule_id": "steelhead_management.r1",
+     "type": "advisory",
+     "verbatim": "In response to declining abundance of Fraser Basin steelhead, steelhead fisheries within the Chilcotin River Watershed may be closed.",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:basin:100-342455-",
+       "within_area": "area:region:5",
+       "feature_types": [
+        "stream"
+       ]
+      }
+     ],
+     "extent_text": "Chilcotin River watershed",
+     "review_reason": "BOUND — watershed: the FWA basin of the Chilcotin (code 100-342455-) in Region 5. Conditional ('may be closed'). RECOVERED — absent from the corpus. User ruling 2026-10-01: steelhead rules bind STREAMS only — the province's only in the regions whose own tables name steelhead (1, 2, 3, 5, 6) — and never a lake unless the lake's own row mentions steelhead (big lake rainbow fall under the rainbow size quota, not the steelhead quota). The book prints this rule for the whole region. Bound to streams by `feature_types: [stream]` only — no `water`, so its competition key (and every stream answer) is unchanged."
     }
    ]
   },

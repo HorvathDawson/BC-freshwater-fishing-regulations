@@ -246,11 +246,11 @@
    ]
   },
   {
-   "entry_id": "z7a:trout_char_quota",
-   "name": "Trout and char daily quota",
+   "entry_id": "z7a:daily_quotas",
+   "name": "Zone A Daily Quotas",
    "display_name": "Zone A",
    "region": "7a",
-   "regs_verbatim": "Zone A Daily Quotas. Trout/char: 5, but not more than 1 over 50 cm 2 from streams 3 lake trout 1 bull trout (Dolly Varden) NOTE: Bull trout (Dolly Varden) may only be retained Oct 16-Aug 14. These fish may only be taken from lakes and only 30-50 cm in length. And you must release: Bull trout (Dolly Varden): from streams, all year; from lakes, Aug 15-Oct 15 Lake trout: of any size, Sept 15-Oct 31; under 30 cm all year Arctic grayling: catch and release only Burbot: 5 Kokanee: 10 (none from streams) White Sturgeon: CLOSED TO ALL FISHING Whitefish: 15 (all species combined)",
+   "regs_verbatim": "Zone A Daily Quotas. Trout/char: 5, but not more than 1 over 50 cm 2 from streams 3 lake trout 1 bull trout (Dolly Varden) NOTE: Bull trout (Dolly Varden) may only be retained Oct 16-Aug 14. These fish may only be taken from lakes and only 30-50 cm in length. And you must release: Bull trout (Dolly Varden): from streams, all year; from lakes, Aug 15-Oct 15 Lake trout: of any size, Sept 15-Oct 31; under 30 cm all year Arctic grayling: catch and release only Burbot: 5 Kokanee: 10 (none from streams) White Sturgeon: CLOSED TO ALL FISHING Whitefish: 15 (all species combined)\nArctic grayling: catch and release only. Burbot: 5. Kokanee: 10 (none from streams). White Sturgeon: CLOSED TO ALL FISHING. Whitefish: 15 (all species combined).",
    "source_pages": [
     58
    ],
@@ -472,25 +472,7 @@
        "area_id": "area:region:7a"
       }
      ]
-    }
-   ]
-  },
-  {
-   "entry_id": "z7a:species_quotas",
-   "name": "Other daily quotas",
-   "display_name": "Zone A",
-   "region": "7a",
-   "regs_verbatim": "Arctic grayling: catch and release only. Burbot: 5. Kokanee: 10 (none from streams). White Sturgeon: CLOSED TO ALL FISHING. Whitefish: 15 (all species combined).",
-   "source_pages": [
-    58
-   ],
-   "extents": [
-    {
-     "op": "within",
-     "area_id": "area:region:7a"
-    }
-   ],
-   "rules": [
+    },
     {
      "rule_id": "species_quotas.r1",
      "type": "retention_limit",
