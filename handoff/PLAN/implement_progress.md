@@ -3,6 +3,11 @@
 Restart here. Update this file after EVERY step: what is done, what is running, and the exact next action.
 Logs from timing runs live in the session scratchpad, which a reboot wipes. The numbers that matter are copied here.
 
+## NEXT BUILD (2026-10-26, owner): 445643c2 re-anchors Burton's Hwy 6 bridge (its mouth into the Caribou slough)
+and the Kootenay navigation dolphin (bound to Kootenay Lake) and restores both rules' bindings — needs an atlas build
+(`build --atlas` → reach → binding_diff → `--promote`); until then those two entries show "awaiting build" in review.
+T206 (app order reds) still open.
+
 ## CURRENT STATE (2026-10-26, end of day — owner reviews, no credits)
 
 LIVE: r-d32f814feac0 (previous r-c66117ef7883 kept; older releases pruned). Atlas rebuilt: only White River, Fulton and
