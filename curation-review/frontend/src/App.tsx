@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "./api";
 import type {
   EntryDetail as EntryDetailT, Mode, PendingBuild, Progress, QueueOrder, QueueRow, RegionSummary,
-  ReviewFilter, Status, Tier,
+  ReviewFilter, Severity, SeverityFilter, Status, Tier,
 } from "./types";
 import { ALL_REGIONS, FilterBar } from "./components/FilterBar";
 import { QueueList } from "./components/QueueList";
@@ -17,6 +17,8 @@ const inDfo = () => decodeURIComponent(window.location.hash.slice(1)).startsWith
 /** THE REVIEW TIERS (PLAN §3, `tiers.TIERS`) — entries only: a split point is checked by proxy on
  *  the map of each entry whose rules name it (T184), never as a target of its own. */
 const TIERS: Tier[] = ["P1", "Z", "P2", "P3", "P4", "sweep"];
+/** the entry severities (`severity.LEVELS`), the review order's first key (owner 2026-10-26) */
+const SEVERITIES: Severity[] = ["high", "medium", "low", "none"];
 
 /* THE REVIEW SCREEN (T134, T184): the one queue on the left, the open entry on the right. It writes
    one thing, a reviewer's mark; there is no other mode (T185 retired the editors). The URL's hash is
@@ -31,6 +33,8 @@ export default function App() {
   const [region, setRegion] = useState(ALL_REGIONS);
   const [status, setStatus] = useState<Status | "">("");
   const [tier, setTier] = useState<Tier | "">("");
+  // owner 2026-10-26: is there a real issue — a level, or "issues" (high + medium)
+  const [severity, setSeverity] = useState<SeverityFilter>("");
   // the reviewer's pass: which marks to list, and in what order — the review order by default
   // (tier, then the most urgent risk factor; T135), or the book's (region, page)
   const [verify, setVerify] = useState<ReviewFilter>("");
@@ -64,12 +68,12 @@ export default function App() {
     if (!region) return;
     setLoadingRows(true);
     api
-      .entries(region === ALL_REGIONS ? undefined : region, status, "", verify, order, tier)
+      .entries(region === ALL_REGIONS ? undefined : region, status, "", verify, order, tier, severity)
       // THE OPEN ENTRY STAYS IN THE LIST after it is marked (a "to do" filter drops it otherwise)
       .then((fresh) => setRows((old) => keepSelected(fresh, old, selectedRef.current)))
       .catch((e) => setError(String(e)))
       .finally(() => setLoadingRows(false));
-  }, [region, status, verify, order, tier]);
+  }, [region, status, verify, order, tier, severity]);
 
   useEffect(() => {
     loadRows();
@@ -209,9 +213,18 @@ export default function App() {
             onClick={() => { window.history.replaceState(null, "", `#${DFO_HASH}`); setDfo(true); }}>
             DFO salmon extents
           </button></>}
-        moreSet={tier ? 1 : 0}
+        moreSet={(tier ? 1 : 0) + (severity ? 1 : 0)}
         more={
           <>
+            <div>
+              <label>severity</label>
+              <select value={severity} aria-label="severity" data-testid="severity-filter"
+                onChange={(e) => setSeverity(e.target.value as SeverityFilter)}>
+                <option value="">all</option>
+                <option value="issues">high + medium (real issues)</option>
+                {SEVERITIES.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
             <div>
               <label>tier</label>
               <select value={tier} aria-label="tier" onChange={(e) => setTier(e.target.value as Tier | "")}>

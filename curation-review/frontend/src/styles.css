@@ -977,3 +977,10 @@ code.cmd { font-size: 11px; padding: 1px 6px; border: 1px solid var(--warn-borde
 .show-map-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; margin: 6px 0 4px; font-size: 13px; font-weight: 600; background: var(--accent); color: #fff; border: 1px solid var(--accent); border-radius: 5px; cursor: pointer; }
 .show-map-btn:hover { filter: brightness(1.1); }
 .zone-no-map { padding: 18px; font-size: 13px; color: var(--muted); }
+
+/* owner 2026-10-26: the one severity chip — is there a real issue to review (severity.py) */
+.sev-chip { display:inline-block; font-size:11px; font-weight:700; padding:0 6px; border-radius:8px;
+  text-transform:uppercase; letter-spacing:.03em; cursor:help; }
+.sev-chip.sev-high { background:var(--danger-text); color:var(--surface, #fff); }
+.sev-chip.sev-medium { border:1px solid var(--danger-text); color:var(--danger-text); }
+.sev-chip.sev-low { color:var(--muted); font-weight:400; }

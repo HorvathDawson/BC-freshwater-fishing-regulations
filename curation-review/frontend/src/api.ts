@@ -20,6 +20,7 @@ import type {
   Mode,
   ReviewView,
   Progress,
+  SeverityFilter,
   Tier,
   ExtentFix,
   ExtentOpInfo,
@@ -65,9 +66,11 @@ export const api = {
 
 
   entries: (region?: string, status?: Status | "", kind?: EntryKind | "",
-            verify?: ReviewFilter, order?: QueueOrder, tier?: Tier | "") => {
+            verify?: ReviewFilter, order?: QueueOrder, tier?: Tier | "",
+            severity?: SeverityFilter) => {
     const p = new URLSearchParams();
     if (tier) p.set("tier", tier);
+    if (severity) p.set("severity", severity);
     if (region) p.set("region", region);
     if (status) p.set("status", status);
     if (kind) p.set("kind", kind);

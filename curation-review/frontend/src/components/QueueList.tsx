@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import type { QueueFacts, QueueRow } from "../types";
+import type { QueueFacts, QueueRow, Severity } from "../types";
 
 interface Props {
   rows: QueueRow[];
@@ -31,7 +31,12 @@ export function QueueList({ rows, selected, loading, onSelect, facts }: Props) {
      water. In the review order (T135) the tiers already keep them apart (Z is its own tier); in the
      book's order the heading marks where one kind gives way to the other. */
   let lastGroup: string | undefined;
-  const byTier = isTierOrdered(rows) && new Set(rows.map((r) => r.tier)).size > 1;
+  // the review order runs by severity first (owner 2026-10-26), then by tier: its headings are
+  // the severities'; a queue of one severity (a severity filter) keeps the tiers' headings
+  const bySev = isOrdered(rows, (r) => r.severity, SEV_ORDER)
+    && new Set(rows.map((r) => r.severity)).size > 1;
+  const byTier = !bySev && isOrdered(rows, (r) => r.tier, TIER_ORDER)
+    && new Set(rows.map((r) => r.tier)).size > 1;
   return (
     <div className="queue" data-testid="queue">
       {facts && !facts.run && (
@@ -40,12 +45,15 @@ export function QueueList({ rows, selected, loading, onSelect, facts }: Props) {
         </div>
       )}
       {rows.map((r) => {
-        const group = byTier && r.tier ? `tier:${r.tier}` : `kind:${r.kind}`;
+        const group = bySev && r.severity ? `sev:${r.severity}`
+          : byTier && r.tier ? `tier:${r.tier}` : `kind:${r.kind}`;
         const first = group !== lastGroup;
         lastGroup = group;
         return (
       <div key={`g-${r.entry_id}`}>
-      {first && (group.startsWith("tier:") ? (
+      {first && (group.startsWith("sev:") ? (
+        <div className="queue-group">{SEV_HEAD[r.severity ?? "none"]}</div>
+      ) : group.startsWith("tier:") ? (
         <div className="queue-group">{TIER_HEAD[r.tier ?? ""] ?? r.tier}</div>
       ) : r.kind && (
         <div className="queue-group">
@@ -90,26 +98,16 @@ export function QueueList({ rows, selected, loading, onSelect, facts }: Props) {
                 awaiting build
               </span>
             )}
+            {/* ONE chip: is there a real issue to review (owner 2026-10-26); the risk factors and
+                pre-checks it was read from are its hover, not badges of their own */}
+            {r.severity && <SeverityChip level={r.severity} reasons={r.severity_reasons} />}
             {r.tier && <span className="badge tier" title="review tier (PLAN §3)">{r.tier}</span>}
-            {(r.risks ?? []).map((k) => (
-              <span key={k} className="badge risk" title="risk factor (tiers.RISKS)">{k}</span>
-            ))}
-            {r.prechecks && r.prechecks.A > 0 && (
-              <span className="badge warn" title="pre-check findings of severity A (facts)">
-                {r.prechecks.A} pre-check{r.prechecks.A === 1 ? "" : "s"}
-              </span>
-            )}
             <span className="dim">r{r.region}</span>
             {r.page != null && <span className="dim">p.{r.page}</span>}
             {r.pointer && <span className="badge">pointer</span>}
             {r.status !== "plain" && <span className={`badge ${r.status}`}>{r.status}</span>}
             {r.mus.length > 0 && <span>MU {r.mus.join(", ")}</span>}
             <span className="dim">{r.n_rules} rule{r.n_rules === 1 ? "" : "s"}</span>
-            {r.unused_curated_splits > 0 && (
-              <span className="badge unused-marker" title="unused curated splits">
-                ⚠ {r.unused_curated_splits} unused
-              </span>
-            )}
           </div>
         </div>
       </div>
@@ -130,13 +128,34 @@ const TIER_HEAD: Record<string, string> = {
 };
 const TIER_ORDER = ["P1", "Z", "P2", "P3", "P4", "sweep"];
 
-/** whether the rows run in tier order (the review order), so the headings are the tiers' */
-function isTierOrdered(rows: QueueRow[]): boolean {
+/** the severities' headings in the review order (`severity.LEVELS`) */
+const SEV_HEAD: Record<Severity, string> = {
+  high: "High — a real issue to review",
+  medium: "Medium — a cut or extent risk",
+  low: "Low — facts and hints only",
+  none: "Nothing found",
+};
+const SEV_ORDER: string[] = ["high", "medium", "low", "none"];
+
+/** whether the rows run in `order` by `key` (the review order), so the headings are its */
+function isOrdered(rows: QueueRow[], key: (r: QueueRow) => string | undefined, order: string[]): boolean {
   let last = -1;
   for (const r of rows) {
-    const i = TIER_ORDER.indexOf(r.tier ?? "");
+    const i = order.indexOf(key(r) ?? "");
     if (i < last) return false;
     last = i;
   }
   return true;
+}
+
+/** THE ONE SEVERITY CHIP (owner 2026-10-26): high / medium say there is something to review; low is
+ *  dim; none shows nothing. The reasons are the hover. */
+export function SeverityChip({ level, reasons }: { level: Severity; reasons?: string[] }) {
+  if (level === "none") return null;
+  return (
+    <span className={`sev-chip sev-${level}`} data-testid="severity-chip"
+      title={(reasons ?? []).join("\n") || level}>
+      {level}
+    </span>
+  );
 }

@@ -829,10 +829,12 @@ _KIND_ORDER = {"zone": 0, "water": 1}
 
 def queue(region: str | None = None, status: str | None = None,
           kind: str | None = None, verify: str | None = None,
-          order: str = "risk", tier: str | None = None) -> list[dict]:
+          order: str = "risk", tier: str | None = None,
+          severity: str | None = None) -> list[dict]:
     """Review queue rows — ONE QUEUE ACROSS ALL REGIONS by default (`region` None).
 
-    `order="risk"` (the default, T135 / PLAN §3, §4 phase 4) is the review order: by tier (P1 Z P2
+    `order="risk"` (the default) is the review order: by SEVERITY first (`severity.entry_severity`,
+    owner 2026-10-26: high, medium, low, none), then (T135 / PLAN §3, §4 phase 4) by tier (P1 Z P2
     P3 P4 sweep; entries only, T184), within a tier the most urgent risk factor first, then the most severity-A pre-checks, then the book's order
     (`tiers.queue_rank`, the one ordering function).
 
@@ -844,7 +846,9 @@ def queue(region: str | None = None, status: str | None = None,
     unsure | deferred | stale (marked, then changed — `mark_reasons` says why); `todo` is
     everything not currently verified (human-reviewed); `recheck` the entries human-reviewed once
     whose fingerprint has moved since (T184: back for a re-check). `tier` filters on the review tier (`tiers.entry_tier`, PLAN §3:
-    P1 Z P2 P3 P4 sweep)."""
+    P1 Z P2 P3 P4 sweep); `severity` on the entry's severity (`severity.FILTERS`: a level, or
+    `issues` — high and medium)."""
+    from pipeline.regs.review import severity as S
     from pipeline.regs.review import tiers as T
     from pipeline.regs.review.precheck import severe as _severe
     if order not in QUEUE_ORDERS:
@@ -875,6 +879,11 @@ def queue(region: str | None = None, status: str | None = None,
         vin = entry_vintage(e, on)
         found = entry_prechecks(e, run=run, to_verify=to_verify)
         n_a = _severe(found)
+        rk = T.risks(e, binds=item is not None, run=run)
+        n_unused = len(unused_curated_splits(e, item))
+        sev = S.entry_severity(found, risks=rk, unused_splits=n_unused)
+        if not S.matches(sev["level"], severity):
+            continue
         rows.append({
             "entry_id": e["entry_id"],
             "region": reg_id if isinstance(reg_id, str) else _ident(e)["region"],
@@ -886,7 +895,7 @@ def queue(region: str | None = None, status: str | None = None,
             "matched_item_id": item.id if item else None,
             "matched_item_name": item.name if item else None,
             "also_item_ids": [a["id"] for a in _also_items(e)],      # combined-override items
-            "unused_curated_splits": len(unused_curated_splits(e, item)),
+            "unused_curated_splits": n_unused,
             "page": min(pages) if pages else None,
             "pointer": bool(e.get("see")) and not e.get("rules"),
             "verify": vst,
@@ -897,10 +906,14 @@ def queue(region: str | None = None, status: str | None = None,
             "vintage": vin["state"],             # current | awaiting build (T133)
             "vintage_reasons": vin["reasons"],
             "tier": tr,                           # PLAN §3 (T134: progress and ETA by tier)
-            "risks": T.risks(e, binds=item is not None, run=run),     # T135, most urgent first
+            "risks": rk,                          # T135, most urgent first
+            # owner 2026-10-26: ONE chip — is there a real issue to review — and why
+            "severity": sev["level"],
+            "severity_reasons": sev["reasons"],
             # an `I` finding (a note, T207: "on parts") is neither a fact nor a hint
             "prechecks": {"A": n_a, "B": sum(1 for f in found if f["severity"] == "B")},
-            "_rank": T.queue_rank(e, binds=item is not None, run=run, severe=n_a),
+            "_rank": (S.rank(sev["level"]),
+                      *T.queue_rank(e, binds=item is not None, run=run, severe=n_a)),
             "_pos": pos,
         })
 

@@ -59,6 +59,12 @@ def located(entry_id: str) -> dict:
                            else None)
 
 
+def _severity(found: list[dict], risks: list[str], unused: int) -> dict:
+    from pipeline.regs.review.severity import entry_severity
+    sev = entry_severity(found, risks=risks, unused_splits=unused)
+    return {"severity": sev["level"], "severity_reasons": sev["reasons"]}
+
+
 def review_view(entry_id: str, day: str | None = None) -> dict | None:
     """Everything the checklist is answered from, for one entry. None: no such entry."""
     from pipeline.deliver.bundle import read as R
@@ -94,6 +100,7 @@ def review_view(entry_id: str, day: str | None = None) -> dict | None:
             return {"url": None, "why": "the bundle binds this nowhere — there is no page to open"}
         return {**got, "url": answer.app_link(got["item"], got["part"], day)}
 
+    found = reuse.entry_prechecks(e, run=run, gate=True)
     rules = []
     for r in e.get("rules") or []:
         rid = r.get("rule_id")
@@ -114,7 +121,10 @@ def review_view(entry_id: str, day: str | None = None) -> dict | None:
         # cut's candidates and pick are in its `ambiguous_cut` finding — T189: they were also
         # served as a second list, and the screen showed each cut twice), and the second-pass
         # agent's findings on the parse (none exist yet)
-        "prechecks": reuse.entry_prechecks(e, run=run, gate=True),
+        "prechecks": found,
+        # owner 2026-10-26: the one severity chip and its reasons (`severity.entry_severity`)
+        **_severity(found, T.risks(e, binds=item is not None, run=run),
+                    len(reuse.unused_curated_splits(e, item))),
         "parse_findings": reuse.parse_review_findings().get(entry_id, []),
         # T189: the entry's extent and each rule's, in plain words
         "scope": reuse.entry_scope_words(e),

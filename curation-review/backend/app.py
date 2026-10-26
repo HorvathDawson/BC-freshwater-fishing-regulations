@@ -104,13 +104,19 @@ def get_regions():
 @app.get("/api/entries")
 def get_entries(region: str | None = None, status: str | None = None,
                 kind: str | None = None, verify: str | None = None,
-                order: str = "risk", tier: str | None = None):
+                order: str = "risk", tier: str | None = None, severity: str | None = None):
     """THE ONE QUEUE (T135): every region unless `region` names one. `kind` is zone | water — the
     region chapters or the water tables. `verify` is the reviewer's mark (unmarked | verified |
     wrong | unsure | deferred | stale | todo | recheck — human-reviewed, changed since); `tier` the
     review tier (PLAN §3); `status` what the parse left (`reuse.STATUSES`); `order` is risk (the
     review order: tier, the most urgent risk factor, the severity-A pre-checks, then the book —
-    `tiers.queue_rank`) or book (region, page, then the page's order)."""
+    `tiers.queue_rank`) or book (region, page, then the page's order). `severity` filters on the
+    entry's severity (`severity.FILTERS`: high | medium | low | none | issues — high and medium);
+    the review order puts it first (owner 2026-10-26)."""
+    from pipeline.regs.review.severity import FILTERS
+    if severity and severity not in FILTERS:
+        raise HTTPException(422, [{"path": "severity",
+                                   "msg": "severity is one of " + ", ".join(FILTERS)}])
     if order not in reuse.QUEUE_ORDERS:
         raise HTTPException(422, [{"path": "order",
                                    "msg": "order is " + " or ".join(reuse.QUEUE_ORDERS)}])
@@ -118,7 +124,7 @@ def get_entries(region: str | None = None, status: str | None = None,
         raise HTTPException(422, [{"path": "status",
                                    "msg": "status is one of " + ", ".join(reuse.STATUSES)}])
     rows = reuse.queue(region=region, status=status, kind=kind, verify=verify, order=order,
-                       tier=tier)
+                       tier=tier, severity=severity)
     return rows
 
 

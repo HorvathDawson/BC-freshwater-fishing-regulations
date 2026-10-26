@@ -1,4 +1,5 @@
 import type { ReviewView } from "../types";
+import { SeverityChip } from "./QueueList";
 
 interface Props {
   view: ReviewView;
@@ -23,8 +24,9 @@ export function Evidence({ view, pdfPages }: Props) {
         )}
       </div>
       <div className="evidence-sub">
+        <SeverityChip level={view.severity} reasons={view.severity_reasons} />
         <span className={`tier-chip tier-${view.tier}`} title="review tier (PLAN §3)">{view.tier}</span>
-        {view.risks.map((r) => <span key={r} className="badge warn">{r}</span>)}
+        {view.risks.map((r) => <span key={r} className="badge dim" title="risk factor (tiers.RISKS)">{r}</span>)}
         <span>region {view.region}</span>
         {printed != null && (
           <span>
