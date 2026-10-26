@@ -1344,3 +1344,5 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
   split LABELLED AS THE FALLS ("Cranberry River falls (top of the canyon)"), confidence medium, note saying so and citing
   the 2026-08 needs-pin row `cranberry-river-699352-a` (its only link: OSM, Cranberry–Kiteen junction 55.51394,-128.8105,
   reference only); the downstream sign stays "needs a split (owner to locate)".
+- Cranberry canyon (owner 2026-10-26): add BOTH cuts — top = the falls point, confidence MEDIUM; bottom = the terrain
+  estimate (handoff/PLAN/curation-review/cranberry-canyon/), confidence LOW — and bind r6:cranberry_river.r1 between them.
