@@ -3555,12 +3555,21 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "pallant_creek__bridge_near_mouth"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "T207 audit (owner 2026-10-26: no orphans; bind the 10 matchable unused cuts): binds the curated cut(s) pallant_creek__bridge_near_mouth."
+        ],
         "spatial_caveat": false
       }
     },
@@ -3661,12 +3670,21 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "yakoun_river__6_mile_bridge"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "T207 audit (owner 2026-10-26: no orphans; bind the 10 matchable unused cuts): binds the curated cut(s) yakoun_river__6_mile_bridge."
+        ],
         "spatial_caveat": false
       }
     },
@@ -4274,12 +4292,21 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "ksi_gingolx__kincolith_river_bridge"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "T207 audit (owner 2026-10-26: no orphans; bind the 10 matchable unused cuts): binds the curated cut(s) ksi_gingolx__kincolith_river_bridge."
+        ],
         "spatial_caveat": false
       }
     },
@@ -7914,12 +7941,21 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "telkwa_river__howson_creek_into_telkwa_river"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "T207 audit (owner 2026-10-26: no orphans; bind the 10 matchable unused cuts): binds the curated cut(s) telkwa_river__howson_creek_into_telkwa_river."
+        ],
         "spatial_caveat": false
       }
     },

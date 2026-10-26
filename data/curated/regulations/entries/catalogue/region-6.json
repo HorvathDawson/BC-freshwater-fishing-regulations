@@ -1975,11 +1975,13 @@
      "may_target": false,
      "extents": [
       {
-       "op": "whole"
+       "op": "between",
+       "splits": [
+        "cranberry_river__falls_top_of_canyon",
+        "cranberry_river__canyon_bottom_estimate"
+       ]
       }
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): needs a split (owner to locate) — the fishing boundary signs above and below Cranberry River Canyon. Never curated: the 2026-08 split backlog (cranberry-river-699352-a/-b) held only a DFO falls point (Fs97-6-2129, 55.56407,-128.68426, ~ the canyon top) and no downstream sign (T207)",
-     "undrawn_part": "between fishing boundary signs upstream of and downstream of Cranberry River Canyon"
+     ]
     },
     {
      "rule_id": "cranberry_river.r2",

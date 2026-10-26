@@ -9638,6 +9638,54 @@
      "_note": "[geo-a 2026-10-07] Book p.31 PENNASK CREEK 'No Fishing upstream of Pennask Lake'. FWA: Pennask Creek (blk 356344849, wsc 100-190442-244975-651947-946536) is an INLET: it enters Pennask Lake (wbk 329451883, on Spahomin Creek's line 651947) at its mouth; lake run 0-1447 m, wetland 329451889 1447-3980 m, source 33,640 m."
     }
    ]
+  },
+  {
+   "name": "CRANBERRY RIVER",
+   "applies_to": {
+    "gnis_id": "4674"
+   },
+   "splits": [
+    {
+     "id": "cranberry_river__falls_top_of_canyon",
+     "label": "Cranberry River falls (top of the canyon)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -128.68426,
+       55.56407
+      ],
+      "is_lonlat": true
+     },
+     "confidence": "medium",
+     "note": "",
+     "_note": "[owner 2026-10-26] The falls at the top of Cranberry River Canyon: DFO falls point 55.56407,-128.68426 (Fs97-6/2129). Same point as the 2026-08 needs-pin row `cranberry-river-699352-a` (its only link was OSM at the Cranberry-Kiteen junction 55.51394,-128.8105, reference only). The owner's forum reading puts the falls ~5 km up with the closure below them. Medium confidence: the book names the canyon's boundary signs, not the falls.",
+     "_coord": [
+      -128.68426,
+      55.56407
+     ]
+    },
+    {
+     "id": "cranberry_river__canyon_bottom_estimate",
+     "label": "Cranberry River Canyon (downstream end, estimated)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -128.68996,
+       55.56202
+      ],
+      "is_lonlat": true
+     },
+     "confidence": "low",
+     "note": "",
+     "_note": "[owner 2026-10-26] Downstream end of Cranberry River Canyon, estimated from a DEM terrain profile ~475 m below the falls (range 400-750 m): handoff/PLAN/curation-review/cranberry-canyon/. Low confidence: a terrain estimate, not a sign location.",
+     "_coord": [
+      -128.68996,
+      55.56202
+     ]
+    }
+   ]
   }
  ]
 }

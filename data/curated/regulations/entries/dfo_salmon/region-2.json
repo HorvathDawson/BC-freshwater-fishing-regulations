@@ -1453,12 +1453,21 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "chehalis_river__hatchery_outlet"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "T207 audit (owner 2026-10-26: no orphans; bind the 10 matchable unused cuts): binds the curated cut(s) chehalis_river__hatchery_outlet."
+        ],
         "spatial_caveat": false
       }
     },
@@ -1670,12 +1679,21 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "de_boville_slough__hyde_creek_into_de_boville_slough"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "T207 audit (owner 2026-10-26: no orphans; bind the 10 matchable unused cuts): binds the curated cut(s) de_boville_slough__hyde_creek_into_de_boville_slough."
+        ],
         "spatial_caveat": false
       }
     },
@@ -3356,12 +3374,22 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "chilliwack_vedder_rivers__vedder_crossing_bridge_200_m_upstream",
+              "chilliwack_vedder_rivers__vedder_crossing_bridge_200_m_downstream"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "T207 audit (owner 2026-10-26: no orphans; bind the 10 matchable unused cuts): binds the curated cut(s) chilliwack_vedder_rivers__vedder_crossing_bridge_200_m_upstream, chilliwack_vedder_rivers__vedder_crossing_bridge_200_m_downstream."
+        ],
         "spatial_caveat": false
       }
     },
@@ -3532,12 +3560,21 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "squamish_river__powerline_crossing_at_9_mile"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "T207 audit (owner 2026-10-26: no orphans; bind the 10 matchable unused cuts): binds the curated cut(s) squamish_river__powerline_crossing_at_9_mile."
+        ],
         "spatial_caveat": false
       }
     },
