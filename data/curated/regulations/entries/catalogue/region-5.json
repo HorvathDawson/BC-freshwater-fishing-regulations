@@ -3418,9 +3418,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'speed restriction (5 km/h) on part' does not say which part (user ruling Q28).",
-     "undrawn_part": "on part"
+     ]
     }
    ],
    "licensing": [
@@ -12964,9 +12962,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'on parts' implies a specific reach of the lake but this item has no bindable boundaries besides op:whole",
-     "undrawn_part": "on parts"
+     ]
     }
    ]
   },

@@ -2591,9 +2591,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'on parts' does not name a bindable reach",
-     "undrawn_part": "on parts"
+     ]
     },
     {
      "rule_id": "coquitlam_river.r3",
@@ -2850,9 +2848,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'on parts' does not name a bindable reach",
-     "undrawn_part": "on parts"
+     ]
     },
     {
      "rule_id": "cultus_lake.r4",
@@ -3987,9 +3983,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'on parts' implies a specific reach of the lake but this item has no bindable boundaries besides op:whole",
-     "undrawn_part": "on parts"
+     ]
     },
     {
      "rule_id": "green_lake.r6",
@@ -4000,9 +3994,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'on parts' implies a specific reach of the lake but this item has no bindable boundaries besides op:whole",
-     "undrawn_part": "on parts"
+     ]
     }
    ]
   },
@@ -4343,9 +4335,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'on parts' implies specific reaches but this entry's only bindable point is Hatzic Lake itself; two different speed limits (8 and 50 km/h) apply to unspecified zones",
-     "undrawn_part": "on parts"
+     ]
     },
     {
      "rule_id": "hatzic_lake_and_slough.r3",
@@ -4358,9 +4348,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'on parts' implies specific reaches but this entry's only bindable point is Hatzic Lake itself; two different speed limits (8 and 50 km/h) apply to unspecified zones",
-     "undrawn_part": "on parts"
+     ]
     }
    ]
   },
@@ -7380,9 +7368,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'on parts' does not name a specific reach among the bindable boundaries for this item",
-     "undrawn_part": "on parts"
+     ]
     },
     {
      "rule_id": "nicomekl_river.r6",
@@ -7427,9 +7413,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'on parts' does not name a specific reach among the bindable boundaries for this item",
-     "undrawn_part": "on parts"
+     ]
     }
    ]
   },
@@ -9960,9 +9944,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): the speed restriction covers only part of Strawberry Slough per the synopsis (\"on parts\") but no boundary is available to bind the reach — left unbound rather than applied to the whole water",
-     "undrawn_part": "on parts"
+     ]
     }
    ]
   },

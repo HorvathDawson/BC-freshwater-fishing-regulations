@@ -558,9 +558,11 @@ def test_q25_seton_canal_is_part_of_the_seton_row():
     assert "wbk:328988335" in e["matched"]
 
 
-def test_q28_chilko_5_kmh_is_a_note_on_the_whole_river():
+def test_q28_chilko_5_kmh_holds_on_the_whole_river():
+    # Q28 held it as a note; owner 2026-10-26: "on part" names no part, so the rule holds on the
+    # whole water (`drop_on_parts`)
     r = _rule("5", "r5:chilko_river@5-5", "chilko_river.r6")
-    assert r["extents"] == [{"op": "whole"}] and r["undrawn_part"]
+    assert r["extents"] == [{"op": "whole"}] and not r.get("undrawn_part")
 
 
 def test_fix_upper_arrow_drawdown_is_the_columbia_reach_and_a_lake_note():

@@ -4034,11 +4034,7 @@
        "op": "whole"
       }
      ],
-     "unresolved_locators": [
-      "on parts"
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): the book gives no km/h and 'on parts' names no reach; Osoyoos Lake has no cut-points or sub-polygons. Needs the speed zones drawn.",
-     "undrawn_part": "on parts"
+     "review_reason": "the book prints this speed restriction with no km/h"
     },
     {
      "rule_id": "osoyoos_lake.r7",
@@ -6311,9 +6307,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): Speed restriction applies only to 'parts' of the lake per the synopsis; no cut-point is available to bind the specific reach",
-     "undrawn_part": "on parts"
+     ]
     }
    ]
   },

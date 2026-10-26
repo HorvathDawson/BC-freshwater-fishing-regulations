@@ -4105,8 +4105,7 @@
       {
        "op": "whole"
       }
-     ],
-     "undrawn_part": "parts of the lake (not specified in the book)"
+     ]
     },
     {
      "rule_id": "heffley_lake.r2",
@@ -4119,8 +4118,7 @@
       {
        "op": "whole"
       }
-     ],
-     "undrawn_part": "parts of the lake (not specified in the book)"
+     ]
     }
    ]
   },

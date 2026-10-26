@@ -752,9 +752,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'no towing on parts' does not name which reach; this lake has no bindable boundaries to express a partial extent.",
-     "undrawn_part": "on parts"
+     ]
     }
    ]
   },
@@ -1135,9 +1133,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'on parts' does not name which reach; this lake has no bindable boundaries to express a partial extent.",
-     "undrawn_part": "on parts"
+     ]
     }
    ]
   },
@@ -2209,9 +2205,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'on part' implies a specific reach of the river; the only bindable boundary is a single gauge point (5th Avenue Bridge) and the text does not say which side of it the restriction covers",
-     "undrawn_part": "on part"
+     ]
     }
    ]
   },
@@ -2372,9 +2366,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'on parts' implies a specific reach of the lake but this item has no bindable boundaries besides op:whole",
-     "undrawn_part": "on parts"
+     ]
     },
     {
      "rule_id": "cowichan_lake.r5",
@@ -2608,9 +2600,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'on parts' implies a specific reach of the river but the available split ids do not identify which stretch carries the speed limit",
-     "undrawn_part": "on parts"
+     ]
     },
     {
      "rule_id": "cowichan_river.r9",
@@ -2623,9 +2613,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'on parts' implies a specific reach of the river but the available split ids do not identify which stretch carries the power cap",
-     "undrawn_part": "on parts"
+     ]
     }
    ]
   },
@@ -3558,9 +3546,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'on parts' implies a specific reach of the lake but this item has no bindable boundaries besides op:whole",
-     "undrawn_part": "on parts"
+     ]
     },
     {
      "rule_id": "elk_lake.r3",
@@ -3572,9 +3558,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'on parts' implies a specific reach of the lake but this item has no bindable boundaries besides op:whole",
-     "undrawn_part": "on parts"
+     ]
     },
     {
      "rule_id": "elk_lake.r4",
@@ -3586,9 +3570,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'on parts' implies a specific reach of the lake but this item has no bindable boundaries besides op:whole",
-     "undrawn_part": "on parts"
+     ]
     },
     {
      "rule_id": "elk_lake.r5",
@@ -3599,9 +3581,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'on parts' implies a specific reach of the lake but this item has no bindable boundaries besides op:whole",
-     "undrawn_part": "on parts"
+     ]
     },
     {
      "rule_id": "elk_lake.r6",
@@ -7226,9 +7206,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'on parts' names a partial reach but this lake has no bindable cut-points",
-     "undrawn_part": "on parts"
+     ]
     },
     {
      "rule_id": "long_lake.r2",
@@ -8858,9 +8836,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'on parts' does not name which reach; no boundary in the menu matches the specific part described",
-     "undrawn_part": "on parts"
+     ]
     }
    ]
   },
@@ -9624,9 +9600,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): the book applies this 'on parts' of the lake and names none; no cut-point or polygon draws them. Needs the parts drawn.",
-     "undrawn_part": "on parts"
+     ]
     },
     {
      "rule_id": "prospect_lake.r3",
@@ -9638,9 +9612,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): the book applies this 'on parts' of the lake and names none; no cut-point or polygon draws them. Needs the parts drawn.",
-     "undrawn_part": "on parts"
+     ]
     }
    ]
   },
@@ -10159,9 +10131,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): the book applies this 'on parts' of the lake and names none; no cut-point or polygon draws them. Needs the parts drawn.",
-     "undrawn_part": "on parts"
+     ]
     }
    ]
   },
@@ -10866,9 +10836,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): the book applies this 'on parts' of the lake and names none; no cut-point or polygon draws them. Needs the parts drawn.",
-     "undrawn_part": "on parts"
+     ]
     },
     {
      "rule_id": "shawnigan_lake.r3",
@@ -10880,9 +10848,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): the book applies this 'on parts' of the lake and names none; no cut-point or polygon draws them. Needs the parts drawn.",
-     "undrawn_part": "on parts"
+     ]
     }
    ]
   },
@@ -11540,9 +11506,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): the book applies this 'on parts' of the river and names none; no cut-point or polygon draws them. Needs the parts drawn.",
-     "undrawn_part": "on parts"
+     ]
     }
    ]
   },
