@@ -250,11 +250,11 @@ use that as the sole source of future work."
 | T203 | app UI: jumpy "Flows into" chip over navigation, search always lands on the map, amber highlight | PARTIAL | 969f8ff3 | items 1-3 built; 4-5 (Kanaka end labels, non-adjacent stretches) need release data: one mark per meeting point + part stretches - see ticket Outcome |
 | T204 | a part's separate stretches and a mark at every place two parts meet (T203 items 4–5) | OPEN | — | pipeline + deliver rebuild + app |
 | T205 | curation review: zone entries without a map, species + sizes per rule, pilot removed, compact T/R/P/A widget, bigger show-on-map | DONE | 7a55e651 | owner tries it |
-| T206 | app golden parity after the retired overlapping rules (page v36 oracle still prints z1/z2/Khartoum/Lois r3) | BLOCKED | — | zone-merge renames amended (ORACLE_ENTRY_RENAMED); owner call on Region 4 Other-fish tie-break (key order) before ORACLE_RETIRED |
+| T206 | app golden parity after the retired overlapping rules AND the zone daily-quota rename (page v36 oracle) | OPEN | 3797095c | Region 4 tie-break fixed (name-independent, built in r-d32f814feac0); ~157 conformance reds remain, mostly ORDER-only from the rename moving store rix order, plus handle re-pins after the atlas renumbered — needs its own lane (see ticket) |
 | T208 | show rules that hold on an undrawn part of a lake ("area at the outlet … map 1") clearly, linked to the synopsis map | OPEN | — | future; lake splits stay deferred |
-| T207 | "on parts" is a note; unused-cut false positives (28 true); split confidence end to end; White/Fulton/Chuckwalla/Cranberry cuts | PARTIAL | — | next build (owner); owner decides the 28 unused cuts; Cranberry canyon point |
+| T207 | "on parts" is a note; unused-cut false positives; split confidence end to end; White/Fulton/Chuckwalla/Cranberry cuts | DONE | 04315ec5 0e605022 48239620 c127eff6 | built in r-d32f814feac0; 8 DFO scopes bound; Burton/Kootenay cuts unbindable (owner to re-place); 18 left as high severity |
 | T209 | vessel restrictions in the app: boats line (electric only, no powered boats, power cap, speed, towing, no vessels) on the water page + map sheet | OPEN | — | 390 vessel_rule rules; electric_only kW decision |
-| T210 | DFO review mode: proposed splits shared along the river, Place y without a new split, simpler new-split UI | DONE | (this commit) | proposals deduped across all marks (2 distinct; 1 duplicate pair folded), server reuses ids, Place y with existing-cut fix, 3-step new-split UI; owner tries it |
+| T210 | DFO review mode: proposed splits shared along the river, Place y without a new split, simpler new-split UI | DONE | 0805e479 | proposals deduped across all marks (2 distinct; 1 duplicate pair folded), server reuses ids, Place y with existing-cut fix, 3-step new-split UI; owner tries it |
 
 ## Order for open tickets
 

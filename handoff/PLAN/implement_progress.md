@@ -3,7 +3,24 @@
 Restart here. Update this file after EVERY step: what is done, what is running, and the exact next action.
 Logs from timing runs live in the session scratchpad, which a reboot wipes. The numbers that matter are copied here.
 
-## CURRENT STATE (2026-10-25, late — credits minimal, stopped)
+## CURRENT STATE (2026-10-26, end of day — owner reviews, no credits)
+
+LIVE: r-d32f814feac0 (previous r-c66117ef7883 kept; older releases pruned). Atlas rebuilt: only White River, Fulton and
+Cranberry changed (+31 sections). The binding diff is fully explained by those cuts; zone rules re-key the new pieces.
+Merged: T207 (confidence end to end, White/Fulton/Chuckwalla cuts, split_use), the severity chip, "on parts" →
+whole water (33 rules), T209 ticket, T210 (concurrent lane; ledger hash filled in). Curated: 8 DFO scopes bound to their
+unused cuts; Cranberry falls (medium) + DEM canyon bottom (low), r1 binds between them. Burton r1 / Kootenay lower r1
+were bound, failed reach, and were REVERTED (owner to re-place both cuts, OWNER-TODO). Region 4's closure tie-break is
+name-independent (3797095c) and the folded Other-fish row is back.
+Checks: full pytest re-run after the re-pins (stale zone-merge test ids, review-tool pins, T100 widened 131 → 97).
+Taps, harness and regs-fixture re-cut. Review app :8787 shows 0 "awaiting build".
+App check RED, all in T206 (OPEN): about 157 conformance reds, mostly order-only after the zone rename moved rix order,
+plus handle re-pins after the atlas renumbered (waterGroup / WaterMapView / unnamed / SheetHost), plus the known
+release-budget (T203). The ticket has the plan.
+NEXT: T206 lane (order-only amendment or oracle re-cut, then handle re-pins); T203 request-walk + T182 pin; T204;
+T185; SEO T192-T198; T209.
+
+## (earlier) CURRENT STATE (2026-10-25, late — credits minimal, stopped)
 
 LIVE: r-46a602244714 — T179 split work promoted (one-pass cuts, authored never moves, 1 m snap / build error near
 polygon+lake edges, 25 m lake-anchor proposals, merged places keep all ids+names, park side/exclude, Moyie border anchor,

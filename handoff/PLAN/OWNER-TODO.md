@@ -12,6 +12,11 @@ with the default Claude uses until you answer). Newest first inside each section
   outreach by hand (T197). Plan: handoff/PLAN/seo/PLAN.md sections 4 and 7.
 
 ## Reviews
+- **Two cuts to re-place (2026-10-26):** binding them failed the reach run, so both stay unused (high severity in the
+  review tool). `burton_creek__hwy_6_bridge` does not resolve on the Woden reach (its note doubts the FWA Burton Creek),
+  and `kootenay_river__navigation_dolphin_2000_m_downstream` lies in Kootenay Lake, off the river, so Kootenay lower r1
+  still ends at the lake. Details: handoff/PLAN/curation-review/split-name-audit.md.
+- **Cranberry canyon cuts:** the bottom is a DEM estimate (low). Check it on the map in the review tool.
 - **Map look (T64, T85, T113, T152) — after the split rebuild (Claude runs it):** look at the map (wetland-heavy Fort Nelson and the
   Chilcotin without unnamed wetlands; z13–z18 bends on the Fraser/Vedder now overzoomed from z13; Vancouver's dense z13
   tiles; no OSM creeks under ours at z14+) and say if the look suffers — the basemap's OSM wetland fill is one style layer

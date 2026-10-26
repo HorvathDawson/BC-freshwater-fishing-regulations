@@ -1,6 +1,6 @@
 # T210 — DFO review mode: proposed splits shared along the river, Place "y" without a new split, simpler new-split UI
 
-Status: DONE
+Status: DONE (0805e479)
 
 Source: owner 2026-10-26, using the DFO extents mode (T164).
 

@@ -154,7 +154,14 @@ Measured with a one-off script over the served registry (the 2026-10-26 renames 
 | `telkwa_river__howson_creek_into_telkwa_river` | DFO R6 scope B(i) "Telkwa River downstream of Howson Creek": `downstream_of` it. |
 | `yakoun_river__6_mile_bridge` | DFO R6 scope D "Yakoun River downstream of the 6 Mile Bridge" (its locator note names the split; no extent binds it). |
 
-**Orphans (propose delete):**
+**Applied 2026-10-26 (owner: bind the 10).** The 8 DFO scopes are bound (`binding.extents`, each with a note).
+Burton r1 and Kootenay lower r1 were bound and REVERTED after the reach run: `burton_creek__hwy_6_bridge` does not
+resolve on the Woden reach (the extent dropped to 1 of 2 resolved; its note already doubts the FWA Burton Creek), and
+`kootenay_river__navigation_dolphin_2000_m_downstream` lies off gnis:14097 (`cut_not_found`: the dolphin is in Kootenay
+Lake, as its note warned), so the closure bound nothing. Both cuts stay unused and show as high severity; each needs
+the cut re-placed (owner).
+
+**Not orphans (owner 2026-10-26: never delete; they show as high severity in the review tool):**
 
 | Split | Why nothing should bind it |
 |---|---|

@@ -1,6 +1,6 @@
 # T207 — "on parts" is a note, unused-cut false positives, split confidence end to end, owner cuts
 
-Status: PARTIAL — code and curated edits landed; the cuts and labels show after the next atlas + deliver build (owner-run)
+Status: DONE (04315ec5 0e605022 48239620 c127eff6) — built in r-d32f814feac0
 
 Source: owner 2026-10-26 (decisions.md "T207"). Audit: handoff/PLAN/curation-review/split-name-audit.md "Unused, re-audited".
 

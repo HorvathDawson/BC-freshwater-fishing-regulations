@@ -42,3 +42,21 @@ perch" becomes 5 rows citing the box lines (glenn, klwa fixtures; sheets/others/
 and 5 (`bass_perch_illegal`, `bass_illegal`) still sort first and are unchanged. Choose: accept it (re-pin as a reasoned
 exclusion) or make the tie-break name-independent (code, then deliver + re-cut). The retired-r3 amendment
 (`ORACLE_RETIRED`) waits on that call so both land as one set of exclusions.
+
+## 2026-10-26 (late) — tie-break fixed; the rename is the bigger part (still OPEN)
+- Done (3797095c, built in r-d32f814feac0): `rows/evaluate.py` `closure_order` breaks a closure tie without entry
+  names. One entry's rules keep rule order. Between entries, a standing closure comes before a dated one, then the
+  closure naming more fish. Region 4's folded Other-fish row is back (glenn/klwa fixtures). Fraser and z3 are
+  unchanged (`test_t206_closure_tie_break.py`, year-strip live green).
+- Found: the zone daily-quota rename (bcaa5c79) moved the STORE's rix order (`zN:daily_quotas` now sorts ahead of its zone
+  siblings). Page v36 prints lists, species and rows in rix order within ties, so `pnpm -C app check` has about 157
+  conformance reds: settle 112, card 50, sheets 34, methods 7 and a few others. Most are order-only, e.g. x5p0 broad
+  `3122,3137` vs `3137,3122`, or x19p0 spp `ST,RB` vs `RB,ST`. Also: Lois/z1/z2 r3 throw in `oracleRixOver`;
+  Cowichan's `inpart` → `speaks` (drop_on_parts); the atlas rebuild renumbered handles pinned by
+  `waterGroup.fixture`, `WaterMapView`, `unnamed.release` (H_ATLAS 15745aa46e2f0c0d) and `SheetHost`.
+- Tried and reverted: re-sorting each oracle run by store rix fails, because `broad` is most-fish-first, not rix
+  order. Striking the retired rules from hydrate.json also breaks describe's 726-rule pin. Both need their own lane.
+  The choice is either an ORDER-ONLY amendment that names the renamed keys (compare the renamed-entry rules as a
+  set, everything else in order) or the oracle re-cut (option 2).
+- The handle re-pins need the OLD fixture's handles mapped to the new ones by section id. `atlas/full.prev` is not
+  the pinned atlas (the 380887xxx added streams differ).
