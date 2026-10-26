@@ -147,12 +147,13 @@ def test_rainbow_alley_binds_the_babine_between_the_two_lakes_as_the_babine_row_
     }
 
 
-def test_fulton_opposite_the_spawning_channels_is_an_undrawn_part_that_does_not_walk():
+def test_fulton_opposite_the_spawning_channels_is_drawn_and_does_not_walk():
+    """T207 (owner 2026-10-26): the stretch lies between the owner's two points — drawn, never a trib walk."""
     assert _entries("6")["r6:fulton_river@6-8"]["includes_tributaries"] is True
     assert _place(_rule("6", "r6:fulton_river@6-8", "fulton_river.r3")) == {
-        "extents": [{"op": "whole"}],
+        "extents": [{"op": "between", "splits": ["fulton_river__spawning_channels_downstream_end",
+                                                 "fulton_river__spawning_channels_upstream_end"]}],
         "includes_tributaries": False,
-        "undrawn_part": "opposite the spawning channels, as signed",
     }
 
 

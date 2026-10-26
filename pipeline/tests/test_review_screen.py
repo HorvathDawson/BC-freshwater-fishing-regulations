@@ -166,7 +166,7 @@ def test_the_corpus_tiers_match_plan_section_3():
               for s in wb["splits"]]
     held = [s for s in splits if T.split_needs_verify(s)]
     # (T179 close pairs, 53f3819e) the Moyie U.S. border became a `border` anchor: one held split left grade L
-    assert (len(splits), len(held), Counter(T.split_grade(s) for s in held)["L"]) == (410, 0, 0)  # was 150 / 118 L before the owner decision, 2026-10-26
+    assert (len(splits), len(held), Counter(T.split_grade(s) for s in held)["L"]) == (416, 0, 0)  # 410 -> 416: T207 White River 2, Fulton 2, Cranberry 2 (owner 2026-10-26); was 150 / 118 L before the owner decision, 2026-10-26
 
 
 def _py_sources():

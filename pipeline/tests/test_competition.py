@@ -968,8 +968,8 @@ def test_a_lakes_own_lake_trout_sizes_replace_one_over_50(db, eid, rid, zone):
     one lake trout over 50 cm: the zone's "1 over 50 cm" is lifted for lake trout, its aggregate
     is not."""
     got = _kept(_sid(db, eid, rid), (7, 1), "LT")
-    assert f"{eid}::{rid}" in got and f"{zone}:trout_char_quota::trout_char_quota.r1" in got
-    assert f"{zone}:trout_char_quota::trout_char_quota.r2" not in got, got
+    assert f"{eid}::{rid}" in got and f"{zone}:daily_quotas::trout_char_quota.r1" in got
+    assert f"{zone}:daily_quotas::trout_char_quota.r2" not in got, got
 
 
 def test_a_printed_lift_carries_its_lifters_origin():

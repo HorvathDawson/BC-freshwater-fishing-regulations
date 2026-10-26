@@ -230,7 +230,8 @@ def test_z1_kootenay_lakes_rainbow_10_is_traced_to_the_kootenay_lake_row(db):
     assert ten == {f"{main}::kootenay_lake_main_body.r4": (10, ["RB"])}
     # MUTATION
     bound = T.bind(db, sid)
-    drop = next(x for x in bound if x[0] == "z4:daily_quotas" and x[1].endswith(".r1"))
+    # zone daily-quota merge (6335f73d): the box holds trout_char_quota.r1 AND species_quotas.r1 — drop the trout/char 5
+    drop = next(x for x in bound if x[0] == "z4:daily_quotas" and x[1] == "trout_char_quota.r1")
     _base, _ = T.answers(db, sid, (7, 1), "RB", BUNDLE, bound, rules)
     _, page2 = T.answers(db, sid, (7, 1), "RB", BUNDLE, [x for x in bound if x != drop], rules)
     lost = [d for d in T.attribute(_base, page2, rules) if d.row is None]
@@ -260,7 +261,7 @@ def _mill(db, path=BUNDLE) -> dict:
     sid, = _sections(db, MILL)
     ans = _ask(db, sid, (7, 1), "SMB", path)
     return {k: (x["state"], x.get("by")) for k, x in ans.items()
-            if k.startswith(("z2:species", MILL_ROW)) and x["type"] == "retention_limit"}
+            if k.startswith(("z2:daily_quotas::species", MILL_ROW)) and x["type"] == "retention_limit"}
 
 
 def test_z2_region_2s_bass_rule_binds_mill_lake_and_the_lakes_row_speaks_over_it(db):

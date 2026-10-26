@@ -393,7 +393,8 @@ def test_q26_bowron_park_waters_lift_no_spring_closure():
 def test_q29_heffley_parts_are_a_note_on_the_whole_lake():
     for rid in ("heffley_lake.r1", "heffley_lake.r2"):
         r = _rule("3", "r3:heffley_lake_parts_of@3-27", rid)
-        assert r["extents"] == [{"op": "whole"}] and r.get("undrawn_part")
+        # owner 2026-10-26 (drop_on_parts): "on parts" holds on the WHOLE water — no undrawn part at all
+        assert r["extents"] == [{"op": "whole"}] and not r.get("undrawn_part")
 
 
 def test_q32_nilkitkwa_fly_only_does_not_bind_set_lining():

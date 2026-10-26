@@ -264,7 +264,9 @@ def test_the_prechecks_measured_over_the_corpus(request):
     n = Counter(f["code"] for fs in got.values() for f in fs)
     measured = {"binds_nothing": 13, "unresolved": 25, "unplaced_pieces": 2, "ambiguous_cut": 95,
                 "split_to_verify": 0, "parser_uncertain": 137, "unresolved_locator": 31,
-                "undrawn_part": 94, "unidentified_part": 39, "unquoted_text": 214}
+                "undrawn_part": 94, "unquoted_text": 214,
+                # owner 2026-10-26 (drop_on_parts): 33 "on parts" rules hold on the whole water, so 39 -> 6 notes
+                "unidentified_part": 6}
     for code, want in measured.items():
         assert abs(n[code] - want) <= max(3, want // 10), (code, n[code], want)
     # owner 2026-10-26: no split is to-verify from its note (was 164); unresolved 29 -> 25 re-pinned to the measured corpus
@@ -297,7 +299,9 @@ def test_the_tiers_with_the_run_match_plan_section_3(request):
     closures = [(e, r) for e in entries for r in e.get("rules") or [] if closure_grade(r)]
     undrawn = sum(1 for _, r in closures if r.get("undrawn_part") and not T.unidentified_part(r))
     amb = sum(1 for e, r in closures if r["rule_id"] in run.ambiguous_of(e["entry_id"]))
-    assert (abs(undrawn - 52) <= 3, abs(amb - 32) <= 3) == (True, True), (undrawn, amb)
+    # 52 -> 48 closures with undrawn parts (owner 2026-10-26): Cranberry r1 and Fulton r3 are drawn by their new
+    # cuts, and drop_on_parts made the pure "on parts" closures whole-water
+    assert (abs(undrawn - 48) <= 3, abs(amb - 32) <= 3) == (True, True), (undrawn, amb)
 
 
 # --------------------------------------------------------------------------- tickets

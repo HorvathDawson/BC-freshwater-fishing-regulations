@@ -78,11 +78,14 @@ def test_one_queue_across_every_region_in_the_review_order(env, queue):
     from pipeline.regs.review.tiers import RISKS, TIERS
     assert len(queue) == 1515  # 1525 before the zone daily-quota merge (6335f73d)
     assert len({r["region"] for r in queue}) > 5
-    tiers = [TIERS.index(r["tier"]) for r in queue]
-    assert tiers == sorted(tiers)
-    for t in ("P1", "P3"):
-        first = [RISKS.index(r["risks"][0]) for r in queue if r["tier"] == t]
-        assert first == sorted(first), t
+    # owner 2026-10-26: severity first (one chip per entry), then the tier order, each tier led by its most urgent risk
+    from pipeline.regs.review import severity as S
+    order = [(S.rank(r["severity"]), TIERS.index(r["tier"])) for r in queue]
+    assert order == sorted(order)
+    for lv in {r["severity"] for r in queue}:
+        for t in ("P1", "P3"):
+            first = [RISKS.index(r["risks"][0]) for r in queue if r["tier"] == t and r["severity"] == lv]
+            assert first == sorted(first), (lv, t)
     assert next(r for r in queue if r["tier"] == "P1")["risks"][0] == "no match"
     assert {r["status"] for r in queue} == {"no_registry", "parser-uncertain", "unused_splits",
                                             "plain", "zone"}

@@ -26,7 +26,8 @@ def test_the_owners_tiers_whole():
         "gate": "high", "binds_nothing": "high", "unresolved": "high", "unplaced_pieces": "high",
         "ambiguous_cut": "high", "split_to_verify": "medium", "parser_uncertain": "high",
         "unresolved_locator": "high", "undrawn_part": "high", "cut_picked": "low",
-        "quote_not_in_row": "medium", "unquoted_text": "low"}
+        "quote_not_in_row": "medium", "unquoted_text": "low",
+        "unidentified_part": "low"}  # T207: an "on parts" note
     assert S.entry_severity([], unused_splits=2) == {
         "level": "high", "reasons": ["high: unused curated cut ×2"]}
     assert S.entry_severity([f("brand_new_check")])["level"] == "high"

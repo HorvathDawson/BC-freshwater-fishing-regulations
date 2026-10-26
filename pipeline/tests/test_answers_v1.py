@@ -198,7 +198,10 @@ def test_really_2_a_day_on_the_pages_own_ladder():
     import gzip
     need(None, "bundle", BUNDLE, BUNDLE_HINT)
     need(None, "bundle", EXPORT_DIR / "ui-rules-export.json", EXPORT_HINT)
-    fx = json.loads(gzip.open(FIXTURE, "rt").read())
+    import re
+    # the zone daily-quota merge (6335f73d): page v35's 7B quota entries are one entry now, every rule_id kept
+    fx = json.loads(re.sub(r"\bz7b:(trout_char_quota|species_quotas|arctic_grayling)::", "z7b:daily_quotas::",
+                           gzip.open(FIXTURE, "rt").read()))
     B = C.load(BUNDLE)
     data, guide = C.load_export(EXPORT_DIR)
     keys, parts = C.part_keys(B, data)

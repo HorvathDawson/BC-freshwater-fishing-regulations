@@ -342,10 +342,11 @@ def _rename(sid, name):
      _rename("peace_river__halfway_river_into_peace_river_d5000m", "Halfway River confluence"),
      "2 places"),
     ("a co-located id that does not say so",
-     lambda d: d["splits"]["peace_river__halfway_river_into_peace_river_u5000m"].pop(
+     # (the Halfway u5000m twin merged into the Peace's own cut, 6335f73d: the Meziadin confluence is the co-located id now)
+     lambda d: d["splits"]["nass_river__meziadin_river_into_nass_river"].pop(
          "same_place_as"), "says no `same_place_as`"),
     ("a same_place_as pointing elsewhere",
-     lambda d: d["splits"]["peace_river__halfway_river_into_peace_river_u5000m"].update(
+     lambda d: d["splits"]["nass_river__meziadin_river_into_nass_river"].update(
          same_place_as="thompson_river__cnr_bridge"), "is no cut at its place"),
     ("the Gold cut named after the Gold", _rename("length:354154308:48965", "Gold River confluence"),
      "named after that water"),

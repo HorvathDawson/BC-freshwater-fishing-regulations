@@ -258,9 +258,13 @@ LIFTED_BY_R5 = ["lifted", None, "lifted", f"{ROW}::kitimat_river.r5"]
 
 def _check_text_decided(data, model):
     """Everything the text decides (module docstring), on Aug 15 and Dec 1."""
+    # roles are compared as a set: their order follows entry-key order, which the zone daily-quota merge (6335f73d,
+    # z6:trout_char_quota -> z6:daily_quotas) moved without changing one role
+    def _unordered(x):
+        return {**x, "roles": sorted(map(repr, x["roles"]))}
     for md, want in EXPECTED.items():
         for (fish, origin), answer in want.items():
-            assert _answer(data, model, md, fish, origin) == answer, (md, fish, origin)
+            assert _unordered(_answer(data, model, md, fish, origin)) == _unordered(answer), (md, fish, origin)
     # r2 for hatchery steelhead is lifted by r5 on BOTH dates — the reader's own verdict
     for md in (AUG15, DEC1):
         assert _rung(data, model, md, "ST", "hatchery", "r2") == LIFTED_BY_R5, md
