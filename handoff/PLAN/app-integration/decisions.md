@@ -1360,3 +1360,19 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
   r3's "opposite the spawning channels" stretch lies between the owner's two points. Chuckwalla's Ten Mile Pool cuts are low.
   Cranberry Canyon is never guessed: the rule stays undrawn as "needs a split (owner to locate)".
 
+## 2026-10-26 — "on parts", review severity, vessel rules (owner)
+- "On parts" is NOT an undrawn part. Where the book says a rule holds "on parts" of a water and never says which, the
+  rule holds on the WHOLE water for now (ambiguous; Hatzic's speed limits are one example). One-off repair
+  `pipeline.regs.parsing.drop_on_parts` (never in run_parse.sh) dropped `undrawn_part`, the undrawn-part
+  `review_reason` and a matching `unresolved_locators` entry from the 33 pure cases ("on parts", "on part", "parts of
+  the lake (not specified in the book)"); Osoyoos r6 keeps a reason (the book gives no km/h). Anything naming a place
+  stays undrawn (90), and so do 10 close wordings ("various locations", "swimming areas", "in wetlands") — listed in
+  handoff/PLAN/curation-review/on-parts.md for the owner. Supersedes RULINGS Q28 (Chilko 5 km/h was a note). Needs a
+  reach + deliver rebuild. T207's "on parts is a note" display covers whatever stays undrawn.
+- Review severity: one chip per entry, `pipeline.regs.review.severity` — HIGH parser-uncertain, missing splits (a named
+  undrawn part, an unresolved locator), unresolved, unplaced, ambiguous cut, binds nothing, failed gate, unused curated
+  cuts; MEDIUM split to verify, quote not in its row; LOW cuts its water, several waters, cut decided by hand, unquoted
+  text, "on parts" note. Reasons on hover; the review order is severity first, then `tiers.queue_rank`; filter by level
+  or "issues" (high + medium).
+- T209: vessel restrictions on the water page and the map sheet (390 `vessel_rule` rules; ticket has counts and
+  examples).

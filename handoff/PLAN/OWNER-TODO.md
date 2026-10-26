@@ -45,6 +45,9 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   Q2 / Q139 / Q47 no-access and tidal notes on Conditions.
 - **Salmon (T164):** confirm the proposed DFO cut points in T164's DFO review mode when it lands (96 bridges/signs/dams);
   Q145 where and how often the DFO re-fetch runs.
+- **Vessel rules (T209):** should the parser fill `max_power_kw` (7.5) on the 162 "Electric motor only - max 7.5 kW"
+  rules, or does the label stay word-only? Also the 10 close-wording undrawn parts kept ("various locations", "swimming
+  areas") in on-parts.md: whole water too, or leave as notes?
 - **Batch 7:** Q146 re-centre the map when the parts list opens · Q147 steelhead lake wording on newly taken ponds ·
   Q148 dams → "lake" for the slough candidates · Q149 Bonaparte by hand.
 - **No-access look (T165, built):** answered 2026-10-24 (as built).
@@ -59,6 +62,8 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
 ## Things only you can run or provide
 
 - **Parser runs** (`run_parse.sh`, dispatch): human-only; any re-parse is yours to start.
+- **Reach + deliver rebuild for the "on parts" change (2026-10-26):** 33 vessel rules now hold on the whole water
+  (list: handoff/PLAN/curation-review/on-parts.md); the bundle shows them as notes until the rebuild.
 - **R2 upload** of a new release and of the gauge feed, with your credentials:
   `python -m pipeline.deliver.release.publish --release data/release/$(cat data/release/LATEST) --yes` (records
   data/release/PUBLISHED so the prune keeps it). When you set up the feed sync, upload ONLY `data/generated/gauges/feeds/`,

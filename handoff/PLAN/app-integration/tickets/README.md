@@ -253,6 +253,7 @@ use that as the sole source of future work."
 | T206 | app golden parity after the retired overlapping rules (page v36 oracle still prints z1/z2/Khartoum/Lois r3) | BLOCKED | — | zone-merge renames amended (ORACLE_ENTRY_RENAMED); owner call on Region 4 Other-fish tie-break (key order) before ORACLE_RETIRED |
 | T208 | show rules that hold on an undrawn part of a lake ("area at the outlet … map 1") clearly, linked to the synopsis map | OPEN | — | future; lake splits stay deferred |
 | T207 | "on parts" is a note; unused-cut false positives (28 true); split confidence end to end; White/Fulton/Chuckwalla/Cranberry cuts | PARTIAL | — | next build (owner); owner decides the 28 unused cuts; Cranberry canyon point |
+| T209 | vessel restrictions in the app: boats line (electric only, no powered boats, power cap, speed, towing, no vessels) on the water page + map sheet | OPEN | — | 390 vessel_rule rules; electric_only kW decision |
 
 ## Order for open tickets
 
