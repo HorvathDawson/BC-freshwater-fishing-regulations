@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import type { EntrySeverity, QueueFacts, QueueRow } from "../types";
 
 interface Props {
