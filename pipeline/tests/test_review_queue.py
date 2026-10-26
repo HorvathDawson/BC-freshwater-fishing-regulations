@@ -129,13 +129,14 @@ def test_a_cut_decided_by_hand_is_not_an_ambiguous_cut_risk(run):
 
 
 def test_the_splits_to_verify_are_one_function_of_splits_json_and_the_marks():
-    """`tiers.splits_to_verify`: an open auto-proposal or a "Verify:" note, or a split whose old mark
-    went stale — the review app (`reuse.splits_to_verify`) and the pre-check CLI both ask it."""
+    """`tiers.splits_to_verify`: only `"verify": true` or a stale old mark (owner, 2026-10-26: every
+    split was placed by hand, so a `_note` never counts) — the review app (`reuse.splits_to_verify`)
+    and the pre-check CLI both ask it."""
     splits = {"waterbodies": [{"splits": [
-        {"id": "a", "_note": "[auto-proposal M] x"}, {"id": "b", "_note": "Verify: the bridge"},
+        {"id": "a", "_note": "[auto-proposal M] x"}, {"id": "b", "_note": "Verify: the bridge", "verify": True},
         {"id": "c", "_note": "[human-review] ok"}, {"id": "d", "_note": ""}]}]}
-    assert T.splits_to_verify(splits) == frozenset({"a", "b"})
-    assert T.splits_to_verify(splits, {"c": "stale", "d": "verified"}) == frozenset({"a", "b", "c"})
+    assert T.splits_to_verify(splits) == frozenset({"b"})
+    assert T.splits_to_verify(splits, {"c": "stale", "d": "verified"}) == frozenset({"b", "c"})
 
 
 def test_the_run_moves_an_entry_into_a_risk_tier(run):
@@ -259,11 +260,13 @@ def test_the_prechecks_measured_over_the_corpus(request):
     got = P.corpus_findings(entries, registry_ids=_registry_ids(), run=run, splits=splits)
     from collections import Counter
     n = Counter(f["code"] for fs in got.values() for f in fs)
-    measured = {"binds_nothing": 13, "unresolved": 29, "unplaced_pieces": 2, "ambiguous_cut": 95,
-                "split_to_verify": 164, "parser_uncertain": 137, "unresolved_locator": 31,
+    measured = {"binds_nothing": 13, "unresolved": 25, "unplaced_pieces": 2, "ambiguous_cut": 95,
+                "split_to_verify": 0, "parser_uncertain": 137, "unresolved_locator": 31,
                 "undrawn_part": 135, "unquoted_text": 214}
     for code, want in measured.items():
         assert abs(n[code] - want) <= max(3, want // 10), (code, n[code], want)
+    # owner 2026-10-26: no split is to-verify from its note (was 164); unresolved 29 -> 25 re-pinned to the measured corpus
+    assert n["split_to_verify"] == 0
     assert n["quote_not_in_row"] == 0, "the gate refuses a quote not in its row; the strip agrees"
     assert set(n) <= set(P.CHECKS)
 
@@ -285,7 +288,8 @@ def test_the_tiers_with_the_run_match_plan_section_3(request):
     run, ids = RunFacts.read(_reach_dir()), _registry_ids()
     entries = P._corpus(CURATED.regulations.entries.catalogue)
     got = Counter(T.entry_tier(e, binds=bool(covered_ids(e, ids)), run=run) for e in entries)
-    for tier, plan in {"P1": 227, "Z": 132, "P2": 261, "P3": 116, "P4": 730, "sweep": 59}.items():
+    # Z 132 -> 122: the zone daily-quota merge (6335f73d) into zN:daily_quotas
+    for tier, plan in {"P1": 227, "Z": 122, "P2": 261, "P3": 116, "P4": 730, "sweep": 59}.items():
         assert abs(got[tier] - plan) <= 3, (tier, got[tier], plan)
     closures = [(e, r) for e in entries for r in e.get("rules") or [] if closure_grade(r)]
     undrawn = sum(1 for _, r in closures if r.get("undrawn_part"))

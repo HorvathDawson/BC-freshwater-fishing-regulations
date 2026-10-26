@@ -460,13 +460,14 @@ def test_every_split_the_rules_name_is_labelled_on_the_map(env, eid):
     assert env["client"].get("/api/entries/r9:nope/splits").status_code == 404
 
 
-def test_a_named_split_still_to_verify_says_so(env):
-    """The Hwy 19 bridge over the Adam is an open auto-proposal, grade L: its point says so (the map
-    draws it amber) — the pre-check `split_to_verify` names the same cut."""
+def test_a_named_split_with_an_auto_proposal_note_is_not_to_verify(env):
+    """The Hwy 19 bridge over the Adam carries an "[auto-proposal L] … Verify:" note, but every split
+    was placed by hand (owner, 2026-10-26): the note is history, `to_verify` is False (only
+    `"verify": true` or a stale mark makes it True); the grade is still read from the note."""
     got = env["client"].get("/api/entries/r1:adam_river_except_eve_river@1-10/splits").json()
     p = next(f["properties"] for f in got["features"]
              if f["properties"]["split_id"] == "adam_river__hwy_19_bridge")
-    assert (p["label"], p["to_verify"], p["grade"]) == ("Hwy 19 bridge", True, "L")
+    assert (p["label"], p["to_verify"], p["grade"]) == ("Hwy 19 bridge", False, "L")
     assert p["name"] == "ADAM RIVER (except Eve River): Hwy 19 bridge"
 
 

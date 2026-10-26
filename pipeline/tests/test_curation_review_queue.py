@@ -76,7 +76,7 @@ def test_one_queue_across_every_region_in_the_review_order(env, queue):
     """No region: the whole corpus, tier by tier (P1 Z P2 P3 P4 sweep), each tier led by its most
     urgent risk factor; the statuses say what the parse left, never "unreviewed"."""
     from pipeline.regs.review.tiers import RISKS, TIERS
-    assert len(queue) == 1525
+    assert len(queue) == 1515  # 1525 before the zone daily-quota merge (6335f73d)
     assert len({r["region"] for r in queue}) > 5
     tiers = [TIERS.index(r["tier"]) for r in queue]
     assert tiers == sorted(tiers)

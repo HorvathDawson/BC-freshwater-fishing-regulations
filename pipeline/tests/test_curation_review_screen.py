@@ -30,7 +30,7 @@ from pipeline.tests.conftest import ATLAS_HINT, need
 REPO = Path(__file__).resolve().parents[2]
 BACKEND = REPO / "curation-review" / "backend"
 ADAM = "r1:adam_river_except_eve_river@1-10"
-ZONE = "z4:trout_char_quota"
+ZONE = "z4:daily_quotas"
 _MODS = ("app", "reuse", "model_api", "answer", "synopsis_pages", "writes", "review", "evidence",
          "dfo")
 #: T164: a DFO location with no extent yet, and the tributary whose confluence it names
@@ -138,7 +138,7 @@ def test_a_zone_entry_is_found_by_text_and_each_rule_carries_its_impact(env):
     v = c.get(f"/api/entries/{ZONE}/review").json()
     ev = v["evidence"]
     assert (v["kind"], v["tier"], ev["kind"], ev["printed"], ev["found"], ev["total"]) == (
-        "zone", "Z", "passage", 34, 31, 31)
+        "zone", "Z", "passage", 34, 87, 87)
     assert c.get(ev["crop_url"]).status_code == 200
     import answer
     import review
@@ -155,7 +155,9 @@ def test_a_zone_entry_is_found_by_text_and_each_rule_carries_its_impact(env):
         assert all(re.fullmatch(r"binds [\d,]+ sections? in region 4", w) for w in want), want
     else:
         want = ["awaiting build — the bundle's count is another vintage's"] * 4
-    assert [r["impact"] for r in v["rules"]] == want
+    # the zone-quota merge (6335f73d) added the zone's daily_quotas rules: pin the four named ones
+    got = [r["impact"] for r in v["rules"] if r["rule_id"].startswith("trout_char_quota.")]
+    assert got[:4] == want
 
 
 def test_the_impact_line_whole():
@@ -314,8 +316,8 @@ def test_progress_counts_every_entry(env):
     p = env["client"].get("/api/review/progress").json()
     tiers = {t["tier"]: t for t in p["tiers"]}
     assert list(tiers) == ["P1", "Z", "P2", "P3", "P4", "sweep"]
-    assert tiers["Z"]["total"] == 132
-    assert p["overall"]["total"] == 1525
+    assert tiers["Z"]["total"] == 122  # 132 before the zone merge (6335f73d)
+    assert p["overall"]["total"] == 1515
     assert p["overall"]["total"] == sum(t["total"] for t in p["tiers"])
     assert all(t["todo"] == t["total"] - t["done"] for t in p["tiers"])
 

@@ -110,11 +110,12 @@ def split_grade(split: dict) -> str | None:
 
 
 def split_needs_verify(split: dict, mark_status: str | None = None) -> bool:
-    """A split point still to verify: an open auto-proposal, a note asking for a check
-    ("Verify: …"), or an old split mark that went STALE (`mark_status`, the split's mark state —
-    split marks are history now, T184, but one that no longer holds is not a confirmation)."""
-    return (split_grade(split) is not None or "Verify:" in str(split.get("_note") or "")
-            or mark_status == "stale")
+    """A split point still to verify: one flagged `"verify": true`, or an old split mark that went
+    STALE (`mark_status`; split marks are history now, T184, but one that no longer holds is not a
+    confirmation). Every split in splits.json was placed by hand during curation (owner, 2026-10-26):
+    its `_note` — "[auto-proposal L] … Verify: …" included — is history, never an open question.
+    How sure a location is lives in `confidence` (T207), not here."""
+    return split.get("verify") is True or mark_status == "stale"
 
 
 def splits_to_verify(splits: dict, mark_status: dict | None = None) -> frozenset[str]:

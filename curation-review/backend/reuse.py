@@ -1873,8 +1873,8 @@ def entry_split_points(entry_id: str) -> dict | None:
     A FeatureCollection of Points, one per split id, each with `split_id`, `label` (the built label,
     else splits.json's, else the boundary's), `water` (its splits.json waterbody; a lake boundary,
     the item it is on), `name` ("WATER: label"), `rules` (the rule ids that name it, in rule order) and `parts` (any other part that
-    does: "entry scope", a licensing record's id), `to_verify` (an open auto-proposal or a
-    "Verify:" note — `tiers.split_needs_verify`) and `grade`. Where the built atlas has no point
+    does: "entry scope", a licensing record's id), `to_verify` (`"verify": true` or a stale mark; a
+    note never counts — `tiers.split_needs_verify`) and `grade`. Where the built atlas has no point
     for an id (not built yet, or a cut with no location of its own) it is listed in `unplaced`
     with why, never dropped. None: no such entry."""
     from pipeline.regs.review.tiers import split_grade, split_needs_verify
@@ -2048,8 +2048,8 @@ def extent_preview(entry_id: str, fix, limit: int = 6000) -> dict | None:
 
 
 def split_review(sp: dict) -> dict:
-    """WHAT THE CURATOR LEFT ON A CUT-POINT: its `_note` (the history of how it was placed, and
-    what is still to verify) and the auto-proposal GRADE that note opens with — `[auto-proposal L]`
+    """WHAT THE CURATOR LEFT ON A CUT-POINT: its `_note` (the history of how it was placed; history,
+    never a request to verify) and the auto-proposal GRADE that note opens with — `[auto-proposal L]`
     is a low-confidence machine placement nobody has confirmed. The tool used to send neither, so a
     reviewer saw a confident cut where the file said "Verify: …" (T96). `grade` is None for a cut
     that is not an open auto-proposal; only a LEADING tag counts (a later one is history) —

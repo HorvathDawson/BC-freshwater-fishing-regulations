@@ -133,11 +133,17 @@ def test_a_closure_is_the_one_closure_predicate():
     assert [T.entry_tier(_e("r1:a@1-1", [r]), binds=True) for r in (partial, release)] == ["P1", "P4"]
 
 
-def test_a_split_to_verify_is_an_open_auto_proposal_or_a_verify_note():
+def test_a_split_to_verify_is_only_a_verify_flag_or_a_stale_mark():
+    """Owner 2026-10-26: every split was placed by hand, so a `_note` never makes one to-verify —
+    an "[auto-proposal L] … Verify:" note alone is NOT; `"verify": true` is; so is a stale mark."""
     got = [T.split_needs_verify({"_note": n}) for n in (
-        "[auto-proposal L] Hwy 19 bridge …", "Verify: confirm the bridge", "[human-review] done",
-        "[osm-candidate] (VERIFY). [human-review 2026-08-06]", "", None)]
-    assert got == [True, True, False, False, False, False]
+        "[auto-proposal L] Hwy 19 bridge … Verify: the bridge", "Verify: confirm the bridge",
+        "[human-review] done", "[osm-candidate] (VERIFY). [human-review 2026-08-06]", "", None)]
+    assert got == [False] * 6
+    assert T.split_needs_verify({"_note": "x", "verify": True}) is True
+    assert T.split_needs_verify({"verify": False}) is False
+    assert T.split_needs_verify({"_note": "[human-review] ok"}, "stale") is True
+    assert T.split_needs_verify({"_note": "[human-review] ok"}, "verified") is False
     assert [T.split_grade({"_note": n}) for n in ("[auto-proposal M] x", "y [auto-proposal L]")] \
         == ["M", None]
 
@@ -146,19 +152,20 @@ def test_the_corpus_tiers_match_plan_section_3():
     """PLAN §3 counted P1 227, Z 132, P2 261, P3 116, P4 730, sweep 59 and S0 165 (120 L) on
     2026-10-22. Measured here from the corpus alone (no match = an empty `matched`; the served
     build decides it in the tool): within the day's drift. The old S0 tier (T184: gone; its splits
-    are checked by proxy on their entries' maps) is the 150 notes that still ask for a check — a
+    are checked by proxy on their entries' maps) is now empty (owner 2026-10-26: a note never asks for a check) — a
     rule binding through one carries the `split_to_verify` pre-check."""
     from collections import Counter
     got = Counter(T.entry_tier(e, binds=bool(e.get("matched"))) for e in _corpus())
-    assert got["Z"] == 132
-    assert sum(got.values()) == 1525
+    # Z 132 -> 122, total 1525 -> 1515: the zone daily-quota merge (6335f73d) into zN:daily_quotas
+    assert got["Z"] == 122
+    assert sum(got.values()) == 1515
     for tier, plan in {"P1": 227, "P2": 261, "P3": 116, "P4": 730, "sweep": 59}.items():
         assert abs(got[tier] - plan) <= 3, (tier, got[tier], plan)
     splits = [s for wb in json.loads(CURATED.waters.splits.read_text())["waterbodies"]
               for s in wb["splits"]]
     held = [s for s in splits if T.split_needs_verify(s)]
     # (T179 close pairs, 53f3819e) the Moyie U.S. border became a `border` anchor: one held split left grade L
-    assert (len(splits), len(held), Counter(T.split_grade(s) for s in held)["L"]) == (409, 150, 118)
+    assert (len(splits), len(held), Counter(T.split_grade(s) for s in held)["L"]) == (410, 0, 0)  # was 150 / 118 L before the owner decision, 2026-10-26
 
 
 def _py_sources():

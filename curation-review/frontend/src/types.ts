@@ -563,7 +563,7 @@ export interface NamedSplit {
   rules: string[];
   /** any other part that names it: "entry scope", a licensing record's id */
   parts: string[];
-  /** an open auto-proposal or a "Verify:" note (`tiers.split_needs_verify`) */
+  /** `"verify": true` or a stale mark (`tiers.split_needs_verify`); a `_note` never counts */
   to_verify: boolean;
   grade: "L" | "M" | "H" | null;
   item_id: string | null;
@@ -632,7 +632,7 @@ export interface GeoJSON {
 }
 
 /** What the curator left on a cut-point (`reuse.split_review`): its `_note` — how it was placed and
- *  what is still to verify — and the auto-proposal grade the note opens with (`L` low, `M`, `H`),
+ *  how it was placed — and the auto-proposal grade the note opens with (`L` low, `M`, `H`),
  *  null when the cut is not an open auto-proposal. */
 export interface SplitReview {
   note: string;
