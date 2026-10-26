@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+from functools import cmp_to_key
 from typing import Dict, List, Optional, Tuple
 from pipeline.deliver.answers import common
 from pipeline.deliver.answers.common import AnswersError
@@ -16,13 +17,26 @@ def _stable_sort(xs, key):
     return sorted(xs, key=key)
 
 
-def closure_order(r) -> tuple:
-    """Which of several closures speaking for a fish governs: the nearest rank, then the one naming
-    the most fish (the page's own order, settle.ts `closing`). Never the entry key: Region 4's
-    invasive-species notice (bass, pike, walleye, perch) ties on rank with the quota box's "0, CLOSED"
-    lines, and breaking that by key split the one folded row into five when `z4:species_quotas`
-    became `z4:daily_quotas` (T206, owner 2026-10-26)."""
-    return (r.rank, -len(r.species))
+def _closure_cmp(a, b) -> int:
+    """Which of two closures speaking for a fish governs (T206, owner 2026-10-26: never by entry key):
+    the nearer rank; two rules of ONE entry keep the book's order (rule order), as before; between two
+    entries, a standing (year-round) closure before a dated one, then the one naming more fish:
+    Region 4's invasive-species notice (bass, pike, walleye, perch) over the quota box's single
+    "0, CLOSED" lines, which key order let win once `z4:species_quotas` became `z4:daily_quotas`,
+    splitting the one folded row into five."""
+    if a.rank != b.rank:
+        return -1 if a.rank < b.rank else 1
+    if a.entry_id == b.entry_id:
+        return 0                                   # one entry: the book's rule order
+    da, db = bool(a.f.get("when")), bool(b.f.get("when"))
+    if da != db:
+        return 1 if da else -1
+    if len(a.species) != len(b.species):
+        return -1 if len(a.species) > len(b.species) else 1
+    return 0
+
+
+closure_order = cmp_to_key(_closure_cmp)
 
 
 def eval_sp(P: "Part", S: str, o: str) -> Optional[dict]:
