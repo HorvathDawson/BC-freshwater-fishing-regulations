@@ -6,7 +6,7 @@
  */
 import { describe, expect, it } from "vitest";
 import {
-  crossLabel, crossDown, crossUp, exitLabel, groupBounds, itemNote, markLabel, navSections, partAt, partBounds, partName,
+  confidenceWords, crossLabel, crossDown, crossUp, exitLabel, groupBounds, isConfidence, markA11y, itemNote, markLabel, navSections, partAt, partBounds, partName,
   partOfSection, partRowAria, partWhere, stepDown, stepsDown, stepsUp, waterGroup, wholeAria, wholeLabel, WATER_MAP_WORDS, type ItemNavRows,
 } from "./waterNav";
 import { WORDS } from "./regs/words";
@@ -336,5 +336,21 @@ describe("the exit, the highlight and the frame", () => {
     expect(b.map((x) => Math.round(x * 1e4) / 1e4)).toEqual([-122.0249, 49.0944, -122.0112, 49.1034]);
     expect(wholeLabel(g, 0, false)).toBe("⤢ Whole river");
     expect(wholeLabel(g, 0, true)).toBe("This part");
+  });
+});
+
+describe("T207: a cut placed approximately says so on its boundary", () => {
+  it("a low-confidence mark's label and its words for a screen reader carry the whole sentence", () => {
+    const rows: ItemNavRows = { ...COWICHAN, marks: COWICHAN.marks.map((m, i) => (i === 0 ? { ...m, confidence: "low" as const } : m)) };
+    const g = waterGroup([rows]);
+    expect(g.marks.map((m) => markLabel(g, m))).toEqual([
+      "CNR Mile 66 Trestle, approximate location (low confidence)", "CNR Bridge (mile 70.2)", "Greendale Trestle"]);
+    expect(markA11y(g, g.marks[0]!)).toBe("Boundary: CNR Mile 66 Trestle, approximate location (low confidence)");
+  });
+
+  it("the one sentence, as the pipeline's `confidence_words` says it", () => {
+    expect([confidenceWords(undefined), confidenceWords("high"), confidenceWords("medium"), confidenceWords("low")])
+      .toEqual(["", "", "approximate location (medium confidence)", "approximate location (low confidence)"]);
+    expect([isConfidence("low"), isConfidence("certain"), isConfidence(null)]).toEqual([true, false, false]);
   });
 });

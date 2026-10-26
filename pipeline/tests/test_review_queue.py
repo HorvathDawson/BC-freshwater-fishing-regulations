@@ -250,7 +250,9 @@ def test_the_prechecks_measured_over_the_corpus(request):
     severity-A codes are facts whose counts reproduce PLAN §3's; within the day's drift.
     PLAN §3: 14 rows that bind nothing, 33 unresolved rules, 93 ambiguous cuts on 86 rules, 232
     rules with a review_reason, 32 with unresolved locators. T189: `parser_uncertain` no longer
-    repeats the 126 undrawn parts whose review_reason the normaliser wrote (263 -> 137)."""
+    repeats the 126 undrawn parts whose review_reason the normaliser wrote (263 -> 137). T207: an
+    "on parts" the book never identifies is a note (`unidentified_part`, 39), not `undrawn_part`
+    (133 -> 94, counted on the curated corpus 2026-10-26)."""
     from pipeline.tests.conftest import ATLAS_HINT, REACH_HINT, need
     need(request, "atlas", GENERATED.build() / "registry.json", ATLAS_HINT)
     need(request, "reach_run", _reach_dir() / "report.json", REACH_HINT)
@@ -262,7 +264,7 @@ def test_the_prechecks_measured_over_the_corpus(request):
     n = Counter(f["code"] for fs in got.values() for f in fs)
     measured = {"binds_nothing": 13, "unresolved": 25, "unplaced_pieces": 2, "ambiguous_cut": 95,
                 "split_to_verify": 0, "parser_uncertain": 137, "unresolved_locator": 31,
-                "undrawn_part": 135, "unquoted_text": 214}
+                "undrawn_part": 94, "unidentified_part": 39, "unquoted_text": 214}
     for code, want in measured.items():
         assert abs(n[code] - want) <= max(3, want // 10), (code, n[code], want)
     # owner 2026-10-26: no split is to-verify from its note (was 164); unresolved 29 -> 25 re-pinned to the measured corpus
@@ -289,10 +291,11 @@ def test_the_tiers_with_the_run_match_plan_section_3(request):
     entries = P._corpus(CURATED.regulations.entries.catalogue)
     got = Counter(T.entry_tier(e, binds=bool(covered_ids(e, ids)), run=run) for e in entries)
     # Z 132 -> 122: the zone daily-quota merge (6335f73d) into zN:daily_quotas
-    for tier, plan in {"P1": 227, "Z": 122, "P2": 261, "P3": 116, "P4": 730, "sweep": 59}.items():
+    # T207: an unidentified "on parts" is no risk — 3 closures P1 -> P2, 13 entries P3 -> P4
+    for tier, plan in {"P1": 224, "Z": 122, "P2": 264, "P3": 103, "P4": 743, "sweep": 59}.items():
         assert abs(got[tier] - plan) <= 3, (tier, got[tier], plan)
     closures = [(e, r) for e in entries for r in e.get("rules") or [] if closure_grade(r)]
-    undrawn = sum(1 for _, r in closures if r.get("undrawn_part"))
+    undrawn = sum(1 for _, r in closures if r.get("undrawn_part") and not T.unidentified_part(r))
     amb = sum(1 for e, r in closures if r["rule_id"] in run.ambiguous_of(e["entry_id"]))
     assert (abs(undrawn - 52) <= 3, abs(amb - 32) <= 3) == (True, True), (undrawn, amb)
 

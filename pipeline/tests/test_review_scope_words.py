@@ -71,10 +71,11 @@ def test_an_undrawn_part_is_one_finding_not_two():
     `parser_uncertain` said the same fact again (126 rules; the pilot's "pre-checks always have a
     duplicate"). One `undrawn_part` finding now, carrying the parser's why; a review_reason of its
     own is still `parser_uncertain`."""
-    held = {"rule_id": "x.r1", "undrawn_part": "on parts", "extents": [{"op": "whole"}],
+    # a part that names a place: "on parts" names none and is a note (T207, test_t207_on_parts_is_a_note)
+    held = {"rule_id": "x.r1", "undrawn_part": "near the dam", "extents": [{"op": "whole"}],
             "review_reason": P.UNDRAWN_REASON + ": no cut-point to bind"}
     other = {"rule_id": "x.r2", "extents": [{"op": "whole"}], "review_reason": "two speeds"}
     got = P.prechecks(_entry([held, other]), binds=True)
     assert [(f["code"], f["rule_id"]) for f in got] == [("parser_uncertain", "x.r2"),
                                                       ("undrawn_part", "x.r1")]
-    assert got[1]["what"].endswith("on parts — the parser: no cut-point to bind")
+    assert got[1]["what"].endswith("near the dam — the parser: no cut-point to bind")

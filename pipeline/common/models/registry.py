@@ -16,6 +16,7 @@ class RegistryBoundary:
     wbk: str = ""                # robust key for lake boundaries
     aliases: tuple[str, ...] = ()  # other ids this same cut-point answers to (see SectionBoundary)
     names: tuple[str, ...] = ()    # the other NAMES at this cut-point (`SectionBoundary.names`): shown, never bound
+    confidence: str = "high"       # T207: the curated split's `confidence` (high | medium | low); display only
 
     def answers_to(self) -> tuple[str, ...]:
         """EVERY ID THIS CUT-POINT ANSWERS TO, as a rule binds it: its own `id`, then each alias with

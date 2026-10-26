@@ -742,6 +742,7 @@ button.btn:disabled {
 .prechecks .sev { display:inline-block; width:16px; font-weight:700; }
 .prechecks .sev-A { color:var(--danger-text); }
 .prechecks .sev-B { color:var(--muted); }
+.prechecks .sev-I { color:var(--muted); font-style:italic; }
 .amb-cut { font-size:12px; margin:2px 0; }
 
 .tickets-link { font-size:12px; }

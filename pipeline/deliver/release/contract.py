@@ -84,7 +84,8 @@ FILES = {
         "meta": ["k", "v"],
         "part": ["item_ord", "part_ix", "akey", "ord", "label_s", "short_s", "runs_s", "place_s", "hint_s", "km",
                  "closed_all_year", "paper_licence", "xp", "sections", "xruns"],
-        "part_mark": ["ord", "mark_ix", "lon", "lat", "label", "down_part", "up_parts"],
+        # `confidence` (T207): ADDITIVE, last, NULL for high — still water/1; an older release has no column
+        "part_mark": ["ord", "mark_ix", "lon", "lat", "label", "down_part", "up_parts", "confidence"],
         "part_section": ["ord", "sid", "part_ix"],
         "picker": _FRAME,
         "place": ["place", "regions", "label", "names"],

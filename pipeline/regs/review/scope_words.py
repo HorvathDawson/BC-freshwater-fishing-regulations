@@ -18,6 +18,8 @@ import re
 from dataclasses import dataclass, field
 from typing import Callable, Mapping, Optional
 
+from pipeline.regs.review.tiers import unidentified_part
+
 #: op -> how the screen says it when the place-namer cannot name the place itself
 _OP_WORDS = {"upstream_of": "upstream of", "downstream_of": "downstream of"}
 
@@ -168,6 +170,8 @@ def rule_scope(rule: Mapping, entry: Mapping, names: Names) -> dict:
         "items": [{"id": i, "name": _item_words(i, names)} for i in items],
         "splits": splits,
         "in_part": str(rule.get("undrawn_part") or "").strip() or None,
+        # T207: "on parts" names no reach — the screen shows it as a note, never a warning
+        "in_part_identified": not unidentified_part(rule),
         "side": rule.get("side") or None,
         "unresolved": list(rule.get("unresolved_locators") or []),
         "tributaries": tributaries(rule, entry),

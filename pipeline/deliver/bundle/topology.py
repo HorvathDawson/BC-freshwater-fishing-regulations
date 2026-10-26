@@ -76,17 +76,23 @@ def order_parts(parts: Sequence[dict]) -> List[dict]:
     return with_km + [p for p in parts if p.get("km") is None]
 
 
-def split_label(down: dict, up: dict, splits: Dict[str, dict]) -> Optional[str]:
+def split_at(down: dict, up: dict, splits: Dict[str, dict]) -> Optional[dict]:
     """The split where `up` (upstream) meets `down`: the downstream part's run start, else the upstream part's run end,
     when it has a name. A branch (`km` None: a side channel, a lake part) is named only by its own runs' ends: the main
-    stem's next split is not where it leaves."""
+    stem's next split is not where it leaves. Its `splits` row ({"name", "confidence"?}), or None."""
     ends = ((down, "from"), (up, "to")) if up.get("km") is not None else ((up, "to"), (up, "from"))
     for p, end in ends:
         for r in p.get("runs") or []:
             s = splits.get(r.get(end) or "")
             if s and s.get("name"):
-                return s["name"]
+                return s
     return None
+
+
+def split_label(down: dict, up: dict, splits: Dict[str, dict]) -> Optional[str]:
+    """The NAME of the split where `up` meets `down` (`split_at`), or None."""
+    s = split_at(down, up, splits)
+    return s["name"] if s else None
 
 
 def stem_midpoint(stem: Sequence[Tuple[int, Optional[float]]]) -> int:
@@ -118,9 +124,13 @@ def merge_marks(raw: Sequence[dict]) -> List[dict]:
         k = (round(m["lon"], 6), round(m["lat"], 6), m["down"])
         if k in by:
             by[k]["up"] = sorted(set(by[k]["up"]) | {m["up"]})
-            by[k]["label"] = by[k]["label"] or m["label"]
+            if not by[k]["label"] and m["label"]:
+                by[k]["label"] = m["label"]
+                if m.get("confidence"):                  # T207: the named split's, with its name
+                    by[k]["confidence"] = m["confidence"]
         else:
-            by[k] = {"lon": m["lon"], "lat": m["lat"], "down": m["down"], "up": [m["up"]], "label": m["label"]}
+            by[k] = {"lon": m["lon"], "lat": m["lat"], "down": m["down"], "up": [m["up"]], "label": m["label"],
+                     **({"confidence": m["confidence"]} if m.get("confidence") else {})}
     return sorted(by.values(), key=lambda m: (m["down"], m["up"], m["lon"], m["lat"]))
 
 
@@ -246,7 +256,8 @@ def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
     for a, b in db.execute("SELECT a, b FROM section_touch"):
         touch[a].add(b)
         touch[b].add(a)
-    splits = {sid: {"name": n} for sid, n in db.execute("SELECT split_id, name FROM split")}
+    splits = {sid: {"name": n, "confidence": c}
+              for sid, n, c in db.execute("SELECT split_id, name, confidence FROM split")}
 
     def is_polygon_part(o: int, ss: List[int]) -> bool:
         if kind.get(o) != "stream":
@@ -296,10 +307,12 @@ def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
                     continue
                 pa, pb = nearest_points(a, b)
                 lon, lat = to_ll.transform((pa.x + pb.x) / 2, (pa.y + pb.y) / 2)
+                at = split_at(down, up, splits)
                 raw.append({"lon": round(lon, 6), "lat": round(lat, 6), "down": down["v"], "up": up["v"],
-                            "label": split_label(down, up, splits)})
+                            "label": at["name"] if at else None, "confidence": (at or {}).get("confidence")})
         for k, m in enumerate(merge_marks(raw)):
-            mark_rows.append((o, k, m["lon"], m["lat"], m["label"], m["down"], json.dumps(m["up"])))
+            mark_rows.append((o, k, m["lon"], m["lat"], m["label"], m["down"], json.dumps(m["up"]),
+                              m.get("confidence")))
 
     mouth = _mouths(part_rows)
     shapes_of: Dict[int, List[Tuple[int, Geometry]]] = defaultdict(list)
@@ -326,7 +339,8 @@ def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
 
     db.executemany("INSERT INTO part_geo (ord, part_ix, rank, mid_sid, mid_lon, mid_lat, w, s, e, n) "
                    "VALUES (?,?,?,?,?,?,?,?,?,?)", part_rows)
-    db.executemany("INSERT INTO part_mark (ord, mark_ix, lon, lat, label, down_part, up_parts) VALUES (?,?,?,?,?,?,?)",
+    db.executemany("INSERT INTO part_mark (ord, mark_ix, lon, lat, label, down_part, up_parts, confidence) "
+                   "VALUES (?,?,?,?,?,?,?,?)",
                    mark_rows)
     db.executemany("INSERT INTO water_exit (ord, down_ord, down_part, label) VALUES (?,?,?,?)", exits)
     cov.filled("part_geo", len(part_rows))

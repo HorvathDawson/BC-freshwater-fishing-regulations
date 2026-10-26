@@ -64,7 +64,7 @@ WIDENED = {
     "r1:deena_creek@6-12": 1, "r1:elk_lake@1-1": 4, "r1:great_central_lake@1-7": 1,
     "r1:long_lake_nanaimo@1-5": 1, "r1:mamin_river@6-13": 1, "r1:nanaimo_river@1-5": 1,
     "r1:prospect_lake@1-2": 2, "r1:quennell_lake@1-5": 1, "r1:shawnigan_lake@1-2": 2,
-    "r1:stamp_river@1-7": 1, "r1:wahpeeto_creek@1-14": 1, "r1:white_river@1-10": 1,
+    "r1:stamp_river@1-7": 1,
     "r2:alouette_lake@2-8": 2, "r2:chapman_creek@2-5": 1, "r2:coquitlam_river@2-8": 1,
     "r2:cultus_lake@2-3": 2, "r2:green_lake@2-9": 2, "r2:harrison_lake@2-18": 1,
     "r2:harrison_river_from_the_fraser_river_upstream_to_harrison_la@2-18": 1,
@@ -82,11 +82,11 @@ WIDENED = {
     "r5:chilko_lake@5-4": 1, "r5:chilko_river@5-5": 1, "r5:dragon_lake@5-2": 1,
     "r5:green_lake@5-1": 1, "r5:mitchell_lake@5-15": 1, "r5:quesnel_lake@5-15": 2,
     "r5:williams_lake@5-2": 1, "r6:babine_lake@6-6": 2, "r6:buckinghorse_lake@6-20": 1,
-    "r6:cranberry_river@6-15": 1, "r6:fran_ois_lake@6-4": 7, "r6:fulton_river@6-8": 1,
+    "r6:cranberry_river@6-15": 1, "r6:fran_ois_lake@6-4": 7,
     "r6:helene_lake@6-6": 1, "r6:klahowya_lake@6-20": 1, "r6:silverthorne_erickson_lake@6-9": 1,
     "r6:takysie_lake@6-4": 1, "r7:davis_bay_in_finlay_reach_of_williston_lake@7-37": 1,
     "r7:dinosaur_lake_reservoir_downstream_of_w_a_c_bennett_dam@7-31": 1,
-    "r7:halfway_river@7-34": 1, "r7:letain_lake@7-52": 1, "r7:nation_arm_williston_lake@7-30": 2,
+    "r7:letain_lake@7-52": 1, "r7:nation_arm_williston_lake@7-30": 2,
     "r7:nulki_lake@7-12": 1, "r7:rainbow_lakes@7-52": 1,
     "r7:williston_lake_in_zone_a_includes_waters_500_m_east_upstream@7-30+7-37+7-38": 1,
     "r7:wolverine_lake@7-52": 1, "r8:christina_lake@8-15": 1, "r8:kalamalka_lake@8-22": 2,
@@ -119,7 +119,9 @@ def test_the_widened_rules_are_counted():
     at. The one licensing record in a part (the Creston Valley WMA permit) is counted beside."""
     per = Counter(e["entry_id"] for e, _, r in _corpus() if str(r.get("undrawn_part") or "").strip())
     assert dict(sorted(per.items())) == WIDENED
-    assert (sum(per.values()), len(per)) == (135, 87)
+    # T207: White River's pool and the Fulton's spawning-channel stretch are drawn now; Wahpeeto (split-name
+    # audit) and the Halfway (its own cut, 6335f73d) were already (135, 87 before)
+    assert (sum(per.values()), len(per)) == (131, 83)
     lic = sorted(e["entry_id"] for f in sorted(CURATED.regulations.entries.catalogue.glob("region-*.json"))
                  for e in json.loads(f.read_text(encoding="utf-8"))["entries"]
                  for x in e.get("licensing") or [] if str(x.get("undrawn_part") or "").strip())

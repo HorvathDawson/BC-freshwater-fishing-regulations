@@ -43,7 +43,7 @@ REQUIRED_COLUMNS = {"entry": ("matched", "see"),
                     "section_span": ("sid", "lo_m", "hi_m", "lo", "hi", "off_stem", "shape"),
                     "span_end": ("eid", "token"),
                     "split": ("split_id", "name", "kind", "at", "official_name",
-                              "same_place_as", "lake_id"),
+                              "same_place_as", "lake_id", "confidence"),
                     "item_alias": ("alias", "item_id")}
 
 #: FIELD NAMES THE MODEL NO LONGER HAS. None may appear as a key anywhere in the output.

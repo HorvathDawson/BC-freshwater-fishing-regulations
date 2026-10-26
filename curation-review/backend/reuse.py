@@ -37,6 +37,7 @@ from pipeline.common.curated import CURATED, GENERATED, SOURCE
 from pipeline.atlas.splits.sectionizer import minted_id as _auto_split
 from pipeline.common.models.registry import bare_split_id
 from pipeline.atlas.splits.splits import splits_on
+from pipeline.common.models.splits import confidence_of, confidence_words
 
 _ROOT = Path(__file__).resolve().parents[2]
 #: The catalogue region files the app reads (never writes). `CURATION_ENTRIES_DIR` points it at a
@@ -364,6 +365,8 @@ def _boundary_dict(b) -> dict:
             "aliases": [bare_split_id(str(a)) for a in (getattr(b, "aliases", ()) or ())],
             "names": list(getattr(b, "names", ()) or ()),
             "curated": str(b.ref or "").startswith("split:"),
+            # T207: high | medium | low — "approximate location (low confidence)" beside its label
+            "confidence": split_confidence(b.id, None, b) if str(b.ref or "").startswith("split:") else "high",
             # a position the pipeline minted (a gauge, a length or area cut), not a split anyone
             # authored in splits.json — so neither "orphan" when splits.json lacks it, nor an
             # "unused curated split" when no rule binds it
@@ -408,6 +411,24 @@ def _curated_split_ids(item) -> set[str]:
     return {b.id for b in _boundaries(item) if str(b.ref or "").startswith("split:")}
 
 
+def _used_splits() -> frozenset[str]:
+    """Every curated split id something in the corpus uses (`split_use.used_split_ids`) — keyed on
+    the files' stamps, so a curated edit is seen on the next request."""
+    dfo = sorted(Path(CURATED.regulations.entries.dfo_salmon).glob("region-*.json"))
+    regions_ = sorted(Path(ENTRIES_DIR).glob("region-*.json"))
+    return _used_splits_for(_stamp((SPLITS_JSON_PATH, REGISTRY_PATH, *regions_, *dfo)))
+
+
+@lru_cache(maxsize=1)
+def _used_splits_for(key: tuple) -> frozenset[str]:
+    from pipeline.regs.review.split_use import used_split_ids
+    dfo = [json.loads(Path(p).read_text(encoding="utf-8")) for p, *_ in key
+           if Path(p).parent == Path(CURATED.regulations.entries.dfo_salmon)]
+    return frozenset(used_split_ids([e for _r, e in _all_entries()],
+                                    json.loads(SPLITS_JSON_PATH.read_text(encoding="utf-8")),
+                                    dfo=dfo, registry=_registry()))
+
+
 def unused_curated_splits(e: dict, item: dict | None) -> list[dict]:
     """Curated splits on this item that NO extent of the entry references — surfaced so the curator can see a
     hand-authored cut that the parse never used (a likely missed reach).
@@ -426,6 +447,10 @@ def unused_curated_splits(e: dict, item: dict | None) -> list[dict]:
     # rules' extents alone, so the two Skeena cuts only its classified-water record binds (the
     # Kitsumkalum confluence, the Ecological Reserve) were listed "unused" (T119 review).
     used = {sid for _path, ex, _role in iter_extents(e) for sid in (ex.get("splits") or ())}
+    # T207 (owner 2026-10-26): USED ANYWHERE counts — by id, by the AREA a rule names (Pitt River's
+    # "within Garibaldi Park" binds the park boundary), by a merged place, or by a DFO entry
+    # (`split_use.used_split_ids`, the one answer the unused-splits audit reads too).
+    used |= _used_splits()
     # A rule naming ANY id a cut-point answers to uses it — a merged place's alias binds it too.
     for b in _boundaries(item):
         if used & set(b.answers_to()):
@@ -873,7 +898,8 @@ def queue(region: str | None = None, status: str | None = None,
             "vintage_reasons": vin["reasons"],
             "tier": tr,                           # PLAN §3 (T134: progress and ETA by tier)
             "risks": T.risks(e, binds=item is not None, run=run),     # T135, most urgent first
-            "prechecks": {"A": n_a, "B": len(found) - n_a},
+            # an `I` finding (a note, T207: "on parts") is neither a fact nor a hint
+            "prechecks": {"A": n_a, "B": sum(1 for f in found if f["severity"] == "B")},
             "_rank": T.queue_rank(e, binds=item is not None, run=run, severe=n_a),
             "_pos": pos,
         })
@@ -1864,6 +1890,24 @@ def _split_records() -> dict[str, tuple[str, dict]]:
             if sp.get("id")}
 
 
+def split_confidence(sid: str, sp: dict | None = None, b=None) -> str:
+    """(T207) A cut's confidence: splits.json's authored value now (`SplitDef.confidence`), else the
+    built boundary's, else high."""
+    if sp is None:
+        authored = _confidences_for(_stamp((SPLITS_JSON_PATH,))).get(sid)
+    else:
+        authored = sp.get("confidence")
+    if authored:
+        return confidence_of(authored)
+    return str(getattr(b, "confidence", "") or "high")
+
+
+@lru_cache(maxsize=1)
+def _confidences_for(_key: tuple) -> dict[str, str]:
+    """splits.json split id -> its authored `confidence` (only the splits that carry one)."""
+    return {sid: sp["confidence"] for sid, (_w, sp) in _split_records().items() if sp.get("confidence")}
+
+
 def entry_split_points(entry_id: str) -> dict | None:
     """EVERY SPLIT THE ENTRY'S RULES NAME, as map points labelled with their names (T184): the
     proxy check of a split. No split is a review target of its own; the reviewer sees each cut an
@@ -1904,7 +1948,12 @@ def entry_split_points(entry_id: str) -> dict | None:
             water = _registry()[on_item].name
         label = ((meta.get(sid) or {}).get("label") or sp.get("label")
                  or (getattr(b, "label", None) if b is not None else None) or sid)
-        props = {"split_id": sid, "label": label, "water": water,
+        # T207: a cut placed approximately says so on its map label and wherever it is named (splits.json's
+        # own value, so it shows before the rebuild; else the built boundary's)
+        conf = split_confidence(sid, sp, b)
+        cw = confidence_words(conf)
+        label = f"{label}, {cw}" if cw else label
+        props = {"split_id": sid, "label": label, "water": water, "confidence": conf,
                  "name": f"{water}: {label}" if water else label, **by,
                  "to_verify": split_needs_verify(sp) if sp else False,
                  "grade": split_grade(sp) if sp else None, "item_id": on_item}
@@ -2109,7 +2158,9 @@ def check_entry(entry_dict: dict) -> dict:
 _BUILD_CACHES = (_registry, _place_namer_for, _splits_meta, _split_points_attrs,
                  _blk_to_item, _graph, _geoms, _wbk_polys,
                  _blk_index, _review_context_for, _built_atlas, _built_for, _splits_context_for,
-                 _run_facts_for, _boundary_index)
+                 _run_facts_for, _boundary_index,
+                 # T207: corpus-wide split use (reads the registry) and the authored confidences
+                 _used_splits_for, _confidences_for)
 
 
 # --------------------------------------------------------------------------- #

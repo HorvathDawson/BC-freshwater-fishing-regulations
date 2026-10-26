@@ -397,6 +397,9 @@ SPLIT_TEXT = {
                      "[12332677]'), or cut off at 50 characters ('… ECOLOGICAL RESER'). The id "
                      "keeps that spelling (`area:CLAYHURST ECOLOGICAL RESERVE`) — ids never "
                      "change, and extents bind by them; show `name`, never the id",
+    "confidence": "ONLY on a curated cut whose place is not certain: `medium` or `low` (absent: "
+                  "high). Say the cut's name with 'approximate location (low confidence)' wherever "
+                  "it is named — a part's runs, a boundary on the map",
     "same_place_as": "ONLY on a cut at the SAME place as another cut of the same water (one "
                      "curated cut authored under two waters' lists — the Thompson River confluence "
                      "on the Fraser, as `fraser_river__…` and `thompson_river__…`): that other "

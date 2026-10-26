@@ -159,7 +159,8 @@ def test_the_corpus_tiers_match_plan_section_3():
     # Z 132 -> 122, total 1525 -> 1515: the zone daily-quota merge (6335f73d) into zN:daily_quotas
     assert got["Z"] == 122
     assert sum(got.values()) == 1515
-    for tier, plan in {"P1": 227, "P2": 261, "P3": 116, "P4": 730, "sweep": 59}.items():
+    # T207: an unidentified "on parts" is no risk — 3 closures P1 -> P2, 13 entries P3 -> P4
+    for tier, plan in {"P1": 224, "P2": 264, "P3": 103, "P4": 743, "sweep": 59}.items():
         assert abs(got[tier] - plan) <= 3, (tier, got[tier], plan)
     splits = [s for wb in json.loads(CURATED.waters.splits.read_text())["waterbodies"]
               for s in wb["splits"]]

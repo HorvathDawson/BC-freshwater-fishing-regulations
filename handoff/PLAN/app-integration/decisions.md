@@ -1346,3 +1346,17 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
   reference only); the downstream sign stays "needs a split (owner to locate)".
 - Cranberry canyon (owner 2026-10-26): add BOTH cuts — top = the falls point, confidence MEDIUM; bottom = the terrain
   estimate (handoff/PLAN/curation-review/cranberry-canyon/), confidence LOW — and bind r6:cranberry_river.r1 between them.
+
+## 2026-10-26 — T207 (owner)
+- "On parts" is not an error. If the book says a rule holds "on parts" and never says which (Hatzic's speed limits;
+  `catalogue.part_identifies_place`), the rule is an honest note. It is never a warning, a severity-A pre-check, a risk factor or a
+  flag. The pre-check `unidentified_part` has severity `I`, a note.
+- A curated cut is USED when any record names it: by id, by the area an extent names (`within_area` etc.), through a
+  merged place (an alias or another name at that place), or by a DFO entry (`split_use.used_split_ids`). The owner expects every
+  curated cut to be used: the 28 left are proposed for binding or deletion in split-name-audit.md, and the owner decides.
+- Each split may carry `confidence` (`high` default, `medium`, `low`). It is display only and never moves a cut. Wherever the cut is
+  named (a part label, a boundary mark, the review map) it reads "…, approximate location (low confidence)".
+- White River's salmon viewing pool is 100 m below to 100 m above the owner's platform point (low confidence). Fulton
+  r3's "opposite the spawning channels" stretch lies between the owner's two points. Chuckwalla's Ten Mile Pool cuts are low.
+  Cranberry Canyon is never guessed: the rule stays undrawn as "needs a split (owner to locate)".
+

@@ -7,6 +7,8 @@ Each finding is `{code, severity, rule_id, what}`. Severity:
         gate. It is true of the entry as served; the reviewer decides whether it is acceptable.
     B   a HEURISTIC — text matching (the coverage strip) or a decision already taken by hand. It
         may be nothing; it is shown, never counted toward the queue's order.
+    I   a NOTE — true and nothing to fix (T207: the book says "on parts" and never which). Shown,
+        never counted, never a warning.
 
 PLAN §4 named the audit's codes A1–A13 ("A6, A9 and A13 stay at severity B until measured"). That
 audit list was never committed, so the codes here are named for what they check, and each is
@@ -51,17 +53,22 @@ CHECKS: dict[str, tuple[str, str]] = {
     "parser_uncertain": ("A", "the parser flagged it (`review_reason`)"),
     "unresolved_locator": ("A", "names a place nothing draws (`unresolved_locators`)"),
     "undrawn_part": ("A", "applies to a part of its water nothing draws (`undrawn_part`)"),
+    "unidentified_part": ("I", "the book says it holds on parts of the water and never which — a "
+                               "note on the water, nothing to draw (`undrawn_part`)"),
     "cut_picked": ("B", "an ambiguous cut decided by hand (`cut_pick`) — the pick stands unless "
                         "it is wrong"),
     "quote_not_in_row": ("B", "quotes text the row does not contain (invented, or reworded)"),
     "unquoted_text": ("B", "more than 15 characters of the row no rule quotes"),
 }
-SEVERITIES = ("A", "B")
+SEVERITIES = ("A", "B", "I")
 #: `unquoted_text`: how many characters of the row no rule quotes before it is a finding (PLAN §3)
 UNQUOTED_OVER = 15
 #: how the undrawn-part normaliser opens the `review_reason` it writes: such a reason IS the
 #: `undrawn_part` finding, not a second, parser's one (T189)
 UNDRAWN_REASON = "Held on the whole water as an undrawn part (a note, never coloured by it)"
+#: (T207) how such a reason says the cut is still for the OWNER to locate (Cranberry River Canyon): the
+#: review screen badges it (`EntryDetail` `NEEDS_SPLIT`), so it can be found again; never guessed
+NEEDS_SPLIT = "needs a split (owner to locate)"
 
 
 def finding(code: str, rule_id: str | None, detail: str = "") -> dict:
@@ -89,6 +96,7 @@ def prechecks(entry: dict, *, binds: bool, run=None, to_verify: Iterable[str] = 
     `gate_errors`: the gate's errors for the entry, when the caller ran it."""
     from pipeline.regs.review.coverage import entry_coverage
     from pipeline.regs.review.runfacts import is_curated_pick
+    from pipeline.regs.review.tiers import unidentified_part
     eid = str(entry.get("entry_id", ""))
     zone = is_table(eid)
     rules = [r for r in entry.get("rules") or [] if isinstance(r, dict)]
@@ -130,7 +138,11 @@ def prechecks(entry: dict, *, binds: bool, run=None, to_verify: Iterable[str] = 
         if r.get("unresolved_locators"):
             got["unresolved_locator"].append(finding(
                 "unresolved_locator", rid, "; ".join(map(str, r["unresolved_locators"]))))
-        if part:
+        if part and unidentified_part(r):
+            # "ON PARTS" IS NOT AN ERROR (T207, owner 2026-10-26): no reach is identifiable, so
+            # nothing can draw it and nothing is wrong — a note, never a severity-A finding
+            got["unidentified_part"].append(finding("unidentified_part", rid, part))
+        elif part:
             # ONE FINDING FOR ONE FACT (T189): the normaliser that held these rules as an undrawn
             # part also wrote that into `review_reason` (126 rules), so `parser_uncertain` said it
             # a second time. The parser's why is kept, on this finding.

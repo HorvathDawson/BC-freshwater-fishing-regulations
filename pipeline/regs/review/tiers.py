@@ -46,10 +46,29 @@ CUT_OPS = frozenset({"between", "upstream_of", "downstream_of", "rest"})
 _AUTO_PROPOSAL = re.compile(r"^\[auto-proposal ([A-Z])\]")
 
 
+def unidentified_part(rule: dict) -> bool:
+    """THE BOOK SAYS "ON PARTS" AND NOTHING MORE (T207, owner 2026-10-26): the rule is held as an
+    `undrawn_part` that names no place (`catalogue.part_identifies_place`: "on parts", "on part",
+    "various locations (as buoyed and signed)", "parts of the lake (not specified in the book)" —
+    Hatzic's speed limits). There is no reach to draw and nothing to fix: it is an honest note,
+    never a risk factor, a flag or a severity-A pre-check (`precheck` `unidentified_part`, a note)."""
+    from pipeline.regs.parsing.catalogue_parts.checks import part_identifies_place
+    part = str(rule.get("undrawn_part") or "").strip()
+    return bool(part) and not part_identifies_place(part)
+
+
+def _undrawn_reason_only(rule: dict) -> bool:
+    """The rule's `review_reason` is only the undrawn-part normaliser's note on an UNIDENTIFIED
+    part (`unidentified_part`) — that note is the part, not a parser's doubt."""
+    from pipeline.regs.review.precheck import UNDRAWN_REASON
+    return unidentified_part(rule) and str(rule.get("review_reason") or "").startswith(UNDRAWN_REASON)
+
+
 def flagged(entry: dict) -> bool:
     """A rule or licensing record carries a `review_reason` (or a rule an unresolved locator) — a
-    reason present IS the flag; the model has no separate one."""
-    return (any(r.get("review_reason") or r.get("unresolved_locators")
+    reason present IS the flag; the model has no separate one. The normaliser's note on an
+    unidentified "on parts" is no flag (T207)."""
+    return (any((r.get("review_reason") and not _undrawn_reason_only(r)) or r.get("unresolved_locators")
                 for r in entry.get("rules") or [])
             or any(x.get("review_reason") for x in entry.get("licensing") or []))
 
@@ -65,7 +84,8 @@ def risks(entry: dict, *, binds: bool, run=None) -> list[str]:
         # a zone entry names no water BY DEFINITION: binding no item is not a finding about it
         "no match": not binds and not is_table(eid),
         "unresolved": run is not None and bool(run.unresolved_of(eid)),
-        "undrawn part": any(r.get("undrawn_part") for r in rules),
+        # an unidentified "on parts" is an honest note, not a risk (T207)
+        "undrawn part": any(r.get("undrawn_part") and not unidentified_part(r) for r in rules),
         # a cut decided by hand (`cut_pick`) is a decision, not a risk (`runfacts.is_curated_pick`)
         "ambiguous cut": run is not None and bool(run.open_ambiguous_of(eid)),
         "cut": any(x.get("op") in CUT_OPS or x.get("splits") for x in exts),

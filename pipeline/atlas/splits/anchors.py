@@ -199,7 +199,8 @@ def resolve_split_defs(split_defs: list[SplitDef], chains: list[BlkChain],
                               anchor_offset_m=float(sd.anchor.offset_m or 0.0),
                               anchor_offset_dir=str(sd.anchor.offset_dir or ""),
                               source=("gauge" if sd.anchor.type == AnchorType.gauge
-                                      else "curated")))
+                                      else "curated"),
+                              confidence=sd.confidence))
 
     for sd in split_defs:
         a = sd.anchor

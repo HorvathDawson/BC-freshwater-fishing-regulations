@@ -110,7 +110,7 @@ def splits_on(data: dict, refs: set[str]) -> list[dict]:
 #: A split's fields that do not move it: display and notes — and, as in its anchor, every
 #: `_`-prefixed key (`_note`, `_coord`, `_offset_m`: annotations no builder reads). Everything else
 #: (anchor, kind, the authored offsets, proximity, its own target) is the cut.
-SPLIT_NOT_ANCHOR = frozenset({"id", "label", "note"})
+SPLIT_NOT_ANCHOR = frozenset({"id", "label", "note", "confidence"})
 #: THE ATLAS'S RECORD OF THE CUTS IT WAS BUILT FROM (T133): {split id: `anchor_digest`} for every
 #: split of the splits.json the build read, written beside `splits.resolved.json`. The review tool
 #: compares it with splits.json now: a split added or moved since reads "awaiting build".
@@ -259,7 +259,7 @@ def resolve_splits(defs: list[SplitDef], chains: list[BlkChain],
 #: the build (`write_resolved`) and for the sidecars migration (`pipeline.atlas.sidecars`), so a
 #: migrated file is byte-equal to the one a fresh build writes.
 RESOLVED_KEYS = ("split_id", "blk", "route_measure", "label", "anchor_type", "offset_m",
-                 "source", "anchor_offset_m", "anchor_offset_dir", "picked_up", "concern")
+                 "source", "anchor_offset_m", "anchor_offset_dir", "picked_up", "concern", "confidence")
 
 
 def order_resolved(row: dict) -> dict:
@@ -293,5 +293,7 @@ def write_resolved(points: list[SplitPoint], path: str) -> None:
             row["picked_up"] = True
         if getattr(p, "concern", ""):
             row["concern"] = p.concern
+        if getattr(p, "confidence", "high") != "high":       # T207: absent == high
+            row["confidence"] = p.confidence
         rows.append(row)
     Path(path).write_text(dump_resolved(rows))

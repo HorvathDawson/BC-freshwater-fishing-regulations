@@ -145,9 +145,10 @@ CREATE TABLE section_span (sid INTEGER PRIMARY KEY,
 -- provincial border on a water is a row the same way (kind `border`, the runs' `bc_border`). A cut
 -- the sectionizer aliased onto such an edge (a gauge, a curated point) gets the same row under its
 -- own id.
+-- `confidence` (T207): the curated split's authored confidence, `medium` or `low`; NULL is high.
 CREATE TABLE split (split_id TEXT PRIMARY KEY, name TEXT NOT NULL, kind TEXT NOT NULL,
                     at TEXT NOT NULL, official_name TEXT, same_place_as TEXT,
-                    lake_id TEXT) WITHOUT ROWID;
+                    lake_id TEXT, confidence TEXT) WITHOUT ROWID;
 
 -- regulations ---------------------------------------------------------------------
 -- `name` is the display name — "Chilliwack River". `full_name` is what the curator wrote:
@@ -398,7 +399,8 @@ CREATE TABLE part_section (ord     INTEGER NOT NULL,
 
 -- PART TOPOLOGY AND CAMERA HINTS (P09, `topology.py`): the map navigation's data, NO geometry (the tiles draw it).
 -- `rank` mouth first within the water; the bbox in lon/lat; `mid_sid` + point where "Conditions here" opens.
--- `part_mark`: where two parts meet (the split's name, or NULL), the down part and the up parts (a JSON list).
+-- `part_mark`: where two parts meet (the split's name, or NULL), the down part and the up parts (a JSON list);
+-- `confidence` the named split's when it is `medium` / `low` (T207), NULL for high or no split.
 -- `water_exit`: the water this one flows into and the part it enters. All keyed by `ord`: never across bundles.
 CREATE TABLE part_geo  (ord INTEGER NOT NULL, part_ix INTEGER NOT NULL, rank INTEGER NOT NULL,
                         mid_sid INTEGER NOT NULL, mid_lon REAL NOT NULL, mid_lat REAL NOT NULL,
@@ -406,7 +408,7 @@ CREATE TABLE part_geo  (ord INTEGER NOT NULL, part_ix INTEGER NOT NULL, rank INT
                         PRIMARY KEY (ord, part_ix),
                         FOREIGN KEY (ord, part_ix) REFERENCES part(ord, part_ix)) WITHOUT ROWID;
 CREATE TABLE part_mark (ord INTEGER NOT NULL, mark_ix INTEGER NOT NULL, lon REAL NOT NULL, lat REAL NOT NULL,
-                        label TEXT, down_part INTEGER NOT NULL, up_parts TEXT NOT NULL,
+                        label TEXT, down_part INTEGER NOT NULL, up_parts TEXT NOT NULL, confidence TEXT,
                         PRIMARY KEY (ord, mark_ix)) WITHOUT ROWID;
 CREATE TABLE water_exit (ord INTEGER PRIMARY KEY, down_ord INTEGER NOT NULL, down_part INTEGER, label TEXT);
 

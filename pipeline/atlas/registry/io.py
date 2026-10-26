@@ -35,7 +35,9 @@ def _item_to_dict(it: RegistryItem) -> dict:
             # boundaries that have none.
             {"id": b.id, "label": b.label, "kind": b.kind, "ref": b.ref, "wbk": b.wbk,
              **({"aliases": list(b.aliases)} if b.aliases else {}),
-             **({"names": list(b.names)} if b.names else {})}
+             **({"names": list(b.names)} if b.names else {}),
+             # T207: omitted when high (the default), like `aliases`
+             **({"confidence": b.confidence} if b.confidence != "high" else {})}
             for b in it.boundaries
         ],
     }
@@ -56,7 +58,8 @@ def _item_from_dict(d: dict) -> RegistryItem:
             RegistryBoundary(id=b["id"], label=b.get("label", ""), kind=b.get("kind", ""),
                              ref=b.get("ref", ""), wbk=b.get("wbk", ""),
                              aliases=tuple(b.get("aliases", ())),
-                             names=tuple(b.get("names", ())))
+                             names=tuple(b.get("names", ())),
+                             confidence=str(b.get("confidence") or "high"))
             for b in d.get("boundaries", [])
         ),
     )

@@ -7,6 +7,7 @@ import math
 import re
 from typing import Dict, List, Optional, Sequence
 from pipeline.common import entry_id as EID
+from pipeline.common.models.splits import confidence_words
 from pipeline.deliver.answers.common import AnswersError, cap, clean, range_txt, when_dates
 from pipeline.deliver.answers.display.rule import _js, cut_words, kind_of
 
@@ -206,7 +207,10 @@ def end_name(doc: dict, e: Optional[str], side: str = "") -> str:
         nm0 = re.sub(r"\bd/s\b", "downstream", re.sub(r"\bu/s\b", "upstream", sp["name"]))
         the = "" if re.match(r"^(area|region_line):", e) or _THE_LESS.search(nm0) else "the "
         km = f" (km {_js_round(sp['km'])})" if dup else ""
-        return the + re.sub(r"^the ", "", nm0, flags=re.I) + km
+        # T207: a cut placed approximately says so wherever it is named ("…, approximate location (low
+        # confidence)") — `confidence_words`, the one sentence
+        cw = confidence_words(sp.get("confidence"))
+        return the + re.sub(r"^the ", "", nm0, flags=re.I) + km + (f", {cw}" if cw else "")
     head, _, ident = e.partition(":")
     nm = (doc["waters"].get(ident) or {}).get("name") if ident else ""
     if head == "confluence":

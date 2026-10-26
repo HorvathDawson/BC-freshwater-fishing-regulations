@@ -114,6 +114,28 @@ class SplitAnchor:
         )
 
 
+#: (T207) HOW SURE THE CURATOR IS OF WHERE A CUT STANDS. `high` is the default and is never written
+#: out (absent == high, so 99% of rows and files stay as they were); `medium` / `low` travel with the
+#: cut — splits.resolved.json, the registry boundary, the bundle's `split` and `part_mark`, the release,
+#: the app's boundary label and the review app — so a reader is told "approximate location (low
+#: confidence)" wherever the cut is named. Display only: it never moves the cut.
+CONFIDENCE = ("high", "medium", "low")
+
+
+def confidence_of(v) -> str:
+    """A split's authored `confidence` (absent: `high`); anything else is refused."""
+    c = "high" if v in (None, "") else str(v)
+    if c not in CONFIDENCE:
+        raise ValueError(f"confidence must be one of {CONFIDENCE}, got {v!r}")
+    return c
+
+
+def confidence_words(c: str | None) -> str:
+    """THE ONE SENTENCE for a cut's confidence: "" for high (or absent), else "approximate location
+    (low confidence)". The app's `@app/core` `confidenceWords` says the same (pinned by both tests)."""
+    return "" if c in (None, "", "high") else f"approximate location ({c} confidence)"
+
+
 @dataclass(frozen=True)
 class SplitDef:
     """One hand-authored split. ``id`` is a STABLE key (part of the section_id ABI).
@@ -141,6 +163,7 @@ class SplitDef:
                                   # unresolved) — surfaced in splits.resolved.json + the gpkg, never silent
     entry: str = ""               # the splits.json waterbody entry it was authored under (its `name`);
                                   # two cuts of ONE entry on one point is an error (`anchors.resolve_split_defs`)
+    confidence: str = "high"      # T207: high | medium | low (`CONFIDENCE`) — display only
 
     @classmethod
     def from_dict(cls, d: Mapping[str, Any]) -> "SplitDef":
@@ -159,6 +182,7 @@ class SplitDef:
             at_edge=bool(d.get("at_edge", False)),
             concern=str(d.get("_concern", d.get("concern", ""))),
             entry=str(d.get("entry", "")),
+            confidence=confidence_of(d.get("confidence")),
         )
 
 
@@ -188,3 +212,5 @@ class SplitPoint:
     # Carried from SplitDef.at_edge: the cut stands AT a lake edge / the line's end / a minted boundary
     # nearby (a dam at a lake outlet), so placement takes that place (`sectionizer.AT_EDGE_M`).
     at_edge: bool = False
+    # T207: carried from SplitDef.confidence (high | medium | low); `high` is never written out
+    confidence: str = "high"

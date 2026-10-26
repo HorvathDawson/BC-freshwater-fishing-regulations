@@ -17,7 +17,7 @@ still carry the old ids until then.
 | Bound by a catalogue rule | 353 |
 | Bound by DFO salmon entries only | 15 |
 | Unused, but they answer to a bound cut-point (alias, same place) | 12 |
-| Unused by any rule | 30 (listed below) |
+| Unused by any rule | 30 (listed below) → **28 true** after T207 (2 were bound by an area extent; see "Unused, re-audited") |
 | Bad names: id or label is a phrase fragment, names no place | 22 → all fixed (21 renamed, 1 relabelled) |
 | Rules with an undrawn or unplaced part, or "no bindable split" | 136 (135 `undrawn_part`, 31 `unresolved_locators`, 92 "no split" reasons) |
 | …of those on a stream, where a cut would draw it | 18, listed under "Needs a split" |
@@ -94,13 +94,13 @@ already has its partner.
 | r7:halfway_river.r1 (gnis:36111) | signs ~5 km up the Halfway from the Peace; the rule is `downstream_of` that cut. See the medium list. |
 | r1:deena_creek.r1 | signs at the second bridge, ~5 km above the tidal boundary |
 | r1:mamin_river.r3 | signs on the third bridge, ~10 km above the tidal boundary |
-| r1:white_river.r1 | signs at the salmon viewing pool (both ends) |
-| r6:cranberry_river.r1 | signs above and below Cranberry River Canyon |
+| ~~r1:white_river.r1~~ | DONE T207: the pool is 100 m below to 100 m above the owner's salmon viewing platform point, two `low`-confidence offset cuts; r1 binds `between` them |
+| r6:cranberry_river.r1 | signs above and below Cranberry River Canyon. **Needs a split (owner to locate)** — never curated (git: only the 2026-08 backlog `cranberry-river-699352-a/-b`, status todo, with a DFO falls point 55.56407,-128.68426 ≈ the canyon top and no downstream sign); held undrawn, badged in the review app |
 | r2:pitt_river.r2 | Grant Narrows (both ends of the speed zone) |
 | r2:stave_river.r1 / .r2 | Ruskin and Northrop spawning channels (intake, boat-ramp crossing, junction) |
 | z2:stave_river_marking.r1 | Ruskin Dam (`downstream_of`; it's over-broad now) |
 | r4:columbia_river.r11 | Mud Lake: no boundary on the Columbia for it |
-| r6:fulton_river.r3 | the signed stretch opposite the spawning channels |
+| ~~r6:fulton_river.r3~~ | DONE T207: owner's two points (downstream 54.81582,-126.16333; upstream 54.81133,-126.19110; 9.9 m and 6.1 m off the Fulton), r3 binds `between` them |
 | r3:mcarthur_island_slough.r1 | the westerly and 12th Street park entrances |
 
 These are left as notes because a split can't draw them: "on part(s)" where the book doesn't say
@@ -125,32 +125,54 @@ which part (Courtenay r2, Cowichan r8/r9, Nanaimo r6, Coquitlam r2, Nicomekl r5,
 - **Low.** r5:mitchell_lake.r1 ("100 m radius of the weir at the lake's outlet"): the lake half of the
   radius needs a sub-lake area.
 
-## Unused by any rule (30)
+## Unused, re-audited (T207, 2026-10-26): 28 true
 
-- **Unused by design** (rulings Q18 and T179: one cut for "upstream of / downstream of the Park"):
-  `baker_creek__pinnacles_park_upstream_boundary`,
-  `atnarko_bella_coola_rivers_includes_tributaries_exce__tweedsmuir_park_upstream_boundary`.
-- **Authored names for gauge or other positions:** `skeena_river__above_babine_river` (gauge 08EB005),
-  `bulkley_river__moricetown_witset_canyon_bottom`.
-- **No rule text describes them** (orphans from earlier DFO or other work; delete or keep for DFO):
-  `burton_creek__hwy_6_bridge`, `chehalis_river__hatchery_outlet` (only a note in `overrides.json`
-  and DFO R2 names it as an override's upstream bound; nothing binds it, so check that override),
-  `chilliwack_vedder_rivers__vedder_crossing_bridge_200_m_{downstream,upstream}`,
-  `clearwater_river__clearwater_river_into_north_thompson_river`,
-  `columbia_river__kootenay_river_into_columbia_river`,
-  `columbia_river__pend_d_oreille_river_into_columbia_river`,
-  `de_boville_slough__hyde_creek_into_de_boville_slough`, `dutch_creek__dutch_creek_into_columbia_river`,
-  `halfway_river__halfway_river_into_peace_river` (see medium),
-  `kootenay_river__navigation_dolphin_2000_m_downstream` (not in the registry),
-  `ksi_gingolx__kincolith_river_bridge`, `morice_river__gosnell_creek_into_thautil_river`,
-  `morice_river__thautil_river_into_morice_river`, `pallant_creek__bridge_near_mouth`,
-  `pend_d_oreille_river__{seven_mile_dam,seven_mile_reservoir_head,waneta_dam}`,
-  `pitt_river__garibaldi_pitt`, `qualicum_river__hwy_19a_bridge`,
-  `skeena_river_kispiox_river_confluence__kispiox_river_into_skeena_river` (the rule binds the sign
-  zone instead), `squamish_powerhouse_channel__ashlu_creek_into_squamish_river`,
-  `squamish_river__powerline_crossing_at_9_mile`, `telkwa_river__howson_creek_into_telkwa_river`,
-  `wood_river__hamber_prov_park_boundary` (the rule uses the park area), `yakoun_river__6_mile_bridge`
-  (only a note in DFO R6 names it).
+The "30 unused" above counted a split used only when a rule named its id. Pitt River's `pitt_river__garibaldi_pitt`
+is bound by `pitt_river.r1` through its AREA (`within_area: area:park:garibaldi_park`, 411 sections), and so is
+`wood_river__hamber_prov_park_boundary` (`area:park:hamber_park`). The review app's "curated cut(s) no rule uses"
+had the same blind spot. Both now read `pipeline.regs.review.split_use.used_split_ids`, which counts a cut as
+used when any record's extent names it by id, by the area it bounds, through a merged place (an alias or another
+name at that place, read from the served registry), or when a DFO salmon entry names it. `halfway_river__halfway_river_into_peace_river`
+is now `peace_river__halfway_river_into_peace_river` (6335f73d).
+
+Of 410 curated splits: 354 bound by id, 2 by area, 15 by DFO entries only, 11 through a merged place, **28 unused**.
+Measured with a one-off script over the served registry (the 2026-10-26 renames mapped back); the corpus pin is
+`test_t207_split_use.py`. Proposals only, nothing below was applied.
+
+**A rule's text should bind it (the rule names this place, the extent does not):**
+
+| Split | Should be bound by |
+|---|---|
+| `burton_creek__hwy_6_bridge` | `r4:burton_creek.r1` "No Fishing from Woden Creek to Hwy 6 bridge": `between [woden confluence, hwy_6_bridge]` (now `downstream_of` Woden, i.e. to the mouth). Verify first: its note says the FWA Burton Creek may be the wrong creek. |
+| `kootenay_river__navigation_dolphin_2000_m_downstream` | `r4:kootenay_river_lower.r1` "from CPR Bridge near Creston downstream 2 km to navigation dolphin": `between [kootenay_river__cpr, this]` (now ends at Kootenay Lake). |
+| `chehalis_river__hatchery_outlet` | DFO R2 "Chehalis River Hatchery": `downstream_of` it ("from the hatchery outlet downstream to the confluence"). |
+| `chilliwack_vedder_rivers__vedder_crossing_bridge_200_m_{upstream,downstream}` | DFO R2 Chilliwack/Vedder: `between` the two ("orange signs ~200 m upstream of the Vedder Crossing bridge down to the cable car ~200 m downstream"). |
+| `de_boville_slough__hyde_creek_into_de_boville_slough` | DFO R2 De Boville Slough "downstream of the confluence of Cedar Creek and Hyde Creek": `downstream_of` it (Cedar Creek still unidentified). |
+| `squamish_river__powerline_crossing_at_9_mile` | DFO R2 Squamish River "downstream of the powerline crossing at 9 mile". |
+| `ksi_gingolx__kincolith_river_bridge` | DFO R6 scope E "Kincolith River upstream of … signs at the Kincolith River Bridge": `upstream_of` it. |
+| `pallant_creek__bridge_near_mouth` | DFO R6 scope D "Pallant Creek upstream of the bridge near the mouth": `upstream_of` it. |
+| `telkwa_river__howson_creek_into_telkwa_river` | DFO R6 scope B(i) "Telkwa River downstream of Howson Creek": `downstream_of` it. |
+| `yakoun_river__6_mile_bridge` | DFO R6 scope D "Yakoun River downstream of the 6 Mile Bridge" (its locator note names the split; no extent binds it). |
+
+**Orphans (propose delete):**
+
+| Split | Why nothing should bind it |
+|---|---|
+| `atnarko_bella_coola_rivers_includes_tributaries_exce__tweedsmuir_park_upstream_boundary` | Rulings Q18/T179: one cut for "upstream of the Park"; r1/r10 bind the eastern boundary. |
+| `baker_creek__pinnacles_park_upstream_boundary` | Same ruling: r1/r2 bind the downstream boundary. (If Q18 is ever reversed, `baker_creek.r1` "upstream of Pinnacles Provincial Park" is the rule that would use it.) |
+| `bulkley_river__moricetown_witset_canyon_bottom` | `bulkley_river.r5` binds the canyon top and "100 m below the canyon"; the bottom is only that cut's reference point. |
+| `clearwater_river__clearwater_river_into_north_thompson_river` | The Clearwater's mouth; "to North Thompson River" is `downstream_of` (to the mouth). |
+| `columbia_river__kootenay_river_into_columbia_river` | No Columbia rule names the Kootenay confluence; the Kootenay's own "to the confluence" ends at its mouth. |
+| `columbia_river__pend_d_oreille_river_into_columbia_river` | No rule; the Pend d'Oreille's mouth. |
+| `dutch_creek__dutch_creek_into_columbia_river` | "to Columbia Lake and/or River" is the mouth (`downstream_of` Ben Abel Creek). |
+| `morice_river__gosnell_creek_into_thautil_river`, `morice_river__thautil_river_into_morice_river` | Duplicates of `morice_river__gosnell_creek_into_morice_river` (the same confluence), which the Morice rules bind. |
+| `pend_d_oreille_river__waneta_dam` | No rule names it: every Pend d'Oreille rule is the whole water, and Waneta Reservoir is a pointer row. |
+| `pend_d_oreille_river__seven_mile_dam`, `…__seven_mile_reservoir_head` | No rule (Seven Mile Reservoir is a pointer row). Kept for now only if the Seven Mile Reservoir name-variant reach still needs its ends cut; otherwise delete. |
+| `peace_river__halfway_river_into_peace_river` | `peace_river.r5` binds its two 5 km offsets; the confluence is only their reference. (The Halfway/Peace lane owns these cuts.) |
+| `qualicum_river__hwy_19a_bridge` | A "reference locator" for non-tidal salmon; no rule or DFO entry binds it. |
+| `skeena_river__above_babine_river` | A name for the `gauge__08EB005` position (authored so the gauge cut reads as a place); no rule. Keep if the name on the map is wanted, else delete. |
+| `skeena_river_kispiox_river_confluence__kispiox_river_into_skeena_river` | The rule binds the sign zone (`area:sign_zone:…`) instead. |
+| `squamish_powerhouse_channel__ashlu_creek_into_squamish_river` | The Powerhouse Channel's only rule is a whole-water bait ban. |
 
 ## After the next rebuild
 

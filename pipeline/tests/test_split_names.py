@@ -155,7 +155,7 @@ def test_an_area_name_is_recased_and_its_official_spelling_kept():
                   _r("area:Garibaldi Park", 0, "within Garibaldi Park", "area_boundary")])
     assert got["area:CLAYHURST ECOLOGICAL RESERVE"][1:] == (
         "Clayhurst Ecological Reserve boundary", "area", "[]", "CLAYHURST ECOLOGICAL RESERVE", None,
-        None)
+        None, None)                                   # T207: `confidence` last, None for high
     assert got["area:Garibaldi Park"][1] == "Garibaldi Park boundary"
     assert got["area:Garibaldi Park"][4] is None
 

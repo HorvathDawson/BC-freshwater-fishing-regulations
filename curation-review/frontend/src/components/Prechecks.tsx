@@ -13,8 +13,9 @@ export function findingsOf(view: ReviewView, id: string): Precheck[] {
 export function Finding({ f }: { f: Precheck }) {
   return (
     <li data-precheck={f.code}>
-      <span className={`sev sev-${f.severity}`} title={f.severity === "A" ? "a fact" : "a hint"}>
-        {f.severity}</span> {f.what}
+      <span className={`sev sev-${f.severity}`}
+        title={f.severity === "A" ? "a fact" : f.severity === "B" ? "a hint" : "a note: nothing to fix"}>
+        {f.severity === "I" ? "i" : f.severity}</span> {f.what}
     </li>
   );
 }
@@ -36,7 +37,9 @@ export function Prechecks({ view }: Props) {
       <strong>Pre-checks</strong>{" "}
       <span className="dim">
         {found.length ? `${found.filter((f) => f.severity === "A").length} fact(s), `
-          + `${found.filter((f) => f.severity === "B").length} hint(s)` : "nothing found"}
+          + `${found.filter((f) => f.severity === "B").length} hint(s)`
+          + (found.some((f) => f.severity === "I") ? `, ${found.filter((f) => f.severity === "I").length} note(s)` : "")
+          : "nothing found"}
         {onRules > 0 && ` · ${onRules} on the rules, each shown in its rule below`}
         {view.run && !view.run.run && " · no reach run: the ambiguous-cut and unresolved checks are not known"}
       </span>

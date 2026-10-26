@@ -68,6 +68,10 @@ def enrich_resolved(rows: list[dict], curated_defs, *, strict: bool = True) -> l
             if d.anchor.offset_m and d.anchor.offset_dir:
                 r["anchor_offset_m"] = round(float(d.anchor.offset_m), 1)
                 r["anchor_offset_dir"] = d.anchor.offset_dir
+            # T207: like the label, a confidence edit reaches the bundle through this sidecar
+            r.pop("confidence", None)
+            if getattr(d, "confidence", "high") != "high":
+                r["confidence"] = d.confidence
         elif sid.startswith("area:"):
             r["source"] = "area"
         elif sid.startswith("length:"):

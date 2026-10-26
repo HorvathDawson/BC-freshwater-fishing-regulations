@@ -331,8 +331,10 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
             e6 = lambda c: f"CAST(round({c} * 1000000) AS INTEGER)"  # noqa: E731
             con.execute("CREATE TABLE part_mark_e6 (ord INTEGER NOT NULL, mark_ix INTEGER NOT NULL, lon INTEGER NOT NULL, "
                         "lat INTEGER NOT NULL, label TEXT, down_part INTEGER NOT NULL, up_parts TEXT NOT NULL, "
-                        "PRIMARY KEY (ord, mark_ix)) WITHOUT ROWID")
-            con.execute(f"INSERT INTO part_mark_e6 SELECT ord, mark_ix, {e6('lon')}, {e6('lat')}, label, down_part, up_parts "
+                        "confidence TEXT, PRIMARY KEY (ord, mark_ix)) WITHOUT ROWID")
+            # `confidence` (T207): ADDITIVE, last, NULL for high — still water/1; an older release has no column
+            con.execute(f"INSERT INTO part_mark_e6 SELECT ord, mark_ix, {e6('lon')}, {e6('lat')}, label, down_part, up_parts, "
+                        "confidence "
                         "FROM part_mark ORDER BY ord, mark_ix")
             con.execute("DROP TABLE part_mark")
             con.execute("ALTER TABLE part_mark_e6 RENAME TO part_mark")

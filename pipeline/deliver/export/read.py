@@ -811,8 +811,8 @@ def read_splits(db) -> dict:
     them all in `at` and leaves both null; an area boundary (which crosses hundreds of waters) has
     neither — the run ending there carries the km."""
     out = {}
-    for sid, name, kind, at, official, same, lake_id in db.execute(
-            "SELECT split_id, name, kind, at, official_name, same_place_as, lake_id FROM split "
+    for sid, name, kind, at, official, same, lake_id, conf in db.execute(
+            "SELECT split_id, name, kind, at, official_name, same_place_as, lake_id, confidence FROM split "
             "ORDER BY split_id"):
         at = _j(at, [])
         one = at[0] if len(at) == 1 else None
@@ -821,7 +821,9 @@ def read_splits(db) -> dict:
                     **({"at": [{"water_id": w, "km": k} for w, k in at]} if len(at) > 1 else {}),
                     **({"official_name": official} if official else {}),
                     **({"same_place_as": same} if same else {}),
-                    **({"lake_id": lake_id} if lake_id else {})}
+                    **({"lake_id": lake_id} if lake_id else {}),
+                    # T207: only `medium` / `low`; absent is high
+                    **({"confidence": conf} if conf and conf != "high" else {})}
     for r in REGIONS:
         out[f"region_line:{r}"] = {"name": f"Region {r} boundary", "kind": "region_line",
                                    "water_id": None, "km": None}

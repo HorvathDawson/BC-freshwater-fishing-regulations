@@ -437,7 +437,7 @@ export interface QueueRow {
   tier?: Tier;
   /** T135: the risk factors, most urgent first (`tiers.RISKS`) */
   risks?: string[];
-  /** T135: how many pre-check findings, by severity (A facts, B heuristics) */
+  /** T135: how many pre-check findings, by severity (A facts, B heuristics; I notes are not counted) */
   prechecks?: { A: number; B: number };
 }
 
@@ -454,6 +454,8 @@ export interface Boundary {
   aliases?: string[];
   /** the other NAMES at this place (merged gauge/area/border/length, lake, a second authored point) */
   names?: string[];
+  /** T207: how sure the curator is of where the cut stands (absent: high) */
+  confidence?: "high" | "medium" | "low";
   item_id?: string; // which registry item this cut-point belongs to (combined entries)
   meta?: Record<string, unknown> | null; // AS-BUILT split metadata (anchor_type, route_measure, blk, …)
   in_graph?: boolean; // baked into the current graph build
@@ -655,15 +657,18 @@ export interface Mode {
   /** the problem categories a "wrong" mark names, by check (`marks.PROBLEMS`) */
   problems: Record<Check, string[]>;
   /** T135: the pre-check codes (`precheck.CHECKS`) */
-  prechecks: Record<string, { severity: "A" | "B"; what: string }>;
+  prechecks: Record<string, { severity: Severity; what: string }>;
   /** T135: what the screen PRINTS for the human to run (commit the marks, export tickets) */
   commands: Record<"commit_marks" | "tickets" | "prechecks", string>;
 }
 
+/** A pre-check's severity (`precheck.SEVERITIES`): A a fact, B a hint, I a note — nothing to fix (T207). */
+export type Severity = "A" | "B" | "I";
+
 /** One pre-check finding (`precheck.prechecks`). */
 export interface Precheck {
   code: string;
-  severity: "A" | "B";
+  severity: Severity;
   rule_id: string | null;
   what: string;
 }
@@ -815,6 +820,8 @@ export interface RuleScopeWords {
   splits: NamedRef[];
   /** holds only in this part, which nothing draws */
   in_part: string | null;
+  /** T207: false when the book never says which part ("on parts") — an honest note, not a problem */
+  in_part_identified: boolean;
   side: string | null;
   unresolved: string[];
   /** the reach builder's answer (`classify.wants_tributaries`) and where it comes from */

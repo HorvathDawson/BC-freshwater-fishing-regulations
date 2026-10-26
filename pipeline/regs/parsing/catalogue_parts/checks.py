@@ -354,9 +354,11 @@ PLACE_VALUE = re.compile(
 #: (`undrawn_part`), but they name no place: the page never says which parts. Quoted as a place
 #: they read "applies only in one part of this water — on parts —"; `part_words` says instead what
 #: is true (the regulations do not identify them). Exactly these shapes and nothing looser, so a
-#: part that does name a place is never read as unidentified.
+#: part that does name a place is never read as unidentified. "parts of the lake (not specified in
+#: the book)" (Heffley Lake, whose row is headed "(parts of)") says the same (owner 2026-10-26, T207).
 UNIDENTIFIED_PART = re.compile(
-    r"^(?:on (?:a )?(?P<n>parts?)|various locations)(?P<signed>\s*\(as buoyed and signed\))?$",
+    r"^(?:(?:on (?:a )?)?(?P<n>parts?)(?: of (?:the|this) (?:lake|river|water))?"
+    r"(?: \(not specified in the book\))?|various locations)(?P<signed>\s*\(as buoyed and signed\))?$",
     re.I)
 
 

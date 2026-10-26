@@ -14,6 +14,9 @@ import { Finding, findingsOf, Prechecks } from "./Prechecks";
 import { ITEM_COLORS, MapPanel } from "./MapPanel";
 import { VerdictBar } from "./useMarking";
 
+/** T207: how a rule's `review_reason` says a cut is still to be located by the owner (`precheck.NEEDS_SPLIT`). */
+const NEEDS_SPLIT = "needs a split (owner to locate)";
+
 interface Props {
   detail: EntryDetailT;
   /** jump to another entry (a related row over the same water) */
@@ -30,7 +33,9 @@ interface Props {
 
 // A merged place carries every name (owner 2026-10-24): "canonical (also: …)".
 function splitLabel(b: Boundary): string {
-  const base = (b.live?.label ?? b.label) || b.id;
+  const own = (b.live?.label ?? b.label) || b.id;
+  // T207: a cut placed approximately says so wherever it is named (backend `confidence_words`, the same words)
+  const base = b.confidence && b.confidence !== "high" ? `${own}, approximate location (${b.confidence} confidence)` : own;
   return b.names && b.names.length ? `${base} (also: ${b.names.join(", ")})` : base;
 }
 
@@ -229,7 +234,8 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
     const undrawn = found.find((f) => f.code === "undrawn_part");
     const parserWhy = undrawn?.what.split(" — the parser: ")[1];
     // the extent shows the undrawn part and the unresolved places: their findings are not repeated
-    const rest = found.filter((f) => f.code !== "undrawn_part" && f.code !== "unresolved_locator");
+    const rest = found.filter((f) => f.code !== "undrawn_part" && f.code !== "unidentified_part"
+      && f.code !== "unresolved_locator");
     const otherItems = sw.items.filter((i) => !matched.includes(i.id) || matched.length > 1);
     return (
       <div className="rule-extent" data-testid={`where-${rid}`}>
@@ -253,9 +259,21 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
             {sw.splits.map((s) => <span key={s.id}>{splitChip(s.id, s.name)}</span>)}
           </div>
         )}
-        {sw.in_part && (
+        {sw.in_part && !sw.in_part_identified && (
+          // T207: the book says "on parts" and never which: an honest note, not a warning
+          <div className="ext-row" data-testid={`on-parts-${rid}`}><span className="k">only on</span>
+            <span>“{sw.in_part}” — the book does not say which part; a note on the water, never
+              colouring it</span>
+          </div>
+        )}
+        {sw.in_part && sw.in_part_identified && (
           <div className="ext-row warn-row"><span className="k">only in</span>
-            <span>“{sw.in_part}” — <strong>not drawn</strong>: a note on the water, never colouring it
+            <span>
+              {/* T207: a cut the owner still has to locate (Cranberry River Canyon) says so, findable */}
+              {parserWhy?.startsWith(NEEDS_SPLIT) && (
+                <span className="badge warn" data-testid={`needs-split-${rid}`}>{NEEDS_SPLIT}</span>
+              )}{" "}
+              “{sw.in_part}” — <strong>not drawn</strong>: a note on the water, never colouring it
               {parserWhy && <span className="dim"> · the parser: {parserWhy}</span>}</span>
           </div>
         )}

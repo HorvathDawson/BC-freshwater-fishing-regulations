@@ -47,6 +47,19 @@ export interface NavPart {
   readonly sids: readonly number[];
 }
 
+/** (T207) How sure the curator is of where a cut stands — pipeline `models.splits.CONFIDENCE`; absent is high. */
+export type Confidence = "high" | "medium" | "low";
+
+export function isConfidence(v: unknown): v is Confidence {
+  return v === "high" || v === "medium" || v === "low";
+}
+
+/** THE ONE SENTENCE for a cut's confidence (pipeline `confidence_words`, the same words): "" for high or absent, else
+ *  "approximate location (low confidence)". */
+export function confidenceWords(c: Confidence | null | undefined): string {
+  return !c || c === "high" ? "" : `approximate location (${c} confidence)`;
+}
+
 /** A boundary between parts: `down` and `up` are indexes into the group's `parts`. No place: not drawn. */
 export interface NavMark {
   readonly lon: number | null;
@@ -54,6 +67,8 @@ export interface NavMark {
   readonly label: string | null;
   readonly down: number;
   readonly up: readonly number[];
+  /** T207: the named cut's confidence where it is not high (`part_mark.confidence`). */
+  readonly confidence?: Confidence;
 }
 
 /** Where the group's mouth flows: the receiving water and the part of it the mouth meets (null: not stored). */
@@ -91,7 +106,8 @@ export interface ItemNavRows {
   readonly geo: readonly { readonly partIx: number; readonly rank: number; readonly box: Bbox | null;
                            readonly mid: readonly [number, number] | null }[];
   readonly marks: readonly { readonly lon: number; readonly lat: number; readonly label: string | null;
-                             readonly down: number; readonly up: readonly number[] }[];
+                             readonly down: number; readonly up: readonly number[];
+                             readonly confidence?: Confidence }[];
   readonly sections: readonly { readonly sid: number; readonly partIx: number }[];
   /** `water_exit`: the receiving item's ord, the part it is met at, and — when the release names it — its id and name. */
   readonly exit: { readonly ord: number; readonly part: number | null; readonly item: string | null;
@@ -145,7 +161,8 @@ export function waterGroup(all: readonly ItemNavRows[]): WaterGroup {
   for (const i of placed) {
     for (const m of i.marks) {
       const down = ix(i.ord, m.down), up = m.up.map((u) => ix(i.ord, u)).filter((u): u is number => u !== undefined);
-      if (down !== undefined && up.length) marks.push({ lon: m.lon, lat: m.lat, label: m.label, down, up });
+      if (down !== undefined && up.length)
+        marks.push({ lon: m.lon, lat: m.lat, label: m.label, down, up, ...(m.confidence ? { confidence: m.confidence } : {}) });
     }
     // a sibling flowing into a sibling: a boundary with no place, from the receiving part to this item's lowest part
     if (i.exit && byOrd.has(i.exit.ord) && i !== placed[0]) {
@@ -258,9 +275,13 @@ export function itemNote(g: WaterGroup, i: number): string {
   return manyOf(g, i) ? g.parts[i]!.itemName : "";
 }
 
-/** A boundary's words: its own label, else the two parts' names without what they share (the prototype's rule). */
+/** A boundary's words: its own label, else the two parts' names without what they share (the prototype's rule). A cut
+ *  placed approximately says so (T207): "salmon viewing platform, approximate location (low confidence)". */
 export function markLabel(g: WaterGroup, m: NavMark): string {
-  if (m.label) return m.label;
+  if (m.label) {
+    const cw = confidenceWords(m.confidence);
+    return cw ? `${m.label}, ${cw}` : m.label;
+  }
   const a = g.parts[m.down]?.short ?? "", b = g.parts[m.up[0]!]?.short ?? "";
   let k = 0;
   while (k < a.length && a[k] === b[k]) k += 1;

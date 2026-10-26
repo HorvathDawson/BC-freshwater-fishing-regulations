@@ -1120,6 +1120,9 @@ def main() -> None:
     # `pipeline.atlas.registry.build.pinned_by_override`.
     registry = build_registry(graph)
     print(f"  registry: {len(registry)} named items")
+    # T207: each curated boundary carries its split's authored confidence (display only)
+    from pipeline.atlas.registry import add_boundary_confidence
+    registry = add_boundary_confidence(registry, splits)
     # Named waterbodies the graph alone misses: isolated named lakes/reservoirs with no through-stream
     # (never noded, e.g. Frazer Lake) and wetlands (never noded). Add them from the FWA layers so a reg
     # can target them by name or a curated wbk/gnis pin.

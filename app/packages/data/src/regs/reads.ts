@@ -22,9 +22,10 @@
  * `store/common.py` `BLOCK_BITS = 12`.
  */
 import type {
-  AkeyRow, AnswersPlace, CellIds, ContinueRow, DisplayFrame, ExportRule, GearValue, LadderFrameWire, LicenceValue,
+  AkeyRow, AnswersPlace, CellIds, Confidence, ContinueRow, DisplayFrame, ExportRule, GearValue, LadderFrameWire, LicenceValue,
   Moment, PartFacts, Picker, RowsValue, RuleFacts, Statics, VerdictWire,
 } from "@app/core";
+import { isConfidence } from "@app/core";
 import type { Cell, Db, Row } from "../sql/db";
 import { RegsStoreError } from "./errors";
 
@@ -108,7 +109,9 @@ export interface NavRows {
                            readonly mid: readonly [number, number];
                            readonly box: readonly [number, number, number, number] | null }[];
   readonly marks: readonly { readonly lon: number; readonly lat: number; readonly label: string | null;
-                             readonly down: number; readonly up: readonly number[] }[];
+                             readonly down: number; readonly up: readonly number[];
+                             /** T207: the named cut's confidence where it is not high (`part_mark.confidence`) */
+                             readonly confidence?: Confidence }[];
   readonly sections: readonly { readonly sid: number; readonly partIx: number }[];
   readonly exit: { readonly ord: number; readonly part: number | null; readonly item: string | null;
                    readonly name: string | null } | null;
@@ -388,7 +391,8 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
       const w = await base.water(), g = base.geo ? await base.geo() : w;
       const [geo, marks, sections, exit] = await Promise.all([
         g.all("SELECT part_ix, rank, mid_sid, mid_lon, mid_lat, w, s, e, n FROM part_geo WHERE ord = ? ORDER BY rank, part_ix", ord),
-        w.all("SELECT mark_ix, lon, lat, label, down_part, up_parts FROM part_mark WHERE ord = ? ORDER BY mark_ix", ord),
+        // `*`: `confidence` (T207) is additive, and a release cut before it has no column
+        w.all("SELECT * FROM part_mark WHERE ord = ? ORDER BY mark_ix", ord),
         w.all("SELECT sid, part_ix FROM part_section WHERE ord = ? ORDER BY sid", ord),
         w.get("SELECT down_ord, down_part FROM water_exit WHERE ord = ?", ord)]);
       const core = await base.core();
@@ -413,8 +417,11 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
           partIx: n(g.part_ix), rank: n(g.rank), midSid: n(g.mid_sid), mid: [micro(g.mid_lon), micro(g.mid_lat)] as const,
           box: none(g.w) || none(g.s) || none(g.e) || none(g.n) ? null
             : [micro(g.w), micro(g.s), micro(g.e), micro(g.n)] as const })),
-        marks: marks.map((m) => ({ lon: micro(m.lon), lat: micro(m.lat), label: none(m.label) ? null : String(m.label),
-                                   down: n(m.down_part), up: json<number[]>(m.up_parts) })),
+        marks: marks.map((m) => {
+          const c = isConfidence(m.confidence) && m.confidence !== "high" ? m.confidence : null;
+          return { lon: micro(m.lon), lat: micro(m.lat), label: none(m.label) ? null : String(m.label),
+                   down: n(m.down_part), up: json<number[]>(m.up_parts), ...(c ? { confidence: c } : {}) };
+        }),
         sections: sections.map((r) => ({ sid: n(r.sid), partIx: n(r.part_ix) })),
         exit: exit ? { ord: n(exit.down_ord), part: nn(exit.down_part),
                        item: down ? String(down.item_id) : null, name: down ? String(down.name) : null } : null,

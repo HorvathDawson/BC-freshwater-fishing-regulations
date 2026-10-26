@@ -471,6 +471,21 @@ def build_registry(graph: StreamGraph, prof=None, pinned: dict[str, str] | None 
     return registry
 
 
+def add_boundary_confidence(registry: dict[str, RegistryItem], split_defs) -> dict[str, RegistryItem]:
+    """(T207) Each curated boundary carries its split's authored `confidence` (`SplitDef.confidence`):
+    a boundary whose own id is a split authored `medium` or `low` says so; every other stays `high`
+    (an alias's confidence is its own split's, never the place's). Display only — no bind changes."""
+    conf = {sd.id: sd.confidence for sd in (split_defs or ()) if sd.confidence != "high"}
+    if not conf:
+        return registry
+    out = {}
+    for iid, it in registry.items():
+        bs = tuple(replace(b, confidence=conf[b.id]) if b.ref.startswith("split:") and b.id in conf else b
+                   for b in it.boundaries)
+        out[iid] = it if bs == it.boundaries else replace(it, boundaries=bs)
+    return out
+
+
 def add_waterbody_items(registry: dict[str, RegistryItem], names: dict[str, tuple],
                         kind: str) -> dict[str, RegistryItem]:
     """Add NAMED waterbodies from an FWA polygon layer as registry items keyed by wbk, for any wbk NOT

@@ -496,7 +496,8 @@ def lake_edge_rows(registry, graph, handles: dict[str, int], items, stems: dict[
 def split_rows(resolved: list[dict], stems: dict[str, list[tuple[str, int]]],
                f: NameFacts | None = None, lake_items: dict | None = None) -> list[tuple]:
     """The `split` table: every cut the atlas resolved, once per id — (split_id, name, kind, at,
-    official_name, same_place_as, lake_id), `at` a JSON list of [item_id, km] for each position on a
+    official_name, same_place_as, lake_id, confidence), `confidence` the resolved row's (T207: `medium` /
+    `low`, else None), `at` a JSON list of [item_id, km] for each position on a
     named water's MAIN stem (`stems`: blk -> [(item_id, ord)] whose main stem it is). Region and
     area boundaries cross hundreds of waters, and the runs carry their km, so their `at` is left
     empty. A lake's edge (`lake_edge_rows`, kind `lake_edge`) stands at the lake's inlet and
@@ -549,6 +550,7 @@ def split_rows(resolved: list[dict], stems: dict[str, list[tuple[str, int]]],
         rows[sid] = {"base": name, "name": name, "kind": "area" if kind == "area_boundary"
                      else kind, "at": at, "official": official, "same": None,
                      "pos": (blk, m, own), "lake_id": lake_id,
+                     "confidence": first.get("confidence") if first.get("confidence") != "high" else None,
                      # a lake's EDGE is named for the lake and stands at both its inlet and its
                      # outlet; a river entering one lake twice has two such ids with one name —
                      # that is the lake's identity, not a clash to place by landmark
@@ -557,7 +559,7 @@ def split_rows(resolved: list[dict], stems: dict[str, list[tuple[str, int]]],
             rows[sid]["name"] = _placed(name, f, blk, m, own)
     _unique_per_water(rows, f)
     return [(sid, r["name"], r["kind"], json.dumps([list(a) for a in r["at"]]), r["official"],
-             r["same"], r["lake_id"]) for sid, r in sorted(rows.items())]
+             r["same"], r["lake_id"], r.get("confidence")) for sid, r in sorted(rows.items())]
 
 
 def _unique_per_water(rows: dict[str, dict], f: NameFacts) -> None:
@@ -672,7 +674,7 @@ def write(db: sqlite3.Connection, graph, build_dir: Path, cov, *, ends: dict[int
     edges = lake_edge_rows(registry, graph, handles, items, stem_of)
     srows = split_rows(resolved + edges, stems, f, lake_items)
     db.executemany("INSERT INTO split (split_id, name, kind, at, official_name, same_place_as, "
-                   "lake_id) VALUES (?,?,?,?,?,?,?)", srows)
+                   "lake_id, confidence) VALUES (?,?,?,?,?,?,?,?)", srows)
     cov.filled("split", len(srows))
 
 

@@ -901,7 +901,8 @@ export const PACK_FILES: Record<string, PackFile> = {
         "lat",
         "label",
         "down_part",
-        "up_parts"
+        "up_parts",
+        "confidence"
       ],
       "part_section": [
         "ord",
