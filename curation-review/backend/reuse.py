@@ -2123,8 +2123,20 @@ _BUILD_CACHES = (_registry, _place_namer_for, _splits_meta, _split_points_attrs,
 WARM_STEPS: tuple[tuple[str, str], ...] = (
     ("registry", "_registry"), ("bundle facts", "_review_context"),
     ("vintage", "built"), ("reach run facts", "run_facts"), ("graph", "_graph"),
-    ("geometry", "_geoms"), ("queue", "queue"),
+    ("geometry", "_geoms"), ("rule section counts", "_warm_rule_counts"), ("queue", "queue"),
 )
+def _warm_rule_counts() -> None:
+    """Every rule's bound-section count, counted once per bundle (`fingerprint.rule_section_counts`):
+    ~50 s on a zone-heavy bundle, so a reviewer never waits for it on a zone entry."""
+    import answer
+    from pipeline.regs.review.fingerprint import rule_section_counts
+    db = answer._db()
+    try:
+        rule_section_counts(db, "")
+    finally:
+        db.close()
+
+
 _READY: dict = {"ready": False, "warming": False, "done": [], "seconds": None, "error": None}
 
 

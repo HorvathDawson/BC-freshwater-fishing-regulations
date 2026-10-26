@@ -128,10 +128,30 @@ def _rule_reaches(db) -> dict[tuple[str, str], tuple]:
 def rule_section_counts(db, entry_id: str) -> dict[str, int]:
     """THE BUNDLE'S ANSWER TO "how many sections does each rule of this entry bind": rule_id ->
     distinct sections over every rule set it is in. One query, read by the review tool's "bundle
-    matches" (`vintage.bundle_matches`) and its bundle panel (`answer.entry_in_bundle`)."""
-    return dict(db.execute(
-        "SELECT r.rule_id, COUNT(DISTINCT s.sid) FROM ruleset r JOIN section_ruleset s "
-        "ON s.set_id = r.set_id WHERE r.entry_id = ? GROUP BY r.rule_id", (entry_id,)))
+    matches" (`vintage.bundle_matches`) and its bundle panel (`answer.entry_in_bundle`).
+    Counted for EVERY entry in one pass and kept per bundle file + mtime: a zone rule binds most of a
+    region, and counting it per page load took ~8 s (review screen, 2026-10-26)."""
+    return _all_rule_section_counts(db).get(entry_id, {})
+
+
+_COUNTS: dict[tuple, dict[str, dict[str, int]]] = {}
+
+
+def _all_rule_section_counts(db) -> dict[str, dict[str, int]]:
+    import os
+    path = next((row[2] for row in db.execute("PRAGMA database_list") if row[1] == "main"), "")
+    key = (path, os.path.getmtime(path) if path and os.path.exists(path) else None)
+    if not path or key not in _COUNTS:
+        out: dict[str, dict[str, int]] = {}
+        for e, r, n in db.execute(
+                "SELECT r.entry_id, r.rule_id, COUNT(DISTINCT s.sid) FROM ruleset r JOIN section_ruleset s "
+                "ON s.set_id = r.set_id GROUP BY r.entry_id, r.rule_id"):
+            out.setdefault(e, {})[r] = n
+        if not path:
+            return out
+        _COUNTS.clear()
+        _COUNTS[key] = out
+    return _COUNTS[key]
 
 
 def _licensing_labels(db) -> dict[tuple[str, str], str]:
