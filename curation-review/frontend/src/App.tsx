@@ -11,11 +11,14 @@ import { ProgressBar } from "./components/ProgressBar";
 import { isTyping, keepSelected, nextUnsure, paceSamples, recordPace } from "./review";
 import { DFO_HASH, DfoReview } from "./components/DfoReview";
 import { TIDAL_HASH, TidalReview } from "./components/TidalReview";
+import { PROPOSALS_HASH, ProposalsView } from "./components/ProposalsView";
 
 /** T164: the URL hash opens the DFO review mode (`#dfo/<location_id>`) */
 const inDfo = () => decodeURIComponent(window.location.hash.slice(1)).startsWith(DFO_HASH);
 /** T212: ... and the Tidal mode (`#tidal/<candidate id>`) */
 const inTidal = () => decodeURIComponent(window.location.hash.slice(1)).startsWith(TIDAL_HASH);
+/** T185: `#proposals` opens the read-only Proposals view (accept / reject is a mark) */
+const inProposals = () => decodeURIComponent(window.location.hash.slice(1)) === PROPOSALS_HASH;
 
 /** THE REVIEW TIERS (PLAN §3, `tiers.TIERS`) — entries only: a split point is checked by proxy on
  *  the map of each entry whose rules name it (T184), never as a target of its own. */
@@ -33,6 +36,7 @@ export default function App() {
   const [dfo, setDfo] = useState(inDfo);
   // T212: the proposed tidal boundaries — read only; accepting one records a mark
   const [tidal, setTidal] = useState(inTidal);
+  const [proposals, setProposals] = useState(inProposals);
   const [regions, setRegions] = useState<RegionSummary[]>([]);
   // THE ONE QUEUE (T135, PLAN §3): every region, in the review order, by default
   const [region, setRegion] = useState(ALL_REGIONS);
@@ -101,8 +105,9 @@ export default function App() {
   useEffect(() => {
     const open = () => {
       const id = decodeURIComponent(window.location.hash.slice(1));
-      if (id.startsWith(DFO_HASH)) { setDfo(true); setTidal(false); return; }
-      if (id.startsWith(TIDAL_HASH)) { setTidal(true); setDfo(false); return; }
+      if (id.startsWith(DFO_HASH)) { setDfo(true); setTidal(false); setProposals(false); return; }
+      if (id.startsWith(TIDAL_HASH)) { setTidal(true); setDfo(false); setProposals(false); return; }
+      if (id === PROPOSALS_HASH) { setProposals(true); setDfo(false); setTidal(false); return; }
       if (!id) return;
       setSelected(id);
       openedAt.current = Date.now();
@@ -187,9 +192,14 @@ export default function App() {
     window.history.replaceState(null, "", window.location.pathname);
     setDfo(false);
     setTidal(false);
+    setProposals(false);
   };
-  const toTidal = () => { window.history.replaceState(null, "", `#${TIDAL_HASH}`); setDfo(false); setTidal(true); };
-  const toDfo = () => { window.history.replaceState(null, "", `#${DFO_HASH}`); setTidal(false); setDfo(true); };
+  const toTidal = () => { window.history.replaceState(null, "", `#${TIDAL_HASH}`); setDfo(false); setProposals(false); setTidal(true); };
+  const toDfo = () => { window.history.replaceState(null, "", `#${DFO_HASH}`); setTidal(false); setProposals(false); setDfo(true); };
+  const toProposals = () => { window.history.replaceState(null, "", `#${PROPOSALS_HASH}`); setDfo(false); setTidal(false); setProposals(true); };
+  if (proposals) {
+    return <ProposalsView onLeave={leaveModes} />;
+  }
   if (tidal && mode) {
     return <TidalReview mode={mode} onLeave={leaveModes} onDfo={toDfo} />;
   }
@@ -230,6 +240,10 @@ export default function App() {
             title="T212: the proposed tidal boundary on every ocean-entering stream (read only; accept = a mark)"
             onClick={toTidal}>
             Tidal
+          </button>
+          <button className="btn small" data-testid="proposals-tab" title="T185: the edits the marks propose — accept / reject"
+            onClick={toProposals}>
+            Proposals
           </button></>}
         moreSet={(tier ? 1 : 0) + (severity ? 1 : 0)}
         more={

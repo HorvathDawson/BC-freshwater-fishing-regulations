@@ -13,6 +13,7 @@ reviewed change to the curated files (T185), not something this app does.
 
 from __future__ import annotations
 
+import copy
 import json
 import math
 import os
@@ -1118,6 +1119,8 @@ def marks_view(target: str | None = None, scope: str | None = None) -> list[dict
                     now = Prints.model_validate(F.split_fingerprints(tgt, ctx))
                 except KeyError:
                     now = None
+            elif m.scope == "proposal":                # T185: a decision on a proposed edit
+                now = _proposal_prints(tgt)
             elif m.scope == "dfo":                     # T164: a DFO location
                 import dfo
                 got = dfo._locations().get(tgt)
@@ -1368,10 +1371,14 @@ def post_mark(body: dict) -> dict:
     from pipeline.regs.review import marks as M
     from pipeline.regs.review import vintage as V
     scope, target = body.get("scope"), str(body.get("target") or "")
-    if scope not in ("entry", "rule", "dfo", "tidal"):
+    if scope not in ("entry", "rule", "dfo", "tidal", "proposal"):
         raise ValueError(f"a mark is on an entry or one of its rules, not a {scope}")
     with writes.LOCK, M.store_lock(MARKS_PATH):          # threads, then other processes
-        if scope == "dfo":
+        if scope == "proposal":
+            # T185: the owner's decision on a proposed edit, held against the proposal's digest
+            # as last written (`proposals.prints_of`) — a mark like any other, the same commit
+            mark, now, reused = proposal_mark(body, date=_dt.date.today().isoformat()), None, []
+        elif scope == "dfo":
             # T164: a DFO salmon location — its prints from `review.dfo`, each NEW split's anchor
             # checked and its resolved point stamped (`dfo.mark_for`); the same one commit below
             import dfo
@@ -1401,10 +1408,68 @@ def post_mark(body: dict) -> dict:
                                           "prints": prints})
             now = None
         writes.commit([(MARKS_PATH, M.appended(MARKS_PATH, [mark]))], "mark")
-    view = _mark_view(mark, now if scope in ("dfo", "tidal") else _prints(e))
+    view = _mark_view(mark, now if scope in ("dfo", "tidal") else
+                      _proposal_prints(target) if scope == "proposal" else _prints(e))
     if reused:                       # T210: "already proposed — reused", said back to the screen
         view = {**view, "reused": reused}
     return view
+
+
+# --------------------------------------------------------------------------- T185: proposals
+# READS ONLY: the proposals `python -m pipeline.regs.review.proposals build` wrote, and the owner's
+# decisions on them (`proposal` marks). Accepting or rejecting one is a mark (`post_mark`); the
+# owner's own `apply_proposals` is what writes the curated files.
+
+#: where the proposals were written; `CURATION_PROPOSALS_DIR` points it at a copy (tests)
+PROPOSALS_DIR = (Path(os.environ["CURATION_PROPOSALS_DIR"])
+                 if os.environ.get("CURATION_PROPOSALS_DIR") else None)
+
+
+def _proposals_dir() -> Path:
+    from pipeline.regs.review import proposals as P
+    return PROPOSALS_DIR or P.OUT_DIR
+
+
+def _proposal_prints(pid: str):
+    from pipeline.regs.review import proposals as P
+    from pipeline.regs.review.marks import Prints
+    got = P.prints_of(pid, _proposals_dir())
+    return Prints.model_validate(got) if got is not None else None
+
+
+def proposal_mark(body: dict, *, date: str):
+    """The `proposal` mark a decision payload makes: accept (P y) / reject (P n) on the proposal as
+    last written. KeyError: no such proposal; ValueError: one with nothing to apply."""
+    from pipeline.regs.review import marks as M
+    from pipeline.regs.review import proposals as P
+    pid = str(body.get("target") or "")
+    p = next((q for q in P.read_index(_proposals_dir())["proposals"] if q["id"] == pid), None)
+    if p is None:
+        raise KeyError(pid)
+    if not p.get("applicable"):
+        raise ValueError(f"proposal {pid} has no edit to accept: "
+                         + "; ".join(p.get("problems") or p.get("notes") or ["nothing to apply"]))
+    keep = {k: v for k, v in body.items() if k not in (
+        "pages", "tributaries", "lake_split_later", "extent_fix", "new_splits")}
+    return M.Mark.model_validate({**keep, "date": date, "pdf_sha256": _pdf_sha256(), "pages": [],
+                                  "prints": P.prints_of(pid, _proposals_dir())})
+
+
+def proposals_view() -> dict:
+    """THE PROPOSALS as the owner decides them: every proposal (index.json) with its decision in
+    force ({decision, reviewer, date, note, holds: taken on this digest})."""
+    from pipeline.regs.review import marks as M
+    from pipeline.regs.review import proposals as P
+    idx = P.read_index(_proposals_dir())
+    decided = M.decisions(M.load(MARKS_PATH))
+    rows = []
+    for p in idx.get("proposals") or []:
+        d = decided.get(p["id"])
+        rows.append({**p, "decision": None if d is None else
+                     {**d, "holds": d["digest"] == p["digest"]}})
+    return {"made": idx.get("made"), "proposals": rows,
+            "commands": {"build": "python -m pipeline.regs.review.proposals build --check",
+                         "apply": "python -m pipeline.regs.review.apply_proposals"}}
 
 
 def entry_answer_context(entry_id: str) -> dict | None:
@@ -2163,6 +2228,90 @@ def extent_preview(entry_id: str, fix, limit: int = 6000) -> dict | None:
                        "outcomes": outcomes, "truncated": len(ids) > limit,
                        "geojson": {"type": "FeatureCollection",
                                    "features": _sections_geojson(ids[:limit], "preview")}})
+
+
+# --------------------------------------------------------------------------- T185: binding change
+# READS ONLY. A proposed edit (`pipeline.regs.review.proposals`) bound in memory before and after,
+# by the same `build_reach` path the extent preview uses — nothing is written.
+
+_ABSENT = "__absent__"
+
+
+def _set_fields(target: dict, field: str, value) -> None:
+    if value == _ABSENT:
+        target.pop(field, None)
+    else:
+        target[field] = copy.deepcopy(value)
+
+
+def _binding_rows(before: dict[str, tuple], after: dict[str, tuple]) -> dict:
+    graph = _graph()
+
+    def km(ids) -> float:
+        return round(sum(getattr(graph.nodes.get(s), "length_m", 0.0) or 0.0 for s in ids) / 1000, 2)
+    rows = {}
+    for rid in sorted(set(before) | set(after)):
+        b, ob = before.get(rid, (set(), None))
+        a, oa = after.get(rid, (set(), None))
+        rows[rid] = {"n_before": len(b), "n_after": len(a), "gained": len(a - b),
+                     "lost": len(b - a), "km_before": km(b), "km_after": km(a),
+                     "outcome_before": ob, "outcome_after": oa,
+                     "sample_gained": sorted(a - b)[:5], "sample_lost": sorted(b - a)[:5]}
+    return {"cheap": True, "why": None, "rules": rows,
+            "changed": sorted(r for r, x in rows.items()
+                              if x["gained"] or x["lost"] or x["outcome_before"] != x["outcome_after"])}
+
+
+def binding_change(entry_id: str, changes: list[dict]) -> dict | None:
+    """WHAT A PROPOSED EDIT DOES TO AN ENTRY'S BINDINGS (T185): every rule bound by the builder's
+    own `build_reach` on the entry as it is and on a COPY with `changes` made ({scope: "entry" |
+    rule_id, field, after}), as the extent preview binds (T191). Per rule: sections before / after,
+    gained / lost, km, outcome. None: no such entry. Writes nothing."""
+    found = _find(entry_id)
+    if found is None:
+        return None
+    before = found[1]
+    after = copy.deepcopy(before)
+    for c in changes:
+        t = after if c["scope"] == "entry" else next(
+            (r for r in after.get("rules") or [] if r.get("rule_id") == c["scope"]), None)
+        if t is None:
+            return {"cheap": False, "why": f"no rule {c['scope']} on {entry_id}"}
+        _set_fields(t, c["field"], c["after"])
+    reg, graph = _registry(), _graph()
+
+    def bind(e: dict) -> dict[str, tuple]:
+        covered = _covered_ids(e)
+        clip, _failed = _scope_sections(e, covered)
+        out = {}
+        for r in e.get("rules") or []:
+            b, _d = _build_reach(e, r, reg, graph, covered=covered, clip=clip,
+                                 shared=_shared_waters(), tidal=_tidal(), owned=_rowed_waters())
+            out[r.get("rule_id")] = (set(b.sections), b.outcome.value)
+        return out
+    return _json_safe(_binding_rows(bind(before), bind(after)))
+
+
+def dfo_binding_change(location_id: str, changes: list[dict]) -> dict | None:
+    """`binding_change` for a DFO location (T164): its binding before and after `changes`
+    ({field: extents | tributaries, after}), bound as the DFO mode's reach binds it. Writes nothing."""
+    import dfo
+    got = dfo._locations().get(location_id)
+    if got is None:
+        return None
+    _slug, loc, water = got
+    after = copy.deepcopy(loc)
+    for c in changes:
+        _set_fields(after.setdefault("binding", {}), c["field"], c["after"])
+    reg, graph = _registry(), _graph()
+
+    def bind(lc: dict) -> dict[str, tuple]:
+        entry, rule = dfo._reach_input(lc, water)
+        if not rule["extents"]:
+            return {rule["rule_id"]: (set(), "no extent")}
+        b, _d = _build_reach(entry, rule, reg, graph)
+        return {rule["rule_id"]: (set(b.sections), b.outcome.value)}
+    return _json_safe(_binding_rows(bind(loc), bind(after)))
 
 
 def split_review(sp: dict) -> dict:

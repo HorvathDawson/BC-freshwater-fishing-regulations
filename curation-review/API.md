@@ -170,6 +170,19 @@ the mark's fields back (the round trip is a test). CLI: `python -m pipeline.regs
 — the same text, "what changed since" included (`tickets.statuses_now` for both); two marks whose
 targets slug to one file name are refused, never written over each other.
 
+### GET /api/proposals  (T185)
+The proposed edits the marks make (`python -m pipeline.regs.review.proposals build [--check]` writes
+`handoff/PLAN/curation-review/proposals/index.json` + one `.patch` each): `{made, proposals: [{id, kind:
+new_split | extent | lake_split_later, target, title, marks, edits: [{file, kind, entry_id | location_id,
+scope, field, before, after} | {kind: split, waterbody, split}], depends_on, problems, applicable, digest,
+patch, side_commands, severity?, check?: {cheap, why, rules: {rule_id: {n_before, n_after, gained, lost,
+km_before, km_after, outcome_before, outcome_after}}}, decision: {decision: accept | reject, reviewer,
+date, note, holds} | null}], commands}`. Read only. A DECISION is a mark: `POST /api/marks` with
+`{scope: "proposal", target: <id>, answers: {P: y | n}, note?, reviewer}` (accept = verified, reject =
+wrong), held against the proposal's digest — `holds: false` once the proposal changed. 404 for an
+unknown id, 422 for one with nothing to apply. The owner applies the accepted ones:
+`python -m pipeline.regs.review.apply_proposals [--dry-run]` (one commit each, new splits first).
+
 ### Commit marks (T135)
 `python -m pipeline.regs.review.commit_marks [-m msg] [--dry-run]` — `git commit --only` of
 `data/curated/regulations/review/marks.jsonl` and nothing else (staged and edited files elsewhere stay

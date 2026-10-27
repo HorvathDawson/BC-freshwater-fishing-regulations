@@ -1,0 +1,568 @@
+{
+ "_about": "T185 proposed edits from the review marks — written by `python -m pipeline.regs.review.proposals build`; decisions are `proposal` marks; `python -m pipeline.regs.review.apply_proposals` (the owner) applies the accepted ones",
+ "made": "2026-10-27T08:30:28",
+ "marks": "data/curated/regulations/review/marks.jsonl (the owner's store, 2026-10-27)",
+ "proposals": [
+  {
+   "id": "split-n2",
+   "kind": "new_split",
+   "target": "gnis:39532",
+   "scope": "split",
+   "rule_id": null,
+   "title": "new split campbell_river__quinsam_river on CAMPBELL RIVER: confluence Quinsam River",
+   "marks": [
+    {
+     "target": "1:campbell-river:downstream-of-the-confluence-with~2",
+     "rule_id": null,
+     "reviewer": "dawson",
+     "date": "2026-10-26"
+    },
+    {
+     "target": "1:campbell-river:downstream-of-the-confluence-with",
+     "rule_id": null,
+     "reviewer": "dawson",
+     "date": "2026-10-26"
+    }
+   ],
+   "edits": [
+    {
+     "file": "data/curated/waters/splits.json",
+     "kind": "split",
+     "waterbody": {
+      "name": "CAMPBELL RIVER",
+      "applies_to": {
+       "gnis_id": "39532"
+      }
+     },
+     "split": {
+      "id": "campbell_river__quinsam_river",
+      "label": "Quinsam River confluence",
+      "kind": "confluence",
+      "anchor": {
+       "type": "confluence",
+       "tributary_wsc": "920-627155-045026",
+       "_name": "Quinsam River"
+      },
+      "note": "",
+      "_note": "[T185 proposal 2026-10-27] proposed in review marks on 1:campbell-river:downstream-of-the-confluence-with, 1:campbell-river:downstream-of-the-confluence-with~2 — \"downstream of the confluence with the Quinsam River to the fishing boundary sign at the end of Maple Street.\"",
+      "_coord": [
+       -125.294097,
+       50.037899
+      ]
+     }
+    }
+   ],
+   "depends_on": [],
+   "problems": [],
+   "notes": [],
+   "split_id": "campbell_river__quinsam_river",
+   "applicable": true,
+   "digest": "1bb10b130de4ead9",
+   "severity": null,
+   "check": {
+    "cheap": false,
+    "why": "a new split changes the atlas: the side rebuild and its binding diff answer it"
+   },
+   "side_commands": [
+    "python -m pipeline.regs.review.proposals side split-n2 --out data/generated/side/t185-split_n2-1bb10b",
+    "scripts/heavy.sh atlas 30 -- python -m pipeline.atlas.build --full --splits data/generated/side/t185-split_n2-1bb10b/splits.json --out data/generated/side/t185-split_n2-1bb10b/atlas",
+    "scripts/heavy.sh reach 30 -- python -m pipeline.atlas.reach.cli --build data/generated/side/t185-split_n2-1bb10b/atlas --entries data/generated/side/t185-split_n2-1bb10b/catalogue --out data/generated/side/t185-split_n2-1bb10b/reach",
+    "python -m pipeline.atlas.reach.binding_diff data/generated/reaches/full data/generated/side/t185-split_n2-1bb10b/reach   # per-rule bindings, live vs side — read it before accepting (AGENTS 63)"
+   ],
+   "patch": "split_n2.patch"
+  },
+  {
+   "id": "split-n1",
+   "kind": "new_split",
+   "target": "gnis:12227",
+   "scope": "split",
+   "rule_id": null,
+   "title": "new split cowichan_river__white_triangle_boundary_sign_loc on COWICHAN RIVER (see map below): map point white triangle boundary sign located in Sandy Pool Regional Park",
+   "marks": [
+    {
+     "target": "1:cowichan-river:from-66-mile-trestle-downstream-to",
+     "rule_id": null,
+     "reviewer": "dawson",
+     "date": "2026-10-26"
+    }
+   ],
+   "edits": [
+    {
+     "file": "data/curated/waters/splits.json",
+     "kind": "split",
+     "waterbody": {
+      "name": "COWICHAN RIVER (see map below)",
+      "applies_to": {
+       "gnis_id": "12227"
+      }
+     },
+     "split": {
+      "id": "cowichan_river__white_triangle_boundary_sign_loc",
+      "label": "white triangle boundary sign located in Sandy Pool Regional Park",
+      "kind": "point",
+      "anchor": {
+       "type": "point",
+       "coord": [
+        -123.835989,
+        48.757157
+       ],
+       "is_lonlat": true
+      },
+      "note": "",
+      "_note": "[T185 proposal 2026-10-27] proposed in review marks on 1:cowichan-river:from-66-mile-trestle-downstream-to — \"from 66 Mile Trestle downstream to the white triangle boundary sign located in Sandy Pool Regional Park\"",
+      "_coord": [
+       -123.835989,
+       48.757157
+      ]
+     }
+    }
+   ],
+   "depends_on": [],
+   "problems": [],
+   "notes": [],
+   "split_id": "cowichan_river__white_triangle_boundary_sign_loc",
+   "applicable": true,
+   "digest": "7e4ef1e1d35f6a71",
+   "severity": null,
+   "check": {
+    "cheap": false,
+    "why": "a new split changes the atlas: the side rebuild and its binding diff answer it"
+   },
+   "side_commands": [
+    "python -m pipeline.regs.review.proposals side split-n1 --out data/generated/side/t185-split_n1-7e4ef1",
+    "scripts/heavy.sh atlas 30 -- python -m pipeline.atlas.build --full --splits data/generated/side/t185-split_n1-7e4ef1/splits.json --out data/generated/side/t185-split_n1-7e4ef1/atlas",
+    "scripts/heavy.sh reach 30 -- python -m pipeline.atlas.reach.cli --build data/generated/side/t185-split_n1-7e4ef1/atlas --entries data/generated/side/t185-split_n1-7e4ef1/catalogue --out data/generated/side/t185-split_n1-7e4ef1/reach",
+    "python -m pipeline.atlas.reach.binding_diff data/generated/reaches/full data/generated/side/t185-split_n1-7e4ef1/reach   # per-rule bindings, live vs side — read it before accepting (AGENTS 63)"
+   ],
+   "patch": "split_n1.patch"
+  },
+  {
+   "id": "mark-entry-r2_hatzic_lake_and_slough_2_8",
+   "kind": "extent",
+   "target": "r2:hatzic_lake_and_slough@2-8",
+   "scope": "entry",
+   "rule_id": null,
+   "title": "r2:hatzic_lake_and_slough@2-8: rule hatzic_lake_and_slough.r2: tributaries included; rule hatzic_lake_and_slough.r3: tributaries included",
+   "marks": [
+    {
+     "scope": "entry",
+     "target": "r2:hatzic_lake_and_slough@2-8",
+     "rule_id": null,
+     "verdict": "verified",
+     "answers": {
+      "T": "y",
+      "R": "y",
+      "P": "y",
+      "A": "y"
+     },
+     "reviewer": "dawson",
+     "date": "2026-10-24",
+     "note": ""
+    }
+   ],
+   "edits": [
+    {
+     "file": "data/curated/regulations/entries/catalogue/region-2.json",
+     "kind": "catalogue",
+     "entry_id": "r2:hatzic_lake_and_slough@2-8",
+     "scope": "hatzic_lake_and_slough.r2",
+     "field": "includes_tributaries",
+     "before": false,
+     "after": true
+    },
+    {
+     "file": "data/curated/regulations/entries/catalogue/region-2.json",
+     "kind": "catalogue",
+     "entry_id": "r2:hatzic_lake_and_slough@2-8",
+     "scope": "hatzic_lake_and_slough.r3",
+     "field": "includes_tributaries",
+     "before": false,
+     "after": true
+    }
+   ],
+   "depends_on": [],
+   "problems": [],
+   "notes": [],
+   "split_id": null,
+   "applicable": true,
+   "digest": "a6d6c2914b4c05c1",
+   "severity": {
+    "level": "low",
+    "reasons": [
+     "low: several waters"
+    ]
+   },
+   "check": {
+    "cheap": true,
+    "why": null,
+    "rules": {
+     "hatzic_lake_and_slough.r1": {
+      "n_before": 19,
+      "n_after": 19,
+      "gained": 0,
+      "lost": 0,
+      "km_before": 27.5,
+      "km_after": 27.5,
+      "outcome_before": "bound",
+      "outcome_after": "bound",
+      "sample_gained": [],
+      "sample_lost": []
+     },
+     "hatzic_lake_and_slough.r2": {
+      "n_before": 4,
+      "n_after": 92,
+      "gained": 88,
+      "lost": 0,
+      "km_before": 7.99,
+      "km_after": 124.35,
+      "outcome_before": "bound",
+      "outcome_after": "bound",
+      "sample_gained": [
+       "356008064:0",
+       "356008521:0",
+       "356010737:0",
+       "356012327:0",
+       "356017490:0"
+      ],
+      "sample_lost": []
+     },
+     "hatzic_lake_and_slough.r3": {
+      "n_before": 4,
+      "n_after": 92,
+      "gained": 88,
+      "lost": 0,
+      "km_before": 7.99,
+      "km_after": 124.35,
+      "outcome_before": "bound",
+      "outcome_after": "bound",
+      "sample_gained": [
+       "356008064:0",
+       "356008521:0",
+       "356010737:0",
+       "356012327:0",
+       "356017490:0"
+      ],
+      "sample_lost": []
+     }
+    },
+    "changed": [
+     "hatzic_lake_and_slough.r2",
+     "hatzic_lake_and_slough.r3"
+    ]
+   },
+   "side_commands": [
+    "python -m pipeline.regs.review.proposals side mark-entry-r2_hatzic_lake_and_slough_2_8 --out data/generated/side/t185-mark_entry_r2_hatzic_lake_and_slough_2_8-a6d6c2",
+    "scripts/heavy.sh reach 30 -- python -m pipeline.atlas.reach.cli --build data/generated/atlas/full --entries data/generated/side/t185-mark_entry_r2_hatzic_lake_and_slough_2_8-a6d6c2/catalogue --out data/generated/side/t185-mark_entry_r2_hatzic_lake_and_slough_2_8-a6d6c2/reach",
+    "python -m pipeline.atlas.reach.binding_diff data/generated/reaches/full data/generated/side/t185-mark_entry_r2_hatzic_lake_and_slough_2_8-a6d6c2/reach   # per-rule bindings, live vs side — read it before accepting (AGENTS 63)"
+   ],
+   "patch": "mark_entry_r2_hatzic_lake_and_slough_2_8.patch"
+  },
+  {
+   "id": "mark-dfo-1_campbell_river_downstream_of_the_confluence_with_2",
+   "kind": "extent",
+   "target": "1:campbell-river:downstream-of-the-confluence-with~2",
+   "scope": "dfo",
+   "rule_id": null,
+   "title": "1:campbell-river:downstream-of-the-confluence-with~2: the entry: between the NEW split `n2` (below) and split `campbell_river__maple_street_boundary_sign` · on `gnis:39532`",
+   "marks": [
+    {
+     "scope": "dfo",
+     "target": "1:campbell-river:downstream-of-the-confluence-with~2",
+     "rule_id": null,
+     "verdict": "unsure",
+     "answers": {
+      "T": "y",
+      "R": "y",
+      "P": "?"
+     },
+     "reviewer": "dawson",
+     "date": "2026-10-26",
+     "note": ""
+    }
+   ],
+   "edits": [
+    {
+     "file": "data/curated/regulations/entries/dfo_salmon/region-1.json",
+     "kind": "dfo",
+     "location_id": "1:campbell-river:downstream-of-the-confluence-with~2",
+     "scope": "entry",
+     "field": "extents",
+     "before": [],
+     "after": [
+      {
+       "op": "between",
+       "splits": [
+        "campbell_river__quinsam_river",
+        "campbell_river__maple_street_boundary_sign"
+       ],
+       "item_id": "gnis:39532"
+      }
+     ]
+    }
+   ],
+   "depends_on": [
+    "split-n2"
+   ],
+   "problems": [],
+   "notes": [],
+   "split_id": null,
+   "applicable": true,
+   "digest": "a1e525e2fe1625bf",
+   "severity": null,
+   "check": {
+    "cheap": false,
+    "why": "names a new split (split-n2): bound only on the side atlas"
+   },
+   "side_commands": [
+    "python -m pipeline.regs.review.proposals side mark-dfo-1_campbell_river_downstream_of_the_confluence_with_2 --out data/generated/side/t185-mark_dfo_1_campbell_river_downstream_of-a1e525",
+    "scripts/heavy.sh atlas 30 -- python -m pipeline.atlas.build --full --splits data/generated/side/t185-mark_dfo_1_campbell_river_downstream_of-a1e525/splits.json --out data/generated/side/t185-mark_dfo_1_campbell_river_downstream_of-a1e525/atlas",
+    "CURATION_BUILD=data/generated/side/t185-mark_dfo_1_campbell_river_downstream_of-a1e525/atlas CURATION_SPLITS_JSON=data/generated/side/t185-mark_dfo_1_campbell_river_downstream_of-a1e525/splits.json CURATION_DFO_DIR=data/generated/side/t185-mark_dfo_1_campbell_river_downstream_of-a1e525/dfo_salmon bash curation-review/backend/run.sh   # the DFO location on the side atlas (stop the live app first, or set its port)"
+   ],
+   "patch": "mark_dfo_1_campbell_river_downstream_of_the_confluence_with_2.patch"
+  },
+  {
+   "id": "mark-dfo-1_campbell_river_downstream_of_the_confluence_with",
+   "kind": "extent",
+   "target": "1:campbell-river:downstream-of-the-confluence-with",
+   "scope": "dfo",
+   "rule_id": null,
+   "title": "1:campbell-river:downstream-of-the-confluence-with: the entry: downstream the NEW split `n3` (below) · on `gnis:39532`",
+   "marks": [
+    {
+     "scope": "dfo",
+     "target": "1:campbell-river:downstream-of-the-confluence-with",
+     "rule_id": null,
+     "verdict": "unsure",
+     "answers": {
+      "T": "y",
+      "R": "y",
+      "P": "?"
+     },
+     "reviewer": "dawson",
+     "date": "2026-10-26",
+     "note": ""
+    }
+   ],
+   "edits": [
+    {
+     "file": "data/curated/regulations/entries/dfo_salmon/region-1.json",
+     "kind": "dfo",
+     "location_id": "1:campbell-river:downstream-of-the-confluence-with",
+     "scope": "entry",
+     "field": "extents",
+     "before": [],
+     "after": [
+      {
+       "op": "downstream_of",
+       "splits": [
+        "campbell_river__quinsam_river"
+       ],
+       "item_id": "gnis:39532"
+      }
+     ]
+    }
+   ],
+   "depends_on": [
+    "split-n2"
+   ],
+   "problems": [],
+   "notes": [],
+   "split_id": null,
+   "applicable": true,
+   "digest": "abd11bbf678bbb83",
+   "severity": null,
+   "check": {
+    "cheap": false,
+    "why": "names a new split (split-n2): bound only on the side atlas"
+   },
+   "side_commands": [
+    "python -m pipeline.regs.review.proposals side mark-dfo-1_campbell_river_downstream_of_the_confluence_with --out data/generated/side/t185-mark_dfo_1_campbell_river_downstream_of-abd11b",
+    "scripts/heavy.sh atlas 30 -- python -m pipeline.atlas.build --full --splits data/generated/side/t185-mark_dfo_1_campbell_river_downstream_of-abd11b/splits.json --out data/generated/side/t185-mark_dfo_1_campbell_river_downstream_of-abd11b/atlas",
+    "CURATION_BUILD=data/generated/side/t185-mark_dfo_1_campbell_river_downstream_of-abd11b/atlas CURATION_SPLITS_JSON=data/generated/side/t185-mark_dfo_1_campbell_river_downstream_of-abd11b/splits.json CURATION_DFO_DIR=data/generated/side/t185-mark_dfo_1_campbell_river_downstream_of-abd11b/dfo_salmon bash curation-review/backend/run.sh   # the DFO location on the side atlas (stop the live app first, or set its port)"
+   ],
+   "patch": "mark_dfo_1_campbell_river_downstream_of_the_confluence_with.patch"
+  },
+  {
+   "id": "mark-dfo-1_campbell_river_from_a_fishing_boundary_sign_at_th",
+   "kind": "extent",
+   "target": "1:campbell-river:from-a-fishing-boundary-sign-at-th",
+   "scope": "dfo",
+   "rule_id": null,
+   "title": "1:campbell-river:from-a-fishing-boundary-sign-at-th: the entry: between split `campbell_river__maple_street_boundary_sign` and split `campbell_river__cement_block_boundary_sign` · on `gnis:39532`",
+   "marks": [
+    {
+     "scope": "dfo",
+     "target": "1:campbell-river:from-a-fishing-boundary-sign-at-th",
+     "rule_id": null,
+     "verdict": "unsure",
+     "answers": {
+      "R": "y",
+      "P": "?",
+      "T": "y"
+     },
+     "reviewer": "dawson",
+     "date": "2026-10-26",
+     "note": ""
+    }
+   ],
+   "edits": [
+    {
+     "file": "data/curated/regulations/entries/dfo_salmon/region-1.json",
+     "kind": "dfo",
+     "location_id": "1:campbell-river:from-a-fishing-boundary-sign-at-th",
+     "scope": "entry",
+     "field": "extents",
+     "before": [],
+     "after": [
+      {
+       "op": "between",
+       "splits": [
+        "campbell_river__maple_street_boundary_sign",
+        "campbell_river__cement_block_boundary_sign"
+       ],
+       "item_id": "gnis:39532"
+      }
+     ]
+    }
+   ],
+   "depends_on": [],
+   "problems": [],
+   "notes": [],
+   "split_id": null,
+   "applicable": true,
+   "digest": "f32607fd585b5e61",
+   "severity": null,
+   "check": {
+    "cheap": true,
+    "why": null,
+    "rules": {
+     "1:campbell-river:from-a-fishing-boundary-sign-at-th#0": {
+      "n_before": 0,
+      "n_after": 1,
+      "gained": 1,
+      "lost": 0,
+      "km_before": 0.0,
+      "km_after": 0.29,
+      "outcome_before": "no extent",
+      "outcome_after": "bound",
+      "sample_gained": [
+       "354154635:1630"
+      ],
+      "sample_lost": []
+     }
+    },
+    "changed": [
+     "1:campbell-river:from-a-fishing-boundary-sign-at-th#0"
+    ]
+   },
+   "side_commands": [
+    "# a DFO location is not in the reach run: the in-memory check above IS its binding (no side rebuild)"
+   ],
+   "patch": "mark_dfo_1_campbell_river_from_a_fishing_boundary_sign_at_th.patch"
+  },
+  {
+   "id": "mark-dfo-1_cowichan_river_from_66_mile_trestle_downstream_to",
+   "kind": "extent",
+   "target": "1:cowichan-river:from-66-mile-trestle-downstream-to",
+   "scope": "dfo",
+   "rule_id": null,
+   "title": "1:cowichan-river:from-66-mile-trestle-downstream-to: the entry: between split `cowichan_river__cnr_trestle` and the NEW split `n1` (below) · on `gnis:12227`",
+   "marks": [
+    {
+     "scope": "dfo",
+     "target": "1:cowichan-river:from-66-mile-trestle-downstream-to",
+     "rule_id": null,
+     "verdict": "unsure",
+     "answers": {
+      "T": "y",
+      "R": "y",
+      "P": "?"
+     },
+     "reviewer": "dawson",
+     "date": "2026-10-26",
+     "note": ""
+    }
+   ],
+   "edits": [
+    {
+     "file": "data/curated/regulations/entries/dfo_salmon/region-1.json",
+     "kind": "dfo",
+     "location_id": "1:cowichan-river:from-66-mile-trestle-downstream-to",
+     "scope": "entry",
+     "field": "extents",
+     "before": [],
+     "after": [
+      {
+       "op": "between",
+       "splits": [
+        "cowichan_river__cnr_trestle",
+        "cowichan_river__white_triangle_boundary_sign_loc"
+       ],
+       "item_id": "gnis:12227"
+      }
+     ]
+    }
+   ],
+   "depends_on": [
+    "split-n1"
+   ],
+   "problems": [],
+   "notes": [],
+   "split_id": null,
+   "applicable": true,
+   "digest": "5ac7d68005029b72",
+   "severity": null,
+   "check": {
+    "cheap": false,
+    "why": "names a new split (split-n1): bound only on the side atlas"
+   },
+   "side_commands": [
+    "python -m pipeline.regs.review.proposals side mark-dfo-1_cowichan_river_from_66_mile_trestle_downstream_to --out data/generated/side/t185-mark_dfo_1_cowichan_river_from_66_mile_t-5ac7d6",
+    "scripts/heavy.sh atlas 30 -- python -m pipeline.atlas.build --full --splits data/generated/side/t185-mark_dfo_1_cowichan_river_from_66_mile_t-5ac7d6/splits.json --out data/generated/side/t185-mark_dfo_1_cowichan_river_from_66_mile_t-5ac7d6/atlas",
+    "CURATION_BUILD=data/generated/side/t185-mark_dfo_1_cowichan_river_from_66_mile_t-5ac7d6/atlas CURATION_SPLITS_JSON=data/generated/side/t185-mark_dfo_1_cowichan_river_from_66_mile_t-5ac7d6/splits.json CURATION_DFO_DIR=data/generated/side/t185-mark_dfo_1_cowichan_river_from_66_mile_t-5ac7d6/dfo_salmon bash curation-review/backend/run.sh   # the DFO location on the side atlas (stop the live app first, or set its port)"
+   ],
+   "patch": "mark_dfo_1_cowichan_river_from_66_mile_trestle_downstream_to.patch"
+  },
+  {
+   "id": "mark-entry-r5_dragon_lake_5_2-lake-split",
+   "kind": "lake_split_later",
+   "target": "r5:dragon_lake@5-2",
+   "scope": "entry",
+   "rule_id": null,
+   "title": "r5:dragon_lake@5-2: needs a lake split later (deferred, RULINGS K5)",
+   "marks": [
+    {
+     "scope": "entry",
+     "target": "r5:dragon_lake@5-2",
+     "rule_id": null,
+     "verdict": "verified",
+     "answers": {
+      "T": "y",
+      "R": "y",
+      "P": "y",
+      "A": "y"
+     },
+     "reviewer": "dawson",
+     "date": "2026-10-24",
+     "note": ""
+    }
+   ],
+   "edits": [],
+   "depends_on": [],
+   "problems": [],
+   "notes": [
+    "listed by `python -m pipeline.regs.review.tickets --lake-splits`; no curated edit until lake splits are taken up"
+   ],
+   "split_id": null,
+   "applicable": false,
+   "digest": "d2ca3cb5608901e5",
+   "severity": null,
+   "check": {
+    "cheap": false,
+    "why": "not applicable: no edit"
+   },
+   "side_commands": [],
+   "patch": null
+  }
+ ]
+}

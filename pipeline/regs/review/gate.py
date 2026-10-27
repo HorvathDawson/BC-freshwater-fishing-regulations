@@ -51,6 +51,8 @@ def stale_report(marks: Iterable, *, entries: Mapping[str, Mapping], ctx) -> dic
                                             target_prints)
     held, edited, build_only = 0, [], []
     for key, m in latest(marks).items():
+        if m.scope == "proposal":         # T185: a decision on a proposed edit, not a review
+            continue
         parts = moved(m, target_prints(m, entries, ctx))
         if not parts:
             held += 1

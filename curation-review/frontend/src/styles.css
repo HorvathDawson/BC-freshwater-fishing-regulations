@@ -993,3 +993,17 @@ code.cmd { font-size: 11px; padding: 1px 6px; border: 1px solid var(--warn-borde
 .sev-chip.sev-high { background:var(--danger-text); color:var(--surface, #fff); }
 .sev-chip.sev-medium { border:1px solid var(--danger-text); color:var(--danger-text); }
 .sev-chip.sev-low { color:var(--muted); font-weight:400; }
+
+/* T185: the Proposals view (read only; a decision is a mark) */
+.proposals { padding: 8px 12px; overflow: auto; height: 100vh; box-sizing: border-box; }
+.prop-bar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 6px; }
+.prop-card { border: 1px solid var(--border, #ddd); border-radius: 6px; padding: 8px 10px; margin: 8px 0; }
+.prop-head { display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; }
+.prop-marks { margin: 4px 0; padding-left: 18px; font-size: 12px; }
+.prop-edit { font-size: 12px; margin: 4px 0; padding: 4px 6px; background: var(--surface-2, rgba(0,0,0,.03)); border-radius: 4px; overflow-x: auto; }
+.prop-edit pre, .prop-cmds { font-size: 11px; white-space: pre-wrap; word-break: break-all; margin: 4px 0; }
+.prop-check { font-size: 12px; border-collapse: collapse; margin: 4px 0; }
+.prop-check td, .prop-check th { padding: 1px 8px; text-align: left; }
+.prop-check tr.changed td { font-weight: 700; }
+.prop-problem { color: var(--danger-text, #b00); font-size: 12px; }
+.prop-decision { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 6px; font-size: 12px; }

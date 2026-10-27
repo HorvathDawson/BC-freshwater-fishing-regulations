@@ -42,7 +42,9 @@ class StaleReason(str, Enum):
 #: the order reasons are reported in (and the order of the enum)
 STALE_REASONS: tuple[StaleReason, ...] = tuple(StaleReason)
 
-Scope = Literal["entry", "rule", "split", "dfo", "tidal"]
+#: T185: `proposal` — the owner's decision on a proposed edit (`proposals`): accept (P y, verified)
+#: or reject (P n, wrong); the target is the proposal's id, the prints its digest
+Scope = Literal["entry", "rule", "split", "dfo", "tidal", "proposal"]
 Verdict = Literal["verified", "wrong", "unsure", "deferred"]
 Answer = Literal["y", "n", "?"]
 #: T189: the reviewer's call on tributaries — the water's tributaries should be in, or out
@@ -60,7 +62,9 @@ CHECKS: dict[str, tuple[str, ...]] = {"entry": ("T", "R", "P", "A"),
                                       # T212: a proposed tidal boundary (`review.tidal`) — P only: the
                                       # cut is where the tidal boundary is. Accepting it is P y with
                                       # the proposed cut as a new split
-                                      "tidal": ("P",)}
+                                      "tidal": ("P",),
+                                      # T185: is this proposed edit right? y accept, n reject
+                                      "proposal": ("P",)}
 
 #: THE PROBLEM CATEGORIES a "wrong" mark names (PLAN §2), grouped by the check that finds them.
 #: The review screen offers exactly these; the store keeps any string (an old mark stays valid).
@@ -271,7 +275,7 @@ class NewSplit(BaseModel):
 class RecordPrint(BaseModel):
     """One record's fingerprints (`fingerprint.entry_records`)."""
     model_config = ConfigDict(extra="forbid", frozen=True)
-    key: str = Field(..., pattern=r"^(entry|rule:.+|lic:.+|split:.+)$")
+    key: str = Field(..., pattern=r"^(entry|rule:.+|lic:.+|split:.+|proposal:.+)$")
     meaning: str
     binding: str
     reach: Optional[str] = None
@@ -352,13 +356,24 @@ class Mark(BaseModel):
         if self.verdict == "wrong":
             if "n" not in got:
                 raise ValueError("wrong needs a check answered n")
-            if not (self.problem or "").strip() or not self.note.strip():
+            # T185: rejecting a proposal names no problem category (the note is optional)
+            if self.scope != "proposal" and (not (self.problem or "").strip()
+                                             or not self.note.strip()):
                 raise ValueError("wrong needs a problem category and a note")
         if self.verdict == "unsure" and ("?" not in got or "n" in got):
             raise ValueError("unsure needs a check answered ? and none answered n")
         if self.verdict == "deferred" and not self.note.strip():
             raise ValueError("deferred needs a note saying why")
         keys = [r.key for r in self.prints.records]
+        if self.scope == "proposal":
+            if keys != [f"proposal:{self.target}"] or self.rule_id is not None:
+                raise ValueError("a proposal decision holds exactly its proposal's prints")
+            if (self.tributaries or self.extent_fix or self.new_splits
+                    or self.lake_split_later):
+                raise ValueError("a proposal decision proposes nothing of its own")
+            if self.verdict not in ("verified", "wrong"):
+                raise ValueError("a proposal is accepted (P y) or rejected (P n)")
+            return self
         if self.scope in ("split", "tidal"):
             if keys != [f"split:{self.target}"] or self.prints.text is not None:
                 raise ValueError(f"a {self.scope} mark holds exactly its "
@@ -659,6 +674,10 @@ def target_prints(mark: Mark, entries: Mapping[str, Mapping], ctx) -> Optional["
     on disk. Ticket export (`tickets.statuses_now`) and the false-stale gate (`gate.stale_report`)
     both ask here (T136 adversarial review: the gate had grown its own copy)."""
     from pipeline.regs.review import fingerprint as F
+    if mark.scope == "proposal":                  # T185: the proposal as last written
+        from pipeline.regs.review import proposals as P
+        got = P.prints_of(mark.target)
+        return Prints.model_validate(got) if got is not None else None
     if mark.scope == "dfo":                       # T164: a DFO location (`review.dfo`)
         from pipeline.regs.review import dfo as D
         got = D.prints_of(mark.target)
@@ -760,3 +779,18 @@ def proposals(marks: Iterable[Mark]) -> list[dict]:
             if who not in out[i]["marks"]:
                 out[i]["marks"].append(who)
     return out
+
+
+# --------------------------------------------------------------------------------------------
+# Decisions on proposed edits (T185)
+# --------------------------------------------------------------------------------------------
+
+def decisions(marks: Iterable[Mark]) -> dict[str, dict]:
+    """THE OWNER'S DECISIONS ON PROPOSED EDITS (T185): proposal id -> {decision: accept | reject,
+    digest (the proposal it was taken on), reviewer, date, note}, the latest decision on each. A
+    decision is a `proposal` mark (P y accept, P n reject) — recorded like any mark, never a file
+    write; `proposals.apply` acts only on an accept whose digest is the proposal's NOW."""
+    return {m.target: {"decision": "accept" if m.verdict == "verified" else "reject",
+                       "digest": m.prints.records[0].meaning, "reviewer": m.reviewer,
+                       "date": m.date, "note": m.note}
+            for m in latest(marks).values() if m.scope == "proposal"}

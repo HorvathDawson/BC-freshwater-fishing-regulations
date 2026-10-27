@@ -131,6 +131,9 @@ def get_entries(region: str | None = None, status: str | None = None,
 #: what a reviewer marks: an entry, or one rule of a zone entry (T184: entries only); T164: a DFO
 #: salmon location (the DFO review mode); T212: a proposed tidal boundary (the Tidal mode)
 REVIEW_SCOPES = ("entry", "rule", "dfo", "tidal")
+#: T185: the owner's decision on a proposed edit (the Proposals view) — a mark too, accept P y /
+#: reject P n, held against the proposal's digest; never a file write
+DECISION_SCOPE = "proposal"
 
 
 class MarkPayload(BaseModel):
@@ -172,7 +175,7 @@ def post_mark(body: MarkPayload):
     from pipeline.regs.review.marks import (CHECKS, refusal_words, unanswered_words,
                                             verdict_from_answers)
     data = body.model_dump()
-    if body.scope not in REVIEW_SCOPES:
+    if body.scope not in REVIEW_SCOPES + (DECISION_SCOPE,):
         raise HTTPException(422, [{"path": "scope", "msg": (
             "A split is not marked on its own: check it on the map of an entry whose rules name "
             "it, and mark that entry's Place wrong if the cut is in the wrong place."
@@ -243,6 +246,14 @@ def review_lake_splits():
     target whose mark in force says "needs a lake split later". Read only."""
     from pipeline.regs.review import marks as M
     return M.lake_splits_later(M.load(reuse.MARKS_PATH))
+
+
+@app.get("/api/proposals")
+def get_proposals():
+    """T185: THE PROPOSED EDITS (`proposals build` wrote them) with the decision in force on each
+    and whether it still holds (taken on this digest). Read only: a decision is a mark
+    (`POST /api/marks`, scope `proposal`); the owner's `apply_proposals` applies the accepted."""
+    return reuse.proposals_view()
 
 
 @app.get("/api/review/tickets.md")

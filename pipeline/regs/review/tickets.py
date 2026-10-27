@@ -92,6 +92,8 @@ def _work(mark) -> list[str]:
 def ticketed(mark, verdicts: Sequence[str] = TICKET_VERDICTS) -> bool:
     """Does this mark become a ticket? Its verdict is one asked for, or (T210) it is a DFO mark that
     says Place y and still carries an extent to curate from the existing cuts."""
+    if mark.scope == "proposal":         # T185: a decision on a proposed edit is no ticket
+        return False
     return mark.verdict in verdicts or (mark.verdict == "verified" and bool(mark.extent_fix)) or (
         mark.scope == "tidal" and mark.verdict == "verified" and bool(mark.new_splits))
 
