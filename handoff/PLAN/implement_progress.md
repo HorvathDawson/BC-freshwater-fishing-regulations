@@ -3,7 +3,24 @@
 Restart here. Update this file after EVERY step: what is done, what is running, and the exact next action.
 Logs from timing runs live in the session scratchpad, which a reboot wipes. The numbers that matter are copied here.
 
-## CURRENT STATE (2026-10-27, later — owner split decisions + T204 built)
+## CURRENT STATE (2026-10-27, evening — T185 owner marks applied)
+
+LIVE: r-81c01b35d2fa (previous r-ea426985a467 kept; older pruned). It is a deliver-only re-run after the Hatzic
+revert, with the reach digest unchanged. CAUTION: it ran while another lane had uncommitted edits in
+pipeline/deliver/answers (tree.py, rows.py, encode.py, answers.py), so only its water file differs from r-ea426985a467.
+That lane owns the fixture re-cut (r-61fc1b08d12c and taps.json are left uncommitted in the tree). T185 marks applied, one commit each:
+split-n2 Quinsam confluence on the Campbell (8459fa16, high), split-n1 Sandy Pool sign on the Cowichan (42fc63b3,
+medium), then the 4 DFO locations (96812e46, 8a5ed554, 86f38b80, 897b96f4; all bind on the live atlas). Side atlas
+parity: only Campbell/Cowichan +1 section each; binding diff fully explained (96 rules each gain only the 2 new pieces:
+90 zone + 6 Campbell/Cowichan whole-water rules; 0 lost, 0 rescoped, 0 unresolved). Hatzic r2/r3 "include
+tributaries" (4 -> 92): owner says leave it alone, so it stays unapplied (applied by mistake in eb91c148, reverted
+in 0dc405a9; not in any release). Taps (Campbell x16p3 / Cowichan cow0 recounted),
+harness 126/126, regs-fixture re-cut (4343e691); re-pins 55059781, afe230b9. Strict app check green (8206); full pytest
+8 red -> re-pinned (proposals tests read files at 2bd29a26; split count 422), per-file green. :8787 awaiting 0.
+NOTE: apply_proposals' commit messages carry no Co-Authored-By trailer. T62 DONE: 3.2 c6a967bc (atlas/build.py main()
+is phases; --gnis 'Kennedy River' parity IDENTICAL; a bbox without Pacific Rim stops in outside_area_items, as before).
+
+## (earlier) CURRENT STATE (2026-10-27, later — owner split decisions + T204 built)
 
 LIVE: r-8b43fb267199 (previous r-f6918815ca78 kept; older pruned). One atlas build: only Chapman, Deena and Mamin cut
 (new low cuts, 540995d4); binding diff fully explained (the 5 rebound rules + zone rules re-keying the new pieces). Owner

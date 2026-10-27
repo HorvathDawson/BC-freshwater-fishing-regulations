@@ -6,11 +6,6 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
-- **Hatzic "include tributaries" (T185, 2026-10-27) — AWAITING YOUR CONFIRMATION, held:** your mark on
-  r2:hatzic_lake_and_slough@2-8 sets `includes_tributaries` on the speed rules r2 (8 km/h) and r3 (50 km/h). That takes
-  each from 4 to 92 sections (7.99 → 124.35 km). Every other mark is applied; this one waits. Say "apply" and it lands
-  on its own (no atlas needed), or change the mark.
-
 - **DFO salmon in the app (T211, 2026-10-27):** read handoff/PLAN/dfo-salmon-ui/PLAN.md (mocks option-a/b/c.png) and
   pick A (separate Salmon·DFO card, recommended), B (merged per-species answer) or C (Salmon page + map toggle); say
   whether an unplaced DFO water shows "see DFO" or nothing; approve the feed plan (6-hourly in season, R2 `feeds/dfo/`,

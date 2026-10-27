@@ -1,6 +1,6 @@
 # T62 — Cleanup wave 3: split long files, make it easy for a human to follow
 
-Status: PARTIAL — app lane b619ca7b…bb31281e merged; pipeline lane (3.1, 3.3) merged; 3.9 merged (dfo_salmon); 3.2 rides the next side atlas. Source: handoff/PLAN/audit/PLAN.md §2 "Wave 3". Includes Shell.tsx (re-spec P14/P17 against today's
+Status: DONE — app lane b619ca7b…bb31281e merged; pipeline lane (3.1, 3.3) merged; 3.9 merged (dfo_salmon); 3.2 c6a967bc. Source: handoff/PLAN/audit/PLAN.md §2 "Wave 3". Includes Shell.tsx (re-spec P14/P17 against today's
 shell first, N13), export_ui_rules, other files over the size line. Behaviour unchanged: tests green before/after.
 
 ## Outcome (app lane)
@@ -100,3 +100,20 @@ Each carries a comment saying so. Rewording them changes the release.
 - Kept `feed`, `validate`, `splitwork`: tests import them, so they are not dead.
 - `pipeline/regs/dfo_salmon/README.md` gained an index linking the folder's docs (CASCADE, CURATION, DATAFLOW, DESIGN, MAPPING, PLAN) and `pipeline/docs/19-dfo-salmon-pipeline.md`. No doc was rewritten; no links broke.
 - 3.2 (atlas/build.py) needs a build: rides the next side atlas.
+
+## Outcome (3.2, atlas/build.py, c6a967bc)
+
+- `main()` is 17 lines: parse, refuse a promoted --out, then the phases `load_fwa`, `build_graph`, `add_waters`,
+  `prune_graph`, `gauge_cuts`, `sectionize` (`cut_border`, `cut_curated`, `cut_areas`, `cut_length`,
+  `mark_membership`), `write_graph`, `build_registry` and `write_sidecars`. Each docstring names the `_Build` fields
+  the phase reads and writes. The bodies and their comments moved verbatim. The only change in order is that the split
+  definitions are now read before the border pass; both are pure reads, so only the log order changes.
+- **Proof:** `--gnis "Kennedy River"` built with the old build.py (2bd29a26) and then with the new one. `build_parity`
+  reports IDENTICAL (3,594 items, 2,773 sections, 29 boundaries). registry.json, graph.pkl, geometries.pkl,
+  section_handles.txt, splits.resolved.json, region_home.json, item_points.json and every other sidecar are
+  byte-identical. Only build_ts, the timings in summary.txt and the gpkg stamp differ.
+- A `--gnis` build whose bbox misses Pacific Rim stops in `outside_area_items`, for example `--gnis "Cowichan River"`
+  ("areas.json and this build disagree"). The old code stops there too, so this is not a regression. Use a bbox that
+  takes in Pacific Rim, such as Kennedy River.
+- test_t117_walks: the `up_adj` reader (the orphan count) is now `prune_graph`, not `main`.
+

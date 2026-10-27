@@ -106,7 +106,7 @@ use that as the sole source of future work."
 | T59 | two rivers meet (Atnarko/Bella Coola); Fraser exit → Annacis | DONE | c5b1e3d0, 36df866f, 463c013b, c432f6df | live in r-36fbc5326506 |
 | T60 | consistency auditors (N16, Fable) | DONE | 2ac30e42, 9259fa16, ed367f33, d02e1448 | six mutation-pinned gates in pnpm check; F1–F5 fixed; copy move → T180; Q162 |
 | T61 | cleanup wave 2: old pathways/duplicates | PARTIAL | 9db616f0, 884fe9c7, 46cab8cd, baeda569, 0ad1a84, bb22f3eb, a097e407 | lanes A/B/C + 2.8 normaliser merged and promoted (r-5380a42dab54, no binding change); left: 2.17 fixture move → T63 |
-| T62 | cleanup wave 3: split long files | PARTIAL | b619ca7b…bb31281e, 7b946345…66b81aa6 | app + pipeline lanes merged (byte-identical outputs; live r-bb4331929428); 3.9 dfo_salmon done (whatchanged archived, README index); left: 3.2 atlas/build.py (rides the next side atlas) |
+| T62 | cleanup wave 3: split long files | DONE | b619ca7b…bb31281e, 7b946345…66b81aa6, c6a967bc | app + pipeline lanes merged (byte-identical outputs; live r-bb4331929428); 3.9 dfo_salmon done (whatchanged archived, README index); 3.2 atlas/build.py: phased main(), --gnis parity IDENTICAL (Kennedy River) |
 | T63 | cleanup wave 4: docs, tests, knip | DONE | 341fff64, 11d29685, 9c22614a, 9867bc86 | MAP.md ×2, 16+ duplicate tests gone, knip in check, synopsis isolation fixed, 2.17 fixtures moved |
 | T64 | tiles: S2 size wins + tile rebuild | DONE | ebfbba7d, 05096efd | built and promoted with r-9b51c28ce0fe: atlas.pmtiles 548 -> 228 MB, basemap 918 -> 876 MB; map look on OWNER-TODO |
 | T65 | determinism proof (N12) | OPEN | — | all (heavy) |
