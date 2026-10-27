@@ -187,8 +187,9 @@ def test_q4_every_global_star_row_walks_every_rule_it_does_not_scope_in_words():
                 if r.get("includes_tributaries") is not False or r.get("exempts") \
                         or r.get("undrawn_part") or r.get("within"):     # a clause follows its quota
                     continue
+                # "narrows": Pitt r2's Grant Narrows speed limit, held on the whole Pitt (owner 2026-10-27), not its tribs
                 if re.search(r"mainstem|main channel|signs|bridge|falls|dam|within|radius|tunnel|"
-                             r"pool|weir|fence|outlet|park|channel|lake|on parts|reservoir",
+                             r"pool|weir|fence|outlet|park|channel|lake|on parts|reservoir|narrows",
                              r.get("verbatim") or "", re.I):
                     continue
                 bad.append(f"{e['entry_id']}::{r['rule_id']} {r['verbatim'][:60]!r}")

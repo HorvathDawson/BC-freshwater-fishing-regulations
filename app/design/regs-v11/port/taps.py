@@ -63,6 +63,7 @@ T115 = "T115 (owner decision AGENTS 54, tickets/T115-one-region-membership.md): 
 T67 = "T67 (owner 2026-10-24, decisions.md \"braids accepted\"; RULINGS E17, AGENTS 12)"
 _LEN = "the automatic length cuts moved off braid-spanned junctions (owner Q2)"
 _GAUGE = "the old perpendicular sweep's gauge cuts are gone"
+COLUMBIA_R11 = ('2026-10-27 (owner, decisions.md "needs a split"): columbia_river.r11 \'Speed restriction (10 km/h) from Mud Lake to Columbia Lake\' now binds the Fairmont -> Columbia Lake stretch, so the golden\'s two-stretch part (Kinbasket Lake -> Donald + Fairmont -> Columbia Lake outlet, 3 sections) is two parts: 3 (Fairmont, 2 sections, with the speed limit) and 7 (Kinbasket -> Donald, 1 section)')
 PART_MOVED = {"x15p16_1010": 15,
               # (T67, then T183) the Skeena's Ecological Reserve is two parts (PART_GONE x19p5: 5 below the Exchamsiks cut,
               # 6 the host channel above it), which renumbers the parts after them
@@ -79,7 +80,8 @@ RECUT_WHY = {"x22p2_1010": "T67 (owner 2026-10-24): the Peace's braids are cut a
              # (T183) the straddling pieces are parts of their own again (T115's merge undone, two regions' rules)
              "x15p16_1010": f"{T183}: the Fraser's straddling pieces are parts of their own again (15 -> 17 parts; the "
                             f"golden has 19)",
-             "x27p0_1010": f"{T183}: the West Road's straddling pieces are parts of their own (3 -> 5 parts)"}
+             "x27p0_1010": f"{T183}: the West Road's straddling pieces are parts of their own (3 -> 5 parts)",
+             "x18p3_1010": COLUMBIA_R11}
 PART_GROWN = {
     "x27p0_1010": f"{T183}: the West Road's pieces on the Region 5 / 6 / 7A lines are parts of their own; part 0 is 79 sections",
     "x27p2_1010": f"{T183}: the West Road's side channel above Charleson Creek (Region 5 and 7A) is part 3 now; part 2 is the mouth stretch",
@@ -96,6 +98,7 @@ PART_GROWN = {
     "x19p1_1010": "T183 (owner 2026-10-24): Skeena section 2 starts at the Exchamsiks confluence, not the Ecological Reserve boundary (61 -> 59 sections; the extent changed, the rows did not)",
 }
 PART_GONE = {
+    "x18p3_1010": (3, COLUMBIA_R11),
     "x27p1_1010": (0, f"{T183}: the West Road's Region 6 stretch below Carnlick Creek shares its rules with part 0 now"),
     "x15p17_1010": (16, f"{T183}: the golden part (356364114:674465, Region 5 and Region 7A) shares its rules with 699253 and is in part 16 now"),
     "x15p18_1010": (16, f"{T183}: the golden part (356364114:699253, Region 5 and Region 7A) shares its rules with 674465 and is in part 16 now"),
@@ -310,6 +313,19 @@ def main():
     rest = [p for p in named if not p[1].startswith("Unnamed stream")]
     half = a.unnamed // 2
     pick = [g[::max(1, len(g) // max(1, n))][:n] for g, n in ((streams, half), (rest, a.unnamed - half))]
+
+    def base_only(h: int) -> bool:
+        """The section's rule set has no tributary rows: its region's base alone (golden.ts `baseUnnamedStream`)."""
+        (rs,) = s.con.execute("SELECT ruleset FROM akey WHERE akey = ?", (s.akey_of(h),)).fetchone()
+        row = s.con.execute("SELECT j FROM ruleset WHERE set_id = ?", (rs,)).fetchone()
+        return row is not None and not s.val("ruleset", row[0]).get("trib")
+    # (2026-10-27, r-8b43fb267199) the even sample can hold no stream on its region's base alone, which the edge_unnamed
+    # fixture needs: then the first such stream of the pool takes the LAST stream slot (the first, 634, is the Harris
+    # Creek tributary WaterScreen.unnamed.test.tsx taps)
+    if pick[0] and not any(base_only(h) for h, _ in pick[0]):
+        alt = next(((h, nm) for h, nm in streams if base_only(h) and (h, nm) not in pick[0]), None)
+        if alt is not None:
+            pick[0] = pick[0][:-1] + [alt]
     for h, name in sorted(pick[0] + pick[1]):
         out["unnamed"].append({"handle": h, "akey": s.akey_of(h), "place": s.place_of(h), "name": name})
     Path(a.out).write_text(json.dumps(out, indent=1))

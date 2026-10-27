@@ -40,8 +40,8 @@ describe("regs-web states", () => {
       if (top?.item !== s.item || top.part !== s.part || l.day?.getFullYear() !== y || l.day.getMonth() !== m! - 1 || l.day.getDate() !== d
           || l.regs.tab !== "keep" || l.regs.sheet !== null || l.who !== null || l.theme !== null) wrong.push(id);
     }
-    // (T115, T67, T183) 127: the golden's 134 less the 7 whose part the release merged away (taps.json `gone`)
-    expect({ n: IDS.length, protos: protos.size, apps: apps.size, wrong }).toEqual({ n: 127, protos: 127, apps: 127, wrong: [] });
+    // (T115, T67, T183, 2026-10-27 x18p3) 126: the golden's 134 less the 8 whose part the release re-cut (taps.json `gone`)
+    expect({ n: IDS.length, protos: protos.size, apps: apps.size, wrong }).toEqual({ n: 126, protos: 126, apps: 126, wrong: [] });
     expect([...IDS, ...GONE].sort()).toEqual(Object.keys(G.states).sort());
     // (T183) the Fraser's gone states' reasons are T183's now (a straddling piece carries both regions' rules again)
     expect(() => stateOf(GONE[0]!)).toThrow(/has no part in the store: T183/);

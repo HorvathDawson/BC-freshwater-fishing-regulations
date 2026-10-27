@@ -34,8 +34,9 @@ describe("EXCLUDE", () => {
   it("(T115) a state whose part is gone is excluded in every block, with its taps.json reason — and only those states are", () => {
     const blocks = ["header", "keep", "gear", "methods", "licence", "sheets", "pins"] as const;
     const gone = Object.keys(T.gone).sort();
-    // (T183) the West Road's x27p1 joins them: its Region 6 stretch shares its rules with part 0 (taps.py PART_GONE)
-    expect(gone).toEqual(["x15p14_1010", "x15p15_1010", "x15p17_1010", "x15p18_1010", "x19p5_1010", "x22p2_1010", "x27p1_1010"]);
+    // (T183) the West Road's x27p1 joins them: its Region 6 stretch shares its rules with part 0 (taps.py PART_GONE);
+    // (2026-10-27) and the Columbia's x18p3: its two-stretch part split at the Mud Lake speed limit
+    expect(gone).toEqual(["x15p14_1010", "x15p15_1010", "x15p17_1010", "x15p18_1010", "x18p3_1010", "x19p5_1010", "x22p2_1010", "x27p1_1010"]);
     for (const b of blocks) {
       for (const id of gone) expect(excluded(b, id)?.reason, `${b} ${id}`).toBe(`part gone — ${T.gone[id]!.reason}`);
       expect(Object.keys(T.states).filter((id) => excluded(b, id)?.reason.startsWith("part gone")), b).toEqual([]);
@@ -56,11 +57,11 @@ describe("EXCLUDE", () => {
     // regions' rules again, but not the prototype's rows), x27p1 is gone too; the grown parts are now the Skeena's x19p0/1
     // and the West Road's x27p0/2, and the West Road's 2 tapped states join the re-cut Parts sheets (25 -> 27). (T179)
     // the Koocanusa cut moved to the reservoir's inlet: the Kootenay's x9p0/1 are grown (4 -> 6) and its 8 tapped
-    // states join the re-cut Parts sheets (27 -> 35)
-    const gone = ["x15p14_1010", "x15p15_1010", "x15p17_1010", "x15p18_1010", "x19p5_1010", "x22p2_1010", "x27p1_1010"].flatMap(() =>
+    // states join the re-cut Parts sheets (27 -> 35). (2026-10-27) x18p3 gone; the Columbia's 6 tapped states join them (35 -> 41)
+    const gone = ["x15p14_1010", "x15p15_1010", "x15p17_1010", "x15p18_1010", "x18p3_1010", "x19p5_1010", "x22p2_1010", "x27p1_1010"].flatMap(() =>
       ["header 1 -", "keep 1 -", "gear 1 -", "methods 1 -", "licence 1 -", "sheets 1 -", "pins 1 -"]);
     expect(EXCLUDE.map((e) => `${e.block} ${e.ids === "*" ? "*" : e.ids.length} ${e.key?.source ?? "-"}`))
-      .toEqual([...gone, "header 6 ^place\\.(full|short)$", "sheets 35 ^parts$", "sheets 1 ^(other:x18p5_1010\\|o0)$", "sheets 1 ^(other:x22p1_1010\\|o1)$", "sheets 1 ^(other:x22p3_1010\\|o1)$",
+      .toEqual([...gone, "header 6 ^place\\.(full|short)$", "sheets 41 ^parts$", "sheets 1 ^(other:x18p5_1010\\|o0)$", "sheets 1 ^(other:x22p1_1010\\|o1)$", "sheets 1 ^(other:x22p3_1010\\|o1)$",
         "sheets * ^rule:", `header ${NO_MAP_LABEL_IDS.length} ^place$`, `header ${GOLDEN_MAP_ACTION_IDS.length} ^action$`,
         `header ${GOLDEN_PARTS_ACTION_IDS.length} ^action$`, "header * ^place\\.shown$",
         "keep 3 ^groups\\.\\d+\\.(tree|worked|lines)$",

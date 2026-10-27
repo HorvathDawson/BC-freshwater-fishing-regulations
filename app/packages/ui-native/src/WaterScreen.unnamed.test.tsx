@@ -100,13 +100,15 @@ describe("(T53) <WaterScreen> for an unnamed reach: the store's page for the tap
     // (T183, 1ca8bfda: taps.json's unnamed sample is half streams) the fixture's one base-only stream (445526, Region 8)
     // lies in a park: the PROVINCE's superior closure (zp:superior_closures, "Federal / parks") closes it all year. A
     // province rule, so the page is still the base alone; the banner, whole, is the store page's, its chain that rule
-    const b = page.keep.banner!;
+    // (2026-10-27, r-8b43fb267199) the sample moves with every build: the base-only stream may lie in no park (then no
+    // banner, and the strip reads open on the day). Either way the page is the store's, whole.
+    const b = page.keep.banner;
     expect([within(screen.getByTestId("regs-header")).getByRole("heading").textContent,
-            screen.getByTestId("regs-place").textContent, screen.getByTestId("keep-banner").textContent,
-            screen.getByTestId("keep-strip").textContent?.startsWith("✓Open")])
+            screen.getByTestId("regs-place").textContent, screen.queryByTestId("keep-banner")?.textContent ?? null])
       .toEqual([page.header.name, "",
-                b.big.join("") + b.paras.join("") + b.chain.map((c) => `${c.text} ${c.scope}${WORDS.SOURCE}${plain(c.book)}`).join(""), false]);
-    expect([b.big, b.chain.map((c) => c.rule.split("::")[0])]).toEqual([["Closed all year"], ["zp:superior_closures"]]);
+                b ? b.big.join("") + b.paras.join("") + b.chain.map((c) => `${c.text} ${c.scope}${WORDS.SOURCE}${plain(c.book)}`).join("") : null]);
+    // a banner here is only ever a province or zone rule's (the page is the base alone)
+    if (b) expect(b.chain.every((c) => /^z[^:]*:/.test(c.rule))).toBe(true);
     expect(page.header.name).toMatch(/^Unnamed stream · Regions? \d/);
     // the reach rules are the zones of the section's own region(s) and the province's, nothing else
     const zones = new Set(["zp", ...[...page.header.name.matchAll(/\d[AB]?/g)].map((m) => `z${m[0].toLowerCase()}`)]);

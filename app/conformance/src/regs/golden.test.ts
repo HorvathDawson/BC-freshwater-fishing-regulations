@@ -233,7 +233,7 @@ describe("T12 summary", () => {
     // (T115) the 4 states whose part the release merged away, and (T67) the 2 closed states whose merged closed list the
     // release re-cut, are excluded from every block (exclusions PART_GONE_IDS); (T183) so is the West Road's x27p1, its
     // part merged into part 0
-    const GONE = " · 7 excluded (x15p14_1010, x15p15_1010, x15p17_1010, x15p18_1010, x19p5_1010, x22p2_1010, x27p1_1010)";
+    const GONE = " · 8 excluded (x15p14_1010, x15p15_1010, x15p17_1010, x15p18_1010, x18p3_1010, x19p5_1010, x22p2_1010, x27p1_1010)";   // (2026-10-27) + the Columbia's x18p3
     expect(summary("methods", 134, 134)).toBe("methods parity: 134/134 states equal" + GONE   // (T32) the Set lines note the prototype's DOM lost, asserted instead
       + " · ^boats$ not compared (the page blocks and golden re-cut on drop_on_parts)"   // (T206) the on-parts ruling's Boats blocks, pinned instead
       + " · ^ways\\.list\\.0\\.items\\.\\d+\\.note$ not compared (never — a prototype markup bug, not a regulation)");
@@ -248,6 +248,6 @@ describe("T12 summary", () => {
       + d19("x18p5_1010\\|o0") + d19("x22p1_1010\\|o1") + d19("x22p3_1010\\|o1")   // (T36 part 2) the legacy pooled card path
       + " · ^rule: not compared (never — T36 test asserts the fold exists, closed, and that its first line starts with the key)"
       + " · ^src:x25p_1010\\|r2$ not compared (the page blocks and golden re-cut on the retired rules)");   // (T206) Lois Lake's fold   // the gl:/hatch pages compared since the release ships pdf_pages
-    expect(summary("licence", 133, 134)).toBe("licence parity: 133/134 states equal · 8 excluded (x15p14_1010, x15p15_1010, x15p17_1010, x15p18_1010, x19p5_1010, x22p2_1010, x27p1_1010, x31p_1010)");   // licence 7: the steelhead stamp and the youth alternatives compared
+    expect(summary("licence", 133, 134)).toBe("licence parity: 133/134 states equal · 9 excluded (x15p14_1010, x15p15_1010, x15p17_1010, x15p18_1010, x18p3_1010, x19p5_1010, x22p2_1010, x27p1_1010, x31p_1010)");   // licence 7: the steelhead stamp and the youth alternatives compared
   });
 });

@@ -224,7 +224,7 @@ def test_kanaka_has_a_mark_at_the_bridge_and_at_the_falls_and_two_stretches(requ
     by = {m[0]: m for m in marks}
     two = [p for p, k, _ in stretches if k == 1][0]           # the part with two stretches
     one = [p for p, _, _ in stretches if p != two][0]
-    assert by["112 Avenue bridge"][1:] == (two, json.dumps([one]), 0, None)
+    assert by["112 Avenue bridge"][1:] == (two, json.dumps([one]), None, None)    # every stretch 0: NULL
     assert by["Cliff Park Falls"][1:] == (one, json.dumps([two]), 0, json.dumps([1]))
 
 

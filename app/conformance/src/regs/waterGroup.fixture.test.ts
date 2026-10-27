@@ -31,7 +31,7 @@ describe("the water map's group from the fixture release", () => {
     expect(steps(g)).toEqual(["-|1", "0|2", "1|3", "2|-"]);
     expect(g.exit).toEqual({ item: "gnis:3062", name: "Vedder River", part: 0 });
     // the committed regs fixture's own handles (frozen until `pnpm regs-fixture` re-cuts it over a new atlas; T206, r-f6918815ca78: 355993454:0… and the 380887781/380887817 added streams; Vedder 355999181:0, 356363467:0/4738/12723, lake:329707189)
-    expect(navSections(g, 0).selected).toEqual([60212, 60213, 60214, 62457, 62575, 62827, 1235833, 1235834, 1235879]);
+    expect(navSections(g, 0).selected).toEqual([60212, 60213, 60214, 62457, 62575, 62827, 1235836, 1235837, 1235882]);
     expect(g.parts[0]!.box).toEqual([-121.966394, 49.071523, -121.836034, 49.097385]);
   });
 
@@ -39,7 +39,7 @@ describe("the water map's group from the fixture release", () => {
     const g = await loadWaterGroup(st, "gnis:3062");
     // the committed regs fixture's own handles (frozen until `pnpm regs-fixture` re-cuts it over a new atlas; T206, r-f6918815ca78: 355993454:0… and the 380887781/380887817 added streams; Vedder 355999181:0, 356363467:0/4738/12723, lake:329707189)
     expect([names(g), steps(g), navSections(g, 0).selected]).toEqual([
-      ["Vedder River"], ["-|-"], [62414, 313850, 313851, 313852, 1957149]]);
+      ["Vedder River"], ["-|-"], [62414, 313850, 313851, 313852, 1957152]]);
   });
 
   it("Cowichan: four parts in a line", async () => {
@@ -68,9 +68,12 @@ describe("the water map's group from the fixture release", () => {
       "Zymoetz Canyon upper entrance → Limonite Creek confluence",
       // (T179) the cut 3000 m below McDonell Lake is an authored lake-offset split: it names its end (it read "A lake")
       // and parts the source part's run there, so that part is two stretches
-      "McDonell Lake (3000 m downstream) → McDonell Lake outlet", "Limonite Creek confluence → Source (2 stretches)"]);
-    // ▼ from the source is a fork: the main stem, then "McDonell Lake (3000 m downstream) → McDonell Lake outlet" — its only way in (P15 review)
-    expect(steps(g)).toEqual(["-|1", "0|2", "1|4", "2|4", "2,3|-"]);
+      // (T204) the source part's two stretches lie either side of the McDonell Lake part: each is its own entry, in
+      // stem order, so the old fork from the source (both stretches were one) is a line now
+      "Limonite Creek confluence → Source (2 stretches) · stretch 1 of 2",
+      "McDonell Lake (3000 m downstream) → McDonell Lake outlet",
+      "Limonite Creek confluence → Source (2 stretches) · stretch 2 of 2"]);
+    expect(steps(g)).toEqual(["-|1", "0|2", "1|3", "2|4", "3|5", "4|-"]);
   });
 
   it("water_continue: the Vedder goes on from the Chilliwack — ▲ from the Vedder, ▼ from the Chilliwack's lowest part", async () => {
@@ -98,7 +101,10 @@ describe("the water map's group from the fixture release", () => {
         const ord = await st.itemOrd(p.item);
         const rows = await w.all("SELECT sid FROM part_section WHERE ord = ? AND part_ix = ? ORDER BY sid", ord, p.partIx);
         const { selected, water } = navSections(g, i);
-        expect([id, i, selected]).toEqual([id, i, rows.map((r) => Number(r.sid))]);
+        // (T204) a part of several stretches: each lights its own sids, and together they are the part's rows
+        const part = g.parts.flatMap((q) => (q.item === p.item && q.partIx === p.partIx ? q.sids : [])).sort((a, b) => a - b);
+        expect([id, i, part]).toEqual([id, i, rows.map((r) => Number(r.sid))]);
+        expect(selected.every((s) => part.includes(s))).toBe(true);
         expect(selected.length).toBeGreaterThan(0);
         // the rest of the water is every other part's, and never the selected part's
         expect(water.filter((s) => selected.includes(s))).toEqual([]);

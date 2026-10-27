@@ -17,6 +17,14 @@ with the default Claude uses until you answer). Newest first inside each section
   outreach by hand (T197). Plan: handoff/PLAN/seo/PLAN.md sections 4 and 7.
 
 ## Reviews
+- **"Needs a split" follow-ups (2026-10-27, live in r-8b43fb267199):** (1) check on the map the three guessed `low` cuts —
+  Chapman lower falls + 100 m below (SCRD survey point, ~576 m below the power line), Deena "second bridge" (no bridge
+  mapped: a point 5 km above the tidal boundary), Mamin "third bridge" (Mamin Main road, 9.1 km above tidal); (2) Columbia
+  r11 "from Mud Lake": FWA names no Mud Lake, so it runs Fairmont → Columbia Lake (the outlet wetland, wbk 329093907, is
+  the likely Mud Lake) — say if Mud Lake is elsewhere; (3) Stave r1/r2 (Ruskin/Northrop spawning channels) stay notes:
+  the channels have no sections in the atlas — they need the channels added (added_streams) before a cut can draw them.
+- **T204 phone check:** Kanaka Creek's map now has two marks (112 Avenue bridge, Cliff Park Falls) and its lower part is
+  two separately selectable stretches ("… · stretch 1 of 2"); say if the stretch wording should differ.
 - **Tidal boundaries (T212, 2026-10-27, critical):** open the curation review's **Tidal** tab. 1,163 proposed tidal
   cuts (every named stream your tidal polygon crosses + every named ocean-entering FWA stream); start with
   "words name it" (31). 19 agree with the book / DFO words; look first at Capilano (polygon 1 km up, the book's CN
@@ -24,10 +32,6 @@ with the default Claude uses until you answer). Newest first inside each section
   misses it; synopsis says 1.5 km above Hwy 16, DFO says ~1 km) and Squamish (the dyke line is not located).
   "accept proposal" (a) pre-fills Place y + the cut; Record mark is the only write. Summary:
   handoff/PLAN/curation-review/tidal/tidal-candidates.md.
-- **Kootenay navigation dolphin (2026-10-26):** your lake anchor on wbk 328974235 never landed on the Kootenay River
-  (the river touches the split main-body piece, lake:-20), so the release refused the rule. Lower r1 now ends at the
-  Kootenay Lake main-body edge (the same place; dolphin split kept). If you want the dolphin id back, its anchor needs
-  wbk "-20" plus an atlas build.
 - **Cranberry canyon cuts:** the bottom is a DEM estimate (low). Check it on the map in the review tool.
 - **Map look (T64, T85, T113, T152) — after the split rebuild (Claude runs it):** look at the map (wetland-heavy Fort Nelson and the
   Chilcotin without unnamed wetlands; z13–z18 bends on the Fraser/Vedder now overzoomed from z13; Vancouver's dense z13

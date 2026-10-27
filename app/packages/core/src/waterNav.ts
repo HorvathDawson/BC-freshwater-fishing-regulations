@@ -273,7 +273,10 @@ export function stepsFrom(g: WaterGroup, at: number, dir: Dir): readonly number[
     return n >= 0 && n < g.parts.length ? [n] : [];
   }
   const side = (c: number) => marked.some((o) => o !== c && reaches(g, c, o, dir));
-  return [...marked].sort((a, b) => Number(side(a)) - Number(side(b)) || a - b);
+  // (T204) a way that goes no further by the marks (a side channel's top: the release marks a channel with no km as
+  // the UPPER part of every boundary it has) is never the main stem while another way goes on
+  const end = (c: number) => byMarks(g, c, dir).length === 0;
+  return [...marked].sort((a, b) => Number(end(a)) - Number(end(b)) || Number(side(a)) - Number(side(b)) || a - b);
 }
 
 /** ▼: the part below, main stem first, or null at the lowest part (`stepsDown`: every way down at a fork). */

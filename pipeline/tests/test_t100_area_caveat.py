@@ -59,15 +59,15 @@ def _corpus():
 #: Kootenay, Williston (Zones A/B) and Shannon are SPLIT into parts (`sub_lake_areas.json`) and are
 #: not here; Ross Lake / Skagit River are not either — each row binds its whole water by the book.
 WIDENED = {
-    "r1:cowichan_lake_including_bear_lake@1-4": 1, "r1:deena_creek@6-12": 1, "r1:great_central_lake@1-7": 1,
-    "r1:mamin_river@6-13": 1, "r2:alouette_lake@2-8": 2, "r2:chapman_creek@2-5": 1, "r2:cultus_lake@2-3": 1,
+    "r1:cowichan_lake_including_bear_lake@1-4": 1, "r1:great_central_lake@1-7": 1,
+    "r2:alouette_lake@2-8": 2, "r2:cultus_lake@2-3": 1,
     "r2:harrison_lake@2-18": 1, "r2:harrison_river_from_the_fraser_river_upstream_to_harrison_la@2-18": 1,
-    "r2:pitt_lake@2-8": 2, "r2:pitt_river@2-8": 1, "r2:powell_lake@2-12": 1, "r2:ruby_lake@2-5": 1,
+    "r2:pitt_lake@2-8": 2, "r2:powell_lake@2-12": 1, "r2:ruby_lake@2-5": 1,
     "r2:sakinaw_lake@2-5": 2, "r2:stave_river@2-8": 2, "r3:adams_lake@3-37": 1, "r3:leighton_lake@3-18": 2,
     "r3:loon_lake@3-30": 2, "r3:mahood_lake_see_map_on_page_28_for_area_closure@3-46": 8,
-    "r3:mcarthur_island_slough@3-28": 1, "r3:roche_lake@3-20": 1, "r3:shumway_lake@3-20": 1,
+    "r3:roche_lake@3-20": 1, "r3:shumway_lake@3-20": 1,
     "r3:shuswap_lake_see_maps_on_page_28_includes_little_shuswap_lak@3-26": 7, "r3:white_lake@3-26": 1,
-    "r4:columbia_lake@4-25": 1, "r4:columbia_river@4-15+4-26+4-34+4-38+4-8": 2,
+    "r4:columbia_lake@4-25": 1, "r4:columbia_river@4-15+4-26+4-34+4-38+4-8": 1,
     "r4:kinbasket_mcnaughton_lake@4-36": 1, "r4:lake_revelstoke@4-38+4-39": 1, "r4:premier_lake@4-21": 3,
     "r4:trout_lake@4-30": 1, "r4:upper_arrow_lake_drawdown_area@4-31+4-32": 3,
     "r5:canim_lake_see_map_on_page_42@5-1": 1, "r5:chilko_lake@5-4": 1, "r5:dragon_lake@5-2": 1,
@@ -109,9 +109,11 @@ def test_the_widened_rules_are_counted():
     assert dict(sorted(per.items())) == WIDENED
     # T207: White River's pool and the Fulton's spawning-channel stretch are drawn now; Wahpeeto (split-name
     # audit) and the Halfway (its own cut, 6335f73d) were already (135, 87 before)
+    # owner 2026-10-27 ("needs a split" list): Deena, Mamin, Chapman, Pitt r2, McArthur and Columbia r11 bound or held
+    # whole (91 -> 85)
     # owner 2026-10-26: François Lake r2-r7 hold on the whole lake (97 -> 91); drop_on_parts made 33 "on parts" rules whole-water (no caveat), and Cranberry r1 binds
     # between its two canyon cuts (131, 83 before)
-    assert (sum(per.values()), len(per)) == (91, 61)
+    assert (sum(per.values()), len(per)) == (85, 56)
     lic = sorted(e["entry_id"] for f in sorted(CURATED.regulations.entries.catalogue.glob("region-*.json"))
                  for e in json.loads(f.read_text(encoding="utf-8"))["entries"]
                  for x in e.get("licensing") or [] if str(x.get("undrawn_part") or "").strip())

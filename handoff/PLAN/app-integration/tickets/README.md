@@ -248,7 +248,7 @@ use that as the sole source of future work."
 | T201 | bathymetry: feed the prepared Depth mode and draw contours | OPEN | — | last band; source + licence (owner); tile budget |
 | T202 | tile size optimizations (basemap z13 options, attributes, precision, simplification) | OPEN | — | last band; size table + owner look per change |
 | T203 | app UI: jumpy "Flows into" chip over navigation, search always lands on the map, amber highlight | DONE | 969f8ff3 | items 1-3 built; 4-5 (Kanaka end labels, non-adjacent stretches) need release data: one mark per meeting point + part stretches - see ticket Outcome |
-| T204 | a part's separate stretches and a mark at every place two parts meet (T203 items 4–5) | OPEN | — | pipeline + deliver rebuild + app |
+| T204 | a part's separate stretches and a mark at every place two parts meet (T203 items 4–5) | DONE | 9e0960ec | built in r-8b43fb267199 (Kanaka: bridge + falls marks, 610 stretch rows); owner phone check |
 | T205 | curation review: zone entries without a map, species + sizes per rule, pilot removed, compact T/R/P/A widget, bigger show-on-map | DONE | 7a55e651 | owner tries it |
 | T206 | app golden parity after the retired overlapping rules AND the zone daily-quota rename (page v36 oracle) | DONE | 3797095c 66a0aa70 | order-only amendment (rename flips), ORACLE_RETIRED + Lois fold, on-parts, handle re-pins; check green bar release-budget (T203) |
 | T208 | show rules that hold on an undrawn part of a lake ("area at the outlet … map 1") clearly, linked to the synopsis map | PARTIAL | ffe7e7e2 | app shows area rules as "Outlet area only (see map N)" with the synopsis page linked; the drawn outline waits on lake splits |

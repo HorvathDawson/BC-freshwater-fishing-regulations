@@ -1,4 +1,11 @@
 {
+ "boats": [
+  {
+   "kind": "unpowered",
+   "rule": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r12",
+   "text": "No powered boats"
+  }
+ ],
  "day": {
   "day": 1,
   "month": 5

@@ -64,7 +64,7 @@ describe.skipIf(gate.skip)("T32 ways, boats, reference vs golden methods", () =>
 
   // (T115) the 4 states whose part the release merged away (x15p14/15/17/18, taps.json `gone`) are not cases: all 4 open, with ways and the reference fold;
   // (T183) and the West Road's x27p1 (its Region 6 stretch shares part 0's rules now, taps.json `gone`) neither: open, ways, boats and the reference fold
-  it("1. tallies: 25 closed, 102 ways, 19 boats (13 + T206 ON_PARTS_BOAT_IDS), 102 identical reference folds", async () => {
+  it("1. tallies: 25 closed, 101 ways, 19 boats (13 + T206 ON_PARTS_BOAT_IDS), 101 identical reference folds", async () => {
     const t = { closed: 0, ways: 0, boats: [] as string[], reference: 0, refShape: new Set<string>() };
     for (const id of ids) {
       const v = await methodsOf(id);
@@ -73,7 +73,7 @@ describe.skipIf(gate.skip)("T32 ways, boats, reference vs golden methods", () =>
       if (v.boats) t.boats.push(id);
       if (v.reference) { t.reference++; t.refShape.add(JSON.stringify([v.reference.label, v.reference.title, v.reference.sub, v.reference.groups.map((x) => x.head)])); }
     }
-    expect([t.closed, t.ways, t.reference]).toEqual([25, 102, 102]);
+    expect([t.closed, t.ways, t.reference]).toEqual([25, 101, 101]);   // (2026-10-27) x18p3 gone: the Columbia's Mud Lake speed limit split its golden part
     expect(t.boats.sort()).toEqual(["bc1_501", "bc1_1010", "x14p0_1010", "x14p1_1010", "x14p2_1010", "x15p2_1010", "x16p1_1010", "x18p0_1010",
       "x21p0_1010", "x21p1_1010", "x21p2_1010", "x27p0_1010", "x27p2_1010", ...ON_PARTS_BOAT_IDS].sort());
     expect([...t.refShape]).toEqual([JSON.stringify(["Reference", "Handling fish", "21 rules that apply everywhere",

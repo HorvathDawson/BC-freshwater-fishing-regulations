@@ -7,7 +7,7 @@
  *
  * The angler is the adult resident, as the app defaults (the licence never changes open/closed).
  */
-import { buildRegsPage, WEEKDAYS, type BannerVM, type Day, type Line, type RegsPage, type TreeNodeVM, type Weekday } from "@app/core";
+import { buildRegsPage, MONTHS as CORE_MONTHS, WEEKDAYS, type BannerVM, type Day, type Line, type RegsPage, type TreeNodeVM, type Weekday } from "@app/core";
 import { loadRegsInputs, type RegsStore } from "@app/data/regs";
 
 export interface BookRef { readonly printed: number; readonly pdf: number | null }
@@ -155,7 +155,8 @@ const TODAY_WORDS: Record<Status, string> = {
   unknown: "We could not tell whether this water is open today. Check the synopsis.",
 };
 
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+/** the calendar spec's month names, short (AGENTS dataflow gate 4: a calendar table is spelled once) */
+const MONTHS = CORE_MONTHS.map((m) => m.slice(0, 3));
 /** the book calendar's 365 days (a non-leap year), day index -> "Nov 1" */
 const bookDay = (i: number): string => { const d = new Date(Date.UTC(2001, 0, 1 + ((i % 365) + 365) % 365)); return `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}`; };
 

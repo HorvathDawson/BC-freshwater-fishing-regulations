@@ -75,7 +75,7 @@ const project = (m: CardModel): OracleModel => ({
 const rowLine = (m: CardModel) => m.rows.map((r) => [r.kind, r.pool?.rix ?? null, r.daily, r.members]);
 
 it("the oracle: page v38's buildModel over the 134 golden states, YEAR 2026", () => {
-  expect([H.meta.version, YEAR, Object.keys(H.states).length, ids.length]).toEqual(["v38", 2026, 134, 127]);   // (T115, T67, T183) 7 gone
+  expect([H.meta.version, YEAR, Object.keys(H.states).length, ids.length]).toEqual(["v38", 2026, 134, 126]);   // (T115, T67, T183, 2026-10-27 x18p3) 8 gone
 });
 
 it(`T08 card parity runs against a paired release${pairing.skip ? ` — SKIPPED: ${"reason" in pairing ? pairing.reason : pairing.fail}` : ""}`, () => {
@@ -139,7 +139,7 @@ describe.skipIf(pairing.skip)(`T08 card model on the live release (${at.path ?? 
       .toEqual([4, ["closed", "closed"], R(575), [R(575), R(578)]]);
   });
 
-  it("5. census: nolimit rows in 24 states; missingRows false in all 134", async () => {
+  it("5. census: nolimit rows in 23 states; missingRows false in all 134", async () => {
     const withNolimit: string[] = [];
     let missing = 0;
     for (const id of ids) {
@@ -147,7 +147,7 @@ describe.skipIf(pairing.skip)(`T08 card model on the live release (${at.path ?? 
       if (m.rows.some((r) => r.kind === "nolimit")) withNolimit.push(id);
       if (m.missingRows) missing++;
     }
-    expect([withNolimit.length, missing]).toEqual([24, 0]);
+    expect([withNolimit.length, missing]).toEqual([23, 0]);   // (2026-10-27) x18p3 gone: the Columbia's Mud Lake speed limit split its golden part
     expect(withNolimit.slice(0, 6)).toEqual(["klwa_1010", "klwa_1012", "cow1_1010", "cow2_1010", "cow3_1010", "klmb_1010"]);
   });
 });

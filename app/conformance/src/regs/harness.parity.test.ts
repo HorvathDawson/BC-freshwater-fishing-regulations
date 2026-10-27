@@ -26,9 +26,10 @@ it(`the harness runs against a paired regs store${gate.skip ? ` — SKIPPED: ${"
 it("7. golden.json and taps.json are from one sync", () => {
   expect(golden().meta.sha, "golden.json and taps.json differ — re-run app/design/regs-v11/port/sync.mjs").toBe(T.meta.golden);
   // (T115) 4 Fraser states' parts merged away and (T67) 2 closed states re-cut (taps.json `gone`, excluded in every block),
-  // (T183) and the West Road's x27p1 merged into part 0: 127 tapped + 7 gone = 134
+  // (T183) and the West Road's x27p1 merged into part 0, (2026-10-27) the Columbia's x18p3 split in two by its Mud Lake
+  // speed limit: 126 tapped + 8 gone = 134
   expect([T.meta.golden, golden().meta.version, ids.length, Object.keys(T.gone).length, Object.keys(golden().states).length])
-    .toEqual(["bdda3586", "v38", 127, 7, 134]);
+    .toEqual(["bdda3586", "v38", 126, 8, 134]);
   expect([...Object.keys(T.states), ...Object.keys(T.gone)].sort()).toEqual(Object.keys(golden().states).sort());
 });
 

@@ -88,8 +88,8 @@ describe("<WaterMapView>", () => {
     expect(bar()).toBe("Part 1 of 4 · Chilliwack River | Vedder Crossing Bridge → Tamihi Rapids Bridge"
       + " | Downstream into Vedder River | Upstream | Flows into Vedder River ›");
     expect(lit()).toEqual({
-      highlight: [60212, 60213, 60214, 62457, 62575, 62827, 1235833, 1235834, 1235879],
-      water: [1235835, 1235880, 1235881, 59896, 59902, 61181, 62863, 1235836, 1235837, 1235838, 1235839] });
+      highlight: [60212, 60213, 60214, 62457, 62575, 62827, 1235836, 1235837, 1235882],
+      water: [1235838, 1235883, 1235884, 59896, 59902, 61181, 62863, 1235839, 1235840, 1235841, 1235842] });
     expect(seen.props?.fit).toEqual({ key: "gnis:8634:1", bbox: [-121.966394, 49.071523, -121.836034, 49.097385], refine: false });
     expect(seen.props?.marks?.map((m) => `${m.label ?? "(ring)"} ${m.a11y}`)).toEqual([
       "(ring) Boundary: Chilliwack River Ecological Reserve boundary",
@@ -100,7 +100,7 @@ describe("<WaterMapView>", () => {
       + " | Downstream | Highest part (off)");
     // the committed regs fixture's handle of the Chilliwack's part 4 (frozen until `pnpm regs-fixture` re-cuts it; T206,
     // r-f6918815ca78: 380887781:58646)
-    expect([lit().highlight, seen.props?.fit?.key]).toEqual([[1235839], "gnis:8634:3"]);
+    expect([lit().highlight, seen.props?.fit?.key]).toEqual([[1235842], "gnis:8634:3"]);
     // the disabled end does nothing
     fireEvent.click(screen.getByRole("button", { name: "Highest part" }));
     expect(screen.getByTestId("water-map-where").textContent).toBe("Part 4 of 4 · Chilliwack River");
@@ -141,7 +141,7 @@ describe("<WaterMapView>", () => {
     expect(seen.props?.marks?.[2]?.on).toBe(true);
     fireEvent.click(pop.getByRole("button", { name: "Close" }));
     expect(screen.queryByTestId("water-map-mark")).toBeNull();
-    act(() => seen.props!.onPressFeature!("stream", 1235839));
+    act(() => seen.props!.onPressFeature!("stream", 1235842));
     expect(screen.getByTestId("water-map-where").textContent).toBe("Part 4 of 4 · Chilliwack River");
     act(() => seen.props!.onPressFeature!("stream", 62414));   // the Vedder's 355999181:0 (T206)
     expect([screen.getByTestId("water-map-where").textContent, calls]).toEqual(["Part 4 of 4 · Chilliwack River",
@@ -159,7 +159,9 @@ describe("<WaterMapView>", () => {
     fireEvent.click(screen.getByRole("button", { name: "Upstream" }));
     const chooser = within(screen.getByRole("dialog", { name: "Which way upstream?" }));
     const other = "Side channel";
-    expect(chooser.getAllByRole("button").map((b) => b.getAttribute("aria-label"))).toEqual(["Close", "3 stretches", other]);
+    // (T204) part 0's stretch above the Reserve is its own entry
+    expect(chooser.getAllByRole("button").map((b) => b.getAttribute("aria-label"))).toEqual(
+      ["Close", "3 stretches · stretch 2 of 3", other]);
     fireEvent.click(chooser.getByRole("button", { name: other }));
     expect([screen.queryByRole("dialog"), screen.getByTestId("water-map-name").textContent]).toEqual([null, other]);
   }, 30_000);
@@ -247,16 +249,13 @@ describe("<WaterMapView>", () => {
       "Part 1 of 4 · Chilliwack River", ["cross gnis:8634 at 1", "cross gnis:3062 at 0"]]);
   }, 30_000);
 
-  it("a fork going down: ▼ on the Zymoetz's source part offers the main stem, then the lake part", async () => {
-    const calls = mount("gnis:3137", 3);
+  it("(T204) ▲ from the Zymoetz's lake part steps onto the source part's upper stretch, named as one of two", async () => {
+    const calls = mount("gnis:3137", 2);
     await ready();
-    fireEvent.click(screen.getByRole("button", { name: "Downstream" }));
-    const chooser = within(screen.getByRole("dialog", { name: "Which way downstream?" }));
-    expect(chooser.getAllByRole("button").map((b) => b.getAttribute("aria-label"))).toEqual([
-      "Close", "Zymoetz Canyon upper entrance → Limonite Creek confluence", "McDonell Lake (3000 m downstream) → McDonell Lake outlet"]);
-    fireEvent.click(chooser.getByRole("button", { name: "McDonell Lake (3000 m downstream) → McDonell Lake outlet" }));
+    expect(screen.getByTestId("water-map-name").textContent).toBe("McDonell Lake (3000 m downstream) → McDonell Lake outlet");
+    fireEvent.click(screen.getByRole("button", { name: "Upstream" }));
     expect([screen.queryByRole("dialog"), screen.getByTestId("water-map-name").textContent, calls]).toEqual([
-      null, "McDonell Lake (3000 m downstream) → McDonell Lake outlet", ["part gnis:3137 2"]]);
+      null, "Limonite Creek confluence → Source (2 stretches) · stretch 2 of 2", ["part gnis:3137 3"]]);
   }, 30_000);
 
   it("opened by a tap: starts on the tapped section's part (the Regulations view's part)", async () => {

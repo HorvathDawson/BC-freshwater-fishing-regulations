@@ -12,7 +12,7 @@
  */
 import { describe as group, expect, it } from "vitest";
 import { describe, ruleIndex, viaOf, type RegsPage, type RuleView } from "@app/core";
-import { hydrate, onPartsDropped, ORACLE_RETIRED, oracleLive, oracleRixOver, taps } from "./oracles";
+import { hydrate, onPartsDropped, ORACLE_RETIRED, oracleLive, oracleRixOver, partDrawn, taps } from "./oracles";
 import { pageDecode, pageSource, storeSource, type RuleSource } from "./ruleSources";
 
 const H = hydrate();
@@ -96,6 +96,8 @@ group.skipIf(!store)(`T06 parity: the regs store (${store?.name ?? "absent"})`, 
   });
   // (T206) ORACLE_ON_PARTS_DROPPED: the store's rule holds on the whole water (part null) where page v36 says "on parts"
   parity(() => store!, () => oracleRixOver(store!.stored), oracleLive, (rix, want) => {
+    // (2026-10-27) ORACLE_PART_DRAWN: the rule binds its part, so its view has none
+    if (partDrawn(rix)) return { ...want, part: null };
     if (!onPartsDropped(rix)) return want;
     expect(want.part, `oracle rule ${rix}`).toBe("on parts");
     return { ...want, part: null };

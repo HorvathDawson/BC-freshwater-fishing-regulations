@@ -23,7 +23,8 @@ const at = liveReleaseAt();
 /** The three sections' handles in atlas `H_ATLAS` (section_handles.txt line numbers; r-46a602244714, T179: the one
  * placement pass dropped a sliver ahead of the Salmon / base sections, each one line earlier; T206, r-f6918815ca78: the
  * atlas rebuild put two sections ahead of them, each two lines later). */
-const H_ATLAS = "15745aa46e2f0c0d";
+// (2026-10-27, r-8b43fb267199: Chapman/Deena/Mamin cuts) the three keep their line numbers in atlas 52c5cff7ba8b6313
+const H_ATLAS = "52c5cff7ba8b6313";
 const H = { eve: 1409, salmon: 64039, base: 59509 } as const;
 /** The page's default angler (decisions.md D8, `@app/ui` DEFAULT_WHO). */
 const ADULT_RESIDENT = { age: "adult", residency: "resident" } as const;

@@ -641,8 +641,7 @@ def closures_combine_problems(entries: dict, bundle: Path) -> list[str]:
 #: tributaries of their part are named here. The bundle does not carry a rule's tributary scope;
 #: `test_rules_round.py` re-derives this list from the corpus and refuses a drift.
 UNDRAWN_PART_TRIBUTARIES = (
-    "r1:deena_creek@6-12::deena_creek.r1",
-    "r1:mamin_river@6-13::mamin_river.r3",
+    # (owner 2026-10-27) Deena r1 and Mamin r3 are drawn now (low-confidence bridge cuts): they walk their tributaries
     "r7:dinosaur_lake_reservoir_downstream_of_w_a_c_bennett_dam@7-31::dinosaur_lake.r1",
 )
 

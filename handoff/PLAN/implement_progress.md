@@ -3,7 +3,17 @@
 Restart here. Update this file after EVERY step: what is done, what is running, and the exact next action.
 Logs from timing runs live in the session scratchpad, which a reboot wipes. The numbers that matter are copied here.
 
-## CURRENT STATE (2026-10-27 — T185 merged)
+## CURRENT STATE (2026-10-27, later — owner split decisions + T204 built)
+
+LIVE: r-8b43fb267199 (previous r-f6918815ca78 kept; older pruned). One atlas build: only Chapman, Deena and Mamin cut
+(new low cuts, 540995d4); binding diff fully explained (the 5 rebound rules + zone rules re-keying the new pieces). Owner
+"needs a split" list applied: Pitt r2 + McArthur r1 whole, Columbia r11 Fairmont→Columbia Lake (Mud Lake = outlet
+wetland, medium), Stave marking below Ruskin Dam; Stave r1/r2 stay undrawn (spawning channels not in the atlas). T204
+DONE (9e0960ec): a mark per meeting place + `part_stretch`, app walks stretches. Promote guard fix 8d649b03 (.prev with
+the current build's sid space may go). Taps (Columbia x18p3 declared gone), harness, regs-fixture re-cut. :8787 shows 0
+awaiting. NEXT: T185 owner proposals; T206/T209/T211; SEO T192-T198.
+
+## (earlier) CURRENT STATE (2026-10-27 — T185 merged)
 
 T185 merged (102236e9, fc2a922f) alongside T212 Tidal: marks take `tidal` and `proposal` scopes; app has Tidal and
 Proposals tabs. Owner decides the 8 proposals in the Proposals tab (OWNER-TODO). CLAUDE then, after the decisions:

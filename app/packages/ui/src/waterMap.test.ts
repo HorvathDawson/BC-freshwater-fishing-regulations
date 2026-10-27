@@ -170,22 +170,23 @@ describe("(T150) the parts of this water, listed under the map — the header's 
 describe("a fork upstream: the Skeena's Ecological Reserve", () => {
   it("▲ at the fork opens a chooser, the main stem first; a choice steps there", async () => {
     const g = await loadWaterGroup(st, "gnis:2936");
-    const reserve = waterMapStart(0);
+    // (T204) part 0 ("3 stretches") is three entries: the Reserve (part 5) is index 1, between its stretches 1 and 2
+    const reserve = waterMapStart(1);
     expect([view(g, reserve).current.name, view(g, reserve).up])
       .toEqual(["Within Skeena River Ecological Reserve", { label: "Upstream", aria: "Upstream", disabled: false, fork: true, cross: null }]);
     const open = run(g, reserve, { type: "up" });
     expect(open).toEqual({ ...reserve, choosing: "up" });
     expect(view(g, open).chooser).toEqual({ title: "Which way upstream?", close: "Close", options: [
-      { ix: 2, item: "gnis:2936", partIx: 0, name: "3 stretches", note: "Skeena River" },
-      { ix: 8, item: "gnis:2936", partIx: 6, name: "Side channel", note: "Skeena River" }] });
+      { ix: 2, item: "gnis:2936", partIx: 0, name: "3 stretches · stretch 2 of 3", note: "Skeena River" },
+      { ix: 12, item: "gnis:2936", partIx: 6, name: "Side channel", note: "Skeena River" }] });
     expect(run(g, open, { type: "choose", to: 2 })).toEqual(waterMapStart(2));
-    expect(run(g, open, { type: "choose", to: 8 })).toEqual(waterMapStart(8));
+    expect(run(g, open, { type: "choose", to: 12 })).toEqual(waterMapStart(12));
     // not one of the ways up: nothing
-    expect(run(g, open, { type: "choose", to: 1 })).toBe(open);
+    expect(run(g, open, { type: "choose", to: 0 })).toBe(open);
     expect(run(g, open, { type: "closeChooser" })).toEqual(reserve);
     // the host channel above the cut is the highest part, and its own ▼ is a fork (section 2 and the Reserve meet it at
     // the Exchamsiks cut)
-    const side = view(g, waterMapStart(8));
+    const side = view(g, waterMapStart(12));
     expect([side.current.name, side.up.disabled, side.down.fork]).toEqual(["Side channel", true, true]);
   });
 });
@@ -214,19 +215,14 @@ describe("every part is reached by ▼ / ▲ (P15 review: the Zymoetz's lake par
     expect(missed).toEqual([]);
   });
 
-  it("the Zymoetz's source part: ▼ is a fork, the main stem first, then the lake part (its only way in)", async () => {
+  it("(T204) the Zymoetz's source part is two stretches either side of the lake part: ▼ walks them in stem order", async () => {
     const g = await loadWaterGroup(st, "gnis:3137");
-    const source = waterMapStart(4);
-    expect(view(g, source).down).toEqual({ label: "Downstream", aria: "Downstream", disabled: false, fork: true,
-                                           cross: null });
-    const open = run(g, source, { type: "down" });
-    expect([open.choosing, view(g, open).chooser]).toEqual(["down", { title: "Which way downstream?", close: "Close",
-      options: [
-        { ix: 2, item: "gnis:3137", partIx: 0, name: "Zymoetz Canyon upper entrance → Limonite Creek confluence", note: "Zymoetz River" },
-        { ix: 3, item: "gnis:3137", partIx: 2, name: "McDonell Lake (3000 m downstream) → McDonell Lake outlet", note: "Zymoetz River" }] }]);
-    expect(run(g, open, { type: "choose", to: 3 })).toEqual(waterMapStart(3));
-    // not a way down: nothing
-    expect(run(g, open, { type: "choose", to: 4 })).toBe(open);
+    // 3: the source part's lower stretch, 4: "McDonell Lake (3000 m downstream) → McDonell Lake outlet", 5: its upper
+    expect([3, 4, 5].map((i) => [g.parts[i]!.partIx, g.parts[i]!.stretch ?? 0])).toEqual([[3, 0], [2, 0], [3, 1]]);
+    const top = waterMapStart(5);
+    expect(view(g, top).down).toEqual({ label: "Downstream", aria: "Downstream", disabled: false, fork: false, cross: null });
+    expect(run(g, top, { type: "down" })).toEqual(waterMapStart(4));
+    expect(run(g, waterMapStart(4), { type: "down" })).toEqual(waterMapStart(3));
   });
 });
 

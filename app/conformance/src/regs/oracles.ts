@@ -261,6 +261,15 @@ const ORACLE_ON_PARTS_DROPPED: readonly string[] = [
 ];
 export const onPartsDropped = (oracle: number): boolean => ORACLE_ON_PARTS_DROPPED.includes(pageRid().get(oracle) ?? "");
 
+/**
+ * (2026-10-27 owner, decisions.md "needs a split") an undrawn part that is DRAWN now: the rule binds its own stretch
+ * (`columbia_river.r11` "from Mud Lake to Columbia Lake": between the Fairmont and Columbia Lake cuts), so it holds on that
+ * part alone — page v36's `inpart` entry on the water's other parts is gone, and the rule's view has no part. The one golden
+ * state on the drawn part (x18p3) is taps.json `gone`.
+ */
+const ORACLE_PART_DRAWN: readonly string[] = ["r4:columbia_river@4-15+4-26+4-34+4-38+4-8::columbia_river.r11"];
+export const partDrawn = (oracle: number): boolean => ORACLE_PART_DRAWN.includes(pageRid().get(oracle) ?? "");
+
 /** `oracleRix` over any rule set keyed by rix (a store's `rules()`, a RuleSource's `stored`). */
 export function oracleRixOver(rules: Keyed): (oracle: number) => number {
   const byKey = new Map<string, number>();
