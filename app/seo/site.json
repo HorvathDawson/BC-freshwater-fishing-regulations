@@ -1,0 +1,8 @@
+{
+ "origin": "https://canifishthis.ca",
+ "name": "Can I Fish This?",
+ "alsoHosts": ["canifishthis.com"],
+ "contact": null,
+ "verification": { "google": null, "bing": null },
+ "$comment": "contact: the owner's public email (About page; Organization JSON-LD) - null until set (T86 names it), and the About page then says nothing rather than invent one. verification: the Search Console / Bing meta tokens the owner pastes (T198); a null token renders nothing."
+}

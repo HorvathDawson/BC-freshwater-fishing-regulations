@@ -32,8 +32,10 @@
       },
       // The tools suites render the real packages (react-native-web, the style spec, the basemap) through the
       // workspace packages' own dependencies; the root package does not re-declare them.
+      // vite: tools/build-seo.mjs (T193) loads the TypeScript page builders through vite's SSR loader, as vitest does;
+      // it is vitest's own engine, so the root package does not declare it.
       "ignoreDependencies": ["react-native", "react-native-gesture-handler", "@maplibre/maplibre-gl-style-spec",
-                             "maplibre-gl", "@protomaps/basemaps"]
+                             "maplibre-gl", "@protomaps/basemaps", "vite"]
     },
     "packages/core": { "project": ["src/**/*.ts"] },
     "packages/ui": { "project": ["src/**/*.{ts,tsx}"] },

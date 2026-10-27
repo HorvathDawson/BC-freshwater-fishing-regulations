@@ -1,0 +1,15 @@
+{
+  "$comment": "T192-T198: the SEO build tooling is TypeScript run by vitest / vite (tools/ is in no composite project), so it is typechecked here, against the packages' SOURCE the way vitest.config.ts aliases them. `pnpm run typecheck:seo`, part of `pnpm check`.",
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": false, "declaration": false, "emitDeclarationOnly": false, "noEmit": true,
+    "types": ["node"],
+    "baseUrl": "../..",
+    "paths": {
+      "@app/core": ["packages/core/src/index.ts"],
+      "@app/data/regs": ["packages/data/src/regs/index.ts"],
+      "@app/data/release/node": ["packages/data/src/sql/drivers/releaseDir.ts"]
+    }
+  },
+  "include": ["*.ts"]
+}

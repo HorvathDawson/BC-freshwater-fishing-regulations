@@ -233,13 +233,13 @@ use that as the sole source of future work."
 | T186 | web prefetch after first paint (region's regs file; core + wasm on idle) + core-words chevrons (Q164, Q162) | DONE | d54842ec, b8b5b357, 0a129a14 | first tap still fetches water + access → T182 |
 | T187 | a braid piece between one window's two cuts is inside it (Peace Site C closure, 359005110:3454) | DONE | 13027245, 525ab99e, 0bc22c70 | found by the post-braid check; 1 rule changes |
 | T188 | get found in search: per-water static pages, sitemap, structured data, Search Console, outreach plan (no spam bots) | PARTIAL | plan | plan done in handoff/PLAN/seo/PLAN.md; build → T192–T198 (domain canifishthis.ca; full rules per water page) |
-| T192 | SEO: stable slug map + per-water page model from the bundle (presenter code shared) | OPEN | — | seo/PLAN.md §1 |
-| T193 | SEO: static water pages + About, built in the release job | OPEN | — | after T192 |
-| T194 | SEO: sitemap, robots, canonicals, JSON-LD + build gates | OPEN | — | after T193 |
-| T195 | SEO: region hubs, weekend/changes pages, share images | OPEN | — | after T193 |
-| T196 | SEO: page performance budget + Lighthouse CI gate | OPEN | — | after T193 |
-| T197 | SEO: outreach kit (drafts only, no sending; no bots or link schemes) | OPEN | — | owner sends |
-| T198 | SEO: .com to .ca 301, HSTS, Search Console/Bing wiring, measurement | OPEN | — | owner: DNS/accounts; with T86 |
+| T192 | SEO: stable slug map + per-water page model from the bundle (presenter code shared) | PARTIAL | — | built + green, UNCOMMITTED (sandbox refused the commit); see ticket Outcome; seo/PLAN.md §1 |
+| T193 | SEO: static water pages + About, built in the release job | PARTIAL | — | built + green, UNCOMMITTED (sandbox refused the commit); see ticket Outcome; after T192 |
+| T194 | SEO: sitemap, robots, canonicals, JSON-LD + build gates | PARTIAL | — | built + green, UNCOMMITTED (sandbox refused the commit); see ticket Outcome; after T193 |
+| T195 | SEO: region hubs, weekend/changes pages, share images | PARTIAL | — | built + green, UNCOMMITTED (sandbox refused the commit); see ticket Outcome; after T193 |
+| T196 | SEO: page performance budget + Lighthouse CI gate | PARTIAL | — | built + green, UNCOMMITTED (sandbox refused the commit); see ticket Outcome; after T193 |
+| T197 | SEO: outreach kit (drafts only, no sending; no bots or link schemes) | PARTIAL | — | built + green, UNCOMMITTED (sandbox refused the commit); see ticket Outcome; owner sends |
+| T198 | SEO: .com to .ca 301, HSTS, Search Console/Bing wiring, measurement | PARTIAL | — | built + green, UNCOMMITTED (sandbox refused the commit); see ticket Outcome; owner: DNS/accounts; with T86 |
 | T189 | curation review from the pilot: source pinned, each rule's extent in words (tributaries, carve-outs), entry extent on top, tributary + lake-split calls in the mark, one pre-check per fact | DONE | 106dbc83 | owner re-runs the pilot on it |
 | T190 | a two-region piece's decision ladder heads both regions' rules with one region | DONE | 5a6cb255 | app only (decided.ts) |
 | T191 | curation review: one-row top bar (secondary filters fold), "fix extent" per rule + entry (op, 1-2 points: map split / any split / NEW confluence, lake inlet/outlet, map click; items; tributaries; read-only preview) as Mark.extent_fix, in tickets for T185 | DONE | 031eeb0c | owner tries it in the pilot |
