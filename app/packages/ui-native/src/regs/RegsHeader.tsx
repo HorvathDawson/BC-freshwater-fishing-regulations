@@ -95,11 +95,12 @@ export function DatePill({ h, palette, onDate }: { h: HeaderVM; palette: Palette
  */
 function Place({ place, palette }: { place: HeaderVM["place"]; palette: Palette }) {
   const [measured, setMeasured] = useState<number | null>(null);
-  const lh = PLACE_LH * useCappedScale();
+  const scale = useCappedScale();
+  const lh = PLACE_LH * scale;
   const shown = place ? pickPlace(place, measured, lh) : "";
   // (owner 2026-10-27) one line when the name fits, two only when it wraps. Before the measuring twin has laid out, a guess
   // from the text's length (no jump for the common short name); the measure then settles it.
-  const wraps = place ? (measured ? measured > lh * 1.5 : place.full.length > ONE_LINE_CHARS) : false;
+  const wraps = place ? (measured ? measured > lh * 1.5 : place.full.length * scale > ONE_LINE_CHARS) : false;
   const lines = wraps ? 2 : 1;
   return (
     <View style={{ paddingLeft: GUTTER, paddingRight: 12, paddingBottom: 6, marginTop: -2 }}>

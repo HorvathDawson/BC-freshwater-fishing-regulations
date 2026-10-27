@@ -63,7 +63,7 @@ describe("<PinBar> replays the golden bars through the ScrollView", () => {
   it("vedder_1010 in words: nothing at the top; the group line and its total; + the size line; + the rainbow line; nothing past the group", () => {
     mount("vedder_1010");
     const seen: unknown[] = [];
-    for (const y of [0, 128, 240, 872, 928, 1088, 1584]) { scrollTo(y); seen.push(bar()); }
+    for (const y of [0, 128, 240, 912, 968, 1128, 1624]) { scrollTo(y); seen.push(bar()); }
     const G = ["Trout and char · 2 a day from streams", "(of 4 across Region 2)"];
     expect(seen).toEqual([
       [],

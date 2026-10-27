@@ -212,21 +212,21 @@ describe("T40 the Regulations view at 200 % text, laid out in Chrome", () => {
     expect(Object.fromEntries(Object.entries(m).filter(([k]) => !k.startsWith("sheet ")).map(([k, v]) => [k, `title ${v.title} place ${v.place}`])))
       .toMatchInlineSnapshot(`
         {
-          "glenn_501 desktop 1×": "title 48 place 32",
-          "glenn_501 desktop 2×": "title 48 place 65",
-          "glenn_501 phone 1×": "title 48 place 32",
-          "glenn_501 phone 2×": "title 60 place 65",
-          "klwa_1010 desktop 1×": "title 48 place 32",
-          "klwa_1010 desktop 2×": "title 48 place 65",
-          "klwa_1010 phone 1×": "title 48 place 32",
-          "klwa_1010 phone 2×": "title 117 place 65",
-          "vedder_1010 desktop 1×": "title 48 place 32",
+          "glenn_501 desktop 1×": "title 48 place 16",
+          "glenn_501 desktop 2×": "title 48 place 32",
+          "glenn_501 phone 1×": "title 48 place 16",
+          "glenn_501 phone 2×": "title 60 place 32",
+          "klwa_1010 desktop 1×": "title 48 place 16",
+          "klwa_1010 desktop 2×": "title 48 place 32",
+          "klwa_1010 phone 1×": "title 48 place 16",
+          "klwa_1010 phone 2×": "title 117 place 32",
+          "vedder_1010 desktop 1×": "title 48 place 16",
           "vedder_1010 desktop 2×": "title 48 place 65",
-          "vedder_1010 phone 1×": "title 48 place 32",
+          "vedder_1010 phone 1×": "title 48 place 16",
           "vedder_1010 phone 2×": "title 60 place 65",
-          "vedder_615 desktop 1×": "title 48 place 32",
+          "vedder_615 desktop 1×": "title 48 place 16",
           "vedder_615 desktop 2×": "title 48 place 65",
-          "vedder_615 phone 1×": "title 48 place 32",
+          "vedder_615 phone 1×": "title 48 place 16",
           "vedder_615 phone 2×": "title 60 place 65",
         }
       `);
