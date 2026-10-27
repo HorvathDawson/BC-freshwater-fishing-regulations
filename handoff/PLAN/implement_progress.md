@@ -3,12 +3,19 @@
 Restart here. Update this file after EVERY step: what is done, what is running, and the exact next action.
 Logs from timing runs live in the session scratchpad, which a reboot wipes. The numbers that matter are copied here.
 
-## NEXT BUILD (2026-10-26, owner): 445643c2 re-anchors Burton's Hwy 6 bridge (its mouth into the Caribou slough)
-and the Kootenay navigation dolphin (bound to Kootenay Lake) and restores both rules' bindings — needs an atlas build
-(`build --atlas` → reach → binding_diff → `--promote`); until then those two entries show "awaiting build" in review.
-T206 (app order reds) still open.
+## CURRENT STATE (2026-10-26, late — owner reviewing, few credits)
 
-## CURRENT STATE (2026-10-26, end of day — owner reviews, no credits)
+LIVE: r-b9f0e5d00101 (previous r-d32f814feac0 kept; older pruned). One atlas build applied 445643c2: only Burton
+changed (cuts 2 -> 3; r1 binds as before). Kootenay lower r1: the dolphin's lake anchor (wbk 328974235) never lands on the
+river (the river touches the split main-body piece, lake:-20), so the export REFUSED the rule; r1 now ends at
+`kootenay_river__kootenay_lake_main_body` (Kootenay Lake's edge, same binding as before; dolphin split kept in splits.json).
+Mackenzie Creek: book MU typo 4-21 -> 4-31, override -> gnis:12042, binds +3 sections. Final binding diff vs the previous
+run: only Mackenzie. Review app: items-less area rows show "matched by area" (6 rows, not high); the within-op lists areas.
+Area sweep: nothing to fix (handoff/PLAN/curation-review/area-matches.md). Taps/harness/regs-fixture re-cut (56c4db45).
+Review app :8787: 0 awaiting. App check not re-run (known reds: T206, release-budget).
+NEXT: T206 lane; T203 request-walk + T182 pin; T204; T185; SEO T192-T198; T209.
+
+## (earlier) CURRENT STATE (2026-10-26, end of day — owner reviews, no credits)
 
 LIVE: r-d32f814feac0 (previous r-c66117ef7883 kept; older releases pruned). Atlas rebuilt: only White River, Fulton and
 Cranberry changed (+31 sections). The binding diff is fully explained by those cuts; zone rules re-key the new pieces.

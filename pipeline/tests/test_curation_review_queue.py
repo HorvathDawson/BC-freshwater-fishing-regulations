@@ -86,7 +86,9 @@ def test_one_queue_across_every_region_in_the_review_order(env, queue):
         for t in ("P1", "P3"):
             first = [RISKS.index(r["risks"][0]) for r in queue if r["tier"] == t and r["severity"] == lv]
             assert first == sorted(first), (lv, t)
-    assert next(r for r in queue if r["tier"] == "P1")["risks"][0] == "no match"
+    # owner 2026-10-26: Mackenzie Creek (book MU typo) now matches, and the item-less area rows are
+    # matched by area — no P1 closure binds nothing, so P1 is led by an undrawn part
+    assert next(r for r in queue if r["tier"] == "P1")["risks"][0] == "undrawn part"
     assert {r["status"] for r in queue} == {"no_registry", "parser-uncertain", "unused_splits",
                                             "plain", "zone"}
     assert all(set(r["prechecks"]) == {"A", "B"} for r in queue)

@@ -12,6 +12,10 @@ with the default Claude uses until you answer). Newest first inside each section
   outreach by hand (T197). Plan: handoff/PLAN/seo/PLAN.md sections 4 and 7.
 
 ## Reviews
+- **Kootenay navigation dolphin (2026-10-26):** your lake anchor on wbk 328974235 never landed on the Kootenay River
+  (the river touches the split main-body piece, lake:-20), so the release refused the rule. Lower r1 now ends at the
+  Kootenay Lake main-body edge (the same place; dolphin split kept). If you want the dolphin id back, its anchor needs
+  wbk "-20" plus an atlas build.
 - **Cranberry canyon cuts:** the bottom is a DEM estimate (low). Check it on the map in the review tool.
 - **Map look (T64, T85, T113, T152) — after the split rebuild (Claude runs it):** look at the map (wetland-heavy Fort Nelson and the
   Chilcotin without unnamed wetlands; z13–z18 bends on the Fraser/Vedder now overzoomed from z13; Vancouver's dense z13

@@ -18,9 +18,8 @@ The four fixed in T89 (curated catalogue, 2026-10-22):
     the copy is the Region 6 row's TWIN (`See`, as the seven MU 6-1 lakes under Region 5): the
     closure shows on every Endako section through `r6:endako_river@6-4`.
 
-Left unresolved, AWAITING A WATER (owner question, T89 ticket): eight rows whose printed MU holds no
-registry water of that name — every same-name candidate is 75+ km away in another MU (Mackenzie
-Creek 4-21, Frog/Hidden/Secret/Square Lake 5-6, Redfern Lake 5-15, Squirrel Lake 6-1; Squirrel's
+Left unresolved, AWAITING A WATER (owner question, T89 ticket): seven rows whose printed MU holds no
+registry water of that name — every same-name candidate is 75+ km away in another MU (Frog/Hidden/Secret/Square Lake 5-6, Redfern Lake 5-15, Squirrel Lake 6-1; Squirrel's
 Region 5 twin already points at the Region 6 row). Binding them to a same-name lake elsewhere would
 put a quota on the wrong water; they need the lake located and named in the registry
 (`name_variants.json`, an atlas registry rebuild).
@@ -56,7 +55,7 @@ BY_DESIGN = frozenset({
 #: AWAITING A WATER — the row's printed MU holds no registry water of its name (owner, T89 Q-A).
 AWAITING_WATER_ROWS = {
     # entry_id: (name as the registry would carry it, printed MU, rule ids)
-    "r4:mackenzie_creek@4-21": ("Mackenzie Creek", "4-21", ("mackenzie_creek.r1",)),
+    # (owner 2026-10-26: Mackenzie Creek "4-21" is a book typo for 4-31 — it matches gnis:12042 now)
     "r5:frog_lake@5-6": ("Frog Lake", "5-6", ("frog_lake.r1", "frog_lake.r2", "frog_lake.r3",
                                              "frog_lake.r4")),
     "r5:hidden_lake@5-6": ("Hidden Lake", "5-6", ("hidden_lake.r1", "hidden_lake.r2",
@@ -107,7 +106,7 @@ def _place(rule: dict) -> dict:
 # The allow-list itself (no data): exact, both ways — the key rule, mutation-pinned
 # ---------------------------------------------------------------------------------------------
 def test_the_allow_list_is_exact_26():
-    assert len(BY_DESIGN) == 4 and len(AWAITING_WATER) == 22 and len(ALLOWED_UNRESOLVED) == 26
+    assert len(BY_DESIGN) == 4 and len(AWAITING_WATER) == 21 and len(ALLOWED_UNRESOLVED) == 25
     assert unresolved_problems(set(ALLOWED_UNRESOLVED)) == []
 
 

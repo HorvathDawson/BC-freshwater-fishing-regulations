@@ -2219,7 +2219,9 @@ _BUILD_CACHES = (_registry, _place_namer_for, _splits_meta, _split_points_attrs,
                  _blk_index, _review_context_for, _built_atlas, _built_for, _splits_context_for,
                  _run_facts_for, _boundary_index,
                  # T207: corpus-wide split use (reads the registry) and the authored confidences
-                 _used_splits_for, _confidences_for)
+                 _used_splits_for, _confidences_for,
+                 # owner 2026-10-26: the atlas's area names (matched by area, the within-op list)
+                 _area_name_map_for)
 
 
 # --------------------------------------------------------------------------- #
