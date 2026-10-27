@@ -200,6 +200,7 @@ describe("T196 performance budget", () => {
     const lh = JSON.parse(built.files.get("lighthouserc.json")!) as { ci: { collect: { url: string[]; settings: { formFactor: string } }; assert: { assertions: Record<string, unknown> } } };
     expect(lh.ci.collect.settings.formFactor).toBe("mobile");
     expect(lh.ci.collect.url.every((u) => built.files.has(u))).toBe(true);
+    // fixed by the T196 performance budget (LCP 1.8 s), not by the release
     expect(lh.ci.assert.assertions["largest-contentful-paint"]).toEqual(["error", { maxNumericValue: 1800 }]);
   });
 
@@ -207,6 +208,7 @@ describe("T196 performance budget", () => {
     const htmlPaths = [...built.files.keys()].filter((k) => k.endsWith(".html") && k !== "404.html");
     const noise = Array.from({ length: 30000 }, (_, i) => `w${i}x${(i * 7919) % 10007}`).join(" ");
     const fat = new Map(built.files).set(htmlPaths[0]!, built.files.get(htmlPaths[0]!)! + noise);
+    // fixed by the T196 budget (30 KiB page limit = 30720 B); `fat` is built to exceed it, whatever the release
     expect(checkBudget(measure(fat, htmlPaths, cssPath()), fat, htmlPaths).join("|")).toMatch(/over 30720/);
     const css = new Map(built.files).set(cssPath(), noise + noise);
     expect(checkBudget(measure(css, htmlPaths, cssPath()), css, htmlPaths).join("|")).toMatch(/stylesheet/);
@@ -220,6 +222,7 @@ describe("T198 hosting config (code half)", () => {
   it("HSTS and the cache split are in _headers; the 404 page is a real page", () => {
     const h = built.files.get("_headers")!;
     expect(h).toContain(`Strict-Transport-Security: ${HSTS}`);
+    // fixed by T198's hosting contract: one year (31536000 s), immutable, for the hashed assets
     expect(h).toMatch(/\/assets\/\*\n {2}Cache-Control: public, max-age=31536000, immutable/);
     expect(h).toBe(headersFile());
     expect(built.files.get("404.html")).toContain('content="noindex"');

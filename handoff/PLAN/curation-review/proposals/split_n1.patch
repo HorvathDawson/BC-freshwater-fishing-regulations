@@ -1,6 +1,6 @@
 --- a/data/curated/waters/splits.json
 +++ b/data/curated/waters/splits.json
-@@ -584,6 +584,25 @@
+@@ -584,6 +584,26 @@
       "_coord": [
        -124.0035,
        48.80376
@@ -19,6 +19,7 @@
 +      "is_lonlat": true
 +     },
 +     "note": "",
++     "confidence": "medium",
 +     "_note": "[T185 proposal 2026-10-27] proposed in review marks on 1:cowichan-river:from-66-mile-trestle-downstream-to — \"from 66 Mile Trestle downstream to the white triangle boundary sign located in Sandy Pool Regional Park\"",
 +     "_coord": [
 +      -123.835989,

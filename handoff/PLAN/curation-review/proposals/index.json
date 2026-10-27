@@ -1,7 +1,7 @@
 {
- "_about": "T185 proposed edits from the review marks — written by `python -m pipeline.regs.review.proposals build`; decisions are `proposal` marks; `python -m pipeline.regs.review.apply_proposals` (the owner) applies the accepted ones",
- "made": "2026-10-27T08:30:28",
- "marks": "data/curated/regulations/review/marks.jsonl (the owner's store, 2026-10-27)",
+ "_about": "T185 proposed edits from the review marks, waiting to apply — written by `python -m pipeline.regs.review.proposals build`; the marks are the decisions; `python -m pipeline.regs.review.apply_proposals` (Claude) lands each, one commit",
+ "made": "2026-10-27T11:14:27",
+ "marks": "data/curated/regulations/review/marks.jsonl",
  "proposals": [
   {
    "id": "split-n2",
@@ -56,6 +56,7 @@
    "problems": [],
    "notes": [],
    "split_id": "campbell_river__quinsam_river",
+   "confidence": "high",
    "applicable": true,
    "digest": "1bb10b130de4ead9",
    "severity": null,
@@ -67,7 +68,7 @@
     "python -m pipeline.regs.review.proposals side split-n2 --out data/generated/side/t185-split_n2-1bb10b",
     "scripts/heavy.sh atlas 30 -- python -m pipeline.atlas.build --full --splits data/generated/side/t185-split_n2-1bb10b/splits.json --out data/generated/side/t185-split_n2-1bb10b/atlas",
     "scripts/heavy.sh reach 30 -- python -m pipeline.atlas.reach.cli --build data/generated/side/t185-split_n2-1bb10b/atlas --entries data/generated/side/t185-split_n2-1bb10b/catalogue --out data/generated/side/t185-split_n2-1bb10b/reach",
-    "python -m pipeline.atlas.reach.binding_diff data/generated/reaches/full data/generated/side/t185-split_n2-1bb10b/reach   # per-rule bindings, live vs side — read it before accepting (AGENTS 63)"
+    "python -m pipeline.atlas.reach.binding_diff data/generated/reaches/full data/generated/side/t185-split_n2-1bb10b/reach   # per-rule bindings, live vs side — read it before applying (AGENTS 63)"
    ],
    "patch": "split_n2.patch"
   },
@@ -109,6 +110,7 @@
        "is_lonlat": true
       },
       "note": "",
+      "confidence": "medium",
       "_note": "[T185 proposal 2026-10-27] proposed in review marks on 1:cowichan-river:from-66-mile-trestle-downstream-to — \"from 66 Mile Trestle downstream to the white triangle boundary sign located in Sandy Pool Regional Park\"",
       "_coord": [
        -123.835989,
@@ -121,18 +123,19 @@
    "problems": [],
    "notes": [],
    "split_id": "cowichan_river__white_triangle_boundary_sign_loc",
+   "confidence": "medium",
    "applicable": true,
-   "digest": "7e4ef1e1d35f6a71",
+   "digest": "4459bb853fa6277a",
    "severity": null,
    "check": {
     "cheap": false,
     "why": "a new split changes the atlas: the side rebuild and its binding diff answer it"
    },
    "side_commands": [
-    "python -m pipeline.regs.review.proposals side split-n1 --out data/generated/side/t185-split_n1-7e4ef1",
-    "scripts/heavy.sh atlas 30 -- python -m pipeline.atlas.build --full --splits data/generated/side/t185-split_n1-7e4ef1/splits.json --out data/generated/side/t185-split_n1-7e4ef1/atlas",
-    "scripts/heavy.sh reach 30 -- python -m pipeline.atlas.reach.cli --build data/generated/side/t185-split_n1-7e4ef1/atlas --entries data/generated/side/t185-split_n1-7e4ef1/catalogue --out data/generated/side/t185-split_n1-7e4ef1/reach",
-    "python -m pipeline.atlas.reach.binding_diff data/generated/reaches/full data/generated/side/t185-split_n1-7e4ef1/reach   # per-rule bindings, live vs side — read it before accepting (AGENTS 63)"
+    "python -m pipeline.regs.review.proposals side split-n1 --out data/generated/side/t185-split_n1-4459bb",
+    "scripts/heavy.sh atlas 30 -- python -m pipeline.atlas.build --full --splits data/generated/side/t185-split_n1-4459bb/splits.json --out data/generated/side/t185-split_n1-4459bb/atlas",
+    "scripts/heavy.sh reach 30 -- python -m pipeline.atlas.reach.cli --build data/generated/side/t185-split_n1-4459bb/atlas --entries data/generated/side/t185-split_n1-4459bb/catalogue --out data/generated/side/t185-split_n1-4459bb/reach",
+    "python -m pipeline.atlas.reach.binding_diff data/generated/reaches/full data/generated/side/t185-split_n1-4459bb/reach   # per-rule bindings, live vs side — read it before applying (AGENTS 63)"
    ],
    "patch": "split_n1.patch"
   },
@@ -184,6 +187,7 @@
    "problems": [],
    "notes": [],
    "split_id": null,
+   "confidence": null,
    "applicable": true,
    "digest": "a6d6c2914b4c05c1",
    "severity": {
@@ -253,7 +257,7 @@
    "side_commands": [
     "python -m pipeline.regs.review.proposals side mark-entry-r2_hatzic_lake_and_slough_2_8 --out data/generated/side/t185-mark_entry_r2_hatzic_lake_and_slough_2_8-a6d6c2",
     "scripts/heavy.sh reach 30 -- python -m pipeline.atlas.reach.cli --build data/generated/atlas/full --entries data/generated/side/t185-mark_entry_r2_hatzic_lake_and_slough_2_8-a6d6c2/catalogue --out data/generated/side/t185-mark_entry_r2_hatzic_lake_and_slough_2_8-a6d6c2/reach",
-    "python -m pipeline.atlas.reach.binding_diff data/generated/reaches/full data/generated/side/t185-mark_entry_r2_hatzic_lake_and_slough_2_8-a6d6c2/reach   # per-rule bindings, live vs side — read it before accepting (AGENTS 63)"
+    "python -m pipeline.atlas.reach.binding_diff data/generated/reaches/full data/generated/side/t185-mark_entry_r2_hatzic_lake_and_slough_2_8-a6d6c2/reach   # per-rule bindings, live vs side — read it before applying (AGENTS 63)"
    ],
    "patch": "mark_entry_r2_hatzic_lake_and_slough_2_8.patch"
   },
@@ -306,6 +310,7 @@
    "problems": [],
    "notes": [],
    "split_id": null,
+   "confidence": null,
    "applicable": true,
    "digest": "a1e525e2fe1625bf",
    "severity": null,
@@ -368,6 +373,7 @@
    "problems": [],
    "notes": [],
    "split_id": null,
+   "confidence": null,
    "applicable": true,
    "digest": "abd11bbf678bbb83",
    "severity": null,
@@ -429,6 +435,7 @@
    "problems": [],
    "notes": [],
    "split_id": null,
+   "confidence": null,
    "applicable": true,
    "digest": "f32607fd585b5e61",
    "severity": null,
@@ -509,6 +516,7 @@
    "problems": [],
    "notes": [],
    "split_id": null,
+   "confidence": null,
    "applicable": true,
    "digest": "5ac7d68005029b72",
    "severity": null,
@@ -554,6 +562,7 @@
     "listed by `python -m pipeline.regs.review.tickets --lake-splits`; no curated edit until lake splits are taken up"
    ],
    "split_id": null,
+   "confidence": null,
    "applicable": false,
    "digest": "d2ca3cb5608901e5",
    "severity": null,

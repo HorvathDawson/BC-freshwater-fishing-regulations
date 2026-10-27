@@ -4,6 +4,7 @@
  * One shared stylesheet (css below, served hashed), a tiny critical part inlined, system fonts.
  */
 import { bookUrl, SYNOPSIS_PDF } from "@app/core";
+import meta from "../../packages/map/style/style.meta.json" with { type: "json" };
 import type { BookRef, Item, PartModel, WaterModel } from "./model";
 
 export interface Site {
@@ -18,13 +19,25 @@ export const esc = (s: string): string =>
 export const NOT_LEGAL = "This is not a legal document. Check the official BC Freshwater Fishing Regulations Synopsis before you fish.";
 export const regionLabel = (n: number): string => `Region ${n}`;
 
+/** Every colour the pages use is a token of the app's one palette (packages/map/style), read from the generated themes. */
+const T = (theme: "light" | "dark", token: string): string => {
+  const v = (meta.themes as Record<string, Record<string, unknown>>)[theme]?.[token];
+  if (typeof v !== "string") throw new Error(`theme "${theme}" has no colour ${token}`);
+  return v;
+};
+const vars = (th: "light" | "dark"): string =>
+  `--ink:${T(th, "color.ui.ink")};--muted:${T(th, "color.ui.sub")};--line:${T(th, "color.ui.line2")};--accent:${T(th, "color.ui.accent")};` +
+  `--accent-ink:${T(th, "color.ui.on-accent")};--open:${T(th, "color.status.open")};--closed:${T(th, "color.status.closed")};--soft:${T(th, "color.ui.wash")}`;
+export const SHARE_GROUND = T("light", "color.ui.accent");
+export const SHARE_INK = T("light", "color.ui.on-accent");
+
 /** the shared stylesheet; `inlineCritical` is the part the first paint needs */
-export const CRITICAL = "body{margin:0;font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#fff;color:#14231c}" +
+export const CRITICAL = `body{margin:0;font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:${T("light", "color.ui.card")};color:${T("light", "color.ui.ink")}}` +
   "main{max-width:42rem;margin:0 auto;padding:1rem}h1{font-size:1.6rem;line-height:1.2;margin:.5rem 0}" +
-  "@media(prefers-color-scheme:dark){body{background:#0f1a15;color:#e6efe9}}";
+  `@media(prefers-color-scheme:dark){body{background:${T("dark", "color.ui.page")};color:${T("dark", "color.ui.ink")}}}`;
 export const CSS = `${CRITICAL}
-:root{--ink:#14231c;--muted:#4c5f55;--line:#cfdad3;--accent:#0b6b3a;--accent-ink:#fff;--open:#0b6b3a;--closed:#a4262c;--soft:#f2f6f3}
-@media(prefers-color-scheme:dark){:root{--ink:#e6efe9;--muted:#a3b5aa;--line:#2b3d33;--accent:#4cc38a;--accent-ink:#06140c;--open:#4cc38a;--closed:#ff8a8f;--soft:#16251d}}
+:root{${vars("light")}}
+@media(prefers-color-scheme:dark){:root{${vars("dark")}}}
 a{color:var(--accent)}
 .top{border-bottom:1px solid var(--line)}.top div{max-width:42rem;margin:0 auto;padding:.6rem 1rem;display:flex;gap:1rem;flex-wrap:wrap;align-items:baseline}
 .top a{font-weight:600;text-decoration:none}.crumbs{font-size:.9rem;color:var(--muted)}.crumbs a{color:var(--muted)}

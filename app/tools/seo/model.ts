@@ -99,8 +99,9 @@ function sectionsOf(page: Omit<RegsPage, "sheet">): Section[] {
   put(page.status === "closed" || page.status === "tidal" ? "Why it is closed" : "Closures", bannerItems(k.banner));
   if (k.inherited) put(k.inherited.label, k.inherited.lines.map((l) => item(l.says)));
   for (const c of k.caveats) {
-    put(c.title, [item(c.calm), ...c.items.flatMap((i) => [item(i.what, i.book), item(i.where), item(i.fish)]),
-                  ...(c.later ?? []).flatMap((i) => [item(i.what, i.book), item(i.where)])]);
+    // (T208) a rule held on one area of the water reads "Outlet area only (see map 1): …", then the map's own line ("See map A ·") with its book page
+    put(c.title, [item(c.calm), ...c.items.flatMap((i) => [item(i.area ? `${i.area.tag}:` : null), item(i.what, i.book), item(i.where), item(i.fish), item(i.area?.map)]),
+                  ...(c.later ?? []).flatMap((i) => [item(i.area ? `${i.area.tag}:` : null), item(i.what, i.book), item(i.where), item(i.area?.map)])]);
   }
   const keep: (Item | null)[] = [];
   for (const g of k.groups) {
