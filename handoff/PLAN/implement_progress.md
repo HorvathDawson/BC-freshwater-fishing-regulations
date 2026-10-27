@@ -3,7 +3,15 @@
 Restart here. Update this file after EVERY step: what is done, what is running, and the exact next action.
 Logs from timing runs live in the session scratchpad, which a reboot wipes. The numbers that matter are copied here.
 
-## CURRENT STATE (2026-10-26, late — owner reviewing, few credits)
+## CURRENT STATE (2026-10-27 — T185 merged)
+
+T185 merged (102236e9, fc2a922f) alongside T212 Tidal: marks take `tidal` and `proposal` scopes; app has Tidal and
+Proposals tabs. Owner decides the 8 proposals in the Proposals tab (OWNER-TODO). CLAUDE then, after the decisions:
+for each accepted new split run its printed side chain (side copies -> side atlas -> reach -> `binding_diff`); then
+`python -m pipeline.regs.review.apply_proposals --dry-run`, then without `--dry-run` (one commit each). Refresh the
+list any time: `python -m pipeline.regs.review.proposals build --check`.
+
+## (earlier) CURRENT STATE (2026-10-26, late — owner reviewing, few credits)
 
 LIVE: r-b9f0e5d00101 (previous r-d32f814feac0 kept; older pruned). One atlas build applied 445643c2: only Burton
 changed (cuts 2 -> 3; r1 binds as before). Kootenay lower r1: the dolphin's lake anchor (wbk 328974235) never lands on the
