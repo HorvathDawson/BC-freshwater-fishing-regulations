@@ -257,6 +257,7 @@ use that as the sole source of future work."
 | T210 | DFO review mode: proposed splits shared along the river, Place y without a new split, simpler new-split UI | DONE | 0805e479 | proposals deduped across all marks (2 distinct; 1 duplicate pair folded), server reuses ids, Place y with existing-cut fix, 3-step new-split UI; owner tries it |
 | T211 | DFO salmon regs in the app (options), the DFO feed plan, historic extent matching, new-location alert | OPEN | — | plans first (owner picks), then code |
 | T212 | tidal boundaries: a tidal split on every ocean-entering stream (research + proposals, no data change yet) | PARTIAL | — | 1,163 candidates (916/966 named ocean streams met by the polygon) in handoff/PLAN/curation-review/tidal/; curation review Tidal tab, accept = a mark; owner reviews, then T185/T166 build the cuts |
+| T213 | paint bait-ban and fly-fishing-only waters distinctly from general restrictions | OPEN | — | future |
 
 ## Order for open tickets
 

@@ -1402,3 +1402,23 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
 - The real hunt: DFO splits — find as many DFO extent cuts as possible (web search, DFO/FFSBC/BC docs, maps, FWA/FISS),
   each with confidence, description, source link and parse notes shown in the curation review (proposals the owner
   accepts).
+- **Applied 2026-10-27 (540995d4):** Pitt r2 whole water (undrawn part dropped). McArthur Island Slough r1: whole on its
+  own name-variant item (blk 355994157), undrawn part dropped. Columbia r11: `between [columbia_river__fairmont,
+  columbia_river__columbia_lake]` — "Mud Lake" is unnamed in FWA; the 89 ha wetland at Columbia Lake's outlet (wbk
+  329093907) is the likely one, and the existing Fairmont cut stands 0.9 km below it (medium confidence; owner to check).
+  z2 Stave marking r1: `downstream_of stave_river__hayward_lake` (Hayward Lake = Ruskin Dam's reservoir). Stave r1/r2 stay
+  undrawn: the Ruskin and Northrop spawning channels are FWA side channels (blks 355993381-4, 355997566-7) with NO sections
+  in the atlas, so no existing cut can draw them (binding below the dam would widen to the mainstem). New `low` cuts, note
+  in each split's `_note`: Chapman lower falls (SCRD survey point 49.46446,-123.72651, ~576 m below the power line) + 100 m
+  below, r2 between them; Deena "second bridge" = the creek line 5 km above the tidal boundary (no second bridge mapped in
+  OSM or FTEN), r1 upstream_of; Mamin "third bridge" = the Mamin Main FTEN crossing (9.1 km above tidal), r3 upstream_of.
+
+## 2026-10-27 — owner, after the scheduled run
+- T211 salmon in the app: OPTION A (a separate "Salmon · DFO" card). When every salmon species is closed on a stream,
+  simplify to "Salmon — closed" (the species group); otherwise group the species. The main map, in standard regulation
+  mode, gets a toggle Standard / Salmon that switches the colouring; salmon paints differently.
+- T185: the owner's marks ARE the decisions — no separate accept step. Claude applies marks (one commit each, binding
+  check, side rebuild where a cut changes); the Proposals tab is a read-only "waiting to apply" list.
+- Proposed splits carry their confidence everywhere; Sandy Pool = medium.
+- Tidal proposals reuse an existing curated cut within ~25 m (alias "tidal boundary") instead of a new point
+  (Campbell: cement block sign 1631 m vs polygon 1625 m).

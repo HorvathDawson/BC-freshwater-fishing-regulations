@@ -26,3 +26,7 @@ hold them unplaced and NOTIFY the owner (FEED_NOTIFY_URL, like HYDAT) so the new
 matches and the rules propagate. Include a test feed with an unseen location.
 
 Order: 1 and 2 are plans for the owner; 3 and 4 are code once the plan is accepted.
+
+
+## Owner pick (2026-10-27)
+Option A. All salmon closed → "Salmon — closed"; else species grouped. Main-map toggle Standard / Salmon in standard regulation mode (salmon paints differently). Next: build A + the toggle, then the feed (parts 3–4).
