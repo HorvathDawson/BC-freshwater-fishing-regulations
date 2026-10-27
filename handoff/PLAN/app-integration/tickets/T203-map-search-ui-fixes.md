@@ -1,6 +1,6 @@
 # T203 — app UI: jumpy "Flows into" chip, search lands on the map, amber highlight
 
-Status: DONE (items 4-5 -> T204)
+Status: DONE (4430d187, 4ccacfee, 715ecc46; items 4–5 are T204)
 
 Source: owner 2026-10-25, using the app.
 
