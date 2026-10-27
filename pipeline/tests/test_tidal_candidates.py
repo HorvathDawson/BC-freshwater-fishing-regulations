@@ -150,3 +150,39 @@ def test_pmtiles_tile_ids_follow_the_hilbert_order():
 
 def test_every_proposal_is_labelled_mouth_tidal_boundary():
     assert TC.MOUTH_LABEL == "mouth (tidal boundary)"
+
+
+# --------------------------------------------------------------------------- reusing a curated cut
+
+CAMPBELL_SIGN = {"split_id": "campbell_river__cement_block_boundary_sign", "label": "cement block boundary sign",
+                 "measure": 1630.67}
+
+
+def test_a_curated_split_within_reach_on_the_line_is_reused_not_cut_again():
+    # Campbell River: the cement block sign at 1631 m, the polygon's crossing at 1625 m
+    ru = TC.pick_reuse(1625.0, [{"split_id": "campbell_river__mouth", "label": "mouth", "measure": 0.0},
+                                CAMPBELL_SIGN])
+    assert ru["split_id"] == CAMPBELL_SIGN["split_id"] and ru["measured"] == "along the line"
+    assert ru["distance_m"] == pytest.approx(5.7, abs=0.1) and ru["split_measure"] == pytest.approx(1630.7)
+    assert ru["alias"] == "tidal boundary" and ru["tidal_measure"] == 1625.0
+
+
+def test_a_split_further_than_reach_or_off_the_line_is_not_reused():
+    far = {**CAMPBELL_SIGN, "measure": 1625.0 + TC.REUSE_M + 1}
+    assert TC.pick_reuse(1625.0, [far]) is None
+    # an unresolved point close on the ground but on ANOTHER line (far from this one): not reused
+    other = {"split_id": "x__trib", "label": "trib", "measure": 1625.0, "line_m": 80.0, "ground_m": 10.0}
+    assert TC.pick_reuse(1625.0, [], [other]) is None
+    # the same point on this line: reused, measured on the ground
+    near = {**other, "line_m": 3.0}
+    assert TC.pick_reuse(1625.0, [], [near])["measured"] == "ground distance"
+    # a resolved split on the line wins over an unresolved point
+    assert TC.pick_reuse(1625.0, [CAMPBELL_SIGN], [near])["split_id"] == CAMPBELL_SIGN["split_id"]
+
+
+def test_accepting_a_reuse_candidate_names_the_existing_split(cands):
+    ns = _split(anchor="split", split_id=CAMPBELL_SIGN["split_id"], note="aliases: tidal boundary")
+    m = _mark(new_splits=[ns])
+    assert m.new_splits[0].anchor == "split" and m.new_splits[0].split_id == CAMPBELL_SIGN["split_id"]
+    with pytest.raises(ValueError, match="names that split"):
+        _mark(new_splits=[_split(anchor="split")])

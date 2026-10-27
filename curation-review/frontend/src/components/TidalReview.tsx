@@ -24,14 +24,18 @@ const SOURCE_WORDS: Record<string, string> = {
 const PROBLEMS = ["split misplaced", "wrong water", "split missing"];
 
 /** ACCEPT A PROPOSAL: the new split it pre-fills (the proposed cut on the stream, named
- *  "<water>: mouth (tidal boundary)", its aliases in the note). Pure — the owner's "Record mark" is
+ *  "<water>: mouth (tidal boundary)", its aliases in the note) — or, when a curated split sits within
+ *  25 m on the same line (`proposed.reuse`), that split named (anchor "split") to take the alias. Pure — the owner's "Record mark" is
  *  the only write. */
 export function acceptSplit(c: TidalCandidate): NewSplit {
   const words = c.sources.filter((s) => s.kind !== "tidal_gauge").map((s) => s.words);
+  const ru = c.proposed.reuse;
   return {
-    ref: `tidal-${c.blk}`, anchor: "coord", name: c.proposed.split_name, on_item: c.items[0] ?? null,
+    ref: `tidal-${c.blk}`, anchor: ru ? "split" : "coord", split_id: ru ? ru.split_id : null,
+    name: c.proposed.split_name, on_item: c.items[0] ?? null,
     coord: c.proposed.coord, quote: words.join(" | ").slice(0, 2000),
-    note: c.proposed.aliases.length ? `aliases: ${c.proposed.aliases.join("; ")}` : "",
+    note: (ru ? `reuses curated split ${ru.split_id} (${ru.distance_m} m from the tidal point), no new cut; ` : "")
+      + (c.proposed.aliases.length ? `aliases: ${c.proposed.aliases.join("; ")}` : ""),
   };
 }
 
@@ -223,7 +227,7 @@ function TidalCandidateView({ detail, mode, nav, onMarked }: {
   }
   const onPick = picking ? (ll: [number, number]) => {
     setPicking(false);
-    setSplit({ ...acceptSplit(c), coord: ll, note: `moved by the reviewer from the proposed ${c.proposed.coord.join(", ")}` });
+    setSplit({ ...acceptSplit(c), anchor: "coord", split_id: null, coord: ll, note: `moved by the reviewer from the proposed ${c.proposed.coord.join(", ")}` });
     setAnswerP((a) => (a === "y" ? "n" : a ?? "n"));
     setProblem((p) => p || "split misplaced");
     setAccepted("your point is the cut — Place n (the proposal is misplaced) with your point as the new split");

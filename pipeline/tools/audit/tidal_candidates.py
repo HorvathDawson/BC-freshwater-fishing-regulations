@@ -50,6 +50,13 @@ AGREE_M = 300.0
 MEETS_M = 60.0
 #: the label every proposed tidal split carries (owner, T212): mouths are "mouth (tidal boundary)"
 MOUTH_LABEL = "mouth (tidal boundary)"
+#: a curated split (splits.json) within this far (m) of the tidal point ON THE SAME LINE is the tidal
+#: boundary already: the proposal ALIASES it "tidal boundary" instead of a new cut (owner 2026-10-27:
+#: Campbell's cement block sign at 1631 m vs the polygon's 1625 m). Along the line where both have a
+#: measure; ground distance for a splits.json point the atlas did not resolve.
+REUSE_M = 25.0
+#: the alias a reused split takes
+REUSE_ALIAS = "tidal boundary"
 
 # --------------------------------------------------------------------------- the words
 
@@ -327,6 +334,47 @@ def snap(segs: list[dict], geoms: dict, pt) -> tuple[float, float]:
             best = (d, s, g)
     d, s, g = best
     return _measure_at(s, g, pt), d
+
+
+def curated_points(splits_json: Path, resolved: dict) -> list[dict]:
+    """splits.json splits the atlas did NOT resolve onto a line but which carry a point: the ground
+    distance fallback for `pick_reuse`. [{split_id, label, coord (lon, lat)}]"""
+    out = []
+    doc = json.loads(Path(splits_json).read_text())
+    for wb in doc.get("waterbodies") or []:
+        for sp in wb.get("splits") or []:
+            if sp.get("id") in resolved:
+                continue
+            an = sp.get("anchor") or {}
+            c = an.get("coord") if an.get("is_lonlat") else None
+            c = c or sp.get("_coord")
+            if c and len(c) == 2:
+                out.append({"split_id": sp["id"], "label": sp.get("label") or sp["id"],
+                            "coord": (float(c[0]), float(c[1]))})
+    return out
+
+
+def pick_reuse(prop_m: float, on_line: list[dict], off_line: list[dict] = ()) -> dict | None:
+    """THE CURATED SPLIT A TIDAL PROPOSAL REUSES, if one is within `REUSE_M`: the nearest of
+    `on_line` (splits resolved on THIS blk: {split_id, label, measure}) measured along the line;
+    else the nearest of `off_line` ({split_id, label, measure, line_m, ground_m}: an unresolved
+    point snapped to this line, `line_m` off it, `ground_m` from the tidal point) by ground."""
+    best = None
+    for s in on_line:
+        d = abs(float(s["measure"]) - prop_m)
+        if d <= REUSE_M and (best is None or d < best[0]):
+            best = (d, s, "along the line")
+    if best is None:
+        for s in off_line:
+            d = float(s["ground_m"])
+            if d <= REUSE_M and float(s["line_m"]) <= REUSE_M and (best is None or d < best[0]):
+                best = (d, s, "ground distance")
+    if best is None:
+        return None
+    d, s, how = best
+    return {"split_id": s["split_id"], "label": s["label"], "distance_m": round(d, 1), "measured": how,
+            "split_measure": round(float(s["measure"]), 1), "tidal_measure": round(prop_m, 1),
+            "alias": REUSE_ALIAS}
 
 
 # --------------------------------------------------------------------------- the word sources
@@ -624,6 +672,14 @@ def build(gpkg: Path, atlas: Path, osm_paths: list[Path], basemap: Path | None =
             if it["id"] not in blk_items[b]:
                 blk_items[b].append(it["id"])
     resolved = {s["split_id"]: s for s in json.loads((atlas / "splits.resolved.json").read_text())}
+    curated_on: dict[str, list[dict]] = defaultdict(list)       # blk -> splits.json splits on it
+    for sid, r in resolved.items():
+        if r.get("source") == "curated" and r.get("route_measure") is not None:
+            curated_on[str(r["blk"])].append({"split_id": sid, "label": r.get("label") or sid,
+                                              "measure": float(r["route_measure"])})
+    to_albers = _to_albers()
+    loose = [{**p, "pt": Point(*to_albers(*p["coord"]))}
+             for p in curated_points(ROOT / "data/curated/waters/splits.json", resolved)]
     tidal_gauges = set(json.loads((ROOT / "data/curated/gauges/tidal.json").read_text())["stations"])
     tidal_gauges |= {"08MH024", "08MH126"}             # HYDAT's own remarks (pipeline/gauges/consume/tidal.py)
     dfo_src = _dfo_sources()
@@ -775,9 +831,30 @@ def build(gpkg: Path, atlas: Path, osm_paths: list[Path], basemap: Path | None =
             why += f"; the located words disagree with each other by {spread:.0f} m"
             if conf == "high":
                 conf = "medium"
+        # a curated split within REUSE_M of the tidal point on this line IS the cut: alias it
+        tp = point_at(segs, geoms, prop_m)
+        off = []
+        if tp is not None:
+            for p in loose:
+                gd = p["pt"].distance(tp)
+                if gd <= REUSE_M:
+                    m, d = snap(segs, geoms, p["pt"])
+                    off.append({**p, "measure": m, "line_m": d, "ground_m": gd})
+        reuse = pick_reuse(prop_m, curated_on.get(str(blk), []), off)
+        if reuse is not None:
+            basis += (f"; reuses curated split {reuse['split_id']} ({reuse['distance_m']:.0f} m away, "
+                      f"{reuse['measured']}) aliased \"{REUSE_ALIAS}\"")
+            prop_m = reuse["split_measure"]
         prop_pt = point_at(segs, geoms, prop_m)
         prop_ll = [round(v, 6) for v in lonlat(prop_pt.x, prop_pt.y)] if prop_pt is not None else mouth_ll
         above_mouth = round(prop_m - a["mouth_m"], 1)
+        marker = [best_loc["words"].split(": ", 1)[-1]] if best_loc else []
+        if reuse is not None:
+            split_name = f"{name}: {reuse['label']}"
+            aliases = [REUSE_ALIAS] + [w for w in marker if w != REUSE_ALIAS]
+        else:
+            split_name = f"{name}: {MOUTH_LABEL}"
+            aliases = ([] if above_mouth <= AT_MOUTH_M else [REUSE_ALIAS]) + marker
         rows.append({
             "id": f"tidal:{blk}", "water": name, "blk": str(blk), "wsc": re.sub(r"(-000000)+$", "", wsc),
             "gnis_id": next((int(s["gnis"]) for s in segs if s["gnis"]), None),
@@ -786,9 +863,8 @@ def build(gpkg: Path, atlas: Path, osm_paths: list[Path], basemap: Path | None =
             "zones": sorted({m for i in items for m in item_of[i].get("mus") or []}),
             "proposed": {"measure": round(prop_m, 1), "coord": prop_ll, "above_mouth_m": above_mouth,
                          "basis": basis, "split_label": MOUTH_LABEL,
-                         "split_name": f"{name}: {MOUTH_LABEL}",
-                         "aliases": ([] if above_mouth <= AT_MOUTH_M else ["tidal boundary"])
-                         + ([best_loc["words"].split(": ", 1)[-1]] if best_loc else [])},
+                         "split_name": split_name, "aliases": aliases,
+                         **({"reuse": reuse} if reuse else {})},
             "polygon": {"crossing": crossing, "measure": round(poly_m, 1) if poly_m is not None else None,
                         "coord": poly_ll, "cuts": a["cuts"][:12], "n_cuts": len(a["cuts"]),
                         "inside_pieces": a["n_inside"], "outside_below_m": a["gap_below_m"],
@@ -813,12 +889,15 @@ def build(gpkg: Path, atlas: Path, osm_paths: list[Path], basemap: Path | None =
         "by_agreement": dict(Counter(r["agreement"] for r in rows)),
         "with_word_sources": sum(1 for r in rows if any(s["kind"] != "tidal_gauge" for s in r["sources"])),
         "in_registry": sum(1 for r in rows if r["items"]),
+        "reusing_curated_split": sum(1 for r in rows if r["proposed"].get("reuse")),
     }
     return {"_about": (
         "T212 PROPOSALS, NOT CURATED DATA (pipeline/tools/audit/tidal_candidates.py). One row per named "
         "stream the owner's edited DFO tidal polygon (bc_fisheries_data.gpkg layer tidal_boundary) "
         "crosses, plus every named ocean-entering FWA blue line. `proposed` is where a tidal split would "
         "go (blk + FWA route measure + lon/lat on the FWA line), labelled 'mouth (tidal boundary)'; "
+        f"`proposed.reuse` names a curated split within {REUSE_M:.0f} m on the same line that the "
+        f"proposal aliases '{REUSE_ALIAS}' instead of a new cut; "
         "`polygon` is the polygon's own crossing; `sources` are the words that name a tidal boundary, "
         "each located on the line when it can be and said to agree (within "
         f"{AGREE_M:.0f} m) or not. The curation review's Tidal mode shows these; accepting one makes a "
@@ -843,7 +922,17 @@ def summary_md(doc: dict) -> str:
            f"- Unnamed blue lines the polygon crosses (mouth default, not listed): {c['unnamed_blue_lines_crossed']}.",
            f"- Confidence: {c['by_confidence']}.", f"- Polygon crossing: {c['by_crossing']}.",
            f"- Polygon vs words: {c['by_agreement']}; {c['with_word_sources']} streams carry a word source.",
-           f"- In the atlas registry (reviewable on the map with an item): {c['in_registry']}.", "",
+           f"- In the atlas registry (reviewable on the map with an item): {c['in_registry']}.",
+           f"- Reusing an existing curated cut (within {REUSE_M:.0f} m on the same line, aliased "
+           f"\"{REUSE_ALIAS}\" instead of a new split): {c.get('reusing_curated_split', 0)}.", "",
+           "## Proposals that reuse a curated split", ""]
+    for r in rows:
+        ru = r["proposed"].get("reuse")
+        if ru:
+            out.append(f"- **{r['water']}** (blk {r['blk']}): `{ru['split_id']}` ({ru['label']}) at "
+                       f"{ru['split_measure']:.0f} m, {ru['distance_m']:.0f} m ({ru['measured']}) from the tidal "
+                       f"point at {ru['tidal_measure']:.0f} m — alias \"{ru['alias']}\", no new cut.")
+    out += ["",
            "## Streams where words name the tidal boundary", "",
            "| stream | enters | proposed (m above mouth) | polygon | words | agree? | conf |",
            "|---|---|---|---|---|---|---|"]
@@ -895,7 +984,10 @@ def summary_md(doc: dict) -> str:
             "- A tidal level gauge (data/curated/gauges/tidal.json, HYDAT remarks) above the polygon's "
             "crossing is a disagreement.",
             "- Every proposal is labelled `mouth (tidal boundary)`; one above the FWA mouth also carries "
-            "the alias `tidal boundary` and the marker's words.", ""]
+            "the alias `tidal boundary` and the marker's words.",
+            f"- A curated split within {REUSE_M:.0f} m of the tidal point on the same line (along the line; "
+            "ground distance for an unresolved splits.json point) is reused: the proposal aliases it "
+            f"`{REUSE_ALIAS}` and accepting it names that split (anchor `split`) instead of a new cut.", ""]
     return "\n".join(out)
 
 

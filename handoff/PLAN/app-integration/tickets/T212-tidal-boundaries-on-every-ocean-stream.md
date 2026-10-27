@@ -48,3 +48,9 @@ ticket FINDS them all and proposes them, with confidence and sources, for the ow
   pre-fills a mark (scope `tidal`, Place y + the cut as a `NewSplit` labelled "<water>: mouth (tidal boundary)",
   alias "tidal boundary" when above the FWA mouth). The mark is the only write; T185 / T166 turn accepted marks
   into splits.
+- Reuse (owner 2026-10-27, decisions.md): a curated splits.json split within `REUSE_M` = 25 m of the tidal point on
+  the same blk (along the line; ground distance for an unresolved splits.json point) is reused — `proposed.reuse`
+  carries its id + distance, the proposal aliases it "tidal boundary", and "accept proposal" names it (`NewSplit`
+  anchor `split` + split_id) instead of a new cut. 5 of 1,163 reuse: Campbell (cement block sign 1631 m vs 1625 m,
+  6 m), Fraser CPR bridge at Mission (10 m), Coquitlam Mary Hill Bypass (10 m), Pitt CPR bridge (18 m), Tlell sign
+  (0 m). Turning a `split`-anchored NewSplit into an alias (not a cut) is T185's job.

@@ -1057,7 +1057,10 @@ export interface TidalCandidate {
   item_names: string[];
   zones: string[];
   proposed: { measure: number; coord: [number, number]; above_mouth_m: number; basis: string;
-              split_label: string; split_name: string; aliases: string[] };
+              split_label: string; split_name: string; aliases: string[];
+              /** a curated split within 25 m on the same line: aliased "tidal boundary", no new cut */
+              reuse?: { split_id: string; label: string; distance_m: number; measured: string;
+                        split_measure: number; tidal_measure: number; alias: string } };
   polygon: { crossing: string; measure: number | null; coord: [number, number] | null; n_cuts: number;
              inside_pieces: number; outside_below_m: number; mouth_gap_m: number };
   mouth: { measure: number; coord: [number, number] };

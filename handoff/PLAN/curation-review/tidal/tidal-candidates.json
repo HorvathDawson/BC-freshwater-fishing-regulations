@@ -1,5 +1,5 @@
 {
- "_about": "T212 PROPOSALS, NOT CURATED DATA (pipeline/tools/audit/tidal_candidates.py). One row per named stream the owner's edited DFO tidal polygon (bc_fisheries_data.gpkg layer tidal_boundary) crosses, plus every named ocean-entering FWA blue line. `proposed` is where a tidal split would go (blk + FWA route measure + lon/lat on the FWA line), labelled 'mouth (tidal boundary)'; `polygon` is the polygon's own crossing; `sources` are the words that name a tidal boundary, each located on the line when it can be and said to agree (within 300 m) or not. The curation review's Tidal mode shows these; accepting one makes a mark — never a splits.json edit.",
+ "_about": "T212 PROPOSALS, NOT CURATED DATA (pipeline/tools/audit/tidal_candidates.py). One row per named stream the owner's edited DFO tidal polygon (bc_fisheries_data.gpkg layer tidal_boundary) crosses, plus every named ocean-entering FWA blue line. `proposed` is where a tidal split would go (blk + FWA route measure + lon/lat on the FWA line), labelled 'mouth (tidal boundary)'; `proposed.reuse` names a curated split within 25 m on the same line that the proposal aliases 'tidal boundary' instead of a new cut; `polygon` is the polygon's own crossing; `sources` are the words that name a tidal boundary, each located on the line when it can be and said to agree (within 300 m) or not. The curation review's Tidal mode shows these; accepting one makes a mark — never a splits.json edit.",
  "coverage": {
   "named_ocean_entering_total": 966,
   "named_ocean_entering_found_by_polygon": 916,
@@ -24,7 +24,8 @@
    "polygon only": 1132
   },
   "with_word_sources": 31,
-  "in_registry": 1162
+  "in_registry": 1162,
+  "reusing_curated_split": 5
  },
  "candidates": [
   {
@@ -46,19 +47,28 @@
     "1-9"
    ],
    "proposed": {
-    "measure": 1625.0,
+    "measure": 1630.7,
     "coord": [
-     -125.262014,
-     50.037637
+     -125.262033,
+     50.037587
     ],
-    "above_mouth_m": 1625.0,
-    "basis": "the polygon's crossing",
+    "above_mouth_m": 1630.7,
+    "basis": "the polygon's crossing; reuses curated split campbell_river__cement_block_boundary_sign (6 m away, along the line) aliased \"tidal boundary\"",
     "split_label": "mouth (tidal boundary)",
-    "split_name": "Campbell River: mouth (tidal boundary)",
+    "split_name": "Campbell River: cement block boundary sign",
     "aliases": [
      "tidal boundary",
      "cement block sign, noted \"where the Campbell R enters the tidal zone\" (LOW CONFIDENCE pin)"
-    ]
+    ],
+    "reuse": {
+     "split_id": "campbell_river__cement_block_boundary_sign",
+     "label": "cement block boundary sign",
+     "distance_m": 5.7,
+     "measured": "along the line",
+     "split_measure": 1630.7,
+     "tidal_measure": 1625.0,
+     "alias": "tidal boundary"
+    }
    },
    "polygon": {
     "crossing": "clean",
@@ -330,19 +340,28 @@
     "7-9"
    ],
    "proposed": {
-    "measure": 76516.3,
+    "measure": 76506.3,
     "coord": [
-     -122.300364,
-     49.126117
+     -122.300469,
+     49.126059
     ],
-    "above_mouth_m": 76516.3,
-    "basis": "the polygon's crossing",
+    "above_mouth_m": 76506.3,
+    "basis": "the polygon's crossing; reuses curated split fraser_river__the_cpr_bridge_at_mission (10 m away, along the line) aliased \"tidal boundary\"",
     "split_label": "mouth (tidal boundary)",
-    "split_name": "Fraser River: mouth (tidal boundary)",
+    "split_name": "Fraser River: the CPR Bridge at Mission",
     "aliases": [
      "tidal boundary",
      "the CPR Bridge at Mission (synopsis p.21; RULINGS K8)"
-    ]
+    ],
+    "reuse": {
+     "split_id": "fraser_river__the_cpr_bridge_at_mission",
+     "label": "the CPR Bridge at Mission",
+     "distance_m": 10.0,
+     "measured": "along the line",
+     "split_measure": 76506.3,
+     "tidal_measure": 76516.3,
+     "alias": "tidal boundary"
+    }
    },
    "polygon": {
     "crossing": "clean",
@@ -1093,19 +1112,28 @@
     "2-8"
    ],
    "proposed": {
-    "measure": 322.1,
+    "measure": 312.3,
     "coord": [
-     -122.806416,
-     49.227
+     -122.806356,
+     49.226921
     ],
-    "above_mouth_m": 322.1,
-    "basis": "the polygon's crossing",
+    "above_mouth_m": 312.3,
+    "basis": "the polygon's crossing; reuses curated split coquitlam_river__mary_hill_bypass_bridge (10 m away, along the line) aliased \"tidal boundary\"",
     "split_label": "mouth (tidal boundary)",
-    "split_name": "Coquitlam River: mouth (tidal boundary)",
+    "split_name": "Coquitlam River: Mary Hill Bypass Bridge",
     "aliases": [
      "tidal boundary",
      "Mary Hill Bypass Bridge"
-    ]
+    ],
+    "reuse": {
+     "split_id": "coquitlam_river__mary_hill_bypass_bridge",
+     "label": "Mary Hill Bypass Bridge",
+     "distance_m": 9.8,
+     "measured": "along the line",
+     "split_measure": 312.3,
+     "tidal_measure": 322.1,
+     "alias": "tidal boundary"
+    }
    },
    "polygon": {
     "crossing": "clean",
@@ -1388,19 +1416,28 @@
     "2-8"
    ],
    "proposed": {
-    "measure": 3359.9,
+    "measure": 3342.3,
     "coord": [
-     -122.733633,
-     49.24531
+     -122.733818,
+     49.245208
     ],
-    "above_mouth_m": 3359.9,
-    "basis": "the polygon's crossing",
+    "above_mouth_m": 3342.3,
+    "basis": "the polygon's crossing; reuses curated split pitt_river__cpr_bridge (18 m away, along the line) aliased \"tidal boundary\"",
     "split_label": "mouth (tidal boundary)",
-    "split_name": "Pitt River: mouth (tidal boundary)",
+    "split_name": "Pitt River: CPR Bridge",
     "aliases": [
      "tidal boundary",
      "CPR Bridge"
-    ]
+    ],
+    "reuse": {
+     "split_id": "pitt_river__cpr_bridge",
+     "label": "CPR Bridge",
+     "distance_m": 17.6,
+     "measured": "along the line",
+     "split_measure": 3342.3,
+     "tidal_measure": 3359.9,
+     "alias": "tidal boundary"
+    }
    },
    "polygon": {
     "crossing": "clean",
@@ -2164,13 +2201,22 @@
      53.569255
     ],
     "above_mouth_m": 5750.3,
-    "basis": "the words (curated_split), located: splits.resolved.json route measure",
+    "basis": "the words (curated_split), located: splits.resolved.json route measure; reuses curated split tlell_river__tidal_sign_1_5_km_above_hwy_16_bridge (0 m away, along the line) aliased \"tidal boundary\"",
     "split_label": "mouth (tidal boundary)",
-    "split_name": "Tlell River: mouth (tidal boundary)",
+    "split_name": "Tlell River: tidal boundary sign 1.5 km above Hwy 16 Bridge",
     "aliases": [
      "tidal boundary",
      "tidal boundary sign 1.5 km above Hwy 16 Bridge (synopsis Tlell row)"
-    ]
+    ],
+    "reuse": {
+     "split_id": "tlell_river__tidal_sign_1_5_km_above_hwy_16_bridge",
+     "label": "tidal boundary sign 1.5 km above Hwy 16 Bridge",
+     "distance_m": 0.0,
+     "measured": "along the line",
+     "split_measure": 5750.3,
+     "tidal_measure": 5750.3,
+     "alias": "tidal boundary"
+    }
    },
    "polygon": {
     "crossing": "misses",
