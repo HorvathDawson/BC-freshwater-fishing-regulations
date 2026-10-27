@@ -79,6 +79,13 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
 ## Things only you can run or provide
 
 - **Parser runs** (`run_parse.sh`, dispatch): human-only; any re-parse is yours to start.
+- **T185 proposals (2026-10-27): decide, side-check, apply.** 8 proposals from your marks
+  (handoff/PLAN/curation-review/proposals/): Hatzic r2/r3 tributaries (in memory: 4 -> 92 sections, 8 -> 124 km
+  each), 2 new splits (Quinsam confluence, shared by two Campbell locations; Cowichan Sandy Pool sign), 4 DFO extents,
+  Dragon Lake listed for a lake split later. Open the app's **Proposals** tab, accept / reject (a mark). For a new
+  split, run its printed side chain (side copies -> side atlas -> reach -> `binding_diff`). Then
+  `python -m pipeline.regs.review.apply_proposals --dry-run`, and without `--dry-run` (one commit each). Refresh the
+  list any time: `python -m pipeline.regs.review.proposals build --check`.
 - **Reach + deliver rebuild for the "on parts" change (2026-10-26):** 33 vessel rules now hold on the whole water
   (list: handoff/PLAN/curation-review/on-parts.md); the bundle shows them as notes until the rebuild.
 - **R2 upload** of a new release and of the gauge feed, with your credentials:

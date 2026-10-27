@@ -1,6 +1,6 @@
 # T185 — From review marks to catalogue changes: proposals the owner accepts, never a tool writing files
 
-Status: OPEN. Owner 2026-10-24: "we want to avoid making the review curation tool update files directly anyways. must
+Status: DONE (e32eb08e) — owner decides the 8 proposals and applies them. Owner 2026-10-24: "we want to avoid making the review curation tool update files directly anyways. must
 be a better process to get the manual results in to entries etc."
 
 ## The process
@@ -27,3 +27,39 @@ whatever `CURATION_FIX` says, and no backend module but `writes.py` writes a fil
 commit of the marks store), each with a mutation; `test_curation_review_screen` calls every route and proves nothing
 under `data/curated` changed. A ticket's work line now reads "a reviewed change to the curated files (T185)". Still
 open here: steps 3–5 (the proposal builder, the change-review page, apply).
+
+## Outcome — steps 3–5 (2026-10-27, e32eb08e)
+
+Marks -> proposals -> owner decides (a mark) -> owner applies, one commit each. Nothing but the owner's
+`apply_proposals` writes a curated file; the one-write pins are unchanged and green.
+
+1. **Proposals** — `python -m pipeline.regs.review.proposals build [--check]` (`pipeline/regs/review/proposals.py`)
+   reads the marks in force: a mark's `extent_fix` (T191) and `tributaries` calls (T189) are ONE proposal (catalogue
+   entry / rule, or the DFO location's `binding`); each new split (T164) is ONE proposal per distinct cut across all
+   marks (`marks.proposals`, T210), and a mark naming it `depends_on` it; `lake_split_later` is listed with no edit.
+   Each holds structured edits (file, entry / rule / location, field, before, after) and a digest of them; a file is
+   re-spelled only where it changes (splits.json's one-line anchors kept). Output:
+   `handoff/PLAN/curation-review/proposals/index.json` + one `.patch` each. A new split's anchor comes from the
+   registry (confluence by the tributary's WSC, lake inlet/outlet by wbk + edge), else the stamped point.
+2. **Cheap check** (`--check`): `reuse.binding_change` / `dfo_binding_change` bind every rule in memory before and
+   after (the T191 preview's `build_reach` path): sections and km, gained / lost, outcome; severity from the queue. A
+   new split, or a proposal naming one, says "side rebuild". Each proposal prints its side chain:
+   `proposals side <id> --out <side>` (patched copies; refuses data/curated) -> side atlas when splits change ->
+   reach on the side copies -> `binding_diff` live vs side.
+3. **Proposals view** (review app, `#proposals`, `ProposalsView.tsx`; `GET /api/proposals`): per proposal the edits,
+   the marks behind it, the check, the side commands; accept / reject with a note. A decision is a mark (`marks.py`
+   additive: scope `proposal`, P y accept / P n reject, held against the proposal's digest; `marks.decisions`)
+   through `POST /api/marks`; never a ticket; stale once the proposal changes.
+4. **Apply** — `python -m pipeline.regs.review.apply_proposals [--dry-run]` (the owner runs it): rebuilds the
+   proposals from the files NOW and lands each accepted one whose digest still holds, new splits first, as its own
+   `git commit -- <paths>`; refuses a stale decision, a waiting dependency, or a file with uncommitted changes (files
+   put back if the commit fails).
+
+First run on the owner's marks (13 lines): 8 proposals — 2 new splits (Quinsam confluence, shared by two Campbell
+locations; Cowichan Sandy Pool sign), Hatzic r2/r3 tributaries in (in memory: 4 -> 92 sections, 8 -> 124 km each),
+4 DFO extents (Campbell Maple St -> cement block binds 1 section; 3 wait on a new split), Dragon Lake listed.
+
+Checks: `test_review_proposals.py` (one patch per mark / per cut, only the marked lines change, building writes no
+curated byte, a decision is a mark and never a ticket, stale / waiting decisions refused, apply in a temp repo = one
+commit each, the app reads and records a decision) plus the safety / marks / queue / gate / DFO suites; frontend
+`tsc`. `test_curation_review_screen.py` needs a built atlas (none in the worktree): run it at merge.
