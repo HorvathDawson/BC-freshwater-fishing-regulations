@@ -92,6 +92,16 @@ describe("inPartOf: rules of parts the map can't draw", () => {
         .toBe("Where: some spots, marked by buoys and signs. Look for signs.");
     }
   });
+  it("T208: an area rule reads 'Outlet area only (see map 1): …', set apart, with the map's synopsis page linked", () => {
+    const fr = view(4, 3351, { label: "Char — 2 per day" }, { undrawn_part: "the area at the outlet of François Lake described on map 1" }, { book: [[51, 57]] });
+    const withMap = ruleView(4, { ...fr.export, not_yet_mapped: { part: fr.part!, identified: true, map: { name: "map 1", page: 51, cite: "map 1 on p.51" } } }, fr.facts, BOOK, "reach");
+    const whole = view(5, 3351, { label: "Trout — 2 per day" }, { undrawn_part: "east arm" }, { book: [] });
+    const win = { item: { kind: "lake" }, statics: { pdfPages: { 51: 57 } } } as unknown as RegsInputs;
+    const c = inPartOf(settled({ inpart: [{ rule: withMap, now: true }, { rule: whole, now: true }] }), win, KEEP_FAMS)!;
+    expect(plain(c.items[0]!.what)).toBe("Char — 2 per day");
+    expect(c.items[0]!.area).toEqual({ tag: "Outlet area only (see map 1)", map: [{ t: "text", s: "See map 1 · " }, { t: "book", printed: 51, pdf: 57, bare: true }] });
+    expect(c.items[1]!.area).toBeUndefined();   // not an outlet/inlet or a mapped part: as before
+  });
   it("another family's rules are not this block's; none → null", () => {
     expect(inPartOf(settled({ inpart: [{ rule: boat, now: true }] }), inp, KEEP_FAMS)).toBeNull();
   });

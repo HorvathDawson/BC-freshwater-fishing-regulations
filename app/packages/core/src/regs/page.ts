@@ -9,6 +9,7 @@
  */
 import { buildModel } from "./card";
 import { buildBait } from "./bait";
+import { boatsLine } from "./boats";
 import { buildGearTop, gearCtxOf } from "./gear";
 import { buildMethods } from "./methods";
 import { edgeKind } from "./edge";
@@ -54,6 +55,7 @@ export function buildRegsPage(inp: RegsInputs, opts: RegsPageOpts): RegsPage {
     target: inp.target, day: inp.day, weekday: inp.weekday, today: sameDay(inp.day, opts.today), who: opts.who,
     status,
     header: headerOf(inp, { today: opts.today, status, downstream: opts.downstream ?? null }),
+    boats: boatsLine(inp),
     keep,
     gear, methods,
     licence: buildLicence(inp, opts.who, { closed: settled.status?.status === "closed",   // (T33)

@@ -28,6 +28,8 @@ export interface RegsPage {
   readonly day: Day; readonly weekday: Weekday; readonly today: boolean; readonly who: Who;
   readonly status: "open" | "closed" | "tidal" | "outside" | "unknown";  // header dot + strip word; NEVER from the status index
   readonly header: HeaderVM;
+  /** (T209) the boats line: one chip per kind of vessel restriction on this section; empty with none */
+  readonly boats?: readonly BoatChipVM[];   // absent in the frozen goldens: none
   readonly keep: KeepVM;
   readonly gear: GearVM | null;            // null outside B.C. (no key: no Gear section; tab hidden)
   readonly methods: MethodsVM | null;      // null outside B.C. (no key: no Methods section; tab hidden)
@@ -39,6 +41,10 @@ export interface RegsPage {
 }
 
 /** The whole page for one tap: `buildRegsPage` in page.ts (T21). */
+
+export type BoatKind = "none" | "unpowered" | "electric_only" | "power_capped" | "speed" | "towing";
+/** (T209) one chip of the boats line; `rule` is the first rule of the kind (its sheet opens from the chip). */
+export interface BoatChipVM { readonly kind: BoatKind; readonly text: string; readonly rule: RuleKey }
 
 // ── 2.1 Header (prototype hdr, placeRow, placeGo, shortLabel, hereLabel, fitLabel) ──────────────────────────────────
 export interface HeaderVM {
@@ -180,7 +186,10 @@ export interface CaveatVM {                                           // page v3
   readonly title: string; readonly calm: string | null;
   readonly items: readonly CaveatItemVM[]; readonly later: readonly CaveatItemVM[] | null;
 }
-export interface CaveatItemVM { readonly what: Line; readonly where: string | null; readonly rule: RuleKey | null; readonly fish: string | null; readonly book: Line }
+export interface CaveatItemVM { readonly what: Line; readonly where: string | null; readonly rule: RuleKey | null; readonly fish: string | null; readonly book: Line;
+  /** (T208) a rule held on an undrawn part of the water that the book shows on a map ("Outlet area only (see map 1)"): `what`
+   *  stays the rule's own words (the golden's); the component draws the tag before it and sets the item apart. `map`: the link to the synopsis page that shows it. */
+  readonly area?: { readonly tag: string; readonly map: Line | null } }
 
 export interface OtherFishKeyVM { readonly status: "release" | "closed"; readonly says: string; readonly term: string }
 export interface OtherFishRowVM{ readonly thumb: string | null; readonly name: string; readonly value: string;

@@ -105,6 +105,10 @@ export const WORDS = Object.freeze({
   CALM_LATER: "Not in force today. The map can’t draw these places yet, so check where you are.",
   WHERE: (p: string) => "Where: " + p,
   WHERE_SIGNS: "Where: some spots, marked by buoys and signs. Look for signs.",
+  // (T208) a rule held on an area of the water the book maps: "Outlet area only (see map 1): …", the map's link after it
+  AREA_ONLY: (lead: string, map: string | null) => lead + " only (" + (map ? "see " + map : "see the map") + ")",
+  AREA_OUTLET: "Outlet area", AREA_INLET: "Inlet area", AREA_PART: (noun: string) => "Part of this " + noun,
+  AREA_MAP: (map: string | null) => "See " + (map ?? "the map") + " · ",
   MAP_IN_REGS: "(map $1 in the regulations)",
   OTHER_DATES: (n: number) => "Other dates (" + n + ")",
   SIDE_TITLE: "⚠ On one side of the channel only",
@@ -323,6 +327,16 @@ export const YESNO = Object.freeze({ OK: "Allowed", NO: "Not allowed", OK_MARK: 
 
 // ── T32 the Methods tab (page v36 SLOT_LABEL, MUST, GROUPWORD, MOMENT_HEAD, WAYWHY, countTxt, tgtTxt, gearParts ways /
 //    always cards, renderKit's always tile; prototype buildGear ways / boats / reference, WAYS). Verbatim. ──
+/** (T209) the boats line's words, one per kind of vessel restriction. */
+export const BOATS = Object.freeze({
+  NONE: "No vessels", UNPOWERED: "No powered boats", ELECTRIC: "Electric motors only", TOWING: "No towing",
+  POWER: (kw: string, hp: number) => `Engine limit ${kw} kW (${hp} hp)`, POWER_NO_CAP: "Engine power limit",
+  HP_PER_KW: 1.34102,
+  SPEED: (kmh: string) => `Speed limit ${kmh} km/h`, SPEED_NO_NUMBER: "Speed restriction",
+  SPEEDS_ON_PARTS: (lo: string, hi: string) => `Speed limits ${lo}–${hi} km/h on parts`,
+  ON_PARTS: " on parts", IN_PART: " (in part)",
+});
+
 export const METHODS = Object.freeze({
   WAYS: "Ways to fish", BOATS: "Boats", REFERENCE: "Reference", HANDLING: "Handling fish",
   RULES_EVERYWHERE: (n: number) => `${n} rules that apply everywhere`,

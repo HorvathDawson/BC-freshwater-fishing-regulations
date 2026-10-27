@@ -37,6 +37,7 @@ export * from "./sheets";
 export * from "./page";
 export * from "./level";
 export * from "./gear";
+export * from "./boats";
 export * from "./yesno";
 export * from "./bait";
 export * from "./methods";

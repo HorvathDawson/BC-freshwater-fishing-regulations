@@ -82,17 +82,22 @@ export function CaveatBlock({ caveat, palette, actions }: { caveat: CaveatVM; pa
   const item = (x: CaveatVM["items"][number], i: number) => {
     const words = (
       <>
+        {x.area && <Text testID="caveat-area-tag" style={[TYPE.metaBold, { color: palette.restricted }]}>{x.area.tag}:</Text>}
         <LineText line={x.what} style={TYPE.regsBodySemi} color={palette.ink} palette={palette} actions={actions} />
         {x.where && <Text style={[TYPE.meta, { color: palette.sub }]}>{x.where}</Text>}
       </>
     );
     return (
-      <View key={i} testID="keep-caveat-item" style={{ paddingVertical: 6, borderTopWidth: 1, borderTopColor: palette.line }}>
+      <View key={i} testID={x.area ? "keep-caveat-area" : "keep-caveat-item"}
+            style={[{ paddingVertical: 6, borderTopWidth: 1, borderTopColor: palette.line },
+                    // (T208) a rule of one area of the water is set apart from the whole-water rules: a bar on the left
+                    x.area && { paddingLeft: 10, borderLeftWidth: 3, borderLeftColor: palette.restricted }]}>
         {x.rule ? (
           <RegsPress accessibilityRole="button" onPress={() => actions.onSheet(`rule:${x.rule}`)} box={ROW} style={{ minHeight: 44, justifyContent: "center" }}>
             {words}
           </RegsPress>
         ) : words}
+        {x.area?.map && <LineText line={x.area.map} style={TYPE.metaBold} color={palette.accent} palette={palette} actions={actions} />}
         {x.book.length > 0 && <LineText line={x.book} style={TYPE.metaBold} color={palette.accent} palette={palette} actions={actions} />}
       </View>
     );

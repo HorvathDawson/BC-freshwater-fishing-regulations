@@ -67,6 +67,20 @@ export function answerTxt(d: HydRes | null): string {
 /** page v36 friendlyWhy: a placement code ("locator:…") is not words; anything else is the data's own reason. */
 export const friendlyWhy = (s: string | null | undefined): string => (!s ? "" : /^[a-z_]+:/.test(s) ? WORDS.UNPLACED_WHY : s);
 
+/**
+ * (T208) A rule held on an undrawn part the book gives an area for: an outlet or inlet area, or a part the book draws on a
+ * map. It reads "Outlet area only (see map 1): …" with the map's synopsis page linked (the export's `not_yet_mapped.map`,
+ * its printed page through the guide's printed → PDF map); the rule stays a note on the whole water, as before.
+ */
+export function areaOf(r: RuleView, inp: RegsInputs): CaveatItemVM["area"] | null {
+  const part = r.part ?? "", mp = r.export.not_yet_mapped?.map ?? null;
+  const edge = /\boutlet\b/i.test(part) ? WORDS.AREA_OUTLET : /\binlet\b/i.test(part) ? WORDS.AREA_INLET : null;
+  if (!mp && !edge) return null;
+  const lead = edge ?? WORDS.AREA_PART(pageWaterNoun(inp));
+  return { tag: WORDS.AREA_ONLY(lead, mp ? mp.name : null),
+           map: mp ? [text(WORDS.AREA_MAP(mp.name)), { t: "book", printed: mp.page, pdf: inp.statics.pdfPages[mp.page] ?? null, bare: true }] : null };
+}
+
 const item = (what: Line, where: string | null, r: RuleView | null, fish: string | null = null): CaveatItemVM =>
   ({ what, where: where || null, rule: r ? r.key : null, fish, book: r ? ruleBook(r) : [] });
 
@@ -81,8 +95,12 @@ export function inPartOf(s: Settled, inp: RegsInputs, fams: readonly string[]): 
     const p = cap(r.part ?? "").replace(/\(map ([A-Z])\)/, WORDS.MAP_IN_REGS);
     return /various|do not identify|buoys and signs/i.test(p) ? WORDS.WHERE_SIGNS : WORDS.WHERE(p);
   };
-  const li = (r: RuleView) => item([text(clean(parts(r).what || r.export.label).replace(/ — in part:.*$/, "")),
-    ...(r.wins.length ? [text(" · " + winTxt(r.wins).slice(2))] : [])], where(r), r);
+  const li = (r: RuleView): CaveatItemVM => {
+    const words: Line = [text(clean(parts(r).what || r.export.label).replace(/ — in part:.*$/, "")),
+      ...(r.wins.length ? [text(" · " + winTxt(r.wins).slice(2))] : [])];
+    const area = areaOf(r, inp);
+    return area ? { ...item(words, where(r), r), area } : item(words, where(r), r);
+  };
   return {
     kind: "inpart", hot,
     title: hot ? WORDS.INPART_HOT : onlyBoat ? WORDS.INPART_BOAT : WORDS.INPART_SOME,

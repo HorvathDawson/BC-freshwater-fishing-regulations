@@ -31,6 +31,7 @@ import { type Palette } from "../theme";
 import { KeepTab } from "./KeepTab";
 import { TermTitles, type KeepActions } from "./LineText";
 import { createPinStore, type PinStore } from "./pinStore";
+import { BoatsLine } from "./BoatsLine";
 import { RegsHeader } from "./RegsHeader";
 import { PinOver, ReadingColumn, RegsSide } from "./RegsWide";
 import { SheetHost } from "./SheetHost";
@@ -180,6 +181,7 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
           <Text accessibilityRole="alert" style={{ ...TYPE.metaBold, color: palette.ink, flex: 1 }}>{lapsed}</Text>
         </WaterInset>
       )}
+      <BoatsLine boats={page.boats} palette={palette} onSheet={openSheet} />
       <AnchorContext.Provider value={sink}>
         <KeepTab keep={page.keep} dateLabel={page.header.date} palette={palette} actions={keepActions} images={images} />
       </AnchorContext.Provider>

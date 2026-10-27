@@ -44,6 +44,7 @@ const page = {
   gear: { closed: null, closedMore: [], day: "Fri, May 15", mode: null, lines: [], bait: null },
   methods: { closed: null, closedMore: [], ways: null, boats: null, reference: null },
   licence: null,
+  boats: [],
   terms: { catch_and_release: "Catch and release (release)" },
   sheet: () => null,
 } satisfies RegsPage;

@@ -1,6 +1,6 @@
 # T209 — vessel restrictions in the app
 
-Status: OPEN
+Status: DONE (ffe7e7e2)
 
 Source: owner 2026-10-26. The catalogue holds `vessel_rule` rules (speed limits, no powered boats, electric motors
 only …). The app should show them on the water page and the map sheet.
@@ -35,3 +35,15 @@ only" or "8 km/h", and the 25 named-part rules are in the in-part caveat (`cavea
   parser fills `max_power_kw`, or the label stays word-only.
 - Done when: every one of the six kinds shows on the water page and the map sheet for one example water each
   (golden test), and a water with no vessel_rule shows no boats line.
+
+## Outcome (2026-10-27, app built; no deliver rebuild needed)
+- The bundle already carries the facts in `rule.fields` (`aspect`, `level`, `max_kmh`, `max_power_kw`); no contract change,
+  no type regeneration.
+- `core/regs/boats.ts` (`boatsLine`, `RegsPage.boats`): one chip per kind from the section's gear-frame vessel rules, never
+  from the words - "Electric motors only", "No powered boats", "Engine limit 7.5 kW (10 hp)", "Speed limit 8 km/h", "No towing",
+  "No vessels"; two speed limits of one kind read "Speed limits 8-50 km/h on parts"; an all-undrawn-part kind ends "(in part)";
+  a dated kind carries its dates. The frame's lists are per section, so a stretch-bound rule shows only on its stretch.
+  `ui-native regs/BoatsLine.tsx` draws the chips under the header (each opens its rule's sheet); none for a water with no
+  vessel rule. The Methods "Boats" cell is unchanged. The map-tapped section's page is this page, so the map sheet has the same line.
+- Tests: `boats.test.ts` - one example water per kind (golden-style), the Hatzic range, ordering, dates, no-line.
+- OPEN for the owner: electric_only reads without its 7.5 kW (carried in no field) until the parser fills `max_power_kw`.
