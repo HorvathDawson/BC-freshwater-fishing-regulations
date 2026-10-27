@@ -3,7 +3,24 @@
 Restart here. Update this file after EVERY step: what is done, what is running, and the exact next action.
 Logs from timing runs live in the session scratchpad, which a reboot wipes. The numbers that matter are copied here.
 
-## CURRENT STATE (2026-10-27, evening — T185 owner marks applied)
+## CURRENT STATE (2026-10-27, late — T211 salmon merged + released)
+
+T211 merged (7dd3828c, afce6842; worktree + branch removed). Build (reach + deliver; no atlas) promoted
+r-8ce19c1f2104: binding diff NONE — every release file is byte-identical to r-c79331d78adf except the new
+`salmon-*.bin.gz` (151 of 346 DFO locations placed, salmon_section 835,484 rows). Pruned r-81c01b35d2fa, r-ea426985a467.
+Size wording now in the prototype snapshot (3a625558, v36snap.js): sync.mjs at HEAD reproduces golden.json's text
+exactly; only pin geometry moved (longer wording wraps) and meta sha bdda3586 -> d7b1ed35 (pins re-pinned in
+harness.parity / exclusions). Post-release re-cut ad09b590 (golden/pins/taps/hydrate, regs-fixture r-0d38be508dc3);
+request-walk unchanged (release-budget green). Follow-up 28e7bfe9: salmon.py/salmon.ts read the one calendar spec,
+gate 2 allowlists the DFO feed's own may_target. Full pytest 5767 pass / 2 fail (both the gates, fixed in 28e7bfe9).
+Strict app check on a clean HEAD worktree: 7576 pass / 7 fail — 2 render timeouts (pass alone); the other 5 are the
+T215 lane's release r-2c1ca46d0754 (promoted 16:52, answers c600a5fa4494, release-build code changed): that lane
+owes the taps/sync re-cut + regs-fixture re-cut. verify_map.py (in sync.mjs) fails kinds 28/248 — pre-existing T214
+sub-cap wording ("Of your 2 trout…") the golden amends at load but verify_map does not; sync.mjs stops there, run
+hydrate.mjs by hand after it. Main tree carries other lanes' uncommitted map-style / ui WIP (makes `pnpm check` style
+step fail in place).
+
+## (earlier) CURRENT STATE (2026-10-27, evening — T185 owner marks applied)
 
 LIVE: r-81c01b35d2fa (previous r-ea426985a467 kept; older pruned). It is a deliver-only re-run after the Hatzic
 revert, with the reach digest unchanged. CAUTION: it ran while another lane had uncommitted edits in
