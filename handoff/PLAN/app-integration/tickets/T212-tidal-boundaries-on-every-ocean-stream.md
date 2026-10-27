@@ -11,8 +11,13 @@ ocean — at least every NAMED one — as candidate splits. Every ocean stream's
 ticket FINDS them all and proposes them, with confidence and sources, for the owner to accept later.
 
 ## Inputs to cross-reference
-- The owner's earlier DFO tidal polygon (the DFO area modified to match tidal boundaries that were found — find it in the
-  repo/history; see the `tidal` diagnostics in the reach run and memory notes on tidal limits).
+- The owner's earlier DFO tidal polygon: a .gpkg or .geojson holding ONE polygon of the DFO (tidal) boundary, which the
+  owner EDITED by hand to match tidal boundaries found on streams. Not found by a quick search on 2026-10-27 (only
+  data/source/bc_boundary.geojson and data/curated/gauges/tidal.json turned up). Search thoroughly: the whole repo incl.
+  untracked/ignored files (`git status --ignored`, data/source, data/scratch, handoff/), git history of DELETED files
+  (`git log --all --diff-filter=D --name-only -- '*.gpkg' '*.geojson'`), and the owner's ~/Downloads, ~/Desktop,
+  ~/Documents (read-only). Also check pipeline/atlas/waters/added_streams/coastal.py and the reach run's `tidal`
+  diagnostics for what tidal source the build reads today. If it cannot be found, ask the owner for the path.
 - Tidal-boundary text in the DFO salmon notices and the synopsis (e.g. "tidal waters", "tidal boundary signs", "below
   the CPR bridge"), and the tidal limits already curated (Fraser below Mission, Q42).
 - Web search per stream where the above disagree or are silent (DFO tidal boundary descriptions, Fisheries Act
