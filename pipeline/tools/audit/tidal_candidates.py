@@ -40,6 +40,8 @@ import shapely
 from shapely import STRtree
 from shapely.geometry import LineString, Point
 
+from pipeline.common.utils import wsc as W
+
 ROOT = Path(__file__).resolve().parents[3]
 
 #: the polygon's crossing within this far (m) of a stream's FWA mouth IS the mouth
@@ -149,11 +151,9 @@ def _gpkg_geom(b: bytes):
     return shapely.from_wkb(bytes(b[8 + {0: 0, 1: 32, 2: 48, 3: 48, 4: 64}[env]:]))
 
 
-def _depth(wsc: str) -> int:
-    s = wsc.split("-")
-    while s and set(s[-1]) == {"0"}:
-        s.pop()
-    return len(s)
+def _depth(code: str) -> int:
+    """How many groups a code has once its zero padding is trimmed (`wsc`, the one reader)."""
+    return len(W.groups(W.trim_wsc(code)))
 
 
 def _to_lonlat():
@@ -219,9 +219,9 @@ def scan(con, cross: set[int]) -> dict[int, list[dict]]:
             continue
         keep = blk in cblk
         ocean = False
-        if wsc[0] == "9" and _depth(wsc) == 2:
+        if W.in_nine_hundreds(wsc) and _depth(wsc) == 2:
             keep = ocean = True
-        elif wsc[:3] in ("100", "400", "500") and wsc[4:10] == "000000" and _depth(wsc) == 1:
+        elif W.root(wsc) in ("100", "400", "500") and _depth(wsc) == 1:
             keep = ocean = True
         if keep:
             out[blk].append({"fid": fid, "blk": blk, "name": name, "gnis": gnis, "wsc": wsc,
