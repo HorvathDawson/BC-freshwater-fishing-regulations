@@ -1111,6 +1111,62 @@
             "field": "profile"
           },
           "$comment": "THE DAY'S STATUS, the fast way (colour-latency study, AP). Feature-state `p` holds the section's PROFILE label (`profileLabel` in @app/core: `p<n>`, or `b` for a section the index does not list), set by the renderer once per section per session as each tile arrives; the DAY lives in the paint as one match over the labels (`dayProfiles` in @app/core, beside `statusOfCode`), so a day change is one paint property and no per-section call. Same three tokens as `status`, so a search row's dot and this line cannot disagree. `missing` is a label in no set — no profile pushed yet, or tidal / outside B.C. — and wears the neutral `water.unmapped` grey, never base. With no day installed (no proven pair, or the index withdrawn) the adapter paints the layer's plain mode instead: not asked is never drawn as an answer."
+        },
+        "salmon": {
+          "label": "Salmon for the date",
+          "scale": "profile",
+          "property": "sp",
+          "enum": "salmon_status",
+          "categories": {
+            "open": {
+              "token": "color.salmon.open"
+            },
+            "release": {
+              "token": "color.salmon.release"
+            },
+            "closed": {
+              "token": "color.salmon.closed"
+            },
+            "check": {
+              "token": "color.salmon.check"
+            }
+          },
+          "missing": {
+            "token": "color.water.unmapped"
+          },
+          "data": {
+            "provider": "salmon",
+            "field": "profile"
+          },
+          "$comment": "(T211) THE SALMON COLOURING, the fast way — the `profile` mode's engine, its own channel: feature-state `sp` holds the section's DFO CHAIN label (`s<chain>`, @app/core `salmonLabel`, fixed for the release), set as each tile arrives; the DAY lives in the paint as one match over the chain labels (`salmonDayProfiles`). Toggling Standard / Salmon is one paint change per layer: no fetch, no relabel. A section DFO does not list reads the UNLISTED chain (closed to salmon fishing, owner 2026-10-27) — an answer, not `missing`; `missing` is only a section not labelled yet. Its own tokens (`salmon.*`), never the provincial `status.*`, so the two colourings read apart."
+        },
+        "salmon_status": {
+          "label": "Salmon for the date",
+          "scale": "categorical",
+          "property": "salmon",
+          "enum": "salmon_status",
+          "categories": {
+            "open": {
+              "token": "color.salmon.open"
+            },
+            "release": {
+              "token": "color.salmon.release"
+            },
+            "closed": {
+              "token": "color.salmon.closed"
+            },
+            "check": {
+              "token": "color.salmon.check"
+            }
+          },
+          "missing": {
+            "token": "color.water.unmapped"
+          },
+          "data": {
+            "provider": "salmon",
+            "field": "status"
+          },
+          "$comment": "(T211) The Salmon colouring on a map with no per-tile event (native): each visible section's `salmon` pushed (@app/ui `salmonData`, from the same chain and day as `salmon`), so the two renderers cannot disagree."
         }
       },
       "opacity": {
@@ -1337,6 +1393,62 @@
             "field": "profile"
           },
           "$comment": "THE DAY'S STATUS, the fast way (colour-latency study, AP). Feature-state `p` holds the section's PROFILE label (`profileLabel` in @app/core: `p<n>`, or `b` for a section the index does not list), set by the renderer once per section per session as each tile arrives; the DAY lives in the paint as one match over the labels (`dayProfiles` in @app/core, beside `statusOfCode`), so a day change is one paint property and no per-section call. Same three tokens as `status`, so a search row's dot and this line cannot disagree. `missing` is a label in no set — no profile pushed yet, or tidal / outside B.C. — and wears the neutral `water.unmapped` grey, never base. With no day installed (no proven pair, or the index withdrawn) the adapter paints the layer's plain mode instead: not asked is never drawn as an answer."
+        },
+        "salmon": {
+          "label": "Salmon for the date",
+          "scale": "profile",
+          "property": "sp",
+          "enum": "salmon_status",
+          "categories": {
+            "open": {
+              "token": "color.salmon.open"
+            },
+            "release": {
+              "token": "color.salmon.release"
+            },
+            "closed": {
+              "token": "color.salmon.closed"
+            },
+            "check": {
+              "token": "color.salmon.check"
+            }
+          },
+          "missing": {
+            "token": "color.water.unmapped"
+          },
+          "data": {
+            "provider": "salmon",
+            "field": "profile"
+          },
+          "$comment": "(T211) THE SALMON COLOURING, the fast way — the `profile` mode's engine, its own channel: feature-state `sp` holds the section's DFO CHAIN label (`s<chain>`, @app/core `salmonLabel`, fixed for the release), set as each tile arrives; the DAY lives in the paint as one match over the chain labels (`salmonDayProfiles`). Toggling Standard / Salmon is one paint change per layer: no fetch, no relabel. A section DFO does not list reads the UNLISTED chain (closed to salmon fishing, owner 2026-10-27) — an answer, not `missing`; `missing` is only a section not labelled yet. Its own tokens (`salmon.*`), never the provincial `status.*`, so the two colourings read apart."
+        },
+        "salmon_status": {
+          "label": "Salmon for the date",
+          "scale": "categorical",
+          "property": "salmon",
+          "enum": "salmon_status",
+          "categories": {
+            "open": {
+              "token": "color.salmon.open"
+            },
+            "release": {
+              "token": "color.salmon.release"
+            },
+            "closed": {
+              "token": "color.salmon.closed"
+            },
+            "check": {
+              "token": "color.salmon.check"
+            }
+          },
+          "missing": {
+            "token": "color.water.unmapped"
+          },
+          "data": {
+            "provider": "salmon",
+            "field": "status"
+          },
+          "$comment": "(T211) The Salmon colouring on a map with no per-tile event (native): each visible section's `salmon` pushed (@app/ui `salmonData`, from the same chain and day as `salmon`), so the two renderers cannot disagree."
         }
       },
       "opacity": {
@@ -1613,6 +1725,62 @@
             "field": "profile"
           },
           "$comment": "THE DAY'S STATUS, the fast way (colour-latency study, AP). Feature-state `p` holds the section's PROFILE label (`profileLabel` in @app/core: `p<n>`, or `b` for a section the index does not list), set by the renderer once per section per session as each tile arrives; the DAY lives in the paint as one match over the labels (`dayProfiles` in @app/core, beside `statusOfCode`), so a day change is one paint property and no per-section call. Same three tokens as `status`, so a search row's dot and this line cannot disagree. `missing` is a label in no set — no profile pushed yet, or tidal / outside B.C. — and wears the neutral `water.unmapped` grey, never base. With no day installed (no proven pair, or the index withdrawn) the adapter paints the layer's plain mode instead: not asked is never drawn as an answer."
+        },
+        "salmon": {
+          "label": "Salmon for the date",
+          "scale": "profile",
+          "property": "sp",
+          "enum": "salmon_status",
+          "categories": {
+            "open": {
+              "token": "color.salmon.open"
+            },
+            "release": {
+              "token": "color.salmon.release"
+            },
+            "closed": {
+              "token": "color.salmon.closed"
+            },
+            "check": {
+              "token": "color.salmon.check"
+            }
+          },
+          "missing": {
+            "token": "color.water.unmapped"
+          },
+          "data": {
+            "provider": "salmon",
+            "field": "profile"
+          },
+          "$comment": "(T211) THE SALMON COLOURING, the fast way — the `profile` mode's engine, its own channel: feature-state `sp` holds the section's DFO CHAIN label (`s<chain>`, @app/core `salmonLabel`, fixed for the release), set as each tile arrives; the DAY lives in the paint as one match over the chain labels (`salmonDayProfiles`). Toggling Standard / Salmon is one paint change per layer: no fetch, no relabel. A section DFO does not list reads the UNLISTED chain (closed to salmon fishing, owner 2026-10-27) — an answer, not `missing`; `missing` is only a section not labelled yet. Its own tokens (`salmon.*`), never the provincial `status.*`, so the two colourings read apart."
+        },
+        "salmon_status": {
+          "label": "Salmon for the date",
+          "scale": "categorical",
+          "property": "salmon",
+          "enum": "salmon_status",
+          "categories": {
+            "open": {
+              "token": "color.salmon.open"
+            },
+            "release": {
+              "token": "color.salmon.release"
+            },
+            "closed": {
+              "token": "color.salmon.closed"
+            },
+            "check": {
+              "token": "color.salmon.check"
+            }
+          },
+          "missing": {
+            "token": "color.water.unmapped"
+          },
+          "data": {
+            "provider": "salmon",
+            "field": "status"
+          },
+          "$comment": "(T211) The Salmon colouring on a map with no per-tile event (native): each visible section's `salmon` pushed (@app/ui `salmonData`, from the same chain and day as `salmon`), so the two renderers cannot disagree."
         }
       },
       "opacity": {
@@ -2030,6 +2198,62 @@
             "field": "profile"
           },
           "$comment": "THE DAY'S STATUS, the fast way (colour-latency study, AP). Feature-state `p` holds the section's PROFILE label (`profileLabel` in @app/core: `p<n>`, or `b` for a section the index does not list), set by the renderer once per section per session as each tile arrives; the DAY lives in the paint as one match over the labels (`dayProfiles` in @app/core, beside `statusOfCode`), so a day change is one paint property and no per-section call. Same three tokens as `status`, so a search row's dot and this line cannot disagree. `missing` is a label in no set — no profile pushed yet, or tidal / outside B.C. — and wears the neutral `water.unmapped` grey, never base. With no day installed (no proven pair, or the index withdrawn) the adapter paints the layer's plain mode instead: not asked is never drawn as an answer."
+        },
+        "salmon": {
+          "label": "Salmon for the date",
+          "scale": "profile",
+          "property": "sp",
+          "enum": "salmon_status",
+          "categories": {
+            "open": {
+              "token": "color.salmon.open"
+            },
+            "release": {
+              "token": "color.salmon.release"
+            },
+            "closed": {
+              "token": "color.salmon.closed"
+            },
+            "check": {
+              "token": "color.salmon.check"
+            }
+          },
+          "missing": {
+            "token": "color.water.unmapped"
+          },
+          "data": {
+            "provider": "salmon",
+            "field": "profile"
+          },
+          "$comment": "(T211) THE SALMON COLOURING, the fast way — the `profile` mode's engine, its own channel: feature-state `sp` holds the section's DFO CHAIN label (`s<chain>`, @app/core `salmonLabel`, fixed for the release), set as each tile arrives; the DAY lives in the paint as one match over the chain labels (`salmonDayProfiles`). Toggling Standard / Salmon is one paint change per layer: no fetch, no relabel. A section DFO does not list reads the UNLISTED chain (closed to salmon fishing, owner 2026-10-27) — an answer, not `missing`; `missing` is only a section not labelled yet. Its own tokens (`salmon.*`), never the provincial `status.*`, so the two colourings read apart."
+        },
+        "salmon_status": {
+          "label": "Salmon for the date",
+          "scale": "categorical",
+          "property": "salmon",
+          "enum": "salmon_status",
+          "categories": {
+            "open": {
+              "token": "color.salmon.open"
+            },
+            "release": {
+              "token": "color.salmon.release"
+            },
+            "closed": {
+              "token": "color.salmon.closed"
+            },
+            "check": {
+              "token": "color.salmon.check"
+            }
+          },
+          "missing": {
+            "token": "color.water.unmapped"
+          },
+          "data": {
+            "provider": "salmon",
+            "field": "status"
+          },
+          "$comment": "(T211) The Salmon colouring on a map with no per-tile event (native): each visible section's `salmon` pushed (@app/ui `salmonData`, from the same chain and day as `salmon`), so the two renderers cannot disagree."
         }
       },
       "label": {
@@ -2251,6 +2475,12 @@
       "key": "section_id",
       "freshness": "bundle",
       "$comment": "THE STATUS INDEX (`status_index.bin`, `python -m pipeline.deliver.status_index`): closed / own / base for every section on any day, precomputed from the bundle through the reference reader and pinned to the same section_handles digest as the tiles. Keyed by the tile's own section_id, so colouring needs no bundle query. A section the file does not list is BASE — absence is a claim the pipeline made, so `missing` paints base; the app only selects this mode once the index has loaded and matched the tiles' vintage."
+    },
+    "salmon": {
+      "kind": "bundle",
+      "key": "section_id",
+      "freshness": "bundle",
+      "$comment": "(T211) THE DFO SALMON (`salmon/1`, pipeline/deliver/salmon.py): each section's chain of DFO locations and each chain's map status per day, precomputed at deliver time and pinned to the same section_handles digest as the tiles. A section the file does not place is the unlisted chain: closed to salmon fishing."
     }
   },
   "$toggleable_groups": "WHAT MAY BE SWITCHED OFF, and what may not.\n\n`protected` and `access` are NOT toggleable and are ON by default. A national park, an ecological reserve, an Indian reserve and land the public may not enter are all reasons a person can be somewhere they should not be, and none of them is a preference. They were both toggleable and hidden by default, which meant the map's normal state was one that showed none of them.\n\n`ownership` IS toggleable and off by default, and that asymmetry is the point: title is context, not an instruction. It carries private land ONLY — most of British Columbia is Crown land, so drawing that would be a wash over the whole province saying almost nothing. Private title on the bank you meant to walk down is worth looking up deliberately.",

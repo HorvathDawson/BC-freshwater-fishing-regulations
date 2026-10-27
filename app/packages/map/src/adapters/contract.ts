@@ -13,7 +13,7 @@ import type { TraceCollection } from "../trace-geometry";
 import { COPY_CASING, COPY_FILL, COPY_LINE, type LitFeature } from "../water-copy";
 import { BASEMAP_LABELS, OWN_LABELS, basemapLabelPaint, ownLabelOnImagery } from "../labels";
 import {
-  MAP_STYLE, NO_VALUES, STYLE_META, followerMode, followersOf, isRuntimeLayer,
+  MAP_STYLE, NO_VALUES, STYLE_META, followerMode, followersOf, isRuntimeLayer, profileChannel,
   resolveTheme, type ChannelValues, type Tokens,
 } from "../style";
 import { casingPaint, copyFillPaint, copyLinePaint, NOACCESS_LAYER, noaccessPaint, NOBASELINE_LAYER, nobaselineOpacity,
@@ -221,8 +221,7 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
   };
   /** The channel a layer's mode reads its values from, if any. */
   const channelOf = (layerId: string, mode: string): keyof ChannelValues | null => {
-    const m = STYLE_META.colorModes[layerId]?.[mode];
-    return m?.scale === "profile" ? "status" : null;
+    return profileChannel(STYLE_META.colorModes[layerId]?.[mode]);
   };
 
   const apply = (h: MapHandle, viewId: string, themeName: string, overrides: Tokens = {}) => {

@@ -663,6 +663,16 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
     # THE BOOK'S WORDS THE GLOSSARY QUOTES (plan 2.14): copied in, so the answers read them from here
     from pipeline.deliver.bundle import glossary_source as _glossary_source
     _glossary_source.write(db, cov)
+    # THE DFO SALMON (T211): the federal salmon rules per chain of locations and day, and each placed section's chain —
+    # read once here from the reach run's placements, the curated locations and the typed feed (`pipeline.deliver.salmon`)
+    if _reaches is not None:
+        from pipeline.deliver import salmon as _salmon
+        _files, _feeds, _placed = _salmon.load_inputs(
+            _reaches, _load_registry(str(Path(build_dir) / "registry.json")))
+        _payload, _salmon_secs = _salmon.build(_files, _feeds, _placed, _read_handles(build_dir)[1])
+        _salmon.write_bundle(db, _payload, _salmon_secs)
+        cov.filled("salmon_section", len(_salmon_secs))
+        del _files, _feeds, _placed, _payload, _salmon_secs
 
     db.executescript(INDEXES.read_text())
     # THE BUNDLE CARRIES THE POLICY IT WAS BUILT UNDER.

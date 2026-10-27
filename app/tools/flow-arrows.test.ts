@@ -145,7 +145,9 @@ describe("an arrow is its stream's colour", () => {
     const t = resolveTheme("dark");
     for (const mode of Object.keys(STYLE_META.colorModes.stream!))
       expect(paintFor(ARROWS, mode, t, null)["text-color"], mode)
-        .toEqual(mode === "profile" ? colorExpression("stream", "plain", t) : colorExpression("stream", mode, t));
+        // a profile mode with no day installed (the status's, and T211's salmon) is the plain map
+        .toEqual(STYLE_META.colorModes.stream![mode]!.scale === "profile" ? colorExpression("stream", "plain", t)
+          : colorExpression("stream", mode, t));
   });
 
   it("setting the stream's mode paints the arrows too, with the paper as their halo", () => {

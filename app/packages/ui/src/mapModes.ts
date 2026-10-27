@@ -61,6 +61,11 @@ export interface MapModeInput {
    * cannot be, the map draws its own ground and the sheet says why. REQUIRED, so no map is handed the choice raw.
    */
   imageryUp: boolean;
+  /**
+   * (T211) The Map tab's regulations are painted from DFO's salmon (the Standard / Salmon toggle on Salmon, and the
+   * release's salmon handed to the map). Only under the Regulations water colouring; absent = Standard.
+   */
+  salmon?: boolean;
 }
 
 export interface MapModesVM {
@@ -133,9 +138,17 @@ export function mapModes(i: MapModeInput): MapModesVM {
    * A STREAM'S POLYGON IS A STREAM — `lake_flowing` / `wetland_flowing` wear the rivers' colouring in every view.
    */
   const statusMode = i.perTile ? "profile" : "status";
+  /*
+   * (T211) SALMON: DFO's salmon for the day, through its own channel — the same split by renderer as the status
+   * (`salmon` labels per tile on the web, `salmon_status` from pushed data on the phone). Only on the Map tab under the
+   * Regulations colouring: a toggle is ONLY a mode change here, everything it paints from is already handed over.
+   */
+  const salmonOn = !!i.salmon && i.paired && !onConditions && !lakeMeasure;
+  const salmonMode = i.perTile ? "salmon" : "salmon_status";
   const river = !i.paired ? "plain"
     : onConditions ? (temperature ? "plain" : "standing")
     : lakeMeasure ? "plain"
+    : salmonOn ? salmonMode
     : i.statusOk ? statusMode : "plain";
   const modes: MapModes = {
     stream: river,
@@ -143,7 +156,7 @@ export function mapModes(i: MapModeInput): MapModesVM {
     // under a lake measure the lakes wear it and the rivers go neutral
     lake: !i.paired ? "plain"
       : onConditions ? (temperature ? "plain" : "standing")
-      : lakeMeasure ?? (i.statusOk ? statusMode : "plain"),
+      : lakeMeasure ?? (salmonOn ? salmonMode : i.statusOk ? statusMode : "plain"),
     lake_flowing: river,
     wetland_flowing: river,
     gauges: temperature ? "temperature" : "standing",
@@ -172,10 +185,11 @@ export function mapModes(i: MapModeInput): MapModesVM {
  * memoised on a hand-picked subset of inputs, so a later rule that makes a mode depend on anything stays correct.
  */
 export function useMapModes(i: MapModeInput): MapModesVM {
-  const { tab, flowParam, horizon, zoomedOut, paired, statusOk, perTile, water, groups, basemap, imageryUp } = i;
+  const { tab, flowParam, horizon, zoomedOut, paired, statusOk, perTile, water, groups, basemap, imageryUp, salmon } = i;
   const vm = useMemo(
-    () => mapModes({ tab, flowParam, horizon, zoomedOut, paired, statusOk, perTile, water, groups, basemap, imageryUp }),
-    [tab, flowParam, horizon, zoomedOut, paired, statusOk, perTile, water, groups, basemap, imageryUp]);
+    () => mapModes({ tab, flowParam, horizon, zoomedOut, paired, statusOk, perTile, water, groups, basemap, imageryUp,
+                     salmon }),
+    [tab, flowParam, horizon, zoomedOut, paired, statusOk, perTile, water, groups, basemap, imageryUp, salmon]);
   const modes = useSameContent(vm.modes);
   const activeGroups = useSameContent(vm.activeGroups);
   return useMemo(() => ({ ...vm, modes, activeGroups }), [vm, modes, activeGroups]);

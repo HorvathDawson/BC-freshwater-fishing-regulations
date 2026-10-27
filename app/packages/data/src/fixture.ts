@@ -288,6 +288,8 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Wat
     async standingClasses() { return buildStandingClasses("fixture", [], new Map(), new Map(), new Map()); },
     // No lake values in the design fixture (none are fed yet, owner 2026-10-21): Stocked and Depth stay greyed.
     async lakeFacts() { return null; },
+    // (T211) no DFO salmon in the design fixture: the Salmon toggle is not offered
+    async salmonFacts() { return null; },
     // No `this`: a source is routinely destructured, and a fixture that only works while
     // its methods are still attached to the object is a trap set for the next test.
     async waterFor(sec) {

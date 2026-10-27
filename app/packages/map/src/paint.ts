@@ -3,7 +3,8 @@
  * style composer (`runtime-style.ts`, the first frame) and the adapter (`adapters/contract.ts`, every frame after it)
  * share. One module, so the first frame and every frame after it are painted the same way.
  */
-import { MAP_STYLE, NO_VALUES, STYLE_META, colorExpression, type ChannelValues, type Tokens } from "./style";
+import { MAP_STYLE, NO_VALUES, STYLE_META, colorExpression, profileChannel, profileDay, type ChannelValues, type Tokens }
+  from "./style";
 
 /**
  * "MEASURED HERE, BUT NOTHING TO COMPARE IT TO" — the dashed line over a stream whose standing is the -1 sentinel
@@ -149,7 +150,7 @@ export function paintFor(layerId: string, mode: string, tokens: Tokens,
    * checks (`setChannel`); without one there is no answer to draw, and the app's rule is that "not asked" stays plain
    * rather than going grey or — worse — keeping another release's colours.
    */
-  if (values.status === null && STYLE_META.colorModes[layerId]?.[mode]?.scale === "profile")
+  if (profileChannel(STYLE_META.colorModes[layerId]?.[mode]) && profileDay(STYLE_META.colorModes[layerId]?.[mode], values) === null)
     return paintFor(layerId, "plain", tokens);
   const type = (MAP_STYLE.layers.find((l) => l.id === layerId) as { type?: string } | undefined)
     ?.type;

@@ -74,6 +74,8 @@ export interface RegsScreenProps {
   gear?: Slot; methods?: Slot; licence?: Slot;
   /** the last child of the scroll */
   footer?: React.ReactNode;
+  /** (T211, option A) the "Salmon · DFO" card, drawn under the Keep tab's provincial rules; absent → none */
+  salmon?: React.ReactNode;
   /**
    * (T45) how much room there is (@app/ui `useLayoutClass`, handed down by the water screen; this screen never reads the
    * window). "phone" (the default): the page as it always was. "tablet": the page and its pin bar held to the reading
@@ -105,7 +107,7 @@ export interface RegsScreenProps {
 }
 
 export function RegsScreen({ page, palette, images, adipose, actions, onDate, onPart,
-                             gear, methods, licence, footer, store: injected, layout = "phone", start = null, onStarted,
+                             gear, methods, licence, footer, salmon, store: injected, layout = "phone", start = null, onStarted,
                              lapsed = null, access = null, onAccessMap }: RegsScreenProps) {
   const store = useMemo(() => injected ?? createPinStore(), [injected]);
   const scroll = useRef<ScrollView>(null);
@@ -185,6 +187,7 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
       <AnchorContext.Provider value={sink}>
         <KeepTab keep={page.keep} dateLabel={page.header.date} palette={palette} actions={keepActions} images={images} />
       </AnchorContext.Provider>
+      {salmon}
       {sec("gear", gear)}
       {sec("methods", methods)}
       {sec("licence", licence)}

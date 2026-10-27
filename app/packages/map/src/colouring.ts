@@ -49,7 +49,8 @@
  * paths read the same arithmetic (core `statusOn` / `mapStatusOn`, data `sectionStanding`), so a section cannot be
  * coloured differently by the two — they differ in WHEN a colour arrives, never in which.
  */
-import { readingDayOf, dayProfiles, profileLabel, stockRecency, type LakeFacts, type StatusIndex } from "@app/core";
+import { readingDayOf, dayProfiles, profileLabel, salmonDayIndex, salmonDayProfiles, salmonLabel, stockRecency,
+         type LakeFacts, type SalmonFacts, type StatusIndex } from "@app/core";
 import type { ChannelValues, MapAdapter, MapHandle } from "./adapters/contract";
 import type { StandingValues, Tokens } from "./style";
 import { perSectionLayers, spreadSections, type PerSectionLayer } from "./sections";
@@ -81,7 +82,27 @@ export interface LakeFeed {
 }
 
 /** The colourings that label sections: one per question a release's data answers on the map. */
-export type Channel = "status" | "standing" | "stocked" | "survey";
+export type Channel = "status" | "standing" | "stocked" | "survey" | "salmon";
+
+/**
+ * (T211) THE SALMON COLOURING as the map is told it — ONLY on a proven pair: the release's DFO salmon (each section's
+ * chain, fixed for the release) and the day. Handed over on the Map tab whether or not Salmon is the chosen colouring, so
+ * the chain labels are on every tile before the toggle: Standard ⇄ Salmon is then one paint change per layer.
+ */
+export interface SalmonFeed {
+  readonly facts: SalmonFacts;
+  readonly day: Date;
+}
+
+/** The salmon channel: chain labels in feature-state `sp`, the day in the style (`salmonDayProfiles`) — status's shape. */
+export function salmonInput(s: SalmonFeed): ChannelInput {
+  const f = s.facts;
+  return {
+    labels: { key: "sp", of: f, label: (id) => salmonLabel(f, id) },
+    valuesKey: salmonDayIndex(s.day),
+    values: () => salmonDayProfiles(f, s.day),
+  };
+}
 
 /**
  * What a channel labels a section with. `of` is the labelling's identity (the index, the classes): another object is
@@ -336,7 +357,7 @@ export class Colouring {
  * map (the phone) is handed in their place. Pushed through `data` to such a map they would be a second pathway beside the engine (owner 2026-10-21: "it
  * should be a single pathway"): `Map.web.tsx` refuses them, and reports it (tools/one-colouring-engine.test.ts).
  */
-export const ENGINE_KEYS: readonly string[] = ["p", "standing", "status", "stocked", "survey"];
+export const ENGINE_KEYS: readonly string[] = ["p", "standing", "status", "stocked", "survey", "sp", "salmon"];
 
 type Pushed = Record<string, Record<string, Record<string, unknown>>>;
 
@@ -358,7 +379,7 @@ export function withoutEngineKeys(data: Pushed, report: (e: Error) => void): Pus
       if (Object.keys(rest).length) kept[id] = rest;
     }
     if (refused) report(new Error(`pushed ${ENGINE_KEYS.join("/")} on "${layerId}" refused: the web map colours `
-                                  + "sections through the colouring engine only (MapProps.status, MapProps.standing, MapProps.lakes)"));
+                                  + "sections through the colouring engine only (MapProps.status, MapProps.standing, MapProps.lakes, MapProps.salmon)"));
     if (Object.keys(kept).length) out[layerId] = kept;
   }
   return spreadSections(out);

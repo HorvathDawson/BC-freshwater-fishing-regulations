@@ -19,6 +19,7 @@ export * from "./status";
 export * from "./statusIndex";
 export * from "./access";
 export * from "./lakeFacts";
+export * from "./salmon";
 export * from "./paint";
 export * from "./search";
 export * from "./searchGeometry";

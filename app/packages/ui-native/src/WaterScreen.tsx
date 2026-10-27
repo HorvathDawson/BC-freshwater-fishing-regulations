@@ -28,12 +28,14 @@ import { dayRange, regsLapsedNote, WATER_BACK, WATER_SCREEN_WORDS, WORDS, type R
 import type { ItemId, WaterSource, SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { mapDayOf, regsDay, useAccessNotice, useAnglerProfile, useDownstreamWater, useLayoutClass, useRegsPage, useRegsStore,
+         useSalmonCard,
          useRegsTarget, useRegulations, useWater, type RegsStart } from "@app/ui";
 import { FishSpinner } from "./FishSpinner";
 import { ViewSwipe, WaterViewsContext } from "./ViewSwipe";
 import type { AdiposeImages, FishImages } from "./regs/types";
 import { DaySheet } from "./regs/DaySheet";
 import { RegsScreen } from "./regs/RegsScreen";
+import { SalmonCard } from "./regs/SalmonCard";
 import { GearTab } from "./regs/GearTab";
 import { LicenceTab } from "./regs/LicenceTab";
 import { MethodsTab } from "./regs/MethodsTab";
@@ -96,6 +98,14 @@ export function WaterScreen({ source, item, palette, onBack,
     // eslint-disable-next-line react-hooks/exhaustive-deps -- the page's identity is its item, part and part count
     [pageItem?.ord, inputs.value?.partIx, pageItem?.parts.length]);
   const access = useAccessNotice(loader, section, store.value ?? null, accessPage);
+  // (T211) the Salmon card: DFO's salmon for the tapped section, else the page's part, on THE day
+  const salmonPage = useMemo(() => (inputs.value
+    ? { section: part === null ? section : null, item: pageItem?.id ?? null, ord: pageItem?.ord ?? null,
+        partIx: inputs.value.partIx }
+    : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the page's identity
+    [inputs.value?.partIx, pageItem?.id, pageItem?.ord, part, section]);
+  const salmon = useSalmonCard(loader, store.value ?? null, salmonPage, day);
   // (T45) how much room the window gives (the app shell's width; never read here): the page arranges itself for it
   const layout = useLayoutClass();
   // the sideways swipe between the water's views, anywhere on this one (see WaterViews: inside the ScrollView)
@@ -151,6 +161,7 @@ export function WaterScreen({ source, item, palette, onBack,
                   lapsed={regsLapsedNote(loader.manifest?.regulations?.valid_until, Date.now())}
                   // (T54) the access notice; its link moves to the water's Map view, where the area is drawn
                   access={access.value ?? null}
+                  salmon={salmon.value ? <SalmonCard card={salmon.value} palette={palette} /> : undefined}
                   onAccessMap={views ? () => views.onView("map") : undefined}
                   actions={{
                     onSheet: () => {},                                   // RegsScreen opens the sheet itself (T37 SheetHost)

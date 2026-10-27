@@ -113,6 +113,12 @@ export interface WaterSource {
    * engine. Null where the release ships none (an older release, a bundle, the fixture): the lakes then stay plain.
    */
   lakeFacts(): Promise<import("@app/core").LakeFacts | null>;
+  /**
+   * (T211) THE DFO SALMON, for the whole release (`salmon`, @app/core `decodeSalmon`): each section's chain of DFO
+   * locations and each chain's answers per day — what the Salmon card and the Salmon colouring read. Null where the
+   * release ships none (an older release, the fixture): the Salmon toggle is then not offered.
+   */
+  salmonFacts(): Promise<import("@app/core").SalmonFacts | null>;
   /** Every station's position, for drawing the gauges themselves. A few hundred rows. */
   gaugePoints(): Promise<readonly { station: StationId; name: string;
                                     lon: number; lat: number;

@@ -101,6 +101,11 @@ def main() -> int:
         counts = write_run(args.out, result, entries,
                            stamps={"registry_digest": registry_digest_for(build)})
         print(f"\nwrote {args.out}: " + " · ".join(f"{k} {v:,}" for k, v in counts.items()))
+        # (T211) THE DFO SALMON LOCATIONS, placed by the same `build_reach` — beside the tables, outside the rules' digest
+        from pipeline.atlas.reach import dfo_salmon
+        rows = dfo_salmon.resolve_all(registry, graph, outside=result.outside or None)
+        d = dfo_salmon.write(Path(args.out), rows)
+        print(f"  dfo salmon   {sum(r['mapped'] for r in rows):,} of {len(rows):,} locations placed (digest {d})")
 
     if args.against:
         print("\n" + "=" * 72)

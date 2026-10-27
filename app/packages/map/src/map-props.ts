@@ -9,7 +9,7 @@ import type { ReactNode } from "react";
 import type { ViewStyle } from "react-native";
 import type { TileEndpoints } from "./endpoints";
 import type { TraceProp } from "./trace-overlay";
-import type { LakeFeed, ProfileStatus, StandingFeed } from "./colouring";
+import type { LakeFeed, ProfileStatus, SalmonFeed, StandingFeed } from "./colouring";
 import type { SelectionCue } from "./paint";
 
 /** A boundary mark on a water (`MapProps.marks`). `a11y`: what a screen reader says for it. */
@@ -196,6 +196,12 @@ export interface MapProps {
    * ONLY ON A PROVEN PAIR (P11), like `status`: absent or null otherwise, and taking it away clears every label set.
    */
   lakes?: LakeFeed | null;
+  /**
+   * (T211) THE SALMON COLOURING, for every layer in the `salmon` mode — the same engine again (`colouring.ts`, the
+   * `salmon` channel): each section's DFO chain label as its tile arrives, the day in the style. Handed over on the Map
+   * tab whichever colouring is chosen, so the Standard / Salmon toggle is one paint change. ONLY ON A PROVEN PAIR.
+   */
+  salmon?: SalmonFeed | null;
   /**
    * A tapped feature, and WHERE on it the tap landed.
    *

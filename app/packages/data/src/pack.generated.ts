@@ -833,6 +833,11 @@ export const PACK_FILES: Record<string, PackFile> = {
       ]
     }
   },
+  "salmon": {
+    "format": "salmon/1",
+    "kind": "bin",
+    "tables": {}
+  },
   "water": {
     "format": "water/1",
     "kind": "sqlite",
@@ -1063,6 +1068,7 @@ export const PACK_UNITS: Record<string, string> = {
   "geo.part_stretch.w": "microdegrees",
   "lakes": "lakes/1: 'BCLK', u8 1, 8 bytes section_handles, LEB128 asof+1, LEB128 count, then per section (sid ascending) LEB128 sid delta, u8 survey (0 none, 1 sheet, 2 digitised), LEB128 stocked day+1 (0 never); days since 1900-01-01 (pipeline/deliver/lake_facts.py)",
   "paint": "paint/4: see pipeline/deliver/release/paint.py",
+  "salmon": "salmon/1: 'BCSA', u8 1, 8 bytes section_handles, u32le JSON length + UTF-8 JSON (credit, default, regions, verdicts, gears, chains, unmapped), LEB128 run count, then per run LEB128 sid gap, count, chain (pipeline/deliver/salmon.py)",
   "water.part_mark.lat": "microdegrees",
   "water.part_mark.lon": "microdegrees"
 };

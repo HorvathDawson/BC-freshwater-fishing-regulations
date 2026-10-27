@@ -133,7 +133,23 @@ def deliver_sources(missing_ok: bool = False) -> dict:
                          f"    python -m pipeline.gauges.feed.climatology --hydat "
                          f"{SOURCE / 'hydat.sqlite3'} --out {CLIM_PATH}")
     out["clim"] = hashlib.sha256(Path(CLIM_PATH).read_bytes()).hexdigest()[:16]
+    # (T211) the DFO salmon rules the bundle snapshots (the typed feed), by content
+    out["dfo"] = dfo_feed_digest()
     return out
+
+
+def dfo_feed_digest() -> str | None:
+    """The typed DFO feed (`GENERATED.regs.dfo_salmon/typed`) by content; None when there is none (the bundle then
+    stops, naming the command)."""
+    root = Path(GENERATED.regs.dfo_salmon) / "typed"
+    files = sorted(root.glob("region-*.json")) if root.is_dir() else []
+    if not files:
+        return None
+    h = hashlib.sha256()
+    for p in files:
+        h.update(p.name.encode())
+        h.update(p.read_bytes())
+    return h.hexdigest()[:16]
 
 
 def clim_key() -> dict:
@@ -152,6 +168,7 @@ def keys(build_dir: Path, missing_ok: bool = False) -> dict[str, dict]:
     has made the envelope (`deliver_sources`)."""
     from pipeline.atlas.registry import load_registry
     from pipeline.atlas.reach.steelhead import fingerprint, load_list
+    from pipeline.atlas.reach.dfo_salmon import entries_digest as dfo_entries_digest
     from pipeline.common.section_handles import digest_for, registry_digest_for
     from pipeline.regs.parsing.io import corpus_digest, read_all_entries
 
@@ -160,6 +177,8 @@ def keys(build_dir: Path, missing_ok: bool = False) -> dict[str, dict]:
     return {
         "clim": clim_key(),
         "reach": dict(atlas, corpus=corpus, steelhead=fingerprint(load_list()),
+                      # (T211) the DFO salmon locations the run places: a curator placing one reruns the reach step
+                      dfo=dfo_entries_digest(),
                       code=code_digest(CODE["reach"])),
         "deliver": dict(atlas, corpus=corpus, curated=curated_digest(),
                         sources=deliver_sources(missing_ok),
@@ -181,7 +200,8 @@ def tiles_key(build_dir: Path) -> dict:
 def outputs(build_dir: Path) -> dict[str, list[Path]]:
     reach = GENERATED.reaches / build_dir.name
     return {"clim": [Path(CLIM_PATH)],
-            "reach": [reach / "report.json", reach / "rule_section.jsonl.gz"],  # T73: the gzip form
+            "reach": [reach / "report.json", reach / "rule_section.jsonl.gz",  # T73: the gzip form
+                      reach / "dfo_salmon.jsonl.gz"],                              # T211
             "deliver": [GENERATED.bundle / "bundle.sqlite", GENERATED.bundle / "verdicts.sqlite",
                         GENERATED.bundle / "status_index.bin", GENERATED.release / "LATEST"],
             "tiles": [GENERATED.tiles / "atlas.pmtiles", GENERATED.tiles / "atlas.meta.json"]}

@@ -9,7 +9,7 @@ import type { GaugeFeed, WaterSource, SectionId } from "@app/data";
 import { useMapModes, useLayerChoice, type BrowseTab, type FlowParam, type LayerStore } from "@app/ui";
 import { useConditionsColour, useGaugeGeoJSON, useLakeColour, lakeModesReady, lakeValuesCarried, usePairing,
          useStatusIndex, statusFeed, useHorizon, useHorizonPick, flowHorizon, horizonChips, useImageryReach,
-         type PairingInput, type StatusSource } from "@app/ui";
+         salmonData, useRegsLayer, useSalmonColour, type PairingInput, type RegsLayer, type StatusSource } from "@app/ui";
 import { FIELD_HANDOVER_Z, type Camera, type TileEndpoints, coloursEachTile, imageryTiles } from "@app/map";
 import { connectivity } from "../connectivity";
 import { imageryProbe } from "../imageryProbe";
@@ -145,9 +145,18 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
     setLayerChoice((c) => chooseLayer(c, id, { carries: carried, online: imagery.up })),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [carried.stocked, carried.surveyed, imagery.up]);
+  /*
+   * (T211) STANDARD / SALMON: the Map tab's regulations, painted from the province's day or from DFO's salmon. The
+   * release's salmon is read and handed to the map whatever the toggle says (`useSalmonColour`), so the toggle is a mode
+   * change and nothing else — no fetch, no relabel. Offered only under the Regulations colouring, once the file is in.
+   */
+  const [regsLayer, setRegsLayer] = useRegsLayer();
+  const salmon = useSalmonColour({ source, paired, statusOk, mapTab: mapTab === "map", day: mapDay });
+  const salmonOffered = salmon.feed !== null && layers.effective.water === "regulations";
   const mm = useMapModes({ tab: mapTab, flowParam, horizon, zoomedOut, paired, statusOk, perTile,
                            water: layers.effective.water, groups: layers.effective.groups,
-                           basemap: layers.effective.basemap, imageryUp: imagery.up });
+                           basemap: layers.effective.basemap, imageryUp: imagery.up,
+                           salmon: salmonOffered && regsLayer === "salmon" });
   // Esri's credit is listed exactly while its imagery is drawn (the map's own control does the same from the style)
   const credits = useMemo(() => attribution && withImageryCredit(attribution, mm.basemap), [attribution, mm.basemap]);
   /*
@@ -168,12 +177,19 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
    * (colour-latency AP — no `idle`, no round trip through here per pan); the native map is pushed the visible
    * sections' status as `data` (N2 reads only that, in the `status` mode — colour-ap review).
    */
-  const { status: mapStatus, data: statusMapData } = useMemo(
-    () => statusFeed({ perTile, statusOk, index: statusIndex, tab: mapTab, visible, day: mapDay ?? new Date() }),
-    [perTile, statusOk, statusIndex, mapTab, visible, mapDay]);
+  const salmonDrawn = salmonOffered && regsLayer === "salmon";
+  const { status: mapStatus, data: statusMapData } = useMemo(() => {
+    const f = statusFeed({ perTile, statusOk, index: statusIndex, tab: mapTab, visible, day: mapDay ?? new Date() });
+    // (T211) the phone's pushed colours follow the painted regulations: DFO's salmon for the visible sections
+    return !perTile && salmonDrawn && mapTab === "map"
+      ? { ...f, data: salmonData(salmon.facts, visible, mapDay ?? new Date()) } : f;
+  }, [perTile, statusOk, statusIndex, mapTab, visible, mapDay, salmonDrawn, salmon.facts]);
+  // the web map labels each tile with the salmon chains on the Map tab whatever the toggle says (instant toggle)
+  const salmonFeed = perTile && mapTab === "map" ? salmon.feed : null;
   return { noteVisible, setZoomedOut, vintage, mixedPair, unproven, statusIndex, statusOk, lakeFeed, imagery, layers,
            flowParam, horizon, horizonChipsShown, setFlowParam, pickDay, onChooseLayer, mm, credits, cond, gauges,
-           mapStatus, statusMapData };
+           mapStatus, statusMapData, salmonFeed, salmonOffered, regsLayer: salmonOffered ? regsLayer : "standard" as RegsLayer,
+           setRegsLayer, salmonFacts: salmon.facts };
 }
 
 export type MapColouring = ReturnType<typeof useMapColouring>;

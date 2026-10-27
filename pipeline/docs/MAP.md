@@ -43,7 +43,9 @@ step's output; nothing is promoted unless every step and the vintage check pass)
 6. `card_check` — `deliver/answers/card_check.py`: every number on every card proved (problems must be 0).
 7. `store` — `deliver/store/` → `regs.sqlite` in staging only (P20: never kept; `--debug-json` keeps a copy).
 8. `release` — `deliver/release/` (`build.py`, `paint.py`, `shards.py`, `manifest.py`) → the shipped set: paint,
-   access, core, near, water, `regs-<region>` ×9, `regs-sid`, conditions, flow-area (gzip, sha-named, one manifest).
+   access, core, near, water, `regs-<region>` ×9, `regs-sid`, conditions, flow-area, salmon (T211: DFO salmon per chain
+   and day, `deliver/salmon.py`; placed by the reach run's `dfo_salmon.jsonl.gz`, `atlas/reach/dfo_salmon.py`) (gzip,
+   sha-named, one manifest).
    Readers rebuild the store from those files (`deliver/store/release.py province_store`).
 
 ## Off the build (run on purpose, never by a stage)

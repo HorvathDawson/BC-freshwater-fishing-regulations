@@ -8,6 +8,7 @@ app's generated copy) moving with it.
 from __future__ import annotations
 
 from pipeline.deliver import lake_facts as LF
+from pipeline.deliver import salmon as SALMON
 from pipeline.deliver.release import paint as PAINT
 from pipeline.deliver.release import shards as SH
 
@@ -31,6 +32,9 @@ FILES = {
     # (T54) the gentler access tiers (permit / reserve / private) a Regulations page notes; paint carries the no-access rows
     "access": {"format": PAINT.ACCESS_FORMAT, "kind": "bin", "tables": {}},
     "lakes": {"format": LF.FORMAT, "kind": "bin", "tables": {}},
+    # (T211) the DFO salmon: per chain of DFO locations and day, the species' verdicts, gear lines and map status; each
+    # placed section's chain (a section in no run: the UNLISTED chain, closed). The Salmon card and the Salmon colouring.
+    "salmon": {"format": SALMON.FORMAT, "kind": "bin", "tables": {}},
     "core": {"format": "core/1", "kind": "sqlite", "tables": {
         # `name_key` / `alias_key` (T114): what the app's SEARCH filters on (`@app/core` `searchKey` of the query). The
         # app's search NEEDS them: a core without them fails every water search, so ship it with the app that reads it.
@@ -126,6 +130,9 @@ UNITS = {
     "lakes": "lakes/1: 'BCLK', u8 1, 8 bytes section_handles, LEB128 asof+1, LEB128 count, then per section "
              "(sid ascending) LEB128 sid delta, u8 survey (0 none, 1 sheet, 2 digitised), LEB128 stocked day+1 "
              "(0 never); days since 1900-01-01 (pipeline/deliver/lake_facts.py)",
+    "salmon": "salmon/1: 'BCSA', u8 1, 8 bytes section_handles, u32le JSON length + UTF-8 JSON (credit, default, "
+              "regions, verdicts, gears, chains, unmapped), LEB128 run count, then per run LEB128 sid gap, count, chain "
+              "(pipeline/deliver/salmon.py)",
 }
 REGIONS = SH.REGIONS
 

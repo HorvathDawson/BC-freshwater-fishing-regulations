@@ -421,10 +421,10 @@ describe("web only", () => {
     await act(async () => {});
     expect(log).toEqual(['set atlas/stream number:311274 {"other":3}']);
     const why = "the web map colours sections through the colouring engine only "
-      + "(MapProps.status, MapProps.standing, MapProps.lakes)";
-    expect(errors).toEqual([`pushed p/standing/status/stocked/survey on "stream" refused: ${why}`,
-                            `pushed p/standing/status/stocked/survey on "lake" refused: ${why}`,
-                            `pushed p/standing/status/stocked/survey on "basin" refused: ${why}`]);
+      + "(MapProps.status, MapProps.standing, MapProps.lakes, MapProps.salmon)";
+    expect(errors).toEqual([`pushed p/standing/status/stocked/survey/sp/salmon on "stream" refused: ${why}`,
+                            `pushed p/standing/status/stocked/survey/sp/salmon on "lake" refused: ${why}`,
+                            `pushed p/standing/status/stocked/survey/sp/salmon on "basin" refused: ${why}`]);
   });
 
   it("P15 review: a mark's element is left to GL JS's absolute placement — nothing inline stacks it in normal flow", async () => {

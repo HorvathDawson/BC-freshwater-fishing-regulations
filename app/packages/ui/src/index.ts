@@ -30,6 +30,7 @@ export * from "./mapModes";
 export * from "./conditionsColour";
 export { pushedRoute } from "./routeColour";
 export * from "./lakeColour";
+export * from "./salmonColour";
 export * from "./release";
 export * from "./boot";
 export * from "./regs";

@@ -6,10 +6,8 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
-- **DFO salmon in the app (T211, 2026-10-27):** read handoff/PLAN/dfo-salmon-ui/PLAN.md (mocks option-a/b/c.png) and
-  pick A (separate Salmon·DFO card, recommended), B (merged per-species answer) or C (Salmon page + map toggle); say
-  whether an unplaced DFO water shows "see DFO" or nothing; approve the feed plan (6-hourly in season, R2 `feeds/dfo/`,
-  rule changes with no rebuild). Coverage today: 147/346 historic DFO locations have an extent (all 346 known).
+- **DFO salmon feed plan (T211 part 2):** approve the feed plan in handoff/PLAN/dfo-salmon-ui/PLAN.md §2 (6-hourly in
+  season, R2 `feeds/dfo/`, rule changes with no rebuild). Option A + the map toggle are built (you picked A, 10-27).
 
 - **SEO / domain (T188 plan, T198):** confirm you own canifishthis.ca and canifishthis.com; at the registrar/DNS set
   .com and www to 301 to https://canifishthis.ca. Once hosting (T86) is live: add Domain properties in Google Search
@@ -88,6 +86,9 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   each), 2 new splits (Quinsam confluence, shared by two Campbell locations; Cowichan Sandy Pool sign), 4 DFO extents,
   Dragon Lake listed for a lake split later. Open the app's **Proposals** tab and accept / reject each (a mark).
   That is your only step; Claude runs the side chains and applies them.
+- **Build for the DFO salmon (T211, 2026-10-27):** `python -m pipeline build` — the reach step reruns (it now places
+  the DFO locations: `dfo_salmon.jsonl.gz`), then deliver (bundle `salmon_*` tables, release file `salmon`). Needs the
+  typed feed (`python -m pipeline.regs.dfo_salmon.feed`, no credits). Check the `salmon` size against its 600 kB gate.
 - **Reach + deliver rebuild for the "on parts" change (2026-10-26):** 33 vessel rules now hold on the whole water
   (list: handoff/PLAN/curation-review/on-parts.md); the bundle shows them as notes until the rebuild.
 - **R2 upload** of a new release and of the gauge feed, with your credentials:

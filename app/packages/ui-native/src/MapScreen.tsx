@@ -21,7 +21,7 @@ const HORIZON_HIT = hitProps({ w: 46, h: 33 });
 
 export function MapScreen({ at, palette, theme, view, modes, groups, hide, show, camera,
                             onLayers, layersChanged = 0, onLongPress, onPressFeature, onMoved, onMapPoint, horizons,
-                            highlight, marker, pins, data, status, standing, lakes, gauges, onVisible, onError,
+                            highlight, marker, pins, data, status, standing, lakes, salmon, gauges, onVisible, onError,
                             fit, basemap, onImageryError, water, waterLine, selection, marks, onPressMark, spots,
                             insetTop = 0, onRegion }: {
   at: TileEndpoints; palette: Palette; theme: string; view: string;
@@ -55,6 +55,8 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
   standing?: MapProps["standing"];
   /** The lake modes' values (Stocked, Depth), labelled per tile, on a proven pair only — see MapProps.lakes. */
   lakes?: MapProps["lakes"];
+  /** (T211) The Salmon colouring's chains and day, labelled per tile, on a proven pair only — see MapProps.salmon. */
+  salmon?: MapProps["salmon"];
   /** Gauge points as GeoJSON. Only the Conditions view draws them. */
   gauges?: string;
   onVisible?: (sections: readonly SectionKey[]) => void;
@@ -95,7 +97,7 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
       <Map at={at} theme={theme} view={view} modes={modes} groups={groups} hide={hide} show={show}
            initial={camera}
            onPressFeature={onPressFeature} onMoved={onMoved} onMapPoint={onMapPoint} onLongPress={onLongPress}
-           highlight={highlight} pins={pins} spots={spots} insetTop={insetTop} water={water} waterLine={waterLine} selection={selection} marks={marks} onPressMark={onPressMark} marker={marker} data={data} status={status} standing={standing} lakes={lakes}
+           highlight={highlight} pins={pins} spots={spots} insetTop={insetTop} water={water} waterLine={waterLine} selection={selection} marks={marks} onPressMark={onPressMark} marker={marker} data={data} status={status} standing={standing} lakes={lakes} salmon={salmon}
            gauges={gauges}
            onVisible={onVisible} onError={onError} fit={fit} basemap={basemap} onImageryError={onImageryError}
            onRegion={onRegion} />

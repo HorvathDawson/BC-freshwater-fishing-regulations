@@ -24,6 +24,8 @@ data/release/r-*/ (R2 in production)
                    after first paint prefetch the region in view's regs file + core/sql-wasm on idle — T186,
                    `release/prefetch.ts`, `@app/ui` `useReleasePrefetch`, the map's `onRegion`)
                    ├─ WaterSource (release/source.ts): core, near, paint, conditions, flow-area …
+                   ├─ salmon (T211, `loader.salmon`): the Salmon card (`@app/ui` `useSalmonCard`) and the map's
+                   │    Standard / Salmon toggle (`useSalmonColour` → the colouring engine's `salmon` channel)
                    └─ RegsStore (regs/store.ts): water + regs-<region> + regs-sid
                          └─▶ @app/ui hooks ─▶ @app/ui-native screens ─▶ apps/mobile App.tsx
 gauge feed (index.json, per-station) ─▶ data/src/feed/http.ts ─▶ panels / conditions

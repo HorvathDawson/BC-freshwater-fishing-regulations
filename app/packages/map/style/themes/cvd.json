@@ -117,6 +117,10 @@
     "color.ui.imagery.label": "#FAFBF8",
     "color.ui.imagery.label-water": "#B4DCFF",
     "color.ui.imagery.halo": "#0B0E10",
-    "color.label.minor": "@color.region.edge"
+    "color.label.minor": "@color.region.edge",
+    "color.salmon.open": "@color.status.open",
+    "color.salmon.release": "@color.status.restricted",
+    "color.salmon.closed": "@color.status.closed",
+    "color.salmon.check": "@color.status.own"
   }
 }

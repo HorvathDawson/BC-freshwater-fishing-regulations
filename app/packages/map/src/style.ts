@@ -3,7 +3,9 @@
  * else. If an adapter needs "one more layer" or "a slightly different colour here", it
  * belongs in layers.source.json — otherwise the platforms diverge and nothing catches it.
  */
-import { TEMP_BAND_TOKEN, WATER_STATUS, type DayProfiles, type TempBand, type WaterStatus } from "@app/core";
+import { TEMP_BAND_TOKEN, WATER_STATUS, type DayProfiles, type SalmonDay, type SalmonMapStatus, type TempBand,
+         type WaterStatus }
+  from "@app/core";
 import style from "../style/style.json" with { type: "json" };
 import meta from "../style/style.meta.json" with { type: "json" };
 
@@ -40,7 +42,23 @@ export type ColorMode =
       stops: [number, TokenRef][]; missing: TokenRef }
   /** Categorical one step removed: feature-state holds a profile LABEL, the day says which labels are which member. */
   | { label: string; scale: "profile"; property: string; enum: string;
-      categories: Record<string, TokenRef>; missing: TokenRef };
+      categories: Record<string, TokenRef>; missing: TokenRef;
+      /** Whose values it reads: provider `salmon` (T211) is the salmon channel's day, every other the status's. */
+      data?: { provider: string; field?: string } };
+
+/** (T211) THE CHANNEL A PROFILE MODE READS ITS DAY FROM: the Salmon colouring's own, else the day's status. */
+type ProfileChannel = "status" | "salmon";
+export function profileChannel(mode: ColorMode | undefined): ProfileChannel | null {
+  if (mode?.scale !== "profile") return null;
+  return mode.data?.provider === "salmon" ? "salmon" : "status";
+}
+
+/** The day's label sets a profile mode paints by (null: none installed). */
+export function profileDay(mode: ColorMode | undefined, values: ChannelValues | null):
+    Readonly<Record<string, readonly string[]>> | null {
+  const ch = profileChannel(mode);
+  return ch ? (values ?? NO_VALUES)[ch] : null;
+}
 
 /**
  * THE STANDING CHANNEL'S VALUES, in the ramp's units (percent; -1 the "measured, no baseline" sentinel; NaN or absent
@@ -66,8 +84,10 @@ export interface ChannelValues {
   stocked: number | null;
   /** and how many lake sections the release's facts list — a record, not a colour. */
   survey: number | null;
+  /** (T211) the Salmon colouring's day: which chain labels paint which salmon status (@app/core `salmonDayProfiles`). */
+  salmon: SalmonDay | null;
 }
-export const NO_VALUES: ChannelValues = { status: null, standing: null, stocked: null, survey: null };
+export const NO_VALUES: ChannelValues = { status: null, standing: null, stocked: null, survey: null, salmon: null };
 
 /** A token is a colour, a number, or a dash pattern (an array of line-width multiples). */
 export type Tokens = Record<string, string | number | number[]>;
@@ -232,7 +252,7 @@ export function colorExpression(layerId: string, modeName: string, t: Tokens,
   const mode = STYLE_META.colorModes[layerId]?.[modeName];
   if (!mode) throw new Error(`layer "${layerId}" has no colour mode "${modeName}"`);
   const val = (r: TokenRef) => t[r.token];
-  const day = (values ?? NO_VALUES).status;
+  const day = profileDay(mode, values);
 
   if (mode.scale === "static") return val(mode.color);
 
@@ -248,7 +268,7 @@ export function colorExpression(layerId: string, modeName: string, t: Tokens,
     if (day === null) return val(mode.missing);
     const out: unknown[] = ["match", ["coalesce", ["feature-state", mode.property], ""]];
     for (const [member, ref] of Object.entries(mode.categories)) {
-      const labels = day[member as keyof DayProfiles];
+      const labels = day[member as keyof DayProfiles & keyof SalmonDay] as readonly string[] | undefined;
       if (labels === undefined) throw new Error(`profile mode "${modeName}" colours "${member}", which no day places`);
       if (labels.length) out.push([...labels], val(ref));
     }
@@ -277,6 +297,13 @@ export function colorExpression(layerId: string, modeName: string, t: Tokens,
  * row, the list of water near a town, and the map's status colouring when regulations return).
  * The status and its token are decided in @app/core (`WATER_STATUS`); the hex is the map's.
  */
+/** (T211) The colour the Salmon colouring paints a salmon status in one theme — its legend swatch. */
+export function salmonStatusColour(theme: string, status: SalmonMapStatus): string {
+  const hex = resolveTheme(theme)[`color.salmon.${status}`];
+  if (typeof hex !== "string") throw new Error(`theme "${theme}" cannot paint salmon ${status}`);
+  return hex;
+}
+
 export function waterStatusColour(theme: string, status: WaterStatus): string {
   const hex = resolveTheme(theme)[WATER_STATUS[status].token];
   if (typeof hex !== "string") throw new Error(`theme "${theme}" cannot paint ${status}`);

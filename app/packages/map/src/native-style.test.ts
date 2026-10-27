@@ -139,7 +139,7 @@ describe("the native style", () => {
   it("a caller's bad mode is reported, and the style is still made", () => {
     const { style, errors } = nativeStyle({ ...base, modes: { stream: "nope" } });
     expect(errors.map((e) => e.message))
-      .toEqual(['layer "stream" has no colour mode "nope" (has plain, standing, status, profile)']);
+      .toEqual(['layer "stream" has no colour mode "nope" (has plain, standing, status, profile, salmon, salmon_status)']);
     expect((style as unknown as S).layers.length).toBeGreaterThan(0);
   });
 

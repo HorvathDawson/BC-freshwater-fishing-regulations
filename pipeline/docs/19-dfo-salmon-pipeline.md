@@ -246,8 +246,11 @@ fetch → validate → hash-compare → [unchanged? stop] → parse → untangle
 
 ## 6. What is not built
 
-1. **Bundle ingest.** `ingest_catalogue.py` and `build_regs_v3_data` read the synopsis catalogue
-   only. Nothing consumes the DFO feed yet.
+1. **Bundle ingest — BUILT (T211).** The reach run places every location with an extent
+   (`atlas/reach/dfo_salmon.py` → `dfo_salmon.jsonl.gz`), the bundle joins the typed feed by fingerprint and
+   precomputes each chain's answers per day (`deliver/salmon.py` → `salmon_doc`, `salmon_section`), and the
+   release ships `salmon` (`salmon/1`). A water DFO does not list is CLOSED to salmon (owner 2026-10-27), stated
+   as chain 0. The live feed (the app reading a newer snapshot than its release) is not built.
 2. **The geometry.** 243 of 247 locators have no extent. That is the cut-point curation, not a
    gap in the format — see the handoff.
 3. **The cron job and the reconciler's publish step** (§5 is a plan).

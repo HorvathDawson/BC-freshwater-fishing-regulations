@@ -7,8 +7,9 @@
  * colouring. Plain water needs no key. Whether it is shown is the Shell's call; what it says is here.
  */
 import { CHANGE_LEGEND, changeMarkWords, closedLegend, FLOW_LEGEND, TEMP_LEGEND, unprovenLine, WATER_STATUS,
-         WATER_STATUS_LINE, WATER_STATUSES, waterLegend } from "@app/core";
-import { Text, View } from "react-native";
+         WATER_STATUS_LINE, WATER_STATUSES, waterLegend, SALMON_WORDS, salmonLegend, salmonLegendSource } from "@app/core";
+import { salmonStatusColour } from "@app/map";
+import { Pressable, Text, View } from "react-native";
 import { LegendCount, LegendRamp, LegendStrip } from "../Chrome";
 import { MapDayButton } from "../DayCalendar";
 import { legendColour } from "../LayersSheet";
@@ -81,10 +82,24 @@ export function MapLegend({ col, conditions, palette, theme, mapDay, onDay }: {
         waterLegend(layers.water.drawn).map((r) => (
           <LegendCount key={r.label} palette={palette} colour={legendColour(palette, r.swatch)} label={r.label} />
         ))
+      ) : col.regsLayer === "salmon" ? (
+        // (T211) DFO's salmon: the toggle, the day, the salmon key in the salmon colours, and whose rules they are
+        <>
+          <RegsLayerToggle col={col} palette={palette} />
+          <MapDayButton palette={palette} day={mapDay} onPress={onDay} />
+          {salmonLegend().map((r) => (
+            <LegendCount key={r.status} palette={palette} colour={salmonStatusColour(theme, r.status)} line
+                         label={r.label} />
+          ))}
+          <Text testID="salmon-legend-source" style={{ ...TYPE.small, fontSize: 11.5, lineHeight: 15, color: palette.sub }}>
+            {salmonLegendSource(col.salmonFacts)}
+          </Text>
+        </>
       ) : (
         // The three statuses, in the words and colours every surface uses (@app/core
         // WATER_STATUS through the map's theme) — for today.
         <>
+          {col.salmonOffered && <RegsLayerToggle col={col} palette={palette} />}
           <MapDayButton palette={palette} day={mapDay} onPress={onDay} />
           {WATER_STATUSES.map((s) => (
             <LegendCount key={s} palette={palette} colour={palette.waterStatus[s]}
@@ -106,6 +121,32 @@ export function MapLegend({ col, conditions, palette, theme, mapDay, onDay }: {
  * So the refusal is stated, in the one place a reader is already looking for what
  * the colours mean.
  */
+/**
+ * (T211) STANDARD / SALMON — the Map tab's regulations toggle (owner 2026-10-27), first in the legend it switches. A press
+ * moves only the map's modes: the salmon chains are already on every tile (`useSalmonColour`), so it is instant.
+ */
+export function RegsLayerToggle({ col, palette }: { col: MapColouring; palette: Palette }) {
+  const W = SALMON_WORDS.toggle;
+  return (
+    <View testID="regs-paint-toggle" accessibilityRole="radiogroup" accessibilityLabel={W.label}
+          style={{ flexDirection: "row", borderWidth: 1.5, borderColor: palette.ink, borderRadius: palette.r.chip }}>
+      {(["standard", "salmon"] as const).map((k) => {
+        const on = col.regsLayer === k;
+        return (
+          <Pressable key={k} testID={`regs-paint-${k}`} onPress={() => col.setRegsLayer(k)}
+                     accessibilityRole="radio" aria-checked={on} accessibilityLabel={W[k]}
+                     style={{ minHeight: 44, minWidth: 44, justifyContent: "center", paddingHorizontal: 10,
+                              backgroundColor: on ? palette.ink : "transparent" }}>
+            <Text style={{ ...TYPE.small, fontSize: 11.5, fontWeight: "700", color: on ? palette.card : palette.ink }}>
+              {W[k]}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
 export function PairBanner({ col, palette }: { col: MapColouring; palette: Palette }) {
   const { mixedPair, unproven, vintage } = col;
   return (

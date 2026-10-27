@@ -1111,3 +1111,10 @@ CREATE TABLE glossary_source (kind TEXT NOT NULL CHECK (kind IN ('definition', '
                               term TEXT NOT NULL,
                               text TEXT NOT NULL,
                               PRIMARY KEY (kind, term)) WITHOUT ROWID;
+
+-- THE DFO SALMON (T211): the federal salmon rules, read once by pipeline/deliver/salmon.py — `salmon_doc` 'payload' is
+-- the release file's JSON half (chains of DFO locations, narrowest first, each with its per-species verdicts, gear lines
+-- and map status per day of the year; the locations with no extent under their water's items), `salmon_section` each
+-- placed section's chain. Not provincial regulation: no status reads it; the Salmon card and colouring do.
+CREATE TABLE salmon_doc (k TEXT PRIMARY KEY, j TEXT NOT NULL) WITHOUT ROWID;
+CREATE TABLE salmon_section (sid INTEGER PRIMARY KEY, chain INTEGER NOT NULL) WITHOUT ROWID;

@@ -53,7 +53,8 @@ from pipeline.deliver.release import shards as SH
 #: every file and its format (bumped when a reader must refuse an older one)
 FORMATS = {name: spec["format"] for name, spec in C.FILES.items()}
 #: the gzip size gates (MINIMAL-PACKAGING §2; P08 test 7)
-SIZE_GATES = {"paint": 1_000_000, "access": 300_000, "core": 1_300_000, "lakes": 100_000,**{f"regs-{r}": 1_500_000 for r in SH.REGIONS}}
+#: (T211) `salmon`: a provisional gate, set before any release carried the file (the owner's build measures it)
+SIZE_GATES = {"paint": 1_000_000, "access": 300_000, "core": 1_300_000, "lakes": 100_000, "salmon": 600_000, **{f"regs-{r}": 1_500_000 for r in SH.REGIONS}}
 TOTAL_GATE = 15_000_000  # owner 2026-10-22 (Q55): raised from 14,000,000 — room for T128 wording + the lakes file
 
 CORE_TABLES = ("item", "alias", "item_alias", "item_section", "place", "see_pointer")
@@ -414,6 +415,11 @@ def bundle_files(work: Path, bundle: Path, b: sqlite3.Connection, base: Dict[str
     p = work / "access.bin"
     p.write_bytes(PAINT.encode_access(b, handles=base["section_handles"]))
     files["access"] = p
+    # (T211) the DFO salmon, from the bundle's salmon tables (pipeline/deliver/salmon.py)
+    from pipeline.deliver import salmon as SALMON
+    p = work / "salmon.bin"
+    p.write_bytes(SALMON.encode(*SALMON.read_bundle(b), base["section_handles"]))
+    files["salmon"] = p
     files["core"] = copy_file(work / "core.sqlite", {"b": bundle}, [("b", t, None) for t in CORE_TABLES],
                               {**base, "format": FORMATS["core"]}, extra=_core_flags)
     files["near"] = copy_file(work / "near.sqlite", {"b": bundle}, [("b", t, None) for t in NEAR_TABLES],
