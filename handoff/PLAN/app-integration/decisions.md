@@ -1427,3 +1427,6 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
 - Capilano: use the SOURCE TEXT boundary (not the polygon).
 - Cowichan: the tidal boundary is the river MOUTH (the DFO Hecate ramp–Green Point line lies seaward of it).
 - Straight-cut edit detection: raise the minimum straight-segment length (50 m caught too much).
+- Salmon default (owner 2026-10-27): every water NOT listed by DFO for salmon in any way is CLOSED to salmon fishing —
+  the explicit default on the Salmon card and the Salmon map paint (T211).
+- Lanes that must commit run in the main checkout, committing only their own paths (owner 2026-10-27, option 2).
