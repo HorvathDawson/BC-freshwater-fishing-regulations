@@ -10,4 +10,4 @@ byte-identical to gov.bc.ca (memory) — cite printed pages, link our copy.
 
 ## Owner pick (2026-10-27)
 The PDF itself with a highlight (not a page image): open our synopsis PDF at the printed page with the entry's row/passage
-highlighted — a highlight annotation on that page (or a viewer drawing the stored bbox), working on web and native.
+highlighted using a PDF HIGHLIGHT ANNOTATION on that page (owner 2026-10-27), working on web and native.
