@@ -3,7 +3,17 @@
 Restart here. Update this file after EVERY step: what is done, what is running, and the exact next action.
 Logs from timing runs live in the session scratchpad, which a reboot wipes. The numbers that matter are copied here.
 
-## CURRENT STATE (2026-10-27, late — T211 salmon merged + released)
+## CURRENT STATE (2026-10-27, night — T202 basemap built)
+
+BASEMAP: `data/generated/tiles/basemap.pmtiles` is now the T202 build, **322.5 MB** (was 918.4), z0–13, released
+`basemap-859406091819` (`data/release/basemap/…` + `tiles/basemap.meta.json`). The next `deliver release` names it. The
+z13 roads are rebuilt from z14 (`tiles/basemap_roads.py`), so trail/FSR names survive, and the zoom audit is clean on 6
+extents. The wetland stand-in is dropped (decisions 2026-10-27). OLD FILE KEPT until the owner looks:
+`data/generated/scratch/basemap-pre-T202-20260925.pmtiles`. Commit d4589cb5. Grid coarsening: investigated only (T202
+basemap audit doc). Known red, not this lane: `tools/overzoom.test.ts` "every tiled source…" (3) waits for the
+atlas lane's `MU_MAX_ZOOM`.
+
+## (earlier) CURRENT STATE (2026-10-27, late — T211 salmon merged + released)
 
 T211 merged (7dd3828c, afce6842; worktree + branch removed). Build (reach + deliver; no atlas) promoted
 r-8ce19c1f2104: binding diff NONE — every release file is byte-identical to r-c79331d78adf except the new

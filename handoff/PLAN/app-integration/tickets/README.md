@@ -246,7 +246,7 @@ use that as the sole source of future work."
 | T199 | run timing in the app: implement and refine (T162 data + plan) | OPEN | — | last band, with T200/T201; owner go + Q144 first |
 | T200 | stocked lakes: feed the prepared Stocked mode | OPEN | — | last band; source + licence (owner) |
 | T201 | bathymetry: feed the prepared Depth mode and draw contours | OPEN | — | last band; source + licence (owner); tile budget |
-| T202 | tile size optimizations (basemap z13 options, attributes, precision, simplification) | OPEN | — | last band; size table + owner look per change |
+| T202 | tile size optimizations (basemap z13 options, attributes, precision, simplification) | OPEN | d4589cb5 (basemap) | last band; basemap DONE 918.4 → 322.5 MB (z13 + roads rebuild, wetland dropped; grid coarsening investigated, not shipped); atlas items in their lane |
 | T203 | app UI: jumpy "Flows into" chip over navigation, search always lands on the map, amber highlight | DONE | 969f8ff3 | items 1-3 built; 4-5 (Kanaka end labels, non-adjacent stretches) need release data: one mark per meeting point + part stretches - see ticket Outcome |
 | T204 | a part's separate stretches and a mark at every place two parts meet (T203 items 4–5) | DONE | 9e0960ec | built in r-8b43fb267199 (Kanaka: bridge + falls marks, 610 stretch rows); owner phone check |
 | T205 | curation review: zone entries without a map, species + sizes per rule, pilot removed, compact T/R/P/A widget, bigger show-on-map | DONE | 7a55e651 | owner tries it |
