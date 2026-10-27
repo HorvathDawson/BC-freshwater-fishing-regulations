@@ -258,7 +258,7 @@ use that as the sole source of future work."
 | T211 | DFO salmon regs in the app (options), the DFO feed plan, historic extent matching, new-location alert | OPEN | — | plans first (owner picks), then code |
 | T212 | tidal boundaries: a tidal split on every ocean-entering stream (research + proposals, no data change yet) | PARTIAL | — | 1,163 candidates (916/966 named ocean streams met by the polygon) in handoff/PLAN/curation-review/tidal/; curation review Tidal tab, accept = a mark; owner reviews, then T185/T166 build the cuts |
 | T213 | paint bait-ban and fly-fishing-only waters distinctly from general restrictions | OPEN | — | future |
-| T214 | app polish: quota sub-cap wording names its total, desktop no-swipe + Esc back, clearer part highlight, steady up/downstream buttons | OPEN | — | next |
+| T214 | app polish: quota sub-cap wording names its total, desktop no-swipe + Esc back, clearer part highlight, steady up/downstream buttons | PARTIAL | — | items 1, 2, 4 built (subcap lead + golden amendment, desktop no-swipe + Esc Back, reserved exit slot); item 3 (part highlight) waits on T211's map paint |
 | T215 | open the PDF on the page with the entry's section highlighted | OPEN | — | |
 | T216 | better "How this was decided": interpretation, what overrode what, sources | OPEN | — | now |
 

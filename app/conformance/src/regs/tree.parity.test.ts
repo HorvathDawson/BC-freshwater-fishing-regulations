@@ -8,7 +8,7 @@
  * stampsFor: "You need … ›") included since rows 31: the store's `TreeKind.stamps`, worded by tree.ts `stampLine`.
  */
 import { afterAll, describe, expect, it } from "vitest";
-import { plain, treeOf, type KindVM, type Line, type TierVM, type TreeKind, type TreeNodeVM, type TreeTier } from "@app/core";
+import { plain, subcapLead, treeOf, type KindVM, type Line, type TierVM, type TreeKind, type TreeNodeVM, type TreeTier } from "@app/core";
 import { caseIds, golden, inputsOf, parityGate, summary } from "./golden";
 import { norm } from "./eq";
 import { droppedLines, excluded, comparableGroups } from "./exclusions";
@@ -25,13 +25,15 @@ it(`T18 tree parity runs against a paired regs store${gate.skip ? ` — SKIPPED:
 
 /** a tree against the store's own nodes: each tier's words (Rule book links aside) are TreeTier.says, each kind's sentence
  *  starts with TreeKind.says (a folded kind draws none) — the store, not this port, is the oracle */
-function storeWalk(vm: readonly TreeNodeVM[], store: readonly (TreeTier | TreeKind)[], id: string): void {
+function storeWalk(vm: readonly TreeNodeVM[], store: readonly (TreeTier | TreeKind)[], id: string, up: TreeTier | null = null, title = ""): void {
   expect(vm.length, id).toBe(store.length);
   vm.forEach((x, i) => {
     const d = store[i]!;
     if (x.t === "tier" && d.node === "tier") {
-      if (!x.folded) expect(norm(plain(x.line.filter((r) => r.t !== "book"))), `${id} ${d.id}`).toBe(norm(d.says));
-      storeWalk(x.children, d.children, id);
+      // T214 item 1: the store's "Of these, " is read as the sub-cap's lead (core subcapLead), the rest of the line is the store's
+      const lead = subcapLead(d, up, title), says = lead ? lead + d.says.slice("Of these, ".length) : d.says;
+      if (!x.folded) expect(norm(plain(x.line.filter((r) => r.t !== "book"))), `${id} ${d.id}`).toBe(norm(says));
+      storeWalk(x.children, d.children, id, d, title);
     } else if (x.t === "kind" && d.node === "kind") {
       if (d.folded) expect(x.says, id).toBeNull();
       else expect(norm(plain(x.says)).startsWith(norm(d.says)), `${id} ${d.says}`).toBe(true);
@@ -56,7 +58,7 @@ describe.skipIf(gate.skip)("T18 quota tree", () => {
         // the Kitimat ruling: held to the STORE's tree instead (verify_map.py's check — tier line = TreeTier.says, kind
         // sentence starts with TreeKind.says, folded kinds draw none), and the root stays the golden's
         expect(got.treeRoot).toBe(gold[i]!.treeRoot);
-        storeWalk(treeOf(g.env) ?? [], g.ctx.hdrRoot ? g.ctx.hdrRoot.children : g.ctx.g.tree, id);
+        storeWalk(treeOf(g.env) ?? [], g.ctx.hdrRoot ? g.ctx.hdrRoot.children : g.ctx.g.tree, id, g.ctx.hdrRoot, g.ctx.title);
         return;
       }
       expect(got).toEqual({ tree: goldenTree(gold[i]!.tree, droppedLines("keep", id, `groups.${i}.tree`)), treeRoot: gold[i]!.treeRoot });
@@ -83,7 +85,7 @@ describe.skipIf(gate.skip)("T18 quota tree", () => {
 
   it("2. vedder_1010 size t4: both numbers big, the second a big2", async () => {
     const t = await tierById("vedder_1010", "t4");
-    expect([plain(t.line), t.line.filter((r) => r.t === "num")]).toEqual(["Of these, only 1 may be over 50 cm (20 in) — 2 if one is a hatchery steelhead",
+    expect([plain(t.line), t.line.filter((r) => r.t === "num")]).toEqual(["Of your 2 trout and char, only 1 may be over 50 cm (20 in) — 2 if one is a hatchery steelhead",   // T214 item 1
       [{ t: "num", s: "1", size: "big" }, { t: "num", s: "2", size: "big2" }]]);
   });
 
@@ -128,7 +130,7 @@ describe.skipIf(gate.skip)("T18 quota tree", () => {
     const own = (await treeOfGroup("bc1_501")).find((x) => x.t === "tier" && x.tier === "own") as TierVM;
     expect([plain(own.line), own.children.filter((x) => x.t === "tier").map((x) => plain((x as TierVM).line))]).toEqual([
       "This river’s rule: up to 2 a day (part of the 5) Rule book p.43 ↗",
-      ["Of these, only 1 may be over 50 cm (20 in)", "1 cutthroat or rainbow trout in all (part of the 2)"]]);   // golden bc1_501 (v38 adds the size box)
+      ["Of your 2 trout and char, only 1 may be over 50 cm (20 in)", "1 cutthroat or rainbow trout in all (part of the 2)"]]);   // golden bc1_501 (v38 adds the size box)
     const st = find(await treeOfGroup("x25p_1010", 1), (x) => x.t === "kind" && x.kind === "Steelhead") as KindVM;
     expect([plain(st.presence), plain(st.duty)]).toEqual(["Steelhead are known to be in this water. ⓘ",
       "10 a year · Record each on your licence right away Steelhead stamp ›"]);

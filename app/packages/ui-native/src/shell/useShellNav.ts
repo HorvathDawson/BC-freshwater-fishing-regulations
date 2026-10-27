@@ -8,10 +8,11 @@ import { Platform } from "react-native";
 import type { ItemId, WaterSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { frameViews, regsGroupOf, useOpenWater, useRoute, waterFrame, type BrowseTab, type Route } from "@app/ui";
-import { edgeBackDepth, useBack, useEdgeBack, useViewSwipe, type SystemBack } from "@app/ui";
+import { backDepth, edgeBackDepth, useBack, useEdgeBack, useViewSwipe, type SystemBack } from "@app/ui";
 import { useRegulationKeys } from "@app/ui";
 import { TABS, type TabKey } from "../TabBar";
 import type { WaterViews } from "../ViewSwipe";
+import { isTouchDevice } from "../touchDevice";
 
 export function useShellNav({ source, loader, systemBack, initialRoute }: {
   source: WaterSource; loader: ReleaseLoader | null; systemBack: SystemBack | null; initialRoute?: Route;
@@ -38,6 +39,9 @@ export function useShellNav({ source, loader, systemBack, initialRoute }: {
    */
   const { back, depth, layers: backLayers } = useBack(route, go, systemBack);
   // iOS: no tab-to-tab swipe (tabs are not history there); Android and the web keep that step
+  // T214 item 2 (desktop): Escape is Back where no layer (a sheet, a menu) is open — each has its own Escape — and the
+  // route has somewhere to go back to; the Shell adds "and search is not open" (search is a route flag with its own Escape)
+  const escapeBack = depth === backDepth(route) && depth > 0;
   const edge = useEdgeBack(back, Platform.OS, edgeBackDepth(route, depth));
   /*
    * ONE WATER SCREEN, WHICHEVER MAP YOU TAPPED (owner rule 2026-10-21): every water opens through `@app/ui`
@@ -54,7 +58,7 @@ export function useShellNav({ source, loader, systemBack, initialRoute }: {
   const groupOf = useMemo(() => (loader ? regsGroupOf(loader) : undefined), [loader]);
   const opener = useOpenWater(source, go, { now, group: groupOf });
   /** G1 (owner 2026-10-21): a sideways swipe moves between a water's views — Regulations · Conditions · Map. */
-  const viewSwipe = useViewSwipe(route, go);
+  const viewSwipe = useViewSwipe(route, go, isTouchDevice());
   /**
    * THE MAP UNDER A WATER'S MAP VIEW asks the Map tab's questions (the day's status), whatever tab the water was
    * opened from — a water opened from the Conditions map must not paint its map with flow percentiles.
@@ -78,7 +82,7 @@ export function useShellNav({ source, loader, systemBack, initialRoute }: {
         close: () => go({ type: "close" }), closeLabel: exit.close,
         swipe: viewSwipe, bodySwipe: frame.view === "map" ? null : viewSwipe }
     : null;
-  return { route, go, browse, tab, frame, item, adding, openSpot, toTab, back, backLayers, edge, opener, mapTab,
+  return { route, go, browse, tab, frame, item, adding, openSpot, toTab, back, escapeBack, backLayers, edge, opener, mapTab,
            waterViews };
 }
 

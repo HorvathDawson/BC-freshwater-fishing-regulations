@@ -300,15 +300,19 @@ export interface ViewSwipe {
   release(dx: number, dy: number, vx: number): SwipeStep | null;
 }
 
-/** The view swipe's measurements. */
-export function useViewSwipe(route: Route, go: (a: RouteAction) => void): ViewSwipe {
+/**
+ * The view swipe's measurements. `touch` (T214 item 2, owner 2026-10-27): false on a desktop (a mouse, no touch screen):
+ * there the views move by the strip's buttons only, never by a drag that also selects text; the shell reads it from the
+ * platform (`@app/ui-native` `isTouchDevice`). Defaults to true: a caller that does not say is a phone.
+ */
+export function useViewSwipe(route: Route, go: (a: RouteAction) => void, touch: boolean = true): ViewSwipe {
   const latest = useRef(route);
   latest.current = route;
   const here = viewHere(route);
   const at = here?.at ?? null;
   const within = here?.within ?? null;
   return useMemo(() => ({
-    enabled: at !== null && within !== null && within.length > 1,
+    enabled: touch && at !== null && within !== null && within.length > 1,
     starts: viewSwipeStarts,
     offset: (dx: number) =>
       follow(dx, at !== null && within !== null && stepView(at, dx < 0 ? "next" : "prev", within) !== null),
@@ -320,5 +324,5 @@ export function useViewSwipe(route: Route, go: (a: RouteAction) => void): ViewSw
       go(t);
       return step;
     },
-  }), [at, within, go]);
+  }), [at, within, go, touch]);
 }

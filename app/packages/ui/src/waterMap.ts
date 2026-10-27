@@ -148,6 +148,9 @@ export interface WaterMapVM {
   } | null;
   /** At the lowest part: the water its mouth flows into, opened at the part the mouth meets. */
   readonly exit: { readonly label: string; readonly item: string; readonly part: number | null } | null;
+  /** (T214 item 4) The water's mouth flows into another water, at ANY part: the bar keeps a place for the line at every part, so it
+   *  appearing at the mouth part (and going again one step up) never moves the steps or "Show regulations". */
+  readonly exitHeld: boolean;
   readonly whole: { readonly label: string; readonly aria: string; readonly on: boolean };
   /** The camera: this part's box, or the whole water's under ⤢; `fitKey` changes when the camera should move. */
   readonly bounds: Bbox | null;
@@ -216,6 +219,7 @@ export function waterMapView(g: WaterGroup, s: WaterMapState): WaterMapVM | null
                   downLabel: W.downstreamSide, down: partVM(g, open.down) } : null,
     exit: !downs.length && at === 0 && g.exit
       ? { label: exitLabel(g.exit), item: g.exit.item, part: g.exit.part } : null,
+    exitHeld: !!g.exit,
     whole: { label: wholeLabel(g, at, s.whole), aria: wholeAria(g, at, s.whole), on: s.whole },
     bounds: s.whole ? groupBounds(g) : partBounds(g, at),
     fitKey: s.whole ? `${g.parts[0]!.item}:whole` : `${current.item}:${current.partIx}${g.parts[at]!.stretch ? `:${g.parts[at]!.stretch}` : ""}`,

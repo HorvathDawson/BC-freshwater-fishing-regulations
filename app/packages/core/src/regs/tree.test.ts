@@ -7,7 +7,8 @@ import type { FishManifest } from "./fish.generated";
 import { headCtx } from "./grouphead";
 import { plain, type Line } from "./line";
 import type { KindVM, TierVM } from "./model";
-import { dutyWords, kindRow, pictures, presOf, sizeOf, stampSTOf, tierNode, tierWords, treeEnv, treeOf } from "./tree";
+import type { TreeTier } from "../answers.generated";
+import { dutyWords, kindRow, pictures, presOf, sizeOf, stampSTOf, subcapLead, tierNode, tierWords, treeEnv, treeOf } from "./tree";
 import { cardOf, GROUP, INP, kind, OWN, ROOT, rowOf, SHARE, tier, TROUT_ROW } from "./testing/keepFixtures";
 
 const FISH: FishManifest = {
@@ -30,6 +31,29 @@ describe("sizeOf (prototype, verbatim)", () => {
     expect(sizeOf("any size")).toEqual({ size: "any size", q: [] });
     expect(sizeOf("catch and release")).toEqual({ size: "", q: ["catch and release"] });
     expect(sizeOf(null)).toEqual({ size: "", q: [] });
+  });
+});
+
+describe("(T214 item 1) the size sub-cap names its total", () => {
+  const cap = SHARE.children[0] as never as TreeTier;
+  it("'Of these' becomes 'Of your N <group>' from the tier it sits in; only the lead changes and the cap's numbers stay big", () => {
+    const w = tierWords(cap, SHARE, "Trout and char");
+    expect([nbspFree(w), w.filter((r) => r.t === "num")]).toEqual(["Of your 2 trout and char, only 1 may be over 50 cm (20 in) — 2 if one is a hatchery steelhead",
+      [{ t: "num", s: "1", size: "big" }, { t: "num", s: "2", size: "big2" }]]);
+    // the parent's own number equal to the cap's (1) must not steal the bold from the cap's number
+    const one = tierWords(cap, tier({ n: 1, says: "Only 1" }), "Trout");
+    expect([nbspFree(one), one.filter((r) => r.t === "num")[0]]).toEqual([expect.stringMatching(/^Of your 1 trout, only 1 may/), { t: "num", s: "1", size: "big" }]);
+    expect(one.filter((r) => r.t === "num").length).toBe(2);
+  });
+  it("kept as the store words it when there is nothing to name: no parent, a parent without a number, no group title, or another tier", () => {
+    expect(subcapLead(cap, null, "Trout")).toBeNull();
+    expect(subcapLead(cap, tier({ n: null }), "Trout")).toBeNull();
+    expect(subcapLead(cap, SHARE, "")).toBeNull();
+    expect(subcapLead(tier({ tier: "count", says: "Of these, only 1" }), SHARE, "Trout")).toBeNull();
+    expect(nbspFree(tierWords(cap, null, "Trout"))).toBe("Of these, only 1 may be over 50 cm (20 in) — 2 if one is a hatchery steelhead");
+  });
+  it("a proper-noun title keeps its capital", () => {
+    expect(subcapLead(cap, SHARE, "Dolly Varden")).toBe("Of your 2 Dolly Varden, ");
   });
 });
 

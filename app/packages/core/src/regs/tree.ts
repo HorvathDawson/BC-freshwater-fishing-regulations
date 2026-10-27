@@ -24,7 +24,7 @@ import type { RegsInputs } from "./inputs";
 import { boldN, nbsp, text, type Line, type Run } from "./line";
 import type { FishPicVM, KindVM, OriginVM, TierVM, TreeNodeVM } from "./model";
 import { WORDS } from "./words";
-import { cap } from "./names";
+import { cap, lc } from "./names";
 
 export interface TreeEnv {
   readonly inp: RegsInputs; readonly card: CardModel; readonly fish: FishManifest;
@@ -46,8 +46,25 @@ export function sizeOf(detail: string | null | undefined): { size: string; q: re
   return { size: (real.length ? real : sz).join(", "), q };
 }
 
+const OF_THESE = "Of these, ";
+/**
+ * T214 item 1: a size sub-cap names the total it belongs to. The store says "Of these, only 1 may be over 50 cm (20 in)";
+ * the page reads "Of your 2 trout and char, only 1 may be …": the group (its title) and the number of the tier the cap sits
+ * in. A load-time rewrite of the store's words (the pipeline still prints "Of these"); null when the line is not that
+ * sentence or the tier it sits in has no number to name. conformance/exclusions.ts counts every golden line it changes.
+ */
+export function subcapLead(t: TreeTier, up: TreeTier | null, title: string): string | null {
+  if (t.tier !== "size" || !t.says.startsWith(OF_THESE) || !up || up.n === null || !title) return null;
+  return `Of your ${up.n} ${lc(title)}, `;
+}
+
 /** prototype tierWords: boldN(says, n) big; a size box's `extra` makes the first number after " — " big too ("big2"). */
-export function tierWords(t: TreeTier): Line {
+export function tierWords(t: TreeTier, up: TreeTier | null = null, title = ""): Line {
+  const lead = subcapLead(t, up, title);
+  if (lead) {
+    const [head, ...rest] = tierWords({ ...t, says: t.says.slice(OF_THESE.length) }, null);
+    return head && head.t === "text" ? [text(lead + head.s), ...rest] : [text(lead), ...(head ? [head] : []), ...rest];
+  }
   const w = boldN(t.says, t.n, "big");
   if (!(t.tier === "size" && t.extra)) return w;
   const out: Run[] = [];
@@ -162,7 +179,7 @@ const foldsShare = (t: TreeTier, env: TreeEnv): boolean => t === env.ctx.relTier
   && t.n === env.ctx.g.headline?.n && /^Only \d+ of the \d+ may be from streams\.?$/.test(t.says || "");
 
 /** prototype tierH: a tier's head — kicker, line (its fresh Rule book page), relation, sub, its origin line. */
-export function tierNode(t: TreeTier, env: TreeEnv, root: boolean, seen: ReadonlySet<number>): TierVM {
+export function tierNode(t: TreeTier, env: TreeEnv, root: boolean, seen: ReadonlySet<number>, up: TreeTier | null = null): TierVM {
   const key = env.inp.rules.get(t.by), hasKey = !key.missing;
   const pg = hasKey ? pagesOf(key) : new Set<number>(), fresh = [...pg].some((p) => !seen.has(p));
   const bk: Line = hasKey && fresh ? ruleBookLine(key) : [];
@@ -172,13 +189,13 @@ export function tierNode(t: TreeTier, env: TreeEnv, root: boolean, seen: Readonl
         book: [...(!g.origin ? env.ctx.rootBook : []), ...(!g.origin && env.ctx.rootBook.length && extra.length ? [text(" ")] : []), ...extra] }
     : null;
   const below = new Set([...seen, ...pg]);
-  const children = t.children.map((c) => (c.node === "tier" ? tierNode(c, env, false, below) : kindRow(c, env)));
+  const children = t.children.map((c) => (c.node === "tier" ? tierNode(c, env, false, below, t) : kindRow(c, env)));
   const base = { t: "tier" as const, tier: t.tier, tid: t.id, n: t.n, band: t.tier === "size", short: shortOf(t), children };
   if (foldsShare(t, env)) {
     const origin = torg(bk);
     return { ...base, kicker: null, line: origin ? [] : bk, folded: true, relation: null, sub: null, origin };
   }
-  const line: Run[] = [...tierWords(t)];
+  const line: Run[] = [...tierWords(t, up, env.ctx.title)];
   if (bk.length) line.push(text(" "), ...bk);
   return { ...base, kicker: t === env.ctx.tagShare ? env.ctx.tag : null, line, folded: false,
     relation: t.relation ? nbsp(t.relation) : null,
@@ -190,7 +207,7 @@ export function treeOf(env: TreeEnv): readonly TreeNodeVM[] | null {
   const { g, hdrRoot, rootPages } = env.ctx;
   if (!g.tree.length) return null;
   const tops = hdrRoot ? hdrRoot.children : g.tree;
-  return tops.map((t) => (t.node === "tier" ? tierNode(t, env, !hdrRoot, rootPages) : kindRow(t, env)));
+  return tops.map((t) => (t.node === "tier" ? tierNode(t, env, !hdrRoot, rootPages, hdrRoot) : kindRow(t, env)));
 }
 
 /** The tree environment of one group (`drawn`: the rows page v36 draws an article for). */

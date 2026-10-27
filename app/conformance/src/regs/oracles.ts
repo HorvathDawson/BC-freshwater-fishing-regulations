@@ -79,8 +79,44 @@ let G: GoldenFile | undefined;
 export function golden(): GoldenFile {
   if (G) return G;
   const raw = JSON.parse(entryRenamed("golden.json", readFileSync(`${GOLDEN_DIR}golden.json`, "utf8"))) as GoldenFile & { states: Record<string, unknown> };
-  for (const id of Object.keys(raw.states)) raw.states[id] = loisRuled(id, retiredRuled(id, zone7Ruled(id, raw.states[id]))) as never;
+  for (const id of Object.keys(raw.states)) raw.states[id] = subcapRuled(id, loisRuled(id, retiredRuled(id, zone7Ruled(id, raw.states[id])))) as never;
   return (G = raw);
+}
+
+/**
+ * (T214 item 1, SUBCAP_NAMES) Page v36 prints a size sub-cap as "Of these, only 1 may be over 50 cm (20 in)"; the owner
+ * (2026-10-27) has it name the total it belongs to: "Of your 2 trout and char, only 1 may be …" (core tree.ts
+ * `subcapLead`). Rewritten ONCE at load, nothing else moved, from the golden's OWN facts and not the app's: the group's
+ * title (lower-cased) and the number of the tier the cap sits in, read off the golden tree (that tier's first big number;
+ * a folded share has none, so the head's leadN; a cap at the top of the tree sits in the head's root, the head's big).
+ * Every "Of these, " the state prints is changed (the tier's line, the group's lines, the Keep tab's lines);
+ * `SUBCAP_REWRITES` counts the strings changed (exclusions.test.ts pins it); a tier whose parent has no number throws.
+ */
+export let SUBCAP_REWRITES = 0;
+function subcapRuled(id: string, state: unknown): unknown {
+  const groups = (state as { keep?: { groups?: { title: string; head: { big: string | null; leadN: string | null }; tree: GTier[] }[] } }).keep?.groups ?? [];
+  type GTier = { t: string; line?: string | null; folded?: boolean; big?: { n: string; second: boolean }[]; children?: GTier[] };
+  let text = JSON.stringify(state), leads = 0;
+  const lead = (g: (typeof groups)[number], parent: GTier | null): string => {
+    const n = parent === null ? g.head.big : parent.folded ? g.head.leadN : parent.big?.find((b) => !b.second)?.n;
+    if (!n) throw new Error(`golden ${id}: the cap's parent tier has no number — SUBCAP_NAMES is stale`);
+    return `Of your ${n} ${/^[A-Z][a-z]/.test(g.title) ? g.title[0]!.toLowerCase() + g.title.slice(1) : g.title}, `;
+  };
+  const found: string[] = [];
+  const walk = (g: (typeof groups)[number], ts: GTier[], parent: GTier | null): void => {
+    for (const t of ts) {
+      if (t.t !== "tier") continue;
+      if ((t.line ?? "").startsWith("Of these, ")) found.push(lead(g, parent));
+      walk(g, t.children ?? [], t);
+    }
+  };
+  for (const g of groups) walk(g, g.tree, null);
+  if (!found.length) return state;
+  if (new Set(found).size !== 1) throw new Error(`golden ${id}: more than one cap lead — SUBCAP_NAMES needs a per-group rewrite`);
+  const n = text.split("Of these, ").length - 1;
+  text = text.split("Of these, ").join(found[0]!); leads += n;
+  SUBCAP_REWRITES += leads;
+  return JSON.parse(text);
 }
 
 /**

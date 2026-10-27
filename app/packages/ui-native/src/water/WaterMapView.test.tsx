@@ -296,6 +296,31 @@ describe("<WaterMapView>", () => {
     expect([screen.queryByTestId("water-map-exit"), under()]).toEqual([null, true]);
   }, 30_000);
 
+  it("(T214 item 4) the 'Flows into' line has a place kept at every part: stepping on and off the mouth part moves nothing", async () => {
+    mount("gnis:8634", 1);
+    await ready();
+    // what a finger can land on, and what sits above it: the bar's children before the steps row, the steps row, Show regulations
+    const layout = () => {
+      const slot = screen.getByTestId("water-map-exit-slot"), regs = screen.getByTestId("water-map-regs");
+      const stepsRow = screen.getByTestId("water-map-step-down").closest("[role=button]")!.parentElement!;
+      const bar = stepsRow.parentElement!;
+      return { order: [...bar.children].map((c) => c === stepsRow ? "steps" : c === regs ? "regs" : c === slot ? "slot" : (c as HTMLElement).dataset.testid ?? "?"),
+               slot: slot.style.minHeight, name: screen.getByTestId("water-map-name").style.minHeight,
+               chip: !!screen.queryByTestId("water-map-exit") };
+    };
+    const atMouth = layout();
+    fireEvent.click(screen.getByRole("button", { name: "Upstream" }));
+    const up = layout();
+    expect([atMouth.chip, up.chip]).toEqual([true, false]);
+    // the same children in the same order, the slot the same height (the chip fills it, never enlarges it), the name's room the same
+    expect([up.order, up.slot, up.name]).toEqual([atMouth.order, atMouth.slot, atMouth.name]);
+    expect(atMouth.order.slice(-3)).toEqual(["steps", "regs", "slot"]);
+    expect(atMouth.slot).toBe("44px");
+    expect(atMouth.name).toBe("46px");
+    fireEvent.click(screen.getByRole("button", { name: "Downstream" }));
+    expect(layout()).toEqual(atMouth);
+  }, 30_000);
+
   it("(T203) opened for a search result (`whole`): the camera frames the WHOLE water, offering 'This part'", async () => {
     render(<WaterMapView loader={loader} item={"gnis:8634" as ItemId} part={null} tapSid={null} palette={LIGHT} map={MAP} whole
                          onOpenWater={() => {}} onShowRegs={() => {}} onOtherSection={() => {}} onCross={() => {}} />);

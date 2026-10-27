@@ -48,6 +48,7 @@ import { WaterModeHost } from "./shell/WaterModeHost";
 import type { ShellProps } from "./shell/props";
 import { HOME, useMapColouring } from "./shell/useMapColouring";
 import { useShellNav } from "./shell/useShellNav";
+import { useEscapeBack } from "./escapeBack";
 import { useShellSearch } from "./shell/useShellSearch";
 
 export type { ShellProps } from "./shell/props";
@@ -85,6 +86,7 @@ export function Shell(p: ShellProps) {
   const waterCamera = useRef<Camera | null>(null);
   const search = useShellSearch({ source, nav, camera });
   const { searching, session, searchMemory, field } = search;
+  useEscapeBack(nav.back, nav.escapeBack && !searching);   // T214 item 2: on the desktop web Escape is Back (a no-op on a phone)
   /** ONE placeholder line per opening of the app, never cycled while on screen. */
   const [placeholder] = useState(() => placeholderFor(Math.random() * 1e6));
   /*

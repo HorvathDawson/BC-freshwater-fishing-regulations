@@ -22,6 +22,8 @@ vi.mock("../packages/ui-native/src/ViewSwipe", async (importOriginal) => {
   return { ...real, ViewSwipe: (p: Parameters<typeof real.ViewSwipe>[0]) =>
     h(real.ViewSwipe, MUTANT.on ? { ...p, still: false } : p) };
 });
+// T214 item 2: these swipe, and the swipe is for a finger: this is a phone
+vi.mock("../packages/ui-native/src/touchDevice", () => ({ isTouchDevice: () => true }));
 vi.mock("../packages/ui-native/src/MapScreen", async () => {
   const { View } = await import("react-native");
   return { MapScreen: () => h(View, { testID: "map-canvas", style: { flex: 1 } }) };

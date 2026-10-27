@@ -90,9 +90,9 @@ const VEDDER = "gnis:3062" as ItemId;
 const on = (view: "regs" | "conditions" | "map"): Route =>
   ({ mode: "water", from: HOME, stack: [{ item: VEDDER, part: 2, tapSid: null, at: null, view }] });
 
-function Views({ start }: { start: Route }) {
+function Views({ start, touch = true }: { start: Route; touch?: boolean }) {
   const [route, go] = useRoute(start);
-  const swipe = useViewSwipe(route, go);
+  const swipe = useViewSwipe(route, go, touch);
   const f = waterFrame(route);
   return (
     <GestureHandlerRootView>
@@ -130,6 +130,17 @@ describe("<ViewSwipe> (owner 2026-10-21: the swipe changes the VIEW, not the sec
       swipe(on("map"), pan(200, 100)), swipe(on("conditions"), pan(200, 100)), swipe(on("regs"), pan(200, 100)),
     ]).toEqual(["conditions · part 2", "map · part 2", "map · part 2",
                 "conditions · part 2", "regs · part 2", "regs · part 2"]);
+  });
+
+  it("T214 item 2: on a desktop (no touch) the same drag moves nothing; touch moves it", () => {
+    const moved = (touch: boolean) => {
+      render(<Views start={on("regs")} touch={touch} />);
+      fire("view-swipe", pan(200, -100));
+      const text = screen.getByText(/ · part /).textContent;
+      cleanup();
+      return text;
+    };
+    expect([moved(false), moved(true)]).toEqual(["regs · part 2", "conditions · part 2"]);
   });
 
   it("a scroll, a short drag and a start in either edge zone leave the view alone", () => {

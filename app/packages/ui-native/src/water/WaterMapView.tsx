@@ -29,6 +29,9 @@ import { SPACE, type Palette } from "../theme";
 export type WaterMapMapProps = Omit<ComponentProps<typeof MapScreen>,
   "palette" | "highlight" | "water" | "waterLine" | "selection" | "marks" | "onPressMark" | "fit" | "onPressFeature">;
 
+/** The place kept for the "Flows into" line: the 44 px target the line has when it is drawn. */
+const EXIT_SLOT = 44;
+
 export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenWater, onShowRegs, onOtherSection,
                                onCross, onPart, whole = false }: {
   loader: ReleaseLoader | null;
@@ -97,8 +100,10 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
           <>
             {vm.list && <PartsList list={vm.list} palette={palette} act={act} />}
             <Text style={{ ...TYPE.section, color: palette.faint }} testID="water-map-where">{vm.where}</Text>
-            <Text style={{ ...TYPE.name, fontSize: 19, lineHeight: 23, color: palette.ink, marginTop: 2 }}
-                  testID="water-map-name" numberOfLines={3}>{vm.current.name}</Text>
+            {/* (T214 item 4) two lines are kept for the name at every part: a name that wraps in one part and not in the
+                next must not move the steps when the reader steps between them (a longer name is cut; its full words are the label) */}
+            <Text style={{ ...TYPE.name, fontSize: 19, lineHeight: 23, minHeight: 46, color: palette.ink, marginTop: 2 }}
+                  testID="water-map-name" numberOfLines={2} accessibilityLabel={vm.current.name}>{vm.current.name}</Text>
             <View style={{ flexDirection: "row", gap: SPACE.s2, marginTop: 10 }}>
               {([["down", vm.down], ["up", vm.up]] as const).map(([dir, st]) => (
                 <Step key={dir} dir={dir} palette={palette} label={st.label} aria={st.aria} disabled={st.disabled}
@@ -113,14 +118,20 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
                 {vm.regs.label}
               </Text>
             </Pressable>
-            {/* (T203) LAST: it appears with the part (only at the mouth), so it sits below every other control — the steps
-                and "Show regulations" never move under a finger. */}
-            {vm.exit && (
-              <Pressable onPress={() => onOpenWater(vm.exit!.item as ItemId, vm.exit!.part)} accessibilityRole="link"
-                         accessibilityLabel={vm.exit.label} testID="water-map-exit"
-                         style={{ minHeight: 44, justifyContent: "center", marginTop: 8 }}>
-                <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{vm.exit.label}</Text>
-              </Pressable>
+            {/* (T203, T214 item 4) LAST, in a place kept for it. The bar sits at the foot of the screen, so a line that
+                appears (only at the mouth part) grows it UPWARD and lifts every control above it, whatever its order
+                (T203's "last" was not enough: the steps and "Show regulations" still jumped). On a water whose mouth
+                flows into another the place is held at every part, empty or not, so nothing moves under a finger. */}
+            {vm.exitHeld && (
+              <View style={{ minHeight: EXIT_SLOT, marginTop: 8 }} testID="water-map-exit-slot">
+                {vm.exit && (
+                  <Pressable onPress={() => onOpenWater(vm.exit!.item as ItemId, vm.exit!.part)} accessibilityRole="link"
+                             accessibilityLabel={vm.exit.label} testID="water-map-exit"
+                             style={{ minHeight: EXIT_SLOT, justifyContent: "center" }}>
+                    <Text numberOfLines={1} style={{ ...TYPE.bodyStrong, color: palette.accent }}>{vm.exit.label}</Text>
+                  </Pressable>
+                )}
+              </View>
             )}
           </>
         ) : (

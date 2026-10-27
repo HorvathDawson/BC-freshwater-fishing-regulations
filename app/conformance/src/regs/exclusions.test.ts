@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 import type { GoldenState } from "@app/core/regs/testing";
 import { comparableGroups, D19_GROUPS, D19_POOLED_IDS, droppedLines, EXCLUDE, excluded, GOLDEN_MAP_ACTION_IDS, GOLDEN_PARTS_ACTION_IDS, KEEP_STAMP_LINE_IDS, keepLines, NO_MAP_LABEL_IDS, SET_LINE_NOTE_IDS, STAMP_LINE, STAMP_LINE_IDS, TROUT_LINE_IDS,
          YEAR_WINDOW_IDS, YEAR_WINDOW_LINE, OTHER_FISH_STAMP_LINE } from "./exclusions";
-import { golden, LOIS_REWRITES, RETIRED_REWRITES, taps, ZONE7_REWRITES } from "./oracles";
+import { golden, LOIS_REWRITES, RETIRED_REWRITES, SUBCAP_REWRITES, taps, ZONE7_REWRITES } from "./oracles";
 
 const G = golden(), T = taps();
 
@@ -203,6 +203,15 @@ describe("(T206) page v36 after the retired rules, the on-parts ruling and the z
   });
   it("loisRuled: Lois Lake's folded group, 8 strings (its head and How it adds up, each in the head/worked, the group's lines and keep.lines; the bar's group line and its sample)", () => {
     expect(LOIS_REWRITES).toBe(8);
+  });
+});
+
+describe("(T214 item 1) size sub-caps name their total (oracles.ts subcapRuled)", () => {
+  it("rewrites every golden \"Of these, \" (117: a tier line, group lines and keep lines in each state) to \"Of your N group, \", none left", () => {
+    expect(SUBCAP_REWRITES).toBe(117);
+    const text = JSON.stringify(G.states);
+    expect(text.includes("Of these, ")).toBe(false);
+    expect(text.split("Of your 2 trout and char, only 1 may be over 50 cm (20 in) — 2 if one is a hatchery steelhead").length - 1).toBeGreaterThan(0);
   });
 });
 

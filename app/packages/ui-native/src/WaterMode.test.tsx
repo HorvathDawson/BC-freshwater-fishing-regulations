@@ -29,6 +29,8 @@ vi.mock("./MapScreen", () => ({
 }));
 // the panel is not under test: it says which reach and which "you are here" it was handed, and it takes the body swipe
 // the Shell hands it the way the real panel does (ConditionsPanel.test pins that the real one does)
+// T214 item 2: these swipe, and the swipe is for a finger: this is a phone
+vi.mock("./touchDevice", () => ({ isTouchDevice: () => true }));
 vi.mock("./ConditionsPanel", async (importOriginal) => {
   const real = await importOriginal<typeof import("./ConditionsPanel")>();
   const { useContext } = await import("react");
