@@ -24,8 +24,9 @@ const at = liveReleaseAt();
  * placement pass dropped a sliver ahead of the Salmon / base sections, each one line earlier; T206, r-f6918815ca78: the
  * atlas rebuild put two sections ahead of them, each two lines later). */
 // (2026-10-27, r-8b43fb267199: Chapman/Deena/Mamin cuts) the three keep their line numbers in atlas 52c5cff7ba8b6313
-const H_ATLAS = "52c5cff7ba8b6313";
-const H = { eve: 1409, salmon: 64039, base: 59509 } as const;
+// (2026-10-27, r-ea426985a467: T185 Quinsam + Sandy Pool cuts) salmon and base are two lines later in b6b5000e171023c9
+const H_ATLAS = "b6b5000e171023c9";
+const H = { eve: 1409, salmon: 64041, base: 59511 } as const;
 /** The page's default angler (decisions.md D8, `@app/ui` DEFAULT_WHO). */
 const ADULT_RESIDENT = { age: "adult", residency: "resident" } as const;
 
