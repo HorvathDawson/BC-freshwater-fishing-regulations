@@ -80,6 +80,8 @@ _CODE = re.compile(r"(?i)wsc|watershed_code|\bcode\b|basin_code|\bcodes\b")
 ALLOWED = {
     # a registry ref id ("wsc:100-1"), not a code
     ("pipeline/regs/dfo_salmon/splitwork.py", 'x.startswith("wsc:")'),
+    # registry ref ids ("wsc:100-1"), split to get the code that is then handed to `wsc`
+    ("pipeline/regs/dfo_salmon/suggest.py", 'r.startswith("wsc:")'),
     # a basin AREA id ("area:basin:100-342455-"): the id's prefix, then the code is handed to `wsc`
     ("pipeline/atlas/registry/basins.py", "str(area_id).startswith(BASIN)"),
     ("pipeline/atlas/registry/basins.py", "code = str(area_id)[len(BASIN):]"),

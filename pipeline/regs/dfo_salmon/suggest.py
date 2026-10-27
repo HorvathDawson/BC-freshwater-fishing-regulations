@@ -36,6 +36,7 @@ from pathlib import Path
 from typing import Iterable, Mapping, Optional, Protocol
 
 from pipeline.common.names import key as name_key
+from pipeline.common.utils.wsc import groups, is_strictly_below
 
 CONF_RANK = {"high": 3, "medium": 2, "low": 1, "none": 0}
 
@@ -384,7 +385,7 @@ def _anchor_word(phrase: str) -> str:
 def _is_receiving(trib_wsc: Iterable[str], water: Water) -> bool:
     """Is the named river the one this water flows INTO (its wsc a prefix of ours)?"""
     mine = [w for ws in water.wsc.values() for w in ws]
-    return any(m != t and m.startswith(t + "-") for t in trib_wsc for m in mine)
+    return any(is_strictly_below(m, t) for t in trib_wsc for m in mine)
 
 
 def _direct_child(trib_wsc: Iterable[str], water: Water) -> Optional[str]:
@@ -392,7 +393,7 @@ def _direct_child(trib_wsc: Iterable[str], water: Water) -> Optional[str]:
     for iid, ws in water.wsc.items():
         for w in ws:
             for t in trib_wsc:
-                if t.startswith(w + "-") and t.count("-") == w.count("-") + 1:
+                if is_strictly_below(t, w) and len(groups(t)) == len(groups(w)) + 1:
                     return iid
     return None
 

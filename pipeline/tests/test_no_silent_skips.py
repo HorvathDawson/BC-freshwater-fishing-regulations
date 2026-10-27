@@ -29,6 +29,8 @@ ALLOWLIST: dict[str, tuple[int, str]] = {
     "pipeline/tests/test_mu_regions.py": (1, "optional tool: geopandas (importorskip)"),
     "pipeline/tests/test_no_slivers.py": (
         1, "opt-in: ATLAS_BUILD_TWIN names a second build to compare for determinism"),
+    "pipeline/tests/test_dfo_suggest.py": (
+        1, "optional tool: node + the frontend's typescript (source pins still run without them)"),
     "pipeline/tests/test_export_codec.py": (
         1, "opt-in: UI_EXPORT_BUNDLE points at a side bundle, whose export is not the shipped one"),
 }

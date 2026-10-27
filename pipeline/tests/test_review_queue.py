@@ -265,7 +265,7 @@ def test_the_prechecks_measured_over_the_corpus(request):
     # owner 2026-10-26: 13 -> 6 binds_nothing — six item-less area rows are matched by area
     # (`tiers.area_matched`) and Mackenzie Creek (book MU typo 4-21 -> 4-31) matches gnis:12042
     measured = {"binds_nothing": 6, "unresolved": 25, "unplaced_pieces": 2, "ambiguous_cut": 95,
-                "split_to_verify": 0, "parser_uncertain": 137, "unresolved_locator": 31,
+                "split_to_verify": 0, "parser_uncertain": 137, "unresolved_locator": 22,
                 "undrawn_part": 94, "unquoted_text": 214,
                 # owner 2026-10-26 (drop_on_parts): 33 "on parts" rules hold on the whole water, so 39 -> 6 notes
                 "unidentified_part": 6}
