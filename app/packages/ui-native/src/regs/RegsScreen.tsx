@@ -36,7 +36,7 @@ import { RegsHeader } from "./RegsHeader";
 import { PinOver, ReadingColumn, RegsSide } from "./RegsWide";
 import { SheetHost } from "./SheetHost";
 import type { LayoutClass, RegsStart } from "@app/ui";
-import { AnchorContext, useAnchors } from "./useAnchors";
+import { AnchorContext, StickyContext, useAnchors } from "./useAnchors";
 import type { AdiposeImages, FishImages } from "./types";
 
 declare const __DEV__: boolean | undefined;
@@ -113,6 +113,7 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
   const scroll = useRef<ScrollView>(null);
   const content = useRef<View>(null);
   const { sink, section, remeasure } = useAnchors(page, content, store);
+  const sticky = useMemo(() => ({ store, overlay: layout !== "desktop" }), [store, layout]);
   // the sideways swipe between the water's views (Regulations · Conditions · Map): the frame's header, the regs header and
   // the scroll's content each listen (siblings, never nested — nested detectors race); see WaterViews in ViewSwipe.tsx.
   // Only the scroll's content follows the finger: the regs header listens `still` (it is one page with the frame's rows)
@@ -185,7 +186,9 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
       )}
       <BoatsLine boats={page.boats} palette={palette} onSheet={openSheet} />
       <AnchorContext.Provider value={sink}>
-        <KeepTab keep={page.keep} dateLabel={page.header.date} palette={palette} actions={keepActions} images={images} />
+        <StickyContext.Provider value={sticky}>
+          <KeepTab keep={page.keep} dateLabel={page.header.date} palette={palette} actions={keepActions} images={images} />
+        </StickyContext.Provider>
       </AnchorContext.Provider>
       {salmon}
       {sec("gear", gear)}

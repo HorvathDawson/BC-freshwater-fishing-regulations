@@ -36,6 +36,14 @@ export interface AnchorSink {
 }
 export const AnchorContext = createContext<AnchorSink | null>(null);
 
+/**
+ * Where the size section's header pins on the web (owner 2026-10-27): `top` is read from the pin bar's measured stack
+ * (`store`) when the bar overlays the scroll's top edge (`overlay`: phone, tablet), else 0 (the desktop's bar stands in
+ * the side column). Absent outside a RegsScreen: the header does not stick.
+ */
+export interface StickyPin { readonly store: PinStore; readonly overlay: boolean }
+export const StickyContext = createContext<StickyPin | null>(null);
+
 export interface Box { readonly top: number; readonly height: number }
 export type Boxes = ReadonlyMap<string, { readonly key: AnchorKey; readonly box: Box }>;
 

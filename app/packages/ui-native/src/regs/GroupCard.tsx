@@ -4,14 +4,14 @@
  * size chip, qualifiers, pictures, also-counts, duty, presence), the not-kept lines, How it adds up, the quiet steelhead
  * line and "See every regulation line ›". tokens.md §5 GroupHead … HowItAddsUp. No logic.
  */
-import { Fragment, useContext } from "react";
-import { Image, Text, View } from "react-native";
+import { Fragment, useContext, useSyncExternalStore } from "react";
+import { Image, Platform, Text, View, type ViewStyle } from "react-native";
 import { WORDS, type FishPicVM, type GroupVM, type KindVM, type NotKeptVM, type TierVM, type TreeNodeVM } from "@app/core";
 import { TYPE } from "../type";
 import { GUTTER, type Palette } from "../theme";
 import { LineText, type KeepActions } from "./LineText";
 import { RegsPress } from "./RegsPress";
-import { AnchorContext, type AnchorKey } from "./useAnchors";
+import { AnchorContext, StickyContext, type AnchorKey } from "./useAnchors";
 import type { FishImages } from "./types";
 
 /** (T29) where this node sits for the pin bar: the group's row, the tier sections it lies in, a unique path. */
@@ -86,14 +86,29 @@ function Kind({ k, first, inBand, at, palette, actions, images }: { k: KindVM; f
   );
 }
 
+/** the size box: its bold left rail, and its gap to the screen edge */
+const RAIL = 5, BOX_INSET = 6;
+// react-native's ViewStyle has no "sticky"; react-native-web passes it through to CSS
+const STICKY = { position: "sticky" } as const;
+const NO_SUB = () => () => {};
+
 function Tier({ t, at, palette, actions, images }: { t: TierVM; at: At; palette: Palette; actions: KeepActions; images?: FishImages }) {
   const small = t.tier === "size" || t.tier === "count";
   const tids = [...at.tids, t.tid];
   // (T29) the tier's header (prototype `.tier`: kicker, words, relation, sub, origin) — the pin bar's `head` box
   const head = useAnchor(`h${at.row}:${t.tid}`, { k: "head", row: at.row, tid: t.tid, tids });
+  // (owner 2026-10-27) the size section's box: its sentence pins as the box's header while its kinds scroll under it, and
+  // goes with the box (web: CSS `position: sticky` inside the box; native has no container-bounded sticky — see below)
+  const stick = useContext(StickyContext);
+  const stackTop = useSyncExternalStore(stick?.store.subscribe ?? NO_SUB, () => (stick?.overlay ? stick.store.getStackHeight() : 0), () => 0);
+  const pinned = t.band && Platform.OS === "web" && !!stick;
   const body = (
     <>
-      <View {...head} testID="khead">
+      {/* a stuck header moves, so the pin bar's anchor is a zero-height marker at its natural place */}
+      {pinned && <View {...head} />}
+      <View {...(pinned ? {} : head)} testID="khead"
+            style={pinned ? { ...(STICKY as unknown as ViewStyle), top: stackTop, zIndex: 1, backgroundColor: palette.card,
+                              borderBottomWidth: 1, borderBottomColor: palette.line2 } : undefined}>
       {t.kicker && <Text testID="kicker:tier" style={[TYPE.kicker, { color: palette.sub, paddingTop: 8 }]}>{t.kicker}</Text>}
       {t.line.length > 0 && (
         <View style={{ paddingTop: t.kicker ? 2 : small ? (t.tier === "size" ? 12 : 8) : 16, paddingBottom: 8 }}>
@@ -115,9 +130,9 @@ function Tier({ t, at, palette, actions, images }: { t: TierVM; at: At; palette:
       <Nodes nodes={t.children} inBand={t.band} at={{ row: at.row, tids, path: at.path }} palette={palette} actions={actions} images={images} />
     </>
   );
+  // the size section is one box: a bold rail on the left, a faint line round the rest — header + every kind under it
   return t.band
-    ? <View style={{ marginHorizontal: -GUTTER, paddingLeft: 13, paddingRight: GUTTER, paddingBottom: 8, marginTop: 8, borderTopWidth: 1, borderBottomWidth: 1, borderColor: palette.line2,
-                     borderLeftWidth: 3, borderLeftColor: palette.rule }}>{body}</View>
+    ? <View testID="size-box" style={{ marginHorizontal: -(GUTTER - BOX_INSET), paddingLeft: GUTTER - BOX_INSET - RAIL, paddingRight: GUTTER - BOX_INSET - 1, paddingBottom: 8, marginTop: 8, borderWidth: 1, borderColor: palette.line2, borderLeftWidth: RAIL, borderLeftColor: palette.rule }}>{body}</View>
     : <View>{body}</View>;
 }
 
