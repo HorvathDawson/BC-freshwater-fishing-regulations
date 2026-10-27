@@ -385,7 +385,7 @@
           ],
           "size": {
            "rule": true,
-           "text": "keep 25 cm (10 in) or longer; release the rest"
+           "text": "must be 25 cm (10 in) or longer; release any shorter"
           },
           "species": [
            "EB",
@@ -429,7 +429,7 @@
           ],
           "size": {
            "rule": true,
-           "text": "keep 25 cm (10 in) or longer; release the rest"
+           "text": "must be 25 cm (10 in) or longer; release any shorter"
           },
           "species": [
            "DV"
@@ -501,7 +501,7 @@
           ],
           "size": {
            "rule": true,
-           "text": "keep 25–33 cm (10–13 in); release the rest"
+           "text": "must be 25–33 cm (10–13 in); release any other size"
           },
           "species": [
            "CT"
@@ -543,7 +543,7 @@
           ],
           "size": {
            "rule": true,
-           "text": "keep 25–50 cm (10–20 in); release smaller ones"
+           "text": "must be 25 cm (10 in) or longer; release any shorter"
           },
           "species": [
            "RB"
