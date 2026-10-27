@@ -260,7 +260,7 @@ use that as the sole source of future work."
 | T213 | paint bait-ban and fly-fishing-only waters distinctly from general restrictions | OPEN | — | future |
 | T214 | app polish: quota sub-cap wording names its total, desktop no-swipe + Esc back, clearer part highlight, steady up/downstream buttons | PARTIAL | — | items 1, 2, 4 built (subcap lead + golden amendment, desktop no-swipe + Esc Back, reserved exit slot); item 3 (part highlight) waits on T211's map paint |
 | T215 | open the PDF on the page with the entry's section highlighted | OPEN | — | |
-| T216 | better "How this was decided": interpretation, what overrode what, sources | OPEN | — | now |
+| T216 | better "How this was decided": interpretation, what overrode what, sources | DONE | 4e39f3fb | story.ts: layers base → water → exceptions, why + printed page per step; tests on Fraser two-region, R5 spring-closure lift, sub-cap, closed water |
 
 ## Order for open tickets
 
