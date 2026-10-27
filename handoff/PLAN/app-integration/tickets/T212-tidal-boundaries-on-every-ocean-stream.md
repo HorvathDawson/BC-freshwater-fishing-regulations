@@ -54,3 +54,15 @@ ticket FINDS them all and proposes them, with confidence and sources, for the ow
   anchor `split` + split_id) instead of a new cut. 5 of 1,163 reuse: Campbell (cement block sign 1631 m vs 1625 m,
   6 m), Fraser CPR bridge at Mission (10 m), Coquitlam Mary Hill Bypass (10 m), Pitt CPR bridge (18 m), Tlell sign
   (0 m). Turning a `split`-anchored NewSplit into an alias (not a cut) is T185's job.
+
+## Follow-up (2026-10-27): where the owner edited, and what is left for him
+- Tool: `python -m pipeline.tools.audit.tidal_triage edits --dfo-gpkg <DFO_TIDAL_BOUNDARY.gpkg from R2> --gpkg
+  <bc_fisheries_data.gpkg>`, then `... web <findings.json ...> --basemap <bc.pmtiles>`, then `... triage` (read only).
+- The unedited original can't be rebuilt (R2 holds only the edited source layer; gisp.dfo-mpo.gc.ca no longer
+  resolves; the BC WFS doesn't publish subareas). Edits are found by fingerprint: DFO vertices sit on a 1 cm
+  grid, hand-added ones don't → `tidal-edits.json` (68 sites, 18 on candidate streams; blind on DFO's own
+  off-grid stretch of south Vancouver Island / Gulf Islands; vertex-only deletions unseen).
+- Web research (DFO pages via web.archive.org / waves-vagues guides, the PFMA regulations, forums, news) →
+  `tidal-web.json` (23 findings on 15 streams), a source next to the book text in the Tidal tab.
+- Triage per candidate (`triage` key; `tidal-triage.md`): missed 5 (Capilano, Copper Creek, Nimpkish, Tlell,
+  Chemainus), sanity 0, owner-edited 25, book agrees 11, no claim 1122. The Tidal tab defaults to missed + sanity.

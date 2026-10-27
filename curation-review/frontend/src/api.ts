@@ -165,7 +165,7 @@ export const api = {
       encodeURIComponent(JSON.stringify(fix))),
 
   // --- T212: the Tidal review mode (reads; accepting is a mark through postMark, scope "tidal") ---
-  tidalQueue: (f: { confidence?: string; verify?: string; enters?: string; words?: boolean; q?: string }) => {
+  tidalQueue: (f: { confidence?: string; verify?: string; enters?: string; words?: boolean; q?: string; triage?: string }) => {
     const p = new URLSearchParams();
     for (const [k, v] of Object.entries(f)) if (v) p.set(k, String(v));
     const qs = p.toString();

@@ -22,6 +22,14 @@ const SOURCE_WORDS: Record<string, string> = {
   tidal_gauge: "tidal gauge",
 };
 const PROBLEMS = ["split misplaced", "wrong water", "split missing"];
+/** the triage classes and what they mean (T212 follow-up, `tidal-triage.md`); "review" = missed + sanity */
+export const TRIAGE_WORDS: Record<string, string> = {
+  missed: "missed — words disagree, polygon unedited", sanity: "sanity — edited, but words disagree",
+  "owner-edited": "owner-edited (accepted)", "book agrees": "words agree (accepted)",
+  "no claim": "no claim (accepted at the polygon)",
+};
+/** the queue's default: only what the owner still has to look at */
+export const DEFAULT_TRIAGE = "review";
 
 /** ACCEPT A PROPOSAL: the new split it pre-fills (the proposed cut on the stream, named
  *  "<water>: mouth (tidal boundary)", its aliases in the note) — or, when a curated split sits within
@@ -53,7 +61,7 @@ interface Props {
 export function TidalReview({ mode, onLeave, onDfo }: Props) {
   const [rows, setRows] = useState<TidalRow[]>([]);
   const [progress, setProgress] = useState<TidalProgress | null>(null);
-  const [filters, setFilters] = useState({ confidence: "", verify: "", enters: "", words: false, q: "" });
+  const [filters, setFilters] = useState({ confidence: "", verify: "", enters: "", words: false, q: "", triage: DEFAULT_TRIAGE });
   const [selected, setSelected] = useState<string | null>(() => {
     const h = decodeURIComponent(window.location.hash.slice(1));
     return h.startsWith(TIDAL_HASH) ? h.slice(TIDAL_HASH.length) || null : null;
@@ -109,6 +117,20 @@ export function TidalReview({ mode, onLeave, onDfo }: Props) {
             <button className="btn small" role="tab" aria-selected={false} onClick={onDfo}>DFO salmon extents</button>
             <button className="btn small primary" role="tab" aria-selected>Tidal</button>
           </div>
+          <div data-testid="tidal-triage-filter">
+            <label>triage</label>
+            <select aria-label="triage" value={filters.triage} onChange={(e) => set({ triage: e.target.value })}>
+              <option value="review">missed + sanity ({(progress?.by_triage?.missed ?? 0) + (progress?.by_triage?.sanity ?? 0)})</option>
+              {Object.keys(TRIAGE_WORDS).map((k) => (
+                <option key={k} value={k}>{TRIAGE_WORDS[k]} ({progress?.by_triage?.[k as keyof TidalProgress["by_triage"]] ?? 0})</option>
+              ))}
+              <option value="">all</option>
+            </select>
+          </div>
+          <label className="dim" style={{ display: "flex", gap: 4, alignItems: "center" }}>
+            <input type="checkbox" data-testid="tidal-show-all" checked={filters.triage === ""}
+              onChange={(e) => set({ triage: e.target.checked ? "" : DEFAULT_TRIAGE })} /> show all
+          </label>
           <div>
             <label>confidence</label>
             <select aria-label="confidence" value={filters.confidence} onChange={(e) => set({ confidence: e.target.value })}>
@@ -141,6 +163,8 @@ export function TidalReview({ mode, onLeave, onDfo }: Props) {
           <span className="progress dfo-progress" data-testid="tidal-progress">
             {progress ? <>
               <strong>{progress.done}/{progress.total}</strong> marked
+              <span data-testid="tidal-triage-counts"> · <strong>{progress.by_triage?.missed ?? 0}</strong> missed
+                · <strong>{progress.by_triage?.sanity ?? 0}</strong> sanity</span>
               <span className="dim"> · {progress.with_words} named by the words
                 · named ocean streams met by the polygon {cov.named_ocean_entering_found_by_polygon ?? "?"}/{cov.named_ocean_entering_total ?? "?"}</span>
             </> : "…"}
@@ -169,6 +193,9 @@ export function TidalReview({ mode, onLeave, onDfo }: Props) {
                 <span>{r.above_mouth_m > 75 ? `${Math.round(r.above_mouth_m)} m above mouth` : "at the mouth"}</span>
                 {r.n_words > 0 && <span className="chip-tag suggested">words · {r.agreement}</span>}
                 {r.words_disagree && <span className="chip-tag new">words disagree</span>}
+                {r.triage && <span className={`chip-tag${r.triage === "missed" || r.triage === "sanity" ? " new" : ""}`}
+                  title={r.triage_why ?? ""}>{r.triage}</span>}
+                {r.n_web > 0 && <span className="chip-tag suggested">web · {r.n_web}</span>}
               </div>
               <div className="meta dfo-text">{CROSSING_WORDS[r.crossing] ?? r.crossing}</div>
             </div>
@@ -338,6 +365,17 @@ function TidalCandidateView({ detail, mode, nav, onMarked }: {
             <div className="ext-row dim" style={{ fontSize: 12 }}>enters {c.enters === "ocean" ? "the sea" : "tidal water (a tidal river or estuary)"} · agreement: {c.agreement}{c.words_disagree ? " · the words disagree with each other" : ""}</div>
           </div>
 
+          {c.triage && (
+            <div className="section" data-testid="tidal-triage">
+              <div className="ext-row">
+                <span className="k">triage</span>
+                <strong>{TRIAGE_WORDS[c.triage.class] ?? c.triage.class}</strong>
+                <span className="dim" style={{ fontSize: 12 }}>{c.triage.why}
+                  {c.triage.edit_sites.length ? ` · edit sites ${c.triage.edit_sites.join(", ")}` : ""}</span>
+              </div>
+            </div>
+          )}
+
           <div className="source-pin" data-testid="tidal-sources">
             <div className="evidence-head"><h3 style={{ margin: 0 }}>What the words say</h3></div>
             {c.sources.length === 0 && <div className="dim">No text names this stream's tidal boundary — the polygon alone (unnamed-stream default: the mouth).</div>}
@@ -349,6 +387,16 @@ function TidalCandidateView({ detail, mode, nav, onMarked }: {
                   {s.measure != null ? `at ${s.measure.toFixed(0)} m${s.located_by ? ` (${s.located_by})` : ""}` : "not located"}
                   {s.agrees === true ? " · agrees" : s.agrees === false ? ` · DISAGREES (${s.polygon_minus_source_m?.toFixed(0)} m)` : ""}
                   {" · "}{s.source}</span>
+              </div>
+            ))}
+            {(c.triage?.web ?? []).map((w, i) => (
+              <div key={`web${i}`} className="ext-row" data-testid={`tidal-web-${i}`}>
+                <span className="k">web · {w.confidence}</span>
+                <span className="verbatim" style={{ flex: 1 }}>{w.marker}{w.quote ? <> — <q>{w.quote}</q></> : null}</span>
+                <span className="dim" style={{ fontSize: 12 }}>
+                  {w.located ? `at ${w.located.measure.toFixed(0)} m (${w.located.located_by})` : "not located"}
+                  {w.agrees === true ? " · agrees" : w.agrees === false ? " · DISAGREES" : ""}
+                  {" · "}<a href={w.url} target="_blank" rel="noreferrer">{w.site}</a></span>
               </div>
             ))}
           </div>

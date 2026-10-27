@@ -1,0 +1,975 @@
+{
+ "_about": "T212 follow-up: web findings on where tidal water ends (DFO pages and guides, the PFMA regulations, forums, news), one per source, each located on the stream's FWA line when it can be (`located`). Researched 2026-10-27; pac.dfo-mpo.gc.ca did not resolve, so DFO pages were read through web.archive.org / waves-vagues.",
+ "findings": [
+  {
+   "id": "tidal:354154936",
+   "water": "Nimpkish River",
+   "marker": "tidal water boundary signs ~100 m upstream of the Highway 19 bridge",
+   "kind": "sign",
+   "match": "19",
+   "pick": "near",
+   "offset_m": 100,
+   "quote": "then to the tidal water boundary signs approximately 100 m upstream of the Highway 19 bridge.",
+   "url": "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/tidal-maree/a-s12-eng.html",
+   "site": "DFO BC tidal area 12 page, area description 'Nimpkish River' (read via web.archive.org 2025 snapshot; pac.dfo-mpo.gc.ca did not resolve)",
+   "confidence": "high",
+   "located": {
+    "measure": 1244.8,
+    "coord": [
+     -126.998708,
+     50.565419
+    ],
+    "located_by": "OSM road crossing 'Island Highway 19' @ 1145 m + 100 m"
+   }
+  },
+  {
+   "id": "tidal:360872960",
+   "water": "Tlell River",
+   "marker": "white triangular fishing boundary sign ~1 km upstream of the Highway #16 bridge",
+   "kind": "sign",
+   "match": "16",
+   "pick": "near",
+   "offset_m": 1000,
+   "quote": "Tidal waters of the Tlell River downstream of a white triangular fishing boundary sign located approximately 1 km upstream of the Highway #16 bridge.",
+   "url": "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/tidal-maree/a-s2-eng.html",
+   "site": "DFO BC tidal area 2 page, area descriptions (archived 2025, updated 2025-12-16)",
+   "confidence": "high",
+   "located": {
+    "measure": 5250.1,
+    "coord": [
+     -131.940031,
+     53.573552
+    ],
+    "located_by": "OSM road crossing 'Yellowhead Highway YH 16' @ 4250 m + 1000 m"
+   }
+  },
+  {
+   "id": "tidal:360872960",
+   "water": "Tlell River",
+   "marker": "tidal boundary sign 1.5 km upstream of the Hwy 16 bridge (provincial synopsis; DFO says ~1 km)",
+   "kind": "sign",
+   "match": "16",
+   "pick": "near",
+   "offset_m": 1500,
+   "quote": "Tidal waters regulations apply to waters downstream of tidal boundary sign located 1.5 km upstream of Hwy 16 Bridge",
+   "url": "https://www2.gov.bc.ca/assets/gov/sports-recreation-arts-and-culture/outdoor-recreation/fishing-and-hunting/freshwater-fishing/region_1_vancouver_island.pdf",
+   "site": "BC Freshwater Fishing Regulations Synopsis 2025-2027, Tlell River row (Region 6 table page)",
+   "confidence": "medium",
+   "located": {
+    "measure": 5750.1,
+    "coord": [
+     -131.937881,
+     53.569256
+    ],
+    "located_by": "OSM road crossing 'Yellowhead Highway YH 16' @ 4250 m + 1500 m"
+   }
+  },
+  {
+   "id": "tidal:356351273",
+   "water": "Serpentine River",
+   "marker": "Burlington Northern Railway Bridge",
+   "kind": "rail",
+   "pick": "near",
+   "offset_m": 0,
+   "quote": "Serpentine River: Burlington Northern Railway Bridge",
+   "url": "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/tidal-maree/a-s29-eng.html",
+   "site": "DFO BC tidal area 29 page, 'Tidal water boundaries in streams and rivers' (archived 2025)",
+   "confidence": "high",
+   "located": null
+  },
+  {
+   "id": "tidal:356351273",
+   "water": "Serpentine River",
+   "marker": "Burlington Northern Railway Bridge",
+   "kind": "rail",
+   "pick": "near",
+   "offset_m": 0,
+   "quote": "Serpentine River: Burlington Northern Railway Bridge",
+   "url": "https://waves-vagues.dfo-mpo.gc.ca/Library/359784.pdf",
+   "site": "DFO BC Tidal Waters Sport Fishing Guide 2015, 'Tidal Water Boundaries'",
+   "confidence": "high",
+   "located": null
+  },
+  {
+   "id": "tidal:360875983",
+   "water": "Capilano River",
+   "marker": "BCR (BC Rail, ex-PGE, now CN) railway bridge — same structure as the synopsis' 'CN Railway Bridge'",
+   "kind": "rail",
+   "pick": "near",
+   "offset_m": 0,
+   "quote": "Capilano River: BCR Bridge",
+   "url": "https://waves-vagues.dfo-mpo.gc.ca/Library/359784.pdf",
+   "site": "DFO BC Tidal Waters Sport Fishing Guide 2015, 'Tidal Water Boundaries ... Rivers in Tidal Water Areas 28 & 29 (Region 2)' (same text in 2007-09 guide 350317 and 2009-11 guide 350344)",
+   "confidence": "high",
+   "located": {
+    "measure": 37.0,
+    "coord": [
+     -123.139432,
+     49.321833
+    ],
+    "located_by": "OSM rail crossing 'Squamish Subdivision' @ 37 m"
+   }
+  },
+  {
+   "id": "tidal:360886594",
+   "water": "Squamish River",
+   "marker": "line drawn true west from the tip of the Squamish Dyke (Windsurfer Spit)",
+   "kind": "line",
+   "quote": "Squamish River: a line drawn true west from the tip of the Squamish Dyke (Windsurfer Spit).",
+   "url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/350344.pdf",
+   "site": "DFO BC Tidal Waters Sport Fishing Guide 2009-2011 (also 2007-2009 guide 350317)",
+   "confidence": "high",
+   "located": null
+  },
+  {
+   "id": "tidal:360886594",
+   "water": "Squamish River",
+   "marker": "line due west from the end of the Squamish Spit; estuary and Mamquam blind channel are tidal",
+   "kind": "line",
+   "quote": "Squamish River – Area 28 Defined by a line due west from the end of the Squamish Spit. The Squamish estuary and the Mamquam blind channel are considered tidal waters.",
+   "url": "https://waves-vagues.dfo-mpo.gc.ca/Library/359784.pdf",
+   "site": "DFO BC Tidal Waters Sport Fishing Guide 2015, 'Tidal Water Boundaries'. NB: the spit tip was cut off from the rest of the spit in a later restoration project (Squamish Chief news), so 'end of the spit' may have moved",
+   "confidence": "high",
+   "located": null
+  },
+  {
+   "id": "tidal:354154440",
+   "water": "Chemainus River",
+   "marker": "boundary sign on the Chemainus River near the Bald Eagle Campground (8705 Chemainus Rd; campground listed at ~48.8883,-123.6909 — the sign itself is not pinned), thence across the river (pinned at the campground, ~48.888,-123.691: the sign itself is not)",
+   "kind": "sign",
+   "coord": [
+    -123.691,
+    48.888
+   ],
+   "quote": "That portion of Subarea 17-9 in the tidal waters of the Chemainus River and off the Chemainus River mouth, inside a line commencing at Bare Point ... then following the shoreline northerly to a boundary sign on the Chemainus River near the Bald Eagle Campground, thence across the river to the opposite bank",
+   "url": "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/tidal-maree/chq-co/17-co-eng.pdf",
+   "site": "DFO Area 17 chinook/closures PDF (archived 2026), Jul 15-Oct 31 finfish closure",
+   "confidence": "high",
+   "located": {
+    "measure": 2123.5,
+    "located_by": "its coordinate, snapped 346 m to the line",
+    "coord": [
+     -123.686838,
+     48.886544
+    ]
+   }
+  },
+  {
+   "id": "tidal:354154440",
+   "water": "Chemainus River",
+   "marker": "boundary sign on the Chemainus River near the Bald Eagle Campground (pinned at the campground, ~48.888,-123.691: the sign itself is not)",
+   "kind": "sign",
+   "coord": [
+    -123.691,
+    48.888
+   ],
+   "quote": "The tidal waters of the Chemainus River and off the Chemainus River mouth, commencing at Bare Point on Vancouver Island to the light on North Reef, to Sherard Point on Vancouver Island, thence following the shoreline northerly to a boundary sign on the Chemainu[s River near the Bald Eagle Campground]",
+   "url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/350317.pdf",
+   "site": "DFO BC Tidal Waters Sport Fishing Guide 2007-2009, p.46 (same closure also in older guide 350318)",
+   "confidence": "medium",
+   "located": {
+    "measure": 2123.5,
+    "located_by": "its coordinate, snapped 346 m to the line",
+    "coord": [
+     -123.686838,
+     48.886544
+    ]
+   }
+  },
+  {
+   "id": "tidal:354155031",
+   "water": "Marble River",
+   "marker": "'Marble River tidal boundary' named but not located (closure runs from it down to boundary signs at the entrance of Varney Bay)",
+   "kind": "other",
+   "quote": "That portion of subarea 27-10 from the Marble River tidal boundary downstream to the fishing boundary signs at the entrance of Varney Bay",
+   "url": "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/tidal-maree/chq-co/27-chq-jul-dec-eng.pdf",
+   "site": "DFO Areas 27/127 2026 chinook openings and closures PDF (Jul 1-Dec 31 finfish closure); same wording in 1988/89 guide 350315 and 2007-09 guide 350317",
+   "confidence": "low",
+   "located": null
+  },
+  {
+   "id": "tidal:354155031",
+   "water": "Marble River",
+   "marker": "physical tidal influence extends ~800 m up the bedrock canyon (Reach 1, 0-2.8 km, Twin Falls at top) — habitat survey, not a regulatory line",
+   "kind": "other",
+   "offset_m": 800,
+   "measure": 800.0,
+   "quote": "The lower 800 m of Reach 1 is under tidal influence. Twin Falls is situated at the top of the reach",
+   "url": "https://a100.gov.bc.ca/pub/acat/documents/r592/marble-river-ffhi_1068667441674_86aa115c74444f4a8bcb9bc0aaab1b02.pdf",
+   "site": "Marble River Fish and Fish Habitat Inventory (Aquatic Resources Ltd, 1998), offset is metres from the mouth",
+   "confidence": "low",
+   "located": {
+    "measure": 800.0,
+    "located_by": "the measure the source states",
+    "coord": [
+     -127.499957,
+     50.533836
+    ]
+   }
+  },
+  {
+   "id": "tidal:360873432",
+   "water": "Mamin River",
+   "marker": "tidal boundary ~10 km downstream of the third bridge (synopsis gives only the relative distance)",
+   "kind": "other",
+   "quote": "No Fishing upstream of fishing boundary signs on third bridge approximately 10 km upstream of the tidal boundary, Feb 1-Apr 30",
+   "url": "https://www2.gov.bc.ca/assets/gov/sports-recreation-arts-and-culture/outdoor-recreation/fishing-and-hunting/freshwater-fishing/region_1_vancouver_island.pdf",
+   "site": "BC Freshwater Fishing Regulations Synopsis 2025-2027, Mamin River row (CW 6-13)",
+   "confidence": "low",
+   "located": null
+  },
+  {
+   "id": "tidal:360881072",
+   "water": "Copper Creek",
+   "marker": "tidal boundary 6 km downstream of the second bridge (relative only)",
+   "kind": "other",
+   "quote": "No Fishing upstream of fishing boundary signs at second bridge 6 km upstream of tidal boundary, Feb 1-Apr 30",
+   "url": "https://www2.gov.bc.ca/assets/gov/sports-recreation-arts-and-culture/outdoor-recreation/fishing-and-hunting/freshwater-fishing/region_1_vancouver_island.pdf",
+   "site": "BC Freshwater Fishing Regulations Synopsis 2025-2027, Copper Creek row (CW 6-12)",
+   "confidence": "low",
+   "located": null
+  },
+  {
+   "id": "tidal:360881072",
+   "water": "Copper Creek",
+   "marker": "DFO 'Copper River estuary': straight line between two boundary signs on either side of the estuary (an estuary-mouth line, not the upstream tidal limit; assumes DFO's 'Copper River' = this Copper Creek at Copper Bay)",
+   "kind": "line",
+   "quote": "That portion of Subarea 2-2 shoreward of a straight line between two boundary signs located on either side of Copper River estuary",
+   "url": "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/tidal-maree/a-s2-eng.html",
+   "site": "DFO BC tidal area 2 page, area descriptions (archived 2025)",
+   "confidence": "low",
+   "located": null
+  },
+  {
+   "id": "tidal:354154938",
+   "water": "Nanaimo River",
+   "marker": "Cedar Road bridge (below it is tidal)",
+   "kind": "road",
+   "match": "Cedar",
+   "pick": "near",
+   "quote": "Below the Cedar Road bridge is tidal",
+   "url": "https://mail.fishingwithrod.com/articles/region_one/nanaimo_river.html",
+   "site": "fishingwithrod.com Nanaimo River article",
+   "confidence": "medium",
+   "located": {
+    "measure": 2979.6,
+    "coord": [
+     -123.880448,
+     49.116248
+    ],
+    "located_by": "OSM road crossing 'Cedar Road' @ 2980 m"
+   }
+  },
+  {
+   "id": "tidal:354135941",
+   "water": "Somass River",
+   "marker": "tidal boundary signs at Paper Mill Dam",
+   "kind": "dam",
+   "pick": "near",
+   "quote": "that portion of Subarea 23-1 from the tidal boundary signs at Paper Mill Dam on the Somass River, downstream to ...",
+   "url": "https://www.huntingbc.ca/forum/archive/index.php/t-170520.html",
+   "site": "huntingbc forum quoting a 2022 DFO fishery notice (403 on fetch; quote from search snippet)",
+   "confidence": "medium",
+   "located": null
+  },
+  {
+   "id": "tidal:354153927",
+   "water": "Sooke River",
+   "marker": "Sooke River Bridge (designated tidal boundary; freshwater rules upstream, tidal downstream)",
+   "kind": "road",
+   "match": "Sooke River",
+   "pick": "lowest",
+   "quote": "The designated tidal boundary is located at the Sooke River Bridge. Freshwater Fishing Regulations apply upstream of the bridge and Tidal Water Fishing Regulations apply downstream of the bridge.",
+   "url": "https://bpbpd.wpengine.com/news/know-which-licence-you-need",
+   "site": "Sooke News Mirror (Black Press) 2012 article 'Know which licence you need' (404 on fetch; quote from search snippet)",
+   "confidence": "medium",
+   "located": {
+    "measure": 361.1,
+    "coord": [
+     -123.702794,
+     48.386039
+    ],
+    "located_by": "OSM road crossing 'Sooke Road 14' @ 361 m"
+   }
+  },
+  {
+   "id": "tidal:354153710",
+   "water": "Oyster River",
+   "marker": "yellow triangle signs at the estuary mark the tidal/non-tidal boundary",
+   "kind": "sign",
+   "pick": "near",
+   "quote": "... indicate the tidal/non-tidal boundary",
+   "url": "https://www.huntingbc.ca/forum/archive/index.php/t-70384.html",
+   "site": "huntingbc forum thread (2011), search snippet",
+   "confidence": "low",
+   "located": null
+  },
+  {
+   "id": "tidal:356364114",
+   "water": "Fraser River",
+   "marker": "CPR (rail) bridge at Mission",
+   "kind": "rail",
+   "pick": "near",
+   "quote": "Fraser River: CPR Bridge at Mission",
+   "url": "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/tidal-maree/a-s29-eng.html",
+   "site": "DFO tidal area 29 page, 'Tidal water boundaries in streams and rivers' (read via web.archive.org 2025 snapshot; pac.dfo-mpo.gc.ca did not resolve)",
+   "confidence": "high",
+   "located": null
+  },
+  {
+   "id": "tidal:356364114",
+   "water": "Fraser River",
+   "marker": "Mission Railway Bridge (Area 29 / Subarea 29-16 upstream limit)",
+   "kind": "rail",
+   "pick": "near",
+   "coord": [
+    -122.3002,
+    49.1259
+   ],
+   "quote": "Subarea 29-16 Those waters of the Fraser River lying southeasterly of the parallel passing through Tavistock Point at 49°11.288′N and westerly of a line that begins at 49°07.667′N 122°18.163′W [Mission Railway Bridge] then to 49°07.454′N 122°17.898′W [Mission Railway Bridge].",
+   "url": "https://laws-lois.justice.gc.ca/eng/regulations/SOR-2007-77/FullText.html",
+   "site": "Pacific Fishery Management Area Regulations, 2007 (SOR/2007-77) Schedule 2; coord = midpoint of the two bridge-end points",
+   "confidence": "high",
+   "located": {
+    "measure": 76510.2,
+    "located_by": "its coordinate, snapped 26 m to the line",
+    "coord": [
+     -122.300428,
+     49.126082
+    ]
+   }
+  },
+  {
+   "id": "tidal:356364114",
+   "water": "Fraser River",
+   "marker": "CPR bridge at Mission",
+   "kind": "rail",
+   "pick": "near",
+   "quote": "Includes the Fraser River downstream of the CPR bridge at Mission to a line drawn from a fishing boundary sign near the entrance to Canoe Passage",
+   "url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/350317.pdf",
+   "site": "DFO BC Tidal Waters Sport Fishing Guide 2009-2011",
+   "confidence": "high",
+   "located": null
+  },
+  {
+   "id": "tidal:360887278",
+   "water": "Skeena River",
+   "marker": "line from Mowitch Point to Veitch Point",
+   "kind": "line",
+   "quote": "Skeena River: a line drawn from Mowitch Point to Veitch Point.",
+   "url": "https://waves-vagues.dfo-mpo.gc.ca/library-bibliotheque/359784.pdf",
+   "site": "DFO BC Sport Fishing Guide (older edition), 'Tidal Water Boundaries' - Skeena River - North Coast and Region 6",
+   "confidence": "high",
+   "located": null
+  }
+ ],
+ "searched_nothing_found": [
+  {
+   "id": "tidal:354155148",
+   "water": "Cowichan River",
+   "queries": [
+    "Cowichan River tidal boundary",
+    "\"Cowichan River\" \"tidal boundary\" sign bridge",
+    "Cowichan River tidal water ... Cowichan Bay Road bridge estuary",
+    "\"Cowichan River\" \"tidal boundary\" fishery notice FN chum coho",
+    "Cowichan estuary tidal waters licence forums"
+   ],
+   "note": "DFO Region 1 page and FN1168 (2023) only say 'from the white triangle boundary sign located in Sandy Pool Regional Park, downstream to the tidal boundary' — the tidal boundary itself is never located."
+  },
+  {
+   "id": "tidal:360883982",
+   "water": "Dean River",
+   "queries": [
+    "Dean River tidal boundary",
+    "\"Dean River\" tidal water fishing licence Kimsquit tidal boundary",
+    "Dean River forum tidal lower river estuary"
+   ],
+   "note": "BC synopsis Region 5 only names it: 'From signs 100 m downstream of canyon to tidal boundary: Class I water'."
+  },
+  {
+   "id": "tidal:360863736",
+   "water": "Deena Creek",
+   "queries": [
+    "Deena Creek Moresby Island fishing tidal estuary Haida Gwaii",
+    "DFO area 2 page grep"
+   ],
+   "note": "DFO area 2 has a 'Diina (Deena Creek)' coordinate polygon in subarea 2-1 (53°09.4'N 132°07'W) but it is a marine area off the mouth, not a tidal boundary."
+  },
+  {
+   "id": "tidal:354154635",
+   "water": "Campbell River",
+   "queries": [
+    "Campbell River tidal boundary sign fishing",
+    "Campbell River estuary tidal boundary Highway 19A bridge Tyee Spit freshwater licence"
+   ]
+  },
+  {
+   "id": "tidal:354152785",
+   "water": "Qualicum River",
+   "queries": [
+    "Qualicum River tidal boundary fishing"
+   ]
+  },
+  {
+   "id": "tidal:354152994",
+   "water": "Salmon River",
+   "queries": [
+    "Salmon River Sayward tidal boundary fishing"
+   ]
+  },
+  {
+   "id": "tidal:354154447",
+   "water": "Adam River",
+   "queries": [
+    "(covered by area 13 search) Campbell River tidal boundary sign fishing"
+   ]
+  },
+  {
+   "id": "tidal:354154798",
+   "water": "Bedwell River",
+   "queries": [
+    "Kennedy River OR Tofino Creek OR Bedwell River OR Megin River tidal boundary Clayoquot fishing"
+   ]
+  },
+  {
+   "id": "tidal:354141123",
+   "water": "Bush Creek",
+   "queries": [
+    "Nanaimo River tidal boundary fishing freshwater licence"
+   ]
+  },
+  {
+   "id": "tidal:354154120",
+   "water": "Carmanah Creek",
+   "queries": [
+    "Nitinat River tidal boundary fishing"
+   ]
+  },
+  {
+   "id": "tidal:354151507",
+   "water": "Cluxewe River",
+   "queries": [
+    "Cluxewe OR Keogh OR Quatse river tidal boundary fishing Port Hardy"
+   ]
+  },
+  {
+   "id": "tidal:354154034",
+   "water": "Conuma River",
+   "queries": [
+    "Zeballos River OR Tahsis River OR Conuma River tidal boundary fishing"
+   ]
+  },
+  {
+   "id": "tidal:354151420",
+   "water": "Courtenay River",
+   "queries": [
+    "Courtenay River tidal boundary fishing 17th Street bridge",
+    "Courtenay River tidal water fishing Lewis Park freshwater licence tidal licence"
+   ]
+  },
+  {
+   "id": "tidal:354153615",
+   "water": "Englishman River",
+   "queries": [
+    "Englishman River tidal boundary fishing Parksville"
+   ]
+  },
+  {
+   "id": "tidal:354154308",
+   "water": "Gold River",
+   "queries": [
+    "Gold River tidal boundary fishing Muchalat",
+    "Gold River tidal water upriver fishing estuary freshwater licence"
+   ]
+  },
+  {
+   "id": "tidal:354152425",
+   "water": "Goldstream River",
+   "queries": [
+    "Goldstream River tidal boundary fishing"
+   ]
+  },
+  {
+   "id": "tidal:354154864",
+   "water": "Gordon River",
+   "queries": [
+    "Gordon River OR Jordan River OR Sarita River tidal water boundary fishing licence"
+   ]
+  },
+  {
+   "id": "tidal:354151875",
+   "water": "Jordan River",
+   "queries": [
+    "Gordon River OR Jordan River OR Sarita River tidal water boundary fishing licence"
+   ]
+  },
+  {
+   "id": "tidal:354154544",
+   "water": "Kennedy River",
+   "queries": [
+    "Kennedy River OR Tofino Creek OR Bedwell River OR Megin River tidal boundary Clayoquot fishing"
+   ]
+  },
+  {
+   "id": "tidal:354154735",
+   "water": "Keogh River",
+   "queries": [
+    "Cluxewe OR Keogh OR Quatse river tidal boundary fishing Port Hardy"
+   ]
+  },
+  {
+   "id": "tidal:354153558",
+   "water": "Klanawa River",
+   "queries": [
+    "Nitinat River tidal boundary fishing"
+   ]
+  },
+  {
+   "id": "tidal:354154484",
+   "water": "Kokish River",
+   "queries": [
+    "Cluxewe OR Keogh OR Quatse river tidal boundary fishing Port Hardy"
+   ]
+  },
+  {
+   "id": "tidal:354154668",
+   "water": "Kootowis Creek",
+   "queries": [
+    "Kennedy River OR Tofino Creek OR Bedwell River OR Megin River tidal boundary Clayoquot fishing"
+   ]
+  },
+  {
+   "id": "tidal:354154742",
+   "water": "Little Qualicum River",
+   "queries": [
+    "Little Qualicum River tidal water fishing mouth highway bridge freshwater regulations"
+   ]
+  },
+  {
+   "id": "tidal:354153098",
+   "water": "Loss Creek",
+   "queries": [
+    "San Juan River Port Renfrew tidal boundary fishing"
+   ]
+  },
+  {
+   "id": "tidal:354152567",
+   "water": "Lucky Creek",
+   "queries": [
+    "Kennedy River OR Tofino Creek OR Bedwell River OR Megin River tidal boundary Clayoquot fishing"
+   ]
+  },
+  {
+   "id": "tidal:354153782",
+   "water": "Megin River",
+   "queries": [
+    "Kennedy River OR Tofino Creek OR Bedwell River OR Megin River tidal boundary Clayoquot fishing"
+   ]
+  },
+  {
+   "id": "tidal:354149879",
+   "water": "Millstone River",
+   "queries": [
+    "Nanaimo River tidal boundary fishing freshwater licence"
+   ]
+  },
+  {
+   "id": "tidal:354154217",
+   "water": "Moyeha River",
+   "queries": [
+    "Kennedy River OR Tofino Creek OR Bedwell River OR Megin River tidal boundary Clayoquot fishing"
+   ]
+  },
+  {
+   "id": "tidal:354152726",
+   "water": "Muir Creek",
+   "queries": [
+    "Sooke River tidal boundary fishing"
+   ]
+  },
+  {
+   "id": "tidal:354155177",
+   "water": "Nahmint River",
+   "queries": [
+    "Somass River tidal boundary Papermill dam tidal waters fishing"
+   ]
+  },
+  {
+   "id": "tidal:354155007",
+   "water": "Nitinat River",
+   "queries": [
+    "Nitinat River tidal boundary fishing"
+   ]
+  },
+  {
+   "id": "tidal:354150419",
+   "water": "Quatse River",
+   "queries": [
+    "Cluxewe OR Keogh OR Quatse river tidal boundary fishing Port Hardy"
+   ]
+  },
+  {
+   "id": "tidal:354154702",
+   "water": "San Juan River",
+   "queries": [
+    "San Juan River Port Renfrew tidal boundary fishing"
+   ]
+  },
+  {
+   "id": "tidal:354155136",
+   "water": "Sarita River",
+   "queries": [
+    "Gordon River OR Jordan River OR Sarita River tidal water boundary fishing licence"
+   ]
+  },
+  {
+   "id": "tidal:354152794",
+   "water": "Tahsis River",
+   "queries": [
+    "Zeballos River OR Tahsis River OR Conuma River tidal boundary fishing"
+   ]
+  },
+  {
+   "id": "tidal:354154813",
+   "water": "Tofino Creek",
+   "queries": [
+    "Kennedy River OR Tofino Creek OR Bedwell River OR Megin River tidal boundary Clayoquot fishing"
+   ]
+  },
+  {
+   "id": "tidal:354154428",
+   "water": "Tranquil Creek",
+   "queries": [
+    "Kennedy River OR Tofino Creek OR Bedwell River OR Megin River tidal boundary Clayoquot fishing"
+   ]
+  },
+  {
+   "id": "tidal:354154894",
+   "water": "Tsitika River",
+   "queries": [
+    "Cluxewe OR Keogh OR Quatse river tidal boundary fishing Port Hardy"
+   ]
+  },
+  {
+   "id": "tidal:354155120",
+   "water": "Tsusiat River",
+   "queries": [
+    "Nitinat River tidal boundary fishing"
+   ]
+  },
+  {
+   "id": "tidal:354146384",
+   "water": "Tugwell Creek",
+   "queries": [
+    "Sooke River tidal boundary fishing"
+   ]
+  },
+  {
+   "id": "tidal:354154792",
+   "water": "Walbran Creek",
+   "queries": [
+    "Nitinat River tidal boundary fishing"
+   ]
+  },
+  {
+   "id": "tidal:354151763",
+   "water": "Zeballos River",
+   "queries": [
+    "Zeballos River OR Tahsis River OR Conuma River tidal boundary fishing"
+   ]
+  },
+  {
+   "id": "tidal:360874508",
+   "water": "Ain River",
+   "queries": [
+    "DFO a-s1 page (only a Masset Inlet closure polygon off the mouth)",
+    "Klinaklini OR ... tidal fishing boundary"
+   ]
+  },
+  {
+   "id": "tidal:360880747",
+   "water": "Awun River",
+   "queries": [
+    "DFO a-s1 page (only an Awun Bay closure polygon)"
+   ]
+  },
+  {
+   "id": "tidal:360868849",
+   "water": "Bear River (Stewart)",
+   "queries": [
+    "Bear River Stewart BC tidal boundary fishing bridge",
+    "DFO a-s3 page"
+   ]
+  },
+  {
+   "id": "tidal:360886378",
+   "water": "Bear River (Bute Inlet)",
+   "queries": [
+    "DFO a-s13/a-s15 pages"
+   ]
+  },
+  {
+   "id": "tidal:360885253",
+   "water": "Bella Coola River",
+   "queries": [
+    "Bella Coola River tidal boundary sign fishing",
+    "DFO a-s8 page",
+    "DFO freshwater region5b page"
+   ]
+  },
+  {
+   "id": "tidal:360854323",
+   "water": "Brem River",
+   "queries": [
+    "Klinaklini OR Wakeman OR Kimsquit OR Kildala OR Brem River tidal fishing boundary",
+    "DFO a-s15 page"
+   ]
+  },
+  {
+   "id": "tidal:360773423",
+   "water": "Datlamen Creek",
+   "queries": [
+    "DFO a-s1 page (only a closure polygon at Juus Kaahlii South / Datlamen Creek)"
+   ]
+  },
+  {
+   "id": "tidal:360839305",
+   "water": "Hiellen River",
+   "queries": [
+    "Hiellen River OR Sangan River OR Oeanda River tidal water fishing boundary Haida Gwaii",
+    "DFO a-s1 page"
+   ]
+  },
+  {
+   "id": "tidal:360883723",
+   "water": "Homathko River",
+   "queries": [
+    "Homathko River OR Toba River OR Southgate River tidal boundary fishing licence",
+    "DFO a-s13/a-s15 pages"
+   ]
+  },
+  {
+   "id": "tidal:360887002",
+   "water": "Indian River",
+   "queries": [
+    "Indian River Squamish Indian Arm tidal boundary fishing",
+    "DFO a-s28 page"
+   ]
+  },
+  {
+   "id": "tidal:360885559",
+   "water": "Kemano River",
+   "queries": [
+    "Kemano River tidal boundary fishing",
+    "DFO a-s6 page"
+   ]
+  },
+  {
+   "id": "tidal:360861249",
+   "water": "Khutzeymateen River",
+   "queries": [
+    "Khutzeymateen River OR Naden River OR Pallant Creek tidal boundary sign fishing",
+    "DFO a-s3 page"
+   ]
+  },
+  {
+   "id": "tidal:360886888",
+   "water": "Kilbella River",
+   "queries": [
+    "DFO a-s9 page (only a closure line off the Chuckwalla/Kilbella mouth)"
+   ]
+  },
+  {
+   "id": "tidal:360866973",
+   "water": "Kildala River",
+   "queries": [
+    "Klinaklini OR ... Kildala tidal fishing boundary",
+    "DFO a-s6 page"
+   ]
+  },
+  {
+   "id": "tidal:360887414",
+   "water": "Kimsquit River",
+   "queries": [
+    "Klinaklini OR ... Kimsquit tidal fishing boundary",
+    "DFO a-s8 page"
+   ]
+  },
+  {
+   "id": "tidal:360874718",
+   "water": "Kingcome River",
+   "queries": [
+    "Kingcome River tidal boundary fishing (only Subarea 12-46 finfish closure line Petley Point - opposite shore, not a tidal boundary)"
+   ]
+  },
+  {
+   "id": "tidal:360885824",
+   "water": "Kitimat River",
+   "queries": [
+    "Kitimat River tidal boundary fishing tidal licence",
+    "DFO a-s6 page (only a downstream line Eurocan dock - MK Bay marina for 'tidal waters of the Kitimat River')"
+   ]
+  },
+  {
+   "id": "tidal:360886896",
+   "water": "Klinaklini River",
+   "queries": [
+    "Klinaklini OR ... tidal fishing boundary (only a closure line Wahshihlas Bay - Rubble Point at the mouth)"
+   ]
+  },
+  {
+   "id": "tidal:360879469",
+   "water": "Lang Creek",
+   "queries": [
+    "Sechelt Creek OR Lang Creek tidal boundary sign fishing",
+    "DFO a-s15 page"
+   ]
+  },
+  {
+   "id": "tidal:360860175",
+   "water": "Lynn Creek",
+   "queries": [
+    "Lynn Creek Mosquito Creek North Vancouver tidal boundary fishing bridge",
+    "DFO a-s28 page"
+   ]
+  },
+  {
+   "id": "tidal:360751865",
+   "water": "Mosquito Creek",
+   "queries": [
+    "Lynn Creek Mosquito Creek North Vancouver tidal boundary fishing bridge",
+    "DFO a-s28 page"
+   ]
+  },
+  {
+   "id": "tidal:360877527",
+   "water": "Naden River",
+   "queries": [
+    "Khutzeymateen River OR Naden River OR Pallant Creek tidal boundary sign fishing",
+    "DFO a-s1 page"
+   ]
+  },
+  {
+   "id": "tidal:360885942",
+   "water": "Nass River",
+   "queries": [
+    "Nass River tidal boundary sport fishing tidal waters",
+    "DFO a-s3 page",
+    "DFO freshwater region6 page"
+   ]
+  },
+  {
+   "id": "tidal:360831327",
+   "water": "Oeanda River",
+   "queries": [
+    "Hiellen River OR Sangan River OR Oeanda River tidal water fishing boundary Haida Gwaii"
+   ]
+  },
+  {
+   "id": "tidal:360874940",
+   "water": "Pallant Creek",
+   "queries": [
+    "Khutzeymateen River OR Naden River OR Pallant Creek tidal boundary sign fishing",
+    "DFO a-s2 page (only an estuary closure line between two boundary signs)"
+   ]
+  },
+  {
+   "id": "tidal:360876207",
+   "water": "Phillips River",
+   "queries": [
+    "Phillips River Phillips Arm tidal boundary fishing",
+    "DFO a-s13 page"
+   ]
+  },
+  {
+   "id": "tidal:360852542",
+   "water": "Salmon River (Hyder)",
+   "queries": [
+    "Salmon River Hyder tidal waters fishing boundary"
+   ]
+  },
+  {
+   "id": "tidal:360878731",
+   "water": "Salmon River (Haida Gwaii)",
+   "queries": [
+    "DFO a-s2 page"
+   ]
+  },
+  {
+   "id": "tidal:360879896",
+   "water": "Sangan River",
+   "queries": [
+    "Hiellen River OR Sangan River OR Oeanda River tidal water fishing boundary Haida Gwaii"
+   ]
+  },
+  {
+   "id": "tidal:360863453",
+   "water": "Sechelt Creek",
+   "queries": [
+    "Sechelt Creek OR Lang Creek tidal boundary sign fishing",
+    "DFO a-s16 page"
+   ]
+  },
+  {
+   "id": "tidal:360886654",
+   "water": "Southgate River",
+   "queries": [
+    "Homathko River OR Toba River OR Southgate River tidal boundary fishing licence"
+   ]
+  },
+  {
+   "id": "tidal:360856269",
+   "water": "Theodosia River",
+   "queries": [
+    "Theodosia River tidal boundary fishing",
+    "DFO a-s15 page"
+   ]
+  },
+  {
+   "id": "tidal:360883346",
+   "water": "Toba River",
+   "queries": [
+    "Homathko River OR Toba River OR Southgate River tidal boundary fishing licence",
+    "DFO a-s15 page"
+   ]
+  },
+  {
+   "id": "tidal:360885895",
+   "water": "Unuk River",
+   "queries": [
+    "Unuk River tidal boundary fishing Burroughs Bay (mouth is in Alaska)"
+   ]
+  },
+  {
+   "id": "tidal:360878507",
+   "water": "Wakeman River",
+   "queries": [
+    "Klinaklini OR Wakeman ... tidal fishing boundary (only a closure line ~6 km from head of Wakeman Sound)"
+   ]
+  },
+  {
+   "id": "tidal:360885716",
+   "water": "Wannock River",
+   "queries": [
+    "Wannock River tidal water boundary freshwater licence Rivers Inlet",
+    "DFO a-s9 page (only a closure line off the mouth)"
+   ]
+  },
+  {
+   "id": "tidal:360881586",
+   "water": "Yakoun River",
+   "queries": [
+    "Yakoun River tidal boundary fishing Port Clements",
+    "DFO a-s1 page"
+   ]
+  },
+  {
+   "id": "tidal:360885951",
+   "water": "Kitlope River",
+   "queries": [
+    "Kitlope River tidal fishing boundary Kitlope Lake",
+    "DFO a-s6 page"
+   ]
+  }
+ ]
+}

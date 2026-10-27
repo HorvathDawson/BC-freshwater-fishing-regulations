@@ -73,6 +73,13 @@ def test_the_queue_and_a_candidate_are_served_read_only(env):
     assert kinds[0] == "proposed"
     assert c.get("/api/tidal/candidates/tidal:0").status_code == 404
     assert c.get("/api/tidal/progress").json()["total"] == 1
+    # the triage (T212 follow-up): Pitt's polygon was hand-edited and the synopsis box agrees, so the
+    # default "review" filter (missed + sanity) hides it and "show all" / its own class shows it
+    assert q[0]["triage"] == "owner-edited" and q[0]["edited"] is True
+    assert c.get("/api/tidal/queue", params={"triage": "review"}).json() == []
+    assert [r["id"] for r in c.get("/api/tidal/queue", params={"triage": "owner-edited"}).json()] == [PITT]
+    assert c.get("/api/tidal/queue", params={"triage": "nope"}).status_code == 422
+    assert c.get("/api/tidal/progress").json()["by_triage"]["owner-edited"] == 1
     assert _digest(REPO / "data/curated") == curated
 
 

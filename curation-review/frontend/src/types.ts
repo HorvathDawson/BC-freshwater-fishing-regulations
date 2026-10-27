@@ -1053,6 +1053,29 @@ export interface TidalSource {
   polygon_minus_source_m?: number | null;
   osm?: { osm: string; crossings: string[]; offset_m?: number | null } | null;
 }
+/** A web finding on where tidal water ends (`tidal-web.json`, T212 follow-up), located on the line
+ *  when it can be (`located`); `agrees` with the polygon's crossing within 300 m. */
+export interface TidalWeb {
+  marker: string;
+  kind?: string;
+  quote?: string;
+  url: string;
+  site: string;
+  confidence: "high" | "medium" | "low";
+  located?: { measure: number; coord?: [number, number] | null; located_by: string } | null;
+  agrees: boolean | null;
+}
+/** The triage class (`pipeline.tools.audit.tidal_triage`): was the polygon hand-edited at this stream,
+ *  and do the book / web words agree with it. */
+export type TidalTriageClass = "missed" | "sanity" | "owner-edited" | "book agrees" | "no claim";
+export interface TidalTriage {
+  class: TidalTriageClass;
+  /** null: the edit fingerprint can't see this stretch of coast */
+  edited: boolean | null;
+  edit_sites: string[];
+  why: string;
+  web: TidalWeb[];
+}
 /** One proposed tidal boundary (`tidal-candidates.json`) */
 export interface TidalCandidate {
   id: string;
@@ -1076,6 +1099,7 @@ export interface TidalCandidate {
   why: string;
   agreement: string;
   words_disagree: boolean;
+  triage?: TidalTriage;
 }
 /** GET /api/tidal/queue */
 export interface TidalRow {
@@ -1093,6 +1117,10 @@ export interface TidalRow {
   words_disagree: boolean;
   verify: string;
   reasons: string[];
+  triage: TidalTriageClass | null;
+  edited: boolean | null;
+  n_web: number;
+  triage_why: string | null;
 }
 /** GET /api/tidal/progress */
 export interface TidalProgress {
@@ -1101,6 +1129,7 @@ export interface TidalProgress {
   by_verify: Record<string, number>;
   by_confidence: Record<string, number>;
   with_words: number;
+  by_triage: Record<TidalTriageClass, number>;
   coverage: Record<string, unknown>;
 }
 /** GET /api/tidal/candidates/{id} */

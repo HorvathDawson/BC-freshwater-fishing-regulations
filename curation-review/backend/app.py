@@ -540,17 +540,20 @@ def dfo_location(location_id: str):
 
 @app.get("/api/tidal/queue")
 def tidal_queue(confidence: str | None = None, verify: str | None = None, enters: str | None = None,
-                words: bool = False, q: str | None = None):
+                words: bool = False, q: str | None = None, triage: str | None = None):
     """THE TIDAL QUEUE: every proposed tidal boundary (`tidal.queue`), filtered — `confidence` high |
     medium | low, `verify` the mark (todo = unmarked or stale), `enters` ocean | tidal_water, `words`
-    only those a text names, `q` a substring of the stream's name."""
+    only those a text names, `q` a substring of the stream's name, `triage` a triage class or
+    "review" (missed + sanity: what the owner still has to look at)."""
     import tidal
     if confidence and confidence not in tidal.CONFIDENCES:
         raise HTTPException(422, [{"path": "confidence",
                                    "msg": "confidence is one of " + ", ".join(tidal.CONFIDENCES)}])
     if verify and verify not in tidal.VERIFIES:
         raise HTTPException(422, [{"path": "verify", "msg": "verify is one of " + ", ".join(tidal.VERIFIES)}])
-    return tidal.queue(confidence=confidence, verify=verify, enters=enters, words=words, q=q)
+    if triage and triage not in tidal.TRIAGES:
+        raise HTTPException(422, [{"path": "triage", "msg": "triage is one of " + ", ".join(tidal.TRIAGES)}])
+    return tidal.queue(confidence=confidence, verify=verify, enters=enters, words=words, q=q, triage=triage)
 
 
 @app.get("/api/tidal/progress")

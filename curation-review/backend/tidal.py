@@ -32,6 +32,10 @@ SNAP_MAX_M = 500.0
 EDGE_BOX_M = 4000.0
 CONFIDENCES = ("high", "medium", "low")
 VERIFIES = ("unmarked", "verified", "wrong", "unsure", "deferred", "stale", "todo")
+#: the triage classes (`pipeline.tools.audit.tidal_triage`), and "review" = missed + sanity
+TRIAGE_CLASSES = ("missed", "sanity", "owner-edited", "book agrees", "no claim")
+REVIEW = ("missed", "sanity")
+TRIAGES = (*TRIAGE_CLASSES, "review")
 
 
 def _states() -> dict:
@@ -49,18 +53,22 @@ def _verify(m, row) -> dict:
 def _row(r: dict, m) -> dict:
     v = _verify(m, r)
     words = [s for s in r.get("sources") or [] if s.get("kind") != "tidal_gauge"]
+    t = r.get("triage") or {}
     return {"id": r["id"], "water": r["water"], "blk": r["blk"], "enters": r["enters"],
             "zones": r.get("zones") or [], "items": r.get("items") or [],
             "confidence": r["confidence"], "agreement": r["agreement"],
             "crossing": (r.get("polygon") or {}).get("crossing"),
             "above_mouth_m": (r.get("proposed") or {}).get("above_mouth_m"),
             "n_words": len(words), "words_disagree": bool(r.get("words_disagree")),
-            "verify": v["status"], "reasons": v["reasons"]}
+            "verify": v["status"], "reasons": v["reasons"],
+            "triage": t.get("class"), "edited": t.get("edited"), "n_web": len(t.get("web") or []),
+            "triage_why": t.get("why")}
 
 
 def queue(confidence: str | None = None, verify: str | None = None, enters: str | None = None,
-          words: bool = False, q: str | None = None) -> list[dict]:
-    """THE TIDAL QUEUE, in the proposal file's order (words first, then confidence), filtered."""
+          words: bool = False, q: str | None = None, triage: str | None = None) -> list[dict]:
+    """THE TIDAL QUEUE, in the proposal file's order (words first, then confidence), filtered;
+    `triage` "review" keeps missed + sanity (what the owner still has to look at)."""
     doc = T.load()
     states = _states()
     rows = [_row(doc["by_id"][i], states.get(i)) for i in doc["order"]]
@@ -70,6 +78,9 @@ def queue(confidence: str | None = None, verify: str | None = None, enters: str 
         rows = [r for r in rows if r["enters"] == enters]
     if words:
         rows = [r for r in rows if r["n_words"]]
+    if triage:
+        want_t = REVIEW if triage == "review" else (triage,)
+        rows = [r for r in rows if r["triage"] in want_t]
     if verify:
         rows = [r for r in rows if (r["verify"] in ("unmarked", "stale") if verify == "todo"
                                     else r["verify"] == verify)]
@@ -85,6 +96,7 @@ def progress() -> dict:
             "by_verify": dict(Counter(r["verify"] for r in rows)),
             "by_confidence": dict(Counter(r["confidence"] for r in rows)),
             "with_words": sum(1 for r in rows if r["n_words"]),
+            "by_triage": {k: sum(1 for r in rows if r["triage"] == k) for k in TRIAGE_CLASSES},
             "coverage": T.load()["coverage"]}
 
 
@@ -113,6 +125,11 @@ def points(r: dict) -> dict:
     for i, s in enumerate(r.get("sources") or []):
         if s.get("coord"):
             feats.append(_pt(s["coord"], f"{r['id']}:src{i}", f"{s['kind']}: {s['words'][:60]}",
+                             to_verify=False, item_id=item, kind="source"))
+    for i, w in enumerate((r.get("triage") or {}).get("web") or []):
+        loc = w.get("located") or {}
+        if loc.get("coord"):
+            feats.append(_pt(loc["coord"], f"{r['id']}:web{i}", f"web: {w['marker'][:60]}",
                              to_verify=False, item_id=item, kind="source"))
     return {"type": "FeatureCollection", "features": feats, "unplaced": []}
 
