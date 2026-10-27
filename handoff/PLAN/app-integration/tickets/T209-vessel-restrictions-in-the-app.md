@@ -47,3 +47,13 @@ only" or "8 km/h", and the 25 named-part rules are in the in-part caveat (`cavea
   vessel rule. The Methods "Boats" cell is unchanged. The map-tapped section's page is this page, so the map sheet has the same line.
 - Tests: `boats.test.ts` - one example water per kind (golden-style), the Hatzic range, ordering, dates, no-line.
 - OPEN for the owner: electric_only reads without its 7.5 kW (carried in no field) until the parser fills `max_power_kw`.
+
+## Verified on the live web build (2026-10-27, release r-8ce19c1f2104, no export needed)
+- Hatzic Lake (`?regs=wbk:329291809`): "Speed limits 8–50 km/h on parts". Elk Lake R1 (`wbk:329676313`): "No vessels |
+  No powered boats | Engine limit 7.5 kW (10 hp) | No towing", none marked "(in part)": the 33 on-parts rules
+  (curation-review/on-parts.md) already hold on the whole water in this bundle. Chicadee: "Electric motors only";
+  Heffley: "Speed limit 15 km/h | No towing"; Campbell River (gnis:39532) part 1: "No powered boats", other parts none.
+- `boats.test.ts` 5/5; `test_drop_on_parts` + `test_t207_on_parts_is_a_note` 14/14. `pnpm check` red only on other
+  lanes' work (map style diff + overzoom/tile-contract: tiles lane; PinBar vedder_1010: 9849276b; regs-text-scale
+  vedder place cut: e5f0318a).
+- Still OPEN (owner, OWNER-TODO): `max_power_kw` on the 162 electric_only rules; until then the chip reads without 7.5 kW.
