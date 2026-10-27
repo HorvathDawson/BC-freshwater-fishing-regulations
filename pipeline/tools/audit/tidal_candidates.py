@@ -122,6 +122,24 @@ DFO_AREA_MARKERS = [
     {"water": "Chemainus River", "words": "\"the tidal waters of the Chemainus River\" (not located)",
      "kind": "unlocated", "page": "DFO tidal Area 17", "near": (-123.70, 48.90)},
 ]
+#: DFO TIDAL BOUNDARIES DRAWN AS A LINE BETWEEN TWO LANDMARKS across a river or a bay (lon/lat
+#: ends). The stream's tidal point is where its FWA line crosses the line; a line that misses the
+#: stream but lies within LINE_MOUTH_M of its mouth is seaward of it: the boundary is the mouth.
+LINE_MOUTH_M = 3000.0
+DFO_TIDAL_LINES = [
+    {"water": "Skeena River", "near": (-130.05, 54.15),
+     "line": [(-130.02955, 54.16918), (-130.01028, 54.14335)],
+     "words": "a line drawn from Mowitch Point to Veitch Point",
+     "page": "DFO BC Tidal Waters Sport Fishing Guide 2015 p.71 (waves-vagues 359784.pdf); ends from "
+             "SOR/2007-77 Subarea 4-15 (Veitch end ~1.5 nmi E of the named Veitch Point, as SOR/82-215 says)"},
+    {"water": "Cowichan River", "near": (-123.63, 48.75),
+     "line": [(-123.62458, 48.74197), (-123.6309, 48.7666)],
+     "words": "the Tidal Water Boundary in Cowichan Bay runs from an orange boundary sign located at the "
+              "Hecate Boat Ramp to an orange boundary sign located on a piling near Green Point",
+     "page": "DFO fishery notice 2015 (owner-supplied; quoted salmonuniversity.com/archives/3830); Hecate "
+             "ramp from DFO Area 18 page, Green Point end pinned at Green Point Rd (+-300 m)"},
+]
+
 #: the Region 2 box markers' road-name fragments (a rail marker takes the rail crossing nearest
 #: the polygon's: the basemap carries no operator)
 REGION2_MATCH = {"Coquitlam River": "mary hill"}
@@ -301,14 +319,51 @@ def analyse(segs: list[dict], geoms: dict, poly) -> dict:
             merged[-1][1] = b
         else:
             merged.append([a, b, ins])
-    inside = [(a, b) for a, b, i in merged if i]
+    all_inside = [(a, b) for a, b, i in merged if i]
+    inside, ignored = tidal_run(segs, geoms, poly, all_inside)
     top = max((b for a, b in inside), default=None)
     total_in = sum(b - a for a, b in inside)
     mouth_m = segs[0]["down"] if segs else 0.0
-    gaps = sum(b - a for a, b, i in merged if not i and top is not None and b <= top + 0.5)
-    return {"cuts": sorted(round(c, 1) for c in cuts), "inside": [(round(a, 1), round(b, 1)) for a, b in inside],
-            "top": top, "inside_m": round(total_in, 1), "gap_below_m": round(gaps, 1),
+    gaps = [(a, b) for a, b, i in merged if not i and top is not None and b <= top + 0.5
+            and a >= (inside[0][0] if inside else 0.0) - 0.5]
+    r1 = lambda v: [(round(a, 1), round(b, 1)) for a, b in v]   # noqa: E731
+    return {"cuts": sorted(round(c, 1) for c in cuts), "inside": r1(inside),
+            "top": top, "inside_m": round(total_in, 1), "gap_below_m": round(sum(b - a for a, b in gaps), 1),
+            "gaps_filled": r1(gaps), "ignored": r1(ignored),
             "mouth_m": mouth_m, "n_inside": len(inside)}
+
+
+#: an inside piece of the line counts towards the tidal run when, within a corridor this wide (m,
+#: each side of the river line), the polygon joins it to the run below (owner, T212 follow-up 2: the
+#: polygon is drawn UP the river to the top of tidal water; where the FWA line wanders outside it
+#: the gaps are artefacts and are filled)
+CORRIDOR_M = 250.0
+
+
+def tidal_run(segs: list[dict], geoms: dict, poly, inside: list[tuple[float, float]]
+              ) -> tuple[list[tuple[float, float]], list[tuple[float, float]]]:
+    """THE ONE CONTIGUOUS TIDAL RUN from the mouth: (counted inside pieces, ignored pieces). The
+    first inside piece seeds the run; each piece above it counts when the polygon, clipped to the
+    river corridor (the line up to that piece, buffered `CORRIDOR_M`), joins it to a counted piece —
+    the outside gaps between are filled (the boundary is the run's TOP). A piece the corridor polygon
+    does not join (a separate patch, a sliver elsewhere) is ignored: it is no boundary."""
+    if len(inside) <= 1:
+        return list(inside), []
+    order = sorted(segs, key=lambda s: s["down"])
+    counted, ignored = [inside[0]], []
+    mid = lambda a, b: point_at(segs, geoms, (a + b) / 2)      # noqa: E731
+    for a, b in inside[1:]:
+        line = shapely.union_all([geoms[s["fid"]] for s in order
+                                  if s["fid"] in geoms and s["down"] <= b])
+        corr = line.buffer(CORRIDOR_M)
+        comp = shapely.clip_by_rect(poly, *corr.bounds).intersection(corr)
+        pm = mid(a, b)
+        part = next((g for g in getattr(comp, "geoms", [comp])
+                     if pm is not None and g.distance(pm) < 0.5), None)
+        joined = part is not None and any(
+            (q := mid(x, y)) is not None and part.distance(q) < 0.5 for x, y in counted)
+        (counted if joined else ignored).append((a, b))
+    return counted, ignored
 
 
 def point_at(segs: list[dict], geoms: dict, m: float):
@@ -634,6 +689,93 @@ def locate_marker(segs, geoms, osm, kind: str, near_m: float | None, lonlat, *,
             "coord": [round(v, 6) for v in lonlat(pt.x, pt.y)] if pt is not None else None}
 
 
+def locate_line(segs, geoms, ends_albers, mouth_m: float = 0.0) -> dict | None:
+    """Where a boundary LINE between two landmarks (EPSG:3005 ends) meets the stream: the lowest
+    crossing's measure; no crossing but the line within `LINE_MOUTH_M` of the mouth -> the mouth
+    (the line is seaward: the whole stream is above it). None when it is nowhere near."""
+    ln = LineString(ends_albers)
+    hits = []
+    for s in segs:
+        g = geoms.get(s["fid"])
+        if g is None or not g.intersects(ln):
+            continue
+        x = g.intersection(ln)
+        for p in (getattr(x, "geoms", [x])):
+            q = p if p.geom_type == "Point" else p.representative_point()
+            hits.append(_measure_at(s, g, q))
+    if hits:
+        return {"measure": round(min(hits), 1), "how": f"the line crosses the stream ({len(hits)}x)"}
+    mp = point_at(segs, geoms, mouth_m)
+    if mp is not None and ln.distance(mp) <= LINE_MOUTH_M:
+        return {"measure": round(mouth_m, 1),
+                "how": f"the line passes {ln.distance(mp):.0f} m seaward of the FWA mouth: the stream is above it"}
+    return None
+
+
+#: a tributary of the Fraser / Skeena / Nass is looked at when its FWA code puts its confluence
+#: within this share of the mainstem (the tidal reaches are all well below 15 %)
+TRIB_SHARE = 0.15
+
+
+def big_river_tributaries(con, poly, by_blk: dict, mains: dict[str, int], resolved: dict) -> dict[int, float]:
+    """THE TRIBUTARIES ENTERING A BIG RIVER'S TIDAL REACH (owner, T212 follow-up 2: the Skeena's
+    tidal water runs far up). For the Fraser / Skeena / Nass mainstems: the tidal top is the highest
+    of the polygon's run, a curated tidal-limit split and a DFO tidal line on it; every named
+    depth-2 tributary whose mouth snaps to the mainstem at or below that top is added to `by_blk`
+    (a candidate, enters tidal water). Returns {blk: confluence measure}."""
+    to_a = _to_albers()
+    tops: dict[str, tuple[int, float, list, dict]] = {}
+    for code, blk in mains.items():
+        if W.root(code) not in ("100", "400", "500") or _depth(code) != 1:
+            continue
+        segs = by_blk[blk]
+        geoms = _geoms(con, segs)
+        a = analyse(segs, geoms, poly)
+        top = a["top"] or 0.0
+        for sid in CURATED_TIDAL_SPLITS:
+            r = resolved.get(sid)
+            if r and str(r["blk"]) == str(blk):
+                top = max(top, float(r["route_measure"]))
+        name = _line_name(segs)
+        for tl in DFO_TIDAL_LINES:
+            if _name_key(tl["water"]) == _name_key(name):
+                loc = locate_line(segs, geoms, [to_a(*e) for e in tl["line"]], a["mouth_m"])
+                if loc:
+                    top = max(top, loc["measure"])
+        tops[W.root(code)] = (blk, top, segs, geoms)
+    out: dict[int, float] = {}
+    if not tops:
+        return out
+    found: dict[int, list[dict]] = defaultdict(list)
+    for (fid, blk, name, gnis, wsc, down, length, edge) in con.execute(
+            "select fid, BLUE_LINE_KEY, GNIS_NAME, GNIS_ID, FWA_WATERSHED_CODE, "
+            "DOWNSTREAM_ROUTE_MEASURE, LENGTH_METRE, EDGE_TYPE from streams where "
+            "FWA_WATERSHED_CODE like '100-%' or FWA_WATERSHED_CODE like '400-%' or "
+            "FWA_WATERSHED_CODE like '500-%'"):
+        if not wsc or W.root(wsc) not in tops or _depth(wsc) != 2:
+            continue
+        if int(W.groups(W.trim_wsc(wsc))[1]) / 1e6 > TRIB_SHARE:
+            continue
+        found[blk].append({"fid": fid, "blk": blk, "name": name, "gnis": gnis, "wsc": wsc,
+                           "down": down or 0.0, "length": length or 0.0, "edge": edge, "ocean": False})
+    for blk, segs in found.items():
+        if not _line_name(segs):
+            continue
+        mblk, top, msegs, mgeoms = tops[W.root(segs[0]["wsc"])]
+        if top <= 0:
+            continue
+        low = min(segs, key=lambda s: s["down"])
+        g = _geoms(con, [low]).get(low["fid"])
+        if g is None:
+            continue
+        m, d = snap(msegs, mgeoms, Point(g.coords[0]))
+        if d <= 2000 and m <= top:
+            out[blk] = round(m, 1)
+            if blk not in by_blk:
+                by_blk[blk] = segs
+    return out
+
+
 # --------------------------------------------------------------------------- assemble
 
 def _km(a, b) -> float:
@@ -686,8 +828,10 @@ def build(gpkg: Path, atlas: Path, osm_paths: list[Path], basemap: Path | None =
     cat_src = _catalogue_sources()
 
     # which blue lines are candidates: every NAMED one the polygon crosses, and every named
-    # ocean-entering mainstem (crossed or not — a polygon that misses one is a finding)
-    want = sorted(b for b in (cross_blks | main_blks) if _line_name(by_blk.get(b, [])))
+    # ocean-entering mainstem (crossed or not — a polygon that misses one is a finding), and every
+    # named tributary entering a big river's (Fraser / Skeena / Nass) tidal reach
+    tribs = big_river_tributaries(con, poly, by_blk, mains, resolved)
+    want = sorted(b for b in (cross_blks | main_blks | set(tribs)) if _line_name(by_blk.get(b, [])))
     rows = []
     for blk in want:
         segs = by_blk[blk]
@@ -749,6 +893,12 @@ def build(gpkg: Path, atlas: Path, osm_paths: list[Path], basemap: Path | None =
                      **({"osm": loc} if loc else {})},
                     loc["measure"] if loc else None, f"OSM {mk['kind']} crossing ({loc['osm']})"
                     + (f" + {loc['offset_m']:.0f} m" if loc.get("offset_m") else "") if loc else None)
+        for tl in DFO_TIDAL_LINES:
+            if _name_key(tl["water"]) == key and _km(region_ll, tl["near"]) <= NEAR_KM:
+                loc = locate_line(segs, geoms, [to_albers(*e) for e in tl["line"]], a["mouth_m"])
+                add({"kind": "dfo_tidal_area", "source": tl["page"], "words": f"{tl['water']}: {tl['words']}",
+                     "line": [list(e) for e in tl["line"]]},
+                    loc["measure"] if loc else None, loc["how"] if loc else None)
         for sid, what in CURATED_TIDAL_SPLITS.items():
             r = resolved.get(sid)
             if r and str(r["blk"]) == str(blk):
@@ -859,6 +1009,7 @@ def build(gpkg: Path, atlas: Path, osm_paths: list[Path], basemap: Path | None =
             "id": f"tidal:{blk}", "water": name, "blk": str(blk), "wsc": re.sub(r"(-000000)+$", "", wsc),
             "gnis_id": next((int(s["gnis"]) for s in segs if s["gnis"]), None),
             "enters": enters, "items": items,
+            **({"joins_big_river_tidal_reach_at_m": tribs[blk]} if blk in tribs else {}),
             "item_names": [item_of[i]["name"] for i in items],
             "zones": sorted({m for i in items for m in item_of[i].get("mus") or []}),
             "proposed": {"measure": round(prop_m, 1), "coord": prop_ll, "above_mouth_m": above_mouth,
@@ -868,6 +1019,8 @@ def build(gpkg: Path, atlas: Path, osm_paths: list[Path], basemap: Path | None =
             "polygon": {"crossing": crossing, "measure": round(poly_m, 1) if poly_m is not None else None,
                         "coord": poly_ll, "cuts": a["cuts"][:12], "n_cuts": len(a["cuts"]),
                         "inside_pieces": a["n_inside"], "outside_below_m": a["gap_below_m"],
+                        "gaps_filled": a["gaps_filled"], "ignored_pieces": a["ignored"],
+                        "multi_crossing": len(a["cuts"]) > 1 and (a["n_inside"] > 1 or bool(a["ignored"])),
                         "mouth_gap_m": mouth_gap},
             "mouth": {"measure": round(a["mouth_m"], 1), "coord": mouth_ll},
             "sources": sources, "confidence": conf, "why": why, "words_disagree": words_disagree,
@@ -890,6 +1043,8 @@ def build(gpkg: Path, atlas: Path, osm_paths: list[Path], basemap: Path | None =
         "with_word_sources": sum(1 for r in rows if any(s["kind"] != "tidal_gauge" for s in r["sources"])),
         "in_registry": sum(1 for r in rows if r["items"]),
         "reusing_curated_split": sum(1 for r in rows if r["proposed"].get("reuse")),
+        "big_river_tidal_tributaries": len(tribs),
+        "multi_crossing": sum(1 for r in rows if r["polygon"].get("multi_crossing")),
     }
     return {"_about": (
         "T212 PROPOSALS, NOT CURATED DATA (pipeline/tools/audit/tidal_candidates.py). One row per named "
@@ -972,8 +1127,16 @@ def summary_md(doc: dict) -> str:
         if r["confidence"] == "low":
             out.append(f"- {r['water']} (blk {r['blk']}, {r['enters']}): {r['why']}")
     out += ["", "## How a row is decided", "",
-            f"- The polygon's candidate is the upstream-most point where the FWA line leaves the polygon "
-            f"(within {AT_MOUTH_M:.0f} m of the mouth = the mouth).",
+            f"- The polygon's candidate is the TOP of the one contiguous tidal run from the mouth: the "
+            f"upstream-most point where the FWA line leaves the polygon (within {AT_MOUTH_M:.0f} m of the "
+            "mouth = the mouth). Where the line wanders out and back in, the gaps are filled; an upstream "
+            f"piece the polygon does not join to the run within {CORRIDOR_M:.0f} m of the river (a separate "
+            "patch) is ignored. Every such stream is flagged `multi_crossing` with its crossings.",
+            "- Named tributaries entering the Fraser / Skeena / Nass below that river's tidal top are "
+            "candidates too (enters tidal water).",
+            "- DFO tidal boundaries drawn as a line between two landmarks (Skeena: Mowitch Pt - Veitch Pt; "
+            "Cowichan Bay: Hecate boat ramp - Green Point) are located where the line meets the stream (or "
+            "at the mouth when the line lies seaward of it).",
             "- A word source that names a marker is located on the line (a curated split's measure, or an "
             "OSM crossing of the named bridge / rail line). Located and within "
             f"{AGREE_M:.0f} m of the polygon: agree (high). Located and further: the WORDS are proposed and "

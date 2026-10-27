@@ -102,3 +102,32 @@ def test_the_committed_triage_covers_every_candidate():
     edits = json.loads((TIDAL / "tidal-edits.json").read_text())
     named = {st["name"] for s in edits["sites"] for st in s["streams"] if st["name"]}
     assert {"Pitt River", "Coquitlam River", "Somass River", "Campbell River"} <= named
+
+
+def test_a_long_straight_edge_across_a_stream_is_an_edit_even_on_the_grid():
+    """Follow-up 2: DFO's outline follows the shore vertex by vertex; a >= 50 m edge with no vertex
+    between that crosses a stream is a hand cut — seen even where the grid test is blind, and when
+    both ends sit on the grid (a cut made by deleting vertices)."""
+    c = _ring(n=2000)                                            # ~16 m edges, all on the grid
+    c = np.delete(c, np.arange(100, 110), axis=0)                # 10 vertices deleted: one ~170 m edge
+    rows = [({"NAME": "Subarea 1-1"}, Polygon(c))]
+    sites, _ = TT.find_edits(rows)
+    assert sites == []                                           # the grid sees nothing
+    longs = TT.long_segments(rows)
+    assert len(longs) == 1 and np.hypot(*(longs[0][1] - longs[0][0])) > TT.STRAIGHT_M
+    stream = {"blk": "9", "name": "Test Creek"}
+    hit = TT.straight_sites(longs, lambda ln: [stream])
+    assert [s["kind"] for s in hit] == ["straight"] and hit[0]["crosses"] == [stream]
+    assert TT.straight_sites(longs, lambda ln: []) == []         # crosses no stream: DFO's own shore
+
+
+def test_a_multi_crossing_stream_is_its_own_class_unless_a_source_disagrees():
+    multi = {"multi_crossing": True, "n_cuts": 3, "cuts": [100.0, 200.0, 400.0],
+             "gaps_filled": [[100.0, 200.0]], "ignored_pieces": []}
+    c = _c()
+    c["polygon"].update(multi)
+    cls, why = TT.classify(c, True, [])
+    assert cls == "multi-crossing" and "gaps filled 100-200" in why
+    c["sources"] = [{"kind": "synopsis_box", "agrees": False}]
+    assert TT.classify(c, False, [])[0] == "missed"
+    assert "multi-crossing" in TT.REVIEW

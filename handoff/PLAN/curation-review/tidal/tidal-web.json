@@ -361,6 +361,164 @@
    "site": "DFO BC Sport Fishing Guide (older edition), 'Tidal Water Boundaries' - Skeena River - North Coast and Region 6",
    "confidence": "high",
    "located": null
+  },
+  {
+   "id": "tidal:354155148",
+   "water": "Cowichan River",
+   "marker": "Tidal Water Boundary in Cowichan Bay: straight line from an orange boundary sign at the Hecate Boat Ramp (Hecate Park, south shore) to an orange boundary sign on a piling near Green Point (north shore, foot of Green Point Rd, North Cowichan). The whole estuary landward (west) of the line is freshwater for licensing; the line sits ~0.6 km SEAWARD of the FWA mouth [-123.6363, 48.7532], so the polygon's 950 m of tidal water up the river is on the wrong side of it.",
+   "kind": "line",
+   "line": [
+    [
+     -123.62458,
+     48.74197
+    ],
+    [
+     -123.6309,
+     48.7666
+    ]
+   ],
+   "endpoints": [
+    "Hecate Boat Ramp",
+    "Green Point"
+   ],
+   "endpoint_sources": {
+    "Hecate Boat Ramp": "DFO tidal Area 18 page (Cowichan Bay halibut closure) gives the ramp verbatim as '48°44.518' N and 123°37.475' W' = [-123.62458, 48.74197]; OSM Hecate Park centroid [-123.62765, 48.74296] agrees within ~250 m. HIGH precision.",
+    "Green Point": "Not in BC Geographical Names or the Canadian Geographical Names DB (no Green Point near Cowichan Bay). Located via Green Point Rd: the CVRD Area D zoning map labels 'GREEN PT. RD.' running down to a small headland at the NW shore of Cowichan Bay's head; BC Address Geocoder puts 'Green Point Rd, Duncan' at [-123.63091, 48.76659]. The point is where that road meets the shore; treat as ±300 m. MEDIUM precision."
+   },
+   "quote": "to the Tidal Water Boundary in Cowichan Bay (The Tidal Water Boundary runs from an orange boundary sign located at the Hecate Boat Ramp to an orange boundary sign located on a piling near Green Point, in Cowichan Bay).",
+   "url": "http://salmonuniversity.com/archives/3830",
+   "site": "Salmon University fishing report (Nov 2015), quoting the DFO fishery notice of 2015 (Cowichan River closed below Mile 66 Trestle until Nov 15, 2015); owner-supplied the same DFO FN 2015 wording. Original FN not found on notices.dfo-mpo.gc.ca.",
+   "confidence": "high",
+   "located": {
+    "measure": 0.0,
+    "located_by": "DFO line Hecate Boat Ramp - Green Point: the line passes 641 m seaward of the FWA mouth: the stream is above it",
+    "coord": [
+     -123.636302,
+     48.753243
+    ]
+   }
+  },
+  {
+   "id": "tidal:360887278",
+   "water": "Skeena River",
+   "marker": "Tidal water boundary = straight line across the Skeena from Mowitch Point (north bank) to 'Vietch Point' (south bank) as coordinated in SOR/2007-77. It sits ~5.3 km above the BCGNIS Skeena mouth point (straight-line ~6.2 km from the FWA mouth, consistent with the polygon's 6422 m crossing), ~3.5-4 km BELOW Port Essington / the Ecstall mouth, and ~19 km east of Kitson Island. Everything above it (Ecstall, Khyex, Scotia, Kwinitsa, Kasiks, Exchamsiks, Gitnadoix, Lakelse, Zymagotitz...) is freshwater for licensing even though the river is physically tidal to ~Kasiks.",
+   "kind": "line",
+   "line": [
+    [
+     -130.02955,
+     54.16918
+    ],
+    [
+     -130.01028,
+     54.14335
+    ]
+   ],
+   "endpoints": [
+    "Mowitch Point",
+    "Vietch (Veitch) Point marker"
+   ],
+   "endpoint_sources": {
+    "Mowitch Point": "SOR/2007-77 Subarea 4-15 '54°10.151′N 130°01.773′W [Mowitch Point]' = [-130.02955, 54.16918]; BC Geographical Names Mowitch Point [-130.02806, 54.16917] and OSM [-130.02955, 54.16928] agree within 100 m.",
+    "Vietch (Veitch) Point marker": "SOR/2007-77 '54°08.601′N 130°00.617′W [Vietch Point]' = [-130.01028, 54.14335]. NOTE the official BCGNIS Veitch Point is at [-130.05222, 54.14861], ~2.8 km WEST of this; the archived SOR/82-215 says the boundary goes to 'a marker approximately one and one half miles easterly of Vietch Point, thence across the Skeena River to a marker near Mowitch Point' - 1.5 nmi east of BCGNIS Veitch Point is exactly the SOR/2007-77 coordinate. Use the regulation coordinate (line runs ~N-S across the river), not the named point."
+   },
+   "quote": "Skeena River - North Coast and Region 6 Skeena River: a line drawn from Mowitch Point to Veitch Point.",
+   "url": "https://waves-vagues.dfo-mpo.gc.ca/Library/359784.pdf",
+   "site": "DFO Sport Fishing Guide British Columbia 2015 (DFO/2015-1845), p.71 '25 Tidal Water Boundaries (continued)'",
+   "confidence": "high",
+   "located": {
+    "measure": 6404.9,
+    "located_by": "DFO line Mowitch Point - Vietch (Veitch) Point marker: the line crosses the stream (1x)",
+    "coord": [
+     -130.021513,
+     54.158412
+    ]
+   }
+  },
+  {
+   "id": "tidal:360887278",
+   "water": "Skeena River",
+   "marker": "Area 4 boundary across the Skeena: Mowitch Point to Vietch Point (coordinates) - same line as the tidal boundary",
+   "kind": "line",
+   "line": [
+    [
+     -130.02955,
+     54.16918
+    ],
+    [
+     -130.01028,
+     54.14335
+    ]
+   ],
+   "endpoints": [
+    "Mowitch Point",
+    "Vietch Point"
+   ],
+   "endpoint_sources": {
+    "Mowitch Point": "coordinates in the regulation text",
+    "Vietch Point": "coordinates in the regulation text"
+   },
+   "quote": "then easterly following the shoreline to 54°10.151′N 130°01.773′W [Mowitch Point] then to 54°08.601′N 130°00.617′W [Vietch Point] then southerly following the shoreline",
+   "url": "https://laws-lois.justice.gc.ca/eng/regulations/SOR-2007-77/FullText.html",
+   "site": "Pacific Fishery Management Area Regulations, 2007 (SOR/2007-77), Area 4 and Subarea 4-15",
+   "confidence": "high",
+   "located": {
+    "measure": 6404.9,
+    "located_by": "DFO line Mowitch Point - Vietch Point: the line crosses the stream (1x)",
+    "coord": [
+     -130.021513,
+     54.158412
+    ]
+   }
+  },
+  {
+   "id": "tidal:360887278",
+   "water": "Skeena River",
+   "marker": "Older Area 4 description: marker ~1.5 nmi east of Vietch Point, across the Skeena to a marker near Mowitch Point",
+   "kind": "line",
+   "line": [
+    [
+     -130.02955,
+     54.16918
+    ],
+    [
+     -130.01028,
+     54.14335
+    ]
+   ],
+   "endpoints": [
+    "marker ~1.5 nmi E of Vietch Point",
+    "marker near Mowitch Point"
+   ],
+   "endpoint_sources": {
+    "both": "taken from SOR/2007-77 coordinates, which match this wording (1.5 nmi east of BCGNIS Veitch Point)"
+   },
+   "quote": "thence following the shoreline northerly to a marker approximately one and one half miles easterly of Vietch Point, thence across the Skeena River to a marker near Mowitch Point",
+   "url": "https://laws.justice.gc.ca/eng/regulations/SOR-82-215/20060322/P1TT3xt3.html",
+   "site": "Pacific Fishery Management Area Regulations (SOR/82-215), archived 2006-03-22 version, Schedule II Area 4",
+   "confidence": "high",
+   "located": {
+    "measure": 6404.9,
+    "located_by": "DFO line marker ~1.5 nmi E of Vietch Point - marker near Mowitch Point: the line crosses the stream (1x)",
+    "coord": [
+     -130.021513,
+     54.158412
+    ]
+   }
+  },
+  {
+   "id": "tidal:360887278",
+   "water": "Skeena River",
+   "marker": "DFO FN uses 'Area 4 commercial boundary (Mowitch Point to Vetch Point)' as the bottom of the in-river Skeena fishery",
+   "kind": "line",
+   "endpoints": [
+    "Mowitch Point",
+    "Vetch Point"
+   ],
+   "quote": "For the Skeena River from the Area 4 commercial boundary (Mowitch Point to Vetch Point) to the confluence with the Babine River",
+   "url": "https://notices.dfo-mpo.gc.ca/fns-sap/index-eng.cfm?pg=view_notice&DOC_ID=223929&ID=all",
+   "site": "DFO FN0743 (2019-08-01), Aboriginal - Sockeye - Skeena - Areas 3, 4 and 5",
+   "confidence": "medium",
+   "located": null
   }
  ],
  "searched_nothing_found": [
@@ -970,6 +1128,97 @@
     "Kitlope River tidal fishing boundary Kitlope Lake",
     "DFO a-s6 page"
    ]
+  },
+  {
+   "id": null,
+   "water": "Skeena tributaries (Ecstall, Khyex, Kasiks, Exchamsiks, Kwinitsa, Scotia, Gitnadoix, Zymagotitz, Lakelse)",
+   "queries": [
+    "lower Skeena tidal licence Port Essington/Khyex/Kasiks/Exchamsiks",
+    "Skeena River tidal boundary fishery notice Region 6",
+    "R6 synopsis 2025-27 grep tidal (none)"
+   ],
+   "note": "No separate tidal boundary for any; all enter above the Mowitch-Vietch line, so non-tidal for licensing."
+  },
+  {
+   "id": "tidal:354153615",
+   "water": "Englishman River",
+   "queries": [
+    "\"tidal boundary\" Englishman River / Little Qualicum / Big Qualicum"
+   ]
+  },
+  {
+   "id": "tidal:354154742",
+   "water": "Little Qualicum River",
+   "queries": [
+    "\"tidal boundary\" Little Qualicum"
+   ]
+  },
+  {
+   "id": "tidal:354152785",
+   "water": "Qualicum River",
+   "queries": [
+    "\"tidal boundary\" Big Qualicum",
+    "a-s14 page (only intertidal shellfish closures)"
+   ]
+  },
+  {
+   "id": "tidal:354151420",
+   "water": "Courtenay River",
+   "queries": [
+    "\"tidal boundary\" Puntledge OR Courtenay River sign bridge",
+    "Courtenay River tidal 17th Street / Condensory bridge"
+   ]
+  },
+  {
+   "id": "tidal:354152994",
+   "water": "Salmon River",
+   "queries": [
+    "Salmon River Sayward tidal boundary fishing sign estuary"
+   ]
+  },
+  {
+   "id": "tidal:354152425",
+   "water": "Goldstream River",
+   "queries": [
+    "Goldstream River tidal boundary fishing Finlayson Arm sign (park: no fishing; estuary closed to public)"
+   ]
+  },
+  {
+   "id": "tidal:360885253",
+   "water": "Bella Coola River",
+   "queries": [
+    "Bella Coola River tidal boundary fishing estuary bridge tidal licence",
+    "a-s8 page"
+   ]
+  },
+  {
+   "id": "tidal:360883982",
+   "water": "Dean River",
+   "queries": [
+    "\"tidal boundary\" Dean River (DFO R5B only says 'downstream to the tidal boundary', not located)"
+   ]
+  },
+  {
+   "id": null,
+   "water": "Tidal Water Boundary 'runs from' wording elsewhere",
+   "queries": [
+    "\"Tidal Water Boundary runs from\" OR \"tidal boundary runs from\" fishery notice BC",
+    "grep of all 29 current DFO a-s<N> tidal pages for 'tidal boundary' (only Nimpkish Hwy 19 signs, Somass Paper Mill Dam, Marble River, Area 29 bridge list - all already found)"
+   ]
+  }
+ ],
+ "unmatched": [
+  {
+   "water": "Koksilah River",
+   "marker": "Koksilah reaches the Cowichan estuary landward (west) of the Cowichan Bay tidal water boundary line, so the same Hecate Boat Ramp - Green Point line is its tidal boundary; the Koksilah itself is wholly non-tidal for licensing.",
+   "url": "http://salmonuniversity.com/archives/3830"
+  }
+ ],
+ "context": [
+  {
+   "water": "Skeena River",
+   "marker": "PHYSICAL tide reaches ~55 km up to the Kasiks River (not a licensing boundary; for context only)",
+   "url": "https://coastview.org/2023/12/31/kasiks-river-skeena-river/"
   }
  ]
 }

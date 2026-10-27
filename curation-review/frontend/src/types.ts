@@ -1063,11 +1063,14 @@ export interface TidalWeb {
   site: string;
   confidence: "high" | "medium" | "low";
   located?: { measure: number; coord?: [number, number] | null; located_by: string } | null;
+  /** a DFO boundary drawn as a line between two landmarks: its ends [lon, lat] and their names */
+  line?: [number, number][];
+  endpoints?: string[];
   agrees: boolean | null;
 }
 /** The triage class (`pipeline.tools.audit.tidal_triage`): was the polygon hand-edited at this stream,
  *  and do the book / web words agree with it. */
-export type TidalTriageClass = "missed" | "sanity" | "owner-edited" | "book agrees" | "no claim";
+export type TidalTriageClass = "missed" | "sanity" | "multi-crossing" | "owner-edited" | "book agrees" | "no claim";
 export interface TidalTriage {
   class: TidalTriageClass;
   /** null: the edit fingerprint can't see this stretch of coast */
@@ -1092,7 +1095,14 @@ export interface TidalCandidate {
               reuse?: { split_id: string; label: string; distance_m: number; measured: string;
                         split_measure: number; tidal_measure: number; alias: string } };
   polygon: { crossing: string; measure: number | null; coord: [number, number] | null; n_cuts: number;
-             inside_pieces: number; outside_below_m: number; mouth_gap_m: number };
+             inside_pieces: number; outside_below_m: number; mouth_gap_m: number;
+             /** every crossing (m above the mouth), the first 12 */
+             cuts?: number[];
+             /** the line crosses in, out and in again (T212 follow-up 2): the outside gaps below the top
+              *  are filled, and pieces the polygon does not join to the run are ignored */
+             multi_crossing?: boolean; gaps_filled?: [number, number][]; ignored_pieces?: [number, number][] };
+  /** a tributary of the Fraser / Skeena / Nass joining below that river's tidal top (m on the mainstem) */
+  joins_big_river_tidal_reach_at_m?: number;
   mouth: { measure: number; coord: [number, number] };
   sources: TidalSource[];
   confidence: TidalConfidence;
@@ -1121,6 +1131,8 @@ export interface TidalRow {
   edited: boolean | null;
   n_web: number;
   triage_why: string | null;
+  multi_crossing?: boolean;
+  n_cuts?: number;
 }
 /** GET /api/tidal/progress */
 export interface TidalProgress {

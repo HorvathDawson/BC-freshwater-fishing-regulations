@@ -116,13 +116,35 @@ def test_the_candidate_is_where_the_line_leaves_the_polygon_going_upstream():
     assert a["top"] == pytest.approx(300.0, abs=1) and a["n_inside"] == 1 and a["mouth_m"] == 0.0
 
 
-def test_a_blob_shows_as_several_inside_pieces():
+def test_a_separate_upstream_patch_is_no_boundary():
+    """A polygon piece the polygon does not join to the run along the river (a patch elsewhere) is
+    ignored: the boundary stays at the top of the run connected to the mouth."""
     sea = Polygon([(0, -100), (300, -100), (300, 100), (0, 100)]).union(
-        Polygon([(400, -100), (450, -100), (450, 100), (400, 100)]))
+        Polygon([(800, -20), (830, -20), (830, 20), (800, 20)]))
     s1, g1 = _seg(1, 0.0, [(0, 0), (1000, 0)])
     a = TC.analyse([s1], {1: g1}, sea)
-    assert a["n_inside"] == 2 and a["top"] == pytest.approx(450.0, abs=1)
-    assert a["gap_below_m"] == pytest.approx(100.0, abs=1)
+    assert a["n_inside"] == 1 and a["top"] == pytest.approx(300.0, abs=1)
+    assert a["ignored"] == [(800.0, 830.0)] and a["gaps_filled"] == []
+
+
+def test_in_out_in_along_the_corridor_is_one_run_up_to_the_top():
+    """(owner, T212 follow-up 2, Mill Stream): the polygon is drawn up the channel; where the FWA line
+    wanders out of it and back in, the gap is filled — ONE run from the mouth to the uppermost exit.
+    A far patch the corridor polygon does not reach stays ignored."""
+    # the channel polygon runs y in [20, 60] from x 300 to 700, joined to the sea; the line dips in
+    # and out of it: inside 0-300 (sea), out 300-400 (y=0), in 400-600 (y=40), out above 600
+    channel = Polygon([(250, 20), (700, 20), (700, 60), (250, 60)])
+    sea = Polygon([(0, -100), (300, -100), (300, 100), (0, 100)])
+    patch = Polygon([(1500, 30), (1540, 30), (1540, 50), (1500, 50)])
+    poly = sea.union(channel).union(patch)
+    s1, g1 = _seg(1, 0.0, [(0, 0), (400, 0), (400, 40), (600, 40), (600, 0), (1600, 0), (1600, 40),
+                           (1450, 40)])
+    a = TC.analyse([s1], {1: g1}, poly)
+    assert a["n_inside"] == 2, a
+    assert a["top"] == pytest.approx(400 + 40 + 200 + 20, abs=2)           # leaves at (600, 20)
+    assert len(a["gaps_filled"]) == 1 and a["gap_below_m"] == pytest.approx(120, abs=2)
+    assert len(a["ignored"]) == 1                                           # the patch, crossed at the far end
+    assert len(a["cuts"]) >= 4
 
 
 def test_a_named_bridge_is_located_where_it_crosses_the_line():
@@ -186,3 +208,12 @@ def test_accepting_a_reuse_candidate_names_the_existing_split(cands):
     assert m.new_splits[0].anchor == "split" and m.new_splits[0].split_id == CAMPBELL_SIGN["split_id"]
     with pytest.raises(ValueError, match="names that split"):
         _mark(new_splits=[_split(anchor="split")])
+
+
+def test_a_dfo_line_between_two_landmarks_is_located_where_it_meets_the_stream():
+    s1, g1 = _seg(1, 0.0, [(0, 0), (2000, 0)])
+    across = TC.locate_line([s1], {1: g1}, [(700, -300), (700, 300)])
+    assert across["measure"] == pytest.approx(700, abs=1)
+    seaward = TC.locate_line([s1], {1: g1}, [(-600, -300), (-600, 300)])      # out in the bay
+    assert seaward["measure"] == 0.0 and "seaward" in seaward["how"]
+    assert TC.locate_line([s1], {1: g1}, [(-9000, -300), (-9000, 300)]) is None

@@ -22,9 +22,10 @@ const SOURCE_WORDS: Record<string, string> = {
   tidal_gauge: "tidal gauge",
 };
 const PROBLEMS = ["split misplaced", "wrong water", "split missing"];
-/** the triage classes and what they mean (T212 follow-up, `tidal-triage.md`); "review" = missed + sanity */
+/** the triage classes and what they mean (T212 follow-up, `tidal-triage.md`); "review" = missed + sanity + multi-crossing */
 export const TRIAGE_WORDS: Record<string, string> = {
   missed: "missed — words disagree, polygon unedited", sanity: "sanity — edited, but words disagree",
+  "multi-crossing": "multi-crossing — the line goes in, out, in again (gaps filled)",
   "owner-edited": "owner-edited (accepted)", "book agrees": "words agree (accepted)",
   "no claim": "no claim (accepted at the polygon)",
 };
@@ -120,7 +121,8 @@ export function TidalReview({ mode, onLeave, onDfo }: Props) {
           <div data-testid="tidal-triage-filter">
             <label>triage</label>
             <select aria-label="triage" value={filters.triage} onChange={(e) => set({ triage: e.target.value })}>
-              <option value="review">missed + sanity ({(progress?.by_triage?.missed ?? 0) + (progress?.by_triage?.sanity ?? 0)})</option>
+              <option value="review">missed + sanity + multi-crossing ({(progress?.by_triage?.missed ?? 0) + (progress?.by_triage?.sanity ?? 0)
+                + (progress?.by_triage?.["multi-crossing"] ?? 0)})</option>
               {Object.keys(TRIAGE_WORDS).map((k) => (
                 <option key={k} value={k}>{TRIAGE_WORDS[k]} ({progress?.by_triage?.[k as keyof TidalProgress["by_triage"]] ?? 0})</option>
               ))}
@@ -164,7 +166,8 @@ export function TidalReview({ mode, onLeave, onDfo }: Props) {
             {progress ? <>
               <strong>{progress.done}/{progress.total}</strong> marked
               <span data-testid="tidal-triage-counts"> · <strong>{progress.by_triage?.missed ?? 0}</strong> missed
-                · <strong>{progress.by_triage?.sanity ?? 0}</strong> sanity</span>
+                · <strong>{progress.by_triage?.sanity ?? 0}</strong> sanity
+                · <strong>{progress.by_triage?.["multi-crossing"] ?? 0}</strong> multi-crossing</span>
               <span className="dim"> · {progress.with_words} named by the words
                 · named ocean streams met by the polygon {cov.named_ocean_entering_found_by_polygon ?? "?"}/{cov.named_ocean_entering_total ?? "?"}</span>
             </> : "…"}
@@ -196,6 +199,7 @@ export function TidalReview({ mode, onLeave, onDfo }: Props) {
                 {r.triage && <span className={`chip-tag${r.triage === "missed" || r.triage === "sanity" ? " new" : ""}`}
                   title={r.triage_why ?? ""}>{r.triage}</span>}
                 {r.n_web > 0 && <span className="chip-tag suggested">web · {r.n_web}</span>}
+                {r.multi_crossing && r.triage !== "multi-crossing" && <span className="chip-tag" title="the line crosses the polygon in, out and in again">{r.n_cuts} crossings</span>}
               </div>
               <div className="meta dfo-text">{CROSSING_WORDS[r.crossing] ?? r.crossing}</div>
             </div>
@@ -362,6 +366,18 @@ function TidalCandidateView({ detail, mode, nav, onMarked }: {
                     {c.polygon.inside_pieces > 1 ? ` · ${c.polygon.inside_pieces} inside pieces, ${c.polygon.outside_below_m.toFixed(0)} m outside below the top` : ""}</span>
                 : <span className="warn-text">does not reach this stream (its mouth is {c.polygon.mouth_gap_m.toFixed(0)} m away)</span>}
             </div>
+            {c.polygon.multi_crossing && (
+              <div className="ext-row" data-testid="tidal-multi">
+                <span className="k">multi-crossing</span>
+                <span style={{ fontSize: 12 }}>crossings at {(c.polygon.cuts ?? []).map((m) => m.toFixed(0)).join(", ")}{c.polygon.n_cuts > (c.polygon.cuts ?? []).length ? " …" : ""} m
+                  {" "}· boundary = the top of the run joined to the mouth ({c.polygon.measure?.toFixed(0)} m)
+                  {(c.polygon.gaps_filled ?? []).length ? ` · gaps filled ${(c.polygon.gaps_filled ?? []).map(([a, b]) => `${a.toFixed(0)}–${b.toFixed(0)}`).join(", ")} m` : ""}
+                  {(c.polygon.ignored_pieces ?? []).length ? ` · separate patch ignored ${(c.polygon.ignored_pieces ?? []).map(([a, b]) => `${a.toFixed(0)}–${b.toFixed(0)}`).join(", ")} m` : ""}</span>
+              </div>
+            )}
+            {c.joins_big_river_tidal_reach_at_m != null && (
+              <div className="ext-row dim" style={{ fontSize: 12 }}>joins its big river's tidal reach {(c.joins_big_river_tidal_reach_at_m / 1000).toFixed(1)} km above that river's mouth</div>
+            )}
             <div className="ext-row dim" style={{ fontSize: 12 }}>enters {c.enters === "ocean" ? "the sea" : "tidal water (a tidal river or estuary)"} · agreement: {c.agreement}{c.words_disagree ? " · the words disagree with each other" : ""}</div>
           </div>
 
@@ -392,7 +408,8 @@ function TidalCandidateView({ detail, mode, nav, onMarked }: {
             {(c.triage?.web ?? []).map((w, i) => (
               <div key={`web${i}`} className="ext-row" data-testid={`tidal-web-${i}`}>
                 <span className="k">web · {w.confidence}</span>
-                <span className="verbatim" style={{ flex: 1 }}>{w.marker}{w.quote ? <> — <q>{w.quote}</q></> : null}</span>
+                <span className="verbatim" style={{ flex: 1 }}>{w.marker}{w.quote ? <> — <q>{w.quote}</q></> : null}
+                  {w.line && <span className="dim"> (line {w.endpoints?.join(" – ") ?? ""}: {w.line.map(([x, y]) => `${y.toFixed(5)}, ${x.toFixed(5)}`).join(" → ")})</span>}</span>
                 <span className="dim" style={{ fontSize: 12 }}>
                   {w.located ? `at ${w.located.measure.toFixed(0)} m (${w.located.located_by})` : "not located"}
                   {w.agrees === true ? " · agrees" : w.agrees === false ? " · DISAGREES" : ""}

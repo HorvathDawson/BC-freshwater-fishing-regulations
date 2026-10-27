@@ -32,9 +32,10 @@ SNAP_MAX_M = 500.0
 EDGE_BOX_M = 4000.0
 CONFIDENCES = ("high", "medium", "low")
 VERIFIES = ("unmarked", "verified", "wrong", "unsure", "deferred", "stale", "todo")
-#: the triage classes (`pipeline.tools.audit.tidal_triage`), and "review" = missed + sanity
-TRIAGE_CLASSES = ("missed", "sanity", "owner-edited", "book agrees", "no claim")
-REVIEW = ("missed", "sanity")
+#: the triage classes (`pipeline.tools.audit.tidal_triage`), and "review" = missed + sanity +
+#: multi-crossing (owner, T212 follow-up 2: every stream crossing the polygon in/out/in is shown)
+TRIAGE_CLASSES = ("missed", "sanity", "multi-crossing", "owner-edited", "book agrees", "no claim")
+REVIEW = ("missed", "sanity", "multi-crossing")
 TRIAGES = (*TRIAGE_CLASSES, "review")
 
 
@@ -62,13 +63,15 @@ def _row(r: dict, m) -> dict:
             "n_words": len(words), "words_disagree": bool(r.get("words_disagree")),
             "verify": v["status"], "reasons": v["reasons"],
             "triage": t.get("class"), "edited": t.get("edited"), "n_web": len(t.get("web") or []),
-            "triage_why": t.get("why")}
+            "triage_why": t.get("why"),
+            "multi_crossing": bool((r.get("polygon") or {}).get("multi_crossing")),
+            "n_cuts": (r.get("polygon") or {}).get("n_cuts") or 0}
 
 
 def queue(confidence: str | None = None, verify: str | None = None, enters: str | None = None,
           words: bool = False, q: str | None = None, triage: str | None = None) -> list[dict]:
     """THE TIDAL QUEUE, in the proposal file's order (words first, then confidence), filtered;
-    `triage` "review" keeps missed + sanity (what the owner still has to look at)."""
+    `triage` "review" keeps missed + sanity + multi-crossing (what the owner still has to look at)."""
     doc = T.load()
     states = _states()
     rows = [_row(doc["by_id"][i], states.get(i)) for i in doc["order"]]

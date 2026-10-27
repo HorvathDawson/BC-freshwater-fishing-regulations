@@ -22,7 +22,11 @@ cannot be rebuilt, and the edits are found by a FINGERPRINT instead of a diff:
   * one stretch of the DFO data is itself off the grid (south Vancouver Island / Gulf Islands, from
     another source): there the fingerprint is blind, and a candidate there is `edited: null`
     ("can't tell"), never "unedited". `blind` in tidal-edits.json is that area.
-  * NOT seen: an edit made only by DELETING vertices (it adds none), or deleting a whole part.
+  * STRAIGHT LINES (owner, T212 follow-up 2): DFO's outline follows the shore vertex by vertex; an
+    edge >= STRAIGHT_M with no vertex between that CROSSES an FWA stream is a cut drawn across the
+    channel. It sees what the grid cannot: edits inside the off-grid stretch, and cuts made only by
+    deleting vertices (both ends then on the grid). Such sites are kind "straight".
+  * NOT seen: a deletion that leaves no long edge across a stream, or deleting a whole part.
 
 Each edit site is attributed to the FWA streams within `ATTRIBUTE_M` of it (the build gpkg's
 `streams`). A candidate is owner-edited when its blue line is one of them, or its polygon crossing is
@@ -33,6 +37,9 @@ THE CLASSES (owner, T212 follow-up):
   book agrees       unedited; a located book/DFO/web source agrees with the polygon (within 300 m)
   missed            unedited (or can't tell); a located source DISAGREES — needs the owner
   sanity            edited, yet a located source disagrees — check the edit
+  multi-crossing    no source disagrees, but the FWA line crosses the polygon several times (in, out,
+                    in again): the boundary is the top of the run joined to the mouth, the gaps between
+                    are filled and a separate upstream patch is ignored — shown so the owner sees them
   no claim          unedited, nothing locates a boundary: accepted at the polygon, low priority
 Sources that name a boundary but cannot be located (book or web) do not decide; the row says so.
 
@@ -72,9 +79,9 @@ ATTRIBUTE_M = 150.0
 #: a located source within this far (m, along the line) of the polygon's crossing agrees (= AGREE_M)
 AGREE_M = 300.0
 
-CLASSES = ("missed", "sanity", "owner-edited", "book agrees", "no claim")
+CLASSES = ("missed", "sanity", "multi-crossing", "owner-edited", "book agrees", "no claim")
 #: the classes the Tidal tab shows by default
-REVIEW = ("missed", "sanity")
+REVIEW = ("missed", "sanity", "multi-crossing")
 
 
 # --------------------------------------------------------------------------- geometry helpers
@@ -141,8 +148,7 @@ def find_edits(rows: list[tuple[dict, object]]) -> tuple[list[dict], object]:
     for attrs, g in rows:
         if g is None or g.is_empty:
             continue
-        drawn = all(v is None or (isinstance(v, float) and math.isnan(v)) for v in attrs.values())
-        if drawn:
+        if _drawn(attrs):
             for ring in _rings(g):
                 c = np.asarray(ring.coords)[:, :2]
                 sites.append({"kind": "drawn", "n_vertices": len(c) - 1,
@@ -163,6 +169,46 @@ def find_edits(rows: list[tuple[dict, object]]) -> tuple[list[dict], object]:
     return sites, blind
 
 
+#: a polygon edge at least this long (m) with no vertex between is a hand-drawn straight cut (owner,
+#: T212 follow-up 2: DFO's own outline follows the shore vertex by vertex, it has no long straight runs)
+STRAIGHT_M = 50.0
+
+
+def long_segments(rows: list[tuple[dict, object]], min_m: float = STRAIGHT_M) -> np.ndarray:
+    """Every outline edge of the source rows at least `min_m` long: an (n, 2, 2) array of EPSG:3005
+    ends (hand-drawn rows left out: they are edit sites whole)."""
+    out = []
+    for attrs, g in rows:
+        if g is None or g.is_empty or _drawn(attrs):
+            continue
+        for ring in _rings(g):
+            c = np.asarray(ring.coords)[:, :2]
+            d = np.hypot(*np.diff(c, axis=0).T)
+            k = np.nonzero(d >= min_m)[0]
+            if len(k):
+                out.append(np.stack([c[k], c[k + 1]], axis=1))
+    return np.concatenate(out) if out else np.zeros((0, 2, 2))
+
+
+def straight_sites(segs: np.ndarray, crosses) -> list[dict]:
+    """THE STRAIGHT-LINE FINGERPRINT: each long edge that CROSSES a stream channel (`crosses(line)` ->
+    the FWA streams it crosses) is an edit site of kind "straight" — a cut drawn across a river with
+    two clicks. It sees edits the 1 cm grid cannot: in DFO's own off-grid stretch, and cuts made only
+    by deleting vertices (both ends then sit on the grid)."""
+    out = []
+    for a, b in segs:
+        ln = LineString([a, b])
+        hit = crosses(ln)
+        if hit:
+            out.append({"kind": "straight", "n_vertices": 0, "length_m": round(float(ln.length), 1),
+                        "line": np.asarray([a, b]), "crosses": hit})
+    return out
+
+
+def _drawn(attrs: dict) -> bool:
+    return all(v is None or (isinstance(v, float) and math.isnan(v)) for v in attrs.values())
+
+
 # --------------------------------------------------------------------------- attribution
 
 def _gpkg_geom(b: bytes):
@@ -174,7 +220,8 @@ def _gpkg_geom(b: bytes):
 def streams_near(con, line: LineString, within: float = ATTRIBUTE_M) -> list[dict]:
     """The FWA stream segments within `within` m of `line` (rtree, then exact): one per blue line,
     the nearest — {blk, name, gnis, wsc, distance_m}."""
-    x0, y0, x1, y1 = line.buffer(within).bounds
+    x0, y0, x1, y1 = line.bounds
+    x0, y0, x1, y1 = x0 - within, y0 - within, x1 + within, y1 + within
     fids = [i for (i,) in con.execute(
         "select id from rtree_streams_geom where maxx>=? and minx<=? and maxy>=? and miny<=?",
         (x0, x1, y0, y1))]
@@ -191,6 +238,37 @@ def streams_near(con, line: LineString, within: float = ATTRIBUTE_M) -> list[dic
     return sorted(best.values(), key=lambda s: (s["name"] is None, s["distance_m"]))
 
 
+#: a straight edge must cross the stream this far (m) above its FWA mouth: an edge across the very
+#: mouth is DFO's own shoreline meeting a creek, not a cut up a channel
+STRAIGHT_ABOVE_MOUTH_M = 75.0
+
+
+def streams_crossed(con, line: LineString, above_m: float = STRAIGHT_ABOVE_MOUTH_M) -> list[dict]:
+    """The FWA blue lines `line` crosses more than `above_m` above their mouth: one per blue line —
+    {blk, name, gnis, wsc, distance_m 0, crossing_m (route measure of the crossing)}."""
+    x0, y0, x1, y1 = line.bounds
+    fids = [i for (i,) in con.execute(
+        "select id from rtree_streams_geom where maxx>=? and minx<=? and maxy>=? and miny<=?",
+        (x0, x1, y0, y1))]
+    best: dict[int, dict] = {}
+    for k in range(0, len(fids), 900):
+        chunk = fids[k:k + 900]
+        for blk, name, gnis, wsc, down, length, b in con.execute(
+                "select BLUE_LINE_KEY, GNIS_NAME, GNIS_ID, FWA_WATERSHED_CODE, DOWNSTREAM_ROUTE_MEASURE, "
+                f"LENGTH_METRE, geom from streams where fid in ({','.join('?' * len(chunk))})", chunk):
+            g = _gpkg_geom(b)
+            if not g.intersects(line):
+                continue
+            x = g.intersection(line)
+            p = x if x.geom_type == "Point" else x.representative_point()
+            gl = g.length or 1.0
+            m = (down or 0.0) + g.project(p) * ((length or gl) / gl)
+            if m > above_m and blk not in best:
+                best[blk] = {"blk": str(blk), "name": name, "gnis": gnis, "wsc": wsc, "distance_m": 0.0,
+                             "crossing_m": round(m, 1)}
+    return sorted(best.values(), key=lambda s: (s["name"] is None, s["crossing_m"]))
+
+
 def edits_doc(dfo_gpkg: Path, gpkg: Path) -> dict:
     import pyogrio
     df = pyogrio.read_dataframe(dfo_gpkg, layer=SOURCE_LAYER)
@@ -203,9 +281,14 @@ def edits_doc(dfo_gpkg: Path, gpkg: Path) -> dict:
     con = sqlite3.connect(f"file:{gpkg}?mode=ro", uri=True)
     out = []
     try:
+        grid_lines = shapely.STRtree([LineString(s["line"]) for s in sites])
+        longs = [ab for ab in long_segments(rows)
+                 if not len(grid_lines.query(LineString(ab), predicate="dwithin", distance=1.0))]
+        sites = sites + straight_sites(np.asarray(longs).reshape(-1, 2, 2),
+                                       lambda ln: streams_crossed(con, ln))
         for n, s in enumerate(sites):
             line = LineString(s["line"])
-            near = streams_near(con, line)
+            near = s.get("crosses") or streams_near(con, line)
             lon, lat = ll(*np.asarray(s["line"]).mean(axis=0))
             out.append({"id": f"edit:{n}", "kind": s["kind"], "n_vertices": s["n_vertices"],
                         "length_m": s["length_m"], "at": [round(lon, 6), round(lat, 6)],
@@ -268,6 +351,14 @@ def locate_web(finding: dict, c: dict, con, basemap) -> dict:
     if not segs:
         return {}
     ll = _to_lonlat()
+    if finding.get("line"):
+        loc = TC.locate_line(segs, geoms, [_albers()(*e) for e in finding["line"]],
+                             float((c.get("mouth") or {}).get("measure") or 0.0))
+        if loc:
+            pt = TC.point_at(segs, geoms, loc["measure"])
+            return {"measure": loc["measure"], "located_by": f"DFO line {' - '.join(finding.get('endpoints') or [])}: "
+                    f"{loc['how']}", "coord": [round(v, 6) for v in ll(pt.x, pt.y)] if pt is not None else None}
+        return {}
     if finding.get("measure") is not None:
         pt = TC.point_at(segs, geoms, float(finding["measure"]))
         return {"measure": float(finding["measure"]), "located_by": "the measure the source states",
@@ -296,18 +387,24 @@ def web_doc(found: list[Path], cands: dict, gpkg: Path, basemap: Path | None) ->
     by_id = {c["id"]: c for c in cands["candidates"]}
     bm = TC.Basemap(basemap) if basemap and basemap.exists() else None
     con = sqlite3.connect(f"file:{gpkg}?mode=ro", uri=True)
-    out, nothing = [], []
+    out, nothing, unmatched, context = [], [], [], []
     try:
         for p in found:
             d = json.loads(Path(p).read_text())
             nothing += d.get("searched_nothing_found") or []
             for f in d.get("findings") or []:
-                c = by_id.get(f["id"])
+                c = by_id.get(f.get("id")) if f.get("id") else _by_name(cands, f)
+                if f.get("context"):                  # physical tide, not a licensing boundary: not a source
+                    context.append({k: f.get(k) for k in ("water", "marker", "url") if f.get(k)})
+                    continue
                 if c is None:
+                    unmatched.append({k: f.get(k) for k in ("water", "marker", "url") if f.get(k)})
                     continue
                 keep = {k: f.get(k) for k in ("id", "water", "marker", "kind", "match", "pick", "offset_m",
-                                              "measure", "coord", "quote", "url", "site", "confidence")
+                                              "measure", "coord", "line", "endpoints", "endpoint_sources",
+                                              "quote", "url", "site", "confidence")
                         if f.get(k) is not None}
+                keep["id"] = c["id"]
                 loc = locate_web(f, c, con, bm)
                 keep["located"] = loc or None
                 out.append(keep)
@@ -317,7 +414,24 @@ def web_doc(found: list[Path], cands: dict, gpkg: Path, basemap: Path | None) ->
                       "PFMA regulations, forums, news), one per source, each located on the stream's FWA line "
                       "when it can be (`located`). Researched 2026-10-27; pac.dfo-mpo.gc.ca did not resolve, "
                       "so DFO pages were read through web.archive.org / waves-vagues.",
-            "findings": out, "searched_nothing_found": nothing}
+            "findings": out, "searched_nothing_found": nothing,
+            "unmatched": unmatched, "context": context}
+
+
+def _by_name(cands: dict, f: dict) -> dict | None:
+    """A finding without a candidate id (a stream the census did not list): the candidate of that
+    name whose mouth is within 25 km of the finding's mouth / line, if any."""
+    from pipeline.tools.audit import tidal_candidates as TC
+    ref = f.get("mouth") or (f.get("line") or [None])[0] or f.get("coord")
+    key = TC._name_key(f.get("water"))
+    best = None
+    for c in cands["candidates"]:
+        if TC._name_key(c["water"]) != key or not ref:
+            continue
+        d = _ground_m(c["mouth"]["coord"], ref)
+        if d <= 25_000 and (best is None or d < best[0]):
+            best = (d, c)
+    return best[1] if best else None
 
 
 # --------------------------------------------------------------------------- the triage
@@ -349,7 +463,7 @@ def edited_state(c: dict, idx: dict) -> tuple[bool | None, list[str]]:
         to_a = _albers()
         p = Point(*to_a(*pc))
         for sid, s in idx["sites"].items():
-            if sid in ids:
+            if sid in ids or s.get("kind") == "straight":      # a straight cut counts on the streams it crosses
                 continue
             if _ground_m(pc, s["at"]) > 50_000:
                 continue
@@ -389,8 +503,11 @@ def web_verdict(w: dict, c: dict) -> bool | None:
     return _ground_m(pt, ref) <= AGREE_M
 
 
-def classify(c: dict, edited: bool | None, web: list[dict]) -> tuple[str, str]:
-    """(class, why) — see the module doc."""
+def classify(c: dict, edited: bool | None, web: list[dict], grid_blind: bool = False) -> tuple[str, str]:
+    """(class, why) — see the module doc. `grid_blind`: the grid test is blind here and only the
+    straight-line test looked (it found no cut across the stream)."""
+    pol = c.get("polygon") or {}
+    multi = bool(pol.get("multi_crossing"))
     book = [s for s in c.get("sources") or [] if s.get("kind") != "tidal_gauge"]
     book_yes = [s for s in book if s.get("agrees") is True]
     book_no = [s for s in book if s.get("agrees") is False]
@@ -410,9 +527,19 @@ def classify(c: dict, edited: bool | None, web: list[dict]) -> tuple[str, str]:
         said.append(f"{len(unloc)} source(s) name a boundary but are not located")
     edit_s = {True: "polygon edited here", False: "polygon unedited", None: "edit can't be seen here "
               "(DFO data off the grid)"}[edited]
+    if multi:
+        gaps = ", ".join(f"{a:.0f}-{b:.0f}" for a, b in pol.get("gaps_filled") or [])
+        ign = ", ".join(f"{a:.0f}-{b:.0f}" for a, b in pol.get("ignored_pieces") or [])
+        said.append(f"crosses the polygon {pol.get('n_cuts')}x at "
+                    f"{', '.join(f'{m:.0f}' for m in pol.get('cuts') or [])} m"
+                    + (f"; gaps filled {gaps} m" if gaps else "") + (f"; patch ignored {ign} m" if ign else ""))
+    if grid_blind and edited is False:
+        edit_s = "polygon unedited (grid test blind here; no straight cut across the stream)"
     why = "; ".join([edit_s, *said])
     if no:
         return ("sanity" if edited else "missed"), why
+    if multi:
+        return "multi-crossing", why
     if edited:
         return "owner-edited", why
     if yes:
@@ -431,11 +558,17 @@ def triage(cands_doc: dict, edits: dict, web_doc: dict | None) -> dict:
     for c in cands_doc["candidates"]:
         edited, sids = edited_state(c, idx)
         used_sites.update(sids)
+        # the grid is blind here, but the straight-line test is not: no straight cut across this
+        # stream means no edit seen (owner, T212 follow-up 2: DFO's own outline has no long straight runs)
+        grid_blind = edited is None
+        if grid_blind:
+            edited = False
         web = []
         for w in web_by.get(c["id"], []):
             web.append({**w, "agrees": web_verdict(w, c)})
-        cls, why = classify(c, edited, web)
-        c["triage"] = {"class": cls, "edited": edited, "edit_sites": sids, "why": why, "web": web}
+        cls, why = classify(c, edited, web, grid_blind)
+        c["triage"] = {"class": cls, "edited": edited, "edit_sites": sids, "why": why, "web": web,
+                       **({"grid_blind": True} if grid_blind else {})}
         counts[cls] += 1
     cands_doc.setdefault("coverage", {})["by_triage"] = {k: counts.get(k, 0) for k in CLASSES}
     cands_doc["coverage"]["owner_edit_sites"] = len(idx["sites"])
@@ -454,7 +587,8 @@ def summary_md(doc: dict, edits: dict) -> str:
     L = ["# T212 follow-up — tidal triage: where the owner edited, and what he missed", "",
          "Generated by `python -m pipeline.tools.audit.tidal_triage` (read only). Each candidate in "
          "`tidal-candidates.json` now carries `triage` (class, edited, edit sites, web findings); the "
-         "curation review's **Tidal** tab shows only *missed* + *sanity* by default (\"show all\" for the rest).",
+         "curation review's **Tidal** tab shows only *missed* + *sanity* + *multi-crossing* by default (\"show "
+         "all\" for the rest).",
          "",
          "## How the edits were found",
          "",
@@ -463,10 +597,16 @@ def summary_md(doc: dict, edits: dict) -> str:
          "no longer resolves, and the BC WFS does not publish the subareas. So edits are found by a "
          "fingerprint, not a diff: DFO's vertices sit on a 1 cm grid in BC Albers; vertices added by hand "
          "do not. Runs of off-grid vertices among on-grid ones are edit sites (plus the 2 hand-drawn rows). "
-         "Blind spots: DFO's own off-grid stretch (south Vancouver Island / Gulf Islands — candidates there "
-         "are \"can't tell\"), and edits made only by deleting vertices.",
+         "The grid is blind in DFO's own off-grid stretch (south Vancouver Island / Gulf Islands) and to edits "
+         "made only by deleting vertices — the straight-line test below covers both.",
          "",
-         f"- Edit sites: **{len(sites)}** ({sum(1 for s in sites if s['kind']=='drawn')} hand-drawn rings); "
+         "Straight-line fingerprint (follow-up 2): DFO's outline follows the shore vertex by vertex, so an "
+         "edge of 50 m or more with no vertex between that CROSSES an FWA stream is a cut drawn across the "
+         "channel (kind `straight`). It works inside the off-grid stretch and sees cuts made only by deleting "
+         "vertices.",
+         "",
+         f"- Edit sites: **{len(sites)}** ({sum(1 for s in sites if s['kind']=='drawn')} hand-drawn rings, "
+         f"{sum(1 for s in sites if s['kind']=='straight')} straight cuts across a stream); "
          f"{len(used)} touch a candidate stream; {len(named_unused)} touch only named streams that are not "
          "candidates (listed at the end).",
          "",
@@ -474,6 +614,8 @@ def summary_md(doc: dict, edits: dict) -> str:
          "| class | meaning | count |", "|---|---|---|"]
     meaning = {"missed": "book/web disagrees, polygon unedited — **needs the owner**",
                "sanity": "book/web disagrees, polygon edited — check the edit",
+               "multi-crossing": "the line crosses the polygon several times; boundary = top of the run "
+                                 "joined to the mouth, gaps filled — **owner sees them**",
                "owner-edited": "polygon edited here — accepted (trusted)",
                "book agrees": "unedited; book/web within 300 m — accepted",
                "no claim": "unedited, no located claim — accepted at the polygon, low priority"}
@@ -481,7 +623,9 @@ def summary_md(doc: dict, edits: dict) -> str:
         L.append(f"| {k} | {meaning[k]} | {len(by[k])} |")
     L.append(f"| **total** | | {len(cs)} |")
     cant = sum(1 for c in cs if c["triage"]["edited"] is None)
-    L += ["", f"{cant} candidates sit where edits can't be seen (counted as unedited).", ""]
+    gb = [c for c in cs if c["triage"].get("grid_blind")]
+    L += ["", f"{cant} candidates where no edit can be seen at all; {len(gb)} sit where the grid test is blind "
+          "and were judged by the straight-line test alone (no straight cut across the stream: unedited).", ""]
 
     def _row(c):
         t = c["triage"]
@@ -489,7 +633,7 @@ def summary_md(doc: dict, edits: dict) -> str:
         words = []
         for s in c.get("sources") or []:
             if s.get("agrees") is False:
-                words.append(f"{s['kind']}: {s['words'][:90]} (@ {s.get('measure') or '?'} m)")
+                words.append(f"{s['kind']}: {s['words'][:90]} (@ {s['measure'] if s.get('measure') is not None else '?'} m)")
         for w in t["web"]:
             if w.get("agrees") is False:
                 words.append(f"web: {w['marker']} — [{w['site']}]({w['url']})")
@@ -500,6 +644,43 @@ def summary_md(doc: dict, edits: dict) -> str:
         L += [f"## {title} ({len(by[k])})", "", "| stream | polygon | what disagrees | why |", "|---|---|---|---|"]
         L += [_row(c) for c in by[k]] or ["| — | | | |"]
         L.append("")
+    multi = [c for c in cs if (c.get("polygon") or {}).get("multi_crossing")]
+    L += [f"## Multi-crossing streams ({len(multi)}; {len(by['multi-crossing'])} in the class, the rest are "
+          "missed/sanity first)", "",
+          "The polygon is drawn up the river to the top of tidal water; where the FWA line wanders out of it "
+          "and back in, the gaps are filled. An upstream piece the polygon does not join to the run within "
+          "250 m of the river is a separate patch and ignored.", "",
+          "| stream | class | crossings (m above mouth) | boundary (top) | gaps filled | patches ignored |",
+          "|---|---|---|---|---|---|"]
+
+    def _iv(v):
+        return ", ".join(f"{a:.0f}-{b:.0f}" for a, b in v or []) or "—"
+    for c in multi:
+        p = c["polygon"]
+        L.append(f"| {c['water']} (blk {c['blk']}) | {c['triage']['class']} | "
+                 f"{', '.join(f'{m:.0f}' for m in p.get('cuts') or [])}{' …' if p.get('n_cuts', 0) > 12 else ''} | "
+                 f"{p.get('measure')} | {_iv(p.get('gaps_filled'))} | {_iv(p.get('ignored_pieces'))} |")
+    L.append("")
+    sk = [c for c in cs if c["water"] == "Skeena River" or c.get("joins_big_river_tidal_reach_at_m") is not None]
+    L += ["## Skeena and the big rivers' tidal tributaries", ""]
+    for c in sk:
+        if c["water"] != "Skeena River":
+            continue
+        pr = c["proposed"]
+        L.append(f"- **Skeena River** (blk {c['blk']}): proposed {pr['above_mouth_m']:.0f} m above the FWA "
+                 f"mouth at {pr['coord'][1]:.5f}, {pr['coord'][0]:.5f} ({pr['basis']}); confidence "
+                 f"{c['confidence']}; triage {c['triage']['class']}.")
+        for src in c.get("sources") or []:
+            L.append(f"  - {src['kind']}: {src['words'][:160]} — {src['source']}"
+                     + (f" (@ {src['measure']:.0f} m, {src.get('located_by')})" if src.get("measure") is not None else ""))
+        for w in c["triage"]["web"]:
+            L.append(f"  - web ({w.get('confidence')}): {w['marker']} — [{w['site'][:90]}]({w['url']})"
+                     + (f" (@ {w['located']['measure']:.0f} m)" if w.get("located") else ""))
+    tr = [c for c in sk if c["water"] != "Skeena River"]
+    L.append(f"- Named tributaries entering the Fraser / Skeena / Nass below that river's tidal top: {len(tr)}"
+             + (": " + ", ".join(f"{c['water']} (joins at {c['joins_big_river_tidal_reach_at_m']:.0f} m)" for c in tr)
+                if tr else "") + ".")
+    L.append("")
     web_n = sum(len(c["triage"]["web"]) for c in cs)
     L += [f"## Web findings ({web_n} on {sum(1 for c in cs if c['triage']['web'])} streams)", "",
           "| stream | marker | agrees? | conf | source |", "|---|---|---|---|---|"]
