@@ -6,8 +6,8 @@
    "section_handles": "15745aa46e2f0c0d",
    "reach_digest": "9c314ece0a03ec99",
    "rule_ids_sha256": "ddafd3cfc412bdae",
-   "answers_sha256": "dee9ff9b154867d7fde2fbf4f9501a68dac039ee83dd7bd925ee0e6a1d7cb8e0",
-   "store_digest": "14b034c89f8d8df0",
+   "answers_sha256": "38d78d8a54f38da86cddbe3bc6726b384cd19c19943dc268f77a41d0f706ebcc",
+   "store_digest": "b7c60c950531c54e",
    "layout": "{\"top\":[\"about\",\"spec\",\"schemas\",\"fish\",\"keys\",\"segments\",\"moments\",\"segment_moments\",\"parts\",\"places\",\"unnamed\",\"glossary\",\"sections\"],\"sections\":{\"ladder\":[\"version\",\"at\",\"reasons\",\"reason_state\",\"verdicts\",\"frames\"],\"rows\":[\"version\",\"at\",\"decided\",\"rows\",\"strips\",\"frames\"],\"gear\":[\"version\",\"at\",\"frames\",\"province_methods\",\"parent\",\"methods\",\"count_nouns\",\"moments\",\"conduct_means\"],\"licence\":[\"version\",\"at\",\"holds\",\"answers\",\"documents\",\"under_16\",\"frames\",\"profiles\",\"profile_dims\",\"residency_labels\",\"profile_labels\"],\"display\":[\"version\",\"at\",\"frames\",\"rules\",\"waters\",\"strip\",\"reasons\",\"licensing\"]},\"versions\":{\"ladder\":1,\"rows\":33,\"gear\":12,\"licence\":7,\"display\":18}}"
   },
   "golden": "bdda3586",
