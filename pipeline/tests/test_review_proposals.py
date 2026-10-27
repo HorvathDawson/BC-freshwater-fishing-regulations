@@ -18,7 +18,6 @@ Reads the checked-in catalogue / DFO / splits.json (copied into temp dirs) and n
 from __future__ import annotations
 
 import json
-import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -84,6 +83,19 @@ def owner_marks() -> list[M.Mark]:
     ]
 
 
+#: the commit the owner's 2026-10-27 marks were made against: every one of them was APPLIED after it
+#: (8459fa16..897b96f4, Hatzic held), so the live files no longer yield these proposals
+MARKED_AT = "2bd29a26"
+
+
+def _as_marked(path: Path, dst: Path) -> None:
+    """`path` as it stood at MARKED_AT (the files the proposals were built from)."""
+    rel = Path(path).resolve().relative_to(P.REPO.resolve()).as_posix()
+    got = subprocess.run(["git", "show", f"{MARKED_AT}:{rel}"], cwd=P.REPO, capture_output=True,
+                         check=True)
+    dst.write_bytes(got.stdout)
+
+
 @pytest.fixture()
 def src(tmp_path) -> P.Sources:
     """Temp copies of the files a proposal edits, and a build whose registry names the Quinsam."""
@@ -91,9 +103,9 @@ def src(tmp_path) -> P.Sources:
     cat.mkdir(parents=True)
     dfo.mkdir(parents=True)
     for name in ("region-2.json", "region-5.json"):
-        shutil.copy2(CURATED.regulations.entries.catalogue / name, cat / name)
-    shutil.copy2(Path(CURATED.regulations.entries.dfo_salmon) / "region-1.json", dfo / "region-1.json")
-    shutil.copy2(CURATED.waters.splits, tmp_path / "data/curated/splits.json")
+        _as_marked(CURATED.regulations.entries.catalogue / name, cat / name)
+    _as_marked(Path(CURATED.regulations.entries.dfo_salmon) / "region-1.json", dfo / "region-1.json")
+    _as_marked(CURATED.waters.splits, tmp_path / "data/curated/splits.json")
     build = tmp_path / "build"
     build.mkdir()
     (build / "registry.json").write_text(json.dumps({"items": [
