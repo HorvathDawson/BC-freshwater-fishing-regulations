@@ -255,6 +255,7 @@ use that as the sole source of future work."
 | T207 | "on parts" is a note; unused-cut false positives; split confidence end to end; White/Fulton/Chuckwalla/Cranberry cuts | DONE | 04315ec5 0e605022 48239620 c127eff6 | built in r-d32f814feac0; 8 DFO scopes bound; Burton/Kootenay cuts unbindable (owner to re-place); 18 left as high severity |
 | T209 | vessel restrictions in the app: boats line (electric only, no powered boats, power cap, speed, towing, no vessels) on the water page + map sheet | OPEN | — | 390 vessel_rule rules; electric_only kW decision |
 | T210 | DFO review mode: proposed splits shared along the river, Place y without a new split, simpler new-split UI | DONE | 0805e479 | proposals deduped across all marks (2 distinct; 1 duplicate pair folded), server reuses ids, Place y with existing-cut fix, 3-step new-split UI; owner tries it |
+| T211 | DFO salmon regs in the app (options), the DFO feed plan, historic extent matching, new-location alert | OPEN | — | plans first (owner picks), then code |
 
 ## Order for open tickets
 
