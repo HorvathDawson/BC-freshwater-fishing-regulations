@@ -5,14 +5,14 @@
   "mask",
   "paint"
  ],
- "visit | first search": [
-  "near"
- ],
+ "visit | first search": [],
  "visit | search: show a water": [
-  "regs-3",
+  "geo",
+  "regs-3"
+ ],
+ "visit | search: open the water (R3)": [
   "water"
  ],
- "visit | search: open the water (R3)": [],
  "tap named | first paint": [
   "feed:index",
   "manifest",
@@ -31,7 +31,7 @@
  ],
  "tap unnamed | map tap: an unnamed stream (R2)": [
   "access",
-  "conditions",
+  "down",
   "regs-sid",
   "water"
  ],
@@ -57,6 +57,7 @@
  "region 1 | cold open gnis:21141 (start link)": [
   "core",
   "feed:index",
+  "geo",
   "manifest",
   "paint",
   "regs-1",
@@ -66,6 +67,7 @@
  "region 2 | cold open gnis:15333 (start link)": [
   "core",
   "feed:index",
+  "geo",
   "manifest",
   "paint",
   "regs-2",
@@ -75,6 +77,7 @@
  "region 3 | cold open gnis:39492 (start link)": [
   "core",
   "feed:index",
+  "geo",
   "manifest",
   "paint",
   "regs-3",
@@ -84,6 +87,7 @@
  "region 4 | cold open gnis:37414 (start link)": [
   "core",
   "feed:index",
+  "geo",
   "manifest",
   "paint",
   "regs-4",
@@ -93,6 +97,7 @@
  "region 5 | cold open gnis:13744 (start link)": [
   "core",
   "feed:index",
+  "geo",
   "manifest",
   "paint",
   "regs-5",
@@ -102,6 +107,7 @@
  "region 6 | cold open gnis:15430 (start link)": [
   "core",
   "feed:index",
+  "geo",
   "manifest",
   "paint",
   "regs-6",
@@ -111,6 +117,7 @@
  "region 8 | cold open gnis:32069 (start link)": [
   "core",
   "feed:index",
+  "geo",
   "manifest",
   "paint",
   "regs-8",
@@ -120,6 +127,7 @@
  "region 7a | cold open gnis:8018 (start link)": [
   "core",
   "feed:index",
+  "geo",
   "manifest",
   "paint",
   "regs-7a",
@@ -129,6 +137,7 @@
  "region 7b | cold open gnis:14619 (start link)": [
   "core",
   "feed:index",
+  "geo",
   "manifest",
   "paint",
   "regs-7b",

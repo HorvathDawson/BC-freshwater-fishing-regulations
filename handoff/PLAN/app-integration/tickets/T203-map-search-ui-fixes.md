@@ -1,6 +1,6 @@
 # T203 — app UI: jumpy "Flows into" chip, search lands on the map, amber highlight
 
-Status: PARTIAL
+Status: DONE (items 4-5 -> T204)
 
 Source: owner 2026-10-25, using the app.
 
@@ -53,3 +53,5 @@ owner phone check.
 unnamed-stream tap opens "" — update the walk for the T203 landing, then re-pin it on the split release
 (`node app/tools/request-walk.mjs --url http://localhost:39218 --pin`; T182). Until then `release-budget`'s
 "live release is split, pin is not" check fails — the only red in `pnpm -C app check`.
+
+- 2026-10-27: follow-up done. The request walk waits for `water-title` after a search/tap, then goes on to the Regulations (search: "Show regulations for this part"; tap: the tab it opens on); re-pinned on the live split release (:39218).

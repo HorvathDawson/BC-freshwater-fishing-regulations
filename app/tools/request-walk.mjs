@@ -123,7 +123,12 @@ async function visit() {
     await s.idle(); record('visit', 'first search', s.take());
     await s.press('Show Thompson River,', { prefix: true }); await s.idle(); record('visit', 'search: show a water', s.take());
     await s.press('Open Thompson River,', { prefix: true });
-    await s.until(`!!document.querySelector('[data-testid=regs-header]')`); await s.idle();
+    // T203: a search result lands on the Map; the water's title shows there, and the Regs page is a further step
+    await s.until(`!!document.querySelector('[data-testid=water-title]')?.innerText.trim()`);
+    // it opens on the water's Map tab; the walk goes on to the Regulations, as an angler reading them would
+    await s.until(`!!document.querySelector('[data-testid=water-map-regs]')`, 60000, 'the water\'s map');
+    await s.press('Show regulations for this part');
+    await s.until(`!!document.querySelector('[data-testid=regs-header]')`, 60000, 'the water\'s Regulations'); await s.idle();
     record('visit', 'search: open the water (R3)', s.take());
   } finally { await s.b.close(); }
 }
@@ -168,9 +173,11 @@ async function taps() {
       await firstPaint(s, t.walk);
       for (const type of ['mouseMoved', 'mousePressed', 'mouseReleased'])
         await s.b.send('Input.dispatchMouseEvent', { type, x: t.x, y: t.y, button: 'left', clickCount: 1 });
-      await s.until(`!!document.querySelector('[data-testid=regs-header]')`, 60000, `a tap at ${t.x},${t.y} to open a water`);
+      await s.until(`!!document.querySelector('[data-testid=water-title]')?.innerText.trim()`, 60000, `a tap at ${t.x},${t.y} to open a water`);
       const head = await s.b.evaluate(`document.querySelector('[data-testid=water-title]')?.innerText ?? ''`);
       if (!head.startsWith(t.name)) throw new Error(`the tap at ${t.x},${t.y} opened "${head.split('\n')[0]}", not ${t.name}`);
+      // the water opens on its Regulations tab (T203: the title shows first, the page after)
+      await s.until(`!!document.querySelector('[data-testid=regs-header]')`, 60000, `the Regulations of ${t.name}`);
       await s.idle(); record(t.walk, t.moment, s.take());
     } finally { await s.b.close(); }
   }

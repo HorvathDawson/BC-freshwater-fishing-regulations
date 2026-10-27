@@ -37,6 +37,10 @@ const releaseFiles = (moment: string): string[] => {
   if (!files) throw new Error(`the walk pins no moment "${moment}" (node tools/request-walk.mjs --pin)`);
   return files.filter((f) => !/^(feed:|wasm$)/.test(f)).map((f) => (/^regs-(\d|7[ab])/.test(f) ? "regs-{region}" : f));
 };
+/** Priced into the tap gate, fetched only when the tapped page needs it: `geo` is read with the page's access note
+ *  (navRows), and the walk's taps (Gravel Slough; an unnamed R2 stream) carry none — measured on the split release
+ *  (T182), so the gate stays the worst case and the pin shows what the walk's waters really fetch. */
+const CONDITIONAL = ["geo"];
 const sorted = (xs: readonly string[]) => [...xs].sort();
 
 /** Which pinned moment each gate prices. */
@@ -68,7 +72,7 @@ describe("the pinned walk fetches what the budget prices", () => {
   it.skipIf(!PIN_SPLIT)("every gate names a pinned moment, and that moment (with its prefetch) fetches exactly the gate's files, once each", () => {
     expect(sorted(Object.keys(WEB_BUDGET))).toEqual(sorted(Object.keys(GATED)));
     for (const [gate, moment] of Object.entries(GATED))
-      expect([gate, sorted(withPrefetch(moment, WEB_BUDGET[gate]!.files))]).toEqual([gate, sorted(WEB_BUDGET[gate]!.files)]);
+      expect([gate, sorted(withPrefetch(moment, WEB_BUDGET[gate]!.files))]).toEqual([gate, sorted(WEB_BUDGET[gate]!.files.filter((f) => !CONDITIONAL.includes(f)))]);
   });
 
   it("T182: a pin cut before the split files is only accepted while the live release predates them too", () => {
@@ -83,9 +87,9 @@ describe("the pinned walk fetches what the budget prices", () => {
     for (const [k, files] of prefetches) expect([k, files]).toEqual([k, ["core", "regs-2", "wasm"]]);
     // Save-Data: the region's file only; the tap then fetches core and the wasm itself
     expect(PIN["tap named (save-data) | prefetch after paint"]).toEqual(["regs-2"]);
-    // (T182) a split release's named tap also reads geo (the water map's boxes, beside the page's access note)
+    // (T182) geo (the water map's boxes) is read only with an access note: this tap has none
     expect(PIN["tap named (save-data) | map tap: a named water (R2)"])
-      .toEqual(PIN_SPLIT ? ["access", "core", "geo", "wasm", "water"] : ["access", "core", "wasm", "water"]);
+      .toEqual(["access", "core", "wasm", "water"]);
   });
 
   it("T186: no file is fetched twice — a moment after the prefetch asks for none of what it took", () => {
@@ -93,7 +97,7 @@ describe("the pinned walk fetches what the budget prices", () => {
       .flatMap((k) => PIN[k]!.filter((f) => PIN[prefetchOf(k)]!.includes(f)).map((f) => `${k}: ${f}`));
     expect(twice).toEqual([]);
     // the named tap in the prefetched region: no region file, no core, no engine — water and access are its own
-    expect(PIN["tap named | map tap: a named water (R2)"]).toEqual(PIN_SPLIT ? ["access", "geo", "water"] : ["access", "water"]);
+    expect(PIN["tap named | map tap: a named water (R2)"]).toEqual(["access", "water"]);
   });
 
   it("before the first question nothing but the manifest, paint and the mask (and the feed's index) — every walk", () => {

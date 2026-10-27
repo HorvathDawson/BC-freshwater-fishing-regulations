@@ -84,3 +84,5 @@ Expect from (3): the named tap fetches access + geo + water (prefetch took core 
 conditions), the first search nothing (core prefetched), Conditions conditions + flow-area. If the walk differs
 (e.g. Conditions still asks core, or the unnamed tap reads geo), the gate lists in `contract.WEB_BUDGET` follow the
 walk, not the other way.
+
+- 2026-10-27: walk re-cut on the live split release (`request-walk.pin.json`, 31 moments). Measured: neither walk tap reads `geo` (only with an access note), so `release-budget.test.ts` treats `geo` as a conditional file of `first_tap`; the contract still prices it (worst case).
