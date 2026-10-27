@@ -29,7 +29,7 @@ it("7. golden.json and taps.json are from one sync", () => {
   // (T183) and the West Road's x27p1 merged into part 0, (2026-10-27) the Columbia's x18p3 split in two by its Mud Lake
   // speed limit: 126 tapped + 8 gone = 134
   expect([T.meta.golden, golden().meta.version, ids.length, Object.keys(T.gone).length, Object.keys(golden().states).length])
-    .toEqual(["bdda3586", "v38", 126, 8, 134]);
+    .toEqual(["d7b1ed35", "v38", 126, 8, 134]);
   expect([...Object.keys(T.states), ...Object.keys(T.gone)].sort()).toEqual(Object.keys(golden().states).sort());
 });
 

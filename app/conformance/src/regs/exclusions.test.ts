@@ -156,9 +156,9 @@ describe("(T21) the whole Keep tab", () => {
 });
 
 describe("pins (T28, IMPLEMENT-HANDOFF C5)", () => {
-  it("no golden state carries the v33 pinUpdate throw at v38 @ bdda3586; no state is dropped, only the Kitimat ruling's tier lines", () => {
+  it("no golden state carries the v33 pinUpdate throw at v38 @ d7b1ed35 (golden synced at HEAD 2026-10-27; v36snap carries the size-rule duty wording); no state is dropped, only the Kitimat ruling's tier lines", () => {
     const errs = Object.entries(G.states).filter(([, s]) => !!(s.pins as { error?: unknown } | null)?.error).map(([id]) => id);
-    expect([G.meta.version, G.meta.sha, errs]).toEqual(["v38", "bdda3586", []]);
+    expect([G.meta.version, G.meta.sha, errs]).toEqual(["v38", "d7b1ed35", []]);
     // no state is dropped for a pins reason; (T115) the 4 whose part the release merged away are dropped from every block
     expect(Object.keys(G.states).filter((id) => excluded("pins", id) !== null).sort()).toEqual(Object.keys(T.gone).sort());
     expect(excluded("pins", "x14p1_1010", "anchors.0.tiers")?.reason).toMatch(/^OWNER RULING 2026-10-21 \(a\)/);

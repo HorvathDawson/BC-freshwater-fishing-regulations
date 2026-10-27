@@ -2,8 +2,8 @@
  "meta": {
   "generator": "app/design/regs-v11/port/hydrate.mjs",
   "ref": "HEAD",
-  "sha": "e18aabee",
-  "golden": "bdda3586",
+  "sha": "cf6a20ef",
+  "golden": "d7b1ed35",
   "version": "v38",
   "year": 2026,
   "decodeLines": "1-246"
