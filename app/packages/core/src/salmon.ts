@@ -12,7 +12,7 @@
  * Layout (little-endian, varints LEB128): b"BCSA", u8 1, 8 bytes of the section_handles digest, u32 JSON length, the
  * UTF-8 JSON payload, then a run count and per run: sid gap (from the previous run's end), count, chain.
  */
-import { MONTHS } from "./calendar.generated";
+import { DAYS_BEFORE_MONTH, MONTHS } from "./calendar.generated";
 
 export const SALMON_SPECIES = ["CH", "CO", "SK", "PK", "CM"] as const;
 export type SalmonSpecies = typeof SALMON_SPECIES[number];
@@ -103,13 +103,11 @@ export function decodeSalmon(b: Uint8Array, handles: string): SalmonFacts {
 
 // ── the day ──────────────────────────────────────────────────────────────────────────────────────────────────────────
 
-const MONTH_DAYS = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-const MONTH_START = MONTH_DAYS.reduce<number[]>((a, n, k) => [...a, a[k]! + n], [0]);
 
 /** The file's day index of a LOCAL calendar date: Jan 1 = 0 … Dec 31 = 365 (Feb 29 is 59 every year; DFO's dates have
  *  no year, so Mar 1 is 60 in every year). */
 export function salmonDayIndex(d: Date): number {
-  return MONTH_START[d.getMonth()]! + d.getDate() - 1;
+  return DAYS_BEFORE_MONTH[d.getMonth()]! + d.getDate() - 1;
 }
 
 /** The value of runs [start0, v0, start1, v1, …] on day `day`. */

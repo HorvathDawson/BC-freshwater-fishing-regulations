@@ -134,6 +134,10 @@ def test_gate_1_goes_red_on_a_planted_call():
 #: The export's record writer ships `may_target` as a field (0/1 -> false/true); it decides nothing.
 MAY_TARGET_WRITERS = {("pipeline/deliver/export/read.py", "_rule_record")}
 
+#: (T211) The DFO salmon chain reads the TYPED DFO FEED's own `may_target` (a federal record, never the
+#: bundle's provincial closure field): a different authority's vocabulary, so it is not a second closure reader.
+DFO_FEED_READS = {("pipeline/deliver/salmon.py", "verdict_on")}
+
 
 def may_target_reads(sources: dict[str, str]) -> set[tuple[str, str]]:
     """(module, qualname) of every READ of `may_target` — `x["may_target"]`, `x.get("may_target")`,
@@ -172,7 +176,7 @@ def may_target_reads(sources: dict[str, str]) -> set[tuple[str, str]]:
 
 
 def test_gate_2_closure_is_read_in_one_place():
-    assert may_target_reads(_sources()) - MAY_TARGET_WRITERS == set()
+    assert may_target_reads(_sources()) - MAY_TARGET_WRITERS - DFO_FEED_READS == set()
 
 
 def test_gate_2_goes_red_on_a_planted_spelling():

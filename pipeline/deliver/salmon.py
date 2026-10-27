@@ -42,6 +42,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 
+from pipeline.common import calendar_spec
 from pipeline.deliver.binary import put_varint, read_varint
 
 FORMAT = "salmon/1"
@@ -62,8 +63,7 @@ PAGE_URL = "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region{slug}-eng
 _GEAR_TYPES = {"tackle_restriction", "bait_restriction", "gear_restriction", "method_restriction"}
 
 #: every calendar day as MMDD, Jan 1 → Dec 31 of a leap year (index = the app's day index)
-_MONTH_DAYS = (31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
-DAYS: Tuple[int, ...] = tuple((m + 1) * 100 + d for m, n in enumerate(_MONTH_DAYS) for d in range(1, n + 1))
+DAYS: Tuple[int, ...] = tuple(m * 100 + d for m, d in map(calendar_spec.month_day, range(1, calendar_spec.DAYS + 1)))
 
 
 class SalmonError(SystemExit):
