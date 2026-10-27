@@ -1,6 +1,6 @@
 # T206 — App golden parity after the retired overlapping rules (z1/z2 r3, Khartoum/Lois r3)
 
-Status: OPEN
+Status: DONE (66a0aa70) — re-cut on r-f6918815ca78
 
 Source: overlapping-rules.md, accepted 2026-10-26 and applied (decisions.md). The release r-3d6399afd7e2 drops
 `z1:trout_quota.r3`, `z2:trout_char_quota.r3`, `khartoum_lake.r3` and `lois_lake.r3`. The binding diff shows only those 4
@@ -60,3 +60,17 @@ exclusion) or make the tie-break name-independent (code, then deliver + re-cut).
   set, everything else in order) or the oracle re-cut (option 2).
 - The handle re-pins need the OLD fixture's handles mapped to the new ones by section id. `atlas/full.prev` is not
   the pinned atlas (the 380887xxx added streams differ).
+
+## 2026-10-27 — DONE (66a0aa70)
+Amended the oracle at load (oracles.ts), with no re-cut. `REGS_STORE_REQUIRED=1 pnpm -C app check` is green apart from
+release-budget (T203).
+- ORDER: `flipsOver` and `renamedOrder`. A pair may differ in order only where the rename swapped the two rules' store
+  numbering. This covers the settle lists, card broad, card spp (by the rules naming the fish), and the Region 4
+  Other-fish sheet links and zone lines.
+- `ORACLE_RETIRED`: the retired rules are dropped from the oracle lists, and describe keeps its 726 pin. `retiredRuled`
+  rewrites the r3 lines in the golden (23 trout source sheets, x37p2's where-not and its r3 sheet). `LOIS_FOLD`: the card
+  rows fold, and the golden/pins group r2 "Steelhead" becomes r1 "Rainbow trout and steelhead".
+- `ORACLE_ON_PARTS_DROPPED` (c16b1c5f): inpart → speaks, part null. The six new Boats blocks are pinned.
+- Re-pins: unnamed H_ATLAS 15745aa46e2f0c0d, the waterGroup/WaterMapView handles (each checked by section id in
+  atlas/full), and the ticket literals. The taps, harness and regs-fixture were re-cut. SheetHost reads a slice of the
+  ruled golden.
