@@ -57,6 +57,10 @@ def promote(candidate: Path, name: str | None = None, *, dry_run: bool = False,
         from pipeline.common.vintage import promoted_atlas
         carrier = promoted_atlas(prev, Path(tiles) if tiles else GENERATED.tiles,
                                  Path(bundle) if bundle else GENERATED.bundle / "bundle.sqlite")
+        # the current build carries the SAME sid space (a promote that moved only the registry): it becomes the new
+        # `.prev` and still is what the shipped artifacts were cut from, so the old `.prev` holds nothing they need
+        if carrier and _same_handles(prev, target):
+            carrier = None
         if carrier:
             raise SystemExit(f"promote: {prev} is still what {carrier} was cut from — rebuild the "
                              f"shipped artifacts from {target} before promoting again")
@@ -67,6 +71,15 @@ def promote(candidate: Path, name: str | None = None, *, dry_run: bool = False,
     candidate.rename(target)
     log(f"  {candidate.name} -> {target.name}")
     return {"from": str(candidate), "to": str(target), "prev": str(prev), "parity": parity}
+
+
+def _same_handles(a: Path, b: Path) -> bool:
+    """Whether two atlas directories have one handle table (`section_handles.txt` digest)."""
+    from pipeline.common.section_handles import digest_for
+    try:
+        return (a / HANDLES).exists() and (b / HANDLES).exists() and digest_for(a) == digest_for(b)
+    except Exception:            # noqa: BLE001 — unreadable: not provably the same
+        return False
 
 
 def main(argv=None) -> int:

@@ -391,6 +391,33 @@ def test_a_promoted_atlas_is_recognised_by_its_shipped_digest(tmp_path):
     assert promoted_atlas(tmp_path / "none", tiles, bundle) is None
 
 
+def test_promote_drops_a_prev_only_when_the_current_build_shares_its_sid_space(tmp_path, monkeypatch):
+    """The live tiles carry `.prev`'s handle digest. When the current build has the SAME handle table (a promote that
+    moved only the registry), it becomes the new `.prev` and still carries them: the promote goes on. A different
+    one is refused, as before."""
+    import pipeline.atlas.promote as P
+    from pipeline.common.section_handles import write as write_handles, digest_for
+    monkeypatch.setattr(P.subprocess, "run", lambda *a, **k: type("R", (), {"stdout": "", "stderr": ""})())
+    tiles, bundle = tmp_path / "tiles", tmp_path / "bundle.sqlite"
+    tiles.mkdir()
+
+    def atlas(name, ids):
+        d = tmp_path / name
+        d.mkdir()
+        write_handles(ids, d)
+        (d / "registry.json").write_text("{}")
+        return d
+    full, prev, nxt = atlas("full", ["a:1"]), atlas("full.prev", ["a:1"]), atlas("full_next", ["a:1", "a:2"])
+    old, new = digest_for(full), digest_for(nxt)
+    (tiles / "atlas.meta.json").write_text(json.dumps({"section_handles": digest_for(prev)}))
+    P.promote(nxt, target=full, tiles=tiles, bundle=bundle, log=lambda *_: None)
+    assert (digest_for(full), digest_for(prev), nxt.exists()) == (new, old, False)
+    # now `.prev` (the old full) carries the tiles' digest and the current build does not: refused
+    nxt2 = atlas("full_next", ["b:1"])
+    with pytest.raises(SystemExit, match="still what"):
+        P.promote(nxt2, target=full, tiles=tiles, bundle=bundle, log=lambda *_: None)
+
+
 def test_promote_refuses_an_unfinished_candidate(tmp_path):
     from pipeline.atlas.promote import promote
     with pytest.raises(SystemExit, match="not a finished atlas"):
