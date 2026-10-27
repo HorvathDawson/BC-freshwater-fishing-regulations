@@ -112,7 +112,7 @@ def test_the_export_carries_it_and_a_part_label_says_it():
 
 def test_the_release_contract_and_the_app_s_generated_pack_carry_it():
     from pipeline.deliver.release.contract import FILES
-    assert FILES["water"]["tables"]["part_mark"][-1] == "confidence"
+    assert FILES["water"]["tables"]["part_mark"][7] == "confidence"      # T204 appended the stretch columns after it
     from pipeline.deliver.export.contract import REQUIRED_COLUMNS
     assert "confidence" in REQUIRED_COLUMNS["split"]
     r = subprocess.run([sys.executable, "-m", "pipeline.tools.emit.pack", "--check"], cwd=REPO,

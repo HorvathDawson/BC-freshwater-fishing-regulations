@@ -153,8 +153,12 @@ def build(release: Path, items: Sequence[str], handles: Sequence[int], out_root:
         files["water"] = B.copy_file(work / "water.sqlite", {"s": src["water"]}, plan, {**meta["water"], **fix})
         # (T182) a release cut with the split files holds the water map's boxes in `geo`: the kept waters' rows
         if "geo" in src:
+            # (T204) and their stretches, when the release has the table
+            has_st = con["geo"].execute("SELECT 1 FROM sqlite_master WHERE name = 'part_stretch'").fetchone()
             files["geo"] = B.copy_file(work / "geo.sqlite", {"s": src["geo"]},
-                                       [("s", "part_geo", f"WHERE ord IN ({_ids(kept_ords)})")], {**meta["geo"], **fix})
+                                       [("s", t, f"WHERE ord IN ({_ids(kept_ords)})")
+                                        for t in ("part_geo", "part_stretch") if t == "part_geo" or has_st],
+                                       {**meta["geo"], **fix})
 
         zd = dict(con["water"].execute("SELECT tbl, d FROM zdict"))
         for r in sorted(regions):

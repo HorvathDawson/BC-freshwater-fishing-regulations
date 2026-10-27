@@ -17,7 +17,7 @@ async function rowsOf(store: GroupStore, ord: number): Promise<ItemNavRows> {
   return {
     ord, item: item.id, name: item.name, kind: item.kind,
     parts: parts.map((p) => ({ partIx: p.partIx, label: p.facts?.label ?? item.name, short: p.facts?.short ?? item.name })),
-    geo: nav.geo, marks: nav.marks, sections: nav.sections, exit: nav.exit,
+    geo: nav.geo, marks: nav.marks, sections: nav.sections, stretches: nav.stretches, exit: nav.exit,
     continuesAs: nav.continuesAs, continuesFrom: nav.continuesFrom,
   };
 }

@@ -354,3 +354,57 @@ describe("T207: a cut placed approximately says so on its boundary", () => {
     expect([isConfidence("low"), isConfidence("certain"), isConfidence(null)]).toEqual([true, false, false]);
   });
 });
+
+/** (T204) Kanaka Creek (ord 455) as the T204 bundle writes it: part 0 is below the 112 Avenue bridge AND above Cliff
+ *  Park Falls (two stretches), part 1 between them; the pair meets at BOTH places. */
+const KANAKA: ItemNavRows = {
+  ord: 455, item: "gnis:11318", name: "Kanaka Creek", kind: "stream",
+  parts: [
+    { partIx: 0, label: "Two stretches: from the mouth up to the 112 Avenue bridge, and from Cliff Park Falls up to the top of the river", short: "Mouth → Source (2 stretches)" },
+    { partIx: 1, label: "From the 112 Avenue bridge up to Cliff Park Falls", short: "112 Avenue bridge → Cliff Park Falls" },
+  ],
+  geo: [geo(1, 0, [-122540000, 49205000], -122550000, 49200000, -122530000, 49210000),
+        geo(0, 1, [-122500000, 49220000], -122650000, 49190000, -122400000, 49250000)],
+  marks: [
+    { ...mark(-122550000, 49200000, "112 Avenue bridge", 0, [1]), downStretch: 0 },
+    { ...mark(-122536222, 49207142, "Cliff Park Falls", 1, [0]), upStretches: [1] },
+  ],
+  sections: secs({ 0: [294874, 294876, 294877], 1: [294875] }),
+  stretches: [
+    { partIx: 0, stretch: 0, rank: 0, box: [-122.65, 49.19, -122.55, 49.2], mid: [-122.6, 49.195], sids: [294874] },
+    { partIx: 1, stretch: 0, rank: 1, box: [-122.55, 49.2, -122.53, 49.21], mid: [-122.54, 49.205], sids: [294875] },
+    { partIx: 0, stretch: 1, rank: 2, box: [-122.53, 49.21, -122.4, 49.25], mid: [-122.45, 49.23], sids: [294876, 294877] },
+  ],
+  exit: null,
+};
+
+describe("T204: a part's separate stretches", () => {
+  it("Kanaka: three entries mouth first — part 0's lower stretch, part 1, part 0's upper stretch — each its own name", () => {
+    const g = waterGroup([KANAKA]);
+    expect(g.parts.map((p) => [p.partIx, p.stretch ?? 0, p.sids])).toEqual([
+      [0, 0, [294874]], [1, 0, [294875]], [0, 1, [294876, 294877]]]);
+    expect([0, 1, 2].map((i) => partName(g, i))).toEqual([
+      "Mouth → Source (2 stretches) · stretch 1 of 2", "112 Avenue bridge → Cliff Park Falls",
+      "Mouth → Source (2 stretches) · stretch 2 of 2"]);
+  });
+
+  it("Kanaka: the bridge is below part 1 and the falls above it — each mark on the stretch that meets there", () => {
+    const g = waterGroup([KANAKA]);
+    expect(g.marks.map((m) => [m.label, m.down, m.up])).toEqual([["112 Avenue bridge", 0, [1]], ["Cliff Park Falls", 1, [2]]]);
+    expect(stepsUp(g, 0)).toEqual([1]);
+    expect(stepsUp(g, 1)).toEqual([2]);
+    expect(stepDown(g, 2)).toBe(1);
+    // each stretch is lit and framed on its own
+    expect(navSections(g, 2)).toEqual({ selected: [294876, 294877], water: [294874, 294875] });
+    expect(partBounds(g, 0)).toEqual([-122.65, 49.19, -122.55, 49.2]);
+    // the regulations are the part's: both stretches open part 0
+    expect(partAt(g, "gnis:11318", 0)).toBe(0);
+    expect(partOfSection(g, 294877)).toBe(2);
+  });
+
+  it("Chilliwack (a chain, no stretch rows) is unchanged", () => {
+    const g = waterGroup([CHILLIWACK]);
+    expect(g.parts.map((p) => [p.partIx, p.stretch])).toEqual([[1, undefined], [2, undefined], [0, undefined], [3, undefined]]);
+    expect(g.marks.map((m) => [m.down, m.up])).toEqual([[2, [3]], [0, [1]], [1, [2]]]);
+  });
+});

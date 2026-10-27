@@ -111,8 +111,17 @@ export interface NavRows {
   readonly marks: readonly { readonly lon: number; readonly lat: number; readonly label: string | null;
                              readonly down: number; readonly up: readonly number[];
                              /** T207: the named cut's confidence where it is not high (`part_mark.confidence`) */
-                             readonly confidence?: Confidence }[];
+                             readonly confidence?: Confidence;
+                             /** T204: the stretch of `down` and of each of `up` (`part_mark.down_stretch` /
+                              *  `up_stretches`); absent: stretch 0 */
+                             readonly downStretch?: number; readonly upStretches?: readonly number[] }[];
   readonly sections: readonly { readonly sid: number; readonly partIx: number }[];
+  /** (T204) `part_stretch` (geo): a part's separate stretches, for a water with a part of two or more; empty for any
+   *  other water and for a release cut before T204. */
+  readonly stretches: readonly { readonly partIx: number; readonly stretch: number; readonly rank: number;
+                                 readonly mid: readonly [number, number];
+                                 readonly box: readonly [number, number, number, number] | null;
+                                 readonly sids: readonly number[] }[];
   readonly exit: { readonly ord: number; readonly part: number | null; readonly item: string | null;
                    readonly name: string | null } | null;
   /** `water_continue`: the other water (named from core; null where core does not hold it), this water's part at the
@@ -389,12 +398,17 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
 
     navRows: (ord) => once("navRows", ord, async () => {
       const w = await base.water(), g = base.geo ? await base.geo() : w;
-      const [geo, marks, sections, exit] = await Promise.all([
+      // (T204) `part_stretch` is additive: a release cut before it has no table
+      const hasStretch = await once("hasStretch", 0, async () =>
+        !!(await g.get("SELECT 1 AS x FROM sqlite_master WHERE type = 'table' AND name = 'part_stretch'")));
+      const [geo, marks, sections, exit, stretch] = await Promise.all([
         g.all("SELECT part_ix, rank, mid_sid, mid_lon, mid_lat, w, s, e, n FROM part_geo WHERE ord = ? ORDER BY rank, part_ix", ord),
         // `*`: `confidence` (T207) is additive, and a release cut before it has no column
         w.all("SELECT * FROM part_mark WHERE ord = ? ORDER BY mark_ix", ord),
         w.all("SELECT sid, part_ix FROM part_section WHERE ord = ? ORDER BY sid", ord),
-        w.get("SELECT down_ord, down_part FROM water_exit WHERE ord = ?", ord)]);
+        w.get("SELECT down_ord, down_part FROM water_exit WHERE ord = ?", ord),
+        hasStretch ? g.all("SELECT part_ix, stretch_ix, rank, mid_lon, mid_lat, w, s, e, n, sids FROM part_stretch "
+                           + "WHERE ord = ? ORDER BY part_ix, stretch_ix", ord) : Promise.resolve([] as Row[])]);
       const core = await base.core();
       const named = async (o: number) => core.get("SELECT item_id, name FROM item WHERE ord = ?", o);
       const down = exit ? await named(n(exit.down_ord)) : null;
@@ -420,9 +434,17 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
         marks: marks.map((m) => {
           const c = isConfidence(m.confidence) && m.confidence !== "high" ? m.confidence : null;
           return { lon: micro(m.lon), lat: micro(m.lat), label: none(m.label) ? null : String(m.label),
-                   down: n(m.down_part), up: json<number[]>(m.up_parts), ...(c ? { confidence: c } : {}) };
+                   down: n(m.down_part), up: json<number[]>(m.up_parts), ...(c ? { confidence: c } : {}),
+                   ...(none(m.down_stretch) ? {} : { downStretch: n(m.down_stretch) }),
+                   ...(none(m.up_stretches) ? {} : { upStretches: json<number[]>(m.up_stretches) }) };
         }),
         sections: sections.map((r) => ({ sid: n(r.sid), partIx: n(r.part_ix) })),
+        stretches: stretch.map((s) => ({
+          partIx: n(s.part_ix), stretch: n(s.stretch_ix), rank: n(s.rank),
+          mid: [micro(s.mid_lon), micro(s.mid_lat)] as const,
+          box: none(s.w) || none(s.s) || none(s.e) || none(s.n) ? null
+            : [micro(s.w), micro(s.s), micro(s.e), micro(s.n)] as const,
+          sids: json<number[]>(s.sids) })),
         exit: exit ? { ord: n(exit.down_ord), part: nn(exit.down_part),
                        item: down ? String(down.item_id) : null, name: down ? String(down.name) : null } : null,
         continuesAs: await cont(as), continuesFrom: await cont(from),

@@ -41,8 +41,36 @@ def test_marks_at_one_point_with_one_down_part_merge():
            {"lon": -122.0, "lat": 49.1, "down": 0, "up": 1, "label": "Bridge"},
            {"lon": -122.1, "lat": 49.2, "down": 1, "up": 3, "label": None}]
     assert T.merge_marks(raw) == [
-        {"lon": -122.0, "lat": 49.1, "down": 0, "up": [1, 2], "label": "Bridge"},
-        {"lon": -122.1, "lat": 49.2, "down": 1, "up": [3], "label": None}]
+        {"lon": -122.0, "lat": 49.1, "down": 0, "down_k": 0, "up": [1, 2], "up_k": [0, 0], "label": "Bridge"},
+        {"lon": -122.1, "lat": 49.2, "down": 1, "down_k": 0, "up": [3], "up_k": [0], "label": None}]
+
+
+def test_two_meeting_places_of_one_pair_of_parts_are_two_marks():
+    """T204 (Kanaka Creek): part 0 is below the 112 Avenue bridge AND above Cliff Park Falls, part 1 between them. The
+    pair meets twice; each place is its own mark, with the stretch of part 0 that meets there."""
+    raw = [{"lon": -122.55, "lat": 49.20, "down": 0, "down_k": 0, "up": 1, "up_k": 0, "label": "112 Avenue bridge"},
+           {"lon": -122.53, "lat": 49.21, "down": 1, "down_k": 0, "up": 0, "up_k": 1, "label": "Cliff Park Falls"}]
+    assert [(m["down"], m["down_k"], m["up"], m["up_k"], m["label"]) for m in T.merge_marks(raw)] == [
+        (0, 0, [1], [0], "112 Avenue bridge"), (1, 0, [0], [1], "Cliff Park Falls")]
+
+
+def _span(rows):
+    """{sid: (lo_m, hi_m, lo, hi, off_stem, shape)} from (sid, lo_m, hi_m[, off_stem])."""
+    return {r[0]: (r[1], r[2], "a", "b", r[3] if len(r) > 3 else 0, 0) for r in rows}
+
+
+def test_a_part_is_split_into_stretches_only_where_another_part_lies_between():
+    """T204: Kanaka's part 0 runs 0-7197 m and 8207-24768 m (with a lake between 24522 and 24725); part 1 is 7197-8207.
+    Two stretches: the lake does not separate, the other part does."""
+    span = _span([(1, 0, 7197), (3, 8207, 24522), (4, 24725, 24768), (9, 3000, 3000, 1)])
+    runs = [{"sids": [4]}, {"sids": [3]}, {"sids": [1]}, {"sids": [9], "branch": True, "km_from": 3.0}]
+    got = T.stretches(runs, span, other=[(7197, 8207)])
+    assert [(s["lo"], s["hi"], s["sids"]) for s in got] == [(0, 7197, [1, 9]), (8207, 24768, [3, 4])]
+    # no other part between: one stretch
+    assert len(T.stretches(runs, span, other=[])) == 1
+    # side channels only (no main stem): one stretch of every section
+    assert T.stretches([{"sids": [9], "branch": True, "km_from": None}], span, []) == [
+        {"lo": None, "hi": None, "sids": [9]}]
 
 
 def test_a_boundary_is_named_by_the_downstream_runs_start_else_the_upstream_runs_end():
@@ -178,6 +206,36 @@ def test_the_chilliwack_and_the_cowichan_rank_and_meet_as_the_prototype_draws_th
         want = sorted((wm[group]["parts"][m["down"]]["v"], (wm[group]["parts"][m["up"]]["v"],), m["label"])
                       for m in wm[group]["marks"] if m["down"] in at and m["up"] in at)
         assert sorted(_marks(db, item)) == want, group
+
+
+@pytest.mark.needs_bundle
+def test_kanaka_has_a_mark_at_the_bridge_and_at_the_falls_and_two_stretches(request):
+    """T204: Kanaka Creek's part below the bridge + above the falls is two stretches, and the part between meets it at
+    BOTH places — the bridge mark (the lower stretch below it) and the falls mark (the upper stretch above it)."""
+    db = _bundle(request)
+    o = db.execute("SELECT ord FROM item WHERE item_id = 'gnis:11318'").fetchone()
+    marks = db.execute("SELECT label, down_part, up_parts, down_stretch, up_stretches FROM part_mark WHERE ord = ? "
+                       "ORDER BY mark_ix", o).fetchall()
+    labels = sorted(m[0] for m in marks)
+    assert labels == ["112 Avenue bridge", "Cliff Park Falls"], marks
+    stretches = db.execute("SELECT part_ix, stretch_ix, rank FROM part_stretch WHERE ord = ? ORDER BY rank",
+                           o).fetchall()
+    assert len(stretches) == 3 and sorted({p for p, _, _ in stretches}) == [0, 1], stretches
+    by = {m[0]: m for m in marks}
+    two = [p for p, k, _ in stretches if k == 1][0]           # the part with two stretches
+    one = [p for p, _, _ in stretches if p != two][0]
+    assert by["112 Avenue bridge"][1:] == (two, json.dumps([one]), 0, None)
+    assert by["Cliff Park Falls"][1:] == (one, json.dumps([two]), 0, json.dumps([1]))
+
+
+@pytest.mark.needs_bundle
+def test_the_chilliwack_chain_has_no_stretches_and_one_mark_per_pair(request):
+    """T204: a chain of parts (each pair meets once) is unchanged: no part_stretch rows, no stretch columns."""
+    db = _bundle(request)
+    (o,) = db.execute("SELECT ord FROM item WHERE item_id = 'gnis:8634'").fetchone()
+    assert db.execute("SELECT COUNT(*) FROM part_stretch WHERE ord = ?", (o,)).fetchone() == (0,)
+    assert db.execute("SELECT COUNT(*) FROM part_mark WHERE ord = ? AND (down_stretch IS NOT NULL "
+                      "OR up_stretches IS NOT NULL)", (o,)).fetchone() == (0,)
 
 
 @pytest.mark.needs_bundle

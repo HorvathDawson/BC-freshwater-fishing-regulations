@@ -4,9 +4,16 @@ The app draws lines and polygons from the tiles (feature id = sid). The bundle c
 
   part_geo    (ord, part_ix): `rank` (mouth first within the water), the bbox (lon/lat), and the midpoint: `mid_sid`
               and its point, where "Conditions here" opens (owner Q7).
-  part_mark   (ord, mark_ix): every place two parts of a water meet (within TOUCH_M), with the split's name there
-              (or NULL: the app shows no text), the downstream part and the upstream parts. Side channels and lake
-              splits make the parts a graph, not a list.
+  part_mark   (ord, mark_ix): every PLACE two parts of a water meet (within TOUCH_M; T204: one mark per meeting
+              place, not per pair of parts), with the split's name there (or NULL: the app shows no text), the
+              downstream part and the upstream parts, and — where a part has several stretches — which stretch of each
+              (`down_stretch`, `up_stretches`, NULL when every one is stretch 0). Side channels and lake splits make
+              the parts a graph, not a list.
+  part_stretch (ord, part_ix, stretch_ix) (T204): a part's STRETCHES — its runs that no other part of the same water
+              separates (a lake or an unnamed piece between two runs does not) — each with its rank among the water's
+              stretches (mouth first), midpoint, bbox and section ids; written for every part of a water that has a
+              part of two or more stretches (Kanaka Creek's part below the 112 Avenue bridge AND above Cliff Park
+              Falls), none for any other water: there a part is its one stretch.
   water_exit  (ord): the water this one flows into (`item_down`), and the receiving water's part it enters.
 
 THE RULES (stated, pinned in test_part_geo.py), moved here from `pipeline/tools/audit/water_map_export.py`, which now imports
@@ -17,8 +24,12 @@ THE RULES (stated, pinned in test_part_geo.py), moved here from `pipeline/tools/
             (`section_span`), or by summed section length where a section has no span; `mid_sid` is the section
             holding it, and the point is that section's own midpoint (within one section of the exact point). A lake
             part: `rep_sid` and the polygon's representative point.
-  marks     two parts closer than TOUCH_M; the point is the middle of their nearest points; the down part is the lower
-            rank. Pairs meeting at one point with one down part are one mark with several up parts.
+  stretch   a part's main-stem runs, mouth up, merged unless another part of the water has a main-stem section in the
+            gap between them; a side-channel run joins the stretch it re-enters within (else the nearest); a part with
+            no main-stem run (side channels only, a lake) is one stretch (`stretches`).
+  marks     two STRETCHES of different parts closer than TOUCH_M; the point is the middle of their nearest points; the
+            down stretch is the lower rank. Stretches meeting at one point with one down stretch are one mark with
+            several up stretches. A water whose parts are each one stretch gets exactly the per-pair marks it had.
   exit      `item_down` (from the graph), less every receiver that itself flows into this water (`exit_receivers`,
             T59: the Fraser "flowed into" Annacis Channel, its own side channel; a creek into the headwater lake it
             runs out of). Where a water drains into several, the receiver whose part lies nearest this water's mouth
@@ -76,6 +87,41 @@ def order_parts(parts: Sequence[dict]) -> List[dict]:
     return with_km + [p for p in parts if p.get("km") is None]
 
 
+def stretches(runs: Sequence[dict], span: Dict[int, tuple], other: Sequence[Tuple[float, float]]) -> List[dict]:
+    """T204: a part's STRETCHES, mouth first: [{"lo", "hi" (stem metres, None for no main stem), "sids"}]. `runs` are
+    `spans.compose_runs`'s; `span[sid]` is (lo_m, hi_m, lo, hi, off_stem, shape); `other` the (lo_m, hi_m) of every
+    main-stem section of the water's OTHER parts. Two main-stem runs of the part are one stretch unless one of
+    `other` lies in the gap between them (what separates Kanaka Creek's mouth run from its run above Cliff Park Falls
+    is the part between them; a lake on the creek's course, or an unnamed piece, is not another part). A side-channel
+    run joins the stretch whose stem range holds the measure it re-enters at, else the nearest, else the first."""
+    stem = [r for r in runs if not r.get("branch")]
+    side = [r for r in runs if r.get("branch")]
+    if not stem:
+        sids = sorted(s for r in runs for s in r["sids"])
+        return [{"lo": None, "hi": None, "sids": sids}] if sids else []
+
+    def ext(r):
+        ms = [s for s in r["sids"] if not span[s][4] and span[s][0] is not None]
+        return min(span[s][0] for s in ms), max(span[s][1] for s in ms)
+    out: List[dict] = []
+    for lo, hi, sids in sorted((ext(r) + (r["sids"],) for r in stem), key=lambda c: (c[0], c[1], c[2][0])):
+        if out and not any(a < lo and b > out[-1]["hi"] for a, b in other):
+            out[-1]["hi"] = max(out[-1]["hi"], hi)
+            out[-1]["sids"] += sids
+        else:
+            out.append({"lo": lo, "hi": hi, "sids": list(sids)})
+    for r in side:
+        m = None if r.get("km_from") is None else r["km_from"] * 1000
+
+        def off(i: int) -> tuple:
+            s = out[i]
+            return (0.0 if s["lo"] <= m <= s["hi"] else min(abs(m - s["lo"]), abs(m - s["hi"])), i)
+        out[0 if m is None else min(range(len(out)), key=off)]["sids"] += r["sids"]
+    for s in out:
+        s["sids"] = sorted(set(s["sids"]))
+    return out
+
+
 def split_at(down: dict, up: dict, splits: Dict[str, dict]) -> Optional[dict]:
     """The split where `up` (upstream) meets `down`: the downstream part's run start, else the upstream part's run end,
     when it has a name. A branch (`km` None: a side channel, a lake part) is named only by its own runs' ends: the main
@@ -118,20 +164,28 @@ def point_on(g):
 
 
 def merge_marks(raw: Sequence[dict]) -> List[dict]:
-    """One mark per (point, down part), with every up part meeting there."""
+    """One mark per (point, down part, down stretch), with every up part meeting there. A raw mark's `up` is a part, its
+    `up_k` / `down_k` (T204) the stretches (absent: 0); the merged `up` lists the parts and `up_k` their stretches, in
+    the same order, sorted by (part, stretch)."""
     by: Dict[tuple, dict] = {}
     for m in raw:
-        k = (round(m["lon"], 6), round(m["lat"], 6), m["down"])
+        k = (round(m["lon"], 6), round(m["lat"], 6), m["down"], m.get("down_k", 0))
+        u = (m["up"], m.get("up_k", 0))
         if k in by:
-            by[k]["up"] = sorted(set(by[k]["up"]) | {m["up"]})
+            by[k]["ups"] = sorted(set(by[k]["ups"]) | {u})
             if not by[k]["label"] and m["label"]:
                 by[k]["label"] = m["label"]
                 if m.get("confidence"):                  # T207: the named split's, with its name
                     by[k]["confidence"] = m["confidence"]
         else:
-            by[k] = {"lon": m["lon"], "lat": m["lat"], "down": m["down"], "up": [m["up"]], "label": m["label"],
-                     **({"confidence": m["confidence"]} if m.get("confidence") else {})}
-    return sorted(by.values(), key=lambda m: (m["down"], m["up"], m["lon"], m["lat"]))
+            by[k] = {"lon": m["lon"], "lat": m["lat"], "down": m["down"], "down_k": m.get("down_k", 0), "ups": [u],
+                     "label": m["label"], **({"confidence": m["confidence"]} if m.get("confidence") else {})}
+    out = []
+    for m in sorted(by.values(), key=lambda m: (m["down"], m["down_k"], m["ups"], m["lon"], m["lat"])):
+        ups = m.pop("ups")
+        m["up"], m["up_k"] = [u for u, _ in ups], [k for _, k in ups]
+        out.append(m)
+    return out
 
 
 #: a way down through unnamed pieces longer than this is the sea or the edge of the atlas (as `nearer.MAX_STEPS`)
@@ -271,7 +325,37 @@ def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
         runs = [] if poly or any(s not in span for s in ss) else SP.compose_runs(span, touch, ss)
         by_ord[o].append({"v": p, "sids": ss, "km": None if poly else part_km(runs), "runs": runs, "poly": poly})
 
-    part_rows, mark_rows, shapes = [], [], {}
+    # T204: every main-stem section of the water, by part — what separates a part's runs into stretches
+    stem_of: Dict[int, List[Tuple[int, float, float]]] = defaultdict(list)
+    for (o, p), ss in sids.items():
+        stem_of[o] += [(p, span[s][0], span[s][1]) for s in ss
+                       if s in span and not span[s][4] and span[s][0] is not None and span[s][1] is not None]
+
+    def midpoint(ss: List[int], poly: bool, g, rep_sid: Optional[int]) -> Tuple[int, object]:
+        """(mid_sid, point) of a part or a stretch (the rules in the module docstring)."""
+        nonlocal no_measure
+        if poly:
+            mid = rep_sid if rep_sid in ss else ss[0]
+            return mid, (geo.get(mid) or g).representative_point()
+        # only sections the atlas drew can hold the point (a few have no shape in geometries.pkl)
+        stem = sorted((s for s in ss if s in span and s in geo and not span[s][4]
+                       and span[s][0] is not None), key=lambda s: (span[s][0], s))
+        if stem:
+            mid = stem_midpoint([(s, span[s][1] - span[s][0]) for s in stem])
+        else:                                   # no measures: summed section length, part order
+            no_measure += 1
+            mid = stem_midpoint([(s, geo[s].length) for s in ss if s in geo])
+        return mid, point_on(geo[mid])
+
+    def box(g) -> tuple:
+        w, s_, e, n = to_ll.transform_bounds(*g.bounds)
+        return round(w, 6), round(s_, 6), round(e, 6), round(n, 6)
+
+    def ll(pt) -> tuple:
+        lon, lat = to_ll.transform(pt.x, pt.y)
+        return round(lon, 6), round(lat, 6)
+
+    part_rows, mark_rows, stretch_rows, shapes = [], [], [], {}
     no_measure = 0
     for o, parts in sorted(by_ord.items()):
         ranked = order_parts(parts)
@@ -281,38 +365,59 @@ def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
                 raise SystemExit(f"part_geo: water ord {o} part {p['v']} has no geometry in this atlas")
             g = unary_union(gs)
             shapes[(o, p["v"])] = g
-            if p["poly"]:
-                mid = rep[(o, p["v"])]
-                pt = (geo.get(mid) or g).representative_point()
+            mid, pt = midpoint(p["sids"], p["poly"], g, rep[(o, p["v"])])
+            part_rows.append((o, p["v"], rank, mid, *ll(pt), *box(g)))
+        # T204: the stretches of every part, then their order in the water (mouth first: as `order_parts`, by km, then
+        # part, then stretch; no km last). A part of one stretch is the part itself (its km, its shape).
+        nodes = []
+        for p in ranked:
+            other = [(a, b) for v, a, b in stem_of[o] if v != p["v"]]
+            st = [{"lo": None, "hi": None, "sids": p["sids"]}] if p["poly"] or not p["runs"] \
+                else stretches(p["runs"], span, other)
+            for k, s in enumerate(st):
+                km = p["km"] if len(st) == 1 else (None if s["hi"] is None else round(s["hi"] / 1000, 2))
+                nodes.append({"part": p, "v": p["v"], "k": k, "n": len(st), "sids": s["sids"], "km": km})
+        nodes = (sorted((x for x in nodes if x["km"] is not None), key=lambda x: (x["km"], x["v"], x["k"]))
+                 + [x for x in nodes if x["km"] is None])
+        multi = any(x["n"] > 1 for x in nodes)
+        for x in nodes:
+            if x["n"] == 1:
+                x["g"] = shapes[(o, x["v"])]
             else:
-                # only sections the atlas drew can hold the point (a few have no shape in geometries.pkl)
-                stem = sorted((s for s in p["sids"] if s in span and s in geo and not span[s][4]
-                               and span[s][0] is not None), key=lambda s: (span[s][0], s))
-                if stem:
-                    mid = stem_midpoint([(s, span[s][1] - span[s][0]) for s in stem])
-                else:                                   # no measures: summed section length, part order
-                    no_measure += 1
-                    mid = stem_midpoint([(s, geo[s].length) for s in p["sids"] if s in geo])
-                pt = point_on(geo[mid])
-            lon, lat = to_ll.transform(pt.x, pt.y)
-            w, s_, e, n = to_ll.transform_bounds(*g.bounds)
-            part_rows.append((o, p["v"], rank, mid, round(lon, 6), round(lat, 6),
-                              round(w, 6), round(s_, 6), round(e, 6), round(n, 6)))
+                gs = [geo[s] for s in x["sids"] if s in geo]
+                if not gs:
+                    raise SystemExit(f"part_stretch: water ord {o} part {x['v']} stretch {x['k']} has no geometry")
+                x["g"] = unary_union(gs)
+        if multi:
+            for srank, x in enumerate(nodes):
+                if x["n"] == 1:          # the part's own row, again: its midpoint and box are the part's
+                    pr = next(r for r in part_rows if r[0] == o and r[1] == x["v"])
+                    mid, lon, lat, bb = pr[3], pr[4], pr[5], pr[6:10]
+                else:
+                    mid, pt = midpoint(x["sids"], x["part"]["poly"], x["g"], rep[(o, x["v"])])
+                    (lon, lat), bb = ll(pt), box(x["g"])
+                stretch_rows.append((o, x["v"], x["k"], srank, mid, lon, lat, *bb, json.dumps(x["sids"])))
         raw = []
-        for i in range(len(ranked)):
-            for j in range(i + 1, len(ranked)):
-                down, up = ranked[i], ranked[j]
-                a, b = shapes[(o, down["v"])], shapes[(o, up["v"])]
+        for i in range(len(nodes)):
+            for j in range(i + 1, len(nodes)):
+                dn, up = nodes[i], nodes[j]
+                if dn["v"] == up["v"]:
+                    continue
+                a, b = dn["g"], up["g"]
                 if a.distance(b) > TOUCH_M:
                     continue
                 pa, pb = nearest_points(a, b)
                 lon, lat = to_ll.transform((pa.x + pb.x) / 2, (pa.y + pb.y) / 2)
-                at = split_at(down, up, splits)
-                raw.append({"lon": round(lon, 6), "lat": round(lat, 6), "down": down["v"], "up": up["v"],
+                at = split_at(dn["part"], up["part"], splits) if dn["n"] == 1 and up["n"] == 1 \
+                    else split_at(_runs_of(dn), _runs_of(up), splits)
+                raw.append({"lon": round(lon, 6), "lat": round(lat, 6), "down": dn["v"], "up": up["v"],
+                            "down_k": dn["k"], "up_k": up["k"],
                             "label": at["name"] if at else None, "confidence": (at or {}).get("confidence")})
         for k, m in enumerate(merge_marks(raw)):
+            ks = m["up_k"] if any(m["up_k"]) or m["down_k"] else None
             mark_rows.append((o, k, m["lon"], m["lat"], m["label"], m["down"], json.dumps(m["up"]),
-                              m.get("confidence")))
+                              m.get("confidence"), m["down_k"] if ks is not None else None,
+                              json.dumps(ks) if ks is not None else None))
 
     mouth = _mouths(part_rows)
     shapes_of: Dict[int, List[Tuple[int, Geometry]]] = defaultdict(list)
@@ -339,15 +444,24 @@ def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
 
     db.executemany("INSERT INTO part_geo (ord, part_ix, rank, mid_sid, mid_lon, mid_lat, w, s, e, n) "
                    "VALUES (?,?,?,?,?,?,?,?,?,?)", part_rows)
-    db.executemany("INSERT INTO part_mark (ord, mark_ix, lon, lat, label, down_part, up_parts, confidence) "
-                   "VALUES (?,?,?,?,?,?,?,?)",
-                   mark_rows)
+    db.executemany("INSERT INTO part_mark (ord, mark_ix, lon, lat, label, down_part, up_parts, confidence, "
+                   "down_stretch, up_stretches) VALUES (?,?,?,?,?,?,?,?,?,?)", mark_rows)
+    db.executemany("INSERT INTO part_stretch (ord, part_ix, stretch_ix, rank, mid_sid, mid_lon, mid_lat, w, s, e, n, "
+                   "sids) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", stretch_rows)
     db.executemany("INSERT INTO water_exit (ord, down_ord, down_part, label) VALUES (?,?,?,?)", exits)
     cov.filled("part_geo", len(part_rows))
     cov.filled("part_mark", len(mark_rows))
+    cov.filled("part_stretch", len(stretch_rows))
     cov.filled("water_exit", len(exits))
-    print(f"  part topology: {len(part_rows):,} parts, {len(mark_rows):,} marks, {len(exits):,} exits "
+    print(f"  part topology: {len(part_rows):,} parts, {len(mark_rows):,} marks, {len(stretch_rows):,} stretch rows, "
+          f"{len(exits):,} exits "
           f"({no_measure:,} stream parts placed by section length: no route measure)")
+
+
+def _runs_of(x: dict) -> dict:
+    """A stretch as `split_at` reads a part: its km and the runs (of its part) holding its sections."""
+    ss = set(x["sids"])
+    return {"km": x["km"], "runs": [r for r in x["part"].get("runs") or [] if ss & set(r["sids"])]}
 
 
 def _mouths(part_rows: Sequence[tuple]) -> Dict[int, int]:

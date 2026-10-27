@@ -218,7 +218,7 @@ export function waterMapView(g: WaterGroup, s: WaterMapState): WaterMapVM | null
       ? { label: exitLabel(g.exit), item: g.exit.item, part: g.exit.part } : null,
     whole: { label: wholeLabel(g, at, s.whole), aria: wholeAria(g, at, s.whole), on: s.whole },
     bounds: s.whole ? groupBounds(g) : partBounds(g, at),
-    fitKey: s.whole ? `${g.parts[0]!.item}:whole` : `${current.item}:${current.partIx}`,
+    fitKey: s.whole ? `${g.parts[0]!.item}:whole` : `${current.item}:${current.partIx}${g.parts[at]!.stretch ? `:${g.parts[at]!.stretch}` : ""}`,
     selected, water,
     regs: { label: W.regs, item: current.item, partIx: current.partIx },
     list: g.parts.length > 1
@@ -315,7 +315,14 @@ export function useWaterMap(store: RegsStore | null, item: ItemId | null, part: 
   const [held, setHeld] = useState<{ key: string; s: WaterMapState } | null>(null);
   // the state as the last step left it, ahead of the render, so two taps before a render are two steps
   const latest = useRef<{ key: string; s: WaterMapState } | null>(null);
-  const s = held && held.key === key ? held.s : g && item ? waterMapStart(waterMapStartIx(g, item, startPart), wholeFirst) : null;
+  // (T204) the stretch a step landed on, so the frame's new part reopens there, not on the part's first stretch
+  const stepped = useRef<{ item: string; partIx: number; at: number } | null>(null);
+  const startAt = (gg: WaterGroup, it: string): number => {
+    const st = stepped.current, p = st ? gg.parts[st.at] : undefined;
+    return st && p && st.item === it && st.partIx === startPart && p.item === it && p.partIx === startPart
+      ? st.at : waterMapStartIx(gg, it, startPart);
+  };
+  const s = held && held.key === key ? held.s : g && item ? waterMapStart(startAt(g, item), wholeFirst) : null;
   const vm = useMemo(() => (g && s ? waterMapView(g, s) : null), [g, s]);
   // no store (no release, or not open yet: the caller says which) or no water: nothing to walk
   if (store === null || item === null) return { state: "ready", value: null, error: null };
@@ -328,7 +335,12 @@ export function useWaterMap(store: RegsStore | null, item: ItemId | null, part: 
     if (next === from) return;
     latest.current = { key, s: next };
     setHeld(latest.current);
-    if (onPart && next.at !== from.at) onPart(g.parts[next.at]!.item as ItemId, g.parts[next.at]!.partIx);
+    // (T204) a step between two stretches of ONE part is no new part for the frame: the map keeps it
+    const a0 = g.parts[from.at]!, a1 = g.parts[next.at]!;
+    if (onPart && next.at !== from.at && (a0.item !== a1.item || a0.partIx !== a1.partIx)) {
+      stepped.current = { item: a1.item, partIx: a1.partIx, at: next.at };
+      onPart(a1.item as ItemId, a1.partIx);
+    }
   };
   return { state: "ready", value: { vm, act }, error: null };
 }

@@ -11,6 +11,12 @@
  * another is a boundary mark with no place (the release draws none between items) and no label: its words are the two
  * parts' names without what they share (`markLabel`, the prototype's).
  *
+ * STRETCHES (T204, owner 2026-10-25: "non-adjacent stretches of one part are SEPARATE stretches on the map, own label, own
+ * selection"). A part the release splits into stretches (`part_stretch`: Kanaka Creek's part below the 112 Avenue bridge
+ * AND above Cliff Park Falls) is walked as one entry PER STRETCH, in the release's stretch order, each lit, framed and
+ * listed on its own; its marks say which stretch meets there (`down_stretch` / `up_stretches`). The regulations stay the
+ * part's: every stretch of a part opens the same part.
+ *
  * THE STEP. ▲ takes the parts above the current one by the marks (a fork: a mark with two upper parts); ▼ the parts
  * below it (a fork too: two parts whose marks both say they sit below this one — the Zymoetz's source part has the main
  * stem and "A lake → McDonell Lake outlet" below it, and that lake part is reached ONLY that way). Where the marks say
@@ -45,6 +51,9 @@ export interface NavPart {
   /** A point on it (`part_geo.mid_lon / mid_lat`), in degrees. */
   readonly mid: readonly [number, number] | null;
   readonly sids: readonly number[];
+  /** (T204) Which stretch of its part this is (0 first, mouth up), and how many its part has; absent: one. */
+  readonly stretch?: number;
+  readonly stretches?: number;
 }
 
 /** (T207) How sure the curator is of where a cut stands — pipeline `models.splits.CONFIDENCE`; absent is high. */
@@ -107,8 +116,15 @@ export interface ItemNavRows {
                            readonly mid: readonly [number, number] | null }[];
   readonly marks: readonly { readonly lon: number; readonly lat: number; readonly label: string | null;
                              readonly down: number; readonly up: readonly number[];
-                             readonly confidence?: Confidence }[];
+                             readonly confidence?: Confidence;
+                             /** (T204) the stretch of `down`, and of each of `up` (same order); absent: stretch 0 */
+                             readonly downStretch?: number; readonly upStretches?: readonly number[] }[];
   readonly sections: readonly { readonly sid: number; readonly partIx: number }[];
+  /** (T204) `part_stretch`: every stretch of every part, for an item with a part of two or more (else absent or empty):
+   *  its part, its index in the part, its rank among the item's stretches (mouth first), its frame and its sids. */
+  readonly stretches?: readonly { readonly partIx: number; readonly stretch: number; readonly rank: number;
+                                  readonly box: Bbox | null; readonly mid: readonly [number, number] | null;
+                                  readonly sids: readonly number[] }[];
   /** `water_exit`: the receiving item's ord, the part it is met at, and — when the release names it — its id and name. */
   readonly exit: { readonly ord: number; readonly part: number | null; readonly item: string | null;
                    readonly name: string | null } | null;
@@ -137,30 +153,54 @@ export function waterGroup(all: readonly ItemNavRows[]): WaterGroup {
   for (const i of items) if (left.has(i.ord)) placed.push(i);      // a cycle or a stray: after the rest, as given
 
   const parts: NavPart[] = [];
-  const at = new Map<string, number>();                            // `${ord}:${partIx}` → index in `parts`
+  const at = new Map<string, number>();                            // `${ord}:${partIx}:${stretch}` → index in `parts`
   for (const i of placed) {
     const geo = new Map(i.geo.map((g) => [g.partIx, g]));
+    const facts = new Map(i.parts.map((p) => [p.partIx, p]));
     const sids = new Map<number, number[]>();
     for (const s of i.sections) {
       let l = sids.get(s.partIx);
       if (!l) sids.set(s.partIx, l = []);
       l.push(s.sid);
     }
+    const st = (i.stretches ?? []).filter((s) => facts.has(s.partIx));
+    if (st.length) {
+      // (T204) one entry per stretch, in the release's stretch order
+      const count = new Map<number, number>();
+      for (const s of st) count.set(s.partIx, (count.get(s.partIx) ?? 0) + 1);
+      for (const s of [...st].sort((a, b) => a.rank - b.rank || a.partIx - b.partIx || a.stretch - b.stretch)) {
+        const p = facts.get(s.partIx)!;
+        at.set(`${i.ord}:${s.partIx}:${s.stretch}`, parts.length);
+        parts.push({ item: i.item, itemName: i.name, kind: i.kind, partIx: s.partIx, rank: s.rank,
+                     label: p.label, short: p.short, box: s.box, mid: s.mid,
+                     sids: [...s.sids].sort((a, b) => a - b), stretch: s.stretch, stretches: count.get(s.partIx)! });
+      }
+      // a part the stretch rows miss (none should): after them, whole
+      for (const p of i.parts) if (!count.has(p.partIx)) {
+        const g = geo.get(p.partIx);
+        at.set(`${i.ord}:${p.partIx}:0`, parts.length);
+        parts.push({ item: i.item, itemName: i.name, kind: i.kind, partIx: p.partIx, rank: g?.rank ?? parts.length,
+                     label: p.label, short: p.short, box: g?.box ?? null, mid: g?.mid ?? null,
+                     sids: [...(sids.get(p.partIx) ?? [])].sort((a, b) => a - b) });
+      }
+      continue;
+    }
     const ordered = [...i.parts].sort((a, b) =>
       (geo.get(a.partIx)?.rank ?? Infinity) - (geo.get(b.partIx)?.rank ?? Infinity) || a.partIx - b.partIx);
     for (const p of ordered) {
       const g = geo.get(p.partIx);
-      at.set(`${i.ord}:${p.partIx}`, parts.length);
+      at.set(`${i.ord}:${p.partIx}:0`, parts.length);
       parts.push({ item: i.item, itemName: i.name, kind: i.kind, partIx: p.partIx, rank: g?.rank ?? parts.length,
                    label: p.label, short: p.short, box: g?.box ?? null, mid: g?.mid ?? null,
                    sids: [...(sids.get(p.partIx) ?? [])].sort((a, b) => a - b) });
     }
   }
-  const ix = (ord: number, partIx: number) => at.get(`${ord}:${partIx}`);
+  const ix = (ord: number, partIx: number, stretch = 0) => at.get(`${ord}:${partIx}:${stretch}`);
   const marks: NavMark[] = [];
   for (const i of placed) {
     for (const m of i.marks) {
-      const down = ix(i.ord, m.down), up = m.up.map((u) => ix(i.ord, u)).filter((u): u is number => u !== undefined);
+      const down = ix(i.ord, m.down, m.downStretch ?? 0);
+      const up = m.up.map((u, k) => ix(i.ord, u, m.upStretches?.[k] ?? 0)).filter((u): u is number => u !== undefined);
       if (down !== undefined && up.length)
         marks.push({ lon: m.lon, lat: m.lat, label: m.label, down, up, ...(m.confidence ? { confidence: m.confidence } : {}) });
     }
@@ -264,10 +304,12 @@ export function stepsUp(g: WaterGroup, at: number): readonly number[] {
 /** Whether more than one part of `item` is in the group (then a part is named by its short name). */
 const manyOf = (g: WaterGroup, i: number) => g.parts.filter((q) => q.item === g.parts[i]!.item).length > 1;
 
-/** A part's name on the map: its short name where its water has several parts, else its water's name. */
+/** A part's name on the map: its short name where its water has several parts, else its water's name — and, for one
+ *  of a part's separate stretches (T204), which: "Mouth → Kanaka Lake (2 stretches) · stretch 1 of 2". */
 export function partName(g: WaterGroup, i: number): string {
   const p = g.parts[i]!;
-  return manyOf(g, i) ? p.short : p.itemName;
+  const base = manyOf(g, i) ? p.short : p.itemName;
+  return p.stretches && p.stretches > 1 ? `${base} · ${WATER_MAP_WORDS.stretchOf((p.stretch ?? 0) + 1, p.stretches)}` : base;
 }
 
 /** The water a part belongs to, said beside it where the water has several parts (else nothing). */
@@ -351,6 +393,8 @@ export const WATER_MAP_WORDS = {
   partsHide: "Hide the list of parts",
   /** (T150) A row's mark: the part the map (and the Regulations view) is on. */
   partsHere: "✓",
+  /** (T204) One of a part's separate stretches, in its name: "stretch 1 of 2". */
+  stretchOf: (k: number, n: number) => `stretch ${k} of ${n}`,
   loading: "Loading the parts of this water",
   /** No release to read the parts from, or it could not be read: the map is drawn, unlit. */
   unavailable: "The parts of this water are not available",

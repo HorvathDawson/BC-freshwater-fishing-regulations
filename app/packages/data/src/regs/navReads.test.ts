@@ -51,6 +51,7 @@ describe("the water map's reads", () => {
       marks: [{ lon: -121.45, lat: 49.28, label: "The bridge", down: 1, up: [0, 2] },
               { lon: -0.000121, lat: 0.000049, label: null, down: 0, up: [2] }],
       sections: [{ sid: 7, partIx: 1 }, { sid: 8, partIx: 1 }, { sid: 9, partIx: 0 }],
+      stretches: [],
       exit: { ord: 2, part: 3, item: "gnis:2", name: "Receiving River" },
       continuesAs: { ord: 2, part: 1, otherPart: 0, item: "gnis:2", name: "Receiving River" },
       continuesFrom: { ord: 98, part: 0, otherPart: 4, item: null, name: null },
@@ -78,9 +79,36 @@ describe("the water map's reads", () => {
     expect([nav.geo, nav.sections.length]).toEqual([[{ partIx: 0, rank: 0, midSid: 9, mid: [-120, 50], box: null }], 3]);
   });
 
+  it("T204: a part's stretches from geo's `part_stretch`, and each mark's stretches from `part_mark`", async () => {
+    const geo = openInMemory(`
+      CREATE TABLE part_geo (ord INTEGER NOT NULL, part_ix INTEGER NOT NULL, rank INTEGER NOT NULL, mid_sid INTEGER NOT NULL,
+        mid_lon INTEGER NOT NULL, mid_lat INTEGER NOT NULL, w INTEGER, s INTEGER, e INTEGER, n INTEGER,
+        PRIMARY KEY (ord, part_ix));
+      CREATE TABLE part_stretch (ord INTEGER NOT NULL, part_ix INTEGER NOT NULL, stretch_ix INTEGER NOT NULL,
+        rank INTEGER NOT NULL, mid_sid INTEGER NOT NULL, mid_lon INTEGER NOT NULL, mid_lat INTEGER NOT NULL, w INTEGER,
+        s INTEGER, e INTEGER, n INTEGER, sids TEXT NOT NULL, PRIMARY KEY (ord, part_ix, stretch_ix));`, `
+      INSERT INTO part_stretch VALUES (5, 0, 1, 2, 9, -122000000, 49000000, -122100000, 48900000, -121900000, 49100000, '[9, 10]'),
+                                      (5, 0, 0, 0, 8, -123000000, 49000000, NULL, NULL, NULL, NULL, '[8]');`);
+    const w5 = openInMemory(`
+      CREATE TABLE part_mark (ord INTEGER NOT NULL, mark_ix INTEGER NOT NULL, lon INTEGER NOT NULL, lat INTEGER NOT NULL,
+        label TEXT, down_part INTEGER NOT NULL, up_parts TEXT NOT NULL, confidence TEXT, down_stretch INTEGER,
+        up_stretches TEXT, PRIMARY KEY (ord, mark_ix));
+      CREATE TABLE part_section (ord INTEGER NOT NULL, sid INTEGER NOT NULL, part_ix INTEGER NOT NULL, PRIMARY KEY (ord, sid));
+      CREATE TABLE water_exit (ord INTEGER PRIMARY KEY, down_ord INTEGER NOT NULL, down_part INTEGER);`, `
+      INSERT INTO part_mark VALUES (5, 0, -1, 1, 'Bridge', 0, '[1]', NULL, NULL, NULL),
+                                   (5, 1, -2, 2, 'Falls', 1, '[0]', 'low', 0, '[1]');`);
+    const r = makeReads({ core: async () => core, water: async () => w5, geo: async () => geo } as unknown as ReadBase);
+    const nav = await r.navRows(5);
+    expect(nav.stretches).toEqual([
+      { partIx: 0, stretch: 0, rank: 0, mid: [-123, 49], box: null, sids: [8] },
+      { partIx: 0, stretch: 1, rank: 2, mid: [-122, 49], box: [-122.1, 48.9, -121.9, 49.1], sids: [9, 10] }]);
+    expect(nav.marks.map((m) => [m.label, m.downStretch, m.upStretches, m.confidence])).toEqual([
+      ["Bridge", undefined, undefined, undefined], ["Falls", 0, [1], "low"]]);
+  });
+
   it("navRows on a release cut before `water_continue`: no continuation, everything else as before", async () => {
     const r = makeReads({ core: async () => core, water: async () => older } as unknown as ReadBase);
-    expect(await r.navRows(1)).toEqual({ geo: [], marks: [], sections: [], exit: null, continuesAs: null,
+    expect(await r.navRows(1)).toEqual({ geo: [], marks: [], sections: [], stretches: [], exit: null, continuesAs: null,
                                          continuesFrom: null });
   });
 });

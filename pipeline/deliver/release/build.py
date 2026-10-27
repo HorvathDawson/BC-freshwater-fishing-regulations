@@ -21,7 +21,8 @@ writes paint, derives three per-water flags for search, converts the climatology
                  road per section, so Conditions needs no core)
   down           section_down (T182: an unnamed tap's "Tributary of ..." walk)    bundle
   climate        gauge_clim, bands float16: clim/2 (T182: off the Conditions map) bundle
-  geo            part_geo (T182: "show on the map" without the whole water file)  bundle
+  geo            part_geo (T182: "show on the map" without the whole water file), bundle
+                 part_stretch (T204: a part's separate stretches)
   flow-area      the panel target areas, one varint per paint section (paint.py)  bundle
   lakes          OPTIONAL, absent today: per lake section, surveyed / last        a lakes/1 file, only when
                  stocked — the Depth and Stocked modes' values (lakes/1)          handed one (`lakes=`); no feed
@@ -206,6 +207,17 @@ def geo_e6(con: sqlite3.Connection) -> None:
                 f"{e6('w')}, {e6('s')}, {e6('e')}, {e6('n')} FROM part_geo ORDER BY ord, part_ix")
     con.execute("DROP TABLE part_geo")
     con.execute("ALTER TABLE part_geo_e6 RENAME TO part_geo")
+    # T204: a part's stretches (only where a part of the water has two or more), the same units — ADDITIVE, still geo/1
+    if con.execute("SELECT 1 FROM sqlite_master WHERE name = 'part_stretch'").fetchone():
+        con.execute("CREATE TABLE part_stretch_e6 (ord INTEGER NOT NULL, part_ix INTEGER NOT NULL, "
+                    "stretch_ix INTEGER NOT NULL, rank INTEGER NOT NULL, mid_sid INTEGER NOT NULL, "
+                    "mid_lon INTEGER NOT NULL, mid_lat INTEGER NOT NULL, w INTEGER, s INTEGER, e INTEGER, n INTEGER, "
+                    "sids TEXT NOT NULL, PRIMARY KEY (ord, part_ix, stretch_ix)) WITHOUT ROWID")
+        con.execute(f"INSERT INTO part_stretch_e6 SELECT ord, part_ix, stretch_ix, rank, mid_sid, {e6('mid_lon')}, "
+                    f"{e6('mid_lat')}, {e6('w')}, {e6('s')}, {e6('e')}, {e6('n')}, sids FROM part_stretch "
+                    "ORDER BY ord, part_ix, stretch_ix")
+        con.execute("DROP TABLE part_stretch")
+        con.execute("ALTER TABLE part_stretch_e6 RENAME TO part_stretch")
 
 
 def clim_f16(bands: bytes) -> bytes:
@@ -331,10 +343,12 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
             e6 = lambda c: f"CAST(round({c} * 1000000) AS INTEGER)"  # noqa: E731
             con.execute("CREATE TABLE part_mark_e6 (ord INTEGER NOT NULL, mark_ix INTEGER NOT NULL, lon INTEGER NOT NULL, "
                         "lat INTEGER NOT NULL, label TEXT, down_part INTEGER NOT NULL, up_parts TEXT NOT NULL, "
-                        "confidence TEXT, PRIMARY KEY (ord, mark_ix)) WITHOUT ROWID")
-            # `confidence` (T207): ADDITIVE, last, NULL for high — still water/1; an older release has no column
+                        "confidence TEXT, down_stretch INTEGER, up_stretches TEXT, "
+                        "PRIMARY KEY (ord, mark_ix)) WITHOUT ROWID")
+            # `confidence` (T207), `down_stretch` / `up_stretches` (T204): ADDITIVE, last, NULL for the common case
+            # (high; stretch 0) — still water/1; an older release has no columns
             con.execute(f"INSERT INTO part_mark_e6 SELECT ord, mark_ix, {e6('lon')}, {e6('lat')}, label, down_part, up_parts, "
-                        "confidence "
+                        "confidence, down_stretch, up_stretches "
                         "FROM part_mark ORDER BY ord, mark_ix")
             con.execute("DROP TABLE part_mark")
             con.execute("ALTER TABLE part_mark_e6 RENAME TO part_mark")
@@ -411,7 +425,7 @@ def bundle_files(work: Path, bundle: Path, b: sqlite3.Connection, base: Dict[str
                               {**base, "format": FORMATS["down"]})
     files["climate"] = copy_file(work / "climate.sqlite", {"b": bundle}, [("b", t, None) for t in CLIMATE_TABLES],
                                  {**base, "format": FORMATS["climate"], "clim": "clim/2"}, extra=_climate_extra)
-    files["geo"] = copy_file(work / "geo.sqlite", {"b": bundle}, [("b", "part_geo", None)],
+    files["geo"] = copy_file(work / "geo.sqlite", {"b": bundle}, [("b", "part_geo", None), ("b", "part_stretch", None)],
                              {**base, "format": FORMATS["geo"]}, extra=geo_e6)
     return files
 

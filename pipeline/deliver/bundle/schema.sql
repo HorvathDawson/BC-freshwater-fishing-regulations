@@ -407,9 +407,19 @@ CREATE TABLE part_geo  (ord INTEGER NOT NULL, part_ix INTEGER NOT NULL, rank INT
                         w REAL, s REAL, e REAL, n REAL,
                         PRIMARY KEY (ord, part_ix),
                         FOREIGN KEY (ord, part_ix) REFERENCES part(ord, part_ix)) WITHOUT ROWID;
+-- T204: a mark per meeting PLACE; `down_stretch` / `up_stretches` (a JSON list beside `up_parts`) say which stretch of
+-- each part meets there, NULL when every one is stretch 0. `part_stretch`: every stretch of every part of a water that
+-- has a part of two or more stretches (none for any other water), its `rank` mouth first among the water's stretches,
+-- its midpoint and box as `part_geo`'s, and its section ids (a JSON list).
 CREATE TABLE part_mark (ord INTEGER NOT NULL, mark_ix INTEGER NOT NULL, lon REAL NOT NULL, lat REAL NOT NULL,
                         label TEXT, down_part INTEGER NOT NULL, up_parts TEXT NOT NULL, confidence TEXT,
+                        down_stretch INTEGER, up_stretches TEXT,
                         PRIMARY KEY (ord, mark_ix)) WITHOUT ROWID;
+CREATE TABLE part_stretch (ord INTEGER NOT NULL, part_ix INTEGER NOT NULL, stretch_ix INTEGER NOT NULL,
+                           rank INTEGER NOT NULL, mid_sid INTEGER NOT NULL, mid_lon REAL NOT NULL, mid_lat REAL NOT NULL,
+                           w REAL, s REAL, e REAL, n REAL, sids TEXT NOT NULL,
+                           PRIMARY KEY (ord, part_ix, stretch_ix),
+                           FOREIGN KEY (ord, part_ix) REFERENCES part(ord, part_ix)) WITHOUT ROWID;
 CREATE TABLE water_exit (ord INTEGER PRIMARY KEY, down_ord INTEGER NOT NULL, down_part INTEGER, label TEXT);
 
 -- EVERY SECTION HAS AN ANSWER (S1, user ruling 2026-10-10: "unnamed or named but unregulated

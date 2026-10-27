@@ -170,6 +170,20 @@ export const PACK_FILES: Record<string, PackFile> = {
         "s",
         "e",
         "n"
+      ],
+      "part_stretch": [
+        "ord",
+        "part_ix",
+        "stretch_ix",
+        "rank",
+        "mid_sid",
+        "mid_lon",
+        "mid_lat",
+        "w",
+        "s",
+        "e",
+        "n",
+        "sids"
       ]
     }
   },
@@ -902,7 +916,9 @@ export const PACK_FILES: Record<string, PackFile> = {
         "label",
         "down_part",
         "up_parts",
-        "confidence"
+        "confidence",
+        "down_stretch",
+        "up_stretches"
       ],
       "part_section": [
         "ord",
@@ -1039,6 +1055,12 @@ export const PACK_UNITS: Record<string, string> = {
   "geo.part_geo.n": "microdegrees",
   "geo.part_geo.s": "microdegrees",
   "geo.part_geo.w": "microdegrees",
+  "geo.part_stretch.e": "microdegrees",
+  "geo.part_stretch.mid_lat": "microdegrees",
+  "geo.part_stretch.mid_lon": "microdegrees",
+  "geo.part_stretch.n": "microdegrees",
+  "geo.part_stretch.s": "microdegrees",
+  "geo.part_stretch.w": "microdegrees",
   "lakes": "lakes/1: 'BCLK', u8 1, 8 bytes section_handles, LEB128 asof+1, LEB128 count, then per section (sid ascending) LEB128 sid delta, u8 survey (0 none, 1 sheet, 2 digitised), LEB128 stocked day+1 (0 never); days since 1900-01-01 (pipeline/deliver/lake_facts.py)",
   "paint": "paint/4: see pipeline/deliver/release/paint.py",
   "water.part_mark.lat": "microdegrees",
