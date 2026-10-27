@@ -1471,11 +1471,13 @@
      "may_target": false,
      "extents": [
       {
-       "op": "whole"
+       "op": "between",
+       "splits": [
+        "chapman_creek__lower_falls_below_power_line",
+        "chapman_creek__100_m_below_lower_falls"
+       ]
       }
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): Chapman Creek's menu has no cut-point for 'the falls' or for the point 100 m below them (only lake boundaries). Needs two curated splits in splits.json.",
-     "undrawn_part": "from the falls to 100 m downstream (falls are located approximately 550 m upstream of the power line crossing)"
+     ]
     }
    ]
   },
@@ -7893,9 +7895,7 @@
       {
        "op": "whole"
       }
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'Grant Narrows' has no matching split in the bindable boundaries menu for this item",
-     "undrawn_part": "at Grant Narrows"
+     ]
     },
     {
      "rule_id": "pitt_river.r3",
@@ -9813,7 +9813,7 @@
        "op": "whole"
       }
      ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): no boundary in the menu for the Ruskin spawning channel's inlet-near-dam or boat-ramp-crossing points — reach left unbound rather than applied to the whole river",
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): the spawning channel is not in the atlas. Checked 2026-10-27 (owner: find the existing splits): the Ruskin and Northrop channels below Ruskin Dam are FWA side channels (blks 355993381-355993384, 355997566-355997567, Stave watershed code 100-046202) that carry NO sections in the atlas and belong to no item, so no existing cut draws them; the only existing cut there is Ruskin Dam (stave_river__hayward_lake), and binding below it would widen the closure to the mainstem.",
      "undrawn_part": "Ruskin spawning channel, from the inlet near the dam downstream to the boat ramp crossing"
     },
     {
@@ -9830,7 +9830,7 @@
        "op": "whole"
       }
      ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): no boundary in the menu for the Northrop Spawning Channel's intake or its confluence with the Stave River main — reach left unbound rather than applied to the whole river",
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): the spawning channel is not in the atlas. Checked 2026-10-27 (owner: find the existing splits): the Ruskin and Northrop channels below Ruskin Dam are FWA side channels (blks 355993381-355993384, 355997566-355997567, Stave watershed code 100-046202) that carry NO sections in the atlas and belong to no item, so no existing cut draws them; the only existing cut there is Ruskin Dam (stave_river__hayward_lake), and binding below it would widen the closure to the mainstem.",
      "undrawn_part": "Northrop Spawning Channel, from the intake downstream to where the channel joins the Stave River main, including its tributaries containg the fishway"
     }
    ]
@@ -11364,11 +11364,13 @@
      "obligation": "should",
      "extents": [
       {
-       "op": "whole",
+       "op": "downstream_of",
+       "splits": [
+        "stave_river__hayward_lake"
+       ],
        "item_id": "gnis:14589"
       }
-     ],
-     "review_reason": "OVER-BROAD, KNOWN: placed on the whole Stave River (27 sections), including the reaches above the Ruskin and Stave Falls dams where no steelhead run. No cut-point exists at Ruskin Dam in splits.json; a `downstream_of` that cut is the fix once a curator draws it."
+     ]
     }
    ]
   }

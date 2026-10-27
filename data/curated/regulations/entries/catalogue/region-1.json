@@ -3072,11 +3072,12 @@
      "includes_tributaries": true,
      "extents": [
       {
-       "op": "whole"
+       "op": "upstream_of",
+       "splits": [
+        "deena_creek__second_bridge_5_km_above_tidal"
+       ]
       }
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): Deena Creek has no bindable cut-points besides op:whole; 'second bridge approximately 5 km upstream of the tidal boundary' cannot be bound to a real split",
-     "undrawn_part": "upstream of fishing boundary signs at second bridge approximately 5 km upstream of the tidal boundary"
+     ]
     },
     {
      "rule_id": "deena_creek.r2",
@@ -7627,11 +7628,12 @@
      "may_target": false,
      "extents": [
       {
-       "op": "whole"
+       "op": "upstream_of",
+       "splits": [
+        "mamin_river__third_bridge_mamin_main"
+       ]
       }
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'fishing boundary signs on third bridge' is not a listed cut-point on this water's boundary menu",
-     "undrawn_part": "upstream of fishing boundary signs on third bridge approximately 10 km upstream of the tidal boundary"
+     ]
     },
     {
      "rule_id": "mamin_river.r4",

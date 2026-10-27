@@ -2333,11 +2333,13 @@
      "max_kmh": 10.0,
      "extents": [
       {
-       "op": "whole"
+       "op": "between",
+       "splits": [
+        "columbia_river__fairmont",
+        "columbia_river__columbia_lake"
+       ]
       }
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'Mud Lake' has no bindable boundary id in this item's boundary menu",
-     "undrawn_part": "from Mud Lake to Columbia Lake"
+     ]
     },
     {
      "rule_id": "columbia_river.r12",

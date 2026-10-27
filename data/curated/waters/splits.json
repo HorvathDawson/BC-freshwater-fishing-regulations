@@ -9670,6 +9670,112 @@
      ]
     }
    ]
+  },
+  {
+   "name": "CHAPMAN CREEK",
+   "applies_to": {
+    "gnis_id": "12936"
+   },
+   "splits": [
+    {
+     "id": "chapman_creek__lower_falls_below_power_line",
+     "label": "the falls below the power line crossing",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -123.72651,
+       49.46446
+      ],
+      "is_lonlat": true
+     },
+     "confidence": "low",
+     "note": "",
+     "_note": "[owner 2026-10-27 decisions.md 'needs a split' list] Chapman Creek r2 'from the falls to 100 m downstream (falls are located approximately 550 m upstream of the power line crossing)'. Source: the 2026-08 locator research (pipeline/docs/archive/waterbody-splits.json, chapman-creek-6d4cfd-a), citing the SCRD lower-reaches survey maps (scrd.ca/wp-content/uploads/2437014-Appendix-F-Maps-of-the-Study-area-and-Lower-Reaches.pdf): the 'lower falls' at 49.46446,-123.72651, on the FWA Chapman Creek line (blk 360857589, 3 m off, route measure ~4005 m), ~576 m BELOW the power line crossing (49.46869,-123.72722, measure ~4581 m). There is no falls ~550 m above the power line (owner searched; the next falls up is ~2 km above it). The owner reads the book's 'upstream' as an error and takes this falls: LOW confidence. Cut at the falls.",
+     "_coord": [
+      -123.72651,
+      49.46446
+     ]
+    },
+    {
+     "id": "chapman_creek__100_m_below_lower_falls",
+     "label": "100 m below the falls (below the power line crossing)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -123.72651,
+       49.46446
+      ],
+      "is_lonlat": true,
+      "offset_m": 100,
+      "offset_dir": "downstream"
+     },
+     "confidence": "low",
+     "note": "",
+     "_note": "[owner 2026-10-27 decisions.md 'needs a split' list] Chapman Creek r2 'from the falls to 100 m downstream (falls are located approximately 550 m upstream of the power line crossing)'. Source: the 2026-08 locator research (pipeline/docs/archive/waterbody-splits.json, chapman-creek-6d4cfd-a), citing the SCRD lower-reaches survey maps (scrd.ca/wp-content/uploads/2437014-Appendix-F-Maps-of-the-Study-area-and-Lower-Reaches.pdf): the 'lower falls' at 49.46446,-123.72651, on the FWA Chapman Creek line (blk 360857589, 3 m off, route measure ~4005 m), ~576 m BELOW the power line crossing (49.46869,-123.72722, measure ~4581 m). There is no falls ~550 m above the power line (owner searched; the next falls up is ~2 km above it). The owner reads the book's 'upstream' as an error and takes this falls: LOW confidence. Cut along the channel 100 m downstream of the falls.",
+     "_coord": [
+      -123.72651,
+      49.46446
+     ]
+    }
+   ]
+  },
+  {
+   "name": "DEENA CREEK",
+   "applies_to": {
+    "gnis_id": "6912"
+   },
+   "splits": [
+    {
+     "id": "deena_creek__second_bridge_5_km_above_tidal",
+     "label": "second bridge signs (~5 km above the tidal boundary)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -132.16401,
+       53.1211
+      ],
+      "is_lonlat": true
+     },
+     "confidence": "low",
+     "note": "",
+     "_note": "[owner 2026-10-27 decisions.md 'needs a split' list] Deena Creek r1 'upstream of fishing boundary signs at second bridge approximately 5 km upstream of the tidal boundary'. GUESSED, LOW confidence: no second bridge is mapped. The FWA tidal boundary crosses Deena Creek (blk 360863736) at route measure ~311 m; OSM has one bridge at ~1522 m (way 207719610, 53.1406,-132.1452 - the first bridge) and the FTEN road layer only a crossing at ~14 km (R13249 '121E-100 TO FORK05'). This point is the creek line 5.0 km above the tidal boundary (measure ~5311 m), the book's own distance, standing in for the unmapped second bridge.",
+     "_coord": [
+      -132.16401,
+      53.1211
+     ]
+    }
+   ]
+  },
+  {
+   "name": "MAMIN RIVER",
+   "applies_to": {
+    "gnis_id": "34252"
+   },
+   "splits": [
+    {
+     "id": "mamin_river__third_bridge_mamin_main",
+     "label": "third bridge signs (Mamin Main, ~10 km above the tidal boundary)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -132.32625,
+       53.56814
+      ],
+      "is_lonlat": true
+     },
+     "confidence": "low",
+     "note": "",
+     "_note": "[owner 2026-10-27 decisions.md 'needs a split' list] Mamin River r3 'upstream of fishing boundary signs on third bridge approximately 10 km upstream of the tidal boundary'. GUESSED, LOW confidence: the FTEN road layer (bc_fisheries_data.gpkg forest_service_roads) crosses the Mamin (blk 360873432) at Datlamen Main (R13350 s355, measure ~4576 m) and Mamin Main (R13350 s270, measure ~11162 m, 53.56814,-132.32625); the tidal boundary is at measure ~2076 m, so Mamin Main is ~9.1 km above it - the only mapped crossing near the book's 10 km. The book counts three bridges; only two are mapped below 28 km, so which bridge is 'third' is unconfirmed.",
+     "_coord": [
+      -132.32625,
+      53.56814
+     ]
+    }
+   ]
   }
  ]
 }
