@@ -42,6 +42,9 @@ interface Props {
   preview?: GeoJSON.FeatureCollection | null;
   /** DFO: the reviewer's SAVED extent fix (the mark in force), drawn teal, under the preview */
   saved?: GeoJSON.FeatureCollection | null;
+  /** DFO: the SUGGESTED extent (never applied) — its points and, when it resolves, its reach;
+   *  drawn violet and dashed, under the saved extent */
+  suggested?: GeoJSON.FeatureCollection | null;
   /** T191: while set, a map click is a NEW split point (lon, lat) for the extent-fix editor */
   onPick?: ((lnglat: [number, number]) => void) | null;
 }
@@ -138,7 +141,7 @@ export function MapPanel({
   itemId, alsoItemIds = [], referencedSplitIds = [], unusedSplitIds = [], selectedSplitId = null,
   onSelectSplit, reloadKey = 0, focusItemId = null,
   reaches = null, rules = [], reachOf = {}, entryId = null, namedSplits = null, showRule,
-  preview = null, saved = null, onPick = null,
+  preview = null, saved = null, suggested = null, onPick = null,
 }: Props) {
   const picking = useRef(onPick);
   picking.current = onPick;
@@ -233,6 +236,7 @@ export function MapPanel({
           measure: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
           preview: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
           saved: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
+          suggested: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
         },
         layers: [
           ...layers("protomaps", LIGHT),
@@ -310,6 +314,21 @@ export function MapPanel({
             paint: { "text-color": ["case", ["get", "to_verify"], "#92400e", NAMED_COLOR],
                      "text-halo-color": "#fff", "text-halo-width": 2,
                      "text-opacity": ["case", ["get", "_on"], 1, 0.35] } },
+          // DFO: the SUGGESTED extent — violet, dashed, under the saved extent (never applied)
+          { id: "suggested-lines", type: "line", source: "suggested",
+            filter: ["!=", ["geometry-type"], "Point"],
+            paint: { "line-color": "#7c3aed", "line-width": 5, "line-opacity": 0.7,
+                     "line-dasharray": [2, 1.5] } },
+          { id: "suggested-pts", type: "circle", source: "suggested",
+            filter: ["==", ["geometry-type"], "Point"],
+            paint: { "circle-radius": 7, "circle-color": "#7c3aed",
+                     "circle-stroke-color": "#fff", "circle-stroke-width": 2 } },
+          { id: "suggested-labels", type: "symbol", source: "suggested",
+            filter: ["==", ["geometry-type"], "Point"],
+            layout: { "text-field": ["get", "label"], "text-size": 12, "text-offset": [0, -1.3],
+                      "text-anchor": "bottom", "text-font": ["Noto Sans Medium"],
+                      "text-allow-overlap": true },
+            paint: { "text-color": "#5b21b6", "text-halo-color": "#fff", "text-halo-width": 2 } },
           // the reviewer's SAVED extent fix — teal, under the previews
           { id: "saved-fill", type: "fill", source: "saved",
             filter: ["in", ["geometry-type"], ["literal", ["Polygon", "MultiPolygon"]]],
@@ -588,6 +607,17 @@ export function MapPanel({
       src.setData(fc as GeoJSON.FeatureCollection);
     });
   }, [saved]);
+
+  // the SUGGESTED extent (DFO), violet and dashed; the view stays put
+  useEffect(() => {
+    const m = map.current;
+    if (!m) return;
+    whenReady(m, () => {
+      const src = m.getSource("suggested") as maplibregl.GeoJSONSource | undefined;
+      if (!src) return;
+      src.setData((suggested ?? { type: "FeatureCollection", features: [] }) as GeoJSON.FeatureCollection);
+    });
+  }, [suggested]);
 
   const measureDist = pts.length === 2 ? haversine(pts[0], pts[1]) : null;
 

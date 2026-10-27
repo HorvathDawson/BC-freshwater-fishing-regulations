@@ -505,6 +505,15 @@ body {
   color: #1e40af;
   border: 1px solid #60a5fa;
 }
+.chip-tag.suggested { /* DFO: a suggested extent waits on this location (never applied) */
+  background: #ede9fe;
+  color: #5b21b6;
+  border: 1px solid #a78bfa;
+}
+.dfo-suggestion { border-left: 3px solid #7c3aed; padding-left: 8px; }
+.badge.suggest-high { background: #ede9fe; color: #5b21b6; }
+.badge.suggest-medium { background: #f5f3ff; color: #6d28d9; }
+.badge.suggest-low, .badge.suggest-none { background: #f4f4f5; color: #52525b; }
 .chip-tag.orphan {   /* removed from splits.json — drops on rebuild */
   background: #fee2e2;
   color: #991b1b;

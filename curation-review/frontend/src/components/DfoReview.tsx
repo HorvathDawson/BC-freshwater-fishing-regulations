@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api, type EntryRefused } from "../api";
 import type {
-  AnchorCheck, AnchorKind, Check, CheckAnswer, DfoDetail, DfoProgress, DfoRow, EntrySplits, ExtentFix,
-  ExtentPreview, Mode, NamedRef, NewSplit, ProposedSplit,
+  AnchorCheck, AnchorKind, Check, CheckAnswer, DfoDetail, DfoProgress, DfoRow, DfoSuggestion, EntrySplits,
+  ExtentFix, ExtentPreview, Mode, NamedRef, NewSplit, ProposedSplit,
 } from "../types";
 import { getReviewer, isTyping, setReviewer } from "../review";
 import { MapPanel } from "./MapPanel";
@@ -37,6 +37,33 @@ const asNewSplit = (p: ProposedSplit, quote: string): NewSplit => ({
   offset_m: p.offset_m, quote: p.quote || quote,
 });
 const CHECKS: Check[] = ["T", "R", "P"];
+
+/** ACCEPT A SUGGESTION: the extent-fix editor's value it pre-fills, and the NEW splits its points
+ *  name (renamed off any ref already taken in this mark or by a proposal on the river). Pure: it
+ *  writes nothing — the owner's "Save extent" records the mark, the only write. A point naming a
+ *  split another mark proposed stays as it is (the save carries that proposal in). */
+export function suggestionFix(s: DfoSuggestion | null | undefined, taken: string[] = []):
+    { fix: ExtentFix; newSplits: NewSplit[] } | null {
+  const sg = s?.suggestion;
+  if (!sg) return null;
+  const used = new Set(taken);
+  const rename: Record<string, string> = {};
+  const newSplits = (sg.new_splits ?? []).map((n) => {
+    let ref = n.ref, k = 1;
+    while (used.has(ref)) { k += 1; ref = `${n.ref}-${k}`; }
+    used.add(ref);
+    rename[n.ref] = ref;
+    return { ...n, ref };
+  });
+  const fix: ExtentFix = {
+    scope: "entry", op: sg.op,
+    points: sg.points.map((p) => (p.kind === "new" && p.split_id && rename[p.split_id]
+      ? { ...p, split_id: rename[p.split_id] } : { ...p })),
+    items: [...sg.items], tributaries: sg.tributaries ?? null,
+  };
+  return { fix, newSplits };
+}
+const CONF_WORDS: Record<string, string> = { high: "high", medium: "medium", low: "low", none: "—" };
 
 /** The extent fix the mark in force carries for this location: what the editor opens on and what
  *  "your extent" shows (the LATEST mark wins — a later mark without a fix is the reviewer taking it off). */
@@ -206,6 +233,8 @@ export function DfoReview({ mode, onLeave }: Props) {
                 <span>r{r.region}{r.section ? ` · ${r.section}` : ""}</span>
                 {r.status !== "active" && <span className="chip-tag">dormant</span>}
                 {r.new_splits > 0 && <span className="chip-tag new">+{r.new_splits} split</span>}
+                {r.suggested && r.verify === "unmarked" && <span className="chip-tag suggested"
+                  title="a suggested extent is waiting on this location">suggested · {r.suggested}</span>}
                 <span>{r.n_rows} row{r.n_rows === 1 ? "" : "s"}</span>
               </div>
               <div className="meta dfo-text">{r.text || "(the whole water)"}</div>
@@ -328,6 +357,48 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
 
   const reachFc = (reach?.geojson ?? null) as GeoJSON.FeatureCollection | null;
   const preview = fixPreview ?? reachFc;
+
+  // THE SUGGESTED EXTENT (never applied): its points violet on the map, and its reach when every
+  // point already exists; "accept suggestion" pre-fills the editor — "Save extent" is the write
+  const sugg = detail.suggestion ?? null;
+  const [suggestedFc, setSuggestedFc] = useState<GeoJSON.FeatureCollection | null>(null);
+  const [accepted, setAccepted] = useState("");
+  useEffect(() => {
+    let live = true;
+    setSuggestedFc(null);
+    const sg = sugg?.suggestion;
+    if (!sg) return;
+    const pts: GeoJSON.Feature[] = sg.points.flatMap((p, i) => {
+      const meta = sugg?.points?.[i];
+      const prop = p.kind === "new" ? detail.proposed.find((x) => x.id === p.split_id) : undefined;
+      const at = meta?.coord ?? prop?.coord ?? (p.kind === "split" && p.split_id ? splitAtId(p.split_id) : null);
+      return at ? [{ type: "Feature", properties: { label: `SUGGESTED ${i + 1}: ${meta?.label ?? p.split_id ?? ""}` },
+                     geometry: { type: "Point", coordinates: at } } as GeoJSON.Feature] : [];
+    });
+    setSuggestedFc({ type: "FeatureCollection", features: pts });
+    const built = sg.op === "whole" || sg.points.every((p) => p.kind === "split");
+    const want = { whole: 0, upstream_of: 1, downstream_of: 1, between: 2 }[sg.op as string];
+    if (built && want === sg.points.length) {
+      api.dfoExtentPreview(id, { scope: "entry", op: sg.op, points: sg.points, items: sg.items,
+                                 tributaries: sg.tributaries })
+        .then((r) => live && r.resolvable && setSuggestedFc({ type: "FeatureCollection",
+          features: [...((r.geojson?.features ?? []) as GeoJSON.Feature[]), ...pts] }))
+        .catch(() => {});
+    }
+    return () => { live = false; };
+  }, [id, sugg]);  // eslint-disable-line react-hooks/exhaustive-deps
+
+  function acceptSuggestion() {
+    const got = suggestionFix(sugg, [...splits.map((n) => n.ref), ...detail.proposed.map((p) => p.id),
+                                     ...savedNew.map((n) => n.ref)]);
+    if (!got) return;
+    setFix(got.fix);
+    setFixPreview(null);
+    if (got.newSplits.length) setSplits((cur) => [...cur.filter((n) => !got.newSplits.some((x) => x.ref === n.ref)),
+                                                  ...got.newSplits]);
+    setAccepted(`suggestion pre-filled in the editor below${got.newSplits.length
+      ? ` with ${got.newSplits.length} new split${got.newSplits.length === 1 ? "" : "s"}` : ""} — check it, then Save extent (nothing is saved yet)`);
+  }
 
   function setAnswer(c: Check, a: CheckAnswer) { setAnswers((x) => ({ ...x, [c]: a })); }
 
@@ -484,6 +555,31 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
             )}
           </div>
 
+          {sugg?.suggestion && (
+            <div className="section dfo-suggestion" data-testid="dfo-suggestion">
+              <div className="ext-row">
+                <span className="k" style={{ color: "#7c3aed" }}>suggested</span>
+                <span data-testid="dfo-suggestion-words">
+                  {sugg.suggestion.words ?? fixWords({ scope: "entry", op: sugg.suggestion.op,
+                    points: sugg.suggestion.points, items: sugg.suggestion.items,
+                    tributaries: sugg.suggestion.tributaries }, splitNameOf, itemNameOf)}</span>
+                <span className={`badge suggest-${sugg.confidence}`} data-testid="dfo-suggestion-confidence">
+                  {CONF_WORDS[sugg.confidence] ?? sugg.confidence}{sugg.matched === "partial" ? " · one end open" : ""}</span>
+                <button type="button" className="btn small" data-testid="dfo-accept-suggestion"
+                  onClick={acceptSuggestion}
+                  title="pre-fills the extent editor below — nothing is saved until you press Save extent">
+                  accept suggestion</button>
+              </div>
+              <div className="ext-row dim" style={{ fontSize: 12 }}>{sugg.reason}</div>
+              {sugg.suggestion.new_splits.length > 0 && (
+                <div className="ext-row dim" style={{ fontSize: 12 }}>
+                  new split{sugg.suggestion.new_splits.length === 1 ? "" : "s"}:{" "}
+                  {sugg.suggestion.new_splits.map((n) => anchorWords(n)).join(" · ")} — violet on the map</div>
+              )}
+              {accepted && <div className="ext-row notice" role="status" data-testid="dfo-suggestion-accepted">{accepted}</div>}
+            </div>
+          )}
+
           <NewSplits id={id} items={detail.items} hints={detail.hints} quote={detail.verbatim.specific_area}
             op={detail.need.op} shared={shared} value={splits} onChange={setSplits} checks={checks}
             onChecked={(ref, c) => setChecks((m) => ({ ...m, [ref]: c }))}
@@ -557,10 +653,11 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
         <div className="detail-map">
           <div className="dim" style={{ fontSize: 12, marginBottom: 4 }}>
             magenta: {fixPreview ? "the proposed extent" : "what the extent binds now"} ·{" "}
-            <span style={{ color: "#0d9488" }}>teal: your saved extent</span> · amber labels: NEW splits proposed in this mark
+            <span style={{ color: "#0d9488" }}>teal: your saved extent</span> ·{" "}
+            <span style={{ color: "#7c3aed" }}>violet dashed: the suggestion</span> · amber labels: NEW splits proposed in this mark
           </div>
           <MapPanel itemId={detail.items[0]?.id ?? null} alsoItemIds={detail.items.slice(1).map((i) => i.id)}
-            namedSplits={named} preview={preview} saved={savedFc} onPick={pick.cb} />
+            namedSplits={named} preview={preview} saved={savedFc} suggested={suggestedFc} onPick={pick.cb} />
         </div>
       </div>
     </div>

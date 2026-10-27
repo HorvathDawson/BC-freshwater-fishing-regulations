@@ -33,6 +33,12 @@ from pipeline.regs.review import dfo as D
 DFO_DIR = Path(os.environ["CURATION_DFO_DIR"]) if os.environ.get("CURATION_DFO_DIR") else None
 DFO_TYPED = Path(os.environ["CURATION_DFO_TYPED"]) if os.environ.get("CURATION_DFO_TYPED") else None
 
+#: THE SUGGESTED EXTENTS (`pipeline.regs.dfo_salmon.suggest`, a frozen, reviewed file): shown on each
+#: location, never applied — "accept suggestion" only pre-fills the editor. `CURATION_DFO_SUGGESTIONS`
+#: points it at a copy (tests).
+SUGGESTIONS_PATH = (Path(os.environ["CURATION_DFO_SUGGESTIONS"]) if os.environ.get("CURATION_DFO_SUGGESTIONS")
+                    else reuse._ROOT / "handoff/PLAN/curation-review/dfo-suggestions.json")
+
 #: how far (m) a map point may sit from the water it cuts — further is a click on another water
 SNAP_MAX_M = 500.0
 #: how far (m) a tributary's mouth may sit from the water — further, it is not its tributary
@@ -85,6 +91,26 @@ def proposed_on(items: list[str]) -> list[dict]:
     return [_proposal_view(p) for p in _proposals() if _on_river(p, items, blks)]
 
 
+@lru_cache(maxsize=2)
+def _suggestions_at(path: str, _mtime: float) -> dict:
+    try:
+        return json.loads(Path(path).read_text()).get("suggestions") or {}
+    except (OSError, ValueError):
+        return {}
+
+
+def suggestion(location_id: str) -> dict | None:
+    """The SUGGESTED EXTENT for this location (`suggest.suggest_one`'s row: op, points, new splits,
+    confidence, reason), or None. Read only; the mark stays the only write."""
+    p = SUGGESTIONS_PATH
+    try:
+        mt = p.stat().st_mtime
+    except OSError:
+        return None
+    row = _suggestions_at(str(p), mt).get(location_id)
+    return row if row and row.get("suggestion") else None
+
+
 def _now(loc, water):
     from pipeline.regs.review.marks import Prints
     return Prints.model_validate(D.prints(loc, water, DFO_TYPED))
@@ -119,6 +145,7 @@ def _row(slug: str, loc: dict, water: dict | None, m) -> dict:
             "n_rows": len(rows), "n_rules": len(rules), "need": need, "state": state,
             "duplicate_of": loc.get("duplicate_of"),
             "verify": v["status"], "reasons": v["reasons"],
+            "suggested": (suggestion(loc["location_id"]) or {}).get("confidence"),
             "new_splits": len(m.new_splits) if m is not None else 0}
 
 
@@ -288,6 +315,7 @@ def detail(location_id: str) -> dict | None:
         "rows": rows, "rules": labels, "need": D.need(loc),
         "splits": _splits_fc(loc, water),
         "proposed": proposed_on(list((water or {}).get("item_ids") or [])), "hints": _hints(loc, water), "siblings": siblings,
+        "suggestion": suggestion(location_id),
         "mark": ({**json.loads(m.model_dump_json()), **v} if m is not None else None),
     })
 

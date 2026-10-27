@@ -940,6 +940,29 @@ export interface DfoRow {
   verify: VerifyStatus;
   reasons: string[];
   new_splits: number;
+  /** the confidence of the location's SUGGESTED extent (`dfo-suggestions.json`), when there is one */
+  suggested?: SuggestConfidence | null;
+}
+export type SuggestConfidence = "high" | "medium" | "low" | "none";
+/** A SUGGESTED extent (`pipeline.regs.dfo_salmon.suggest`): never applied — "accept suggestion"
+ *  pre-fills the extent-fix editor (`suggestionFix`); the owner's save is the only write. */
+export interface DfoSuggestion {
+  location_id: string;
+  /** existing (every point a cut that exists or the owner proposed) | new | whole | partial | none */
+  matched: "existing" | "new" | "whole" | "partial" | "none";
+  confidence: SuggestConfidence;
+  reason: string;
+  suggestion: {
+    op: ExtentOp;
+    points: FixPoint[];
+    items: string[];
+    tributaries: boolean | null;
+    /** the NEW splits its `kind: new` points name, by ref */
+    new_splits: NewSplit[];
+    words?: string;
+  } | null;
+  /** each point's label and, for a new one, where the data pins it */
+  points?: { label: string; coord: [number, number] | null; kind: string; split_id?: string }[];
 }
 export interface DfoCount {
   total: number;
@@ -972,5 +995,7 @@ export interface DfoDetail {
   proposed: ProposedSplit[];
   hints: { name: string; anchor: AnchorKind; items: ItemHit[] }[];
   siblings: { id: string; text: string; status: string; section: string | null }[];
+  /** the SUGGESTED extent, or null (never applied) */
+  suggestion?: DfoSuggestion | null;
   mark: (MarkView & { new_splits?: NewSplit[] }) | null;
 }

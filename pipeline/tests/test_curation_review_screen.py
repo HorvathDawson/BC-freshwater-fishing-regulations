@@ -328,6 +328,26 @@ def test_a_dfo_anchor_is_checked_and_a_new_split_rides_the_mark_only(env):
     assert c.get("/api/dfo/progress").json()["all"]["new_splits"] >= 1
 
 
+def test_a_dfo_suggestion_is_served_read_only_and_its_new_splits_land(env):
+    """The SUGGESTED extents (`dfo-suggestions.json`): a location serves its suggestion and the
+    queue says one waits; every NEW split a suggestion proposes passes the server's own anchor
+    check on the real atlas (so accepting it and saving is not refused); reading writes nothing."""
+    c = env["client"]
+    doc = json.loads((REPO / "handoff/PLAN/curation-review/dfo-suggestions.json").read_text())
+    curated = _stamps(CURATED.base)
+    lid = "1:campbell-river:from-a-fishing-boundary-sign-at-th"
+    got = c.get(f"/api/dfo/locations/{lid}").json()["suggestion"]
+    assert got == doc["suggestions"][lid] and got["suggestion"]["op"] == "between"
+    row = next(x for x in c.get("/api/dfo/queue", params={"q": "maple street"}).json() if x["id"] == lid)
+    assert row["suggested"] == doc["suggestions"][lid]["confidence"]
+    news = [(k, n) for k, r in doc["suggestions"].items() for n in (r.get("suggestion") or {}).get("new_splits", [])]
+    assert news
+    for k, n in news:
+        res = c.get(f"/api/dfo/locations/{k}/anchor", params={"split": json.dumps(n)}).json()
+        assert res["ok"], (k, n, res)
+    assert _stamps(CURATED.base) == curated
+
+
 # --------------------------------------------------------------------------- progress
 
 def test_progress_counts_every_entry(env):
