@@ -7186,7 +7186,7 @@
        "op": "between",
        "splits": [
         "kootenay_river__cpr",
-        "kootenay_river__navigation_dolphin_2000_m_downstream"
+        "kootenay_river__kootenay_lake_main_body"
        ],
        "item_id": "gnis:14097"
       }
