@@ -24,6 +24,7 @@ import { cap, clean } from "./names";
 import type { Settled } from "./settle";
 import { ruleBook } from "./book";
 import { LADDER_Q, LEVEL_HEAD, LOSES, SAYS, WORDS, pageWaterNoun } from "./words";
+import { storyOf } from "./story";
 
 /** One rule's place in a row's ladder (page v36 rowSources item): its role and what it lost to, for which fish. */
 export interface LadderItem {
@@ -171,11 +172,12 @@ export function ladderOf(row: HydRow, env: LadderEnv, members?: readonly string[
   };
 
   const sections: { q: string | null; result: string | null; steps: LadderStepVM[] }[] = [];
+  let keepResult: string | null = null;
   if (members) {
     const won = items.filter((i) => WINS.includes(i.role) && i.role !== "possession").sort((a, b) => QORDER.indexOf(a.role) - QORDER.indexOf(b.role));
     sections.push({ q: null, result: res ?? null, steps: steps(won) });
   } else {
-    const keepResult = res ?? (row.kind === "nolimit" ? WORDS.RES_NOLIMIT : row.pool ? poolResult(row, env) : row.kind === "closed" ? WORDS.RES_CLOSED : WORDS.RES_RELEASE);
+    keepResult = res ?? (row.kind === "nolimit" ? WORDS.RES_NOLIMIT : row.pool ? poolResult(row, env) : row.kind === "closed" ? WORDS.RES_CLOSED : WORDS.RES_RELEASE);
     LADDER_Q.forEach(([q, roles], i) => {
       const its = items.filter((it) => roles.includes(it.role));
       if (its.length) sections.push({ q, result: i === 0 ? keepResult : null, steps: steps(its) });
@@ -184,8 +186,10 @@ export function ladderOf(row: HydRow, env: LadderEnv, members?: readonly string[
   const wonSay = new Set(items.filter((i) => WINS.includes(i.role)).map((i) => say(i.r)).filter(Boolean));
   const lost = members ? [] : items.filter((i) => !WINS.includes(i.role) && i.role !== "agrees" && !wonSay.has(say(i.r))
     && !(i.by && !i.by.missing && shortLabel(i.by.export.label, title) === shortLabel(i.r.export.label, title)));
+  // (T216) the angler's explanation, every stored item in layers (the Keep form only; the other: sheet keeps the ladder)
+  const story = members ? null : storyOf(items, (it) => words(it).text, inp, keepResult);
   return {
-    label: WORDS.DECIDED, sections,
+    label: WORDS.DECIDED, sections, ...(story ? { story } : {}),
     lost: lost.map((it) => {
       const w = words(it);
       return w.missing ? { text: w.text.map((r) => (r.t === "text" ? r.s : "")).join(""), status: "", rule: it.r.key, book: [] }

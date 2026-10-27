@@ -653,7 +653,116 @@
         }
        ]
       }
-     ]
+     ],
+     "story": {
+      "answer": "Today’s answer: Release every one here.",
+      "intro": "Rules stack in layers: the region’s base rules first, then this water’s own rules, then any exceptions. A later layer can change an earlier one.",
+      "layers": [
+       {
+        "head": "All of B.C.: the province’s base rules",
+        "n": 1,
+        "steps": [
+         {
+          "book": [
+           {
+            "pdf": 11,
+            "printed": 9,
+            "t": "book"
+           },
+           {
+            "s": " ",
+            "t": "text"
+           },
+           {
+            "pdf": 86,
+            "printed": 80,
+            "t": "book"
+           }
+          ],
+          "by": [
+           {
+            "s": "The rule that beat it: ",
+            "t": "text"
+           },
+           {
+            "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+            "t": "text"
+           },
+           {
+            "s": " ",
+            "t": "text"
+           },
+           {
+            "pdf": 15,
+            "printed": 13,
+            "t": "book"
+           }
+          ],
+          "rule": "zp:quota_defaults::quota_defaults.r1",
+          "says": [
+           {
+            "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+            "t": "text"
+           }
+          ],
+          "tone": "lost",
+          "verdict": "Overridden",
+          "where": [],
+          "why": "The Region 1 rule replaces it: the region’s rule beats the B.C.-wide one."
+         }
+        ]
+       },
+       {
+        "head": "Region 1, excluding Haida Gwaii: the region’s base rules",
+        "n": 2,
+        "steps": [
+         {
+          "book": [
+           {
+            "pdf": 15,
+            "printed": 13,
+            "t": "book"
+           }
+          ],
+          "by": [],
+          "rule": "z1:daily_quotas::trout_quota.r7",
+          "says": [
+           {
+            "s": "Release every char.",
+            "t": "text"
+           }
+          ],
+          "tone": "won",
+          "verdict": "Decides it",
+          "where": [],
+          "why": "Release-only decides it: it beats any limit that would let you keep fish."
+         },
+         {
+          "book": [
+           {
+            "pdf": 15,
+            "printed": 13,
+            "t": "book"
+           }
+          ],
+          "by": [],
+          "rule": "z1:possession_quota::possession_quota.r1",
+          "says": [
+           {
+            "s": "Possession: 2 days’ quota. Fish at home don’t count.",
+            "t": "text"
+           }
+          ],
+          "tone": "won",
+          "verdict": "Also applies",
+          "where": [],
+          "why": "How many you may have at once, counting fish kept on earlier days."
+         }
+        ]
+       }
+      ],
+      "notes": []
+     }
     },
     "more": {
      "open": "src:r1",

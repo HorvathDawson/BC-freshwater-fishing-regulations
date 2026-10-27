@@ -180,6 +180,26 @@ export interface LadderVM {                                           // "How th
   readonly label: string;
   readonly sections: readonly { q: string | null; result: string | null; steps: readonly LadderStepVM[] }[];   // q null: the members form (T36's other: sheet)
   readonly lost: readonly { text: string; status: string; rule: RuleKey; book: Line }[];
+  /** (T216) the angler's explanation, in layers (base → this water → exceptions); the Keep form only (story.ts) */
+  readonly story?: DecidedStoryVM;
+}
+/** (T216) "How this was decided" for an angler: which rules applied today, layer by layer, what each did and why. */
+export interface DecidedStoryVM {
+  readonly intro: string;
+  readonly notes: readonly string[];          // a two-region stretch, tidal water
+  readonly layers: readonly DecidedLayerVM[];
+  readonly answer: string | null;             // "Today’s answer: Closed here."
+}
+export interface DecidedLayerVM { readonly n: number; readonly head: string; readonly steps: readonly DecidedStepVM[] }
+export interface DecidedStepVM {
+  readonly says: Line;                        // the rule's plain sentence (the ladder's words)
+  readonly verdict: string;                   // "Decides it", "Overridden", "Lifted here" …
+  readonly tone: "won" | "lost" | "same";
+  readonly why: string;                       // plain words: stricter wins, closures beat openings, the water's own rule …
+  readonly where: readonly string[];          // on part of the water, federal, DFO
+  readonly book: Line;                        // this rule's printed page
+  readonly by: Line;                          // the rule that beat / lifted it, with its printed page; [] for none
+  readonly rule: RuleKey;
 }
 export interface CaveatVM {                                           // page v36 inPartHtml / sideHtml / anglerClosures / timedHtml / uncertainHtml (T15b)
   readonly kind: "inpart" | "side" | "angler" | "timed" | "uncertain"; readonly hot: boolean;

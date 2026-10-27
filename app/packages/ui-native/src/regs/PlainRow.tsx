@@ -1,12 +1,13 @@
 /**
  * A row the Keep tab draws without a quota card (T19b's PlainRowVM, drawn for T21): its title and pill ("↩ Release",
  * "⊘ Closed") with the ⓘ, the one sentence of its year, the weekday split, the release fish and their pictures, the
- * presence line, the fish a rule lists, the folded "How this was decided" ladder (closed by default), and "See every
+ * presence line, the fish a rule lists, the folded "How this was decided" (closed by default; T216: the story, in
+ * layers, where the ladder carries one), and "See every
  * regulation line ›". No logic.
  */
 import { useState } from "react";
 import { Text, View } from "react-native";
-import { WORDS, type LadderVM, type PlainRowVM } from "@app/core";
+import { WORDS, type DecidedStoryVM, type LadderVM, type PlainRowVM } from "@app/core";
 import { Icon } from "../icons";
 import { TYPE } from "../type";
 import { GUTTER, type Palette } from "../theme";
@@ -14,6 +15,38 @@ import { LineText, TermText, type KeepActions } from "./LineText";
 import { RegsPress } from "./RegsPress";
 import { Pictures } from "./GroupCard";
 import type { FishImages } from "./types";
+
+/** (T216) the angler's explanation: the layers (base → this water → exceptions), each rule with what it did today, why,
+ *  the rule that beat or opened it, and its printed page; then today's answer. No logic: story.ts words it all. */
+function Story({ story, palette, actions }: { story: DecidedStoryVM; palette: Palette; actions: KeepActions }) {
+  return (
+    <View testID="decided-story" style={{ paddingBottom: 6 }}>
+      <Text style={[TYPE.meta, { color: palette.sub }]}>{story.intro}</Text>
+      {story.notes.map((n, i) => <Text key={i} style={[TYPE.metaSemi, { color: palette.ink, marginTop: 4 }]}>{n}</Text>)}
+      {story.layers.map((L) => (
+        <View key={L.n} style={{ marginTop: 8 }}>
+          <Text accessibilityRole="header" style={[TYPE.metaBold, { color: palette.ink }]}>{`${L.n}. ${L.head}`}</Text>
+          {L.steps.map((st, k) => (
+            <View key={k} style={{ paddingVertical: 3, paddingLeft: 12 }}>
+              <Text style={[TYPE.meta, { color: st.tone === "won" ? palette.ink : palette.sub }]}>
+                <LineText line={st.says} style={TYPE.meta} color={st.tone === "won" ? palette.ink : palette.sub} palette={palette} actions={actions} />
+                {" "}
+                <LineText line={st.book} style={TYPE.metaBold} color={palette.accent} palette={palette} actions={actions} />
+              </Text>
+              <Text style={[TYPE.meta, { color: palette.sub }]}>
+                <Text style={{ fontFamily: TYPE.metaBold.fontFamily, color: st.tone === "won" ? palette.ink : palette.sub }}>{`${st.verdict}. `}</Text>
+                {st.why}
+              </Text>
+              {st.where.map((w, m) => <Text key={m} style={[TYPE.meta, { color: palette.sub }]}>{w}</Text>)}
+              {st.by.length > 0 && <LineText line={st.by} style={TYPE.meta} color={palette.sub} palette={palette} actions={actions} />}
+            </View>
+          ))}
+        </View>
+      ))}
+      {story.answer && <Text style={[TYPE.regsBodySemi, { color: palette.ink, marginTop: 8 }]}>{story.answer}</Text>}
+    </View>
+  );
+}
 
 function Ladder({ ladder, more, palette, actions }: { ladder: LadderVM; more: PlainRowVM["more"]; palette: Palette; actions: KeepActions }) {
   const [open, setOpen] = useState(false);
@@ -26,7 +59,8 @@ function Ladder({ ladder, more, palette, actions }: { ladder: LadderVM; more: Pl
           <Text style={[TYPE.regsBody, { color: palette.ink, flex: 1 }]}>{ladder.label}</Text>
         </View>
       </RegsPress>
-      {open && ladder.sections.map((s, i) => (
+      {open && ladder.story && <Story story={ladder.story} palette={palette} actions={actions} />}
+      {open && !ladder.story && ladder.sections.map((s, i) => (
         <View key={i} style={{ paddingBottom: 6 }}>
           {s.q && <Text testID="kicker:ladder" style={[TYPE.kicker, { color: palette.sub }]}>{s.q}</Text>}
           {s.result && <Text style={[TYPE.regsBodySemi, { color: palette.ink, marginTop: 2 }]}>{WORDS.CHECK + s.result}</Text>}
@@ -47,7 +81,7 @@ function Ladder({ ladder, more, palette, actions }: { ladder: LadderVM; more: Pl
           ))}
         </View>
       ))}
-      {open && ladder.lost.length > 0 && (
+      {open && !ladder.story && ladder.lost.length > 0 && (
         <View style={{ marginTop: 4 }}>
           <Text testID="kicker:lost" style={[TYPE.kicker, { color: palette.sub }]}>{WORDS.RULES_NOT_APPLY(ladder.lost.length)}</Text>
           {ladder.lost.map((l, i) => (

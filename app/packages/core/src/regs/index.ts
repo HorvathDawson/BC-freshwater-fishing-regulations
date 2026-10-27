@@ -24,6 +24,7 @@ export * from "./book";
 export * from "./standing";
 export * from "./caveats";
 export * from "./decided";
+export * from "./story";
 export * from "./plainrow";
 export * from "./fish.generated";
 export * from "./grouphead";

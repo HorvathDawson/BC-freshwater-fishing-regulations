@@ -9,6 +9,7 @@
 import { MONTHS, WEEKDAYS } from "../calendar.generated";
 import type { PlaceNames } from "../answers.generated";
 import type { Line } from "./line";
+import { DECIDE } from "./decidedWords";
 
 export const WORDS = Object.freeze({
   // tabs (golden header.tabs)
@@ -481,6 +482,8 @@ export const ALL_WORDS: ReadonlySet<string> = new Set([
   ...Object.values(RANK_LEVEL),
   // (T19b) the ladder / run tables
   ...LADDER_Q.map(([q]) => q), ...[SAYS, LOSES, LEVEL_HEAD, RUN_NOW, RUN_THEN, ROLE].flatMap((t) => Object.values(t)),
+  // (T216) the angler's "How this was decided"
+  ...deepWords(DECIDE),
   // (T30) the Gear tab
   ...GEAR_LINES.map(([, label]) => label), ...deepWords(GEAR),
   // (T31) the Bait item
