@@ -124,6 +124,10 @@ PART_GONE = {
 # atlas full.prev vs the bundle of atlas full): every part below keeps its label and rows; only its section count moved.
 # {state: (store part_ix, why)} — the golden part is the store's part `ix`, same label, another section count
 PART_RECOUNTED = {
+    "x16p3_1010": (3, "T185 (owner marks 2026-10-27): the new Quinsam River confluence cut on the Campbell lies "
+                      "inside this part's Maple Street stretch: 7 -> 8 sections"),
+    "cow0_1010": (0, "T185 (owner marks 2026-10-27): the new Sandy Pool white-triangle sign cut (DFO "
+                     "'from 66 Mile Trestle downstream to the sign') lies inside this stretch: 10 -> 11 sections"),
     "x21p2_1010": (2, "T179 (owner 2026-10-24, one cut-placement pass): gauge 08NK030 stood 232 m from the curated Elko "
                       "Dam cut and now joins it (gauge an alias), so the piece between is gone: 3 -> 2 sections"),
     "x17p1_1010": (1, "T179 (owner 2026-10-24, one cut-placement pass): gauge 08EC001 stood 88 m from the curated Fort "

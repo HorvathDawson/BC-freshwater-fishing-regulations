@@ -3,11 +3,11 @@
   "generator": "app/design/regs-v11/port/taps.py",
   "store": {
    "format": "regs-store/4",
-   "section_handles": "52c5cff7ba8b6313",
-   "reach_digest": "eb49d41cdf175482",
+   "section_handles": "b6b5000e171023c9",
+   "reach_digest": "c7c54bdadc7eb986",
    "rule_ids_sha256": "ddafd3cfc412bdae",
-   "answers_sha256": "84933dc0da5400773fc9172b1198e68f4f7824f1af5def726d31ae840ebdac54",
-   "store_digest": "82ef62203a3d81a6",
+   "answers_sha256": "e9782ab8ee71cf5b24173df5f1d21759dc120e284c661e780ebf320194d53360",
+   "store_digest": "a70cd214aaaf298a",
    "layout": "{\"top\":[\"about\",\"spec\",\"schemas\",\"fish\",\"keys\",\"segments\",\"moments\",\"segment_moments\",\"parts\",\"places\",\"unnamed\",\"glossary\",\"sections\"],\"sections\":{\"ladder\":[\"version\",\"at\",\"reasons\",\"reason_state\",\"verdicts\",\"frames\"],\"rows\":[\"version\",\"at\",\"decided\",\"rows\",\"strips\",\"frames\"],\"gear\":[\"version\",\"at\",\"frames\",\"province_methods\",\"parent\",\"methods\",\"count_nouns\",\"moments\",\"conduct_means\"],\"licence\":[\"version\",\"at\",\"holds\",\"answers\",\"documents\",\"under_16\",\"frames\",\"profiles\",\"profile_dims\",\"residency_labels\",\"profile_labels\"],\"display\":[\"version\",\"at\",\"frames\",\"rules\",\"waters\",\"strip\",\"reasons\",\"licensing\"]},\"versions\":{\"ladder\":1,\"rows\":33,\"gear\":12,\"licence\":7,\"display\":18}}"
   },
   "golden": "bdda3586",
@@ -2028,6 +2028,10 @@
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
+   "recounted": {
+    "reason": "T185 (owner marks 2026-10-27): the new Sandy Pool white-triangle sign cut (DFO 'from 66 Mile Trestle downstream to the sign') lies inside this stretch: 10 -> 11 sections",
+    "sections": 11
+   },
    "item_ord": 792,
    "akey": 204,
    "seg": 55,
@@ -28476,6 +28480,10 @@
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
+   "recounted": {
+    "reason": "T185 (owner marks 2026-10-27): the new Quinsam River confluence cut on the Campbell lies inside this part's Maple Street stretch: 7 -> 8 sections",
+    "sections": 8
+   },
    "item_ord": 9763,
    "akey": 1079,
    "seg": 7,
@@ -51228,109 +51236,109 @@
    "name": "Unnamed stream \u00b7 Region 1"
   },
   {
-   "handle": 58711,
+   "handle": 58712,
    "akey": 2133,
    "place": 0,
    "name": "Unnamed stream \u00b7 Region 1"
   },
   {
-   "handle": 335837,
+   "handle": 335839,
    "akey": 2182,
    "place": 9,
    "name": "Unnamed stream \u00b7 Region 4"
   },
   {
-   "handle": 446857,
+   "handle": 446859,
    "akey": 2179,
    "place": 9,
    "name": "Unnamed stream \u00b7 Region 4"
   },
   {
-   "handle": 830001,
+   "handle": 830003,
    "akey": 2207,
    "place": 16,
    "name": "Unnamed stream \u00b7 Region 6"
   },
   {
-   "handle": 884197,
+   "handle": 884199,
    "akey": 2113,
    "place": 0,
    "name": "Unnamed stream \u00b7 Region 1"
   },
   {
-   "handle": 900983,
+   "handle": 900985,
    "akey": 2208,
    "place": 12,
    "name": "Unnamed stream \u00b7 Region 5"
   },
   {
-   "handle": 976978,
+   "handle": 976980,
    "akey": 2213,
    "place": 2,
    "name": "Unnamed stream \u00b7 Region 2"
   },
   {
-   "handle": 1047592,
+   "handle": 1047594,
    "akey": 2205,
    "place": 16,
    "name": "Unnamed stream \u00b7 Region 6"
   },
   {
-   "handle": 1235981,
+   "handle": 1235983,
    "akey": 2238,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1274940,
+   "handle": 1274942,
    "akey": 2238,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1308523,
+   "handle": 1308525,
    "akey": 2238,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1385923,
+   "handle": 1385925,
    "akey": 2238,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1471234,
+   "handle": 1471236,
    "akey": 2238,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1565600,
+   "handle": 1565602,
    "akey": 2238,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1661735,
+   "handle": 1661737,
    "akey": 2238,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1696512,
+   "handle": 1696514,
    "akey": 2238,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1845040,
+   "handle": 1845042,
    "akey": 2238,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1907758,
+   "handle": 1907760,
    "akey": 2238,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
