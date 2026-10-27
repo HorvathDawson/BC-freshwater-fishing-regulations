@@ -243,6 +243,41 @@ def book_pages(x: dict, doc: dict) -> List[List[int]]:
     return out
 
 
+_BOXES: dict = {}
+
+
+def _row_boxes() -> dict:
+    """T215: the synopsis rows' boxes, `{(printed page, water): [{pdf, box, size}]}`, from the extractor's own
+    `row_boxes.json` sidecar (`pipeline.regs.extraction.row_boxes`) — and only when it was cut from THE synopsis PDF the
+    release ships (its `pdf_sha256`); a sidecar of another PDF, or none, gives no boxes (the page opens unhighlighted)."""
+    if "rows" in _BOXES:
+        return _BOXES["rows"]
+    out: dict = {}
+    try:
+        from pipeline.common.synopsis_pages import default_pdf
+        from pipeline.regs.extraction.row_boxes import default_out, sha256
+        side = json.loads(default_out().read_text(encoding="utf-8"))
+        if side.get("pdf_sha256") == sha256(default_pdf()):
+            for r in side["rows"].values():
+                out.setdefault((int(r["printed"]), r["water"]), []).append(
+                    {"pdf": int(r["pdf_page"]), "box": [float(v) for v in r["box"]],
+                     "size": [float(v) for v in r["page_size"]]})
+    except (OSError, ValueError, KeyError):
+        out = {}
+    _BOXES["rows"] = out
+    return out
+
+
+def book_boxes(x: dict, doc: dict) -> List[dict]:
+    """T215: where the rule's entry is printed on its PDF page — `[{pdf, box [x0, top, x1, bottom], size [w, h]}]`
+    in points, top-left origin — for the app's highlight annotation. A water row only (the zone and province tables
+    are not rows in the sidecar): [] where the entry has no row box."""
+    E = doc["entries"].get(x["entry_id"]) or {}
+    name = E.get("official_name") or E.get("name")
+    rows = _row_boxes()
+    return [b for p in E.get("pages") or [] for b in rows.get((int(p), name), [])]
+
+
 def licensing_books(doc: dict, lic_ids: Sequence[str]) -> List[dict]:
     """answers 2.7 (A3): every licensing record's book pages ({book}, aligned with the export's
     `licensing_ids`) — the page cites a licensing record ("Source" on a Classified Water, an
@@ -264,6 +299,9 @@ def add_sources(facts: List[dict], doc: dict, order: Sequence[str]) -> None:
     for f, rid in zip(facts, order):
         x = doc["rules"][rid]
         f["book"] = book_pages(x, doc)
+        boxes = book_boxes(x, doc)
+        if boxes:
+            f["book_box"] = boxes
         say, trib = applies_here(x, doc)
         f["applies"] = say
         if rid in walked:

@@ -12,14 +12,16 @@ byte-identical to gov.bc.ca (memory) — cite printed pages, link our copy.
 The PDF itself with a highlight (not a page image): open our synopsis PDF at the printed page with the entry's row/passage
 highlighted using a PDF HIGHLIGHT ANNOTATION on that page (owner 2026-10-27), working on web and native.
 
-## Built (2026-10-27) and what is left
-- DONE: `app/packages/core/src/regs/highlight.ts` (+ test) — a source row box (extractor points, top-left origin, with page size)
-  -> PDF `/Rect` + `/QuadPoints` (flipped, clamped; null = open the page unhighlighted).
-- BLOCKED on data (an export, not run here): the app has only `rules[].book` = [[printed, pdf]] — no box. Needed: the deliver
-  export adds each rule's source box(es) from `data/generated/regs/extraction/row_boxes.json` (`{pdf, box:[x0,top,x1,bottom],
-  size:[w,h]}`, keyed through the entry's row image keys), shipped as `rules[].book` third element or `rules[].book_box`;
-  then `RuleFacts.book`, `Run{t:"book"}` and `bookLine` carry it (answers.generated.ts is generated — regen with the export).
-- THEN (app, no code yet): the open step needs OUR copy of the PDF served (bookUrl points at gov.bc.ca, not byte-identical and
-  CORS-blocked) and `pdf-lib` (not installed): load, add a Highlight annotation from `highlightGeometry`, web -> blob URL
-  `#page=<pdf>`; native -> write to cache (expo-file-system, already a dep) and open it. 24 MB PDF: consider extracting just
-  the page. Falls back to today's `openBook` when there is no box.
+## Built (2026-10-27), owner option B: the FULL PDF, web and phone the same
+- DONE (code + tests): `rules[].book_box` [{pdf, box, size}] from `row_boxes.json` by (printed page, water name) — only when the
+  sidecar's `pdf_sha256` is THE synopsis PDF (`display/decided.py book_boxes`; 1393/1393 water rows match; zone and province
+  tables have no row, so they open unhighlighted); `RuleFacts.book_box` -> `Run{t:"book", box}` -> `onBook(pdf, box)`.
+- DONE: the release ships our PDF: manifest `synopsis {id,url,bytes,sha256}` (raw `synopsis-<sha12>.pdf` beside the data files;
+  `release build --synopsis`, default the repo copy; publish uploads it, content-type application/pdf).
+- DONE: `pdf-lib` (ui-native); `highlightPdf` writes one /Highlight per box (`core highlight.ts` geometry); web fetches the
+  release copy (HTTP cache), opens a blob URL `#page=<pdf>` in a window opened inside the press; native downloads it once per
+  release into the cache dir, writes the annotated copy and opens the file (Linking, then the share sheet). No box, no copy,
+  or any failure: the plain `openBook` link as before. NOT VERIFIED ON A DEVICE.
+- LEFT: the deliver export + release cut (waits for the T211 merge + heavy lock), then the web screenshot; owner R2 upload
+  (OWNER-TODO "R2 upload": the release now includes the PDF; bucket CORS for GET). `SourceLine` ("Source ›" sheet) pages carry
+  no box yet.

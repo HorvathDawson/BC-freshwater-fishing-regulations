@@ -6,6 +6,7 @@
  * Ports (inventory.json names, regs v38 @ 7fb6809f): prototype `buildKeep.nbsp`, `buildKeep.boldN`; `plain`/`plainAll`
  * are the golden text form of port/golden.mjs `gap()`/`lines()` (§5).
  */
+import type { BookBox } from "../answers.generated";
 import type { SheetKey } from "./sheetKey";
 import type { Day, Tab } from "./model";
 import { WORDS } from "./words";
@@ -17,7 +18,7 @@ export type Run =
   | { t: "text"; s: string }             // data words or a words.ts constant; "50 cm" already carries U+00A0 (nbsp())
   | { t: "num"; s: string; size: "big" | "big2" | "inline" }  // "big": tier/head number (TYPE.answer); "big2": the size box's second number
   | { t: "term"; ids: readonly string[] }                    // ⓘ — one id: "What does <title> mean?"; 2+: "What these words mean"
-  | { t: "book"; printed: number; pdf: number | null; bare?: true }   // "Rule book p.<printed> ↗"; bare: "p.<printed> ↗"; pdf null → "p.<printed>" unlinked
+  | { t: "book"; printed: number; pdf: number | null; bare?: true; box?: readonly BookBox[] }   // "Rule book p.<printed> ↗"; bare: "p.<printed> ↗"; pdf null → "p.<printed>" unlinked
   | { t: "link"; s: string; open: SheetKey | { day: Day } | { tab: Tab } };  // "How to tell ›", "Source ›", "See the rules from then ›"; {tab}: "Steelhead stamp ›"
 
 export type Line = readonly Run[];

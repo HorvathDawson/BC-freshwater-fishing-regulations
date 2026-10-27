@@ -4,24 +4,26 @@
  *
  * Ports (regs-v11.html @ 7fb6809f, inventory names): bookLinks.
  */
+import type { BookBox } from "../answers.generated";
 import type { RuleView } from "./inputs";
 import { text, type Line, type Run } from "./line";
 
 /** The book runs of a page list, a " " text run between two links. No pages: []. */
-export function bookLine(pages: readonly (readonly [number, number])[]): Line {
+export function bookLine(pages: readonly (readonly [number, number])[], boxes?: readonly BookBox[] | null): Line {
   const out: Run[] = [];
   pages.forEach(([printed, pdf], i) => {
     if (i) out.push(text(" "));
-    out.push({ t: "book", printed, pdf });
+    const box = boxes?.filter((b) => b.pdf === pdf);   // T215: the entry's row(s) on that PDF page, to highlight
+    out.push(box?.length ? { t: "book", printed, pdf, box } : { t: "book", printed, pdf });
   });
   return out;
 }
 
 /** A rule's book runs (`facts.book`); a rule with no facts (the noRule stand-in) has none. */
-export const ruleBook = (r: RuleView): Line => bookLine(r.facts?.book ?? []);
+export const ruleBook = (r: RuleView): Line => bookLine(r.facts?.book ?? [], r.facts?.book_box);
 
 /** A rule's book runs, or none for no rule (the banner's and group head's "Rule book p.N ↗"). */
-export const ruleBookLine = (r: RuleView | null): Line => bookLine(r?.facts?.book ?? []);
+export const ruleBookLine = (r: RuleView | null): Line => bookLine(r?.facts?.book ?? [], r?.facts?.book_box);
 
 /** `[...line, " ", ...book]` — a sentence and its book links as separate elements (contracts.md §1: one space); no book: the line. */
 export function withBook(line: Line, book: Line): Line {

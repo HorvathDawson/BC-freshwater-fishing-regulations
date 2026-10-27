@@ -21,6 +21,7 @@ export * from "./strip";
 export * from "./banner";
 export * from "./header";
 export * from "./book";
+export * from "./highlight";
 export * from "./standing";
 export * from "./caveats";
 export * from "./decided";

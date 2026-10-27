@@ -44,7 +44,7 @@ export function GlossaryPage({ glossary, term, onTerm, onCloseTerm, palette }: {
         <ScrollView contentContainerStyle={{ paddingHorizontal: GUTTER, paddingTop: SPACE.s4, paddingBottom: 40, gap: SPACE.s3 }}>
           {glossBlocks({ statics: { pdfPages: g.pdfPages } }, open).map((b, i) => (
             // a term named inside another opens in its place, as a gl: sheet does; nothing else here opens a sheet
-            <SheetBlockView key={i} b={b} palette={palette} onBook={(pdf) => { void openBook(pdf); }}
+            <SheetBlockView key={i} b={b} palette={palette} onBook={(pdf, box) => { void openBook(pdf, box); }}
                             onOpen={(k: SheetKey) => { if (/^gl:[a-z0-9_]+$/.test(k)) onTerm(k.slice(3)); }} />
           ))}
         </ScrollView>

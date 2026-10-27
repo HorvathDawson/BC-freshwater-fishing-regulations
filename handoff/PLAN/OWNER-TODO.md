@@ -95,6 +95,9 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   `python -m pipeline.deliver.release.publish --release data/release/$(cat data/release/LATEST) --yes` (records
   data/release/PUBLISHED so the prune keeps it). When you set up the feed sync, upload ONLY `data/generated/gauges/feeds/`,
   not `feeds.runs/` (T177).
+  T215: a release now also carries OUR synopsis PDF (`synopsis-<sha12>.pdf`, ~24 MB, raw, immutable; named in the manifest's
+  `synopsis`): the same publish command uploads it, and the bucket's CORS must allow GET from the web origin (the app fetches it
+  once per release to draw the highlight). Until a release with it is uploaded, "open the PDF" stays the plain gov.bc.ca link.
 - **`FEED_NOTIFY_URL`**: set it where the feed cron runs to get one message per new HYDAT release
   (ntfy / Discord / Slack). Off until set.
 - **`scripts/update-hydat.sh`**: run it when that message arrives.

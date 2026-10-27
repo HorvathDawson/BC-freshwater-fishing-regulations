@@ -107,6 +107,14 @@ class SubsetSay(Model):
     plain: Optional[StrictStr] = None
 
 
+class BookBox(Model):
+    """T215: where a rule's entry sits on its synopsis PDF page: `pdf` the 1-based PDF page, `box` [x0, top, x1, bottom]
+    and `size` [width, height] in points, origin top-left (the extractor's, `row_boxes.json`)."""
+    pdf: Positive
+    box: Tuple[StrictFloat, StrictFloat, StrictFloat, StrictFloat]
+    size: Tuple[StrictFloat, StrictFloat]
+
+
 class RuleFacts(Model):
     kind: _enum(T.DisplayKind, "DisplayKind")
     #: ROUND16 3: every rule's title, its effect in words ("Release all steelhead", "Release lake trout,
@@ -129,6 +137,8 @@ class RuleFacts(Model):
     book: Tuple[Tuple[Positive, Positive], ...] = Field(min_length=1)
     applies: StrictStr = Field(min_length=1)
     applies_trib: Optional[StrictStr] = None
+    #: T215: the entry's row on the PDF page, to highlight (absent: the entry is no table row, or no sidecar)
+    book_box: Optional[Tuple[BookBox, ...]] = Field(default=None, min_length=1)
 
     @model_validator(mode="after")
     def _closure_is_a_gate(self):

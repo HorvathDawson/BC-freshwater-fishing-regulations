@@ -9,10 +9,12 @@
     "@app/core": "workspace:*",
     "@app/data": "workspace:*",
     "@app/map": "workspace:*",
-    "@app/ui": "workspace:*"
+    "@app/ui": "workspace:*",
+    "pdf-lib": "1.17.1"
   },
   "peerDependencies": {
     "@react-native-community/netinfo": "12.0.1",
+    "expo-file-system": "*",
     "react": "*",
     "react-native": "*",
     "react-native-gesture-handler": "2.32.0",

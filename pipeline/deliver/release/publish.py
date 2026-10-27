@@ -63,6 +63,12 @@ def plan(release: Path, root: Path) -> List[Put]:
         if not p.exists():
             raise SystemExit(f"publish: {p} is listed in the manifest but missing")
         out.append(Put(e["url"], p, "application/octet-stream", "gzip", IMMUTABLE))
+    syn = m.get("synopsis")
+    if syn:                                  # T215: our PDF, raw (already compressed), content-named
+        p = root / syn["url"]
+        if not p.exists():
+            raise SystemExit(f"publish: {p} is the manifest's synopsis but missing")
+        out.append(Put(syn["url"], p, "application/pdf", None, IMMUTABLE))
     out.append(Put("manifest.json", release / "manifest.json", "application/json", None, "no-cache"))
     return out
 

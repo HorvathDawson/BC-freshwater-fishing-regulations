@@ -11,7 +11,7 @@
  * path (the development bundle path was retired, T61). `atlas.meta.json` is read only while the manifest names no tile
  * set: the map then draws the development tiles, and their stamped `tile_version` is what proves the pair (`pairingOf`).
  */
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Platform, SafeAreaView, StatusBar, Text, View, useColorScheme, useWindowDimensions } from "react-native";
 import { useFonts } from "expo-font";
 import {
@@ -27,7 +27,7 @@ import type { ReleaseLoader } from "@app/data/release";
 import * as platform from "@app/data/release/platform";
 import { fillDayFlow, geometHydat, openLayerStore, openLikeStore, openMeteo, openPhotos, openSpots, refreshSpot,
          type DayFlowAnswer, type Spot } from "@app/data/spots";
-import { FishSpinner, Shell, THEMES, type ThemeName } from "@app/ui-native";
+import { FishSpinner, setSynopsisSource, Shell, THEMES, type ThemeName } from "@app/ui-native";
 import { LayoutWidthContext, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, useReleaseBoot, useSpots, type MapTiles,
          type PairingInput, type SpotPhotos, type StatusSource } from "@app/ui";
 import { PHOTO_SOURCES, pickPhoto } from "./pickPhoto";
@@ -116,6 +116,14 @@ export default function App() {
   const firstRunOffline = boot.state === "failed" && boot.firstRunOffline;
   const stage = boot.state === "loading" ? boot.stage : "paint";
   const progress = boot.state === "loading" ? boot.progress : null;
+  // T215: our copy of the synopsis PDF (the release names it; fetched on the first highlighted open, from the release
+  // base on web and phone alike — it is not part of the installed set). None: "open the PDF" stays the plain link.
+  const synopsis = boot.state === "ready" ? boot.booted.manifest.synopsis : null;
+  useEffect(() => {
+    setSynopsisSource(synopsis?.sha256 && synopsis.bytes
+      ? { url: `${ENDPOINTS.release}${synopsis.url}`, sha256: synopsis.sha256, bytes: synopsis.bytes } : null);
+  }, [synopsis]);
+
   // a phone whose newest set would not open went back to the one it replaced: said, above the map
   const rolledBack = boot.state === "ready" ? boot.booted.rolledBack : null;
 

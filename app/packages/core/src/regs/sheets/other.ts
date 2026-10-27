@@ -62,7 +62,7 @@ function weekLines(row: HydRow, inp: RegsInputs): StepLine[] {
   const w = row.raw.week!, key = (rix: number | undefined) => (rix == null ? null : inp.rules.get(rix).key);
   const line = (k: string | null, t: Line, tag: string | null, today?: boolean, days?: string): StepLine => {
     const r = k ? inp.rules.byKey?.(k) ?? null : null;
-    return { text: t, tag: k ? tag : null, rule: k, won: true, applies: [], book: r ? bookLine(r.facts?.book ?? []) : [],
+    return { text: t, tag: k ? tag : null, rule: k, won: true, applies: [], book: r ? bookLine(r.facts?.book ?? [], r.facts?.book_box) : [],
       ...(today !== undefined ? { today } : {}), ...(days !== undefined ? { days } : {}) };
   };
   return [

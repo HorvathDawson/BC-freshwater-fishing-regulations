@@ -22,3 +22,12 @@ describe("bookText (T43): the one spelling of a book run", () => {
     expect(WORDS.BOOK_A11Y(21)).toBe("Rule book page 21, opens the PDF");
   });
 });
+
+describe("bookLine (T215): the entry's row boxes ride on the run of their PDF page", () => {
+  const b = { pdf: 23, box: [10, 20, 30, 40] as [number, number, number, number], size: [576, 756] as [number, number] };
+  it("a run whose PDF page has a box carries it; others and no-box lines are unchanged", async () => {
+    const { bookLine } = await import("./book");
+    expect(bookLine([[21, 23], [22, 24]], [b])).toEqual([{ t: "book", printed: 21, pdf: 23, box: [b] }, { t: "text", s: " " }, { t: "book", printed: 22, pdf: 24 }]);
+    expect(bookLine([[21, 23]], null)).toEqual([{ t: "book", printed: 21, pdf: 23 }]);
+  });
+});

@@ -5,7 +5,7 @@
  */
 import { createContext, useContext } from "react";
 import { Text } from "react-native";
-import { WORDS, type Line, type SheetKey, type Day, type Tab } from "@app/core";
+import { WORDS, type Line, type SourceBox, type SheetKey, type Day, type Tab } from "@app/core";
 import { CAPPED_SCALE, TYPE, type TextStyle } from "../type";
 import type { Palette } from "../theme";
 import { lineRun } from "./hit";
@@ -16,7 +16,7 @@ export interface KeepActions {
   onSheet(key: SheetKey): void;
   onDay(day: Day): void;
   onTab(tab: Tab): void;
-  onBook(pdf: number): void;
+  onBook(pdf: number, box?: readonly SourceBox[]): void;
 }
 export const NO_ACTIONS: KeepActions = { onSheet() {}, onDay() {}, onTab() {}, onBook() {} };
 
@@ -63,7 +63,7 @@ export function LineText({ line, style, color, palette, actions, num = TYPE.nume
           case "term":
             return <TermText key={i} ids={r.ids} palette={palette} actions={actions} />;
           case "book":   // (T43) the one book link, nested in this line's Text
-            return <RuleBookLink key={i} printed={r.printed} pdf={r.pdf} bare={r.bare} palette={palette} onBook={actions.onBook}
+            return <RuleBookLink key={i} printed={r.printed} pdf={r.pdf} bare={r.bare} box={r.box} palette={palette} onBook={actions.onBook}
                                  style={linkStyle ?? { fontFamily: TYPE.metaBold.fontFamily, fontSize: TYPE.metaBold.fontSize }} />;
           case "link": {
             const o = r.open;

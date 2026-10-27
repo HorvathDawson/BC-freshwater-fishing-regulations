@@ -64,7 +64,7 @@ describe("openBook (D6 a)", () => {
   it("a refused open is logged and swallowed — never thrown, never an Alert", async () => {
     vi.spyOn(Linking, "openURL").mockRejectedValue(new Error("no handler"));
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    await expect(openBook(23, "ios")).resolves.toBeUndefined();
+    await expect(openBook(23, undefined, "ios")).resolves.toBeUndefined();
     expect(warn.mock.calls[0]![0]).toBe("openBook: could not open the synopsis (PDF page 23)");
   });
 });

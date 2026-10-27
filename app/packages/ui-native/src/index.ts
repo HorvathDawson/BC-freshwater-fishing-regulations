@@ -34,6 +34,7 @@ export { MiniMap } from "./MiniMap";
 export { Icon, IconText, ICONS, ICON_STROKE, LUCIDE_NAME, type IconName } from "./icons";
 export * from "./type";
 export type { AdiposeImages, FishImages } from "./regs/types";
+export { setSynopsisSource } from "./regs/synopsisSource";
 export { SheetHost, type SheetHostProps } from "./regs/SheetHost";
 export { Hydrograph } from "./Hydrograph";
 export { Credits } from "./Credits";

@@ -7,16 +7,19 @@
  */
 import { Text } from "react-native";
 import { bookText, WORDS } from "@app/core";
+import type { SourceBox } from "@app/core";
 import { TYPE, type TextStyle } from "../type";
 import type { Palette } from "../theme";
 import { lineRun, MIN_HIT } from "./hit";
 import { openBook } from "./openBook";
 import { RegsPress } from "./RegsPress";
 
-export function RuleBookLink({ printed, pdf, bare, palette, onBook = openBook, style, alone = false }: {
+export function RuleBookLink({ printed, pdf, bare, palette, onBook = openBook, box, style, alone = false }: {
   printed: number; pdf: number | null; bare?: boolean; palette: Palette;
   /** what a press does with the PDF page (the screen's `actions.onBook`); default: open the synopsis there */
-  onBook?: (pdf: number) => void;
+  onBook?: (pdf: number, box?: readonly SourceBox[]) => void;
+  /** (T215) the entry's row(s) on that page: the opened PDF highlights them */
+  box?: readonly SourceBox[];
   /** the face (a line's link style when nested); default the meta-bold link face */
   style?: TextStyle;
   /**
@@ -30,13 +33,13 @@ export function RuleBookLink({ printed, pdf, bare, palette, onBook = openBook, s
   // unlinked: not the link colour — inside a line it takes the line's colour (prototype `<span>`), alone the quiet one
   if (pdf === null) return <Text style={style ? face : [face, { color: palette.sub }]}>{words}</Text>;
   if (alone) return (
-    <RegsPress accessibilityRole="link" accessibilityLabel={WORDS.BOOK_A11Y(printed)} onPress={() => { void onBook(pdf); }}
+    <RegsPress accessibilityRole="link" accessibilityLabel={WORDS.BOOK_A11Y(printed)} onPress={() => { void (box ? onBook(pdf, box) : onBook(pdf)); }}
                box={{ w: bare ? 24 : MIN_HIT, h: TYPE.metaBold.lineHeight }}>
       <Text style={[face, { color: palette.accent }]}>{words}</Text>
     </RegsPress>
   );
   return (
-    <Text accessibilityRole="link" accessibilityLabel={WORDS.BOOK_A11Y(printed)} onPress={() => { void onBook(pdf); }}
+    <Text accessibilityRole="link" accessibilityLabel={WORDS.BOOK_A11Y(printed)} onPress={() => { void (box ? onBook(pdf, box) : onBook(pdf)); }}
           style={[face, { color: palette.accent }]} {...lineRun}>
       {words}
     </Text>

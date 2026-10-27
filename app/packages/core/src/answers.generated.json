@@ -319,6 +319,58 @@
   },
   "display.rules": {
    "$defs": {
+    "BookBox": {
+     "additionalProperties": false,
+     "description": "T215: where a rule's entry sits on its synopsis PDF page: `pdf` the 1-based PDF page, `box` [x0, top, x1, bottom]\nand `size` [width, height] in points, origin top-left (the extractor's, `row_boxes.json`).",
+     "properties": {
+      "box": {
+       "maxItems": 4,
+       "minItems": 4,
+       "prefixItems": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "number"
+        },
+        {
+         "type": "number"
+        },
+        {
+         "type": "number"
+        }
+       ],
+       "title": "Box",
+       "type": "array"
+      },
+      "pdf": {
+       "exclusiveMinimum": 0,
+       "title": "Pdf",
+       "type": "integer"
+      },
+      "size": {
+       "maxItems": 2,
+       "minItems": 2,
+       "prefixItems": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "number"
+        }
+       ],
+       "title": "Size",
+       "type": "array"
+      }
+     },
+     "required": [
+      "pdf",
+      "box",
+      "size"
+     ],
+     "title": "BookBox",
+     "type": "object"
+    },
     "RuleFacts": {
      "additionalProperties": false,
      "properties": {
@@ -411,6 +463,22 @@
        "minItems": 1,
        "title": "Book",
        "type": "array"
+      },
+      "book_box": {
+       "anyOf": [
+        {
+         "items": {
+          "$ref": "#/$defs/BookBox"
+         },
+         "minItems": 1,
+         "type": "array"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Book Box"
       },
       "closure": {
        "anyOf": [

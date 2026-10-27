@@ -306,7 +306,7 @@ def bundle_continues(b: sqlite3.Connection) -> List[tuple]:
 
 def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, out_root: Path,
           data_release: Optional[str] = None, tiles: Optional[dict] = None, basemap: Optional[dict] = None,
-          lakes: Optional[Path] = None, sources: Optional[dict] = None) -> Path:
+          lakes: Optional[Path] = None, sources: Optional[dict] = None, synopsis: Optional[Path] = None) -> Path:
     """Write the release; return its directory (only the shipped files + manifest.json). `tiles`/`basemap`/`sources`
     are the manifest's blocks (manifest.py); `lakes` an optional lakes/1 file (pipeline/deliver/lake_facts.py), shipped
     as the file `lakes`; None (the default, and `deliver all`) ships none. Reads nothing past the bundle: the continuation
@@ -388,7 +388,7 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
                                       {**regs, "format": FORMATS["regs-sid"]})
 
         final = ship(work, files, base["section_handles"], out_root, data_release=data_release, tiles=tiles,
-                     basemap=basemap, valid_until=bmeta.get("valid_until") or None, sources=sources,
+                     basemap=basemap, valid_until=bmeta.get("valid_until") or None, sources=sources, synopsis=synopsis,
                      bundle=bmeta, regs_versions=json.loads(smeta["layout"]).get("versions") if "layout" in smeta else None)
         from pipeline.deliver.release.manifest import write_latest
         write_latest(out_root, final.name)              # T72: the pointer every reader asks, not the newest mtime
@@ -439,7 +439,7 @@ def bundle_files(work: Path, bundle: Path, b: sqlite3.Connection, base: Dict[str
 def ship(work: Path, files: Dict[str, Path], handles: str, out_root: Path, *, data_release: Optional[str] = None,
          tiles: Optional[dict] = None, basemap: Optional[dict] = None, valid_until: Optional[str] = None,
          regs_versions: Optional[dict] = None, sources: Optional[dict] = None,
-         bundle: Optional[dict] = None) -> Path:
+         bundle: Optional[dict] = None, synopsis: Optional[Path] = None) -> Path:
     """Gzip + sha-name every file, write the manifest, and move `work` to `out_root/<release id>`; the id is the
     content's digest unless one is given. `bundle` is the bundle's `meta`: its corpus and reach-run digests are
     stated in the manifest (`manifest.bundle_block`, T133) and are part of what the id covers."""
@@ -454,17 +454,27 @@ def ship(work: Path, files: Dict[str, Path], handles: str, out_root: Path, *, da
         entries[name] = {"url": fname, "bytes": raw.stat().st_size, "gz": len(gz), "sha256": sha,
                          "format": FORMATS[name], "section_handles": handles}
         raw.unlink()
+    # T215: OUR COPY of the synopsis PDF, beside the data files (raw: a PDF is already compressed), named by content. The
+    # boxes `rules[].book_box` were cut from these bytes; the app opens THIS file with the highlight, never gov.bc.ca's.
+    said_synopsis = None
+    if synopsis is not None:
+        ssha = _sha(synopsis)
+        sname = f"synopsis-{ssha[:12]}.pdf"
+        shutil.copyfile(synopsis, work / sname)
+        said_synopsis = {"id": ssha[:12], "url": sname, "bytes": synopsis.stat().st_size, "sha256": ssha}
     # The id covers EVERYTHING the manifest says, not only the files: an app keeps a release by its id, so a
     # manifest-only change (valid_until, a source date, the tiles pairing) under the same id would never be fetched.
     said = {"tiles": tiles, "basemap": basemap, "valid_until": valid_until, "regs_versions": regs_versions,
-            "sources": sources, **({"bundle": said_bundle} if said_bundle is not None else {})}
+            "sources": sources, "synopsis": said_synopsis, **({"bundle": said_bundle} if said_bundle is not None else {})}
     rid = data_release or "r-" + hashlib.sha256(
         json.dumps({"files": {k: v["sha256"] for k, v in sorted(entries.items())}, "said": said},
                    sort_keys=True).encode()).hexdigest()[:12]
     for e in entries.values():
         e["url"] = f"{rid}/{e['url']}"
+    if said_synopsis is not None:
+        said_synopsis = {**said_synopsis, "url": f"{rid}/{said_synopsis['url']}"}
     man = MAN.manifest(rid, entries, handles, tiles=tiles, basemap=basemap, valid_until=valid_until,
-                       regs_versions=regs_versions, sources=sources, bundle=bundle)
+                       regs_versions=regs_versions, sources=sources, bundle=bundle, synopsis=said_synopsis)
     (work / "manifest.json").write_text(json.dumps(man, indent=1, sort_keys=True) + "\n")
     final = out_root / rid
     if final.exists():

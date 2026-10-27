@@ -33,12 +33,16 @@ def main(argv=None) -> int:
     ap.add_argument("--lake-facts", type=Path, default=None,
                     help="a lakes/1 file (pipeline/deliver/lake_facts.py), shipped as `lakes`; none is made yet, so "
                          "by default the release ships no `lakes` (owner 2026-10-21: prepared, not fed)")
+    ap.add_argument("--synopsis", type=Path, default=None,
+                    help="the synopsis PDF this release ships for the highlighted 'open the PDF' (T215; default: the repo copy)")
     a = ap.parse_args(argv)
+    from pipeline.common.synopsis_pages import default_pdf
+    syn = a.synopsis or default_pdf()
     import sqlite3
     handles = dict(sqlite3.connect(f"file:{a.bundle}?mode=ro", uri=True).execute("SELECT k, v FROM meta"))[
         "section_handles"]
     d = B.build(bundle=a.bundle, store=a.store, status_index=a.status_index, export_dir=a.export_dir,
-                out_root=a.out_root, data_release=a.data_release, lakes=a.lake_facts, tiles=tiles_block(a.tiles_release_root, handles, a.tiles / "atlas.meta.json"),
+                out_root=a.out_root, data_release=a.data_release, lakes=a.lake_facts, synopsis=syn if syn.exists() else None, tiles=tiles_block(a.tiles_release_root, handles, a.tiles / "atlas.meta.json"),
                 # T75: the released basemap (its sidecar beside the tiles), so a native install can fetch the ground
                 basemap=basemap_block(a.tiles_release_root, a.tiles / "basemap.meta.json"),
                 # the date each source was last updated, read from the fetched inputs (the app's Data sources screen)

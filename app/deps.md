@@ -151,3 +151,7 @@ Expo project starts failing in ways whose stack traces point nowhere. `npx expo 
   `<input type=file>` and needs nothing. The picked file is copied straight into `documentDirectory/spots/photos/`,
   because the picker's own copy lives in a cache the OS may clear. Its config plugin in `apps/mobile/app.json` carries
   the camera and library permission strings. Photos are the user's own data: never in a release, never uploaded.
+- `pdf-lib` — **1.17.1**, pure JS, no native code. (T215, owner 2026-10-27) "open the PDF" shows our copy of the synopsis with the
+  entry's row highlighted: it loads the 24 MB release PDF and adds one `/Highlight` annotation per source box
+  (`ui-native/src/regs/highlightPdf.ts`), the same on web and phone. Costs ~0.5 MB of JS and 1-2 s to rewrite the PDF at the
+  first open; nothing is bundled into the paint path.

@@ -5,6 +5,7 @@
      "basemap": {id, url, bytes, sha256} | null,
      "files":   {"<name>": {url, bytes, gz, sha256, format, section_handles}, …},
      "regulations": {"valid_until": "<date>" | null, "versions": {…}},
+     "synopsis": {id, url, bytes, sha256} | null,   (T215: OUR copy of the synopsis PDF, raw, beside the data files)
      "sources": {"synopsis": {title, date}, "dfo"|"fwa"|"basemap"|"hydat": {date}},   (only when the build passes it)
      "bundle":  {"entries_digest": "<16 hex>", "reach_digest": "<16 hex>"}}           (only when the build passes it)
 
@@ -34,12 +35,14 @@ SOURCE_KEYS = ("synopsis", "dfo", "fwa", "basemap", "hydat")
 def manifest(data_release: str, files: Dict[str, dict], handles16: str, *, tiles: Optional[dict] = None,
              basemap: Optional[dict] = None, valid_until: Optional[str] = None,
              regs_versions: Optional[dict] = None, sources: Optional[dict] = None,
-             bundle: Optional[dict] = None) -> dict:
+             bundle: Optional[dict] = None, synopsis: Optional[dict] = None) -> dict:
     t = {"compatible": [f"{handles16}.*"], "current": None, "assets": None, "mask": None, **(tiles or {})}
     out = {"format": FORMAT, "data_release": data_release, "tiles": t, "basemap": basemap, "files": files,
            "regulations": {"valid_until": valid_until, "versions": regs_versions}}
     if sources is not None:
         out["sources"] = sources
+    if synopsis is not None:
+        out["synopsis"] = synopsis
     if bundle is not None:
         out["bundle"] = bundle_block(bundle)
     return out

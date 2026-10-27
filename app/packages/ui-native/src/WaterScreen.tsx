@@ -166,7 +166,7 @@ export function WaterScreen({ source, item, palette, onBack,
                   actions={{
                     onSheet: () => {},                                   // RegsScreen opens the sheet itself (T37 SheetHost)
                     onDay: (x) => onDay?.(mapDayOf(x, d.calendarYear)),
-                    onBook: (pdf) => { void openBook(pdf); },   // D6 a: native opens the bare PDF (T43 openBook)
+                    onBook: (pdf, box) => { void (box ? openBook(pdf, box) : openBook(pdf)); },   // D6 a: native opens the bare PDF (T43 openBook)
                   }}
                   // Gear / Methods / Licence (T34/T35); each is null only outside B.C. (T42: no key, so the page has
                   // none and the Keep tab's foot line is the page)

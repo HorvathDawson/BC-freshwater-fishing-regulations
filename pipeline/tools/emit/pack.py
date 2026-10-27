@@ -75,6 +75,8 @@ export interface Manifest {{
   tiles: {{ compatible: string[]; current: TileRef | null; assets: (TileRef & {{ files_sha256?: string; pin?: string }}) | null;
            mask: TileRef | null }};
   basemap: TileRef | null;
+  /** (T215) OUR copy of the synopsis PDF (url relative to the release root, raw bytes); absent on a release built before it. */
+  synopsis?: TileRef | null;
   files: Record<string, ManifestFile>;
   regulations: {{ valid_until: string | null; versions: Record<string, number> | null }};
   /** Absent on a release built before it (or a fixture release): every source then reads as not recorded. */

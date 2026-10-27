@@ -10,7 +10,7 @@
  * block carrying its `SheetKey`).
  */
 import { Text, View } from "react-native";
-import { type SheetBlock, type SheetKey, type SheetVM, type Tab } from "@app/core";
+import { type SheetBlock, type SourceBox, type SheetKey, type SheetVM, type Tab } from "@app/core";
 import { TYPE } from "../type";
 import { GUTTER, type Palette } from "../theme";
 import { GroupCard, Pictures } from "./GroupCard";
@@ -34,12 +34,12 @@ export interface SheetBodyProps {
   adipose?: AdiposeImages;                                   // T38: apps/mobile's ADIPOSE_IMAGES
   onOpen: (k: SheetKey) => void; onPart?: (i: number) => void; onTab?: (t: Tab) => void;
   /** a Rule book page (default: open the synopsis at that page, D6 a) */
-  onBook?: (pdf: number) => void;
+  onBook?: (pdf: number, box?: readonly SourceBox[]) => void;
 }
 
 /** The actions a Line's runs take inside a sheet. */
 const actionsOf = (p: SheetBodyProps): KeepActions =>
-  ({ onSheet: p.onOpen, onDay() {}, onTab: (t) => p.onTab?.(t), onBook: p.onBook ?? ((pdf) => { void openBook(pdf); }) });
+  ({ onSheet: p.onOpen, onDay() {}, onTab: (t) => p.onTab?.(t), onBook: p.onBook ?? ((pdf, box) => { void openBook(pdf, box); }) });
 
 export function SheetBlockView(p: { b: SheetBlock; layout?: LayoutClass } & SheetBodyProps) {
   const { b, palette } = p, actions = actionsOf(p);

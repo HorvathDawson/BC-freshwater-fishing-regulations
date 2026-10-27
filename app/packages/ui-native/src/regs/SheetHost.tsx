@@ -10,7 +10,7 @@
  */
 import { useEffect, useMemo, useRef } from "react";
 import type { ScrollView } from "react-native";
-import type { RegsPage, SheetKey, Tab } from "@app/core";
+import type { RegsPage, SheetKey, SourceBox, Tab } from "@app/core";
 import { useLayoutClass, type LayoutClass } from "@app/ui";
 import { Sheet } from "../Sheet";
 import type { Palette } from "../theme";
@@ -27,7 +27,7 @@ export interface SheetHostProps {
   palette: Palette;
   fish?: FishImages;                    // T20 map code → ImageSourcePropType (registered by apps/mobile)
   adipose?: AdiposeImages;              // T38 the hatch sheet's two drawings (apps/mobile ADIPOSE_IMAGES)
-  onBook?: (pdf: number) => void;       // a Rule book page (default: the synopsis at that page, D6 a)
+  onBook?: (pdf: number, box?: readonly SourceBox[]) => void;       // a Rule book page (default: the synopsis at that page, D6 a)
   layout?: LayoutClass;                 // (T45/T46) absent → the app's (`useLayoutClass`)
 }
 

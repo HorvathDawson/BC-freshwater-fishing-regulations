@@ -164,11 +164,11 @@ const term = (inp: RegsInputs, id: string): Run[] =>
 function weekOf(row: HydRow, inp: RegsInputs): PlainRowVM["week"] {
   const w = row.raw.week;
   if (!w) return null;
-  const book = (rixs: readonly number[]): Line => rixs.flatMap((ix, i) => [...(i ? [text(" ")] : []), ...bookLine(inp.rules.get(ix).facts?.book ?? [])]);
+  const book = (rixs: readonly number[]): Line => rixs.flatMap((ix, i) => [...(i ? [text(" ")] : []), ...bookLine(inp.rules.get(ix).facts?.book ?? [], inp.rules.get(ix).facts?.book_box)]);
   return {
     status: w.status ?? null, says: w.says + ".",
     parts: (w.parts ?? []).map((p) => ({ days: p.days, says: p.says + (p.today ? " " + WORDS.TODAY_MARK : ""), today: p.today, book: book(p.rules) })),
-    notes: (row.raw.restates ?? []).map((x) => [text(x.says), ...(bookLine(inp.rules.get(x.r).facts?.book ?? []).length ? [text(" "), ...bookLine(inp.rules.get(x.r).facts!.book)] : [])]),
+    notes: (row.raw.restates ?? []).map((x) => [text(x.says), ...(bookLine(inp.rules.get(x.r).facts?.book ?? [], inp.rules.get(x.r).facts?.book_box).length ? [text(" "), ...bookLine(inp.rules.get(x.r).facts!.book, inp.rules.get(x.r).facts!.book_box)] : [])]),
   };
 }
 
