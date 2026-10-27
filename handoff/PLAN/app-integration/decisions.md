@@ -1388,4 +1388,5 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
 - Area sweep: every water row naming an area whose rules have NO area extent is fixed the same way
   (handoff/PLAN/curation-review/area-matches.md lists the outcome).
 - The extent-fix editor's "within an area" op lists the atlas's areas (search + pick, `GET /api/areas/search`).
-- François Lake (owner 2026-10-26): only r1 'No Fishing Nov 15-May 31' holds on the outlet area (map 1); r2-r7 (char quota, 1 over 50 cm, rainbow C&R, bait ban, single barbless, no set lining) hold on the whole lake.
+- François Lake (owner 2026-10-26): only r1 'No Fishing Nov 15-May 31' holds on the outlet area (map 1); r2-r7 (char quota, 1 over 50 cm, rainbow C&R, bait ban, single barbless, no set lining) hold on the whole lake. Why: the row is ambiguous; the safer reading applies the restrictions everywhere (an angler following the app
+  cannot break them), while a closure is never widened beyond the area the book maps.
