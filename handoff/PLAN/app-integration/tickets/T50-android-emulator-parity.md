@@ -64,3 +64,11 @@ the laptop on keyed reads). adb/emulator are not on PATH: use $HOME/Library/Andr
 
 ## Owner 2026-10-27
 Native gestures and navigation must MATCH the web app (swipes on touch only, back behaviour, tab order, part/stretch navigation).
+
+## Gesture/navigation audit 2026-10-27 (no device)
+Native and web run the SAME gesture code (ui-native: ViewSwipe, EdgeBack, Sheet pan, useBack via systemBack.native /
+.web). The only platform splits are deliberate: `touchDevice` (web swipes on a coarse pointer only; native always),
+`escapeBack`/`escapeCloses` (desktop-web only), `searchFocus`. Android back + browser back + sheet/swipe render tests
+all pass (114 tests). Nothing found to change without a device. Left for the emulator/phone walk: step 4 (back table
+via `adb input keyevent 4` and the edge gesture), view-swipe vs system edge gesture on a real device, sheet pan vs
+scroll hand-off, predictive back (manifest has `enableOnBackInvokedCallback=false`; judge before enabling).

@@ -100,4 +100,11 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
 - **`scripts/update-hydat.sh`**: run it when that message arrives.
 - **Phone testing** (T77, Q9), **production hosting** (T86, Q26: R2 bucket, contact address, app name), **iOS build**
   (T88).
+  - Gesture/navigation parity on the phone (T50, T77; owner 2026-10-27; same RNGH code as web, not seen on a device):
+    Android edge-swipe back and the back button through the back table (HANDOFF-ui "Back, everywhere");
+    `android:enableOnBackInvokedCallback="false"` in the manifest (predictive back off) is deliberate until judged;
+    sideways view swipe on a water (Regulations/Conditions/Map) incl. not starting in the 24 px edge zones and not
+    fighting the map pan / chart / minimap shields; sheet drag-to-close and sheet scroll-vs-drag hand-off; iOS
+    left-edge back (`EdgeBack`); Spots/Conditions/More tab back goes to the Map tab; part step and upstream/downstream
+    (▲/▼) keep one back; section highlight while scrolling the regs tabs; keyboard (search) vs sheets.
 - **Sign-off walk** at the end (T87) before app/design is deleted.
