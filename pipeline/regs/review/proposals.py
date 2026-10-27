@@ -1,8 +1,11 @@
-"""T185: REVIEW MARKS -> PROPOSED EDITS the owner accepts, never a tool writing curated files.
+"""T185: REVIEW MARKS -> PROPOSED EDITS -> applied by Claude, never by the review tool.
 
-    marks.jsonl (read only)  ->  proposals (one per mark, one per new split)  ->  owner decides in
-    the review app (a `proposal` mark: P y accept / P n reject)  ->  `apply_proposals` (the owner
-    runs it) lands each ACCEPTED one as its own commit
+    marks.jsonl (read only)  ->  proposals (one per mark, one per new split)  ->  the review app's
+    read-only "waiting to apply" list  ->  `apply_proposals` (Claude runs it) lands each as its own
+    commit, after the binding check (and the side rebuild where a cut changes)
+
+THE OWNER'S MARKS ARE THE DECISIONS (owner 2026-10-27): there is no accept / reject step. To change
+or stop a proposal, the owner changes the mark.
 
 What a mark proposes, structured (`marks.Mark`):
 
@@ -17,18 +20,23 @@ THE ONE MARK -> ONE PATCH rule: every mark in force that carries an extent fix o
 is one proposal (all its edits, one file); each new split is one proposal on splits.json, and a
 mark's proposal that names it DEPENDS on it. A proposal holds STRUCTURED edits (file, entry / rule /
 location, field, before, after) and the unified diff they make against the files NOW; its `digest`
-covers the edits (before and after), so a decision taken on one proposal never applies another.
+covers the edits (before and after) and names the proposal's side-rebuild directory.
+
+CONFIDENCE (owner 2026-10-27): every proposed split carries one — the mark's own (the new-split
+picker sets it), an owner override (`proposal_overrides.json`, since the marks are never edited),
+else the anchor's default (a hand-placed point medium, a registry anchor high). It rides into the
+split record (`confidence`, absent = high, as splits.json spells it) and the proposal row.
 
 WRITES ONLY under `handoff/PLAN/curation-review/proposals/` (index.json + one .patch per proposal),
 and — `side` — patched COPIES in a side directory the caller names (never under data/curated).
-`apply_proposals` is the one writer of the curated files, and only the owner runs it.
+`apply_proposals` is the one writer of the curated files (Claude runs it, never the review app).
 
     python -m pipeline.regs.review.proposals build [--check]      # the proposals (+ cheap check)
     python -m pipeline.regs.review.proposals side <id> --out DIR  # patched copies for a side rebuild
 
 `--check` runs the in-memory `build_reach` path the review app's extent preview uses (T191) on the
 entry before and after, per rule — sections gained / lost, km — and prints, per proposal, the full
-side-rebuild + `binding_diff` chain (the owner's step; nothing here runs it).
+side-rebuild + `binding_diff` chain (Claude's step before applying a cut change; nothing here runs it).
 """
 from __future__ import annotations
 
@@ -80,16 +88,20 @@ class Sources:
     dfo_dir: Path
     splits_path: Path
     build: Optional[Path] = None
+    #: the owner's confidence calls on proposed splits (`marks.ConfidenceOverride`)
+    overrides: tuple = ()
     _reg: Optional[dict] = field(default=None, repr=False)
     _texts: dict = field(default_factory=dict, repr=False)
 
     @classmethod
     def live(cls, build: Optional[Path] = None) -> "Sources":
         from pipeline.common.curated import CURATED, GENERATED
+        from pipeline.regs.review.marks import load_overrides
         return cls(entries_dir=Path(CURATED.regulations.entries.catalogue),
                    dfo_dir=Path(CURATED.regulations.entries.dfo_salmon),
                    splits_path=Path(CURATED.waters.splits),
-                   build=Path(build) if build else GENERATED.build())
+                   build=Path(build) if build else GENERATED.build(),
+                   overrides=tuple(load_overrides(CURATED.regulations.review.proposal_overrides)))
 
     def text(self, path: Path) -> str:
         p = Path(path)
@@ -271,7 +283,8 @@ def _ref(item: Optional[dict], prefix: str) -> list[str]:
                    if r.startswith(prefix + ":")})
 
 
-def split_record(n, src: Sources, *, sid: str, provenance: str) -> tuple[dict, list[str]]:
+def split_record(n, src: Sources, *, sid: str, provenance: str,
+                 confidence: Optional[str] = None) -> tuple[dict, list[str]]:
     """A `marks.NewSplit` as a splits.json split (the curated shape, `SplitAnchor`): a confluence
     by the tributary's WSC (its mouth), a lake inlet / outlet by the lake's wbk and edge, a bridge /
     dam / sign / map point by its coordinate. Returns (split, notes): a note says where the
@@ -311,7 +324,9 @@ def split_record(n, src: Sources, *, sid: str, provenance: str) -> tuple[dict, l
     label = n.name or _ANCHOR_WORDS.get(n.anchor, n.anchor)
     if n.anchor == "confluence" and n.name:
         label = f"{n.name} confluence"
+    conf = confidence or n.confidence_now
     rec = {"id": sid, "label": label, "kind": anchor["type"], "anchor": anchor, "note": "",
+           **({} if conf == "high" else {"confidence": conf}),
            "_note": (f"[T185 proposal {dt.date.today().isoformat()}] {provenance}"
                      + (f' — "{n.quote}"' if n.quote else "")
                      + ("".join(f" [{x}]" for x in notes)))}
@@ -394,7 +409,7 @@ def build(marks: Iterable, src: Sources) -> list[dict]:
     from pipeline.regs.review import marks as M
     marks = list(marks)
     inforce = [m for m in M.latest(marks).values() if _proposes(m)]
-    shared = M.proposals(marks)                         # T210: one per distinct cut, every mark
+    shared = M.proposals(marks, src.overrides)          # T210: one per distinct cut, every mark
     splits_doc = src.doc(src.splits_path)
     have = {sp["id"]: sp for wb in splits_doc.get("waterbodies") or []
             for sp in wb.get("splits") or [] if sp.get("id")}
@@ -408,10 +423,11 @@ def build(marks: Iterable, src: Sources) -> list[dict]:
             if M.same_anchor(n, g["split"]):
                 if who not in g["marks"]:
                     g["marks"].append(who)
+                g["members"].append(n)
                 return g
         sh = next((p for p in shared if M.same_anchor(n, p["split"])), None)
         g = {"gid": sh["id"] if sh else n.ref, "split": sh["split"] if sh else n,
-             "marks": [who]}
+             "marks": [who], "members": [n]}
         groups.append(g)
         return g
 
@@ -437,6 +453,8 @@ def build(marks: Iterable, src: Sources) -> list[dict]:
     gid_split: dict[str, str] = {}                       # group id -> its split id (new or existing)
     for g in groups:
         n = g["split"]
+        sh = next((p for p in shared if p["id"] == g["gid"]), None)
+        conf = sh["confidence"] if sh else M.confidence_of(g["members"], src.overrides)
         pid = f"split-{_slug(g['gid'], 40)}"
         targets = ", ".join(sorted({w["target"] for w in g["marks"]}))
         prov = f"proposed in review marks on {targets}"
@@ -468,7 +486,7 @@ def build(marks: Iterable, src: Sources) -> list[dict]:
         gid_split[g["gid"]] = sid
         edits = []
         if not problems:
-            rec, notes = split_record(n, src, sid=sid, provenance=prov)
+            rec, notes = split_record(n, src, sid=sid, provenance=prov, confidence=conf)
             edits = [{"file": _rel(src.splits_path), "kind": "split",
                       "waterbody": {"name": water.upper() if wb is None else wb["name"],
                                     "applies_to": at},
@@ -477,7 +495,7 @@ def build(marks: Iterable, src: Sources) -> list[dict]:
                     "rule_id": None, "title": f"new split {sid} on {water}: "
                     + _ANCHOR_WORDS.get(n.anchor, n.anchor) + (f" {n.name}" if n.name else ""),
                     "marks": g["marks"], "edits": edits, "depends_on": [], "problems": problems,
-                    "notes": notes, "split_id": sid})
+                    "notes": notes, "split_id": sid, "confidence": conf})
 
     # ---- one proposal per mark
     for m in inforce:
@@ -491,7 +509,7 @@ def build(marks: Iterable, src: Sources) -> list[dict]:
                         "marks": [who], "edits": [], "depends_on": [], "problems": [],
                         "notes": ["listed by `python -m pipeline.regs.review.tickets "
                                   "--lake-splits`; no curated edit until lake splits are taken up"],
-                        "split_id": None})
+                        "split_id": None, "confidence": None})
         if not (m.extent_fix or m.tributaries):
             continue
         problems: list[str] = []
@@ -579,7 +597,7 @@ def build(marks: Iterable, src: Sources) -> list[dict]:
         out.append({"id": pid, "kind": "extent", "target": m.target, "scope": m.scope,
                     "rule_id": m.rule_id, "title": f"{m.target}: " + "; ".join(words),
                     "marks": [who], "edits": edits, "depends_on": depends, "problems": problems,
-                    "notes": [], "split_id": None})
+                    "notes": [], "split_id": None, "confidence": None})
 
     # ---- check every proposal's file still validates with its edits (and its new splits')
     by_id = {p["id"]: p for p in out}
@@ -625,16 +643,32 @@ def chain_of(p: Mapping, props: Iterable[Mapping]) -> list[Mapping]:
 
 # --------------------------------------------------------------------------- the side rebuild
 
+def side_dir(p: Mapping) -> str:
+    """A proposal's side-rebuild directory (repo-relative): named by its id AND digest, so a side
+    rebuild made for one state of the proposal never vouches for another."""
+    return f"data/generated/side/t185-{_slug(p['id'], 40)}-{p['digest'][:6]}"
+
+
+def changes_cuts(p: Mapping, props: Iterable[Mapping]) -> bool:
+    """Does landing `p` add or move a cut — a split edit in it or in a new split it waits on? Such
+    a proposal is bound only on a side atlas: it needs the side rebuild first."""
+    return any(ed["kind"] == "split" for q in chain_of(p, props) for ed in q["edits"])
+
+
+def side_ready(p: Mapping) -> bool:
+    """Has this proposal's side rebuild been made (its side atlas, `side_commands`)?"""
+    return (REPO / side_dir(p) / "atlas").is_dir()
+
+
 def side_commands(p: Mapping, props: Iterable[Mapping]) -> list[str]:
-    """THE OWNER'S STEP for a proposal (printed, never run): patched copies in a side directory,
-    the side atlas when a split changes, a reach run on them, and the per-rule binding diff
-    against the live reach run (AGENTS 63)."""
+    """THE SIDE CHAIN for a proposal (printed; Claude runs it before applying a cut change):
+    patched copies in a side directory, the side atlas when a split changes, a reach run on them,
+    and the per-rule binding diff against the live reach run (AGENTS 63)."""
     from pipeline.common.curated import GENERATED
     live_build = _rel(GENERATED.build())
     live_reach = _rel(GENERATED.reaches / GENERATED.build().name)
-    side = f"data/generated/side/t185-{_slug(p['id'], 40)}-{p['digest'][:6]}"
-    chain = chain_of(p, props)
-    splits = any(ed["kind"] == "split" for q in chain for ed in q["edits"])
+    side = side_dir(p)
+    splits = changes_cuts(p, props)
     dfo = any(ed["kind"] == "dfo" for ed in p["edits"])
     cmds = [f"python -m pipeline.regs.review.proposals side {p['id']} --out {side}"]
     build = live_build
@@ -654,7 +688,7 @@ def side_commands(p: Mapping, props: Iterable[Mapping]) -> list[str]:
     cmds += [f"scripts/heavy.sh reach 30 -- python -m pipeline.atlas.reach.cli --build {build} "
              f"--entries {side}/catalogue --out {side}/reach",
              f"python -m pipeline.atlas.reach.binding_diff {live_reach} {side}/reach"
-             "   # per-rule bindings, live vs side — read it before accepting (AGENTS 63)"]
+             "   # per-rule bindings, live vs side — read it before applying (AGENTS 63)"]
     return cmds
 
 
@@ -759,10 +793,10 @@ def write(props: list[dict], out: Path, src: Sources, *, marks_path: Path) -> Pa
         else:
             row["patch"] = None
         rows.append(row)
-    doc = {"_about": "T185 proposed edits from the review marks — written by `python -m "
-                     "pipeline.regs.review.proposals build`; decisions are `proposal` marks; "
-                     "`python -m pipeline.regs.review.apply_proposals` (the owner) applies the "
-                     "accepted ones",
+    doc = {"_about": "T185 proposed edits from the review marks, waiting to apply — written by "
+                     "`python -m pipeline.regs.review.proposals build`; the marks are the "
+                     "decisions; `python -m pipeline.regs.review.apply_proposals` (Claude) lands "
+                     "each, one commit",
            "made": dt.datetime.now().isoformat(timespec="seconds"),
            "marks": _rel(marks_path), "proposals": rows}
     atomic_write(out / INDEX, json.dumps(doc, indent=1, ensure_ascii=False) + "\n")
@@ -774,25 +808,12 @@ def read_index(out: Path = OUT_DIR) -> dict:
     return json.loads(p.read_text(encoding="utf-8")) if p.exists() else {"proposals": []}
 
 
-def prints_of(proposal_id: str, out: Path = OUT_DIR) -> Optional[dict]:
-    """THE PRINTS a decision on a proposal is held against (`marks.Prints` shape): the proposal's
-    digest as last written. None: no such proposal."""
-    p = next((q for q in read_index(out)["proposals"] if q["id"] == proposal_id), None)
-    if p is None:
-        return None
-    return {"text": p["digest"],
-            "records": [{"key": f"proposal:{proposal_id}", "meaning": p["digest"],
-                         "binding": p["digest"]}]}
-
-
-def _summary(props: list[dict], decided: Mapping[str, dict]) -> str:
+def _summary(props: list[dict]) -> str:
     lines = []
     for p in props:
-        d = decided.get(p["id"])
-        state = ("—" if d is None else
-                 f"{d['decision']}{'' if d['digest'] == p['digest'] else ' (STALE: changed since)'}")
-        lines.append(f"[{p['kind']}] {p['id']}  {'ok' if p['applicable'] else 'n/a'}  "
-                     f"decision {state}\n    {p['title']}")
+        conf = f"  confidence {p['confidence']}" if p.get("confidence") else ""
+        lines.append(f"[{p['kind']}] {p['id']}  {'ok' if p['applicable'] else 'n/a'}{conf}"
+                     f"\n    {p['title']}")
         for x in p["problems"]:
             lines.append(f"    problem: {x}")
         c = p.get("check")
@@ -841,7 +862,7 @@ def main(argv: list[str] | None = None) -> int:
     if a.check:
         check(props, src)
     idx = write(props, a.dir, src, marks_path=a.marks)
-    print(_summary(props, M.decisions(marks)))
+    print(_summary(props))
     print(f"{len(props)} proposal(s) -> {_rel(idx)}", file=sys.stderr)
     return 0
 

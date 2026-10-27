@@ -131,9 +131,6 @@ def get_entries(region: str | None = None, status: str | None = None,
 #: what a reviewer marks: an entry, or one rule of a zone entry (T184: entries only); T164: a DFO
 #: salmon location (the DFO review mode); T212: a proposed tidal boundary (the Tidal mode)
 REVIEW_SCOPES = ("entry", "rule", "dfo", "tidal")
-#: T185: the owner's decision on a proposed edit (the Proposals view) — a mark too, accept P y /
-#: reject P n, held against the proposal's digest; never a file write
-DECISION_SCOPE = "proposal"
 
 
 class MarkPayload(BaseModel):
@@ -175,11 +172,15 @@ def post_mark(body: MarkPayload):
     from pipeline.regs.review.marks import (CHECKS, refusal_words, unanswered_words,
                                             verdict_from_answers)
     data = body.model_dump()
-    if body.scope not in REVIEW_SCOPES + (DECISION_SCOPE,):
+    if body.scope not in REVIEW_SCOPES:
         raise HTTPException(422, [{"path": "scope", "msg": (
             "A split is not marked on its own: check it on the map of an entry whose rules name "
             "it, and mark that entry's Place wrong if the cut is in the wrong place."
-            if body.scope == "split" else f"scope is one of {list(REVIEW_SCOPES)}")}])
+            if body.scope == "split" else
+            # T185 (owner 2026-10-27): the marks ARE the decisions; a proposal has no accept step
+            "A proposal is not accepted here: the marks behind it are the decision. Change the "
+            "mark to change the proposal." if body.scope == "proposal" else
+            f"scope is one of {list(REVIEW_SCOPES)}")}])
     # A REFUSAL IS SAID IN THE REVIEWER'S WORDS (T142, `marks.refusal_words`): what to do, never
     # the model's "Value error, …" — and with no field path, which means nothing at the screen.
     if data["verdict"] is None:
@@ -250,9 +251,8 @@ def review_lake_splits():
 
 @app.get("/api/proposals")
 def get_proposals():
-    """T185: THE PROPOSED EDITS (`proposals build` wrote them) with the decision in force on each
-    and whether it still holds (taken on this digest). Read only: a decision is a mark
-    (`POST /api/marks`, scope `proposal`); the owner's `apply_proposals` applies the accepted."""
+    """T185: THE PROPOSED EDITS WAITING TO APPLY (`proposals build` wrote them). Read only: the
+    owner's marks are the decisions (2026-10-27); Claude's `apply_proposals` lands them."""
     return reuse.proposals_view()
 
 

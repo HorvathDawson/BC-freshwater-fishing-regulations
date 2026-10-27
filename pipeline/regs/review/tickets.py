@@ -77,7 +77,8 @@ def _work(mark) -> list[str]:
     what = ", ".join(f"{k} ({CHECK_WORDS[k]})" for k in sorted(checks, key="TRPA".index))
     lines = [f"1. {'Decide' if mark.verdict == 'unsure' else 'Fix'} {what or 'the mark'}"
              + (" — the owner's call (PLAN §6 Q3)." if mark.verdict == "unsure" else "."),
-             "2. A reviewed change to the curated files (T185): a proposal the owner accepts "
+             "2. A reviewed change to the curated files (T185): the mark IS the decision; Claude "
+             "applies its proposal "
              + ("(the split in `data/curated/waters/splits.json`)." if split
                 else "(the DFO location's binding in `data/curated/regulations/entries/dfo_salmon/`;"
                      " a new split in `data/curated/waters/splits.json`)." if mark.scope == "dfo"
@@ -92,10 +93,18 @@ def _work(mark) -> list[str]:
 def ticketed(mark, verdicts: Sequence[str] = TICKET_VERDICTS) -> bool:
     """Does this mark become a ticket? Its verdict is one asked for, or (T210) it is a DFO mark that
     says Place y and still carries an extent to curate from the existing cuts."""
-    if mark.scope == "proposal":         # T185: a decision on a proposed edit is no ticket
-        return False
     return mark.verdict in verdicts or (mark.verdict == "verified" and bool(mark.extent_fix)) or (
         mark.scope == "tidal" and mark.verdict == "verified" and bool(mark.new_splits))
+
+
+def _confidence(mark, n, shared: Sequence[Mapping] | None) -> str:
+    """A proposed split's confidence as the shared proposal holds it (an owner override, the
+    latest set) — else this mark's own (`NewSplit.confidence_now`)."""
+    for p in shared or ():
+        if p.get("confidence") and any(w["target"] == mark.target and w["ref"] == n.ref
+                                       for w in p["marks"]):
+            return p["confidence"]
+    return n.confidence_now
 
 
 def _shared_note(mark, n, shared: Sequence[Mapping] | None) -> str:
@@ -158,7 +167,9 @@ def ticket_text(mark, *, entry: Mapping | None = None, split: Mapping | None = N
     if mark.extent_fix:
         lines += ["## Proposed extent", ""] + [f"- {fix_words(f)}" for f in mark.extent_fix] + [""]
     if mark.new_splits:
-        lines += ["## Proposed new splits", ""] + [f"- {new_split_words(n)}{_shared_note(mark, n, shared)}" for n in mark.new_splits] + [""]
+        lines += ["## Proposed new splits", ""] + [
+            f"- {new_split_words(n)} · {_confidence(mark, n, shared)} confidence"
+            f"{_shared_note(mark, n, shared)}" for n in mark.new_splits] + [""]
     if entry is not None:
         lines += ["## The entry", ""]
         lines.append(f"{entry.get('name', '')} (`{entry.get('entry_id', '')}`), printed p. "
@@ -296,9 +307,11 @@ def export(marks: Iterable, *, entries: Mapping[str, Mapping] | None = None,
     """(file name, ticket text) for every mark IN FORCE (`marks.latest`) whose verdict is one of
     `verdicts`, in the store's order. `statuses` (mark key -> `{status, reasons}`) adds what changed
     since; a mark no longer in force (superseded) is never a ticket."""
-    from pipeline.regs.review.marks import latest, proposals
+    from pipeline.common.curated import CURATED
+    from pipeline.regs.review.marks import latest, load_overrides, proposals
     marks = list(marks)
-    shared = proposals(marks)             # T210: every mark's new splits, one entry per distinct cut
+    # T210: every mark's new splits, one entry per distinct cut (with the owner's confidence calls)
+    shared = proposals(marks, load_overrides(CURATED.regulations.review.proposal_overrides))
     out = []
     seen: dict[str, tuple] = {}
     for key, m in latest(marks).items():

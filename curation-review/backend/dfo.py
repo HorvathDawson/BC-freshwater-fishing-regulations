@@ -67,8 +67,10 @@ def _proposals() -> list[dict]:
     """T210: THE PROPOSED SPLITS of EVERY mark (superseded ones too), deduped by anchor
     (`marks.proposals`): one per distinct cut, the first proposal's name kept, with the marks that
     proposed it. Read only — the store is never edited."""
+    from pipeline.common.curated import CURATED
     from pipeline.regs.review import marks as M
-    return M.proposals(M.load(reuse.MARKS_PATH))
+    return M.proposals(M.load(reuse.MARKS_PATH),
+                       M.load_overrides(CURATED.regulations.review.proposal_overrides))
 
 
 def _proposal_view(p: dict) -> dict:
@@ -76,7 +78,9 @@ def _proposal_view(p: dict) -> dict:
     return {"id": p["id"], "anchor": n.anchor, "name": n.name, "item_id": n.item_id,
             "split_id": n.split_id, "on_item": n.on_item, "coord": list(n.coord) if n.coord else None,
             "blk": n.blk, "measure": n.measure, "side": n.side, "offset_m": n.offset_m,
-            "quote": n.quote, "marks": p["marks"], "n_marks": len(p["marks"])}
+            "quote": n.quote, "marks": p["marks"], "n_marks": len(p["marks"]),
+            # owner 2026-10-27: a proposed split carries its confidence everywhere
+            "confidence": p.get("confidence") or n.confidence_now}
 
 
 def _on_river(p: dict, items: list[str], blks: set[str]) -> bool:

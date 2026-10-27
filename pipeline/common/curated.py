@@ -117,8 +117,11 @@ class Review(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     marks: FilePath
+    #: owner calls on PROPOSED splits the marks cannot carry (the store is append-only, never
+    #: edited): a cut's confidence (`marks.ConfidenceOverride`, owner 2026-10-27)
+    proposal_overrides: FilePath
 
-    _abs = field_validator("marks", mode="before")(_absolute)
+    _abs = field_validator("marks", "proposal_overrides", mode="before")(_absolute)
 
 
 class Regulations(BaseModel):

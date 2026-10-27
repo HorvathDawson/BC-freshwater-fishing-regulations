@@ -886,9 +886,14 @@ export interface NewSplit {
   side?: "upstream" | "downstream" | null;
   /** + upstream, - downstream of the anchor */
   offset_m?: number | null;
+  /** how sure the proposer is of where the cut stands (owner 2026-10-27); none = the anchor's
+   *  default — a hand-placed point medium, a registry anchor high (`marks.default_confidence`) */
+  confidence?: SplitConfidence | null;
   quote?: string;
   note?: string;
 }
+/** a proposed split's confidence (`marks.Confidence`, splits.json's `confidence`) */
+export type SplitConfidence = "high" | "medium" | "low";
 /** GET /api/dfo/locations/{id}/anchor */
 export interface AnchorCheck {
   ok: boolean;
@@ -918,6 +923,8 @@ export interface ProposedSplit {
   quote: string;
   marks: { target: string; ref: string; reviewer: string; date: string }[];
   n_marks: number;
+  /** the proposed split's confidence (an owner override, the latest set, else the anchor default) */
+  confidence: SplitConfidence;
 }
 export type DfoState = "needs_cut" | "bound" | "unbound" | "no_water";
 export interface DfoRow {

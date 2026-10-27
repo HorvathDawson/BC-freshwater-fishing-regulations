@@ -1,4 +1,4 @@
-# T185 — From review marks to catalogue changes: proposals the owner accepts, never a tool writing files
+# T185 — From review marks to catalogue changes: the marks are the decisions, Claude applies them
 
 Status: DONE (e32eb08e) — owner decides the 8 proposals and applies them. Owner 2026-10-24: "we want to avoid making the review curation tool update files directly anyways. must
 be a better process to get the manual results in to entries etc."
@@ -63,3 +63,32 @@ Checks: `test_review_proposals.py` (one patch per mark / per cut, only the marke
 curated byte, a decision is a mark and never a ticket, stale / waiting decisions refused, apply in a temp repo = one
 commit each, the app reads and records a decision) plus the safety / marks / queue / gate / DFO suites; frontend
 `tsc`. `test_curation_review_screen.py` needs a built atlas (none in the worktree): run it at merge.
+
+## Outcome — the marks ARE the decisions (owner 2026-10-27, decisions.md "after the scheduled run")
+
+The accept / reject step is gone. Steps 4–5 above are replaced:
+
+- **No `proposal` mark.** `marks.Scope` no longer has it; `marks.decisions` is removed; `load` skips a retired
+  `proposal` line (`RETIRED_SCOPES` — the store is append-only, so the 7 old decision lines stay as history);
+  `POST /api/marks` refuses scope `proposal` (422, "the marks behind it are the decision"). Gate / tickets lost
+  their `proposal` branches. The one-write pins are unchanged.
+- **Proposals tab** (`ProposalsView.tsx`, `GET /api/proposals`) is a read-only "waiting to apply" list: edits, the
+  marks behind each, confidence, the cheap check, side commands, and where it stands (waiting / after a new split /
+  not applicable). To change a proposal, change the mark.
+- **`apply_proposals` (Claude runs it)** lands every applicable proposal of the marks in force, one
+  `git commit -- <paths>` each, new splits first: the in-memory binding check runs first (printed and carried in
+  the commit message; a failed check refuses it). A proposal that adds or moves a cut — a split edit, a new split
+  it waits on, or a split it names that landed in this run — needs its SIDE REBUILD first: the side atlas at
+  `proposals.side_dir` (named by id + digest; `side_commands` print the chain), or `--side-checked ID`. `--dry-run`
+  and `--only ID` kept / added.
+- **Confidence on every proposed split**: `NewSplit.confidence` (the DFO new-split picker sets it; default medium
+  for a hand-placed point, high for a registry anchor — `marks.default_confidence`); owner overrides in
+  `data/curated/regulations/review/proposal_overrides.json` (`CURATED.regulations.review.proposal_overrides`,
+  matched by `same_anchor`), since marks.jsonl is never edited. It shows in `marks.proposals`, the proposal row and
+  its split record (`confidence`, absent = high), the Proposals list, the DFO "already proposed" list, DFO
+  suggestions (each suggested new split carries its point's grade) and the tickets. **Sandy Pool = medium** via
+  that override file.
+
+Checks: `test_review_proposals.py` rewritten (confidence + override + Sandy Pool, retired line skipped and refused,
+side-less / waiting proposals held, apply in a temp repo = one commit each with the check in the body, dry run
+writes nothing, the app lists read-only and refuses a decision); frontend `tsc`.

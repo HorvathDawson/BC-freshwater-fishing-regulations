@@ -1,0 +1,12 @@
+{
+ "_about": "Owner calls on PROPOSED splits that the marks store (append-only, never edited) cannot carry. Each override names the cut as a marks.NewSplit would (matched by marks.same_anchor) and sets its confidence; read by marks.proposals and proposals.build (T185, owner 2026-10-27).",
+ "overrides": [
+  {
+   "match": {"ref": "sandy-pool", "anchor": "coord", "name": "white triangle boundary sign located in Sandy Pool Regional Park", "on_item": "gnis:12227", "coord": [-123.835989, 48.757157]},
+   "confidence": "medium",
+   "by": "owner",
+   "date": "2026-10-27",
+   "note": "decisions.md 2026-10-27 'after the scheduled run': Sandy Pool = medium"
+  }
+ ]
+}

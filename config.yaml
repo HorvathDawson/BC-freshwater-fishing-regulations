@@ -125,6 +125,7 @@ curated:
     reference: "data/curated/regulations/reference"   # the book's text, verbatim (definitions, legend, licensing)
     review:
       marks: "data/curated/regulations/review/marks.jsonl"   # reviewed — the reviewers' marks, append-only (T97)
+      proposal_overrides: "data/curated/regulations/review/proposal_overrides.json"  # owner calls on proposed splits (confidence), beside the never-edited marks (T185)
     entries:
       catalogue: "data/curated/regulations/entries/catalogue"
       dfo_salmon: "data/curated/regulations/entries/dfo_salmon"

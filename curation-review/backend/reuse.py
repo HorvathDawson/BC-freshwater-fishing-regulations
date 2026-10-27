@@ -1119,8 +1119,6 @@ def marks_view(target: str | None = None, scope: str | None = None) -> list[dict
                     now = Prints.model_validate(F.split_fingerprints(tgt, ctx))
                 except KeyError:
                     now = None
-            elif m.scope == "proposal":                # T185: a decision on a proposed edit
-                now = _proposal_prints(tgt)
             elif m.scope == "dfo":                     # T164: a DFO location
                 import dfo
                 got = dfo._locations().get(tgt)
@@ -1371,14 +1369,14 @@ def post_mark(body: dict) -> dict:
     from pipeline.regs.review import marks as M
     from pipeline.regs.review import vintage as V
     scope, target = body.get("scope"), str(body.get("target") or "")
-    if scope not in ("entry", "rule", "dfo", "tidal", "proposal"):
+    if scope == "proposal":
+        # T185 (owner 2026-10-27): the marks ARE the decisions — there is no accept step
+        raise ValueError("a proposal is not marked: the marks behind it are the decision "
+                         "(Claude applies them, `apply_proposals`)")
+    if scope not in ("entry", "rule", "dfo", "tidal"):
         raise ValueError(f"a mark is on an entry or one of its rules, not a {scope}")
     with writes.LOCK, M.store_lock(MARKS_PATH):          # threads, then other processes
-        if scope == "proposal":
-            # T185: the owner's decision on a proposed edit, held against the proposal's digest
-            # as last written (`proposals.prints_of`) — a mark like any other, the same commit
-            mark, now, reused = proposal_mark(body, date=_dt.date.today().isoformat()), None, []
-        elif scope == "dfo":
+        if scope == "dfo":
             # T164: a DFO salmon location — its prints from `review.dfo`, each NEW split's anchor
             # checked and its resolved point stamped (`dfo.mark_for`); the same one commit below
             import dfo
@@ -1408,17 +1406,17 @@ def post_mark(body: dict) -> dict:
                                           "prints": prints})
             now = None
         writes.commit([(MARKS_PATH, M.appended(MARKS_PATH, [mark]))], "mark")
-    view = _mark_view(mark, now if scope in ("dfo", "tidal") else
-                      _proposal_prints(target) if scope == "proposal" else _prints(e))
+    view = _mark_view(mark, now if scope in ("dfo", "tidal") else _prints(e))
     if reused:                       # T210: "already proposed — reused", said back to the screen
         view = {**view, "reused": reused}
     return view
 
 
 # --------------------------------------------------------------------------- T185: proposals
-# READS ONLY: the proposals `python -m pipeline.regs.review.proposals build` wrote, and the owner's
-# decisions on them (`proposal` marks). Accepting or rejecting one is a mark (`post_mark`); the
-# owner's own `apply_proposals` is what writes the curated files.
+# READS ONLY: the proposals `python -m pipeline.regs.review.proposals build` wrote. The owner's
+# marks ARE the decisions (2026-10-27): there is no accept step, the tab is a read-only "waiting
+# to apply" list, and Claude's `apply_proposals` lands each one (binding check, side rebuild where
+# a cut changes, one commit each).
 
 #: where the proposals were written; `CURATION_PROPOSALS_DIR` points it at a copy (tests)
 PROPOSALS_DIR = (Path(os.environ["CURATION_PROPOSALS_DIR"])
@@ -1430,46 +1428,14 @@ def _proposals_dir() -> Path:
     return PROPOSALS_DIR or P.OUT_DIR
 
 
-def _proposal_prints(pid: str):
-    from pipeline.regs.review import proposals as P
-    from pipeline.regs.review.marks import Prints
-    got = P.prints_of(pid, _proposals_dir())
-    return Prints.model_validate(got) if got is not None else None
-
-
-def proposal_mark(body: dict, *, date: str):
-    """The `proposal` mark a decision payload makes: accept (P y) / reject (P n) on the proposal as
-    last written. KeyError: no such proposal; ValueError: one with nothing to apply."""
-    from pipeline.regs.review import marks as M
-    from pipeline.regs.review import proposals as P
-    pid = str(body.get("target") or "")
-    p = next((q for q in P.read_index(_proposals_dir())["proposals"] if q["id"] == pid), None)
-    if p is None:
-        raise KeyError(pid)
-    if not p.get("applicable"):
-        raise ValueError(f"proposal {pid} has no edit to accept: "
-                         + "; ".join(p.get("problems") or p.get("notes") or ["nothing to apply"]))
-    keep = {k: v for k, v in body.items() if k not in (
-        "pages", "tributaries", "lake_split_later", "extent_fix", "new_splits")}
-    return M.Mark.model_validate({**keep, "date": date, "pdf_sha256": _pdf_sha256(), "pages": [],
-                                  "prints": P.prints_of(pid, _proposals_dir())})
-
-
 def proposals_view() -> dict:
-    """THE PROPOSALS as the owner decides them: every proposal (index.json) with its decision in
-    force ({decision, reviewer, date, note, holds: taken on this digest})."""
-    from pipeline.regs.review import marks as M
+    """THE PROPOSALS WAITING TO APPLY: every proposal (index.json) as last built, read only — each
+    with the marks behind it, its edits, its check and (a new split) its confidence."""
     from pipeline.regs.review import proposals as P
     idx = P.read_index(_proposals_dir())
-    decided = M.decisions(M.load(MARKS_PATH))
-    rows = []
-    for p in idx.get("proposals") or []:
-        d = decided.get(p["id"])
-        rows.append({**p, "decision": None if d is None else
-                     {**d, "holds": d["digest"] == p["digest"]}})
-    return {"made": idx.get("made"), "proposals": rows,
+    return {"made": idx.get("made"), "proposals": list(idx.get("proposals") or []),
             "commands": {"build": "python -m pipeline.regs.review.proposals build --check",
-                         "apply": "python -m pipeline.regs.review.apply_proposals"}}
+                         "apply": "python -m pipeline.regs.review.apply_proposals --dry-run"}}
 
 
 def entry_answer_context(entry_id: str) -> dict | None:

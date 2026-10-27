@@ -42,9 +42,11 @@ class StaleReason(str, Enum):
 #: the order reasons are reported in (and the order of the enum)
 STALE_REASONS: tuple[StaleReason, ...] = tuple(StaleReason)
 
-#: T185: `proposal` — the owner's decision on a proposed edit (`proposals`): accept (P y, verified)
-#: or reject (P n, wrong); the target is the proposal's id, the prints its digest
-Scope = Literal["entry", "rule", "split", "dfo", "tidal", "proposal"]
+Scope = Literal["entry", "rule", "split", "dfo", "tidal"]
+#: T185 (owner 2026-10-27): THE MARKS ARE THE DECISIONS. The retired accept step wrote marks of
+#: scope `proposal` (P y / P n on a proposal's digest); the store is append-only, so a line of it
+#: may still be there — `load` skips it, and nothing makes a new one.
+RETIRED_SCOPES = ("proposal",)
 Verdict = Literal["verified", "wrong", "unsure", "deferred"]
 Answer = Literal["y", "n", "?"]
 #: T189: the reviewer's call on tributaries — the water's tributaries should be in, or out
@@ -62,9 +64,7 @@ CHECKS: dict[str, tuple[str, ...]] = {"entry": ("T", "R", "P", "A"),
                                       # T212: a proposed tidal boundary (`review.tidal`) — P only: the
                                       # cut is where the tidal boundary is. Accepting it is P y with
                                       # the proposed cut as a new split
-                                      "tidal": ("P",),
-                                      # T185: is this proposed edit right? y accept, n reject
-                                      "proposal": ("P",)}
+                                      "tidal": ("P",)}
 
 #: THE PROBLEM CATEGORIES a "wrong" mark names (PLAN §2), grouped by the check that finds them.
 #: The review screen offers exactly these; the store keeps any string (an old mark stays valid).
@@ -227,6 +227,16 @@ COORD_ANCHORS = ("bridge", "dam", "sign", "coord")
 ITEM_ANCHORS = ("confluence", "lake_inlet", "lake_outlet")
 #: which side of the cut the extent lies on
 Side = Literal["upstream", "downstream"]
+#: (T207) how sure the proposer is of where a NEW cut stands — `models.splits.CONFIDENCE`; it
+#: rides into splits.json with the split (absent there is high)
+Confidence = Literal["high", "medium", "low"]
+
+
+def default_confidence(anchor: str) -> str:
+    """A NEW split's confidence when nobody set one (owner 2026-10-27): a point placed by hand on
+    the map (bridge / dam / sign / map point) is MEDIUM; a registry anchor (a tributary's mouth, a
+    lake's edge) or an existing split is exact, HIGH."""
+    return "medium" if anchor in COORD_ANCHORS else "high"
 
 
 def _in_bc(coord) -> bool:
@@ -254,8 +264,16 @@ class NewSplit(BaseModel):
     measure: Optional[float] = None
     side: Optional[Side] = None
     offset_m: Optional[float] = None
+    #: owner 2026-10-27: a proposed split carries its confidence everywhere; None = the anchor's
+    #: default (`default_confidence`: a hand-placed point medium, a registry anchor high)
+    confidence: Optional[Confidence] = None
     quote: str = ""
     note: str = ""
+
+    @property
+    def confidence_now(self) -> str:
+        """This proposal's confidence: the one set, else its anchor's default."""
+        return self.confidence or default_confidence(self.anchor)
 
     @model_validator(mode="after")
     def _anchored(self) -> "NewSplit":
@@ -275,7 +293,7 @@ class NewSplit(BaseModel):
 class RecordPrint(BaseModel):
     """One record's fingerprints (`fingerprint.entry_records`)."""
     model_config = ConfigDict(extra="forbid", frozen=True)
-    key: str = Field(..., pattern=r"^(entry|rule:.+|lic:.+|split:.+|proposal:.+)$")
+    key: str = Field(..., pattern=r"^(entry|rule:.+|lic:.+|split:.+)$")
     meaning: str
     binding: str
     reach: Optional[str] = None
@@ -356,24 +374,13 @@ class Mark(BaseModel):
         if self.verdict == "wrong":
             if "n" not in got:
                 raise ValueError("wrong needs a check answered n")
-            # T185: rejecting a proposal names no problem category (the note is optional)
-            if self.scope != "proposal" and (not (self.problem or "").strip()
-                                             or not self.note.strip()):
+            if not (self.problem or "").strip() or not self.note.strip():
                 raise ValueError("wrong needs a problem category and a note")
         if self.verdict == "unsure" and ("?" not in got or "n" in got):
             raise ValueError("unsure needs a check answered ? and none answered n")
         if self.verdict == "deferred" and not self.note.strip():
             raise ValueError("deferred needs a note saying why")
         keys = [r.key for r in self.prints.records]
-        if self.scope == "proposal":
-            if keys != [f"proposal:{self.target}"] or self.rule_id is not None:
-                raise ValueError("a proposal decision holds exactly its proposal's prints")
-            if (self.tributaries or self.extent_fix or self.new_splits
-                    or self.lake_split_later):
-                raise ValueError("a proposal decision proposes nothing of its own")
-            if self.verdict not in ("verified", "wrong"):
-                raise ValueError("a proposal is accepted (P y) or rejected (P n)")
-            return self
         if self.scope in ("split", "tidal"):
             if keys != [f"split:{self.target}"] or self.prints.text is not None:
                 raise ValueError(f"a {self.scope} mark holds exactly its "
@@ -459,7 +466,17 @@ def line(mark: Mark) -> str:
     for k, v in _OMIT_DEFAULT.items():
         if got.get(k) == v:
             got.pop(k)
+    for n in got.get("new_splits") or ():       # a new split's unset confidence: the line it was
+        if n.get("confidence") is None:
+            n.pop("confidence", None)
     return json.dumps(got, ensure_ascii=False, separators=(",", ":")) + "\n"
+
+
+def _retired(text: str) -> bool:
+    try:
+        return json.loads(text).get("scope") in RETIRED_SCOPES
+    except (ValueError, AttributeError):
+        return False                          # not JSON: the model says why, below
 
 
 def load(path: Path) -> list[Mark]:
@@ -473,6 +490,8 @@ def load(path: Path) -> list[Mark]:
     for n, text in enumerate(p.read_text(encoding="utf-8").splitlines(), 1):
         if not text.strip():
             continue
+        if '"proposal"' in text and _retired(text):
+            continue                          # T185: a decision of the retired accept step
         try:
             out.append(Mark.model_validate_json(text))
         except ValueError as ex:
@@ -674,10 +693,6 @@ def target_prints(mark: Mark, entries: Mapping[str, Mapping], ctx) -> Optional["
     on disk. Ticket export (`tickets.statuses_now`) and the false-stale gate (`gate.stale_report`)
     both ask here (T136 adversarial review: the gate had grown its own copy)."""
     from pipeline.regs.review import fingerprint as F
-    if mark.scope == "proposal":                  # T185: the proposal as last written
-        from pipeline.regs.review import proposals as P
-        got = P.prints_of(mark.target)
-        return Prints.model_validate(got) if got is not None else None
     if mark.scope == "dfo":                       # T164: a DFO location (`review.dfo`)
         from pipeline.regs.review import dfo as D
         got = D.prints_of(mark.target)
@@ -755,11 +770,43 @@ def same_anchor(a: NewSplit, b: NewSplit) -> bool:
     return False
 
 
-def proposals(marks: Iterable[Mark]) -> list[dict]:
+class ConfidenceOverride(BaseModel):
+    """ONE OWNER CALL ON A PROPOSED SPLIT'S CONFIDENCE, kept beside the marks
+    (`proposal_overrides.json`) because the marks store is append-only and never edited: `match`
+    names the cut as a `NewSplit` would (`same_anchor`), `confidence` is the call."""
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    match: NewSplit
+    confidence: Confidence
+    by: str = Field(..., min_length=1)
+    date: str
+    note: str = ""
+
+
+def load_overrides(path: Optional[Path]) -> list[ConfidenceOverride]:
+    """The confidence overrides (`CURATED.regulations.review.proposal_overrides`); [] for None."""
+    if path is None:
+        return []
+    doc = json.loads(Path(path).read_text(encoding="utf-8"))
+    return [ConfidenceOverride.model_validate(o) for o in doc.get("overrides") or ()]
+
+
+def confidence_of(group: Sequence[NewSplit], overrides: Sequence[ConfidenceOverride] = ()) -> str:
+    """A PROPOSED SPLIT'S CONFIDENCE (owner 2026-10-27): an owner override naming the cut, else the
+    LAST proposal of it that set one, else the first proposal's anchor default."""
+    for o in overrides:
+        if any(same_anchor(o.match, n) for n in group):
+            return o.confidence
+    for n in reversed(list(group)):
+        if n.confidence:
+            return n.confidence
+    return default_confidence(group[0].anchor)
+
+
+def proposals(marks: Iterable[Mark], overrides: Sequence[ConfidenceOverride] = ()) -> list[dict]:
     """THE PROPOSED SPLITS, SHARED AND DEDUPED: every `new_splits` entry of EVERY mark (superseded
     ones too — the store is the history), one proposal per distinct cut (`same_anchor`), in the
     order first proposed. Each is {id, split (the FIRST proposal's `NewSplit`, so its first name),
-    marks: [{target, ref, reviewer, date}]}. `id` is the first proposal's ref, made unique with a
+    marks: [{target, ref, reviewer, date}], confidence (`confidence_of`, `overrides` first)}. `id` is the first proposal's ref, made unique with a
     `-2` suffix when another cut already holds it. Read only; the store is never edited."""
     out: list[dict] = []
     seen: list[list[NewSplit]] = []
@@ -778,19 +825,6 @@ def proposals(marks: Iterable[Mark]) -> list[dict]:
             who = {"target": m.target, "ref": n.ref, "reviewer": m.reviewer, "date": m.date}
             if who not in out[i]["marks"]:
                 out[i]["marks"].append(who)
+    for p, grp in zip(out, seen):
+        p["confidence"] = confidence_of(grp, overrides)
     return out
-
-
-# --------------------------------------------------------------------------------------------
-# Decisions on proposed edits (T185)
-# --------------------------------------------------------------------------------------------
-
-def decisions(marks: Iterable[Mark]) -> dict[str, dict]:
-    """THE OWNER'S DECISIONS ON PROPOSED EDITS (T185): proposal id -> {decision: accept | reject,
-    digest (the proposal it was taken on), reviewer, date, note}, the latest decision on each. A
-    decision is a `proposal` mark (P y accept, P n reject) — recorded like any mark, never a file
-    write; `proposals.apply` acts only on an accept whose digest is the proposal's NOW."""
-    return {m.target: {"decision": "accept" if m.verdict == "verified" else "reject",
-                       "digest": m.prints.records[0].meaning, "reviewer": m.reviewer,
-                       "date": m.date, "note": m.note}
-            for m in latest(marks).values() if m.scope == "proposal"}

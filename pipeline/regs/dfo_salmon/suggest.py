@@ -665,6 +665,8 @@ def suggest_one(loc: Mapping, water: Water, cuts: list[Cut], look: Lookup | None
     for p in pts:
         if p.new:
             ns = dict(p.new)
+            # owner 2026-10-27: a proposed split carries its confidence — the point's own grade
+            ns["confidence"] = p.confidence if p.confidence in ("high", "medium", "low") else "low"
             if op in ("upstream_of", "downstream_of"):
                 ns["side"] = "upstream" if op == "upstream_of" else "downstream"
             new_splits.append(ns)
@@ -898,6 +900,9 @@ def cuts_on(item_ids: list[str], registry: Mapping[str, dict], splits_meta: Mapp
             continue
         nm = n.get("name") or ""
         label = (f"{nm} → (proposed)" if n.get("anchor") == "confluence" else nm) or p["id"]
+        conf = p.get("confidence") or n.get("confidence")
+        if conf in ("medium", "low"):           # owner 2026-10-27: its confidence, everywhere
+            label += f" ({conf} confidence)"
         out.append(Cut(p["id"], label, "proposed", on, (nm,) if nm else (), proposal=n))
     return out
 
@@ -1086,8 +1091,10 @@ def run(out_dir: Path = OUT_DIR, *, marks_path: Optional[Path] = None, gpkg: Opt
     smeta = {sp["id"]: sp for wb in sj.get("waterbodies") or [] for sp in wb.get("splits") or []
              if isinstance(sp, dict) and sp.get("id")}
     mp = Path(marks_path or CURATED.regulations.review.marks)
-    props = [{"id": p["id"], "split": json.loads(p["split"].model_dump_json())}
-             for p in M.proposals(M.load(mp))] if mp.exists() else []
+    props = [{"id": p["id"], "split": json.loads(p["split"].model_dump_json()),
+              "confidence": p["confidence"]}
+             for p in M.proposals(M.load(mp), M.load_overrides(
+                 CURATED.regulations.review.proposal_overrides))] if mp.exists() else []
     if gpkg is None:
         from project_config import get_config
         gpkg = str(get_config().fwa_data_gpkg)

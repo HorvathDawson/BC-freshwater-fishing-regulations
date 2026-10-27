@@ -17,7 +17,7 @@ import { PROPOSALS_HASH, ProposalsView } from "./components/ProposalsView";
 const inDfo = () => decodeURIComponent(window.location.hash.slice(1)).startsWith(DFO_HASH);
 /** T212: ... and the Tidal mode (`#tidal/<candidate id>`) */
 const inTidal = () => decodeURIComponent(window.location.hash.slice(1)).startsWith(TIDAL_HASH);
-/** T185: `#proposals` opens the read-only Proposals view (accept / reject is a mark) */
+/** T185: `#proposals` opens the read-only Proposals view — waiting to apply (the marks are the decisions) */
 const inProposals = () => decodeURIComponent(window.location.hash.slice(1)) === PROPOSALS_HASH;
 
 /** THE REVIEW TIERS (PLAN §3, `tiers.TIERS`) — entries only: a split point is checked by proxy on
@@ -241,7 +241,7 @@ export default function App() {
             onClick={toTidal}>
             Tidal
           </button>
-          <button className="btn small" data-testid="proposals-tab" title="T185: the edits the marks propose — accept / reject"
+          <button className="btn small" data-testid="proposals-tab" title="T185: the edits your marks propose, waiting to apply (read only)"
             onClick={toProposals}>
             Proposals
           </button></>}

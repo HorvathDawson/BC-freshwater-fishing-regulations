@@ -1,14 +1,17 @@
-"""T185: review marks -> proposed edits -> the owner's decision (a mark) -> one commit each.
+"""T185: review marks -> proposed edits -> applied by Claude, one commit each.
+
+The owner's MARKS ARE THE DECISIONS (2026-10-27): no accept step, no `proposal` mark.
 
   build       a mark with an extent fix / tributary call is ONE proposal (one patch); a new split is
               ONE proposal per distinct cut across every mark (T210), and a mark naming it depends
               on it; a lake-split-later call is listed, with no edit
   read only   building and writing the proposals leaves every curated byte as it was
-  decision    a `proposal` mark (P y accept / P n reject) on the proposal's digest; never a ticket;
-              stale once the proposal changes
-  apply       the owner's CLI lands each ACCEPTED, still-holding proposal as its own commit, new
-              splits first, and refuses a stale decision (a temp git repo, never this one)
-  the app     GET /api/proposals reads; the decision goes through the one write, POST /api/marks
+  confidence  every proposed split carries one: set, an owner override, else the anchor default
+  retired     a `proposal` line in the store is skipped; the model and the app refuse a new one
+  apply       Claude's CLI lands every applicable proposal as its own commit after the binding
+              check, new splits first, a cut change only once its side rebuild exists (a temp git
+              repo, never this one)
+  the app     GET /api/proposals reads (a read-only "waiting to apply" list); nothing to decide
 
 Reads the checked-in catalogue / DFO / splits.json (copied into temp dirs) and no generated data.
 """
@@ -132,6 +135,36 @@ def test_one_proposal_per_mark_and_one_per_distinct_cut(src):
     lake = props[-1]
     assert lake["edits"] == [] and not lake["applicable"]
     assert all(p["applicable"] for p in props[:-1])
+    # owner 2026-10-27: a proposed split carries its confidence — a registry confluence is exact,
+    # a hand-placed sign is medium (splits.json spells high by leaving it out)
+    assert (quinsam["confidence"], by["split-n1"]["confidence"]) == ("high", "medium")
+    assert "confidence" not in ed["split"] and sign["confidence"] == "medium"
+    assert hz["confidence"] is None
+
+
+def test_confidence_set_in_the_mark_or_by_an_owner_override(src):
+    marks = owner_marks()
+    marks[4] = _mark(**{**marks[4].model_dump(), "new_splits": [
+        {**marks[4].new_splits[0].model_dump(), "confidence": "low"}]})
+    assert _by_id(P.build(marks, src))["split-n1"]["edits"][0]["split"]["confidence"] == "low"
+    # an override (the marks store is never edited) wins over the mark
+    src.overrides = (M.ConfidenceOverride.model_validate({
+        "match": {"ref": "o", "anchor": "coord", "on_item": "gnis:12227",
+                  "coord": [-123.835990, 48.757158]},
+        "confidence": "high", "by": "owner", "date": "2026-10-27"}),)
+    got = _by_id(P.build(marks, src))["split-n1"]
+    assert got["confidence"] == "high" and "confidence" not in got["edits"][0]["split"]
+    assert {p["id"]: p["confidence"] for p in M.proposals(marks, src.overrides)} == {
+        "n2": "high", "n1": "high"}
+
+
+def test_sandy_pool_is_medium_by_the_owners_override():
+    """decisions.md 2026-10-27: Sandy Pool = medium — recorded in the override file, since the
+    marks store is never edited."""
+    got = M.load_overrides(CURATED.regulations.review.proposal_overrides)
+    sandy = [o for o in got if "Sandy Pool" in (o.match.name or "")]
+    assert [o.confidence for o in sandy] == ["medium"]
+    assert M.confidence_of([owner_marks()[4].new_splits[0]], got) == "medium"
 
 
 def test_the_patch_changes_only_what_the_mark_says(src):
@@ -172,42 +205,39 @@ def test_building_and_writing_never_touches_curated_data(tmp_path):
         P.write_side(props[0], props, src, root / "side")
 
 
-# --------------------------------------------------------------------------- decisions
+# --------------------------------------------------------------------------- the retired accept step
 
-def _decision(pid: str, digest: str, accept: bool = True) -> M.Mark:
-    return M.Mark.model_validate({
-        "scope": "proposal", "target": pid, "verdict": "verified" if accept else "wrong",
-        "answers": {"P": "y" if accept else "n"}, "reviewer": "dawson", "date": "2026-10-27",
-        "pdf_sha256": SHA, "prints": {"text": digest, "records": [
-            {"key": f"proposal:{pid}", "meaning": digest, "binding": digest}]}})
+RETIRED = {"scope": "proposal", "target": "split-n2", "verdict": "verified", "answers": {"P": "y"},
+           "reviewer": "dawson", "date": "2026-10-27", "pdf_sha256": SHA,
+           "prints": {"text": "d", "records": [{"key": "proposal:split-n2", "meaning": "d",
+                                                "binding": "d"}]}}
 
 
-def test_a_decision_is_a_mark_and_never_a_ticket():
-    acc, rej = _decision("split-n2", "d1"), _decision("split-n2", "d1", accept=False)
-    assert not ticketed(acc) and not ticketed(rej)
-    assert M.decisions([acc])["split-n2"]["decision"] == "accept"
-    assert M.decisions([acc, rej])["split-n2"]["decision"] == "reject"        # the latest holds
-    assert M.line(acc) == M.line(M.Mark.model_validate_json(M.line(acc)))   # round trip
-    bad = acc.model_dump() | {"tributaries": {"entry": "include"}}
-    with pytest.raises(ValueError, match="proposes nothing"):
-        M.Mark.model_validate(bad)
+def test_a_proposal_mark_is_retired_skipped_in_the_store_and_refused_new(tmp_path):
+    store = tmp_path / "marks.jsonl"
+    hz = owner_marks()[0]
+    store.write_text(M.line(hz) + json.dumps(RETIRED) + "\n")
+    assert M.load(store) == [hz]                       # the old decision line is history only
     with pytest.raises(ValueError):
-        M.Mark.model_validate(acc.model_dump() | {"verdict": "unsure", "answers": {"P": "?"}})
+        M.Mark.model_validate(RETIRED)
+    assert not hasattr(M, "decisions")
+    assert ticketed(owner_marks()[2])                  # a DFO mark with a new split: a ticket
 
 
-def test_a_stale_or_waiting_decision_is_not_applied(src):
+def test_a_waiting_or_side_less_proposal_is_not_applied(src, monkeypatch):
     props = P.build(owner_marks(), src)
-    by = _by_id(props)
+    monkeypatch.setattr(P, "side_ready", lambda p: False)
+    nxt, blocked = A.plan(props, set())
+    assert nxt["target"] == HATZIC                     # no cut changes: the binding check is enough
+    assert A.plan(props, {nxt["id"]})[0] is None
+    why = dict(A.plan(props, {nxt["id"]})[1])
+    assert why["split-n2"].startswith("a cut changes: make the side rebuild")
     camp = next(p for p in props if p["target"] == CAMPBELL_A)
-    decided = {camp["id"]: M.decisions([_decision(camp["id"], camp["digest"])])[camp["id"]],
-               "split-n1": M.decisions([_decision("split-n1", "an-older-digest")])["split-n1"]}
-    nxt, blocked = A.plan(props, decided, set())
-    assert nxt is None
-    assert dict(blocked) == {"split-n1": dict(blocked)["split-n1"],
-                             camp["id"]: "waits on new split(s) not applied: split-n2"}
-    assert "STALE" in dict(blocked)["split-n1"]
-    decided["split-n2"] = M.decisions([_decision("split-n2", by["split-n2"]["digest"])])["split-n2"]
-    assert A.plan(props, decided, set())[0]["id"] == "split-n2"               # new splits first
+    assert why[camp["id"]] == "waits on new split(s) not applied: split-n2"
+    assert P.side_dir(props[0]) in why["split-n2"]
+    monkeypatch.setattr(P, "side_ready", lambda p: True)
+    assert A.plan(props, set())[0]["id"] == "split-n2"                         # new splits first
+    assert A.plan(props, set(), side_checked=["split-n2"])[0]["id"] == "split-n2"
 
 
 # --------------------------------------------------------------------------- apply
@@ -217,7 +247,7 @@ def _git(repo: Path, *args: str) -> str:
                           check=True).stdout
 
 
-def test_apply_lands_each_accepted_proposal_as_its_own_commit(src, tmp_path, monkeypatch):
+def test_apply_lands_each_proposal_from_the_marks_as_its_own_commit(src, tmp_path, monkeypatch):
     repo = tmp_path
     _git(repo, "init", "-q")
     _git(repo, "config", "user.email", "t@example.com")
@@ -225,31 +255,66 @@ def test_apply_lands_each_accepted_proposal_as_its_own_commit(src, tmp_path, mon
     _git(repo, "add", "data")
     _git(repo, "commit", "-qm", "base")
     props = P.build(owner_marks(), src)
-    camp = next(p for p in props if p["target"] == CAMPBELL_B)
+    by = _by_id(props)
+    camp_b = next(p for p in props if p["target"] == CAMPBELL_B)
+    camp_a = next(p for p in props if p["target"] == CAMPBELL_A)
     hz = next(p for p in props if p["target"] == HATZIC)
     cow = next(p for p in props if p["target"] == COWICHAN)
     store = tmp_path / "marks.jsonl"
-    store.write_text("".join(M.line(m) for m in owner_marks() + [
-        _decision(camp["id"], camp["digest"]), _decision(hz["id"], hz["digest"]),
-        _decision("split-n2", _by_id(props)["split-n2"]["digest"]),
-        _decision(cow["id"], cow["digest"], accept=False)]))
+    store.write_text("".join(M.line(m) for m in owner_marks()))
+    checked = []
+
+    def fake_check(ps, _src):                         # the in-memory binding (needs an atlas)
+        for p in ps:
+            checked.append(p["id"])
+            p["check"] = {"cheap": True, "why": None, "rules": {"r1": {
+                "n_before": 4, "n_after": 92, "gained": 88, "lost": 0, "km_before": 8,
+                "km_after": 124, "outcome_before": "open", "outcome_after": "open"}}}
+    side = {"ready": False}
     monkeypatch.setattr(P, "REPO", repo)
+    monkeypatch.setattr(P, "check", fake_check)
+    monkeypatch.setattr(P, "side_ready", lambda p: side["ready"])
     monkeypatch.setattr(P.Sources, "live", classmethod(
         lambda cls, build=None: P.Sources(src.entries_dir, src.dfo_dir, src.splits_path, src.build)))
+    # no side rebuild yet: only the proposal that changes no cut lands, after its binding check
+    assert A.main(["--marks", str(store)]) == 0
+    assert _git(repo, "log", "--format=%s").splitlines() == [
+        f"T185 apply {hz['id']}: {hz['title']}"[:200], "base"]
+    assert checked == [hz["id"]]
+    body = _git(repo, "log", "-1", "--format=%b")
+    assert "the marks are the decision" in body and "r1: 4 -> 92 sections" in body
+    # the side rebuilds made: the new splits land first, then the extents that name them
+    side["ready"] = True
     assert A.main(["--marks", str(store)]) == 0
     log = _git(repo, "log", "--format=%s").splitlines()
-    assert log == [f"T185 apply {camp['id']}: {camp['title']}"[:200],
-                   f"T185 apply {hz['id']}: {hz['title']}"[:200],
-                   f"T185 apply split-n2: {_by_id(props)['split-n2']['title']}"[:200], "base"]
-    assert _git(repo, "show", "--name-only", "--format=", "HEAD~1").split() == [
-        "data/curated/catalogue/region-2.json"]
+    assert log == [f"T185 apply {q['id']}: {q['title']}"[:200]
+                   for q in (cow, camp_a, camp_b, by["split-n1"], by["split-n2"], hz)] + ["base"]
+    assert checked == [hz["id"]]                       # cut changes are bound on the side atlas
+    assert _git(repo, "show", "--name-only", "--format=", "HEAD~4").split() == [
+        "data/curated/splits.json"]
     splits = json.loads(src.splits_path.read_text())
-    assert any(sp["id"] == camp["edits"][0]["after"][0]["splits"][0]
-               for wb in splits["waterbodies"] for sp in wb["splits"])
+    got = {sp["id"]: sp for wb in splits["waterbodies"] for sp in wb["splits"]}
+    assert camp_b["edits"][0]["after"][0]["splits"][0] in got
+    assert got[by["split-n1"]["split_id"]]["confidence"] == "medium"
     assert _git(repo, "status", "--porcelain", "--", "data") == ""
-    # nothing more to land: the rejected one stays, the applied ones are gone from the proposals
+    # nothing more to land: every proposal is in the files now
     assert A.main(["--marks", str(store)]) == 0
-    assert len(_git(repo, "log", "--format=%s").splitlines()) == 4
+    assert len(_git(repo, "log", "--format=%s").splitlines()) == 7
+
+
+def test_a_dry_run_lands_nothing(src, tmp_path, monkeypatch, capsys):
+    store = tmp_path / "marks.jsonl"
+    store.write_text("".join(M.line(m) for m in owner_marks()))
+    monkeypatch.setattr(P, "check", lambda ps, _s: [p.update(check={"cheap": True, "rules": {}})
+                                                    for p in ps])
+    monkeypatch.setattr(P, "side_ready", lambda p: False)
+    monkeypatch.setattr(P.Sources, "live", classmethod(
+        lambda cls, build=None: P.Sources(src.entries_dir, src.dfo_dir, src.splits_path, src.build)))
+    before = src.text(src.splits_path)
+    assert A.main(["--marks", str(store), "--dry-run"]) == 0
+    out = capsys.readouterr().out
+    assert "== would apply" in out and "a cut changes" in out
+    assert src.splits_path.read_text() == before
 
 
 # --------------------------------------------------------------------------- the app
@@ -259,7 +324,7 @@ _MODS = ("app", "reuse", "model_api", "answer", "synopsis_pages", "writes", "dfo
          "evidence")
 
 
-def test_the_app_reads_proposals_and_records_a_decision_as_a_mark(src, tmp_path, monkeypatch):
+def test_the_app_lists_proposals_read_only_and_refuses_a_decision(src, tmp_path, monkeypatch):
     props = P.build(owner_marks(), src)
     out = tmp_path / "proposals"
     P.write(props, out, src, marks_path=tmp_path / "marks.jsonl")
@@ -277,21 +342,13 @@ def test_the_app_reads_proposals_and_records_a_decision_as_a_mark(src, tmp_path,
         c = TestClient(app_mod.app)
         got = c.get("/api/proposals").json()
         assert [p["id"] for p in got["proposals"]] == [p["id"] for p in props]
-        assert all(p["decision"] is None for p in got["proposals"])
+        assert all("decision" not in p for p in got["proposals"])
+        assert {p["id"]: p["confidence"] for p in got["proposals"]
+                if p["kind"] == "new_split"} == {"split-n2": "high", "split-n1": "medium"}
         r = c.post("/api/marks", json={"scope": "proposal", "target": "split-n2",
                                        "answers": {"P": "y"}, "reviewer": "dawson"})
-        assert r.status_code == 200, r.text
-        (m,) = M.load(store)
-        assert (m.scope, m.verdict, m.prints.text) == ("proposal", "verified",
-                                                        _by_id(props)["split-n2"]["digest"])
-        d = next(p for p in c.get("/api/proposals").json()["proposals"] if p["id"] == "split-n2")
-        assert d["decision"]["decision"] == "accept" and d["decision"]["holds"]
-        lake = props[-1]["id"]                    # nothing to apply: refused, nothing written
-        r = c.post("/api/marks", json={"scope": "proposal", "target": lake, "answers": {"P": "y"},
-                                       "reviewer": "dawson"})
-        assert r.status_code == 422 and len(M.load(store)) == 1
-        assert c.post("/api/marks", json={"scope": "proposal", "target": "nope",
-                                          "answers": {"P": "n"}, "reviewer": "d"}).status_code == 404
+        assert r.status_code == 422 and "the marks behind it are the decision" in r.text
+        assert store.read_text() == ""
     finally:
         for mod in _MODS:
             sys.modules.pop(mod, None)

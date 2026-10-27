@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api, type EntryRefused } from "../api";
 import type {
   AnchorCheck, AnchorKind, Check, CheckAnswer, DfoDetail, DfoHunt, DfoProgress, DfoRow, DfoSuggestion, EntrySplits,
-  ExtentFix, ExtentPreview, Mode, NamedRef, NewSplit, ProposedSplit,
+  ExtentFix, ExtentPreview, Mode, NamedRef, NewSplit, ProposedSplit, SplitConfidence,
 } from "../types";
 import { getReviewer, isTyping, setReviewer } from "../review";
 import { MapPanel } from "./MapPanel";
@@ -34,8 +34,17 @@ function sameCut(list: ProposedSplit[], got: AnchorCheck): ProposedSplit | undef
 const asNewSplit = (p: ProposedSplit, quote: string): NewSplit => ({
   ref: p.id, anchor: p.anchor, name: p.name, item_id: p.item_id, split_id: p.split_id,
   on_item: p.on_item, coord: p.coord, blk: p.blk, measure: p.measure, side: p.side,
-  offset_m: p.offset_m, quote: p.quote || quote,
+  offset_m: p.offset_m, quote: p.quote || quote, confidence: p.confidence,
 });
+/** owner 2026-10-27: a new split's confidence when none is set — a point placed by hand on the map
+ *  is medium, a registry anchor (a tributary's mouth, a lake's edge) high (`marks.default_confidence`) */
+export const defaultConfidence = (a: AnchorKind): SplitConfidence =>
+  (["bridge", "dam", "sign", "coord"] as AnchorKind[]).includes(a) ? "medium" : "high";
+const CONFIDENCES: SplitConfidence[] = ["high", "medium", "low"];
+function ConfChip({ c }: { c: SplitConfidence }) {
+  return <span className={`chip-tag conf-${c}`} title="how sure the proposer is of where this cut stands"
+    data-testid="split-confidence">{c} confidence</span>;
+}
 const CHECKS: Check[] = ["T", "R", "P"];
 
 /** ACCEPT A SUGGESTION: the extent-fix editor's value it pre-fills, and the NEW splits its points
@@ -611,7 +620,7 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
               {sugg.suggestion.new_splits.length > 0 && (
                 <div className="ext-row dim" style={{ fontSize: 12 }}>
                   new split{sugg.suggestion.new_splits.length === 1 ? "" : "s"}:{" "}
-                  {sugg.suggestion.new_splits.map((n) => anchorWords(n)).join(" · ")} — violet on the map</div>
+                  {sugg.suggestion.new_splits.map((n) => `${anchorWords(n)} (${n.confidence ?? defaultConfidence(n.anchor)} confidence)`).join(" · ")} — violet on the map</div>
               )}
               {sugg.hunt?.status === "found" && <HuntProposals hunt={sugg.hunt} />}
               {accepted && <div className="ext-row notice" role="status" data-testid="dfo-suggestion-accepted">{accepted}</div>}
@@ -713,7 +722,8 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
 export function proposedWords(p: ProposedSplit): string {
   return anchorWords({ ref: p.id, anchor: p.anchor, name: p.name, item_id: p.item_id,
                        split_id: p.split_id, offset_m: p.offset_m, side: p.side })
-    + (p.n_marks > 1 ? ` · proposed on ${p.n_marks} marks` : "");
+    + (p.n_marks > 1 ? ` · proposed on ${p.n_marks} marks` : "")
+    + ` · ${p.confidence} confidence`;
 }
 
 export function anchorWords(n: NewSplit): string {
@@ -761,7 +771,7 @@ function NewSplits({ id, items, hints, quote, op, shared, value, onChange, check
   const choose = (a: AnchorKind) => {
     setSaid(null);
     setDraft({ ref: "", anchor: a, on_item: items[0]?.id ?? null, quote, side: sideOf(),
-               coord: ITEM_ANCHORS.includes(a) ? null : clicked, ...nameFor(a) });
+               coord: ITEM_ANCHORS.includes(a) ? null : clicked, confidence: defaultConfidence(a), ...nameFor(a) });
   };
   const startPick = () => {
     setReusedWords(""); setSaid(null); setDraft(null);
@@ -809,6 +819,7 @@ function NewSplits({ id, items, hints, quote, op, shared, value, onChange, check
         <div key={n.ref} className="fix-row" data-testid={`dfo-split-${n.ref}`}>
           <span className="chip-tag new">{n.ref}</span>
           <span>{anchorWords(n)}</span>
+          <ConfChip c={n.confidence ?? defaultConfidence(n.anchor)} />
           {checks[n.ref] && <span className="dim">→ {checks[n.ref].words} · blk {checks[n.ref].blk} @ {checks[n.ref].measure?.toFixed(0)} m</span>}
           <button type="button" className="btn small" onClick={() => onChange(value.filter((x) => x.ref !== n.ref))}>remove</button>
         </div>
@@ -861,6 +872,13 @@ function NewSplits({ id, items, hints, quote, op, shared, value, onChange, check
               {([[null, "—"], ["upstream", "upstream"], ["downstream", "downstream"]] as [NewSplit["side"], string][]).map(([v, w]) => (
                 <button key={w} type="button" className={`ans trib-call${(draft.side ?? null) === v ? " on" : ""}`}
                   aria-pressed={(draft.side ?? null) === v} onClick={() => setDraft({ ...draft, side: v })}>{w}</button>
+              ))}
+              <span className="k">confidence</span>
+              {CONFIDENCES.map((c) => (
+                <button key={c} type="button" className={`ans trib-call${(draft.confidence ?? defaultConfidence(draft.anchor)) === c ? " on" : ""}`}
+                  aria-pressed={(draft.confidence ?? defaultConfidence(draft.anchor)) === c} data-testid={`dfo-confidence-${c}`}
+                  title="how sure you are of where this cut stands — medium by default for a point you placed"
+                  onClick={() => setDraft({ ...draft, confidence: c })}>{c}</button>
               ))}
               <button type="button" className="btn small primary" disabled={busy || !!needsItem}
                 data-testid="dfo-add-split" onClick={() => void confirm()}>{busy ? "checking…" : "confirm"}</button>

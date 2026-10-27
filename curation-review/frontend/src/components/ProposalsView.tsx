@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
-import { getReviewer, setReviewer } from "../review";
 
-/* T185: THE PROPOSALS VIEW — read only. Every proposed edit the review marks make (`python -m
-   pipeline.regs.review.proposals build`): what it changes, the cheap in-memory binding check, the
-   side-rebuild commands. The owner accepts or rejects each; a decision is a MARK (scope
-   "proposal", P y / P n) through the app's one write, never a file write. The owner's own
-   `python -m pipeline.regs.review.apply_proposals` lands the accepted ones, one commit each. */
+/* T185: THE PROPOSALS VIEW — a read-only "waiting to apply" list. Every proposed edit the review
+   marks make (`python -m pipeline.regs.review.proposals build`): what it changes, the confidence of
+   a proposed split, the cheap in-memory binding check, the side-rebuild commands. THE MARKS ARE THE
+   DECISIONS (owner 2026-10-27): there is nothing to accept here — to change a proposal, change the
+   mark. Claude's `python -m pipeline.regs.review.apply_proposals` lands each, one commit. */
 
 export const PROPOSALS_HASH = "proposals";
 
@@ -27,10 +26,7 @@ interface RuleCheck {
   km_before: number; km_after: number; outcome_before: string | null; outcome_after: string | null;
 }
 
-interface Decision {
-  decision: "accept" | "reject"; digest: string; reviewer: string; date: string; note: string;
-  holds: boolean;
-}
+type Confidence = "high" | "medium" | "low";
 
 interface Proposal {
   id: string;
@@ -49,7 +45,8 @@ interface Proposal {
   side_commands: string[];
   severity?: { level: string | null; reasons: string[] } | null;
   check?: { cheap: boolean; why: string | null; rules?: Record<string, RuleCheck>; changed?: string[] } | null;
-  decision: Decision | null;
+  /** a proposed split's confidence (owner 2026-10-27); null for an extent / lake proposal */
+  confidence?: Confidence | null;
 }
 
 interface View {
@@ -105,38 +102,23 @@ function Check({ c }: { c: NonNullable<Proposal["check"]> }) {
   );
 }
 
-function Card({ p, onDecided }: { p: Proposal; onDecided: () => void }) {
-  const [note, setNote] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState("");
-  const decide = async (accept: boolean) => {
-    const reviewer = getReviewer().trim();
-    if (!reviewer) { setMsg("Type your name first (top of the view)."); return; }
-    setBusy(true); setMsg("");
-    try {
-      const res = await fetch("/api/marks", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ scope: "proposal", target: p.id, answers: { P: accept ? "y" : "n" },
-                               verdict: accept ? "verified" : "wrong", note, reviewer }),
-      });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        const d = body?.detail;
-        setMsg("NOT SAVED: " + (Array.isArray(d) ? d.map((x) => x.msg ?? x).join("; ") : String(d ?? res.status)));
-      } else {
-        setMsg(accept ? "accepted ✓ (a mark)" : "rejected ✓ (a mark)");
-        setNote("");
-        onDecided();
-      }
-    } finally { setBusy(false); }
-  };
-  const d = p.decision;
+/** where it stands: waiting to apply, waiting on a new split first, or not applicable */
+function waiting(p: Proposal): string {
+  if (p.kind === "lake_split_later") return "listed — no edit until lake splits are taken up";
+  if (!p.applicable) return "not applicable — the mark needs changing";
+  if (p.depends_on.length) return `waiting to apply — after ${p.depends_on.join(", ")}`;
+  return "waiting to apply";
+}
+
+function Card({ p }: { p: Proposal }) {
   return (
     <div className={`prop-card prop-${p.kind}`} data-testid="proposal" data-id={p.id}>
       <div className="prop-head">
         <span className="chip-tag">{KIND_WORDS[p.kind]}</span>
         {p.severity?.level && <span className={`sev-chip sev-${p.severity.level}`}
           title={(p.severity.reasons ?? []).join("\n")}>{p.severity.level}</span>}
+        {p.confidence && <span className={`chip-tag conf-${p.confidence}`} data-testid="prop-confidence"
+          title="how sure the proposer is of where this cut stands">{p.confidence} confidence</span>}
         <b>{p.title}</b>
       </div>
       <div className="muted small">
@@ -155,30 +137,13 @@ function Card({ p, onDecided }: { p: Proposal; onDecided: () => void }) {
       {p.check && <Check c={p.check} />}
       {p.side_commands.length > 0 && (
         <details>
-          <summary>side rebuild + binding diff (your step)</summary>
+          <summary>side rebuild + binding diff (Claude runs it before a cut change lands)</summary>
           <pre className="prop-cmds">{p.side_commands.join("\n")}</pre>
         </details>
       )}
       {p.patch && <div className="muted small">patch: handoff/PLAN/curation-review/proposals/{p.patch}</div>}
-      <div className="prop-decision">
-        {d ? (
-          <span data-testid="prop-decided" className={d.holds ? "" : "prop-problem"}>
-            {d.decision === "accept" ? "accepted" : "rejected"} by {d.reviewer}, {d.date}
-            {d.note ? ` — ${d.note}` : ""}
-            {d.holds ? "" : " · STALE: the proposal changed since — decide again"}
-          </span>
-        ) : <span className="muted">no decision</span>}
-        {p.applicable && (
-          <>
-            <input value={note} placeholder="note (optional)" aria-label="decision note"
-              onChange={(e) => setNote(e.target.value)} />
-            <button className="btn small" disabled={busy} data-testid="prop-accept"
-              onClick={() => decide(true)}>accept</button>
-            <button className="btn small danger" disabled={busy} data-testid="prop-reject"
-              onClick={() => decide(false)}>reject</button>
-          </>
-        )}
-        {msg && <span role="status"> {msg}</span>}
+      <div className="prop-decision" data-testid="prop-waiting">
+        <span className={p.applicable ? "muted" : "prop-problem"}>{waiting(p)}</span>
       </div>
     </div>
   );
@@ -187,8 +152,6 @@ function Card({ p, onDecided }: { p: Proposal; onDecided: () => void }) {
 export function ProposalsView({ onLeave }: { onLeave: () => void }) {
   const [view, setView] = useState<View | null>(null);
   const [error, setError] = useState("");
-  const [name, setName] = useState(getReviewer);
-  const [only, setOnly] = useState<"open" | "all">("open");
   const load = useCallback(() => {
     fetch("/api/proposals")
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${r.status} ${r.statusText}`))))
@@ -196,32 +159,26 @@ export function ProposalsView({ onLeave }: { onLeave: () => void }) {
       .catch((e) => setError(String(e)));
   }, []);
   useEffect(() => { load(); }, [load]);
-  const rows = (view?.proposals ?? [])
-    .filter((p) => only === "all" || !p.decision || !p.decision.holds)
+  const rows = [...(view?.proposals ?? [])]
     .sort((a, b) => (SEV_RANK[a.severity?.level ?? "none"] ?? 3) - (SEV_RANK[b.severity?.level ?? "none"] ?? 3));
   return (
     <div className="proposals" data-testid="proposals-view">
       <div className="prop-bar">
         <button className="btn small" onClick={onLeave}>← review</button>
-        <b>Proposals</b>
+        <b>Proposals — waiting to apply</b>
         <span className="muted">{view ? `${view.proposals.length} proposed · made ${view.made ?? "never"}` : "loading…"}</span>
-        <select value={only} aria-label="which proposals" onChange={(e) => setOnly(e.target.value as "open" | "all")}>
-          <option value="open">undecided</option>
-          <option value="all">all</option>
-        </select>
-        <input value={name} placeholder="your name" aria-label="reviewer"
-          onChange={(e) => { setName(e.target.value); setReviewer(e.target.value); }} />
         <button className="btn small" onClick={load}>refresh</button>
       </div>
       {error && <div className="prop-problem" role="alert">{error}</div>}
       {view && (
         <div className="muted small prop-cmds-top">
-          rebuild the list: <code>{view.commands.build}</code> · apply the accepted (you run it, one commit
-          each): <code>{view.commands.apply}</code>
+          your marks are the decisions — to change a proposal, change its mark. Rebuild the list:{" "}
+          <code>{view.commands.build}</code> · Claude applies them, one commit each:{" "}
+          <code>{view.commands.apply}</code>
         </div>
       )}
-      {view && rows.length === 0 && <div className="muted">nothing to decide</div>}
-      {rows.map((p) => <Card key={p.id} p={p} onDecided={load} />)}
+      {view && rows.length === 0 && <div className="muted">nothing waiting to apply</div>}
+      {rows.map((p) => <Card key={p.id} p={p} />)}
     </div>
   );
 }
