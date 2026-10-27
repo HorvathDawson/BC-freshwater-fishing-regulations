@@ -18,7 +18,7 @@
  * by the view strip the frame draws.
  */
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
-import { AccessibilityInfo, Platform, ScrollView, Text, View } from "react-native";
+import { AccessibilityInfo, Animated, Platform, ScrollView, Text, View } from "react-native";
 import { creditsFor, parseSheetKey, tabScrollY, WORDS, type AccessNotice, type RegsPage, type SheetKey, type Tab } from "@app/core";
 import { AccessNoticeBlock } from "./AccessNoticeBlock";
 import { Credits } from "../Credits";
@@ -113,7 +113,8 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
   const scroll = useRef<ScrollView>(null);
   const content = useRef<View>(null);
   const { sink, section, remeasure } = useAnchors(page, content, store);
-  const sticky = useMemo(() => ({ store, overlay: layout !== "desktop" }), [store, layout]);
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const sticky = useMemo(() => ({ store, overlay: layout !== "desktop", scrollY }), [store, layout, scrollY]);
   // the sideways swipe between the water's views (Regulations · Conditions · Map): the frame's header, the regs header and
   // the scroll's content each listen (siblings, never nested — nested detectors race); see WaterViews in ViewSwipe.tsx.
   // Only the scroll's content follows the finger: the regs header listens `still` (it is one page with the frame's rows)
@@ -210,7 +211,7 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
   const pageScroll = (
     <View style={{ flex: 1 }}>
       <ScrollView ref={scroll} testID="regs-scroll" scrollEventThrottle={16} contentContainerStyle={{ flexGrow: 1, paddingBottom: 32 }}
-                  onScroll={(e) => store.setScroll(e.nativeEvent.contentOffset.y)}
+                  onScroll={(e) => { const y = e.nativeEvent.contentOffset.y; scrollY.setValue(y); store.setScroll(y); }}
                   onLayout={(e) => store.setViewport(e.nativeEvent.layout.height)}
                   onContentSizeChange={(_w, h) => { store.setContentHeight(h); remeasure(); }}>
         {swipe ? <ViewSwipe swipe={swipe} testId="view-swipe-body">{read}</ViewSwipe> : read}

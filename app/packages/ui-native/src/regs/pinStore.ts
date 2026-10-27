@@ -22,6 +22,8 @@ export interface PinSections {
   readonly gear: number | null; readonly methods: number | null; readonly methodsHeight: number; readonly licence: number | null;
 }
 
+export interface StickyBox { readonly top: number; readonly height: number }
+
 export interface PinStore {
   subscribe(fn: () => void): () => void;
   /** stable reference until the lines change */
@@ -36,6 +38,9 @@ export interface PinStore {
   setAnchors(a: readonly PinAnchor[]): void;
   setSections(tops: PinSections): void;
   setStackHeight(h: number): void;
+  /** (owner 2026-10-27) the size boxes, content offsets by anchor id (`useAnchors`): what a stuck header is bounded by */
+  setBoxes(b: ReadonlyMap<string, StickyBox>): void;
+  getBoxes(): ReadonlyMap<string, StickyBox>;
   /** a drawn line's measured height (ignored when ≤ 0: not laid out) */
   setLineHeight(l: PinLine, h: number): void;
   /** a tab press: selected at once (prototype 2000), the scroll follows */
@@ -53,6 +58,7 @@ export function createPinStore(o: { heights?: ReadonlyMap<string, number> } = {}
   const heightOf = (l: PinLine) => heights.get(pinLineKey(l)) ?? pinLineEstimate(l);
   let anchors: readonly PinAnchor[] = [], sections = NO_SECTIONS;
   let y = 0, viewport = 0, content = 0, stack = 0;
+  let boxes: ReadonlyMap<string, StickyBox> = new Map();
   let lines: readonly PinLine[] = [], linesKey = "", tab: Tab = "keep";
 
   const notify = () => { for (const f of [...subs]) f(); };
@@ -76,6 +82,11 @@ export function createPinStore(o: { heights?: ReadonlyMap<string, number> } = {}
     setContentHeight(h) { content = h; recompute(); },
     setAnchors(a) { anchors = a; recompute(); },
     setSections(s) { sections = s; recompute(); },
+    getBoxes: () => boxes,
+    setBoxes(b) {
+      const same = b.size === boxes.size && [...b].every(([k, v]) => boxes.get(k)?.top === v.top && boxes.get(k)?.height === v.height);
+      if (!same) { boxes = b; notify(); }
+    },
     setStackHeight(h) { if (h !== stack) { stack = h; notify(); } },
     setLineHeight(l, h) {
       if (!(h > 0)) return;

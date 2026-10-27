@@ -59,7 +59,7 @@ const PIN_LINES: PinLine[] = [
   { cls: "c", text: "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)", sub: null, tier: "size" },
 ];
 const pinStore = (lines: readonly PinLine[]) =>
-  ({ subscribe: () => () => {}, getLines: () => lines, setLineHeight() {}, setStackHeight() {} }) as unknown as PinStore;
+  ({ subscribe: () => () => {}, getLines: () => lines, getBoxes: () => new Map(), setLineHeight() {}, setStackHeight() {} }) as unknown as PinStore;
 
 type Rule = TextRule | "border" | "surface" | "picture";
 const RULES: readonly Rule[] = [...TEXT_RULES, "border", "surface", "picture"];

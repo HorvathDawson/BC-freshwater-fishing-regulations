@@ -38,6 +38,7 @@ describe("anchors", () => {
       p0: { k: "pin", row: 0 },
       "h0:t3": { k: "head", row: 0, tid: "t3", tids: ["t3"] },
       "h0:t4": { k: "head", row: 0, tid: "t4", tids: ["t3", "t4"] },
+      "box:0:t4": { k: "box" },
       "k0:.0.0.0": { k: "krow", row: 0, tids: ["t3", "t4"] },
       "k0:.0.0.1": { k: "krow", row: 0, tids: ["t3", "t4"] },
       "k0:.0.0.2": { k: "krow", row: 0, tids: ["t3", "t4"] },
@@ -90,7 +91,7 @@ describe("anchors", () => {
       },
     }) as unknown as View;
     let last: readonly PinAnchor[] = [];
-    const store = { setSections() {}, setAnchors(a: readonly PinAnchor[]) { last = a; } } as unknown as PinStore;
+    const store = { setSections() {}, setBoxes() {}, setAnchors(a: readonly PinAnchor[]) { last = a; } } as unknown as PinStore;
     function Harness({ p }: { p: RegsPage }) {
       const content = useRef<View | null>({} as View);
       const { sink } = useAnchors(p, content, store);

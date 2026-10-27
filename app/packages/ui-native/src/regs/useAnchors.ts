@@ -15,7 +15,7 @@
  * anchors itself).
  */
 import { createContext, useCallback, useEffect, useMemo, useRef } from "react";
-import { Dimensions, type LayoutChangeEvent, type View } from "react-native";
+import { Animated, Dimensions, type LayoutChangeEvent, type View } from "react-native";
 import type { GroupVM, PinAnchor, PinTierAnchor, RegsPage, Tab, TreeNodeVM } from "@app/core";
 import type { PinSections, PinStore } from "./pinStore";
 
@@ -26,7 +26,9 @@ export type AnchorKey =
   | { readonly k: "group" | "pin"; readonly row: number }
   | { readonly k: "head"; readonly row: number; readonly tid: string; readonly tids: readonly string[] }
   | { readonly k: "krow"; readonly row: number; readonly tids: readonly string[] }
-  | { readonly k: "section"; readonly tab: SectionTab };
+  | { readonly k: "section"; readonly tab: SectionTab }
+  /** (owner 2026-10-27) the size section's box: where a stuck header is bounded */
+  | { readonly k: "box" };
 
 export interface AnchorSink {
   /** a stable ref callback for the element `id` (unique on the page) */
@@ -41,7 +43,11 @@ export const AnchorContext = createContext<AnchorSink | null>(null);
  * (`store`) when the bar overlays the scroll's top edge (`overlay`: phone, tablet), else 0 (the desktop's bar stands in
  * the side column). Absent outside a RegsScreen: the header does not stick.
  */
-export interface StickyPin { readonly store: PinStore; readonly overlay: boolean }
+export interface StickyPin {
+  readonly store: PinStore; readonly overlay: boolean;
+  /** the page scroll's offset as an Animated value (set by the scroll handler, no React render): drives the native sticky */
+  readonly scrollY: Animated.Value;
+}
 export const StickyContext = createContext<StickyPin | null>(null);
 
 export interface Box { readonly top: number; readonly height: number }
@@ -121,6 +127,7 @@ export function useAnchors(page: RegsPage, contentRef: React.RefObject<View | nu
       // no layout (jsdom): nothing has a height — keep what the store has
       if (![...boxes.values()].some((b) => b.box.height > 0)) return;
       store.setSections(sectionsOf(boxes));
+      store.setBoxes(new Map([...boxes].filter(([, b]) => b.key.k === "box").map(([id, b]) => [id, b.box])));
       store.setAnchors(anchorsOf(groupsRef.current, boxes));
     };
     for (const [id, node] of all) {

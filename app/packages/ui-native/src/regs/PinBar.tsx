@@ -40,7 +40,11 @@ export function PinBar({ store, palette, placement = "over" }: {
   /** "over": over the scroll's top edge (the phone, the tablet); "side": in the desktop side column (T45 `RegsSide`) */
   placement?: "over" | "side";
 }) {
-  const lines = useSyncExternalStore(store.subscribe, store.getLines);
+  const all = useSyncExternalStore(store.subscribe, store.getLines);
+  // (owner 2026-10-27) the size section's header sticks under the bar and says the same thing: its line stays out of the bar
+  // while that header is stuck (the chain says the size section is entered exactly when the header reaches the bar)
+  const boxed = useSyncExternalStore(store.subscribe, () => store.getBoxes().size > 0);
+  const lines = boxed ? all.filter((l) => l.tier !== "size") : all;
   if (!lines.length) return null;
   // (T45) on a desktop the lines stand in the side column, beside the page rather than over its top edge: they cover
   // nothing, so the bar reports no stack height of its own
