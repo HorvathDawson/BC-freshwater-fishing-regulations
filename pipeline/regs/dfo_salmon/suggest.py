@@ -683,6 +683,194 @@ def suggest_one(loc: Mapping, water: Water, cuts: list[Cut], look: Lookup | None
                         "split_id": (p.fix or {}).get("split_id")} for p in pts if p.fix]}
 
 
+# --------------------------------------------------------------------------- the split hunt
+
+#: THE SPLIT HUNT (owner 2026-10-27): hand research for the locations the matcher could not place —
+#: each cut a PROPOSAL with an anchor, a lat/lon, a confidence, a description, sources and notes.
+HUNT_PATH = Path("handoff/PLAN/curation-review/dfo-split-hunt.json")
+
+
+def _hunt_new(key: str, c: Mapping, water: Water, look: Lookup) -> tuple[dict, dict]:
+    """One hunted cut -> (the `marks.NewSplit` it proposes, its research view). The lat/lon is
+    snapped onto the water's FWA line (blk / measure stamped, the snap distance kept); an offset
+    is drawn at its own place along the line. The NewSplit's `note` carries the description and
+    the sources, so an accepted proposal keeps its evidence in the owner's mark."""
+    lonlat = (float(c["lon"]), float(c["lat"]))
+    snap = look.snap(lonlat, list(water.items)) if water.items else None
+    anchor = c["anchor"]
+    ns: dict = {"ref": key[:40], "anchor": anchor, "name": c.get("name") or key}
+    if anchor == "split":
+        ns["split_id"] = c["split_id"]
+    if anchor == "confluence":
+        hits = look.stream(c.get("name") or "")
+        best = None
+        for h in hits:
+            m = look.mouth(h["id"], list(water.items))
+            if m and (best is None or m["distance_m"] < best[1]["distance_m"]):
+                best = (h, m)
+        if best:
+            ns["item_id"] = best[0]["id"]
+            snap = best[1]
+        else:
+            # the tributary is not in the registry by that name next to this water (a same-named
+            # creek elsewhere would be picked by name): the mouth is placed as a point instead
+            ns["anchor"] = anchor = "coord"
+    if snap:
+        ns["on_item"] = snap["item_id"]
+        if anchor != "split":
+            ns["coord"] = tuple(snap["coord"])
+            ns["blk"], ns["measure"] = snap["blk"], snap["measure"]
+    elif anchor != "split":
+        ns["coord"] = lonlat
+    if water.items and "on_item" not in ns:
+        ns["on_item"] = water.items[0]
+    off = float(c.get("offset_m") or 0)
+    baked = ""
+    drawn = list(snap["coord"]) if snap else [lonlat[0], lonlat[1]]
+    if off and anchor == "split":
+        ns["offset_m"] = off                      # the curated cut + an offset: the anchor says it
+    elif off and snap:
+        # the offset is BAKED IN: the point is where the cut goes (two cuts off one anchor would
+        # otherwise share a blk / measure and dedupe into one — `marks.same_anchor`)
+        at = getattr(look, "at_measure", lambda *_: None)(snap["blk"], snap["measure"] + off)
+        if at:
+            drawn = at
+            ns["coord"], ns["measure"] = tuple(at), round(snap["measure"] + off, 1)
+            if anchor in ("confluence", "lake_inlet", "lake_outlet"):
+                ns["anchor"] = "sign"
+                ns.pop("item_id", None)
+            baked = f" (placed {abs(off):.0f} m {'up' if off > 0 else 'down'}stream of the anchor, offset applied)"
+        else:
+            ns["offset_m"] = off
+    elif off:
+        ns["offset_m"] = off
+    ns["note"] = (f"[split hunt {c['confidence']}] {c.get('description', '')}{baked}. Sources: "
+                  + " ; ".join(c.get("sources") or []) + (f". {c['notes']}" if c.get("notes") else ""))
+    view = {"ref": ns["ref"], "anchor": anchor, "name": c.get("label") or ns["name"], "confidence": c["confidence"],
+            "description": c.get("description") or "", "sources": list(c.get("sources") or []),
+            "notes": c.get("notes") or "", "lat": c["lat"], "lon": c["lon"], "coord": drawn,
+            "offset_m": c.get("offset_m"), "split_id": c.get("split_id"),
+            "snap_m": snap["distance_m"] if snap else None, "blk": ns.get("blk"), "measure": ns.get("measure")}
+    if snap and snap["distance_m"] > 300:
+        view["warning"] = f"the point is {snap['distance_m']:.0f} m from the water's FWA line — check the snap"
+    elif not snap and water.items:
+        view["warning"] = "not snapped to the water's FWA line (no line within 1.5 km)"
+    return ns, view
+
+
+def apply_hunt(row: dict, entry: Mapping, cuts: Mapping[str, Mapping], water: Water, look: Lookup,
+               page: Optional[str] = None, labels: Optional[Mapping[str, str]] = None) -> dict:
+    """THE SPLIT HUNT on one location: the hand-researched extent replaces the matcher's — its
+    ends are curated cuts (`split`), the matcher's own resolved endpoints (`auto`), or hunted cuts
+    (`cut`, NEW splits with research). `not_found` keeps the row unplaced and says why. Still a
+    suggestion: nothing is applied."""
+    if entry.get("not_found"):
+        return {**row, "hunt": {"status": "not_found", "why": entry["not_found"],
+                                "sources": [page] if page else []}}
+    op = entry["op"]
+    items1 = list(water.items) if len(water.items) == 1 else []
+    pts, new_splits, props, confs, words, why = [], [], [], [], [], []
+    for e in entry.get("ends") or []:
+        if "split" in e:
+            pts.append({"kind": "split", "split_id": e["split"]})
+            confs.append(e.get("confidence", "high"))
+            words.append((labels or {}).get(e["split"]) or e["split"])
+            why.append(f"{e.get('confidence', 'high')}: the curated cut `{e['split']}` — {e.get('note', '')}")
+        elif "auto" in e:
+            ep = row["endpoints"][e["auto"]]
+            pts.append(dict(ep["fix"]))
+            confs.append(ep["confidence"])
+            words.append(ep.get("label") or ep["phrase"])
+            why.append(f"{ep['confidence']}: {ep['reason']}")
+            if ep.get("new_split"):
+                new_splits.append(dict(ep["new_split"]))
+        else:
+            c = cuts[e["cut"]]
+            ns, view = _hunt_new(e["cut"], c, water, look)
+            if op in ("upstream_of", "downstream_of"):
+                ns["side"] = "upstream" if op == "upstream_of" else "downstream"
+            pts.append({"kind": "new", "split_id": ns["ref"]})
+            new_splits.append(ns)
+            props.append(view)
+            confs.append(c["confidence"])
+            words.append(view["name"])
+            why.append(f"{c['confidence']}: {c.get('description', '')}")
+    if op == "whole":
+        conf = entry.get("confidence", "medium")
+    else:
+        conf = min(confs, key=lambda c: CONF_RANK[c]) if confs else "none"
+    trib = entry.get("tributaries", (row.get("suggestion") or {}).get("tributaries"))
+    sugg = {"op": op, "points": pts, "items": items1, "tributaries": trib, "new_splits": new_splits,
+            "words": "the whole water" if op == "whole" else f"{op.replace('_', ' ')} " + " and ".join(words)}
+    reason = "split hunt: " + entry.get("notes", "") + ("; " + "; ".join(why) if why else "")
+    view_pts = []
+    for p in pts:
+        hv = next((v for v in props if p["kind"] == "new" and v["ref"] == p["split_id"]), None)
+        ep = next((x for x in row.get("endpoints") or [] if x.get("fix") == p), None)
+        view_pts.append({"label": (hv or {}).get("name") or (ep or {}).get("label") or p["split_id"],
+                         "coord": (hv or {}).get("coord") or (ep or {}).get("coord"),
+                         "kind": p["kind"], "split_id": p["split_id"]})
+    return {**row, "suggestion": sugg, "confidence": conf,
+            "matched": "whole" if op == "whole" else "new" if props or any(p["kind"] == "new" for p in pts) else "existing",
+            "reason": reason, "points": view_pts,
+            "hunt": {"status": "found", "notes": entry.get("notes", ""), "proposals": props,
+                     "sources": [page] if page else [], "matcher": {"matched": row["matched"],
+                                                                    "reason": row.get("reason", "")}}}
+
+
+def summarize_hunt(rows: list[dict], hunt: Mapping) -> dict:
+    """Counts for the split-hunt summary: locations by the confidence of their hunted extent,
+    distinct hunted cuts by confidence, and the locations still not found."""
+    from collections import Counter
+    locs, cuts_c = Counter(), Counter()
+    for r in rows:
+        h = r.get("hunt")
+        if not h:
+            continue
+        locs["not_found" if h["status"] == "not_found" else r["confidence"]] += 1
+    for c in (hunt.get("cuts") or {}).values():
+        cuts_c[c["confidence"]] += 1
+    return {"locations": dict(locs), "cuts": dict(cuts_c)}
+
+
+def _hunt_md(rows: list[dict], hunt: Mapping) -> str:
+    s = summarize_hunt(rows, hunt)
+    hr = [r for r in rows if r.get("hunt")]
+    L = ["# DFO split hunt (owner 2026-10-27)", "",
+         "Hand research for the DFO locations the matcher left with no suggestion (68) or one end open (15).",
+         "Every cut is a PROPOSAL: open the location in the review app's DFO mode — the hunted cuts show",
+         "with their confidence, description, sources and notes; **accept suggestion** pre-fills the",
+         "editor (the research travels in each new split's note); **Save extent** (your mark) is the only",
+         "write. Nothing touched splits.json, the catalogue or marks.jsonl. Input:",
+         "`handoff/PLAN/curation-review/dfo-split-hunt.json`; regenerate with",
+         "`python -m pipeline.regs.dfo_salmon.suggest`.", "",
+         f"## Counts ({len(hr)} locations)", "",
+         "| locations | high | medium | low | not found |", "|---|---|---|---|---|",
+         f"| {len(hr)} | {s['locations'].get('high', 0)} | {s['locations'].get('medium', 0)} | "
+         f"{s['locations'].get('low', 0)} | {s['locations'].get('not_found', 0)} |", "",
+         "A location's confidence is its weakest end. Distinct hunted cuts: "
+         + ", ".join(f"{k} {s['cuts'].get(k, 0)}" for k in ("high", "medium", "low")) + ".", "",
+         "## Found", "", "| location | extent | conf | cuts (conf · snap) |", "|---|---|---|---|"]
+    for r in sorted(hr, key=lambda r: r["location_id"]):
+        if r["hunt"]["status"] != "found":
+            continue
+        cs = "; ".join(f"{p['name']} ({p['confidence']} · "
+                       + (f"{p['snap_m']:.0f} m" if p.get("snap_m") is not None else "—") + ")"
+                       + (" ⚠" if p.get("warning") else "") for p in r["hunt"]["proposals"]) or "curated cuts only"
+        L.append(f"| `{r['location_id']}` | {r['suggestion']['words'].replace('|', '/')} | {r['confidence']} | {cs.replace('|', '/')} |")
+    L += ["", "## Still not found", "", "| location | why |", "|---|---|"]
+    for r in sorted(hr, key=lambda r: r["location_id"]):
+        if r["hunt"]["status"] == "not_found":
+            L.append(f"| `{r['location_id']}` | {r['hunt']['why'].replace('|', '/')} |")
+    syn = hunt.get("synopsis") or {}
+    if syn:
+        L += ["", "## Synopsis-side cuts (owner 2026-10-27: guessed LOW)", "",
+              "Not DFO locations — the synopsis rules' missing cuts (split-name-audit.md); for the owner to place.", ""]
+        for rid, v in syn.items():
+            L.append(f"- **{rid}** — \"{v['text']}\": {v['proposal']}. Sources: {' ; '.join(v.get('sources') or [])}")
+    return "\n".join(L) + "\n"
+
+
 # --------------------------------------------------------------------------- the corpus
 
 def cuts_on(item_ids: list[str], registry: Mapping[str, dict], splits_meta: Mapping[str, dict],
@@ -844,6 +1032,27 @@ class FwaLookup:
             return None
         return s
 
+    def at_measure(self, blk, measure):
+        """The [lon, lat] at a route measure on one FWA blue line (an offset cut drawn in place)."""
+        import sqlite3
+        import pyogrio
+        from shapely import force_2d
+        con = sqlite3.connect(f"file:{self.gpkg}?mode=ro", uri=True)
+        rows = con.execute("select fid, DOWNSTREAM_ROUTE_MEASURE from streams where BLUE_LINE_KEY = ? "
+                           "and DOWNSTREAM_ROUTE_MEASURE <= ? order by DOWNSTREAM_ROUTE_MEASURE desc limit 1",
+                           (int(blk), float(measure))).fetchall()
+        con.close()
+        if not rows:
+            return None
+        df = pyogrio.read_dataframe(self.gpkg, layer="streams", fids=[rows[0][0]], columns=["BLUE_LINE_KEY"])
+        g = force_2d(df.geometry.iloc[0])
+        if g.geom_type == "MultiLineString":
+            from shapely.ops import linemerge
+            g = linemerge(g)
+        p = g.interpolate(min(max(float(measure) - rows[0][1], 0.0), g.length))
+        lon, lat = self._to_ll(p.x, p.y)
+        return [round(lon, 6), round(lat, 6)]
+
     def falls(self, name, on_items):
         import pyogrio
         if self._falls is None:
@@ -863,7 +1072,7 @@ OUT_DIR = Path("handoff/PLAN/curation-review")
 
 
 def run(out_dir: Path = OUT_DIR, *, marks_path: Optional[Path] = None, gpkg: Optional[str] = None,
-        registry_path: Optional[Path] = None) -> list[dict]:
+        registry_path: Optional[Path] = None, hunt_path: Optional[Path] = None) -> list[dict]:
     """Every not-cleanly-bound DFO location -> its suggestion; writes dfo-suggestions.json and a
     summary .md. Reads the curated DFO files, the served registry, splits.json, the marks store and
     the FWA GeoPackage; writes nothing else."""
@@ -889,11 +1098,18 @@ def run(out_dir: Path = OUT_DIR, *, marks_path: Optional[Path] = None, gpkg: Opt
         for _lid, loc, w in todo:
             names |= {m.group(1) for m in TRIB_RE.finditer((loc.get("source_text") or {}).get("specific_area") or "")}
         look.prime_mouths([h["id"] for n in names for h in look.stream(n)])
+    hp = Path(hunt_path or HUNT_PATH)
+    hunt = json.loads(hp.read_text()) if hp.exists() else {}
+    slugs = {lid: s for lid, (s, _l, _w) in D.locations().items()}
     rows = []
     for lid, loc, w in todo:
         items = list((w or {}).get("item_ids") or [])
         water = water_of(items, registry)
         r = suggest_one(loc, water, cuts_on(items, registry, smeta, props), look)
+        h = (hunt.get("locations") or {}).get(lid)
+        if h:
+            r = apply_hunt(r, h, hunt.get("cuts") or {}, water, look, page=D.page_url(slugs[lid]),
+                           labels={c.id: c.label for c in cuts_on(items, registry, smeta, props)})
         r["state"] = "no_water" if not items else "needs_cut" if D.need(loc)["missing"] else "unbound"
         r["status"] = loc.get("status") or "active"
         rows.append(r)
@@ -905,6 +1121,8 @@ def run(out_dir: Path = OUT_DIR, *, marks_path: Optional[Path] = None, gpkg: Opt
            "suggestions": {r["location_id"]: r for r in rows}}
     (out_dir / "dfo-suggestions.json").write_text(json.dumps(doc, indent=1, ensure_ascii=False) + "\n")
     (out_dir / "dfo-suggestions.md").write_text(_summary_md(rows, doc["counts"]))
+    if hunt:
+        (out_dir / "dfo-split-hunt.md").write_text(_hunt_md(rows, hunt))
     return rows
 
 

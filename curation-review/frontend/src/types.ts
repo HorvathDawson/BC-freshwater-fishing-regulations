@@ -963,6 +963,37 @@ export interface DfoSuggestion {
   } | null;
   /** each point's label and, for a new one, where the data pins it */
   points?: { label: string; coord: [number, number] | null; kind: string; split_id?: string }[];
+  /** THE SPLIT HUNT (owner 2026-10-27, `dfo-split-hunt.json`): hand-researched cuts, each a proposal */
+  hunt?: DfoHunt | null;
+}
+/** One hand-researched cut: where (lat/lon, snapped to the FWA line), how sure, and why. */
+export interface HuntProposal {
+  ref: string;
+  anchor: AnchorKind;
+  name: string;
+  confidence: SuggestConfidence;
+  description: string;
+  sources: string[];
+  notes: string;
+  lat: number;
+  lon: number;
+  /** [lon, lat] drawn on the map (snapped, offset applied) */
+  coord: [number, number] | null;
+  offset_m?: number | null;
+  split_id?: string | null;
+  /** metres from the given lat/lon to the water's FWA line */
+  snap_m?: number | null;
+  warning?: string;
+}
+export interface DfoHunt {
+  status: "found" | "not_found";
+  /** not found: why */
+  why?: string;
+  /** found: how the notice's words were read */
+  notes?: string;
+  sources?: string[];
+  proposals?: HuntProposal[];
+  matcher?: { matched: string; reason: string };
 }
 export interface DfoCount {
   total: number;

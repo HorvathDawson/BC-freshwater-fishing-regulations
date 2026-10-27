@@ -269,3 +269,70 @@ def test_accept_suggestion_prefills_the_editor_and_writes_nothing():
     assert clash["newSplits"][0]["ref"] == "sg1-2" and clash["fix"]["points"][0]["split_id"] == "sg1-2"
     assert clash["fix"]["points"][1]["split_id"] == "skeena_river__cnr_railway_bridge_terrace"
     assert none is None
+
+
+# --------------------------------------------------------------------------- the split hunt
+
+class _HuntLook(S.NoLookup):
+    """A lookup that snaps every point onto one blk (no atlas)."""
+    def snap(self, lonlat, on_items):
+        return {"blk": "1", "measure": 1000.0, "distance_m": 12.0, "coord": [lonlat[0], lonlat[1]],
+                "item_id": on_items[0]}
+
+    def at_measure(self, blk, measure):
+        return [-128.0, 54.0 + measure / 1e6]
+
+
+def test_the_split_hunt_turns_research_into_a_valid_suggestion_and_keeps_the_evidence():
+    """A hunted cut becomes a NEW split the mark accepts (`marks.NewSplit`), snapped, its research
+    (confidence, description, sources, notes) on the row and in the split's note; an offset is
+    baked into the point (so two cuts off one anchor never dedupe into one); a curated cut + an
+    offset keeps `offset_m`; `not_found` keeps the row unplaced with its reason."""
+    water = S.Water(["gnis:2936"], {"gnis:2936": "Skeena River"}, {"gnis:2936": ["400"]}, {"gnis:2936": "stream"})
+    row = {"location_id": "6:x", "matched": "none", "confidence": "none", "suggestion": None,
+           "reason": "none", "endpoints": []}
+    cuts = {"b": {"anchor": "bridge", "name": "Hwy 16 bridge", "lat": 54.5, "lon": -128.5, "confidence": "high",
+                  "description": "the bridge", "sources": ["https://example.org/b"], "notes": "MoTI structure"},
+            "b_d75": {"anchor": "sign", "name": "signs 75 m below", "lat": 54.5, "lon": -128.5, "offset_m": -75,
+                      "confidence": "medium", "description": "signs", "sources": [], "notes": ""},
+            "g": {"anchor": "split", "split_id": "skeena_river__highway_37_bridge", "name": "23 m below",
+                  "lat": 54.5, "lon": -128.5, "offset_m": -23, "confidence": "low", "description": "d",
+                  "sources": [], "notes": ""}}
+    out = S.apply_hunt(row, {"op": "between", "ends": [{"cut": "b"}, {"cut": "b_d75"}], "notes": "read"},
+                       cuts, water, _HuntLook(), page="https://dfo/page")
+    assert out["matched"] == "new" and out["confidence"] == "medium"
+    s = out["suggestion"]
+    assert [p["split_id"] for p in s["points"]] == ["b", "b_d75"]
+    a, b = (M.NewSplit.model_validate(n) for n in s["new_splits"])
+    assert not M.same_anchor(a, b)                                 # the offset is baked in
+    assert b.measure == 925.0 and b.offset_m is None and "https://example.org/b" in a.note
+    pr = out["hunt"]["proposals"]
+    assert pr[0]["confidence"] == "high" and pr[0]["sources"] == ["https://example.org/b"]
+    assert out["hunt"]["sources"] == ["https://dfo/page"] and out["hunt"]["matcher"]["matched"] == "none"
+    up = S.apply_hunt(row, {"op": "upstream_of", "ends": [{"cut": "g"}]}, cuts, water, _HuntLook())
+    g = M.NewSplit.model_validate(up["suggestion"]["new_splits"][0])
+    assert g.anchor == "split" and g.offset_m == -23 and g.side == "upstream" and up["confidence"] == "low"
+    nf = S.apply_hunt(row, {"not_found": "a lake area"}, cuts, water, _HuntLook())
+    assert nf["suggestion"] is None and nf["hunt"] == {"status": "not_found", "why": "a lake area", "sources": []}
+
+
+def test_the_hunt_file_covers_its_targets_and_names_real_cuts():
+    """Every location the hunt names is in the suggestions and carries the hunt; every `cut` end
+    names a hunted cut with a confidence, a description and a source."""
+    hunt = json.loads((REPO / S.HUNT_PATH).read_text())
+    doc = json.loads((REPO / "handoff/PLAN/curation-review/dfo-suggestions.json").read_text())["suggestions"]
+    for k, c in hunt["cuts"].items():
+        assert c["confidence"] in ("high", "medium", "low") and c["description"] and c["sources"], k
+        assert len(k) <= 40, k
+    for lid, e in hunt["locations"].items():
+        assert lid in doc and doc[lid].get("hunt"), lid
+        for end in e.get("ends") or []:
+            assert "cut" not in end or end["cut"] in hunt["cuts"], (lid, end)
+
+
+def test_the_review_app_shows_the_hunt_and_accepting_still_only_prefills():
+    src = DFO_TSX.read_text()
+    assert "function HuntProposals(" in src and 'data-testid="dfo-hunt-proposal"' in src
+    assert "<HuntProposals hunt={sugg.hunt} />" in src and 'data-testid="dfo-hunt-not-found"' in src
+    hp = src[src.index("function HuntProposals("):src.index("\n}\n", src.index("function HuntProposals("))]
+    assert "api." not in hp and "fetch(" not in hp                 # display only

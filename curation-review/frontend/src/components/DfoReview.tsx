@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api, type EntryRefused } from "../api";
 import type {
-  AnchorCheck, AnchorKind, Check, CheckAnswer, DfoDetail, DfoProgress, DfoRow, DfoSuggestion, EntrySplits,
+  AnchorCheck, AnchorKind, Check, CheckAnswer, DfoDetail, DfoHunt, DfoProgress, DfoRow, DfoSuggestion, EntrySplits,
   ExtentFix, ExtentPreview, Mode, NamedRef, NewSplit, ProposedSplit,
 } from "../types";
 import { getReviewer, isTyping, setReviewer } from "../review";
@@ -64,6 +64,40 @@ export function suggestionFix(s: DfoSuggestion | null | undefined, taken: string
   return { fix, newSplits };
 }
 const CONF_WORDS: Record<string, string> = { high: "high", medium: "medium", low: "low", none: "—" };
+
+/** THE SPLIT HUNT's evidence for a suggestion (owner 2026-10-27): every hand-researched cut with
+ *  its confidence, what it is, where (lat/lon, the snap to the FWA line), the sources and how the
+ *  notice was read. Display only — "accept suggestion" carries each cut (its note holds this
+ *  evidence) into the editor; the owner's Save extent is the write. */
+function HuntProposals({ hunt }: { hunt: DfoHunt }) {
+  const link = (u: string) => /^https?:\/\//.test(u)
+    ? <a key={u} href={u} target="_blank" rel="noreferrer">{u.replace(/^https?:\/\/(www\.)?/, "").slice(0, 60)}</a>
+    : <code key={u}>{u}</code>;
+  return (
+    <div className="ext-row" data-testid="dfo-hunt" style={{ display: "block", fontSize: 12 }}>
+      <div><span className="k" style={{ color: "#7c3aed" }}>split hunt</span> {hunt.notes}</div>
+      {(hunt.proposals ?? []).map((p) => (
+        <div key={p.ref} data-testid="dfo-hunt-proposal" style={{ margin: "4px 0 4px 10px" }}>
+          <span className={`badge suggest-${p.confidence}`}>{p.confidence}</span>{" "}
+          <b>{p.name}</b> <span className="dim">({p.anchor}{p.offset_m ? `, ${p.offset_m > 0 ? "+" : ""}${p.offset_m} m` : ""})</span>
+          {" — "}{p.description}
+          <div className="dim">
+            {p.lat.toFixed(5)}, {p.lon.toFixed(5)}
+            {p.snap_m != null ? ` · ${Math.round(p.snap_m)} m to the FWA line` : " · not snapped"}
+            {p.warning && <span style={{ color: "#b45309" }}> · {p.warning}</span>}
+          </div>
+          {p.sources.length > 0 && (
+            <div>sources: {p.sources.map((u, i) => <span key={u}>{i ? " · " : ""}{link(u)}</span>)}</div>
+          )}
+          {p.notes && <div className="dim">notes: {p.notes}</div>}
+        </div>
+      ))}
+      {(hunt.sources ?? []).length > 0 && (
+        <div className="dim">notice: {(hunt.sources ?? []).map((u) => link(u))}</div>
+      )}
+    </div>
+  );
+}
 
 /** The extent fix the mark in force carries for this location: what the editor opens on and what
  *  "your extent" shows (the LATEST mark wins — a later mark without a fix is the reviewer taking it off). */
@@ -579,7 +613,16 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
                   new split{sugg.suggestion.new_splits.length === 1 ? "" : "s"}:{" "}
                   {sugg.suggestion.new_splits.map((n) => anchorWords(n)).join(" · ")} — violet on the map</div>
               )}
+              {sugg.hunt?.status === "found" && <HuntProposals hunt={sugg.hunt} />}
               {accepted && <div className="ext-row notice" role="status" data-testid="dfo-suggestion-accepted">{accepted}</div>}
+            </div>
+          )}
+          {!sugg?.suggestion && detail.suggestion?.hunt?.status === "not_found" && (
+            <div className="section dfo-suggestion" data-testid="dfo-hunt-not-found">
+              <div className="ext-row">
+                <span className="k" style={{ color: "#7c3aed" }}>split hunt</span>
+                <span>not found — {detail.suggestion.hunt.why}</span>
+              </div>
             </div>
           )}
 

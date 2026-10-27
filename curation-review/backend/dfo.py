@@ -101,14 +101,22 @@ def _suggestions_at(path: str, _mtime: float) -> dict:
 
 def suggestion(location_id: str) -> dict | None:
     """The SUGGESTED EXTENT for this location (`suggest.suggest_one`'s row: op, points, new splits,
-    confidence, reason), or None. Read only; the mark stays the only write."""
+    confidence, reason), or None; a row the split hunt searched and could not place
+    (`hunt.status == not_found`) is returned too, with no suggestion, so the screen says why.
+    Read only; the mark stays the only write."""
     p = SUGGESTIONS_PATH
     try:
         mt = p.stat().st_mtime
     except OSError:
         return None
     row = _suggestions_at(str(p), mt).get(location_id)
-    return row if row and row.get("suggestion") else None
+    return row if row and (row.get("suggestion") or row.get("hunt")) else None
+
+
+def _suggested(location_id: str) -> str | None:
+    """The queue's "suggested · <confidence>" tag: only when there IS a suggested extent."""
+    row = suggestion(location_id)
+    return row.get("confidence") if row and row.get("suggestion") else None
 
 
 def _now(loc, water):
@@ -145,7 +153,7 @@ def _row(slug: str, loc: dict, water: dict | None, m) -> dict:
             "n_rows": len(rows), "n_rules": len(rules), "need": need, "state": state,
             "duplicate_of": loc.get("duplicate_of"),
             "verify": v["status"], "reasons": v["reasons"],
-            "suggested": (suggestion(loc["location_id"]) or {}).get("confidence"),
+            "suggested": _suggested(loc["location_id"]),
             "new_splits": len(m.new_splits) if m is not None else 0}
 
 
