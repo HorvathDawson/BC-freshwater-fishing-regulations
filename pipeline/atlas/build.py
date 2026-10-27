@@ -344,7 +344,9 @@ def _added_name_variant_entries(variants: list[dict]) -> list[dict]:
     return out
 
 
-def main() -> None:
+
+
+def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     ap = argparse.ArgumentParser()
     ap.add_argument("--gpkg", default=_DEFAULT_GPKG)
     # ON by default: an unnamed anabranch is not a water any regulation names, and leaving the loops
@@ -404,8 +406,10 @@ def main() -> None:
                     help="build INTO an atlas a shipped bundle or tile set was cut from. Never what "
                          "you want: its handle table is what they key sections by. Build to a new "
                          "--out and promote it (pipeline.atlas.promote).")
-    args = ap.parse_args()
+    return ap.parse_args(argv)
 
+
+def _refuse_promoted(args: argparse.Namespace) -> None:
     # A PROMOTED ATLAS IS IMMUTABLE (`vintage.promoted_atlas`): refuse to rewrite the handle table
     # under the artifacts that ship.
     from pipeline.common.vintage import promoted_atlas as _promoted
@@ -419,29 +423,73 @@ def main() -> None:
             f"    python -m pipeline.atlas.promote {args.out}_next\n"
             f"  (--force overrides, if you really mean to orphan what ships)")
 
-    fwa = FWADataAccessor(args.gpkg)
+
+def _bbox(args: argparse.Namespace, fwa: FWADataAccessor):
+    """The build's extent: None for the province, else from --gnis or --bbox."""
     if args.full:
-        bbox = None
-    elif args.gnis:
+        return None
+    if args.gnis:
         bbox = bbox_from_gnis(fwa, [n.strip() for n in args.gnis.split(",")])
         print(f"bbox from GNIS {args.gnis!r}: {bbox}")
-    elif args.bbox:
-        bbox = tuple(args.bbox)
-    else:
-        raise SystemExit("provide --gnis, --bbox, or --full")
+        return bbox
+    if args.bbox:
+        return tuple(args.bbox)
+    raise SystemExit("provide --gnis, --bbox, or --full")
 
-    import time as _time
-    _clock = _time.perf_counter
-    _t0 = _prev = _clock()
-    timings: list[tuple[str, float]] = []
 
-    def _tick(label: str) -> None:
-        nonlocal _prev
-        now = _clock()
-        timings.append((label, now - _prev))
-        _prev = now
-        print(f"    [{label}: {timings[-1][1]:.1f}s]")
+class _Build:
+    """What the phases hand on. Each phase's docstring names the fields it reads and writes;
+    the ones set here are the defaults a phase may leave untouched (a flag turned it off)."""
 
+    def __init__(self, args: argparse.Namespace, fwa: FWADataAccessor, bbox) -> None:
+        import time as _time
+        self.args, self.fwa, self.bbox = args, fwa, bbox
+        self.out = Path(args.out)
+        self._clock = _time.perf_counter
+        self._t0 = self._prev = self._clock()
+        self.timings: list[tuple[str, float]] = []
+        self.splits = None              # curated + gauge split defs (gauge_cuts)
+        self.splits_doc = None          # the splits.json document read now: its anchors are recorded (T133)
+        self.matches_sha = None         # the gauge match file's digest, when the build cuts at gauges
+        self.area_polys = None          # rule-scoped area polygons (cut_curated, when a split names one)
+        self.applied_splits: list = []
+        self.area_defs: list = []
+        self.catalog_polys: dict[str, dict] = {}   # {area_def id: {name: polygon}} for the lazy catalog
+        self.clean_inside: dict[str, dict] = {}
+
+    def tick(self, label: str) -> None:
+        now = self._clock()
+        self.timings.append((label, now - self._prev))
+        self._prev = now
+        print(f"    [{label}: {self.timings[-1][1]:.1f}s]")
+
+
+def main(argv: list[str] | None = None) -> None:
+    """THE ORCHESTRATOR: FWA + curated inputs -> graph -> sections -> registry -> sidecars, one
+    named phase at a time. The order is load-bearing; each phase says why it sits where it does."""
+    args = _parse_args(argv)
+    _refuse_promoted(args)
+    fwa = FWADataAccessor(args.gpkg)
+    b = _Build(args, fwa, _bbox(args, fwa))
+    load_fwa(b)
+    build_graph(b)
+    add_waters(b)
+    prune_graph(b)
+    gauge_cuts(b)
+    sectionize(b)
+    write_graph(b)
+    build_registry(b)
+    write_sidecars(b)
+
+
+def load_fwa(b: _Build) -> None:
+    """LOAD: the FWA lakes and stream fids in the extent, plus the curated lakes and the municipal
+    added streams merged into them.
+
+    Reads: args, fwa, bbox. Writes: lake_kind, lake_names, lake_wsc, fids, added_lake_polys,
+    added_lake_parts, add_specs, add_nv."""
+    args, fwa, bbox = b.args, b.fwa, b.bbox
+    _tick = b.tick
     print("loading lake/manmade waterbody keys ...")
     lake_kind = get_lake_wbk_kind(fwa, bbox)
     lake_names = get_lake_names(fwa, bbox)
@@ -489,7 +537,23 @@ def main() -> None:
         print(f"  added streams: -{n_excl} superseded FWA fids, +{len(add_fids)} added fids, "
               f"{len(add_specs)} connectors, {len(add_nv)} name variants")
     _tick("load fids + lakes")
+    b.lake_kind = lake_kind
+    b.lake_names = lake_names
+    b.lake_wsc = lake_wsc
+    b.fids = fids
+    b.added_lake_polys = added_lake_polys
+    b.added_lake_parts = added_lake_parts
+    b.add_specs = add_specs
+    b.add_nv = add_nv
 
+
+def build_graph(b: _Build) -> None:
+    """GRAPH: blk chains + names, the stream graph (lakes as nodes), its geometry sidecar, and each
+    added stream wired to its receiver.
+
+    Reads: fids, lake_kind, lake_names, lake_wsc, add_specs. Writes: chains, graph, geoms."""
+    fids, lake_kind, lake_names, lake_wsc, add_specs = b.fids, b.lake_kind, b.lake_names, b.lake_wsc, b.add_specs
+    _tick = b.tick
     print("building blk chains + names ...")
     chains = resolve_names(build_blk_chains(fids, lake_kind))
 
@@ -502,7 +566,20 @@ def main() -> None:
         cr = attach_connectors(graph, geoms, add_specs)
         print(f"  added-stream connectors: {cr['added']} edges ({cr['skipped']} skipped)")
     _tick("blk-chains + graph + geometry")
+    b.chains = chains
+    b.graph = graph
+    b.geoms = geoms
 
+
+def add_waters(b: _Build) -> None:
+    """WATERS: the whole-feature name variants, then a node for every waterbody no stream runs
+    through (named first, then every remaining polygon), basin codes and not-fishing stamps.
+
+    Reads: args, fwa, bbox, graph, lake_kind, lake_names, lake_wsc, add_nv, added_lake_polys.
+    Writes: _nv_all, _nv_reach (the reach-qualified variants, applied after the cuts),
+    wetland_names, wb_polys (every waterbody outline, curated lakes included)."""
+    args, fwa, bbox, graph, lake_kind, lake_names, lake_wsc, add_nv, added_lake_polys = b.args, b.fwa, b.bbox, b.graph, b.lake_kind, b.lake_names, b.lake_wsc, b.add_nv, b.added_lake_polys
+    _tick = b.tick
     # Braid loops carry no tributary, no name and no possible regulation; they only make a reach
     # ambiguous ("is this channel above or below the cut" has no answer when it is attached at both
     # ends). Pruned BEFORE the border/split stages so nothing is ever cut onto a piece we then drop.
@@ -613,7 +690,19 @@ def main() -> None:
     _nf = stamp_not_fishing(graph, get_not_fishing_codes(fwa, bbox))
     print(f"  not fishing water: {sum(_nf.values())} polygon node(s) stamped {dict(sorted(_nf.items()))}")
     _tick("name variants (whole-feature)")
+    b._nv_all = _nv_all
+    b._nv_reach = _nv_reach
+    b.wetland_names = wetland_names
+    b.wb_polys = wb_polys
 
+
+def prune_graph(b: _Build) -> None:
+    """PRUNE: pure braid loops off the mainstems, then unnamed headwater leaves. After the naming
+    (a named channel is never a candidate), before any cut (nothing is cut onto a piece then dropped).
+
+    Reads: args, graph, geoms, fids. Writes: graph (a new one), pruned_fids."""
+    args, graph, geoms, fids = b.args, b.graph, b.geoms, b.fids
+    _tick = b.tick
     _moved_tribs: list = []
     _nests: list = []
     from pipeline.atlas.graph.prune import prune_mainstem_loops
@@ -672,34 +761,17 @@ def main() -> None:
         print(f"  {len(_leaves):,} leaf section(s) removed -> {len(graph.nodes):,} nodes "
               f"({100 * len(_leaves) / max(_before, 1):.1f}% of the graph)")
         _tick("prune unnamed leaves")
+    b.graph = graph
+    b.pruned_fids = pruned_fids
 
-    fid_index = {f.fid: (f.down_m, f.up_m, f.stream_order, f.stream_magnitude) for f in fids}
 
-    # THE SHORT PIECES FWA DREW ITSELF, before any cut: the sliver gate below refuses every OTHER one.
-    from pipeline.atlas.splits.sliver_gate import short_pieces as _short_pieces
-    _short_before_cuts = _short_pieces(graph)
+def gauge_cuts(b: _Build) -> None:
+    """CUT DEFINITIONS: the curated splits (default on) and the gauge cuts, which ride in as
+    ordinary split defs after them.
 
-    #: {blk: [border cut measures]} — the region and clean cutters defer to the border's decisions
-    border_cuts: dict = {}
-    #: {blk: [inside-B.C. intervals]} for every line the border pass looked at
-    border_inside: dict = {}
-    # Border pass FIRST (like lakes, but via splits) so curated points can pick up border splits.
-    if (args.border or args.full) and not args.no_border:
-        from pipeline.atlas.splits.border import apply_border
-        print("applying BC border splits (cross-border BLKs) ...")
-        n_bsplits, n_flagged = apply_border(fwa, graph, geoms, chains, fid_index,
-                                            cuts_out=border_cuts, inside_out=border_inside)
-        print(f"  {n_bsplits} border split(s); {n_flagged} out-of-BC piece(s) flagged "
-              f"-> {len(graph.nodes)} nodes")
-        _tick("border")
-
-    # CURATED SPLITS DEFAULT ON. `--splits` used to have no default, so omitting it built a whole
-    # province with ZERO curated cuts and said nothing: 376 confluence/point/lake splits silently
-    # gone, 373 registry boundaries with them (Fraser 29->13, Kokish 6->0, Stamp 7->2), and every
-    # "downstream of X" regulation left unresolvable. The build still passed its tests and the
-    # registry still looked healthy, because only the AREA splits — which come from a different
-    # source — survived. A build that quietly drops the curated geometry must not be reachable by
-    # forgetting a flag; opting out is now explicit.
+    Reads: args. Writes: splits, splits_doc, matches_sha."""
+    args = b.args
+    _matches_sha = None             # bound only when the build cuts at its gauges
     splits_doc = None          # the splits.json document read now: its anchors are recorded (T133)
     if args.no_splits:
         splits = None
@@ -772,6 +844,64 @@ def main() -> None:
                 _by[_d.verdict if _d else "auto"] = _by.get(_d.verdict if _d else "auto", 0) + 1
             _mix = ", ".join(f"{n} {k}" for k, n in sorted(_by.items(), key=lambda kv: -kv[1]))
             print(f"gauge cuts:     {len(_rows)} offered from {MATCH_FILE.name}  ({_mix})")
+    b.splits = splits
+    b.splits_doc = splits_doc
+    b.matches_sha = _matches_sha
+
+
+def sectionize(b: _Build) -> None:
+    """SECTIONS: every cut, in order — the B.C. border, the curated + gauge points, the blanket
+    areas, the length cap — then the membership passes the pieces need (areas, gates, MUs) and the
+    reach-qualified names. Each sub-phase says why it sits where it does.
+
+    Reads: graph, fids. Writes: fid_index, _short_before_cuts (then the sub-phases' own)."""
+    graph, fids = b.graph, b.fids
+    fid_index = {f.fid: (f.down_m, f.up_m, f.stream_order, f.stream_magnitude) for f in fids}
+
+    # THE SHORT PIECES FWA DREW ITSELF, before any cut: the sliver gate below refuses every OTHER one.
+    from pipeline.atlas.splits.sliver_gate import short_pieces as _short_pieces
+    _short_before_cuts = _short_pieces(graph)
+    b.fid_index, b._short_before_cuts = fid_index, _short_before_cuts
+    cut_border(b)
+    cut_curated(b)
+    cut_areas(b)
+    cut_length(b)
+    mark_membership(b)
+
+
+def cut_border(b: _Build) -> None:
+    """BORDER: cross-border BLKs split at the B.C. outline, FIRST (like lakes, but via splits) so
+    curated points can pick up border splits.
+
+    Reads: args, fwa, graph, geoms, chains, fid_index. Writes: border_cuts, border_inside."""
+    args, fwa, graph, geoms, chains, fid_index = b.args, b.fwa, b.graph, b.geoms, b.chains, b.fid_index
+    _tick = b.tick
+    #: {blk: [border cut measures]} — the region and clean cutters defer to the border's decisions
+    border_cuts: dict = {}
+    #: {blk: [inside-B.C. intervals]} for every line the border pass looked at
+    border_inside: dict = {}
+    # Border pass FIRST (like lakes, but via splits) so curated points can pick up border splits.
+    if (args.border or args.full) and not args.no_border:
+        from pipeline.atlas.splits.border import apply_border
+        print("applying BC border splits (cross-border BLKs) ...")
+        n_bsplits, n_flagged = apply_border(fwa, graph, geoms, chains, fid_index,
+                                            cuts_out=border_cuts, inside_out=border_inside)
+        print(f"  {n_bsplits} border split(s); {n_flagged} out-of-BC piece(s) flagged "
+              f"-> {len(graph.nodes)} nodes")
+        _tick("border")
+    b.border_cuts = border_cuts
+    b.border_inside = border_inside
+
+
+def cut_curated(b: _Build) -> None:
+    """CURATED + GAUGE CUTS: placed together (T179), the braid sweep judged before they are made,
+    area points in their own call, then the braid cuts and the edge re-homes.
+
+    Reads: args, fwa, bbox, graph, geoms, chains, fid_index, splits, border_cuts.
+    Writes: applied_splits, area_polys."""
+    args, fwa, bbox, graph, geoms, chains, fid_index, splits, border_cuts = b.args, b.fwa, b.bbox, b.graph, b.geoms, b.chains, b.fid_index, b.splits, b.border_cuts
+    _tick = b.tick
+    area_polys = None
     applied_splits: list = []
     if splits:
         from pipeline.atlas.splits.anchors import resolve_split_defs
@@ -867,7 +997,18 @@ def main() -> None:
             if len(aliased_splits) > 20:
                 print(f"      … and {len(aliased_splits) - 20} more")
         _tick("curated splits")
+    b.applied_splits = applied_splits
+    b.area_polys = area_polys
 
+
+def cut_areas(b: _Build) -> None:
+    """BLANKET AREAS (areas.json): every stream crossing an admin polygon cut at its transitions;
+    membership-only areas just load their polygons.
+
+    Reads: fwa, bbox, graph, geoms, chains, fid_index, applied_splits, border_cuts, border_inside.
+    Writes: area_defs, catalog_polys, clean_inside."""
+    fwa, bbox, graph, geoms, chains, fid_index, applied_splits, border_cuts, border_inside = b.fwa, b.bbox, b.graph, b.geoms, b.chains, b.fid_index, b.applied_splits, b.border_cuts, b.border_inside
+    _tick = b.tick
     # Blanket area closures (areas.json) — cut ALL streams crossing each admin polygon
     # (national parks, ecological reserves, the Chilkoot trail) at first-enter/last-exit + flag
     # inside reaches. Runs BEFORE name variants (so cut pieces get named); a no-op where the bbox
@@ -951,7 +1092,18 @@ def main() -> None:
             else:
                 print(f"  area '{ad['id']}': {len(polys)} polygon(s), membership-only (no cut)")
         _tick("blanket area splits (cut only)")
+    b.area_defs = area_defs
+    b.catalog_polys = catalog_polys
+    b.clean_inside = clean_inside
 
+
+def cut_length(b: _Build) -> None:
+    """LENGTH CAP: the last cut — sections over --max-section-km cut at their interior confluences.
+
+    Reads: args, graph, geoms, fid_index, applied_splits. Writes: nothing new (graph, applied_splits
+    in place)."""
+    args, graph, geoms, fid_index, applied_splits = b.args, b.graph, b.geoms, b.fid_index, b.applied_splits
+    _tick = b.tick
     # LENGTH CAP — the last cut, and the only one that is not about a named feature.
     #
     # Everything above cuts where somebody drew a line: a lake, a border, a closure, a
@@ -1021,6 +1173,16 @@ def main() -> None:
                       f"({_oob} outside BC, where there are no tributaries to cut at)")
         _tick("length cap splits")
 
+
+def mark_membership(b: _Build) -> None:
+    """MEMBERSHIP + GATES: area membership, the sliver gate (asserts only), the close-pair report,
+    management units, then the reach-qualified name variants (they wait for the cuts).
+
+    Reads: args, bbox, graph, geoms, wb_polys, catalog_polys, area_defs, clean_inside,
+    _short_before_cuts, _nv_reach. Writes: wbk_polys."""
+    args, bbox, graph, geoms, wb_polys, catalog_polys, area_defs, clean_inside, _short_before_cuts, _nv_reach = b.args, b.bbox, b.graph, b.geoms, b.wb_polys, b.catalog_polys, b.area_defs, b.clean_inside, b._short_before_cuts, b._nv_reach
+    _tick = b.tick
+    from pipeline.atlas.graph.names import apply_name_variants
     # AREA MEMBERSHIP (supersedes the 2026-08-16 "lazy at resolve time" decision). Membership is
     # computed HERE, for every catalog area, because resolve time cannot afford it: testing a polygon
     # against sections needs the 2 GB geometry sidecar, which the review app does not load and should
@@ -1096,7 +1258,14 @@ def main() -> None:
     if _nv_reach:
         n = apply_name_variants(graph, _nv_reach)
         print(f"  applied {len(_nv_reach)} reach-qualified variant entries -> {n} node attachments")
+    b.wbk_polys = wbk_polys
 
+
+def write_graph(b: _Build) -> None:
+    """GRAPH ARTIFACTS: waterbody_polys.pkl (each waterbody's SHAPE), graph.pkl, geometries.pkl.
+
+    Reads: args, graph, geoms, wb_polys. Writes: out (created)."""
+    args, graph, geoms, wb_polys = b.args, b.graph, b.geoms, b.wb_polys
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     if wb_polys:
@@ -1110,7 +1279,17 @@ def main() -> None:
         print(f"  wrote waterbody_polys.pkl ({len(wb_polys):,} outlines)")
     write_artifact(graph, str(out / "graph.pkl"))
     write_artifact(geoms, str(out / "geometries.pkl"))
+    b.out = out
 
+
+def build_registry(b: _Build) -> None:
+    """REGISTRY (parser truth) from the finished graph, plus the waterbody, curated, flowing-polygon,
+    lake-part, outside-area, MU and region-unit passes; written with the section handle table.
+
+    Reads: out, fwa, bbox, graph, geoms, splits, lake_names, wetland_names, _nv_all, wb_polys, wbk_polys,
+    added_lake_parts, area_defs, catalog_polys. Writes: registry, wbk_polys (topped up)."""
+    out, fwa, bbox, graph, geoms, splits, lake_names, wetland_names, _nv_all, wb_polys, wbk_polys, added_lake_parts, area_defs, catalog_polys = b.out, b.fwa, b.bbox, b.graph, b.geoms, b.splits, b.lake_names, b.wetland_names, b._nv_all, b.wb_polys, b.wbk_polys, b.added_lake_parts, b.area_defs, b.catalog_polys
+    _tick = b.tick
     # Registry (parser truth) — build from the finalized graph + persist, so the parser tools
     # (matcher / batch_exporter / ingest) never need to rebuild the graph from the ~10GB FWA data.
     from pipeline.atlas.registry import add_curated_wbk_items, add_mu_sets, add_waterbody_items, build_registry
@@ -1197,6 +1376,19 @@ def main() -> None:
 
     _hd = _write_handles(graph.nodes.keys(), out)
     print(f"  {len(graph.nodes):,} section handles -> {out / _HANDLES}  (digest {_hd})")
+    b.registry = registry
+    b.wbk_polys = wbk_polys
+
+
+def write_sidecars(b: _Build) -> None:
+    """SIDECARS: the area catalog, region homes, resolved splits, the anchor record, item pins, the
+    optional curation gpkg / tributary / lake-io layers, summary.txt and the gauge record.
+
+    Reads: everything the earlier phases wrote. Writes: files under --out only."""
+    args, fwa, bbox, out, graph, geoms, chains, fids, pruned_fids, registry, splits, splits_doc, applied_splits, area_polys, wbk_polys, area_defs, catalog_polys, timings, matches_sha = b.args, b.fwa, b.bbox, b.out, b.graph, b.geoms, b.chains, b.fids, b.pruned_fids, b.registry, b.splits, b.splits_doc, b.applied_splits, b.area_polys, b.wbk_polys, b.area_defs, b.catalog_polys, b.timings, b.matches_sha
+    _tick = b.tick
+    _clock, _t0 = b._clock, b._t0
+    _matches_sha = matches_sha
     # THE REGION EACH STRADDLING SECTION LIES IN (`registry.regions`): a fact of this atlas —
     # measured from the region polygons, the waterbody outlines and the section lines written
     # above — so it is written beside them, once, and the reach run, the review app and the

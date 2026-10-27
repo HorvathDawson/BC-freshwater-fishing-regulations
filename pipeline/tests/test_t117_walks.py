@@ -208,7 +208,7 @@ def test_no_production_walk_climbs_by_its_own_rules():
 #: not a tributary climb (or which entry check it asks). A new reader fails until it is classified.
 UP_ADJ_READERS = {
     # graph construction and pruning: they BUILD or rewire the adjacency, they do not climb it
-    ("pipeline/atlas/build.py", "main"): "in-degree counts for the build summary",
+    ("pipeline/atlas/build.py", "prune_graph"): "in-degree counts for the build summary",
     ("pipeline/atlas/build.py", "summarize"): "in-degree counts",
     ("pipeline/atlas/graph/graph.py", "_finalize_lake_bounds"): "a lake's inlets, one level, for its bounds",
     ("pipeline/atlas/graph/graph.py", "ancestors"): "the raw closure, kept for the graph's own tests",
