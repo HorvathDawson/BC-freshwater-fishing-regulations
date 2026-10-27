@@ -58,6 +58,8 @@ interface Props {
   sources?: string[];
   /** T164: the preview call (default: the catalogue entry's extent-preview) */
   previewFn?: (fix: ExtentFix) => Promise<ExtentPreview>;
+  /** DFO: open the editor from the start, even with no fix yet (curating the extent is always on offer) */
+  defaultOpen?: boolean;
 }
 
 /* THE EXTENT-FIX EDITOR (T191). The reviewer proposes the extent — op, 1 or 2 split points, the
@@ -66,9 +68,9 @@ interface Props {
    in-memory copy (GET /extent-preview); a NEW point cannot be previewed until it is built. */
 export function ExtentFixEditor({ scope, entryId, currentOp, mapSplits, waters, value, onChange,
                                   onPreview, onPick, splitAt, newSplits = [], sources,
-                                  previewFn }: Props) {
+                                  previewFn, defaultOpen = false }: Props) {
   const offered = SOURCES.filter((x) => (sources ? sources.includes(x.v) : x.v !== "new"));
-  const [open, setOpen] = useState(!!value);
+  const [open, setOpen] = useState(!!value || defaultOpen);
   const [ops, setOps] = useState<ExtentOpInfo[]>(FALLBACK_OPS);
   useEffect(() => { loadOps().then(setOps); }, []);
   const [preview, setPreview] = useState<ExtentPreview | null>(null);

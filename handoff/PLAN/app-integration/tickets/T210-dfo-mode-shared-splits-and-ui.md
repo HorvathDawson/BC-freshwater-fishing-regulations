@@ -29,3 +29,15 @@ Mark stays the only write (T185 / AGENTS 66–67).
 3. New-split UI: click the river, pick confluence / lake inlet / lake outlet / bridge / dam / sign / here,
    confirm; name and side pre-filled (notice hints, op). Long form removed.
 Scope: DFO mode only (synopsis-entry fix editor unchanged).
+
+## Outcome 2026-10-27: the saved extent shows again
+Owner: "didn't save the ones I did before". The 4 `extent_fix` marks WERE in marks.jsonl; the screen never read them back.
+- Reopening a DFO location now shows "your extent (saved <date>)" (op, points by name, items, tributaries), draws it
+  teal on the map (distinct from magenta "binds now"), and the fix-extent editor opens PRE-FILLED with it, so a
+  re-mark carries the fix on instead of dropping it. Latest mark wins.
+- The editor is open on every location (`defaultOpen`), with or without cuts or a new split; a "Save extent" button
+  records a mark with it (Place ? when nothing was answered).
+- A save says "saved ✓ ..." (also in the top notice after the screen moves on); a refusal shows "NOT SAVED" with the
+  server's reason, at the top of the location, role=alert.
+- Tests: `test_review_dfo.py` (round trip + latest wins; screen source pins), `test_curation_review_screen.py`
+  (POST then GET shows the fix; refusal has a reason). One-write pins unchanged and green.

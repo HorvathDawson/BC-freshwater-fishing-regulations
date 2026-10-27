@@ -177,3 +177,43 @@ def test_a_ticket_says_a_split_is_already_proposed(tmp_path):
     assert "also proposed on 1 other mark" in first and "ONE cut `n2`" in first
     assert "ALREADY PROPOSED as `n2`" in second and "first on `a`" in second
     assert T.parse_ticket(second)["new_splits"][0]["ref"] == "n3"       # the mark's own line unchanged
+
+
+# --------------------------------------------------------------------------- the saved extent shows again
+
+def test_a_dfo_mark_with_an_extent_fix_round_trips_and_the_latest_mark_wins(tmp_path):
+    """Owner 2026-10-27: "didn't save the ones I did before". The fix IS in the store; the screen
+    must read it back. Saved -> loaded it is the same fix; a LATER mark replaces it (the latest
+    wins on display), and a later mark with no fix is the reviewer taking it off."""
+    ent, typed = _world(tmp_path)
+    p = D.prints_of(LOC, ent, typed)
+    fix = {"scope": "entry", "op": "between", "items": ["gnis:1"], "tributaries": True,
+           "points": [{"kind": "split", "split_id": "a_split"},
+                      {"kind": "confluence", "name": "Quinsam River", "item_id": "gnis:27883"}]}
+    store = tmp_path / "marks.jsonl"
+    store.write_text("")
+    M.append(store, [_mark(p, extent_fix=[fix], date="2026-10-25")])
+    got = M.latest(M.load(store))[("dfo", LOC, None)]
+    assert [f.model_dump(exclude_none=True) for f in got.extent_fix] == [
+        {**fix, "points": [{"kind": "split", "split_id": "a_split"},
+                           {"kind": "confluence", "name": "Quinsam River", "item_id": "gnis:27883"}]}]
+    newer = {**fix, "op": "downstream_of", "points": fix["points"][:1]}
+    M.append(store, [_mark(p, extent_fix=[newer], date="2026-10-26")])
+    assert M.latest(M.load(store))[("dfo", LOC, None)].extent_fix[0].op == "downstream_of"
+    M.append(store, [_mark(p, date="2026-10-27")])
+    assert M.latest(M.load(store))[("dfo", LOC, None)].extent_fix == []
+
+
+def test_the_dfo_screen_opens_on_the_saved_fix_and_says_when_it_saved_it():
+    """The editor PRE-FILLS from the mark in force (so marking again carries the fix on instead of
+    silently dropping it), is open on every location, draws the saved extent in its own colour,
+    and confirms or refuses a save in words. Source pins: there is no JS runner in the repo."""
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[2] / "curation-review/frontend/src/components"
+    dfo, editor, mp = ((root / n).read_text() for n in ("DfoReview.tsx", "ExtentFixEditor.tsx", "MapPanel.tsx"))
+    assert "useState<ExtentFix | null>(saved)" in dfo and "savedFixOf(was)" in dfo
+    assert "your extent (saved {was?.date" in dfo and "fixWords(saved" in dfo
+    assert "<ExtentFixEditor defaultOpen" in dfo and "useState(!!value || defaultOpen)" in editor
+    assert 'data-testid="dfo-save-extent"' in dfo and "saved ✓" in dfo
+    assert 'data-testid="dfo-errors"' in dfo and "NOT SAVED" in dfo and 'role="alert"' in dfo
+    assert "saved={savedFc}" in dfo and "saved-lines" in mp

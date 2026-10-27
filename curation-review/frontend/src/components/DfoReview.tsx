@@ -6,7 +6,7 @@ import type {
 } from "../types";
 import { getReviewer, isTyping, setReviewer } from "../review";
 import { MapPanel } from "./MapPanel";
-import { ExtentFixEditor } from "./ExtentFixEditor";
+import { ExtentFixEditor, pointWords } from "./ExtentFixEditor";
 
 /** T210: the anchor types a NEW split is added by — click the river, pick one of these, confirm. */
 const ANCHORS: { v: AnchorKind; words: string; word: string }[] = [
@@ -37,6 +37,26 @@ const asNewSplit = (p: ProposedSplit, quote: string): NewSplit => ({
   offset_m: p.offset_m, quote: p.quote || quote,
 });
 const CHECKS: Check[] = ["T", "R", "P"];
+
+/** The extent fix the mark in force carries for this location: what the editor opens on and what
+ *  "your extent" shows (the LATEST mark wins — a later mark without a fix is the reviewer taking it off). */
+export function savedFixOf(mark: DfoDetail["mark"] | null | undefined): ExtentFix | null {
+  const fixes = mark?.extent_fix ?? [];
+  return fixes.find((f) => f.scope === "entry") ?? fixes[0] ?? null;
+}
+/** An extent fix in words: the op, its points by name, the items it holds on, the tributary call. */
+export function fixWords(f: ExtentFix, splitName: (id: string) => string = (x) => x,
+                         itemName: (id: string) => string = (x) => x): string {
+  const pts = f.points.map((p) => pointWords(p, splitName)).join(" and ");
+  return [(OP_WORDS[f.op] ?? f.op) + (pts ? ` ${pts}` : "") + (f.area ? ` ${f.area}` : ""),
+          f.items.length ? `on ${f.items.map(itemName).join(", ")}` : "on the entry's waters",
+          f.tributaries == null ? "tributaries: no call" : f.tributaries ? "with tributaries" : "without tributaries",
+  ].join(" · ");
+}
+const OP_WORDS: Record<string, string> = {
+  whole: "the whole water", upstream_of: "upstream of", downstream_of: "downstream of",
+  between: "between", within: "within an area", rest: "the rest", steelhead_waters: "steelhead waters",
+};
 const QUESTIONS: Record<string, string> = {
   T: "The notice's words for the place read right (water + specific area, against the DFO page)?",
   R: "The scraped rows are this location's rules (species, dates, limits)?",
@@ -196,9 +216,9 @@ export function DfoReview({ mode, onLeave }: Props) {
           <DfoLocation key={detail.row.id} detail={detail} mode={mode}
             nav={{ pos: idx + 1, total: rows.length, onNext: next ? () => open(next) : undefined,
                    onPrev: prev ? () => open(prev) : undefined }}
-            onMarked={(reused) => {
-              setNotice(reused.length
-                ? `already proposed — reused: ${reused.map((r) => `${r.name} (${r.id})`).join(", ")}` : "");
+            onMarked={(reused, saved) => {
+              setNotice(saved + (reused.length
+                ? ` · already proposed — reused: ${reused.map((r) => `${r.name} (${r.id})`).join(", ")}` : ""));
               loadRows();
               if (next) open(next);
               else api.dfoLocation(detail.row.id).then(setDetail).catch(() => {});
@@ -221,7 +241,7 @@ const newRef = (taken: string[]) => {
 function DfoLocation({ detail, mode, nav, onMarked }: {
   detail: DfoDetail; mode: Mode;
   nav: { pos: number; total: number; onNext?: () => void; onPrev?: () => void };
-  onMarked: (reused: { ref: string; id: string; name: string }[]) => void;
+  onMarked: (reused: { ref: string; id: string; name: string }[], saved: string) => void;
 }) {
   const id = detail.row.id;
   const was = detail.mark;
@@ -231,12 +251,16 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
   const [reviewer, setName] = useState(getReviewer);
   const [splits, setSplits] = useState<NewSplit[]>([]);
   const [checks, setChecks] = useState<Record<string, AnchorCheck>>({});
-  const [fix, setFix] = useState<ExtentFix | null>(null);
+  const saved = useMemo(() => savedFixOf(was), [was]);
+  // the editor opens PRE-FILLED with the saved fix: marking again carries it on, never drops it
+  const [fix, setFix] = useState<ExtentFix | null>(saved);
+  const [savedFc, setSavedFc] = useState<GeoJSON.FeatureCollection | null>(null);
   const [reach, setReach] = useState<ExtentPreview | null>(null);
   const [fixPreview, setFixPreview] = useState<GeoJSON.FeatureCollection | null>(null);
   const [pick, setPick] = useState<{ cb: ((ll: [number, number]) => void) | null }>({ cb: null });
   const [errors, setErrors] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
+  const [okMsg, setOkMsg] = useState("");
   const since = useRef(Date.now());
 
   // what the extent binds now — magenta until a fix is previewed
@@ -246,6 +270,29 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
     return () => { live = false; };
   }, [id]);
 
+  const splitAtId = (sid: string) => {
+    const f = detail.splits.features.find((x) => x.properties.split_id === sid);
+    return f ? f.geometry.coordinates : null;
+  };
+  // the saved extent on the map, teal: the builder's own resolve of it, plus its points
+  useEffect(() => {
+    let live = true;
+    setSavedFc(null);
+    if (!saved) return;
+    const want = saved.points;
+    const pts: GeoJSON.Feature[] = want.flatMap((p, i) => {
+      const at = p.kind === "coord" ? p.coord : p.kind === "split" && p.split_id ? splitAtId(p.split_id) : null;
+      return at ? [{ type: "Feature", properties: { label: `saved ${i + 1}: ${pointWords(p, (x) => x)}` },
+                     geometry: { type: "Point", coordinates: at } } as GeoJSON.Feature] : [];
+    });
+    api.dfoExtentPreview(id, saved)
+      .then((r) => live && setSavedFc({ type: "FeatureCollection",
+        features: [...((r.geojson?.features ?? []) as GeoJSON.Feature[]), ...pts] }))
+      .catch(() => live && setSavedFc({ type: "FeatureCollection", features: pts }));
+    return () => { live = false; };
+  }, [id, saved]);  // eslint-disable-line react-hooks/exhaustive-deps
+
+  const savedNew = (was?.new_splits ?? []) as NewSplit[];
   const items: NamedRef[] = detail.items.map((i) => ({ id: i.id, name: i.name }));
   // T210: the proposals other marks made on this river (deduped), not yet carried by this mark
   const shared = detail.proposed.filter((p) => !splits.some((n) => n.ref === p.id));
@@ -284,8 +331,8 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
 
   function setAnswer(c: Check, a: CheckAnswer) { setAnswers((x) => ({ ...x, [c]: a })); }
 
-  async function submit(defer = false) {
-    setErrors([]);
+  async function submit(defer = false, extentOnly = false) {
+    setErrors([]); setOkMsg("");
     if (!reviewer.trim()) { setErrors(["Type your name first: every mark names its reviewer."]); return; }
     setReviewer(reviewer.trim());
     setBusy(true);
@@ -294,18 +341,30 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
       // (the mark is self-contained); the server folds it back onto the proposal's id
       const used = fix ? fix.points.filter((p) => p.kind === "new").map((p) => p.split_id) : [];
       const carried = [...splits, ...shared.filter((p) => used.includes(p.id))
-        .map((p) => asNewSplit(p, detail.verbatim.specific_area))];
+        .map((p) => asNewSplit(p, detail.verbatim.specific_area)),
+        // a point of the saved fix that names a split THIS location's saved mark proposed
+        ...savedNew.filter((n) => used.includes(n.ref) && !splits.some((x) => x.ref === n.ref)
+          && !shared.some((p) => p.id === n.ref))];
+      // "Save extent" on its own: nothing answered yet means Place is not settled (?), so the
+      // mark can be recorded; any answer the reviewer gave is kept as it is
+      const sendAnswers = extentOnly && !Object.keys(answers).length ? { P: "?" as CheckAnswer } : answers;
       const got = await api.postMark({
-        scope: "dfo", target: id, answers, problem: problem || null, note, reviewer: reviewer.trim(),
+        scope: "dfo", target: id, answers: sendAnswers, problem: problem || null, note, reviewer: reviewer.trim(),
         seconds: Math.round((Date.now() - since.current) / 100) / 10,
         ...(fix ? { extent_fix: [fix] } : {}),
         ...(carried.length ? { new_splits: carried } : {}),
         ...(defer ? { verdict: "deferred" as const } : {}),
       });
-      onMarked(got.reused ?? []);
+      const said = `saved ✓ ${detail.row.water || id}`
+        + (fix ? ` — your extent: ${fixWords(fix, splitNameOf, itemNameOf)}` : " — mark recorded (no extent fix)");
+      setOkMsg(said);
+      onMarked(got.reused ?? [], said);
     } catch (e) {
       const fe = (e as EntryRefused).fieldErrors;
-      setErrors(fe ? fe.map((x) => (x.path ? `${x.path}: ` : "") + x.msg) : [String(e)]);
+      setErrors([`NOT SAVED — ${fe ? "refused by the server" : "the save failed"}:`,
+        ...(fe ? fe.map((x) => (x.path ? `${x.path}: ` : "") + x.msg) : [String(e)])]);
+      window.setTimeout(() => document.querySelector('[data-testid="dfo-errors"]')
+        ?.scrollIntoView({ block: "nearest" }), 0);
     } finally {
       setBusy(false);
     }
@@ -324,6 +383,9 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
     return () => window.removeEventListener("keydown", onKey);
   });  // eslint-disable-line react-hooks/exhaustive-deps
 
+  const splitNameOf = (sid: string) => mapSplits.find((x) => x.id === sid)?.name
+    ?? shared.find((p) => p.id === sid)?.name ?? sid;
+  const itemNameOf = (iid: string) => items.find((x) => x.id === iid)?.name ?? iid;
   const wrongChecks = CHECKS.filter((c) => answers[c] === "n");
   const problems = wrongChecks.flatMap((c) => mode.problems[c] ?? []);
   const loc = detail.location;
@@ -347,6 +409,14 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
               </span>
             </div>
           </div>
+
+          {errors.length > 0 && (
+            <div className="errors dfo-errors" role="alert" data-testid="dfo-errors"
+              style={{ position: "static", margin: "6px 0" }}>
+              {errors.map((e, i) => <div key={i} style={i === 0 && e.startsWith("NOT SAVED") ? { fontWeight: 700 } : undefined}>{e}</div>)}
+            </div>
+          )}
+          {okMsg && <div className="notice dfo-saved" role="status" data-testid="dfo-saved">{okMsg}</div>}
 
           <div className="source-pin" data-testid="dfo-source">
             <div className="evidence-head">
@@ -402,22 +472,44 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
             )}
           </div>
 
+          <div className="section saved-extent" data-testid="dfo-saved-extent">
+            {saved ? (
+              <div className="ext-row">
+                <span className="k" style={{ color: "#0d9488" }}>your extent (saved {was?.date ?? "?"})</span>
+                <span data-testid="dfo-saved-words">{fixWords(saved, splitNameOf, itemNameOf)}</span>
+                <span className="dim">teal on the map{was?.reviewer ? ` · ${was.reviewer}` : ""}</span>
+              </div>
+            ) : (
+              <div className="ext-row dim">no extent saved on this location yet — curate it below</div>
+            )}
+          </div>
+
           <NewSplits id={id} items={detail.items} hints={detail.hints} quote={detail.verbatim.specific_area}
             op={detail.need.op} shared={shared} value={splits} onChange={setSplits} checks={checks}
             onChecked={(ref, c) => setChecks((m) => ({ ...m, [ref]: c }))}
             onPick={(cb) => setPick({ cb })} picking={!!pick.cb} />
 
           <div className="section">
-            <ExtentFixEditor scope="entry" entryId={id} currentOp={detail.need.op ?? ex[0]?.op}
+            <ExtentFixEditor defaultOpen scope="entry" entryId={id} currentOp={detail.need.op ?? ex[0]?.op}
               mapSplits={mapSplits} waters={items} value={fix ?? undefined}
               onChange={(f) => setFix(f)} onPreview={(fc) => setFixPreview(fc)}
               onPick={(cb) => setPick({ cb })} splitAt={splitAt}
               newSplits={[
                 ...splits.map((n) => ({ id: n.ref, name: `${n.ref}: ${anchorWords(n)}` })),
                 ...shared.map((p) => ({ id: p.id, name: `${p.id}: ${proposedWords(p)} (proposed)` })),
+                ...savedNew.filter((n) => !splits.some((x) => x.ref === n.ref) && !shared.some((p) => p.id === n.ref))
+                  .map((n) => ({ id: n.ref, name: `${n.ref}: ${anchorWords(n)} (in your saved mark)` })),
               ]}
               sources={["map", "search", "new"]}
               previewFn={(f) => api.dfoExtentPreview(id, f)} />
+            <div className="fix-row" style={{ marginTop: 6 }}>
+              <button type="button" className="btn primary small" disabled={busy} data-testid="dfo-save-extent"
+                onClick={() => void submit(false, true)}
+                title="records a mark carrying this extent (Place ? unless you answered)">
+                {busy ? "saving…" : "Save extent"}</button>
+              <span className="dim">{fix ? "writes a new mark with this extent; the latest mark wins"
+                : "nothing to save yet — set the op and its points"}</span>
+            </div>
           </div>
 
           <div className="checklist" data-testid="dfo-checklist">
@@ -455,7 +547,6 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
                 A cut that is not built yet (a new or proposed split) means Place is ? or n. With only the existing
                 cuts, Place y records as it is.</div>
             )}
-            {errors.length > 0 && <div className="errors">{errors.map((e, i) => <div key={i}>{e}</div>)}</div>}
           </div>
           {was?.new_splits && was.new_splits.length > 0 && (
             <div className="section dim" style={{ fontSize: 12 }}>
@@ -465,10 +556,11 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
         </div>
         <div className="detail-map">
           <div className="dim" style={{ fontSize: 12, marginBottom: 4 }}>
-            magenta: {fixPreview ? "the proposed extent" : "what the extent binds now"} · amber labels: NEW splits proposed in this mark
+            magenta: {fixPreview ? "the proposed extent" : "what the extent binds now"} ·{" "}
+            <span style={{ color: "#0d9488" }}>teal: your saved extent</span> · amber labels: NEW splits proposed in this mark
           </div>
           <MapPanel itemId={detail.items[0]?.id ?? null} alsoItemIds={detail.items.slice(1).map((i) => i.id)}
-            namedSplits={named} preview={preview} onPick={pick.cb} />
+            namedSplits={named} preview={preview} saved={savedFc} onPick={pick.cb} />
         </div>
       </div>
     </div>

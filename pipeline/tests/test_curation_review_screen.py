@@ -444,3 +444,24 @@ def test_a_proposed_split_is_shared_on_the_river_and_never_entered_twice(env):
     assert r.status_code == 200 and r.json()["verdict"] == "verified", r.text
     assert c.post("/api/marks", json={**yes, "new_splits": [_QUINSAM]}).status_code == 422
     assert _stamps(CURATED.base) == curated, "a DFO mark wrote under data/curated"
+
+
+def test_a_dfo_extent_fix_is_saved_and_the_location_serves_it_back(env):
+    """Owner 2026-10-27: a saved extent was not shown when the location reopened. POST a DFO mark
+    carrying an extent fix; GET the location -> its `mark.extent_fix` is that fix (what the editor
+    pre-fills from); a later mark replaces it; a refused save says why."""
+    c = env["client"]
+    fix = {"scope": "entry", "op": "whole", "points": [], "items": ["gnis:39532"], "tributaries": False}
+    body = {"scope": "dfo", "target": CAMPBELL, "answers": {"T": "y", "R": "y", "P": "?"},
+            "note": "", "reviewer": "tester", "extent_fix": [fix]}
+    assert c.post("/api/marks", json=body).status_code == 200
+    got = c.get(f"/api/dfo/locations/{CAMPBELL}").json()["mark"]
+    assert got["extent_fix"][0]["op"] == "whole" and got["extent_fix"][0]["items"] == ["gnis:39532"]
+    assert got["date"] and got["reviewer"] == "tester"
+    in_force = [m for m in c.get("/api/marks", params={"scope": "dfo", "target": CAMPBELL}).json()]
+    assert in_force and in_force[0]["extent_fix"][0]["op"] == "whole"
+    later = {**body, "extent_fix": [{**fix, "tributaries": True}]}
+    assert c.post("/api/marks", json=later).status_code == 200
+    assert c.get(f"/api/dfo/locations/{CAMPBELL}").json()["mark"]["extent_fix"][0]["tributaries"] is True
+    refused = c.post("/api/marks", json={**body, "answers": {}})        # nothing answered
+    assert refused.status_code == 422 and refused.json()["detail"][0]["msg"]
