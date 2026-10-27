@@ -81,6 +81,8 @@ def _work(mark) -> list[str]:
              + ("(the split in `data/curated/waters/splits.json`)." if split
                 else "(the DFO location's binding in `data/curated/regulations/entries/dfo_salmon/`;"
                      " a new split in `data/curated/waters/splits.json`)." if mark.scope == "dfo"
+                else "(the accepted tidal boundary as a split in `data/curated/waters/splits.json`, "
+                     "labelled `mouth (tidal boundary)`; T212)." if mark.scope == "tidal"
                 else "(the entry in its region file; a cut pick is the extent's `cut_pick`)."),
              "3. Rebuild, then the mark goes stale and the target re-queues for review:"]
     lines += [f"   - `{c}`" for c in cmds]
@@ -90,7 +92,8 @@ def _work(mark) -> list[str]:
 def ticketed(mark, verdicts: Sequence[str] = TICKET_VERDICTS) -> bool:
     """Does this mark become a ticket? Its verdict is one asked for, or (T210) it is a DFO mark that
     says Place y and still carries an extent to curate from the existing cuts."""
-    return mark.verdict in verdicts or (mark.verdict == "verified" and bool(mark.extent_fix))
+    return mark.verdict in verdicts or (mark.verdict == "verified" and bool(mark.extent_fix)) or (
+        mark.scope == "tidal" and mark.verdict == "verified" and bool(mark.new_splits))
 
 
 def _shared_note(mark, n, shared: Sequence[Mapping] | None) -> str:

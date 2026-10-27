@@ -17,6 +17,13 @@ with the default Claude uses until you answer). Newest first inside each section
   outreach by hand (T197). Plan: handoff/PLAN/seo/PLAN.md sections 4 and 7.
 
 ## Reviews
+- **Tidal boundaries (T212, 2026-10-27, critical):** open the curation review's **Tidal** tab. 1,163 proposed tidal
+  cuts (every named stream your tidal polygon crosses + every named ocean-entering FWA stream); start with
+  "words name it" (31). 19 agree with the book / DFO words; look first at Capilano (polygon 1 km up, the book's CN
+  bridge is at the mouth), Nimpkish (polygon 5.7 km up vs "100 m above the Hwy 19 bridge" ≈ 1.2 km), Tlell (polygon
+  misses it; synopsis says 1.5 km above Hwy 16, DFO says ~1 km) and Squamish (the dyke line is not located).
+  "accept proposal" (a) pre-fills Place y + the cut; Record mark is the only write. Summary:
+  handoff/PLAN/curation-review/tidal/tidal-candidates.md.
 - **Kootenay navigation dolphin (2026-10-26):** your lake anchor on wbk 328974235 never landed on the Kootenay River
   (the river touches the split main-body piece, lake:-20), so the release refused the rule. Lower r1 now ends at the
   Kootenay Lake main-body edge (the same place; dolphin split kept). If you want the dolphin id back, its anchor needs

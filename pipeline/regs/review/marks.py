@@ -42,7 +42,7 @@ class StaleReason(str, Enum):
 #: the order reasons are reported in (and the order of the enum)
 STALE_REASONS: tuple[StaleReason, ...] = tuple(StaleReason)
 
-Scope = Literal["entry", "rule", "split", "dfo"]
+Scope = Literal["entry", "rule", "split", "dfo", "tidal"]
 Verdict = Literal["verified", "wrong", "unsure", "deferred"]
 Answer = Literal["y", "n", "?"]
 #: T189: the reviewer's call on tributaries — the water's tributaries should be in, or out
@@ -56,7 +56,11 @@ CHECKS: dict[str, tuple[str, ...]] = {"entry": ("T", "R", "P", "A"),
                                       # T164: a DFO salmon location (`review.dfo`) — T the notice's
                                       # words for the place, R its scraped rows, P the extent lands
                                       # right. No A yet: the app serves no DFO rule (T164 step 5)
-                                      "dfo": ("T", "R", "P")}
+                                      "dfo": ("T", "R", "P"),
+                                      # T212: a proposed tidal boundary (`review.tidal`) — P only: the
+                                      # cut is where the tidal boundary is. Accepting it is P y with
+                                      # the proposed cut as a new split
+                                      "tidal": ("P",)}
 
 #: THE PROBLEM CATEGORIES a "wrong" mark names (PLAN §2), grouped by the check that finds them.
 #: The review screen offers exactly these; the store keeps any string (an old mark stays valid).
@@ -355,16 +359,17 @@ class Mark(BaseModel):
         if self.verdict == "deferred" and not self.note.strip():
             raise ValueError("deferred needs a note saying why")
         keys = [r.key for r in self.prints.records]
-        if self.scope == "split":
+        if self.scope in ("split", "tidal"):
             if keys != [f"split:{self.target}"] or self.prints.text is not None:
-                raise ValueError("a split mark holds exactly its split's prints")
+                raise ValueError(f"a {self.scope} mark holds exactly its "
+                                 + ("split's" if self.scope == "split" else "candidate's") + " prints")
         else:
             if self.prints.text is None or "entry" not in keys:
                 raise ValueError("an entry or rule mark holds the text and the entry record")
             if self.scope == "rule" and sorted(keys) != sorted(["entry", f"rule:{self.rule_id}"]):
                 raise ValueError("a rule mark holds the entry record and its own rule's")
         if self.tributaries:
-            if self.scope == "split":
+            if self.scope in ("split", "tidal"):
                 raise ValueError("a split mark makes no tributary call")
             if self.scope == "rule":
                 ok = {self.rule_id}
@@ -376,7 +381,7 @@ class Mark(BaseModel):
                                  + ("this mark's rule" if self.scope == "rule"
                                     else "the entry or one of its rules"))
         if self.extent_fix:
-            if self.scope == "split":
+            if self.scope in ("split", "tidal"):
                 raise ValueError("a split mark proposes no extent fix")
             # T210: a DFO location whose extent is the existing cuts (no NEW point, no new split)
             # may say Place y: the cuts are right and the fix only names the extent to curate
@@ -399,17 +404,21 @@ class Mark(BaseModel):
         if self.new_splits:
             if self.scope == "split":
                 raise ValueError("a split mark proposes no new split")
-            if self.verdict not in ("wrong", "unsure"):
+            # T212: ACCEPTING a tidal candidate is Place y carrying its cut as the new split
+            if self.verdict not in ("wrong", "unsure") and not (
+                    self.scope == "tidal" and self.verdict == "verified"):
                 raise ValueError("a new split is proposed on a wrong or unsure mark")
             if len(set(refs)) != len(refs):
                 raise ValueError("each new split has its own ref")
+        if self.scope == "tidal" and self.verdict == "verified" and len(self.new_splits) != 1:
+            raise ValueError("an accepted tidal boundary carries exactly its one cut as a new split")
         dangling = sorted({p.split_id for f in self.extent_fix for p in f.points
                            if p.kind == "new"} - set(refs))
         if dangling:
             raise ValueError(f"an extent fix names new split(s) {dangling} the mark does not propose")
         if self.scope == "dfo" and (self.rule_id is not None or keys != ["entry"]):
             raise ValueError("a DFO mark holds exactly its location's prints")
-        if self.lake_split_later and self.scope == "split":
+        if self.lake_split_later and self.scope in ("split", "tidal"):
             raise ValueError("a lake split later is marked on an entry or a rule, not a split")
         return self
 
@@ -653,6 +662,10 @@ def target_prints(mark: Mark, entries: Mapping[str, Mapping], ctx) -> Optional["
     if mark.scope == "dfo":                       # T164: a DFO location (`review.dfo`)
         from pipeline.regs.review import dfo as D
         got = D.prints_of(mark.target)
+        return Prints.model_validate(got) if got is not None else None
+    if mark.scope == "tidal":                     # T212: a proposed tidal boundary (`review.tidal`)
+        from pipeline.regs.review import tidal as T
+        got = T.prints_of(mark.target)
         return Prints.model_validate(got) if got is not None else None
     if mark.scope == "split":
         try:

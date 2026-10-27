@@ -10,9 +10,12 @@ import { EntryDetail } from "./components/EntryDetail";
 import { ProgressBar } from "./components/ProgressBar";
 import { isTyping, keepSelected, nextUnsure, paceSamples, recordPace } from "./review";
 import { DFO_HASH, DfoReview } from "./components/DfoReview";
+import { TIDAL_HASH, TidalReview } from "./components/TidalReview";
 
 /** T164: the URL hash opens the DFO review mode (`#dfo/<location_id>`) */
 const inDfo = () => decodeURIComponent(window.location.hash.slice(1)).startsWith(DFO_HASH);
+/** T212: ... and the Tidal mode (`#tidal/<candidate id>`) */
+const inTidal = () => decodeURIComponent(window.location.hash.slice(1)).startsWith(TIDAL_HASH);
 
 /** THE REVIEW TIERS (PLAN §3, `tiers.TIERS`) — entries only: a split point is checked by proxy on
  *  the map of each entry whose rules name it (T184), never as a target of its own. */
@@ -28,6 +31,8 @@ export default function App() {
   const [mode, setMode] = useState<Mode | null>(null);
   // T164: the DFO salmon extents review — the same app, the same one write (a mark)
   const [dfo, setDfo] = useState(inDfo);
+  // T212: the proposed tidal boundaries — read only; accepting one records a mark
+  const [tidal, setTidal] = useState(inTidal);
   const [regions, setRegions] = useState<RegionSummary[]>([]);
   // THE ONE QUEUE (T135, PLAN §3): every region, in the review order, by default
   const [region, setRegion] = useState(ALL_REGIONS);
@@ -96,7 +101,8 @@ export default function App() {
   useEffect(() => {
     const open = () => {
       const id = decodeURIComponent(window.location.hash.slice(1));
-      if (id.startsWith(DFO_HASH)) { setDfo(true); return; }
+      if (id.startsWith(DFO_HASH)) { setDfo(true); setTidal(false); return; }
+      if (id.startsWith(TIDAL_HASH)) { setTidal(true); setDfo(false); return; }
       if (!id) return;
       setSelected(id);
       openedAt.current = Date.now();
@@ -177,11 +183,18 @@ export default function App() {
     else api.entry(selected).then(setDetail).catch(() => {});
   }, [loadRows, loadProgress, selected]);
 
+  const leaveModes = () => {
+    window.history.replaceState(null, "", window.location.pathname);
+    setDfo(false);
+    setTidal(false);
+  };
+  const toTidal = () => { window.history.replaceState(null, "", `#${TIDAL_HASH}`); setDfo(false); setTidal(true); };
+  const toDfo = () => { window.history.replaceState(null, "", `#${DFO_HASH}`); setTidal(false); setDfo(true); };
+  if (tidal && mode) {
+    return <TidalReview mode={mode} onLeave={leaveModes} onDfo={toDfo} />;
+  }
   if (dfo && mode) {
-    return <DfoReview mode={mode} onLeave={() => {
-      window.history.replaceState(null, "", window.location.pathname);
-      setDfo(false);
-    }} />;
+    return <DfoReview mode={mode} onLeave={leaveModes} onTidal={toTidal} />;
   }
 
   return (
@@ -212,6 +225,11 @@ export default function App() {
           <button className="btn small" data-testid="dfo-tab" title="T164: review every scraped DFO salmon extent"
             onClick={() => { window.history.replaceState(null, "", `#${DFO_HASH}`); setDfo(true); }}>
             DFO salmon extents
+          </button>
+          <button className="btn small" data-testid="tidal-tab"
+            title="T212: the proposed tidal boundary on every ocean-entering stream (read only; accept = a mark)"
+            onClick={toTidal}>
+            Tidal
           </button></>}
         moreSet={(tier ? 1 : 0) + (severity ? 1 : 0)}
         more={

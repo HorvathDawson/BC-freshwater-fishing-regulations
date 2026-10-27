@@ -33,6 +33,9 @@ import type {
   DfoProgress,
   DfoRow,
   NewSplit,
+  TidalDetail,
+  TidalProgress,
+  TidalRow,
 } from "./types";
 
 async function getJSON<T>(url: string): Promise<T> {
@@ -160,4 +163,15 @@ export const api = {
   dfoExtentPreview: (id: string, fix: ExtentFix) =>
     getJSON<ExtentPreview>(`/api/dfo/locations/${encodeURIComponent(id)}/extent-preview?fix=` +
       encodeURIComponent(JSON.stringify(fix))),
+
+  // --- T212: the Tidal review mode (reads; accepting is a mark through postMark, scope "tidal") ---
+  tidalQueue: (f: { confidence?: string; verify?: string; enters?: string; words?: boolean; q?: string }) => {
+    const p = new URLSearchParams();
+    for (const [k, v] of Object.entries(f)) if (v) p.set(k, String(v));
+    const qs = p.toString();
+    return getJSON<TidalRow[]>(`/api/tidal/queue${qs ? `?${qs}` : ""}`);
+  },
+  tidalProgress: () => getJSON<TidalProgress>("/api/tidal/progress"),
+  tidalCandidate: (id: string) => getJSON<TidalDetail>(`/api/tidal/candidates/${encodeURIComponent(id)}`),
+  tidalEdge: (id: string) => getJSON<GeoJSON>(`/api/tidal/candidates/${encodeURIComponent(id)}/edge`),
 };

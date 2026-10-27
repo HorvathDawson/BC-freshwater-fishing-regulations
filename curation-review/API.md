@@ -389,6 +389,19 @@ walked it.
 The source synopsis row-crop PNG (`data/generated/regs/extraction/row_images/`). Filename must match
 `[A-Za-z0-9_]+\.png`.
 
+### Tidal mode (T212) — reads; accepting is a mark
+The proposed tidal boundaries (`handoff/PLAN/curation-review/tidal/tidal-candidates.json`, from
+`python -m pipeline.tools.audit.tidal_candidates`; `CURATION_TIDAL_CANDIDATES` points at a copy).
+- `GET /api/tidal/queue?confidence=&verify=&enters=&words=&q=` — one row per candidate.
+- `GET /api/tidal/progress` — marked / total, by confidence, the file's coverage.
+- `GET /api/tidal/candidates/{id}` — the candidate (proposal, polygon crossing, sources), labelled map
+  points, the mark in force.
+- `GET /api/tidal/candidates/{id}/edge` — the tidal polygon's edge within 4 km (the build gpkg's
+  `tidal_boundary` layer, read only; `CURATION_TIDAL_GPKG`).
+- Accepting: `POST /api/marks` with `scope: "tidal"`, `answers: {P: "y"}` and the cut as ONE `new_splits`
+  entry (`anchor: "coord"`, snapped to the stream and stamped by the server). P n with the reviewer's
+  own point is a wrong mark ("split misplaced"). Never a splits.json write (T185 builds the split).
+
 ### GET /basemap/bc.pmtiles
 Serves `data/bc.pmtiles`, honouring HTTP Range requests (the pmtiles protocol needs byte ranges).
 

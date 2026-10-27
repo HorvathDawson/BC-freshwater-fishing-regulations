@@ -1122,6 +1122,10 @@ def marks_view(target: str | None = None, scope: str | None = None) -> list[dict
                 import dfo
                 got = dfo._locations().get(tgt)
                 now = dfo._now(got[1], got[2]) if got else None
+            elif m.scope == "tidal":                   # T212: a proposed tidal boundary
+                from pipeline.regs.review import tidal as T
+                got = T.prints_of(tgt)
+                now = Prints.model_validate(got) if got is not None else None
             else:
                 now = _prints(entries[tgt]) if tgt in entries else None
             out.append(_mark_view(m, now))
@@ -1364,7 +1368,7 @@ def post_mark(body: dict) -> dict:
     from pipeline.regs.review import marks as M
     from pipeline.regs.review import vintage as V
     scope, target = body.get("scope"), str(body.get("target") or "")
-    if scope not in ("entry", "rule", "dfo"):
+    if scope not in ("entry", "rule", "dfo", "tidal"):
         raise ValueError(f"a mark is on an entry or one of its rules, not a {scope}")
     with writes.LOCK, M.store_lock(MARKS_PATH):          # threads, then other processes
         if scope == "dfo":
@@ -1373,6 +1377,12 @@ def post_mark(body: dict) -> dict:
             import dfo
             mark, now, reused = dfo.mark_for(body, date=_dt.date.today().isoformat(),
                                              pdf_sha256=_pdf_sha256())
+        elif scope == "tidal":
+            # T212: a proposed tidal boundary — its prints from `review.tidal`, each new split
+            # snapped to the stream and stamped (`tidal.mark_for`); the same one commit below
+            import tidal
+            mark, now, reused = tidal.mark_for(body, date=_dt.date.today().isoformat(),
+                                               pdf_sha256=_pdf_sha256())
         else:
             reused = []
             ctx = _review_context()
@@ -1391,7 +1401,7 @@ def post_mark(body: dict) -> dict:
                                           "prints": prints})
             now = None
         writes.commit([(MARKS_PATH, M.appended(MARKS_PATH, [mark]))], "mark")
-    view = _mark_view(mark, now if scope == "dfo" else _prints(e))
+    view = _mark_view(mark, now if scope in ("dfo", "tidal") else _prints(e))
     if reused:                       # T210: "already proposed — reused", said back to the screen
         view = {**view, "reused": reused}
     return view

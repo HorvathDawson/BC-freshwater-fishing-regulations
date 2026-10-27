@@ -129,8 +129,8 @@ def get_entries(region: str | None = None, status: str | None = None,
 
 
 #: what a reviewer marks: an entry, or one rule of a zone entry (T184: entries only); T164: a DFO
-#: salmon location (the DFO review mode)
-REVIEW_SCOPES = ("entry", "rule", "dfo")
+#: salmon location (the DFO review mode); T212: a proposed tidal boundary (the Tidal mode)
+REVIEW_SCOPES = ("entry", "rule", "dfo", "tidal")
 
 
 class MarkPayload(BaseModel):
@@ -520,6 +520,53 @@ def dfo_location(location_id: str):
     got = dfo.detail(location_id)
     if got is None:
         raise HTTPException(404, f"DFO location {location_id} not found")
+    return got
+
+
+# --------------------------------------------------------------------------- T212: Tidal review mode
+# All READS: the proposed tidal boundaries (`handoff/PLAN/curation-review/tidal/tidal-candidates.json`)
+# and the polygon's edge near each. Accepting one is a mark (scope "tidal") through POST /api/marks.
+
+@app.get("/api/tidal/queue")
+def tidal_queue(confidence: str | None = None, verify: str | None = None, enters: str | None = None,
+                words: bool = False, q: str | None = None):
+    """THE TIDAL QUEUE: every proposed tidal boundary (`tidal.queue`), filtered — `confidence` high |
+    medium | low, `verify` the mark (todo = unmarked or stale), `enters` ocean | tidal_water, `words`
+    only those a text names, `q` a substring of the stream's name."""
+    import tidal
+    if confidence and confidence not in tidal.CONFIDENCES:
+        raise HTTPException(422, [{"path": "confidence",
+                                   "msg": "confidence is one of " + ", ".join(tidal.CONFIDENCES)}])
+    if verify and verify not in tidal.VERIFIES:
+        raise HTTPException(422, [{"path": "verify", "msg": "verify is one of " + ", ".join(tidal.VERIFIES)}])
+    return tidal.queue(confidence=confidence, verify=verify, enters=enters, words=words, q=q)
+
+
+@app.get("/api/tidal/progress")
+def tidal_progress():
+    """Marked / total for the tidal queue, by confidence, and the proposal file's coverage."""
+    import tidal
+    return tidal.progress()
+
+
+@app.get("/api/tidal/candidates/{cid:path}/edge")
+def tidal_edge(cid: str):
+    """The tidal polygon's edge near one candidate, as lon/lat lines (read only)."""
+    import tidal
+    got = tidal.edge(cid)
+    if got is None:
+        raise HTTPException(404, f"tidal candidate {cid} not found")
+    return got
+
+
+@app.get("/api/tidal/candidates/{cid:path}")
+def tidal_candidate(cid: str):
+    """One proposed tidal boundary: its sources verbatim, the polygon's crossing, the proposed cut,
+    labelled map points and the mark in force."""
+    import tidal
+    got = tidal.detail(cid)
+    if got is None:
+        raise HTTPException(404, f"tidal candidate {cid} not found")
     return got
 
 

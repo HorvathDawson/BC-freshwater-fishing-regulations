@@ -389,7 +389,7 @@ export interface PendingBuild {
 
 /** One mark in force, with its status against its target NOW (`GET /api/marks`). */
 export interface MarkView {
-  scope: "entry" | "rule" | "split" | "dfo";
+  scope: "entry" | "rule" | "split" | "dfo" | "tidal";
   target: string;
   rule_id: string | null;
   verdict: "verified" | "wrong" | "unsure" | "deferred";
@@ -668,7 +668,7 @@ export interface Mode {
   /** the app the answer is checked in (its start link) */
   app_url: string;
   /** the checks each scope a reviewer marks answers (`marks.CHECKS`; an entry, a zone entry's rule) */
-  checks: Record<"entry" | "rule", Check[]> & { dfo?: Check[] };
+  checks: Record<"entry" | "rule", Check[]> & { dfo?: Check[]; tidal?: Check[] };
   /** the problem categories a "wrong" mark names, by check (`marks.PROBLEMS`) */
   problems: Record<Check, string[]>;
   /** T135: the pre-check codes (`precheck.CHECKS`) */
@@ -771,7 +771,7 @@ export interface Progress { tiers: TierProgress[]; overall: TierProgress; facts?
 /** What the reviewer sends (`POST /api/marks`); the server stamps the rest. No `verdict`: the
  *  answers decide it (`marks.verdict_from_answers`) — except `deferred`, which is the reviewer's own call. */
 export interface MarkPost {
-  scope: "entry" | "rule" | "dfo";
+  scope: "entry" | "rule" | "dfo" | "tidal";
   target: string;
   rule_id?: string | null;
   verdict?: "deferred";
@@ -997,5 +997,76 @@ export interface DfoDetail {
   siblings: { id: string; text: string; status: string; section: string | null }[];
   /** the SUGGESTED extent, or null (never applied) */
   suggestion?: DfoSuggestion | null;
+  mark: (MarkView & { new_splits?: NewSplit[] }) | null;
+}
+
+// --- T212: the Tidal review mode (`curation-review/backend/tidal.py`) ---
+export type TidalConfidence = "high" | "medium" | "low";
+/** One word source a proposed tidal boundary is checked against (the synopsis box, a DFO page or
+ *  notice, a synopsis row, a curated split, a tidal gauge); located ones carry measure / coord. */
+export interface TidalSource {
+  kind: string;
+  source: string;
+  words: string;
+  measure?: number | null;
+  coord?: [number, number] | null;
+  located_by?: string | null;
+  agrees?: boolean | null;
+  polygon_minus_source_m?: number | null;
+  osm?: { osm: string; crossings: string[]; offset_m?: number | null } | null;
+}
+/** One proposed tidal boundary (`tidal-candidates.json`) */
+export interface TidalCandidate {
+  id: string;
+  water: string;
+  blk: string;
+  wsc: string;
+  enters: "ocean" | "tidal_water";
+  items: string[];
+  item_names: string[];
+  zones: string[];
+  proposed: { measure: number; coord: [number, number]; above_mouth_m: number; basis: string;
+              split_label: string; split_name: string; aliases: string[] };
+  polygon: { crossing: string; measure: number | null; coord: [number, number] | null; n_cuts: number;
+             inside_pieces: number; outside_below_m: number; mouth_gap_m: number };
+  mouth: { measure: number; coord: [number, number] };
+  sources: TidalSource[];
+  confidence: TidalConfidence;
+  why: string;
+  agreement: string;
+  words_disagree: boolean;
+}
+/** GET /api/tidal/queue */
+export interface TidalRow {
+  id: string;
+  water: string;
+  blk: string;
+  enters: string;
+  zones: string[];
+  items: string[];
+  confidence: TidalConfidence;
+  agreement: string;
+  crossing: string;
+  above_mouth_m: number;
+  n_words: number;
+  words_disagree: boolean;
+  verify: string;
+  reasons: string[];
+}
+/** GET /api/tidal/progress */
+export interface TidalProgress {
+  total: number;
+  done: number;
+  by_verify: Record<string, number>;
+  by_confidence: Record<string, number>;
+  with_words: number;
+  coverage: Record<string, unknown>;
+}
+/** GET /api/tidal/candidates/{id} */
+export interface TidalDetail {
+  row: TidalRow;
+  candidate: TidalCandidate;
+  items: { id: string; name: string; kind: string | null; mus: string[] }[];
+  points: EntrySplits;
   mark: (MarkView & { new_splits?: NewSplit[] }) | null;
 }
