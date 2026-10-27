@@ -1354,7 +1354,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "cowichan_river__cnr_trestle",
+              "cowichan_river__white_triangle_boundary_sign_loc"
+            ],
+            "item_id": "gnis:12227"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
