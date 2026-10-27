@@ -353,6 +353,22 @@
      "applies_to": {
       "blk": "354154635"
      }
+    },
+    {
+     "id": "campbell_river__quinsam_river",
+     "label": "Quinsam River confluence",
+     "kind": "confluence",
+     "anchor": {
+      "type": "confluence",
+      "tributary_wsc": "920-627155-045026",
+      "_name": "Quinsam River"
+     },
+     "note": "",
+     "_note": "[T185 proposal 2026-10-27] proposed in review marks on 1:campbell-river:downstream-of-the-confluence-with, 1:campbell-river:downstream-of-the-confluence-with~2 — \"downstream of the confluence with the Quinsam River to the fishing boundary sign at the end of Maple Street.\"",
+     "_coord": [
+      -125.294097,
+      50.037899
+     ]
     }
    ]
   },
