@@ -37,11 +37,15 @@ export const MIN_ZOOM = 4;
  */
 export const ATLAS_MAX_ZOOM = 13;
 
-/** The basemap archive's deepest zoom (`basemap.pmtiles` header; `pipeline/deliver/tiles/basemap.py` MAX_ZOOM). */
-export const BASEMAP_MAX_ZOOM = 14;
+/**
+ * The basemap archive's deepest zoom (`basemap.pmtiles` header; `pipeline/deliver/tiles/basemap.py` MAX_ZOOM). z13 since
+ * T202 (owner 2026-10-27): z14 was 274 of 629 MB. The z13 roads are rebuilt from the source's z14 so every trail and
+ * forest-service-road name survives the overzoom. AN ARCHIVE BUILT TO z14 STILL SERVES: the source asks for z13.
+ */
+export const BASEMAP_MAX_ZOOM = 13;
 
 /**
- * HOW FAR THE CAMERA MAY GO — past the tiles (four zooms past the basemap's z14, five past the atlas's z13), which
+ * HOW FAR THE CAMERA MAY GO — past the tiles (five zooms past the atlas's and the basemap's z13), which
  * MapLibre OVERZOOMS: the deepest tile is drawn magnified
  * (vector geometry re-tessellated, so lines and labels stay sharp; rasters scaled), no tile past a source's own
  * `maxzoom` is ever requested. "Keeps the resolution of the lower zoom", as the owner asked.

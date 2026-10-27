@@ -48,7 +48,7 @@ describe("each source stops where its archive stops", () => {
       ladder: pyConst("pipeline/deliver/tiles/ladder.py", "MAX_ZOOM"),
       basemap: BASEMAP_MAX_ZOOM,
       basemapBuild: pyConst("pipeline/deliver/tiles/basemap.py", "MAX_ZOOM"),
-    }).toEqual({ atlas: 13, contract: 13, ladder: 13, basemap: 14, basemapBuild: 14 });
+    }).toEqual({ atlas: 13, contract: 13, ladder: 13, basemap: 13, basemapBuild: 13 });
   });
 
   for (const theme of THEMES)

@@ -1430,3 +1430,21 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
 - Salmon default (owner 2026-10-27): every water NOT listed by DFO for salmon in any way is CLOSED to salmon fishing —
   the explicit default on the Salmon card and the Salmon map paint (T211).
 - Lanes that must commit run in the main checkout, committing only their own paths (owner 2026-10-27, option 2).
+
+## 2026-10-27 — basemap (owner, on T202-basemap-audit.md; built by Claude)
+- **The basemap goes to z13** (`basemap.MAX_ZOOM`, `BASEMAP_MAX_ZOOM`). The z13 `roads` layer is rebuilt from the
+  source's z14 (`tiles/basemap_roads.py`), so every trail, FSR, resource-road and street name survives the overzoom.
+  - Accepted urban losses: sidewalks, crossings, corridors, subway, living streets, platforms, rest-area lanes,
+    pedestrian areas, oneway arrows (z16+), one drain polygon, and the Deadman's Island, Richmond Island and Coal
+    Harbour labels.
+  - The zoom audit (6 extents) runs before every capped build and refuses one that loses anything else.
+  - Size: 918.4 → 322.5 MB.
+  - Undo: `MAX_ZOOM = 14` in both places and rebuild.
+- **Never-read basemap data is dropped:** `sort_rank`, lake/river label points (the app removes those label layers)
+  and earth cliff lines. `app/tools/basemap-filter.test.ts` fails if the style ever reads them.
+- **The `wetland` stand-in (T85) is dropped:** about −32 MB, and it was not drawn. TO BRING IT BACK:
+  1. put "wetland" back in `basemap.LANDUSE_STANDIN`;
+  2. rebuild the basemap;
+  3. add a `landuse` style layer filtered to `kind == "wetland"` in `runtime-style.ts`, below our water.
+  The data is still in `data/source/bc.pmtiles`. This supersedes the 2026-10-24 call that kept it.
+- **Grid coarsening of fills is investigated only, not shipped.** The numbers and shots are in the audit doc.

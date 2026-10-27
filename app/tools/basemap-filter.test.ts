@@ -55,6 +55,26 @@ describe("the basemap filter keeps every kind the style draws", () => {
     });
   }
 
+  // T202: the build also drops lake/river label points, earth lines and `sort_rank` — none of which a layer may read.
+  for (const theme of Object.keys(STYLE_META.themes)) {
+    const layers = (runtimeStyle(AT, theme).layers as Layer[]).filter((l) => l.source === "basemap");
+
+    it(`no drawn water label reads a dropped point kind, and nothing draws earth lines (${theme})`, () => {
+      const dropped = new Set(pyTuple("WATER_POINTS_DROPPED"));
+      const labels = layers.filter((l) => l["source-layer"] === "water" && l.type === "symbol");
+      expect(labels.length).toBeGreaterThan(0);              // the sea's names stay
+      expect([...new Set(labels.flatMap((l) => kinds(l.filter)))].filter((k) => dropped.has(k))).toEqual([]);
+      expect(layers.filter((l) => l["source-layer"] === "earth" && l.type === "line").map((l) => l.id)).toEqual([]);
+    });
+
+    it(`no basemap layer reads a key the build drops (${theme})`, () => {
+      const unread = pyTuple("UNREAD_KEYS");
+      expect(unread).toContain("sort_rank");
+      expect(layers.filter((l) => unread.some((k) => JSON.stringify(l).includes(`"${k}"`))).map((l) => l.id))
+        .toEqual([]);
+    });
+  }
+
   it("the parks and military the app draws itself are not kept for the basemap", () => {
     const keep = new Set(pyTuple("LANDUSE_DRAWN"));
     expect(["national_park", "park", "protected_area", "nature_reserve", "military", "naval_base"]

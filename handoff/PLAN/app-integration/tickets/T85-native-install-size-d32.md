@@ -55,3 +55,8 @@ Re-measure with `python -m pipeline.deliver.tiles.basemap --audit-zoom 13`.
 Go to z13, but KEEP what anglers use outside towns: trails/paths, forest service roads and resource roads, their names,
 access points. DROP what only matters in cities: sidewalks, crossings, pedestrian areas, living streets, urban street-name
 density. Measure the saving and prove (audit-zoom) that no trail/FSR feature or name is lost; urban losses are accepted.
+
+## Basemap z13: DONE under T202 (2026-10-27)
+Built under the owner's 2026-10-27 rule. The z13 roads are rebuilt from z14, so no trail or FSR name is lost, and the
+audit is clean on 6 extents. The basemap went from 918.4 to 322.5 MB. See `T202-tile-size-optimizations.md` and
+`handoff/PLAN/tiles/T202-basemap-audit.md`.

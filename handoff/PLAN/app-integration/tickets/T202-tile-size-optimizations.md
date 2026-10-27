@@ -23,3 +23,15 @@ Band: last ("Data feeds at the end"), with T199–T201.
 Go to z13, but KEEP what anglers use outside towns: trails/paths, forest service roads and resource roads, their names,
 access points. DROP what only matters in cities: sidewalks, crossings, pedestrian areas, living streets, urban street-name
 density. Measure the saving and prove (audit-zoom) that no trail/FSR feature or name is lost; urban losses are accepted.
+
+## Basemap: built 2026-10-27 (owner decisions on `handoff/PLAN/tiles/T202-basemap-audit.md`)
+- **Built:** z13 cap, with the z13 roads rebuilt from z14 (`tiles/basemap_roads.py`), so every trail, forest service
+  road, resource road and residential name survives. The owner accepted the urban losses: sidewalks, crossings,
+  living streets, subway, pedestrian areas, oneway arrows at z16+, and the Deadman's Island, Richmond Island and
+  Coal Harbour labels.
+- **Dropped, never read:** `sort_rank`, lake/river label points, earth cliff lines.
+- **Dropped, owner call:** the wetland stand-in. To bring it back, see `basemap.LANDUSE_STANDIN`.
+- **Zoom audit:** clean on all 6 extents. It now runs before every capped build.
+- **Size:** basemap **918.4 → 322.5 MB**. Promoted file by file, released as `basemap-859406091819`. The old file is
+  kept at `data/generated/scratch/basemap-pre-T202-20260925.pmtiles` until the owner looks.
+- **Grid coarsening:** investigated only, not shipped. The numbers and shots are in the audit doc.
