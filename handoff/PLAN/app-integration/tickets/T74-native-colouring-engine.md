@@ -18,3 +18,7 @@ Emulator pans: 0 grey frames, numbers recorded (phone numbers come from T77). La
 hatch layers draw; native "At my location" works.
 
 Depends: T50 (emulator setup). Heavy (emulator), scripts/heavy.sh. Size: L. Owner: no.
+
+
+## Owner 2026-10-27
+Native gestures and navigation must MATCH the web app (see T50 note, T214).

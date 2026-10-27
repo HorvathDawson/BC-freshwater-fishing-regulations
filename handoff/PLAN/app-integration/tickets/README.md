@@ -258,6 +258,7 @@ use that as the sole source of future work."
 | T211 | DFO salmon regs in the app (options), the DFO feed plan, historic extent matching, new-location alert | OPEN | — | plans first (owner picks), then code |
 | T212 | tidal boundaries: a tidal split on every ocean-entering stream (research + proposals, no data change yet) | PARTIAL | — | 1,163 candidates (916/966 named ocean streams met by the polygon) in handoff/PLAN/curation-review/tidal/; curation review Tidal tab, accept = a mark; owner reviews, then T185/T166 build the cuts |
 | T213 | paint bait-ban and fly-fishing-only waters distinctly from general restrictions | OPEN | — | future |
+| T214 | app polish: quota sub-cap wording names its total, desktop no-swipe + Esc back, clearer part highlight, steady up/downstream buttons | OPEN | — | next |
 
 ## Order for open tickets
 
@@ -279,7 +280,7 @@ code. Heavy jobs run one at a time through scripts/heavy.sh (≤ 4 workers). ★
 5. **Tiles window (one tile build):** T64 + T85, then T75; T129 (web request budget) alongside.
 6. **Native and shipping:** T50 (alone, heavy) → T74 → T77 ★ → T86 ★ → T88 ★. T65 (determinism, heavy) in a quiet gap.
 7. **Last:** T95 ★, T98 ★ (POSTPONED), T87 ★ (sign-off walk, then delete app/design).
-8. **Data feeds at the end (owner 2026-10-25):** T199 run timing, T200 stocked lakes, T201 bathymetry / depth maps, T202 tile size optimizations.
+8. **Last band (owner 2026-10-27: start with T202 tile sizes + the parked basemap z13):** T199 run timing, T200 stocked lakes, T201 bathymetry / depth maps, T202 tile size optimizations.
 
 ## Owner questions
 

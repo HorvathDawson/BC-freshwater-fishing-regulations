@@ -60,3 +60,7 @@ the laptop on keyed reads). adb/emulator are not on PATH: use $HOME/Library/Andr
   `adb reverse tcp:8081 tcp:<port>`; the AVD `n1_pixel` boots in airplane mode (`adb shell cmd connectivity
   airplane-mode disable`); no location fix is set (Spots says "Your location is not available here" — set one with the
   emulator console/window before judging At my location).
+
+
+## Owner 2026-10-27
+Native gestures and navigation must MATCH the web app (swipes on touch only, back behaviour, tab order, part/stretch navigation).
