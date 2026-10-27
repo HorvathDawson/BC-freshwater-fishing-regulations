@@ -30,14 +30,15 @@
   "multi_crossing": 92,
   "by_triage": {
    "missed": 4,
-   "sanity": 2,
+   "sanity": 0,
    "multi-crossing": 90,
-   "owner-edited": 65,
-   "book agrees": 6,
-   "no claim": 996
+   "owner-edited": 28,
+   "book agrees": 8,
+   "no claim": 1031,
+   "owner-decided": 2
   },
-  "owner_edit_sites": 520,
-  "owner_edit_sites_on_a_candidate": 161
+  "owner_edit_sites": 122,
+  "owner_edit_sites_on_a_candidate": 33
  },
  "candidates": [
   {
@@ -500,7 +501,7 @@
     "class": "owner-edited",
     "edited": true,
     "edit_sites": [
-     "edit:124"
+     "edit:69"
     ],
     "why": "polygon edited here; book agrees within 300 m",
     "web": [
@@ -658,11 +659,9 @@
    "agreement": "agree",
    "triage": {
     "class": "multi-crossing",
-    "edited": true,
-    "edit_sites": [
-     "edit:271"
-    ],
-    "why": "polygon edited here; book agrees within 300 m; crosses the polygon 3x at 2734, 2862, 3038 m; gaps filled 2734-2862 m",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited; book agrees within 300 m; crosses the polygon 3x at 2734, 2862, 3038 m; gaps filled 2734-2862 m",
     "web": [
      {
       "id": "tidal:354154938",
@@ -961,13 +960,10 @@
    "words_disagree": false,
    "agreement": "agree",
    "triage": {
-    "class": "owner-edited",
-    "edited": true,
-    "edit_sites": [
-     "edit:276",
-     "edit:277"
-    ],
-    "why": "polygon edited here; book agrees within 300 m",
+    "class": "book agrees",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited; book agrees within 300 m",
     "web": []
    }
   },
@@ -1177,7 +1173,7 @@
     "class": "owner-edited",
     "edited": true,
     "edit_sites": [
-     "edit:170"
+     "edit:75"
     ],
     "why": "polygon edited here; book agrees within 300 m",
     "web": [
@@ -1447,10 +1443,9 @@
     "class": "owner-edited",
     "edited": true,
     "edit_sites": [
-     "edit:326",
-     "edit:327",
      "edit:46",
-     "edit:67"
+     "edit:67",
+     "edit:95"
     ],
     "why": "polygon edited here; book agrees within 300 m",
     "web": [
@@ -1569,7 +1564,6 @@
     "class": "owner-edited",
     "edited": true,
     "edit_sites": [
-     "edit:123",
      "edit:61",
      "edit:62"
     ],
@@ -2528,12 +2522,10 @@
    "words_disagree": false,
    "agreement": "disagree",
    "triage": {
-    "class": "sanity",
-    "edited": true,
-    "edit_sites": [
-     "edit:115"
-    ],
-    "why": "polygon edited here; book disagrees (synopsis_box); web disagrees (1)",
+    "class": "owner-decided",
+    "edited": false,
+    "edit_sites": [],
+    "why": "owner decided: source_text (2026-10-27); was missed; polygon unedited; book disagrees (synopsis_box); web disagrees (1)",
     "web": [
      {
       "id": "tidal:360875983",
@@ -2556,7 +2548,12 @@
       },
       "agrees": false
      }
-    ]
+    ],
+    "decision": {
+     "boundary": "source_text",
+     "note": "use the SOURCE TEXT location, not the polygon (the polygon puts it 1049 m up)",
+     "decided": "2026-10-27"
+    }
    }
   },
   {
@@ -2763,12 +2760,10 @@
    "words_disagree": false,
    "agreement": "disagree",
    "triage": {
-    "class": "sanity",
-    "edited": true,
-    "edit_sites": [
-     "edit:270"
-    ],
-    "why": "polygon edited here; book disagrees (dfo_tidal_area); web disagrees (1)",
+    "class": "owner-decided",
+    "edited": false,
+    "edit_sites": [],
+    "why": "owner decided: river_mouth (2026-10-27); was missed; polygon unedited (grid test blind here; no straight cut across the stream); book disagrees (dfo_tidal_area); web disagrees (1)",
     "web": [
      {
       "id": "tidal:354155148",
@@ -2807,7 +2802,13 @@
       },
       "agrees": false
      }
-    ]
+    ],
+    "grid_blind": true,
+    "decision": {
+     "boundary": "river_mouth",
+     "note": "the tidal boundary is the river mouth, not the polygon (950 m up) nor the Cowichan Bay line",
+     "decided": "2026-10-27"
+    }
    }
   },
   {
@@ -3495,12 +3496,9 @@
    "agreement": "text unlocated",
    "triage": {
     "class": "multi-crossing",
-    "edited": true,
-    "edit_sites": [
-     "edit:390",
-     "edit:391"
-    ],
-    "why": "polygon edited here; 2 source(s) name a boundary but are not located; crosses the polygon 5x at 1573, 1752, 1887, 2073, 2972 m; gaps filled 1573-1752, 1887-2073 m",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited; 2 source(s) name a boundary but are not located; crosses the polygon 5x at 1573, 1752, 1887, 2073, 2972 m; gaps filled 1573-1752, 1887-2073 m",
     "web": [
      {
       "id": "tidal:360873432",
@@ -3592,11 +3590,9 @@
    "agreement": "text unlocated",
    "triage": {
     "class": "multi-crossing",
-    "edited": true,
-    "edit_sites": [
-     "edit:291"
-    ],
-    "why": "polygon edited here; web agrees within 300 m; crosses the polygon 3x at 177, 335, 535 m; gaps filled 177-335 m",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited; web agrees within 300 m; crosses the polygon 3x at 177, 335, 535 m; gaps filled 177-335 m",
     "web": [
      {
       "id": "tidal:354155031",
@@ -4440,13 +4436,10 @@
    "words_disagree": false,
    "agreement": "polygon only",
    "triage": {
-    "class": "owner-edited",
-    "edited": true,
-    "edit_sites": [
-     "edit:394",
-     "edit:395"
-    ],
-    "why": "polygon edited here",
+    "class": "no claim",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited",
     "web": []
    }
   },
@@ -5322,12 +5315,10 @@
    "words_disagree": false,
    "agreement": "polygon only",
    "triage": {
-    "class": "owner-edited",
-    "edited": true,
-    "edit_sites": [
-     "edit:88"
-    ],
-    "why": "polygon edited here",
+    "class": "no claim",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited",
     "web": []
    }
   },
@@ -5535,11 +5526,9 @@
    "agreement": "polygon only",
    "triage": {
     "class": "multi-crossing",
-    "edited": true,
-    "edit_sites": [
-     "edit:313"
-    ],
-    "why": "polygon edited here; crosses the polygon 3x at 399, 980, 1085 m; gaps filled 399-980 m",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited; crosses the polygon 3x at 399, 980, 1085 m; gaps filled 399-980 m",
     "web": []
    }
   },
@@ -5679,11 +5668,9 @@
    "agreement": "polygon only",
    "triage": {
     "class": "multi-crossing",
-    "edited": true,
-    "edit_sites": [
-     "edit:235"
-    ],
-    "why": "polygon edited here; crosses the polygon 3x at 260, 281, 385 m; gaps filled 260-281 m",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited; crosses the polygon 3x at 260, 281, 385 m; gaps filled 260-281 m",
     "web": []
    }
   },
@@ -6833,9 +6820,7 @@
     "class": "multi-crossing",
     "edited": true,
     "edit_sites": [
-     "edit:134",
-     "edit:139",
-     "edit:144"
+     "edit:71"
     ],
     "why": "polygon edited here; crosses the polygon 7x at 2616, 3628, 3691, 3896, 4268, 4365, 7343 m; gaps filled 2616-3628, 3691-3896, 4268-4365 m",
     "web": []
@@ -7097,12 +7082,10 @@
    "words_disagree": false,
    "agreement": "polygon only",
    "triage": {
-    "class": "owner-edited",
-    "edited": true,
-    "edit_sites": [
-     "edit:321"
-    ],
-    "why": "polygon edited here",
+    "class": "no claim",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited",
     "web": []
    }
   },
@@ -7390,11 +7373,9 @@
    "agreement": "polygon only",
    "triage": {
     "class": "multi-crossing",
-    "edited": true,
-    "edit_sites": [
-     "edit:153"
-    ],
-    "why": "polygon edited here; crosses the polygon 3x at 65, 153, 233 m; gaps filled 65-153 m",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited; crosses the polygon 3x at 65, 153, 233 m; gaps filled 65-153 m",
     "web": []
    }
   },
@@ -9663,12 +9644,9 @@
    "agreement": "polygon only",
    "triage": {
     "class": "multi-crossing",
-    "edited": true,
-    "edit_sites": [
-     "edit:96",
-     "edit:97"
-    ],
-    "why": "polygon edited here; crosses the polygon 3x at 102, 194, 1540 m; gaps filled 102-194 m",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited; crosses the polygon 3x at 102, 194, 1540 m; gaps filled 102-194 m",
     "web": []
    }
   },
@@ -9733,12 +9711,10 @@
    "words_disagree": false,
    "agreement": "polygon only",
    "triage": {
-    "class": "owner-edited",
-    "edited": true,
-    "edit_sites": [
-     "edit:192"
-    ],
-    "why": "polygon edited here",
+    "class": "no claim",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited",
     "web": []
    }
   },
@@ -10799,12 +10775,11 @@
    "agreement": "polygon only",
    "triage": {
     "class": "multi-crossing",
-    "edited": true,
-    "edit_sites": [
-     "edit:344"
-    ],
-    "why": "polygon edited here; crosses the polygon 3x at 157, 253, 275 m; gaps filled 157-253 m",
-    "web": []
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited (grid test blind here; no straight cut across the stream); crosses the polygon 3x at 157, 253, 275 m; gaps filled 157-253 m",
+    "web": [],
+    "grid_blind": true
    }
   },
   {
@@ -11138,7 +11113,7 @@
     "class": "owner-edited",
     "edited": true,
     "edit_sites": [
-     "edit:362"
+     "edit:98"
     ],
     "why": "polygon edited here",
     "web": []
@@ -11987,11 +11962,9 @@
    "agreement": "polygon only",
    "triage": {
     "class": "multi-crossing",
-    "edited": true,
-    "edit_sites": [
-     "edit:292"
-    ],
-    "why": "polygon edited here; crosses the polygon 3x at 1487, 1623, 1778 m; gaps filled 1487-1623 m",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited; crosses the polygon 3x at 1487, 1623, 1778 m; gaps filled 1487-1623 m",
     "web": []
    }
   },
@@ -12927,8 +12900,6 @@
     "class": "multi-crossing",
     "edited": true,
     "edit_sites": [
-     "edit:341",
-     "edit:342",
      "edit:48"
     ],
     "why": "polygon edited here; crosses the polygon 3x at 839, 851, 3855 m; gaps filled 839-851 m",
@@ -13659,11 +13630,9 @@
    "agreement": "polygon only",
    "triage": {
     "class": "multi-crossing",
-    "edited": true,
-    "edit_sites": [
-     "edit:307"
-    ],
-    "why": "polygon edited here; crosses the polygon 5x at 222, 256, 264, 281, 661 m; gaps filled 222-256, 264-281 m",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited; crosses the polygon 5x at 222, 256, 264, 281, 661 m; gaps filled 222-256, 264-281 m",
     "web": []
    }
   },
@@ -15283,11 +15252,9 @@
    "agreement": "polygon only",
    "triage": {
     "class": "multi-crossing",
-    "edited": true,
-    "edit_sites": [
-     "edit:329"
-    ],
-    "why": "polygon edited here; crosses the polygon 9x at 25, 61, 294, 569, 605, 620, 664, 680, 772 m; gaps filled 25-61, 294-569, 605-620, 664-680 m",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited; crosses the polygon 9x at 25, 61, 294, 569, 605, 620, 664, 680, 772 m; gaps filled 25-61, 294-569, 605-620, 664-680 m",
     "web": []
    }
   },
@@ -20311,11 +20278,9 @@
    "agreement": "polygon only",
    "triage": {
     "class": "multi-crossing",
-    "edited": true,
-    "edit_sites": [
-     "edit:214"
-    ],
-    "why": "polygon edited here; crosses the polygon 3x at 118, 153, 198 m; gaps filled 118-153 m",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited; crosses the polygon 3x at 118, 153, 198 m; gaps filled 118-153 m",
     "web": []
    }
   },
@@ -20652,12 +20617,9 @@
    "agreement": "polygon only",
    "triage": {
     "class": "multi-crossing",
-    "edited": true,
-    "edit_sites": [
-     "edit:273",
-     "edit:274"
-    ],
-    "why": "polygon edited here; crosses the polygon 3x at 27, 275, 1317 m; gaps filled 27-275 m",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited; crosses the polygon 3x at 27, 275, 1317 m; gaps filled 27-275 m",
     "web": []
    }
   },
@@ -24369,13 +24331,9 @@
    "agreement": "polygon only",
    "triage": {
     "class": "multi-crossing",
-    "edited": true,
-    "edit_sites": [
-     "edit:288",
-     "edit:289",
-     "edit:290"
-    ],
-    "why": "polygon edited here; crosses the polygon 3x at 924, 1034, 1062 m; gaps filled 924-1034 m",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited; crosses the polygon 3x at 924, 1034, 1062 m; gaps filled 924-1034 m",
     "web": []
    }
   },
@@ -24509,7 +24467,7 @@
     "class": "owner-edited",
     "edited": true,
     "edit_sites": [
-     "edit:263"
+     "edit:90"
     ],
     "why": "polygon edited here",
     "web": []
@@ -30436,9 +30394,7 @@
     "class": "owner-edited",
     "edited": true,
     "edit_sites": [
-     "edit:266",
-     "edit:267",
-     "edit:268"
+     "edit:91"
     ],
     "why": "polygon edited here",
     "web": []
@@ -30704,7 +30660,7 @@
     "class": "owner-edited",
     "edited": true,
     "edit_sites": [
-     "edit:360"
+     "edit:97"
     ],
     "why": "polygon edited here",
     "web": []
@@ -30920,12 +30876,10 @@
    "words_disagree": false,
    "agreement": "polygon only",
    "triage": {
-    "class": "owner-edited",
-    "edited": true,
-    "edit_sites": [
-     "edit:82"
-    ],
-    "why": "polygon edited here",
+    "class": "no claim",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited",
     "web": []
    }
   },
@@ -31250,12 +31204,10 @@
    "words_disagree": false,
    "agreement": "polygon only",
    "triage": {
-    "class": "owner-edited",
-    "edited": true,
-    "edit_sites": [
-     "edit:308"
-    ],
-    "why": "polygon edited here",
+    "class": "no claim",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited",
     "web": []
    }
   },
@@ -31320,13 +31272,10 @@
    "words_disagree": false,
    "agreement": "polygon only",
    "triage": {
-    "class": "owner-edited",
-    "edited": true,
-    "edit_sites": [
-     "edit:309",
-     "edit:310"
-    ],
-    "why": "polygon edited here",
+    "class": "no claim",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited",
     "web": []
    }
   },
@@ -31705,16 +31654,9 @@
    "agreement": "polygon only",
    "triage": {
     "class": "multi-crossing",
-    "edited": true,
-    "edit_sites": [
-     "edit:196",
-     "edit:197",
-     "edit:198",
-     "edit:199",
-     "edit:491",
-     "edit:496"
-    ],
-    "why": "polygon edited here; crosses the polygon 19x at 813, 859, 994, 1680, 2587, 3504, 4051, 4129, 4484, 4533, 5488, 5528 m; gaps filled 813-859, 994-1680, 2587-3504, 4051-4129, 4484-4533, 5488-5528, 5798-6117, 6316-6967 m; patch ignored 8374-9014 m",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited; crosses the polygon 19x at 813, 859, 994, 1680, 2587, 3504, 4051, 4129, 4484, 4533, 5488, 5528 m; gaps filled 813-859, 994-1680, 2587-3504, 4051-4129, 4484-4533, 5488-5528, 5798-6117, 6316-6967 m; patch ignored 8374-9014 m",
     "web": []
    }
   },
@@ -32240,12 +32182,10 @@
    "words_disagree": false,
    "agreement": "polygon only",
    "triage": {
-    "class": "owner-edited",
-    "edited": true,
-    "edit_sites": [
-     "edit:212"
-    ],
-    "why": "polygon edited here",
+    "class": "no claim",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited",
     "web": []
    }
   },
@@ -32508,7 +32448,7 @@
     "class": "owner-edited",
     "edited": true,
     "edit_sites": [
-     "edit:191"
+     "edit:82"
     ],
     "why": "polygon edited here",
     "web": []
@@ -32784,11 +32724,9 @@
    "agreement": "polygon only",
    "triage": {
     "class": "multi-crossing",
-    "edited": true,
-    "edit_sites": [
-     "edit:479"
-    ],
-    "why": "polygon edited here; crosses the polygon 3x at 4556, 5406, 5506 m; gaps filled 4556-5406 m",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited; crosses the polygon 3x at 4556, 5406, 5506 m; gaps filled 4556-5406 m",
     "web": []
    }
   },
@@ -33024,12 +32962,9 @@
    "agreement": "polygon only",
    "triage": {
     "class": "multi-crossing",
-    "edited": true,
-    "edit_sites": [
-     "edit:189",
-     "edit:190"
-    ],
-    "why": "polygon edited here; crosses the polygon 13x at 1250, 1660, 2310, 2582, 2849, 3186, 4184, 4548, 5577, 5588, 5918, 6624 m; gaps filled 1250-1660, 2310-2582, 2849-3186, 4184-4548, 5577-5588, 5918-6624 m",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited; crosses the polygon 13x at 1250, 1660, 2310, 2582, 2849, 3186, 4184, 4548, 5577, 5588, 5918, 6624 m; gaps filled 1250-1660, 2310-2582, 2849-3186, 4184-4548, 5577-5588, 5918-6624 m",
     "web": []
    }
   },
@@ -33322,14 +33257,9 @@
    "agreement": "polygon only",
    "triage": {
     "class": "multi-crossing",
-    "edited": true,
-    "edit_sites": [
-     "edit:333",
-     "edit:334",
-     "edit:335",
-     "edit:336"
-    ],
-    "why": "polygon edited here; crosses the polygon 9x at 172, 747, 958, 1185, 1398, 1432, 1946, 2254, 2351 m; gaps filled 172-747, 958-1185, 1398-1432, 1946-2254 m",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited; crosses the polygon 9x at 172, 747, 958, 1185, 1398, 1432, 1946, 2254, 2351 m; gaps filled 172-747, 958-1185, 1398-1432, 1946-2254 m",
     "web": []
    }
   },
@@ -33394,12 +33324,10 @@
    "words_disagree": false,
    "agreement": "polygon only",
    "triage": {
-    "class": "owner-edited",
-    "edited": true,
-    "edit_sites": [
-     "edit:293"
-    ],
-    "why": "polygon edited here",
+    "class": "no claim",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited",
     "web": []
    }
   },
@@ -33759,11 +33687,9 @@
    "agreement": "polygon only",
    "triage": {
     "class": "multi-crossing",
-    "edited": true,
-    "edit_sites": [
-     "edit:477"
-    ],
-    "why": "polygon edited here; crosses the polygon 5x at 809, 1206, 1440, 2234, 2791 m; gaps filled 809-1206, 1440-2234 m",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited; crosses the polygon 5x at 809, 1206, 1440, 2234, 2791 m; gaps filled 809-1206, 1440-2234 m",
     "web": []
    }
   },
@@ -34531,9 +34457,8 @@
     "class": "multi-crossing",
     "edited": true,
     "edit_sites": [
-     "edit:156",
-     "edit:158",
-     "edit:160"
+     "edit:73",
+     "edit:74"
     ],
     "why": "polygon edited here; crosses the polygon 5x at 698, 728, 1082, 1244, 1762 m; gaps filled 698-728, 1082-1244 m",
     "web": []
@@ -34668,12 +34593,10 @@
    "words_disagree": false,
    "agreement": "polygon only",
    "triage": {
-    "class": "owner-edited",
-    "edited": true,
-    "edit_sites": [
-     "edit:165"
-    ],
-    "why": "polygon edited here",
+    "class": "no claim",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited",
     "web": []
    }
   },
@@ -35190,16 +35113,10 @@
    "words_disagree": false,
    "agreement": "polygon only",
    "triage": {
-    "class": "owner-edited",
-    "edited": true,
-    "edit_sites": [
-     "edit:244",
-     "edit:245",
-     "edit:246",
-     "edit:247",
-     "edit:501"
-    ],
-    "why": "polygon edited here",
+    "class": "no claim",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited",
     "web": []
    }
   },
@@ -35988,12 +35905,10 @@
    "words_disagree": false,
    "agreement": "polygon only",
    "triage": {
-    "class": "owner-edited",
-    "edited": true,
-    "edit_sites": [
-     "edit:102"
-    ],
-    "why": "polygon edited here",
+    "class": "no claim",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited",
     "web": []
    }
   },
@@ -37114,12 +37029,10 @@
    "words_disagree": false,
    "agreement": "polygon only",
    "triage": {
-    "class": "owner-edited",
-    "edited": true,
-    "edit_sites": [
-     "edit:275"
-    ],
-    "why": "polygon edited here",
+    "class": "no claim",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited",
     "web": []
    }
   },
@@ -38779,12 +38692,10 @@
    "words_disagree": false,
    "agreement": "polygon only",
    "triage": {
-    "class": "owner-edited",
-    "edited": true,
-    "edit_sites": [
-     "edit:287"
-    ],
-    "why": "polygon edited here",
+    "class": "no claim",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited",
     "web": []
    }
   },
@@ -40790,12 +40701,10 @@
    "words_disagree": false,
    "agreement": "polygon only",
    "triage": {
-    "class": "owner-edited",
-    "edited": true,
-    "edit_sites": [
-     "edit:393"
-    ],
-    "why": "polygon edited here",
+    "class": "no claim",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited",
     "web": []
    }
   },
@@ -44618,11 +44527,9 @@
    "agreement": "polygon only",
    "triage": {
     "class": "multi-crossing",
-    "edited": true,
-    "edit_sites": [
-     "edit:280"
-    ],
-    "why": "polygon edited here; crosses the polygon 5x at 380, 519, 979, 1345, 1423 m; gaps filled 380-519, 979-1345 m",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited; crosses the polygon 5x at 380, 519, 979, 1345, 1423 m; gaps filled 380-519, 979-1345 m",
     "web": []
    }
   },
@@ -46081,12 +45988,10 @@
    "words_disagree": false,
    "agreement": "polygon only",
    "triage": {
-    "class": "owner-edited",
-    "edited": true,
-    "edit_sites": [
-     "edit:228"
-    ],
-    "why": "polygon edited here",
+    "class": "no claim",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited",
     "web": []
    }
   },
@@ -46285,12 +46190,10 @@
    "words_disagree": false,
    "agreement": "polygon only",
    "triage": {
-    "class": "owner-edited",
-    "edited": true,
-    "edit_sites": [
-     "edit:250"
-    ],
-    "why": "polygon edited here",
+    "class": "no claim",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited",
     "web": []
    }
   },
@@ -46828,12 +46731,10 @@
    "words_disagree": false,
    "agreement": "polygon only",
    "triage": {
-    "class": "owner-edited",
-    "edited": true,
-    "edit_sites": [
-     "edit:365"
-    ],
-    "why": "polygon edited here",
+    "class": "no claim",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited",
     "web": []
    }
   },
@@ -47112,13 +47013,9 @@
    "agreement": "polygon only",
    "triage": {
     "class": "multi-crossing",
-    "edited": true,
-    "edit_sites": [
-     "edit:92",
-     "edit:93",
-     "edit:94"
-    ],
-    "why": "polygon edited here; crosses the polygon 5x at 205, 551, 1065, 1702, 2021 m; gaps filled 205-551, 1065-1702 m",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited; crosses the polygon 5x at 205, 551, 1065, 1702, 2021 m; gaps filled 205-551, 1065-1702 m",
     "web": []
    }
   },
@@ -47380,12 +47277,10 @@
    "words_disagree": false,
    "agreement": "polygon only",
    "triage": {
-    "class": "owner-edited",
-    "edited": true,
-    "edit_sites": [
-     "edit:356"
-    ],
-    "why": "polygon edited here",
+    "class": "no claim",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited",
     "web": []
    }
   },
@@ -49529,12 +49424,10 @@
    "words_disagree": false,
    "agreement": "polygon only",
    "triage": {
-    "class": "owner-edited",
-    "edited": true,
-    "edit_sites": [
-     "edit:315"
-    ],
-    "why": "polygon edited here",
+    "class": "no claim",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited",
     "web": []
    }
   },
@@ -49868,12 +49761,10 @@
    "words_disagree": false,
    "agreement": "polygon only",
    "triage": {
-    "class": "owner-edited",
-    "edited": true,
-    "edit_sites": [
-     "edit:100"
-    ],
-    "why": "polygon edited here",
+    "class": "no claim",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited",
     "web": []
    }
   },
@@ -50012,12 +49903,9 @@
    "agreement": "polygon only",
    "triage": {
     "class": "multi-crossing",
-    "edited": true,
-    "edit_sites": [
-     "edit:303",
-     "edit:304"
-    ],
-    "why": "polygon edited here; crosses the polygon 3x at 670, 776, 944 m; gaps filled 670-776 m",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited; crosses the polygon 3x at 670, 776, 944 m; gaps filled 670-776 m",
     "web": []
    }
   },
@@ -50305,13 +50193,9 @@
     "class": "multi-crossing",
     "edited": true,
     "edit_sites": [
-     "edit:173",
-     "edit:174",
-     "edit:176",
-     "edit:177",
-     "edit:180",
-     "edit:181",
-     "edit:182"
+     "edit:76",
+     "edit:78",
+     "edit:80"
     ],
     "why": "polygon edited here; crosses the polygon 7x at 2357, 2834, 3177, 3215, 4262, 4427, 4690 m; gaps filled 2357-2834, 3177-3215, 4262-4427 m",
     "web": []
@@ -50516,11 +50400,9 @@
    "agreement": "polygon only",
    "triage": {
     "class": "multi-crossing",
-    "edited": true,
-    "edit_sites": [
-     "edit:95"
-    ],
-    "why": "polygon edited here; crosses the polygon 3x at 197, 829, 1051 m; gaps filled 197-829 m",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited; crosses the polygon 3x at 197, 829, 1051 m; gaps filled 197-829 m",
     "web": []
    }
   },
@@ -50867,11 +50749,9 @@
    "agreement": "polygon only",
    "triage": {
     "class": "multi-crossing",
-    "edited": true,
-    "edit_sites": [
-     "edit:114"
-    ],
-    "why": "polygon edited here; crosses the polygon 5x at 1133, 1252, 1513, 1520, 1562 m; gaps filled 1133-1252, 1513-1520 m",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited; crosses the polygon 5x at 1133, 1252, 1513, 1520, 1562 m; gaps filled 1133-1252, 1513-1520 m",
     "web": []
    }
   },
@@ -51129,12 +51009,10 @@
    "words_disagree": false,
    "agreement": "polygon only",
    "triage": {
-    "class": "owner-edited",
-    "edited": true,
-    "edit_sites": [
-     "edit:281"
-    ],
-    "why": "polygon edited here",
+    "class": "no claim",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited",
     "web": []
    }
   },
@@ -53057,12 +52935,9 @@
    "agreement": "polygon only",
    "triage": {
     "class": "multi-crossing",
-    "edited": true,
-    "edit_sites": [
-     "edit:284",
-     "edit:285"
-    ],
-    "why": "polygon edited here; crosses the polygon 3x at 1447, 1696, 2024 m; gaps filled 1447-1696 m",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited; crosses the polygon 3x at 1447, 1696, 2024 m; gaps filled 1447-1696 m",
     "web": []
    }
   },
@@ -53406,11 +53281,9 @@
    "agreement": "polygon only",
    "triage": {
     "class": "multi-crossing",
-    "edited": true,
-    "edit_sites": [
-     "edit:322"
-    ],
-    "why": "polygon edited here; crosses the polygon 5x at 20, 147, 314, 328, 333 m; gaps filled 19-147, 314-328 m",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited; crosses the polygon 5x at 20, 147, 314, 328, 333 m; gaps filled 19-147, 314-328 m",
     "web": []
    }
   },
@@ -53668,13 +53541,10 @@
    "words_disagree": false,
    "agreement": "polygon only",
    "triage": {
-    "class": "owner-edited",
-    "edited": true,
-    "edit_sites": [
-     "edit:373",
-     "edit:382"
-    ],
-    "why": "polygon edited here",
+    "class": "no claim",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited",
     "web": []
    }
   },
@@ -54683,12 +54553,10 @@
    "words_disagree": false,
    "agreement": "polygon only",
    "triage": {
-    "class": "owner-edited",
-    "edited": true,
-    "edit_sites": [
-     "edit:69"
-    ],
-    "why": "polygon edited here",
+    "class": "no claim",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited",
     "web": []
    }
   },
@@ -57189,12 +57057,10 @@
    "words_disagree": false,
    "agreement": "polygon only",
    "triage": {
-    "class": "owner-edited",
-    "edited": true,
-    "edit_sites": [
-     "edit:269"
-    ],
-    "why": "polygon edited here; web agrees within 300 m",
+    "class": "book agrees",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited (grid test blind here; no straight cut across the stream); web agrees within 300 m",
     "web": [
      {
       "id": "tidal:354153927",
@@ -57217,7 +57083,8 @@
       },
       "agrees": true
      }
-    ]
+    ],
+    "grid_blind": true
    }
   },
   {
@@ -57426,11 +57293,9 @@
    "agreement": "polygon only",
    "triage": {
     "class": "multi-crossing",
-    "edited": true,
-    "edit_sites": [
-     "edit:91"
-    ],
-    "why": "polygon edited here; crosses the polygon 5x at 88, 600, 3842, 3951, 4184 m; gaps filled 88-600, 3842-3951 m",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited; crosses the polygon 5x at 88, 600, 3842, 3951, 4184 m; gaps filled 88-600, 3842-3951 m",
     "web": []
    }
   },
@@ -58111,11 +57976,9 @@
    "agreement": "polygon only",
    "triage": {
     "class": "multi-crossing",
-    "edited": true,
-    "edit_sites": [
-     "edit:397"
-    ],
-    "why": "polygon edited here; crosses the polygon 3x at 4, 348, 439 m; gaps filled 4-348 m",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited; crosses the polygon 3x at 4, 348, 439 m; gaps filled 4-348 m",
     "web": []
    }
   },
@@ -59563,13 +59426,10 @@
    "words_disagree": false,
    "agreement": "polygon only",
    "triage": {
-    "class": "owner-edited",
-    "edited": true,
-    "edit_sites": [
-     "edit:319",
-     "edit:320"
-    ],
-    "why": "polygon edited here",
+    "class": "no claim",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited",
     "web": []
    }
   },
@@ -59786,11 +59646,9 @@
    "agreement": "polygon only",
    "triage": {
     "class": "multi-crossing",
-    "edited": true,
-    "edit_sites": [
-     "edit:311"
-    ],
-    "why": "polygon edited here; crosses the polygon 7x at 1422, 1482, 1513, 1540, 2200, 2206, 2735 m; gaps filled 1422-1482, 1513-1540, 2200-2206 m",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited; crosses the polygon 7x at 1422, 1482, 1513, 1540, 2200, 2206, 2735 m; gaps filled 1422-1482, 1513-1540, 2200-2206 m",
     "web": []
    }
   },
@@ -61457,12 +61315,10 @@
    "words_disagree": false,
    "agreement": "polygon only",
    "triage": {
-    "class": "owner-edited",
-    "edited": true,
-    "edit_sites": [
-     "edit:99"
-    ],
-    "why": "polygon edited here",
+    "class": "no claim",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited",
     "web": []
    }
   },
@@ -61744,11 +61600,9 @@
    "agreement": "polygon only",
    "triage": {
     "class": "multi-crossing",
-    "edited": true,
-    "edit_sites": [
-     "edit:87"
-    ],
-    "why": "polygon edited here; crosses the polygon 3x at 855, 1244, 1341 m; gaps filled 855-1244 m",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited; crosses the polygon 3x at 855, 1244, 1341 m; gaps filled 855-1244 m",
     "web": []
    }
   },
@@ -61813,12 +61667,10 @@
    "words_disagree": false,
    "agreement": "polygon only",
    "triage": {
-    "class": "owner-edited",
-    "edited": true,
-    "edit_sites": [
-     "edit:166"
-    ],
-    "why": "polygon edited here",
+    "class": "no claim",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited",
     "web": []
    }
   },
@@ -62031,11 +61883,9 @@
    "agreement": "polygon only",
    "triage": {
     "class": "multi-crossing",
-    "edited": true,
-    "edit_sites": [
-     "edit:507"
-    ],
-    "why": "polygon edited here; crosses the polygon 5x at 303, 376, 1713, 1728, 2014 m; gaps filled 303-376, 1713-1728 m",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited; crosses the polygon 5x at 303, 376, 1713, 1728, 2014 m; gaps filled 303-376, 1713-1728 m",
     "web": []
    }
   },
@@ -62662,11 +62512,9 @@
    "agreement": "polygon only",
    "triage": {
     "class": "multi-crossing",
-    "edited": true,
-    "edit_sites": [
-     "edit:492"
-    ],
-    "why": "polygon edited here; crosses the polygon 7x at 549, 927, 1176, 1390, 1811, 2058, 2144 m; gaps filled 549-927, 1176-1390, 1811-2058 m",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited; crosses the polygon 7x at 549, 927, 1176, 1390, 1811, 2058, 2144 m; gaps filled 549-927, 1176-1390, 1811-2058 m",
     "web": []
    }
   },
@@ -63686,11 +63534,9 @@
    "agreement": "polygon only",
    "triage": {
     "class": "multi-crossing",
-    "edited": true,
-    "edit_sites": [
-     "edit:104"
-    ],
-    "why": "polygon edited here; crosses the polygon 3x at 14, 103, 333 m; gaps filled 14-103 m",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited; crosses the polygon 3x at 14, 103, 333 m; gaps filled 14-103 m",
     "web": []
    }
   },
@@ -64836,15 +64682,9 @@
    "agreement": "polygon only",
    "triage": {
     "class": "multi-crossing",
-    "edited": true,
-    "edit_sites": [
-     "edit:481",
-     "edit:71",
-     "edit:73",
-     "edit:74",
-     "edit:75"
-    ],
-    "why": "polygon edited here; crosses the polygon 9x at 565, 618, 1352, 1603, 1756, 1923, 2991, 3235, 3627 m; gaps filled 565-618, 1352-1603, 1756-1923 m; patch ignored 3235-3627 m",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited; crosses the polygon 9x at 565, 618, 1352, 1603, 1756, 1923, 2991, 3235, 3627 m; gaps filled 565-618, 1352-1603, 1756-1923 m; patch ignored 3235-3627 m",
     "web": []
    }
   },
@@ -66968,13 +66808,10 @@
    "words_disagree": false,
    "agreement": "polygon only",
    "triage": {
-    "class": "owner-edited",
-    "edited": true,
-    "edit_sites": [
-     "edit:383",
-     "edit:384"
-    ],
-    "why": "polygon edited here",
+    "class": "no claim",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited",
     "web": []
    }
   },
@@ -68583,11 +68420,9 @@
    "agreement": "polygon only",
    "triage": {
     "class": "multi-crossing",
-    "edited": true,
-    "edit_sites": [
-     "edit:418"
-    ],
-    "why": "polygon edited here; crosses the polygon 3x at 616, 662, 807 m; gaps filled 616-662 m",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited; crosses the polygon 3x at 616, 662, 807 m; gaps filled 616-662 m",
     "web": []
    }
   },
@@ -70102,19 +69937,10 @@
    "words_disagree": false,
    "agreement": "polygon only",
    "triage": {
-    "class": "owner-edited",
-    "edited": true,
-    "edit_sites": [
-     "edit:374",
-     "edit:375",
-     "edit:376",
-     "edit:377",
-     "edit:378",
-     "edit:379",
-     "edit:380",
-     "edit:381"
-    ],
-    "why": "polygon edited here",
+    "class": "no claim",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited",
     "web": []
    }
   },
@@ -70180,12 +70006,10 @@
    "words_disagree": false,
    "agreement": "polygon only",
    "triage": {
-    "class": "owner-edited",
-    "edited": true,
-    "edit_sites": [
-     "edit:257"
-    ],
-    "why": "polygon edited here",
+    "class": "no claim",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited",
     "web": []
    }
   },
@@ -72735,12 +72559,10 @@
    "words_disagree": false,
    "agreement": "polygon only",
    "triage": {
-    "class": "owner-edited",
-    "edited": true,
-    "edit_sites": [
-     "edit:146"
-    ],
-    "why": "polygon edited here",
+    "class": "no claim",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited",
     "web": []
    }
   },
@@ -73680,12 +73502,10 @@
    "words_disagree": false,
    "agreement": "polygon only",
    "triage": {
-    "class": "owner-edited",
-    "edited": true,
-    "edit_sites": [
-     "edit:286"
-    ],
-    "why": "polygon edited here",
+    "class": "no claim",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited",
     "web": []
    }
   },
@@ -74229,12 +74049,10 @@
    "words_disagree": false,
    "agreement": "polygon only",
    "triage": {
-    "class": "owner-edited",
-    "edited": true,
-    "edit_sites": [
-     "edit:210"
-    ],
-    "why": "polygon edited here",
+    "class": "no claim",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited",
     "web": []
    }
   },
@@ -74376,11 +74194,9 @@
    "agreement": "polygon only",
    "triage": {
     "class": "multi-crossing",
-    "edited": true,
-    "edit_sites": [
-     "edit:164"
-    ],
-    "why": "polygon edited here; crosses the polygon 3x at 1576, 1741, 2216 m; gaps filled 1576-1741 m",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited; crosses the polygon 3x at 1576, 1741, 2216 m; gaps filled 1576-1741 m",
     "web": []
    }
   },
@@ -74978,12 +74794,10 @@
    "words_disagree": false,
    "agreement": "polygon only",
    "triage": {
-    "class": "owner-edited",
-    "edited": true,
-    "edit_sites": [
-     "edit:168"
-    ],
-    "why": "polygon edited here",
+    "class": "no claim",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited",
     "web": []
    }
   },
@@ -75600,8 +75414,8 @@
     "class": "owner-edited",
     "edited": true,
     "edit_sites": [
-     "edit:325",
-     "edit:67"
+     "edit:67",
+     "edit:94"
     ],
     "why": "polygon edited here",
     "web": []
@@ -76340,12 +76154,10 @@
    "words_disagree": false,
    "agreement": "polygon only",
    "triage": {
-    "class": "owner-edited",
-    "edited": true,
-    "edit_sites": [
-     "edit:506"
-    ],
-    "why": "polygon edited here",
+    "class": "no claim",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited",
     "web": []
    }
   },
@@ -76818,11 +76630,9 @@
    "agreement": "polygon only",
    "triage": {
     "class": "multi-crossing",
-    "edited": true,
-    "edit_sites": [
-     "edit:424"
-    ],
-    "why": "polygon edited here; crosses the polygon 3x at 2961, 3172, 3283 m; gaps filled 2961-3172 m",
+    "edited": false,
+    "edit_sites": [],
+    "why": "polygon unedited; crosses the polygon 3x at 2961, 3172, 3283 m; gaps filled 2961-3172 m",
     "web": []
    }
   },

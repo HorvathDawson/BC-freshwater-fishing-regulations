@@ -1070,7 +1070,7 @@ export interface TidalWeb {
 }
 /** The triage class (`pipeline.tools.audit.tidal_triage`): was the polygon hand-edited at this stream,
  *  and do the book / web words agree with it. */
-export type TidalTriageClass = "missed" | "sanity" | "multi-crossing" | "owner-edited" | "book agrees" | "no claim";
+export type TidalTriageClass = "missed" | "sanity" | "multi-crossing" | "owner-edited" | "book agrees" | "no claim" | "owner-decided";
 export interface TidalTriage {
   class: TidalTriageClass;
   /** null: the edit fingerprint can't see this stretch of coast */

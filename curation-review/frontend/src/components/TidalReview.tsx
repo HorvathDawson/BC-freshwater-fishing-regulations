@@ -27,7 +27,7 @@ export const TRIAGE_WORDS: Record<string, string> = {
   missed: "missed — words disagree, polygon unedited", sanity: "sanity — edited, but words disagree",
   "multi-crossing": "multi-crossing — the line goes in, out, in again (gaps filled)",
   "owner-edited": "owner-edited (accepted)", "book agrees": "words agree (accepted)",
-  "no claim": "no claim (accepted at the polygon)",
+  "no claim": "no claim (accepted at the polygon)", "owner-decided": "owner-decided (the owner made the call)",
 };
 /** the queue's default: only what the owner still has to look at */
 export const DEFAULT_TRIAGE = "review";

@@ -1,0 +1,23 @@
+{
+ "_about": "Owner calls on tidal candidates (decisions.md '2026-10-27 \u2014 tidal calls'), read by pipeline/tools/audit/tidal_triage.py triage. A decided candidate is class 'owner-decided'. No curated writes: the candidate's proposed boundary already sits where the owner says; this records the call.",
+ "decisions": [
+  {
+   "id": "tidal:360875983",
+   "water": "Capilano River",
+   "blk": "360875983",
+   "boundary": "source_text",
+   "where": "CN Railway Bridge at the mouth (synopsis box; OSM rail crossing, 37 m above the FWA mouth)",
+   "note": "use the SOURCE TEXT location, not the polygon (the polygon puts it 1049 m up)",
+   "decided": "2026-10-27"
+  },
+  {
+   "id": "tidal:354155148",
+   "water": "Cowichan River",
+   "blk": "354155148",
+   "boundary": "river_mouth",
+   "where": "the FWA river mouth (0 m); the DFO Hecate ramp - Green Point line lies seaward of it",
+   "note": "the tidal boundary is the river mouth, not the polygon (950 m up) nor the Cowichan Bay line",
+   "decided": "2026-10-27"
+  }
+ ]
+}

@@ -105,7 +105,7 @@ def test_the_committed_triage_covers_every_candidate():
 
 
 def test_a_long_straight_edge_across_a_stream_is_an_edit_even_on_the_grid():
-    """Follow-up 2: DFO's outline follows the shore vertex by vertex; a >= 50 m edge with no vertex
+    """Follow-up 2: DFO's outline follows the shore vertex by vertex; a >= 150 m edge with no vertex
     between that crosses a stream is a hand cut — seen even where the grid test is blind, and when
     both ends sit on the grid (a cut made by deleting vertices)."""
     c = _ring(n=2000)                                            # ~16 m edges, all on the grid
@@ -131,3 +131,29 @@ def test_a_multi_crossing_stream_is_its_own_class_unless_a_source_disagrees():
     c["sources"] = [{"kind": "synopsis_box", "agrees": False}]
     assert TT.classify(c, False, [])[0] == "missed"
     assert "multi-crossing" in TT.REVIEW
+
+
+def test_straight_cut_threshold_is_150_m():
+    """Owner 2026-10-27: 50 m caught too much of the generic coastline; 150 m keeps the owner's own cuts."""
+    assert TT.STRAIGHT_M == 150.0
+
+
+def test_an_owner_decision_wins_over_every_other_class():
+    """decisions.md 2026-10-27: Capilano at the source text, Cowichan at the river mouth."""
+    dec = json.loads((TIDAL / TT.OWNER_DECISIONS).read_text())["decisions"]
+    assert {d["water"]: d["boundary"] for d in dec} == {"Capilano River": "source_text", "Cowichan River": "river_mouth"}
+    no = {"kind": "synopsis_box", "agrees": False}
+    c = _c([no])
+    c.update(id=dec[0]["id"], blk=dec[0]["blk"])
+    doc = {"candidates": [c]}
+    assert TT.triage(doc, {"sites": []}, None, {"decisions": dec}) == {"owner-decided": 1}
+    assert c["triage"]["class"] == "owner-decided" and c["triage"]["decision"]["boundary"] == "source_text"
+    assert TT.triage({"candidates": [{**_c([no]), "blk": "1"}]}, {"sites": []}, None, None) == {"missed": 1}
+
+
+def test_the_committed_owner_decided_candidates():
+    cs = {c["water"]: c for c in json.loads((TIDAL / "tidal-candidates.json").read_text())["candidates"]}
+    for w, b in (("Capilano River", "source_text"), ("Cowichan River", "river_mouth")):
+        assert cs[w]["triage"]["class"] == "owner-decided" and cs[w]["triage"]["decision"]["boundary"] == b
+    assert cs["Capilano River"]["proposed"]["above_mouth_m"] == 37.0      # the CN bridge, not the polygon
+    assert cs["Cowichan River"]["proposed"]["above_mouth_m"] == 0.0       # the mouth

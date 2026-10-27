@@ -34,7 +34,7 @@ CONFIDENCES = ("high", "medium", "low")
 VERIFIES = ("unmarked", "verified", "wrong", "unsure", "deferred", "stale", "todo")
 #: the triage classes (`pipeline.tools.audit.tidal_triage`), and "review" = missed + sanity +
 #: multi-crossing (owner, T212 follow-up 2: every stream crossing the polygon in/out/in is shown)
-TRIAGE_CLASSES = ("missed", "sanity", "multi-crossing", "owner-edited", "book agrees", "no claim")
+TRIAGE_CLASSES = ("missed", "sanity", "multi-crossing", "owner-edited", "book agrees", "no claim", "owner-decided")
 REVIEW = ("missed", "sanity", "multi-crossing")
 TRIAGES = (*TRIAGE_CLASSES, "review")
 

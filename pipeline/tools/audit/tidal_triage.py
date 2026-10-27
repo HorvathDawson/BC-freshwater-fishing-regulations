@@ -41,6 +41,8 @@ THE CLASSES (owner, T212 follow-up):
                     in again): the boundary is the top of the run joined to the mouth, the gaps between
                     are filled and a separate upstream patch is ignored — shown so the owner sees them
   no claim          unedited, nothing locates a boundary: accepted at the polygon, low priority
+  owner-decided     the owner made the call (`owner-decisions.json`, read by the triage): Capilano at the
+                    source text (the CN bridge at the mouth), Cowichan at the river mouth. Wins over the rest.
 Sources that name a boundary but cannot be located (book or web) do not decide; the row says so.
 
 READ ONLY on every input except its own outputs: tidal-edits.json, the `triage` key of each row of
@@ -79,7 +81,9 @@ ATTRIBUTE_M = 150.0
 #: a located source within this far (m, along the line) of the polygon's crossing agrees (= AGREE_M)
 AGREE_M = 300.0
 
-CLASSES = ("missed", "sanity", "multi-crossing", "owner-edited", "book agrees", "no claim")
+CLASSES = ("missed", "sanity", "multi-crossing", "owner-edited", "book agrees", "no claim", "owner-decided")
+#: the owner's own calls on a candidate (decisions.md "2026-10-27 — tidal calls"); read by `triage`
+OWNER_DECISIONS = "owner-decisions.json"
 #: the classes the Tidal tab shows by default
 REVIEW = ("missed", "sanity", "multi-crossing")
 
@@ -170,8 +174,14 @@ def find_edits(rows: list[tuple[dict, object]]) -> tuple[list[dict], object]:
 
 
 #: a polygon edge at least this long (m) with no vertex between is a hand-drawn straight cut (owner,
-#: T212 follow-up 2: DFO's own outline follows the shore vertex by vertex, it has no long straight runs)
-STRAIGHT_M = 50.0
+#: T212 follow-up 2: DFO's own outline follows the shore vertex by vertex, it has no long straight runs).
+#: 150 m (owner 2026-10-27: 50 m caught too much). Edges that cross a stream (not already a grid edit):
+#: >= 50 m 507 (452), >= 100 m 145 (112), >= 150 m 66 (54), >= 250 m 15 (11), >= 500 m 5 (2). Edges within
+#: 150 m of a stream vs elsewhere on the coast: 150 m 664 vs 1609, 250 m 134 vs 811, 500 m 10 vs 615. The
+#: owner's own cuts across channels run ~125-560 m (Stave 126, Somass 161-183, Nitinat 206, Nicomekl 387,
+#: Pitt 556), so 250+ would lose the typical cut; every known edit (Pitt, Coquitlam, Kanaka, Stave, Campbell,
+#: Somass, Nicomekl, Nass, Nitinat) is also a 1 cm-grid hit, so it is caught at any threshold.
+STRAIGHT_M = 150.0
 
 
 def long_segments(rows: list[tuple[dict, object]], min_m: float = STRAIGHT_M) -> np.ndarray:
@@ -547,9 +557,11 @@ def classify(c: dict, edited: bool | None, web: list[dict], grid_blind: bool = F
     return "no claim", why
 
 
-def triage(cands_doc: dict, edits: dict, web_doc: dict | None) -> dict:
-    """Writes `triage` into every candidate (in place) and returns the per-class counts."""
+def triage(cands_doc: dict, edits: dict, web_doc: dict | None, decisions: dict | None = None) -> dict:
+    """Writes `triage` into every candidate (in place) and returns the per-class counts. `decisions`:
+    owner-decisions.json — a candidate it names (by id) is class "owner-decided" whatever the rest says."""
     idx = edit_index(edits)
+    decided = {d["id"]: d for d in (decisions or {}).get("decisions") or []}
     web_by = defaultdict(list)
     for w in (web_doc or {}).get("findings") or []:
         web_by[w["id"]].append(w)
@@ -567,8 +579,13 @@ def triage(cands_doc: dict, edits: dict, web_doc: dict | None) -> dict:
         for w in web_by.get(c["id"], []):
             web.append({**w, "agrees": web_verdict(w, c)})
         cls, why = classify(c, edited, web, grid_blind)
+        dec = decided.get(c["id"])
+        if dec:
+            why = f"owner decided: {dec['boundary']} ({dec['decided']}); was {cls}; {why}"
+            cls = "owner-decided"
         c["triage"] = {"class": cls, "edited": edited, "edit_sites": sids, "why": why, "web": web,
-                       **({"grid_blind": True} if grid_blind else {})}
+                       **({"grid_blind": True} if grid_blind else {}),
+                       **({"decision": {k: dec[k] for k in ("boundary", "note", "decided")}} if dec else {})}
         counts[cls] += 1
     cands_doc.setdefault("coverage", {})["by_triage"] = {k: counts.get(k, 0) for k in CLASSES}
     cands_doc["coverage"]["owner_edit_sites"] = len(idx["sites"])
@@ -601,7 +618,7 @@ def summary_md(doc: dict, edits: dict) -> str:
          "made only by deleting vertices — the straight-line test below covers both.",
          "",
          "Straight-line fingerprint (follow-up 2): DFO's outline follows the shore vertex by vertex, so an "
-         "edge of 50 m or more with no vertex between that CROSSES an FWA stream is a cut drawn across the "
+         "edge of 150 m or more with no vertex between that CROSSES an FWA stream is a cut drawn across the "
          "channel (kind `straight`). It works inside the off-grid stretch and sees cuts made only by deleting "
          "vertices.",
          "",
@@ -618,7 +635,8 @@ def summary_md(doc: dict, edits: dict) -> str:
                                  "joined to the mouth, gaps filled — **owner sees them**",
                "owner-edited": "polygon edited here — accepted (trusted)",
                "book agrees": "unedited; book/web within 300 m — accepted",
-               "no claim": "unedited, no located claim — accepted at the polygon, low priority"}
+               "no claim": "unedited, no located claim — accepted at the polygon, low priority",
+               "owner-decided": "the owner made the call (`owner-decisions.json`) — accepted as decided"}
     for k in CLASSES:
         L.append(f"| {k} | {meaning[k]} | {len(by[k])} |")
     L.append(f"| **total** | | {len(cs)} |")
@@ -728,7 +746,9 @@ def main(argv=None) -> None:
     edits = json.loads((a.out / "tidal-edits.json").read_text())
     wpath = a.out / "tidal-web.json"
     web = json.loads(wpath.read_text()) if wpath.exists() else None
-    counts = triage(doc, edits, web)
+    dpath = a.out / OWNER_DECISIONS
+    decisions = json.loads(dpath.read_text()) if dpath.exists() else None
+    counts = triage(doc, edits, web, decisions)
     cpath.write_text(json.dumps(doc, indent=1, ensure_ascii=False) + "\n")
     (a.out / "tidal-triage.md").write_text(summary_md(doc, edits))
     print(counts)
