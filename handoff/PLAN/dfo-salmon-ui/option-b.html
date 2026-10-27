@@ -1,0 +1,58 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DFO salmon UI option B</title><style>
+:root{--page:#EFEFEC;--card:#fff;--wash:#F7F7F5;--tint:#EEEFEB;--line:#E5E6E1;--line2:#D3D5CF;--ink:#15181C;--sub:#555C62;--faint:#6E757B;--rule:#46627F;--accent:#5F26E0;--open:#016890;--closed:#8F0006;--own:#D08404;--live:#04879B;--dfo:#0E5A8A;--dfo-bg:#E6F0F7;--s1:4px;--s2:8px;--s3:12px;--s4:16px}
+*{box-sizing:border-box}body{margin:0;background:var(--page);font:14.5px/21px Archivo,system-ui,-apple-system,Helvetica,Arial,sans-serif;color:var(--ink)}
+.phone{width:390px;margin:0 auto;background:var(--card);min-height:100vh;position:relative}
+.cap{position:absolute;top:6px;right:8px;background:var(--ink);color:#fff;font:700 11px/14px system-ui;padding:3px 7px;letter-spacing:.5px;z-index:9}
+.face{display:flex;align-items:center;gap:8px;padding:10px 16px 0;color:var(--accent);font-weight:700;font-size:13px}
+.hdr{background:var(--card);border-bottom:1.5px solid var(--ink)}
+.name{display:flex;justify-content:space-between;align-items:center;padding:4px 16px 0}
+.name h1{font:800 21px/25px system-ui;letter-spacing:-.35px;margin:0}
+.pill{display:flex;gap:6px;align-items:center;min-height:44px;font-size:12.5px;line-height:15px;color:var(--sub)}
+.pill b{color:var(--accent);font-weight:800;display:block}.dot{width:8px;height:8px}
+.place{padding:0 16px 6px;font:600 12.5px/16px system-ui;color:var(--sub)}
+.tabs{display:flex}.tabs div{flex:1;text-align:center;font:700 9.5px/12px system-ui;letter-spacing:1.1px;text-transform:uppercase;color:var(--sub);padding:11px 0 9px;border-bottom:3px solid transparent}
+.tabs .on{color:var(--ink);border-color:var(--ink)}
+.pad{padding:12px 16px}
+.sec{font:700 11px/14px system-ui;letter-spacing:1.4px;text-transform:uppercase;color:var(--sub);margin:16px 0 6px}
+.banner{border-left:4px solid var(--closed);background:var(--wash);padding:10px 12px;margin:12px 0}
+.banner .big{font:800 26px/26px system-ui;letter-spacing:-.5px;color:var(--closed)}
+.row{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid var(--line)}
+.row .k{font-weight:700}.row .v{text-align:right;color:var(--sub);white-space:nowrap}.row .v b{color:var(--ink)}
+.st{display:inline-block;font:800 11px/14px system-ui;letter-spacing:.7px;text-transform:uppercase;padding:2px 6px;color:#fff;background:var(--open)}
+.st.c{background:var(--closed)}.st.o{background:var(--own)}.st.q{background:var(--sub)}
+.badge{display:inline-block;font:800 10px/13px system-ui;letter-spacing:.8px;color:var(--dfo);background:var(--dfo-bg);border:1px solid var(--dfo);padding:1px 5px;vertical-align:1px}
+.prov{display:inline-block;font:800 10px/13px system-ui;letter-spacing:.8px;color:var(--sub);background:var(--tint);padding:2px 5px;vertical-align:1px}
+.src{font:700 12px/16px system-ui;color:var(--accent);margin-top:4px}.src span{color:var(--sub);font-weight:600}
+.chg{display:flex;gap:6px;align-items:baseline;margin-top:4px;font:600 12.5px/17px system-ui;color:var(--sub)}
+.chip{font:800 10px/13px system-ui;letter-spacing:.6px;text-transform:uppercase;color:var(--ink);background:var(--tint);padding:1px 5px;white-space:nowrap}
+.chg b{color:var(--ink)}
+.card{border:1.5px solid var(--dfo);background:var(--card);margin:16px 0}
+.card .h{background:var(--dfo-bg);padding:8px 12px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--dfo)}
+.card .h b{font:800 17px/20px system-ui;color:var(--ink)}
+.card .b{padding:4px 12px 10px}
+.warn{border-left:4px solid var(--own);background:#FBF0E6;padding:8px 12px;margin:8px 0;font-size:13.5px;line-height:19px}
+.note{font:12.5px/18px system-ui;color:var(--sub)}
+.fold{border-top:1px solid var(--line);padding:9px 0;font:700 12.5px/16px system-ui;color:var(--accent);display:flex;justify-content:space-between}
+.mock{font:11px/15px system-ui;color:var(--faint);padding:8px 16px 24px;border-top:1px dashed var(--line2);margin-top:16px}
+.who{font:600 12px/16px system-ui;color:var(--sub);margin-top:2px}
+.lab{background:var(--page);padding:10px 16px 4px;font:700 11px/14px system-ui;letter-spacing:1.4px;color:var(--sub)}
+</style></head><body><div class="phone"><div class="cap">OPTION B</div><div class="face">‹ Back</div><div class="hdr"><div class="name"><h1>Kispiox River</h1><div class="pill"><span class="dot" style="background:var(--open)"></span><div><b>Tue ▾</b>Sep 15, 2026</div></div></div><div class="place">Region 6 · Skeena · Kispiox River and tributaries</div><div class="tabs"><div class="on">Keep</div><div class="">Gear</div><div class="">Methods</div><div class="">Licence</div></div></div><div class="pad">
+<div class="sec">Today · Sep 15 · by fish</div>
+<div class="row"><div><div class="k">Rainbow trout <span class="prov">PROVINCE</span></div><div class="note">2 per day · none over 50 cm</div></div><div class="v"><span class="st">Open</span></div></div>
+<div class="row"><div><div class="k">Steelhead <span class="prov">PROVINCE</span></div><div class="note">Release only · classified water</div></div><div class="v"><span class="st o">Release</span></div></div>
+<div class="row"><div><div class="k">Coho <span class="badge">DFO</span></div><div class="note">No fishing for coho</div>
+<div class="chg"><span class="chip">Changed</span><span><b>Aug 24 · FN0897:</b> 4 per day → closed</span></div></div><div class="v"><span class="st c">Closed</span></div></div>
+<div class="row"><div><div class="k">Pink <span class="badge">DFO</span></div><div class="note">No fishing for pink</div>
+<div class="chg"><span class="chip">Changed</span><span><b>Aug 24 · FN0897</b></span></div></div><div class="v"><span class="st c">Closed</span></div></div>
+<div class="row"><div><div class="k">Chinook · sockeye · chum <span class="badge">DFO</span></div><div class="note">No fishing</div></div><div class="v"><span class="st c">Closed</span></div></div>
+<div class="src">Province · This water’s › · Federal DFO · Kispiox River › <span>Rule book p.50 ↗ · FN0897 ↗</span></div>
+<div class="who">DFO: page dated Aug 28 · checked Sep 14</div>
+<div class="warn"><b>Where the two authorities differ.</b> The province has this water open for trout today, but DFO has salmon closed. Fish for trout; release any salmon.</div>
+
+<div class="sec" style="margin-top:22px">Another water: Chilliwack/Vedder · Sep 15</div>
+<div class="banner"><div class="big">Closed to trout</div><div class="note" style="margin-top:4px"><span class="prov">PROVINCE</span> Closed to fishing for game fish (illustrative)</div></div>
+<div class="row"><div><div class="k">Coho <span class="badge">DFO</span></div><div class="note">4 hatchery marked per day · Sep 1–Dec 31</div>
+<div class="chg"><span class="chip">Changed</span><span><b>Sep 1:</b> non-retention → 4 hatchery marked</span></div></div><div class="v"><span class="st o">Open</span></div></div>
+<div class="row"><div><div class="k">Chinook <span class="badge">DFO</span></div><div class="note">4 per day, only 2 over 62 cm</div></div><div class="v"><span class="st o">Open</span></div></div>
+<div class="warn"><b>Conflict.</b> The province closed this water; DFO opens salmon. Both stand: the provincial closure does not cancel DFO, and DFO does not reopen trout. <u>Which rule applies? ›</u></div>
+</div><div class="mock">Design mock. DFO lines are real rows (Region 6 page dated 2026-08-28, typed/untangled feed). Provincial lines are illustrative. Notice dates other than the Aug 24 effective date are sample copy.</div></div></body></html>

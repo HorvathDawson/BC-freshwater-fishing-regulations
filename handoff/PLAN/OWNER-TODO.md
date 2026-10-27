@@ -6,6 +6,11 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
+- **DFO salmon in the app (T211, 2026-10-27):** read handoff/PLAN/dfo-salmon-ui/PLAN.md (mocks option-a/b/c.png) and
+  pick A (separate Salmon·DFO card, recommended), B (merged per-species answer) or C (Salmon page + map toggle); say
+  whether an unplaced DFO water shows "see DFO" or nothing; approve the feed plan (6-hourly in season, R2 `feeds/dfo/`,
+  rule changes with no rebuild). Coverage today: 147/346 historic DFO locations have an extent (all 346 known).
+
 - **SEO / domain (T188 plan, T198):** confirm you own canifishthis.ca and canifishthis.com; at the registrar/DNS set
   .com and www to 301 to https://canifishthis.ca. Once hosting (T86) is live: add Domain properties in Google Search
   Console (DNS TXT), import to Bing Webmaster, submit /sitemap.xml, and give Claude the tokens. Later, send the

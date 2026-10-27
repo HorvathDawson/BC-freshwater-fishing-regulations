@@ -1,0 +1,200 @@
+region	location_id	status	last_seen	gap	class	water	scope
+1	1:campbell-river:from-a-fishing-boundary-sign-at-th	active	live	water_bound_no_extent	landmark_cut	Campbell River	from a fishing boundary sign at the end of Maple Street downstream to the fishing boundary sign at t
+1	1:campbell-river:downstream-of-the-confluence-with	active	live	water_bound_no_extent	landmark_cut	Campbell River	downstream of the confluence with the Quinsam River
+1	1:campbell-river:downstream-of-the-confluence-with~2	active	live	water_bound_no_extent	landmark_cut	Campbell River	downstream of the confluence with the Quinsam River to the fishing boundary sign at the end of Maple
+1	1:cayeghle-river:including-colonial-river	active	live	water_bound_no_extent	other	Cayeghle River	including Colonial River.
+1	1:cowichan-river:from-66-mile-trestle-downstream-to	active	live	water_bound_no_extent	other	Cowichan River	from 66 Mile Trestle downstream to the white triangle boundary sign located in Sandy Pool Regional P
+1	1:cowichan-river:from-the-white-triangle-boundary-s	active	live	water_bound_no_extent	other	Cowichan River	from the white triangle boundary sign located in Sandy Pool Regional Park, downstream to the tidal b
+1	1:koksilah-river:including-tributaries	active	live	water_bound_no_extent	whole_scope	Koksilah River	including tributaries.
+1	1:little-qualicum-river:all-waters-unless-indicated-below	active	live	water_bound_no_extent	whole_scope	Little Qualicum River	all waters unless indicated below
+1	1:little-qualicum-river:from-the-hatchery-fence-to-signs-l	active	live	water_bound_no_extent	sign_point_cut	Little Qualicum River	from the hatchery fence to signs located approximately 35 meters downstream
+1	1:little-qualicum-river:from-the-falls-in-little-qualicum	active	live	water_bound_no_extent	sign_point_cut	Little Qualicum River	from the falls in Little Qualicum Falls Provincial Park downstream to the hatchery fence
+1	1:little-qualicum-river:all-open-portions-of-the-little-qu	active	live	water_bound_no_extent	other	Little Qualicum River	all open portions of the Little Qualicum River
+1	1:nanaimo-river:including-tributaries-except-in-th	active	live	water_bound_no_extent	whole_scope	Nanaimo River	including tributaries, except in the area described below.
+1	1:nanaimo-river:from-the-upstream-side-of-the-ceda	active	live	water_bound_no_extent	landmark_cut	Nanaimo River	from the upstream side of the Cedar Road Bridge, upstream to the downstream side of the Highway 1 ov
+1	1:nanaimo-river:from-the-cedar-road-bridge-crossin	active	live	water_bound_no_extent	landmark_cut	Nanaimo River	from the Cedar Road Bridge crossing upstream to the Highway 19 Bridge crossing
+1	1:nanaimo-river:from-500-m-below-the-lower-power-l	active	live	water_bound_no_extent	landmark_cut	Nanaimo River	from 500 meters below the lower power line crossing at "Bore Hole" upstream to the fishing boundary 
+1	1:puntledge-river:morrison-creek-closure-between-fis	active	live	water_bound_no_extent	sign_point_cut	Puntledge River	Morrison Creek closure: between fishing boundary signs located 100m upstream and downstream of the c
+1	1:puntledge-river:from-signs-located-50m-upstream-of	active	live	water_bound_no_extent	sign_point_cut	Puntledge River	From signs located 50m upstream of the BC Hydro generating station tailrace to signs located 75m dow
+1	1:puntledge-river:downstream-from-the-base-of-stotan	active	live	water_bound_no_extent	sign_point_cut	Puntledge River	downstream from the base of Stotan Falls (approximately 450 m downstream of the Duncan Bay Mainline 
+1	1:qualicum-river:those-waters-upstream-of-the-big-q	active	live	water_bound_no_extent	sign_point_cut	Qualicum River	those waters upstream of the Big Qualicum Hatchery upper weir (located approximately 125 m downstrea
+1	1:qualicum-river:downstream-of-the-upper-weir-locat	active	live	water_bound_no_extent	sign_point_cut	Qualicum River	downstream of the upper weir (located approximately 125 m downstream of the E&N railway bridge) to t
+1	1:qualicum-river:waters-below-the-qfn-boundary-fenc	active	live	water_bound_no_extent	sign_point_cut	Qualicum River	waters below the QFN boundary fence, downstream to the Hwy 19A bridge
+1	1:qualicum-river:all-open-portions-of-the-qualicum	active	live	water_bound_no_extent	other	Qualicum River	All open portions of the Qualicum River
+1	1:quatse-river:100m-upstream-and-downstream-of-th	active	live	water_bound_no_extent	sign_point_cut	Quatse River	100m upstream and downstream of the Quatse River Hatchery weir
+1	1:sproat-river:from-sproat-lake-to-approx-300m-be	active	live	water_bound_no_extent	sign_point_cut	Sproat River	from Sproat Lake to approximately 300m below the Highway 4 bridge, at the downstream end of the pool
+1	1:stamp-river:except-in-those-areas-and-times-li	active	live	water_bound_no_extent	other	Stamp River	Except in those areas and times listed below
+1	1:stamp-river:from-the-confluence-of-the-ash-riv~2	active	live	water_bound_no_extent	landmark_cut	Stamp River	From the confluence of the Ash River upstream to the Great Central Lake Dam, including tributaries
+1	1:stamp-river:from-approx-200-m-upstream-of-the	active	live	water_bound_no_extent	sign_point_cut	Stamp River	From approximately 200 m upstream of the Stamp Falls fishway (50 downstream of site 17 in Stamp Rive
+1	1:stamp-river:from-the-inlet-upstream-of-roberst	active	live	water_bound_no_extent	sign_point_cut	Stamp River	From the inlet upstream of Roberston Creek Hatchery Lagoon downstream to the outlet of the Hatchery 
+1	1:stamp-river:from-the-powerline-crossing-downst	active	live	water_bound_no_extent	sign_point_cut	Stamp River	From the powerline crossing downstream approximately 500m to the inlet of Roberston Creek Hatchery L
+1	1:stamp-river:stamp-river-downstream-of-girl-gui	active	live	water_bound_no_extent	sign_point_cut	Stamp River	Stamp River downstream of “Girl Guide Falls” (approximately 275 m upstream of the mouth of Beaver Cr
+1	1:cowichan-river:including-tributaries-and-cowichan	dormant	20231003050318	water_bound_no_extent	whole_scope	Cowichan River	including tributaries and Cowichan Lake.
+1	1:cowichan-river:downstream-of-the-weir-on-cowichan	dormant	20240624062513	water_bound_no_extent	sign_point_cut	Cowichan River	downstream of the weir on Cowichan Lake to 66 Mile Trestle.
+1	1:cowichan-river:from-cnr-trestle-at-mile-70-2-to-s	dormant	20240624062513	water_bound_no_extent	landmark_cut	Cowichan River	from CNR Trestle at mile 70.2 to Skutz Falls
+1	1:nanaimo-river:from-the-power-line-crossing-at-bo	dormant	20260116024805	water_bound_no_extent	landmark_cut	Nanaimo River	from the power line crossing at "Bore Hole" upstream to the fishing boundary signs at the mouth of B
+1	1:nanaimo-river:cedar-road-bridge-upstream-approx	dormant	20240124015458	water_bound_no_extent	sign_point_cut	Nanaimo River	Cedar Road Bridge upstream approx. 400 m to the fishing boundary sign located near the Hwy 19 bridge
+1	1:puntledge-river:from-the-weir-at-the-lower-hatcher	dormant	20240624062513	water_bound_no_extent	sign_point_cut	Puntledge River	from the weir at the lower hatchery to fishing boundary signs approximately 75m downstream of the we
+1	1:puntledge-river:downstream-from-a-fishing-boundary	dormant	20240624062513	water_bound_no_extent	sign_point_cut	Puntledge River	downstream from a fishing boundary sign located 75m downstream of the weir at the lower hatchery (ex
+1	1:san-juan-river:waters-of-the-san-juan-river-and-i	dormant	20240624062513	water_bound_no_extent	other	San Juan River	waters of the San Juan River and its tributaries downstream of the Fleet River that are open to fish
+1	1:san-juan-river:that-portion-of-the-san-juan-river	dormant	20240624062513	water_bound_no_extent	sign_point_cut	San Juan River	That portion of the San Juan River from the hatchery counting fence downstream approximately 150 met
+1	1:sproat-river:sproat-river-from-sproat-lake-to-f	dormant	20240124015458	water_bound_no_extent	sign_point_cut	Sproat River	Sproat River from Sproat Lake to fishing boundary signs approx. 300m downstream of Hwy 4
+1	1:stamp-river:from-the-confluence-of-the-ash-riv	dormant	20240124015458	water_bound_no_extent	landmark_cut	Stamp River	From the confluence of the Ash River upstream to the Great Central Lake Dam
+1	1:stamp-river:between-fishing-boundary-signs-app	dormant	20240124015458	water_bound_no_extent	sign_point_cut	Stamp River	Between fishing boundary signs approximately 200m upstream of and 500m downstream of Stamp Falls
+1	1:stamp-river:hatchery-lagoon-from-boundary-sign	dormant	20230215195426	water_bound_no_extent	sign_point_cut	Stamp River	Hatchery Lagoon - from boundary signs on either side of the Stamp River located at the inlet of the 
+1	1:stamp-river:hatchery-lagoon-from-fishing-bound	dormant	20240124015458	water_bound_no_extent	sign_point_cut	Stamp River	Hatchery Lagoon - from fishing boundary signs on either side of the Stamp River located at the inlet
+1	1:stamp-river:powerline-crossing-from-boundary-s	dormant	20240124015458	water_bound_no_extent	landmark_cut	Stamp River	Powerline Crossing - from boundary signs on either side of the Stamp River at the powerline crossing
+1	1:stamp-river:upstream-of-signs-located-at-girl	dormant	20240124015458	water_bound_no_extent	sign_point_cut	Stamp River	Upstream of signs located at Girl Guide Falls approximately 250m upstream of the Beaver Creek and St
+1	1:stamp-river:downstream-of-signs-at-girl-guide	dormant	20240124015458	water_bound_no_extent	sign_point_cut	Stamp River	Downstream of signs at "Girl Guide Falls" approximately 250m upstream of the mouth of Beaver Creek.
+1	1:stamp-river:from-the-southern-portion-of-the-r	dormant	20250320081627	water_bound_no_extent	sign_point_cut	Stamp River	From the southern portion of the Robertson Creek Hatchery Lagoon, east of a line drawn from the sout
+2	2:alouette-river-and-tributaries:upstream-of-the-216th-street-bridg	active	live	water_bound_no_extent	landmark_cut	Alouette River and tributaries	Upstream of the 216th Street bridge to a line between two fishing boundary signs at Allco park
+2	2:alouette-river-and-tributaries:downstream-of-the-216th-street-bri	active	live	water_bound_no_extent	landmark_cut	Alouette River and tributaries	Downstream of the 216th street bridge to the confluence of the Pitt River
+2	2:alouette-river-and-tributaries:north-alouette-and-tributaries	active	live	water_bound_no_extent	other	Alouette River and tributaries	North Alouette and tributaries
+2	2:capilano-river:including-tributaries	active	live	water_bound_no_extent	whole_scope	Capilano River	including tributaries.
+2	2:chapman-creek:upstream-of-tidal-water-fishing-bo	active	live	water_bound_no_extent	sign_point_cut	Chapman Creek	upstream of tidal water fishing boundary signs located below the Hwy 101 Bridge to 100 m below the f
+2	2:chehalis-river:downstream-of-the-logging-bridge-2	active	live	water_bound_no_extent	landmark_cut	Chehalis River	downstream of the logging bridge 2.4 km downstream of Chehalis Lake, including tributaries to that p
+2	2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~3	active	live	water_bound_no_extent	sign_point_cut	Chilliwack/Vedder River (including Sumas River)	from a line between 2 fishing boundary signs on either side of the Chilliwack River 100 m downstream
+2	2:fraser-river:mainstem-waters-upstream-of-the-cp	active	live	water_bound_no_extent	landmark_cut	Fraser River	mainstem waters upstream of the CPR Bridge at Mission, BC
+2	2:harrison-river:from-the-outlet-of-harrison-lake-d	active	live	water_bound_no_extent	landmark_cut	Harrison River	from the outlet of Harrison Lake downstream to the Hwy 7 bridge.
+2	2:harrison-river:from-the-highway-7-bridge-downstre	active	live	water_bound_no_extent	landmark_cut	Harrison River	from the Hwy 7 bridge downstream to the confluence with the Fraser River.
+2	2:kanaka-creek:downstream-of-the-112th-street-bri	active	live	water_bound_no_extent	landmark_cut	Kanaka Creek	downstream of the 112th Street bridge.
+2	2:little-campbell-river:downstream-of-12th-avenue-includin	active	live	water_bound_no_extent	landmark_cut	Little Campbell River	downstream of 12th Avenue, including tributaries to that part.
+2	2:little-campbell-river:downstream-of-a-line-between-2-fis	active	live	water_bound_no_extent	other	Little Campbell River	downstream of a line between 2 fishing boundary signs on either side of the Little Campbell River to
+2	2:nicomekl-river:downstream-of-208th-street	active	live	water_bound_no_extent	landmark_cut	Nicomekl River	downstream of 208th Street
+2	2:nicomen-including-dewdney-slough:from-the-confluence-of-siddle-bell	active	live	water_bound_no_extent	landmark_cut	Nicomen (including Dewdney) Slough	from the confluence of Siddle (Bell's) Ck. downstream to the Fraser River
+2	2:serpentine-river:downstream-of-168th-street-at-both	active	live	water_bound_no_extent	landmark_cut	Serpentine River	downstream of 168th Street at Bothwell Park
+2	2:stave-river:downstream-of-b-c-hydro-dam-to-the~2	active	live	water_bound_no_extent	landmark_cut	Stave River	downstream of B.C. Hydro Dam to the CPR Railway Bridge; except you shall not fish for salmon in that
+2	2:alouette-river-and-tributaries:above-216th-street-including-the-n	dormant	20240110070445	water_bound_no_extent	landmark_cut	Alouette River and tributaries	above 216th Street, including the North Alouette River and tributaries to that part
+2	2:alouette-river-and-tributaries:downstream-of-a-line-between-2-fis	dormant	20230215195843	water_bound_no_extent	other	Alouette River and tributaries	downstream of a line between 2 fishing boundary signs in Allco Park
+2	2:alouette-river-and-tributaries:downstream-of-a-line-between-two-f	dormant	20240110070445	water_bound_no_extent	other	Alouette River and tributaries	downstream of a line between two fishing boundary signs in Allco Park
+2	2:birkenhead-river:from-the-birkenhead-bridge-located	dormant	20240110070445	water_bound_no_extent	landmark_cut	Birkenhead River	from the Birkenhead Bridge located approx. 6 km north of Mount Currie on Portage Road to the canyon 
+2	2:brunette-river:downstream-of-cariboo-road	dormant	20230215195843	water_bound_no_extent	other	Brunette River	downstream of Cariboo Road.
+2	2:chilliwack-vedder-river-including:upstream-from-a-line-between-2-fis	dormant	20230215195843	water_bound_no_extent	sign_point_cut	Chilliwack/Vedder River (including Sumas River)	upstream from a line between 2 fishing boundary signs on either side of the Chilliwack River 100 m d
+2	2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun	dormant	20240110070445	water_bound_no_extent	sign_point_cut	Chilliwack/Vedder River (including Sumas River)	from a line between 2 fishing boundary signs on either side of the Chilliwack River 100 m from the c
+2	2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~2	dormant	20230919215605	water_bound_no_extent	sign_point_cut	Chilliwack/Vedder River (including Sumas River)	from a line between 2 fishing boundary signs on either side of the Chilliwack River 100 m from the c
+2	2:chilliwack-vedder-river-including:upstream-from-a-line-between-2-fis~2	dormant	20240909211944	water_bound_no_extent	sign_point_cut	Chilliwack/Vedder River (including Sumas River)	upstream from a line between 2 fishing boundary signs on either side of the Chilliwack River 100 m d
+2	2:fraser-river:from-the-downstream-side-of-the-cp	dormant	20260306083148	water_bound_no_extent	landmark_cut	Fraser River	from the downstream side of the CPR Bridge at Mission upstream to the Highway 1 bridge at Hope
+2	2:fraser-river:upstream-from-the-highway-1-bridge	dormant	20230215195843	water_bound_no_extent	landmark_cut	Fraser River	upstream from the Highway 1 Bridge at Hope
+2	2:fraser-river:from-the-highway-1-bridge-at-hope	dormant	20260306083148	water_bound_no_extent	landmark_cut	Fraser River	from the Highway 1 Bridge at Hope to the downstream side of the Alexandra Bridge
+2	2:fraser-river:mainstem-waters-from-the-downstrea	dormant	20250116124751	water_bound_no_extent	landmark_cut	Fraser River	mainstem waters from the downstream side of the CPR Bridge at Mission, BC to the Highway 1 Bridge at
+2	2:fraser-river:from-the-downstream-side-of-the-cp~2	dormant	20260306083148	water_bound_no_extent	landmark_cut	Fraser River	from the downstream side of the CPR Bridge at Mission upstream to the Highway 1 Bridge at Hope and f
+2	2:harrison-river:from-the-outlet-of-harrison-lake-d~2	dormant	20260306083148	water_bound_no_extent	landmark_cut	Harrison River	from the outlet of Harrison Lake downstream to the confluence with the Fraser River
+2	2:inch-creek:from-the-hatchery-outlet-to-the-co	dormant	20230215195843	water_bound_no_extent	sign_point_cut	Inch Creek	from the hatchery outlet to the confluence with Norrish Creek/ Nicomen Slough.
+2	2:kanaka-creek:upstream-of-the-112th-street-bridg	dormant	20230215195843	water_bound_no_extent	landmark_cut	Kanaka Creek	upstream of the 112th Street bridge.
+2	2:nicomekl-river:within-23-m-downstream-of-the-floo	dormant	20250116124751	water_bound_no_extent	landmark_cut	Nicomekl River	Within 23 m. downstream of the flood dams
+2	2:nicomen-including-dewdney-slough:from-the-highway-7-bridge-at-dewdn	dormant	20260306083148	water_bound_no_extent	landmark_cut	Nicomen (including Dewdney) Slough	from the Highway 7 bridge at Dewdney downstream to the Fraser River
+2	2:pitt-river:pitt-river-and-tributaries	dormant	20230215195843	water_bound_no_extent	other	Pitt River	Pitt River and tributaries
+2	2:pitt-river:upper-and-lower-river-including-tr	dormant	20230215195843	water_bound_no_extent	other	Pitt River	Upper and lower river, including tributaries.
+2	2:pitt-river:upper-river-upstream-of-pitt-lake	dormant	20230215195843	water_bound_no_extent	landmark_cut	Pitt River	Upper river – upstream of Pitt Lake
+2	2:sakinaw-lake:easterly-of-a-line-drawn-from-a-bo	dormant	20230215195843	water_bound_no_extent	landmark_cut	Sakinaw Lake	Easterly of a line drawn from a boundary sign located at the north side of the Sakinaw Lake boat lau
+2	2:sakinaw-lake:the-body-of-water-known-as-bear-ba	dormant	20230215195843	water_bound_no_extent	other	Sakinaw Lake	The body of water known as Bear Bay, easterly of a line drawn from a boundary sign located at 49°40.
+2	2:serpentine-river:downstream-of-168th-street	dormant	20240110070445	water_bound_no_extent	landmark_cut	Serpentine River	downstream of 168th Street.
+2	2:serpentine-river:within-23-m-downstream-of-the-floo	dormant	20250116124751	water_bound_no_extent	landmark_cut	Serpentine River	Within 23 m. downstream of the flood dams
+2	2:seymour-river:from-the-seymour-river-dam-to-the	dormant	20230215195843	water_bound_no_extent	landmark_cut	Seymour River	from the Seymour River Dam to the tidal boundary, including tributaries
+2	2:stave-river:downstream-of-b-c-hydro-dam-to-the	dormant	20260306083148	water_bound_no_extent	landmark_cut	Stave River	downstream of B.C. Hydro Dam to the CPR Railway Bridge
+2	2:stave-river:that-portion-of-the-stave-river-kn	dormant	20230215195843	water_bound_no_extent	other	Stave River	that portion of the Stave River, known as the Ruskin Spawning Channel on the east bank of the BC Hyd
+2	2:stave-river:the-ruskin-spawning-channel-on-the	dormant	20250116124751	water_bound_no_extent	landmark_cut	Stave River	the Ruskin Spawning Channel on the east bank of the BC Hydro park from the inlet near the dam, downs
+2	2:stave-river:in-that-portion-of-the-stave-river	dormant	20260306083148	water_bound_no_extent	other	Stave River	in that portion of the Stave River, known as the Ruskin Spawning Channel on the east bank of the BC 
+3	3:fraser-river:in-that-portion-of-the-fraser-rive	active	live	water_bound_no_extent	landmark_cut	Fraser River	In that portion of the Fraser River from the confluence with the Seton River downstream to the fishi
+3	3:south-thompson-river:from-the-green-can-buoy-near-outle	active	live	water_bound_no_extent	landmark_cut	South Thompson River	From the green can buoy near outlet of Little River, including Little Shuswap Lake, to the fishing w
+3	3:thompson-river:from-the-white-triangle-fishing-bo	active	live	water_bound_no_extent	other	Thompson River	From the white triangle fishing boundary signs just downstream of Gold Pan Provincial Park to the ea
+3	3:thompson-river:from-kamloops-lake-outlet-downstre~2	active	live	water_bound_no_extent	landmark_cut	Thompson River	From Kamloops Lake outlet downstream to the fishing boundary signs just downstream of Gold Pan Provi
+3	3:fraser-river:mainstem-waters-of-the-fraser-rive	dormant	20250618200348	water_bound_no_extent	other	Fraser River	Mainstem waters of the Fraser River
+3	3:thompson-river:from-kamloops-lake-outlet-downstre	dormant	20250618200348	water_bound_no_extent	landmark_cut	Thompson River	From Kamloops Lake outlet downstream to the fishing boundary signs just downstream of Gold Pan Provi
+5a	5a:quesnel-lake:that-portion-of-quesnel-lake-known	active	live	water_bound_no_extent	landmark_cut	Quesnel Lake	that portion of Quesnel Lake known as Horsefly Bay, inside a line connecting white triangular fishin
+5a	5a:quesnel-river:that-portion-of-the-quesnel-river	active	live	water_bound_no_extent	landmark_cut	Quesnel River	that portion of the Quesnel River between the Johnson Subdivision Bridge (52°58.373'N; 122°29.349'W)
+5a	5a:quesnel-lake:in-the-waters-of-horsefly-bay-loca	dormant	20250320090549	water_bound_no_extent	landmark_cut	Quesnel Lake	In the waters of Horsefly Bay located on Quesnel Lake inside a line connecting white triangular fish
+5a	5a:quesnel-river:between-the-johnson-subdivision-br	dormant	20250320090549	water_bound_no_extent	landmark_cut	Quesnel River	between the Johnson Subdivision Bridge (52° 58.373'N; 122° 29.349'W) and the powerlines (52° 59.788'
+5b	5b:atnarko-river:downstream-of-the-fishing-boundary	active	live	water_bound_no_extent	other	Atnarko River	downstream of the fishing boundary sign located near Tweedsmuir Park Lodge.
+5b	5b:bella-coola-river-not-including-at:all-tributaries-to-the-bella-coola	active	live	water_bound_no_extent	other	Bella Coola River (not including Atnarko River)	All tributaries to the Bella Coola River.
+5b	5b:dean-river:from-the-confluence-with-crag-cree	active	live	water_bound_no_extent	landmark_cut	Dean River	from the confluence with Crag Creek downstream to the tidal boundary, except for the canyon as liste
+5b	5b:dean-river:from-signs-located-approx-500-m-up	active	live	water_bound_no_extent	sign_point_cut	Dean River	from signs located approximately 500 m upstream of the canyon to signs located approximately 100 m b
+5b	5b:dean-river:upstream-of-the-confluence-with-cr	active	live	water_bound_no_extent	landmark_cut	Dean River	upstream of the confluence with Crag Creek.
+5b	5b:long-lake:including-tributaries	active	live	water_bound_no_extent	whole_scope	Long Lake	Including tributaries
+6	6:babine-lake:including-tributaries	active	live	water_bound_no_extent	whole_scope	Babine Lake	including tributaries
+6	6:babine-lake:babine-lake-excluding-tributaries~3	active	live	water_bound_no_extent	sign_point_cut	Babine Lake	Babine Lake excluding tributaries and those waters within a 400 m radius of the following tributary 
+6	6:bear-river:including-tributaries	active	live	water_bound_no_extent	whole_scope	Bear River	including tributaries.
+6	6:bish-creek:including-tributaries	active	live	water_bound_no_extent	whole_scope	Bish Creek	including tributaries.
+6	6:brim-river:including-tributaries	active	live	water_bound_no_extent	whole_scope	Brim River	including tributaries.
+6	6:bulkley-river:downstream-of-the-morice-river-con	active	live	water_bound_no_extent	landmark_cut	Bulkley River	downstream of the Morice River confluence excluding tributaries.
+6	6:bulkley-river:all-tributaries-of-the-bulkley-riv	active	live	water_bound_no_extent	other	Bulkley River	all tributaries of the Bulkley River other than the Suskwa River.
+6	6:bulkley-river:all-tributaries-of-the-bulkley-riv~2	active	live	water_bound_no_extent	other	Bulkley River	all tributaries of the Bulkley River other than Morice River and tributaries, Suskwa River and tribu
+6	6:cranberry-river:including-tributaries-note-the-sec	active	live	water_bound_no_extent	whole_scope	Cranberry River	including tributaries NOTE: the section of river from Cranberry-Kiteen junction to Nass R. is part o
+6	6:dala-river:including-tributaries	active	live	water_bound_no_extent	whole_scope	Dala River	including tributaries.
+6	6:ecstall-river:upstream-of-fishing-boundary-signs	active	live	water_bound_no_extent	landmark_cut	Ecstall River	upstream of fishing boundary signs near confluence with Johnston Creek.
+6	6:exchamsiks-river:upstream-of-highway-16-bridge	active	live	water_bound_no_extent	landmark_cut	Exchamsiks River	upstream of Highway #16 bridge.
+6	6:exstew-river:upstream-of-highway-16-bridge	active	live	water_bound_no_extent	landmark_cut	Exstew River	upstream of Hwy #16 bridge.
+6	6:gitnadoix-river:upstream-of-powerline-crossing-nea	active	live	water_bound_no_extent	landmark_cut	Gitnadoix River	upstream of powerline crossing near river mouth.
+6	6:illiance-river:upstream-of-white-triangular-fishi	active	live	water_bound_no_extent	sign_point_cut	Illiance River	upstream of white triangular fishing boundary signs located near mouth of river.
+6	6:ishkheenickh-river:including-tributaries	active	live	water_bound_no_extent	whole_scope	Ishkheenickh River	including tributaries.
+6	6:kasiks-river:upstream-of-fishing-boundary-signs	active	live	water_bound_no_extent	sign_point_cut	Kasiks River	upstream of fishing boundary signs located below the Upper Pool.
+6	6:kasiks-river:downstream-of-fishing-boundary-sig	active	live	water_bound_no_extent	sign_point_cut	Kasiks River	downstream of fishing boundary signs located below the Upper Pool.
+6	6:kasiks-river:upstream-of-highway-16-bridge	active	live	water_bound_no_extent	landmark_cut	Kasiks River	upstream of Hwy #16 bridge.
+6	6:khutze:including-tributaries	active	live	water_bound_no_extent	whole_scope	Khutze	including tributaries.
+6	6:khutzeymateen-river:including-tributaries	active	live	water_bound_no_extent	whole_scope	Khutzeymateen River	including tributaries.
+6	6:khyex-river:upstream-of-highway-16-bridge	active	live	water_bound_no_extent	landmark_cut	Khyex River	upstream of Hwy #16 bridge.
+6	6:kiltuish-river:including-tributaries	active	live	water_bound_no_extent	whole_scope	Kiltuish River	including tributaries.
+6	6:kispiox-river:downstream-of-fishing-boundary-sig	active	live	water_bound_no_extent	other	Kispiox River	downstream of fishing boundary signs near Kispiox River Resort.
+6	6:kiteen-river:including-tributaries	active	live	water_bound_no_extent	whole_scope	Kiteen River	including tributaries
+6	6:kitimat-river:on-west-bank-between-signs-at-kiti	active	live	water_bound_no_extent	sign_point_cut	Kitimat River	on west bank between signs at Kitimat hatchery outfall.
+6	6:kitimat-river:downstream-of-highway-37-bridge	active	live	water_bound_no_extent	landmark_cut	Kitimat River	downstream of Highway # 37 bridge.
+6	6:kitimat-river:upstream-of-highway-37-bridge	active	live	water_bound_no_extent	landmark_cut	Kitimat River	upstream of Highway # 37 bridge.
+6	6:kitsault-river:upstream-of-white-triangular-fishi	active	live	water_bound_no_extent	sign_point_cut	Kitsault River	upstream of white triangular fishing boundary signs located near mouth of river.
+6	6:kitseguecla-river:including-tributaries	active	live	water_bound_no_extent	whole_scope	Kitseguecla River	including tributaries.
+6	6:kitsumkalum-lake:including-tributaries	active	live	water_bound_no_extent	whole_scope	Kitsumkalum Lake	including tributaries.
+6	6:kitsumkalum-river:upstream-of-fishing-boundary-signs	active	live	water_bound_no_extent	landmark_cut	Kitsumkalum River	upstream of fishing boundary signs below lower canyon.
+6	6:kitsumkalum-river:downstream-of-fishing-boundary-sig	active	live	water_bound_no_extent	landmark_cut	Kitsumkalum River	downstream of fishing boundary signs below lower canyon.
+6	6:kitsumkalum-river:downstream-of-railway-bridge	active	live	water_bound_no_extent	landmark_cut	Kitsumkalum River	downstream of railway bridge.
+6	6:kitwanga-river:including-tributaries	active	live	water_bound_no_extent	whole_scope	Kitwanga River	including tributaries.
+6	6:kloiya-river:including-tributaries	active	live	water_bound_no_extent	whole_scope	Kloiya River	including tributaries.
+6	6:kwinimass-river:upstream-of-lower-bridge-abutments	active	live	water_bound_no_extent	landmark_cut	Kwinimass River	upstream of lower bridge abutments.
+6	6:kwinimass-river:downstream-of-lower-bridge-abutmen	active	live	water_bound_no_extent	landmark_cut	Kwinimass River	downstream of lower bridge abutments.
+6	6:lakelse-river:downstream-of-the-cnr-bridge	active	live	water_bound_no_extent	landmark_cut	Lakelse River	downstream of the CNR bridge.
+6	6:lakelse-river:below-logging-road-bridge-near-the	active	live	water_bound_no_extent	landmark_cut	Lakelse River	below logging road bridge near the mouth.
+6	6:lakelse-river:above-logging-road-bridge-near-the	active	live	water_bound_no_extent	landmark_cut	Lakelse River	above logging road bridge near the mouth.
+6	6:meziadin-lake:including-tributaries	active	live	water_bound_no_extent	whole_scope	Meziadin Lake	including tributaries
+6	6:meziadin-lake:excluding-tributaries	active	live	water_bound_no_extent	whole_scope	Meziadin Lake	excluding tributaries
+6	6:meziadin-river:including-tributaries	active	live	water_bound_no_extent	whole_scope	Meziadin River	including tributaries
+6	6:nass-river:portions-from-the-canyon-city-brid	active	live	water_bound_no_extent	landmark_cut	Nass River	portions from the Canyon City Bridge located approximately 5.75 km downstream of the Tseax confluenc
+6	6:nass-river:mainstem-waters-downstream-of-the~2	active	live	water_bound_no_extent	landmark_cut	Nass River	mainstem waters downstream of the fishing boundary signs near the confluence with the Meziadin River
+6	6:nass-river:mainstem-waters-near-the-meziadin	active	live	water_bound_no_extent	landmark_cut	Nass River	mainstem waters near the Meziadin River confluence, from white triangular fishing boundary signs loc
+6	6:pinkut-creek:downstream-of-fishing-boundary-sig	active	live	water_bound_no_extent	sign_point_cut	Pinkut Creek	downstream of fishing boundary signs located approx. 25 m downstream of fish counting fence.
+6	6:quaal-river:including-tributaries	active	live	water_bound_no_extent	whole_scope	Quaal River	including tributaries.
+6	6:redsand-lake:including-tributaries	active	live	water_bound_no_extent	whole_scope	Redsand Lake	including tributaries.
+6	6:scotia-river:including-tributaries	active	live	water_bound_no_extent	whole_scope	Scotia River	including tributaries.
+6	6:shegunia-river:between-fishing-boundary-signs-loc	active	live	water_bound_no_extent	sign_point_cut	Shegunia River	between fishing boundary signs located above and below logging road bridge.
+6	6:sheldens-creek:upstream-of-white-triangular-fishi	active	live	water_pending	sign_point_cut	Sheldens Creek	upstream of white triangular fishing boundary signs located at the Spur 19 Bridge site.
+6	6:stikine-river:including-tributaries-see-the-tahl	active	live	water_bound_no_extent	whole_scope	Stikine River	including tributaries ( See the Tahltan River ).
+6	6:suskwa-river:including-tributaries	active	live	water_bound_no_extent	whole_scope	Suskwa River	including tributaries
+6	6:sustut-river:including-tributaries	active	live	water_bound_no_extent	whole_scope	Sustut River	including tributaries.
+6	6:swift-river:including-tributaries	active	live	water_bound_no_extent	whole_scope	Swift River	including tributaries.
+6	6:tahltan-river:including-tributaries	active	live	water_bound_no_extent	whole_scope	Tahltan River	including tributaries.
+6	6:taku-river:including-tributaries-see-the-naki	active	live	water_bound_no_extent	whole_scope	Taku River	including tributaries. (see the Nakina River and Tatsatua Creek )
+6	6:tatsatua-creek:including-tributaries	active	live	water_bound_no_extent	whole_scope	Tatsatua Creek	including tributaries.
+6	6:tseax-river:upstream-of-nisga-a-highway-bridge	active	live	water_bound_no_extent	landmark_cut	Tseax River	upstream of Nisga’a Hwy Bridge
+6	6:tseax-river:downstream-of-nisga-a-highway-brid	active	live	water_bound_no_extent	landmark_cut	Tseax River	downstream of Nisga’a Hwy Bridge
+6	6:wahoo-river:including-tributaries	active	live	water_bound_no_extent	whole_scope	Wahoo River	including tributaries.
+6	6:wilauks-creek:upstream-of-white-triangular-fishi	active	live	water_bound_no_extent	sign_point_cut	Wilauks Creek	upstream of white triangular fishing boundary signs located near mouth of creek.
+6	6:zymagotitz-river:upstream-of-highway-16-bridge	active	live	water_bound_no_extent	landmark_cut	Zymagotitz River	upstream of Highway #16 bridge
+6	6:zymoetz-river:upstream-of-highway-16-bridge	active	live	water_bound_no_extent	landmark_cut	Zymoetz River	upstream of Highway #16 bridge.
+6	6:babine-lake:babine-lake-excluding-tributaries	dormant	20200408190304fx	water_bound_no_extent	sign_point_cut	Babine Lake	Babine Lake excluding tributaries and those waters within a 400 m radius of the following tributary 
+6	6:babine-lake:within-a-400-m-radius-of-the-mouth	dormant	20200408190304fx	water_bound_no_extent	sign_point_cut	Babine Lake	within a 400 m radius of the mouth of Pinkut Creek.
+6	6:babine-lake:babine-lake-excluding-tributaries~2	dormant	20260413113750	water_bound_no_extent	sign_point_cut	Babine Lake	Babine Lake excluding tributaries and those waters within a 400 m radius of the following tributary 
+6	6:babine-lake:within-a-400m-radius-of-the-mouth	dormant	20260116033005	water_bound_no_extent	sign_point_cut	Babine Lake	within a 400m radius of the mouth of Pinkut Creek
+6	6:babine-river:from-the-nilkitkwa-river-confluenc	dormant	20241204215641	water_bound_no_extent	landmark_cut	Babine River	from the Nilkitkwa River confluence with the Babine River upstream to the fishing boundary signs bel
+6	6:babine-river:from-the-nilkitkwa-river-confluenc~2	dormant	20241204215641	water_bound_no_extent	landmark_cut	Babine River	from the Nilkitkwa River confluence with the Babine River downstream to the Skeena River confluence 
+6	6:nakina-river:that-portion-of-the-nakina-river-f	dormant	20220524155747	water_bound_no_extent	other	Nakina River	That portion of the Nakina River from the centre line to the northern bank, starting from a boundary
+6	6:nass-river:mainstem-waters-downstream-of-the	dormant	20180524134448fx	water_bound_no_extent	landmark_cut	Nass River	mainstem waters downstream of the confluence with the Meziadin River
+6	6:skeena-river:from-the-confluence-with-the-babin	dormant	20200408190304fx	water_bound_no_extent	landmark_cut	Skeena River	from the confluence with the Babine River downstream to the CNR Railway Bridge at Terrace.
+6	6:skeena-river:from-lakelse-river-mouth-upstream	dormant	20200408190304fx	water_bound_no_extent	landmark_cut	Skeena River	from Lakelse River mouth upstream to the Skeena River Overpass (New Hwy Bridge) at Ferry Island.
+6	6:swift-river:including-tributaries-anglers-may	dormant	20180524134448fx	water_bound_no_extent	whole_scope	Swift River	including tributaries. Anglers may now fish this river with either a Yukon or BC angling licence.
+6	6:zymoetz-river:note-section-of-river-from-highway	dormant	20220524155747	water_bound_no_extent	landmark_cut	Zymoetz River	Note: section of river from Hwy 16 bridge downstream to Zymotz- Skeena confluence is the Zymotz Rive
+7	7:nechako-river:from-the-downstream-edge-of-the-fo	active	live	water_bound_no_extent	landmark_cut	Nechako River	from the downstream edge of the Foothills Boulevard Bridge to the boundary signs at the confluence w
+7	7:nechako-river:upstream-from-the-boundary-signs-a	dormant	20250518013252	water_bound_no_extent	landmark_cut	Nechako River	upstream from the boundary signs at the confluence with the Fraser River to the downstream edge of t
+8	8:mabel-lake:northerly-of-a-line-drawn-from-a-w	active	live	water_bound_no_extent	other	Mabel Lake	Northerly of a line drawn from a white triangular fishing boundary sign situated at the northern edg
+8	8:osoyoos-lake:in-the-waters-in-the-portion-of-os~2	active	live	water_bound_no_extent	landmark_cut	Osoyoos Lake	In the waters in the portion of Osoyoos Lake (Region 8) north of the bridge at Highway No. 3 (North 
+8	8:shuswap-river:lower-upstream-from-white-triangul	active	live	water_bound_no_extent	landmark_cut	Shuswap River	(lower) upstream from white triangular fishing boundary signs above Mara Bridge to Mabel Lake.
+8	8:shuswap-river:lower-50-m-upstream-of-the-trinity	active	live	water_bound_no_extent	sign_point_cut	Shuswap River	(lower) 50 meters upstream of the Trinity Valley Road Bridge to 50 m downstream of the Trinity Valle
+8	8:shuswap-river:middle-between-shuswap-falls-and-m~2	active	live	water_bound_no_extent	landmark_cut	Shuswap River	(middle) between Shuswap Falls and Mabel Lake except closed from the water survey station (located a
+8	8:osoyoos-lake:in-the-waters-in-the-portion-of-os	dormant	20230215202439	water_bound_no_extent	landmark_cut	Osoyoos Lake	In the waters in the portion of Osoyoos Lake north of the bridge at Highway No. 3 (North Basin)
+8	8:shuswap-river:middle-between-shuswap-falls-and-m	dormant	20231129092410	water_bound_no_extent	landmark_cut	Shuswap River	(middle) between Shuswap Falls and Mabel Lake except closed from the water survey station ( located 
