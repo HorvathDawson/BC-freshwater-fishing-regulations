@@ -18,6 +18,10 @@ ticket FINDS them all and proposes them, with confidence and sources, for the ow
   (`git log --all --diff-filter=D --name-only -- '*.gpkg' '*.geojson'`), and the owner's ~/Downloads, ~/Desktop,
   ~/Documents (read-only). Also check pipeline/atlas/waters/added_streams/coastal.py and the reach run's `tidal`
   diagnostics for what tidal source the build reads today. If it cannot be found, ask the owner for the path.
+  FOUND (owner 2026-10-27: "it is fetched from R2"): the `tidal_boundary` layer of data/source/bc_fisheries_data.gpkg
+  (the build gpkg from the R2 build-assets bucket), built by data/build_tidal_boundary.py + process_tidal_boundary.py
+  (last in git at 5c3319c0) from DFO PFMA subareas (`dfodfooy__dfo_bc_pfma_subareas_chs_v3_gshp`); see
+  pipeline/regs/dfo_salmon/DATAFLOW.md (~line 440). The owner's hand edits live in that layer.
 - Tidal-boundary text in the DFO salmon notices and the synopsis (e.g. "tidal waters", "tidal boundary signs", "below
   the CPR bridge"), and the tidal limits already curated (Fraser below Mission, Q42).
 - Web search per stream where the above disagree or are silent (DFO tidal boundary descriptions, Fisheries Act
