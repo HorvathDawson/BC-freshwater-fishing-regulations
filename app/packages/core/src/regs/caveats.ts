@@ -101,12 +101,15 @@ export function inPartOf(s: Settled, inp: RegsInputs, fams: readonly string[]): 
     const area = areaOf(r, inp);
     return area ? { ...item(words, where(r), r), area } : item(words, where(r), r);
   };
+  const items = (now.length ? now : later).map(li), rest = now.length && later.length ? later.map(li) : null;
+  // (T208) the block's areas, said on its folded head so a rule of one area is never only behind the fold
+  const areas = [...new Set([...items, ...(rest ?? [])].flatMap((x) => (x.area ? [x.area.tag] : [])))];
   return {
     kind: "inpart", hot,
     title: hot ? WORDS.INPART_HOT : onlyBoat ? WORDS.INPART_BOAT : WORDS.INPART_SOME,
     calm: hot ? WORDS.CALM_HOT : onlyBoat ? WORDS.CALM_BOAT(pageWaterNoun(inp)) : WORDS.CALM_LATER,
-    items: (now.length ? now : later).map(li),
-    later: now.length && later.length ? later.map(li) : null,
+    items, later: rest,
+    ...(areas.length ? { areas, areaNow: items.some((x) => !!x.area) && now.length > 0 } : {}),
   };
 }
 

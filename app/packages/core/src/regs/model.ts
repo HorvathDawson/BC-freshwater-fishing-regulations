@@ -205,6 +205,9 @@ export interface CaveatVM {                                           // page v3
   readonly kind: "inpart" | "side" | "angler" | "timed" | "uncertain"; readonly hot: boolean;
   readonly title: string; readonly calm: string | null;
   readonly items: readonly CaveatItemVM[]; readonly later: readonly CaveatItemVM[] | null;
+  /** (T208, inpart) the distinct area tags of its items ("Outlet area only (see map 1)"), drawn on the folded head; `areaNow`:
+   *  an area rule is in force on the day, so the block opens unfolded. Absent when no item has an area. */
+  readonly areas?: readonly string[]; readonly areaNow?: boolean;
 }
 export interface CaveatItemVM { readonly what: Line; readonly where: string | null; readonly rule: RuleKey | null; readonly fish: string | null; readonly book: Line;
   /** (T208) a rule held on an undrawn part of the water that the book shows on a map ("Outlet area only (see map 1)"): `what`

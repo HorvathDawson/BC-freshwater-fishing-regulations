@@ -101,6 +101,12 @@ describe("inPartOf: rules of parts the map can't draw", () => {
     expect(plain(c.items[0]!.what)).toBe("Char — 2 per day");
     expect(c.items[0]!.area).toEqual({ tag: "Outlet area only (see map 1)", map: [{ t: "text", s: "See map 1 · " }, { t: "book", printed: 51, pdf: 57, bare: true }] });
     expect(c.items[1]!.area).toBeUndefined();   // not an outlet/inlet or a mapped part: as before
+    // the block's head says the area (never only behind the fold); in force today → it opens unfolded
+    expect([c.areas, c.areaNow]).toEqual([["Outlet area only (see map 1)"], true]);
+    const later = inPartOf(settled({ inpart: [{ rule: withMap, now: false }] }), win, KEEP_FAMS)!;
+    expect([later.title, later.areas, later.areaNow]).toEqual(["Some spots have their own rules", ["Outlet area only (see map 1)"], false]);
+    const plainSpot = inPartOf(settled({ inpart: [{ rule: whole, now: true }] }), win, KEEP_FAMS)!;
+    expect(["areas" in plainSpot, "areaNow" in plainSpot]).toEqual([false, false]);   // no area: the block as before
   });
   it("another family's rules are not this block's; none → null", () => {
     expect(inPartOf(settled({ inpart: [{ rule: boat, now: true }] }), inp, KEEP_FAMS)).toBeNull();

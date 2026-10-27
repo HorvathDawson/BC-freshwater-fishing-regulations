@@ -29,3 +29,11 @@ not to the whole lake and not buried.
   the left, the tag above its words and the map link under them - distinct from whole-water rules, which stay as they were.
 - Covers the 91 `undrawn_part` rules: 19 outlet/inlet parts + the 6 naming a map (François r1, Shuswap A/B/C, ...). Tests:
   `caveats.test.ts` (François-shaped rule). The drawn outline stays with the lake splits (deferred).
+
+## Outcome 2 (2026-10-27, never behind the fold)
+- The in-part fold ("Some spots have their own rules") hid the area rule until opened. Core `inPartOf` now gives the block
+  `areas` (its items' distinct area tags) and `areaNow` (an area rule in force on the day); `CaveatBlock` draws the areas on
+  the folded head in `restricted` ("ⓘSome spots have their own rules / Outlet area only (see map 1)") and opens unfolded on a
+  day the area rule holds (François Nov 21: "No fishing · Nov 15–May 31" with "See map 1 · p.51 ↗" shown at once). Blocks
+  without an area are unchanged (golden parity holds). Tests: `caveats.test.ts`, `ui-native/regs/CaveatArea.test.tsx`.
+  Shots: `T208-shots/` (web, :39218). The map sheet draws the same Keep tab. Still PARTIAL: the drawn outline waits on lake splits.

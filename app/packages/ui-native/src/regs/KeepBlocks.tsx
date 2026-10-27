@@ -3,7 +3,7 @@
  * block, "Where you can’t fish", the Possession row, the Other fish list, the outside-B.C. foot. tokens.md §5. No logic:
  * each draws its VM slice.
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Image, Text, View } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
 import { WORDS, type BannerVM, type CaveatVM, type InheritedVM, type OtherFishKeyVM, type OtherFishRowVM, type PossessionVM, type WhereNotVM } from "@app/core";
@@ -78,7 +78,9 @@ export function InheritedLine({ inherited, palette, actions }: { inherited: Inhe
  * link after it (prototype citeBooks — never inside the button).
  */
 export function CaveatBlock({ caveat, palette, actions }: { caveat: CaveatVM; palette: Palette; actions: KeepActions }) {
-  const [open, setOpen] = useState(false);   // page v36 details.inpart: folded, hot or not
+  // page v36 details.inpart: folded, hot or not — except (T208) when a rule of a named area is in force on the day
+  const [open, setOpen] = useState(!!caveat.areaNow);
+  useEffect(() => { if (caveat.areaNow) setOpen(true); }, [caveat.areaNow]);   // a day picked into the area's dates opens it too
   const item = (x: CaveatVM["items"][number], i: number) => {
     const words = (
       <>
@@ -123,6 +125,10 @@ export function CaveatBlock({ caveat, palette, actions }: { caveat: CaveatVM; pa
           <Icon name={open ? "collapse" : "expand"} colour={palette.ink} size={16} />
           <Text style={[TYPE.regsBody, { color: palette.ink, flex: 1 }]}>{head}</Text>
         </View>
+        {/* (T208) the areas are said on the head, so a rule of one area is never only behind the fold */}
+        {caveat.areas && caveat.areas.length > 0 && (
+          <Text testID="caveat-areas" style={[TYPE.metaBold, { color: palette.restricted, marginLeft: 22 }]}>{caveat.areas.join(" · ")}</Text>
+        )}
       </RegsPress>
       {open && body}
     </View>
