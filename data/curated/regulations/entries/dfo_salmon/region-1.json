@@ -833,7 +833,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "campbell_river__maple_street_boundary_sign",
+              "campbell_river__cement_block_boundary_sign"
+            ],
+            "item_id": "gnis:39532"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
