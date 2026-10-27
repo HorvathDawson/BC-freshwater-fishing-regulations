@@ -25,6 +25,9 @@ import { Icon } from "../icons";
 /** The selected tab, from the pin store (T29) or any source with the same two methods. */
 export interface TabSource { subscribe(fn: () => void): () => void; getTab(): Tab }
 
+/** about how many characters of the place row fit one line at a phone's width (the guess before it is measured) */
+const ONE_LINE_CHARS = 44;
+
 /** The place row's line height (metaSemi) — fitLabel's measure. */
 export const PLACE_LH = 16.22;
 
@@ -87,18 +90,21 @@ export function DatePill({ h, palette, onDate }: { h: HeaderVM; palette: Palette
 }
 
 /**
- * The place row: ALWAYS present (an empty slot of the same height when there is no label — the header is one size). Two
- * lines at the reader's text size (T40: the slot and the fit's line height grow with the scale, so a label at 2× is not
+ * The place row: ALWAYS present (an empty one-line slot when there is no label). One line, two when the label wraps. At the reader's text size (T40: the slot and the fit's line height grow with the scale, so a label at 2× is not
  * cut to one line); the measuring twin lays out again at the new size and the fit re-runs on its new height.
  */
 function Place({ place, palette }: { place: HeaderVM["place"]; palette: Palette }) {
   const [measured, setMeasured] = useState<number | null>(null);
   const lh = PLACE_LH * useCappedScale();
   const shown = place ? pickPlace(place, measured, lh) : "";
+  // (owner 2026-10-27) one line when the name fits, two only when it wraps. Before the measuring twin has laid out, a guess
+  // from the text's length (no jump for the common short name); the measure then settles it.
+  const wraps = place ? (measured ? measured > lh * 1.5 : place.full.length > ONE_LINE_CHARS) : false;
+  const lines = wraps ? 2 : 1;
   return (
     <View style={{ paddingLeft: GUTTER, paddingRight: 12, paddingBottom: 6, marginTop: -2 }}>
-      <Text testID="regs-place" numberOfLines={2} accessibilityLabel={place?.full} maxFontSizeMultiplier={CAPPED_SCALE}
-            style={[TYPE.metaSemi, { height: lh * 2, color: palette.sub }]}>{shown}</Text>
+      <Text testID="regs-place" numberOfLines={lines} accessibilityLabel={place?.full} maxFontSizeMultiplier={CAPPED_SCALE}
+            style={[TYPE.metaSemi, { height: lh * lines, color: palette.sub }]}>{shown}</Text>
       {place && (
         // the measuring twin: the full label at the same width, invisible (react-native-web has no onTextLayout)
         <Text aria-hidden pointerEvents="none" onLayout={(e) => setMeasured(e.nativeEvent.layout.height)} maxFontSizeMultiplier={CAPPED_SCALE}

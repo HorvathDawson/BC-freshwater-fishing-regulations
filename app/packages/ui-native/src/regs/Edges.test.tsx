@@ -93,6 +93,7 @@ describe("10. an unnamed section (D11 a)", () => {
       return s;
     };
     const named = style(asPage(vedder1010).header), none = style(h);
+    // (owner 2026-10-27) one line when the name fits: the empty slot is a named water's one line
     expect(named).toBe(none);
     expect(named).not.toBe("");
   });
