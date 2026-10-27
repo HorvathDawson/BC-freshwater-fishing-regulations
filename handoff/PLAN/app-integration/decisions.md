@@ -1422,3 +1422,8 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
 - Proposed splits carry their confidence everywhere; Sandy Pool = medium.
 - Tidal proposals reuse an existing curated cut within ~25 m (alias "tidal boundary") instead of a new point
   (Campbell: cement block sign 1631 m vs polygon 1625 m).
+
+## 2026-10-27 — tidal calls (owner)
+- Capilano: use the SOURCE TEXT boundary (not the polygon).
+- Cowichan: the tidal boundary is the river MOUTH (the DFO Hecate ramp–Green Point line lies seaward of it).
+- Straight-cut edit detection: raise the minimum straight-segment length (50 m caught too much).
