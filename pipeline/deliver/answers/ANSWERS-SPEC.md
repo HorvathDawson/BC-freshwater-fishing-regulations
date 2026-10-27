@@ -237,10 +237,11 @@ A. **The 2 said once** (`tree.py`): the share no longer says ", not counting hat
 
 ## ROUND20i (2026-10-19) — rows 26, gear 12, glossary 5: the user panel UR4's data words
 
-1. **A kind's size says the rule** (`TreeKind.size_rule`): "keep 30–50 cm (12–20 in); release the rest" from the kind's
+1. **A kind's size says the rule** (`TreeKind.size_rule`): "must be 30–50 cm (12–20 in); release any other size" from the kind's
    `sizes` (exactly the lengths it may be kept at here, gate-proved). Where a rainbow's top is the steelhead line on a steelhead
-   water the top is no release (over it the fish IS a steelhead, its own row): "keep 30–50 cm (12–20 in); release smaller
-   ones", nothing where that is the only end; null for any size, none, or a steelhead.
+   water the top is no release (over it the fish IS a steelhead, its own row): "must be 30 cm (12 in) or longer; release
+   any shorter", nothing where that is the only end; top only "must be 50 cm (20 in) or less; release any longer"; bottom only
+   "must be 30 cm (12 in) or longer; release any shorter"; null for any size, none, or a steelhead.
 2. **The worked keep-share line says what is still allowed HERE**: "none from other streams today — up to 2 more of any kind,
    from here or from lakes." (UR4's one wrong answer: a guide read rainbows kept here as blocking a cutthroat here; RULINGS
    Q23b — the lifted kind does not use the share on its own water). The old words stay where `here` < the total's rest.

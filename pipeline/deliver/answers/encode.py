@@ -430,7 +430,7 @@ SPEC = {
                     "quotas\", p.80): \"With 4 trout and char a day you may have 8: 2 days’ fish.\", where a share sits under "
                     "the total \"Possession doubles the 4 a day, not the 2 from streams.\" (null otherwise); null with no one "
                     "possession rule holding every kind. Version 26 (ROUND20i, user panel UR4): a tree kind's `size_rule` — the size as "
-                    "the rule, \"keep 30–50 cm (12–20 in); release the rest\" (\"release smaller ones\" where the top is the "
+                    "the rule, \"must be 30–50 cm (12–20 in); release any other size\" (\"must be 30 cm (12 in) or longer; release any shorter\" where the top is the "
                     "steelhead line; null for any size, none, a steelhead); the worked keep-share line \"none from other streams "
                     "today — up to 2 more of any kind, from here or from lakes.\"; the stop duty \"stop fishing this river after "
                     "2 a day\" (the water's own row's noun, p.21 \"stop fishing that water\"); `elsewhere.says` \"Your own "

@@ -62,13 +62,19 @@ function Kind({ k, first, inBand, at, palette, actions, images }: { k: KindVM; f
   const meta = !!(k.size || k.qualifiers);
   const anchor = useAnchor(`k${at.row}:${at.path}`, { k: "krow", row: at.row, tids: at.tids });
   return (
-    <View {...anchor} testID="krow" style={{ paddingVertical: 8, borderTopWidth: first ? 0 : 1, borderTopColor: inBand ? palette.line2 : palette.line }}>
+    <View {...anchor} testID="krow" style={[{ paddingVertical: 8, borderTopWidth: first ? 0 : 1, borderTopColor: inBand ? palette.line2 : palette.line },
+      // a folded kind's size rule hangs from the tier line it limits: take back the header's bottom pad and ours
+      k.folded && k.size?.rule && first ? { paddingTop: 0, marginTop: -6 } : null]}>
       {k.says && <LineText line={k.says} testID={k.zero ? "st:zero" : undefined} style={TYPE.regsBodySemi} color={k.zero ? palette.restricted : palette.ink} palette={palette} actions={actions}
                            linkStyle={TYPE.regsBodySemi} inlineBig />}
       {meta && (
-        <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", rowGap: 4, columnGap: 8, marginTop: 4 }}>
-          {k.size && <Text testID="chip:size" style={[k.size.rule ? { ...TYPE.regsChip, fontFamily: TYPE.regsBodyBold.fontFamily } : TYPE.regsChip,
-            { color: palette.ink, backgroundColor: palette.tint, paddingVertical: 3, paddingHorizontal: 8 }]}>{k.size.text}</Text>}
+        <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", rowGap: 4, columnGap: 8, marginTop: k.size?.rule ? 0 : 4 }}>
+          {/* owner 2026-10-27: a size RULE ("must be 50 cm (20 in) or less; release any longer") is part of the count line it
+              limits: no gap under it, an accent rail on the left joins it, bold ink, no separate chip box */}
+          {k.size && (k.size.rule
+            ? <Text testID="chip:size" style={[TYPE.regsChip, { fontFamily: TYPE.regsBodyBold.fontFamily, color: palette.ink,
+                borderLeftWidth: 3, borderLeftColor: palette.accent, paddingLeft: 8, paddingVertical: 2, marginLeft: 2 }]}>{k.size.text}</Text>
+            : <Text testID="chip:size" style={[TYPE.regsChip, { color: palette.ink, backgroundColor: palette.tint, paddingVertical: 3, paddingHorizontal: 8 }]}>{k.size.text}</Text>)}
           {k.qualifiers && <Text style={[TYPE.metaSemi, { color: palette.sub }]}>{k.qualifiers}</Text>}
         </View>
       )}

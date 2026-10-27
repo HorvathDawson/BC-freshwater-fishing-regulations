@@ -92,7 +92,7 @@ describe.skipIf(gate.skip)("T18 quota tree", () => {
   it("3. vedder_1010 kinds under t4: the size_rule chip, the pictures, the steelhead's How to tell, duty and stamp link, presence", async () => {
     const b = await kindNamed("vedder_1010", "Brook trout, brown trout and cutthroat trout");
     expect([plain(b.says), { ...b.size, text: norm(b.size!.text) }, b.pictures.map((p) => (p.sil ? p.code : p.caption.replace(/\s/g, " ")))]).toEqual([
-      "Of your 2 trout and char a day in streams, up to 2 may be hatchery brook, brown or cutthroat trout", { text: "keep 30 cm (12 in) or longer; release the rest", rule: true },
+      "Of your 2 trout and char a day in streams, up to 2 may be hatchery brook, brown or cutthroat trout", { text: "must be 30 cm (12 in) or longer; release any shorter", rule: true },
       ["Brook trout ›", "Brown trout ›", "Coastal cutthroat trout ›"]]);
     const s = await kindNamed("vedder_1010", "Steelhead");
     expect([plain(s.says), s.size?.text.replace(/\s/g, " "), s.qualifiers, plain(s.duty), plain(s.presence)]).toEqual([

@@ -229,7 +229,7 @@
             "says": "Up to 2 may be hatchery brook or brown trout",
             "n": "2",
             "howtell": false,
-            "size": "keep 30 cm (12 in) or longer; release the rest",
+            "size": "must be 30 cm (12 in) or longer; release any shorter",
             "q": null,
             "pics": [
              {
@@ -248,7 +248,7 @@
             "terms": [],
             "lines": [
              "Up to 2 may be hatchery brook or brown trout",
-             "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout ›"
+             "must be 30 cm (12 in) or longer; release any shorter Brook trout › Brown trout ›"
             ]
            },
            {
@@ -263,7 +263,7 @@
             "says": "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
             "n": "1",
             "howtell": false,
-            "size": "keep 60 cm (24 in) or longer; release the rest",
+            "size": "must be 60 cm (24 in) or longer; release any shorter",
             "q": null,
             "pics": [
              {
@@ -282,7 +282,7 @@
             "terms": [],
             "lines": [
              "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
-             "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›"
+             "must be 60 cm (24 in) or longer; release any shorter Bull trout › Lake trout ›"
             ]
            },
            {
@@ -378,9 +378,9 @@
        "From streams, keep hatchery fish only — wild trout and char go back. How to tell › Rule book p.21 ↗",
        "Of these, only 1 may be over 50 cm (20 in) — 2 if one is a hatchery steelhead",
        "Up to 2 may be hatchery brook or brown trout",
-       "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brook trout › Brown trout ›",
        "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
-       "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›",
+       "must be 60 cm (24 in) or longer; release any shorter Bull trout › Lake trout ›",
        "Up to 2 may be hatchery steelhead only — wild steelhead go back How to tell ›",
        "over 50 cm (20 in) rainbow trout Steelhead ›",
        "10 a year · Stop fishing the Vedder River after 2 a day · Record each on your licence right away Steelhead stamp ›",
@@ -500,9 +500,9 @@
      "From streams, keep hatchery fish only — wild trout and char go back. How to tell › Rule book p.21 ↗",
      "Of these, only 1 may be over 50 cm (20 in) — 2 if one is a hatchery steelhead",
      "Up to 2 may be hatchery brook or brown trout",
-     "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brook trout › Brown trout ›",
      "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
-     "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›",
+     "must be 60 cm (24 in) or longer; release any shorter Bull trout › Lake trout ›",
      "Up to 2 may be hatchery steelhead only — wild steelhead go back How to tell ›",
      "over 50 cm (20 in) rainbow trout Steelhead ›",
      "10 a year · Stop fishing the Vedder River after 2 a day · Record each on your licence right away Steelhead stamp ›",
@@ -3143,7 +3143,7 @@
             "says": "Up to 2 may be hatchery brook, brown or cutthroat trout",
             "n": "2",
             "howtell": false,
-            "size": "keep 30 cm (12 in) or longer; release the rest",
+            "size": "must be 30 cm (12 in) or longer; release any shorter",
             "q": null,
             "pics": [
              {
@@ -3166,7 +3166,7 @@
             "terms": [],
             "lines": [
              "Up to 2 may be hatchery brook, brown or cutthroat trout",
-             "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout ›"
+             "must be 30 cm (12 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout ›"
             ]
            },
            {
@@ -3181,7 +3181,7 @@
             "says": "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
             "n": "1",
             "howtell": false,
-            "size": "keep 60 cm (24 in) or longer; release the rest",
+            "size": "must be 60 cm (24 in) or longer; release any shorter",
             "q": null,
             "pics": [
              {
@@ -3200,7 +3200,7 @@
             "terms": [],
             "lines": [
              "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
-             "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›"
+             "must be 60 cm (24 in) or longer; release any shorter Bull trout › Lake trout ›"
             ]
            },
            {
@@ -3331,9 +3331,9 @@
        "From streams, keep hatchery fish only — wild trout and char go back. How to tell › Rule book p.21 ↗",
        "Of these, only 1 may be over 50 cm (20 in) — 2 if one is a hatchery steelhead",
        "Up to 2 may be hatchery brook, brown or cutthroat trout",
-       "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout ›",
        "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
-       "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›",
+       "must be 60 cm (24 in) or longer; release any shorter Bull trout › Lake trout ›",
        "Up to 2 may be hatchery steelhead only — wild steelhead go back How to tell ›",
        "over 50 cm (20 in) rainbow trout Steelhead ›",
        "10 a year · Stop fishing the Vedder River after 2 a day · Record each on your licence right away Steelhead stamp ›",
@@ -3455,9 +3455,9 @@
      "From streams, keep hatchery fish only — wild trout and char go back. How to tell › Rule book p.21 ↗",
      "Of these, only 1 may be over 50 cm (20 in) — 2 if one is a hatchery steelhead",
      "Up to 2 may be hatchery brook, brown or cutthroat trout",
-     "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout ›",
      "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
-     "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›",
+     "must be 60 cm (24 in) or longer; release any shorter Bull trout › Lake trout ›",
      "Up to 2 may be hatchery steelhead only — wild steelhead go back How to tell ›",
      "over 50 cm (20 in) rainbow trout Steelhead ›",
      "10 a year · Stop fishing the Vedder River after 2 a day · Record each on your licence right away Steelhead stamp ›",
@@ -18338,7 +18338,7 @@
             "says": "Up to 2 may be hatchery brook, brown or cutthroat trout",
             "n": "2",
             "howtell": false,
-            "size": "keep 30 cm (12 in) or longer; release the rest",
+            "size": "must be 30 cm (12 in) or longer; release any shorter",
             "q": null,
             "pics": [
              {
@@ -18361,7 +18361,7 @@
             "terms": [],
             "lines": [
              "Up to 2 may be hatchery brook, brown or cutthroat trout",
-             "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout ›"
+             "must be 30 cm (12 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout ›"
             ]
            },
            {
@@ -18376,7 +18376,7 @@
             "says": "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
             "n": "1",
             "howtell": false,
-            "size": "keep 60 cm (24 in) or longer; release the rest",
+            "size": "must be 60 cm (24 in) or longer; release any shorter",
             "q": null,
             "pics": [
              {
@@ -18395,7 +18395,7 @@
             "terms": [],
             "lines": [
              "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
-             "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›"
+             "must be 60 cm (24 in) or longer; release any shorter Bull trout › Lake trout ›"
             ]
            },
            {
@@ -18444,7 +18444,7 @@
           "says": "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
-          "size": "keep 30–50 cm (12–20 in); release smaller ones",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -18459,7 +18459,7 @@
           "terms": [],
           "lines": [
            "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
-           "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›"
+           "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›"
           ]
          }
         ]
@@ -18496,15 +18496,15 @@
        "From streams, keep hatchery fish only — wild trout and char go back. How to tell › Rule book p.21 ↗",
        "Of these, only 1 may be over 50 cm (20 in) — 2 if one is a hatchery steelhead",
        "Up to 2 may be hatchery brook, brown or cutthroat trout",
-       "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout ›",
        "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
-       "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›",
+       "must be 60 cm (24 in) or longer; release any shorter Bull trout › Lake trout ›",
        "Up to 2 may be hatchery steelhead only — wild steelhead go back How to tell ›",
        "over 50 cm (20 in) rainbow trout Steelhead ›",
        "10 a year · Stop fishing the Chilliwack River after 2 a day · Record each on your licence right away Steelhead stamp ›",
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
        "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
-       "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
        "How it adds up",
        "Your own limit, counted across every Region 2 stream you fish today.",
        "Kept 2 on another stream? None more here",
@@ -18618,15 +18618,15 @@
      "From streams, keep hatchery fish only — wild trout and char go back. How to tell › Rule book p.21 ↗",
      "Of these, only 1 may be over 50 cm (20 in) — 2 if one is a hatchery steelhead",
      "Up to 2 may be hatchery brook, brown or cutthroat trout",
-     "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout ›",
      "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
-     "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›",
+     "must be 60 cm (24 in) or longer; release any shorter Bull trout › Lake trout ›",
      "Up to 2 may be hatchery steelhead only — wild steelhead go back How to tell ›",
      "over 50 cm (20 in) rainbow trout Steelhead ›",
      "10 a year · Stop fishing the Chilliwack River after 2 a day · Record each on your licence right away Steelhead stamp ›",
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
      "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
-     "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
      "How it adds up",
      "Your own limit, counted across every Region 2 stream you fish today.",
      "Kept 2 on another stream? None more here",
@@ -20880,7 +20880,7 @@
             "says": "Up to 2 may be hatchery brook, brown or cutthroat trout",
             "n": "2",
             "howtell": false,
-            "size": "keep 30 cm (12 in) or longer; release the rest",
+            "size": "must be 30 cm (12 in) or longer; release any shorter",
             "q": null,
             "pics": [
              {
@@ -20903,7 +20903,7 @@
             "terms": [],
             "lines": [
              "Up to 2 may be hatchery brook, brown or cutthroat trout",
-             "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout ›"
+             "must be 30 cm (12 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout ›"
             ]
            },
            {
@@ -20918,7 +20918,7 @@
             "says": "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
             "n": "1",
             "howtell": false,
-            "size": "keep 60 cm (24 in) or longer; release the rest",
+            "size": "must be 60 cm (24 in) or longer; release any shorter",
             "q": null,
             "pics": [
              {
@@ -20937,7 +20937,7 @@
             "terms": [],
             "lines": [
              "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
-             "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›"
+             "must be 60 cm (24 in) or longer; release any shorter Bull trout › Lake trout ›"
             ]
            },
            {
@@ -20986,7 +20986,7 @@
           "says": "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
-          "size": "keep 30–50 cm (12–20 in); release smaller ones",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -21001,7 +21001,7 @@
           "terms": [],
           "lines": [
            "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
-           "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›"
+           "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›"
           ]
          }
         ]
@@ -21038,15 +21038,15 @@
        "From streams, keep hatchery fish only — wild trout and char go back. How to tell › Rule book p.21 ↗",
        "Of these, only 1 may be over 50 cm (20 in) — 2 if one is a hatchery steelhead",
        "Up to 2 may be hatchery brook, brown or cutthroat trout",
-       "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout ›",
        "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
-       "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›",
+       "must be 60 cm (24 in) or longer; release any shorter Bull trout › Lake trout ›",
        "Up to 2 may be hatchery steelhead only — wild steelhead go back How to tell ›",
        "over 50 cm (20 in) rainbow trout Steelhead ›",
        "10 a year · Stop fishing the Chilliwack River after 2 a day · Record each on your licence right away Steelhead stamp ›",
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
        "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
-       "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
        "How it adds up",
        "Your own limit, counted across every Region 2 stream you fish today.",
        "Kept 2 on another stream? None more here",
@@ -21160,15 +21160,15 @@
      "From streams, keep hatchery fish only — wild trout and char go back. How to tell › Rule book p.21 ↗",
      "Of these, only 1 may be over 50 cm (20 in) — 2 if one is a hatchery steelhead",
      "Up to 2 may be hatchery brook, brown or cutthroat trout",
-     "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout ›",
      "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
-     "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›",
+     "must be 60 cm (24 in) or longer; release any shorter Bull trout › Lake trout ›",
      "Up to 2 may be hatchery steelhead only — wild steelhead go back How to tell ›",
      "over 50 cm (20 in) rainbow trout Steelhead ›",
      "10 a year · Stop fishing the Chilliwack River after 2 a day · Record each on your licence right away Steelhead stamp ›",
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
      "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
-     "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
      "How it adds up",
      "Your own limit, counted across every Region 2 stream you fish today.",
      "Kept 2 on another stream? None more here",
@@ -28682,7 +28682,7 @@
             "says": "Up to 2 may be hatchery brook, brown, cutthroat or rainbow trout",
             "n": "2",
             "howtell": false,
-            "size": "keep 30 cm (12 in) or longer; release the rest",
+            "size": "must be 30 cm (12 in) or longer; release any shorter",
             "q": null,
             "pics": [
              {
@@ -28709,7 +28709,7 @@
             "terms": [],
             "lines": [
              "Up to 2 may be hatchery brook, brown, cutthroat or rainbow trout",
-             "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout › Rainbow trout ›"
+             "must be 30 cm (12 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout › Rainbow trout ›"
             ]
            },
            {
@@ -28724,7 +28724,7 @@
             "says": "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
             "n": "1",
             "howtell": false,
-            "size": "keep 60 cm (24 in) or longer; release the rest",
+            "size": "must be 60 cm (24 in) or longer; release any shorter",
             "q": null,
             "pics": [
              {
@@ -28743,7 +28743,7 @@
             "terms": [],
             "lines": [
              "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
-             "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›"
+             "must be 60 cm (24 in) or longer; release any shorter Bull trout › Lake trout ›"
             ]
            },
            {
@@ -28815,9 +28815,9 @@
        "From streams, keep hatchery fish only — wild trout and char go back. How to tell › Rule book p.21 ↗",
        "Of these, only 1 may be over 50 cm (20 in) — 2 if one is a hatchery steelhead",
        "Up to 2 may be hatchery brook, brown, cutthroat or rainbow trout",
-       "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout › Rainbow trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout › Rainbow trout ›",
        "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
-       "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›",
+       "must be 60 cm (24 in) or longer; release any shorter Bull trout › Lake trout ›",
        "Up to 2 may be hatchery steelhead only — wild steelhead go back How to tell ›",
        "30 cm (12 in) or longer Steelhead ›",
        "10 a year · Stop fishing the Wilkes Creek after 2 a day · Record each on your licence right away Steelhead stamp ›",
@@ -28935,9 +28935,9 @@
      "From streams, keep hatchery fish only — wild trout and char go back. How to tell › Rule book p.21 ↗",
      "Of these, only 1 may be over 50 cm (20 in) — 2 if one is a hatchery steelhead",
      "Up to 2 may be hatchery brook, brown, cutthroat or rainbow trout",
-     "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout › Rainbow trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout › Rainbow trout ›",
      "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
-     "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›",
+     "must be 60 cm (24 in) or longer; release any shorter Bull trout › Lake trout ›",
      "Up to 2 may be hatchery steelhead only — wild steelhead go back How to tell ›",
      "30 cm (12 in) or longer Steelhead ›",
      "10 a year · Stop fishing the Wilkes Creek after 2 a day · Record each on your licence right away Steelhead stamp ›",
@@ -31162,7 +31162,7 @@
             "says": "Only 1 of the 4 may be lake trout",
             "n": "1",
             "howtell": false,
-            "size": "keep 60 cm (24 in) or longer; release the rest",
+            "size": "must be 60 cm (24 in) or longer; release any shorter",
             "q": null,
             "pics": [
              {
@@ -31177,7 +31177,7 @@
             "terms": [],
             "lines": [
              "Only 1 of the 4 may be lake trout",
-             "keep 60 cm (24 in) or longer; release the rest Lake trout ›"
+             "must be 60 cm (24 in) or longer; release any shorter Lake trout ›"
             ]
            }
           ]
@@ -31271,7 +31271,7 @@
        "Up to 4 may be brook, brown or cutthroat trout",
        "any size Brook trout › Brown trout › Coastal cutthroat trout ›",
        "Only 1 of the 4 may be lake trout",
-       "keep 60 cm (24 in) or longer; release the rest Lake trout ›",
+       "must be 60 cm (24 in) or longer; release any shorter Lake trout ›",
        "Up to 4 rainbow trout (part of the 4 from streams)",
        "50 cm (20 in) or less Rainbow trout ›",
        "Steelhead and Dolly Varden/bull trout: release every one",
@@ -31393,7 +31393,7 @@
      "Up to 4 may be brook, brown or cutthroat trout",
      "any size Brook trout › Brown trout › Coastal cutthroat trout ›",
      "Only 1 of the 4 may be lake trout",
-     "keep 60 cm (24 in) or longer; release the rest Lake trout ›",
+     "must be 60 cm (24 in) or longer; release any shorter Lake trout ›",
      "Up to 4 rainbow trout (part of the 4 from streams)",
      "50 cm (20 in) or less Rainbow trout ›",
      "Steelhead and Dolly Varden/bull trout: release every one",
@@ -33639,7 +33639,7 @@
             "says": "Up to 2 may be brook, brown or lake trout",
             "n": "2",
             "howtell": false,
-            "size": "keep 25 cm (10 in) or longer; release the rest",
+            "size": "must be 25 cm (10 in) or longer; release any shorter",
             "q": null,
             "pics": [
              {
@@ -33662,7 +33662,7 @@
             "terms": [],
             "lines": [
              "Up to 2 may be brook, brown or lake trout",
-             "keep 25 cm (10 in) or longer; release the rest Brook trout › Brown trout › Lake trout ›"
+             "must be 25 cm (10 in) or longer; release any shorter Brook trout › Brown trout › Lake trout ›"
             ]
            },
            {
@@ -33676,7 +33676,7 @@
             "says": "Only 1 of the 2 may be Dolly Varden/bull trout",
             "n": "1",
             "howtell": false,
-            "size": "keep 25 cm (10 in) or longer; release the rest",
+            "size": "must be 25 cm (10 in) or longer; release any shorter",
             "q": null,
             "pics": [
              {
@@ -33691,7 +33691,7 @@
             "terms": [],
             "lines": [
              "Only 1 of the 2 may be Dolly Varden/bull trout",
-             "keep 25 cm (10 in) or longer; release the rest Bull trout ›"
+             "must be 25 cm (10 in) or longer; release any shorter Bull trout ›"
             ]
            }
           ]
@@ -33726,7 +33726,7 @@
             "says": "Up to 1 may be cutthroat trout",
             "n": "1",
             "howtell": false,
-            "size": "keep 25–33 cm (10–13 in); release the rest",
+            "size": "must be 25–33 cm (10–13 in); release any other size",
             "q": null,
             "pics": [
              {
@@ -33741,7 +33741,7 @@
             "terms": [],
             "lines": [
              "Up to 1 may be cutthroat trout",
-             "keep 25–33 cm (10–13 in); release the rest Coastal cutthroat trout ›"
+             "must be 25–33 cm (10–13 in); release any other size Coastal cutthroat trout ›"
             ]
            },
            {
@@ -33755,7 +33755,7 @@
             "says": "Up to 1 may be rainbow trout",
             "n": "1",
             "howtell": false,
-            "size": "keep 25–50 cm (10–20 in); release smaller ones",
+            "size": "must be 25 cm (10 in) or longer; release any shorter",
             "q": null,
             "pics": [
              {
@@ -33770,7 +33770,7 @@
             "terms": [],
             "lines": [
              "Up to 1 may be rainbow trout",
-             "keep 25–50 cm (10–20 in); release smaller ones Rainbow trout ›"
+             "must be 25 cm (10 in) or longer; release any shorter Rainbow trout ›"
             ]
            }
           ]
@@ -33820,14 +33820,14 @@
        "This river’s rule: up to 2 a day (part of the 5) Rule book p.43 ↗",
        "Of these, only 1 may be over 50 cm (20 in)",
        "Up to 2 may be brook, brown or lake trout",
-       "keep 25 cm (10 in) or longer; release the rest Brook trout › Brown trout › Lake trout ›",
+       "must be 25 cm (10 in) or longer; release any shorter Brook trout › Brown trout › Lake trout ›",
        "Only 1 of the 2 may be Dolly Varden/bull trout",
-       "keep 25 cm (10 in) or longer; release the rest Bull trout ›",
+       "must be 25 cm (10 in) or longer; release any shorter Bull trout ›",
        "1 cutthroat or rainbow trout in all (part of the 2)",
        "Up to 1 may be cutthroat trout",
-       "keep 25–33 cm (10–13 in); release the rest Coastal cutthroat trout ›",
+       "must be 25–33 cm (10–13 in); release any other size Coastal cutthroat trout ›",
        "Up to 1 may be rainbow trout",
-       "keep 25–50 cm (10–20 in); release smaller ones Rainbow trout ›",
+       "must be 25 cm (10 in) or longer; release any shorter Rainbow trout ›",
        "Steelhead: no fishing for them, not even catch and release — release any you hook by accident",
        "This river’s rule · Rule book p.43 ↗",
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ Steelhead › ✕",
@@ -33934,14 +33934,14 @@
      "This river’s rule: up to 2 a day (part of the 5) Rule book p.43 ↗",
      "Of these, only 1 may be over 50 cm (20 in)",
      "Up to 2 may be brook, brown or lake trout",
-     "keep 25 cm (10 in) or longer; release the rest Brook trout › Brown trout › Lake trout ›",
+     "must be 25 cm (10 in) or longer; release any shorter Brook trout › Brown trout › Lake trout ›",
      "Only 1 of the 2 may be Dolly Varden/bull trout",
-     "keep 25 cm (10 in) or longer; release the rest Bull trout ›",
+     "must be 25 cm (10 in) or longer; release any shorter Bull trout ›",
      "1 cutthroat or rainbow trout in all (part of the 2)",
      "Up to 1 may be cutthroat trout",
-     "keep 25–33 cm (10–13 in); release the rest Coastal cutthroat trout ›",
+     "must be 25–33 cm (10–13 in); release any other size Coastal cutthroat trout ›",
      "Up to 1 may be rainbow trout",
-     "keep 25–50 cm (10–20 in); release smaller ones Rainbow trout ›",
+     "must be 25 cm (10 in) or longer; release any shorter Rainbow trout ›",
      "Steelhead: no fishing for them, not even catch and release — release any you hook by accident",
      "This river’s rule · Rule book p.43 ↗",
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ Steelhead › ✕",
@@ -36264,7 +36264,7 @@
             "says": "Up to 2 may be brook, brown or lake trout",
             "n": "2",
             "howtell": false,
-            "size": "keep 25 cm (10 in) or longer; release the rest",
+            "size": "must be 25 cm (10 in) or longer; release any shorter",
             "q": null,
             "pics": [
              {
@@ -36287,7 +36287,7 @@
             "terms": [],
             "lines": [
              "Up to 2 may be brook, brown or lake trout",
-             "keep 25 cm (10 in) or longer; release the rest Brook trout › Brown trout › Lake trout ›"
+             "must be 25 cm (10 in) or longer; release any shorter Brook trout › Brown trout › Lake trout ›"
             ]
            },
            {
@@ -36301,7 +36301,7 @@
             "says": "Only 1 of the 2 may be Dolly Varden/bull trout",
             "n": "1",
             "howtell": false,
-            "size": "keep 25 cm (10 in) or longer; release the rest",
+            "size": "must be 25 cm (10 in) or longer; release any shorter",
             "q": null,
             "pics": [
              {
@@ -36316,7 +36316,7 @@
             "terms": [],
             "lines": [
              "Only 1 of the 2 may be Dolly Varden/bull trout",
-             "keep 25 cm (10 in) or longer; release the rest Bull trout ›"
+             "must be 25 cm (10 in) or longer; release any shorter Bull trout ›"
             ]
            }
           ]
@@ -36351,7 +36351,7 @@
             "says": "Up to 1 may be cutthroat trout",
             "n": "1",
             "howtell": false,
-            "size": "keep 25–33 cm (10–13 in); release the rest",
+            "size": "must be 25–33 cm (10–13 in); release any other size",
             "q": null,
             "pics": [
              {
@@ -36366,7 +36366,7 @@
             "terms": [],
             "lines": [
              "Up to 1 may be cutthroat trout",
-             "keep 25–33 cm (10–13 in); release the rest Coastal cutthroat trout ›"
+             "must be 25–33 cm (10–13 in); release any other size Coastal cutthroat trout ›"
             ]
            },
            {
@@ -36380,7 +36380,7 @@
             "says": "Up to 1 may be rainbow trout",
             "n": "1",
             "howtell": false,
-            "size": "keep 25–50 cm (10–20 in); release smaller ones",
+            "size": "must be 25 cm (10 in) or longer; release any shorter",
             "q": null,
             "pics": [
              {
@@ -36395,7 +36395,7 @@
             "terms": [],
             "lines": [
              "Up to 1 may be rainbow trout",
-             "keep 25–50 cm (10–20 in); release smaller ones Rainbow trout ›"
+             "must be 25 cm (10 in) or longer; release any shorter Rainbow trout ›"
             ]
            }
           ]
@@ -36445,14 +36445,14 @@
        "This river’s rule: up to 2 a day (part of the 5) Rule book p.43 ↗",
        "Of these, only 1 may be over 50 cm (20 in)",
        "Up to 2 may be brook, brown or lake trout",
-       "keep 25 cm (10 in) or longer; release the rest Brook trout › Brown trout › Lake trout ›",
+       "must be 25 cm (10 in) or longer; release any shorter Brook trout › Brown trout › Lake trout ›",
        "Only 1 of the 2 may be Dolly Varden/bull trout",
-       "keep 25 cm (10 in) or longer; release the rest Bull trout ›",
+       "must be 25 cm (10 in) or longer; release any shorter Bull trout ›",
        "1 cutthroat or rainbow trout in all (part of the 2)",
        "Up to 1 may be cutthroat trout",
-       "keep 25–33 cm (10–13 in); release the rest Coastal cutthroat trout ›",
+       "must be 25–33 cm (10–13 in); release any other size Coastal cutthroat trout ›",
        "Up to 1 may be rainbow trout",
-       "keep 25–50 cm (10–20 in); release smaller ones Rainbow trout ›",
+       "must be 25 cm (10 in) or longer; release any shorter Rainbow trout ›",
        "Steelhead: no fishing for them, not even catch and release — release any you hook by accident",
        "This river’s rule · Rule book p.43 ↗",
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ Steelhead › ✕",
@@ -36559,14 +36559,14 @@
      "This river’s rule: up to 2 a day (part of the 5) Rule book p.43 ↗",
      "Of these, only 1 may be over 50 cm (20 in)",
      "Up to 2 may be brook, brown or lake trout",
-     "keep 25 cm (10 in) or longer; release the rest Brook trout › Brown trout › Lake trout ›",
+     "must be 25 cm (10 in) or longer; release any shorter Brook trout › Brown trout › Lake trout ›",
      "Only 1 of the 2 may be Dolly Varden/bull trout",
-     "keep 25 cm (10 in) or longer; release the rest Bull trout ›",
+     "must be 25 cm (10 in) or longer; release any shorter Bull trout ›",
      "1 cutthroat or rainbow trout in all (part of the 2)",
      "Up to 1 may be cutthroat trout",
-     "keep 25–33 cm (10–13 in); release the rest Coastal cutthroat trout ›",
+     "must be 25–33 cm (10–13 in); release any other size Coastal cutthroat trout ›",
      "Up to 1 may be rainbow trout",
-     "keep 25–50 cm (10–20 in); release smaller ones Rainbow trout ›",
+     "must be 25 cm (10 in) or longer; release any shorter Rainbow trout ›",
      "Steelhead: no fishing for them, not even catch and release — release any you hook by accident",
      "This river’s rule · Rule book p.43 ↗",
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ Steelhead › ✕",
@@ -38810,7 +38810,7 @@
         "says": "Up to 1 may be brook or brown trout",
         "n": "1",
         "howtell": false,
-        "size": "keep 25 cm (10 in) or longer; release the rest",
+        "size": "must be 25 cm (10 in) or longer; release any shorter",
         "q": null,
         "pics": [
          {
@@ -38829,7 +38829,7 @@
         "terms": [],
         "lines": [
          "Up to 1 may be brook or brown trout",
-         "keep 25 cm (10 in) or longer; release the rest Brook trout › Brown trout ›"
+         "must be 25 cm (10 in) or longer; release any shorter Brook trout › Brown trout ›"
         ]
        },
        {
@@ -38872,7 +38872,7 @@
         "says": "Up to 1 may be rainbow trout",
         "n": "1",
         "howtell": false,
-        "size": "keep 25–50 cm (10–20 in); release smaller ones",
+        "size": "must be 25 cm (10 in) or longer; release any shorter",
         "q": null,
         "pics": [
          {
@@ -38887,7 +38887,7 @@
         "terms": [],
         "lines": [
          "Up to 1 may be rainbow trout",
-         "keep 25–50 cm (10–20 in); release smaller ones Rainbow trout ›"
+         "must be 25 cm (10 in) or longer; release any shorter Rainbow trout ›"
         ]
        }
       ],
@@ -38948,11 +38948,11 @@
        "This river’s rule: up to 1 a day per angler",
        "Rule book p.43 ↗",
        "Up to 1 may be brook or brown trout",
-       "keep 25 cm (10 in) or longer; release the rest Brook trout › Brown trout ›",
+       "must be 25 cm (10 in) or longer; release any shorter Brook trout › Brown trout ›",
        "No cutthroat trout may be kept",
        "catch and release Coastal cutthroat trout ›",
        "Up to 1 may be rainbow trout",
-       "keep 25–50 cm (10–20 in); release smaller ones Rainbow trout ›",
+       "must be 25 cm (10 in) or longer; release any shorter Rainbow trout ›",
        "Steelhead: no fishing for them, not even catch and release — release any you hook by accident",
        "This river’s rule · Rule book p.43 ↗",
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ Steelhead › ✕",
@@ -39058,11 +39058,11 @@
      "This river’s rule: up to 1 a day per angler",
      "Rule book p.43 ↗",
      "Up to 1 may be brook or brown trout",
-     "keep 25 cm (10 in) or longer; release the rest Brook trout › Brown trout ›",
+     "must be 25 cm (10 in) or longer; release any shorter Brook trout › Brown trout ›",
      "No cutthroat trout may be kept",
      "catch and release Coastal cutthroat trout ›",
      "Up to 1 may be rainbow trout",
-     "keep 25–50 cm (10–20 in); release smaller ones Rainbow trout ›",
+     "must be 25 cm (10 in) or longer; release any shorter Rainbow trout ›",
      "Steelhead: no fishing for them, not even catch and release — release any you hook by accident",
      "This river’s rule · Rule book p.43 ↗",
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ Steelhead › ✕",
@@ -41182,7 +41182,7 @@
         "says": "Up to 1 may be brook or brown trout",
         "n": "1",
         "howtell": false,
-        "size": "keep 25 cm (10 in) or longer; release the rest",
+        "size": "must be 25 cm (10 in) or longer; release any shorter",
         "q": null,
         "pics": [
          {
@@ -41201,7 +41201,7 @@
         "terms": [],
         "lines": [
          "Up to 1 may be brook or brown trout",
-         "keep 25 cm (10 in) or longer; release the rest Brook trout › Brown trout ›"
+         "must be 25 cm (10 in) or longer; release any shorter Brook trout › Brown trout ›"
         ]
        },
        {
@@ -41244,7 +41244,7 @@
         "says": "Up to 1 may be rainbow trout",
         "n": "1",
         "howtell": false,
-        "size": "keep 25–50 cm (10–20 in); release smaller ones",
+        "size": "must be 25 cm (10 in) or longer; release any shorter",
         "q": null,
         "pics": [
          {
@@ -41259,7 +41259,7 @@
         "terms": [],
         "lines": [
          "Up to 1 may be rainbow trout",
-         "keep 25–50 cm (10–20 in); release smaller ones Rainbow trout ›"
+         "must be 25 cm (10 in) or longer; release any shorter Rainbow trout ›"
         ]
        }
       ],
@@ -41320,11 +41320,11 @@
        "This river’s rule: up to 1 a day per angler",
        "Rule book p.43 ↗",
        "Up to 1 may be brook or brown trout",
-       "keep 25 cm (10 in) or longer; release the rest Brook trout › Brown trout ›",
+       "must be 25 cm (10 in) or longer; release any shorter Brook trout › Brown trout ›",
        "No cutthroat trout may be kept",
        "catch and release Coastal cutthroat trout ›",
        "Up to 1 may be rainbow trout",
-       "keep 25–50 cm (10–20 in); release smaller ones Rainbow trout ›",
+       "must be 25 cm (10 in) or longer; release any shorter Rainbow trout ›",
        "Steelhead: no fishing for them, not even catch and release — release any you hook by accident",
        "This river’s rule · Rule book p.43 ↗",
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ Steelhead › ✕",
@@ -41430,11 +41430,11 @@
      "This river’s rule: up to 1 a day per angler",
      "Rule book p.43 ↗",
      "Up to 1 may be brook or brown trout",
-     "keep 25 cm (10 in) or longer; release the rest Brook trout › Brown trout ›",
+     "must be 25 cm (10 in) or longer; release any shorter Brook trout › Brown trout ›",
      "No cutthroat trout may be kept",
      "catch and release Coastal cutthroat trout ›",
      "Up to 1 may be rainbow trout",
-     "keep 25–50 cm (10–20 in); release smaller ones Rainbow trout ›",
+     "must be 25 cm (10 in) or longer; release any shorter Rainbow trout ›",
      "Steelhead: no fishing for them, not even catch and release — release any you hook by accident",
      "This river’s rule · Rule book p.43 ↗",
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ Steelhead › ✕",
@@ -43499,7 +43499,7 @@
         "says": "Up to 1 may be brown trout",
         "n": "1",
         "howtell": false,
-        "size": "keep 25 cm (10 in) or longer; release the rest",
+        "size": "must be 25 cm (10 in) or longer; release any shorter",
         "q": null,
         "pics": [
          {
@@ -43514,7 +43514,7 @@
         "terms": [],
         "lines": [
          "Up to 1 may be brown trout",
-         "keep 25 cm (10 in) or longer; release the rest Brown trout ›"
+         "must be 25 cm (10 in) or longer; release any shorter Brown trout ›"
         ]
        },
        {
@@ -43557,7 +43557,7 @@
         "says": "Up to 1 may be rainbow trout",
         "n": "1",
         "howtell": false,
-        "size": "keep 25–50 cm (10–20 in); release smaller ones",
+        "size": "must be 25 cm (10 in) or longer; release any shorter",
         "q": null,
         "pics": [
          {
@@ -43572,7 +43572,7 @@
         "terms": [],
         "lines": [
          "Up to 1 may be rainbow trout",
-         "keep 25–50 cm (10–20 in); release smaller ones Rainbow trout ›"
+         "must be 25 cm (10 in) or longer; release any shorter Rainbow trout ›"
         ]
        }
       ],
@@ -43637,11 +43637,11 @@
        "The Bella Coola River’s rule: up to 1 a day per angler Its row covers its tributaries, so it applies here",
        "Rule book p.43 ↗",
        "Up to 1 may be brown trout",
-       "keep 25 cm (10 in) or longer; release the rest Brown trout ›",
+       "must be 25 cm (10 in) or longer; release any shorter Brown trout ›",
        "No cutthroat trout may be kept",
        "catch and release Coastal cutthroat trout ›",
        "Up to 1 may be rainbow trout",
-       "keep 25–50 cm (10–20 in); release smaller ones Rainbow trout ›",
+       "must be 25 cm (10 in) or longer; release any shorter Rainbow trout ›",
        "Steelhead: no fishing for them, not even catch and release — release any you hook by accident",
        "The Bella Coola River’s rule · Rule book p.43 ↗",
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ Steelhead › ✕",
@@ -43747,11 +43747,11 @@
      "The Bella Coola River’s rule: up to 1 a day per angler Its row covers its tributaries, so it applies here",
      "Rule book p.43 ↗",
      "Up to 1 may be brown trout",
-     "keep 25 cm (10 in) or longer; release the rest Brown trout ›",
+     "must be 25 cm (10 in) or longer; release any shorter Brown trout ›",
      "No cutthroat trout may be kept",
      "catch and release Coastal cutthroat trout ›",
      "Up to 1 may be rainbow trout",
-     "keep 25–50 cm (10–20 in); release smaller ones Rainbow trout ›",
+     "must be 25 cm (10 in) or longer; release any shorter Rainbow trout ›",
      "Steelhead: no fishing for them, not even catch and release — release any you hook by accident",
      "The Bella Coola River’s rule · Rule book p.43 ↗",
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ Steelhead › ✕",
@@ -45800,7 +45800,7 @@
         "says": "Up to 1 may be brown trout",
         "n": "1",
         "howtell": false,
-        "size": "keep 25 cm (10 in) or longer; release the rest",
+        "size": "must be 25 cm (10 in) or longer; release any shorter",
         "q": null,
         "pics": [
          {
@@ -45815,7 +45815,7 @@
         "terms": [],
         "lines": [
          "Up to 1 may be brown trout",
-         "keep 25 cm (10 in) or longer; release the rest Brown trout ›"
+         "must be 25 cm (10 in) or longer; release any shorter Brown trout ›"
         ]
        },
        {
@@ -45858,7 +45858,7 @@
         "says": "Up to 1 may be rainbow trout",
         "n": "1",
         "howtell": false,
-        "size": "keep 25–50 cm (10–20 in); release smaller ones",
+        "size": "must be 25 cm (10 in) or longer; release any shorter",
         "q": null,
         "pics": [
          {
@@ -45873,7 +45873,7 @@
         "terms": [],
         "lines": [
          "Up to 1 may be rainbow trout",
-         "keep 25–50 cm (10–20 in); release smaller ones Rainbow trout ›"
+         "must be 25 cm (10 in) or longer; release any shorter Rainbow trout ›"
         ]
        }
       ],
@@ -45938,11 +45938,11 @@
        "The Bella Coola River’s rule: up to 1 a day per angler Its row covers its tributaries, so it applies here",
        "Rule book p.43 ↗",
        "Up to 1 may be brown trout",
-       "keep 25 cm (10 in) or longer; release the rest Brown trout ›",
+       "must be 25 cm (10 in) or longer; release any shorter Brown trout ›",
        "No cutthroat trout may be kept",
        "catch and release Coastal cutthroat trout ›",
        "Up to 1 may be rainbow trout",
-       "keep 25–50 cm (10–20 in); release smaller ones Rainbow trout ›",
+       "must be 25 cm (10 in) or longer; release any shorter Rainbow trout ›",
        "Steelhead: no fishing for them, not even catch and release — release any you hook by accident",
        "The Bella Coola River’s rule · Rule book p.43 ↗",
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ Steelhead › ✕",
@@ -46048,11 +46048,11 @@
      "The Bella Coola River’s rule: up to 1 a day per angler Its row covers its tributaries, so it applies here",
      "Rule book p.43 ↗",
      "Up to 1 may be brown trout",
-     "keep 25 cm (10 in) or longer; release the rest Brown trout ›",
+     "must be 25 cm (10 in) or longer; release any shorter Brown trout ›",
      "No cutthroat trout may be kept",
      "catch and release Coastal cutthroat trout ›",
      "Up to 1 may be rainbow trout",
-     "keep 25–50 cm (10–20 in); release smaller ones Rainbow trout ›",
+     "must be 25 cm (10 in) or longer; release any shorter Rainbow trout ›",
      "Steelhead: no fishing for them, not even catch and release — release any you hook by accident",
      "The Bella Coola River’s rule · Rule book p.43 ↗",
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ Steelhead › ✕",
@@ -70003,7 +70003,7 @@
             "says": "Up to 1 may be brook trout",
             "n": "1",
             "howtell": false,
-            "size": "keep 60 cm (24 in) or longer; release the rest",
+            "size": "must be 60 cm (24 in) or longer; release any shorter",
             "q": null,
             "pics": [
              {
@@ -70018,7 +70018,7 @@
             "terms": [],
             "lines": [
              "Up to 1 may be brook trout",
-             "keep 60 cm (24 in) or longer; release the rest Brook trout ›"
+             "must be 60 cm (24 in) or longer; release any shorter Brook trout ›"
             ]
            },
            {
@@ -70033,7 +70033,7 @@
             "says": "Up to 1 may be Dolly Varden/bull trout or lake trout",
             "n": "1",
             "howtell": false,
-            "size": "keep 60 cm (24 in) or longer; release the rest",
+            "size": "must be 60 cm (24 in) or longer; release any shorter",
             "q": null,
             "pics": [
              {
@@ -70052,7 +70052,7 @@
             "terms": [],
             "lines": [
              "Up to 1 may be Dolly Varden/bull trout or lake trout",
-             "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›",
+             "must be 60 cm (24 in) or longer; release any shorter Bull trout › Lake trout ›",
              "5 a year · Record each on your licence right away",
              "You need Conservation Surcharge Stamp for Shuswap Lake char › only if you keep lake trout and Dolly Varden/bull trout over 60 cm"
             ]
@@ -70068,7 +70068,7 @@
             "says": "Up to 1 may be rainbow trout",
             "n": "1",
             "howtell": false,
-            "size": "keep 50 cm (20 in) or longer; release the rest",
+            "size": "must be 50 cm (20 in) or longer; release any shorter",
             "q": null,
             "pics": [
              {
@@ -70083,7 +70083,7 @@
             "terms": [],
             "lines": [
              "Up to 1 may be rainbow trout",
-             "keep 50 cm (20 in) or longer; release the rest Rainbow trout ›",
+             "must be 50 cm (20 in) or longer; release any shorter Rainbow trout ›",
              "5 a year · Record each on your licence right away",
              "You need Conservation Surcharge Stamp for Shuswap rainbow trout › only if you keep rainbow trout over 50 cm"
             ]
@@ -70154,13 +70154,13 @@
        "Of these, only 1 may be over 50 cm (20 in)",
        "This lake’s rule: up to 1 a day (part of the 5) Rule book p.32 ↗",
        "Up to 1 may be brook trout",
-       "keep 60 cm (24 in) or longer; release the rest Brook trout ›",
+       "must be 60 cm (24 in) or longer; release any shorter Brook trout ›",
        "Up to 1 may be Dolly Varden/bull trout or lake trout",
-       "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›",
+       "must be 60 cm (24 in) or longer; release any shorter Bull trout › Lake trout ›",
        "5 a year · Record each on your licence right away",
        "You need Conservation Surcharge Stamp for Shuswap Lake char › only if you keep lake trout and Dolly Varden/bull trout over 60 cm",
        "Up to 1 may be rainbow trout",
-       "keep 50 cm (20 in) or longer; release the rest Rainbow trout ›",
+       "must be 50 cm (20 in) or longer; release any shorter Rainbow trout ›",
        "5 a year · Record each on your licence right away",
        "You need Conservation Surcharge Stamp for Shuswap rainbow trout › only if you keep rainbow trout over 50 cm",
        "Up to 5 may be brown or cutthroat trout",
@@ -70286,13 +70286,13 @@
      "Of these, only 1 may be over 50 cm (20 in)",
      "This lake’s rule: up to 1 a day (part of the 5) Rule book p.32 ↗",
      "Up to 1 may be brook trout",
-     "keep 60 cm (24 in) or longer; release the rest Brook trout ›",
+     "must be 60 cm (24 in) or longer; release any shorter Brook trout ›",
      "Up to 1 may be Dolly Varden/bull trout or lake trout",
-     "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›",
+     "must be 60 cm (24 in) or longer; release any shorter Bull trout › Lake trout ›",
      "5 a year · Record each on your licence right away",
      "You need Conservation Surcharge Stamp for Shuswap Lake char › only if you keep lake trout and Dolly Varden/bull trout over 60 cm",
      "Up to 1 may be rainbow trout",
-     "keep 50 cm (20 in) or longer; release the rest Rainbow trout ›",
+     "must be 50 cm (20 in) or longer; release any shorter Rainbow trout ›",
      "5 a year · Record each on your licence right away",
      "You need Conservation Surcharge Stamp for Shuswap rainbow trout › only if you keep rainbow trout over 50 cm",
      "Up to 5 may be brown or cutthroat trout",
@@ -87450,7 +87450,7 @@
         "says": "Up to 1 may be brown, cutthroat or rainbow trout",
         "n": "1",
         "howtell": false,
-        "size": "keep 30 cm (12 in) or longer; release the rest",
+        "size": "must be 30 cm (12 in) or longer; release any shorter",
         "q": null,
         "pics": [
          {
@@ -87473,7 +87473,7 @@
         "terms": [],
         "lines": [
          "Up to 1 may be brown, cutthroat or rainbow trout",
-         "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout › Rainbow trout ›"
+         "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout › Rainbow trout ›"
         ]
        },
        {
@@ -87487,7 +87487,7 @@
         "says": "Up to 1 may be Dolly Varden/bull trout",
         "n": "1",
         "howtell": false,
-        "size": "keep 75 cm (30 in) or longer; release the rest",
+        "size": "must be 75 cm (30 in) or longer; release any shorter",
         "q": null,
         "pics": [
          {
@@ -87502,7 +87502,7 @@
         "terms": [],
         "lines": [
          "Up to 1 may be Dolly Varden/bull trout",
-         "keep 75 cm (30 in) or longer; release the rest Bull trout ›"
+         "must be 75 cm (30 in) or longer; release any shorter Bull trout ›"
         ]
        }
       ],
@@ -87523,9 +87523,9 @@
        "Up to 1 may be brook or lake trout",
        "any size Brook trout › Lake trout ›",
        "Up to 1 may be brown, cutthroat or rainbow trout",
-       "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout › Rainbow trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout › Rainbow trout ›",
        "Up to 1 may be Dolly Varden/bull trout",
-       "keep 75 cm (30 in) or longer; release the rest Bull trout ›",
+       "must be 75 cm (30 in) or longer; release any shorter Bull trout ›",
        "How it adds up",
        "This river’s rule: 1 a day here. Trout and char other than steelhead you kept anywhere else today count toward that 1. See every regulation line ›"
       ]
@@ -87638,9 +87638,9 @@
      "Up to 1 may be brook or lake trout",
      "any size Brook trout › Lake trout ›",
      "Up to 1 may be brown, cutthroat or rainbow trout",
-     "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout › Rainbow trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout › Rainbow trout ›",
      "Up to 1 may be Dolly Varden/bull trout",
-     "keep 75 cm (30 in) or longer; release the rest Bull trout ›",
+     "must be 75 cm (30 in) or longer; release any shorter Bull trout ›",
      "How it adds up",
      "This river’s rule: 1 a day here. Trout and char other than steelhead you kept anywhere else today count toward that 1. See every regulation line ›",
      "Other fish",
@@ -89786,7 +89786,7 @@
         "says": "Up to 1 may be brown, cutthroat or rainbow trout",
         "n": "1",
         "howtell": false,
-        "size": "keep 30 cm (12 in) or longer; release the rest",
+        "size": "must be 30 cm (12 in) or longer; release any shorter",
         "q": null,
         "pics": [
          {
@@ -89809,7 +89809,7 @@
         "terms": [],
         "lines": [
          "Up to 1 may be brown, cutthroat or rainbow trout",
-         "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout › Rainbow trout ›"
+         "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout › Rainbow trout ›"
         ]
        },
        {
@@ -89823,7 +89823,7 @@
         "says": "Up to 1 may be Dolly Varden/bull trout",
         "n": "1",
         "howtell": false,
-        "size": "keep 75 cm (30 in) or longer; release the rest",
+        "size": "must be 75 cm (30 in) or longer; release any shorter",
         "q": null,
         "pics": [
          {
@@ -89838,7 +89838,7 @@
         "terms": [],
         "lines": [
          "Up to 1 may be Dolly Varden/bull trout",
-         "keep 75 cm (30 in) or longer; release the rest Bull trout ›"
+         "must be 75 cm (30 in) or longer; release any shorter Bull trout ›"
         ]
        }
       ],
@@ -89859,9 +89859,9 @@
        "Up to 1 may be brook or lake trout",
        "any size Brook trout › Lake trout ›",
        "Up to 1 may be brown, cutthroat or rainbow trout",
-       "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout › Rainbow trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout › Rainbow trout ›",
        "Up to 1 may be Dolly Varden/bull trout",
-       "keep 75 cm (30 in) or longer; release the rest Bull trout ›",
+       "must be 75 cm (30 in) or longer; release any shorter Bull trout ›",
        "How it adds up",
        "This river’s rule: 1 a day here. Trout and char other than steelhead you kept anywhere else today count toward that 1. See every regulation line ›"
       ]
@@ -89974,9 +89974,9 @@
      "Up to 1 may be brook or lake trout",
      "any size Brook trout › Lake trout ›",
      "Up to 1 may be brown, cutthroat or rainbow trout",
-     "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout › Rainbow trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout › Rainbow trout ›",
      "Up to 1 may be Dolly Varden/bull trout",
-     "keep 75 cm (30 in) or longer; release the rest Bull trout ›",
+     "must be 75 cm (30 in) or longer; release any shorter Bull trout ›",
      "How it adds up",
      "This river’s rule: 1 a day here. Trout and char other than steelhead you kept anywhere else today count toward that 1. See every regulation line ›",
      "Other fish",
@@ -95502,7 +95502,7 @@
           "says": null,
           "n": null,
           "howtell": false,
-          "size": "keep 60 cm (24 in) or less, or 90 cm (35 in) or longer; release the rest",
+          "size": "must be 60 cm (24 in) or less, or 90 cm (35 in) or longer; release any other size",
           "q": null,
           "pics": [
            {
@@ -95519,7 +95519,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "keep 60 cm (24 in) or less, or 90 cm (35 in) or longer; release the rest Lake trout ›",
+           "must be 60 cm (24 in) or less, or 90 cm (35 in) or longer; release any other size Lake trout ›",
            "Only 1 over 90 cm (35 in)",
            "No more than 3 counting any Dolly Varden/bull trout you keep"
           ]
@@ -95649,7 +95649,7 @@
        "5 a day per angler across Region 6",
        "Rule book p.49 ↗",
        "This lake’s rule: up to 2 lake trout a day (part of the 5) Rule book p.52 ↗",
-       "keep 60 cm (24 in) or less, or 90 cm (35 in) or longer; release the rest Lake trout ›",
+       "must be 60 cm (24 in) or less, or 90 cm (35 in) or longer; release any other size Lake trout ›",
        "Only 1 over 90 cm (35 in)",
        "No more than 3 counting any Dolly Varden/bull trout you keep",
        "Of these, only 1 may be over 50 cm (20 in)",
@@ -95778,7 +95778,7 @@
      "5 a day per angler across Region 6",
      "Rule book p.49 ↗",
      "This lake’s rule: up to 2 lake trout a day (part of the 5) Rule book p.52 ↗",
-     "keep 60 cm (24 in) or less, or 90 cm (35 in) or longer; release the rest Lake trout ›",
+     "must be 60 cm (24 in) or less, or 90 cm (35 in) or longer; release any other size Lake trout ›",
      "Only 1 over 90 cm (35 in)",
      "No more than 3 counting any Dolly Varden/bull trout you keep",
      "Of these, only 1 may be over 50 cm (20 in)",
@@ -97005,7 +97005,7 @@
       "This lake’s rule: up to 4 a day per angler",
       "Rule book p.52 ↗",
       "Up to 4 may be Arctic grayling",
-      "keep 36 cm (14 in) or less, or 44 cm (17 in) or longer; release the rest Arctic grayling ›",
+      "must be 36 cm (14 in) or less, or 44 cm (17 in) or longer; release any other size Arctic grayling ›",
       "Only 1 over 44 cm (17 in)",
       "How it adds up",
       "This lake’s rule: 4 a day here. Arctic grayling you kept anywhere else today count toward those 4.",
@@ -97065,7 +97065,7 @@
       "This lake’s rule: up to 4 a day per angler",
       "Rule book p.52 ↗",
       "Up to 4 may be northern pike",
-      "keep 70 cm (28 in) or less, or 100 cm (39 in) or longer; release the rest Northern pike ›",
+      "must be 70 cm (28 in) or less, or 100 cm (39 in) or longer; release any other size Northern pike ›",
       "Only 1 over 100 cm (39 in)",
       "How it adds up",
       "This lake’s rule: 4 a day here. Northern pike you kept anywhere else today count toward those 4.",
@@ -99203,7 +99203,7 @@
           "says": "Up to 1 may be brook, brown or cutthroat trout",
           "n": "1",
           "howtell": false,
-          "size": "keep 35 cm (14 in) or longer; release the rest",
+          "size": "must be 35 cm (14 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -99226,7 +99226,7 @@
           "terms": [],
           "lines": [
            "Up to 1 may be brook, brown or cutthroat trout",
-           "keep 35 cm (14 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout ›"
+           "must be 35 cm (14 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout ›"
           ]
          },
          {
@@ -99240,7 +99240,7 @@
           "says": "Up to 1 may be rainbow trout",
           "n": "1",
           "howtell": false,
-          "size": "keep 35–50 cm (14–20 in); release smaller ones",
+          "size": "must be 35 cm (14 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -99255,7 +99255,7 @@
           "terms": [],
           "lines": [
            "Up to 1 may be rainbow trout",
-           "keep 35–50 cm (14–20 in); release smaller ones Rainbow trout ›"
+           "must be 35 cm (14 in) or longer; release any shorter Rainbow trout ›"
           ]
          }
         ]
@@ -99310,9 +99310,9 @@
        "Rule book p.42 ↗",
        "This river’s rule: up to 1 a day (part of the 5) Rule book p.44 ↗",
        "Up to 1 may be brook, brown or cutthroat trout",
-       "keep 35 cm (14 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout ›",
+       "must be 35 cm (14 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout ›",
        "Up to 1 may be rainbow trout",
-       "keep 35–50 cm (14–20 in); release smaller ones Rainbow trout ›",
+       "must be 35 cm (14 in) or longer; release any shorter Rainbow trout ›",
        "Steelhead, Dolly Varden/bull trout and lake trout: release every one",
        "Region 5’s rule · Rule book p.42 ↗",
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ Steelhead › Bull trout › Lake trout ›",
@@ -99418,9 +99418,9 @@
      "Rule book p.42 ↗",
      "This river’s rule: up to 1 a day (part of the 5) Rule book p.44 ↗",
      "Up to 1 may be brook, brown or cutthroat trout",
-     "keep 35 cm (14 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout ›",
+     "must be 35 cm (14 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout ›",
      "Up to 1 may be rainbow trout",
-     "keep 35–50 cm (14–20 in); release smaller ones Rainbow trout ›",
+     "must be 35 cm (14 in) or longer; release any shorter Rainbow trout ›",
      "Steelhead, Dolly Varden/bull trout and lake trout: release every one",
      "Region 5’s rule · Rule book p.42 ↗",
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ Steelhead › Bull trout › Lake trout ›",
@@ -101628,7 +101628,7 @@
           "says": "Up to 1 may be brook, brown or cutthroat trout",
           "n": "1",
           "howtell": false,
-          "size": "keep 35 cm (14 in) or longer; release the rest",
+          "size": "must be 35 cm (14 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -101651,7 +101651,7 @@
           "terms": [],
           "lines": [
            "Up to 1 may be brook, brown or cutthroat trout",
-           "keep 35 cm (14 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout ›"
+           "must be 35 cm (14 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout ›"
           ]
          },
          {
@@ -101665,7 +101665,7 @@
           "says": "Up to 1 may be rainbow trout",
           "n": "1",
           "howtell": false,
-          "size": "keep 35–50 cm (14–20 in); release smaller ones",
+          "size": "must be 35 cm (14 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -101680,7 +101680,7 @@
           "terms": [],
           "lines": [
            "Up to 1 may be rainbow trout",
-           "keep 35–50 cm (14–20 in); release smaller ones Rainbow trout ›"
+           "must be 35 cm (14 in) or longer; release any shorter Rainbow trout ›"
           ]
          }
         ]
@@ -101735,9 +101735,9 @@
        "Rule book p.42 ↗",
        "This river’s rule: up to 1 a day (part of the 5) Rule book p.44 ↗",
        "Up to 1 may be brook, brown or cutthroat trout",
-       "keep 35 cm (14 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout ›",
+       "must be 35 cm (14 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout ›",
        "Up to 1 may be rainbow trout",
-       "keep 35–50 cm (14–20 in); release smaller ones Rainbow trout ›",
+       "must be 35 cm (14 in) or longer; release any shorter Rainbow trout ›",
        "Steelhead, Dolly Varden/bull trout and lake trout: release every one",
        "Region 5’s rule · Rule book p.42 ↗",
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ Steelhead › Bull trout › Lake trout ›",
@@ -101844,9 +101844,9 @@
      "Rule book p.42 ↗",
      "This river’s rule: up to 1 a day (part of the 5) Rule book p.44 ↗",
      "Up to 1 may be brook, brown or cutthroat trout",
-     "keep 35 cm (14 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout ›",
+     "must be 35 cm (14 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout ›",
      "Up to 1 may be rainbow trout",
-     "keep 35–50 cm (14–20 in); release smaller ones Rainbow trout ›",
+     "must be 35 cm (14 in) or longer; release any shorter Rainbow trout ›",
      "Steelhead, Dolly Varden/bull trout and lake trout: release every one",
      "Region 5’s rule · Rule book p.42 ↗",
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ Steelhead › Bull trout › Lake trout ›",
@@ -104447,7 +104447,7 @@
           "says": "Up to 5 may be brook trout",
           "n": "5",
           "howtell": false,
-          "size": "keep 30 cm (12 in) or longer; release the rest",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -104462,7 +104462,7 @@
           "terms": [],
           "lines": [
            "Up to 5 may be brook trout",
-           "keep 30 cm (12 in) or longer; release the rest Brook trout ›"
+           "must be 30 cm (12 in) or longer; release any shorter Brook trout ›"
           ]
          },
          {
@@ -104477,7 +104477,7 @@
           "says": "Only 1 of the 5 may be brown or cutthroat trout",
           "n": "1",
           "howtell": false,
-          "size": "keep 30 cm (12 in) or longer; release the rest",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -104496,7 +104496,7 @@
           "terms": [],
           "lines": [
            "Only 1 of the 5 may be brown or cutthroat trout",
-           "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›"
+           "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›"
           ]
          },
          {
@@ -104510,7 +104510,7 @@
           "says": "Only 3 of the 5 may be lake trout",
           "n": "3",
           "howtell": false,
-          "size": "keep 30 cm (12 in) or longer; release the rest",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -104525,7 +104525,7 @@
           "terms": [],
           "lines": [
            "Only 3 of the 5 may be lake trout",
-           "keep 30 cm (12 in) or longer; release the rest Lake trout ›"
+           "must be 30 cm (12 in) or longer; release any shorter Lake trout ›"
           ]
          }
         ]
@@ -104610,11 +104610,11 @@
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
        "Of these, only 1 may be over 50 cm (20 in)",
        "Up to 5 may be brook trout",
-       "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
        "Only 1 of the 5 may be brown or cutthroat trout",
-       "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
        "Only 3 of the 5 may be lake trout",
-       "keep 30 cm (12 in) or longer; release the rest Lake trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Lake trout ›",
        "Up to 5 may be rainbow trout",
        "50 cm (20 in) or less Rainbow trout ›",
        "Dolly Varden/bull trout: release every one",
@@ -104746,11 +104746,11 @@
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
      "Of these, only 1 may be over 50 cm (20 in)",
      "Up to 5 may be brook trout",
-     "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
      "Only 1 of the 5 may be brown or cutthroat trout",
-     "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
      "Only 3 of the 5 may be lake trout",
-     "keep 30 cm (12 in) or longer; release the rest Lake trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Lake trout ›",
      "Up to 5 may be rainbow trout",
      "50 cm (20 in) or less Rainbow trout ›",
      "Dolly Varden/bull trout: release every one",
@@ -107077,7 +107077,7 @@
           "says": "Up to 5 may be brook trout",
           "n": "5",
           "howtell": false,
-          "size": "keep 30 cm (12 in) or longer; release the rest",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -107092,7 +107092,7 @@
           "terms": [],
           "lines": [
            "Up to 5 may be brook trout",
-           "keep 30 cm (12 in) or longer; release the rest Brook trout ›"
+           "must be 30 cm (12 in) or longer; release any shorter Brook trout ›"
           ]
          },
          {
@@ -107107,7 +107107,7 @@
           "says": "Only 1 of the 5 may be brown or cutthroat trout",
           "n": "1",
           "howtell": false,
-          "size": "keep 30 cm (12 in) or longer; release the rest",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -107126,7 +107126,7 @@
           "terms": [],
           "lines": [
            "Only 1 of the 5 may be brown or cutthroat trout",
-           "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›"
+           "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›"
           ]
          },
          {
@@ -107140,7 +107140,7 @@
           "says": "Only 3 of the 5 may be lake trout",
           "n": "3",
           "howtell": false,
-          "size": "keep 30 cm (12 in) or longer; release the rest",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -107155,7 +107155,7 @@
           "terms": [],
           "lines": [
            "Only 3 of the 5 may be lake trout",
-           "keep 30 cm (12 in) or longer; release the rest Lake trout ›"
+           "must be 30 cm (12 in) or longer; release any shorter Lake trout ›"
           ]
          }
         ]
@@ -107240,11 +107240,11 @@
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
        "Of these, only 1 may be over 50 cm (20 in)",
        "Up to 5 may be brook trout",
-       "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
        "Only 1 of the 5 may be brown or cutthroat trout",
-       "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
        "Only 3 of the 5 may be lake trout",
-       "keep 30 cm (12 in) or longer; release the rest Lake trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Lake trout ›",
        "Up to 5 may be rainbow trout",
        "50 cm (20 in) or less Rainbow trout ›",
        "Dolly Varden/bull trout: release every one",
@@ -107374,11 +107374,11 @@
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
      "Of these, only 1 may be over 50 cm (20 in)",
      "Up to 5 may be brook trout",
-     "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
      "Only 1 of the 5 may be brown or cutthroat trout",
-     "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
      "Only 3 of the 5 may be lake trout",
-     "keep 30 cm (12 in) or longer; release the rest Lake trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Lake trout ›",
      "Up to 5 may be rainbow trout",
      "50 cm (20 in) or less Rainbow trout ›",
      "Dolly Varden/bull trout: release every one",
@@ -109716,7 +109716,7 @@
           "says": "Up to 5 may be brook trout",
           "n": "5",
           "howtell": false,
-          "size": "keep 30 cm (12 in) or longer; release the rest",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -109731,7 +109731,7 @@
           "terms": [],
           "lines": [
            "Up to 5 may be brook trout",
-           "keep 30 cm (12 in) or longer; release the rest Brook trout ›"
+           "must be 30 cm (12 in) or longer; release any shorter Brook trout ›"
           ]
          },
          {
@@ -109746,7 +109746,7 @@
           "says": "Only 1 of the 5 may be brown or cutthroat trout",
           "n": "1",
           "howtell": false,
-          "size": "keep 30 cm (12 in) or longer; release the rest",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -109765,7 +109765,7 @@
           "terms": [],
           "lines": [
            "Only 1 of the 5 may be brown or cutthroat trout",
-           "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›"
+           "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›"
           ]
          },
          {
@@ -109779,7 +109779,7 @@
           "says": "Only 3 of the 5 may be lake trout",
           "n": "3",
           "howtell": false,
-          "size": "keep 30 cm (12 in) or longer; release the rest",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -109794,7 +109794,7 @@
           "terms": [],
           "lines": [
            "Only 3 of the 5 may be lake trout",
-           "keep 30 cm (12 in) or longer; release the rest Lake trout ›"
+           "must be 30 cm (12 in) or longer; release any shorter Lake trout ›"
           ]
          }
         ]
@@ -109879,11 +109879,11 @@
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
        "Of these, only 1 may be over 50 cm (20 in)",
        "Up to 5 may be brook trout",
-       "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
        "Only 1 of the 5 may be brown or cutthroat trout",
-       "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
        "Only 3 of the 5 may be lake trout",
-       "keep 30 cm (12 in) or longer; release the rest Lake trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Lake trout ›",
        "Up to 5 may be rainbow trout",
        "50 cm (20 in) or less Rainbow trout ›",
        "Dolly Varden/bull trout: release every one",
@@ -110013,11 +110013,11 @@
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
      "Of these, only 1 may be over 50 cm (20 in)",
      "Up to 5 may be brook trout",
-     "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
      "Only 1 of the 5 may be brown or cutthroat trout",
-     "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
      "Only 3 of the 5 may be lake trout",
-     "keep 30 cm (12 in) or longer; release the rest Lake trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Lake trout ›",
      "Up to 5 may be rainbow trout",
      "50 cm (20 in) or less Rainbow trout ›",
      "Dolly Varden/bull trout: release every one",
@@ -112382,7 +112382,7 @@
             "says": "Up to 2 may be hatchery brook, brown or cutthroat trout",
             "n": "2",
             "howtell": false,
-            "size": "keep 30 cm (12 in) or longer; release the rest",
+            "size": "must be 30 cm (12 in) or longer; release any shorter",
             "q": null,
             "pics": [
              {
@@ -112405,7 +112405,7 @@
             "terms": [],
             "lines": [
              "Up to 2 may be hatchery brook, brown or cutthroat trout",
-             "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout ›"
+             "must be 30 cm (12 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout ›"
             ]
            },
            {
@@ -112420,7 +112420,7 @@
             "says": "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
             "n": "1",
             "howtell": false,
-            "size": "keep 60 cm (24 in) or longer; release the rest",
+            "size": "must be 60 cm (24 in) or longer; release any shorter",
             "q": null,
             "pics": [
              {
@@ -112439,7 +112439,7 @@
             "terms": [],
             "lines": [
              "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
-             "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›"
+             "must be 60 cm (24 in) or longer; release any shorter Bull trout › Lake trout ›"
             ]
            },
            {
@@ -112488,7 +112488,7 @@
           "says": "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
-          "size": "keep 30–50 cm (12–20 in); release smaller ones",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -112503,7 +112503,7 @@
           "terms": [],
           "lines": [
            "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
-           "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›"
+           "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›"
           ]
          }
         ]
@@ -112540,15 +112540,15 @@
        "From streams, keep hatchery fish only — wild trout and char go back. How to tell › Rule book p.21 ↗",
        "Of these, only 1 may be over 50 cm (20 in) — 2 if one is a hatchery steelhead",
        "Up to 2 may be hatchery brook, brown or cutthroat trout",
-       "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout ›",
        "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
-       "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›",
+       "must be 60 cm (24 in) or longer; release any shorter Bull trout › Lake trout ›",
        "Up to 2 may be hatchery steelhead only — wild steelhead go back How to tell ›",
        "over 50 cm (20 in) rainbow trout Steelhead ›",
        "10 a year · Stop fishing the Fraser River after 2 a day · Record each on your licence right away Steelhead stamp ›",
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
        "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
-       "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
        "How it adds up",
        "Your own limit, counted across every Region 2 stream you fish today.",
        "Kept 2 on another stream? None more here",
@@ -112662,15 +112662,15 @@
      "From streams, keep hatchery fish only — wild trout and char go back. How to tell › Rule book p.21 ↗",
      "Of these, only 1 may be over 50 cm (20 in) — 2 if one is a hatchery steelhead",
      "Up to 2 may be hatchery brook, brown or cutthroat trout",
-     "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout ›",
      "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
-     "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›",
+     "must be 60 cm (24 in) or longer; release any shorter Bull trout › Lake trout ›",
      "Up to 2 may be hatchery steelhead only — wild steelhead go back How to tell ›",
      "over 50 cm (20 in) rainbow trout Steelhead ›",
      "10 a year · Stop fishing the Fraser River after 2 a day · Record each on your licence right away Steelhead stamp ›",
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
      "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
-     "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
      "How it adds up",
      "Your own limit, counted across every Region 2 stream you fish today.",
      "Kept 2 on another stream? None more here",
@@ -115865,7 +115865,7 @@
             "says": "Up to 2 may be hatchery brook, brown or cutthroat trout",
             "n": "2",
             "howtell": false,
-            "size": "keep 30 cm (12 in) or longer; release the rest",
+            "size": "must be 30 cm (12 in) or longer; release any shorter",
             "q": null,
             "pics": [
              {
@@ -115888,7 +115888,7 @@
             "terms": [],
             "lines": [
              "Up to 2 may be hatchery brook, brown or cutthroat trout",
-             "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout ›"
+             "must be 30 cm (12 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout ›"
             ]
            },
            {
@@ -115903,7 +115903,7 @@
             "says": "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
             "n": "1",
             "howtell": false,
-            "size": "keep 60 cm (24 in) or longer; release the rest",
+            "size": "must be 60 cm (24 in) or longer; release any shorter",
             "q": null,
             "pics": [
              {
@@ -115922,7 +115922,7 @@
             "terms": [],
             "lines": [
              "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
-             "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›"
+             "must be 60 cm (24 in) or longer; release any shorter Bull trout › Lake trout ›"
             ]
            }
           ]
@@ -115938,7 +115938,7 @@
           "says": "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
-          "size": "keep 30–50 cm (12–20 in); release smaller ones",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -115953,7 +115953,7 @@
           "terms": [],
           "lines": [
            "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
-           "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›"
+           "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›"
           ]
          }
         ]
@@ -116010,11 +116010,11 @@
        "From streams, keep hatchery fish only — wild trout and char go back. How to tell › Rule book p.21 ↗",
        "Of these, only 1 may be over 50 cm (20 in)",
        "Up to 2 may be hatchery brook, brown or cutthroat trout",
-       "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout ›",
        "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
-       "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›",
+       "must be 60 cm (24 in) or longer; release any shorter Bull trout › Lake trout ›",
        "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
-       "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
        "Steelhead: no fishing for them, not even catch and release — release any you hook by accident",
        "This river’s rule · Rule book p.23 ↗",
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ Steelhead › ✕",
@@ -116133,11 +116133,11 @@
      "From streams, keep hatchery fish only — wild trout and char go back. How to tell › Rule book p.21 ↗",
      "Of these, only 1 may be over 50 cm (20 in)",
      "Up to 2 may be hatchery brook, brown or cutthroat trout",
-     "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout ›",
      "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
-     "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›",
+     "must be 60 cm (24 in) or longer; release any shorter Bull trout › Lake trout ›",
      "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
-     "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
      "Steelhead: no fishing for them, not even catch and release — release any you hook by accident",
      "This river’s rule · Rule book p.23 ↗",
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ Steelhead › ✕",
@@ -166670,7 +166670,7 @@
         "says": "Up to 5 may be brook trout",
         "n": "5",
         "howtell": false,
-        "size": "keep 30 cm (12 in) or longer; release the rest",
+        "size": "must be 30 cm (12 in) or longer; release any shorter",
         "q": null,
         "pics": [
          {
@@ -166687,7 +166687,7 @@
         "terms": [],
         "lines": [
          "Up to 5 may be brook trout",
-         "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+         "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
          "Only 1 over 50 cm (20 in), if you haven’t already kept a steelhead, cutthroat trout or brown trout over 50 cm (20 in)"
         ]
        },
@@ -166722,7 +166722,7 @@
           "says": "Up to 1 may be brown or cutthroat trout",
           "n": "1",
           "howtell": false,
-          "size": "keep 30 cm (12 in) or longer; release the rest",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -166743,7 +166743,7 @@
           "terms": [],
           "lines": [
            "Up to 1 may be brown or cutthroat trout",
-           "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+           "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
            "None over 50 cm (20 in) if you’ve already kept a steelhead or brook trout over 50 cm (20 in)"
           ]
          },
@@ -166758,7 +166758,7 @@
           "says": "Up to 1 may be rainbow trout",
           "n": "1",
           "howtell": false,
-          "size": "keep 30–50 cm (12–20 in); release smaller ones",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -166773,7 +166773,7 @@
           "terms": [],
           "lines": [
            "Up to 1 may be rainbow trout",
-           "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›"
+           "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›"
           ]
          },
          {
@@ -166864,14 +166864,14 @@
        "5 a day per angler across Region 6",
        "Rule book p.49 ↗",
        "Up to 5 may be brook trout",
-       "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
        "Only 1 over 50 cm (20 in), if you haven’t already kept a steelhead, cutthroat trout or brown trout over 50 cm (20 in)",
        "1 brown trout, cutthroat trout, rainbow trout or steelhead in all",
        "Up to 1 may be brown or cutthroat trout",
-       "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
        "None over 50 cm (20 in) if you’ve already kept a steelhead or brook trout over 50 cm (20 in)",
        "Up to 1 may be rainbow trout",
-       "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
        "Up to 1 may be hatchery steelhead only — wild steelhead go back How to tell ›",
        "over 50 cm (20 in) rainbow trout Steelhead ›",
        "None over 50 cm (20 in) if you’ve already kept a cutthroat, brown or brook trout over 50 cm (20 in)",
@@ -166999,14 +166999,14 @@
      "5 a day per angler across Region 6",
      "Rule book p.49 ↗",
      "Up to 5 may be brook trout",
-     "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
      "Only 1 over 50 cm (20 in), if you haven’t already kept a steelhead, cutthroat trout or brown trout over 50 cm (20 in)",
      "1 brown trout, cutthroat trout, rainbow trout or steelhead in all",
      "Up to 1 may be brown or cutthroat trout",
-     "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
      "None over 50 cm (20 in) if you’ve already kept a steelhead or brook trout over 50 cm (20 in)",
      "Up to 1 may be rainbow trout",
-     "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
      "Up to 1 may be hatchery steelhead only — wild steelhead go back How to tell ›",
      "over 50 cm (20 in) rainbow trout Steelhead ›",
      "None over 50 cm (20 in) if you’ve already kept a cutthroat, brown or brook trout over 50 cm (20 in)",
@@ -169323,7 +169323,7 @@
         "says": "Up to 5 may be brook trout",
         "n": "5",
         "howtell": false,
-        "size": "keep 30 cm (12 in) or longer; release the rest",
+        "size": "must be 30 cm (12 in) or longer; release any shorter",
         "q": null,
         "pics": [
          {
@@ -169340,7 +169340,7 @@
         "terms": [],
         "lines": [
          "Up to 5 may be brook trout",
-         "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+         "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
          "Only 1 over 50 cm (20 in), if you haven’t already kept a steelhead, cutthroat trout or brown trout over 50 cm (20 in)"
         ]
        },
@@ -169375,7 +169375,7 @@
           "says": "Up to 1 may be brown or cutthroat trout",
           "n": "1",
           "howtell": false,
-          "size": "keep 30 cm (12 in) or longer; release the rest",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -169396,7 +169396,7 @@
           "terms": [],
           "lines": [
            "Up to 1 may be brown or cutthroat trout",
-           "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+           "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
            "None over 50 cm (20 in) if you’ve already kept a steelhead or brook trout over 50 cm (20 in)"
           ]
          },
@@ -169411,7 +169411,7 @@
           "says": "Up to 1 may be rainbow trout",
           "n": "1",
           "howtell": false,
-          "size": "keep 30–50 cm (12–20 in); release smaller ones",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -169426,7 +169426,7 @@
           "terms": [],
           "lines": [
            "Up to 1 may be rainbow trout",
-           "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›"
+           "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›"
           ]
          },
          {
@@ -169517,14 +169517,14 @@
        "5 a day per angler across Region 6",
        "Rule book p.49 ↗",
        "Up to 5 may be brook trout",
-       "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
        "Only 1 over 50 cm (20 in), if you haven’t already kept a steelhead, cutthroat trout or brown trout over 50 cm (20 in)",
        "1 brown trout, cutthroat trout, rainbow trout or steelhead in all",
        "Up to 1 may be brown or cutthroat trout",
-       "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
        "None over 50 cm (20 in) if you’ve already kept a steelhead or brook trout over 50 cm (20 in)",
        "Up to 1 may be rainbow trout",
-       "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
        "Up to 1 may be hatchery steelhead only — wild steelhead go back How to tell ›",
        "over 50 cm (20 in) rainbow trout Steelhead ›",
        "None over 50 cm (20 in) if you’ve already kept a cutthroat, brown or brook trout over 50 cm (20 in)",
@@ -169654,14 +169654,14 @@
      "5 a day per angler across Region 6",
      "Rule book p.49 ↗",
      "Up to 5 may be brook trout",
-     "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
      "Only 1 over 50 cm (20 in), if you haven’t already kept a steelhead, cutthroat trout or brown trout over 50 cm (20 in)",
      "1 brown trout, cutthroat trout, rainbow trout or steelhead in all",
      "Up to 1 may be brown or cutthroat trout",
-     "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
      "None over 50 cm (20 in) if you’ve already kept a steelhead or brook trout over 50 cm (20 in)",
      "Up to 1 may be rainbow trout",
-     "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
      "Up to 1 may be hatchery steelhead only — wild steelhead go back How to tell ›",
      "over 50 cm (20 in) rainbow trout Steelhead ›",
      "None over 50 cm (20 in) if you’ve already kept a cutthroat, brown or brook trout over 50 cm (20 in)",
@@ -171987,7 +171987,7 @@
         "says": "Up to 5 may be brook trout",
         "n": "5",
         "howtell": false,
-        "size": "keep 30 cm (12 in) or longer; release the rest",
+        "size": "must be 30 cm (12 in) or longer; release any shorter",
         "q": null,
         "pics": [
          {
@@ -172004,7 +172004,7 @@
         "terms": [],
         "lines": [
          "Up to 5 may be brook trout",
-         "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+         "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
          "Only 1 over 50 cm (20 in), if you haven’t already kept a steelhead, cutthroat trout or brown trout over 50 cm (20 in)"
         ]
        },
@@ -172039,7 +172039,7 @@
           "says": "Up to 1 may be brown or cutthroat trout",
           "n": "1",
           "howtell": false,
-          "size": "keep 30 cm (12 in) or longer; release the rest",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -172060,7 +172060,7 @@
           "terms": [],
           "lines": [
            "Up to 1 may be brown or cutthroat trout",
-           "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+           "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
            "None over 50 cm (20 in) if you’ve already kept a steelhead or brook trout over 50 cm (20 in)"
           ]
          },
@@ -172075,7 +172075,7 @@
           "says": "Up to 1 may be rainbow trout",
           "n": "1",
           "howtell": false,
-          "size": "keep 30–50 cm (12–20 in); release smaller ones",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -172090,7 +172090,7 @@
           "terms": [],
           "lines": [
            "Up to 1 may be rainbow trout",
-           "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›"
+           "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›"
           ]
          },
          {
@@ -172181,14 +172181,14 @@
        "5 a day per angler across Region 6",
        "Rule book p.49 ↗",
        "Up to 5 may be brook trout",
-       "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
        "Only 1 over 50 cm (20 in), if you haven’t already kept a steelhead, cutthroat trout or brown trout over 50 cm (20 in)",
        "1 brown trout, cutthroat trout, rainbow trout or steelhead in all",
        "Up to 1 may be brown or cutthroat trout",
-       "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
        "None over 50 cm (20 in) if you’ve already kept a steelhead or brook trout over 50 cm (20 in)",
        "Up to 1 may be rainbow trout",
-       "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
        "Up to 1 may be hatchery steelhead only — wild steelhead go back How to tell ›",
        "over 50 cm (20 in) rainbow trout Steelhead ›",
        "None over 50 cm (20 in) if you’ve already kept a cutthroat, brown or brook trout over 50 cm (20 in)",
@@ -172318,14 +172318,14 @@
      "5 a day per angler across Region 6",
      "Rule book p.49 ↗",
      "Up to 5 may be brook trout",
-     "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
      "Only 1 over 50 cm (20 in), if you haven’t already kept a steelhead, cutthroat trout or brown trout over 50 cm (20 in)",
      "1 brown trout, cutthroat trout, rainbow trout or steelhead in all",
      "Up to 1 may be brown or cutthroat trout",
-     "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
      "None over 50 cm (20 in) if you’ve already kept a steelhead or brook trout over 50 cm (20 in)",
      "Up to 1 may be rainbow trout",
-     "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
      "Up to 1 may be hatchery steelhead only — wild steelhead go back How to tell ›",
      "over 50 cm (20 in) rainbow trout Steelhead ›",
      "None over 50 cm (20 in) if you’ve already kept a cutthroat, brown or brook trout over 50 cm (20 in)",
@@ -174677,7 +174677,7 @@
         "says": "Up to 5 may be brook trout",
         "n": "5",
         "howtell": false,
-        "size": "keep 30 cm (12 in) or longer; release the rest",
+        "size": "must be 30 cm (12 in) or longer; release any shorter",
         "q": null,
         "pics": [
          {
@@ -174694,7 +174694,7 @@
         "terms": [],
         "lines": [
          "Up to 5 may be brook trout",
-         "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+         "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
          "Only 1 over 50 cm (20 in), if you haven’t already kept a steelhead, cutthroat trout or brown trout over 50 cm (20 in)"
         ]
        },
@@ -174729,7 +174729,7 @@
           "says": "Up to 1 may be brown or cutthroat trout",
           "n": "1",
           "howtell": false,
-          "size": "keep 30 cm (12 in) or longer; release the rest",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -174750,7 +174750,7 @@
           "terms": [],
           "lines": [
            "Up to 1 may be brown or cutthroat trout",
-           "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+           "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
            "None over 50 cm (20 in) if you’ve already kept a steelhead or brook trout over 50 cm (20 in)"
           ]
          },
@@ -174765,7 +174765,7 @@
           "says": "Up to 1 may be rainbow trout",
           "n": "1",
           "howtell": false,
-          "size": "keep 30–50 cm (12–20 in); release smaller ones",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -174780,7 +174780,7 @@
           "terms": [],
           "lines": [
            "Up to 1 may be rainbow trout",
-           "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›"
+           "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›"
           ]
          },
          {
@@ -174871,14 +174871,14 @@
        "5 a day per angler across Region 6",
        "Rule book p.49 ↗",
        "Up to 5 may be brook trout",
-       "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
        "Only 1 over 50 cm (20 in), if you haven’t already kept a steelhead, cutthroat trout or brown trout over 50 cm (20 in)",
        "1 brown trout, cutthroat trout, rainbow trout or steelhead in all",
        "Up to 1 may be brown or cutthroat trout",
-       "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
        "None over 50 cm (20 in) if you’ve already kept a steelhead or brook trout over 50 cm (20 in)",
        "Up to 1 may be rainbow trout",
-       "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
        "Up to 1 may be hatchery steelhead only — wild steelhead go back How to tell ›",
        "over 50 cm (20 in) rainbow trout Steelhead ›",
        "None over 50 cm (20 in) if you’ve already kept a cutthroat, brown or brook trout over 50 cm (20 in)",
@@ -175008,14 +175008,14 @@
      "5 a day per angler across Region 6",
      "Rule book p.49 ↗",
      "Up to 5 may be brook trout",
-     "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
      "Only 1 over 50 cm (20 in), if you haven’t already kept a steelhead, cutthroat trout or brown trout over 50 cm (20 in)",
      "1 brown trout, cutthroat trout, rainbow trout or steelhead in all",
      "Up to 1 may be brown or cutthroat trout",
-     "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
      "None over 50 cm (20 in) if you’ve already kept a steelhead or brook trout over 50 cm (20 in)",
      "Up to 1 may be rainbow trout",
-     "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
      "Up to 1 may be hatchery steelhead only — wild steelhead go back How to tell ›",
      "over 50 cm (20 in) rainbow trout Steelhead ›",
      "None over 50 cm (20 in) if you’ve already kept a cutthroat, brown or brook trout over 50 cm (20 in)",
@@ -177301,7 +177301,7 @@
         "says": "Up to 5 may be brook trout",
         "n": "5",
         "howtell": false,
-        "size": "keep 30 cm (12 in) or longer; release the rest",
+        "size": "must be 30 cm (12 in) or longer; release any shorter",
         "q": null,
         "pics": [
          {
@@ -177318,7 +177318,7 @@
         "terms": [],
         "lines": [
          "Up to 5 may be brook trout",
-         "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+         "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
          "Only 1 over 50 cm (20 in), if you haven’t already kept a steelhead, cutthroat trout or brown trout over 50 cm (20 in)"
         ]
        },
@@ -177353,7 +177353,7 @@
           "says": "Up to 1 may be brown or cutthroat trout",
           "n": "1",
           "howtell": false,
-          "size": "keep 30 cm (12 in) or longer; release the rest",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -177374,7 +177374,7 @@
           "terms": [],
           "lines": [
            "Up to 1 may be brown or cutthroat trout",
-           "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+           "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
            "None over 50 cm (20 in) if you’ve already kept a steelhead or brook trout over 50 cm (20 in)"
           ]
          },
@@ -177389,7 +177389,7 @@
           "says": "Up to 1 may be rainbow trout",
           "n": "1",
           "howtell": false,
-          "size": "keep 30–50 cm (12–20 in); release smaller ones",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -177404,7 +177404,7 @@
           "terms": [],
           "lines": [
            "Up to 1 may be rainbow trout",
-           "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›"
+           "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›"
           ]
          },
          {
@@ -177495,14 +177495,14 @@
        "5 a day per angler across Region 6",
        "Rule book p.49 ↗",
        "Up to 5 may be brook trout",
-       "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
        "Only 1 over 50 cm (20 in), if you haven’t already kept a steelhead, cutthroat trout or brown trout over 50 cm (20 in)",
        "1 brown trout, cutthroat trout, rainbow trout or steelhead in all",
        "Up to 1 may be brown or cutthroat trout",
-       "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
        "None over 50 cm (20 in) if you’ve already kept a steelhead or brook trout over 50 cm (20 in)",
        "Up to 1 may be rainbow trout",
-       "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
        "Up to 1 may be hatchery steelhead only — wild steelhead go back How to tell ›",
        "over 50 cm (20 in) rainbow trout Steelhead ›",
        "None over 50 cm (20 in) if you’ve already kept a cutthroat, brown or brook trout over 50 cm (20 in)",
@@ -177630,14 +177630,14 @@
      "5 a day per angler across Region 6",
      "Rule book p.49 ↗",
      "Up to 5 may be brook trout",
-     "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
      "Only 1 over 50 cm (20 in), if you haven’t already kept a steelhead, cutthroat trout or brown trout over 50 cm (20 in)",
      "1 brown trout, cutthroat trout, rainbow trout or steelhead in all",
      "Up to 1 may be brown or cutthroat trout",
-     "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
      "None over 50 cm (20 in) if you’ve already kept a steelhead or brook trout over 50 cm (20 in)",
      "Up to 1 may be rainbow trout",
-     "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
      "Up to 1 may be hatchery steelhead only — wild steelhead go back How to tell ›",
      "over 50 cm (20 in) rainbow trout Steelhead ›",
      "None over 50 cm (20 in) if you’ve already kept a cutthroat, brown or brook trout over 50 cm (20 in)",
@@ -179839,7 +179839,7 @@
         "says": "Up to 5 may be brook trout",
         "n": "5",
         "howtell": false,
-        "size": "keep 30 cm (12 in) or longer; release the rest",
+        "size": "must be 30 cm (12 in) or longer; release any shorter",
         "q": null,
         "pics": [
          {
@@ -179856,7 +179856,7 @@
         "terms": [],
         "lines": [
          "Up to 5 may be brook trout",
-         "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+         "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
          "Only 1 over 50 cm (20 in), if you haven’t already kept a steelhead, cutthroat trout or brown trout over 50 cm (20 in)"
         ]
        },
@@ -179891,7 +179891,7 @@
           "says": "Up to 1 may be brown or cutthroat trout",
           "n": "1",
           "howtell": false,
-          "size": "keep 30 cm (12 in) or longer; release the rest",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -179912,7 +179912,7 @@
           "terms": [],
           "lines": [
            "Up to 1 may be brown or cutthroat trout",
-           "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+           "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
            "None over 50 cm (20 in) if you’ve already kept a steelhead or brook trout over 50 cm (20 in)"
           ]
          },
@@ -179927,7 +179927,7 @@
           "says": "Up to 1 may be rainbow trout",
           "n": "1",
           "howtell": false,
-          "size": "keep 30–50 cm (12–20 in); release smaller ones",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -179942,7 +179942,7 @@
           "terms": [],
           "lines": [
            "Up to 1 may be rainbow trout",
-           "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›"
+           "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›"
           ]
          },
          {
@@ -180033,14 +180033,14 @@
        "5 a day per angler across Region 6",
        "Rule book p.49 ↗",
        "Up to 5 may be brook trout",
-       "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
        "Only 1 over 50 cm (20 in), if you haven’t already kept a steelhead, cutthroat trout or brown trout over 50 cm (20 in)",
        "1 brown trout, cutthroat trout, rainbow trout or steelhead in all",
        "Up to 1 may be brown or cutthroat trout",
-       "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
        "None over 50 cm (20 in) if you’ve already kept a steelhead or brook trout over 50 cm (20 in)",
        "Up to 1 may be rainbow trout",
-       "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
        "Up to 1 may be hatchery steelhead only — wild steelhead go back How to tell ›",
        "over 50 cm (20 in) rainbow trout Steelhead ›",
        "None over 50 cm (20 in) if you’ve already kept a cutthroat, brown or brook trout over 50 cm (20 in)",
@@ -180168,14 +180168,14 @@
      "5 a day per angler across Region 6",
      "Rule book p.49 ↗",
      "Up to 5 may be brook trout",
-     "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
      "Only 1 over 50 cm (20 in), if you haven’t already kept a steelhead, cutthroat trout or brown trout over 50 cm (20 in)",
      "1 brown trout, cutthroat trout, rainbow trout or steelhead in all",
      "Up to 1 may be brown or cutthroat trout",
-     "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
      "None over 50 cm (20 in) if you’ve already kept a steelhead or brook trout over 50 cm (20 in)",
      "Up to 1 may be rainbow trout",
-     "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
      "Up to 1 may be hatchery steelhead only — wild steelhead go back How to tell ›",
      "over 50 cm (20 in) rainbow trout Steelhead ›",
      "None over 50 cm (20 in) if you’ve already kept a cutthroat, brown or brook trout over 50 cm (20 in)",
@@ -195478,7 +195478,7 @@
         "says": "Only 1 of the 2 may be Dolly Varden/bull trout",
         "n": "1",
         "howtell": false,
-        "size": "keep 60 cm (24 in) or longer; release the rest",
+        "size": "must be 60 cm (24 in) or longer; release any shorter",
         "q": null,
         "pics": [
          {
@@ -195493,7 +195493,7 @@
         "terms": [],
         "lines": [
          "Only 1 of the 2 may be Dolly Varden/bull trout",
-         "keep 60 cm (24 in) or longer; release the rest Bull trout ›"
+         "must be 60 cm (24 in) or longer; release any shorter Bull trout ›"
         ]
        }
       ],
@@ -195520,7 +195520,7 @@
        "any size Brook trout › Brown trout › Coastal cutthroat trout › Lake trout › Rainbow trout ›",
        "Only 1 cutthroat or rainbow trout over 50 cm (20 in)",
        "Only 1 of the 2 may be Dolly Varden/bull trout",
-       "keep 60 cm (24 in) or longer; release the rest Bull trout ›",
+       "must be 60 cm (24 in) or longer; release any shorter Bull trout ›",
        "How it adds up",
        "Upper Arrow Lake’s rule: 2 a day here. Trout and char other than steelhead you kept anywhere else today count toward those 2.",
        "Kept Dolly Varden/bull trout over 60 cm (24 in) elsewhere today? It counts here too: at most 1 over 60 cm (24 in) a day in all. See every regulation line ›"
@@ -195643,7 +195643,7 @@
      "any size Brook trout › Brown trout › Coastal cutthroat trout › Lake trout › Rainbow trout ›",
      "Only 1 cutthroat or rainbow trout over 50 cm (20 in)",
      "Only 1 of the 2 may be Dolly Varden/bull trout",
-     "keep 60 cm (24 in) or longer; release the rest Bull trout ›",
+     "must be 60 cm (24 in) or longer; release any shorter Bull trout ›",
      "How it adds up",
      "Upper Arrow Lake’s rule: 2 a day here. Trout and char other than steelhead you kept anywhere else today count toward those 2.",
      "Kept Dolly Varden/bull trout over 60 cm (24 in) elsewhere today? It counts here too: at most 1 over 60 cm (24 in) a day in all. See every regulation line ›",
@@ -197738,7 +197738,7 @@
         "says": "Up to 5 may be brook trout",
         "n": "5",
         "howtell": false,
-        "size": "keep 30 cm (12 in) or longer; release the rest",
+        "size": "must be 30 cm (12 in) or longer; release any shorter",
         "q": null,
         "pics": [
          {
@@ -197755,7 +197755,7 @@
         "terms": [],
         "lines": [
          "Up to 5 may be brook trout",
-         "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+         "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
          "Only 1 over 50 cm (20 in), if you haven’t already kept a steelhead, cutthroat trout or brown trout over 50 cm (20 in)"
         ]
        },
@@ -197790,7 +197790,7 @@
           "says": "Up to 1 may be brown or cutthroat trout",
           "n": "1",
           "howtell": false,
-          "size": "keep 30 cm (12 in) or longer; release the rest",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -197811,7 +197811,7 @@
           "terms": [],
           "lines": [
            "Up to 1 may be brown or cutthroat trout",
-           "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+           "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
            "None over 50 cm (20 in) if you’ve already kept a steelhead or brook trout over 50 cm (20 in)"
           ]
          },
@@ -197826,7 +197826,7 @@
           "says": "Up to 1 may be rainbow trout",
           "n": "1",
           "howtell": false,
-          "size": "keep 30–50 cm (12–20 in); release smaller ones",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -197841,7 +197841,7 @@
           "terms": [],
           "lines": [
            "Up to 1 may be rainbow trout",
-           "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›"
+           "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›"
           ]
          },
          {
@@ -197932,14 +197932,14 @@
        "5 a day per angler across Region 6",
        "Rule book p.49 ↗",
        "Up to 5 may be brook trout",
-       "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
        "Only 1 over 50 cm (20 in), if you haven’t already kept a steelhead, cutthroat trout or brown trout over 50 cm (20 in)",
        "1 brown trout, cutthroat trout, rainbow trout or steelhead in all",
        "Up to 1 may be brown or cutthroat trout",
-       "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
        "None over 50 cm (20 in) if you’ve already kept a steelhead or brook trout over 50 cm (20 in)",
        "Up to 1 may be rainbow trout",
-       "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
        "Up to 1 may be hatchery steelhead only — wild steelhead go back How to tell ›",
        "over 50 cm (20 in) rainbow trout Steelhead ›",
        "None over 50 cm (20 in) if you’ve already kept a cutthroat, brown or brook trout over 50 cm (20 in)",
@@ -198067,14 +198067,14 @@
      "5 a day per angler across Region 6",
      "Rule book p.49 ↗",
      "Up to 5 may be brook trout",
-     "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
      "Only 1 over 50 cm (20 in), if you haven’t already kept a steelhead, cutthroat trout or brown trout over 50 cm (20 in)",
      "1 brown trout, cutthroat trout, rainbow trout or steelhead in all",
      "Up to 1 may be brown or cutthroat trout",
-     "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
      "None over 50 cm (20 in) if you’ve already kept a steelhead or brook trout over 50 cm (20 in)",
      "Up to 1 may be rainbow trout",
-     "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
      "Up to 1 may be hatchery steelhead only — wild steelhead go back How to tell ›",
      "over 50 cm (20 in) rainbow trout Steelhead ›",
      "None over 50 cm (20 in) if you’ve already kept a cutthroat, brown or brook trout over 50 cm (20 in)",
@@ -200308,7 +200308,7 @@
         "says": "Up to 5 may be brook trout",
         "n": "5",
         "howtell": false,
-        "size": "keep 30 cm (12 in) or longer; release the rest",
+        "size": "must be 30 cm (12 in) or longer; release any shorter",
         "q": null,
         "pics": [
          {
@@ -200325,7 +200325,7 @@
         "terms": [],
         "lines": [
          "Up to 5 may be brook trout",
-         "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+         "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
          "Only 1 over 50 cm (20 in), if you haven’t already kept a steelhead, cutthroat trout or brown trout over 50 cm (20 in)"
         ]
        },
@@ -200360,7 +200360,7 @@
           "says": "Up to 1 may be brown or cutthroat trout",
           "n": "1",
           "howtell": false,
-          "size": "keep 30 cm (12 in) or longer; release the rest",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -200381,7 +200381,7 @@
           "terms": [],
           "lines": [
            "Up to 1 may be brown or cutthroat trout",
-           "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+           "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
            "None over 50 cm (20 in) if you’ve already kept a steelhead or brook trout over 50 cm (20 in)"
           ]
          },
@@ -200396,7 +200396,7 @@
           "says": "Up to 1 may be rainbow trout",
           "n": "1",
           "howtell": false,
-          "size": "keep 30–50 cm (12–20 in); release smaller ones",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -200411,7 +200411,7 @@
           "terms": [],
           "lines": [
            "Up to 1 may be rainbow trout",
-           "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›"
+           "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›"
           ]
          },
          {
@@ -200502,14 +200502,14 @@
        "5 a day per angler across Region 6",
        "Rule book p.49 ↗",
        "Up to 5 may be brook trout",
-       "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
        "Only 1 over 50 cm (20 in), if you haven’t already kept a steelhead, cutthroat trout or brown trout over 50 cm (20 in)",
        "1 brown trout, cutthroat trout, rainbow trout or steelhead in all",
        "Up to 1 may be brown or cutthroat trout",
-       "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
        "None over 50 cm (20 in) if you’ve already kept a steelhead or brook trout over 50 cm (20 in)",
        "Up to 1 may be rainbow trout",
-       "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
        "Up to 1 may be hatchery steelhead only — wild steelhead go back How to tell ›",
        "over 50 cm (20 in) rainbow trout Steelhead ›",
        "None over 50 cm (20 in) if you’ve already kept a cutthroat, brown or brook trout over 50 cm (20 in)",
@@ -200637,14 +200637,14 @@
      "5 a day per angler across Region 6",
      "Rule book p.49 ↗",
      "Up to 5 may be brook trout",
-     "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
      "Only 1 over 50 cm (20 in), if you haven’t already kept a steelhead, cutthroat trout or brown trout over 50 cm (20 in)",
      "1 brown trout, cutthroat trout, rainbow trout or steelhead in all",
      "Up to 1 may be brown or cutthroat trout",
-     "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
      "None over 50 cm (20 in) if you’ve already kept a steelhead or brook trout over 50 cm (20 in)",
      "Up to 1 may be rainbow trout",
-     "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
      "Up to 1 may be hatchery steelhead only — wild steelhead go back How to tell ›",
      "over 50 cm (20 in) rainbow trout Steelhead ›",
      "None over 50 cm (20 in) if you’ve already kept a cutthroat, brown or brook trout over 50 cm (20 in)",
@@ -202878,7 +202878,7 @@
         "says": "Up to 5 may be brook trout",
         "n": "5",
         "howtell": false,
-        "size": "keep 30 cm (12 in) or longer; release the rest",
+        "size": "must be 30 cm (12 in) or longer; release any shorter",
         "q": null,
         "pics": [
          {
@@ -202895,7 +202895,7 @@
         "terms": [],
         "lines": [
          "Up to 5 may be brook trout",
-         "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+         "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
          "Only 1 over 50 cm (20 in), if you haven’t already kept a steelhead, cutthroat trout or brown trout over 50 cm (20 in)"
         ]
        },
@@ -202930,7 +202930,7 @@
           "says": "Up to 1 may be brown or cutthroat trout",
           "n": "1",
           "howtell": false,
-          "size": "keep 30 cm (12 in) or longer; release the rest",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -202951,7 +202951,7 @@
           "terms": [],
           "lines": [
            "Up to 1 may be brown or cutthroat trout",
-           "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+           "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
            "None over 50 cm (20 in) if you’ve already kept a steelhead or brook trout over 50 cm (20 in)"
           ]
          },
@@ -202966,7 +202966,7 @@
           "says": "Up to 1 may be rainbow trout",
           "n": "1",
           "howtell": false,
-          "size": "keep 30–50 cm (12–20 in); release smaller ones",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -202981,7 +202981,7 @@
           "terms": [],
           "lines": [
            "Up to 1 may be rainbow trout",
-           "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›"
+           "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›"
           ]
          },
          {
@@ -203072,14 +203072,14 @@
        "5 a day per angler across Region 6",
        "Rule book p.49 ↗",
        "Up to 5 may be brook trout",
-       "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
        "Only 1 over 50 cm (20 in), if you haven’t already kept a steelhead, cutthroat trout or brown trout over 50 cm (20 in)",
        "1 brown trout, cutthroat trout, rainbow trout or steelhead in all",
        "Up to 1 may be brown or cutthroat trout",
-       "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
        "None over 50 cm (20 in) if you’ve already kept a steelhead or brook trout over 50 cm (20 in)",
        "Up to 1 may be rainbow trout",
-       "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
        "Up to 1 may be hatchery steelhead only — wild steelhead go back How to tell ›",
        "over 50 cm (20 in) rainbow trout Steelhead ›",
        "None over 50 cm (20 in) if you’ve already kept a cutthroat, brown or brook trout over 50 cm (20 in)",
@@ -203207,14 +203207,14 @@
      "5 a day per angler across Region 6",
      "Rule book p.49 ↗",
      "Up to 5 may be brook trout",
-     "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
      "Only 1 over 50 cm (20 in), if you haven’t already kept a steelhead, cutthroat trout or brown trout over 50 cm (20 in)",
      "1 brown trout, cutthroat trout, rainbow trout or steelhead in all",
      "Up to 1 may be brown or cutthroat trout",
-     "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
      "None over 50 cm (20 in) if you’ve already kept a steelhead or brook trout over 50 cm (20 in)",
      "Up to 1 may be rainbow trout",
-     "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
      "Up to 1 may be hatchery steelhead only — wild steelhead go back How to tell ›",
      "over 50 cm (20 in) rainbow trout Steelhead ›",
      "None over 50 cm (20 in) if you’ve already kept a cutthroat, brown or brook trout over 50 cm (20 in)",
@@ -205535,7 +205535,7 @@
         "says": "Up to 5 may be brook trout",
         "n": "5",
         "howtell": false,
-        "size": "keep 30 cm (12 in) or longer; release the rest",
+        "size": "must be 30 cm (12 in) or longer; release any shorter",
         "q": null,
         "pics": [
          {
@@ -205552,7 +205552,7 @@
         "terms": [],
         "lines": [
          "Up to 5 may be brook trout",
-         "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+         "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
          "Only 1 over 50 cm (20 in), if you haven’t already kept a steelhead, cutthroat trout or brown trout over 50 cm (20 in)"
         ]
        },
@@ -205587,7 +205587,7 @@
           "says": "Up to 1 may be brown or cutthroat trout",
           "n": "1",
           "howtell": false,
-          "size": "keep 30 cm (12 in) or longer; release the rest",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -205608,7 +205608,7 @@
           "terms": [],
           "lines": [
            "Up to 1 may be brown or cutthroat trout",
-           "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+           "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
            "None over 50 cm (20 in) if you’ve already kept a steelhead or brook trout over 50 cm (20 in)"
           ]
          },
@@ -205623,7 +205623,7 @@
           "says": "Up to 1 may be rainbow trout",
           "n": "1",
           "howtell": false,
-          "size": "keep 30–50 cm (12–20 in); release smaller ones",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -205638,7 +205638,7 @@
           "terms": [],
           "lines": [
            "Up to 1 may be rainbow trout",
-           "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›"
+           "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›"
           ]
          },
          {
@@ -205729,14 +205729,14 @@
        "5 a day per angler across Region 6",
        "Rule book p.49 ↗",
        "Up to 5 may be brook trout",
-       "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
        "Only 1 over 50 cm (20 in), if you haven’t already kept a steelhead, cutthroat trout or brown trout over 50 cm (20 in)",
        "1 brown trout, cutthroat trout, rainbow trout or steelhead in all",
        "Up to 1 may be brown or cutthroat trout",
-       "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
        "None over 50 cm (20 in) if you’ve already kept a steelhead or brook trout over 50 cm (20 in)",
        "Up to 1 may be rainbow trout",
-       "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
        "Up to 1 may be hatchery steelhead only — wild steelhead go back How to tell ›",
        "over 50 cm (20 in) rainbow trout Steelhead ›",
        "None over 50 cm (20 in) if you’ve already kept a cutthroat, brown or brook trout over 50 cm (20 in)",
@@ -205864,14 +205864,14 @@
      "5 a day per angler across Region 6",
      "Rule book p.49 ↗",
      "Up to 5 may be brook trout",
-     "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
      "Only 1 over 50 cm (20 in), if you haven’t already kept a steelhead, cutthroat trout or brown trout over 50 cm (20 in)",
      "1 brown trout, cutthroat trout, rainbow trout or steelhead in all",
      "Up to 1 may be brown or cutthroat trout",
-     "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
      "None over 50 cm (20 in) if you’ve already kept a steelhead or brook trout over 50 cm (20 in)",
      "Up to 1 may be rainbow trout",
-     "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
      "Up to 1 may be hatchery steelhead only — wild steelhead go back How to tell ›",
      "over 50 cm (20 in) rainbow trout Steelhead ›",
      "None over 50 cm (20 in) if you’ve already kept a cutthroat, brown or brook trout over 50 cm (20 in)",
@@ -208577,7 +208577,7 @@
         "says": "Up to 5 may be brook trout",
         "n": "5",
         "howtell": false,
-        "size": "keep 30 cm (12 in) or longer; release the rest",
+        "size": "must be 30 cm (12 in) or longer; release any shorter",
         "q": null,
         "pics": [
          {
@@ -208594,7 +208594,7 @@
         "terms": [],
         "lines": [
          "Up to 5 may be brook trout",
-         "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+         "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
          "Only 1 over 50 cm (20 in), if you haven’t already kept a steelhead, cutthroat trout or brown trout over 50 cm (20 in)"
         ]
        },
@@ -208629,7 +208629,7 @@
           "says": "Up to 1 may be brown or cutthroat trout",
           "n": "1",
           "howtell": false,
-          "size": "keep 30 cm (12 in) or longer; release the rest",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -208650,7 +208650,7 @@
           "terms": [],
           "lines": [
            "Up to 1 may be brown or cutthroat trout",
-           "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+           "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
            "None over 50 cm (20 in) if you’ve already kept a steelhead or brook trout over 50 cm (20 in)"
           ]
          },
@@ -208665,7 +208665,7 @@
           "says": "Up to 1 may be rainbow trout",
           "n": "1",
           "howtell": false,
-          "size": "keep 30–50 cm (12–20 in); release smaller ones",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -208680,7 +208680,7 @@
           "terms": [],
           "lines": [
            "Up to 1 may be rainbow trout",
-           "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›"
+           "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›"
           ]
          },
          {
@@ -208771,14 +208771,14 @@
        "5 a day per angler across Region 6",
        "Rule book p.49 ↗",
        "Up to 5 may be brook trout",
-       "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
        "Only 1 over 50 cm (20 in), if you haven’t already kept a steelhead, cutthroat trout or brown trout over 50 cm (20 in)",
        "1 brown trout, cutthroat trout, rainbow trout or steelhead in all",
        "Up to 1 may be brown or cutthroat trout",
-       "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
        "None over 50 cm (20 in) if you’ve already kept a steelhead or brook trout over 50 cm (20 in)",
        "Up to 1 may be rainbow trout",
-       "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
        "Up to 1 may be hatchery steelhead only — wild steelhead go back How to tell ›",
        "over 50 cm (20 in) rainbow trout Steelhead ›",
        "None over 50 cm (20 in) if you’ve already kept a cutthroat, brown or brook trout over 50 cm (20 in)",
@@ -208908,14 +208908,14 @@
      "5 a day per angler across Region 6",
      "Rule book p.49 ↗",
      "Up to 5 may be brook trout",
-     "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
      "Only 1 over 50 cm (20 in), if you haven’t already kept a steelhead, cutthroat trout or brown trout over 50 cm (20 in)",
      "1 brown trout, cutthroat trout, rainbow trout or steelhead in all",
      "Up to 1 may be brown or cutthroat trout",
-     "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
      "None over 50 cm (20 in) if you’ve already kept a steelhead or brook trout over 50 cm (20 in)",
      "Up to 1 may be rainbow trout",
-     "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
      "Up to 1 may be hatchery steelhead only — wild steelhead go back How to tell ›",
      "over 50 cm (20 in) rainbow trout Steelhead ›",
      "None over 50 cm (20 in) if you’ve already kept a cutthroat, brown or brook trout over 50 cm (20 in)",
@@ -211238,7 +211238,7 @@
         "says": "Up to 5 may be brook trout",
         "n": "5",
         "howtell": false,
-        "size": "keep 30 cm (12 in) or longer; release the rest",
+        "size": "must be 30 cm (12 in) or longer; release any shorter",
         "q": null,
         "pics": [
          {
@@ -211255,7 +211255,7 @@
         "terms": [],
         "lines": [
          "Up to 5 may be brook trout",
-         "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+         "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
          "Only 1 over 50 cm (20 in), if you haven’t already kept a steelhead, cutthroat trout or brown trout over 50 cm (20 in)"
         ]
        },
@@ -211290,7 +211290,7 @@
           "says": "Up to 1 may be brown or cutthroat trout",
           "n": "1",
           "howtell": false,
-          "size": "keep 30 cm (12 in) or longer; release the rest",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -211311,7 +211311,7 @@
           "terms": [],
           "lines": [
            "Up to 1 may be brown or cutthroat trout",
-           "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+           "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
            "None over 50 cm (20 in) if you’ve already kept a steelhead or brook trout over 50 cm (20 in)"
           ]
          },
@@ -211326,7 +211326,7 @@
           "says": "Up to 1 may be rainbow trout",
           "n": "1",
           "howtell": false,
-          "size": "keep 30–50 cm (12–20 in); release smaller ones",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -211341,7 +211341,7 @@
           "terms": [],
           "lines": [
            "Up to 1 may be rainbow trout",
-           "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›"
+           "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›"
           ]
          },
          {
@@ -211432,14 +211432,14 @@
        "5 a day per angler across Region 6",
        "Rule book p.49 ↗",
        "Up to 5 may be brook trout",
-       "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
        "Only 1 over 50 cm (20 in), if you haven’t already kept a steelhead, cutthroat trout or brown trout over 50 cm (20 in)",
        "1 brown trout, cutthroat trout, rainbow trout or steelhead in all",
        "Up to 1 may be brown or cutthroat trout",
-       "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
        "None over 50 cm (20 in) if you’ve already kept a steelhead or brook trout over 50 cm (20 in)",
        "Up to 1 may be rainbow trout",
-       "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
        "Up to 1 may be hatchery steelhead only — wild steelhead go back How to tell ›",
        "over 50 cm (20 in) rainbow trout Steelhead ›",
        "None over 50 cm (20 in) if you’ve already kept a cutthroat, brown or brook trout over 50 cm (20 in)",
@@ -211569,14 +211569,14 @@
      "5 a day per angler across Region 6",
      "Rule book p.49 ↗",
      "Up to 5 may be brook trout",
-     "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
      "Only 1 over 50 cm (20 in), if you haven’t already kept a steelhead, cutthroat trout or brown trout over 50 cm (20 in)",
      "1 brown trout, cutthroat trout, rainbow trout or steelhead in all",
      "Up to 1 may be brown or cutthroat trout",
-     "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
      "None over 50 cm (20 in) if you’ve already kept a steelhead or brook trout over 50 cm (20 in)",
      "Up to 1 may be rainbow trout",
-     "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
      "Up to 1 may be hatchery steelhead only — wild steelhead go back How to tell ›",
      "over 50 cm (20 in) rainbow trout Steelhead ›",
      "None over 50 cm (20 in) if you’ve already kept a cutthroat, brown or brook trout over 50 cm (20 in)",
@@ -213899,7 +213899,7 @@
         "says": "Up to 5 may be brook trout",
         "n": "5",
         "howtell": false,
-        "size": "keep 30 cm (12 in) or longer; release the rest",
+        "size": "must be 30 cm (12 in) or longer; release any shorter",
         "q": null,
         "pics": [
          {
@@ -213916,7 +213916,7 @@
         "terms": [],
         "lines": [
          "Up to 5 may be brook trout",
-         "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+         "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
          "Only 1 over 50 cm (20 in), if you haven’t already kept a steelhead, cutthroat trout or brown trout over 50 cm (20 in)"
         ]
        },
@@ -213951,7 +213951,7 @@
           "says": "Up to 1 may be brown or cutthroat trout",
           "n": "1",
           "howtell": false,
-          "size": "keep 30 cm (12 in) or longer; release the rest",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -213972,7 +213972,7 @@
           "terms": [],
           "lines": [
            "Up to 1 may be brown or cutthroat trout",
-           "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+           "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
            "None over 50 cm (20 in) if you’ve already kept a steelhead or brook trout over 50 cm (20 in)"
           ]
          },
@@ -213987,7 +213987,7 @@
           "says": "Up to 1 may be rainbow trout",
           "n": "1",
           "howtell": false,
-          "size": "keep 30–50 cm (12–20 in); release smaller ones",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -214002,7 +214002,7 @@
           "terms": [],
           "lines": [
            "Up to 1 may be rainbow trout",
-           "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›"
+           "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›"
           ]
          },
          {
@@ -214093,14 +214093,14 @@
        "5 a day per angler across Region 6",
        "Rule book p.49 ↗",
        "Up to 5 may be brook trout",
-       "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
        "Only 1 over 50 cm (20 in), if you haven’t already kept a steelhead, cutthroat trout or brown trout over 50 cm (20 in)",
        "1 brown trout, cutthroat trout, rainbow trout or steelhead in all",
        "Up to 1 may be brown or cutthroat trout",
-       "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
        "None over 50 cm (20 in) if you’ve already kept a steelhead or brook trout over 50 cm (20 in)",
        "Up to 1 may be rainbow trout",
-       "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
        "Up to 1 may be hatchery steelhead only — wild steelhead go back How to tell ›",
        "over 50 cm (20 in) rainbow trout Steelhead ›",
        "None over 50 cm (20 in) if you’ve already kept a cutthroat, brown or brook trout over 50 cm (20 in)",
@@ -214230,14 +214230,14 @@
      "5 a day per angler across Region 6",
      "Rule book p.49 ↗",
      "Up to 5 may be brook trout",
-     "keep 30 cm (12 in) or longer; release the rest Brook trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brook trout ›",
      "Only 1 over 50 cm (20 in), if you haven’t already kept a steelhead, cutthroat trout or brown trout over 50 cm (20 in)",
      "1 brown trout, cutthroat trout, rainbow trout or steelhead in all",
      "Up to 1 may be brown or cutthroat trout",
-     "keep 30 cm (12 in) or longer; release the rest Brown trout › Coastal cutthroat trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brown trout › Coastal cutthroat trout ›",
      "None over 50 cm (20 in) if you’ve already kept a steelhead or brook trout over 50 cm (20 in)",
      "Up to 1 may be rainbow trout",
-     "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
      "Up to 1 may be hatchery steelhead only — wild steelhead go back How to tell ›",
      "over 50 cm (20 in) rainbow trout Steelhead ›",
      "None over 50 cm (20 in) if you’ve already kept a cutthroat, brown or brook trout over 50 cm (20 in)",
@@ -217876,7 +217876,7 @@
             "says": "Only 1 of the 4 may be lake trout",
             "n": "1",
             "howtell": false,
-            "size": "keep 60 cm (24 in) or longer; release the rest",
+            "size": "must be 60 cm (24 in) or longer; release any shorter",
             "q": null,
             "pics": [
              {
@@ -217891,7 +217891,7 @@
             "terms": [],
             "lines": [
              "Only 1 of the 4 may be lake trout",
-             "keep 60 cm (24 in) or longer; release the rest Lake trout ›"
+             "must be 60 cm (24 in) or longer; release any shorter Lake trout ›"
             ]
            }
           ]
@@ -217958,7 +217958,7 @@
        "Up to 4 may be brook, brown or cutthroat trout",
        "any size Brook trout › Brown trout › Coastal cutthroat trout ›",
        "Only 1 of the 4 may be lake trout",
-       "keep 60 cm (24 in) or longer; release the rest Lake trout ›",
+       "must be 60 cm (24 in) or longer; release any shorter Lake trout ›",
        "Steelhead and Dolly Varden/bull trout: release every one",
        "Region 3’s rule · Rule book p.28 ↗",
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ Steelhead › Bull trout ›",
@@ -218080,7 +218080,7 @@
      "Up to 4 may be brook, brown or cutthroat trout",
      "any size Brook trout › Brown trout › Coastal cutthroat trout ›",
      "Only 1 of the 4 may be lake trout",
-     "keep 60 cm (24 in) or longer; release the rest Lake trout ›",
+     "must be 60 cm (24 in) or longer; release any shorter Lake trout ›",
      "Steelhead and Dolly Varden/bull trout: release every one",
      "Region 3’s rule · Rule book p.28 ↗",
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ Steelhead › Bull trout ›",
@@ -220389,7 +220389,7 @@
         "says": "Up to 1 may be cutthroat trout",
         "n": "1",
         "howtell": false,
-        "size": "keep 30 cm (12 in) or longer; release the rest",
+        "size": "must be 30 cm (12 in) or longer; release any shorter",
         "q": null,
         "pics": [
          {
@@ -220404,7 +220404,7 @@
         "terms": [],
         "lines": [
          "Up to 1 may be cutthroat trout",
-         "keep 30 cm (12 in) or longer; release the rest Coastal cutthroat trout ›"
+         "must be 30 cm (12 in) or longer; release any shorter Coastal cutthroat trout ›"
         ]
        },
        {
@@ -220418,7 +220418,7 @@
         "says": "Up to 1 may be Dolly Varden/bull trout",
         "n": "1",
         "howtell": false,
-        "size": "keep 75 cm (30 in) or longer; release the rest",
+        "size": "must be 75 cm (30 in) or longer; release any shorter",
         "q": null,
         "pics": [
          {
@@ -220433,7 +220433,7 @@
         "terms": [],
         "lines": [
          "Up to 1 may be Dolly Varden/bull trout",
-         "keep 75 cm (30 in) or longer; release the rest Bull trout ›"
+         "must be 75 cm (30 in) or longer; release any shorter Bull trout ›"
         ]
        }
       ],
@@ -220454,9 +220454,9 @@
        "Up to 1 may be brook, brown, lake or rainbow trout",
        "any size Brook trout › Brown trout › Lake trout › Rainbow trout ›",
        "Up to 1 may be cutthroat trout",
-       "keep 30 cm (12 in) or longer; release the rest Coastal cutthroat trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Coastal cutthroat trout ›",
        "Up to 1 may be Dolly Varden/bull trout",
-       "keep 75 cm (30 in) or longer; release the rest Bull trout ›",
+       "must be 75 cm (30 in) or longer; release any shorter Bull trout ›",
        "How it adds up",
        "This river’s rule: 1 a day here. Trout and char other than steelhead you kept anywhere else today count toward that 1. See every regulation line ›"
       ]
@@ -220569,9 +220569,9 @@
      "Up to 1 may be brook, brown, lake or rainbow trout",
      "any size Brook trout › Brown trout › Lake trout › Rainbow trout ›",
      "Up to 1 may be cutthroat trout",
-     "keep 30 cm (12 in) or longer; release the rest Coastal cutthroat trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Coastal cutthroat trout ›",
      "Up to 1 may be Dolly Varden/bull trout",
-     "keep 75 cm (30 in) or longer; release the rest Bull trout ›",
+     "must be 75 cm (30 in) or longer; release any shorter Bull trout ›",
      "How it adds up",
      "This river’s rule: 1 a day here. Trout and char other than steelhead you kept anywhere else today count toward that 1. See every regulation line ›",
      "Other fish",
@@ -222784,7 +222784,7 @@
           "says": null,
           "n": null,
           "howtell": false,
-          "size": "keep 30 cm (12 in) or longer; release the rest",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -222814,7 +222814,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout › Lake trout › Rainbow trout ›"
+           "must be 30 cm (12 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout › Lake trout › Rainbow trout ›"
           ]
          }
         ]
@@ -222861,7 +222861,7 @@
        "Rule book p.34 ↗",
        "Through the year You can keep them until Oct 31. Then release only from Nov 1.",
        "This river’s rule: up to 1 brook, brown, cutthroat, lake or rainbow trout a day (part of the 5) Rule book p.36 ↗",
-       "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout › Lake trout › Rainbow trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout › Lake trout › Rainbow trout ›",
        "Dolly Varden/bull trout: release every one",
        "This river’s rule · Rule book p.36 ↗ Bull trout ›",
        "How it adds up",
@@ -222975,7 +222975,7 @@
      "Rule book p.34 ↗",
      "Through the year You can keep them until Oct 31. Then release only from Nov 1.",
      "This river’s rule: up to 1 brook, brown, cutthroat, lake or rainbow trout a day (part of the 5) Rule book p.36 ↗",
-     "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout › Lake trout › Rainbow trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout › Lake trout › Rainbow trout ›",
      "Dolly Varden/bull trout: release every one",
      "This river’s rule · Rule book p.36 ↗ Bull trout ›",
      "How it adds up",
@@ -236766,7 +236766,7 @@
       "Rule book p.64 ↗",
       "Through the year You can keep them until Apr 30. Then release only from May 1.",
       "Up to 2 may be Arctic grayling",
-      "keep 30 cm (12 in) or longer; release the rest Arctic grayling ›",
+      "must be 30 cm (12 in) or longer; release any shorter Arctic grayling ›",
       "Only 1 over 45 cm (18 in)",
       "How it adds up",
       "Your own limit, counted across every water in Zone B you fish today, lakes and streams alike.",
@@ -238123,7 +238123,7 @@
             "says": "Up to 2 may be hatchery brook, brown or cutthroat trout",
             "n": "2",
             "howtell": false,
-            "size": "keep 30 cm (12 in) or longer; release the rest",
+            "size": "must be 30 cm (12 in) or longer; release any shorter",
             "q": null,
             "pics": [
              {
@@ -238146,7 +238146,7 @@
             "terms": [],
             "lines": [
              "Up to 2 may be hatchery brook, brown or cutthroat trout",
-             "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout ›"
+             "must be 30 cm (12 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout ›"
             ]
            },
            {
@@ -238161,7 +238161,7 @@
             "says": "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
             "n": "1",
             "howtell": false,
-            "size": "keep 60 cm (24 in) or longer; release the rest",
+            "size": "must be 60 cm (24 in) or longer; release any shorter",
             "q": null,
             "pics": [
              {
@@ -238180,7 +238180,7 @@
             "terms": [],
             "lines": [
              "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
-             "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›"
+             "must be 60 cm (24 in) or longer; release any shorter Bull trout › Lake trout ›"
             ]
            }
           ]
@@ -238196,7 +238196,7 @@
           "says": "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
-          "size": "keep 30–50 cm (12–20 in); release smaller ones",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -238211,7 +238211,7 @@
           "terms": [],
           "lines": [
            "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
-           "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›"
+           "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›"
           ]
          }
         ]
@@ -238268,11 +238268,11 @@
        "From streams, keep hatchery fish only — wild trout and char go back. How to tell › Rule book p.21 ↗",
        "Of these, only 1 may be over 50 cm (20 in)",
        "Up to 2 may be hatchery brook, brown or cutthroat trout",
-       "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout ›",
        "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
-       "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›",
+       "must be 60 cm (24 in) or longer; release any shorter Bull trout › Lake trout ›",
        "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
-       "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
        "Steelhead: release every one",
        "This river’s rule · Rule book p.22 ↗",
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ Steelhead ›",
@@ -238390,11 +238390,11 @@
      "From streams, keep hatchery fish only — wild trout and char go back. How to tell › Rule book p.21 ↗",
      "Of these, only 1 may be over 50 cm (20 in)",
      "Up to 2 may be hatchery brook, brown or cutthroat trout",
-     "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout ›",
      "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
-     "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›",
+     "must be 60 cm (24 in) or longer; release any shorter Bull trout › Lake trout ›",
      "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
-     "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
      "Steelhead: release every one",
      "This river’s rule · Rule book p.22 ↗",
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ Steelhead ›",
@@ -240969,7 +240969,7 @@
           "says": "Only 1 of the 4 may be Dolly Varden/bull trout or lake trout",
           "n": "1",
           "howtell": false,
-          "size": "keep 60 cm (24 in) or longer; release the rest",
+          "size": "must be 60 cm (24 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -240988,7 +240988,7 @@
           "terms": [],
           "lines": [
            "Only 1 of the 4 may be Dolly Varden/bull trout or lake trout",
-           "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›"
+           "must be 60 cm (24 in) or longer; release any shorter Bull trout › Lake trout ›"
           ]
          }
         ]
@@ -241022,7 +241022,7 @@
        "Up to 4 may be brook, brown or cutthroat trout",
        "any size Brook trout › Brown trout › Coastal cutthroat trout ›",
        "Only 1 of the 4 may be Dolly Varden/bull trout or lake trout",
-       "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›",
+       "must be 60 cm (24 in) or longer; release any shorter Bull trout › Lake trout ›",
        "How it adds up",
        "Your own limit, counted across every water in Region 2 you fish today, lakes and streams alike.",
        "Kept 2 elsewhere today? Keep 2 more here",
@@ -241258,7 +241258,7 @@
      "Up to 4 may be brook, brown or cutthroat trout",
      "any size Brook trout › Brown trout › Coastal cutthroat trout ›",
      "Only 1 of the 4 may be Dolly Varden/bull trout or lake trout",
-     "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›",
+     "must be 60 cm (24 in) or longer; release any shorter Bull trout › Lake trout ›",
      "How it adds up",
      "Your own limit, counted across every water in Region 2 you fish today, lakes and streams alike.",
      "Kept 2 elsewhere today? Keep 2 more here",
@@ -245810,7 +245810,7 @@
           "says": "Up to 1 may be brook, brown or cutthroat trout",
           "n": "1",
           "howtell": false,
-          "size": "keep 30 cm (12 in) or longer; release the rest",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -245833,7 +245833,7 @@
           "terms": [],
           "lines": [
            "Up to 1 may be brook, brown or cutthroat trout",
-           "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout ›"
+           "must be 30 cm (12 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout ›"
           ]
          },
          {
@@ -245847,7 +245847,7 @@
           "says": "Up to 1 may be rainbow trout",
           "n": "1",
           "howtell": false,
-          "size": "keep 30–50 cm (12–20 in); release smaller ones",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -245862,7 +245862,7 @@
           "terms": [],
           "lines": [
            "Up to 1 may be rainbow trout",
-           "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›"
+           "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›"
           ]
          },
          {
@@ -245946,9 +245946,9 @@
        "Rule book p.58 ↗",
        "This river’s rule: up to 1 a day (part of the 5) Rule book p.47 ↗",
        "Up to 1 may be brook, brown or cutthroat trout",
-       "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout ›",
        "Up to 1 may be rainbow trout",
-       "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
        "Up to 1 may be hatchery steelhead only — wild steelhead go back How to tell ›",
        "over 50 cm (20 in) rainbow trout Steelhead ›",
        "10 a year · Record each on your licence right away",
@@ -246057,9 +246057,9 @@
      "Rule book p.58 ↗",
      "This river’s rule: up to 1 a day (part of the 5) Rule book p.47 ↗",
      "Up to 1 may be brook, brown or cutthroat trout",
-     "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout ›",
      "Up to 1 may be rainbow trout",
-     "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
      "Up to 1 may be hatchery steelhead only — wild steelhead go back How to tell ›",
      "over 50 cm (20 in) rainbow trout Steelhead ›",
      "10 a year · Record each on your licence right away",
@@ -248358,7 +248358,7 @@
           "says": "Up to 1 may be brook, brown or cutthroat trout",
           "n": "1",
           "howtell": false,
-          "size": "keep 30 cm (12 in) or longer; release the rest",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -248381,7 +248381,7 @@
           "terms": [],
           "lines": [
            "Up to 1 may be brook, brown or cutthroat trout",
-           "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout ›"
+           "must be 30 cm (12 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout ›"
           ]
          },
          {
@@ -248395,7 +248395,7 @@
           "says": "Up to 1 may be rainbow trout",
           "n": "1",
           "howtell": false,
-          "size": "keep 30–50 cm (12–20 in); release smaller ones",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -248410,7 +248410,7 @@
           "terms": [],
           "lines": [
            "Up to 1 may be rainbow trout",
-           "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›"
+           "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›"
           ]
          },
          {
@@ -248494,9 +248494,9 @@
        "Rule book p.49 ↗",
        "This river’s rule: up to 1 a day (part of the 5) Rule book p.47 ↗",
        "Up to 1 may be brook, brown or cutthroat trout",
-       "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout ›",
        "Up to 1 may be rainbow trout",
-       "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
        "Up to 1 may be hatchery steelhead only — wild steelhead go back How to tell ›",
        "over 50 cm (20 in) rainbow trout Steelhead ›",
        "10 a year · Stop fishing the West Road (Blackwater) River after 1 a day · Record each on your licence right away",
@@ -248623,9 +248623,9 @@
      "Rule book p.49 ↗",
      "This river’s rule: up to 1 a day (part of the 5) Rule book p.47 ↗",
      "Up to 1 may be brook, brown or cutthroat trout",
-     "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout ›",
      "Up to 1 may be rainbow trout",
-     "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
      "Up to 1 may be hatchery steelhead only — wild steelhead go back How to tell ›",
      "over 50 cm (20 in) rainbow trout Steelhead ›",
      "10 a year · Stop fishing the West Road (Blackwater) River after 1 a day · Record each on your licence right away",
@@ -250995,7 +250995,7 @@
           "says": "Up to 1 may be brook, brown or cutthroat trout",
           "n": "1",
           "howtell": false,
-          "size": "keep 30 cm (12 in) or longer; release the rest",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -251018,7 +251018,7 @@
           "terms": [],
           "lines": [
            "Up to 1 may be brook, brown or cutthroat trout",
-           "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout ›"
+           "must be 30 cm (12 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout ›"
           ]
          },
          {
@@ -251032,7 +251032,7 @@
           "says": "Up to 1 may be rainbow trout",
           "n": "1",
           "howtell": false,
-          "size": "keep 30–50 cm (12–20 in); release smaller ones",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -251047,7 +251047,7 @@
           "terms": [],
           "lines": [
            "Up to 1 may be rainbow trout",
-           "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›"
+           "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›"
           ]
          }
         ]
@@ -251102,9 +251102,9 @@
        "Rule book p.42 ↗",
        "This river’s rule: up to 1 a day (part of the 5) Rule book p.47 ↗",
        "Up to 1 may be brook, brown or cutthroat trout",
-       "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout ›",
        "Up to 1 may be rainbow trout",
-       "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
        "Steelhead, Dolly Varden/bull trout and lake trout: release every one",
        "Region 5’s rule · Rule book p.42 ↗",
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ Steelhead › Bull trout › Lake trout ›",
@@ -251210,9 +251210,9 @@
      "Rule book p.42 ↗",
      "This river’s rule: up to 1 a day (part of the 5) Rule book p.47 ↗",
      "Up to 1 may be brook, brown or cutthroat trout",
-     "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout ›",
      "Up to 1 may be rainbow trout",
-     "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
      "Steelhead, Dolly Varden/bull trout and lake trout: release every one",
      "Region 5’s rule · Rule book p.42 ↗",
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ Steelhead › Bull trout › Lake trout ›",
@@ -253468,7 +253468,7 @@
             "says": null,
             "n": null,
             "howtell": false,
-            "size": "keep 60 cm (24 in) or less, or 90 cm (35 in) or longer; release the rest",
+            "size": "must be 60 cm (24 in) or less, or 90 cm (35 in) or longer; release any other size",
             "q": null,
             "pics": [
              {
@@ -253484,7 +253484,7 @@
             "presence": null,
             "terms": [],
             "lines": [
-             "keep 60 cm (24 in) or less, or 90 cm (35 in) or longer; release the rest Lake trout ›",
+             "must be 60 cm (24 in) or less, or 90 cm (35 in) or longer; release any other size Lake trout ›",
              "No more than 3 counting any Dolly Varden/bull trout you keep"
             ]
            }
@@ -253595,7 +253595,7 @@
        "Rule book p.49 ↗",
        "Of these, only 1 may be over 50 cm (20 in)",
        "This lake’s rule: up to 1 lake trout a day (part of the 5) Rule book p.54 ↗",
-       "keep 60 cm (24 in) or less, or 90 cm (35 in) or longer; release the rest Lake trout ›",
+       "must be 60 cm (24 in) or less, or 90 cm (35 in) or longer; release any other size Lake trout ›",
        "No more than 3 counting any Dolly Varden/bull trout you keep",
        "Up to 5 may be brook, brown, cutthroat or rainbow trout",
        "any size Brook trout › Brown trout › Coastal cutthroat trout › Rainbow trout ›",
@@ -253723,7 +253723,7 @@
      "Rule book p.49 ↗",
      "Of these, only 1 may be over 50 cm (20 in)",
      "This lake’s rule: up to 1 lake trout a day (part of the 5) Rule book p.54 ↗",
-     "keep 60 cm (24 in) or less, or 90 cm (35 in) or longer; release the rest Lake trout ›",
+     "must be 60 cm (24 in) or less, or 90 cm (35 in) or longer; release any other size Lake trout ›",
      "No more than 3 counting any Dolly Varden/bull trout you keep",
      "Up to 5 may be brook, brown, cutthroat or rainbow trout",
      "any size Brook trout › Brown trout › Coastal cutthroat trout › Rainbow trout ›",
@@ -254948,7 +254948,7 @@
       "This lake’s rule: up to 4 a day per angler",
       "Rule book p.54 ↗",
       "Up to 4 may be Arctic grayling",
-      "keep 36 cm (14 in) or less, or 44 cm (17 in) or longer; release the rest Arctic grayling ›",
+      "must be 36 cm (14 in) or less, or 44 cm (17 in) or longer; release any other size Arctic grayling ›",
       "Only 1 over 44 cm (17 in)",
       "How it adds up",
       "This lake’s rule: 4 a day here. Arctic grayling you kept anywhere else today count toward those 4.",
@@ -255008,7 +255008,7 @@
       "This lake’s rule: up to 4 a day per angler",
       "Rule book p.54 ↗",
       "Up to 4 may be northern pike",
-      "keep 70 cm (28 in) or less, or 100 cm (39 in) or longer; release the rest Northern pike ›",
+      "must be 70 cm (28 in) or less, or 100 cm (39 in) or longer; release any other size Northern pike ›",
       "Only 1 over 100 cm (39 in)",
       "How it adds up",
       "This lake’s rule: 4 a day here. Northern pike you kept anywhere else today count toward those 4.",
@@ -260593,7 +260593,7 @@
           "says": "Only 1 of the 4 may be Dolly Varden/bull trout or lake trout",
           "n": "1",
           "howtell": false,
-          "size": "keep 60 cm (24 in) or longer; release the rest",
+          "size": "must be 60 cm (24 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -260612,7 +260612,7 @@
           "terms": [],
           "lines": [
            "Only 1 of the 4 may be Dolly Varden/bull trout or lake trout",
-           "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›"
+           "must be 60 cm (24 in) or longer; release any shorter Bull trout › Lake trout ›"
           ]
          }
         ]
@@ -260641,7 +260641,7 @@
        "Up to 4 may be brook, brown, cutthroat or rainbow trout",
        "any size Brook trout › Brown trout › Coastal cutthroat trout › Rainbow trout ›",
        "Only 1 of the 4 may be Dolly Varden/bull trout or lake trout",
-       "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›",
+       "must be 60 cm (24 in) or longer; release any shorter Bull trout › Lake trout ›",
        "How it adds up",
        "This lake’s rule: 4 a day here. Trout and char other than steelhead you kept anywhere else today count toward those 4.",
        "Kept trout or char over 40 cm (16 in) elsewhere today? It counts here too: at most 1 over 40 cm (16 in) a day in all. See every regulation line ›"
@@ -260755,7 +260755,7 @@
      "Up to 4 may be brook, brown, cutthroat or rainbow trout",
      "any size Brook trout › Brown trout › Coastal cutthroat trout › Rainbow trout ›",
      "Only 1 of the 4 may be Dolly Varden/bull trout or lake trout",
-     "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›",
+     "must be 60 cm (24 in) or longer; release any shorter Bull trout › Lake trout ›",
      "How it adds up",
      "This lake’s rule: 4 a day here. Trout and char other than steelhead you kept anywhere else today count toward those 4.",
      "Kept trout or char over 40 cm (16 in) elsewhere today? It counts here too: at most 1 over 40 cm (16 in) a day in all. See every regulation line ›",
@@ -262861,7 +262861,7 @@
           "says": null,
           "n": null,
           "howtell": false,
-          "size": "keep 60 cm (24 in) or less, or 90 cm (35 in) or longer; release the rest",
+          "size": "must be 60 cm (24 in) or less, or 90 cm (35 in) or longer; release any other size",
           "q": null,
           "pics": [
            {
@@ -262878,7 +262878,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "keep 60 cm (24 in) or less, or 90 cm (35 in) or longer; release the rest Lake trout ›",
+           "must be 60 cm (24 in) or less, or 90 cm (35 in) or longer; release any other size Lake trout ›",
            "Only 1 over 90 cm (35 in)",
            "No more than 3 counting any Dolly Varden/bull trout you keep"
           ]
@@ -263008,7 +263008,7 @@
        "5 a day per angler across Region 6",
        "Rule book p.49 ↗",
        "This lake’s rule: up to 2 lake trout a day (part of the 5) Rule book p.50 ↗",
-       "keep 60 cm (24 in) or less, or 90 cm (35 in) or longer; release the rest Lake trout ›",
+       "must be 60 cm (24 in) or less, or 90 cm (35 in) or longer; release any other size Lake trout ›",
        "Only 1 over 90 cm (35 in)",
        "No more than 3 counting any Dolly Varden/bull trout you keep",
        "Of these, only 1 may be over 50 cm (20 in)",
@@ -263137,7 +263137,7 @@
      "5 a day per angler across Region 6",
      "Rule book p.49 ↗",
      "This lake’s rule: up to 2 lake trout a day (part of the 5) Rule book p.50 ↗",
-     "keep 60 cm (24 in) or less, or 90 cm (35 in) or longer; release the rest Lake trout ›",
+     "must be 60 cm (24 in) or less, or 90 cm (35 in) or longer; release any other size Lake trout ›",
      "Only 1 over 90 cm (35 in)",
      "No more than 3 counting any Dolly Varden/bull trout you keep",
      "Of these, only 1 may be over 50 cm (20 in)",
@@ -264364,7 +264364,7 @@
       "This lake’s rule: up to 4 a day per angler",
       "Rule book p.50 ↗",
       "Up to 4 may be Arctic grayling",
-      "keep 36 cm (14 in) or less, or 44 cm (17 in) or longer; release the rest Arctic grayling ›",
+      "must be 36 cm (14 in) or less, or 44 cm (17 in) or longer; release any other size Arctic grayling ›",
       "Only 1 over 44 cm (17 in)",
       "How it adds up",
       "This lake’s rule: 4 a day here. Arctic grayling you kept anywhere else today count toward those 4.",
@@ -264424,7 +264424,7 @@
       "This lake’s rule: up to 4 a day per angler",
       "Rule book p.50 ↗",
       "Up to 4 may be northern pike",
-      "keep 70 cm (28 in) or less, or 100 cm (39 in) or longer; release the rest Northern pike ›",
+      "must be 70 cm (28 in) or less, or 100 cm (39 in) or longer; release any other size Northern pike ›",
       "Only 1 over 100 cm (39 in)",
       "How it adds up",
       "This lake’s rule: 4 a day here. Northern pike you kept anywhere else today count toward those 4.",
@@ -265301,7 +265301,7 @@
             "says": "Up to 2 may be hatchery brook, brown or cutthroat trout",
             "n": "2",
             "howtell": false,
-            "size": "keep 30 cm (12 in) or longer; release the rest",
+            "size": "must be 30 cm (12 in) or longer; release any shorter",
             "q": null,
             "pics": [
              {
@@ -265324,7 +265324,7 @@
             "terms": [],
             "lines": [
              "Up to 2 may be hatchery brook, brown or cutthroat trout",
-             "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout ›"
+             "must be 30 cm (12 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout ›"
             ]
            },
            {
@@ -265339,7 +265339,7 @@
             "says": "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
             "n": "1",
             "howtell": false,
-            "size": "keep 60 cm (24 in) or longer; release the rest",
+            "size": "must be 60 cm (24 in) or longer; release any shorter",
             "q": null,
             "pics": [
              {
@@ -265358,7 +265358,7 @@
             "terms": [],
             "lines": [
              "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
-             "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›"
+             "must be 60 cm (24 in) or longer; release any shorter Bull trout › Lake trout ›"
             ]
            },
            {
@@ -265407,7 +265407,7 @@
           "says": "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
-          "size": "keep 30–50 cm (12–20 in); release smaller ones",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -265422,7 +265422,7 @@
           "terms": [],
           "lines": [
            "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
-           "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›"
+           "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›"
           ]
          }
         ]
@@ -265459,15 +265459,15 @@
        "From streams, keep hatchery fish only — wild trout and char go back. How to tell › Rule book p.21 ↗",
        "Of these, only 1 may be over 50 cm (20 in) — 2 if one is a hatchery steelhead",
        "Up to 2 may be hatchery brook, brown or cutthroat trout",
-       "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout ›",
        "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
-       "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›",
+       "must be 60 cm (24 in) or longer; release any shorter Bull trout › Lake trout ›",
        "Up to 2 may be hatchery steelhead only — wild steelhead go back How to tell ›",
        "over 50 cm (20 in) rainbow trout Steelhead ›",
        "10 a year · Stop fishing the Coquitlam River after 2 a day · Record each on your licence right away Steelhead stamp ›",
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
        "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
-       "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
        "How it adds up",
        "Your own limit, counted across every Region 2 stream you fish today.",
        "Kept 2 on another stream? None more here",
@@ -265581,15 +265581,15 @@
      "From streams, keep hatchery fish only — wild trout and char go back. How to tell › Rule book p.21 ↗",
      "Of these, only 1 may be over 50 cm (20 in) — 2 if one is a hatchery steelhead",
      "Up to 2 may be hatchery brook, brown or cutthroat trout",
-     "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout ›",
      "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
-     "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›",
+     "must be 60 cm (24 in) or longer; release any shorter Bull trout › Lake trout ›",
      "Up to 2 may be hatchery steelhead only — wild steelhead go back How to tell ›",
      "over 50 cm (20 in) rainbow trout Steelhead ›",
      "10 a year · Stop fishing the Coquitlam River after 2 a day · Record each on your licence right away Steelhead stamp ›",
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
      "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
-     "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
      "How it adds up",
      "Your own limit, counted across every Region 2 stream you fish today.",
      "Kept 2 on another stream? None more here",
@@ -267804,7 +267804,7 @@
           "says": null,
           "n": null,
           "howtell": false,
-          "size": "keep 20–30 cm (8–12 in); release the rest",
+          "size": "must be 20–30 cm (8–12 in); release any other size",
           "q": null,
           "pics": [
            {
@@ -267830,7 +267830,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "keep 20–30 cm (8–12 in); release the rest Brook trout › Brown trout › Coastal cutthroat trout › Rainbow trout ›"
+           "must be 20–30 cm (8–12 in); release any other size Brook trout › Brown trout › Coastal cutthroat trout › Rainbow trout ›"
           ]
          }
         ]
@@ -267856,7 +267856,7 @@
        "2 a day per angler from streams of the 4 a day per angler across Region 2, lakes included",
        "Rule book p.21 ↗",
        "This river’s rule: up to 2 hatchery brook, brown, cutthroat or rainbow trout a day (part of the 4) Rule book p.23 ↗",
-       "keep 20–30 cm (8–12 in); release the rest Brook trout › Brown trout › Coastal cutthroat trout › Rainbow trout ›",
+       "must be 20–30 cm (8–12 in); release any other size Brook trout › Brown trout › Coastal cutthroat trout › Rainbow trout ›",
        "How it adds up",
        "This river’s rule: 2 a day here. Brook trout, brown trout, cutthroat trout or rainbow trout you kept anywhere else today count toward those 2. They also count toward Region 2’s 4 trout and char a day.",
        "Kept trout or char over 50 cm (20 in) elsewhere today? It counts here too: at most 1 over 50 cm (20 in) a day in all. See every regulation line ›"
@@ -267996,7 +267996,7 @@
      "2 a day per angler from streams of the 4 a day per angler across Region 2, lakes included",
      "Rule book p.21 ↗",
      "This river’s rule: up to 2 hatchery brook, brown, cutthroat or rainbow trout a day (part of the 4) Rule book p.23 ↗",
-     "keep 20–30 cm (8–12 in); release the rest Brook trout › Brown trout › Coastal cutthroat trout › Rainbow trout ›",
+     "must be 20–30 cm (8–12 in); release any other size Brook trout › Brown trout › Coastal cutthroat trout › Rainbow trout ›",
      "How it adds up",
      "This river’s rule: 2 a day here. Brook trout, brown trout, cutthroat trout or rainbow trout you kept anywhere else today count toward those 2. They also count toward Region 2’s 4 trout and char a day.",
      "Kept trout or char over 50 cm (20 in) elsewhere today? It counts here too: at most 1 over 50 cm (20 in) a day in all. See every regulation line ›",
@@ -270315,7 +270315,7 @@
             "says": "Up to 2 may be hatchery brook, brown or cutthroat trout",
             "n": "2",
             "howtell": false,
-            "size": "keep 30 cm (12 in) or longer; release the rest",
+            "size": "must be 30 cm (12 in) or longer; release any shorter",
             "q": null,
             "pics": [
              {
@@ -270338,7 +270338,7 @@
             "terms": [],
             "lines": [
              "Up to 2 may be hatchery brook, brown or cutthroat trout",
-             "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout ›"
+             "must be 30 cm (12 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout ›"
             ]
            },
            {
@@ -270353,7 +270353,7 @@
             "says": "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
             "n": "1",
             "howtell": false,
-            "size": "keep 60 cm (24 in) or longer; release the rest",
+            "size": "must be 60 cm (24 in) or longer; release any shorter",
             "q": null,
             "pics": [
              {
@@ -270372,7 +270372,7 @@
             "terms": [],
             "lines": [
              "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
-             "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›"
+             "must be 60 cm (24 in) or longer; release any shorter Bull trout › Lake trout ›"
             ]
            },
            {
@@ -270421,7 +270421,7 @@
           "says": "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
           "n": "2",
           "howtell": false,
-          "size": "keep 30–50 cm (12–20 in); release smaller ones",
+          "size": "must be 30 cm (12 in) or longer; release any shorter",
           "q": null,
           "pics": [
            {
@@ -270436,7 +270436,7 @@
           "terms": [],
           "lines": [
            "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
-           "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›"
+           "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›"
           ]
          }
         ]
@@ -270473,15 +270473,15 @@
        "From streams, keep hatchery fish only — wild trout and char go back. How to tell › Rule book p.21 ↗",
        "Of these, only 1 may be over 50 cm (20 in) — 2 if one is a hatchery steelhead",
        "Up to 2 may be hatchery brook, brown or cutthroat trout",
-       "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout ›",
        "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
-       "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›",
+       "must be 60 cm (24 in) or longer; release any shorter Bull trout › Lake trout ›",
        "Up to 2 may be hatchery steelhead only — wild steelhead go back How to tell ›",
        "over 50 cm (20 in) rainbow trout Steelhead ›",
        "10 a year · Stop fishing the Coquitlam River after 2 a day · Record each on your licence right away Steelhead stamp ›",
        "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
        "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
-       "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+       "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
        "How it adds up",
        "Your own limit, counted across every Region 2 stream you fish today.",
        "Kept 2 on another stream? None more here",
@@ -270595,15 +270595,15 @@
      "From streams, keep hatchery fish only — wild trout and char go back. How to tell › Rule book p.21 ↗",
      "Of these, only 1 may be over 50 cm (20 in) — 2 if one is a hatchery steelhead",
      "Up to 2 may be hatchery brook, brown or cutthroat trout",
-     "keep 30 cm (12 in) or longer; release the rest Brook trout › Brown trout › Coastal cutthroat trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Brook trout › Brown trout › Coastal cutthroat trout ›",
      "Only 1 of the 2 may be hatchery Dolly Varden/bull trout or lake trout",
-     "keep 60 cm (24 in) or longer; release the rest Bull trout › Lake trout ›",
+     "must be 60 cm (24 in) or longer; release any shorter Bull trout › Lake trout ›",
      "Up to 2 may be hatchery steelhead only — wild steelhead go back How to tell ›",
      "over 50 cm (20 in) rainbow trout Steelhead ›",
      "10 a year · Stop fishing the Coquitlam River after 2 a day · Record each on your licence right away Steelhead stamp ›",
      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ",
      "Up to 2 hatchery rainbow trout (part of the 2 from streams)",
-     "keep 30–50 cm (12–20 in); release smaller ones Rainbow trout ›",
+     "must be 30 cm (12 in) or longer; release any shorter Rainbow trout ›",
      "How it adds up",
      "Your own limit, counted across every Region 2 stream you fish today.",
      "Kept 2 on another stream? None more here",

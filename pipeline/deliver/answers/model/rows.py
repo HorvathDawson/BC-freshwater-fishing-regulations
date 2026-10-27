@@ -778,7 +778,7 @@ class TreeKind(Model):
     duties: Tuple[Annotated[StrictStr, Field(min_length=1)], ...]
     sentence: StrictStr = Field(min_length=1)
     presence: Optional[Presence] = None
-    #: ROUND20i 1: the size as the rule, "keep 30–50 cm (12–20 in); release the rest" (None: any size, none, a steelhead)
+    #: ROUND20i 1: the size as the rule, "must be 30–50 cm (12–20 in); release any other size" (None: any size, none, a steelhead)
     size_rule: Optional[StrictStr] = None
     #: ROUND20b C1: the kind is the ONLY row of an own tier at the tier's number — the tier line names the fish ("This
     #: river’s rule: up to 4 hatchery rainbow trout a day") and the page draws no sentence under it, the number once

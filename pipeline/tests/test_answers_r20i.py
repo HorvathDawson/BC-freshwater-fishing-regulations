@@ -1,8 +1,8 @@
 """ROUND20i (user panel UR4's data words; rows 26, gear 12, glossary 5):
 
-1. A kind's size says the RULE (`size_rule`): "keep 30 cm (12 in) or longer; release the rest" — never where the range's end
-   is the steelhead line (a rainbow over 50 cm on a steelhead water is a steelhead, said in its own row): "keep 30–50 cm
-   (12–20 in); release smaller ones"; none for a kind kept at any size, a steelhead, or a kind kept at none.
+1. A kind's size says the RULE (`size_rule`): "must be 30 cm (12 in) or longer; release any shorter" — never where the range's end
+   is the steelhead line (a rainbow over 50 cm on a steelhead water is a steelhead, said in its own row): "must be 30 cm
+   (12 in) or longer; release any shorter"; none for a kind kept at any size, a steelhead, or a kind kept at none.
 2. The worked keep-share line says what is still allowed HERE: "none from other streams today — up to 2 more of any kind,
    from here or from lakes." (Rob, UR4 R3: rainbows kept here do not block a cutthroat here).
 3. A gear change's dates leave out the days the water is closed ("NEXT Jun 1–Apr 30" on a water closed Jun 1–30 → "Jul 1–
@@ -35,14 +35,14 @@ def _kinds(water, md=OCT10):
 # 1 -----------------------------------------------------------------------------------------------------------------
 def test_a_size_says_the_rule():
     k, _o = _kinds(F.VEDDER)
-    assert k[("EB", "GB", "CT")]["size_rule"] == "keep 30 cm (12 in) or longer; release the rest"
-    assert k[("DV", "LT")]["size_rule"] == "keep 60 cm (24 in) or longer; release the rest"
+    assert k[("EB", "GB", "CT")]["size_rule"] == "must be 30 cm (12 in) or longer; release any shorter"
+    assert k[("DV", "LT")]["size_rule"] == "must be 60 cm (24 in) or longer; release any shorter"
     assert k[("ST",)]["size_rule"] is None                   # the steelhead row: over 50 cm IS what it is
     assert k[("RB",)]["size_rule"] is None                   # any length up to the steelhead line
     k, _o = _kinds(F.STREAM)
-    assert k[("RB",)]["size_rule"] == "keep 30–50 cm (12–20 in); release smaller ones"   # over 50: a steelhead
+    assert k[("RB",)]["size_rule"] == "must be 30 cm (12 in) or longer; release any shorter"   # over 50: a steelhead
     k, _o = _kinds(F.BELLA_MAY_ST, MAY1)
-    assert k[("CT",)]["size_rule"] == "keep 30–33 cm (12–13 in); release the rest"
+    assert k[("CT",)]["size_rule"] == "must be 30–33 cm (12–13 in); release any other size"
     k, _o = _kinds(F.LAKE)
     assert k[("EB", "GB", "CT", "RB")]["size_rule"] is None  # any size
 

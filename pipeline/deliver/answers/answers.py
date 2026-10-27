@@ -282,7 +282,7 @@ def _sections() -> Tuple[Section, ...]:
         # your licence right away"; "A rainbow trout over 50 cm (20 in) here counts as a steelhead.")
         # ROUND20h 3: rows 25 (`group.possession` {per_daily, of, n, by, example, doubles}: the possession quota on the
         # group's total, "With 4 trout and char a day you may have 8: 2 days’ fish.")
-        # ROUND20i 1/2/5/6c: rows 26 (kind `size_rule` "keep 30–50 cm (12–20 in); release the rest"; the worked keep-share
+        # ROUND20i 1/2/5/6c: rows 26 (kind `size_rule` "must be 30–50 cm (12–20 in); release any other size"; the worked keep-share
         # line "… up to 2 more of any kind, from here or from lakes."; "stop fishing this river after 2 a day"; "Your own
         # limit, counted across every Region 2 stream you fish today.")
         # ROUND UR5 D1: rows 27 (the over-the-size question asked of fish kept elsewhere names the fish the group's clause holds

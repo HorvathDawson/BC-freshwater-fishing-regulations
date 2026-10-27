@@ -17,7 +17,7 @@ const KO = rowOf({ kind: "keep", pool: 3, daily: 5, members: ["KO"], all_members
 const BASS = rowOf({ kind: "no_limit", pool: 3, members: ["LMB", "SMB"], all_members: ["LMB", "SMB"] });
 const GR = rowOf({ kind: "keep", pool: 3, daily: 4, members: ["GR"], all_members: ["GR"],
   group: GROUP({ tree: [{ node: "tier", id: "t1", tier: "own", n: 4, says: "", by: 3,
-    children: [kind({ species: ["GR"], size_rule: "keep 30 cm (12 in) or longer; release the rest" })] }] }) });
+    children: [kind({ species: ["GR"], size_rule: "must be 30 cm (12 in) or longer; release any shorter" })] }] }) });
 const PROT = rowOf({ kind: "closed", prot: ["GREEN_STURGEON"] });
 
 describe("splitRows (page v36 rowsHtml)", () => {
