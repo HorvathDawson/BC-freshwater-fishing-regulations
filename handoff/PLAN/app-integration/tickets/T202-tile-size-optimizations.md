@@ -18,3 +18,8 @@ basemap released): measured sizes in T64's S2 table (`python -m pipeline.tools.a
 Each change: size table before/after, a visual check at the owner's spots, no feature lost unless the owner accepts it.
 
 Band: last ("Data feeds at the end"), with T199–T201.
+
+## Owner 2026-10-27 — basemap z13 rule
+Go to z13, but KEEP what anglers use outside towns: trails/paths, forest service roads and resource roads, their names,
+access points. DROP what only matters in cities: sidewalks, crossings, pedestrian areas, living streets, urban street-name
+density. Measure the saving and prove (audit-zoom) that no trail/FSR feature or name is lost; urban losses are accepted.

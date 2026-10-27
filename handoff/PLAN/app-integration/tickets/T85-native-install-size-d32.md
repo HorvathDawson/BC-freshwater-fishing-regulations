@@ -50,3 +50,8 @@ Basemap z13 stays open as a later decision, not dropped. Measured loss at z13 vs
 Options to weigh when it is picked up: accept the loss; keep z14 only where it adds features (urban / road-dense tiles)
 and cap the rest at z13; or carry the lost names (FSRs first) into a small z14 label layer over a z13 basemap.
 Re-measure with `python -m pipeline.deliver.tiles.basemap --audit-zoom 13`.
+
+## Owner 2026-10-27 — basemap z13 rule
+Go to z13, but KEEP what anglers use outside towns: trails/paths, forest service roads and resource roads, their names,
+access points. DROP what only matters in cities: sidewalks, crossings, pedestrian areas, living streets, urban street-name
+density. Measure the saving and prove (audit-zoom) that no trail/FSR feature or name is lost; urban losses are accepted.
