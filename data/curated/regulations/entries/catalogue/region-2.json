@@ -4332,7 +4332,7 @@
      "verbatim": "speed restriction on parts (8 and 50 km/h)",
      "aspect": "speed",
      "max_kmh": 8.0,
-     "includes_tributaries": true,
+     "includes_tributaries": false,
      "extents": [
       {
        "op": "whole"
@@ -4345,7 +4345,7 @@
      "verbatim": "speed restriction on parts (8 and 50 km/h)",
      "aspect": "speed",
      "max_kmh": 50.0,
-     "includes_tributaries": true,
+     "includes_tributaries": false,
      "extents": [
       {
        "op": "whole"
