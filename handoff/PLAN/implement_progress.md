@@ -11,7 +11,7 @@ LIVE: r-8b43fb267199 (previous r-f6918815ca78 kept; older pruned). One atlas bui
 wetland, medium), Stave marking below Ruskin Dam; Stave r1/r2 stay undrawn (spawning channels not in the atlas). T204
 DONE (9e0960ec): a mark per meeting place + `part_stretch`, app walks stretches. Promote guard fix 8d649b03 (.prev with
 the current build's sid space may go). Taps (Columbia x18p3 declared gone), harness, regs-fixture re-cut. :8787 shows 0
-awaiting. NEXT: T185 owner proposals; T206/T209/T211; SEO T192-T198.
+awaiting. Checks: full pytest 13 red -> all re-pinned/fixed (re-run per file, green); app check RED only on the concurrent lanes' work: SEO 1c4dd582 (22 colour literals in tools/seo, site.test vintage pins) and T208 98485018 vs SEO (Shuswap 'See map A' lines, seo/model.test). Export's UNDRAWN_PART_TRIBUTARIES fixed after the deliver (guide gotcha only; next deliver). NEXT: those reds (their lanes); T185 owner proposals; T206/T209/T211; SEO T192-T198.
 
 ## (earlier) CURRENT STATE (2026-10-27 — T185 merged)
 
