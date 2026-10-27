@@ -1,6 +1,6 @@
 # T211 — DFO salmon regulations in the app, and the DFO feed (plan + build)
 
-Status: PARTIAL — option A + the Standard / Salmon toggle built (see "Built"); left: the live feed (part 2), parts 3–4
+Status: PARTIAL — 491c9089: option A + the Standard / Salmon toggle built (see "Built"); left: the live feed (part 2), parts 3–4
 
 Source: owner 2026-10-27.
 
