@@ -1390,3 +1390,15 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
 - The extent-fix editor's "within an area" op lists the atlas's areas (search + pick, `GET /api/areas/search`).
 - François Lake (owner 2026-10-26): only r1 'No Fishing Nov 15-May 31' holds on the outlet area (map 1); r2-r7 (char quota, 1 over 50 cm, rainbow C&R, bait ban, single barbless, no set lining) hold on the whole lake. Why: the row is ambiguous; the safer reading applies the restrictions everywhere (an angler following the app
   cannot break them), while a closure is never widened beyond the area the book maps.
+
+## 2026-10-27 — "needs a split" list (owner)
+- Pitt at Grant Narrows: a vessel restriction — hold it on the whole water, no split.
+- Kootenay navigation dolphin: it IS the Kootenay Lake (main body) split; nothing to find.
+- McArthur Island Slough: a separate name-variation section — it should match itself by name, not need a split.
+- Columbia at Mud Lake, Stave at Ruskin Dam (and channels): should already exist — find the existing splits and bind.
+- Chapman, Deena, Mamin: genuinely ambiguous (owner searched before). Bridge cuts may be guessed with confidence LOW;
+  Chapman: there is no falls above the power line, but there is one below it at about the right distance — use it, low.
+- Unused curated cuts: ignore for now.
+- The real hunt: DFO splits — find as many DFO extent cuts as possible (web search, DFO/FFSBC/BC docs, maps, FWA/FISS),
+  each with confidence, description, source link and parse notes shown in the curation review (proposals the owner
+  accepts).
