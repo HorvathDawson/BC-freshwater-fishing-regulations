@@ -18,10 +18,9 @@ import { readFileSync } from "node:fs";
 import type { ExportRule, RuleFacts, SpeciesBook } from "@app/core";
 import { openRegsStore, type RegsLoader } from "@app/data/regs";
 import { liveRelease, openReleaseDir } from "../fixtureRelease";
-import { REPO } from "./oracles";
+import { pageHtml, REPO } from "./oracles";
 
 const REF = `${REPO}app/design/regs-v11/reference/`;
-const PAGE = `${REF}page_v36.html`;
 
 export interface RuleSource {
   readonly name: string;
@@ -38,8 +37,10 @@ interface PageData {
   readonly waters: readonly { readonly id: string; readonly parts: readonly ({ readonly rules: readonly (readonly [number, "reach" | "trib"])[] } | null)[] }[];
 }
 
+/** page_v36.html's own inputs, read with the zone daily-quota entry renames applied (oracles.ts `pageHtml`): the oracle
+ *  (hydrate.json) names the renamed entries, so the page's decode must too. */
 export function pageSource(): RuleSource {
-  const html = readFileSync(PAGE, "utf8");
+  const html = pageHtml();
   const block = (id: string): unknown => {
     const m = html.match(new RegExp(`<script[^>]*id="${id}"[^>]*>([\\s\\S]*?)</script>`));
     if (!m) throw new Error(`page_v36.html has no #${id}`);

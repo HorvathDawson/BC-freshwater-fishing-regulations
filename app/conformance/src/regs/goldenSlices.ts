@@ -7,6 +7,8 @@
  *                        prototype header's height (`viewport.header`, 119) so the bar's top line is the scroll view's top
  *                        (pinChain `header: 0`), the viewport height minus the same; the golden strings (group line, tier
  *                        short line without "↳ "); every sample bar; and each drawn line's measured height by its words.
+ *   golden-sheets-vedder_1010.json  (T206) every sheet vedder_1010 can open — title and lines, a global "@" resolved —
+ *                        as golden() reads them (its load-time rulings applied: the retired r3, oracles.ts retiredRuled)
  *
  * Written by `UPDATE_REGS_FIXTURES=1`, checked otherwise (goldenSlices.test.ts) — no store needed, so the check never skips.
  */
@@ -15,7 +17,8 @@ import type { PinAnchor, PinLine } from "@app/core";
 import { FIXTURE_DIR, stableJson } from "./fixtures";
 import { golden, pinsOracle } from "./oracles";
 
-export const SLICE_FILES = { headers: `${FIXTURE_DIR}/golden-headers.json`, pins: `${FIXTURE_DIR}/golden-pins.json` } as const;
+export const SLICE_FILES = { headers: `${FIXTURE_DIR}/golden-headers.json`, pins: `${FIXTURE_DIR}/golden-pins.json`,
+  sheets: `${FIXTURE_DIR}/golden-sheets-vedder_1010.json` } as const;
 
 type GBox = { top: number; height: number };
 type GTier = { tid: string; short: string | null };
@@ -40,6 +43,13 @@ const shift = (b: GBox | null, d: number): GBox | null => (b ? { top: b.top - d,
 export function headersSlice(): Record<string, unknown> {
   const G = golden();
   return Object.fromEntries(Object.keys(G.states).sort().map((id) => [id, G.states[id]!.header]));
+}
+
+/** (T206) vedder_1010's sheets as golden() holds them: key → { title, lines } (SheetHost.test's golden mount). */
+export function sheetsSlice(): Record<string, { title: string; lines: string[] }> {
+  const G = golden() as unknown as { states: Record<string, { sheets: Record<string, unknown> }>; sheets: Record<string, unknown> };
+  const one = (v: unknown) => { const x = v as { title: string; lines: string[] }; return { title: x.title, lines: x.lines }; };
+  return Object.fromEntries(Object.entries(G.states.vedder_1010!.sheets).map(([k, v]) => [k, one(v === "@" ? G.sheets[k] : v)]));
 }
 
 export function pinsSlice(): PinsSlice {
@@ -67,11 +77,11 @@ export function pinsSlice(): PinsSlice {
   return { meta: { version: P.meta.version, sha: P.meta.sha }, heights, states };
 }
 
-/** UPDATE_REGS_FIXTURES=1: write both slices; otherwise return the names of the stale ones. */
+/** UPDATE_REGS_FIXTURES=1: write the slices; otherwise return the names of the stale ones. */
 export function syncSlices(env: Readonly<Record<string, string | undefined>> = process.env): string[] {
-  const want = { headers: stableJson(headersSlice()), pins: stableJson(pinsSlice()) };
+  const want = { headers: stableJson(headersSlice()), pins: stableJson(pinsSlice()), sheets: stableJson(sheetsSlice()) };
   const stale: string[] = [];
-  for (const k of ["headers", "pins"] as const) {
+  for (const k of ["headers", "pins", "sheets"] as const) {
     const f = SLICE_FILES[k];
     if (env.UPDATE_REGS_FIXTURES === "1") writeFileSync(f, want[k]);
     else if (!existsSync(f) || readFileSync(f, "utf8") !== want[k]) stale.push(k);

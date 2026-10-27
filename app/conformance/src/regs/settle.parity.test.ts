@@ -9,7 +9,7 @@ import { readFileSync } from "node:fs";
 import { describe as group, expect, it } from "vitest";
 import { describe, isClosedOn, makePlace, settle, displayStatusOn, type RuleView, type Settled } from "@app/core";
 import { inputsOf, oracleRix, parityStore, paritySkip, releasePairing, taps } from "./golden";
-import { HYDRATE } from "./oracles";
+import { flipsOver, HYDRATE, onPartsDropped, oracleLive, renamedOrder } from "./oracles";
 
 interface OracleSettle {
   status: string | null; broad: number[]; speaks: number[]; beside: number[]; shown: number[]; inpart: [number, boolean][];
@@ -52,11 +52,36 @@ function amended(id: string, o: OracleSettle): OracleSettle {
   const l = o[a.list], at = l.findIndex((x) => x > rix);
   return { ...o, [a.list]: at < 0 ? [...l, rix] : [...l.slice(0, at), rix, ...l.slice(at)] };
 }
-const mapSettle = (o: OracleSettle): OracleSettle => ({
-  status: o.status, broad: o.broad.map(R), speaks: o.speaks.map(R), beside: o.beside.map(R), shown: o.shown.map(R),
-  inpart: o.inpart.map(([r, now]) => [R(r), now]), lifted: o.lifted.map(([a, b]) => [R(a), b == null ? b : R(b)]),
-  timed: o.timed.map(R), side: o.side.map(R), standing: o.standing.map(R), anglerclosed: o.anglerclosed.map(R),
-});
+const STORED = (await (await parityStore())?.rules()) ?? [];
+/** (T206) did the zone daily-quota rename swap two store rules' order (oracles.ts `flipsOver`)? */
+const flip = flipsOver(STORED);
+/** (T206) a list drops the rules the release retired (oracles.ts ORACLE_RETIRED), then maps to the store's numbers */
+const L = (l: readonly number[]) => l.filter(oracleLive).map(R);
+/** before the first rule numbered after it (a list is not wholly sorted: its standing rules come last) */
+const insert = (l: readonly number[], rix: number) => { const at = l.findIndex((x) => x > rix); return at < 0 ? [...l, rix] : [...l.slice(0, at), rix, ...l.slice(at)]; };
+const mapSettle = (o: OracleSettle): OracleSettle => {
+  // (T206) ORACLE_ON_PARTS_DROPPED: the rule holds on the whole water, so it has no undrawn part; on the day it speaks
+  const dropped = o.inpart.filter(([r]) => onPartsDropped(r));
+  let speaks = L(o.speaks);
+  for (const [r, now] of dropped) if (now) speaks = insert(speaks, R(r));
+  return {
+    status: o.status, broad: L(o.broad), speaks, beside: L(o.beside), shown: L(o.shown),
+    inpart: o.inpart.filter(([r]) => oracleLive(r) && !onPartsDropped(r)).map(([r, now]) => [R(r), now]),
+    lifted: o.lifted.filter(([a]) => oracleLive(a)).map(([a, b]) => [R(a), b == null ? b : R(b)]),
+    timed: L(o.timed), side: L(o.side), standing: L(o.standing), anglerclosed: L(o.anglerclosed),
+  };
+};
+/** (T206) each list of the oracle's re-ordered as the app's where only renumbering flips differ (oracles.ts `renamedOrder`) */
+const reordered = (got: OracleSettle, want: OracleSettle): OracleSettle => {
+  const out = { ...want } as Record<string, unknown>;
+  for (const k of Object.keys(want) as (keyof OracleSettle)[]) {
+    const g = got[k], w = want[k];
+    if (!Array.isArray(g) || !Array.isArray(w)) continue;
+    out[k] = renamedOrder(g as unknown[], w as unknown[],
+      (x, y) => (typeof x === "number" ? flip(x, y as number) : flip((x as number[])[0]!, (y as number[])[0]!)));
+  }
+  return out as unknown as OracleSettle;
+};
 const mapKeys = <V>(o: Readonly<Record<string, V>>): Record<string, V> => Object.fromEntries(Object.entries(o).map(([k, v]) => [String(R(+k)), v]));
 
 const ix = (l: readonly RuleView[]) => l.map((r) => r.rix);
@@ -83,7 +108,8 @@ group.skipIf(pairing.skip)(`T07 settle on the live release (${at.path ?? at.reas
   it.each(ids)("4. %s: settle() projected to rix lists equals page v36's", async (id) => {
     const { c } = await settled(id);
     expect(c.s).toBe(H.states[id]!.s);
-    expect(project(c)).toEqual(amended(id, mapSettle(H.states[id]!.settle)));
+    const got = project(c);
+    expect(got).toEqual(reordered(got, amended(id, mapSettle(H.states[id]!.settle))));
   });
 
   it.each(ids)("%s: makePlace — every candidate's via and rank is page v36's", async (id) => {
@@ -97,7 +123,7 @@ group.skipIf(pairing.skip)(`T07 settle on the live release (${at.path ?? at.reas
   it("5. the ticket's literals (page v36's own output)", async () => {
     const count = (c: Settled) => [c.s, c.status?.status ?? null, c.speaks.length, c.beside.length, c.shown.length];
     const v515 = (await settled("vedder_515")).c;
-    expect(count(v515)).toEqual([1, "own", 74, 0, 17]);
+    expect(count(v515)).toEqual([1, "own", 73, 0, 17]);   // (T206) page v36 74: z2:trout_char_quota.r3 retired (ORACLE_RETIRED)
     expect([[...v515.lifted], ix(v515.standing), v515.inpart]).toEqual([[[R(3316), R(3378)], [R(3403), R(3404)]], [R(3351), R(3352)], []]);
     const v615 = await settled("vedder_615");
     expect([...count(v615.c), ix(v615.c.broad)]).toEqual([2, "closed", 59, 0, 17, [R(529)]]);
@@ -105,14 +131,18 @@ group.skipIf(pairing.skip)(`T07 settle on the live release (${at.path ?? at.reas
     expect([b.key, b.rank, b.via]).toEqual(["r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4::chilliwack_vedder_rivers.r8", 0, "reach"]);
     expect(describe(b, v615.inp.statics.exportSpecies)).toBe("No fishing for any game fish, Jun 1–30");
     const v1010 = (await settled("vedder_1010")).c;
-    expect([...count(v1010), [...v1010.lifted]]).toEqual([3, "own", 72, 0, 17, [[R(3316), R(3378)], [R(3095), R(530)], [R(3101), R(530)], [R(3403), R(3404)]]]);
+    expect([...count(v1010), [...v1010.lifted]]).toEqual([3, "own", 71, 0, 17, [[R(3316), R(3378)], [R(3095), R(530)], [R(3101), R(530)], [R(3403), R(3404)]]]);   // (T206) page v36 72: z2 r3 retired
     const sat = (await settled("klwa_1010")).c, mon = (await settled("klwa_1012")).c;
+    const satLifted: [number, number][] = [[R(3316), R(3378)], [R(3127), R(1363)], [R(3135), R(1362)], [R(3137), R(1363)]];
     expect([...count(sat), ix(sat.broad), [...sat.lifted]]).toEqual([1, "own", 64, 0, 22, [3127, 3143, 3144, 3145, 3403].map(R),
-      [[R(3316), R(3378)], [R(3127), R(1363)], [R(3135), R(1362)], [R(3137), R(1363)]]]);
+      renamedOrder([...sat.lifted], satLifted, (x, y) => flip(x[0], y[0]))]);   // (T206) the rename's order
     expect([...count(mon), ix(mon.broad)]).toEqual([0, "own", 62, 0, 22, [3127, 3143, 3144, 3145, 3403].map(R)]);
     const cow = (await settled("cow0_1010")).c;
-    expect([...count(cow), cow.broad.map((r) => r.key), cow.inpart.map((x) => [x.rule.rix, x.now])]).toEqual([3, "closed", 57, 0, 18,
-      ["r1:cowichan_river_see_map_below@1-4::cowichan_river.r6", "zp:white_sturgeon_licence::white_sturgeon_licence.r4"], [[R(78), true], [R(79), true]]]);
+    // (T206, ORACLE_ON_PARTS_DROPPED) page v36: 57 speak and r8/r9 "on parts" (inpart [[78, true], [79, true]]); both now
+    // hold on the whole water, so they speak (59) and nothing is undrawn
+    expect([...count(cow), cow.broad.map((r) => r.key), cow.inpart.map((x) => [x.rule.rix, x.now])]).toEqual([3, "closed", 59, 0, 18,
+      ["r1:cowichan_river_see_map_below@1-4::cowichan_river.r6", "zp:white_sturgeon_licence::white_sturgeon_licence.r4"], []]);
+    expect([R(78), R(79)].every((r) => cow.speaks.some((x) => x.rix === r))).toBe(true);
     const x14 = (await settled("x14p2_1010")).c;
     expect([...count(x14), x14.broad.length, ix(x14.side)]).toEqual([3, "own", 73, 1, 25, 2, [R(2216)]]);
     const x17 = (await settled("x17p3_1010")).c;

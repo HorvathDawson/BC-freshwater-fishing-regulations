@@ -16,7 +16,8 @@ import { LIGHT } from "../theme";
 import vedder1010 from "./fixtures/vedder_1010.json";
 import klwa1010 from "./fixtures/klwa_1010.json";
 import bc1501 from "./fixtures/bc1_501.json";
-import golden from "../../../../fixtures/golden/golden.json";
+// (T206) the golden's vedder_1010 sheets as the conformance oracle reads them (goldenSlices.ts: its load-time rulings applied)
+import goldenSheets from "./fixtures/golden-sheets-vedder_1010.json";
 
 afterEach(cleanup);
 
@@ -173,12 +174,10 @@ const bare = (s: string) => s.replace(/\s+/g, "").replace(/[“”]/g, "");
 
 describe("C. golden mount: every vedder_1010 sheet draws every golden line, in order", () => {
   type G = { title: string; lines: string[] };
-  const G = golden as unknown as { states: Record<string, { sheets: Record<string, G | "@"> }>; sheets: Record<string, G> };
-  const keys = Object.entries(G.states.vedder_1010!.sheets);
+  const keys = Object.entries(goldenSheets as Record<string, G>);
   it(`all ${keys.length} sheet keys`, () => {
     const missing: string[] = [];
-    for (const [gk, v] of keys) {
-      const want = v === "@" ? G.sheets[gk]! : v;
+    for (const [gk, want] of keys) {
       const r = host(appKeyOf(gk, "vedder_1010"));
       // open every fold, nested ones too (a closed fold draws no body)
       for (let k = 0; k < 20; k++) {

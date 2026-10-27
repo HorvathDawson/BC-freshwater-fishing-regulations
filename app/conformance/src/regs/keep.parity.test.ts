@@ -142,7 +142,7 @@ describe("T21 Keep tab vs golden keep (every state)", () => {
     expect(await order("glenn_501")).toEqual(["strip", "inherited", { group: 0 }, "otherFish", "possession", "whereNot"]);
     expect(await order("x31p_1010")).toEqual(["banner"]);
     const x25 = (await at("x25p_1010"))!.keep.groups.map((x) => [`r${x.row}`, x.title]);
-    expect(x25).toEqual([["r0", "Trout and char"], ["r2", "Steelhead"]]);
+    expect(x25).toEqual([["r0", "Trout and char"], ["r1", "Rainbow trout and steelhead"]]);   // (T206, LOIS_FOLD) page v36: r2 Steelhead
   });
 
   it("vedder_1010: the page's status and header; the group head (form a), the Other fish key, possession, where-not", async () => {

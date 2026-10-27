@@ -12,7 +12,7 @@
  */
 import { describe as group, expect, it } from "vitest";
 import { describe, ruleIndex, viaOf, type RegsPage, type RuleView } from "@app/core";
-import { hydrate, oracleRixOver, taps } from "./oracles";
+import { hydrate, onPartsDropped, ORACLE_RETIRED, oracleLive, oracleRixOver, taps } from "./oracles";
 import { pageDecode, pageSource, storeSource, type RuleSource } from "./ruleSources";
 
 const H = hydrate();
@@ -27,7 +27,8 @@ const factsOf = (r: RuleView) => ({ key: r.key, kind: r.kind, baseRank: r.baseRa
 
 /** `R`: the oracle's rule number → `src`'s (identity on page_v36.html's own inputs; by durable key on a store — oracles.ts
  *  `oracleRixOver`: a rule added or dropped ahead of a rix renumbers it without changing a word). */
-function parity(src: () => RuleSource, R: () => (oracle: number) => number = () => (r) => r) {
+function parity(src: () => RuleSource, R: () => (oracle: number) => number = () => (r) => r, live: (oracle: number) => boolean = () => true,
+  onParts: (oracle: number, want: Readonly<Record<string, unknown>>) => unknown = (_, w) => w) {
   it("the oracle is page v38's 726 rules over 134 states, written after this sync's taps.json", () => {
     // provenance of the CONTENT, not of the run: the prototype version is the port target, and the golden/version are
     // the ones taps.json carries — hydrate.mjs copies them from the taps.json it read, so a hydrate.json written before
@@ -45,6 +46,7 @@ function parity(src: () => RuleSource, R: () => (oracle: number) => number = () 
     const bad: string[] = [];
     const r = R();
     for (const [rix, want] of Object.entries(H.describe)) {
+      if (!live(+rix)) continue;
       expect(ix.has(r(+rix)), `rix ${rix} stored`).toBe(true);
       const got = describe(ix.get(r(+rix)), s.book);
       if (got !== want) bad.push(`${rix}: ${JSON.stringify(got)} ≠ ${JSON.stringify(want)}`);
@@ -56,7 +58,7 @@ function parity(src: () => RuleSource, R: () => (oracle: number) => number = () 
     const s = src();
     const ix = ruleIndex(s.stored, new Map(), s.book);
     const r = R();
-    for (const [rix, want] of Object.entries(H.rules)) expect(factsOf(ix.get(r(+rix))), `rix ${rix}`).toEqual(want);
+    for (const [rix, want] of Object.entries(H.rules)) if (live(+rix)) expect(factsOf(ix.get(r(+rix))), `rix ${rix}`).toEqual(onParts(+rix, want));
   });
 
   it("9. per state, the part's ruleset gives every oracle trib via and every per-part rank", () => {
@@ -68,8 +70,8 @@ function parity(src: () => RuleSource, R: () => (oracle: number) => number = () 
       if (!T.states[id]) { expect(T.gone[id], `${id} is neither tapped nor gone`).toBeDefined(); continue; }
       const via = viaOf(s.ruleset(T.states[id]!));
       const ix = ruleIndex(s.stored, via, s.book), flat = ruleIndex(s.stored, new Map(), s.book);
-      for (const rix of Object.keys(st.via)) { expect(via.get(r(+rix)), `${id} via ${rix}`).toBe("trib"); tribs++; }
-      for (const [rix, rank] of Object.entries(st.ranks)) {
+      for (const rix of Object.keys(st.via).filter((x) => live(+x))) { expect(via.get(r(+rix)), `${id} via ${rix}`).toBe("trib"); tribs++; }
+      for (const [rix, rank] of Object.entries(st.ranks).filter(([x]) => live(+x))) {
         expect(ix.get(r(+rix)).rank, `${id} rank ${rix}`).toBe(rank);
         expect(flat.get(r(+rix)).rank, `${id} rank ${rix} needs the via`).not.toBe(rank);
         ranks++;
@@ -86,7 +88,18 @@ group.skipIf(!store)(`T06 parity: the regs store (${store?.name ?? "absent"})`, 
   it("holds every rule of the store, a superset of the page's slice", () => {
     expect(store!.stored.size).toBeGreaterThanOrEqual(Object.keys(H.describe).length);
   });
-  parity(() => store!, () => oracleRixOver(store!.stored));
+  // (T206) the rules the release retired (oracles.ts ORACLE_RETIRED) are page v36's but not the store's: not compared
+  it("the store lacks exactly the oracle's retired rules", () => {
+    const keys = new Set([...store!.stored.values()].map((r) => `${r.export.entry_id}::${r.export.rule_id}`));
+    expect(Object.keys(H.describe).filter((x) => !oracleLive(+x)).length).toBe(ORACLE_RETIRED.length);
+    expect(ORACLE_RETIRED.filter((k) => keys.has(k))).toEqual([]);
+  });
+  // (T206) ORACLE_ON_PARTS_DROPPED: the store's rule holds on the whole water (part null) where page v36 says "on parts"
+  parity(() => store!, () => oracleRixOver(store!.stored), oracleLive, (rix, want) => {
+    if (!onPartsDropped(rix)) return want;
+    expect(want.part, `oracle rule ${rix}`).toBe("on parts");
+    return { ...want, part: null };
+  });
 
   // hydrate.json's 726 rules all have empty notes; the store's rules with prov.uncertain (or a review_reason) are the only
   // ones that exercise the UNCERTAIN / CURATOR wording. The oracle is page v36's own decode run over the same store rows.

@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 import type { GoldenState } from "@app/core/regs/testing";
 import { comparableGroups, D19_GROUPS, D19_POOLED_IDS, droppedLines, EXCLUDE, excluded, GOLDEN_MAP_ACTION_IDS, GOLDEN_PARTS_ACTION_IDS, KEEP_STAMP_LINE_IDS, keepLines, NO_MAP_LABEL_IDS, SET_LINE_NOTE_IDS, STAMP_LINE, STAMP_LINE_IDS, TROUT_LINE_IDS,
          YEAR_WINDOW_IDS, YEAR_WINDOW_LINE, OTHER_FISH_STAMP_LINE } from "./exclusions";
-import { golden, taps, ZONE7_REWRITES } from "./oracles";
+import { golden, LOIS_REWRITES, RETIRED_REWRITES, taps, ZONE7_REWRITES } from "./oracles";
 
 const G = golden(), T = taps();
 
@@ -64,7 +64,7 @@ describe("EXCLUDE", () => {
         "sheets * ^rule:", `header ${NO_MAP_LABEL_IDS.length} ^place$`, `header ${GOLDEN_MAP_ACTION_IDS.length} ^action$`,
         `header ${GOLDEN_PARTS_ACTION_IDS.length} ^action$`, "header * ^place\\.shown$",
         "keep 3 ^groups\\.\\d+\\.(tree|worked|lines)$",
-        "pins 3 ^anchors\\.\\d+\\.tiers$", "keep 1 ^plainRows\\.0$", "gear 4 ^bait\\.src\\.who$",
+        "pins 3 ^anchors\\.\\d+\\.tiers$", "sheets 1 ^src:x25p_1010\\|r2$", "methods 6 ^boats$", "keep 1 ^plainRows\\.0$", "gear 4 ^bait\\.src\\.who$",
         `methods ${SET_LINE_NOTE_IDS.length} ^ways\\.list\\.0\\.items\\.\\d+\\.note$`,
         "licence 1 -"]);
     // the four pipeline needs shipped (rows 32, licence 7, static export.pdf_pages): no entry names them any more
@@ -191,6 +191,17 @@ describe("excluded", () => {
     expect(excluded("keep", "x14p0_1010", "groups.0.worked")?.reason).toMatch(/^OWNER RULING 2026-10-21 \(a\)/);
     for (const k of ["groups", "groups.0", "groups.0.head", "groups.0.notKept", "groups.0.treeRoot", "groups.0.quiet"]) expect(excluded("keep", "x14p0_1010", k), k).toBeNull();
     expect(excluded("keep", "vedder_1010", "groups.0.tree")).toBeNull();
+  });
+});
+
+describe("(T206) page v36 after the retired rules, the on-parts ruling and the zone daily-quota rename (oracles.ts)", () => {
+  it("retiredRuled: the 23 trout source sheets and x37p2's where-not list that named the retired r3, and x37p2's r3 sheet", () => {
+    expect(Object.keys(RETIRED_REWRITES).length).toBe(23);
+    expect(RETIRED_REWRITES.x37p2_1010).toBe(4);   // its source sheet, its rule sheet, keep.lines and its plain row
+    expect(JSON.stringify(G.states).includes("“2 hatchery steelhead over 50 cm allowed”")).toBe(false);
+  });
+  it("loisRuled: Lois Lake's folded group, 8 strings (its head and How it adds up, each in the head/worked, the group's lines and keep.lines; the bar's group line and its sample)", () => {
+    expect(LOIS_REWRITES).toBe(8);
   });
 });
 

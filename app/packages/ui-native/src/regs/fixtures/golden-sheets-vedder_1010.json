@@ -1,0 +1,799 @@
+{
+ "gl:catch_and_release": {
+  "lines": [
+   "You may fish for it, but every one you catch must go back into the water, quickly and carefully. You can't keep any.",
+   "In the book’s words",
+   "Catch and Release: You may fish for the named species, but you must release any that you catch.",
+   "Rule book p.4 ↗"
+  ],
+  "title": "Catch and release (release)"
+ },
+ "gl:conservation_surcharge": {
+  "lines": [
+   "An add-on to your basic licence that pays for conservation; you need one only for what it names: Kootenay Lake rainbow trout, Shuswap Lake char, Shuswap rainbow trout, salmon, Steelhead. Keeping some of these fish also means recording them on your licence right away.",
+   "In the book’s words",
+   "Your basic angling licence can be validated with up to five annual Conservation Surcharge Stamps, plus a White Sturgeon Conservation Licence.",
+   "Rule book p.5 ↗ p.7 ↗"
+  ],
+  "title": "Conservation Surcharge Stamp"
+ },
+ "gl:fly_fishing": {
+  "lines": [
+   "Only an artificial fly on the line (one single-pointed hook) — no bait or lure, no float or strike indicator, no sinker or split shot, no spinner or other attracting device. Where a water is fly fishing only, that is the only way to fish it.",
+   "In the book’s words",
+   "fly fishing: angling with a line to which only an artificial fly is attached (floats, sinkers, or attracting devices may not be attached to the line when fishing is restricted to \"fly fishing only\"). artificial fly: a single-pointed hook that is dressed only with fur, feathers, hair, textiles, tinsel and/or wire, and to which no external weight or external attracting device is attached. Two or more hooks tied in tandem is not permitted. Where gear is restricted to artificial flies, floats and sinkers may be attached to the line. Where areas are restricted to \"fly fish only\" floats and sinkers may not be attached to the line or fly.",
+   "Rule book p.80 ↗"
+  ],
+  "title": "Fly fishing only"
+ },
+ "gl:no_fishing_for": {
+  "lines": [
+   "You may not fish for it at all, not even to release it. If you catch one by accident, release it at once.",
+   "In the book’s words",
+   "No fishing for: you may not deliberately fish for the species named even if your intention is to release any fish that you may catch. If you accidentally catch a fish of the species named, you must release it as quickly and carefully as possible.",
+   "Rule book p.4 ↗"
+  ],
+  "title": "No fishing for (closed)"
+ },
+ "gl:single_barbless_hook": {
+  "lines": [
+   "A hook with one point (no treble) and no barb — you may pinch the barb flat. Every river, stream, creek and slough in B.C. requires it; on a lake only where its row says so.",
+   "In the book’s words",
+   "barbless hook: a hook without a barb on any part of the hook, including both the point and shank. Existing tackle may be modified by completely removing the barb, or by crimping the barb down so that its point is flush against the shaft. single hook: a hook having only one point. (In contrast, a treble hook is a hook having three points on a common shaft.) Note: use of a treble hook is permitted unless \"single hook\" is specified. It is unlawful to use barbed hooks or a hook with more than one point in any river, stream, creek or slough in B.C. (Note: the use of barbed hooks in lakes is permitted, unless noted in the Regional Water-Specific Tables).",
+   "Rule book p.8 ↗ p.80 ↗"
+  ],
+  "title": "Single barbless hook"
+ },
+ "gl:steelhead": {
+  "lines": [
+   "A rainbow trout that went to sea and came back: on waters where they run, any rainbow over 50 cm is a steelhead and follows the steelhead rules. Every wild steelhead must be released; you may keep at most 10 hatchery steelhead a licence year in all of B.C.",
+   "In the book’s words",
+   "steelhead: a rainbow trout longer than 50 cm in waters where anadromous rainbow trout are found. Both hatchery and wild steelhead may be found in B.C. waters. The annual province-wide quota for hatchery steelhead is 10. All wild steelhead must be released. Your basic licence must be validated with a Conservation Surcharge Stamp if you fish for steelhead anywhere in B.C. (whether you keep or release your catch). You must immediately record your retention of hatchery steelhead on your basic angling licence.",
+   "Rule book p.6 ↗ p.80 ↗"
+  ],
+  "title": "Steelhead"
+ },
+ "gl:steelhead_stamp": {
+  "lines": [
+   "A Steelhead Conservation Surcharge Stamp, added to your basic licence. You need it to fish for steelhead anywhere in B.C., even if you release them — and on many Classified Waters, on set dates, whatever you fish for. $28.57 a year for B.C. residents, $68.57 for everyone else.",
+   "In the book’s words",
+   "The annual province-wide quota for hatchery steelhead is 10. All wild steelhead must be released. Your basic licence must be validated with a Conservation Surcharge Stamp if you fish for steelhead anywhere in B.C. (whether you keep or release your catch). You must immediately record your retention of hatchery steelhead on your basic angling licence.",
+   "Rule book p.5 ↗ p.6 ↗ p.7 ↗"
+  ],
+  "title": "Steelhead Stamp"
+ },
+ "gl:under_16": {
+  "lines": [
+   "B.C. residents under 16 need no licence or stamp and have their own quota. Under-16s from elsewhere need no licence either, but must fish with someone 16 or older who holds the licences and stamps the fishing needs — and what they keep counts toward that person's quota. To have their own quota, they buy the licences a 16+ angler would.",
+   "In the book’s words",
+   "If you are under 16 and NOT a resident of B.C.: You do not require any licence or stamp, but you must be accompanied by a person 16 years or older who holds the appropriate licences and stamps. Any fish you keep must be counted as part of the catch and possession of your accompanying licence holder.",
+   "Rule book p.6 ↗"
+  ],
+  "title": "Anglers under 16"
+ },
+ "hatch": {
+  "lines": [
+   "Wild · adipose fin there",
+   "Hatchery · clipped, a healed scar instead",
+   "Look on the back, just in front of the tail. A small fin there means wild. Only a scar means hatchery. If you can’t tell, treat the fish as wild.",
+   "Hatchery or wild (adipose fin)",
+   "Hatchery trout and steelhead are marked before release by removing the adipose fin — the small fleshy fin on the back between the dorsal fin and the tail — so a hatchery fish has a healed scar there. A fish with its adipose fin (or a fresh, unhealed wound) is wild. Where only hatchery fish may be kept, every wild one goes back.",
+   "In the book’s words",
+   "hatchery trout: in some waters, hatchery trout may be harvested but wild trout must be released. In these waters, hatchery trout are marked before stocking by removal of their adipose fin. Therefore, these hatchery trout must have a healed scar in place of the missing fin. wild trout: in some waters, hatchery trout may be harvested but wild trout must be released. In these waters, wild trout will not be marked as hatchery fish and will have a normal adipose fin, or will have an unhealed scar in place of that fin, if missing.",
+   "Rule book p.13 ↗ p.80 ↗"
+  ],
+  "title": "Hatchery or wild?"
+ },
+ "licsrc:lic|vedder_1010|adult": {
+  "lines": [
+   "To fish here",
+   "Anglers 16 and over need a basic angling licence to fish. Province",
+   "basic angling licence",
+   "Annual basic angling licence: at most 1 licence per licence year.",
+   "Anglers 16 and over: produce your angling licence and photo ID when an officer asks. Province",
+   "Produce your angling licence and photo ID when an officer asks",
+   "Not needed if you are a status First Nations person living in B.C.",
+   "To fish for steelhead",
+   "Anglers 16 and over need a Steelhead Conservation Surcharge Stamp to fish for steelhead on streams (not on a Classified Water whose row says “Steelhead Stamp not required”, while it is in force). This water",
+   "Steelhead Conservation Surcharge Stamp",
+   "To fish for white sturgeon",
+   "Anglers 16 and over need a White Sturgeon Conservation Licence to fish for white sturgeon. This water",
+   "White Sturgeon Conservation Licence",
+   "To keep salmon",
+   "Anglers 16 and over need a Conservation Surcharge Stamp for salmon to keep salmon (not kokanee). Province",
+   "Conservation Surcharge Stamp for salmon",
+   "When you keep a fish you must record",
+   "Anglers 16 and over: carry your paper licence when keeping a fish whose retention you must record on your licence: hatchery steelhead, adult chinook, rainbow trout over 50 cm (Main body of Kootenay Lake), lake trout and Dolly Varden/bull trout over 60 cm (Shuswap Lake) or rainbow trout over 50 cm (Shuswap system). Province",
+   "Carry your paper licence",
+   "Not needed if you are a status First Nations person living in B.C."
+  ],
+  "title": "Where each one comes from"
+ },
+ "licsrc:lic|vedder_1010|adult_alien": {
+  "lines": [
+   "To fish here",
+   "Anglers 16 and over need a basic angling licence to fish. Province",
+   "basic angling licence",
+   "Annual basic angling licence: at most 1 licence per licence year.",
+   "Anglers 16 and over: produce your angling licence and photo ID when an officer asks. Province",
+   "Produce your angling licence and photo ID when an officer asks",
+   "Not needed if you are a status First Nations person living in B.C.",
+   "To fish for steelhead",
+   "Anglers 16 and over need a Steelhead Conservation Surcharge Stamp to fish for steelhead on streams (not on a Classified Water whose row says “Steelhead Stamp not required”, while it is in force). This water",
+   "Steelhead Conservation Surcharge Stamp",
+   "To fish for white sturgeon",
+   "Anglers 16 and over need a White Sturgeon Conservation Licence to fish for white sturgeon. This water",
+   "White Sturgeon Conservation Licence",
+   "To keep salmon",
+   "Anglers 16 and over need a Conservation Surcharge Stamp for salmon to keep salmon (not kokanee). Province",
+   "Conservation Surcharge Stamp for salmon",
+   "When you keep a fish you must record",
+   "Anglers 16 and over: carry your paper licence when keeping a fish whose retention you must record on your licence: hatchery steelhead, adult chinook, rainbow trout over 50 cm (Main body of Kootenay Lake), lake trout and Dolly Varden/bull trout over 60 cm (Shuswap Lake) or rainbow trout over 50 cm (Shuswap system). Province",
+   "Carry your paper licence",
+   "Not needed if you are a status First Nations person living in B.C."
+  ],
+  "title": "Where each one comes from"
+ },
+ "licsrc:lic|vedder_1010|adult_non": {
+  "lines": [
+   "To fish here",
+   "Anglers 16 and over need a basic angling licence to fish. Province",
+   "basic angling licence",
+   "Annual basic angling licence: at most 1 licence per licence year.",
+   "Anglers 16 and over: produce your angling licence and photo ID when an officer asks. Province",
+   "Produce your angling licence and photo ID when an officer asks",
+   "Not needed if you are a status First Nations person living in B.C.",
+   "To fish for steelhead",
+   "Anglers 16 and over need a Steelhead Conservation Surcharge Stamp to fish for steelhead on streams (not on a Classified Water whose row says “Steelhead Stamp not required”, while it is in force). This water",
+   "Steelhead Conservation Surcharge Stamp",
+   "To fish for white sturgeon",
+   "Anglers 16 and over need a White Sturgeon Conservation Licence to fish for white sturgeon. This water",
+   "White Sturgeon Conservation Licence",
+   "To keep salmon",
+   "Anglers 16 and over need a Conservation Surcharge Stamp for salmon to keep salmon (not kokanee). Province",
+   "Conservation Surcharge Stamp for salmon",
+   "When you keep a fish you must record",
+   "Anglers 16 and over: carry your paper licence when keeping a fish whose retention you must record on your licence: hatchery steelhead, adult chinook, rainbow trout over 50 cm (Main body of Kootenay Lake), lake trout and Dolly Varden/bull trout over 60 cm (Shuswap Lake) or rainbow trout over 50 cm (Shuswap system). Province",
+   "Carry your paper licence",
+   "Not needed if you are a status First Nations person living in B.C."
+  ],
+  "title": "Where each one comes from"
+ },
+ "licsrc:lic|vedder_1010|u16_alien": {
+  "lines": [
+   "To fish here",
+   "Non-residents or non-resident aliens under 16: to fish, be accompanied by someone 16 or over who holds the licences and stamps this fishing requires (any fish you keep count toward your companion's limit), or hold what non-residents or non-resident aliens 16 and over must hold (you keep your own quota). Province",
+   "be with someone who is 16 or older and holds what this fishing needs (fish you keep count toward their limit)",
+   "or",
+   "meet the rules as 16 or older, canadian, other province or from outside Canada"
+  ],
+  "title": "Where each one comes from"
+ },
+ "licsrc:lic|vedder_1010|u16_non": {
+  "lines": [
+   "To fish here",
+   "Non-residents or non-resident aliens under 16: to fish, be accompanied by someone 16 or over who holds the licences and stamps this fishing requires (any fish you keep count toward your companion's limit), or hold what non-residents or non-resident aliens 16 and over must hold (you keep your own quota). Province",
+   "be with someone who is 16 or older and holds what this fishing needs (fish you keep count toward their limit)",
+   "or",
+   "meet the rules as 16 or older, canadian, other province or from outside Canada"
+  ],
+  "title": "Where each one comes from"
+ },
+ "licsrc:lic|vedder_1010|u16_res": {
+  "lines": [],
+  "title": "Where each one comes from"
+ },
+ "other:vedder_1010|o0": {
+  "lines": [
+   "Kokanee ›",
+   "↩ Release ⓘ",
+   "You can fish for them, but release every one. No keeping at any time of year. The whole water is closed Jun 1–30.",
+   "How this was decided",
+   "What you can keep",
+   "✓ Release every one here.",
+   "Region 2",
+   "In streams, release every kokanee. Release From the Region 2 table — all of Region 2. Rule book p.21 ↗",
+   "Other rules",
+   "Region 2",
+   "Possession: 2 days’ quota. Fish at home don’t count. Carry limit From the Region 2 table — all of Region 2. Rule book p.21 ↗",
+   "Rules that don’t apply here (1)",
+   "Keep up to 5 kokanee a day. Replaced by the Region 2 rule From the Region 2 table — all of Region 2. Rule book p.21 ↗ See every regulation line ›"
+  ],
+  "title": "Kokanee"
+ },
+ "other:vedder_1010|o1": {
+  "lines": [
+   "Lake whitefish › Mountain whitefish ›",
+   "WhitefishRegion 2-wide",
+   "15 a day per angler across Region 2",
+   "Rule book p.21 ↗",
+   "Up to 15 may be whitefish",
+   "any size Lake whitefish › Mountain whitefish ›",
+   "How it adds up",
+   "Your own limit, counted across every water in Region 2 you fish today, lakes and streams alike.",
+   "Kept 2 elsewhere today? Keep 13 more here See every regulation line ›"
+  ],
+  "title": "Whitefish"
+ },
+ "other:vedder_1010|o2": {
+  "lines": [
+   "Largemouth bass › Smallmouth bass ›",
+   "BassRegion 2-wide",
+   "20 a day per angler across Region 2",
+   "Rule book p.21 ↗",
+   "Up to 20 may be bass",
+   "any size Largemouth bass › Smallmouth bass ›",
+   "How it adds up",
+   "Your own limit, counted across every water in Region 2 you fish today, lakes and streams alike.",
+   "Kept 2 elsewhere today? Keep 18 more here See every regulation line ›"
+  ],
+  "title": "Bass"
+ },
+ "other:vedder_1010|o3": {
+  "lines": [
+   "Black crappie ›",
+   "Black crappieRegion 2-wide",
+   "20a day",
+   "Shared with all of Region 2 today.",
+   "How this was decided",
+   "What you can keep",
+   "✓ 20 a day here, for all of Region 2 together.",
+   "Region 2",
+   "Keep up to 20 black crappie a day. Daily limit From the Region 2 table — all of Region 2. Rule book p.21 ↗",
+   "Other rules",
+   "Region 2",
+   "Possession: 2 days’ quota. Fish at home don’t count. Carry limit From the Region 2 table — all of Region 2. Rule book p.21 ↗ See every regulation line ›"
+  ],
+  "title": "Black crappie"
+ },
+ "other:vedder_1010|o4": {
+  "lines": [
+   "White sturgeon ›",
+   "↩ Release ⓘ",
+   "You can fish for them, but release every one. No keeping at any time of year. The whole water is closed Jun 1–30.",
+   "How this was decided",
+   "What you can keep",
+   "✓ Release every one here.",
+   "Vedder River",
+   "Release every white sturgeon. Release A B.C. rule for Fraser River. Rule book p.7 ↗",
+   "Other rules",
+   "Region 2",
+   "Possession: 2 days’ quota. Fish at home don’t count. Carry limit From the Region 2 table — all of Region 2. Rule book p.21 ↗",
+   "Rules that don’t apply here (1)",
+   "No fishing for white sturgeon: every non-tidal water of the province; lifted on the licensed Fraser watershed (r4x) Replaced by this river’s rule A B.C.-wide rule — Fraser watershed, Mission to Williams Lake River. Rule book p.7 ↗ See every regulation line ›"
+  ],
+  "title": "White sturgeon"
+ },
+ "other:vedder_1010|o5": {
+  "lines": [
+   "CrayfishRegion 2-wide",
+   "25a day",
+   "Shared with all of Region 2 today.",
+   "How this was decided",
+   "What you can keep",
+   "✓ 25 a day here, for all of Region 2 together.",
+   "Region 2",
+   "Keep up to 25 crayfish a day. Daily limit From the Region 2 table — all of Region 2. Rule book p.21 ↗",
+   "Other rules",
+   "Region 2",
+   "Possession: 2 days’ quota. Fish at home don’t count. Carry limit From the Region 2 table — all of Region 2. Rule book p.21 ↗ See every regulation line ›"
+  ],
+  "title": "Crayfish"
+ },
+ "other:vedder_1010|o6": {
+  "lines": [
+   "⊘ Closed ⓘ",
+   "Don’t fish for them. If one bites, carefully release it.",
+   "Which fish (13)",
+   "Cultus Lake sculpin · Enos Lake stickleback · Green sturgeon · Misty Lake stickleback · Nooksack dace · Paxton Lake stickleback · Rocky Mountain sculpin · Salish sucker · Shorthead sculpin · Vananda Creek stickleback · Vancouver lamprey · Western brook lamprey (Morrison Creek population) · White sturgeon (Nechako, Upper Fraser, Kootenay and Columbia populations)",
+   "How this was decided",
+   "What you can keep",
+   "✓ Closed here.",
+   "Federal law",
+   "No fishing for Nooksack dace, Salish sucker, green sturgeon and Cultus Lake sculpin. Closed Set by a federal or park authority — Region 2. Rule book p.21 ↗ See every regulation line ›"
+  ],
+  "title": "Protected species"
+ },
+ "pos:vedder_1010|pos": {
+  "lines": [
+   "Possession: 2 days’ quota. Fish at home don’t count.",
+   "The fish you have with you at any time — in camp, a cooler or a vehicle.",
+   "For example:",
+   "With 4 trout and char a day you may have 8: 2 days’ fish. Possession doubles the 4 a day, not the 2 from streams.",
+   "With 15 whitefish a day you may have 30: 2 days’ fish.",
+   "With 20 bass a day you may have 40: 2 days’ fish.",
+   "In the rule book’s words",
+   "possession quota: the number of fish of any species that an angler may have in their possession at any given time, EXCEPT at place of ordinary residence. In most instances, the possession quota is two times the daily quota. See Tables for exceptions.",
+   "Source › Rule book p.21 ↗"
+  ],
+  "title": "Possession"
+ },
+ "rule:zp:conduct::conduct.r1": {
+  "lines": [
+   "A B.C.-wide rule — everywhere in B.C.",
+   "The exact words",
+   "Waste the fish you catch.",
+   "Technical detail",
+   "zp:conduct::conduct.r1 { \"conduct\": [ \"do_not_waste_catch\" ], \"extents\": [ { \"area_kind\": \"region\", \"op\": \"within\" } ] }",
+   "Rule book p.8 ↗ Rule book p.10 ↗"
+  ],
+  "title": "Do not waste the fish you catch"
+ },
+ "rule:zp:conduct::conduct.r10": {
+  "lines": [
+   "A B.C.-wide rule — everywhere in B.C.",
+   "The exact words",
+   "\"High-grading\" is illegal.",
+   "Technical detail",
+   "zp:conduct::conduct.r10 { \"conduct\": [ \"do_not_high_grade\" ], \"extents\": [ { \"area_kind\": \"region\", \"op\": \"within\" } ] }",
+   "Rule book p.8 ↗ Rule book p.10 ↗"
+  ],
+  "title": "Do not high-grade"
+ },
+ "rule:zp:conduct::conduct.r2": {
+  "lines": [
+   "A B.C.-wide rule — everywhere in B.C.",
+   "The exact words",
+   "Release fish in a harmful manner if you are not going to keep your catch.",
+   "Technical detail",
+   "zp:conduct::conduct.r2 { \"conduct\": [ \"do_not_release_harmfully\" ], \"extents\": [ { \"area_kind\": \"region\", \"op\": \"within\" } ] }",
+   "Rule book p.8 ↗ Rule book p.10 ↗"
+  ],
+  "title": "Do not release fish in a harmful manner"
+ },
+ "rule:zp:conduct::conduct.r3": {
+  "lines": [
+   "A B.C.-wide rule — everywhere in B.C.",
+   "The exact words",
+   "Buy, sell or barter or attempt to buy, sell or barter any fish caught by sport fishing.",
+   "Technical detail",
+   "zp:conduct::conduct.r3 { \"conduct\": [ \"do_not_buy_sell_or_barter_catch\" ], \"extents\": [ { \"area_kind\": \"region\", \"op\": \"within\" } ] }",
+   "Rule book p.8 ↗ Rule book p.10 ↗"
+  ],
+  "title": "Do not buy, sell or barter your catch"
+ },
+ "rule:zp:conduct::conduct.r4": {
+  "lines": [
+   "A B.C.-wide rule — everywhere in B.C.",
+   "The exact words",
+   "Have any live fish in your possession in the wild, or move any live fish or live aquatic invertebrates around the province, or transplant them into any waters of B.C.",
+   "Technical detail",
+   "zp:conduct::conduct.r4 { \"conduct\": [ \"do_not_possess_or_move_live_fish\" ], \"extents\": [ { \"area_kind\": \"region\", \"op\": \"within\" } ] }",
+   "Rule book p.8 ↗ Rule book p.10 ↗"
+  ],
+  "title": "Do not possess or move live fish or invertebrates"
+ },
+ "rule:zp:conduct::conduct.r5": {
+  "lines": [
+   "A B.C.-wide rule — everywhere in B.C.",
+   "The exact words",
+   "Leave the head, tail, and all fins on your catch until you get them to your permanent (ordinary) residence.",
+   "Technical detail",
+   "zp:conduct::conduct.r5 { \"conduct\": [ \"leave_head_tail_and_fins_until_residence\" ], \"extents\": [ { \"area_kind\": \"region\", \"op\": \"within\" } ], \"species\": [ \"ALL_FIN_FISH\" ], \"species_except\": [ \"SALMON\" ] }",
+   "Rule book p.8 ↗ Rule book p.10 ↗"
+  ],
+  "title": "Leave the head, tail and fins on your catch until your residence"
+ },
+ "rule:zp:conduct::conduct.r6": {
+  "lines": [
+   "A B.C.-wide rule — everywhere in B.C.",
+   "The exact words",
+   "Enter or cross cultivated land, posted land, private land, or Indian Reserve land without proper permission.",
+   "Technical detail",
+   "zp:conduct::conduct.r6 { \"conduct\": [ \"do_not_enter_land_without_permission\" ], \"extents\": [ { \"area_kind\": \"region\", \"op\": \"within\" } ] }",
+   "Rule book p.8 ↗ Rule book p.10 ↗"
+  ],
+  "title": "Do not enter or cross cultivated, posted or private land, or Indian Reserve land, without permission"
+ },
+ "rule:zp:conduct::conduct.r7": {
+  "lines": [
+   "A B.C.-wide rule — everywhere in B.C.",
+   "The exact words",
+   "Do not keep angled fish alive in a \"livewell\" or other device, or on stringers",
+   "Technical detail",
+   "zp:conduct::conduct.r7 { \"conduct\": [ \"do_not_keep_catch_alive\" ], \"extents\": [ { \"area_kind\": \"region\", \"op\": \"within\" } ] }",
+   "Rule book p.8 ↗ Rule book p.10 ↗"
+  ],
+  "title": "Do not hold your catch alive (livewell, other device or stringer)"
+ },
+ "rule:zp:conduct::conduct.r9": {
+  "lines": [
+   "A B.C.-wide rule — everywhere in B.C.",
+   "The exact words",
+   "release your aquarium fish to the wild",
+   "Technical detail",
+   "zp:conduct::conduct.r9 { \"conduct\": [ \"do_not_release_aquarium_fish\" ], \"extents\": [ { \"area_kind\": \"region\", \"op\": \"within\" } ] }",
+   "Rule book p.8 ↗ Rule book p.10 ↗"
+  ],
+  "title": "Do not release your aquarium fish to the wild"
+ },
+ "rule:zp:further_prohibitions::further_prohibitions.r1": {
+  "lines": [
+   "A B.C.-wide rule — everywhere in B.C.",
+   "The exact words",
+   "place any fishing gear in any water during a No Fishing period",
+   "Technical detail",
+   "zp:further_prohibitions::further_prohibitions.r1 { \"conduct\": [ \"no_gear_in_water_during_closure\" ], \"extents\": [ { \"area_kind\": \"region\", \"op\": \"within\" } ] }",
+   "Rule book p.8 ↗"
+  ],
+  "title": "Do not place gear in the water during a No Fishing period"
+ },
+ "rule:zp:further_prohibitions::further_prohibitions.r2": {
+  "lines": [
+   "A B.C.-wide rule — everywhere in B.C.",
+   "The exact words",
+   "damage or interfere with a trap set for furbearers",
+   "Technical detail",
+   "zp:further_prohibitions::further_prohibitions.r2 { \"conduct\": [ \"do_not_interfere_with_furbearer_trap\" ], \"extents\": [ { \"area_kind\": \"region\", \"op\": \"within\" } ] }",
+   "Rule book p.8 ↗"
+  ],
+  "title": "Do not damage or interfere with a furbearer trap"
+ },
+ "rule:zp:further_prohibitions::further_prohibitions.r3": {
+  "lines": [
+   "A B.C.-wide rule — everywhere in B.C.",
+   "The exact words",
+   "If your fish is not suitable for eating or if possession is illegal because of quotas, size limits or closed seasons, return the fish quickly and gently to the water.",
+   "Technical detail",
+   "zp:further_prohibitions::further_prohibitions.r3 { \"conduct\": [ \"return_unfit_fish_gently\" ], \"extents\": [ { \"area_kind\": \"region\", \"op\": \"within\" } ] }",
+   "Rule book p.8 ↗"
+  ],
+  "title": "Return a fish you cannot keep gently to the water"
+ },
+ "rule:zp:no_fishing_buffers::no_fishing_buffers.r1": {
+  "lines": [
+   "A B.C.-wide rule — everywhere in B.C.",
+   "The exact words",
+   "Within 23 m downstream of the lower entrance to any fishway, canal, obstacle or leap.",
+   "No fishing within 23 m (75 ft) downstream of the lower entrance to any fishway, canal, obstacle or leap.",
+   "Technical detail",
+   "zp:no_fishing_buffers::no_fishing_buffers.r1 { \"extent_text\": \"within 23 m downstream of any fishway, canal, obstacle or leap\", \"extents\": [ { \"area_kind\": \"region\", \"op\": \"within\" } ], \"may_target\": false, \"period\": \"daily\", \"species\": [ \"ALL_GAME_FISH\" ], \"standing\": true, \"take\": 0 }",
+   "Rule book p.9 ↗"
+  ],
+  "title": "No fishing — within 23 m downstream of any fishway, canal, obstacle or leap"
+ },
+ "rule:zp:no_fishing_buffers::no_fishing_buffers.r2": {
+  "lines": [
+   "A B.C.-wide rule — everywhere in B.C.",
+   "The exact words",
+   "Within a 100 m radius of any government facility operated for counting, passing or rearing fish (e.g., fishway, fish hatchery) unless otherwise designated.",
+   "No fishing within a 100 m (330 ft) radius of any government facility operated for counting, passing or rearing fish (e.g., fishway, fish hatchery) unless otherwise designated.",
+   "Technical detail",
+   "zp:no_fishing_buffers::no_fishing_buffers.r2 { \"extent_text\": \"within 100 m of any government fish counting, passing or rearing facility\", \"extents\": [ { \"area_kind\": \"region\", \"op\": \"within\" } ], \"may_target\": false, \"period\": \"daily\", \"species\": [ \"ALL_GAME_FISH\" ], \"standing\": true, \"take\": 0 }",
+   "Rule book p.9 ↗"
+  ],
+  "title": "No fishing — within 100 m of any government fish counting, passing or rearing facility"
+ },
+ "rule:zp:preparing_catch::preparing_catch.r1": {
+  "lines": [
+   "A B.C.-wide rule — everywhere in B.C.",
+   "The exact words",
+   "Do not can, bottle or fillet fish caught by sport fishing in non-tidal waters except at your permanent residence.",
+   "Technical detail",
+   "zp:preparing_catch::preparing_catch.r1 { \"conduct\": [ \"do_not_can_bottle_or_fillet_away_from_residence\" ], \"extents\": [ { \"area_kind\": \"region\", \"op\": \"within\" } ], \"species\": [ \"ALL_FIN_FISH\" ], \"species_except\": [ \"SALMON\" ] }",
+   "Rule book p.10 ↗"
+  ],
+  "title": "Do not can, bottle or fillet your catch away from your residence"
+ },
+ "rule:zp:preparing_catch::preparing_catch.r2": {
+  "lines": [
+   "A B.C.-wide rule — everywhere in B.C.",
+   "The exact words",
+   "Do not freeze fish together in an unrecognizable block.",
+   "Technical detail",
+   "zp:preparing_catch::preparing_catch.r2 { \"conduct\": [ \"do_not_freeze_in_unrecognizable_block\" ], \"extents\": [ { \"area_kind\": \"region\", \"op\": \"within\" } ], \"species\": [ \"ALL_FIN_FISH\" ], \"species_except\": [ \"SALMON\" ] }",
+   "Rule book p.10 ↗"
+  ],
+  "title": "Do not freeze fish in an unrecognizable block"
+ },
+ "rule:zp:prohibited_methods::prohibited_methods.r3": {
+  "lines": [
+   "A B.C.-wide rule — everywhere in B.C.",
+   "The exact words",
+   "any fish willfully or accidentally snagged must be released immediately",
+   "Any fish snagged — even by accident — must be released.",
+   "Technical detail",
+   "zp:prohibited_methods::prohibited_methods.r3 { \"caught\": [ \"foul_hooked\" ], \"extents\": [ { \"area_kind\": \"region\", \"op\": \"within\" } ], \"may_target\": true, \"period\": \"daily\", \"species\": [ \"ALL_FIN_FISH\" ], \"take\": 0 }",
+   "Rule book p.8 ↗"
+  ],
+  "title": "All fish — release all, if snagged, even by accident"
+ },
+ "rule:zp:transporting_catch::transporting_catch.r1": {
+  "lines": [
+   "A B.C.-wide rule — everywhere in B.C.",
+   "The exact words",
+   "Keep your angling licence handy while travelling.",
+   "Technical detail",
+   "zp:transporting_catch::transporting_catch.r1 { \"conduct\": [ \"keep_licence_handy_while_travelling\" ], \"extents\": [ { \"area_kind\": \"region\", \"op\": \"within\" } ] }",
+   "Rule book p.10 ↗"
+  ],
+  "title": "Have your angling licence at hand when you travel with fish"
+ },
+ "rule:zp:transporting_catch::transporting_catch.r2": {
+  "lines": [
+   "A B.C.-wide rule — everywhere in B.C.",
+   "The exact words",
+   "Transport or possess no more than your legal limit.",
+   "Technical detail",
+   "zp:transporting_catch::transporting_catch.r2 { \"conduct\": [ \"transport_no_more_than_legal_limit\" ], \"extents\": [ { \"area_kind\": \"region\", \"op\": \"within\" } ] }",
+   "Rule book p.10 ↗"
+  ],
+  "title": "Do not transport or possess more than your legal limit"
+ },
+ "rule:zp:transporting_catch::transporting_catch.r3": {
+  "lines": [
+   "A B.C.-wide rule — everywhere in B.C.",
+   "The exact words",
+   "Ensure your fish can be identified, counted and measured if necessary",
+   "Technical detail",
+   "zp:transporting_catch::transporting_catch.r3 { \"conduct\": [ \"keep_catch_identifiable\" ], \"extents\": [ { \"area_kind\": \"region\", \"op\": \"within\" } ] }",
+   "Rule book p.10 ↗"
+  ],
+  "title": "Make sure your fish can be identified, counted and measured"
+ },
+ "rule:zp:transporting_catch::transporting_catch.r4": {
+  "lines": [
+   "A B.C.-wide rule — everywhere in B.C.",
+   "The exact words",
+   "If you are transporting fish for someone else: Obtain and carry a signed letter from that person",
+   "Technical detail",
+   "zp:transporting_catch::transporting_catch.r4 { \"conduct\": [ \"carry_signed_letter_when_transporting_for_another\" ], \"extents\": [ { \"area_kind\": \"region\", \"op\": \"within\" } ] }",
+   "Rule book p.10 ↗"
+  ],
+  "title": "Carry a signed letter from the angler when you transport fish for someone else"
+ },
+ "rule:zp:transporting_catch::transporting_catch.r5": {
+  "lines": [
+   "A B.C.-wide rule — everywhere in B.C.",
+   "The exact words",
+   "If you will be exporting the fish from B.C., carry the letter and ensure that it is available for inspection by fishery enforcement and/or customs officers if requested to do so.",
+   "Technical detail",
+   "zp:transporting_catch::transporting_catch.r5 { \"conduct\": [ \"show_letter_when_exporting\" ], \"extents\": [ { \"area_kind\": \"region\", \"op\": \"within\" } ] }",
+   "Rule book p.10 ↗"
+  ],
+  "title": "Carry the letter and show it on request when you export the fish from B.C."
+ },
+ "rule:zp:transporting_catch::transporting_catch.r6": {
+  "lines": [
+   "A B.C.-wide rule — everywhere in B.C.",
+   "The exact words",
+   "Keep in your possession a signed letter from the angler until you have eaten the fish.",
+   "Technical detail",
+   "zp:transporting_catch::transporting_catch.r6 { \"conduct\": [ \"keep_signed_letter_for_gifted_fish\" ], \"extents\": [ { \"area_kind\": \"region\", \"op\": \"within\" } ] }",
+   "Rule book p.10 ↗"
+  ],
+  "title": "Keep a signed letter from the angler until you have eaten fish given to you"
+ },
+ "sp:BCB": {
+  "lines": [
+   "Black crappie · Duane Raver / USFWS (fws.gov)",
+   "What to look for",
+   "Deep, flat body covered in black speckles",
+   "Large, rounded back and bottom fins",
+   "Mouth reaches the front of the eye"
+  ],
+  "title": "Black crappie"
+ },
+ "sp:CT": {
+  "lines": [
+   "Coastal cutthroat trout · Freshwater Fisheries Society of BC (GoFishBC)",
+   "Westslope cutthroat trout · Freshwater Fisheries Society of BC (GoFishBC)",
+   "What to look for",
+   "Red or orange slash under the lower jaw (may be faint)",
+   "Large mouth, reaching well past the eye",
+   "Black spots all over, more toward the tail"
+  ],
+  "title": "Cutthroat trout"
+ },
+ "sp:DV": {
+  "lines": [
+   "Bull trout · Joel Sartore / National Geographic (Commons)",
+   "Dolly Varden · WDFW (eRegulations WA)",
+   "What to look for",
+   "Pale pink or cream spots, smaller than the pupil",
+   "No worm-like markings on the back fin",
+   "White front edges on the lower fins",
+   "Bull trout: big, broad, flat head"
+  ],
+  "title": "Dolly Varden/bull trout"
+ },
+ "sp:EB": {
+  "lines": [
+   "Brook trout · Freshwater Fisheries Society of BC (GoFishBC)",
+   "What to look for",
+   "Worm-like markings on the back and back fin",
+   "Red spots with blue halos",
+   "Orange lower fins with white front edges"
+  ],
+  "title": "Brook trout"
+ },
+ "sp:GB": {
+  "lines": [
+   "Brown trout · Duane Raver / USFWS (fws.gov)",
+   "What to look for",
+   "Black and red spots, many with pale halos",
+   "Tail with few or no spots",
+   "Orange-rimmed adipose fin"
+  ],
+  "title": "Brown trout"
+ },
+ "sp:KO": {
+  "lines": [
+   "Kokanee · spawning · WDFW (sockeye male) (eRegulations WA)",
+   "Kokanee · Freshwater Fisheries Society of BC (GoFishBC)",
+   "What to look for",
+   "No black spots on the sides",
+   "Dark blue back, bright silver sides",
+   "Long fin under the tail end (13 or more rays)"
+  ],
+  "title": "Kokanee"
+ },
+ "sp:LMB": {
+  "lines": [
+   "Largemouth bass · Duane Raver / USFWS (Commons)",
+   "What to look for",
+   "Dark stripe along the side",
+   "Jaw reaches past the back of the eye",
+   "Front and back fins almost separate"
+  ],
+  "title": "Largemouth bass"
+ },
+ "sp:LT": {
+  "lines": [
+   "Lake trout · Sherman F. Denton (Commons)",
+   "What to look for",
+   "Pale spots all over a dark body, no red",
+   "Worm-like light markings on the back and back fin",
+   "Deeply forked tail"
+  ],
+  "title": "Lake trout"
+ },
+ "sp:LW": {
+  "lines": [
+   "Lake whitefish · Sherman F. Denton (Commons)",
+   "What to look for",
+   "Large scales, silver sides",
+   "Small mouth under a blunt snout",
+   "Has an adipose fin; no spots"
+  ],
+  "title": "Lake whitefish"
+ },
+ "sp:RB": {
+  "lines": [
+   "Rainbow trout · Freshwater Fisheries Society of BC (GoFishBC)",
+   "What to look for",
+   "Pink or red band along the side",
+   "Small black spots, mostly above the middle of the side",
+   "Rows of black spots on the tail"
+  ],
+  "title": "Rainbow trout"
+ },
+ "sp:ST": {
+  "lines": [
+   "Steelhead · ocean · Freshwater Fisheries Society of BC (GoFishBC)",
+   "Steelhead · spawning · WDFW (eRegulations WA)",
+   "What to look for",
+   "A rainbow trout that went to sea: bright silver",
+   "Faint spots, mostly on the back and tail",
+   "Hatchery steelhead are missing this small fin (the adipose fin)"
+  ],
+  "title": "Steelhead"
+ },
+ "sp:WSG": {
+  "lines": [
+   "White sturgeon · Joseph Huët (Paris Museum) (Commons)",
+   "What to look for",
+   "Rows of bony plates, no scales",
+   "Barbels under a pointed snout",
+   "Upper lobe of the tail much longer"
+  ],
+  "title": "White sturgeon"
+ },
+ "src:vedder_1010|r0": {
+  "lines": [
+   "These decide it (12)",
+   "Region 2 · region-wide",
+   "Keep up to 4 trout and char a day Trout/char: 4",
+   "Sets the number Rule book p.21 ↗",
+   "At most 2 hatchery trout and char a day from streams 2 from streams (must be hatchery)",
+   "Lowers the number Rule book p.21 ↗",
+   "At most 1 trout or char (not steelhead) over 50 cm (20 in) a day 1 over 50 cm",
+   "A limit inside the total · for cutthroat trout, Dolly Varden/bull trout, brook trout, brown trout and lake trout Rule book p.21 ↗",
+   "No hatchery trout or char under 30 cm (12 in) from streams Hatchery trout/char under 30 cm from streams",
+   "Size limit Rule book p.21 ↗",
+   "Possession: twice the daily quota Possession quotas = 2 daily quotas",
+   "Possession limit Rule book p.21 ↗",
+   "Release wild trout and char from streams Wild trout/char from streams",
+   "Release every one Rule book p.21 ↗",
+   "At most 1 Dolly Varden/bull trout or lake trout a day 1 char (bull trout, Dolly Varden, or lake trout)",
+   "A limit inside the total · for Dolly Varden/bull trout and lake trout Rule book p.21 ↗",
+   "No Dolly Varden/bull trout or lake trout under 60 cm (24 in) none under 60 cm",
+   "Size limit · for Dolly Varden/bull trout and lake trout Rule book p.21 ↗",
+   "At most 2 trout or char over 50 cm (20 in) a day 1 over 50 cm (2 hatchery steelhead over 50 cm allowed)",
+   "A limit inside the total · for steelhead Rule book p.21 ↗",
+   "Stop fishing after your daily limit of hatchery steelhead When you have caught and retained your daily quota of hatchery steelhead from any water, you must stop fishing that water for the remainder of that day.",
+   "Something you must do · for steelhead Rule book p.21 ↗",
+   "Provincial · in Regions 1, 2, 3, 5 and 6",
+   "Up to 10 hatchery steelhead a licence year The annual province-wide quota for hatchery steelhead is 10.",
+   "Yearly limit · for steelhead Rule book p.6 ↗",
+   "Write each hatchery steelhead on your licence right away You must immediately record your retention of hatchery steelhead on your basic angling licence.",
+   "Something you must do · for steelhead Rule book p.6 ↗",
+   "Overruled (3)",
+   "“All wild steelhead”",
+   "Region 2 · region-wide",
+   "Says the same as “Wild trout/char from streams” · for steelhead",
+   "“Possession quota — no more than twice the daily quota unless otherwise specified.”",
+   "Provincial · province-wide",
+   "Beaten by “Possession quotas = 2 daily quotas”",
+   "“All wild steelhead must be released.”",
+   "Provincial · in Regions 1, 2, 3, 5 and 6",
+   "Beaten by “All wild steelhead” · for steelhead"
+  ],
+  "title": "Trout and char"
+ },
+ "srcs:always|vedder_1010": {
+  "lines": [
+   "All fish — release all, if snagged, even by accident B.C. A B.C.-wide rule — everywhere in B.C. Rule book p.8 ↗",
+   "Return a fish you cannot keep gently to the water B.C. A B.C.-wide rule — everywhere in B.C. Rule book p.8 ↗",
+   "Do not release fish in a harmful manner B.C. A B.C.-wide rule — everywhere in B.C. Rule book p.8 ↗ Rule book p.10 ↗",
+   "Do not high-grade B.C. A B.C.-wide rule — everywhere in B.C. Rule book p.8 ↗ Rule book p.10 ↗",
+   "Do not waste the fish you catch B.C. A B.C.-wide rule — everywhere in B.C. Rule book p.8 ↗ Rule book p.10 ↗",
+   "Do not hold your catch alive (livewell, other device or stringer) B.C. A B.C.-wide rule — everywhere in B.C. Rule book p.8 ↗ Rule book p.10 ↗",
+   "Leave the head, tail and fins on your catch until your residence B.C. A B.C.-wide rule — everywhere in B.C. Rule book p.8 ↗ Rule book p.10 ↗",
+   "Do not can, bottle or fillet your catch away from your residence B.C. A B.C.-wide rule — everywhere in B.C. Rule book p.10 ↗",
+   "Do not freeze fish in an unrecognizable block B.C. A B.C.-wide rule — everywhere in B.C. Rule book p.10 ↗",
+   "Make sure your fish can be identified, counted and measured B.C. A B.C.-wide rule — everywhere in B.C. Rule book p.10 ↗",
+   "Do not transport or possess more than your legal limit B.C. A B.C.-wide rule — everywhere in B.C. Rule book p.10 ↗",
+   "Have your angling licence at hand when you travel with fish B.C. A B.C.-wide rule — everywhere in B.C. Rule book p.10 ↗",
+   "Carry a signed letter from the angler when you transport fish for someone else B.C. A B.C.-wide rule — everywhere in B.C. Rule book p.10 ↗",
+   "Carry the letter and show it on request when you export the fish from B.C. B.C. A B.C.-wide rule — everywhere in B.C. Rule book p.10 ↗",
+   "Keep a signed letter from the angler until you have eaten fish given to you B.C. A B.C.-wide rule — everywhere in B.C. Rule book p.10 ↗",
+   "Do not buy, sell or barter your catch B.C. A B.C.-wide rule — everywhere in B.C. Rule book p.8 ↗ Rule book p.10 ↗",
+   "Do not possess or move live fish or invertebrates B.C. A B.C.-wide rule — everywhere in B.C. Rule book p.8 ↗ Rule book p.10 ↗",
+   "Do not release your aquarium fish to the wild B.C. A B.C.-wide rule — everywhere in B.C. Rule book p.8 ↗ Rule book p.10 ↗",
+   "Do not place gear in the water during a No Fishing period B.C. A B.C.-wide rule — everywhere in B.C. Rule book p.8 ↗",
+   "Do not damage or interfere with a furbearer trap B.C. A B.C.-wide rule — everywhere in B.C. Rule book p.8 ↗",
+   "Do not enter or cross cultivated, posted or private land, or Indian Reserve land, without permission B.C. A B.C.-wide rule — everywhere in B.C. Rule book p.8 ↗ Rule book p.10 ↗"
+  ],
+  "title": "Sources"
+ },
+ "srcs:bait|vedder_1010": {
+  "lines": [
+   "Invertebrate may be used, in streams B.C. A B.C.-wide rule — everywhere in B.C. Rule book p.8 ↗",
+   "No fin fish other than roe B.C. A B.C.-wide rule — everywhere in B.C. Rule book p.8 ↗"
+  ],
+  "title": "Sources"
+ },
+ "srcs:gl|vedder_1010|hook": {
+  "lines": [
+   "At most 1 terminal attachment per line B.C. A B.C.-wide rule — everywhere in B.C. Rule book p.8 ↗",
+   "Single barbless hook, in streams Region 2 From the Region 2 table — every stream in Region 2. Rule book p.21 ↗",
+   "Fly fishing only, May 1-May 31 — downstream of Vedder Crossing Bridge This water’s This water’s own row in the 2025–2027 BC Freshwater Fishing Regulations Synopsis: Chilliwack River. Inherited from Chilliwack River: its row covers its tributaries. Rule book p.22 ↗"
+  ],
+  "title": "Sources"
+ },
+ "srcs:gl|vedder_1010|lines": {
+  "lines": [
+   "At most 2 lines (rods) per angler (lake, alone in a boat); at most 1 line (rod) per angler B.C. A B.C.-wide rule — everywhere in B.C. Rule book p.8 ↗"
+  ],
+  "title": "Sources"
+ },
+ "srcs:gl|vedder_1010|weight": {
+  "lines": [
+   "At most 1kg weight per line (not downrigger weights) B.C. A B.C.-wide rule — everywhere in B.C. Rule book p.8 ↗"
+  ],
+  "title": "Sources"
+ },
+ "srcs:ways|vedder_1010": {
+  "lines": [
+   "Angling may be used B.C. A B.C.-wide rule — everywhere in B.C. Rule book p.8 ↗",
+   "Crayfish trapping may be used B.C. A B.C.-wide rule — everywhere in B.C. Rule book p.8 ↗",
+   "No set lining B.C. A B.C.-wide rule — lakes of Region 6 and Region 7A. Rule book p.8 ↗",
+   "No spear fishing — Regions 1, 2 and 4 — lifts “Spear fishing may be used” B.C. A B.C.-wide rule — everywhere in B.C. It lifts “Spear fishing may be used” (everywhere in B.C) here. Rule book p.8 ↗",
+   "No netting B.C. A B.C.-wide rule — everywhere in B.C. Rule book p.8 ↗",
+   "No snagging B.C. A B.C.-wide rule — everywhere in B.C. Rule book p.8 ↗",
+   "No chumming B.C. A B.C.-wide rule — everywhere in B.C. Rule book p.8 ↗"
+  ],
+  "title": "Sources"
+ }
+}

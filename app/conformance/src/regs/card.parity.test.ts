@@ -11,9 +11,9 @@
  */
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { buildModel, makePlace, settle, type CardModel, type HydRes } from "@app/core";
-import { inputsOf, isGone, oracleRix, paritySkip, releasePairing } from "./golden";
-import { HYDRATE } from "./oracles";
+import { buildModel, makePlace, settle, type CardModel, type HydRes, type RegsPlace } from "@app/core";
+import { inputsOf, isGone, oracleRix, parityStore, paritySkip, releasePairing } from "./golden";
+import { flipsOver, HYDRATE, LOIS_FOLD, oracleLive, oracleRixOf, renamedOrder } from "./oracles";
 
 type Res = { status: string; daily: number | string | null; win: number; narrow: number | null } | null;
 interface OracleModel {
@@ -35,11 +35,35 @@ const pairing = paritySkip(at);
 const R = (await oracleRix()) ?? ((r: number) => r);
 const Rn = (r: number | null) => (r === null ? null : R(r));
 const mapRes = (h: Res): Res => h && { ...h, win: R(h.win), narrow: Rn(h.narrow) };
-const mapModel = (o: OracleModel): OracleModel => ({
-  ...o, broad: o.broad.map(R), rows: o.rows.map((r) => ({ ...r, pool: Rn(r.pool), win: Rn(r.win), narrow: Rn(r.narrow) })),
-  R: Object.fromEntries(Object.entries(o.R).map(([k, v]) => [k, { H: mapRes(v.H), W: mapRes(v.W) }])),
-});
+/** (T206, oracles.ts LOIS_FOLD) Lois Lake's page v36 rows with the retired r3 row folded into r4's: its fish lead r4's
+ *  members and every answer r3 won is r4's; `dayStatus` loses that row's strip. Identity on every other state. */
+const LOIS = { retired: oracleRixOf(LOIS_FOLD.retired), into: oracleRixOf(LOIS_FOLD.into) };
+const loisRow = (id: string, o: OracleModel) => (id === LOIS_FOLD.id ? o.rows.findIndex((r) => r.pool === LOIS.retired) : -1);
+function loisFolded(id: string, o: OracleModel): OracleModel {
+  const at = loisRow(id, o);
+  if (at < 0) return o;
+  const gone = o.rows[at]!, win = (h: Res): Res => h && (h.win === LOIS.retired ? { ...h, win: LOIS.into } : h);
+  return { ...o, rows: o.rows.filter((_, i) => i !== at).map((r) => (r.pool === LOIS.into ? { ...r, members: [...gone.members, ...r.members] } : r)),
+    R: Object.fromEntries(Object.entries(o.R).map(([k, v]) => [k, { H: win(v.H), W: win(v.W) }])) };
+}
+const mapModel = (id: string, raw: OracleModel): OracleModel => {
+  const o = loisFolded(id, raw);
+  return {
+    ...o, broad: o.broad.filter(oracleLive).map(R), rows: o.rows.map((r) => ({ ...r, pool: Rn(r.pool), win: Rn(r.win), narrow: Rn(r.narrow) })),
+    R: Object.fromEntries(Object.entries(o.R).map(([k, v]) => [k, { H: mapRes(v.H), W: mapRes(v.W) }])),
+  };
+};
 
+/** (T206) did the zone daily-quota rename swap two store rules' order (oracles.ts `flipsOver`)? */
+const flip = flipsOver((await (await parityStore())?.rules()) ?? []);
+/** (T206) The card's fish are the pipeline's `species_at`: each fish where the first candidate quota rule naming it stands
+ *  (card_model.py), and which rule is first moved with the renumbering. Two fish may swap only when a rule naming one and
+ *  a rule naming the other swapped (`flip`). */
+const SPP_KINDS: readonly (string | null)[] = ["gate", "pool", "subcap", "sizecap", "size", "annual", "possession_cap"];
+const sppFlip = (place: RegsPlace) => {
+  const naming = (S: string) => place.cands.filter((r) => SPP_KINDS.includes(r.kind) && r.species.includes(S)).map((r) => r.rix);
+  return (x: string, y: string) => naming(x).some((a) => naming(y).some((b) => flip(a, b)));
+};
 const inf = (x: number | null) => (x === Infinity ? "Infinity" : x);
 const res = (h: HydRes | null): Res => h && { status: h.status, daily: inf(h.daily), win: h.win.rix, narrow: h.narrow?.rix ?? null };
 const project = (m: CardModel): OracleModel => ({
@@ -66,14 +90,17 @@ describe.skipIf(pairing.skip)(`T08 card model on the live release (${at.path ?? 
   };
 
   it.each(ids)("4. %s: buildModel() projected equals page v36's", async (id) => {
-    const { m } = await model(id);
+    const { m, place } = await model(id);
     expect(m.ctx.s).toBe(H.states[id]!.s);
-    expect(project(m)).toEqual(mapModel(H.states[id]!.model));
+    const got = project(m), want = mapModel(id, H.states[id]!.model);
+    expect(got).toEqual({ ...want, broad: renamedOrder(got.broad, want.broad, flip),
+      spp: renamedOrder(got.spp, want.spp, sppFlip(place)) });
   });
 
   it.each(ids)("6. %s: every row's STORED year strip (rows[].year) equals page v36's dayStatus runs (365 book days)", async (id) => {
     const { m } = await model(id);
-    expect(m.rows.map((r) => r.year)).toEqual(rulingApplied(id, H.states[id]!.dayStatus));
+    const at = loisRow(id, H.states[id]!.model);   // (T206, LOIS_FOLD) the folded row has no strip of its own
+    expect(m.rows.map((r) => r.year)).toEqual(rulingApplied(id, H.states[id]!.dayStatus).filter((_, i) => i !== at));
     for (const r of m.rows) expect(r.year.reduce((a, [, n]) => a + n, 0)).toBe(365);
   });
 

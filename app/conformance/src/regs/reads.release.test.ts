@@ -142,7 +142,7 @@ describe.skipIf(!LIVE)(`T04 reads on the live release (${LIVE ?? "absent"})`, ()
     expect(rules.get(rix("z2:daily_quotas::trout_char_quota.r2"))!.facts.kind).toBe("sizecap");
     const rs = await st.ruleset((await st.akey(VA)).ruleset);
     expect({ sections: rs.sections, reach: rs.reach.length, trib: rs.trib, hasJune: rs.reach.includes(rix(`${VEDDER}.r8`)) })
-      .toEqual({ sections: 5, reach: 101, trib: [], hasJune: true });
+      .toEqual({ sections: 5, reach: 100, trib: [], hasJune: true });   // (T206) 101 less the retired z2:trout_char_quota.r3
   });
 
   it("13. every unnamed handle of taps.json: akey, place and name from regs-sid", async () => {

@@ -63,10 +63,11 @@ describe.skipIf(gate.skip)("T17 group head", () => {
       "The Bella Coola River’s rule: up to 1 a day per angler Its row covers its tributaries, so it applies here"]);
   });
 
-  it("6. x25p_1010: Region 2-wide; the steelhead row is separate from the 4", async () => {
+  // (T206, oracles.ts LOIS_FOLD) page v36's second group was "Steelhead"; with lois_lake.r3 retired it is both fish's row
+  it("6. x25p_1010: Region 2-wide; the rainbow trout and steelhead row is separate from the 4", async () => {
     const [a, b] = [await head("x25p_1010", 0), await head("x25p_1010", 1)];
     expect([a.scope, a.head.text, b.title, b.scope, b.head.text]).toEqual(["Region 2-wide", "4 a day per angler across Region 2",
-      "Steelhead", "Separate from your 4 trout and char", "This lake’s rule: up to 6 a day per angler"]);
+      "Rainbow trout and steelhead", "Separate from your 4 trout and char", "This lake’s rule: up to 6 a day per angler"]);
   });
 
   it("7. cow1_1010: 'Trout' (trout and char except char), the origin's How to tell and its page", async () => {

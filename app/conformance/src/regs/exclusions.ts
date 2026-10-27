@@ -4,7 +4,7 @@
  * under the block) and the parity test asks `excluded(block, id, key)` before comparing it.
  */
 import type { Block } from "@app/core/regs/testing";
-import { golden, tapsOnce } from "./oracles";
+import { golden, LOIS_FOLD, tapsOnce } from "./oracles";
 
 /** The states whose golden keep.strip.line carries a "Trout …" line — the strip part that words a row's STORED year strip
  *  (rows 30 `rows[].year`; compared since T13, no longer excluded). */
@@ -33,6 +33,12 @@ export const GOLDEN_PARTS_ACTION_IDS: readonly string[] = Object.entries(golden(
   .map(([id]) => id);
 /** The three Kitimat states the owner ruling 2026-10-21 (a) moves away from page v36 (card.parity.test.ts KITIMAT_RULED). */
 export const KITIMAT_RULED_IDS: readonly string[] = ["x14p0_1010", "x14p1_1010", "x14p2_1010"];
+
+/** (T206, oracles.ts LOIS_FOLD) why Lois Lake's Keep tab, pin bar and second-row source sheet are not page v36's. */
+const LOIS_REASON = "T206 ORACLE_RETIRED (overlapping-rules.md, owner 2026-10-26): lois_lake.r3 (hatchery rainbow trout, 6 a day) is retired, so hatchery rainbow trout answer to r4 and the card folds them into r4's steelhead row: the group is row r1, not page v36's r2 (oracles.ts LOIS_FOLD, loisRuled), and the app's r2 is the next row (Kokanee). The sheet must differ; the folded group's own source sheet (src:r1) has no golden";
+const LOIS_UNTIL = "the page blocks and golden re-cut on the retired rules";
+/** (T206, ORACLE_ON_PARTS_DROPPED) the states whose Methods tab gains a Boats block: their vessel rule held 'on parts'. */
+export const ON_PARTS_BOAT_IDS: readonly string[] = ["cow1_1010", "cow2_1010", "cow3_1010", "x37p0_1010", "x37p1_1010", "x37p2_1010"];
 
 /** Every golden Keep group line (`groups.N.lines`, and each tree kind's `lines`), state by state. */
 const groupLines = (s: { keep?: unknown }): string[] => {
@@ -253,6 +259,11 @@ export const EXCLUDE: readonly Exclusion[] = [
   { block: "pins", ids: KITIMAT_RULED_IDS, key: /^anchors\.\d+\.tiers$/,
     reason: "OWNER RULING 2026-10-21 (a): the Kitimat's stored size tier says 'Only 1 … over 50 cm — 2 if one is a hatchery steelhead' where page v36 dropped the tail, so TierVM.short (shortOf over the STORE's tier) carries '(2 if one is a hatchery steelhead)' and the app's bar is not the golden's on these states. The group line is compared; the golden-string replay (pins.parity B) still covers the geometry; never 'fix' the data to match the page",
     until: "never — a re-synced prototype on the ruled data removes it" },
+  // (T206) page v36 predates the retired Lois Lake r3 (LOIS_FOLD) and the owner's on-parts ruling (ORACLE_ON_PARTS_DROPPED)
+  { block: "sheets", ids: [LOIS_FOLD.id], key: /^src:x25p_1010\|r2$/, reason: LOIS_REASON, until: LOIS_UNTIL },
+  { block: "methods", ids: ON_PARTS_BOAT_IDS, key: /^boats$/,
+    reason: "T206 (owner 2026-10-26, curation-review/on-parts.md; c16b1c5f drop_on_parts): 'on parts' holds on the whole water, so the Cowichan's (r8/r9) and the Coquitlam's (r2) vessel rules now draw a Boats block where page v36 drew none (its rule held 'on parts', undrawn). methods.parity compares the tab without the block and pins the block's items (ON_PARTS_BOATS)",
+    until: "the page blocks and golden re-cut on drop_on_parts" },
   // (T18/T19 review, rows 31 + T21 review) the stamp lines (the store's `stamps`) and the .gyear line are drawn and compared
   ...KEEP_TAB_EXCLUDE,
   // (T31) a source line's who-word read from the prototype's GLOBAL rule-sheet snapshot

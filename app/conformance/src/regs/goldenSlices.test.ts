@@ -8,7 +8,7 @@ import { headersSlice, pinsSlice, syncSlices } from "./goldenSlices";
 import { golden } from "./oracles";
 
 describe("golden slices for the RN render tests", () => {
-  it("golden-headers.json and golden-pins.json are fresh (UPDATE_REGS_FIXTURES=1 pnpm -C app exec vitest run conformance/src/regs/goldenSlices)", () => {
+  it("golden-headers.json, golden-pins.json and golden-sheets-vedder_1010.json are fresh (UPDATE_REGS_FIXTURES=1 pnpm -C app exec vitest run conformance/src/regs/goldenSlices)", () => {
     expect(syncSlices()).toEqual([]);
   });
 

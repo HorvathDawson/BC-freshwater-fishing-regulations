@@ -11,10 +11,20 @@
 import { afterAll, describe, expect, it } from "vitest";
 import { appKeyOf, goldenKeyOf, sheetLines, type SheetKey } from "@app/core";
 import { eqPlain, type GoldenSheet } from "@app/core/regs/testing";
-import { caseIds, golden, inputsOf, parityGate, requestOf, ADULT_RESIDENT, summary } from "./golden";
+import { caseIds, golden, inputsOf, parityGate, parityStore, requestOf, ADULT_RESIDENT, summary } from "./golden";
 import { buildRegsPage } from "@app/core";
 import { D19_SHEET_LINES, droppedLines, excluded, keepLines, LEGACY_POOL_SHEETS, SHEET_SUBST, substIn } from "./exclusions";
 import { groupLines } from "./keepPage";
+import { flipsOver, renamedOrder } from "./oracles";
+
+/** (T206) a sheet's rule links ("rule:<entry>::<rule>") → did the zone daily-quota rename swap the two rules' order? */
+const STORED = (await (await parityStore())?.rules()) ?? [];
+const flip = flipsOver(STORED);
+const RIX = new Map([...STORED].map(([rix, r]) => [`rule:${r.export.entry_id}::${r.export.rule_id}`, rix]));
+const flipKey = (x: string, y: string) => RIX.has(x) && RIX.has(y) && flip(RIX.get(x)!, RIX.get(y)!);
+/** a line a zone (regional table) rule draws */
+const ZONE_LINE = /From the Region \d+[AB]? table/;
+const MORE = " See every regulation line ›";
 
 const G = golden();
 const gate = await parityGate();
@@ -35,7 +45,7 @@ describe("A. sheet keys: golden ⇄ app", () => {
       expect(a.includes(id), `${id} ${k} → ${a}`).toBe(false);
       shapes.add(k.replace(id, "SID").replace(/^(rule|gl|sp):.*/, "$1:*").replace(/\|o\d+$/, "|oN").replace(/\|r\d+$/, "|rN")); n++;
     }
-    expect(n).toBe(7184);
+    expect(n).toBe(7183);   // (T206) 7184 less x37p2's sheet of the retired z2:trout_char_quota.r3 (oracles.ts retiredRuled)
     expect([...shapes].sort()).toEqual(["gl:*", "hatch", "licsrc:lic|SID|adult", "licsrc:lic|SID|adult_alien", "licsrc:lic|SID|adult_non",
       "licsrc:lic|SID|u16_alien", "licsrc:lic|SID|u16_non", "licsrc:lic|SID|u16_res", "other:SID|oN", "parts", "pos:SID|pos", "rule:*",
       "sp:*", "src:SID|rN", "srcs:always|SID", "srcs:bait|SID", "srcs:boats|SID", "srcs:gl|SID|hook", "srcs:gl|SID|lines",
@@ -66,7 +76,7 @@ describe.skipIf(gate.skip)("C. the part 2 sheets over the store, whole strings (
     expect([l.title, l.sub, l.lines.slice(0, 4), l.folds]).toEqual(["Trout and char",
       "Vedder River · Oct 10. The more specific rule speaks first: this water, then from downstream, a named area, the region, then the province.",
       ["These decide it (12)", "Region 2 · region-wide", "Keep up to 4 trout and char a day Trout/char: 4", "Sets the number Rule book p.21 ↗"],
-      [{ summary: "Overruled (4)", open: false }]]);
+      [{ summary: "Overruled (3)", open: false }]]);   // (T206) page v36 4: z2 r2b, overruled by the retired r3, now decides
     const rows = vm.blocks.flatMap((b) => (b.k === "sources" ? b.groups.flatMap((g) => g.rows) : []));
     expect(rows.length).toBe(12);
     expect(rows.filter((r) => r.title?.startsWith("ALL STEELHEAD"))).toEqual([]);
@@ -133,6 +143,11 @@ describe.skipIf(gate.skip)("B. every built sheet of every state equals the golde
         expect(techSplit(gotLines[gi]!, rk), `${id} ${gk}: fields`).toEqual(techSplit(wantLines[wi]!, rk));
         gotLines = gotLines.filter((_, i) => i !== gi); wantLines = wantLines.filter((_, i) => i !== wi);
       }
+      if (excluded("sheets", id, gk)?.reason.startsWith("T206")) {
+        // (T206, exclusions LOIS_REASON) Lois Lake's r2 is not page v36's row: the sheet must DIFFER, so the entry cannot go stale
+        expect(eqPlain(gotLines, wantLines).ok && got.title === want.title, `${id} ${gk}: T206 Lois fold, the sheet still equals the golden`).toBe(false);
+        skipped.retired = (skipped.retired ?? 0) + 1; continue;
+      }
       // (T36) the gl: and hatch pages are compared whole — printed number, PDF page, the ↗ — over the release's own
       // printed → PDF map (static export.pdf_pages); no page is drawn unlinked
       expect({ title: got.title, sub: got.sub || null, folds: got.folds, pages: got.pages }, `${id} ${gk}`)
@@ -143,8 +158,19 @@ describe.skipIf(gate.skip)("B. every built sheet of every state equals the golde
         expect(eqPlain(gotLines, wantLines).ok, `${id} ${gk}: T115 re-cut, the lines still equal the golden`).toBe(false);
         skipped.recut = (skipped.recut ?? 0) + 1; continue;
       }
+      // (T206) the zone daily-quota rename's order (oracles.ts `renamedOrder`): two rules whose order the renumbering swapped
+      // may be linked — and their zone-table lines drawn — the other way round; nothing else moves
+      const nested = got.nested.map((k) => goldenKeyOf(k as SheetKey, id));
+      const wantNested = renamedOrder(nested, want.nested, (x, y) => flipKey(x, y));
+      if (wantNested !== want.nested) {
+        // the sheet's closing link rides on its last line: set it aside on both sides while the lines are ordered
+        const tail = (l: readonly string[]) => (l.at(-1)?.endsWith(MORE) ? [...l.slice(0, -1), l.at(-1)!.slice(0, -MORE.length)] : [...l]);
+        const g = tail(gotLines);
+        const same = !!gotLines.at(-1)?.endsWith(MORE) === !!wantLines.at(-1)?.endsWith(MORE);
+        if (same && renamedOrder(g, tail(wantLines), (x, y) => ZONE_LINE.test(x) && ZONE_LINE.test(y)) === g) wantLines = [...gotLines];
+      }
       expect(eqPlain(gotLines, wantLines), `${id} ${gk}`).toEqual({ ok: true });
-      expect(got.nested.map((k) => goldenKeyOf(k as SheetKey, id)), `${id} ${gk} nested`).toEqual(want.nested);
+      expect(nested, `${id} ${gk} nested`).toEqual(wantNested);
       compared++; byKind[kind] = (byKind[kind] ?? 0) + 1;
     }
     equal++;
