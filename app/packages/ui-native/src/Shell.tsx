@@ -33,6 +33,7 @@ import { SearchSheet } from "./SearchSheet";
 import { TopBar, topBarBottom } from "./TopBar";
 import { SpotCapture } from "./SpotCapture";
 import { SpotPickBanner } from "./SpotPickBanner";
+import { SynopsisLoading } from "./regs/SynopsisLoading";
 import { SpotPin } from "./SpotPin";
 import { TabBar } from "./TabBar";
 import { EdgeBack } from "./EdgeBack";
@@ -228,6 +229,8 @@ export function Shell(p: ShellProps) {
       )}
       {/* A tab change is a change of subject: the remembered reach goes with it. Hidden in water mode (P13/P14). */}
       {bottomBarShown(route) && <TabBar active={tab} palette={palette} onChange={nav.toTab} />}
+      {/* (T215) the synopsis PDF is loading / failed: progress, Cancel, Retry */}
+      <SynopsisLoading palette={palette} floating />
       {/* G1: an open sheet is a back layer — every platform's back closes it before it pops the route */}
       <LayersSheet open={layersOpen} onClose={() => setLayersOpen(false)} palette={palette}
                    vm={col.layers} onChoose={col.onChooseLayer} />

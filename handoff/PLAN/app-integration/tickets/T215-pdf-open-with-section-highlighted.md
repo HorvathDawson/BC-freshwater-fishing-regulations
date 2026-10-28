@@ -28,4 +28,16 @@ highlighted using a PDF HIGHLIGHT ANNOTATION on that page (owner 2026-10-27), wo
 - LEFT (owner): R2 upload (OWNER-TODO "R2 upload": the release now includes the 24 MB PDF; bucket CORS GET). Phone path unverified
   on a device. The "Source ›" sheet pages carry no box yet; zone/province tables have no row box (plain link).
 
+## Loading feedback + our copy everywhere (owner 2026-10-28)
+- DONE: `regs/synopsisLoad.ts` is the one load state (one download at a time, a second press is ignored; cancel aborts the
+  fetch and closes the blank tab); web streams the body for "Loading the synopsis… N%" (Content-Length, else manifest bytes);
+  phone's fetch has no stream, so it is indeterminate there (same card, Cancel works). `SynopsisLoading` card floats in the
+  Shell and sits atop the sheet (a sheet's Modal covers the Shell); the pressed page's links read "Loading the synopsis… N%".
+  Nothing draws in the first 150 ms (a cached copy opens with no flash). Failure: card with Retry + "Open on gov.bc.ca ›".
+- DONE: a link with NO box (zone/province tables) now opens OUR copy at its page, unmarked (web `#page=`, phone OpenAction /
+  page-first on Android); the About page's synopsis link uses our copy too. gov.bc.ca remains only as the error fallback and
+  when a release names no synopsis (fixture).
+- Verified on :39218 desktop + phone width with CDP throttle (T215-shots/loading-*.png, error-*.png); staging
+  data-staging.canifishthis.ca serves r-46be3c135e68/synopsis-08f58537261f.pdf as application/pdf, CORS `*`, immutable.
+
 Commits: 3e5ef46f 15d19068 7c513588 f0bce5ad

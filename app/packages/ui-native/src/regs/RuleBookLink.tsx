@@ -13,6 +13,7 @@ import type { Palette } from "../theme";
 import { lineRun, MIN_HIT } from "./hit";
 import { openBook } from "./openBook";
 import { RegsPress } from "./RegsPress";
+import { useBookLoadingWords } from "./SynopsisLoading";
 
 export function RuleBookLink({ printed, pdf, bare, palette, onBook = openBook, box, style, alone = false }: {
   printed: number; pdf: number | null; bare?: boolean; palette: Palette;
@@ -28,7 +29,8 @@ export function RuleBookLink({ printed, pdf, bare, palette, onBook = openBook, b
    */
   alone?: boolean;
 }) {
-  const words = bookText({ printed, pdf, bare });
+  const loading = useBookLoadingWords(pdf);
+  const words = loading ?? bookText({ printed, pdf, bare });
   const face = style ?? { fontFamily: TYPE.metaBold.fontFamily, fontSize: TYPE.metaBold.fontSize };
   // unlinked: not the link colour — inside a line it takes the line's colour (prototype `<span>`), alone the quiet one
   if (pdf === null) return <Text style={style ? face : [face, { color: palette.sub }]}>{words}</Text>;

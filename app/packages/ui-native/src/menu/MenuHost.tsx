@@ -11,6 +11,7 @@
  */
 import { useMemo } from "react";
 import { Platform } from "react-native";
+import { getSynopsisSource } from "../regs/synopsisSource";
 import { aboutVM, dayLabel, MENU_WORDS, SYNOPSIS_PDF, sourcesVM } from "@app/core";
 import type { RegsLoader } from "@app/data/regs";
 import { ERROR_LOG, routeWhere, useGlossary, type MenuControls, type Route } from "@app/ui";
@@ -82,7 +83,7 @@ export function MenuHost({ menu, palette, loader, info = NO_MENU_INFO, tiles, ro
         edition: m?.sources?.synopsis?.title ?? null, tiles })} />)}
       {page("about", <AboutPage palette={palette} vm={aboutVM({
         appBuild: info.appBuild, release: loader?.release ?? null, tiles,
-        edition: m?.sources?.synopsis?.title ?? null }, SYNOPSIS_PDF)} />)}
+        edition: m?.sources?.synopsis?.title ?? null }, getSynopsisSource()?.url ?? SYNOPSIS_PDF)} />)}   {/* (owner 2026-10-28) our release's copy, gov.bc.ca only when it names none */}
       {page("report", <ReportPage palette={palette} contact={info.contact} diagnostics={diagnostics} />)}
     </>
   );

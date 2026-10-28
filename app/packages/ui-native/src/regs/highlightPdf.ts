@@ -13,7 +13,7 @@ const OPEN_ABOVE = 72;
 
 /** `pdf` with a highlight on every box that fits its page. Returns the input untouched when nothing could be drawn. */
 export async function highlightPdf(pdf: Uint8Array, boxes: readonly SourceBox[],
-                                   opts: { entryFirst?: boolean } = {}): Promise<Uint8Array> {
+                                   opts: { entryFirst?: boolean; page?: number } = {}): Promise<Uint8Array> {
   const doc = await PDFDocument.load(pdf, { updateMetadata: false });
   const pages = doc.getPages();
   let drawn = 0;
@@ -54,6 +54,12 @@ export async function highlightPdf(pdf: Uint8Array, boxes: readonly SourceBox[],
     const at = [...new Set(boxes.map((b) => b.pdf - 1).filter((i) => i >= 0 && i < pages.length))].sort((a, b) => a - b);
     const copies = await doc.copyPages(doc, at);
     copies.forEach((c, k) => doc.insertPage(k, c));
+  }
+  // a link with no row to mark (a zone or province table, a Source sheet): the copy opens at the page it names
+  if (!drawn && opts.page && opts.page >= 1 && opts.page <= pages.length) {
+    if (opts.entryFirst) { const [c] = await doc.copyPages(doc, [opts.page - 1]); doc.insertPage(0, c!); }
+    else doc.catalog.set(PDFName.of("OpenAction"), doc.context.obj([pages[opts.page - 1]!.ref, PDFName.of("Fit")]));
+    return doc.save();
   }
   return drawn ? doc.save() : pdf;
 }

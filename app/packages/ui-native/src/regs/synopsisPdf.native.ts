@@ -11,6 +11,7 @@ import { startActivityAsync } from "expo-intent-launcher";
 import type { SourceBox } from "@app/core";
 import { highlightPdf } from "./highlightPdf";
 import type { SynopsisSource } from "./synopsisSource";
+import type { LoadHooks } from "./synopsisLoad";
 
 /** Android's `Intent.FLAG_GRANT_READ_URI_PERMISSION`: the viewer may read the one file it is handed. */
 const GRANT_READ_URI = 0x1;
@@ -18,22 +19,25 @@ const GRANT_READ_URI = 0x1;
 const held = (s: SynopsisSource) => new File(Paths.cache, `synopsis-${s.sha256.slice(0, 16)}.pdf`);
 
 /** The release's PDF bytes: the cached file when it is there, else downloaded (and kept for the release's life). */
-export async function loadSynopsis(s: SynopsisSource, fetchImpl: typeof fetch = fetch): Promise<Uint8Array> {
+export async function loadSynopsis(s: SynopsisSource, fetchImpl: typeof fetch = fetch, hooks: Partial<LoadHooks> = {}): Promise<Uint8Array> {
   const f = held(s);
   if (f.exists) return f.bytes();
-  const res = await fetchImpl(s.url);
+  // (owner 2026-10-28) the loading card shows on the phone too; React Native's fetch gives no stream, so the bar is
+  // indeterminate there (the percent shows where `res.body` streams) and Cancel aborts the request.
+  const res = await fetchImpl(s.url, { signal: hooks.signal });
   if (!res.ok) throw new Error(`synopsis: HTTP ${res.status} for ${s.url}`);
   const bytes = new Uint8Array(await res.arrayBuffer());
+  hooks.onProgress?.(bytes.length, bytes.length);
   f.create();
   f.write(bytes);
   return bytes;
 }
 
 /** Open the synopsis with `boxes` highlighted. Throws when it cannot: the caller falls back to the plain link. */
-export async function openHighlighted(s: SynopsisSource, _pdf: number, boxes: readonly SourceBox[],
-                                      os: string = Platform.OS): Promise<void> {
+export async function openHighlighted(s: SynopsisSource, pdf: number, boxes: readonly SourceBox[],
+                                      hooks: Partial<LoadHooks> = {}, os: string = Platform.OS): Promise<void> {
   // Android's viewers open a file at its first page whatever it asks (`#page=`, /OpenAction): the entry goes first there
-  const out = await highlightPdf(await loadSynopsis(s), boxes, { entryFirst: os === "android" });
+  const out = await highlightPdf(await loadSynopsis(s, fetch, hooks), boxes, { entryFirst: os === "android", page: pdf });
   const f = new File(Paths.cache, "synopsis-open.pdf");
   if (f.exists) f.delete();
   f.create();

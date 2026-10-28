@@ -15,6 +15,7 @@ import { useLayoutClass, type LayoutClass } from "@app/ui";
 import { Sheet } from "../Sheet";
 import type { Palette } from "../theme";
 import { SheetBody } from "./SheetBody";
+import { SynopsisLoading } from "./SynopsisLoading";
 import type { AdiposeImages, FishImages } from "./types";
 
 export interface SheetHostProps {
@@ -47,6 +48,7 @@ export function SheetHost(p: SheetHostProps) {
   if (!drawn) return null;
   return (
     <Sheet open={vm !== null} title={drawn.title} sub={drawn.sub} scroll scrollRef={scroll} palette={p.palette} onClose={p.onClose} layout={layout} dialog>
+      <SynopsisLoading palette={p.palette} />
       <SheetBody vm={drawn} layout={layout} palette={p.palette} fish={p.fish} adipose={p.adipose} onOpen={p.onOpen} onPart={p.onPart} onTab={p.onTab} onBook={p.onBook} />
     </Sheet>
   );
