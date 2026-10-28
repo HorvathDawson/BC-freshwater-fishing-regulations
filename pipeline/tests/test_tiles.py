@@ -450,3 +450,29 @@ def test_private_land_starts_a_zoom_further_out():
     layers = contract["layers"] if isinstance(contract, dict) and "layers" in contract else contract
     entry = layers["parcel"] if isinstance(layers, dict) else next(l for l in layers if l.get("name") == "parcel")
     assert entry["minzoom"] == 11
+
+
+def test_a_side_channel_run_draws_whole_from_its_biggest_pieces_zoom():
+    """FIX "complete" (owner 2026-10-28): a braid channel cut into sections of different magnitude drew its
+    big pieces from z10 and a magnitude-1 piece between them from z13 — a channel stopping on a bar. Every
+    section of a connected side-channel run takes the run's lowest first zoom; a main-flow line keeps its own."""
+    from pipeline.common.models import FlowEdge, NodeKind, StreamGraph, StreamNode
+    from pipeline.deliver.tiles.export import side_channel_run_zooms
+
+    def n(nid, et, mag):
+        return StreamNode(node_id=nid, kind=NodeKind.stream, blk=nid, edge_types=(et,), stream_magnitude=mag)
+
+    g = StreamGraph()
+    for x in (n("M", "1250", 900), n("S1", "1350", 400), n("S2", "1350", 1), n("S3", "1450", 2),
+              n("C", "1000", 1), n("X", "1350", 1)):
+        g.nodes[x.node_id] = x
+    for a, b in (("M", "S1"), ("S1", "S2"), ("S2", "S3"), ("S3", "M"), ("C", "S2"), ("M", "X")):
+        g.edges.append(FlowEdge(from_node=a, to_node=b, at_measure=0.0))
+    for i, e in enumerate(g.edges):
+        g.up_adj.setdefault(e.to_node, []).append(i)
+        g.down_adj.setdefault(e.from_node, []).append(i)
+    zoom = lambda s: ladder.zoom_for_magnitude(g.nodes[s].stream_magnitude)
+    out = side_channel_run_zooms(g, list(g.nodes), zoom)
+    assert out["S1"] == out["S2"] == out["S3"] == zoom("S1") < zoom("S2")
+    assert "M" not in out and "C" not in out            # main flow keeps the ladder's own zoom
+    assert out["X"] == zoom("X")                          # a separate run (joined only through M)

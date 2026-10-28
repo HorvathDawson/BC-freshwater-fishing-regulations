@@ -186,6 +186,12 @@ def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None) 
     wb_polys = pickle.load(wb_path.open("rb"))
     dropped_routes = 0
     dropped_outside = 0
+    run_zoom = side_channel_run_zooms(
+        graph, [s for s, g in geoms.items() if s in graph.nodes and not graph.nodes[s].out_of_bc],
+        lambda s: ladder.zoom_for_magnitude(graph.nodes[s].stream_magnitude, spec.minzoom))
+    lowered = sum(1 for s, z in run_zoom.items()
+                  if z < ladder.zoom_for_magnitude(graph.nodes[s].stream_magnitude, spec.minzoom))
+    print(f"  side channels: {len(run_zoom):,} section(s) in runs, {lowered:,} drawn earlier to match their run")
     for sec, g in geoms.items():
         node = graph.nodes.get(sec)
         if node is None:
@@ -254,7 +260,7 @@ def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None) 
             # identity, search and containment are the bundle's (`item_section`, `alias`,
             # `area:` items) — and `_writer` drops what `layers.py` does not list.
             "ord": node.stream_order,
-        }, ladder.zoom_for_magnitude(node.stream_magnitude, spec.minzoom))
+        }, run_zoom.get(sec) or ladder.zoom_for_magnitude(node.stream_magnitude, spec.minzoom))
     n, n_ul = close(), ul_close()
     print(f"  stream         {n:>9,}"
           + (f"  ({dropped_outside:,} outside BC, not drawn)" if dropped_outside else ""))
@@ -370,6 +376,46 @@ def export_waterbodies(build_dir: Path, gpkg: str, out_dir: Path) -> dict:
 
 def _kind(node) -> str:
     return node.kind.value if hasattr(node.kind, "value") else str(node.kind)
+
+
+def is_side_channel_piece(node) -> bool:
+    """A stream piece carrying no main-flow line: a braid's side channel or its connectors (FWA 1100,
+    1150, 1350, 1450), never a river's own line and never a canal (`fwa_edge_types`)."""
+    from pipeline.common import fwa_edge_types as et
+    return (_kind(node) == "stream" and bool(node.edge_types) and not et.is_main_flow(node)
+            and not et.is_manmade_secondary_only(node))
+
+
+def side_channel_run_zooms(graph, drawn, zoom_of) -> dict[str, int]:
+    """ONE FIRST ZOOM PER SIDE CHANNEL (owner 2026-10-28, FIX "complete"): {section: minzoom} for every
+    drawn side-channel section, the LOWEST `zoom_of(section)` over the connected run of side-channel
+    sections it belongs to.
+
+    The ladder sets a line's first zoom from its own magnitude, and a braid's channel is cut into sections
+    whose FWA magnitudes differ (the Skeena at Salvus: ord-6 pieces from z10, a magnitude-1 piece between
+    them from z13). Below z13 that channel left the river and stopped on a bar. Drawn as a run, it is
+    there whole or not at all, and the run comes in when its biggest piece does."""
+    side = {s for s in drawn if s in graph.nodes and is_side_channel_piece(graph.nodes[s])}
+    out: dict[str, int] = {}
+    seen: set[str] = set()
+    for start in sorted(side):                       # DETERMINISM
+        if start in seen:
+            continue
+        run, stack = [], [start]
+        seen.add(start)
+        while stack:
+            u = stack.pop()
+            run.append(u)
+            nb = {graph.edges[i].from_node for i in graph.up_adj.get(u, ())}
+            nb |= {graph.edges[i].to_node for i in graph.down_adj.get(u, ())}
+            for v in nb & side:
+                if v not in seen:
+                    seen.add(v)
+                    stack.append(v)
+        z = min(zoom_of(u) for u in run)
+        for u in run:
+            out[u] = z
+    return out
 
 
 def _require_membership(graph) -> None:

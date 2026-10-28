@@ -532,3 +532,61 @@ def test_fwa_mainstem_blks_reads_watershed_key():
                       geometry=None, down_node="a", up_node="b", watershed_key=wk)
     assert fwa_mainstem_blks([row("359572903", "359572903"), row("359004842", "359572903"),
                               row("7", "")]) == {"359572903"}
+
+
+# ---- FIX "complete" (owner 2026-10-28): no surviving line ends where the water goes on ----------------
+
+def _stub_nest():
+    """M:hi -> M:lo along y=0; a nest B1 -> B2 off it; creek T (another water) joins B2 halfway.
+    The nest keeps B2 (T's route to the river) and would drop B1 — leaving B2's head ending on nothing."""
+    from shapely.geometry import LineString
+    nodes = [_n("M:hi", "M", length=1000.0), _n("M:lo", "M", length=1000.0),
+             _n("B1:0", "B1", length=510.0), _n("B2:0", "B2", length=1300.0),
+             _n("T:0", "T", wsc=TRIB, name="Small Creek", length=400.0)]
+    g = _graph([("M:hi", "M:lo"), ("M:hi", "B1:0"), ("B1:0", "B2:0"), ("B2:0", "M:lo"), ("T:0", "B2:0")],
+               nodes)
+    geoms = {"M:hi": LineString([(2000, 0), (1000, 0)]), "M:lo": LineString([(1000, 0), (0, 0)]),
+             "B1:0": LineString([(2000, 0), (1500, 100)]),
+             "B2:0": LineString([(1500, 100), (500, 100), (200, 0)]),
+             "T:0": LineString([(1000, 500), (1000, 100)])}
+    return g, geoms
+
+
+def test_a_kept_channels_stub_is_joined_back_to_its_river():
+    from pipeline.atlas.graph.prune import dangling_ends
+    g, geoms = _stub_nest()
+    assert dangling_ends(g, geoms, {"B1:0"}) == [("B2:0", ["B1:0"])]
+    closed: dict = {}
+    g2, n, _ = prune_mainstem_loops(g, dict(geoms), reconnect_tributaries=True, closed=closed)
+    assert closed["dangling_before"] == 1 and closed["restored"] == ["B1:0"]
+    assert n == 0 and "B1:0" in g2.nodes and "B2:0" in g2.nodes
+
+
+def test_without_geometry_nothing_is_restored():
+    """No line ends to judge: the prune behaves as before (B1 goes, B2 carries the creek)."""
+    g, _ = _stub_nest()
+    g2, n, _ = prune_mainstem_loops(g, None, reconnect_tributaries=True)
+    assert n == 1 and "B1:0" not in g2.nodes and "B2:0" in g2.nodes
+
+
+def test_a_real_source_is_not_a_dangling_end():
+    """The creek's head touches nothing — but no dropped piece either, so it is a source, not our end."""
+    from pipeline.atlas.graph.prune import dangling_ends
+    g, geoms = _stub_nest()
+    assert all(n != "T:0" for n, _ in dangling_ends(g, geoms, {"B1:0"}))
+
+
+def test_a_closure_takes_the_shortest_way_back():
+    """Two dropped routes reconnect the stub; the shorter is restored, the longer stays dropped."""
+    from shapely.geometry import LineString
+    from pipeline.atlas.graph.prune import close_dangling_ends
+    g, geoms = _stub_nest()
+    g.nodes["L:0"] = _n("L:0", "L", length=5000.0)
+    g.edges.append(FlowEdge(from_node="M:hi", to_node="L:0", at_measure=0.0))
+    g.edges.append(FlowEdge(from_node="L:0", to_node="B2:0", at_measure=0.0))
+    g.up_adj, g.down_adj = {}, {}
+    for i, e in enumerate(g.edges):
+        g.up_adj.setdefault(e.to_node, []).append(i)
+        g.down_adj.setdefault(e.from_node, []).append(i)
+    geoms["L:0"] = LineString([(2000, 0), (2000, 3000), (1500, 100)])
+    assert close_dangling_ends(g, geoms, {"B1:0", "L:0"}) == {"B1:0"}

@@ -707,13 +707,19 @@ def prune_graph(b: _Build) -> None:
     _tick = b.tick
     _moved_tribs: list = []
     _nests: list = []
+    _closed: dict = {}
     from pipeline.atlas.graph.prune import prune_mainstem_loops
     print("pruning pure braid loops off mainstems ...")
     from pipeline.atlas.graph.blk_chains import fwa_mainstem_blks
     graph, n_pruned, pruned_fids = prune_mainstem_loops(
         graph, geoms, reconnect_tributaries=args.simplify_braids,
-        moved=_moved_tribs, kept_out=_nests, fwa_main=fwa_mainstem_blks(fids))
+        moved=_moved_tribs, kept_out=_nests, fwa_main=fwa_mainstem_blks(fids), closed=_closed)
     print(f"  {n_pruned} loop piece(s) removed -> {len(graph.nodes)} nodes")
+    if _closed:
+        # FIX "complete" (owner 2026-10-28): no surviving line may end where the water goes on.
+        print(f"  dangling ends the prune would leave: {_closed.get('dangling_before', 0)}; "
+              f"{len(_closed.get('restored', ()))} piece(s) restored to close them; "
+              f"left after re-homing: {_closed.get('dangling_after', 0)}")
     if _moved_tribs:
         # A re-homed mouth that moves a long way means the "braid" was not the small anabranch this
         # assumes. The MEDIAN is not the number to watch — most mouths do not move at all, because the

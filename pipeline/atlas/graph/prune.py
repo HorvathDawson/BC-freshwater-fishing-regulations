@@ -45,6 +45,7 @@ mouths, which are re-homed because they are named water, not because they would 
 
 from __future__ import annotations
 
+import heapq
 from dataclasses import replace
 
 from shapely.geometry import Point
@@ -284,6 +285,116 @@ def _nearest_exit(geoms, graph: StreamGraph, live: list, old_target: str) -> str
     return min(live, key=lambda n: (d(n), n))
 
 
+#: Two line ends closer than this meet (metres, EPSG:3005). FWA's own junctions coincide exactly.
+TOUCH_M = 1.0
+#: A closure search gives up after this many pieces (it keeps nothing it did not finish).
+_CLOSE_CAP = 5000
+
+
+def _ends(g):
+    """The end points of a piece's line (each part of a multi-line)."""
+    for part in getattr(g, "geoms", [g]):
+        cs = part.coords
+        if len(cs):
+            yield Point(cs[0])
+            yield Point(cs[-1])
+
+
+def _nbrs(graph: StreamGraph, nid: str) -> set[str]:
+    out = {graph.edges[i].from_node for i in graph.up_adj.get(nid, [])}
+    out |= {graph.edges[i].to_node for i in graph.down_adj.get(nid, [])}
+    out.discard(nid)
+    return out
+
+
+def dangling_ends(graph: StreamGraph, geoms: dict, drop: set[str], tol: float = TOUCH_M):
+    """[(surviving piece, [dropped pieces its end touches])] — every end of a SURVIVING stream line that
+    touches a dropped piece and no surviving line. It is an end the prune made: before it the water went
+    on there. A real source or mouth touches no dropped piece and is never listed.
+
+    "No surviving line" is asked of the piece's graph neighbours AND the dropped pieces' neighbours, so a
+    sibling channel leaving the same junction counts as meeting it even with no edge between the two."""
+    out = []
+    cands = set()
+    for d in drop:
+        cands |= _nbrs(graph, d)
+    for n in sorted(cands - drop):                   # DETERMINISM
+        node = graph.nodes.get(n)
+        g = geoms.get(n)
+        if node is None or node.kind != NodeKind.stream or g is None or g.is_empty:
+            continue
+        near = _nbrs(graph, n)
+        for e in _ends(g):
+            hit = sorted(d for d in near & drop
+                         if geoms.get(d) is not None and geoms[d].distance(e) < tol)
+            if not hit:
+                continue
+            # the water must have gone ON through this end: in from a dropped piece, or out to one with
+            # no other way down. A piece's head at a distributary that leaves it is not that.
+            into = {graph.edges[i].from_node for i in graph.up_adj.get(n, [])}
+            outs = {graph.edges[i].to_node for i in graph.down_adj.get(n, [])}
+            if not (any(d in into for d in hit) or (outs and outs <= drop)):
+                continue
+            around = set(near)
+            for d in hit:
+                around |= _nbrs(graph, d)
+            around -= drop
+            around.discard(n)
+            if any(geoms.get(v) is not None and not geoms[v].is_empty and geoms[v].distance(e) < tol
+                   for v in around):
+                continue
+            out.append((n, hit))
+    return out
+
+
+def close_dangling_ends(graph: StreamGraph, geoms: dict | None, drop: set[str],
+                        tol: float = TOUCH_M) -> set[str]:
+    """The dropped pieces to put back so that no surviving line ends where the water goes on.
+
+    For each `dangling_ends` end, the SHORTEST run of dropped pieces (by length) from the ones it touches
+    to a piece that meets the surviving network anywhere but the dangling piece itself: a stub is joined
+    back to the river it left, a creek is carried on to where its channel rejoins. Restored pieces are
+    the river's own braid — its watershed code, its inherited name — so they join the river's item and
+    its rules. Repeats until nothing dangles, since a restored piece can itself end on a dropped one.
+    Without geometry there are no ends to judge and nothing is restored."""
+    if not geoms:
+        return set()
+    restored: set[str] = set()
+    for _round in range(50):
+        live = drop - restored
+        new: set[str] = set()
+        for n, start in dangling_ends(graph, geoms, live, tol):
+            if any(s in new for s in start):
+                continue                              # this round already reconnects it
+            dist = {s: graph.nodes[s].length_m or 0.0 for s in start}
+            prev: dict[str, str | None] = {s: None for s in start}
+            pq = [(dist[s], s) for s in start]
+            heapq.heapify(pq)
+            done: set[str] = set()
+            hit = None
+            while pq and len(done) < _CLOSE_CAP:
+                d, u = heapq.heappop(pq)
+                if u in done:
+                    continue
+                done.add(u)
+                nb = _nbrs(graph, u)
+                if any(v != n and v not in live and v in graph.nodes for v in nb):
+                    hit = u
+                    break
+                for v in sorted(nb & live):
+                    nd = d + (graph.nodes[v].length_m or 0.0)
+                    if v not in dist or nd < dist[v]:
+                        dist[v], prev[v] = nd, u
+                        heapq.heappush(pq, (nd, v))
+            while hit is not None:
+                new.add(hit)
+                hit = prev[hit]
+        if not new:
+            break
+        restored |= new
+    return restored
+
+
 def prune_mainstem_loops(graph: StreamGraph, geoms: dict | None = None,
                          protected_blks: set[str] | None = None,
                          reconnect_tributaries: bool = False,
@@ -291,6 +402,7 @@ def prune_mainstem_loops(graph: StreamGraph, geoms: dict | None = None,
                          max_shift_m: float = 5000.0,
                          kept_out: list | None = None,
                          fwa_main: frozenset[str] | set[str] | None = None,
+                         closed: dict | None = None,
                          ) -> tuple[StreamGraph, int, set[str]]:
     """Reduce each braid nest to the channels that carry something. Returns (graph, n_removed, fids).
 
@@ -300,7 +412,9 @@ def prune_mainstem_loops(graph: StreamGraph, geoms: dict | None = None,
 
     Everything that pointed at a removed channel is re-homed onto a surviving one, with its route
     measure recomputed on the new blue line. A re-home that would move a confluence further than
-    `max_shift_m` is refused and the channel kept instead. ``moved`` collects
+    `max_shift_m` is refused and the channel kept instead. Pieces a surviving line would otherwise end
+    on are kept too (`close_dangling_ends`); ``closed`` (a dict) gets ``dangling_before`` / ``restored`` /
+    ``dangling_after``. ``moved`` collects
     ``(source, old target, new target, metres moved)``; ``kept_out`` collects
     ``(nest size, kept, demands already satisfied elsewhere)`` for reporting.
 
@@ -325,6 +439,20 @@ def prune_mainstem_loops(graph: StreamGraph, geoms: dict | None = None,
             targets[nid] = sorted(keep) + sorted(exits)
         if kept_out is not None:
             kept_out.append((len(comp), len(keep), spare))
+    if not drop:
+        return graph, 0, set()
+
+    # NO LINE MAY END WHERE THE WATER GOES ON (owner 2026-10-28, FIX "complete"). Dropping part of a nest
+    # can leave a surviving line ending on a dropped one: a kept channel's stub above the creek it carries,
+    # or a creek whose receiving channel went (its edge is re-homed, its line still stops on a gravel bar).
+    # The pieces that close each such end are put back — see `close_dangling_ends`. BEFORE the re-homing,
+    # so a restored piece's own flow into a still-dropped one is re-homed like any other inflow.
+    if closed is not None:
+        closed["dangling_before"] = len(dangling_ends(graph, geoms, drop)) if geoms else 0
+    restored = close_dangling_ends(graph, geoms, drop)
+    drop -= restored
+    if closed is not None:
+        closed["restored"] = sorted(restored)
     if not drop:
         return graph, 0, set()
 
@@ -355,6 +483,8 @@ def prune_mainstem_loops(graph: StreamGraph, geoms: dict | None = None,
             continue
         rehomed[i] = (exit_node, m)
     rehomed = {i: v for i, v in rehomed.items() if graph.edges[i].to_node in drop}
+    if closed is not None:
+        closed["dangling_after"] = len(dangling_ends(graph, geoms, drop)) if geoms else 0
     if not drop:
         return graph, 0, set()
 
