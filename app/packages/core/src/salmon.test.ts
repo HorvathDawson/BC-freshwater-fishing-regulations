@@ -4,7 +4,9 @@
  * words — whole strings (AGENTS 33).
  */
 import { describe, expect, it } from "vitest";
-import { decodeSalmon, decodeSalmonHead, salmonCard, salmonDayIndex, salmonDayProfiles, salmonLabel, salmonLegendSource, SalmonError } from "./salmon";
+import { decodeSalmon, decodeSalmonHead, salmonCard, salmonChainStatus, salmonDayIndex, salmonDayProfiles, salmonLabel, salmonLegendSource,
+         SALMON_WORDS, SalmonError, salmonStatusFromSpecies, salmonStripOf, salmonTimelineKey } from "./salmon";
+import { salmonGlance } from "./glance";
 
 const HANDLES = "147b20dce7d8576c";
 const JUL20 = new Date(2026, 6, 20), SEP15 = new Date(2026, 8, 15);
@@ -151,5 +153,94 @@ describe("the Salmon card", () => {
     expect(c.unmapped.map((u) => [u.label, u.tag, u.block.rows.map((r) => [r.label, r.statusLabel])])).toEqual([
       ["Kispiox River — above the resort signs", "Location not yet mapped",
        [["Chinook · sockeye · pink · chum", "Closed"], ["Coho", "Release only"]]]]);
+  });
+});
+
+// ── (T227, owner 2026-10-28) the salmon year bar, a section's timeline key, species notes, the region-wide closure ──────
+describe("(T227) the salmon year at the top of the Keep tab", () => {
+  it("the bar's day is the pipeline's map status, read from the species — every chain, every day", () => {
+    const f = facts();
+    for (let c = 0; c < f.chains; c++)
+      for (let day = 0; day < 366; day++) expect([c, day, salmonStatusFromSpecies(f, c, day)]).toEqual([c, day, salmonChainStatus(f, c, day)]);
+  });
+
+  it("every place mapped: ONE bar for the page, no label; a day no rule opens is closed", () => {
+    const c = salmonCard(facts(), { sids: [101], item: null }, JUL20);
+    expect(c.year).toEqual({ partial: false, bars: [{ label: null, unmapped: false, today: "open", todayWord: "open",
+      runs: [{ status: "closed", days: 195 }, { status: "open", days: 40 }, { status: "closed", days: 130 }] }] });
+  });
+
+  it("a page across places that differ: still one bar, `varies` on the days they differ", () => {
+    const c = salmonCard(facts(), { sids: [101, 200], item: null }, SEP15);
+    expect(c.year.bars.length).toBe(1);
+    expect([c.year.bars[0]!.today, c.year.bars[0]!.todayWord]).toEqual(["varies", "differs along this part"]);
+    const s = salmonStripOf(c, null)!;
+    expect([s.status, s.word, s.legend.map((l) => l.label)]).toEqual(["varies", "Varies", ["differs along this part", "✕ closed"]]);
+  });
+
+  it("PARTIAL COVERAGE: one bar per DFO place, each in DFO's words, the undrawn one marked; the day reads check DFO", () => {
+    const c = salmonCard(facts(), { sids: [101], item: "gnis:4674" }, SEP15);
+    expect(c.year.bars.map((b) => [b.label, b.unmapped, b.today])).toEqual([
+      ["Kispiox River", false, "closed"], ["Kispiox River — above the resort signs", true, "release"]]);
+    const s = salmonStripOf(c, { runs: [{ bits: 0 }], line: [{ kind: "status", text: "Open" }, { kind: "when", text: "on Sep 15" }] })!;
+    expect([s.title, s.status, s.word, s.when, s.partial, s.generalTitle])
+      .toEqual(["Salmon (DFO)", "check", "Check DFO", "on Sep 15", "Salmon rules on parts of this water aren't mapped yet — check DFO", "Game fish (B.C. rules)"]);
+  });
+
+  it("no salmon here (DFO lists nothing): no bar — never an all-closed salmon bar; the glance row is a plain 'closed'", () => {
+    const c = salmonCard(facts(), { sids: [7], item: "gnis:1" }, JUL20);
+    expect([c.year.bars, salmonStripOf(c, null), c.closedOnly]).toEqual([[], null, true]);
+    expect(salmonGlance(c)).toEqual({ thumb: "CO", name: SALMON_WORDS.title, value: "closed", tone: "closed", fold: false });
+    expect(salmonCard(facts(), { sids: [101], item: null }, JUL20).closedOnly).toBe(false);
+  });
+
+  it("salmon closed all year beside a provincial bar closed all year: no second bar (the two say the same)", () => {
+    const card = { headlineStatus: "closed", year: { partial: false,
+      bars: [{ label: null, unmapped: false, today: "closed", todayWord: "closed", runs: [{ status: "closed", days: 365 }] }] } } as never;
+    expect(salmonStripOf(card, { runs: [{ bits: 1 }], line: [] })).toBeNull();
+    expect(salmonStripOf(card, { runs: [{ bits: 1 }, { bits: 0 }], line: [] })?.word).toBe("Closed");
+  });
+
+  it("a section's salmon timeline key: equal on one chain, different across chains", () => {
+    const f = facts();
+    expect([salmonTimelineKey(f, 100) === salmonTimelineKey(f, 104), salmonTimelineKey(f, 100) === salmonTimelineKey(f, 200),
+            salmonTimelineKey(f, 7) === salmonTimelineKey(f, 8)]).toEqual([true, false, true]);
+  });
+});
+
+describe("(T227) region notes about a species sit with that species", () => {
+  const n = (id: string, k: string, t: string, extra: object = {}) => ({ id, k, t, ...extra });
+  const withNotes = (): ReturnType<typeof facts> => {
+    const f = facts();
+    return { ...f, payload: { ...f.payload, regions: { ...f.payload.regions, "6": { ...f.payload.regions["6"]!, notes: [
+      n("6:daylight:a", "daylight", "Daylight only."),
+      n("6:min_size:b", "min_size", "All retained coho must measure 25 cm or more.", { sp: ["CO"], cm: 25 }),
+      n("6:annual:c", "annual", "The annual coho limit is 10.", { sp: ["CO"], n: 10 }),
+      n("6:adult:d", "adult", "An \"adult chinook\" is over 50 cm.", { sp: ["CH"], cm: 50 }),
+    ] } } } } as never;
+  };
+  it("an open coho row carries its annual note (its size is the sizes line); a closed chinook's note stays in the block", () => {
+    const c = salmonCard(withNotes(), { sids: [101], item: null }, JUL20);
+    const coho = c.rows.find((r) => r.species.includes("CO"))!;
+    expect([coho.sizes, coho.speciesNotes]).toEqual(["Sizes (DFO): coho 25 cm or more to keep", ["The annual coho limit is 10."]]);
+    expect(c.regionRules).toEqual([{ label: "Region 6 Skeena", notes: ["Daylight only.", "An \"adult chinook\" is over 50 cm."] }]);
+  });
+});
+
+describe("(T227, owner 2026-10-28) a region-wide closure is the answer", () => {
+  const P4 = { ...PAYLOAD,
+    regions: { ...PAYLOAD.regions, "4": { name: "Kootenays", asof: "2026-08-01", url: "https://example/region4",
+      notes: [{ id: "4:closed:a", k: "closed", t: "There is no fishing for salmon in Region 4 - Kootenays until further notice." }] } },
+    verdicts: [...PAYLOAD.verdicts, { s: "check", t: "Non-retention (as printed: Apr 1 until further notice)" }],
+    chains: [...PAYLOAD.chains,
+      { r: ["4"], w: "All Region 4 waters", l: ["4:region:section"], sp: [[0, 7], [0, 7], [0, 7], [0, 7], [0, 7]], g: [0, -1], m: [0, 4] }] };
+  const f4 = () => decodeSalmon(encode(P4), HANDLES, [...SHARDS, shard("4", [[300, 2, 3]])]);
+  it("only the region's own rows and its header closes salmon: one closed row in the header's words, no bar, no Details", () => {
+    const c = salmonCard(f4(), { sids: [300], item: "gnis:14097" }, JUL20);
+    expect([c.allClosed, c.headlineStatus, c.partial, c.closedOnly, c.year.bars, c.regionRules])
+      .toEqual([true, "closed", null, true, [], []]);
+    expect(c.rows.map((r) => [r.label, r.status, r.notes])).toEqual([
+      ["Salmon", "closed", ["There is no fishing for salmon in Region 4 - Kootenays until further notice."]]]);
+    expect(salmonGlance(c).fold).toBe(false);
   });
 });

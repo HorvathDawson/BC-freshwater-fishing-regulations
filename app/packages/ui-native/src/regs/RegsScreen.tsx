@@ -19,7 +19,7 @@
  */
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { AccessibilityInfo, Animated, Platform, ScrollView, Text, View } from "react-native";
-import { creditsFor, parseSheetKey, tabScrollY, WORDS, type AccessNotice, type GlanceRowVM, type RegsPage, type SheetKey, type Tab } from "@app/core";
+import { creditsFor, parseSheetKey, tabScrollY, WORDS, type AccessNotice, type GlanceRowVM, type RegsPage, type SalmonStripVM, type SheetKey, type Tab } from "@app/core";
 import { AccessNoticeBlock } from "./AccessNoticeBlock";
 import { Credits } from "../Credits";
 import { FreshDot } from "../menu/Fresh";
@@ -83,6 +83,8 @@ export interface RegsScreenProps {
    * card drawn when it is opened, not above the Keep tab. Absent: the page as it was (the cards in full).
    */
   glance?: { salmon: GlanceRowVM | null } | null;
+  /** (T227) DFO's salmon year, drawn under the provincial year bar at the top of the Keep tab (`@app/core` `salmonStripOf`) */
+  salmonStrip?: SalmonStripVM | null;
   /**
    * (T45) how much room there is (@app/ui `useLayoutClass`, handed down by the water screen; this screen never reads the
    * window). "phone" (the default): the page as it always was. "tablet": the page and its pin bar held to the reading
@@ -115,7 +117,7 @@ export interface RegsScreenProps {
 
 export function RegsScreen({ page, palette, images, adipose, actions, onDate, onPart,
                              gear, methods, licence, footer, salmon, store: injected, layout = "phone", start = null, onStarted,
-                             lapsed = null, access = null, onAccessMap, glance = null }: RegsScreenProps) {
+                             lapsed = null, access = null, onAccessMap, glance = null, salmonStrip = null }: RegsScreenProps) {
   const store = useMemo(() => injected ?? createPinStore(), [injected]);
   const scroll = useRef<ScrollView>(null);
   const content = useRef<View>(null);
@@ -196,7 +198,7 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
       {!glance && (typeof salmon === "function" ? salmon({ actions: keepActions, images }) : salmon)}
       <AnchorContext.Provider value={sink}>
         <StickyContext.Provider value={sticky}>
-          <KeepTab keep={page.keep} dateLabel={page.header.date} palette={palette} actions={keepActions} images={images}
+          <KeepTab keep={page.keep} dateLabel={page.header.date} palette={palette} actions={keepActions} images={images} salmonStrip={salmonStrip}
                    glance={glance ? { salmon: glance.salmon && salmon
                      ? { row: glance.salmon, card: () => (typeof salmon === "function" ? salmon({ actions: keepActions, images }) : salmon) }
                      : null } : null} />

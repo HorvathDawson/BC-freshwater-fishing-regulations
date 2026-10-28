@@ -5,7 +5,7 @@
  */
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import type { KeepVM, RegsPage, SheetKey } from "@app/core";
+import { SALMON_WORDS, type KeepVM, type RegsPage, type SheetKey } from "@app/core";
 import { KeepTab } from "./KeepTab";
 import { LIGHT } from "../theme";
 import type { KeepActions } from "./LineText";
@@ -79,5 +79,52 @@ describe("<KeepTab> over the frozen pages", () => {
     fireEvent.click(screen.getByText("Kokanee"));
     fireEvent.click(screen.getByText("See every regulation line ›"));
     expect([books, sheets]).toEqual([[23], ["other:o0", "src:r0"]]);
+  });
+});
+
+describe("(T227, owner 2026-10-28) the salmon bar at the top, and the glance rows", () => {
+  const STRIP = { title: "Salmon (DFO)", status: "release", word: "Release only", when: "today", partial: null, more: null,
+    generalTitle: "Game fish (B.C. rules)", legend: [{ status: "release", label: "release only" }, { status: "closed", label: "✕ closed" }],
+    bars: [{ label: null, unmapped: false, today: "release", todayWord: "release only",
+             runs: [{ status: "release", days: 300 }, { status: "closed", days: 65 }] }] } as const;
+  const actions: KeepActions = { onSheet() {}, onDay() {}, onTab() {}, onBook() {} };
+
+  it("drawn right under the provincial bar, the two named; none without salmon (the bar unnamed)", () => {
+    const keep = keepOf(vedder1010);
+    const r = render(<KeepTab keep={keep} dateLabel="Oct 10" palette={LIGHT} actions={actions} salmonStrip={STRIP as never} />);
+    const ids = [...r.container.querySelectorAll("[data-testid='keep-strip'],[data-testid='salmon-strip'],[data-testid='keep-group']")]
+      .map((e) => e.getAttribute("data-testid"));
+    expect(ids).toEqual(["keep-strip", "salmon-strip", "keep-group"]);
+    expect([screen.getByTestId("keep-strip-title").textContent, screen.getByTestId("salmon-strip-title").textContent])
+      .toEqual(["Game fish (B.C. rules)", "Salmon (DFO)"]);
+    expect(screen.getByTestId("salmon-strip-st:release").textContent).toBe("Release only");
+    cleanup();
+    render(<KeepTab keep={keep} dateLabel="Oct 10" palette={LIGHT} actions={actions} />);
+    expect([screen.queryByTestId("salmon-strip"), screen.queryByTestId("keep-strip-title")]).toEqual([null, null]);
+  });
+
+  it("a place-named bar says its place, 'not on the map yet' when undrawn, and its own day", () => {
+    const strip = { ...STRIP, status: "check", word: "Check DFO", partial: "Salmon rules on parts of this water aren't mapped yet — check DFO",
+      bars: [{ ...STRIP.bars[0], label: "Cowichan River — from the white triangle sign to the tidal boundary.", unmapped: true,
+               today: "closed", todayWord: "closed" }] };
+    render(<KeepTab keep={keepOf(vedder1010)} dateLabel="Oct 10" palette={LIGHT} actions={actions} salmonStrip={strip as never} />);
+    expect(screen.getByTestId("salmon-strip-place").textContent)
+      .toBe("Cowichan River — from the white triangle sign to the tidal boundary. · not on the map yet · closed");
+    expect(screen.getByTestId("salmon-strip-partial")).toBeTruthy();
+  });
+
+  it("the WHOLE glance row opens its card; a row with nothing more is plain (no Details, not a button)", () => {
+    const keep = keepOf(vedder1010);
+    render(<KeepTab keep={keep} dateLabel="Oct 10" palette={LIGHT} actions={actions}
+                    glance={{ salmon: { row: { thumb: "CO", name: SALMON_WORDS.title, value: null, tone: "keep" }, card: () => <span>salmon card</span> } }} />);
+    const row = screen.getByTestId("glance:salmon");
+    fireEvent.click(row.querySelector("[role=button]")!.firstChild as Element);   // the picture, not the Details button
+    expect(screen.getByTestId("glance-body:salmon").textContent).toBe("salmon card");
+    cleanup();
+    render(<KeepTab keep={keep} dateLabel="Oct 10" palette={LIGHT} actions={actions}
+                    glance={{ salmon: { row: { thumb: "CO", name: SALMON_WORDS.title, value: "closed", tone: "closed", fold: false }, card: () => <span>x</span> } }} />);
+    const plain = screen.getByTestId("glance:salmon");
+    expect([plain.querySelector("[role=button]"), plain.querySelector("[data-testid=glance-toggle]"), plain.textContent])
+      .toEqual([null, null, "Salmonclosed"]);
   });
 });

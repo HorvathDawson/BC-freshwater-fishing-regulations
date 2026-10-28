@@ -4,6 +4,8 @@
  * each opening, in place, to its full card. This file words those two kinds of row; the component draws them beside the
  * Other fish rows it already has. (Owner 2026-10-28) a folded row says NO count — "5 a day" misread as the whole group's
  * answer — and a status word only where it is true for every row of the card ("closed", "check DFO"); else none.
+ * (T227, owner 2026-10-28) A card that is one closed-all-year statement (Region 4's "no fishing for salmon … until
+ * further notice") is a plain "closed" row with no Details: there is nothing more to see.
  */
 import type { GroupVM, TreeNodeVM } from "./regs/model";
 import { SALMON_WORDS, type SalmonCardVM } from "./salmon";
@@ -24,6 +26,8 @@ export interface GlanceRowVM {
   readonly name: string;
   readonly value: string | null;
   readonly tone: "keep" | "release" | "closed" | "nolimit";
+  /** (T227) false: nothing more to see — a plain row, no "Details" (a water whose salmon are one closed-all-year line) */
+  readonly fold?: boolean;
 }
 
 /** The first picture a group's tree shows — a rainbow trout where the group has one (the picture anglers know it by). */
@@ -49,6 +53,7 @@ export function groupGlance(g: GroupVM): GlanceRowVM {
  * card — the water's and any undrawn DFO place's — has that status; else none.
  */
 export function salmonGlance(card: SalmonCardVM): GlanceRowVM {
+  if (card.closedOnly) return { thumb: "CO", name: card.title, value: SALMON_WORDS.status.closed.toLowerCase(), tone: "closed", fold: false };
   const all = [...card.rows, ...card.unmapped.flatMap((u) => u.block.rows)].map((r) => r.status);
   const s = all.length && all.every((x) => x === all[0]) ? all[0]! : null;
   if (s === null || s === "varies") return { thumb: "CO", name: card.title, value: null, tone: "keep" };

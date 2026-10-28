@@ -190,18 +190,34 @@ export interface GlanceFold { readonly key: string; readonly row: GlanceRowVM; r
 /**
  * (T221, owner 2026-10-28) A FOLDED ROW: drawn as an Other fish row — picture, name, a status word only where the whole
  * card has it (no count) — but its end is a "Details" button with the set's expand mark (not the sheet's ›), and a press opens its full
- * card in place under it (pressed again, "Hide", folds it).
+ * card in place under it (pressed again, "Hide", folds it). (T227) The whole row is the press, the button its visible mark.
  */
 function FoldRow({ f, palette, images }: { f: GlanceFold; palette: Palette; images?: FishImages }) {
   const [open, setOpen] = useState(false);
   const tone = f.row.tone === "release" ? palette.restricted : f.row.tone === "closed" ? palette.closed : palette.ink;
+  // (T227) nothing more to see: a plain row, its word and no "Details"
+  if (f.row.fold === false) return (
+    <View testID={`glance:${f.key}`} style={{ paddingHorizontal: GUTTER }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 10, minHeight: 44, paddingVertical: 9, borderTopWidth: 1,
+                     borderTopColor: palette.line }}>
+        <Thumb code={f.row.thumb} images={images} palette={palette} />
+        <Text style={[TYPE.regsBodySemi, { color: palette.ink, flex: 1 }]}>{f.row.name}</Text>
+        {f.row.value && <Text testID={`st:${f.row.tone}`} style={[TYPE.regsBodyBold, { color: tone }]}>{f.row.value}</Text>}
+      </View>
+    </View>
+  );
   return (
     <View testID={`glance:${f.key}`}>
       <View style={{ paddingHorizontal: GUTTER }}>
         <RegsPress accessibilityRole="button" aria-expanded={open} accessibilityLabel={GLANCE_WORDS.a11y(f.row.name, open)}
                    onPress={() => setOpen(!open)} box={ROW}
-                   style={{ flexDirection: "row", alignItems: "center", gap: 10, minHeight: 44, paddingVertical: 9, borderTopWidth: 1,
-                            borderTopColor: palette.line }}>
+                   // (T227, owner 2026-10-28) the WHOLE row opens and folds it (Enter / Space too, role button): it shows it
+                   // pressed and, on the web, under the pointer or the keyboard's focus
+                   style={(st) => {
+                     const lit = st.pressed || !!(st as { hovered?: boolean }).hovered || !!(st as { focused?: boolean }).focused;
+                     return { flexDirection: "row", alignItems: "center", gap: 10, minHeight: 44, paddingVertical: 9, borderTopWidth: 1,
+                              borderTopColor: palette.line, backgroundColor: lit ? palette.wash : "transparent" };
+                   }}>
           <Thumb code={f.row.thumb} images={images} palette={palette} />
           <Text style={[TYPE.regsBodySemi, { color: palette.ink, flex: 1 }]}>{f.row.name}</Text>
           {f.row.value && <Text testID={`st:${f.row.tone}`} style={[TYPE.regsBodyBold, { color: tone }]}>{f.row.value}</Text>}

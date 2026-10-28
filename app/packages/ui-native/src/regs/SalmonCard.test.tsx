@@ -149,6 +149,16 @@ describe("(owner 2026-10-28) the region header and the provincial gear on the ca
     expect(screen.getByTestId("salmon-gear-provincial").textContent).toBe("B.C. rules, also for salmon: Bait ban: no bait of any kind.");
   });
 
+  it("(T227) a region note about the coho sits on the coho row, not in the region block", () => {
+    const f: SalmonFacts = { ...WITH_HEADER, payload: { ...WITH_HEADER.payload, regions: { "6": { ...WITH_HEADER.payload.regions["6"]!,
+      notes: [...WITH_HEADER.payload.regions["6"]!.notes!, n("6:annual:d", "annual", "The annual coho limit is 10.", { sp: ["CO"], n: 10 })] } } } };
+    render(<SalmonCard card={salmonCard(f, { sids: [101], item: "gnis:9" }, JUL20)} palette={LIGHT} />);
+    const coho = screen.getAllByTestId("salmon-card-block-row").find((r) => r.textContent!.startsWith("Coho"))!;
+    expect(within(coho).getByTestId("salmon-card-block-species-note").textContent).toBe("The annual coho limit is 10.");
+    expect(screen.getByTestId("salmon-region-rules").textContent).not.toContain("annual coho");
+    expect(screen.getByTestId("salmon-region-rules").textContent).not.toContain("25 cm");
+  });
+
   it("another water in the region: the region block only; a closed water: no gear line", () => {
     render(<SalmonCard card={salmonCard(WITH_HEADER, { sids: [7], item: "gnis:1", gear: ["bait"] }, JUL20)} palette={LIGHT} />);
     expect(screen.queryByTestId("salmon-region-rules")).toBeNull();                // unlisted: no DFO region

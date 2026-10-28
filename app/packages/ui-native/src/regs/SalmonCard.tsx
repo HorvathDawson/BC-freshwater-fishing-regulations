@@ -6,7 +6,8 @@
  * TABLE (T221), each row tagged with its place and "Location not yet mapped". A water with DFO places not drawn yet leads with the partial-coverage line and DFO's page
  * (owner 2026-10-28). Then (owner 2026-10-28) the provincial bait ban / fly only that day (it applies to salmon too), the
  * header notes naming this water, and the page's DFO regions' header rules in a compact "Region rules (DFO)" block; an
- * open row carries the header's sizes. No logic and no words of its own: everything is core `salmonCard`'s.
+ * open row carries the header's sizes, and (T227) any row that may be fished carries the region notes about its species
+ * (DFO's words: what an "adult chinook" is …), which the region block then leaves out. No logic and no words of its own: everything is core `salmonCard`'s.
  */
 import { Image, Linking, Text, View } from "react-native";
 import { FISH, SALMON_WORDS, WORDS, type SalmonCardVM, type SalmonRowVM } from "@app/core";
@@ -82,6 +83,9 @@ function Row({ r, allClosed, first, place, palette, testID, actions, images }: {
       )}
       {r.notes.map((n) => <Text key={n} style={{ ...TYPE.meta, color: palette.sub, marginTop: 2 }}>{n}</Text>)}
       {r.sizes && <Text testID={`${testID}-sizes`} style={{ ...TYPE.meta, color: palette.ink, marginTop: 2 }}>{r.sizes}</Text>}
+      {(r.speciesNotes ?? []).map((n) => (
+        <Text key={`sn:${n}`} testID={`${testID}-species-note`} style={{ ...TYPE.meta, color: palette.ink, marginTop: 2 }}>{n}</Text>
+      ))}
       <Looks species={r.species} palette={palette} actions={actions} images={images} />
     </View>
   );

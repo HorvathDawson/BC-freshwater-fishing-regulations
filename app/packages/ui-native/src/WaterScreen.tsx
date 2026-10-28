@@ -24,7 +24,7 @@
  */
 import { useContext, useMemo, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
-import { dayRange, regsLapsedNote, salmonGlance, WATER_BACK, WATER_SCREEN_WORDS, WORDS, type RegsTarget } from "@app/core";
+import { dayRange, regsLapsedNote, salmonGlance, salmonStripOf, WATER_BACK, WATER_SCREEN_WORDS, WORDS, type RegsTarget } from "@app/core";
 import type { ItemId, WaterSource, SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { mapDayOf, regsDay, useAccessNotice, useAnglerProfile, useDownstreamWater, useLayoutClass, useRegsPage, useRegsStore,
@@ -166,6 +166,8 @@ export function WaterScreen({ source, item, palette, onBack,
                   access={access.value ?? null}
                   salmon={salmon.value ? ({ actions, images }) => <SalmonCard card={salmon.value!} palette={palette} actions={actions} images={images} /> : undefined}
                   glance={glance ? { salmon: salmon.value ? salmonGlance(salmon.value) : null } : null}
+                  // (T227) DFO's salmon year under the provincial bar, at the top (none where DFO has no salmon rules here)
+                  salmonStrip={salmon.value ? salmonStripOf(salmon.value, regs.keep.strip) : null}
                   onAccessMap={views?.views.includes("map") ? () => views.onView("map") : undefined}
                   actions={{
                     onSheet: () => {},                                   // RegsScreen opens the sheet itself (T37 SheetHost)
