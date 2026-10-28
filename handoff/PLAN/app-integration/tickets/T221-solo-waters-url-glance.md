@@ -1,6 +1,6 @@
 # T221 — Solo waters open on their regulations, the URL follows the water, one salmon table, the at-a-glance fish table
 
-Status: IN PROGRESS — lane on redesign/stream-sections (main checkout).
+Status: DONE — 73625e35. Item 5 (at-a-glance table) is a try: owner to keep or revert (one `glance` prop in WaterModeHost).
 
 Source: owner feedback 2026-10-28 on the web app (Dala River).
 
