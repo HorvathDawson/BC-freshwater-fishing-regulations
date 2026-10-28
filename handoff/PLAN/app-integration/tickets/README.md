@@ -94,7 +94,7 @@ use that as the sole source of future work."
 | T47 | status colours you can tell apart | PARTIAL | daf61b67, 5473776d, d6a5a51c, 056d6cc5, e6754333 | boundaries under water, warm dot hue, sub-20 pairs → T83 (palette D closed) |
 | T48 | search in the top bar | DONE | d1b5680a, f733ec5e, 81000acf, 349968b0, 3f8c277f | — (keyboard → T69) |
 | T49 | map's day: calendar icon + date sheet | DONE | 02570d07, 1fc9be2e, 9db57864 | — |
-| T50 | Android emulator parity + system bars | OPEN | 7da6deff, 294dd4d5 (ticket), T74 follow-ups ee5d259f | marks/PDF/insets fixed (safe-area-context, intent-launcher); landscape + back table open |
+| T50 | Android emulator parity + system bars | OPEN | 7da6deff, 294dd4d5 (ticket), T74 follow-ups ee5d259f, e8225cd0 | marks/PDF/insets fixed (safe-area-context, intent-launcher); landscape + back table open |
 | T51 | spot similarity forecast ("Like your visit?") | DONE | fa7235c0, 2f5cdc70, a6fd848d, aba28187 | — |
 | T52 | Conditions "Expected change" | DONE | 8ad715d6, 1089d4a2, be32f926, 9a050ec1, 7b47a6ab, ee1234e0 | live after the feed republish |
 | T53 | unnamed stream shows no regulations | DONE | 74c1decd, 79c74252, 46f3d2f1, 9ef5ea75, 1925ecdc | — (real-data sweep is T57) |
