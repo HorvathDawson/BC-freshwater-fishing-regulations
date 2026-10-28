@@ -260,7 +260,7 @@
         "says": null,
         "size": {
          "rule": true,
-         "text": "must be 60 cm (24 in) or less, or 90 cm (35 in) or longer; release any other size"
+         "text": "release any between 60 cm (24 in) and 90 cm (35 in)"
         },
         "species": [
          "LT"
@@ -2144,7 +2144,7 @@
         ],
         "size": {
          "rule": true,
-         "text": "must be 36 cm (14 in) or less, or 44 cm (17 in) or longer; release any other size"
+         "text": "release any between 36 cm (14 in) and 44 cm (17 in)"
         },
         "species": [
          "GR"
@@ -2429,7 +2429,7 @@
         ],
         "size": {
          "rule": true,
-         "text": "must be 70 cm (28 in) or less, or 100 cm (39 in) or longer; release any other size"
+         "text": "release any between 70 cm (28 in) and 100 cm (39 in)"
         },
         "species": [
          "NP"

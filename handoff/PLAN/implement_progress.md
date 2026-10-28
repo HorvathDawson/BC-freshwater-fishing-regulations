@@ -3,7 +3,18 @@
 Restart here. Update this file after EVERY step: what is done, what is running, and the exact next action.
 Logs from timing runs live in the session scratchpad, which a reboot wipes. The numbers that matter are copied here.
 
-## CURRENT STATE (2026-10-28 — T220 braid channels close)
+## CURRENT STATE (2026-10-28 — release r-a871447c48ba live)
+
+LIVE RELEASE: r-a871447c48ba (data/release/LATEST; promoted 2026-10-28, built in 2815b1b5's lane). It carries: Q87 (Beattie
+Lake inside Region 7B, 7-57), Q140, Q62/Q63 (size words: "Release any lake trout between 60 cm (24 in) and 90 cm (35 in)",
+"must be ... release any shorter", never "Keep only"), T209 kW, T159 (8 gauges). Post-release re-cuts committed (taps,
+regs-release dev fixture r-e44d3d200d64, golden slices). Owner shots: app-integration/owner-1028-shots/. Open: 20 regs
+parity tests (sheets/grouplines/keep/plainrow/tree) compare the app against a golden still carrying the pre-Q62/Q63
+wording ("Keep only ...", "or less, or 90 cm or longer"); the prototype golden needs the new words before they pass.
+
+(Earlier state, kept below.)
+
+### Previous: T220 braid channels close
 
 LIVE: r-46be3c135e68, tiles db853e9556df81a6.16b3906b04bf (atlas promoted). T220 (4c90fe68, 64c28a2b): the braid prune
 restores the pieces that close each dangling channel end (flow-directed; 1,041 -> 97, the rest FWA channels with no

@@ -118,11 +118,6 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   Q28 iOS timing · Q27 sign-off walk.
 
 ## Things only you can run or provide
-- **Promote release r-a67545574492 (owner answers 2026-10-28: Q87 Beattie inside, Q62/Q63 size words):** built from the
-  live bundle into `data/generated/owner1028/stage/release/` (card gate 0, vintage OK); NOT in data/release, LATEST
-  untouched (staging it there was refused to the agent). Approve, then: move the folder into `data/release/`, point
-  `data/release/LATEST` at it, and re-cut taps (`app/design/regs-v11/port/taps.py`), hydrate, `pnpm -C app regs-fixture`
-  and the harness/goldenSlices (`UPDATE_REGS_FIXTURES=1`) — or tell an agent "promote r-a67545574492".
 - **Parser runs** (`run_parse.sh`, dispatch): human-only; any re-parse is yours to start.
 - **R2 upload** of a new release and of the gauge feed, with your credentials:
   `python -m pipeline.deliver.release.publish --release data/release/$(cat data/release/LATEST) --yes` (records
