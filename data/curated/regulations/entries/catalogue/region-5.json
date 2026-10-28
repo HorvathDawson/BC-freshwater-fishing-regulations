@@ -27,7 +27,8 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "max_power_kw": 7.5
     }
    ]
   },
@@ -143,7 +144,8 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "max_power_kw": 7.5
     }
    ]
   },
@@ -323,7 +325,8 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "max_power_kw": 7.5
     }
    ]
   },
@@ -1877,7 +1880,8 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "max_power_kw": 7.5
     }
    ]
   },
@@ -5409,7 +5413,8 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "max_power_kw": 7.5
     }
    ]
   },
@@ -5562,7 +5567,8 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "max_power_kw": 7.5
     }
    ]
   },
@@ -6497,7 +6503,8 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "max_power_kw": 7.5
     }
    ]
   },
@@ -6816,7 +6823,8 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "max_power_kw": 7.5
     },
     {
      "rule_id": "higgins_lake.r2",
@@ -7369,7 +7377,8 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "max_power_kw": 7.5
     },
     {
      "rule_id": "irish_lake.r2",
@@ -7480,7 +7489,8 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "max_power_kw": 7.5
     }
    ]
   },
@@ -8219,7 +8229,8 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "max_power_kw": 7.5
     }
    ]
   },
@@ -8976,7 +8987,8 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "max_power_kw": 7.5
     }
    ]
   },
@@ -9583,7 +9595,8 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "max_power_kw": 7.5
     }
    ]
   },
@@ -10766,7 +10779,8 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "max_power_kw": 7.5
     }
    ]
   },
@@ -10940,7 +10954,8 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "max_power_kw": 7.5
     },
     {
      "rule_id": "skulow_lake.r2",
@@ -12040,7 +12055,8 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "max_power_kw": 7.5
     }
    ]
   },
@@ -12177,7 +12193,8 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "max_power_kw": 7.5
     }
    ]
   },
@@ -12589,7 +12606,8 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "max_power_kw": 7.5
     },
     {
      "rule_id": "west_road_blackwater_river.r6",
@@ -12856,7 +12874,8 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "max_power_kw": 7.5
     }
    ]
   },

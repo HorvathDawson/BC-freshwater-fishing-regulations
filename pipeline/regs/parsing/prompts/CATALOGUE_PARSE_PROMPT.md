@@ -568,7 +568,7 @@ its type requires:
   salmon bait ban and nothing else. That is **`when_targeting`**, not `species`. The difference:
   `species` would mean the ban protects those fish; `when_targeting` means the ban applies to that
   fishery. A salmon bait ban and a general bait ban coexist; neither displaces the other.
-* **`electric_only` already means max 7.5 kW.** Set `max_power_kw` only if the water differs.
+* **`electric_only` stores its cap.** Set `max_power_kw` to the kW the words print ("max 7.5 kW" → `7.5`).
 * **The MU column is a locator, never an extent.** *"Not all applicable M.U.'s may be listed."*
 * **An asterisk in the first column** means every rule reaches tributaries → `includes_tributaries`
   on the ENTRY. **An asterisk after one regulation** means only that one does → on the RULE.

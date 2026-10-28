@@ -176,8 +176,8 @@ class PropulsionLevel(str, Enum):
     none = "none"                    # no vessels at all
     unpowered = "unpowered"          # no powered boats
     #: "Electric motor only: you may use only battery-powered electric motors - MAX 7.5 kW."
-    #: The 7.5 is part of the definition, so the 161 rules repeating it are restating the page,
-    #: not setting a per-water cap. Store max_power_kw only when a water differs.
+    #: The 7.5 is part of the definition, but the rule STORES it (owner 2026-10-28, T209): every
+    #: electric_only rule carries the `max_power_kw` its words print (`pipeline.tools.electric_kw`).
     electric_only = "electric_only"
     power_capped = "power_capped"
 

@@ -57,3 +57,13 @@ only" or "8 km/h", and the 25 named-part rules are in the in-part caveat (`cavea
   lanes' work (map style diff + overzoom/tile-contract: tiles lane; PinBar vedder_1010: 9849276b; regs-text-scale
   vedder place cut: e5f0318a).
 - Still OPEN (owner, OWNER-TODO): `max_power_kw` on the 162 electric_only rules; until then the chip reads without 7.5 kW.
+
+## max_power_kw stored (owner 2026-10-28: "store the number")
+- `pipeline/tools/electric_kw.py` (one-off, not in run_parse.sh): sets `max_power_kw` on every `vessel_rule` at
+  `level: electric_only` from the kW its own words print; a rule printing none, or two, is listed, never defaulted.
+  Dry run: 162 would be set, all 7.5, 0 skipped, 0 already set. Applied: 162 rules in 8 region files; the diff is the
+  162 field lines only (verbatim untouched). The export label was already "Electric motor only (max 7.5 kW)" either way;
+  the app chip still reads "Electric motors only". The prompt now asks the parser to store it (a re-parse keeps it).
+- Tests: `pipeline/tests/test_electric_kw.py` (words → number, only empty electric_only rules, every catalogue rule
+  holds the number its words print). Picked up by the next deliver rebuild.
+- Still OPEN (owner): the 10 close-wording undrawn parts ("various locations", "swimming areas") in on-parts.md.

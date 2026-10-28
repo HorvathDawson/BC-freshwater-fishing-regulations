@@ -65,9 +65,8 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   Q91 "no gauge close enough" wording · Q123 how the Map view marks the selected part (built: dim the others; thin halo in
   `app-integration/T151-shots/alt-halo--*`) ·
   Q2 / Q139 / Q47 no-access and tidal notes on Conditions.
-- **Vessel rules (T209):** should the parser fill `max_power_kw` (7.5) on the 162 "Electric motor only - max 7.5 kW"
-  rules, or does the label stay word-only? Also the 10 close-wording undrawn parts kept ("various locations", "swimming
-  areas") in on-parts.md: whole water too, or leave as notes?
+- **Vessel rules (T209):** the 10 close-wording undrawn parts kept ("various locations", "swimming areas") in
+  on-parts.md: whole water too, or leave as notes? (`max_power_kw` 7.5 is stored on the 162 electric-only rules, 10-28.)
 - **Salmon (T164):** confirm the proposed DFO cut points in T164's DFO review mode (96 bridges/signs/dams).
 - **Batch 7:** Q146 re-centre the map when the parts list opens · Q147 steelhead lake wording on newly taken ponds ·
   Q148 dams → "lake" for the slough candidates · Q149 Bonaparte by hand.

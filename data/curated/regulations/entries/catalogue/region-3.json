@@ -583,7 +583,8 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "max_power_kw": 7.5
     }
    ]
   },
@@ -1307,7 +1308,8 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "max_power_kw": 7.5
     }
    ]
   },
@@ -1641,7 +1643,8 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "max_power_kw": 7.5
     }
    ]
   },
@@ -2776,7 +2779,8 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "max_power_kw": 7.5
     }
    ]
   },
@@ -2864,7 +2868,8 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "max_power_kw": 7.5
     }
    ]
   },
@@ -3043,7 +3048,8 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "max_power_kw": 7.5
     }
    ]
   },
@@ -3551,7 +3557,8 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "max_power_kw": 7.5
     }
    ]
   },
@@ -3727,7 +3734,8 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "max_power_kw": 7.5
     }
    ]
   },
@@ -3845,7 +3853,8 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "max_power_kw": 7.5
     }
    ]
   },
@@ -4554,7 +4563,8 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "max_power_kw": 7.5
     }
    ]
   },
@@ -4747,7 +4757,8 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "max_power_kw": 7.5
     }
    ]
   },
@@ -4842,7 +4853,8 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "max_power_kw": 7.5
     }
    ]
   },
@@ -5236,7 +5248,8 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "max_power_kw": 7.5
     }
    ]
   },
@@ -5285,7 +5298,8 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "max_power_kw": 7.5
     },
     {
      "rule_id": "logan_lake.r3",
@@ -5330,7 +5344,8 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "max_power_kw": 7.5
     }
    ]
   },
@@ -7767,7 +7782,8 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "max_power_kw": 7.5
     }
    ]
   },
@@ -7802,7 +7818,8 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "max_power_kw": 7.5
     }
    ]
   },
@@ -8158,7 +8175,8 @@
       "south of a line bearing true 244°/64° across Roche Lake's south arm"
      ],
      "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): The boundary is a compass-bearing line across the lake; this item has no cut-points, only op:whole is bindable",
-     "undrawn_part": "south of a line bearing true 244° from a point on the southern tip of the largest island in the south arm of Roche Lake to the westerly shoreline and conversely 64° to the easterly shoreline"
+     "undrawn_part": "south of a line bearing true 244° from a point on the southern tip of the largest island in the south arm of Roche Lake to the westerly shoreline and conversely 64° to the easterly shoreline",
+     "max_power_kw": 7.5
     }
    ]
   },
@@ -10489,7 +10507,8 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "max_power_kw": 7.5
     }
    ]
   },

@@ -1481,3 +1481,8 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
   tributary — then only 2 tributary-walk sections (both mouth slivers) lie wholly below a cut. Walking the
   freshwater-only graph instead would cut 29 rules off whole tributary trees. Kitimat r1 lies wholly below its proposed
   cut: review that candidate before accepting.
+
+## 2026-10-28 — electric-only kW (owner, T209)
+- "Store the number": every `vessel_rule` at `level: electric_only` carries `max_power_kw` = the kW its words print
+  (162 rules, all 7.5). Filled by the one-off `pipeline/tools/electric_kw.py` (not in run_parse.sh); the parse prompt
+  now asks for it. Words on the page unchanged. The 10 close-wording undrawn parts stay open.
