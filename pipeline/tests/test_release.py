@@ -325,7 +325,7 @@ def test_the_web_budget_prices_each_moment_and_fails_a_crossed_gate(tmp_path):
     size = (tmp_path / "manifest.json").stat().st_size
     got = B.web_moments(tmp_path)
     assert got["first_paint"] == (size + 1000 + 62, ["manifest", "paint", "mask"])
-    assert got["first_tap"][1][-1] == "regs-8" and got["first_tap"][0] == 4 * 1000 + 108
+    assert got["first_tap"][1][-2] == "regs-8" and got["first_tap"][0] == 5 * 1000 + 108
     assert not [p for p in B.gate_problems(tmp_path) if p.startswith("web ")]
     files["regs-3"]["gz"] = C.WEB_BUDGET["first_tap_unnamed"]["gate"]
     (tmp_path / "manifest.json").write_text(json.dumps(m))
@@ -341,7 +341,9 @@ def test_t182_every_file_has_its_own_gate_and_the_total_is_the_phones(tmp_path):
     from pipeline.deliver.release import contract as C
     assert set(C.FILES) <= set(B.SIZE_GATES), sorted(set(C.FILES) - set(B.SIZE_GATES))
     assert C.WEB_BUDGET["cold_load"]["files"] == C.WEB_BUDGET["first_paint"]["files"] + \
-        ["core", "regs-{region}", "salmon", "method"]
+        ["core", "regs-{region}", "method"]
+    # the web reads salmon on the Salmon press or with a page's Salmon card — never unasked
+    assert "salmon" not in C.WEB_BUDGET["cold_load"]["files"] and "salmon" in C.WEB_BUDGET["first_tap"]["files"]
     assert C.WEB_BUDGET["cold_load"]["gate"] < B.OFFLINE_GATE
 
     def problems(files):

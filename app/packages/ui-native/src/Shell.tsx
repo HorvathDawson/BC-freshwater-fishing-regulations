@@ -113,7 +113,7 @@ export function Shell(p: ShellProps) {
   const syncState = useSync({ feed, release: loader?.release ?? null, checkRelease, named: releaseNamed });
   const col = useMapColouring({ source, feed, status: p.status ?? null, pairing: p.pairing ?? null, tiles,
                                 layerStore: p.layerStore, attribution: p.attribution, mapTab: nav.mapTab, mapDay,
-                                epoch: syncState.epoch, settled });
+                                epoch: syncState.epoch, settled, salmonOnDemand: !!(p.prefetch && loader) });
   /*
    * YOUR SPOTS ON EVERY MAP (owner 2026-10-22: "toggle our spots on and off in the layer menu"), while the Layers
    * sheet's Spots switch is on (default on); (T131) each a mark that opens its spot, drawn by `SpotPin`, the selected

@@ -77,6 +77,30 @@ describe("useSalmonColour: fetched once, before the toggle, and the same feed wh
     expect(asked).toEqual(["salmonFacts"]);
   });
 
+  it("T182 (web, onDemand): offered at once, read only on the first Salmon press (loading meanwhile), then kept", async () => {
+    const asked: string[] = [];
+    const src = source(asked);
+    const { result, rerender } = renderHook((p: { wanted: boolean }) =>
+      useSalmonColour({ source: src, paired: true, statusOk: true, mapTab: true, day: DAY, onDemand: true,
+                        wanted: p.wanted }), { initialProps: { wanted: false } });
+    await new Promise((r) => setTimeout(r, 0));
+    expect([asked, result.current.offered, result.current.loading, result.current.feed]).toEqual([[], true, false, null]);
+    rerender({ wanted: true });
+    expect(result.current.loading).toBe(true);
+    await waitFor(() => expect(result.current.facts).toBe(FACTS));
+    expect(result.current.loading).toBe(false);
+    rerender({ wanted: false });
+    rerender({ wanted: true });
+    expect([asked, result.current.feed?.facts]).toEqual([["salmonFacts"], FACTS]);
+  });
+
+  it("T182 (web, onDemand): a release with no salmon file stops offering the toggle once read", async () => {
+    const src = { salmonFacts: async () => null } as unknown as WaterSource;
+    const { result } = renderHook(() => useSalmonColour({ source: src, paired: true, statusOk: true, mapTab: true,
+                                                          day: DAY, onDemand: true, wanted: true }));
+    await waitFor(() => expect(result.current.offered).toBe(false));
+  });
+
   it("leaving the Map tab keeps what was read: coming back asks nothing", async () => {
     const asked: string[] = [];
     const src = source(asked);

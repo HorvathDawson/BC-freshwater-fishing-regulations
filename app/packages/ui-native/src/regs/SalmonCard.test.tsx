@@ -107,6 +107,14 @@ describe("the Standard / Salmon switch (under the Layers button, T213)", () => {
     fireEvent.click(sal!);
     expect(set).toEqual(["salmon"]);
   });
+
+  it("T182 (web): while the first press's salmon file loads, Salmon is the choice and reads Loading…, busy", () => {
+    const col = { regsLayer: "salmon", salmonLoading: true, setRegsLayer: () => {} } as unknown as MapColouring;
+    render(<RegsLayerToggle col={col} palette={LIGHT} />);
+    const sal = screen.getByTestId("regs-paint-salmon");
+    expect([sal.getAttribute("aria-checked"), sal.getAttribute("aria-busy"), sal.textContent])
+      .toEqual(["true", "true", "Loading…"]);
+  });
 });
 
 describe("a species' picture opens its fish sheet", () => {

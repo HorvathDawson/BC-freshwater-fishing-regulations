@@ -30,11 +30,16 @@ export interface SalmonFeedVM {
  * today). The SAME object while the facts and the day are — the toggle is not an input. (T182) `settled` false holds the
  * read back: the web passes it until its idle prefetch has started (`useReleasePrefetch`'s `onIdle`), so the file is
  * fetched after first paint, never with it; a phone (its release installed) leaves it out.
+ *
+ * (T182, owner 2026-10-28) `onDemand` (the web): the file is read only once the reader first chooses Salmon (`wanted`) —
+ * not on every visit; `loading` is true while that first read is on its way, and `offered` (the toggle is drawn) holds
+ * from the start, until a read says the release ships no salmon. Without it (a phone) the file is read up front and
+ * `offered` waits for it. Once read it is kept either way, so later toggles are instant.
  */
 export function useSalmonColour(i: { source: WaterSource; paired: boolean; statusOk: boolean; mapTab: boolean;
-                                     day: Date | null; settled?: boolean }):
-    { feed: SalmonFeedVM | null; facts: SalmonFacts | null } {
-  const on = i.paired && i.statusOk && i.mapTab && i.settled !== false;
+                                     day: Date | null; settled?: boolean; onDemand?: boolean; wanted?: boolean }):
+    { feed: SalmonFeedVM | null; facts: SalmonFacts | null; loading: boolean; offered: boolean } {
+  const on = i.paired && i.statusOk && i.mapTab && i.settled !== false && (!i.onDemand || i.wanted === true);
   // asked once per source and kept: leaving the Map tab does not forget it (a return is instant too)
   const [asked, setAsked] = useState<string | null>(null);
   const key = `salmonfacts:${sourceKey(i.source)}`;
@@ -45,7 +50,10 @@ export function useSalmonColour(i: { source: WaterSource; paired: boolean; statu
   // eslint-disable-next-line react-hooks/exhaustive-deps -- the day's identity is its date, not the Date object
   const day = useMemo(() => i.day ?? new Date(), [dayKey]);
   const feed = useMemo(() => (f && i.paired ? { facts: f, day } : null), [f, day, i.paired]);
-  return { feed, facts: f };
+  const loading = asked === key && facts.state === "loading";
+  const offered = i.onDemand ? i.paired && facts.state !== "failed" && !(facts.state === "ready" && f === null)
+    : feed !== null;
+  return { feed, facts: f, loading, offered };
 }
 
 /** (T213) What the map is handed (`MapProps.method`): the release's bait ban / fly only profiles and the day — the

@@ -1018,10 +1018,9 @@ export const WEB_BUDGET: Record<string, { files: readonly string[]; gate: number
       "mask",
       "core",
       "regs-{region}",
-      "salmon",
       "method"
     ],
-    "gate": 3800000
+    "gate": 3350000
   },
   "first_search": {
     "files": [
@@ -1035,9 +1034,10 @@ export const WEB_BUDGET: Record<string, { files: readonly string[]; gate: number
       "water",
       "geo",
       "access",
-      "regs-{region}"
+      "regs-{region}",
+      "salmon"
     ],
-    "gate": 5200000
+    "gate": 5600000
   },
   "first_tap_unnamed": {
     "files": [
@@ -1046,9 +1046,10 @@ export const WEB_BUDGET: Record<string, { files: readonly string[]; gate: number
       "access",
       "regs-{region}",
       "regs-sid",
-      "down"
+      "down",
+      "salmon"
     ],
-    "gate": 6600000
+    "gate": 7000000
   },
   "conditions_open": {
     "files": [

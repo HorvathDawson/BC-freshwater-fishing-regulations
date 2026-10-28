@@ -88,21 +88,25 @@ describe("the pinned walk fetches what the budget prices", () => {
   it("T186: after first paint the walk prefetches the region in view's file (R2), and core + wasm on idle", () => {
     const prefetches = Object.entries(PIN).filter(([k]) => k.endsWith("| prefetch after paint") && !k.includes("save-data"));
     expect(prefetches.length).toBeGreaterThan(3);
-    // (T182) + the map's Salmon / Bait & fly files, read once the idle prefetch has started (never with first paint)
-    for (const [k, files] of prefetches) expect([k, files]).toEqual([k, ["core", "method", "regs-2", "salmon", "wasm"]]);
-    // Save-Data: the region's file (and the colourings, so the toggle stays instant); the tap fetches core + wasm itself
-    expect(PIN["tap named (save-data) | prefetch after paint"]).toEqual(["method", "regs-2", "salmon"]);
+    // (T182) + the Standard map's bait ban / fly only marks (method), read once the idle prefetch has started (never
+    // with first paint); salmon is read only on the first press of Salmon (owner 2026-10-28) — no walk presses it
+    for (const [k, files] of prefetches) expect([k, files]).toEqual([k, ["core", "method", "regs-2", "wasm"]]);
+    // Save-Data: the region's file and the marks; the tap fetches core + wasm itself
+    expect(PIN["tap named (save-data) | prefetch after paint"]).toEqual(["method", "regs-2"]);
+    expect(Object.entries(PIN).filter(([k, f]) => /\| (first paint|prefetch after paint)$/.test(k) && f.includes("salmon"))
+      .map(([k]) => k)).toEqual([]);
     // (T182) geo (the water map's boxes) is read only with an access note: this tap has none
     expect(PIN["tap named (save-data) | map tap: a named water (R2)"])
-      .toEqual(["access", "core", "wasm", "water"]);
+      .toEqual(["access", "core", "salmon", "wasm", "water"]);
   });
 
   it("T186: no file is fetched twice — a moment after the prefetch asks for none of what it took", () => {
     const twice = Object.keys(PIN).filter((k) => !/\| (first paint|prefetch after paint)$/.test(k) && PIN[prefetchOf(k)])
       .flatMap((k) => PIN[k]!.filter((f) => PIN[prefetchOf(k)]!.includes(f)).map((f) => `${k}: ${f}`));
     expect(twice).toEqual([]);
-    // the named tap in the prefetched region: no region file, no core, no engine — water and access are its own
-    expect(PIN["tap named | map tap: a named water (R2)"]).toEqual(["access", "water"]);
+    // the named tap in the prefetched region: no region file, no core, no engine — water and access are its own, and
+    // (T182) salmon for the page's Salmon card (the web no longer reads it up front)
+    expect(PIN["tap named | map tap: a named water (R2)"]).toEqual(["access", "salmon", "water"]);
   });
 
   it("before the first question nothing but the manifest, paint and the mask (and the feed's index) — every walk", () => {

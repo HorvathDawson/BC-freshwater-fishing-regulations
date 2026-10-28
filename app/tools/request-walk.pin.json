@@ -11,6 +11,7 @@
   "regs-3"
  ],
  "visit | search: open the water (R3)": [
+  "salmon",
   "water"
  ],
  "tap named | first paint": [
@@ -21,6 +22,7 @@
  ],
  "tap named | map tap: a named water (R2)": [
   "access",
+  "salmon",
   "water"
  ],
  "tap unnamed | first paint": [
@@ -33,6 +35,7 @@
   "access",
   "down",
   "regs-sid",
+  "salmon",
   "water"
  ],
  "conditions | first paint": [
@@ -157,21 +160,18 @@
   "core",
   "method",
   "regs-2",
-  "salmon",
   "wasm"
  ],
  "tap named | prefetch after paint": [
   "core",
   "method",
   "regs-2",
-  "salmon",
   "wasm"
  ],
  "tap unnamed | prefetch after paint": [
   "core",
   "method",
   "regs-2",
-  "salmon",
   "wasm"
  ],
  "tap named (save-data) | first paint": [
@@ -182,12 +182,12 @@
  ],
  "tap named (save-data) | prefetch after paint": [
   "method",
-  "regs-2",
-  "salmon"
+  "regs-2"
  ],
  "tap named (save-data) | map tap: a named water (R2)": [
   "access",
   "core",
+  "salmon",
   "wasm",
   "water"
  ],
@@ -195,14 +195,12 @@
   "core",
   "method",
   "regs-2",
-  "salmon",
   "wasm"
  ],
  "spot | prefetch after paint": [
   "core",
   "method",
   "regs-2",
-  "salmon",
   "wasm"
  ]
 }

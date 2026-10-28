@@ -166,23 +166,25 @@ WEB_BUDGET = {
     # the coloured map, Map tab (measured 1,024,306: manifest 5,888 + paint 955,855 + mask 62,563)
     "first_paint": {"files": ["manifest", "paint", "mask"], "gate": 1_150_000},
     # (T182) THE COLD LOAD — what every web visit downloads unasked: first paint, then the idle prefetch (T186: core and
-    # the region in view's file, priced as the largest region) and the map's Salmon / Bait & fly colourings (T211/T213:
-    # read once on the Map tab whatever the toggle says, so the toggle never fetches — owner 2026-10-27). The web's cap on
-    # the release is this, not the release total. Measured on r-bda3fea28838: 3,378,096 (manifest 7,578 + paint 956,798 +
-    # mask 62,563 + core 1,217,943 + regs-6 428,356 + salmon 396,302 + method 308,556); the sql.js wasm (659 kB) rides
-    # along and is not a release file.
-    "cold_load": {"files": ["manifest", "paint", "mask", "core", "regs-{region}", "salmon", "method"], "gate": 3_800_000},
+    # the region in view's file, priced as the largest region) and the Standard map's bait ban / fly only marks (`method`,
+    # T213). The web reads `salmon` only on the first press of Salmon (owner 2026-10-28), so it is not here. The web's cap
+    # on the release is this, not the release total. Measured on r-bda3fea28838: 2,981,794 (manifest 7,578 + paint
+    # 956,798 + mask 62,563 + core 1,217,943 + regs-6 428,356 + method 308,556); the sql.js wasm (659 kB) rides along
+    # and is not a release file.
+    "cold_load": {"files": ["manifest", "paint", "mask", "core", "regs-{region}", "method"], "gate": 3_350_000},
     # the first search: core alone — each result's "near X" is core's `item_near` (was core + near: 3,082,554 →
     # 1,217,684)
     "first_search": {"files": ["core"], "gate": 1_400_000},
     # the first tap on a NAMED water on the map, largest region: sid -> water (core), the page (water + the region
     # file), the water map's boxes (geo, read with the page's access note) and the tapped section's access note
     # (4,501,206 → 4,627,390, regs-6: core + 126 kB for item_near; part_geo moved, not added)
-    "first_tap": {"files": ["core", "water", "geo", "access", "regs-{region}"], "gate": 5_200_000},
+    # (T182, 2026-10-28) + salmon: the page's Salmon card (T211) reads it — the prefetch no longer hides it (5,053,227)
+    "first_tap": {"files": ["core", "water", "geo", "access", "regs-{region}", "salmon"], "gate": 5_600_000},
     # the first tap on an UNNAMED stream (most streams): + its key (regs-sid) and the flow pointers (down) the header's
     # "Tributary of ..." walks — no longer all of conditions (8,590,503 → 5,892,308, regs-6)
-    "first_tap_unnamed": {"files": ["core", "water", "access", "regs-{region}", "regs-sid", "down"],
-                          "gate": 6_600_000},
+    # (T182, 2026-10-28) + salmon for the page's Salmon card, as the named tap (6,282,328)
+    "first_tap_unnamed": {"files": ["core", "water", "access", "regs-{region}", "regs-sid", "down", "salmon"],
+                          "gate": 7_000_000},
     # the Conditions tab: gauges and the lake road (conditions' `lake_section`, so no core), the panels' areas; the
     # climatology (climate) waits for a chart (4,151,534 → 997,511)
     "conditions_open": {"files": ["flow-area", "conditions"], "gate": 1_150_000},

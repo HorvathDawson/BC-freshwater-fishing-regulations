@@ -28,7 +28,7 @@ export const HOME: Camera = { lon: -121.85, lat: 49.15, zoom: 10 };
 export const HANDOVER_Z = FIELD_HANDOVER_Z;
 
 export function useMapColouring({ source, feed, status, pairing, tiles, layerStore, attribution, mapTab, mapDay,
-                                  epoch, settled = true }: {
+                                  epoch, settled = true, salmonOnDemand = false }: {
   source: WaterSource; feed?: GaugeFeed; status: StatusSource | null; pairing: PairingInput | null;
   tiles: TileEndpoints; layerStore?: LayerStore; attribution?: readonly string[];
   /** Which browse map's questions are asked (a water's map view asks the Map tab's). */
@@ -39,6 +39,8 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
   epoch: number;
   /** (T182) False until the web's idle prefetch has started: the Salmon / Bait & fly files wait for it (a phone: true). */
   settled?: boolean;
+  /** (T182, owner 2026-10-28) The web: the salmon file is read on the first press of Salmon, not up front (a phone: false). */
+  salmonOnDemand?: boolean;
 }) {
   /**
    * The reaches the map currently has rendered — what the Conditions view asks the panel
@@ -149,9 +151,12 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
    * change and nothing else — no fetch, no relabel. Offered only under the Regulations colouring, once the file is in.
    */
   const [regsLayer, setRegsLayer] = useRegsLayer();
-  const salmon = useSalmonColour({ source, paired, statusOk, mapTab: mapTab === "map", day: mapDay, settled });
-  const salmonOffered = salmon.feed !== null && layers.effective.water === "regulations";
-  const regsShown: RegsLayer = regsLayer === "salmon" && salmonOffered ? "salmon" : "standard";
+  const salmon = useSalmonColour({ source, paired, statusOk, mapTab: mapTab === "map", day: mapDay, settled,
+                                   onDemand: salmonOnDemand, wanted: regsLayer === "salmon" });
+  const salmonOffered = salmon.offered && layers.effective.water === "regulations";
+  // (T182) on the web the first Salmon press reads the file: the map stays Standard (the toggle says Loading) until it is in
+  const regsShown: RegsLayer = regsLayer === "salmon" && salmonOffered && salmon.feed !== null ? "salmon" : "standard";
+  const salmonLoading = regsLayer === "salmon" && salmonOffered && salmon.loading;
   // (T213) BAIT BAN / FLY ONLY: marks on the Standard map — the release's `method` file handed over the same way; the
   // legend lists the marks while the Standard regulations are drawn
   const method = useMethodColour({ source, paired, statusOk, mapTab: mapTab === "map", day: mapDay, settled });
@@ -184,7 +189,8 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
   const methodFeed = mapTab === "map" ? method.feed : null;
   return { noteVisible, setZoomedOut, vintage, mixedPair, unproven, statusIndex, statusOk, lakeFeed, imagery, layers,
            flowParam, horizon, horizonChipsShown, setFlowParam, pickDay, onChooseLayer, mm, credits, cond, gauges,
-           mapStatus, salmonFeed, salmonOffered, methodFeed, gearMarked, regsLayer: regsShown,
+           mapStatus, salmonFeed, salmonOffered, salmonLoading, methodFeed, gearMarked,
+           regsLayer: salmonLoading ? "salmon" as RegsLayer : regsShown,
            setRegsLayer, salmonFacts: salmon.facts };
 }
 
