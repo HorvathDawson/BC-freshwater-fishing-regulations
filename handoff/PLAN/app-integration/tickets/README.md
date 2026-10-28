@@ -157,7 +157,7 @@ use that as the sole source of future work."
 | T110 | record years per quantity (Level-mode weights) | DONE | ad835645, 31ade2ee, 999b2659, c97c4a98 | delivered r-b518a2b507fa (paint/4) |
 | T111 | every cut reaches the walk (second extent's window dropped) | DONE | ea894c8a, 271b2747, b8c00620 | no binding moved; leftovers → T141; delivered r-941dcc149b17 |
 | T112 | one entry walker over catalogue extents | DONE | 9cde1fbe, f99cd705, 05a8b704 | no rebuild (review app restart) |
-| T113 | one name caser for tiles and bundle (O'rourke) | PARTIAL | — | all (tiles window + deliver) |
+| T113 | one name caser for tiles and bundle (O'rourke) | PARTIAL | 699c1392, 892db3d2 | shared caser confirmed; "2ND"/"JAJI7EM" fixed; tiles build + deliver still owed |
 | T114 | one search key for SQL filter and ranking (barriere) | DONE | ebc435e5, 6a9384d3, 21021abb, e7c4d3ca, 4ae97a60, 48f712e9, 2683568e | delivered r-e88ea8112b1a (core 1.09 MB) |
 | T115 | one home-filtered region membership (12 Fraser pairs) | DONE | e0461d31, 2699715d, 330c029e, b8c00620 | 12 Fraser + 3 steelhead-twin + 1 licensing pair removed; leftovers → T140; delivered r-941dcc149b17 |
 | T116 | one water noun: wetlands called "river" | DONE | 4cf77c7a, 86e6ad40, 0c533d4a, 91b2952e | — |
