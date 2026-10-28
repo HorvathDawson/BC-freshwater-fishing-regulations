@@ -206,9 +206,10 @@ function FoldRow({ f, palette, images }: { f: GlanceFold; palette: Palette; imag
           <Text style={[TYPE.regsBodySemi, { color: palette.ink, flex: 1 }]}>{f.row.name}</Text>
           {f.row.value && <Text testID={`st:${f.row.tone}`} style={[TYPE.regsBodyBold, { color: tone }]}>{f.row.value}</Text>}
           <View testID="glance-toggle" style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", minWidth: 84, gap: 4, paddingVertical: 4, paddingHorizontal: 8,
-                                                 borderWidth: 1, borderColor: palette.accent, borderRadius: palette.r.chip }}>
-            <Text style={[TYPE.metaBold, { color: palette.accent }]}>{open ? GLANCE_WORDS.hide : GLANCE_WORDS.show}</Text>
-            <Icon name={open ? "collapse" : "expand"} colour={palette.accent} size={14} />
+                                                 borderWidth: 1, borderColor: palette.ink, borderRadius: palette.r.box }}>
+            {/* (owner 2026-10-28) the app's outline button: ink words, an ink 1 px outline, no accent (Button's ghost) */}
+            <Text style={[TYPE.metaBold, { color: palette.ink }]}>{open ? GLANCE_WORDS.hide : GLANCE_WORDS.show}</Text>
+            <Icon name={open ? "collapse" : "expand"} colour={palette.ink} size={14} />
           </View>
         </RegsPress>
       </View>
