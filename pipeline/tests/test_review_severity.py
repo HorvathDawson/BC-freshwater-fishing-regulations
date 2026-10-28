@@ -51,10 +51,22 @@ def test_the_reasons_most_severe_first_each_once_with_its_rules():
         "medium: split to verify (x.r1)", "low: unquoted row text", "low: cuts its water"]}
 
 
+def test_lake_split_later_only_when_nothing_else_is_real():
+    part = {"code": "undrawn_part", "rule_id": "x.r1"}
+    assert S.entry_severity([part], lake=True)["level"] == "later"
+    assert S.entry_severity([part], lake=False)["level"] == "high"
+    assert S.entry_severity([part, {"code": "parser_uncertain", "rule_id": "x.r2"}], lake=True)["level"] == "high"
+    assert S.entry_severity([part], risks=["cut"], lake=True)["level"] == "later"
+    assert S.entry_severity([part, {"code": "split_to_verify"}], lake=True)["level"] == "high"  # keeps its priority
+    assert S.entry_severity([], lake=True)["level"] == "none"
+
+
 def test_the_order_and_the_filter():
     assert sorted(["none", "low", "high", "medium"], key=S.rank) == ["high", "medium", "low", "none"]
     assert [lv for lv in S.LEVELS if S.matches(lv, "issues")] == ["high", "medium"]
-    assert all(S.matches(lv, None) and S.matches(lv, "") for lv in S.LEVELS)
+    assert all(S.matches(lv, None) and S.matches(lv, "") for lv in S.LEVELS if lv != "later")
+    assert not S.matches("later", None) and S.matches("later", "all") and S.matches("later", "later")
+    assert not S.matches("later", "issues")
     assert [lv for lv in S.LEVELS if S.matches(lv, "low")] == ["low"]
 
 

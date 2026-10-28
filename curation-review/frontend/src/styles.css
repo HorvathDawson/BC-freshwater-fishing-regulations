@@ -997,6 +997,7 @@ code.cmd { font-size: 11px; padding: 1px 6px; border: 1px solid var(--warn-borde
 .sev-chip.sev-high { background:var(--danger-text); color:var(--surface, #fff); }
 .sev-chip.sev-medium { border:1px solid var(--danger-text); color:var(--danger-text); }
 .sev-chip.sev-low { color:var(--muted); font-weight:400; }
+.sev-chip.sev-later { color:var(--muted); font-weight:400; font-style:italic; opacity:.7; }
 
 /* T185: the Proposals view (read only; a decision is a mark) */
 .proposals { padding: 8px 12px; overflow: auto; height: 100vh; box-sizing: border-box; }

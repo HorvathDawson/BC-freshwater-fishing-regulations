@@ -922,7 +922,8 @@ def queue(region: str | None = None, status: str | None = None,
         n_a = _severe(found)
         rk = T.risks(e, binds=item is not None, run=run)
         n_unused = len(unused_curated_splits(e, item))
-        sev = S.entry_severity(found, risks=rk, unused_splits=n_unused)
+        sev = S.entry_severity(found, risks=rk, unused_splits=n_unused,
+                               lake=bool(item is not None and item.kind == "lake"))
         if not S.matches(sev["level"], severity):
             continue
         rows.append({

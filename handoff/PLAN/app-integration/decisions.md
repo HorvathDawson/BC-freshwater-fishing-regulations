@@ -1468,3 +1468,4 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
   (−0.63 MB for +1 m, sub-pixel), which the archive-wide low-zoom grid already applies; every larger saving (`-S 20/40`,
   dropping small parts at z11–12) moves the private-land edge by pixels or delays lots a zoom. Not done: brotli, the
   uncompressed native archive.
+- lake split later (owner 2026-10-28): a lake entry whose ONLY real issue is an undrawn part / unresolved lake area (needs a lake split) is severity `later`, below `none`, hidden from the review queue and its counts unless the severity filter is "all" or "lake split later" (`severity.py`, `LAKE_LATER_CODES`); with any other high/medium reason it keeps its normal priority. The app shows such rules by T208 ("Outlet area only (see map N)", else "Where: <part words>"); lake splits themselves stay deferred.

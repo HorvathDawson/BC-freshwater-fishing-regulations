@@ -21,7 +21,13 @@ from __future__ import annotations
 
 from typing import Iterable, Sequence
 
-LEVELS: tuple[str, ...] = ("high", "medium", "low", "none")
+LEVELS: tuple[str, ...] = ("high", "medium", "low", "none", "later")
+
+#: LAKE SPLIT LATER (owner 2026-10-28): a LAKE's undrawn part / unresolved place is a lake-area
+#: closure that needs a lake split, parse-wise fine, and lake splits are deferred (the regulations pane
+#: shows "Outlet area only (see map N)", T208). An entry whose ONLY real issue is that sits in the
+#: lowest level, "later" (below "none"), hidden by default. Any other high/medium reason keeps it.
+LAKE_LATER_CODES = frozenset({"undrawn_part", "unresolved_locator", "unresolved", "unplaced_pieces"})
 
 #: pre-check code -> (level, the short reason on the chip's hover). A code missing here is HIGH:
 #: a new check is a real issue until someone says otherwise.
@@ -51,9 +57,24 @@ UNUSED_SPLITS = ("high", "unused curated cut")
 
 
 def entry_severity(findings: Iterable[dict], *, risks: Sequence[str] = (),
-                   unused_splits: int = 0) -> dict:
+                   unused_splits: int = 0, lake: bool = False) -> dict:
     """{"level": one of `LEVELS`, "reasons": [str, ...]} — the reasons most severe first, each once
-    with its count ("parser-uncertain ×2: x.r1, x.r3")."""
+    with its count ("parser-uncertain ×2: x.r1, x.r3").
+
+    `lake`: the entry's water is a lake. Then findings in `LAKE_LATER_CODES` are set aside; when
+    that leaves nothing high or medium (and at least one was set aside) the level is "later"."""
+    findings = list(findings)
+    if lake:
+        deferred = [f for f in findings if f["code"] in LAKE_LATER_CODES]
+        if deferred:
+            rest = entry_severity([f for f in findings if f not in deferred], risks=risks,
+                                  unused_splits=unused_splits)
+            if rest["level"] in ("low", "none"):
+                n = len(deferred)
+                return {"level": "later", "reasons": [
+                    f"later: lake split{f' ×{n}' if n > 1 else ''} ("
+                    + ", ".join(sorted({str(f.get('rule_id') or '') for f in deferred} - {''})) + ")"]
+                    + rest["reasons"]}
     got: dict[tuple[str, str], list[str]] = {}
     for f in findings:
         lv, why = CODE_LEVEL.get(f["code"], ("high", f["code"]))
@@ -82,11 +103,13 @@ def rank(level: str) -> int:
 
 def matches(level: str, wanted: str | None) -> bool:
     """The queue's severity filter: a level, or `issues` (high and medium); None/"" is every entry."""
-    if not wanted:
+    if wanted == "all":
         return True
+    if not wanted:
+        return level != "later"          # lake split later is hidden unless asked for
     if wanted == "issues":
         return level in ("high", "medium")
     return level == wanted
 
 
-FILTERS: tuple[str, ...] = ("issues", *LEVELS)
+FILTERS: tuple[str, ...] = ("issues", *LEVELS, "all")

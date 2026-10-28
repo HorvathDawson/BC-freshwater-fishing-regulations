@@ -454,9 +454,9 @@ export interface QueueRow {
 }
 
 /** An entry's severity (`severity.LEVELS`), the queue's first order (owner 2026-10-26). */
-export type EntrySeverity = "high" | "medium" | "low" | "none";
+export type EntrySeverity = "high" | "medium" | "low" | "none" | "later";
 /** the queue's severity filter (`severity.FILTERS`): a level, or high + medium */
-export type SeverityFilter = EntrySeverity | "issues" | "";
+export type SeverityFilter = EntrySeverity | "issues" | "all" | "";
 
 export interface Boundary {
   id: string;

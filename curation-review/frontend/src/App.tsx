@@ -25,7 +25,7 @@ const inProposals = () => decodeURIComponent(window.location.hash.slice(1)) === 
  *  the map of each entry whose rules name it (T184), never as a target of its own. */
 const TIERS: Tier[] = ["P1", "Z", "P2", "P3", "P4", "sweep"];
 /** the entry severities (`severity.LEVELS`), the review order's first key (owner 2026-10-26) */
-const SEVERITIES: EntrySeverity[] = ["high", "medium", "low", "none"];
+const SEVERITIES: EntrySeverity[] = ["high", "medium", "low", "none", "later"];
 
 /* THE REVIEW SCREEN (T134, T184): the one queue on the left, the open entry on the right. It writes
    one thing, a reviewer's mark; there is no other mode (T185 retired the editors). The URL's hash is
@@ -258,9 +258,10 @@ export default function App() {
               <label>severity</label>
               <select value={severity} aria-label="severity" data-testid="severity-filter"
                 onChange={(e) => setSeverity(e.target.value as SeverityFilter)}>
-                <option value="">all</option>
+                <option value="">all (lake split later hidden)</option>
+                <option value="all">all + lake split later</option>
                 <option value="issues">high + medium (real issues)</option>
-                {SEVERITIES.map((s) => <option key={s} value={s}>{s}</option>)}
+                {SEVERITIES.map((s) => <option key={s} value={s}>{s === "later" ? "lake split later" : s}</option>)}
               </select>
             </div>
             <div>

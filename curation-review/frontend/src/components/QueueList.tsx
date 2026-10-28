@@ -147,8 +147,9 @@ const SEV_HEAD: Record<EntrySeverity, string> = {
   medium: "Medium — a cut or extent risk",
   low: "Low — facts and hints only",
   none: "Nothing found",
+  later: "Lake split later — only an undrawn lake part (owner 2026-10-28)",
 };
-const SEV_ORDER: string[] = ["high", "medium", "low", "none"];
+const SEV_ORDER: string[] = ["high", "medium", "low", "none", "later"];
 
 /** whether the rows run in `order` by `key` (the review order), so the headings are its */
 function isOrdered(rows: QueueRow[], key: (r: QueueRow) => string | undefined, order: string[]): boolean {
@@ -168,7 +169,7 @@ export function SeverityChip({ level, reasons }: { level: EntrySeverity; reasons
   return (
     <span className={`sev-chip sev-${level}`} data-testid="severity-chip"
       title={(reasons ?? []).join("\n") || level}>
-      {level}
+      {level === "later" ? "lake split later" : level}
     </span>
   );
 }
