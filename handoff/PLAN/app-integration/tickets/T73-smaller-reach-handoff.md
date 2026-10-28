@@ -1,6 +1,6 @@
 # T73 — Smaller reach hand-off (audit N14)
 
-Status: PARTIAL (e375cc61) — code + tests in (see Outcome); the full-run conversion and its numbers are the owner's heavy run.
+Status: DONE (e375cc61) — every reach run now writes the gz form; no conversion left (checked 2026-10-28).
 
 Source: `data/generated/reaches/full/rule_section.jsonl` is ~20 GB (20,100,603,190 B on 2026-10-22); the reach step
 writes plain JSONL (`atlas/reach/io.py`); full_twin doubles it (~95 GB with copies); the disk was 89% full (103 GiB free)
@@ -45,3 +45,7 @@ du -sh data/generated/reaches/*                                                 
 ```
 (`convert` prints rows, old/new bytes and seconds per run; the reach step's own time is unchanged in kind — measure it
 on the next rerun.) Then the ticket is DONE.
+
+DONE 2026-10-28: no convert needed — the reach reruns since e375cc61 (T56/T202/T220) wrote `rule_section.jsonl.gz`
+directly, and their binding diffs (old form → gz) showed no binding change. Disk: full 749 MB, full_next 751 MB,
+full_prev 731 MB (rule_section.jsonl.gz ≈ 508 MB each) vs ~20 GB for the old full rule_section.jsonl alone; 340 GiB free.

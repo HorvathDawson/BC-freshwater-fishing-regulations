@@ -117,7 +117,7 @@ use that as the sole source of future work."
 | T70 | cleanup wave 1, app side + stale worktrees + `pnpm clean` | DONE | 52ec4cb5, 799614a5, 4615ee0f, 1e8cbdb5, ac95e09f, a7947f99, de3cb79d, fd3f8c06, ef11d8e4, 17e4fe8f | merger steps done 2026-10-24 (clean + strict green); Q17 dead follow-branch → T63 |
 | T71 | one Map entry: drop the regs header's Map button | DONE | 4817a2e7, 40d6a47c | — |
 | T72 | release LATEST pointer + prune old releases | DONE | 0eb70144 | Q7 answered: 22 old releases pruned |
-| T73 | smaller reach hand-off (N14, disk) | PARTIAL | e375cc61 | owner: convert full + full_prev through heavy.sh, binding diff, record sizes (ticket) |
+| T73 | smaller reach hand-off (N14, disk) | DONE | e375cc61 | all runs gz: ~0.75 GB each vs ~20 GB; no convert needed |
 | T74 | native colouring engine + native map gaps | DONE | 740f37b8 | Android: per-tile event via the binding patch, one engine, hatches/pill via Images, expo-location; emulator 13 pans / 49 frames 0 grey; iOS → T217; lake modes wait on lake facts in a release |
 | T75 | basemap in the release manifest | PARTIAL | d4589cb5, 6f25c3c9 | manifest names `basemap-147bd82d051f` (274 MB) in the live LATEST r-c706f5eaa2a3 (verified 2026-10-27); left: offline native launch draws ground (phone, T77) |
 | T76 | own gauge across a continuation (Vedder) | DONE | ce29990c, 2470ef08, f648ab5c, 4fba2181, e5dfe217 | live in r-36fbc5326506 |
@@ -265,6 +265,7 @@ use that as the sole source of future work."
 | T218 | bathymetry: ship depth figures + contours for the 28 already-digitised lakes (OGL-BC layer) | OPEN | — | not yet (owner 2026-10-27); after T201/T158 |
 | T219 | bathymetry: trace contours from the open scanned charts for the top-fished lakes | OPEN | — | not yet (owner 2026-10-27); raster scans, georef works, depth labelling needs a review UI; ★ tier size |
 | T220 | braid channels close: no channel line ends where the water goes on (prune closure + one zoom per side-channel run) | DONE | 4c90fe68, 64c28a2b | owner 10-28 FIX complete; 1,041 -> 97 dangling ends, no existing binding moved; live r-46be3c135e68 |
+| T221 | solo waters open on regs (no Map), URL follows the water, one salmon table, plain size rule, at-a-glance fish table (try) | IN PROGRESS | — | owner 2026-10-28 web feedback (Dala River) |
 
 ## Order for open tickets
 
