@@ -261,7 +261,7 @@ use that as the sole source of future work."
 | T214 | app polish: quota sub-cap wording names its total, desktop no-swipe + Esc back, clearer part highlight, steady up/downstream buttons | DONE | 555e7ee9 33775c57 | items 1, 2, 4 (subcap lead + golden amendment, desktop no-swipe + Esc Back, reserved exit slot); item 3 part halo at full outline, others dim 0.25 (web light + dark) |
 | T215 | open the PDF on the page with the entry's section highlighted | DONE | 3e5ef46f 15d19068 7c513588 | full PDF + highlight annotation, web verified (Cowichan p.15); phone unverified; owner uploads the release to R2 |
 | T216 | better "How this was decided": interpretation, what overrode what, sources | DONE | 4e39f3fb | story.ts: layers base → water → exceptions, why + printed page per step; tests on Fraser two-region, R5 spring-closure lift, sub-cap, closed water |
-| T217 | iOS: the per-tile event and stretchable Images in the binding patch (T74 is Android only) | OPEN | — | with T88 (iOS build) |
+| T217 | iOS: the per-tile event and stretchable Images in the binding patch (T74 is Android only) | DONE | 41f15021 | simulator: 26 pans / 49 frames 0 grey; pill + hatches + At my location seen; first-view replay + pending states (iOS-only); pill content = stretch box on iOS |
 | T218 | bathymetry: ship depth figures + contours for the 28 already-digitised lakes (OGL-BC layer) | OPEN | — | not yet (owner 2026-10-27); after T201/T158 |
 | T219 | bathymetry: trace contours from the open scanned charts for the top-fished lakes | OPEN | — | not yet (owner 2026-10-27); raster scans, georef works, depth labelling needs a review UI; ★ tier size |
 

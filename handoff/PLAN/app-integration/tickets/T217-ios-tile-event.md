@@ -1,6 +1,6 @@
 # T217 — iOS: the per-tile event (and stretchable Images) in the MapLibre binding patch
 
-Status: DONE (2026-10-27) — commit in the README row.
+Status: DONE (2026-10-27) — 41f15021.
 
 Source: T74 (2026-10-27). The binding patch (`app/patches/@maplibre__maplibre-react-native@11.5.0.patch`, deps.md) is
 Android only: `MLRNVectorSource.kt` reports each requested tile's section ids (`TileIds.kt`, the `MLRNTileIds` device
