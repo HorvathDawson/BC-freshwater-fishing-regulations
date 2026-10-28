@@ -1520,3 +1520,19 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
   tree chip's), not "or shorter".
 - Ships with a deliver (answers + verdicts only, the bundle unchanged): release **r-a67545574492** built from the live
   bundle, card gate 0, vintage OK — NOT promoted (owner to approve; see OWNER-TODO).
+
+## 2026-10-28 — T228: no-access and salmon break a water's pieces; dormant gauges; trout includes char (owner 2026-10-28)
+- **No access is a hard break.** A section mostly inside no-access land (> 50 %, the app's fourth colour) never shares a
+  part with one outside, even when their rules agree (`part.no_access`). 34 waters gain a part, Coquitlam among them
+  (Lougheed Highway Bridge → Coquitlam Watershed boundary is now its own part). No rule binding moved.
+- **The map joins pieces only when the standard AND the salmon regulations match**, and the salmon side is LIVE.
+  The release cuts each part where the DFO salmon chain changes. The app joins two adjacent pieces of one part when
+  their sections read the same salmon year on the loader's salmon facts (live feed over the release). A feed change
+  re-groups the pieces with no new release (`@app/core` `mergeNav`).
+- **Matched but not used** (Whonnock Lake 08MH100, generalised). A discontinued station that does not transmit stays
+  matched in `data/curated/gauges/matches.json` but is attached to no water: no lake / section / panel / basin row,
+  nothing in Conditions (`liveness.dormant`). 1,618 of 2,081 matched stations are in this state. 148 lake gauges and
+  every all-dormant donor panel (124,794 sections) leave Conditions.
+- **"Trout" means trout AND char** in an entry that does not mention char separately (RULINGS C4). Beattie's "Trout
+  daily quota = 1" holds its bull trout and lake trout. The reader already does this everywhere: no water reads
+  differently.

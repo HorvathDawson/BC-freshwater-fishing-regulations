@@ -3,7 +3,15 @@
 Restart here. Update this file after EVERY step: what is done, what is running, and the exact next action.
 Logs from timing runs live in the session scratchpad, which a reboot wipes. The numbers that matter are copied here.
 
-## CURRENT STATE (2026-10-28 — release r-a871447c48ba live)
+## CURRENT STATE (2026-10-28 — release r-e01dc8f3719f live, T228)
+
+LIVE RELEASE: r-e01dc8f3719f (T228, a757756b; bundle-only deliver, no atlas or reach rerun, same tiles). Changes:
+part.no_access (34 waters gain a part, Coquitlam 4 parts), salmon-chain pieces in part_stretch/part_mark (876 stretch
+rows) merged live in the app (`mergeNav`), and dormant gauges detached (lake_gauge 179 -> 31, section_panel 248,800 ->
+124,006). Every section's rule set and licensing set are equal to r-a871447c48ba's. Owner owes sync.mjs + regs-fixture
+re-cuts (OWNER-TODO). `tsc -b` is red on packages/map/src/paint.ts (T226 gear-marks lane, 6db63d0e), not T228.
+
+## (earlier) CURRENT STATE (2026-10-28 — release r-a871447c48ba live)
 
 LIVE RELEASE: r-a871447c48ba (data/release/LATEST; promoted 2026-10-28, built in 2815b1b5's lane). It carries: Q87 (Beattie
 Lake inside Region 7B, 7-57), Q140, Q62/Q63 (size words: "Release any lake trout between 60 cm (24 in) and 90 cm (35 in)",
