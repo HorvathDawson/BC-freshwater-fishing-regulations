@@ -1,6 +1,6 @@
 # T211 — DFO salmon regulations in the app, and the DFO feed (plan + build)
 
-Status: DONE (parts 1, 2, 4) — 7dd3828c, afce6842, 28e7bfe9; part 3 (historic matching) moved to the DFO-locations lane (coordinator 2026-10-27); owner: the feed cron + R2 sync (OWNER-TODO)
+Status: DONE (parts 1, 2, 4) — 7dd3828c, afce6842, 28e7bfe9, 4b18a372; part 3 (historic matching) moved to the DFO-locations lane (coordinator 2026-10-27); owner: the feed cron + R2 sync (OWNER-TODO)
 
 Source: owner 2026-10-27.
 
