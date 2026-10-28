@@ -7586,6 +7586,37 @@
    },
    "trust": "auto"
   },
+  "08GB008": {
+   "station": "08GB008",
+   "station_name": "PAQ LAKE NEAR MADEIRA PARK",
+   "status": "matched",
+   "resolved_by": "name+radius",
+   "distance_m": 228.4,
+   "reason": null,
+   "lon": -124.02082824707033,
+   "lat": 49.61666870117188,
+   "wbk": [
+    "329197172"
+   ],
+   "wsc": [
+    "900-144157"
+   ],
+   "also": [],
+   "name": "Lily Lake",
+   "blk": "",
+   "matched_name": "paq lake",
+   "evidence": {
+    "name_agrees": true,
+    "name_is_exact": false,
+    "distance_m": 228.4,
+    "area_km2": 1.2899999618530271,
+    "mag": null,
+    "area_agrees": null,
+    "stated_kind": "Lake",
+    "kind_agrees": true
+   },
+   "trust": "auto"
+  },
   "08GB009": {
    "station": "08GB009",
    "station_name": "EARLE CREEK NEAR EGMONT",
@@ -9605,6 +9636,68 @@
    },
    "trust": "auto"
   },
+  "08HA050": {
+   "station": "08HA050",
+   "station_name": "STOWELL LAKE ON SALTSPRING ISLAND",
+   "status": "matched",
+   "resolved_by": "name+radius",
+   "distance_m": 208.6,
+   "reason": null,
+   "lon": -123.4472198486328,
+   "lat": 48.78055953979492,
+   "wbk": [
+    "329676342"
+   ],
+   "wsc": [
+    "925-303570-904095"
+   ],
+   "also": [],
+   "name": "Lake Stowell",
+   "blk": "",
+   "matched_name": "stowell lake",
+   "evidence": {
+    "name_agrees": true,
+    "name_is_exact": false,
+    "distance_m": 208.6,
+    "area_km2": 4.139999866485596,
+    "mag": null,
+    "area_agrees": null,
+    "stated_kind": "Lake",
+    "kind_agrees": true
+   },
+   "trust": "auto"
+  },
+  "08HA051": {
+   "station": "08HA051",
+   "station_name": "WESTON LAKE ON SALTSPRING ISLAND",
+   "status": "matched",
+   "resolved_by": "name+radius",
+   "distance_m": 106.9,
+   "reason": null,
+   "lon": -123.4277801513672,
+   "lat": 48.783329010009766,
+   "wbk": [
+    "328996530"
+   ],
+   "wsc": [
+    "925-303570-901886"
+   ],
+   "also": [],
+   "name": "Lake Weston",
+   "blk": "",
+   "matched_name": "weston lake",
+   "evidence": {
+    "name_agrees": true,
+    "name_is_exact": false,
+    "distance_m": 106.9,
+    "area_km2": 3.220000028610229,
+    "mag": null,
+    "area_agrees": null,
+    "stated_kind": "Lake",
+    "kind_agrees": true
+   },
+   "trust": "auto"
+  },
   "08HA052": {
    "station": "08HA052",
    "station_name": "KEMP LAKE NEAR SOOKE",
@@ -9745,6 +9838,37 @@
     "mag": 16,
     "area_agrees": true,
     "stated_kind": "River",
+    "kind_agrees": true
+   },
+   "trust": "auto"
+  },
+  "08HA057": {
+   "station": "08HA057",
+   "station_name": "MAXWELL LAKE ON SALTSPRING ISLAND",
+   "status": "matched",
+   "resolved_by": "name+radius",
+   "distance_m": 136.1,
+   "reason": null,
+   "lon": -123.5374984741211,
+   "lat": 48.82500076293945,
+   "wbk": [
+    "328996527"
+   ],
+   "wsc": [
+    "925-303570-193306"
+   ],
+   "also": [],
+   "name": "Lake Maxwell",
+   "blk": "",
+   "matched_name": "maxwell lake",
+   "evidence": {
+    "name_agrees": true,
+    "name_is_exact": false,
+    "distance_m": 136.1,
+    "area_km2": 2.299999952316284,
+    "mag": null,
+    "area_agrees": null,
+    "stated_kind": "Lake",
     "kind_agrees": true
    },
    "trust": "auto"
@@ -14704,6 +14828,37 @@
     "mag": 476,
     "area_agrees": true,
     "stated_kind": "River",
+    "kind_agrees": true
+   },
+   "trust": "auto"
+  },
+  "08JA027": {
+   "station": "08JA027",
+   "station_name": "NECHAKO RESERVOIR AT TAHTSA REACH",
+   "status": "matched",
+   "resolved_by": "name+radius",
+   "distance_m": 246.4,
+   "reason": null,
+   "lon": -127.1508331298828,
+   "lat": 53.6622200012207,
+   "wbk": [
+    "328994949"
+   ],
+   "wsc": [
+    "100-567134-865081"
+   ],
+   "also": [],
+   "name": "Tahtsa Reach",
+   "blk": "",
+   "matched_name": "nechako reservoir",
+   "evidence": {
+    "name_agrees": true,
+    "name_is_exact": false,
+    "distance_m": 246.4,
+    "area_km2": 14000.0,
+    "mag": null,
+    "area_agrees": null,
+    "stated_kind": "Lake",
     "kind_agrees": true
    },
    "trust": "auto"
@@ -35151,6 +35306,35 @@
    },
    "trust": "auto"
   },
+  "08MH080": {
+   "station": "08MH080",
+   "station_name": "LONZO CREEK NEAR ABBOTSFORD",
+   "status": "matched",
+   "resolved_by": "name+radius",
+   "distance_m": 3.6,
+   "reason": null,
+   "lon": -122.2619400024414,
+   "lat": 49.02917098999024,
+   "wbk": [],
+   "wsc": [
+    "100-064535-223850"
+   ],
+   "also": [],
+   "name": "Marshall Creek",
+   "blk": "356317779",
+   "matched_name": "lonzo creek",
+   "evidence": {
+    "name_agrees": true,
+    "name_is_exact": false,
+    "distance_m": 3.6,
+    "area_km2": 2.1700000762939453,
+    "mag": null,
+    "area_agrees": null,
+    "stated_kind": "River",
+    "kind_agrees": true
+   },
+   "trust": "auto"
+  },
   "08MH082": {
    "station": "08MH082",
    "station_name": "MCLENNAN CREEK NEAR MOUNT LEHMAN",
@@ -35549,6 +35733,37 @@
     "mag": 9,
     "area_agrees": true,
     "stated_kind": "River",
+    "kind_agrees": true
+   },
+   "trust": "auto"
+  },
+  "08MH100": {
+   "station": "08MH100",
+   "station_name": "WHONOCK LAKE NEAR WEBSTER CORNERS",
+   "status": "matched",
+   "resolved_by": "name+radius",
+   "distance_m": 86.1,
+   "reason": null,
+   "lon": -122.44805908203124,
+   "lat": 49.21667098999024,
+   "wbk": [
+    "329291838"
+   ],
+   "wsc": [
+    "100-044391-443376"
+   ],
+   "also": [],
+   "name": "Whonnock Lake",
+   "blk": "",
+   "matched_name": "whonock lake",
+   "evidence": {
+    "name_agrees": true,
+    "name_is_exact": false,
+    "distance_m": 86.1,
+    "area_km2": 1.7000000476837158,
+    "mag": null,
+    "area_agrees": null,
+    "stated_kind": "Lake",
     "kind_agrees": true
    },
    "trust": "auto"
