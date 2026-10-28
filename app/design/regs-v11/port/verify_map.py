@@ -25,6 +25,9 @@ from pipeline.deliver.store.release import province_store  # noqa: E402
 # OWNER RULING 2026-10-21 (a) (pipeline/docs/GOTCHAS.md): on the Kitimat the store's group tree differs from page v36's by
 # design (app/conformance/src/regs/exclusions.ts KITIMAT_RULED_IDS); their trees are not walked here, every other check runs.
 KITIMAT_RULED = {"x14p0_1010", "x14p1_1010", "x14p2_1010"}
+# T203 (owner 2026-10-28, ANSWERS-SPEC T203; exclusions.ts T203_SIZE_BOX_IDS): Region 6's shared 1 over 50 cm is one size tier
+# (the count tier it crosses split) where page v36 said it on each kind; their trees are not walked here either.
+KITIMAT_RULED |= set(["x17p0_1010", "x17p1_1010", "x17p2_1010", "x17p3_1010", "x17p4_1010", "x17p7_1010", "x19p0_1010", "x19p1_1010", "x19p2_1010", "x19p3_1010", "x19p4_1010", "x19p6_1010", "x19p7_1010"])
 # decisions D19 (a), AS BUILT (T80 item 3; app/conformance/src/regs/exclusions.ts D19_GROUPS): the store ships klmb_1010's
 # 10 rainbow trout as a one-kind GROUP, where the golden (page v36's legacy card path) draws a plain article, so the store has
 # exactly one group more than the golden there; asserted as exactly +1, and the extra group is not walked.
@@ -83,7 +86,7 @@ def main():
     for k, v in R.items():
         print(f"{k:13} {v} / {n}")
     print(f"{'tiers':13} {tiers[0]} / {tiers[1]}\n{'kinds':13} {kinds[0]} / {kinds[1]}")
-    print(f"{'(not walked)':13} {len(KITIMAT_RULED)} Kitimat-ruled states' trees (owner ruling 2026-10-21 (a))")
+    print(f"{'(not walked)':13} {len(KITIMAT_RULED)} ruled states' trees (Kitimat 2026-10-21 (a), T203 size box)")
     if bad:
         print("differ:", bad[:10]); sys.exit(1)
 

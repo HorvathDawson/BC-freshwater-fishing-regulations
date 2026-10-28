@@ -241,6 +241,7 @@ describe("T12 summary", () => {
       + " · ^bait\\.src\\.who$ not compared (never — the prototype's snapshot is global; the app's level is per part)");
     expect(summary("keep", 133, 134)).toBe("keep parity: 133/134 states equal" + GONE
       + " · ^groups\\.\\d+\\.(tree|worked|lines)$ not compared (never — a re-synced prototype on the ruled data removes it)"   // (T18/T19) the Kitimat ruling; T13 trout line compared
+      + " · ^groups\\.\\d+\\.(tree|lines)$ not compared (a re-synced prototype on the T203 tree)"   // (T203) Region 6's shared 1 over 50 cm as one size tier
       + " · ^plainRows\\.0$ not compared (never on this golden — D19 (a) shipped: a prototype re-synced to draw the row as a group)");   // (T21) the whole Keep tab; rows 32: Other fish stamps compared; T80: the app's group is D19_GROUPS
     const d19 = (k: string) => ` · ^(other:${k})$ not compared (D19 (a): the pipeline ships a group (headline) for these rows, or D19 (b) ports the legacy path)`;
     expect(summary("sheets", 134, 134)).toBe("sheets parity: 134/134 states equal" + GONE

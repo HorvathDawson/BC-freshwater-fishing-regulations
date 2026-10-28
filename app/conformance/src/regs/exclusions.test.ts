@@ -65,6 +65,7 @@ describe("EXCLUDE", () => {
         "sheets * ^rule:", `header ${NO_MAP_LABEL_IDS.length} ^place$`, `header ${GOLDEN_MAP_ACTION_IDS.length} ^action$`,
         `header ${GOLDEN_PARTS_ACTION_IDS.length} ^action$`, "header * ^place\\.shown$",
         "keep 3 ^groups\\.\\d+\\.(tree|worked|lines)$",
+        "keep 13 ^groups\\.\\d+\\.(tree|lines)$", "pins 13 ^anchors\\.\\d+\\.tiers$",   // (T203) Region 6's size box
         "pins 3 ^anchors\\.\\d+\\.tiers$", "sheets 1 ^src:x25p_1010\\|r2$", "methods 6 ^boats$", "keep 1 ^plainRows\\.0$", "gear 4 ^bait\\.src\\.who$",
         `methods ${SET_LINE_NOTE_IDS.length} ^ways\\.list\\.0\\.items\\.\\d+\\.note$`,
         "licence 1 -"]);

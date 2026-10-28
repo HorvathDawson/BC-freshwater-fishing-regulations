@@ -33,6 +33,11 @@ export const GOLDEN_PARTS_ACTION_IDS: readonly string[] = Object.entries(golden(
   .map(([id]) => id);
 /** The three Kitimat states the owner ruling 2026-10-21 (a) moves away from page v36 (card.parity.test.ts KITIMAT_RULED). */
 export const KITIMAT_RULED_IDS: readonly string[] = ["x14p0_1010", "x14p1_1010", "x14p2_1010"];
+/** (T203, owner 2026-10-28, the Dala River) the Region 6 states whose shared "1 over 50 cm" is now ONE size tier (the stream's
+ *  count tier split, a rainbow of 50 cm or less beside it) where page v36 said it on each kind. */
+export const T203_SIZE_BOX_IDS: readonly string[] = ["x17p0_1010", "x17p1_1010", "x17p2_1010", "x17p3_1010", "x17p4_1010", "x17p7_1010", "x19p0_1010", "x19p1_1010", "x19p2_1010", "x19p3_1010", "x19p4_1010", "x19p6_1010", "x19p7_1010"];
+const T203_REASON = "T203 (owner 2026-10-28, pipeline/deliver/answers/ANSWERS-SPEC.md T203): a size cap shared by several kinds is ONE size tier holding exactly them; the count tier it crosses is split (the rainbow of 50 cm or less leaves it and says the count on its line). Page v36 said Region 6's 1 over 50 cm on each kind, so the stored tree, its kind lines and the pin bar's tiers are not the golden's; never 'fix' the data to match the page";
+const T203_UNTIL = "a re-synced prototype on the T203 tree";
 
 /** (T206, oracles.ts LOIS_FOLD) why Lois Lake's Keep tab, pin bar and second-row source sheet are not page v36's. */
 const LOIS_REASON = "T206 ORACLE_RETIRED (overlapping-rules.md, owner 2026-10-26): lois_lake.r3 (hatchery rainbow trout, 6 a day) is retired, so hatchery rainbow trout answer to r4 and the card folds them into r4's steelhead row: the group is row r1, not page v36's r2 (oracles.ts LOIS_FOLD, loisRuled), and the app's r2 is the next row (Kokanee). The sheet must differ; the folded group's own source sheet (src:r1) has no golden";
@@ -256,6 +261,8 @@ export const EXCLUDE: readonly Exclusion[] = [
   { block: "keep", ids: KITIMAT_RULED_IDS, key: /^groups\.\d+\.(tree|worked|lines)$/,
     reason: "OWNER RULING 2026-10-21 (a) (pipeline/docs/GOTCHAS.md): on the Kitimat, r5's hatchery-steelhead quota does not lift Region 6's Nov 1–June 30 stream release, so the stored group tree (the river's own steelhead tier, the size box) and its worked over-50 cm line are not page v36's. tree.parity holds these trees to the STORE's TreeTier.says / TreeKind.says, tail.parity these worked lines to the store's group.worked; the group's drawn lines (which contain both) are not compared; never 'fix' the data to match the page",
     until: "never — a re-synced prototype on the ruled data removes it" },
+  { block: "keep", ids: T203_SIZE_BOX_IDS, key: /^groups\.\d+\.(tree|lines)$/, reason: T203_REASON, until: T203_UNTIL },
+  { block: "pins", ids: T203_SIZE_BOX_IDS, key: /^anchors\.\d+\.tiers$/, reason: T203_REASON, until: T203_UNTIL },
   { block: "pins", ids: KITIMAT_RULED_IDS, key: /^anchors\.\d+\.tiers$/,
     reason: "OWNER RULING 2026-10-21 (a): the Kitimat's stored size tier says 'Only 1 … over 50 cm — 2 if one is a hatchery steelhead' where page v36 dropped the tail, so TierVM.short (shortOf over the STORE's tier) carries '(2 if one is a hatchery steelhead)' and the app's bar is not the golden's on these states. The group line is compared; the golden-string replay (pins.parity B) still covers the geometry; never 'fix' the data to match the page",
     until: "never — a re-synced prototype on the ruled data removes it" },
