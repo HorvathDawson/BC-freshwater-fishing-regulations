@@ -25,7 +25,7 @@ import { useMemo, useRef, useState } from "react";
 import {
   crossLabel, crossDown, crossUp, exitLabel, groupBounds, mergeNav, itemNote, markA11y, markLabel, navSections, partAt, partBounds,
   partName, partOfSection, partRowAria, partWhere, stepsDown, stepsUp, WATER_MAP_WORDS, wholeAria, wholeLabel, type Bbox,
-  type NavCross, type SalmonFacts, type WaterGroup,
+  type NavCross, salmonTimelineKey, type WaterGroup,
 } from "@app/core";
 import type { ItemId, SectionId } from "@app/data";
 import { loadRawWaterGroup, type GroupStore, type RegsStore } from "@app/data/regs";
@@ -278,7 +278,7 @@ let nextId = 0;
 const idOf = (o: object): number => { let i = ids.get(o); if (i === undefined) ids.set(o, i = ++nextId); return i; };
 
 /** The group of `item`, read once per (store, item, salmon key). (T228) `salmonKey`: each section's salmon reading
- *  (`salmonKeyOf`, the live feed over the release) — pieces of a part join only where it reads them alike. */
+ *  (`@app/core` `salmonTimelineKey`, the live feed over the release) — pieces of a part join only where it reads them alike. */
 export function useWaterGroup(store: GroupStore | null, item: ItemId | null,
                               salmonKey: ((sid: number) => string) | null = null): Async<WaterGroup | null> {
   const key = `water-group:${store ? idOf(store) : ""}:${item ?? ""}`;
@@ -286,20 +286,6 @@ export function useWaterGroup(store: GroupStore | null, item: ItemId | null,
   // the salmon grouping is joined in memory: a feed change re-groups without a read (or a loading state)
   const g = useMemo(() => (raw.value ? mergeNav(raw.value, salmonKey) : null), [raw.value, salmonKey]);
   return raw.state === "ready" ? { state: "ready", value: g, error: null } : raw;
-}
-
-/**
- * (T228) A section's SALMON READING for the map's merging: equal for two sections exactly when DFO's year reads the same
- * on both (every species' verdicts, the gear lines, the map status). `facts` is the loader's (`withLiveSalmon`: the live
- * feed laid over the release), so a feed change re-groups the pieces with no new release. Null without salmon.
- * T227 owns the salmon words; this is only the comparison (`@app/core` `salmonTimelineKey` reads the same three).
- */
-function salmonKeyOf(facts: SalmonFacts | null): ((sid: number) => string) | null {
-  if (!facts) return null;
-  return (sid) => {
-    const c = facts.payload.chains[facts.chainOf(sid)];
-    return c ? JSON.stringify([c.sp, c.g, c.m]) : "";
-  };
 }
 
 /**
@@ -317,7 +303,9 @@ export function useSalmonKey(loader: Pick<ReleaseLoader, "salmon" | "regionsOf">
     const akeys = ord === null ? [] : [...new Set((await store.parts(ord)).map((p) => p.akey))]
       .filter((a): a is number => a !== null);
     const regions = [...new Set((await Promise.all(akeys.map((a) => loader.regionsOf(a)))).flat())];
-    return salmonKeyOf(await loader.salmon(regions.length ? regions : undefined));
+    const f = await loader.salmon(regions.length ? regions : undefined);
+    // the ONE salmon comparison (`@app/core` `salmonTimelineKey`: the regulations' content, live feed included)
+    return f ? (sid: number) => salmonTimelineKey(f, sid) : null;
   }, key, !!loader && !!store && !!item);
   return r.state === "ready" ? r.value : null;
 }

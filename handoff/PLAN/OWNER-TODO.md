@@ -28,7 +28,7 @@ with the default Claude uses until you answer). Newest first inside each section
   (Claude may not): the snapshot + golden carry the Q62/Q63 words (9517ff8e); sync should reproduce golden.json's text
   exactly; pin geometry may move where the longer words wrap (then re-pin harness.parity / exclusions and re-run
   `pnpm -C app exec vitest run conformance/src/regs`). (Whonnock 08MH100 and Beattie "Trout" answered 10-28: T228.)
-- **T228 re-cuts on release r-e01dc8f3719f (2026-10-28):** Claude cannot run `node app/design/regs-v11/port/sync.mjs`.
+- **T228 re-cuts on release r-c331a7a3c2cf (2026-10-28):** Claude cannot run `node app/design/regs-v11/port/sync.mjs`.
   Run it, then `pnpm -C app regs-fixture`, and commit what they write (taps, golden, hydrate, dev regs-release fixture).
   This release changes 34 waters' parts (no-access split, e.g. Coquitlam is now 4 parts). It adds salmon-chain pieces to
   `part_stretch` / `part_mark`, and drops 1,618 dormant gauges from Conditions (148 lake gauges among them). Look at

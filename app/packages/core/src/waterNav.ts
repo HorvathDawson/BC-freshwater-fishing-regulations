@@ -249,7 +249,6 @@ export function mergeNav(g: WaterGroup, salmonKey: ((sid: number) => string) | n
     const a = find(m.down), b = find(u);
     if (a !== b) root[Math.max(a, b)] = Math.min(a, b);
   }
-  if (root.every((r, i) => find(i) === i)) return g;
   const newIx = new Map<number, number>();
   const groups: number[][] = [];
   for (let i = 0; i < n; i += 1) {
@@ -282,8 +281,21 @@ export function mergeNav(g: WaterGroup, salmonKey: ((sid: number) => string) | n
     had.add(k);
     marks.push({ ...m, down, up });
   }
+  // a piece cut from its part by a salmon mark is named by its own ends — the mark below and above it, else the part's
+  // ("Mouth → white triangle boundary sign …"), never "stretch 1 of 2": in navigation it is simply two pieces with the
+  // named mark between them (owner 2026-10-28). A T204 stretch (no such mark) keeps its stretch words.
+  const same = (m: NavMark, u: number) => parts[m.down]!.item === parts[u]!.item && parts[m.down]!.partIx === parts[u]!.partIx;
+  const named = parts.map((p, i) => {
+    const below = marks.find((m) => m.up.includes(i) && same(m, i)), above = marks.find((m) => m.down === i && m.up.some((u) => same(m, u)));
+    if (!below && !above) return p;
+    const ends = p.short.split(" → ");
+    const from = below ? below.label ?? WATER_MAP_WORDS.salmonChange : ends[0]!;
+    const to = above ? above.label ?? WATER_MAP_WORDS.salmonChange : ends[ends.length - 1]!;
+    const { stretch: _s, stretches: _n, ...base } = p;
+    return { ...base, short: `${from} → ${to}` };
+  });
   const at = (c: NavCross | null) => (c ? { ...c, at: newIx.get(c.at)! } : null);
-  return { parts, marks, exit: g.exit, next: at(g.next), prev: at(g.prev) };
+  return { parts: named, marks, exit: g.exit, next: at(g.next), prev: at(g.prev) };
 }
 
 /** An item's lowest part (`rank` 0, else its first). */

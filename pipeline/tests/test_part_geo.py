@@ -325,3 +325,17 @@ def test_t228_an_unjoined_side_channel_stays_with_its_chains_stem_piece():
     got = by_chain(st, {1: 3, 2: 15, 9: 3}, {1: {2}, 2: {1}}, span)
     assert [(p["sids"], p["chain"]) for p in got] == [([1, 9], 3), ([2], 15)]
     assert by_chain(st, {1: 3, 2: 3, 9: 15}, {1: {2}, 2: {1}}, span)[1]["sids"] == [9]
+
+
+def test_t228_a_salmon_cut_is_named_by_its_split_else_the_dfo_place_at_its_edge():
+    """T228 follow-up (owner 2026-10-28): the cut between two pieces of one part carries the split's name (Cowichan's
+    Sandy Pool sign); with no named split, the narrowest DFO place one side has and the other not; else None."""
+    from pipeline.deliver.bundle.topology import DFO_EDGE, chain_label
+    span = {1: (0.0, 100.0, "mouth", "split:sp", 0, 0), 2: (100.0, 200.0, "split:sp", "source", 0, 0)}
+    dn, up = {"sids": [1], "chain": 1}, {"sids": [2], "chain": 2}
+    sign = {"name": "white triangle boundary sign located in Sandy Pool Regional Park"}
+    assert chain_label(dn, up, span, {"split:sp": sign}) == sign
+    places = ({"atnarko": "Atnarko River", "bella": "Bella Coola River — not including the Atnarko", "region": "Region 5B"},
+              [[], ["atnarko", "bella", "region"], ["atnarko", "region"]])
+    assert chain_label(dn, up, span, {}, places) == {"name": DFO_EDGE.format("Bella Coola River — not including the Atnarko")}
+    assert chain_label(dn, up, span, {}) is None

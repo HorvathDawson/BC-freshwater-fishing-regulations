@@ -39,6 +39,20 @@ AND char.
 - T227 (salmon lane) adds `salmonTimelineKey` to core with the same three fields. Once it is committed,
   `salmonKeyOf` should call it.
 
+## 1c. Follow-up (owner 2026-10-28): the key is the regulations, and every cut is named
+- One helper: `@app/core` `salmonTimelineKey` (T227's, extended). It compares each species' verdict AND its rule
+  content (DFO's rule lines and notices: limits, sizes, hatchery-marked or wild, gear and method conditions, windows),
+  normalised for case and spacing, plus the gear lines and the map status. It resolves the file's indexes to content,
+  so "coho 2 a day" and "coho 4 a day, hatchery-marked only" split even though both are open. The ui's own copy is gone.
+  Tests in `waterNav.merge.test.ts`: a limit difference splits, hatchery-only vs any splits, identical content joins
+  (across chains, with case or spacing apart), a feed change re-groups.
+- Cut names (`topology.chain_label`): the named split at the cut, else "Edge of DFO area: <DFO's place words>" for the
+  narrowest place one side has and the other does not. Of 42 salmon cuts, 36 carry a split name (Cowichan: "white
+  triangle boundary sign located in Sandy Pool Regional Park"), 6 a DFO place (Atnarko, Tusulko, Tomahnous, Klinaklini
+  ×3), and **0 fall back** to "Salmon rules change here".
+- A piece is named by its own ends ("Mouth → white triangle boundary sign …"), never "stretch 1 of 2". Shot:
+  `T228-shots/cowichan-sandy-pool-cut.png`.
+
 ## 2. Matched but not used (`liveness.dormant`)
 - A station that is neither ECCC-active nor on the roster's real-time snapshot stays in `matches.json` and keeps its
   `gauge` row (`matched_by`, `match_m`, `mag`). Its `gauge.item_id` and `sid` are NULL, and it gets no `lake_gauge`,
@@ -55,4 +69,4 @@ AND char.
   line that drops char with no char rule in its row.
 
 ## Commits
-a757756b (code + tests). Release r-e01dc8f3719f promoted (data/release/LATEST). Owner re-cuts: OWNER-TODO.
+a757756b (code + tests). Release r-c331a7a3c2cf promoted (data/release/LATEST). Owner re-cuts: OWNER-TODO.

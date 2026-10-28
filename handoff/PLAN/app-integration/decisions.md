@@ -1536,3 +1536,8 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
 - **"Trout" means trout AND char** in an entry that does not mention char separately (RULINGS C4). Beattie's "Trout
   daily quota = 1" holds its bull trout and lake trout. The reader already does this everywhere: no water reads
   differently.
+- **(follow-up, owner 2026-10-28) The salmon merge key is the REGULATIONS, not the verdict word.** Each species'
+  rule content (limits, sizes, hatchery-marked or wild, gear and method conditions, windows) is compared every day, so
+  "coho 2 a day" and "coho 4 a day, hatchery-marked only" are two pieces. There is one helper, `salmonTimelineKey`.
+  Every salmon cut is named, by its split or by the DFO place at its edge ("Edge of DFO area: …"). None of the 42 falls
+  back to "Salmon rules change here". Release r-c331a7a3c2cf.

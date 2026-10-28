@@ -682,8 +682,12 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
                                                    scope_headers=_salmon.load_current_headers(_feeds), upstream=_upstream)
             _salmon.write_bundle(db, _payload, _salmon_secs)
             cov.filled("salmon_section", len(_salmon_secs))
+            # (T228) each DFO place's own words, for a salmon cut no split names; its chains' places, narrowest first
+            _place_words = {_loc.location_id: _salmon._label(_loc) for _ef in _files.values() for _loc in _ef.locations}
+            _chain_places = [list(_c.get("l") or []) for _c in _payload["chains"]]
             del _files, _feeds, _placed, _payload, _salmon_secs
-        _topology.write(db, named_geo, cov, mouths=_mouths)
+        _topology.write(db, named_geo, cov, mouths=_mouths,
+                        dfo_places=(_place_words, _chain_places) if _reaches is not None else None)
         del named_geo
         # THE NEARER ✱ ROW (ROUND14 1, RULINGS T14): from item_down, entry.matched and the rule sets
         _nearer.write_trib_nearer(db, cov)

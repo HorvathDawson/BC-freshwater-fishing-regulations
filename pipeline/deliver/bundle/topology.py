@@ -168,14 +168,30 @@ def by_chain(st: Sequence[dict], chain: Dict[int, int], touch: Dict[int, set], s
     return out
 
 
-def chain_label(dn: dict, up: dict, span: Dict[int, tuple], splits: Dict[str, dict]) -> Optional[dict]:
-    """T228: the split where two stretches of ONE part meet at a salmon chain boundary — the cut token at the upper
-    stretch's lowest main-stem end, when it is a named split; else None (the app words an unnamed one)."""
+#: (T228) A salmon cut no split names, worded by the DFO place that begins or ends there.
+DFO_EDGE = "Edge of DFO area: {}"
+
+
+def chain_label(dn: dict, up: dict, span: Dict[int, tuple], splits: Dict[str, dict],
+                dfo_places: Optional[Tuple[Dict[str, str], List[List[str]]]] = None) -> Optional[dict]:
+    """T228: the name of the cut where two stretches of ONE part meet at a salmon chain boundary. Every such cut sits on
+    a curated split or a DFO place's edge: the cut token at the upper stretch's lowest main-stem end when it is a named
+    split; else the narrowest DFO place one side has and the other not (`dfo_places`: place id -> DFO's own words, and
+    each chain's places narrowest first), as `DFO_EDGE`; else None (the app says "Salmon rules change here")."""
     stem = sorted((span[s][0], s) for s in up["sids"] if s in span and not span[s][4] and span[s][0] is not None)
-    if not stem:
+    if stem:
+        hit = splits.get(span[stem[0][1]][2] or "")
+        if hit and hit.get("name"):
+            return hit
+    if dfo_places is None:
         return None
-    hit = splits.get(span[stem[0][1]][2] or "")
-    return hit if hit and hit.get("name") else None
+    words, places = dfo_places
+    a = places[dn["chain"]] if 0 <= dn.get("chain", -1) < len(places) else []
+    b = places[up["chain"]] if 0 <= up.get("chain", -1) < len(places) else []
+    only = sorted({p for p in a if p not in b} | {p for p in b if p not in a},
+                  key=lambda p: (a.index(p) if p in a else b.index(p), p))
+    named = [words[p] for p in only if words.get(p)]
+    return {"name": DFO_EDGE.format(named[0])} if named else None
 
 
 def split_at(down: dict, up: dict, splits: Dict[str, dict]) -> Optional[dict]:
@@ -343,7 +359,8 @@ def exit_receivers(o: int, cands: Sequence[int], mouths: Dict[int, set], downs: 
 # ---- the tables -------------------------------------------------------------------------------------------------
 
 def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
-          mouths: Optional[Dict[int, set]] = None) -> None:
+          mouths: Optional[Dict[int, set]] = None,
+          dfo_places: Optional[Tuple[Dict[str, str], List[List[str]]]] = None) -> None:
     """Write `part_geo`, `part_mark`, `water_exit` from the bundle's own parts, spans, splits and `item_down`, the exit
     never a water that flows into this one (`exit_receivers`, with `mouths` from `mouth_downs` while the graph was
     loaded)."""
@@ -470,7 +487,7 @@ def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
                     continue
                 pa, pb = nearest_points(a, b)
                 lon, lat = to_ll.transform((pa.x + pb.x) / 2, (pa.y + pb.y) / 2)
-                at = chain_label(dn, up, span, splits) if same \
+                at = chain_label(dn, up, span, splits, dfo_places) if same \
                     else split_at(dn["part"], up["part"], splits) if dn["n"] == 1 and up["n"] == 1 \
                     else split_at(_runs_of(dn), _runs_of(up), splits)
                 raw.append({"lon": round(lon, 6), "lat": round(lat, 6), "down": dn["v"], "up": up["v"],

@@ -3,9 +3,9 @@
 Restart here. Update this file after EVERY step: what is done, what is running, and the exact next action.
 Logs from timing runs live in the session scratchpad, which a reboot wipes. The numbers that matter are copied here.
 
-## CURRENT STATE (2026-10-28 — release r-e01dc8f3719f live, T228)
+## CURRENT STATE (2026-10-28 — release r-c331a7a3c2cf live, T228)
 
-LIVE RELEASE: r-e01dc8f3719f (T228, a757756b; bundle-only deliver, no atlas or reach rerun, same tiles). Changes:
+LIVE RELEASE: r-c331a7a3c2cf (T228, a757756b; bundle-only deliver, no atlas or reach rerun, same tiles). Changes:
 part.no_access (34 waters gain a part, Coquitlam 4 parts), salmon-chain pieces in part_stretch/part_mark (876 stretch
 rows) merged live in the app (`mergeNav`), and dormant gauges detached (lake_gauge 179 -> 31, section_panel 248,800 ->
 124,006). Every section's rule set and licensing set are equal to r-a871447c48ba's. Owner owes sync.mjs + regs-fixture

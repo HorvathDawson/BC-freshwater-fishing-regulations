@@ -4,6 +4,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { markLabel, mergeNav, partName, stepsUp, waterGroup, WATER_MAP_WORDS, type ItemNavRows } from "./waterNav";
+import { salmonTimelineKey, type SalmonFacts } from "./salmon";
 
 // one river: part 0 (mouth) cut by DFO chains into stretches 0 (sids 1, 2), 1 (sid 3), 2 (sid 4); part 1 (no-access
 // land, sids 5, 6) above it
@@ -43,7 +44,10 @@ describe("mergeNav (T228)", () => {
     const raw = waterGroup([RIVER]);
     const open = mergeNav(raw, feed(new Set([3])));
     expect(open.parts.map((p) => p.sids)).toEqual([[1, 2], [3], [4], [5, 6]]);
-    expect(partName(open, 1)).toBe("Mouth → Watershed boundary · stretch 2 of 3");
+    // a salmon piece is named by its own ends, never "stretch 2 of 3"
+    expect([0, 1, 2].map((i) => partName(open, i))).toEqual([
+      `Mouth → ${WATER_MAP_WORDS.salmonChange}`, `${WATER_MAP_WORDS.salmonChange} → Canyon Bridge`,
+      "Canyon Bridge → Watershed boundary"]);
     expect(markLabel(open, open.marks[0]!)).toBe(WATER_MAP_WORDS.salmonChange);
     expect(markLabel(open, open.marks[1]!)).toBe("Canyon Bridge");
     const back = mergeNav(raw, feed(new Set()));
@@ -58,5 +62,39 @@ describe("mergeNav (T228)", () => {
 
   it("with no salmon read, the part's chain-cut pieces are one (the part as before the cut)", () => {
     expect(mergeNav(waterGroup([RIVER]), null).parts.map((p) => p.sids)).toEqual([[1, 2, 3, 4], [5, 6]]);
+  });
+});
+
+// (T228 follow-up, owner 2026-10-28) the key is the salmon REGULATIONS' content, not the open/closed word
+const OPEN2 = { s: "open", t: "Coho: 2 per day" };
+const OPEN4H = { s: "open", t: "Coho: 4 per day, hatchery-marked only" };
+const CLOSED = { s: "closed", t: "Not opened by DFO: closed to salmon fishing", d: 1 };
+/** Facts whose chain per section is `chainOf`, chain k's coho verdict all year `coho[k]` (other species closed). */
+function salmonFacts(coho: readonly object[], chainOf: (sid: number) => number,
+                     verdicts: readonly object[] = [CLOSED, OPEN2, OPEN4H]): SalmonFacts {
+  const ix = (v: object) => verdicts.indexOf(v);
+  const chains = coho.map((v) => ({ r: [], w: "", l: [], sp: [[0, ix(v)], [0, 0], [0, 0], [0, 0], [0, 0]], g: [0, -1], m: [0, 1] }));
+  return { handles: "", chains: chains.length, chainOf, payload: { verdicts, gears: [], chains } } as unknown as SalmonFacts;
+}
+// sections 1, 2 on chain 0; 3 on chain 1; 4 on chain 2
+const chainOf = (sid: number) => (sid === 3 ? 1 : sid === 4 ? 2 : 0);
+const pieces = (f: SalmonFacts) => mergeNav(waterGroup([RIVER]), (sid) => salmonTimelineKey(f, sid)).parts.map((p) => p.sids);
+
+describe("the salmon key is the regulations' content (T228 follow-up)", () => {
+  it("a limit difference splits though both are open", () => {
+    const v = [CLOSED, OPEN2, { s: "open", t: "Coho: 4 per day" }];
+    expect(pieces(salmonFacts([v[1]!, v[2]!, v[1]!], chainOf, v))).toEqual([[1, 2], [3], [4], [5, 6]]);
+  });
+  it("hatchery-marked only vs any coho splits", () => {
+    expect(pieces(salmonFacts([OPEN2, OPEN4H, OPEN2], chainOf))).toEqual([[1, 2], [3], [4], [5, 6]]);
+  });
+  it("identical content joins, even across two chains and with case or spacing apart", () => {
+    const loud = { s: "open", t: "coho:  2 PER day" };
+    const f = salmonFacts([OPEN2, OPEN2, loud], chainOf, [CLOSED, OPEN2, OPEN4H, loud]);
+    expect(pieces(f)).toEqual([[1, 2, 3, 4], [5, 6]]);
+  });
+  it("a feed change re-groups: the middle piece goes hatchery-only, then back", () => {
+    expect(pieces(salmonFacts([OPEN2, OPEN4H, OPEN2], chainOf))).toEqual([[1, 2], [3], [4], [5, 6]]);
+    expect(pieces(salmonFacts([OPEN2, OPEN2, OPEN2], chainOf))).toEqual([[1, 2, 3, 4], [5, 6]]);
   });
 });
