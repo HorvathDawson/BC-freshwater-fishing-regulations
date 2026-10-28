@@ -35,8 +35,10 @@ Source: owner 2026-10-26 (decisions.md "T207"). Audit: handoff/PLAN/curation-rev
      its finding now reads "needs a split (owner to locate)", which the review screen shows as a badge.
 
 ## Left
-- The owner runs the atlas build, the reach run and deliver, so the new cuts are drawn and the confidence reaches the release.
-- The owner decides on the 28 unused cuts (the audit doc's two tables: rule or DFO text that should bind each one, or delete).
-- The Cranberry canyon signs need a point from the owner.
+- ~~The owner runs the atlas build, the reach run and deliver~~ — done: later releases (r-8b43fb267199 on) carry the cuts.
+- ~~The owner decides on the 28 unused cuts~~ — owner 2026-10-27: "unused curated cuts: ignore for now" (decisions.md
+  "needs a split" list); Burton + the Kootenay dolphin decided 2026-10-26 (445643c2).
+- ~~The Cranberry canyon signs need a point from the owner~~ — owner 2026-10-26: falls point (medium) + DEM bottom (low),
+  r1 bound between them (48239620). Left for the owner: a look at the low bottom cut (OWNER-TODO Reviews).
 - Pre-existing failures that are not from this ticket: `test_review_screen` Z 122≠132, `test_basin_areas` z6:trout_char_quota,
   and `test_region_homes` z7b:daily_quotas (all three from the zone daily_quotas merge, 6335f73d).

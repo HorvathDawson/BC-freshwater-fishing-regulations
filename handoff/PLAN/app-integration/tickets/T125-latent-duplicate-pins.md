@@ -185,6 +185,11 @@ Each item: a pin (grep/AST or parity test) that fails on a re-inlined copy, and 
 Rebuild: none for most; deliver for 1–3 and 8's answers items; reach + deliver for 4–5 (ride another reach rerun).
 Depends: T104 (item 8's `when → days`). Size: M. Owner: no.
 
+## Q119 is Claude's (2026-10-28 stale-item sweep)
+The owner cannot supply the "answers 12" / "reach 11" pointers: the unification audit (2026-10-22) was Claude's own
+workflow run and its raw findings were not committed (326e8848 holds only the tickets). Claude re-derives them (search
+for a second fish-list wording path and a double computation in the reach step) or drops the two as low impact.
+
 ## Sweep 2026-10-27
 Still open, none code-only and unblocked: gauges 9 (needs a `StationMatch` field, a match.json regenerate and an owner-run
 promote; pipeline/gauges/feed is another lane's); answers 12 and reach 11 (the audit's file/line pointers are missing: Q119);

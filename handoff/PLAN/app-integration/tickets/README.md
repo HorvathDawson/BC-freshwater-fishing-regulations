@@ -169,7 +169,7 @@ use that as the sole source of future work."
 | T122 | one station liveness (active/realtime/ECCC) | DONE | 9fe57691, 348f9519, 0f918ea0, 749482e9 | no station changes; Q113 cuts vs may_speak; delivered r-012fb43aa175 |
 | T123 | one donor state for Conditions and map labels | DONE | 7355fc2e, 5887de97, b78a9bb0, 7a72d388 | app only |
 | T124 | one per-section layer list in map | DONE | 4976bf2b, 5887de97, b78a9bb0, 7a72d388 | app only; native route colours wetland sloughs |
-| T125 | latent duplicate checks: pins and small helpers | PARTIAL | 370a3978, 7fcdfaab, bffe4431, 81c05b55, 4c0b6272, e81ee1b7, 8d720fb9, 84525b29, 4076c58b, 1fdecc94, ddcd5aca, 1b106ff9, 0e5baf51, 720e9a6f, 388e6f08, a97c63a0, 9835fa2e, 2b86b39f | left: item 8 gauges 9 (Q118), answers 12 + reach 11 (Q119); delivered r-d72230f10993 |
+| T125 | latent duplicate checks: pins and small helpers | PARTIAL | 370a3978, 7fcdfaab, bffe4431, 81c05b55, 4c0b6272, e81ee1b7, 8d720fb9, 84525b29, 4076c58b, 1fdecc94, ddcd5aca, 1b106ff9, 0e5baf51, 720e9a6f, 388e6f08, a97c63a0, 9835fa2e, 2b86b39f | left: item 8 gauges 9 (Q118), answers 12 + reach 11 (Claude re-derives the pointers; was Q119); delivered r-d72230f10993 |
 | T126 | forecast reading bugs: CLEVER times 8 h off, 5-day summary on a 10-day run, dots ignore horizon | DONE | e3688e2b, c7ccec1f, d7b9ed24 | live after a feed republish (owner R2 upload) |
 | T127 | displaced rule still shows "counts toward" and bounds the card gate | DONE | 2a0458f2, 358b5076, 77566458 | live after the next deliver |
 | T128 | sub-cap line names its total ("of your 5 trout and char a day in streams, up to 2 may be…") | DONE | 59aba774, c7d9f57f, 77566458, c410ca42, e839d0cd, 6d768bd6, bb46f5f1, 001e8ffd | — |
@@ -180,7 +180,7 @@ use that as the sole source of future work."
 | T133 | curation review phase 2: one vintage on screen | DONE | 94e06e52, 5052824f | digests live from r-b518a2b507fa (reach rerun, no binding changed) |
 | T134 | curation review phase 3: review screen separate from fixing | DONE | 18ad4bf8, 35f6e2db, b66105e6, 32f5654f, 5a9a2243 | leftovers → T142; row_boxes sidecar run by Claude |
 | T135 | curation review phase 4: queue, pre-checks, ticket export | DONE | 8d0f5d76, 19dbc1ee, 9b8de2e3, 0a2be2da | no rebuild |
-| T136 | curation review phase 5: parity gate + pilot | DONE | b42fc8cd, 12739188, 9b080497, 371f1a85, 0634891b | parity 3,405 rules, 0 unexplained; scratch E2E false-stale 0; ★ pilot (Q114) |
+| T136 | curation review phase 5: parity gate + pilot | DONE | b42fc8cd, 12739188, 9b080497, 371f1a85, 0634891b | parity 3,405 rules, 0 unexplained; scratch E2E false-stale 0; pilot (Q114) DROPPED by the owner 2026-10-25 — the real review replaces it |
 | T137 | reader shooter: TALL cards shot drops the Other fish list (re-shoot + re-run the gate) | DONE | be8b4693, 111dcea3 | — |
 | T138 | reader shooter: chilliwack-p2-row-rb frame misses the rainbow row | DONE | d8997fbd | — |
 | T139 | third headless one-kind pool: Liard River watershed (7-53) | DONE | 8fb5f1ac, 85288617, 67d72c8e, c4a3da48 | delivered r-b518a2b507fa |
@@ -206,7 +206,7 @@ use that as the sole source of future work."
 | T159 | gauge auto-promote checks every name the matcher accepted (Arrow Reservoir / Lower Arrow Lake) | OPEN | — | ★ owner runs promote |
 | T160 | 08HB074's standing Comox Lake backwater gets its own Level sentence | DONE | 52462f99, fd99643c | deliver; delivered r-9cf1fef180a8 |
 | T161 | the pipeline ships each fish's leading origin (rows 33); mainRes only reads it | DONE | 23be8123, d0bc72fd, 3bf1e1e1, 3e89b917 | deliver + fixture re-cut (rows 33); delivered r-9cf1fef180a8 |
-| T162 | salmon/steelhead run timing: PSF + DFO parsed to `timing.json`; integration plan (handoff/PLAN/runtiming/PLAN.md) | PARTIAL | 24879b00 | app integration awaits owner (Q144, release size gate) |
+| T162 | salmon/steelhead run timing: PSF + DFO parsed to `timing.json`; integration plan (handoff/PLAN/runtiming/PLAN.md) | PARTIAL | 24879b00 | app integration → T199 (owner said go 2026-10-25; size gate gone with T182); Q144 open |
 | T163 | McKinley Creek r1x (reported catch-and-release on the upstream pond) | DROPPED | — | not a defect: r1x is the spring-closure lift (RULINGS L13), whole by design; r1 (the C&R) already stops at the lake |
 | T164 | salmon (DFO): finish the dossier, place the 96+7 splits, review the extents, fetch + place current quotas | OPEN | — | umbrella over T95/T132; DFO review mode built in the local app (queue, map, anchors, new-split proposals in the mark); ★ owner reviews the 346 extents + confirms splits |
 | T165 | no public access: streams dotted grey (owner), warning amber only in the page banner; own keeps amber | DONE | f438d417, bfd82ad6 | app style |
@@ -228,7 +228,7 @@ use that as the sole source of future work."
 | T181 | gauge pill keeps the theme the map was built with (check, then fix) | DONE | 7c43151a | confirmed (pill, pin, hatches kept the build theme); fixed + render test |
 | T182 | release file splits for the web (section_down, part_geo, nearest town in core, conditions) | DONE | afbd6d79, 715ecc46, 00ad9565, be778427 | per-file gates + cold_load (2.98 of 3.35 MB); total → 20 MB offline backstop (14.90); salmon on the first Salmon press (web), method after paint; feed headers → T86 |
 | T183 | straddling pieces carry BOTH regions' rules (reverses T115, owner 2026-10-24) | DONE | 64f92990..1ba63301, 1ca8bfda | promoted r-98c43091c440; stricter wins, 5 m minimum, Skeena 2 from Exchamsiks; card gate 0 |
-| T184 | keep the local curation review app and clean it up: entries only (splits by proxy on the map), human-reviewed state, artifact path removed | DONE | 2bacfc7d..dabd3b8b | pilot regenerated for r-98c43091c440; owner runs it locally |
+| T184 | keep the local curation review app and clean it up: entries only (splits by proxy on the map), human-reviewed state, artifact path removed | DONE | 2bacfc7d..dabd3b8b | — (pilot dropped by the owner 2026-10-25; the app serves the real review) |
 | T185 | marks → proposals (one per mark, one per new split, each split with its confidence) → read-only "waiting to apply" list (the marks ARE the decisions, 2026-10-27) → Claude's `apply_proposals`: binding check, side rebuild where a cut changes, one commit each; fix mode lost its writers | DONE | 8d9383df, c76a9fd8 (writers removed), e32eb08e, 7b63f660 | Claude runs side chains + applies; owner changes a mark to change a proposal |
 | T186 | web prefetch after first paint (region's regs file; core + wasm on idle) + core-words chevrons (Q164, Q162) | DONE | d54842ec, b8b5b357, 0a129a14 | first tap still fetches water + access → T182 |
 | T187 | a braid piece between one window's two cuts is inside it (Peace Site C closure, 359005110:3454) | DONE | 13027245, 525ab99e, 0bc22c70 | found by the post-braid check; 1 rule changes |
@@ -240,10 +240,10 @@ use that as the sole source of future work."
 | T196 | SEO: page performance budget + Lighthouse CI gate | PARTIAL | 1c4dd582, 435ce2d8 | committed; first real build + v1 redirects: see ticket Outcome; after T193 |
 | T197 | SEO: outreach kit (drafts only, no sending; no bots or link schemes) | PARTIAL | 1c4dd582, 435ce2d8 | committed; first real build + v1 redirects: see ticket Outcome; owner sends |
 | T198 | SEO: .com to .ca 301, HSTS, Search Console/Bing wiring, measurement | PARTIAL | 1c4dd582, 435ce2d8 | committed; first real build + v1 redirects: see ticket Outcome; owner: DNS/accounts; with T86 |
-| T189 | curation review from the pilot: source pinned, each rule's extent in words (tributaries, carve-outs), entry extent on top, tributary + lake-split calls in the mark, one pre-check per fact | DONE | 106dbc83 | owner re-runs the pilot on it |
+| T189 | curation review from the pilot: source pinned, each rule's extent in words (tributaries, carve-outs), entry extent on top, tributary + lake-split calls in the mark, one pre-check per fact | DONE | 106dbc83 | — (pilot dropped 2026-10-25; the screen serves the real review) |
 | T190 | a two-region piece's decision ladder heads both regions' rules with one region | DONE | 5a6cb255 | app only (decided.ts) |
-| T191 | curation review: one-row top bar (secondary filters fold), "fix extent" per rule + entry (op, 1-2 points: map split / any split / NEW confluence, lake inlet/outlet, map click; items; tributaries; read-only preview) as Mark.extent_fix, in tickets for T185 | DONE | 031eeb0c | owner tries it in the pilot |
-| T199 | run timing in the app: implement and refine (T162 data + plan) | OPEN | — | last band, with T200/T201; owner go + Q144 first |
+| T191 | curation review: one-row top bar (secondary filters fold), "fix extent" per rule + entry (op, 1-2 points: map split / any split / NEW confluence, lake inlet/outlet, map click; items; tributaries; read-only preview) as Mark.extent_fix, in tickets for T185 | DONE | 031eeb0c | — (pilot dropped 2026-10-25; the owner uses it in the real review) |
+| T199 | run timing in the app: implement and refine (T162 data + plan) | OPEN | — | last band, with T200/T201; go given (owner 2026-10-25); Q144 first |
 | T200 | stocked lakes: feed the prepared Stocked mode | OPEN | — | last band; source + licence (owner) |
 | T201 | bathymetry: feed the prepared Depth mode and draw contours | OPEN | — | last band; source + licence (owner); tile budget |
 | T202 | tile size optimizations (basemap z13 options, attributes, precision, simplification) | DONE | d4589cb5 (basemap), aeba83ca b17dfa1f (atlas) | basemap 918.4 → 274.5 MB (z13 + roads rebuild, wetland dropped, fills/coast on a coarser grid); atlas 239.3 → 176.1 MB (MVT-id only, lake attrs, 2048/1024 grids, mu z12 overzoom, watershed + sign_zone drawn, wma Creston only), release r-c706f5eaa2a3 |
@@ -252,7 +252,7 @@ use that as the sole source of future work."
 | T205 | curation review: zone entries without a map, species + sizes per rule, pilot removed, compact T/R/P/A widget, bigger show-on-map | DONE | 7a55e651 | owner tries it |
 | T206 | app golden parity after the retired overlapping rules AND the zone daily-quota rename (page v36 oracle) | DONE | 3797095c 66a0aa70 | order-only amendment (rename flips), ORACLE_RETIRED + Lois fold, on-parts, handle re-pins; check green bar release-budget (T203) |
 | T208 | show rules that hold on an undrawn part of a lake ("area at the outlet … map 1") clearly, linked to the synopsis map | PARTIAL | 3fc83a0f | app shows area rules as "Outlet area only (see map N)" with the synopsis page linked, named on the fold head and open on a day the rule holds; the drawn outline waits on lake splits |
-| T207 | "on parts" is a note; unused-cut false positives; split confidence end to end; White/Fulton/Chuckwalla/Cranberry cuts | DONE | 04315ec5 0e605022 48239620 c127eff6 | built in r-d32f814feac0; 8 DFO scopes bound; Burton/Kootenay cuts unbindable (owner to re-place); 18 left as high severity |
+| T207 | "on parts" is a note; unused-cut false positives; split confidence end to end; White/Fulton/Chuckwalla/Cranberry cuts | DONE | 04315ec5 0e605022 48239620 c127eff6 | built in r-d32f814feac0; 8 DFO scopes bound; Burton/Kootenay decided by the owner 2026-10-26 (445643c2) and bound; 18 left as high severity |
 | T209 | vessel restrictions in the app: boats line (electric only, no powered boats, power cap, speed, towing, no vessels) on the water page + map sheet | DONE | ffe7e7e2 | boats line on the page (6 kinds, golden test); electric_only kW still the owner's call |
 | T210 | DFO review mode: proposed splits shared along the river, Place y without a new split, simpler new-split UI | DONE | 0805e479 | proposals deduped across all marks (2 distinct; 1 duplicate pair folded), server reuses ids, Place y with existing-cut fix, 3-step new-split UI; owner tries it |
 | T211 | DFO salmon regs in the app (options), the DFO feed plan, historic extent matching, new-location alert | DONE | 491c9089, 4b18a372 | card + toggle; live feed `regs.dfo_salmon.live` (offline = last capture), new-location alert → DFO mode via `live queue`; part 3 moved to the DFO-locations lane; owner: feed cron + R2 sync; 10-28: region header notes (feed + release, card "Region rules (DFO)", scoped waters via curated bindings), gear marks on the Salmon map + card, `salmon` split per bundle region (b16b7a88, 9aa0ad11) |
@@ -266,6 +266,7 @@ use that as the sole source of future work."
 | T219 | bathymetry: trace contours from the open scanned charts for the top-fished lakes | OPEN | — | not yet (owner 2026-10-27); raster scans, georef works, depth labelling needs a review UI; ★ tier size |
 | T220 | braid channels close: no channel line ends where the water goes on (prune closure + one zoom per side-channel run) | DONE | 4c90fe68, 64c28a2b | owner 10-28 FIX complete; 1,041 -> 97 dangling ends, no existing binding moved; live r-46be3c135e68 |
 | T221 | solo waters open on regs (no Map), URL follows the water, one salmon table, plain size rule, at-a-glance fish table (try) | DONE | 73625e35 | owner 2026-10-28 web feedback (Dala River) |
+| T222 | Stave spawning channels (Ruskin/Northrop): add the FWA side channels so Stave r1/r2 can bind | OPEN | — | added_streams + atlas rebuild; no owner call |
 
 ## Order for open tickets
 
@@ -305,7 +306,6 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q28 | T88 | When to build iOS | after the Android ship | owner |
 | Q30 | T91 | Where the Atnarko campsite boundary signs are | keep the current binding until confirmed | owner |
 | Q31 | T93 | Gauge representativeness policy | the current drainage gate stays default | owner |
-| Q32 | T95 | Salmon (DFO) timing and scope | after T50 and the cleanup | owner |
 | Q42 | T98 | Lift the tidal-spec hold? | K8 as built until lifted | owner |
 | Q47 | T78 | Tidal sentence: closed "Notes and sources" fold, or open under the Level headline? | in the fold | owner |
 | Q62 | T103 | Slot size wording: plain says "none over 60 cm, under 90 cm" where the book says "none between 60 cm and 90 cm" — reword? | keep the existing wording rule (RULINGS P37) | owner |
@@ -315,19 +315,14 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q91 | T105 | The 54,386 matched-only sections now say "No gauge on this water is close enough in size" — wording ok? | as built | owner |
 | Q103 | T117 | The gauge shed climbs the way the walk does: the Theodosia (08GC005) and Quinsam (08HD034) diversion gauges no longer speak for water above their canal (the river's own gauge takes over on 174 + 107 sections); 24 sections lose every gauge; a gauge ON a canal reads only its own piece? | as built | owner |
 | Q113 | T122 | Gauge cuts follow the roster's realtime snapshot, sheds follow ECCC Active: 38 active-but-silent stations have a shed and no cut. Make cuts follow Active (atlas rebuild, moves section ids)? | unchanged | owner |
-| Q114 | T136 | Run the 30-entry curation pilot (handoff/PLAN/curation-review/PILOT.md, ~1 h; then `python -m pipeline.regs.review.gate pilot-report --pilot handoff/PLAN/curation-review/pilot.json`)? | ★ yours to run; PLAN's "no tool blocker" check stays open until then | owner |
-| Q119 | T125 | Audit references for item 8 "answers 12" (fish-list wording) and "reach 11" (double computation) — the copies could not be found from the ticket? | left open | owner |
 | Q123 | T151 | How the water Map view marks the selected part without bold lines? | dim the other parts; one line width | owner |
 | Q124 | T153 | Does a river row's rule apply to an UNNAMED lake polygon its main flow runs through (book "river" includes its widenings unless it names the lake)? | yes for unnamed polygons covered on both sides; a named lake never takes the river's row | owner |
-| Q125 | T152 | Sewage basins / tailing ponds / dumps: draw them at all? | a muted non-water fill, no tap, no rules | answered 10-24: muted fill (built) |
 | Q126 | T143 | Were you on Level when +1/+3/+5/+10 said "no forecast"? (Flow answered at every horizon on today's feed) | yes, assumed | owner |
 | Q130 | T144 | Under a combined Change, also draw each model's own line (quieter)? | yes | owner |
 | Q132 | T144 | The +1/+3/+5/+10 chips keep the old model order (CLEVER then ELF) — or follow the Change source too? | keep | owner |
 | Q139 | T147 | The no-access block also leads Conditions for a tapped no-access section at full size? | keep | owner |
 | Q140 | T147 | A tapped section outside no-access land on a part that runs through it: show the part's "Some of this part is inside …" banner? | no (the tapped section speaks) | owner |
-| Q142 | T100 | Draw real lake parts (added_lakes rings, as Kootenay) for Shuswap maps A/B/C etc.? (atlas rebuild) | not now; caveat line | owner |
 | Q144 | T162 | Run timing layer: default species (steelhead?), show passage reaches (dashed) as well as spawning, and its own map layer vs inside Conditions? | steelhead; both, passage dashed; its own layer | owner |
-| Q145 | T164 | Where the DFO salmon re-fetch runs and how often? | with the gauge feed cron, weekly, plus a notice when the page changes | owner |
 | Q146 | T150 | Opening the parts list shortens the map but does not re-centre it (the Fraser's long lower part gets cut off on a phone) — re-centre on open? | no (keeps the reader's pan) | owner |
 | Q147 | T153 | A pond a steelhead row now takes also gets the zone's lake wording of the steelhead rule (zp:steelhead r1b/r2b/r4b +68 polygons each, z5 r6b +44)? | accept | owner |
 | Q148 | T154 | Promote "dammed widening = lake" (R2 with the dams layer: 26 candidates → LAKE; catches Quinsam and South Nanaimo, not Bonaparte) into the slough candidates, or keep dams as evidence only? | evidence only | owner |
@@ -341,6 +336,7 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q159 | T168 | "Reporting, not ranked" gauges fold with the silent ones ("not reporting or not ranked")? | yes | owner |
 
 ### Answered (recently, for the record)
+- Stale-item sweep 2026-10-28 (already settled): Q114 — pilot DROPPED by the owner 2026-10-25 (implement_progress.md CURRENT STATE: "no time"; the real review replaces it). Q145 — answered by T211 part 2, built 2026-10-27 with the owner's corrections: the feed host runs `regs.dfo_salmon.live` every 6 h Jun 1–Oct 31, daily otherwise (cron + R2 sync are the owner's, OWNER-TODO). Q32 — obsolete: T95 DROPPED (superseded by T164), salmon scope set by the owner since (T164, T211 option A 2026-10-27). Q125 — answered 2026-10-24 (muted fill, built; the row had stayed in the open table). Q142 — owner 2026-10-28: lake splits deferred ("lake split later" severity); the default "not now; caveat line" stands. Q119 — not an owner question: the unification audit was Claude's own run; Claude re-derives the two pointers by search or drops them (T125).
 - Q160 — owner 2026-10-24: combine CLEVER + COFFEE on every forecast day, weighted by measured skill → T177. Q161 — owner: a spot records conditions for its TRIP date (not save time) → built in the T177 lane.
 - Q84 (side channel and its river) — owner 2026-10-24 delegated ("do what you think is best just make sure it is sane"): T169 one panel per side-channel water; Q169d (one panel for a long side-channel water) decided yes.
 - Q150 / Q137 / Q138 (no-access look) — owner 2026-10-23: streams dotted grey, warning amber in the page banner, own keeps amber (decisions.md).

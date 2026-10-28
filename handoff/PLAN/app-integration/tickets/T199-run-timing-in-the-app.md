@@ -12,8 +12,8 @@ stocked and bathy maps." Follows T162 (data + plan, PARTIAL).
   and tap sheet, credits) and `integration-prototype.patch` beside it (reverted prototype; a starting point only).
 
 ## Work
-1. Owner answers first: go/no-go on the plan, Q144 (steelhead first, passage on a paler ramp, own layer), and the
-   release budget (~14.92 of 15 MB with `runs` — trim or raise the cap).
+1. Owner answers first: Q144 (steelhead first, passage on a paler ramp, own layer). (Go given by the Source line,
+   owner 2026-10-25; the release budget is no longer a blocker — T182 replaced the 15 MB total with per-file gates.)
 2. Refine the data before shipping: check curves against DFO escapement where both exist, flag low-confidence CUs,
    decide how passage vs spawning reaches show.
 3. Implement through the bundle only (no runtime reads of curated files): deliver step, release file, app layer +
