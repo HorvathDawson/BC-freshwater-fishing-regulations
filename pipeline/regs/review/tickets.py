@@ -83,7 +83,9 @@ def _work(mark) -> list[str]:
                 else "(the DFO location's binding in `data/curated/regulations/entries/dfo_salmon/`;"
                      " a new split in `data/curated/waters/splits.json`)." if mark.scope == "dfo"
                 else "(the accepted tidal boundary as a split in `data/curated/waters/splits.json`, "
-                     "labelled `mouth (tidal boundary)`; T212)." if mark.scope == "tidal"
+                     "AT THE MARK'S NEW SPLIT — its own point and name, the point the owner CHOSE (its note "
+                     "says which source: the words' landmark, a polygon crossing, the mouth, the DEM limit "
+                     "or his own), never the candidate's original proposal; T212)." if mark.scope == "tidal"
                 else "(the entry in its region file; a cut pick is the extent's `cut_pick`)."),
              "3. Rebuild, then the mark goes stale and the target re-queues for review:"]
     lines += [f"   - `{c}`" for c in cmds]
@@ -269,6 +271,8 @@ def new_split_words(n) -> str:
         words += f" · the extent is {n.side} of it"
     if n.quote:
         words += f" · \"{n.quote}\""
+    if n.note:
+        words += f" · {n.note}"
     return words
 
 

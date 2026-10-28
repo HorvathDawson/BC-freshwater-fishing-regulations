@@ -60,14 +60,18 @@ export const ALT_KIND: Record<TidalAlternate["kind"], string> = {
  *  split (reuse and all) when it is the proposed one, else a cut at that point named for what it is.
  *  Pure — "Record mark" stays the only write. */
 export function altSplit(c: TidalCandidate, a: TidalAlternate): NewSplit {
-  if (a.proposed) return acceptSplit(c);
+  if (a.proposed) {
+    const base = acceptSplit(c);
+    return { ...base, note: `chosen point: ${a.kind} (the proposal) — ${a.label} (${Math.round(a.above_mouth_m)} m above the FWA mouth)`
+      + (base.note ? `; ${base.note}` : "") };
+  }
   const landmark = a.kind === "words" && a.words ? a.words.split(": ").pop()!.slice(0, 60) : null;
   const name = landmark ? `${c.water}: ${landmark} (tidal boundary)`
     : a.kind === "mouth" ? `${c.water}: mouth (tidal boundary)` : `${c.water}: tidal boundary`;
   const base = acceptSplit(c);
   return {
     ...base, anchor: "coord", split_id: null, name, coord: a.coord,
-    note: `the owner switched to ${ALT_KIND[a.kind]}: ${a.label} (${Math.round(a.above_mouth_m)} m above the FWA mouth`
+    note: `chosen point: ${a.kind} — ${ALT_KIND[a.kind]}: ${a.label} (${Math.round(a.above_mouth_m)} m above the FWA mouth`
       + `${a.located_by ? `; ${a.located_by}` : ""}) from the proposed ${c.proposed.split_name}`
       + (c.proposed.aliases.length ? `; aliases: ${c.proposed.aliases.join("; ")}` : ""),
   };
@@ -289,21 +293,16 @@ function TidalCandidateView({ detail, mode, nav, onMarked }: {
     setAnswerP("y");
     setAccepted("proposal pre-filled: Place y with the cut as a new split — check it, then Record mark (nothing is saved yet)");
   }
-  /** SWITCH TO ONE ALTERNATE: pre-fills the mark with it (the proposal: Place y; any other: Place n,
-   *  "split misplaced", that point as the cut) — nothing is saved until Record mark */
+  /** SWITCH TO ONE ALTERNATE (owner 2026-10-28): picking a point = "THIS is the tidal boundary" —
+   *  the mark's cut becomes it (its source in the note); the owner then answers y and Records. "n"
+   *  stays for rejecting the candidate outright. Nothing is saved until Record mark. */
   function choose(a: TidalAlternate) {
     setChosen(a.id);
     setPicking(false);
     setSplit(altSplit(c, a));
-    if (a.proposed) {
-      setAnswerP("y");
-      setProblem("");
-      setAccepted(`proposal pre-filled: Place y, the cut at ${ALT_KIND[a.kind]} (${Math.round(a.above_mouth_m)} m above the mouth) — check it, then Record mark (nothing is saved yet)`);
-    } else {
-      setAnswerP("n");
-      setProblem("split misplaced");
-      setAccepted(`switched to ${ALT_KIND[a.kind]} (${Math.round(a.above_mouth_m)} m above the mouth): Place n (the proposal is misplaced) with this point as the cut — Record mark to save`);
-    }
+    setProblem("");
+    setAccepted(`the cut is ${ALT_KIND[a.kind]} (${Math.round(a.above_mouth_m)} m above the mouth)`
+      + `${a.proposed ? " — the proposal" : ""}: press y, then Record mark (nothing is saved yet)`);
   }
   function pickPoint() {
     setPicking(true);
@@ -313,12 +312,11 @@ function TidalCandidateView({ detail, mode, nav, onMarked }: {
     api.tidalSnap(c.id, ll).then((sn) => {
       setChosen("custom");
       setSplit({ ...acceptSplit(c), anchor: "coord", split_id: null, coord: sn.coord, name: `${c.water}: tidal boundary`,
-                 note: `placed by the reviewer (snapped ${Math.round(sn.distance_m)} m to the stream`
+                 note: `chosen point: custom — placed by the reviewer (snapped ${Math.round(sn.distance_m)} m to the stream`
                    + `${sn.above_mouth_m != null ? `, ${Math.round(sn.above_mouth_m)} m above the FWA mouth` : ""}) from the proposed ${c.proposed.split_name}` });
-      setAnswerP("n");
-      setProblem((p) => p || "split misplaced");
+      setProblem("");
       setAccepted(`your point is the cut (snapped ${Math.round(sn.distance_m)} m to the stream`
-        + `${sn.above_mouth_m != null ? `, ${Math.round(sn.above_mouth_m)} m above the mouth` : ""}) — Place n (the proposal is misplaced) with your point as the new split`);
+        + `${sn.above_mouth_m != null ? `, ${Math.round(sn.above_mouth_m)} m above the mouth` : ""}): press y, then Record mark (nothing is saved yet)`);
     }).catch(() => setErrors([`that point is not on ${c.water} (more than 500 m from it): click on the stream`]));
   } : null;
 
