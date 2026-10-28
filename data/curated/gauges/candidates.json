@@ -2756,35 +2756,6 @@
    "trust": "candidate",
    "why": "kind_agrees"
   },
-  "08MH079": {
-   "station": "08MH079",
-   "station_name": "LONZO CREEK (NORTH FORK) NEAR KILGARD",
-   "status": "matched",
-   "resolved_by": "name+radius",
-   "distance_m": 442.2,
-   "reason": null,
-   "lon": -122.195556640625,
-   "lat": 49.05778121948242,
-   "wbk": [],
-   "wsc": [
-    "100-064535-223850"
-   ],
-   "also": [],
-   "name": "Marshall Creek",
-   "blk": "356317779",
-   "evidence": {
-    "name_agrees": false,
-    "name_is_exact": false,
-    "distance_m": 442.2,
-    "area_km2": 2.7699999809265137,
-    "mag": 16,
-    "area_agrees": true,
-    "stated_kind": "River",
-    "kind_agrees": true
-   },
-   "trust": "candidate",
-   "why": "name_agrees"
-  },
   "08MH081": {
    "station": "08MH081",
    "station_name": "MCGILLIVRAY SLOUGH NEAR YARROW",

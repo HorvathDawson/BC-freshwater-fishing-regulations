@@ -35306,6 +35306,35 @@
    },
    "trust": "auto"
   },
+  "08MH079": {
+   "station": "08MH079",
+   "station_name": "LONZO CREEK (NORTH FORK) NEAR KILGARD",
+   "status": "matched",
+   "resolved_by": "review",
+   "distance_m": null,
+   "reason": "owner 2026-10-28: on Kilgard Creek (Abbotsford layer), FWA-unnamed blk 356314888, a Marshall tributary; 69 m; mag 3 ~ 2.77 km2",
+   "lon": -122.195556640625,
+   "lat": 49.05778121948242,
+   "wbk": [],
+   "wsc": [
+    "100-064535-223850-103684"
+   ],
+   "also": [],
+   "name": "LONZO CREEK (NORTH FORK) NEAR KILGARD",
+   "blk": "",
+   "evidence": {
+    "name_agrees": false,
+    "name_is_exact": false,
+    "distance_m": null,
+    "area_km2": 2.7699999809265137,
+    "mag": null,
+    "area_agrees": null,
+    "stated_kind": "River",
+    "kind_agrees": true
+   },
+   "trust": "bound",
+   "note": "owner 2026-10-28: on Kilgard Creek (Abbotsford layer), FWA-unnamed blk 356314888, a Marshall tributary; 69 m; mag 3 ~ 2.77 km2"
+  },
   "08MH080": {
    "station": "08MH080",
    "station_name": "LONZO CREEK NEAR ABBOTSFORD",

@@ -1473,6 +1473,16 @@
    "note": "reviewed against the map and the Water Office page",
    "reviewed": "2026-09-03"
   },
+  "08MH079": {
+   "verdict": "bind",
+   "station_name": "LONZO CREEK (NORTH FORK) NEAR KILGARD",
+   "matched": "Marshall Creek",
+   "wsc": [
+    "100-064535-223850-103684"
+   ],
+   "reviewed": "2026-10-28",
+   "note": "owner 2026-10-28: on Kilgard Creek (Abbotsford layer), FWA-unnamed blk 356314888, a Marshall tributary; 69 m; mag 3 ~ 2.77 km2"
+  },
   "08MH083": {
    "verdict": "confirmed",
    "station_name": "MATSQUI SLOUGH AT MATSQUI",
