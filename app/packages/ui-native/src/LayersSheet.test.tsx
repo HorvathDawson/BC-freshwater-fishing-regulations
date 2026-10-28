@@ -61,8 +61,8 @@ describe("the layer registry against the style", () => {
 
   it("each water colouring is a lake mode the style has (Regulations = the day's status)", () => {
     const lake = Object.keys(STYLE_META.colorModes.lake ?? {});
-    expect(["status", "profile", "stocked", "surveyed"].filter((m) => lake.includes(m)))
-      .toEqual(["status", "profile", "stocked", "surveyed"]);
+    expect(["profile", "stocked", "surveyed"].filter((m) => lake.includes(m)))
+      .toEqual(["profile", "stocked", "surveyed"]);
   });
 
   it("the Stocked key's bands are the style's (`stock_recency`), in order", () => {

@@ -1,10 +1,8 @@
 /**
- * WHAT THE DATA SAYS ABOUT ITSELF: the bundle's and the feed's counts (read, never stated), the map's per-section status
- * values for a pushed renderer, and the regulations read of the water that is open.
+ * WHAT THE DATA SAYS ABOUT ITSELF: the bundle's and the feed's counts (read, never stated), and the regulations read of
+ * the water that is open.
  */
 import { useState } from "react";
-import type { SectionKey, StatusIndex } from "@app/core";
-import { mapStatusOn } from "@app/core";
 import type { BundleCounts, GaugeFeed, ItemId, WaterSource } from "@app/data";
 import { useAsync, type Async } from "../async";
 
@@ -46,28 +44,6 @@ export function useDataFacts(source: WaterSource, feed?: GaugeFeed, wanted = tru
       fetchedAt: index?.fetchedAt ?? null,
     };
   }, `datafacts:${feed ? "feed" : "nofeed"}`, asked);
-}
-
-/**
- * The map's per-feature values for the `status` colouring: every section on screen, on `on`.
- *
- * NO LONGER THE WEB MAP'S PATH (colour-latency AP): the Shell hands the map the index itself (`MapProps.status`) and the
- * map colours each tile as it arrives through the `profile` mode. Kept for a renderer with no per-tile event — how the
- * native map colours is open until N2 — and it reads `mapStatusOn` (the status, or T54's no access), the answer the
- * per-tile labels give, so the two cannot disagree.
- *
- * EVERY visible section gets a value, base and none included — feature-state is sticky, so a
- * section that was closed yesterday and is base today must be told so, not left red. A
- * section with no status (tidal, outside B.C.) is set to null: the mode's `missing`.
- * The same values on every per-section layer, because feature-state is per source-layer
- * (a stream's polygon — `lake_flowing` / `wetland_flowing` — reads its own source-layer's): `sections` is @app/map's
- * `SECTION_DATA`, which the map fans out to `perSectionLayers()` (T124).
- */
-export function statusData(index: StatusIndex | null, visible: readonly SectionKey[],
-                           on: Date): Record<string, Record<string, Record<string, unknown>>> {
-  const values: Record<string, Record<string, unknown>> = {};
-  for (const s of visible) values[String(s)] = { status: mapStatusOn(index, s, on) };
-  return { sections: values };
 }
 
 /**

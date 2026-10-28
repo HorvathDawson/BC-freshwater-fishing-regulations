@@ -9,7 +9,7 @@ import { CONDITIONS_WORDS, donorLastReport, donorReads, donorSilent, freshness, 
          readingAgeLine, readingHeading, readingIn, readingStandingLine, shownParameter, stageLine, stateAt,
          type GaugeTrace, type SectionKey, type Standing } from "@app/core";
 import { useGaugeTrace, useStationReading } from "../hooks";
-import { pushedRoute, routeLabels, routeValues, type RouteColourVM } from "../routeColour";
+import { routeLabels, routeValues, type RouteColourVM } from "../routeColour";
 import { useLastReports, type PanelFeed } from "./feed";
 import { usePanel, usePanelRoutes, usePanelStandings, useSpeaker } from "./standings";
 import { gaugeChoiceGroups, gaugeChoices, useGaugeSides, type GaugeChoiceVM, type GaugeGroupVM,
@@ -58,8 +58,8 @@ export interface ConditionsVM {
   /** The reaches between here and every donor. */
   chain: readonly SectionKey[];
   /**
-   * Each of those reaches coloured by its own percentile, for the route map — through the colouring engine on a
-   * per-tile map (`standing`), pushed elsewhere (`data`); see `routeColour.ts`.
+   * Each of those reaches coloured by its own percentile, for the route map — through the colouring engine
+   * (`standing`); see `routeColour.ts`.
    */
   route: RouteColourVM;
   /** The station the chart and the reading are about. */
@@ -97,12 +97,9 @@ export interface ConditionsVM {
  */
 export function useConditionsView(
   source: WaterSource, section: SectionId | null, day: Date | null, horizon: Horizon,
-  opts: { feed: PanelFeed | undefined; quantity: Quantity;
-          /** `coloursEachTile(Platform.OS)`: the route map colours through the engine. Omitted: pushed. */
-          perTile?: boolean },
+  opts: { feed: PanelFeed | undefined; quantity: Quantity },
 ): ConditionsVM {
   const { feed, quantity } = opts;
-  const perTile = opts.perTile ?? false;
   const spoken = useSpeaker(source, section);
   const speaker = spoken.state === "ready" ? spoken.value.speaker : null;
   const traced = useGaugeTrace(source, section);
@@ -125,9 +122,8 @@ export function useConditionsView(
   const steadyKey = `${section ?? ""}:${steady.current.chain.join(",")}`;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const labels = useMemo(() => routeLabels(steady.current.chain as readonly SectionId[]), [steadyKey]);
-  const route = useMemo<RouteColourVM>(() => (perTile
-    ? { standing: { labels, values: routeValues(labels, standings, horizon) }, data: {} }
-    : { standing: null, data: pushedRoute(standings, horizon) }), [perTile, labels, standings, horizon]);
+  const route = useMemo<RouteColourVM>(() => ({ standing: { labels, values: routeValues(labels, standings, horizon) } }),
+                                         [labels, standings, horizon]);
 
   /*
    * THE CHART FOLLOWS THE SPEAKER (T105), the one the map colours by (`speakerFor`): a panel's picked donor, else its

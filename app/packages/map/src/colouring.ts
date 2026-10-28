@@ -31,23 +31,10 @@
  * Platform-free on purpose: the renderer hands in each tile's ids per source-layer and a target that sets state, so
  * every sequence is tested as plain code (`colouring.test.ts`), not through a browser.
  *
- * TWO COLOUR MODES, SPLIT BY PLATFORM — the one place this is written down (T61 2.19; N4/T47 removes the split). The
- * engine above runs only where the map labels each tile as it arrives, which today is the WEB map (`coloursEachTile`
- * below, the Shell's `perTile`). The native map (`Map.native.tsx`, N2) has no per-tile load event, so it is coloured
- * the older way, by data PUSHED for the sections on screen:
- *
- *                  web (per tile)                                native (pushed)
- *   status         mode `profile`; `MapProps.status` = the       mode `status`; `statusData` (@app/ui hooks/facts.ts) =
- *                  index + the day, on both tabs                 every visible section's code, Map tab only
- *   standing       `MapProps.standing` = the classes + their     `data` = every visible section's standing
- *                  values (`useConditionsColour`)                (`usePanelStandings` → `setData`)
- *   lake modes     `survey` / `stocked` labels (`useLakeColour`)  plain: no per-tile event, no values pushed
- *
- * Who decides what: `mapModes` (@app/ui mapModes.ts) picks the mode from `perTile`; `statusFeed` (same file) and
- * `useConditionsColour` (@app/ui conditionsColour.ts) pick the matching feed, so a mode and its data are always chosen
- * together; `nativeStyle` (native-style.ts) refuses `profile`, which the native map would draw plain with no error. Both
- * paths read the same arithmetic (core `statusOn` / `mapStatusOn`, data `sectionStanding`), so a section cannot be
- * coloured differently by the two — they differ in WHEN a colour arrives, never in which.
+ * ONE PATH ON BOTH PLATFORMS (T74 removed the native "status" mode and its pushed data). The map hands the engine each
+ * tile's section ids as the tile arrives: the web from GL JS's `sourcedata` (`tile-ids.web.ts`), the phone from the
+ * patched binding's per-tile event (`native/useColouring.ts`, deps.md). Only how a channel's style-borne values reach
+ * the style differs: a paint call on the web, a style swap on the phone (`nativeStyle`'s `values`).
  */
 import { readingDayOf, dayProfiles, profileLabel, salmonDayIndex, salmonDayProfiles, salmonLabel, stockRecency,
          type LakeFacts, type SalmonFacts, type StatusIndex } from "@app/core";
@@ -191,17 +178,6 @@ export function stockedInput(l: LakeFeed): ChannelInput {
 }
 
 /**
- * Whether the map on this platform (`Platform.OS`) labels each tile as it arrives (`MapProps.status`, `standing`). Only
- * the web map: `Map.native.tsx` (N2) has no per-tile load event and colours only from pushed `data` (`status` mode,
- * `standing` values), so a phone handed the per-tile `profile` mode painted every water plain with no error (colour-ap
- * review). How the
- * native map labels per tile is open (the colour-latency README) — flip this then.
- */
-export function coloursEachTile(platform: string): boolean {
-  return platform === "web";
-}
-
-/**
  * The source-layers whose sections wear labels: the per-section ones (`perSectionLayers`, T124). Feature-state is per
  * source-layer, so a stream's polygon (`lake_flowing`, `wetland_flowing`) reads the label set on `lake` / `wetland`.
  */
@@ -260,6 +236,14 @@ export class Colouring {
   calls = 0;
 
   constructor(private readonly adapter: MapAdapter) {}
+
+  /**
+   * The MAP dropped every feature-state (a style swap on MapLibre Native, T74): no section wears any label now, so every
+   * channel forgets what it labelled — the next `label` of a tile labels all of it again. Nothing on the map to clear.
+   */
+  reset(): void {
+    for (const c of this.channels.values()) { c.seen = new Map(); c.dirty = false; }
+  }
 
   /** True while any channel is installed: only then does a tile need labelling. */
   get active(): boolean { return this.channels.size > 0; }
@@ -352,10 +336,10 @@ export class Colouring {
 }
 
 /**
- * THE KEYS ONLY THE ENGINE WRITES on a section on a map that labels its own tiles: the channels' labels (the
- * day-profile `p`, the `standing` value, the lake facts' `stocked` and `survey`) and `status`, which only a pushed-data
- * map (the phone) is handed in their place. Pushed through `data` to such a map they would be a second pathway beside the engine (owner 2026-10-21: "it
- * should be a single pathway"): `Map.web.tsx` refuses them, and reports it (tools/one-colouring-engine.test.ts).
+ * THE KEYS ONLY THE ENGINE WRITES on a section: the channels' labels (the day-profile `p`, the `standing` value, the
+ * lake facts' `stocked` and `survey`, the salmon `sp`) — and `status` / `salmon`, the keys of the pushed path T74 removed.
+ * Pushed through `data` they would be a second pathway beside the engine (owner 2026-10-21: "it should be a single
+ * pathway"): both maps refuse them, and report it (tools/one-colouring-engine.test.ts).
  */
 export const ENGINE_KEYS: readonly string[] = ["p", "standing", "status", "stocked", "survey", "sp", "salmon"];
 
@@ -378,7 +362,7 @@ export function withoutEngineKeys(data: Pushed, report: (e: Error) => void): Pus
       if (Object.keys(rest).length !== Object.keys(state).length) refused = true;
       if (Object.keys(rest).length) kept[id] = rest;
     }
-    if (refused) report(new Error(`pushed ${ENGINE_KEYS.join("/")} on "${layerId}" refused: the web map colours `
+    if (refused) report(new Error(`pushed ${ENGINE_KEYS.join("/")} on "${layerId}" refused: the map colours `
                                   + "sections through the colouring engine only (MapProps.status, MapProps.standing, MapProps.lakes, MapProps.salmon)"));
     if (Object.keys(kept).length) out[layerId] = kept;
   }

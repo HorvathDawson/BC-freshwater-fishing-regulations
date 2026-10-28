@@ -594,8 +594,8 @@ describe("a water's status paints with the map's own colours", () => {
     const { resolveTheme } = await import("./style");
     const t = resolveTheme("light");
     for (const layer of ["stream", "lake__edge"]) {
-      const status = paintFor(layer, "status", t)["line-width"];
-      expect(JSON.stringify(status), layer).not.toContain('"feature-state","status"');
+      const status = paintFor(layer, "profile", t)["line-width"];
+      expect(JSON.stringify(status), layer).not.toContain('"feature-state","p"');
       expect(status, layer).toEqual(paintFor(layer, "plain", t)["line-width"]);
     }
     expect(paintFor("stream", "plain", t)["line-color"]).toContain(t["color.water.mapped"]);
@@ -607,21 +607,21 @@ describe("a water's status paints with the map's own colours", () => {
   });
 
   /*
-   * THE MAP LINE AND THE SEARCH DOT ARE ONE VOCABULARY. The `status` colour mode is authored in
+   * THE MAP LINE AND THE SEARCH DOT ARE ONE VOCABULARY. The `profile` colour mode is authored in
    * layers.source.json and the dot resolves @app/core WATER_STATUS through `waterStatusColour`;
    * if the two ever named different tokens a row and the line beside it would disagree.
    * `missing` is a section with no status pushed (tidal, outside B.C., not yet asked): it
    * must paint a neutral `water.*` grey, never base — that would be an answer.
    */
-  it("the status colour mode paints each status with WATER_STATUS's own token", async () => {
+  it("the status colour mode (the day's profile) paints each status with WATER_STATUS's own token", async () => {
     const { WATER_STATUS, WATER_STATUSES } = await import("@app/core");
     const { STYLE_META } = await import("./style");
     for (const layer of ["stream", "lake"]) {
-      const m = STYLE_META.colorModes[layer]!["status"] as
+      const m = STYLE_META.colorModes[layer]!["profile"] as
         { scale: string; property: string; categories: Record<string, { token: string }>;
           missing: { token: string } };
-      expect(m.scale).toBe("categorical");
-      expect(m.property).toBe("status");
+      expect(m.scale).toBe("profile");
+      expect(m.property).toBe("p");
       expect(Object.keys(m.categories).sort()).toEqual([...WATER_STATUSES].sort());
       for (const s of WATER_STATUSES) expect(m.categories[s]!.token).toBe(WATER_STATUS[s].token);
       expect(m.missing.token).toBe("color.water.unmapped");

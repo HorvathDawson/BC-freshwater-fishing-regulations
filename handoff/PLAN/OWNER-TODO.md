@@ -121,4 +121,8 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
     fighting the map pan / chart / minimap shields; sheet drag-to-close and sheet scroll-vs-drag hand-off; iOS
     left-edge back (`EdgeBack`); Spots/Conditions/More tab back goes to the Map tab; part step and upstream/downstream
     (▲/▼) keep one back; section highlight while scrolling the regs tabs; keyboard (search) vs sheets.
+  - Native colouring (T74, 2026-10-27; emulator: 0 grey frames in 49 sampled pan frames): on the phone, pan and fling
+    at z9–z13 and say whether any water shows plain/grey before its colour (`EXPO_PUBLIC_COLOUR_PROBE=1` logs
+    `T74PROBE` lines per pan for the numbers); the gauge reading's pill (not seen on the emulator); the five hatches;
+    "At my location" (asks on the tap, then drops the pin where you stand); a theme switch keeps the hatches.
 - **Sign-off walk** at the end (T87) before app/design is deleted.

@@ -1,10 +1,9 @@
 /**
- * The route map's colouring, whole (`routeColour.ts`): the chain as the engine's classes, its values in ramp units,
- * and the pushed form a phone takes — the same numbers.
+ * The route map's colouring, whole (`routeColour.ts`): the chain as the engine's classes, its values in ramp units.
  */
 import { describe, expect, it } from "vitest";
 import type { SectionId } from "@app/data";
-import { pushedRoute, routeLabels, routeValues } from "./routeColour";
+import { routeLabels, routeValues } from "./routeColour";
 
 const sid = (n: number) => n as SectionId;
 
@@ -20,11 +19,5 @@ describe("the route map's colouring", () => {
     const v = routeValues(l, new Map([[sid(5), 0.25], [sid(2), -0.01]]))!;
     expect([0, 1, 2, 3].map((k) => v.section(k))).toEqual([25, NaN, -1, NaN]);
     expect(v.basins).toEqual({});
-  });
-
-  it("the pushed form: the values once, for every per-section layer (`sections`, T124)", () => {
-    expect(pushedRoute(new Map([[sid(5), 0.25], [sid(2), -0.01]]))).toEqual({
-      sections: { 5: { standing: 25 }, 2: { standing: -1 } },
-    });
   });
 });

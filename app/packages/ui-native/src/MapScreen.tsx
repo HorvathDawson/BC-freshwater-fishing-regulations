@@ -21,7 +21,7 @@ const HORIZON_HIT = hitProps({ w: 46, h: 33 });
 
 export function MapScreen({ at, palette, theme, view, modes, groups, hide, show, camera,
                             onLayers, layersChanged = 0, onLongPress, onPressFeature, onMoved, onMapPoint, horizons,
-                            highlight, marker, pins, data, status, standing, lakes, salmon, gauges, onVisible, onError,
+                            highlight, marker, pins, status, standing, lakes, salmon, gauges, onVisible, onError,
                             fit, basemap, onImageryError, water, waterLine, selection, marks, onPressMark, spots,
                             insetTop = 0, onRegion }: {
   at: TileEndpoints; palette: Palette; theme: string; view: string;
@@ -47,8 +47,6 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
   /** A water's boundary marks (P15) — see MapProps.marks. */
   marks?: MapProps["marks"];
   onPressMark?: MapProps["onPressMark"];
-  /** Per-feature values a colour mode reads. The map's own channel — see MapProps.data. */
-  data?: Record<string, Record<string, Record<string, unknown>>>;
   /** The day's status, on a proven pair only — see MapProps.status. */
   status?: MapProps["status"];
   /** The Conditions standings, labelled per tile, on a proven pair only — see MapProps.standing. */
@@ -97,7 +95,7 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
       <Map at={at} theme={theme} view={view} modes={modes} groups={groups} hide={hide} show={show}
            initial={camera}
            onPressFeature={onPressFeature} onMoved={onMoved} onMapPoint={onMapPoint} onLongPress={onLongPress}
-           highlight={highlight} pins={pins} spots={spots} insetTop={insetTop} water={water} waterLine={waterLine} selection={selection} marks={marks} onPressMark={onPressMark} marker={marker} data={data} status={status} standing={standing} lakes={lakes} salmon={salmon}
+           highlight={highlight} pins={pins} spots={spots} insetTop={insetTop} water={water} waterLine={waterLine} selection={selection} marks={marks} onPressMark={onPressMark} marker={marker} status={status} standing={standing} lakes={lakes} salmon={salmon}
            gauges={gauges}
            onVisible={onVisible} onError={onError} fit={fit} basemap={basemap} onImageryError={onImageryError}
            onRegion={onRegion} />

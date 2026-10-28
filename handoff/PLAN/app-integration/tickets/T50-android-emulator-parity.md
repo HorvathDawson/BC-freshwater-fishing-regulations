@@ -72,3 +72,12 @@ Native and web run the SAME gesture code (ui-native: ViewSwipe, EdgeBack, Sheet 
 all pass (114 tests). Nothing found to change without a device. Left for the emulator/phone walk: step 4 (back table
 via `adb input keyevent 4` and the edge gesture), view-swipe vs system edge gesture on a real device, sheet pan vs
 scroll hand-off, predictive back (manifest has `enableOnBackInvokedCallback=false`; judge before enabling).
+
+
+## T74 (2026-10-27)
+Native now colours through the web's engine (the pushed path is gone), so the parity walk compares like with like.
+Emulator dev setup that worked: `scripts/heavy.sh … session.sh` boots `n1_pixel`, `expo run:android --port 8093` with
+`adb reverse tcp:8081 tcp:8093`; if adb lists a stale OFFLINE emulator beside the new one ("more than one device"),
+`adb kill-server` first; `--device emulator-5556` is refused by expo (it wants the AVD name). After a `pnpm patch-commit`
+Metro must be restarted (it served stale JS). Location: `adb emu geo fix <lon> <lat>`. Found: place search "Vedder
+Crossing" → "Could not read what is near this town" on native.

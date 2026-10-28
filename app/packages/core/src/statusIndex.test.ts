@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { FIXTURE as fixture } from "./statusIndex.fixture";
 import { accessOf } from "./access";
-import { dayProfiles, mapStatusOn, NO_ACCESS_PROFILE, profileLabel, statusOfCode, statusOn, UNLISTED_PROFILE,
+import { dayProfiles, NO_ACCESS_PROFILE, profileLabel, statusOfCode, statusOn, UNLISTED_PROFILE,
          waterStatusOn } from "./status";
 import { readingDayOf, decodeStatusIndex, StatusIndexError, type StatusIndex } from "./statusIndex";
 import { CALENDAR_CASES, weekdayOf } from "./calendar.generated";
@@ -198,13 +198,8 @@ describe("profile labels and the day's label sets", () => {
     expect([3, 5, 6, 7, 4].map((s) => profileLabel(withAccess, s))).toEqual(["n", "p2", "b", "n", "p1"]);
     const sets = dayProfiles(withAccess, new Date(2026, 0, 1));
     expect(sets.no_access).toEqual([NO_ACCESS_PROFILE]);
-    // what the pushed-data map draws is the same answer; the regulation answer (`statusOn`) is untouched
-    expect([3, 5, 6, 7].map((s) => mapStatusOn(withAccess, s, new Date(2026, 0, 1))))
-      .toEqual(["no_access", "own", "base", "no_access"]);
+    // the regulation answer (`statusOn`) is untouched
     expect([3, 7].map((s) => statusOn(withAccess, s, new Date(2026, 0, 1)))).toEqual(["closed", "base"]);
-    // no access table: nothing is no access
-    expect(mapStatusOn(ix, 3, new Date(2026, 0, 1))).toBe("closed");
-    expect(mapStatusOn(null, 3, new Date())).toBeNull();
   });
 
   it("refuses a profile the file does not have rather than reading past its tables", () => {

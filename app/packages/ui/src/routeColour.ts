@@ -3,15 +3,13 @@
  * read and its gauges, each coloured by its own standing — through the SAME engine as the whole map (owner 2026-10-21:
  * "it should be a single pathway ideally"; engine polish).
  *
- *   per-tile (web)   `standing`, the engine's standing channel with the route as its classes: a chain section's class is
- *                    its place on the chain, every other section has none (so the engine leaves it unlabelled — the
- *                    route's filter is the labelling itself). A horizon or quantity change is new `values` over the SAME
- *                    labels: the engine relabels the loaded route sections, feature-state only.
- *   otherwise        `data`: the same values pushed (the native map, which has no engine yet — colour-latency README,
- *                    "Native").
+ * `standing`, the engine's standing channel with the route as its classes: a chain section's class is its place on the
+ * chain, every other section has none (so the engine leaves it unlabelled — the route's filter is the labelling
+ * itself). A horizon or quantity change is new `values` over the SAME labels: the engine relabels the loaded route
+ * sections, feature-state only. Both renderers colour per tile (T74).
  *
  * The values are `usePanelStandings` over the chain (`sectionStanding`, the one arithmetic) in the ramp's units, so the
- * two renderers cannot colour a reach differently, and neither can differ from the whole map.
+ * route cannot colour a reach differently from the whole map.
  */
 import type { Horizon, SectionId } from "@app/data";
 
@@ -49,10 +47,8 @@ export interface RouteValues {
 }
 
 export interface RouteColourVM {
-  /** Per-tile maps (`MapProps.standing`). Null on a pushed-data map. */
-  standing: { labels: RouteLabels; values: RouteValues | null } | null;
-  /** Pushed-data maps (`MapProps.data`): the chain's standings on every section (`sections`). Empty on a per-tile map. */
-  data: Record<string, Record<string, Record<string, unknown>>>;
+  /** What the route map is handed (`MapProps.standing`). */
+  standing: { labels: RouteLabels; values: RouteValues | null };
 }
 
 /** The chain as classes. A new object only for a new chain: a horizon change keeps the labels, so nothing is cleared. */
@@ -74,13 +70,4 @@ export function routeValues(labels: RouteLabels, standings: ReadonlyMap<SectionI
     },
     basins: {},
   };
-}
-
-/**
- * The pushed path's data: every chain section's standing, on every per-section layer — `sections` is @app/map's
- * `SECTION_DATA`, which the map fans out to `perSectionLayers()` (T124). It named `stream` and `lake` here, so a
- * slough drawn as a wetland polygon in the chain stayed uncoloured on the route while the standings coloured it.
- */
-export function pushedRoute(standings: ReadonlyMap<SectionId, number>, horizon: Horizon = 0): RouteColourVM["data"] {
-  return { sections: Object.fromEntries([...standings].map(([s, p]) => [s, { standing: toRamp(p, horizon) }])) };
 }

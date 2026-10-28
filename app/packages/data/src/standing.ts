@@ -17,7 +17,7 @@
  * answer from the sheet's for most of them.
  *
  * ONE ARITHMETIC (AGENTS 23, rule 25): `sectionStanding` is the only place a standing is read off a panel or a lake
- * station; the viewport path (`usePanelStandings`, the native map's) and the class path both call it, so the map and the
+ * station; the route map's path (`usePanelStandings`) and the class path both call it, so the map and the
  * sheet cannot disagree. `conformance/src/release.test.ts` holds every class value to the sheet's own answer
  * (`answerFrom`) for every section of the fixture release, on both readers, at every horizon and quantity.
  *

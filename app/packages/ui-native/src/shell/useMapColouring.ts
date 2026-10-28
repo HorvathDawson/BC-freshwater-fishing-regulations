@@ -4,13 +4,12 @@
  */
 import { chooseLayer, chooseShow, layersVM, withImageryCredit, type SectionKey } from "@app/core";
 import { useCallback, useMemo, useState } from "react";
-import { Platform } from "react-native";
 import type { GaugeFeed, WaterSource, SectionId } from "@app/data";
 import { useMapModes, useLayerChoice, type BrowseTab, type FlowParam, type LayerStore } from "@app/ui";
 import { useConditionsColour, useGaugeGeoJSON, useLakeColour, lakeModesReady, lakeValuesCarried, usePairing,
          useStatusIndex, statusFeed, useHorizon, useHorizonPick, flowHorizon, horizonChips, useImageryReach,
-         salmonData, useRegsLayer, useSalmonColour, type PairingInput, type RegsLayer, type StatusSource } from "@app/ui";
-import { FIELD_HANDOVER_Z, type Camera, type TileEndpoints, coloursEachTile, imageryTiles } from "@app/map";
+         useRegsLayer, useSalmonColour, type PairingInput, type RegsLayer, type StatusSource } from "@app/ui";
+import { FIELD_HANDOVER_Z, type Camera, type TileEndpoints, imageryTiles } from "@app/map";
 import { connectivity } from "../connectivity";
 import { imageryProbe } from "../imageryProbe";
 
@@ -102,11 +101,8 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
    */
   const statusIndex = useStatusIndex(status);
   const statusOk = statusIndex !== null && paired;
-  /** Whether this platform's map colours each tile itself (`profile`, web) or takes pushed data (`status`, native):
-   *  the split is described once, in @app/map `colouring.ts`. */
-  const perTile = coloursEachTile(Platform.OS);
   // THE LAKE MODES' VALUES (Stocked, Depth): the release's lake facts, labelled per tile by the same engine
-  const lakeFeed = useLakeColour({ source, perTile, paired, today: new Date() });
+  const lakeFeed = useLakeColour({ source, paired, today: new Date() });
   // PREPARED, NOT FED (owner 2026-10-21): a lake mode with no values in the release is greyed in Layers and drawn plain
   const lakeReady = useMemo(() => lakeModesReady(lakeFeed), [lakeFeed]);
   /*
@@ -153,42 +149,34 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
   const [regsLayer, setRegsLayer] = useRegsLayer();
   const salmon = useSalmonColour({ source, paired, statusOk, mapTab: mapTab === "map", day: mapDay });
   const salmonOffered = salmon.feed !== null && layers.effective.water === "regulations";
-  const mm = useMapModes({ tab: mapTab, flowParam, horizon, zoomedOut, paired, statusOk, perTile,
+  const mm = useMapModes({ tab: mapTab, flowParam, horizon, zoomedOut, paired, statusOk,
                            water: layers.effective.water, groups: layers.effective.groups,
                            basemap: layers.effective.basemap, imageryUp: imagery.up,
                            salmon: salmonOffered && regsLayer === "salmon" });
   // Esri's credit is listed exactly while its imagery is drawn (the map's own control does the same from the style)
   const credits = useMemo(() => attribution && withImageryCredit(attribution, mm.basemap), [attribution, mm.basemap]);
   /*
-   * THE CONDITIONS COLOURING, per renderer (`useConditionsColour`): on a map that labels each tile, the release's
-   * classes and the feed's values at the horizon (`standing` — one engine call per feed refresh or horizon change);
-   * otherwise the visible sections' standings, pushed (`data`). Both FROM THE PANEL, through one arithmetic.
+   * THE CONDITIONS COLOURING (`useConditionsColour`): the release's classes and the feed's values at the horizon
+   * (`standing` — one engine call per feed refresh or horizon change), labelled per tile by both renderers.
    */
-  const cond = useConditionsColour({ source, feed, perTile, paired, onConditions: mm.onConditions,
-                                     quantity: mm.standingParam, horizon: mm.standingHorizon, fieldOn: mm.fieldOn,
-                                     visible, epoch });
+  const cond = useConditionsColour({ source, feed, paired, onConditions: mm.onConditions,
+                                     quantity: mm.standingParam, horizon: mm.standingHorizon, visible, epoch });
   // the dots: the Conditions map's, while its Gauges switch is on (off, the roster is not even asked), at the horizon
   // the rivers are coloured for (T126: a dot under +5 says +5, not now)
   const gauges = useGaugeGeoJSON(source, feed, mm.onConditions && layers.effective.layers.gauges === true, mm.quantity,
                                  mm.standingHorizon);
   /*
-   * THE DAY'S STATUS, ONLY on a proven pair with an index that matched (`statusOk`), and the way this platform's map
-   * takes it (`statusFeed`): the web map is handed the index and the day and labels each tile as it arrives
-   * (colour-latency AP — no `idle`, no round trip through here per pan); the native map is pushed the visible
-   * sections' status as `data` (N2 reads only that, in the `status` mode — colour-ap review).
+   * THE DAY'S STATUS, ONLY on a proven pair with an index that matched (`statusOk`) (`statusFeed`): the map is handed
+   * the index and the day and labels each tile as it arrives (colour-latency AP — no `idle`, no round trip through
+   * here per pan).
    */
-  const salmonDrawn = salmonOffered && regsLayer === "salmon";
-  const { status: mapStatus, data: statusMapData } = useMemo(() => {
-    const f = statusFeed({ perTile, statusOk, index: statusIndex, tab: mapTab, visible, day: mapDay ?? new Date() });
-    // (T211) the phone's pushed colours follow the painted regulations: DFO's salmon for the visible sections
-    return !perTile && salmonDrawn && mapTab === "map"
-      ? { ...f, data: salmonData(salmon.facts, visible, mapDay ?? new Date()) } : f;
-  }, [perTile, statusOk, statusIndex, mapTab, visible, mapDay, salmonDrawn, salmon.facts]);
-  // the web map labels each tile with the salmon chains on the Map tab whatever the toggle says (instant toggle)
-  const salmonFeed = perTile && mapTab === "map" ? salmon.feed : null;
+  const mapStatus = useMemo(() => statusFeed({ statusOk, index: statusIndex, day: mapDay ?? new Date() }),
+                            [statusOk, statusIndex, mapDay]);
+  // the map labels each tile with the salmon chains on the Map tab whatever the toggle says (instant toggle)
+  const salmonFeed = mapTab === "map" ? salmon.feed : null;
   return { noteVisible, setZoomedOut, vintage, mixedPair, unproven, statusIndex, statusOk, lakeFeed, imagery, layers,
            flowParam, horizon, horizonChipsShown, setFlowParam, pickDay, onChooseLayer, mm, credits, cond, gauges,
-           mapStatus, statusMapData, salmonFeed, salmonOffered, regsLayer: salmonOffered ? regsLayer : "standard" as RegsLayer,
+           mapStatus, salmonFeed, salmonOffered, regsLayer: salmonOffered ? regsLayer : "standard" as RegsLayer,
            setRegsLayer, salmonFacts: salmon.facts };
 }
 

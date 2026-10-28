@@ -78,7 +78,7 @@ const placeMid = (b: readonly [number, number, number, number] | null | undefine
   (b ? { lon: (b[0] + b[2]) / 2, lat: (b[1] + b[3]) / 2 } : null);
 
 export function DonorPanel({ palette, value, day, at, theme, from, selected, onSelect,
-                             horizon = 0, onHorizon, chain: chainProp, data, standing,
+                             horizon = 0, onHorizon, chain: chainProp, standing,
                              detail, chart, foot, quantity, sides, count, waterLine, place }: {
   palette: Palette; value: PanelAnswer;
   /**
@@ -107,8 +107,7 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
    * and the feed); derived from the routes otherwise.
    */
   chain?: readonly SectionKey[];
-  /** The route's colours: pushed (`data`, a phone) or through the engine (`standing`, the web) — `routeColour.ts`. */
-  data?: Record<string, Record<string, Record<string, unknown>>>;
+  /** The route's colours, through the engine's standing channel — `routeColour.ts`. */
   standing?: MapProps["standing"];
   /** How far ahead this estimate is for — 0 is now. Only the WORDS change for a forecast. */
   horizon?: Horizon;
@@ -291,7 +290,7 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
           <View style={{ marginBottom: SPACE.s2 }}>
             <DonorMap vm={map} at={at} theme={theme} palette={palette} toneOf={toneOf}
                       height={mapH} larger={larger} onLarger={setLarger}
-                      highlight={chainProp ?? map.chain} data={data} standing={standing}
+                      highlight={chainProp ?? map.chain} standing={standing}
                       waterLine={waterLine?.length ? { sections: waterLine, at: from ?? placeMid(place) } : undefined} />
           </View>
         )}

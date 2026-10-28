@@ -1,10 +1,10 @@
 /**
- * THE PANEL READS: every panel fetched once per section through one cache, handed to the arithmetic — the map's
- * standings (`usePanelStandings`, `useBasinStandings`) and the sheet's answer (`usePanel`, `useSpeaker`,
+ * THE PANEL READS: every panel fetched once per section through one cache, handed to the arithmetic — the route map's
+ * standings (`usePanelStandings`) and the sheet's answer (`usePanel`, `useSpeaker`,
  * `usePanelRoutes`) are one calculation over different numbers of sections.
  */
 import { useMemo } from "react";
-import { answerFrom, basinStandings, sectionStanding, speakerFor, type BasinMember, type Horizon, type Panel,
+import { answerFrom, sectionStanding, speakerFor, type Horizon, type Panel,
          type PanelAnswer, type Quantity, type WaterSource, type SectionId, type Speaker } from "@app/data";
 import { useAsync, type Async } from "../async";
 
@@ -124,8 +124,8 @@ export function usePanelStandings(
        * must stay grey rather than borrow its own stage under a flow legend.
        */
       /*
-       * ONE QUANTITY, THE READER'S, and ONE READING (`sectionStanding` in @app/data): the per-tile class path the web map
-       * takes computes its values with the same function, so the two maps cannot colour a section differently. A panel
+       * ONE QUANTITY, THE READER'S, and ONE READING (`sectionStanding` in @app/data): the class path the whole map takes
+       * computes its values with the same function, so the route and the map cannot colour a section differently. A panel
        * wins over a lake station; a gauged lake with nothing to say today is the sentinel, not absence.
        */
       for (const section of new Set<SectionId>([...lakes.keys(), ...panels.keys()])) {
@@ -139,56 +139,6 @@ export function usePanelStandings(
   );
   const none = useMemo(() => new Map<SectionId, number>(), []);
   return got.state === "ready" ? got.value : none;
-}
-
-/**
- * THE PROVINCE AS A FIELD — one value per catchment, for z4–8.
- *
- * ONE PATHWAY WITH THE RIVERS. It reads the same feed index through the same `reading`
- * function, in the same quantity and at the same horizon, so a catchment and the river
- * inside it cannot disagree about what the water is doing. That was the failure worth
- * designing against: two joins to one feed is how the map and the sheet ended up answering
- * differently for the Harrison.
- *
- * WHAT IT DOES NOT SHARE is the join, because the questions are different. A section asks a
- * donor PANEL — several gauges of comparable catchment, weighted by measured error. A
- * catchment asks the one station that measures it or the one measuring the country it
- * drains into, and reports how far that reading travelled. Running the panel arithmetic
- * over a basin would give the field a precision it has not got.
- *
- * THE WHOLE TABLE, ONCE. 9,642 rows, cached for the session like the panels: a viewport at
- * z5 is a third of the province, so scoping it to the view would re-read most of it on
- * every pan to save nothing.
- */
-export function useBasinStandings(
-  source: WaterSource,
-  feed: { index(): Promise<Index> } | undefined,
-  enabled: boolean,
-  quantity: Quantity = "discharge",
-  horizon: Horizon = 0,
-): ReadonlyMap<string, number> {
-  const got = useAsync(
-    async (): Promise<ReadonlyMap<string, number>> => {
-      if (!feed) return new Map<string, number>();
-      const [basins, idx] = await Promise.all([cachedBasins(source), feed.index()]);
-      /*
-       * EVERY GAUGE IN THE GROUP (`basinStanding`), and a group with nothing to say LEFT OUT rather than marked with
-       * the sentinel — `basinStandings` in @app/data, the one reading the web map's per-tile path computes its field with.
-       */
-      return basinStandings(basins, idx, quantity, horizon);
-    },
-    `basins:${quantity}:${horizon}:${enabled}`,
-    enabled && feed !== undefined,
-  );
-  const none = useMemo(() => new Map<string, number>(), []);
-  return got.state === "ready" ? got.value : none;
-}
-
-/** The station-per-catchment table, read once. It comes from the bundle and cannot change. */
-let basinCache: ReadonlyMap<string, readonly BasinMember[]> | null = null;
-async function cachedBasins(source: WaterSource) {
-  if (basinCache === null) basinCache = await source.basinMembers();
-  return basinCache;
 }
 
 /** The panel for one section, joined against today's readings. */

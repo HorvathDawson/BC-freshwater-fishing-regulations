@@ -34,7 +34,7 @@ export function WaterModeHost({ frame, nav, col, source, palette, loader, tiles,
 }) {
   const { go, back, opener } = nav;
   const item: ItemId | null = nav.item;
-  const { flowParam, setFlowParam, credits, horizon, pickDay, mm, statusMapData, mapStatus, noteVisible } = col;
+  const { flowParam, setFlowParam, credits, horizon, pickDay, mm, mapStatus } = col;
   return frame.view === "conditions"
     // THE ONE CONDITIONS PANEL OF A SECTION, from either map (a frame with no item is an unnamed reach).
     ? <WaterConditions source={source} item={item} tapSid={frame.tapSid} palette={palette} loader={loader}
@@ -53,10 +53,10 @@ export function WaterModeHost({ frame, nav, col, source, palette, loader, tiles,
           {/* P15: the parts, lit and framed from the release; ▼ / ▲, marks, the mouth's exit */}
           <WaterMapView loader={loader} item={item} part={frame.part} tapSid={frame.tapSid} whole={frame.whole} palette={palette}
                         map={{ at: tiles, theme, camera: waterCamera.current ?? camera.current,
-                               basemap: mm.basemap, data: statusMapData, status: mapStatus, spots: spotLayer,
+                               basemap: mm.basemap, status: mapStatus, spots: spotLayer,
                                // T145: a tap off every spot clears the selected spot's pin, here as on the browse maps
                                onMapPoint: mapPointTap(rail, null),
-                               onVisible: noteVisible, onMoved: (at) => { waterCamera.current = at; },
+                               onMoved: (at) => { waterCamera.current = at; },
                                view: "plain", modes: mm.modes, groups: mm.activeGroups,
                                onError: (e) => console.error("map:", e.message) }}
                         // (T58) through the opener: the receiving water's lake areas known, a late answer dropped

@@ -86,7 +86,7 @@ describe("the basin/river handover", () => {
     a.setLayerMode(h, "lake", "standing", "light");
     expect({ stream: floor.stream, lake: floor.lake }).toEqual({ stream: 8, lake: 8 });
     a.setLayerMode(h, "basin", "plain", "light");
-    a.setLayerMode(h, "stream", "status", "light");
+    a.setLayerMode(h, "stream", "profile", "light");
     a.setLayerMode(h, "lake", "plain", "light");
     expect({ stream: floor.stream, lake: floor.lake }).toEqual({ stream: 0, lake: 0 });
   });

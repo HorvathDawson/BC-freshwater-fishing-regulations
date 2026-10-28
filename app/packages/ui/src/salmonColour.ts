@@ -11,7 +11,7 @@
  * The answer per chain and day was decided at deliver time (`pipeline/deliver/salmon.py`); nothing here reads a rule.
  */
 import { useMemo, useState } from "react";
-import { salmonMapStatusOn, type SalmonFacts, type SectionKey } from "@app/core";
+import type { SalmonFacts } from "@app/core";
 import type { WaterSource } from "@app/data";
 import { useAsync } from "./async";
 import { sourceKey } from "./conditionsColour";
@@ -43,14 +43,6 @@ export function useSalmonColour(i: { source: WaterSource; paired: boolean; statu
   const day = useMemo(() => i.day ?? new Date(), [dayKey]);
   const feed = useMemo(() => (f && i.paired ? { facts: f, day } : null), [f, day, i.paired]);
   return { feed, facts: f };
-}
-
-/** The pushed-data map's (native) Salmon values: every visible section's salmon status — the same chain and day. */
-export function salmonData(facts: SalmonFacts | null, visible: readonly SectionKey[], on: Date):
-    Record<string, Record<string, Record<string, unknown>>> {
-  const values: Record<string, Record<string, unknown>> = {};
-  for (const s of visible) values[String(s)] = { salmon: salmonMapStatusOn(facts, Number(s), on) };
-  return { sections: values };
 }
 
 /** The toggle's choice, kept for the session (Standard by default). */

@@ -7,9 +7,9 @@
 import { describe, expect, it } from "vitest";
 import { answerFrom, buildStandingClasses, sectionStanding, type PanelMember, type SectionId, type StationId } from "@app/data";
 import { codedChange, type RunChange, type SourceChange } from "@app/core";
-import { classMarks, pushedStandings, standingValues } from "./conditionsColour";
+import { classMarks, standingValues } from "./conditionsColour";
 import { changeChartModel, changeSpark, changeView, donorView, flowHorizon, horizonChips, pickHorizon } from "./panel";
-import { CHANGE_RAMP_BASE, pushedRoute, rampPosition, toRamp } from "./routeColour";
+import { CHANGE_RAMP_BASE, rampPosition, routeLabels, routeValues, toRamp } from "./routeColour";
 
 const st = (s: string) => s as StationId;
 const member = (station: string, areaKm2: number, role: "up" | "down" = "up"): PanelMember =>
@@ -101,13 +101,10 @@ describe("the Change values, through the one engine's standing channel", () => {
     expect(classMarks(CLASSES, v, [5, 7].map((s) => s as SectionId))).toEqual([0.75]);
   });
 
-  it("the pushed path and the route map carry the same offset values", () => {
-    const one = new Map([[5 as SectionId, 0.75]]);
-    expect(pushedStandings(one, new Map([["08MF", 0.25]]), "change")).toEqual({
-      sections: { 5: { standing: 275 } }, basin: { "08MF": { standing: 225 } } });
-    expect(pushedRoute(one, "change")).toEqual({ sections: { 5: { standing: 275 } } });
-    expect(pushedRoute(new Map([[5 as SectionId, -0.01]]), "change"))
-      .toEqual({ sections: { 5: { standing: NaN } } });
+  it("the route map carries the same offset values", () => {
+    const labels = routeLabels([5 as SectionId]);
+    expect(routeValues(labels, new Map([[5 as SectionId, 0.75]]), "change")!.section(0)).toBe(275);
+    expect(routeValues(labels, new Map([[5 as SectionId, -0.01]]), "change")!.section(0)).toBeNaN();
   });
 });
 

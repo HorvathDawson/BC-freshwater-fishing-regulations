@@ -129,16 +129,6 @@ export function dayProfiles(index: StatusIndex, on: Date): DayProfiles {
 }
 
 /**
- * WHAT THE MAP DRAWS a section in on a day: `no_access` for one mostly inside no-access land, else its status. The
- * pushed-data map (`statusData`, a renderer with no per-tile event) reads this; the per-tile map reads the same answer
- * through `profileLabel` + `dayProfiles`, so the two cannot disagree. Null when there is no index (not asked).
- */
-export function mapStatusOn(index: StatusIndex | null | undefined, section: SectionKey, on: Date): WaterStatus | null {
-  if (!index) return null;
-  return noPublicAccess(index.access, section) ? "no_access" : statusOn(index, section, on);
-}
-
-/**
  * A WATER'S STATUS ON A DAY — what a search row or a "water near a town" row wears. Its parts
  * rolled up by the pipeline: closed only when every part is, own when any part has a row of its
  * own, base otherwise. Null when there is no index (not asked).

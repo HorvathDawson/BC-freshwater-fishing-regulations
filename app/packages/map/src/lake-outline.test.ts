@@ -35,17 +35,6 @@ function painter() {
   return { h, paint };
 }
 
-/** The status colour: the day's status from feature-state, `water.unmapped` where none was pushed. */
-function statusExpr(theme: string): unknown {
-  const t = resolveTheme(theme);
-  return ["match", ["feature-state", "status"],
-          "closed", t["color.status.closed"],
-          "own", t["color.status.own"],
-          "base", t["color.status.base"],
-          "no_access", t["color.status.no_access"],              // T54: a lake mostly inside no-access land
-          t["color.water.unmapped"]];
-}
-
 /** The stocked colour, with the lake's own plain fill ("never", missing) replaced by the outline's neutral blue. */
 function stockedEdgeExpr(theme: string): unknown {
   const t = resolveTheme(theme);
@@ -70,13 +59,6 @@ function surveyedEdgeExpr(theme: string): unknown {
 describe("a lake's outline follows its fill", () => {
   it("the style names three followers: the lake's edge, the flow arrows their stream, the field's seam its basin", () => {
     expect(STYLE_META.follows).toEqual({ lake__edge: "lake", stream__arrows: "stream", basin__edge: "basin" });
-  });
-
-  it("status: the edge is painted from the SAME feature-state expression as the lake's status colour", () => {
-    for (const theme of themeNames()) {
-      expect(colorExpression("lake", "status", resolveTheme(theme)), theme).toEqual(statusExpr(theme));
-      expect(colorExpression("lake__edge", "status", resolveTheme(theme)), theme).toEqual(statusExpr(theme));
-    }
   });
 
   it("standing: the edge reads the lake's own flow ramp, whole", () => {
@@ -114,7 +96,6 @@ describe("a lake's outline follows its fill", () => {
 
 describe("setting the lake's mode paints its outline (both adapters, the contract itself)", () => {
   const cases: [string, (theme: string) => unknown][] = [
-    ["status", statusExpr],
     ["stocked", stockedEdgeExpr],
     ["surveyed", surveyedEdgeExpr],
     ["plain", (theme) => resolveTheme(theme)["color.water.mapped"]],
@@ -129,10 +110,10 @@ describe("setting the lake's mode paints its outline (both adapters, the contrac
         }
       });
 
-  it("leaving status for plain puts the neutral outline back", () => {
+  it("leaving stocked for plain puts the neutral outline back", () => {
     const { h, paint } = painter();
     const a = baseAdapter("web");
-    a.setLayerMode(h, "lake", "status", "light");
+    a.setLayerMode(h, "lake", "stocked", "light");
     a.setLayerMode(h, "lake", "plain", "light");
     expect(paint["lake__edge"]?.["line-color"]).toBe(resolveTheme("light")["color.water.mapped"]);
   });
@@ -142,7 +123,7 @@ describe("setting the lake's mode paints its outline (both adapters, the contrac
     const a = baseAdapter("web");
     a.setLayerMode(h, "lake", "plain", "light");
     const plainWidth = paint["lake__edge"]?.["line-width"];
-    a.setLayerMode(h, "lake", "status", "light");
+    a.setLayerMode(h, "lake", "stocked", "light");
     expect(paint["lake__edge"]?.["line-width"]).toEqual(plainWidth);
   });
 });
@@ -152,9 +133,8 @@ describe("the first frame: runtimeStyle paints the outline from the lake's mode"
     (runtimeStyle(AT, theme, modes).layers.find((l) => (l as { id: string }).id === "lake__edge") as unknown as
       { paint: Record<string, unknown> }).paint["line-color"];
 
-  it("status, stocked, depth and plain, light and dark", () => {
+  it("stocked, depth and plain, light and dark", () => {
     for (const theme of ["light", "dark"]) {
-      expect(edgeColour(theme, { lake: "status" }), theme).toEqual(statusExpr(theme));
       expect(edgeColour(theme, { lake: "stocked" }), theme).toEqual(stockedEdgeExpr(theme));
       expect(edgeColour(theme, { lake: "surveyed" }), theme).toEqual(surveyedEdgeExpr(theme));
       expect(edgeColour(theme, { lake: "plain" }), theme).toBe(resolveTheme(theme)["color.water.mapped"]);
@@ -163,7 +143,7 @@ describe("the first frame: runtimeStyle paints the outline from the lake's mode"
   });
 
   it("an edge named outright keeps what it was given", () => {
-    expect(edgeColour("light", { lake: "status", lake__edge: "plain" }))
+    expect(edgeColour("light", { lake: "stocked", lake__edge: "plain" }))
       .toBe(resolveTheme("light")["color.water.mapped"]);
   });
 });

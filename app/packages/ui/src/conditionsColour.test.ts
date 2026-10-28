@@ -1,11 +1,11 @@
 /**
- * THE CONDITIONS COLOURING'S VALUES (2026-10-21): what each renderer is handed, whole. The per-tile map's table is one
- * value per class in the ramp's units — and each class's value is exactly the standing a section of it gets on the
- * pushed path, through the one arithmetic (`sectionStanding`); the pushed path's data is what the Shell used to build.
+ * THE CONDITIONS COLOURING'S VALUES (2026-10-21): what the map is handed, whole. The table is one value per class in
+ * the ramp's units — and each class's value is exactly the standing a section of it gets from its own panel, through
+ * the one arithmetic (`sectionStanding`).
  */
 import { describe, expect, it } from "vitest";
 import { buildStandingClasses, sectionStanding, type PanelMember, type SectionId, type StationId } from "@app/data";
-import { classMarks, pushedStandings, standingValues } from "./conditionsColour";
+import { classMarks, standingValues } from "./conditionsColour";
 
 const st = (s: string) => s as StationId;
 const member = (station: string, areaKm2: number, role: "up" | "down" = "up"): PanelMember =>
@@ -56,12 +56,5 @@ describe("the per-tile path's values", () => {
   it("the legend's marks are the visible sections' values on the 0-1 scale, sentinels and nothing left out", () => {
     const v = { section: (k: number) => [-1, 31.5, 70][k] ?? NaN, basins: {} };
     expect(classMarks(CLASSES, v, [5, 6, 7, 8, 9].map((s) => s as SectionId))).toEqual([0.315, 0.315, 0.7]);
-  });
-});
-
-describe("the pushed path's data (the native map)", () => {
-  it("every visible section once, for every per-section layer (`sections`, T124), and the field, in the ramp units", () => {
-    expect(pushedStandings(new Map([[5 as SectionId, 0.25], [9 as SectionId, -0.01]]), new Map([["08MF", 0.5]])))
-      .toEqual({ sections: { 5: { standing: 25 }, 9: { standing: -1 } }, basin: { "08MF": { standing: 50 } } });
   });
 });

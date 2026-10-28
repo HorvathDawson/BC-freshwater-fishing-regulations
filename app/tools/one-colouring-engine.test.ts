@@ -10,9 +10,9 @@
  *   - the Shell reaches the Conditions colouring only through `useConditionsColour`, never the viewport hooks directly,
  *     and the lake modes' values only through `useLakeColour` (the release's lake facts; nothing in the tiles);
  *   - NOTHING PUSHES an engine key (status, standing, stocked, survey) to a map that labels its own tiles (engine
- *     polish, 2026-10-21): the web map refuses the engine's keys in `data` on every path into `setData`; each producer
- *     of pushed colours is reached only off `perTile`; and the Conditions route map (DonorMap → MiniMap) colours through
- *     the engine's standing channel.
+ *     polish, 2026-10-21): the web map refuses the engine's keys in `data` on every path into `setData`; no producer of
+ *     pushed colours is left in @app/ui (T74: both renderers colour per tile); and the Conditions route map
+ *     (DonorMap → MiniMap) colours through the engine's standing channel.
  *
  * Each assertion was checked to fail against the bypass it names (mutation runs recorded in the colour-latency README).
  */
@@ -42,17 +42,16 @@ const KEYS: Record<Channel, string> = {
 
 describe("one colouring engine", () => {
   it("every per-section value a colour mode reads is one an engine channel sets, or a known pushed key", () => {
-    // what each section-layer mode reads from feature-state — the profile, the standing and the lake facts are the
-    // engine's (the web map labels them per tile; the phone pushes `standing` and `status`); `status` is the phone's
-    // pushed day
+    // what each section-layer mode reads from feature-state — every one an engine channel's label (T74: the phone's
+    // pushed `status` / `salmon_status` modes are gone; both maps label per tile)
     const section = new Set(STYLE_META.highlightable.map((h) => h.id));
     const read: string[] = [];
     for (const [layer, modes] of Object.entries(STYLE_META.colorModes))
       for (const [name, m] of Object.entries(modes))
         if (section.has(layer) && m.scale !== "static") read.push(`${name}:${(m as { property: string }).property}`);
     expect([...new Set(read)].sort()).toEqual(
-      [`profile:${KEYS.status}`, `salmon:${KEYS.salmon}`, "salmon_status:salmon", `standing:${KEYS.standing}`,
-       "status:status", `stocked:${KEYS.stocked}`, `surveyed:${KEYS.survey}`]);
+      [`profile:${KEYS.status}`, `salmon:${KEYS.salmon}`, `standing:${KEYS.standing}`,
+       `stocked:${KEYS.stocked}`, `surveyed:${KEYS.survey}`]);
     expect(KEYS).toEqual({ status: "p", standing: "standing", stocked: "stocked", survey: "survey", salmon: "sp" });
   });
 
@@ -73,9 +72,9 @@ describe("one colouring engine", () => {
   });
 
   it("the web map REFUSES the engine's keys in pushed data, on every path into `setData`", () => {
-    // the refused keys are the channels' own, plus the phone's pushed day — never restated
+    // the refused keys are the channels' own, plus the removed pushed path's `status` — never restated
     // — the lake facts' `stocked` / `survey` included: a pushed lake value would be a second path to the same labels
-    // (T211) and the salmon's: its chain label, and the phone's pushed `salmon`
+    // (T211) and the salmon's: its chain label, and the removed pushed `salmon`
     expect(ENGINE_KEYS).toEqual([KEYS.status, KEYS.standing, "status", KEYS.stocked, KEYS.survey, KEYS.salmon, "salmon"]);
     const why: string[] = [];
     expect(withoutEngineKeys({ stream: { 1: { p: "p0", standing: 3, status: "open", other: 2 }, 2: { standing: 4 } },
@@ -90,29 +89,19 @@ describe("one colouring engine", () => {
     expect(src.match(/of Object\.entries\(withoutEngineKeys\(/g)?.length).toBe(sets);
   });
 
-  it("every producer of pushed colours is reached only off `perTile`; the per-tile map is pushed none", () => {
+  it("no producer of pushed colours is left: both renderers colour per tile (T74)", () => {
     const ui = (f: string) => read(`packages/ui/src/${f}`);
-    // the day's status: pushed only to a map that does not label its own tiles
+    // the day's status: the index and the day, never per-section values
     const index = { profileOf: () => null } as never;
-    expect(statusFeed({ perTile: true, statusOk: true, index, tab: "map", visible: [1, 2], day: new Date(2026, 0, 1) }))
-      .toEqual({ status: { index, day: new Date(2026, 0, 1) }, data: undefined });
-    expect(ui("mapModes.ts").match(/statusData\(/g)?.length).toBe(1);
-    // the whole map's standings
-    const cc = ui("conditionsColour.ts");
-    expect(cc).toContain("const pushed = !perTile && paired;");
-    expect(cc).toContain("const data = useMemo(() => (pushed ? pushedStandings(standings, basins, horizon) : {}),");
-    expect(cc.match(/pushedStandings\(/g)?.length).toBe(2);         // its definition, and that one call
-    // the route map's standings
-    const panel = ui("panel/conditions.ts");
-    expect(panel).toContain("const route = useMemo<RouteColourVM>(() => (perTile\n"
-      + "    ? { standing: { labels, values: routeValues(labels, standings, horizon) }, data: {} }\n"
-      + "    : { standing: null, data: pushedRoute(standings, horizon) }), [perTile, labels, standings, horizon]);");
-    expect(panel.match(/pushedRoute\(/g)?.length).toBe(1);
-    // and the sheet tells the route which renderer it is on, handing the map both halves of one choice
+    expect(statusFeed({ statusOk: true, index, day: new Date(2026, 0, 1) })).toEqual({ index, day: new Date(2026, 0, 1) });
+    for (const f of ["mapModes.ts", "conditionsColour.ts", "panel/conditions.ts", "routeColour.ts", "salmonColour.ts",
+                     "lakeColour.ts", "hooks/facts.ts"])
+      expect([f, ui(f).match(/perTile|statusData|salmonData|pushedStandings|pushedRoute|useBasinStandings/g)])
+        .toEqual([f, null]);
+    // the route map colours through the engine's standing channel, never pushed `data`
     const sheet = read("packages/ui-native/src/ConditionsPanel.tsx");
-    expect(sheet).toContain("perTile: coloursEachTile(Platform.OS)");
-    expect(sheet).toContain("data={vm.route.data} standing={vm.route.standing}");
-    expect(sheet).not.toMatch(/routeData/);
+    expect(sheet).toContain("standing={vm.route.standing}");
+    expect(sheet).not.toMatch(/route\.data|routeData|coloursEachTile/);
     for (const f of ["DonorPanel.tsx", "DonorMap.tsx", "MiniMap.tsx"])
       expect([f, read(`packages/ui-native/src/${f}`).includes("standing={standing}")]).toEqual([f, true]);
   });

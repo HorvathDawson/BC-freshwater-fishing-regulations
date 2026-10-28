@@ -651,34 +651,6 @@
         },
         "$comment": "The PERCENTILE for this day of year, not the discharge: 15.7 m3/s is a flood on one creek and a drought on another.  STOPS SIT AT THE PERCENTILES THEY NAME. Even sixths gave half the ramp to the outer tenths, where almost nothing ever sits, and squeezed 'normal' — the middle half of the record — into one step. Now 25..75 is half the scale, which is what it is.  EVERY STOP IS MID-DARK. The ramp used to pass through a sandy beige a shade off the basemap's own paper, so the middle of the scale vanished over land; a ramp for a map may not contain the ground's colour.  `missing` is water.ungauged, a faint grey: most reaches have no gauge entitled to speak for them, and that is not the same as a rule we could not parse, nor the same claim as water.unmapped, which is about the atlas rather than about measurement.\n\nTHE -1 SENTINEL IS NO LONGER A COLOUR. \"Measured here, but nothing to compare it to\" was a purple on a sequential ramp — where every other colour means a position between low and high, and that one means the axis does not exist here. It is now the same neutral grey as water nothing speaks for, and the difference is carried by a DASH: `stream-nobaseline` in runtime-style.ts, its own layer because `line-dasharray` cannot be varied per feature. A dash reads as provisional without competing for a place on the scale, and it survives a colour-blind palette."
       },
-      "status": {
-        "label": "Status for the date",
-        "scale": "categorical",
-        "property": "status",
-        "enum": "water_status",
-        "categories": {
-          "closed": {
-            "token": "color.status.closed"
-          },
-          "own": {
-            "token": "color.status.own"
-          },
-          "base": {
-            "token": "color.status.base"
-          },
-          "no_access": {
-            "token": "color.status.no_access"
-          }
-        },
-        "missing": {
-          "token": "color.water.unmapped"
-        },
-        "data": {
-          "provider": "status",
-          "field": "status"
-        },
-        "$comment": "The three statuses of @app/core `WATER_STATUS`, in its own tokens, so a search row's dot and this line cannot disagree. `missing` is NOT base: every section on screen is pushed a status, base included (`statusData`), so `missing` is only a section with no freshwater status (tidal, outside B.C.) or one not yet asked, and it wears the neutral `water.unmapped` grey rather than an answer (tools/no-data-is-not-an-answer.test.ts). The three hues are their OWN tokens (`status.*`), never the plain map's `water.mapped`, so this mode can be recoloured without the plain map moving. Every status draws at the line's own width: colour alone carries it, held for every reader by tools/water-status-cvd.test.ts."
-      },
       "profile": {
         "label": "Status for the date",
         "scale": "profile",
@@ -734,34 +706,6 @@
           "field": "profile"
         },
         "$comment": "(T211) THE SALMON COLOURING, the fast way — the `profile` mode's engine, its own channel: feature-state `sp` holds the section's DFO CHAIN label (`s<chain>`, @app/core `salmonLabel`, fixed for the release), set as each tile arrives; the DAY lives in the paint as one match over the chain labels (`salmonDayProfiles`). Toggling Standard / Salmon is one paint change per layer: no fetch, no relabel. A section DFO does not list reads the UNLISTED chain (closed to salmon fishing, owner 2026-10-27) — an answer, not `missing`; `missing` is only a section not labelled yet. Its own tokens (`salmon.*`), never the provincial `status.*`, so the two colourings read apart."
-      },
-      "salmon_status": {
-        "label": "Salmon for the date",
-        "scale": "categorical",
-        "property": "salmon",
-        "enum": "salmon_status",
-        "categories": {
-          "open": {
-            "token": "color.salmon.open"
-          },
-          "release": {
-            "token": "color.salmon.release"
-          },
-          "closed": {
-            "token": "color.salmon.closed"
-          },
-          "check": {
-            "token": "color.salmon.check"
-          }
-        },
-        "missing": {
-          "token": "color.water.unmapped"
-        },
-        "data": {
-          "provider": "salmon",
-          "field": "status"
-        },
-        "$comment": "(T211) The Salmon colouring on a map with no per-tile event (native): each visible section's `salmon` pushed (@app/ui `salmonData`, from the same chain and day as `salmon`), so the two renderers cannot disagree."
       }
     },
     "lake": {
@@ -920,34 +864,6 @@
           "field": "survey"
         }
       },
-      "status": {
-        "label": "Status for the date",
-        "scale": "categorical",
-        "property": "status",
-        "enum": "water_status",
-        "categories": {
-          "closed": {
-            "token": "color.status.closed"
-          },
-          "own": {
-            "token": "color.status.own"
-          },
-          "base": {
-            "token": "color.status.base"
-          },
-          "no_access": {
-            "token": "color.status.no_access"
-          }
-        },
-        "missing": {
-          "token": "color.water.unmapped"
-        },
-        "data": {
-          "provider": "status",
-          "field": "status"
-        },
-        "$comment": "The three statuses of @app/core `WATER_STATUS`, in its own tokens, so a search row's dot and this line cannot disagree. `missing` is NOT base: every section on screen is pushed a status, base included (`statusData`), so `missing` is only a section with no freshwater status (tidal, outside B.C.) or one not yet asked, and it wears the neutral `water.unmapped` grey rather than an answer (tools/no-data-is-not-an-answer.test.ts). The three hues are their OWN tokens (`status.*`), never the plain map's `water.mapped`, so this mode can be recoloured without the plain map moving. Every status draws at the line's own width: colour alone carries it, held for every reader by tools/water-status-cvd.test.ts."
-      },
       "profile": {
         "label": "Status for the date",
         "scale": "profile",
@@ -1003,34 +919,6 @@
           "field": "profile"
         },
         "$comment": "(T211) THE SALMON COLOURING, the fast way — the `profile` mode's engine, its own channel: feature-state `sp` holds the section's DFO CHAIN label (`s<chain>`, @app/core `salmonLabel`, fixed for the release), set as each tile arrives; the DAY lives in the paint as one match over the chain labels (`salmonDayProfiles`). Toggling Standard / Salmon is one paint change per layer: no fetch, no relabel. A section DFO does not list reads the UNLISTED chain (closed to salmon fishing, owner 2026-10-27) — an answer, not `missing`; `missing` is only a section not labelled yet. Its own tokens (`salmon.*`), never the provincial `status.*`, so the two colourings read apart."
-      },
-      "salmon_status": {
-        "label": "Salmon for the date",
-        "scale": "categorical",
-        "property": "salmon",
-        "enum": "salmon_status",
-        "categories": {
-          "open": {
-            "token": "color.salmon.open"
-          },
-          "release": {
-            "token": "color.salmon.release"
-          },
-          "closed": {
-            "token": "color.salmon.closed"
-          },
-          "check": {
-            "token": "color.salmon.check"
-          }
-        },
-        "missing": {
-          "token": "color.water.unmapped"
-        },
-        "data": {
-          "provider": "salmon",
-          "field": "status"
-        },
-        "$comment": "(T211) The Salmon colouring on a map with no per-tile event (native): each visible section's `salmon` pushed (@app/ui `salmonData`, from the same chain and day as `salmon`), so the two renderers cannot disagree."
       }
     },
     "lake_flowing": {
@@ -1134,34 +1022,6 @@
         },
         "$comment": "The PERCENTILE for this day of year, not the discharge: 15.7 m3/s is a flood on one creek and a drought on another.  STOPS SIT AT THE PERCENTILES THEY NAME. Even sixths gave half the ramp to the outer tenths, where almost nothing ever sits, and squeezed 'normal' — the middle half of the record — into one step. Now 25..75 is half the scale, which is what it is.  EVERY STOP IS MID-DARK. The ramp used to pass through a sandy beige a shade off the basemap's own paper, so the middle of the scale vanished over land; a ramp for a map may not contain the ground's colour.  `missing` is water.ungauged, a faint grey: most reaches have no gauge entitled to speak for them, and that is not the same as a rule we could not parse, nor the same claim as water.unmapped, which is about the atlas rather than about measurement.\n\nTHE -1 SENTINEL IS NO LONGER A COLOUR. \"Measured here, but nothing to compare it to\" was a purple on a sequential ramp — where every other colour means a position between low and high, and that one means the axis does not exist here. It is now the same neutral grey as water nothing speaks for, and the difference is carried by a DASH: `stream-nobaseline` in runtime-style.ts, its own layer because `line-dasharray` cannot be varied per feature. A dash reads as provisional without competing for a place on the scale, and it survives a colour-blind palette."
       },
-      "status": {
-        "label": "Status for the date",
-        "scale": "categorical",
-        "property": "status",
-        "enum": "water_status",
-        "categories": {
-          "closed": {
-            "token": "color.status.closed"
-          },
-          "own": {
-            "token": "color.status.own"
-          },
-          "base": {
-            "token": "color.status.base"
-          },
-          "no_access": {
-            "token": "color.status.no_access"
-          }
-        },
-        "missing": {
-          "token": "color.water.unmapped"
-        },
-        "data": {
-          "provider": "status",
-          "field": "status"
-        },
-        "$comment": "The three statuses of @app/core `WATER_STATUS`, in its own tokens, so a search row's dot and this line cannot disagree. `missing` is NOT base: every section on screen is pushed a status, base included (`statusData`), so `missing` is only a section with no freshwater status (tidal, outside B.C.) or one not yet asked, and it wears the neutral `water.unmapped` grey rather than an answer (tools/no-data-is-not-an-answer.test.ts). The three hues are their OWN tokens (`status.*`), never the plain map's `water.mapped`, so this mode can be recoloured without the plain map moving. Every status draws at the line's own width: colour alone carries it, held for every reader by tools/water-status-cvd.test.ts."
-      },
       "profile": {
         "label": "Status for the date",
         "scale": "profile",
@@ -1217,34 +1077,6 @@
           "field": "profile"
         },
         "$comment": "(T211) THE SALMON COLOURING, the fast way — the `profile` mode's engine, its own channel: feature-state `sp` holds the section's DFO CHAIN label (`s<chain>`, @app/core `salmonLabel`, fixed for the release), set as each tile arrives; the DAY lives in the paint as one match over the chain labels (`salmonDayProfiles`). Toggling Standard / Salmon is one paint change per layer: no fetch, no relabel. A section DFO does not list reads the UNLISTED chain (closed to salmon fishing, owner 2026-10-27) — an answer, not `missing`; `missing` is only a section not labelled yet. Its own tokens (`salmon.*`), never the provincial `status.*`, so the two colourings read apart."
-      },
-      "salmon_status": {
-        "label": "Salmon for the date",
-        "scale": "categorical",
-        "property": "salmon",
-        "enum": "salmon_status",
-        "categories": {
-          "open": {
-            "token": "color.salmon.open"
-          },
-          "release": {
-            "token": "color.salmon.release"
-          },
-          "closed": {
-            "token": "color.salmon.closed"
-          },
-          "check": {
-            "token": "color.salmon.check"
-          }
-        },
-        "missing": {
-          "token": "color.water.unmapped"
-        },
-        "data": {
-          "provider": "salmon",
-          "field": "status"
-        },
-        "$comment": "(T211) The Salmon colouring on a map with no per-tile event (native): each visible section's `salmon` pushed (@app/ui `salmonData`, from the same chain and day as `salmon`), so the two renderers cannot disagree."
       }
     },
     "not_fishing_water": {
@@ -1402,34 +1234,6 @@
         },
         "$comment": "The PERCENTILE for this day of year, not the discharge: 15.7 m3/s is a flood on one creek and a drought on another.  STOPS SIT AT THE PERCENTILES THEY NAME. Even sixths gave half the ramp to the outer tenths, where almost nothing ever sits, and squeezed 'normal' — the middle half of the record — into one step. Now 25..75 is half the scale, which is what it is.  EVERY STOP IS MID-DARK. The ramp used to pass through a sandy beige a shade off the basemap's own paper, so the middle of the scale vanished over land; a ramp for a map may not contain the ground's colour.  `missing` is water.ungauged, a faint grey: most reaches have no gauge entitled to speak for them, and that is not the same as a rule we could not parse, nor the same claim as water.unmapped, which is about the atlas rather than about measurement.\n\nTHE -1 SENTINEL IS NO LONGER A COLOUR. \"Measured here, but nothing to compare it to\" was a purple on a sequential ramp — where every other colour means a position between low and high, and that one means the axis does not exist here. It is now the same neutral grey as water nothing speaks for, and the difference is carried by a DASH: `stream-nobaseline` in runtime-style.ts, its own layer because `line-dasharray` cannot be varied per feature. A dash reads as provisional without competing for a place on the scale, and it survives a colour-blind palette."
       },
-      "status": {
-        "label": "Status for the date",
-        "scale": "categorical",
-        "property": "status",
-        "enum": "water_status",
-        "categories": {
-          "closed": {
-            "token": "color.status.closed"
-          },
-          "own": {
-            "token": "color.status.own"
-          },
-          "base": {
-            "token": "color.status.base"
-          },
-          "no_access": {
-            "token": "color.status.no_access"
-          }
-        },
-        "missing": {
-          "token": "color.water.unmapped"
-        },
-        "data": {
-          "provider": "status",
-          "field": "status"
-        },
-        "$comment": "The three statuses of @app/core `WATER_STATUS`, in its own tokens, so a search row's dot and this line cannot disagree. `missing` is NOT base: every section on screen is pushed a status, base included (`statusData`), so `missing` is only a section with no freshwater status (tidal, outside B.C.) or one not yet asked, and it wears the neutral `water.unmapped` grey rather than an answer (tools/no-data-is-not-an-answer.test.ts). The three hues are their OWN tokens (`status.*`), never the plain map's `water.mapped`, so this mode can be recoloured without the plain map moving. Every status draws at the line's own width: colour alone carries it, held for every reader by tools/water-status-cvd.test.ts."
-      },
       "profile": {
         "label": "Status for the date",
         "scale": "profile",
@@ -1485,34 +1289,6 @@
           "field": "profile"
         },
         "$comment": "(T211) THE SALMON COLOURING, the fast way — the `profile` mode's engine, its own channel: feature-state `sp` holds the section's DFO CHAIN label (`s<chain>`, @app/core `salmonLabel`, fixed for the release), set as each tile arrives; the DAY lives in the paint as one match over the chain labels (`salmonDayProfiles`). Toggling Standard / Salmon is one paint change per layer: no fetch, no relabel. A section DFO does not list reads the UNLISTED chain (closed to salmon fishing, owner 2026-10-27) — an answer, not `missing`; `missing` is only a section not labelled yet. Its own tokens (`salmon.*`), never the provincial `status.*`, so the two colourings read apart."
-      },
-      "salmon_status": {
-        "label": "Salmon for the date",
-        "scale": "categorical",
-        "property": "salmon",
-        "enum": "salmon_status",
-        "categories": {
-          "open": {
-            "token": "color.salmon.open"
-          },
-          "release": {
-            "token": "color.salmon.release"
-          },
-          "closed": {
-            "token": "color.salmon.closed"
-          },
-          "check": {
-            "token": "color.salmon.check"
-          }
-        },
-        "missing": {
-          "token": "color.water.unmapped"
-        },
-        "data": {
-          "provider": "salmon",
-          "field": "status"
-        },
-        "$comment": "(T211) The Salmon colouring on a map with no per-tile event (native): each visible section's `salmon` pushed (@app/ui `salmonData`, from the same chain and day as `salmon`), so the two renderers cannot disagree."
       }
     },
     "parcel_private__edge": {
@@ -1821,34 +1597,6 @@
           "field": "survey"
         }
       },
-      "status": {
-        "label": "Status for the date",
-        "scale": "categorical",
-        "property": "status",
-        "enum": "water_status",
-        "categories": {
-          "closed": {
-            "token": "color.status.closed"
-          },
-          "own": {
-            "token": "color.status.own"
-          },
-          "base": {
-            "token": "color.status.base"
-          },
-          "no_access": {
-            "token": "color.status.no_access"
-          }
-        },
-        "missing": {
-          "token": "color.water.unmapped"
-        },
-        "data": {
-          "provider": "status",
-          "field": "status"
-        },
-        "$comment": "The three statuses of @app/core `WATER_STATUS`, in its own tokens, so a search row's dot and this line cannot disagree. `missing` is NOT base: every section on screen is pushed a status, base included (`statusData`), so `missing` is only a section with no freshwater status (tidal, outside B.C.) or one not yet asked, and it wears the neutral `water.unmapped` grey rather than an answer (tools/no-data-is-not-an-answer.test.ts). The three hues are their OWN tokens (`status.*`), never the plain map's `water.mapped`, so this mode can be recoloured without the plain map moving. Every status draws at the line's own width: colour alone carries it, held for every reader by tools/water-status-cvd.test.ts."
-      },
       "profile": {
         "label": "Status for the date",
         "scale": "profile",
@@ -1904,34 +1652,6 @@
           "field": "profile"
         },
         "$comment": "(T211) THE SALMON COLOURING, the fast way — the `profile` mode's engine, its own channel: feature-state `sp` holds the section's DFO CHAIN label (`s<chain>`, @app/core `salmonLabel`, fixed for the release), set as each tile arrives; the DAY lives in the paint as one match over the chain labels (`salmonDayProfiles`). Toggling Standard / Salmon is one paint change per layer: no fetch, no relabel. A section DFO does not list reads the UNLISTED chain (closed to salmon fishing, owner 2026-10-27) — an answer, not `missing`; `missing` is only a section not labelled yet. Its own tokens (`salmon.*`), never the provincial `status.*`, so the two colourings read apart."
-      },
-      "salmon_status": {
-        "label": "Salmon for the date",
-        "scale": "categorical",
-        "property": "salmon",
-        "enum": "salmon_status",
-        "categories": {
-          "open": {
-            "token": "color.salmon.open"
-          },
-          "release": {
-            "token": "color.salmon.release"
-          },
-          "closed": {
-            "token": "color.salmon.closed"
-          },
-          "check": {
-            "token": "color.salmon.check"
-          }
-        },
-        "missing": {
-          "token": "color.water.unmapped"
-        },
-        "data": {
-          "provider": "salmon",
-          "field": "status"
-        },
-        "$comment": "(T211) The Salmon colouring on a map with no per-tile event (native): each visible section's `salmon` pushed (@app/ui `salmonData`, from the same chain and day as `salmon`), so the two renderers cannot disagree."
       }
     },
     "region__edge": {
@@ -2152,34 +1872,6 @@
         },
         "$comment": "The PERCENTILE for this day of year, not the discharge: 15.7 m3/s is a flood on one creek and a drought on another.  STOPS SIT AT THE PERCENTILES THEY NAME. Even sixths gave half the ramp to the outer tenths, where almost nothing ever sits, and squeezed 'normal' — the middle half of the record — into one step. Now 25..75 is half the scale, which is what it is.  EVERY STOP IS MID-DARK. The ramp used to pass through a sandy beige a shade off the basemap's own paper, so the middle of the scale vanished over land; a ramp for a map may not contain the ground's colour.  `missing` is water.ungauged, a faint grey: most reaches have no gauge entitled to speak for them, and that is not the same as a rule we could not parse, nor the same claim as water.unmapped, which is about the atlas rather than about measurement.\n\nTHE -1 SENTINEL IS NO LONGER A COLOUR. \"Measured here, but nothing to compare it to\" was a purple on a sequential ramp — where every other colour means a position between low and high, and that one means the axis does not exist here. It is now the same neutral grey as water nothing speaks for, and the difference is carried by a DASH: `stream-nobaseline` in runtime-style.ts, its own layer because `line-dasharray` cannot be varied per feature. A dash reads as provisional without competing for a place on the scale, and it survives a colour-blind palette."
       },
-      "status": {
-        "label": "Status for the date",
-        "scale": "categorical",
-        "property": "status",
-        "enum": "water_status",
-        "categories": {
-          "closed": {
-            "token": "color.status.closed"
-          },
-          "own": {
-            "token": "color.status.own"
-          },
-          "base": {
-            "token": "color.status.base"
-          },
-          "no_access": {
-            "token": "color.status.no_access"
-          }
-        },
-        "missing": {
-          "token": "color.water.unmapped"
-        },
-        "data": {
-          "provider": "status",
-          "field": "status"
-        },
-        "$comment": "The three statuses of @app/core `WATER_STATUS`, in its own tokens, so a search row's dot and this line cannot disagree. `missing` is NOT base: every section on screen is pushed a status, base included (`statusData`), so `missing` is only a section with no freshwater status (tidal, outside B.C.) or one not yet asked, and it wears the neutral `water.unmapped` grey rather than an answer (tools/no-data-is-not-an-answer.test.ts). The three hues are their OWN tokens (`status.*`), never the plain map's `water.mapped`, so this mode can be recoloured without the plain map moving. Every status draws at the line's own width: colour alone carries it, held for every reader by tools/water-status-cvd.test.ts."
-      },
       "profile": {
         "label": "Status for the date",
         "scale": "profile",
@@ -2235,34 +1927,6 @@
           "field": "profile"
         },
         "$comment": "(T211) THE SALMON COLOURING, the fast way — the `profile` mode's engine, its own channel: feature-state `sp` holds the section's DFO CHAIN label (`s<chain>`, @app/core `salmonLabel`, fixed for the release), set as each tile arrives; the DAY lives in the paint as one match over the chain labels (`salmonDayProfiles`). Toggling Standard / Salmon is one paint change per layer: no fetch, no relabel. A section DFO does not list reads the UNLISTED chain (closed to salmon fishing, owner 2026-10-27) — an answer, not `missing`; `missing` is only a section not labelled yet. Its own tokens (`salmon.*`), never the provincial `status.*`, so the two colourings read apart."
-      },
-      "salmon_status": {
-        "label": "Salmon for the date",
-        "scale": "categorical",
-        "property": "salmon",
-        "enum": "salmon_status",
-        "categories": {
-          "open": {
-            "token": "color.salmon.open"
-          },
-          "release": {
-            "token": "color.salmon.release"
-          },
-          "closed": {
-            "token": "color.salmon.closed"
-          },
-          "check": {
-            "token": "color.salmon.check"
-          }
-        },
-        "missing": {
-          "token": "color.water.unmapped"
-        },
-        "data": {
-          "provider": "salmon",
-          "field": "status"
-        },
-        "$comment": "(T211) The Salmon colouring on a map with no per-tile event (native): each visible section's `salmon` pushed (@app/ui `salmonData`, from the same chain and day as `salmon`), so the two renderers cannot disagree."
       }
     }
   },

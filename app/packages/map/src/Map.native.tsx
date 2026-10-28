@@ -26,8 +26,11 @@
  *     source by id) only once the map is ready: refs, not copies, and nothing is pushed before both are there.
  *   - Every SDK call is async across the bridge. A press event's `nativeEvent` is GONE after the first `await`
  *     (measured, N1), so it is read first, always.
- *   - No runtime images: the hatches and the gauge pill (`addImage` on the web) are not drawn — see `nativeStyle`
- *     (follow-up N2-F1).
+ *   - The generated images (the hatches, the gauge pill, the route's pin: `images.ts`, `addImage` on the web) go to
+ *     the binding's `Images` as PNGs, under a name per theme (`nativeImages`, T74).
+ *   - THE COLOURING ENGINE is the web's (`colouring.ts`), fed by the patched binding's per-tile event and sending its
+ *     labels in batches (`native/useColouring.ts`, T74): status, standings, the lake modes and salmon colour each tile
+ *     as it is requested, as GL JS's `sourcedata` does on the web. No colour is pushed through `data`.
  *   - The scale bar is drawn here (`metricScale`): the binding's is top-left only on Android and in the device's
  *     units, so it sat under the status bar in miles. Updated when the camera settles, not per frame of a pinch.
  *   - Markers are native view annotations (`Marker`), not maplibre-gl's DOM markers.
@@ -35,18 +38,22 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, Text, View, type LayoutChangeEvent } from "react-native";
 import {
-  Camera, GeoJSONSource, Map as MLMap, Marker, VectorSource,
+  Camera, GeoJSONSource, Images, Map as MLMap, Marker, VectorSource,
   type CameraRef, type GeoJSONSourceRef, type MapRef, type VectorSourceRef,
 } from "@maplibre/maplibre-react-native";
 import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, FIT_MAX_ZOOM, MIN_ZOOM, SPOT_PIN, fitAtMost, padBbox, refineFit, spotMarkers,
-         spotUnder, type Bbox, type SpotMarker, type SectionKey } from "@app/core";
+         spotUnder, profileLabel, type Bbox, type SpotMarker, type SectionKey } from "@app/core";
 import { pressSpot, spotsKey } from "./spots";
 import { baseAdapter } from "./adapters/contract";
 import { nativeRenderer } from "./adapters/native";
 import { mapChrome } from "./chrome";
 import { nativeMapGestures } from "./gestures";
 import { areaLayer, nativeStyle } from "./native-style";
-import { spreadSections } from "./sections";
+import { spreadSections, VISIBLE_LAYERS, visibleSections } from "./sections";
+import { withoutEngineKeys } from "./colouring";
+import { nativeImages } from "./images";
+import { useNativeColouring, type AtlasSource } from "./native/useColouring";
+import { colourProbe } from "./native/probe";
 import { MARK_LABEL_FONT } from "./marks";
 import { metricScale } from "./scale";
 import type { MapProps } from "./map-props";
@@ -69,7 +76,7 @@ type Data = NonNullable<MapProps["data"]>;
 
 export function Map({ at, theme, view, modes, groups, hide, show, initial, data, onPressFeature, chrome, onError,
                       onMoved, onMapPoint, onLongPress, highlight, water, waterLine, selection = "outline", marker, style, gauges,
-                      onVisible, pins, bare, fit,
+                      onVisible, pins, bare, fit, status, standing, lakes, salmon,
                       basemap, marks, onPressMark, spots, onImageryError: _noTileErrors,
                       onRegion: _noPrefetch }: MapProps) {
   // `onRegion` is accepted and never called: it feeds the WEB's prefetch, and a phone holds the release installed.
@@ -133,6 +140,19 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   }, [data]);
   const areaKey = JSON.stringify(areaData);
 
+  /** (T74) THE COLOURING ENGINE: each tile's sections labelled as the binding requests it (`native/useColouring.ts`). */
+  const colouring = useNativeColouring({
+    atlas: () => atlasRef.current as unknown as AtlasSource | null,
+    copy: () => copy.current,
+    toCopy: { set: (id, s) => { void copyRef.current?.setFeatureState({ id }, s as never).catch(report); },
+              remove: (id, key) => { void copyRef.current?.removeFeatureState({ id }, key).catch(report); } },
+    // what a clear took that was not the engine's (the highlight, pushed data) is sent again by the effects below
+    restore: () => { renderer.forget(); setGen((g) => g + 1); },
+    ready: styled && drawn, theme, atlasUrl: at.atlas, report, status, standing, lakes, salmon,
+  });
+  const cv = colouring.values;
+  const basinKey = JSON.stringify(cv.standing?.basins ?? null);
+
   /*
    * THE STYLE. Keyed on what changes how the map LOOKS — never on `gauges` (read through a ref: a feed tick goes to
    * the `gauges` source below, not into a 225 ms style swap) and never on a caller's new-but-equal objects.
@@ -143,10 +163,13 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   const [ceil, setCeil] = useState<{ line: number | null; fill: number | null }>({ line: null, fill: null });
   const look = useMemo(
     () => nativeStyle({ at, theme, view, modes, hide, show, groups, basemap: basemap ?? "map",
-                        gauges: gaugesNow.current ?? EMPTY_FC, areaData: JSON.parse(areaKey) as Data, copyCeiling: ceil }),
+                        gauges: gaugesNow.current ?? EMPTY_FC, areaData: JSON.parse(areaKey) as Data, copyCeiling: ceil,
+                        values: cv }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [at.atlas, at.basemap, at.glyphs, at.sprite, at.assets, at.outside, theme, view, JSON.stringify(modes ?? {}),
-     JSON.stringify(hide ?? []), JSON.stringify(show ?? []), JSON.stringify(groups ?? {}), basemap, areaKey, ceil.line, ceil.fill]);
+     JSON.stringify(hide ?? []), JSON.stringify(show ?? []), JSON.stringify(groups ?? {}), basemap, areaKey, ceil.line, ceil.fill,
+     cv.status, cv.salmon, cv.stocked, cv.survey, basinKey]);
+  const images = useMemo(() => nativeImages(theme), [theme]);
   useEffect(() => { for (const e of look.errors) report(e); }, [look, report]);
 
   const gaugeData = useMemo(() => JSON.parse(gauges ?? EMPTY_FC) as GeoJSON.FeatureCollection, [gauges]);
@@ -164,13 +187,16 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     atlasRef.current = r;
     if (r && !attachedOnce.current) { attachedOnce.current = true; setGen((g) => g + 1); }
   }, []);
+  // (T74) the atlas asked for its tiles' ids — again after every style load (the binding may re-create the source)
+  // only once the map has drawn: before that the source's native view may not be resolvable by its tag yet
+  useEffect(() => { if (atlasRef.current && styled && drawn) colouring.attached(); }, [gen, styled, drawn, colouring]);
 
-  // STATUS COLOURS (and every other per-feature value a colour mode reads), by feature-state; a value a feature
-  // already holds is not sent again (`onceSink`), so re-sending the visible set on every settle costs only the new ones
+  // PUSHED PER-FEATURE DATA that is not a colouring (the engine's keys are refused, as on the web: one pathway); a
+  // value a feature already holds is not sent again (`onceSink`)
   useEffect(() => {
     if (!styled || !drawn || !atlasRef.current) return;
     const h = renderer.states(() => []);
-    for (const [layerId, values] of Object.entries(sectionData)) {
+    for (const [layerId, values] of Object.entries(withoutEngineKeys(sectionData, report))) {
       try { adapter.current.setData(h, layerId, values); } catch (e) { report(e); }
     }
   }, [sectionData, gen, styled, drawn, report, renderer]);
@@ -364,7 +390,18 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     cb.current.onLongPress?.(lat, lon);
   }, []);
 
+  const statusNow = useRef(status);
+  statusNow.current = status;
+  /** (T74) Development measurement only (`EXPO_PUBLIC_COLOUR_PROBE`): pans' frames with a section not yet coloured. */
+  const probe = useMemo(() => colourProbe({
+    query: async () => visibleSections(await mapRef.current?.queryRenderedFeatures({ layers: [...VISIBLE_LAYERS] }) ?? []),
+    coloured: colouring.coloured,
+    // a section the day's index labels (the Map tab's status; nothing is wanted where no status is handed over)
+    wanted: (id) => { const st = statusNow.current; return !!st && profileLabel(st.index, id) !== undefined; },
+  }), [colouring.coloured]);
+
   const onRegionDidChange = useCallback((e: RegionEvent) => {
+    probe?.settled();
     const ne = e.nativeEvent;          // before anything async, as with a press
     if (ne?.center && ne.zoom !== undefined) {
       cb.current.onMoved?.({ lon: ne.center[0], lat: ne.center[1], zoom: ne.zoom });
@@ -382,12 +419,13 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   // a new style dropped every feature-state (`forget`: send them all again) and may draw other features
   const onStyle = useCallback(() => {
     renderer.forget();
+    colouring.swapped();
     copy.current.forgetStates();
     stale.current = true;
     copyStale.current = true;
     setStyled(true);
     setGen((g) => g + 1);
-  }, [renderer]);
+  }, [renderer, colouring]);
   const onLayout = useCallback((e: LayoutChangeEvent) => {
     size.current = { width: e.nativeEvent.layout.width, height: e.nativeEvent.layout.height };
   }, []);
@@ -418,6 +456,8 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
         onPress={onPress as never}
         onLongPress={onLongPress ? onLongPressed as never : undefined}
         onRegionDidChange={onRegionDidChange as never}
+        onRegionWillChange={probe ? (() => probe.moving()) as never : undefined}
+        onDidFinishRenderingFrame={probe ? (() => probe.frame()) as never : undefined}
         onDidFinishLoadingStyle={onStyle}
         onDidFinishRenderingMapFully={onRendered}
         // an empty map and a map whose tiles failed look the same: say so
@@ -426,6 +466,8 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
         <Camera ref={camRef} initialViewState={camera0.current} minZoom={MIN_ZOOM} maxZoom={CAMERA_MAX_ZOOM}
                 maxBounds={MAX_BOUNDS} />
         <VectorSource id="atlas" ref={atlasAttached} />
+        {/* (T74) the hatches, the gauge pill and the route's pin, in this theme */}
+        <Images images={images as never} />
         <GeoJSONSource id="gauges" data={gaugeData} />
         {/* (T175) the water copy: the style's own source by id, its lines from the tiles (`keepCopy`) */}
         <GeoJSONSource id={COPY_SOURCE} ref={copyRef} data={copyData as never} />

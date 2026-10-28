@@ -74,8 +74,8 @@ describe("the flow arrows are the Conditions view's own", () => {
     const vis = (s: unknown) => ((s as { layers: L[] }).layers.find((l) => l.id === ARROWS)!.layout!.visibility);
     const cond = nativeStyle({ ...common, modes: { stream: "standing" }, hide: ["mu", "region"],
                                show: shownLayers("conditions") });
-    // A phone's Map tab colours by `status` (it has no per-tile `profile` colouring — `coloursEachTile`).
-    const map = nativeStyle({ ...common, modes: { stream: "status" }, hide: [] });
+    // A phone's Map tab colours by the day's `profile`, as the web's does (T74: one engine on both)
+    const map = nativeStyle({ ...common, modes: { stream: "profile" }, hide: [] });
     expect({ conditions: vis(cond.style), map: vis(map.style), errors: [...cond.errors, ...map.errors] })
       .toEqual({ conditions: "visible", map: "none", errors: [] });
   });

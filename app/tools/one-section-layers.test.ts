@@ -4,42 +4,36 @@
  * "Which tile source-layers carry per-section features?" is `perSectionLayers()` in `packages/map/src/sections.ts`,
  * spelled once. Before, it was decided seven times: `SECTION_SOURCE_LAYERS` (derived from the style), three more
  * hand-typed lists in @app/map (`WATER_SOURCE_LAYERS`, colouring's `LABEL_SOURCE_LAYERS`, trace-geometry's
- * `TRACE_LAYERS`), and three pushed-data builders in @app/ui that disagreed — `pushedRoute` {stream, lake},
- * `pushedStandings` {stream, lake, wetland_flowing, basin}, `statusData` {stream, lake, wetland} — so a slough drawn as
- * a wetland polygon was coloured for standings but not on the route, and a new section layer would have dropped out of
- * whichever list nobody updated.
+ * `TRACE_LAYERS`), and three pushed-data builders in @app/ui that disagreed (all three since removed, T74: both
+ * renderers colour per tile) — so a slough drawn as a wetland polygon was coloured for standings but not on the route,
+ * and a new section layer would have dropped out of whichever list nobody updated.
  *
- * Now the map lists are aliases of it, and @app/ui (which cannot import @app/map: map depends on ui) hands a section's
- * values once under `SECTION_DATA` ("sections"), which both renderers fan out with `spreadSections`.
+ * Now the map lists are aliases of it, and a section's pushed values are handed once under `SECTION_DATA`
+ * ("sections"), which both renderers fan out with `spreadSections`.
  *
  * This pins:
  *   1. `perSectionLayers()` is exactly the source-layers of the style's highlightable (section-id) layers, and each is
  *      a style layer id that addresses itself — so it is a valid `MapProps.data` key;
  *   2. every alias IS it; the two declared subsets/partitions (`VISIBLE_LAYERS`: not plain marsh; `TAP_GROUPS`: every
  *      section layer once) read only per-section source-layers;
- *   3. the three pushed builders hand the same per-section values under `SECTION_DATA`, which spreads to exactly
- *      `perSectionLayers()` (a `basin` passes through untouched), and no style layer is named `SECTION_DATA`;
+ *   3. values under `SECTION_DATA` spread to exactly `perSectionLayers()` (a `basin` passes through untouched), and no
+ *      style layer is named `SECTION_DATA`;
  *   4. no module outside sections.ts spells an array or object of section layer names, but the two `DECLARED`
  *      exceptions (each a different decision, with its reason). Each pattern is proven able to fail on the spelling it
  *      replaced (`SPELLINGS`).
  *
  * Mutations (run 2026-10-23, each failed the named test and was reverted):
  *   - adding `"basin"` to `PER_SECTION_LAYERS` fails test 1, test 3 and the declared-exceptions test;
- *   - `return { stream: values, lake: values };` back in `pushedRoute` fails test 3 and test 4 (`object`);
  *   - `TRACE_LAYERS = new Set(["stream", "lake", "wetland"])` back in trace-geometry.ts fails test 4 (`array`);
  *   - `spreadSections` dropping its `...rest` (losing `basin`) fails test 3.
  * Adversarial review (2026-10-23, each run, failed as named, reverted):
  *   - `withoutEngineKeys` returning `out` unspread (the restore path's old behaviour) fails "the web map fans
  *     `sections` out on EVERY path";
- *   - `return { stream: values, basin: values, lake: values }` in `pushedRoute` (keys not adjacent) fails test 3 and
- *     test 4 (`object`), which the adjacent-keys pattern missed.
  */
 import { describe, expect, it } from "vitest";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
-import { pushedRoute, pushedStandings, statusData } from "@app/ui";
-import type { SectionId } from "@app/core";
 import { MAP_STYLE, STYLE_META } from "../packages/map/src/style";
 import { SECTION_DATA, SECTION_LAYERS, SECTION_SOURCE_LAYERS, TAP_GROUPS, VISIBLE_LAYERS, WATER_SOURCE_LAYERS,
          perSectionLayers, spreadSections, stateTarget } from "../packages/map/src/sections";
@@ -129,17 +123,9 @@ describe("one per-section layer list: perSectionLayers() decides, everything els
       expect(ids.filter((id) => !perSectionLayers().includes(sourceLayerOf(id) as never))).toEqual([]);
   });
 
-  it("the three pushed builders hand the same per-section values once, and the map spreads them to every layer", () => {
-    const S = 5 as SectionId;
-    const route = pushedRoute(new Map([[S, 0.25]]));
-    const standings = pushedStandings(new Map([[S, 0.25]]), new Map([["08MF", 0.5]]));
-    const status = statusData(null, [S], new Date(2026, 0, 10));
-    expect([Object.keys(route), Object.keys(standings), Object.keys(status)])
-      .toEqual([[SECTION_DATA], [SECTION_DATA, "basin"], [SECTION_DATA]]);
-    expect(route[SECTION_DATA]).toEqual(standings[SECTION_DATA]);
-    const each = (d: Record<string, unknown>) => sorted(Object.keys(spreadSections(d)));
-    expect([each(route), each(standings), each(status)])
-      .toEqual([sorted(perSectionLayers()), sorted([...perSectionLayers(), "basin"]), sorted(perSectionLayers())]);
+  it("values under SECTION_DATA spread to every per-section layer; a basin passes through", () => {
+    const standings = { [SECTION_DATA]: { 5: { standing: 25 } }, basin: { "08MF": { standing: 50 } } };
+    expect(sorted(Object.keys(spreadSections(standings)))).toEqual(sorted([...perSectionLayers(), "basin"]));
     expect(spreadSections(standings)).toEqual({
       stream: { 5: { standing: 25 } }, lake: { 5: { standing: 25 } }, wetland: { 5: { standing: 25 } },
       basin: { "08MF": { standing: 50 } },

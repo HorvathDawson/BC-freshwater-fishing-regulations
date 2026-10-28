@@ -105,7 +105,8 @@ vi.mock("pmtiles", () => ({ Protocol: class { tile = () => {}; } }));
 // ---- @maplibre/maplibre-react-native, recorded ----------------------------------------------------------------------
 type Press = { nativeEvent: { point: [number, number]; lngLat: [number, number] } | null };
 const native: { props: Record<string, unknown> | null; camera: Record<string, unknown> | null;
-                geojson: Record<string, unknown>; holdRender: boolean } =
+                geojson: Record<string, unknown>; holdRender: boolean; watched?: string[];
+                images?: Record<string, unknown> } =
   { props: null, camera: null, geojson: {}, holdRender: false };
 vi.mock("@maplibre/maplibre-react-native", () => ({
   Map: ({ ref, children, ...props }: { ref?: unknown; children?: ReactNode } & Record<string, unknown>) => {
@@ -143,9 +144,16 @@ vi.mock("@maplibre/maplibre-react-native", () => ({
         log.push(`remove ${id}/${t.sourceLayer} ${fmt(t.id)} ${key ?? "*"}`);
       },
       querySourceFeatures: async () => [],
+      // (T74) the patched binding's per-tile path
+      setFeatureStates: async (sourceLayer: string, ids: string[], states: unknown[]) => {
+        ids.forEach((fid, i) => log.push(`set ${id}/${sourceLayer} ${fid} ${JSON.stringify(states[i])}`));
+      },
+      watchTiles: async (layers: string[]) => { native.watched = layers; },
+      nativeTag: () => 7,
     }));
     return null;
   },
+  Images: ({ images }: { images: Record<string, unknown> }) => { native.images = images; return null; },
   GeoJSONSource: ({ id, data }: { id: string; data: unknown }) => { native.geojson[id] = data; return null; },
   // a view annotation draws its children over the map
   Marker: ({ children }: { children?: ReactNode }) => <>{children}</>,
@@ -165,13 +173,13 @@ afterEach(() => {
 
 const AT = { atlas: "file:///d/atlas.pmtiles", basemap: "file:///d/basemap.pmtiles" };
 /** One object for the whole test: a NEW data object is new data, and both maps re-apply it (as they should). */
-const DATA = { stream: { 311274: { status: "open" } }, lake: { 1566515: { status: "closed" } } };
 /**
- * What the WEB map may be pushed: never a section's status, standing, stocked or survey — those are the colouring
- * engine's channels there (one pathway, owner 2026-10-21; `withoutEngineKeys` refuses them). Any other key carries the
- * same contract through the same `data` path (`other` here: no colour mode reads it).
+ * What a map may be pushed: never a section's status, standing, stocked or survey — those are the colouring engine's
+ * channels on BOTH maps (one pathway, owner 2026-10-21; T74 for the phone; `withoutEngineKeys` refuses them). Any
+ * other key carries the same contract through the same `data` path (`other` here: no colour mode reads it).
  */
-const WEB_DATA = { stream: { 311274: { other: 12 } }, lake: { 1566515: { other: "sheet" } } };
+const DATA = { stream: { 311274: { other: 12 } }, lake: { 1566515: { other: "sheet" } } };
+const WEB_DATA = DATA;
 const INITIAL = { lon: -122, lat: 49, zoom: 9 };
 const LIT = [311274];
 const base = (p: Partial<MapProps> = {}): MapProps => ({
@@ -196,7 +204,7 @@ const PLATFORMS = {
   native: {
     Map: NativeMap,
     data: DATA,
-    pushed: ['set atlas/stream number:311274 {"status":"open"}', 'set atlas/lake number:1566515 {"status":"closed"}'],
+    pushed: ['set atlas/stream number:311274 {"other":12}', 'set atlas/lake number:1566515 {"other":"sheet"}'],
     tap: (x: number, y: number, lon: number, lat: number) => {
       const e: Press = { nativeEvent: { point: [x, y], lngLat: [lon, lat] } };
       act(() => { (native.props!.onPress as (e: Press) => void)(e); });
@@ -420,7 +428,7 @@ describe("web only", () => {
     await waitFor(() => expect(log).toEqual(['set atlas/stream number:311274 {"other":3}']));
     await act(async () => {});
     expect(log).toEqual(['set atlas/stream number:311274 {"other":3}']);
-    const why = "the web map colours sections through the colouring engine only "
+    const why = "the map colours sections through the colouring engine only "
       + "(MapProps.status, MapProps.standing, MapProps.lakes, MapProps.salmon)";
     expect(errors).toEqual([`pushed p/standing/status/stocked/survey/sp/salmon on "stream" refused: ${why}`,
                             `pushed p/standing/status/stocked/survey/sp/salmon on "lake" refused: ${why}`,
@@ -575,8 +583,8 @@ it("no listener, no long press: the binding is handed no handler (its long press
   });
   it("a style swap (a theme change) drops feature-state on a phone: status and selection are put back", async () => {
     const r = render(<NativeMap {...base()} />);
-    const status = ['set atlas/stream number:311274 {"status":"open"}',
-                    'set atlas/lake number:1566515 {"status":"closed"}'];
+    const status = ['set atlas/stream number:311274 {"other":12}',
+                    'set atlas/lake number:1566515 {"other":"sheet"}'];
     await waitFor(() => expect(log).toEqual([...status, ...selected(311274, true)]));
     const style1 = native.props!.mapStyle;
     log.length = 0;
@@ -611,7 +619,7 @@ it("no listener, no long press: the binding is handed no handler (its long press
     expect(log).toEqual([]);
     act(() => { (native.props!.onDidFinishRenderingMapFully as () => void)(); });
     await waitFor(() => expect([...log].sort()).toEqual([
-      'set atlas/stream number:311274 {"status":"open"}', 'set atlas/lake number:1566515 {"status":"closed"}',
+      'set atlas/stream number:311274 {"other":12}', 'set atlas/lake number:1566515 {"other":"sheet"}',
       ...selected(311274, true)].sort()));
   });
   it("asks what is on screen once per camera move: our own feature-state redraw asks nothing", async () => {
@@ -636,8 +644,8 @@ it("no listener, no long press: the binding is handed no handler (its long press
     log.length = 0;
     // the same statuses, as a new object (every settle re-sends the visible set), plus one new section
     r.rerender(<NativeMap {...base({ highlight: undefined,
-                                     data: { ...DATA, stream: { ...DATA.stream, 42: { status: "open" } } } })} />);
-    await waitFor(() => expect(log).toEqual(['set atlas/stream number:42 {"status":"open"}']));
+                                     data: { ...DATA, stream: { ...DATA.stream, 42: { other: 1 } } } })} />);
+    await waitFor(() => expect(log).toEqual(['set atlas/stream number:42 {"other":1}']));
   });
   it("the basin field (keyed by basin_id, no MVT id) goes into the style, never to feature-state", async () => {
     const basin = { "B-1": { standing: 30 } };

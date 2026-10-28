@@ -4,8 +4,7 @@
  * words — whole strings (AGENTS 33).
  */
 import { describe, expect, it } from "vitest";
-import { decodeSalmon, salmonCard, salmonDayIndex, salmonDayProfiles, salmonLabel, salmonLegendSource,
-         salmonMapStatusOn, SalmonError } from "./salmon";
+import { decodeSalmon, salmonCard, salmonDayIndex, salmonDayProfiles, salmonLabel, salmonLegendSource, SalmonError } from "./salmon";
 
 const HANDLES = "147b20dce7d8576c";
 const JUL20 = new Date(2026, 6, 20), SEP15 = new Date(2026, 8, 15);
@@ -83,10 +82,9 @@ describe("the Salmon colouring's day", () => {
     expect(salmonDayProfiles(facts(), SEP15)).toEqual({ open: [], release: ["s2"], closed: ["s0", "s1"], check: [], none: [] });
   });
 
-  it("the pushed-data map reads the same: an unlisted section paints closed", () => {
-    const f = facts();
-    expect([salmonMapStatusOn(f, 101, JUL20), salmonMapStatusOn(f, 7, JUL20), salmonMapStatusOn(null, 7, JUL20)])
-      .toEqual(["open", "closed", null]);
+  it("a section paints its chain's answer: an unlisted section paints closed", () => {
+    const f = facts(), day = salmonDayProfiles(f, JUL20);
+    expect([day.open.includes(salmonLabel(f, 101)), day.closed.includes(salmonLabel(f, 7))]).toEqual([true, true]);
   });
 
   it("the legend says whose rules, as of when, and the unlisted rule", () => {

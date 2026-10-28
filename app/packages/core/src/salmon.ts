@@ -141,11 +141,6 @@ export function salmonDayProfiles(f: SalmonFacts, on: Date): SalmonDay {
   return out;
 }
 
-/** What the pushed-data map (native) paints a section: the same answer through the same chain. */
-export function salmonMapStatusOn(f: SalmonFacts | null, sid: number, on: Date): SalmonMapStatus | null {
-  return f ? salmonChainStatus(f, f.chainOf(sid), salmonDayIndex(on)) : null;
-}
-
 // ── the words ────────────────────────────────────────────────────────────────────────────────────────────────────────
 
 export const SALMON_WORDS = {

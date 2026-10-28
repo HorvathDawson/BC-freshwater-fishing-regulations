@@ -102,6 +102,12 @@ Expo project starts failing in ways whose stack traces point nowhere. `npx expo 
   PROVISIONAL**: N1 measured 51–60 fps against the default OpenGL ES's 21–35 fps at z9–11, on the EMULATOR only (its
   GLES runs through a GLES→Metal translator); it must be A/B'd on a real mid Android phone before it is kept. Cost: the
   native library per ABI plus ~1 MB of JS. Results: `handoff/PLAN/app-data/N1-SPIKE.md`, `n2/README.md`.
+  **PATCHED (T74, `app/patches/@maplibre__maplibre-react-native@11.5.0.patch`, `pnpm.patchedDependencies`)**, Android
+  only: (1) the atlas `VectorSource` reports each tile it requests (MapLibre Native's `OnTileActionListener`) with the
+  tile's MVT feature ids, read off the UI thread from the same local `.pmtiles` (`TileIds.kt`), as the device event
+  `MLRNTileIds` — the per-tile event GL JS has as `sourcedata`, which the colouring engine labels from; (2)
+  `setFeatureStates`, many feature-states per bridge call; (3) `Images` entries take `stretchX`/`stretchY`/`content`
+  (the gauge pill is a stretchable image). Bump the binding only with the patch re-applied and the emulator pan re-run.
 - `pmtiles` — registers the `pmtiles://` protocol so maplibre reads a single archive by
   byte range instead of needing 20 million tile files on a server. This is what makes the
   same 835 MB file work from R2 on the web and from local storage offline.
@@ -151,6 +157,11 @@ Expo project starts failing in ways whose stack traces point nowhere. `npx expo 
   `<input type=file>` and needs nothing. The picked file is copied straight into `documentDirectory/spots/photos/`,
   because the picker's own copy lives in a cache the OS may clear. Its config plugin in `apps/mobile/app.json` carries
   the camera and library permission strings. Photos are the user's own data: never in a release, never uploaded.
+- `expo-location` — pinned 57.0.21 (the SDK 57 line; `bundledNativeModules` names `~57.0.14`). (T74, owner 2026-10-27)
+  "At my location" in the Spots menu on a phone: where the device is, foreground only, asked for from the reader's own
+  tap (`requestForegroundPermissionsAsync`) and never before. Used ONLY by `apps/mobile/src/locate.native.ts`; the web
+  side is the browser's geolocation (`locate.web.ts`). Its config plugin in `apps/mobile/app.json` carries the
+  when-in-use permission string; background location is off. Native code: it needs a rebuilt development build.
 - `pdf-lib` — **1.17.1**, pure JS, no native code. (T215, owner 2026-10-27) "open the PDF" shows our copy of the synopsis with the
   entry's row highlighted: it loads the 24 MB release PDF and adds one `/Highlight` annotation per source box
   (`ui-native/src/regs/highlightPdf.ts`), the same on web and phone. Costs ~0.5 MB of JS and 1-2 s to rewrite the PDF at the

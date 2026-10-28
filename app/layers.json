@@ -72,6 +72,7 @@
         "@app/ui-native",
         "expo-font",
         "expo-image-picker",
+        "expo-location",
         "@expo-google-fonts/bricolage-grotesque",
         "@expo-google-fonts/archivo",
         "@expo-google-fonts/jetbrains-mono",
@@ -81,7 +82,7 @@
         "maplibre-gl",
         "@maplibre/maplibre-react-native"
       ],
-      "why": "an app that imports a map SDK directly can define its own layers, and the two apps drift apart visually. Go through @app/map. Font loading is listed here on purpose: expo-font is an asset loader, and the app shell is the only layer that may register assets. expo-image-picker is here for the same reason (S1): picking a photo opens the platform's own picker or camera — a platform service the app shell wires and hands down (`src/pickPhoto.native.ts` / `.web.ts`), so @app/ui-native draws the buttons and never names a native module. @app/ui-native NAMES the faces (type.ts) and must not load them, or it would need a platform asset pipeline and stop being drawable by anything else. react-native-gesture-handler is here only for GestureHandlerRootView at the root (G1); the gestures themselves are @app/ui-native's."
+      "why": "an app that imports a map SDK directly can define its own layers, and the two apps drift apart visually. Go through @app/map. Font loading is listed here on purpose: expo-font is an asset loader, and the app shell is the only layer that may register assets. expo-image-picker is here for the same reason (S1): picking a photo opens the platform's own picker or camera — a platform service the app shell wires and hands down (`src/pickPhoto.native.ts` / `.web.ts`), so @app/ui-native draws the buttons and never names a native module. expo-location is here for the same reason (T74): where the phone is, for the Spots menu's \"At my location\", wired in `src/locate.native.ts` and handed down as `Locate`. @app/ui-native NAMES the faces (type.ts) and must not load them, or it would need a platform asset pipeline and stop being drawable by anything else. react-native-gesture-handler is here only for GestureHandlerRootView at the root (G1); the gestures themselves are @app/ui-native's."
     },
     "packages/ui-native": {
       "purpose": "Phone components (RN primitives). Shared by the native app AND mobile web.",

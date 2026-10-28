@@ -2,8 +2,8 @@
  * (T211) THE STANDARD / SALMON TOGGLE, from the hooks' side: the toggle moves the map's MODES and nothing else (owner
  * 2026-10-27: "toggling Standard/Salmon should be instant — no re-fetch/re-tile").
  *
- *   modes      Salmon paints every water through the salmon channel (`salmon` per tile on the web, `salmon_status`
- *              pushed on the phone), only on the Map tab under the Regulations colouring; Standard is the day's status
+ *   modes      Salmon paints every water through the salmon channel (`salmon`, per tile), only on the Map tab under
+ *              the Regulations colouring; Standard is the day's status
  *   no fetch   the release's salmon is asked ONCE per source, before any toggle (after the day's status is in), and the
  *              feed handed to the map is the SAME object whichever way the toggle is set — so a toggle reaches no
  *              engine, no labels, no network
@@ -14,7 +14,7 @@ import { useState } from "react";
 import type { SalmonFacts } from "@app/core";
 import type { WaterSource } from "@app/data";
 import { mapModes, type MapModeInput } from "./mapModes";
-import { salmonData, useSalmonColour, type RegsLayer } from "./salmonColour";
+import { useSalmonColour, type RegsLayer } from "./salmonColour";
 
 const FACTS = { handles: "0".repeat(16), chains: 1, chainOf: () => 0,
                 payload: { chains: [{ m: [0, 3] }] } } as unknown as SalmonFacts;
@@ -23,7 +23,7 @@ const source = (asked: string[]) =>
 const DAY = new Date(2026, 6, 20, 12);
 
 const base: MapModeInput = {
-  tab: "map", flowParam: "discharge", horizon: 0, zoomedOut: false, paired: true, statusOk: true, perTile: true,
+  tab: "map", flowParam: "discharge", horizon: 0, zoomedOut: false, paired: true, statusOk: true,
   water: "regulations", groups: {}, basemap: "map", imageryUp: true,
 };
 
@@ -34,8 +34,6 @@ describe("mapModes: Standard / Salmon", () => {
       .toEqual(["profile", "salmon", "salmon", "salmon", "salmon"]);
     const { modes: _a, ...restStd } = std, { modes: _b, ...restSal } = sal;
     expect(restSal).toEqual(restStd);
-    // the phone: pushed data, the categorical twin
-    expect(mapModes({ ...base, salmon: true, perTile: false }).modes.stream).toBe("salmon_status");
   });
 
   it("never on Conditions, under a lake measure, or off a proven pair", () => {
@@ -75,9 +73,5 @@ describe("useSalmonColour: fetched once, before the toggle, and the same feed wh
     rerender({ mapTab: false });
     rerender({ mapTab: true });
     expect(asked).toEqual(["salmonFacts"]);
-  });
-
-  it("the phone's pushed values: every visible section's salmon status — an unlisted one CLOSED", () => {
-    expect(salmonData(FACTS, [7, 8], DAY)).toEqual({ sections: { 7: { salmon: "closed" }, 8: { salmon: "closed" } } });
   });
 });

@@ -36,7 +36,7 @@ const GROUPS = {};
 function Wired() {
   const hz = useHorizon();
   const mm = useMapModes({ tab: "conditions", flowParam: "discharge", horizon: hz.horizon,
-                           zoomedOut: false, paired: true, statusOk: true, perTile: true, water: "regulations",
+                           zoomedOut: false, paired: true, statusOk: true, water: "regulations",
                            groups: GROUPS, basemap: "map", imageryUp: true });
   return (
     <View>

@@ -17,27 +17,26 @@ const source = (f: LakeFacts | null, asked: string[] = []) =>
 const DAY = new Date(2026, 9, 21, 15, 30);
 
 describe("useLakeColour", () => {
-  it("the release's facts and today's day number, once ready, on a proven pair to a per-tile map", async () => {
+  it("the release's facts and today's day number, once ready, on a proven pair", async () => {
     const f = facts("a"), asked: string[] = [], src = source(f, asked);
-    const { result } = renderHook(() => useLakeColour({ source: src, perTile: true, paired: true, today: DAY }));
+    const { result } = renderHook(() => useLakeColour({ source: src, paired: true, today: DAY }));
     expect(result.current).toBeNull();                         // not asked yet is not "no lake is surveyed"
     await waitFor(() => expect(result.current).toEqual({ facts: f, day: 46314 }));
     expect(asked).toEqual(["lakeFacts"]);
   });
 
-  it("nothing off a proven pair, to a map that takes pushed data, or from a release that ships none", async () => {
+  it("nothing off a proven pair, or from a release that ships none", async () => {
     const asked: string[] = [], src = source(facts("a"), asked), empty = source(null);
-    const off = renderHook(() => useLakeColour({ source: src, perTile: true, paired: false, today: DAY }));
-    const native = renderHook(() => useLakeColour({ source: src, perTile: false, paired: true, today: DAY }));
-    const none = renderHook(() => useLakeColour({ source: empty, perTile: true, paired: true, today: DAY }));
+    const off = renderHook(() => useLakeColour({ source: src, paired: false, today: DAY }));
+    const none = renderHook(() => useLakeColour({ source: empty, paired: true, today: DAY }));
     await new Promise((r) => setTimeout(r, 0));
-    expect([off.result.current, native.result.current, none.result.current, asked]).toEqual([null, null, null, []]);
+    expect([off.result.current, none.result.current, asked]).toEqual([null, null, []]);
   });
 
   it("a new release is new facts; the same release on the same day is the SAME object (the map does nothing)", async () => {
     const a = facts("a"), b = facts("b");
     let src = source(a);
-    const { result, rerender } = renderHook(() => useLakeColour({ source: src, perTile: true, paired: true, today: DAY }));
+    const { result, rerender } = renderHook(() => useLakeColour({ source: src, paired: true, today: DAY }));
     await waitFor(() => expect(result.current?.facts).toBe(a));
     const first = result.current;
     rerender();

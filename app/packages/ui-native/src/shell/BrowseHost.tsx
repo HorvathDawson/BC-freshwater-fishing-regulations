@@ -40,7 +40,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
   onRegion?: (regionId: string | null) => void;
 }) {
   const { route, go, browse, tab, back, opener } = nav;
-  const { flowParam, mm, layers, imagery, cond, gauges, lakeFeed, salmonFeed, mapStatus, statusMapData, noteVisible, setZoomedOut,
+  const { flowParam, mm, layers, imagery, cond, gauges, lakeFeed, salmonFeed, mapStatus, noteVisible, setZoomedOut,
           horizonChipsShown, pickDay, vintage } = col;
   const { searching, session, restore, arrive, wideSearch, closeSearch } = search;
   /**
@@ -122,7 +122,6 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
                      // WHAT SEARCH LIGHTS, whole, while search is open — on either map; closed, nothing (the Conditions
                      // view lights a gauge's route with the same feature-state and must not inherit a search)
                      highlight={searching ? session.focus?.highlight ?? NONE : NONE}
-                     data={tab === "conditions" ? cond.data : statusMapData}
                      standing={cond.standing}
                      lakes={lakeFeed}
                      salmon={salmonFeed}

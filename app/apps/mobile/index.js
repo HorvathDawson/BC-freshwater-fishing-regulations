@@ -10,6 +10,10 @@ import "@expo/metro-runtime";
 // the three cannot drift.
 import { registerRootComponent } from "expo";
 
+// (T74) The grey-frame probe (@app/map `native/probe.ts`): a development build started with
+// EXPO_PUBLIC_COLOUR_PROBE=1 logs, per pan, the frames with a section not yet coloured. Off otherwise.
+if (__DEV__ && process.env.EXPO_PUBLIC_COLOUR_PROBE === "1") globalThis.__colourProbe = true;
+
 import App from "./src/App";
 import { withGestureRoot } from "./src/gestureRoot";
 

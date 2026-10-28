@@ -118,7 +118,7 @@ use that as the sole source of future work."
 | T71 | one Map entry: drop the regs header's Map button | DONE | 4817a2e7, 40d6a47c | — |
 | T72 | release LATEST pointer + prune old releases | DONE | 0eb70144 | Q7 answered: 22 old releases pruned |
 | T73 | smaller reach hand-off (N14, disk) | PARTIAL | e375cc61 | owner: convert full + full_prev through heavy.sh, binding diff, record sizes (ticket) |
-| T74 | native colouring engine + native map gaps | OPEN | — | all |
+| T74 | native colouring engine + native map gaps | IN PROGRESS | — | Android: per-tile event via the binding patch, one engine, hatches/pill via Images, expo-location; emulator 13 pans / 49 frames 0 grey; iOS → T217; lake modes wait on lake facts in a release |
 | T75 | basemap in the release manifest | PARTIAL | — | all |
 | T76 | own gauge across a continuation (Vedder) | DONE | ce29990c, 2470ef08, f648ab5c, 4fba2181, e5dfe217 | live in r-36fbc5326506 |
 | T77 | D1 phone testing | OPEN | — | all (owner) |
@@ -261,6 +261,7 @@ use that as the sole source of future work."
 | T214 | app polish: quota sub-cap wording names its total, desktop no-swipe + Esc back, clearer part highlight, steady up/downstream buttons | PARTIAL | — | items 1, 2, 4 built (subcap lead + golden amendment, desktop no-swipe + Esc Back, reserved exit slot); item 3 (part highlight) waits on T211's map paint |
 | T215 | open the PDF on the page with the entry's section highlighted | DONE | 3e5ef46f 15d19068 7c513588 | full PDF + highlight annotation, web verified (Cowichan p.15); phone unverified; owner uploads the release to R2 |
 | T216 | better "How this was decided": interpretation, what overrode what, sources | DONE | 4e39f3fb | story.ts: layers base → water → exceptions, why + printed page per step; tests on Fraser two-region, R5 spring-closure lift, sub-cap, closed water |
+| T217 | iOS: the per-tile event and stretchable Images in the binding patch (T74 is Android only) | OPEN | — | with T88 (iOS build) |
 | T218 | bathymetry: ship depth figures + contours for the 28 already-digitised lakes (OGL-BC layer) | OPEN | — | not yet (owner 2026-10-27); after T201/T158 |
 | T219 | bathymetry: trace contours from the open scanned charts for the top-fished lakes | OPEN | — | not yet (owner 2026-10-27); raster scans, georef works, depth labelling needs a review UI; ★ tier size |
 

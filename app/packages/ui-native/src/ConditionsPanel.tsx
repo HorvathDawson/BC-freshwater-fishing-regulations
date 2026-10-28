@@ -12,11 +12,11 @@
  * core's (`conditions.ts`). What is left here is drawing, and the chart's own controls.
  */
 import { useContext, useState } from "react";
-import { Platform, Pressable, ScrollView, Text, View, type LayoutChangeEvent } from "react-native";
+import { Pressable, ScrollView, Text, View, type LayoutChangeEvent } from "react-native";
 import { chartCaption, chartLabel, CONDITIONS_WORDS, forecastChartLabel, forecastModelOption,
          forecastRunLine, noChartSentence, type ChartSpan } from "@app/core";
 import type { Parameter, WaterSource, SectionId, StationId } from "@app/data";
-import { coloursEachTile, type TileEndpoints } from "@app/map";
+import type { TileEndpoints } from "@app/map";
 import { changeChartModel, changeView, chartParameter, useChartView, useConditionsView, useForecastAttribution, useGaugeParameters,
          usePrefetchGauges, useSeries, type ChangeVM, type GaugeChoiceVM, type GaugeGroupVM, type Horizon,
          type PanelFeed } from "@app/ui";
@@ -77,9 +77,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
    * map was asked for.
    */
   const vm = useConditionsView(source, section, day, horizon,
-                               { feed, quantity: parameter ?? "discharge",
-                                 // THE ROUTE MAP THROUGH THE ENGINE where the map labels its own tiles (one pathway)
-                                 perTile: coloursEachTile(Platform.OS) });
+                               { feed, quantity: parameter ?? "discharge" });
   const station = vm.lead;
   // THE VIEW SWIPE, on this body in a water's views (Regulations · Conditions · Map): the text, the estimate and the
   // reading take it; the maps and the chart are shielded (`MiniMap`, `Hydrograph`), their drags are theirs. The
@@ -259,7 +257,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
     <>
       <DonorPanel palette={palette} value={vm.panel} day={vm.day} at={tiles} theme={theme}
                   from={from} selected={station} onSelect={vm.select} horizon={horizon}
-                  chain={vm.chain} data={vm.route.data} standing={vm.route.standing}
+                  chain={vm.chain} standing={vm.route.standing}
                   onHorizon={onHorizon} quantity={parameter ?? "discharge"}
                   detail={detail} chart={graph}
                   foot={small} sides={vm.sides} count={vm.count} waterLine={waterLine} place={waterBox} />

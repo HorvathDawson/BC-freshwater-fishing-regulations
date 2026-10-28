@@ -63,10 +63,6 @@ describe("the salmon mode's paint", () => {
       .toEqual(paintFor("stream", "plain", t));
   });
 
-  it("the native map's pushed mode reads its pushed value from feature-state, every member coloured", () => {
-    const expr = JSON.stringify(paintFor("stream", "salmon_status", t)["line-color"]);
-    for (const s of ["open", "release", "closed", "check"]) expect(expr).toContain(`"${s}","${t[`color.salmon.${s}`]}"`);
-  });
 });
 
 describe("the toggle is instant: a mode change, nothing else (owner 2026-10-27)", () => {

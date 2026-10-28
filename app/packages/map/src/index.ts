@@ -11,7 +11,6 @@
  */
 export { Map } from "./Map";
 export type { MapProps, Camera, MapSpots } from "./map-props";
-export { coloursEachTile, standingInput } from "./colouring";
 export { imageryTiles, type TileEndpoints } from "./endpoints";
 export { runtimeStyle } from "./runtime-style";
 export { baseAdapter, type MapHandle } from "./adapters/contract";
@@ -25,5 +24,3 @@ export { colour, translucent } from "./chrome";
 /** The route overlay (owner 2026-10-21): routes copied out of the tiles, pins, and their words' slots. */
 export { type TraceProp } from "./trace-overlay";
 export { pressSpot } from "./spots";
-/** T124: the per-section source-layers, spelled once, and the pushed data's "every section" key the map fans out. */
-export { perSectionLayers, spreadSections } from "./sections";

@@ -5,11 +5,11 @@
  * is native-only about it, and that the look reached the JSON.
  */
 import { describe, expect, it } from "vitest";
-import { colour } from "./chrome";
+import { nativeImageName, nativeImages } from "./images";
 import { paintFor } from "./paint";
 import { nativeStyle } from "./native-style";
 import { runtimeStyle } from "./runtime-style";
-import { MAP_STYLE, STYLE_META, resolveTheme } from "./style";
+import { MAP_STYLE, NO_VALUES, resolveTheme } from "./style";
 
 type L = { id: string; type: string; paint?: Record<string, unknown>; layout?: Record<string, unknown>;
            minzoom?: number };
@@ -44,28 +44,23 @@ describe("the native style", () => {
   });
 
   /*
-   * WHAT A PHONE DOES NOT DRAW YET — named, so a new patterned layer cannot quietly join the list (N2 review). The
-   * hatches are images woven at run time (`hatch.ts`) and added with `map.addImage` on the web; the binding has no
-   * raw-pixel image API, and a patterned layer whose image is missing draws NOTHING. Each falls back to its own fill.
-   * Follow-up: APP-PREP "N2-F1 — hatches and the gauge pill on native".
+   * THE GENERATED IMAGES ON A PHONE (T74, N2-F1): every hatch and the gauge pill are asked for under this theme's name,
+   * which is exactly what `nativeImages` hands the binding's `Images` — a name the style asks for and nobody adds would
+   * draw nothing (a patterned layer with no image vanishes).
    */
-  it("draws no fill-pattern: exactly these hatched layers fall back to their fill (N2-F1)", () => {
-    const web = runtimeStyle(AT, "light") as unknown as S;
-    expect(web.layers.filter((l) => l.paint && "fill-pattern" in l.paint).map((l) => l.id).sort())
-      .toEqual(["eco_reserve", "no_access", "no_access_permit", "park_closed", "wetland"]);
-    const s = nativeStyle(base).style as unknown as S;
-    const patterned = s.layers.filter((l) => l.paint && "fill-pattern" in l.paint).map((l) => l.id);
-    expect(patterned).toEqual([]);
-    for (const id of Object.keys(STYLE_META.patterns ?? {}))
-      expect(layer(s, id).paint?.["fill-color"], id).toEqual(paintFor(id, "plain", resolveTheme("light"))["fill-color"]);
-  });
-
-  it("the gauge label has no pill on a phone (N2-F1): no icon asked for, a halo in the paper instead", () => {
-    for (const theme of ["light", "dark"]) {
-      const l = layer(nativeStyle({ ...base, theme }).style as unknown as S, "gauge-label");
-      expect({ icons: Object.keys(l.layout!).filter((k) => k.startsWith("icon-")), halo: l.paint!["text-halo-color"],
-               width: l.paint!["text-halo-width"] })
-        .toEqual({ icons: [], halo: colour(theme, "color.outside"), width: 1.5 });
+  it("asks for the hatches and the pill under the theme's names, each one an image the map is given", () => {
+    for (const theme of ["light", "dark", "cvd"]) {
+      const s = nativeStyle({ ...base, theme }).style as unknown as S;
+      const given = new Set(Object.keys(nativeImages(theme)));
+      const patterns = s.layers.filter((l) => l.paint?.["fill-pattern"] !== undefined);
+      expect(patterns.map((l) => l.id).sort())
+        .toEqual(["eco_reserve", "no_access", "no_access_permit", "park_closed", "wetland"]);
+      for (const l of patterns) expect([theme, l.paint!["fill-pattern"]]).toEqual([theme, nativeImageName(`${l.id}-hatch`, theme)]);
+      const pill = layer(s, "gauge-label").layout!["icon-image"];
+      expect(pill).toBe(nativeImageName("gauge-pill", theme));
+      const asked = JSON.stringify(s.layers.map((l) => [l.paint?.["fill-pattern"], l.layout?.["icon-image"]]));
+      for (const name of asked.match(/"[a-z_-]+(?:-hatch|-pill|-here)\.[a-z]+"/g) ?? [])
+        expect([theme, given.has(JSON.parse(name))]).toEqual([theme, true]);
     }
   });
 
@@ -108,10 +103,10 @@ describe("the native style", () => {
   });
 
   it("carries the view and each layer's mode, as the web adapter would paint them", () => {
-    const s = nativeStyle({ ...base, modes: { stream: "status", lake: "status" } }).style as unknown as S;
+    const s = nativeStyle({ ...base, modes: { stream: "standing", lake: "stocked" } }).style as unknown as S;
     const t = resolveTheme("light");
     expect([layer(s, "stream").paint!["line-color"], layer(s, "lake").paint!["fill-color"]])
-      .toEqual([paintFor("stream", "status", t)["line-color"], paintFor("lake", "status", t)["fill-color"]]);
+      .toEqual([paintFor("stream", "standing", t)["line-color"], paintFor("lake", "stocked", t)["fill-color"]]);
   });
 
   it("the Conditions wash and the view's own hidden layers, both ways", () => {
@@ -139,25 +134,28 @@ describe("the native style", () => {
   it("a caller's bad mode is reported, and the style is still made", () => {
     const { style, errors } = nativeStyle({ ...base, modes: { stream: "nope" } });
     expect(errors.map((e) => e.message))
-      .toEqual(['layer "stream" has no colour mode "nope" (has plain, standing, status, profile, salmon, salmon_status)']);
+      .toEqual(['layer "stream" has no colour mode "nope" (has plain, standing, profile, salmon)']);
     expect((style as unknown as S).layers.length).toBeGreaterThan(0);
   });
 
-  it("'profile' is refused on a phone, out loud: it reads MapProps.status, which the native map never does", () => {
-    // colour-ap review: told 'profile', N2's native map painted every water plain with no error. The Shell gives a
-    // phone 'status' (`coloursEachTile`); a caller that forgets must hear about it.
-    const { errors } = nativeStyle({ ...base, modes: { stream: "profile", lake: "profile" } });
-    expect(errors.map((e) => e.message)).toEqual([
-      'layer "stream" is in the "profile" colour mode, which the native map cannot draw (no per-tile colouring; '
-        + 'give it "status" and pushed data — coloursEachTile)',
-      'layer "lake" is in the "profile" colour mode, which the native map cannot draw (no per-tile colouring; '
-        + 'give it "status" and pushed data — coloursEachTile)',
-    ]);
+  it("the day's profiles go into the style through the web's own call (T74: the engine's values on a phone)", () => {
+    const status = { closed: ["p0"], own: ["p1"], base: ["b"], no_access: [], none: [] };
+    const values = { ...NO_VALUES, status } as never;
+    const s = nativeStyle({ ...base, modes: { stream: "profile" }, values }).style as unknown as S;
+    expect(layer(s, "stream").paint!["line-color"])
+      .toEqual(paintFor("stream", "profile", resolveTheme("light"), values)["line-color"]);
+    expect(nativeStyle({ ...base, modes: { stream: "profile" }, values }).errors).toEqual([]);
+  });
+
+  it("the basins' standings from the engine become the field's table", () => {
+    const values = { ...NO_VALUES, standing: { section: () => NaN, basins: { "BX-1": 42 } } } as never;
+    const s = nativeStyle({ ...base, view: "conditions", modes: { basin: "standing" }, values }).style as unknown as S;
+    expect(JSON.stringify(layer(s, "basin").paint!["fill-color"])).toContain(JSON.stringify(["literal", { "BX-1": 42 }]));
   });
 
   it("writes into a copy: the generated style the web also reads is untouched", () => {
     const before = JSON.stringify(MAP_STYLE);
-    nativeStyle({ ...base, modes: { stream: "status" }, hide: ["mu"], basemap: "satellite" });
+    nativeStyle({ ...base, modes: { stream: "profile" }, hide: ["mu"], basemap: "satellite" });
     expect(JSON.stringify(MAP_STYLE)).toBe(before);
   });
 });

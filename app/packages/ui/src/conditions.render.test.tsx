@@ -14,7 +14,7 @@ import { donorBecause, donorFacts, donorLastReport, donorPinTitle, donorReads, d
          readingAgeLine, readingHeading,
          readingStandingLine, stageLine, unplacedNote } from "@app/core";
 import type { Panel, WaterSource, SectionId } from "@app/data";
-import { clearPanelCache, donorView, horizonChips, lakeQuietHead, useConditionsView, type DonorRow,
+import { clearPanelCache, donorView, horizonChips, lakeQuietHead, useConditionsView, usePanelStandings, type DonorRow,
          type PanelAnswer } from "./panel";
 
 const row = (station: string, over: Partial<DonorRow> = {}): DonorRow => ({
@@ -440,30 +440,24 @@ describe("useConditionsView", () => {
 });
 
 /*
- * THE ROUTE MAP, ONE PATHWAY (engine polish 2026-10-21): on a map that labels its own tiles the route's colours go
- * through the engine's standing channel, with the route as its classes (`routeColour.ts`); pushed `data` is the phone's
- * alone. Both carry the same number for the same reach.
+ * THE ROUTE MAP, ONE PATHWAY (engine polish 2026-10-21): the route's colours go through the engine's standing channel,
+ * with the route as its classes (`routeColour.ts`) — the same number the panel standings give the same reach.
  */
 describe("useConditionsView: the route map's colours", () => {
-  it("per-tile: the engine's standing channel over the route, no pushed data; pushed: the same value as data", async () => {
+  it("the engine's standing channel over the route, the panel standings' value for each reach", async () => {
     const web = renderHook(({ h }: { h: 0 | 1 }) =>
-      useConditionsView(source, SEC, DAY, h, { feed, quantity: "discharge", perTile: true }), { initialProps: { h: 0 } });
-    const phone = renderHook(() => useConditionsView(source, SEC, DAY, 0, { feed, quantity: "discharge" }));
-    await waitFor(() => expect(web.result.current.route.standing?.values).not.toBeNull());
-    await waitFor(() => expect(Object.keys(phone.result.current.route.data.sections ?? {})).toEqual([String(SEC)]));
-    const pushed = phone.result.current.route.data as Record<string, Record<string, { standing: number }>>;
-    const value = pushed.sections![SEC]!.standing;
-    expect(pushed).toEqual({ sections: { [SEC]: { standing: value } } });
-    expect(phone.result.current.route.standing).toBeNull();
-    const r = web.result.current.route;
-    expect(r.data).toEqual({});
-    const { labels, values } = r.standing!;
+      useConditionsView(source, SEC, DAY, h, { feed, quantity: "discharge" }), { initialProps: { h: 0 } });
+    const panel = renderHook(() => usePanelStandings(source, feed, [SEC], "discharge", 0));
+    await waitFor(() => expect(web.result.current.route.standing.values).not.toBeNull());
+    await waitFor(() => expect(panel.result.current.has(SEC)).toBe(true));
+    const value = panel.result.current.get(SEC)! * 100;
+    const { labels, values } = web.result.current.route.standing;
     // the route IS the labelling: the chain's sections have a class, nothing else does
     expect([labels.classOf(SEC), labels.classOf(8), values!.section(0), values!.basins])
       .toEqual([0, null, value, {}]);
     // a horizon change: new values over the SAME labels (the engine relabels; it never clears the route)
     web.rerender({ h: 1 });
-    await waitFor(() => expect(web.result.current.route.standing?.values).not.toBe(values));
-    expect(web.result.current.route.standing!.labels).toBe(labels);
+    await waitFor(() => expect(web.result.current.route.standing.values).not.toBe(values));
+    expect(web.result.current.route.standing.labels).toBe(labels);
   });
 });

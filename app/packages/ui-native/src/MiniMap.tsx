@@ -15,12 +15,11 @@ import { useSwipeShield } from "./ViewSwipe";
 import type { Palette } from "./theme";
 
 export function MiniMap({ at, palette, theme, camera, height = 190, view = "plain",
-                          hint, data, standing, highlight, marker, pins, bare, groups, fit,
+                          hint, standing, highlight, marker, pins, bare, groups, fit,
                           basemap, style, trace, zoomControls, waterLine }: {
   at: TileEndpoints; palette: Palette; theme: string; camera: Camera;
   height?: number; view?: string; hint?: string;
-  data?: Record<string, Record<string, Record<string, unknown>>>;
-  /** Standings through the colouring engine's channel (the route map on the web) — see MapProps.standing. */
+  /** Standings through the colouring engine's channel (the route map) — see MapProps.standing. */
   standing?: MapProps["standing"];
   /** Reaches to draw as selected — the route panel lights the chain down to the gauge. */
   highlight?: readonly SectionKey[];
@@ -47,7 +46,7 @@ export function MiniMap({ at, palette, theme, camera, height = 190, view = "plai
   return (
     <View {...shield} style={[style ? null : { height },
                   { backgroundColor: palette.tint, overflow: "hidden" }, style]}>
-      <Map at={at} theme={theme} view={view} initial={camera} data={data} standing={standing}
+      <Map at={at} theme={theme} view={view} initial={camera} standing={standing}
            highlight={highlight} marker={marker} pins={pins} bare={bare} groups={groups}
            fit={fit} basemap={basemap} trace={trace} zoomControls={zoomControls} waterLine={waterLine} />
       {hint && (

@@ -15,6 +15,13 @@
           "microphonePermission": false
         }
       ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow $(PRODUCT_NAME) to pin a spot where you are standing. It stays on this device.",
+          "isAndroidBackgroundLocationEnabled": false
+        }
+      ],
       ["@maplibre/maplibre-react-native", { "android": { "nativeVariant": "vulkan" } }]
     ],
     "ios": {

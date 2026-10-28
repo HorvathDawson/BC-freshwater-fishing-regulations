@@ -10,7 +10,7 @@
 import { describe, expect, it } from "vitest";
 import type { DayProfiles } from "@app/core";
 import { baseAdapter, type MapHandle } from "./adapters/contract";
-import { NOACCESS_LAYER, noaccessPaint, paintFor } from "./paint";
+import { NOACCESS_LAYER, paintFor } from "./paint";
 import { runtimeStyle } from "./runtime-style";
 import { resolveTheme } from "./style";
 
@@ -56,11 +56,6 @@ describe("no public access is a dotted grey line (T165)", () => {
     a.setLayerMode(h, "stream", "profile", "light");   // no day yet: the plain map
     expect(paint[NOACCESS_LAYER]!["line-opacity"]).toBe(0);
     expect(JSON.stringify(paint["stream"]!["line-opacity"] ?? null)).not.toContain('"n"');
-  });
-
-  it("the categorical status mode dots the `no_access` member", () => {
-    expect(noaccessPaint("status", resolveTheme("light"))["line-opacity"])
-      .toEqual(["case", ["==", ["feature-state", "status"], "no_access"], 1, 0]);
   });
 
   it("is in the style the map is given, right after the no-baseline dash, built with no dots", () => {

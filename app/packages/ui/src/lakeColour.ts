@@ -7,13 +7,12 @@
  *
  * Handed over always (both tabs, every lake mode), not only while Stocked or Depth is chosen: the labels are a few
  * thousand lakes, and switching the mode is then one paint change — no relabel, no clear of the other channels.
- * Only on a PROVEN PAIR (a handle means a section only with its own tiles), and only to a map that labels each tile
- * (`coloursEachTile`); the native map has no per-tile event yet (N2) and keeps its lakes plain.
+ * Only on a PROVEN PAIR (a handle means a section only with its own tiles); both renderers label per tile (T74).
  *
  * PREPARED, NOT FED (owner 2026-10-21): no feed makes the release's `lakes` yet, so no release carries values and the
  * layers menu greys Stocked and Depth (`lakeModesReady`, read by the layer registry's availability). When a release carries them, the modes enable themselves —
- * no app change. Where the map is handed nothing (off a proven pair, the native map), they stay grey: a mode the map
- * cannot colour is not offered.
+ * no app change. Where the map is handed nothing (off a proven pair), they stay grey: a mode the map cannot colour is
+ * not offered.
  */
 import { useMemo } from "react";
 import { dayNumber, type LakeFacts } from "@app/core";
@@ -27,9 +26,9 @@ export interface LakeFeedVM {
   readonly day: number;
 }
 
-export function useLakeColour(i: { source: WaterSource; perTile: boolean; paired: boolean; today: Date }):
+export function useLakeColour(i: { source: WaterSource; paired: boolean; today: Date }):
     LakeFeedVM | null {
-  const on = i.perTile && i.paired;
+  const on = i.paired;
   const facts = useAsync(() => i.source.lakeFacts(), `lakefacts:${sourceKey(i.source)}`, on);
   const f = on && facts.state === "ready" ? facts.value : null;
   const day = dayNumber(i.today);

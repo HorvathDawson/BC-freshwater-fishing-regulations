@@ -12,7 +12,7 @@ import { describe, expect, it } from "vitest";
 import { readingDayOf, type LakeFacts, type StatusCode, type StatusIndex, type SurveyState } from "@app/core";
 import { baseAdapter, type MapHandle } from "./adapters/contract";
 import { paintFor } from "./paint";
-import { Colouring, coloursEachTile, standingInput, statusInput, stockedInput, surveyInput, type LabelTarget,
+import { Colouring, standingInput, statusInput, stockedInput, surveyInput, type LabelTarget,
          type StandingFeed,
          type TileRenderer, type TileSections } from "./colouring";
 import { resolveTheme, type StandingValues } from "./style";
@@ -366,9 +366,15 @@ describe("the lake channels: survey and stocked, the Depth and Stocked modes' va
   });
 });
 
-describe("coloursEachTile: which renderer takes the per-tile modes (colour-ap review)", () => {
-  it("the web map does; the native map (N2: no per-tile event, reads only pushed data) does not, nor anything unknown", () => {
-    expect(coloursEachTile("web")).toBe(true);
-    for (const p of ["android", "ios", "native", "windows"]) expect(coloursEachTile(p)).toBe(false);
+describe("reset: the map dropped every state (a style swap on MapLibre Native, T74)", () => {
+  it("every id is labelled again on its next tile, and nothing is cleared on the map", () => {
+    const r = rig();
+    r.setTiles([{ stream: [10, 11] }]);
+    r.c.set(r.h, r.target, r.renderer, "status", statusInput({ index: A, day: JUN1 }), "light");
+    r.take();
+    expect(r.c.label(r.target, { stream: [10, 11] })).toBe(0);
+    r.c.reset();
+    expect(r.c.label(r.target, { stream: [10, 11] })).toBe(2);
+    expect(r.take()).toEqual(['state stream 10 {"p":"p0"}', 'state stream 11 {"p":"p1"}']);
   });
 });

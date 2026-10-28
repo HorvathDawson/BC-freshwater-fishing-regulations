@@ -1,0 +1,721 @@
+diff --git a/android/src/main/java/org/maplibre/reactnative/components/images/MLRNImagesManager.kt b/android/src/main/java/org/maplibre/reactnative/components/images/MLRNImagesManager.kt
+index 86183442be292aa6084cd61dc7cf1bf286ea6b28..5a651fd8be582efc250b3c43884f8b3628671272 100644
+--- a/android/src/main/java/org/maplibre/reactnative/components/images/MLRNImagesManager.kt
++++ b/android/src/main/java/org/maplibre/reactnative/components/images/MLRNImagesManager.kt
+@@ -57,7 +57,28 @@ class MLRNImagesManager(
+                             if (imageMap.hasKey("scale")) imageMap.getDouble("scale") else null
+                         val sdf = imageMap.hasKey("sdf") && imageMap.getBoolean("sdf")
+ 
+-                        ImageEntry(uri, scale, sdf)
++                        ImageEntry(uri, scale, sdf).also { e ->
++                            // (canifishthis T74 patch) stretch zones [[from, to], …] and the content box [l, t, r, b]
++                            fun zones(k: String): List<org.maplibre.android.maps.ImageStretches>? {
++                                if (!imageMap.hasKey(k)) return null
++                                val a = imageMap.getArray(k) ?: return null
++                                return (0 until a.size()).mapNotNull { i ->
++                                    a.getArray(i)?.let { p ->
++                                        org.maplibre.android.maps.ImageStretches(p.getDouble(0).toFloat(), p.getDouble(1).toFloat())
++                                    }
++                                }
++                            }
++                            e.stretchX = zones("stretchX")
++                            e.stretchY = zones("stretchY")
++                            if (imageMap.hasKey("content")) {
++                                imageMap.getArray("content")?.let { c ->
++                                    e.content = org.maplibre.android.maps.ImageContent(
++                                        c.getDouble(0).toFloat(), c.getDouble(1).toFloat(),
++                                        c.getDouble(2).toFloat(), c.getDouble(3).toFloat(),
++                                    )
++                                }
++                            }
++                        }
+                     }
+ 
+                     else -> {
+diff --git a/android/src/main/java/org/maplibre/reactnative/components/sources/tilesources/vectorsource/MLRNVectorSource.kt b/android/src/main/java/org/maplibre/reactnative/components/sources/tilesources/vectorsource/MLRNVectorSource.kt
+index 158db6c16d405f4d57f8c166bea85006a35707d7..291695b710586b45722a52101b7f8f4825cbfc76 100644
+--- a/android/src/main/java/org/maplibre/reactnative/components/sources/tilesources/vectorsource/MLRNVectorSource.kt
++++ b/android/src/main/java/org/maplibre/reactnative/components/sources/tilesources/vectorsource/MLRNVectorSource.kt
+@@ -1,11 +1,19 @@
+ package org.maplibre.reactnative.components.sources.tilesources.vectorsource
+ 
+ import android.content.Context
++import android.net.Uri
+ import androidx.annotation.Size
++import com.facebook.react.bridge.Arguments
++import com.facebook.react.bridge.ReactContext
+ import com.facebook.react.bridge.WritableArray
+ import com.google.gson.JsonObject
++import java.util.concurrent.ExecutorService
++import java.util.concurrent.Executors
++import org.maplibre.android.maps.MapView
+ import org.maplibre.android.style.expressions.Expression
+ import org.maplibre.android.style.sources.VectorSource
++import org.maplibre.android.tile.TileOperation
++import org.maplibre.reactnative.components.mapview.MLRNMapView
+ import org.maplibre.reactnative.components.sources.tilesources.MLRNPressableTileSource
+ import org.maplibre.reactnative.utils.GeoJSONUtils
+ 
+@@ -52,4 +60,112 @@ class MLRNVectorSource(
+         featureId: String?,
+         key: String?,
+     ): Boolean = source?.removeFeatureState(sourceLayerId, featureId, key) ?: false
++
++    /*
++     * (canifishthis T74 patch) THE TILE'S IDS, AS THE TILE IS REQUESTED. MapLibre Native tells a listener which tile
++     * it is requesting (`OnTileActionListener`) but not what is in it; the ids are read here, off the UI thread, from
++     * the source's own local PMTiles archive (`PmTilesIds`), and sent to JS as the device event `MLRNTileIds`
++     * {tag, z, x, y, layers: {name: ids[]}} — so the app's colouring engine labels the tile's sections as it does in
++     * GL JS's `sourcedata`, before the tile is parsed and drawn wherever it can win that race.
++     */
++    private var watchedLayers: Set<String> = emptySet()
++    private var tileListener: MapView.OnTileActionListener? = null
++    private var archive: PmTilesIds? = null
++    private var archivePath: String? = null
++    private val reader: ExecutorService by lazy { Executors.newSingleThreadExecutor() }
++    private val idCache = object : LinkedHashMap<Long, Map<String, IntArray>>(128, 0.75f, true) {
++        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Long, Map<String, IntArray>>?) = size > 256
++    }
++
++    /** Tiles requested since the source attached, before anyone watched: replayed when `watchTiles` is called. */
++    private val requested = object : LinkedHashMap<Long, IntArray>(128, 0.75f, true) {
++        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Long, IntArray>?) = size > 256
++    }
++
++    fun watchTiles(layers: List<String>) {
++        watchedLayers = layers.toSet()
++        synchronized(idCache) { idCache.clear() }
++        attachTileListener()
++        // the tiles the map asked for before the watch (the first view loads before JS can ask): sent now
++        for (t in requested.values.toList()) onTileRequested(t[0], t[1], t[2])
++    }
++
++    private fun attachTileListener() {
++        val mapView = mMapView ?: return
++        if (tileListener != null) return
++        val l = MapView.OnTileActionListener { op, x, y, z, _, _, sourceId ->
++            if (sourceId == mID &&
++                (op == TileOperation.RequestedFromCache || op == TileOperation.RequestedFromNetwork)
++            ) {
++                requested[(z.toLong() shl 58) or (x.toLong() shl 29) or y.toLong()] = intArrayOf(z, x, y)
++                if (watchedLayers.isNotEmpty()) onTileRequested(z, x, y)
++            }
++        }
++        tileListener = l
++        mapView.addOnTileActionListener(l)
++    }
++
++    /** Off the UI thread: `u` is the source's URI, read on the UI thread (Mbgl refuses source calls elsewhere). */
++    private fun archiveFor(u: String): PmTilesIds? {
++        val path = Uri.parse(u.removePrefix("pmtiles://")).path ?: return null
++        if (path != archivePath) {
++            archive?.close()
++            archive = PmTilesIds(path)
++            archivePath = path
++            synchronized(idCache) { idCache.clear() }
++        }
++        return archive
++    }
++
++    private fun onTileRequested(z: Int, x: Int, y: Int) {
++        val layers = watchedLayers
++        val tag = id
++        val ctx = context as? ReactContext ?: return
++        val u = source?.uri ?: url ?: return
++        if (!u.startsWith("pmtiles://file")) return
++        reader.execute {
++            try {
++                val key = (z.toLong() shl 58) or (x.toLong() shl 29) or y.toLong()
++                var ids = synchronized(idCache) { idCache[key] }
++                if (ids == null) {
++                    ids = archiveFor(u)?.ids(z, x, y, layers) ?: emptyMap()
++                    synchronized(idCache) { idCache[key] = ids }
++                }
++                if (ids.isEmpty()) return@execute
++                val ev = Arguments.createMap()
++                ev.putInt("tag", tag)
++                ev.putInt("z", z)
++                ev.putInt("x", x)
++                ev.putInt("y", y)
++                val byLayer = Arguments.createMap()
++                for ((name, arr) in ids) {
++                    val a = Arguments.createArray()
++                    for (v in arr) a.pushInt(v)
++                    byLayer.putArray(name, a)
++                }
++                ev.putMap("layers", byLayer)
++                ctx.emitDeviceEvent("MLRNTileIds", ev)
++            } catch (e: Throwable) {
++                android.util.Log.w("MLRNTileIds", "tile $z/$x/$y: ${e.message}")
++            }
++        }
++    }
++
++    /** Many states in one call: `ids[i]` takes `states[i]` (one bridge call per batch instead of per feature). */
++    fun setFeatureStates(sourceLayerId: String, ids: List<String>, states: List<JsonObject>): Boolean {
++        val s = source ?: return false
++        for (i in ids.indices) s.setFeatureState(sourceLayerId, ids[i], states[i])
++        return true
++    }
++
++    override fun addToMap(mapView: MLRNMapView) {
++        super.addToMap(mapView)
++        attachTileListener()
++    }
++
++    override fun removeFromMap(mapView: MLRNMapView) {
++        tileListener?.let { mapView.removeOnTileActionListener(it) }
++        tileListener = null
++        super.removeFromMap(mapView)
++    }
+ }
+diff --git a/android/src/main/java/org/maplibre/reactnative/components/sources/tilesources/vectorsource/MLRNVectorSourceModule.kt b/android/src/main/java/org/maplibre/reactnative/components/sources/tilesources/vectorsource/MLRNVectorSourceModule.kt
+index a03594df1775c444c9a9e4ebb238cc6aa4bcd15e..83e90635b1299a740129b7d8b28e41d31db38721 100644
+--- a/android/src/main/java/org/maplibre/reactnative/components/sources/tilesources/vectorsource/MLRNVectorSourceModule.kt
++++ b/android/src/main/java/org/maplibre/reactnative/components/sources/tilesources/vectorsource/MLRNVectorSourceModule.kt
+@@ -99,4 +99,42 @@ class MLRNVectorSourceModule(
+             }
+         }
+     }
++
++    // (canifishthis T74 patch) the colouring engine's per-tile labels, many per call
++    override fun setFeatureStates(
++        reactTag: Double,
++        sourceLayer: String,
++        featureIds: ReadableArray,
++        states: ReadableArray,
++        promise: Promise,
++    ) {
++        withViewportOnUIThread(reactTag, promise) { vectorSource ->
++            val n = minOf(featureIds.size(), states.size())
++            val ids = ArrayList<String>(n)
++            val js = ArrayList<JsonObject>(n)
++            for (i in 0 until n) {
++                ids.add(featureIds.getString(i) ?: continue)
++                js.add(ConvertUtils.toJsonObject(states.getMap(i)) ?: JsonObject())
++            }
++            if (vectorSource.setFeatureStates(sourceLayer, ids, js)) {
++                promise.resolve(null)
++            } else {
++                promise.reject("source_not_attached", "Source is not attached to a map, feature states were not set")
++            }
++        }
++    }
++
++    // (canifishthis T74 patch) send each requested tile's ids for these source-layers as `MLRNTileIds` events
++    override fun watchTiles(
++        reactTag: Double,
++        sourceLayers: ReadableArray,
++        promise: Promise,
++    ) {
++        withViewportOnUIThread(reactTag, promise) { vectorSource ->
++            val layers = ArrayList<String>()
++            for (i in 0 until sourceLayers.size()) sourceLayers.getString(i)?.let { layers.add(it) }
++            vectorSource.watchTiles(layers)
++            promise.resolve(null)
++        }
++    }
+ }
+diff --git a/android/src/main/java/org/maplibre/reactnative/components/sources/tilesources/vectorsource/TileIds.kt b/android/src/main/java/org/maplibre/reactnative/components/sources/tilesources/vectorsource/TileIds.kt
+new file mode 100644
+index 0000000000000000000000000000000000000000..345a16097f7b3b39a910f8a209c2bb146c82604f
+--- /dev/null
++++ b/android/src/main/java/org/maplibre/reactnative/components/sources/tilesources/vectorsource/TileIds.kt
+@@ -0,0 +1,222 @@
++package org.maplibre.reactnative.components.sources.tilesources.vectorsource
++
++import java.io.ByteArrayInputStream
++import java.io.ByteArrayOutputStream
++import java.io.File
++import java.io.RandomAccessFile
++import java.util.zip.GZIPInputStream
++
++/**
++ * (canifishthis T74 patch) A LOCAL PMTiles archive's tiles, read for their MVT feature ids only.
++ *
++ * The app colours each section in the tile it arrives in (its colouring engine labels the tile's sections by
++ * feature-state). MapLibre Native reports WHICH tile it is requesting (`OnTileActionListener`) but never what is in it,
++ * so the ids are read here from the same archive the source draws (`pmtiles://file:///…`): header, directories
++ * (internal compression), the tile (tile compression), then layer name + feature id out of the protobuf — geometry and
++ * tags are skipped unread. PMTiles spec v3; MVT 2.1.
++ */
++internal class PmTilesIds(path: String) {
++    private val file = RandomAccessFile(File(path), "r")
++    private val rootOffset: Long
++    private val rootLength: Int
++    private val leafOffset: Long
++    private val tileDataOffset: Long
++    private val internalCompression: Int
++    private val tileCompression: Int
++    private val minZoom: Int
++    private val maxZoom: Int
++    private val dirs = object : LinkedHashMap<Long, Dir>(64, 0.75f, true) {
++        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Long, Dir>?) = size > 64
++    }
++
++    init {
++        val h = read(0, 127)
++        if (le16(h, 0) != 0x4D50) throw IllegalArgumentException("not a PMTiles archive: $path")
++        rootOffset = le64(h, 8)
++        rootLength = le64(h, 16).toInt()
++        leafOffset = le64(h, 40)
++        tileDataOffset = le64(h, 56)
++        internalCompression = h[97].toInt() and 0xff
++        tileCompression = h[98].toInt() and 0xff
++        minZoom = h[100].toInt() and 0xff
++        maxZoom = h[101].toInt() and 0xff
++    }
++
++    fun close() = file.close()
++
++    /** The ids of each layer named in `layers` in tile z/x/y, or null where the archive has no such tile. */
++    fun ids(z: Int, x: Int, y: Int, layers: Set<String>): Map<String, IntArray>? {
++        if (z < minZoom || z > maxZoom) return null
++        val bytes = tile(z, x, y) ?: return null
++        return mvtIds(decompress(bytes, tileCompression), layers)
++    }
++
++    @Synchronized
++    private fun read(offset: Long, length: Int): ByteArray {
++        val b = ByteArray(length)
++        file.seek(offset)
++        file.readFully(b)
++        return b
++    }
++
++    private class Dir(val tileId: LongArray, val offset: LongArray, val length: IntArray, val runLength: LongArray)
++
++    private fun dir(offset: Long, length: Int): Dir {
++        synchronized(dirs) { dirs[offset]?.let { return it } }
++        val d = deserialize(decompress(read(offset, length), internalCompression))
++        synchronized(dirs) { dirs[offset] = d }
++        return d
++    }
++
++    private fun tile(z: Int, x: Int, y: Int): ByteArray? {
++        val id = zxyToTileId(z, x, y)
++        var dOff = rootOffset
++        var dLen = rootLength
++        for (depth in 0..3) {
++            val d = dir(dOff, dLen)
++            val i = find(d, id)
++            if (i < 0) return null
++            if (d.runLength[i] > 0) return read(tileDataOffset + d.offset[i], d.length[i])
++            dOff = leafOffset + d.offset[i]
++            dLen = d.length[i]
++        }
++        return null
++    }
++
++    private fun find(d: Dir, id: Long): Int {
++        var lo = 0
++        var hi = d.tileId.size - 1
++        while (lo <= hi) {
++            val mid = (lo + hi) ushr 1
++            val c = id - d.tileId[mid]
++            if (c > 0) lo = mid + 1 else if (c < 0) hi = mid - 1 else return mid
++        }
++        return if (hi >= 0 && (d.runLength[hi] == 0L || id - d.tileId[hi] < d.runLength[hi])) hi else -1
++    }
++
++    private class Cursor(val b: ByteArray, var pos: Int = 0, val end: Int = b.size) {
++        fun varint(): Long {
++            var r = 0L
++            var shift = 0
++            while (true) {
++                if (pos >= end) throw IllegalStateException("truncated varint")
++                val v = b[pos++].toInt() and 0xff
++                r = r or ((v and 0x7f).toLong() shl shift)
++                if (v < 0x80) return r
++                shift += 7
++                if (shift > 63) throw IllegalStateException("varint too long")
++            }
++        }
++
++        fun skip(wire: Int) {
++            when (wire) {
++                0 -> varint()
++                1 -> pos += 8
++                2 -> { val n = varint().toInt(); pos += n }   // the length first: `pos += varint()` reads pos before the varint moves it
++                5 -> pos += 4
++                else -> throw IllegalStateException("wire type $wire")
++            }
++        }
++    }
++
++    private fun deserialize(b: ByteArray): Dir {
++        val c = Cursor(b)
++        val n = c.varint().toInt()
++        val tileId = LongArray(n)
++        val offset = LongArray(n)
++        val length = IntArray(n)
++        val runLength = LongArray(n)
++        var last = 0L
++        for (i in 0 until n) { last += c.varint(); tileId[i] = last }
++        for (i in 0 until n) runLength[i] = c.varint()
++        for (i in 0 until n) length[i] = c.varint().toInt()
++        for (i in 0 until n) {
++            val v = c.varint()
++            offset[i] = if (v == 0L && i > 0) offset[i - 1] + length[i - 1] else v - 1
++        }
++        return Dir(tileId, offset, length, runLength)
++    }
++
++    companion object {
++        private fun le16(b: ByteArray, o: Int) = (b[o].toInt() and 0xff) or ((b[o + 1].toInt() and 0xff) shl 8)
++
++        private fun le64(b: ByteArray, o: Int): Long {
++            var r = 0L
++            for (i in 7 downTo 0) r = (r shl 8) or (b[o + i].toLong() and 0xff)
++            return r
++        }
++
++        private fun decompress(b: ByteArray, c: Int): ByteArray = when (c) {
++            0, 1 -> b
++            2 -> GZIPInputStream(ByteArrayInputStream(b)).use { s ->
++                val out = ByteArrayOutputStream(b.size * 4)
++                s.copyTo(out)
++                out.toByteArray()
++            }
++            else -> throw IllegalStateException("compression $c not supported")
++        }
++
++        /** The Hilbert tile id (PMTiles v3), as the JS reference `zxyToTileId` computes it. */
++        fun zxyToTileId(z: Int, x: Int, y: Int): Long {
++            var acc = ((1L shl z) * (1L shl z) - 1) / 3
++            var n = z - 1
++            var tx = x.toLong()
++            var ty = y.toLong()
++            var a = if (z == 0) 0L else 1L shl (z - 1)
++            while (a > 0) {
++                val rx = tx and a
++                val ry = ty and a
++                acc += ((3 * rx) xor ry) * (1L shl n)
++                if (ry == 0L) {
++                    if (rx != 0L) { val t = a - 1 - ty; ty = a - 1 - tx; tx = t } else { val t = ty; ty = tx; tx = t }
++                }
++                n--
++                a = a shr 1
++            }
++            return acc
++        }
++
++        /** Layer name -> feature ids, for the layers asked; a feature without an id is skipped. */
++        fun mvtIds(b: ByteArray, layers: Set<String>): Map<String, IntArray> {
++            val out = HashMap<String, IntArray>()
++            val t = Cursor(b)
++            while (t.pos < t.end) {
++                val key = t.varint().toInt()
++                if (key ushr 3 != 3 || key and 7 != 2) { t.skip(key and 7); continue }
++                val len = t.varint().toInt()
++                val l = Cursor(b, t.pos, t.pos + len)
++                t.pos += len
++                var name: String? = null
++                var ids = IntArray(64)
++                var n = 0
++                while (l.pos < l.end) {
++                    val k = l.varint().toInt()
++                    when {
++                        k ushr 3 == 1 && k and 7 == 2 -> {
++                            val sl = l.varint().toInt()
++                            name = String(b, l.pos, sl, Charsets.UTF_8)
++                            l.pos += sl
++                        }
++                        k ushr 3 == 2 && k and 7 == 2 -> {
++                            val fl = l.varint().toInt()
++                            val f = Cursor(b, l.pos, l.pos + fl)
++                            l.pos += fl
++                            while (f.pos < f.end) {
++                                val fk = f.varint().toInt()
++                                if (fk ushr 3 == 1 && fk and 7 == 0) {
++                                    if (n == ids.size) ids = ids.copyOf(n * 2)
++                                    ids[n++] = f.varint().toInt()
++                                    break
++                                }
++                                f.skip(fk and 7)
++                            }
++                        }
++                        else -> l.skip(k and 7)
++                    }
++                }
++                if (name != null && name in layers) out[name] = ids.copyOf(n)
++            }
++            return out
++        }
++    }
++}
+diff --git a/android/src/main/java/org/maplibre/reactnative/utils/DownloadMapImageTask.java b/android/src/main/java/org/maplibre/reactnative/utils/DownloadMapImageTask.java
+index c3fc0627714ac7f031a2a26d8872eb74978bdb97..65e337c48ae1c309d740f95dd550c2824eaa32fa 100644
+--- a/android/src/main/java/org/maplibre/reactnative/utils/DownloadMapImageTask.java
++++ b/android/src/main/java/org/maplibre/reactnative/utils/DownloadMapImageTask.java
+@@ -131,7 +131,13 @@ public class DownloadMapImageTask extends AsyncTask<Map.Entry<String, ImageEntry
+             Style style = map.getStyle();
+             if (style != null) {
+                 for (Map.Entry<String, DownloadedImage> image : images) {
+-                    style.addImage(image.getKey(), image.getValue().bitmap(), image.getValue().info().sdf);
++                    ImageEntry info = image.getValue().info();
++                    // (canifishthis T74 patch) a stretchable image keeps its stretch zones and content box
++                    if (info.stretchX != null && info.stretchY != null) {
++                        style.addImage(image.getKey(), image.getValue().bitmap(), info.sdf, info.stretchX, info.stretchY, info.content);
++                    } else {
++                        style.addImage(image.getKey(), image.getValue().bitmap(), info.sdf);
++                    }
+                 }
+             }
+         }
+diff --git a/android/src/main/java/org/maplibre/reactnative/utils/ImageEntry.kt b/android/src/main/java/org/maplibre/reactnative/utils/ImageEntry.kt
+index d396d39c3c174a13c2576d5a3fab96e8bb75a8b3..17eb57897706d0ddfade6257a8f9d89c8e1341d4 100644
+--- a/android/src/main/java/org/maplibre/reactnative/utils/ImageEntry.kt
++++ b/android/src/main/java/org/maplibre/reactnative/utils/ImageEntry.kt
+@@ -5,6 +5,13 @@ class ImageEntry(
+     scale: Double?,
+     @JvmField var sdf: Boolean,
+ ) {
++    // (canifishthis T74 patch) a stretchable image (`icon-text-fit`): the parts that may repeat, and the text box
++    @JvmField var stretchX: List<org.maplibre.android.maps.ImageStretches>? = null
++
++    @JvmField var stretchY: List<org.maplibre.android.maps.ImageStretches>? = null
++
++    @JvmField var content: org.maplibre.android.maps.ImageContent? = null
++
+     @JvmField
+     var scale: Double = scale ?: DEFAULT_SCALE
+ 
+diff --git a/lib/commonjs/components/images/Images.js b/lib/commonjs/components/images/Images.js
+index 46db8c919a36ce57cca573f7bb248bd797be1242..8bd9c6c6b5c51b1eca0227a0da3c9d81d7c7498a 100644
+--- a/lib/commonjs/components/images/Images.js
++++ b/lib/commonjs/components/images/Images.js
+@@ -42,7 +42,13 @@ const Images = ({
+         result[imageName] = {
+           uri: resolved.uri,
+           scale: resolved.scale,
+-          sdf: typeof value === "object" ? value.sdf : false
++          sdf: typeof value === "object" ? value.sdf : false,
++          // (canifishthis T74 patch) a stretchable image's zones and content box
++          ...(typeof value === "object" && "source" in value ? {
++            stretchX: value.stretchX,
++            stretchY: value.stretchY,
++            content: value.content
++          } : {})
+         };
+       }
+     });
+diff --git a/lib/commonjs/components/sources/vector-source/VectorSource.js b/lib/commonjs/components/sources/vector-source/VectorSource.js
+index 89658de044640903973f5a230da9695e59f29ca1..73baf06557b71c5e1545eae075a8c9556f18f2e9 100644
+--- a/lib/commonjs/components/sources/vector-source/VectorSource.js
++++ b/lib/commonjs/components/sources/vector-source/VectorSource.js
+@@ -52,7 +52,11 @@ const VectorSource = exports.VectorSource = /*#__PURE__*/(0, _react.memo)(({
+       const state = await _NativeVectorSourceModule.default.getFeatureState((0, _findNodeHandle.findNodeHandle)(nativeRef.current), String(id), sourceLayer);
+       return state ?? null;
+     },
+-    removeFeatureState
++    removeFeatureState,
++    // (canifishthis T74 patch) the colouring engine's per-tile path
++    setFeatureStates: (sourceLayer, featureIds, states) => _NativeVectorSourceModule.default.setFeatureStates((0, _findNodeHandle.findNodeHandle)(nativeRef.current), sourceLayer, featureIds, states),
++    watchTiles: sourceLayers => _NativeVectorSourceModule.default.watchTiles((0, _findNodeHandle.findNodeHandle)(nativeRef.current), sourceLayers),
++    nativeTag: () => (0, _findNodeHandle.findNodeHandle)(nativeRef.current)
+   }));
+   return /*#__PURE__*/(0, _jsxRuntime.jsx)(_VectorSourceNativeComponent.default, {
+     ref: nativeRef,
+diff --git a/lib/module/components/images/Images.js b/lib/module/components/images/Images.js
+index a7f1cd85c4d2117fc5bd43c388c125cffab8c401..2db798ac2503368bfde454d9cefea8abbc8d4e04 100644
+--- a/lib/module/components/images/Images.js
++++ b/lib/module/components/images/Images.js
+@@ -37,7 +37,13 @@ export const Images = ({
+         result[imageName] = {
+           uri: resolved.uri,
+           scale: resolved.scale,
+-          sdf: typeof value === "object" ? value.sdf : false
++          sdf: typeof value === "object" ? value.sdf : false,
++          // (canifishthis T74 patch) a stretchable image's zones and content box
++          ...(typeof value === "object" && "source" in value ? {
++            stretchX: value.stretchX,
++            stretchY: value.stretchY,
++            content: value.content
++          } : {})
+         };
+       }
+     });
+diff --git a/lib/module/components/sources/vector-source/VectorSource.js b/lib/module/components/sources/vector-source/VectorSource.js
+index 59458ca46193ca52559627ebca120c9718e4df79..0a3365e1439919398e3fa963d1a546c421a581a4 100644
+--- a/lib/module/components/sources/vector-source/VectorSource.js
++++ b/lib/module/components/sources/vector-source/VectorSource.js
+@@ -47,7 +47,11 @@ export const VectorSource = /*#__PURE__*/memo(({
+       const state = await NativeVectorSourceModule.getFeatureState(findNodeHandle(nativeRef.current), String(id), sourceLayer);
+       return state ?? null;
+     },
+-    removeFeatureState
++    removeFeatureState,
++    // (canifishthis T74 patch) the colouring engine's per-tile path
++    setFeatureStates: (sourceLayer, featureIds, states) => NativeVectorSourceModule.setFeatureStates(findNodeHandle(nativeRef.current), sourceLayer, featureIds, states),
++    watchTiles: sourceLayers => NativeVectorSourceModule.watchTiles(findNodeHandle(nativeRef.current), sourceLayers),
++    nativeTag: () => findNodeHandle(nativeRef.current)
+   }));
+   return /*#__PURE__*/_jsx(VectorSourceNativeComponent, {
+     ref: nativeRef,
+diff --git a/lib/typescript/commonjs/components/images/Images.d.ts b/lib/typescript/commonjs/components/images/Images.d.ts
+index 473e240b3fac4b00d8a0dabc447bdb9d5b76abb2..4e75d942ce3b7f9a7e5b71bd97264cec19161143 100644
+--- a/lib/typescript/commonjs/components/images/Images.d.ts
++++ b/lib/typescript/commonjs/components/images/Images.d.ts
+@@ -7,6 +7,10 @@ import { type BaseProps } from "../../types/BaseProps";
+ export type ImageSourceWithSdf = {
+     source: ImageSourcePropType;
+     sdf?: boolean;
++    /** (canifishthis T74 patch) the parts of the image that may repeat (`icon-text-fit`), and the text box. */
++    stretchX?: [number, number][];
++    stretchY?: [number, number][];
++    content?: [number, number, number, number];
+ };
+ /**
+  * A map image entry: a URL string, a native asset require, or an
+diff --git a/lib/typescript/commonjs/components/sources/vector-source/VectorSource.d.ts b/lib/typescript/commonjs/components/sources/vector-source/VectorSource.d.ts
+index 3111419e423e19c03855efd613a9f3f1e1c72122..8f6e612c060eccbb40b92353c0eb7e209fbe5bae 100644
+--- a/lib/typescript/commonjs/components/sources/vector-source/VectorSource.d.ts
++++ b/lib/typescript/commonjs/components/sources/vector-source/VectorSource.d.ts
+@@ -4,6 +4,12 @@ import { type BaseProps } from "../../../types/BaseProps";
+ import type { FeatureState } from "../../../types/FeatureState";
+ import type { PressableSourceProps } from "../../../types/PressableSourceProps";
+ export interface VectorSourceRef {
++    /** (canifishthis T74 patch) many states in one bridge call: `featureIds[i]` takes `states[i]`. */
++    setFeatureStates(sourceLayer: string, featureIds: string[], states: FeatureState[]): Promise<void>;
++    /** (canifishthis T74 patch) emit the device event `MLRNTileIds` {tag, z, x, y, layers} per requested tile. */
++    watchTiles(sourceLayers: string[]): Promise<void>;
++    /** (canifishthis T74 patch) this source's view tag: the `tag` its `MLRNTileIds` events carry. */
++    nativeTag(): number;
+     /**
+      * Returns all features that match the query parameters regardless of whether
+      * the feature is currently rendered on the map. The domain of the query
+diff --git a/lib/typescript/module/components/images/Images.d.ts b/lib/typescript/module/components/images/Images.d.ts
+index 473e240b3fac4b00d8a0dabc447bdb9d5b76abb2..4e75d942ce3b7f9a7e5b71bd97264cec19161143 100644
+--- a/lib/typescript/module/components/images/Images.d.ts
++++ b/lib/typescript/module/components/images/Images.d.ts
+@@ -7,6 +7,10 @@ import { type BaseProps } from "../../types/BaseProps";
+ export type ImageSourceWithSdf = {
+     source: ImageSourcePropType;
+     sdf?: boolean;
++    /** (canifishthis T74 patch) the parts of the image that may repeat (`icon-text-fit`), and the text box. */
++    stretchX?: [number, number][];
++    stretchY?: [number, number][];
++    content?: [number, number, number, number];
+ };
+ /**
+  * A map image entry: a URL string, a native asset require, or an
+diff --git a/lib/typescript/module/components/sources/vector-source/VectorSource.d.ts b/lib/typescript/module/components/sources/vector-source/VectorSource.d.ts
+index 3111419e423e19c03855efd613a9f3f1e1c72122..8f6e612c060eccbb40b92353c0eb7e209fbe5bae 100644
+--- a/lib/typescript/module/components/sources/vector-source/VectorSource.d.ts
++++ b/lib/typescript/module/components/sources/vector-source/VectorSource.d.ts
+@@ -4,6 +4,12 @@ import { type BaseProps } from "../../../types/BaseProps";
+ import type { FeatureState } from "../../../types/FeatureState";
+ import type { PressableSourceProps } from "../../../types/PressableSourceProps";
+ export interface VectorSourceRef {
++    /** (canifishthis T74 patch) many states in one bridge call: `featureIds[i]` takes `states[i]`. */
++    setFeatureStates(sourceLayer: string, featureIds: string[], states: FeatureState[]): Promise<void>;
++    /** (canifishthis T74 patch) emit the device event `MLRNTileIds` {tag, z, x, y, layers} per requested tile. */
++    watchTiles(sourceLayers: string[]): Promise<void>;
++    /** (canifishthis T74 patch) this source's view tag: the `tag` its `MLRNTileIds` events carry. */
++    nativeTag(): number;
+     /**
+      * Returns all features that match the query parameters regardless of whether
+      * the feature is currently rendered on the map. The domain of the query
+diff --git a/src/components/images/Images.tsx b/src/components/images/Images.tsx
+index 6c890166ba0d83e5bcdfcff81faeb66554936aa0..b4bd95ad47b811af9584d63319b08c1c87356dc1 100644
+--- a/src/components/images/Images.tsx
++++ b/src/components/images/Images.tsx
+@@ -18,6 +18,10 @@ import { type BaseProps } from "../../types/BaseProps";
+ export type ImageSourceWithSdf = {
+   source: ImageSourcePropType;
+   sdf?: boolean;
++  /** (canifishthis T74 patch) the parts of the image that may repeat (`icon-text-fit`), and the text box. */
++  stretchX?: [number, number][];
++  stretchY?: [number, number][];
++  content?: [number, number, number, number];
+ };
+ 
+ /**
+@@ -94,6 +98,10 @@ export const Images = ({ testID, images, onImageMissing }: ImagesProps) => {
+           uri: resolved.uri,
+           scale: resolved.scale,
+           sdf: typeof value === "object" ? value.sdf : false,
++          // (canifishthis T74 patch) a stretchable image's zones and content box
++          ...(typeof value === "object" && "source" in value
++            ? { stretchX: value.stretchX, stretchY: value.stretchY, content: value.content }
++            : {}),
+         };
+       }
+     });
+diff --git a/src/components/images/ImagesNativeComponent.ts b/src/components/images/ImagesNativeComponent.ts
+index 22c6cf91e9b2f8d2c62f7da7988dc2e95c86ab39..63e4aae5a48521c8a469a5ee384fc4fbedc84f33 100644
+--- a/src/components/images/ImagesNativeComponent.ts
++++ b/src/components/images/ImagesNativeComponent.ts
+@@ -15,6 +15,10 @@ export type NativeImageEntry = {
+   uri: string;
+   scale?: CodegenTypes.Double;
+   sdf?: boolean;
++  /** (canifishthis T74 patch) stretch zones and content box, in image pixels. */
++  stretchX?: [number, number][];
++  stretchY?: [number, number][];
++  content?: [number, number, number, number];
+ };
+ 
+ export interface NativeProps extends ViewProps {
+diff --git a/src/components/sources/vector-source/NativeVectorSourceModule.ts b/src/components/sources/vector-source/NativeVectorSourceModule.ts
+index ba614e748a677aef9fe4a301e04ff07d2d891442..3d96df5b74762cb2b0b72ca196ba737749ed55d9 100644
+--- a/src/components/sources/vector-source/NativeVectorSourceModule.ts
++++ b/src/components/sources/vector-source/NativeVectorSourceModule.ts
+@@ -30,6 +30,20 @@ export interface Spec extends TurboModule {
+     sourceLayer: string,
+     key: string | null,
+   ) => Promise<void>;
++
++  // (canifishthis T74 patch) many feature states in one call: featureIds[i] takes states[i]
++  setFeatureStates: (
++    reactTag: CodegenTypes.Int32,
++    sourceLayer: string,
++    featureIds: string[],
++    states: CodegenTypes.UnsafeObject[],
++  ) => Promise<void>;
++
++  // (canifishthis T74 patch) emit `MLRNTileIds` {tag, z, x, y, layers} for each tile requested from this source
++  watchTiles: (
++    reactTag: CodegenTypes.Int32,
++    sourceLayers: string[],
++  ) => Promise<void>;
+ }
+ 
+ export default TurboModuleRegistry.getEnforcing<Spec>("MLRNVectorSourceModule");
+diff --git a/src/components/sources/vector-source/VectorSource.tsx b/src/components/sources/vector-source/VectorSource.tsx
+index 49b8fd3ec4332a5fc470c623302b3f3da8fcd552..ae84fc2f48a3b2a4ac2a4486225f5069905a02ac 100644
+--- a/src/components/sources/vector-source/VectorSource.tsx
++++ b/src/components/sources/vector-source/VectorSource.tsx
+@@ -21,6 +21,12 @@ import { findNodeHandle } from "../../../utils/findNodeHandle";
+ import { getNativeFilter } from "../../../utils/getNativeFilter";
+ 
+ export interface VectorSourceRef {
++    /** (canifishthis T74 patch) many states in one bridge call: `featureIds[i]` takes `states[i]`. */
++    setFeatureStates(sourceLayer: string, featureIds: string[], states: FeatureState[]): Promise<void>;
++    /** (canifishthis T74 patch) emit the device event `MLRNTileIds` {tag, z, x, y, layers} per requested tile. */
++    watchTiles(sourceLayers: string[]): Promise<void>;
++    /** (canifishthis T74 patch) this source's view tag: the `tag` its `MLRNTileIds` events carry. */
++    nativeTag(): number;
+   /**
+    * Returns all features that match the query parameters regardless of whether
+    * the feature is currently rendered on the map. The domain of the query
+@@ -260,6 +266,18 @@ export const VectorSource = memo(({ id, ref, ...props }: VectorSourceProps) => {
+     },
+ 
+     removeFeatureState,
++
++    // (canifishthis T74 patch) the colouring engine's per-tile path
++    setFeatureStates: (sourceLayer: string, featureIds: string[], states: FeatureState[]) =>
++      NativeVectorSourceModule.setFeatureStates(
++        findNodeHandle(nativeRef.current),
++        sourceLayer,
++        featureIds,
++        states as never,
++      ),
++    watchTiles: (sourceLayers: string[]) =>
++      NativeVectorSourceModule.watchTiles(findNodeHandle(nativeRef.current), sourceLayers),
++    nativeTag: () => findNodeHandle(nativeRef.current),
+   }));
+ 
+   return (

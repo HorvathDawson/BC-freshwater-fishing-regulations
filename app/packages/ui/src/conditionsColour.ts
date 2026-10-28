@@ -1,24 +1,18 @@
 /**
- * HOW THE CONDITIONS STANDINGS REACH THE MAP, per renderer — the other half of `mapModes`' `perTile` choice, as
- * `statusFeed` is for the day's status (owner 2026-10-21: "we need to do the same painting speed up for the conditions
- * map too").
- *
- *   per-tile (web)   `standing`: the release's classes (each section's, fixed for the release) and each class's
- *                    standing for the live feed at the chosen horizon. The map labels each tile's sections with their
- *                    class's value as the tile arrives — no wait for `idle`, no React round trip. A feed refresh or a
- *                    horizon change is one new `values` object: one engine call on the map, which relabels the
- *                    sections of the tiles it holds (feature-state only; no paint change, no tile reload).
- *   otherwise        `data`: every VISIBLE section's standing, pushed through `setData` after the map reports what is
- *                    on screen — the pre-existing path, which N2's native map reads in the `standing` mode.
- *
- * Both compute through the same arithmetic (`sectionStanding`, `basinStandings` in @app/data), so the two renderers
- * cannot colour a section differently; and both only on a PROVEN PAIR (the caller's `paired`).
+ * HOW THE CONDITIONS STANDINGS REACH THE MAP (owner 2026-10-21: "we need to do the same painting speed up for the
+ * conditions map too"), as `statusFeed` is for the day's status. Both renderers, web and native, colour per tile
+ * (T74): `standing` is the release's classes (each section's, fixed for the release) and each class's standing for the
+ * live feed at the chosen horizon. The map labels each tile's sections with their class's value as the tile arrives —
+ * no wait for `idle`, no React round trip. A feed refresh or a horizon change is one new `values` object: one engine
+ * call on the map, which relabels the sections of the tiles it holds (feature-state only; no paint change, no tile
+ * reload). The arithmetic is the panel's (`classStanding`, `basinStandings` in @app/data); only on a PROVEN PAIR (the
+ * caller's `paired`).
  */
 import { useMemo, useRef } from "react";
 import { basinStandings, classStanding, type Horizon, type Parameter, type WaterSource, type SectionId, FEED_TTL_MS,
          type StandingClasses } from "@app/data";
 import { useAsync, usePoll } from "./async";
-import { useBasinStandings, usePanelStandings, type PanelFeed } from "./panel";
+import type { PanelFeed } from "./panel";
 import { rampPosition, toRamp } from "./routeColour";
 
 export { toRamp };
@@ -33,12 +27,10 @@ export interface StandingValuesVM {
   readonly basins: Readonly<Record<string, number>>;
 }
 
-/** What the Conditions map is handed: the colouring per renderer, and the legend's marks. */
+/** What the Conditions map is handed: the colouring, and the legend's marks. */
 export interface ConditionsColourVM {
-  /** Per-tile maps: the classes and their values (`MapProps.standing`). Null off a proven pair or before the classes. */
+  /** The classes and their values (`MapProps.standing`). Null off a proven pair or before the classes. */
   standing: { labels: StandingClasses; values: StandingValuesVM | null } | null;
-  /** Pushed-data maps: the visible sections' and basins' standings (`MapProps.data` on Conditions). */
-  data: Record<string, Record<string, Record<string, unknown>>>;
   /** The readings on screen, as positions on the legend's scale (0–1), sorted. Sentinels excluded: a state, not a point. */
   marks: readonly number[];
 }
@@ -84,43 +76,23 @@ export function classMarks(c: StandingClasses, v: StandingValuesVM, visible: rea
   return out.sort((a, b) => a - b);
 }
 
-/** The pushed path's per-feature data: every visible section's standing on streams AND lakes, and the field. */
-export function pushedStandings(standings: ReadonlyMap<SectionId, number>,
-                                basins: ReadonlyMap<string, number>, horizon: Horizon = 0): ConditionsColourVM["data"] {
-  return {
-    // feature-state is per SOURCE-layer: `sections` is @app/map's `SECTION_DATA`, which the map fans out to every
-    // per-section layer (`perSectionLayers()`, T124) — the stream lines, the lake polygons (`lake`, `lake_flowing`) and
-    // the marsh a stream flows through (`wetland_flowing`, the `wetland` source-layer), so no list here can miss one
-    sections: Object.fromEntries([...standings].map(([section, p]) => [section, { standing: toRamp(p, horizon) }])),
-    basin: Object.fromEntries([...basins].map(([id, p]) => [id, { standing: toRamp(p, horizon) }])),
-  };
-}
-
 export function useConditionsColour(i: {
   source: WaterSource; feed: PanelFeed | undefined;
-  /** `coloursEachTile(Platform.OS)`: the renderer labels tiles itself. */
-  perTile: boolean;
   /** The proven pair (P11). Anything less colours nothing. */
   paired: boolean;
   onConditions: boolean;
   quantity: Parameter;
   horizon: Horizon;
-  /** The zoomed-out field is drawn (the pushed path asks for the basins only then). */
-  fieldOn: boolean;
-  /** What the map reports on screen — the pushed path's question, and the legend's marks on both. */
+  /** What the map reports on screen — the legend's marks. */
   visible: readonly SectionId[];
   /** (the sync icon) bumped by a refresh the reader asked for: the feed is re-asked now, not at the next poll */
   epoch?: number;
 }): ConditionsColourVM {
-  const { source, feed, perTile, paired, onConditions, quantity, horizon } = i;
-  // THE PUSHED PATH (native): the viewport, through the panels — asked only where it is the path
-  const pushed = !perTile && paired;
-  const standings = usePanelStandings(source, feed, pushed ? i.visible : [], quantity, horizon);
-  const basins = useBasinStandings(source, feed, pushed && i.fieldOn, quantity, horizon);
-  // THE PER-TILE PATH (web): the release's classes, once — kept across tabs, so leaving Conditions withdraws nothing
+  const { source, feed, paired, onConditions, quantity, horizon } = i;
+  // the release's classes, once — kept across tabs, so leaving Conditions withdraws nothing
   const classes = useAsync(() => source.standingClasses(), `standingclasses:${sourceKey(source)}`,
-                           perTile && paired && onConditions);
-  const labels = perTile && paired && classes.state === "ready" ? classes.value : null;
+                           paired && onConditions);
+  const labels = paired && classes.state === "ready" ? classes.value : null;
   // the feed, re-asked on its own schedule: a refresh that brings a new index is new values, and nothing else
   const tick = usePoll(FEED_POLL_MS, labels !== null && onConditions && feed !== undefined);
   // ONE TABLE PER (index, quantity, horizon), kept while the index and the classes last: the same question again is the
@@ -143,11 +115,6 @@ export function useConditionsColour(i: {
   // values computed from THESE labels only: a value table from another release's classes would colour wrong water
   const v = values.state === "ready" && values.value?.labels === labels ? values.value.v : null;
   const standing = useMemo(() => (labels ? { labels, values: v } : null), [labels, v]);
-  const data = useMemo(() => (pushed ? pushedStandings(standings, basins, horizon) : {}),
-                       [pushed, standings, basins, horizon]);
-  const marks = useMemo(
-    () => (labels && v ? classMarks(labels, v, i.visible)
-      : [...standings.values()].filter((p) => p >= 0).sort((a, b) => a - b)),
-    [labels, v, i.visible, standings]);
-  return { standing, data, marks };
+  const marks = useMemo(() => (labels && v ? classMarks(labels, v, i.visible) : []), [labels, v, i.visible]);
+  return { standing, marks };
 }

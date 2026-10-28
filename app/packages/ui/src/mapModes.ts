@@ -8,10 +8,8 @@
  * The reasons each rule reads as it does are kept beside the rule below; they were the Shell's comments.
  */
 import { useMemo, useRef } from "react";
-import { basemapInUse, SATELLITE_OFFLINE, type Basemap, type SectionKey, type StatusIndex, type WaterColour }
-  from "@app/core";
+import { basemapInUse, SATELLITE_OFFLINE, type Basemap, type StatusIndex, type WaterColour } from "@app/core";
 import type { Horizon, Parameter } from "@app/data";
-import { statusData } from "./hooks";
 import type { GaugeQuantity } from "./gaugePoints";
 import type { BrowseTab } from "./route";
 
@@ -38,14 +36,6 @@ export interface MapModeInput {
   paired: boolean;
   /** The day's status index is in and matches this atlas. */
   statusOk: boolean;
-  /**
-   * The renderer colours each tile as it arrives from the index it is handed (`MapProps.status`, the `profile` mode —
-   * colour-latency AP). The web map does; the native map (N2) has no per-tile event and reads only pushed `data` in
-   * the `status` mode — told `profile` it painted every water plain with no error (colour-ap review). REQUIRED, so
-   * no caller can forget which renderer it draws on: `coloursEachTile(Platform.OS)` from @app/map. The whole split,
-   * per channel, is written down once: the header of @app/map `colouring.ts`.
-   */
-  perTile: boolean;
   /**
    * How the Map tab colours the water — ONE choice for streams, lakes and wetlands together (owner 2026-10-21 late:
    * "it is dangerous to have the divergent layers for features"). The layer registry's `effective.water`
@@ -86,9 +76,8 @@ export interface MapModesVM {
   horizonsShown: boolean;
   /**
    * Whether the map is asked what is on screen (`MapProps.onVisible`: the `idle` -> query -> React round trip). Only
-   * where something reads the answer: the Conditions legend's marks, and the phone's pushed colours (status, standing).
-   * NOT the web Map tab, where the colouring engine labels each tile itself and a per-pan re-render of the Shell would
-   * be work for nothing (the one-pathway audit, 2026-10-21).
+   * where something reads the answer: the Conditions legend's marks. NOT the Map tab, where the colouring engine labels
+   * each tile itself and a per-pan re-render of the Shell would be work for nothing (the one-pathway audit, 2026-10-21).
    */
   asksVisible: boolean;
   modes: MapModes;
@@ -137,14 +126,14 @@ export function mapModes(i: MapModeInput): MapModesVM {
    * and carries the day in the style, so a new tile is coloured on its first frame instead of after `idle`.
    * A STREAM'S POLYGON IS A STREAM — `lake_flowing` / `wetland_flowing` wear the rivers' colouring in every view.
    */
-  const statusMode = i.perTile ? "profile" : "status";
+  const statusMode = "profile";
   /*
-   * (T211) SALMON: DFO's salmon for the day, through its own channel — the same split by renderer as the status
-   * (`salmon` labels per tile on the web, `salmon_status` from pushed data on the phone). Only on the Map tab under the
-   * Regulations colouring: a toggle is ONLY a mode change here, everything it paints from is already handed over.
+   * (T211) SALMON: DFO's salmon for the day, through its own channel (`salmon`, labelled per tile like the status).
+   * Only on the Map tab under the Regulations colouring: a toggle is ONLY a mode change here, everything it paints
+   * from is already handed over.
    */
   const salmonOn = !!i.salmon && i.paired && !onConditions && !lakeMeasure;
-  const salmonMode = i.perTile ? "salmon" : "salmon_status";
+  const salmonMode = "salmon";
   const river = !i.paired ? "plain"
     : onConditions ? (temperature ? "plain" : "standing")
     : lakeMeasure ? "plain"
@@ -170,7 +159,7 @@ export function mapModes(i: MapModeInput): MapModesVM {
     standingHorizon: temperature ? 0 : i.horizon,
     fieldOn: fieldAnswers(i.tab, i.flowParam) && i.zoomedOut,
     horizonsShown: onConditions && !temperature,
-    asksVisible: !i.perTile || onConditions,
+    asksVisible: onConditions,
     modes, activeGroups,
     // THE GROUND IS NOT A COLOURING: it moves no mode and no group (one colouring pathway), only what is under them
     basemap: basemapInUse(i.basemap, i.imageryUp),
@@ -185,11 +174,11 @@ export function mapModes(i: MapModeInput): MapModesVM {
  * memoised on a hand-picked subset of inputs, so a later rule that makes a mode depend on anything stays correct.
  */
 export function useMapModes(i: MapModeInput): MapModesVM {
-  const { tab, flowParam, horizon, zoomedOut, paired, statusOk, perTile, water, groups, basemap, imageryUp, salmon } = i;
+  const { tab, flowParam, horizon, zoomedOut, paired, statusOk, water, groups, basemap, imageryUp, salmon } = i;
   const vm = useMemo(
-    () => mapModes({ tab, flowParam, horizon, zoomedOut, paired, statusOk, perTile, water, groups, basemap, imageryUp,
+    () => mapModes({ tab, flowParam, horizon, zoomedOut, paired, statusOk, water, groups, basemap, imageryUp,
                      salmon }),
-    [tab, flowParam, horizon, zoomedOut, paired, statusOk, perTile, water, groups, basemap, imageryUp, salmon]);
+    [tab, flowParam, horizon, zoomedOut, paired, statusOk, water, groups, basemap, imageryUp, salmon]);
   const modes = useSameContent(vm.modes);
   const activeGroups = useSameContent(vm.activeGroups);
   return useMemo(() => ({ ...vm, modes, activeGroups }), [vm, modes, activeGroups]);
@@ -204,22 +193,11 @@ function useSameContent<T extends Readonly<Record<string, unknown>>>(v: T): T {
 }
 
 /**
- * HOW THE DAY'S STATUS REACHES THE MAP, per renderer — the other half of `mapModes`' `perTile` choice, so the mode
- * and its feed are decided together (colour-ap review).
- *
- *   per-tile (web)   `status`: the index and the day, on BOTH tabs (a tab switch is not a withdrawal, which would
- *                    clear every label); the map labels each tile itself. Nothing pushed.
- *   otherwise        `data`: every visible section's status on `day`, pushed through `setData` on the Map tab — the
- *                    pre-AP path, which N2's native map reads in the `status` mode.
- *
- * Both only on a proven pair with an index that matched (`statusOk`); otherwise nothing.
+ * HOW THE DAY'S STATUS REACHES THE MAP: the index and the day, on BOTH tabs (a tab switch is not a withdrawal, which
+ * would clear every label); the map labels each tile itself — both renderers (T74). Only on a proven pair with an
+ * index that matched (`statusOk`); otherwise nothing.
  */
-export function statusFeed(i: { perTile: boolean; statusOk: boolean; index: StatusIndex | null; tab: BrowseTab;
-                                visible: readonly SectionKey[]; day: Date }): {
-  status: { index: StatusIndex; day: Date } | null;
-  data: ReturnType<typeof statusData> | undefined;
-} {
-  if (!i.statusOk || !i.index) return { status: null, data: undefined };
-  if (i.perTile) return { status: { index: i.index, day: i.day }, data: undefined };
-  return { status: null, data: i.tab === "map" ? statusData(i.index, i.visible, i.day) : undefined };
+export function statusFeed(i: { statusOk: boolean; index: StatusIndex | null; day: Date }):
+    { index: StatusIndex; day: Date } | null {
+  return i.statusOk && i.index ? { index: i.index, day: i.day } : null;
 }

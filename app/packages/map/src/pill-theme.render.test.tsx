@@ -65,7 +65,7 @@ afterEach(() => { cleanup(); added.clear(); gl = null; });
 
 const AT = { atlas: "file:///d/atlas.pmtiles", basemap: "file:///d/basemap.pmtiles" };
 const props = (theme: string): MapProps => ({
-  at: AT, theme, view: "plain", modes: { stream: "status", lake: "status" }, initial: { lon: -122, lat: 49, zoom: 11 },
+  at: AT, theme, view: "plain", modes: { stream: "profile", lake: "profile" }, initial: { lon: -122, lat: 49, zoom: 11 },
 });
 /** The pill and the pin as `images.ts` paints them in `theme`. */
 const pillIn = (theme: string) => pillImage(colour(theme, "color.outside"), colour(theme, "color.ui.line")).data;
