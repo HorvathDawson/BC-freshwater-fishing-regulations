@@ -308,7 +308,7 @@ describe("the style adapter (platform-free: one implementation, tested for what 
     const reads: string[] = [];
     for (const theme of ["light", "dark", "cvd"]) {
       const t = resolveTheme(theme), k = Number(t["opacity.water.others"]);
-      expect([theme, k]).toEqual([theme, 0.4]);
+      expect([theme, k]).toEqual([theme, 0.25]);
       for (const l of MAP_STYLE.layers as { id: string; type: string }[]) {
         const modes = Object.keys(STYLE_META.colorModes[l.id] ?? {});
         if (!modes.length) continue;
@@ -323,9 +323,9 @@ describe("the style adapter (platform-free: one implementation, tested for what 
     const lt = resolveTheme("light"), lake = Number(lt["opacity.lake"]), wet = Number(lt["opacity.wetland"]);
     const edge = (seen["light lake__edge"] as unknown[] | undefined)?.[3];      // the shoreline's own opacity, undimmed
     expect(Object.fromEntries(Object.entries(seen).filter(([k]) => k.startsWith("light ")))).toEqual({
-      "light wetland": dimmed(wet, 0.4), "light wetland_flowing": dimmed(wet, 0.4),
-      "light lake": dimmed(lake, 0.4), "light lake__edge": dimmed(edge, 0.4),
-      "light lake_flowing": dimmed(lake, 0.4), "light stream": dimmed(1, 0.4),
+      "light wetland": dimmed(wet, 0.25), "light wetland_flowing": dimmed(wet, 0.25),
+      "light lake": dimmed(lake, 0.25), "light lake__edge": dimmed(edge, 0.25),
+      "light lake_flowing": dimmed(lake, 0.25), "light stream": dimmed(1, 0.25),
     });
     expect(Object.keys(seen).length).toBe(18);                                  // the same six layers in each theme
   });
@@ -356,7 +356,7 @@ describe("the style adapter (platform-free: one implementation, tested for what 
       .toEqual([true, true, true, true]);
     const layer = (id: string) => style.layers.find((l: { id: string }) => l.id === id) as unknown as
       { type: string; "source-layer": string; paint: Record<string, unknown> };
-    // (T203) the part of a water's Map ("dim") is haloed too, at half the outline
+    // (T203) the part of a water's Map ("dim") is haloed too — (T214) at the full outline, the same as a selection
     const shown = ["case", ["boolean", ["feature-state", "selected"], false], 1,
                    ["boolean", ["feature-state", "part"], false], 1, 0];
     for (const theme of ["light", "dark", "cvd"]) {
@@ -372,8 +372,8 @@ describe("the style adapter (platform-free: one implementation, tested for what 
     const w = paintFor("stream", "plain", resolveTheme("light"))["line-width"] as unknown[];
     const cw = layer(SELECTION_CASING).paint["line-width"] as unknown[];
     expect([cw.slice(0, 3), cw.slice(3).filter((_, i) => i % 2 === 1)]).toEqual([
-      w.slice(0, 3), w.slice(3).filter((_, i) => i % 2 === 1).map((v) => ["+", v, ["case", ["boolean", ["feature-state", "part"], false],
-        2 * PART_HALO_PX, 2 * CASING_PX]])]);
+      w.slice(0, 3), w.slice(3).filter((_, i) => i % 2 === 1).map((v) => ["+", v, 2 * CASING_PX])]);
+    expect(PART_HALO_PX).toBe(CASING_PX);
   });
 
   it("a theme or mode change repaints the outline with the stream (one paint path)", () => {

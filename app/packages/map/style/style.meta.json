@@ -2589,7 +2589,7 @@
       "width.stream.base": 1,
       "width.stream.highlight": 3.2,
       "width.stream.water": 2.4,
-      "opacity.water.others": 0.4,
+      "opacity.water.others": 0.25,
       "opacity.overlay": 0.55,
       "color.water.route": "#A3AEB4",
       "color.lake.fill": "#94C9E0",
@@ -2718,7 +2718,7 @@
       "width.stream.base": 1,
       "width.stream.highlight": 3.2,
       "width.stream.water": 2.4,
-      "opacity.water.others": 0.4,
+      "opacity.water.others": 0.25,
       "opacity.overlay": 0.45,
       "color.status.closed": "#FF3B6D",
       "color.status.own": "#FFD307",
@@ -2855,7 +2855,7 @@
       "width.stream.base": 1,
       "width.stream.highlight": 3.2,
       "width.stream.water": 2.4,
-      "opacity.water.others": 0.4,
+      "opacity.water.others": 0.25,
       "opacity.overlay": 0.55,
       "color.water.route": "#2E62A8",
       "color.lake.fill": "#64B5F6",
@@ -3081,7 +3081,7 @@
     "opacity.water.others": {
       "type": "number",
       "themeable": false,
-      "$comment": "T151 (owner 2026-10-23: 'the bold in the section map view is also weird and makes the reg legend hard to follow'). In a water's Map view the part you are on is marked by DIMMING THE WATER'S OTHER PARTS to this opacity — never by a thicker line or an outline, so every part keeps the legend's colour at one width."
+      "$comment": "T151 (owner 2026-10-23: 'the bold in the section map view is also weird and makes the reg legend hard to follow'). In a water's Map view the part you are on is marked by DIMMING THE WATER'S OTHER PARTS to this opacity — never by a thicker line, so every part keeps the legend's colour at one width. T203 added a highlight halo round the part; T214 (owner 2026-10-27, 'much more obvious') took the others from 0.4 to 0.25 and the halo to the full outline."
     },
     "opacity.overlay": {
       "type": "number",
