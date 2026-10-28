@@ -7,7 +7,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { makeFixtureSource } from "@app/data/fixture";
-import type { ItemId } from "@app/data";
+import type { ItemId, SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { openRegsFixture } from "@app/data/release/node";
 import { WaterScreen } from "./WaterScreen";
@@ -87,6 +87,26 @@ describe("<WaterScreen> regulations", () => {
       + "don't give you access.");
     expect([...screen.getByTestId("regs-content").children].map((e) => e.getAttribute("data-testid")).slice(0, 2))
       .toEqual(["access-banner", "keep-tab"]);
+  }, 30_000);
+
+  /*
+   * (Q140, owner 2026-10-28) A TAPPED SECTION WHOLLY OUTSIDE no-access land, on a part that runs through it, leads with
+   * the PART's banner in the same block — the page asks its part beside the tapped section (`useAccessNotice`).
+   */
+  it("(Q140) a tapped section outside no-access land: its part's banner leads the page", async () => {
+    const live = openRegsFixture();
+    const TAPPED = 987654321;
+    const inside = [{ area: { tier: "no_access", name: "Test Watershed" }, share: 1 }];
+    const partlyClosed: ReleaseLoader = Object.assign(Object.create(Object.getPrototypeOf(live)), live, {
+      paint: async () => ({ access: { of: (sid: unknown) => (Number(sid) === TAPPED ? [] : inside) } }),
+      access: async () => null });
+    render(<WaterScreen source={makeFixtureSource()} item={"gnis:8634" as ItemId} palette={LIGHT}
+                        loader={partlyClosed} day={new Date(2026, 9, 10, 12)} part={0}
+                        section={TAPPED as SectionId} />);
+    await waitFor(() => expect(screen.getByTestId("access-banner")).toBeTruthy(), { timeout: 20_000 });
+    expect(screen.getByTestId("access-banner").textContent).toBe("No public accessThis part of the water is inside Test "
+      + "Watershed. The public may not go there, so you can't fish here. The regulations below are the Province's; they "
+      + "don't give you access.");
   }, 30_000);
 
   it("(T35) the Licence tab's pick reaches the page: Under 16 rebuilds it for that angler (useAnglerProfile, D8 a)", async () => {

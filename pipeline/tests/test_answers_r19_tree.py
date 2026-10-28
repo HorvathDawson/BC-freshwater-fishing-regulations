@@ -43,7 +43,7 @@ def test_2_sizes_read_cm_then_inches_in_brackets():
     x = {"type": "retention_limit", "species": ["RB"], "take": 2, "lengths": [{"max_cm": 30, "take": 0}]}
     assert display.title(x) == "Keep up to 2 rainbow trout a day (none under 30 cm (12 in))"
     slot = {"type": "retention_limit", "species": ["LT"], "lengths": [{"min_cm": 60, "max_cm": 90, "take": 0}]}
-    assert display.title(slot) == "No lake trout over 60 cm (24 in), under 90 cm (35 in)"
+    assert display.title(slot) == "Release lake trout between 60 cm (24 in) and 90 cm (35 in)"     # Q62
 
 
 def test_2_lift_and_kept_elsewhere_lines_say_inches_in_brackets():
@@ -125,7 +125,7 @@ def test_5_the_boundary_standard_on_the_table_bands():
     assert [b["says"] for b in bands["DV"]] == ["under 60 cm (24 in)", "60 cm (24 in) or longer"]
     g, _o, _P = _g(F.SLOT)           # none between 60 and 90 cm: both bounds legal
     assert [b["says"] for b in g["table"]["bands"]["RB"]] == [
-        "60 cm (24 in) or less", "over 60 cm (24 in), under 90 cm (35 in)", "90 cm (35 in) or longer"]
+        "60 cm (24 in) or less", "between 60 cm (24 in) and 90 cm (35 in)", "90 cm (35 in) or longer"]   # Q62
     assert all({"from_in", "to_in"} <= set(k) for k in g["cap_kinds"])
 
 

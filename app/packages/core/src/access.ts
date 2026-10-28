@@ -174,3 +174,17 @@ export function waterAccessNotice(sections: readonly (readonly AccessRow[])[],
   if (!strong.length) return null;
   return noAccessNotice(strong, kept.every((rows) => noAccessShare(rows) > MOSTLY_INSIDE), subject);
 }
+
+/**
+ * (T147, owner 2026-10-28, Q140) THE NOTICE A REGULATIONS PAGE LEADS WITH when a section was tapped and the page's part is
+ * known: "unless a section is fully out of the no-access area it should have a banner", and a part that runs through
+ * no-access land keeps its banner on every section of it. So: the tapped section's own banner when any of it is inside
+ * ("This section is inside …" / "Some of this section is inside …"); else, when the section is wholly outside but its
+ * part is not, the PART's banner ("Some of this part of the water is inside …"), in the same block; else the section's
+ * gentle note, if any. One block on a page, never two.
+ */
+export function leadingAccessNotice(section: AccessNotice | null, page: AccessNotice | null): AccessNotice | null {
+  if (section?.tier === "no_access") return section;
+  if (page?.tier === "no_access") return page;
+  return section;
+}

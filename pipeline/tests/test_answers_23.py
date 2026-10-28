@@ -246,9 +246,11 @@ def test_built_subset_sentences_name_their_fish():
         assert s["for"] == f"for {lc_names(s['fish'])}"
         if s.get("plain") and not re.search(r"No fishing|Possession", s["plain"]):
             # each fish by name, or their group's name ("trout and char", "trout or char")
-            assert all(lc(sp_name(f)) in s["plain"] for f in s["fish"]) or \
-                any(n in s["plain"] for n in (lc_names(s["fish"]),
-                                              lc_names(s["fish"]).replace(" and ", " or "))), s
+            # (Q63: a size rule says the fish first, "Cutthroat trout … must be …" — read without the capital)
+            said = s["plain"] + " " + s["plain"][:1].lower() + s["plain"][1:]
+            assert all(lc(sp_name(f)) in said for f in s["fish"]) or \
+                any(n in said for n in (lc_names(s["fish"]),
+                                        lc_names(s["fish"]).replace(" and ", " or "))), s
 
 
 @pytest.mark.needs_bundle

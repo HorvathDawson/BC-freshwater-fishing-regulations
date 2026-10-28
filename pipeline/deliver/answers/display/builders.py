@@ -40,11 +40,13 @@ def when_problems(rid: str, x: dict, facts: dict) -> List[str]:
 
 _CM_SAID = re.compile(r"(\d+(?:\.\d+)?) cm \(\d+ in\)")
 _LONGER_NONE_OVER = re.compile(r"(\d+(?:\.\d+)?) cm \(\d+ in\) or longer, none over (\d+(?:\.\d+)?) cm")
+#: (Q63) the must-be style's kept range, "must be 20–30 cm (8–12 in)"
+_MUST_BE_RANGE = re.compile(r"must be (\d+(?:\.\d+)?)–(\d+(?:\.\d+)?) cm")
 
 
 def size_problems(rid: str, x: dict, facts: dict) -> List[str]:
     """T103 GATE: every size a rule's title and plain sentence name is one of the cut points its `bands` cut at,
-    and no "X or longer, none over Y" has Y at or below X (a size rule nobody can meet)."""
+    and no "X or longer, none over Y" (nor "must be X–Y cm", Q63) has Y at or below X (a size rule nobody can meet)."""
     if not x.get("lengths"):
         return []
     cuts = {float(c) for c in cut_points(x["lengths"])}
@@ -59,6 +61,10 @@ def size_problems(rid: str, x: dict, facts: dict) -> List[str]:
             if float(m.group(2)) <= float(m.group(1)):
                 out.append(f"{rid}: the {f} {text!r} says none over {m.group(2)} cm, below its floor of "
                            f"{m.group(1)} cm")
+        for m in _MUST_BE_RANGE.finditer(text):
+            if float(m.group(2)) <= float(m.group(1)):
+                out.append(f"{rid}: the {f} {text!r} says must be {m.group(1)}–{m.group(2)} cm, its top at or "
+                           f"below its bottom")
     return out
 
 

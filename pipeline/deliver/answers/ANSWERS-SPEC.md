@@ -241,7 +241,11 @@ A. **The 2 said once** (`tree.py`): the share no longer says ", not counting hat
    `sizes` (exactly the lengths it may be kept at here, gate-proved). Where a rainbow's top is the steelhead line on a steelhead
    water the top is no release (over it the fish IS a steelhead, its own row): "must be 30 cm (12 in) or longer; release
    any shorter", nothing where that is the only end; top only "must be 50 cm (20 in) or less; release any longer"; bottom only
-   "must be 30 cm (12 in) or longer; release any shorter"; null for any size, none, or a steelhead.
+   "must be 30 cm (12 in) or longer; release any shorter"; a slot (kept up to A and from B) "release any between 60 cm (24 in)
+   and 90 cm (35 in)" (owner 2026-10-28, Q62); null for any size, none, or a steelhead. The rule's own `plain` says a size
+   rule with no count the same way, the fish first (owner 2026-10-28, Q63): "Lake trout must be 50 cm (20 in) or less;
+   release any longer.", "Release any lake trout between 60 cm (24 in) and 90 cm (35 in)." — never "Keep only lake trout,
+   none over …" (it read as "only lake trout may be kept").
 2. **The worked keep-share line says what is still allowed HERE**: "none from other streams today — up to 2 more of any kind,
    from here or from lakes." (UR4's one wrong answer: a guide read rainbows kept here as blocking a cutthroat here; RULINGS
    Q23b — the lifted kind does not use the share on its own water). The old words stay where `here` < the total's rest.
@@ -481,7 +485,7 @@ Owner review of v20 (ROUND19 1, 2, 3, 5, 6; item 4 is the page's); RULINGS P34-P
   (Q13, `catalogue.EXACT_BOUND_IS_LEGAL`; `closed` keeps it inside), a clause's "over X" leaves X below, a quota's keep
   band holds its bounds, the steelhead size leaves 50 cm a rainbow; a take-0 band decides first. Words by
   `common.band_words`: "under 30 cm (12 in)", "30–50 cm (12–20 in)", "over 50 cm (20 in)", "60 cm (24 in) or longer",
-  a slot "over 60 cm (24 in), under 90 cm (35 in)". The card's own keep ranges ("30 cm (12 in) or longer", "50 cm (20 in)
+  a slot "between 60 cm (24 in) and 90 cm (35 in)" (the book's word, both ends left out: owner 2026-10-28, Q62). The card's own keep ranges ("30 cm (12 in) or longer", "50 cm (20 in)
   or less", "30–50 cm") already hold their bounds (a keep band is inclusive). Measuring is never that precise; the
   standard only makes every band's words agree with which band holds the cut.
 - **Nesting and names in the words** (P38): a count tier "1 between cutthroat and rainbow trout" (its kinds' fish, in

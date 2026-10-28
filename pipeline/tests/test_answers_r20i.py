@@ -47,6 +47,15 @@ def test_a_size_says_the_rule():
     assert k[("EB", "GB", "CT", "RB")]["size_rule"] is None  # any size
 
 
+def test_a_slot_says_the_books_between():
+    """owner 2026-10-28 (Q62): a kind kept up to A and from B is released BETWEEN them, in the book's word."""
+    from pipeline.deliver.answers.tree import size_rule
+    kn = {"n": 1, "species": ["LT"], "sizes": {"cm": [[0, 60], [90, None]]}}
+    assert size_rule(kn, False, 50) == "release any between 60 cm (24 in) and 90 cm (35 in)"
+    kn = {"n": 1, "species": ["LT"], "sizes": {"cm": [[30, 60], [90, None]]}}          # not a pure slot: both ranges
+    assert size_rule(kn, False, 50) == "must be 30–60 cm (12–24 in), or 90 cm (35 in) or longer; release any other size"
+
+
 # 2 -----------------------------------------------------------------------------------------------------------------
 def test_the_worked_line_says_any_kind_here():
     out, _P = F.card(F.VEDDER, OCT10)

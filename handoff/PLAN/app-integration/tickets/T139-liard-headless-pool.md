@@ -117,3 +117,13 @@ Verdict: **the fix is correct and minimal.** Two small defects fixed in 67d72c8e
 
 **Ship:** unchanged. A `deliver` (answers only) is needed. Expected diff: `parent: 0` on Beattie's DV row in 3 frames,
 plus the one-sentence change to the `parent` description text.
+
+## Owner answer (2026-10-28, Q87 = Q-T139a): INSIDE — built default reversed
+The Liard's "bull trout 1 (30–50 cm)" counts toward Beattie Lake's own "Trout daily quota = 1": 1 trout or char a day in
+all. Reader: RULINGS Q27, `ladder._Ask.named_inside_group` (both speak; naming no longer displaces the water's group
+quota). Rows: `evaluate.A_NAMED_POOL_IS_INSIDE` (the Liard's 1 is inside the lake's 1, never its outer; its 30 cm floor
+holds). Card, Jun 15: one trout row, Zone B group, headline "1 a day per angler"; kinds "brook, brown, cutthroat or
+rainbow trout — must be 50 cm (20 in) or less" and "Dolly Varden/bull trout or lake trout — must be 30–50 cm (12–20 in)".
+No separate bull trout row, so the T139 hold (`A_ROW_HELD_BY_ITS_TOTALS_GROUP`) has no shipped water now (its unit tests
+stay). Only Beattie Lake changes (verdicts diff: 9 frames of one key). Tests: `test_competition.py::test_q87_*`,
+`test_answers_one_kind_group.py::test_beattie_lake_bull_trout_sits_inside_the_lakes_trout_quota` + its mutation.

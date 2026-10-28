@@ -226,6 +226,9 @@ EXAMPLES: tuple[Example, ...] = (
       (f"{Z7B}.r9",), ("r7:kakwa_lake@7-19::kakwa_lake.r2",)),
     E("kakwa_other_trout_lake_2_beside_5", ("ladder.who_speaks",), "wbk:329525854", "07-01", "RB",
       ("r7:kakwa_lake@7-19::kakwa_lake.r2", f"{Z7B}.r1")),
+    # owner 2026-10-28 (Q87): the Liard's named bull trout quota sits INSIDE Beattie Lake's own trout quota — both speak
+    E("beattie_bull_trout_inside_the_lakes_1", ("ladder.who_speaks",), "wbk:329665706", "06-15", "DV",
+      ("r7:beattie_lake@7-57::beattie_lake.r2", f"{LIARD}.r2")),
     E("williston_bull_trout_row_names_the_fish", ("ladder.who_speaks",), "wbk:-19", "07-01", "DV",
       ("r7:williston_lake_in_zone_b@7-31+7-36::williston_lake_zone_b.r4",), (f"{Z7B}.r9",),
       named_as="Williston Lake"),

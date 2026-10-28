@@ -404,29 +404,44 @@ def _beattie(data, card):
             bucket)
 
 
+def _beattie_trout(data, card):
+    """The lake's trout row: (its pool, its parent, the group's total pool, kinds, headline), and its tree's kinds as
+    (species, n, size_rule)."""
+    from pipeline.deliver.answers.tree import walk
+    (row,) = [r for r in card["rows"] if r["pool"] is not None and data["rule_ids"][r["pool"]] == BEATTIE_TROUT]
+    g = row["group"]
+    return ((row.get("parent"), data["rule_ids"][g["pool"]], g["total"], g["kinds"], g["headline"]["says"]),
+            [(n["species"], n["n"], n.get("size_rule")) for n, _p in walk(g["tree"]) if n["node"] == "kind"])
+
+
 @pytest.mark.needs_bundle
-def test_beattie_lake_bull_trout_row_is_held_by_the_zone_b_group_that_says_it(beattie):
-    """Jun 15 and Oct 25 (bull trout kept): the bull trout row is held by the lake's trout row, whose Zone B group
-    counts the bull trout (2 a day: the lake's 1 trout + the Liard's 1 bull trout, inside Zone B's 5) and says it in the
-    Liard's bucket. Sep 1 (bull trout released, Aug 15-Oct 15): no bull trout keep row. The card gate: 0 problems."""
+def test_beattie_lake_bull_trout_sits_inside_the_lakes_trout_quota(beattie):
+    """OWNER 2026-10-28 (Q87, reverses T139's built default): the Liard River watershed's "bull trout 1 (30–50 cm)" sits
+    INSIDE Beattie Lake's "Trout daily quota = 1" — 1 trout or char a day in all (was "2 a day": 1 trout + 1 bull
+    trout). The reader lets both speak (`named_inside_group`); the rows read the Liard's 1 as inside the lake's 1
+    (`evaluate.A_NAMED_POOL_IS_INSIDE`): no bull trout row of its own, the bull trout a kind of the lake's row, kept
+    only at 30–50 cm. Sep 1 (bull trout released): no bull trout kind. The card gate: 0 problems."""
     data, model = beattie
-    for md, kinds in (((6, 15), ["EB", "GB", "CT", "DV", "LT", "RB"]), ((10, 25), ["EB", "GB", "CT", "DV", "RB"])):
-        assert _beattie(data, _card(model, BEATTIE, md)) == (
-            (["DV"], BEATTIE_TROUT, None),
-            (Z7B_TOTAL, 5, kinds, "2 a day per angler"),
-            {"title": LIARD_BUCKET, "cap": 1, "by": LIARD_DV,
-             "kinds": [(["DV"], "30–50 cm", 1, ["counts toward the 5 a day"])]}), md
+    keep = "must be 30–50 cm (12–20 in); release any other size"
+    small = "must be 50 cm (20 in) or less; release any longer"
+    for md, kinds, tree in (
+            ((6, 15), ["EB", "GB", "CT", "DV", "LT", "RB"], [(["EB", "GB", "CT", "RB"], 1, small),
+                                                              (["DV", "LT"], 1, keep)]),
+            ((10, 25), ["EB", "GB", "CT", "DV", "RB"], [(["EB", "GB", "CT", "RB"], 1, small), (["DV"], 1, keep)])):
+        card = _card(model, BEATTIE, md)
+        assert not any(r["pool"] is not None and data["rule_ids"][r["pool"]] == LIARD_DV for r in card["rows"]), md
+        assert _beattie_trout(data, card) == ((None, Z7B_TOTAL, 5, kinds, "1 a day per angler"), tree), md
     sep = _card(model, BEATTIE, (9, 1))
-    assert not any(r["pool"] is not None and data["rule_ids"][r["pool"]] == LIARD_DV for r in sep["rows"])
+    assert "DV" not in _beattie_trout(data, sep)[0][3]
     assert _gate(model, [BEATTIE]) == []
 
 
 @pytest.mark.needs_bundle
-def test_mutation_without_the_totals_group_hold_beattie_bull_trout_is_headless(beattie, monkeypatch):
-    """MUTATION (`A_ROW_HELD_BY_ITS_TOTALS_GROUP = False`): the bull trout row is unheld and groupless again — the
-    headless pool the shipped file carried (T139), so the first test's holder pool is None and fails."""
+def test_mutation_without_the_named_pool_inside_beattie_bull_trout_loses_the_liards_floor(beattie, monkeypatch):
+    """MUTATION (`evaluate.A_NAMED_POOL_IS_INSIDE = False`): the Liard's 1 is read as the lake's OUTER total again and
+    its sizes are dropped — the bull trout is said "50 cm or less", without the Liard's 30 cm floor."""
     data, _ = beattie
-    monkeypatch.setattr(RW.groups, "A_ROW_HELD_BY_ITS_TOTALS_GROUP", False)
+    monkeypatch.setattr(RW.evaluate, "A_NAMED_POOL_IS_INSIDE", False)
     model = A.build(BUNDLE, EXPORT_DIR, workers=1, items=[BEATTIE], sections=["rows"], log=lambda *_: None)
-    dv = _row(data, _card(model, BEATTIE, (6, 15)), LIARD_DV)
-    assert (dv["members"], dv.get("parent"), dv.get("group")) == (["DV"], None, None)
+    _head, tree = _beattie_trout(data, _card(model, BEATTIE, (10, 25)))
+    assert tree == [(["EB", "GB", "CT", "DV", "RB"], 1, "must be 50 cm (20 in) or less; release any longer")]

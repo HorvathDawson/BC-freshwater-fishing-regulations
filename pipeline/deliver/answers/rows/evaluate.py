@@ -39,6 +39,22 @@ def _closure_cmp(a, b) -> int:
 closure_order = cmp_to_key(_closure_cmp)
 
 
+#: OWNER 2026-10-28 (Q87): a pool naming FEWER fish than the winning pool (a strict subset: the Liard's bull trout 1
+#: beside Beattie Lake's trout 1, both speaking since the reader's `named_inside_group`) sits INSIDE the winner: it is
+#: never read as the winner's outer total, and its own size bands hold for the fish. False = the Liard's 1 read as an
+#: outer again, and Beattie's bull trout loses its 30 cm floor (the mutation pin).
+A_NAMED_POOL_IS_INSIDE = True
+
+
+def _inside(p: R, win: R) -> bool:
+    """`p` holds a strict subset of the winner's fish and keeps no more of them than the winner does (a narrower pool
+    with a LARGER number — Region 8's "20 brook trout from streams" over Granby River's trout/char 1 — stays the
+    winner's outer, as before)."""
+    return (set(p.species) < set(win.species) and not (set(p.species) & set(win.except_))
+            and not p.f.get("unlimited") and p.f.get("take") is not None
+            and (win.f.get("unlimited") or (win.f.get("take") is not None and p.f["take"] <= win.f["take"])))
+
+
 def eval_sp(P: "Part", S: str, o: str) -> Optional[dict]:
     """The decided answer for fish `S` of origin `o`: status, winner, the day's number after the
     winner's clauses, every line, every rule's role — or None (no rule in scope speaks)."""
@@ -97,6 +113,8 @@ def eval_sp(P: "Part", S: str, o: str) -> Optional[dict]:
         for p in pools:
             if p is win:
                 continue
+            if A_NAMED_POOL_IS_INSIDE and _inside(p, win):
+                continue                                   # owner 2026-10-28 (Q87): never the winner's outer
             if ((len(p.species) > len(win.species) and all(x in p.species for x in win.species))
                     or (p.rank >= 2 and win.rank <= 1
                         and (p.f.get("unlimited") or _ge(p.f.get("take"), win.f.get("take"))))):
@@ -167,6 +185,10 @@ def eval_sp(P: "Part", S: str, o: str) -> Optional[dict]:
                 setr(r, "floor")
                 size_lines(r, daily, lines)
         for p in also:
+            if A_NAMED_POOL_IS_INSIDE and _inside(p, Pw):
+                # (Q87) a quota naming fewer fish, inside the winner's group: its own sizes hold for the fish —
+                # Beattie Lake's bull trout is kept only at the Liard's 30–50 cm, inside the lake's 1
+                size_lines(p, daily, lines)
             big = bool(p.f.get("unlimited")) or (p.f.get("take") is not None and p.f["take"] > daily)
             if big and p.rank >= 2 and Pw.rank <= 1:
                 lines.append({"t": "outer", "r": p})

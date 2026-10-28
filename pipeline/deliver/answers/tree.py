@@ -666,7 +666,8 @@ def size_rule(kn: dict, steelhead_water: bool, steel_cm) -> Optional[str]:
     release above"), from its `sizes` (exactly the lengths it may be kept at here, gate-proved):
     top only "must be 50 cm (20 in) or less; release any longer"; bottom only "must be 30 cm (12 in) or longer; release
     any shorter"; a range "must be 30–50 cm (12–20 in); release any other size"; gaps "must be A, or B; release any other
-    size". A rainbow's top at the steelhead line on a steelhead water is no release (over it the fish IS a steelhead, its
+    size"; a slot (kept up to A and from B) "release any between 60 cm (24 in) and 90 cm (35 in)" (owner 2026-10-28,
+    Q62). A rainbow's top at the steelhead line on a steelhead water is no release (over it the fish IS a steelhead, its
     own row): "must be 30 cm (12 in) or longer; release any shorter". None for a kind kept at any size, at none, or a
     steelhead (its row's size is what it is)."""
     from pipeline.deliver.answers.card import _size_words
@@ -680,6 +681,9 @@ def size_rule(kn: dict, steelhead_water: bool, steel_cm) -> Optional[str]:
         return None
     if steel_cut and not gaps:
         return f"must be {_size_words(segs[0][0], INF, inch=True)}; release any shorter"
+    if len(segs) == 2 and not segs[0][0] and segs[1][1] == INF and not steel_cut:
+        # A SLOT (owner 2026-10-28, Q62): kept up to A and from B, released between — the book's "between" words
+        return f"release any {common.band_words(segs[0][1], segs[1][0], False, False)}"
     words = ", or ".join(_size_words(a, b, inch=True) for a, b in segs)
     if gaps or (below and above):
         rest = "release any other size"

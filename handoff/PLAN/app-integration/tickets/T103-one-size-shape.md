@@ -41,3 +41,15 @@ Rebuild: deliver. Depends: none. Size: S. Owner: no.
 - **"Keep only lake trout, none over …"** (take-less size rule, 18 Morley/Tagish/Teslin plains) follows the existing
   house style ("Keep only trout and char, none over 50 cm", 40+ plains) but can read as "only lake trout may be kept".
   Default: unchanged.
+
+## Owner answers (2026-10-28, Q62 + Q63)
+- Q62: a slot uses the book's "between", in the must-be / release style. `common.band_words` says a band holding neither
+  end "between 60 cm (24 in) and 90 cm (35 in)" (table bands, caps); `_plain` "Release any lake trout between 60 cm (24 in)
+  and 90 cm (35 in)." / "Only 1 lake trout over 90 cm (35 in) a day; release any between …"; title "Release lake trout
+  between …"; the tree's `size_rule` chip for a pure slot "release any between …". RULINGS P37 updated.
+- Q63: a size rule with no count says the fish first — "Lake trout must be 50 cm (20 in) or less; release any longer.",
+  "Trout must be 25 cm (10 in) or longer; release any shorter.", "Wild rainbow trout must be …" — never "Keep only …".
+  The kept band's words hold their ends as the book does ("No cutthroat trout 40 cm or more" → "must be under 40 cm").
+  ("or less", not the owner's example "or shorter": the one P37 word, the same as the tree's chip.)
+  Gate: `size_problems` also refuses a "must be X–Y cm" with Y ≤ X. Tests: `test_one_size_shape.py`,
+  `test_answers_r19_tree.py`, `test_answers_r20i.py::test_a_slot_says_the_books_between`.

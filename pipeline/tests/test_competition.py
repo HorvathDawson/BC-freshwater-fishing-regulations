@@ -150,6 +150,42 @@ def test_a_closure_is_never_displaced_and_a_part_day_rule_stands_beside(tmp_path
     assert got == {"z.r0": "speaks", "w.r1": "speaks", "z.r2": "beside"}
 
 
+def _q87(tmp_path, area_take=1, lake_take=1, area_rank=2):
+    return _tiny(tmp_path, [
+        {"entry": "r9:lake", "rule": "lake.r2", "species": ["TROUT_CHAR"], "take": lake_take, "_rank": 0,
+         "lengths": [{"max_cm": 50}, {"min_cm": 50, "take": 0}]},
+        {"entry": "r9:area", "rule": "area.r2", "species": ["DV"], "take": area_take, "_rank": area_rank,
+         "lengths": [{"min_cm": 30, "max_cm": 50}, {"max_cm": 30, "take": 0}, {"min_cm": 50, "take": 0}]}])
+
+
+def test_q87_a_named_quota_sits_inside_the_waters_own_group_quota(tmp_path, monkeypatch):
+    """owner 2026-10-28 (Q87): Beattie Lake's "Trout daily quota = 1" and the Liard River watershed's "Bull trout …
+    quotas = 1 (none under 30 cm or over 50 cm)" — the bull trout counts toward the lake's 1: both speak (1 a day in
+    all), the area row's naming no longer displaces the lake's quota. MUTATION PIN: the flag off displaces it again."""
+    path = _q87(tmp_path)
+    assert {x["rule"]: x["state"] for x in R.effective_rules(1, (6, 15), "DV", path)} == \
+        {"lake.r2": "speaks", "area.r2": "speaks"}
+    assert {x["rule"] for x in R.effective_rules(1, (6, 15), "RB", path)} == {"lake.r2"}
+    from pipeline.deliver.bundle.read import ladder
+    monkeypatch.setattr(ladder, "A_NAMED_QUOTA_SITS_INSIDE_THE_WATERS_GROUP", False)
+    assert {x["rule"]: x["state"] for x in R.effective_rules(1, (6, 15), "DV", path)} == {"area.r2": "speaks"}
+
+
+def test_q87_a_release_naming_the_fish_still_displaces_the_group(tmp_path):
+    """Only a COUNTED quota sits inside: a release naming the fish (take 0, Zone B's bull trout release over Kakwa
+    Lake's trout/char 2) displaces by naming as before."""
+    path = _q87(tmp_path, area_take=0)
+    assert {x["rule"] for x in R.effective_rules(1, (6, 15), "DV", path)} == {"area.r2"}
+
+
+def test_q87_a_zone_quota_is_unchanged_q4_decides_it(tmp_path):
+    """A zone table's named quota against the water's group was already Q4's (different statements sit beside and both
+    speak); the new rule does not change it."""
+    path = _q87(tmp_path, area_rank=3)
+    got = {x["rule"]: x["state"] for x in R.effective_rules(1, (6, 15), "DV", path)}
+    assert got == {"lake.r2": "speaks", "area.r2": "speaks"}
+
+
 # --------------------------------------------------------------------------- the bundle
 @pytest.fixture(scope="module")
 def db(request):

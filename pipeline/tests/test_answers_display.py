@@ -66,7 +66,7 @@ def page_doc(fx: dict):
 # --------------------------------------------------------------------------------------------
 
 def test_rule_kind_bands_and_plain_match_the_page(page):
-    bad, possession, t103, t104 = [], 0, 0, 0
+    bad, possession, t103, t104, q63 = [], 0, 0, 0, 0
     for k, r in page["rules"].items():
         x, want = _flat(r), page["expect"]["rules"][k]
         got = {"kind": X.kind_of(x), "closed": X.is_closure_gate(x), "bands": X.bands(x),
@@ -110,9 +110,19 @@ def test_rule_kind_bands_and_plain_match_the_page(page):
             assert m and int(m[2]) < int(m[1]), want["plain"]
             t103 += 1
             want = dict(want, plain=got["plain"])
+        if want["plain"] and x.get("take") is None and re.search(r"(?i)\bkeep only\b", want["plain"]) \
+                and got["plain"] != want["plain"]:
+            # Q63 (owner 2026-10-28): a size rule with no count is said in the must-be / release style, the fish first
+            # — never "Keep only lake trout, none over …" (read as "only lake trout may be kept"); the same sizes
+            assert re.search(r"must be .+; release any (longer|shorter|other size)", got["plain"]), got["plain"]
+            assert set(re.findall(r"(\d+) cm", got["plain"])) == set(re.findall(r"(\d+) cm", want["plain"])), \
+                (got["plain"], want["plain"])
+            q63 += 1
+            want = dict(want, plain=got["plain"])
         if got != want:
             bad.append((k, got, want))
     assert not bad, bad[:3]
+    assert q63 > 0
     assert possession == 3
     assert (t103, t104) == (T103_SLOTS, T104_HELD), (t103, t104)
     kinds = {v["kind"] for v in page["expect"]["rules"].values()}

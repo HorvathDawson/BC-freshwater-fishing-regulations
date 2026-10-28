@@ -12,6 +12,13 @@ with the default Claude uses until you answer). Newest first inside each section
   outreach by hand (T197). Plan: handoff/PLAN/seo/PLAN.md sections 4 and 7.
 
 ## Reviews
+- **T224 name variants (2026-10-28):** local sources name FWA lines the app has no name for (Kilgard Creek and more):
+  `handoff/PLAN/curation-review/name-variants/summary.md` (candidates.json beside it). Two calls: (1) does an accepted
+  variant become a SEARCH ALIAS only, or also the DISPLAY NAME of an FWA-unnamed water (today any alias on an unnamed
+  line silently becomes its name)? Default: alias only, display only by your per-name yes. (2) May high-confidence
+  ones auto-accept (≥ 80 % line overlap both ways or a reviewed/bound gauge, one candidate, no rival name, the line
+  FWA-unnamed)? Default: no, you confirm each. Also 08MH079's blk has TWO names: Kilgard Creek (Abbotsford) vs
+  Lonzo Creek (North Fork) (the ECCC station name) — which one, or both?
 - **T202 basemap (2026-10-27):** the basemap is now z13 (918 → 274.5 MB). Look at the app at your spots, z10–z18,
   light and dark: trail and FSR names should show from z15. Then say "delete the old basemap", and Claude removes
   `data/generated/scratch/basemap-pre-T202-20260925.pmtiles`. Grid coarsening shipped too: the basemap is now 274.5 MB. Shots
@@ -66,8 +73,7 @@ Triaged 2026-10-23: 64 smaller calls were decided by Claude and 12 were already 
 decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any). What is left needs you:
 
 - **Readings of the book (a wrong call misleads anglers):** Q124 a river's rules on unnamed widenings (456 polygons) ·
-  Q87 Beattie Lake bull trout beside or inside the trout quota · Q140 no-access banner on a part's open stretch ·
-  Q62, Q63 size-slot and "keep only" wording.
+  (Q87, Q140, Q62, Q63 answered 2026-10-28.)
 - **Which gauge speaks (your policy):** Q31 the gauge rule · Q103 diversion
   gauges stop at their canal (24 sections lose every gauge) · Q113 cuts for 38 silent stations (atlas rebuild).
 - **How it looks (taste):** Q130 each model's line under Change · Q132 day chips may still use ELF · Q79 "river" vs "stream" on the page ·
@@ -101,6 +107,11 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   Q28 iOS timing · Q27 sign-off walk.
 
 ## Things only you can run or provide
+- **Promote release r-a67545574492 (owner answers 2026-10-28: Q87 Beattie inside, Q62/Q63 size words):** built from the
+  live bundle into `data/generated/owner1028/stage/release/` (card gate 0, vintage OK); NOT in data/release, LATEST
+  untouched (staging it there was refused to the agent). Approve, then: move the folder into `data/release/`, point
+  `data/release/LATEST` at it, and re-cut taps (`app/design/regs-v11/port/taps.py`), hydrate, `pnpm -C app regs-fixture`
+  and the harness/goldenSlices (`UPDATE_REGS_FIXTURES=1`) — or tell an agent "promote r-a67545574492".
 - **Parser runs** (`run_parse.sh`, dispatch): human-only; any re-parse is yours to start.
 - **R2 upload** of a new release and of the gauge feed, with your credentials:
   `python -m pipeline.deliver.release.publish --release data/release/$(cat data/release/LATEST) --yes` (records

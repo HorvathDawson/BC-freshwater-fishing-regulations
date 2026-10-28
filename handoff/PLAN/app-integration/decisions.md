@@ -1496,3 +1496,27 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
 - User accounts shared between web and phone: wanted (owner) → T223, OPEN with questions. Reverses "no cross-device
   sync (decided)" in `spots/model.ts` once built.
 
+
+## 2026-10-28 — owner answers Q87, Q140, Q62, Q63 (owner 2026-10-28; built defaults reversed)
+- **Q87 (T139) Beattie Lake 7-57 — INSIDE.** The Liard watershed's "bull trout 1 (30–50 cm)" counts toward the lake's
+  "Trout daily quota = 1": 1 trout or char a day in all, which may be a 30–50 cm bull trout (the owner wrote "toward the
+  2 trout a day"; 2 was the built "beside" headline — the lake prints 1, so inside reads 1 a day). Fixed at the reader,
+  generally: a counted quota NAMING a fish no longer displaces the water's own group quota that holds it — both speak
+  (RULINGS Q27; `ladder._Ask.named_inside_group`, flag `A_NAMED_QUOTA_SITS_INSIDE_THE_WATERS_GROUP`); a release or
+  closure naming the fish still displaces. The rows read the narrower pool as inside the winner (its sizes hold;
+  `rows.evaluate.A_NAMED_POOL_IS_INSIDE`). **Every water whose reading changes: Beattie Lake only** (verdicts diff over
+  all 739,734 frames: 9 frames, 1 key, 1 section; rows A/B over every water: 1 key). The only other candidate pair in
+  the bundle (Perry Creek's "brook trout 20" vs the St. Mary's tributary "trout/char 1") is decided before naming by
+  T4/T14 and does not move.
+- **Q140 (T147) — banner on every section of such a part.** "yes add a banner but just keep formatting consistent. unless
+  a section is full out of the no access area it should have a banner." Read: a tapped section with any no-access land
+  keeps its own banner; a tapped section wholly outside, on a part that runs through no-access land, leads with the
+  PART's banner ("Some of this part of the water is inside …") in the same block; one block per page; the part's banner
+  outranks the section's gentle note (core `leadingAccessNotice`).
+- **Q62 (T103) — slots say "between".** "Release any between 60 cm (24 in) and 90 cm (35 in)" (plain, title, the tree's
+  size chip); a band holding neither end is "between A and B" everywhere (`common.band_words`). RULINGS P37 updated.
+- **Q63 (T103) — no "Keep only".** A size rule with no count says the fish first in the must-be style: "Lake trout must be
+  50 cm (20 in) or less; release any longer." / "… or longer; release any shorter." Used "or less" (P37's one word, the
+  tree chip's), not "or shorter".
+- Ships with a deliver (answers + verdicts only, the bundle unchanged): release **r-a67545574492** built from the live
+  bundle, card gate 0, vintage OK — NOT promoted (owner to approve; see OWNER-TODO).

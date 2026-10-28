@@ -209,6 +209,13 @@ def stricter(a: dict, b: dict) -> bool:
 #: that one holds. False = the CHAR scope ignored here too (the mutation pin: Big Bend Creek keeps 3).
 A_NARROWER_CAP_NEVER_DISPLACES_A_WIDER = True
 
+#: OWNER 2026-10-28 (Q87, T139): A FISH THE WATER'S OWN GROUP QUOTA HOLDS STAYS INSIDE IT when another rule NAMES the
+#: fish with a counted quota of its own — the named quota sits inside the group's number, never beside it (`_Ask.
+#: named_inside_group`, step 4). Beattie Lake: the Liard River watershed's "bull trout 1 (30–50 cm)" counts toward the
+#: lake's "trout 1" — 1 a day in all, not 1 trout + 1 bull trout. False = naming displaces the lake's quota for the
+#: fish again (the mutation pin: Beattie's headline back to 2 a day).
+A_NAMED_QUOTA_SITS_INSIDE_THE_WATERS_GROUP = True
+
 
 def _fish_of(x: dict) -> frozenset:
     """The fish a quota holds: its species' leaves less EVERY exception (a CHAR exception included)."""
@@ -705,7 +712,31 @@ class _Ask:
             return True
         if self.nearer_over_farther(k, o):
             return False
+        if self.named_inside_group(o, k):
+            return False
         return self.order(o) < self.order(k)
+
+    def named_inside_group(self, o, k) -> bool:
+        """A NAMED QUOTA SITS INSIDE THE WATER'S OWN GROUP QUOTA (owner 2026-10-28, Q87;
+        `A_NAMED_QUOTA_SITS_INSIDE_THE_WATERS_GROUP`): `o` names the fish and `k` holds it only through a group, `k` is
+        written for this water (or reaches it by the walk) and is no farther than `o`, and both are COUNTED quotas
+        that let the fish be kept (a number above 0; `k` may be unlimited) — then naming does not displace `k`: both
+        speak, and the fish counts toward `k`'s number as well as `o`'s, as a different zone statement already does
+        (Q4). Beattie Lake's "Trout daily quota = 1" holds the Liard River watershed's "Bull trout … quotas = 1 (none
+        under 30 cm or over 50 cm)": 1 trout or char a day in all, which may be that bull trout. A release or closure
+        naming the fish still displaces by naming (Zone B's bull trout release over Kakwa Lake's trout/char 2); the
+        SAME statement is decided by place as before."""
+        from pipeline.deliver.bundle.rules import same_statement
+        if not A_NAMED_QUOTA_SITS_INSIDE_THE_WATERS_GROUP:
+            return False
+        x, y = self.every[o], self.every[k]
+        counted = lambda r, unl: (r.get("type") == "retention_limit" and not r.get("record_retention")   # noqa: E731
+                                  and ((r.get("take") is not None and r["take"] > 0) or (unl and r.get("unlimited"))))
+        if not (counted(x, False) and counted(y, True)) or self.closure(o) or self.closure(k):
+            return False
+        if not (self.water_side(k) and 0 <= self.place(k) <= 1 and self.place(k) <= self.place(o)):
+            return False
+        return self.order(o)[1] == 0 and self.order(k)[1] == 1 and not same_statement(x, y)
 
     def nearer_over_farther(self, o, k) -> bool:
         """THE NEARER ✱ ROW BEATS A FARTHER ONE (RULINGS T14, `NEARER_ROW_BEATS_FARTHER`): both

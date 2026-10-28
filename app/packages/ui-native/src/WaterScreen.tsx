@@ -94,7 +94,8 @@ export function WaterScreen({ source, item, palette, onBack,
   const regs = useRegsPage(inputs.value ?? null, who, d.today, down.value?.name ?? null);
   const regsError = store.error ?? found.error ?? inputs.error;
   // (T54) the tapped section's access: the no-access banner or the gentle note; (T147) opened with no section, the
-  // page's own part's no-access banner (a water opened from search must still lead with the fact)
+  // page's own part's no-access banner (a water opened from search must still lead with the fact); (Q140) a tapped
+  // section wholly outside, on a part that runs through no-access land, leads with the part's banner
   const pageItem = inputs.value?.item ?? null;
   const accessPage = useMemo(() => (pageItem ? { ord: pageItem.ord, partIx: inputs.value!.partIx, parts: pageItem.parts.length } : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- the page's identity is its item, part and part count

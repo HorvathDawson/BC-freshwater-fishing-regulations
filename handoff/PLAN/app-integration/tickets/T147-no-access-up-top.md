@@ -87,3 +87,13 @@ part 0 (`?regs=gnis:6105&part=0`), phone, light and dark — the block leads, ti
 - A real reader-gate round on the new wording (tests.md §4).
 - Native device shot (the component is shared; not run on a device here).
 - "Show area on map" still opens the water's Map view without framing the area polygon (T54 Left 2).
+
+## Owner answer (2026-10-28, Q140 = Q-T147c)
+"yes add a banner but just keep formatting consistent. unless a section is full out of the no access area it should have a
+banner". Read: every section of a part that runs through no-access land leads with a banner, in the one existing block.
+A tapped section with any no-access land keeps its own banner ("This section is inside …" / "Some of this section is
+inside …"); a tapped section wholly outside, on such a part, leads with the PART's banner ("Some of this part of the water
+is inside …"). One block per page; the part's banner outranks the section's gentle note. Built: core
+`leadingAccessNotice` (the one choice), `@app/ui` `useAccessNotice` now asks the page's part beside a tapped section.
+Tests: core `access.test.ts` (Q140 block), `WaterScreen.regs-props.test.tsx` "(Q140) …" (mutation: asking the part only
+without a tapped section fails it). The Conditions view (Q139) is unchanged: it still speaks for the tapped section.

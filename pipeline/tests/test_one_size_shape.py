@@ -47,7 +47,7 @@ REL_UNDER = _rule("trout.r4", ["RB"], [{"max_cm": 50, "take": 0, "closed": True}
 
 def test_size_shape_names_each_range_by_its_open_ends():
     S = D.size_shape
-    none = {"min": None, "floor": None, "ceil": None, "slot": None, "floor_closed": False}
+    none = {"min": None, "floor": None, "ceil": None, "slot": None, "floor_closed": False, "ceil_closed": False}
     assert S(LT_SLOT["lengths"]) == {**none, "slot": (60, 90)}
     assert S(PIKE_SLOT["lengths"]) == {**none, "min": 100, "slot": (70, 100)}
     assert S(WINDOW["lengths"]) == {**none, "floor": 30, "ceil": 50}
@@ -57,13 +57,31 @@ def test_size_shape_names_each_range_by_its_open_ends():
 
 
 def test_a_no_keep_slot_is_said_as_a_slot_in_plain():
-    assert D.plain(LT_SLOT) == "Keep only lake trout, none over 60 cm (24 in), under 90 cm (35 in)."
-    assert D.title(LT_SLOT) == "No lake trout over 60 cm (24 in), under 90 cm (35 in)"
-    assert D.plain(PIKE_SLOT) == ("Only 1 northern pike over 100 cm (39 in) a day, none over 70 cm (28 in), "
-                                  "under 100 cm (39 in).")
+    # owner 2026-10-28 (Q62): the book's "between", in the must-be / release style
+    assert D.plain(LT_SLOT) == "Release any lake trout between 60 cm (24 in) and 90 cm (35 in)."
+    assert D.title(LT_SLOT) == "Release lake trout between 60 cm (24 in) and 90 cm (35 in)"
+    assert D.plain(PIKE_SLOT) == ("Only 1 northern pike over 100 cm (39 in) a day; release any between 70 cm (28 in) "
+                                  "and 100 cm (39 in).")
     assert D.title(PIKE_SLOT) == "At most 1 northern pike over 100 cm (39 in) a day"
-    assert D.plain(GR_SLOT) == ("Only 1 Arctic grayling over 44 cm (17 in) a day, none over 36 cm (14 in), "
-                                "under 44 cm (17 in).")
+    assert D.plain(GR_SLOT) == ("Only 1 Arctic grayling over 44 cm (17 in) a day; release any between 36 cm (14 in) "
+                                "and 44 cm (17 in).")
+
+
+def test_a_size_rule_with_no_count_says_the_fish_must_be_a_size():
+    """owner 2026-10-28 (Q63): never "Keep only lake trout, none over …" (it reads as "only lake trout may be kept"):
+    the fish first, "must be …; release any longer / shorter / other size", the kept band's ends as the book holds them
+    (RULINGS P37)."""
+    def r(lengths, sp=("LT",), **kw):
+        return _rule("x.r9", list(sp), lengths, **kw)
+    assert D.plain(r([{"min_cm": 50, "take": 0}])) == "Lake trout must be 50 cm (20 in) or less; release any longer."
+    assert D.plain(r([{"min_cm": 40, "take": 0, "closed": True}], ("CT",))) == \
+        "Cutthroat trout must be under 40 cm (16 in); release any longer."
+    assert D.plain(r([{"max_cm": 25, "take": 0}], ("RB",))) == \
+        "Rainbow trout must be 25 cm (10 in) or longer; release any shorter."
+    assert D.plain(r([{"min_cm": 50, "take": 0}], ("RB",), origin="wild")) == \
+        "Wild rainbow trout must be 50 cm (20 in) or less; release any longer."
+    assert D.plain(r([{"min_cm": 20, "max_cm": 30}, {"max_cm": 20, "take": 0}, {"min_cm": 30, "take": 0}], ("RB",))) == \
+        "Rainbow trout must be 20–30 cm (8–12 in); release any other size."
 
 
 def test_the_other_shapes_keep_their_words():
@@ -95,12 +113,12 @@ def _old_pick(lengths):
     floor = next((r for r in ln if r.get("max_cm") is not None and r.get("take") == 0), None)
     ceil = next((r for r in ln if r.get("min_cm") is not None and r.get("take") == 0), None)
     return {"min": mn and mn["min_cm"], "floor": floor and floor["max_cm"], "ceil": ceil and ceil["min_cm"],
-            "slot": None, "floor_closed": bool(floor and floor.get("closed"))}
+            "slot": None, "floor_closed": bool(floor and floor.get("closed")), "ceil_closed": False}
 
 
 def test_the_gate_fails_on_the_old_plain_pick(monkeypatch):
     monkeypatch.setattr(D.rule, "size_shape", _old_pick)
-    with pytest.raises(AnswersError, match=r"morley_lake.r13c.*none over 60 cm.*below.*90"):
+    with pytest.raises(AnswersError, match=r"morley_lake.r13c.*must be 90–60 cm.*top at or below its bottom"):
         _build(LT_SLOT)
 
 

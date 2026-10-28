@@ -16,7 +16,7 @@
  * default to T09's two functions (T21 bound them when it drew the page).
  */
 import { useMemo, useSyncExternalStore } from "react";
-import { accessNotice, buildRegsPage, methodClassOn, salmonCardLive, soloWater, tapDay, waterAccessNotice, type AccessNotice, type Day, type RegsInputs,
+import { accessNotice, buildRegsPage, leadingAccessNotice, methodClassOn, salmonCardLive, soloWater, tapDay, waterAccessNotice, type AccessNotice, type Day, type RegsInputs,
          type RegsPage, type RegsTarget, type SalmonCardLiveVM,
          type Weekday, type Who } from "@app/core";
 import { downstreamWater, type ItemId, type WaterSource, type SectionId } from "@app/data";
@@ -212,10 +212,15 @@ export function useAccessNotice(loader: Pick<ReleaseLoader, "paint" | "access"> 
                                 section: SectionId | null, store: Pick<RegsStore, "navRows"> | null = null,
                                 page: AccessPage | null = null): Async<AccessNotice | null> {
   const bySection = !!loader && section !== null;
-  const byPage = !!loader && !bySection && !!store && !!page;
+  // (Q140, owner 2026-10-28) the page's part is asked beside a tapped section too: a section wholly outside no-access
+  // land, on a part that runs through it, leads with the part's banner (`leadingAccessNotice`)
+  const byPage = !!loader && !!store && !!page;
   const asks = bySection || byPage;
-  return useAsync(async () => (bySection ? sectionAccessNotice(loader!, section!)
-                               : byPage ? pageAccessNotice(loader!, store!, page!) : null),
+  return useAsync(async () => {
+    const [s, p] = await Promise.all([bySection ? sectionAccessNotice(loader!, section!) : null,
+                                      byPage ? pageAccessNotice(loader!, store!, page!) : null]);
+    return leadingAccessNotice(s, p);
+  },
                   `access:${loader ? idOf(loader) : ""}:${bySection ? `s${section}` : ""}:`
                   + `${byPage ? `${idOf(store!)}:${page!.ord}:${page!.partIx}:${page!.parts}` : ""}`, asks);
 }

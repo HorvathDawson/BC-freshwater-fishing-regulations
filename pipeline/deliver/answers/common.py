@@ -484,7 +484,9 @@ def band_words(a, b, from_in: bool = True, to_in: bool = True) -> str:
     holds: "X or less" / "X or longer" include X; "under X" / "over X" exclude X; a fish exactly at a cut belongs
     to the band whose words include it. [a, b] with `to` None (or inf) for no top; `from_in` / `to_in` whether the
     band holds its ends. "under 30 cm (12 in)", "30–50 cm (12–20 in)" (both ends), "over 50 cm (20 in)",
-    "60 cm (24 in) or longer", "over 60 cm (24 in), under 90 cm (35 in)"."""
+    "60 cm (24 in) or longer"; a band holding NEITHER end (a slot) is the book's "between": "between 60 cm (24 in) and
+    90 cm (35 in)" (owner 2026-10-28, Q62: "between" leaves both ends out, as the book's "none between 60 cm and 90 cm"
+    keeps a fish of exactly 60 or 90 cm)."""
     import math
     top = b is None or b == math.inf
     if not a and top:
@@ -495,6 +497,8 @@ def band_words(a, b, from_in: bool = True, to_in: bool = True) -> str:
         return f"{cm_in(a)} or longer" if from_in else f"over {cm_in(a)}"
     if from_in and to_in:
         return range_cm_in(a, b)
+    if not from_in and not to_in:
+        return f"between {cm_in(a)} and {cm_in(b)}"
     lo = cm_in(a) if from_in else f"over {cm_in(a)}"
     hi = f"up to {cm_in(b)}" if to_in else f"under {cm_in(b)}"
     return f"{lo}, {hi}" if not from_in else f"{lo} to {hi}"

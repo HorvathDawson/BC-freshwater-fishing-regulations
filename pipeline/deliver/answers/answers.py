@@ -339,7 +339,7 @@ def _sections() -> Tuple[Section, ...]:
         # ROUND16 3/Q1: display 12 (`rules[].title` every rule's effect in words; `inherited[].caution` where a
         # nearer row prints no such exemption, RULINGS T15)
         # ROUND19 2/5: display 13 (rule titles and sentences say sizes "50 cm (20 in)"; a slot "none over 60 cm
-        # (24 in), under 90 cm (35 in)")
+        # (24 in), under 90 cm (35 in)" — since owner 2026-10-28 (Q62) "between 60 cm (24 in) and 90 cm (35 in)")
         # UR1 G: display 14 (a record duty "Write each … on your licence right away")
         # UR3 2: display 15 (`rules[].plain` of a no-fishing place rule says feet too, "within 23 m (75 ft) …")
         # ROUND20g 3: display 16 (a possession rule's `plain` "Possession: 2 days’ quota." with the home exception as its

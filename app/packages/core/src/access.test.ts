@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { accessNotice, accessOf, waterAccessNotice, MOSTLY_INSIDE, noPublicAccess, ACCESS_WORDS, TOUCH_ONLY, type AccessArea,
+import { accessNotice, accessOf, leadingAccessNotice, waterAccessNotice, MOSTLY_INSIDE, noPublicAccess, ACCESS_WORDS, TOUCH_ONLY, type AccessArea,
          type SectionAccess }
   from "./access";
 
@@ -144,5 +144,30 @@ describe("a page opened with no tapped section: its part or water (T147)", () =>
   it("MUTATION PIN: gentler land never puts a banner on a water's page (no note at the water level either)", () => {
     for (const a of [PRIV, CAP5, RES, UBC]) expect([a.tier, waterAccessNotice([[{ area: a, share: 1 }]], "water")])
       .toEqual([a.tier, null]);
+  });
+});
+
+describe("a tapped section on a part that runs through no-access land (owner 2026-10-28, Q140)", () => {
+  const part = waterAccessNotice([[{ area: COQ, share: 1 }], []], "part");
+  it("a section wholly outside leads with its part's banner, in the same block", () => {
+    expect(leadingAccessNotice(accessNotice([]), part)).toEqual({
+      tier: "no_access",
+      title: "No public access",
+      text: "Some of this part of the water is inside Coquitlam Watershed. The public may not go there, so you can't fish "
+        + "that stretch. The regulations below are the Province's; they don't give you access.",
+      link: "Show area on map",
+    });
+  });
+  it("a section with any no-access land keeps its own banner (the section speaks first)", () => {
+    expect(leadingAccessNotice(accessNotice([{ area: COQ, share: 0.3 }]), part)?.text).toBe(
+      "Some of this section is inside Coquitlam Watershed. The public may not go there, so you can't fish that stretch. "
+      + "The regulations below are the Province's; they don't give you access.");
+  });
+  it("the part's banner outranks the section's gentle note; with no part banner the note stays", () => {
+    const gentle = accessNotice([{ area: PRIV, share: 1 }]);
+    expect(leadingAccessNotice(gentle, part)).toBe(part);
+    expect(leadingAccessNotice(gentle, null)).toBe(gentle);
+    expect(leadingAccessNotice(null, null)).toBeNull();
+    expect(leadingAccessNotice(null, waterAccessNotice([[{ area: PRIV, share: 1 }]], "part"))).toBeNull();
   });
 });

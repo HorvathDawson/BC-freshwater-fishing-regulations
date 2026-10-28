@@ -107,10 +107,11 @@ def size_shape(lengths: Optional[Sequence[dict]]) -> dict:
       min    a keeping range with a bottom and no top ("only 1 over 90 cm")              {min_cm}
       floor  a range keeping none, below a size ("none under 30 cm" / "30 cm or longer")  {max_cm, take 0}
       ceil   a range keeping none, above a size ("none over 50 cm")                      {min_cm, take 0}
-      slot   a range keeping none between two sizes ("none over 60 cm, under 90 cm")     {min_cm, max_cm, take 0}
+      slot   a range keeping none between two sizes ("release any between 60 cm and 90 cm") {min_cm, max_cm, take 0}
 
     {min, floor, ceil: the bound in cm or None, slot: (from, to) or None, floor_closed: the floor's band holds
-    its own bound (the book's "catch and release (X cm or less)")}. The first range of each shape counts.
+    its own bound (the book's "catch and release (X cm or less)"), ceil_closed: the ceiling's band holds its own
+    bound (the book's "No cutthroat trout 40 cm or more")}. The first range of each shape counts.
     `_title` and `_plain` both render from it and keep no size logic of their own (`test_one_size_shape.py`)."""
     ln = list(lengths or [])
     lo = lambda r: r.get("min_cm")                                             # noqa: E731
@@ -121,7 +122,8 @@ def size_shape(lengths: Optional[Sequence[dict]]) -> dict:
     slot = next((r for r in ln if lo(r) is not None and hi(r) is not None and _is(r.get("take"), 0)), None)
     return {"min": None if mn is None else lo(mn), "floor": None if floor is None else hi(floor),
             "ceil": None if ceil is None else lo(ceil), "slot": None if slot is None else (lo(slot), hi(slot)),
-            "floor_closed": bool(floor is not None and floor.get("closed"))}
+            "floor_closed": bool(floor is not None and floor.get("closed")),
+            "ceil_closed": bool(ceil is not None and ceil.get("closed"))}
 
 
 def bands(x: dict) -> List[list]:
@@ -286,7 +288,9 @@ def _plain(x: dict, names: Optional[str] = None) -> Optional[str]:
         of = "" if re.search(r"game fish|^fish", sp) else f" for {sp}"
         return f"{wrap(f'Possession: {times}{of}')} {_home()}"
     over = f" over {cm_in(z['min'])}" if z["min"] is not None else ""
-    slot = f"none {band_words(z['slot'][0], z['slot'][1], False, False)}" if z["slot"] else ""
+    # A SLOT (owner 2026-10-28, Q62): the book's "between", in the must-be / release style — "release any between 60 cm
+    # (24 in) and 90 cm (35 in)", its own clause after a ";"
+    slot = f"release any {band_words(z['slot'][0], z['slot'][1], False, False)}" if z["slot"] else ""
     if _js(x.get("record_retention")):
         return wrap(f"Write each {org}{sp}{over} on your licence right away")      # UR1 G
     if _js(x.get("unlimited")):
@@ -305,7 +309,24 @@ def _plain(x: dict, names: Optional[str] = None) -> Optional[str]:
     if take is not None and z["min"] is not None and z["floor"] is None:
         who = re.sub(r" and ([^,]+)$", r" or \1", names) if names else nm(" or ")
         return wrap(f"Only {_num(take)} {org}{who} over {cm_in(z['min'])}{per}{ex_txt}"
-                    + (f", {slot}" if slot else ""))
+                    + (f"; {slot}" if slot else ""))
+    if take is None:
+        # A SIZE RULE WITH NO COUNT (owner 2026-10-28, Q63): the must-be / release style, the fish first — "Lake trout
+        # must be 50 cm (20 in) or less; release any longer." — never "Keep only lake trout, none over 50 cm", which
+        # reads as "only lake trout may be kept". The kept band's words hold their ends as the book does (RULINGS
+        # P37): "No trout over 50 cm" keeps 50 cm ("or less"), "No cutthroat trout 40 cm or more" does not ("under").
+        # A slot alone: "Release any lake trout between 60 cm (24 in) and 90 cm (35 in)."
+        lo, hi = z["floor"], z["ceil"]
+        if lo is None and hi is None:
+            return wrap(f"Release any {org}{sp}{ex_txt} {slot[len('release any '):]}") if slot else None
+        kept = band_words(lo or 0, hi, not z["floor_closed"], not z["ceil_closed"])
+        rest = ("release any other size" if lo is not None and hi is not None
+                else "release any shorter" if lo is not None else "release any longer")
+        # the fish lead the sentence: capitalised alone, as written after "In streams, " ("Dolly Varden" keeps its own)
+        who = f"{org}{sp}{ex_txt}"
+        y = f"{where}, {who}" if where else who[:1].upper() + who[1:]
+        y += f" must be {kept}; {rest}" + (f"; {slot}" if slot else "")
+        return y + (f", {when}" if when else "") + "."
     sp += ex_txt
     bits = []
     if take is not None:
@@ -317,21 +338,14 @@ def _plain(x: dict, names: Optional[str] = None) -> Optional[str]:
             fish = sp
         bits.append(f"{'Have no more than' if per != ' a day' else 'Keep up to'} {_num(take)} {fish}{per}"
                     f"{', all kinds together' if many and _gt0(take) and take > 1 else ''}")
-    else:
-        longer = f" {cm_in(z['floor'])} or longer" if z["floor"] is not None else ""
-        bits.append(f"Keep only {sp}{longer}")
-    if z["floor"] is not None and take is not None:
+    if z["floor"] is not None:
         bits.append(f"over {cm_in(50)}" if species == ["ST"] and _is(z["floor"], 50)
                     else f"{cm_in(z['floor'])} or longer")
     if z["ceil"] is not None:
         bits.append(f"none over {cm_in(z['ceil'])}")
-    if slot:
-        bits.append(slot)
     if _js(x.get("origin")):
         bits.append(f"{x['origin']} only")
-    if len(bits) == 1 and take is None and z["floor"] is None:
-        return None
-    return wrap(", ".join(bits))
+    return wrap(", ".join(bits) + (f"; {slot}" if slot else ""))
 
 
 _DASHED = re.compile(r"\b((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.? \d+)-"
@@ -416,6 +430,9 @@ def _title(x: dict) -> Optional[str]:
         conj = " or " if _is(take, 1) else " and "
         verb = "At most" if k == "subcap" else "Keep up to"
         return f"{verb} {_num(take)} {org}{fish(conj)} a day{frm}{sz}{tail}"
+    if take is None and z["slot"] and len(sizes) == 1:
+        # owner 2026-10-28 (Q62): a slot is the book's "between", said as a release
+        return f"Release {org}{fish(' and ')} {sizes[0].replace('none ', '')}{frm}{tail}"
     if take is None and sizes:
         return f"No {org}{fish(' or ')} " + " or ".join(s_.replace("none ", "") for s_ in sizes) + f"{frm}{tail}"
     return None
