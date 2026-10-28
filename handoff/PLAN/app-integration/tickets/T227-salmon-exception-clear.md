@@ -1,6 +1,6 @@
 # T227 — A water closed to game fish but open for salmon says so at the top (the salmon year bar)
 
-Status: DONE — 4f2e22a3, 6af1ffa5 (DFO proposals), f35fdc75 (follow-ups)
+Status: DONE — 4f2e22a3, 6af1ffa5 (DFO proposals), f35fdc75 (follow-ups), 3dd41b02 (round 3)
 
 Source: owner 2026-10-28 ("Cowichan has no fishing generally but salmon are open on certain sections, but when you view
 the regs this isn't very clear"), with add-ons the same day: the salmon bar at the top; region notes beside their
