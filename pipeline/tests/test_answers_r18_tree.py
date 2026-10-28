@@ -126,11 +126,28 @@ def test_the_gate_refuses_a_wrong_tree():
         g["tree"][0]["children"][0]["n"] = 1
     for fn in (tier_n, size_extra, twice, words, sizes, header, over_count):
         assert _mutated(fn), fn.__name__
-    # also_counts proved where a cap is said on the kinds (no tier can hold it: a count beside a kind that cannot
-    # pass the size)
+    # also_counts proved where a count is said on a kind (T203: the rainbow a size tier splits out of its count tier
+    # says the count on its line)
     def also(g):
-        next(k for k in _walk(g["tree"]) if k["node"] == "kind" and k["also_counts"])["also_counts"][0]["n"] = 2
+        next(k for k in _walk(g["tree"]) if k["node"] == "kind" and k["also_counts"])["also_counts"][0]["n"] = 0
     assert _mutated(also, F.COUNT)
+
+
+def test_t203_a_size_cap_splits_the_count_tier_it_crosses():
+    """T203 (owner 2026-10-28, the Dala River): a cap shared by several kinds is ONE size tier holding exactly them —
+    the count tier holding a kind it binds and one that cannot pass the size goes inside with the first; the other
+    leaves it and says the count on its line. The tier still names every fish it counts."""
+    g, _o, P = _tree(F.COUNT)
+    (total,) = g["tree"]
+    size, rb = total["children"]
+    assert (size["tier"], size["n"], size["over_cm"]) == ("size", 1, 50)
+    count = size["children"][-1]
+    assert (count["tier"], count["says"]) == ("count", "1 cutthroat or rainbow trout in all")
+    assert [k["species"] for k in count["children"]] == [["CT"]]
+    assert rb["species"] == ["RB"] and rb["sizes"]["cm"] == [[30, 50]]
+    assert [a["says"] for a in rb["also_counts"]] == ["no more than 1 counting any cutthroat trout you keep"]
+    assert not [a for k in _walk(g["tree"]) if k["node"] == "kind" for a in k["also_counts"] if a["over_cm"]]
+    assert CC.check_tree(P, g) == []
 
 
 def test_8_a_waters_own_total_reached_by_the_walk_says_why_too():

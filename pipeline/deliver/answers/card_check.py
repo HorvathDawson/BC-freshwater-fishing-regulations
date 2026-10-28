@@ -351,7 +351,10 @@ def check_tree(P, g: dict) -> List[str]:
             for z in box["children"]:
                 if z["node"] == "tier":
                     under = [q for q, _r in walk(z["children"]) if q["node"] == "kind"]
-                    if any(id(q) in ids for q in under) and not all(id(q) in ids for q in under):
+                    # T203: a count tier of kinds only is split by the size tier (`tree.holding`), never a reason to
+                    # say a shared cap on each kind
+                    if any(id(q) in ids for q in under) and not all(id(q) in ids for q in under) and \
+                            not (z["tier"] == "count" and all(q["node"] == "kind" for q in z["children"])):
                         spoilt = True
             if not spoilt:
                 probs.append(f"{where}: the cap {ac['by']} over {cm} cm is said on the kinds {[z['species'] for z in rows]}, "

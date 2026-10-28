@@ -436,6 +436,18 @@ Six angler personas read v21 screenshots (USER-ROUNDS round 1); only wording cha
   shore; any number from a boat" (the sentence "…, each with one hook, lure or fly.") and the Lines row "1 line (rod)
   from shore; no limit from a boat" (Kootenay Lake's main body). "While alone in a boat" is unchanged.
 
+## T203 (2026-10-28) — a shared size cap is one size tier, a count tier it crosses is split
+
+Owner on the Dala River (Region 6): "only 1 over 50 cm (20 in), if you haven't already kept a steelhead, cutthroat trout,
+brown trout or lake trout over 50 cm" said on four kinds. Region 6's 1 over 50 cm binds the brook, lake, brown/cutthroat
+and steelhead rows; the stream's "1 brown trout, cutthroat trout, rainbow trout or steelhead in all" count tier also held
+a rainbow of 50 cm or less, so ROUND19 3 found no tier holding exactly the cap's kinds. Now (`tree.holding`) a count tier
+of kinds holding some of the cap's kinds is SPLIT: it goes inside the size tier with them, the kinds the cap does not bind
+leave it for the tier around (after the size tier), each saying the count on its line ("no more than 1 counting any
+steelhead, cutthroat trout or brown trout you keep", an `also_counts` count by the count's rule), and the count tier still
+names every fish it counts. An own or share tier is never split; a cap they cross stays on the kinds. The gate
+(`check_tree`) no longer accepts a count tier as the reason a shared cap is said on its kinds.
+
 ## ROUND19 (2026-10-17) — rows 17, display 13: a size tier holds what it caps, the origin with the fish, "50 cm (20 in)", the boundary standard, tiers that say their nesting
 
 Owner review of v20 (ROUND19 1, 2, 3, 5, 6; item 4 is the page's); RULINGS P34-P38 (P31's placement and P30's

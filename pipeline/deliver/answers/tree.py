@@ -28,9 +28,9 @@ count groups, size groups and notes) as that tree; it decides nothing new.
                 ROUND UR6 1). RULINGS Q16's pair (1 over 50 cm, 2 with a steelhead) is ONE tier, the steelhead
                 INSIDE: "… — 2 if one is a hatchery steelhead" (`extra` {n, species, by}; ROUND20g 2: said once, the
                 steelhead's own `size_note` is gone). A cap on one kind
-                row, on part of a row, or over kinds no tier can hold without a kind that cannot pass it (Region 2's
-                Bella Coola count over a cutthroat that may and a rainbow that may not) is no tier: the kinds'
-                `also_counts` say it
+                row, on part of a row, or over kinds no tier can hold without a kind that cannot pass it (an own
+                rule's tier holding one of them beside a Dolly Varden of 50 cm or less) is no tier: the kinds'
+                `also_counts` say it. T203: a COUNT tier it crosses is split, not a reason (`holding`)
   kind   {node: "kind", species, name, n, says, detail, sizes {cm, in}, also_counts, duties, sentence}:
          each kind EXACTLY ONCE; `says` "Up to 2 may be hatchery brook, brown or cutthroat trout" (ROUND19 1: the
          origin with the fish where it keeps one, never again in the detail), `detail` its sizes ("30 cm (12 in) or
@@ -109,7 +109,8 @@ def kind_names(species: Sequence[str], steelhead: bool = False, conj: str = " or
 def _count_names(t: dict) -> str:
     """ROUND19 6 (owner: "1 between them" must say who): the fish a count tier holds; UR1 D (user panel: "between"
     read as each): "cutthroat or rainbow trout", said "1 cutthroat or rainbow trout in all"."""
-    sp = list(dict.fromkeys(S for x, _p in walk(t["children"]) if x["node"] == "kind" for S in x["species"]))
+    sp = t.get("_of") or list(dict.fromkeys(S for x, _p in walk(t["children"]) if x["node"] == "kind"
+                                            for S in x["species"]))
     return kind_names(sp, conj=" or ")
 
 
@@ -364,6 +365,8 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
             for k in s["kinds"]:
                 ct["children"].append(node_of[id(k)])
                 placed_in[id(node_of[id(k)])] = ct
+            # T203: every fish the count holds, said by its tier even where a size tier takes some of its kinds
+            ct["_of"] = [S for x in ct["children"] for S in x["species"]]
             content.append(ct)
         t["children"].extend(content)
         tier_of[id(b)] = t
@@ -409,8 +412,14 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
         sp = set(sz["species"])
         return [kn for kn in every_kind if set(kn["species"]) & sp and can_pass(kn, sz["over_cm"])]
 
-    def holding(kids: List[dict]) -> Optional[Tuple[dict, List[dict]]]:
-        """(the tier to nest in, its children the size tier takes), or None where no tier holds exactly them."""
+    def holding(kids: List[dict]) -> Optional[Tuple[dict, List[dict], List[Tuple[dict, List[dict]]]]]:
+        """(the tier to nest in, its children the size tier takes, the count tiers it splits), or None where no tier
+        holds exactly them. T203 (owner 2026-10-28, the Dala River: Region 6's "1 over 50 cm" said on four kinds because
+        the stream's "1 brown, cutthroat, rainbow trout or steelhead in all" also held a rainbow of 50 cm or less): a
+        COUNT tier holding some of the kinds and others beside them is split — it goes inside the size tier with the
+        kinds the cap binds, and the others leave it for the tier around (each says the count on its line, the count
+        tier still names every fish it counts); a cap shared by several kinds is one size tier holding exactly them.
+        An own or share tier is never split (its kinds are its rule's)."""
         par = parents()
         chains = [chain(par, k) for k in kids]
         box = None
@@ -419,7 +428,7 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
                 break
             box = level[0]
         ids = {id(k) for k in kids}
-        taken = []
+        taken, splits = [], []
         for x in box["children"]:
             if id(x) in ids:
                 taken.append(x)
@@ -427,11 +436,14 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
                 under = [y for y, _p in walk(x["children"]) if y["node"] == "kind"]
                 if any(id(y) in ids for y in under):
                     if not all(id(y) in ids for y in under):
-                        return None
+                        if x["tier"] != "count" or any(y["node"] != "kind" for y in x["children"]):
+                            return None
+                        splits.append((x, [y for y in x["children"] if id(y) not in ids]))
                     taken.append(x)
-        return box, taken
+        return box, taken, splits
 
     sizes_all = [sz for b in c.buckets for sz in b.get("sizes") or []]
+    left: List[Tuple[dict, dict]] = []           # T203: (a kind out of its count tier, that tier)
     for sz in sorted(sizes_all, key=lambda z: (-len(bound(z)), z["over_cm"], z["n"])):
         cm = sz["over_cm"]
         kids = bound(sz)
@@ -454,7 +466,7 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
             got = holding(kids)
         if got is None or (len(kids) < 2 and st is None):
             continue
-        box, taken = got
+        box, taken, splits = got
         cn = count_of(parents(), box)["n"]
         if extra is None and cn is not None and sz["n"] >= cn:
             continue
@@ -481,6 +493,13 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
             box["children"].remove(x)
         st_["children"] = taken
         box["children"].insert(at, st_)
+        out_at = at + 1
+        for ct, outs in splits:                    # T203: the kinds the cap does not bind leave the count tier
+            for y in outs:
+                ct["children"].remove(y)
+                box["children"].insert(out_at, y)
+                out_at += 1
+                left.append((y, ct))
         # ROUND20g 2 (owner): the steelhead's own note ("it counts toward the 1 over 50 cm (20 in), but once you keep one,
         # a second …") said the band head's "— 2 if one is a hatchery steelhead" again; the band head says it once
         sz["_tier"] = st_["id"]
@@ -526,6 +545,12 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
                 continue
             kn["also_counts"].append({"tier": None, "by": None, "n": nt["n"], "over_cm": 0, "then": [],
                                       "species": book_order(K), "says": says})
+    for kn, ct in left:                          # T203: a kind split out of its count tier says the count on its line
+        others = [S for S in book_order(ct["_of"]) if S not in kn["species"]]
+        says = _count_also(kn["n"], ct["n"], list(kn["species"]), others)
+        if says is not None:
+            kn["also_counts"].append({"tier": None, "by": ct["by"], "n": ct["n"], "over_cm": 0, "then": [],
+                                      "species": book_order(ct["_of"]), "says": says})
     for b in c.buckets:
         for sz in b.get("sizes") or []:
             sz.pop("_tier", None)
@@ -630,6 +655,8 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
     # ROUND20 1 (owner: the group's top and the first tier are ONE block): the header IS the root tier — its words,
     # named by `tier`; the page draws the root's line as the header and the root's children at the top of the tree.
     # ROUND19 1: the kinds' names carry the origin; the tag does not repeat it
+    for t, _p in walk([root]):
+        t.pop("_of", None)
     header = {"says": root["says"], "tier": root["id"], "tag": None}
     return [root], header
 

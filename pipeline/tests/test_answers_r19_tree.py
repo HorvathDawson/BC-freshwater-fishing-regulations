@@ -105,12 +105,14 @@ def test_3_a_size_tier_spanning_tiers_wraps_them():
     assert [x.get("tier") or x["species"] for x in size["children"]] == ["own", ["EB", "GB", "CT", "RB"], ["LT"]]
 
 
-def test_3_a_cap_no_tier_can_hold_is_said_on_its_kinds():
-    # the count tier holds a cutthroat that may pass 50 cm beside a rainbow that never may: no size tier
+def test_3_a_count_tier_crossing_the_cap_is_split_not_said_on_its_kinds():
+    # T203 (owner 2026-10-28) overrules ROUND19's "no tier": the count tier holds a cutthroat that may pass 50 cm beside
+    # a rainbow that never may — the size tier takes the cutthroat (in its count tier), the rainbow leaves both
     g, _o, _P = _g(F.COUNT)
-    assert not [t for t in _walk(g["tree"]) if t.get("tier") == "size"]
-    ct = next(k for k in _walk(g["tree"]) if k["node"] == "kind" and k["species"] == ["CT"])
-    assert ct["also_counts"][0]["says"].startswith("none over 50 cm (20 in) if you’ve already kept a brown trout")
+    (size,) = [t for t in _walk(g["tree"]) if t.get("tier") == "size"]
+    ct = next(k for k in _walk(size["children"]) if k["node"] == "kind" and k["species"] == ["CT"])
+    assert ct["also_counts"] == []
+    assert not [k for k in _walk(size["children"]) if k["node"] == "kind" and k["species"] == ["RB"]]
 
 
 # 5 ---------------------------------------------------------------------------------------------
