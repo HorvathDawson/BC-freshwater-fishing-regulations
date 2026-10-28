@@ -1,0 +1,14 @@
+# T225 STAGING ONLY, MEASURING ONLY. Deploy: npx --prefix app wrangler deploy -c app/workers/feeds/wrangler.toml
+# No [triggers] on purpose: nothing runs unattended until the owner switches it on. No production env in this file.
+name = "bc-fishing-feeds-staging"
+main = "src/index.ts"
+compatibility_date = "2025-09-01"
+workers_dev = true
+preview_urls = false
+
+[observability]
+enabled = true
+
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "bc-fishing-regulations-staging"

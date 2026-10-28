@@ -1,0 +1,253 @@
+{
+"now": "2026-10-28T22:47:06Z",
+"urls": {
+"https://bcrfc.env.gov.bc.ca/fallfloods/coffee/COFFEE_08CD001.CSV": {
+"status": 200,
+"file": "d47429eb45ce88a0eba6"
+},
+"https://bcrfc.env.gov.bc.ca/fallfloods/coffee/COFFEE_08CE001.CSV": {
+"status": 200,
+"file": "fbc1bf7f083ac2593c94"
+},
+"https://bcrfc.env.gov.bc.ca/fallfloods/coffee/COFFEE_08FB011.CSV": {
+"status": 200,
+"file": "68864c3881c0ec7e5a90"
+},
+"https://bcrfc.env.gov.bc.ca/fallfloods/coffee/COFFEE_08HD011.CSV": {
+"status": 200,
+"file": "dbf498b95609ad641d2d"
+},
+"https://bcrfc.env.gov.bc.ca/fallfloods/coffee/COFFEE_08MH002.CSV": {
+"status": 200,
+"file": "339982c4c48359c9eb32"
+},
+"https://bcrfc.env.gov.bc.ca/freshet/clever/07EA004.CSV": {
+"status": 200,
+"file": "c1814587420366ab6240"
+},
+"https://bcrfc.env.gov.bc.ca/freshet/clever/07EA005.CSV": {
+"status": 200,
+"file": "0244149d0a6319bd24db"
+},
+"https://bcrfc.env.gov.bc.ca/freshet/clever/07EA007.CSV": {
+"status": 200,
+"file": "33156d43202e2e50e647"
+},
+"https://bcrfc.env.gov.bc.ca/freshet/clever/07EB002.CSV": {
+"status": 200,
+"file": "25001ac98a1792336e12"
+},
+"https://bcrfc.env.gov.bc.ca/freshet/clever/07ED001.CSV": {
+"status": 200,
+"file": "55a0f3f11810f4dd54a3"
+},
+"https://bcrfc.env.gov.bc.ca/freshet/clever/07EE009.CSV": {
+"status": 200,
+"file": "7825b9990bada395e4f4"
+},
+"https://bcrfc.env.gov.bc.ca/freshet/clever/07EF004.CSV": {
+"status": 200,
+"file": "ee0640bfa6813271c8a2"
+},
+"https://bcrfc.env.gov.bc.ca/freshet/clever/07FA004.CSV": {
+"status": 200,
+"file": "78fc24687cc0373e8cff"
+},
+"https://bcrfc.env.gov.bc.ca/freshet/clever/07FB001.CSV": {
+"status": 200,
+"file": "11ef108e21ce3523f9e3"
+},
+"https://bcrfc.env.gov.bc.ca/freshet/clever/07FB002.CSV": {
+"status": 200,
+"file": "4415f9d72e7d43867277"
+},
+"https://bcrfc.env.gov.bc.ca/freshet/clever/07FC003.CSV": {
+"status": 200,
+"file": "31a7765023a94f14b024"
+},
+"https://bcrfc.env.gov.bc.ca/freshet/clever/08CD001.CSV": {
+"status": 200,
+"file": "88f047bf004c86582c04"
+},
+"https://bcrfc.env.gov.bc.ca/freshet/clever/08CE001.CSV": {
+"status": 200,
+"file": "d620cb468058df82760c"
+},
+"https://bcrfc.env.gov.bc.ca/freshet/clever/08FB011.CSV": {
+"status": 200,
+"file": "565873f1bf258422c687"
+},
+"https://bcrfc.env.gov.bc.ca/freshet/clever/08HD011.CSV": {
+"status": 200,
+"file": "2739870d831a8ab54053"
+},
+"https://bcrfc.env.gov.bc.ca/freshet/clever/08KB006.CSV": {
+"status": 200,
+"file": "d6c741146ee3bb86af95"
+},
+"https://bcrfc.env.gov.bc.ca/freshet/clever/08LC039.CSV": {
+"status": 200,
+"file": "5ae02134472fbc0e3316"
+},
+"https://bcrfc.env.gov.bc.ca/freshet/clever/08MH002.CSV": {
+"status": 200,
+"file": "3f3580da8bffef8513a7"
+},
+"https://bcrfc.env.gov.bc.ca/freshet/clever/08NK022.CSV": {
+"status": 200,
+"file": "ebd42e94d3c02e801a7c"
+},
+"https://bcrfc.env.gov.bc.ca/lowflow/elf/csv/07EA004_elf_forecast.csv": {
+"status": 200,
+"file": "e5b963372c5d8eea2bce"
+},
+"https://bcrfc.env.gov.bc.ca/lowflow/elf/csv/07ED001_elf_forecast.csv": {
+"status": 200,
+"file": "7c517d154c4dd093418b"
+},
+"https://bcrfc.env.gov.bc.ca/lowflow/elf/csv/07EE009_elf_forecast.csv": {
+"status": 200,
+"file": "04eed0b81a03e0bee956"
+},
+"https://bcrfc.env.gov.bc.ca/lowflow/elf/csv/07EF004_elf_forecast.csv": {
+"status": 200,
+"file": "57684c8d2d3605c74ead"
+},
+"https://bcrfc.env.gov.bc.ca/lowflow/elf/csv/07FB002_elf_forecast.csv": {
+"status": 200,
+"file": "d67c95bccb90ba40227e"
+},
+"https://bcrfc.env.gov.bc.ca/lowflow/elf/csv/07FC003_elf_forecast.csv": {
+"status": 200,
+"file": "849dabfccbd1bc363657"
+},
+"https://bcrfc.env.gov.bc.ca/lowflow/elf/csv/08KB006_elf_forecast.csv": {
+"status": 200,
+"file": "aeb5f4d6dbc22955e25f"
+},
+"https://collaboration.cmc.ec.gc.ca/cmc/hydrometrics/www/": {
+"status": 200,
+"file": "677f8a816f1bc0e82a1d"
+},
+"https://dd.weather.gc.ca/today/hydrometric/csv/BC/daily/BC_07EE009_daily_hydrometric.csv": {
+"status": 200,
+"file": "fd3e9ea5dcb045ca4884"
+},
+"https://dd.weather.gc.ca/today/hydrometric/csv/BC/daily/BC_07FB001_daily_hydrometric.csv": {
+"status": 200,
+"file": "faf93d866b873e2e9d7d"
+},
+"https://dd.weather.gc.ca/today/hydrometric/csv/BC/daily/BC_08KB006_daily_hydrometric.csv": {
+"status": 404,
+"file": "00a84ebe63cdd4075165"
+},
+"https://dd.weather.gc.ca/today/hydrometric/csv/BC/hourly/BC_07EA004_hourly_hydrometric.csv": {
+"status": 200,
+"file": "bb64ba49507b76c2ca0e"
+},
+"https://dd.weather.gc.ca/today/hydrometric/csv/BC/hourly/BC_07EA005_hourly_hydrometric.csv": {
+"status": 200,
+"file": "71a82d565283aaf0c0ef"
+},
+"https://dd.weather.gc.ca/today/hydrometric/csv/BC/hourly/BC_07EA007_hourly_hydrometric.csv": {
+"status": 200,
+"file": "eebbd44c830e628e5111"
+},
+"https://dd.weather.gc.ca/today/hydrometric/csv/BC/hourly/BC_07EB002_hourly_hydrometric.csv": {
+"status": 200,
+"file": "0dbe4605d2387483c454"
+},
+"https://dd.weather.gc.ca/today/hydrometric/csv/BC/hourly/BC_07ED001_hourly_hydrometric.csv": {
+"status": 200,
+"file": "35e6d05eb2de604c0c63"
+},
+"https://dd.weather.gc.ca/today/hydrometric/csv/BC/hourly/BC_07EE009_hourly_hydrometric.csv": {
+"status": 200,
+"file": "4fb0dac5b3eaaba9b32c"
+},
+"https://dd.weather.gc.ca/today/hydrometric/csv/BC/hourly/BC_07EF002_hourly_hydrometric.csv": {
+"status": 200,
+"file": "3d99dbece674c317f444"
+},
+"https://dd.weather.gc.ca/today/hydrometric/csv/BC/hourly/BC_07EF003_hourly_hydrometric.csv": {
+"status": 200,
+"file": "4d77c0e937947e23a1ab"
+},
+"https://dd.weather.gc.ca/today/hydrometric/csv/BC/hourly/BC_07EF004_hourly_hydrometric.csv": {
+"status": 200,
+"file": "7cd88887c2c6a890769e"
+},
+"https://dd.weather.gc.ca/today/hydrometric/csv/BC/hourly/BC_07FA004_hourly_hydrometric.csv": {
+"status": 200,
+"file": "9e2b826c4bd401bd24e7"
+},
+"https://dd.weather.gc.ca/today/hydrometric/csv/BC/hourly/BC_07FB001_hourly_hydrometric.csv": {
+"status": 200,
+"file": "f20197ca07cb8531906f"
+},
+"https://dd.weather.gc.ca/today/hydrometric/csv/BC/hourly/BC_07FB002_hourly_hydrometric.csv": {
+"status": 200,
+"file": "52f841944a5882319f31"
+},
+"https://dd.weather.gc.ca/today/hydrometric/csv/BC/hourly/BC_07FC003_hourly_hydrometric.csv": {
+"status": 200,
+"file": "e62505678fdd10b259ad"
+},
+"https://dd.weather.gc.ca/today/hydrometric/csv/BC/hourly/BC_08CD001_hourly_hydrometric.csv": {
+"status": 200,
+"file": "7e2627e1c7250fc207ef"
+},
+"https://dd.weather.gc.ca/today/hydrometric/csv/BC/hourly/BC_08CE001_hourly_hydrometric.csv": {
+"status": 200,
+"file": "db8fc03bf34a87175eeb"
+},
+"https://dd.weather.gc.ca/today/hydrometric/csv/BC/hourly/BC_08FB011_hourly_hydrometric.csv": {
+"status": 200,
+"file": "eef95fa0b8e50f62ced6"
+},
+"https://dd.weather.gc.ca/today/hydrometric/csv/BC/hourly/BC_08HD011_hourly_hydrometric.csv": {
+"status": 200,
+"file": "a97615dcf7a74549d437"
+},
+"https://dd.weather.gc.ca/today/hydrometric/csv/BC/hourly/BC_08KB006_hourly_hydrometric.csv": {
+"status": 200,
+"file": "cd6f0c7f36d07ce2644b"
+},
+"https://dd.weather.gc.ca/today/hydrometric/csv/BC/hourly/BC_08LC039_hourly_hydrometric.csv": {
+"status": 200,
+"file": "246144fd067d90e152c3"
+},
+"https://dd.weather.gc.ca/today/hydrometric/csv/BC/hourly/BC_08MH002_hourly_hydrometric.csv": {
+"status": 200,
+"file": "f3d4e5b73efac534543f"
+},
+"https://dd.weather.gc.ca/today/hydrometric/csv/BC/hourly/BC_08NK022_hourly_hydrometric.csv": {
+"status": 200,
+"file": "683bf7799d02b2d6034a"
+},
+"https://dd.weather.gc.ca/today/hydrometric/csv/BC/hourly/BC_08ZZ999_hourly_hydrometric.csv": {
+"status": 404,
+"file": "b905f9f239c216bca38a"
+},
+"https://dd.weather.gc.ca/today/hydrometric/doc/hydrometric_StationList.csv": {
+"status": 200,
+"file": "91cfb5e9a78312d6d464"
+},
+"https://services6.arcgis.com/ubm4tcTYICKBpist/arcgis/rest/services/CLM_MapHub_forecast/FeatureServer/0/query?where=1%3D1&outFields=%2A&returnGeometry=false&f=json&resultOffset=0&resultRecordCount=1000": {
+"status": 200,
+"file": "bc8abce78a511ac85d0a"
+},
+"https://services6.arcgis.com/ubm4tcTYICKBpist/arcgis/rest/services/MapHub_ELF_Forecast/FeatureServer/0/query?where=1%3D1&outFields=%2A&returnGeometry=false&f=json&resultOffset=0&resultRecordCount=1000": {
+"status": 200,
+"file": "c5d6cd6e25208c9e03fd"
+},
+"https://services6.arcgis.com/ubm4tcTYICKBpist/arcgis/rest/services/coffee_MapHub_forecast/FeatureServer/0/query?where=1%3D1&outFields=%2A&returnGeometry=false&f=json&resultOffset=0&resultRecordCount=1000": {
+"status": 200,
+"file": "5324d5ffba2f02dce40e"
+},
+"https://wateroffice.ec.gc.ca/services/real_time_data/csv/inline?stations%5B%5D=07EA004&stations%5B%5D=07EA005&stations%5B%5D=07EA007&stations%5B%5D=07EB002&stations%5B%5D=07ED001&stations%5B%5D=07EE009&stations%5B%5D=07EF002&stations%5B%5D=07EF003&stations%5B%5D=07EF004&stations%5B%5D=07FA004&stations%5B%5D=07FB001&stations%5B%5D=07FB002&stations%5B%5D=07FC003&stations%5B%5D=08CD001&stations%5B%5D=08CE001&stations%5B%5D=08FB011&stations%5B%5D=08HD011&stations%5B%5D=08KB006&stations%5B%5D=08LC039&stations%5B%5D=08MH002&stations%5B%5D=08NK022&parameters%5B%5D=5&start_date=2026-10-27+22%3A47%3A06&end_date=2026-10-28+22%3A47%3A06": {
+"status": 200,
+"file": "f5161779a9c19e341f03"
+}
+}
+}

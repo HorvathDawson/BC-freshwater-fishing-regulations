@@ -1,0 +1,10 @@
+{
+  "name": "@feeds/worker",
+  "private": true,
+  "type": "module",
+  "$comment": "T225: the gauge + DFO salmon feeds as one Cloudflare Worker. NOT in the pnpm workspace (no lockfile churn): it resolves typescript/vitest/parse5 from app/node_modules by Node's upward lookup; wrangler runs via `npx --prefix app wrangler`.",
+  "scripts": {
+    "test": "vitest run --root .",
+    "dev": "npx --prefix ../.. wrangler dev -c wrangler.toml"
+  }
+}

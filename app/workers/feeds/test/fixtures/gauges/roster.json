@@ -1,0 +1,208 @@
+[
+{
+"station": "07EA004",
+"name": "INGENIKA RIVER ABOVE SWANNELL RIVER",
+"lon": -125.1050033569336,
+"lat": 56.73060989379883,
+"realtime": false,
+"active": true,
+"area_km2": 4142.0
+},
+{
+"station": "07EA005",
+"name": "FINLAY RIVER ABOVE AKIE RIVER",
+"lon": -125.24992370605467,
+"lat": 57.126220703125,
+"realtime": true,
+"active": true,
+"area_km2": 15630.0
+},
+{
+"station": "07EA007",
+"name": "AKIE RIVER NEAR THE 760 M CONTOUR",
+"lon": -124.90110778808594,
+"lat": 57.19110870361328,
+"realtime": true,
+"active": true,
+"area_km2": 1685.0
+},
+{
+"station": "07EB002",
+"name": "OSPIKA RIVER ABOVE ALEY CREEK",
+"lon": -123.93602752685548,
+"lat": 56.52410888671875,
+"realtime": true,
+"active": true,
+"area_km2": 2091.0
+},
+{
+"station": "07ED001",
+"name": "NATION RIVER NEAR FORT ST. JAMES",
+"lon": -124.23336791992188,
+"lat": 55.20252990722656,
+"realtime": true,
+"active": true,
+"area_km2": 4360.0
+},
+{
+"station": "07EE009",
+"name": "CHUCHINKA CREEK NEAR THE MOUTH",
+"lon": -122.61222076416016,
+"lat": 54.52972030639648,
+"realtime": true,
+"active": true,
+"area_km2": 316.3999938964844
+},
+{
+"station": "07EF002",
+"name": "WILLISTON LAKE AT LOST CABIN CREEK",
+"lon": -123.7481918334961,
+"lat": 56.04996871948242,
+"realtime": true,
+"active": true,
+"area_km2": 72060.0
+},
+{
+"station": "07EF003",
+"name": "WILLISTON LAKE NEAR SCHOOLER CREEK",
+"lon": -122.7161102294922,
+"lat": 56.10639190673828,
+"realtime": true,
+"active": true,
+"area_km2": 72060.0
+},
+{
+"station": "07EF004",
+"name": "CARBON CREEK NEAR THE MOUTH",
+"lon": -122.6588897705078,
+"lat": 55.94610977172852,
+"realtime": true,
+"active": true,
+"area_km2": 736.2999877929688
+},
+{
+"station": "07FA004",
+"name": "PEACE RIVER ABOVE PINE RIVER",
+"lon": -120.8144989013672,
+"lat": 56.1993293762207,
+"realtime": true,
+"active": true,
+"area_km2": 87150.0
+},
+{
+"station": "07FB001",
+"name": "PINE RIVER AT EAST PINE",
+"lon": -121.21156311035156,
+"lat": 55.71844100952149,
+"realtime": true,
+"active": true,
+"area_km2": 12140.0
+},
+{
+"station": "07FB002",
+"name": "MURRAY RIVER NEAR THE MOUTH",
+"lon": -121.20349884033205,
+"lat": 55.55247116088867,
+"realtime": true,
+"active": true,
+"area_km2": 5549.0
+},
+{
+"station": "07FC003",
+"name": "BLUEBERRY RIVER BELOW AITKEN CREEK",
+"lon": -121.22232818603516,
+"lat": 56.67763900756836,
+"realtime": true,
+"active": true,
+"area_km2": 1772.0
+},
+{
+"station": "08CD001",
+"name": "TUYA RIVER NEAR TELEGRAPH CREEK",
+"lon": -130.82644653320312,
+"lat": 58.07225036621094,
+"realtime": true,
+"active": true,
+"area_km2": 3546.0
+},
+{
+"station": "08CE001",
+"name": "STIKINE RIVER AT TELEGRAPH CREEK",
+"lon": -131.1597137451172,
+"lat": 57.9002685546875,
+"realtime": true,
+"active": true,
+"area_km2": 28950.0
+},
+{
+"station": "08FB011",
+"name": "BELLA COOLA RIVER ABOVE HAMMER CREEK",
+"lon": -126.3524398803711,
+"lat": 52.4392204284668,
+"realtime": true,
+"active": true,
+"area_km2": 4071.0
+},
+{
+"station": "08HD011",
+"name": "OYSTER RIVER BELOW WOODHUS CREEK",
+"lon": -125.24175262451172,
+"lat": 49.89458084106445,
+"realtime": true,
+"active": true,
+"area_km2": 297.3999938964844
+},
+{
+"station": "08KB006",
+"name": "MULLER CREEK NEAR THE MOUTH",
+"lon": -120.9774169921875,
+"lat": 54.29677963256836,
+"realtime": true,
+"active": true,
+"area_km2": 102.5999984741211
+},
+{
+"station": "08LC039",
+"name": "BESSETTE CREEK ABOVE BEAVERJACK CREEK",
+"lon": -118.85912322998048,
+"lat": 50.29790115356445,
+"realtime": true,
+"active": true,
+"area_km2": 767.7999877929688
+},
+{
+"station": "08MH002",
+"name": "COQUITLAM RIVER AT PORT COQUITLAM",
+"lon": -122.78150177001952,
+"lat": 49.26523971557617,
+"realtime": true,
+"active": true,
+"area_km2": 233.6999969482422
+},
+{
+"station": "08NK022",
+"name": "LINE CREEK AT THE MOUTH",
+"lon": -114.83335876464844,
+"lat": 49.8914909362793,
+"realtime": true,
+"active": true,
+"area_km2": 136.5
+},
+{
+"station": "08ZZ999",
+"name": "08ZZ999",
+"lon": 0,
+"lat": 0,
+"realtime": true,
+"active": true
+},
+{
+"station": "07EA001",
+"name": "FINLAY RIVER AT WARE",
+"lon": -125.62638854980467,
+"lat": 57.42082977294922,
+"realtime": true,
+"active": false,
+"area_km2": 11080.0
+}
+]

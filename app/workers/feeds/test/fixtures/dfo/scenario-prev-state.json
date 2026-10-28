@@ -1,0 +1,41 @@
+{
+ "entries": "entries",
+ "initial": {
+  "index": "prev/index.json",
+  "unplaced": "prev/unplaced.json"
+ },
+ "steps": [
+  {
+   "name": "from-last-feed",
+   "now": "2026-10-28T18:00:00Z",
+   "fetched": "2026-10-28T18:00:02+00:00",
+   "pages": {
+    "1": "pages/region1-eng.html",
+    "2": "pages/region2-eng.html",
+    "3": "pages/region3-eng.html",
+    "4": "pages/region4-eng.html",
+    "5a": "pages/region5a-eng.html",
+    "5b": "pages/region5b-eng.html",
+    "6": "pages/region6-eng.html",
+    "7": "pages/region7-eng.html",
+    "8": "pages/region8-eng.html"
+   }
+  },
+  {
+   "name": "unchanged-rerun",
+   "now": "2026-10-29T00:00:00Z",
+   "fetched": "2026-10-29T00:00:03+00:00",
+   "pages": {
+    "1": "pages/region1-eng.html",
+    "2": "pages/region2-eng.html",
+    "3": "pages/region3-eng.html",
+    "4": "pages/region4-eng.html",
+    "5a": "pages/region5a-eng.html",
+    "5b": "pages/region5b-eng.html",
+    "6": "pages/region6-eng.html",
+    "7": "pages/region7-eng.html",
+    "8": "pages/region8-eng.html"
+   }
+  }
+ ]
+}

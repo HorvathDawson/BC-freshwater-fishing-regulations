@@ -16,6 +16,9 @@ export default {
     if (request.method !== "GET" && request.method !== "HEAD") return new Response("Method Not Allowed", { status: 405, headers: CORS });
     const key = decodeURIComponent(new URL(request.url).pathname.slice(1));
     if (!key || key.split("/").includes("..")) return new Response("Not Found", { status: 404, headers: CORS });
+    // T225: the feeds worker keeps its state (notified keys, runs archive, roster, DFO entries + page corpus) under
+    // private/ in the same bucket; never serve it.
+    if (key.startsWith("private/")) return new Response("Not Found", { status: 404, headers: CORS });
     const range = request.headers.get("Range");
     let opts = {};
     const m = range && /^bytes=(\d+)-(\d*)$/.exec(range);

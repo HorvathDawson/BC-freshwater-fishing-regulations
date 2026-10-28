@@ -1,0 +1,492 @@
+{
+  "region": "8",
+  "region_number": 8,
+  "region_name": "Okanagan",
+  "structure": {
+    "sections": [],
+    "n_locations": 3,
+    "n_waters": 3,
+    "n_defaults": 0,
+    "precedences": []
+  },
+  "scopes": [],
+  "waters": [
+    {
+      "water_id": "8:mabel-lake",
+      "region": "8",
+      "region_number": 8,
+      "name": "Mabel Lake",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "wbk:329663955"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "8:osoyoos-lake",
+      "region": "8",
+      "region_number": 8,
+      "name": "Osoyoos Lake",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "wbk:328961724"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "8:shuswap-river",
+      "region": "8",
+      "region_number": 8,
+      "name": "Shuswap River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:25478"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    }
+  ],
+  "locations": [
+    {
+      "location_id": "8:mabel-lake:northerly-of-a-line-drawn-from-a-w",
+      "region": "8",
+      "region_number": 8,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Mabel Lake",
+      "water_id": "8:mabel-lake",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "5b60e0a0c44932a0"
+      ],
+      "source_text": {
+        "waters": "Mabel Lake",
+        "specific_area": "Northerly of a line drawn from a white triangular fishing boundary sign situated at the northern edge of Mabel Lake Provincial Park to the prominent point of land on the western shore;south of white triangular fishing boundary signs located on opposite shores approximately 1 km from Wap Creek.",
+        "landmarks": [
+          "drawn",
+          "edge",
+          "land",
+          "line",
+          "mabel",
+          "northerly",
+          "northern",
+          "opposite",
+          "park",
+          "point",
+          "prominent",
+          "provincial",
+          "shore",
+          "shores",
+          "situated",
+          "south",
+          "wap",
+          "western"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "boundary_sign",
+          "confluence",
+          "place_name"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "8:osoyoos-lake:in-the-waters-in-the-portion-of-os",
+      "region": "8",
+      "region_number": 8,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Osoyoos Lake",
+      "water_id": "8:osoyoos-lake",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "1ed288a22d46d754"
+      ],
+      "source_text": {
+        "waters": "Osoyoos Lake",
+        "specific_area": "In the waters in the portion of Osoyoos Lake north of the bridge at Highway No. 3 (North Basin)",
+        "landmarks": [
+          "basin",
+          "highway",
+          "north",
+          "osoyoos",
+          "portion"
+        ],
+        "op": "named_tributaries",
+        "anchor_types": [
+          "confluence",
+          "bridge",
+          "road"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": "8:osoyoos-lake:in-the-waters-in-the-portion-of-os~2",
+      "duplicate_score": 0.953,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "8:shuswap-river:middle-between-shuswap-falls-and-m",
+      "region": "8",
+      "region_number": 8,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Shuswap River",
+      "water_id": "8:shuswap-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "b823e688f7b85f22"
+      ],
+      "source_text": {
+        "waters": "Shuswap River",
+        "specific_area": "(middle) between Shuswap Falls and Mabel Lake except closed from the water survey station ( located at 50°19.105' N and 118°48.857' W) approximately 200m down stream of Shuswap Falls Hatchery to WTFB signs (located at 50°18.181' N and 118°49.105' W) one km down stream.",
+        "landmarks": [
+          "105",
+          "118",
+          "181",
+          "200m",
+          "857",
+          "closed",
+          "down",
+          "except",
+          "falls",
+          "hatchery",
+          "mabel",
+          "middle",
+          "one",
+          "shuswap",
+          "station",
+          "stream",
+          "survey",
+          "wtfb"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "natural_feature",
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": "8:shuswap-river:middle-between-shuswap-falls-and-m~2",
+      "duplicate_score": 0.998,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "8:shuswap-river:lower-upstream-from-white-triangul",
+      "region": "8",
+      "region_number": 8,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Shuswap River",
+      "water_id": "8:shuswap-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "182e428e2d520efb"
+      ],
+      "source_text": {
+        "waters": "Shuswap River",
+        "specific_area": "(lower) upstream from white triangular fishing boundary signs above Mara Bridge to Mabel Lake.",
+        "landmarks": [
+          "lower",
+          "mabel",
+          "mara",
+          "shuswap"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "boundary_sign",
+          "bridge",
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "8:shuswap-river:lower-50-m-upstream-of-the-trinity",
+      "region": "8",
+      "region_number": 8,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Shuswap River",
+      "water_id": "8:shuswap-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "b70729bdede8fab3"
+      ],
+      "source_text": {
+        "waters": "Shuswap River",
+        "specific_area": "(lower) 50 meters upstream of the Trinity Valley Road Bridge to 50 m downstream of the Trinity Valley Road Bridge.",
+        "landmarks": [
+          "lower",
+          "road",
+          "shuswap",
+          "trinity",
+          "valley"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "road",
+          "bridge"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "8:osoyoos-lake:in-the-waters-in-the-portion-of-os~2",
+      "region": "8",
+      "region_number": 8,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Osoyoos Lake",
+      "water_id": "8:osoyoos-lake",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "afc9f6314421516a"
+      ],
+      "source_text": {
+        "waters": "Osoyoos Lake",
+        "specific_area": "In the waters in the portion of Osoyoos Lake (Region 8) north of the bridge at Highway No. 3 (North Basin)",
+        "landmarks": [
+          "basin",
+          "highway",
+          "north",
+          "osoyoos",
+          "portion",
+          "region"
+        ],
+        "op": "named_tributaries",
+        "anchor_types": [
+          "confluence",
+          "bridge",
+          "road"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "8:shuswap-river:middle-between-shuswap-falls-and-m~2",
+      "region": "8",
+      "region_number": 8,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Shuswap River",
+      "water_id": "8:shuswap-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "833f87488f7809fc"
+      ],
+      "source_text": {
+        "waters": "Shuswap River",
+        "specific_area": "(middle) between Shuswap Falls and Mabel Lake except closed from the water survey station (located at 50°19.105' N and 118°48.857' W) approximately 200 m down stream of Shuswap Falls Hatchery to WTFB signs (located at 50°18.181' N and 118°49.105' W) one km down stream.",
+        "landmarks": [
+          "105",
+          "118",
+          "181",
+          "200",
+          "857",
+          "closed",
+          "down",
+          "except",
+          "falls",
+          "hatchery",
+          "mabel",
+          "middle",
+          "one",
+          "shuswap",
+          "station",
+          "stream",
+          "survey",
+          "wtfb"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "natural_feature",
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    }
+  ]
+}

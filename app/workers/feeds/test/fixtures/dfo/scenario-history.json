@@ -1,0 +1,620 @@
+{
+ "entries": "entries",
+ "steps": [
+  {
+   "name": "seed-earliest",
+   "now": "2023-01-01T00:00:00Z",
+   "fetched": null,
+   "pages": {
+    "6": "history/region6_20170703172154.html",
+    "7": "history/region7_20230215195010.html",
+    "5b": "history/region5b_20230215195207.html",
+    "1": "history/region1_20230215195426.html",
+    "2": "history/region2_20230215195843.html",
+    "8": "history/region8_20230215202439.html",
+    "5a": "history/region5a_20250320090549.html",
+    "3": "history/region3_20250618200348.html",
+    "4": "history/region4_20250618200550.html"
+   }
+  },
+  {
+   "name": "r6-20170703172154",
+   "now": "2017-07-03T17:21:54Z",
+   "fetched": null,
+   "regions": [
+    "6"
+   ],
+   "pages": {
+    "6": "history/region6_20170703172154.html"
+   }
+  },
+  {
+   "name": "r6-20180524134448",
+   "now": "2018-05-24T13:44:48Z",
+   "fetched": null,
+   "regions": [
+    "6"
+   ],
+   "pages": {
+    "6": "history/region6_20180524134448.html"
+   }
+  },
+  {
+   "name": "r6-20200408190304",
+   "now": "2020-04-08T19:03:04Z",
+   "fetched": null,
+   "regions": [
+    "6"
+   ],
+   "pages": {
+    "6": "history/region6_20200408190304.html"
+   }
+  },
+  {
+   "name": "r6-20220524155747",
+   "now": "2022-05-24T15:57:47Z",
+   "fetched": null,
+   "regions": [
+    "6"
+   ],
+   "pages": {
+    "6": "history/region6_20220524155747.html"
+   }
+  },
+  {
+   "name": "r7-20230215195010",
+   "now": "2023-02-15T19:50:10Z",
+   "fetched": null,
+   "regions": [
+    "7"
+   ],
+   "pages": {
+    "7": "history/region7_20230215195010.html"
+   }
+  },
+  {
+   "name": "r5b-20230215195207",
+   "now": "2023-02-15T19:52:07Z",
+   "fetched": null,
+   "regions": [
+    "5b"
+   ],
+   "pages": {
+    "5b": "history/region5b_20230215195207.html"
+   }
+  },
+  {
+   "name": "r1-20230215195426",
+   "now": "2023-02-15T19:54:26Z",
+   "fetched": null,
+   "regions": [
+    "1"
+   ],
+   "pages": {
+    "1": "history/region1_20230215195426.html"
+   }
+  },
+  {
+   "name": "r2-20230215195843",
+   "now": "2023-02-15T19:58:43Z",
+   "fetched": null,
+   "regions": [
+    "2"
+   ],
+   "pages": {
+    "2": "history/region2_20230215195843.html"
+   }
+  },
+  {
+   "name": "r8-20230215202439",
+   "now": "2023-02-15T20:24:39Z",
+   "fetched": null,
+   "regions": [
+    "8"
+   ],
+   "pages": {
+    "8": "history/region8_20230215202439.html"
+   }
+  },
+  {
+   "name": "r2-20230919215605",
+   "now": "2023-09-19T21:56:05Z",
+   "fetched": null,
+   "regions": [
+    "2"
+   ],
+   "pages": {
+    "2": "history/region2_20230919215605.html"
+   }
+  },
+  {
+   "name": "r5b-20231003044503",
+   "now": "2023-10-03T04:45:03Z",
+   "fetched": null,
+   "regions": [
+    "5b"
+   ],
+   "pages": {
+    "5b": "history/region5b_20231003044503.html"
+   }
+  },
+  {
+   "name": "r1-20231003050318",
+   "now": "2023-10-03T05:03:18Z",
+   "fetched": null,
+   "regions": [
+    "1"
+   ],
+   "pages": {
+    "1": "history/region1_20231003050318.html"
+   }
+  },
+  {
+   "name": "r8-20231129092410",
+   "now": "2023-11-29T09:24:10Z",
+   "fetched": null,
+   "regions": [
+    "8"
+   ],
+   "pages": {
+    "8": "history/region8_20231129092410.html"
+   }
+  },
+  {
+   "name": "r2-20240110070445",
+   "now": "2024-01-10T07:04:45Z",
+   "fetched": null,
+   "regions": [
+    "2"
+   ],
+   "pages": {
+    "2": "history/region2_20240110070445.html"
+   }
+  },
+  {
+   "name": "r5b-20240117103654",
+   "now": "2024-01-17T10:36:54Z",
+   "fetched": null,
+   "regions": [
+    "5b"
+   ],
+   "pages": {
+    "5b": "history/region5b_20240117103654.html"
+   }
+  },
+  {
+   "name": "r1-20240124015458",
+   "now": "2024-01-24T01:54:58Z",
+   "fetched": null,
+   "regions": [
+    "1"
+   ],
+   "pages": {
+    "1": "history/region1_20240124015458.html"
+   }
+  },
+  {
+   "name": "r7-20240126183812",
+   "now": "2024-01-26T18:38:12Z",
+   "fetched": null,
+   "regions": [
+    "7"
+   ],
+   "pages": {
+    "7": "history/region7_20240126183812.html"
+   }
+  },
+  {
+   "name": "r6-20240421181125",
+   "now": "2024-04-21T18:11:25Z",
+   "fetched": null,
+   "regions": [
+    "6"
+   ],
+   "pages": {
+    "6": "history/region6_20240421181125.html"
+   }
+  },
+  {
+   "name": "r1-20240624062513",
+   "now": "2024-06-24T06:25:13Z",
+   "fetched": null,
+   "regions": [
+    "1"
+   ],
+   "pages": {
+    "1": "history/region1_20240624062513.html"
+   }
+  },
+  {
+   "name": "r2-20240909211944",
+   "now": "2024-09-09T21:19:44Z",
+   "fetched": null,
+   "regions": [
+    "2"
+   ],
+   "pages": {
+    "2": "history/region2_20240909211944.html"
+   }
+  },
+  {
+   "name": "r6-20240909220548",
+   "now": "2024-09-09T22:05:48Z",
+   "fetched": null,
+   "regions": [
+    "6"
+   ],
+   "pages": {
+    "6": "history/region6_20240909220548.html"
+   }
+  },
+  {
+   "name": "r8-20240909222617",
+   "now": "2024-09-09T22:26:17Z",
+   "fetched": null,
+   "regions": [
+    "8"
+   ],
+   "pages": {
+    "8": "history/region8_20240909222617.html"
+   }
+  },
+  {
+   "name": "r6-20241204215641",
+   "now": "2024-12-04T21:56:41Z",
+   "fetched": null,
+   "regions": [
+    "6"
+   ],
+   "pages": {
+    "6": "history/region6_20241204215641.html"
+   }
+  },
+  {
+   "name": "r2-20250116124751",
+   "now": "2025-01-16T12:47:51Z",
+   "fetched": null,
+   "regions": [
+    "2"
+   ],
+   "pages": {
+    "2": "history/region2_20250116124751.html"
+   }
+  },
+  {
+   "name": "r1-20250320081627",
+   "now": "2025-03-20T08:16:27Z",
+   "fetched": null,
+   "regions": [
+    "1"
+   ],
+   "pages": {
+    "1": "history/region1_20250320081627.html"
+   }
+  },
+  {
+   "name": "r5a-20250320090549",
+   "now": "2025-03-20T09:05:49Z",
+   "fetched": null,
+   "regions": [
+    "5a"
+   ],
+   "pages": {
+    "5a": "history/region5a_20250320090549.html"
+   }
+  },
+  {
+   "name": "r1-20250408111111",
+   "now": "2025-04-08T11:11:11Z",
+   "fetched": null,
+   "regions": [
+    "1"
+   ],
+   "pages": {
+    "1": "history/region1_20250408111111.html"
+   }
+  },
+  {
+   "name": "r2-20250518004350",
+   "now": "2025-05-18T00:43:50Z",
+   "fetched": null,
+   "regions": [
+    "2"
+   ],
+   "pages": {
+    "2": "history/region2_20250518004350.html"
+   }
+  },
+  {
+   "name": "r6-20250518012429",
+   "now": "2025-05-18T01:24:29Z",
+   "fetched": null,
+   "regions": [
+    "6"
+   ],
+   "pages": {
+    "6": "history/region6_20250518012429.html"
+   }
+  },
+  {
+   "name": "r7-20250518013252",
+   "now": "2025-05-18T01:32:52Z",
+   "fetched": null,
+   "regions": [
+    "7"
+   ],
+   "pages": {
+    "7": "history/region7_20250518013252.html"
+   }
+  },
+  {
+   "name": "r5b-20250618093001",
+   "now": "2025-06-18T09:30:01Z",
+   "fetched": null,
+   "regions": [
+    "5b"
+   ],
+   "pages": {
+    "5b": "history/region5b_20250618093001.html"
+   }
+  },
+  {
+   "name": "r8-20250618195919",
+   "now": "2025-06-18T19:59:19Z",
+   "fetched": null,
+   "regions": [
+    "8"
+   ],
+   "pages": {
+    "8": "history/region8_20250618195919.html"
+   }
+  },
+  {
+   "name": "r3-20250618200348",
+   "now": "2025-06-18T20:03:48Z",
+   "fetched": null,
+   "regions": [
+    "3"
+   ],
+   "pages": {
+    "3": "history/region3_20250618200348.html"
+   }
+  },
+  {
+   "name": "r4-20250618200550",
+   "now": "2025-06-18T20:05:50Z",
+   "fetched": null,
+   "regions": [
+    "4"
+   ],
+   "pages": {
+    "4": "history/region4_20250618200550.html"
+   }
+  },
+  {
+   "name": "r1-20250719143503",
+   "now": "2025-07-19T14:35:03Z",
+   "fetched": null,
+   "regions": [
+    "1"
+   ],
+   "pages": {
+    "1": "history/region1_20250719143503.html"
+   }
+  },
+  {
+   "name": "r5b-20250801023656",
+   "now": "2025-08-01T02:36:56Z",
+   "fetched": null,
+   "regions": [
+    "5b"
+   ],
+   "pages": {
+    "5b": "history/region5b_20250801023656.html"
+   }
+  },
+  {
+   "name": "r2-20250808070235",
+   "now": "2025-08-08T07:02:35Z",
+   "fetched": null,
+   "regions": [
+    "2"
+   ],
+   "pages": {
+    "2": "history/region2_20250808070235.html"
+   }
+  },
+  {
+   "name": "r1-20250813180530",
+   "now": "2025-08-13T18:05:30Z",
+   "fetched": null,
+   "regions": [
+    "1"
+   ],
+   "pages": {
+    "1": "history/region1_20250813180530.html"
+   }
+  },
+  {
+   "name": "r6-20250815220402",
+   "now": "2025-08-15T22:04:02Z",
+   "fetched": null,
+   "regions": [
+    "6"
+   ],
+   "pages": {
+    "6": "history/region6_20250815220402.html"
+   }
+  },
+  {
+   "name": "r2-20250829230618",
+   "now": "2025-08-29T23:06:18Z",
+   "fetched": null,
+   "regions": [
+    "2"
+   ],
+   "pages": {
+    "2": "history/region2_20250829230618.html"
+   }
+  },
+  {
+   "name": "r7-20250930040835",
+   "now": "2025-09-30T04:08:35Z",
+   "fetched": null,
+   "regions": [
+    "7"
+   ],
+   "pages": {
+    "7": "history/region7_20250930040835.html"
+   }
+  },
+  {
+   "name": "r5a-20250930040841",
+   "now": "2025-09-30T04:08:41Z",
+   "fetched": null,
+   "regions": [
+    "5a"
+   ],
+   "pages": {
+    "5a": "history/region5a_20250930040841.html"
+   }
+  },
+  {
+   "name": "r1-20260116024805",
+   "now": "2026-01-16T02:48:05Z",
+   "fetched": null,
+   "regions": [
+    "1"
+   ],
+   "pages": {
+    "1": "history/region1_20260116024805.html"
+   }
+  },
+  {
+   "name": "r6-20260116033005",
+   "now": "2026-01-16T03:30:05Z",
+   "fetched": null,
+   "regions": [
+    "6"
+   ],
+   "pages": {
+    "6": "history/region6_20260116033005.html"
+   }
+  },
+  {
+   "name": "r5b-20260119060250",
+   "now": "2026-01-19T06:02:50Z",
+   "fetched": null,
+   "regions": [
+    "5b"
+   ],
+   "pages": {
+    "5b": "history/region5b_20260119060250.html"
+   }
+  },
+  {
+   "name": "r2-20260306083148",
+   "now": "2026-03-06T08:31:48Z",
+   "fetched": null,
+   "regions": [
+    "2"
+   ],
+   "pages": {
+    "2": "history/region2_20260306083148.html"
+   }
+  },
+  {
+   "name": "r8-20260306090716",
+   "now": "2026-03-06T09:07:16Z",
+   "fetched": null,
+   "regions": [
+    "8"
+   ],
+   "pages": {
+    "8": "history/region8_20260306090716.html"
+   }
+  },
+  {
+   "name": "r6-20260413113750",
+   "now": "2026-04-13T11:37:50Z",
+   "fetched": null,
+   "regions": [
+    "6"
+   ],
+   "pages": {
+    "6": "history/region6_20260413113750.html"
+   }
+  },
+  {
+   "name": "r7-20260413114440",
+   "now": "2026-04-13T11:44:40Z",
+   "fetched": null,
+   "regions": [
+    "7"
+   ],
+   "pages": {
+    "7": "history/region7_20260413114440.html"
+   }
+  },
+  {
+   "name": "r5a-20260518005056",
+   "now": "2026-05-18T00:50:56Z",
+   "fetched": null,
+   "regions": [
+    "5a"
+   ],
+   "pages": {
+    "5a": "history/region5a_20260518005056.html"
+   }
+  },
+  {
+   "name": "r6-20261028045539",
+   "now": "2026-10-28T04:55:39Z",
+   "fetched": null,
+   "regions": [
+    "6"
+   ],
+   "pages": {
+    "6": "history/region6_20261028045539.html"
+   }
+  },
+  {
+   "name": "r1-20261028045539",
+   "now": "2026-10-28T04:55:39Z",
+   "fetched": null,
+   "regions": [
+    "1"
+   ],
+   "pages": {
+    "1": "history/region1_20261028045539.html"
+   }
+  },
+  {
+   "name": "r2-20261028045539",
+   "now": "2026-10-28T04:55:39Z",
+   "fetched": null,
+   "regions": [
+    "2"
+   ],
+   "pages": {
+    "2": "history/region2_20261028045539.html"
+   }
+  },
+  {
+   "name": "today-all",
+   "now": "2026-10-28T18:00:00Z",
+   "fetched": null,
+   "pages": {
+    "1": "pages/region1-eng.html",
+    "2": "pages/region2-eng.html",
+    "3": "pages/region3-eng.html",
+    "4": "pages/region4-eng.html",
+    "5a": "pages/region5a-eng.html",
+    "5b": "pages/region5b-eng.html",
+    "6": "pages/region6-eng.html",
+    "7": "pages/region7-eng.html",
+    "8": "pages/region8-eng.html"
+   }
+  }
+ ]
+}
