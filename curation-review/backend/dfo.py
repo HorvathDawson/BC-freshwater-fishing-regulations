@@ -136,6 +136,21 @@ def _verify(m, loc, water) -> dict:
     return M.status(m, _now(loc, water))
 
 
+#: words of a SUB-AREA of a lake: a line, a radius, a bay, a compass side, signs, a portion
+AREA_WORDS = re.compile(r"\b(radius|line|bay|portion|part of|known as|signs?|buoys?|north|south|east|west|"
+                        r"(?:north|south|east|west)(?:erly|ern)|within \d+\s*m|arm|outlet|inlet|mouth of)\b", re.I)
+
+
+def lake_area(loc: dict, water: dict | None) -> bool:
+    """LAKE SPLIT LATER (owner 2026-10-28): the location's water is a lake (every item) and the notice
+    names a SUB-AREA of it (a line, a radius, a bay…, not just "including tributaries"). Such an
+    extent needs a lake split, and lake splits are deferred."""
+    text = (loc.get("source_text") or {}).get("specific_area") or ""
+    its = [reuse._registry().get(i) for i in (water or {}).get("item_ids") or []]
+    return bool(its) and all(i is not None and i.kind == "lake" for i in its) \
+        and bool(AREA_WORDS.search(text))
+
+
 def _row(slug: str, loc: dict, water: dict | None, m) -> dict:
     st = loc.get("source_text") or {}
     need = D.need(loc)
@@ -160,6 +175,7 @@ def _row(slug: str, loc: dict, water: dict | None, m) -> dict:
             "verify": v["status"], "reasons": v["reasons"],
             "suggested": _suggested(loc["location_id"]),
             "pv": preverify.dfo(loc["location_id"]),
+            "lake_area": lake_area(loc, water),
             "new_splits": len(m.new_splits) if m is not None else 0}
 
 
@@ -174,11 +190,16 @@ def _rows() -> list[dict]:
 
 
 def queue(region: str | None = None, status: str | None = None, need: str | None = None,
-          verify: str | None = None, q: str | None = None) -> list[dict]:
+          verify: str | None = None, q: str | None = None, lake: str | None = None) -> list[dict]:
     """THE DFO QUEUE: every scraped location, filtered. `status` active | dormant; `need` one of
     `NEEDS`; `verify` one of `VERIFIES` (todo = unmarked or stale); `q` a substring of the water or
-    the notice's words."""
+    the notice's words. `lake`: "later" = only the lake-area rows (lake split later); "all" = every
+    row; default hides the lake-area rows."""
     rows = _rows()
+    if lake == "later":
+        rows = [r for r in rows if r["lake_area"]]
+    elif lake != "all":
+        rows = [r for r in rows if not r["lake_area"]]
     if region:
         rows = [r for r in rows if r["region"] == region]
     if status:
@@ -198,7 +219,7 @@ def queue(region: str | None = None, status: str | None = None, need: str | None
 def progress() -> dict:
     """Marked / total overall and per region, with the counts by mark, by extent state and live /
     dormant — the DFO queue's progress bar."""
-    rows = _rows()
+    rows = [r for r in _rows() if not r["lake_area"]]    # lake split later is not counted
 
     def count(rs):
         done = sum(1 for r in rs if r["verify"] not in ("unmarked", "stale"))

@@ -149,7 +149,7 @@ export const api = {
       encodeURIComponent(JSON.stringify(fix))),
 
   // --- T164: the DFO review mode (reads; a DFO mark goes through postMark, scope "dfo") ---
-  dfoQueue: (f: { region?: string; status?: string; need?: string; verify?: string; q?: string }) => {
+  dfoQueue: (f: { region?: string; status?: string; need?: string; verify?: string; q?: string; lake?: string }) => {
     const p = new URLSearchParams();
     for (const [k, v] of Object.entries(f)) if (v) p.set(k, v);
     const qs = p.toString();

@@ -638,8 +638,23 @@ function SplitSuggestions({ items }: { items: SplitSuggestion[] }) {
     unresolved_locator: "missing split (locator)", unresolved: "unresolved rule",
     unplaced: "unplaced pieces", landmark_unbound: "landmark not bound",
   };
+  const later = items.filter((i) => i.lake_later);
+  items = items.filter((i) => !i.lake_later);
+  const laterBlock = later.length > 0 && (
+    <details data-testid="split-suggestions-later" className="dim">
+      <summary>lake split later ({later.length}) — an undrawn lake part, deferred</summary>
+      <ul style={{ margin: 0, paddingLeft: 16 }}>
+        {later.map((it) => (
+          <li key={it.id}><strong>{it.rule_id}</strong> · {KIND[it.kind] ?? it.kind} · “{it.phrase}”
+            <div>{it.reason}</div></li>
+        ))}
+      </ul>
+    </details>
+  );
+  if (!items.length) return <div className="section split-suggestions">{laterBlock}</div>;
   return (
     <div className="section split-suggestions" data-testid="split-suggestions">
+      {laterBlock}
       <h3>Split proposals ({items.length}) <span className="dim" style={{ fontWeight: 400, fontSize: 12 }}>
         — read only; a second method's check beside each</span></h3>
       <ul style={{ margin: 0, paddingLeft: 16 }}>

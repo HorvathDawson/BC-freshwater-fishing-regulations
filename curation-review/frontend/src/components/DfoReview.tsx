@@ -185,7 +185,7 @@ export function DfoReview({ mode, onLeave, onTidal }: Props) {
   const [pvf, setPvf] = useState<PvFilter>(PV_DEFAULT);
   const rows = useMemo(() => applyPv(allRows, pvf), [allRows, pvf]);
   const [progress, setProgress] = useState<DfoProgress | null>(null);
-  const [filters, setFilters] = useState({ region: "", status: "active", need: "", verify: "", q: "" });
+  const [filters, setFilters] = useState({ region: "", status: "active", need: "", verify: "", q: "", lake: "" });
   const [selected, setSelected] = useState<string | null>(() => {
     const h = decodeURIComponent(window.location.hash.slice(1));
     return h.startsWith(DFO_HASH) ? h.slice(DFO_HASH.length) || null : null;
@@ -271,6 +271,15 @@ export function DfoReview({ mode, onLeave, onTidal }: Props) {
               {VERIFY.map(([k, w]) => <option key={k} value={k}>{w}</option>)}
             </select>
           </div>
+          <div>
+            <label>lake areas</label>
+            <select aria-label="lake split later" data-testid="dfo-lake-filter" value={filters.lake}
+              onChange={(e) => set({ lake: e.target.value })}>
+              <option value="">hide lake split later</option>
+              <option value="all">show all</option>
+              <option value="later">only lake split later</option>
+            </select>
+          </div>
           <PvControls value={pvf} onChange={setPvf} rows={allRows} />
           <input className="dfo-search" placeholder="water or words…" value={filters.q}
             onChange={(e) => set({ q: e.target.value })} aria-label="search DFO" />
@@ -299,6 +308,7 @@ export function DfoReview({ mode, onLeave, onTidal }: Props) {
               onClick={() => open(r.id)}>
               <div className="name">
                 {r.water || r.kind}
+                {r.lake_area && <span className="badge sev-chip sev-later" data-testid="dfo-lake-later" title="a sub-area of a lake: needs a lake split, deferred (owner 2026-10-28)">lake split later</span>}
                 <span className={`badge dfo-${r.state}`}>{STATE_WORDS[r.state]}
                   {r.state === "needs_cut" && r.need.missing ? ` (${r.need.missing})` : ""}</span>
                 {r.verify !== "unmarked" && <span className={`badge verify-${r.verify}`}>{r.verify}</span>}

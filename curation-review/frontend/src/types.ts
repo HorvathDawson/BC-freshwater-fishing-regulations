@@ -956,6 +956,8 @@ export interface DfoRow {
   verify: VerifyStatus;
   reasons: string[];
   new_splits: number;
+  /** lake split later (owner 2026-10-28): a sub-area of a lake, needs a lake split */
+  lake_area?: boolean;
   /** the confidence of the location's SUGGESTED extent (`dfo-suggestions.json`), when there is one */
   suggested?: SuggestConfidence | null;
 }
@@ -1232,6 +1234,8 @@ export interface Pv {
 }
 /** one missing-split / ambiguous-cut proposal on an entry (`pipeline.regs.review.split_suggest`) */
 export interface SplitSuggestion {
+  /** lake split later: a lake's undrawn part, deferred -- folded on the screen */
+  lake_later?: boolean;
   id: string;
   rule_id: string;
   kind: string;

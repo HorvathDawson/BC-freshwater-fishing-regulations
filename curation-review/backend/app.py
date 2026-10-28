@@ -362,7 +362,13 @@ def get_entry(entry_id: str):
     import preverify
     # the entry's missing-split / ambiguous-cut proposals with their pre-verify, and its T89
     # awaiting-water record (leads, candidates, fix path) -- all read only
-    return {**d, "split_suggestions": preverify.entry_items(entry_id),
+    # LAKE SPLIT LATER (owner 2026-10-28): a proposal for a lake's undrawn part / unresolved area
+    # needs a lake split, which is deferred -- flagged so the screen folds it
+    from pipeline.regs.review.severity import LAKE_LATER_CODES
+    lake = ((d.get("item") or {}).get("kind")) == "lake"
+    sugg = [{**i, "lake_later": lake and i.get("kind") in LAKE_LATER_CODES or
+             (lake and i.get("kind") == "unplaced")} for i in preverify.entry_items(entry_id)]
+    return {**d, "split_suggestions": sugg,
             "awaiting_water": awaiting_water.proposal(entry_id)}
 
 
@@ -465,7 +471,7 @@ def extent_preview(entry_id: str, fix: str, limit: int = 6000):
 
 @app.get("/api/dfo/queue")
 def dfo_queue(region: str | None = None, status: str | None = None, need: str | None = None,
-              verify: str | None = None, q: str | None = None):
+              verify: str | None = None, q: str | None = None, lake: str | None = None):
     """THE DFO QUEUE: every scraped DFO location (`dfo.queue`), filtered — `status` active |
     dormant, `need` needs_cut | bound | unbound | no_water, `verify` the mark (todo = unmarked or
     stale), `q` a substring of the water or the notice's words."""
@@ -475,7 +481,9 @@ def dfo_queue(region: str | None = None, status: str | None = None, need: str | 
     if verify and verify not in dfo.VERIFIES:
         raise HTTPException(422, [{"path": "verify",
                                    "msg": "verify is one of " + ", ".join(dfo.VERIFIES)}])
-    return dfo.queue(region=region, status=status, need=need, verify=verify, q=q)
+    if lake and lake not in ("later", "all"):
+        raise HTTPException(422, [{"path": "lake", "msg": "lake is later | all (default: lake split later hidden)"}])
+    return dfo.queue(region=region, status=status, need=need, verify=verify, q=q, lake=lake)
 
 
 @app.get("/api/dfo/progress")
