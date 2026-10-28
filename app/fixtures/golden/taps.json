@@ -1,6 +1,6 @@
 {
  "meta": {
-  "generator": "app/design/regs-v11/port/taps.py",
+  "generator": "app/tools/regs-recut/taps.py",
   "store": {
    "format": "regs-store/4",
    "section_handles": "db853e9556df81a6",

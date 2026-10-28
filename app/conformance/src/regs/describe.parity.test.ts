@@ -1,6 +1,6 @@
 /**
  * T06 parity: core's rule views and describe() against page v36's OWN output (app/fixtures/golden/
- * hydrate.json, written by port/hydrate.mjs running page_v36.js lines 1–242 in node). Nothing here is a hand-copied string:
+ * hydrate.json, written by regs-recut/hydrate.mjs running page_v36.js lines 1–242 in node). Nothing here is a hand-copied string:
  * every expected value is read from the oracle.
  *
  * Run over two inputs (ruleSources.ts): page_v36.html's own #data/#answers (always — the oracle's inputs), and the live
@@ -33,7 +33,7 @@ function parity(src: () => RuleSource, R: () => (oracle: number) => number = () 
     // provenance of the CONTENT, not of the run: the prototype version is the port target, and the golden/version are
     // the ones taps.json carries — hydrate.mjs copies them from the taps.json it read, so a hydrate.json written before
     // taps.py (the old sync.mjs order: golden d4a0ccd9 / v37 beside taps' bdda3586 / v38) fails here.
-    expect(H.meta.generator).toBe("app/design/regs-v11/port/hydrate.mjs");
+    expect(H.meta.generator).toBe("app/tools/regs-recut/hydrate.mjs");
     expect(`regs-${H.meta.version}`).toBe(TARGET);
     expect({ golden: H.meta.golden, version: H.meta.version }).toEqual({ golden: T.meta.golden, version: T.meta.version });
     expect(Object.keys(H.describe).length).toBe(726);

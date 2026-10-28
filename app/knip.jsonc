@@ -10,7 +10,7 @@
   "workspaces": {
     ".": {
       // tools/: the `pnpm check` gates (node scripts) and the tools test suites vitest runs.
-      "entry": ["tools/*.mjs", "tools/**/*.test.ts", "tools/seo/legacy-crosswalk.mjs"],  // + the SEO one-off crosswalk generator (run by hand)
+      "entry": ["tools/*.mjs", "tools/**/*.test.ts", "tools/seo/legacy-crosswalk.mjs", "tools/regs-recut/*.mjs"],  // + the SEO one-off crosswalk generator (run by hand) + the post-release regs re-cut (run by hand, T87)
       "project": ["tools/**/*.{ts,mjs}"],
       // tools/ imports the packages by name without depending on them; vitest resolves those names by alias
       // (vitest.config.ts), so knip is told the same aliases — without them every barrel export only a tool reads

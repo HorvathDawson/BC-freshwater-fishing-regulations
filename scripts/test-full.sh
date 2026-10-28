@@ -12,7 +12,7 @@
 #   5. card gate on the shipped answers                     problems: 0 (rule 9)
 #   6. the generated-file --checks                          python -m pipeline.tools.emit --check (all four)
 #
-# Not run here, because each has its own procedure: the golden re-sync (port/sync.mjs, when the prototype changes),
+# Not run here, because each has its own procedure: the golden re-sync (app/tools/regs-recut/sync.mjs, after a release),
 # verify_map / pinreplay / quotes (after a sync), the perf gates, and the comprehension-reader gate (manual,
 # owner-launched).
 # Every step runs unfiltered (no rtk). If a step fails, fix it, rerun only the failing files, then run Tier 2 once more.

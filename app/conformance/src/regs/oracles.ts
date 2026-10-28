@@ -13,7 +13,7 @@ export const GOLDEN_DIR = `${REPO}app/fixtures/golden/`;
 export const TAPS = `${GOLDEN_DIR}taps.json`;
 export const HYDRATE = `${GOLDEN_DIR}hydrate.json`;
 
-/** hydrate.json (port/hydrate.mjs: page v36's decoded rules and describe() per rule, and each state's via / ranks). */
+/** hydrate.json (regs-recut/hydrate.mjs: page v36's decoded rules and describe() per rule, and each state's via / ranks). */
 export interface Hydrate {
   readonly meta: { readonly generator: string; readonly ref: string; readonly sha: string; readonly golden: string; readonly version: string };
   readonly describe: Readonly<Record<string, string>>;
@@ -369,7 +369,7 @@ let HTML: string | undefined;
 /** page_v36.html with the zone daily-quota renames applied (`entryRenamed`), read once: its #data.rid here, and
  *  ruleSources' page source (whose rules carry the entry ids). */
 export function pageHtml(): string {
-  return (HTML ??= entryRenamed("page_v36.html", readFileSync(`${REPO}app/design/regs-v11/reference/page_v36.html`, "utf8")));
+  return (HTML ??= entryRenamed("page_v36.html", readFileSync(`${REPO}app/fixtures/reference/page_v36.html`, "utf8")));
 }
 let RID: Map<number, string> | undefined;
 /** page_v36.html's `#data.rid` (oracle rule number → "entry::rule"), read once. */

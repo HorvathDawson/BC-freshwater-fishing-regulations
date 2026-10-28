@@ -1,10 +1,10 @@
 // The hydrate oracle for the app port: what page v36's OWN decode layer says of every golden state — describe() of every
 // rule a state cites, settle() (the day's ladder context) and buildModel() (the card's rows) — so the TS port of page_v36.js
 // lines 1–242 (tickets T06–T08) is tested against the page's code, not against a re-reading of it.
-//   node app/design/regs-v11/port/hydrate.mjs [--ref HEAD|<sha>|WORKTREE] [--out dir]
+//   node app/tools/regs-recut/hydrate.mjs [--out dir]
 //   -> <out>/hydrate.json   { meta, describe: {<rix>: string}, rules: {<rix>: RuleFacts}, states: {<id>: State} }
-// Node only: no Chrome, no network, no .venv. page_v36.js (staged at --ref by stage.mjs), page_v36.html's #data/#answers/#cases
-// JSON and calendar.generated.js (read at the same ref with `git show`) are evaluated with a stub `document`, up to the end of
+// Node only: no Chrome, no network, no .venv. page_v36.js, page_v36.html's #data/#answers/#cases JSON and
+// calendar.generated.js (app/fixtures/reference/, frozen) are evaluated with a stub `document`, up to the end of
 // `strip` (the line before `function segBar`), with YEAR = taps.json meta.year (2026). States come from golden/taps.json
 // (item id, part index, md); each state's `s` must equal taps.json's — printed, and a mismatch exits 1. The page's parts are
 // the PROTOTYPE's: a state the release renumbered is hydrated at taps.json `goldenPartIx`, and a state whose part the release
@@ -12,20 +12,24 @@
 // all in golden.json's order.
 // Rule numbers are the export's rix (page_data.py: D.rid = rix of the full export = the store's rule.rix).
 import fs from 'node:fs'; import path from 'node:path'; import { execFileSync } from 'node:child_process';
-import { stage, args, REPO, HERE } from './stage.mjs';
+import { fileURLToPath } from 'node:url';
 
-const A = args(); fs.mkdirSync(A.out, { recursive: true });
-const S = stage(A.ref);
-const REF = 'app/design/regs-v11/reference/';
-const INPUTS = ['page_v36.js', 'page_v36.html', 'calendar.generated.js'].map(f => REF + f);
-const atRef = f => A.ref === 'WORKTREE' ? fs.readFileSync(path.join(REPO, f), 'utf8')
-  : execFileSync('git', ['-C', REPO, 'show', `${A.ref}:${f}`], { encoding: 'utf8', maxBuffer: 1 << 30 });
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+const REPO = path.resolve(HERE, '../../..');
+const argv = process.argv.slice(2), oi = argv.indexOf('--out');
+const A = { out: oi >= 0 ? path.resolve(argv[oi + 1]) : path.join(REPO, 'app/fixtures/golden') };
+fs.mkdirSync(A.out, { recursive: true });
+const REF = 'app/fixtures/reference/';
+// the inputs' paths before T87 moved them out of the deleted prototype folder: meta.sha follows their content across the move
+const OLD_REF = 'app/design/regs-v11/reference/';
+const NAMES = ['page_v36.js', 'page_v36.html', 'calendar.generated.js'];
+const read = f => fs.readFileSync(path.join(REPO, f), 'utf8');
 
 try {
-  const html = atRef(REF + 'page_v36.html');
+  const html = read(REF + 'page_v36.html');
   const block = id => { const m = html.match(new RegExp(`<script[^>]*id="${id}"[^>]*>([\\s\\S]*?)</script>`)); if (!m) throw new Error(`page_v36.html has no #${id}`); return m[1]; };
-  const cal = atRef(REF + 'calendar.generated.js');
-  const js = fs.readFileSync(path.join(S.root, REF + 'page_v36.js'), 'utf8').split('\n');
+  const cal = read(REF + 'calendar.generated.js');
+  const js = read(REF + 'page_v36.js').split('\n');
   const end = js.findIndex(l => /^function segBar\(/.test(l));
   if (end < 0) throw new Error('page_v36.js: no `function segBar` — the decode layer moved; update hydrate.mjs');
   const taps = JSON.parse(fs.readFileSync(path.join(A.out, 'taps.json'), 'utf8'));
@@ -74,14 +78,16 @@ try {
       dayStatus: m.rows.map(r => P.strip(w, r.members)),
     };
   }
-  // meta.sha: the last commit of the files this oracle is computed from (at --ref), not the ref's tip — so regenerating at
-  // HEAD after an unrelated commit (including the one that commits this file) rewrites nothing.
-  const sha = A.ref === 'WORKTREE' ? 'WORKTREE' : execFileSync('git', ['-C', REPO, 'log', '-1', '--format=%h', A.ref, '--',
-    ...INPUTS], { encoding: 'utf8' }).trim();
-  const out = { meta: { generator: 'app/design/regs-v11/port/hydrate.mjs', ref: A.ref, sha,
+  // meta.sha: the last commit that changed the inputs' CONTENT (a modification, under either path; the T87 move is a rename,
+  // not a modification), so regenerating after an unrelated commit rewrites nothing. Uncommitted edits: 'WORKTREE'.
+  const paths = NAMES.flatMap(f => [REF + f, OLD_REF + f]);
+  const dirty = execFileSync('git', ['-C', REPO, 'status', '--porcelain', '--', ...NAMES.map(f => REF + f)], { encoding: 'utf8' }).trim();
+  const sha = dirty ? 'WORKTREE' : execFileSync('git', ['-C', REPO, 'log', '-1', '--no-renames', '--diff-filter=M', '--format=%h', 'HEAD', '--',
+    ...paths], { encoding: 'utf8' }).trim();
+  const out = { meta: { generator: 'app/tools/regs-recut/hydrate.mjs', ref: 'HEAD', sha,
     golden: taps.meta.golden, version: taps.meta.version, year: YEAR, decodeLines: `1-${end}` }, describe, rules, states };
   fs.writeFileSync(path.join(A.out, 'hydrate.json'), JSON.stringify(out, null, 1));
   const n = Object.keys(taps.states).length;
   console.log(`hydrate: s equals taps.json on ${same}/${n} tapped states (+ ${Object.keys(taps.gone ?? {}).length} gone), ${Object.keys(describe).length} rules described -> ${path.relative(REPO, path.join(A.out, 'hydrate.json'))}`);
   if (bad.length) { console.error(bad.join('\n')); process.exitCode = 1; }
-} finally { S.cleanup(); }
+} finally { /* nothing staged */ }

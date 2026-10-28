@@ -24,7 +24,7 @@ it(`the harness runs against a paired regs store${gate.skip ? ` — SKIPPED: ${"
 });
 
 it("7. golden.json and taps.json are from one sync", () => {
-  expect(golden().meta.sha, "golden.json and taps.json differ — re-run app/design/regs-v11/port/sync.mjs").toBe(T.meta.golden);
+  expect(golden().meta.sha, "golden.json and taps.json differ — re-run app/tools/regs-recut/sync.mjs").toBe(T.meta.golden);
   // (T115) 4 Fraser states' parts merged away and (T67) 2 closed states re-cut (taps.json `gone`, excluded in every block),
   // (T183) and the West Road's x27p1 merged into part 0, (2026-10-27) the Columbia's x18p3 split in two by its Mud Lake
   // speed limit; T220 x13p2 + x9p2: 124 tapped + 10 gone = 134

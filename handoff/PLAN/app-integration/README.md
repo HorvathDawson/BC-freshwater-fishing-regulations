@@ -87,8 +87,13 @@ ranges. The spec never copies prototype strings by hand; it points at generated 
 re-running one command:
 
 ```sh
-node app/design/regs-v11/port/sync.mjs --ref <commit>      # ≈ 25 s; needs Chrome, .venv, data/generated/bundle/regs.sqlite
+node app/tools/regs-recut/sync.mjs   # after a release: taps.py + verify_map.py + hydrate.mjs; needs .venv, data/release/LATEST
 ```
+
+**T87 (2026-10-28): the prototype is deleted** (git keeps it). `golden.json`, `pins.json`, `tokens.json` and
+`inventory.json` are frozen fixtures; their generators (golden, pins, tokens, inventory, pinreplay, quotes, stage) went
+with it. Only `taps.py`, `verify_map.py` and `hydrate.mjs` remain, in `app/tools/regs-recut/`. The table below and the
+re-sync procedure are the history of how the oracles were cut.
 
 | generator | output (`app/fixtures/golden/`) | what the port uses it for |
 |---|---|---|
@@ -111,7 +116,7 @@ unchanged); the golden diff: keep 93, gear 96, licence 107, sheets 94, pins 77 o
 hook, no trebles"); tokens: `--sub` #5F666C → #555C62, dark #A3ABB2 → #B0B8BF. Nothing in the spec's prose had to change
 except the version line — the tickets cite golden paths.
 
-**Re-sync procedure (a prototype version bump):**
+**Re-sync procedure (a prototype version bump; historical since T87):**
 1. `node app/design/regs-v11/port/sync.mjs --ref <new commit>`; read its report.
 2. If `meta.misses` gained a selector, the prototype renamed a class — update `EXTRACT` in `golden.mjs` (the only hand-kept
    part of the generators) and re-run.

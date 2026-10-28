@@ -106,11 +106,11 @@ Golden-side gaps recorded in `golden.meta.misses` (`[data-share-of]`, `:scope > 
 selectors that matched nothing at v33 — the VM field stays (form b, a kind's own sub-note, the where-not scope, a group
 tag) and is pinned by a core unit test with a hand fixture instead.
 
-**Pre-implementation proofs, also sync-time gates** (both run by `port/sync.mjs`; a failure after a prototype bump means
+**Pre-implementation proofs, also sync-time gates** (both run by `regs-recut/sync.mjs`; a failure after a prototype bump means
 the spec's mapping, not the app, must change first):
 - `node app/design/regs-v11/port/pinreplay.mjs` — a pure `pinChain` over golden/pins.json's geometry (port/pins.mjs) and
   golden.json's strings replays every state's samples (134/134 at v38); T28 transcribes its `pinChain`.
-- `.venv/bin/python app/design/regs-v11/port/verify_map.py` — decodes the store the way contracts.md says the app will
+- `.venv/bin/python app/tools/regs-recut/verify_map.py` — decodes the store the way contracts.md says the app will
   (strip runs, frames, rows → tree, …) and checks it against golden for all 134 states.
 - `node app/design/regs-v11/port/quotes.mjs` — every string a ticket quotes is still in golden (a miss is a stale ticket).
 
@@ -291,7 +291,7 @@ gates `pnpm check`; T41's walk + §4 gate the release.
 ## 3. Arriving with the next sync
 
 Nothing pending at 04765ab5: the eight round-20i checks above are committed and mapped. The next prototype bump follows
-README §1's re-sync: `node app/design/regs-v11/port/sync.mjs --ref <commit>`, then diff the check names:
+README §1's re-sync: `node app/tools/regs-recut/sync.mjs`, then diff the check names:
 `diff <(git show 04765ab5:app/design/regs-v11/tools/check.mjs | grep -o "check('[^']*'" ) <(git show <new>:… | grep -o …)` —
 each new name gets a row in §2 in the same commit as its test; a retargeted check (a changed expected literal) changes only
 the literal in its A test (the B parity test picks it up from the regenerated golden by itself).

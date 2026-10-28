@@ -191,7 +191,7 @@ describe("T12 fixtureVerdict: the committed fixture is the oracles' store, or wh
   });
   it("each digest names itself", () => {
     expect(fixtureVerdict({ ...fx, sectionHandles: "H" }, store, null))
-      .toBe("the regs fixture release has section_handles H, the oracles' store h: run pnpm -C app regs-fixture (after port/sync.mjs)");
+      .toBe("the regs fixture release has section_handles H, the oracles' store h: run pnpm -C app regs-fixture (after regs-recut/sync.mjs)");
     expect(fixtureVerdict({ ...fx, reachDigest: "R" }, store, null)).toMatch(/^the regs fixture release has reach_digest R, the oracles' store r:/);
     expect(fixtureVerdict({ ...fx, ruleIdsSha256: "U" }, store, null)).toMatch(/^the regs fixture release has rule_ids_sha256 U, the oracles' store u:/);
   });

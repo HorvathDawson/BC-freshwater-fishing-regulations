@@ -1,6 +1,6 @@
 /**
  * T07 parity: core's `settle(inp, makePlace(inp))` — the stored ladder verdicts and display frames decoded, selected and
- * grouped — against page v36's OWN settle() (app/fixtures/golden/hydrate.json, port/hydrate.mjs running
+ * grouped — against page v36's OWN settle() (app/fixtures/golden/hydrate.json, regs-recut/hydrate.mjs running
  * page_v36.js lines 1–246 in node, YEAR 2026) on all 134 golden states, with inputs from T09 `inputsOf` over the live
  * release paired with the oracles (skipped with the reason otherwise; a failure under REGS_STORE_REQUIRED=1). Every
  * expected value is read from the oracle except the ticket's literal table (page v36's output, quoted by the ticket).
@@ -31,7 +31,7 @@ const R = (await oracleRix()) ?? ((r: number) => r);
  * CONTENT the oracle predates (expected changes, each with its commit; the oracle is page v36 over the answers its blocks
  * were cut from, 2026-10-20). Each entry ADDS a rule, by durable key, to the oracle's list for that state, and asserts the
  * oracle lacks it — so the entry fails, and must go, once page_v36.html's blocks and hydrate.json are re-cut
- * (`python -m pipeline.deliver.answers.reference.page_data --html …` then port/hydrate.mjs).
+ * (`python -m pipeline.deliver.answers.reference.page_data --html …` then regs-recut/hydrate.mjs).
  * - T89 (010b5c28, review 894854c0; batch 3 "Nilkitkwa r4 +3"): nilkitkwa_lake.r4 — Rainbow Alley open all year — binds the
  *   Babine River between Babine and Nilkitkwa Lakes, Babine parts 1 (Nilkitkwa Lake → Fort Babine Bridge, 2 sections) and
  *   2 (Fort Babine Bridge → Babine Lake outlet, 1): an advisory the day shows.

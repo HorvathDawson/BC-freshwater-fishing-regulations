@@ -33,9 +33,9 @@ export type { Block, GoldenState, Tap, TapsFile } from "@app/core/regs/testing";
  *  `meta.store.answers_sha256`)? null when it is; else why not. taps.py reads the release's own regs store (P20: no
  *  regs.sqlite is kept), so the answers digest is the pairing: a release delivered after the goldens is a stale comparison. */
 export function answersVerdict(dir: string, got: string, want: string | null | undefined): string | null {
-  if (!want) return "taps.json names no answers_sha256 (cut before P20): re-run app/design/regs-v11/port/taps.py";
+  if (!want) return "taps.json names no answers_sha256 (cut before P20): re-run app/tools/regs-recut/taps.py";
   return got === want ? null
-    : `release ${dir} carries answers ${got.slice(0, 12)}, the oracles were cut from ${want.slice(0, 12)}: re-run app/design/regs-v11/port/sync.mjs`;
+    : `release ${dir} carries answers ${got.slice(0, 12)}, the oracles were cut from ${want.slice(0, 12)}: re-run app/tools/regs-recut/sync.mjs`;
 }
 
 /** A pairing: the paired release's path, or why there is none. */
@@ -138,7 +138,7 @@ export function fixtureVerdict(fx: FixtureFacts, store: { section_handles: strin
                                provinceAnswers: string | null): string | null {
   const bad = ([["section_handles", fx.sectionHandles, store.section_handles], ["reach_digest", fx.reachDigest, store.reach_digest],
                 ["rule_ids_sha256", fx.ruleIdsSha256, store.rule_ids_sha256]] as const).find(([, a, b]) => a !== b);
-  if (bad) return `the regs fixture release has ${bad[0]} ${bad[1]}, the oracles' store ${bad[2]}: run pnpm -C app regs-fixture (after port/sync.mjs)`;
+  if (bad) return `the regs fixture release has ${bad[0]} ${bad[1]}, the oracles' store ${bad[2]}: run pnpm -C app regs-fixture (after regs-recut/sync.mjs)`;
   if (provinceAnswers !== null && provinceAnswers !== fx.answersSha256)
     return `the regs fixture release carries answers ${fx.answersSha256.slice(0, 12)}, the oracles' store ${provinceAnswers.slice(0, 12)}: run pnpm -C app regs-fixture`;
   return null;

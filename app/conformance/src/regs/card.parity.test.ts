@@ -1,6 +1,6 @@
 /**
  * T08 parity: core's card model — `buildModel(inp, place, settle(…))` — against page v36's OWN buildModel()
- * (app/fixtures/golden/hydrate.json, port/hydrate.mjs, YEAR 2026) on all 134 golden
+ * (app/fixtures/golden/hydrate.json, regs-recut/hydrate.mjs, YEAR 2026) on all 134 golden
  * states, inputs from T09 `inputsOf` over the live release paired with the oracles (skipped with the reason otherwise; a
  * failure under REGS_STORE_REQUIRED=1). Every expected value is the oracle's except the ticket's literals (page v36's
  * output, quoted by the ticket). Infinity ↔ the oracle's "Infinity".

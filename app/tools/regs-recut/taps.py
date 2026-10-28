@@ -1,6 +1,6 @@
 """The phase-0 parity oracle: for every golden state, what the Python reference decoder says the app's tap must resolve.
 
-    .venv/bin/python app/design/regs-v11/port/taps.py [--release data/release/r-…] [--golden app/fixtures/golden/golden.json]
+    .venv/bin/python app/tools/regs-recut/taps.py [--release data/release/r-…] [--golden app/fixtures/golden/golden.json]
     -> app/fixtures/golden/taps.json
 
 Per state: the water's item id (page v36's export ids, by the snapshot's water name), the part index, the date (2026, the
@@ -41,7 +41,7 @@ that index. Declared states are themselves checked, so an entry that no longer d
 import argparse, datetime, json, re, sys
 from pathlib import Path
 
-REPO = Path(__file__).resolve().parents[4]
+REPO = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO))
 from pipeline.deliver.store.release import province_store  # noqa: E402
 from pipeline.deliver.answers import encode as E           # noqa: E402
@@ -187,7 +187,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--release", default=None, help="the release folder whose regs store to read (default: data/release/LATEST)")
     ap.add_argument("--golden", default=str(REPO / "app/fixtures/golden/golden.json"))
-    ap.add_argument("--page", default=str(REPO / "app/design/regs-v11/reference/page_v36.html"))
+    ap.add_argument("--page", default=str(REPO / "app/fixtures/reference/page_v36.html"))
     ap.add_argument("--out", default=str(REPO / "app/fixtures/golden/taps.json"))
     ap.add_argument("--unnamed", type=int, default=20)
     a = ap.parse_args()
@@ -292,7 +292,7 @@ def main():
                 "readingDay": rd, "akey": akey, "starts": starts, "moments": moms, "s": si,
                 "cell": dict(zip(("ladder", "rows", "gear", "licence", "display"), cell))}
 
-    out = {"meta": {"generator": "app/design/regs-v11/port/taps.py", "store": {k: meta.get(k) for k in ("format", "section_handles", "reach_digest", "rule_ids_sha256", "answers_sha256", "store_digest", "layout")},
+    out = {"meta": {"generator": "app/tools/regs-recut/taps.py", "store": {k: meta.get(k) for k in ("format", "section_handles", "reach_digest", "rule_ids_sha256", "answers_sha256", "store_digest", "layout")},
                     "golden": G["meta"].get("sha"), "version": G["meta"].get("version"), "year": 2026}, "states": {}, "unnamed": [],
            "leap": [leap("zymoetz_20360229", "gnis:3137", 0, 2036, 2, 29), leap("zymoetz_20360228", "gnis:3137", 0, 2036, 2, 28),
                     leap("zymoetz_20280229", "gnis:3137", 0, 2028, 2, 29), leap("zymoetz_20280228", "gnis:3137", 0, 2028, 2, 28)],

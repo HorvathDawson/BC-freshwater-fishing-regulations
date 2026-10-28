@@ -80,7 +80,7 @@ def test_the_nicola_below_the_lake_is_catch_and_release_on_feb_29(request):
 
 # ---- P06 (owner 2026-10-20, D31): Feb 29 READS Feb 28's regulations, on its OWN real weekday ------------------
 # One rule, `calendar_spec.reading_day` + `weekday_of`, generated for the app (calendar.generated.ts) and the reference
-# page (app/design/regs-v11/reference/calendar.generated.js); the Python readers (status index, tap) ask through `calendar.reading_day_of`.
+# page (app/fixtures/reference/calendar.generated.js); the Python readers (status index, tap) ask through `calendar.reading_day_of`.
 
 import datetime as _dt
 import json as _json

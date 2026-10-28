@@ -30,7 +30,7 @@ const answers = db ? (db.prepare("SELECT v FROM meta WHERE k = 'answers_sha256'"
 /** The store is the build taps.json was cut from, or the comparison is with another build's ids (a skip with the reason). */
 const paired = !!db && !!answers && answers === T.meta.store.answers_sha256;
 const why = !db ? "no release on this machine (or no .venv to reassemble its store)" : paired ? null
-  : `the live release carries answers ${String(answers).slice(0, 12)}, taps.json was cut from ${String(T.meta.store.answers_sha256).slice(0, 12)}: re-run app/design/regs-v11/port/sync.mjs`;
+  : `the live release carries answers ${String(answers).slice(0, 12)}, taps.json was cut from ${String(T.meta.store.answers_sha256).slice(0, 12)}: re-run app/tools/regs-recut/sync.mjs`;
 
 /** Every blob table and its blob column (pipeline/deliver/store/common.py BLOB_COLUMNS), and its key column. */
 const BLOBS = `

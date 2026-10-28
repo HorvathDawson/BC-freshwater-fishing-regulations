@@ -41,7 +41,7 @@ The app decides nothing about a regulation: every answer is looked up in the rel
 | `packages/data/dev/fixture-release/` | three frozen BUNDLE-half releases (plain, lakeGauged, conformance) | cut once (T61), frozen |
 | `packages/data/dev/regs-release/` | the regs fixture release, cut from a live one | `pnpm regs-fixture` (owner-run on a new release) |
 | `packages/data/dev/feeds/` | a gauge feed for tests | `pipeline.gauges.feed.publish` |
-| `fixtures/golden/` | the prototype oracles: golden, hydrate, taps, tokens, inventory, pins | `design/regs-v11/port/sync.mjs` |
+| `fixtures/golden/` | the prototype oracles: golden, hydrate, taps, tokens, inventory, pins | `app/tools/regs-recut/sync.mjs` |
 | `fixtures/reader-states.json`, `fixtures/fishart.js` | the reader tool's states; the fish drawings `tools/emit-adipose.mjs` reads | hand / prototype |
 
 `design/` is the mock-up archive and the port generators that read it; nothing in `packages/` imports from it.

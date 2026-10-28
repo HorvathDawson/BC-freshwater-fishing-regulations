@@ -14,7 +14,7 @@
  *     get the map as a `FishImages` prop.
  *
  * (T36) And the "What to look for" tips of the fish sheet (`FISH_TIPS`): page v36's own FISHART.SPECIES[code].tips
- * (app/design/regs-v11/reference/page_v36.js — the table the prototype's snapshot read, regs-v11/tools/snap.mjs),
+ * (app/fixtures/reference/page_v36.js — the table the prototype's snapshot read, regs-v11/tools/snap.mjs),
  * evaluated from that file's FISHART block with a stub `window`; not in the store, never hand-written.
  *
  * (T38) And the hatch sheet's two drawings (`ADIPOSE_IMAGES`, by variant): the manifest rows `adipose-wild.webp` and
@@ -33,7 +33,7 @@ const app = fileURLToPath(new URL("..", import.meta.url));
 export const MANIFEST = `${app}apps/mobile/assets/fish/manifest.json`;
 export const CORE_OUT = `${app}packages/core/src/regs/fish.generated.ts`;
 export const MOBILE_OUT = `${app}apps/mobile/src/fishImages.generated.ts`;
-export const TIPS_SOURCE = `${app}design/regs-v11/reference/page_v36.js`;
+export const TIPS_SOURCE = `${app}fixtures/reference/page_v36.js`;
 
 const s = JSON.stringify;
 

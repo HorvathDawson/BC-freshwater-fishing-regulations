@@ -1,6 +1,6 @@
 {
  "meta": {
-  "generator": "app/design/regs-v11/port/hydrate.mjs",
+  "generator": "app/tools/regs-recut/hydrate.mjs",
   "ref": "HEAD",
   "sha": "cf6a20ef",
   "golden": "d7b1ed35",

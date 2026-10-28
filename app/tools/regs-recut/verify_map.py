@@ -1,7 +1,7 @@
 """Sanity of the spec's data -> view mapping, before any TypeScript exists: for every golden state, decode the store's
 frames the way contracts.md says the app will, and check the golden (what the prototype drew) agrees.
 
-    .venv/bin/python app/design/regs-v11/port/verify_map.py      # REGS_RELEASE=<data/release/r-…> to read another release
+    .venv/bin/python app/tools/regs-recut/verify_map.py      # REGS_RELEASE=<data/release/r-…> to read another release
 
 The store is the release's (P20: no regs.sqlite), put back together by `pipeline.deliver.store.release.province_store`.
 
@@ -18,7 +18,7 @@ Checks (each prints passed / states):
 import json, os, re, sys
 from pathlib import Path
 
-REPO = Path(__file__).resolve().parents[4]
+REPO = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO))
 from pipeline.deliver.store.release import province_store  # noqa: E402
 

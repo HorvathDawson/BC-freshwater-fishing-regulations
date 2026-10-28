@@ -1,7 +1,7 @@
 /**
  * T05 parity: core's tap (`tapDay`, `segmentIndex`, `daySegments`, `profileIndex`) against the Python reference decoder.
  *
- * - Store-backed (taps.json, app/design/regs-v11/port/taps.py: `encode.segment_index` over the oracles' store): every
+ * - Store-backed (taps.json, app/tools/regs-recut/taps.py: `encode.segment_index` over the oracles' store): every
  *   golden state, every day of the year, and the Feb 29 cases (P06/D31: Feb 29 reads Feb 28's day on its own weekday),
  *   read through `openRegsStore` exactly as the app reads a release — the harness's `parityStore()` (REGS_PARITY: the
  *   paired live release, else the committed regs fixture). Skipped, with the reason, when neither is paired (absent,
@@ -30,7 +30,7 @@ const MOMENT_SPLITS: Readonly<Record<string, number>> = {
 // (T115, T67, T183, 2026-10-27 x18p3, T220 x13p2 x9p2) 124 tapped + 10 taps.json lists `gone` = the golden's 134
 it("the oracle: 124 tapped golden states (+ 10 gone), 4 Feb 29 cases, at the golden this port targets", () => {
   expect([ids.length, T.leap.length, T.meta.generator, T.meta.version, T.meta.year])
-    .toEqual([124, 4, "app/design/regs-v11/port/taps.py", "v38", 2026]);
+    .toEqual([124, 4, "app/tools/regs-recut/taps.py", "v38", 2026]);
   for (const [id, s] of Object.entries(MOMENT_SPLITS)) expect([id, T.states[id]!.s, T.states[id]!.moments !== null]).toEqual([id, s, true]);
 });
 
