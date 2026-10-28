@@ -1,0 +1,1261 @@
+{
+ "read": "2026-10-28 ArtifactData list (read-only) of https://claude.ai/artifact/Es3Mokt7Fs2yNvm7JgQua8 before its retirement",
+ "spotcheck": {
+  "328964356": {
+   "at": "2026-10-24T19:06:32.975Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "sample:sp-329054932",
+   "verdict": "not_stream"
+  },
+  "329023937": {
+   "at": "2026-10-24T19:09:24.606Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "not_stream"
+  },
+  "329029248": {
+   "at": "2026-10-24T19:09:31.693Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329054932": {
+   "at": "2026-10-24T19:06:32.751Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "sample:sp-329054932",
+   "verdict": "not_stream"
+  },
+  "329057130": {
+   "at": "2026-10-24T19:06:33.190Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "sample:sp-329054932",
+   "verdict": "not_stream"
+  },
+  "329058418": {
+   "at": "2026-10-24T19:15:11.208Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "it is empty. in satellite. probably a pond that drains",
+   "verdict": "unsure"
+  },
+  "329092371": {
+   "at": "2026-10-24T19:11:22.309Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329093217": {
+   "at": "2026-10-24T19:11:52.579Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329094952": {
+   "at": "2026-10-24T19:16:00.683Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "it is empty. in satellite. probably a pond that drains. like all isolated ones maybe we could indicate if something is intermittent? ",
+   "verdict": "unsure"
+  },
+  "329108457": {
+   "at": "2026-10-24T19:06:18.197Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329109361": {
+   "at": "2026-10-24T19:06:12.047Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329117601": {
+   "at": "2026-10-24T19:09:04.866Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329137629": {
+   "at": "2026-10-24T19:11:06.904Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "unsure"
+  },
+  "329139459": {
+   "at": "2026-10-24T19:11:14.042Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329139970": {
+   "at": "2026-10-24T19:10:51.909Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329168176": {
+   "at": "2026-10-24T19:05:14.785Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329168719": {
+   "at": "2026-10-24T19:05:03.427Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "sample:sp-329169441",
+   "verdict": "stream"
+  },
+  "329169441": {
+   "at": "2026-10-24T19:05:03.218Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "sample:sp-329169441",
+   "verdict": "stream"
+  },
+  "329169492": {
+   "at": "2026-10-24T19:15:58.624Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "it is empty. in satellite. probably a pond that drains. like all isolated ones maybe we could indicate if something is intermittent? ",
+   "verdict": "unsure"
+  },
+  "329197923": {
+   "at": "2026-10-24T19:16:04.604Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "it is empty. in satellite. probably a pond that drains. like all isolated ones maybe we could indicate if something is intermittent? ",
+   "verdict": "unsure"
+  },
+  "329198023": {
+   "at": "2026-10-24T19:05:43.580Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "not_stream"
+  },
+  "329206976": {
+   "at": "2026-10-24T19:14:39.904Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "not_stream"
+  },
+  "329219853": {
+   "at": "2026-10-24T19:13:27.241Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329248299": {
+   "at": "2026-10-24T19:07:16.472Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329248546": {
+   "at": "2026-10-24T19:07:07.013Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "not_stream"
+  },
+  "329275817": {
+   "at": "2026-10-24T19:15:20.882Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "it is empty. in satellite. probably a pond that drains",
+   "verdict": "unsure"
+  },
+  "329282295": {
+   "at": "2026-10-24T19:08:00.772Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329288119": {
+   "at": "2026-10-24T19:14:10.079Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "wetland? nothing there.",
+   "verdict": "unsure"
+  },
+  "329289412": {
+   "at": "2026-10-24T19:08:45.172Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329301584": {
+   "at": "2026-10-24T19:11:40.629Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329303183": {
+   "at": "2026-10-24T19:11:31.517Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329306667": {
+   "at": "2026-10-24T19:11:44.258Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329307427": {
+   "at": "2026-10-24T19:13:00.738Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "satellite borken",
+   "verdict": "unsure"
+  },
+  "329369896": {
+   "at": "2026-10-24T19:10:59.030Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "unsure"
+  },
+  "329411228": {
+   "at": "2026-10-24T19:10:12.167Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "not_stream"
+  },
+  "329413546": {
+   "at": "2026-10-24T19:07:46.817Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "not_stream"
+  },
+  "329415461": {
+   "at": "2026-10-24T19:07:49.242Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329415869": {
+   "at": "2026-10-24T19:07:48.209Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329423499": {
+   "at": "2026-10-24T19:10:05.192Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "not_stream"
+  },
+  "329434479": {
+   "at": "2026-10-24T19:09:11.619Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "not_stream"
+  },
+  "329435284": {
+   "at": "2026-10-24T19:08:21.471Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "sample:sp-329435284",
+   "verdict": "stream"
+  },
+  "329436852": {
+   "at": "2026-10-24T19:08:21.706Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "sample:sp-329435284",
+   "verdict": "stream"
+  },
+  "329437560": {
+   "at": "2026-10-24T19:16:07.545Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "it is empty. in satellite. probably a pond that drains. like all isolated ones maybe we could indicate if something is intermittent? ",
+   "verdict": "unsure"
+  },
+  "329453557": {
+   "at": "2026-10-24T19:06:59.127Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "not_stream"
+  },
+  "329459761": {
+   "at": "2026-10-24T19:15:51.183Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "it is empty. in satellite. probably a pond that drains. like all isolated ones maybe we could indicate if something is intermittent? ",
+   "verdict": "unsure"
+  },
+  "329493318": {
+   "at": "2026-10-24T19:12:11.904Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329511268": {
+   "at": "2026-10-24T19:11:26.338Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "unsure"
+  },
+  "329521318": {
+   "at": "2026-10-24T19:12:53.039Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "not_stream"
+  },
+  "329534532": {
+   "at": "2026-10-24T19:06:05.338Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329543597": {
+   "at": "2026-10-24T19:08:37.425Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329551345": {
+   "at": "2026-10-24T19:09:39.126Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329565546": {
+   "at": "2026-10-24T19:06:45.426Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "sample:sp-329565546",
+   "verdict": "stream"
+  },
+  "329565708": {
+   "at": "2026-10-24T19:06:45.663Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "sample:sp-329565546",
+   "verdict": "stream"
+  },
+  "329567537": {
+   "at": "2026-10-24T19:05:54.119Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329600749": {
+   "at": "2026-10-24T19:09:18.572Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329638626": {
+   "at": "2026-10-24T19:14:20.612Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "nothing there",
+   "verdict": "unsure"
+  },
+  "329639451": {
+   "at": "2026-10-24T19:08:30.980Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "sample:sp-329639451",
+   "verdict": "stream"
+  },
+  "329640348": {
+   "at": "2026-10-24T19:08:31.205Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "sample:sp-329639451",
+   "verdict": "stream"
+  }
+ },
+ "verdicts": {
+  "328963527": {
+   "at": "2026-10-23T18:10:59.495Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "328966554": {
+   "at": "2026-10-23T18:00:46.426Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "dammed area probnably a lake?",
+   "verdict": "unsure"
+  },
+  "328966690": {
+   "at": "2026-10-23T17:51:29.736Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "328968493": {
+   "at": "2026-10-24T19:17:07.557Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-328968493",
+   "verdict": "not_stream"
+  },
+  "328968582": {
+   "at": "2026-10-24T19:17:08.142Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-328968493",
+   "verdict": "not_stream"
+  },
+  "328971135": {
+   "at": "2026-10-23T18:06:43.548Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "328987471": {
+   "at": "2026-10-24T19:04:00.985Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-328987471",
+   "verdict": "stream"
+  },
+  "328987549": {
+   "at": "2026-10-24T19:04:01.603Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-328987471",
+   "verdict": "stream"
+  },
+  "328987673": {
+   "at": "2026-10-24T19:18:38.315Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "not_stream"
+  },
+  "328988135": {
+   "at": "2026-10-24T19:21:47.132Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "328988547": {
+   "at": "2026-10-24T19:03:30.906Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-328988547",
+   "verdict": "stream"
+  },
+  "328995276": {
+   "at": "2026-10-23T17:42:52.515Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "328995407": {
+   "at": "2026-10-23T18:10:42.866Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329016376": {
+   "at": "2026-10-23T18:02:47.506Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "this could actually be labelled as sproat lake too",
+   "verdict": "not_stream"
+  },
+  "329037255": {
+   "at": "2026-10-23T17:42:28.176Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "not_stream"
+  },
+  "329037270": {
+   "at": "2026-10-24T19:22:07.540Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329037373": {
+   "at": "2026-10-24T19:22:29.427Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329055141": {
+   "at": "2026-10-23T18:16:23.478Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "probably a lake",
+   "verdict": "unsure"
+  },
+  "329055148": {
+   "at": "2026-10-23T18:12:30.777Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329055647": {
+   "at": "2026-10-23T18:18:51.149Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329056044": {
+   "at": "2026-10-23T18:17:50.872Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329056098": {
+   "at": "2026-10-23T18:12:16.570Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329056223": {
+   "at": "2026-10-23T18:18:03.373Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329057026": {
+   "at": "2026-10-23T18:11:50.941Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329057347": {
+   "at": "2026-10-23T18:18:19.376Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329057423": {
+   "at": "2026-10-23T17:40:41.689Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329059951": {
+   "at": "2026-10-24T19:22:14.736Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329059967": {
+   "at": "2026-10-23T17:53:04.725Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329066828": {
+   "at": "2026-10-23T17:50:15.771Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329070300": {
+   "at": "2026-10-23T18:00:35.203Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "im like a tiny bit unsure but stream is stricter regs. iut is a dammed area",
+   "verdict": "unsure"
+  },
+  "329070659": {
+   "at": "2026-10-23T18:01:31.747Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "not_stream"
+  },
+  "329097416": {
+   "at": "2026-10-23T18:04:00.189Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "similar this can be on moat lake",
+   "verdict": null
+  },
+  "329102746": {
+   "at": "2026-10-23T17:50:59.865Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329123973": {
+   "at": "2026-10-23T17:46:59.226Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329124013": {
+   "at": "2026-10-23T17:45:02.011Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329136073": {
+   "at": "2026-10-24T19:17:07.745Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-328968493",
+   "verdict": "not_stream"
+  },
+  "329136464": {
+   "at": "2026-10-24T19:17:07.960Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-328968493",
+   "verdict": "not_stream"
+  },
+  "329136819": {
+   "at": "2026-10-23T17:51:57.082Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329137385": {
+   "at": "2026-10-23T17:51:51.376Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329148327": {
+   "at": "2026-10-24T19:04:18.867Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-329148327",
+   "verdict": "stream"
+  },
+  "329151273": {
+   "at": "2026-10-24T19:04:18.453Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-329148327",
+   "verdict": "stream"
+  },
+  "329152158": {
+   "at": "2026-10-24T19:04:18.666Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-329148327",
+   "verdict": "stream"
+  },
+  "329152571": {
+   "at": "2026-10-24T19:04:18.018Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-329148327",
+   "verdict": "stream"
+  },
+  "329154141": {
+   "at": "2026-10-24T19:04:18.210Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-329148327",
+   "verdict": "stream"
+  },
+  "329171382": {
+   "at": "2026-10-23T18:10:02.904Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329172258": {
+   "at": "2026-10-23T18:11:36.308Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329178108": {
+   "at": "2026-10-23T17:38:51.571Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329183728": {
+   "at": "2026-10-23T18:05:10.014Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329187283": {
+   "at": "2026-10-23T17:49:11.638Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329205518": {
+   "at": "2026-10-24T19:18:59.779Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-329205518",
+   "verdict": "stream"
+  },
+  "329205832": {
+   "at": "2026-10-24T19:19:00.014Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-329205518",
+   "verdict": "stream"
+  },
+  "329205926": {
+   "at": "2026-10-24T19:19:00.229Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-329205518",
+   "verdict": "stream"
+  },
+  "329206461": {
+   "at": "2026-10-24T19:19:54.291Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-329206461",
+   "verdict": "stream"
+  },
+  "329206616": {
+   "at": "2026-10-24T19:19:00.696Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-329205518",
+   "verdict": "stream"
+  },
+  "329206962": {
+   "at": "2026-10-24T19:19:54.649Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-329206461",
+   "verdict": "stream"
+  },
+  "329207079": {
+   "at": "2026-10-24T19:19:54.887Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-329206461",
+   "verdict": "stream"
+  },
+  "329207300": {
+   "at": "2026-10-24T19:19:54.477Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-329206461",
+   "verdict": "stream"
+  },
+  "329218090": {
+   "at": "2026-10-23T17:54:31.671Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329220753": {
+   "at": "2026-10-23T17:46:49.566Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329221617": {
+   "at": "2026-10-23T17:45:59.911Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329221874": {
+   "at": "2026-10-23T17:45:38.437Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329242278": {
+   "at": "2026-10-23T17:50:40.781Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329245268": {
+   "at": "2026-10-23T17:55:15.308Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329247848": {
+   "at": "2026-10-23T17:45:28.409Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "not_stream"
+  },
+  "329291851": {
+   "at": "2026-10-23T18:06:57.498Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329291936": {
+   "at": "2026-10-23T18:04:19.289Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329291987": {
+   "at": "2026-10-23T17:38:40.083Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "this polygon is fuller slough",
+   "verdict": "stream"
+  },
+  "329292009": {
+   "at": "2026-10-23T18:07:37.015Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329292019": {
+   "at": "2026-10-23T17:37:15.357Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329292125": {
+   "at": "2026-10-23T18:09:56.512Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329292341": {
+   "at": "2026-10-23T17:37:20.384Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "part of williamson slough nearby",
+   "verdict": "stream"
+  },
+  "329292598": {
+   "at": "2026-10-23T17:38:15.454Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "not_stream"
+  },
+  "329292651": {
+   "at": "2026-10-23T17:39:04.746Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329313065": {
+   "at": "2026-10-24T19:01:30.556Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329316355": {
+   "at": "2026-10-23T18:12:06.484Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329319148": {
+   "at": "2026-10-23T17:53:45.499Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329319483": {
+   "at": "2026-10-23T17:49:36.605Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329319671": {
+   "at": "2026-10-23T17:53:51.871Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329322529": {
+   "at": "2026-10-23T17:41:34.558Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329322978": {
+   "at": "2026-10-23T17:40:55.764Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329329420": {
+   "at": "2026-10-23T17:52:45.447Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329329975": {
+   "at": "2026-10-23T17:52:57.390Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329350379": {
+   "at": "2026-10-23T17:50:47.684Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329350986": {
+   "at": "2026-10-23T17:49:50.154Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329351058": {
+   "at": "2026-10-23T17:49:51.766Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329362931": {
+   "at": "2026-10-23T17:52:36.854Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329363076": {
+   "at": "2026-10-23T17:50:58.383Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329385045": {
+   "at": "2026-10-23T17:52:08.056Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329409974": {
+   "at": "2026-10-24T19:19:32.560Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-329409974",
+   "verdict": "stream"
+  },
+  "329411114": {
+   "at": "2026-10-24T19:19:31.924Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-329409974",
+   "verdict": "stream"
+  },
+  "329411266": {
+   "at": "2026-10-23T17:50:43.176Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329411695": {
+   "at": "2026-10-24T19:19:32.193Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-329409974",
+   "verdict": "stream"
+  },
+  "329412392": {
+   "at": "2026-10-24T19:19:32.389Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-329409974",
+   "verdict": "stream"
+  },
+  "329431092": {
+   "at": "2026-10-24T19:19:40.326Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-329431092",
+   "verdict": "stream"
+  },
+  "329431252": {
+   "at": "2026-10-24T19:19:40.723Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-329431092",
+   "verdict": "stream"
+  },
+  "329433506": {
+   "at": "2026-10-24T19:19:39.712Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-329431092",
+   "verdict": "stream"
+  },
+  "329434790": {
+   "at": "2026-10-24T19:19:39.922Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-329431092",
+   "verdict": "stream"
+  },
+  "329453483": {
+   "at": "2026-10-23T17:41:28.189Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329461544": {
+   "at": "2026-10-23T17:54:51.404Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329463503": {
+   "at": "2026-10-23T17:47:52.528Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329482077": {
+   "at": "2026-10-24T19:02:48.469Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-329482077",
+   "verdict": "stream"
+  },
+  "329482116": {
+   "at": "2026-10-23T17:48:28.913Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329482877": {
+   "at": "2026-10-23T17:48:55.742Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329483056": {
+   "at": "2026-10-24T19:02:48.260Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-329482077",
+   "verdict": "stream"
+  },
+  "329483117": {
+   "at": "2026-10-24T19:02:48.681Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-329482077",
+   "verdict": "stream"
+  },
+  "329483724": {
+   "at": "2026-10-23T17:47:14.346Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329483945": {
+   "at": "2026-10-24T19:02:48.920Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-329482077",
+   "verdict": "stream"
+  },
+  "329483974": {
+   "at": "2026-10-23T17:46:11.585Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329484135": {
+   "at": "2026-10-24T19:02:49.130Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-329482077",
+   "verdict": "stream"
+  },
+  "329484234": {
+   "at": "2026-10-24T19:02:49.329Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-329482077",
+   "verdict": "stream"
+  },
+  "329484271": {
+   "at": "2026-10-23T17:48:01.287Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329489487": {
+   "at": "2026-10-24T19:18:36.778Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "not_stream"
+  },
+  "329490971": {
+   "at": "2026-10-24T19:04:01.390Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-328987471",
+   "verdict": "stream"
+  },
+  "329492398": {
+   "at": "2026-10-24T19:18:35.911Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "not_stream"
+  },
+  "329492796": {
+   "at": "2026-10-24T19:04:01.783Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-328987471",
+   "verdict": "stream"
+  },
+  "329492875": {
+   "at": "2026-10-24T19:18:35.170Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329493249": {
+   "at": "2026-10-24T19:04:01.187Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-328987471",
+   "verdict": "stream"
+  },
+  "329504783": {
+   "at": "2026-10-23T17:55:12.118Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329505324": {
+   "at": "2026-10-23T17:43:09.303Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329506131": {
+   "at": "2026-10-23T17:43:43.704Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329506489": {
+   "at": "2026-10-23T17:43:56.288Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329506580": {
+   "at": "2026-10-23T17:44:36.663Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329510879": {
+   "at": "2026-10-24T19:03:31.853Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-328988547",
+   "verdict": "stream"
+  },
+  "329511173": {
+   "at": "2026-10-24T19:03:31.101Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-328988547",
+   "verdict": "stream"
+  },
+  "329511456": {
+   "at": "2026-10-24T19:03:31.494Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-328988547",
+   "verdict": "stream"
+  },
+  "329511561": {
+   "at": "2026-10-24T19:03:31.284Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-328988547",
+   "verdict": "stream"
+  },
+  "329512450": {
+   "at": "2026-10-24T19:03:30.706Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-328988547",
+   "verdict": "stream"
+  },
+  "329512539": {
+   "at": "2026-10-24T19:03:32.028Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-328988547",
+   "verdict": "stream"
+  },
+  "329512773": {
+   "at": "2026-10-24T19:03:31.668Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "complex:cx-328988547",
+   "verdict": "stream"
+  },
+  "329519001": {
+   "at": "2026-10-23T18:18:36.601Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329519305": {
+   "at": "2026-10-23T18:11:25.621Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329521541": {
+   "at": "2026-10-23T18:07:56.908Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329522585": {
+   "at": "2026-10-23T17:54:27.788Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329522639": {
+   "at": "2026-10-23T17:54:30.672Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329567618": {
+   "at": "2026-10-23T18:06:25.485Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "likely a slough here? ",
+   "verdict": "stream"
+  },
+  "329576082": {
+   "at": "2026-10-23T18:01:51.329Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329591533": {
+   "at": "2026-10-23T17:50:17.748Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329601781": {
+   "at": "2026-10-23T17:48:33.208Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329602028": {
+   "at": "2026-10-23T17:48:18.019Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329603383": {
+   "at": "2026-10-23T17:48:26.144Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329607650": {
+   "at": "2026-10-23T17:47:41.647Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329626088": {
+   "at": "2026-10-23T17:53:10.187Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329626340": {
+   "at": "2026-10-23T17:52:34.703Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329626473": {
+   "at": "2026-10-23T17:50:56.700Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329626496": {
+   "at": "2026-10-23T17:53:11.587Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329626592": {
+   "at": "2026-10-23T17:51:36.968Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329652477": {
+   "at": "2026-10-23T18:10:33.905Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329653075": {
+   "at": "2026-10-23T18:17:20.611Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329665194": {
+   "at": "2026-10-23T17:54:13.796Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329679959": {
+   "at": "2026-10-23T17:50:13.109Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  },
+  "329683931": {
+   "at": "2026-10-23T17:50:15.029Z",
+   "by": "u_a04hFtc6ZCa3AqxH_Zm49g",
+   "note": "",
+   "verdict": "stream"
+  }
+ }
+}

@@ -1,6 +1,6 @@
 # T55 — Find the sloughs and canals still drawn as lakes (POSTPONED)
 
-Status: IN PROGRESS — 2026-10-28: the review app (:5183, "Sloughs" tab, `#sloughs/`) shows every v2 candidate (2,424) with its PRE-MARK; ★ OWNER confirms there (one, or "accept all visible"), each a mark (scope `slough`, `call` stream / not stream). Next: confirmed streams → registry fold → reach + deliver + binding diff, as a side build. Earlier: finder v2 + review page https://claude.ai/artifact/Es3Mokt7Fs2yNvm7JgQua8 (151 owner verdicts, read into the automark), automark d4a22561. Prior fec02c29, 96b0eb73, 669fd065, a59f3dc3, ac8a0e1c.
+Status: IN PROGRESS — 2026-10-28: the review app (:5183, "Sloughs" tab, `#sloughs/`) shows every v2 candidate (2,424) with its PRE-MARK; ★ OWNER confirms there (one, or "accept all visible"), each a mark (scope `slough`, `call` stream / not stream). Next: confirmed streams → registry fold → reach + deliver + binding diff, as a side build. The tab is the ONLY slough review place (owner 10-28): the old review page (artifact, retired) is fully carried — 150 verdicts as `page_verdict`, 8 free-text notes as `page_note`, its database saved in `handoff/PLAN/sloughs/marks-final-2026-10-28.json` (151 verdicts + 58 spot checks). Earlier: finder v2 + that page (read into the automark), automark d4a22561. Prior fec02c29, 96b0eb73, 669fd065, a59f3dc3, ac8a0e1c.
 
 Owner 2026-10-22 (late), decisions.md "sloughs and canals look like streams in Conditions": the book treats sloughs and
 canals as streams. Many such polygons are already marked as stream items; "the rest are still to be found … and stays
@@ -58,7 +58,7 @@ reads `handoff/PLAN/curation-review/slough-automark.json` + `handoff/PLAN/slough
 |---|---|---|
 | pre-marked stream | 936 | 801 narrow (automark "auto", ≤ 44 m) + 135 wide marsh / swamp |
 | your list (no pre-mark) | 324 | 201 wide lake-drawn, 113 intermittent (FWA "…-Intermittent"; 72 of them were automark "auto"), 10 with no measured width (automark read them as 0 m — e.g. Back Channel, a 74 ha marsh) |
-| marked on the review page | 150 | the owner's artifact verdicts, shown as his (artifact `verdicts` re-read 2026-10-28: 151 docs, unchanged) |
+| marked on the review page | 150 | the owner's artifact verdicts, shown as his (artifact `verdicts` re-read 2026-10-28: 151 docs, unchanged; the 151st, 329097416 Cruickshank, has its verdict cleared and only a note, so it sits in `default` with the note as `page_note`) |
 | not for review | 1,014 | LAKE class, sewage / tailing ponds (automark "default") |
 
 - A pre-mark is NOT a mark: the queue shows "pre-mark: stream · narrow / wide marsh" with why (width, FWA type) and the

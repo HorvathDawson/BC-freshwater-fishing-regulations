@@ -45,6 +45,7 @@ def _row(r: dict, m) -> dict:
             "lat": r.get("lat"), "lon": r.get("lon"),
             # the review page's verdict (before this app), kept as the owner's
             "page_verdict": r.get("verdict") if r.get("by") == "owner" else None,
+            "page_note": S.page_note(r["id"]),
             "premark": pm, "why": r.get("why"), "spot_check": bool(r.get("spot_check")),
             "verify": v["status"], "reasons": v["reasons"],
             "call": getattr(m, "call", None) if m is not None else None,

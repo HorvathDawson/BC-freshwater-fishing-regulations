@@ -43,10 +43,12 @@ with the default Claude uses until you answer). Newest first inside each section
   Chilcotin without unnamed wetlands; z13–z18 bends on the Fraser/Vedder now overzoomed from z13; Vancouver's dense z13
   tiles; no OSM creeks under ours at z14+) and say if the look suffers — the basemap's OSM wetland fill is one style layer
   away. Best done in the same sitting as the T202 basemap look above (basemap z13 shipped 10-27).
-- **Q4 / T55 + T149 — slough and canal candidates (page v2).** https://claude.ai/artifact/Es3Mokt7Fs2yNvm7JgQua8 — your 98
-  marks are kept. New: revised classes with feature-code evidence (2,424 candidates), a **Complexes** view (one mark sets
-  every unmarked piece of a slough area on one river; your own marks are never overwritten), and a **Spot check** tab
-  (spot checks done). Finish the marks; then Claude folds them in (Okanagan oxbows → streams), dry run first.
+- **Q4 / T55 + T149 — slough and canal candidates: review app, Sloughs tab only** (:5183, `#sloughs/`). All 2,424
+  candidates with their pre-marks; your 150 review-page verdicts show as "page: …" and your 8 free-text notes as
+  "your note" (incl. 329097416 Cruickshank, the one whose verdict you cleared: "similar this can be on moat lake").
+  Confirm the pre-marks (one, or accept all visible); then Claude folds them in, dry run first.
+  The old slough page (artifact Es3Mokt7Fs2yNvm7JgQua8) is retired — do not mark there; its whole database (151 verdicts + 58 spot checks)
+  is saved in `handoff/PLAN/sloughs/marks-final-2026-10-28.json`; nothing else reads it.
 
 Cleared 2026-10-28 (already settled, stale-item sweep): Q114 pilot (you dropped it 10-25; you do the real review),
 T211 feed plan (built 10-27 with your corrections; only the cron + R2 sync below is left), Q145 (= that feed: 6-hourly

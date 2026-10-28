@@ -17,7 +17,7 @@ export interface SloughRow {
   id: string; name: string | null; stream: string | null; region: string | null; fwa: string | null;
   width_m: number | null; area_ha: number | null; rule_class: string; group: string; intermittent: boolean;
   wide_wetland: boolean; complex: string | null; img_water: number | null; img_veg: number | null;
-  lat: number; lon: number; page_verdict: string | null; premark: SloughPremark | null; why: string | null;
+  lat: number; lon: number; page_verdict: string | null; page_note?: string | null; premark: SloughPremark | null; why: string | null;
   spot_check: boolean; verify: string; reasons: string[]; call: "stream" | "not stream" | null;
   reviewer: string | null;
 }
@@ -350,6 +350,7 @@ function SloughView({ detail, reviewer, setName, nav, onMarked }: {
             <div className="ext-row"><span className="k">FWA</span><span>{r.fwa}{f.fwa_feature_code ? ` · ${f.fwa_feature_code}` : ""}{f.poly_layer ? ` · ${f.poly_layer}` : ""}</span></div>
             <div className="ext-row"><span className="k">satellite</span><span>{pct(r.img_water)} open water · {pct(r.img_veg)} green
               <span className="dim"> (ESRI pixels; your not-stream pieces: median 30% water, 41% green)</span></span></div>
+            {r.page_note && <div className="ext-row" data-testid="slough-page-note"><span className="k">your note</span><span>“{r.page_note}” <span className="dim">(review page)</span></span></div>}
             <div className="ext-row"><span className="k">finder</span><span>{r.rule_class}{r.complex ? ` · complex ${r.complex}` : ""}</span></div>
             {(f.entries_missing_on_polygon ?? []).length > 0 && (
               <div className="ext-row"><span className="k">rules</span><span className="dim">bind the river but not this piece: {f.entries_missing_on_polygon!.slice(0, 5).join(", ")}</span></div>)}

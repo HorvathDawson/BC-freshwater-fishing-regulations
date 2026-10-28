@@ -49,7 +49,12 @@ def env(tmp_path_factory):
         json.dump({"candidates": [{"id": r["id"], "outline": [[-120, 50], [-120.001, 50.001], [-120, 50]]}
                                   for r in ROWS]}, f)
     (tmp / "marks.jsonl").write_text("")
+    (tmp / "page.json").write_text(json.dumps({"verdicts": {
+        "5": {"verdict": "stream", "note": "part of a slough nearby"},
+        "6": {"verdict": None, "note": "similar this can be on a lake"},     # verdict cleared, note kept
+        "3": {"verdict": "stream", "note": "complex:cx-3"}}}))                # the page's own tag, not a note
     mp = pytest.MonkeyPatch()
+    mp.setenv("CURATION_SLOUGH_PAGE_MARKS", str(tmp / "page.json"))
     mp.setenv("CURATION_SLOUGH_AUTOMARK", str(tmp / "automark.json"))
     mp.setenv("CURATION_SLOUGH_FINDER", str(tmp / "finder.json.gz"))
     mp.setenv("CURATION_MARKS", str(tmp / "marks.jsonl"))
@@ -79,6 +84,8 @@ def test_premarks_are_proposals_in_review_order(env):
     d = c.get("/api/sloughs/candidates/3").json()
     assert d["row"]["premark"]["basis"] == "wide marsh" and d["outline"]["features"]
     assert c.get("/api/sloughs/candidates/0").status_code == 404
+    notes = {r["id"]: r["page_note"] for r in q if r["page_note"]}
+    assert notes == {"5": "part of a slough nearby", "6": "similar this can be on a lake"}
     p = c.get("/api/sloughs/progress").json()
     assert p["total"] == 4 and p["by_basis"] == {"narrow": 1, "wide marsh": 1} and p["intermittent"] == 1
 

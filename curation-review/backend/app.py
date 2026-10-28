@@ -638,7 +638,8 @@ def slough_queue(group: str | None = None, basis: str | None = None, verify: str
         raise HTTPException(422, [{"path": "group", "msg": "group is one of " + ", ".join(GROUPS)}])
     if verify and verify not in sloughs.VERIFIES:
         raise HTTPException(422, [{"path": "verify", "msg": "verify is one of " + ", ".join(sloughs.VERIFIES)}])
-    return sloughs.queue(group=group, basis=basis, verify=verify, q=q, region=region)
+    # two candidates have NaN imagery stats (no pixels): JSON has no NaN, so the unfiltered queue 500'd
+    return reuse._json_safe(sloughs.queue(group=group, basis=basis, verify=verify, q=q, region=region))
 
 
 @app.get("/api/sloughs/progress")

@@ -1,7 +1,8 @@
 # Slough / canal automark (T55 / T149): what your marks say you were looking for
 
 2026-10-28. Read-only: nothing was written to the review page
-(https://claude.ai/artifact/Es3Mokt7Fs2yNvm7JgQua8), its database or the atlas. You decide after reading this.
+(since retired; review now happens only in the review app's Sloughs tab, final DB in
+`handoff/PLAN/sloughs/marks-final-2026-10-28.json`), its database or the atlas. You decide after reading this.
 
 Files: `slough-automark.json` (one row per candidate: `decision` = owner / auto / owner_list / default, `verdict`,
 `by` = owner or machine, `why`, `owner_rank`, `spot_check`, `lake_probe`), the code in

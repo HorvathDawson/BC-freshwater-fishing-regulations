@@ -26,6 +26,8 @@ from typing import Optional
 ROOT = Path(__file__).resolve().parents[3]
 AUTOMARK = ROOT / "handoff/PLAN/curation-review/slough-automark.json"
 FINDER = ROOT / "handoff/PLAN/sloughs/v2/candidates_v2.json.gz"
+#: the retired review page's database, read once (2026-10-28): the owner's free-text notes live only here
+PAGE_MARKS = ROOT / "handoff/PLAN/sloughs/marks-final-2026-10-28.json"
 #: the width rule's cut (slough-automark.md): at or under this the owner called it stream 96% of the time
 NARROW_M = 44.0
 
@@ -126,6 +128,24 @@ def prints(row: dict) -> dict:
     binding = {"outline": fin.get("outline")}
     return {"text": None, "records": [{"key": f"slough:{row['id']}", "meaning": _h(meaning),
                                        "binding": _h(binding)}]}
+
+
+@lru_cache(maxsize=2)
+def _page_notes(p: str, _m: float) -> dict:
+    try:
+        v = json.loads(Path(p).read_text()).get("verdicts") or {}
+    except OSError:
+        return {}
+    # "complex:cx-…" is the page's own bulk-mark tag (carried as `complex`), not the owner's words
+    return {k: d["note"].strip() for k, d in v.items()
+            if (d.get("note") or "").strip() and not d["note"].startswith("complex:")}
+
+
+def page_note(cid: str) -> Optional[str]:
+    """The owner's free-text note on the retired review page, if any (e.g. "this could actually be labelled as
+    sproat lake too"); one note sits on a piece whose verdict the owner cleared (329097416)."""
+    p = Path(os.environ.get("CURATION_SLOUGH_PAGE_MARKS") or PAGE_MARKS)
+    return _page_notes(str(p), _mtime(p)).get(cid)
 
 
 def prints_of(cid: str) -> Optional[dict]:
