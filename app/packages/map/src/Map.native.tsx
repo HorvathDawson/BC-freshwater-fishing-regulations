@@ -54,10 +54,13 @@ import { withoutEngineKeys } from "./colouring";
 import { nativeImages } from "./images";
 import { useNativeColouring, type AtlasSource } from "./native/useColouring";
 import { colourProbe } from "./native/probe";
-import { MARK_LABEL_FONT } from "./marks";
+import { MARK_LABEL_FONT, labelShift } from "./marks";
 import { metricScale } from "./scale";
 import type { MapProps } from "./map-props";
 import { COPY_SOURCE, WaterCopy, copyIds, probeZoom, zoomAround, type CopyTarget } from "./water-copy";
+
+/** A mark label's widest line (the web's `max-width`, `marks.ts`). */
+const MARK_LABEL_WIDTH = 180;
 
 /** An empty source, so the gauge layers exist before the first feed tick arrives (as on the web). */
 const EMPTY_FC = '{"type":"FeatureCollection","features":[]}';
@@ -400,6 +403,20 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     wanted: (id) => { const st = statusNow.current; return !!st && profileLabel(st.index, id) !== undefined; },
   }), [colouring.coloured]);
 
+  /** (T50) each mark label's sideways shift, kept inside the map as the web's `markers.ts` does (`labelShift`): measured
+   *  where the camera settles, from each ring's screen x */
+  const [markShift, setMarkShift] = useState<readonly number[]>([]);
+  const marksNow = useRef(marks);
+  marksNow.current = marks;
+  const shiftMarks = useCallback(async () => {
+    const ms = marksNow.current ?? [], w = size.current.width, map = mapRef.current;
+    if (!ms.length || !w || !map) return;
+    const xs = await Promise.all(ms.map((k) => map.project([k.lon, k.lat]).then((pt) => pt[0], () => null)));
+    const next = xs.map((x) => (x === null ? 0 : labelShift(x, w)));
+    setMarkShift((was) => (was.length === next.length && was.every((v, i) => v === next[i]) ? was : next));
+  }, []);
+  useEffect(() => { void shiftMarks(); }, [marks, shiftMarks]);
+
   const onRegionDidChange = useCallback((e: RegionEvent) => {
     probe?.settled();
     const ne = e.nativeEvent;          // before anything async, as with a press
@@ -409,12 +426,13 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
       const next = { lat: ne.center[1], zoom: ne.zoom };
       setScaleAt((was) => (was.lat === next.lat && was.zoom === next.zoom ? was : next));
     }
+    void shiftMarks();
     // the next full render reports what is on screen (and measures a fit): the tiles for here may not be in yet
     stale.current = true;
     copyStale.current = true;
     // (T175) the reader's own pan or pinch: the copy never steps in against it
     if (ne?.userInteraction) copyTouched.current = true;
-  }, []);
+  }, [shiftMarks]);
 
   // a new style dropped every feature-state (`forget`: send them all again) and may draw other features
   const onStyle = useCallback(() => {
@@ -494,19 +512,32 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
             (filled when open), the label above it */}
         {(marks ?? []).map((k, i) => (
           <Marker key={`mark-${i}:${k.lon},${k.lat}`} id={`mark-${i}`} lngLat={[k.lon, k.lat]}>
-            <Pressable onPress={() => onPressMark?.(i)} accessibilityRole="button" aria-label={k.a11y}
-                       style={{ width: 44, height: 44, alignItems: "center", justifyContent: "center" }}>
-              {k.label ? (
-                <Text numberOfLines={3}
-                      style={{ position: "absolute", bottom: 38, maxWidth: 180, paddingHorizontal: 7, paddingVertical: 3,
-                               backgroundColor: furniture.card, color: furniture.ink, borderWidth: 1.5,
-                               borderColor: furniture.ink, fontSize: 12, lineHeight: 15, fontFamily: MARK_LABEL_FONT.native }}>
-                  {k.label}
-                </Text>
-              ) : null}
-              <View style={{ width: 16, height: 16, borderRadius: 8, borderWidth: 3, borderColor: furniture.ink,
-                             backgroundColor: k.on ? furniture.ink : furniture.card }} />
-            </Pressable>
+            {/* the root is the label's 180 px band, the 44 px target centred in it: Android's view annotation lays its
+                content out no wider than the ROOT, so a label hung off a 44 px root wrapped to 44 px ("fish / ing b /
+                ou…", T50 emulator walk). The label stays inside the button (its words are the button's) on a band of
+                its own width; `markShift` keeps it inside the map as the web's `labelShift` does. */}
+            <View pointerEvents="box-none"
+                  style={{ width: MARK_LABEL_WIDTH, height: 44, alignItems: "center", justifyContent: "center" }}>
+              <Pressable onPress={() => onPressMark?.(i)} accessibilityRole="button" aria-label={k.a11y}
+                         style={{ width: 44, height: 44, alignItems: "center", justifyContent: "center" }}>
+                {k.label ? (
+                  <View pointerEvents="none"
+                        style={{ position: "absolute", bottom: 38, left: (44 - MARK_LABEL_WIDTH) / 2,
+                                 width: MARK_LABEL_WIDTH, alignItems: "center",
+                                 transform: [{ translateX: markShift[i] ?? 0 }] }}>
+                    <Text numberOfLines={3}
+                          style={{ paddingHorizontal: 7, paddingVertical: 3, textAlign: "center",
+                                   backgroundColor: furniture.card, color: furniture.ink, borderWidth: 1.5,
+                                   borderColor: furniture.ink, fontSize: 12, lineHeight: 15,
+                                   fontFamily: MARK_LABEL_FONT.native }}>
+                      {k.label}
+                    </Text>
+                  </View>
+                ) : null}
+                <View style={{ width: 16, height: 16, borderRadius: 8, borderWidth: 3, borderColor: furniture.ink,
+                               backgroundColor: k.on ? furniture.ink : furniture.card }} />
+              </Pressable>
+            </View>
           </Marker>
         ))}
       </MLMap>

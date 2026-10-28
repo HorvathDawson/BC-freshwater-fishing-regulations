@@ -148,7 +148,11 @@ export default function App() {
 
   return (
     <LayoutWidthContext.Provider value={width}>
-    <SafeAreaView style={{ flex: 1, backgroundColor: palette.card }}>
+    {/* RN's SafeAreaView pads on iOS only. Android draws edge-to-edge (API 35), so the status bar sat over the top bar,
+        the back links and Close, and swallowed their taps (T172 / T50): the frame pads by the bar's height there. The
+        gesture/nav bar at the bottom is still T50's (it needs real insets). */}
+    <SafeAreaView style={{ flex: 1, backgroundColor: palette.card,
+                           paddingTop: Platform.OS === "android" ? StatusBar.currentHeight ?? 0 : 0 }}>
       <StatusBar barStyle={name === "dark" ? "light-content" : "dark-content"} />
       {failed ? (
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 32,

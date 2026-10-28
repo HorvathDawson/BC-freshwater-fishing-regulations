@@ -4,7 +4,7 @@
  * system to show: the file URL first, the share sheet when no handler takes it. NOT VERIFIED ON A DEVICE (like N1/N2).
  * `synopsisPdf.web.ts` is the browser's.
  */
-import { Linking, Share } from "react-native";
+import { Linking, Platform, Share } from "react-native";
 import { File, Paths } from "expo-file-system";
 import type { SourceBox } from "@app/core";
 import { highlightPdf } from "./highlightPdf";
@@ -25,7 +25,12 @@ export async function loadSynopsis(s: SynopsisSource, fetchImpl: typeof fetch = 
 }
 
 /** Open the synopsis with `boxes` highlighted. Throws when it cannot: the caller falls back to the plain link. */
-export async function openHighlighted(s: SynopsisSource, _pdf: number, boxes: readonly SourceBox[]): Promise<void> {
+export async function openHighlighted(s: SynopsisSource, _pdf: number, boxes: readonly SourceBox[],
+                                      os: string = Platform.OS): Promise<void> {
+  // ANDROID CANNOT BE HANDED THE FILE (T50 emulator walk): `Linking` refuses a file:// URI and sends no read grant with a
+  // content:// one, and `Share` drops `url` there — the reader got an EMPTY share sheet. Throwing sends `openBook` to the
+  // plain link (the PDF in the browser, no highlight) until a native intent with FLAG_GRANT_READ_URI_PERMISSION exists.
+  if (os === "android") throw new Error("synopsis: Android cannot open a highlighted local PDF");
   const out = await highlightPdf(await loadSynopsis(s), boxes);
   const f = new File(Paths.cache, "synopsis-open.pdf");
   if (f.exists) f.delete();

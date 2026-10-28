@@ -123,8 +123,12 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
     (▲/▼) keep one back; section highlight while scrolling the regs tabs; keyboard (search) vs sheets.
   - Native colouring (T74, 2026-10-27; emulator: 0 grey frames in 49 sampled pan frames): on the phone, pan and fling
     at z9–z13 and say whether any water shows plain/grey before its colour (`EXPO_PUBLIC_COLOUR_PROBE=1` logs
-    `T74PROBE` lines per pan for the numbers); the gauge reading's pill (not seen on the emulator); the five hatches;
+    `T74PROBE` lines per pan for the numbers); the five hatches;
     "At my location" (asks on the tap, then drops the pin where you stand); a theme switch keeps the hatches.
+  - Android rule-book link (T50, 2026-10-27): opens the plain PDF in the browser, NO highlight — decide whether to add a
+    native intent package (expo-intent-launcher) so Android can open the highlighted copy; iOS still shares the file.
+  - Android bottom bar (T50): the gesture handle sits over the tab bar labels — needs react-native-safe-area-context
+    (a native package) for the real bottom inset.
 - **Sign-off walk** at the end (T87) before app/design is deleted.
 
 - **SEO, v1 pages (2026-10-27):** keep your existing Search Console property; when the new site is live add the new sitemap

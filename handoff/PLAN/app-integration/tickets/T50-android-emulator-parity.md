@@ -81,3 +81,30 @@ Emulator dev setup that worked: `scripts/heavy.sh … session.sh` boots `n1_pixe
 `adb kill-server` first; `--device emulator-5556` is refused by expo (it wants the AVD name). After a `pnpm patch-commit`
 Metro must be restarted (it served stale JS). Location: `adb emu geo fix <lon> <lat>`. Found: place search "Vedder
 Crossing" → "Could not read what is near this town" on native.
+
+
+## T74 follow-ups on the emulator (2026-10-27; shots `T50-shots/t74f-*`)
+Fixed (native bugs):
+- BOUNDARY MARK LABELS wrapped to 44 dp ("fish / ing b / ou…"): Android's view annotation lays content out no wider than
+  the marker's ROOT. The root is now the 180 px label band with the 44 px button centred; labels shift inside the map as
+  the web's `labelShift` does (`markShift`, from `project` where the camera settles). (03 before/after/web)
+- RULE BOOK LINK on Android opened an EMPTY share sheet: `Linking` refuses file://, `Share` drops `url` on Android, so the
+  T215 highlighted copy never reached a viewer and the fallback never fired. Android now takes the plain link (the PDF in
+  Chrome, no highlight). Highlight on Android needs a VIEW intent with a read grant (expo-intent-launcher or similar):
+  owner decision (a native package). (04)
+- STATUS BAR over the top bar / back links / Close (T172 finding): App pads by `StatusBar.currentHeight` on Android
+  (RN's SafeAreaView pads iOS only). Top fixed; the BOTTOM gesture/nav bar over the tab bar is still open. (05)
+Confirmed, no change:
+- Gauge pill draws on native (Conditions, "p5th" at Vedder Crossing, same as web). (01)
+- "Vedder Crossing → Could not read what is near this town": NOT reproduced on release r-f7faa483d2b1 (cold start, Map
+  and Conditions tabs, "Vedder" and the full name, after Spots/At my location): 147 within 25 km, as web. The T74 run held
+  the previous release; the failure was that set's, not the read path (expo-sqlite opens `near` in place fine). (02)
+- Parts list, downstream/upstream, mark tap steps the part, regs tabs (Kootenay Upper West Arm) incl. the stuck pin bar,
+  water Conditions, Salmon toggle (same colours as web: all red at the Chilliwack — DFO extent "not yet mapped", data). (06, 07)
+Open (listed, not fixed):
+- Bottom inset: gesture handle still drawn over the tab bar labels (needs real insets: react-native-safe-area-context).
+- Dev: `CI=1` turns Metro's file watcher OFF ("reloads are disabled") — that is the "stale JS after patch-commit" above;
+  run Metro without CI for a live session. `openBook`'s console.warn raises a LogBox toast on every Android rule-book tap
+  (dev only).
+- Not walked this session: a size-tier water (boxed tier + sticky size header, 9849276b), the place row one-line check
+  at large text scale.
