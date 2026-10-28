@@ -9,7 +9,7 @@ import type { ReactNode } from "react";
 import type { ViewStyle } from "react-native";
 import type { TileEndpoints } from "./endpoints";
 import type { TraceProp } from "./trace-overlay";
-import type { LakeFeed, ProfileStatus, SalmonFeed, StandingFeed } from "./colouring";
+import type { LakeFeed, MethodFeed, ProfileStatus, SalmonFeed, StandingFeed } from "./colouring";
 import type { SelectionCue } from "./paint";
 
 /** A boundary mark on a water (`MapProps.marks`). `a11y`: what a screen reader says for it. */
@@ -202,6 +202,12 @@ export interface MapProps {
    * tab whichever colouring is chosen, so the Standard / Salmon toggle is one paint change. ONLY ON A PROVEN PAIR.
    */
   salmon?: SalmonFeed | null;
+  /**
+   * (T213) THE BAIT & FLY COLOURING, for every layer in the `method` mode — the same engine (`colouring.ts`, the `method`
+   * channel): each section's method profile label as its tile arrives, the day in the style; closures from `status`.
+   * Handed over on the Map tab whichever colouring is chosen, so the toggle is one paint change. ONLY ON A PROVEN PAIR.
+   */
+  method?: MethodFeed | null;
   /**
    * A tapped feature, and WHERE on it the tap landed.
    *

@@ -219,6 +219,11 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
     for (const follower of followersOf(f.layer)) h.setVisibility(follower, fieldOn());
     for (const id of Object.keys(f.covers)) zoomFor(h, id, modeOf[id], fieldOn());
   };
+  /** (T213) A mode that paints the status day's closures first (`closed`): a new status day repaints it too. */
+  const bordersStatus = (layerId: string, mode: string): boolean => {
+    const m = STYLE_META.colorModes[layerId]?.[mode];
+    return m?.scale === "profile" && !!m.closed;
+  };
   /** The channel a layer's mode reads its values from, if any. */
   const channelOf = (layerId: string, mode: string): keyof ChannelValues | null => {
     return profileChannel(STYLE_META.colorModes[layerId]?.[mode]);
@@ -302,7 +307,8 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
       }
       const tokens = resolveTheme(themeName, overrides);
       for (const [layerId, mode] of Object.entries(modeOf))
-        if (channelOf(layerId, mode) === channel) paint(h, layerId, mode, tokens);
+        if (channelOf(layerId, mode) === channel || (channel === "status" && bordersStatus(layerId, mode)))
+          paint(h, layerId, mode, tokens);
     },
 
     highlight(h, featureIds, water = [], cue = "outline") {

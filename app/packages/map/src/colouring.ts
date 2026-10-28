@@ -36,8 +36,8 @@
  * patched binding's per-tile event (`native/useColouring.ts`, deps.md). Only how a channel's style-borne values reach
  * the style differs: a paint call on the web, a style swap on the phone (`nativeStyle`'s `values`).
  */
-import { readingDayOf, dayProfiles, profileLabel, salmonDayIndex, salmonDayProfiles, salmonLabel, stockRecency,
-         type LakeFacts, type SalmonFacts, type StatusIndex } from "@app/core";
+import { readingDayOf, dayProfiles, methodDayProfiles, methodLabel, profileLabel, salmonDayIndex, salmonDayProfiles,
+         salmonLabel, stockRecency, type LakeFacts, type MethodFacts, type SalmonFacts, type StatusIndex } from "@app/core";
 import type { ChannelValues, MapAdapter, MapHandle } from "./adapters/contract";
 import type { StandingValues, Tokens } from "./style";
 import { perSectionLayers, spreadSections, type PerSectionLayer } from "./sections";
@@ -69,7 +69,7 @@ export interface LakeFeed {
 }
 
 /** The colourings that label sections: one per question a release's data answers on the map. */
-export type Channel = "status" | "standing" | "stocked" | "survey" | "salmon";
+export type Channel = "status" | "standing" | "stocked" | "survey" | "salmon" | "method";
 
 /**
  * (T211) THE SALMON COLOURING as the map is told it — ONLY on a proven pair: the release's DFO salmon (each section's
@@ -88,6 +88,26 @@ export function salmonInput(s: SalmonFeed): ChannelInput {
     labels: { key: "sp", of: f, label: (id) => salmonLabel(f, id) },
     valuesKey: salmonDayIndex(s.day),
     values: () => salmonDayProfiles(f, s.day),
+  };
+}
+
+/**
+ * (T213) THE BAIT & FLY COLOURING as the map is told it — ONLY on a proven pair: the release's method file (each
+ * section's day-profile, fixed for the release) and the day. Handed over on the Map tab whichever colouring is chosen,
+ * like salmon, so Standard ⇄ Bait & fly is one paint change. Its closures are the status channel's (`closed` in the mode).
+ */
+export interface MethodFeed {
+  readonly facts: MethodFacts;
+  readonly day: Date;
+}
+
+/** The method channel: profile labels in feature-state `gm`, the day in the style (`methodDayProfiles`). */
+export function methodInput(s: MethodFeed): ChannelInput {
+  const f = s.facts;
+  return {
+    labels: { key: "gm", of: f, label: (id) => methodLabel(f, id) },
+    valuesKey: readingDayOf(s.day),
+    values: () => methodDayProfiles(f, s.day),
   };
 }
 
@@ -337,11 +357,11 @@ export class Colouring {
 
 /**
  * THE KEYS ONLY THE ENGINE WRITES on a section: the channels' labels (the day-profile `p`, the `standing` value, the
- * lake facts' `stocked` and `survey`, the salmon `sp`) — and `status` / `salmon`, the keys of the pushed path T74 removed.
+ * lake facts' `stocked` and `survey`, the salmon `sp`, the method `gm`) — and `status` / `salmon`, the keys of the pushed path T74 removed.
  * Pushed through `data` they would be a second pathway beside the engine (owner 2026-10-21: "it should be a single
  * pathway"): both maps refuse them, and report it (tools/one-colouring-engine.test.ts).
  */
-export const ENGINE_KEYS: readonly string[] = ["p", "standing", "status", "stocked", "survey", "sp", "salmon"];
+export const ENGINE_KEYS: readonly string[] = ["p", "standing", "status", "stocked", "survey", "sp", "salmon", "gm"];
 
 type Pushed = Record<string, Record<string, Record<string, unknown>>>;
 
@@ -363,7 +383,7 @@ export function withoutEngineKeys(data: Pushed, report: (e: Error) => void): Pus
       if (Object.keys(rest).length) kept[id] = rest;
     }
     if (refused) report(new Error(`pushed ${ENGINE_KEYS.join("/")} on "${layerId}" refused: the map colours `
-                                  + "sections through the colouring engine only (MapProps.status, MapProps.standing, MapProps.lakes, MapProps.salmon)"));
+                                  + "sections through the colouring engine only (MapProps.status, MapProps.standing, MapProps.lakes, MapProps.salmon, MapProps.method)"));
     if (Object.keys(kept).length) out[layerId] = kept;
   }
   return spreadSections(out);

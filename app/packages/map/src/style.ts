@@ -3,8 +3,8 @@
  * else. If an adapter needs "one more layer" or "a slightly different colour here", it
  * belongs in layers.source.json — otherwise the platforms diverge and nothing catches it.
  */
-import { TEMP_BAND_TOKEN, WATER_STATUS, type DayProfiles, type SalmonDay, type SalmonMapStatus, type TempBand,
-         type WaterStatus }
+import { TEMP_BAND_TOKEN, WATER_STATUS, type DayProfiles, type MethodDay, type MethodLegendClass, type SalmonDay,
+         type SalmonMapStatus, type TempBand, type WaterStatus }
   from "@app/core";
 import style from "../style/style.json" with { type: "json" };
 import meta from "../style/style.meta.json" with { type: "json" };
@@ -43,14 +43,19 @@ export type ColorMode =
   /** Categorical one step removed: feature-state holds a profile LABEL, the day says which labels are which member. */
   | { label: string; scale: "profile"; property: string; enum: string;
       categories: Record<string, TokenRef>; missing: TokenRef;
-      /** Whose values it reads: provider `salmon` (T211) is the salmon channel's day, every other the status's. */
-      data?: { provider: string; field?: string } };
+      /** Whose values it reads: provider `salmon` (T211) / `method` (T213) is that channel's day, every other the
+       *  status's. */
+      data?: { provider: string; field?: string };
+      /** (T213) Painted FIRST where the day's STATUS closes the section (feature-state `p` in the status day's `closed`
+       *  set): a channel that carries no closures borrows the status index's, the one source for closed. */
+      closed?: TokenRef };
 
-/** (T211) THE CHANNEL A PROFILE MODE READS ITS DAY FROM: the Salmon colouring's own, else the day's status. */
-type ProfileChannel = "status" | "salmon";
+/** (T211) THE CHANNEL A PROFILE MODE READS ITS DAY FROM: the Salmon / Bait & fly colouring's own, else the status's. */
+type ProfileChannel = "status" | "salmon" | "method";
 export function profileChannel(mode: ColorMode | undefined): ProfileChannel | null {
   if (mode?.scale !== "profile") return null;
-  return mode.data?.provider === "salmon" ? "salmon" : "status";
+  const p = mode.data?.provider;
+  return p === "salmon" || p === "method" ? p : "status";
 }
 
 /** The day's label sets a profile mode paints by (null: none installed). */
@@ -86,8 +91,12 @@ export interface ChannelValues {
   survey: number | null;
   /** (T211) the Salmon colouring's day: which chain labels paint which salmon status (@app/core `salmonDayProfiles`). */
   salmon: SalmonDay | null;
+  /** (T213) the Bait & fly colouring's day: which method labels paint fly / bait / none (@app/core
+   *  `methodDayProfiles`); its closures are `status`'s. */
+  method: MethodDay | null;
 }
-export const NO_VALUES: ChannelValues = { status: null, standing: null, stocked: null, survey: null, salmon: null };
+export const NO_VALUES: ChannelValues =
+  { status: null, standing: null, stocked: null, survey: null, salmon: null, method: null };
 
 /** A token is a colour, a number, or a dash pattern (an array of line-width multiples). */
 export type Tokens = Record<string, string | number | number[]>;
@@ -268,12 +277,16 @@ export function colorExpression(layerId: string, modeName: string, t: Tokens,
     if (day === null) return val(mode.missing);
     const out: unknown[] = ["match", ["coalesce", ["feature-state", mode.property], ""]];
     for (const [member, ref] of Object.entries(mode.categories)) {
-      const labels = day[member as keyof DayProfiles & keyof SalmonDay] as readonly string[] | undefined;
+      const labels = day[member] as readonly string[] | undefined;
       if (labels === undefined) throw new Error(`profile mode "${modeName}" colours "${member}", which no day places`);
       if (labels.length) out.push([...labels], val(ref));
     }
     out.push(val(mode.missing));           // `none` (tidal, outside B.C.) and every unplaced label
-    return out.length > 3 ? out : val(mode.missing);
+    const own = out.length > 3 ? out : val(mode.missing);
+    // (T213) the status day's closures first, from the status channel's own label (`p`): one source for closed
+    const closedLabels = mode.closed ? (values ?? NO_VALUES).status?.closed : undefined;
+    if (!mode.closed || !closedLabels?.length) return own;
+    return ["match", ["coalesce", ["feature-state", "p"], ""], [...closedLabels], val(mode.closed), own];
   }
 
   const read = ["feature-state", mode.property];
@@ -301,6 +314,13 @@ export function colorExpression(layerId: string, modeName: string, t: Tokens,
 export function salmonStatusColour(theme: string, status: SalmonMapStatus): string {
   const hex = resolveTheme(theme)[`color.salmon.${status}`];
   if (typeof hex !== "string") throw new Error(`theme "${theme}" cannot paint salmon ${status}`);
+  return hex;
+}
+
+/** (T213) The colour the Bait & fly colouring paints a class in one theme — its legend swatch. */
+export function methodClassColour(theme: string, cls: MethodLegendClass): string {
+  const hex = resolveTheme(theme)[`color.method.${cls}`];
+  if (typeof hex !== "string") throw new Error(`theme "${theme}" cannot paint method ${cls}`);
   return hex;
 }
 

@@ -9,7 +9,7 @@ import { readingDayOf, salmonDayIndex } from "@app/core";
 import { useEffect, useRef } from "react";
 import type * as maplibregl from "maplibre-gl";
 import type { WebRenderer } from "../adapters/web";
-import { LABEL_SOURCE_LAYERS, salmonInput, standingInput, statusInput, stockedInput, surveyInput, withoutEngineKeys,
+import { LABEL_SOURCE_LAYERS, methodInput, salmonInput, standingInput, statusInput, stockedInput, surveyInput, withoutEngineKeys,
          type Channel, type ChannelInput, type TileRenderer, type TileSections } from "../colouring";
 import type { MapProps } from "../map-props";
 import { sourceTiles, tileIds } from "../tile-ids.web";
@@ -18,10 +18,10 @@ import { devCost, forcePublic, whenAtlas } from "./ready";
 import type { WebMapRefs } from "./refs";
 import type { Lit } from "./useHighlight";
 
-type Channels = Pick<MapProps, "at" | "theme" | "data" | "status" | "standing" | "lakes" | "salmon">;
+type Channels = Pick<MapProps, "at" | "theme" | "data" | "status" | "standing" | "lakes" | "salmon" | "method">;
 
 export function useChannels(refs: WebMapRefs, { wasLit, wasWater, wasCue }: Lit,
-                            { at, theme, data, status, standing, lakes, salmon }: Channels) {
+                            { at, theme, data, status, standing, lakes, salmon, method }: Channels) {
   const { map, renderer, adapter, copy, colouring } = refs;
   const latestData = useRef(data);
   latestData.current = data;
@@ -63,4 +63,8 @@ export function useChannels(refs: WebMapRefs, { wasLit, wasWater, wasCue }: Lit,
   const salmonDay = salmon ? salmonDayIndex(salmon.day) : -1;
   useEffect(() => toChannel("salmon", salmon ? salmonInput(salmon) : null, `salmon:${salmonDay}`),
             [salmon?.facts, salmonDay, at.atlas]);
+  // (T213) the Bait & fly colouring: profile labels once per release, the day in the style
+  const methodDay = method ? readingDayOf(method.day) : -1;
+  useEffect(() => toChannel("method", method ? methodInput(method) : null, `method:${methodDay}`),
+            [method?.facts, methodDay, at.atlas]);
 }

@@ -7,8 +7,9 @@
  * colouring. Plain water needs no key. Whether it is shown is the Shell's call; what it says is here.
  */
 import { CHANGE_LEGEND, changeMarkWords, closedLegend, FLOW_LEGEND, TEMP_LEGEND, unprovenLine, WATER_STATUS,
-         WATER_STATUS_LINE, WATER_STATUSES, waterLegend, SALMON_WORDS, salmonLegend, salmonLegendSource } from "@app/core";
-import { salmonStatusColour } from "@app/map";
+         WATER_STATUS_LINE, WATER_STATUSES, waterLegend, SALMON_WORDS, salmonLegend, salmonLegendSource, METHOD_LEGEND, METHOD_WORDS }
+  from "@app/core";
+import { methodClassColour, salmonStatusColour } from "@app/map";
 import { Pressable, Text, View } from "react-native";
 import { LegendCount, LegendRamp, LegendStrip } from "../Chrome";
 import { MapDayButton } from "../DayCalendar";
@@ -95,11 +96,22 @@ export function MapLegend({ col, conditions, palette, theme, mapDay, onDay }: {
             {salmonLegendSource(col.salmonFacts)}
           </Text>
         </>
+      ) : col.regsLayer === "method" ? (
+        // (T213) BAIT & FLY: the toggle, the day, and the key — fly only and bait ban read apart from every other open
+        // water; closed is the Standard map's red (the status index's closures)
+        <>
+          <RegsLayerToggle col={col} palette={palette} />
+          <MapDayButton palette={palette} day={mapDay} onPress={onDay} />
+          {METHOD_LEGEND.map((c) => (
+            <LegendCount key={c} palette={palette} colour={methodClassColour(theme, c)} line
+                         label={c === "closed" ? closedLegend(mapDay) : METHOD_WORDS.legend[c]} />
+          ))}
+        </>
       ) : (
         // The three statuses, in the words and colours every surface uses (@app/core
         // WATER_STATUS through the map's theme) — for today.
         <>
-          {col.salmonOffered && <RegsLayerToggle col={col} palette={palette} />}
+          {(col.salmonOffered || col.methodOffered) && <RegsLayerToggle col={col} palette={palette} />}
           <MapDayButton palette={palette} day={mapDay} onPress={onDay} />
           {WATER_STATUSES.map((s) => (
             <LegendCount key={s} palette={palette} colour={palette.waterStatus[s]}
@@ -130,15 +142,17 @@ export function RegsLayerToggle({ col, palette }: { col: MapColouring; palette: 
   return (
     <View testID="regs-paint-toggle" accessibilityRole="radiogroup" accessibilityLabel={W.label}
           style={{ flexDirection: "row", borderWidth: 1.5, borderColor: palette.ink, borderRadius: palette.r.chip }}>
-      {(["standard", "salmon"] as const).map((k) => {
+      {(["standard", "salmon", "method"] as const)
+        .filter((k) => k === "standard" || (k === "salmon" ? col.salmonOffered : col.methodOffered)).map((k) => {
         const on = col.regsLayer === k;
+        const word = k === "method" ? METHOD_WORDS.mode : W[k];
         return (
           <Pressable key={k} testID={`regs-paint-${k}`} onPress={() => col.setRegsLayer(k)}
-                     accessibilityRole="radio" aria-checked={on} accessibilityLabel={W[k]}
+                     accessibilityRole="radio" aria-checked={on} accessibilityLabel={word}
                      style={{ minHeight: 44, minWidth: 44, justifyContent: "center", paddingHorizontal: 10,
                               backgroundColor: on ? palette.ink : "transparent" }}>
             <Text style={{ ...TYPE.small, fontSize: 11.5, fontWeight: "700", color: on ? palette.card : palette.ink }}>
-              {W[k]}
+              {word}
             </Text>
           </Pressable>
         );

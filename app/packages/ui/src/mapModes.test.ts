@@ -20,6 +20,15 @@ describe("mapModes (P12): the Shell's colouring decision, pure", () => {
     });
   });
 
+  it("(T213) Bait & fly: every water on the Map tab wears `method`; never on Conditions, never without the index, Salmon wins", () => {
+    const water = (m: ReturnType<typeof at>) => [m.modes.stream, m.modes.lake, m.modes.lake_flowing, m.modes.wetland_flowing];
+    expect(water(at({ method: true }))).toEqual(["method", "method", "method", "method"]);
+    expect(water(at({ method: true, statusOk: false }))).toEqual(["plain", "plain", "plain", "plain"]);
+    expect(at({ method: true, tab: "conditions" }).modes.stream).toBe("standing");
+    expect(at({ method: true, salmon: true }).modes.stream).toBe("salmon");
+    expect(at({ method: true }).activeGroups).toEqual(at({}).activeGroups);
+  });
+
   it("the ground drawn (owner 2026-10-21, satellite online-only): the choice while imagery is up; the drawn map and the reason while it is not", () => {
     const ground = (basemap: "map" | "satellite", imageryUp: boolean) => {
       const m = at({ basemap, imageryUp });

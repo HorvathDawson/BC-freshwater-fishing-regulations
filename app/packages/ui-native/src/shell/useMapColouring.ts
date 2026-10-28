@@ -8,7 +8,7 @@ import type { GaugeFeed, WaterSource, SectionId } from "@app/data";
 import { useMapModes, useLayerChoice, type BrowseTab, type FlowParam, type LayerStore } from "@app/ui";
 import { useConditionsColour, useGaugeGeoJSON, useLakeColour, lakeModesReady, lakeValuesCarried, usePairing,
          useStatusIndex, statusFeed, useHorizon, useHorizonPick, flowHorizon, horizonChips, useImageryReach,
-         useRegsLayer, useSalmonColour, type PairingInput, type RegsLayer, type StatusSource } from "@app/ui";
+         useMethodColour, useRegsLayer, useSalmonColour, type PairingInput, type RegsLayer, type StatusSource } from "@app/ui";
 import { FIELD_HANDOVER_Z, type Camera, type TileEndpoints, imageryTiles } from "@app/map";
 import { connectivity } from "../connectivity";
 import { imageryProbe } from "../imageryProbe";
@@ -149,10 +149,15 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
   const [regsLayer, setRegsLayer] = useRegsLayer();
   const salmon = useSalmonColour({ source, paired, statusOk, mapTab: mapTab === "map", day: mapDay });
   const salmonOffered = salmon.feed !== null && layers.effective.water === "regulations";
+  // (T213) BAIT & FLY: the same way — the release's `method` file handed over whatever the toggle says
+  const method = useMethodColour({ source, paired, statusOk, mapTab: mapTab === "map", day: mapDay });
+  const methodOffered = method.feed !== null && layers.effective.water === "regulations";
+  const regsShown: RegsLayer = regsLayer === "salmon" && salmonOffered ? "salmon"
+    : regsLayer === "method" && methodOffered ? "method" : "standard";
   const mm = useMapModes({ tab: mapTab, flowParam, horizon, zoomedOut, paired, statusOk,
                            water: layers.effective.water, groups: layers.effective.groups,
                            basemap: layers.effective.basemap, imageryUp: imagery.up,
-                           salmon: salmonOffered && regsLayer === "salmon" });
+                           salmon: regsShown === "salmon", method: regsShown === "method" });
   // Esri's credit is listed exactly while its imagery is drawn (the map's own control does the same from the style)
   const credits = useMemo(() => attribution && withImageryCredit(attribution, mm.basemap), [attribution, mm.basemap]);
   /*
@@ -174,9 +179,10 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
                             [statusOk, statusIndex, mapDay]);
   // the map labels each tile with the salmon chains on the Map tab whatever the toggle says (instant toggle)
   const salmonFeed = mapTab === "map" ? salmon.feed : null;
+  const methodFeed = mapTab === "map" ? method.feed : null;
   return { noteVisible, setZoomedOut, vintage, mixedPair, unproven, statusIndex, statusOk, lakeFeed, imagery, layers,
            flowParam, horizon, horizonChipsShown, setFlowParam, pickDay, onChooseLayer, mm, credits, cond, gauges,
-           mapStatus, salmonFeed, salmonOffered, regsLayer: salmonOffered ? regsLayer : "standard" as RegsLayer,
+           mapStatus, salmonFeed, salmonOffered, methodFeed, methodOffered, regsLayer: regsShown,
            setRegsLayer, salmonFacts: salmon.facts };
 }
 

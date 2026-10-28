@@ -11,13 +11,13 @@
  * The answer per chain and day was decided at deliver time (`pipeline/deliver/salmon.py`); nothing here reads a rule.
  */
 import { useMemo, useState } from "react";
-import type { SalmonFacts } from "@app/core";
+import type { MethodFacts, SalmonFacts } from "@app/core";
 import type { WaterSource } from "@app/data";
 import { useAsync } from "./async";
 import { sourceKey } from "./conditionsColour";
 
-/** Which regulations the Map tab paints: the provincial day's status, or DFO's salmon. */
-export type RegsLayer = "standard" | "salmon";
+/** Which regulations the Map tab paints: the provincial day's status, DFO's salmon, or (T213) bait ban / fly only. */
+export type RegsLayer = "standard" | "salmon" | "method";
 
 /** What the map is handed (`MapProps.salmon`): the release's facts and the day. */
 export interface SalmonFeedVM {
@@ -43,6 +43,32 @@ export function useSalmonColour(i: { source: WaterSource; paired: boolean; statu
   const day = useMemo(() => i.day ?? new Date(), [dayKey]);
   const feed = useMemo(() => (f && i.paired ? { facts: f, day } : null), [f, day, i.paired]);
   return { feed, facts: f };
+}
+
+/** (T213) What the map is handed (`MapProps.method`): the release's bait ban / fly only profiles and the day. */
+export interface MethodFeedVM {
+  readonly facts: MethodFacts;
+  readonly day: Date;
+}
+
+/**
+ * (T213) THE BAIT & FLY COLOURING — `useSalmonColour`'s shape exactly: the release's `method` file read ONCE per source on
+ * the Map tab, on a proven pair, after the day's status is in and WHATEVER THE TOGGLE SAYS, so the toggle is a mode change
+ * only. Null where the release ships none (cut before T213): the choice is then not offered.
+ */
+export function useMethodColour(i: { source: WaterSource; paired: boolean; statusOk: boolean; mapTab: boolean;
+                                     day: Date | null }): { feed: MethodFeedVM | null } {
+  const on = i.paired && i.statusOk && i.mapTab && !!i.source.methodFacts;
+  const [asked, setAsked] = useState<string | null>(null);
+  const key = `methodfacts:${sourceKey(i.source)}`;
+  if (on && asked !== key) setAsked(key);
+  const facts = useAsync(() => i.source.methodFacts?.() ?? Promise.resolve(null), key, asked === key);
+  const f = facts.state === "ready" ? facts.value : null;
+  const dayKey = i.day ? `${i.day.getFullYear()}-${i.day.getMonth()}-${i.day.getDate()}` : "today";
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- the day's identity is its date, not the Date object
+  const day = useMemo(() => i.day ?? new Date(), [dayKey]);
+  const feed = useMemo(() => (f && i.paired ? { facts: f, day } : null), [f, day, i.paired]);
+  return { feed };
 }
 
 /** The toggle's choice, kept for the session (Standard by default). */

@@ -1,7 +1,7 @@
 /**
  * THE PHONE'S COLOURING ENGINE (T74) — the same `Colouring` the web map runs (`colouring.ts`), fed the same way: each
  * atlas tile's sections are labelled the moment the tile is reported, with every channel's label (status, standing,
- * the lake modes, salmon). What differs is only the platform's plumbing, all of it here:
+ * the lake modes, salmon, method). What differs is only the platform's plumbing, all of it here:
  *
  *   the tile     the patched binding's `MLRNTileIds` device event (deps.md): MapLibre Native's tile REQUEST, with the
  *                tile's ids read from the same local archive — so the labels usually land before the tile is parsed.
@@ -16,7 +16,7 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DeviceEventEmitter } from "react-native";
-import { Colouring, LABEL_SOURCE_LAYERS, salmonInput, standingInput, statusInput, stockedInput, surveyInput,
+import { Colouring, LABEL_SOURCE_LAYERS, methodInput, salmonInput, standingInput, statusInput, stockedInput, surveyInput,
          type Channel, type ChannelInput, type LabelSourceLayer, type LabelTarget, type TileRenderer } from "../colouring";
 import type { MapAdapter } from "../adapters/contract";
 import type { MapProps } from "../map-props";
@@ -33,7 +33,7 @@ export interface AtlasSource {
   nativeTag(): number;
 }
 
-type Channels = Pick<MapProps, "status" | "standing" | "lakes" | "salmon">;
+type Channels = Pick<MapProps, "status" | "standing" | "lakes" | "salmon" | "method">;
 
 export interface NativeColouring {
   /** The channels' style-borne values, for `nativeStyle`. */
@@ -165,7 +165,7 @@ export function useNativeColouring(o: {
   /** One channel's input, to the engine — the web's `useChannels`, the same calls. */
   const toChannel = (channel: Channel, input: ChannelInput | null) =>
     engine.current!.set({} as never, target, renderer, channel, input, ref.current.theme);
-  const { status, standing, lakes, salmon } = o;
+  const { status, standing, lakes, salmon, method } = o;
   const statusDay = status ? readingDayOf(status.day) : 0;
   useEffect(() => toChannel("status", status ? statusInput(status) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -183,6 +183,10 @@ export function useNativeColouring(o: {
   useEffect(() => toChannel("salmon", salmon ? salmonInput(salmon) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [salmon?.facts, salmonDay, o.atlasUrl]);
+  const methodDay = method ? readingDayOf(method.day) : -1;
+  useEffect(() => toChannel("method", method ? methodInput(method) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [method?.facts, methodDay, o.atlasUrl]);
 
   const coloured = useCallback((id: number) =>
     (id >> 3) < acked.current.length && (acked.current[id >> 3]! & (1 << (id & 7))) !== 0, []);

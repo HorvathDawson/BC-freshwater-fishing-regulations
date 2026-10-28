@@ -76,7 +76,7 @@ type Data = NonNullable<MapProps["data"]>;
 
 export function Map({ at, theme, view, modes, groups, hide, show, initial, data, onPressFeature, chrome, onError,
                       onMoved, onMapPoint, onLongPress, highlight, water, waterLine, selection = "outline", marker, style, gauges,
-                      onVisible, pins, bare, fit, status, standing, lakes, salmon,
+                      onVisible, pins, bare, fit, status, standing, lakes, salmon, method,
                       basemap, marks, onPressMark, spots, onImageryError: _noTileErrors,
                       onRegion: _noPrefetch }: MapProps) {
   // `onRegion` is accepted and never called: it feeds the WEB's prefetch, and a phone holds the release installed.
@@ -148,7 +148,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
               remove: (id, key) => { void copyRef.current?.removeFeatureState({ id }, key).catch(report); } },
     // what a clear took that was not the engine's (the highlight, pushed data) is sent again by the effects below
     restore: () => { renderer.forget(); setGen((g) => g + 1); },
-    ready: styled && drawn, theme, atlasUrl: at.atlas, report, status, standing, lakes, salmon,
+    ready: styled && drawn, theme, atlasUrl: at.atlas, report, status, standing, lakes, salmon, method,
   });
   const cv = colouring.values;
   const basinKey = JSON.stringify(cv.standing?.basins ?? null);
@@ -168,7 +168,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [at.atlas, at.basemap, at.glyphs, at.sprite, at.assets, at.outside, theme, view, JSON.stringify(modes ?? {}),
      JSON.stringify(hide ?? []), JSON.stringify(show ?? []), JSON.stringify(groups ?? {}), basemap, areaKey, ceil.line, ceil.fill,
-     cv.status, cv.salmon, cv.stocked, cv.survey, basinKey]);
+     cv.status, cv.salmon, cv.method, cv.stocked, cv.survey, basinKey]);
   const images = useMemo(() => nativeImages(theme), [theme]);
   useEffect(() => { for (const e of look.errors) report(e); }, [look, report]);
 

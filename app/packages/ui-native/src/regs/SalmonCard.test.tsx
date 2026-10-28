@@ -92,15 +92,25 @@ describe("the Salmon card", () => {
   });
 });
 
-describe("the Standard / Salmon toggle", () => {
+describe("the Standard / Salmon / Bait & fly toggle", () => {
   it("a radio pair; a press sets the choice and nothing else", () => {
     const set: string[] = [];
-    const col = { regsLayer: "standard", setRegsLayer: (p: string) => set.push(p) } as unknown as MapColouring;
+    const col = { regsLayer: "standard", salmonOffered: true, methodOffered: true,
+                  setRegsLayer: (p: string) => set.push(p) } as unknown as MapColouring;
     render(<RegsLayerToggle col={col} palette={LIGHT} />);
-    const [std, sal] = [screen.getByTestId("regs-paint-standard"), screen.getByTestId("regs-paint-salmon")];
-    expect([std.getAttribute("aria-checked"), sal.getAttribute("aria-checked"), std.textContent, sal.textContent])
-      .toEqual(["true", "false", "Standard", "Salmon"]);
-    fireEvent.click(sal);
-    expect(set).toEqual(["salmon"]);
+    const [std, sal, met] = ["standard", "salmon", "method"].map((k) => screen.getByTestId(`regs-paint-${k}`));
+    expect([std, sal, met].map((e) => [e!.getAttribute("aria-checked"), e!.textContent]))
+      .toEqual([["true", "Standard"], ["false", "Salmon"], ["false", "Bait & fly"]]);
+    fireEvent.click(sal!);
+    fireEvent.click(met!);
+    expect(set).toEqual(["salmon", "method"]);
+  });
+
+  it("(T213) offers only what the release carries: no method file, no Bait & fly", () => {
+    const col = { regsLayer: "standard", salmonOffered: true, methodOffered: false,
+                  setRegsLayer: () => {} } as unknown as MapColouring;
+    render(<RegsLayerToggle col={col} palette={LIGHT} />);
+    expect(screen.queryByTestId("regs-paint-method")).toBeNull();
+    expect(screen.getByTestId("regs-paint-salmon")).toBeTruthy();
   });
 });

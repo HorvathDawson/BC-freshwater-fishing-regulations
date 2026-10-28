@@ -40,7 +40,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
   onRegion?: (regionId: string | null) => void;
 }) {
   const { route, go, browse, tab, back, opener } = nav;
-  const { flowParam, mm, layers, imagery, cond, gauges, lakeFeed, salmonFeed, mapStatus, noteVisible, setZoomedOut,
+  const { flowParam, mm, layers, imagery, cond, gauges, lakeFeed, salmonFeed, methodFeed, mapStatus, noteVisible, setZoomedOut,
           horizonChipsShown, pickDay, vintage } = col;
   const { searching, session, restore, arrive, wideSearch, closeSearch } = search;
   /**
@@ -125,6 +125,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
                      standing={cond.standing}
                      lakes={lakeFeed}
                      salmon={salmonFeed}
+                     method={methodFeed}
                      status={mapStatus}
                      // The dots belong to the Conditions tab — AND to the temperature
                      // choice, which is a question about the stations themselves and so
