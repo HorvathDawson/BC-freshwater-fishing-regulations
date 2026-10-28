@@ -23,6 +23,20 @@ describe("highlightPdf (T215)", () => {
     expect(a.get(PDFName.of("Subtype"))?.toString()).toBe("/Highlight");
     const rect = (a.lookup(PDFName.of("Rect"), PDFArray)).asArray().map((n) => (n as PDFNumber).asNumber());
     expect(rect).toEqual([36, 636, 540, 656]);
+    // (T50) and the document opens on that page, just above the mark (a phone's viewer has no `#page=`)
+    const open = doc.catalog.lookup(PDFName.of("OpenAction"), PDFArray);
+    expect(open.get(0)).toBe(doc.getPage(1).ref);
+    expect(open.get(1)?.toString()).toBe("/XYZ");
+    expect((open.get(3) as PDFNumber).asNumber()).toBe(728);
+  });
+  it("entryFirst (Android): the highlighted page is copied to the front, the whole book follows, no /OpenAction", async () => {
+    const out = await highlightPdf(await twoPages(), [{ pdf: 2, box: [36, 100, 540, 120], size: [576, 756] }],
+                                   { entryFirst: true });
+    const doc = await PDFDocument.load(out);
+    expect(doc.getPageCount()).toBe(3);
+    const hl = (i: number) => doc.getPage(i).node.lookupMaybe(PDFName.of("Annots"), PDFArray)?.size() ?? 0;
+    expect([hl(0), hl(1), hl(2)]).toEqual([1, 0, 1]);
+    expect(doc.catalog.get(PDFName.of("OpenAction"))).toBeUndefined();
   });
   it("a box off every page leaves the bytes as they were", async () => {
     const pdf = await twoPages();

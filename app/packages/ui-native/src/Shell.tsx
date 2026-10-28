@@ -56,7 +56,8 @@ export type { ShellProps } from "./shell/props";
 export function Shell(p: ShellProps) {
   const { source, palette, theme, tiles, spots = [], onSaveSpot, weather, feed, photos, loader = null, locate = null,
           menuInfo, checkRelease = null, releaseNamed = null, hydat } = p;
-  const nav = useShellNav({ source, loader, systemBack: p.systemBack ?? null, initialRoute: p.initialRoute });
+  const nav = useShellNav({ source, loader, systemBack: p.systemBack ?? null, initialRoute: p.initialRoute,
+                           onRoute: p.onRoute });
   /** (T186) the map's region reports drive the web prefetch; undefined (a phone): the map is not asked */
   const onRegion = useReleasePrefetch(p.prefetch ? loader : null);
   const { route, go, tab, frame, adding, openSpot, back, backLayers } = nav;

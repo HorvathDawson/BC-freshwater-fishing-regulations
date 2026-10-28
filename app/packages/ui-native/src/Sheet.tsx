@@ -17,6 +17,7 @@ import { TYPE } from "./type";
 import { GUTTER, SHEET_DIALOG, SPACE, type Palette } from "./theme";
 import { NATIVE_DRIVER, SHEET_MOTION, useReducedMotion } from "./motion";
 import { hitProps } from "./regs/hit";
+import { BottomInset } from "./WindowInset";
 
 /**
  * (T40) "Done" is a short word (about 34 × 21 at the body size): grown to 44 × 44 to the touch.
@@ -229,7 +230,7 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
           Square, a 1.5px rule in ink, and the grabber is a flat bar rather than a lozenge.
         */}
         <Animated.View testID="sheet-panel" onLayout={(e) => { height.current = e.nativeEvent.layout.height; }} accessibilityViewIsModal
-                       style={{ backgroundColor: palette.card, paddingBottom: 28,
+                       style={{ backgroundColor: palette.card,
                                 borderTopWidth: 1.5, borderColor: palette.ink,
                                 opacity: reduced ? dim : 1, transform: [{ translateY: Animated.add(y, slide) }] }}>
           <GestureDetector gesture={pull} touchAction="none">
@@ -262,6 +263,9 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
                 </GestureDetector>
               </GestureDetector>
             : shown.children}
+          {/* (T50) 28 px below the content, or the window's bottom inset where that is taller: a Modal is its own window,
+              drawn edge-to-edge on Android, so its foot went under the 3-button bar */}
+          <BottomInset min={28} />
         </Animated.View>
       </GestureHandlerRootView>
     </Modal>

@@ -118,9 +118,20 @@ Open (listed, not fixed):
   (Chilliwack p.22). No PDF app → `openBook` falls back to the plain link. (t50b-pdf-android-viewer)
 - Walked: the size box on Chilliwack part 2 (boxed tier, sticky header bounded to the box) and the regs place row at
   font scale 1.3 (two lines only where the name does not fit; Today stays right). (t50b-sizebox*, t50b-fontscale)
-Still open:
-- Sheets are Modals (their own window): in 3-button mode the sheet's 28 dp bottom padding lies under the nav bar (the
-  content clears it; t50b-sheet-3button). Fix inside `Sheet` if a sheet ever ends in a button.
-- A font-scale change restarts the activity (`fontScale` not in the manifest's `configChanges`) and the app reopens on the
-  Map, losing the open water.
-- Landscape and the back table (step 4) still not walked.
+Then fixed (2026-10-27 late; shots `T50-shots/t50c-*`):
+- ANDROID PDF OPENS ON THE ENTRY: Drive's viewer ignores `#page=` and /OpenAction, so the Android copy carries the
+  highlighted page(s) FIRST and the whole book after them (`highlightPdf(…, { entryFirst })`); web/iOS copies are
+  unchanged apart from an /OpenAction on the entry's page (honoured where a viewer reads it). (t50c-pdf-entry-first)
+- SHEET / MENU PAGE IN THEIR OWN WINDOW: a Modal is drawn edge-to-edge, so `ui-native/src/WindowInset` (native:
+  safe-area-context, web: the minimum) gives the sheet's foot max(28 px, the bottom inset) and a menu page every edge.
+  Clear of the 3-button bar. (t50c-sheet-3button-fixed, t50c-menupage-3button, t50c-capture-3button)
+- FONT-SIZE / DISPLAY-SIZE CHANGE KEEPS THE PLACE: Android recreates the activity; the JS lives on, so App.tsx holds the
+  Shell's last route (`onRoute`) and a remount opens there (back still works from it). Declaring `fontScale` handled
+  was tried and dropped: the activity stayed but Fabric kept the old text measurements (t50c-fontscale-inplace-stale).
+  (t50c-recreate-keeps-place)
+- LANDSCAPE: `app.json` locks portrait; rotating the emulator leaves the app upright. Nothing to fix.
+- BACK TABLE on the device (system back key): More page → More tab → Map → leaves; search (keyboard first, then
+  search; the typed text stays in the field); a town's list → all results; a water opened from search → the map, search
+  closed, framed on the water; the day sheet closes, the day kept; water views are lateral (back leaves the water);
+  capture's first step → Spots; Spots → Map. All as the table says.
+Still open: the regs page's scroll position and tab are not kept across a recreation (the water and its view are).

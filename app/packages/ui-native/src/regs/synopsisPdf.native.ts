@@ -32,7 +32,8 @@ export async function loadSynopsis(s: SynopsisSource, fetchImpl: typeof fetch = 
 /** Open the synopsis with `boxes` highlighted. Throws when it cannot: the caller falls back to the plain link. */
 export async function openHighlighted(s: SynopsisSource, _pdf: number, boxes: readonly SourceBox[],
                                       os: string = Platform.OS): Promise<void> {
-  const out = await highlightPdf(await loadSynopsis(s), boxes);
+  // Android's viewers open a file at its first page whatever it asks (`#page=`, /OpenAction): the entry goes first there
+  const out = await highlightPdf(await loadSynopsis(s), boxes, { entryFirst: os === "android" });
   const f = new File(Paths.cache, "synopsis-open.pdf");
   if (f.exists) f.delete();
   f.create();

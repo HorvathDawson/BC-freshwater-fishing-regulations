@@ -30,7 +30,7 @@ import { fillDayFlow, geometHydat, openLayerStore, openLikeStore, openSalmonFeed
          type DayFlowAnswer, type Spot } from "@app/data/spots";
 import { FishSpinner, setSynopsisSource, Shell, THEMES, type ThemeName } from "@app/ui-native";
 import { LayoutWidthContext, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, useReleaseBoot, useSpots, type MapTiles,
-         type PairingInput, type SpotPhotos, type StatusSource } from "@app/ui";
+         type PairingInput, type Route, type SpotPhotos, type StatusSource } from "@app/ui";
 import { PHOTO_SOURCES, pickPhoto } from "./pickPhoto";
 import { systemBack } from "./systemBack";
 import { locate } from "./locate";
@@ -51,6 +51,15 @@ import { ADIPOSE_IMAGES, FISH_IMAGES } from "./fishImages.generated";
  * tab, sheet, angler and palette the browser tools put on screen. The angler is the session's profile (D8), set here.
  */
 const START = startLink();
+/**
+ * (T50) WHERE THE READER WAS, outside React. Android recreates the activity on a configuration change the manifest does
+ * not take in place (the system font size, the display size): the JS runtime lives on but the React tree is mounted
+ * again, and it opened on the Map, the water the reader had open gone. The Shell tells every move here; a remount opens
+ * where it was. (Declaring `fontScale` handled instead left text laid out at the old size: Fabric's text measurements
+ * do not hear the change.) A cold start begins empty, from the start link.
+ */
+const place: { route: Route | null } = { route: null };
+const holdPlace = (r: Route) => { place.route = r; };
 if (START?.who) setAnglerProfile(START.who);
 
 /**
@@ -195,7 +204,7 @@ export default function App() {
                fishImages={FISH_IMAGES}
                adiposeImages={ADIPOSE_IMAGES}
                systemBack={systemBack}
-               initialRoute={START?.route} initialDay={START?.day ?? null} regsStart={START?.regs ?? null}
+               initialRoute={place.route ?? START?.route} onRoute={holdPlace} initialDay={START?.day ?? null} regsStart={START?.regs ?? null}
                locate={locate}
                weather={weather}
                photos={photos}

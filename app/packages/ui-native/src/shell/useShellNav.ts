@@ -3,7 +3,7 @@
  * navigation, read once here and handed down (T62 3.4).
  */
 import { waterExit } from "@app/core";
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { Platform } from "react-native";
 import type { ItemId, WaterSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
@@ -14,8 +14,9 @@ import { TABS, type TabKey } from "../TabBar";
 import type { WaterViews } from "../ViewSwipe";
 import { isTouchDevice } from "../touchDevice";
 
-export function useShellNav({ source, loader, systemBack, initialRoute }: {
+export function useShellNav({ source, loader, systemBack, initialRoute, onRoute }: {
   source: WaterSource; loader: ReleaseLoader | null; systemBack: SystemBack | null; initialRoute?: Route;
+  onRoute?: (r: Route) => void;
 }) {
   /*
    * THE ROUTE (P13): what is on screen is ONE value, moved by one reducer (`@app/ui` route.ts). The tab, the water
@@ -23,6 +24,10 @@ export function useShellNav({ source, loader, systemBack, initialRoute }: {
    * Water mode keeps the browse state underneath (`from`), so back restores it whole.
    */
   const [route, go] = useRoute(initialRoute);
+  // (T50) told of every move, so an app can reopen here after Android recreates its activity
+  const tell = useRef(onRoute);
+  tell.current = onRoute;
+  useEffect(() => { tell.current?.(route); }, [route]);
   const browse = route.mode === "browse" ? route : route.from;
   const tab: TabKey = browse.tab;
   const frame = waterFrame(route);

@@ -61,6 +61,9 @@ export interface ShellProps {
   loader?: ReleaseLoader | null;
   /** Where the app opens (a deep link, a test); the map tab when absent. Read once, on mount. */
   initialRoute?: Route;
+  /** (T50) every route the Shell moves to, for an app that must put the reader back after Android recreates the
+   *  activity (a font-size or display change) — the JS outlives the React tree, so the app holds the last one. */
+  onRoute?: (r: Route) => void;
   /** (T41) the day it opens on (the web start link); today when absent. Read once, on mount. */
   initialDay?: Date | null;
   /** (T41) where the first water's Regulations page starts (the web start link): handed to that page once. */

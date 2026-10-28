@@ -99,7 +99,8 @@
         "@react-native-community/netinfo",
         "pdf-lib",
         "expo-file-system",
-        "expo-intent-launcher"
+        "expo-intent-launcher",
+        "react-native-safe-area-context"
       ],
       "banned": [
         "react-dom",

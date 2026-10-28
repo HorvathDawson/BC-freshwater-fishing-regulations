@@ -4,7 +4,8 @@
  *
  * A back layer while open (G1): the ‹, Android's back (the Modal's onRequestClose) and the browser's back all close it.
  */
-import { Modal, Pressable, SafeAreaView, ScrollView, Text, View } from "react-native";
+import { Modal, Pressable, ScrollView, Text, View } from "react-native";
+import { WindowInsets } from "../WindowInset";
 import { MENU_WORDS } from "@app/core";
 import { useBackLayer, useLayoutClass } from "@app/ui";
 import { IconText } from "../icons";
@@ -25,7 +26,8 @@ export function MenuPage({ open, title, onBack, palette, children, scroll = true
     ? { width: "100%" as const, maxWidth: MORE_WIDE.page, alignSelf: "center" as const } : null;
   return (
     <Modal visible={open} animationType="slide" onRequestClose={requestClose}>
-      <SafeAreaView style={{ flex: 1, backgroundColor: palette.card }}>
+      {/* (T50) its own window: clear of the bars on every edge (RN's SafeAreaView padded iOS only) */}
+      <WindowInsets style={{ flex: 1, backgroundColor: palette.card }}>
         <View testID={testID} style={{ flex: 1 }}>
           <MenuPageHead title={title} onBack={onBack} palette={palette} backLabel={backLabel} column={column} />
           {scroll
@@ -35,7 +37,7 @@ export function MenuPage({ open, title, onBack, palette, children, scroll = true
               </ScrollView>
             : <View style={{ flex: 1, ...column }}>{children}</View>}
         </View>
-      </SafeAreaView>
+      </WindowInsets>
     </Modal>
   );
 }

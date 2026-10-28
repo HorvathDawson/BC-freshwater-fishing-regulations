@@ -135,8 +135,8 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
     the same colouring checks on a real iPhone, plus the location system prompt on the tap (pre-granted on the
     simulator) and whether the gauge pill's slightly wider padding on iOS is acceptable.
   - Android on a real phone (T50, 2026-10-27; emulator-verified): the rule-book link opens the highlighted PDF in your
-    PDF app (scroll to the entry's page — viewers ignore the page number); nothing sits under the status bar or the
-    gesture / 3-button bar.
+    PDF app with the entry's page FIRST and the whole book after it — say if that reads right; nothing sits under the
+    status bar or the gesture / 3-button bar; changing the system font size keeps the water you had open.
 - **Sign-off walk** at the end (T87) before app/design is deleted.
 
 - **SEO, v1 pages (2026-10-27):** keep your existing Search Console property; when the new site is live add the new sitemap

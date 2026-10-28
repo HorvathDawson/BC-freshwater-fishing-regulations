@@ -170,7 +170,9 @@ Expo project starts failing in ways whose stack traces point nowhere. `npx expo 
   (`~5.7.0`; pinned in the root `overrides`, native code). (T50, owner 2026-10-27) The system bars' real insets: Android
   draws edge-to-edge (API 35), so the status bar sat over the top bar and the gesture handle over the tab bar, and RN's own
   `SafeAreaView` pads iOS only (and is deprecated). ONE place reads them: `apps/mobile` App.tsx (`SafeAreaProvider` +
-  its `SafeAreaView` round the whole app); components never read insets. On web it pads by the browser's `env()`.
+  its `SafeAreaView` round the whole app); components never read insets — except a surface in its OWN window (a
+  `Modal`: the sheet's foot, a menu page), through `ui-native/src/WindowInset` (native only; the web side pads nothing).
+  On web the app frame pads by the browser's `env()`.
 - `expo-intent-launcher` — **57.0.1** (the SDK 57 line; `bundledNativeModules` names `~57.0.1`). (T50, owner 2026-10-27)
   Android only: hands the highlighted synopsis copy (T215) to the reader's PDF app as a `content://` URI with a read
   grant — `Linking` refuses `file://` and sends no grant, and `Share` drops `url` on Android. Used ONLY by
