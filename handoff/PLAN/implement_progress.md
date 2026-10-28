@@ -11,6 +11,14 @@ Lake inside Region 7B, 7-57), Q140, Q62/Q63 (size words: "Release any lake trout
 regs-release dev fixture r-e44d3d200d64, golden slices). Owner shots: app-integration/owner-1028-shots/. Open: 20 regs
 parity tests (sheets/grouplines/keep/plainrow/tree) compare the app against a golden still carrying the pre-Q62/Q63
 wording ("Keep only ...", "or less, or 90 cm or longer"); the prototype golden needs the new words before they pass.
+Verification follow-up (same day): (1) FIXED 9517ff8e — prototype snapshot + golden.json moved to the Q62/Q63 words by
+one mechanical substitution; conformance/src/regs 45/45 files, 4138 tests green. Owner runs sync.mjs to confirm (Claude
+is refused). (2) Beattie: no defect — lake trout "release every one" is Zone B's "Lake trout of any size, Sept 15-Oct 31"
+(p.64) on Oct 28; the lake's row (p.65) names no lake trout; the 30–50 cm card is the Jun 15 reading. (3) Coquitlam
+Q140: no defect — Mary Hill → Lougheed (part 2 of 3) touches no no-access land (its magenta is the part halo; no-access is
+grey dashed); the banner shows on Lougheed → outlet (`?regs=gnis:19986&part=0`; URL `part` is the part index, not the
+ordinal — the verifier's part1/part3 shots were both the mouth). (4) Whonnock 08MH100: ECCC Discontinued (1960–64,
+level only, REAL_TIME 0), not in the live feed by design; owner call in OWNER-TODO. Spot-check rows 6/8/9 updated.
 
 (Earlier state, kept below.)
 

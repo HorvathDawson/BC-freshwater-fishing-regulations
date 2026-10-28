@@ -20,6 +20,14 @@ with the default Claude uses until you answer). Newest first inside each section
   outreach by hand (T197). Plan: handoff/PLAN/seo/PLAN.md sections 4 and 7.
 
 ## Reviews
+- **Release r-a871447c48ba verification follow-ups (2026-10-28):** (1) run `node app/design/regs-v11/port/sync.mjs`
+  (Claude may not): the snapshot + golden carry the Q62/Q63 words (9517ff8e); sync should reproduce golden.json's text
+  exactly; pin geometry may move where the longer words wrap (then re-pin harness.parity / exclusions and re-run
+  `pnpm -C app exec vitest run conformance/src/regs`). (2) Whonnock Lake's gauge 08MH100 closed in 1964 (ECCC
+  "Discontinued", 4-year level-only record): keep it as the lake's gauge (Conditions will always say "not reporting")
+  or drop it in the gauge review and re-promote? (3) Beattie Lake 7-57 prints "Trout daily quota = 1" (p.65), curated as
+  trout/char; the book's species table (p.80) lists char separately. Q87 assumed "Trout" includes char (lake/bull
+  trout inside the 1): confirm.
 - **T224 name variants (2026-10-28):** local sources name FWA lines the app has no name for (Kilgard Creek and more):
   ticket T224 "Findings" (data: `handoff/PLAN/curation-review/name-variants/candidates.json`). Two calls: (1) does an accepted
   variant become a SEARCH ALIAS only, or also the DISPLAY NAME of an FWA-unnamed water (today any alias on an unnamed
