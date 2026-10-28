@@ -18,12 +18,14 @@ const committed = JSON.parse(readFileSync(join(APP, "seo/legacy-crosswalk.json")
 
 describe("the committed crosswalk", () => {
   it("covers every v1 path exactly once, and nothing else", () => {
+    // the v1 site's path list is frozen (seo/legacy-paths.txt), not a release's count
     expect(paths.length).toBe(19331);
     expect(new Set(paths).size).toBe(paths.length);
     expect(Object.keys(committed).sort()).toEqual([...paths].sort());
   });
   it("resolves almost every path to an item (the rest to a region or the home page)", () => {
     const items = paths.filter((p) => Array.isArray(committed[p]) && (committed[p] as string[]).some((c) => !/^r\d+$/.test(c)));
+    // a floor on the frozen v1 list's resolved share, not a release count
     expect(items.length).toBeGreaterThan(19000);
   });
 });

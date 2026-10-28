@@ -5,8 +5,8 @@
  * core builds from the same store's inputs, the rule keys from the store's own rule set — never a hand copy.
  *
  * The ticket's own examples (handles 1408, 64035, 59506) are not in the committed fixture (it was cut for the golden
- * states); they run on the live release in conformance/src/regs/unnamed.release.test.ts. Here: 634 (Region 1, bound by
- * three tributary rules of named waters) and the fixture's first unnamed section answered by its region's base alone
+ * states); they run on the live release in conformance/src/regs/unnamed.release.test.ts. Here: 638 (was 634 until T220 renumbered the sample; Region 1, bound by
+ * tributary rules of named waters) and the fixture's first unnamed section answered by its region's base alone
  * (`baseOnlyUnnamed`, chosen by that property: the fixture keeps taps.json's evenly spaced unnamed sample, whose handles
  * move with every build — T56 / r-2f33edfe8452 took 817454 out of it for 817700).
  */
@@ -25,11 +25,11 @@ afterEach(cleanup);
 
 const DAY = new Date(2026, 9, 10, 12);   // Sat Oct 10
 const HARRIS = "Harris Creek";
-/** The fixture source, with flow pointers for the tapped reach: 634 → 9001 (unnamed) → 9002 (a named water). */
+/** The fixture source, with flow pointers for the tapped reach: 638 → 9001 (unnamed) → 9002 (a named water). */
 function sourceFlowing(): WaterSource {
   const base = makeFixtureSource();
   return { ...base,
-    traceToGauge: async (from: SectionId) => (from === 634 ? [634, 9001, 9002] as SectionId[] : [from]),
+    traceToGauge: async (from: SectionId) => (from === 638 ? [638, 9001, 9002] as SectionId[] : [from]),
     waterFor: async (s: SectionId) => (s === 9002 ? { item: "gnis:9" as ItemId, name: HARRIS, kind: "stream" } : base.waterFor(s)),
   };
 }
@@ -71,9 +71,9 @@ async function open(handle: number, source: WaterSource = makeFixtureSource(), w
 }
 
 describe("(T53) <WaterScreen> for an unnamed reach: the store's page for the tapped section", () => {
-  it("634, bound by tributary rules: the store's name, \"Tributary of …\", and the closure the tributary rule makes", async () => {
-    const { page, trib } = await storePage(634, HARRIS);
-    await open(634, sourceFlowing());
+  it("638, bound by tributary rules: the store's name, \"Tributary of …\", and the closure the tributary rule makes", async () => {
+    const { page, trib } = await storePage(638, HARRIS);
+    await open(638, sourceFlowing());
     await waitFor(() => expect(screen.getByTestId("regs-place").textContent).not.toBe(""));
     const header = screen.getByTestId("regs-header");
     // the header: the store's place name (core wording), the downstream water in the label slot, no Map / Parts action
@@ -119,9 +119,9 @@ describe("(T53) <WaterScreen> for an unnamed reach: the store's page for the tap
       .toBe(w.heading + (w.scope ?? "") + w.items.map((x) => plain(x.text)).join(""));
   }, 30_000);
 
-  it("634 on a desktop window: the same name and \"Tributary of …\" over the side column and the page", async () => {
-    const { page } = await storePage(634, HARRIS);
-    await open(634, sourceFlowing(), 1400);
+  it("638 on a desktop window: the same name and \"Tributary of …\" over the side column and the page", async () => {
+    const { page } = await storePage(638, HARRIS);
+    await open(638, sourceFlowing(), 1400);
     await waitFor(() => expect(screen.getByTestId("regs-place").textContent).not.toBe(""));
     const side = screen.getByTestId("regs-side");
     expect([within(screen.getByTestId("regs-header")).getByRole("heading").textContent, screen.getByTestId("regs-place").textContent,

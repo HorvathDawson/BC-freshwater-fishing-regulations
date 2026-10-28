@@ -203,7 +203,7 @@ describe("one water screen, whichever map you tapped", () => {
   });
 
   it("(T53) on the regs fixture release: an unnamed reach is titled with the store's name on both its views", async () => {
-    await mount("conditions", 634 as SectionId, openRegsFixture());
+    await mount("conditions", 638 as SectionId, openRegsFixture());
     await tapMap();
     const title = () => screen.queryAllByTestId("water-title").map((t) => t.textContent).join(" | ");
     await until(() => panel() !== "no panel" && title() !== "");
@@ -213,7 +213,7 @@ describe("one water screen, whichever map you tapped", () => {
     // the Regulations view's name row carries its date pill too: the heading is the name
     expect([cond, within(screen.getByTestId("regs-header")).getByRole("heading").textContent,
             screen.getByTestId("regs-on").textContent]).toEqual([
-      ["Unnamed stream · Region 1", "panel for 634 at 49.1"], "Unnamed stream · Region 1", "regs on null part null"]);
+      ["Unnamed stream · Region 1", "panel for 638 at 49.1"], "Unnamed stream · Region 1", "regs on null part null"]);
   }, 40_000);
 });
 

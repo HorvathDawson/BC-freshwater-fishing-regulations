@@ -40,11 +40,11 @@ describe("regs-web states", () => {
       if (top?.item !== s.item || top.part !== s.part || l.day?.getFullYear() !== y || l.day.getMonth() !== m! - 1 || l.day.getDate() !== d
           || l.regs.tab !== "keep" || l.regs.sheet !== null || l.who !== null || l.theme !== null) wrong.push(id);
     }
-    // (T115, T67, T183, 2026-10-27 x18p3) 126: the golden's 134 less the 8 whose part the release re-cut (taps.json `gone`)
-    expect({ n: IDS.length, protos: protos.size, apps: apps.size, wrong }).toEqual({ n: 126, protos: 126, apps: 126, wrong: [] });
+    // (T115, T67, T183, T220) 124: the golden's 134 less the 10 whose part the release re-cut (taps.json `gone`; T220 added Dean x13p2, Kootenay x9p2)
+    expect({ n: IDS.length, protos: protos.size, apps: apps.size, wrong }).toEqual({ n: 124, protos: 124, apps: 124, wrong: [] });
     expect([...IDS, ...GONE].sort()).toEqual(Object.keys(G.states).sort());
     // (T183) the Fraser's gone states' reasons are T183's now (a straddling piece carries both regions' rules again)
-    expect(() => stateOf(GONE[0]!)).toThrow(/has no part in the store: T183/);
+    expect(() => stateOf("x15p14_1010")).toThrow(/has no part in the store: T183/);
   });
 
   it("the tools' appKeyOf is core's over every golden sheet key of every state, and the start link accepts each", () => {
