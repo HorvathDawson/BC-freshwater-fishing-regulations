@@ -82,7 +82,11 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   the printed MU; if you know where any is, the proposal file `handoff/PLAN/curation-review/t89-awaiting-water.json`
   lists the leads and the fix path.
 - **Run timing (T162, data + plan):** read `handoff/PLAN/runtiming/PLAN.md` and say go or not for the app; Q144
-  (steelhead first, passage on a paler ramp, its own layer) and the release total (~14.92 of 15 MB with `runs`).
+  (steelhead first, passage on a paler ramp, its own layer). The release total no longer blocks it (T182: 15 MB cap →
+  per-file gates + a web cold-load gate; the total is a 20 MB offline backstop, 14.90 MB today).
+- **T182 caps (built with defaults, veto if wrong):** offline total 20 MB (was 15); cold-load gate 3.8 MB. Option: read
+  the Salmon / Bait & fly files only when the toggle asks → every web visit −705 kB, but the toggle waits a fetch
+  (your 10-27 "instant toggle" rule; kept as is, the files now load after first paint).
 - **Scope and big rebuilds:** Q10 imagery corridor · Q32 salmon plan · Q142 Shuswap lake rings.
 - **Things only you can do or know:** Q114 the 30-entry curation pilot · Q4 slough marks (review page) · Q126 were you
   on Level? · Q119 audit references · Q30 Atnarko campsite signs · Q9 phone testing · Q26 hosting/app name ·

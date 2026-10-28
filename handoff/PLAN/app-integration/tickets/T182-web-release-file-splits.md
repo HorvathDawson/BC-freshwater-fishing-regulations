@@ -1,6 +1,6 @@
 # T182 — Release file splits for the web's first search, tap and Conditions (from T129)
 
-Status: PARTIAL (134a859c) — code + tests in; the first split release and the walk's re-cut are the owner's runs (Outcome).
+Status: DONE (afbd6d79, 715ecc46, 00ad9565) — split files live since r-f7faa483d2b1; caps re-defined per file + cold load (2026-10-28).
 Source: T129's measured walk on r-bb4331929428 (its ticket has the byte table) — proposals that change the
 release format, so not done there.
 
@@ -86,3 +86,38 @@ conditions), the first search nothing (core prefetched), Conditions conditions +
 walk, not the other way.
 
 - 2026-10-27: walk re-cut on the live split release (`request-walk.pin.json`, 31 moments). Measured: neither walk tap reads `geo` (only with an access note), so `release-budget.test.ts` treats `geo` as a conditional file of `first_tap`; the contract still prices it (worst case).
+
+## Outcome (2026-10-28) — DONE
+
+**The cap, re-defined** (00ad9565). The release total was the only size cap that bit (14.90 of 15 MB after T213), but no web
+visitor fetches the whole release. Now:
+- every file the contract names has its own gzip gate (`build.SIZE_GATES`; a file with none fails the release, so T199
+  runs / T200 stocking / T201-T218 depth must state theirs). New gates ~10-15 % over r-bda3fea28838: water 2.50 MB,
+  near 2.25, climate 1.65, regs-sid 1.40, conditions 0.95, down 0.72, geo 0.70, flow-area 0.22.
+- a `cold_load` web moment (`contract.WEB_BUDGET`): what every visit downloads unasked = first paint + the idle prefetch
+  (core, largest region file) + the Salmon / Bait & fly files. 3,378,096 B of a 3.8 MB gate.
+- the total becomes `OFFLINE_GATE` = 20 MB (what a phone holds beside ~450 MB of tiles + basemap): a runaway backstop.
+  14,896,664 B today → 5.1 MB headroom (was 0.10 MB).
+
+**Found by the re-cut walk:** T211/T213's `salmon` + `method` (705 kB) were fetched WITH first paint (first paint 1,733 kB
+in the walk vs its 1.15 MB gate; the pin predated them). They now wait for the idle prefetch (`useReleasePrefetch`
+`onIdle` → `settled` → `useSalmonColour` / `useMethodColour`): first paint 1,027.9 kB again; the toggle stays instant
+(files still read before any toggle). A phone is unaffected (settled from the start; same files, installed).
+
+**Runs:** deliver via heavy.sh → r-bda3fea28838 again (byte-identical: no input changed). test_release on a real build 23/23,
+release-budget 10/10 (unfiltered), prefetch + salmonColour hook tests; taps.py + regs-fixture re-cut: no change. Web on
+:39218: cold load, Salmon / Standard (bait+fly marks), Conditions, a water page (Harrison, salmon card) all render.
+
+| moment (r-bda3fea28838, gz) | bytes | gate |
+|---|---:|---:|
+| first paint | 1,026,939 | 1,150,000 |
+| cold load (paint + prefetch + colourings) | 3,378,096 | 3,800,000 |
+| first search | 1,217,943 | 1,400,000 |
+| first tap named / unnamed | 4,656,925 / 5,886,026 | 5,200,000 / 6,600,000 |
+| Conditions | 996,666 | 1,150,000 |
+| offline total | 14,896,664 | 20,000,000 |
+
+Browser cold load (Playwright, fresh context, release files + wasm): 3.94 MB before → 4.07 MB after, same files; what moved
+is WHEN (salmon + method at ~1.05 s with the prefetch, not at paint). Not fixed, noted: the dev map fetches the mask
+(`bc_outside.geojson`, 63 kB) 2-4× per load (the dev server sends no Cache-Control; R2 does), and `feed:index` 355 kB raw →
+T86. Owner option (OWNER-TODO): read salmon/method on the toggle instead → cold load −705 kB, toggle no longer instant.

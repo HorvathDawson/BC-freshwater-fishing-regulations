@@ -3,7 +3,14 @@
 Restart here. Update this file after EVERY step: what is done, what is running, and the exact next action.
 Logs from timing runs live in the session scratchpad, which a reboot wipes. The numbers that matter are copied here.
 
-## CURRENT STATE (2026-10-27, late night — checks green + T214 done)
+## CURRENT STATE (2026-10-28 — T182 done)
+
+LIVE: r-bda3fea28838 (T182's deliver reproduced it byte-for-byte). T182 (00ad9565): every release file has its own gzip
+gate, a `cold_load` web gate (3,378,096 of 3.8 MB), and the 15 MB total is now `OFFLINE_GATE` 20 MB (14.90 MB, 5.1 MB
+headroom for T199/T200/T201). Salmon + method now load after the idle prefetch (first paint 1.73 → 1.03 MB on the walk);
+request-walk pin re-cut. Note: another lane has uncommitted Shell/useMapColouring/salmonColour edits (method → marks).
+
+## (earlier) CURRENT STATE (2026-10-27, late night — checks green + T214 done)
 
 LIVE: r-f7faa483d2b1 (T213's deliver; holds every committed reach/deliver input, so NO new release was cut). T214 item 3
 (33775c57, 61fb25a7): part halo = full outline, other parts dim 0.25; web light+dark verified, T214 DONE. Check reds fixed
