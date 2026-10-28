@@ -93,5 +93,13 @@ Tests: `test_tidal_cut.py` (12), `test_review_tidal_proposals.py` (8). Preview o
 
 Left for Phase 2 / later: the review app's `reuse._tidal` still reads the rows only (its backend reloads on edit
 while the owner marks — change it after); the Proposals tab shows the new kinds without words; RULINGS K7/K8/C-2
-text once built; tiles still draw the tidal piece (grey, as Nitinat) — dropping it from the tile layers is a
-separate call.
+text once built.
+
+### Phase 1b — off the map (owner 2026-10-28, decisions.md)
+The tidal pieces are NOT drawn: the tile export skips every section of the reach run's own set
+(`tiles/tidal.py` `tidal_pieces` = `tidal_cut_owner` on the atlas), lists them in `undrawn.json` (`tidal`), and the
+bundle proves tiles and reach agree (`bundle.undrawn.tidal_problems`; gauges on a removed piece are printed,
+`tidal_gauges`). The new `tidal_water` tile layer = the DFO `tidal_boundary` polygon + each removed piece's footprint
+the polygon misses; the app draws it (subtle teal, under the water) and a tap opens "Tidal water — DFO rules"
+(253850b9: `tidalSheet`, `TidalSheet`, `pressTidal`; tap order obstacle → water → tidal). Tiles key holds the tidal
+split ids. Tests: `test_tidal_cut.py` (+3), tile inventory / feature-id / stage-key tests.

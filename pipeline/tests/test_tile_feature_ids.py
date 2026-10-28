@@ -18,6 +18,7 @@ import re
 from pipeline.deliver.tiles import basins as B
 from pipeline.deliver.tiles import export as E
 from pipeline.deliver.tiles import obstacles as O
+from pipeline.deliver.tiles import tidal as TID
 from pipeline.deliver.tiles.layers import ALL, BY_NAME
 
 
@@ -47,6 +48,8 @@ EXPORTERS = {
     "basin": B.export_basins,
     # (T173) the record is built by `obstacles.build`; `export_obstacles` writes it through `_writer`
     "obstacle": O.build,
+    # (T166) the DFO tidal polygon + the removed tidal pieces' footprints (`tiles/tidal.py`)
+    "tidal_water": TID.export_tidal,
 }
 
 

@@ -134,7 +134,8 @@ class Owners:
         return display(self.name.get(sec) or node.display_name)
 
 
-def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None) -> dict:
+def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None,
+                   tidal: frozenset = frozenset(), tidal_geoms: list | None = None) -> dict:
     """Flowing water, from the geometry sidecar: every stream LINE, and the route through a
     polygon that is a STREAM's own (`Owners.kind`: a river's wide reach, a slough — the registry
     folded them into their water, `registry.flowing`), written to the `stream` layer under the
@@ -192,9 +193,18 @@ def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None) 
     lowered = sum(1 for s, z in run_zoom.items()
                   if z < ladder.zoom_for_magnitude(graph.nodes[s].stream_magnitude, spec.minzoom))
     print(f"  side channels: {len(run_zoom):,} section(s) in runs, {lowered:,} drawn earlier to match their run")
+    dropped_tidal = 0
     for sec, g in geoms.items():
         node = graph.nodes.get(sec)
         if node is None:
+            continue
+        if sec in tidal:
+            # TIDAL WATER IS NOT DRAWN (T166, owner 2026-10-28): the piece below a tidal boundary comes off
+            # the map; its footprint joins the `tidal_water` area (`tiles/tidal.py`), and `undrawn.json`
+            # names it (layer `tidal`) for the bundle's proof.
+            dropped_tidal += 1
+            if tidal_geoms is not None:
+                tidal_geoms.append(g)
             continue
         # OUTSIDE BC IS NOT DRAWN AT ALL.
         #
@@ -263,7 +273,8 @@ def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None) 
         }, run_zoom.get(sec) or ladder.zoom_for_magnitude(node.stream_magnitude, spec.minzoom))
     n, n_ul = close(), ul_close()
     print(f"  stream         {n:>9,}"
-          + (f"  ({dropped_outside:,} outside BC, not drawn)" if dropped_outside else ""))
+          + (f"  ({dropped_outside:,} outside BC, not drawn)" if dropped_outside else "")
+          + (f"  ({dropped_tidal:,} tidal, not drawn)" if dropped_tidal else ""))
     print(f"  under_lake     {n_ul:>9,}"
           + (f"  ({dropped_routes:,} dropped: longer than "
              f"{_MAX_ROUTE_OVER_DIAGONAL:g}x their own waterbody)" if dropped_routes else ""))
@@ -292,7 +303,8 @@ def wetland_is_drawn(nid: str, node, owners: "Owners") -> bool:
     return bool((node.display_name or "").strip() or node.name_tuples)
 
 
-def export_waterbodies(build_dir: Path, gpkg: str, out_dir: Path) -> dict:
+def export_waterbodies(build_dir: Path, gpkg: str, out_dir: Path, *, tidal: frozenset = frozenset(),
+                       tidal_geoms: list | None = None) -> dict:
     """Standing water — from the graph, exactly like streams.
 
     Every waterbody in the province is now an edgeless node carrying its FWA polygon as sidecar
@@ -330,6 +342,11 @@ def export_waterbodies(build_dir: Path, gpkg: str, out_dir: Path) -> dict:
         if nid in owners.ghosts:
             ghosts += 1
             continue
+        if nid in tidal:                                    # T166: off the map, into `tidal_water`
+            g = geoms.get(nid)
+            if tidal_geoms is not None and g is not None and not g.is_empty:
+                tidal_geoms.append(g)
+            continue
         if kind == "wetland" and not wetland_is_drawn(nid, node, owners):
             undrawn.append(sid[nid])
             continue
@@ -363,7 +380,10 @@ def export_waterbodies(build_dir: Path, gpkg: str, out_dir: Path) -> dict:
         "$comment": "Section handles the tile export did not draw on purpose (T64: unnamed wetlands "
                     "in no item, bound only by zone / area-only rules). Read by the bundle build "
                     "(pipeline.deliver.bundle.undrawn), which refuses one a water rule, item or gauge needs.",
-        "wetland": sorted(undrawn)}, separators=(",", ":")) + "\n", encoding="utf-8")
+        "wetland": sorted(undrawn),
+        # T166: the pieces below the tidal boundaries — every one, stream and polygon (the reach run's set)
+        **({"tidal": sorted(sid[s] for s in tidal if s in sid)} if tidal else {})},
+        separators=(",", ":")) + "\n", encoding="utf-8")
     for lname, n in counts.items():
         print(f"  {lname:<14} {n:>9,}")
     print(f"  wetland not drawn  {len(undrawn):>9,}  (unnamed, in no item: `{UNDRAWN_FILE}`)")

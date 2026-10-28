@@ -218,6 +218,16 @@ ADMIN: tuple[LayerSpec, ...] = (
             "Point Ecological Reserve, both real permit-access water, were on nobody's map.",
     ),
     LayerSpec(
+        name="tidal_water", geometry="polygon", ladder="none", minzoom=6,
+        attrs=("area_id", "name"),
+        why="TIDAL WATER (T166, owner 2026-10-28): the DFO tidal-waters polygon (`tidal_boundary` in the build gpkg), "
+            "plus the footprint of every stream piece taken off the map below an accepted tidal boundary where the "
+            "polygon does not already cover it (`tiles/tidal.py`). The freshwater regulations stop there (RULINGS K7): "
+            "the stream line below a tidal boundary is NOT drawn (`undrawn.json` `tidal`), and this area is what a tap "
+            "there finds — the app explains it (\"Tidal water — DFO rules\"). `area_id` is `tidal` on every feature "
+            "(one meaning, one sheet); `name` the label. No regulation data: the words are the app's.",
+    ),
+    LayerSpec(
         name="watershed", geometry="polygon", ladder="area", minzoom=5, decorative=True,
         attrs=(),
         why="Named basins a regulation targets — the Liard is 142,173 km2 and 15.7% of "

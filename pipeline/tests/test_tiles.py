@@ -322,6 +322,7 @@ TILE_INVENTORY = {
     "no_access": ("area_id", "name", "kind"), "watershed": (), "parcel": (),
     "region": ("region_id",), "mu": ("mu_id",), "basin": ("basin_id",),
     "obstacle": ("obstacle_id", "type", "name", "water", "height_m", "source", "year"),
+    "tidal_water": ("area_id", "name"),
 }
 
 
@@ -351,6 +352,7 @@ def test_the_tiles_stage_key_is_geometry_only(tmp_path, monkeypatch):
     build = tmp_path / "full"
     build.mkdir()
     (build / "section_handles.txt").write_text("blk:1:0\nblk:1:100\n")
+    (build / "splits.resolved.json").write_text("[]")
     gpkg = tmp_path / "fwa.gpkg"
     gpkg.write_bytes(b"x")
     monkeypatch.setattr(B, "sources", lambda: {"gpkg": gpkg})
@@ -359,9 +361,13 @@ def test_the_tiles_stage_key_is_geometry_only(tmp_path, monkeypatch):
     assert B.tiles_key(build)["obstacles"] is None          # (T173) not fetched: the stage runs and names the fetch
     obstacles.write_bytes(b"x")
     before = B.tiles_key(build)
-    assert set(before) == {"handles", "gpkg", "areas", "code", "obstacles"}
+    assert set(before) == {"handles", "gpkg", "areas", "code", "obstacles", "tidal"}
     (build / "registry.json").write_text('{"items": {"renamed": 1}}')
     assert B.tiles_key(build) == before
+    # (T166) a new tidal boundary takes a piece off the map: the tiles rerun
+    (build / "splits.resolved.json").write_text('[{"split_id": "r__tide", "tidal": true}]')
+    assert B.tiles_key(build) != before
+    (build / "splits.resolved.json").write_text("[]")
     (build / "section_handles.txt").write_text("blk:1:0\nblk:1:50\nblk:1:100\n")      # new sids: new geometry
     assert B.tiles_key(build) != before
 

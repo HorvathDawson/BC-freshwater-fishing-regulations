@@ -54,7 +54,9 @@ CODE = {
     "deliver": ("pipeline",),
     # P18: GEOMETRY ONLY. The tile code and the area cutter; names and registry changes are a data release, and the
     # tile labels catch up with `--labels` (MINIMAL-PACKAGING §6.1).
-    "tiles": ("pipeline/deliver/tiles", "pipeline/atlas/splits"),
+    "tiles": ("pipeline/deliver/tiles", "pipeline/atlas/splits",
+              # T166: the tidal pieces the tiles leave off are the reach's own set (`tiles/tidal.py`)
+              "pipeline/atlas/reach/outside.py", "pipeline/atlas/reach/extent.py"),
 }
 
 
@@ -199,7 +201,10 @@ def tiles_key(build_dir: Path) -> dict:
     areas = Path(CURATED.waters.areas)
     # (T173) the fish obstacles' own fetched file; missing, the key says so and the stage runs (and names the fetch)
     ob = obstacles_source()
+    from pipeline.atlas.reach.outside import tidal_splits
     return {"handles": digest_for(build_dir), "gpkg": stamp(sources()["gpkg"]),
+            # T166: the tidal boundaries — the pieces below them come off the map
+            "tidal": _sha(tidal_splits(build_dir)),
             "areas": hashlib.sha256(areas.read_bytes()).hexdigest()[:16], "code": code_digest(CODE["tiles"]),
             "obstacles": stamp(ob) if ob.exists() else None}
 

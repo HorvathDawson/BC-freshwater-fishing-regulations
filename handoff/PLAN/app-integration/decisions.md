@@ -1482,6 +1482,16 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
   freshwater-only graph instead would cut 29 rules off whole tributary trees. Kitimat r1 lies wholly below its proposed
   cut: review that candidate before accepting.
 
+## 2026-10-28 — tidal pieces come OFF the map; the DFO tidal polygon is drawn instead (owner, T166 step 5)
+- **Not drawn grey:** the stream line (and river polygon) below an accepted tidal boundary is removed from the
+  freshwater map tiles (`tiles/tidal.py`, `undrawn.json` layer `tidal`; the bundle proves the tiles left off exactly
+  its tidal pieces, `bundle.undrawn.tidal_problems`). The bundle keeps them as tidal water (`tidal` table, no rules).
+- **The tidal area instead:** the DFO tidal-waters polygon (`tidal_boundary`) plus each removed piece's footprint the
+  polygon misses, drawn as a labelled area (`tidal_water` tile layer, subtle fill/outline, app tokens); a tap there
+  opens "Tidal water — DFO rules" (the K7 note). Tap order: obstacle, water, tidal area.
+- **What a tap can no longer reach:** a gauge on a removed piece (listed by the bundle build, `undrawn.tidal_gauges`)
+  and DFO salmon data placed on those sections. Counted at the Phase 2 rebuild; carried to the polygon tap if any.
+
 ## 2026-10-28 — electric-only kW (owner, T209)
 - "Store the number": every `vessel_rule` at `level: electric_only` carries `max_power_kw` = the kW its words print
   (162 rules, all 7.5). Filled by the one-off `pipeline/tools/electric_kw.py` (not in run_parse.sh); the parse prompt

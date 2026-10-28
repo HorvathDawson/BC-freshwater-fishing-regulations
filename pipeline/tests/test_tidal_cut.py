@@ -227,3 +227,48 @@ def test_the_preview_lists_a_rule_wholly_below_a_cut(tmp_path):
     assert got["lose_some"] == [{"entry_id": "r6:kitimat@6-9", "rule_id": "kitimat_river.r2",
                                  "sections": 3, "tidal": 1, "straddled": 0,
                                  "splits": ["kitimat__tidal"]}]
+
+
+# ------------------------------------------------- off the map: the tiles, the area, the bundle's proof
+
+def test_the_tiles_leave_off_the_reach_runs_own_set(estuary, tmp_path):
+    from pipeline.deliver.tiles.tidal import tidal_pieces
+    g, reg = estuary
+    write_resolved([SplitPoint(TIDE, "R", 1000.0, "", "tidal boundary", AnchorType.point,
+                               source="curated", tidal=True)], str(tmp_path / "splits.resolved.json"))
+    assert tidal_pieces(tmp_path, graph=g, registry=reg) == frozenset(O.tidal_cut_owner(reg, g, [TIDE]))
+    write_resolved([], str(tmp_path / "splits.resolved.json"))
+    assert tidal_pieces(tmp_path, graph=g, registry=reg) == frozenset()
+
+
+def test_the_tidal_area_is_the_dfo_polygon_plus_pieces_outside_it():
+    """A cut above the polygon's edge (Capilano's CN bridge) leaves a removed piece in neither: its
+    footprint joins the area; a piece inside the polygon adds nothing."""
+    from shapely.geometry import LineString, MultiPolygon, box
+    from pipeline.deliver.tiles.tidal import PIECE_BUFFER_M, area_features
+    sea = MultiPolygon([box(0, 0, 1000, 1000), box(5000, 0, 6000, 1000)])
+    inside = LineString([(100, 100), (200, 200)])
+    above = LineString([(500, 1000), (500, 1300)])          # runs 300 m up out of the sea
+    got = area_features(sea, [inside, above])
+    assert len(got) == 3                                      # two sea parts + one footprint
+    extra = got[2]
+    assert extra.bounds[3] == pytest.approx(1300 + PIECE_BUFFER_M, abs=1)
+    assert extra.bounds[1] >= 1000 - 1e-6                     # nothing of the sea drawn twice
+    assert area_features(None, [above])[0].area > 0
+
+
+def test_the_bundle_proves_the_tiles_left_off_exactly_its_tidal_pieces():
+    import sqlite3
+    from pipeline.deliver.bundle import undrawn as U
+    db = sqlite3.connect(":memory:")
+    db.executescript(
+        "CREATE TABLE tidal (sid INTEGER, entry_id TEXT); CREATE TABLE item (item_id TEXT, kind TEXT);"
+        "CREATE TABLE entry (entry_id TEXT, item_id TEXT); CREATE TABLE ruleset (set_id INT, entry_id TEXT);"
+        "CREATE TABLE item_section (ord INT, sid INT); CREATE TABLE section_gauge (sid INT, station TEXT, trust TEXT, mag REAL);"
+        "CREATE TABLE section_ruleset (sid INT, set_id INT);"
+        "INSERT INTO tidal VALUES (1, 'split:r__tide'), (2, 'split:r__tide'), (9, 'r1:nitinat_lake@1-3');"
+        "INSERT INTO item_section VALUES (1, 1), (1, 2); INSERT INTO section_gauge VALUES (2, '08GA999', 'x', 0);")
+    assert U.problems(db, {"tidal": [1, 2], "wetland": []}) == []   # in items, gauged: allowed
+    assert U.tidal_gauges(db, {"tidal": [1, 2]}) == [(2, "08GA999")]
+    assert any("still drawn" in x for x in U.problems(db, {"tidal": [1]}))
+    assert any("no tidal piece" in x for x in U.problems(db, {"tidal": [1, 2, 9]}))

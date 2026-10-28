@@ -93,8 +93,16 @@ def main() -> None:
     counts |= export_obstacles(layer_dir)
     if not a.skip_water:
         print("water")
-        counts |= export.export_streams(build_dir, layer_dir, limit=a.limit)
-        counts |= export.export_waterbodies(build_dir, a.gpkg, layer_dir)
+        # T166: the pieces below the tidal boundaries come off the map; the tidal area is drawn instead
+        from pipeline.deliver.tiles import tidal as _tidal
+        pieces = _tidal.tidal_pieces(build_dir)
+        print(f"  tidal pieces   {len(pieces):>9,}  (below the atlas's tidal boundaries, not drawn)")
+        tgeoms: list = []
+        counts |= export.export_streams(build_dir, layer_dir, limit=a.limit, tidal=pieces,
+                                        tidal_geoms=tgeoms)
+        counts |= export.export_waterbodies(build_dir, a.gpkg, layer_dir, tidal=pieces,
+                                            tidal_geoms=tgeoms)
+        counts |= _tidal.export_tidal(a.gpkg, layer_dir, tgeoms)
 
     print(f"\nfeatures: {sum(counts.values()):,}")
     for k in sorted(counts):

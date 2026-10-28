@@ -44,11 +44,41 @@ def load(tiles: Path) -> dict[str, list[int]]:
     return out
 
 
+def tidal_problems(db: sqlite3.Connection, undrawn: dict[str, list[int]]) -> list[str]:
+    """T166: THE TIDAL PIECES THE TILES LEFT OUT are exactly the bundle's tidal water below a tidal
+    boundary (`tidal` rows owned `split:<id>` — the reach run's set; both come from
+    `reach.outside.tidal_cut_owner` on the same atlas). They are in items (the river's lower end) and
+    carry no rule by construction (`rules.tables` proves it), so the T64 water-row test does not apply."""
+    drawn_off = set(undrawn.get("tidal") or ())
+    cut = {s for s, e in db.execute("SELECT sid, entry_id FROM tidal") if str(e).startswith("split:")}
+    out = []
+    if drawn_off - cut:
+        out.append(f"{len(drawn_off - cut)} section(s) the tiles left off as tidal are no tidal piece in "
+                   f"the bundle, e.g. {sorted(drawn_off - cut)[:5]} — tiles and reach run from different atlases")
+    if cut - drawn_off:
+        out.append(f"{len(cut - drawn_off)} tidal piece(s) in the bundle are still drawn by the tiles, "
+                   f"e.g. {sorted(cut - drawn_off)[:5]} — rebuild the tiles on this atlas")
+    return out
+
+
+def tidal_gauges(db: sqlite3.Connection, undrawn: dict[str, list[int]]) -> list[tuple[int, str]]:
+    """T166: the gauges on a tidal piece the map no longer draws — (section, station). Reported: the
+    station is not reachable by tapping its water any more (the tidal area's tap says it is tidal)."""
+    off = set(undrawn.get("tidal") or ())
+    if not off:
+        return []
+    cols = [r[1] for r in db.execute("PRAGMA table_info(section_gauge)")]
+    st = "station_id" if "station_id" in cols else (cols[1] if len(cols) > 1 else cols[0])
+    return sorted((s, str(g)) for s, g in db.execute(f"SELECT sid, {st} FROM section_gauge") if s in off)
+
+
 def problems(db: sqlite3.Connection, undrawn: dict[str, list[int]]) -> list[str]:
     """Why an undrawn section would need the map, one line each (empty: the cut is safe)."""
+    out_tidal = tidal_problems(db, undrawn)
+    undrawn = {k: v for k, v in undrawn.items() if k != "tidal"}
     sids = {s for v in undrawn.values() for s in v}
     if not sids:
-        return []
+        return out_tidal
     kind_of = dict(db.execute("SELECT item_id, kind FROM item"))
     water_entry = {e for e, iid in db.execute("SELECT entry_id, item_id FROM entry")
                    if not EID.is_table(e) and iid and kind_of.get(iid, "area") != "area"}
@@ -63,7 +93,7 @@ def problems(db: sqlite3.Connection, undrawn: dict[str, list[int]]) -> list[str]
             names = sorted(e for (e,) in db.execute(
                 "SELECT DISTINCT entry_id FROM ruleset WHERE set_id = ?", (set_id,)) if e in water_entry)
             out.append(f"section {s} is bound by a water row: {', '.join(names[:3])}")
-    return out
+    return out_tidal + out
 
 
 def check(db: sqlite3.Connection, tiles: Path, cov=None) -> int:
@@ -76,4 +106,8 @@ def check(db: sqlite3.Connection, tiles: Path, cov=None) -> int:
     n = sum(len(v) for v in undrawn.values())
     if cov is not None and n:
         print(f"     undrawn: {n:,} section(s) left out of the tiles, none needed on the map")
+    lost = tidal_gauges(db, undrawn)
+    if lost:
+        print(f"     undrawn: {len(lost)} gauge(s) on a tidal piece, not tappable on its water now: "
+              + ", ".join(f"{g}@{s}" for s, g in lost[:12]))
     return n
