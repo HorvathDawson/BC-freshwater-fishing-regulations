@@ -8,18 +8,21 @@ write. Nothing touched splits.json, the catalogue or marks.jsonl. Input:
 `handoff/PLAN/curation-review/dfo-split-hunt.json`; regenerate with
 `python -m pipeline.regs.dfo_salmon.suggest`.
 
-## Counts (88 locations)
+## Counts (91 locations)
 
 | locations | high | medium | low | not found |
 |---|---|---|---|---|
-| 88 | 24 | 33 | 16 | 15 |
+| 91 | 26 | 34 | 16 | 15 |
 
-A location's confidence is its weakest end. Distinct hunted cuts: high 21, medium 14, low 17.
+A location's confidence is its weakest end. Distinct hunted cuts: high 22, medium 14, low 17.
 
 ## Found
 
 | location | extent | conf | cuts (conf · snap) |
 |---|---|---|---|
+| `1:cowichan-river:from-cnr-trestle-at-mile-70-2-to-s` | between CNR Bridge (mile 70.2) and Skutz Falls | high | Skutz Falls (high · 0 m) |
+| `1:cowichan-river:from-the-white-triangle-boundary-s` | downstream of white triangle boundary sign located in Sandy Pool Regional Park | high | curated cuts only |
+| `1:cowichan-river:including-tributaries-and-cowichan` | the whole water | medium | curated cuts only |
 | `1:nanaimo-river:from-500-m-below-the-lower-power-l` | between 500 m below the power line at Bore Hole and Boulder Creek → Nanaimo River | medium | 500 m below the power line at Bore Hole (medium · 0 m) |
 | `1:puntledge-river:from-the-weir-at-the-lower-hatcher` | between Puntledge lower hatchery weir and signs 75 m below the Puntledge lower hatchery weir | medium | Puntledge lower hatchery weir (high · 3 m); signs 75 m below the Puntledge lower hatchery weir (medium · 3 m) |
 | `1:quatse-river:100m-upstream-and-downstream-of-th` | between 100 m above the Quatse River Hatchery weir and 100 m below the Quatse River Hatchery weir | low | 100 m above the Quatse River Hatchery weir (low · 36 m); 100 m below the Quatse River Hatchery weir (low · 36 m) |

@@ -20,6 +20,10 @@ with the default Claude uses until you answer). Newest first inside each section
   outreach by hand (T197). Plan: handoff/PLAN/seo/PLAN.md sections 4 and 7.
 
 ## Reviews
+- **T227 DFO places not on the map (2026-10-28): review app → DFO, open each, "accept suggestion", Save extent.**
+  - accept in review app → DFO: Cowichan — Sandy Pool sign → tidal boundary (= FWA mouth; active, high); weir/Cowichan Lake → 66 Mile Trestle (high); CNR mile 70.2 → Skutz Falls (high, new Skutz cut); "incl. tributaries and Cowichan Lake" = whole river + lake + tributaries (medium: lake's inflows counted). Last three dormant.
+  - accept in review app → DFO: Capilano — "including tributaries" = whole + tributaries (high).
+  - accept in review app → DFO: Kitimat — downstream / upstream of Hwy 37 bridge (high, OSM-checked); hatchery outfall signs = your 08-10 pins (high; west-bank-only width not modelled).
 - **Release r-a871447c48ba verification follow-ups (2026-10-28):** (1) run `node app/design/regs-v11/port/sync.mjs`
   (Claude may not): the snapshot + golden carry the Q62/Q63 words (9517ff8e); sync should reproduce golden.json's text
   exactly; pin geometry may move where the longer words wrap (then re-pin harness.parity / exclusions and re-run

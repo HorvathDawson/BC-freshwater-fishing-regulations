@@ -9,8 +9,8 @@ suggestion is shown and drawn (violet); **accept suggestion** pre-fills the exte
 
 - matched to existing cuts / your proposals: **66**
 - whole water (no cut needed): **50**
-- with a NEW split — high: **25**
-- with a NEW split — medium: **24**
+- with a NEW split — high: **26**
+- with a NEW split — medium: **23**
 - with a NEW split — low: **16**
 - partial (one end unresolved): **0**
 - no suggestion: **15**
@@ -18,7 +18,7 @@ suggestion is shown and drawn (violet); **accept suggestion** pre-fills the exte
 | location | suggestion | conf | reason |
 |---|---|---|---|
 | `1:cowichan-river:downstream-of-the-weir-on-cowichan` | between Cowichan Lake and CNR Mile 66 Trestle | high | high: Cowichan Lake: the curated cut `cowichan_river__cowichan_lake` (Cowichan Lake); high: "66, mile, trestle" -> the curated cut `cowichan_river__cnr_trestle` |
-| `1:cowichan-river:from-the-white-triangle-boundary-s` | downstream of white triangle boundary sign located in Sandy Pool Regional Park | low | low: "park, pool, regional, sandy" -> the curated cut `cowichan_river__white_triangle_boundary_sign_loc` (white triangle boundary sign located in Sandy Pool Reg |
+| `1:cowichan-river:from-the-white-triangle-boundary-s` | downstream of white triangle boundary sign located in Sandy Pool Regional Park | high | split hunt: 'from the white triangle boundary sign in Sandy Pool Regional Park, downstream to the tidal boundary' (T227 2026-10-28). The tidal end is the FWA mo |
 | `1:little-qualicum-river:from-the-hatchery-fence-to-signs-l` | between hatchery fence and signs 35 m downstream of hatchery fence | medium | medium: "fence, hatchery" -> the curated cut `little_qualicum_river__hatchery_fence` (hatchery fence); medium: "35m-down, downstream" -> the curated cut `little |
 | `1:nanaimo-river:cedar-road-bridge-upstream-approx` | between Cedar Road bridge and Hwy 19 bridge | high | high: "bridge, cedar, road" -> the curated cut `nanaimo_river__cedar_road_bridge` (Cedar Road bridge); high: "19, bridge, hwy" -> the curated cut `nanaimo_river |
 | `1:nanaimo-river:from-the-cedar-road-bridge-crossin` | between Cedar Road bridge and Hwy 19 bridge | high | high: "bridge, cedar, road" -> the curated cut `nanaimo_river__cedar_road_bridge` (Cedar Road bridge); high: "19, bridge, hwy" -> the curated cut `nanaimo_river |
@@ -83,7 +83,7 @@ suggestion is shown and drawn (violet); **accept suggestion** pre-fills the exte
 | `7:nechako-river:upstream-from-the-boundary-signs-a` | downstream of Foothills Boulevard Bridge in Prince George | high | high: "boulevard, bridge, foothills" -> the curated cut `nechako_river__foothills_boulevard_bridge_in_prince_george` (Foothills Boulevard Bridge in Prince Georg |
 | `8:shuswap-river:lower-50-m-upstream-of-the-trinity` | between signs 50 m upstream of Trinity Bridge and signs 50 m downstream of Trinity Bridge | high | high: "50m-up, bridge, trinity, upstream" -> the curated cut `shuswap_river__signs_50_m_upstream_of_trinity_bridge` (signs 50 m upstream of Trinity Bridge); hig |
 | `8:shuswap-river:lower-upstream-from-white-triangul` | between Mara Bridge and Mabel Lake | medium | medium: "bridge, mara" -> the curated cut `shuswap_river__mara_bridge` (Mara Bridge); high: Mabel Lake: the curated cut `shuswap_river__mabel_lake` (Mabel Lake) |
-| `1:cowichan-river:from-cnr-trestle-at-mile-70-2-to-s` | between CNR Bridge (mile 70.2) and Skutz Falls | medium | medium: "70.2, cnr, mile" -> the curated cut `cowichan_river__cnr_bridge` (CNR Bridge (mile 70.2)); medium: Skutz Falls: the OSM waterfall 0 m from the water |
+| `1:cowichan-river:from-cnr-trestle-at-mile-70-2-to-s` | between CNR Bridge (mile 70.2) and Skutz Falls | high | split hunt: 'from CNR Trestle at mile 70.2 to Skutz Falls' (T227 2026-10-28): curated bridge (41.4 km) down to Skutz Falls (34.2 km).; high: the curated cut `co |
 | `1:little-qualicum-river:from-the-falls-in-little-qualicum` | between Little Qualicum Falls and hatchery fence | medium | medium: Little Qualicum Falls: the OSM waterfall 0 m from the water; medium: "fence, hatchery" -> the curated cut `little_qualicum_river__hatchery_fence` (hatch |
 | `1:nanaimo-river:from-500-m-below-the-lower-power-l` | between 500 m below the power line at Bore Hole and Boulder Creek → Nanaimo River | medium | split hunt: 'from 500 m below the lower power line crossing at Bore Hole upstream to the signs at the mouth of Boulder Creek': the matcher took the power line i |
 | `1:puntledge-river:from-the-weir-at-the-lower-hatcher` | between Puntledge lower hatchery weir and signs 75 m below the Puntledge lower hatchery weir | medium | split hunt: 'from the weir at the lower hatchery to signs ~75 m downstream': the weir, then 75 m below it.; high: the weir across the Puntledge beside the Puntl |
@@ -149,7 +149,7 @@ suggestion is shown and drawn (violet); **accept suggestion** pre-fills the exte
 | `8:shuswap-river:middle-between-shuswap-falls-and-m` | between Shuswap Falls (Wilsey Dam) and Mabel Lake | high | split hunt: Shuswap Falls down to Mabel Lake (curated). The 'except closed' WSC-station-to-WTFB reach (the notice's coordinates) is its own location.; high: Shu |
 | `8:shuswap-river:middle-between-shuswap-falls-and-m~2` | between Shuswap Falls (Wilsey Dam) and Mabel Lake | high | split hunt: Shuswap Falls down to Mabel Lake (curated).; high: Shuswap Falls, at BC Hydro's Wilsey Dam; high: Mabel Lake: the curated cut `shuswap_river__mabel_ |
 | `1:cayeghle-river:including-colonial-river` | whole | medium | "including Colonial River": the whole water, all its items |
-| `1:cowichan-river:including-tributaries-and-cowichan` | whole + tributaries | high | "including tributaries": the whole water with its tributaries |
+| `1:cowichan-river:including-tributaries-and-cowichan` | whole + tributaries | medium | split hunt: 'including tributaries and Cowichan Lake' (T227 2026-10-28): the whole river with its tributaries PLUS Cowichan Lake (wbk:329101302, not in the wate |
 | `1:koksilah-river:including-tributaries` | whole + tributaries | high | "including tributaries": the whole water with its tributaries |
 | `1:little-qualicum-river:all-open-portions-of-the-little-qu` | whole | medium | the notice names no reach: the whole water |
 | `1:little-qualicum-river:all-waters-unless-indicated-below` | whole | medium | the notice names no reach: the whole water |

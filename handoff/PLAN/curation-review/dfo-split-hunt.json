@@ -665,6 +665,19 @@
     "data/curated/waters/splits.json#pinkut_creek__fish_fence"
    ],
    "notes": "the notice's own approximate distance from the curated fence cut."
+  },
+  "cowichan_skutz_falls": {
+   "anchor": "coord",
+   "name": "Skutz Falls",
+   "lat": 48.783139,
+   "lon": -123.955626,
+   "confidence": "high",
+   "description": "Skutz Falls on the Cowichan River (Cowichan River Provincial Park)",
+   "sources": [
+    "BC GNIS Skutz Falls (Falls, CENTRE) id 27230",
+    "OSM waterfall (the matcher's point, 0 m from the FWA line)"
+   ],
+   "notes": "the matcher's OSM waterfall point; BC GNIS places the falls 27 m away (dfo-preverify). Snaps 0 m onto blk 354155148 at 34.2 km, between the curated 66 Mile Trestle (30.5 km) and the CNR mile-70.2 bridge (41.4 km) — the order the notice implies."
   }
  },
  "locations": {
@@ -1505,6 +1518,41 @@
    "tributaries": true,
    "confidence": "high",
    "notes": "'North Alouette and tributaries': the North Alouette item only (gnis:39404), with its tributaries — the matcher's 'whole water' held both arms."
+  },
+  "1:cowichan-river:from-the-white-triangle-boundary-s": {
+   "op": "downstream_of",
+   "ends": [
+    {
+     "split": "cowichan_river__white_triangle_boundary_sign_loc",
+     "confidence": "high",
+     "note": "the curated Sandy Pool sign cut (owner's T185 mark on 1:cowichan-river:from-66-mile-trestle-downstream-to, applied 897b96f4); on the FWA line at 20.0 km, 110 m from OSM Sandy Pool Regional Park (relation 543934)"
+    }
+   ],
+   "notes": "'from the white triangle boundary sign in Sandy Pool Regional Park, downstream to the tidal boundary' (T227 2026-10-28). The tidal end is the FWA mouth: the DFO Cowichan Bay tidal line (Hecate boat ramp to Green Point) runs 641 m seaward of the FWA mouth (tidal-candidates tidal:354155148), so 'downstream of the sign' reaches it."
+  },
+  "1:cowichan-river:including-tributaries-and-cowichan": {
+   "op": "whole",
+   "items": [
+    "gnis:12227",
+    "wbk:329101302"
+   ],
+   "tributaries": true,
+   "confidence": "medium",
+   "notes": "'including tributaries and Cowichan Lake' (T227 2026-10-28): the whole river with its tributaries PLUS Cowichan Lake (wbk:329101302, not in the water's items — pre-verify flagged the matcher's river-only reading). Medium: whether the lake's own inflowing streams count as the river's tributaries is a reading, not a fact; dormant location."
+  },
+  "1:cowichan-river:from-cnr-trestle-at-mile-70-2-to-s": {
+   "op": "between",
+   "ends": [
+    {
+     "split": "cowichan_river__cnr_bridge",
+     "confidence": "high",
+     "note": "the curated CNR mile-70.2 bridge, 0 m from the OSM rail bridge (way 54028525)"
+    },
+    {
+     "cut": "cowichan_skutz_falls"
+    }
+   ],
+   "notes": "'from CNR Trestle at mile 70.2 to Skutz Falls' (T227 2026-10-28): curated bridge (41.4 km) down to Skutz Falls (34.2 km)."
   }
  },
  "synopsis": {

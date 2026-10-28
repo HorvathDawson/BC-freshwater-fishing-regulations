@@ -8,9 +8,9 @@ Regenerate: `python -m pipeline.regs.dfo_salmon.suggest` (matcher → split hunt
 
 | outcome | high | medium | low | total |
 |---|---|---|---|---|
-| matched to EXISTING cuts | 45 | 19 | 2 | 66 |
+| matched to EXISTING cuts | 46 | 19 | 1 | 66 |
 | the whole water (no cut) | | | | 50 |
-| NEW split proposed | 25 | 24 | 16 | 65 |
+| NEW split proposed | 26 | 23 | 16 | 65 |
 | unresolvable (why below) | | | | 15 |
 
 Clusters of rewordings with an unplaced member: **24** (covering 55 locations, placed members included). Unplaced members: inherit a curated extent 2, adopt the cluster's better suggestion 0, already agree 22, canonical 23, member (own reading kept — differs in meaning) 6.
@@ -93,9 +93,9 @@ Canonical first; **placed** = has a curated extent; role of each unplaced member
 |---|---|---|---|---|
 | `1:cayeghle-river:including-colonial-river` | active | review_pending | the whole water | medium |
 | `1:cowichan-river:downstream-of-the-weir-on-cowichan` | dormant | review_pending | between Cowichan Lake and CNR Mile 66 Trestle | high |
-| `1:cowichan-river:from-cnr-trestle-at-mile-70-2-to-s` | dormant | needs_split | between CNR Bridge (mile 70.2) and Skutz Falls | medium |
-| `1:cowichan-river:from-the-white-triangle-boundary-s` | active | review_pending | downstream of white triangle boundary sign located in Sandy Pool Regional Park | low |
-| `1:cowichan-river:including-tributaries-and-cowichan` | dormant | review_pending | the whole water with its tributaries | high |
+| `1:cowichan-river:from-cnr-trestle-at-mile-70-2-to-s` | dormant | needs_split | between CNR Bridge (mile 70.2) and Skutz Falls | high |
+| `1:cowichan-river:from-the-white-triangle-boundary-s` | active | review_pending | downstream of white triangle boundary sign located in Sandy Pool Regional Park | high |
+| `1:cowichan-river:including-tributaries-and-cowichan` | dormant | review_pending | the whole water | medium |
 | `1:koksilah-river:including-tributaries` | active | review_pending | the whole water with its tributaries | high |
 | `1:little-qualicum-river:all-open-portions-of-the-little-qu` | active | review_pending | the whole water | medium |
 | `1:little-qualicum-river:all-waters-unless-indicated-below` | active | review_pending | the whole water | medium |

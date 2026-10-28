@@ -1,21 +1,21 @@
 {
  "_about": "DFO extent SUGGESTIONS (T164 / T210 follow-up) — never applied. The review app's DFO mode shows each one; 'accept suggestion' pre-fills the extent-fix editor and the owner saves it as their mark. Regenerate: python -m pipeline.regs.dfo_salmon.suggest",
- "generated": "2026-10-27",
+ "generated": "2026-10-28",
  "counts": {
   "existing": 66,
-  "new_high": 25,
+  "new_high": 26,
   "new_low": 16,
-  "new_medium": 24,
+  "new_medium": 23,
   "none": 15,
   "whole": 50
  },
  "outcomes": {
-  "existing_high": 45,
-  "existing_low": 2,
+  "existing_high": 46,
+  "existing_low": 1,
   "existing_medium": 19,
-  "new_high": 25,
+  "new_high": 26,
   "new_low": 16,
-  "new_medium": 24,
+  "new_medium": 23,
   "unresolvable": 15,
   "whole": 50
  },
@@ -66,18 +66,32 @@
     "gnis:12227"
    ],
    "matched": "whole",
-   "confidence": "high",
+   "confidence": "medium",
    "endpoints": [],
-   "reason": "\"including tributaries\": the whole water with its tributaries",
+   "reason": "split hunt: 'including tributaries and Cowichan Lake' (T227 2026-10-28): the whole river with its tributaries PLUS Cowichan Lake (wbk:329101302, not in the water's items — pre-verify flagged the matcher's river-only reading). Medium: whether the lake's own inflowing streams count as the river's tributaries is a reading, not a fact; dormant location.",
    "suggestion": {
     "op": "whole",
     "points": [],
     "items": [
-     "gnis:12227"
+     "gnis:12227",
+     "wbk:329101302"
     ],
     "tributaries": true,
     "new_splits": [],
-    "words": "the whole water with its tributaries"
+    "words": "the whole water"
+   },
+   "points": [],
+   "hunt": {
+    "status": "found",
+    "notes": "'including tributaries and Cowichan Lake' (T227 2026-10-28): the whole river with its tributaries PLUS Cowichan Lake (wbk:329101302, not in the water's items — pre-verify flagged the matcher's river-only reading). Medium: whether the lake's own inflowing streams count as the river's tributaries is a reading, not a fact; dormant location.",
+    "proposals": [],
+    "sources": [
+     "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region1-eng.html"
+    ],
+    "matcher": {
+     "matched": "whole",
+     "reason": "\"including tributaries\": the whole water with its tributaries"
+    }
    },
    "state": "unbound",
    "status": "dormant",
@@ -107,9 +121,9 @@
     "new_splits": [],
     "words": "downstream of white triangle boundary sign located in Sandy Pool Regional Park"
    },
-   "confidence": "low",
+   "confidence": "high",
    "matched": "existing",
-   "reason": "low: \"park, pool, regional, sandy\" -> the curated cut `cowichan_river__white_triangle_boundary_sign_loc` (white triangle boundary sign located in Sandy Pool Regional Park); as close: `n1` (white triangle boundary sign located in Sandy Pool Regional Park (medium confidence)); the other end is the water's mouth, so downstream of it",
+   "reason": "split hunt: 'from the white triangle boundary sign in Sandy Pool Regional Park, downstream to the tidal boundary' (T227 2026-10-28). The tidal end is the FWA mouth: the DFO Cowichan Bay tidal line (Hecate boat ramp to Green Point) runs 641 m seaward of the FWA mouth (tidal-candidates tidal:354155148), so 'downstream of the sign' reaches it.; high: the curated cut `cowichan_river__white_triangle_boundary_sign_loc` — the curated Sandy Pool sign cut (owner's T185 mark on 1:cowichan-river:from-66-mile-trestle-downstream-to, applied 897b96f4); on the FWA line at 20.0 km, 110 m from OSM Sandy Pool Regional Park (relation 543934)",
    "endpoints": [
     {
      "phrase": "the white triangle boundary sign located in Sandy Pool Regional Park",
@@ -132,10 +146,22 @@
      "split_id": "cowichan_river__white_triangle_boundary_sign_loc"
     }
    ],
+   "hunt": {
+    "status": "found",
+    "notes": "'from the white triangle boundary sign in Sandy Pool Regional Park, downstream to the tidal boundary' (T227 2026-10-28). The tidal end is the FWA mouth: the DFO Cowichan Bay tidal line (Hecate boat ramp to Green Point) runs 641 m seaward of the FWA mouth (tidal-candidates tidal:354155148), so 'downstream of the sign' reaches it.",
+    "proposals": [],
+    "sources": [
+     "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region1-eng.html"
+    ],
+    "matcher": {
+     "matched": "existing",
+     "reason": "low: \"park, pool, regional, sandy\" -> the curated cut `cowichan_river__white_triangle_boundary_sign_loc` (white triangle boundary sign located in Sandy Pool Regional Park); as close: `n1` (white triangle boundary sign located in Sandy Pool Regional Park (medium confidence)); the other end is the water's mouth, so downstream of it"
+    }
+   },
    "state": "needs_cut",
    "status": "active",
    "why": "review_pending",
-   "outcome": "existing_low"
+   "outcome": "existing_high"
   },
   "1:cowichan-river:downstream-of-the-weir-on-cowichan": {
    "location_id": "1:cowichan-river:downstream-of-the-weir-on-cowichan",
@@ -2543,7 +2569,7 @@
      },
      {
       "kind": "new",
-      "split_id": "sg2"
+      "split_id": "cowichan_skutz_falls"
      }
     ],
     "items": [
@@ -2552,25 +2578,24 @@
     "tributaries": null,
     "new_splits": [
      {
-      "ref": "sg2",
+      "ref": "cowichan_skutz_falls",
       "anchor": "coord",
       "name": "Skutz Falls",
+      "on_item": "gnis:12227",
       "coord": [
        -123.955626,
        48.783139
       ],
-      "on_item": "gnis:12227",
       "blk": "354155148",
       "measure": 34212.6,
-      "quote": "Skutz Falls",
-      "confidence": "medium"
+      "note": "[split hunt high] Skutz Falls on the Cowichan River (Cowichan River Provincial Park). Sources: BC GNIS Skutz Falls (Falls, CENTRE) id 27230 ; OSM waterfall (the matcher's point, 0 m from the FWA line). the matcher's OSM waterfall point; BC GNIS places the falls 27 m away (dfo-preverify). Snaps 0 m onto blk 354155148 at 34.2 km, between the curated 66 Mile Trestle (30.5 km) and the CNR mile-70.2 bridge (41.4 km) — the order the notice implies."
      }
     ],
     "words": "between CNR Bridge (mile 70.2) and Skutz Falls"
    },
-   "confidence": "medium",
+   "confidence": "high",
    "matched": "new",
-   "reason": "medium: \"70.2, cnr, mile\" -> the curated cut `cowichan_river__cnr_bridge` (CNR Bridge (mile 70.2)); medium: Skutz Falls: the OSM waterfall 0 m from the water",
+   "reason": "split hunt: 'from CNR Trestle at mile 70.2 to Skutz Falls' (T227 2026-10-28): curated bridge (41.4 km) down to Skutz Falls (34.2 km).; high: the curated cut `cowichan_river__cnr_bridge` — the curated CNR mile-70.2 bridge, 0 m from the OSM rail bridge (way 54028525); high: Skutz Falls on the Cowichan River (Cowichan River Provincial Park)",
    "endpoints": [
     {
      "phrase": "CNR Trestle at mile 70.2",
@@ -2628,13 +2653,49 @@
       48.783139
      ],
      "kind": "new",
-     "split_id": "sg2"
+     "split_id": "cowichan_skutz_falls"
     }
    ],
+   "hunt": {
+    "status": "found",
+    "notes": "'from CNR Trestle at mile 70.2 to Skutz Falls' (T227 2026-10-28): curated bridge (41.4 km) down to Skutz Falls (34.2 km).",
+    "proposals": [
+     {
+      "ref": "cowichan_skutz_falls",
+      "anchor": "coord",
+      "name": "Skutz Falls",
+      "confidence": "high",
+      "description": "Skutz Falls on the Cowichan River (Cowichan River Provincial Park)",
+      "sources": [
+       "BC GNIS Skutz Falls (Falls, CENTRE) id 27230",
+       "OSM waterfall (the matcher's point, 0 m from the FWA line)"
+      ],
+      "notes": "the matcher's OSM waterfall point; BC GNIS places the falls 27 m away (dfo-preverify). Snaps 0 m onto blk 354155148 at 34.2 km, between the curated 66 Mile Trestle (30.5 km) and the CNR mile-70.2 bridge (41.4 km) — the order the notice implies.",
+      "lat": 48.783139,
+      "lon": -123.955626,
+      "coord": [
+       -123.955626,
+       48.783139
+      ],
+      "offset_m": null,
+      "split_id": null,
+      "snap_m": 0.0,
+      "blk": "354155148",
+      "measure": 34212.6
+     }
+    ],
+    "sources": [
+     "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region1-eng.html"
+    ],
+    "matcher": {
+     "matched": "new",
+     "reason": "medium: \"70.2, cnr, mile\" -> the curated cut `cowichan_river__cnr_bridge` (CNR Bridge (mile 70.2)); medium: Skutz Falls: the OSM waterfall 0 m from the water"
+    }
+   },
    "state": "needs_cut",
    "status": "dormant",
    "why": "needs_split",
-   "outcome": "new_medium"
+   "outcome": "new_high"
   },
   "1:little-qualicum-river:all-open-portions-of-the-little-qu": {
    "location_id": "1:little-qualicum-river:all-open-portions-of-the-little-qu",
