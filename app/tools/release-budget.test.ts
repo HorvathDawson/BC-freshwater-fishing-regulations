@@ -46,6 +46,8 @@ const sorted = (xs: readonly string[]) => [...xs].sort();
 /** Which pinned moment each gate prices. */
 const GATED: Record<string, string> = {
   first_paint: "visit | first paint",
+  // (T182) the cold load: first paint + the idle prefetch — what every visit downloads unasked (`withPrefetch` below)
+  cold_load: "visit | prefetch after paint",
   first_search: "visit | first search",
   first_tap: "tap named | map tap: a named water (R2)",
   first_tap_unnamed: "tap unnamed | map tap: an unnamed stream (R2)",
@@ -57,7 +59,9 @@ const prefetchOf = (moment: string) => `${moment.split(" | ")[0]} | prefetch aft
  *  moment fetches those itself); first paint is its own. */
 const withPrefetch = (moment: string, gate: readonly string[]): string[] => moment.endsWith("| first paint")
   ? releaseFiles(moment)
-  : [...releaseFiles(prefetchOf(moment)).filter((f) => gate.includes(f)), ...releaseFiles(moment)];
+  : moment.endsWith("| prefetch after paint")
+    ? [...releaseFiles(`${moment.split(" | ")[0]} | first paint`), ...releaseFiles(moment)]
+    : [...releaseFiles(prefetchOf(moment)).filter((f) => gate.includes(f)), ...releaseFiles(moment)];
 
 /**
  * (T182) Whether the pin was cut on a release with the split files: its unnamed tap fetches `down` where the old
@@ -84,9 +88,10 @@ describe("the pinned walk fetches what the budget prices", () => {
   it("T186: after first paint the walk prefetches the region in view's file (R2), and core + wasm on idle", () => {
     const prefetches = Object.entries(PIN).filter(([k]) => k.endsWith("| prefetch after paint") && !k.includes("save-data"));
     expect(prefetches.length).toBeGreaterThan(3);
-    for (const [k, files] of prefetches) expect([k, files]).toEqual([k, ["core", "regs-2", "wasm"]]);
-    // Save-Data: the region's file only; the tap then fetches core and the wasm itself
-    expect(PIN["tap named (save-data) | prefetch after paint"]).toEqual(["regs-2"]);
+    // (T182) + the map's Salmon / Bait & fly files, read once the idle prefetch has started (never with first paint)
+    for (const [k, files] of prefetches) expect([k, files]).toEqual([k, ["core", "method", "regs-2", "salmon", "wasm"]]);
+    // Save-Data: the region's file (and the colourings, so the toggle stays instant); the tap fetches core + wasm itself
+    expect(PIN["tap named (save-data) | prefetch after paint"]).toEqual(["method", "regs-2", "salmon"]);
     // (T182) geo (the water map's boxes) is read only with an access note: this tap has none
     expect(PIN["tap named (save-data) | map tap: a named water (R2)"])
       .toEqual(["access", "core", "wasm", "water"]);

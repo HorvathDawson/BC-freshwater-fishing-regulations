@@ -151,7 +151,7 @@ NEAR_HANDICAP_KM = {"city": 0, "town": 0.5, "village": 3, "suburb": 3, "neighbou
                     "hamlet": 5, "locality": 6}
 NEAR_HANDICAP_UNKNOWN_KM = 6
 
-#: (T129) THE WEB REQUEST BUDGET. The release total (`build.TOTAL_GATE`) is what a PHONE holds; a web visitor fetches
+#: (T129) THE WEB REQUEST BUDGET. The release total (`build.OFFLINE_GATE`) is what a PHONE holds; a web visitor fetches
 #: lazily (MINIMAL-PACKAGING §2, the app's `release/loader.ts`), and nothing gated those paths. Per moment of a first
 #: visit: the release files it fetches, by manifest name ("manifest" is manifest.json itself; "mask" the tile set's
 #: bc_outside.geojson, sent as is; "regs-{region}" the LARGEST regs-<region> file; every other file its gzip bytes),
@@ -165,6 +165,13 @@ NEAR_HANDICAP_UNKNOWN_KM = 6
 WEB_BUDGET = {
     # the coloured map, Map tab (measured 1,024,306: manifest 5,888 + paint 955,855 + mask 62,563)
     "first_paint": {"files": ["manifest", "paint", "mask"], "gate": 1_150_000},
+    # (T182) THE COLD LOAD — what every web visit downloads unasked: first paint, then the idle prefetch (T186: core and
+    # the region in view's file, priced as the largest region) and the map's Salmon / Bait & fly colourings (T211/T213:
+    # read once on the Map tab whatever the toggle says, so the toggle never fetches — owner 2026-10-27). The web's cap on
+    # the release is this, not the release total. Measured on r-bda3fea28838: 3,378,096 (manifest 7,578 + paint 956,798 +
+    # mask 62,563 + core 1,217,943 + regs-6 428,356 + salmon 396,302 + method 308,556); the sql.js wasm (659 kB) rides
+    # along and is not a release file.
+    "cold_load": {"files": ["manifest", "paint", "mask", "core", "regs-{region}", "salmon", "method"], "gate": 3_800_000},
     # the first search: core alone — each result's "near X" is core's `item_near` (was core + near: 3,082,554 →
     # 1,217,684)
     "first_search": {"files": ["core"], "gate": 1_400_000},

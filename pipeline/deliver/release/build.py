@@ -55,8 +55,19 @@ FORMATS = {name: spec["format"] for name, spec in C.FILES.items()}
 #: the gzip size gates (MINIMAL-PACKAGING §2; P08 test 7)
 #: (T211) `salmon`: a provisional gate, set before any release carried the file (the owner's build measures it)
 #: (T213) `method`: 308,222 gzipped measured on the live store 2026-10-27 (433,483 with closed days: over the total gate)
-SIZE_GATES = {"paint": 1_000_000, "access": 300_000, "core": 1_300_000, "lakes": 100_000, "salmon": 600_000, "method": 600_000, **{f"regs-{r}": 1_500_000 for r in SH.REGIONS}}
-TOTAL_GATE = 15_000_000  # owner 2026-10-22 (Q55): raised from 14,000,000 — room for T128 wording + the lakes file
+#: (T182) EVERY shipped file has a gate: the web fetches each file lazily (the moment that needs it, `contract.WEB_BUDGET`),
+#: so a file's own size and the moments it rides in are what a visitor pays — a file with no gate fails the release, so a
+#: new file (T199 runs, T200 stocking, T201/T218 depth) states its size when it is added. The gates T182 added are ~10-15 %
+#: over r-bda3fea28838 (gz: water 2,196,090, near 1,991,899, climate 1,435,910, regs-sid 1,217,035, conditions 807,994,
+#: down 624,863, geo 612,797, flow-area 188,672).
+SIZE_GATES = {"paint": 1_000_000, "access": 300_000, "core": 1_300_000, "lakes": 100_000, "salmon": 600_000, "method": 600_000,
+              "water": 2_500_000, "near": 2_250_000, "climate": 1_650_000, "regs-sid": 1_400_000, "conditions": 950_000,
+              "down": 720_000, "geo": 700_000, "flow-area": 220_000, **{f"regs-{r}": 1_500_000 for r in SH.REGIONS}}
+#: (T182) The release total is no longer the web's cap — a web visitor never fetches the whole release (the cold load is
+#: `WEB_BUDGET["cold_load"]`); it is what a PHONE holds offline, beside ~450 MB of tiles + basemap. It stays as a
+#: runaway-growth backstop, raised 15 → 20 MB so the last band's files (T199 runs ~0.87 MB, T200, T201/T218) fit.
+#: History: 14 → 15 MB, owner 2026-10-22 (Q55).
+OFFLINE_GATE = 20_000_000
 
 CORE_TABLES = ("item", "alias", "item_alias", "item_section", "place", "see_pointer")
 NEAR_TABLES = ("place_water",)
@@ -263,12 +274,14 @@ def sizes(release_dir: Path) -> Dict[str, dict]:
 
 
 def gate_problems(release_dir: Path) -> List[str]:
-    """The size gates (P08 test 7): each file's gzip under its gate, and the total."""
+    """The size gates (P08 test 7): each file's gzip under its gate (a file with none fails: T182), the web moments
+    (`contract.WEB_BUDGET`), and the offline total (what a phone holds)."""
     sz = sizes(release_dir)
-    out = [f"{k}: {v['gz']:,} B gzip > {SIZE_GATES[k]:,}" for k, v in sz.items() if k in SIZE_GATES and v["gz"] > SIZE_GATES[k]]
+    out = [f"{k}: no size gate (build.SIZE_GATES)" for k in sz if k not in SIZE_GATES]
+    out += [f"{k}: {v['gz']:,} B gzip > {SIZE_GATES[k]:,}" for k, v in sz.items() if k in SIZE_GATES and v["gz"] > SIZE_GATES[k]]
     total = sum(v["gz"] for v in sz.values())
-    if total > TOTAL_GATE:
-        out.append(f"total: {total:,} B gzip > {TOTAL_GATE:,}")
+    if total > OFFLINE_GATE:
+        out.append(f"offline total: {total:,} B gzip > {OFFLINE_GATE:,}")
     return out + [f"web {k}: {n:,} B > {C.WEB_BUDGET[k]['gate']:,} ({', '.join(f)})"
                   for k, (n, f) in web_moments(release_dir).items() if n > C.WEB_BUDGET[k]["gate"]]
 

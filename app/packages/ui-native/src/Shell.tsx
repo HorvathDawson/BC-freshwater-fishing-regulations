@@ -58,8 +58,10 @@ export function Shell(p: ShellProps) {
           menuInfo, checkRelease = null, releaseNamed = null, hydat } = p;
   const nav = useShellNav({ source, loader, systemBack: p.systemBack ?? null, initialRoute: p.initialRoute,
                            onRoute: p.onRoute });
-  /** (T186) the map's region reports drive the web prefetch; undefined (a phone): the map is not asked */
-  const onRegion = useReleasePrefetch(p.prefetch ? loader : null);
+  /** (T186) the map's region reports drive the web prefetch; undefined (a phone): the map is not asked. (T182) The
+   *  Salmon / Bait & fly files wait for its idle start on the web (`settled`), so first paint fetches paint alone. */
+  const [settled, setSettled] = useState(!(p.prefetch && loader));
+  const onRegion = useReleasePrefetch(p.prefetch ? loader : null, () => setSettled(true));
   const { route, go, tab, frame, adding, openSpot, back, backLayers } = nav;
   /*
    * EVERY SURFACE IS UNDER THE ONE BACK (app/HANDOFF-ui.md "Back, everywhere"): whatever the Shell returns — the spot,
@@ -111,7 +113,7 @@ export function Shell(p: ShellProps) {
   const syncState = useSync({ feed, release: loader?.release ?? null, checkRelease, named: releaseNamed });
   const col = useMapColouring({ source, feed, status: p.status ?? null, pairing: p.pairing ?? null, tiles,
                                 layerStore: p.layerStore, attribution: p.attribution, mapTab: nav.mapTab, mapDay,
-                                epoch: syncState.epoch });
+                                epoch: syncState.epoch, settled });
   /*
    * YOUR SPOTS ON EVERY MAP (owner 2026-10-22: "toggle our spots on and off in the layer menu"), while the Layers
    * sheet's Spots switch is on (default on); (T131) each a mark that opens its spot, drawn by `SpotPin`, the selected

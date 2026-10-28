@@ -5,6 +5,9 @@
  * engine. The decision is `@app/data/release` `prefetchPlan`; this hook only gathers its signals and carries it out.
  *
  * Pass `null` to turn it off (a phone: its release is installed, there is nothing to fetch).
+ *
+ * (T182) `onIdle` is called once, after the idle prefetch has started: what else the web reads unasked (the map's Salmon /
+ * Bait & fly colourings) waits for it, so first paint fetches only what painting needs.
  */
 import { useCallback, useEffect, useRef } from "react";
 import { prefetchPlan, regionOfTile, runPrefetch, type PrefetchSignals } from "@app/data/release";
@@ -23,10 +26,13 @@ export function connectionSignals(nav: { connection?: Connection } | undefined):
 /** How long a browser with no `requestIdleCallback` (Safari) waits after first paint before calling itself idle. */
 const IDLE_FALLBACK_MS = 2000;
 
-export function useReleasePrefetch(loader: ReleaseLoader | null): ((regionId: unknown) => void) | undefined {
+export function useReleasePrefetch(loader: ReleaseLoader | null, onIdle?: () => void):
+    ((regionId: unknown) => void) | undefined {
   const s = useRef<{ painted: boolean; idle: boolean; region: PrefetchSignals["region"] }>(
     { painted: false, idle: false, region: null });
   const cancel = useRef<(() => void) | null>(null);
+  const idleCb = useRef(onIdle);
+  idleCb.current = onIdle;
   useEffect(() => () => { cancel.current?.(); }, []);
 
   const run = useCallback(() => {
@@ -44,7 +50,7 @@ export function useReleasePrefetch(loader: ReleaseLoader | null): ((regionId: un
     if (!s.current.painted) {
       s.current.painted = true;
       const g = globalThis as typeof globalThis & IdleHost;
-      const idle = () => { s.current.idle = true; cancel.current = null; run(); };
+      const idle = () => { s.current.idle = true; cancel.current = null; run(); idleCb.current?.(); };
       if (typeof g.requestIdleCallback === "function") {
         const h = g.requestIdleCallback(idle);
         cancel.current = () => g.cancelIdleCallback?.(h);

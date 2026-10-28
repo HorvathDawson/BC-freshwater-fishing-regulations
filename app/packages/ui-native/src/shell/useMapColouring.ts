@@ -28,7 +28,7 @@ export const HOME: Camera = { lon: -121.85, lat: 49.15, zoom: 10 };
 export const HANDOVER_Z = FIELD_HANDOVER_Z;
 
 export function useMapColouring({ source, feed, status, pairing, tiles, layerStore, attribution, mapTab, mapDay,
-                                  epoch }: {
+                                  epoch, settled = true }: {
   source: WaterSource; feed?: GaugeFeed; status: StatusSource | null; pairing: PairingInput | null;
   tiles: TileEndpoints; layerStore?: LayerStore; attribution?: readonly string[];
   /** Which browse map's questions are asked (a water's map view asks the Map tab's). */
@@ -37,6 +37,8 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
   mapDay: Date | null;
   /** The sync state's epoch: a feed refresh re-asks the Conditions colouring. */
   epoch: number;
+  /** (T182) False until the web's idle prefetch has started: the Salmon / Bait & fly files wait for it (a phone: true). */
+  settled?: boolean;
 }) {
   /**
    * The reaches the map currently has rendered — what the Conditions view asks the panel
@@ -147,10 +149,10 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
    * change and nothing else — no fetch, no relabel. Offered only under the Regulations colouring, once the file is in.
    */
   const [regsLayer, setRegsLayer] = useRegsLayer();
-  const salmon = useSalmonColour({ source, paired, statusOk, mapTab: mapTab === "map", day: mapDay });
+  const salmon = useSalmonColour({ source, paired, statusOk, mapTab: mapTab === "map", day: mapDay, settled });
   const salmonOffered = salmon.feed !== null && layers.effective.water === "regulations";
   // (T213) BAIT & FLY: the same way — the release's `method` file handed over whatever the toggle says
-  const method = useMethodColour({ source, paired, statusOk, mapTab: mapTab === "map", day: mapDay });
+  const method = useMethodColour({ source, paired, statusOk, mapTab: mapTab === "map", day: mapDay, settled });
   const methodOffered = method.feed !== null && layers.effective.water === "regulations";
   const regsShown: RegsLayer = regsLayer === "salmon" && salmonOffered ? "salmon"
     : regsLayer === "method" && methodOffered ? "method" : "standard";

@@ -1011,6 +1011,18 @@ export const WEB_BUDGET: Record<string, { files: readonly string[]; gate: number
     ],
     "gate": 1150000
   },
+  "cold_load": {
+    "files": [
+      "manifest",
+      "paint",
+      "mask",
+      "core",
+      "regs-{region}",
+      "salmon",
+      "method"
+    ],
+    "gate": 3800000
+  },
   "first_search": {
     "files": [
       "core"

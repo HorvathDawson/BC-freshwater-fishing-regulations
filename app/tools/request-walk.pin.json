@@ -61,6 +61,7 @@
   "manifest",
   "paint",
   "regs-1",
+  "salmon",
   "wasm",
   "water"
  ],
@@ -71,6 +72,7 @@
   "manifest",
   "paint",
   "regs-2",
+  "salmon",
   "wasm",
   "water"
  ],
@@ -81,6 +83,7 @@
   "manifest",
   "paint",
   "regs-3",
+  "salmon",
   "wasm",
   "water"
  ],
@@ -91,6 +94,7 @@
   "manifest",
   "paint",
   "regs-4",
+  "salmon",
   "wasm",
   "water"
  ],
@@ -101,6 +105,7 @@
   "manifest",
   "paint",
   "regs-5",
+  "salmon",
   "wasm",
   "water"
  ],
@@ -111,6 +116,7 @@
   "manifest",
   "paint",
   "regs-6",
+  "salmon",
   "wasm",
   "water"
  ],
@@ -121,6 +127,7 @@
   "manifest",
   "paint",
   "regs-8",
+  "salmon",
   "wasm",
   "water"
  ],
@@ -131,6 +138,7 @@
   "manifest",
   "paint",
   "regs-7a",
+  "salmon",
   "wasm",
   "water"
  ],
@@ -141,22 +149,29 @@
   "manifest",
   "paint",
   "regs-7b",
+  "salmon",
   "wasm",
   "water"
  ],
  "visit | prefetch after paint": [
   "core",
+  "method",
   "regs-2",
+  "salmon",
   "wasm"
  ],
  "tap named | prefetch after paint": [
   "core",
+  "method",
   "regs-2",
+  "salmon",
   "wasm"
  ],
  "tap unnamed | prefetch after paint": [
   "core",
+  "method",
   "regs-2",
+  "salmon",
   "wasm"
  ],
  "tap named (save-data) | first paint": [
@@ -166,7 +181,9 @@
   "paint"
  ],
  "tap named (save-data) | prefetch after paint": [
-  "regs-2"
+  "method",
+  "regs-2",
+  "salmon"
  ],
  "tap named (save-data) | map tap: a named water (R2)": [
   "access",
@@ -176,12 +193,16 @@
  ],
  "conditions | prefetch after paint": [
   "core",
+  "method",
   "regs-2",
+  "salmon",
   "wasm"
  ],
  "spot | prefetch after paint": [
   "core",
+  "method",
   "regs-2",
+  "salmon",
   "wasm"
  ]
 }

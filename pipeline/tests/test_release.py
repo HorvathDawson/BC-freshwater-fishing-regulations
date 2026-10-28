@@ -330,7 +330,32 @@ def test_the_web_budget_prices_each_moment_and_fails_a_crossed_gate(tmp_path):
     files["regs-3"]["gz"] = C.WEB_BUDGET["first_tap_unnamed"]["gate"]
     (tmp_path / "manifest.json").write_text(json.dumps(m))
     assert sorted(p.split(":")[0] for p in B.gate_problems(tmp_path) if p.startswith("web ")) == \
-        ["web first_tap", "web first_tap_unnamed"]
+        ["web cold_load", "web first_tap", "web first_tap_unnamed"]
+
+
+def test_t182_every_file_has_its_own_gate_and_the_total_is_the_phones(tmp_path):
+    """(T182) The web fetches each file lazily, so every file the contract names carries its own gzip gate (a new file
+    states its size when it is added); a manifest naming an ungated file fails the release. The release total is the
+    offline backstop (what a phone holds), not the web's cap — that is `WEB_BUDGET["cold_load"]` (first paint + the idle
+    prefetch). Mutations: an ungated file, a file over its gate, and the total over the offline gate each fail alone."""
+    from pipeline.deliver.release import contract as C
+    assert set(C.FILES) <= set(B.SIZE_GATES), sorted(set(C.FILES) - set(B.SIZE_GATES))
+    assert C.WEB_BUDGET["cold_load"]["files"] == C.WEB_BUDGET["first_paint"]["files"] + \
+        ["core", "regs-{region}", "salmon", "method"]
+    assert C.WEB_BUDGET["cold_load"]["gate"] < B.OFFLINE_GATE
+
+    def problems(files):
+        (tmp_path / "manifest.json").write_text(json.dumps({"files": files, "tiles": {"mask": {"bytes": 1}}}))
+        return [p for p in B.gate_problems(tmp_path) if not p.startswith("web ")]
+    ok = {k: {"bytes": 1, "gz": 1} for k in C.FILES}
+    assert problems(ok) == []
+    assert problems(ok | {"runs": {"bytes": 1, "gz": 1}}) == ["runs: no size gate (build.SIZE_GATES)"]
+    assert problems(ok | {"water": {"bytes": 1, "gz": B.SIZE_GATES["water"] + 1}}) == \
+        [f"water: {B.SIZE_GATES['water'] + 1:,} B gzip > {B.SIZE_GATES['water']:,}"]
+    # the total alone: gated files each under their gate, together over the phone's
+    big = {k: {"bytes": 1, "gz": B.SIZE_GATES[k]} for k in C.FILES}
+    assert sum(v["gz"] for v in big.values()) > B.OFFLINE_GATE
+    assert [p.split(":")[0] for p in problems(big)] == ["offline total"]
 
 
 def test_t182_each_moment_fetches_only_the_files_holding_what_it_reads():

@@ -34,8 +34,9 @@ function fakeLoader() {
   return { loader, asked };
 }
 
-function Probe({ loader, out }: { loader: ReleaseLoader | null; out: { cb?: ((r: unknown) => void) | undefined } }) {
-  out.cb = useReleasePrefetch(loader);
+function Probe({ loader, out, onIdle }: { loader: ReleaseLoader | null; out: { cb?: ((r: unknown) => void) | undefined };
+                onIdle?: () => void }) {
+  out.cb = useReleasePrefetch(loader, onIdle);
   return null;
 }
 
@@ -70,6 +71,23 @@ describe("useReleasePrefetch", () => {
         expect(asked).toEqual(["fetch regs-3"]);
       });
     });
+
+  it("T182: onIdle once, after the idle prefetch started (Save-Data too) — the colourings wait for it, not for paint", () => {
+    for (const connection of [{ effectiveType: "4g" }, { saveData: true }]) {
+      const idle: (() => void)[] = [];
+      withGlobals(idle, connection, () => {
+        const { loader, asked } = fakeLoader(), out: { cb?: (r: unknown) => void } = {};
+        render(<Probe loader={loader} out={out} onIdle={() => asked.push("idle")} />);
+        out.cb!("2");
+        expect(asked).toEqual(["fetch regs-2"]);              // first paint: not yet
+        idle[0]!();
+        out.cb!("3");
+        expect(asked.filter((a) => a === "idle")).toEqual(["idle"]);
+        expect(asked.indexOf("idle")).toBeGreaterThan(asked.indexOf("fetch regs-2"));
+        if (!("saveData" in connection)) expect(asked.indexOf("idle")).toBeGreaterThan(asked.indexOf("open core"));
+      });
+    }
+  });
 
   it("a phone (no loader handed): no callback, so the map is never asked", () => {
     const out: { cb?: (r: unknown) => void } = {};

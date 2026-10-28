@@ -27,11 +27,14 @@ export interface SalmonFeedVM {
 
 /**
  * The release's DFO salmon on the Map tab, on a proven pair, once the day's status is in. `day` the map's day (null
- * today). The SAME object while the facts and the day are — the toggle is not an input.
+ * today). The SAME object while the facts and the day are — the toggle is not an input. (T182) `settled` false holds the
+ * read back: the web passes it until its idle prefetch has started (`useReleasePrefetch`'s `onIdle`), so the file is
+ * fetched after first paint, never with it; a phone (its release installed) leaves it out.
  */
 export function useSalmonColour(i: { source: WaterSource; paired: boolean; statusOk: boolean; mapTab: boolean;
-                                     day: Date | null }): { feed: SalmonFeedVM | null; facts: SalmonFacts | null } {
-  const on = i.paired && i.statusOk && i.mapTab;
+                                     day: Date | null; settled?: boolean }):
+    { feed: SalmonFeedVM | null; facts: SalmonFacts | null } {
+  const on = i.paired && i.statusOk && i.mapTab && i.settled !== false;
   // asked once per source and kept: leaving the Map tab does not forget it (a return is instant too)
   const [asked, setAsked] = useState<string | null>(null);
   const key = `salmonfacts:${sourceKey(i.source)}`;
@@ -57,8 +60,8 @@ export interface MethodFeedVM {
  * only. Null where the release ships none (cut before T213): the choice is then not offered.
  */
 export function useMethodColour(i: { source: WaterSource; paired: boolean; statusOk: boolean; mapTab: boolean;
-                                     day: Date | null }): { feed: MethodFeedVM | null } {
-  const on = i.paired && i.statusOk && i.mapTab && !!i.source.methodFacts;
+                                     day: Date | null; settled?: boolean }): { feed: MethodFeedVM | null } {
+  const on = i.paired && i.statusOk && i.mapTab && i.settled !== false && !!i.source.methodFacts;
   const [asked, setAsked] = useState<string | null>(null);
   const key = `methodfacts:${sourceKey(i.source)}`;
   if (on && asked !== key) setAsked(key);

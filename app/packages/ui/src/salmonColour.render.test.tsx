@@ -64,6 +64,19 @@ describe("useSalmonColour: fetched once, before the toggle, and the same feed wh
     expect(asked).toEqual(["salmonFacts"]);
   });
 
+  it("T182: not asked while the web is unsettled (before its idle prefetch); asked once it settles", async () => {
+    const asked: string[] = [];
+    const src = source(asked);
+    const { result, rerender } = renderHook((p: { settled: boolean }) =>
+      useSalmonColour({ source: src, paired: true, statusOk: true, mapTab: true, day: DAY, settled: p.settled }),
+      { initialProps: { settled: false } });
+    await new Promise((r) => setTimeout(r, 0));
+    expect([asked, result.current.feed]).toEqual([[], null]);
+    rerender({ settled: true });
+    await waitFor(() => expect(result.current.facts).toBe(FACTS));
+    expect(asked).toEqual(["salmonFacts"]);
+  });
+
   it("leaving the Map tab keeps what was read: coming back asks nothing", async () => {
     const asked: string[] = [];
     const src = source(asked);
