@@ -165,12 +165,13 @@ export const GEAR_RAMP: keyof typeof GEAR_RAMPS = "gentle";
 type Ramp = readonly (readonly [number, number])[];
 /** A ramp's value at `zoom`, linear between stops and held outside them. */
 export function rampAt(ramp: Ramp, zoom: number): number {
-  if (zoom <= ramp[0][0]) return ramp[0][1];
+  const first = ramp[0]!;
+  if (zoom <= first[0]) return first[1];
   for (let i = 1; i < ramp.length; i++) {
-    const [z1, v1] = ramp[i], [z0, v0] = ramp[i - 1];
+    const [z1, v1] = ramp[i]!, [z0, v0] = ramp[i - 1]!;
     if (zoom <= z1) return v0 + (v1 - v0) * (zoom - z0) / (z1 - z0);
   }
-  return ramp[ramp.length - 1][1];
+  return ramp[ramp.length - 1]![1];
 }
 /** The dash: the token from z11 up, a longer one below it (the line is thin; a 1.2 dash is a few pixels). */
 function gearDash(tokens: Tokens): unknown {

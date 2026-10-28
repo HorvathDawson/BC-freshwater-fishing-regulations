@@ -152,6 +152,6 @@ describe("the gear layers in the first frame", () => {
     expect(at(GEAR_LAYERS.lake.bait)).toBeLessThan(at(SELECTION_RINGS.lake));
     const s = runtimeStyle({ atlas: "a", basemap: "b" } as never, "light");
     for (const id of Object.values(GEAR_LAYERS.stream))
-      expect((s.layers.find((l) => l.id === id) as { paint: Record<string, unknown> }).paint["line-opacity"]).toBe(0);
+      expect((s.layers.find((l) => l.id === id) as unknown as { paint: Record<string, unknown> }).paint["line-opacity"]).toBe(0);
   });
 });
