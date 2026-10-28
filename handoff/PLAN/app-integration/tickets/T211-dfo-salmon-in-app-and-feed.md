@@ -90,3 +90,12 @@ DFO mode queue.
   ui-native `SalmonCard.test.tsx` (checked line).
 - Not built: a `changes.json` diff log (the card has no "recent changes" fold in option A); a feed staleness line in
   `staleness.ts` (the card shows the capture time instead).
+
+## Partial coverage (2026-10-28, 68de7729; live in r-098f810f6e0a)
+Kitimat said "release only": not a closed-vs-release mix-up — the area-6 default "No retention of coho (Jan 1–Oct 31)"
+(genuine non-retention; all 13 `release` verdicts are) answered for a river whose own rules (coho open below the Hwy 37
+bridge, closed above, hatchery closure) sit on undrawn locations. Now every section of a water with an undrawn DFO place
+that has rules carries it (chain `u`): map `check`, card leads "Salmon rules on parts of this water aren't mapped yet —
+check DFO" + DFO link, rows read Check DFO. 100 waters / 2,466 sections today (was open 1,188, closed 1,118, release
+160); release still shown on 43,800 sections / 130 waters (area defaults, genuine). Left: Sheldens Creek's undrawn
+place reaches no section (its water has no item sections); feed-only `unplaced.json` places carry no item ids yet.
