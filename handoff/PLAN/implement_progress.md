@@ -3,7 +3,16 @@
 Restart here. Update this file after EVERY step: what is done, what is running, and the exact next action.
 Logs from timing runs live in the session scratchpad, which a reboot wipes. The numbers that matter are copied here.
 
-## CURRENT STATE (2026-10-28 — T182 done)
+## CURRENT STATE (2026-10-28 — T220 braid channels close)
+
+LIVE: r-46be3c135e68, tiles db853e9556df81a6.16b3906b04bf (atlas promoted). T220 (4c90fe68, 64c28a2b): the braid prune
+restores the pieces that close each dangling channel end (flow-directed; 1,041 -> 97, the rest FWA channels with no
+outflow), and each side-channel run draws from its lowest zoom. binding_diff: only new sections gained rules, no existing
+section moved. Re-cut on the new release: taps (124 tapped + 10 gone: Dean x13p2, Kootenay x9p2), hydrate, regs-fixture,
+VM fixtures, handle pins; conformance/regs + fixture tests green (vintage-pins red on the SEO lane's legacy.test.ts, not
+T220). Shots: app-integration/T220-shots/.
+
+## (earlier) CURRENT STATE (2026-10-28 — T182 done)
 
 LIVE: r-bda3fea28838 (T182's deliver reproduced it byte-for-byte). T182 (00ad9565): every release file has its own gzip
 gate, a `cold_load` web gate (3,378,096 of 3.8 MB), and the 15 MB total is now `OFFLINE_GATE` 20 MB (14.90 MB, 5.1 MB

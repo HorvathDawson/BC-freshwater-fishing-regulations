@@ -42,7 +42,7 @@ afterAll(() => { if (total) console.info(`keep T15 (inherited · whereNot · pos
 
 describe("T15 standing blocks vs golden keep (every state)", () => {
   // (T115) the 4 states whose part the release merged away (x15p14/15/17/18, taps.json `gone`) are not cases; (T183) and the West Road's x27p1 (its Region 6 stretch shares part 0's rules now, taps.json `gone`) neither
-  it("126/126 states: inherited, whereNot and possession equal the golden", async () => {
+  it("124/124 states: inherited, whereNot and possession equal the golden", async () => {
     const bad: string[] = [];
     for await (const c of cases("keep")) {
       total++;
@@ -52,7 +52,7 @@ describe("T15 standing blocks vs golden keep (every state)", () => {
       if (eq.ok) passed++; else bad.push(`${c.id}\n${eq.diff}`);
     }
     expect(bad).toEqual([]);
-    expect(total).toBe(126);   // 134 golden − 8 gone (T115 ×4, T67 ×2, T183 ×1, 2026-10-27 x18p3 ×1)
+    expect(total).toBe(124);   // 134 golden − 10 gone (T115 ×4, T67 ×2, T183 ×1, 2026-10-27 x18p3 ×1, T220 ×2)
   });
 
   it("2. glenn_501: the Duncan River's exemption, its Rule book page and the nearer row's caution", async () => {
@@ -95,7 +95,7 @@ describe("T15 standing blocks vs golden keep (every state)", () => {
 
   // (T115) the 4 states whose part the release merged away (x15p14/15/17/18, taps.json `gone`) are not cases: all 4 carried the possession row;
   // (T183) and the West Road's x27p1 (its Region 6 stretch shares part 0's rules now, taps.json `gone`) carried it too
-  it("5. census: the possession row is on 101 states, always \"2 days’ quota\"; null on the other 25", async () => {
+  it("5. census: the possession row is on 101 states, always \"2 days’ quota\"; null on the other 23", async () => {
     const values: string[] = [];
     let none = 0;
     for await (const c of cases("keep")) {
@@ -103,6 +103,6 @@ describe("T15 standing blocks vs golden keep (every state)", () => {
       if (p) values.push(p.value); else none++;
     }
     if (!values.length && !none) return;   // no paired store: cases() yielded nothing (a failure under REGS_STORE_REQUIRED=1)
-    expect([values.length, none, [...new Set(values)]]).toEqual([101, 25, ["2 days’ quota"]]);   // (2026-10-27) x18p3 gone: the Columbia's Mud Lake speed limit split its golden part
+    expect([values.length, none, [...new Set(values)]]).toEqual([101, 23, ["2 days’ quota"]]);   // (2026-10-27) x18p3 gone: the Columbia's Mud Lake speed limit split its golden part; (T220) x13p2 + x9p2 gone: restored braid pieces renumbered the Dean and grew the Kootenay's closed parts
   });
 });

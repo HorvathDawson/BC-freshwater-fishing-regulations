@@ -117,7 +117,7 @@ describe.skipIf(pairing.skip)(`T09 loadRegsInputs on the live release (${at.path
     }));
     const want = ids.map((id) => { const b = banner(id); return [id, b && [Number(b[1]), Number(b[2])]] as const; });
     expect(got).toEqual(want);
-    expect(got.filter(([, m]) => m !== null).length).toBe(6);   // (T67) x22p2, one of the 7, is a PART_GONE state now
+    expect(got.filter(([, m]) => m !== null).length).toBe(4);   // (T67) x22p2, one of the 7, is a PART_GONE state now; (T220) x13p2 and x9p2 too
   });
 
   it("8. an unnamed section: no item, the key, and the place's name; a handle outside B.C. has neither", async () => {

@@ -264,6 +264,7 @@ use that as the sole source of future work."
 | T217 | iOS: the per-tile event and stretchable Images in the binding patch (T74 is Android only) | DONE | 41f15021 | simulator: 26 pans / 49 frames 0 grey; pill + hatches + At my location seen; first-view replay + pending states (iOS-only); pill content = stretch box on iOS |
 | T218 | bathymetry: ship depth figures + contours for the 28 already-digitised lakes (OGL-BC layer) | OPEN | — | not yet (owner 2026-10-27); after T201/T158 |
 | T219 | bathymetry: trace contours from the open scanned charts for the top-fished lakes | OPEN | — | not yet (owner 2026-10-27); raster scans, georef works, depth labelling needs a review UI; ★ tier size |
+| T220 | braid channels close: no channel line ends where the water goes on (prune closure + one zoom per side-channel run) | DONE | 4c90fe68, 64c28a2b | owner 10-28 FIX complete; 1,041 -> 97 dangling ends, no existing binding moved; live r-46be3c135e68 |
 
 ## Order for open tickets
 

@@ -61,6 +61,7 @@ WD_OF_DAY = {day_of(((_D0 + datetime.timedelta(i)).month, (_D0 + datetime.timede
 T183 = "T183 (owner 2026-10-24, tickets/T183): a straddling stream piece carries both regions' rules again (reverses T115)"
 T115 = "T115 (owner decision AGENTS 54, tickets/T115-one-region-membership.md): a straddling stream piece is its home region's only"
 T67 = "T67 (owner 2026-10-24, decisions.md \"braids accepted\"; RULINGS E17, AGENTS 12)"
+T220 = "T220 (owner 2026-10-28, FIX \"complete\"): no channel line ends where the water goes on"
 _LEN = "the automatic length cuts moved off braid-spanned junctions (owner Q2)"
 _GAUGE = "the old perpendicular sweep's gauge cuts are gone"
 COLUMBIA_R11 = ('2026-10-27 (owner, decisions.md "needs a split"): columbia_river.r11 \'Speed restriction (10 km/h) from Mud Lake to Columbia Lake\' now binds the Fairmont -> Columbia Lake stretch, so the golden\'s two-stretch part (Kinbasket Lake -> Donald + Fairmont -> Columbia Lake outlet, 3 sections) is two parts: 3 (Fairmont, 2 sections, with the speed limit) and 7 (Kinbasket -> Donald, 1 section)')
@@ -98,6 +99,10 @@ PART_GROWN = {
     "x19p1_1010": "T183 (owner 2026-10-24): Skeena section 2 starts at the Exchamsiks confluence, not the Ecological Reserve boundary (61 -> 59 sections; the extent changed, the rows did not)",
 }
 PART_GONE = {
+    "x9p2_1010": (2, f"{T220}: restored braid pieces joined the Kootenay's closed parts: the page's merged 'closed all "
+                     f"year' list is 19 sections (part 2: 18, part 7: 1), not the golden's 16"),
+    "x13p2_1010": (3, f"{T220}: restored braid pieces renumbered the Dean; the golden closed part (the page's merged "
+                      f"'closed all year', 4 sections) is store parts 3 and 6 now, part 2 is the open 0.5-3.5 km stretch"),
     "x18p3_1010": (3, COLUMBIA_R11),
     "x27p1_1010": (0, f"{T183}: the West Road's Region 6 stretch below Carnlick Creek shares its rules with part 0 now"),
     "x15p17_1010": (16, f"{T183}: the golden part (356364114:674465, Region 5 and Region 7A) shares its rules with 699253 and is in part 16 now"),
@@ -133,7 +138,17 @@ PART_RECOUNTED = {
     "x17p1_1010": (1, "T179 (owner 2026-10-24, one cut-placement pass): gauge 08EC001 stood 88 m from the curated Fort "
                       "Babine Bridge cut and now joins it (gauge an alias), so the sliver between is gone: 2 -> 1 sections"),
     "x15p0_1010": (0, f"{T183}: a Fraser piece at the Region 5 / 7A line carries both regions' rules and joined part 16: 109 -> 108 sections"),
-    "x13p3_1010": (3, f"{T67}: the Dean's side channel 360227736 is cut at the 0.5 km sign (421 m): 2 -> 3 sections"),
+    "x13p3_1010": (2, f"{T67}: the Dean's side channel 360227736 is cut at the 0.5 km sign (421 m): 2 -> 3 sections; "
+                      f"then {T220}: restored braid pieces, 4 sections, renumbered 3 -> 2 (part order follows rule-set ids)"),
+    "bc1_501": (1, f"{T220}: braid pieces that close a kept side channel were restored: 6 -> 7 sections"),
+    "bc0_501": (0, f"{T220}: braid pieces that close a kept side channel were restored: 44 -> 47 sections"),
+    "bc1_1010": (1, f"{T220}: braid pieces that close a kept side channel were restored: 6 -> 7 sections"),
+    "bc0_1010": (0, f"{T220}: braid pieces that close a kept side channel were restored: 44 -> 47 sections"),
+    "x13p1_1010": (1, f"{T220}: braid pieces that close a kept side channel were restored: 14 -> 15 sections"),
+    "x14p0_1010": (0, f"{T220}: braid pieces that close a kept side channel were restored: 26 -> 27 sections"),
+    "x15p1_1010": (1, f"{T220}: braid pieces that close a kept side channel were restored: 35 -> 36 sections"),
+    "x21p1_1010": (1, f"{T220}: braid pieces that close a kept side channel were restored: 36 -> 37 sections"),
+    "chw1_1010": (1, f"{T220}: a braid piece that closes a kept side channel was restored to the Vedder: 9 -> 10 sections"),
     "x15p2_1010": (2, f"{T67}: on the Fraser mainstem {_GAUGE} (94,834 / 108,135 / 111,137 / 122,096 / 132,550 / "
                       f"148,097 m) and {_LEN} (93,822 / 116,370 / 135,999 m): 40 -> 36 sections"),
     "x15p3_1010": (3, f"{T67}: {_GAUGE} on the Fraser's side channels 355992485 and 355994872, and 08MH028's cut "

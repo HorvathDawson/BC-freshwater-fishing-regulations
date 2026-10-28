@@ -27,9 +27,9 @@ it("7. golden.json and taps.json are from one sync", () => {
   expect(golden().meta.sha, "golden.json and taps.json differ — re-run app/design/regs-v11/port/sync.mjs").toBe(T.meta.golden);
   // (T115) 4 Fraser states' parts merged away and (T67) 2 closed states re-cut (taps.json `gone`, excluded in every block),
   // (T183) and the West Road's x27p1 merged into part 0, (2026-10-27) the Columbia's x18p3 split in two by its Mud Lake
-  // speed limit: 126 tapped + 8 gone = 134
+  // speed limit; T220 x13p2 + x9p2: 124 tapped + 10 gone = 134
   expect([T.meta.golden, golden().meta.version, ids.length, Object.keys(T.gone).length, Object.keys(golden().states).length])
-    .toEqual(["d7b1ed35", "v38", 126, 8, 134]);
+    .toEqual(["d7b1ed35", "v38", 124, 10, 134]);
   expect([...Object.keys(T.states), ...Object.keys(T.gone)].sort()).toEqual(Object.keys(golden().states).sort());
 });
 

@@ -56,8 +56,8 @@ describe.skipIf(gate.skip)("T14 banner vs golden keep.banner", () => {
     passed++;
   });
 
-  it("1. 25 tapped golden states draw a banner (27 less T67's two gone closed states)", () => {
-    expect(ids.filter((id) => gbanner(id) !== null).length).toBe(25);
+  it("1. 23 tapped golden states draw a banner (27 less T67's two and T220's two gone closed states)", () => {
+    expect(ids.filter((id) => gbanner(id) !== null).length).toBe(23);   // (T220) x13p2 + x9p2 gone: restored braid pieces renumbered the Dean and grew the Kootenay's closed parts
   });
 
   it("2. vedder_615: the strip said 'Closed' and 'Opens Jul 1', so the headline goes; the link keeps its own words", async () => {

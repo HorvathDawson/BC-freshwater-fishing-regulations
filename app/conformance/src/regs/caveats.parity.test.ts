@@ -29,7 +29,7 @@ afterAll(() => { if (total) console.info(`keep T15b (caveat blocks) parity: ${pa
 
 describe("T15b caveat blocks vs golden keep.order / keep.lines (every state)", () => {
   // (T115) the 4 states whose part the release merged away (x15p14/15/17/18, taps.json `gone`) are not cases; (T183) and the West Road's x27p1 (its Region 6 stretch shares part 0's rules now, taps.json `gone`) neither
-  it("126/126 states: the same blocks in the same order, and their lines contiguous in keep.lines", async () => {
+  it("124/124 states: the same blocks in the same order, and their lines contiguous in keep.lines", async () => {
     const bad: string[] = [];
     let drawn = 0;
     for await (const c of cases("keep")) {
@@ -43,7 +43,7 @@ describe("T15b caveat blocks vs golden keep.order / keep.lines (every state)", (
       if (got.length) drawn++;
     }
     expect(bad).toEqual([]);
-    expect([total, drawn]).toEqual([126, 9]);   // (2026-10-27) x18p3 gone: the Columbia's Mud Lake speed limit split its golden part
+    expect([total, drawn]).toEqual([124, 9]);   // (2026-10-27) x18p3 gone: the Columbia's Mud Lake speed limit split its golden part; (T220) x13p2 + x9p2 gone: restored braid pieces renumbered the Dean and grew the Kootenay's closed parts
   });
 
   const at = async (id: string) => { for await (const c of cases("keep")) if (c.id === id) return blocks(await c.inputs()); return null; };

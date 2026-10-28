@@ -220,8 +220,15 @@ export function recountedSub(sub: string, n: number): string {
   if (!m) throw new Error(`recountedSub: ${JSON.stringify(sub)} is not 'kind · N sections[ · label]'`);
   return `${m[1]}${n} ${n === 1 ? "section" : "sections"}${m[2]}`;
 }
+/** (T220) Re-cut waters whose Parts sheet is still the golden's: the release renumbered or recounted their parts (a
+ *  closed part is a PART_GONE state) but the sheet lists the same stretches in the same words. Their Parts sheet is
+ *  compared whole; sheets.parity would otherwise demand it differ. */
+export const RECUT_SAME_PARTS: Readonly<Record<string, string>> = {
+  "gnis:16075": "T220 (owner 2026-10-28): restored braid pieces renumbered the Dean's parts (x13p2's closed part is 3 now); the stretches and their words are unchanged",
+};
 /** (T115) Every tapped state of a water whose parts the release re-cut (taps.json `recut`). */
-export const RECUT_IDS: readonly string[] = Object.entries(tapsOnce().states).filter(([, t]) => t.item in (tapsOnce().recut ?? {})).map(([id]) => id);
+export const RECUT_IDS: readonly string[] = Object.entries(tapsOnce().states)
+  .filter(([, t]) => t.item in (tapsOnce().recut ?? {}) && !(t.item in RECUT_SAME_PARTS)).map(([id]) => id);
 export const RECUT_EXCLUDE: readonly Exclusion[] = [
   ...(PART_GROWN_IDS.length ? [{ block: "header" as const, ids: PART_GROWN_IDS, key: /^place\.(full|short)$/,
     reason: "T115 (owner decision AGENTS 54, tickets/T115-one-region-membership.md), then T183 (owner 2026-10-24) and T67: the part's extent changed — the Skeena's section 2 starts at the Exchamsiks, the West Road's straddling pieces are parts of their own (taps.json `grown`) — so its extent words (the header's full and short label, and the subtitle's label and section count) are not the prototype's; its rows are, and are compared. header.parity asserts the label and subtitle DIFFER (so the entry cannot go stale). (The Parts button whose aria quoted the label is gone: T150, GOLDEN_PARTS_ACTION_IDS)",

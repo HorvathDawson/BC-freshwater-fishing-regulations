@@ -40,7 +40,7 @@ describe.skipIf(gate.skip)("T30 gear lines vs golden gear", () => {
 
   // (T115) the 4 states whose part the release merged away (x15p14/15/17/18, taps.json `gone`) are not cases: all 4 open, with 3 lines;
   // (T183) and the West Road's x27p1 (its Region 6 stretch shares part 0's rules now, taps.json `gone`) neither: open, 3 lines, a mode (artificial fly only)
-  it("1. tallies: 25 closed, 101 open with 3 lines, 10 modes, the 8 Weight lines with no source, the dated changes", async () => {
+  it("1. tallies: 23 closed, 101 open with 3 lines, 10 modes, the 8 Weight lines with no source, the dated changes", async () => {
     const t = { closed: 0, threeLines: 0, mode: 0, nullSrc: [] as string[], lineChanges: [] as string[], modeChanges: [] as string[] };
     for (const id of ids) {
       const v = (await gearOf(id)).gear;
@@ -51,7 +51,7 @@ describe.skipIf(gate.skip)("T30 gear lines vs golden gear", () => {
       t.lineChanges.push(...v.lines.filter((l) => l.changes.length).map((l) => `${id} ${l.k}`));
       if (v.mode?.changes.length) t.modeChanges.push(id);
     }
-    expect(t).toEqual({ closed: 25, threeLines: 101, mode: 10,
+    expect(t).toEqual({ closed: 23, threeLines: 101, mode: 10,
       nullSrc: ["vedder_515", "cow1_1010", "cow2_1010", "cow3_1010", "x13p0_1010", "x16p8_1010", "x17p7_1010", "x17p1_1010"].map((x) => `${x} weight`),
       lineChanges: ["vedder_1010 hook", "x16p3_1010 hook", "x17p4_1010 hook"], modeChanges: ["vedder_515", "cow1_1010", "cow3_1010"] });
   });
@@ -99,7 +99,8 @@ describe.skipIf(gate.skip)("T30 gear lines vs golden gear", () => {
 
   it("4. closed days: when it opens, or never; the tidal water says the banner's words (D20 b)", async () => {
     expect((await gearOf("vedder_615")).gear).toEqual({ closed: "No fishing here until Jul 1.", closedMore: [], day: null, mode: null, lines: [], bait: null });
-    for (const id of ["chw0_1010", "x5p0_1010", "x9p2_1010", "x13p2_1010"]) expect((await gearOf(id)).gear.closed, id).toBe("No fishing here on any day of the year.");
+    // (T220) x9p2 and x13p2 are PART_GONE states now (taps.json `gone`): no tap to read
+    for (const id of ["chw0_1010", "x5p0_1010"]) expect((await gearOf(id)).gear.closed, id).toBe("No fishing here on any day of the year.");
     const tidal = (await gearOf("x31p_1010")).gear;
     expect([tidal.closed, tidal.closedMore.length, tidal.lines]).toEqual(["Tidal water", 1, []]);
     expect(tidal.closedMore[0]).toMatch(/^Tidal water: a different regulation system\. /);

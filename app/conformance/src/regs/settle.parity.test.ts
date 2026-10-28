@@ -93,7 +93,7 @@ const project = (c: Settled): OracleSettle => ({
 });
 
 it("the oracle: page v38's settle over the 134 golden states, YEAR 2026", () => {
-  expect([H.meta.version, H.meta.year, Object.keys(H.states).length, ids.length]).toEqual(["v38", 2026, 134, 126]);   // (T115, T67, T183, 2026-10-27 x18p3) 8 gone
+  expect([H.meta.version, H.meta.year, Object.keys(H.states).length, ids.length]).toEqual(["v38", 2026, 134, 124]);   // (T115, T67, T183, 2026-10-27 x18p3, T220 x13p2 x9p2) 10 gone
   expect(ids).toEqual(Object.keys(T.states));
   expect(Object.keys(H.states).filter((id) => id in T.gone)).toEqual(Object.keys(T.gone));
 });
@@ -157,7 +157,7 @@ group.skipIf(pairing.skip)(`T07 settle on the live release (${at.path ?? at.reas
   // (T115) the 4 states whose part the release merged away (x15p14/15/17/18, taps.json `gone`; all 4 "own") and (T67) the 2
   // closed states whose merged closed list the release re-cut (x19p5, x22p2; both "closed") are not tapped; (T183) nor the
   // West Road's x27p1 (its part merged into part 0; "own")
-  it("5. census over the 126: own 95, closed 24, base 6, tidal 1; timed is empty on every golden state", async () => {
+  it("5. census over the 124: own 95, closed 22, base 6, tidal 1; timed is empty on every golden state", async () => {
     const tally: Record<string, number> = {};
     let timed = 0;
     for (const id of ids) {
@@ -166,7 +166,7 @@ group.skipIf(pairing.skip)(`T07 settle on the live release (${at.path ?? at.reas
       tally[k] = (tally[k] ?? 0) + 1;
       timed += c.timed.length;
     }
-    expect([tally, timed]).toEqual([{ own: 95, closed: 24, base: 6, tidal: 1 }, 0]);   // (2026-10-27) x18p3 gone: the Columbia's Mud Lake speed limit split its golden part
+    expect([tally, timed]).toEqual([{ own: 95, closed: 22, base: 6, tidal: 1 }, 0]);   // (2026-10-27) x18p3 gone: the Columbia's Mud Lake speed limit split its golden part; (T220) x13p2 + x9p2 gone: restored braid pieces renumbered the Dean and grew the Kootenay's closed parts
   });
 
   it("6. displayStatusOn / isClosedOn on the Vedder: Jun 1–30 (leap days 153–182) closed, the days either side not", async () => {
