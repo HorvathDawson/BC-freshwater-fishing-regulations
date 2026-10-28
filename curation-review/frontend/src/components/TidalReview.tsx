@@ -77,6 +77,23 @@ export function altSplit(c: TidalCandidate, a: TidalAlternate): NewSplit {
   };
 }
 
+/** DFO CONFIRMS THE MOUTH (owner 2026-10-28): the new split a bulk accept records — the cut at the FWA mouth
+ *  (DFO's default rule), or the proposal's own split when it already sits there or reuses a curated split. */
+export function mouthSplit(c: TidalCandidate): NewSplit {
+  const base = acceptSplit(c);
+  if (c.proposed.reuse || c.proposed.above_mouth_m < 1) {
+    return { ...base, note: `DFO confirms the mouth (T212 pass 2, bulk accept)${base.note ? `; ${base.note}` : ""}` };
+  }
+  return {
+    ...base, anchor: "coord", split_id: null, name: `${c.water}: mouth (tidal boundary)`, coord: c.mouth.coord,
+    note: `DFO confirms the mouth (T212 pass 2, bulk accept): the cut at the FWA mouth, not the proposal's `
+      + `${Math.round(c.proposed.above_mouth_m)} m${c.proposed.aliases.length ? `; aliases: ${c.proposed.aliases.join("; ")}` : ""}`,
+  };
+}
+/** the rows a "DFO confirms mouth" bulk accept takes: upgrade / new, with no mark in force */
+export const mouthAcceptable = (rows: TidalRow[]) =>
+  rows.filter((r) => (r.dfo_mouth === "upgrade" || r.dfo_mouth === "new") && (r.verify === "unmarked" || r.verify === "stale"));
+
 interface Props {
   mode: Mode;
   onLeave: () => void;
@@ -91,7 +108,10 @@ interface Props {
 export function TidalReview({ mode, onLeave, onDfo }: Props) {
   const [allRows, setRows] = useState<TidalRow[]>([]);
   const [pvf, setPvf] = useState<PvFilter>(PV_DEFAULT);
-  const rows = useMemo(() => applyPv(allRows, pvf), [allRows, pvf]);
+  const [mouthOnly, setMouthOnly] = useState(false);
+  const rows = useMemo(() => applyPv(mouthOnly ? allRows.filter((r) => r.dfo_mouth) : allRows, pvf), [allRows, pvf, mouthOnly]);
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const queueSeq = useRef(0);
   const [progress, setProgress] = useState<TidalProgress | null>(null);
   const [filters, setFilters] = useState({ confidence: "", verify: "", enters: "", words: false, q: "", triage: DEFAULT_TRIAGE });
   const [selected, setSelected] = useState<string | null>(() => {
@@ -103,9 +123,39 @@ export function TidalReview({ mode, onLeave, onDfo }: Props) {
   const [notice, setNotice] = useState("");
 
   const loadRows = useCallback(() => {
-    api.tidalQueue(filters).then(setRows).catch((e) => setError(String(e)));
+    const seq = ++queueSeq.current;      // only the latest request lands (a slow earlier one must not overwrite it)
+    api.tidalQueue(mouthOnly ? { ...filters, triage: "" } : filters)
+      .then((got) => { if (seq === queueSeq.current) setRows(got); }).catch((e) => setError(String(e)));
     api.tidalProgress().then(setProgress).catch(() => {});
-  }, [filters]);
+  }, [filters, mouthOnly]);
+
+  // ACCEPT THE "DFO CONFIRMS MOUTH" BUCKET: one mark per unmarked upgrade / new row (marks are the only write)
+  async function acceptMouths() {
+    const take = mouthAcceptable(rows);
+    const who = getReviewer().trim();
+    if (!who) { setError("Type your name in a candidate's review box first: every mark names its reviewer."); return; }
+    if (!take.length) { setNotice("nothing to accept: every DFO-confirms-mouth row here is marked or a conflict"); return; }
+    if (!window.confirm(`Accept ${take.length} "DFO confirms the mouth" candidate(s): the tidal cut at the FWA mouth?`
+      + `\n\nOne mark each (P y), by ${who}. Conflicts and already-marked rows are skipped; a mark can be changed later.`)) return;
+    setBulkBusy(true);
+    let ok = 0;
+    const bad: string[] = [];
+    for (const r of take) {
+      try {
+        const d = await api.tidalCandidate(r.id);
+        await api.postMark({ scope: "tidal", target: r.id, answers: { P: "y" }, problem: null,
+          note: `DFO confirms the mouth (T212 pass 2): ${r.dfo_mouth_why ?? ""} — bulk accept`, reviewer: who, seconds: 0,
+          new_splits: [mouthSplit(d.candidate)] });
+        ok += 1;
+      } catch (e) {
+        bad.push(`${r.water}: ${String(e)}`);
+      }
+    }
+    setBulkBusy(false);
+    setNotice(`saved ✓ ${ok} DFO-confirms-mouth mark(s)${bad.length ? ` · ${bad.length} NOT saved` : ""}`);
+    if (bad.length) setError(bad.join(" · "));
+    loadRows();
+  }
   useEffect(() => { loadRows(); }, [loadRows]);
 
   const open = useCallback((id: string) => {
@@ -192,6 +242,15 @@ export function TidalReview({ mode, onLeave, onDfo }: Props) {
               data-testid="tidal-words-only" /> words name it
           </label>
           <PvControls value={pvf} onChange={setPvf} rows={allRows} />
+          <label className="dim" style={{ display: "flex", gap: 4, alignItems: "center" }} data-testid="tidal-mouth-bucket"
+            title="T212 pass 2: a DFO tidal-water area at the stream's mouth confirms tidal water reaches the FWA mouth (DFO's default rule)">
+            <input type="checkbox" checked={mouthOnly} onChange={(e) => setMouthOnly(e.target.checked)} /> DFO confirms mouth
+            ({progress?.by_dfo_mouth?.upgrade ?? 0} high · {progress?.by_dfo_mouth?.new ?? 0} new · {progress?.by_dfo_mouth?.conflict ?? 0} conflict)
+          </label>
+          {mouthOnly && (
+            <button className="btn small primary" disabled={bulkBusy || !mouthAcceptable(rows).length} data-testid="tidal-mouth-accept"
+              onClick={() => void acceptMouths()}>{bulkBusy ? "saving…" : `accept ${mouthAcceptable(rows).length} at the mouth`}</button>
+          )}
           <input className="dfo-search" placeholder="stream…" value={filters.q}
             onChange={(e) => set({ q: e.target.value })} aria-label="search tidal" />
           <span className="progress dfo-progress" data-testid="tidal-progress">
@@ -231,6 +290,8 @@ export function TidalReview({ mode, onLeave, onDfo }: Props) {
                 {r.triage && <span className={`chip-tag${r.triage === "missed" || r.triage === "sanity" ? " new" : ""}`}
                   title={r.triage_why ?? ""}>{r.triage}</span>}
                 {r.n_web > 0 && <span className="chip-tag suggested">web · {r.n_web}</span>}
+                {r.dfo_mouth && <span className={`chip-tag${r.dfo_mouth === "conflict" ? " new" : " suggested"}`} title={r.dfo_mouth_why ?? ""}>
+                  {r.dfo_mouth === "conflict" ? "DFO mouth: conflict" : r.dfo_mouth === "new" ? "DFO mouth: new" : "DFO confirms mouth"}</span>}
                 {r.verify === "unmarked" && <PvBadge pv={r.pv} />}
                 {r.multi_crossing && r.triage !== "multi-crossing" && <span className="chip-tag" title="the line crosses the polygon in, out and in again">{r.n_cuts} crossings</span>}
               </div>

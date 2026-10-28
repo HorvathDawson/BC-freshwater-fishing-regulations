@@ -108,3 +108,19 @@ runs on the full network. Review the Kitimat candidate (7137 m) before accepting
   only (web rows "DFO pass 2 · …", a switchable point, new rows for the 4 new streams; Tlell is put back in the
   "missed" review queue). `proposed` / `polygon` / `sources` are untouched, so no mark goes stale (tested).
   NOT live yet: it loads when the review backend restarts (no curation-review/ file was edited).
+
+## Pass 2b (owner 2026-10-28): "DFO confirms the mouth"
+- New `implies` class `confirms_mouth` (59 entries): a DFO tidal-water area hugging a NAMED stream's own mouth
+  ("the waters of the mouth of Namu River shoreward of a line …", "closes Koeye River estuary", "Mouth of Little
+  Qualicum River", "<X> River Estuary"), plus a lat/lon line the entry names the stream for that passes seaward of
+  its FWA mouth. A stream only named as a landmark ("a sign near Trent River") does not count (`mouth_names`).
+- Per stream (`proposals.json` `dfo_mouth`, tolerance `MOUTH_TOL_M` = 150 m): **upgrade 39** (the T212 cut is at
+  the mouth and no source names an upstream boundary → confidence high, "DFO confirms the mouth"), **conflict 23**
+  (listed, not moved: the T212 cut is upstream — e.g. Kingcome 5.5 km, Kitimat 7.1 km, Klinaklini 2.8 km, Wakeman
+  3.0 km, Koeye 1.1 km, Quatlena 0.4 km — or a source names an upstream boundary: Fraser at Mission, Campbell cement
+  block, Pitt CPR bridge), **new 1** (Whispering Creek: a mouth candidate). Owner-mark conflicts: Deena Creek (marked
+  at 550 m, DFO confirms the mouth) in addition to Tlell.
+- Tidal tab: "DFO confirms mouth" checkbox (the bucket, all triage classes) with chips on each row; "accept N at
+  the mouth" bulk-accepts the unmarked upgrade + new rows behind a confirm dialog — one mark each (P y, the cut at
+  the FWA mouth, or the proposal's own split when it reuses a curated one / sits at 0 m). Conflicts and marked
+  rows are skipped; existing marks untouched. 38 acceptable now (Capilano and Qualicum are already marked).

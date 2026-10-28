@@ -58,6 +58,8 @@ PARALLEL_AT_M = 300.0
 NEAR_MOUTH_RE = re.compile(r"(?:near|at) (?:the )?mouth(?: of (?:the )?(?:river|creek))?\b(?! of)", re.I)
 #: "signs located near the mouth" puts the point within this (m) of the FWA mouth
 NEAR_MOUTH_M = 1000.0
+#: a T212 cut this close (m) to the FWA mouth IS at the mouth, for a "DFO confirms the mouth" stream
+MOUTH_TOL_M = 150.0
 #: a crossing this far (m) outside the tidal polygon is not in the water the line describes
 FAR_OUTSIDE_M = 2000.0
 #: a named stream is looked for within this (m) of the entry's geometry / its PFMA area
@@ -73,6 +75,11 @@ NOT_NAMES = {"Rivers", "The", "This", "That", "Tidal", "North", "South", "East",
 BOUNDARY_RE = re.compile(r"(?<![a-z])tidal[ -](?:water[s]? )?(?:fishing )?boundar|"
                          r"(?<![a-z])tidal waters? of (?:the )?[A-Z][^.]{0,60}?(?:River|Creek)\b[^.]{0,120}?"
                          r"(?:downstream of|below|seaward of|from\b[^.]{0,80}?downstream)", re.I)
+#: A DFO TIDAL-WATER AREA HUGGING A NAMED STREAM'S MOUTH (owner 2026-10-28): "the waters of the mouth of Namu
+#: River shoreward of a line …", "This closes Koeye River estuary", "Mouth of Little Qualicum River"
+MOUTH_CLOSURE_RE = re.compile(r"\bmouth of (?:the )?[A-Z][\w'’()-]*(?: [A-Z(][\w'’()-]*){0,3} (?:River|Creek)\b|"
+                              r"\b(?:River|Creek)\s+(?:[Ee]stuary|[Mm]outh)\b|\bestuar(?:y|ies)\b|"
+                              r"\bmouth of (?:the )?(?:river|creek)\b")
 FRESH_RE = re.compile(r"non-?tidal|fresh ?water", re.I)
 
 # --------------------------------------------------------------------------- coordinates
@@ -296,6 +303,22 @@ def names_in(text: str) -> list[str]:
     return out
 
 
+def mouth_names(label: str | None, text: str) -> list[str]:
+    """The streams whose OWN mouth the words put the area at: "mouth of <X>", "<X> estuary / mouth", or the
+    label's stream when the words say "the estuary" / "the mouth of the river" (not "a sign near Trent River")."""
+    out = []
+    both = f"{label or ''} . {text}"
+    for nm in names_in(both):
+        q = re.escape(nm).replace(r"\ ", r"\s+")
+        base = re.escape(nm.rsplit(" ", 1)[0])
+        if re.search(rf"mouth of (?:the )?(?:{q}|{base}\s*\([^)]*\)\s+(?:River|Creek))|{q}\s+(?:estuary|mouth)|closes {q}", both, re.I):
+            out.append(nm)
+    lab = names_in(label or "")
+    if lab and lab[0] not in out and re.search(r"\bestuar|mouth of (?:the )?(?:river|creek)\b|^mouth\b", both, re.I):
+        out.append(lab[0])
+    return out
+
+
 def tags_of(text: str) -> list[str]:
     t, low = [], text.lower()
     for k, pat in (("mouth", r"\bmouth"), ("estuary", r"estuar"), ("tidal_boundary", r"(?<![a-z])tidal[ -](?:water[s]? )?boundar"),
@@ -314,6 +337,8 @@ def implies_of(text: str, ptype: str, geo: dict) -> str:
         return "is"
     if ptype == "freshwater" and (FRESH_RE.search(text) or "tidal" not in text.lower()):
         return "at_or_below"
+    if ptype != "freshwater" and MOUTH_CLOSURE_RE.search(text) and names_in(text):
+        return "confirms_mouth"
     if geo["lines"] or geo["parallels"]:
         return "at_or_above"
     return "context"
@@ -324,7 +349,10 @@ def _entry(eid: str, text: str, ptype: str, src: dict, label: str | None, sectio
     return {"id": eid, "page_type": ptype, "area": src.get("area") or [], "label": label, "section": section,
             "text": text, "names": names_in(f"{label or ''} {text}"),
             "primary": (names_in(label or "") or names_in(text) or [None])[0], "tags": tags_of(text),
-            "implies": implies_of(text, ptype, geo), "geometry": geo,
+            "mouth_names": (mn := mouth_names(label, text)),
+            "implies": ("confirms_mouth" if ptype != "freshwater" and mn
+                        and implies_of(text, ptype, geo) in ("context", "at_or_above", "confirms_mouth")
+                        else implies_of(text, ptype, geo)), "geometry": geo,
             "region": src.get("region"),
             "sources": [{k: v for k, v in src.items() if k not in ("area", "region")}]}
 
@@ -651,7 +679,8 @@ class Streams:
         return [s for s in TT.streams_crossed(self.con, ln, above_m) if s.get("name")]
 
 
-def locate(e: dict, blk: str, st: Streams, basemap, named: bool = False, primary: bool = False) -> dict:
+def locate(e: dict, blk: str, st: Streams, basemap, named: bool = False, primary: bool = False,
+           at_mouth: bool = False) -> dict:
     """Where the entry puts its point on blue line `blk`: {measure, above_mouth_m, coord, located_by,
     how: line|parallel|landmark|seaward|none}."""
     from pipeline.tools.audit import tidal_candidates as TC
@@ -704,6 +733,10 @@ def locate(e: dict, blk: str, st: Streams, basemap, named: bool = False, primary
                     "weak": True}
     if primary and e["implies"] in ("is", "at_or_below") and NEAR_MOUTH_RE.search(e["text"]):
         return {**out(m0, "near_mouth", "\"near the mouth\": the FWA mouth, within NEAR_MOUTH_M"), "tol_m": NEAR_MOUTH_M}
+    if at_mouth and e["implies"] == "confirms_mouth":
+        return {**out(m0, "mouth", "a DFO tidal-water area at this stream's mouth: tidal water reaches the FWA "
+                                   "mouth (DFO's default: the boundary is the line across the mouth)"),
+                "tol_m": MOUTH_TOL_M}
     if seaward is not None:
         return {**out(m0, "seaward", f"the DFO line passes {seaward:.0f} m from the FWA mouth without crossing the "
                                      "stream: the mouth is tidal (no limit upstream)"), "mouth_only": True}
@@ -761,6 +794,8 @@ def relation(implies: str, p: float | None, ref: float | None, tol: float = AGRE
         return ("agrees" if abs(p - ref) <= tol else "consistent") if ref >= p - tol else "moves"
     if implies == "at_or_below":
         return ("agrees" if abs(p - ref) <= tol else "consistent") if ref <= p + tol else "moves"
+    if implies == "confirms_mouth":
+        return "agrees" if ref - p <= tol else "conflict"
     return None
 
 
@@ -824,6 +859,50 @@ def streams_for(e: dict, st: Streams, cands_by_blk: dict, cands_by_name: dict) -
     return list(out.items())
 
 
+#: a stream with no candidate gets a DFO-mouth candidate only when its FWA mouth is this close (m) to tidal water
+MOUTH_AT_SEA_M = 500.0
+
+
+def _mouth_at_sea(st: "Streams", blk: str, evs: list[dict]) -> bool:
+    """A named stream with no T212 candidate, whose mouth a DFO tidal-water area confirms: is its FWA mouth
+    at the tidal polygon (a stream entering the sea, not a lake inlet of the same name)?"""
+    if not any(ev["located"].get("how") in ("mouth", "seaward") and ev["why"].startswith("names") for ev in evs):
+        return False
+    _m0, mp = st.mouth(blk)
+    return mp is not None and st.polygon().distance(mp) <= MOUTH_AT_SEA_M
+
+
+def mouth_verdict(c: dict | None, m0: float, t212: float | None, mark_m: float | None,
+                  located: list[dict], mouth_evs: list[dict]) -> dict:
+    """WHAT "DFO CONFIRMS THE MOUTH" DOES TO A STREAM (owner 2026-10-28):
+       upgrade   the T212 cut is at the mouth (<= MOUTH_TOL_M) and no source names an upstream boundary ->
+                 confidence high, "DFO confirms the mouth"
+       conflict  the T212 cut is upstream, or a source names an upstream boundary: listed, never moved
+       new       no T212 candidate: a new candidate at the FWA mouth
+    `mark_upstream`: the owner's mark sits upstream of the mouth (listed, never overridden)."""
+    up = []
+    if c is not None:
+        cm0 = float((c.get("mouth") or {}).get("measure") or 0.0)
+        for s in c.get("sources") or []:
+            if s.get("kind") != "tidal_gauge" and s.get("measure") is not None and s["measure"] - cm0 > MOUTH_TOL_M:
+                up.append(f"{s.get('kind')}: {str(s.get('words'))[:80]} @ {s['measure'] - cm0:.0f} m")
+        for w in (c.get("triage") or {}).get("web") or []:
+            lo = w.get("located") or {}
+            if lo.get("measure") is not None and lo["measure"] - cm0 > MOUTH_TOL_M:
+                up.append(f"web: {str(w.get('marker'))[:80]} @ {lo['measure'] - cm0:.0f} m")
+    for ev in located:
+        if ev["effective"] in ("is", "at_or_above") and (ev["located"].get("above_mouth_m") or 0) > MOUTH_TOL_M:
+            up.append(f"DFO pass 2 {ev['effective']}: {ev['entry']} @ {ev['located']['above_mouth_m']:.0f} m")
+    at_mouth = t212 is not None and t212 - m0 <= MOUTH_TOL_M
+    verdict = "new" if c is None else "upgrade" if at_mouth and not up else "conflict"
+    why = ("DFO confirms the mouth" if verdict == "upgrade"
+           else "no T212 candidate: DFO confirms tidal water at the mouth" if verdict == "new"
+           else (f"the T212 cut is {t212 - m0:.0f} m above the mouth" if not at_mouth else "the T212 cut is at the mouth")
+           + (f"; upstream sources: {'; '.join(up[:4])}" if up else "; no source names an upstream boundary"))
+    return {"verdict": verdict, "why": why, "entries": [ev["entry"] for ev in mouth_evs], "upstream_sources": up,
+            "mark_upstream": mark_m is not None and mark_m - m0 > MOUTH_TOL_M}
+
+
 def propose(entries_doc: dict, gpkg: Path, basemap_path: Path | None) -> dict:
     from pipeline.tools.audit import tidal_candidates as TC
     cands = json.loads((ROOT / "handoff/PLAN/curation-review/tidal/tidal-candidates.json").read_text())["candidates"]
@@ -842,7 +921,8 @@ def propose(entries_doc: dict, gpkg: Path, basemap_path: Path | None) -> dict:
             continue
         for blk, why in streams_for(e, st, by_blk, by_name):
             loc = locate(e, blk, st, bm, named=why.startswith("names"),
-                         primary=bool(e.get("primary")) and why.startswith(f"names {e['primary']}"))
+                         primary=bool(e.get("primary")) and why.startswith(f"names {e['primary']}"),
+                         at_mouth=any(why == f"names {n}" or why.startswith(f"names {n} ") for n in e.get("mouth_names") or []))
             e.setdefault("streams", []).append({"blk": blk, "why": why, "how": loc.get("how"),
                                                 "above_mouth_m": loc.get("above_mouth_m")})
             per_stream[blk].append({"entry": e["id"], "page_type": e["page_type"], "area": e["area"],
@@ -861,7 +941,7 @@ def propose(entries_doc: dict, gpkg: Path, basemap_path: Path | None) -> dict:
         # a stream with no T212 candidate is new only where a DFO line in tidal water crosses it (a
         # freshwater row or a bare name inland is not a tidal stream)
         if c is None and not any(ev["located"].get("how") in ("line", "parallel") and ev["page_type"] != "freshwater"
-                                 for ev in evs):
+                                 for ev in evs) and not _mouth_at_sea(st, blk, evs):
             continue
         m0, mp = st.mouth(blk)
         t212 = (c or {}).get("proposed", {}).get("measure")
@@ -870,13 +950,20 @@ def propose(entries_doc: dict, gpkg: Path, basemap_path: Path | None) -> dict:
         # a seaward-only line or a weak locate says nothing about where on the line: context
         for ev in evs:
             lo = ev["located"]
-            eff = ("context" if lo.get("how") in ("none", None) or lo.get("mouth_only") or lo.get("weak")
-                   else ev["implies"])
+            if lo.get("how") == "mouth" or (lo.get("mouth_only") and ev["why"].startswith("names")):
+                eff = "confirms_mouth"      # a closure / line at (or seaward of) the mouth of the stream it names
+            elif lo.get("how") in ("none", None) or lo.get("mouth_only") or lo.get("weak"):
+                eff = "context"
+            elif ev["implies"] == "confirms_mouth":
+                eff = "at_or_above"         # its line crosses the stream above the mouth: a lower bound
+            else:
+                eff = ev["implies"]
             ev["effective"] = eff
-            tol = lo.get("tol_m") or AGREE_M
+            tol = (MOUTH_TOL_M if eff == "confirms_mouth" else lo.get("tol_m")) or AGREE_M
             ev["vs_t212"] = relation(eff, lo.get("measure"), t212, tol) if eff != "context" else None
             ev["vs_mark"] = relation(eff, lo.get("measure"), mk_m, tol) if eff != "context" else None
-        located = [ev for ev in evs if ev["effective"] != "context"]
+        mouth_evs = [ev for ev in evs if ev["effective"] == "confirms_mouth"]
+        located = [ev for ev in evs if ev["effective"] not in ("context", "confirms_mouth")]
         rank = {"high": 0, "medium": 1, "low": 2}
         is_ev = sorted([ev for ev in located if ev["effective"] == "is"], key=lambda v: rank[v["confidence"]])
         lows = [ev for ev in located if ev["effective"] == "at_or_above"]
@@ -894,6 +981,14 @@ def propose(entries_doc: dict, gpkg: Path, basemap_path: Path | None) -> dict:
         else:
             pick, basis = (lb or ub or (located[0] if located else None)), "consistent with the T212 proposal"
         conflicts = [ev["entry"] for ev in located if ev.get("vs_mark") == "moves"]
+        mouth = None
+        if mouth_evs:
+            mouth = mouth_verdict(c, m0, t212, mk_m, located, mouth_evs)
+            conflicts += [ev["entry"] for ev in mouth_evs if mouth["mark_upstream"]]
+            if pick is None:
+                pick, basis = mouth_evs[0], "DFO confirms the mouth: a tidal-water area at the mouth; DFO's default rule puts the boundary there"
+        if c is None and pick is None:
+            continue
         if c is None:
             status = "new"
         elif pick is None:
@@ -902,6 +997,8 @@ def propose(entries_doc: dict, gpkg: Path, basemap_path: Path | None) -> dict:
             rels = [ev["vs_t212"] for ev in located]
             status = ("moves" if "moves" in rels else "agrees" if "agrees" in rels
                       else "consistent" if "consistent" in rels else "context")
+            if mouth and status == "context":
+                status = "agrees" if mouth["verdict"] == "upgrade" else "mouth_conflict"
         pr = None
         if pick is not None:
             lo = pick["located"]
@@ -909,6 +1006,9 @@ def propose(entries_doc: dict, gpkg: Path, basemap_path: Path | None) -> dict:
                   "located_by": lo["located_by"], "implies": pick["effective"], "entry": pick["entry"],
                   "confidence": pick["confidence"], "basis": basis, "source_text": pick["text"],
                   "url": pick["url"], "page_type": pick["page_type"]}
+            if mouth and pick in mouth_evs:
+                pr["implies"] = "confirms_mouth"
+                pr["confidence"] = "high" if mouth["verdict"] in ("upgrade", "new") else "medium"
         elif c is None and mp is not None:
             pr = {"measure": round(m0, 1), "above_mouth_m": 0.0,
                   "coord": [round(v, 6) for v in ll(mp.x, mp.y)], "located_by": "the FWA mouth (nothing located)",
@@ -921,13 +1021,13 @@ def propose(entries_doc: dict, gpkg: Path, basemap_path: Path | None) -> dict:
             "mark_conflict": bool(conflicts), "mark_conflict_entries": conflicts,
             "t212": ({"measure": t212, "above_mouth_m": c["proposed"].get("above_mouth_m"),
                       "confidence": c["confidence"], "triage": (c.get("triage") or {}).get("class")} if c else None),
-            "owner_mark": mk, "proposed": pr,
+            "owner_mark": mk, "proposed": pr, "dfo_mouth": mouth,
             "mouth": {"measure": m0, "coord": [round(v, 6) for v in ll(mp.x, mp.y)] if mp is not None else None},
             "items": (c or {}).get("items") or items.get(blk, []),
             "wsc": (c or {}).get("wsc") or next((s["wsc"] for s in segs if s["wsc"]), None),
             "gnis_id": (c or {}).get("gnis_id") or next((s["gnis"] for s in segs if s["gnis"]), None),
             "evidence": evs})
-    order = {"moves": 0, "new": 1, "agrees": 2, "consistent": 3, "context": 4}
+    order = {"moves": 0, "mouth_conflict": 1, "new": 2, "agrees": 3, "consistent": 4, "context": 5}
     props.sort(key=lambda p: (not p["mark_conflict"], order.get(p["status"], 9), p["water"]))
     # a new stream nobody names is only interesting when DFO words put tidal water on it
     by_area = defaultdict(Counter)

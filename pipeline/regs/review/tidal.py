@@ -41,7 +41,7 @@ def pass2_path() -> Optional[Path]:
     return None if os.environ.get("CURATION_TIDAL_CANDIDATES") else PASS2_PATH
 
 
-IMPLIES_WORDS = {"is": "names the boundary here", "at_or_above": "tidal at least to here (boundary at or above)",
+IMPLIES_WORDS = {"is": "names the boundary here", "confirms_mouth": "DFO confirms the mouth (tidal water at the mouth)", "at_or_above": "tidal at least to here (boundary at or above)",
                  "at_or_below": "freshwater down to here (boundary at or below)", "context": "names the stream"}
 
 
@@ -80,15 +80,24 @@ def merge_pass2(by_id: dict, order: list, doc2: dict) -> tuple[dict, list]:
         evs.sort(key=lambda e: (e.get("effective") == "context", {"high": 0, "medium": 1}.get(e.get("confidence"), 2)))
         web = [_web(e) for e in evs[:8]]
         pr = p.get("proposed")
+        dm = p.get("dfo_mouth")
         info = {"status": p["status"], "mark_conflict": p.get("mark_conflict"), "proposed": pr,
-                "n_entries": len(evs)}
+                "n_entries": len(evs), "dfo_mouth": dm}
         r0 = by_id.get(p["id"])
         if r0 is not None:
             r = copy.deepcopy(r0)
             t = r.setdefault("triage", {"class": None, "web": []})
             t["web"] = [*(t.get("web") or []), *web]
-            if pr and pr.get("coord") and pr.get("implies") != "context":
+            if pr and pr.get("coord") and pr.get("implies") not in ("context", "confirms_mouth"):
                 r["alternates"] = [*(r.get("alternates") or []), _alt(pr, float(r["mouth"]["measure"]))]
+            if dm:
+                # DFO CONFIRMS THE MOUTH (owner 2026-10-28): at the mouth with nothing upstream -> high; else listed
+                r["dfo_mouth"] = dm["verdict"]
+                r["dfo_mouth_why"] = dm["why"]
+                if dm["verdict"] == "upgrade":
+                    r["confidence_before_pass2"] = r.get("confidence")
+                    r["confidence"] = "high"
+                    r["why"] = f"DFO confirms the mouth; {r.get('why') or ''}".strip("; ")
             if p["status"] == "moves" or p.get("mark_conflict"):
                 t["class_before_pass2"] = t.get("class")
                 t["class"] = "missed"
@@ -103,7 +112,7 @@ def merge_pass2(by_id: dict, order: list, doc2: dict) -> tuple[dict, list]:
             continue
         mouth = p.get("mouth") or {}
         m0 = float(mouth.get("measure") or 0.0)
-        label = "tidal boundary (DFO pass 2)"
+        label = ("mouth (tidal boundary)" if pr.get("implies") == "confirms_mouth" else "tidal boundary (DFO pass 2)")
         by_id[p["id"]] = {
             "id": p["id"], "water": p["water"], "blk": p["blk"], "wsc": p.get("wsc"), "gnis_id": p.get("gnis_id"),
             "enters": "tidal_water", "items": p["items"], "item_names": [p["water"]], "zones": [],
@@ -121,7 +130,8 @@ def merge_pass2(by_id: dict, order: list, doc2: dict) -> tuple[dict, list]:
             "alternates": [{**_alt(pr, m0), "proposed": True},
                            *([{"id": "mouth", "kind": "mouth", "label": "FWA mouth", "measure": m0, "above_mouth_m": 0.0,
                                "coord": mouth["coord"]}] if mouth.get("coord") else [])],
-            "pass2": {**info, "new": True}, "pass2_new": True}
+            "pass2": {**info, "new": True}, "pass2_new": True,
+            **({"dfo_mouth": "new", "dfo_mouth_why": dm["why"]} if dm else {})}
         order.append(p["id"])
     return by_id, order
 

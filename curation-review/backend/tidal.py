@@ -67,7 +67,10 @@ def _row(r: dict, m) -> dict:
             "triage_why": t.get("why"),
             "multi_crossing": bool((r.get("polygon") or {}).get("multi_crossing")),
             "n_cuts": (r.get("polygon") or {}).get("n_cuts") or 0,
-            "pv": preverify.tidal(r["id"])}
+            "pv": preverify.tidal(r["id"]),
+            # T212 pass 2 (owner 2026-10-28): "DFO confirms the mouth" — upgrade | conflict | new | None
+            "dfo_mouth": r.get("dfo_mouth"), "dfo_mouth_why": r.get("dfo_mouth_why"),
+            "pass2_new": bool(r.get("pass2_new"))}
 
 
 def queue(confidence: str | None = None, verify: str | None = None, enters: str | None = None,
@@ -102,6 +105,7 @@ def progress() -> dict:
             "by_confidence": dict(Counter(r["confidence"] for r in rows)),
             "with_words": sum(1 for r in rows if r["n_words"]),
             "by_triage": {k: sum(1 for r in rows if r["triage"] == k) for k in TRIAGE_CLASSES},
+            "by_dfo_mouth": dict(Counter(r["dfo_mouth"] for r in rows if r.get("dfo_mouth"))),
             "coverage": T.load()["coverage"]}
 
 

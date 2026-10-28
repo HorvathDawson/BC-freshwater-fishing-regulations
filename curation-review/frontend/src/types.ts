@@ -1176,6 +1176,12 @@ export interface TidalRow {
   triage_why: string | null;
   multi_crossing?: boolean;
   n_cuts?: number;
+  /** T212 pass 2 (owner 2026-10-28): DFO's tidal-water area at this stream's mouth — "upgrade" (the cut is at
+   *  the mouth, nothing names an upstream boundary: high), "conflict" (the cut is upstream / a source names
+   *  one: listed, not moved), "new" (no T212 candidate: a mouth candidate) */
+  dfo_mouth?: "upgrade" | "conflict" | "new" | null;
+  dfo_mouth_why?: string | null;
+  pass2_new?: boolean;
 }
 /** GET /api/tidal/progress */
 export interface TidalProgress {
@@ -1185,6 +1191,8 @@ export interface TidalProgress {
   by_confidence: Record<string, number>;
   with_words: number;
   by_triage: Record<TidalTriageClass, number>;
+  /** T212 pass 2: "DFO confirms the mouth" counts by verdict */
+  by_dfo_mouth?: Record<string, number>;
   coverage: Record<string, unknown>;
 }
 /** GET /api/tidal/candidates/{id} */

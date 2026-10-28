@@ -41,7 +41,7 @@ def test_line_breaks_on_shoreline_and_new_clause():
     ("Tidal waters of the Tlell River downstream of a white triangular fishing boundary sign located approximately "
      "1 km upstream of the Highway #16 bridge.", "tidal_area", "is"),
     ("then to the tidal water boundary signs approximately 100 m upstream of the Highway 19 bridge.", "tidal_area", "is"),
-    ("The intertidal foreshore of the Qualicum River Estuary from a point", "tidal_area", "context"),
+    ("The intertidal foreshore of the Qualicum River Estuary from a point", "tidal_area", "confirms_mouth"),
     ("from the white triangle boundary sign located in Sandy Pool Regional Park, downstream to the tidal boundary.",
      "freshwater", "at_or_below"),
     ("upstream of white triangular fishing boundary signs located near mouth of river.", "freshwater", "at_or_below"),
@@ -139,3 +139,39 @@ def test_pass2_off_for_a_test_copy(monkeypatch, tmp_path):
     assert T.pass2_path() is None
     monkeypatch.setenv("CURATION_TIDAL_PASS2", "")
     assert T.pass2_path() is None
+
+
+def test_mouth_names_and_class():
+    t = ("The waters of the mouth of Namu River shoreward of a line from a fishing boundary sign located 180 m "
+         "from a bridge at the mouth of Namu Creek on the west shore to a fishing boundary sign")
+    assert "Namu River" in P.mouth_names("Namu River", t)
+    assert P._entry("x", t, "tidal_area", {"area": ["8"]}, "Namu River", "s")["implies"] == "confirms_mouth"
+    t = "In Subarea 14-14, Courtenay River Mouth - the waters of Comox Harbour inside a line from a sign near Trent River"
+    assert P.mouth_names("Comox Harbour", t) == ["Courtenay River"]          # not Trent: a sign near it
+    assert P.mouth_names("Koeye Inlet", "east of a line starting Koeye Point. This closes Koeye River estuary.") == ["Koeye River"]
+    assert P.relation("confirms_mouth", 0.0, 120.0, P.MOUTH_TOL_M) == "agrees"
+    assert P.relation("confirms_mouth", 0.0, 800.0, P.MOUTH_TOL_M) == "conflict"
+
+
+def test_mouth_verdict():
+    c = _cand(measure=40.0)
+    ev = {"entry": "dfo2:m", "effective": "confirms_mouth", "located": {"above_mouth_m": 0.0}}
+    assert P.mouth_verdict(c, 0.0, 40.0, None, [], [ev])["verdict"] == "upgrade"
+    c2 = _cand(measure=40.0)
+    c2["sources"] = [{"kind": "synopsis_row", "words": "sign 1 km up", "measure": 1000.0}]
+    assert P.mouth_verdict(c2, 0.0, 40.0, None, [], [ev])["verdict"] == "conflict"   # a source names upstream
+    assert P.mouth_verdict(_cand(measure=900.0), 0.0, 900.0, 900.0, [], [ev])["mark_upstream"] is True
+    assert P.mouth_verdict(None, 0.0, None, None, [], [ev])["verdict"] == "new"
+
+
+def test_merge_dfo_mouth_upgrade_keeps_prints():
+    c = _cand(measure=40.0)
+    before = T.prints(c)
+    pr = {"measure": 0.0, "above_mouth_m": 0.0, "coord": [-125.0, 50.0], "located_by": "mouth",
+          "implies": "confirms_mouth", "confidence": "high", "source_text": "t", "url": "https://x"}
+    doc2 = {"proposals": [{"id": c["id"], "water": "Test River", "blk": "1", "status": "agrees", "proposed": pr,
+                           "evidence": [_ev("confirms_mouth", 0.0, "agrees")], "items": ["gnis:1"],
+                           "dfo_mouth": {"verdict": "upgrade", "why": "DFO confirms the mouth"}}]}
+    r = T.merge_pass2({c["id"]: c}, [c["id"]], doc2)[0][c["id"]]
+    assert r["confidence"] == "high" and r["dfo_mouth"] == "upgrade" and T.prints(r) == before
+    assert all(a["id"] != "dfo2" for a in r["alternates"])     # the mouth is the proposal's own point
