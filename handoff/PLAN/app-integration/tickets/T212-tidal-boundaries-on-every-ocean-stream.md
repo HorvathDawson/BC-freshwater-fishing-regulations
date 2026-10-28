@@ -124,3 +124,16 @@ runs on the full network. Review the Kitimat candidate (7137 m) before accepting
   the mouth" bulk-accepts the unmarked upgrade + new rows behind a confirm dialog — one mark each (P y, the cut at
   the FWA mouth, or the proposal's own split when it reuses a curated one / sits at 0 m). Conflicts and marked
   rows are skipped; existing marks untouched. 38 acceptable now (Capilano and Qualicum are already marked).
+
+### DFO default: the mouth (owner 2026-10-28)
+- DFO definitions page (cached `data/source/dfo_tidal_areas/2026-10-28/fm-gp/rec/definitions-eng.html`): "Unless
+  otherwise specified, the tidal boundary is a straight line drawn between the two most seaward points of land …
+  on either side of the mouth". `pipeline/regs/review/tidal.py` `apply_default` (at load, additive: `proposed`,
+  `polygon`, `sources`, `confidence` untouched, no mark goes stale): `specified` = a word source / web finding
+  located on the line, or a pass-2 entry naming the boundary ("is"); unlocated words (Mamin: "~10 km upstream of the
+  tidal boundary"), polygon, gauge, guess don't count. Nothing specifies → `dfo_default` **high 732**, or
+  **conflict 409** (polygon top crossing >75 m above the mouth — 381, of which 100 ≤150 m and 176 ≤300 m; a DFO
+  line in tidal water >150 m up; pass-2 upstream source). 27 specified.
+- Tidal tab: "DFO default: mouth" bucket + chips; "Accept all N at the mouth (DFO default)" takes EVERY default-high
+  row in the whole queue (filters ignored) that is unmarked or owner-un-accepted, behind a confirm dialog — one mark
+  each at the FWA mouth. Group progress bars (words name it / DFO confirms mouth / DFO default / conflicts / unmarked).

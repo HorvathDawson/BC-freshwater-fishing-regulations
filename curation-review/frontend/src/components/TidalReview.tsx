@@ -94,6 +94,30 @@ export function mouthSplit(c: TidalCandidate): NewSplit {
 export const mouthAcceptable = (rows: TidalRow[]) =>
   rows.filter((r) => (r.dfo_mouth === "upgrade" || r.dfo_mouth === "new") && (r.verify === "unmarked" || r.verify === "stale"));
 
+/** DFO'S DEFAULT (owner 2026-10-28): "Unless otherwise specified, the tidal boundary is a straight line drawn
+ *  between the two most seaward points of land … on either side of the mouth" — the definitions page */
+export const DFO_DEFAULT_URL = "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/definitions-eng.html";
+/** the new split a "DFO default: mouth" bulk accept records — the cut at the FWA mouth (or the proposal's
+ *  own split when it already sits there) */
+export function defaultSplit(c: TidalCandidate): NewSplit {
+  const base = acceptSplit(c);
+  const why = `DFO default (unless otherwise specified): the mouth — ${DFO_DEFAULT_URL} (bulk accept)`;
+  if (c.proposed.above_mouth_m < 1) return { ...base, note: `${why}${base.note ? `; ${base.note}` : ""}` };
+  return {
+    ...base, anchor: "coord", split_id: null, name: `${c.water}: mouth (tidal boundary)`, coord: c.mouth.coord,
+    note: `${why}: the cut at the FWA mouth, not the proposal's ${Math.round(c.proposed.above_mouth_m)} m`
+      + (c.proposed.aliases.length ? `; aliases: ${c.proposed.aliases.join("; ")}` : ""),
+  };
+}
+/** the rows the "DFO default: mouth" bulk accept takes: default high (never a conflict), never marked
+ *  — or un-accepted by the owner */
+export const defaultAcceptable = (rows: TidalRow[]) =>
+  rows.filter((r) => r.dfo_default === "high" && (r.verify === "unmarked" || r.unaccepted));
+
+const GROUP_WORDS: [string, string][] = [
+  ["words", "words name it"], ["dfo_mouth", "DFO confirms mouth"], ["dfo_default", "DFO default: mouth"], ["conflict", "conflicts"],
+];
+
 interface Props {
   mode: Mode;
   onLeave: () => void;
@@ -109,7 +133,9 @@ export function TidalReview({ mode, onLeave, onDfo }: Props) {
   const [allRows, setRows] = useState<TidalRow[]>([]);
   const [pvf, setPvf] = useState<PvFilter>(PV_DEFAULT);
   const [mouthOnly, setMouthOnly] = useState(false);
-  const rows = useMemo(() => applyPv(mouthOnly ? allRows.filter((r) => r.dfo_mouth) : allRows, pvf), [allRows, pvf, mouthOnly]);
+  const [defaultOnly, setDefaultOnly] = useState(false);
+  const rows = useMemo(() => applyPv(allRows.filter((r) => (!mouthOnly || r.dfo_mouth) && (!defaultOnly || r.dfo_default)), pvf),
+    [allRows, pvf, mouthOnly, defaultOnly]);
   const [bulkBusy, setBulkBusy] = useState(false);
   const queueSeq = useRef(0);
   const [progress, setProgress] = useState<TidalProgress | null>(null);
@@ -124,10 +150,42 @@ export function TidalReview({ mode, onLeave, onDfo }: Props) {
 
   const loadRows = useCallback(() => {
     const seq = ++queueSeq.current;      // only the latest request lands (a slow earlier one must not overwrite it)
-    api.tidalQueue(mouthOnly ? { ...filters, triage: "" } : filters)
+    api.tidalQueue(mouthOnly || defaultOnly ? { ...filters, triage: "" } : filters)
       .then((got) => { if (seq === queueSeq.current) setRows(got); }).catch((e) => setError(String(e)));
     api.tidalProgress().then(setProgress).catch(() => {});
-  }, [filters, mouthOnly]);
+  }, [filters, mouthOnly, defaultOnly]);
+
+  // ACCEPT ALL "DFO DEFAULT: MOUTH" (owner 2026-10-28): EVERY candidate nothing specifies — the whole queue,
+  // whatever the filters — one owner mark each at the FWA mouth; conflicts and marked rows skipped
+  async function acceptDefaults() {
+    const who = getReviewer().trim();
+    if (!who) { setError("Type your name in a candidate's review box first: every mark names its reviewer."); return; }
+    let take: TidalRow[];
+    try { take = defaultAcceptable(await api.tidalQueue({})); } catch (e) { setError(String(e)); return; }
+    if (!take.length) { setNotice("nothing to accept: every DFO-default row is marked or a conflict"); return; }
+    if (!window.confirm(`Accept all ${take.length} "DFO default: mouth" candidate(s): the tidal cut at the FWA mouth?`
+      + `\n\nNo source specifies their boundary, so DFO's default applies ("unless otherwise specified … the mouth").`
+      + `\nOne mark each (P y), by ${who}. Conflicts and already-marked rows are skipped; a mark can be changed later.`)) return;
+    setBulkBusy(true);
+    let ok = 0;
+    const bad: string[] = [];
+    for (const r of take) {
+      try {
+        const d = await api.tidalCandidate(r.id);
+        await api.postMark({ scope: "tidal", target: r.id, answers: { P: "y" }, problem: null,
+          note: `DFO default (unless otherwise specified): the mouth — ${r.dfo_default_why ?? ""} — bulk accept`, reviewer: who, seconds: 0,
+          new_splits: [defaultSplit(d.candidate)] });
+        ok += 1;
+        if (ok % 50 === 0) { setNotice(`saving… ${ok}/${take.length}`); api.tidalProgress().then(setProgress).catch(() => {}); }
+      } catch (e) {
+        bad.push(`${r.water}: ${String(e)}`);
+      }
+    }
+    setBulkBusy(false);
+    setNotice(`saved ✓ ${ok} DFO-default mark(s)${bad.length ? ` · ${bad.length} NOT saved` : ""}`);
+    if (bad.length) setError(bad.join(" · "));
+    loadRows();
+  }
 
   // ACCEPT THE "DFO CONFIRMS MOUTH" BUCKET: one mark per unmarked upgrade / new row (marks are the only write)
   async function acceptMouths() {
@@ -251,6 +309,15 @@ export function TidalReview({ mode, onLeave, onDfo }: Props) {
             <button className="btn small primary" disabled={bulkBusy || !mouthAcceptable(rows).length} data-testid="tidal-mouth-accept"
               onClick={() => void acceptMouths()}>{bulkBusy ? "saving…" : `accept ${mouthAcceptable(rows).length} at the mouth`}</button>
           )}
+          <label className="dim" style={{ display: "flex", gap: 4, alignItems: "center" }} data-testid="tidal-default-bucket"
+            title="DFO definitions page: unless otherwise specified, the tidal boundary is a line across the mouth. These streams have no source naming the boundary itself.">
+            <input type="checkbox" checked={defaultOnly} onChange={(e) => setDefaultOnly(e.target.checked)} /> DFO default: mouth
+            ({progress?.by_dfo_default?.high ?? 0} high · {progress?.by_dfo_default?.conflict ?? 0} conflict)
+          </label>
+          {defaultOnly && (
+            <button className="btn small primary" disabled={bulkBusy || !progress?.groups?.default_acceptable} data-testid="tidal-default-accept"
+              onClick={() => void acceptDefaults()}>{bulkBusy ? "saving…" : `Accept all ${progress?.groups?.default_acceptable ?? 0} at the mouth (DFO default)`}</button>
+          )}
           <input className="dfo-search" placeholder="stream…" value={filters.q}
             onChange={(e) => set({ q: e.target.value })} aria-label="search tidal" />
           <span className="progress dfo-progress" data-testid="tidal-progress">
@@ -265,6 +332,19 @@ export function TidalReview({ mode, onLeave, onDfo }: Props) {
           </span>
         </div>
         <div className="filterbar-line"><div style={{ width: `${pct}%`, height: "100%", background: "var(--accent)" }} /></div>
+        {progress?.groups && (
+          <div className="dim" data-testid="tidal-groups" style={{ display: "flex", flexWrap: "wrap", gap: 14, padding: "4px 8px", fontSize: 12 }}>
+            {GROUP_WORDS.map(([k, w]) => {
+              const g = progress.groups![k as "words"];
+              return (
+                <span key={k} className="progress slim" title={`${w}: ${g.marked} of ${g.total} marked`}>
+                  {w} <strong>{g.marked}/{g.total}</strong>
+                  <span className="bar"><i style={{ width: `${g.total ? (100 * g.marked) / g.total : 0}%` }} /></span>
+                </span>);
+            })}
+            <span className="progress slim">unmarked <strong>{progress.groups.unmarked.unmarked}</strong></span>
+          </div>
+        )}
       </div>
       {notice && <div className="notice" data-testid="tidal-notice" style={{ margin: 8 }}>{notice}{" "}
         <button className="btn" style={{ padding: "2px 8px" }} onClick={() => setNotice("")}>dismiss</button></div>}
@@ -292,6 +372,9 @@ export function TidalReview({ mode, onLeave, onDfo }: Props) {
                 {r.n_web > 0 && <span className="chip-tag suggested">web · {r.n_web}</span>}
                 {r.dfo_mouth && <span className={`chip-tag${r.dfo_mouth === "conflict" ? " new" : " suggested"}`} title={r.dfo_mouth_why ?? ""}>
                   {r.dfo_mouth === "conflict" ? "DFO mouth: conflict" : r.dfo_mouth === "new" ? "DFO mouth: new" : "DFO confirms mouth"}</span>}
+                {r.dfo_default && <span className={`chip-tag${r.dfo_default === "conflict" ? " new" : " suggested"}`} title={r.dfo_default_why ?? ""}>
+                  {r.dfo_default === "conflict" ? "DFO default: conflict" : "DFO default: mouth"}</span>}
+                {r.unaccepted && <span className="chip-tag new" title="the owner un-accepted this: no specified boundary">un-accepted</span>}
                 {r.verify === "unmarked" && <PvBadge pv={r.pv} />}
                 {r.multi_crossing && r.triage !== "multi-crossing" && <span className="chip-tag" title="the line crosses the polygon in, out and in again">{r.n_cuts} crossings</span>}
               </div>

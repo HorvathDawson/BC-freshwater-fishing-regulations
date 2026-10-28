@@ -175,3 +175,40 @@ def test_merge_dfo_mouth_upgrade_keeps_prints():
     r = T.merge_pass2({c["id"]: c}, [c["id"]], doc2)[0][c["id"]]
     assert r["confidence"] == "high" and r["dfo_mouth"] == "upgrade" and T.prints(r) == before
     assert all(a["id"] != "dfo2" for a in r["alternates"])     # the mouth is the proposal's own point
+
+
+# ---------------------------------------------------------------- DFO default: the mouth (owner 2026-10-28)
+
+def _cand(**kw):
+    base = {"id": "tidal:1", "water": "X River", "mouth": {"measure": 0.0, "coord": [-125.0, 50.0]},
+            "proposed": {"measure": 20.0, "above_mouth_m": 20.0}, "polygon": {"crossing": "at_mouth", "measure": 20.0},
+            "sources": [], "triage": {"class": "no claim", "web": []}, "confidence": "medium"}
+    return {**base, **kw}
+
+
+def test_default_high_when_nothing_specifies():
+    from pipeline.regs.review import tidal as T
+    out = T.apply_default({"tidal:1": _cand()}, None)["tidal:1"]
+    assert out["dfo_default"] == "high" and out["specified"] == []
+    assert out["confidence"] == "medium"               # a non-mouth cut keeps the candidate's grade (proposals)
+    assert out["triage"]["web"][0]["url"] == T.DEFAULT_URL
+    assert out["proposed"]["measure"] == 20.0          # the proposal is never moved (no mark goes stale)
+
+
+def test_default_conflict_when_polygon_is_upstream_and_unlocated_words_do_not_specify():
+    from pipeline.regs.review import tidal as T
+    r = _cand(polygon={"crossing": "blobs", "measure": 2971.6},
+              sources=[{"kind": "synopsis_row", "source": "row", "words": "10 km upstream of the tidal boundary"}])
+    out = T.apply_default({"tidal:1": r}, None)["tidal:1"]
+    assert out["dfo_default"] == "conflict" and "2972 m above the mouth" in out["dfo_default_why"]
+    assert out["confidence"] == "medium"
+
+
+def test_located_source_or_pass2_is_specifies_so_no_default():
+    from pipeline.regs.review import tidal as T
+    r = _cand(sources=[{"kind": "synopsis_box", "source": "box", "measure": 900.0}])
+    assert T.apply_default({"tidal:1": r}, None)["tidal:1"]["dfo_default"] is None
+    doc2 = {"proposals": [{"id": "tidal:1", "evidence": [{"effective": "is", "located": {"measure": 500.0}}]}]}
+    assert T.apply_default({"tidal:1": _cand()}, doc2)["tidal:1"]["dfo_default"] is None
+    doc2 = {"proposals": [{"id": "tidal:1", "evidence": [{"effective": "at_or_above", "located": {"measure": 800.0, "above_mouth_m": 800.0}}]}]}
+    assert T.apply_default({"tidal:1": _cand()}, doc2)["tidal:1"]["dfo_default"] == "conflict"

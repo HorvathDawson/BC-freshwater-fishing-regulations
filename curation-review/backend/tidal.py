@@ -38,6 +38,27 @@ VERIFIES = ("unmarked", "verified", "wrong", "unsure", "deferred", "stale", "tod
 TRIAGE_CLASSES = ("missed", "sanity", "multi-crossing", "owner-edited", "book agrees", "no claim", "owner-decided")
 REVIEW = ("missed", "sanity", "multi-crossing")
 TRIAGES = (*TRIAGE_CLASSES, "review")
+#: the note of an owner's un-accept (a new deferred mark superseding an accepted one; history kept)
+UNACCEPT_NOTE = "owner 2026-10-28: unaccepted"
+
+
+def _marked(r: dict) -> bool:
+    return r["verify"] not in ("unmarked", "stale")
+
+
+def groups(rows: list[dict]) -> dict:
+    """THE TIDAL TAB'S PROGRESS GROUPS (owner 2026-10-28): marked / total per group — words name it (a
+    source specifies the boundary), DFO confirms mouth, DFO default: mouth, conflicts — and the unmarked
+    count; `default_acceptable` is what the default bulk accept would take (high, unmarked or un-accepted)."""
+    sel = {"words": [r for r in rows if r["specified"]],
+           "dfo_mouth": [r for r in rows if r["dfo_mouth"] in ("upgrade", "new")],
+           "dfo_default": [r for r in rows if r["dfo_default"] == "high"],
+           "conflict": [r for r in rows if r["dfo_default"] == "conflict" or r["dfo_mouth"] == "conflict"]}
+    out = {k: {"total": len(v), "marked": sum(1 for r in v if _marked(r))} for k, v in sel.items()}
+    out["unmarked"] = {"total": len(rows), "marked": sum(1 for r in rows if _marked(r)),
+                       "unmarked": sum(1 for r in rows if r["verify"] == "unmarked")}
+    out["default_acceptable"] = sum(1 for r in sel["dfo_default"] if r["verify"] == "unmarked" or r["unaccepted"])
+    return out
 
 
 def _states() -> dict:
@@ -70,7 +91,12 @@ def _row(r: dict, m) -> dict:
             "pv": preverify.tidal(r["id"]),
             # T212 pass 2 (owner 2026-10-28): "DFO confirms the mouth" — upgrade | conflict | new | None
             "dfo_mouth": r.get("dfo_mouth"), "dfo_mouth_why": r.get("dfo_mouth_why"),
-            "pass2_new": bool(r.get("pass2_new"))}
+            "pass2_new": bool(r.get("pass2_new")),
+            # DFO DEFAULT (owner 2026-10-28): nothing specifies the boundary -> the mouth; high | conflict | None
+            "dfo_default": r.get("dfo_default"), "dfo_default_why": r.get("dfo_default_why"),
+            "specified": list(r.get("specified") or []),
+            # un-accepted by the owner (a deferred mark superseding an accept): the default bulk accept may take it
+            "unaccepted": bool(m is not None and m.verdict == "deferred" and m.note.startswith(UNACCEPT_NOTE))}
 
 
 def queue(confidence: str | None = None, verify: str | None = None, enters: str | None = None,
@@ -106,6 +132,8 @@ def progress() -> dict:
             "with_words": sum(1 for r in rows if r["n_words"]),
             "by_triage": {k: sum(1 for r in rows if r["triage"] == k) for k in TRIAGE_CLASSES},
             "by_dfo_mouth": dict(Counter(r["dfo_mouth"] for r in rows if r.get("dfo_mouth"))),
+            "by_dfo_default": dict(Counter(r["dfo_default"] for r in rows if r.get("dfo_default"))),
+            "groups": groups(rows),
             "coverage": T.load()["coverage"]}
 
 

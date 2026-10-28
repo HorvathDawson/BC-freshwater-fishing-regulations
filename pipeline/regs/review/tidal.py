@@ -136,16 +136,106 @@ def merge_pass2(by_id: dict, order: list, doc2: dict) -> tuple[dict, list]:
     return by_id, order
 
 
+#: DFO'S DEFAULT RULE (owner 2026-10-28) — DFO Pacific's recreational-fishing definitions page, cached with the
+#: other DFO pages (data/source/dfo_tidal_areas/2026-10-28/fm-gp/rec/definitions-eng.html, snapshot 20260421173623)
+DEFAULT_URL = "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/definitions-eng.html"
+DEFAULT_CACHE = "data/source/dfo_tidal_areas/2026-10-28/fm-gp/rec/definitions-eng.html"
+DEFAULT_QUOTE = ("Tidal water boundary: Unless otherwise specified, the tidal boundary is a straight line drawn between "
+                 "the two most seaward points of land located on either side of the mouth of a river or stream.")
+DEFAULT_REASON = "DFO default (unless otherwise specified): the mouth"
+#: the polygon's top crossing this close (m) to the FWA mouth IS the mouth (`tidal_candidates.AT_MOUTH_M`)
+DEFAULT_POLY_M = 75.0
+#: a DFO line in tidal water this close (m) above the mouth is at the mouth (`tidal_pass2.MOUTH_TOL_M`)
+DEFAULT_LINE_M = 150.0
+
+
+def specified_by(r: dict, evs: list) -> list[str]:
+    """WHAT NAMES THIS STREAM'S TIDAL BOUNDARY ITSELF, located on the line: a word source located there
+    (synopsis box / row, DFO tidal-area page or notice, a curated split), a web finding located there (a
+    sign, bridge, road, rail, line — not "other"), or a DFO pass-2 entry whose words name the boundary ("is"). Words
+    that could not be located, a polygon crossing, a guess, a gauge — none of these specify it."""
+    out = []
+    for s in r.get("sources") or []:
+        if s.get("kind") != "tidal_gauge" and s.get("measure") is not None:
+            out.append(f"{s['kind']}: {s.get('source')}")
+    for w in (r.get("triage") or {}).get("web") or []:
+        # "other" is a finding that is not a boundary landmark (Marble River: a habitat survey's tidal reach)
+        if w.get("kind") not in ("dfo_pass2", "dfo_default", "other") and (w.get("located") or {}).get("measure") is not None:
+            out.append(f"web ({w.get('kind')}): {w.get('marker')}")
+    for e in evs:
+        if e.get("effective") == "is" and (e.get("located") or {}).get("measure") is not None:
+            out.append(f"DFO pass 2 names it: {e.get('label') or e.get('entry')}")
+    return out
+
+
+def default_verdict(r: dict, evs: list) -> Optional[dict]:
+    """DFO'S DEFAULT (owner 2026-10-28): a stream nothing specifies (`specified_by` empty) takes the boundary
+    at its FWA mouth — "high", or "conflict" where the tidal polygon's top crossing sits above the mouth, a
+    DFO line in tidal water crosses it above the mouth, or pass 2 found an upstream source (listed, not
+    moved). None: something specifies the boundary."""
+    if specified_by(r, evs):
+        return None
+    m0 = float((r.get("mouth") or {}).get("measure") or 0.0)
+    against = []
+    poly = r.get("polygon") or {}
+    if poly.get("crossing") in ("clean", "blobs", "at_mouth") and poly.get("measure") is not None:
+        up = float(poly["measure"]) - m0
+        if up > DEFAULT_POLY_M:
+            against.append(f"the tidal polygon crosses {up:.0f} m above the mouth"
+                           + (" (owner-edited polygon)" if (r.get("triage") or {}).get("edited") else ""))
+    for e in evs:
+        lo = e.get("located") or {}
+        if e.get("effective") == "at_or_above" and lo.get("above_mouth_m") is not None and lo["above_mouth_m"] > DEFAULT_LINE_M:
+            against.append(f"a DFO line in tidal water crosses {lo['above_mouth_m']:.0f} m above the mouth ({e.get('label') or e.get('entry')})")
+    if r.get("dfo_mouth") == "conflict":
+        against.append(f"pass 2: {r.get('dfo_mouth_why')}")
+    unlocated = [s for s in r.get("sources") or [] if s.get("kind") != "tidal_gauge" and s.get("measure") is None]
+    note = (f"; {len(unlocated)} source(s) mention a boundary but locate nothing (e.g. {unlocated[0].get('source')})"
+            if unlocated else "; no source specifies a boundary")
+    if against:
+        return {"verdict": "conflict", "why": f"{DEFAULT_REASON}{note} — but {'; '.join(against)}"}
+    return {"verdict": "high", "why": f"{DEFAULT_REASON}{note}"}
+
+
+def apply_default(by_id: dict, doc2: dict | None) -> dict:
+    """THE DFO DEFAULT on every candidate, additively (`proposed`, `polygon`, `sources` untouched — no mark
+    goes stale): `specified` (what names the boundary), `dfo_default` high | conflict | None and its `why`;
+    a default row gains the definitions page as evidence. The default's own grade is `dfo_default` ("high"):
+    `confidence` stays the candidate's, since `proposals` grades a non-mouth cut by it (a mouth cut has none)."""
+    import copy
+    evs_by = {p["id"]: p.get("evidence") or [] for p in (doc2 or {}).get("proposals") or []}
+    out = {}
+    for cid, r0 in by_id.items():
+        r = copy.deepcopy(r0)
+        evs = evs_by.get(cid, [])
+        r["specified"] = specified_by(r, evs)
+        dv = default_verdict(r, evs)
+        r["dfo_default"] = dv["verdict"] if dv else None
+        r["dfo_default_why"] = dv["why"] if dv else None
+        if dv:
+            mouth = r.get("mouth") or {}
+            t = r.setdefault("triage", {"class": None, "web": []})
+            t["web"] = [{"id": "dfo-default", "marker": DEFAULT_REASON, "kind": "dfo_default", "quote": DEFAULT_QUOTE,
+                         "url": DEFAULT_URL, "site": f"DFO Pacific recreational fishing definitions (cached: {DEFAULT_CACHE})",
+                         "confidence": "high" if dv["verdict"] == "high" else "medium",
+                         "located": ({"measure": mouth.get("measure"), "coord": mouth.get("coord"), "located_by": "the FWA mouth"}
+                                     if mouth.get("coord") else None),
+                         "agrees": dv["verdict"] == "high"}, *(t.get("web") or [])]
+        out[cid] = r
+    return out
+
+
 @lru_cache(maxsize=2)
 def _load(p: str, _mtime: float, p2: str | None = None, _mtime2: float | None = None) -> dict:
     doc = json.loads(Path(p).read_text())
     by_id = {r["id"]: r for r in doc.get("candidates") or []}
     order = [r["id"] for r in doc.get("candidates") or []]
-    pass2 = None
+    pass2 = doc2 = None
     if p2:
         doc2 = json.loads(Path(p2).read_text())
         by_id, order = merge_pass2(by_id, order, doc2)
         pass2 = doc2.get("counts")
+    by_id = apply_default(by_id, doc2)
     return {"coverage": {**(doc.get("coverage") or {}), **({"pass2": pass2} if pass2 else {})},
             "about": doc.get("_about") or "", "by_id": by_id, "order": order}
 

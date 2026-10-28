@@ -1182,6 +1182,14 @@ export interface TidalRow {
   dfo_mouth?: "upgrade" | "conflict" | "new" | null;
   dfo_mouth_why?: string | null;
   pass2_new?: boolean;
+  /** DFO DEFAULT (owner 2026-10-28): no source specifies the boundary -> the FWA mouth; "high", or "conflict"
+   *  where the polygon / a DFO line / pass 2 puts tidal water above the mouth */
+  dfo_default?: "high" | "conflict" | null;
+  dfo_default_why?: string | null;
+  /** what names the boundary itself, located on the line (empty: nothing specifies it) */
+  specified?: string[];
+  /** the mark in force is the owner's un-accept (deferred): the default bulk accept may take it */
+  unaccepted?: boolean;
 }
 /** GET /api/tidal/progress */
 export interface TidalProgress {
@@ -1193,6 +1201,11 @@ export interface TidalProgress {
   by_triage: Record<TidalTriageClass, number>;
   /** T212 pass 2: "DFO confirms the mouth" counts by verdict */
   by_dfo_mouth?: Record<string, number>;
+  /** DFO default: mouth counts by verdict (high / conflict) */
+  by_dfo_default?: Record<string, number>;
+  /** the Tidal tab's progress groups: marked / total each; `default_acceptable` = what the default bulk accept takes */
+  groups?: Record<"words" | "dfo_mouth" | "dfo_default" | "conflict", { total: number; marked: number }>
+    & { unmarked: { total: number; marked: number; unmarked: number }; default_acceptable: number };
   coverage: Record<string, unknown>;
 }
 /** GET /api/tidal/candidates/{id} */
