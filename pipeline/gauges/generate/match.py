@@ -225,7 +225,7 @@ def _names(node) -> list[str]:
 
 
 def _matched(station: str, node, node_id: str, how: str, distance: float | None,
-             lon: float | None, lat: float | None) -> StationMatch:
+             lon: float | None, lat: float | None, matched_name: str = "") -> StationMatch:
     """Record a hit as WHERE the station is and WHICH WATER it is on. Nothing derived."""
     return StationMatch(
         station=station, status="matched", resolved_by=how, distance_m=distance,
@@ -233,6 +233,7 @@ def _matched(station: str, node, node_id: str, how: str, distance: float | None,
         wsc=str(getattr(node, "wsc", "") or ""), wbk=str(getattr(node, "wbk", "") or ""),
         name=str(getattr(node, "display_name", "") or ""),
         blk=str(getattr(node, "blk", "") or ""), node_id=node_id,
+        matched_name=matched_name,
     )
 
 
@@ -300,7 +301,7 @@ def match_stations(stations: list[dict], geoms: dict, graph, *,
             out.append(StationMatch(sid, "unresolved", None, None,
                                     "no waterbody name could be parsed"))
             continue
-        named: list[tuple[float, str]] = []
+        named: list[tuple[float, str, str]] = []
         for ix in tree.query(pt.buffer(radius_m)):
             key = keys[ix]
             d = geoms[key].distance(pt)
@@ -336,7 +337,7 @@ def match_stations(stations: list[dict], geoms: dict, graph, *,
                 # them. "North Beach Creek" containing "Beach Creek" survives this test,
                 # because that one IS word-aligned; it is a judgement call, not a bug.
                 if got and _contains_word(want, got):
-                    named.append((d, key))
+                    named.append((d, key, got))
                     break
         if named:
             # CLOSEST OF THE CORRECTLY-NAMED AND CORRECTLY-SIZED.
@@ -348,7 +349,7 @@ def match_stations(stations: list[dict], geoms: dict, graph, *,
             # nearest, which is the old behaviour and is recorded as such.
             named.sort()
             plausible = [c for c in named if _area_fits(station, graph.nodes[c[1]])]
-            d, node = (plausible or named)[0]
+            d, node, used = (plausible or named)[0]
             how = "name+radius" if plausible or not _area_km2(station) else "name+radius?"
             # A TRIBUTARY OR A DIVERSION IS NOT ITS TRUNK — see `_NOT_THIS_WATER`. Checked
             # here rather than before the search, because the FWA sometimes carries the
@@ -360,8 +361,11 @@ def match_stations(stations: list[dict], geoms: dict, graph, *,
                     f"{want!r} is a tributary or diversion of {got!r}; the atlas has no "
                     "separate feature for it, and the trunk's flow is not its flow"))
                 continue
+            # THE NAME THAT MATCHED, kept only when it is not the display name (T159): promote
+            # re-checks the name and must check the one the match was made on.
             hit = _matched(sid, graph.nodes[node], node, how, round(d, 1),
-                           station.get("lon"), station.get("lat"))
+                           station.get("lon"), station.get("lat"),
+                           matched_name="" if used == got else used)
             # A CONFIRMATION IS A TRIPWIRE, not a rubber stamp. A person pinned this station
             # to this water; if a later atlas release moves it, that is exactly the silent
             # regression the review exists to catch, so it is recorded rather than accepted.

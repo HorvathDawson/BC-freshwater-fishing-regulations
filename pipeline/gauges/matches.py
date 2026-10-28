@@ -56,6 +56,10 @@ class StationMatch:
     wbk: str = ""                # FWA waterbody key, when the station is on a lake
     # --- review aids, never an input to anything ---
     name: str = ""               # the water the atlas calls this, at the time of matching
+    #: The name the matcher actually matched on (normalised), when that is NOT the display name:
+    #: a node displayed "Lower Arrow Lake" also answers to "Arrow Reservoir", which is what
+    #: ECCC calls it. Empty when the display name matched. promote's name check reads it (T159).
+    matched_name: str = ""
     blk: str = ""                # the blue line it matched. Diagnostic; see the note above.
     node_id: str | None = None   # the node it matched IN THAT BUILD. Diagnostic only.
     #: Additional FWA keys a curated `bind` named, beyond the one in `wsc`/`wbk`. A lake

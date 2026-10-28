@@ -251,3 +251,30 @@ def test_a_missing_match_names_the_two_step_regeneration(tmp_path, monkeypatch):
         M.read_match(raw)
     assert str(e.value) == (f"no gauge matches at {raw} — make it: "
                             "python -m pipeline.gauges.generate.match --build <a completed build>")
+
+
+# ------------------------------------------------------------------ T159: the name the matcher used
+#
+# Mutation (tried by hand): `evidence` checks only `m.name` again
+#     -> test_the_name_the_matcher_used_counts_for_promotion
+
+
+def test_the_name_the_matcher_used_counts_for_promotion():
+    """ECCC says ARROW RESERVOIR; the node displays "Lower Arrow Lake" and carries "Arrow Reservoir"."""
+    st = {"station": "R", "name": "ARROW RESERVOIR AT NAKUSP"}
+    m = StationMatch("R", "matched", "name+radius", 30.0, lon=-118.0, lat=50.2, wbk="1",
+                     name="Lower Arrow Lake", matched_name="arrow reservoir")
+    ev = P.evidence(m, st, None, None)
+    assert ev["name_agrees"] is True and ev["name_is_exact"] is False
+    assert P.promotable(ev)
+    promoted, cand = P.build([m], [st], {}, {}, {})
+    assert [r["station"] for r in promoted] == ["R"] and promoted[0]["matched_name"] == "arrow reservoir"
+    assert not cand
+
+
+def test_without_a_matched_name_the_display_name_alone_still_decides():
+    st = {"station": "R", "name": "ARROW RESERVOIR AT NAKUSP"}
+    m = StationMatch("R", "matched", "name+radius", 30.0, wbk="1", name="Lower Arrow Lake")
+    assert P.evidence(m, st, None, None)["name_agrees"] is False
+    _, cand = P.build([m], [st], {}, {}, {})
+    assert [c["station"] for c in cand] == ["R"] and "matched_name" not in cand[0]

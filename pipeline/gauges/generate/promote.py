@@ -35,6 +35,7 @@ AUTO-PROMOTION NEEDS FOUR INDEPENDENT SIGNALS TO AGREE, and independence is the 
 — every failure found in review came from signals that were secretly the same signal:
 
     name        the FWA name appears in the station name on a word boundary
+                (the display name, or the one the matcher matched on: `matched_name`, T159)
     distance    within the radius the match itself accepted
     size        ECCC's surveyed DRAINAGE_AREA_GROSS agrees with the node's stream magnitude
                 within one decade. THE ONLY SIGNAL ECCC SUPPLIES ITSELF — `wsc` is copied
@@ -91,8 +92,12 @@ def evidence(m, station: dict, mag: int | None, stated: str | None) -> dict:
     """Every independent signal, and whether it agrees. `None` means "no opinion"."""
     want = waterbody_name(station.get("name", ""))
     got = normalise(m.name or "")
+    # THE NAME THE MATCHER USED (T159): it accepts any name the node carries ("Arrow Reservoir"
+    # on the node displayed "Lower Arrow Lake"), so the check must too, or such a station can
+    # never auto-promote. `name_is_exact` stays about the display name.
+    used = normalise(getattr(m, "matched_name", "") or "")
     return {
-        "name_agrees": bool(got) and _contains_word(want, got),
+        "name_agrees": any(bool(n) and _contains_word(want, n) for n in (got, used)),
         "name_is_exact": got == want,
         "distance_m": m.distance_m,
         "area_km2": station.get("area_km2"),
@@ -132,6 +137,7 @@ def build(matches, stations, types, mags, rev=None) -> tuple[list[dict], list[di
                "lon": m.lon, "lat": m.lat,
                "wbk": [m.wbk] if m.wbk else [], "wsc": [m.wsc] if m.wsc else [],
                "also": list(m.also), "name": m.name, "blk": m.blk,
+               **({"matched_name": m.matched_name} if m.matched_name else {}),
                "evidence": ev}
         if d is not None and d.verdict in ("bound", "bind"):
             row |= {"trust": "bound", "wbk": list(d.wbk), "wsc": list(d.wsc), "note": d.note}
