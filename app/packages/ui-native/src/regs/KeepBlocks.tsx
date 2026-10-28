@@ -188,8 +188,8 @@ function Thumb({ code, images, palette }: { code: string | null; images: FishIma
 export interface GlanceFold { readonly key: string; readonly row: GlanceRowVM; readonly body: () => ReactNode }
 
 /**
- * (T221, owner 2026-10-28 — a try) A FOLDED ROW: drawn as an Other fish row — picture, name, the day's answer on the
- * right — but its end is a "Details" button with the set's expand mark (not the sheet's ›), and a press opens its full
+ * (T221, owner 2026-10-28) A FOLDED ROW: drawn as an Other fish row — picture, name, a status word only where the whole
+ * card has it (no count) — but its end is a "Details" button with the set's expand mark (not the sheet's ›), and a press opens its full
  * card in place under it (pressed again, "Hide", folds it).
  */
 function FoldRow({ f, palette, images }: { f: GlanceFold; palette: Palette; images?: FishImages }) {
@@ -204,7 +204,7 @@ function FoldRow({ f, palette, images }: { f: GlanceFold; palette: Palette; imag
                             borderTopColor: palette.line }}>
           <Thumb code={f.row.thumb} images={images} palette={palette} />
           <Text style={[TYPE.regsBodySemi, { color: palette.ink, flex: 1 }]}>{f.row.name}</Text>
-          <Text testID={`st:${f.row.tone}`} style={[TYPE.regsBodyBold, { color: tone }]}>{f.row.value}</Text>
+          {f.row.value && <Text testID={`st:${f.row.tone}`} style={[TYPE.regsBodyBold, { color: tone }]}>{f.row.value}</Text>}
           <View testID="glance-toggle" style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", minWidth: 84, gap: 4, paddingVertical: 4, paddingHorizontal: 8,
                                                  borderWidth: 1, borderColor: palette.accent, borderRadius: palette.r.chip }}>
             <Text style={[TYPE.metaBold, { color: palette.accent }]}>{open ? GLANCE_WORDS.hide : GLANCE_WORDS.show}</Text>
@@ -219,7 +219,7 @@ function FoldRow({ f, palette, images }: { f: GlanceFold; palette: Palette; imag
 
 export function OtherFish({ rows, keys, palette, actions, images, folds = [] }: {
   rows: readonly OtherFishRowVM[]; keys: readonly OtherFishKeyVM[]; palette: Palette; actions: KeepActions; images?: FishImages;
-  /** (T221) the at-a-glance table's folded rows (Salmon, the quota groups), drawn first; then the table heads "Fish" */
+  /** (T221) the at-a-glance table's folded rows (Salmon, the quota groups), drawn first; then the table heads "Species and limits" */
   folds?: readonly GlanceFold[];
 }) {
   const tone = (t: OtherFishRowVM["tone"]) => (t === "release" ? palette.restricted : t === "closed" ? palette.closed : palette.ink);

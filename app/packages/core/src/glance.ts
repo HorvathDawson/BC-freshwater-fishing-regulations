@@ -1,17 +1,16 @@
 /**
  * (T221, owner 2026-10-28 — a TRY) THE AT-A-GLANCE TABLE: the Keep tab's species list ("Other fish": picture, name, the
  * day's answer on the right) also carries the quota groups (Trout and char) and the DFO Salmon card as FOLDED rows —
- * "5 a day", "check DFO" — each opening, in place, to its full card. This file words those two kinds of row; the
- * component draws them beside the Other fish rows it already has. No new answer: each value is read off the card's own.
+ * each opening, in place, to its full card. This file words those two kinds of row; the component draws them beside the
+ * Other fish rows it already has. (Owner 2026-10-28) a folded row says NO count — "5 a day" misread as the whole group's
+ * answer — and a status word only where it is true for every row of the card ("closed", "check DFO"); else none.
  */
 import type { GroupVM, TreeNodeVM } from "./regs/model";
-import { WORDS } from "./regs/words";
-import { plain } from "./regs/line";
 import { SALMON_WORDS, type SalmonCardVM } from "./salmon";
 
 export const GLANCE_WORDS = {
   /** the table's head once it holds more than the other fish */
-  head: "Fish",
+  head: "Species and limits",
   /** the fold's affordance, closed and open */
   show: "Details",
   hide: "Hide",
@@ -19,11 +18,11 @@ export const GLANCE_WORDS = {
   a11y: (name: string, open: boolean) => `${name}: ${open ? "hide" : "show"} the details`,
 } as const;
 
-/** One folded row: the picture's code, the name, the day's answer and its tone (the Other fish rows' tones). */
+/** One folded row: the picture's code, the name, the status word true for the whole card (null: none) and its tone. */
 export interface GlanceRowVM {
   readonly thumb: string | null;
   readonly name: string;
-  readonly value: string;
+  readonly value: string | null;
   readonly tone: "keep" | "release" | "closed" | "nolimit";
 }
 
@@ -40,21 +39,19 @@ function thumbOf(nodes: readonly TreeNodeVM[]): string | null {
   return codes.includes("RB") ? "RB" : codes[0] ?? null;
 }
 
-/**
- * A quota group's folded row: its title, and the number the card heads with — the water's share where the head leads
- * with one (form a), else the root tier's — as "5 a day"; "no limit" for a group without one.
- */
+/** A quota group's folded row: its title and picture, no count (owner 2026-10-28: a group's number misleads). */
 export function groupGlance(g: GroupVM): GlanceRowVM {
-  const thumb = thumbOf(g.tree ?? []);
-  if (g.head.nolimit) return { thumb, name: g.title, value: WORDS.NO_LIMIT, tone: "nolimit" };
-  const big = (g.head.form === "a" && g.head.lead ? g.head.lead : g.head.words).find((r) => r.t === "num" && r.size === "big");
-  const n = big && big.t === "num" ? big.s : null;
-  return { thumb, name: g.title, value: n !== null ? `${n}${WORDS.A_DAY}` : plain(g.head.words), tone: "keep" };
+  return { thumb: thumbOf(g.tree ?? []), name: g.title, value: null, tone: "keep" };
 }
 
-/** The Salmon card's folded row: its title and its status word for the day ("check DFO", "closed" …). */
+/**
+ * The Salmon card's folded row: its title, and its status word ("closed", "check DFO" …) only when every row of the
+ * card — the water's and any undrawn DFO place's — has that status; else none.
+ */
 export function salmonGlance(card: SalmonCardVM): GlanceRowVM {
-  const s = card.headlineStatus;
+  const all = [...card.rows, ...card.unmapped.flatMap((u) => u.block.rows)].map((r) => r.status);
+  const s = all.length && all.every((x) => x === all[0]) ? all[0]! : null;
+  if (s === null || s === "varies") return { thumb: "CO", name: card.title, value: null, tone: "keep" };
   const word = SALMON_WORDS.status[s];
   return { thumb: "CO", name: card.title, value: s === "check" ? word.replace(/^Check/, "check") : word.toLowerCase(),
            tone: s === "closed" ? "closed" : s === "release" ? "release" : "keep" };
