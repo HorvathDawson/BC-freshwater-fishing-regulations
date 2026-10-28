@@ -9,8 +9,8 @@ Verified = fetched/queried today. Unverified = from search snippets or general k
    (mostly NAD27) and a PDF URL. Licence is OGL-BC, so redistribution (including derivatives) is allowed with attribution.
 2. **BC "Bathymetric Maps of Surveyed Lakes" (already-digitised contour polygons).** Verified: only **26 lakes / 137 polygons**
    (Fraser, Pinchi, Wahleach, Cunningham, Charlie, Gwillim, Maxhamish, Tezzeron...), mostly Omineca/Peace. Useful as ground truth
-   for checking our own vectorisation, and as the first lakes shipped. Catalogue licence says "Access Only" (public view and download),
-   with no explicit OGL line. Confirm with FISH.Issues@gov.bc.ca before bundling. It is a government dataset, so OGL-BC is likely.
+   for checking our own vectorisation, and as the first lakes shipped. Licence: OGL-BC. Owner 2026-10-27: it is in the BC
+   Data Catalogue, so no licence email is needed. Count: 28 waterbodies under 26 names. Ticket T218.
 3. **Per-lake depth stats in the same layer** (max depth, mean depth, volume, survey date and agency). Cheap, and enough to feed the
    existing per-lake Depth colouring slot before any contours exist. Also in the scanned-map metadata headers.
 4. **Licence-required or unclear: Navionics, C-MAP, Garmin, Fishidy, Lakemaster, Backroad Mapbooks.** Do not scrape or ship.
@@ -20,7 +20,8 @@ Verified = fetched/queried today. Unverified = from search snippets or general k
 
 ### 1. BC Data Catalogue — Bathymetric Maps - Open (verified)
 - Coverage: ~2,216 lakes, 2,740 sheets (some lakes are multi-sheet). Mostly FISS / ministry surveys, 1950s-1990s.
-- Format: scanned/hand-drafted PDF per sheet (vector-ish PDFs of ~120 KB; not georeferenced). Reference table is CSV.
+- Format: one raster scan per sheet (1-bit JBIG2, ~8,800×6,500 px at 270-380 dpi, 120-420 KB) with an OCR text layer, not
+  georeferenced. No vector contours (measured 2026-10-27, T219). Reference table is CSV.
 - Quality: depth contours in feet or metres per chart, with a scale bar and shoreline. Datum NAD27 on many.
 - Licence: OGL-BC (catalogue page `1427d389-cd21-4fe2-8ed9-282d9bdcb7e2`, last modified 2026-01-28, status "Under Development").
 - Cost / access: free, no key. CSV: https://catalogue.data.gov.bc.ca/dataset/1427d389-cd21-4fe2-8ed9-282d9bdcb7e2/resource/d1d89c2e-1994-4f7d-a269-55b40e26067d/download/bathyopenreferencetableandmapsaug22_2023final.csv
@@ -79,6 +80,16 @@ Verified = fetched/queried today. Unverified = from search snippets or general k
 
 ## Suggested T201 path
 1. Feed the Depth toggle from per-lake max/mean depth (source 3 plus metadata read off the PDFs); no tile change.
-2. Ship the 26 digitised lakes' contours (confirm OGL with the ministry), size diff against the T64/T85 budget.
+2. Ship the 26 digitised lakes' contours (OGL-BC, owner 2026-10-27; T218), size diff against the T64/T85 budget.
 3. Prototype automated georef on 20 sample PDFs; decide the tier size.
 4. Email FFSBC about their stocked-lake data; do not use any proprietary sonar source.
+
+## Feasibility measured 2026-10-27 (T219)
+- The PDFs are raster scans with an OCR text layer, not vector. Contours must be traced from the image, and the
+  statistics block can be read from the text layer (Fox: max, mean and volume match the digitised layer).
+- No graticule or lat/long ticks. A shoreline fit to the FWA polygon (similarity + ICP) worked on 4 of 5 single-lake
+  sheets: median 5-13 m, scale within 5% of print. It failed on a changed reservoir shore and on both partial
+  (multi-sheet) sheets.
+- Stroke geometry agrees with the government's digitised contour to about 5 m. Automatic depth assignment by nesting
+  failed (label gaps, soundings on lines), so labelling needs a review UI.
+- Estimate: about 2-2.5 weeks of build, then about 15 min of QA per lake. Tier it (top 100 is about 25 h). See T219.

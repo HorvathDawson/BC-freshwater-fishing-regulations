@@ -261,6 +261,8 @@ use that as the sole source of future work."
 | T214 | app polish: quota sub-cap wording names its total, desktop no-swipe + Esc back, clearer part highlight, steady up/downstream buttons | PARTIAL | — | items 1, 2, 4 built (subcap lead + golden amendment, desktop no-swipe + Esc Back, reserved exit slot); item 3 (part highlight) waits on T211's map paint |
 | T215 | open the PDF on the page with the entry's section highlighted | DONE | 3e5ef46f 15d19068 7c513588 | full PDF + highlight annotation, web verified (Cowichan p.15); phone unverified; owner uploads the release to R2 |
 | T216 | better "How this was decided": interpretation, what overrode what, sources | DONE | 4e39f3fb | story.ts: layers base → water → exceptions, why + printed page per step; tests on Fraser two-region, R5 spring-closure lift, sub-cap, closed water |
+| T218 | bathymetry: ship depth figures + contours for the 28 already-digitised lakes (OGL-BC layer) | OPEN | — | not yet (owner 2026-10-27); after T201/T158 |
+| T219 | bathymetry: trace contours from the open scanned charts for the top-fished lakes | OPEN | — | not yet (owner 2026-10-27); raster scans, georef works, depth labelling needs a review UI; ★ tier size |
 
 ## Order for open tickets
 
@@ -282,7 +284,7 @@ code. Heavy jobs run one at a time through scripts/heavy.sh (≤ 4 workers). ★
 5. **Tiles window (one tile build):** T64 + T85, then T75; T129 (web request budget) alongside.
 6. **Native and shipping:** T50 (alone, heavy) → T74 → T77 ★ → T86 ★ → T88 ★. T65 (determinism, heavy) in a quiet gap.
 7. **Last:** T95 ★, T98 ★ (POSTPONED), T87 ★ (sign-off walk, then delete app/design).
-8. **Last band (owner 2026-10-27: start with T202 tile sizes + the parked basemap z13):** T199 run timing, T200 stocked lakes, T201 bathymetry / depth maps, T202 tile size optimizations.
+8. **Last band (owner 2026-10-27: start with T202 tile sizes + the parked basemap z13):** T199 run timing, T200 stocked lakes, T201 bathymetry / depth maps (then T218 digitised lakes, T219 scan tracing), T202 tile size optimizations.
 
 ## Owner questions
 
