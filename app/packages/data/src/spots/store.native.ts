@@ -48,6 +48,11 @@ export function openLikeStore(): { read(): string | null; write(text: string): v
   return fileStore("like-visit.json");
 }
 
+/** (T211) The last captured DFO salmon feed (owner 2026-10-27: offline, the last feed captured) — a file of its own. */
+export function openSalmonFeedStore(): { read(): string | null; write(text: string): void } {
+  return fileStore("dfo-feed.json");
+}
+
 function fileStore(name: string): { read(): string | null; write(text: string): void } {
   const dir = new Directory(Paths.document, "spots");
   const file = () => new File(dir, name);

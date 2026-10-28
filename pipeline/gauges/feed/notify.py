@@ -81,10 +81,12 @@ def _sent(path: Path) -> list[str]:
         return []
 
 
-def send_due(notices: list[dict], out: Path, url: str | None = None, sender: Sender | None = None) -> dict:
+def send_due(notices: list[dict], out: Path, url: str | None = None, sender: Sender | None = None, *,
+             key_of: Callable[[dict], str] = key, message_of: Callable[[dict], str] = message) -> dict:
     """Send every notice not sent before. Returns `{sent, failed, off}` (keys); never raises.
 
-    `url` defaults to FEED_NOTIFY_URL; `sender` to `post` (tests inject one).
+    `url` defaults to FEED_NOTIFY_URL; `sender` to `post` (tests inject one). `key_of` / `message_of` let another
+    feed (the DFO salmon feed, T211) send its own notices through the same dedupe and webhook shapes.
     """
     url = url if url is not None else os.environ.get(ENV) or None
     if not url:
@@ -98,11 +100,11 @@ def send_due(notices: list[dict], out: Path, url: str | None = None, sender: Sen
     sent: list[str] = []
     failed: list[str] = []
     for n in notices:
-        k = key(n)
+        k = key_of(n)
         if k in done or k in sent:
             continue
         try:
-            send(url, message(n))
+            send(url, message_of(n))
             sent.append(k)
         except Exception as exc:                                # noqa: BLE001 — a reminder never fails the feed
             failed.append(k)

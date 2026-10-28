@@ -16,8 +16,8 @@
  * default to T09's two functions (T21 bound them when it drew the page).
  */
 import { useMemo, useSyncExternalStore } from "react";
-import { accessNotice, buildRegsPage, salmonCard, tapDay, waterAccessNotice, type AccessNotice, type Day, type RegsInputs,
-         type RegsPage, type RegsTarget, type SalmonCardVM,
+import { accessNotice, buildRegsPage, salmonCardLive, tapDay, waterAccessNotice, type AccessNotice, type Day, type RegsInputs,
+         type RegsPage, type RegsTarget, type SalmonCardLiveVM,
          type Weekday, type Who } from "@app/core";
 import { downstreamWater, type ItemId, type WaterSource, type SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
@@ -171,18 +171,18 @@ export interface SalmonPage {
  * (`salmonCard`). Null where the release ships no salmon. A water DFO does not list reads "Salmon — closed".
  */
 export async function salmonCardFor(loader: Pick<ReleaseLoader, "salmon">, store: Pick<RegsStore, "navRows"> | null,
-                                    page: SalmonPage, on: Date): Promise<SalmonCardVM | null> {
+                                    page: SalmonPage, on: Date): Promise<SalmonCardLiveVM | null> {
   const f = await loader.salmon();
   if (!f) return null;
   let sids: number[] = [];
   if (page.section !== null) sids = [Number(page.section)];
   else if (store && page.ord !== null)
     sids = (await store.navRows(page.ord)).sections.filter((s) => s.partIx === page.partIx).map((s) => s.sid);
-  return salmonCard(f, { sids, item: page.item }, on);
+  return salmonCardLive(f, { sids, item: page.item }, on);
 }
 
 export function useSalmonCard(loader: Pick<ReleaseLoader, "salmon"> | null, store: Pick<RegsStore, "navRows"> | null,
-                              page: SalmonPage | null, mapDay: Date | null): Async<SalmonCardVM | null> {
+                              page: SalmonPage | null, mapDay: Date | null): Async<SalmonCardLiveVM | null> {
   const asks = !!loader && !!page;
   const on = mapDay ?? new Date();
   const dayKey = `${on.getFullYear()}-${on.getMonth() + 1}-${on.getDate()}`;

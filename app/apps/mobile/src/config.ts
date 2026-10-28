@@ -47,6 +47,8 @@ export const ENDPOINTS = {
   },
   /** The live gauge feed: real ECCC data from `python -m pipeline.gauges.feed.publish`, matching the release. */
   feed: `${BASE}/feeds/live`,
+  /** (T211) The live DFO salmon feed (`python -m pipeline.regs.dfo_salmon.live`; R2 `feeds/dfo/`). */
+  dfoFeed: `${BASE}/feeds/dfo`,
   /** Where sql.js finds its engine on the web: the same origin as the release files it opens. */
   sqlWasm: `${BASE}/`,
 } as const;

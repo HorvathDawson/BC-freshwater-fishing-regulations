@@ -15,3 +15,6 @@ export declare function openLayerStore(): { read(): string | null; write(text: s
 
 /** T51: the last fetched "Like your visit?" forecasts, as whole text under one name (`./likeVisit` `LikeStore`). */
 export declare function openLikeStore(): { read(): string | null; write(text: string): void };
+
+/** (T211) The last captured DFO salmon feed, as whole text under one name (`../feed/salmon` `SalmonFeedStore`). */
+export declare function openSalmonFeedStore(): { read(): string | null; write(text: string): void };

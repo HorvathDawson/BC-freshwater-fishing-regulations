@@ -232,8 +232,8 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
     """(payload, [(sid, chain)] sorted by sid). `entry_files`: slug → `entries.EntryFile`; `feeds`: slug → the typed
     feed (`typed/region-<slug>.json`); `placed`: the reach run's rows; `sid_of`: section id → handle.
 
-    A location joins the feed by any of its fingerprints; one with no rules on the page today (dormant) is left out —
-    it says nothing about today. A placed section the handle table does not know stops the build: the reach run and
+    A location joins the feed by any of its fingerprints; one with no rules on the page today (dormant) still sits in
+    its chains and says nothing (the live feed fills it in when DFO lists it again). A placed section the handle table does not know stops the build: the reach run and
     this atlas are not the same build."""
     rules_of: Dict[str, List[dict]] = {}
     locs: Dict[str, object] = {}
@@ -244,10 +244,11 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
         regions[slug] = {"name": getattr(ef, "region_name", slug), "asof": feed.get("date_modified"),
                          "url": PAGE_URL.format(slug=slug)}
         for loc in ef.locations:
-            got = [r for fp in loc.fingerprints for r in by_fp.get(fp, [])]
-            if got:
-                rules_of[loc.location_id] = got
-                locs[loc.location_id] = (slug, loc, ef)
+            # EVERY location, ruled today or not (T211 part 2): a dormant one says nothing today (no rules, so it never
+            # answers in its chain), but it is IN its chains, so the live feed (`regs.dfo_salmon.live`) can paint it
+            # the day DFO lists it again — without a rebuild.
+            rules_of[loc.location_id] = [r for fp in loc.fingerprints for r in by_fp.get(fp, [])]
+            locs[loc.location_id] = (slug, loc, ef)
 
     order = lambda lid: (-locs[lid][1].precedence, lid)          # noqa: E731 — narrowest first
     covering: Dict[int, List[str]] = defaultdict(list)
@@ -290,8 +291,10 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
     for lid in sorted(unmapped_locs):
         slug, loc, ef = locs[lid]
         water = ef.water(loc.water_id) if loc.water_id else None
+        # `d: 1` — DORMANT at build (no rules on the page): carried so the live feed can show it the day DFO lists it
+        # again; the app leaves it off the card until then (core `pickSalmon` / `withSalmonFeed`)
         unmapped.append({"items": sorted(water.item_ids) if water else [], "r": slug, "w": _label(loc),
-                         "chain": chain_for([lid])})
+                         "chain": chain_for([lid]), **({} if rules_of[lid] else {"d": 1})})
     payload = {"format": FORMAT, "credit": CREDIT, "default": UNLISTED_CHAIN, "regions": regions, "verdicts": verdicts.items,
                "gears": gears.items, "chains": chains, "unmapped": unmapped}
     return payload, sections

@@ -21,6 +21,8 @@ export type { WaterSource } from "./source";
 export type { Db, Row } from "./sql/db";
 
 export { FEED_TTL_MS, httpFeed, type GaugeFeed } from "./feed/http";
+// (T211) the live DFO salmon feed, the last capture kept on the device
+export { httpSalmonFeed } from "./feed/salmon";
 
 // The panel arithmetic: bundle rows plus a feed reading -> one answer. Three callers,
 // one of them not a screen, so it cannot live behind a hook — see ./panel.ts.

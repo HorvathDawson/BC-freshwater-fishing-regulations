@@ -105,6 +105,13 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
 - **`FEED_NOTIFY_URL`**: set it where the feed cron runs to get one message per new HYDAT release
   (ntfy / Discord / Slack). Off until set.
 - **`scripts/update-hydat.sh`**: run it when that message arrives.
+- **DFO salmon feed cron + R2 sync (T211 part 2):** on the feed host, every 6 h Jun 1–Oct 31 and daily otherwise:
+  `.venv/bin/python -m pipeline.regs.dfo_salmon.live` (no credits, no secrets; ~15 s; writes
+  `data/generated/regs/dfo_salmon/feed/index.json` + `unplaced.json`), then sync ONLY that `feed/` dir to R2
+  `feeds/dfo/` (never `feed.notified.json`, which sits beside it). Same `FEED_NOTIFY_URL` as the gauges: one message
+  per held new / reworded DFO place, per region held (structural change, page that will not parse, two failed fetches).
+  When one arrives: `python -m pipeline.regs.dfo_salmon.live queue --regions <n>` (or ask Claude), commit the entry
+  files, and the place shows in the review app's DFO mode. Local dry run: `... live --offline` (cached pages).
 - **Phone testing** (T77, Q9), **production hosting** (T86, Q26: R2 bucket, contact address, app name), **iOS build**
   (T88).
   - Gesture/navigation parity on the phone (T50, T77; owner 2026-10-27; same RNGH code as web, not seen on a device):

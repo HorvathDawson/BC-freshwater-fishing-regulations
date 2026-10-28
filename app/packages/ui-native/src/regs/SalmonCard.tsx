@@ -45,7 +45,7 @@ function Block({ block, palette, testID }: { block: SalmonBlockVM; palette: Pale
   );
 }
 
-export function SalmonCard({ card, palette }: { card: SalmonCardVM; palette: Palette }) {
+export function SalmonCard({ card, palette }: { card: SalmonCardVM & { readonly checked?: string | null }; palette: Palette }) {
   return (
     <WaterInset style={{ paddingTop: SPACE.s4 }}>
       <View testID="salmon-card" accessibilityLabel={`${card.title}, ${card.badge}: ${card.headline}`}
@@ -79,6 +79,9 @@ export function SalmonCard({ card, palette }: { card: SalmonCardVM; palette: Pal
             {card.source}
           </Text>
           <Text testID="salmon-asof" style={{ ...TYPE.small, color: palette.sub }}>{card.asOf}</Text>
+          {card.checked && (
+            <Text testID="salmon-checked" style={{ ...TYPE.small, color: palette.sub }}>{card.checked}</Text>
+          )}
           <Text testID="salmon-credit" style={{ ...TYPE.small, color: palette.sub }}>{card.credit}</Text>
         </View>
       </View>

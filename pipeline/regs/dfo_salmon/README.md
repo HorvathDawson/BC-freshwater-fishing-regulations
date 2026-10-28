@@ -42,6 +42,7 @@ Five stages, deliberately separate:
 | `untangle.py` | regroup into waters → reaches → rules + the defaults, for consumption |
 | `typed.py` | **the whole decode** — limits and dates read once, then typed rules |
 | `feed.py` | write those rules as a feed, keyed by the locator fingerprint |
+| `live.py` | THE LIVE FEED (T211): fetch → type → join → `feed/index.json` the app reads; unplaced places held + told; `queue` seeds them for DFO mode |
 
 `parse.py` output is what you store; `untangle.py` output is what you read and what a
 resolver should bind to. `untangle.verify()` asserts every parsed row lands in exactly

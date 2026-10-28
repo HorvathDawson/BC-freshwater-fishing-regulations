@@ -58,6 +58,14 @@ describe("the Salmon card", () => {
     expect([screen.getByTestId("salmon-source").textContent, screen.getByTestId("salmon-asof").textContent])
       .toEqual(["Fisheries and Oceans Canada · Region 6 Skeena", "DFO page dated Aug 28, 2026"]);
     expect(screen.getByTestId("salmon-credit").textContent).toContain("Fisheries and Oceans Canada (DFO)");
+    // the release's own file: no feed line
+    expect(screen.queryByTestId("salmon-checked")).toBeNull();
+  });
+
+  it("(T211 part 2) read through the live feed: the capture's time under the page date", () => {
+    const card = { ...salmonCard(FACTS, { sids: [101], item: null }, JUL20), checked: "Checked with DFO Oct 27, 2026, 11:04 am" };
+    render(<SalmonCard card={card} palette={LIGHT} />);
+    expect(screen.getByTestId("salmon-checked").textContent).toBe("Checked with DFO Oct 27, 2026, 11:04 am");
   });
 
   it("every species closed: ONE 'Salmon — closed' row", () => {

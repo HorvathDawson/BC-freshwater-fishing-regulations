@@ -22,10 +22,10 @@ import {
 } from "@expo-google-fonts/archivo";
 import { JetBrainsMono_500Medium } from "@expo-google-fonts/jetbrains-mono";
 import { INSTALL_WORDS, MAP_CREDITS, installLine, rolledBackLine, startStage } from "@app/core";
-import { httpFeed, loadManifest, type WaterSource } from "@app/data";
+import { httpFeed, httpSalmonFeed, loadManifest, type WaterSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import * as platform from "@app/data/release/platform";
-import { fillDayFlow, geometHydat, openLayerStore, openLikeStore, openMeteo, openPhotos, openSpots, refreshSpot,
+import { fillDayFlow, geometHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openMeteo, openPhotos, openSpots, refreshSpot,
          type DayFlowAnswer, type Spot } from "@app/data/spots";
 import { FishSpinner, setSynopsisSource, Shell, THEMES, type ThemeName } from "@app/ui-native";
 import { LayoutWidthContext, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, useReleaseBoot, useSpots, type MapTiles,
@@ -83,11 +83,14 @@ export default function App() {
   const spotsHook = useSpots(spotStore);
   const spots: Spot[] = spotsHook.spots.state === "ready" ? spotsHook.spots.value : [];
   const feed = useMemo(() => httpFeed(FEED), []);
+  // T211: the live DFO salmon rules, the last capture kept on the device for offline
+  const salmonFeed = useMemo(() => httpSalmonFeed(ENDPOINTS.dfoFeed, openSalmonFeedStore()), []);
 
   // THE RELEASE: manifest → (native: install / update) → paint, then the Shell
   const boot = useReleaseBoot(useMemo(() => ({
     manifestUrl: ENDPOINTS.manifest, releaseBase: ENDPOINTS.release, wasmBase: ENDPOINTS.sqlWasm, platform, feed,
-  }), [feed]));
+    salmonFeed,
+  }), [feed, salmonFeed]));
   /**
    * (The sync icon, owner 2026-10-22) What data release the server names NOW — read again by the icon's tap and its
    * poll, to SAY that a newer one exists (installed in the background at the next launch on a phone, by a reload on the

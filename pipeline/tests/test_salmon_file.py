@@ -94,9 +94,11 @@ def test_build_chains_narrowest_first_with_the_unlisted_chain_first():
     assert chains[0]["l"] == [] and chains[0]["m"] == [0, S.MAP_CODES.index("closed")]
     assert payload["default"] == S.UNLISTED_CHAIN == 0
     assert payload["verdicts"][0] == S.NOT_LISTED
-    # the dormant location (no rules on the page today) is in no chain
+    # the dormant location (no rules on the page today) sits in its chain and says nothing: the live feed fills it in
     by_sid = {sid: chains[c]["l"] for sid, c in sections}
-    assert by_sid == {10: ["6:a"], 11: ["6:b(i)", "6:a"], 12: ["6:kispiox", "6:b(i)", "6:a"]}
+    assert by_sid == {10: ["6:dormant", "6:a"], 11: ["6:b(i)", "6:a"], 12: ["6:kispiox", "6:b(i)", "6:a"]}
+    c10 = dict(sections)[10]
+    assert payload["verdicts"][chains[c10]["sp"][S.SPECIES.index("CO")][1]]["s"] == "open"    # A's coho, as before
     # the location with no extent: on the card under its water's item, on no section
     (u,) = payload["unmapped"]
     assert (u["items"], u["w"], u["r"]) == (["gnis:4674"], "Kispiox River — above the resort signs", "6")

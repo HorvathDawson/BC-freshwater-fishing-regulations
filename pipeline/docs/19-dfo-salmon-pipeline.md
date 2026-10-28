@@ -250,10 +250,15 @@ fetch → validate → hash-compare → [unchanged? stop] → parse → untangle
    (`atlas/reach/dfo_salmon.py` → `dfo_salmon.jsonl.gz`), the bundle joins the typed feed by fingerprint and
    precomputes each chain's answers per day (`deliver/salmon.py` → `salmon_doc`, `salmon_section`), and the
    release ships `salmon` (`salmon/1`). A water DFO does not list is CLOSED to salmon (owner 2026-10-27), stated
-   as chain 0. The live feed (the app reading a newer snapshot than its release) is not built.
+   as chain 0.
+   **The live feed — BUILT (T211 part 2):** `regs/dfo_salmon/live.py` writes `feed/index.json` (`dfo-feed/1`: per
+   location and day, each species' verdict and the gear), which the app lays over the release's chains
+   (core `salmonFeed.ts`; offline, the last capture). A fingerprint nobody curated is held in `unplaced.json` and the
+   owner told once (`FEED_NOTIFY_URL`); `live queue` seeds it for DFO mode.
 2. **The geometry.** 243 of 247 locators have no extent. That is the cut-point curation, not a
    gap in the format — see the handoff.
-3. **The cron job and the reconciler's publish step** (§5 is a plan).
+3. **The cron job** — the job is built (`python -m pipeline.regs.dfo_salmon.live`, §6.1); the schedule and the R2
+   sync are the owner's (handoff/PLAN/OWNER-TODO.md).
 4. **Overlay semantics.** DFO and the province are different authorities; a reach can carry a
    provincial trout rule and a federal salmon rule at once and neither overrides the other. How
    the app shows that is undecided.

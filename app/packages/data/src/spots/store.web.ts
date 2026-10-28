@@ -49,6 +49,11 @@ export function openLikeStore(): { read(): string | null; write(text: string): v
   return keyStore("canifishthis.likeVisit.v1");
 }
 
+/** (T211) The last captured DFO salmon feed (owner 2026-10-27: offline, the last feed captured) — a cache of its own. */
+export function openSalmonFeedStore(): { read(): string | null; write(text: string): void } {
+  return keyStore("canifishthis.dfoFeed.v1");
+}
+
 function keyStore(LAYERS_KEY: string): { read(): string | null; write(text: string): void } {
   return {
     read: () => { try { return globalThis.localStorage?.getItem(LAYERS_KEY) ?? null; } catch { return null; } },

@@ -1,6 +1,6 @@
 # T211 — DFO salmon regulations in the app, and the DFO feed (plan + build)
 
-Status: PARTIAL — 491c9089: option A + the Standard / Salmon toggle built (see "Built"); left: the live feed (part 2), parts 3–4
+Status: DONE (parts 1, 2, 4) — 7dd3828c, afce6842, 28e7bfe9; part 3 (historic matching) moved to the DFO-locations lane (coordinator 2026-10-27); owner: the feed cron + R2 sync (OWNER-TODO)
 
 Source: owner 2026-10-27.
 
@@ -60,3 +60,33 @@ CLOSED to salmon fishing — an explicit default in the data, not an absence.
 `python -m pipeline build` (reach reruns: its code and key moved; then deliver). Left: the live feed (part 2 —
 the app reads only the release's snapshot), parts 3–4; `request-walk.pin.json` may need a re-cut (the salmon file
 is fetched on the Map tab after the day's status is in); `salmon` gate to set from the first measured release.
+
+## Built (2026-10-27, parts 2 + 4: the live feed and the new-location alert)
+Owner corrections taken: offline = the LAST FEED CAPTURED on the device (its time on the card), the release's file only
+when none was ever captured; part 3 dropped here (another lane owns the 346 historic locations); part 4 feeds the same
+DFO mode queue.
+- **Feed job:** `pipeline/regs/dfo_salmon/live.py` (`python -m pipeline.regs.dfo_salmon.live [--offline]`): fetch →
+  parse → untangle/verify → typed → `entries.reconcile` → join by fingerprint (entry files read only) → per LOCATION and
+  day each species' verdict index (-1: says nothing) + gear → `<feed>/index.json` (`dfo-feed/1`; 247 locations, 45 KB raw)
+  + `unplaced.json`. Holds: a failed fetch keeps the region's last answers (`stale`; 2 in a row notify); a page that will
+  not parse, or a structural change, holds the region; `section_moved` keeps that location's last answers. Changed pages
+  kept in `cache/dfo_salmon/history/`. Dev: `serve-tiles.mjs` serves `/feeds/dfo/*.json`; prod: R2 `feeds/dfo/`.
+- **Part 4:** a fingerprint no entry knows is UNPLACED (drift / new / new_water), its rules held in `unplaced.json`
+  (never dropped), the owner told once per (region, fingerprint) via `FEED_NOTIFY_URL` (`gauges.feed.notify.send_due`,
+  now with `key_of` / `message_of`). `live queue` seeds them into the entry files (`entries seed` + `group`: a rewording
+  proposed as a variant) so the review app's DFO mode lists them like any location; the next run joins them.
+- **Deliver:** every location is now in its chains (dormant ones say nothing) so the feed paints a revival without a
+  rebuild; an unmapped place dormant at build carries `d: 1` (off the card until the feed lists it). Takes effect at the
+  next deliver run (release `salmon` grows a little; no format change).
+- **App:** core `salmonFeed.ts` (`parseSalmonFeed`, `composeChain` == the pipeline's `live.compose` ==
+  `deliver.salmon.chain_calendar`, pinned by `salmonFeed.golden.ts`; `pickSalmon`: the capture unless the release was
+  cut from newer pages; `salmonFeedLine` "Checked with DFO …"). data `feed/salmon.ts` (`httpSalmonFeed`: fetch hourly at
+  most, capture kept by `openSalmonFeedStore` — a file on the phone, a storage key on the web; `withLiveSalmon` lays it
+  over `loader.salmon()` once, so the card and the map read one answer and the toggle never re-fetches). App wires
+  `ENDPOINTS.dfoFeed`. Card: `salmon-checked` line under the page date.
+- **Tests:** `pipeline/tests/test_dfo_live.py` (compose == chain calendar; today's pages join all 247; the unseen-location
+  test feed: drift + new_water held, told once, everything else publishes, not told again; fetch failure / parse hold;
+  `queue` → seeded → next run joins; the app golden is current); core `salmonFeed.test.ts`; data `feed/salmon.test.ts`;
+  ui-native `SalmonCard.test.tsx` (checked line).
+- Not built: a `changes.json` diff log (the card has no "recent changes" fold in option A); a feed staleness line in
+  `staleness.ts` (the card shows the capture time instead).

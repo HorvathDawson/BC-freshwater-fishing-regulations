@@ -26,6 +26,7 @@ import type { SourceOptions } from "./source";
 import { heldFrom, heldManifest, heldPath, install, pointerFor, POINTER as POINTER_PATH, prune, readHeld, sameSet,
          writeHeld, type Progress, type ReleaseFs } from "./install";
 import { rawFetch } from "./assets";
+import { withLiveSalmon, type SalmonFeedSource } from "../feed/salmon";
 import { releaseLoader, ReleaseError, type DbName, type Opener, type ReleaseLoader,
          type ReleaseSource } from "./loader";
 import { makeReleaseSource } from "./source";
@@ -58,6 +59,8 @@ export interface BootOptions {
   wasmBase: string;
   platform: ReleasePlatform;
   feed?: SourceOptions["feed"];
+  /** (T211) the live DFO salmon feed (last capture kept): laid over the release's salmon file (`withLiveSalmon`) */
+  salmonFeed?: SalmonFeedSource;
   fetch?: typeof fetch;
   onStage?: (s: BootStage) => void;
   onProgress?: (p: Progress) => void;
@@ -139,8 +142,9 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
     // THE WEB: online by definition; the manifest is required, and only paint is fetched before the map
     const m = await loadManifest(o.manifestUrl, undefined, f);
     const cache = await o.platform.releaseCache();
-    const loader = releaseLoader(m, o.platform.releaseSource(m, { base: o.releaseBase, cache, held: null, fetch: f }),
-                                 o.platform.releaseOpener({ wasmBase: o.wasmBase, installed: () => null }));
+    const loader = withLiveSalmon(
+      releaseLoader(m, o.platform.releaseSource(m, { base: o.releaseBase, cache, held: null, fetch: f }),
+                    o.platform.releaseOpener({ wasmBase: o.wasmBase, installed: () => null })), o.salmonFeed);
     o.onStage?.("paint");
     const paint = await loader.paint();
     const held: Held = { tiles: m.tiles.current?.id ?? null, basemap: m.basemap?.id ?? null,
@@ -233,8 +237,9 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
     : Promise.resolve(null);
   update.catch(() => {});        // a failed update leaves the held set in force (install never swapped)
 
-  return { manifest: set.m, held: now, loader: set.loader, paint: set.paint,
-           source: makeReleaseSource(set.loader, { feed: o.feed }),
+  const loader = withLiveSalmon(set.loader, o.salmonFeed);
+  return { manifest: set.m, held: now, loader, paint: set.paint,
+           source: makeReleaseSource(loader, { feed: o.feed }),
            locate: (path) => dev.fileUri(`release/${path}`), update, rolledBack };
 }
 

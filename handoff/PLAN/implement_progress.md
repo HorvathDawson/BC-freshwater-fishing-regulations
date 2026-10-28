@@ -3,7 +3,16 @@
 Restart here. Update this file after EVERY step: what is done, what is running, and the exact next action.
 Logs from timing runs live in the session scratchpad, which a reboot wipes. The numbers that matter are copied here.
 
-## CURRENT STATE (2026-10-27, night — T202 basemap built)
+## CURRENT STATE (2026-10-27, night — T211 parts 2 + 4: live DFO feed)
+
+T211 DONE (parts 1, 2, 4; part 3 moved to the DFO-locations lane). Live feed job `python -m pipeline.regs.dfo_salmon.live`
+(`--offline` dry run: 247 locations, 0 unplaced, 45 KB) → `data/generated/regs/dfo_salmon/feed/` (dev: serve-tiles
+`/feeds/dfo/`; prod R2 `feeds/dfo/` — owner cron + sync, OWNER-TODO). App: core `salmonFeed.ts`, data `feed/salmon.ts`
+(`withLiveSalmon` over `loader.salmon()`; offline = last capture on the device). New-location alert: `unplaced.json` +
+one FEED_NOTIFY_URL message per place; `live queue` seeds into the entry files → DFO mode. Deliver change (dormant
+locations kept in chains, unmapped `d: 1`) lands at the next deliver run — no release cut here.
+
+## (earlier) CURRENT STATE (2026-10-27, night — T202 basemap built)
 
 BASEMAP: `data/generated/tiles/basemap.pmtiles` is now the T202 build, **322.5 MB** (was 918.4), z0–13, released
 `basemap-859406091819` (`data/release/basemap/…` + `tiles/basemap.meta.json`). The next `deliver release` names it. The
