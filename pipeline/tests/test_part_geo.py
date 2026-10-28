@@ -205,7 +205,8 @@ def test_the_chilliwack_and_the_cowichan_rank_and_meet_as_the_prototype_draws_th
         at = {i for i, p in enumerate(wm[group]["parts"]) if p["item"] == item}
         want = sorted((wm[group]["parts"][m["down"]]["v"], (wm[group]["parts"][m["up"]]["v"],), m["label"])
                       for m in wm[group]["marks"] if m["down"] in at and m["up"] in at)
-        assert sorted(_marks(db, item)) == want, group
+        # (T228) a mark between two pieces of ONE part is a salmon chain cut, which the prototype does not draw
+        assert sorted(m for m in _marks(db, item) if m[0] not in m[1]) == want, group
 
 
 @pytest.mark.needs_bundle
@@ -229,13 +230,18 @@ def test_kanaka_has_a_mark_at_the_bridge_and_at_the_falls_and_two_stretches(requ
 
 
 @pytest.mark.needs_bundle
-def test_the_chilliwack_chain_has_no_stretches_and_one_mark_per_pair(request):
-    """T204: a chain of parts (each pair meets once) is unchanged: no part_stretch rows, no stretch columns."""
+def test_the_chilliwack_chain_is_cut_once_where_dfo_s_salmon_area_changes(request):
+    """T204 + T228: a chain of parts (each pair meets once) whose only stretches are the salmon chain cut — the piece of
+    part 1 below DFO's "orange triangular boundary signs (200 m upstream of Vedder Crossing bridge)" and the rest of it,
+    joined by that one mark (the app joins them again while their salmon reads alike, `mergeNav`)."""
     db = _bundle(request)
     (o,) = db.execute("SELECT ord FROM item WHERE item_id = 'gnis:8634'").fetchone()
-    assert db.execute("SELECT COUNT(*) FROM part_stretch WHERE ord = ?", (o,)).fetchone() == (0,)
-    assert db.execute("SELECT COUNT(*) FROM part_mark WHERE ord = ? AND (down_stretch IS NOT NULL "
-                      "OR up_stretches IS NOT NULL)", (o,)).fetchone() == (0,)
+    two = db.execute("SELECT part_ix, COUNT(*) FROM part_stretch WHERE ord = ? GROUP BY part_ix HAVING COUNT(*) > 1",
+                     (o,)).fetchall()
+    assert two == [(1, 2)]
+    same = db.execute("SELECT label, down_stretch, up_stretches FROM part_mark WHERE ord = ? AND down_part = 1 "
+                      "AND up_parts = '[1]'", (o,)).fetchall()
+    assert same == [("orange triangular boundary signs (200 m upstream of Vedder Crossing bridge)", 0, "[1]")]
 
 
 @pytest.mark.needs_bundle
@@ -295,3 +301,27 @@ def test_keep_named_reads_the_1_based_handle_and_the_lake_polygons(tmp_path):
     db.executemany("INSERT INTO item_section VALUES (1, ?)", [(1,), (2,), (3,)])
     got = T.keep_named(db, build, geoms)
     assert (got[1].length, got[2].length, got[3].geom_type) == (1.0, 9.0, "Polygon")
+
+
+def test_t228_a_stretch_is_cut_where_the_salmon_chain_changes():
+    """T228: one stretch of sections 1-2-3-4 (mouth up), chains 5, 5, 7, 5: three pieces mouth first, each one chain;
+    a stretch of one chain is returned as it was."""
+    from pipeline.deliver.bundle.topology import by_chain
+    span = {s: (s * 100.0, s * 100.0 + 100, None, None, 0, 0) for s in (1, 2, 3, 4)}
+    touch = {1: {2}, 2: {1, 3}, 3: {2, 4}, 4: {3}}
+    st = [{"lo": 100.0, "hi": 500.0, "sids": [1, 2, 3, 4]}]
+    got = by_chain(st, {1: 5, 2: 5, 3: 7, 4: 5}, touch, span)
+    assert [(p["sids"], p["chain"], p["hi"]) for p in got] == [([1, 2], 5, 300.0), ([3], 7, 400.0), ([4], 5, 500.0)]
+    assert by_chain(st, {1: 5, 2: 5, 3: 5, 4: 5}, touch, span) == st
+    assert by_chain(st, {}, touch, span) == st
+
+
+def test_t228_an_unjoined_side_channel_stays_with_its_chains_stem_piece():
+    """T228 (Cowichan 722): an off-stem section with no `section_touch` row joins the stretch's main-stem piece of its own
+    chain, not a piece of its own; when that leaves one piece the stretch is returned whole."""
+    from pipeline.deliver.bundle.topology import by_chain
+    span = {1: (100.0, 200.0, None, None, 0, 0), 2: (200.0, 300.0, None, None, 0, 0), 9: (None, None, None, None, 1, 0)}
+    st = [{"lo": 100.0, "hi": 300.0, "sids": [1, 2, 9]}]
+    got = by_chain(st, {1: 3, 2: 15, 9: 3}, {1: {2}, 2: {1}}, span)
+    assert [(p["sids"], p["chain"]) for p in got] == [([1, 9], 3), ([2], 15)]
+    assert by_chain(st, {1: 3, 2: 3, 9: 15}, {1: {2}, 2: {1}}, span)[1]["sids"] == [9]

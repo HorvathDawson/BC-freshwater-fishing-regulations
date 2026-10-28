@@ -582,6 +582,13 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
     # P09: the named sections' shapes, kept until the parts exist (part_geo / part_mark / water_exit)
     named_geo = _topology.keep_named(db, build_dir, geoms)
     del graph, geoms, registry_items
+    # ACCESS (T54): the no-access, permit, reserve and private land each section runs through, and how much of it —
+    # measured against the TILES' OWN polygons and section geometry (`tiles`, default GENERATED.tiles), refused when the
+    # tiles were cut from another atlas. Not regulation: no status reads it; the app colours and words it. Written
+    # BEFORE the derived tables (T226): a section mostly inside no-access land is a part of its own.
+    from pipeline.common.section_handles import digest_for as _handles_of
+    from pipeline.deliver.bundle import access as _access
+    _access.write(db, Path(tiles) if tiles else GENERATED.tiles, handles=_handles_of(build_dir), cov=cov)
     # The regulations. The reach builder resolved which water every rule covers; this only
     # interns and writes. See pipeline/deliver/bundle/rules/ for why it must not re-derive.
     if reaches is not None:
@@ -637,6 +644,45 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
         from pipeline.deliver.bundle import derived as _derived
         _derived.write(db, cov, places=places)
         _continuation.write(db, _continues, cov, built_with=_settled)
+        # (T228: before the part topology, which cuts a part's stretches where the salmon chain changes)
+        # THE DFO SALMON (T211): the federal salmon rules per chain of locations and day, and each placed section's chain —
+        # read once here from the reach run's placements, the curated locations and the typed feed (`pipeline.deliver.salmon`)
+        if _reaches is not None:
+            from pipeline.deliver import salmon as _salmon
+            _files, _feeds, _placed = _salmon.load_inputs(
+                _reaches, _load_registry(str(Path(build_dir) / "registry.json")))
+            # each water's sections (an absorbed id read as the water it names now): a DFO place not drawn yet marks its
+            # whole water "check DFO" (partial coverage, owner 2026-10-28)
+            _item_secs: dict = {}
+            for _it, _s in db.execute("SELECT i.item_id, s.sid FROM item_section s JOIN item i ON i.ord = s.ord"):
+                _item_secs.setdefault(_it, []).append(_s)
+            for _al, _it in db.execute("SELECT alias, item_id FROM item_alias").fetchall():
+                if _it in _item_secs:
+                    _item_secs.setdefault(_al, _item_secs[_it])
+            # THE REGION HEADER's waters: a watershed is its river and every item upstream of it (`item_down`, the registry's
+            # flow between waters), read here once (owner 2026-10-28: "Squamish watershed = Squamish + tributaries")
+            _ord_of = dict(db.execute("SELECT item_id, ord FROM item"))
+            _id_of = {o: i for i, o in _ord_of.items()}
+            _up: dict = {}
+            for _a, _d in db.execute("SELECT ord, down_ord FROM item_down"):
+                _up.setdefault(_d, []).append(_a)
+
+            def _upstream(items):
+                seen = {_ord_of[i] for i in items if i in _ord_of}
+                todo = list(seen)
+                while todo:
+                    for u in _up.get(todo.pop(), ()):
+                        if u not in seen:
+                            seen.add(u)
+                            todo.append(u)
+                return sorted(_id_of[o] for o in seen)
+
+            _payload, _salmon_secs = _salmon.build(_files, _feeds, _placed, _read_handles(build_dir)[1], _item_secs,
+                                                   headers=_salmon.load_headers(_feeds),
+                                                   scope_headers=_salmon.load_current_headers(_feeds), upstream=_upstream)
+            _salmon.write_bundle(db, _payload, _salmon_secs)
+            cov.filled("salmon_section", len(_salmon_secs))
+            del _files, _feeds, _placed, _payload, _salmon_secs
         _topology.write(db, named_geo, cov, mouths=_mouths)
         del named_geo
         # THE NEARER ✱ ROW (ROUND14 1, RULINGS T14): from item_down, entry.matched and the rule sets
@@ -650,12 +696,6 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
     cov.skip("stock_code", "needs the FIDQ fetch: the species/stage dictionaries come with it")
     cov.skip("release", "RETIRED — keyed on a name; stock_water + the stocking feed replace it")
 
-    # ACCESS (T54): the no-access, permit, reserve and private land each section runs through, and how much of it —
-    # measured against the TILES' OWN polygons and section geometry (`tiles`, default GENERATED.tiles), refused when the
-    # tiles were cut from another atlas. Not regulation: no status reads it; the app colours and words it.
-    from pipeline.common.section_handles import digest_for as _handles_of
-    from pipeline.deliver.bundle import access as _access
-    _access.write(db, Path(tiles) if tiles else GENERATED.tiles, handles=_handles_of(build_dir), cov=cov)
     # WHAT THE TILES LEFT OUT (T64: unnamed wetlands in no item) must be answered by land or area alone
     if _reaches is not None:
         from pipeline.deliver.bundle import undrawn as _undrawn
@@ -663,44 +703,6 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
     # THE BOOK'S WORDS THE GLOSSARY QUOTES (plan 2.14): copied in, so the answers read them from here
     from pipeline.deliver.bundle import glossary_source as _glossary_source
     _glossary_source.write(db, cov)
-    # THE DFO SALMON (T211): the federal salmon rules per chain of locations and day, and each placed section's chain —
-    # read once here from the reach run's placements, the curated locations and the typed feed (`pipeline.deliver.salmon`)
-    if _reaches is not None:
-        from pipeline.deliver import salmon as _salmon
-        _files, _feeds, _placed = _salmon.load_inputs(
-            _reaches, _load_registry(str(Path(build_dir) / "registry.json")))
-        # each water's sections (an absorbed id read as the water it names now): a DFO place not drawn yet marks its
-        # whole water "check DFO" (partial coverage, owner 2026-10-28)
-        _item_secs: dict = {}
-        for _it, _s in db.execute("SELECT i.item_id, s.sid FROM item_section s JOIN item i ON i.ord = s.ord"):
-            _item_secs.setdefault(_it, []).append(_s)
-        for _al, _it in db.execute("SELECT alias, item_id FROM item_alias").fetchall():
-            if _it in _item_secs:
-                _item_secs.setdefault(_al, _item_secs[_it])
-        # THE REGION HEADER's waters: a watershed is its river and every item upstream of it (`item_down`, the registry's
-        # flow between waters), read here once (owner 2026-10-28: "Squamish watershed = Squamish + tributaries")
-        _ord_of = dict(db.execute("SELECT item_id, ord FROM item"))
-        _id_of = {o: i for i, o in _ord_of.items()}
-        _up: dict = {}
-        for _a, _d in db.execute("SELECT ord, down_ord FROM item_down"):
-            _up.setdefault(_d, []).append(_a)
-
-        def _upstream(items):
-            seen = {_ord_of[i] for i in items if i in _ord_of}
-            todo = list(seen)
-            while todo:
-                for u in _up.get(todo.pop(), ()):
-                    if u not in seen:
-                        seen.add(u)
-                        todo.append(u)
-            return sorted(_id_of[o] for o in seen)
-
-        _payload, _salmon_secs = _salmon.build(_files, _feeds, _placed, _read_handles(build_dir)[1], _item_secs,
-                                               headers=_salmon.load_headers(_feeds),
-                                               scope_headers=_salmon.load_current_headers(_feeds), upstream=_upstream)
-        _salmon.write_bundle(db, _payload, _salmon_secs)
-        cov.filled("salmon_section", len(_salmon_secs))
-        del _files, _feeds, _placed, _payload, _salmon_secs
 
     db.executescript(INDEXES.read_text())
     # THE BUNDLE CARRIES THE POLICY IT WAS BUILT UNDER.

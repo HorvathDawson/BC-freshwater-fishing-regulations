@@ -134,6 +134,14 @@ def test_write_fills_the_two_tables(tmp_path):
         (1, 0, 1000), (2, 0, 500), (3, 0, 250), (4, 3, 1000), (4, 4, 1000), (7, 0, 500)]
 
 
+def test_mostly_inside_is_the_apps():
+    """T226: the part grouping's "mostly inside" (`MOSTLY_INSIDE_PERMILLE`) is the app's fourth-colour threshold."""
+    import re
+    ts = (Path(__file__).resolve().parents[2] / "app/packages/core/src/access.ts").read_text()
+    m = re.search(r"export const MOSTLY_INSIDE = ([0-9.]+);", ts)
+    assert m and round(float(m.group(1)) * 1000) == A.MOSTLY_INSIDE_PERMILLE
+
+
 def test_the_schema_in_the_bundle_is_the_modules():
     """The bundle's schema.sql carries the two tables exactly as this module declares them (one declaration)."""
     schema = (Path(A.__file__).parent / "schema.sql").read_text()

@@ -372,6 +372,10 @@ CREATE TABLE section_ruleset (sid INTEGER PRIMARY KEY,
 --   steelhead         section_steelhead's code: 1 known, 2 possible; NULL neither
 --   home_regions      '' or the sorted, comma-joined regions its straddling sections take
 --   rep_sid           the lowest section: a HANDLE, never leaves the bundle
+--   no_access         1: every section is MOSTLY inside no-access land (`access.mostly_inside`, the app's fourth
+--                     colour), 0: none is. A HARD BREAK (T226, owner 2026-10-28: "no access should not allow
+--                     adjacent sections to merge"): the Coquitlam above the watershed boundary is its own part.
+--                     Last in the order key (outside first): only a split water's part indexes move.
 CREATE TABLE part (ord             INTEGER NOT NULL REFERENCES item(ord),
                    part_ix         INTEGER NOT NULL CHECK (part_ix >= 0),
                    set_id          INTEGER,
@@ -386,9 +390,10 @@ CREATE TABLE part (ord             INTEGER NOT NULL REFERENCES item(ord),
                    tidal           INTEGER NOT NULL CHECK (tidal IN (0, 1)),
                    sections        INTEGER NOT NULL CHECK (sections > 0),
                    rep_sid         INTEGER NOT NULL,
+                   no_access       INTEGER NOT NULL DEFAULT 0 CHECK (no_access IN (0, 1)),
                    PRIMARY KEY (ord, part_ix),
                    UNIQUE (ord, set_id, licensing_set, province_except, steelhead_water,
-                           steelhead),
+                           steelhead, no_access),
                    CHECK ((set_id IS NULL) = (key_ix IS NULL)),
                    CHECK (steelhead_water <= steelhead_rules)) WITHOUT ROWID;
 CREATE TABLE part_section (ord     INTEGER NOT NULL,

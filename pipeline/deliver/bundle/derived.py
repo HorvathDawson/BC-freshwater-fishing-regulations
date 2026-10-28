@@ -130,12 +130,12 @@ def write(db: sqlite3.Connection, cov, places: Optional[Dict[int, Place]] = None
     rows = part_rows(db)
     db.executemany(
         "INSERT INTO part (ord, part_ix, set_id, key_ix, licensing_set, province_except, "
-        "steelhead_water, steelhead, steelhead_rules, home_regions, tidal, sections, rep_sid) "
-        "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", [r[:13] for r in rows])
+        "steelhead_water, steelhead, steelhead_rules, home_regions, tidal, sections, rep_sid, "
+        "no_access) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", [r[:14] for r in rows])
     db.executemany("INSERT INTO part_section (ord, sid, part_ix) VALUES (?,?,?)",
-                   [(r[0], s, r[1]) for r in rows for s in r[13]])
+                   [(r[0], s, r[1]) for r in rows for s in r[14]])
     cov.filled("part", len(rows))
-    cov.filled("part_section", sum(len(r[13]) for r in rows))
+    cov.filled("part_section", sum(len(r[14]) for r in rows))
 
     # ---- region_place / mu_set / unnamed_part / section_ruleset (S1, S1b) -----------------
     if places is not None:
@@ -172,10 +172,13 @@ def write(db: sqlite3.Connection, cov, places: Optional[Dict[int, Place]] = None
 def part_rows(db: sqlite3.Connection) -> List[tuple]:
     """Every part of every named water, in the export's order: `(ord, part_ix, set_id, key_ix,
     licensing_set, province_except, steelhead_water, steelhead, steelhead_rules, home_regions,
-    tidal, sections, rep_sid, [sid])`. Grouped by (item, rule set, licensing set, province
-    exceptions, steelhead water, steelhead presence) and ordered as the export always listed them
-    (rule set first, null last; licensing set; no province exception first; not steelhead water
-    first; presence known, possible, none). The facts every section of a part must share
+    tidal, sections, rep_sid, no_access, [sid])`. Grouped by (item, rule set, licensing set, province
+    exceptions, steelhead water, steelhead presence, mostly inside no-access land) and ordered as the
+    export always listed them (rule set first, null last; licensing set; no province exception first;
+    not steelhead water first; presence known, possible, none; outside no-access land first).
+    NO ACCESS IS A HARD BREAK (T226, owner 2026-10-28): a section mostly inside no-access land
+    (`access.mostly_inside`, the app's fourth colour; `section_access` must be written first) never
+    shares a part with one outside, though their rules agree. The facts every section of a part must share
     (steelhead rules apply, tidal water, the rule key) are read per section and refused when they
     differ."""
     item_id = dict(db.execute("SELECT ord, item_id FROM item"))
@@ -191,21 +194,23 @@ def part_rows(db: sqlite3.Connection) -> List[tuple]:
     home = dict(db.execute("SELECT sid, region FROM section_home"))
     tidal = {s for (s,) in db.execute("SELECT sid FROM tidal")}
     outside = {s for (s,) in db.execute("SELECT sid FROM outside_bc")}
+    from pipeline.deliver.bundle.access import mostly_inside
+    closed_land = mostly_inside(db)
 
     groups: Dict[tuple, List[int]] = defaultdict(list)
     for o, sid in db.execute("SELECT ord, sid FROM item_section ORDER BY ord, sid"):
         groups[(o, rset.get(sid), lset.get(sid), ",".join(pe.get(sid, ())), sid in sw,
-                st.get(sid))].append(sid)
+                st.get(sid), sid in closed_land)].append(sid)
 
     def order(g):
-        o, rs, ls, p, w, s = g
+        o, rs, ls, p, w, s, na = g
         return (item_id[o], rs is None, rs or 0, ls is None, ls or 0, p != "", p, w,
-                s is None, s or 0)
+                s is None, s or 0, na)
 
     out: List[tuple] = []
     n_of: Dict[int, int] = defaultdict(int)
     for g in sorted(groups, key=order):
-        o, rs, ls, p, w, s = g
+        o, rs, ls, p, w, s, na = g
         sids = groups[g]
         name = f"{item_id[o]} part {n_of[o]}"
         rules_apply = {x in sr for x in sids}
@@ -223,7 +228,7 @@ def part_rows(db: sqlite3.Connection) -> List[tuple]:
         homes = sorted({home[x] for x in sids if x in home})
         out.append((o, n_of[o], rs, next(iter(keys)), ls, p, int(w), s,
                     int(next(iter(rules_apply))), ",".join(T.Region(h).value for h in homes),
-                    int(next(iter(tides))), len(sids), min(sids), sids))
+                    int(next(iter(tides))), len(sids), min(sids), int(na), sids))
         n_of[o] += 1
     return out
 

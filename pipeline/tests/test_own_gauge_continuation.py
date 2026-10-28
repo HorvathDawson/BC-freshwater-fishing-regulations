@@ -205,8 +205,10 @@ VEDDER_LEADS = {
     # Pinned by ROUTE MEASURE on the Vedder's own line (blue line 356363467): the on-stem lines starting at 4,739 m
     # and 12,724 m, resolved to handles in the bundle (a handle is not durable across a rebuild: AGENTS rule 5, T63).
     # The real graph, before -> after (decisions.md "CLAUDE 2026-10-22 (T76 …)"): before, 08MH047 alone on both.
-    4739: {"08MH047": 1, "08MH001": 2, "08MH055": 3},
-    12724: {"08MH001": 1, "08MH047": 2, "08MH055": 3},
+    # T228 (owner 2026-10-28, "matched but not used"): 08MH047 and 08MH055 are discontinued and silent (`liveness.dormant`)
+    # and leave every panel — the Chilliwack's 08MH001 leads alone.
+    4739: {"08MH001": 1},
+    12724: {"08MH001": 1},
 }
 
 

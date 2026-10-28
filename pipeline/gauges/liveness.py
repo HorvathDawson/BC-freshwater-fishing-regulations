@@ -18,6 +18,7 @@ They are independent facts. On the roster of 2026-10-23 every transmitting stati
 active stations are silent (seasonal, or dropped from the list); ECCC's list that day held 4 stations the roster has
 never seen (07FA008, 08DA013, 08DB015, 08FB012) — the feed asks them, the bundle cannot place them.
 
+DORMANT = neither (`dormant`): matched, kept, attached to nothing (the bundle's gauge tables, T226).
 WHO ASKS WHICH. May speak: the bundle's shed filter. Speaks now: the shed's tie-break between two stations of equal
 ratio (the roster snapshot), the atlas's gauge cuts (`consume.cuts.split_defs`, the roster snapshot — see T122's owner
 question), the feed's list of stations to ask (`stations_to_ask`, today's list), and the transmitting counts the
@@ -41,6 +42,15 @@ STATION_LIST = "https://dd.weather.gc.ca/today/hydrometric/doc/hydrometric_Stati
 def may_speak(station: Mapping) -> bool:
     """May this roster row speak for a water at all: ECCC's own status is Active (`active`)."""
     return bool(station.get("active"))
+
+
+def dormant(station: Mapping) -> bool:
+    """MATCHED BUT NOT USED (T226 item 2, owner 2026-10-28 on Whonnock Lake's 08MH100, discontinued 1964): ECCC calls it
+    discontinued (not `active`) AND it was not on the real-time list when the roster was fetched (`realtime`). Such a
+    station stays MATCHED in `data/curated/gauges/matches.json` (where it stands is still a fact), but the bundle
+    attaches it to no water: no `gauge.item_id` / `.sid`, no `lake_gauge`, `section_gauge`, donor-panel or basin row —
+    nothing in Conditions. It can never report, so a water it named would only ever say "not reporting"."""
+    return not may_speak(station) and not speaks_now(station)
 
 
 def speaks_now(station: Mapping, feed: Optional[set[str]] = None) -> bool:

@@ -18,7 +18,7 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 import { WATER_MAP_WORDS } from "@app/core";
 import type { ItemId, SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
-import { useBackLayer, useRegsStore, useWaterMap, type WaterMapPartVM, type WaterMapVM, type WaterMapAction } from "@app/ui";
+import { useBackLayer, useRegsStore, useSalmonKey, useWaterMap, type WaterMapPartVM, type WaterMapVM, type WaterMapAction } from "@app/ui";
 import { MapScreen } from "../MapScreen";
 import { WaterInset } from "../WaterFrame";
 import { Icon } from "../icons";
@@ -55,7 +55,9 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
   whole?: boolean;
 }) {
   const store = useRegsStore(loader);
-  const wm = useWaterMap(store.value ?? null, item, part, tapSid, onPart, whole);
+  // (T228) pieces of a part join only where salmon (the live DFO feed over the release) reads them alike
+  const salmonKey = useSalmonKey(loader, store.value ?? null, item);
+  const wm = useWaterMap(store.value ?? null, item, part, tapSid, onPart, whole, salmonKey);
   const vm = wm.value?.vm ?? null;
   const act = wm.value?.act ?? (() => {});
   const status = store.error || wm.error ? WATER_MAP_WORDS.unavailable

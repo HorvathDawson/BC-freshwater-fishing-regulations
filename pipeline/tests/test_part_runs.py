@@ -241,37 +241,42 @@ def test_runs_cover_exactly_the_part_s_sections(doc, db):
         touch[a].add(b)
         touch[b].add(a)
     groups = defaultdict(list)
-    for item, kind, rs, ls, pe, sw, st, s in db.execute(
+    for item, kind, rs, ls, pe, sw, st, s, na in db.execute(
             "SELECT i.item_id, i.kind, r.set_id, l.set_id, (SELECT group_concat(k, ',') FROM "
             "(SELECT p.area_kind AS k FROM province_except p WHERE p.sid = s.sid ORDER BY "
             "p.area_kind)), EXISTS (SELECT 1 FROM steelhead_water w WHERE w.sid = s.sid), "
             "CASE WHEN EXISTS (SELECT 1 FROM steelhead_known k WHERE k.sid = s.sid) THEN 'known' "
             "ELSE (SELECT CASE h.code WHEN 1 THEN 'known' WHEN 2 THEN 'possible' END "
-            "FROM steelhead_set h WHERE h.set_id = r.set_id) END, s.sid "
+            "FROM steelhead_set h WHERE h.set_id = r.set_id) END, s.sid, "
+            # T228: a section mostly inside no-access land is a part of its own
+            "COALESCE((SELECT SUM(sa.permille) > 500 FROM section_access sa JOIN access_area a ON a.ix = sa.area "
+            "WHERE sa.sid = s.sid AND a.tier = 'no_access'), 0) "
             "FROM item i JOIN item_section s ON s.ord = i.ord "
             "LEFT JOIN section_ruleset r ON r.sid = s.sid "
             "LEFT JOIN section_licensing l ON l.sid = s.sid"):
         if kind == "stream":
             groups[(item, None if rs is None else str(rs), None if ls is None else str(ls),
-                    pe, bool(sw), st)].append(s)
+                    pe, bool(sw), st, na)].append(s)
     checked = 0
-    for (item, rs, ls, pe, sw, st), sids in groups.items():
+    for (item, rs, ls, pe, sw, st, na), sids in groups.items():
+        # the export's parts do not say no-access (T228): the two of one content are told apart by their size
         part = [p for p in doc["waters"][item]["parts"]
                 if (p["ruleset"], p["licensing_set"], ",".join(p.get("province_except") or [])
                     or None, bool(p.get("anadromous_rainbow")), p.get("steelhead"))
-                == (rs, ls, pe, sw, st)]
-        assert len(part) == 1, item
+                == (rs, ls, pe, sw, st) and p["sections"] == len(sids)]
+        assert len(part) >= 1, item
         assert part[0]["sections"] == len(sids)
         if export_read.is_polygon_part(doc["waters"][item], sorted(sids), span):
             # a stream's polygons its stem does not pass through: one polygon run
-            assert part[0]["runs"] == [{"from": None, "to": None, "km_from": None,
-                                        "km_to": None, "polygon": "whole"}], item
+            assert any(q["runs"] == [{"from": None, "to": None, "km_from": None,
+                                      "km_to": None, "polygon": "whole"}] for q in part), item
             checked += 1
             continue
         runs = SP.compose_runs(span, touch, sorted(sids))
         covered = [s for r in runs for s in r["sids"]]
         assert sorted(covered) == sorted(sids), item          # every section, none twice
-        assert [{k: v for k, v in r.items() if k != "sids"} for r in runs] == part[0]["runs"]
+        # (T228) of two parts of one content and size, the one whose runs these are
+        assert [{k: v for k, v in r.items() if k != "sids"} for r in runs] in [q["runs"] for q in part], item
         checked += 1
     assert checked > 10_000
 

@@ -5,7 +5,7 @@
  * the navigation is core's, over this stored graph. No geometry is read: the tiles draw the water; the release says
  * which sections are which part, and where each part's box is.
  */
-import { waterGroup, type ItemNavRows, type WaterGroup } from "@app/core";
+import { mergeNav, waterGroup, type ItemNavRows, type WaterGroup } from "@app/core";
 import type { RegsReads } from "./reads";
 import { RegsInputsError } from "./inputs";
 
@@ -22,8 +22,16 @@ async function rowsOf(store: GroupStore, ord: number): Promise<ItemNavRows> {
   };
 }
 
-/** The group of the water `item` (its durable id): itself first, then a split lake's other closure areas. */
-export async function loadWaterGroup(store: GroupStore, item: string): Promise<WaterGroup> {
+/** The group of the water `item` (its durable id): itself first, then a split lake's other closure areas. (T228) The
+ *  pieces of a part the release cut where the salmon chain changes are joined where `salmonKey` reads them alike
+ *  (`@app/core` `mergeNav`); with none, every such cut is joined — the part's stretches as before. */
+export async function loadWaterGroup(store: GroupStore, item: string,
+                                     salmonKey: ((sid: number) => string) | null = null): Promise<WaterGroup> {
+  return mergeNav(await loadRawWaterGroup(store, item), salmonKey);
+}
+
+/** (T228) The group as the release cut it: every piece of a part apart (`mergeNav` joins them). */
+export async function loadRawWaterGroup(store: GroupStore, item: string): Promise<WaterGroup> {
   const ord = await store.itemOrd(item);
   if (ord === null) throw new RegsInputsError(`water map: no water ${item} in the regs store`);
   const ords = await store.siblingOrds(ord);

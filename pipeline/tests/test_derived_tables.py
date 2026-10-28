@@ -60,10 +60,10 @@ def test_a_tiny_bundle_derives_its_keys_and_parts():
     "INSERT INTO rule_key VALUES (5, 1, 0, 0, 'lake', 0, 1)",              # no sections
     "INSERT INTO section_ruleset (sid, set_id, key_ix) VALUES (9, 1, NULL)",
     "INSERT INTO section_ruleset (sid, set_id, key_ix) VALUES (9, 1, 404)",   # dangling key
-    "INSERT INTO part VALUES (1, 0, 1, NULL, NULL, '', 0, NULL, 0, '', 0, 1, 1)",  # set w/o key
-    "INSERT INTO part VALUES (1, 0, NULL, NULL, NULL, 'parks', 0, NULL, 0, '', 0, 1, 1)",
-    "INSERT INTO part VALUES (1, 0, NULL, NULL, NULL, '', 0, 3, 0, '', 0, 1, 1)",
-    "INSERT INTO part VALUES (99, 0, NULL, NULL, NULL, '', 0, NULL, 0, '', 0, 1, 1)",  # no item
+    "INSERT INTO part VALUES (1, 0, 1, NULL, NULL, '', 0, NULL, 0, '', 0, 1, 1, 0)",  # set w/o key
+    "INSERT INTO part VALUES (1, 0, NULL, NULL, NULL, 'parks', 0, NULL, 0, '', 0, 1, 1, 0)",
+    "INSERT INTO part VALUES (1, 0, NULL, NULL, NULL, '', 0, 3, 0, '', 0, 1, 1, 0)",
+    "INSERT INTO part VALUES (99, 0, NULL, NULL, NULL, '', 0, NULL, 0, '', 0, 1, 1, 0)",  # no item
     "INSERT INTO part_section VALUES (1, 1, 7)",                              # no such part
     "INSERT INTO rule (entry_id, rule_id, type, family, dimension, label, parts, take, may_target)"
     " VALUES ('r1:a', 'a.r1', 'retention_limit', 'retention', 'daily', 'x', '{}', 3, 0)",
@@ -111,13 +111,16 @@ _OLD_PART_SQL = (
     " WHERE p.sid = s.sid ORDER BY p.area_kind)) AS pe, "
     "EXISTS (SELECT 1 FROM _sw w WHERE w.sid = s.sid) AS sw, "
     "(SELECT CASE h.code WHEN 1 THEN 'known' WHEN 2 THEN 'possible' END FROM _st h "
-    " WHERE h.sid = s.sid) AS st, COUNT(*), MIN(s.sid) "
+    " WHERE h.sid = s.sid) AS st, COUNT(*), MIN(s.sid), "
+    # T228: mostly inside no-access land is a part of its own (the last order key)
+    "COALESCE((SELECT SUM(sa.permille) > 500 FROM section_access sa JOIN access_area a ON a.ix = sa.area "
+    " WHERE sa.sid = s.sid AND a.tier = 'no_access'), 0) AS na "
     "FROM item i JOIN item_section s ON s.ord = i.ord "
     "LEFT JOIN section_ruleset r ON r.sid = s.sid "
     "LEFT JOIN section_licensing l ON l.sid = s.sid "
-    "GROUP BY i.item_id, r.set_id, l.set_id, pe, sw, st "
+    "GROUP BY i.item_id, r.set_id, l.set_id, pe, sw, st, na "
     "ORDER BY i.item_id, r.set_id IS NULL, r.set_id, l.set_id IS NULL, l.set_id, "
-    "pe IS NOT NULL, pe, sw, st IS NULL, st")
+    "pe IS NOT NULL, pe, sw, st IS NULL, st, na")
 
 
 @pytest.mark.slow
@@ -134,7 +137,7 @@ def test_the_stored_parts_are_the_old_grouping_on_the_built_bundle():
     db.execute("INSERT INTO _st SELECT sid, code FROM section_steelhead")
     db.execute("CREATE TEMP TABLE _sw (sid INTEGER PRIMARY KEY)")
     db.execute("INSERT INTO _sw SELECT DISTINCT sid FROM steelhead_water")
-    old = [(it, rs, ls, pe or "", bool(sw), st, n, rep) for it, rs, ls, pe, sw, st, n, rep
+    old = [(it, rs, ls, pe or "", bool(sw), st, n, rep) for it, rs, ls, pe, sw, st, n, rep, _na
            in db.execute(_OLD_PART_SQL)]
     names = dict(derived.read_steelhead_codes())
     new = [(it, p.set_id, p.licensing_set, ",".join(p.province_except), p.steelhead_water,
@@ -142,3 +145,21 @@ def test_the_stored_parts_are_the_old_grouping_on_the_built_bundle():
            for it, ps in sorted(derived.parts(db).items()) for p in ps]
     assert names and new == old and len(new) > 20_000
     derived.prove(db)
+
+
+def test_no_access_land_is_a_hard_break_between_parts():
+    """T226 (owner 2026-10-28, the Coquitlam): sections with the same rules, one MOSTLY inside no-access land (> 500
+    permille, summed over its no-access areas) and one outside, are two parts; a graze (<= 500) or a gentler tier
+    (permit, reserve, private) does not split. The part outside comes first (the last order key: only a split water's indexes move)."""
+    db = _db()
+    db.executemany("INSERT INTO item_section (ord, sid) VALUES (?,?)", [(1, 4), (1, 5), (1, 6)])
+    db.executemany("INSERT INTO access_area (ix, tier, area_id, name) VALUES (?,?,?,?)",
+                   [(0, "no_access", "a", "Coquitlam Watershed"), (1, "no_access", "b", "Range"),
+                    (2, "permit", "c", "Forest")])
+    db.executemany("INSERT INTO section_access (sid, area, permille) VALUES (?,?,?)",
+                   [(1, 0, 1000), (2, 0, 300), (2, 1, 300), (4, 0, 500), (5, 2, 1000), (6, 0, 100)])
+    section_sets(db, {1: 7, 2: 7, 3: 9, 4: 7, 5: 7, 6: 7})
+    finish(db)
+    rows = db.execute("SELECT ord, part_ix, set_id, no_access, sections, rep_sid FROM part ORDER BY ord, part_ix").fetchall()
+    assert rows == [(1, 0, 7, 0, 3, 4), (1, 1, 7, 1, 2, 1), (2, 0, 9, 0, 1, 3)]
+    assert sorted(db.execute("SELECT sid FROM part_section WHERE ord = 1 AND part_ix = 1")) == [(1,), (2,)]

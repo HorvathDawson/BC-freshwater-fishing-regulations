@@ -247,6 +247,20 @@ def write(db: sqlite3.Connection, tiles: Path, *, handles: str, cov=None) -> int
     return len(rows)
 
 
+#: MOSTLY INSIDE, in permille: the app's `MOSTLY_INSIDE` (0.5, @app/core `access.ts`) — a section whose no-access areas,
+#: summed, cover MORE than half of it is drawn in the fourth colour. `pipeline/tests/test_section_access.py` pins the two.
+MOSTLY_INSIDE_PERMILLE = 500
+
+
+def mostly_inside(db: sqlite3.Connection) -> set:
+    """The sections MOSTLY inside no-access land (the app's fourth colour), read from `section_access`. The part
+    grouping reads this (T226): a section inside never shares a part with one outside. Empty for a bundle with no
+    access rows (a hand-built fixture)."""
+    return {s for (s,) in db.execute(
+        "SELECT sa.sid FROM section_access sa JOIN access_area a ON a.ix = sa.area WHERE a.tier = 'no_access' "
+        "GROUP BY sa.sid HAVING SUM(sa.permille) > ?", (MOSTLY_INSIDE_PERMILLE,))}
+
+
 def summary(areas: Sequence[Area], rows: Iterable[Tuple[int, int, int]]) -> dict:
     """Counts for a measurement run: sections and rows per tier, and the no-access share distribution."""
     by_tier: Dict[str, int] = {t: 0 for t in TIERS}

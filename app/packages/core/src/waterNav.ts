@@ -224,6 +224,68 @@ export function waterGroup(all: readonly ItemNavRows[]): WaterGroup {
   return { parts, marks, exit, next: cross(low, low?.continuesAs), prev: cross(top, top?.continuesFrom) };
 }
 
+/**
+ * (T228, owner 2026-10-28) WHICH NEIGHBOURING PIECES ARE ONE ON THE MAP: "adjacent sections are merged only when BOTH
+ * the standard regulations AND the salmon regulations match" — and the no-access land never merges (T228 item 1: the
+ * bundle's parts already break there). The release cuts a part's stretches wherever the DFO salmon chain changes
+ * (pipeline `topology.by_chain`) and marks where two such stretches of ONE part meet; this joins every two stretches of
+ * one part that share such a mark AND read the same salmon today (`salmonKey`, per section — the live DFO feed laid over
+ * the release, so a feed that opens salmon on one of two pieces parts them, and one that closes it again joins them,
+ * with no new release). A piece's key is its sections' keys; with no `salmonKey` (salmon not read) every such pair
+ * joins, which is the part's stretches as before the cut. Stretches of one part that no mark joins (T204: another part
+ * lies between) stay apart. Marks inside a joined piece go; the others, `next` / `prev`, follow the new indexes.
+ */
+export function mergeNav(g: WaterGroup, salmonKey: ((sid: number) => string) | null): WaterGroup {
+  const n = g.parts.length;
+  const root = Array.from({ length: n }, (_, i) => i);
+  const find = (i: number): number => { while (root[i] !== i) i = root[i] = root[root[i]!]!; return i; };
+  const keyOf = (i: number) => salmonKey ? [...new Set(g.parts[i]!.sids.map(salmonKey))].sort().join("|") : "";
+  const keys = g.parts.map((_, i) => keyOf(i));
+  const one = (a: number, b: number) => {
+    const p = g.parts[a]!, q = g.parts[b]!;
+    return p.item === q.item && p.partIx === q.partIx && keys[a] === keys[b];
+  };
+  for (const m of g.marks) for (const u of m.up) if (u !== m.down && one(m.down, u)) {
+    const a = find(m.down), b = find(u);
+    if (a !== b) root[Math.max(a, b)] = Math.min(a, b);
+  }
+  if (root.every((r, i) => find(i) === i)) return g;
+  const newIx = new Map<number, number>();
+  const groups: number[][] = [];
+  for (let i = 0; i < n; i += 1) {
+    const r = find(i);
+    if (r === i) { newIx.set(i, groups.length); groups.push([i]); } else groups[newIx.get(r)!]!.push(i);
+  }
+  for (let i = 0; i < n; i += 1) newIx.set(i, newIx.get(find(i))!);
+  const count = new Map<string, number>(), seen = new Map<string, number>();
+  for (const gr of groups) { const p = g.parts[gr[0]!]!; const k = `${p.item}:${p.partIx}`; count.set(k, (count.get(k) ?? 0) + 1); }
+  const parts: NavPart[] = groups.map((gr) => {
+    const p = g.parts[gr[0]!]!;
+    const k = `${p.item}:${p.partIx}`, c = count.get(k)!, at = seen.get(k) ?? 0;
+    seen.set(k, at + 1);
+    let box: Bbox | null = null;
+    for (const i of gr) {
+      const b = g.parts[i]!.box;
+      if (b) box = box ? [Math.min(box[0], b[0]), Math.min(box[1], b[1]), Math.max(box[2], b[2]), Math.max(box[3], b[3])] : b;
+    }
+    const { stretch: _s, stretches: _n, ...base } = p;
+    return { ...base, box: box ?? p.box, sids: [...new Set(gr.flatMap((i) => g.parts[i]!.sids))].sort((a, b) => a - b),
+             ...(c > 1 ? { stretch: at, stretches: c } : {}) };
+  });
+  const marks: NavMark[] = [];
+  const had = new Set<string>();
+  for (const m of g.marks) {
+    const down = newIx.get(m.down)!;
+    const up = [...new Set(m.up.map((u) => newIx.get(u)!))].filter((u) => u !== down);
+    const k = `${m.lon}:${m.lat}:${down}:${up.join(",")}`;
+    if (!up.length || had.has(k)) continue;
+    had.add(k);
+    marks.push({ ...m, down, up });
+  }
+  const at = (c: NavCross | null) => (c ? { ...c, at: newIx.get(c.at)! } : null);
+  return { parts, marks, exit: g.exit, next: at(g.next), prev: at(g.prev) };
+}
+
 /** An item's lowest part (`rank` 0, else its first). */
 function lowest(i: ItemNavRows): number {
   const g = [...i.geo].sort((a, b) => a.rank - b.rank)[0];
@@ -336,7 +398,10 @@ export function markLabel(g: WaterGroup, m: NavMark): string {
     const cw = confidenceWords(m.confidence);
     return cw ? `${m.label}, ${cw}` : m.label;
   }
-  const a = g.parts[m.down]?.short ?? "", b = g.parts[m.up[0]!]?.short ?? "";
+  const d = g.parts[m.down], u = g.parts[m.up[0]!];
+  // (T228) two pieces of ONE part meet only where DFO's salmon rules change
+  if (d && u && d.item === u.item && d.partIx === u.partIx) return WATER_MAP_WORDS.salmonChange;
+  const a = d?.short ?? "", b = u?.short ?? "";
   let k = 0;
   while (k < a.length && a[k] === b[k]) k += 1;
   k = a.lastIndexOf(" ", k) + 1;
@@ -407,6 +472,8 @@ export const WATER_MAP_WORDS = {
   partsHere: "✓",
   /** (T204) One of a part's separate stretches, in its name: "stretch 1 of 2". */
   stretchOf: (k: number, n: number) => `stretch ${k} of ${n}`,
+  /** (T228) An unnamed boundary between two pieces of one part: where DFO's salmon rules change. */
+  salmonChange: "Salmon rules change here",
   loading: "Loading the parts of this water",
   /** No release to read the parts from, or it could not be read: the map is drawn, unlit. */
   unavailable: "The parts of this water are not available",

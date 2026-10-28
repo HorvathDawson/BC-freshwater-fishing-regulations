@@ -23,12 +23,13 @@
  */
 import { useMemo, useRef, useState } from "react";
 import {
-  crossLabel, crossDown, crossUp, exitLabel, groupBounds, itemNote, markA11y, markLabel, navSections, partAt, partBounds,
+  crossLabel, crossDown, crossUp, exitLabel, groupBounds, mergeNav, itemNote, markA11y, markLabel, navSections, partAt, partBounds,
   partName, partOfSection, partRowAria, partWhere, stepsDown, stepsUp, WATER_MAP_WORDS, wholeAria, wholeLabel, type Bbox,
-  type NavCross, type WaterGroup,
+  type NavCross, type SalmonFacts, type WaterGroup,
 } from "@app/core";
 import type { ItemId, SectionId } from "@app/data";
-import { loadWaterGroup, type GroupStore, type RegsStore } from "@app/data/regs";
+import { loadRawWaterGroup, type GroupStore, type RegsStore } from "@app/data/regs";
+import type { ReleaseLoader } from "@app/data/release";
 import { useAsync, type Async } from "./async";
 import { useRegsTarget } from "./regs";
 import { openWater } from "./openWater";
@@ -276,10 +277,49 @@ const ids = new WeakMap<object, number>();
 let nextId = 0;
 const idOf = (o: object): number => { let i = ids.get(o); if (i === undefined) ids.set(o, i = ++nextId); return i; };
 
-/** The group of `item`, read once per (store, item). */
-export function useWaterGroup(store: GroupStore | null, item: ItemId | null): Async<WaterGroup | null> {
+/** The group of `item`, read once per (store, item, salmon key). (T228) `salmonKey`: each section's salmon reading
+ *  (`salmonKeyOf`, the live feed over the release) — pieces of a part join only where it reads them alike. */
+export function useWaterGroup(store: GroupStore | null, item: ItemId | null,
+                              salmonKey: ((sid: number) => string) | null = null): Async<WaterGroup | null> {
   const key = `water-group:${store ? idOf(store) : ""}:${item ?? ""}`;
-  return useAsync(async () => (store && item ? loadWaterGroup(store, item) : null), key, !!store && !!item);
+  const raw = useAsync(async () => (store && item ? loadRawWaterGroup(store, item) : null), key, !!store && !!item);
+  // the salmon grouping is joined in memory: a feed change re-groups without a read (or a loading state)
+  const g = useMemo(() => (raw.value ? mergeNav(raw.value, salmonKey) : null), [raw.value, salmonKey]);
+  return raw.state === "ready" ? { state: "ready", value: g, error: null } : raw;
+}
+
+/**
+ * (T228) A section's SALMON READING for the map's merging: equal for two sections exactly when DFO's year reads the same
+ * on both (every species' verdicts, the gear lines, the map status). `facts` is the loader's (`withLiveSalmon`: the live
+ * feed laid over the release), so a feed change re-groups the pieces with no new release. Null without salmon.
+ * T227 owns the salmon words; this is only the comparison (`@app/core` `salmonTimelineKey` reads the same three).
+ */
+function salmonKeyOf(facts: SalmonFacts | null): ((sid: number) => string) | null {
+  if (!facts) return null;
+  return (sid) => {
+    const c = facts.payload.chains[facts.chainOf(sid)];
+    return c ? JSON.stringify([c.sp, c.g, c.m]) : "";
+  };
+}
+
+/**
+ * (T228) The salmon reading of water `item`'s sections, for `useWaterGroup`: the release's salmon slices of the regions
+ * its parts' answers are in (as the Salmon card reads them), through the loader (live feed included). Null until read,
+ * or where the release ships no salmon — the pieces then join as the part.
+ */
+export function useSalmonKey(loader: Pick<ReleaseLoader, "salmon" | "regionsOf"> | null,
+                             store: Pick<RegsStore, "itemOrd" | "parts"> | null,
+                             item: ItemId | null): ((sid: number) => string) | null {
+  const key = `water-salmon:${loader ? idOf(loader) : ""}:${store ? idOf(store) : ""}:${item ?? ""}`;
+  const r = useAsync(async () => {
+    if (!loader || !store || !item) return null;
+    const ord = await store.itemOrd(item);
+    const akeys = ord === null ? [] : [...new Set((await store.parts(ord)).map((p) => p.akey))]
+      .filter((a): a is number => a !== null);
+    const regions = [...new Set((await Promise.all(akeys.map((a) => loader.regionsOf(a)))).flat())];
+    return salmonKeyOf(await loader.salmon(regions.length ? regions : undefined));
+  }, key, !!loader && !!store && !!item);
+  return r.state === "ready" ? r.value : null;
 }
 
 /** Where the map starts in group `g`: the frame's part of `item`, else the regs view's target part, else the mouth. */
@@ -306,16 +346,20 @@ export function useWaterMap(store: RegsStore | null, item: ItemId | null, part: 
                             tapSid: SectionId | null,
                             onPart?: (item: ItemId, partIx: number) => void,
                             /** (T203) Start framed on the whole water (a search result's Map). */
-                            wholeFirst = false): Async<WaterMap | null> {
+                            wholeFirst = false,
+                            /** (T228) each section's salmon reading (`useSalmonKey`): pieces of a part join only where
+                             *  it reads them alike; null: joined as the part */
+                            salmonKey: ((sid: number) => string) | null = null): Async<WaterMap | null> {
   const read = useRef<{ item: ItemId; g: WaterGroup } | null>(null);
   const inRead = !!item && !!read.current && read.current.g.parts.some((p) => p.item === item);
-  const group = useWaterGroup(store, inRead ? read.current!.item : item);
+  const group = useWaterGroup(store, inRead ? read.current!.item : item, salmonKey);
   if (group.state === "ready" && group.value && item && !inRead) read.current = { item, g: group.value };
   const target = useRegsTarget(part === null ? store : null, item, tapSid);
   const startPart = part ?? (target.value?.kind === "part" ? target.value.partIx : null);
   const waiting = part === null && target.state === "loading" && store !== null;
   const g = group.value;
-  const key = `${group.state}:${item ?? ""}:${startPart ?? ""}:${wholeFirst ? "w" : ""}`;
+  // (T228) a new salmon grouping re-indexes the pieces: the walk starts again on the frame's part
+  const key = `${group.state}:${item ?? ""}:${startPart ?? ""}:${wholeFirst ? "w" : ""}:${salmonKey ? idOf(salmonKey) : ""}`;
   const [held, setHeld] = useState<{ key: string; s: WaterMapState } | null>(null);
   // the state as the last step left it, ahead of the render, so two taps before a render are two steps
   const latest = useRef<{ key: string; s: WaterMapState } | null>(null);

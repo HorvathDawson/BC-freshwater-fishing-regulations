@@ -42,6 +42,13 @@ def test_speaks_now_is_todays_list_else_the_snapshot():
     assert [LV.speaks_now(r, set()) for r in ROWS] == [False] * 4                       # an empty list is a list
 
 
+def test_dormant_is_discontinued_and_silent():
+    """T226 item 2 (owner 2026-10-28, Whonnock Lake 08MH100): matched but attached to no water — neither active nor on
+    the roster's real-time snapshot. A seasonal (active, silent) gauge and a listed discontinued one are not dormant."""
+    assert [LV.dormant(r) for r in ROWS] == [False, False, True, False]
+    assert LV.dormant({"station": "Q"}) is True
+
+
 def test_the_list_is_none_not_empty_when_it_says_nothing():
     assert LV.listed_stations(LIST) == {"A", "S", "N"}                                 # BC only, no blank id
     assert [LV.listed_stations(t) for t in (None, "", "<html>maintenance</html>",

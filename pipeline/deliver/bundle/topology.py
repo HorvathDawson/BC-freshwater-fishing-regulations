@@ -122,6 +122,62 @@ def stretches(runs: Sequence[dict], span: Dict[int, tuple], other: Sequence[Tupl
     return out
 
 
+def by_chain(st: Sequence[dict], chain: Dict[int, int], touch: Dict[int, set], span: Dict[int, tuple]) -> List[dict]:
+    """T228 (owner 2026-10-28: sections merge only when BOTH the provincial and the salmon regulations match): each
+    stretch of `st` cut where the DFO salmon chain changes (`salmon_section.chain`, 0 for a section in none) — the
+    connected runs (`section_touch`) of one chain, each a stretch of its own, mouth first, its `hi` the highest main-stem
+    measure it holds (None: no main stem). Where a chain's verdicts equal its neighbour's TODAY the app merges the two
+    again (`@app/core` `mergeNav`): the cut is where the salmon rules MAY differ, the merge is whether they do now. A
+    stretch of one chain is returned as it was."""
+    out: List[dict] = []
+    for s in st:
+        if len({chain.get(x, 0) for x in s["sids"]}) <= 1:
+            out.append(s)
+            continue
+        left, pieces = set(s["sids"]), []
+        for x in s["sids"]:
+            if x not in left:
+                continue
+            c, comp, todo = chain.get(x, 0), [], [x]
+            left.discard(x)
+            while todo:
+                y = todo.pop()
+                comp.append(y)
+                for z in touch.get(y, ()):
+                    if z in left and chain.get(z, 0) == c:
+                        left.discard(z)
+                        todo.append(z)
+            stem = [span[y] for y in comp if y in span and not span[y][4] and span[y][0] is not None]
+            pieces.append({"lo": min(r[0] for r in stem) if stem else None,
+                           "hi": max(r[1] for r in stem) if stem else None, "sids": sorted(comp), "chain": c})
+        pieces.sort(key=lambda q: (q["hi"] is None, q["lo"] if q["lo"] is not None else 0, q["sids"][0]))
+        # a piece with no main stem (a side channel the graph does not join: no `section_touch`) goes with the stretch's
+        # first main-stem piece of its chain — as `stretches` placed it by measure; with none of its chain it stays
+        stem_of = {}
+        for q in pieces:
+            if q["hi"] is not None:
+                stem_of.setdefault(q["chain"], q)
+        kept = []
+        for q in pieces:
+            home = stem_of.get(q["chain"]) if q["hi"] is None else None
+            if home is not None:
+                home["sids"] = sorted(home["sids"] + q["sids"])
+            else:
+                kept.append(q)
+        out += kept if len(kept) > 1 else [{**s, "sids": sorted(s["sids"])}]
+    return out
+
+
+def chain_label(dn: dict, up: dict, span: Dict[int, tuple], splits: Dict[str, dict]) -> Optional[dict]:
+    """T228: the split where two stretches of ONE part meet at a salmon chain boundary — the cut token at the upper
+    stretch's lowest main-stem end, when it is a named split; else None (the app words an unnamed one)."""
+    stem = sorted((span[s][0], s) for s in up["sids"] if s in span and not span[s][4] and span[s][0] is not None)
+    if not stem:
+        return None
+    hit = splits.get(span[stem[0][1]][2] or "")
+    return hit if hit and hit.get("name") else None
+
+
 def split_at(down: dict, up: dict, splits: Dict[str, dict]) -> Optional[dict]:
     """The split where `up` (upstream) meets `down`: the downstream part's run start, else the upstream part's run end,
     when it has a name. A branch (`km` None: a side channel, a lake part) is named only by its own runs' ends: the main
@@ -312,6 +368,9 @@ def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
         touch[b].add(a)
     splits = {sid: {"name": n, "confidence": c}
               for sid, n, c in db.execute("SELECT split_id, name, confidence FROM split")}
+    # T228: each section's DFO salmon chain (written before this by `salmon.write_bundle`; a bundle without it: none)
+    chain: Dict[int, int] = dict(db.execute("SELECT sid, chain FROM salmon_section")) if db.execute(
+        "SELECT 1 FROM sqlite_master WHERE name = 'salmon_section'").fetchone() else {}
 
     def is_polygon_part(o: int, ss: List[int]) -> bool:
         if kind.get(o) != "stream":
@@ -373,10 +432,11 @@ def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
         for p in ranked:
             other = [(a, b) for v, a, b in stem_of[o] if v != p["v"]]
             st = [{"lo": None, "hi": None, "sids": p["sids"]}] if p["poly"] or not p["runs"] \
-                else stretches(p["runs"], span, other)
+                else by_chain(stretches(p["runs"], span, other), chain, touch, span)
             for k, s in enumerate(st):
                 km = p["km"] if len(st) == 1 else (None if s["hi"] is None else round(s["hi"] / 1000, 2))
-                nodes.append({"part": p, "v": p["v"], "k": k, "n": len(st), "sids": s["sids"], "km": km})
+                nodes.append({"part": p, "v": p["v"], "k": k, "n": len(st), "sids": s["sids"], "km": km,
+                              "chain": s.get("chain", chain.get(s["sids"][0], 0) if s["sids"] else 0)})
         nodes = (sorted((x for x in nodes if x["km"] is not None), key=lambda x: (x["km"], x["v"], x["k"]))
                  + [x for x in nodes if x["km"] is None])
         multi = any(x["n"] > 1 for x in nodes)
@@ -401,14 +461,17 @@ def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
         for i in range(len(nodes)):
             for j in range(i + 1, len(nodes)):
                 dn, up = nodes[i], nodes[j]
-                if dn["v"] == up["v"]:
+                same = dn["v"] == up["v"]
+                # T228: two stretches of one part meet only across a salmon chain boundary (else they are not adjacent)
+                if same and dn.get("chain") == up.get("chain"):
                     continue
                 a, b = dn["g"], up["g"]
                 if a.distance(b) > TOUCH_M:
                     continue
                 pa, pb = nearest_points(a, b)
                 lon, lat = to_ll.transform((pa.x + pb.x) / 2, (pa.y + pb.y) / 2)
-                at = split_at(dn["part"], up["part"], splits) if dn["n"] == 1 and up["n"] == 1 \
+                at = chain_label(dn, up, span, splits) if same \
+                    else split_at(dn["part"], up["part"], splits) if dn["n"] == 1 and up["n"] == 1 \
                     else split_at(_runs_of(dn), _runs_of(up), splits)
                 raw.append({"lon": round(lon, 6), "lat": round(lat, 6), "down": dn["v"], "up": up["v"],
                             "down_k": dn["k"], "up_k": up["k"],

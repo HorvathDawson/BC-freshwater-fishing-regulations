@@ -96,7 +96,7 @@ def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_item
     from pipeline.gauges.consume.place import nodes_for, summarise
     from pipeline.gauges.matches import check_record, read_match
     from pipeline.gauges.consume.shed import downstream_map, load_stations
-    from pipeline.gauges.liveness import may_speak, speaks_now
+    from pipeline.gauges.liveness import dormant, may_speak, speaks_now
 
     from pipeline.common.section_handles import read as _read_handles
 
@@ -131,8 +131,15 @@ def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_item
     # Neither showed in any output. See HANDOFF: "the build hides its own regressions".
     place_lost: list[str] = []
     shed_lost: list[str] = []
-    matched = nodes_for(matches, graph, geoms, report=place_lost)
+    placed = nodes_for(matches, graph, geoms, report=place_lost)
     prov = {m.station: m for m in matches}
+    # MATCHED BUT NOT USED (`liveness.dormant`, T226 item 2, owner 2026-10-28): a discontinued station that does not
+    # transmit stays matched (matches.json, `gauge.matched_by` / `.match_m`) but is attached to NO water — no
+    # `gauge.item_id` / `.sid`, lake, shed, donor panel or basin row. Every reader below takes `matched`, never `placed`.
+    asleep = {s["station"] for s in stations if dormant(s)}
+    matched = {st: n for st, n in placed.items() if st not in asleep}
+    print(f"     dormant: {sum(1 for st in placed if st in asleep):,} placed stations are discontinued and silent — "
+          f"matched, attached to no water")
 
     # section -> the WATER that owns it, so a client can name the river, not just the gauge.
     #
@@ -166,8 +173,8 @@ def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_item
          owner.get(matched.get(s["station"], "")),
          sid.get(matched[s["station"]]) if s["station"] in matched else None,
          s["lon"], s["lat"], s.get("area_km2"),
-         (graph.nodes[matched[s["station"]]].stream_magnitude
-          if s["station"] in matched else None),
+         (graph.nodes[placed[s["station"]]].stream_magnitude        # where it stands, attached or not
+          if s["station"] in placed else None),
          prov[s["station"]].resolved_by if s["station"] in prov else None,
          prov[s["station"]].distance_m if s["station"] in prov else None,
          1 if s["station"] in tidal else 0,
@@ -341,7 +348,8 @@ def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_item
         _pts = [(r[0], r[1], r[2], r[3]) for r in db.execute(
             "SELECT g.station, g.lon, g.lat, g.area_km2 FROM gauge g "
             "WHERE g.lon IS NOT NULL AND g.lat IS NOT NULL "
-            "  AND EXISTS (SELECT 1 FROM gauge_clim c WHERE c.station = g.station)")]
+            "  AND EXISTS (SELECT 1 FROM gauge_clim c WHERE c.station = g.station)")
+            if r[0] not in asleep]      # a dormant station speaks for no catchment either (T226)
         _basins = roster(gauged_groups(_pts, _frame), rec_stats)
         if _basins:
             db.executemany("INSERT INTO basin_member VALUES (?,?,?,?,?)",
