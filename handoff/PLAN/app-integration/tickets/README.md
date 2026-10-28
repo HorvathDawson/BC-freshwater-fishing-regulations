@@ -271,7 +271,7 @@ use that as the sole source of future work."
 | T224 | name variants from local sources (municipal, ECCC, DFO, synopsis, OSM, BC GNIS), each with its real source | OPEN | — | candidates mined 10-28 (curation-review/name-variants); ★ owner: flow + auto-accept |
 | T225 | feeds: where they live, how they're triggered, alerting (gauges, DFO, HYDAT) | OPEN | — | design first; host = Cloudflare Workers cron (owner 10-28), alerts in Cloudflare |
 | T226 | bait-ban / fly-only marks fade in with zoom (gentle default, `late` variant) | DONE | 6db63d0e | paint.ts gearPaint ramps; shots T226-shots/ |
-| T227 | closed-to-game-fish waters open for salmon: the salmon year bar at the top, region closure, species notes, plain closed row | IN PROGRESS | — | owner 2026-10-28 (Cowichan); shots T227-shots/; `salmonTimelineKey` for the merge lane |
+| T227 | closed-to-game-fish waters open for salmon: the salmon year bar at the top, region closure, species notes, plain closed row | DONE | 4f2e22a3 | owner 2026-10-28 (Cowichan); shots T227-shots/; `salmonTimelineKey` for the merge lane |
 
 ## Order for open tickets
 
