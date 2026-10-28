@@ -42,7 +42,7 @@ export const CASING_PX = 2.5;
 export const RING_PX = 3;
 const SELECTED = ["boolean", ["feature-state", "selected"], false];
 /**
- * (T203, T214) THE PART'S HALO. Dimming the others alone did not read when the water is amber (own rules) or any colour
+ * (T203, T214) THE PART'S HALO — the selection's own casing/ring (`OUTLINE_SHOWN` lights both). Dimming the others alone did not read when the water is amber (own rules) or any colour
  * close to its dimmed self, so the part you are on is also ringed in `color.highlight`. T203 drew it at HALF the outline
  * and the owner still could not pick the part out (T214, 2026-10-27: "much more obvious, selected vs others"), so it is
  * now the browse map's FULL outline (`CASING_PX` each side, `RING_PX` on a lake or wetland) and the others sit lower
@@ -50,7 +50,6 @@ const SELECTED = ["boolean", ["feature-state", "selected"], false];
  * the water keeps the legend's width; only its outline grows. tools/water-status-cvd.test.ts holds highlight apart from
  * every status, cvd included.
  */
-export const PART_HALO_PX = CASING_PX;
 const OUTLINE_SHOWN = ["case", SELECTED, 1, PART, 1, 0];
 
 /** The stream casing's paint: the stream's own width (`streamWidth`, with its floors) plus the outline each side. */

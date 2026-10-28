@@ -14,7 +14,7 @@ import { describe, expect, it } from "vitest";
 import { nativeAdapter, nativeRenderer, type NativeRefs } from "./adapters/native";
 import { webAdapter, webRenderer, type GlMapSlice } from "./adapters/web";
 import { baseAdapter, type MapHandle, type MapRenderer } from "./adapters/contract";
-import { CASING_PX, PART_HALO_PX, paintFor, SELECTION_CASING, SELECTION_RINGS } from "./paint";
+import { CASING_PX, paintFor, SELECTION_CASING, SELECTION_RINGS } from "./paint";
 import {
   MAP_STYLE, STYLE_META, colorExpression, isRuntimeLayer, layerIds, resolveTheme,
   toggleableGroups,
@@ -373,7 +373,6 @@ describe("the style adapter (platform-free: one implementation, tested for what 
     const cw = layer(SELECTION_CASING).paint["line-width"] as unknown[];
     expect([cw.slice(0, 3), cw.slice(3).filter((_, i) => i % 2 === 1)]).toEqual([
       w.slice(0, 3), w.slice(3).filter((_, i) => i % 2 === 1).map((v) => ["+", v, 2 * CASING_PX])]);
-    expect(PART_HALO_PX).toBe(CASING_PX);
   });
 
   it("a theme or mode change repaints the outline with the stream (one paint path)", () => {

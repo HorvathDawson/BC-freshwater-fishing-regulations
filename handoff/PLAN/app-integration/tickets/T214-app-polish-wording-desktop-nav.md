@@ -1,6 +1,6 @@
 # T214 — app polish: quota wording, desktop navigation, part highlight, steady stretch buttons
 
-Status: PARTIAL (items 1, 2, 4 built; item 3 waits on the T211 lane's map paint)
+Status: DONE (555e7ee9 items 1, 2, 4; 33775c57 item 3)
 
 Source: owner 2026-10-27.
 
@@ -25,8 +25,11 @@ Source: owner 2026-10-27.
   primary pointer coarse; native always true). `useEscapeBack` (`escapeBack.web.ts`, mounted in `Shell`): Escape is the one Back on the
   desktop web, not while a layer/search/dialog is open, not typed in a field, not when already handled. Tests: `gestures.test.tsx`,
   `escapeBack.web.test.tsx`; the swipe tests (`WaterMode.test.tsx`, `tools/water-frame-swipe.test.ts`) stub a phone.
-- **3 (NOT built)**: the part/stretch highlight is the map paint (`packages/map/src/paint.ts`, T203's halo) which the T211 lane is changing;
-  do it after that merges (stronger selected-vs-others cue; amber + all cvd models via `tools/water-status-cvd.test.ts`).
+- **3 (built, 33775c57)**: `paint.ts` `PART_HALO_PX` = `CASING_PX` (was 1.25): the part you are on is ringed at the browse map's full
+  outline (2.5 px each side; `RING_PX` on a lake/wetland), and `opacity.water.others` 0.4 -> 0.25 (all three themes). The water line keeps
+  its legend width (T151 no-bold holds). Tests: `parity.test.ts` (dim 0.25, casing +2*CASING_PX, halo = casing), `tools/water-status-cvd.test.ts`
+  unchanged green. Web :39218 verified on the Chilliwack (amber part 1, closed part 3) light + dark: shots `handoff/PLAN/app-integration/T214-shots/`.
+  Dark: the closed red sits near the highlight pink; the wider halo and the dimmed others still separate it. Phone check is the owner's.
 - **4 (built)**: T203 moved the chip LAST, but the bar sits at the foot of the screen, so a line that appears grows the bar upward and lifts the
   steps and "Show regulations" anyway. Now the VM carries `exitHeld` (the water's mouth flows into another water, at any part) and the bar keeps a
   44 px slot (`water-map-exit-slot`) at every part, the chip filling it (one line, ellipsis); the part name keeps two lines (46 px) so a name that
