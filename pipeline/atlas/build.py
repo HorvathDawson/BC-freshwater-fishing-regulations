@@ -453,6 +453,8 @@ class _Build:
         self.matches_sha = None         # the gauge match file's digest, when the build cuts at gauges
         self.area_polys = None          # rule-scoped area polygons (cut_curated, when a split names one)
         self.applied_splits: list = []
+        self.braid_sweep = None         # the braid sweep judged before the curated cuts (cut_curated)
+        self.braid_swept: list = []     # the points it judged; cut_braids re-homes and reports against them
         self.area_defs: list = []
         self.catalog_polys: dict[str, dict] = {}   # {area_def id: {name: polygon}} for the lazy catalog
         self.clean_inside: dict[str, dict] = {}
@@ -850,7 +852,7 @@ def gauge_cuts(b: _Build) -> None:
 
 
 def sectionize(b: _Build) -> None:
-    """SECTIONS: every cut, in order — the B.C. border, the curated + gauge points, the blanket
+    """SECTIONS: every cut, in order — the B.C. border, the curated + gauge points, their braid cuts, the blanket
     areas, the length cap — then the membership passes the pieces need (areas, gates, MUs) and the
     reach-qualified names. Each sub-phase says why it sits where it does.
 
@@ -864,6 +866,7 @@ def sectionize(b: _Build) -> None:
     b.fid_index, b._short_before_cuts = fid_index, _short_before_cuts
     cut_border(b)
     cut_curated(b)
+    cut_braids(b)
     cut_areas(b)
     cut_length(b)
     mark_membership(b)
@@ -894,11 +897,12 @@ def cut_border(b: _Build) -> None:
 
 
 def cut_curated(b: _Build) -> None:
-    """CURATED + GAUGE CUTS: placed together (T179), the braid sweep judged before they are made,
-    area points in their own call, then the braid cuts and the edge re-homes.
+    """CURATED + GAUGE CUTS: placed together (T179), the braid sweep judged before they are made
+    (it must see the graph uncut), area points in their own call. The braid cuts the sweep asks for
+    are the next phase, `cut_braids`.
 
     Reads: args, fwa, bbox, graph, geoms, chains, fid_index, splits, border_cuts.
-    Writes: applied_splits, area_polys."""
+    Writes: applied_splits, area_polys, braid_sweep, braid_swept."""
     args, fwa, bbox, graph, geoms, chains, fid_index, splits, border_cuts = b.args, b.fwa, b.bbox, b.graph, b.geoms, b.chains, b.fid_index, b.splits, b.border_cuts
     _tick = b.tick
     area_polys = None
@@ -970,19 +974,7 @@ def cut_curated(b: _Build) -> None:
                     marked = mark_inside_area(graph, geoms, poly, s.label, blks=blks)
                     print(f"  area '{s.label}': cut {sum(1 for p in area_pts if p.split_id == s.id)} "
                           f"crossing(s), flagged {marked} inside piece(s)")
-        # The braid cuts, in their OWN pass, EXACT (not placed): each sits at least `END_M` inside its piece,
-        # so it never lands on, relabels or aliases a lake edge or any other boundary. Then the edges
-        # touching the networks are made consistent by geometry, the junctions at a cut re-homed, and
-        # what still straddles is reported (the reach's gate holds it at 0).
-        if _sweep.points:
-            split_graph_at(graph, geoms, _sweep.points, fid_index, exact=True,
-                           applied=applied_splits)
-        _rehomed = _bs.apply_rehomes(graph, _sweep.rehomes)
-        _moved = _bs.rehome_host_edges(graph, geoms, _swept) + _bs.make_edges_consistent(graph, geoms, _sweep)
-        _resid = _bs.residual_straddles(graph, geoms, _swept)
-        print(f"  braid sweep applied: {_rehomed} junction edge(s) re-homed, {len(_moved)} edge(s) made "
-              f"side-consistent; {len(_resid)} network(s) still straddle a cut")
-        _bs.write_record(Path(args.out) / "braid_sweep.json", _sweep, _moved, _resid, stage="curated")
+        b.braid_sweep, b.braid_swept = _sweep, _swept
         n_pick = sum(1 for s in applied_splits if s.picked_up)
         print(f"  resolved {len(pts)} curated split point(s) ({n_pick} picked up existing "
               f"boundaries) -> {len(graph.nodes)} nodes")
@@ -999,6 +991,36 @@ def cut_curated(b: _Build) -> None:
         _tick("curated splits")
     b.applied_splits = applied_splits
     b.area_polys = area_polys
+
+
+def cut_braids(b: _Build) -> None:
+    """BRAID CUTS (T67): the side channels the curated + gauge cuts must also cut, as the sweep judged
+    them on the uncut graph (`cut_curated`). Their OWN pass, EXACT (not placed): each sits at least
+    `END_M` inside its piece, so it never lands on, relabels or aliases a lake edge or any other
+    boundary. Then the junctions at a cut are re-homed, the edges touching the networks made
+    side-consistent by geometry, and what still straddles is reported (the reach's gate holds it at 0)
+    in braid_sweep.json. AFTER the curated cuts, so they cut the host first; BEFORE the blanket areas
+    and the length cap, which judge the graph these leave. The length cap runs the same sweep on its
+    own cuts as a gate (`cut_length`).
+
+    Reads: args, graph, geoms, fid_index, braid_sweep, braid_swept. Writes: nothing new (graph,
+    applied_splits in place; braid_sweep.json)."""
+    _sweep, _swept = b.braid_sweep, b.braid_swept
+    if _sweep is None:                  # --no-splits: nothing was cut, so nothing to sweep
+        return
+    from pipeline.atlas.splits import braid_sweep as _bs
+    from pipeline.atlas.splits.sectionizer import split_graph_at
+    graph, geoms = b.graph, b.geoms
+    if _sweep.points:
+        split_graph_at(graph, geoms, _sweep.points, b.fid_index, exact=True,
+                       applied=b.applied_splits)
+    _rehomed = _bs.apply_rehomes(graph, _sweep.rehomes)
+    _moved = _bs.rehome_host_edges(graph, geoms, _swept) + _bs.make_edges_consistent(graph, geoms, _sweep)
+    _resid = _bs.residual_straddles(graph, geoms, _swept)
+    print(f"  braid sweep applied: {_rehomed} junction edge(s) re-homed, {len(_moved)} edge(s) made "
+          f"side-consistent; {len(_resid)} network(s) still straddle a cut -> {len(graph.nodes)} nodes")
+    _bs.write_record(Path(b.args.out) / "braid_sweep.json", _sweep, _moved, _resid, stage="curated")
+    b.tick("braid cuts")
 
 
 def cut_areas(b: _Build) -> None:

@@ -517,3 +517,44 @@ def test_spans_a_braid_is_the_gate():
     assert BS.spans_a_braid(v, "H", 1000.0)
     assert not BS.spans_a_braid(v, "H", 1500.0)             # above the braid
     assert not BS.spans_a_braid(v, "H", 800.0)              # at its mouth: both touches at/above
+
+
+# ---------------------------------------------------------------- the build phase (atlas/build.py)
+
+
+def test_cut_braids_is_the_phase_between_the_curated_cuts_and_the_areas(monkeypatch):
+    from pipeline.atlas import build as AB
+    order = []
+    for ph in ("cut_border", "cut_curated", "cut_braids", "cut_areas", "cut_length", "mark_membership"):
+        monkeypatch.setattr(AB, ph, lambda b, ph=ph: order.append(ph))
+    monkeypatch.setattr("pipeline.atlas.splits.sliver_gate.short_pieces", lambda g: set())
+    b = type("B", (), {"graph": None, "fids": []})()
+    AB.sectionize(b)
+    assert order == ["cut_border", "cut_curated", "cut_braids", "cut_areas", "cut_length", "mark_membership"]
+
+
+def test_cut_braids_applies_the_sweep_judged_on_the_uncut_graph(tmp_path):
+    """The phase does what `_apply` does after the host cut, and writes the review record."""
+    import json
+    from types import SimpleNamespace
+    from pipeline.atlas import build as AB
+    g, geoms = _one_braid()
+    pts = [_cut("c", 1000)]
+    res = BS.sweep(g, geoms, pts)                       # judged in cut_curated, before the host is cut
+    applied: list = []
+    split_graph_at(g, geoms, pts, applied=applied)
+    b = SimpleNamespace(args=SimpleNamespace(out=str(tmp_path)), graph=g, geoms=geoms, fid_index=None,
+                        applied_splits=applied, braid_sweep=res, braid_swept=pts, tick=lambda label: None)
+    AB.cut_braids(b)
+    lo, hi = _pieces(g, "B")
+    assert _host_sides_of(g, lo.node_id, 1000) == {"lo"} and _host_sides_of(g, hi.node_id, 1000) == {"hi"}
+    rec = json.loads((tmp_path / "braid_sweep.json").read_text())
+    assert rec["stage"] == "curated" and rec["braid_cuts"] == 1 and rec["residual_straddles"] == []
+
+
+def test_cut_braids_without_splits_is_a_no_op(tmp_path):
+    from types import SimpleNamespace
+    from pipeline.atlas import build as AB
+    b = SimpleNamespace(args=SimpleNamespace(out=str(tmp_path)), braid_sweep=None, braid_swept=[])
+    AB.cut_braids(b)
+    assert not (tmp_path / "braid_sweep.json").exists()
