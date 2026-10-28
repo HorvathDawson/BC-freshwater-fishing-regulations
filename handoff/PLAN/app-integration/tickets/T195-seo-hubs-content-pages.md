@@ -17,3 +17,9 @@ Depends: T193. Size: M. Owner: no. Default: regenerated with each release.
   year runs; WATER-level, not by species), and `/changes` (rule changes vs the previous release's `snapshot.json`; absent without one).
   Every page states its release and as-of date. Footer on every page links all region hubs.
 - NOT done: a species-by-region season-start calendar (needs the per-species year strips, not the water strip); raster share images.
+
+## Hub split 2026-10-27
+A region over 400 waters lists A-Z letter pages (`/region/N/waters-<letter>`, kind "letter", in the sitemap) instead of every water; the
+weekend pages cap each list at 250 with a pointer to the hub. Real build (19,718 pages): largest page now 7.6 KB gzip (was region 6 hub
+27.5 KB, weekend 27.1 KB). `budget.json` gained a `quality` block (19,718 unique titles and descriptions, 0 empty, 0 descriptions over 155,
+23 titles over 60: long names are not cut, see T192) and the build fails if any title or description repeats. Test: site.test.ts (hubSplitAt).

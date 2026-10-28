@@ -14,7 +14,7 @@ import { appPage, buildDayOf, listWaterOrds, statusOn, waterModel, type BuildDay
 import { assignSlugs, type SlugMap } from "./slug";
 import { verifyAgainstApp } from "./verify";
 
-export interface PageRec { readonly path: string; readonly kind: "water" | "region" | "weekend" | "calendar" | "changes" | "about"; readonly html: string; readonly hash: string }
+export interface PageRec { readonly path: string; readonly kind: "water" | "region" | "letter" | "weekend" | "calendar" | "changes" | "about"; readonly html: string; readonly hash: string }
 export interface Snapshot {
   readonly release: string; readonly asOf: string;
   readonly pages: Readonly<Record<string, { readonly hash: string; readonly lastmod: string }>>;
@@ -23,6 +23,8 @@ export interface Snapshot {
 export interface BuildOpts {
   readonly store: RegsStore; readonly site: Site; readonly release: Release; readonly on: BuildDay;
   readonly slugMap: SlugMap; readonly previous: Snapshot | null;
+  /** a region with more waters than this lists them on A-Z pages, not on its hub (default 400) */
+  readonly hubSplitAt?: number;
 }
 export interface SiteBuild {
   readonly files: ReadonlyMap<string, string>; readonly pages: readonly PageRec[];
@@ -43,6 +45,16 @@ export function weekendDays(on: BuildDay): BuildDay[] {
   const days = [first];
   if (first.getDay() === 6) { const sun = new Date(first); sun.setDate(first.getDate() + 1); days.push(sun); }
   return days.map(dayOfDate);
+}
+
+/** a weekend list longer than this shows its first entries (page weight; the hub lists every water) */
+const WEEKEND_CAP = 250;
+
+/** A-Z buckets of a region's waters ("0" = a name that does not start with a letter), in letter order */
+function groupByLetter(ws: readonly WaterModel[]): Map<string, WaterModel[]> {
+  const g = new Map<string, WaterModel[]>();
+  for (const m of ws) { const c = m.name.normalize("NFKD").trim()[0]?.toUpperCase() ?? "0", k = /[A-Z]/.test(c) ? c : "0"; g.set(k, [...(g.get(k) ?? []), m]); }
+  return new Map([...g].sort((a, b) => (a[0] === "0" ? 1 : b[0] === "0" ? -1 : a[0] < b[0] ? -1 : 1)));
 }
 
 /** stable under a changed date: the "as of" times are what a rebuild on another day moves */
@@ -135,18 +147,31 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
   const days = weekendDays(on);
   for (const r of regions) {
     const ws = inRegion(r), path = regionPath(r), name = regionLabel(r);
-    const list = (xs: readonly WaterModel[], word?: (m: WaterModel) => string) =>
-      `<ul class="cols">${xs.map((m) => `<li><a href="${waterPath(m)}">${esc(m.name)}</a>${word ? ` <span class="tag">${esc(word(m))}</span>` : ""}</li>`).join("")}</ul>`;
+    const list = (xs: readonly WaterModel[], word?: (m: WaterModel) => string, cap = Infinity) =>
+      (xs.length > cap ? `<p class="small">The first ${cap} of ${xs.length}, by name; every water is on <a href="${path}">the ${esc(name)} page</a>.</p>` : "") +
+      `<ul class="cols">${xs.slice(0, cap).map((m) => `<li><a href="${waterPath(m)}">${esc(m.name)}</a>${word ? ` <span class="tag">${esc(word(m))}</span>` : ""}</li>`).join("")}</ul>`;
+    const letters = ws.length > (o.hubSplitAt ?? 400) ? groupByLetter(ws) : null;
     const title = clip(`${name} fishing regulations (BC) — ${site.name}`, 60);
     const body = `<nav class="crumbs"><a href="/">Home</a> › ${esc(name)}</nav><h1>${esc(name)} fishing regulations</h1>` +
       `<p>${ws.length} waters in ${esc(name)} with the full rules in plain words, from release ${esc(release.id)}.</p>` +
       `<ul><li><a href="${path}/open-this-weekend">What is open this weekend in ${esc(name)}</a></li>` +
       `<li><a href="${path}/season-changes">Waters opening and closing soon in ${esc(name)}</a></li></ul>` +
-      `<h2>All waters in ${esc(name)}</h2>${list(ws, (m) => WORD[m.status])}` +
+      (letters ? `<h2>Waters in ${esc(name)} by first letter</h2><ul class="cols">${[...letters].map(([l, xs]) => `<li><a href="${path}/waters-${l}">${l === "0" ? "Other" : l} (${xs.length})</a></li>`).join("")}</ul>`
+        : `<h2>All waters in ${esc(name)}</h2>${list(ws, (m) => WORD[m.status])}`) +
       `<div class="legal"><p>Open or closed is as of <time datetime="${asOf}">${asOf}</time>. This is not a legal document. Check the official synopsis before you fish.</p></div>`;
     const description = clip(`Full BC freshwater fishing regulations for ${ws.length} waters in ${name}: what is open today and what you can keep, in plain words.`);
     unique(titles, title, path); unique(descriptions, description, path);
     add("region", path, shellOf(path, title, description, body, pageLd(site, path, title, asOf, [["Home", "/"], [name, path]])));
+    for (const [l, xs] of letters ?? []) {
+      const lp = `${path}/waters-${l}`, lname = l === "0" ? "other names" : `names starting with ${l}`;
+      const lt = clip(`${name} waters, ${l === "0" ? "other" : l} — ${site.name}`, 60);
+      const ld = clip(`${xs.length} waters in ${name} with ${lname}: what is open today and the full rules for each, in plain words.`);
+      const lb = `<nav class="crumbs"><a href="/">Home</a> › <a href="${path}">${esc(name)}</a> › ${l === "0" ? "Other" : l}</nav><h1>${esc(name)} waters: ${esc(lname)}</h1>` +
+        `<p>${xs.length} waters, from release ${esc(release.id)}.</p>${list(xs, (m) => WORD[m.status])}` +
+        `<div class="legal"><p>Open or closed is as of <time datetime="${asOf}">${asOf}</time>. This is not a legal document. Check the official synopsis before you fish.</p></div>`;
+      unique(titles, lt, lp); unique(descriptions, ld, lp);
+      add("letter", lp, shellOf(lp, lt, ld, lb, pageLd(site, lp, lt, asOf, [["Home", "/"], [name, path], [l === "0" ? "Other" : l, lp]])));
+    }
 
     // open this weekend: today's status is the model's; the other days come from the app's presenter for that day
     const status = new Map<string, WaterStatus[]>();
@@ -162,8 +187,8 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
     const wpath = `${path}/open-this-weekend`, wtitle = clip(`${name}: what is open this weekend — ${site.name}`, 60);
     const wbody = `<nav class="crumbs"><a href="/">Home</a> › <a href="${path}">${esc(name)}</a> › This weekend</nav>` +
       `<h1>${esc(name)}: what is open this weekend</h1><p class="asof">Weekend of ${days.map((d) => `<time datetime="${d.iso}">${d.iso}</time>`).join(" and ")}, as of <time datetime="${asOf}">${asOf}</time>, from release ${esc(release.id)}.</p>` +
-      `<h2>Open all weekend (${openAll.length})</h2>${list(openAll)}<h2>Closed all weekend (${closedAll.length})</h2>${list(closedAll)}` +
-      `<h2>Different parts or days (${rest.length})</h2>${list(rest, (m) => status.get(m.id)!.map((s) => WORD[s]).join(", then "))}` +
+      `<h2>Open all weekend (${openAll.length})</h2>${list(openAll, undefined, WEEKEND_CAP)}<h2>Closed all weekend (${closedAll.length})</h2>${list(closedAll, undefined, WEEKEND_CAP)}` +
+      `<h2>Different parts or days (${rest.length})</h2>${list(rest, (m) => status.get(m.id)!.map((s) => WORD[s]).join(", then "), WEEKEND_CAP)}` +
       `<div class="legal"><p>This is not a legal document. Check the official synopsis before you fish.</p></div>`;
     const wdesc = clip(`${name} on ${wk}: ${openAll.length} waters open all weekend, ${closedAll.length} closed, ${rest.length} that differ by part or day.`);
     unique(titles, wtitle, wpath); unique(descriptions, wdesc, wpath);
@@ -209,7 +234,7 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
 
   // ── gates over the HTML ────────────────────────────────────────────────────────────────────────────────────────────
   for (const p of pages) bad.push(...checkJsonLd(p.html, site.origin).map((x) => `${p.path}: ${x}`));
-  const linked = new Set(pages.filter((p) => p.kind === "region").flatMap((p) => [...p.html.matchAll(/href="(\/water\/[^"]+)"/g)].map((x) => x[1]!)));
+  const linked = new Set(pages.filter((p) => p.kind === "region" || p.kind === "letter").flatMap((p) => [...p.html.matchAll(/href="(\/water\/[^"]+)"/g)].map((x) => x[1]!)));
   for (const m of models) if (!linked.has(waterPath(m))) bad.push(`${waterPath(m)} is linked from no region hub`);
   if (bad.length) throw new Error(`seo: ${bad.length} problem(s):\n${bad.slice(0, 20).join("\n")}`);
 

@@ -150,6 +150,20 @@ describe("T194 sitemap, robots, canonicals, structured data", () => {
 });
 
 describe("T195 hubs and dated pages", () => {
+  it("a big region's hub lists letters, not every water; the A-Z pages hold them all, each water is listed on a hub (small region) or a letter page", async () => {
+    const split = await buildAll({ loader: openRegsFixture(), on: TODAY, hubSplitAt: 5 });
+    const hubs = split.build.pages.filter((p) => p.kind === "region"), letters = split.build.pages.filter((p) => p.kind === "letter");
+    expect(letters.length).toBeGreaterThan(hubs.length);
+    for (const h of hubs.filter((p) => (p.html.match(/waters-/g) ?? []).length > 0)) expect(h.html).not.toMatch(/href="\/water\//);
+    for (const m of split.build.models) {
+      const path = `/water/${split.build.slugMap.waters[m.id]!.slug}`;
+      expect([...letters, ...hubs].some((l) => l.html.includes(`href="${path}"`)), path).toBe(true);
+    }
+    expect(split.problems).toEqual([]);
+    const listed = [...split.files.get("sitemap-1.xml")!.matchAll(/<loc>/g)].length - 1;
+    expect(listed).toBe(split.build.pages.length);
+  }, 120_000);
+
   it("every water is one click from its region hub and every hub is one click from the footer of any page", () => {
     const regionPages = built.build.pages.filter((p) => p.kind === "region");
     expect(regionPages.length).toBeGreaterThan(2);

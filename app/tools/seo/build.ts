@@ -33,6 +33,7 @@ export interface BuildArgs {
   readonly slugMap?: SlugMap; readonly previous?: Snapshot | null;
   /** the v1 site's indexed paths and the items that hold them (legacy-crosswalk.json); none = no v1 redirects */
   readonly crosswalk?: Crosswalk;
+  readonly hubSplitAt?: number;
 }
 export interface Built { readonly legacy: LegacyBuilt | null; readonly build: SiteBuild; readonly files: ReadonlyMap<string, string>; readonly measured: Measured; readonly problems: readonly string[] }
 
@@ -42,7 +43,7 @@ export async function buildAll(a: BuildArgs): Promise<Built> {
   const store = await openRegsStore(a.loader);
   const build = await buildSite({
     store, site: config, release: { id: store.meta.release, validUntil: a.loader.manifest.regulations.valid_until },
-    on: a.on, slugMap: a.slugMap ?? EMPTY_SLUG_MAP, previous: a.previous ?? null,
+    on: a.on, slugMap: a.slugMap ?? EMPTY_SLUG_MAP, previous: a.previous ?? null, ...(a.hubSplitAt ? { hubSplitAt: a.hubSplitAt } : {}),
   });
   const files = new Map(build.files);
   files.set("_headers", headersFile());
@@ -66,7 +67,17 @@ export async function buildAll(a: BuildArgs): Promise<Built> {
   const sample = ["/about", ...build.pages.filter((p) => p.kind === "region").slice(0, 1).map((p) => p.path),
                   ...build.pages.filter((p) => p.kind === "water").slice(0, 3).map((p) => p.path)];
   files.set("lighthouserc.json", `${JSON.stringify(lighthouseConfig(sample.map((p) => `${p.slice(1)}/index.html`)), null, 1)}\n`);
-  files.set("budget.json", `${JSON.stringify({ budget: BUDGET, measured, problems }, null, 1)}\n`);
+  // uniqueness and length report: what Search Console's duplicate / "title too long" findings would otherwise tell us later
+  const tag = (re: RegExp) => build.pages.map((p) => re.exec(p.html)?.[1] ?? "");
+  const titles = tag(/<title>([^<]*)<\/title>/), descs = tag(/<meta name="description" content="([^"]*)">/);
+  const quality = {
+    pages: build.pages.length,
+    uniqueTitles: new Set(titles).size, uniqueDescriptions: new Set(descs).size,
+    titlesOver60: titles.filter((t) => t.length > 60).length, descriptionsOver155: descs.filter((t) => t.length > 155).length,
+    emptyTitleOrDescription: titles.filter((t) => !t).length + descs.filter((t) => !t).length,
+  };
+  if (quality.uniqueTitles !== quality.pages || quality.uniqueDescriptions !== quality.pages) problems.push(`titles/descriptions are not unique: ${JSON.stringify(quality)}`);
+  files.set("budget.json", `${JSON.stringify({ budget: BUDGET, measured, quality, problems }, null, 1)}\n`);
   return { build, files, measured, problems, legacy };
 }
 
