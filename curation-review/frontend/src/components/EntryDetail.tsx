@@ -115,6 +115,7 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
   const coveredItems = item ? [{ id: item.id, name: item.name, kind: item.kind }, ...alsoItems] : [];
   const [focusItemId, setFocusItemId] = useState<string | null>(null);
   const [selBoundary, setSelBoundary] = useState<string | null>(null);
+  const [fly, setFly] = useState<{ coord: [number, number]; n: number } | null>(null);
   const [showRule, setShowRule] = useState<{ id: string | null; n: number }>({ id: null, n: 0 });
   const [reaches, setReaches] = useState<EntryReaches | null>(null);
   const [pdfPages, setPdfPages] = useState<Record<string, number>>({});
@@ -438,7 +439,7 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
           </div>
 
           {view && <Prechecks view={view} />}
-          {detail.awaiting_water && <AwaitingWaterPanel aw={detail.awaiting_water} />}
+          {detail.awaiting_water && <AwaitingWaterPanel aw={detail.awaiting_water} onShow={(c) => setFly((f) => ({ coord: c, n: (f?.n ?? 0) + 1 }))} />}
           <SplitSuggestions items={detail.split_suggestions ?? []} />
 
           {/* ONE BLOCK PER RULE (T189): what it says, then where it holds. */}
@@ -617,6 +618,7 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
             preview={fixPreview}
             suggested={detail.awaiting_water?.map ?? null}
             fitSuggested={!!detail.awaiting_water}
+            flyTo={fly}
             onPick={pickCb.cb}
           />
           )}

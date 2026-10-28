@@ -47,6 +47,8 @@ interface Props {
   suggested?: GeoJSON.FeatureCollection | null;
   /** T89: fly to the suggested points when they change (an entry with no water of its own to fit) */
   fitSuggested?: boolean;
+  /** T89: fly to a point (a "show on map" button; `n` bumps on each click) */
+  flyTo?: { coord: [number, number]; zoom?: number; n: number } | null;
   /** the zoom the map flies to (at least) when a split is selected; default 12 */
   selectZoom?: number;
   /** false: never widen the view to hold every named split — fly to the selected one instead
@@ -148,7 +150,7 @@ export function MapPanel({
   itemId, alsoItemIds = [], referencedSplitIds = [], unusedSplitIds = [], selectedSplitId = null,
   onSelectSplit, reloadKey = 0, focusItemId = null,
   reaches = null, rules = [], reachOf = {}, entryId = null, namedSplits = null, showRule,
-  preview = null, saved = null, suggested = null, fitSuggested = false, onPick = null, selectZoom = 12, fitNamed = true,
+  preview = null, saved = null, suggested = null, fitSuggested = false, flyTo = null, onPick = null, selectZoom = 12, fitNamed = true,
 }: Props) {
   const selectedRef = useRef(selectedSplitId);
   selectedRef.current = selectedSplitId;
@@ -335,14 +337,19 @@ export function MapPanel({
                      "line-dasharray": [2, 1.5] } },
           { id: "suggested-pts", type: "circle", source: "suggested",
             filter: ["==", ["geometry-type"], "Point"],
-            paint: { "circle-radius": 7, "circle-color": "#7c3aed",
-                     "circle-stroke-color": "#fff", "circle-stroke-width": 2 } },
+            paint: { "circle-radius": 7,
+                     // T89: a same-name water ELSEWHERE is not a match — muted grey ring, never filled
+                     "circle-color": ["case", ["==", ["get", "kind"], "elsewhere"], "rgba(148,163,184,0.15)",
+                                      ["==", ["get", "kind"], "mu"], "#f59e0b", "#7c3aed"],
+                     "circle-stroke-color": ["case", ["==", ["get", "kind"], "elsewhere"], "#94a3b8", "#fff"],
+                     "circle-stroke-width": ["case", ["==", ["get", "kind"], "elsewhere"], 2, 2] } },
           { id: "suggested-labels", type: "symbol", source: "suggested",
             filter: ["==", ["geometry-type"], "Point"],
             layout: { "text-field": ["get", "label"], "text-size": 12, "text-offset": [0, -1.3],
                       "text-anchor": "bottom", "text-font": ["Noto Sans Medium"],
                       "text-allow-overlap": true },
-            paint: { "text-color": "#5b21b6", "text-halo-color": "#fff", "text-halo-width": 2 } },
+            paint: { "text-color": ["case", ["==", ["get", "kind"], "elsewhere"], "#64748b", "#5b21b6"],
+                     "text-halo-color": "#fff", "text-halo-width": 2 } },
           // the reviewer's SAVED extent fix — teal, under the previews
           { id: "saved-fill", type: "fill", source: "saved",
             filter: ["in", ["geometry-type"], ["literal", ["Polygon", "MultiPolygon"]]],
@@ -642,12 +649,17 @@ export function MapPanel({
       if (fitSuggested && suggested?.features.length) {
         const b = new maplibregl.LngLatBounds();
         for (const f of suggested.features)
-          if (f.geometry.type === "Point") b.extend(f.geometry.coordinates as [number, number]);
-        if (!b.isEmpty()) m.fitBounds(b, { padding: 70, maxZoom: 11, duration: 400 });
+          if (f.geometry.type === "Point" && f.properties?.fit) b.extend(f.geometry.coordinates as [number, number]);
+        if (!b.isEmpty()) m.fitBounds(b, { padding: 70, maxZoom: 12, duration: 400 });
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [suggested]);
+
+  useEffect(() => {
+    const mm = map.current;
+    if (mm && flyTo) mm.flyTo({ center: flyTo.coord, zoom: flyTo.zoom ?? 9, duration: 800 });
+  }, [flyTo]);
 
   const measureDist = pts.length === 2 ? haversine(pts[0], pts[1]) : null;
 

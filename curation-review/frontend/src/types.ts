@@ -1255,6 +1255,7 @@ export interface AwaitingWater {
   lead: string | null;
   lead_points: { label: string; coord: [number, number]; source: string }[];
   same_name_candidates_elsewhere: {
+    words?: string;
     item_id: string; name: string; kind: string; mus: string[]; lonlat: [number, number]; km_from_printed_mu: number;
   }[];
   map: GeoJSON.FeatureCollection;
