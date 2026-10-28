@@ -481,6 +481,660 @@ index d396d39c3c174a13c2576d5a3fab96e8bb75a8b3..17eb57897706d0ddfade6257a8f9d89c
      @JvmField
      var scale: Double = scale ?: DEFAULT_SCALE
  
+diff --git a/ios/components/images/MLRNImageLoader.m b/ios/components/images/MLRNImageLoader.m
+index d12c0cf0a05fef42b8b6def84add771e60741e63..b1dc01fa5474775e583324c2e2e989218e8dd163 100644
+--- a/ios/components/images/MLRNImageLoader.m
++++ b/ios/components/images/MLRNImageLoader.m
+@@ -70,8 +70,9 @@ + (void)fetchImages:(MLNStyle *)style
+                               if (!img) {
+                                 RCTLogWarn(@"Failed to fetch image: %@ error:%@", imageName, error);
+                               } else {
++                                UIImage *styled = [MLRNImageLoader stretchable:img entry:image];
+                                 dispatch_async(dispatch_get_main_queue(), ^{
+-                                  [weakStyle setImage:img forName:imageName];
++                                  [weakStyle setImage:styled forName:imageName];
+                                   imageLoadedBlock();
+                                 });
+                               }
+@@ -82,4 +83,29 @@ + (void)fetchImages:(MLNStyle *)style
+   }
+ }
+ 
++/*
++ * (canifishthis T217 patch) a stretchable image (`icon-text-fit`), the iOS half of the Android patch's stretch zones:
++ * MapLibre iOS takes a resizable image's cap insets as ONE stretch zone per axis (the part between the caps) and the
++ * same box as its content. So `stretchX`/`stretchY` (image pixels, first zone) become the cap insets; `content` has no
++ * separate form here and is the stretch box — the text sits a little further in than on Android and the web.
++ */
+++ (UIImage *)stretchable:(UIImage *)img entry:(id)entry {
++  if (![entry isKindOfClass:[NSDictionary class]]) return img;
++  NSArray *sx = entry[@"stretchX"], *sy = entry[@"stretchY"];
++  if (![sx isKindOfClass:[NSArray class]] || ![sy isKindOfClass:[NSArray class]] || sx.count == 0 ||
++      sy.count == 0) {
++    return img;
++  }
++  NSArray *x = sx.firstObject, *y = sy.firstObject;
++  if (![x isKindOfClass:[NSArray class]] || ![y isKindOfClass:[NSArray class]] || x.count < 2 || y.count < 2) {
++    return img;
++  }
++  CGFloat s = img.scale > 0 ? img.scale : 1;
++  CGFloat wPx = img.size.width * s, hPx = img.size.height * s;
++  UIEdgeInsets caps = UIEdgeInsetsMake([y[0] doubleValue] / s, [x[0] doubleValue] / s,
++                                       (hPx - [y[1] doubleValue]) / s, (wPx - [x[1] doubleValue]) / s);
++  UIImage *r = [img resizableImageWithCapInsets:caps resizingMode:UIImageResizingModeStretch];
++  return [r imageWithRenderingMode:img.renderingMode];
++}
++
+ @end
+diff --git a/ios/components/map-view/MLRNMapView.m b/ios/components/map-view/MLRNMapView.m
+index 22212748b1f1ca2eb73b5a1688ddb848b5c8ab0c..9bb885af2b7d8ff782405ee369fc2b05910f481e 100644
+--- a/ios/components/map-view/MLRNMapView.m
++++ b/ios/components/map-view/MLRNMapView.m
+@@ -1,4 +1,5 @@
+ #import "MLRNMapView.h"
++#import "MLRNVectorSource.h"
+ 
+ #import "CameraUpdateQueue.h"
+ #import "MLRNGeoJSONSource.h"
+@@ -671,6 +672,26 @@ - (void)didChangeUserTrackingMode:(MLNUserTrackingMode)mode animated:(BOOL)anima
+ 
+ #pragma mark - MLNMapViewDelegate
+ 
++// (canifishthis T217 patch) a tile requested from a watched vector source: its ids go to JS (`MLRNTileIds`)
++- (void)mapView:(MLNMapView *)mapView
++    tileDidTriggerAction:(MLNTileOperation)operation
++                       x:(NSInteger)x
++                       y:(NSInteger)y
++                       z:(NSInteger)z
++                    wrap:(NSInteger)wrap
++             overscaledZ:(NSInteger)overscaledZ
++                sourceID:(NSString *)sourceID {
++  if (operation != MLNTileOperationRequestedFromCache &&
++      operation != MLNTileOperationRequestedFromNetwork) {
++    return;
++  }
++  for (MLRNSource *source in [_sources copy]) {
++    if ([source isKindOfClass:[MLRNVectorSource class]] && [source.id isEqualToString:sourceID]) {
++      [(MLRNVectorSource *)source tileRequestedAtZ:z x:x y:y];
++    }
++  }
++}
++
+ - (MLNAnnotationView *)mapView:(MLNMapView *)mapView
+              viewForAnnotation:(id<MLNAnnotation>)annotation {
+   if ([annotation isKindOfClass:[MLNUserLocation class]] && mapView.userLocation != nil) {
+diff --git a/ios/components/sources/tile-sources/vector-source/MLRNPmTilesIds.h b/ios/components/sources/tile-sources/vector-source/MLRNPmTilesIds.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..305f92d01d3fbe8d87261d5ad91dba4d8c2f73b7
+--- /dev/null
++++ b/ios/components/sources/tile-sources/vector-source/MLRNPmTilesIds.h
+@@ -0,0 +1,27 @@
++#import <Foundation/Foundation.h>
++
++/**
++ * (canifishthis T217 patch) A LOCAL PMTiles archive's tiles, read for their MVT feature ids only — the iOS port of
++ * the Android half's `TileIds.kt` (same layout, same answers).
++ *
++ * MapLibre Native tells the map view's delegate WHICH tile it is requesting (`tileDidTriggerAction`) but never what is
++ * in it, so the ids are read here from the same archive the source draws (`pmtiles://file:///…`): header, directories
++ * (internal compression), the tile (tile compression), then layer name + feature id out of the protobuf — geometry
++ * and tags are skipped unread. PMTiles spec v3; MVT 2.1. Not thread-safe: one caller (the source's serial queue).
++ */
++@interface MLRNPmTilesIds : NSObject
++
++- (nullable instancetype)initWithPath:(nonnull NSString *)path error:(NSError *_Nullable *_Nullable)error;
++
++/** Layer name -> ids (NSData of int32), for the layers in `layers`; nil where the archive has no such tile. */
++- (nullable NSDictionary<NSString *, NSData *> *)idsAtZ:(NSInteger)z
++                                                      x:(NSInteger)x
++                                                      y:(NSInteger)y
++                                                 layers:(nonnull NSSet<NSString *> *)layers;
++
++- (void)close;
++
++/** The Hilbert tile id (PMTiles v3), as the JS reference `zxyToTileId` computes it. */
+++ (uint64_t)tileIdForZ:(NSInteger)z x:(NSInteger)x y:(NSInteger)y;
++
++@end
+diff --git a/ios/components/sources/tile-sources/vector-source/MLRNPmTilesIds.m b/ios/components/sources/tile-sources/vector-source/MLRNPmTilesIds.m
+new file mode 100644
+index 0000000000000000000000000000000000000000..5cb1662af13f1cf29f74d0ca0484f786dcc43280
+--- /dev/null
++++ b/ios/components/sources/tile-sources/vector-source/MLRNPmTilesIds.m
+@@ -0,0 +1,292 @@
++#import "MLRNPmTilesIds.h"
++
++// (canifishthis T217 patch) see the header; a line-for-line port of the Android half's TileIds.kt
++
++typedef struct {
++  const uint8_t *b;
++  NSUInteger pos;
++  NSUInteger end;
++  BOOL bad;
++} MLRNCursor;
++
++static uint64_t mlrnVarint(MLRNCursor *c) {
++  uint64_t r = 0;
++  int shift = 0;
++  while (YES) {
++    if (c->pos >= c->end || shift > 63) {
++      c->bad = YES;
++      return 0;
++    }
++    uint8_t v = c->b[c->pos++];
++    r |= ((uint64_t)(v & 0x7f)) << shift;
++    if (v < 0x80) return r;
++    shift += 7;
++  }
++}
++
++static void mlrnSkip(MLRNCursor *c, int wire) {
++  switch (wire) {
++    case 0: mlrnVarint(c); break;
++    case 1: c->pos += 8; break;
++    case 2: c->pos += (NSUInteger)mlrnVarint(c); break;
++    case 5: c->pos += 4; break;
++    default: c->bad = YES; c->pos = c->end; break;
++  }
++  if (c->pos > c->end) {
++    c->bad = YES;
++    c->pos = c->end;
++  }
++}
++
++/** gzip -> the raw DEFLATE body (RFC 1952 header and trailer off), which Compression's "zlib" algorithm inflates. */
++static NSData *mlrnGunzip(NSData *data) {
++  const uint8_t *b = data.bytes;
++  NSUInteger n = data.length;
++  if (n < 18 || b[0] != 0x1f || b[1] != 0x8b || b[2] != 8) return nil;
++  uint8_t flg = b[3];
++  NSUInteger p = 10;
++  if (flg & 4) {
++    if (p + 2 > n) return nil;
++    p += 2 + (b[p] | (b[p + 1] << 8));
++  }
++  if (flg & 8) {
++    while (p < n && b[p] != 0) p++;
++    p++;
++  }
++  if (flg & 16) {
++    while (p < n && b[p] != 0) p++;
++    p++;
++  }
++  if (flg & 2) p += 2;
++  if (p + 8 > n) return nil;
++  NSData *raw = [data subdataWithRange:NSMakeRange(p, n - p - 8)];
++  return [raw decompressedDataUsingAlgorithm:NSDataCompressionAlgorithmZlib error:nil];
++}
++
++static NSData *mlrnDecompress(NSData *b, int c) {
++  if (c == 0 || c == 1) return b;
++  if (c == 2) return mlrnGunzip(b);
++  return nil;
++}
++
++@interface MLRNPmDir : NSObject {
++ @public
++  NSUInteger n;
++  uint64_t *tileId;
++  uint64_t *offset;
++  uint32_t *length;
++  uint64_t *runLength;
++}
++@end
++
++@implementation MLRNPmDir
++- (void)dealloc {
++  free(tileId);
++  free(offset);
++  free(length);
++  free(runLength);
++}
++@end
++
++@implementation MLRNPmTilesIds {
++  NSFileHandle *_file;
++  uint64_t _rootOffset;
++  uint64_t _rootLength;
++  uint64_t _leafOffset;
++  uint64_t _tileDataOffset;
++  int _internalCompression;
++  int _tileCompression;
++  int _minZoom;
++  int _maxZoom;
++  NSCache<NSNumber *, MLRNPmDir *> *_dirs;
++}
++
++static uint64_t le64(const uint8_t *b, int o) {
++  uint64_t r = 0;
++  for (int i = 7; i >= 0; i--) r = (r << 8) | b[o + i];
++  return r;
++}
++
++- (nullable instancetype)initWithPath:(NSString *)path error:(NSError **)error {
++  if (self = [super init]) {
++    _file = [NSFileHandle fileHandleForReadingFromURL:[NSURL fileURLWithPath:path] error:error];
++    if (_file == nil) return nil;
++    NSData *h = [self read:0 length:127];
++    const uint8_t *b = h.bytes;
++    if (h.length < 127 || (b[0] | (b[1] << 8)) != 0x4D50) {
++      if (error) {
++        *error = [NSError errorWithDomain:@"MLRNTileIds"
++                                     code:1
++                                 userInfo:@{NSLocalizedDescriptionKey : [@"not a PMTiles archive: " stringByAppendingString:path]}];
++      }
++      [_file closeFile];
++      return nil;
++    }
++    _rootOffset = le64(b, 8);
++    _rootLength = le64(b, 16);
++    _leafOffset = le64(b, 40);
++    _tileDataOffset = le64(b, 56);
++    _internalCompression = b[97];
++    _tileCompression = b[98];
++    _minZoom = b[100];
++    _maxZoom = b[101];
++    _dirs = [NSCache new];
++    _dirs.countLimit = 64;
++  }
++  return self;
++}
++
++- (void)close {
++  [_file closeFile];
++}
++
++- (NSData *)read:(uint64_t)offset length:(uint64_t)length {
++  @try {
++    [_file seekToFileOffset:offset];
++    return [_file readDataOfLength:(NSUInteger)length];
++  } @catch (NSException *e) {
++    return nil;
++  }
++}
++
++- (MLRNPmDir *)dir:(uint64_t)offset length:(uint64_t)length {
++  NSNumber *key = @(offset);
++  MLRNPmDir *d = [_dirs objectForKey:key];
++  if (d) return d;
++  NSData *raw = [self read:offset length:length];
++  NSData *data = raw ? mlrnDecompress(raw, _internalCompression) : nil;
++  if (!data) return nil;
++  MLRNCursor c = {data.bytes, 0, data.length, NO};
++  NSUInteger n = (NSUInteger)mlrnVarint(&c);
++  if (c.bad || n > data.length) return nil;
++  d = [MLRNPmDir new];
++  d->n = n;
++  d->tileId = calloc(MAX(n, 1), sizeof(uint64_t));
++  d->offset = calloc(MAX(n, 1), sizeof(uint64_t));
++  d->length = calloc(MAX(n, 1), sizeof(uint32_t));
++  d->runLength = calloc(MAX(n, 1), sizeof(uint64_t));
++  uint64_t last = 0;
++  for (NSUInteger i = 0; i < n; i++) { last += mlrnVarint(&c); d->tileId[i] = last; }
++  for (NSUInteger i = 0; i < n; i++) d->runLength[i] = mlrnVarint(&c);
++  for (NSUInteger i = 0; i < n; i++) d->length[i] = (uint32_t)mlrnVarint(&c);
++  for (NSUInteger i = 0; i < n; i++) {
++    uint64_t v = mlrnVarint(&c);
++    d->offset[i] = (v == 0 && i > 0) ? d->offset[i - 1] + d->length[i - 1] : v - 1;
++  }
++  if (c.bad) return nil;
++  [_dirs setObject:d forKey:key];
++  return d;
++}
++
++static NSInteger mlrnFind(MLRNPmDir *d, uint64_t tileId) {
++  NSInteger lo = 0, hi = (NSInteger)d->n - 1;
++  while (lo <= hi) {
++    NSInteger mid = (lo + hi) / 2;
++    if (tileId > d->tileId[mid]) lo = mid + 1;
++    else if (tileId < d->tileId[mid]) hi = mid - 1;
++    else return mid;
++  }
++  if (hi >= 0 && (d->runLength[hi] == 0 || tileId - d->tileId[hi] < d->runLength[hi])) return hi;
++  return -1;
++}
++
++- (NSData *)tileAtZ:(NSInteger)z x:(NSInteger)x y:(NSInteger)y {
++  uint64_t tid = [MLRNPmTilesIds tileIdForZ:z x:x y:y];
++  uint64_t dOff = _rootOffset, dLen = _rootLength;
++  for (int depth = 0; depth <= 3; depth++) {
++    MLRNPmDir *d = [self dir:dOff length:dLen];
++    if (!d) return nil;
++    NSInteger i = mlrnFind(d, tid);
++    if (i < 0) return nil;
++    if (d->runLength[i] > 0) return [self read:_tileDataOffset + d->offset[i] length:d->length[i]];
++    dOff = _leafOffset + d->offset[i];
++    dLen = d->length[i];
++  }
++  return nil;
++}
++
++- (NSDictionary<NSString *, NSData *> *)idsAtZ:(NSInteger)z
++                                             x:(NSInteger)x
++                                             y:(NSInteger)y
++                                        layers:(NSSet<NSString *> *)layers {
++  if (z < _minZoom || z > _maxZoom) return nil;
++  NSData *raw = [self tileAtZ:z x:x y:y];
++  NSData *tile = raw ? mlrnDecompress(raw, _tileCompression) : nil;
++  if (!tile) return nil;
++  return [MLRNPmTilesIds mvtIds:tile layers:layers];
++}
++
+++ (uint64_t)tileIdForZ:(NSInteger)z x:(NSInteger)x y:(NSInteger)y {
++  uint64_t acc = (((uint64_t)1 << z) * ((uint64_t)1 << z) - 1) / 3;
++  NSInteger n = z - 1;
++  int64_t tx = x, ty = y;
++  int64_t a = z == 0 ? 0 : (int64_t)1 << (z - 1);
++  while (a > 0) {
++    int64_t rx = tx & a;
++    int64_t ry = ty & a;
++    acc += (uint64_t)((3 * rx) ^ ry) * ((uint64_t)1 << n);
++    if (ry == 0) {
++      if (rx != 0) {
++        int64_t t = a - 1 - ty;
++        ty = a - 1 - tx;
++        tx = t;
++      } else {
++        int64_t t = ty;
++        ty = tx;
++        tx = t;
++      }
++    }
++    n--;
++    a >>= 1;
++  }
++  return acc;
++}
++
++/** Layer name -> feature ids (int32), for the layers asked; a feature without an id is skipped. */
+++ (NSDictionary<NSString *, NSData *> *)mvtIds:(NSData *)data layers:(NSSet<NSString *> *)layers {
++  NSMutableDictionary<NSString *, NSData *> *out = [NSMutableDictionary new];
++  const uint8_t *b = data.bytes;
++  MLRNCursor t = {b, 0, data.length, NO};
++  while (t.pos < t.end && !t.bad) {
++    int key = (int)mlrnVarint(&t);
++    if ((key >> 3) != 3 || (key & 7) != 2) {
++      mlrnSkip(&t, key & 7);
++      continue;
++    }
++    NSUInteger len = (NSUInteger)mlrnVarint(&t);
++    if (t.pos + len > t.end) break;
++    MLRNCursor l = {b, t.pos, t.pos + len, NO};
++    t.pos += len;
++    NSString *name = nil;
++    NSMutableData *ids = [NSMutableData dataWithCapacity:256];
++    while (l.pos < l.end && !l.bad) {
++      int k = (int)mlrnVarint(&l);
++      if ((k >> 3) == 1 && (k & 7) == 2) {
++        NSUInteger sl = (NSUInteger)mlrnVarint(&l);
++        if (l.pos + sl > l.end) break;
++        name = [[NSString alloc] initWithBytes:b + l.pos length:sl encoding:NSUTF8StringEncoding];
++        l.pos += sl;
++      } else if ((k >> 3) == 2 && (k & 7) == 2) {
++        NSUInteger fl = (NSUInteger)mlrnVarint(&l);
++        if (l.pos + fl > l.end) break;
++        MLRNCursor f = {b, l.pos, l.pos + fl, NO};
++        l.pos += fl;
++        while (f.pos < f.end && !f.bad) {
++          int fk = (int)mlrnVarint(&f);
++          if ((fk >> 3) == 1 && (fk & 7) == 0) {
++            int32_t v = (int32_t)mlrnVarint(&f);
++            [ids appendBytes:&v length:sizeof(v)];
++            break;
++          }
++          mlrnSkip(&f, fk & 7);
++        }
++      } else {
++        mlrnSkip(&l, k & 7);
++      }
++    }
++    if (name != nil && [layers containsObject:name]) out[name] = ids;
++  }
++  return out;
++}
++
++@end
+diff --git a/ios/components/sources/tile-sources/vector-source/MLRNVectorSource.h b/ios/components/sources/tile-sources/vector-source/MLRNVectorSource.h
+index 87a053982d6247f21070d814aa023f6479319dea..bb2d30538ec58599016b02124e2b97650c90e56c 100644
+--- a/ios/components/sources/tile-sources/vector-source/MLRNVectorSource.h
++++ b/ios/components/sources/tile-sources/vector-source/MLRNVectorSource.h
+@@ -17,4 +17,15 @@
+                  featureID:(nullable NSString *)featureID
+                        key:(nullable NSString *)key;
+ 
++// (canifishthis T217 patch) the colouring engine's per-tile path, as the Android half: many states per call, and
++// each requested tile's ids for the watched source-layers, read from the local archive and handed to `emit`
++- (BOOL)setFeatureStates:(nonnull NSString *)sourceLayerID
++              featureIDs:(nonnull NSArray<NSString *> *)featureIDs
++                  states:(nonnull NSArray<NSDictionary<NSString *, id> *> *)states;
++- (void)watchTiles:(nonnull NSArray<NSString *> *)sourceLayers
++               tag:(NSInteger)tag
++              emit:(void (^_Nonnull)(NSDictionary *_Nonnull body))emit;
++/** From the map view's `tileDidTriggerAction`, for a tile of this source being requested. */
++- (void)tileRequestedAtZ:(NSInteger)z x:(NSInteger)x y:(NSInteger)y;
++
+ @end
+diff --git a/ios/components/sources/tile-sources/vector-source/MLRNVectorSource.m b/ios/components/sources/tile-sources/vector-source/MLRNVectorSource.m
+index 61445da4ea645cef057d3f0d473f6927f7b039a5..81a62befd4750ddab374445327346a8f25bced93 100644
+--- a/ios/components/sources/tile-sources/vector-source/MLRNVectorSource.m
++++ b/ios/components/sources/tile-sources/vector-source/MLRNVectorSource.m
+@@ -1,6 +1,20 @@
+ #import "MLRNVectorSource.h"
++#import "MLRNMapView.h"
++#import "MLRNPmTilesIds.h"
+ 
+-@implementation MLRNVectorSource
++@implementation MLRNVectorSource {
++  // (canifishthis T217 patch) the per-tile ids: see `watchTiles:`
++  NSSet<NSString *> *_watchedLayers;
++  NSInteger _tag;
++  void (^_emit)(NSDictionary *);
++  dispatch_queue_t _reader;
++  MLRNPmTilesIds *_archive;
++  NSString *_archivePath;
++  NSCache<NSString *, NSDictionary<NSString *, NSData *> *> *_idCache;
++  // tiles requested before the watch began (the first view is requested before JS can ask): replayed by the watch
++  NSMutableOrderedSet<NSArray<NSNumber *> *> *_early;
++  NSMutableArray<NSArray *> *_pendingStates;
++}
+ 
+ - (nullable MLNSource *)makeSource {
+   if (self.url != nil) {
+@@ -47,4 +61,125 @@ - (BOOL)removeFeatureState:(nonnull NSString *)sourceLayerID
+                                                  stateKey:key];
+ }
+ 
++/*
++ * (canifishthis T217 patch) THE TILE'S IDS, AS THE TILE IS REQUESTED — the iOS half of the Android patch's
++ * `MLRNVectorSource.kt`. MapLibre Native tells the map view's delegate which tile it is requesting
++ * (`tileDidTriggerAction`, forwarded by MLRNMapView) but not what is in it; the ids are read here, off the main
++ * thread, from the source's own local PMTiles archive (`MLRNPmTilesIds`), and sent to JS as the device event
++ * `MLRNTileIds` {tag, z, x, y, layers: {name: ids[]}}.
++ */
++- (void)watchTiles:(NSArray<NSString *> *)sourceLayers
++               tag:(NSInteger)tag
++              emit:(void (^)(NSDictionary *))emit {
++  if (_reader == nil) {
++    _reader = dispatch_queue_create("org.maplibre.reactnative.TileIds", DISPATCH_QUEUE_SERIAL);
++    _idCache = [NSCache new];
++    _idCache.countLimit = 256;
++  }
++  NSSet<NSString *> *layers = [NSSet setWithArray:sourceLayers];
++  void (^e)(NSDictionary *) = [emit copy];
++  dispatch_async(_reader, ^{
++    self->_watchedLayers = layers;
++    self->_tag = tag;
++    self->_emit = e;
++    [self->_idCache removeAllObjects];
++  });
++  // on the main thread, as the requests: what was requested before the watch, as if requested now
++  NSOrderedSet<NSArray<NSNumber *> *> *early = [_early copy];
++  _early = nil;
++  for (NSArray<NSNumber *> *t in early) {
++    [self tileRequestedAtZ:t[0].integerValue x:t[1].integerValue y:t[2].integerValue];
++  }
++}
++
++- (void)tileRequestedAtZ:(NSInteger)z x:(NSInteger)x y:(NSInteger)y {
++  if (_reader == nil) {
++    if (_early == nil) _early = [NSMutableOrderedSet new];
++    if (_early.count < 512) [_early addObject:@[ @(z), @(x), @(y) ]];
++    return;
++  }
++  // the source's own url; a source the style already had (no `url` prop) answers from its configuration URL
++  NSString *u = self.url;
++  if (u == nil && [self.source isKindOfClass:[MLNTileSource class]]) {
++    u = ((MLNTileSource *)self.source).configurationURL.absoluteString;
++  }
++  if (![u hasPrefix:@"pmtiles://file"]) return;
++  dispatch_async(_reader, ^{
++    NSSet<NSString *> *layers = self->_watchedLayers;
++    void (^emit)(NSDictionary *) = self->_emit;
++    if (layers.count == 0 || emit == nil) return;
++    @try {
++      NSString *key = [NSString stringWithFormat:@"%ld/%ld/%ld", (long)z, (long)x, (long)y];
++      NSDictionary<NSString *, NSData *> *ids = [self->_idCache objectForKey:key];
++      if (ids == nil) {
++        ids = [[self archiveFor:u] idsAtZ:z x:x y:y layers:layers] ?: @{};
++        [self->_idCache setObject:ids forKey:key];
++      }
++      if (ids.count == 0) return;
++      NSMutableDictionary *byLayer = [NSMutableDictionary dictionaryWithCapacity:ids.count];
++      for (NSString *name in ids) {
++        NSData *d = ids[name];
++        const int32_t *v = d.bytes;
++        NSUInteger n = d.length / sizeof(int32_t);
++        NSMutableArray *a = [NSMutableArray arrayWithCapacity:n];
++        for (NSUInteger i = 0; i < n; i++) [a addObject:@(v[i])];
++        byLayer[name] = a;
++      }
++      emit(@{@"tag" : @(self->_tag), @"z" : @(z), @"x" : @(x), @"y" : @(y), @"layers" : byLayer});
++    } @catch (NSException *ex) {
++      NSLog(@"MLRNTileIds tile %ld/%ld/%ld: %@", (long)z, (long)x, (long)y, ex.reason);
++    }
++  });
++}
++
++/** On the reader queue: the archive the source's url names (reopened when the url changes). */
++- (MLRNPmTilesIds *)archiveFor:(NSString *)u {
++  NSString *path = [NSURL URLWithString:[u substringFromIndex:@"pmtiles://".length]].path;
++  if (path == nil) return nil;
++  if (![path isEqualToString:_archivePath]) {
++    [_archive close];
++    _archive = [[MLRNPmTilesIds alloc] initWithPath:path error:nil];
++    _archivePath = path;
++    [_idCache removeAllObjects];
++  }
++  return _archive;
++}
++
++/** Many states in one call: `featureIDs[i]` takes `states[i]` (one bridge call per batch instead of per feature). */
++- (BOOL)setFeatureStates:(NSString *)sourceLayerID
++              featureIDs:(NSArray<NSString *> *)featureIDs
++                  states:(NSArray<NSDictionary<NSString *, id> *> *)states {
++  MLNVectorTileSource *vectorSource = (MLNVectorTileSource *)self.source;
++  if (vectorSource == nil) {
++    // not attached yet: the style's own source of this id, when the map has its style
++    MLNSource *s = [self.map.style sourceWithIdentifier:self.id];
++    if ([s isKindOfClass:[MLNVectorTileSource class]]) vectorSource = (MLNVectorTileSource *)s;
++  }
++  if (vectorSource == nil) {
++    // still not attached (a map mounting its sources after its first frame): kept, and set as the source attaches
++    if (_pendingStates == nil) _pendingStates = [NSMutableArray new];
++    [_pendingStates addObject:@[ sourceLayerID, [featureIDs copy], [states copy] ]];
++    return YES;
++  }
++  NSUInteger n = MIN(featureIDs.count, states.count);
++  for (NSUInteger i = 0; i < n; i++) {
++    id s = states[i];
++    [vectorSource setFeatureStateForSourceLayerID:sourceLayerID
++                                        featureID:featureIDs[i]
++                                            state:[s isKindOfClass:[NSDictionary class]] ? s : @{}];
++  }
++  return YES;
++}
++
++- (void)addToMap {
++  [super addToMap];
++  NSArray<NSArray *> *pending = _pendingStates;
++  _pendingStates = nil;
++  if (self.source == nil) {
++    _pendingStates = [pending mutableCopy];
++    return;
++  }
++  for (NSArray *b in pending) [self setFeatureStates:b[0] featureIDs:b[1] states:b[2]];
++}
++
+ @end
+diff --git a/ios/components/sources/tile-sources/vector-source/MLRNVectorSourceModule.mm b/ios/components/sources/tile-sources/vector-source/MLRNVectorSourceModule.mm
+index d0d1742dd7c3a405a693d5d2fd7ab26539372c31..872dfdee578512bf2ec40188f405b0d3954a75bb 100644
+--- a/ios/components/sources/tile-sources/vector-source/MLRNVectorSourceModule.mm
++++ b/ios/components/sources/tile-sources/vector-source/MLRNVectorSourceModule.mm
+@@ -1,5 +1,6 @@
+ #import "MLRNVectorSourceModule.h"
+ 
++#import <React/RCTBridgeModule.h>
+ #import <React/RCTUIManager.h>
+ #import "FilterParser.h"
+ #import "MLRNVectorSource.h"
+@@ -9,6 +10,8 @@
+ @implementation MLRNVectorSourceModule
+ 
+ @synthesize viewRegistry_DEPRECATED = _viewRegistry_DEPRECATED;
++// (canifishthis T217 patch) to emit the `MLRNTileIds` device event
++@synthesize callableJSModules = _callableJSModules;
+ 
+ + (NSString *)moduleName {
+   return @"MLRNVectorSourceModule";
+@@ -116,4 +119,48 @@ - (void)removeFeatureState:(NSInteger)reactTag
+             methodName:@"removeFeatureState"];
+ }
+ 
++// (canifishthis T217 patch) the colouring engine's per-tile labels, many per call
++- (void)setFeatureStates:(NSInteger)reactTag
++             sourceLayer:(nonnull NSString *)sourceLayer
++              featureIds:(nonnull NSArray *)featureIds
++                  states:(nonnull NSArray *)states
++                 resolve:(nonnull RCTPromiseResolveBlock)resolve
++                  reject:(nonnull RCTPromiseRejectBlock)reject {
++  [self withVectorSource:reactTag
++                   block:^(MLRNVectorSource *vectorSource) {
++                     if (![vectorSource setFeatureStates:sourceLayer
++                                              featureIDs:featureIds
++                                                  states:states]) {
++                       reject(@"source_not_attached",
++                              @"Source is not attached to a map, feature states were not set", nil);
++                       return;
++                     }
++                     resolve(nil);
++                   }
++                  reject:reject
++              methodName:@"setFeatureStates"];
++}
++
++// (canifishthis T217 patch) send each requested tile's ids for these source-layers as `MLRNTileIds` events
++- (void)watchTiles:(NSInteger)reactTag
++      sourceLayers:(nonnull NSArray *)sourceLayers
++           resolve:(nonnull RCTPromiseResolveBlock)resolve
++            reject:(nonnull RCTPromiseRejectBlock)reject {
++  __weak MLRNVectorSourceModule *weakSelf = self;
++  [self withVectorSource:reactTag
++                   block:^(MLRNVectorSource *vectorSource) {
++                     [vectorSource watchTiles:sourceLayers
++                                          tag:reactTag
++                                         emit:^(NSDictionary *body) {
++                                           [weakSelf.callableJSModules
++                                               invokeModule:@"RCTDeviceEventEmitter"
++                                                     method:@"emit"
++                                                   withArgs:@[ @"MLRNTileIds", body ]];
++                                         }];
++                     resolve(nil);
++                   }
++                  reject:reject
++              methodName:@"watchTiles"];
++}
++
+ @end
 diff --git a/lib/commonjs/components/images/Images.js b/lib/commonjs/components/images/Images.js
 index 46db8c919a36ce57cca573f7bb248bd797be1242..8bd9c6c6b5c51b1eca0227a0da3c9d81d7c7498a 100644
 --- a/lib/commonjs/components/images/Images.js

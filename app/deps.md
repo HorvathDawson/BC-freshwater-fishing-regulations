@@ -102,12 +102,16 @@ Expo project starts failing in ways whose stack traces point nowhere. `npx expo 
   PROVISIONAL**: N1 measured 51–60 fps against the default OpenGL ES's 21–35 fps at z9–11, on the EMULATOR only (its
   GLES runs through a GLES→Metal translator); it must be A/B'd on a real mid Android phone before it is kept. Cost: the
   native library per ABI plus ~1 MB of JS. Results: `handoff/PLAN/app-data/N1-SPIKE.md`, `n2/README.md`.
-  **PATCHED (T74, `app/patches/@maplibre__maplibre-react-native@11.5.0.patch`, `pnpm.patchedDependencies`)**, Android
-  only: (1) the atlas `VectorSource` reports each tile it requests (MapLibre Native's `OnTileActionListener`) with the
+  **PATCHED (T74 Android, T217 iOS, `app/patches/@maplibre__maplibre-react-native@11.5.0.patch`,
+  `pnpm.patchedDependencies`)**: (1) the atlas `VectorSource` reports each tile it requests (MapLibre Native's `OnTileActionListener`) with the
   tile's MVT feature ids, read off the UI thread from the same local `.pmtiles` (`TileIds.kt`), as the device event
   `MLRNTileIds` — the per-tile event GL JS has as `sourcedata`, which the colouring engine labels from; (2)
   `setFeatureStates`, many feature-states per bridge call; (3) `Images` entries take `stretchX`/`stretchY`/`content`
-  (the gauge pill is a stretchable image). Bump the binding only with the patch re-applied and the emulator pan re-run.
+  (the gauge pill is a stretchable image). iOS (T217): the map view's `tileDidTriggerAction` delegate, the same reader
+  in Obj-C (`MLRNPmTilesIds.m`), tiles requested before the watch replayed by it, states sent before the source attaches
+  kept until it does; the stretch zones become UIImage cap insets, so on iOS the pill's `content` box is its stretch box
+  (text sits a few px further in). Bump the binding only with the patch re-applied and the emulator AND simulator pans
+  re-run.
 - `pmtiles` — registers the `pmtiles://` protocol so maplibre reads a single archive by
   byte range instead of needing 20 million tile files on a server. This is what makes the
   same 835 MB file work from R2 on the web and from local storage offline.

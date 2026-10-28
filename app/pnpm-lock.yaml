@@ -15,7 +15,7 @@ overrides:
 
 patchedDependencies:
   '@maplibre/maplibre-react-native@11.5.0':
-    hash: 675lnm5p3vvf6agkwx43ygdpcq
+    hash: kv2em64otojuzkwbxvuhudpl3q
     path: patches/@maplibre__maplibre-react-native@11.5.0.patch
 
 importers:
@@ -69,7 +69,7 @@ importers:
         version: 57.0.14(@expo/log-box@57.0.4)(expo@57.0.18)(react-dom@19.2.3(react@19.2.3))(react-native@0.86.3(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.3))(react@19.2.3)
       '@maplibre/maplibre-react-native':
         specifier: 11.5.0
-        version: 11.5.0(patch_hash=675lnm5p3vvf6agkwx43ygdpcq)(@types/geojson@7946.0.16)(@types/react@19.2.18)(expo@57.0.18)(react-native@0.86.3(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.3))(react@19.2.3)
+        version: 11.5.0(patch_hash=kv2em64otojuzkwbxvuhudpl3q)(@types/geojson@7946.0.16)(@types/react@19.2.18)(expo@57.0.18)(react-native@0.86.3(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.3))(react@19.2.3)
       '@react-native-community/netinfo':
         specifier: 12.0.1
         version: 12.0.1(react-native@0.86.3(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.3))(react@19.2.3)
@@ -163,7 +163,7 @@ importers:
         version: link:../core
       '@maplibre/maplibre-react-native':
         specifier: 11.5.0
-        version: 11.5.0(patch_hash=675lnm5p3vvf6agkwx43ygdpcq)(@types/geojson@7946.0.16)(@types/react@19.2.18)(expo@57.0.18)(react-native@0.86.3(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.3))(react@19.2.3)
+        version: 11.5.0(patch_hash=kv2em64otojuzkwbxvuhudpl3q)(@types/geojson@7946.0.16)(@types/react@19.2.18)(expo@57.0.18)(react-native@0.86.3(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.3))(react@19.2.3)
       '@protomaps/basemaps':
         specifier: ^5.7.2
         version: 5.7.2
@@ -4644,7 +4644,7 @@ snapshots:
       quickselect: 3.0.0
       tinyqueue: 3.0.0
 
-  '@maplibre/maplibre-react-native@11.5.0(patch_hash=675lnm5p3vvf6agkwx43ygdpcq)(@types/geojson@7946.0.16)(@types/react@19.2.18)(expo@57.0.18)(react-native@0.86.3(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.3))(react@19.2.3)':
+  '@maplibre/maplibre-react-native@11.5.0(patch_hash=kv2em64otojuzkwbxvuhudpl3q)(@types/geojson@7946.0.16)(@types/react@19.2.18)(expo@57.0.18)(react-native@0.86.3(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.3))(react@19.2.3)':
     dependencies:
       '@maplibre/maplibre-gl-style-spec': 26.2.1
       '@turf/distance': 7.4.0

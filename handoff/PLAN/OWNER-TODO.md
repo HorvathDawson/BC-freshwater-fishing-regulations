@@ -131,6 +131,9 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
     at z9–z13 and say whether any water shows plain/grey before its colour (`EXPO_PUBLIC_COLOUR_PROBE=1` logs
     `T74PROBE` lines per pan for the numbers); the five hatches;
     "At my location" (asks on the tap, then drops the pin where you stand); a theme switch keeps the hatches.
+  - iPhone (T217, 2026-10-27; simulator: 0 grey frames in 49 sampled pan frames, pill/hatches/At my location seen):
+    the same colouring checks on a real iPhone, plus the location system prompt on the tap (pre-granted on the
+    simulator) and whether the gauge pill's slightly wider padding on iOS is acceptable.
   - Android on a real phone (T50, 2026-10-27; emulator-verified): the rule-book link opens the highlighted PDF in your
     PDF app (scroll to the entry's page — viewers ignore the page number); nothing sits under the status bar or the
     gesture / 3-button bar.
