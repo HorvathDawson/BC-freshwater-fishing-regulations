@@ -308,12 +308,15 @@ def _nbrs(graph: StreamGraph, nid: str) -> set[str]:
 
 
 def dangling_ends(graph: StreamGraph, geoms: dict, drop: set[str], tol: float = TOUCH_M):
-    """[(surviving piece, [dropped pieces its end touches])] — every end of a SURVIVING stream line that
+    """[(surviving piece, [dropped pieces its end touches], "up" | "down")] — every end of a SURVIVING stream line that
     touches a dropped piece and no surviving line. It is an end the prune made: before it the water went
     on there. A real source or mouth touches no dropped piece and is never listed.
 
     "No surviving line" is asked of the piece's graph neighbours AND the dropped pieces' neighbours, so a
-    sibling channel leaving the same junction counts as meeting it even with no edge between the two."""
+    sibling channel leaving the same junction counts as meeting it even with no edge between the two.
+
+    "up": the water came IN through this end from a dropped piece (a kept channel's stub); "down": it went
+    OUT through it to dropped pieces only (a creek whose channel went)."""
     out = []
     cands = set()
     for d in drop:
@@ -333,7 +336,8 @@ def dangling_ends(graph: StreamGraph, geoms: dict, drop: set[str], tol: float = 
             # no other way down. A piece's head at a distributary that leaves it is not that.
             into = {graph.edges[i].from_node for i in graph.up_adj.get(n, [])}
             outs = {graph.edges[i].to_node for i in graph.down_adj.get(n, [])}
-            if not (any(d in into for d in hit) or (outs and outs <= drop)):
+            way = "up" if any(d in into for d in hit) else "down" if (outs and outs <= drop) else None
+            if way is None:
                 continue
             around = set(near)
             for d in hit:
@@ -343,7 +347,7 @@ def dangling_ends(graph: StreamGraph, geoms: dict, drop: set[str], tol: float = 
             if any(geoms.get(v) is not None and not geoms[v].is_empty and geoms[v].distance(e) < tol
                    for v in around):
                 continue
-            out.append((n, hit))
+            out.append((n, [d for d in hit if d in (into if way == "up" else outs)], way))
     return out
 
 
@@ -351,9 +355,12 @@ def close_dangling_ends(graph: StreamGraph, geoms: dict | None, drop: set[str],
                         tol: float = TOUCH_M) -> set[str]:
     """The dropped pieces to put back so that no surviving line ends where the water goes on.
 
-    For each `dangling_ends` end, the SHORTEST run of dropped pieces (by length) from the ones it touches
-    to a piece that meets the surviving network anywhere but the dangling piece itself: a stub is joined
-    back to the river it left, a creek is carried on to where its channel rejoins. Restored pieces are
+    For each `dangling_ends` end, the SHORTEST run of dropped pieces (by length) that carries the water
+    on IN ITS OWN DIRECTION to the surviving network: a stub is followed upstream to the river it left, a
+    creek downstream to where its channel rejoins. Following flow, not mere adjacency, is what keeps
+    every restored piece on a way down: FWA has side channels with no outflow at all (Williams Creek's
+    1100 at Lakelse), and restoring one would hand a creek a dead end the re-homing had repaired. An end
+    with no such run is left as it is. Restored pieces are
     the river's own braid — its watershed code, its inherited name — so they join the river's item and
     its rules. Repeats until nothing dangles, since a restored piece can itself end on a dropped one.
     Without geometry there are no ends to judge and nothing is restored."""
@@ -363,8 +370,8 @@ def close_dangling_ends(graph: StreamGraph, geoms: dict | None, drop: set[str],
     for _round in range(50):
         live = drop - restored
         new: set[str] = set()
-        for n, start in dangling_ends(graph, geoms, live, tol):
-            if any(s in new for s in start):
+        for n, start, way in dangling_ends(graph, geoms, live, tol):
+            if not start or any(s in new for s in start):
                 continue                              # this round already reconnects it
             dist = {s: graph.nodes[s].length_m or 0.0 for s in start}
             prev: dict[str, str | None] = {s: None for s in start}
@@ -377,7 +384,10 @@ def close_dangling_ends(graph: StreamGraph, geoms: dict | None, drop: set[str],
                 if u in done:
                     continue
                 done.add(u)
-                nb = _nbrs(graph, u)
+                if way == "down":
+                    nb = {graph.edges[i].to_node for i in graph.down_adj.get(u, [])}
+                else:
+                    nb = {graph.edges[i].from_node for i in graph.up_adj.get(u, [])}
                 if any(v != n and v not in live and v in graph.nodes for v in nb):
                     hit = u
                     break

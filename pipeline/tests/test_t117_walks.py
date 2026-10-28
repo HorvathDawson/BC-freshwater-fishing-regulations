@@ -215,6 +215,7 @@ UP_ADJ_READERS = {
     ("pipeline/atlas/graph/leaf_prune.py", "hops_above_named"): "prune: hops to a named water",
     ("pipeline/atlas/graph/prune.py", "_nbrs"): "prune: a piece's touching neighbours, to close a dangling end",
     ("pipeline/atlas/graph/prune.py", "dangling_ends"): "prune: did the water come in through this end (one level)",
+    ("pipeline/atlas/graph/prune.py", "close_dangling_ends"): "prune: a stub's way back upstream, through dropped braid only",
     ("pipeline/deliver/tiles/export.py", "side_channel_run_zooms"): "tiles: a side channel's connected run, one zoom",
     ("pipeline/atlas/graph/leaf_prune.py", "prunable"): "prune: leaf test",
     ("pipeline/atlas/graph/nests.py", "nest_ports"): "a nest's ports, one level",

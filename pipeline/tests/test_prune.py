@@ -555,7 +555,7 @@ def _stub_nest():
 def test_a_kept_channels_stub_is_joined_back_to_its_river():
     from pipeline.atlas.graph.prune import dangling_ends
     g, geoms = _stub_nest()
-    assert dangling_ends(g, geoms, {"B1:0"}) == [("B2:0", ["B1:0"])]
+    assert dangling_ends(g, geoms, {"B1:0"}) == [("B2:0", ["B1:0"], "up")]
     closed: dict = {}
     g2, n, _ = prune_mainstem_loops(g, dict(geoms), reconnect_tributaries=True, closed=closed)
     assert closed["dangling_before"] == 1 and closed["restored"] == ["B1:0"]
@@ -573,7 +573,7 @@ def test_a_real_source_is_not_a_dangling_end():
     """The creek's head touches nothing — but no dropped piece either, so it is a source, not our end."""
     from pipeline.atlas.graph.prune import dangling_ends
     g, geoms = _stub_nest()
-    assert all(n != "T:0" for n, _ in dangling_ends(g, geoms, {"B1:0"}))
+    assert all(n != "T:0" for n, _, _ in dangling_ends(g, geoms, {"B1:0"}))
 
 
 def test_a_closure_takes_the_shortest_way_back():
@@ -590,3 +590,16 @@ def test_a_closure_takes_the_shortest_way_back():
         g.down_adj.setdefault(e.from_node, []).append(i)
     geoms["L:0"] = LineString([(2000, 0), (2000, 3000), (1500, 100)])
     assert close_dangling_ends(g, geoms, {"B1:0", "L:0"}) == {"B1:0"}
+
+
+def test_a_creek_is_never_handed_a_channel_with_no_way_down():
+    """A creek C whose receiving channel D was dropped dangles at its mouth — but D has no outflow in FWA
+    (Williams Creek's 1100 at Lakelse). Restoring D would give C a dead end; the closure follows flow, so
+    nothing is restored and the re-homing keeps C on the river."""
+    from shapely.geometry import LineString
+    from pipeline.atlas.graph.prune import close_dangling_ends
+    nodes = [_n("M:0", "M", length=1000.0), _n("D:0", "D", length=300.0), _n("C:0", "C", length=200.0)]
+    g = _graph([("C:0", "D:0"), ("M:0", "D:0")], nodes)
+    geoms = {"M:0": LineString([(0, 0), (1000, 0)]), "D:0": LineString([(500, 0), (500, 300)]),
+             "C:0": LineString([(500, 300), (500, 500)])}
+    assert close_dangling_ends(g, geoms, {"D:0"}) == set()
