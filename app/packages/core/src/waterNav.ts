@@ -289,7 +289,7 @@ export function mergeNav(g: WaterGroup, salmonKey: ((sid: number) => string) | n
     had.add(k);
     marks.push({ ...m, down, up });
   }
-  // a piece cut from its part by a salmon mark is named by its own ends — the mark below and above it, else the part's
+  // a piece cut from its part at a salmon split is named by its own ends — the split below and above it, else the part's
   // ("Mouth → white triangle boundary sign …"), never "stretch 1 of 2": in navigation it is simply two pieces with the
   // named mark between them (owner 2026-10-28). A T204 stretch (no such mark) keeps its stretch words.
   const same = (m: NavMark, u: number) => parts[m.down]!.item === parts[u]!.item && parts[m.down]!.partIx === parts[u]!.partIx;
@@ -297,8 +297,9 @@ export function mergeNav(g: WaterGroup, salmonKey: ((sid: number) => string) | n
     const below = marks.find((m) => m.up.includes(i) && same(m, i)), above = marks.find((m) => m.down === i && m.up.some((u) => same(m, u)));
     if (!below && !above) return p;
     const ends = p.short.split(" → ");
-    const from = below ? below.label ?? WATER_MAP_WORDS.salmonChange : ends[0]!;
-    const to = above ? above.label ?? WATER_MAP_WORDS.salmonChange : ends[ends.length - 1]!;
+    // every cut between two pieces of one part is a named split (the pipeline never cuts elsewhere, T228)
+    const from = below?.label ?? ends[0]!;
+    const to = above?.label ?? ends[ends.length - 1]!;
     const { stretch: _s, stretches: _n, ...base } = p;
     return { ...base, short: `${from} → ${to}` };
   });
@@ -418,10 +419,7 @@ export function markLabel(g: WaterGroup, m: NavMark): string {
     const cw = confidenceWords(m.confidence);
     return cw ? `${m.label}, ${cw}` : m.label;
   }
-  const d = g.parts[m.down], u = g.parts[m.up[0]!];
-  // (T228) two pieces of ONE part meet only where DFO's salmon rules change
-  if (d && u && d.item === u.item && d.partIx === u.partIx) return WATER_MAP_WORDS.salmonChange;
-  const a = d?.short ?? "", b = u?.short ?? "";
+  const a = g.parts[m.down]?.short ?? "", b = g.parts[m.up[0]!]?.short ?? "";
   let k = 0;
   while (k < a.length && a[k] === b[k]) k += 1;
   k = a.lastIndexOf(" ", k) + 1;
@@ -492,8 +490,6 @@ export const WATER_MAP_WORDS = {
   partsHere: "✓",
   /** (T204) One of a part's separate stretches, in its name: "stretch 1 of 2". */
   stretchOf: (k: number, n: number) => `stretch ${k} of ${n}`,
-  /** (T228) An unnamed boundary between two pieces of one part: where DFO's salmon rules change. */
-  salmonChange: "Salmon rules change here",
   loading: "Loading the parts of this water",
   /** No release to read the parts from, or it could not be read: the map is drawn, unlit. */
   unavailable: "The parts of this water are not available",

@@ -3,7 +3,7 @@
  * live feed decides that, so a feed that opens salmon on one of two pieces splits them and reverting joins them.
  */
 import { describe, expect, it } from "vitest";
-import { markLabel, mergeNav, partName, stepsUp, waterGroup, WATER_MAP_WORDS, type ItemNavRows } from "./waterNav";
+import { markLabel, mergeNav, partName, stepsUp, waterGroup, type ItemNavRows } from "./waterNav";
 import { salmonTimelineKey, type SalmonFacts } from "./salmon";
 
 // one river: part 0 (mouth) cut by DFO chains into stretches 0 (sids 1, 2), 1 (sid 3), 2 (sid 4); part 1 (no-access
@@ -14,7 +14,7 @@ const RIVER: ItemNavRows = {
           { partIx: 1, label: "Watershed boundary → Source", short: "Watershed boundary → Source" }],
   geo: [{ partIx: 0, rank: 0, box: [0, 0, 3, 1], mid: [1, 0.5] }, { partIx: 1, rank: 1, box: [3, 0, 5, 1], mid: [4, 0.5] }],
   marks: [
-    { lon: 1, lat: 0.5, label: null, down: 0, up: [0], downStretch: 0, upStretches: [1] },
+    { lon: 1, lat: 0.5, label: "Sandy Pool sign", down: 0, up: [0], downStretch: 0, upStretches: [1] },
     { lon: 2, lat: 0.5, label: "Canyon Bridge", down: 0, up: [0], downStretch: 1, upStretches: [2] },
     { lon: 3, lat: 0.5, label: "Watershed boundary", down: 0, up: [1], downStretch: 2, upStretches: [0] },
   ],
@@ -44,11 +44,10 @@ describe("mergeNav (T228)", () => {
     const raw = waterGroup([RIVER]);
     const open = mergeNav(raw, feed(new Set([3])));
     expect(open.parts.map((p) => p.sids)).toEqual([[1, 2], [3], [4], [5, 6]]);
-    // a salmon piece is named by its own ends, never "stretch 2 of 3"
+    // a salmon piece is named by its own ends (the named splits), never "stretch 2 of 3"
     expect([0, 1, 2].map((i) => partName(open, i))).toEqual([
-      `Mouth → ${WATER_MAP_WORDS.salmonChange}`, `${WATER_MAP_WORDS.salmonChange} → Canyon Bridge`,
-      "Canyon Bridge → Watershed boundary"]);
-    expect(markLabel(open, open.marks[0]!)).toBe(WATER_MAP_WORDS.salmonChange);
+      "Mouth → Sandy Pool sign", "Sandy Pool sign → Canyon Bridge", "Canyon Bridge → Watershed boundary"]);
+    expect(markLabel(open, open.marks[0]!)).toBe("Sandy Pool sign");
     expect(markLabel(open, open.marks[1]!)).toBe("Canyon Bridge");
     const back = mergeNav(raw, feed(new Set()));
     expect(back.parts.map((p) => p.sids)).toEqual([[1, 2, 3, 4], [5, 6]]);

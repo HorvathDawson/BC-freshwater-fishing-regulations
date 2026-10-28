@@ -42,6 +42,26 @@ INDEXES = HERE / "indexes.sql"
 BUNDLE_FORMAT = "bundle/1"
 
 
+
+def name_source_rows(items, alias_pairs: set) -> list[tuple]:
+    """T224: (item_id, name, src, label) for every SHOWN name (`item.name`) and every alias row (`alias_pairs`) whose
+    source is not the official gazette, from the registry's `name_sources`; `label` the words the app shows (the
+    record's own, else the code's: `common.name_sources.LABELS`). A name with no record keeps no row."""
+    from pipeline.common.name_sources import label_of
+    by_item: dict[str, list[str]] = {}
+    for iid, a in sorted(alias_pairs):
+        by_item.setdefault(iid, []).append(a)
+    out = []
+    for i in items:
+        recs = {r["name"]: r for r in reversed(i.get("name_sources") or [])}
+        want = [i["name"], *by_item.get(i["id"], ())] if recs else []
+        for nm in dict.fromkeys(want):
+            r = recs.get(nm)
+            if r is None or r.get("official") or r.get("source") == "gazette":
+                continue
+            out.append((i["id"], nm, r["source"], r.get("label") or label_of(r["source"])))
+    return out
+
 def schema_sha256() -> str:
     """`meta.schema_sha256`: the digest of the DDL the bundle was written with (schema.sql + indexes.sql). The old
     `meta.schema` was schema.sql's first comment line, identical in every revision."""
@@ -207,6 +227,10 @@ def _items(db: sqlite3.Connection, build_dir: Path, registry_items: list[dict],
             aliases.append((i["id"], v, stored_key(v)))
     db.executemany("INSERT INTO alias (item_id, alias, alias_key) VALUES (?,?,?)", aliases)
     cov.filled("alias", len(aliases))
+    # T224: where each shown name and alias came from, when it is not the official one
+    srcs = name_source_rows(items, {(a[0], a[1]) for a in aliases})
+    db.executemany("INSERT INTO name_source (item_id, name, src, label) VALUES (?,?,?,?)", srcs)
+    cov.filled("name_source", len(srcs))
     # The ids the registry absorbed (`registry.flowing`), each naming its water now.
     absorbed = sorted((a, i["id"]) for i in items for a in i.get("aliases", []))
     db.executemany("INSERT INTO item_alias (alias, item_id) VALUES (?,?)", absorbed)
@@ -677,6 +701,18 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
                             todo.append(u)
                 return sorted(_id_of[o] for o in seen)
 
+            # (T228) a water-bound place covers its water's side channels too (`salmon.carry_side_channels`)
+            _ord_of_sid = dict(db.execute("SELECT sid, ord FROM item_section"))
+            _touch: dict = {}
+            for _a, _b in db.execute("SELECT a, b FROM section_touch"):
+                _touch.setdefault(_a, set()).add(_b)
+                _touch.setdefault(_b, set()).add(_a)
+            _placed = _salmon.carry_side_channels(
+                _placed, {_loc.location_id for _ef in _files.values() for _loc in _ef.locations
+                          if any(getattr(_e.op, "value", _e.op) == "within" for _e in _loc.binding.extents)},
+                _read_handles(build_dir)[1], _ord_of_sid,
+                [s for (s,) in db.execute("SELECT sid FROM section_span WHERE off_stem = 1")], _touch)
+            del _ord_of_sid, _touch
             _payload, _salmon_secs = _salmon.build(_files, _feeds, _placed, _read_handles(build_dir)[1], _item_secs,
                                                    headers=_salmon.load_headers(_feeds),
                                                    scope_headers=_salmon.load_current_headers(_feeds), upstream=_upstream)

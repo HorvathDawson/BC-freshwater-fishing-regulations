@@ -303,39 +303,58 @@ def test_keep_named_reads_the_1_based_handle_and_the_lake_polygons(tmp_path):
     assert (got[1].length, got[2].length, got[3].geom_type) == (1.0, 9.0, "Polygon")
 
 
-def test_t228_a_stretch_is_cut_where_the_salmon_chain_changes():
-    """T228: one stretch of sections 1-2-3-4 (mouth up), chains 5, 5, 7, 5: three pieces mouth first, each one chain;
-    a stretch of one chain is returned as it was."""
+def _t228_span(cuts: dict[int, str]):
+    """Sections 1-2-3-4 mouth up; the end between s and s+1 is `cuts[s]` (a split id) or a plain length token."""
+    return {s: (s * 100.0, s * 100.0 + 100, cuts.get(s - 1, f"length:{s - 1}"), cuts.get(s, f"length:{s}"), 0, 0)
+            for s in (1, 2, 3, 4)}
+
+
+TOUCH4 = {1: {2}, 2: {1, 3}, 3: {2, 4}, 4: {3}}
+SPLITS = {"bridge": {"name": "Canyon Bridge"}, "sign": {"name": "white triangle boundary sign"}}
+
+
+def test_t228_a_stretch_is_cut_where_the_salmon_chain_changes_at_a_named_split():
+    """T228: chains 5, 5, 7, 5 with named splits at both chain changes: three pieces mouth first, each one chain; a
+    stretch of one chain is returned as it was."""
     from pipeline.deliver.bundle.topology import by_chain
-    span = {s: (s * 100.0, s * 100.0 + 100, None, None, 0, 0) for s in (1, 2, 3, 4)}
-    touch = {1: {2}, 2: {1, 3}, 3: {2, 4}, 4: {3}}
+    span = _t228_span({2: "sign", 3: "bridge"})
     st = [{"lo": 100.0, "hi": 500.0, "sids": [1, 2, 3, 4]}]
-    got = by_chain(st, {1: 5, 2: 5, 3: 7, 4: 5}, touch, span)
+    gaps: list = []
+    got = by_chain(st, {1: 5, 2: 5, 3: 7, 4: 5}, TOUCH4, span, SPLITS, gaps)
     assert [(p["sids"], p["chain"], p["hi"]) for p in got] == [([1, 2], 5, 300.0), ([3], 7, 400.0), ([4], 5, 500.0)]
-    assert by_chain(st, {1: 5, 2: 5, 3: 5, 4: 5}, touch, span) == st
-    assert by_chain(st, {}, touch, span) == st
+    assert gaps == []
+    assert by_chain(st, {1: 5, 2: 5, 3: 5, 4: 5}, TOUCH4, span, SPLITS) == st
+
+
+def test_t228_a_salmon_change_with_no_split_is_a_gap_never_a_cut():
+    """T228 (owner 2026-10-28: every boundary is a named split): a chain change where no named split stands is a DATA
+    GAP — the pieces stay one, the touching pair is reported; the named one still cuts."""
+    from pipeline.deliver.bundle.topology import by_chain
+    span = _t228_span({3: "bridge"})                       # 2|3 has no split, 3|4 has the bridge
+    gaps: list = []
+    got = by_chain([{"lo": 100.0, "hi": 500.0, "sids": [1, 2, 3, 4]}], {1: 5, 2: 5, 3: 7, 4: 5}, TOUCH4, span,
+                   SPLITS, gaps)
+    assert [(p["sids"], p["chain"]) for p in got] == [([1, 2, 3], (5, 7)), ([4], 5)]
+    assert gaps == [(2, 3)]
 
 
 def test_t228_an_unjoined_side_channel_stays_with_its_chains_stem_piece():
     """T228 (Cowichan 722): an off-stem section with no `section_touch` row joins the stretch's main-stem piece of its own
     chain, not a piece of its own; when that leaves one piece the stretch is returned whole."""
     from pipeline.deliver.bundle.topology import by_chain
-    span = {1: (100.0, 200.0, None, None, 0, 0), 2: (200.0, 300.0, None, None, 0, 0), 9: (None, None, None, None, 1, 0)}
+    span = {1: (100.0, 200.0, "mouth", "sign", 0, 0), 2: (200.0, 300.0, "sign", "source", 0, 0),
+            9: (None, None, "x", "y", 1, 0)}
     st = [{"lo": 100.0, "hi": 300.0, "sids": [1, 2, 9]}]
-    got = by_chain(st, {1: 3, 2: 15, 9: 3}, {1: {2}, 2: {1}}, span)
+    got = by_chain(st, {1: 3, 2: 15, 9: 3}, {1: {2}, 2: {1}}, span, SPLITS)
     assert [(p["sids"], p["chain"]) for p in got] == [([1, 9], 3), ([2], 15)]
-    assert by_chain(st, {1: 3, 2: 3, 9: 15}, {1: {2}, 2: {1}}, span)[1]["sids"] == [9]
+    assert by_chain(st, {1: 3, 2: 3, 9: 15}, {1: {2}, 2: {1}}, span, SPLITS)[1]["sids"] == [9]
 
 
-def test_t228_a_salmon_cut_is_named_by_its_split_else_the_dfo_place_at_its_edge():
-    """T228 follow-up (owner 2026-10-28): the cut between two pieces of one part carries the split's name (Cowichan's
-    Sandy Pool sign); with no named split, the narrowest DFO place one side has and the other not; else None."""
-    from pipeline.deliver.bundle.topology import DFO_EDGE, chain_label
-    span = {1: (0.0, 100.0, "mouth", "split:sp", 0, 0), 2: (100.0, 200.0, "split:sp", "source", 0, 0)}
+def test_t228_a_salmon_cut_is_named_by_its_split_and_nothing_else():
+    """T228: the cut between two pieces of one part carries the split's name (Cowichan's Sandy Pool sign); with no
+    named split there is no name (and `by_chain` never cuts there)."""
+    from pipeline.deliver.bundle.topology import chain_label
+    span = _t228_span({1: "sign"})
     dn, up = {"sids": [1], "chain": 1}, {"sids": [2], "chain": 2}
-    sign = {"name": "white triangle boundary sign located in Sandy Pool Regional Park"}
-    assert chain_label(dn, up, span, {"split:sp": sign}) == sign
-    places = ({"atnarko": "Atnarko River", "bella": "Bella Coola River — not including the Atnarko", "region": "Region 5B"},
-              [[], ["atnarko", "bella", "region"], ["atnarko", "region"]])
-    assert chain_label(dn, up, span, {}, places) == {"name": DFO_EDGE.format("Bella Coola River — not including the Atnarko")}
-    assert chain_label(dn, up, span, {}) is None
+    assert chain_label(dn, up, span, SPLITS, {1: {2}, 2: {1}}) == SPLITS["sign"]
+    assert chain_label(dn, up, _t228_span({}), SPLITS, {1: {2}, 2: {1}}) is None

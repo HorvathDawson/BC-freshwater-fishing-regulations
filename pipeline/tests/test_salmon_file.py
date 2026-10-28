@@ -148,3 +148,19 @@ def test_salmon_2_splits_per_bundle_region_and_round_trips():
     assert [s for s, _ in S.decode_shard(files["salmon-5"])[2]] == [11]
     assert [s for s, _ in S.decode_shard(files["salmon-x"])[2]] == [12]
     assert S.decode_shard(files["salmon-1"])[2] == []
+
+
+def test_t228_a_water_bound_place_carries_its_water_s_side_channels_not_an_area_bound_one():
+    """T228 (owner 2026-10-28; Tomahnous Creek): a water-bound DFO place covering a water's stem covers the off-stem
+    side channels of the SAME water touching it (repeatedly); another water's channel and an area-bound place's edge
+    are left alone (Klinaklini leaves MUs 5-6 to 5-11)."""
+    from pipeline.deliver.salmon import carry_side_channels
+    sid_of = {f"h{i}": i for i in range(1, 7)}
+    ord_of = {1: 10, 2: 10, 3: 10, 4: 10, 5: 20, 6: 10}
+    touch = {1: {2, 5, 6}, 2: {1, 3}, 3: {2, 4}, 4: {3}, 5: {1}, 6: {1}}
+    off = [3, 4, 5]                                         # 3 off 2, 4 off 3 (a channel off a channel), 5 another water's
+    placed = [{"location_id": "tat", "mapped": True, "sections": ["h1", "h2"]},
+              {"location_id": "mu", "mapped": True, "sections": ["h1", "h2"]}]
+    got = carry_side_channels(placed, {"mu"}, sid_of, ord_of, off, touch)
+    assert got[0]["sections"] == ["h1", "h2", "h3", "h4"]   # 6 is on-stem (not a side channel), 5 another water
+    assert got[1] is placed[1]

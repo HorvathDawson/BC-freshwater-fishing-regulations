@@ -1140,6 +1140,11 @@ def run(out_dir: Path = OUT_DIR, *, marks_path: Optional[Path] = None, gpkg: Opt
            "generated": date.today().isoformat(), "counts": summarize(rows), "outcomes": C.summary(rows),
            "why": dict(sorted(__import__("collections").Counter(r["why"] for r in rows).items())),
            "suggestions": {r["location_id"]: r for r in rows}}
+    # T228: the DFO place edges the bundle could not cut at (no split there), folded in so a regeneration keeps them
+    from pipeline.regs.dfo_salmon import edge_gaps as EG
+    _bundle = Path(GENERATED.bundle) / "bundle.sqlite"
+    if _bundle.exists():
+        doc = EG.fold(doc, EG.items(_bundle, gpkg))
     (out_dir / "dfo-suggestions.json").write_text(json.dumps(doc, indent=1, ensure_ascii=False) + "\n")
     (out_dir / "dfo-suggestions.md").write_text(_summary_md(rows, doc["counts"]))
     if hunt:

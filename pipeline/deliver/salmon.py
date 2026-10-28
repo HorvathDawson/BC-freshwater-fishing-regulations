@@ -371,6 +371,38 @@ def notes_for(payload: Mapping, regions: Sequence[str], item: Optional[str], day
     return out
 
 
+def carry_side_channels(placed: Iterable[dict], area_bound: Iterable[str], sid_of: Mapping[str, int],
+                        ord_of: Mapping[int, int], off_stem: Iterable[int],
+                        touch: Mapping[int, Iterable[int]]) -> List[dict]:
+    """A WATER-BOUND DFO PLACE COVERS ITS WATER'S SIDE CHANNELS TOO (T228, owner 2026-10-28: a place bound to only some
+    of a water's sections by a placement shortfall applies to the whole water — memory unplaced-extent-rules: carry it
+    on the water). The reach run's walk follows the main stem and its tributaries' stems; an off-stem section (a side
+    channel, `section_span.off_stem`) of the SAME water touching what a place covers is added to it, repeatedly (a
+    channel off a channel). Tomahnous Creek: the Tatshenshini's "including tributaries" covered the creek's stem, not
+    its side channel. An AREA-BOUND place (`area_bound`: a `within` extent — a region, an MU group) is left alone: its
+    edge is a real line, never carried (Klinaklini leaves MUs 5-6 to 5-11 there). `placed` rows as the reach run's
+    (handles in `sections`); returns new rows, the others as they were."""
+    area_bound = set(area_bound)
+    off = set(off_stem)
+    handle_of = {v: k for k, v in sid_of.items()}
+    out = []
+    for row in placed:
+        if not row.get("mapped") or row["location_id"] in area_bound:
+            out.append(row)
+            continue
+        have = {sid_of[h] for h in row["sections"] if h in sid_of}
+        todo, add = list(have), []
+        while todo:
+            x = todo.pop()
+            for y in touch.get(x, ()):
+                if y in off and y not in have and y in ord_of and ord_of.get(x) == ord_of[y] and y in handle_of:
+                    have.add(y)
+                    add.append(y)
+                    todo.append(y)
+        out.append({**row, "sections": list(row["sections"]) + [handle_of[y] for y in sorted(add)]} if add else row)
+    return out
+
+
 def load_inputs(run_dir: Path, registry=None, *, entries_dir: Optional[Path] = None,
                 feed_dir: Optional[Path] = None) -> Tuple[dict, dict, List[dict]]:
     """The curated entry files, the typed feed and the reach run's placements. A missing feed STOPS the build: a

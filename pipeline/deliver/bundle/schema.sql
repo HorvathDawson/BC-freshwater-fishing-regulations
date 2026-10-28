@@ -66,6 +66,12 @@ CREATE TABLE meta (k TEXT PRIMARY KEY, v TEXT) WITHOUT ROWID;
 CREATE TABLE item (ord INTEGER PRIMARY KEY, item_id TEXT NOT NULL UNIQUE,
                    name TEXT NOT NULL, kind TEXT, part_of TEXT, area_ha INTEGER, name_key TEXT);
 CREATE TABLE alias (item_id TEXT NOT NULL, alias TEXT NOT NULL, alias_key TEXT);
+-- T224 (owner 2026-10-28): WHERE A NAME CAME FROM, for every shown name and alias that is NOT the official (gazetted)
+-- one — a city's stream layer, OpenStreetMap, an ECCC station, the synopsis… `src` is the `NameSource` code, `label`
+-- the words the app shows (`pipeline.common.name_sources`). No row = an official name. Search shows
+-- "also Kilgard Creek · City of Abbotsford stream layer".
+CREATE TABLE name_source (item_id TEXT NOT NULL, name TEXT NOT NULL, src TEXT NOT NULL, label TEXT NOT NULL,
+                          PRIMARY KEY (item_id, name)) WITHOUT ROWID;
 -- AN ITEM ID THE REGISTRY ABSORBED (`registry.flowing`: a river's polygon folded into its river,
 -- `wbk:329148363` -> `gnis:7836`): `alias` is the old id, `item_id` the water it names now. The
 -- permanent record, so a link or a favourite saved under the old id still opens its water. No
@@ -426,6 +432,13 @@ CREATE TABLE part_stretch (ord INTEGER NOT NULL, part_ix INTEGER NOT NULL, stret
                            PRIMARY KEY (ord, part_ix, stretch_ix),
                            FOREIGN KEY (ord, part_ix) REFERENCES part(ord, part_ix)) WITHOUT ROWID;
 CREATE TABLE water_exit (ord INTEGER PRIMARY KEY, down_ord INTEGER NOT NULL, down_part INTEGER, label TEXT);
+-- T228 DIAGNOSTIC (owner 2026-10-28: every boundary is a named split): a salmon chain change inside a part where no
+-- named split stands — a DFO place's edge not placed as a split. Not cut (the pieces stay one); one row per (water, the
+-- two chains), at the first place they touch (`down_sid` the lower section). The review's DFO queue reads it
+-- (`pipeline.regs.dfo_salmon.edge_gaps`). Never shipped.
+CREATE TABLE salmon_edge_gap (ord INTEGER NOT NULL, down_sid INTEGER NOT NULL, up_sid INTEGER NOT NULL,
+                              lon REAL NOT NULL, lat REAL NOT NULL, down_chain INTEGER NOT NULL,
+                              up_chain INTEGER NOT NULL, PRIMARY KEY (ord, down_chain, up_chain)) WITHOUT ROWID;
 
 -- EVERY SECTION HAS AN ANSWER (S1, user ruling 2026-10-10: "unnamed or named but unregulated
 -- waters should always show base regs/zone and any area they are in, tiered properly"). A section

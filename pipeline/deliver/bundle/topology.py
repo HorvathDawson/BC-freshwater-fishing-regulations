@@ -122,19 +122,40 @@ def stretches(runs: Sequence[dict], span: Dict[int, tuple], other: Sequence[Tupl
     return out
 
 
-def by_chain(st: Sequence[dict], chain: Dict[int, int], touch: Dict[int, set], span: Dict[int, tuple]) -> List[dict]:
-    """T228 (owner 2026-10-28: sections merge only when BOTH the provincial and the salmon regulations match): each
-    stretch of `st` cut where the DFO salmon chain changes (`salmon_section.chain`, 0 for a section in none) — the
-    connected runs (`section_touch`) of one chain, each a stretch of its own, mouth first, its `hi` the highest main-stem
-    measure it holds (None: no main stem). Where a chain's verdicts equal its neighbour's TODAY the app merges the two
-    again (`@app/core` `mergeNav`): the cut is where the salmon rules MAY differ, the merge is whether they do now. A
-    stretch of one chain is returned as it was."""
+def cut_between(x: int, y: int, span: Dict[int, tuple], splits: Dict[str, dict]) -> Optional[str]:
+    """T228: the NAMED SPLIT two touching sections meet at — the span end token they share, when it is a split with a
+    name — else None."""
+    a, b = span.get(x), span.get(y)
+    if not a or not b:
+        return None
+    for t in sorted({a[2], a[3]} & {b[2], b[3]} - {None}):
+        hit = splits.get(t)
+        if hit and hit.get("name"):
+            return t
+    return None
+
+
+def by_chain(st: Sequence[dict], chain: Dict[int, int], touch: Dict[int, set], span: Dict[int, tuple],
+             splits: Optional[Dict[str, dict]] = None, gaps: Optional[List[Tuple[int, int]]] = None) -> List[dict]:
+    """T228 (owner 2026-10-28: "sections are bounded by extents (named splits); salmon DFO places' extents are splits
+    too; adjacent sections merge only when both standard and salmon rules match; every boundary is a named split"):
+    each stretch of `st` cut where the DFO salmon chain changes (`salmon_section.chain`, 0 for a section in none) AND a
+    named split stands there (`cut_between`). The connected runs (`section_touch`) of one chain are the candidate
+    pieces; two that touch only where no named split stands are ONE piece — a salmon difference at a point with no split
+    is a DATA GAP (a DFO place's edge not placed as a split), never cut or named: each such touching pair is appended to
+    `gaps` (down-or-up order as met) for the build's diagnostic and the review's DFO queue. Each piece mouth first, its
+    `hi` the highest main-stem measure it holds (None: no main stem), its `chain` the one chain or a tuple of them.
+    Where two pieces read the same salmon TODAY the app joins them again (`@app/core` `mergeNav`). A stretch left whole
+    is returned as it was."""
+    splits = splits or {}
     out: List[dict] = []
     for s in st:
         if len({chain.get(x, 0) for x in s["sids"]}) <= 1:
             out.append(s)
             continue
-        left, pieces = set(s["sids"]), []
+        here = set(s["sids"])
+        left, comps = set(s["sids"]), []
+        piece_of: Dict[int, int] = {}
         for x in s["sids"]:
             if x not in left:
                 continue
@@ -147,9 +168,37 @@ def by_chain(st: Sequence[dict], chain: Dict[int, int], touch: Dict[int, set], s
                     if z in left and chain.get(z, 0) == c:
                         left.discard(z)
                         todo.append(z)
+            for y in comp:
+                piece_of[y] = len(comps)
+            comps.append(comp)
+        # two pieces join unless a named split stands where they touch
+        root = list(range(len(comps)))
+
+        def find(i: int) -> int:
+            while root[i] != i:
+                root[i] = root[root[i]]
+                i = root[i]
+            return i
+        pairs: Dict[Tuple[int, int], List[Tuple[int, int]]] = defaultdict(list)
+        for x in sorted(here):
+            for y in sorted(touch.get(x, ())):
+                if y in here and piece_of[x] < piece_of[y]:
+                    pairs[(piece_of[x], piece_of[y])].append((x, y))
+        for (i, j), xs in sorted(pairs.items()):
+            if not any(cut_between(x, y, span, splits) for x, y in xs):
+                if gaps is not None:
+                    gaps += xs
+                root[find(j)] = find(i)
+        joined: Dict[int, List[int]] = defaultdict(list)
+        for k, comp in enumerate(comps):
+            joined[find(k)] += comp
+        pieces = []
+        for comp in joined.values():
+            cs = sorted({chain.get(y, 0) for y in comp})
             stem = [span[y] for y in comp if y in span and not span[y][4] and span[y][0] is not None]
             pieces.append({"lo": min(r[0] for r in stem) if stem else None,
-                           "hi": max(r[1] for r in stem) if stem else None, "sids": sorted(comp), "chain": c})
+                           "hi": max(r[1] for r in stem) if stem else None, "sids": sorted(comp),
+                           "chain": cs[0] if len(cs) == 1 else tuple(cs)})
         pieces.sort(key=lambda q: (q["hi"] is None, q["lo"] if q["lo"] is not None else 0, q["sids"][0]))
         # a piece with no main stem (a side channel the graph does not join: no `section_touch`) goes with the stretch's
         # first main-stem piece of its chain — as `stretches` placed it by measure; with none of its chain it stays
@@ -168,30 +217,24 @@ def by_chain(st: Sequence[dict], chain: Dict[int, int], touch: Dict[int, set], s
     return out
 
 
-#: (T228) A salmon cut no split names, worded by the DFO place that begins or ends there.
-DFO_EDGE = "Edge of DFO area: {}"
-
-
 def chain_label(dn: dict, up: dict, span: Dict[int, tuple], splits: Dict[str, dict],
-                dfo_places: Optional[Tuple[Dict[str, str], List[List[str]]]] = None) -> Optional[dict]:
-    """T228: the name of the cut where two stretches of ONE part meet at a salmon chain boundary. Every such cut sits on
-    a curated split or a DFO place's edge: the cut token at the upper stretch's lowest main-stem end when it is a named
-    split; else the narrowest DFO place one side has and the other not (`dfo_places`: place id -> DFO's own words, and
-    each chain's places narrowest first), as `DFO_EDGE`; else None (the app says "Salmon rules change here")."""
+                touch: Optional[Dict[int, set]] = None) -> Optional[dict]:
+    """T228: the NAMED SPLIT where two pieces of ONE part meet (`by_chain` only cuts at one): the split two of their
+    touching sections share, else the upper piece's lowest main-stem end when it is a named split; else None — no
+    name is ever invented (owner 2026-10-28: every boundary is a named split)."""
+    a = set(dn["sids"])
+    for y in sorted(up["sids"]):
+        for x in sorted((touch or {}).get(y, ())):
+            if x in a:
+                t = cut_between(x, y, span, splits)
+                if t:
+                    return splits[t]
     stem = sorted((span[s][0], s) for s in up["sids"] if s in span and not span[s][4] and span[s][0] is not None)
     if stem:
         hit = splits.get(span[stem[0][1]][2] or "")
         if hit and hit.get("name"):
             return hit
-    if dfo_places is None:
-        return None
-    words, places = dfo_places
-    a = places[dn["chain"]] if 0 <= dn.get("chain", -1) < len(places) else []
-    b = places[up["chain"]] if 0 <= up.get("chain", -1) < len(places) else []
-    only = sorted({p for p in a if p not in b} | {p for p in b if p not in a},
-                  key=lambda p: (a.index(p) if p in a else b.index(p), p))
-    named = [words[p] for p in only if words.get(p)]
-    return {"name": DFO_EDGE.format(named[0])} if named else None
+    return None
 
 
 def split_at(down: dict, up: dict, splits: Dict[str, dict]) -> Optional[dict]:
@@ -432,8 +475,10 @@ def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
         return round(lon, 6), round(lat, 6)
 
     part_rows, mark_rows, stretch_rows, shapes = [], [], [], {}
+    gap_rows: List[tuple] = []
     no_measure = 0
     for o, parts in sorted(by_ord.items()):
+        gap_pairs: List[Tuple[int, int]] = []
         ranked = order_parts(parts)
         for rank, p in enumerate(ranked):
             gs = [geo[s] for s in p["sids"] if s in geo]
@@ -449,11 +494,24 @@ def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
         for p in ranked:
             other = [(a, b) for v, a, b in stem_of[o] if v != p["v"]]
             st = [{"lo": None, "hi": None, "sids": p["sids"]}] if p["poly"] or not p["runs"] \
-                else by_chain(stretches(p["runs"], span, other), chain, touch, span)
+                else by_chain(stretches(p["runs"], span, other), chain, touch, span, splits, gap_pairs)
             for k, s in enumerate(st):
                 km = p["km"] if len(st) == 1 else (None if s["hi"] is None else round(s["hi"] / 1000, 2))
                 nodes.append({"part": p, "v": p["v"], "k": k, "n": len(st), "sids": s["sids"], "km": km,
                               "chain": s.get("chain", chain.get(s["sids"][0], 0) if s["sids"] else 0)})
+        # T228: every salmon difference with no named split under it — one row per (water, the two chains), at the
+        # first place they touch, the lower section first
+        seen_gap = set()
+        for x, y in gap_pairs:
+            dx, uy = (x, y) if (span[x][0] if span.get(x) and span[x][0] is not None else 0) <= \
+                (span[y][0] if span.get(y) and span[y][0] is not None else 0) else (y, x)
+            k = (chain.get(dx, 0), chain.get(uy, 0))
+            if k in seen_gap or dx not in geo or uy not in geo:
+                continue
+            seen_gap.add(k)
+            pa, pb = nearest_points(geo[dx], geo[uy])
+            lon, lat = to_ll.transform((pa.x + pb.x) / 2, (pa.y + pb.y) / 2)
+            gap_rows.append((o, dx, uy, round(lon, 6), round(lat, 6), k[0], k[1]))
         nodes = (sorted((x for x in nodes if x["km"] is not None), key=lambda x: (x["km"], x["v"], x["k"]))
                  + [x for x in nodes if x["km"] is None])
         multi = any(x["n"] > 1 for x in nodes)
@@ -479,15 +537,17 @@ def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
             for j in range(i + 1, len(nodes)):
                 dn, up = nodes[i], nodes[j]
                 same = dn["v"] == up["v"]
-                # T228: two stretches of one part meet only across a salmon chain boundary (else they are not adjacent)
-                if same and dn.get("chain") == up.get("chain"):
+                # T228: two pieces of one part meet only at a named split on a salmon chain boundary; any other pair
+                # of one part is not adjacent (or is a stretch apart, T204)
+                if same and (dn.get("chain") == up.get("chain")
+                             or chain_label(dn, up, span, splits, touch) is None):
                     continue
                 a, b = dn["g"], up["g"]
                 if a.distance(b) > TOUCH_M:
                     continue
                 pa, pb = nearest_points(a, b)
                 lon, lat = to_ll.transform((pa.x + pb.x) / 2, (pa.y + pb.y) / 2)
-                at = chain_label(dn, up, span, splits, dfo_places) if same \
+                at = chain_label(dn, up, span, splits, touch) if same \
                     else split_at(dn["part"], up["part"], splits) if dn["n"] == 1 and up["n"] == 1 \
                     else split_at(_runs_of(dn), _runs_of(up), splits)
                 raw.append({"lon": round(lon, 6), "lat": round(lat, 6), "down": dn["v"], "up": up["v"],
@@ -529,6 +589,21 @@ def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
     db.executemany("INSERT INTO part_stretch (ord, part_ix, stretch_ix, rank, mid_sid, mid_lon, mid_lat, w, s, e, n, "
                    "sids) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", stretch_rows)
     db.executemany("INSERT INTO water_exit (ord, down_ord, down_part, label) VALUES (?,?,?,?)", exits)
+    # T228 DIAGNOSTIC: a salmon difference where no named split stands — a DFO place's edge not yet placed as a split.
+    # Not cut, not named: the pieces stay one (the salmon bar shows its "see Salmon below" days) until the edge is placed
+    # (`pipeline.regs.dfo_salmon.edge_gaps` puts each on the review's DFO queue).
+    db.executemany("INSERT INTO salmon_edge_gap (ord, down_sid, up_sid, lon, lat, down_chain, up_chain) "
+                   "VALUES (?,?,?,?,?,?,?)", gap_rows)
+    cov.filled("salmon_edge_gap", len(gap_rows))
+    if gap_rows:
+        words, places = dfo_places or ({}, [])
+        print(f"  salmon edge gaps: {len(gap_rows)} salmon difference(s) with no named split (DFO place edges to "
+              f"place as splits — not cut):")
+        for o, _d, _u, lon, lat, ca, cb in gap_rows:
+            a = places[ca] if ca < len(places) else []
+            b = places[cb] if cb < len(places) else []
+            only = [p for p in a if p not in b] + [p for p in b if p not in a]
+            print(f"    {name.get(o)} at {lon},{lat}: {' | '.join(f'{p} ({words.get(p, '')})' for p in only[:2])}")
     cov.filled("part_geo", len(part_rows))
     cov.filled("part_mark", len(mark_rows))
     cov.filled("part_stretch", len(stretch_rows))
