@@ -44,3 +44,10 @@ Code done 2026-10-24 (tiles window); takes effect at the next tile build (labels
   `display_case`d and keeps the raw one as `official_name` (export `checks.py` already refuses a shouting shown
   name). Casing them in the bundle would drop `official_name`; not done.
 - Not unified: `atlas/graph/names._display_case` (atlas-side node labels; the tile re-cases them through `display`).
+
+## Outcome (2026-10-28 sweep, 699c1392)
+Swept `display_case` on Mc/Mac/O'/D'/hyphen/St./(No. 2)/First Nations cases: all right except "2ND" -> "2Nd" (fixed: ordinal
+suffix after a numeral stays lower, "2nd") and a digit inside a word (JAJI7EM, Skwxwu7mesh) now keeps the book's spelling
+instead of "Jaji7Em". Test added in test_one_name_caser.py (13 pass; 335 across the name-touching suites). Committed before
+T182's deliver run, so it picks the caser up. Still owed (rebuild, not run here): tiles build + deliver, then re-measure
+T113-name-changes.tsv (a few "Nth"-names and digit-in-word names change). Stays PARTIAL on that rebuild only.

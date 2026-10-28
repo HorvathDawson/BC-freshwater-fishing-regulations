@@ -181,3 +181,9 @@ Pinned by `pipeline/tests/test_name_key.py`: a whole-value table, one mutation p
 - **Also:** bb22f3eb overwrote `pipeline/tests/test_names.py` (name-tuple tests) by mistake; 9df3d2f0 restores it verbatim.
   Seen failing, not touched: test_dfo_salmon ×3 (need `cache/dfo_salmon`, fail at base too), test_release
   `test_every_cores_effective_key_is_the_search_key` (missing `needs_bundle` marker).
+
+## Outcome (2026-10-28 sweep)
+Checked the lane leftovers: the prose mentions of `fixture_release` / `build-fixture.mjs` / `bundle/queries.ts` are gone
+(only two historical notes remain: test_shared_logic.py docstring, docs/archive/DUPLICATION.md); `knip` over app/ reports
+nothing dead. No further code-only deletions found. Remaining, not code-only/unblocked: 2.17 design/ live inputs move
+(taps.py owner, T63), 2.13 silent `except Exception` audit, 2.14, 2.20, 2.21.
