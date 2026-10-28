@@ -1,6 +1,6 @@
 # T86 — Production hosting and ship config
 
-Status: OPEN. Owner needed (credentials, billing, name).
+Status: POSTPONED (owner 2026-10-28: prod is a while off). Owner needed (credentials, billing, name).
 
 Source: needed to ship, tracked nowhere: "The feed only stays current with a SCHEDULED publisher (owner)"
 (implement_progress; P04 removed the old workflows); the R2 bucket (D1b; publish.py is human-run); `EXPO_PUBLIC_CONTACT`

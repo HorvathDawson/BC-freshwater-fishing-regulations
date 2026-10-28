@@ -21,3 +21,6 @@ aggressive zoomed out.
 
 ## Tests
 `method-paint.test.ts` updated (+ ramp test); `app/packages/map` + `app/tools` suites green.
+
+
+Owner 2026-10-28: **gentle** ramp chosen (the default); `late` stays only as a constant.
