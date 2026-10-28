@@ -113,6 +113,13 @@ describe("<GearTab> other states", () => {
     expect([screen.queryByRole("heading"), screen.queryByTestId("gear-bait"), screen.queryByTestId("gear-line-lines")]).toEqual([null, null, null]);
   });
 
+  it("(T227) closed, salmon release only that day: the sentence names game fish, then DFO's salmon answer", () => {
+    render(<GearTab vm={gearOf(vedder615)} palette={LIGHT} actions={{ onSheet() {}, onDay() {}, onTab() {}, onBook() {} }}
+                    salmon={{ status: "release", when: "today" } as never} />);
+    expect(screen.getByTestId("gear-tab").textContent)
+      .toBe("No fishing for game fish here until Jul 1.Salmon (DFO): release only today — see What you can keep.");
+  });
+
   it("mutation pins: a lost value ⓘ, a dropped change or a reordered row fails the golden mount", () => {
     const vm = gearOf(vedder1010), golden = GL.vedder_1010!.gear;
     const muts: Record<string, GearVM> = {

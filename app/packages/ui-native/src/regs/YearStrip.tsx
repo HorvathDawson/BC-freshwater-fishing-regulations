@@ -6,8 +6,10 @@
 import { useState } from "react";
 import { Text, View } from "react-native";
 import Svg, { Defs, Line as SvgLine, Pattern, Rect } from "react-native-svg";
-import { SALMON_WORDS, WORDS, type SalmonBarStatus, type SalmonStripVM, type StripVM } from "@app/core";
+import { WORDS, type SalmonBarStatus, type SalmonStripVM, type StripVM } from "@app/core";
 import { TYPE } from "../type";
+import { Icon } from "../icons";
+import { RegsPress } from "./RegsPress";
 import { GUTTER, type Palette } from "../theme";
 
 const GAP = 2, H = 10;
@@ -138,7 +140,7 @@ function SalmonPatterns({ id, palette }: { id: string; palette: Palette }) {
 const barTone = (p: Palette, s: SalmonStripVM["status"]): string =>
   s === "open" ? p.open : s === "release" ? p.restricted : s === "closed" ? p.closed : p.sub;
 
-function SalmonBar({ runs, w, palette, id, label }: { runs: SalmonStripVM["bars"][number]["runs"]; w: number; palette: Palette; id: string; label: string }) {
+function SalmonBar({ runs, w, palette, id, label }: { runs: SalmonStripVM["bar"]["runs"]; w: number; palette: Palette; id: string; label: string }) {
   const room = Math.max(0, w - GAP * (runs.length - 1));
   let x = 0;
   return (
@@ -156,11 +158,13 @@ function SalmonBar({ runs, w, palette, id, label }: { runs: SalmonStripVM["bars"
 
 /**
  * (T227, owner 2026-10-28) DFO's salmon year under the provincial bar, in the same visual language: its name ("Salmon
- * (DFO)"), the day's word, one bar per DFO place (each named by DFO's words; "not on the map yet" for an undrawn one),
- * the day's marker, the month initials and its legend. No logic: everything is core `salmonStripOf`'s.
+ * (DFO)"), the day's word, ONE bar for the viewed part, the day's marker, the month initials, its legend; then, where
+ * DFO places on the water are not drawn yet, one compact line that opens the list of them, each with its own day. No
+ * logic: everything is core `salmonStripOf`'s.
  */
 export function SalmonYearStrip({ strip, todayAt, months, palette }: { strip: SalmonStripVM; todayAt: number; months: readonly string[]; palette: Palette }) {
   const [w, setW] = useState(0);
+  const [open, setOpen] = useState(false);
   const tone = barTone(palette, strip.status);
   return (
     <View style={{ paddingTop: 14, paddingHorizontal: GUTTER, paddingBottom: 2 }} testID="salmon-strip">
@@ -169,26 +173,12 @@ export function SalmonYearStrip({ strip, todayAt, months, palette }: { strip: Sa
         <Text testID={`salmon-strip-st:${strip.status}`} style={[TYPE.answer, { color: tone }]}>{strip.word}</Text>
         {strip.when && <Text style={[TYPE.meta, { color: palette.sub }]}>{strip.when}</Text>}
       </View>
-      {strip.partial && <Text testID="salmon-strip-partial" style={[TYPE.meta, { color: palette.sub, marginTop: 2 }]}>{strip.partial}</Text>}
-      <View onLayout={(e) => setW(e.nativeEvent.layout.width)} style={{ marginTop: 8 }}>
-        {strip.bars.map((b, i) => (
-          <View key={i} testID="salmon-strip-bar" style={{ marginTop: i ? 8 : 4 }}>
-            {b.label && (
-              <Text testID="salmon-strip-place" style={[TYPE.meta, { color: palette.ink, marginBottom: 3 }]}>
-                {b.label}{b.unmapped ? <Text style={{ color: palette.sub }}>{` · ${SALMON_WORDS.barUnmapped}`}</Text> : null}
-                <Text testID={`salmon-strip-place-st:${b.today}`} style={[TYPE.metaBold, { color: barTone(palette, b.today) }]}>{` · ${b.todayWord}`}</Text>
-              </Text>
-            )}
-            <View>
-              <SalmonBar runs={b.runs} w={w} palette={palette} id={`sb${i}`}
-                         label={`${strip.title}${b.label ? `, ${b.label}` : ""}: ${strip.word}`} />
-              {w > 0 && (
-                <View pointerEvents="none" aria-hidden importantForAccessibility="no-hide-descendants"
-                      style={{ position: "absolute", top: -4, left: w * todayAt - 1, width: 2, height: H + 8, backgroundColor: palette.ink }} />
-              )}
-            </View>
-          </View>
-        ))}
+      <View testID="salmon-strip-bar" onLayout={(e) => setW(e.nativeEvent.layout.width)} style={{ marginTop: 10 }}>
+        <SalmonBar runs={strip.bar.runs} w={w} palette={palette} id="sb" label={`${strip.title}: ${strip.word}`} />
+        {w > 0 && (
+          <View pointerEvents="none" aria-hidden importantForAccessibility="no-hide-descendants"
+                style={{ position: "absolute", top: -4, left: w * todayAt - 1, width: 2, height: H + 8, backgroundColor: palette.ink }} />
+        )}
       </View>
       <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 5 }}>
         {months.map((m, i) => <Text key={i} style={[TYPE.month, { color: palette.sub }]}>{m}</Text>)}
@@ -204,7 +194,20 @@ export function SalmonYearStrip({ strip, todayAt, months, palette }: { strip: Sa
           </View>
         ))}
       </View>
-      {strip.more && <Text testID="salmon-strip-more" style={[TYPE.meta, { color: palette.sub, marginTop: 4 }]}>{strip.more}</Text>}
+      {strip.unplacedLine && (
+        <RegsPress testID="salmon-strip-unplaced" accessibilityRole="button" aria-expanded={open} box={{ w: 200, h: 44 }}
+                   onPress={() => setOpen(!open)}
+                   style={(st) => ({ flexDirection: "row", alignItems: "center", gap: 4, minHeight: 44, marginTop: 4,
+                                     backgroundColor: st.pressed || (st as { hovered?: boolean }).hovered ? palette.wash : "transparent" })}>
+          <Text style={[TYPE.metaSemi, { color: palette.ink, flexShrink: 1 }]}>{strip.unplacedLine}</Text>
+          <Icon name={open ? "collapse" : "expand"} colour={palette.ink} size={14} />
+        </RegsPress>
+      )}
+      {open && strip.unplaced.map((u) => (
+        <Text key={u.label} testID="salmon-strip-place" style={[TYPE.meta, { color: palette.ink, marginTop: 4 }]}>
+          {u.label}<Text style={[TYPE.metaBold, { color: barTone(palette, u.today) }]}>{` · ${u.todayWord}`}</Text>
+        </Text>
+      ))}
     </View>
   );
 }

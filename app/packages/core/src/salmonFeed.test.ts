@@ -40,7 +40,7 @@ describe("the DFO feed over the release", () => {
     expect([salmonFeedLine(release()), salmonFeedOf(release())]).toEqual([null, null]);
   });
 
-  it("PARTIAL COVERAGE: a water with a DFO place not drawn yet says check DFO on every section, never a confident answer", () => {
+  it("PARTIAL COVERAGE: a water with a DFO place not drawn yet says check DFO wherever that place answers otherwise", () => {
     const by = new Map<number, number>(G.sections.map(([s, c]: [number, number]) => [s, c]));
     const live = withSalmonFeed(release(), feed());
     for (const f of [release(), live]) {
@@ -48,7 +48,10 @@ describe("the DFO feed over the release", () => {
       const card = salmonCard(f, { sids: [11], item: "gnis:4674" }, new Date(2026, 8, 10));
       expect([card.headlineStatus, card.partial?.text, card.partial?.url]).toEqual(
         ["check", "Salmon rules on parts of this water aren't mapped yet — check DFO", G.release.regions["6"].url]);
-      expect(card.rows.every((r) => r.status === "check") && !card.allClosed).toBe(true);
+      // (T227) a row keeps its answer only where the undrawn place says the same for its species that day: the place
+      // closes every salmon, so the closed coho / sockeye · pink · chum stand; the open chinook reads check DFO
+      expect([card.rows.map((r) => [r.label, r.status]), card.allClosed]).toEqual(
+        [[["Chinook", "check"], ["Coho", "closed"], ["Sockeye · pink · chum", "closed"]], false]);
       // a section off that water keeps its own answer
       expect(salmonCard(f, { sids: [10], item: null }, new Date(2026, 8, 10)).partial).toBeNull();
     }

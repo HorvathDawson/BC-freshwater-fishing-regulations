@@ -155,6 +155,9 @@ export function WaterScreen({ source, item, palette, onBack,
 
   // THE REGULATIONS PAGE (T23): the regs header (its name row is the frame's WaterTitle) fixed above ONE scroll
   if (loader && regs && !regsError) {
+    // (T227) DFO's salmon year under the provincial bar, at the top (none where DFO has no salmon rules here); the Gear /
+    // Methods tabs' closed line names its exception
+    const salmonStrip = salmon.value ? salmonStripOf(salmon.value, regs.keep.strip) : null;
     return (
       <>
       {frame(null, (
@@ -166,8 +169,7 @@ export function WaterScreen({ source, item, palette, onBack,
                   access={access.value ?? null}
                   salmon={salmon.value ? ({ actions, images }) => <SalmonCard card={salmon.value!} palette={palette} actions={actions} images={images} /> : undefined}
                   glance={glance ? { salmon: salmon.value ? salmonGlance(salmon.value) : null } : null}
-                  // (T227) DFO's salmon year under the provincial bar, at the top (none where DFO has no salmon rules here)
-                  salmonStrip={salmon.value ? salmonStripOf(salmon.value, regs.keep.strip) : null}
+                  salmonStrip={salmonStrip}
                   onAccessMap={views?.views.includes("map") ? () => views.onView("map") : undefined}
                   actions={{
                     onSheet: () => {},                                   // RegsScreen opens the sheet itself (T37 SheetHost)
@@ -176,8 +178,8 @@ export function WaterScreen({ source, item, palette, onBack,
                   }}
                   // Gear / Methods / Licence (T34/T35); each is null only outside B.C. (T42: no key, so the page has
                   // none and the Keep tab's foot line is the page)
-                  gear={regs.gear ? (a) => <GearTab vm={regs.gear!} palette={palette} actions={a} /> : undefined}
-                  methods={regs.methods ? (a) => <MethodsTab vm={regs.methods!} palette={palette} actions={a} /> : undefined}
+                  gear={regs.gear ? (a) => <GearTab vm={regs.gear!} palette={palette} actions={a} salmon={salmonStrip} /> : undefined}
+                  methods={regs.methods ? (a) => <MethodsTab vm={regs.methods!} palette={palette} actions={a} salmon={salmonStrip} /> : undefined}
                   licence={regs.licence ? (a) => <LicenceTab vm={regs.licence!} who={regs.who} palette={palette} actions={a} onWho={setWho} />
                     : undefined} />
       ))}

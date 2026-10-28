@@ -83,10 +83,10 @@ describe("<KeepTab> over the frozen pages", () => {
 });
 
 describe("(T227, owner 2026-10-28) the salmon bar at the top, and the glance rows", () => {
-  const STRIP = { title: "Salmon (DFO)", status: "release", word: "Release only", when: "today", partial: null, more: null,
+  const STRIP = { title: "Salmon (DFO)", status: "release", word: "Release only", when: "today", unplacedLine: null, unplaced: [],
     generalTitle: "Game fish (B.C. rules)", legend: [{ status: "release", label: "release only" }, { status: "closed", label: "✕ closed" }],
-    bars: [{ label: null, unmapped: false, today: "release", todayWord: "release only",
-             runs: [{ status: "release", days: 300 }, { status: "closed", days: 65 }] }] } as const;
+    bar: { label: null, unmapped: false, today: "release", todayWord: "release only",
+           runs: [{ status: "release", days: 300 }, { status: "closed", days: 65 }] } } as const;
   const actions: KeepActions = { onSheet() {}, onDay() {}, onTab() {}, onBook() {} };
 
   it("drawn right under the provincial bar, the two named; none without salmon (the bar unnamed)", () => {
@@ -103,14 +103,18 @@ describe("(T227, owner 2026-10-28) the salmon bar at the top, and the glance row
     expect([screen.queryByTestId("salmon-strip"), screen.queryByTestId("keep-strip-title")]).toEqual([null, null]);
   });
 
-  it("a place-named bar says its place, 'not on the map yet' when undrawn, and its own day", () => {
-    const strip = { ...STRIP, status: "check", word: "Check DFO", partial: "Salmon rules on parts of this water aren't mapped yet — check DFO",
-      bars: [{ ...STRIP.bars[0], label: "Cowichan River — from the white triangle sign to the tidal boundary.", unmapped: true,
-               today: "closed", todayWord: "closed" }] };
+  it("DFO places not drawn yet: ONE bar and one line that opens the list, each place with its own day", () => {
+    const strip = { ...STRIP, status: "check", word: "Check DFO", unplacedLine: "1 DFO place here isn't on the map yet — check DFO",
+      unplaced: [{ label: "Cowichan River — from the white triangle sign to the tidal boundary.", today: "closed", todayWord: "closed" }] };
     render(<KeepTab keep={keepOf(vedder1010)} dateLabel="Oct 10" palette={LIGHT} actions={actions} salmonStrip={strip as never} />);
+    expect(screen.getAllByTestId("salmon-strip-bar").length).toBe(1);
+    expect(screen.queryByTestId("salmon-strip-place")).toBeNull();
+    const line = screen.getByTestId("salmon-strip-unplaced");
+    expect([line.getAttribute("role"), line.getAttribute("aria-expanded"), line.textContent])
+      .toEqual(["button", "false", "1 DFO place here isn't on the map yet — check DFO"]);
+    fireEvent.click(line);
     expect(screen.getByTestId("salmon-strip-place").textContent)
-      .toBe("Cowichan River — from the white triangle sign to the tidal boundary. · not on the map yet · closed");
-    expect(screen.getByTestId("salmon-strip-partial")).toBeTruthy();
+      .toBe("Cowichan River — from the white triangle sign to the tidal boundary. · closed");
   });
 
   it("the WHOLE glance row opens its card; a row with nothing more is plain (no Details, not a button)", () => {
