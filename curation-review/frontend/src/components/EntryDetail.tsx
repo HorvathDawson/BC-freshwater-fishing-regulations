@@ -14,6 +14,7 @@ import { Finding, findingsOf, Prechecks } from "./Prechecks";
 import { ITEM_COLORS, MapPanel } from "./MapPanel";
 import { VerdictBar } from "./useMarking";
 import { PvBadge } from "./Preverify";
+import { AwaitingWaterPanel } from "./AwaitingWater";
 
 /** T207: how a rule's `review_reason` says a cut is still to be located by the owner (`precheck.NEEDS_SPLIT`). */
 const NEEDS_SPLIT = "needs a split (owner to locate)";
@@ -437,6 +438,7 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
           </div>
 
           {view && <Prechecks view={view} />}
+          {detail.awaiting_water && <AwaitingWaterPanel aw={detail.awaiting_water} />}
           <SplitSuggestions items={detail.split_suggestions ?? []} />
 
           {/* ONE BLOCK PER RULE (T189): what it says, then where it holds. */}
@@ -613,6 +615,8 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
             namedSplits={named}
             showRule={showRule}
             preview={fixPreview}
+            suggested={detail.awaiting_water?.map ?? null}
+            fitSuggested={!!detail.awaiting_water}
             onPick={pickCb.cb}
           />
           )}

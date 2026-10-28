@@ -45,6 +45,8 @@ interface Props {
   /** DFO: the SUGGESTED extent (never applied) — its points and, when it resolves, its reach;
    *  drawn violet and dashed, under the saved extent */
   suggested?: GeoJSON.FeatureCollection | null;
+  /** T89: fly to the suggested points when they change (an entry with no water of its own to fit) */
+  fitSuggested?: boolean;
   /** the zoom the map flies to (at least) when a split is selected; default 12 */
   selectZoom?: number;
   /** false: never widen the view to hold every named split — fly to the selected one instead
@@ -146,7 +148,7 @@ export function MapPanel({
   itemId, alsoItemIds = [], referencedSplitIds = [], unusedSplitIds = [], selectedSplitId = null,
   onSelectSplit, reloadKey = 0, focusItemId = null,
   reaches = null, rules = [], reachOf = {}, entryId = null, namedSplits = null, showRule,
-  preview = null, saved = null, suggested = null, onPick = null, selectZoom = 12, fitNamed = true,
+  preview = null, saved = null, suggested = null, fitSuggested = false, onPick = null, selectZoom = 12, fitNamed = true,
 }: Props) {
   const selectedRef = useRef(selectedSplitId);
   selectedRef.current = selectedSplitId;
@@ -637,7 +639,14 @@ export function MapPanel({
       const src = m.getSource("suggested") as maplibregl.GeoJSONSource | undefined;
       if (!src) return;
       src.setData((suggested ?? { type: "FeatureCollection", features: [] }) as GeoJSON.FeatureCollection);
+      if (fitSuggested && suggested?.features.length) {
+        const b = new maplibregl.LngLatBounds();
+        for (const f of suggested.features)
+          if (f.geometry.type === "Point") b.extend(f.geometry.coordinates as [number, number]);
+        if (!b.isEmpty()) m.fitBounds(b, { padding: 70, maxZoom: 11, duration: 400 });
+      }
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [suggested]);
 
   const measureDist = pts.length === 2 ? haversine(pts[0], pts[1]) : null;

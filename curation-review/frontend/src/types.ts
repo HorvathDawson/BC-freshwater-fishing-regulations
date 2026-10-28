@@ -412,6 +412,8 @@ export interface MarkView {
 }
 
 export interface QueueRow {
+  /** T89: the entry's rules bind no water (owner Q45) — its awaiting-water record, summarised */
+  t89?: { rules: number; has_lead: boolean } | null;
   /** owner 2026-10-27: the second method's verdict on the entry's split proposals */
   pv?: Pv | null;
   entry_id: string;
@@ -515,6 +517,8 @@ export interface UnusedSplit {
 export interface EntryDetail {
   /** missing-split / ambiguous-cut proposals (`entry-split-suggestions.json`), read only */
   split_suggestions?: SplitSuggestion[];
+  /** T89: why no water was found, the leads, the same-name waters elsewhere, the fix path */
+  awaiting_water?: AwaitingWater | null;
   entry: Entry;
   region: string;
   item: Item | null; // `boundaries` is the union over the item AND `also_items`
@@ -1243,4 +1247,16 @@ export interface SplitSuggestion {
   preverify: Pv | null;
   duplicate_of: string | null;
   pick: { builder: number | null; proposed: number | null; agrees: boolean } | null;
+}
+
+/** T89 (`handoff/PLAN/curation-review/t89-awaiting-water.json`, served read only by `awaiting_water.py`) */
+export interface AwaitingWater {
+  entry_id: string; name: string; printed_mu: string; rules: number; status: string;
+  lead: string | null;
+  lead_points: { label: string; coord: [number, number]; source: string }[];
+  same_name_candidates_elsewhere: {
+    item_id: string; name: string; kind: string; mus: string[]; lonlat: [number, number]; km_from_printed_mu: number;
+  }[];
+  map: GeoJSON.FeatureCollection;
+  rule: string; how_to_fix: string; searched: string[]; generated: string;
 }

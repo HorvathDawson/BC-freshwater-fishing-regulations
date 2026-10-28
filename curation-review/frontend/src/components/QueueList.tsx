@@ -103,6 +103,12 @@ export function QueueList({ rows, selected, loading, onSelect, facts }: Props) {
                 pre-checks it was read from are its hover, not badges of their own */}
             {r.severity && <SeverityChip level={r.severity} reasons={r.severity_reasons} />}
             {!r.reviewed?.holds && <PvBadge pv={r.pv} />}
+            {r.t89 && (
+              <span className="chip-tag t89" data-testid="t89-badge"
+                title={`T89 (owner Q45): ${r.t89.rules} rule(s) bind no water — left unbound and listed${r.t89.has_lead ? "; there is a lead" : "; no lead"}`}>
+                awaiting water{r.t89.has_lead ? " · lead" : ""}
+              </span>
+            )}
             {r.tier && <span className="badge tier" title="review tier (PLAN §3)">{r.tier}</span>}
             <span className="dim">r{r.region}</span>
             {r.page != null && <span className="dim">p.{r.page}</span>}

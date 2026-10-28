@@ -52,7 +52,9 @@ export default function App() {
   const [allRows, setRows] = useState<QueueRow[]>([]);
   // owner 2026-10-27: the second method's verdict on each entry's split proposals — filter / order
   const [pvf, setPvf] = useState<PvFilter>(PV_DEFAULT);
-  const rows = useMemo(() => applyPv(allRows, pvf), [allRows, pvf]);
+  // T89: only the entries whose rules bind no water (owner Q45), listed with their leads
+  const [t89Only, setT89Only] = useState(false);
+  const rows = useMemo(() => applyPv(t89Only ? allRows.filter((r) => r.t89) : allRows, pvf), [allRows, pvf, t89Only]);
   const [loadingRows, setLoadingRows] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [detail, setDetail] = useState<EntryDetailT | null>(null);
@@ -249,7 +251,7 @@ export default function App() {
             onClick={toProposals}>
             Proposals
           </button></>}
-        moreSet={(tier ? 1 : 0) + (severity ? 1 : 0) + (pvf.pv || pvf.first ? 1 : 0)}
+        moreSet={(tier ? 1 : 0) + (severity ? 1 : 0) + (pvf.pv || pvf.first ? 1 : 0) + (t89Only ? 1 : 0)}
         more={
           <>
             <div>
@@ -268,6 +270,11 @@ export default function App() {
                 {TIERS.map((t) => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
+            <label className="check" title="T89: entries whose rules bind no water — leave unbound and listed (owner Q45)">
+              <input type="checkbox" data-testid="t89-filter" checked={t89Only}
+                onChange={(e) => setT89Only(e.target.checked)} />
+              {" "}awaiting water ({allRows.filter((r) => r.t89).length})
+            </label>
             <PvControls value={pvf} onChange={setPvf} rows={allRows} dupes={false} />
             <ProgressBar progress={progress} samples={samples} commands={mode?.commands} />
           </>

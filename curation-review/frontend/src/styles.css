@@ -1019,3 +1019,7 @@ code.cmd { font-size: 11px; padding: 1px 6px; border: 1px solid var(--warn-borde
 .chip-tag.pv-dup { background: #f4f4f5; color: #71717a; border: 1px dashed #a1a1aa; }
 .split-suggestions { border-left: 3px solid #0d9488; padding-left: 8px; }
 .split-suggestions li { margin: 4px 0; font-size: 12px; }
+
+/* T89 awaiting water */
+.chip-tag.t89 { background: #ede9fe; color: #5b21b6; border-color: #c4b5fd; }
+.awaiting-water h4 { margin: 8px 0 2px; font-size: 12px; }
