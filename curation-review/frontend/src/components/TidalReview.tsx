@@ -274,6 +274,8 @@ function TidalCandidateView({ detail, mode, nav, onMarked }: {
   // the point the owner switched to (an alternate's id, or "custom"); null until he picks one —
   // the map opens on the proposal's point meanwhile
   const [chosen, setChosen] = useState<string | null>(null);
+  // the snapped custom point's distance above the mouth (for the "Recording:" line)
+  const [customAbove, setCustomAbove] = useState<number | null>(null);
   const focus = chosen ?? alts.find((a) => a.proposed)?.id ?? null;
   const [edge, setEdge] = useState<GeoJSON.FeatureCollection | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
@@ -311,6 +313,7 @@ function TidalCandidateView({ detail, mode, nav, onMarked }: {
     setPicking(false);
     api.tidalSnap(c.id, ll).then((sn) => {
       setChosen("custom");
+      setCustomAbove(sn.above_mouth_m);
       setSplit({ ...acceptSplit(c), anchor: "coord", split_id: null, coord: sn.coord, name: `${c.water}: tidal boundary`,
                  note: `chosen point: custom — placed by the reviewer (snapped ${Math.round(sn.distance_m)} m to the stream`
                    + `${sn.above_mouth_m != null ? `, ${Math.round(sn.above_mouth_m)} m above the FWA mouth` : ""}) from the proposed ${c.proposed.split_name}` });
@@ -324,7 +327,9 @@ function TidalCandidateView({ detail, mode, nav, onMarked }: {
   const named: EntrySplits = useMemo(() => ({
     ...detail.points,
     features: [
-      ...detail.points.features,
+      // the chosen point is drawn amber (the proposal's colour) so the map matches "Recording:"
+      ...detail.points.features.map((f) => (chosen && chosen !== "custom"
+        ? { ...f, properties: { ...f.properties, to_verify: f.properties.split_id === `alt:${chosen}` } } : f)),
       ...(split?.coord && chosen === "custom" ? [{
         type: "Feature" as const, geometry: { type: "Point" as const, coordinates: split.coord },
         properties: { split_id: "tidal:new", label: `YOUR POINT ${split.name ?? "tidal boundary"}`, water: "",
@@ -546,6 +551,21 @@ function TidalCandidateView({ detail, mode, nav, onMarked }: {
             )}
             <textarea className="check-note" placeholder="note (where the boundary is, what says so)" value={note}
               onChange={(e) => setNote(e.target.value)} />
+            <div className="ext-row" data-testid="tidal-recording" style={{ fontSize: 13 }}>
+              <span className="k">recording</span>
+              <span>{(() => {
+                if (!split?.coord) return <span className="dim">no point yet — pick one above (or accept the proposal), then y</span>;
+                const a = chosen && chosen !== "custom" ? alts.find((x) => x.id === chosen) : undefined;
+                const above = a ? a.above_mouth_m : chosen === "custom" ? customAbove : c.proposed.above_mouth_m;
+                const what = chosen === "custom" ? "your point" : a ? ALT_KIND[a.kind] : "the proposal";
+                return <>
+                  <strong>{split.name}</strong> — {what}{a?.supported ? " (the words say so)" : ""}
+                  {" · "}{split.coord[1].toFixed(5)}, {split.coord[0].toFixed(5)}
+                  {above != null ? ` · ${Math.round(above)} m above the mouth` : ""}
+                  {" · "}<span className={answer === "y" ? "" : "warn-text"}>Place {answer ?? "—"}</span>
+                </>;
+              })()}</span>
+            </div>
             <div className="verdict-bar" style={{ position: "static", margin: 0 }}>
               <input placeholder="your name" value={reviewer} onChange={(e) => setName(e.target.value)} aria-label="reviewer" />
               <button className="btn primary" disabled={busy} data-testid="tidal-record" onClick={() => void submit()}>
