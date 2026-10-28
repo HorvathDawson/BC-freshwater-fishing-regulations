@@ -1,6 +1,6 @@
 # T182 — Release file splits for the web's first search, tap and Conditions (from T129)
 
-Status: DONE (afbd6d79, 715ecc46, 00ad9565) — split files live since r-f7faa483d2b1; caps re-defined per file + cold load (2026-10-28).
+Status: DONE (afbd6d79, 715ecc46, 00ad9565, be778427) — split files live since r-f7faa483d2b1; caps re-defined per file + cold load (2026-10-28).
 Source: T129's measured walk on r-bb4331929428 (its ticket has the byte table) — proposals that change the
 release format, so not done there.
 
@@ -121,3 +121,11 @@ Browser cold load (Playwright, fresh context, release files + wasm): 3.94 MB bef
 is WHEN (salmon + method at ~1.05 s with the prefetch, not at paint). Not fixed, noted: the dev map fetches the mask
 (`bc_outside.geojson`, 63 kB) 2-4× per load (the dev server sends no Cache-Control; R2 does), and `feed:index` 355 kB raw →
 T86. Owner option (OWNER-TODO): read salmon/method on the toggle instead → cold load −705 kB, toggle no longer instant.
+
+**Owner 2026-10-28 (be778427): salmon on demand.** The web reads `salmon` only on the first press of Salmon (the choice
+reads "Loading…", aria-busy, until the map can paint it; ~0.1 s on the local server; kept after, so later toggles are
+instant). `method` stays with Standard (now marks on it): it arrives ~0.7 s after first paint on a cold load (paint
+@294 ms, method @981 ms). Native unchanged (installed; read up front). A water page's Salmon card still reads `salmon`,
+so the taps now price it (the prefetch had hidden it): first_tap 5,053,227 of 5.6 MB, unnamed 6,282,328 of 7.0 MB.
+cold_load 2,981,794 of 3.35 MB (−396 kB). Browser cold load (release files + wasm): 3.94 → 3.54 MB; first paint 1.03 MB.
+Next lever if the tap matters: a per-region (or per-water) salmon card file instead of the whole 397 kB.

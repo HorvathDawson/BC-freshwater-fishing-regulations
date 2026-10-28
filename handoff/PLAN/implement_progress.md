@@ -7,8 +7,8 @@ Logs from timing runs live in the session scratchpad, which a reboot wipes. The 
 
 LIVE: r-bda3fea28838 (T182's deliver reproduced it byte-for-byte). T182 (00ad9565): every release file has its own gzip
 gate, a `cold_load` web gate (3,378,096 of 3.8 MB), and the 15 MB total is now `OFFLINE_GATE` 20 MB (14.90 MB, 5.1 MB
-headroom for T199/T200/T201). Salmon + method now load after the idle prefetch (first paint 1.73 → 1.03 MB on the walk);
-request-walk pin re-cut. Note: another lane has uncommitted Shell/useMapColouring/salmonColour edits (method → marks).
+headroom for T199/T200/T201). Web: method loads after the idle prefetch (~0.7 s after paint), salmon only on the first Salmon press (owner 10-28,
+be778427; toggle shows Loading…); first paint 1.03 MB, cold_load 2.98 of 3.35 MB; request-walk pin re-cut. Note: another lane has uncommitted Shell/useMapColouring/salmonColour edits (method → marks).
 
 ## (earlier) CURRENT STATE (2026-10-27, late night — checks green + T214 done)
 
