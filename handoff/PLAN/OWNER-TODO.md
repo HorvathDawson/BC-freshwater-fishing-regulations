@@ -13,7 +13,7 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Reviews
 - **T224 name variants (2026-10-28):** local sources name FWA lines the app has no name for (Kilgard Creek and more):
-  `handoff/PLAN/curation-review/name-variants/summary.md` (candidates.json beside it). Two calls: (1) does an accepted
+  ticket T224 "Findings" (data: `handoff/PLAN/curation-review/name-variants/candidates.json`). Two calls: (1) does an accepted
   variant become a SEARCH ALIAS only, or also the DISPLAY NAME of an FWA-unnamed water (today any alias on an unnamed
   line silently becomes its name)? Default: alias only, display only by your per-name yes. (2) May high-confidence
   ones auto-accept (≥ 80 % line overlap both ways or a reviewed/bound gauge, one candidate, no rival name, the line
