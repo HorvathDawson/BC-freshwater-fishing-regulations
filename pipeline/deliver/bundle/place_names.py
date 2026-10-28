@@ -56,6 +56,8 @@ ACRONYMS = frozenset({
 #: Small words a title keeps in lower case after its first word.
 _SMALL = frozenset({"a", "an", "and", "at", "by", "de", "du", "for", "in", "la", "le", "of", "on",
                     "or", "the", "to"})
+#: Ordinal suffixes after a numeral ("2ND", "3RD", "11TH").
+_ORDINAL = frozenset({"ST", "ND", "RD", "TH"})
 #: One run of letters (any script: "Nqw'elqw'elusten", "Brulé").
 _WORD = re.compile(r"[^\W\d_]+")
 #: Two or more consecutive all-capitals words (letters, apostrophes, hyphens; 2+ letters each) in a
@@ -104,6 +106,12 @@ def display_case(name: str) -> str:
         prev = name[i - 1] if i else ""
         if w in ACRONYMS:
             return w
+        end = m.end()
+        nxt = name[end] if end < len(name) else ""
+        if prev.isdigit() and w in _ORDINAL:       # "2ND" is "2nd"
+            return w.lower()
+        if nxt.isdigit() or (prev.isdigit() and i >= 2 and name[i - 2].isalpha()):
+            return w                                # "JAJI7EM": a digit inside a word keeps the spelling
         if prev == "'":
             head = _WORD.findall(name[:i - 1])
             stem = head[-1] if head and name[:i - 1].endswith(head[-1]) else ""

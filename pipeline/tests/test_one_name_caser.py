@@ -69,3 +69,10 @@ def test_a_digit_inside_a_word_is_a_letter_not_a_break():
     from pipeline.deliver.bundle.place_names import is_shouting
     assert not is_shouting("JAJI7EM and Kw'ulh Marine Park [a.k.a Sandy Island")
     assert is_shouting("MITE LAKE") and is_shouting("BLUEY 1")
+
+
+def test_ordinals_lower_and_digit_inside_a_word_kept():
+    from pipeline.deliver.bundle.place_names import display_case
+    assert display_case("BLACK CREEK 2ND") == "Black Creek 2nd"
+    assert display_case("JAJI7EM") == "JAJI7EM"
+    assert display_case("LOT #14A") == "Lot #14A"
