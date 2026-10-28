@@ -35,13 +35,15 @@ describe("slugs (T192)", () => {
     expect(one).toEqual(two);
     expect([one["gnis:1"]!.slug, one["gnis:2"]!.slug]).toEqual(["mill-creek-r3", "mill-creek-r5"]);
   });
-  it("a repeated name takes its nearest town; the same town adds the region; then a counter", () => {
-    const m = (id: string, region: number, town: string | null) => ({ id, name: "Mud Lake", region, town });
-    const s = assignSlugs([m("a", 5, "Quesnel"), m("b", 5, "Gold River"), m("c", 3, "100 Mile House"), m("d", 3, null)]).map.waters;
-    expect(Object.fromEntries(Object.entries(s).map(([k, v]) => [k, v.slug]))).toEqual({
-      a: "mud-lake-near-quesnel", b: "mud-lake-near-gold-river", c: "mud-lake-near-100-mile-house", d: "mud-lake-r3" });
-    const same = assignSlugs([m("a", 5, "Quesnel"), m("b", 3, "Quesnel"), m("c", 3, "Quesnel")]).map.waters;
-    expect([same.a!.slug, same.b!.slug, same.c!.slug]).toEqual(["mud-lake-near-quesnel-r5", "mud-lake-near-quesnel-r3", "mud-lake-near-quesnel-r3-2"]);
+  it("the chain name -> region -> MU(s) -> nearest town -> index stops at the first step that is unique", () => {
+    const m = (id: string, region: number, mus: string[], town: string | null) => ({ id, name: "Mud Lake", region, mus, town });
+    const r = assignSlugs([m("a", 5, ["5-1"], null), m("b", 3, ["3-12"], "Quesnel"), m("c", 3, ["3-13"], null),
+                           m("d", 4, ["4-1"], "Hope"), m("e", 4, ["4-1"], "Yale"), m("f", 6, ["6-1"], "Hope"), m("g", 6, ["6-1"], "Hope")]);
+    const s = Object.fromEntries(Object.entries(r.map.waters).map(([k, v]) => [k, v.slug]));
+    expect(s).toEqual({ a: "mud-lake-r5", b: "mud-lake-r3-3-12", c: "mud-lake-r3-3-13", d: "mud-lake-r4-4-1-near-hope", e: "mud-lake-r4-4-1-near-yale",
+                        f: "mud-lake-r6-6-1-near-hope", g: "mud-lake-r6-6-1-near-hope-2" });
+    expect(r.steps).toEqual({ name: 0, region: 1, mu: 2, town: 2, index: 2 });
+    expect(assignSlugs([m("a", 5, ["5-1"], null)]).map.waters.a!.slug).toBe("mud-lake");
   });
   it("a slug, once assigned, never moves: a rename keeps it, a newcomer never takes it, a removal is reported", () => {
     const first = assignSlugs([A]).map;

@@ -29,7 +29,7 @@ function base(site: Site, url: string, name: string, asOf: string, crumbs: reado
   ];
 }
 
-export function waterLd(m: WaterModel, site: Site, path: string, title: string, asOf: string, regionPath: string): string {
+export function waterLd(m: WaterModel, site: Site, path: string, title: string, asOf: string, regionPath: string, extra: readonly { q: string; a: string }[] = []): string {
   const url = `${site.origin}${path}`, type = bodyOfWater(m.kind);
   const place: { [k: string]: Json } = {
     "@type": type ? ["Place", type] : "Place", "@id": `${url}#place`, name: m.name,
@@ -37,7 +37,8 @@ export function waterLd(m: WaterModel, site: Site, path: string, title: string, 
   };
   if (m.mid) place.geo = { "@type": "GeoCoordinates", latitude: Number(m.mid[1].toFixed(4)), longitude: Number(m.mid[0].toFixed(4)) };
   const faq = { "@type": "FAQPage", "@id": `${url}#faq`, mainEntity: [{ "@type": "Question", name: `Can I fish ${m.name} today?`,
-    acceptedAnswer: { "@type": "Answer", text: m.answer } }] };
+    acceptedAnswer: { "@type": "Answer", text: m.answer } },
+    ...extra.map((e) => ({ "@type": "Question", name: e.q, acceptedAnswer: { "@type": "Answer", text: e.a } }))] };
   return script([...base(site, url, title, asOf, [["Home", "/"], [regionLabel(m.region), regionPath], [m.name, path]]), place, faq]);
 }
 

@@ -6,6 +6,7 @@
 import { bookUrl, SYNOPSIS_PDF } from "@app/core";
 import meta from "../../packages/map/style/style.meta.json" with { type: "json" };
 import type { BookRef, Item, PartModel, WaterModel } from "./model";
+import { anchorOf, TOPICS, type TopicKey } from "./topics";
 
 export interface Site {
   readonly origin: string; readonly name: string; readonly contact: string | null;
@@ -90,9 +91,26 @@ const itemHtml = (i: Item): string => i.head ? `<li class="sub">${esc(i.text)}</
 export const appLink = (site: Site, id?: string, part?: number): string =>
   id === undefined ? `${site.origin}/` : `${site.origin}/?regs=${encodeURIComponent(id)}${part ? `&amp;part=${part}` : ""}`;
 
-function partHtml(p: PartModel, multi: boolean, level: 2 | 3, id: string, site: Site): string {
-  const h = (n: number, t: string) => `<h${n}>${esc(t)}</h${n}>`;
-  const sections = p.sections.map((s) => `${h(level + (multi ? 1 : 0), s.title)}<ul>${s.items.map(itemHtml).join("")}</ul>`).join("");
+function partHtml(p: PartModel, multi: boolean, level: 2 | 3, id: string, site: Site, used: Set<string>): string {
+  const h = (n: number, t: string, anchor?: string) => `<h${n}${anchor ? ` id="${anchor}"` : ""}>${esc(t)}</h${n}>`;
+  // anchors: a section is "keep", "gear", ...; a group inside one is "trout-and-char"; unique on the page, prefixed by the part when there are several
+  const mk = (t: string): string => {
+    const base = (multi ? `p${p.partIx}-` : "") + anchorOf(t);
+    let a = base, n = 2;
+    while (used.has(a)) a = `${base}-${n++}`;
+    used.add(a);
+    return a;
+  };
+  const sections = p.sections.map((s) => {
+    const lvl = level + (multi ? 1 : 0);
+    let html = h(lvl, s.title, mk(s.title)), ul: string[] = [];
+    const flush = () => { if (ul.length) html += `<ul>${ul.join("")}</ul>`; ul = []; };
+    for (const i of s.items) {
+      if (i.head) { flush(); html += h(lvl + 1, i.text, mk(i.text)); } else ul.push(itemHtml(i));
+    }
+    flush();
+    return html;
+  }).join("");
   const turns = p.turns.length ? `<p class="note">${p.turns.map((t) => `${t.to === "open" ? "Opens" : "Closes"} ${t.on}`).join(" · ")}</p>` : "";
   return multi
     ? `<section class="part" id="part-${p.partIx}">${h(2, p.label)}<p class="answer ${p.status}">${esc(p.today)}</p>${turns}` +
@@ -100,10 +118,11 @@ function partHtml(p: PartModel, multi: boolean, level: 2 | 3, id: string, site: 
     : `${turns}${sections}`;
 }
 
+export interface TopicLink { readonly key: string; readonly href: string; readonly text: string }
 export interface Links { readonly region: string; readonly neighbours: readonly { href: string; text: string; how: string }[]; readonly near: readonly { href: string; text: string }[] }
 
 /** The body of a water page: one answer, the full rules by part, the links in and out. */
-export function waterBody(m: WaterModel, site: Site, release: Release, asOf: string, links: Links, ctx: { label?: string; town?: string | null } = {}): string {
+export function waterBody(m: WaterModel, site: Site, release: Release, asOf: string, links: Links, ctx: { label?: string; town?: string | null; topics?: ReadonlyMap<TopicKey, readonly string[]>; topicLinks?: readonly TopicLink[]; more?: readonly { href: string; text: string }[] } = {}): string {
   const label = ctx.label ?? m.name;
   const multi = m.parts.length > 1;
   const q = `Can I fish ${m.name} today?`;
@@ -117,7 +136,14 @@ export function waterBody(m: WaterModel, site: Site, release: Release, asOf: str
     `<p class="asof">As of <time datetime="${esc(asOf)}">${esc(asOf)}</time>, from release ${esc(release.id)}.${valid}</p>`,
     `<p><a class="app" href="${appLink(site, m.id)}">Open ${esc(m.name)} in the app</a></p>`,
   ].join("");
-  const parts = m.parts.map((p) => partHtml(p, multi, 2, m.id, site)).join("");
+  const used = new Set<string>(["topics", ...TOPICS.map((t) => t.key)]);
+  const parts = m.parts.map((p) => partHtml(p, multi, 2, m.id, site, used)).join("");
+  // the rules a visitor asks for by name, each with the page's own sentences and an anchor; the same words feed the FAQ JSON-LD
+  const glance = ctx.topics && ctx.topics.size
+    ? `<section id="topics"><h2>${esc(m.name)} rules at a glance</h2>` + TOPICS.filter((t) => ctx.topics!.has(t.key)).map((t) =>
+        `<h3 id="${t.key}">${esc(t.ask(m.name))}</h3><ul>${ctx.topics!.get(t.key)!.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>`).join("") + `</section>` : "";
+  const topicNav = ctx.topicLinks?.length
+    ? `<h2>More ${esc(regionLabel(m.region))} rules like these</h2><ul>${ctx.topicLinks.map((l) => `<li><a href="${esc(l.href)}">${esc(l.text)}</a></li>`).join("")}${(ctx.more ?? []).map((l) => `<li><a href="${esc(l.href)}">${esc(l.text)}</a></li>`).join("")}</ul>` : "";
   const related = links.neighbours.length
     ? `<h2>Connected waters</h2><ul>${links.neighbours.map((n) => `<li>${esc(n.how)} <a href="${esc(n.href)}">${esc(n.text)}</a></li>`).join("")}</ul>` : "";
   const near = links.near.length
@@ -127,7 +153,7 @@ export function waterBody(m: WaterModel, site: Site, release: Release, asOf: str
     ? `<p class="small">Synopsis pages cited: ${m.book.map((b) => `${b.printed}`).join(", ")} (printed page numbers).</p>` : "";
   const legal = `<div class="legal"><p>${esc(NOT_LEGAL)} <a href="${esc(SYNOPSIS_PDF)}" rel="noopener">Official synopsis (PDF)</a>.</p>` +
     `<p>Rules shown are for an adult resident angler; the licence you need does not change whether a water is open.</p></div>`;
-  return `${nav}${parts}${related}${near}${where}${books}${legal}`;
+  return `${nav}${glance}${parts}${topicNav}${related}${near}${where}${books}${legal}`;
 }
 
 export function aboutBody(site: Site, asOf: string): string {

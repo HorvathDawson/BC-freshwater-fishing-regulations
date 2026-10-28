@@ -11,8 +11,10 @@
 export interface SlugEntry { readonly slug: string; readonly region: number }
 export interface SlugMap { readonly version: 1; readonly waters: Readonly<Record<string, SlugEntry>> }
 /** `town`: the nearest settlement's name (the bundle's item_near), the human qualifier for a repeated name */
-export interface WaterRef { readonly id: string; readonly name: string; readonly region: number; readonly town?: string | null }
-export interface Assigned { readonly map: SlugMap; readonly removed: readonly (SlugEntry & { readonly id: string })[] }
+export interface WaterRef { readonly id: string; readonly name: string; readonly region: number; readonly town?: string | null; readonly mus?: readonly string[] }
+/** how many fresh slugs stopped at each step of the chain */
+export interface Steps { readonly name: number; readonly region: number; readonly mu: number; readonly town: number; readonly index: number }
+export interface Assigned { readonly steps: Steps; readonly map: SlugMap; readonly removed: readonly (SlugEntry & { readonly id: string })[] }
 
 export const EMPTY_SLUG_MAP: SlugMap = { version: 1, waters: {} };
 
@@ -38,24 +40,29 @@ export function assignSlugs(waters: readonly WaterRef[], committed: SlugMap = EM
     taken.add(s);
     return s;
   };
+  const steps = { name: 0, region: 0, mu: 0, town: 0, index: 0 };
   for (const [base, group] of [...groups].sort((a, b) => (a[0] < b[0] ? -1 : 1))) {
-    if (group.length === 1 && !taken.has(base)) { out[group[0]!.id] = { slug: claim(base), region: group[0]!.region }; continue; }
-    // a repeated name is told apart by where it is: "mud-lake-near-quesnel", else "mud-lake-r1"; what still collides adds the
-    // region, and only then a counter (in item-id order). Waters that end up unique take their slug together, so none depends on order.
-    const want1 = (w: WaterRef) => { const t = w.town ? slugOf(w.town) : ""; return t ? `${base}-near-${t}` : `${base}-r${w.region}`; };
-    const want2 = (w: WaterRef) => { const w1 = want1(w); return w1.endsWith(`-r${w.region}`) ? w1 : `${w1}-r${w.region}`; };
+    if (group.length === 1 && !taken.has(base)) { out[group[0]!.id] = { slug: claim(base), region: group[0]!.region }; steps.name++; continue; }
+    // the owner's chain, applied only as far as needed: name -> region -> management unit(s) -> nearest town -> index.
+    // Waters that are unique at a step take their slug together (so none depends on order); the rest go one step further.
+    const mu = (w: WaterRef) => [...new Set(w.mus ?? [])].sort().map((m) => m.toLowerCase()).join("-");
+    const chain: [keyof Steps, (w: WaterRef) => string][] = [
+      ["region", (w) => `${base}-r${w.region}`],
+      ["mu", (w) => (mu(w) ? `${base}-r${w.region}-${mu(w)}` : `${base}-r${w.region}`)],
+      ["town", (w) => `${base}-r${w.region}${mu(w) ? `-${mu(w)}` : ""}${w.town && slugOf(w.town) ? `-near-${slugOf(w.town)}` : ""}`],
+    ];
     let left = group;
-    for (const want of [want1, want2]) {
+    for (const [step, want] of chain) {
       const n = new Map<string, number>();
       for (const w of left) n.set(want(w), (n.get(want(w)) ?? 0) + 1);
       const rest: WaterRef[] = [];
       for (const w of left) {
         const s1 = want(w);
-        if (n.get(s1) === 1 && !taken.has(s1)) out[w.id] = { slug: claim(s1), region: w.region }; else rest.push(w);
+        if (n.get(s1) === 1 && !taken.has(s1)) { out[w.id] = { slug: claim(s1), region: w.region }; steps[step]++; } else rest.push(w);
       }
       left = rest;
     }
-    for (const w of left) out[w.id] = { slug: claim(want2(w)), region: w.region };
+    for (const w of left) { out[w.id] = { slug: claim(chain[2]![1](w)), region: w.region }; steps.index++; }
   }
   const here = new Set(waters.map((w) => w.id));
   // a water that is still here but moved region keeps its slug; its entry's region follows it
@@ -63,5 +70,5 @@ export function assignSlugs(waters: readonly WaterRef[], committed: SlugMap = EM
   const removed = Object.entries(out).filter(([id]) => !here.has(id)).map(([id, e]) => ({ id, ...e }))
     .sort((a, b) => (a.slug < b.slug ? -1 : 1));
   const sorted = Object.fromEntries(Object.entries(out).sort((a, b) => (a[0] < b[0] ? -1 : 1)));
-  return { map: { version: 1, waters: sorted }, removed };
+  return { map: { version: 1, waters: sorted }, removed, steps };
 }

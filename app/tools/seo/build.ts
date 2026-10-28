@@ -117,5 +117,5 @@ export async function main(args: readonly string[]): Promise<void> {
   writeSite(opt(args, "--out") ?? DEFAULT_OUT, built.files);
   if (args.includes("--update-slugs")) writeFileSync(slugFile, built.files.get("slug-map.json")!);
   console.log(`seo: ${built.build.pages.length} pages (${built.build.models.length} waters), p95 ${built.measured.p95GzipBytes} B gzip, css ${built.measured.cssGzipBytes} B gzip` +
-    (built.legacy ? `; v1 redirects ${JSON.stringify(built.legacy.counts)}` : ""));
+    `; slug steps ${JSON.stringify(built.build.slugSteps)}` + (built.legacy ? `; v1 redirects ${JSON.stringify(built.legacy.counts)}` : ""));
 }

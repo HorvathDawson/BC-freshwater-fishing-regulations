@@ -269,3 +269,18 @@ export async function nearestTowns(store: RegsStore): Promise<Map<string, string
   } catch { /* a release without item_near has no towns */ }
   return out;
 }
+
+/** Each water's management unit(s) ("3-12", "7a-4"): the `@<unit>` of the book entries it carries (water.item.entries -> water.entry.id). */
+export async function managementUnits(store: RegsStore): Promise<Map<string, string[]>> {
+  const w = await store.water();
+  const unit = new Map<number, string>();
+  for (const r of await w.all("SELECT e, id FROM entry")) { const u = /@([0-9]+[A-Za-z]?-[0-9]+)$/.exec(String(r.id))?.[1]; if (u) unit.set(Number(r.e), u); }
+  const out = new Map<string, string[]>();
+  for (const r of await w.all("SELECT s.text AS id, i.entries AS entries FROM item i JOIN str s ON s.id = i.item_id")) {
+    let es: unknown = [];
+    try { es = JSON.parse(String(r.entries)); } catch { /* none */ }
+    const us = [...new Set((Array.isArray(es) ? es : []).map((e) => unit.get(Number(e))).filter((u): u is string => !!u))];
+    if (us.length) out.set(String(r.id), us);
+  }
+  return out;
+}

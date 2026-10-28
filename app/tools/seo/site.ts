@@ -8,13 +8,14 @@
  */
 import { createHash } from "node:crypto";
 import type { RegsStore } from "@app/data/regs";
-import { aboutBody, CSS, SHARE_GROUND, SHARE_INK, clip, descriptionOf, esc, notFoundBody, regionLabel, shell, titleOf, waterBody, type Release, type Site } from "./html";
+import { aboutBody, CSS, SHARE_GROUND, SHARE_INK, clip, descriptionOf, esc, NOT_LEGAL, notFoundBody, regionLabel, shell, titleOf, waterBody, type Release, type Site } from "./html";
 import { aboutLd, checkJsonLd, pageLd, waterLd } from "./jsonld";
-import { appPage, buildDayOf, listWaterOrds, nearestTowns, statusOn, waterModel, type BuildDay, type WaterModel, type WaterStatus } from "./model";
-import { assignSlugs, type SlugMap } from "./slug";
+import { appPage, buildDayOf, listWaterOrds, managementUnits, nearestTowns, statusOn, waterModel, type BuildDay, type WaterModel, type WaterStatus } from "./model";
+import { faqOf, TOPICS, topicLines, type TopicKey } from "./topics";
+import { assignSlugs, type SlugMap, type Steps } from "./slug";
 import { verifyAgainstApp } from "./verify";
 
-export interface PageRec { readonly path: string; readonly kind: "water" | "region" | "letter" | "weekend" | "calendar" | "changes" | "about"; readonly html: string; readonly hash: string }
+export interface PageRec { readonly path: string; readonly kind: "water" | "region" | "letter" | "topic" | "weekend" | "calendar" | "changes" | "about"; readonly html: string; readonly hash: string }
 export interface Snapshot {
   readonly release: string; readonly asOf: string;
   readonly pages: Readonly<Record<string, { readonly hash: string; readonly lastmod: string }>>;
@@ -28,7 +29,7 @@ export interface BuildOpts {
 }
 export interface SiteBuild {
   readonly files: ReadonlyMap<string, string>; readonly pages: readonly PageRec[];
-  readonly slugMap: SlugMap; readonly removed: readonly { id: string; slug: string; region: number }[];
+  readonly slugSteps: Steps; readonly slugMap: SlugMap; readonly removed: readonly { id: string; slug: string; region: number }[];
   readonly snapshot: Snapshot; readonly models: readonly WaterModel[]; readonly cssHref: string; readonly regions: readonly number[];
 }
 
@@ -86,8 +87,8 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
   }
   if (bad.length) throw new Error(`seo: ${bad.length} page(s) differ from the app:\n${bad.slice(0, 20).join("\n")}`);
 
-  const towns = await nearestTowns(store);
-  const { map: slugMap, removed } = assignSlugs(models.map((m) => ({ id: m.id, name: m.name, region: m.region, town: towns.get(m.id) ?? null })), o.slugMap);
+  const towns = await nearestTowns(store), units = await managementUnits(store);
+  const { map: slugMap, removed, steps: slugSteps } = assignSlugs(models.map((m) => ({ id: m.id, name: m.name, region: m.region, town: towns.get(m.id) ?? null, mus: units.get(m.id) ?? [] })), o.slugMap);
   const slugOf = (id: string) => slugMap.waters[id]!.slug;
   const byName = (a: WaterModel, b: WaterModel) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id);
   const regions = [...new Set(models.flatMap((m) => m.regions))].sort((a, b) => a - b);
@@ -117,6 +118,7 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
     what.set(v, path);
   };
   const waterHash = new Map<string, string>();
+  const waterTopics = new Map<string, Map<TopicKey, string[]>>();
   const nameCount = new Map<string, number>(), sameQual = new Map<string, WaterModel[]>();
   for (const m of models) {
     nameCount.set(m.name, (nameCount.get(m.name) ?? 0) + 1);
@@ -137,14 +139,21 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
     const hash = sha(JSON.stringify(m.parts.map((p) => [p.label, p.sections.filter((s) => s.title !== "Why it is closed").map((s) => [s.title, s.items.filter((i) => !i.dated)])])));
     waterHash.set(m.id, hash);
     const how = { "flows-into": "Flows into", "continues-as": "Continues as", "continues-from": "Continues from" } as const;
+    const lines = topicLines(m);
+    waterTopics.set(m.id, lines);
+    const topicLinks = TOPICS.filter((t) => lines.has(t.key)).map((t) => ({ key: t.key, href: `${regionPath(m.region)}/${t.key}`, text: `${t.hub} in ${regionLabel(m.region)}` }));
     const body = waterBody(m, site, release, asOf, {
       region: regionPath(m.region),
       neighbours: m.neighbours.flatMap((n) => { const t = known.get(n.id); return t ? [{ href: waterPath(t), text: t.name, how: how[n.how] }] : []; }),
       near: near.map((n) => ({ href: waterPath(n), text: n.name })),
-    }, { label, town });
-    add("water", path, shellOf(path, title, description, body, waterLd(m, site, path, title, asOf, regionPath(m.region)), `/share/${slugOf(m.id)}.svg`), hash);
+    }, { label, town, topics: lines, topicLinks, more: [{ href: `${regionPath(m.region)}/open-this-weekend`, text: `What is open this weekend in ${regionLabel(m.region)}` }, { href: `${regionPath(m.region)}/season-changes`, text: `Waters opening and closing soon in ${regionLabel(m.region)}` }] });
+    add("water", path, shellOf(path, title, description, body, waterLd(m, site, path, title, asOf, regionPath(m.region), faqOf(m, lines)), `/share/${slugOf(m.id)}.svg`), hash);
     files.set(`share/${slugOf(m.id)}.svg`, shareSvg(m, site));
   }
+
+  // ── topic hubs: waters by what their rules say (steelhead, salmon, trout, bait ban, fly only, closed, boats) ──────────────────
+  const topicWaters = (r: number, k: TopicKey) => inRegion(r).filter((m) => waterTopics.get(m.id)?.has(k));
+  const TOPIC_CAP = 600;
 
   // ── region hubs (T195) ─────────────────────────────────────────────────────────────────────────────────────────────
   const days = weekendDays(on);
@@ -158,7 +167,8 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
     const body = `<nav class="crumbs"><a href="/">Home</a> › ${esc(name)}</nav><h1>${esc(name)} fishing regulations</h1>` +
       `<p>${ws.length} waters in ${esc(name)} with the full rules in plain words, from release ${esc(release.id)}.</p>` +
       `<ul><li><a href="${path}/open-this-weekend">What is open this weekend in ${esc(name)}</a></li>` +
-      `<li><a href="${path}/season-changes">Waters opening and closing soon in ${esc(name)}</a></li></ul>` +
+      `<li><a href="${path}/season-changes">Waters opening and closing soon in ${esc(name)}</a></li>` +
+      TOPICS.filter((t) => topicWaters(r, t.key).length).map((t) => `<li><a href="${path}/${t.key}">${esc(t.hub)} in ${esc(name)}</a> (${topicWaters(r, t.key).length})</li>`).join("") + `</ul>` +
       (letters ? `<h2>Waters in ${esc(name)} by first letter</h2><ul class="cols">${[...letters].map(([l, xs]) => `<li><a href="${path}/waters-${l}">${l === "0" ? "Other" : l} (${xs.length})</a></li>`).join("")}</ul>`
         : `<h2>All waters in ${esc(name)}</h2>${list(ws, (m) => WORD[m.status])}`) +
       `<div class="legal"><p>Open or closed is as of <time datetime="${asOf}">${asOf}</time>. This is not a legal document. Check the official synopsis before you fish.</p></div>`;
@@ -208,6 +218,33 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
     const cdesc = clip(`${turns.length} openings and closings in ${name} over the next 60 days, by date, each linking to the water's full rules.`);
     unique(titles, ctitle, cpath); unique(descriptions, cdesc, cpath);
     add("calendar", cpath, shellOf(cpath, ctitle, cdesc, cbody, pageLd(site, cpath, ctitle, asOf, [["Home", "/"], [name, path], ["Opening and closing", cpath]])));
+  }
+
+  for (const t of TOPICS) {
+    const rows = regions.map((r) => [r, topicWaters(r, t.key)] as const).filter(([, w]) => w.length);
+    if (!rows.length) continue;
+    const ipath = `/topic/${t.key}`, ititle = clip(`${t.hub} in B.C. — ${site.name}`, 60);
+    const total = rows.reduce((n, [, w]) => n + w.length, 0);
+    const idesc = clip(`${t.hub} for ${total} B.C. freshwater waters, by region: the rule in plain words for each, from the provincial synopsis.`);
+    const ibody = `<nav class="crumbs"><a href="/">Home</a> › ${esc(t.hub)}</nav><h1>${esc(t.hub)} in B.C.</h1>` +
+      `<p>${total} waters have a rule on this, listed by region. Each water page has the full rule. As of <time datetime="${asOf}">${asOf}</time>.</p>` +
+      `<ul>${rows.map(([r, w]) => `<li><a href="${regionPath(r)}/${t.key}">${esc(regionLabel(r))}</a> (${w.length})</li>`).join("")}</ul>` +
+      `<div class="legal"><p>${esc(NOT_LEGAL)}</p></div>`;
+    unique(titles, ititle, ipath); unique(descriptions, idesc, ipath);
+    add("topic", ipath, shellOf(ipath, ititle, idesc, ibody, pageLd(site, ipath, ititle, asOf, [["Home", "/"], [t.hub, ipath]])));
+    for (const [r, ws] of rows) {
+      const p = `${regionPath(r)}/${t.key}`, nm = regionLabel(r);
+      const title = clip(`${t.hub} in ${nm}, B.C. — ${site.name}`, 60);
+      const desc = clip(`${t.hub} in ${nm}: ${ws.length} waters with a rule on this, each with the rule in plain words. As of ${asOf}.`);
+      const ls = ws.slice(0, TOPIC_CAP);
+      const body = `<nav class="crumbs"><a href="/">Home</a> › <a href="${regionPath(r)}">${esc(nm)}</a> › ${esc(t.hub)}</nav><h1>${esc(t.hub)} in ${esc(nm)}, B.C.</h1>` +
+        `<p>${ws.length} waters in ${esc(nm)}${ws.length > ls.length ? `; the first ${ls.length} by name are listed, every water is on <a href="${regionPath(r)}">the ${esc(nm)} page</a>` : ""}. Each line is the water page's own wording.</p>` +
+        `<ul class="topic">${ls.map((m) => `<li><a href="${waterPath(m)}#${t.key}">${esc(m.name)}</a> <span class="tag">${esc(WORD[m.status])}</span><br>${esc(waterTopics.get(m.id)!.get(t.key)![0]!)}</li>`).join("")}</ul>` +
+        `<p><a href="${ipath}">${esc(t.hub)} in all regions</a></p>` +
+        `<div class="legal"><p>${esc(NOT_LEGAL)}</p></div>`;
+      unique(titles, title, p); unique(descriptions, desc, p);
+      add("topic", p, shellOf(p, title, desc, body, pageLd(site, p, title, asOf, [["Home", "/"], [nm, regionPath(r)], [t.hub, p]])));
+    }
   }
 
   // ── what changed since the last release (only with a previous snapshot to compare) ────────────────────────────────────
@@ -262,5 +299,5 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
     waters: Object.fromEntries(models.map((m) => [m.id, { slug: slugOf(m.id), name: m.name, hash: waterHash.get(m.id)! }])),
   };
   files.set("snapshot.json", `${JSON.stringify(snapshot, null, 1)}\n`);
-  return { files, pages, slugMap, removed, snapshot, models, cssHref, regions };
+  return { files, pages, slugSteps, slugMap, removed, snapshot, models, cssHref, regions };
 }

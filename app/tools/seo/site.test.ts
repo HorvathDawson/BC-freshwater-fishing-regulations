@@ -154,6 +154,32 @@ describe("T194 sitemap, robots, canonicals, structured data", () => {
   }, 120_000);
 });
 
+describe("specific-regulation pages (topics)", () => {
+  it("a water's topic lines are its own sentences, with anchors, FAQ answers and links to the topic hubs", () => {
+    const topics = built.build.pages.filter((p) => p.kind === "topic");
+    expect(topics.length).toBeGreaterThan(3);
+    const withGlance = waters().filter((p) => p.html.includes('id="topics"'));
+    expect(withGlance.length).toBeGreaterThan(5);
+    for (const p of withGlance) {
+      const ld = /<script type="application\/ld\+json">([\s\S]*?)<\/script>/.exec(p.html)![1]!;
+      const faq = JSON.parse(ld)["@graph"].find((n: { "@type": string }) => n["@type"] === "FAQPage").mainEntity as { name: string; acceptedAnswer: { text: string } }[];
+      for (const q of faq.slice(1)) {                                  // the first is "Can I fish X today?"
+        expect(p.html, q.name).toContain(`>${q.name.replace(/'/g, "&#39;")}</h3>`.replace("&#39;", "'"));
+        expect(text(p.html)).toContain(q.acceptedAnswer.text);        // never an answer the page does not show
+      }
+      for (const href of [...p.html.matchAll(/href="(\/region\/\d+\/(?:steelhead|salmon|trout|bait-ban|fly-only|closed|boat))"/g)].map((x) => x[1]!))
+        expect(topics.some((t) => t.path === href), `${p.path} -> ${href}`).toBe(true);
+    }
+    for (const t of topics) expect(t.html).toMatch(/<h1>/);
+  });
+  it("sections and groups have anchors that are unique on the page", () => {
+    for (const p of waters()) {
+      const ids = [...p.html.matchAll(/ id="([^"]+)"/g)].map((x) => x[1]!);
+      expect(new Set(ids).size, p.path).toBe(ids.length);
+    }
+  });
+});
+
 describe("T195 hubs and dated pages", () => {
   it("a big region's hub lists letters, not every water; the A-Z pages hold them all, each water is listed on a hub (small region) or a letter page", async () => {
     const split = await buildAll({ loader: openRegsFixture(), on: TODAY, hubSplitAt: 5 });
