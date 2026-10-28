@@ -99,7 +99,7 @@ use that as the sole source of future work."
 | T52 | Conditions "Expected change" | DONE | 8ad715d6, 1089d4a2, be32f926, 9a050ec1, 7b47a6ab, ee1234e0 | live after the feed republish |
 | T53 | unnamed stream shows no regulations | DONE | 74c1decd, 79c74252, 46f3d2f1, 9ef5ea75, 1925ecdc | — (real-data sweep is T57) |
 | T54 | no-access streams: fourth colour + banner | DONE | a43a7122, 83f28d54, fec02c29, a5f9b5eb, e08f791b, b291b598, c155f40f, 7c0798d7, bd12dfb9, 4d20b016, 128cc4e0 | live in r-36fbc5326506; Q54/Q55 |
-| T55 | sloughs/canals still drawn as lakes | IN PROGRESS | fec02c29, 96b0eb73; prior 669fd065, a59f3dc3, ac8a0e1c | finder DONE (865 candidates) → ★ owner marks them on the review page (artifact Es3Mokt7Fs2yNvm7JgQua8) → reclassify → reach + deliver; polygon-walk lane wf_3976eddc-bba |
+| T55 | sloughs/canals still drawn as lakes | IN PROGRESS | fec02c29, 96b0eb73; prior 669fd065, a59f3dc3, ac8a0e1c, d4a22561 | review app "Sloughs" tab: 936 pre-marked stream (801 narrow ≤ 44 m + 135 wide marsh), 324 on the owner list (113 intermittent) → ★ owner confirms (one / accept all visible = marks, scope `slough`) → fold into rivers → reach + deliver |
 | T56 | release rebuild: Twin Lakes + stream polygons + "See X" | DONE | 78a4eed8, 020f4ca8, 794f9c07, cfe405c8, 04357dad | R2 upload (owner) |
 | T57 | unnamed streams: real-data regs sweep incl. trib rules | DONE | 9f434cd3, b846c925, a9455d40, 5dac27c8, 21289c24 | — |
 | T58 | back follow-ups | DONE | 21d41623, 9ec8114a | — |
@@ -330,7 +330,7 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q151 | T166 | Unnamed streams: assume their tidal limit is at the mouth (no crossing work)? | yes | owner |
 | Q152 | T153 | A pond a steelhead river takes as its widening is ANADROMOUS (a rainbow over 50 cm in it is a steelhead, p.80) — 68 ponds; found by the card gate on the Kitimat's pond? | yes (built; one flag) | owner |
 | Q153 | T174 | A river's own side piece is adopted onto the LARGEST same-code section — use the nearest ANSWERED one instead (84 Flow gaps)? | measured: largest ANSWERED in reach, +148 side pieces, 0 changed — SHIPPED (`ADOPT_ANSWERED`) | owner (revert = one switch) |
-| Q154 | T174 | Walk a river's own unowned double-line polygon as the river (as T101 does for stream items' polygons)? | measured: they are small FWA LAKES, not river polygons; ON moves 96,590 sections (+95k Flow) — kept OFF (`RIVER_WIDENINGS`) | owner |
+| Q154 | T174 | Walk a river's own unowned double-line polygon as the river (as T101 does for stream items' polygons)? | measured: they are small FWA LAKES, not river polygons; ON moves 96,590 sections (+95k Flow) — kept OFF (`RIVER_WIDENINGS`). 2026-10-28 owner "lakes stay lakes unless a pool labelled a lake": all 136,080 unnamed, 75% < 1 ha (mostly beaver/muskeg ponds); proposed cut < 1 ha AND avg width ≤ 2× the river's → 10,650 polygons, 11,423 sections — curation-review/q154-examples.md | owner |
 | Q155 | T174 | Gravel Slough's 1425 connector lines take the answer of the polygons around them? | yes — built as `water_line_gaps` (any stream water; Gravel 2 of 3, the 3rd has two answers) | owner |
 | Q158 | T168 | A renamed continuation's gauge counts as "on this water" (the Vedder lists the Chilliwack's 08MH001 as its own)? | yes | owner |
 | Q159 | T168 | "Reporting, not ranked" gauges fold with the silent ones ("not reporting or not ranked")? | yes | owner |

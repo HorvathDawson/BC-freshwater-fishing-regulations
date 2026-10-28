@@ -309,7 +309,9 @@ def test_the_only_file_write_is_the_mark_s_commit():
            for py in sorted(BACKEND.glob("*.py")) if py.name != "writes.py"}
     assert {k: v for k, v in got.items() if v} == {"reuse.py": [("post_mark", "commit")]}
     src = (BACKEND / "reuse.py").read_text(encoding="utf-8")
-    assert "writes.commit([(MARKS_PATH, M.appended(MARKS_PATH, [mark]))], \"mark\")" in src
+    # T55: a slough batch ("accept all visible") is several marks in that same one commit
+    assert "writes.commit([(MARKS_PATH, M.appended(MARKS_PATH, marks))], \"mark\")" in src
+    assert "marks = batch or [mark]" in src
 
 
 def test_the_write_pin_is_pinned_by_mutation():

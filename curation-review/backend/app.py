@@ -135,7 +135,7 @@ def get_entries(region: str | None = None, status: str | None = None,
 
 #: what a reviewer marks: an entry, or one rule of a zone entry (T184: entries only); T164: a DFO
 #: salmon location (the DFO review mode); T212: a proposed tidal boundary (the Tidal mode)
-REVIEW_SCOPES = ("entry", "rule", "dfo", "tidal")
+REVIEW_SCOPES = ("entry", "rule", "dfo", "tidal", "slough")
 
 
 class MarkPayload(BaseModel):
@@ -143,7 +143,7 @@ class MarkPayload(BaseModel):
     server (`reuse.post_mark`), never taken from the client."""
     model_config = ConfigDict(extra="forbid")
     scope: str                       # entry | rule (REVIEW_SCOPES)
-    target: str                      # entry_id
+    target: str = ""                 # entry_id (a slough batch names `targets` instead)
     rule_id: str | None = None       # scope rule
     #: verified | wrong | unsure | deferred; omitted -> `marks.verdict_from_answers` the answers (T134)
     verdict: str | None = None
@@ -165,6 +165,10 @@ class MarkPayload(BaseModel):
     #: split_id?, on_item?, coord?, side?, offset_m?, quote, note}; each anchor is checked and its
     #: resolved point stamped by the server; never written to splits.json (T185)
     new_splits: list[dict] = []
+    #: T55: the owner's call on a slough / canal candidate — "stream" | "not stream" (scope slough)
+    call: str | None = None
+    #: T55: "accept all visible" — one slough mark per candidate, in one commit (scope slough only)
+    targets: list[str] = []
 
 
 @app.post("/api/marks")
@@ -177,6 +181,10 @@ def post_mark(body: MarkPayload):
     from pipeline.regs.review.marks import (CHECKS, refusal_words, unanswered_words,
                                             verdict_from_answers)
     data = body.model_dump()
+    if body.scope != "slough":
+        if body.targets or body.call is not None:
+            raise HTTPException(422, [{"path": "", "msg": "only a slough mark carries a call or several targets"}])
+        data.pop("targets"), data.pop("call")
     if body.scope not in REVIEW_SCOPES:
         raise HTTPException(422, [{"path": "scope", "msg": (
             "A split is not marked on its own: check it on the map of an entry whose rules name "
@@ -612,6 +620,40 @@ def tidal_candidate(cid: str):
     got = tidal.detail(cid)
     if got is None:
         raise HTTPException(404, f"tidal candidate {cid} not found")
+    return got
+
+
+# --------------------------------------------------------------------------- T55: Slough review mode
+# All READS: the slough / canal candidates and their pre-marks (`pipeline.regs.review.slough`). The
+# owner's call is a mark (scope "slough") through POST /api/marks; a pre-mark is never one.
+
+@app.get("/api/sloughs/queue")
+def slough_queue(group: str | None = None, basis: str | None = None, verify: str | None = None,
+                 q: str | None = None, region: str | None = None):
+    """THE SLOUGH QUEUE (`sloughs.queue`): `group` premark | owner list | owner | default, `basis`
+    narrow | wide marsh | intermittent, `verify` the mark (todo = unmarked or stale), `q`, `region`."""
+    import sloughs
+    from pipeline.regs.review.slough import GROUPS
+    if group and group not in GROUPS:
+        raise HTTPException(422, [{"path": "group", "msg": "group is one of " + ", ".join(GROUPS)}])
+    if verify and verify not in sloughs.VERIFIES:
+        raise HTTPException(422, [{"path": "verify", "msg": "verify is one of " + ", ".join(sloughs.VERIFIES)}])
+    return sloughs.queue(group=group, basis=basis, verify=verify, q=q, region=region)
+
+
+@app.get("/api/sloughs/progress")
+def slough_progress():
+    import sloughs
+    return sloughs.progress()
+
+
+@app.get("/api/sloughs/candidates/{cid}")
+def slough_candidate(cid: str):
+    """One slough / canal candidate: its row (pre-mark, why), the finder's evidence, its outline."""
+    import sloughs
+    got = sloughs.detail(cid)
+    if got is None:
+        raise HTTPException(404, f"slough candidate {cid} not found")
     return got
 
 

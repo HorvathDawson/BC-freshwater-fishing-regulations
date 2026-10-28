@@ -1124,6 +1124,10 @@ def marks_view(target: str | None = None, scope: str | None = None) -> list[dict
                 import dfo
                 got = dfo._locations().get(tgt)
                 now = dfo._now(got[1], got[2]) if got else None
+            elif m.scope == "slough":                  # T55: a slough / canal candidate
+                from pipeline.regs.review import slough as S
+                got = S.prints_of(tgt)
+                now = Prints.model_validate(got) if got is not None else None
             elif m.scope == "tidal":                   # T212: a proposed tidal boundary
                 from pipeline.regs.review import tidal as T
                 got = T.prints_of(tgt)
@@ -1374,10 +1378,17 @@ def post_mark(body: dict) -> dict:
         # T185 (owner 2026-10-27): the marks ARE the decisions — there is no accept step
         raise ValueError("a proposal is not marked: the marks behind it are the decision "
                          "(Claude applies them, `apply_proposals`)")
-    if scope not in ("entry", "rule", "dfo", "tidal"):
+    if scope not in ("entry", "rule", "dfo", "tidal", "slough"):
         raise ValueError(f"a mark is on an entry or one of its rules, not a {scope}")
     with writes.LOCK, M.store_lock(MARKS_PATH):          # threads, then other processes
-        if scope == "dfo":
+        batch = None
+        if scope == "slough":
+            # T55: a slough / canal candidate — the owner's stream / not stream call; `targets` (accept
+            # all visible) makes one mark per candidate, all in the same one commit below
+            import sloughs
+            batch = sloughs.marks_for(body, date=_dt.date.today().isoformat(), pdf_sha256=_pdf_sha256())
+            mark, now, reused = batch[-1], None, []
+        elif scope == "dfo":
             # T164: a DFO salmon location — its prints from `review.dfo`, each NEW split's anchor
             # checked and its resolved point stamped (`dfo.mark_for`); the same one commit below
             import dfo
@@ -1406,7 +1417,10 @@ def post_mark(body: dict) -> dict:
                                           "pdf_sha256": _pdf_sha256(), "pages": pages,
                                           "prints": prints})
             now = None
-        writes.commit([(MARKS_PATH, M.appended(MARKS_PATH, [mark]))], "mark")
+        marks = batch or [mark]
+        writes.commit([(MARKS_PATH, M.appended(MARKS_PATH, marks))], "mark")
+    if scope == "slough":
+        return {**_mark_view(mark, mark.prints), "n": len(marks)}
     view = _mark_view(mark, now if scope in ("dfo", "tidal") else _prints(e))
     if reused:                       # T210: "already proposed — reused", said back to the screen
         view = {**view, "reused": reused}

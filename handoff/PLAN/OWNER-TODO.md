@@ -83,7 +83,9 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
 - **Gauge gaps on main rivers (T174, shipped r-bda3fea28838):** Q153 (side piece adopts the largest ANSWERED river section) and
   Q155 (a water's own lines between alike pieces) shipped: +407 Flow / +327 Level sections, 0 answers changed — veto =
   one switch each in panels.py. **Q154 is yours:** the "double-line polygons" are small FWA lakes; walking them as the
-  river moves 96,590 sections (+95k Flow) — kept off. Numbers in tickets/T174.
+  river moves 96,590 sections (+95k Flow) — kept off. Numbers in tickets/T174. Your "how small?": examples +
+  a proposed pool-only cut (< 1 ha and ≤ 2× the river's width: 10,650 of 136,080, 11,423 sections) in
+  curation-review/q154-examples.md — say yes / no / another cut.
 - **T89 six waters:** Frog/Hidden/Secret/Square (5-6), Redfern (5-15), Squirrel (6-1) — nothing of those names near
   the printed MU; if you know where any is, the proposal file `handoff/PLAN/curation-review/t89-awaiting-water.json`
   lists the leads and the fix path.
@@ -92,7 +94,7 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
 - **T182 caps (built with defaults, veto if wrong):** offline total 20 MB (was 15); cold-load gate 3.35 MB (salmon on
   the first Salmon press, as you decided 10-28).
 - **Scope and big rebuilds:** Q10 imagery corridor (offline corridor + pools go/no-go; online Esri is settled).
-- **Things only you can do or know:** Q4 slough marks (review page) · Q126 were you
+- **Things only you can do or know:** Q4 slough marks — now in the review app's **Sloughs** tab (`#sloughs/`): 936 pre-marked stream to confirm (801 narrow, 135 wide marsh; "accept all visible" after checking), 324 on your list (113 intermittent) · Q126 were you
   on Level? · Q9 phone testing · Q26 hosting/app name ·
   Q28 iOS timing · Q27 sign-off walk.
 
