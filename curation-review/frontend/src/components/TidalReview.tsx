@@ -1,3 +1,4 @@
+import { SynopsisLink, printedPageOf } from "./SynopsisLink";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api, type EntryRefused } from "../api";
 import type {
@@ -486,25 +487,31 @@ function TidalCandidateView({ detail, mode, nav, onMarked }: {
           <div className="source-pin" data-testid="tidal-sources">
             <div className="evidence-head"><h3 style={{ margin: 0 }}>What the words say</h3></div>
             {c.sources.length === 0 && <div className="dim">No text names this stream's tidal boundary — the polygon alone (unnamed-stream default: the mouth).</div>}
-            {c.sources.map((s, i) => (
-              <div key={i} className="ext-row" data-testid={`tidal-source-${i}`}>
-                <span className="k">{SOURCE_WORDS[s.kind] ?? s.kind}</span>
-                <span className="verbatim" style={{ flex: 1 }}>{s.words}</span>
-                <span className="dim" style={{ fontSize: 12 }}>
-                  {s.measure != null ? `at ${s.measure.toFixed(0)} m${s.located_by ? ` (${s.located_by})` : ""}` : "not located"}
-                  {s.agrees === true ? " · agrees" : s.agrees === false ? ` · DISAGREES (${s.polygon_minus_source_m?.toFixed(0)} m)` : ""}
-                  {" · "}{s.source}</span>
-              </div>
-            ))}
+            {c.sources.map((s, i) => {
+              const pp = s.kind === "synopsis_row" || s.kind === "synopsis_box" ? printedPageOf(s.source) : null;
+              return (
+                <div key={i} className="ev-row" data-testid={`tidal-source-${i}`}>
+                  <span className="k">{SOURCE_WORDS[s.kind] ?? s.kind}</span>
+                  <div className="verbatim">{s.words}</div>
+                  <div className="ev-meta dim">
+                    {s.measure != null ? `at ${s.measure.toFixed(0)} m${s.located_by ? ` (${s.located_by})` : ""}` : "not located"}
+                    {s.agrees === true ? " · agrees" : s.agrees === false ? ` · DISAGREES (${s.polygon_minus_source_m?.toFixed(0)} m)` : ""}
+                    {" · "}{s.source}
+                    {pp != null && <>{" · "}<SynopsisLink printed={pp} water={s.kind === "synopsis_row" ? c.water : undefined}
+                      testid={`tidal-source-${i}-pdf`} /></>}
+                  </div>
+                </div>
+              );
+            })}
             {(c.triage?.web ?? []).map((w, i) => (
-              <div key={`web${i}`} className="ext-row" data-testid={`tidal-web-${i}`}>
+              <div key={`web${i}`} className="ev-row" data-testid={`tidal-web-${i}`}>
                 <span className="k">web · {w.confidence}</span>
-                <span className="verbatim" style={{ flex: 1 }}>{w.marker}{w.quote ? <> — <q>{w.quote}</q></> : null}
-                  {w.line && <span className="dim"> (line {w.endpoints?.join(" – ") ?? ""}: {w.line.map(([x, y]) => `${y.toFixed(5)}, ${x.toFixed(5)}`).join(" → ")})</span>}</span>
-                <span className="dim" style={{ fontSize: 12 }}>
+                <div className="verbatim">{w.marker}{w.quote ? <> — <q>{w.quote}</q></> : null}
+                  {w.line && <span className="dim"> (line {w.endpoints?.join(" – ") ?? ""}: {w.line.map(([x, y]) => `${y.toFixed(5)}, ${x.toFixed(5)}`).join(" → ")})</span>}</div>
+                <div className="ev-meta dim">
                   {w.located ? `at ${w.located.measure.toFixed(0)} m (${w.located.located_by})` : "not located"}
                   {w.agrees === true ? " · agrees" : w.agrees === false ? " · DISAGREES" : ""}
-                  {" · "}<a href={w.url} target="_blank" rel="noreferrer">{w.site}</a></span>
+                  {" · "}<a href={w.url} target="_blank" rel="noreferrer">{w.site}</a></div>
               </div>
             ))}
           </div>

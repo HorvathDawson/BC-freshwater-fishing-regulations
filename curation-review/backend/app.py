@@ -640,6 +640,47 @@ def synopsis_page_map():
     return synopsis_pages.printed_to_pdf()
 
 
+@app.get("/api/synopsis/ref")
+def synopsis_ref(printed: int, water: str = ""):
+    """Where a printed page (and, when `water` names a row on it, that row) is in the repo PDF: the
+    PDF page for `#page=`, and the page rendered with the row boxed / the row's own crop."""
+    import evidence
+    import synopsis_pages
+    n = synopsis_pages.pdf_page(printed)
+    if n is None:
+        raise HTTPException(404, f"no printed page {printed} in the synopsis")
+    out = {"printed": printed, "pdf_page": n, "pdf_url": f"/api/synopsis.pdf#page={n}",
+           "page_url": f"/api/synopsis/page/{printed}.png", "row_image": None, "row_page_url": None}
+    want = re.sub(r"[^a-z0-9]+", " ", water.lower()).strip()
+    if want:
+        try:
+            rows = evidence.row_boxes()
+        except evidence.Missing:
+            rows = {}
+        hits = [k for k, b in rows.items() if b.get("printed") == printed and
+                re.sub(r"[^a-z0-9]+", " ", str(b.get("water", "")).lower()).strip().startswith(want)]
+        if hits:
+            out["row_image"] = f"/api/row-image/{hits[0]}"
+            out["row_page_url"] = f"/api/synopsis/row/{hits[0]}/page.png"
+    return out
+
+
+@app.get("/api/synopsis/row/{key}/page.png")
+def synopsis_row_page(key: str):
+    """The whole printed page with one source row boxed (the row_boxes.json sidecar's box)."""
+    import evidence
+    if not re.fullmatch(r"[A-Za-z0-9_]+\.png", key):
+        raise HTTPException(400, "bad key")
+    try:
+        b = evidence.row_boxes().get(key)
+    except evidence.Missing as ex:
+        raise HTTPException(404, str(ex))
+    if b is None:
+        raise HTTPException(404, f"{key} not in the row boxes")
+    return Response(evidence.page_png({"pdf_page": b["pdf_page"], "boxes": [b["box"]]}),
+                    media_type="image/png")
+
+
 @app.get("/api/synopsis/page/{printed}.png")
 def synopsis_page_image(printed: int):
     """The whole printed page, rendered — the region chapter a zone entry was transcribed from has

@@ -243,9 +243,11 @@ body {
   border-radius: 6px;
   padding: 10px;
   white-space: pre-wrap;
-  font-family: ui-monospace, "SF Mono", Menlo, monospace;
-  font-size: 12px;
+  overflow-wrap: anywhere;
+  font-family: inherit;               /* quoted source text reads as prose, not code */
+  font-size: 13px;
   line-height: 1.5;
+  border-left: 3px solid var(--border-strong, #b8bec9);   /* the quote style */
   max-height: 480px;
   overflow: auto;
 }
@@ -1024,3 +1026,23 @@ code.cmd { font-size: 11px; padding: 1px 6px; border: 1px solid var(--warn-borde
 /* T89 awaiting water */
 .chip-tag.t89 { background: #ede9fe; color: #5b21b6; border-color: #c4b5fd; }
 .awaiting-water h4 { margin: 8px 0 2px; font-size: 12px; }
+
+/* evidence rows (tidal sources, web findings): label above, the quote the full width, annotations below */
+.ev-row { display: flex; flex-direction: column; gap: 3px; margin: 8px 0; min-width: 0; }
+.ev-row > .k { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .03em; }
+.ev-row > .verbatim { width: 100%; box-sizing: border-box; min-width: 0; white-space: normal; }
+.ev-row q { quotes: "\201C" "\201D"; font-style: italic; }
+.ev-meta { font-size: 12px; overflow-wrap: anywhere; min-width: 0; }
+.syn-link a { white-space: nowrap; }
+.syn-open { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; align-items: flex-start; }
+.ext-row > .dim { min-width: 0; flex: 1 1 200px; overflow-wrap: anywhere; }
+
+/* narrow windows: the queue (320) + the map (min 360) left the evidence column ~100 px at 800 — the map
+   goes under the content instead, and the pane scrolls as one */
+@media (max-width: 1180px) {
+  .detail-cols, .detail-cols.map-big { flex-direction: column; overflow-y: auto; }
+  .detail-cols .detail-content { flex: none; overflow: visible; }
+  .detail-cols .detail-map, .detail-cols.map-big .detail-map, .review-mode .detail-map {
+    flex: 0 0 auto; min-width: 0; height: 460px; border-left: 0; border-top: 1px solid var(--border); }
+  .source-pin { position: static; max-height: none; }
+}

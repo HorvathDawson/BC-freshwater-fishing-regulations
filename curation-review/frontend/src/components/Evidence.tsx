@@ -32,7 +32,7 @@ export function Evidence({ view, pdfPages }: Props) {
           <span>
             printed p.{printed}{" "}
             <a href={`/api/synopsis.pdf#page=${pdfPages[String(printed)] ?? ev.pdf_page ?? printed}`}
-              target="_blank" rel="noreferrer">open the PDF here</a>
+              target="_blank" rel="noreferrer">Open PDF ›</a>
           </span>
         )}
         {ev.kind === "passage" && ev.total ? (
