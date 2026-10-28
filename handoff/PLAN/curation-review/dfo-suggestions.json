@@ -2,211 +2,35 @@
  "_about": "DFO extent SUGGESTIONS (T164 / T210 follow-up) — never applied. The review app's DFO mode shows each one; 'accept suggestion' pre-fills the extent-fix editor and the owner saves it as their mark. Regenerate: python -m pipeline.regs.dfo_salmon.suggest",
  "generated": "2026-10-27",
  "counts": {
-  "existing": 71,
-  "new_high": 27,
+  "existing": 66,
+  "new_high": 25,
   "new_low": 16,
-  "new_medium": 20,
-  "none": 22,
-  "whole": 44
+  "new_medium": 24,
+  "none": 15,
+  "whole": 50
+ },
+ "outcomes": {
+  "existing_high": 45,
+  "existing_low": 2,
+  "existing_medium": 19,
+  "new_high": 25,
+  "new_low": 16,
+  "new_medium": 24,
+  "unresolvable": 15,
+  "whole": 50
+ },
+ "why": {
+  "lake_area": 12,
+  "needs_split": 58,
+  "no_water": 1,
+  "review_pending": 99,
+  "side_channel": 3,
+  "tributary_set": 3,
+  "unknown_landmark": 2,
+  "variant": 16,
+  "variant_of_placed": 2
  },
  "suggestions": {
-  "1:campbell-river:from-a-fishing-boundary-sign-at-th": {
-   "location_id": "1:campbell-river:from-a-fishing-boundary-sign-at-th",
-   "water": "Campbell River",
-   "text": "from a fishing boundary sign at the end of Maple Street downstream to the fishing boundary sign at the cement block.",
-   "notice_op": "between",
-   "items": [
-    "gnis:39532"
-   ],
-   "suggestion": {
-    "op": "between",
-    "points": [
-     {
-      "kind": "split",
-      "split_id": "campbell_river__maple_street_boundary_sign"
-     },
-     {
-      "kind": "split",
-      "split_id": "campbell_river__cement_block_boundary_sign"
-     }
-    ],
-    "items": [
-     "gnis:39532"
-    ],
-    "tributaries": null,
-    "new_splits": [],
-    "words": "between Maple Street boundary sign and cement block boundary sign"
-   },
-   "confidence": "high",
-   "matched": "existing",
-   "reason": "high: \"maple, street\" -> the curated cut `campbell_river__maple_street_boundary_sign` (Maple Street boundary sign); high: \"block, cement\" -> the curated cut `campbell_river__cement_block_boundary_sign` (cement block boundary sign)",
-   "endpoints": [
-    {
-     "phrase": "a fishing boundary sign at the end of Maple Street",
-     "kind": "split",
-     "confidence": "high",
-     "reason": "\"maple, street\" -> the curated cut `campbell_river__maple_street_boundary_sign` (Maple Street boundary sign)",
-     "label": "Maple Street boundary sign",
-     "fix": {
-      "kind": "split",
-      "split_id": "campbell_river__maple_street_boundary_sign"
-     },
-     "item_id": "gnis:39532"
-    },
-    {
-     "phrase": "the fishing boundary sign at the cement block",
-     "kind": "split",
-     "confidence": "high",
-     "reason": "\"block, cement\" -> the curated cut `campbell_river__cement_block_boundary_sign` (cement block boundary sign)",
-     "label": "cement block boundary sign",
-     "fix": {
-      "kind": "split",
-      "split_id": "campbell_river__cement_block_boundary_sign"
-     },
-     "item_id": "gnis:39532"
-    }
-   ],
-   "points": [
-    {
-     "label": "Maple Street boundary sign",
-     "coord": null,
-     "kind": "split",
-     "split_id": "campbell_river__maple_street_boundary_sign"
-    },
-    {
-     "label": "cement block boundary sign",
-     "coord": null,
-     "kind": "split",
-     "split_id": "campbell_river__cement_block_boundary_sign"
-    }
-   ],
-   "state": "needs_cut",
-   "status": "active"
-  },
-  "1:campbell-river:downstream-of-the-confluence-with": {
-   "location_id": "1:campbell-river:downstream-of-the-confluence-with",
-   "water": "Campbell River",
-   "text": "downstream of the confluence with the Quinsam River",
-   "notice_op": "downstream_of",
-   "items": [
-    "gnis:39532"
-   ],
-   "suggestion": {
-    "op": "downstream_of",
-    "points": [
-     {
-      "kind": "new",
-      "split_id": "n2"
-     }
-    ],
-    "items": [
-     "gnis:39532"
-    ],
-    "tributaries": null,
-    "new_splits": [],
-    "words": "downstream of Quinsam River → (proposed)"
-   },
-   "confidence": "high",
-   "matched": "existing",
-   "reason": "high: confluence of Quinsam River: the proposed cut `n2` (Quinsam River → (proposed))",
-   "endpoints": [
-    {
-     "phrase": "downstream of the confluence with the Quinsam River",
-     "kind": "proposed",
-     "confidence": "high",
-     "reason": "confluence of Quinsam River: the proposed cut `n2` (Quinsam River → (proposed))",
-     "label": "Quinsam River → (proposed)",
-     "fix": {
-      "kind": "new",
-      "split_id": "n2"
-     },
-     "item_id": "gnis:39532"
-    }
-   ],
-   "points": [
-    {
-     "label": "Quinsam River → (proposed)",
-     "coord": null,
-     "kind": "proposed",
-     "split_id": "n2"
-    }
-   ],
-   "state": "needs_cut",
-   "status": "active"
-  },
-  "1:campbell-river:downstream-of-the-confluence-with~2": {
-   "location_id": "1:campbell-river:downstream-of-the-confluence-with~2",
-   "water": "Campbell River",
-   "text": "downstream of the confluence with the Quinsam River to the fishing boundary sign at the end of Maple Street.",
-   "notice_op": "between",
-   "items": [
-    "gnis:39532"
-   ],
-   "suggestion": {
-    "op": "between",
-    "points": [
-     {
-      "kind": "new",
-      "split_id": "n2"
-     },
-     {
-      "kind": "split",
-      "split_id": "campbell_river__maple_street_boundary_sign"
-     }
-    ],
-    "items": [
-     "gnis:39532"
-    ],
-    "tributaries": null,
-    "new_splits": [],
-    "words": "between Quinsam River → (proposed) and Maple Street boundary sign"
-   },
-   "confidence": "high",
-   "matched": "existing",
-   "reason": "high: confluence of Quinsam River: the proposed cut `n2` (Quinsam River → (proposed)); high: \"maple, street\" -> the curated cut `campbell_river__maple_street_boundary_sign` (Maple Street boundary sign)",
-   "endpoints": [
-    {
-     "phrase": "downstream of the confluence with the Quinsam River",
-     "kind": "proposed",
-     "confidence": "high",
-     "reason": "confluence of Quinsam River: the proposed cut `n2` (Quinsam River → (proposed))",
-     "label": "Quinsam River → (proposed)",
-     "fix": {
-      "kind": "new",
-      "split_id": "n2"
-     },
-     "item_id": "gnis:39532"
-    },
-    {
-     "phrase": "the fishing boundary sign at the end of Maple Street",
-     "kind": "split",
-     "confidence": "high",
-     "reason": "\"maple, street\" -> the curated cut `campbell_river__maple_street_boundary_sign` (Maple Street boundary sign)",
-     "label": "Maple Street boundary sign",
-     "fix": {
-      "kind": "split",
-      "split_id": "campbell_river__maple_street_boundary_sign"
-     },
-     "item_id": "gnis:39532"
-    }
-   ],
-   "points": [
-    {
-     "label": "Quinsam River → (proposed)",
-     "coord": null,
-     "kind": "proposed",
-     "split_id": "n2"
-    },
-    {
-     "label": "Maple Street boundary sign",
-     "coord": null,
-     "kind": "split",
-     "split_id": "campbell_river__maple_street_boundary_sign"
-    }
-   ],
-   "state": "needs_cut",
-   "status": "active"
-  },
   "1:cayeghle-river:including-colonial-river": {
    "location_id": "1:cayeghle-river:including-colonial-river",
    "water": "Cayeghle River",
@@ -229,7 +53,9 @@
     "words": "the whole water"
    },
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "1:cowichan-river:including-tributaries-and-cowichan": {
    "location_id": "1:cowichan-river:including-tributaries-and-cowichan",
@@ -254,80 +80,9 @@
     "words": "the whole water with its tributaries"
    },
    "state": "unbound",
-   "status": "dormant"
-  },
-  "1:cowichan-river:from-66-mile-trestle-downstream-to": {
-   "location_id": "1:cowichan-river:from-66-mile-trestle-downstream-to",
-   "water": "Cowichan River",
-   "text": "from 66 Mile Trestle downstream to the white triangle boundary sign located in Sandy Pool Regional Park",
-   "notice_op": "between",
-   "items": [
-    "gnis:12227"
-   ],
-   "suggestion": {
-    "op": "between",
-    "points": [
-     {
-      "kind": "split",
-      "split_id": "cowichan_river__cnr_trestle"
-     },
-     {
-      "kind": "new",
-      "split_id": "n1"
-     }
-    ],
-    "items": [
-     "gnis:12227"
-    ],
-    "tributaries": null,
-    "new_splits": [],
-    "words": "between CNR Mile 66 Trestle and white triangle boundary sign located in Sandy Pool Regional Park"
-   },
-   "confidence": "high",
-   "matched": "existing",
-   "reason": "high: \"66, mile, trestle\" -> the curated cut `cowichan_river__cnr_trestle` (CNR Mile 66 Trestle); high: \"park, pool, regional, sandy\" -> the proposed cut `n1` (white triangle boundary sign located in Sandy Pool Regional Park)",
-   "endpoints": [
-    {
-     "phrase": "66 Mile Trestle",
-     "kind": "split",
-     "confidence": "high",
-     "reason": "\"66, mile, trestle\" -> the curated cut `cowichan_river__cnr_trestle` (CNR Mile 66 Trestle)",
-     "label": "CNR Mile 66 Trestle",
-     "fix": {
-      "kind": "split",
-      "split_id": "cowichan_river__cnr_trestle"
-     },
-     "item_id": "gnis:12227"
-    },
-    {
-     "phrase": "the white triangle boundary sign located in Sandy Pool Regional Park",
-     "kind": "proposed",
-     "confidence": "high",
-     "reason": "\"park, pool, regional, sandy\" -> the proposed cut `n1` (white triangle boundary sign located in Sandy Pool Regional Park)",
-     "label": "white triangle boundary sign located in Sandy Pool Regional Park",
-     "fix": {
-      "kind": "new",
-      "split_id": "n1"
-     },
-     "item_id": "gnis:12227"
-    }
-   ],
-   "points": [
-    {
-     "label": "CNR Mile 66 Trestle",
-     "coord": null,
-     "kind": "split",
-     "split_id": "cowichan_river__cnr_trestle"
-    },
-    {
-     "label": "white triangle boundary sign located in Sandy Pool Regional Park",
-     "coord": null,
-     "kind": "proposed",
-     "split_id": "n1"
-    }
-   ],
-   "state": "needs_cut",
-   "status": "active"
+   "status": "dormant",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "1:cowichan-river:from-the-white-triangle-boundary-s": {
    "location_id": "1:cowichan-river:from-the-white-triangle-boundary-s",
@@ -341,8 +96,8 @@
     "op": "downstream_of",
     "points": [
      {
-      "kind": "new",
-      "split_id": "n1"
+      "kind": "split",
+      "split_id": "cowichan_river__white_triangle_boundary_sign_loc"
      }
     ],
     "items": [
@@ -352,19 +107,19 @@
     "new_splits": [],
     "words": "downstream of white triangle boundary sign located in Sandy Pool Regional Park"
    },
-   "confidence": "high",
+   "confidence": "low",
    "matched": "existing",
-   "reason": "high: \"park, pool, regional, sandy\" -> the proposed cut `n1` (white triangle boundary sign located in Sandy Pool Regional Park); the other end is the water's mouth, so downstream of it",
+   "reason": "low: \"park, pool, regional, sandy\" -> the curated cut `cowichan_river__white_triangle_boundary_sign_loc` (white triangle boundary sign located in Sandy Pool Regional Park); as close: `n1` (white triangle boundary sign located in Sandy Pool Regional Park (medium confidence)); the other end is the water's mouth, so downstream of it",
    "endpoints": [
     {
      "phrase": "the white triangle boundary sign located in Sandy Pool Regional Park",
-     "kind": "proposed",
-     "confidence": "high",
-     "reason": "\"park, pool, regional, sandy\" -> the proposed cut `n1` (white triangle boundary sign located in Sandy Pool Regional Park)",
+     "kind": "split",
+     "confidence": "low",
+     "reason": "\"park, pool, regional, sandy\" -> the curated cut `cowichan_river__white_triangle_boundary_sign_loc` (white triangle boundary sign located in Sandy Pool Regional Park); as close: `n1` (white triangle boundary sign located in Sandy Pool Regional Park (medium confidence))",
      "label": "white triangle boundary sign located in Sandy Pool Regional Park",
      "fix": {
-      "kind": "new",
-      "split_id": "n1"
+      "kind": "split",
+      "split_id": "cowichan_river__white_triangle_boundary_sign_loc"
      },
      "item_id": "gnis:12227"
     }
@@ -373,12 +128,14 @@
     {
      "label": "white triangle boundary sign located in Sandy Pool Regional Park",
      "coord": null,
-     "kind": "proposed",
-     "split_id": "n1"
+     "kind": "split",
+     "split_id": "cowichan_river__white_triangle_boundary_sign_loc"
     }
    ],
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "existing_low"
   },
   "1:cowichan-river:downstream-of-the-weir-on-cowichan": {
    "location_id": "1:cowichan-river:downstream-of-the-weir-on-cowichan",
@@ -451,7 +208,9 @@
     }
    ],
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "why": "review_pending",
+   "outcome": "existing_high"
   },
   "1:koksilah-river:including-tributaries": {
    "location_id": "1:koksilah-river:including-tributaries",
@@ -476,7 +235,9 @@
     "words": "the whole water with its tributaries"
    },
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "1:little-qualicum-river:all-waters-unless-indicated-below": {
    "location_id": "1:little-qualicum-river:all-waters-unless-indicated-below",
@@ -501,7 +262,9 @@
     "words": "the whole water"
    },
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "1:little-qualicum-river:from-the-hatchery-fence-to-signs-l": {
    "location_id": "1:little-qualicum-river:from-the-hatchery-fence-to-signs-l",
@@ -574,7 +337,9 @@
     }
    ],
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "existing_medium"
   },
   "1:little-qualicum-river:from-the-falls-in-little-qualicum": {
    "location_id": "1:little-qualicum-river:from-the-falls-in-little-qualicum",
@@ -612,7 +377,8 @@
       "on_item": "gnis:10886",
       "blk": "354154742",
       "measure": 12583.3,
-      "quote": "the falls in Little Qualicum Falls Provincial Park"
+      "quote": "the falls in Little Qualicum Falls Provincial Park",
+      "confidence": "medium"
      }
     ],
     "words": "between Little Qualicum Falls and hatchery fence"
@@ -681,7 +447,9 @@
     }
    ],
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "needs_split",
+   "outcome": "new_medium"
   },
   "1:nanaimo-river:including-tributaries-except-in-th": {
    "location_id": "1:nanaimo-river:including-tributaries-except-in-th",
@@ -706,7 +474,9 @@
     "words": "the whole water with its tributaries"
    },
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "1:nanaimo-river:from-the-power-line-crossing-at-bo": {
    "location_id": "1:nanaimo-river:from-the-power-line-crossing-at-bo",
@@ -779,7 +549,22 @@
     }
    ],
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "cluster": {
+    "id": "1:nanaimo-river#2",
+    "members": [
+     "1:nanaimo-river:from-500-m-below-the-lower-power-l",
+     "1:nanaimo-river:from-the-power-line-crossing-at-bo"
+    ],
+    "placed": [],
+    "canonical": "1:nanaimo-river:from-the-power-line-crossing-at-bo",
+    "role": "canonical",
+    "links": {
+     "1:nanaimo-river:from-500-m-below-the-lower-power-l": "dup 0.82"
+    }
+   },
+   "why": "review_pending",
+   "outcome": "existing_high"
   },
   "1:nanaimo-river:cedar-road-bridge-upstream-approx": {
    "location_id": "1:nanaimo-river:cedar-road-bridge-upstream-approx",
@@ -852,7 +637,22 @@
     }
    ],
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "cluster": {
+    "id": "1:nanaimo-river#1",
+    "members": [
+     "1:nanaimo-river:cedar-road-bridge-upstream-approx",
+     "1:nanaimo-river:from-the-cedar-road-bridge-crossin"
+    ],
+    "placed": [],
+    "canonical": "1:nanaimo-river:from-the-cedar-road-bridge-crossin",
+    "role": "agrees",
+    "links": {
+     "1:nanaimo-river:from-the-cedar-road-bridge-crossin": "text 0.80"
+    }
+   },
+   "why": "variant",
+   "outcome": "existing_high"
   },
   "1:nanaimo-river:from-the-upstream-side-of-the-ceda": {
    "location_id": "1:nanaimo-river:from-the-upstream-side-of-the-ceda",
@@ -925,7 +725,9 @@
     }
    ],
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "existing_medium"
   },
   "1:puntledge-river:from-the-weir-at-the-lower-hatcher": {
    "location_id": "1:puntledge-river:from-the-weir-at-the-lower-hatcher",
@@ -1077,7 +879,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "why": "needs_split",
+   "outcome": "new_medium"
   },
   "1:puntledge-river:downstream-from-a-fishing-boundary": {
    "location_id": "1:puntledge-river:downstream-from-a-fishing-boundary",
@@ -1128,7 +932,9 @@
     }
    ],
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "why": "review_pending",
+   "outcome": "existing_medium"
   },
   "1:puntledge-river:morrison-creek-closure-between-fis": {
    "location_id": "1:puntledge-river:morrison-creek-closure-between-fis",
@@ -1201,7 +1007,9 @@
     }
    ],
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "existing_high"
   },
   "1:qualicum-river:those-waters-upstream-of-the-big-q": {
    "location_id": "1:qualicum-river:those-waters-upstream-of-the-big-q",
@@ -1252,7 +1060,9 @@
     }
    ],
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "existing_high"
   },
   "1:qualicum-river:downstream-of-the-upper-weir-locat": {
    "location_id": "1:qualicum-river:downstream-of-the-upper-weir-locat",
@@ -1325,7 +1135,9 @@
     }
    ],
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "existing_medium"
   },
   "1:qualicum-river:waters-below-the-qfn-boundary-fenc": {
    "location_id": "1:qualicum-river:waters-below-the-qfn-boundary-fenc",
@@ -1398,7 +1210,9 @@
     }
    ],
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "existing_medium"
   },
   "1:qualicum-river:all-open-portions-of-the-qualicum": {
    "location_id": "1:qualicum-river:all-open-portions-of-the-qualicum",
@@ -1423,7 +1237,9 @@
     "words": "the whole water"
    },
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "1:quatse-river:100m-upstream-and-downstream-of-th": {
    "location_id": "1:quatse-river:100m-upstream-and-downstream-of-th",
@@ -1575,7 +1391,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "needs_split",
+   "outcome": "new_low"
   },
   "1:san-juan-river:waters-of-the-san-juan-river-and-i": {
    "location_id": "1:san-juan-river:waters-of-the-san-juan-river-and-i",
@@ -1626,7 +1444,9 @@
     }
    ],
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "why": "review_pending",
+   "outcome": "existing_high"
   },
   "1:san-juan-river:that-portion-of-the-san-juan-river": {
    "location_id": "1:san-juan-river:that-portion-of-the-san-juan-river",
@@ -1778,7 +1598,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "why": "needs_split",
+   "outcome": "new_low"
   },
   "1:sproat-river:sproat-river-from-sproat-lake-to-f": {
    "location_id": "1:sproat-river:sproat-river-from-sproat-lake-to-f",
@@ -1851,7 +1673,22 @@
     }
    ],
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "cluster": {
+    "id": "1:sproat-river#1",
+    "members": [
+     "1:sproat-river:from-sproat-lake-to-approx-300m-be",
+     "1:sproat-river:sproat-river-from-sproat-lake-to-f"
+    ],
+    "placed": [],
+    "canonical": "1:sproat-river:from-sproat-lake-to-approx-300m-be",
+    "role": "agrees",
+    "links": {
+     "1:sproat-river:from-sproat-lake-to-approx-300m-be": "same extent 0.60"
+    }
+   },
+   "why": "variant",
+   "outcome": "existing_high"
   },
   "1:stamp-river:except-in-those-areas-and-times-li": {
    "location_id": "1:stamp-river:except-in-those-areas-and-times-li",
@@ -1896,7 +1733,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "1:stamp-river:from-the-confluence-of-the-ash-riv": {
    "location_id": "1:stamp-river:from-the-confluence-of-the-ash-riv",
@@ -1969,7 +1808,22 @@
     }
    ],
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "cluster": {
+    "id": "1:stamp-river#5",
+    "members": [
+     "1:stamp-river:from-the-confluence-of-the-ash-riv",
+     "1:stamp-river:from-the-confluence-of-the-ash-riv~2"
+    ],
+    "placed": [],
+    "canonical": "1:stamp-river:from-the-confluence-of-the-ash-riv~2",
+    "role": "member",
+    "links": {
+     "1:stamp-river:from-the-confluence-of-the-ash-riv~2": "text 1.00"
+    }
+   },
+   "why": "review_pending",
+   "outcome": "existing_high"
   },
   "1:stamp-river:between-fishing-boundary-signs-app": {
    "location_id": "1:stamp-river:between-fishing-boundary-signs-app",
@@ -2042,7 +1896,9 @@
     }
    ],
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "why": "review_pending",
+   "outcome": "existing_high"
   },
   "1:stamp-river:hatchery-lagoon-from-boundary-sign": {
    "location_id": "1:stamp-river:hatchery-lagoon-from-boundary-sign",
@@ -2193,7 +2049,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "why": "needs_split",
+   "outcome": "new_low"
   },
   "1:stamp-river:hatchery-lagoon-from-fishing-bound": {
    "location_id": "1:stamp-river:hatchery-lagoon-from-fishing-bound",
@@ -2344,7 +2202,22 @@
     }
    },
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "cluster": {
+    "id": "1:stamp-river#6",
+    "members": [
+     "1:stamp-river:from-the-inlet-upstream-of-roberst",
+     "1:stamp-river:hatchery-lagoon-from-fishing-bound"
+    ],
+    "placed": [],
+    "canonical": "1:stamp-river:from-the-inlet-upstream-of-roberst",
+    "role": "agrees",
+    "links": {
+     "1:stamp-river:from-the-inlet-upstream-of-roberst": "same extent 0.50"
+    }
+   },
+   "why": "variant",
+   "outcome": "new_low"
   },
   "1:stamp-river:powerline-crossing-from-boundary-s": {
    "location_id": "1:stamp-river:powerline-crossing-from-boundary-s",
@@ -2497,7 +2370,22 @@
     }
    },
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "cluster": {
+    "id": "1:stamp-river#7",
+    "members": [
+     "1:stamp-river:from-the-powerline-crossing-downst",
+     "1:stamp-river:powerline-crossing-from-boundary-s"
+    ],
+    "placed": [],
+    "canonical": "1:stamp-river:from-the-powerline-crossing-downst",
+    "role": "agrees",
+    "links": {
+     "1:stamp-river:from-the-powerline-crossing-downst": "same extent 0.64"
+    }
+   },
+   "why": "variant",
+   "outcome": "new_low"
   },
   "1:stamp-river:upstream-of-signs-located-at-girl": {
    "location_id": "1:stamp-river:upstream-of-signs-located-at-girl",
@@ -2548,7 +2436,9 @@
     }
    ],
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "why": "review_pending",
+   "outcome": "existing_medium"
   },
   "1:stamp-river:downstream-of-signs-at-girl-guide": {
    "location_id": "1:stamp-river:downstream-of-signs-at-girl-guide",
@@ -2573,9 +2463,9 @@
     "new_splits": [],
     "words": "downstream of Girl Guide Falls signs"
    },
-   "confidence": "medium",
+   "confidence": "high",
    "matched": "existing",
-   "reason": "medium: \"falls, girl, guide\" -> the curated cut `stamp_river__girl_guide_falls_signs` (Girl Guide Falls signs); the notice's place is 250 m above it",
+   "reason": "high (raised from medium): the same binding as `1:stamp-river:stamp-river-downstream-of-girl-gui`, a clearer wording of this place — medium: \"falls, girl, guide\" -> the curated cut `stamp_river__girl_guide_falls_signs` (Girl Guide Falls signs); the notice's place is 250 m above it",
    "endpoints": [
     {
      "phrase": "Downstream of signs at \"Girl Guide Falls\" approximately 250m upstream of the mouth of Beaver Creek",
@@ -2599,7 +2489,42 @@
     }
    ],
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "before": {
+    "suggestion": {
+     "op": "downstream_of",
+     "points": [
+      {
+       "kind": "split",
+       "split_id": "stamp_river__girl_guide_falls_signs"
+      }
+     ],
+     "items": [
+      "gnis:14533"
+     ],
+     "tributaries": null,
+     "new_splits": [],
+     "words": "downstream of Girl Guide Falls signs"
+    },
+    "confidence": "medium",
+    "matched": "existing",
+    "reason": "medium: \"falls, girl, guide\" -> the curated cut `stamp_river__girl_guide_falls_signs` (Girl Guide Falls signs); the notice's place is 250 m above it"
+   },
+   "cluster": {
+    "id": "1:stamp-river#2",
+    "members": [
+     "1:stamp-river:downstream-of-signs-at-girl-guide",
+     "1:stamp-river:stamp-river-downstream-of-girl-gui"
+    ],
+    "placed": [],
+    "canonical": "1:stamp-river:stamp-river-downstream-of-girl-gui",
+    "role": "agrees",
+    "links": {
+     "1:stamp-river:stamp-river-downstream-of-girl-gui": "same extent 0.57"
+    }
+   },
+   "why": "variant",
+   "outcome": "existing_high"
   },
   "1:cowichan-river:from-cnr-trestle-at-mile-70-2-to-s": {
    "location_id": "1:cowichan-river:from-cnr-trestle-at-mile-70-2-to-s",
@@ -2637,7 +2562,8 @@
       "on_item": "gnis:12227",
       "blk": "354155148",
       "measure": 34212.6,
-      "quote": "Skutz Falls"
+      "quote": "Skutz Falls",
+      "confidence": "medium"
      }
     ],
     "words": "between CNR Bridge (mile 70.2) and Skutz Falls"
@@ -2706,7 +2632,9 @@
     }
    ],
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "why": "needs_split",
+   "outcome": "new_medium"
   },
   "1:little-qualicum-river:all-open-portions-of-the-little-qu": {
    "location_id": "1:little-qualicum-river:all-open-portions-of-the-little-qu",
@@ -2731,7 +2659,9 @@
     "words": "the whole water"
    },
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "1:nanaimo-river:from-the-cedar-road-bridge-crossin": {
    "location_id": "1:nanaimo-river:from-the-cedar-road-bridge-crossin",
@@ -2804,7 +2734,22 @@
     }
    ],
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "cluster": {
+    "id": "1:nanaimo-river#1",
+    "members": [
+     "1:nanaimo-river:cedar-road-bridge-upstream-approx",
+     "1:nanaimo-river:from-the-cedar-road-bridge-crossin"
+    ],
+    "placed": [],
+    "canonical": "1:nanaimo-river:from-the-cedar-road-bridge-crossin",
+    "role": "canonical",
+    "links": {
+     "1:nanaimo-river:cedar-road-bridge-upstream-approx": "text 0.80"
+    }
+   },
+   "why": "review_pending",
+   "outcome": "existing_high"
   },
   "1:sproat-river:from-sproat-lake-to-approx-300m-be": {
    "location_id": "1:sproat-river:from-sproat-lake-to-approx-300m-be",
@@ -2877,7 +2822,22 @@
     }
    ],
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "cluster": {
+    "id": "1:sproat-river#1",
+    "members": [
+     "1:sproat-river:from-sproat-lake-to-approx-300m-be",
+     "1:sproat-river:sproat-river-from-sproat-lake-to-f"
+    ],
+    "placed": [],
+    "canonical": "1:sproat-river:from-sproat-lake-to-approx-300m-be",
+    "role": "canonical",
+    "links": {
+     "1:sproat-river:sproat-river-from-sproat-lake-to-f": "same extent 0.60"
+    }
+   },
+   "why": "review_pending",
+   "outcome": "existing_high"
   },
   "1:stamp-river:from-the-confluence-of-the-ash-riv~2": {
    "location_id": "1:stamp-river:from-the-confluence-of-the-ash-riv~2",
@@ -2950,7 +2910,22 @@
     }
    ],
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "cluster": {
+    "id": "1:stamp-river#5",
+    "members": [
+     "1:stamp-river:from-the-confluence-of-the-ash-riv",
+     "1:stamp-river:from-the-confluence-of-the-ash-riv~2"
+    ],
+    "placed": [],
+    "canonical": "1:stamp-river:from-the-confluence-of-the-ash-riv~2",
+    "role": "canonical",
+    "links": {
+     "1:stamp-river:from-the-confluence-of-the-ash-riv": "text 1.00"
+    }
+   },
+   "why": "review_pending",
+   "outcome": "existing_high"
   },
   "1:stamp-river:from-approx-200-m-upstream-of-the": {
    "location_id": "1:stamp-river:from-approx-200-m-upstream-of-the",
@@ -3023,7 +2998,9 @@
     }
    ],
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "existing_high"
   },
   "1:stamp-river:from-the-inlet-upstream-of-roberst": {
    "location_id": "1:stamp-river:from-the-inlet-upstream-of-roberst",
@@ -3174,7 +3151,22 @@
     }
    },
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "cluster": {
+    "id": "1:stamp-river#6",
+    "members": [
+     "1:stamp-river:from-the-inlet-upstream-of-roberst",
+     "1:stamp-river:hatchery-lagoon-from-fishing-bound"
+    ],
+    "placed": [],
+    "canonical": "1:stamp-river:from-the-inlet-upstream-of-roberst",
+    "role": "canonical",
+    "links": {
+     "1:stamp-river:hatchery-lagoon-from-fishing-bound": "same extent 0.50"
+    }
+   },
+   "why": "needs_split",
+   "outcome": "new_low"
   },
   "1:stamp-river:from-the-powerline-crossing-downst": {
    "location_id": "1:stamp-river:from-the-powerline-crossing-downst",
@@ -3327,7 +3319,22 @@
     }
    },
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "cluster": {
+    "id": "1:stamp-river#7",
+    "members": [
+     "1:stamp-river:from-the-powerline-crossing-downst",
+     "1:stamp-river:powerline-crossing-from-boundary-s"
+    ],
+    "placed": [],
+    "canonical": "1:stamp-river:from-the-powerline-crossing-downst",
+    "role": "canonical",
+    "links": {
+     "1:stamp-river:powerline-crossing-from-boundary-s": "same extent 0.64"
+    }
+   },
+   "why": "needs_split",
+   "outcome": "new_low"
   },
   "1:stamp-river:stamp-river-downstream-of-girl-gui": {
    "location_id": "1:stamp-river:stamp-river-downstream-of-girl-gui",
@@ -3378,7 +3385,22 @@
     }
    ],
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "cluster": {
+    "id": "1:stamp-river#2",
+    "members": [
+     "1:stamp-river:downstream-of-signs-at-girl-guide",
+     "1:stamp-river:stamp-river-downstream-of-girl-gui"
+    ],
+    "placed": [],
+    "canonical": "1:stamp-river:stamp-river-downstream-of-girl-gui",
+    "role": "canonical",
+    "links": {
+     "1:stamp-river:downstream-of-signs-at-girl-guide": "same extent 0.57"
+    }
+   },
+   "why": "review_pending",
+   "outcome": "existing_high"
   },
   "1:puntledge-river:from-signs-located-50m-upstream-of": {
    "location_id": "1:puntledge-river:from-signs-located-50m-upstream-of",
@@ -3451,7 +3473,9 @@
     }
    ],
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "existing_high"
   },
   "1:puntledge-river:downstream-from-the-base-of-stotan": {
    "location_id": "1:puntledge-river:downstream-from-the-base-of-stotan",
@@ -3502,7 +3526,9 @@
     }
    ],
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "existing_high"
   },
   "1:stamp-river:from-the-southern-portion-of-the-r": {
    "location_id": "1:stamp-river:from-the-southern-portion-of-the-r",
@@ -3677,7 +3703,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "why": "needs_split",
+   "outcome": "new_low"
   },
   "1:nanaimo-river:from-500-m-below-the-lower-power-l": {
    "location_id": "1:nanaimo-river:from-500-m-below-the-lower-power-l",
@@ -3691,8 +3719,8 @@
     "op": "between",
     "points": [
      {
-      "kind": "split",
-      "split_id": "nanaimo_river__power_line_at_bore_hole"
+      "kind": "new",
+      "split_id": "nanaimo_borehole_d500"
      },
      {
       "kind": "split",
@@ -3703,12 +3731,22 @@
      "gnis:16505"
     ],
     "tributaries": null,
-    "new_splits": [],
-    "words": "between power line at Bore Hole and Boulder Creek → Nanaimo River"
+    "new_splits": [
+     {
+      "ref": "nanaimo_borehole_d500",
+      "anchor": "split",
+      "name": "500 m below the power line at Bore Hole",
+      "split_id": "nanaimo_river__power_line_at_bore_hole",
+      "on_item": "gnis:16505",
+      "offset_m": -500.0,
+      "note": "[split hunt medium] 500 m downstream of the curated 'power line at Bore Hole' cut — the notice's own distance. Sources: data/curated/waters/splits.json#nanaimo_river__power_line_at_bore_hole. the 2024+ wording moved the lower end 500 m below the power line (the dormant wording ran from the power line itself)."
+     }
+    ],
+    "words": "between 500 m below the power line at Bore Hole and Boulder Creek → Nanaimo River"
    },
    "confidence": "medium",
-   "matched": "existing",
-   "reason": "medium: \"bore, hole, powerline\" -> the curated cut `nanaimo_river__power_line_at_bore_hole` (power line at Bore Hole); the notice's place is 500 m below it; high: confluence of Boulder Creek: the curated cut `nanaimo_river__boulder_creek_into_nanaimo_river` (Boulder Creek → Nanaimo River)",
+   "matched": "new",
+   "reason": "split hunt: 'from 500 m below the lower power line crossing at Bore Hole upstream to the signs at the mouth of Boulder Creek': the matcher took the power line itself; the notice says 500 m below it.; medium: 500 m downstream of the curated 'power line at Bore Hole' cut — the notice's own distance; high: confluence of Boulder Creek: the curated cut `nanaimo_river__boulder_creek_into_nanaimo_river` (Boulder Creek → Nanaimo River)",
    "endpoints": [
     {
      "phrase": "500 meters below the lower power line crossing at \"Bore Hole\"",
@@ -3737,10 +3775,13 @@
    ],
    "points": [
     {
-     "label": "power line at Bore Hole",
-     "coord": null,
-     "kind": "split",
-     "split_id": "nanaimo_river__power_line_at_bore_hole"
+     "label": "500 m below the power line at Bore Hole",
+     "coord": [
+      -123.906526,
+      49.072971
+     ],
+     "kind": "new",
+     "split_id": "nanaimo_borehole_d500"
     },
     {
      "label": "Boulder Creek → Nanaimo River",
@@ -3749,8 +3790,58 @@
      "split_id": "nanaimo_river__boulder_creek_into_nanaimo_river"
     }
    ],
+   "hunt": {
+    "status": "found",
+    "notes": "'from 500 m below the lower power line crossing at Bore Hole upstream to the signs at the mouth of Boulder Creek': the matcher took the power line itself; the notice says 500 m below it.",
+    "proposals": [
+     {
+      "ref": "nanaimo_borehole_d500",
+      "anchor": "split",
+      "name": "500 m below the power line at Bore Hole",
+      "confidence": "medium",
+      "description": "500 m downstream of the curated 'power line at Bore Hole' cut — the notice's own distance",
+      "sources": [
+       "data/curated/waters/splits.json#nanaimo_river__power_line_at_bore_hole"
+      ],
+      "notes": "the 2024+ wording moved the lower end 500 m below the power line (the dormant wording ran from the power line itself).",
+      "lat": 49.07297,
+      "lon": -123.90653,
+      "coord": [
+       -123.906526,
+       49.072971
+      ],
+      "offset_m": -500,
+      "split_id": "nanaimo_river__power_line_at_bore_hole",
+      "snap_m": 0.3,
+      "blk": null,
+      "measure": null
+     }
+    ],
+    "sources": [
+     "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region1-eng.html"
+    ],
+    "matcher": {
+     "matched": "existing",
+     "reason": "medium: \"bore, hole, powerline\" -> the curated cut `nanaimo_river__power_line_at_bore_hole` (power line at Bore Hole); the notice's place is 500 m below it; high: confluence of Boulder Creek: the curated cut `nanaimo_river__boulder_creek_into_nanaimo_river` (Boulder Creek → Nanaimo River)"
+    }
+   },
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "cluster": {
+    "id": "1:nanaimo-river#2",
+    "members": [
+     "1:nanaimo-river:from-500-m-below-the-lower-power-l",
+     "1:nanaimo-river:from-the-power-line-crossing-at-bo"
+    ],
+    "placed": [],
+    "canonical": "1:nanaimo-river:from-the-power-line-crossing-at-bo",
+    "role": "member",
+    "links": {
+     "1:nanaimo-river:from-the-power-line-crossing-at-bo": "dup 0.82"
+    }
+   },
+   "why": "needs_split",
+   "outcome": "new_medium"
   },
   "2:alouette-river-and-tributaries:above-216th-street-including-the-n": {
    "location_id": "2:alouette-river-and-tributaries:above-216th-street-including-the-n",
@@ -3800,7 +3891,9 @@
     }
    ],
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "why": "review_pending",
+   "outcome": "existing_low"
   },
   "2:alouette-river-and-tributaries:downstream-of-a-line-between-2-fis": {
    "location_id": "2:alouette-river-and-tributaries:downstream-of-a-line-between-2-fis",
@@ -3899,7 +3992,22 @@
     }
    },
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "cluster": {
+    "id": "2:alouette-river-and-tributaries#2",
+    "members": [
+     "2:alouette-river-and-tributaries:downstream-of-a-line-between-2-fis",
+     "2:alouette-river-and-tributaries:downstream-of-a-line-between-two-f"
+    ],
+    "placed": [],
+    "canonical": "2:alouette-river-and-tributaries:downstream-of-a-line-between-two-f",
+    "role": "agrees",
+    "links": {
+     "2:alouette-river-and-tributaries:downstream-of-a-line-between-two-f": "dup 1.00"
+    }
+   },
+   "why": "variant",
+   "outcome": "new_medium"
   },
   "2:birkenhead-river:from-the-birkenhead-bridge-located": {
    "location_id": "2:birkenhead-river:from-the-birkenhead-bridge-located",
@@ -4052,7 +4160,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "why": "needs_split",
+   "outcome": "new_medium"
   },
   "2:brunette-river:downstream-of-cariboo-road": {
    "location_id": "2:brunette-river:downstream-of-cariboo-road",
@@ -4151,7 +4261,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "why": "needs_split",
+   "outcome": "new_high"
   },
   "2:capilano-river:including-tributaries": {
    "location_id": "2:capilano-river:including-tributaries",
@@ -4176,7 +4288,9 @@
     "words": "the whole water with its tributaries"
    },
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "2:chapman-creek:upstream-of-tidal-water-fishing-bo": {
    "location_id": "2:chapman-creek:upstream-of-tidal-water-fishing-bo",
@@ -4244,9 +4358,15 @@
     },
     {
      "phrase": "100 m below the falls. The falls are located approximately 550 m upstream of the powerline crossing",
-     "kind": "none",
-     "confidence": "none",
-     "reason": "no curated cut, proposal or data point names this place"
+     "kind": "split",
+     "confidence": "high",
+     "reason": "\"100m-down, crossing, falls, powerline\" -> the curated cut `chapman_creek__100_m_below_lower_falls` (100 m below the falls (below the power line crossing))",
+     "label": "100 m below the falls (below the power line crossing)",
+     "fix": {
+      "kind": "split",
+      "split_id": "chapman_creek__100_m_below_lower_falls"
+     },
+     "item_id": "gnis:12936"
     }
    ],
    "points": [
@@ -4324,12 +4444,14 @@
      "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region2-eng.html"
     ],
     "matcher": {
-     "matched": "none",
-     "reason": "none: no curated cut, proposal or data point names this place; none: no curated cut, proposal or data point names this place"
+     "matched": "partial",
+     "reason": "none: no curated cut, proposal or data point names this place; high: \"100m-down, crossing, falls, powerline\" -> the curated cut `chapman_creek__100_m_below_lower_falls` (100 m below the falls (below the power line crossing))"
     }
    },
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "needs_split",
+   "outcome": "new_low"
   },
   "2:chehalis-river:downstream-of-the-logging-bridge-2": {
    "location_id": "2:chehalis-river:downstream-of-the-logging-bridge-2",
@@ -4380,7 +4502,9 @@
     }
    ],
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "existing_high"
   },
   "2:chilliwack-vedder-river-including:upstream-from-a-line-between-2-fis": {
    "location_id": "2:chilliwack-vedder-river-including:upstream-from-a-line-between-2-fis",
@@ -4431,7 +4555,9 @@
     }
    ],
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "why": "review_pending",
+   "outcome": "existing_high"
   },
   "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun": {
    "location_id": "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun",
@@ -4456,9 +4582,9 @@
     "new_splits": [],
     "words": "downstream of fishing boundary signs 100 m below the Slesse Creek confluence"
    },
-   "confidence": "medium",
+   "confidence": "high",
    "matched": "existing",
-   "reason": "medium: \"confluence, slesse\" -> the curated cut `chilliwack_vedder_rivers__boundary_signs_below_slesse_creek` (fishing boundary signs 100 m below the Slesse Creek confluence); the other end is the water's mouth, so downstream of it",
+   "reason": "high (raised from medium): the same binding as `2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~3`, a clearer wording of this place — medium: \"confluence, slesse\" -> the curated cut `chilliwack_vedder_rivers__boundary_signs_below_slesse_creek` (fishing boundary signs 100 m below the Slesse Creek confluence); the other end is the water's mouth, so downstream of it",
    "endpoints": [
     {
      "phrase": "signs 100 m from the confluence of the Chilliwack River and Slesse Creek downstream",
@@ -4482,7 +4608,44 @@
     }
    ],
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "before": {
+    "suggestion": {
+     "op": "downstream_of",
+     "points": [
+      {
+       "kind": "split",
+       "split_id": "chilliwack_vedder_rivers__boundary_signs_below_slesse_creek"
+      }
+     ],
+     "items": [],
+     "tributaries": null,
+     "new_splits": [],
+     "words": "downstream of fishing boundary signs 100 m below the Slesse Creek confluence"
+    },
+    "confidence": "medium",
+    "matched": "existing",
+    "reason": "medium: \"confluence, slesse\" -> the curated cut `chilliwack_vedder_rivers__boundary_signs_below_slesse_creek` (fishing boundary signs 100 m below the Slesse Creek confluence); the other end is the water's mouth, so downstream of it"
+   },
+   "cluster": {
+    "id": "2:chilliwack-vedder-river-including-sumas-river#1",
+    "members": [
+     "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun",
+     "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~2",
+     "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~3",
+     "2:chilliwack-vedder-river-including:upstream-from-a-line-between-2-fis~2"
+    ],
+    "placed": [],
+    "canonical": "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~3",
+    "role": "agrees",
+    "links": {
+     "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~2": "same extent 0.69",
+     "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~3": "dup 0.64",
+     "2:chilliwack-vedder-river-including:upstream-from-a-line-between-2-fis~2": "same extent 0.64"
+    }
+   },
+   "why": "variant",
+   "outcome": "existing_high"
   },
   "2:fraser-river:from-the-downstream-side-of-the-cp": {
    "location_id": "2:fraser-river:from-the-downstream-side-of-the-cp",
@@ -4611,7 +4774,24 @@
     }
    },
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "cluster": {
+    "id": "2:fraser-river#1",
+    "members": [
+     "2:fraser-river:from-the-downstream-side-of-the-cp",
+     "2:fraser-river:from-the-downstream-side-of-the-cp~2",
+     "2:fraser-river:mainstem-waters-from-the-downstrea"
+    ],
+    "placed": [],
+    "canonical": "2:fraser-river:mainstem-waters-from-the-downstrea",
+    "role": "member",
+    "links": {
+     "2:fraser-river:from-the-downstream-side-of-the-cp~2": "text 0.80",
+     "2:fraser-river:mainstem-waters-from-the-downstrea": "text 1.00"
+    }
+   },
+   "why": "needs_split",
+   "outcome": "new_high"
   },
   "2:fraser-river:upstream-from-the-highway-1-bridge": {
    "location_id": "2:fraser-river:upstream-from-the-highway-1-bridge",
@@ -4719,7 +4899,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "why": "needs_split",
+   "outcome": "new_high"
   },
   "2:harrison-river:from-the-outlet-of-harrison-lake-d": {
    "location_id": "2:harrison-river:from-the-outlet-of-harrison-lake-d",
@@ -4838,7 +5020,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "needs_split",
+   "outcome": "new_high"
   },
   "2:harrison-river:from-the-highway-7-bridge-downstre": {
    "location_id": "2:harrison-river:from-the-highway-7-bridge-downstre",
@@ -4936,7 +5120,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "needs_split",
+   "outcome": "new_high"
   },
   "2:inch-creek:from-the-hatchery-outlet-to-the-co": {
    "location_id": "2:inch-creek:from-the-hatchery-outlet-to-the-co",
@@ -5036,7 +5222,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "why": "needs_split",
+   "outcome": "new_medium"
   },
   "2:kanaka-creek:upstream-of-the-112th-street-bridg": {
    "location_id": "2:kanaka-creek:upstream-of-the-112th-street-bridg",
@@ -5087,7 +5275,9 @@
     }
    ],
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "why": "review_pending",
+   "outcome": "existing_medium"
   },
   "2:kanaka-creek:downstream-of-the-112th-street-bri": {
    "location_id": "2:kanaka-creek:downstream-of-the-112th-street-bri",
@@ -5138,7 +5328,9 @@
     }
    ],
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "existing_medium"
   },
   "2:little-campbell-river:downstream-of-12th-avenue-includin": {
    "location_id": "2:little-campbell-river:downstream-of-12th-avenue-includin",
@@ -5189,7 +5381,9 @@
     }
    ],
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "existing_high"
   },
   "2:little-campbell-river:downstream-of-a-line-between-2-fis": {
    "location_id": "2:little-campbell-river:downstream-of-a-line-between-2-fis",
@@ -5200,8 +5394,12 @@
     "gnis:7250"
    ],
    "suggestion": {
-    "op": "downstream_of",
+    "op": "between",
     "points": [
+     {
+      "kind": "split",
+      "split_id": "campbell_river__two_white_triangular_fishing_boundary_signs_200_m_upstream"
+     },
      {
       "kind": "split",
       "split_id": "campbell_river__pedestrian_bridge_at_the_foot_of_stayte_road"
@@ -5212,11 +5410,11 @@
     ],
     "tributaries": null,
     "new_splits": [],
-    "words": "downstream of pedestrian bridge at the foot of Stayte Road"
+    "words": "between two white triangular fishing boundary signs (200 m upstream) and pedestrian bridge at the foot of Stayte Road"
    },
-   "confidence": "low",
+   "confidence": "medium",
    "matched": "existing",
-   "reason": "low: only \"road, stayte\" in common with `campbell_river__pedestrian_bridge_at_the_foot_of_stayte_road` (pedestrian bridge at the foot of Stayte Road)",
+   "reason": "split hunt: 'downstream of a line between 2 signs ... to the pedestrian bridge at the foot of Stayte Road': a reach, sign line down to the bridge; both cuts are curated (the matcher kept only the bridge).; medium: the curated cut `campbell_river__two_white_triangular_fishing_boundary_signs_200_m_upstream` — the curated 'two white triangular signs, 200 m upstream' of the Stayte Road footbridge — the same sign line (registry item gnis:7250, the Little Campbell, is named 'Campbell River'); high: the curated cut `campbell_river__pedestrian_bridge_at_the_foot_of_stayte_road` — the curated Stayte Road pedestrian bridge",
    "endpoints": [
     {
      "phrase": "downstream of signs at the foot of Stayte Road",
@@ -5233,14 +5431,34 @@
    ],
    "points": [
     {
+     "label": "campbell_river__two_white_triangular_fishing_boundary_signs_200_m_upstream",
+     "coord": null,
+     "kind": "split",
+     "split_id": "campbell_river__two_white_triangular_fishing_boundary_signs_200_m_upstream"
+    },
+    {
      "label": "pedestrian bridge at the foot of Stayte Road",
      "coord": null,
      "kind": "split",
      "split_id": "campbell_river__pedestrian_bridge_at_the_foot_of_stayte_road"
     }
    ],
+   "hunt": {
+    "status": "found",
+    "notes": "'downstream of a line between 2 signs ... to the pedestrian bridge at the foot of Stayte Road': a reach, sign line down to the bridge; both cuts are curated (the matcher kept only the bridge).",
+    "proposals": [],
+    "sources": [
+     "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region2-eng.html"
+    ],
+    "matcher": {
+     "matched": "existing",
+     "reason": "low: only \"road, stayte\" in common with `campbell_river__pedestrian_bridge_at_the_foot_of_stayte_road` (pedestrian bridge at the foot of Stayte Road)"
+    }
+   },
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "existing_medium"
   },
   "2:nicomekl-river:downstream-of-208th-street": {
    "location_id": "2:nicomekl-river:downstream-of-208th-street",
@@ -5291,7 +5509,9 @@
     }
    ],
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "existing_high"
   },
   "2:nicomen-including-dewdney-slough:from-the-confluence-of-siddle-bell": {
    "location_id": "2:nicomen-including-dewdney-slough:from-the-confluence-of-siddle-bell",
@@ -5395,7 +5615,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "needs_split",
+   "outcome": "new_high"
   },
   "2:nicomen-including-dewdney-slough:from-the-highway-7-bridge-at-dewdn": {
    "location_id": "2:nicomen-including-dewdney-slough:from-the-highway-7-bridge-at-dewdn",
@@ -5499,7 +5721,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "why": "needs_split",
+   "outcome": "new_high"
   },
   "2:pitt-river:pitt-river-and-tributaries": {
    "location_id": "2:pitt-river:pitt-river-and-tributaries",
@@ -5524,7 +5748,9 @@
     "words": "the whole water with its tributaries"
    },
    "state": "unbound",
-   "status": "dormant"
+   "status": "dormant",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "2:pitt-river:upper-and-lower-river-including-tr": {
    "location_id": "2:pitt-river:upper-and-lower-river-including-tr",
@@ -5549,7 +5775,9 @@
     "words": "the whole water with its tributaries"
    },
    "state": "unbound",
-   "status": "dormant"
+   "status": "dormant",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "2:pitt-river:upper-river-upstream-of-pitt-lake": {
    "location_id": "2:pitt-river:upper-river-upstream-of-pitt-lake",
@@ -5600,7 +5828,9 @@
     }
    ],
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "why": "review_pending",
+   "outcome": "existing_high"
   },
   "2:sakinaw-lake:easterly-of-a-line-drawn-from-a-bo": {
    "location_id": "2:sakinaw-lake:easterly-of-a-line-drawn-from-a-bo",
@@ -5617,13 +5847,16 @@
    "reason": "a part of a lake (a line across it / a radius): not a cut on a line — curate by hand",
    "hunt": {
     "status": "not_found",
-    "why": "a part of a lake (a line across it): not a cut on a stream line. The notice's own boundary sign is at 49°41.50'N 123°58.45'W (49.69167,-123.97417) — curate as a lake area by hand.",
+    "why": "a part of a lake (a line across it): not a cut on a stream line. The notice's own boundary sign is at 49°41.50'N 123°58.45'W (49.69167,-123.97417) — curate as a lake area by hand. Owner rule (lake-splits-deferred): a lake divided into closure areas is deferred — curate later as a lake split / sign-zone area.",
     "sources": [
      "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region2-eng.html"
-    ]
+    ],
+    "category": "lake_area"
    },
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "why": "lake_area",
+   "outcome": "unresolvable"
   },
   "2:sakinaw-lake:the-body-of-water-known-as-bear-ba": {
    "location_id": "2:sakinaw-lake:the-body-of-water-known-as-bear-ba",
@@ -5640,13 +5873,16 @@
    "reason": "a part of a lake (a line across it / a radius): not a cut on a line — curate by hand",
    "hunt": {
     "status": "not_found",
-    "why": "Bear Bay, a part of the lake east of a north–south line from 49°40.05'N 124°02.13'W (49.66750,-124.03550): a lake area, not a line cut — curate by hand.",
+    "why": "Bear Bay, a part of the lake east of a north–south line from 49°40.05'N 124°02.13'W (49.66750,-124.03550): a lake area, not a line cut — curate by hand. Owner rule (lake-splits-deferred): a lake divided into closure areas is deferred — curate later as a lake split / sign-zone area.",
     "sources": [
      "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region2-eng.html"
-    ]
+    ],
+    "category": "lake_area"
    },
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "why": "lake_area",
+   "outcome": "unresolvable"
   },
   "2:serpentine-river:downstream-of-168th-street": {
    "location_id": "2:serpentine-river:downstream-of-168th-street",
@@ -5671,9 +5907,9 @@
     "new_splits": [],
     "words": "downstream of 168th Street at Bothwell Park"
    },
-   "confidence": "low",
+   "confidence": "high",
    "matched": "existing",
-   "reason": "low: only \"168, street\" in common with `serpentine_river__168th_street_at_bothwell_park` (168th Street at Bothwell Park)",
+   "reason": "high (raised from low): the same binding as `2:serpentine-river:downstream-of-168th-street-at-both`, a clearer wording of this place — low: only \"168, street\" in common with `serpentine_river__168th_street_at_bothwell_park` (168th Street at Bothwell Park)",
    "endpoints": [
     {
      "phrase": "downstream of 168th Street",
@@ -5697,7 +5933,42 @@
     }
    ],
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "before": {
+    "suggestion": {
+     "op": "downstream_of",
+     "points": [
+      {
+       "kind": "split",
+       "split_id": "serpentine_river__168th_street_at_bothwell_park"
+      }
+     ],
+     "items": [
+      "gnis:24978"
+     ],
+     "tributaries": null,
+     "new_splits": [],
+     "words": "downstream of 168th Street at Bothwell Park"
+    },
+    "confidence": "low",
+    "matched": "existing",
+    "reason": "low: only \"168, street\" in common with `serpentine_river__168th_street_at_bothwell_park` (168th Street at Bothwell Park)"
+   },
+   "cluster": {
+    "id": "2:serpentine-river#1",
+    "members": [
+     "2:serpentine-river:downstream-of-168th-street",
+     "2:serpentine-river:downstream-of-168th-street-at-both"
+    ],
+    "placed": [],
+    "canonical": "2:serpentine-river:downstream-of-168th-street-at-both",
+    "role": "agrees",
+    "links": {
+     "2:serpentine-river:downstream-of-168th-street-at-both": "same extent 0.50"
+    }
+   },
+   "why": "variant",
+   "outcome": "existing_high"
   },
   "2:seymour-river:from-the-seymour-river-dam-to-the": {
    "location_id": "2:seymour-river:from-the-seymour-river-dam-to-the",
@@ -5754,7 +6025,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "why": "review_pending",
+   "outcome": "existing_medium"
   },
   "2:stave-river:downstream-of-b-c-hydro-dam-to-the": {
    "location_id": "2:stave-river:downstream-of-b-c-hydro-dam-to-the",
@@ -5868,7 +6141,22 @@
     }
    },
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "cluster": {
+    "id": "2:stave-river#1",
+    "members": [
+     "2:stave-river:downstream-of-b-c-hydro-dam-to-the",
+     "2:stave-river:downstream-of-b-c-hydro-dam-to-the~2"
+    ],
+    "placed": [],
+    "canonical": "2:stave-river:downstream-of-b-c-hydro-dam-to-the~2",
+    "role": "agrees",
+    "links": {
+     "2:stave-river:downstream-of-b-c-hydro-dam-to-the~2": "text 1.00"
+    }
+   },
+   "why": "variant",
+   "outcome": "new_high"
   },
   "2:stave-river:that-portion-of-the-stave-river-kn": {
    "location_id": "2:stave-river:that-portion-of-the-stave-river-kn",
@@ -5902,10 +6190,28 @@
     "why": "the Ruskin Spawning Channel is a side channel on the east bank, not on the FWA Stave line. Mapped (OSM 1485091713 'Ruskin Channel'): inlet near the dam 49.1950,-122.4085, boat-ramp crossing ≈ 49.1921,-122.4070, joins the Stave ≈ 49.1864,-122.4092 — needs an added channel or an area, by hand.",
     "sources": [
      "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region2-eng.html"
-    ]
+    ],
+    "category": "side_channel"
    },
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "cluster": {
+    "id": "2:stave-river#2",
+    "members": [
+     "2:stave-river:in-that-portion-of-the-stave-river",
+     "2:stave-river:that-portion-of-the-stave-river-kn",
+     "2:stave-river:the-ruskin-spawning-channel-on-the"
+    ],
+    "placed": [],
+    "canonical": "2:stave-river:the-ruskin-spawning-channel-on-the",
+    "role": "agrees",
+    "links": {
+     "2:stave-river:in-that-portion-of-the-stave-river": "text 1.00",
+     "2:stave-river:the-ruskin-spawning-channel-on-the": "text 0.89"
+    }
+   },
+   "why": "side_channel",
+   "outcome": "unresolvable"
   },
   "2:alouette-river-and-tributaries:downstream-of-a-line-between-two-f": {
    "location_id": "2:alouette-river-and-tributaries:downstream-of-a-line-between-two-f",
@@ -6004,7 +6310,22 @@
     }
    },
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "cluster": {
+    "id": "2:alouette-river-and-tributaries#2",
+    "members": [
+     "2:alouette-river-and-tributaries:downstream-of-a-line-between-2-fis",
+     "2:alouette-river-and-tributaries:downstream-of-a-line-between-two-f"
+    ],
+    "placed": [],
+    "canonical": "2:alouette-river-and-tributaries:downstream-of-a-line-between-two-f",
+    "role": "canonical",
+    "links": {
+     "2:alouette-river-and-tributaries:downstream-of-a-line-between-2-fis": "dup 1.00"
+    }
+   },
+   "why": "needs_split",
+   "outcome": "new_medium"
   },
   "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~2": {
    "location_id": "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~2",
@@ -6029,9 +6350,9 @@
     "new_splits": [],
     "words": "downstream of fishing boundary signs 100 m below the Slesse Creek confluence"
    },
-   "confidence": "medium",
+   "confidence": "high",
    "matched": "existing",
-   "reason": "medium: \"confluence, slesse\" -> the curated cut `chilliwack_vedder_rivers__boundary_signs_below_slesse_creek` (fishing boundary signs 100 m below the Slesse Creek confluence); the other end is the water's mouth, so downstream of it",
+   "reason": "high (raised from medium): the same binding as `2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~3`, a clearer wording of this place — medium: \"confluence, slesse\" -> the curated cut `chilliwack_vedder_rivers__boundary_signs_below_slesse_creek` (fishing boundary signs 100 m below the Slesse Creek confluence); the other end is the water's mouth, so downstream of it",
    "endpoints": [
     {
      "phrase": "signs 100 m from the confluence of the Chilliwack River and Slesse Creek downstream",
@@ -6055,7 +6376,44 @@
     }
    ],
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "before": {
+    "suggestion": {
+     "op": "downstream_of",
+     "points": [
+      {
+       "kind": "split",
+       "split_id": "chilliwack_vedder_rivers__boundary_signs_below_slesse_creek"
+      }
+     ],
+     "items": [],
+     "tributaries": null,
+     "new_splits": [],
+     "words": "downstream of fishing boundary signs 100 m below the Slesse Creek confluence"
+    },
+    "confidence": "medium",
+    "matched": "existing",
+    "reason": "medium: \"confluence, slesse\" -> the curated cut `chilliwack_vedder_rivers__boundary_signs_below_slesse_creek` (fishing boundary signs 100 m below the Slesse Creek confluence); the other end is the water's mouth, so downstream of it"
+   },
+   "cluster": {
+    "id": "2:chilliwack-vedder-river-including-sumas-river#1",
+    "members": [
+     "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun",
+     "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~2",
+     "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~3",
+     "2:chilliwack-vedder-river-including:upstream-from-a-line-between-2-fis~2"
+    ],
+    "placed": [],
+    "canonical": "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~3",
+    "role": "agrees",
+    "links": {
+     "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun": "same extent 0.69",
+     "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~3": "dup 0.47",
+     "2:chilliwack-vedder-river-including:upstream-from-a-line-between-2-fis~2": "same extent 0.47"
+    }
+   },
+   "why": "variant",
+   "outcome": "existing_high"
   },
   "2:fraser-river:from-the-highway-1-bridge-at-hope": {
    "location_id": "2:fraser-river:from-the-highway-1-bridge-at-hope",
@@ -6216,7 +6574,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "why": "needs_split",
+   "outcome": "new_medium"
   },
   "2:alouette-river-and-tributaries:upstream-of-the-216th-street-bridg": {
    "location_id": "2:alouette-river-and-tributaries:upstream-of-the-216th-street-bridg",
@@ -6336,7 +6696,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "needs_split",
+   "outcome": "new_medium"
   },
   "2:alouette-river-and-tributaries:downstream-of-the-216th-street-bri": {
    "location_id": "2:alouette-river-and-tributaries:downstream-of-the-216th-street-bri",
@@ -6386,7 +6748,9 @@
     }
    ],
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "existing_medium"
   },
   "2:alouette-river-and-tributaries:north-alouette-and-tributaries": {
    "location_id": "2:alouette-river-and-tributaries:north-alouette-and-tributaries",
@@ -6398,9 +6762,9 @@
     "gnis:39404"
    ],
    "matched": "whole",
-   "confidence": "medium",
+   "confidence": "high",
    "endpoints": [],
-   "reason": "\"North Alouette and tributaries\": North Alouette River with its tributaries",
+   "reason": "split hunt: 'North Alouette and tributaries': the North Alouette item only (gnis:39404), with its tributaries — the matcher's 'whole water' held both arms.",
    "suggestion": {
     "op": "whole",
     "points": [],
@@ -6409,10 +6773,25 @@
     ],
     "tributaries": true,
     "new_splits": [],
-    "words": "the whole water with its tributaries"
+    "words": "the whole water"
+   },
+   "points": [],
+   "hunt": {
+    "status": "found",
+    "notes": "'North Alouette and tributaries': the North Alouette item only (gnis:39404), with its tributaries — the matcher's 'whole water' held both arms.",
+    "proposals": [],
+    "sources": [
+     "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region2-eng.html"
+    ],
+    "matcher": {
+     "matched": "whole",
+     "reason": "\"North Alouette and tributaries\": North Alouette River with its tributaries"
+    }
    },
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "2:chilliwack-vedder-river-including:upstream-from-a-line-between-2-fis~2": {
    "location_id": "2:chilliwack-vedder-river-including:upstream-from-a-line-between-2-fis~2",
@@ -6463,7 +6842,25 @@
     }
    ],
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "cluster": {
+    "id": "2:chilliwack-vedder-river-including-sumas-river#1",
+    "members": [
+     "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun",
+     "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~2",
+     "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~3",
+     "2:chilliwack-vedder-river-including:upstream-from-a-line-between-2-fis~2"
+    ],
+    "placed": [],
+    "canonical": "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~3",
+    "role": "agrees",
+    "links": {
+     "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun": "same extent 0.64",
+     "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~2": "same extent 0.47"
+    }
+   },
+   "why": "variant",
+   "outcome": "existing_high"
   },
   "2:serpentine-river:downstream-of-168th-street-at-both": {
    "location_id": "2:serpentine-river:downstream-of-168th-street-at-both",
@@ -6514,7 +6911,22 @@
     }
    ],
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "cluster": {
+    "id": "2:serpentine-river#1",
+    "members": [
+     "2:serpentine-river:downstream-of-168th-street",
+     "2:serpentine-river:downstream-of-168th-street-at-both"
+    ],
+    "placed": [],
+    "canonical": "2:serpentine-river:downstream-of-168th-street-at-both",
+    "role": "canonical",
+    "links": {
+     "2:serpentine-river:downstream-of-168th-street": "same extent 0.50"
+    }
+   },
+   "why": "review_pending",
+   "outcome": "existing_high"
   },
   "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~3": {
    "location_id": "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~3",
@@ -6565,7 +6977,25 @@
     }
    ],
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "cluster": {
+    "id": "2:chilliwack-vedder-river-including-sumas-river#1",
+    "members": [
+     "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun",
+     "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~2",
+     "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~3",
+     "2:chilliwack-vedder-river-including:upstream-from-a-line-between-2-fis~2"
+    ],
+    "placed": [],
+    "canonical": "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~3",
+    "role": "canonical",
+    "links": {
+     "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun": "dup 0.64",
+     "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~2": "dup 0.47"
+    }
+   },
+   "why": "review_pending",
+   "outcome": "existing_high"
   },
   "2:fraser-river:mainstem-waters-from-the-downstrea": {
    "location_id": "2:fraser-river:mainstem-waters-from-the-downstrea",
@@ -6694,7 +7124,24 @@
     }
    },
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "cluster": {
+    "id": "2:fraser-river#1",
+    "members": [
+     "2:fraser-river:from-the-downstream-side-of-the-cp",
+     "2:fraser-river:from-the-downstream-side-of-the-cp~2",
+     "2:fraser-river:mainstem-waters-from-the-downstrea"
+    ],
+    "placed": [],
+    "canonical": "2:fraser-river:mainstem-waters-from-the-downstrea",
+    "role": "canonical",
+    "links": {
+     "2:fraser-river:from-the-downstream-side-of-the-cp": "text 1.00",
+     "2:fraser-river:from-the-downstream-side-of-the-cp~2": "text 0.80"
+    }
+   },
+   "why": "needs_split",
+   "outcome": "new_high"
   },
   "2:nicomekl-river:within-23-m-downstream-of-the-floo": {
    "location_id": "2:nicomekl-river:within-23-m-downstream-of-the-floo",
@@ -6797,7 +7244,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "why": "needs_split",
+   "outcome": "new_high"
   },
   "2:serpentine-river:within-23-m-downstream-of-the-floo": {
    "location_id": "2:serpentine-river:within-23-m-downstream-of-the-floo",
@@ -6900,7 +7349,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "why": "needs_split",
+   "outcome": "new_high"
   },
   "2:stave-river:the-ruskin-spawning-channel-on-the": {
    "location_id": "2:stave-river:the-ruskin-spawning-channel-on-the",
@@ -6934,10 +7385,28 @@
     "why": "same Ruskin Spawning Channel (side channel, not on the FWA Stave): inlet 49.1950,-122.4085, boat-ramp crossing ≈ 49.1921,-122.4070 (OSM 1485091713).",
     "sources": [
      "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region2-eng.html"
-    ]
+    ],
+    "category": "side_channel"
    },
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "cluster": {
+    "id": "2:stave-river#2",
+    "members": [
+     "2:stave-river:in-that-portion-of-the-stave-river",
+     "2:stave-river:that-portion-of-the-stave-river-kn",
+     "2:stave-river:the-ruskin-spawning-channel-on-the"
+    ],
+    "placed": [],
+    "canonical": "2:stave-river:the-ruskin-spawning-channel-on-the",
+    "role": "canonical",
+    "links": {
+     "2:stave-river:in-that-portion-of-the-stave-river": "text 0.89",
+     "2:stave-river:that-portion-of-the-stave-river-kn": "text 0.89"
+    }
+   },
+   "why": "side_channel",
+   "outcome": "unresolvable"
   },
   "2:fraser-river:mainstem-waters-upstream-of-the-cp": {
    "location_id": "2:fraser-river:mainstem-waters-upstream-of-the-cp",
@@ -6998,7 +7467,9 @@
     }
    ],
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "existing_high"
   },
   "2:fraser-river:from-the-downstream-side-of-the-cp~2": {
    "location_id": "2:fraser-river:from-the-downstream-side-of-the-cp~2",
@@ -7127,7 +7598,24 @@
     }
    },
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "cluster": {
+    "id": "2:fraser-river#1",
+    "members": [
+     "2:fraser-river:from-the-downstream-side-of-the-cp",
+     "2:fraser-river:from-the-downstream-side-of-the-cp~2",
+     "2:fraser-river:mainstem-waters-from-the-downstrea"
+    ],
+    "placed": [],
+    "canonical": "2:fraser-river:mainstem-waters-from-the-downstrea",
+    "role": "member",
+    "links": {
+     "2:fraser-river:from-the-downstream-side-of-the-cp": "text 0.80",
+     "2:fraser-river:mainstem-waters-from-the-downstrea": "text 0.80"
+    }
+   },
+   "why": "needs_split",
+   "outcome": "new_medium"
   },
   "2:harrison-river:from-the-outlet-of-harrison-lake-d~2": {
    "location_id": "2:harrison-river:from-the-outlet-of-harrison-lake-d~2",
@@ -7178,7 +7666,9 @@
     }
    ],
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "why": "review_pending",
+   "outcome": "existing_high"
   },
   "2:stave-river:in-that-portion-of-the-stave-river": {
    "location_id": "2:stave-river:in-that-portion-of-the-stave-river",
@@ -7212,10 +7702,28 @@
     "why": "Ruskin + Northrop spawning channels — both side channels off the FWA Stave (Ruskin: OSM 1485091713, inlet 49.1950,-122.4085; Northrop: OSM 72823766, intake 49.1938,-122.4120, joins the mainstem ≈ 49.1892,-122.4121).",
     "sources": [
      "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region2-eng.html"
-    ]
+    ],
+    "category": "side_channel"
    },
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "cluster": {
+    "id": "2:stave-river#2",
+    "members": [
+     "2:stave-river:in-that-portion-of-the-stave-river",
+     "2:stave-river:that-portion-of-the-stave-river-kn",
+     "2:stave-river:the-ruskin-spawning-channel-on-the"
+    ],
+    "placed": [],
+    "canonical": "2:stave-river:the-ruskin-spawning-channel-on-the",
+    "role": "agrees",
+    "links": {
+     "2:stave-river:that-portion-of-the-stave-river-kn": "text 1.00",
+     "2:stave-river:the-ruskin-spawning-channel-on-the": "text 0.89"
+    }
+   },
+   "why": "side_channel",
+   "outcome": "unresolvable"
   },
   "2:stave-river:downstream-of-b-c-hydro-dam-to-the~2": {
    "location_id": "2:stave-river:downstream-of-b-c-hydro-dam-to-the~2",
@@ -7329,7 +7837,22 @@
     }
    },
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "cluster": {
+    "id": "2:stave-river#1",
+    "members": [
+     "2:stave-river:downstream-of-b-c-hydro-dam-to-the",
+     "2:stave-river:downstream-of-b-c-hydro-dam-to-the~2"
+    ],
+    "placed": [],
+    "canonical": "2:stave-river:downstream-of-b-c-hydro-dam-to-the~2",
+    "role": "canonical",
+    "links": {
+     "2:stave-river:downstream-of-b-c-hydro-dam-to-the": "text 1.00"
+    }
+   },
+   "why": "needs_split",
+   "outcome": "new_high"
   },
   "3:fraser-river:mainstem-waters-of-the-fraser-rive": {
    "location_id": "3:fraser-river:mainstem-waters-of-the-fraser-rive",
@@ -7354,7 +7877,9 @@
     "words": "the whole water without its tributaries"
    },
    "state": "unbound",
-   "status": "dormant"
+   "status": "dormant",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "3:south-thompson-river:from-the-green-can-buoy-near-outle": {
    "location_id": "3:south-thompson-river:from-the-green-can-buoy-near-outle",
@@ -7471,7 +7996,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "needs_split",
+   "outcome": "new_medium"
   },
   "3:thompson-river:from-kamloops-lake-outlet-downstre": {
    "location_id": "3:thompson-river:from-kamloops-lake-outlet-downstre",
@@ -7591,7 +8118,22 @@
     }
    },
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "cluster": {
+    "id": "3:thompson-river#1",
+    "members": [
+     "3:thompson-river:from-kamloops-lake-outlet-downstre",
+     "3:thompson-river:from-kamloops-lake-outlet-downstre~2"
+    ],
+    "placed": [],
+    "canonical": "3:thompson-river:from-kamloops-lake-outlet-downstre~2",
+    "role": "agrees",
+    "links": {
+     "3:thompson-river:from-kamloops-lake-outlet-downstre~2": "text 1.00"
+    }
+   },
+   "why": "variant",
+   "outcome": "new_medium"
   },
   "3:thompson-river:from-the-white-triangle-fishing-bo": {
    "location_id": "3:thompson-river:from-the-white-triangle-fishing-bo",
@@ -7744,7 +8286,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "needs_split",
+   "outcome": "new_medium"
   },
   "3:fraser-river:in-that-portion-of-the-fraser-rive": {
    "location_id": "3:fraser-river:in-that-portion-of-the-fraser-rive",
@@ -7899,7 +8443,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "needs_split",
+   "outcome": "new_low"
   },
   "3:thompson-river:from-kamloops-lake-outlet-downstre~2": {
    "location_id": "3:thompson-river:from-kamloops-lake-outlet-downstre~2",
@@ -8019,7 +8565,22 @@
     }
    },
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "cluster": {
+    "id": "3:thompson-river#1",
+    "members": [
+     "3:thompson-river:from-kamloops-lake-outlet-downstre",
+     "3:thompson-river:from-kamloops-lake-outlet-downstre~2"
+    ],
+    "placed": [],
+    "canonical": "3:thompson-river:from-kamloops-lake-outlet-downstre~2",
+    "role": "canonical",
+    "links": {
+     "3:thompson-river:from-kamloops-lake-outlet-downstre": "text 1.00"
+    }
+   },
+   "why": "needs_split",
+   "outcome": "new_medium"
   },
   "5a:quesnel-lake:in-the-waters-of-horsefly-bay-loca": {
    "location_id": "5a:quesnel-lake:in-the-waters-of-horsefly-bay-loca",
@@ -8036,13 +8597,29 @@
    "reason": "a part of a lake (a line across it / a radius): not a cut on a line — curate by hand",
    "hunt": {
     "status": "not_found",
-    "why": "Horsefly Bay inside a line of signs across its entrance: a lake area, not a stream cut — curate by hand (no published coordinate found).",
+    "why": "Horsefly Bay inside a line of signs across its entrance: a lake area, not a stream cut — curate by hand (no published coordinate found). Owner rule (lake-splits-deferred): a lake divided into closure areas is deferred — curate later as a lake split / sign-zone area.",
     "sources": [
      "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region5a-eng.html"
-    ]
+    ],
+    "category": "lake_area"
    },
    "state": "unbound",
-   "status": "dormant"
+   "status": "dormant",
+   "cluster": {
+    "id": "5a:quesnel-lake#1",
+    "members": [
+     "5a:quesnel-lake:in-the-waters-of-horsefly-bay-loca",
+     "5a:quesnel-lake:that-portion-of-quesnel-lake-known"
+    ],
+    "placed": [],
+    "canonical": "5a:quesnel-lake:that-portion-of-quesnel-lake-known",
+    "role": "agrees",
+    "links": {
+     "5a:quesnel-lake:that-portion-of-quesnel-lake-known": "text 1.00"
+    }
+   },
+   "why": "lake_area",
+   "outcome": "unresolvable"
   },
   "5a:quesnel-river:between-the-johnson-subdivision-br": {
    "location_id": "5a:quesnel-river:between-the-johnson-subdivision-br",
@@ -8080,7 +8657,8 @@
       "quote": "the Johnson Subdivision Bridge (52° 58.373'N; 122° 29.349'W)",
       "on_item": "gnis:27867",
       "blk": "356363937",
-      "measure": 834.2
+      "measure": 834.2,
+      "confidence": "high"
      },
      {
       "ref": "sg2",
@@ -8093,7 +8671,8 @@
       "quote": "powerlines (52° 59.788'N; 122° 29.826'W) located just upstream of Highway 97 Bridge near Quesnel, BC",
       "on_item": "gnis:27867",
       "blk": "356363937",
-      "measure": 4331.6
+      "measure": 4331.6,
+      "confidence": "high"
      }
     ],
     "words": "between Johnson Subdivision Bridge and powerlines"
@@ -8182,7 +8761,22 @@
     }
    ],
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "cluster": {
+    "id": "5a:quesnel-river#1",
+    "members": [
+     "5a:quesnel-river:between-the-johnson-subdivision-br",
+     "5a:quesnel-river:that-portion-of-the-quesnel-river"
+    ],
+    "placed": [],
+    "canonical": "5a:quesnel-river:that-portion-of-the-quesnel-river",
+    "role": "agrees",
+    "links": {
+     "5a:quesnel-river:that-portion-of-the-quesnel-river": "text 1.00"
+    }
+   },
+   "why": "variant",
+   "outcome": "new_high"
   },
   "5a:quesnel-lake:that-portion-of-quesnel-lake-known": {
    "location_id": "5a:quesnel-lake:that-portion-of-quesnel-lake-known",
@@ -8199,13 +8793,29 @@
    "reason": "a part of a lake (a line across it / a radius): not a cut on a line — curate by hand",
    "hunt": {
     "status": "not_found",
-    "why": "Horsefly Bay (lake area) — as above.",
+    "why": "Horsefly Bay (lake area) — as above. Owner rule (lake-splits-deferred): a lake divided into closure areas is deferred — curate later as a lake split / sign-zone area.",
     "sources": [
      "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region5a-eng.html"
-    ]
+    ],
+    "category": "lake_area"
    },
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "cluster": {
+    "id": "5a:quesnel-lake#1",
+    "members": [
+     "5a:quesnel-lake:in-the-waters-of-horsefly-bay-loca",
+     "5a:quesnel-lake:that-portion-of-quesnel-lake-known"
+    ],
+    "placed": [],
+    "canonical": "5a:quesnel-lake:that-portion-of-quesnel-lake-known",
+    "role": "canonical",
+    "links": {
+     "5a:quesnel-lake:in-the-waters-of-horsefly-bay-loca": "text 1.00"
+    }
+   },
+   "why": "lake_area",
+   "outcome": "unresolvable"
   },
   "5a:quesnel-river:that-portion-of-the-quesnel-river": {
    "location_id": "5a:quesnel-river:that-portion-of-the-quesnel-river",
@@ -8243,7 +8853,8 @@
       "quote": "the Johnson Subdivision Bridge (52°58.373'N; 122°29.349'W)",
       "on_item": "gnis:27867",
       "blk": "356363937",
-      "measure": 834.2
+      "measure": 834.2,
+      "confidence": "high"
      },
      {
       "ref": "sg2",
@@ -8256,7 +8867,8 @@
       "quote": "powerlines (52°59.788'N; 122°29.826'W ) located just upstream of Highway 97 Bridge near Quesnel, British Columbia (BC)",
       "on_item": "gnis:27867",
       "blk": "356363937",
-      "measure": 4331.6
+      "measure": 4331.6,
+      "confidence": "high"
      }
     ],
     "words": "between Johnson Subdivision Bridge and powerlines"
@@ -8345,7 +8957,22 @@
     }
    ],
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "cluster": {
+    "id": "5a:quesnel-river#1",
+    "members": [
+     "5a:quesnel-river:between-the-johnson-subdivision-br",
+     "5a:quesnel-river:that-portion-of-the-quesnel-river"
+    ],
+    "placed": [],
+    "canonical": "5a:quesnel-river:that-portion-of-the-quesnel-river",
+    "role": "canonical",
+    "links": {
+     "5a:quesnel-river:between-the-johnson-subdivision-br": "text 1.00"
+    }
+   },
+   "why": "needs_split",
+   "outcome": "new_high"
   },
   "5b:atnarko-river:downstream-of-the-fishing-boundary": {
    "location_id": "5b:atnarko-river:downstream-of-the-fishing-boundary",
@@ -8359,20 +8986,35 @@
     "op": "downstream_of",
     "points": [
      {
-      "kind": "split",
-      "split_id": "atnarko_bella_coola_rivers_includes_tributaries_exce__tweedsmuir_park_eastern_boundary"
+      "kind": "new",
+      "split_id": "atnarko_lodge_sign"
      }
     ],
     "items": [
      "gnis:17209"
     ],
     "tributaries": null,
-    "new_splits": [],
-    "words": "downstream of Tweedsmuir Park eastern boundary"
+    "new_splits": [
+     {
+      "ref": "atnarko_lodge_sign",
+      "anchor": "sign",
+      "name": "signs near Tweedsmuir Park Lodge (Stuie)",
+      "on_item": "gnis:17209",
+      "coord": [
+       -126.073265,
+       52.370657
+      ],
+      "blk": "360879335",
+      "measure": 2339.1,
+      "note": "[split hunt medium] the fishing boundary sign 'near Tweedsmuir Park Lodge' — the lodge sits on the Atnarko at Stuie, ~1 km above the Talchako confluence (the Bella Coola's head). Sources: https://www.openstreetmap.org/way/715060039 ; https://nominatim.openstreetmap.org/search?q=Tweedsmuir+Park+Lodge&format=json ; https://suncruisermedia.com/Home/rv-travel/tweedsmuir-park-lodge-bella-coola-bc/. OSM maps the lodge (tourism=guest_house) at 52.37092,-126.06947 on Corbould Drive, Stuie. The sign's exact spot is not published: the lodge itself, snapped to the river. The matcher's 'Tweedsmuir Park eastern boundary' was WRONG — that cut is ~35 km upstream where the Atnarko enters the park.",
+      "side": "downstream"
+     }
+    ],
+    "words": "downstream of signs near Tweedsmuir Park Lodge (Stuie)"
    },
-   "confidence": "low",
-   "matched": "existing",
-   "reason": "low: only \"park, tweedsmuir\" in common with `atnarko_bella_coola_rivers_includes_tributaries_exce__tweedsmuir_park_eastern_boundary` (Tweedsmuir Park eastern boundary)",
+   "confidence": "medium",
+   "matched": "new",
+   "reason": "split hunt: 'downstream of the fishing boundary sign located near Tweedsmuir Park Lodge': the lower ~1 km of the Atnarko at Stuie, down to the Talchako confluence.; medium: the fishing boundary sign 'near Tweedsmuir Park Lodge' — the lodge sits on the Atnarko at Stuie, ~1 km above the Talchako confluence (the Bella Coola's head)",
    "endpoints": [
     {
      "phrase": "downstream of the fishing boundary sign located near Tweedsmuir Park Lodge",
@@ -8389,14 +9031,56 @@
    ],
    "points": [
     {
-     "label": "Tweedsmuir Park eastern boundary",
-     "coord": null,
-     "kind": "split",
-     "split_id": "atnarko_bella_coola_rivers_includes_tributaries_exce__tweedsmuir_park_eastern_boundary"
+     "label": "signs near Tweedsmuir Park Lodge (Stuie)",
+     "coord": [
+      -126.073265,
+      52.370657
+     ],
+     "kind": "new",
+     "split_id": "atnarko_lodge_sign"
     }
    ],
+   "hunt": {
+    "status": "found",
+    "notes": "'downstream of the fishing boundary sign located near Tweedsmuir Park Lodge': the lower ~1 km of the Atnarko at Stuie, down to the Talchako confluence.",
+    "proposals": [
+     {
+      "ref": "atnarko_lodge_sign",
+      "anchor": "sign",
+      "name": "signs near Tweedsmuir Park Lodge (Stuie)",
+      "confidence": "medium",
+      "description": "the fishing boundary sign 'near Tweedsmuir Park Lodge' — the lodge sits on the Atnarko at Stuie, ~1 km above the Talchako confluence (the Bella Coola's head)",
+      "sources": [
+       "https://www.openstreetmap.org/way/715060039",
+       "https://nominatim.openstreetmap.org/search?q=Tweedsmuir+Park+Lodge&format=json",
+       "https://suncruisermedia.com/Home/rv-travel/tweedsmuir-park-lodge-bella-coola-bc/"
+      ],
+      "notes": "OSM maps the lodge (tourism=guest_house) at 52.37092,-126.06947 on Corbould Drive, Stuie. The sign's exact spot is not published: the lodge itself, snapped to the river. The matcher's 'Tweedsmuir Park eastern boundary' was WRONG — that cut is ~35 km upstream where the Atnarko enters the park.",
+      "lat": 52.37092,
+      "lon": -126.06947,
+      "coord": [
+       -126.073265,
+       52.370657
+      ],
+      "offset_m": null,
+      "split_id": null,
+      "snap_m": 259.6,
+      "blk": "360879335",
+      "measure": 2339.1
+     }
+    ],
+    "sources": [
+     "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region5b-eng.html"
+    ],
+    "matcher": {
+     "matched": "existing",
+     "reason": "low: only \"park, tweedsmuir\" in common with `atnarko_bella_coola_rivers_includes_tributaries_exce__tweedsmuir_park_eastern_boundary` (Tweedsmuir Park eastern boundary)"
+    }
+   },
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "needs_split",
+   "outcome": "new_medium"
   },
   "5b:bella-coola-river-not-including-at:all-tributaries-to-the-bella-coola": {
    "location_id": "5b:bella-coola-river-not-including-at:all-tributaries-to-the-bella-coola",
@@ -8406,20 +9090,39 @@
    "items": [
     "gnis:11611"
    ],
-   "suggestion": null,
-   "confidence": "none",
-   "matched": "none",
+   "suggestion": {
+    "op": "whole",
+    "points": [],
+    "items": [
+     "gnis:11611"
+    ],
+    "tributaries": true,
+    "new_splits": [],
+    "words": "the whole water"
+   },
+   "confidence": "medium",
+   "matched": "whole",
    "endpoints": [],
-   "reason": "tributaries only (not the mainstem): an extent fix cannot say it — curate by hand",
+   "reason": "split hunt: 'All tributaries to the Bella Coola River'.",
+   "points": [],
+   "caveat": "TRIBUTARIES ONLY (not the Bella Coola mainstem; the water excludes the Atnarko). A mark can only say whole + tributaries — on save, note tributaries_only.",
    "hunt": {
-    "status": "not_found",
-    "why": "'all tributaries' (not the mainstem): no cut to find; an extent fix cannot say tributaries-only — curate by hand.",
+    "status": "found",
+    "notes": "'All tributaries to the Bella Coola River'.",
+    "proposals": [],
+    "category": "tributary_set",
     "sources": [
      "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region5b-eng.html"
-    ]
+    ],
+    "matcher": {
+     "matched": "none",
+     "reason": "tributaries only (not the mainstem): an extent fix cannot say it — curate by hand"
+    }
    },
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "why": "tributary_set",
+   "outcome": "whole"
   },
   "5b:dean-river:from-the-confluence-with-crag-cree": {
    "location_id": "5b:dean-river:from-the-confluence-with-crag-cree",
@@ -8470,7 +9173,9 @@
     }
    ],
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "existing_high"
   },
   "5b:dean-river:from-signs-located-approx-500-m-up": {
    "location_id": "5b:dean-river:from-signs-located-approx-500-m-up",
@@ -8543,7 +9248,9 @@
     }
    ],
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "existing_high"
   },
   "5b:dean-river:upstream-of-the-confluence-with-cr": {
    "location_id": "5b:dean-river:upstream-of-the-confluence-with-cr",
@@ -8594,7 +9301,9 @@
     }
    ],
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "existing_high"
   },
   "5b:long-lake:including-tributaries": {
    "location_id": "5b:long-lake:including-tributaries",
@@ -8619,7 +9328,9 @@
     "words": "the whole water with its tributaries"
    },
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "6:cranberry-river:including-tributaries-note-the-sec": {
    "location_id": "6:cranberry-river:including-tributaries-note-the-sec",
@@ -8644,7 +9355,9 @@
     "words": "the whole water with its tributaries"
    },
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "6:ishkheenickh-river:including-tributaries": {
    "location_id": "6:ishkheenickh-river:including-tributaries",
@@ -8669,7 +9382,9 @@
     "words": "the whole water with its tributaries"
    },
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "6:kiteen-river:including-tributaries": {
    "location_id": "6:kiteen-river:including-tributaries",
@@ -8694,7 +9409,9 @@
     "words": "the whole water with its tributaries"
    },
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "6:meziadin-lake:including-tributaries": {
    "location_id": "6:meziadin-lake:including-tributaries",
@@ -8719,7 +9436,9 @@
     "words": "the whole water with its tributaries"
    },
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "6:meziadin-lake:excluding-tributaries": {
    "location_id": "6:meziadin-lake:excluding-tributaries",
@@ -8744,7 +9463,9 @@
     "words": "the whole water without its tributaries"
    },
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "6:meziadin-river:including-tributaries": {
    "location_id": "6:meziadin-river:including-tributaries",
@@ -8769,7 +9490,9 @@
     "words": "the whole water with its tributaries"
    },
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "6:nass-river:portions-from-the-canyon-city-brid": {
    "location_id": "6:nass-river:portions-from-the-canyon-city-brid",
@@ -8921,7 +9644,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "needs_split",
+   "outcome": "new_high"
   },
   "6:nass-river:mainstem-waters-downstream-of-the": {
    "location_id": "6:nass-river:mainstem-waters-downstream-of-the",
@@ -8972,7 +9697,22 @@
     }
    ],
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "cluster": {
+    "id": "6:nass-river#1",
+    "members": [
+     "6:nass-river:mainstem-waters-downstream-of-the",
+     "6:nass-river:mainstem-waters-downstream-of-the~2"
+    ],
+    "placed": [],
+    "canonical": "6:nass-river:mainstem-waters-downstream-of-the",
+    "role": "canonical",
+    "links": {
+     "6:nass-river:mainstem-waters-downstream-of-the~2": "text 1.00"
+    }
+   },
+   "why": "review_pending",
+   "outcome": "existing_high"
   },
   "6:tseax-river:upstream-of-nisga-a-highway-bridge": {
    "location_id": "6:tseax-river:upstream-of-nisga-a-highway-bridge",
@@ -9029,7 +9769,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "existing_medium"
   },
   "6:tseax-river:downstream-of-nisga-a-highway-brid": {
    "location_id": "6:tseax-river:downstream-of-nisga-a-highway-brid",
@@ -9086,7 +9828,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "existing_medium"
   },
   "6:sheldens-creek:upstream-of-white-triangular-fishi": {
    "location_id": "6:sheldens-creek:upstream-of-white-triangular-fishi",
@@ -9104,10 +9848,13 @@
     "why": "the water is not matched to the registry (FWA has no 'Sheldens Creek'). Best lead: the creek into Sheldens Bay, Moresby Island (mouth 53.14874,-131.76677, FWA code 950-016367); Spur 19 (FTEN 'SP 19(1) TO SHELDONS') crosses it ≈ 53.12968,-131.78224, ~3.1 km above the mouth (medium). Match the water first (T164 dossier), then this cut.",
     "sources": [
      "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region6-eng.html"
-    ]
+    ],
+    "category": "no_water"
    },
    "state": "no_water",
-   "status": "active"
+   "status": "active",
+   "why": "no_water",
+   "outcome": "unresolvable"
   },
   "6:bish-creek:including-tributaries": {
    "location_id": "6:bish-creek:including-tributaries",
@@ -9132,7 +9879,9 @@
     "words": "the whole water with its tributaries"
    },
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "6:brim-river:including-tributaries": {
    "location_id": "6:brim-river:including-tributaries",
@@ -9157,7 +9906,9 @@
     "words": "the whole water with its tributaries"
    },
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "6:dala-river:including-tributaries": {
    "location_id": "6:dala-river:including-tributaries",
@@ -9182,7 +9933,9 @@
     "words": "the whole water with its tributaries"
    },
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "6:illiance-river:upstream-of-white-triangular-fishi": {
    "location_id": "6:illiance-river:upstream-of-white-triangular-fishi",
@@ -9280,7 +10033,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "needs_split",
+   "outcome": "new_low"
   },
   "6:khutze:including-tributaries": {
    "location_id": "6:khutze:including-tributaries",
@@ -9305,7 +10060,9 @@
     "words": "the whole water with its tributaries"
    },
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "6:khutzeymateen-river:including-tributaries": {
    "location_id": "6:khutzeymateen-river:including-tributaries",
@@ -9330,7 +10087,9 @@
     "words": "the whole water with its tributaries"
    },
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "6:kiltuish-river:including-tributaries": {
    "location_id": "6:kiltuish-river:including-tributaries",
@@ -9355,7 +10114,9 @@
     "words": "the whole water with its tributaries"
    },
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "6:kitimat-river:on-west-bank-between-signs-at-kiti": {
    "location_id": "6:kitimat-river:on-west-bank-between-signs-at-kiti",
@@ -9428,7 +10189,9 @@
     }
    ],
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "existing_high"
   },
   "6:kitimat-river:downstream-of-highway-37-bridge": {
    "location_id": "6:kitimat-river:downstream-of-highway-37-bridge",
@@ -9479,7 +10242,9 @@
     }
    ],
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "existing_high"
   },
   "6:kitimat-river:upstream-of-highway-37-bridge": {
    "location_id": "6:kitimat-river:upstream-of-highway-37-bridge",
@@ -9530,7 +10295,9 @@
     }
    ],
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "existing_high"
   },
   "6:kitsault-river:upstream-of-white-triangular-fishi": {
    "location_id": "6:kitsault-river:upstream-of-white-triangular-fishi",
@@ -9628,7 +10395,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "needs_split",
+   "outcome": "new_low"
   },
   "6:kloiya-river:including-tributaries": {
    "location_id": "6:kloiya-river:including-tributaries",
@@ -9653,7 +10422,9 @@
     "words": "the whole water with its tributaries"
    },
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "6:kwinimass-river:upstream-of-lower-bridge-abutments": {
    "location_id": "6:kwinimass-river:upstream-of-lower-bridge-abutments",
@@ -9704,7 +10475,9 @@
     }
    ],
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "existing_medium"
   },
   "6:kwinimass-river:downstream-of-lower-bridge-abutmen": {
    "location_id": "6:kwinimass-river:downstream-of-lower-bridge-abutmen",
@@ -9755,7 +10528,9 @@
     }
    ],
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "existing_medium"
   },
   "6:quaal-river:including-tributaries": {
    "location_id": "6:quaal-river:including-tributaries",
@@ -9780,7 +10555,9 @@
     "words": "the whole water with its tributaries"
    },
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "6:stikine-river:including-tributaries-see-the-tahl": {
    "location_id": "6:stikine-river:including-tributaries-see-the-tahl",
@@ -9805,7 +10582,9 @@
     "words": "the whole water with its tributaries"
    },
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "6:swift-river:including-tributaries": {
    "location_id": "6:swift-river:including-tributaries",
@@ -9830,7 +10609,9 @@
     "words": "the whole water with its tributaries"
    },
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "6:tahltan-river:including-tributaries": {
    "location_id": "6:tahltan-river:including-tributaries",
@@ -9855,7 +10636,9 @@
     "words": "the whole water with its tributaries"
    },
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "6:taku-river:including-tributaries-see-the-naki": {
    "location_id": "6:taku-river:including-tributaries-see-the-naki",
@@ -9880,7 +10663,9 @@
     "words": "the whole water with its tributaries"
    },
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "6:tatsatua-creek:including-tributaries": {
    "location_id": "6:tatsatua-creek:including-tributaries",
@@ -9905,7 +10690,9 @@
     "words": "the whole water with its tributaries"
    },
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "6:wahoo-river:including-tributaries": {
    "location_id": "6:wahoo-river:including-tributaries",
@@ -9930,7 +10717,9 @@
     "words": "the whole water with its tributaries"
    },
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "6:wilauks-creek:upstream-of-white-triangular-fishi": {
    "location_id": "6:wilauks-creek:upstream-of-white-triangular-fishi",
@@ -10028,7 +10817,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "needs_split",
+   "outcome": "new_low"
   },
   "6:swift-river:including-tributaries-anglers-may": {
    "location_id": "6:swift-river:including-tributaries-anglers-may",
@@ -10053,7 +10844,9 @@
     "words": "the whole water with its tributaries"
    },
    "state": "unbound",
-   "status": "dormant"
+   "status": "dormant",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "6:babine-lake:including-tributaries": {
    "location_id": "6:babine-lake:including-tributaries",
@@ -10078,7 +10871,9 @@
     "words": "the whole water with its tributaries"
    },
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "6:babine-lake:babine-lake-excluding-tributaries": {
    "location_id": "6:babine-lake:babine-lake-excluding-tributaries",
@@ -10088,20 +10883,54 @@
    "items": [
     "wbk:329026676"
    ],
-   "suggestion": null,
-   "confidence": "none",
-   "matched": "none",
+   "suggestion": {
+    "op": "whole",
+    "points": [],
+    "items": [
+     "wbk:329026676"
+    ],
+    "tributaries": false,
+    "new_splits": [],
+    "words": "the whole water"
+   },
+   "confidence": "medium",
+   "matched": "whole",
    "endpoints": [],
-   "reason": "a part of a lake (a line across it / a radius): not a cut on a line — curate by hand",
+   "reason": "split hunt: 'Babine Lake excluding tributaries and those waters within a 400 m radius of …': the whole lake without tributaries; the radii are text.",
+   "points": [],
+   "caveat": "the lake LESS 400 m radii around the named creek mouths — those carve-outs are not geometry: keep them as the binding's notes / spatial_caveat (DFO doc 19 §3.1), the map shows the whole lake.",
    "hunt": {
-    "status": "not_found",
-    "why": "a lake minus 400 m radii around 12 creek mouths: lake areas, not stream cuts — curate by hand.",
+    "status": "found",
+    "notes": "'Babine Lake excluding tributaries and those waters within a 400 m radius of …': the whole lake without tributaries; the radii are text.",
+    "proposals": [],
+    "category": "lake_area",
     "sources": [
      "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region6-eng.html"
-    ]
+    ],
+    "matcher": {
+     "matched": "none",
+     "reason": "a part of a lake (a line across it / a radius): not a cut on a line — curate by hand"
+    }
    },
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "cluster": {
+    "id": "6:babine-lake#1",
+    "members": [
+     "6:babine-lake:babine-lake-excluding-tributaries",
+     "6:babine-lake:babine-lake-excluding-tributaries~2",
+     "6:babine-lake:babine-lake-excluding-tributaries~3"
+    ],
+    "placed": [],
+    "canonical": "6:babine-lake:babine-lake-excluding-tributaries~3",
+    "role": "member",
+    "links": {
+     "6:babine-lake:babine-lake-excluding-tributaries~2": "text 1.00",
+     "6:babine-lake:babine-lake-excluding-tributaries~3": "text 1.00"
+    }
+   },
+   "why": "lake_area",
+   "outcome": "whole"
   },
   "6:babine-lake:within-a-400-m-radius-of-the-mouth": {
    "location_id": "6:babine-lake:within-a-400-m-radius-of-the-mouth",
@@ -10118,13 +10947,29 @@
    "reason": "a part of a lake (a line across it / a radius): not a cut on a line — curate by hand",
    "hunt": {
     "status": "not_found",
-    "why": "a 400 m radius around the Pinkut Creek mouth on the lake: a lake area — curate by hand.",
+    "why": "a 400 m radius around the Pinkut Creek mouth on the lake: a lake area — curate by hand. Owner rule (lake-splits-deferred): a lake divided into closure areas is deferred — curate later as a lake split / sign-zone area.",
     "sources": [
      "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region6-eng.html"
-    ]
+    ],
+    "category": "lake_area"
    },
    "state": "unbound",
-   "status": "dormant"
+   "status": "dormant",
+   "cluster": {
+    "id": "6:babine-lake#2",
+    "members": [
+     "6:babine-lake:within-a-400-m-radius-of-the-mouth",
+     "6:babine-lake:within-a-400m-radius-of-the-mouth"
+    ],
+    "placed": [],
+    "canonical": "6:babine-lake:within-a-400m-radius-of-the-mouth",
+    "role": "agrees",
+    "links": {
+     "6:babine-lake:within-a-400m-radius-of-the-mouth": "dup 1.00"
+    }
+   },
+   "why": "lake_area",
+   "outcome": "unresolvable"
   },
   "6:bear-river:including-tributaries": {
    "location_id": "6:bear-river:including-tributaries",
@@ -10149,7 +10994,9 @@
     "words": "the whole water with its tributaries"
    },
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "6:bulkley-river:downstream-of-the-morice-river-con": {
    "location_id": "6:bulkley-river:downstream-of-the-morice-river-con",
@@ -10200,7 +11047,9 @@
     }
    ],
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "existing_high"
   },
   "6:bulkley-river:all-tributaries-of-the-bulkley-riv": {
    "location_id": "6:bulkley-river:all-tributaries-of-the-bulkley-riv",
@@ -10210,20 +11059,52 @@
    "items": [
     "gnis:2195"
    ],
-   "suggestion": null,
-   "confidence": "none",
-   "matched": "none",
+   "suggestion": {
+    "op": "whole",
+    "points": [],
+    "items": [
+     "gnis:2195"
+    ],
+    "tributaries": true,
+    "new_splits": [],
+    "words": "the whole water"
+   },
+   "confidence": "medium",
+   "matched": "whole",
    "endpoints": [],
-   "reason": "tributaries only (not the mainstem): an extent fix cannot say it — curate by hand",
+   "reason": "split hunt: 'all tributaries of the Bulkley River other than the Suskwa River': the Bulkley's tributary set less the Suskwa.",
+   "points": [],
+   "caveat": "TRIBUTARIES ONLY, not the Bulkley mainstem, and not the Suskwa. A mark can only say whole + tributaries — on save, note 'tributaries_only, exclude Suskwa' (the binding's tributaries_only / tributary_excludes).",
    "hunt": {
-    "status": "not_found",
-    "why": "'all tributaries other than the Suskwa': tributaries-only, no cut to find — curate by hand.",
+    "status": "found",
+    "notes": "'all tributaries of the Bulkley River other than the Suskwa River': the Bulkley's tributary set less the Suskwa.",
+    "proposals": [],
+    "category": "tributary_set",
     "sources": [
      "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region6-eng.html"
-    ]
+    ],
+    "matcher": {
+     "matched": "none",
+     "reason": "tributaries only (not the mainstem): an extent fix cannot say it — curate by hand"
+    }
    },
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "cluster": {
+    "id": "6:bulkley-river#1",
+    "members": [
+     "6:bulkley-river:all-tributaries-of-the-bulkley-riv",
+     "6:bulkley-river:all-tributaries-of-the-bulkley-riv~2"
+    ],
+    "placed": [],
+    "canonical": "6:bulkley-river:all-tributaries-of-the-bulkley-riv~2",
+    "role": "member",
+    "links": {
+     "6:bulkley-river:all-tributaries-of-the-bulkley-riv~2": "same extent 0.67"
+    }
+   },
+   "why": "tributary_set",
+   "outcome": "whole"
   },
   "6:kispiox-river:downstream-of-fishing-boundary-sig": {
    "location_id": "6:kispiox-river:downstream-of-fishing-boundary-sig",
@@ -10322,7 +11203,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "needs_split",
+   "outcome": "new_low"
   },
   "6:kitseguecla-river:including-tributaries": {
    "location_id": "6:kitseguecla-river:including-tributaries",
@@ -10347,7 +11230,9 @@
     "words": "the whole water with its tributaries"
    },
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "6:kitwanga-river:including-tributaries": {
    "location_id": "6:kitwanga-river:including-tributaries",
@@ -10372,7 +11257,9 @@
     "words": "the whole water with its tributaries"
    },
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "6:pinkut-creek:downstream-of-fishing-boundary-sig": {
    "location_id": "6:pinkut-creek:downstream-of-fishing-boundary-sig",
@@ -10386,20 +11273,31 @@
     "op": "downstream_of",
     "points": [
      {
-      "kind": "split",
-      "split_id": "pinkut_creek__fish_fence"
+      "kind": "new",
+      "split_id": "pinkut_fence_d25"
      }
     ],
     "items": [
      "gnis:23229"
     ],
     "tributaries": null,
-    "new_splits": [],
-    "words": "downstream of fish fence"
+    "new_splits": [
+     {
+      "ref": "pinkut_fence_d25",
+      "anchor": "split",
+      "name": "signs 25 m below the Pinkut fish fence",
+      "split_id": "pinkut_creek__fish_fence",
+      "on_item": "gnis:23229",
+      "offset_m": -25.0,
+      "note": "[split hunt medium] boundary signs ~25 m downstream of the Pinkut Creek counting fence (the curated 'fish fence' cut). Sources: data/curated/waters/splits.json#pinkut_creek__fish_fence. the notice's own approximate distance from the curated fence cut.",
+      "side": "downstream"
+     }
+    ],
+    "words": "downstream of signs 25 m below the Pinkut fish fence"
    },
    "confidence": "medium",
-   "matched": "existing",
-   "reason": "medium: \"fence, fish\" -> the curated cut `pinkut_creek__fish_fence` (fish fence); the notice's place is 25 m below it",
+   "matched": "new",
+   "reason": "split hunt: 'downstream of signs ~25 m downstream of the fish counting fence': the curated fence cut moved 25 m down.; medium: boundary signs ~25 m downstream of the Pinkut Creek counting fence (the curated 'fish fence' cut)",
    "endpoints": [
     {
      "phrase": "downstream of fishing boundary signs located approx. 25 m downstream of fish counting fence",
@@ -10416,14 +11314,54 @@
    ],
    "points": [
     {
-     "label": "fish fence",
-     "coord": null,
-     "kind": "split",
-     "split_id": "pinkut_creek__fish_fence"
+     "label": "signs 25 m below the Pinkut fish fence",
+     "coord": [
+      -125.459485,
+      54.445762
+     ],
+     "kind": "new",
+     "split_id": "pinkut_fence_d25"
     }
    ],
+   "hunt": {
+    "status": "found",
+    "notes": "'downstream of signs ~25 m downstream of the fish counting fence': the curated fence cut moved 25 m down.",
+    "proposals": [
+     {
+      "ref": "pinkut_fence_d25",
+      "anchor": "split",
+      "name": "signs 25 m below the Pinkut fish fence",
+      "confidence": "medium",
+      "description": "boundary signs ~25 m downstream of the Pinkut Creek counting fence (the curated 'fish fence' cut)",
+      "sources": [
+       "data/curated/waters/splits.json#pinkut_creek__fish_fence"
+      ],
+      "notes": "the notice's own approximate distance from the curated fence cut.",
+      "lat": 54.44574,
+      "lon": -125.45955,
+      "coord": [
+       -125.459485,
+       54.445762
+      ],
+      "offset_m": -25,
+      "split_id": "pinkut_creek__fish_fence",
+      "snap_m": 4.9,
+      "blk": null,
+      "measure": null
+     }
+    ],
+    "sources": [
+     "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region6-eng.html"
+    ],
+    "matcher": {
+     "matched": "existing",
+     "reason": "medium: \"fence, fish\" -> the curated cut `pinkut_creek__fish_fence` (fish fence); the notice's place is 25 m below it"
+    }
+   },
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "needs_split",
+   "outcome": "new_medium"
   },
   "6:shegunia-river:between-fishing-boundary-signs-loc": {
    "location_id": "6:shegunia-river:between-fishing-boundary-signs-loc",
@@ -10574,7 +11512,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "needs_split",
+   "outcome": "new_low"
   },
   "6:skeena-river:from-the-confluence-with-the-babin": {
    "location_id": "6:skeena-river:from-the-confluence-with-the-babin",
@@ -10588,39 +11528,22 @@
     "op": "between",
     "points": [
      {
-      "kind": "new",
-      "split_id": "sg1"
+      "kind": "split",
+      "split_id": "skeena_river__cnr_railway_bridge_terrace"
      },
      {
       "kind": "split",
-      "split_id": "skeena_river__cnr_railway_bridge_terrace"
+      "split_id": "gauge__08EB005"
      }
     ],
-    "items": [
-     "gnis:2936"
-    ],
+    "items": [],
     "tributaries": null,
-    "new_splits": [
-     {
-      "ref": "sg1",
-      "anchor": "confluence",
-      "name": "Babine River",
-      "item_id": "gnis:17687",
-      "on_item": "gnis:2936",
-      "quote": "the confluence with the Babine River",
-      "blk": "360887278",
-      "measure": 335399.8,
-      "coord": [
-       -127.694583,
-       55.698129
-      ]
-     }
-    ],
-    "words": "between confluence of Babine River and CNR Railway Bridge at Terrace"
+    "new_splits": [],
+    "words": "between CNR Railway Bridge at Terrace and gauge__08EB005"
    },
    "confidence": "high",
-   "matched": "new",
-   "reason": "high: Babine River (gnis:17687) flows straight into Skeena River (FWA watershed code); its mouth 0 m from the water's line; high: \"bridge, cnr, railway, terrace\" -> the curated cut `skeena_river__cnr_railway_bridge_terrace` (CNR Railway Bridge at Terrace)",
+   "matched": "existing",
+   "reason": "high: the same place as `6:skeena-river:upstream-of-cnr-bridge-at-terrace~2` — its CURATED extent (\"upstream of CNR bridge at Terrace, B.C. to a point above the confluence with the Babine River, excluding the areas below\"; place words 89% alike)",
    "endpoints": [
     {
      "phrase": "the confluence with the Babine River",
@@ -10683,7 +11606,68 @@
     }
    ],
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "before": {
+    "suggestion": {
+     "op": "between",
+     "points": [
+      {
+       "kind": "new",
+       "split_id": "sg1"
+      },
+      {
+       "kind": "split",
+       "split_id": "skeena_river__cnr_railway_bridge_terrace"
+      }
+     ],
+     "items": [
+      "gnis:2936"
+     ],
+     "tributaries": null,
+     "new_splits": [
+      {
+       "ref": "sg1",
+       "anchor": "confluence",
+       "name": "Babine River",
+       "item_id": "gnis:17687",
+       "on_item": "gnis:2936",
+       "quote": "the confluence with the Babine River",
+       "blk": "360887278",
+       "measure": 335399.8,
+       "coord": [
+        -127.694583,
+        55.698129
+       ],
+       "confidence": "high"
+      }
+     ],
+     "words": "between confluence of Babine River and CNR Railway Bridge at Terrace"
+    },
+    "confidence": "high",
+    "matched": "new",
+    "reason": "high: Babine River (gnis:17687) flows straight into Skeena River (FWA watershed code); its mouth 0 m from the water's line; high: \"bridge, cnr, railway, terrace\" -> the curated cut `skeena_river__cnr_railway_bridge_terrace` (CNR Railway Bridge at Terrace)"
+   },
+   "cluster": {
+    "id": "6:skeena-river#3",
+    "members": [
+     "6:skeena-river:from-the-confluence-with-the-babin",
+     "6:skeena-river:mainstem-waters-only-upstream-of-c~2",
+     "6:skeena-river:upstream-of-cnr-bridge-at-terrace",
+     "6:skeena-river:upstream-of-cnr-bridge-at-terrace~2"
+    ],
+    "placed": [
+     "6:skeena-river:mainstem-waters-only-upstream-of-c~2",
+     "6:skeena-river:upstream-of-cnr-bridge-at-terrace~2"
+    ],
+    "canonical": "6:skeena-river:upstream-of-cnr-bridge-at-terrace~2",
+    "role": "inherits",
+    "links": {
+     "6:skeena-river:upstream-of-cnr-bridge-at-terrace": "text 0.89",
+     "6:skeena-river:upstream-of-cnr-bridge-at-terrace~2": "text 0.89"
+    }
+   },
+   "why": "variant_of_placed",
+   "outcome": "existing_high"
   },
   "6:sustut-river:including-tributaries": {
    "location_id": "6:sustut-river:including-tributaries",
@@ -10708,7 +11692,9 @@
     "words": "the whole water with its tributaries"
    },
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "6:zymoetz-river:note-section-of-river-from-highway": {
    "location_id": "6:zymoetz-river:note-section-of-river-from-highway",
@@ -10718,20 +11704,90 @@
    "items": [
     "gnis:3137"
    ],
-   "suggestion": null,
-   "confidence": "none",
-   "matched": "none",
+   "suggestion": {
+    "op": "downstream_of",
+    "points": [
+     {
+      "kind": "new",
+      "split_id": "zymoetz_hwy16"
+     }
+    ],
+    "items": [
+     "gnis:3137"
+    ],
+    "tributaries": null,
+    "new_splits": [
+     {
+      "ref": "zymoetz_hwy16",
+      "anchor": "bridge",
+      "name": "Hwy 16 bridge over the Zymoetz (Copper)",
+      "on_item": "gnis:3137",
+      "coord": [
+       -128.476985,
+       54.542222
+      ],
+      "blk": "360881231",
+      "measure": 594.6,
+      "note": "[split hunt high] the Hwy 16 bridge over the Zymoetz (Copper) River. Sources: https://openmaps.gov.bc.ca/geo/pub/wfs (MOT_ROAD_STRUCTURE_SP, highway 16). BC MoTI highway structure.",
+      "side": "downstream"
+     }
+    ],
+    "words": "downstream of Hwy 16 bridge over the Zymoetz (Copper)"
+   },
+   "confidence": "medium",
+   "matched": "new",
    "endpoints": [],
-   "reason": "a note on the water's name, not a place",
+   "reason": "split hunt: a naming note ('from the Hwy 16 bridge down to the Skeena confluence is the Zymoetz'), not a fishery: read as the reach it names, below the hunted Hwy 16 bridge cut. Medium: whether it should carry rules at all is the owner's call.; high: the Hwy 16 bridge over the Zymoetz (Copper) River",
+   "points": [
+    {
+     "label": "Hwy 16 bridge over the Zymoetz (Copper)",
+     "coord": [
+      -128.476985,
+      54.542222
+     ],
+     "kind": "new",
+     "split_id": "zymoetz_hwy16"
+    }
+   ],
    "hunt": {
-    "status": "not_found",
-    "why": "a note on the water's name (below the Hwy 16 bridge is still the Zymoetz), not a place — nothing to cut.",
+    "status": "found",
+    "notes": "a naming note ('from the Hwy 16 bridge down to the Skeena confluence is the Zymoetz'), not a fishery: read as the reach it names, below the hunted Hwy 16 bridge cut. Medium: whether it should carry rules at all is the owner's call.",
+    "proposals": [
+     {
+      "ref": "zymoetz_hwy16",
+      "anchor": "bridge",
+      "name": "Hwy 16 bridge over the Zymoetz (Copper)",
+      "confidence": "high",
+      "description": "the Hwy 16 bridge over the Zymoetz (Copper) River",
+      "sources": [
+       "https://openmaps.gov.bc.ca/geo/pub/wfs (MOT_ROAD_STRUCTURE_SP, highway 16)"
+      ],
+      "notes": "BC MoTI highway structure.",
+      "lat": 54.54245,
+      "lon": -128.47686,
+      "coord": [
+       -128.476985,
+       54.542222
+      ],
+      "offset_m": null,
+      "split_id": null,
+      "snap_m": 26.7,
+      "blk": "360881231",
+      "measure": 594.6
+     }
+    ],
     "sources": [
      "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region6-eng.html"
-    ]
+    ],
+    "matcher": {
+     "matched": "none",
+     "reason": "a note on the water's name, not a place"
+    }
    },
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "why": "needs_split",
+   "outcome": "new_medium"
   },
   "6:zymoetz-river:upstream-of-highway-16-bridge": {
    "location_id": "6:zymoetz-river:upstream-of-highway-16-bridge",
@@ -10829,7 +11885,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "needs_split",
+   "outcome": "new_high"
   },
   "6:ecstall-river:upstream-of-fishing-boundary-signs": {
    "location_id": "6:ecstall-river:upstream-of-fishing-boundary-signs",
@@ -10865,6 +11923,7 @@
        -129.491288,
        53.857346
       ],
+      "confidence": "medium",
       "side": "upstream"
      }
     ],
@@ -10917,7 +11976,9 @@
     }
    ],
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "needs_split",
+   "outcome": "new_medium"
   },
   "6:exchamsiks-river:upstream-of-highway-16-bridge": {
    "location_id": "6:exchamsiks-river:upstream-of-highway-16-bridge",
@@ -11015,7 +12076,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "needs_split",
+   "outcome": "new_high"
   },
   "6:exstew-river:upstream-of-highway-16-bridge": {
    "location_id": "6:exstew-river:upstream-of-highway-16-bridge",
@@ -11113,7 +12176,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "needs_split",
+   "outcome": "new_high"
   },
   "6:gitnadoix-river:upstream-of-powerline-crossing-nea": {
    "location_id": "6:gitnadoix-river:upstream-of-powerline-crossing-nea",
@@ -11212,7 +12277,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "needs_split",
+   "outcome": "new_low"
   },
   "6:kasiks-river:upstream-of-fishing-boundary-signs": {
    "location_id": "6:kasiks-river:upstream-of-fishing-boundary-signs",
@@ -11240,10 +12307,13 @@
     "why": "'the Upper Pool' is named nowhere public (DFO pages, FWA, FISS: no lake or falls in the lower 12 km). Ask DFO Terrace or a local guide.",
     "sources": [
      "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region6-eng.html"
-    ]
+    ],
+    "category": "unknown_landmark"
    },
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "unknown_landmark",
+   "outcome": "unresolvable"
   },
   "6:kasiks-river:downstream-of-fishing-boundary-sig": {
    "location_id": "6:kasiks-river:downstream-of-fishing-boundary-sig",
@@ -11271,10 +12341,13 @@
     "why": "the Kasiks 'Upper Pool' — not found (as above).",
     "sources": [
      "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region6-eng.html"
-    ]
+    ],
+    "category": "unknown_landmark"
    },
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "unknown_landmark",
+   "outcome": "unresolvable"
   },
   "6:kasiks-river:upstream-of-highway-16-bridge": {
    "location_id": "6:kasiks-river:upstream-of-highway-16-bridge",
@@ -11372,7 +12445,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "needs_split",
+   "outcome": "new_high"
   },
   "6:khyex-river:upstream-of-highway-16-bridge": {
    "location_id": "6:khyex-river:upstream-of-highway-16-bridge",
@@ -11470,7 +12545,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "needs_split",
+   "outcome": "new_high"
   },
   "6:kitsumkalum-lake:including-tributaries": {
    "location_id": "6:kitsumkalum-lake:including-tributaries",
@@ -11495,7 +12572,9 @@
     "words": "the whole water with its tributaries"
    },
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "6:kitsumkalum-river:upstream-of-fishing-boundary-signs": {
    "location_id": "6:kitsumkalum-river:upstream-of-fishing-boundary-signs",
@@ -11593,7 +12672,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "needs_split",
+   "outcome": "new_medium"
   },
   "6:kitsumkalum-river:downstream-of-fishing-boundary-sig": {
    "location_id": "6:kitsumkalum-river:downstream-of-fishing-boundary-sig",
@@ -11691,7 +12772,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "needs_split",
+   "outcome": "new_medium"
   },
   "6:kitsumkalum-river:downstream-of-railway-bridge": {
    "location_id": "6:kitsumkalum-river:downstream-of-railway-bridge",
@@ -11789,7 +12872,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "needs_split",
+   "outcome": "new_high"
   },
   "6:lakelse-river:downstream-of-the-cnr-bridge": {
    "location_id": "6:lakelse-river:downstream-of-the-cnr-bridge",
@@ -11840,7 +12925,9 @@
     }
    ],
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "existing_medium"
   },
   "6:lakelse-river:below-logging-road-bridge-near-the": {
    "location_id": "6:lakelse-river:below-logging-road-bridge-near-the",
@@ -11938,7 +13025,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "needs_split",
+   "outcome": "new_medium"
   },
   "6:lakelse-river:above-logging-road-bridge-near-the": {
    "location_id": "6:lakelse-river:above-logging-road-bridge-near-the",
@@ -12036,7 +13125,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "needs_split",
+   "outcome": "new_medium"
   },
   "6:redsand-lake:including-tributaries": {
    "location_id": "6:redsand-lake:including-tributaries",
@@ -12061,7 +13152,9 @@
     "words": "the whole water with its tributaries"
    },
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "6:scotia-river:including-tributaries": {
    "location_id": "6:scotia-river:including-tributaries",
@@ -12086,7 +13179,9 @@
     "words": "the whole water with its tributaries"
    },
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "6:skeena-river:from-lakelse-river-mouth-upstream": {
    "location_id": "6:skeena-river:from-lakelse-river-mouth-upstream",
@@ -12240,7 +13335,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "why": "needs_split",
+   "outcome": "new_high"
   },
   "6:zymagotitz-river:upstream-of-highway-16-bridge": {
    "location_id": "6:zymagotitz-river:upstream-of-highway-16-bridge",
@@ -12338,7 +13435,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "needs_split",
+   "outcome": "new_high"
   },
   "6:nass-river:mainstem-waters-downstream-of-the~2": {
    "location_id": "6:nass-river:mainstem-waters-downstream-of-the~2",
@@ -12363,9 +13462,9 @@
     "new_splits": [],
     "words": "downstream of Meziadin River → Nass River"
    },
-   "confidence": "medium",
+   "confidence": "high",
    "matched": "existing",
-   "reason": "medium: confluence of Meziadin River: the curated cut `meziadin_river__meziadin_river_into_nass_river` (Meziadin River → Nass River) — the notice's signs are NEAR it",
+   "reason": "high (raised from medium): the same binding as `6:nass-river:mainstem-waters-downstream-of-the`, a clearer wording of this place — medium: confluence of Meziadin River: the curated cut `meziadin_river__meziadin_river_into_nass_river` (Meziadin River → Nass River) — the notice's signs are NEAR it",
    "endpoints": [
     {
      "phrase": "downstream of the fishing boundary signs near the confluence with the Meziadin River",
@@ -12389,7 +13488,42 @@
     }
    ],
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "before": {
+    "suggestion": {
+     "op": "downstream_of",
+     "points": [
+      {
+       "kind": "split",
+       "split_id": "meziadin_river__meziadin_river_into_nass_river"
+      }
+     ],
+     "items": [
+      "gnis:3206"
+     ],
+     "tributaries": null,
+     "new_splits": [],
+     "words": "downstream of Meziadin River → Nass River"
+    },
+    "confidence": "medium",
+    "matched": "existing",
+    "reason": "medium: confluence of Meziadin River: the curated cut `meziadin_river__meziadin_river_into_nass_river` (Meziadin River → Nass River) — the notice's signs are NEAR it"
+   },
+   "cluster": {
+    "id": "6:nass-river#1",
+    "members": [
+     "6:nass-river:mainstem-waters-downstream-of-the",
+     "6:nass-river:mainstem-waters-downstream-of-the~2"
+    ],
+    "placed": [],
+    "canonical": "6:nass-river:mainstem-waters-downstream-of-the",
+    "role": "agrees",
+    "links": {
+     "6:nass-river:mainstem-waters-downstream-of-the": "text 1.00"
+    }
+   },
+   "why": "variant",
+   "outcome": "existing_high"
   },
   "6:babine-lake:babine-lake-excluding-tributaries~2": {
    "location_id": "6:babine-lake:babine-lake-excluding-tributaries~2",
@@ -12399,20 +13533,54 @@
    "items": [
     "wbk:329026676"
    ],
-   "suggestion": null,
-   "confidence": "none",
-   "matched": "none",
+   "suggestion": {
+    "op": "whole",
+    "points": [],
+    "items": [
+     "wbk:329026676"
+    ],
+    "tributaries": false,
+    "new_splits": [],
+    "words": "the whole water"
+   },
+   "confidence": "medium",
+   "matched": "whole",
    "endpoints": [],
-   "reason": "a part of a lake (a line across it / a radius): not a cut on a line — curate by hand",
+   "reason": "split hunt: 'Babine Lake excluding tributaries and those waters within a 400 m radius of …': the whole lake without tributaries; the radii are text.",
+   "points": [],
+   "caveat": "the lake LESS 400 m radii around the named creek mouths and the part east of a line from Gullwing Creek to the south shore — those carve-outs are not geometry: keep them as the binding's notes / spatial_caveat (DFO doc 19 §3.1), the map shows the whole lake.",
    "hunt": {
-    "status": "not_found",
-    "why": "lake areas (radii + a line from Gullwing Creek to the south shore) — curate by hand.",
+    "status": "found",
+    "notes": "'Babine Lake excluding tributaries and those waters within a 400 m radius of …': the whole lake without tributaries; the radii are text.",
+    "proposals": [],
+    "category": "lake_area",
     "sources": [
      "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region6-eng.html"
-    ]
+    ],
+    "matcher": {
+     "matched": "none",
+     "reason": "a part of a lake (a line across it / a radius): not a cut on a line — curate by hand"
+    }
    },
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "cluster": {
+    "id": "6:babine-lake#1",
+    "members": [
+     "6:babine-lake:babine-lake-excluding-tributaries",
+     "6:babine-lake:babine-lake-excluding-tributaries~2",
+     "6:babine-lake:babine-lake-excluding-tributaries~3"
+    ],
+    "placed": [],
+    "canonical": "6:babine-lake:babine-lake-excluding-tributaries~3",
+    "role": "agrees",
+    "links": {
+     "6:babine-lake:babine-lake-excluding-tributaries": "text 1.00",
+     "6:babine-lake:babine-lake-excluding-tributaries~3": "dup 1.00"
+    }
+   },
+   "why": "lake_area",
+   "outcome": "whole"
   },
   "6:skeena-river:upstream-of-cnr-bridge-at-terrace": {
    "location_id": "6:skeena-river:upstream-of-cnr-bridge-at-terrace",
@@ -12430,35 +13598,18 @@
       "split_id": "skeena_river__cnr_railway_bridge_terrace"
      },
      {
-      "kind": "new",
-      "split_id": "sg2"
+      "kind": "split",
+      "split_id": "gauge__08EB005"
      }
     ],
-    "items": [
-     "gnis:2936"
-    ],
+    "items": [],
     "tributaries": null,
-    "new_splits": [
-     {
-      "ref": "sg2",
-      "anchor": "confluence",
-      "name": "Babine River",
-      "item_id": "gnis:17687",
-      "on_item": "gnis:2936",
-      "quote": "a point above the confluence with the Babine River",
-      "blk": "360887278",
-      "measure": 335399.8,
-      "coord": [
-       -127.694583,
-       55.698129
-      ]
-     }
-    ],
-    "words": "between CNR Railway Bridge at Terrace and confluence of Babine River"
+    "new_splits": [],
+    "words": "between CNR Railway Bridge at Terrace and gauge__08EB005"
    },
    "confidence": "high",
-   "matched": "new",
-   "reason": "high: \"bridge, cnr, terrace\" -> the curated cut `skeena_river__cnr_railway_bridge_terrace` (CNR Railway Bridge at Terrace); high: Babine River (gnis:17687) flows straight into Skeena River (FWA watershed code); its mouth 0 m from the water's line",
+   "matched": "existing",
+   "reason": "high: the same place as `6:skeena-river:upstream-of-cnr-bridge-at-terrace~2` — its CURATED extent (\"upstream of CNR bridge at Terrace, B.C. to a point above the confluence with the Babine River, excluding the areas below\"; place words 100% alike, DFO's own duplicate link)",
    "endpoints": [
     {
      "phrase": "upstream of CNR bridge at Terrace",
@@ -12521,7 +13672,69 @@
     }
    ],
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "before": {
+    "suggestion": {
+     "op": "between",
+     "points": [
+      {
+       "kind": "split",
+       "split_id": "skeena_river__cnr_railway_bridge_terrace"
+      },
+      {
+       "kind": "new",
+       "split_id": "sg2"
+      }
+     ],
+     "items": [
+      "gnis:2936"
+     ],
+     "tributaries": null,
+     "new_splits": [
+      {
+       "ref": "sg2",
+       "anchor": "confluence",
+       "name": "Babine River",
+       "item_id": "gnis:17687",
+       "on_item": "gnis:2936",
+       "quote": "a point above the confluence with the Babine River",
+       "blk": "360887278",
+       "measure": 335399.8,
+       "coord": [
+        -127.694583,
+        55.698129
+       ],
+       "confidence": "high"
+      }
+     ],
+     "words": "between CNR Railway Bridge at Terrace and confluence of Babine River"
+    },
+    "confidence": "high",
+    "matched": "new",
+    "reason": "high: \"bridge, cnr, terrace\" -> the curated cut `skeena_river__cnr_railway_bridge_terrace` (CNR Railway Bridge at Terrace); high: Babine River (gnis:17687) flows straight into Skeena River (FWA watershed code); its mouth 0 m from the water's line"
+   },
+   "cluster": {
+    "id": "6:skeena-river#3",
+    "members": [
+     "6:skeena-river:from-the-confluence-with-the-babin",
+     "6:skeena-river:mainstem-waters-only-upstream-of-c~2",
+     "6:skeena-river:upstream-of-cnr-bridge-at-terrace",
+     "6:skeena-river:upstream-of-cnr-bridge-at-terrace~2"
+    ],
+    "placed": [
+     "6:skeena-river:mainstem-waters-only-upstream-of-c~2",
+     "6:skeena-river:upstream-of-cnr-bridge-at-terrace~2"
+    ],
+    "canonical": "6:skeena-river:upstream-of-cnr-bridge-at-terrace~2",
+    "role": "inherits",
+    "links": {
+     "6:skeena-river:from-the-confluence-with-the-babin": "text 0.89",
+     "6:skeena-river:mainstem-waters-only-upstream-of-c~2": "text 0.80",
+     "6:skeena-river:upstream-of-cnr-bridge-at-terrace~2": "dup 1.00"
+    }
+   },
+   "why": "variant_of_placed",
+   "outcome": "existing_high"
   },
   "6:nass-river:mainstem-waters-near-the-meziadin": {
    "location_id": "6:nass-river:mainstem-waters-near-the-meziadin",
@@ -12594,7 +13807,9 @@
     }
    ],
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "existing_medium"
   },
   "6:nakina-river:that-portion-of-the-nakina-river-f": {
    "location_id": "6:nakina-river:that-portion-of-the-nakina-river-f",
@@ -12745,7 +13960,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "why": "needs_split",
+   "outcome": "new_medium"
   },
   "6:bulkley-river:all-tributaries-of-the-bulkley-riv~2": {
    "location_id": "6:bulkley-river:all-tributaries-of-the-bulkley-riv~2",
@@ -12755,20 +13972,52 @@
    "items": [
     "gnis:2195"
    ],
-   "suggestion": null,
-   "confidence": "none",
-   "matched": "none",
+   "suggestion": {
+    "op": "whole",
+    "points": [],
+    "items": [
+     "gnis:2195"
+    ],
+    "tributaries": true,
+    "new_splits": [],
+    "words": "the whole water"
+   },
+   "confidence": "medium",
+   "matched": "whole",
    "endpoints": [],
-   "reason": "tributaries only (not the mainstem): an extent fix cannot say it — curate by hand",
+   "reason": "split hunt: 'all tributaries other than Morice River and tributaries, Suskwa River and tributaries, and Two Mile Creek'.",
+   "points": [],
+   "caveat": "TRIBUTARIES ONLY, less the Morice (and its tributaries), the Suskwa (and its tributaries) and Two Mile Creek. A mark can only say whole + tributaries — on save, note tributaries_only + those three excludes.",
    "hunt": {
-    "status": "not_found",
-    "why": "'all tributaries other than Morice, Suskwa, Two Mile Creek': tributaries-only — curate by hand.",
+    "status": "found",
+    "notes": "'all tributaries other than Morice River and tributaries, Suskwa River and tributaries, and Two Mile Creek'.",
+    "proposals": [],
+    "category": "tributary_set",
     "sources": [
      "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region6-eng.html"
-    ]
+    ],
+    "matcher": {
+     "matched": "none",
+     "reason": "tributaries only (not the mainstem): an extent fix cannot say it — curate by hand"
+    }
    },
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "cluster": {
+    "id": "6:bulkley-river#1",
+    "members": [
+     "6:bulkley-river:all-tributaries-of-the-bulkley-riv",
+     "6:bulkley-river:all-tributaries-of-the-bulkley-riv~2"
+    ],
+    "placed": [],
+    "canonical": "6:bulkley-river:all-tributaries-of-the-bulkley-riv~2",
+    "role": "canonical",
+    "links": {
+     "6:bulkley-river:all-tributaries-of-the-bulkley-riv": "same extent 0.67"
+    }
+   },
+   "why": "tributary_set",
+   "outcome": "whole"
   },
   "6:suskwa-river:including-tributaries": {
    "location_id": "6:suskwa-river:including-tributaries",
@@ -12793,7 +14042,9 @@
     "words": "the whole water with its tributaries"
    },
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "6:babine-river:from-the-nilkitkwa-river-confluenc": {
    "location_id": "6:babine-river:from-the-nilkitkwa-river-confluenc",
@@ -12872,7 +14123,9 @@
     }
    },
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "why": "review_pending",
+   "outcome": "existing_medium"
   },
   "6:babine-river:from-the-nilkitkwa-river-confluenc~2": {
    "location_id": "6:babine-river:from-the-nilkitkwa-river-confluenc~2",
@@ -12923,7 +14176,9 @@
     }
    ],
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "why": "review_pending",
+   "outcome": "existing_high"
   },
   "6:babine-lake:within-a-400m-radius-of-the-mouth": {
    "location_id": "6:babine-lake:within-a-400m-radius-of-the-mouth",
@@ -12940,13 +14195,29 @@
    "reason": "a part of a lake (a line across it / a radius): not a cut on a line — curate by hand",
    "hunt": {
     "status": "not_found",
-    "why": "a 400 m radius around the Pinkut Creek mouth: a lake area — curate by hand.",
+    "why": "a 400 m radius around the Pinkut Creek mouth: a lake area — curate by hand. Owner rule (lake-splits-deferred): a lake divided into closure areas is deferred — curate later as a lake split / sign-zone area.",
     "sources": [
      "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region6-eng.html"
-    ]
+    ],
+    "category": "lake_area"
    },
    "state": "unbound",
-   "status": "dormant"
+   "status": "dormant",
+   "cluster": {
+    "id": "6:babine-lake#2",
+    "members": [
+     "6:babine-lake:within-a-400-m-radius-of-the-mouth",
+     "6:babine-lake:within-a-400m-radius-of-the-mouth"
+    ],
+    "placed": [],
+    "canonical": "6:babine-lake:within-a-400m-radius-of-the-mouth",
+    "role": "canonical",
+    "links": {
+     "6:babine-lake:within-a-400-m-radius-of-the-mouth": "dup 1.00"
+    }
+   },
+   "why": "lake_area",
+   "outcome": "unresolvable"
   },
   "6:babine-lake:babine-lake-excluding-tributaries~3": {
    "location_id": "6:babine-lake:babine-lake-excluding-tributaries~3",
@@ -12956,20 +14227,54 @@
    "items": [
     "wbk:329026676"
    ],
-   "suggestion": null,
-   "confidence": "none",
-   "matched": "none",
+   "suggestion": {
+    "op": "whole",
+    "points": [],
+    "items": [
+     "wbk:329026676"
+    ],
+    "tributaries": false,
+    "new_splits": [],
+    "words": "the whole water"
+   },
+   "confidence": "medium",
+   "matched": "whole",
    "endpoints": [],
-   "reason": "a part of a lake (a line across it / a radius): not a cut on a line — curate by hand",
+   "reason": "split hunt: 'Babine Lake excluding tributaries and those waters within a 400 m radius of …': the whole lake without tributaries; the radii are text.",
+   "points": [],
+   "caveat": "the lake LESS 400 m radii around the named creek mouths and the part east of a line from Gullwing Creek to the south shore — those carve-outs are not geometry: keep them as the binding's notes / spatial_caveat (DFO doc 19 §3.1), the map shows the whole lake.",
    "hunt": {
-    "status": "not_found",
-    "why": "lake areas (radii + the Gullwing Creek line) — curate by hand.",
+    "status": "found",
+    "notes": "'Babine Lake excluding tributaries and those waters within a 400 m radius of …': the whole lake without tributaries; the radii are text.",
+    "proposals": [],
+    "category": "lake_area",
     "sources": [
      "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region6-eng.html"
-    ]
+    ],
+    "matcher": {
+     "matched": "none",
+     "reason": "a part of a lake (a line across it / a radius): not a cut on a line — curate by hand"
+    }
    },
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "cluster": {
+    "id": "6:babine-lake#1",
+    "members": [
+     "6:babine-lake:babine-lake-excluding-tributaries",
+     "6:babine-lake:babine-lake-excluding-tributaries~2",
+     "6:babine-lake:babine-lake-excluding-tributaries~3"
+    ],
+    "placed": [],
+    "canonical": "6:babine-lake:babine-lake-excluding-tributaries~3",
+    "role": "canonical",
+    "links": {
+     "6:babine-lake:babine-lake-excluding-tributaries": "text 1.00",
+     "6:babine-lake:babine-lake-excluding-tributaries~2": "dup 1.00"
+    }
+   },
+   "why": "lake_area",
+   "outcome": "whole"
   },
   "7:nechako-river:upstream-from-the-boundary-signs-a": {
    "location_id": "7:nechako-river:upstream-from-the-boundary-signs-a",
@@ -13020,7 +14325,22 @@
     }
    ],
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "cluster": {
+    "id": "7:nechako-river#1",
+    "members": [
+     "7:nechako-river:from-the-downstream-edge-of-the-fo",
+     "7:nechako-river:upstream-from-the-boundary-signs-a"
+    ],
+    "placed": [],
+    "canonical": "7:nechako-river:from-the-downstream-edge-of-the-fo",
+    "role": "agrees",
+    "links": {
+     "7:nechako-river:from-the-downstream-edge-of-the-fo": "text 1.00"
+    }
+   },
+   "why": "variant",
+   "outcome": "existing_high"
   },
   "7:nechako-river:from-the-downstream-edge-of-the-fo": {
    "location_id": "7:nechako-river:from-the-downstream-edge-of-the-fo",
@@ -13071,7 +14391,22 @@
     }
    ],
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "cluster": {
+    "id": "7:nechako-river#1",
+    "members": [
+     "7:nechako-river:from-the-downstream-edge-of-the-fo",
+     "7:nechako-river:upstream-from-the-boundary-signs-a"
+    ],
+    "placed": [],
+    "canonical": "7:nechako-river:from-the-downstream-edge-of-the-fo",
+    "role": "canonical",
+    "links": {
+     "7:nechako-river:upstream-from-the-boundary-signs-a": "text 1.00"
+    }
+   },
+   "why": "review_pending",
+   "outcome": "existing_high"
   },
   "8:mabel-lake:northerly-of-a-line-drawn-from-a-w": {
    "location_id": "8:mabel-lake:northerly-of-a-line-drawn-from-a-w",
@@ -13088,13 +14423,16 @@
    "reason": "a part of a lake (a line across it / a radius): not a cut on a line — curate by hand",
    "hunt": {
     "status": "not_found",
-    "why": "lake areas (a line from Mabel Lake Provincial Park's north edge to a western point; signs ~1 km from Wap Creek) — curate by hand.",
+    "why": "lake areas (a line from Mabel Lake Provincial Park's north edge to a western point; signs ~1 km from Wap Creek) — curate by hand. Owner rule (lake-splits-deferred): a lake divided into closure areas is deferred — curate later as a lake split / sign-zone area.",
     "sources": [
      "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region8-eng.html"
-    ]
+    ],
+    "category": "lake_area"
    },
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "lake_area",
+   "outcome": "unresolvable"
   },
   "8:osoyoos-lake:in-the-waters-in-the-portion-of-os": {
    "location_id": "8:osoyoos-lake:in-the-waters-in-the-portion-of-os",
@@ -13111,13 +14449,29 @@
    "reason": "a part of a lake (a line across it / a radius): not a cut on a line — curate by hand",
    "hunt": {
     "status": "not_found",
-    "why": "Osoyoos Lake north of the Hwy 3 bridge (the North Basin): a lake part — the bridge (Hwy 3, Osoyoos narrows) is a line across the lake, curate as a lake split by hand.",
+    "why": "Osoyoos Lake north of the Hwy 3 bridge (the North Basin): a lake part — the bridge (Hwy 3, Osoyoos narrows) is a line across the lake, curate as a lake split by hand. Owner rule (lake-splits-deferred): a lake divided into closure areas is deferred — curate later as a lake split / sign-zone area.",
     "sources": [
      "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region8-eng.html"
-    ]
+    ],
+    "category": "lake_area"
    },
    "state": "unbound",
-   "status": "dormant"
+   "status": "dormant",
+   "cluster": {
+    "id": "8:osoyoos-lake#1",
+    "members": [
+     "8:osoyoos-lake:in-the-waters-in-the-portion-of-os",
+     "8:osoyoos-lake:in-the-waters-in-the-portion-of-os~2"
+    ],
+    "placed": [],
+    "canonical": "8:osoyoos-lake:in-the-waters-in-the-portion-of-os~2",
+    "role": "agrees",
+    "links": {
+     "8:osoyoos-lake:in-the-waters-in-the-portion-of-os~2": "dup 0.82"
+    }
+   },
+   "why": "lake_area",
+   "outcome": "unresolvable"
   },
   "8:shuswap-river:middle-between-shuswap-falls-and-m": {
    "location_id": "8:shuswap-river:middle-between-shuswap-falls-and-m",
@@ -13237,7 +14591,22 @@
     }
    },
    "state": "needs_cut",
-   "status": "dormant"
+   "status": "dormant",
+   "cluster": {
+    "id": "8:shuswap-river#3",
+    "members": [
+     "8:shuswap-river:middle-between-shuswap-falls-and-m",
+     "8:shuswap-river:middle-between-shuswap-falls-and-m~2"
+    ],
+    "placed": [],
+    "canonical": "8:shuswap-river:middle-between-shuswap-falls-and-m~2",
+    "role": "agrees",
+    "links": {
+     "8:shuswap-river:middle-between-shuswap-falls-and-m~2": "dup 1.00"
+    }
+   },
+   "why": "variant",
+   "outcome": "new_high"
   },
   "8:shuswap-river:lower-upstream-from-white-triangul": {
    "location_id": "8:shuswap-river:lower-upstream-from-white-triangul",
@@ -13310,7 +14679,9 @@
     }
    ],
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "existing_medium"
   },
   "8:shuswap-river:lower-50-m-upstream-of-the-trinity": {
    "location_id": "8:shuswap-river:lower-50-m-upstream-of-the-trinity",
@@ -13383,7 +14754,9 @@
     }
    ],
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "existing_high"
   },
   "8:osoyoos-lake:in-the-waters-in-the-portion-of-os~2": {
    "location_id": "8:osoyoos-lake:in-the-waters-in-the-portion-of-os~2",
@@ -13400,13 +14773,29 @@
    "reason": "a part of a lake (a line across it / a radius): not a cut on a line — curate by hand",
    "hunt": {
     "status": "not_found",
-    "why": "same North Basin lake part — curate by hand.",
+    "why": "same North Basin lake part — curate by hand. Owner rule (lake-splits-deferred): a lake divided into closure areas is deferred — curate later as a lake split / sign-zone area.",
     "sources": [
      "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region8-eng.html"
-    ]
+    ],
+    "category": "lake_area"
    },
    "state": "unbound",
-   "status": "active"
+   "status": "active",
+   "cluster": {
+    "id": "8:osoyoos-lake#1",
+    "members": [
+     "8:osoyoos-lake:in-the-waters-in-the-portion-of-os",
+     "8:osoyoos-lake:in-the-waters-in-the-portion-of-os~2"
+    ],
+    "placed": [],
+    "canonical": "8:osoyoos-lake:in-the-waters-in-the-portion-of-os~2",
+    "role": "canonical",
+    "links": {
+     "8:osoyoos-lake:in-the-waters-in-the-portion-of-os": "dup 0.82"
+    }
+   },
+   "why": "lake_area",
+   "outcome": "unresolvable"
   },
   "8:shuswap-river:middle-between-shuswap-falls-and-m~2": {
    "location_id": "8:shuswap-river:middle-between-shuswap-falls-and-m~2",
@@ -13526,7 +14915,22 @@
     }
    },
    "state": "needs_cut",
-   "status": "active"
+   "status": "active",
+   "cluster": {
+    "id": "8:shuswap-river#3",
+    "members": [
+     "8:shuswap-river:middle-between-shuswap-falls-and-m",
+     "8:shuswap-river:middle-between-shuswap-falls-and-m~2"
+    ],
+    "placed": [],
+    "canonical": "8:shuswap-river:middle-between-shuswap-falls-and-m~2",
+    "role": "canonical",
+    "links": {
+     "8:shuswap-river:middle-between-shuswap-falls-and-m": "dup 1.00"
+    }
+   },
+   "why": "needs_split",
+   "outcome": "new_high"
   }
  }
 }

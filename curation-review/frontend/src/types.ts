@@ -967,11 +967,31 @@ export interface DfoSuggestion {
     /** the NEW splits its `kind: new` points name, by ref */
     new_splits: NewSplit[];
     words?: string;
+    /** op within: the area */
+    area?: string;
   } | null;
   /** each point's label and, for a new one, where the data pins it */
   points?: { label: string; coord: [number, number] | null; kind: string; split_id?: string }[];
   /** THE SPLIT HUNT (owner 2026-10-27, `dfo-split-hunt.json`): hand-researched cuts, each a proposal */
   hunt?: DfoHunt | null;
+  /** COVERAGE (owner 2026-10-27, `dfo_salmon/coverage.py`): why the location had no extent */
+  why?: string;
+  /** read before accepting: what the proposal cannot say (tributaries-only, radii kept as text, …) */
+  caveat?: string;
+  /** the rewordings of this place on the same water (DFO rewords a reach year to year) */
+  cluster?: DfoCluster;
+  /** the matcher's own reading, when the cluster replaced it */
+  before?: { suggestion: DfoSuggestion["suggestion"]; confidence: string; matched: string; reason: string } | null;
+}
+export interface DfoCluster {
+  id: string;
+  members: string[];
+  /** members with a curated extent */
+  placed: string[];
+  canonical: string;
+  /** inherits (a curated member's extent) | adopts (the cluster's better suggestion) | agrees | canonical | member */
+  role: "inherits" | "adopts" | "agrees" | "canonical" | "member";
+  links: Record<string, string>;
 }
 /** One hand-researched cut: where (lat/lon, snapped to the FWA line), how sure, and why. */
 export interface HuntProposal {

@@ -69,6 +69,7 @@ export function suggestionFix(s: DfoSuggestion | null | undefined, taken: string
     points: sg.points.map((p) => (p.kind === "new" && p.split_id && rename[p.split_id]
       ? { ...p, split_id: rename[p.split_id] } : { ...p })),
     items: [...sg.items], tributaries: sg.tributaries ?? null,
+    ...(sg.area ? { area: sg.area } : {}),
   };
   return { fix, newSplits };
 }
@@ -104,6 +105,29 @@ function HuntProposals({ hunt }: { hunt: DfoHunt }) {
       {(hunt.sources ?? []).length > 0 && (
         <div className="dim">notice: {(hunt.sources ?? []).map((u) => link(u))}</div>
       )}
+    </div>
+  );
+}
+
+/** COVERAGE (owner 2026-10-27): why this location had no extent, and the other wordings of the same
+ *  place on this water — a cluster member inherits a curated member's extent or adopts the best. */
+function SuggestionCoverage({ sugg }: { sugg: DfoSuggestion }) {
+  const c = sugg.cluster;
+  if (!sugg.why && !c) return null;
+  const others = c ? c.members.filter((m) => m !== sugg.location_id) : [];
+  return (
+    <div className="ext-row dim" data-testid="dfo-coverage" style={{ display: "block", fontSize: 12 }}>
+      {sugg.why && <div><span className="k">unplaced because</span> {sugg.why.replace(/_/g, " ")}</div>}
+      {c && (
+        <div data-testid="dfo-cluster">
+          <span className="k">rewordings</span> {c.role}{c.role === "inherits" ? " the curated extent of" : ""}{" "}
+          {others.map((m, i) => (
+            <span key={m}>{i ? " · " : ""}<a href={`#${DFO_HASH}${encodeURIComponent(m)}`}>{m.split(":").slice(2).join(":")}</a>
+              {c.placed.includes(m) ? " (placed)" : ""}{m === c.canonical ? " (canonical)" : ""}</span>
+          ))}
+        </div>
+      )}
+      {sugg.before?.suggestion?.words && <div>matcher's own reading: {sugg.before.suggestion.words} ({sugg.before.confidence})</div>}
     </div>
   );
 }
@@ -617,6 +641,11 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
                   accept suggestion</button>
               </div>
               <div className="ext-row dim" style={{ fontSize: 12 }}>{sugg.reason}</div>
+              {sugg.caveat && (
+                <div className="ext-row" data-testid="dfo-suggestion-caveat" style={{ fontSize: 12, color: "#b45309" }}>
+                  read before accepting: {sugg.caveat}</div>
+              )}
+              <SuggestionCoverage sugg={sugg} />
               {sugg.suggestion.new_splits.length > 0 && (
                 <div className="ext-row dim" style={{ fontSize: 12 }}>
                   new split{sugg.suggestion.new_splits.length === 1 ? "" : "s"}:{" "}
@@ -632,6 +661,7 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
                 <span className="k" style={{ color: "#7c3aed" }}>split hunt</span>
                 <span>not found — {detail.suggestion.hunt.why}</span>
               </div>
+              <SuggestionCoverage sugg={detail.suggestion} />
             </div>
           )}
 

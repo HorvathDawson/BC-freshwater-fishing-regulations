@@ -767,10 +767,12 @@ def apply_hunt(row: dict, entry: Mapping, cuts: Mapping[str, Mapping], water: Wa
     (`cut`, NEW splits with research). `not_found` keeps the row unplaced and says why. Still a
     suggestion: nothing is applied."""
     if entry.get("not_found"):
-        return {**row, "hunt": {"status": "not_found", "why": entry["not_found"],
-                                "sources": [page] if page else []}}
+        return {**row, "suggestion": None, "confidence": "none", "matched": "none",
+                "hunt": {"status": "not_found", "why": entry["not_found"], "sources": [page] if page else [],
+                         **({"category": entry["category"]} if entry.get("category") else {})}}
     op = entry["op"]
-    items1 = list(water.items) if len(water.items) == 1 else []
+    # an entry may name the items it holds on (one arm of a multi-item water: "North Alouette")
+    items1 = list(entry["items"]) if entry.get("items") else list(water.items) if len(water.items) == 1 else []
     pts, new_splits, props, confs, words, why = [], [], [], [], [], []
     for e in entry.get("ends") or []:
         if "split" in e:
@@ -801,6 +803,8 @@ def apply_hunt(row: dict, entry: Mapping, cuts: Mapping[str, Mapping], water: Wa
         conf = entry.get("confidence", "medium")
     else:
         conf = min(confs, key=lambda c: CONF_RANK[c]) if confs else "none"
+        if entry.get("confidence"):     # a cap: the place is sure, the reading of the notice less so
+            conf = min(conf, entry["confidence"], key=lambda c: CONF_RANK[c])
     trib = entry.get("tributaries", (row.get("suggestion") or {}).get("tributaries"))
     sugg = {"op": op, "points": pts, "items": items1, "tributaries": trib, "new_splits": new_splits,
             "words": "the whole water" if op == "whole" else f"{op.replace('_', ' ')} " + " and ".join(words)}
@@ -812,10 +816,14 @@ def apply_hunt(row: dict, entry: Mapping, cuts: Mapping[str, Mapping], water: Wa
         view_pts.append({"label": (hv or {}).get("name") or (ep or {}).get("label") or p["split_id"],
                          "coord": (hv or {}).get("coord") or (ep or {}).get("coord"),
                          "kind": p["kind"], "split_id": p["split_id"]})
-    return {**row, "suggestion": sugg, "confidence": conf,
-            "matched": "whole" if op == "whole" else "new" if props or any(p["kind"] == "new" for p in pts) else "existing",
-            "reason": reason, "points": view_pts,
+    out = {**row, "suggestion": sugg, "confidence": conf,
+           "matched": "whole" if op == "whole" else "new" if props or any(p["kind"] == "new" for p in pts) else "existing",
+           "reason": reason, "points": view_pts}
+    if entry.get("caveat"):
+        out["caveat"] = entry["caveat"]
+    return {**out,
             "hunt": {"status": "found", "notes": entry.get("notes", ""), "proposals": props,
+                     **({"category": entry["category"]} if entry.get("category") else {}),
                      "sources": [page] if page else [], "matcher": {"matched": row["matched"],
                                                                     "reason": row.get("reason", "")}}}
 
@@ -1120,16 +1128,23 @@ def run(out_dir: Path = OUT_DIR, *, marks_path: Optional[Path] = None, gpkg: Opt
         r["state"] = "no_water" if not items else "needs_cut" if D.need(loc)["missing"] else "unbound"
         r["status"] = loc.get("status") or "active"
         rows.append(r)
+    # owner 2026-10-27: every historic location gets a proposal — rewordings clustered, each row says
+    # why it was unplaced and what it gets (`coverage`)
+    from pipeline.regs.dfo_salmon import coverage as C
+    allocs = D.locations()
+    clusters = C.annotate(rows, allocs, {k: v.get("label") or k for k, v in smeta.items()})
     out_dir.mkdir(parents=True, exist_ok=True)
     doc = {"_about": "DFO extent SUGGESTIONS (T164 / T210 follow-up) — never applied. The review app's DFO mode shows "
                      "each one; 'accept suggestion' pre-fills the extent-fix editor and the owner saves "
                      "it as their mark. Regenerate: python -m pipeline.regs.dfo_salmon.suggest",
-           "generated": date.today().isoformat(), "counts": summarize(rows),
+           "generated": date.today().isoformat(), "counts": summarize(rows), "outcomes": C.summary(rows),
+           "why": dict(sorted(__import__("collections").Counter(r["why"] for r in rows).items())),
            "suggestions": {r["location_id"]: r for r in rows}}
     (out_dir / "dfo-suggestions.json").write_text(json.dumps(doc, indent=1, ensure_ascii=False) + "\n")
     (out_dir / "dfo-suggestions.md").write_text(_summary_md(rows, doc["counts"]))
     if hunt:
         (out_dir / "dfo-split-hunt.md").write_text(_hunt_md(rows, hunt))
+    (out_dir / "dfo-coverage.md").write_text(C.coverage_md(rows, clusters, len(allocs), len(allocs) - len(rows)))
     return rows
 
 

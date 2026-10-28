@@ -336,3 +336,40 @@ def test_the_review_app_shows_the_hunt_and_accepting_still_only_prefills():
     assert "<HuntProposals hunt={sugg.hunt} />" in src and 'data-testid="dfo-hunt-not-found"' in src
     hp = src[src.index("function HuntProposals("):src.index("\n}\n", src.index("function HuntProposals("))]
     assert "api." not in hp and "fetch(" not in hp                 # display only
+
+
+def test_coverage_clusters_rewordings_inherits_a_placed_extent_and_keeps_the_two_sides_of_a_cut_apart():
+    """owner 2026-10-27: a rewording of a placed location inherits its curated extent; two wordings of
+    one unplaced place share the surer confidence; 'upstream of X' and 'downstream of X' never cluster."""
+    from pipeline.regs.dfo_salmon import coverage as C
+
+    def loc(lid, text, ext=None, dup=None):
+        return ("r", {"location_id": lid, "water_id": "w", "duplicate_of": dup, "status": "active",
+                      "source_text": {"specific_area": text},
+                      "binding": {"extents": ext or [], "tributaries": None}}, {"item_ids": ["gnis:1"]})
+
+    def row(lid, conf, split):
+        return {"location_id": lid, "items": ["gnis:1"], "confidence": conf, "matched": "existing", "reason": "",
+                "suggestion": {"op": "downstream_of", "points": [{"kind": "split", "split_id": split}],
+                               "items": ["gnis:1"], "tributaries": None, "new_splits": []}}
+
+    locs = dict([
+        ("w:placed", loc("w:placed", "upstream of CNR bridge at Terrace to a point above the Babine confluence",
+                         [{"op": "between", "splits": ["cnr", "babine"]}])),
+        ("w:old", loc("w:old", "upstream of CNR bridge at Terrace to a point above the Babine confluence, excluding",
+                      dup="w:placed")),
+        ("w:a", loc("w:a", "downstream of 168th Street at Bothwell Park")),
+        ("w:b", loc("w:b", "downstream of 168th Street.")),
+        ("w:up", loc("w:up", "upstream of Highway 37 bridge.")),
+        ("w:down", loc("w:down", "downstream of Highway 37 bridge.")),
+    ])
+    rows = [row("w:old", "low", "x"), row("w:a", "high", "s168"), row("w:b", "low", "s168"),
+            {**row("w:up", "high", "h37"), "suggestion": {**row("w:up", "high", "h37")["suggestion"], "op": "upstream_of"}},
+            row("w:down", "high", "h37")]
+    C.annotate(rows, locs)
+    by = {r["location_id"]: r for r in rows}
+    assert by["w:old"]["cluster"]["role"] == "inherits" and by["w:old"]["why"] == "variant_of_placed"
+    assert [p["split_id"] for p in by["w:old"]["suggestion"]["points"]] == ["cnr", "babine"]
+    assert by["w:old"]["before"]["confidence"] == "low"
+    assert by["w:b"]["cluster"]["role"] == "agrees" and by["w:b"]["confidence"] == "high"
+    assert "cluster" not in by["w:up"] and "cluster" not in by["w:down"]
