@@ -44,7 +44,7 @@ export const SHEET_TITLE = { ...TYPE.screen, fontSize: 19, lineHeight: 23 } as c
  */
 export const SHEET_BODY_CAP = 0.68;
 
-export function Sheet({ open, onClose, title, palette, children, scroll = false, sub, scrollRef, layout, dialog = false }: {
+export function Sheet({ open, onClose, title, palette, children, scroll = false, sub, scrollRef, layout, dialog = false, footer }: {
   open: boolean; onClose: () => void; title: string;
   palette: Palette; children: React.ReactNode;
   /** (T37) the body scrolls inside the sheet, at most SHEET_BODY_CAP (0.68) of the window tall (the regs sheets); default false: as before */
@@ -57,6 +57,8 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
   layout?: LayoutClass;
   /** (T45) on a wide layout, a centred dialog instead of the bottom sheet; default false: a bottom sheet at every width */
   dialog?: boolean;
+  /** a bar fixed at the sheet's foot, outside the scroll (the synopsis loading bar) */
+  footer?: React.ReactNode;
 }) {
   const { height: windowHeight } = useWindowDimensions();
   const shellLayout = useLayoutClass();
@@ -204,6 +206,7 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
                               keyboardShouldPersistTaps="handled" scrollEventThrottle={16}
                               contentContainerStyle={{ paddingHorizontal: GUTTER, paddingBottom: SPACE.s4 }}>{shown.children}</ScrollView>
                 : <View style={{ paddingBottom: 28 }}>{shown.children}</View>}
+              {footer}
             </View>
           </View>
         </GestureHandlerRootView>
@@ -263,6 +266,7 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
                 </GestureDetector>
               </GestureDetector>
             : shown.children}
+          {footer}
           {/* (T50) 28 px below the content, or the window's bottom inset where that is taller: a Modal is its own window,
               drawn edge-to-edge on Android, so its foot went under the 3-button bar */}
           <BottomInset min={28} />

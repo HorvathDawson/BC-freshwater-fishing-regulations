@@ -7,6 +7,7 @@
 import { Linking, Pressable, Text, View } from "react-native";
 import { SYNOPSIS_PDF } from "@app/core";
 import { FishSpinner } from "../FishSpinner";
+import { BottomInset } from "../WindowInset";
 import { SPACE, type Palette } from "../theme";
 import { TYPE } from "../type";
 import { MIN_HIT } from "./hit";
@@ -32,23 +33,23 @@ export function SynopsisLoading({ palette, floating = false }: { palette: Palett
                style={({ pressed }) => ({ minHeight: MIN_HIT, minWidth: MIN_HIT, justifyContent: "center", paddingHorizontal: SPACE.s3, opacity: pressed ? 0.6 : 1 })}>
       <Text style={[TYPE.bodyStrong, { color: palette.accent }]}>{label}</Text>
     </Pressable>);
-  return (
-    <View testID="synopsis-loading" pointerEvents="box-none"
-          style={floating ? { position: "absolute", left: SPACE.s4, right: SPACE.s4, bottom: 96, alignItems: "center" } : { marginBottom: SPACE.s3 }}>
-      <View style={{ width: "100%", maxWidth: 480, flexDirection: "row", flexWrap: "wrap", alignItems: "center", paddingLeft: SPACE.s4,
-                     backgroundColor: palette.card, borderWidth: 1.5, borderColor: err ? palette.warning : palette.accent,
-                     borderRadius: palette.r.box, ...palette.lift }}>
-        {!err && <View style={{ marginRight: SPACE.s2 }}><FishSpinner palette={palette} size={40} label={W.loading} /></View>}
-        <Text accessibilityLiveRegion="polite" style={[TYPE.bodyStrong, { flex: 1, minWidth: 140, color: palette.ink, paddingVertical: SPACE.s3 }]}>
-          {err ? W.failed : n === null ? W.loading : W.percent(n)}
-        </Text>
-        {err ? (
-          <>
-            {act(W.retry, () => { if (!failed) return; dismissSynopsisError(); void openBook(failed.pdf, failed.boxes).catch(() => undefined); }, "synopsis-retry")}
-            {act(W.fallback, () => { dismissSynopsisError(); void Linking.openURL(SYNOPSIS_PDF); }, "synopsis-fallback")}
-          </>
-        ) : act(W.cancel, cancelSynopsisLoad, "synopsis-cancel")}
-      </View>
-    </View>
-  );
+  // a snackbar: a bar the width of its host, fixed at the foot (the Shell's window, a sheet's foot), a 1.5 px ink rule above it
+  // like the sheet's own, above the system bar's inset
+  const bar = (
+    <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", paddingLeft: SPACE.s4, minHeight: 56,
+                   backgroundColor: palette.card, borderTopWidth: 1.5, borderTopColor: err ? palette.warning : palette.ink }}>
+      {!err && <View style={{ marginRight: SPACE.s2 }}><FishSpinner palette={palette} size={36} label={W.loading} /></View>}
+      <Text accessibilityLiveRegion="polite" style={[TYPE.bodyStrong, { flex: 1, minWidth: 140, color: palette.ink, paddingVertical: SPACE.s3 }]}>
+        {err ? W.failed : n === null ? W.loading : W.percent(n)}
+      </Text>
+      {err ? (
+        <>
+          {act(W.retry, () => { if (!failed) return; dismissSynopsisError(); void openBook(failed.pdf, failed.boxes).catch(() => undefined); }, "synopsis-retry")}
+          {act(W.fallback, () => { dismissSynopsisError(); void Linking.openURL(SYNOPSIS_PDF); }, "synopsis-fallback")}
+        </>
+      ) : act(W.cancel, cancelSynopsisLoad, "synopsis-cancel")}
+    </View>);
+  return floating
+    ? <View testID="synopsis-loading" style={{ position: "absolute", left: 0, right: 0, bottom: 0, backgroundColor: palette.card }}>{bar}<BottomInset min={0} /></View>
+    : <View testID="synopsis-loading">{bar}</View>;
 }
