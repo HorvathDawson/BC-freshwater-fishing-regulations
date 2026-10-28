@@ -10,14 +10,17 @@
  *
  * Every SQLite file is checked on open: its meta.format is the manifest's and its meta.section_handles the release's.
  */
-import { decodeAccessFile, decodeLakeFacts, decodeMethod, decodePaint, decodeFlowArea, decodeSalmon, type LakeFacts,
-         type MethodFacts, type Paint, type SalmonFacts, type SectionAccess } from "@app/core";
+import { decodeAccessFile, decodeLakeFacts, decodeMethod, decodePaint, decodeFlowArea, decodeSalmonHead, decodeSalmonShard,
+         salmonFacts, type LakeFacts, type MethodFacts, type Paint, type SalmonFacts, type SalmonShard,
+         type SectionAccess } from "@app/core";
 import type { Db } from "../sql/db";
 import type { Manifest } from "../manifest";
 import { type Region } from "../pack.generated";
 
-/** (T211) the DFO salmon: a binary file of its own (`salmon/1`); (T213) bait ban / fly only per day (`method/1`) */
-type BinName = "salmon" | "method";
+/** (T211) the DFO salmon: a head (`salmon/2`) and one slice per bundle region (`salmon-<r>`, `x`: a section in none —
+ *  owner 2026-10-28); (T213) bait ban / fly only per day (`method/1`) */
+export type SalmonSlice = `salmon-${Region}` | "salmon-x";
+type BinName = "salmon" | SalmonSlice | "method";
 
 export type FileName = "paint" | "flow-area" | "lakes" | "access" | "core" | "near" | "water" | `regs-${Region}` | "regs-sid"
   | BinName
@@ -47,9 +50,10 @@ export interface ReleaseLoader {
   flowArea(): Promise<Float64Array>;
   /** The lake modes' values (`lakes`), checked against the release's handles; null when the manifest names none. */
   lakes(): Promise<LakeFacts | null>;
-  /** (T211) The DFO salmon (`salmon`), checked against the release's handles; null when the manifest names none. Fetched
-   *  once: the Salmon card and the Salmon colouring read the same decoded file. */
-  salmon(): Promise<SalmonFacts | null>;
+  /** (T211) The DFO salmon (`salmon` + slices), checked against the release's handles; null when the manifest names none.
+   *  `regions`: the bundle regions whose slices to read (a page's card: its own — owner 2026-10-28); none given: every
+   *  slice (the Salmon map). Each file is fetched once and shared by every answer that reads it. */
+  salmon(regions?: readonly Region[]): Promise<SalmonFacts | null>;
   /** (T213) Bait ban / fly fishing only per section and day (`method`), checked against the release's handles; null when
    *  the manifest names none (a release cut before T213). What the map's "Bait & fly" colouring reads. */
   method(): Promise<MethodFacts | null>;
@@ -79,7 +83,8 @@ export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener):
   const order: FileName[] = [];
   let paint: Promise<Paint> | null = null, area: Promise<Float64Array> | null = null;
   let lakes: Promise<LakeFacts | null> | null = null;
-  let salmon: Promise<SalmonFacts | null> | null = null;
+  let salmonHead: Promise<SalmonFacts["payload"]> | null = null;
+  const slices = new Map<string, Promise<SalmonShard>>();
   let method: Promise<MethodFacts | null> | null = null;
   let access: Promise<SectionAccess | null> | null = null;
   let regions: Promise<Map<number, Region[]>> | null = null;
@@ -135,14 +140,28 @@ export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener):
       }
       return lakes;
     },
-    salmon() {
-      if (!salmon) {
-        if (!m.files.salmon) return Promise.resolve(null);
+    async salmon(want) {
+      if (!m.files.salmon) return null;
+      if (!salmonHead) {
         touch("salmon");
-        salmon = source.bytes("salmon").then((b) => decodeSalmon(b, handles));
-        salmon.catch(() => { salmon = null; });
+        salmonHead = source.bytes("salmon").then((b) => decodeSalmonHead(b, handles));
+        salmonHead.catch(() => { salmonHead = null; });
       }
-      return salmon;
+      const head = await salmonHead;
+      const all = (head.shards ?? []) as readonly string[];
+      const asked = want ? all.filter((r) => want.includes(r as Region)) : all;
+      const read = await Promise.all(asked.map((r) => {
+        const name = `salmon-${r}` as SalmonSlice;
+        let p = slices.get(r);
+        if (!p) {
+          touch(name);
+          p = source.bytes(name).then((b) => decodeSalmonShard(b, handles));
+          p.catch(() => slices.delete(r));
+          slices.set(r, p);
+        }
+        return p;
+      }));
+      return salmonFacts(head, handles, read);
     },
     method() {
       if (!method) {

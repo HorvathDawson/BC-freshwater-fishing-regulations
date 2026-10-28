@@ -53,14 +53,25 @@ describe("the gear marks' paint", () => {
       .toEqual([t["color.gear.edge"], "number", t["dash.gear.bait"]]);
   });
 
-  it("nowhere outside the Standard status mode, with no method or no status installed, or on a day with none", () => {
-    for (const mode of ["salmon", "plain", "standing"])
+  it("nowhere outside the Standard and Salmon modes, with no method or no status installed, or on a day with none", () => {
+    for (const mode of ["plain", "standing"])
       expect([mode, gearPaint("stream", mode, "fly", t, MAY, W)["line-opacity"]]).toEqual([mode, 0]);
     expect(gearPaint("stream", "profile", "fly", t, { ...MAY, method: null }, W)["line-opacity"]).toBe(0);
     expect(gearPaint("stream", "profile", "fly", t, { ...MAY, status: null }, W)["line-opacity"]).toBe(0);
     // Aug 1: profile 1 is none, so nothing is fly
     expect(gearPaint("stream", "profile", "fly", t, { ...MAY, method: methodDayProfiles(FACTS, AUG1) }, W)["line-opacity"])
       .toBe(0);
+  });
+
+  it("(owner 2026-10-28) the Salmon map carries the same marks, hidden where the SALMON day closes the section", () => {
+    const SALMON = { open: ["s1"], release: [], closed: ["s0", "s2"], check: [], none: [] };
+    const p = gearPaint("stream", "salmon", "fly", t, { ...MAY, salmon: SALMON }, W);
+    expect(p["line-opacity"]).toEqual(["case", ["all",
+      ["in", ["coalesce", ["feature-state", "gm"], ""], ["literal", ["m1"]]],
+      ["!", ["in", ["coalesce", ["feature-state", "sp"], ""], ["literal", ["s0", "s2"]]]]], 1, 0]);
+    expect(gearPaint("lake", "salmon", "bait", t, { ...MAY, salmon: SALMON })["line-dasharray"]).toEqual(t["dash.gear.bait"]);
+    // no salmon day installed: nothing marked (the status day is not the Salmon map's read)
+    expect(gearPaint("stream", "salmon", "fly", t, MAY, W)["line-opacity"]).toBe(0);
   });
 
   it("the status colour is the Standard map's own: the marks change no colour", () => {

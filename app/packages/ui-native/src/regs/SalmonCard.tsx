@@ -4,10 +4,12 @@
  * looks) each opening its fish sheet (sp:CH … — the ID tips), then DFO's source and as-of block. Above the provincial
  * Keep tab. Every species closed: one "Salmon — closed" row. DFO places on this water not drawn yet follow, tagged
  * "Location not yet mapped". A water with DFO places not drawn yet leads with the partial-coverage line and DFO's page
- * (owner 2026-10-28). No logic and no words of its own: everything is core `salmonCard`'s.
+ * (owner 2026-10-28). Then (owner 2026-10-28) the provincial bait ban / fly only that day (it applies to salmon too), the
+ * header notes naming this water, and the page's DFO regions' header rules in a compact "Region rules (DFO)" block; an
+ * open row carries the header's sizes. No logic and no words of its own: everything is core `salmonCard`'s.
  */
 import { Image, Linking, Text, View } from "react-native";
-import { FISH, WORDS, type SalmonBlockVM, type SalmonCardVM, type SalmonRowVM } from "@app/core";
+import { FISH, SALMON_WORDS, WORDS, type SalmonBlockVM, type SalmonCardVM, type SalmonRowVM } from "@app/core";
 import { TYPE } from "../type";
 import { SPACE, type Palette } from "../theme";
 import { WaterInset } from "../WaterFrame";
@@ -71,6 +73,7 @@ function Block({ block, palette, testID, actions, images }: { block: SalmonBlock
             <Chip status={r.status} label={r.statusLabel} palette={palette} />
           </View>
           {r.notes.map((n) => <Text key={n} style={{ ...TYPE.meta, color: palette.sub, marginTop: 2 }}>{n}</Text>)}
+          {r.sizes && <Text testID={`${testID}-sizes`} style={{ ...TYPE.meta, color: palette.ink, marginTop: 2 }}>{r.sizes}</Text>}
           <Looks species={r.species} palette={palette} actions={actions} images={images} />
         </View>
       ))}
@@ -106,6 +109,15 @@ export function SalmonCard({ card, palette, actions, images }: {
           </View>
         )}
         <Block block={card} palette={palette} testID="salmon-card-block" actions={actions} images={images} />
+        {card.gearProvincial && (
+          <Text testID="salmon-gear-provincial" style={{ ...TYPE.metaSemi, color: palette.ink, paddingTop: 8 }}>{card.gearProvincial}</Text>
+        )}
+        {card.waterRules.length > 0 && (
+          <View testID="salmon-water-rules" style={{ paddingTop: 8 }}>
+            <Text style={{ ...TYPE.kicker, color: palette.sub }}>{SALMON_WORDS.waterRules}</Text>
+            {card.waterRules.map((t) => <Text key={t} style={{ ...TYPE.meta, color: palette.ink, marginTop: 2 }}>{t}</Text>)}
+          </View>
+        )}
         {card.notListed && (
           <Text testID="salmon-not-listed" style={{ ...TYPE.meta, color: palette.ink, paddingTop: 8 }}>{card.notListed}</Text>
         )}
@@ -115,6 +127,15 @@ export function SalmonCard({ card, palette, actions, images }: {
             <Text style={{ ...TYPE.metaSemi, color: palette.ink }}>{u.label}</Text>
             <Text testID="salmon-unmapped-tag" style={{ ...TYPE.kicker, color: palette.sub }}>{u.tag}</Text>
             <Block block={u.block} palette={palette} testID="salmon-unmapped-block" actions={actions} images={images} />
+          </View>
+        ))}
+        {card.regionRules.map((g) => (
+          <View key={g.label} testID="salmon-region-rules"
+                style={{ marginTop: 12, paddingTop: 8, borderTopWidth: 1, borderTopColor: palette.line }}>
+            <Text style={{ ...TYPE.kicker, color: palette.sub }}>{`${SALMON_WORDS.regionRules} · ${g.label}`}</Text>
+            {g.notes.map((t) => (
+              <Text key={t} style={{ ...TYPE.meta, color: palette.ink, marginTop: 2 }}>{`• ${t}`}</Text>
+            ))}
           </View>
         ))}
         <View style={{ marginTop: 12, paddingTop: 8, borderTopWidth: 1, borderTopColor: palette.line }}>

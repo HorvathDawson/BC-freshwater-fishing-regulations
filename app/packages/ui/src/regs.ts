@@ -16,7 +16,7 @@
  * default to T09's two functions (T21 bound them when it drew the page).
  */
 import { useMemo, useSyncExternalStore } from "react";
-import { accessNotice, buildRegsPage, salmonCardLive, tapDay, waterAccessNotice, type AccessNotice, type Day, type RegsInputs,
+import { accessNotice, buildRegsPage, methodClassOn, salmonCardLive, tapDay, waterAccessNotice, type AccessNotice, type Day, type RegsInputs,
          type RegsPage, type RegsTarget, type SalmonCardLiveVM,
          type Weekday, type Who } from "@app/core";
 import { downstreamWater, type ItemId, type WaterSource, type SectionId } from "@app/data";
@@ -163,32 +163,41 @@ export interface SalmonPage {
   readonly item: string | null;
   readonly ord: number | null;
   readonly partIx: number;
+  /** (owner 2026-10-28) the part's answer key: its bundle regions name the salmon slices the card reads (null: all) */
+  readonly akey?: number | null;
 }
+
+type SalmonLoader = Pick<ReleaseLoader, "salmon"> & Partial<Pick<ReleaseLoader, "regionsOf" | "method">>;
 
 /**
  * (T211) THE SALMON CARD a Regulations page draws under the provincial rules (option A): the release's DFO salmon for
  * the tapped section (else every section of the page's part, through the store's `navRows`), worded by core
  * (`salmonCard`). Null where the release ships no salmon. A water DFO does not list reads "Salmon — closed".
  */
-export async function salmonCardFor(loader: Pick<ReleaseLoader, "salmon">, store: Pick<RegsStore, "navRows"> | null,
+export async function salmonCardFor(loader: SalmonLoader, store: Pick<RegsStore, "navRows"> | null,
                                     page: SalmonPage, on: Date): Promise<SalmonCardLiveVM | null> {
-  const f = await loader.salmon();
+  // only the page's own region's salmon slice (owner 2026-10-28); a page with no key reads them all
+  const regions = page.akey != null && loader.regionsOf ? await loader.regionsOf(page.akey) : [];
+  const f = await loader.salmon(regions.length ? regions : undefined);
   if (!f) return null;
   let sids: number[] = [];
   if (page.section !== null) sids = [Number(page.section)];
   else if (store && page.ord !== null)
     sids = (await store.navRows(page.ord)).sections.filter((s) => s.partIx === page.partIx).map((s) => s.sid);
-  return salmonCardLive(f, { sids, item: page.item }, on);
+  // (owner 2026-10-28: "bait and fly rules also apply to salmon") the provincial gear marks on the page that day
+  const m = loader.method ? await loader.method().catch(() => null) : null;
+  const gear = m ? [...new Set(sids.map((sid) => methodClassOn(m, sid, on)))] : [];
+  return salmonCardLive(f, { sids, item: page.item, gear }, on);
 }
 
-export function useSalmonCard(loader: Pick<ReleaseLoader, "salmon"> | null, store: Pick<RegsStore, "navRows"> | null,
+export function useSalmonCard(loader: SalmonLoader | null, store: Pick<RegsStore, "navRows"> | null,
                               page: SalmonPage | null, mapDay: Date | null): Async<SalmonCardLiveVM | null> {
   const asks = !!loader && !!page;
   const on = mapDay ?? new Date();
   const dayKey = `${on.getFullYear()}-${on.getMonth() + 1}-${on.getDate()}`;
   return useAsync(async () => (asks ? salmonCardFor(loader!, store, page!, on) : null),
                   `salmon:${loader ? idOf(loader) : ""}:${store ? idOf(store) : ""}:${page?.section ?? ""}:`
-                  + `${page?.item ?? ""}:${page?.ord ?? ""}:${page?.partIx ?? ""}:${dayKey}`, asks);
+                  + `${page?.item ?? ""}:${page?.ord ?? ""}:${page?.partIx ?? ""}:${page?.akey ?? ""}:${dayKey}`, asks);
 }
 
 export function useAccessNotice(loader: Pick<ReleaseLoader, "paint" | "access"> | null,

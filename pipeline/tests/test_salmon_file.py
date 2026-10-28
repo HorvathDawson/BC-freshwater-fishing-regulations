@@ -133,12 +133,18 @@ def test_a_placed_section_the_handle_table_does_not_know_stops_the_build():
         S.build(files, feeds, placed, sid_of)
 
 
-def test_salmon_1_round_trips_and_runs_are_compact():
+def test_salmon_2_splits_per_bundle_region_and_round_trips():
+    """(owner 2026-10-28) the head (payload) + one slice of runs per bundle region: a section in two regions is in both,
+    one in none is in `x`; every region has its slice (empty ones too), and the slices put back are the sections."""
     payload, sections = S.build(*_fixture())
-    b = S.encode(payload, sections, "147b20dce7d8576c")
-    handles, back, secs = S.decode(b)
-    assert (handles, back, secs) == ("147b20dce7d8576c", payload, sections)
-    assert b[:5] == b"BCSA\x01"
-    # three consecutive sids on three chains are three runs; on one chain, one
-    one = S.encode(payload, [(10, 1), (11, 1), (12, 1)], "147b20dce7d8576c")
-    assert len(one) < len(b)
+    regions = {10: ["6"], 11: ["5", "6"], 12: []}
+    files = S.encode_files(payload, sections, "147b20dce7d8576c", lambda sid: regions.get(sid, ()))
+    from pipeline.deliver.release.shards import REGIONS
+    assert sorted(files) == sorted(["salmon", *(S.shard_name(r) for r in (*REGIONS, "x"))])
+    assert files["salmon"][:5] == b"BCSA\x02" and files["salmon-6"][:5] == b"BCSR\x01"
+    handles, back, secs = S.decode_files(files)
+    assert (handles, {k: v for k, v in back.items() if k != "shards"}, secs) == ("147b20dce7d8576c", payload, sections)
+    assert [s for s, _ in S.decode_shard(files["salmon-6"])[2]] == [10, 11]
+    assert [s for s, _ in S.decode_shard(files["salmon-5"])[2]] == [11]
+    assert [s for s, _ in S.decode_shard(files["salmon-x"])[2]] == [12]
+    assert S.decode_shard(files["salmon-1"])[2] == []

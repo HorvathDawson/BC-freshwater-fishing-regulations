@@ -41,7 +41,7 @@ describe("httpSalmonFeed", () => {
 });
 
 describe("withLiveSalmon", () => {
-  const rel = (): SalmonFacts => ({ handles: "x", chains: 1, payload: RELEASE as unknown as SalmonFacts["payload"], chainOf: () => 0 });
+  const rel = (): SalmonFacts => ({ handles: "x", chains: 1, payload: RELEASE as unknown as SalmonFacts["payload"], chainOf: () => 0, loaded: [] });
   it("lays the feed over the loader's salmon once; every other read is the loader's", async () => {
     let asked = 0;
     const loader = { salmon: async () => { asked++; return rel(); }, other: () => "own" };

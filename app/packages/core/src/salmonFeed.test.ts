@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { SALMON_FEED_GOLDEN } from "./salmonFeed.golden";
-import { salmonCard, salmonChainStatus, type SalmonFacts } from "./salmon";
+import { salmonCard, salmonChainStatus, salmonNotes, type SalmonFacts } from "./salmon";
 import { composeChain, parseSalmonFeed, pickSalmon, salmonFeedLine, salmonFeedOf, withSalmonFeed } from "./salmonFeed";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- the golden is the pipeline's JSON, read as data
@@ -13,7 +13,7 @@ const G = SALMON_FEED_GOLDEN as any;
 const release = (): SalmonFacts => {
   const by = new Map<number, number>(G.sections.map(([s, c]: [number, number]) => [s, c]));
   return { handles: "147b20dce7d8576c", chains: G.release.chains.length, payload: G.release,
-           chainOf: (sid: number) => by.get(sid) ?? 0 };
+           chainOf: (sid: number) => by.get(sid) ?? 0, loaded: [] };
 };
 const feed = () => parseSalmonFeed(G.feed)!;
 
@@ -76,5 +76,34 @@ describe("the DFO feed over the release", () => {
             parseSalmonFeed({ ...G.feed, locs: { a: { r: "6", sp: [[0, 99]], g: [] } } }),
             parseSalmonFeed({ ...G.feed, locs: { a: { r: "6", sp: [[0, 0], [0, 0], [0, 0], [0, 0], [0, 999]], g: [0, -1] } } })])
       .toEqual([null, null, null, null]);
+  });
+
+  it("THE REGION HEADER: the notes a page shows are the pipeline's (`notes_for`), the feed's words over the release's", () => {
+    const live = withSalmonFeed(release(), feed());
+    for (const c of G.notes as { regions: string[]; item: string | null; day: number; expect: { region: string[]; water: string[] } }[]) {
+      const got = salmonNotes(live.payload, c.regions, c.item, c.day);
+      expect([c, { region: got.region.map((n) => n.id), water: got.water.map((n) => n.id) }]).toEqual([c, c.expect]);
+    }
+    // the feed's daily limit (2) is the card's, not the release's (4)
+    const daily = (f: SalmonFacts) => salmonNotes(f.payload, ["6"], null, 0).region.find((n) => n.k === "daily")!.n;
+    expect([daily(release()), daily(live)]).toEqual([4, 2]);
+  });
+
+  it("the card: region rules in one block, a water's own note on its open row, sizes, and the provincial gear line", () => {
+    const live = withSalmonFeed(release(), feed());
+    // Oct 1 on the Kispiox (gnis:4674): the 62 cm adult chinook window is open; a bait ban marks part of it
+    const card = salmonCard(live, { sids: [12], item: "gnis:4674", gear: ["bait", "none"] }, new Date(2026, 9, 1));
+    expect(card.regionRules.map((g) => g.label)).toEqual(["Region 6 Skeena"]);
+    const rules = card.regionRules[0]!.notes;
+    expect(rules.some((t) => t.startsWith("You can only fish for salmon in Region 6 during daylight"))).toBe(true);
+    expect(rules.some((t) => t.startsWith("Annual bait ban"))).toBe(false);          // the Kispiox is excepted by name
+    expect(card.waterRules.some((t) => t.includes("over 62 cm: the Kispiox River"))).toBe(true);
+    const open = card.rows.filter((r) => r.status === "open");
+    for (const r of open) if (r.species.includes("CH")) expect(r.sizes).toContain("adult chinook over 62 cm");
+    expect(card.gearProvincial).toBe("B.C. rules, also for salmon (on parts of this water): Bait ban: no bait of any kind.");
+    // Jul 1: the window is shut — the region's 50 cm holds
+    const jul = salmonCard(live, { sids: [12], item: "gnis:4674" }, new Date(2026, 6, 1));
+    expect(jul.waterRules.some((t) => t.includes("62 cm"))).toBe(false);
+    expect(jul.gearProvincial).toBeNull();
   });
 });

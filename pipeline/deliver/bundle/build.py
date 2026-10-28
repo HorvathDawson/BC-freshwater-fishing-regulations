@@ -677,7 +677,26 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
         for _al, _it in db.execute("SELECT alias, item_id FROM item_alias").fetchall():
             if _it in _item_secs:
                 _item_secs.setdefault(_al, _item_secs[_it])
-        _payload, _salmon_secs = _salmon.build(_files, _feeds, _placed, _read_handles(build_dir)[1], _item_secs)
+        # THE REGION HEADER's waters: a watershed is its river and every item upstream of it (`item_down`, the registry's
+        # flow between waters), read here once (owner 2026-10-28: "Squamish watershed = Squamish + tributaries")
+        _ord_of = dict(db.execute("SELECT item_id, ord FROM item"))
+        _id_of = {o: i for i, o in _ord_of.items()}
+        _up: dict = {}
+        for _a, _d in db.execute("SELECT ord, down_ord FROM item_down"):
+            _up.setdefault(_d, []).append(_a)
+
+        def _upstream(items):
+            seen = {_ord_of[i] for i in items if i in _ord_of}
+            todo = list(seen)
+            while todo:
+                for u in _up.get(todo.pop(), ()):
+                    if u not in seen:
+                        seen.add(u)
+                        todo.append(u)
+            return sorted(_id_of[o] for o in seen)
+
+        _payload, _salmon_secs = _salmon.build(_files, _feeds, _placed, _read_handles(build_dir)[1], _item_secs,
+                                               headers=_salmon.load_headers(_feeds), upstream=_upstream)
         _salmon.write_bundle(db, _payload, _salmon_secs)
         cov.filled("salmon_section", len(_salmon_secs))
         del _files, _feeds, _placed, _payload, _salmon_secs

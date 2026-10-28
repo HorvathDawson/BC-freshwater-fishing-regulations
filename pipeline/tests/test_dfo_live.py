@@ -142,15 +142,30 @@ def golden() -> dict:
     """The app's test input: a release built from `test_salmon_file`'s fixture, a feed where the Kispiox's coho window
     moved, and the chains the app must compose from them."""
     # PARTIAL COVERAGE: the resort (not drawn) is on the Kispiox; say its item holds sid 11 (placed) and 14 (not)
-    payload, sections = S.build(*_fixture(), {"gnis:4674": [11, 14]})
+    # THE REGION HEADER (owner 2026-10-28): the release's notes from `test_dfo_header`'s page, the Kispiox bound to its
+    # item (gnis:4674) and one item upstream of it (gnis:9); the feed's header has the daily limit changed — the feed wins
+    from types import SimpleNamespace
+    from pipeline.regs.dfo_salmon import header as H
+    from pipeline.tests.test_dfo_header import HEADER
+    files, feeds, placed, sid_of = _fixture()
+    files["6"].waters = [SimpleNamespace(name="Kispiox River", aliases=[], item_ids=["gnis:4674"])]
+    payload, sections = S.build(files, feeds, placed, sid_of, {"gnis:4674": [11, 14]},
+                                headers={"6": H.parse_header(HEADER, "6")},
+                                upstream=lambda items: ["gnis:9"] if "gnis:4674" in items else [])
+    feed_notes = H.parse_header(HEADER.replace("is 4. Individual", "is 2. Individual"), "6")
     moved = [dict(WATER[0], when={"dates": [{"from_month": 8, "from_day": 1, "to_month": 9, "to_day": 15}]})] + WATER[1:]
     locs, verdicts, gears = _cals({"6:a": REGION, "6:b(i)": BAND, "6:kispiox": moved, "6:resort": BAND})
     feed = {"format": L.FORMAT, "at": AT, "verdicts": verdicts, "gears": gears, "locs": locs, "unplaced": 0,
             "regions": {"6": {"name": "Skeena", "url": S.PAGE_URL.format(slug="6"), "asof": "2026-10-20",
                               "sha256": "x", "changed": AT, "checked": AT, "stale": False, "held": None,
-                              "failures": 0}}}
+                              "failures": 0, "notes": feed_notes, "header": H.digest(feed_notes)[:16]}}}
     expect = [L.compose(c["l"], locs, verdicts, c.get("u", ())) for c in payload["chains"]]
-    return {"release": payload, "sections": sections, "feed": feed, "expect": expect}
+    # which header notes a page shows (the app's `salmonNotes`): the feed's notes over the release's scopes
+    merged = {**payload, "regions": {**payload["regions"], "6": {**payload["regions"]["6"], "notes": feed_notes}}}
+    notes = [{"regions": rs, "item": item, "day": day, "expect": S.notes_for(merged, rs, item, day)}
+             for rs, item, day in ((["6"], "gnis:4674", 274), (["6"], "gnis:4674", 182), (["6"], "gnis:9", 274),
+                                   (["6"], None, 274), (["6"], "gnis:5", 1), ([], "gnis:4674", 274))]
+    return {"release": payload, "sections": sections, "feed": feed, "expect": expect, "notes": notes}
 
 
 def test_the_apps_golden_is_current():

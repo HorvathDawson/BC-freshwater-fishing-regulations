@@ -15,7 +15,7 @@
  * than the capture (`pickSalmon`).
  */
 import { MONTHS } from "./calendar.generated";
-import { salmonCard, type SalmonCardVM, type SalmonFacts, type SalmonMapStatus } from "./salmon";
+import { salmonCard, type SalmonCardVM, type SalmonFacts, type SalmonGearInput, type SalmonMapStatus, type SalmonNote } from "./salmon";
 
 type Payload = SalmonFacts["payload"];
 type Chain = Payload["chains"][number];
@@ -27,6 +27,8 @@ export interface SalmonFeedRegion {
   readonly name: string; readonly url: string; readonly asof: string | null;
   /** when this region's page was last read; `stale`: the last read failed and these are the answers before it */
   readonly checked: string | null; readonly stale: boolean; readonly held: string | null;
+  /** (owner 2026-10-28) the region page's header as typed notes — the feed's win over the release's */
+  readonly notes?: readonly SalmonNote[];
 }
 export interface SalmonFeedLocation { readonly r: string; readonly sp: readonly (readonly number[])[]; readonly g: readonly number[] }
 export interface SalmonFeed {
@@ -113,7 +115,7 @@ export function withSalmonFeed(f: SalmonFacts, feed: SalmonFeed): SalmonFacts {
   const P = f.payload;
   const regions = Object.fromEntries(Object.entries(P.regions).map(([slug, r]) => {
     const fr = feed.regions[slug];
-    return [slug, fr ? { ...r, asof: fr.asof ?? r.asof } : r];
+    return [slug, fr ? { ...r, asof: fr.asof ?? r.asof, notes: fr.notes ?? r.notes } : r];
   }));
   const payload: Payload = {
     ...P, regions, verdicts: feed.verdicts, gears: feed.gears,
@@ -123,7 +125,7 @@ export function withSalmonFeed(f: SalmonFacts, feed: SalmonFeed): SalmonFacts {
       .map(({ d: _d, ...u }) => u),
   };
   const stale = Object.entries(feed.regions).filter(([, r]) => r.stale || r.held).map(([s]) => s).sort();
-  const out: WithFeed = { handles: f.handles, chains: f.chains, chainOf: (sid) => f.chainOf(sid), payload,
+  const out: WithFeed = { handles: f.handles, chains: f.chains, chainOf: (sid) => f.chainOf(sid), payload, loaded: f.loaded,
                           [FEED]: { at: feed.at, stale } };
   return out;
 }
@@ -146,7 +148,7 @@ function releaseOnly(f: SalmonFacts): SalmonFacts {
   const P = f.payload;
   const unmapped = P.unmapped.filter((u) => !(u as { d?: number }).d);
   if (unmapped.length === P.unmapped.length) return f;
-  return { handles: f.handles, chains: f.chains, chainOf: (sid) => f.chainOf(sid), payload: { ...P, unmapped } };
+  return { handles: f.handles, chains: f.chains, chainOf: (sid) => f.chainOf(sid), payload: { ...P, unmapped }, loaded: f.loaded };
 }
 
 /** The card's line for the feed: "Checked with DFO Oct 27, 2026, 11:04 am" (local), the stale regions said. */
@@ -165,7 +167,7 @@ export function salmonFeedLine(f: SalmonFacts | null): string | null {
 /** The Salmon card with the feed's line (`checked`: null when the release's own file answers). */
 export interface SalmonCardLiveVM extends SalmonCardVM { readonly checked: string | null }
 
-export function salmonCardLive(f: SalmonFacts, page: { sids: readonly number[]; item: string | null },
+export function salmonCardLive(f: SalmonFacts, page: { sids: readonly number[]; item: string | null; gear?: SalmonGearInput },
                                on: Date): SalmonCardLiveVM {
   return { ...salmonCard(f, page, on), checked: salmonFeedLine(f) };
 }

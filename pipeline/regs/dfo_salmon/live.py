@@ -12,7 +12,8 @@ lines. The app re-composes each release chain from it, narrowest location first,
 chain_calendar` does (`compose` here is the reference, pinned against it), so the app still decides nothing.
 
     index.json    {format: "dfo-feed/1", at, regions: {slug: {name, url, asof, sha256, changed, checked, stale, held,
-                   failures}}, verdicts, gears, locs: {location_id: {r, sp: [5 runs], g: runs}}, unplaced: n}
+                   failures, notes, header, unresolved}}, verdicts, gears, locs: {location_id: {r, sp: [5 runs], g: runs}},
+                   unplaced: n}      notes: the region header's typed notes (`header.py`); header: their digest
     unplaced.json the places the page lists that no curated location knows (part 4) — their rules HELD, never dropped
     <out>.notified.json   BESIDE the feed dir, never synced: the notices already sent (`gauges.feed.notify`)
 
@@ -215,6 +216,37 @@ def _carry(prev: dict, slug: str, verdicts: S._Interner, gears: S._Interner, onl
 Fetcher = Callable[[str], Tuple[str, Optional[str]]]
 
 
+def _read_header(slug: str, html: str, reg: dict, was: dict, entries_dir: Optional[Path], notices: List[dict]) -> None:
+    """The page's header notes onto the region (`header.parse_header`). A change of its words tells the owner once (the
+    existing notify path); a water a scoped note names that no curated DFO water binds is listed (`unresolved`) and told
+    once — never matched by nearness. A header that will not parse keeps the last one and tells the owner."""
+    from pipeline.regs.dfo_salmon import entries as E
+    from pipeline.regs.dfo_salmon import header as H
+    try:
+        notes = H.parse_header(html, slug)
+    except Exception as exc:                                   # noqa: BLE001 — the last header stands
+        notices.append({"key": f"dfo-header-parse:{slug}:{reg['sha256'][:12]}",
+                        "text": f"DFO Region {slug}: the region header did not parse ({type(exc).__name__}); the last "
+                                "one stands"})
+        return
+    if not notes and was.get("notes"):
+        notices.append({"key": f"dfo-header-empty:{slug}:{reg['sha256'][:12]}",
+                        "text": f"DFO Region {slug}: the page has no region header any more; the last one stands"})
+        return
+    d = H.digest(notes)[:16]
+    if was.get("header") and was["header"] != d:
+        old_ids, new_ids = {n["id"] for n in was.get("notes") or []}, {n["id"] for n in notes}
+        notices.append({"key": f"dfo-header:{slug}:{d}",
+                        "text": f"DFO Region {slug}: the region header changed (+{len(new_ids - old_ids)} / "
+                                f"-{len(old_ids - new_ids)} notes); the card's Region rules now read the new words"})
+    _, unresolved = H.resolve(notes, E.load(slug, entries_dir or E.ENTRIES_DIR))
+    for u in unresolved:
+        notices.append({"key": f"dfo-header-name:{slug}:{u['name']}",
+                        "text": f"DFO Region {slug}: the header names {u['name']!r}, which no curated DFO water binds — "
+                                "its note shows on no water until it is bound (DFO review)"})
+    reg["notes"], reg["header"], reg["unresolved"] = notes, d, unresolved
+
+
 def run(out: Path, *, fetcher: Fetcher, regions: Optional[Sequence[str]] = None, entries_dir: Optional[Path] = None,
         history_dir: Optional[Path] = None, now: Optional[str] = None, notify_url: Optional[str] = None,
         sender=None) -> dict:
@@ -244,7 +276,10 @@ def run(out: Path, *, fetcher: Fetcher, regions: Optional[Sequence[str]] = None,
         was = (prev.get("regions") or {}).get(slug) or {}
         reg = {"name": page.name, "url": F._BASE.format(slug=slug), "asof": was.get("asof"),
                "sha256": was.get("sha256"), "changed": was.get("changed"), "checked": was.get("checked"),
-               "stale": False, "held": None, "failures": 0}
+               "stale": False, "held": None, "failures": 0,
+               # THE REGION HEADER (owner 2026-10-28): DFO's region-wide rules as typed notes (`header.py`), the last
+               # read's kept through a failed fetch or a held page like the answers
+               "notes": was.get("notes") or [], "header": was.get("header"), "unresolved": was.get("unresolved") or []}
         region_out[slug] = reg
 
         def hold(why: str, key: str) -> None:
@@ -284,6 +319,7 @@ def run(out: Path, *, fetcher: Fetcher, regions: Optional[Sequence[str]] = None,
         if rep.structural:
             hold("; ".join(rep.structural), sha[:12])
             continue
+        _read_header(slug, html, reg, was, entries_dir, notices)    # a held page keeps its last header
         rules, held = join(slug, ef, typed, found, rep)
         moved = {o.location_id for o in rep.outcomes if o.status == "section_moved" and o.location_id}
         for lid, rs in sorted(rules.items()):

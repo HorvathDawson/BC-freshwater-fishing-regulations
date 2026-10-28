@@ -9,6 +9,7 @@
  *
  * Asked once per `ttlMs` (the publisher runs every 6 h in season); every answer resolves, never rejects.
  */
+import type { Region } from "../pack.generated";
 import { parseSalmonFeed, pickSalmon, type SalmonFacts, type SalmonFeed } from "@app/core";
 
 export interface SalmonFeedStore { read(): string | null; write(text: string): void }
@@ -54,11 +55,21 @@ export function httpSalmonFeed(base: string, store?: SalmonFeedStore, fetchImpl:
  * (`source.salmonFacts()`) read ONE answer. Asked once per loader: the Standard / Salmon toggle never re-fetches. Every
  * other read is the loader's own (delegated, not copied).
  */
-export function withLiveSalmon<L extends { salmon(): Promise<SalmonFacts | null> }>(loader: L, feed?: SalmonFeedSource): L {
+export function withLiveSalmon<L extends { salmon(regions?: readonly Region[]): Promise<SalmonFacts | null> }>(
+  loader: L, feed?: SalmonFeedSource): L {
   if (!feed) return loader;
-  let live: Promise<SalmonFacts | null> | null = null;
+  // per set of slices asked (a page's region; every one for the map): the feed is fetched once (`latest`) either way
+  const live = new Map<string, Promise<SalmonFacts | null>>();
   const out = Object.create(loader) as L;
-  out.salmon = () => (live ??= loader.salmon().then(async (f) =>
-    (f ? pickSalmon(f, await feed.latest().catch(() => null)) : f)).catch((e) => { live = null; throw e; }));
+  out.salmon = (regions?: readonly Region[]) => {
+    const key = regions ? [...regions].sort().join(",") : "*";
+    let p = live.get(key);
+    if (!p) {
+      p = loader.salmon(regions).then(async (f) => (f ? pickSalmon(f, await feed.latest().catch(() => null)) : f));
+      p.catch(() => live.delete(key));
+      live.set(key, p);
+    }
+    return p;
+  };
   return out;
 }

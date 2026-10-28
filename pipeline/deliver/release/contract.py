@@ -36,6 +36,9 @@ FILES = {
     # (T211) the DFO salmon: per chain of DFO locations and day, the species' verdicts, gear lines and map status; each
     # placed section's chain (a section in no run: the UNLISTED chain, closed). The Salmon card and the Salmon colouring.
     "salmon": {"format": SALMON.FORMAT, "kind": "bin", "tables": {}},
+    # (owner 2026-10-28) its runs, one file per bundle region (`x`: a section in none): a page's card reads its own
+    **{SALMON.shard_name(r): {"format": SALMON.SHARD_FORMAT, "kind": "bin", "tables": {}}
+       for r in (*SH.REGIONS, SALMON.NO_REGION)},
     # (T213) bait ban / fly fishing only per section and day — the map's "Bait & fly" colouring, projected from
     # the regs store's open-days strips (pipeline/deliver/method.py)
     "method": {"format": METHOD.FORMAT, "kind": "bin", "tables": {}},
@@ -134,9 +137,12 @@ UNITS = {
     "lakes": "lakes/1: 'BCLK', u8 1, 8 bytes section_handles, LEB128 asof+1, LEB128 count, then per section "
              "(sid ascending) LEB128 sid delta, u8 survey (0 none, 1 sheet, 2 digitised), LEB128 stocked day+1 "
              "(0 never); days since 1900-01-01 (pipeline/deliver/lake_facts.py)",
-    "salmon": "salmon/1: 'BCSA', u8 1, 8 bytes section_handles, u32le JSON length + UTF-8 JSON (credit, default, "
-              "regions, verdicts, gears, chains, unmapped), LEB128 run count, then per run LEB128 sid gap, count, chain "
+    "salmon": "salmon/2: 'BCSA', u8 2, 8 bytes section_handles, u32le JSON length + UTF-8 JSON (credit, default, "
+              "regions (+ the header notes), verdicts, gears, chains, unmapped, scopes, shards) "
               "(pipeline/deliver/salmon.py)",
+    **{SALMON.shard_name(r): "salmon-shard/1: 'BCSR', u8 1, 8 bytes section_handles, u8 region length + region, LEB128 "
+                             "run count, then per run LEB128 sid gap, count, chain (pipeline/deliver/salmon.py)"
+       for r in (*SH.REGIONS, SALMON.NO_REGION)},
     "method": "method/1: 'BCMT', u8 1, 8 bytes section_handles, LEB128 profile count, then per profile LEB128 run count + "
               "runs (length << 2 | code: 0 none or closed, 1 bait ban, 2 fly only; 366 days), then LEB128 run count and "
               "three columns sid gap[], count[], profile[] (pipeline/deliver/method.py)",
@@ -179,11 +185,14 @@ WEB_BUDGET = {
     # file), the water map's boxes (geo, read with the page's access note) and the tapped section's access note
     # (4,501,206 → 4,627,390, regs-6: core + 126 kB for item_near; part_geo moved, not added)
     # (T182, 2026-10-28) + salmon: the page's Salmon card (T211) reads it — the prefetch no longer hides it (5,053,227)
-    "first_tap": {"files": ["core", "water", "geo", "access", "regs-{region}", "salmon"], "gate": 5_600_000},
+    # (owner 2026-10-28) the card reads the salmon head and its region's slice (`salmon-{region}`, the largest)
+    "first_tap": {"files": ["core", "water", "geo", "access", "regs-{region}", "salmon", "salmon-{region}"],
+                  "gate": 5_600_000},
     # the first tap on an UNNAMED stream (most streams): + its key (regs-sid) and the flow pointers (down) the header's
     # "Tributary of ..." walks — no longer all of conditions (8,590,503 → 5,892,308, regs-6)
     # (T182, 2026-10-28) + salmon for the page's Salmon card, as the named tap (6,282,328)
-    "first_tap_unnamed": {"files": ["core", "water", "access", "regs-{region}", "regs-sid", "down", "salmon"],
+    "first_tap_unnamed": {"files": ["core", "water", "access", "regs-{region}", "regs-sid", "down", "salmon",
+                                    "salmon-{region}"],
                           "gate": 7_000_000},
     # the Conditions tab: gauges and the lake road (conditions' `lake_section`, so no core), the panels' areas; the
     # climatology (climate) waits for a chart (4,151,534 → 997,511)

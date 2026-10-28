@@ -160,7 +160,8 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
   // (T213) BAIT BAN / FLY ONLY: marks on the Standard map — the release's `method` file handed over the same way; the
   // legend lists the marks while the Standard regulations are drawn
   const method = useMethodColour({ source, paired, statusOk, mapTab: mapTab === "map", day: mapDay, settled });
-  const gearMarked = method.feed !== null && layers.effective.water === "regulations" && regsShown === "standard";
+  // (owner 2026-10-28) the marks ride the Salmon map too: bait and fly rules also apply to salmon
+  const gearMarked = method.feed !== null && layers.effective.water === "regulations";
   const mm = useMapModes({ tab: mapTab, flowParam, horizon, zoomedOut, paired, statusOk,
                            water: layers.effective.water, groups: layers.effective.groups,
                            basemap: layers.effective.basemap, imageryUp: imagery.up,

@@ -101,10 +101,10 @@ export function WaterScreen({ source, item, palette, onBack,
   // (T211) the Salmon card: DFO's salmon for the tapped section, else the page's part, on THE day
   const salmonPage = useMemo(() => (inputs.value
     ? { section: part === null ? section : null, item: pageItem?.id ?? null, ord: pageItem?.ord ?? null,
-        partIx: inputs.value.partIx }
+        partIx: inputs.value.partIx, akey: inputs.value.key?.akey ?? null }
     : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- the page's identity
-    [inputs.value?.partIx, pageItem?.id, pageItem?.ord, part, section]);
+    [inputs.value?.partIx, pageItem?.id, pageItem?.ord, part, section, inputs.value?.key?.akey]);
   const salmon = useSalmonCard(loader, store.value ?? null, salmonPage, day);
   // (T45) how much room the window gives (the app shell's width; never read here): the page arranges itself for it
   const layout = useLayoutClass();

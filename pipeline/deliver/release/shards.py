@@ -48,6 +48,17 @@ def akey_regions(store: sqlite3.Connection) -> Dict[int, Set[str]]:
     return dict(out)
 
 
+def sid_regions(store: sqlite3.Connection) -> Dict[int, List[str]]:
+    """{sid: the regions its place names} for every section with a place (owner 2026-10-28: the salmon slices)."""
+    place_regions = {p: sorted(json.loads(r)) for p, r in store.execute("SELECT place, regions FROM place")}
+    out: Dict[int, List[str]] = {}
+    for blk, pb in store.execute("SELECT block, b FROM section_place"):
+        for i, p in enumerate(pb):
+            if p:
+                out[(blk << BLOCK_BITS) | i] = place_regions[p - 1]
+    return out
+
+
 def frame_refs(name: str, frame) -> Dict[str, List[int]]:
     """The rows a decoded top frame reaches, by table (the codecs of `answers.encode`)."""
     if name == "ladder_frame":

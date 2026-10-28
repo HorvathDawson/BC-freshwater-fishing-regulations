@@ -60,7 +60,10 @@ FORMATS = {name: spec["format"] for name, spec in C.FILES.items()}
 #: new file (T199 runs, T200 stocking, T201/T218 depth) states its size when it is added. The gates T182 added are ~10-15 %
 #: over r-bda3fea28838 (gz: water 2,196,090, near 1,991,899, climate 1,435,910, regs-sid 1,217,035, conditions 807,994,
 #: down 624,863, geo 612,797, flow-area 188,672).
-SIZE_GATES = {"paint": 1_000_000, "access": 300_000, "core": 1_300_000, "lakes": 100_000, "salmon": 600_000, "method": 600_000,
+#: (owner 2026-10-28) `salmon` is split per bundle region: the head (payload, ~25 kB gz) and `salmon-<r>` (each region's
+#: sid runs; measured on r-098f810f6e0a's sections: R6 277,024, R5 102,502, R1 51,828, R2 51,000, the rest < 25 kB)
+SIZE_GATES = {"paint": 1_000_000, "access": 300_000, "core": 1_300_000, "lakes": 100_000, "salmon": 60_000,
+              **{f"salmon-{r}": 320_000 for r in (*SH.REGIONS, "x")}, "method": 600_000,
               "water": 2_500_000, "near": 2_250_000, "climate": 1_650_000, "regs-sid": 1_400_000, "conditions": 950_000,
               "down": 720_000, "geo": 700_000, "flow-area": 220_000, **{f"regs-{r}": 1_500_000 for r in SH.REGIONS}}
 #: (T182) The release total is no longer the web's cap — a web visitor never fetches the whole release (the cold load is
@@ -294,13 +297,17 @@ def web_moments(release_dir: Path) -> Dict[str, tuple]:
     m = json.loads((d / "manifest.json").read_text())
     files = m["files"]
     region = max((k for k in files if k.startswith("regs-") and k != "regs-sid"), key=lambda k: files[k]["gz"])
+    # (owner 2026-10-28) a page's Salmon card reads its region's salmon slice: priced as the largest
+    salmon_r = max((k for k in files if k.startswith("salmon-")), key=lambda k: files[k]["gz"], default="salmon-{region}")
 
     def price(name: str) -> tuple:
         if name == "manifest":
             return name, (d / "manifest.json").stat().st_size
         if name == "mask":
             return name, int(((m.get("tiles") or {}).get("mask") or {}).get("bytes") or 0)
-        name = region if name == "regs-{region}" else name
+        name = region if name == "regs-{region}" else salmon_r if name == "salmon-{region}" else name
+        if name == "salmon-{all}":                               # the Salmon map: every slice
+            return name, sum(int(f["gz"]) for k, f in files.items() if k.startswith("salmon-"))
         return name, int(files[name]["gz"]) if name in files else 0
     out = {}
     for k, spec in C.WEB_BUDGET.items():
@@ -350,6 +357,14 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
             p.write_bytes(lakes_bytes(lakes.read_bytes(), base["section_handles"]))
             files["lakes"] = p
         regions = SH.akey_regions(st)
+        # (T211) the DFO salmon, from the bundle's salmon tables (pipeline/deliver/salmon.py): a head and one file per
+        # bundle region (owner 2026-10-28: a water page's card fetches its own region's slice), cut by the store's places
+        from pipeline.deliver import salmon as SALMON
+        _sid_regions = SH.sid_regions(st)
+        for name, blob in SALMON.encode_files(*SALMON.read_bundle(b), base["section_handles"],
+                                               lambda sid: _sid_regions.get(sid, ())).items():
+            (work / f"{name}.bin").write_bytes(blob)
+            files[name] = work / f"{name}.bin"
         common = [t for (t,) in st.execute("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
                   if t not in SH.SHARD_TABLES and t not in SH.SID_TABLES and t != "meta"]
 
@@ -434,11 +449,6 @@ def bundle_files(work: Path, bundle: Path, b: sqlite3.Connection, base: Dict[str
     p = work / "access.bin"
     p.write_bytes(PAINT.encode_access(b, handles=base["section_handles"]))
     files["access"] = p
-    # (T211) the DFO salmon, from the bundle's salmon tables (pipeline/deliver/salmon.py)
-    from pipeline.deliver import salmon as SALMON
-    p = work / "salmon.bin"
-    p.write_bytes(SALMON.encode(*SALMON.read_bundle(b), base["section_handles"]))
-    files["salmon"] = p
     files["core"] = copy_file(work / "core.sqlite", {"b": bundle}, [("b", t, None) for t in CORE_TABLES],
                               {**base, "format": FORMATS["core"]}, extra=_core_flags)
     files["near"] = copy_file(work / "near.sqlite", {"b": bundle}, [("b", t, None) for t in NEAR_TABLES],

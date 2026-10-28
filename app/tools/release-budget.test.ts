@@ -31,11 +31,13 @@ import { liveRelease, nodeOpener, releaseFetch } from "../conformance/src/fixtur
 
 const PIN = JSON.parse(readFileSync(join(__dirname, "request-walk.pin.json"), "utf8")) as Record<string, string[]>;
 /** The release's own files (and the tile set's mask) in a pinned moment: the feed, the wasm and other hosts are not
- *  release files. A region file reads as `regs-{region}`, the budget's word for "the region tapped". */
+ *  release files. A region file reads as `regs-{region}` (a salmon slice as `salmon-{region}`, owner 2026-10-28), the
+ *  budget's word for "the region tapped". */
 const releaseFiles = (moment: string): string[] => {
   const files = PIN[moment];
   if (!files) throw new Error(`the walk pins no moment "${moment}" (node tools/request-walk.mjs --pin)`);
-  return files.filter((f) => !/^(feed:|wasm$)/.test(f)).map((f) => (/^regs-(\d|7[ab])/.test(f) ? "regs-{region}" : f));
+  return files.filter((f) => !/^(feed:|wasm$)/.test(f)).map((f) => (/^regs-(\d|7[ab])/.test(f) ? "regs-{region}"
+    : /^salmon-(\d|7[ab]|x)/.test(f) ? "salmon-{region}" : f));
 };
 /** Priced into the tap gate, fetched only when the tapped page needs it: `geo` is read with the page's access note
  *  (navRows), and the walk's taps (Gravel Slough; an unnamed R2 stream) carry none — measured on the split release
@@ -97,7 +99,7 @@ describe("the pinned walk fetches what the budget prices", () => {
       .map(([k]) => k)).toEqual([]);
     // (T182) geo (the water map's boxes) is read only with an access note: this tap has none
     expect(PIN["tap named (save-data) | map tap: a named water (R2)"])
-      .toEqual(["access", "core", "salmon", "wasm", "water"]);
+      .toEqual(["access", "core", "salmon", "salmon-2", "wasm", "water"]);
   });
 
   it("T186: no file is fetched twice — a moment after the prefetch asks for none of what it took", () => {
@@ -105,8 +107,9 @@ describe("the pinned walk fetches what the budget prices", () => {
       .flatMap((k) => PIN[k]!.filter((f) => PIN[prefetchOf(k)]!.includes(f)).map((f) => `${k}: ${f}`));
     expect(twice).toEqual([]);
     // the named tap in the prefetched region: no region file, no core, no engine — water and access are its own, and
-    // (T182) salmon for the page's Salmon card (the web no longer reads it up front)
-    expect(PIN["tap named | map tap: a named water (R2)"]).toEqual(["access", "salmon", "water"]);
+    // (T182) salmon for the page's Salmon card (the web no longer reads it up front) — (owner 2026-10-28) the head and
+    // the page's own region's slice only
+    expect(PIN["tap named | map tap: a named water (R2)"]).toEqual(["access", "salmon", "salmon-2", "water"]);
   });
 
   it("before the first question nothing but the manifest, paint and the mask (and the feed's index) — every walk", () => {
@@ -126,10 +129,14 @@ function price(dir: string, files: readonly string[]): { bytes: number; files: s
   const m = JSON.parse(readFileSync(join(dir, "manifest.json"), "utf8")) as Manifest;
   const region = Object.keys(m.files).filter((k) => k.startsWith("regs-") && k !== "regs-sid")
     .sort((a, b) => m.files[b]!.gz - m.files[a]!.gz)[0]!;
+  // (owner 2026-10-28) a page's salmon slice, priced as the largest (`web_moments`)
+  const slice = Object.keys(m.files).filter((k) => k.startsWith("salmon-"))
+    .sort((a, b) => m.files[b]!.gz - m.files[a]!.gz)[0] ?? "salmon-{region}";
+  const name = (f: string) => (f === "regs-{region}" ? region : f === "salmon-{region}" ? slice : f);
   const priced = files.map((f): [string, number] =>
     f === "manifest" ? [f, statSync(join(dir, "manifest.json")).size]
     : f === "mask" ? [f, m.tiles.mask?.bytes ?? 0]
-    : [f === "regs-{region}" ? region : f, m.files[f === "regs-{region}" ? region : f]?.gz ?? 0]);
+    : [name(f), m.files[name(f)]?.gz ?? 0]);
   return { bytes: priced.reduce((a, [, n]) => a + n, 0), files: priced.map(([f]) => f) };
 }
 

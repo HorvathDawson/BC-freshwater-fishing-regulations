@@ -28,11 +28,21 @@ Each is stored as runs (start day, value) — a chain's year is a handful of run
 A LOCATION WITHOUT AN EXTENT IS NEVER DRAWN. It ships as a one-location chain under its water's item ids (`unmapped`),
 so the card can say "location not yet mapped" with DFO's own rules for it.
 
-THE FILE (`salmon/1`), little-endian, varints LEB128 (`pipeline.deliver.binary`):
-    magic    b"BCSA"   version u8 = 1   handles 8 bytes (the bundle's section_handles digest, raw)
-    json     u32 byte length, then the UTF-8 payload: {credit, regions, verdicts, gears, chains, unmapped}
-    runs     varint count, then per run: sid gap (sid - previous run's end), count, chain index
-A section in no run is chain 0, UNLISTED: closed to salmon fishing (`payload.default`). `decode` is the reference reader the tests hold the app's to.
+THE REGION HEADER (owner 2026-10-28): each region's page header — daylight only, the facility closure, the aggregate
+limits, minimum sizes, what an "adult chinook" is — as typed notes (`regs.dfo_salmon.header`) on `regions[slug].notes`,
+DFO's words carried whole; a note naming waters holds only on their items (`scopes[slug][key]`: the curated DFO water
+bindings, a watershed with every item upstream of it by the registry's `item_down`). The live feed carries the same
+notes and wins (the release's are the offline answer of last resort, read from the cached page its rules came from).
+
+THE FILES (`salmon/2`, split per bundle region — owner 2026-10-28: a water page's card fetches only its region's slice),
+little-endian, varints LEB128 (`pipeline.deliver.binary`):
+    salmon       magic b"BCSA", version u8 = 2, handles 8 bytes (the bundle's section_handles digest, raw), u32 JSON
+                 length, the UTF-8 payload: {credit, regions, verdicts, gears, chains, unmapped, scopes, shards}
+    salmon-<r>   magic b"BCSR", version u8 = 1, handles 8 bytes, u8 region length + the region (ASCII), then a varint
+                 run count and per run: sid gap (sid - previous run's end), count, chain index — the sections of bundle
+                 region <r> (`release.shards.REGIONS`; a section in two regions is in both; `x`: a section in none)
+A section in no run is chain 0, UNLISTED: closed to salmon fishing (`payload.default`). `decode_files` is the reference
+reader the tests hold the app's to.
 """
 from __future__ import annotations
 
@@ -40,14 +50,19 @@ import json
 import struct
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
+from typing import Callable, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 
 from pipeline.common import calendar_spec
 from pipeline.deliver.binary import put_varint, read_varint
 
-FORMAT = "salmon/1"
+FORMAT = "salmon/2"
+SHARD_FORMAT = "salmon-shard/1"
 MAGIC = b"BCSA"
-VERSION = 1
+VERSION = 2
+SHARD_MAGIC = b"BCSR"
+SHARD_VERSION = 1
+#: the shard of a section in no bundle region (tidal, outside B.C.): the map reads it, no page does
+NO_REGION = "x"
 #: chinook, coho, sockeye, pink, chum — the order every card row and every per-species array is in
 SPECIES: Tuple[str, ...] = ("CH", "CO", "SK", "PK", "CM")
 ALL_SALMON = "SA"
@@ -230,8 +245,9 @@ def _label(loc) -> str:
 
 
 def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: Iterable[dict],
-          sid_of: Mapping[str, int], item_sections: Optional[Mapping[str, Iterable[int]]] = None
-          ) -> Tuple[dict, List[Tuple[int, int]]]:
+          sid_of: Mapping[str, int], item_sections: Optional[Mapping[str, Iterable[int]]] = None,
+          headers: Optional[Mapping[str, Sequence[dict]]] = None,
+          upstream: Optional[Callable[[Sequence[str]], Iterable[str]]] = None) -> Tuple[dict, List[Tuple[int, int]]]:
     """(payload, [(sid, chain)] sorted by sid). `entry_files`: slug → `entries.EntryFile`; `feeds`: slug → the typed
     feed (`typed/region-<slug>.json`); `placed`: the reach run's rows; `sid_of`: section id → handle.
 
@@ -244,14 +260,22 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
     on today's page; the feed: listed) the map paints the section `check` and the card says parts of the water are not
     mapped — we cannot tell which stretch the place's rules cover, so the whole water (Kitimat 2026-10-28: the area-6
     coho non-retention answered for a river whose own coho opening sits on an undrawn stretch)."""
+    # THE REGION HEADER: `headers` slug -> the page's notes (`header.parse_header`), resolved to items here
+    from pipeline.regs.dfo_salmon import header as H
     rules_of: Dict[str, List[dict]] = {}
     locs: Dict[str, object] = {}
     regions: Dict[str, dict] = {}
+    scopes: Dict[str, Dict[str, List[str]]] = {}
     for slug, ef in sorted(entry_files.items()):
         feed = feeds.get(slug) or {}
         by_fp = {l["fingerprint"]: l["rules"] for l in feed.get("locators") or []}
+        notes = list((headers or {}).get(slug) or [])
+        sc, unresolved = H.resolve(notes, ef, upstream)
         regions[slug] = {"name": getattr(ef, "region_name", slug), "asof": feed.get("date_modified"),
-                         "url": PAGE_URL.format(slug=slug)}
+                         "url": PAGE_URL.format(slug=slug), "notes": notes,
+                         **({"unresolved": unresolved} if unresolved else {})}
+        if sc:
+            scopes[slug] = sc
         for loc in ef.locations:
             # EVERY location, ruled today or not (T211 part 2): a dormant one says nothing today (no rules, so it never
             # answers in its chain), but it is IN its chains, so the live feed (`regs.dfo_salmon.live`) can paint it
@@ -317,8 +341,31 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
         unmapped.append({"items": sorted(water.item_ids) if water else [], "r": slug, "w": _label(loc),
                          "chain": chain_for([lid]), **({} if rules_of[lid] else {"d": 1})})
     payload = {"format": FORMAT, "credit": CREDIT, "default": UNLISTED_CHAIN, "regions": regions, "verdicts": verdicts.items,
-               "gears": gears.items, "chains": chains, "unmapped": unmapped}
+               "gears": gears.items, "chains": chains, "unmapped": unmapped, "scopes": scopes}
     return payload, sections
+
+
+def _in_window(day: int, on: Sequence[Sequence[int]]) -> bool:
+    return not on or any((a <= day <= b) if a <= b else (day >= a or day <= b) for a, b in on)
+
+
+def notes_for(payload: Mapping, regions: Sequence[str], item: Optional[str], day: int) -> Dict[str, List[str]]:
+    """THE HEADER NOTES A PAGE SHOWS on day `day` (the reference the app's `salmonNotes` is held to by the golden):
+    `region` — every note of the page's DFO regions that names no water (one excepting this water's item is left out;
+    an excepted PART of a water is not an exception: it shows, verbatim); `water` — a note naming waters, only where
+    `item` is one of their items (`scopes`) and the day is in its windows. Note ids, in page order."""
+    out: Dict[str, List[str]] = {"region": [], "water": []}
+    scopes = payload.get("scopes") or {}
+    for slug in sorted(set(regions)):
+        sc = scopes.get(slug) or {}
+        for n in (payload["regions"].get(slug) or {}).get("notes") or []:
+            if n.get("w"):
+                hit = item is not None and any(item in (sc.get(w["key"]) or ()) for w in n["w"])
+                if hit and _in_window(day, n.get("on") or ()):
+                    out["water"].append(n["id"])
+            elif not (item is not None and any(item in (sc.get(w["key"]) or ()) for w in n.get("x") or ())):
+                out["region"].append(n["id"])
+    return out
 
 
 def load_inputs(run_dir: Path, registry=None, *, entries_dir: Optional[Path] = None,
@@ -339,6 +386,32 @@ def load_inputs(run_dir: Path, registry=None, *, entries_dir: Optional[Path] = N
             raise SalmonError(f"salmon: no typed DFO feed {p} — write it:\n    python -m pipeline.regs.dfo_salmon.feed")
         feeds[s] = json.loads(p.read_text(encoding="utf-8"))
     return files, feeds, list(placed_io.read(run_dir))
+
+
+def load_headers(feeds: Mapping[str, dict], cache_dir: Optional[Path] = None) -> Dict[str, List[dict]]:
+    """Each region's header notes, read from the cached page the typed rules came from (the raw page when its "Date
+    modified" is the feed's, else the history page of that date). A region with no such page ships no notes (said on
+    stdout): the live feed carries them, and a header is never read from another day's page than its rules."""
+    from pipeline.regs.dfo_salmon import header as H
+    from pipeline.regs.dfo_salmon.fetch import DEFAULT_CACHE
+    from pipeline.regs.dfo_salmon.parse import _RE_DATE_MOD
+    cache = Path(cache_dir or DEFAULT_CACHE)
+    out: Dict[str, List[dict]] = {}
+    for slug, feed in sorted(feeds.items()):
+        want = feed.get("date_modified")
+        pages = [cache / "raw" / f"region{slug}-eng.html",
+                 *sorted((cache / "history").glob(f"region{slug}_*.html"), reverse=True)]
+        for p in pages:
+            if not p.exists():
+                continue
+            html = p.read_text(encoding="utf-8", errors="replace")
+            m = _RE_DATE_MOD.search(html)
+            if want and m and m.group(1) == want:
+                out[slug] = H.parse_header(html, slug)
+                break
+        else:
+            print(f"  salmon: region {slug}: no cached page dated {want} — the release carries no header notes for it")
+    return out
 
 
 # ── the bundle's tables and the shipped file ─────────────────────────────────────────────────────────────────────────
@@ -364,12 +437,8 @@ def read_bundle(b) -> Tuple[dict, List[Tuple[int, int]]]:
     return json.loads(row[0]), [(int(s), int(c)) for s, c in b.execute("SELECT sid, chain FROM salmon_section ORDER BY sid")]
 
 
-def encode(payload: dict, sections: Sequence[Tuple[int, int]], handles: str) -> bytes:
-    out = bytearray(MAGIC)
-    out.append(VERSION)
-    out += bytes.fromhex(handles)
-    body = json.dumps(payload, sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
-    out += struct.pack("<I", len(body)) + body
+def _runs(sections: Sequence[Tuple[int, int]]) -> bytes:
+    out = bytearray()
     runs: List[List[int]] = []
     for sid, chain in sections:
         if runs and runs[-1][0] + runs[-1][1] == sid and runs[-1][2] == chain:
@@ -386,14 +455,7 @@ def encode(payload: dict, sections: Sequence[Tuple[int, int]], handles: str) -> 
     return bytes(out)
 
 
-def decode(b: bytes) -> Tuple[str, dict, List[Tuple[int, int]]]:
-    """(handles, payload, [(sid, chain)]) — the reference reader."""
-    if b[:4] != MAGIC or b[4] != VERSION:
-        raise SalmonError("salmon: not a salmon/1 file")
-    handles = b[5:13].hex()
-    (n,) = struct.unpack_from("<I", b, 13)
-    payload = json.loads(b[17:17 + n].decode("utf-8"))
-    i = 17 + n
+def _read_runs(b: bytes, i: int) -> Tuple[List[Tuple[int, int]], int]:
     count, i = read_varint(b, i)
     out, end = [], 0
     for _ in range(count):
@@ -403,6 +465,67 @@ def decode(b: bytes) -> Tuple[str, dict, List[Tuple[int, int]]]:
         start = end + gap
         out += [(s, chain) for s in range(start, start + k)]
         end = start + k
+    return out, i
+
+
+def shard_name(region: str) -> str:
+    return f"salmon-{region}"
+
+
+def encode_files(payload: dict, sections: Sequence[Tuple[int, int]], handles: str,
+                 regions_of: Callable[[int], Iterable[str]]) -> Dict[str, bytes]:
+    """{"salmon": the head, "salmon-<r>": each bundle region's runs}. `regions_of(sid)`: the bundle regions a section
+    lies in (empty: `NO_REGION`). Every region a section names gets a shard, so a page's card reads its own region's."""
+    by: Dict[str, List[Tuple[int, int]]] = defaultdict(list)
+    for sid, chain in sections:
+        for r in (sorted(set(regions_of(sid))) or [NO_REGION]):
+            by[r].append((sid, chain))
+    from pipeline.deliver.release.shards import REGIONS
+    shards = [r for r in (*REGIONS, NO_REGION) if r in by or r in REGIONS]
+    head = bytearray(MAGIC)
+    head.append(VERSION)
+    head += bytes.fromhex(handles)
+    body = json.dumps({**payload, "shards": shards}, sort_keys=True, ensure_ascii=False,
+                      separators=(",", ":")).encode("utf-8")
+    head += struct.pack("<I", len(body)) + body
+    out = {"salmon": bytes(head)}
+    for r in shards:
+        rb = r.encode("ascii")
+        out[shard_name(r)] = SHARD_MAGIC + bytes([SHARD_VERSION]) + bytes.fromhex(handles) + bytes([len(rb)]) + rb \
+            + _runs(by.get(r, []))
+    return out
+
+
+def decode_head(b: bytes) -> Tuple[str, dict]:
+    if b[:4] != MAGIC or b[4] != VERSION:
+        raise SalmonError(f"salmon: not a {FORMAT} file")
+    (n,) = struct.unpack_from("<I", b, 13)
+    if 17 + n != len(b):
+        raise SalmonError(f"salmon: {len(b) - 17 - n} trailing bytes")
+    return b[5:13].hex(), json.loads(b[17:17 + n].decode("utf-8"))
+
+
+def decode_shard(b: bytes) -> Tuple[str, str, List[Tuple[int, int]]]:
+    """(handles, region, [(sid, chain)])."""
+    if b[:4] != SHARD_MAGIC or b[4] != SHARD_VERSION:
+        raise SalmonError(f"salmon: not a {SHARD_FORMAT} file")
+    k = b[13]
+    region = b[14:14 + k].decode("ascii")
+    secs, i = _read_runs(b, 14 + k)
     if i != len(b):
         raise SalmonError(f"salmon: {len(b) - i} trailing bytes")
-    return handles, payload, out
+    return b[5:13].hex(), region, secs
+
+
+def decode_files(files: Mapping[str, bytes]) -> Tuple[str, dict, List[Tuple[int, int]]]:
+    """(handles, payload, [(sid, chain)]) from the head and every shard — the reference reader."""
+    handles, payload = decode_head(files["salmon"])
+    secs: Dict[int, int] = {}
+    for r in payload["shards"]:
+        h, region, rows = decode_shard(files[shard_name(r)])
+        if h != handles or region != r:
+            raise SalmonError(f"salmon: shard {r} is region {region} of handles {h}, not {r} of {handles}")
+        for sid, chain in rows:
+            if secs.setdefault(sid, chain) != chain:
+                raise SalmonError(f"salmon: section {sid} is chain {secs[sid]} in one shard and {chain} in {r}")
+    return handles, payload, sorted(secs.items())

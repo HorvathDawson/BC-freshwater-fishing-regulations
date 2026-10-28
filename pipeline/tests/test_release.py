@@ -317,15 +317,17 @@ def test_the_web_budget_prices_each_moment_and_fails_a_crossed_gate(tmp_path):
     LARGEST region for `regs-{region}` — and a release whose moment crosses its gate fails the release step. Mutation:
     one region file grown past the tap gate's headroom fails `first_tap` (and the unnamed tap), nothing else."""
     from pipeline.deliver.release import contract as C
-    names = {f for spec in C.WEB_BUDGET.values() for f in spec["files"]} - {"manifest", "mask", "regs-{region}"}
+    names = {f for spec in C.WEB_BUDGET.values() for f in spec["files"]} - {"manifest", "mask", "regs-{region}",
+                                                                          "salmon-{region}"}
     files = {n: {"bytes": 1, "gz": 1000} for n in names} | {f"regs-{r}": {"bytes": 1, "gz": 100 + i}
-                                                            for i, r in enumerate(SH.REGIONS)}
+                                                            for i, r in enumerate(SH.REGIONS)} \
+        | {f"salmon-{r}": {"bytes": 1, "gz": 10 + i} for i, r in enumerate(SH.REGIONS)}   # (owner 2026-10-28) slices
     m = {"files": files, "tiles": {"mask": {"bytes": 62}}}
     (tmp_path / "manifest.json").write_text(json.dumps(m))
     size = (tmp_path / "manifest.json").stat().st_size
     got = B.web_moments(tmp_path)
     assert got["first_paint"] == (size + 1000 + 62, ["manifest", "paint", "mask"])
-    assert got["first_tap"][1][-2] == "regs-8" and got["first_tap"][0] == 5 * 1000 + 108
+    assert got["first_tap"][1][-3:] == ["regs-8", "salmon", "salmon-8"] and got["first_tap"][0] == 5 * 1000 + 108 + 18
     assert not [p for p in B.gate_problems(tmp_path) if p.startswith("web ")]
     files["regs-3"]["gz"] = C.WEB_BUDGET["first_tap_unnamed"]["gate"]
     (tmp_path / "manifest.json").write_text(json.dumps(m))

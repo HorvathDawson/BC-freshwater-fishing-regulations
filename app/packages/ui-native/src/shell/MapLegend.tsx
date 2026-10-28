@@ -89,6 +89,11 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
             <LegendCount key={r.status} palette={palette} colour={salmonStatusColour(theme, r.status)} line
                          label={r.label} />
           ))}
+          {/* (owner 2026-10-28) the provincial gear marks hold for salmon too: the same two rows as Standard */}
+          {col.gearMarked && GEAR_LEGEND.map((m) => (
+            <LegendCount key={m} palette={palette} colour={gearEdgeColour(theme)} edge={m === "fly" ? "solid" : "dashed"}
+                         label={METHOD_WORDS.legend[m]} />
+          ))}
           <Text testID="salmon-legend-source" style={{ ...TYPE.small, fontSize: 11.5, lineHeight: 15, color: palette.sub }}>
             {salmonLegendSource(col.salmonFacts)}
           </Text>

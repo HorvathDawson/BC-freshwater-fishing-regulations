@@ -126,3 +126,36 @@ describe("a species' picture opens its fish sheet", () => {
     expect(opened).toEqual(["sp:CO"]);
   });
 });
+
+describe("(owner 2026-10-28) the region header and the provincial gear on the card", () => {
+  const n = (id: string, k: string, t: string, extra: object = {}) => ({ id, k, t, ...extra });
+  const WITH_HEADER: SalmonFacts = { ...FACTS, payload: { ...FACTS.payload,
+    regions: { "6": { ...FACTS.payload.regions["6"]!, notes: [
+      n("6:daylight:a", "daylight", "You can only fish for salmon in Region 6 during daylight hours."),
+      n("6:min_size:b", "min_size", "All retained coho must measure 25 cm or more.", { sp: ["CO"], cm: 25 }),
+      n("6:aggregate:c", "aggregate", "Kispiox watershed: the aggregate daily limit of hatchery-marked coho is one (1).",
+        { sp: ["CO"], n: 1, w: [{ n: "Kispiox River", ws: true, key: "kispiox river+ws" }] }),
+    ] } },
+    scopes: { "6": { "kispiox river+ws": ["gnis:77"] } } } };   // gnis:77: a Kispiox trib (gnis:4674 has an undrawn place)
+
+  it("region rules in their own block, the water's coho note and sizes on the open coho row, the gear line", () => {
+    render(<SalmonCard card={salmonCard(WITH_HEADER, { sids: [101], item: "gnis:77", gear: ["bait"] }, JUL20)} palette={LIGHT} />);
+    const block = screen.getByTestId("salmon-region-rules");
+    expect(within(block).getByText("Region rules (DFO) · Region 6 Skeena")).toBeTruthy();
+    expect(within(block).getByText("• You can only fish for salmon in Region 6 during daylight hours.")).toBeTruthy();
+    const coho = screen.getAllByTestId("salmon-card-block-row").find((r) => r.textContent!.startsWith("Coho"))!;
+    expect(within(coho).getByText(/Kispiox watershed: the aggregate daily limit/)).toBeTruthy();
+    expect(within(coho).getByTestId("salmon-card-block-sizes").textContent).toBe("Sizes (DFO): coho 25 cm or more to keep");
+    expect(screen.getByTestId("salmon-gear-provincial").textContent).toBe("B.C. rules, also for salmon: Bait ban: no bait of any kind.");
+  });
+
+  it("another water in the region: the region block only; a closed water: no gear line", () => {
+    render(<SalmonCard card={salmonCard(WITH_HEADER, { sids: [7], item: "gnis:1", gear: ["bait"] }, JUL20)} palette={LIGHT} />);
+    expect(screen.queryByTestId("salmon-region-rules")).toBeNull();                // unlisted: no DFO region
+    expect(screen.queryByTestId("salmon-gear-provincial")).toBeNull();
+    cleanup();
+    render(<SalmonCard card={salmonCard(WITH_HEADER, { sids: [101], item: "gnis:9", gear: [] }, JUL20)} palette={LIGHT} />);
+    expect(screen.getByTestId("salmon-region-rules")).toBeTruthy();
+    expect(screen.queryByText(/Kispiox watershed/)).toBeNull();
+  });
+});

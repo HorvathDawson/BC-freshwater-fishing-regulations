@@ -151,18 +151,26 @@ export type GearMark = "fly" | "bait";
 /** The edge each side of a marked stream line, and a marked lake's ring, in px. */
 export const GEAR_EDGE_PX = 1.5;
 export const GEAR_RING_PX = 1.6;
-/** The status mode the marks ride on: the Standard map. */
-const GEAR_MODE = "profile";
+/** The modes the marks ride on: the Standard map's status mode, and (owner 2026-10-28: "bait and fly rules also apply
+ *  to salmon") the Salmon map's — the provincial gear rule holds for a salmon angler too. */
+const GEAR_MODES: readonly string[] = ["profile", "salmon"];
 
-/** Where `mark` is shown on `layerId` (`stream` / `lake`) in `mode`, as a boolean expression; null: nowhere. */
+/**
+ * Where `mark` is shown on `layerId` (`stream` / `lake`) in `mode`, as a boolean expression; null: nowhere. Hidden where
+ * the mode's own day closes the section: on Standard the status day (closed / no access, feature-state `p`), on Salmon
+ * the salmon day (salmon closed, feature-state `sp`) — the line's own read, never a second test of a rule.
+ */
 export function gearShown(layerId: "stream" | "lake", mode: string, mark: GearMark,
                           values: ChannelValues | null = NO_VALUES): unknown | null {
   const v = values ?? NO_VALUES;
   const m = STYLE_META.colorModes[layerId]?.[mode];
-  if (mode !== GEAR_MODE || !m || m.scale !== "profile" || !v.method || !v.status) return null;
+  if (!GEAR_MODES.includes(mode) || !m || m.scale !== "profile" || !v.method) return null;
+  const day = mode === "salmon" ? v.salmon : v.status;
+  if (!day) return null;
   const labels = v.method[mark];
   if (!labels.length) return null;
-  const off = [...(v.status.closed ?? []), ...(v.status.no_access ?? [])];
+  const off = mode === "salmon" ? [...(v.salmon?.closed ?? [])]
+    : [...(v.status?.closed ?? []), ...(v.status?.no_access ?? [])];
   const marked = ["in", ["coalesce", ["feature-state", "gm"], ""], ["literal", [...labels]]];
   return off.length
     ? ["all", marked, ["!", ["in", ["coalesce", ["feature-state", m.property], ""], ["literal", off]]]]

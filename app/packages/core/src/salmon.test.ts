@@ -1,10 +1,10 @@
 /**
- * (T211) THE SALMON FILE AND THE SALMON CARD: `salmon/1` decoded (the pipeline's encoder's layout, `pipeline/deliver/
+ * (T211) THE SALMON FILE AND THE SALMON CARD: `salmon/2` (a head + one slice per bundle region) decoded (the pipeline's encoder's layout, `pipeline/deliver/
  * salmon.py`), each section's chain (and the UNLISTED chain for a section in no run), the day's lookups, and the card's
  * words — whole strings (AGENTS 33).
  */
 import { describe, expect, it } from "vitest";
-import { decodeSalmon, salmonCard, salmonDayIndex, salmonDayProfiles, salmonLabel, salmonLegendSource, SalmonError } from "./salmon";
+import { decodeSalmon, decodeSalmonHead, salmonCard, salmonDayIndex, salmonDayProfiles, salmonLabel, salmonLegendSource, SalmonError } from "./salmon";
 
 const HANDLES = "147b20dce7d8576c";
 const JUL20 = new Date(2026, 6, 20), SEP15 = new Date(2026, 8, 15);
@@ -13,7 +13,7 @@ const d = (date: Date) => salmonDayIndex(date);
 /** The Kispiox, as the pipeline built it from the Region 6 page dated 2026-08-28 (abridged): coho 4/day Jul 15–Aug 23
  *  then closed (FN0897); chinook, sockeye, pink and chum closed; no natural bait all year. */
 const PAYLOAD = {
-  format: "salmon/1", credit: "Fisheries and Oceans Canada (DFO), freshwater salmon sport fishing regulations",
+  format: "salmon/2", credit: "Fisheries and Oceans Canada (DFO), freshwater salmon sport fishing regulations",
   default: 0,
   regions: { "6": { name: "Skeena", asof: "2026-08-28", url: "https://example/region6" },
              "1": { name: "Vancouver Island", asof: "2026-08-25", url: "https://example/region1" } },
@@ -40,34 +40,46 @@ const PAYLOAD = {
   unmapped: [{ items: ["gnis:4674"], r: "6", w: "Kispiox River — above the resort signs", chain: 2 }],
 };
 
-/** sid 100..104 the Kispiox (chain 1), 200..201 the Cowichan (chain 2); everything else unlisted. */
-function encode(payload: object, runs: [number, number, number][], handles = HANDLES): Uint8Array {
+/** sid 100..104 the Kispiox (chain 1) in region 6's slice, 200..201 the Cowichan (chain 2) in region 1's; everything
+ *  else unlisted. */
+const hx = (handles: string) => Array.from({ length: 8 }, (_, i) => parseInt(handles.slice(2 * i, 2 * i + 2), 16));
+function encode(payload: object, handles = HANDLES): Uint8Array {
   const body = new TextEncoder().encode(JSON.stringify(payload));
-  const out: number[] = [0x42, 0x43, 0x53, 0x41, 1];
-  for (let i = 0; i < 16; i += 2) out.push(parseInt(handles.slice(i, i + 2), 16));
-  out.push(body.length & 255, (body.length >> 8) & 255, (body.length >> 16) & 255, (body.length >>> 24) & 255);
-  out.push(...body);
+  return new Uint8Array([0x42, 0x43, 0x53, 0x41, 2, ...hx(handles),
+    body.length & 255, (body.length >> 8) & 255, (body.length >> 16) & 255, (body.length >>> 24) & 255, ...body]);
+}
+function shard(region: string, runs: [number, number, number][], handles = HANDLES): Uint8Array {
+  const out: number[] = [0x42, 0x43, 0x53, 0x52, 1, ...hx(handles), region.length, ...new TextEncoder().encode(region)];
   const v = (n: number) => { while (n >= 0x80) { out.push((n & 0x7f) | 0x80); n = Math.floor(n / 128); } out.push(n); };
   v(runs.length);
   let end = 0;
   for (const [sid, n, chain] of runs) { v(sid - end); v(n); v(chain); end = sid + n; }
   return new Uint8Array(out);
 }
-const FILE = encode(PAYLOAD, [[100, 5, 1], [200, 2, 2]]);
-const facts = () => decodeSalmon(FILE, HANDLES);
+const FILE = encode(PAYLOAD);
+const SHARDS = [shard("6", [[100, 5, 1]]), shard("1", [[200, 2, 2]])];
+const facts = () => decodeSalmon(FILE, HANDLES, SHARDS);
 
-describe("salmon/1", () => {
+describe("salmon/2", () => {
   it("decodes the runs: a placed section reads its chain; a section in no run reads the UNLISTED chain (closed)", () => {
     const f = facts();
     expect([f.chainOf(99), f.chainOf(100), f.chainOf(104), f.chainOf(105), f.chainOf(201), f.chainOf(5_000_000)])
       .toEqual([0, 1, 1, 0, 2, 0]);
     expect([salmonLabel(f, 102), salmonLabel(f, 7)]).toEqual(["s1", "s0"]);
+    expect(f.loaded).toEqual(["6", "1"]);
+  });
+
+  it("one region's slice answers its own sections; another region's read chain 0 until their slice is read", () => {
+    const r6 = decodeSalmon(FILE, HANDLES, [SHARDS[0]!]);
+    expect([r6.chainOf(101), r6.chainOf(200)]).toEqual([1, 0]);
   });
 
   it("refuses another file, another atlas's handles, and trailing bytes", () => {
     expect(() => decodeSalmon(new Uint8Array([1, 2, 3]), HANDLES)).toThrow(SalmonError);
     expect(() => decodeSalmon(FILE, "0".repeat(16))).toThrow(/built for handles 147b20dce7d8576c/);
-    expect(() => decodeSalmon(new Uint8Array([...FILE, 0]), HANDLES)).toThrow(/trailing/);
+    expect(() => decodeSalmonHead(new Uint8Array([...FILE, 0]), HANDLES)).toThrow(/trailing/);
+    expect(() => decodeSalmon(FILE, HANDLES, [new Uint8Array([...SHARDS[0]!, 0])])).toThrow(/trailing/);
+    expect(() => decodeSalmon(FILE, HANDLES, [shard("6", [], "0".repeat(16))])).toThrow(/slice built for handles/);
   });
 
   it("the day index is the calendar day with Feb 29 kept: Jul 15 is 196 in every year", () => {
