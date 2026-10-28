@@ -54,11 +54,22 @@ row is the press.
    further notice" now answers it as CLOSED on the card AND the map (`regionClosedChain`, owner's earlier call). The
    synopsis has no salmon catch-and-release line (its salmon mentions are game-fish closures near viewing pools, a
    licence record line and pointers to DFO). Not changed: "N hatchery-marked per day" reads open (wild ones must go back).
-3. **Gear / Methods tabs.** On a closed day with salmon not closed: "No fishing for game fish here until Nov 16." then
-   "Salmon (DFO): release only today — see What you can keep." (`closedLinesWithSalmon`; per part and day, from the bar).
+3. **Gear / Methods tabs.** (superseded — see Third round)
 4. **Unplaced DFO places** (6af1ffa5): proposals for all 8 Cowichan / Capilano / Kitimat places are pre-filled in the
    review app's DFO mode (dfo-split-hunt.json → dfo-suggestions.json); OWNER-TODO lists "accept in review app → DFO".
    No splits written.
+
+## Third round (owner 2026-10-28)
+- **The salmon bar is the game-fish bar's twin**: name, mark + word ("✓ Open", "✕ Closed", "Check DFO"), when, the next
+  change ("Opens …" / "Closed from …"), ONE bar with the day's marker and date, months, legend — nothing under it. Days we
+  cannot answer here (DFO's "to be determined", an undrawn place answering otherwise, sections that differ) are a
+  neutral grey fill, legend "see Salmon below"; the breakdown (species, DFO places, "Location not yet mapped") is only in
+  Species and limits → Salmon → Details. The expandable "N DFO places" line is gone. (Supersedes follow-up 1's line.)
+- **Gear / Methods state no closure** (reverses follow-up 3): shown only when the part may be fished that day. Game
+  fish open → as before (+ "For salmon (DFO)" conditions where salmon may be fished). Only salmon (open, release only,
+  check DFO) → "Gear for salmon fishing: the B.C. gear rules below, and DFO's conditions", the day's book gear built as
+  if open (`gearIfFished`), DFO's gear lines. Neither → no Gear and no Methods tab (the header / side list drop them).
+  `gearTabsFor` decides; tidal / outside pages unchanged.
 
 ## Region defaults (owner question)
 No DFO region-wide/default rule opens an unlisted period: the header notes are limits, sizes, daylight, facility and

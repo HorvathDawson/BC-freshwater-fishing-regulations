@@ -24,7 +24,7 @@
  */
 import { useContext, useMemo, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
-import { dayRange, regsLapsedNote, salmonGlance, salmonStripOf, WATER_BACK, WATER_SCREEN_WORDS, WORDS, type RegsTarget } from "@app/core";
+import { dayRange, gearIfFished, gearTabsFor, regsLapsedNote, salmonGlance, salmonStripOf, WATER_BACK, WATER_SCREEN_WORDS, WORDS, type RegsTarget } from "@app/core";
 import type { ItemId, WaterSource, SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { mapDayOf, regsDay, useAccessNotice, useAnglerProfile, useDownstreamWater, useLayoutClass, useRegsPage, useRegsStore,
@@ -109,6 +109,10 @@ export function WaterScreen({ source, item, palette, onBack,
     // eslint-disable-next-line react-hooks/exhaustive-deps -- the page's identity
     [inputs.value?.partIx, pageItem?.id, pageItem?.ord, part, section, inputs.value?.key?.akey]);
   const salmon = useSalmonCard(loader, store.value ?? null, salmonPage, day);
+  // (T227) the day's book gear as if open, for a day only salmon may be fished (core `gearIfFished`)
+  const gearAnyway = useMemo(() => (inputs.value ? gearIfFished(inputs.value, d.today) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the inputs and the day
+    [inputs.value, d.today.month, d.today.day]);
   // (T45) how much room the window gives (the app shell's width; never read here): the page arranges itself for it
   const layout = useLayoutClass();
   // the sideways swipe between the water's views, anywhere on this one (see WaterViews: inside the ScrollView)
@@ -158,6 +162,8 @@ export function WaterScreen({ source, item, palette, onBack,
     // (T227) DFO's salmon year under the provincial bar, at the top (none where DFO has no salmon rules here); the Gear /
     // Methods tabs' closed line names its exception
     const salmonStrip = salmon.value ? salmonStripOf(salmon.value, regs.keep.strip) : null;
+    // (T227, owner 2026-10-28) Gear / Methods state no closure: shown only where game fish or salmon may be fished
+    const tabs = gearTabsFor(regs, gearAnyway, salmonStrip, salmon.value ?? null);
     return (
       <>
       {frame(null, (
@@ -178,8 +184,8 @@ export function WaterScreen({ source, item, palette, onBack,
                   }}
                   // Gear / Methods / Licence (T34/T35); each is null only outside B.C. (T42: no key, so the page has
                   // none and the Keep tab's foot line is the page)
-                  gear={regs.gear ? (a) => <GearTab vm={regs.gear!} palette={palette} actions={a} salmon={salmonStrip} /> : undefined}
-                  methods={regs.methods ? (a) => <MethodsTab vm={regs.methods!} palette={palette} actions={a} salmon={salmonStrip} /> : undefined}
+                  gear={tabs.gear ? (a) => <GearTab vm={tabs.gear!} palette={palette} actions={a} salmonGear={tabs.salmonGear} /> : undefined}
+                  methods={tabs.methods ? (a) => <MethodsTab vm={tabs.methods!} palette={palette} actions={a} /> : undefined}
                   licence={regs.licence ? (a) => <LicenceTab vm={regs.licence!} who={regs.who} palette={palette} actions={a} onWho={setWho} />
                     : undefined} />
       ))}

@@ -4,7 +4,7 @@
  * which blocks and every word are core's (methods.ts).
  */
 import { View } from "react-native";
-import { closedLinesWithSalmon, WORDS, type MethodsVM, type SalmonStripVM } from "@app/core";
+import { WORDS, type MethodsVM } from "@app/core";
 import { GUTTER, SPACE, type Palette } from "../theme";
 import { Boats } from "./Boats";
 import { ClosedNote } from "./ClosedNote";
@@ -13,17 +13,15 @@ import { ReferenceFold } from "./ReferenceFold";
 import { TabSection } from "./TabSection";
 import { WaysList } from "./WaysList";
 
-export function MethodsTab({ vm, palette, actions, referenceOpen = false, salmon = null }: {
+export function MethodsTab({ vm, palette, actions, referenceOpen = false }: {
   vm: MethodsVM; palette: Palette; actions: KeepActions;
-  /** (T227) the page's salmon bar: a closed day says it is game fish, and gives DFO's salmon answer */
-  salmon?: SalmonStripVM | null;
   /** the Reference fold's first state: closed (the prototype); a render test opens it to read the folded lines */
   referenceOpen?: boolean;
 }) {
   if (vm.closed !== null || vm.closedMore.length)
     return (
       <View testID="methods-tab" style={{ marginTop: SPACE.s2 }}>
-        {closedLinesWithSalmon([vm.closed, ...vm.closedMore], salmon).map((t, i) => (t ? <ClosedNote key={i} text={t} palette={palette} /> : null))}
+        {[vm.closed, ...vm.closedMore].map((t, i) => (t ? <ClosedNote key={i} text={t} palette={palette} /> : null))}
       </View>
     );
   return (

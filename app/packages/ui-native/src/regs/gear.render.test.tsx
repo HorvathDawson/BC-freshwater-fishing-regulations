@@ -113,11 +113,11 @@ describe("<GearTab> other states", () => {
     expect([screen.queryByRole("heading"), screen.queryByTestId("gear-bait"), screen.queryByTestId("gear-line-lines")]).toEqual([null, null, null]);
   });
 
-  it("(T227) closed, salmon release only that day: the sentence names game fish, then DFO's salmon answer", () => {
-    render(<GearTab vm={gearOf(vedder615)} palette={LIGHT} actions={{ onSheet() {}, onDay() {}, onTab() {}, onBook() {} }}
-                    salmon={{ status: "release", when: "today" } as never} />);
-    expect(screen.getByTestId("gear-tab").textContent)
-      .toBe("No fishing for game fish here until Jul 1.Salmon (DFO): release only today — see What you can keep.");
+  it("(T227) salmon gear: DFO's conditions under their head, above the day's gear; no closure sentence", () => {
+    render(<GearTab vm={gearOf(vedder1010)} palette={LIGHT} actions={{ onSheet() {}, onDay() {}, onTab() {}, onBook() {} }}
+                    salmonGear={{ lead: "For salmon (DFO)", lines: ["No natural bait allowed (Jan 1–Dec 31)"] }} />);
+    expect(screen.getByTestId("gear-salmon").textContent).toBe("For salmon (DFO)No natural bait allowed (Jan 1–Dec 31)");
+    expect(screen.getByTestId("gear-tab").textContent).not.toMatch(/No fishing/);
   });
 
   it("mutation pins: a lost value ⓘ, a dropped change or a reordered row fails the golden mount", () => {

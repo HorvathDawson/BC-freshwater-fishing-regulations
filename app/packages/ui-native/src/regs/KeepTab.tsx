@@ -41,7 +41,8 @@ export function KeepTab({ keep, dateLabel, palette, actions, images, glance = nu
   const lead = keep.order.findIndex((b) => !(b === "strip" || b === "inherited" || b === "banner" || (typeof b === "object" && "caveat" in b)));
   const tableAt = at >= 0 ? at : lead >= 0 ? lead : keep.order.length;
   const salmonBar = salmonStrip && (
-    <SalmonYearStrip key="salmon-strip" strip={salmonStrip} todayAt={keep.strip?.todayAt ?? 0} months={keep.strip?.months ?? []} palette={palette} />
+    <SalmonYearStrip key="salmon-strip" strip={salmonStrip} todayAt={keep.strip?.todayAt ?? 0} months={keep.strip?.months ?? []}
+                     dateLabel={dateLabel} palette={palette} />
   );
   return (
     <View testID="keep-tab" style={{ paddingBottom: 24 }}>

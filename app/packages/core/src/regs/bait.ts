@@ -81,9 +81,9 @@ export function allYearBan(bits365: readonly (number | null)[], items: readonly 
 }
 
 /** The Bait item, or null on a day the Gear tab draws no items. */
-export function buildBait(inp: RegsInputs, ctx: GearCtx): BaitVM | null {
+export function buildBait(inp: RegsInputs, ctx: GearCtx, anyway = false): BaitVM | null {
   const g = gearAnswer(inp);
-  if (!g || closedFoot(inp, ctx)) return null;
+  if (!g || (!anyway && closedFoot(inp, ctx))) return null;
   const items = baitItems(g);
   moveAllowances(items);
   const bits = bookBits(inp), dated = datedBans(bits, bookIndex(inp.day), inp.statics.strip);

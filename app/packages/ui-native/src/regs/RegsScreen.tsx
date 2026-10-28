@@ -172,7 +172,10 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
   // (T43) the pictures this page can show, credited at its foot (the app's whole list is the menu's Data sources page)
   const credits = useMemo(() => creditsFor(page), [page]);
 
-  const head = <RegsHeader header={page.header} palette={palette} tabs={store} onDate={onDate} onTab={toTab}
+  // (T227) a tab whose section is not drawn (Gear / Methods on a day nothing may be fished) is not offered
+  const header = useMemo(() => ({ ...page.header, tabs: page.header.tabs.filter((t) =>
+    (t.tab !== "gear" || !!gear) && (t.tab !== "methods" || !!methods)) }), [page.header, gear, methods]);
+  const head = <RegsHeader header={header} palette={palette} tabs={store} onDate={onDate} onTab={toTab}
                            side={layout === "desktop"} />;
   const sec = (tab: "gear" | "methods" | "licence", slot: Slot) => {
     const node = typeof slot === "function" ? slot(keepActions) : slot;
@@ -239,7 +242,7 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
       {swipe ? <ViewSwipe swipe={swipe} fill={false} still testId="view-swipe-regs-header">{head}</ViewSwipe> : head}
       {layout === "desktop" ? (
         <View testID="regs-columns" style={{ flex: 1, flexDirection: "row" }}>
-          <RegsSide header={page.header} store={store} palette={palette} onDate={onDate} onTab={toTab} />
+          <RegsSide header={header} store={store} palette={palette} onDate={onDate} onTab={toTab} />
           {pageScroll}
         </View>
       ) : pageScroll}

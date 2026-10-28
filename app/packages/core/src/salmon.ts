@@ -24,6 +24,9 @@
  */
 import { DAYS_BEFORE_MONTH, MONTHS } from "./calendar.generated";
 import { METHOD_WORDS, type MethodClass } from "./method";
+import type { GearVM, MethodsVM } from "./regs/model";
+import { BOOK_DAYS, fmtDay } from "./regs/strip";
+import { WORDS } from "./regs/words";
 
 export const SALMON_SPECIES = ["CH", "CO", "SK", "PK", "CM"] as const;
 export type SalmonSpecies = typeof SALMON_SPECIES[number];
@@ -299,14 +302,11 @@ export const SALMON_WORDS = {
   /** (T227, owner 2026-10-28) the season bars at the top of the Keep tab: the provincial bar's name beside the salmon one */
   barSalmon: "Salmon (DFO)",
   barGeneral: "Game fish (B.C. rules)",
-  barLegend: { open: "✓ open", release: "release only", varies: "differs along this part", check: "check DFO", closed: "✕ closed" } satisfies Record<SalmonBarStatus, string>,
-  barUnmapped: "not on the map yet",
-  /** (T227) the Gear / Methods tabs' closed line on a water whose salmon are not closed that day */
-  gearClosedGame: "No fishing for game fish here",
-  gearSalmon: (day: string, when: string | null) => `Salmon (DFO): ${day}${when ? ` ${when}` : ""} — see What you can keep.`,
+  barLegend: { open: "✓ open", release: "release only", unknown: "see Salmon below", closed: "✕ closed" },
+  /** (T227) the Gear tab's heads for DFO's gear conditions */
+  gearDfoLead: "For salmon (DFO)",
+  gearSalmonOnly: "Gear for salmon fishing: the B.C. gear rules below, and DFO's conditions",
   barDay: { open: "open", release: "release only", check: "check DFO", closed: "closed", varies: "differs along this part" } satisfies Record<SalmonBarStatus, string>,
-  /** (owner 2026-10-28) the one compact line for DFO places not drawn yet, under the one bar */
-  barUnplaced: (n: number) => `${n === 1 ? "1 DFO place here isn't" : `${n} DFO places here aren't`} on the map yet — check DFO`,
 } as const;
 
 function dateWords(iso: string): string {
@@ -629,58 +629,99 @@ function speciesStatusOn(f: SalmonFacts, chain: number, k: number, day: number):
   return runs ? (P.verdicts[at(runs, day)] ?? P.verdicts[0]!).s : "closed";
 }
 
+/** (T228) A rule line as the key compares it: case and spacing never make two regulations differ. */
+const normRule = (t: string) => t.toLowerCase().replace(/\s+/g, " ").trim();
+
 /**
- * (T227, for the map's section merging — owned elsewhere) A section's SALMON TIMELINE KEY: equal for two sections exactly
- * when DFO's year reads the same on both (every species' verdicts, the gear lines, the map status — partial coverage
- * included). Compare it beside the provincial key; never show it.
+ * (T227 / T228, the map's section merging) A section's SALMON KEY: equal for two sections exactly when DFO's REGULATIONS
+ * read the same on both, every day of the year — per species the verdict AND its rule content (the limit, sizes,
+ * hatchery-marked or wild, the gear and method conditions and the windows: the rule lines `t` and notices `n` DFO
+ * prints, normalised for case and spacing), the gear lines, the map status (partial coverage included). Resolved to
+ * CONTENT, never to the file's indexes, so "coho 2 a day" and "coho 4 a day, hatchery-marked only" differ though both
+ * are open, and a live feed laid over the release (`withLiveSalmon`) compares the same way. Compare it beside the
+ * provincial key; never show it.
  */
 export function salmonTimelineKey(f: SalmonFacts, sid: number): string {
-  const c = f.payload.chains[f.chainOf(sid)];
-  return c ? JSON.stringify([c.sp, c.g, c.m]) : "";
+  const P = f.payload, c = P.chains[f.chainOf(sid)];
+  if (!c) return "";
+  const runs = <T>(r: readonly number[], of: (i: number) => T) => r.map((x, k) => (k % 2 ? of(x) : x));
+  const verdict = (i: number) => {
+    const v = P.verdicts[i];
+    return v ? [v.s, normRule(v.t), v.n ? normRule(v.n) : null] : null;
+  };
+  const gear = (i: number) => (i < 0 ? null : (P.gears[i] ?? []).map(normRule));
+  return JSON.stringify([c.sp.map((r) => runs(r, verdict)), runs(c.g, gear), c.m]);
 }
 
-/** (T227) The salmon season bar block as drawn at the top of the Keep tab. */
+/** (T227) How a salmon bar day is drawn: the game-fish bar's own fills (open, release stripes, closed hatch), and
+ *  `unknown` — a plain neutral fill — for a day we cannot answer here (DFO's "to be determined", a DFO place not drawn
+ *  yet that answers otherwise, sections that differ); the Salmon row's details say why. */
+export type SalmonDrawn = "open" | "release" | "closed" | "unknown";
+const DRAWN: Readonly<Record<SalmonBarStatus, SalmonDrawn>> = { open: "open", release: "release", closed: "closed", check: "unknown", varies: "unknown" };
+
+/** (T227) The salmon year bar, drawn exactly as the game-fish bar is: its name, the day's word and next change, ONE bar
+ *  for the viewed part, the months and the legend. Every breakdown (species, DFO places, places not drawn yet) is in
+ *  the Salmon row's details. */
 export interface SalmonStripVM {
   readonly title: string;
-  /** the selected day's word ("Release only", "Check DFO" …) and its tone */
+  /** the selected day: its status, mark ("✓ " / "✕" / none) and word ("Release only", "Check DFO" …) */
   readonly status: SalmonBarStatus;
+  readonly mark: string;
   readonly word: string;
   /** the provincial bar's "today" / "on Oct 28", said after the word the same way */
   readonly when: string | null;
-  /** ONE bar: the viewed part / section */
-  readonly bar: SalmonBarVM;
-  /** "2 DFO places here aren't on the map yet — check DFO" (opens the list), else null */
-  readonly unplacedLine: string | null;
-  readonly unplaced: readonly SalmonUnplacedVM[];
+  /** the next change, as the game-fish bar says it ("Opens Nov 16" / "Closed from Nov 1"), else null */
+  readonly soon: { readonly kind: "soonOpen" | "soon"; readonly text: string } | null;
+  readonly runs: readonly { readonly drawn: SalmonDrawn; readonly days: number }[];
   /** the provincial bar's name, drawn above it when the salmon bar is shown */
   readonly generalTitle: string;
-  readonly legend: readonly { readonly status: SalmonBarStatus; readonly label: string }[];
+  readonly legend: readonly { readonly drawn: SalmonDrawn; readonly label: string }[];
 }
 
+const SOON_DAYS = 21;
+const bookDayWords = (i: number) => fmtDay(BOOK_DAYS[i]!);   // book day i (no Feb 29) → "Nov 16"
+
 /**
- * (T227, owner 2026-10-28: "make it clear AT THE TOP") The salmon bar under the provincial year bar, or null: none where
- * DFO has no salmon rules for the page (never an all-closed bar for a water without salmon), and none where every salmon
- * bar is closed all year and so is the provincial bar (the two say the same thing). `general`: the provincial year bar's
- * runs (null where the page draws none).
+ * (T227, owner 2026-10-28: "exactly like the game-fish bar") The salmon bar under the provincial year bar, or null: none
+ * where DFO has no salmon rules for the page (never an all-closed bar for a water without salmon), and none where the
+ * salmon bar is closed all year and so is the provincial bar (the two say the same thing). `general`: the provincial
+ * year bar (null where the page draws none); `todayAt` its marker (book day / 365).
  */
 export function salmonStripOf(card: SalmonCardVM, general: {
-  readonly runs: readonly { readonly bits: number | null }[]; readonly line: readonly { readonly kind: string; readonly text: string }[] } | null,
+  readonly runs: readonly { readonly bits: number | null }[]; readonly line: readonly { readonly kind: string; readonly text: string }[];
+  readonly todayAt?: number } | null,
 ): SalmonStripVM | null {
-  const bars = card.year.bars;
+  const bar = card.year.bars[0];
+  if (!bar) return null;
   const generalAllClosed = !!general && general.runs.every((r) => r.bits !== null && (r.bits & 1) === 1);
-  if (!bars.length) return null;
-  if (generalAllClosed && bars.every((b) => b.runs.every((r) => r.status === "closed"))) return null;
-  const bar = bars[0]!, un = card.year.unplaced;
-  const present = new Set(bar.runs.map((r) => r.status));
+  if (generalAllClosed && bar.runs.every((r) => r.status === "closed")) return null;
+  const runs: { drawn: SalmonDrawn; days: number }[] = [];
+  for (const r of bar.runs) {
+    const dr = DRAWN[r.status], last = runs[runs.length - 1];
+    if (last && last.drawn === dr) last.days += r.days; else runs.push({ drawn: dr, days: r.days });
+  }
+  const days = runs.flatMap((r) => Array.from({ length: r.days }, () => r.drawn));
+  const i = Math.round((general?.todayAt ?? 0) * BOOK_YEAR_DAYS);
+  let soon: SalmonStripVM["soon"] = null;
+  if (bar.today === "closed") {
+    for (let k = 1; k < BOOK_YEAR_DAYS; k++) {
+      const dr = days[(i + k) % BOOK_YEAR_DAYS];
+      if (dr === "open" || dr === "release") { soon = { kind: "soonOpen", text: WORDS.OPENS(bookDayWords((i + k) % BOOK_YEAR_DAYS)) }; break; }
+    }
+  } else if (bar.today === "open" || bar.today === "release") {
+    for (let k = 1; k <= SOON_DAYS; k++)
+      if (days[(i + k) % BOOK_YEAR_DAYS] === "closed") { soon = { kind: "soon", text: WORDS.CLOSED_FROM(bookDayWords((i + k) % BOOK_YEAR_DAYS)) }; break; }
+  }
+  const present = new Set(runs.map((r) => r.drawn));
   return {
-    title: SALMON_WORDS.barSalmon, status: bar.today, word: SALMON_WORDS.status[bar.today],
+    title: SALMON_WORDS.barSalmon, status: bar.today,
+    mark: bar.today === "open" || bar.today === "release" ? "✓ " : bar.today === "closed" ? "✕" : "",
+    word: SALMON_WORDS.status[bar.today],
     when: general?.line.find((l) => l.kind === "when")?.text ?? null,
-    bar,
-    unplacedLine: un.length ? SALMON_WORDS.barUnplaced(un.length) : null,
-    unplaced: un,
+    soon, runs,
     generalTitle: SALMON_WORDS.barGeneral,
-    legend: (["open", "release", "varies", "check", "closed"] as const).filter((s) => present.has(s))
-      .map((s) => ({ status: s, label: SALMON_WORDS.barLegend[s] })),
+    legend: (["open", "release", "unknown", "closed"] as const).filter((d) => present.has(d))
+      .map((d) => ({ drawn: d, label: SALMON_WORDS.barLegend[d] })),
   };
 }
 
@@ -697,15 +738,34 @@ export function salmonLegend(): readonly { readonly status: SalmonMapStatus; rea
   return SALMON_MAP_STATUSES.map((s) => ({ status: s, label: SALMON_WORDS.legend[s] }));
 }
 
+/** (T227) What the Gear and Methods tabs draw: each tab's VM (null: the tab is not shown) and DFO's gear conditions. */
+export interface GearTabsVM {
+  readonly gear: GearVM | null;
+  readonly methods: MethodsVM | null;
+  readonly salmonGear: { readonly lead: string; readonly lines: readonly string[] } | null;
+}
+
+const EMPTY_GEAR: GearVM = { closed: null, closedMore: [], day: null, mode: null, lines: [], bait: null };
+
 /**
- * (T227, owner 2026-10-28) THE GEAR / METHODS TABS' CLOSED LINES on a water whose salmon are not closed that day: the
- * provincial "No fishing here until Nov 16." is about game fish, so it says so, and a line after it gives DFO's salmon
- * answer for the part and day ("Salmon (DFO): release only today — see What you can keep."). Salmon closed, or no
- * salmon bar: the lines as they were.
+ * (T227, owner 2026-10-28) THE GEAR AND METHODS TABS STATE NO CLOSURE. They show gear and method rules only, and only
+ * when the viewed part may be fished that day in some way:
+ *  - the game-fish (B.C.) rules are open: the page's tabs, with DFO's gear conditions where salmon may be fished too;
+ *  - only salmon (DFO: open, release only, or "check DFO") may be: the day's book gear rules as if open (`gearIfFished`
+ *    — they apply to salmon fishing) and DFO's gear conditions;
+ *  - neither: no Gear and no Methods tab.
+ * Tidal and outside-B.C. pages keep their own tabs (they say whose rules hold, not a closure).
  */
-export function closedLinesWithSalmon(lines: readonly (string | null)[], s: SalmonStripVM | null): readonly (string | null)[] {
-  if (!s || s.status === "closed") return lines;
-  const prov = "No fishing here";
-  return [...lines.map((t) => (t && t.startsWith(prov) ? SALMON_WORDS.gearClosedGame + t.slice(prov.length) : t)),
-          SALMON_WORDS.gearSalmon(SALMON_WORDS.barDay[s.status], s.when)];
+export function gearTabsFor(page: { readonly status: string; readonly gear: GearVM | null; readonly methods: MethodsVM | null },
+                            anyway: { readonly gear: GearVM | null; readonly methods: MethodsVM | null } | null,
+                            strip: SalmonStripVM | null, card: SalmonCardVM | null): GearTabsVM {
+  if (page.status === "tidal" || page.status === "outside") return { gear: page.gear, methods: page.methods, salmonGear: null };
+  const salmonOpen = !!strip && strip.status !== "closed";
+  const dfo = card ? [...new Set([...card.gear, ...card.unmapped.flatMap((u) => u.block.gear)])] : [];
+  const salmonGear = salmonOpen && dfo.length ? { lead: SALMON_WORDS.gearDfoLead, lines: dfo } : null;
+  const gameOpen = !!page.gear && page.gear.closed === null && !page.gear.closedMore.length;
+  if (gameOpen) return { gear: page.gear, methods: page.methods, salmonGear };
+  if (salmonOpen) return { gear: anyway?.gear ?? EMPTY_GEAR, methods: anyway?.methods ?? null,
+                           salmonGear: { lead: SALMON_WORDS.gearSalmonOnly, lines: dfo } };
+  return { gear: null, methods: null, salmonGear: null };
 }

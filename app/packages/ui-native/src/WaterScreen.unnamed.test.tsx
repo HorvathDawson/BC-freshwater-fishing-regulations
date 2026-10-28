@@ -88,9 +88,9 @@ describe("(T53) <WaterScreen> for an unnamed reach: the store's page for the tap
       b.big.join("") + b.paras.join("") + b.chain.map((c) => `${c.text} ${c.scope}${WORDS.SOURCE}${plain(c.book)}`).join(""));
     expect(b.chain.map((c) => trib.includes(c.rule))).toEqual(b.chain.map(() => true));
     expect([b.big, b.chain.map((c) => c.rule.split("::")[0])]).toEqual([["Closed all year"], ["r1:harris_creek@1-3"]]);
-    // the four sections of the page, as for any water
+    // the sections of the page, as for any water — (T227) closed all year with no salmon: no Gear / Methods
     expect(within(screen.getByRole("tablist", { name: "Section" })).getAllByRole("tab").map((t) => t.textContent))
-      .toEqual(page.header.tabs.map((t) => t.label));
+      .toEqual(page.header.tabs.filter((t) => t.tab !== "gear" && t.tab !== "methods").map((t) => t.label));
   }, 30_000);
 
   it("an unnamed section on the region's base alone: no override, no tributary line, every rule the region's or the province's", async () => {
@@ -127,6 +127,7 @@ describe("(T53) <WaterScreen> for an unnamed reach: the store's page for the tap
     expect([within(screen.getByTestId("regs-header")).getByRole("heading").textContent, screen.getByTestId("regs-place").textContent,
             screen.queryByTestId("regs-action"), !!within(screen.getByTestId("regs-columns")).getByTestId("regs-reading"),
             page.header.tabs.map((t) => within(side).queryAllByText(t.label).length > 0)])
-      .toEqual([page.header.name, WORDS.TRIBUTARY_OF(HARRIS), null, true, [true, true, true, true]]);
+      // (T227) closed all year with no salmon: the side list offers no Gear / Methods
+      .toEqual([page.header.name, WORDS.TRIBUTARY_OF(HARRIS), null, true, [true, false, false, true]]);
   }, 30_000);
 });

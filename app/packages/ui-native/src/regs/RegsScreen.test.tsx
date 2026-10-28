@@ -85,8 +85,9 @@ describe("<RegsScreen>", () => {
     cleanup();
     mount({ gear: undefined, methods: undefined, licence: undefined });
     expect([...screen.getByTestId("regs-content").children].map((e) => e.getAttribute("data-testid"))).toEqual(["keep-tab", "regs-fish-credits"]);
+    // (T227, owner 2026-10-28) a Gear / Methods section not drawn (nothing may be fished that day) is not offered as a tab
     expect(within(screen.getByRole("tablist", { name: "Section" })).getAllByRole("tab").map((t) => t.textContent))
-      .toEqual(["What you can keep", "Gear", "Methods", "Licence"]);
+      .toEqual(["What you can keep", "Licence"]);
   });
 
   it("(T43) the foot credits the pictures THIS page shows, after Licence: \"FISH PICTURES\", then each line whole, not the app's 39", () => {

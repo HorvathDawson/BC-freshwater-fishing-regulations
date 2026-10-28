@@ -216,7 +216,7 @@ function FoldRow({ f, palette, images }: { f: GlanceFold; palette: Palette; imag
                    style={(st) => {
                      const lit = st.pressed || !!(st as { hovered?: boolean }).hovered || !!(st as { focused?: boolean }).focused;
                      return { flexDirection: "row", alignItems: "center", gap: 10, minHeight: 44, paddingVertical: 9, borderTopWidth: 1,
-                              borderTopColor: palette.line, backgroundColor: lit ? palette.wash : "transparent" };
+                              borderTopColor: palette.line, backgroundColor: lit ? palette.tint : "transparent" };
                    }}>
           <Thumb code={f.row.thumb} images={images} palette={palette} />
           <Text style={[TYPE.regsBodySemi, { color: palette.ink, flex: 1 }]}>{f.row.name}</Text>

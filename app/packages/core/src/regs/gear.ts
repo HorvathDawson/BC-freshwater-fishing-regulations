@@ -206,8 +206,9 @@ export function gearLines(g: GearAnswer, ctx: GearCtx): { mode: GearVM["mode"]; 
 }
 
 /** The Gear tab without Bait (T31 adds it; `buildRegsPage` composes). */
-export function buildGearTop(inp: RegsInputs, ctx: GearCtx): Omit<GearVM, "bait"> {
-  const foot = closedFoot(inp, ctx), g = gearAnswer(inp);
+export function buildGearTop(inp: RegsInputs, ctx: GearCtx, anyway = false): Omit<GearVM, "bait"> {
+  // (T227) `anyway`: the day's gear even on a day the game-fish rules close (salmon may be fished there)
+  const foot = anyway ? null : closedFoot(inp, ctx), g = gearAnswer(inp);
   if (foot || !g) return { closed: foot?.[0] ?? null, closedMore: foot?.slice(1) ?? [], day: null, mode: null, lines: [] };
   return { closed: null, closedMore: [], day: dayLine(ctx), ...gearLines(g, ctx) };
 }

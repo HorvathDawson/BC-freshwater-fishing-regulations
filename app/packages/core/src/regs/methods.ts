@@ -127,8 +127,8 @@ export function referenceVM(g: GearAnswer, ctx: GearCtx & { readonly statics: Re
 }
 
 /** The Methods tab. */
-export function buildMethods(inp: RegsInputs, ctx: GearCtx): MethodsVM {
-  const foot = closedFoot(inp, ctx), g = gearAnswer(inp);
+export function buildMethods(inp: RegsInputs, ctx: GearCtx, anyway = false): MethodsVM {
+  const foot = anyway ? null : closedFoot(inp, ctx), g = gearAnswer(inp);
   if (foot || !g) return { closed: foot?.[0] ?? null, closedMore: foot?.slice(1) ?? [], ways: null, boats: null, reference: null };
   const chips = wayChips(g, { ...ctx, species: inp.statics.exportSpecies, exportConduct: inp.statics.exportConduct });
   return { closed: null, closedMore: [], ways: waysVM(chips, ctx), boats: boatsVM(g, ctx), reference: referenceVM(g, { ...ctx, statics: inp.statics }) };

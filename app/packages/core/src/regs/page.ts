@@ -10,7 +10,7 @@
 import { buildModel } from "./card";
 import { buildBait } from "./bait";
 import { boatsLine } from "./boats";
-import { buildGearTop, gearCtxOf } from "./gear";
+import { buildGearTop, gearAnswer, gearCtxOf } from "./gear";
 import { buildMethods } from "./methods";
 import { edgeKind } from "./edge";
 import { FISH, type FishManifest } from "./fish.generated";
@@ -64,4 +64,16 @@ export function buildRegsPage(inp: RegsInputs, opts: RegsPageOpts): RegsPage {
   };
   // T36: lazy and pure over the same inputs (a sheet is built when it is opened)
   return { ...page, sheet: (key: SheetKey) => sheetOf({ inp, page, today: opts.today, env }, key) };
+}
+
+/**
+ * (T227, owner 2026-10-28) THE GEAR AND METHODS TABS ON A DAY THE GAME-FISH RULES CLOSE: the day's book gear rules as if
+ * the water were open — they apply to salmon fishing there (owner: "bait and fly rules also apply to salmon"). Null
+ * outside B.C., on tidal water, or where the day has no gear answer. `gearTabsFor` decides whether they are shown.
+ */
+export function gearIfFished(inp: RegsInputs, today: Day): { readonly gear: RegsPage["gear"]; readonly methods: RegsPage["methods"] } | null {
+  const edge = edgeKind(inp);
+  if (edge === "outside" || edge === "tidal" || !gearAnswer(inp)) return null;
+  const gctx = gearCtxOf(inp, { today, banner: null });
+  return { gear: { ...buildGearTop(inp, gctx, true), bait: buildBait(inp, gctx, true) }, methods: buildMethods(inp, gctx, true) };
 }
