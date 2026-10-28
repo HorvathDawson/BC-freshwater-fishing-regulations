@@ -54,6 +54,9 @@ export interface NavPart {
   /** (T204) Which stretch of its part this is (0 first, mouth up), and how many its part has; absent: one. */
   readonly stretch?: number;
   readonly stretches?: number;
+  /** (T228) For a stretch: its whole part's frame (`part_geo`), which a piece joined back into the whole part takes. */
+  readonly partBox?: Bbox | null;
+  readonly partMid?: readonly [number, number] | null;
 }
 
 /** (T207) How sure the curator is of where a cut stands — pipeline `models.splits.CONFIDENCE`; absent is high. */
@@ -169,11 +172,12 @@ export function waterGroup(all: readonly ItemNavRows[]): WaterGroup {
       const count = new Map<number, number>();
       for (const s of st) count.set(s.partIx, (count.get(s.partIx) ?? 0) + 1);
       for (const s of [...st].sort((a, b) => a.rank - b.rank || a.partIx - b.partIx || a.stretch - b.stretch)) {
-        const p = facts.get(s.partIx)!;
+        const p = facts.get(s.partIx)!, whole = geo.get(s.partIx);
         at.set(`${i.ord}:${s.partIx}:${s.stretch}`, parts.length);
         parts.push({ item: i.item, itemName: i.name, kind: i.kind, partIx: s.partIx, rank: s.rank,
                      label: p.label, short: p.short, box: s.box, mid: s.mid,
-                     sids: [...s.sids].sort((a, b) => a - b), stretch: s.stretch, stretches: count.get(s.partIx)! });
+                     sids: [...s.sids].sort((a, b) => a - b), stretch: s.stretch, stretches: count.get(s.partIx)!,
+                     ...(whole ? { partBox: whole.box, partMid: whole.mid } : {}) });
       }
       // a part the stretch rows miss (none should): after them, whole
       for (const p of i.parts) if (!count.has(p.partIx)) {
@@ -267,9 +271,13 @@ export function mergeNav(g: WaterGroup, salmonKey: ((sid: number) => string) | n
       const b = g.parts[i]!.box;
       if (b) box = box ? [Math.min(box[0], b[0]), Math.min(box[1], b[1]), Math.max(box[2], b[2]), Math.max(box[3], b[3])] : b;
     }
-    const { stretch: _s, stretches: _n, ...base } = p;
-    return { ...base, box: box ?? p.box, sids: [...new Set(gr.flatMap((i) => g.parts[i]!.sids))].sort((a, b) => a - b),
-             ...(c > 1 ? { stretch: at, stretches: c } : {}) };
+    const { stretch: _s, stretches: _n, partBox, partMid, ...base } = p;
+    const sids = [...new Set(gr.flatMap((i) => g.parts[i]!.sids))].sort((a, b) => a - b);
+    // the whole part again: its own frame (`part_geo`), as before the cut
+    if (c === 1 && gr.length > 1 && partBox !== undefined)
+      return { ...base, box: partBox ?? box ?? p.box, mid: partMid ?? p.mid, sids };
+    return { ...base, box: box ?? p.box, sids, ...(c > 1 ? { stretch: at, stretches: c } : {}),
+             ...(partBox !== undefined ? { partBox, partMid } : {}) };
   });
   const marks: NavMark[] = [];
   const had = new Set<string>();
