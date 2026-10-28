@@ -257,34 +257,31 @@ describe("the runtime uses the feature id, not just names it", () => {
   };
 
   /*
-   * EVERY AREA LAYER THAT DECLARES AN ID IS PROMOTED ON THE WEB; THE SECTIONS ARE NOT (T202, owner 2026-10-27).
-   *
-   * A section's id is its MVT feature id (`pipeline/tests/test_tile_mvt_ids.py`) and the tiles no longer repeat it as a
-   * `section_id` property. GL JS reads the MVT id as `feature.id` for any source-layer it does not promote, so promoting
-   * the sections would now lift an absent property and leave every section with no id: no colour, no tap.
+   * THE ATLAS PROMOTES NOTHING (T202, owner 2026-10-27). A section's id is its MVT feature id
+   * (`pipeline/tests/test_tile_mvt_ids.py`), and the tiles no longer repeat it as a `section_id` property. An OBJECT
+   * `promoteId` is applied by GL JS to EVERY source-layer of the source — one not listed reads `properties[undefined]`
+   * and loses its MVT id — so promoting the area layers alone left every stream with `id: undefined`: no colour, no tap.
+   * The area layers on the atlas are static (no feature-state), as on the phone, which never had a promoteId.
    */
-  it("promotes a property for every atlas area layer that declares one", () => {
-    const promote = style.sources.atlas?.promoteId ?? {};
+  it("the atlas source carries no promoteId, so every section keeps its MVT id", () => {
+    expect(style.sources.atlas?.promoteId).toBeUndefined();
     for (const [layerId, prop] of Object.entries(STYLE_META.featureIds)) {
-      const layer = MAP_STYLE.layers.find((l) => l.id === layerId);
-      if (!layer || (layer as { source?: string }).source !== "atlas") continue;   // declared but not drawn here
-      const sourceLayer = (layer as { "source-layer"?: string })["source-layer"] ?? layerId;
-      if (contract.layers[sourceLayer]?.mvtId) continue;
-      expect(promote[sourceLayer],
-             `${layerId}: nothing promotes "${prop}", so feature.id is undefined — ` +
-             `setFeatureState addresses nothing and a tap returns no id`).toBe(prop);
+      const layer = MAP_STYLE.layers.find((l) => l.id === layerId) as { source?: string } | undefined;
+      if (layer?.source !== "atlas" || prop === "section_id") continue;
+      // an area layer on the atlas may name an id (its values reach the style), but nothing may key feature-state on it
+      const modes = Object.values(STYLE_META.colorModes[layerId] ?? {}) as { scale?: string }[];
+      expect(modes.every((m) => m.scale === "static"), `${layerId} needs feature-state but its id is not promoted`)
+        .toBe(true);
     }
   });
 
-  it("the sections are never promoted: their id is the MVT id, on exactly these source-layers", () => {
-    const promote = style.sources.atlas?.promoteId ?? {};
+  it("the sections' id is the MVT id, on exactly these source-layers", () => {
     const mvt = Object.entries(contract.layers)
       .filter(([, l]) => (l as { mvtId?: boolean }).mvtId).map(([n]) => n).sort();
     expect(mvt).toEqual(["lake", "stream", "wetland"]);
     for (const n of mvt) {
       expect(contract.layers[n]!.featureId, n).toBe("section_id");
       expect(contract.layers[n]!.attrs, n).not.toContain("section_id");
-      expect(promote[n], n).toBeUndefined();
     }
   });
 

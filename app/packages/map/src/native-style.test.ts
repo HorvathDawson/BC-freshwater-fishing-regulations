@@ -38,7 +38,7 @@ describe("the native style", () => {
 
   it("promotes nothing: MapLibre Native ignores promoteId, a section is its MVT id", () => {
     const web = runtimeStyle(AT, "light") as unknown as S;
-    expect(web.sources.atlas!.promoteId).toBeDefined();          // the web keeps the area layers' promotion
+    expect(web.sources.atlas!.promoteId).toBeUndefined();        // T202: the web promotes nothing on the atlas either
     const s = nativeStyle(base).style as unknown as S;
     expect(Object.keys(s.sources.atlas!).includes("promoteId")).toBe(false);
   });

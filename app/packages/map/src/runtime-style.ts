@@ -158,29 +158,16 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
           '<a href="https://www2.gov.bc.ca/gov/content/data/open-data">Province of British ' +
           "Columbia</a> \u00b7 Freshwater Atlas &amp; Freshwater Fishing Synopsis",
         /**
-         * WITHOUT AN ID NOTHING WORKS, and nothing says so.
+         * NO `promoteId` ON THE ATLAS (T202, owner 2026-10-27). A section's id is its MVT feature id (P18,
+         * `pipeline/tests/test_tile_mvt_ids.py`); the tiles no longer repeat it as a `section_id` property (18 MB).
          *
-         * A feature with no `feature.id` cannot take feature-state — every colour-by-rule silently fails — and a tap
-         * on it returns no id, so a TAP NEVER OPENS A SHEET. No error is raised at any point.
-         *
-         * MapLibre does not lift a tile property into `feature.id` on its own, which is what `promoteId` is for. Built
-         * from `STYLE_META.featureIds` rather than typed here, so the property named in `layers.source.json` and the
-         * property MapLibre promotes cannot disagree.
-         *
-         * THE SECTIONS ARE NOT PROMOTED (T202, owner 2026-10-27). A section's id is its MVT feature id (P18,
-         * `pipeline/tests/test_tile_mvt_ids.py`) and the tiles no longer repeat it as a `section_id` property — that copy
-         * was 18 MB of the archive. GL JS reads the MVT id as `feature.id` for any source-layer it does not promote, so
-         * both renderers name a section by the same integer, exactly as the phone always has (`nativeStyle` drops this
-         * object). Only the area layers, whose ids are strings and cannot be MVT ids, are promoted.
+         * AND AN OBJECT `promoteId` PROMOTES EVERY SOURCE-LAYER, listed or not: GL JS's `getId` reads
+         * `feature.properties[promoteId[sourceLayer]]` whenever the source has a promoteId, so a layer missing from the
+         * object gets `properties[undefined]` — `id: undefined`, no feature-state, no tap (shipped that way once, T202).
+         * The area layers on this source are drawn static and take no feature-state (their ids reach the style as
+         * values, `areaData`, exactly as on the phone, whose `nativeStyle` has never carried this), so the atlas
+         * promotes nothing and every feature keeps its MVT id. The basins and the units read their own sources.
          */
-        promoteId: Object.fromEntries(
-          Object.entries(STYLE_META.featureIds)
-            .filter(([layerId, prop]) => prop !== "section_id" && MAP_STYLE.layers.some((l) => l.id === layerId))
-            .map(([layerId, prop]) => [
-              (MAP_STYLE.layers.find((l) => l.id === layerId) as
-                 { "source-layer"?: string })["source-layer"] ?? layerId,
-              prop,
-            ])),
       },
       /*
        * THE FIELD'S OWN SOURCE: the same archive, stopped at the last zoom it carries basins at, so MapLibre overzooms
