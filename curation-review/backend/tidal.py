@@ -114,10 +114,40 @@ def _pt(coord, sid: str, label: str, *, to_verify: bool, item_id: str | None, ki
                            "kind": kind}}
 
 
+#: the short map label of each alternate kind
+ALT_WORD = {"words": "words", "polygon": "polygon", "mouth": "FWA mouth", "dem": "DEM limit", "proposed": "proposal"}
+
+
+def alternates(r: dict) -> list[dict]:
+    """EVERY POINT THE OWNER CAN SWITCH TO (owner 2026-10-27, "in the app I can't switch points"): the
+    candidate's `alternates` (`pipeline.tools.audit.tidal_words`: the words' landmark(s), each polygon
+    crossing with the uppermost marked, the FWA mouth, the DEM limit), the DEM one refreshed from the
+    live pre-verify file. [] for a file written before tidal_words ran."""
+    alts = [dict(a) for a in r.get("alternates") or []]
+    pv = preverify._items("tidal").get(r["id"]) or {}
+    if pv.get("dem_limit_m") is not None and pv.get("dem_coord"):
+        m0 = float(r["mouth"]["measure"])
+        dem = {"id": "dem0", "kind": "dem", "label": f"DEM tidal limit (pre-verify: streambed above {pv.get('threshold_m', 4)} m)",
+               "measure": round(m0 + float(pv["dem_limit_m"]), 1), "above_mouth_m": round(float(pv["dem_limit_m"]), 1),
+               "coord": pv["dem_coord"], "status": pv.get("status"), "why": pv.get("why"),
+               "proposed": abs(m0 + float(pv["dem_limit_m"]) - float(r["proposed"]["measure"])) < 1}
+        alts = [a for a in alts if a["kind"] != "dem"] + [dem]
+    return alts
+
+
 def points(r: dict) -> dict:
-    """The candidate's labelled map points: the PROPOSED cut (amber), the polygon's crossing, the
-    FWA mouth, and every word source located on the line."""
+    """The candidate's labelled map points: every ALTERNATE (split_id `alt:<id>`, clicking one switches
+    the point; the proposal amber), or — a file without alternates — the PROPOSED cut, the polygon's
+    crossing, the FWA mouth, and every word source located on the line."""
     item = (r.get("items") or [None])[0]
+    alts = alternates(r)
+    if alts:
+        return {"type": "FeatureCollection", "unplaced": [], "features": [
+            _pt(a["coord"], f"alt:{a['id']}",
+                f"{'PROPOSED · ' if a.get('proposed') else ''}{ALT_WORD.get(a['kind'], a['kind'])}"
+                f"{' (uppermost)' if a.get('uppermost') else ''} · {a['above_mouth_m']:.0f} m",
+                to_verify=bool(a.get("proposed")), item_id=item, kind=a["kind"])
+            for a in alts if a.get("coord")]}
     pr, poly, mouth = r["proposed"], r["polygon"], r["mouth"]
     feats = [_pt(pr["coord"], f"{r['id']}:proposed", f"PROPOSED {pr['split_name']}", to_verify=True,
                  item_id=item, kind="proposed")]
@@ -191,7 +221,7 @@ def detail(cid: str) -> dict | None:
         items.append({"id": iid, "name": it.name if it else iid, "kind": it.kind if it else None,
                       "mus": list(it.mus)[:4] if it else []})
     return reuse._json_safe({
-        "row": _row(r, m), "candidate": r, "items": items, "points": points(r),
+        "row": _row(r, m), "candidate": r, "items": items, "points": points(r), "alternates": alternates(r),
         "mark": ({**json.loads(m.model_dump_json()), **v} if m is not None else None),
     })
 
@@ -219,6 +249,22 @@ def _snap(r: dict, coord) -> dict:
         raise ValueError(f"the point is {s['distance_m']:.0f} m from {r['water']}: click on the stream")
     return {"blk": s["blk"], "measure": s["measure"], "distance_m": s["distance_m"],
             "coord": tuple(dfo._lonlat(s["point"])), "on_item": dfo._item_of(s["node"], items)}
+
+
+def snap(cid: str, coord) -> dict | None:
+    """A clicked (lon, lat) snapped to the candidate's stream, for the click-to-place point (read
+    only; `mark_for` snaps again when the mark is recorded). None: no such candidate."""
+    r = T.candidate(cid)
+    if r is None:
+        return None
+    try:
+        s = _snap(r, coord)
+    except ValueError as e:
+        return {"error": str(e)}
+    above = (round(s["measure"] - float(r["mouth"]["measure"]), 1)
+             if str(s["blk"]) == str(r["blk"]) else None)
+    return {"coord": list(s["coord"]), "blk": s["blk"], "measure": s["measure"], "above_mouth_m": above,
+            "distance_m": s["distance_m"], "on_item": s["on_item"]}
 
 
 def mark_for(body: dict, *, date: str, pdf_sha256: str):

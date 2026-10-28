@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api, type EntryRefused } from "../api";
 import type {
-  CheckAnswer, EntrySplits, Mode, NewSplit, TidalCandidate, TidalDetail, TidalProgress, TidalRow,
+  CheckAnswer, EntrySplits, Mode, NewSplit, TidalAlternate, TidalCandidate, TidalDetail, TidalProgress, TidalRow,
 } from "../types";
 import { getReviewer, isTyping, setReviewer } from "../review";
 import { MapPanel } from "./MapPanel";
@@ -46,6 +46,29 @@ export function acceptSplit(c: TidalCandidate): NewSplit {
     coord: c.proposed.coord, quote: words.join(" | ").slice(0, 2000),
     note: (ru ? `reuses curated split ${ru.split_id} (${ru.distance_m} m from the tidal point), no new cut; ` : "")
       + (c.proposed.aliases.length ? `aliases: ${c.proposed.aliases.join("; ")}` : ""),
+  };
+}
+
+/** what each switchable point is, in words */
+export const ALT_KIND: Record<TidalAlternate["kind"], string> = {
+  words: "the words' landmark", polygon: "polygon crossing", mouth: "FWA mouth", dem: "DEM tidal limit",
+  proposed: "the proposal",
+};
+
+/** SWITCH THE POINT (owner 2026-10-27): the new split one alternate pre-fills — the proposal's own
+ *  split (reuse and all) when it is the proposed one, else a cut at that point named for what it is.
+ *  Pure — "Record mark" stays the only write. */
+export function altSplit(c: TidalCandidate, a: TidalAlternate): NewSplit {
+  if (a.proposed) return acceptSplit(c);
+  const landmark = a.kind === "words" && a.words ? a.words.split(": ").pop()!.slice(0, 60) : null;
+  const name = landmark ? `${c.water}: ${landmark} (tidal boundary)`
+    : a.kind === "mouth" ? `${c.water}: mouth (tidal boundary)` : `${c.water}: tidal boundary`;
+  const base = acceptSplit(c);
+  return {
+    ...base, anchor: "coord", split_id: null, name, coord: a.coord,
+    note: `the owner switched to ${ALT_KIND[a.kind]}: ${a.label} (${Math.round(a.above_mouth_m)} m above the FWA mouth`
+      + `${a.located_by ? `; ${a.located_by}` : ""}) from the proposed ${c.proposed.split_name}`
+      + (c.proposed.aliases.length ? `; aliases: ${c.proposed.aliases.join("; ")}` : ""),
   };
 }
 
@@ -242,6 +265,11 @@ function TidalCandidateView({ detail, mode, nav, onMarked }: {
   const [split, setSplit] = useState<NewSplit | null>(null);
   const [accepted, setAccepted] = useState("");
   const [picking, setPicking] = useState(false);
+  const alts = useMemo(() => detail.alternates ?? [], [detail.alternates]);
+  // the point the owner switched to (an alternate's id, or "custom"); null until he picks one —
+  // the map opens on the proposal's point meanwhile
+  const [chosen, setChosen] = useState<string | null>(null);
+  const focus = chosen ?? alts.find((a) => a.proposed)?.id ?? null;
   const [edge, setEdge] = useState<GeoJSON.FeatureCollection | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
@@ -254,19 +282,43 @@ function TidalCandidateView({ detail, mode, nav, onMarked }: {
   }, [c.id]);
 
   function accept() {
+    const pa = alts.find((a) => a.proposed);
+    if (pa) { choose(pa); return; }
     setSplit(acceptSplit(c));
     setAnswerP("y");
     setAccepted("proposal pre-filled: Place y with the cut as a new split — check it, then Record mark (nothing is saved yet)");
+  }
+  /** SWITCH TO ONE ALTERNATE: pre-fills the mark with it (the proposal: Place y; any other: Place n,
+   *  "split misplaced", that point as the cut) — nothing is saved until Record mark */
+  function choose(a: TidalAlternate) {
+    setChosen(a.id);
+    setPicking(false);
+    setSplit(altSplit(c, a));
+    if (a.proposed) {
+      setAnswerP("y");
+      setProblem("");
+      setAccepted(`proposal pre-filled: Place y, the cut at ${ALT_KIND[a.kind]} (${Math.round(a.above_mouth_m)} m above the mouth) — check it, then Record mark (nothing is saved yet)`);
+    } else {
+      setAnswerP("n");
+      setProblem("split misplaced");
+      setAccepted(`switched to ${ALT_KIND[a.kind]} (${Math.round(a.above_mouth_m)} m above the mouth): Place n (the proposal is misplaced) with this point as the cut — Record mark to save`);
+    }
   }
   function pickPoint() {
     setPicking(true);
   }
   const onPick = picking ? (ll: [number, number]) => {
     setPicking(false);
-    setSplit({ ...acceptSplit(c), anchor: "coord", split_id: null, coord: ll, note: `moved by the reviewer from the proposed ${c.proposed.coord.join(", ")}` });
-    setAnswerP((a) => (a === "y" ? "n" : a ?? "n"));
-    setProblem((p) => p || "split misplaced");
-    setAccepted("your point is the cut — Place n (the proposal is misplaced) with your point as the new split");
+    api.tidalSnap(c.id, ll).then((sn) => {
+      setChosen("custom");
+      setSplit({ ...acceptSplit(c), anchor: "coord", split_id: null, coord: sn.coord, name: `${c.water}: tidal boundary`,
+                 note: `placed by the reviewer (snapped ${Math.round(sn.distance_m)} m to the stream`
+                   + `${sn.above_mouth_m != null ? `, ${Math.round(sn.above_mouth_m)} m above the FWA mouth` : ""}) from the proposed ${c.proposed.split_name}` });
+      setAnswerP("n");
+      setProblem((p) => p || "split misplaced");
+      setAccepted(`your point is the cut (snapped ${Math.round(sn.distance_m)} m to the stream`
+        + `${sn.above_mouth_m != null ? `, ${Math.round(sn.above_mouth_m)} m above the mouth` : ""}) — Place n (the proposal is misplaced) with your point as the new split`);
+    }).catch(() => setErrors([`that point is not on ${c.water} (more than 500 m from it): click on the stream`]));
   } : null;
 
   // the map's points: the candidate's (proposed / polygon / mouth / located words), the pending cut, the mark in force's
@@ -274,14 +326,14 @@ function TidalCandidateView({ detail, mode, nav, onMarked }: {
     ...detail.points,
     features: [
       ...detail.points.features,
-      ...(split?.coord ? [{
+      ...(split?.coord && chosen === "custom" ? [{
         type: "Feature" as const, geometry: { type: "Point" as const, coordinates: split.coord },
-        properties: { split_id: "tidal:new", label: `NEW ${split.name ?? "tidal boundary"}`, water: "",
+        properties: { split_id: "tidal:new", label: `YOUR POINT ${split.name ?? "tidal boundary"}`, water: "",
                       name: `NEW ${split.name ?? ""}`, rules: ["extent"], parts: [], to_verify: true, grade: null,
                       item_id: split.on_item ?? null },
       }] : []),
     ],
-  }), [detail.points, split]);
+  }), [detail.points, split, chosen]);
   const savedFc: GeoJSON.FeatureCollection | null = useMemo(() => {
     const pts = (was?.new_splits ?? []).filter((n) => n.coord);
     return pts.length ? { type: "FeatureCollection", features: pts.map((n) => ({
@@ -352,15 +404,49 @@ function TidalCandidateView({ detail, mode, nav, onMarked }: {
             <div className="ext-row">
               <span className="k" style={{ color: "#d97706" }}>proposed</span>
               <span data-testid="tidal-proposal-words"><strong>{c.proposed.split_name}</strong>
-                {" "}— {c.proposed.above_mouth_m > 75 ? `${Math.round(c.proposed.above_mouth_m)} m above the FWA mouth` : "at the FWA mouth"}
+                {" "}— {c.words_point || c.proposed.above_mouth_m > 75 ? `${Math.round(c.proposed.above_mouth_m)} m above the FWA mouth` : "at the FWA mouth"}
                 {" "}(measure {c.proposed.measure.toFixed(0)} m; {c.proposed.coord[1].toFixed(5)}, {c.proposed.coord[0].toFixed(5)})</span>
               <button type="button" className="btn small primary" data-testid="tidal-accept" onClick={accept}
                 title="pre-fills the mark below (a) — nothing is saved until you press Record mark">accept proposal</button>
             </div>
             <div className="ext-row dim" style={{ fontSize: 12 }}>from {c.proposed.basis} · {c.why}</div>
             {c.proposed.aliases.length > 0 && <div className="ext-row dim" style={{ fontSize: 12 }}>aliases: {c.proposed.aliases.join(" · ")}</div>}
+            {c.proposed_before_words && Math.abs(c.proposed_before_words.measure - c.proposed.measure) >= 1 && (
+              <div className="ext-row dim" style={{ fontSize: 12 }} data-testid="tidal-moved">moved by the words from
+                {" "}{Math.round(c.proposed_before_words.above_mouth_m)} m ({c.proposed_before_words.basis}) — owner 2026-10-27: the words win</div>)}
             {accepted && <div className="ext-row notice" role="status" data-testid="tidal-accepted">{accepted}</div>}
           </div>
+
+          {alts.length > 0 && (
+            <div className="section" data-testid="tidal-alternates">
+              <div className="scope-head"><h3>Switch the point</h3>
+                <span className="dim">click one (here or on the map) to pre-fill the mark with it · or place your own</span></div>
+              {alts.map((a) => (
+                <label key={a.id} className={`ext-row alt-row${chosen === a.id ? " on" : ""}`} data-testid={`tidal-alt-${a.id}`}
+                  style={{ cursor: a.coord ? "pointer" : "default", alignItems: "baseline" }}>
+                  <input type="radio" name={`alt-${c.id}`} checked={chosen === a.id} disabled={!a.coord}
+                    onChange={() => choose(a)} />
+                  <span className="k" style={{ minWidth: 120 }}>{ALT_KIND[a.kind]}{a.uppermost ? " ↑" : ""}</span>
+                  <span style={{ flex: 1 }}>
+                    <strong>{Math.round(a.above_mouth_m)} m</strong> above the mouth
+                    {a.proposed && <span className="chip-tag suggested" style={{ marginLeft: 6 }}>proposed</span>}
+                    {a.supported && <span className="chip-tag new" style={{ marginLeft: 6 }} data-testid="tidal-supported">the words say so</span>}
+                    {a.kind === "dem" && a.status && <span className="chip-tag" style={{ marginLeft: 6 }}>{a.status}</span>}
+                    <span className="dim" style={{ fontSize: 12 }}> · {a.label}{a.located_by ? ` · ${a.located_by}` : ""}</span>
+                  </span>
+                </label>
+              ))}
+              <div className="ext-row">
+                <label className="ext-row" style={{ gap: 6 }}>
+                  <input type="radio" name={`alt-${c.id}`} checked={chosen === "custom"} disabled={!c.items.length}
+                    onChange={() => pickPoint()} data-testid="tidal-alt-custom" />
+                  <span className="k" style={{ minWidth: 120 }}>your point</span>
+                  <span className="dim">{picking ? "click the stream on the map… (snapped to it)" : chosen === "custom" && split?.coord
+                    ? `${split.coord[1].toFixed(5)}, ${split.coord[0].toFixed(5)} (snapped to the stream)` : "click to place a point on the stream"}</span>
+                </label>
+              </div>
+            </div>
+          )}
 
           <div className="section entry-scope" data-testid="tidal-polygon">
             <div className="scope-head"><h3>The polygon</h3>
@@ -439,7 +525,7 @@ function TidalCandidateView({ detail, mode, nav, onMarked }: {
               {split ? <>
                 <span className="chip-tag new">{split.ref}</span>
                 <span>{split.name} at {split.coord?.[1].toFixed(5)}, {split.coord?.[0].toFixed(5)}</span>
-                <button type="button" className="btn small" onClick={() => setSplit(null)}>remove</button>
+                <button type="button" className="btn small" onClick={() => { setSplit(null); setChosen(null); }}>remove</button>
               </> : <span className="dim">no cut in the mark yet — accept the proposal, or click your own point</span>}
               <button type="button" className={`btn small${picking ? " primary" : ""}`} data-testid="tidal-pick"
                 disabled={!c.items.length} onClick={() => (picking ? setPicking(false) : pickPoint())}>
@@ -466,12 +552,18 @@ function TidalCandidateView({ detail, mode, nav, onMarked }: {
         </div>
         <div className="detail-map">
           <div className="dim" style={{ fontSize: 12, marginBottom: 4 }}>
-            amber: the PROPOSED cut and any NEW point ·{" "}
+            amber: the PROPOSED cut · ringed: the point you switched to (click any point to switch) ·{" "}
             <span style={{ color: "#7c3aed" }}>violet dashed: the tidal polygon's edge</span> ·{" "}
             <span style={{ color: "#0d9488" }}>teal: your mark's cut</span> · labels: polygon edge, FWA mouth, located words
           </div>
           <MapPanel itemId={c.items[0] ?? null} alsoItemIds={c.items.slice(1)} namedSplits={named}
-            suggested={edge} saved={savedFc} onPick={onPick} />
+            suggested={edge} saved={savedFc} onPick={onPick}
+            selectedSplitId={focus === "custom" ? "tidal:new" : focus ? `alt:${focus}` : null}
+            onSelectSplit={(sid) => {
+              const a = sid?.startsWith("alt:") ? alts.find((x) => `alt:${x.id}` === sid) : undefined;
+              if (a && a.coord) choose(a);
+            }}
+            selectZoom={15} fitNamed={alts.length === 0} />
         </div>
       </div>
     </div>

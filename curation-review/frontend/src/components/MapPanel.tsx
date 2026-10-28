@@ -45,6 +45,11 @@ interface Props {
   /** DFO: the SUGGESTED extent (never applied) — its points and, when it resolves, its reach;
    *  drawn violet and dashed, under the saved extent */
   suggested?: GeoJSON.FeatureCollection | null;
+  /** the zoom the map flies to (at least) when a split is selected; default 12 */
+  selectZoom?: number;
+  /** false: never widen the view to hold every named split — fly to the selected one instead
+   *  (Tidal: the alternates sit km apart and the owner switches between them) */
+  fitNamed?: boolean;
   /** T191: while set, a map click is a NEW split point (lon, lat) for the extent-fix editor */
   onPick?: ((lnglat: [number, number]) => void) | null;
 }
@@ -141,8 +146,10 @@ export function MapPanel({
   itemId, alsoItemIds = [], referencedSplitIds = [], unusedSplitIds = [], selectedSplitId = null,
   onSelectSplit, reloadKey = 0, focusItemId = null,
   reaches = null, rules = [], reachOf = {}, entryId = null, namedSplits = null, showRule,
-  preview = null, saved = null, suggested = null, onPick = null,
+  preview = null, saved = null, suggested = null, onPick = null, selectZoom = 12, fitNamed = true,
 }: Props) {
+  const selectedRef = useRef(selectedSplitId);
+  selectedRef.current = selectedSplitId;
   const picking = useRef(onPick);
   picking.current = onPick;
   const [showTribs, setShowTribs] = useState(false);
@@ -306,6 +313,11 @@ export function MapPanel({
                      "circle-stroke-color": "#fff", "circle-stroke-width": 2.5,
                      "circle-opacity": ["case", ["get", "_on"], 1, 0.3],
                      "circle-stroke-opacity": ["case", ["get", "_on"], 1, 0.3] } },
+          // the selected named point (Tidal: the alternate the owner switched to) — ringed
+          { id: "named-selected", type: "circle", source: "named",
+            filter: ["==", ["get", "split_id"], "__none__"],
+            paint: { "circle-radius": 12, "circle-color": "rgba(0,0,0,0)",
+                     "circle-stroke-color": "#111", "circle-stroke-width": 3 } },
           { id: "named-labels", type: "symbol", source: "named",
             layout: { "text-field": ["get", "label"], "text-size": 12, "text-offset": [0, 1.15],
                       "text-anchor": "top", "text-font": ["Noto Sans Medium"],
@@ -430,6 +442,7 @@ export function MapPanel({
     const run = () => {
       if (!m.getLayer("item-selected")) return;
       m.setFilter("item-selected", ["==", ["get", "split_id"], selectedSplitId ?? "__none__"]);
+      if (m.getLayer("named-selected")) m.setFilter("named-selected", ["==", ["get", "split_id"], selectedSplitId ?? "__none__"]);
       const fc = lastFc.current;
       if (selectedSplitId && (fc || namedFc.current)) {
         const hit = [...(fc?.features ?? []), ...(namedFc.current?.features ?? [])].find(
@@ -437,7 +450,7 @@ export function MapPanel({
             && String(f.properties?.split_id) === selectedSplitId,
         );
         if (hit && hit.geometry?.type === "Point") {
-          m.flyTo({ center: hit.geometry.coordinates as [number, number], zoom: Math.max(m.getZoom(), 12), duration: 500 });
+          m.flyTo({ center: hit.geometry.coordinates as [number, number], zoom: Math.max(m.getZoom(), selectZoom), duration: 500 });
         }
       }
     };
@@ -489,6 +502,14 @@ export function MapPanel({
       } as GeoJSON.FeatureCollection;
       namedFc.current = fc;
       src.setData(fc);
+      if (!fitNamed) {
+        const hit = fc.features.find((f) => String(f.properties?.split_id) === selectedRef.current);
+        if (m.getLayer("named-selected")) m.setFilter("named-selected", ["==", ["get", "split_id"], selectedRef.current ?? "__none__"]);
+        if (hit && hit.geometry.type === "Point" && !m.getBounds().contains(hit.geometry.coordinates as [number, number])) {
+          m.flyTo({ center: hit.geometry.coordinates as [number, number], zoom: Math.max(m.getZoom(), selectZoom), duration: 300 });
+        }
+        return;
+      }
       if (!fc.features.length || shownReach) return;
       const view = m.getBounds();
       const off = fc.features.some((f) => {
@@ -630,8 +651,15 @@ export function MapPanel({
       const colored = colorize(fc, refSet, unusedSet, itemColor, reachSet, namedIds);
       src.setData(colored);
       if (fit) {
-        const b = bounds(colored);
-        if (b) m.fitBounds(b, { padding: 40, maxZoom: 14, duration: 0 });
+        const sel = fitNamed ? null : namedFc.current?.features.find(
+          (f) => String(f.properties?.split_id) === selectedRef.current);
+        if (sel && sel.geometry.type === "Point") {
+          // fitNamed false (Tidal): the view opens ON the selected point, not the whole water
+          m.jumpTo({ center: sel.geometry.coordinates as [number, number], zoom: selectZoom });
+        } else {
+          const b = bounds(colored);
+          if (b) m.fitBounds(b, { padding: 40, maxZoom: 14, duration: 0 });
+        }
       }
     };
     whenReady(m, run);

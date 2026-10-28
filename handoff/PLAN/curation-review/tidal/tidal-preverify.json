@@ -5,8 +5,8 @@
  "threshold_m": 4.0,
  "counts": {
   "pre-verified": 844,
-  "disagree": 68,
-  "unchecked": 251,
+  "disagree": 69,
+  "unchecked": 250,
   "duplicates": 0
  },
  "items": {
@@ -24,22 +24,34 @@
    "method": "DEM tidal limit",
    "first": "polygon crossing + words",
    "tolerance_m": 300.0,
-   "delta_m": -942.6,
+   "delta_m": -959.1,
    "duplicate_of": null,
+   "judged_above_mouth_m": 15.9,
    "threshold_m": 4.0,
+   "dem_limit_m": 975.0,
    "status": "unchecked",
-   "why": "flat DEM: the streambed passes 4 m at 975 m but climbs only 0.0 m in the next 500 m (hydro-flattened or low gradient) \u2014 not decisive"
+   "why": "flat DEM: the streambed passes 4 m at 975 m but climbs only 0.0 m in the next 500 m (hydro-flattened or low gradient) \u2014 not decisive",
+   "dem_coord": [
+    -122.776817,
+    49.015642
+   ]
   },
   "tidal:360857589": {
    "method": "DEM tidal limit",
    "first": "polygon crossing + words",
    "tolerance_m": 300.0,
-   "delta_m": 141.1,
+   "delta_m": 180.5,
    "duplicate_of": null,
+   "judged_above_mouth_m": 180.5,
    "threshold_m": 4.0,
+   "dem_limit_m": 0.0,
    "spread_m": 0.0,
    "status": "pre-verified",
-   "why": "DEM streambed rises above 4 m at 0 m above the mouth; proposal at 141 m (\u0394 +141 m, tolerance 300 m)"
+   "why": "DEM streambed rises above 4 m at 0 m above the mouth; proposal at 180 m (\u0394 +180 m, tolerance 300 m)",
+   "dem_coord": [
+    -123.723437,
+    49.439272
+   ]
   },
   "tidal:356364114": {
    "status": "unchecked",
@@ -53,82 +65,126 @@
   "tidal:354154938": {
    "method": "DEM tidal limit",
    "first": "polygon crossing + words",
-   "tolerance_m": 759.6,
-   "delta_m": 1588.4,
+   "tolerance_m": 744.9,
+   "delta_m": 1529.5,
    "duplicate_of": null,
+   "judged_above_mouth_m": 2979.5,
    "threshold_m": 4.0,
+   "dem_limit_m": 1450.0,
    "status": "unchecked",
-   "why": "flat DEM: the streambed passes 4 m at 1450 m but climbs only 1.3 m in the next 500 m (hydro-flattened or low gradient) \u2014 not decisive"
+   "why": "flat DEM: the streambed passes 4 m at 1450 m but climbs only 1.3 m in the next 500 m (hydro-flattened or low gradient) \u2014 not decisive",
+   "dem_coord": [
+    -123.888759,
+    49.126952
+   ]
   },
   "tidal:356353722": {
    "method": "DEM tidal limit",
    "first": "polygon crossing + words",
    "tolerance_m": 300.0,
-   "delta_m": -564.6,
+   "delta_m": -578.9,
    "duplicate_of": null,
+   "judged_above_mouth_m": 46.1,
    "threshold_m": 4.0,
+   "dem_limit_m": 625.0,
    "status": "unchecked",
-   "why": "flat DEM: the streambed passes 4 m at 625 m but climbs only -0.0 m in the next 500 m (hydro-flattened or low gradient) \u2014 not decisive"
+   "why": "flat DEM: the streambed passes 4 m at 625 m but climbs only -0.0 m in the next 500 m (hydro-flattened or low gradient) \u2014 not decisive",
+   "dem_coord": [
+    -122.862559,
+    49.057927
+   ]
   },
   "tidal:354152785": {
    "method": "DEM tidal limit",
    "first": "polygon crossing + words",
    "tolerance_m": 300.0,
-   "delta_m": 149.5,
+   "delta_m": 83.3,
    "duplicate_of": null,
+   "judged_above_mouth_m": 108.3,
    "threshold_m": 4.0,
+   "dem_limit_m": 25.0,
    "status": "unchecked",
-   "why": "flat DEM: the streambed passes 4 m at 25 m but climbs only 0.0 m in the next 500 m (hydro-flattened or low gradient) \u2014 not decisive"
+   "why": "flat DEM: the streambed passes 4 m at 25 m but climbs only 0.0 m in the next 500 m (hydro-flattened or low gradient) \u2014 not decisive",
+   "dem_coord": [
+    -124.610847,
+    49.398117
+   ]
   },
   "tidal:354152994": {
    "method": "DEM tidal limit",
    "first": "polygon crossing + words",
-   "tolerance_m": 439.4,
-   "delta_m": 1732.5,
+   "tolerance_m": 438.8,
+   "delta_m": 1730.0,
    "duplicate_of": null,
+   "judged_above_mouth_m": 1755.0,
    "threshold_m": 4.0,
+   "dem_limit_m": 25.0,
    "status": "unchecked",
-   "why": "flat DEM: the streambed passes 4 m at 25 m but climbs only 1.0 m in the next 500 m (hydro-flattened or low gradient) \u2014 not decisive"
+   "why": "flat DEM: the streambed passes 4 m at 25 m but climbs only 1.0 m in the next 500 m (hydro-flattened or low gradient) \u2014 not decisive",
+   "dem_coord": [
+    -125.929572,
+    50.373057
+   ]
   },
   "tidal:360886339": {
    "method": "DEM tidal limit",
    "first": "polygon crossing + words",
    "tolerance_m": 300.0,
-   "delta_m": 221.1,
+   "delta_m": 186.8,
    "duplicate_of": null,
+   "judged_above_mouth_m": 211.8,
    "threshold_m": 4.0,
+   "dem_limit_m": 25.0,
    "status": "unchecked",
-   "why": "flat DEM: the streambed passes 4 m at 25 m but climbs only 0.1 m in the next 500 m (hydro-flattened or low gradient) \u2014 not decisive"
+   "why": "flat DEM: the streambed passes 4 m at 25 m but climbs only 0.1 m in the next 500 m (hydro-flattened or low gradient) \u2014 not decisive",
+   "dem_coord": [
+    -123.024751,
+    49.302077
+   ]
   },
   "tidal:360887278": {
    "method": "DEM tidal limit",
    "first": "polygon crossing + words",
-   "tolerance_m": 1605.5,
+   "tolerance_m": 1601.2,
    "delta_m": null,
    "duplicate_of": null,
+   "judged_above_mouth_m": 6404.9,
    "threshold_m": 4.0,
+   "dem_limit_m": null,
    "status": "unchecked",
    "why": "low gradient: streambed stays below 4 m for the whole 8.4 km sampled (ends at 0.0 m) \u2014 tidal may reach further; the DEM cannot place it"
   },
   "tidal:354135941": {
    "method": "DEM tidal limit",
    "first": "polygon crossing + words",
-   "tolerance_m": 1438.3,
-   "delta_m": 5728.4,
+   "tolerance_m": 1380.2,
+   "delta_m": 5495.9,
    "duplicate_of": null,
+   "judged_above_mouth_m": 5520.9,
    "threshold_m": 4.0,
+   "dem_limit_m": 25.0,
    "status": "unchecked",
-   "why": "flat DEM: the streambed passes 4 m at 25 m but climbs only -1.0 m in the next 500 m (hydro-flattened or low gradient) \u2014 not decisive"
+   "why": "flat DEM: the streambed passes 4 m at 25 m but climbs only -1.0 m in the next 500 m (hydro-flattened or low gradient) \u2014 not decisive",
+   "dem_coord": [
+    -124.819723,
+    49.246606
+   ]
   },
   "tidal:356294414": {
    "method": "DEM tidal limit",
    "first": "polygon crossing + words",
-   "tolerance_m": 726.7,
-   "delta_m": 2556.8,
+   "tolerance_m": 714.8,
+   "delta_m": 2509.1,
    "duplicate_of": null,
+   "judged_above_mouth_m": 2859.1,
    "threshold_m": 2.9,
+   "dem_limit_m": 350.0,
    "status": "unchecked",
-   "why": "flat DEM: the streambed passes 2.9 m at 350 m but climbs only 0.3 m in the next 500 m (hydro-flattened or low gradient) \u2014 not decisive"
+   "why": "flat DEM: the streambed passes 2.9 m at 350 m but climbs only 0.3 m in the next 500 m (hydro-flattened or low gradient) \u2014 not decisive",
+   "dem_coord": [
+    -122.891466,
+    49.220953
+   ]
   },
   "tidal:356364584": {
    "method": "DEM tidal limit",
@@ -143,22 +199,34 @@
   "tidal:356352191": {
    "method": "DEM tidal limit",
    "first": "polygon crossing + words",
-   "tolerance_m": 386.6,
-   "delta_m": -1203.7,
+   "tolerance_m": 380.6,
+   "delta_m": -1227.4,
    "duplicate_of": null,
+   "judged_above_mouth_m": 1522.6,
    "threshold_m": 2.0,
+   "dem_limit_m": 2750.0,
    "status": "unchecked",
-   "why": "flat DEM: the streambed passes 2 m at 2750 m but climbs only 0.3 m in the next 500 m (hydro-flattened or low gradient) \u2014 not decisive"
+   "why": "flat DEM: the streambed passes 2 m at 2750 m but climbs only 0.3 m in the next 500 m (hydro-flattened or low gradient) \u2014 not decisive",
+   "dem_coord": [
+    -122.567711,
+    49.202718
+   ]
   },
   "tidal:356350005": {
    "method": "DEM tidal limit",
    "first": "polygon crossing + words",
    "tolerance_m": 300.0,
-   "delta_m": 78.5,
+   "delta_m": 57.5,
    "duplicate_of": null,
+   "judged_above_mouth_m": 332.5,
    "threshold_m": 6.1,
+   "dem_limit_m": 275.0,
    "status": "unchecked",
-   "why": "flat DEM: the streambed passes 6.1 m at 275 m but climbs only 0.6 m in the next 500 m (hydro-flattened or low gradient) \u2014 not decisive"
+   "why": "flat DEM: the streambed passes 6.1 m at 275 m but climbs only 0.6 m in the next 500 m (hydro-flattened or low gradient) \u2014 not decisive",
+   "dem_coord": [
+    -122.488411,
+    49.165864
+   ]
   },
   "tidal:356360869": {
    "method": "DEM tidal limit",
@@ -174,54 +242,84 @@
    "method": "DEM tidal limit",
    "first": "polygon crossing + words",
    "tolerance_m": 300.0,
-   "delta_m": -2095.3,
+   "delta_m": -2115.3,
    "duplicate_of": null,
+   "judged_above_mouth_m": 384.7,
    "threshold_m": 7.2,
+   "dem_limit_m": 2500.0,
    "status": "unchecked",
-   "why": "flat DEM: the streambed passes 7.2 m at 2500 m but climbs only 0.5 m in the next 500 m (hydro-flattened or low gradient) \u2014 not decisive"
+   "why": "flat DEM: the streambed passes 7.2 m at 2500 m but climbs only 0.5 m in the next 500 m (hydro-flattened or low gradient) \u2014 not decisive",
+   "dem_coord": [
+    -122.410373,
+    49.188018
+   ]
   },
   "tidal:356294262": {
    "method": "DEM tidal limit",
    "first": "polygon crossing + words",
    "tolerance_m": 300.0,
-   "delta_m": -949.7,
+   "delta_m": -954.7,
    "duplicate_of": null,
+   "judged_above_mouth_m": 620.3,
    "threshold_m": 6.2,
+   "dem_limit_m": 1575.0,
    "spread_m": 650.0,
-   "status": "unchecked",
-   "why": "low gradient: a \u00b11.5 m threshold error moves the DEM limit up to 650 m; DEM limit 1575 m vs proposal 625 m \u2014 not decisive"
+   "status": "disagree",
+   "why": "DEM says tidal reaches 955 m further up (streambed below 6.2 m until 1575 m above the mouth; proposal at 620 m)",
+   "dem_coord": [
+    -122.532414,
+    49.155398
+   ]
   },
   "tidal:356250271": {
    "method": "DEM tidal limit",
    "first": "polygon crossing + words",
    "tolerance_m": 300.0,
-   "delta_m": 72.3,
+   "delta_m": 60.2,
    "duplicate_of": null,
+   "judged_above_mouth_m": 310.2,
    "threshold_m": 6.2,
+   "dem_limit_m": 250.0,
    "status": "unchecked",
-   "why": "flat DEM: the streambed passes 6.2 m at 250 m but climbs only 1.5 m in the next 500 m (hydro-flattened or low gradient) \u2014 not decisive"
+   "why": "flat DEM: the streambed passes 6.2 m at 250 m but climbs only 1.5 m in the next 500 m (hydro-flattened or low gradient) \u2014 not decisive",
+   "dem_coord": [
+    -122.460601,
+    49.173661
+   ]
   },
   "tidal:356083018": {
    "method": "DEM tidal limit",
    "first": "polygon crossing + words",
    "tolerance_m": 300.0,
-   "delta_m": 147.6,
+   "delta_m": 127.6,
    "duplicate_of": null,
+   "judged_above_mouth_m": 402.6,
    "threshold_m": 6.1,
+   "dem_limit_m": 275.0,
    "spread_m": 250.0,
    "status": "pre-verified",
-   "why": "DEM streambed rises above 6.1 m at 275 m above the mouth; proposal at 423 m (\u0394 +148 m, tolerance 300 m)"
+   "why": "DEM streambed rises above 6.1 m at 275 m above the mouth; proposal at 403 m (\u0394 +128 m, tolerance 300 m)",
+   "dem_coord": [
+    -122.464825,
+    49.173274
+   ]
   },
   "tidal:360875983": {
    "method": "DEM tidal limit",
    "first": "polygon crossing",
    "tolerance_m": 300.0,
-   "delta_m": 37.0,
+   "delta_m": 36.9,
    "duplicate_of": null,
+   "judged_above_mouth_m": 36.9,
    "threshold_m": 4.0,
+   "dem_limit_m": 0.0,
    "spread_m": 25.0,
    "status": "pre-verified",
-   "why": "DEM streambed rises above 4 m at 0 m above the mouth; proposal at 37 m (\u0394 +37 m, tolerance 300 m)"
+   "why": "DEM streambed rises above 4 m at 0 m above the mouth; proposal at 37 m (\u0394 +37 m, tolerance 300 m)",
+   "dem_coord": [
+    -123.139713,
+    49.321556
+   ]
   },
   "tidal:360881072": {
    "method": "DEM tidal limit",
@@ -258,11 +356,17 @@
    "method": "DEM tidal limit",
    "first": "polygon crossing",
    "tolerance_m": 311.2,
-   "delta_m": 1094.8,
+   "delta_m": 1094.9,
    "duplicate_of": null,
+   "judged_above_mouth_m": 1244.9,
    "threshold_m": 4.0,
+   "dem_limit_m": 150.0,
    "status": "unchecked",
-   "why": "flat DEM: the streambed passes 4 m at 150 m but climbs only 0.0 m in the next 500 m (hydro-flattened or low gradient) \u2014 not decisive"
+   "why": "flat DEM: the streambed passes 4 m at 150 m but climbs only 0.0 m in the next 500 m (hydro-flattened or low gradient) \u2014 not decisive",
+   "dem_coord": [
+    -126.984061,
+    50.566822
+   ]
   },
   "tidal:360872960": {
    "method": "DEM tidal limit",
@@ -277,12 +381,18 @@
   "tidal:354154440": {
    "method": "DEM tidal limit",
    "first": "polygon crossing",
-   "tolerance_m": 410.0,
-   "delta_m": 1640.1,
+   "tolerance_m": 522.6,
+   "delta_m": 2090.6,
    "duplicate_of": null,
+   "judged_above_mouth_m": 2090.6,
    "threshold_m": 4.0,
+   "dem_limit_m": 0.0,
    "status": "unchecked",
-   "why": "flat DEM: the streambed passes 4 m at 0 m but climbs only 0.3 m in the next 500 m (hydro-flattened or low gradient) \u2014 not decisive"
+   "why": "flat DEM: the streambed passes 4 m at 0 m but climbs only 0.3 m in the next 500 m (hydro-flattened or low gradient) \u2014 not decisive",
+   "dem_coord": [
+    -123.671779,
+    48.897839
+   ]
   },
   "tidal:360863736": {
    "method": "DEM tidal limit",
@@ -327,12 +437,18 @@
   "tidal:360886594": {
    "method": "DEM tidal limit",
    "first": "polygon crossing",
-   "tolerance_m": 880.0,
-   "delta_m": 3495.0,
+   "tolerance_m": 300.0,
+   "delta_m": -11.3,
    "duplicate_of": null,
+   "judged_above_mouth_m": 13.7,
    "threshold_m": 4.0,
+   "dem_limit_m": 25.0,
    "status": "unchecked",
-   "why": "flat DEM: the streambed passes 4 m at 25 m but climbs only 0.1 m in the next 500 m (hydro-flattened or low gradient) \u2014 not decisive"
+   "why": "flat DEM: the streambed passes 4 m at 25 m but climbs only 0.1 m in the next 500 m (hydro-flattened or low gradient) \u2014 not decisive",
+   "dem_coord": [
+    -123.180798,
+    49.685438
+   ]
   },
   "tidal:354091024": {
    "method": "DEM tidal limit",
@@ -8940,7 +9056,9 @@
    "tolerance_m": 300.0,
    "delta_m": null,
    "duplicate_of": null,
+   "judged_above_mouth_m": 361.2,
    "threshold_m": 4.0,
+   "dem_limit_m": null,
    "status": "unchecked",
    "why": "low gradient: streambed stays below 4 m for the whole 3.0 km sampled (ends at 3.0 m) \u2014 tidal may reach further; the DEM cannot place it"
   },

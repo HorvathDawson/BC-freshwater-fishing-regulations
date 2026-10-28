@@ -133,7 +133,7 @@ def judge(c: dict, ms, es, thr: float) -> dict:
     prop = float(c["proposed"]["above_mouth_m"])
     tol = round(max(TOL_MIN_M, TOL_FRAC * prop), 1)
     base = {"method": "DEM tidal limit", "first": "polygon crossing" + (" + words" if c.get("agreement") == "agree" else ""),
-            "tolerance_m": tol, "delta_m": None, "duplicate_of": None}
+            "tolerance_m": tol, "delta_m": None, "duplicate_of": None, "judged_above_mouth_m": prop}
     if len(ms) < 5:
         return {**base, "status": "unchecked", "why": "no DEM profile (no line geometry or no tiles)"}
     env = envelope(ms, es)
@@ -147,6 +147,8 @@ def judge(c: dict, ms, es, thr: float) -> dict:
     thr = round(thr, 1)
     base["threshold_m"] = thr
     lim = limit_at(ms, env, thr)
+    # where the DEM puts the limit (m above the mouth): an alternate point in the review app, decisive or not
+    base["dem_limit_m"] = lim
     lo = limit_at(ms, env, thr + THRESHOLD_ERR_M)      # a higher threshold places the limit further up
     hi = limit_at(ms, env, thr - THRESHOLD_ERR_M)
     span = ms[-1]
@@ -243,6 +245,11 @@ def run(cands_path: Path, gpkg: Path, thr: float, ids: set[str] | None = None) -
         m0 = float(c["mouth"]["measure"])
         ms, es = profile(segs, geoms, m0, m0 + max(MIN_RANGE_M, prop + BEYOND_M), dem, lonlat)
         out[c["id"]] = judge(c, ms, es, thr)
+        lim = out[c["id"]].get("dem_limit_m")
+        if lim is not None:
+            p = point_at(segs, geoms, m0 + lim)
+            if p is not None:
+                out[c["id"]]["dem_coord"] = [round(v, 6) for v in lonlat(p.x, p.y)]
         if CONTROL_SHIFT_M:
             # NEGATIVE CONTROL: the same profile judged against a proposal moved CONTROL_SHIFT_M up the line
             moved = {**c, "proposed": {**c["proposed"], "above_mouth_m": prop + CONTROL_SHIFT_M}}
@@ -280,6 +287,12 @@ def main(argv=None) -> None:
         v.pop("_control", None)
     counts = {s: sum(1 for v in items.values() if v["status"] == s) for s in ("pre-verified", "disagree", "unchecked")}
     counts["duplicates"] = sum(1 for v in items.values() if v["duplicate_of"])
+    if a.ids and a.out.exists():
+        # a partial re-run (the changed candidates only) MERGES into the existing file
+        prev = json.loads(a.out.read_text()).get("items") or {}
+        items = {**prev, **items}
+        counts = {s: sum(1 for v in items.values() if v["status"] == s) for s in ("pre-verified", "disagree", "unchecked")}
+        counts["duplicates"] = sum(1 for v in items.values() if v.get("duplicate_of"))
     doc = {"_about": ("PRE-VERIFICATION of the tidal candidates (pipeline/tools/audit/tidal_preverify.py): each "
                       "candidate's proposed tidal point (DFO tidal polygon crossing + words) held against an "
                       "independent DEM tidal limit (Terrarium z13 streambed min-envelope crossing the threshold). "

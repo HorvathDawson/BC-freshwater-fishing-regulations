@@ -1135,6 +1135,11 @@ export interface TidalCandidate {
   agreement: string;
   words_disagree: boolean;
   triage?: TidalTriage;
+  /** where the words' landmark is on the line (`tidal_words`): the proposal when the words win */
+  words_point?: { measure: number; above_mouth_m: number; coord: [number, number]; located_by: string;
+                  words: string; source: string; confidence: string; also?: string } | null;
+  /** the proposal before the words moved it */
+  proposed_before_words?: { measure: number; above_mouth_m: number; coord: [number, number]; basis: string };
 }
 /** GET /api/tidal/queue */
 export interface TidalRow {
@@ -1176,7 +1181,35 @@ export interface TidalDetail {
   candidate: TidalCandidate;
   items: { id: string; name: string; kind: string | null; mus: string[] }[];
   points: EntrySplits;
+  /** every point the owner can switch to (`tidal.alternates`); [] before tidal_words ran */
+  alternates?: TidalAlternate[];
   mark: (MarkView & { new_splits?: NewSplit[] }) | null;
+}
+
+/** ONE SWITCHABLE POINT (owner 2026-10-27): the words' landmark, a polygon crossing, the FWA mouth,
+ *  the DEM limit, or the proposal itself when it sits on none of them */
+export interface TidalAlternate {
+  id: string;
+  kind: "words" | "polygon" | "mouth" | "dem" | "proposed";
+  label: string;
+  measure: number;
+  above_mouth_m: number;
+  coord: [number, number] | null;
+  proposed?: boolean;
+  /** the words support this point (a located landmark the words name) */
+  supported?: boolean;
+  uppermost?: boolean;
+  words?: string;
+  source?: string | null;
+  located_by?: string | null;
+  confidence?: string;
+  status?: string;
+  why?: string;
+}
+/** GET /api/tidal/candidates/{id}/snap */
+export interface TidalSnap {
+  coord: [number, number]; blk: string; measure: number; above_mouth_m: number | null; distance_m: number;
+  on_item: string | null;
 }
 
 /* PRE-VERIFIED (owner 2026-10-27): a second, independent method's verdict (`backend/preverify.py`) */

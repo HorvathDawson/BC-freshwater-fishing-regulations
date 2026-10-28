@@ -36,6 +36,7 @@ import type {
   TidalDetail,
   TidalProgress,
   TidalRow,
+  TidalSnap,
 } from "./types";
 
 async function getJSON<T>(url: string): Promise<T> {
@@ -174,4 +175,6 @@ export const api = {
   tidalProgress: () => getJSON<TidalProgress>("/api/tidal/progress"),
   tidalCandidate: (id: string) => getJSON<TidalDetail>(`/api/tidal/candidates/${encodeURIComponent(id)}`),
   tidalEdge: (id: string) => getJSON<GeoJSON>(`/api/tidal/candidates/${encodeURIComponent(id)}/edge`),
+  tidalSnap: (id: string, ll: [number, number]) =>
+    getJSON<TidalSnap>(`/api/tidal/candidates/${encodeURIComponent(id)}/snap?lon=${ll[0]}&lat=${ll[1]}`),
 };

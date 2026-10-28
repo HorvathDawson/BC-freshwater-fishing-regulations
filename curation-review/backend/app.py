@@ -567,6 +567,19 @@ def tidal_progress():
     return tidal.progress()
 
 
+@app.get("/api/tidal/candidates/{cid:path}/snap")
+def tidal_snap(cid: str, lon: float, lat: float):
+    """A clicked point SNAPPED to the candidate's stream (read only): {coord, blk, measure,
+    above_mouth_m, distance_m}. 422 when the point is not on the stream (> 500 m)."""
+    import tidal
+    got = tidal.snap(cid, (lon, lat))
+    if got is None:
+        raise HTTPException(404, f"tidal candidate {cid} not found")
+    if "error" in got:
+        raise HTTPException(422, [{"path": "coord", "msg": got["error"]}])
+    return got
+
+
 @app.get("/api/tidal/candidates/{cid:path}/edge")
 def tidal_edge(cid: str):
     """The tidal polygon's edge near one candidate, as lon/lat lines (read only)."""
