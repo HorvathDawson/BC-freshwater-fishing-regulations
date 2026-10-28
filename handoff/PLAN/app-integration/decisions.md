@@ -1486,3 +1486,13 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
 - "Store the number": every `vessel_rule` at `level: electric_only` carries `max_power_kw` = the kW its words print
   (162 rules, all 7.5). Filled by the one-off `pipeline/tools/electric_kw.py` (not in run_parse.sh); the parse prompt
   now asks for it. Words on the page unchanged. The 10 close-wording undrawn parts stay open.
+
+## 2026-10-28 — gauges T159, low cuts, accounts (owner)
+- T159: the owner promoted 7 stations (06b83665; 08JA027 accepted with its wsc one level up). 08MH079 skipped: "there
+  is a stream it is near that it is matching, not Lonzo itself" — it sits on Kilgard Creek (FWA-unnamed blk 356314888);
+  the bind is proposed in T159, not applied. T159 DONE.
+- Low-confidence cuts: the owner cannot open links, so the guessed cuts (Chapman, Deena, Mamin, + Cranberry, White,
+  Chuckwalla) are a queue in the review app ("Low-confidence cuts"), checked on satellite on each entry's map (a28cc468).
+- User accounts shared between web and phone: wanted (owner) → T223, OPEN with questions. Reverses "no cross-device
+  sync (decided)" in `spots/model.ts` once built.
+

@@ -1,6 +1,6 @@
 # T159 — Gauge auto-promote checks a station's name against every name the matcher accepted
 
-Status: PARTIAL — Claude part done 2026-10-28; owner runs the promote below
+Status: DONE (ce1cf83c, 06b83665) — 7 promoted by the owner; 08MH079's right match proposed below (a note, no promote)
 
 Source: T125 item 8 "gauges 9"; Q118 decided by Claude 2026-10-23 (decisions.md owner-question triage).
 
@@ -41,3 +41,34 @@ Drop any station you disagree with from `--only` (08JA027's wsc moves one level;
 refuses on a demotion; none expected, so `--accept-demotions` is not needed (it is a bare flag — only add it after
 reading the dry-run's demotion list). Then commit data/curated/gauges/{matches,candidates}.json; the bundle picks
 the rows up on the next deliver.
+
+## Owner ran it (2026-10-28, 06b83665)
+Promoted 7: 08GB008 08HA050 08HA051 08HA057 08JA027 (accepted, the wsc moving one level) 08MH080 08MH100. Skipped
+08MH079 — owner: "there is a stream it is near that it is matching, not Lonzo itself".
+
+## 08MH079: the stream it sits on (proposal only, not promoted)
+"LONZO CREEK (NORTH FORK) NEAR KILGARD", -122.195557, 49.057781, ECCC drainage 2.77 km². The matcher took the nearest
+line carrying the name — the Lonzo/Marshall mainstem (blk 356317779, wsc 100-064535-223850, "Marshall Creek"), 442 m
+away, the same line as 08MH080 (4 m). The station's own line is FWA-unnamed, so a name pass could never pick it:
+
+| blk | FWA name | wsc | order / magnitude | from station |
+|---|---|---|---|---|
+| **356314888** | unnamed | 100-064535-223850-103684 | 2 / 3 | **69 m** |
+| 356305212 | unnamed | …-223850-103684-237584 | 1 / 1 | 245 m |
+| 356103415 | unnamed | 100-064535-223850-063075 | 1 / 1 | 415 m |
+| 356317779 | Marshall Creek (matched) | 100-064535-223850 | mainstem | 442 m |
+
+Proposed: **blk 356314888 = Kilgard Creek** — Abbotsford's stream layer (`data/source/municipal/abbotsford_streams.geojson`)
+names this line "KILGARD CREEK" (2.1 km overlap, 75 m from the station); its wsc is a Marshall tributary (the "north
+fork" of the Lonzo system); the station is 507 m up its 747 m segment; magnitude 3 ≈ 2.4 km² vs ECCC's 2.77 km².
+Atlas node `356314888:0` is in the registry.
+
+To apply (only on the owner's yes): promote has no "force a line" flag; the designed route is a `bind` verdict in
+`data/curated/gauges/review.json`:
+```json
+"08MH079": {"verdict": "bind", "station_name": "LONZO CREEK (NORTH FORK) NEAR KILGARD", "matched": "Marshall Creek",
+            "wsc": ["100-064535-223850-103684"], "reviewed": "2026-10-28",
+            "note": "on Kilgard Creek (Abbotsford layer), FWA-unnamed blk 356314888, a Marshall tributary; 69 m; mag 3 ~ 2.77 km2"}
+```
+then `scripts/heavy.sh` → `python -m pipeline.gauges.generate.match` and `promote --only 08MH079` (row: trust bound,
+resolved_by review; its `name` stays the ECCC name, not "Kilgard Creek").

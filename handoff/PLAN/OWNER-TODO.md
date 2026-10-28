@@ -25,6 +25,9 @@ with the default Claude uses until you answer). Newest first inside each section
   r11 "from Mud Lake": FWA names no Mud Lake, so it runs Fairmont → Columbia Lake (the outlet wetland, wbk 329093907, is
   the likely Mud Lake) — say if Mud Lake is elsewhere; (3) Stave r1/r2 (Ruskin/Northrop spawning channels) stay notes:
   the channels have no sections in the atlas — adding them is Claude's work (T222), nothing for you here.
+- **T159 08MH079 (2026-10-28):** the station sits on Kilgard Creek (FWA-unnamed, blk 356314888, a Marshall/Lonzo
+  tributary, 69 m), not on Lonzo/Marshall itself. Say yes and Claude adds the `review.json` bind (ticket T159 has it);
+  the matcher rerun + `promote --only 08MH079` follow.
 - **T204 phone check:** Kanaka Creek's map now has two marks (112 Avenue bridge, Cliff Park Falls) and its lower part is
   two separately selectable stretches ("… · stretch 1 of 2"); say if the stretch wording should differ.
 - **Tidal boundaries (T212, 2026-10-27, critical):** open the curation review's **Tidal** tab. 1,163 proposed tidal
@@ -72,6 +75,9 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
 - **Vessel rules (T209):** the 10 close-wording undrawn parts kept ("various locations", "swimming areas") in
   on-parts.md: whole water too, or leave as notes? (`max_power_kw` 7.5 is stored on the 162 electric-only rules, 10-28.)
 - **Salmon (T164):** confirm the proposed DFO cut points in T164's DFO review mode (96 bridges/signs/dams).
+- **User accounts (T223, new 2026-10-28):** one account for web + phone. Questions Q-T223a–f in the ticket: auth
+  provider, what syncs (spots / photos / pins / settings), privacy of spot locations, offline merge rule, optional or
+  required, before or after first release. Nothing is built until you answer.
 - **Batch 7:** Q146 re-centre the map when the parts list opens · Q147 steelhead lake wording on newly taken ponds ·
   Q148 dams → "lake" for the slough candidates · Q149 Bonaparte by hand.
 - **Gauge gaps on main rivers (T174, shipped r-bda3fea28838):** Q153 (side piece adopts the largest ANSWERED river section) and
@@ -91,15 +97,6 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   Q28 iOS timing · Q27 sign-off walk.
 
 ## Things only you can run or provide
-- **T159 gauge promote (2026-10-28):** 8 stations now pass the name check (matcher's `matched_name`). Read the dry-run,
-  drop any you disagree with (look at 08JA027: code moves up one level; 08MH079: 442 m from its stream), then run:
-  ```
-  python -m pipeline.gauges.generate.promote --matches data/generated/gauges/match.t159.json --only 08GB008 08HA050 08HA051 08HA057 08JA027 08MH079 08MH080 08MH100 --dry-run
-  python -m pipeline.gauges.generate.promote --matches data/generated/gauges/match.t159.json --only 08GB008 08HA050 08HA051 08HA057 08JA027 08MH079 08MH080 08MH100
-  ```
-  No demotions expected (add `--accept-demotions` only after reading the dry-run). Commit
-  `data/curated/gauges/{matches,candidates}.json`. Table: tickets/T159-station-name-promote.md.
-
 - **Parser runs** (`run_parse.sh`, dispatch): human-only; any re-parse is yours to start.
 - **R2 upload** of a new release and of the gauge feed, with your credentials:
   `python -m pipeline.deliver.release.publish --release data/release/$(cat data/release/LATEST) --yes` (records

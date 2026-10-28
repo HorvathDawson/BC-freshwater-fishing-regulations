@@ -203,7 +203,7 @@ use that as the sole source of future work."
 | T156 | test hygiene: hydat sandbox stub release; temp gate fixtures outside the app tree | DONE | 9c6cbd46, 7714418a, 23cee506 | tests; delivered r-9cf1fef180a8 |
 | T157 | Conditions follow-ups: switcher states, no record to compare, ELF caveat on map, handover drawn | DONE | 9c6cbd46, 4b82d910, 7714418a, 2c845cf2 | app; delivered r-9cf1fef180a8 |
 | T158 | depth contours vs no-access fills: contours held off lake fills, deep navy | DONE | 9c6cbd46, 7714418a, 3d5f19de | app style; delivered r-9cf1fef180a8 |
-| T159 | gauge auto-promote checks every name the matcher accepted (Arrow Reservoir / Lower Arrow Lake) | PARTIAL | ce1cf83c | matched_name + promote check done; 8 stations proposed (match.t159.json); ★ owner runs promote --only |
+| T159 | gauge auto-promote checks every name the matcher accepted (Arrow Reservoir / Lower Arrow Lake) | DONE | ce1cf83c, 06b83665 | owner promoted 7 (10-28); 08MH079 proposed as Kilgard Creek (FWA-unnamed blk 356314888, a review.json bind) — a note, not promoted |
 | T160 | 08HB074's standing Comox Lake backwater gets its own Level sentence | DONE | 52462f99, fd99643c | deliver; delivered r-9cf1fef180a8 |
 | T161 | the pipeline ships each fish's leading origin (rows 33); mainRes only reads it | DONE | 23be8123, d0bc72fd, 3bf1e1e1, 3e89b917 | deliver + fixture re-cut (rows 33); delivered r-9cf1fef180a8 |
 | T162 | salmon/steelhead run timing: PSF + DFO parsed to `timing.json`; integration plan (handoff/PLAN/runtiming/PLAN.md) | PARTIAL | 24879b00 | app integration → T199 (owner said go 2026-10-25; size gate gone with T182); Q144 open |
@@ -267,6 +267,7 @@ use that as the sole source of future work."
 | T220 | braid channels close: no channel line ends where the water goes on (prune closure + one zoom per side-channel run) | DONE | 4c90fe68, 64c28a2b | owner 10-28 FIX complete; 1,041 -> 97 dangling ends, no existing binding moved; live r-46be3c135e68 |
 | T221 | solo waters open on regs (no Map), URL follows the water, one salmon table, plain size rule, count line before its size box, at-a-glance species table (kept, no counts) | DONE | 73625e35, 9784a7b0 | owner 2026-10-28 web feedback (Dala River) |
 | T222 | Stave spawning channels (Ruskin/Northrop): add the FWA side channels so Stave r1/r2 can bind | OPEN | — | added_streams + atlas rebuild; no owner call |
+| T223 | user accounts shared between the web app and the phone app (sign-in, what syncs, offline) | OPEN | — | owner 2026-10-28; questions Q-T223a–f (auth provider, what syncs, privacy, offline, optional, timing); no build |
 
 ## Order for open tickets
 
