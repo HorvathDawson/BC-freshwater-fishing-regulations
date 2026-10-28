@@ -38,7 +38,7 @@ import { useWaterCopy } from "./web/useWaterCopy";
 import { useRegion, useVisible } from "./web/useVisible";
 import { useWebMapRefs } from "./web/refs";
 
-export function Map({ at, theme, view, modes, groups, hide, show, initial, data, onPressFeature,
+export function Map({ at, theme, view, modes, groups, hide, show, initial, data, onPressFeature, onPressObstacle,
                      chrome,
                       onError, onMoved, onMapPoint, onLongPress, highlight, water, waterLine, selection = "outline", marker,
                       style,
@@ -71,7 +71,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   useWaterCopy(refs, { highlight, water, waterLine, at, onError });
   useVisible(refs, onVisible);
   useRegion(refs, onRegion);
-  usePressFeature(refs, onPressFeature, onError);
+  usePressFeature(refs, onPressFeature, onError, onPressObstacle);
 
   /**
    * THE CONTROLS' COLOURS, from the map's own theme.

@@ -38,6 +38,7 @@ import { SpotPin } from "./SpotPin";
 import { TabBar } from "./TabBar";
 import { EdgeBack } from "./EdgeBack";
 import { LayersSheet } from "./LayersSheet";
+import { ObstacleSheet } from "./ObstacleSheet";
 import { DaySheet } from "./regs/DaySheet";
 import { WaterViewsContext } from "./ViewSwipe";
 import { MenuContext } from "./menu/MenuContext";
@@ -77,6 +78,8 @@ export function Shell(p: ShellProps) {
   const [start, setStart] = useState<RegsStart | null>(p.regsStart ?? null);
   const [dayOpen, setDayOpen] = useState(false);
   const [layersOpen, setLayersOpen] = useState(false);
+  /** (T173) The tapped fish obstacle mark's tile properties, while its sheet is up. */
+  const [obstacle, setObstacle] = useState<Readonly<Record<string, unknown>> | null>(null);
   /**
    * The camera survives leaving the map.
    *
@@ -175,7 +178,8 @@ export function Shell(p: ShellProps) {
                   loader={loader} syncState={syncState} menu={menu} menuInfo={menuInfo} mapDay={mapDay}
                   onDay={setMapDay} onOpenDay={() => setDayOpen(true)}
                   dayRange={dayRange(new Date(), loader?.manifest?.regulations?.valid_until ?? null)}
-                  onSaveSpot={onSaveSpot} onLayers={() => setLayersOpen(true)} onRegion={onRegion} />;
+                  onSaveSpot={onSaveSpot} onLayers={() => setLayersOpen(true)} onRegion={onRegion}
+                  onObstacle={setObstacle} />;
 
   /** (T48) The top bar — the search field — is the maps': on the Map and Conditions tabs while browsing. */
   const topBar = route.mode === "browse" && (tab === "map" || tab === "conditions") && !rail.picking;
@@ -242,6 +246,8 @@ export function Shell(p: ShellProps) {
       <DaySheet open={dayOpen && route.mode === "browse"} onClose={() => setDayOpen(false)} palette={palette}
                 day={mapDay} onDay={setMapDay}
                 range={dayRange(new Date(), loader?.manifest?.regulations?.valid_until ?? null)} />
+      {/* (T173) a tapped fish obstacle mark: what it is (Map tab, while browsing) */}
+      <ObstacleSheet props={route.mode === "browse" ? obstacle : null} palette={palette} onClose={() => setObstacle(null)} />
       <ShellSheets nav={nav} col={col} rail={rail} menu={menu} palette={palette} loader={loader} menuInfo={menuInfo}
                    mapDay={mapDay} />
     </View>

@@ -7,7 +7,7 @@
 import { bboxOfGeometry, unionBbox, type Bbox, type SectionKey } from "@app/core";
 import { baseAdapter, type MapAdapter, type MapRenderer } from "./contract";
 import {
-  TAP_GROUPS, VISIBLE_LAYERS, WATER_SOURCE_LAYERS, firstSection, onceSink, sectionIdOf, stateHandle, tapBox, visibleSections,
+  OBSTACLE_LAYERS, TAP_GROUPS, VISIBLE_LAYERS, WATER_SOURCE_LAYERS, firstObstacle, firstSection, onceSink, sectionIdOf, stateHandle, tapBox, visibleSections,
 } from "../sections";
 import { mirrorSink, type CopyTarget, type LitFeature, type WaterCopy } from "../water-copy";
 
@@ -87,6 +87,10 @@ export function webRenderer(m: GlMapSlice, maxZoom: number, mirror?: CopyMirror)
         if (id !== null) return { layer: g.as, id };
       }
       return null;
+    },
+    pressObstacle: async (x, y) => {
+      const layers = present(OBSTACLE_LAYERS);
+      return layers.length ? firstObstacle(m.queryRenderedFeatures(tapBox(x, y), { layers })) : null;
     },
     visible: async () => visibleSections(m.queryRenderedFeatures({ layers: present(VISIBLE_LAYERS) })),
     // the same pick as the copy's (T175), measured

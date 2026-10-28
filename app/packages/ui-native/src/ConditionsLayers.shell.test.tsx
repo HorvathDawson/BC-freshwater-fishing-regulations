@@ -117,7 +117,7 @@ const map = () => screen.getByTestId("map-look").textContent;
 // the ramp names the quantity in its title (refinement pass: "Flow vs. past years, this date")
 const ramp = () => (["Flow vs. past years, this date", "Water level vs. past years, this date"].find((t) => screen.queryByText(t)) ?? "no ramp");
 
-const CONDITIONS_GROUPS = '{"depth":false,"ownership":false}';
+const CONDITIONS_GROUPS = '{"depth":false,"ownership":false,"obstacles":false}';
 
 describe("Level as its own view, in the Conditions map's Layers", () => {
   it("the Conditions rail has Layers; its sheet is Show · Map · On the map, Flow chosen; no Showing switch in the legend", async () => {
@@ -178,11 +178,11 @@ describe("Level as its own view, in the Conditions map's Layers", () => {
     act(() => { fireEvent.click(screen.getByRole("tab", { name: "Map" })); });
     expect([mapSheet, mapLook, condLook, map()]).toEqual([
       "MAP · COLOUR THE WATER BY · ON THE MAP | Map* Satellite Corridors Regulations* Stocked Depth"
-        + " | Spots+ Depth contours Private land Pools and runs Relief",
-      'modes #1 · groups {"depth":false,"ownership":true} · hide - · show - · ground map · changed 1',
+        + " | Spots+ Depth contours Private land Fish obstacles Pools and runs Relief",
+      'modes #1 · groups {"depth":false,"ownership":true,"obstacles":false} · hide - · show - · ground map · changed 1',
       // (the fixture is no proven pair, so both tabs' modes are plain — the same object; the private land is the point)
       `modes #1 · groups ${CONDITIONS_GROUPS} · hide mu,mu__edge,mu__label,region,region__edge,region__label · show stream__arrows · ground map · changed 1`,
-      'modes #1 · groups {"depth":false,"ownership":true} · hide - · show - · ground map · changed 1',
+      'modes #1 · groups {"depth":false,"ownership":true,"obstacles":false} · hide - · show - · ground map · changed 1',
     ]);
   });
 

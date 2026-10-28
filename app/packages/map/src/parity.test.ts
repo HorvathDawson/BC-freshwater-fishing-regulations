@@ -35,7 +35,7 @@ function recorder() {
 }
 
 // ---- the two renderers over recorders shaped like their SDKs ------------------------------------------------------
-type Hit = { id: number | null; geometry?: unknown };
+type Hit = { id: number | null; geometry?: unknown; properties?: Record<string, unknown> };
 /** What the "tiles" hold: by layer (rendered queries) and by source-layer (source queries). */
 const WORLD: { rendered: Record<string, Hit[]>; source: Record<string, Hit[]> } = {
   rendered: {
@@ -62,7 +62,8 @@ function glRecorder(log: string[]): GlMapSlice {
       const box = Array.isArray(a[0]) ? a[0] : null;
       const ls = ((box ? a[1] : a[0]) as { layers: string[] }).layers;
       log.push(`query ${box ? JSON.stringify(box) : "viewport"} ${ls.join(",")}`);
-      return asked(ls).map((h) => (h.id === null ? {} : { id: h.id }));     // GL JS: a number, or no id at all
+      // GL JS: a number, or no id at all
+      return asked(ls).map((h) => ({ ...(h.id === null ? {} : { id: h.id }), ...(h.properties ? { properties: h.properties } : {}) }));
     },
     querySourceFeatures: (_src, o) => (WORLD.source[o.sourceLayer] ?? []).map((h) => ({ ...h })),
     fitBounds: (b, o) => log.push(`fit ${JSON.stringify(b.flat())} pad ${o.padding} ${o.duration}ms`),
@@ -80,7 +81,8 @@ function bindingRecorder(log: string[]): NativeRefs {
         const box = Array.isArray(a[0]) ? a[0] : null;
         const ls = ((box ? a[1] : a[0]) as { layers: string[] }).layers;
         log.push(`query ${box ? JSON.stringify(box) : "viewport"} ${ls.join(",")}`);
-        return asked(ls).map((h) => ({ id: h.id === null ? "" : String(h.id) }));   // Android: strings, "" for none
+        // Android: strings, "" for none
+        return asked(ls).map((h) => ({ id: h.id === null ? "" : String(h.id), ...(h.properties ? { properties: h.properties } : {}) }));
       },
       getBounds: async () => [-123, 48, -121, 50],
     }),
@@ -157,6 +159,21 @@ describe("map parity: one op script, both renderers, the same commands", () => {
       expect({ n, nlog }).toEqual({ n: w, nlog: wlog });
       expect(w).toEqual({ layer: "lake", id: 1566515 });
     } finally { WORLD.rendered.stream = saved; }
+  });
+
+  it("(T173) a fish obstacle under the tap: the same box, the obstacle layer only, its properties back — on both", async () => {
+    const mark = { obstacle_id: "fiss:10000", type: "falls", height_m: 4, source: "fiss", year: 2001 };
+    WORLD.rendered.obstacle = [{ id: null, properties: mark }];
+    try {
+      const wlog: string[] = [], nlog: string[] = [];
+      const w = await webRenderer(glRecorder(wlog), 14).pressObstacle(10, 10);
+      const n = await nativeRenderer(bindingRecorder(nlog), () => {}).pressObstacle(10, 10);
+      expect({ n, nlog }).toEqual({ n: w, nlog: wlog });
+      expect([w, wlog]).toEqual([mark, ["query [[-2,-2],[22,22]] obstacle"]]);
+      WORLD.rendered.obstacle = [];
+      expect([await webRenderer(glRecorder([]), 14).pressObstacle(10, 10),
+              await nativeRenderer(bindingRecorder([]), () => {}).pressObstacle(10, 10)]).toEqual([null, null]);
+    } finally { delete WORLD.rendered.obstacle; }
   });
 
   it("the phone pushes a feature-state once: the same value again is no call; forget() after a style swap re-sends", async () => {

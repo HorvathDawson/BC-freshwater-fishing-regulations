@@ -63,6 +63,8 @@ export interface MapRenderer {
   easeTo(c: { lon: number; lat: number; zoom: number }, opts: { duration: number }): void;
   /** The section under a tap at screen `(x, y)`: the 24 px box, `TAP_GROUPS` order; the group names the hit. */
   press(x: number, y: number): Promise<{ layer: string; id: number } | null>;
+  /** (T173) The fish obstacle under a tap at `(x, y)` (the same box, `OBSTACLE_LAYERS`): its tile properties, or null. */
+  pressObstacle(x: number, y: number): Promise<Readonly<Record<string, unknown>> | null>;
   /** The sections on screen (`VISIBLE_LAYERS`), as numbers, once each. */
   visible(): Promise<number[]>;
   /** The box of the given sections' features the tiles have delivered (a searched water's own shape), or null. */

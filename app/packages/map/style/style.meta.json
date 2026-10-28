@@ -45,6 +45,13 @@
       "toggleable": false,
       "defaultVisible": false,
       "$comment": "NOT a group a screen toggles. Imagery replaces the drawn ground, so it is switched as the map's `basemap` prop (adapter `setBasemap`), never through `groups` — which is how a screen could otherwise light it while the drawn basemap and its wash still competed underneath."
+    },
+    {
+      "id": "obstacles",
+      "label": "Fish obstacles",
+      "toggleable": true,
+      "defaultVisible": false,
+      "$comment": "(T173) Falls, cascades, canyons, velocity barriers, culverts and dams (pipeline/deliver/tiles/obstacles.py: FISS + WRIS, Open Government Licence – BC). A switch in the Layers sheet (`overlay.obstacles`), off by default: context about the water, never part of its answer."
     }
   ],
   "views": [
@@ -73,6 +80,8 @@
         "not_fishing_water": "plain",
         "watershed": "plain",
         "sign_zone": "plain",
+        "obstacle_ring": "plain",
+        "obstacle": "plain",
         "parcel_private__edge": "plain",
         "indigenous_land__edge": "plain",
         "no_access__edge": "plain",
@@ -134,6 +143,8 @@
         "not_fishing_water": "plain",
         "watershed": "plain",
         "sign_zone": "plain",
+        "obstacle_ring": "plain",
+        "obstacle": "plain",
         "parcel_private__edge": "plain",
         "indigenous_land__edge": "plain",
         "no_access__edge": "plain",
@@ -184,6 +195,8 @@
         "not_fishing_water": "plain",
         "watershed": "plain",
         "sign_zone": "plain",
+        "obstacle_ring": "plain",
+        "obstacle": "plain",
         "parcel_private__edge": "plain",
         "indigenous_land__edge": "plain",
         "no_access__edge": "plain",
@@ -234,6 +247,8 @@
         "not_fishing_water": "plain",
         "watershed": "plain",
         "sign_zone": "plain",
+        "obstacle_ring": "plain",
+        "obstacle": "plain",
         "parcel_private__edge": "plain",
         "indigenous_land__edge": "plain",
         "no_access__edge": "plain",
@@ -328,6 +343,8 @@
     "mu": "admin",
     "sign_zone": "access",
     "stream": "water",
+    "obstacle_ring": "obstacles",
+    "obstacle": "obstacles",
     "parcel_private__edge": "ownership",
     "indigenous_land__edge": "access",
     "no_access__edge": "access",
@@ -1297,6 +1314,24 @@
         "$comment": "(T211) THE SALMON COLOURING, the fast way — the `profile` mode's engine, its own channel: feature-state `sp` holds the section's DFO CHAIN label (`s<chain>`, @app/core `salmonLabel`, fixed for the release), set as each tile arrives; the DAY lives in the paint as one match over the chain labels (`salmonDayProfiles`). Toggling Standard / Salmon is one paint change per layer: no fetch, no relabel. A section DFO does not list reads the UNLISTED chain (closed to salmon fishing, owner 2026-10-27) — an answer, not `missing`; `missing` is only a section not labelled yet. Its own tokens (`salmon.*`), never the provincial `status.*`, so the two colourings read apart."
       }
     },
+    "obstacle_ring": {
+      "plain": {
+        "label": "Fish obstacles",
+        "scale": "static",
+        "color": {
+          "token": "color.obstacle.ring"
+        }
+      }
+    },
+    "obstacle": {
+      "plain": {
+        "label": "Fish obstacles",
+        "scale": "static",
+        "color": {
+          "token": "color.obstacle.mark"
+        }
+      }
+    },
     "parcel_private__edge": {
       "plain": {
         "label": "parcel_private outline",
@@ -1952,7 +1987,9 @@
     "region": "region_id",
     "mu": "mu_id",
     "sign_zone": "area_id",
-    "stream": "section_id"
+    "stream": "section_id",
+    "obstacle_ring": "obstacle_id",
+    "obstacle": "obstacle_id"
   },
   "widths": {
     "contour": "width.lake.edge",
@@ -2008,6 +2045,42 @@
           16,
           2,
           2
+        ]
+      ]
+    },
+    "obstacle_ring": {
+      "token": "width.obstacle.ring",
+      "mode": "zoom",
+      "ramp": [
+        [
+          10,
+          3.6
+        ],
+        [
+          13,
+          4.8
+        ],
+        [
+          16,
+          6.2
+        ]
+      ]
+    },
+    "obstacle": {
+      "token": "width.obstacle.mark",
+      "mode": "zoom",
+      "ramp": [
+        [
+          10,
+          2.2
+        ],
+        [
+          13,
+          3.2
+        ],
+        [
+          16,
+          4.4
         ]
       ]
     },
@@ -2540,7 +2613,11 @@
       "dash.gear.bait": [
         1.2,
         1.2
-      ]
+      ],
+      "color.obstacle.mark": "#0A1116",
+      "color.obstacle.ring": "#F8F8F2",
+      "width.obstacle.mark": 1,
+      "width.obstacle.ring": 1
     },
     "dark": {
       "color.water.mapped": "#38B6DE",
@@ -2674,7 +2751,11 @@
       "dash.gear.bait": [
         1.2,
         1.2
-      ]
+      ],
+      "color.obstacle.mark": "#F4F8F5",
+      "color.obstacle.ring": "#0A0B0D",
+      "width.obstacle.mark": 1,
+      "width.obstacle.ring": 1
     },
     "light": {
       "color.water.mapped": "#4A90E2",
@@ -2808,7 +2889,11 @@
       "dash.gear.bait": [
         1.2,
         1.2
-      ]
+      ],
+      "color.obstacle.mark": "#0A1116",
+      "color.obstacle.ring": "#F8F8F2",
+      "width.obstacle.mark": 1,
+      "width.obstacle.ring": 1
     }
   },
   "tokens": {
@@ -3380,6 +3465,26 @@
       "type": "dash",
       "themeable": true,
       "$comment": "(T213) The bait-ban edge's dash, in line widths of the edge: short even dashes, so a bait ban reads as a broken outline beside fly-only's solid one."
+    },
+    "color.obstacle.mark": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T173) A FISH OBSTACLE's dot: the gauge dot's ink by design (an alias: near-black on the light grounds, near-white on dark). No hue, so a mark never reads as a status or a reading."
+    },
+    "color.obstacle.ring": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T173) The ring under an obstacle's dot: the paper (an alias of `color.outside`), so the dot stands off the status-coloured line it sits on."
+    },
+    "width.obstacle.mark": {
+      "type": "number",
+      "themeable": false,
+      "$comment": "(T173) The obstacle dot's radius scale (the layer's zoom ramp times this): about 2 px at z10, 3 at z13."
+    },
+    "width.obstacle.ring": {
+      "type": "number",
+      "themeable": false,
+      "$comment": "(T173) The ring's radius scale: the dot's plus a ~1.5 px paper edge."
     }
   },
   "enums": {

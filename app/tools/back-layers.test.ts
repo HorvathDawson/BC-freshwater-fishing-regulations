@@ -193,6 +193,8 @@ describe("back, everywhere: every surface registers a back layer", () => {
     expect(found).toEqual([
       "packages/ui-native/src/Faces.tsx#FaceBar: takes onBack",
       "packages/ui-native/src/LayersSheet.tsx#LayersSheet: takes onClose",
+      // (T173) a tapped fish obstacle mark's sheet, drawn by the Shell over the map: a <Sheet>, so it registers
+      "packages/ui-native/src/ObstacleSheet.tsx#ObstacleSheet: takes onClose",
       "packages/ui-native/src/SearchSheet.tsx#SearchSheet: takes onClose",
       "packages/ui-native/src/Sheet.tsx#Sheet: a Modal",
       // (T62 3.4) the route layer's `onBack: back` moved into shell/useShellNav (a hook); the Shell is now found by the

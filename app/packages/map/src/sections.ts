@@ -29,6 +29,19 @@ export const TAP_GROUPS: readonly { as: string; layers: readonly string[] }[] = 
 /** Half the tap box. A river is a one-pixel line and a finger about forty-four: 12 px each way is a fingertip. */
 export const TAP_RADIUS = 12;
 
+/**
+ * (T173) THE FISH OBSTACLE MARKS, asked BEFORE the water (`MapRenderer.pressObstacle`): a mark sits on a river, and a
+ * finger on the mark means the mark. Only while its switch is on — a hidden layer answers no query.
+ */
+export const OBSTACLE_LAYERS: readonly string[] = ["obstacle"];
+
+/** The first obstacle's tile properties, or null (a feature with no properties is not one). */
+export function firstObstacle(features: readonly { properties?: unknown }[]): Readonly<Record<string, unknown>> | null {
+  for (const f of features)
+    if (f.properties && typeof f.properties === "object") return f.properties as Record<string, unknown>;
+  return null;
+}
+
 /** The 24 px box around a press, `[[left, top], [right, bottom]]` — GL JS's PointLike pair and the binding's bounds. */
 export function tapBox(x: number, y: number): [[number, number], [number, number]] {
   return [[x - TAP_RADIUS, y - TAP_RADIUS], [x + TAP_RADIUS, y + TAP_RADIUS]];

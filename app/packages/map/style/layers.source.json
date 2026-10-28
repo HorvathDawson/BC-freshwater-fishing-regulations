@@ -76,6 +76,13 @@
       "toggleable": false,
       "defaultVisible": false,
       "$comment": "NOT a group a screen toggles. Imagery replaces the drawn ground, so it is switched as the map's `basemap` prop (adapter `setBasemap`), never through `groups` — which is how a screen could otherwise light it while the drawn basemap and its wash still competed underneath."
+    },
+    {
+      "id": "obstacles",
+      "label": "Fish obstacles",
+      "toggleable": true,
+      "defaultVisible": false,
+      "$comment": "(T173) Falls, cascades, canyons, velocity barriers, culverts and dams (pipeline/deliver/tiles/obstacles.py: FISS + WRIS, Open Government Licence – BC). A switch in the Layers sheet (`overlay.obstacles`), off by default: context about the water, never part of its answer."
     }
   ],
   "layers": [
@@ -2184,6 +2191,82 @@
         "haloWidth": 1.2,
         "$comment": "WHICH WAY THE WATER GOES, on the Conditions map (owner 2026-10-21). A glyph laid along the line and CHOSEN to point DOWNSTREAM by the tile contract's `flows` (stream lines run mouth to source, measured on the live atlas), in the stream's own colour with a paper halo, drawn only where a view shows it (`views[].show`: Conditions). From z9, where the Conditions rivers come back after the basin field; big water first (Strahler order 6+ at z9, everything from z13) so a valley is not a field of chevrons, and placed after every name so a name never loses its spot to an arrow. A glyph, not an `addImage` icon: the phone has no runtime-image API (N2-F1) and the fonts ship with every release."
       }
+    },
+    {
+      "id": "obstacle_ring",
+      "group": "obstacles",
+      "source": "atlas",
+      "sourceLayer": "obstacle",
+      "geometry": "point",
+      "featureIdProperty": "obstacle_id",
+      "highlightable": false,
+      "minzoom": 10,
+      "width": {
+        "token": "width.obstacle.ring",
+        "mode": "zoom",
+        "ramp": [
+          [
+            10,
+            3.6
+          ],
+          [
+            13,
+            4.8
+          ],
+          [
+            16,
+            6.2
+          ]
+        ]
+      },
+      "colorModes": {
+        "plain": {
+          "label": "Fish obstacles",
+          "scale": "static",
+          "color": {
+            "token": "color.obstacle.ring"
+          }
+        }
+      },
+      "$comment": "(T173) The paper ring under each obstacle mark (MapLibre circles are drawn here without a stroke): it lifts the ink dot off a status-coloured stream line, which is where nearly every mark sits."
+    },
+    {
+      "id": "obstacle",
+      "group": "obstacles",
+      "source": "atlas",
+      "sourceLayer": "obstacle",
+      "geometry": "point",
+      "featureIdProperty": "obstacle_id",
+      "highlightable": false,
+      "minzoom": 10,
+      "width": {
+        "token": "width.obstacle.mark",
+        "mode": "zoom",
+        "ramp": [
+          [
+            10,
+            2.2
+          ],
+          [
+            13,
+            3.2
+          ],
+          [
+            16,
+            4.4
+          ]
+        ]
+      },
+      "colorModes": {
+        "plain": {
+          "label": "Fish obstacles",
+          "scale": "static",
+          "color": {
+            "token": "color.obstacle.mark"
+          }
+        }
+      },
+      "$comment": "(T173) FISH OBSTACLES, as small marks: an ink dot in a paper ring, one look for every type (the tap sheet says which). SMALL AND COLOURLESS ON PURPOSE: the colours on this map are answers (a status, a gauge's reading), and a mark that wore one would read as one. Distinct from a gauge (a coloured dot, the Conditions map's) and a spot (a pin). Tapped before the water under it (`sections.ts` OBSTACLE_LAYERS, `MapProps.onPressObstacle`). From z10, the tile layer's own minzoom."
     }
   ],
   "views": [
@@ -2211,7 +2294,9 @@
         "wetland_flowing": "standing",
         "not_fishing_water": "plain",
         "watershed": "plain",
-        "sign_zone": "plain"
+        "sign_zone": "plain",
+        "obstacle_ring": "plain",
+        "obstacle": "plain"
       },
       "hide": [
         "mu",
@@ -2246,7 +2331,9 @@
         "wetland_flowing": "plain",
         "not_fishing_water": "plain",
         "watershed": "plain",
-        "sign_zone": "plain"
+        "sign_zone": "plain",
+        "obstacle_ring": "plain",
+        "obstacle": "plain"
       },
       "$comment": "THE WATER IS DRAWN PLAIN AND THE ANSWER IS ON THE DOTS. Every other view colours the river, because a flow percentile can be carried from a gauge to the water around it. Temperature cannot yet — that needs the donor panel — and colouring a river from a station 40 km away would be inventing a number for water nobody measured. So the stations say what they read and the rivers say nothing, which is the truth today.\\n\\nIt is also a different SET of stations: 274 of the 439 publish a temperature against 361 that publish a discharge, and they are not the same 274."
     },
@@ -2274,7 +2361,9 @@
         "wetland_flowing": "plain",
         "not_fishing_water": "plain",
         "watershed": "plain",
-        "sign_zone": "plain"
+        "sign_zone": "plain",
+        "obstacle_ring": "plain",
+        "obstacle": "plain"
       }
     },
     {
@@ -2302,7 +2391,9 @@
         "wetland_flowing": "plain",
         "not_fishing_water": "plain",
         "watershed": "plain",
-        "sign_zone": "plain"
+        "sign_zone": "plain",
+        "obstacle_ring": "plain",
+        "obstacle": "plain"
       },
       "$comment": "THE DEFAULT, because regulations are not integrated. The Map tab draws water in its neutral colour; the per-layer modes the app sets (stocked, surveyed, standing) are applied over this. The `regulations` view and the `closure` colour mode it used were removed with the regulation integration — see app/packages/core/src/regulations.ts."
     }

@@ -24,7 +24,8 @@ const layerGroup = (STYLE_META as unknown as { layerGroup: Record<string, string
 describe("the layer registry against the style", () => {
   it("every group an entry sets is a TOGGLEABLE style group — never protected, access or admin", () => {
     const set = LAYERS.flatMap((e) => (e.sets?.groups ?? []).map((g) => `${e.id}:${g}:${groups.get(g)?.toggleable}`));
-    expect(set).toEqual(["water.depth:depth:true", "overlay.contours:depth:true", "overlay.private:ownership:true"]);
+    expect(set).toEqual(["water.depth:depth:true", "overlay.contours:depth:true", "overlay.private:ownership:true",
+                        "overlay.obstacles:obstacles:true"]);
   });
 
   it("every toggleable style group has a switch (a group with no switch can never be seen)", () => {
@@ -100,7 +101,7 @@ describe("the Layers sheet, mounted", () => {
     expect(screen.getAllByRole("heading").map((h) => h.textContent)).toEqual(
       ["Layers", "MAP", "COLOUR THE WATER BY", "ON THE MAP"]);
     expect(radios()).toEqual(["Map *", "Satellite", "Corridors (off)", "Regulations *", "Stocked (off)", "Depth (off)"]);
-    expect(switches()).toEqual(["Spots on", "Depth contours", "Private land", "Pools and runs (off)", "Relief (off)"]);
+    expect(switches()).toEqual(["Spots on", "Depth contours", "Private land", "Fish obstacles", "Pools and runs (off)", "Relief (off)"]);
     expect(text("layers-always")).toBe("Always shown: parks and ecological reserves, Indigenous land (reserves), "
       + "no-access and permit-only land, and region and management-unit lines. They are never switched off.");
   });

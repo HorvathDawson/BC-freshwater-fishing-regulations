@@ -20,7 +20,8 @@ describe("the registry", () => {
       "show:show.flow", "show:show.level", "show:show.temperature",
       "ground:ground.map", "ground:ground.satellite", "ground:ground.corridors",
       "water:water.regulations", "water:water.stocked", "water:water.depth",
-      "overlay:overlay.spots", "overlay:overlay.contours", "overlay:overlay.private", "overlay:overlay.pools", "overlay:overlay.relief",
+      "overlay:overlay.spots", "overlay:overlay.contours", "overlay:overlay.private", "overlay:overlay.obstacles",
+      "overlay:overlay.pools", "overlay:overlay.relief",
       "overlay:overlay.gauges", "overlay:overlay.arrows",
       "always:always.protected", "always:always.indigenous", "always:always.noaccess", "always:always.admin",
     ]);
@@ -36,7 +37,7 @@ describe("the registry", () => {
 
   it("the defaults: Flow, the drawn map, regulations, the Map tab's switches off, the Conditions map's gauges and arrows on", () => {
     expect(LAYER_DEFAULTS).toEqual({ show: "show.flow", ground: "ground.map", water: "water.regulations",
-      on: { "overlay.spots": true, "overlay.contours": false, "overlay.private": false, "overlay.pools": false, "overlay.relief": false,
+      on: { "overlay.spots": true, "overlay.contours": false, "overlay.private": false, "overlay.obstacles": false, "overlay.pools": false, "overlay.relief": false,
             "overlay.gauges": true, "overlay.arrows": true } });
   });
 
@@ -47,7 +48,7 @@ describe("the registry", () => {
       ["show.flow", "show.level", "show.temperature", "ground.map", "ground.satellite",
        "overlay.spots", "overlay.gauges", "overlay.arrows", "always.protected", "always.indigenous", "always.noaccess"],
       ["ground.map", "ground.satellite", "ground.corridors", "water.regulations", "water.stocked", "water.depth",
-       "overlay.spots", "overlay.contours", "overlay.private", "overlay.pools", "overlay.relief",
+       "overlay.spots", "overlay.contours", "overlay.private", "overlay.obstacles", "overlay.pools", "overlay.relief",
        "always.protected", "always.indigenous", "always.noaccess", "always.admin"],
     ]);
   });
@@ -98,13 +99,14 @@ describe("layersVM: the sheet, whole", () => {
                  note: "Stocked and Depth have no data yet. They turn on by themselves when a release carries their values.",
                  tiles: ["water.regulations *", "water.stocked (off) [No data yet]", "water.depth (off) [No data yet]"] },
         overlays: { title: "On the map",
-                    rows: ["overlay.spots *", "overlay.contours", "overlay.private", "overlay.pools (off) [Coming soon]",
+                    rows: ["overlay.spots *", "overlay.contours", "overlay.private", "overlay.obstacles",
+                           "overlay.pools (off) [Coming soon]",
                            "overlay.relief (off) [Coming soon]"] },
         always: "Always shown: parks and ecological reserves, Indigenous land (reserves), no-access and permit-only land, "
           + "and region and management-unit lines. They are never switched off.",
         changed: 0,
         effective: { basemap: "map", water: "regulations", show: "discharge",
-                     groups: { depth: false, ownership: false }, layers: { gauges: false, stream__arrows: false }, pins: { spots: true } },
+                     groups: { depth: false, ownership: false, obstacles: false }, layers: { gauges: false, stream__arrows: false }, pins: { spots: true } },
       });
   });
 
@@ -116,6 +118,7 @@ describe("layersVM: the sheet, whole", () => {
       "Depth · Which lakes were surveyed",
       "Spots · Your saved spots",
       "Depth contours · Traced lines on surveyed lakes", "Private land · Title, not access. Off by default",
+      "Fish obstacles · Falls, cascades, culverts and dams. From zoom 10",
       "Pools and runs · Slow and fast water, read from lidar", "Relief · Lidar hillshade",
     ]);
   });
@@ -131,7 +134,7 @@ describe("layersVM: the sheet, whole", () => {
     const vm = layersVM("map", { ...LAYER_DEFAULTS, water: "water.depth" }, FED);
     expect([vm.water.drawn, vm.water.note, tiles(vm.water.tiles), vm.effective, vm.changed]).toEqual([
       "depth", null, ["water.regulations", "water.stocked", "water.depth *"],
-      { basemap: "map", water: "depth", show: "discharge", groups: { depth: true, ownership: false },
+      { basemap: "map", water: "depth", show: "discharge", groups: { depth: true, ownership: false, obstacles: false },
         layers: { gauges: false, stream__arrows: false }, pins: { spots: true } }, 1]);
   });
 
@@ -146,12 +149,19 @@ describe("layersVM: the sheet, whole", () => {
   it("switches: private land and contours set their style groups, and each counts", () => {
     const vm = layersVM("map", { ...LAYER_DEFAULTS, on: { ...LAYER_DEFAULTS.on, "overlay.private": true,
                                                           "overlay.contours": true } }, NONE);
-    expect([vm.effective.groups, vm.changed]).toEqual([{ depth: true, ownership: true }, 2]);
+    expect([vm.effective.groups, vm.changed]).toEqual([{ depth: true, ownership: true, obstacles: false }, 2]);
+  });
+
+  it("(T173) fish obstacles: off by default, on sets its style group and counts one change, on the Map tab only", () => {
+    const c = chooseLayer(LAYER_DEFAULTS, "overlay.obstacles", NONE);
+    expect([c.on["overlay.obstacles"], layersVM("map", c, NONE).effective.groups, layersVM("map", c, NONE).changed,
+            layersVM("conditions", c, NONE).effective.groups.obstacles, layersVM("conditions", c, NONE).changed])
+      .toEqual([true, { depth: false, ownership: false, obstacles: true }, 1, false, 0]);
   });
 
   it("a coming-soon switch somehow on draws nothing and counts nothing", () => {
     const vm = layersVM("map", { ...LAYER_DEFAULTS, on: { ...LAYER_DEFAULTS.on, "overlay.pools": true } }, NONE);
-    expect([tiles(vm.overlays.rows)[3], vm.changed]).toEqual(["overlay.pools (off) [Coming soon]", 0]);
+    expect([tiles(vm.overlays.rows)[4], vm.changed]).toEqual(["overlay.pools (off) [Coming soon]", 0]);
   });
 
   it("on Conditions, whole: Show (Flow · Level · Temperature), the ground, the gauges and arrows; no water colouring", () => {
@@ -168,7 +178,7 @@ describe("layersVM: the sheet, whole", () => {
         + "They are never switched off.",
       changed: 0,
       // a Map-tab switch is never drawn here: what the menu does not list, the map does not draw
-      effective: { basemap: "map", water: "regulations", show: "discharge", groups: { depth: false, ownership: false },
+      effective: { basemap: "map", water: "regulations", show: "discharge", groups: { depth: false, ownership: false, obstacles: false },
                    layers: { gauges: true, stream__arrows: true }, pins: { spots: true } },
     });
   });
@@ -198,8 +208,8 @@ describe("layersVM: the sheet, whole", () => {
     const c = { ...LAYER_DEFAULTS, on: { ...LAYER_DEFAULTS.on, "overlay.private": true, "overlay.arrows": false } };
     expect([layersVM("conditions", c, NONE).effective.groups, layersVM("conditions", c, NONE).effective.layers,
             layersVM("map", c, NONE).effective.groups, layersVM("map", c, NONE).effective.layers]).toEqual([
-      { depth: false, ownership: false }, { gauges: true, stream__arrows: false },
-      { depth: false, ownership: true }, { gauges: false, stream__arrows: false }]);
+      { depth: false, ownership: false, obstacles: false }, { gauges: true, stream__arrows: false },
+      { depth: false, ownership: true, obstacles: false }, { gauges: false, stream__arrows: false }]);
   });
 
   it("chooseShow: the panel's own chart quantity sets the same one choice", () => {

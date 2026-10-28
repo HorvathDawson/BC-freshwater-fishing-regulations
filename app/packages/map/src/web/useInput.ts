@@ -82,10 +82,10 @@ export function useMapPoint({ map, longPress }: WebMapRefs, onMapPoint: MapProps
 }
 
 export function usePressFeature({ map, renderer, longPress }: WebMapRefs, onPressFeature: MapProps["onPressFeature"],
-                                onError: MapProps["onError"]) {
+                                onError: MapProps["onError"], onPressObstacle?: MapProps["onPressObstacle"]) {
   useEffect(() => {
     const m = map.current, r = renderer.current;
-    if (!m || !r || !onPressFeature) return;
+    if (!m || !r || (!onPressFeature && !onPressObstacle)) return;
     const onClick = (e: maplibregl.MapMouseEvent) => {
       if (longPress.current?.fired()) return;       // the click a long press may leave behind is not a tap
       /**
@@ -107,15 +107,20 @@ export function usePressFeature({ map, renderer, longPress }: WebMapRefs, onPres
        * "lake"), the same on both maps: a native feature does not say which style layer it came from.
        */
       const { lat, lng } = e.lngLat;
-      void r.press(e.point.x, e.point.y).then((hit) => {
+      // (T173) a fish obstacle mark first: a tap on the mark is the mark's, and opens no water under it
+      const { x, y } = e.point;
+      void (onPressObstacle ? r.pressObstacle(x, y) : Promise.resolve(null)).then((ob) => {
+        if (ob) { onPressObstacle!(ob); return null; }
+        return onPressFeature ? r.press(x, y) : null;
+      }).then((hit) => {
         // WHERE ON THE FEATURE, not just which feature. A river is hundreds of kilometres
         // long and the answer to "how does this spot reach the gauge" starts at the point
         // under the finger — without it the route panel can mark the station and nothing
         // else. The coordinate is snapped to nothing: it is where the person tapped.
-        if (hit) onPressFeature(hit.layer, hit.id, lat, lng);
+        if (hit) onPressFeature?.(hit.layer, hit.id, lat, lng);
       }).catch((err: unknown) => onError?.(err instanceof Error ? err : new Error(String(err))));
     };
     m.on("click", onClick);
     return () => { m.off("click", onClick); };
-  }, [onPressFeature]);
+  }, [onPressFeature, onPressObstacle]);
 }

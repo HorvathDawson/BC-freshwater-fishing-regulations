@@ -440,6 +440,26 @@
       }
     },
     {
+      "id": "obstacle_ring",
+      "type": "circle",
+      "source": "atlas",
+      "source-layer": "obstacle",
+      "minzoom": 10,
+      "layout": {
+        "visibility": "none"
+      }
+    },
+    {
+      "id": "obstacle",
+      "type": "circle",
+      "source": "atlas",
+      "source-layer": "obstacle",
+      "minzoom": 10,
+      "layout": {
+        "visibility": "none"
+      }
+    },
+    {
       "id": "stream__label",
       "type": "symbol",
       "source": "atlas",

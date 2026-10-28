@@ -160,6 +160,10 @@ export const LAYERS: readonly LayerEntry[] = [
     sets: { groups: ["depth"] }, label: "Depth contours", note: "Traced lines on surveyed lakes" },
   { id: "overlay.private", kind: "overlay", views: ["map", "water"], default: false,
     sets: { groups: ["ownership"] }, label: "Private land", note: "Title, not access. Off by default" },
+  // (T173) FISH OBSTACLES: falls, cascades, canyons, velocity barriers, culverts and dams (FISS + WRIS), off by default;
+  // a tap on a mark names it (`obstacleSheet`)
+  { id: "overlay.obstacles", kind: "overlay", views: ["map", "water"], default: false,
+    sets: { groups: ["obstacles"] }, label: "Fish obstacles", note: "Falls, cascades, culverts and dams. From zoom 10" },
   { id: "overlay.pools", kind: "overlay", views: ["map", "water"], default: false,
     needs: { built: false }, label: "Pools and runs", note: "Slow and fast water, read from lidar" },
   { id: "overlay.relief", kind: "overlay", views: ["map", "water"], default: false,

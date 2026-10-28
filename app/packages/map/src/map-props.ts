@@ -217,6 +217,12 @@ export interface MapProps {
   onPressFeature?: (layerId: string, featureId: SectionKey,
                     lat?: number, lon?: number) => void;
   /**
+   * (T173) A tapped FISH OBSTACLE mark (the `obstacle` layer, drawn only while its switch is on): its tile properties,
+   * which `@app/core` `obstacleSheet` turns into words. Asked before the water: a tap on a mark is the mark's, and opens
+   * no water under it. Absent, a mark is not tappable and the water under it answers as before.
+   */
+  onPressObstacle?: (props: Readonly<Record<string, unknown>>) => void;
+  /**
    * Renderer failures. Not optional in spirit: an empty map and a map whose tiles failed
    * to load look identical, and this app's whole argument is that "we do not know" must
    * never be drawn as anything else.

@@ -77,7 +77,7 @@ type PressEvent = { nativeEvent: { point: [number, number] | { x: number; y: num
 type RegionEvent = { nativeEvent: { center?: [number, number]; zoom?: number; userInteraction?: boolean } | null };
 type Data = NonNullable<MapProps["data"]>;
 
-export function Map({ at, theme, view, modes, groups, hide, show, initial, data, onPressFeature, chrome, onError,
+export function Map({ at, theme, view, modes, groups, hide, show, initial, data, onPressFeature, onPressObstacle, chrome, onError,
                       onMoved, onMapPoint, onLongPress, highlight, water, waterLine, selection = "outline", marker, style, gauges,
                       onVisible, pins, bare, fit, status, standing, lakes, salmon, method,
                       basemap, marks, onPressMark, spots, onImageryError: _noTileErrors,
@@ -109,8 +109,8 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
 
   // Callbacks through refs: the SDK handlers are registered once, and an inline arrow from a caller must not
   // re-register them (or, for the style, swap it).
-  const cb = useRef({ onError, onMoved, onMapPoint, onPressFeature, onVisible, onLongPress });
-  cb.current = { onError, onMoved, onMapPoint, onPressFeature, onVisible, onLongPress };
+  const cb = useRef({ onError, onMoved, onMapPoint, onPressFeature, onPressObstacle, onVisible, onLongPress });
+  cb.current = { onError, onMoved, onMapPoint, onPressFeature, onPressObstacle, onVisible, onLongPress };
   const report = useCallback((e: unknown) =>
     cb.current.onError?.(e instanceof Error ? e : new Error(String(e))), []);
 
@@ -374,9 +374,13 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     // and the off-spot tap that clears the selection does not clear the one this tap makes
     if (spotUnder(spotsAt.current.marks, lat, lon, spotsAt.current.zoom)) return;
     cb.current.onMapPoint?.(lat, lon);
-    const press = cb.current.onPressFeature;
-    if (!press || !rendered.current) return;       // no renderer to query yet (see `rendered`)
+    const press = cb.current.onPressFeature, obstacle = cb.current.onPressObstacle;
+    if ((!press && !obstacle) || !rendered.current) return;       // no renderer to query yet (see `rendered`)
     try {
+      // (T173) a fish obstacle mark first: a tap on the mark is the mark's, and opens no water under it
+      const ob = obstacle ? await renderer.pressObstacle(x, y) : null;
+      if (ob) { obstacle!(ob); return; }
+      if (!press) return;
       const hit = await renderer.press(x, y);
       if (hit) press(hit.layer, hit.id, lat, lon);
     } catch (err) { report(err); }
