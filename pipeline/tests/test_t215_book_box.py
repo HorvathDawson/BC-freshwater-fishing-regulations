@@ -11,7 +11,7 @@ from pipeline.deliver.release.manifest import manifest
 
 
 def _doc(name="ADAM RIVER (except Eve River)", pages=(14,)):
-    return {"entries": {"e1": {"official_name": name, "name": "Adam River", "pages": list(pages)}}}
+    return {"entries": {"e1": {"full_name": name, "name": "Adam River", "pages": list(pages)}}}
 
 
 def test_a_rule_gets_its_entrys_row_box_by_printed_page_and_name(monkeypatch):

@@ -273,7 +273,7 @@ def book_boxes(x: dict, doc: dict) -> List[dict]:
     in points, top-left origin — for the app's highlight annotation. A water row only (the zone and province tables
     are not rows in the sidecar): [] where the entry has no row box."""
     E = doc["entries"].get(x["entry_id"]) or {}
-    name = E.get("official_name") or E.get("name")
+    name = E.get("full_name")        # the book's own spelling of the row's water, as the sidecar keys it
     rows = _row_boxes()
     return [b for p in E.get("pages") or [] for b in rows.get((int(p), name), [])]
 
