@@ -354,6 +354,10 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
       return loader.salmon();
     },
 
+    methodFacts() {
+      return loader.method();
+    },
+
     standingClasses() {
       return (classes ??= (async () => {
         const [paint, members, area, basins, lakes] = await Promise.all([

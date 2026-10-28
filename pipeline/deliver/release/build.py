@@ -54,7 +54,8 @@ from pipeline.deliver.release import shards as SH
 FORMATS = {name: spec["format"] for name, spec in C.FILES.items()}
 #: the gzip size gates (MINIMAL-PACKAGING §2; P08 test 7)
 #: (T211) `salmon`: a provisional gate, set before any release carried the file (the owner's build measures it)
-SIZE_GATES = {"paint": 1_000_000, "access": 300_000, "core": 1_300_000, "lakes": 100_000, "salmon": 600_000, **{f"regs-{r}": 1_500_000 for r in SH.REGIONS}}
+#: (T213) `method`: 308,222 gzipped measured on the live store 2026-10-27 (433,483 with closed days: over the total gate)
+SIZE_GATES = {"paint": 1_000_000, "access": 300_000, "core": 1_300_000, "lakes": 100_000, "salmon": 600_000, "method": 600_000, **{f"regs-{r}": 1_500_000 for r in SH.REGIONS}}
 TOTAL_GATE = 15_000_000  # owner 2026-10-22 (Q55): raised from 14,000,000 — room for T128 wording + the lakes file
 
 CORE_TABLES = ("item", "alias", "item_alias", "item_section", "place", "see_pointer")
@@ -386,6 +387,11 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
                                            {**regs, "format": FORMATS[f"regs-{r}"], "region": r})
         files["regs-sid"] = copy_file(work / "regs-sid.sqlite", {"s": store}, [("s", t, None) for t in SH.SID_TABLES],
                                       {**regs, "format": FORMATS["regs-sid"]})
+        # (T213) bait ban / fly fishing only per section and day: a projection of the store's open-days strips
+        from pipeline.deliver import method as METHOD
+        p = work / "method.bin"
+        p.write_bytes(METHOD.encode(METHOD.compute(st)))
+        files["method"] = p
 
         final = ship(work, files, base["section_handles"], out_root, data_release=data_release, tiles=tiles,
                      basemap=basemap, valid_until=bmeta.get("valid_until") or None, sources=sources, synopsis=synopsis,

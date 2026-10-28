@@ -10,14 +10,14 @@
  *
  * Every SQLite file is checked on open: its meta.format is the manifest's and its meta.section_handles the release's.
  */
-import { decodeAccessFile, decodeLakeFacts, decodePaint, decodeFlowArea, decodeSalmon, type LakeFacts, type Paint,
-         type SalmonFacts, type SectionAccess } from "@app/core";
+import { decodeAccessFile, decodeLakeFacts, decodeMethod, decodePaint, decodeFlowArea, decodeSalmon, type LakeFacts,
+         type MethodFacts, type Paint, type SalmonFacts, type SectionAccess } from "@app/core";
 import type { Db } from "../sql/db";
 import type { Manifest } from "../manifest";
 import { type Region } from "../pack.generated";
 
-/** (T211) the DFO salmon: a binary file of its own (`salmon/1`) */
-type BinName = "salmon";
+/** (T211) the DFO salmon: a binary file of its own (`salmon/1`); (T213) bait ban / fly only per day (`method/1`) */
+type BinName = "salmon" | "method";
 
 export type FileName = "paint" | "flow-area" | "lakes" | "access" | "core" | "near" | "water" | `regs-${Region}` | "regs-sid"
   | BinName
@@ -50,6 +50,9 @@ export interface ReleaseLoader {
   /** (T211) The DFO salmon (`salmon`), checked against the release's handles; null when the manifest names none. Fetched
    *  once: the Salmon card and the Salmon colouring read the same decoded file. */
   salmon(): Promise<SalmonFacts | null>;
+  /** (T213) Bait ban / fly fishing only per section and day (`method`), checked against the release's handles; null when
+   *  the manifest names none (a release cut before T213). What the map's "Bait & fly" colouring reads. */
+  method(): Promise<MethodFacts | null>;
   /**
    * (T54) The gentler access tiers (`access`: permit-only land, reserves, private land), checked against the release's
    * handles; null when the manifest names none. Opened with a Regulations page; the no-access rows are paint's.
@@ -77,6 +80,7 @@ export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener):
   let paint: Promise<Paint> | null = null, area: Promise<Float64Array> | null = null;
   let lakes: Promise<LakeFacts | null> | null = null;
   let salmon: Promise<SalmonFacts | null> | null = null;
+  let method: Promise<MethodFacts | null> | null = null;
   let access: Promise<SectionAccess | null> | null = null;
   let regions: Promise<Map<number, Region[]>> | null = null;
   const touch = (n: FileName) => { if (!order.includes(n)) order.push(n); };
@@ -139,6 +143,15 @@ export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener):
         salmon.catch(() => { salmon = null; });
       }
       return salmon;
+    },
+    method() {
+      if (!method) {
+        if (!m.files.method) return Promise.resolve(null);
+        touch("method");
+        method = source.bytes("method").then((b) => decodeMethod(b, handles));
+        method.catch(() => { method = null; });
+      }
+      return method;
     },
     access() {
       if (!access) {

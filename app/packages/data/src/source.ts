@@ -119,6 +119,12 @@ export interface WaterSource {
    * release ships none (an older release, the fixture): the Salmon toggle is then not offered.
    */
   salmonFacts(): Promise<import("@app/core").SalmonFacts | null>;
+  /**
+   * (T213) BAIT BAN AND FLY FISHING ONLY per section and day (`method`, @app/core `decodeMethod`) — what the map's
+   * "Bait & fly" colouring reads. Optional, and null where the release ships none (an older release, the fixture): the
+   * choice is then not offered.
+   */
+  methodFacts?(): Promise<import("@app/core").MethodFacts | null>;
   /** Every station's position, for drawing the gauges themselves. A few hundred rows. */
   gaugePoints(): Promise<readonly { station: StationId; name: string;
                                     lon: number; lat: number;

@@ -8,6 +8,7 @@ app's generated copy) moving with it.
 from __future__ import annotations
 
 from pipeline.deliver import lake_facts as LF
+from pipeline.deliver import method as METHOD
 from pipeline.deliver import salmon as SALMON
 from pipeline.deliver.release import paint as PAINT
 from pipeline.deliver.release import shards as SH
@@ -35,6 +36,9 @@ FILES = {
     # (T211) the DFO salmon: per chain of DFO locations and day, the species' verdicts, gear lines and map status; each
     # placed section's chain (a section in no run: the UNLISTED chain, closed). The Salmon card and the Salmon colouring.
     "salmon": {"format": SALMON.FORMAT, "kind": "bin", "tables": {}},
+    # (T213) bait ban / fly fishing only per section and day — the map's "Bait & fly" colouring, projected from
+    # the regs store's open-days strips (pipeline/deliver/method.py)
+    "method": {"format": METHOD.FORMAT, "kind": "bin", "tables": {}},
     "core": {"format": "core/1", "kind": "sqlite", "tables": {
         # `name_key` / `alias_key` (T114): what the app's SEARCH filters on (`@app/core` `searchKey` of the query). The
         # app's search NEEDS them: a core without them fails every water search, so ship it with the app that reads it.
@@ -133,6 +137,9 @@ UNITS = {
     "salmon": "salmon/1: 'BCSA', u8 1, 8 bytes section_handles, u32le JSON length + UTF-8 JSON (credit, default, "
               "regions, verdicts, gears, chains, unmapped), LEB128 run count, then per run LEB128 sid gap, count, chain "
               "(pipeline/deliver/salmon.py)",
+    "method": "method/1: 'BCMT', u8 1, 8 bytes section_handles, LEB128 profile count, then per profile LEB128 run count + "
+              "runs (length << 2 | code: 0 none or closed, 1 bait ban, 2 fly only; 366 days), then LEB128 run count and "
+              "three columns sid gap[], count[], profile[] (pipeline/deliver/method.py)",
 }
 REGIONS = SH.REGIONS
 
