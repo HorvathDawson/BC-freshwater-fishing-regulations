@@ -1,6 +1,6 @@
 # T202 — tile size optimizations (last band)
 
-Status: OPEN
+Status: DONE — basemap d4589cb5 / 6f25c3c9, atlas aeba83ca + b17dfa1f (web promoteId fix) (release r-c706f5eaa2a3, 2026-10-27)
 
 Source: owner 2026-10-25 — "another item in last band is the tile size optimizations."
 
@@ -71,3 +71,8 @@ Chilcotin z12/z15, Liard z8/z11, both sign zones z15, an MU boundary (2-3/2-4) z
 `own_pass`; style `mu` back on `atlas`, drop `sources.mus`; rebuild tiles).
 
 Not done (owner): brotli, the uncompressed native archive. Contours (T201) and run timing (T199) are sized when they ship.
+
+**Fix after ship (b17dfa1f):** the web atlas source kept an object `promoteId` for the area layers; GL JS applies an object
+promoteId to EVERY source-layer, so streams read `properties[undefined]` and lost their MVT ids (no paint, no taps).
+The atlas now promotes nothing (the area layers there are static, as on the phone). Verified: ids on 54/54 + 34/34
+stream features at Fraser Valley z11/z13, map paints, a Vedder tap opens its regs (`T202-shots/fix-*.png`).

@@ -95,7 +95,8 @@ def test_the_tiles_carry_only_what_is_read():
     assert BY_NAME["lake"].attrs == ("section_id", "name", "water", "area_m2")
     assert BY_NAME["wetland"].attrs == ("section_id", "name", "water")
     on_disk = json.loads((REPO_ROOT / "pipeline/deliver/tiles/tile-contract.json").read_text())
-    assert on_disk["layers"]["stream"]["attrs"] == list(BY_NAME["stream"].attrs)
+    # the TILE carries the section id once, as the MVT id (T202): the contract lists the properties without it
+    assert on_disk["layers"]["stream"]["attrs"] == list(BY_NAME["stream"].attrs[1:])
     assert on_disk == contract()
     export = (REPO_ROOT / "pipeline/deliver/tiles/export.py").read_text()
     water_features = export[export.index("def export_streams"):export.index("def _kind(node)")]

@@ -3,7 +3,18 @@
 Restart here. Update this file after EVERY step: what is done, what is running, and the exact next action.
 Logs from timing runs live in the session scratchpad, which a reboot wipes. The numbers that matter are copied here.
 
-## CURRENT STATE (2026-10-27, night — T211 parts 2 + 4: live DFO feed)
+## CURRENT STATE (2026-10-27, late night — T202 atlas tiles)
+
+LIVE: r-c706f5eaa2a3, tiles b6b5000e171023c9.0d7666619a1c — atlas.pmtiles 239.3 -> 176.1 MB (aeba83ca; basemap
+274.5 MB from the basemap lane). Sections are MVT-id only: the web atlas source promotes NOTHING (b17dfa1f — an object
+promoteId had blanked every stream id: no paint, no taps; fixed and verified on :39218). mu stops at z12 (`mus` source),
+watershed wash + sign_zone dashed ring drawn, wma Creston only. deliver now links the released basemaps into its
+staging release (the vintage check failed on every deliver since the basemap sidecar landed). The build also re-ran
+reach for the DFO lane's inputs. Shots: handoff/PLAN/app-integration/T202-shots/. Full pytest: 5787 pass, 1 stale
+contract pin fixed. App `check` stops at `pnpm run style` on T74's uncommitted style edits (not T202); see T202 report.
+NOTE: /feeds/dfo/index.json 404s on :39217 (the T211 feed is not served by the tile server) — not fixed.
+
+## (earlier) CURRENT STATE (2026-10-27, night — T211 parts 2 + 4: live DFO feed)
 
 T211 DONE, 4b18a372 (parts 1, 2, 4; part 3 moved to the DFO-locations lane). Live feed job `python -m pipeline.regs.dfo_salmon.live`
 (`--offline` dry run: 247 locations, 0 unplaced, 45 KB) → `data/generated/regs/dfo_salmon/feed/` (dev: serve-tiles
