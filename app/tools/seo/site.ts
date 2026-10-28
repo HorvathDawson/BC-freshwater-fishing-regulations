@@ -10,7 +10,7 @@ import { createHash } from "node:crypto";
 import type { RegsStore } from "@app/data/regs";
 import { aboutBody, CSS, SHARE_GROUND, SHARE_INK, clip, descriptionOf, esc, notFoundBody, regionLabel, shell, titleOf, waterBody, type Release, type Site } from "./html";
 import { aboutLd, checkJsonLd, pageLd, waterLd } from "./jsonld";
-import { appPage, buildDayOf, listWaterOrds, statusOn, waterModel, type BuildDay, type WaterModel, type WaterStatus } from "./model";
+import { appPage, buildDayOf, listWaterOrds, nearestTowns, statusOn, waterModel, type BuildDay, type WaterModel, type WaterStatus } from "./model";
 import { assignSlugs, type SlugMap } from "./slug";
 import { verifyAgainstApp } from "./verify";
 
@@ -86,7 +86,8 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
   }
   if (bad.length) throw new Error(`seo: ${bad.length} page(s) differ from the app:\n${bad.slice(0, 20).join("\n")}`);
 
-  const { map: slugMap, removed } = assignSlugs(models.map((m) => ({ id: m.id, name: m.name, region: m.region })), o.slugMap);
+  const towns = await nearestTowns(store);
+  const { map: slugMap, removed } = assignSlugs(models.map((m) => ({ id: m.id, name: m.name, region: m.region, town: towns.get(m.id) ?? null })), o.slugMap);
   const slugOf = (id: string) => slugMap.waters[id]!.slug;
   const byName = (a: WaterModel, b: WaterModel) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id);
   const regions = [...new Set(models.flatMap((m) => m.regions))].sort((a, b) => a - b);
@@ -116,20 +117,22 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
     what.set(v, path);
   };
   const waterHash = new Map<string, string>();
-  const nameCount = new Map<string, number>(), sameRegion = new Map<string, WaterModel[]>();
+  const nameCount = new Map<string, number>(), sameQual = new Map<string, WaterModel[]>();
   for (const m of models) {
     nameCount.set(m.name, (nameCount.get(m.name) ?? 0) + 1);
-    sameRegion.set(`${m.name}|${m.region}`, [...(sameRegion.get(`${m.name}|${m.region}`) ?? []), m]);
   }
+  const qualOf = (x: WaterModel) => ((nameCount.get(x.name) ?? 0) > 1 ? (towns.get(x.id) ? `near ${towns.get(x.id)}` : regionLabel(x.region)) : "");
+  for (const m of models) { const k = `${m.name}|${qualOf(m)}`; const l = sameQual.get(k); if (l) l.push(m); else sameQual.set(k, [m]); }
   for (const m of models) {
     const path = waterPath(m), siblings = inRegion(m.region), at = siblings.indexOf(m);
     const near = [...siblings.slice(Math.max(0, at - 3), at), ...siblings.slice(at + 1, at + 4)];
-    // two waters with one name keep distinct titles: the region, then "no. k" among those of the same name and region
-    const dup = (nameCount.get(m.name) ?? 0) > 1;
-    const twins = [...(sameRegion.get(`${m.name}|${m.region}`) ?? [])].sort((x, y) => x.id.localeCompare(y.id));
-    const qual = !dup ? "" : twins.length === 1 ? regionLabel(m.region) : `${regionLabel(m.region)}, no. ${twins.indexOf(m) + 1}`;
+    // two waters with one name keep distinct titles: where they are (nearest town, else the region), then "no. k" if that repeats
+    const town = towns.get(m.id) ?? null;
+    const qual0 = (x: WaterModel) => ((nameCount.get(x.name) ?? 0) > 1 ? (towns.get(x.id) ? `near ${towns.get(x.id)}` : regionLabel(x.region)) : "");
+    const twins = [...(sameQual.get(`${m.name}|${qual0(m)}`) ?? [])].sort((x, y) => x.id.localeCompare(y.id));
+    const qual = qual0(m) && twins.length > 1 ? `${qual0(m)}, no. ${twins.indexOf(m) + 1}` : qual0(m);
     const label = qual ? `${m.name} (${qual})` : m.name;
-    const title = titleOf(m.name, site, qual), description = descriptionOf(m, label);
+    const title = titleOf(m.name, site, qual), description = descriptionOf(m, `${m.name}${/no\. \d+$/.exec(qual)?.[0] ? ` ${/no\. \d+$/.exec(qual)![0]}` : ""}`, town);
     unique(titles, title, path); unique(descriptions, description, path);
     const hash = sha(JSON.stringify(m.parts.map((p) => [p.label, p.sections.filter((s) => s.title !== "Why it is closed").map((s) => [s.title, s.items.filter((i) => !i.dated)])])));
     waterHash.set(m.id, hash);
@@ -138,7 +141,7 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
       region: regionPath(m.region),
       neighbours: m.neighbours.flatMap((n) => { const t = known.get(n.id); return t ? [{ href: waterPath(t), text: t.name, how: how[n.how] }] : []; }),
       near: near.map((n) => ({ href: waterPath(n), text: n.name })),
-    });
+    }, { label, town });
     add("water", path, shellOf(path, title, description, body, waterLd(m, site, path, title, asOf, regionPath(m.region)), `/share/${slugOf(m.id)}.svg`), hash);
     files.set(`share/${slugOf(m.id)}.svg`, shareSvg(m, site));
   }

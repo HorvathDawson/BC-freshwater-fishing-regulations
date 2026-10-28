@@ -37,7 +37,7 @@ describe("T193 water pages and About", () => {
       expect(text(p.html), p.path).toMatch(/not a legal document/i);
     }
     for (const p of waters()) {
-      expect(p.html).toMatch(/<h1>[^<]+ fishing regulations<\/h1>/);
+      expect(p.html).toMatch(/<h1>[^<]+ fishing regulations, B\.C\.<\/h1>/);
       expect(p.html).toMatch(/class="app" href="https:\/\/canifishthis\.ca\/\?regs=/);   // the prominent Open in the app link
       expect(p.html).toContain("fishing_synopsis.pdf");
     }
@@ -112,7 +112,12 @@ describe("T194 sitemap, robots, canonicals, structured data", () => {
       expect(titles.has(title), `dup title ${title}`).toBe(false); titles.add(title);
       expect(descs.has(desc), `dup description ${desc}`).toBe(false); descs.add(desc);
     }
-    expect(waters().find((p) => p.path === "/water/vedder-river")!.html).toContain("<title>Vedder River fishing regulations (BC) — Can I Fish This?</title>");
+    expect(waters().find((p) => p.path === "/water/vedder-river")!.html).toContain("<title>Vedder River fishing regulations, B.C. — Can I Fish This?</title>");
+    // the target query is in the title, the H1, the description and the first lines, with where the water is
+    const v = waters().find((p) => p.path === "/water/vedder-river")!.html;
+    expect(v).toContain("<h1>Vedder River fishing regulations, B.C.</h1>");
+    expect(/<meta name="description" content="([^"]*)">/.exec(v)![1]).toMatch(/^Vedder River fishing regulations, B\.C\. \((near [^,]+, )?Region \d\): /);
+    expect(v).toMatch(/Vedder River is in Region \d/);
   });
 
   it("the JSON-LD parses, has its required fields, and every fact in it is on the page; a planted fact is caught", () => {

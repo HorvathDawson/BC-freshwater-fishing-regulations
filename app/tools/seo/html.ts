@@ -52,16 +52,16 @@ ul{padding-left:1.1rem}li{margin:.25rem 0}li.sub{list-style:none;margin-left:-1.
 .tag{font-size:.8rem;color:var(--muted)}footer{border-top:1px solid var(--line);margin-top:2rem;padding:1rem;text-align:center;font-size:.9rem;color:var(--muted)}
 `;
 
-/** The page title, 60 characters at most: "<Water> fishing regulations (BC) — Can I Fish This?", shortened by dropping words (the brand, then "fishing"); the name is never cut. */
+/** The page title, 60 characters at most: "<Water> fishing regulations, B.C. — Can I Fish This?", shortened by dropping words (the brand, then "fishing"); the name is never cut. */
 export function titleOf(name: string, site: Site, qualifier = ""): string {
   const end = ` — ${site.name}`, q = qualifier ? ` (${qualifier})` : "";
-  for (const mid of [" fishing regulations (BC)", " fishing regulations", " regulations"]) {
+  for (const mid of [" fishing regulations, B.C.", " fishing regulations", " regulations"]) {
     const t = `${name}${q}${mid}${end}`;
     if (t.length <= 60) return t;
   }
   // too long with the brand: drop it, then the "fishing"; a name that is itself too long is never cut (a cut name is how two
   // waters end up with one title), so such a title runs past 60 and a search result shortens it on its own
-  for (const mid of [" fishing regulations (BC)", " fishing regulations", " regulations"]) {
+  for (const mid of [" fishing regulations, B.C.", " fishing regulations", " regulations"]) {
     const t = `${name}${q}${mid}`;
     if (t.length <= 60) return t;
   }
@@ -76,9 +76,10 @@ export function clip(s: string, max = 155): string {
 }
 
 /** The meta description of a water page: its answer and its first rule. */
-export function descriptionOf(m: WaterModel, label: string = m.name): string {
+export function descriptionOf(m: WaterModel, label: string = m.name, town: string | null = null): string {
   const first = m.parts[0]?.sections.find((s) => s.title === "What you can keep")?.items.find((i) => !i.head)?.text;
-  return clip(`${label}, ${regionLabel(m.region)}: ${m.answer}${first ? ` ${first}.` : ""}`);
+  const where = town ? `near ${town}, ${regionLabel(m.region)}` : regionLabel(m.region);
+  return clip(`${label} fishing regulations, B.C. (${where}): ${m.answer}${first ? ` ${first}.` : ""}`);
 }
 
 const bookLinks = (book: readonly BookRef[]): string => book.map((b) => b.pdf === null
@@ -102,15 +103,16 @@ function partHtml(p: PartModel, multi: boolean, level: 2 | 3, id: string, site: 
 export interface Links { readonly region: string; readonly neighbours: readonly { href: string; text: string; how: string }[]; readonly near: readonly { href: string; text: string }[] }
 
 /** The body of a water page: one answer, the full rules by part, the links in and out. */
-export function waterBody(m: WaterModel, site: Site, release: Release, asOf: string, links: Links): string {
+export function waterBody(m: WaterModel, site: Site, release: Release, asOf: string, links: Links, ctx: { label?: string; town?: string | null } = {}): string {
+  const label = ctx.label ?? m.name;
   const multi = m.parts.length > 1;
   const q = `Can I fish ${m.name} today?`;
   const cls = m.status === "open" || m.status === "closed" ? m.status : "";
   const valid = release.validUntil ? ` Regulations valid until <time datetime="${esc(release.validUntil)}">${esc(release.validUntil)}</time>.` : "";
   const nav = [
     `<nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> › <a href="${esc(links.region)}">${esc(regionLabel(m.region))}</a> › ${esc(m.name)}</nav>`,
-    `<h1>${esc(m.name)} fishing regulations</h1>`,
-    `<p class="small">${esc(m.regions.map(regionLabel).join(", "))}</p>`,
+    `<h1>${esc(label)} fishing regulations, B.C.</h1>`,
+    `<p class="small">${esc(m.name)} is in ${esc(m.regions.map(regionLabel).join(" and "))}${ctx.town ? `, near ${esc(ctx.town)}` : ""}.</p>`,
     `<h2>${esc(q)}</h2><p class="answer ${cls}">${esc(m.answer)}</p>`,
     `<p class="asof">As of <time datetime="${esc(asOf)}">${esc(asOf)}</time>, from release ${esc(release.id)}.${valid}</p>`,
     `<p><a class="app" href="${appLink(site, m.id)}">Open ${esc(m.name)} in the app</a></p>`,

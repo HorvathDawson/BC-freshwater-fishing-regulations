@@ -35,6 +35,14 @@ describe("slugs (T192)", () => {
     expect(one).toEqual(two);
     expect([one["gnis:1"]!.slug, one["gnis:2"]!.slug]).toEqual(["mill-creek-r3", "mill-creek-r5"]);
   });
+  it("a repeated name takes its nearest town; the same town adds the region; then a counter", () => {
+    const m = (id: string, region: number, town: string | null) => ({ id, name: "Mud Lake", region, town });
+    const s = assignSlugs([m("a", 5, "Quesnel"), m("b", 5, "Gold River"), m("c", 3, "100 Mile House"), m("d", 3, null)]).map.waters;
+    expect(Object.fromEntries(Object.entries(s).map(([k, v]) => [k, v.slug]))).toEqual({
+      a: "mud-lake-near-quesnel", b: "mud-lake-near-gold-river", c: "mud-lake-near-100-mile-house", d: "mud-lake-r3" });
+    const same = assignSlugs([m("a", 5, "Quesnel"), m("b", 3, "Quesnel"), m("c", 3, "Quesnel")]).map.waters;
+    expect([same.a!.slug, same.b!.slug, same.c!.slug]).toEqual(["mud-lake-near-quesnel-r5", "mud-lake-near-quesnel-r3", "mud-lake-near-quesnel-r3-2"]);
+  });
   it("a slug, once assigned, never moves: a rename keeps it, a newcomer never takes it, a removal is reported", () => {
     const first = assignSlugs([A]).map;
     expect(first.waters["gnis:1"]!.slug).toBe("mill-creek");

@@ -35,3 +35,7 @@ The v1 site's 19,331 indexed `/waterbody/<watershed code | lake key>/` pages (li
 `app/seo/legacy-crosswalk.json` (19,274 exact, 30 via a parent code, 5 region, 22 none). Built: 19,147 -> a water page, 162 -> a
 region page, 22 -> home; kept 0 (canonical stays `/water/<slug>`), dropped-with-reason: the 162 + 22 (no rules page today / unknown id).
 Real build: every target exists, no chains. `legacy.test.ts`. See seo/PLAN.md 2b.
+
+## 2026-10-28 owner: query wording + human slugs (nothing live yet, so the map was re-made from empty)
+- Title `<Name> fishing regulations, B.C. — Can I Fish This?`; H1 `<Name> fishing regulations, B.C.`; description `<Name> fishing regulations, B.C. (near <town>, Region N): <today's answer> <first rule>`; first line `<Name> is in Region N, near <town>.`. Town = the bundle's `item_near` nearest settlement (city/town/village/hamlet/locality).
+- Slugs: a repeated name takes `-near-<town>` (else `-r<region>`); what still collides adds the region, then a counter. Real build: 19,482 slugs, 0 duplicates; 5,557 `-near-`, 2,034 with `-r<region>`, 1,411 end in a counter (same name and same nearest town, e.g. the Mud Lakes cluster). Legacy: 19,331 paths, all one 301 to a built page, no chains.

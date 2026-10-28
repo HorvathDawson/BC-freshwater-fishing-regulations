@@ -257,3 +257,15 @@ export async function waterModel(store: RegsStore, ord: number, on: BuildDay): P
     neighbours, mid: first ? [first[0], first[1]] : null, book: [...book.values()].sort((a, b) => a.printed - b.printed),
   };
 }
+
+/** The nearest settlement (city, town, village, hamlet, locality) to each water, by the bundle's own `item_near`; empty where the release has none. */
+export async function nearestTowns(store: RegsStore): Promise<Map<string, string>> {
+  const out = new Map<string, string>();
+  try {
+    const core = await store.core();
+    const rows = await core.all("SELECT c.item_id AS id, p.name AS town FROM item_near n JOIN item c ON c.ord = n.ord JOIN place p ON p.place_id = n.place_id " +
+      "WHERE p.name IS NOT NULL AND p.kind IN ('city','town','village','hamlet','locality') ORDER BY c.item_id, n.ckm, p.place_id");
+    for (const r of rows) if (!out.has(String(r.id))) out.set(String(r.id), String(r.town));
+  } catch { /* a release without item_near has no towns */ }
+  return out;
+}
