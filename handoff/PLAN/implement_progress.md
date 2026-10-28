@@ -3,7 +3,15 @@
 Restart here. Update this file after EVERY step: what is done, what is running, and the exact next action.
 Logs from timing runs live in the session scratchpad, which a reboot wipes. The numbers that matter are copied here.
 
-## CURRENT STATE (2026-10-27, late night — T202 atlas tiles)
+## CURRENT STATE (2026-10-27, late night — checks green + T214 done)
+
+LIVE: r-f7faa483d2b1 (T213's deliver; holds every committed reach/deliver input, so NO new release was cut). T214 item 3
+(33775c57, 61fb25a7): part halo = full outline, other parts dim 0.25; web light+dark verified, T214 DONE. Check reds fixed
+by re-running only them: ladder.test + adapter-contract basemap z13 (6866a3aa, 15d87fda); knip (PART_HALO_PX alias
+dropped, SEO crosswalk generator an entry); style green; sync.mjs at HEAD = no golden change; regs-fixture re-cut
+(516218e8) -> regs-fixture/regs/conformance T02/T07/T08/T09 green (48 files, 4223). Full suites not re-run.
+
+## (earlier) CURRENT STATE (2026-10-27, late night — T202 atlas tiles)
 
 LIVE: r-c706f5eaa2a3, tiles b6b5000e171023c9.0d7666619a1c — atlas.pmtiles 239.3 -> 176.1 MB (aeba83ca; basemap
 274.5 MB from the basemap lane). Sections are MVT-id only: the web atlas source promotes NOTHING (b17dfa1f — an object
