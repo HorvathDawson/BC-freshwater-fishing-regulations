@@ -181,7 +181,7 @@ _HEAVY_READS = {"/api/items/{item_id}/geojson", "/api/items/{item_id}/tributarie
                 "/api/synopsis.pdf"}
 _PARAMS = {"entry_id": ADAM, "rule_id": "adam_river.r1",
            "item_id": "gnis:28136", "filename": "page_016_row_000.png", "printed": "14",
-           "location_id": CAMPBELL}
+           "location_id": CAMPBELL, "cid": "0", "pid": "lake:0", "key": "0"}
 #: T191: the extent-fix editor's reads — a split search, a water search, a preview that resolves
 _FIX = {"scope": "adam_river.r1", "op": "upstream_of",
         "points": [{"kind": "split", "split_id": "adam_river__hwy_19_bridge"}]}

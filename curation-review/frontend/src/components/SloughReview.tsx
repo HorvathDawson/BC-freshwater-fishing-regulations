@@ -3,6 +3,7 @@ import { api, type EntryRefused } from "../api";
 import type { MarkPost } from "../types";
 import { getReviewer, isTyping, setReviewer } from "../review";
 import { MapPanel } from "./MapPanel";
+import { POND_HASH, PondReview } from "./PondReview";
 
 export const SLOUGH_HASH = "sloughs/";
 
@@ -72,13 +73,24 @@ async function postSlough(body: { target?: string; targets?: string[]; call: "st
   return api.postMark(mark as unknown as MarkPost) as unknown as Promise<{ n: number }>;
 }
 
+/** the Sloughs tab: the slough queue, or its "Small ponds (Q154)" view (`#sloughs/q154/<id>`) */
 export function SloughReview({ onLeave }: { onLeave: () => void }) {
+  const [ponds, setPonds] = useState(() => decodeURIComponent(window.location.hash.slice(1)).startsWith(POND_HASH));
+  const toPonds = (on: boolean) => {
+    window.history.replaceState(null, "", `#${on ? POND_HASH : SLOUGH_HASH}`);
+    setPonds(on);
+  };
+  return ponds ? <PondReview onLeave={onLeave} onSloughs={() => toPonds(false)} />
+    : <SloughList onLeave={onLeave} onPonds={() => toPonds(true)} />;
+}
+
+function SloughList({ onLeave, onPonds }: { onLeave: () => void; onPonds: () => void }) {
   const [rows, setRows] = useState<SloughRow[]>([]);
   const [progress, setProgress] = useState<SloughProgress | null>(null);
   const [filters, setFilters] = useState({ group: "premark", basis: "", verify: "todo", region: "", q: "" });
   const [selected, setSelected] = useState<string | null>(() => {
     const h = decodeURIComponent(window.location.hash.slice(1));
-    return h.startsWith(SLOUGH_HASH) ? h.slice(SLOUGH_HASH.length) || null : null;
+    return h.startsWith(SLOUGH_HASH) && !h.startsWith(POND_HASH) ? h.slice(SLOUGH_HASH.length) || null : null;
   });
   const [detail, setDetail] = useState<SloughDetail | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
@@ -100,7 +112,7 @@ export function SloughReview({ onLeave }: { onLeave: () => void }) {
   useEffect(() => {
     const onHash = () => {
       const h = decodeURIComponent(window.location.hash.slice(1));
-      if (h.startsWith(SLOUGH_HASH) && h.length > SLOUGH_HASH.length) setSelected(h.slice(SLOUGH_HASH.length));
+      if (h.startsWith(SLOUGH_HASH) && !h.startsWith(POND_HASH) && h.length > SLOUGH_HASH.length) setSelected(h.slice(SLOUGH_HASH.length));
     };
     window.addEventListener("hashchange", onHash);
     return () => window.removeEventListener("hashchange", onHash);
@@ -165,6 +177,9 @@ export function SloughReview({ onLeave }: { onLeave: () => void }) {
           <div className="mode-tabs" role="tablist">
             <button className="btn small" role="tab" aria-selected={false} onClick={onLeave}>Synopsis entries</button>
             <button className="btn small primary" role="tab" aria-selected>Sloughs</button>
+            <button className="btn small" role="tab" aria-selected={false} data-testid="ponds-tab"
+              title="Q154: small unnamed ponds a river runs through — pool (river rules) or real lake? A sample against the proposed cutoff"
+              onClick={onPonds}>Small ponds (Q154)</button>
           </div>
           <div>
             <label>group</label>

@@ -347,9 +347,13 @@ export function MapPanel({
                      "text-opacity": ["case", ["get", "_on"], 1, 0.35] } },
           // DFO: the SUGGESTED extent — violet, dashed, under the saved extent (never applied)
           { id: "suggested-lines", type: "line", source: "suggested",
-            filter: ["!=", ["geometry-type"], "Point"],
+            filter: ["all", ["!=", ["geometry-type"], "Point"], ["!", ["has", "color"]]],
             paint: { "line-color": "#7c3aed", "line-width": 5, "line-opacity": 0.7,
                      "line-dasharray": [2, 1.5] } },
+          // Q154: a line that names its own colour / width draws solid (a pond's outline, the river)
+          { id: "suggested-plain", type: "line", source: "suggested",
+            filter: ["all", ["!=", ["geometry-type"], "Point"], ["has", "color"]],
+            paint: { "line-color": ["get", "color"], "line-width": ["coalesce", ["get", "width"], 2] } },
           { id: "suggested-pts", type: "circle", source: "suggested",
             filter: ["==", ["geometry-type"], "Point"],
             paint: { "circle-radius": 7,

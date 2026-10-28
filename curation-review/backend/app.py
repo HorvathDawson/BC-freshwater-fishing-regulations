@@ -135,7 +135,7 @@ def get_entries(region: str | None = None, status: str | None = None,
 
 #: what a reviewer marks: an entry, or one rule of a zone entry (T184: entries only); T164: a DFO
 #: salmon location (the DFO review mode); T212: a proposed tidal boundary (the Tidal mode)
-REVIEW_SCOPES = ("entry", "rule", "dfo", "tidal", "slough")
+REVIEW_SCOPES = ("entry", "rule", "dfo", "tidal", "slough", "q154")
 
 
 class MarkPayload(BaseModel):
@@ -165,7 +165,8 @@ class MarkPayload(BaseModel):
     #: split_id?, on_item?, coord?, side?, offset_m?, quote, note}; each anchor is checked and its
     #: resolved point stamped by the server; never written to splits.json (T185)
     new_splits: list[dict] = []
-    #: T55: the owner's call on a slough / canal candidate — "stream" | "not stream" (scope slough)
+    #: T55: the owner's call on a slough / canal candidate — "stream" | "not stream" (scope slough);
+    #: Q154: "pool" | "real lake" on a sample small pond (scope q154)
     call: str | None = None
     #: T55: "accept all visible" — one slough mark per candidate, in one commit (scope slough only)
     targets: list[str] = []
@@ -181,7 +182,11 @@ def post_mark(body: MarkPayload):
     from pipeline.regs.review.marks import (CHECKS, refusal_words, unanswered_words,
                                             verdict_from_answers)
     data = body.model_dump()
-    if body.scope != "slough":
+    if body.scope == "q154":
+        if body.targets:
+            raise HTTPException(422, [{"path": "", "msg": "a Q154 mark names one sample pond"}])
+        data.pop("targets")
+    elif body.scope != "slough":
         if body.targets or body.call is not None:
             raise HTTPException(422, [{"path": "", "msg": "only a slough mark carries a call or several targets"}])
         data.pop("targets"), data.pop("call")
@@ -655,6 +660,34 @@ def slough_candidate(cid: str):
     got = sloughs.detail(cid)
     if got is None:
         raise HTTPException(404, f"slough candidate {cid} not found")
+    return got
+
+
+# --------------------------------------------------------------------------- Q154: Small ponds (Sloughs tab)
+# All READS: the Q154 sample (`pipeline.regs.review.q154`) and the tally of the owner's marks against the
+# cutoff's prediction. The owner's call is a mark (scope "q154") through POST /api/marks.
+
+@app.get("/api/q154/queue")
+def q154_queue(set: str | None = None, verify: str | None = None, caught: str | None = None):
+    """THE Q154 SAMPLE (`ponds.queue`): `set` example | sample, `verify` todo | decided | unsure,
+    `caught` yes | no (the cutoff's prediction)."""
+    import ponds
+    return ponds.queue(set_=set, verify=verify, caught=caught)
+
+
+@app.get("/api/q154/tally")
+def q154_tally():
+    import ponds
+    return ponds.tally()
+
+
+@app.get("/api/q154/ponds/{pid}")
+def q154_pond(pid: str):
+    """One sample pond: its measures, the cutoff's prediction, its outline and the river lines."""
+    import ponds
+    got = ponds.detail(pid)
+    if got is None:
+        raise HTTPException(404, f"Q154 sample pond {pid} not found")
     return got
 
 

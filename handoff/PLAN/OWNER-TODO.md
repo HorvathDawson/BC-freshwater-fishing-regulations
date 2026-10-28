@@ -93,7 +93,10 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   one switch each in panels.py. **Q154 is yours:** the "double-line polygons" are small FWA lakes; walking them as the
   river moves 96,590 sections (+95k Flow) — kept off. Numbers in tickets/T174. Your "how small?": examples +
   a proposed pool-only cut (< 1 ha and ≤ 2× the river's width: 10,650 of 136,080, 11,423 sections) in
-  curation-review/q154-examples.md — say yes / no / another cut.
+  curation-review/q154-examples.md. **See them in the review app:** Sloughs tab → "Small ponds (Q154)"
+  (`#sloughs/q154/`): the 20 md examples + a 60-pond sample (caught / just missed / clearly not, all regions), each
+  on the satellite map with its outline and river; mark each pool / real lake / unsure (keys p / l / ?) and the tally
+  shows how your calls line up with the cut — then say yes / no / another cut.
 - **T89 six waters:** Frog/Hidden/Secret/Square (5-6), Redfern (5-15), Squirrel (6-1) — nothing of those names near
   the printed MU; if you know where any is, the proposal file `handoff/PLAN/curation-review/t89-awaiting-water.json`
   lists the leads and the fix path.

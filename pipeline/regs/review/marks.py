@@ -25,7 +25,7 @@ import os
 from contextlib import contextmanager
 from enum import Enum
 from pathlib import Path
-from typing import Iterable, Literal, Mapping, Optional, Sequence
+from typing import Iterable, Literal, Mapping, Optional, Sequence, Union
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -42,9 +42,11 @@ class StaleReason(str, Enum):
 #: the order reasons are reported in (and the order of the enum)
 STALE_REASONS: tuple[StaleReason, ...] = tuple(StaleReason)
 
-Scope = Literal["entry", "rule", "split", "dfo", "tidal", "slough"]
+Scope = Literal["entry", "rule", "split", "dfo", "tidal", "slough", "q154"]
 #: T55 (owner 2026-10-28): the owner's call on a slough / canal candidate (`review.slough`)
 SloughCall = Literal["stream", "not stream"]
+#: Q154 (owner 2026-10-28): the owner's call on a sample small pond a river runs through (`review.q154`)
+Q154Call = Literal["pool", "real lake"]
 #: T185 (owner 2026-10-27): THE MARKS ARE THE DECISIONS. The retired accept step wrote marks of
 #: scope `proposal` (P y / P n on a proposal's digest); the store is append-only, so a line of it
 #: may still be there — `load` skips it, and nothing makes a new one.
@@ -70,7 +72,10 @@ CHECKS: dict[str, tuple[str, ...]] = {"entry": ("T", "R", "P", "A"),
                                       # T55: a slough / canal candidate (`review.slough`) — P only:
                                       # the call (`Mark.call`) is right. Accepting the pre-mark is
                                       # P y with call "stream"
-                                      "slough": ("P",)}
+                                      "slough": ("P",),
+                                      # Q154: a sample pond (`review.q154`) — P only: the call
+                                      # (pool = river rules / real lake) is right; unsure is P ?
+                                      "q154": ("P",)}
 
 #: THE PROBLEM CATEGORIES a "wrong" mark names (PLAN §2), grouped by the check that finds them.
 #: The review screen offers exactly these; the store keeps any string (an old mark stays valid).
@@ -299,7 +304,7 @@ class NewSplit(BaseModel):
 class RecordPrint(BaseModel):
     """One record's fingerprints (`fingerprint.entry_records`)."""
     model_config = ConfigDict(extra="forbid", frozen=True)
-    key: str = Field(..., pattern=r"^(entry|rule:.+|lic:.+|split:.+|slough:.+)$")
+    key: str = Field(..., pattern=r"^(entry|rule:.+|lic:.+|split:.+|slough:.+|q154:.+)$")
     meaning: str
     binding: str
     reach: Optional[str] = None
@@ -354,7 +359,8 @@ class Mark(BaseModel):
     new_splits: list[NewSplit] = Field(default_factory=list)
     #: T55: THE OWNER'S CALL on a slough / canal candidate — "stream" (fold it into its river) or
     #: "not stream" (it stays a lake). Only on a slough mark; a verified slough mark carries one.
-    call: Optional[SloughCall] = None
+    #: Q154: "pool" (takes the river's rules) or "real lake" on a q154 sample mark
+    call: Optional[Union[SloughCall, Q154Call]] = None
 
     @field_validator("reviewer")
     @classmethod
@@ -398,9 +404,22 @@ class Mark(BaseModel):
             if (self.tributaries or self.extent_fix or self.new_splits or self.lake_split_later
                     or self.rule_id is not None):
                 raise ValueError("a slough mark carries only its call")
+            if self.call not in (None, "stream", "not stream"):
+                raise ValueError("a slough call is stream or not stream")
+            return self
+        if self.scope == "q154":
+            if keys != [f"q154:{self.target}"] or self.prints.text is not None:
+                raise ValueError("a q154 mark holds exactly its sample pond's prints")
+            if self.verdict == "verified" and self.call not in ("pool", "real lake"):
+                raise ValueError("a verified q154 mark says pool or real lake")
+            if self.verdict != "verified" and self.call is not None:
+                raise ValueError("only a verified q154 mark carries a call")
+            if (self.tributaries or self.extent_fix or self.new_splits or self.lake_split_later
+                    or self.rule_id is not None):
+                raise ValueError("a q154 mark carries only its call")
             return self
         if self.call is not None:
-            raise ValueError("only a slough mark carries a stream / not stream call")
+            raise ValueError("only a slough or q154 mark carries a call")
         if self.scope in ("split", "tidal"):
             if keys != [f"split:{self.target}"] or self.prints.text is not None:
                 raise ValueError(f"a {self.scope} mark holds exactly its "
@@ -720,6 +739,10 @@ def target_prints(mark: Mark, entries: Mapping[str, Mapping], ctx) -> Optional["
     if mark.scope == "tidal":                     # T212: a proposed tidal boundary (`review.tidal`)
         from pipeline.regs.review import tidal as T
         got = T.prints_of(mark.target)
+        return Prints.model_validate(got) if got is not None else None
+    if mark.scope == "q154":                      # Q154: a sample small pond (`review.q154`)
+        from pipeline.regs.review import q154 as Q
+        got = Q.prints_of(mark.target)
         return Prints.model_validate(got) if got is not None else None
     if mark.scope == "slough":                    # T55: a slough / canal candidate (`review.slough`)
         from pipeline.regs.review import slough as S
