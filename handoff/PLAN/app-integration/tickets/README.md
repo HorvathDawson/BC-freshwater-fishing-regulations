@@ -268,6 +268,8 @@ use that as the sole source of future work."
 | T221 | solo waters open on regs (no Map), URL follows the water, one salmon table, plain size rule, count line before its size box, at-a-glance species table (kept, no counts) | DONE | 73625e35, 9784a7b0 | owner 2026-10-28 web feedback (Dala River) |
 | T222 | Stave spawning channels (Ruskin/Northrop): add the FWA side channels so Stave r1/r2 can bind | OPEN | — | added_streams + atlas rebuild; no owner call |
 | T223 | user accounts shared between the web app and the phone app (sign-in, what syncs, offline) | OPEN | — | far future; default plan: Firebase Auth + Worker + R2 users/<uid>/, no DB |
+| T224 | name variants from local sources (municipal, ECCC, DFO, synopsis, OSM, BC GNIS), each with its real source | OPEN | — | candidates mined 10-28 (curation-review/name-variants); ★ owner: flow + auto-accept |
+| T225 | feeds: where they live, how they're triggered, alerting (gauges, DFO, HYDAT) | OPEN | — | design first; owner picks host (default GitHub Actions) |
 
 ## Order for open tickets
 
