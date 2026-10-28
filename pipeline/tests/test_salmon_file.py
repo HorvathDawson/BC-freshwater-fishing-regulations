@@ -106,6 +106,26 @@ def test_build_chains_narrowest_first_with_the_unlisted_chain_first():
     assert payload["regions"]["6"]["asof"] == "2026-08-28"
 
 
+def test_a_water_with_an_undrawn_place_is_check_on_every_section_of_it():
+    """PARTIAL COVERAGE (owner 2026-10-28, the Kitimat): the resort (no extent, rules on the page) is on the Kispiox, so
+    every section of the Kispiox — placed (11) or in no location (14) — paints `check`, never the wider rule's answer."""
+    payload, sections = S.build(*_fixture(), {"gnis:4674": [11, 14]})
+    chains, by_sid = payload["chains"], dict(sections)
+    check = [0, S.MAP_CODES.index("check")]
+    assert (chains[by_sid[11]]["l"], chains[by_sid[11]]["u"], chains[by_sid[11]]["m"]) == (["6:b(i)", "6:a"], ["6:resort"], check)
+    assert (chains[by_sid[14]]["l"], chains[by_sid[14]]["u"], chains[by_sid[14]]["m"]) == ([], ["6:resort"], check)
+    assert chains[by_sid[14]]["w"] == "Kispiox River"
+    # the species answers stay DFO's (the card shows them under "check DFO"); a section off the water is untouched
+    p0, s0 = S.build(*_fixture())
+    assert chains[by_sid[11]]["sp"] == p0["chains"][dict(s0)[11]]["sp"]
+    assert "u" not in chains[by_sid[10]] and chains[by_sid[10]]["m"] != check
+    # a DORMANT undrawn place (no rules today) marks nothing: the feed paints it the day DFO lists it again
+    files, feeds, placed, sid_of = _fixture()
+    feeds["6"]["locators"] = [l for l in feeds["6"]["locators"] if l["fingerprint"] != "fr"]
+    p2, s2 = S.build(files, feeds, placed, sid_of, {"gnis:4674": [11]})
+    assert p2["chains"][dict(s2)[11]]["u"] == ["6:resort"] and p2["chains"][dict(s2)[11]]["m"] != check
+
+
 def test_a_placed_section_the_handle_table_does_not_know_stops_the_build():
     files, feeds, placed, sid_of = _fixture()
     del sid_of["s3"]

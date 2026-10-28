@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { SALMON_FEED_GOLDEN } from "./salmonFeed.golden";
-import { salmonCard, type SalmonFacts } from "./salmon";
+import { salmonCard, salmonChainStatus, type SalmonFacts } from "./salmon";
 import { composeChain, parseSalmonFeed, pickSalmon, salmonFeedLine, salmonFeedOf, withSalmonFeed } from "./salmonFeed";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- the golden is the pipeline's JSON, read as data
@@ -21,7 +21,7 @@ describe("the DFO feed over the release", () => {
   it("re-composes every release chain as the pipeline does (narrowest location first, not listed = closed)", () => {
     const f = feed();
     expect(f).not.toBeNull();
-    G.release.chains.forEach((c: { l: string[] }, k: number) => expect(composeChain(c.l, f)).toEqual(G.expect[k]));
+    G.release.chains.forEach((c: { l: string[]; u?: string[] }, k: number) => expect(composeChain(c.l, f, c.u ?? [])).toEqual(G.expect[k]));
     const live = withSalmonFeed(release(), f);
     expect(live.payload.chains.map((c) => ({ sp: c.sp, g: c.g, m: c.m }))).toEqual(G.expect);
     // the geometry is the release's: same chains, same sections
@@ -38,6 +38,20 @@ describe("the DFO feed over the release", () => {
     expect(now.asOf).toBe("DFO page dated Oct 20, 2026");
     expect(salmonFeedLine(live)).toMatch(/^Checked with DFO Oct 27, 2026, \d{1,2}:\d\d [ap]m$/);
     expect([salmonFeedLine(release()), salmonFeedOf(release())]).toEqual([null, null]);
+  });
+
+  it("PARTIAL COVERAGE: a water with a DFO place not drawn yet says check DFO on every section, never a confident answer", () => {
+    const by = new Map<number, number>(G.sections.map(([s, c]: [number, number]) => [s, c]));
+    const live = withSalmonFeed(release(), feed());
+    for (const f of [release(), live]) {
+      for (const sid of [11, 14]) expect(salmonChainStatus(f, by.get(sid)!, 250)).toBe("check");
+      const card = salmonCard(f, { sids: [11], item: "gnis:4674" }, new Date(2026, 8, 10));
+      expect([card.headlineStatus, card.partial?.text, card.partial?.url]).toEqual(
+        ["check", "Salmon rules on parts of this water aren't mapped yet — check DFO", G.release.regions["6"].url]);
+      expect(card.rows.every((r) => r.status === "check") && !card.allClosed).toBe(true);
+      // a section off that water keeps its own answer
+      expect(salmonCard(f, { sids: [10], item: null }, new Date(2026, 8, 10)).partial).toBeNull();
+    }
   });
 
   it("uses the captured feed, else the release's own file; a release cut from newer pages wins", () => {

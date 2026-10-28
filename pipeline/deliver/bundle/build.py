@@ -669,7 +669,15 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
         from pipeline.deliver import salmon as _salmon
         _files, _feeds, _placed = _salmon.load_inputs(
             _reaches, _load_registry(str(Path(build_dir) / "registry.json")))
-        _payload, _salmon_secs = _salmon.build(_files, _feeds, _placed, _read_handles(build_dir)[1])
+        # each water's sections (an absorbed id read as the water it names now): a DFO place not drawn yet marks its
+        # whole water "check DFO" (partial coverage, owner 2026-10-28)
+        _item_secs: dict = {}
+        for _it, _s in db.execute("SELECT i.item_id, s.sid FROM item_section s JOIN item i ON i.ord = s.ord"):
+            _item_secs.setdefault(_it, []).append(_s)
+        for _al, _it in db.execute("SELECT alias, item_id FROM item_alias").fetchall():
+            if _it in _item_secs:
+                _item_secs.setdefault(_al, _item_secs[_it])
+        _payload, _salmon_secs = _salmon.build(_files, _feeds, _placed, _read_handles(build_dir)[1], _item_secs)
         _salmon.write_bundle(db, _payload, _salmon_secs)
         cov.filled("salmon_section", len(_salmon_secs))
         del _files, _feeds, _placed, _payload, _salmon_secs

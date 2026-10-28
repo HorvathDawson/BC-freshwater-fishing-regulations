@@ -206,9 +206,10 @@ class _Interner:
         return self._ix[k]
 
 
-def chain_calendar(chain: Sequence[Sequence[dict]], verdicts: _Interner, gears: _Interner) -> dict:
+def chain_calendar(chain: Sequence[Sequence[dict]], verdicts: _Interner, gears: _Interner, partial: bool = False) -> dict:
     """One chain's year: per species runs of a verdict index (`NOT_LISTED` where nothing opens it), the gear runs (-1:
-    no gear line), the map-status runs."""
+    no gear line), the map-status runs. `partial`: the section's water has a DFO place with rules that is not drawn
+    yet, so no stretch of it can be answered with confidence — the map says `check` every day (PARTIAL COVERAGE)."""
     per_sp: List[List[int]] = [[] for _ in SPECIES]
     gear: List[int] = []
     mapc: List[int] = []
@@ -219,7 +220,8 @@ def chain_calendar(chain: Sequence[Sequence[dict]], verdicts: _Interner, gears: 
         g = gear_on(chain, md)
         gear.append(gears(list(g)) if g else -1)
         mapc.append(MAP_CODES.index(map_status(vs)))
-    return {"sp": [runs_of(x) for x in per_sp], "g": runs_of(gear), "m": runs_of(mapc)}
+    m = [0, MAP_CODES.index("check")] if partial else runs_of(mapc)
+    return {"sp": [runs_of(x) for x in per_sp], "g": runs_of(gear), "m": m}
 
 
 def _label(loc) -> str:
@@ -228,13 +230,20 @@ def _label(loc) -> str:
 
 
 def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: Iterable[dict],
-          sid_of: Mapping[str, int]) -> Tuple[dict, List[Tuple[int, int]]]:
+          sid_of: Mapping[str, int], item_sections: Optional[Mapping[str, Iterable[int]]] = None
+          ) -> Tuple[dict, List[Tuple[int, int]]]:
     """(payload, [(sid, chain)] sorted by sid). `entry_files`: slug → `entries.EntryFile`; `feeds`: slug → the typed
     feed (`typed/region-<slug>.json`); `placed`: the reach run's rows; `sid_of`: section id → handle.
 
     A location joins the feed by any of its fingerprints; one with no rules on the page today (dormant) still sits in
     its chains and says nothing (the live feed fills it in when DFO lists it again). A placed section the handle table does not know stops the build: the reach run and
-    this atlas are not the same build."""
+    this atlas are not the same build.
+
+    PARTIAL COVERAGE (owner 2026-10-28): `item_sections` (item id → its sids). Every section of a water that has a DFO
+    place not drawn yet (`unmapped`) carries those places in its chain (`u`); while one of them has rules (the release:
+    on today's page; the feed: listed) the map paints the section `check` and the card says parts of the water are not
+    mapped — we cannot tell which stretch the place's rules cover, so the whole water (Kitimat 2026-10-28: the area-6
+    coho non-retention answered for a river whose own coho opening sits on an undrawn stretch)."""
     rules_of: Dict[str, List[dict]] = {}
     locs: Dict[str, object] = {}
     regions: Dict[str, dict] = {}
@@ -275,18 +284,30 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
     verdicts(NOT_LISTED)                                     # verdicts[0]
     # chain 0: THE UNLISTED WATER — no DFO location, every species closed every day (owner 2026-10-27)
     chains: List[dict] = [{"r": [], "w": "", "l": [], **chain_calendar([], verdicts, gears)}]
-    chain_ix: Dict[Tuple[str, ...], int] = {(): UNLISTED_CHAIN}
+    chain_ix: Dict[Tuple[Tuple[str, ...], Tuple[str, ...]], int] = {((), ()): UNLISTED_CHAIN}
 
-    def chain_for(lids: Sequence[str]) -> int:
+    def chain_for(lids: Sequence[str], u: Iterable[str] = ()) -> int:
         key = tuple(sorted(set(lids), key=order))
-        if key not in chain_ix:
-            chain_ix[key] = len(chains)
-            first = locs[key[0]][1]
-            chains.append({"r": sorted({locs[l][0] for l in key}), "w": _label(first), "l": list(key),
-                           **chain_calendar([rules_of[l] for l in key], verdicts, gears)})
-        return chain_ix[key]
+        uk = tuple(sorted(set(u)))
+        if (key, uk) not in chain_ix:
+            chain_ix[(key, uk)] = len(chains)
+            first = locs[(key or uk)[0]][1]
+            chains.append({"r": sorted({locs[l][0] for l in key + uk}), "w": _label(first) if key else first.water,
+                           "l": list(key), **({"u": list(uk)} if uk else {}),
+                           **chain_calendar([rules_of[l] for l in key], verdicts, gears,
+                                            partial=any(rules_of[l] for l in uk))})
+        return chain_ix[(key, uk)]
 
-    sections = sorted((sid, chain_for(lids)) for sid, lids in covering.items())
+    # the DFO places not drawn yet, by the items of their water, onto those items' sections
+    undrawn_on: Dict[int, set] = defaultdict(set)
+    for lid in unmapped_locs:
+        slug, loc, ef = locs[lid]
+        water = ef.water(loc.water_id) if loc.water_id else None
+        for it in (water.item_ids if water else ()):
+            for sid in (item_sections or {}).get(it, ()):
+                undrawn_on[sid].add(lid)
+    sections = sorted((sid, chain_for(covering.get(sid, ()), undrawn_on.get(sid, ())))
+                      for sid in set(covering) | set(undrawn_on))
     unmapped = []
     for lid in sorted(unmapped_locs):
         slug, loc, ef = locs[lid]

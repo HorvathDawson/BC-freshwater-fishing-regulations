@@ -141,14 +141,15 @@ def test_a_page_that_does_not_parse_holds_the_region(tmp_path):
 def golden() -> dict:
     """The app's test input: a release built from `test_salmon_file`'s fixture, a feed where the Kispiox's coho window
     moved, and the chains the app must compose from them."""
-    payload, sections = S.build(*_fixture())
+    # PARTIAL COVERAGE: the resort (not drawn) is on the Kispiox; say its item holds sid 11 (placed) and 14 (not)
+    payload, sections = S.build(*_fixture(), {"gnis:4674": [11, 14]})
     moved = [dict(WATER[0], when={"dates": [{"from_month": 8, "from_day": 1, "to_month": 9, "to_day": 15}]})] + WATER[1:]
     locs, verdicts, gears = _cals({"6:a": REGION, "6:b(i)": BAND, "6:kispiox": moved, "6:resort": BAND})
     feed = {"format": L.FORMAT, "at": AT, "verdicts": verdicts, "gears": gears, "locs": locs, "unplaced": 0,
             "regions": {"6": {"name": "Skeena", "url": S.PAGE_URL.format(slug="6"), "asof": "2026-10-20",
                               "sha256": "x", "changed": AT, "checked": AT, "stale": False, "held": None,
                               "failures": 0}}}
-    expect = [L.compose(c["l"], locs, verdicts) for c in payload["chains"]]
+    expect = [L.compose(c["l"], locs, verdicts, c.get("u", ())) for c in payload["chains"]]
     return {"release": payload, "sections": sections, "feed": feed, "expect": expect}
 
 

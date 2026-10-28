@@ -3,9 +3,10 @@
  * a heavy rule, then one boxed row per answer with a status rail and chip, the species' pictures (ocean AND spawning
  * looks) each opening its fish sheet (sp:CH … — the ID tips), then DFO's source and as-of block. Above the provincial
  * Keep tab. Every species closed: one "Salmon — closed" row. DFO places on this water not drawn yet follow, tagged
- * "Location not yet mapped". No logic and no words of its own: everything is core `salmonCard`'s.
+ * "Location not yet mapped". A water with DFO places not drawn yet leads with the partial-coverage line and DFO's page
+ * (owner 2026-10-28). No logic and no words of its own: everything is core `salmonCard`'s.
  */
-import { Image, Text, View } from "react-native";
+import { Image, Linking, Text, View } from "react-native";
 import { FISH, WORDS, type SalmonBlockVM, type SalmonCardVM, type SalmonRowVM } from "@app/core";
 import { TYPE } from "../type";
 import { SPACE, type Palette } from "../theme";
@@ -96,6 +97,14 @@ export function SalmonCard({ card, palette, actions, images }: {
             <Chip status={card.headlineStatus} label={card.headline} palette={palette} />
           </View>
         </View>
+        {card.partial && (
+          <View testID="salmon-partial" style={{ marginTop: 8, paddingHorizontal: 10, paddingVertical: 8, borderWidth: 1,
+                                                  borderColor: palette.line2, borderLeftWidth: 5, borderLeftColor: palette.sub }}>
+            <Text style={{ ...TYPE.regsBodySemi, color: palette.ink }}>{card.partial.text}</Text>
+            <Text testID="salmon-partial-link" accessibilityRole="link" onPress={() => { void Linking.openURL(card.partial!.url); }}
+                  style={{ ...TYPE.metaSemi, color: palette.accent, marginTop: 4, paddingVertical: 4 }}>{`${card.partial.link} ›`}</Text>
+          </View>
+        )}
         <Block block={card} palette={palette} testID="salmon-card-block" actions={actions} images={images} />
         {card.notListed && (
           <Text testID="salmon-not-listed" style={{ ...TYPE.meta, color: palette.ink, paddingTop: 8 }}>{card.notListed}</Text>

@@ -79,8 +79,10 @@ function mapStatus(ss: readonly string[]): SalmonMapStatus {
   return "closed";
 }
 
-/** One release chain's year, from the feed (the pipeline's `live.compose`). */
-export function composeChain(lids: readonly string[], feed: SalmonFeed): Pick<Chain, "sp" | "g" | "m"> {
+/** One release chain's year, from the feed (the pipeline's `live.compose`). `undrawn`: the chain's `u` — a DFO place
+ *  on its water not drawn yet; one the feed lists paints the map `check` every day (partial coverage). */
+export function composeChain(lids: readonly string[], feed: SalmonFeed,
+                             undrawn: readonly string[] = []): Pick<Chain, "sp" | "g" | "m"> {
   const cals = lids.map((l) => feed.locs[l]).filter((c): c is SalmonFeedLocation => !!c);
   const sp: number[][] = [[], [], [], [], []], g: number[] = [], m: number[] = [];
   for (let day = 0; day < DAYS; day++) {
@@ -96,7 +98,8 @@ export function composeChain(lids: readonly string[], feed: SalmonFeed): Pick<Ch
     g.push(gx);
     m.push(MAP_CODES.indexOf(mapStatus(ss)));
   }
-  return { sp: sp.map(runsOf), g: runsOf(g), m: runsOf(m) };
+  const partial = undrawn.some((l) => !!feed.locs[l]);
+  return { sp: sp.map(runsOf), g: runsOf(g), m: partial ? [0, MAP_CODES.indexOf("check")] : runsOf(m) };
 }
 
 /** What a salmon file read through a feed says about the feed (absent: the release's own file). */
@@ -114,9 +117,10 @@ export function withSalmonFeed(f: SalmonFacts, feed: SalmonFeed): SalmonFacts {
   }));
   const payload: Payload = {
     ...P, regions, verdicts: feed.verdicts, gears: feed.gears,
-    chains: P.chains.map((c) => ({ ...c, ...composeChain(c.l, feed) })),
-    // a place not drawn yet shows while DFO lists it: the feed's say, not the build's
-    unmapped: P.unmapped.filter((u) => P.chains[u.chain]?.l.some((l) => !!feed.locs[l])),
+    chains: P.chains.map((c) => ({ ...c, ...composeChain(c.l, feed, c.u ?? []) })),
+    // a place not drawn yet shows while DFO lists it: the feed's say, not the build's (so never dormant here)
+    unmapped: P.unmapped.filter((u) => P.chains[u.chain]?.l.some((l) => !!feed.locs[l]))
+      .map(({ d: _d, ...u }) => u),
   };
   const stale = Object.entries(feed.regions).filter(([, r]) => r.stale || r.held).map(([s]) => s).sort();
   const out: WithFeed = { handles: f.handles, chains: f.chains, chainOf: (sid) => f.chainOf(sid), payload,

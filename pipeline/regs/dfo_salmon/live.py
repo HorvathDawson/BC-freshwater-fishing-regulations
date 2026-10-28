@@ -87,10 +87,11 @@ def _at(runs: Sequence[int], day: int) -> int:
     return v
 
 
-def compose(lids: Sequence[str], locs: Mapping[str, dict], verdicts: Sequence[dict]) -> dict:
+def compose(lids: Sequence[str], locs: Mapping[str, dict], verdicts: Sequence[dict], undrawn: Sequence[str] = ()) -> dict:
     """A release chain's year from the feed: per species and day the FIRST location (narrowest first, the chain's own
     order) with an answer, else `NOT_LISTED` (index 0); gear the first with any; the map status from the five. The
-    reference the app's `withSalmonFeed` is held to — equal to `deliver.salmon.chain_calendar` over the same rules."""
+    reference the app's `withSalmonFeed` is held to — equal to `deliver.salmon.chain_calendar` over the same rules.
+    `undrawn`: the chain's `u` (DFO places on its water not drawn yet); one the feed lists makes the map `check`."""
     cals = [locs[l] for l in lids if l in locs]
     per_sp: List[List[int]] = [[] for _ in S.SPECIES]
     gear: List[int] = []
@@ -103,7 +104,8 @@ def compose(lids: Sequence[str], locs: Mapping[str, dict], verdicts: Sequence[di
             vs.append(verdicts[ix])
         gear.append(next((g for g in (_at(c["g"], day) for c in cals) if g >= 0), -1))
         mapc.append(S.MAP_CODES.index(S.map_status(vs)))
-    return {"sp": [S.runs_of(x) for x in per_sp], "g": S.runs_of(gear), "m": S.runs_of(mapc)}
+    m = [0, S.MAP_CODES.index("check")] if any(l in locs for l in undrawn) else S.runs_of(mapc)
+    return {"sp": [S.runs_of(x) for x in per_sp], "g": S.runs_of(gear), "m": m}
 
 
 # ── one region ───────────────────────────────────────────────────────────────────────────────────────────────────────

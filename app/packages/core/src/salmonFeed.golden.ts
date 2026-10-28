@@ -120,6 +120,9 @@ export const SALMON_FEED_GOLDEN = {
      "6:b(i)",
      "6:a"
     ],
+    "u": [
+     "6:resort"
+    ],
     "sp": [
      [
       0,
@@ -148,7 +151,7 @@ export const SALMON_FEED_GOLDEN = {
     ],
     "m": [
      0,
-     1
+     4
     ]
    },
    {
@@ -200,6 +203,46 @@ export const SALMON_FEED_GOLDEN = {
     "r": [
      "6"
     ],
+    "w": "Kispiox River",
+    "l": [],
+    "u": [
+     "6:resort"
+    ],
+    "sp": [
+     [
+      0,
+      0
+     ],
+     [
+      0,
+      0
+     ],
+     [
+      0,
+      0
+     ],
+     [
+      0,
+      0
+     ],
+     [
+      0,
+      0
+     ]
+    ],
+    "g": [
+     0,
+     -1
+    ],
+    "m": [
+     0,
+     4
+    ]
+   },
+   {
+    "r": [
+     "6"
+    ],
     "w": "Kispiox River \u2014 above the resort signs",
     "l": [
      "6:resort"
@@ -243,7 +286,7 @@ export const SALMON_FEED_GOLDEN = {
     ],
     "r": "6",
     "w": "Kispiox River \u2014 above the resort signs",
-    "chain": 4
+    "chain": 5
    }
   ]
  },
@@ -259,6 +302,10 @@ export const SALMON_FEED_GOLDEN = {
   [
    12,
    3
+  ],
+  [
+   14,
+   4
   ]
  ],
  "feed": {
@@ -519,7 +566,7 @@ export const SALMON_FEED_GOLDEN = {
    ],
    "m": [
     0,
-    1
+    4
    ]
   },
   {
@@ -556,6 +603,38 @@ export const SALMON_FEED_GOLDEN = {
    "m": [
     0,
     1
+   ]
+  },
+  {
+   "sp": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ]
+   ],
+   "g": [
+    0,
+    -1
+   ],
+   "m": [
+    0,
+    4
    ]
   },
   {

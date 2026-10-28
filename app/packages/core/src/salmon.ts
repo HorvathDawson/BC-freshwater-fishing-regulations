@@ -35,9 +35,12 @@ interface Chain {
   /** per species (SALMON_SPECIES order) runs [start, verdict index, …] */
   readonly sp: readonly (readonly number[])[];
   readonly g: readonly number[]; readonly m: readonly number[];
+  /** PARTIAL COVERAGE: DFO places on this section's water not drawn yet (their location ids). While one has rules the
+   *  map paints `check` and the card names no status of its own — we cannot tell which stretch they cover. */
+  readonly u?: readonly string[];
 }
 interface Region { readonly name: string; readonly asof: string | null; readonly url: string }
-interface Unmapped { readonly items: readonly string[]; readonly r: string; readonly w: string; readonly chain: number }
+interface Unmapped { readonly items: readonly string[]; readonly r: string; readonly w: string; readonly chain: number; readonly d?: number }
 interface Payload {
   readonly format: string; readonly credit: string; readonly default: number;
   readonly regions: Readonly<Record<string, Region>>;
@@ -162,11 +165,16 @@ export const SALMON_WORDS = {
   toggle: {
     standard: "Standard", salmon: "Salmon",
     label: "Colour the regulations by",
+    /** (T182) the web reads the salmon file on the first press of Salmon: the choice says so while it loads */
+    loading: "Loading…",
   },
   credit: (credit: string) => `Source: ${credit}. Check DFO's page before you fish.`,
   asOf: (iso: string | null) => (iso ? `DFO page dated ${dateWords(iso)}` : "DFO page date not stated"),
   legend: { open: "Salmon may be kept", release: "Salmon: release only", closed: "Closed to salmon",
-            check: "Check DFO (season not set)" } satisfies Record<SalmonMapStatus, string>,
+            check: "Check DFO (not mapped yet, or season not set)" } satisfies Record<SalmonMapStatus, string>,
+  /** PARTIAL COVERAGE (owner 2026-10-28): the water has DFO places not drawn yet */
+  partial: "Salmon rules on parts of this water aren't mapped yet — check DFO",
+  partialLink: "Open DFO's salmon page",
 } as const;
 
 function dateWords(iso: string): string {
@@ -204,6 +212,8 @@ export interface SalmonCardVM extends SalmonBlockVM {
   readonly notListed: string | null;
   /** DFO places on this water not drawn yet: their words, the tag, and DFO's rules for them. */
   readonly unmapped: readonly { readonly label: string; readonly tag: string; readonly block: SalmonBlockVM }[];
+  /** DFO places on this water are not drawn yet: no status of ours is confident — the line and DFO's page, else null. */
+  readonly partial: { readonly text: string; readonly link: string; readonly url: string } | null;
   /** "Fisheries and Oceans Canada · Region 6 Skeena". */
   readonly source: string;
   /** "DFO page dated Aug 28, 2026" (the newest of the regions named). */
@@ -261,8 +271,18 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
   const P = f.payload, day = salmonDayIndex(on);
   const chains = [...new Set(page.sids.map((s) => f.chainOf(s)))].sort((a, b) => a - b);
   if (!chains.length) chains.push(P.default ?? 0);
-  const block = salmonBlock(f, chains, day);
   const unmapped = page.item === null ? [] : P.unmapped.filter((u) => u.items.includes(page.item!));
+  // PARTIAL COVERAGE: a DFO place with rules (not dormant) on this water is not drawn — the whole water says "check DFO"
+  const active = new Set(P.unmapped.filter((u) => !u.d).flatMap((u) => P.chains[u.chain]?.l ?? []));
+  const partialRegions = [...new Set([
+    ...chains.flatMap((c) => (P.chains[c]!.u ?? []).some((l) => active.has(l)) ? P.chains[c]!.r : []),
+    ...unmapped.filter((u) => !u.d).map((u) => u.r)])].sort();
+  const isPartial = partialRegions.length > 0;
+  const raw = salmonBlock(f, chains, day);
+  const block: SalmonBlockVM = !isPartial ? raw : {
+    ...raw, allClosed: false,
+    rows: raw.rows.map((r) => ({ ...r, status: "check" as const, statusLabel: SALMON_WORDS.status.check })),
+  };
   const listed = chains.some((c) => c !== (P.default ?? 0));
   const regionsUsed = [...new Set([...chains.flatMap((c) => P.chains[c]!.r), ...unmapped.map((u) => u.r)])].sort();
   const named = regionsUsed.length ? regionsUsed : Object.keys(P.regions).sort();
@@ -277,6 +297,8 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
     headline: SALMON_WORDS.headline[headlineStatus], headlineStatus,
     notListed: listed || unmapped.length ? null : SALMON_WORDS.notListedLine,
     unmapped: unmapped.map((u) => ({ label: u.w, tag: SALMON_WORDS.unmapped, block: salmonBlock(f, [u.chain], day) })),
+    partial: isPartial ? { text: SALMON_WORDS.partial, link: SALMON_WORDS.partialLink,
+                           url: P.regions[partialRegions[0]!]?.url ?? "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/index-eng.html" } : null,
     source: [SALMON_WORDS.agency,
              ...regionsUsed.map((r) => `Region ${r.toUpperCase()} ${P.regions[r]?.name ?? ""}`.trim())].join(" · "),
     asOf: SALMON_WORDS.asOf(dates[dates.length - 1] ?? null),
