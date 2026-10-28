@@ -65,7 +65,11 @@ describe("each source stops where its archive stops", () => {
       // builder), so MapLibre overzooms the last tile that carries them up to the field's handover rather than asking for
       // deeper tiles with no basins in them — a field that vanished a zoom early (refinement pass, 2026-10-22).
       const basins = pyConst("pipeline/deliver/tiles/layers.py", "BASIN_HANDOVER_Z") - 1;
-      const want = { atlas: ATLAS_MAX_ZOOM, basemap: BASEMAP_MAX_ZOOM, basins, imagery };
+      // THE UNITS' SOURCE stops where the archive's `mu` stops (T202, owner 2026-10-27: the tile
+      // builder: `mu` maxzoom in the tile contract), so their z12 edge is overzoomed to the camera's z18.
+      const mus = (JSON.parse(read("pipeline/deliver/tiles/tile-contract.json")) as
+        { layers: Record<string, { maxzoom: number }> }).layers.mu!.maxzoom;
+      const want = { atlas: ATLAS_MAX_ZOOM, basemap: BASEMAP_MAX_ZOOM, basins, mus, imagery };
       expect({ web: tiled(web), phone: tiled(phone) }).toEqual({ web: want, phone: want });
       // OUR ARCHIVES stop short of the camera. The satellite imagery is Esri's live service (owner 2026-10-21), not an
       // archive of ours: its maxzoom is Esri's (z19; its tiles are 256 px, so the z18 camera asks for z19 tiles —

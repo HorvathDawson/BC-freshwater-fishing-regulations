@@ -71,6 +71,8 @@
         "lake_flowing": "standing",
         "wetland_flowing": "standing",
         "not_fishing_water": "plain",
+        "watershed": "plain",
+        "sign_zone": "plain",
         "parcel_private__edge": "plain",
         "indigenous_land__edge": "plain",
         "no_access__edge": "plain",
@@ -81,6 +83,7 @@
         "lake__edge": "standing",
         "region__edge": "plain",
         "mu__edge": "plain",
+        "sign_zone__edge": "plain",
         "indigenous_land__label": "plain",
         "no_access__label": "plain",
         "no_access_permit__label": "plain",
@@ -129,6 +132,8 @@
         "lake_flowing": "plain",
         "wetland_flowing": "plain",
         "not_fishing_water": "plain",
+        "watershed": "plain",
+        "sign_zone": "plain",
         "parcel_private__edge": "plain",
         "indigenous_land__edge": "plain",
         "no_access__edge": "plain",
@@ -139,6 +144,7 @@
         "lake__edge": "plain",
         "region__edge": "plain",
         "mu__edge": "plain",
+        "sign_zone__edge": "plain",
         "indigenous_land__label": "plain",
         "no_access__label": "plain",
         "no_access_permit__label": "plain",
@@ -176,6 +182,8 @@
         "lake_flowing": "plain",
         "wetland_flowing": "plain",
         "not_fishing_water": "plain",
+        "watershed": "plain",
+        "sign_zone": "plain",
         "parcel_private__edge": "plain",
         "indigenous_land__edge": "plain",
         "no_access__edge": "plain",
@@ -186,6 +194,7 @@
         "lake__edge": "stocked",
         "region__edge": "plain",
         "mu__edge": "plain",
+        "sign_zone__edge": "plain",
         "indigenous_land__label": "plain",
         "no_access__label": "plain",
         "no_access_permit__label": "plain",
@@ -223,6 +232,8 @@
         "lake_flowing": "plain",
         "wetland_flowing": "plain",
         "not_fishing_water": "plain",
+        "watershed": "plain",
+        "sign_zone": "plain",
         "parcel_private__edge": "plain",
         "indigenous_land__edge": "plain",
         "no_access__edge": "plain",
@@ -233,6 +244,7 @@
         "lake__edge": "plain",
         "region__edge": "plain",
         "mu__edge": "plain",
+        "sign_zone__edge": "plain",
         "indigenous_land__label": "plain",
         "no_access__label": "plain",
         "no_access_permit__label": "plain",
@@ -290,6 +302,7 @@
   },
   "layerGroup": {
     "imagery": "imagery",
+    "watershed": "admin",
     "parcel_private": "ownership",
     "indigenous_land": "access",
     "no_access": "access",
@@ -307,6 +320,7 @@
     "under_lake": "water",
     "region": "admin",
     "mu": "admin",
+    "sign_zone": "access",
     "stream": "water",
     "parcel_private__edge": "ownership",
     "indigenous_land__edge": "access",
@@ -318,6 +332,7 @@
     "lake__edge": "water",
     "region__edge": "admin",
     "mu__edge": "admin",
+    "sign_zone__edge": "access",
     "indigenous_land__label": "access",
     "no_access__label": "access",
     "no_access_permit__label": "access",
@@ -358,6 +373,15 @@
     }
   ],
   "colorModes": {
+    "watershed": {
+      "plain": {
+        "label": "Regulated watersheds",
+        "scale": "static",
+        "color": {
+          "token": "color.watershed.fill"
+        }
+      }
+    },
     "parcel_private": {
       "plain": {
         "label": "Private land",
@@ -1268,6 +1292,15 @@
         }
       }
     },
+    "sign_zone": {
+      "plain": {
+        "label": "Sign-bounded closures",
+        "scale": "static",
+        "color": {
+          "token": "color.status.closed"
+        }
+      }
+    },
     "stream": {
       "plain": {
         "label": "Plain",
@@ -1919,6 +1952,15 @@
         }
       }
     },
+    "sign_zone__edge": {
+      "plain": {
+        "label": "sign_zone outline",
+        "scale": "static",
+        "color": {
+          "token": "color.status.closed"
+        }
+      }
+    },
     "indigenous_land__label": {
       "plain": {
         "label": "indigenous_land label",
@@ -2239,6 +2281,7 @@
     "contour": "item",
     "region": "region_id",
     "mu": "mu_id",
+    "sign_zone": "area_id",
     "stream": "section_id"
   },
   "widths": {
@@ -2426,7 +2469,25 @@
       ]
     },
     "region__edge": "width.region.edge",
-    "mu__edge": "width.admin.edge"
+    "mu__edge": "width.admin.edge",
+    "sign_zone__edge": {
+      "token": "width.closure.edge",
+      "mode": "zoom",
+      "ramp": [
+        [
+          9,
+          0.8
+        ],
+        [
+          13,
+          1.4
+        ],
+        [
+          16,
+          2
+        ]
+      ]
+    }
   },
   "opacityRamps": {
     "no_access": [
@@ -2503,6 +2564,7 @@
     ]
   },
   "opacities": {
+    "watershed": "opacity.watershed",
     "parcel_private": "opacity.parcel",
     "indigenous_land": "opacity.admin.area",
     "no_access": "opacity.closure",
@@ -2518,11 +2580,13 @@
     "not_fishing_water": "opacity.notfishing",
     "under_lake": "opacity.route",
     "region": "opacity.admin.fill",
-    "mu": "opacity.admin.fill"
+    "mu": "opacity.admin.fill",
+    "sign_zone": "opacity.sign_zone"
   },
   "dashes": {
     "under_lake": "dash.route",
-    "mu__edge": "dash.mu"
+    "mu__edge": "dash.mu",
+    "sign_zone__edge": "dash.sign_zone"
   },
   "field": {
     "layer": "basin",
@@ -2577,7 +2641,8 @@
     "no_access__edge": "opacity.closure.edge",
     "no_access_permit__edge": "opacity.closure.edge",
     "eco_reserve__edge": "opacity.closure.edge",
-    "park_closed__edge": "opacity.closure.edge"
+    "park_closed__edge": "opacity.closure.edge",
+    "sign_zone__edge": "opacity.closure.edge"
   },
   "labelHalos": {
     "indigenous_land__label": {
@@ -2742,9 +2807,16 @@
         1,
         2.5
       ],
+      "dash.sign_zone": [
+        3,
+        2
+      ],
       "color.indigenous.fill": "#6F5D00",
       "opacity.closure": 0.55,
       "opacity.park": 0.12,
+      "color.watershed.fill": "#2F5E2A",
+      "opacity.watershed": 0.16,
+      "opacity.sign_zone": 0.14,
       "opacity.admin.area": 0.14,
       "width.closure.edge": 1,
       "width.basin.seam": 1,
@@ -2864,9 +2936,16 @@
         1,
         2.5
       ],
+      "dash.sign_zone": [
+        3,
+        2
+      ],
       "color.indigenous.fill": "#C9945E",
       "opacity.closure": 0.6,
       "opacity.park": 0.14,
+      "color.watershed.fill": "#1C5A2E",
+      "opacity.watershed": 0.24,
+      "opacity.sign_zone": 0.18,
       "opacity.admin.area": 0.16,
       "width.closure.edge": 1,
       "width.basin.seam": 1,
@@ -2986,9 +3065,16 @@
         1,
         2.5
       ],
+      "dash.sign_zone": [
+        3,
+        2
+      ],
       "color.indigenous.fill": "#8B5A2B",
       "opacity.closure": 0.55,
       "opacity.park": 0.12,
+      "color.watershed.fill": "#2F5E2A",
+      "opacity.watershed": 0.16,
+      "opacity.sign_zone": 0.14,
       "opacity.admin.area": 0.14,
       "width.closure.edge": 1,
       "width.basin.seam": 1,
@@ -3326,6 +3412,11 @@
       "themeable": false,
       "$comment": "v1's [2,3]. A unit edge is drawn dotted so it never reads as a feature of the ground, the way a solid line of the same weight would."
     },
+    "dash.sign_zone": {
+      "type": "dash",
+      "themeable": false,
+      "$comment": "A sign-bounded closure's edge: dashed, because the boundary on the ground is a pair of signs, not a surveyed line."
+    },
     "color.indigenous.fill": {
       "type": "color",
       "themeable": true,
@@ -3340,6 +3431,21 @@
       "type": "number",
       "themeable": true,
       "$comment": "Provincial parks: open water, so the quietest tint on the map."
+    },
+    "color.watershed.fill": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "A watershed a regulation names (the Liard): a darker green than a park, as a background wash."
+    },
+    "opacity.watershed": {
+      "type": "number",
+      "themeable": true,
+      "$comment": "The watershed wash: enough to see the area at a glance, never enough to compete with the water drawn over it."
+    },
+    "opacity.sign_zone": {
+      "type": "number",
+      "themeable": true,
+      "$comment": "A sign-bounded closure's slight infill; the dashed edge carries the boundary."
     },
     "opacity.admin.area": {
       "type": "number",

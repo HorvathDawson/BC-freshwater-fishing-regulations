@@ -53,7 +53,7 @@ describe("boundaries sit under the water's status lines and over its fills (T83)
     expect(ids.slice(ids.indexOf("lake"), ids.indexOf("stream") + 1)).toEqual([
       "lake", "lake_flowing", "not_fishing_water", "contour", "under_lake",
       "region", "region__edge", "mu", "mu__edge",
-      "lake__edge", "stream"]);
+      "lake__edge", "sign_zone", "sign_zone__edge", "stream"]);
     expect(faults(ids)).toEqual([]);
   });
 
@@ -64,7 +64,8 @@ describe("boundaries sit under the water's status lines and over its fills (T83)
       const ids = geometry(s.layers);
       expect([theme, faults(ids)]).toEqual([theme, []]);
       expect([theme, ids.slice(ids.indexOf("mu__edge"), ids.indexOf("stream-noaccess") + 1)]).toEqual([theme,
-        ["mu__edge", "lake__edge", SELECTION_RINGS.lake, COPY_CASING, COPY_LINE, SELECTION_CASING, "stream",
+        ["mu__edge", "lake__edge", SELECTION_RINGS.lake, "sign_zone", "sign_zone__edge", COPY_CASING, COPY_LINE,
+         SELECTION_CASING, "stream",
          "stream-nobaseline", "stream-noaccess"]]);
       // (T175) the water copy directly UNDER the water's own layers: the lake's under the lake, the line under the casing
       expect([theme, ids.indexOf(COPY_FILL) === ids.indexOf("lake") - 1]).toEqual([theme, true]);

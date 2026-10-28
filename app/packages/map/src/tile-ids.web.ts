@@ -5,8 +5,8 @@
  * coloured on its first frame. GL JS hands the event the `Tile`, but no public call lists one tile's features. Its
  * internals do: `tile.latestFeatureIndex.loadVTLayers()` decodes the tile's own protobuf (on the main thread; cached
  * on the index, so a later `queryRenderedFeatures` reuses it), and `layer.feature(i).id` is the MVT id — which the
- * pipeline writes as the section handle (pipeline/deliver/tiles/layers.py), the same id `promoteId` lifts out of
- * `section_id` for feature-state.
+ * pipeline writes as the section handle (pipeline/deliver/tiles/layers.py), the same id feature-state is keyed on
+ * (the section layers are not promoted: the MVT id IS `feature.id`, T202).
  *
  * PINNED TO 5.24 (`GL_INTERNALS`; `tools/gl-internals.test.ts` fails on any other installed version and checks the
  * names below are still in its bundle and source). Duck-typed, never imported: on a build that does not look like 5.24

@@ -68,14 +68,21 @@ class LayerSpec:
     municipal streams (z14) — every exception a side channel meeting its own river at its
     upstream end. An export that reversed a line would turn its arrows upstream."""
     mvt_id: bool = False
-    """The feature id (`attrs[0]`, the section handle) is ALSO written as the tile feature's
-    own MVT id, and stays a property too.
+    """The feature id (`attrs[0]`, the section handle) is written as the tile feature's own MVT
+    id, and ONLY there: the tile carries no `section_id` property (T202, owner 2026-10-27 — the
+    copy was 18 MB of the archive). The layer FILE keeps it (the bundle's section access reads it).
 
     MapLibre Native ignores the style's `promoteId` (N1 spike), so on a device a feature's
-    id is empty unless the tile carries one, and `setFeatureState` addresses nothing. MVT
-    ids are unsigned integers, so only the section layers can do this; the area layers'
-    ids are strings and keep property-based styling. `tippe.py` stamps it per feature.
+    id is empty unless the tile carries one, and `setFeatureState` addresses nothing. GL JS
+    reads the same MVT id as `feature.id` for a source-layer it does not promote, so the web
+    style no longer promotes the sections either. MVT ids are unsigned integers, so only the
+    section layers can do this; the area layers' ids are strings and keep property-based
+    styling. `tippe.py` stamps it per feature and cuts the property (`tile_attrs`).
     """
+    own_pass: bool = False
+    """Built in a tippecanoe pass of its own, z9 to this layer's `maxzoom`, so that maxzoom is
+    the pass's TOP zoom and keeps the finer top-zoom tolerance (`tippe.OWN_PASS`). For a layer
+    that stops short of the archive and is overzoomed by the app from its last zoom (`mu`)."""
 
 
 WATER: tuple[LayerSpec, ...] = (
@@ -188,7 +195,9 @@ ADMIN: tuple[LayerSpec, ...] = (
     LayerSpec(
         name="wma", geometry="polygon", ladder="area", minzoom=7,
         attrs=("area_id", "name"),
-        why="Wildlife management areas. Creston Valley carries its own quotas.",
+        why="Wildlife management areas. Creston Valley carries its own quotas, and it is the ONLY one drawn "
+            "(T202, owner 2026-10-27: `tile_names` on the def in areas.json). The other 34 are still cut and "
+            "stamped; nothing regulates them, so their 0.2 MB of tiles answered nothing.",
     ),
     LayerSpec(
         name="indigenous_land", geometry="polygon", ladder="area", minzoom=8,
@@ -209,10 +218,14 @@ ADMIN: tuple[LayerSpec, ...] = (
             "Point Ecological Reserve, both real permit-access water, were on nobody's map.",
     ),
     LayerSpec(
-        name="watershed", geometry="polygon", ladder="area", minzoom=5,
-        attrs=("area_id", "name"),
+        name="watershed", geometry="polygon", ladder="area", minzoom=5, decorative=True,
+        attrs=(),
         why="Named basins a regulation targets — the Liard is 142,173 km2 and 15.7% of "
-            "the atlas. Never cut: a drainage divide is not a line water crosses.",
+            "the atlas. Never cut: a drainage divide is not a line water crosses.\n\n"
+            "DRAWN AS A WASH AND NOTHING ELSE (T202, owner 2026-10-27): a darker green fill under "
+            "everything, so a reader sees where the watershed rule applies. Decorative: no id and no "
+            "name in the tile — the area's identity is the bundle's `area:` item, and nothing taps or "
+            "labels the wash, so `area_id` and `name` in every z13 tile across 142,000 km2 bought nothing.",
     ),
     LayerSpec(
         name="parcel", geometry="polygon", ladder="none", minzoom=11, decorative=True,
@@ -239,7 +252,8 @@ ADMIN: tuple[LayerSpec, ...] = (
     ),
     LayerSpec(
         name="region", geometry="polygon", ladder="none", minzoom=4, maxzoom=11,
-        simplify=True, attrs=("region_id", "name"),
+        # `region_id` ONLY (T202): the label is the id ("7A"), and `name` had no reader.
+        simplify=True, attrs=("region_id",),
         why="The eight management REGIONS, each the union of its management units. It is "
             "the same fabric as `mu` dissolved one level up, and it is a separate layer "
             "rather than an attribute for a reason measured earlier: `region` and "
@@ -259,14 +273,19 @@ ADMIN: tuple[LayerSpec, ...] = (
             "fact worth re-stating in every tile of the province.",
     ),
     LayerSpec(
-        name="mu", geometry="polygon", ladder="none", minzoom=7, simplify=True,
-        attrs=("mu_id",),
+        name="mu", geometry="polygon", ladder="none", minzoom=7, maxzoom=12, own_pass=True,
+        simplify=True, attrs=("mu_id",),
         why="Wildlife management units, 225 of them. Administrative geography: every "
             "square metre of BC is in one whether or not it is regulated, which is why "
             "this may sit in a tile while a regulated-area membership list may not.\n\n"
             "z7 AND UP, not z4. Below that the units are illegible and `region` is what is "
             "drawn instead — the same handover v1 made. It also stops paying for 225 "
-            "polygon boundaries in every low-zoom tile, where nothing could read them.",
+            "polygon boundaries in every low-zoom tile, where nothing could read them.\n\n"
+            "TO z12, OVERZOOMED (T202, owner 2026-10-27). The app reads the units through their own "
+            "source stopped at z12 (`sources.mus`) and MapLibre magnifies the z12 tile to z18; built in "
+            "its own pass (`own_pass`), z12 is that pass's top zoom, so the edge is at most ~8 m off "
+            "where z13 had ~4 m. -7 MB: inside the atlas a z13 tile holds streams too, so mu's z13 "
+            "squares never deduped. To reverse, see `tippe.OWN_PASS`.",
     ),
 )
 
@@ -354,6 +373,12 @@ BY_NAME = {s.name: s for s in ALL}
 assert len({s.name for s in ALL}) == len(ALL), "layer names must be unique"
 
 
+def tile_attrs(spec: LayerSpec) -> tuple[str, ...]:
+    """The properties a TILE feature of this layer may carry: `attrs`, less the section id on an MVT-id layer (it is
+    the feature's own id there, `LayerSpec.mvt_id`). `attrs` stays the layer FILE's list, which keeps it."""
+    return spec.attrs[1:] if spec.mvt_id else spec.attrs
+
+
 def contract() -> dict:
     """The tile contract, as data — the file both sides of the seam read.
 
@@ -371,15 +396,16 @@ def contract() -> dict:
         "layers": {
             s.name: {
                 "geometry": s.geometry,
-                "attrs": list(s.attrs),
+                # what the TILE carries — an MVT-id layer's `featureId` is the feature's own id, not a property
+                "attrs": list(tile_attrs(s)),
                 # None for a decorative layer, which has no identity to promote — even
                 # when it carries attributes, because those are for the style, not for
                 # naming the feature. The app's contract test reads this: a style layer may
                 # only name a featureIdProperty where the tile actually has one.
                 "featureId": None if s.decorative else s.attrs[0],
                 "decorative": s.decorative,
-                # true: `featureId` is ALSO the MVT feature id (MapLibre Native ignores
-                # `promoteId`). The property stays, so promoteId readers are unaffected.
+                # true: `featureId` is the MVT feature id and NOT a property (T202) — both renderers
+                # read it as `feature.id`, and the style must not promote it.
                 "mvtId": s.mvt_id,
                 "minzoom": s.minzoom,
                 "maxzoom": s.maxzoom,

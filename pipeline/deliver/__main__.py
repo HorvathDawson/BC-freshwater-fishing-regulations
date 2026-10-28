@@ -126,6 +126,12 @@ def _all(a) -> int:
         tiles = ["--tiles", str(a.tiles), "--tiles-release-root", str(rel_root)] if a.tiles else []
         _step(["release", "--bundle", str(bundle), "--store", str(d / "regs.sqlite"), "--status-index",
                str(d / "status_index.bin"), "--export-dir", str(d), "--out-root", str(d / "release"), *tiles])
+        # (T202) THE BASEMAP THE RELEASE NAMES LIVES BESIDE THE RELEASES (data/release/basemap/<id>/, T75), not in this
+        # staging folder, which holds only the new r-* folder. The vintage check resolves the manifest's basemap url
+        # under the staging release, so it is shown the released basemaps there; only r-* folders are promoted below.
+        bm_root, bm_here = rel_root / "basemap", d / "release" / "basemap"
+        if bm_root.is_dir() and bm_here.parent.is_dir() and not bm_here.exists():
+            bm_here.symlink_to(bm_root.resolve(), target_is_directory=True)
         ok, msg = vintage.report_all(a.tiles or GENERATED.tiles, vintage.Artifacts.in_dir(d), strict=True)
         print(msg)
         if not ok:

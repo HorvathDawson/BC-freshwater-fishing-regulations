@@ -319,8 +319,8 @@ TILE_INVENTORY = {
     "wetland": ("section_id", "name", "water"), "not_fishing_water": (), "contour": ("item", "depth_m", "index"),
     "park": ("area_id", "name", "kind"), "eco_reserve": ("area_id", "name"), "sign_zone": ("area_id", "name", "cuts"),
     "wma": ("area_id", "name"), "indigenous_land": ("area_id", "name", "name_indigenous", "group"),
-    "no_access": ("area_id", "name", "kind"), "watershed": ("area_id", "name"), "parcel": (),
-    "region": ("region_id", "name"), "mu": ("mu_id",), "basin": ("basin_id",),
+    "no_access": ("area_id", "name", "kind"), "watershed": (), "parcel": (),
+    "region": ("region_id",), "mu": ("mu_id",), "basin": ("basin_id",),
 }
 
 

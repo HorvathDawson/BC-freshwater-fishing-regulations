@@ -24,6 +24,12 @@
       "url": "pmtiles://atlas",
       "maxzoom": 7,
       "$comment": "THE SAME ARCHIVE AS `atlas`, read as a second source that STOPS at z7 — the last zoom the tile builder writes basin polygons at (`basin` maxzoom = BASIN_HANDOVER_Z - 1 in pipeline/deliver/tiles/layers.py). MapLibre overzooms a source past its maxzoom, so the z7 tiles carry the field across [7, 8) up to the handover (z8 since T130, owner 2026-10-22: \"should be able to zoom out quite a bit more first\"; it was z10). An archive built while the handover was z9 also holds z8 basin tiles; they are never asked for. On `atlas` itself the field could never outlive the tiles: at z9 MapLibre asks the archive for z9 tiles, which carry no basins, and the field vanished a zoom before the rivers came back. Only the basin layer reads it, and that layer is drawn only while the field is on (`field.drawnIn`), so the Map tab never fetches through it."
+    },
+    "mus": {
+      "type": "vector",
+      "url": "pmtiles://atlas",
+      "maxzoom": 12,
+      "$comment": "THE SAME ARCHIVE AS `atlas`, read as a source that STOPS at z12 for the management units (T202, owner 2026-10-27). The tile builder writes `mu` only to z12, in its own pass with z12 as that pass's top zoom (pipeline/deliver/tiles/tippe.py `MU_MAX_ZOOM`), so z12 keeps a finer edge (~8 m at most on the ground) and MapLibre overzooms it from z13 to the camera's z18. On `atlas` the units would vanish at z13, where the archive has none. Saves ~7 MB: in the atlas every z13 tile also holds streams, so mu's squares never deduped there. TO REVERSE: set `MU_MAX_ZOOM` back to the archive's max zoom in tippe.py, point the `mu` layer back at `atlas` and drop this source."
     }
   },
   "layers": [
@@ -33,6 +39,15 @@
       "source": "imagery",
       "layout": {
         "visibility": "none"
+      }
+    },
+    {
+      "id": "watershed",
+      "type": "fill",
+      "source": "atlas",
+      "source-layer": "watershed",
+      "layout": {
+        "visibility": "visible"
       }
     },
     {
@@ -363,7 +378,7 @@
     {
       "id": "mu",
       "type": "fill",
-      "source": "atlas",
+      "source": "mus",
       "source-layer": "mu",
       "minzoom": 7,
       "layout": {
@@ -373,7 +388,7 @@
     {
       "id": "mu__edge",
       "type": "line",
-      "source": "atlas",
+      "source": "mus",
       "source-layer": "mu",
       "minzoom": 7,
       "layout": {
@@ -396,6 +411,24 @@
         ],
         "stream"
       ]
+    },
+    {
+      "id": "sign_zone",
+      "type": "fill",
+      "source": "atlas",
+      "source-layer": "sign_zone",
+      "layout": {
+        "visibility": "visible"
+      }
+    },
+    {
+      "id": "sign_zone__edge",
+      "type": "line",
+      "source": "atlas",
+      "source-layer": "sign_zone",
+      "layout": {
+        "visibility": "visible"
+      }
     },
     {
       "id": "stream",
@@ -643,7 +676,7 @@
     {
       "id": "mu__label",
       "type": "symbol",
-      "source": "atlas",
+      "source": "mus",
       "source-layer": "mu",
       "minzoom": 8,
       "layout": {

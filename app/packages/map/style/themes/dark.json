@@ -69,9 +69,16 @@
       1,
       2.5
     ],
+    "dash.sign_zone": [
+      3,
+      2
+    ],
     "color.indigenous.fill": "#C9945E",
     "opacity.closure": 0.6,
     "opacity.park": 0.14,
+    "color.watershed.fill": "#1C5A2E",
+    "opacity.watershed": 0.24,
+    "opacity.sign_zone": 0.18,
     "opacity.admin.area": 0.16,
     "width.closure.edge": 1.0,
     "width.basin.seam": 1.0,

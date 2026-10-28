@@ -4,7 +4,6 @@
     "stream": {
       "geometry": "line",
       "attrs": [
-        "section_id",
         "name",
         "ord"
       ],
@@ -19,7 +18,6 @@
     "lake": {
       "geometry": "polygon",
       "attrs": [
-        "section_id",
         "name",
         "water",
         "area_m2"
@@ -46,7 +44,6 @@
     "wetland": {
       "geometry": "polygon",
       "attrs": [
-        "section_id",
         "name",
         "water"
       ],
@@ -175,12 +172,9 @@
     },
     "watershed": {
       "geometry": "polygon",
-      "attrs": [
-        "area_id",
-        "name"
-      ],
-      "featureId": "area_id",
-      "decorative": false,
+      "attrs": [],
+      "featureId": null,
+      "decorative": true,
       "mvtId": false,
       "minzoom": 5,
       "maxzoom": 13,
@@ -201,8 +195,7 @@
     "region": {
       "geometry": "polygon",
       "attrs": [
-        "region_id",
-        "name"
+        "region_id"
       ],
       "featureId": "region_id",
       "decorative": false,
@@ -221,7 +214,7 @@
       "decorative": false,
       "mvtId": false,
       "minzoom": 7,
-      "maxzoom": 13,
+      "maxzoom": 12,
       "ladder": "none",
       "flows": null
     },

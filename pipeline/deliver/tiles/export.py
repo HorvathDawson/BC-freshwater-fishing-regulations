@@ -430,6 +430,15 @@ def export_admin(gpkg: str, out_dir: Path) -> dict:
         spec = BY_NAME[lname]
         write = writer_for(lname)
         polys = load_area_polys(None, ad)
+        # DRAWN, BUT ONLY THESE (T202, owner 2026-10-27): `tile_names` keeps the named areas in the tile and leaves the
+        # rest of the def cut and stamped but undrawn — the WMAs, where only Creston Valley carries a regulation. A
+        # listed name the def does not produce fails, so a renamed source area cannot silently empty the layer.
+        if ad.get("tile_names"):
+            want = set(ad["tile_names"])
+            if want - set(polys):
+                raise SystemExit(f"areas.json: '{ad['id']}' tile_names {sorted(want - set(polys))} are not areas "
+                                 f"it produces")
+            polys = {k: v for k, v in polys.items() if k in want}
         # Per-feature extras the def asked to `carry` — `cuts` on a closure zone. `_writer`
         # drops anything not in `spec.attrs`, so a carried field that the layer does not
         # declare is discarded silently; the check below turns that into a failure instead.

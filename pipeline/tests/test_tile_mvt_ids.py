@@ -3,12 +3,13 @@
 MapLibre Native ignores the style's `promoteId`, so on Android every feature's id came back
 empty and `setFeatureState` addressed nothing. The fix is in the tile: the section layers
 (`stream`, `lake`, `wetland` — `lake_flowing` / `wetland_flowing` are style layers over the
-last two) write `section_id` as the feature id. `section_id` STAYS a property as well, so the
-web style's `promoteId` keeps working unchanged.
+last two) write `section_id` as the feature id.
 
-Not `tippecanoe --use-attribute-for-id=section_id`: that flag DELETES the attribute it reads
-(measured, tippecanoe 2.79), so the property would vanish from the tile. The id is stamped
-per feature into the GeoJSON `id` while the layer files are copied into the build's temp dir.
+AND ONLY THERE (T202, owner 2026-10-27): the tile carries no `section_id` PROPERTY. It was an 18 MB
+duplicate of the MVT id; the web style stopped promoting it and reads `feature.id` like the phone.
+The layer FILES keep the property (the bundle's section access reads them). The id is stamped per
+feature into the GeoJSON `id` while the layer files are copied into the build's temp dir, where the
+properties are also cut to what the tile carries (`tippe._tile_props`).
 """
 
 from __future__ import annotations
@@ -39,11 +40,12 @@ def test_exactly_the_section_layers_take_section_id_as_their_mvt_id():
             assert s.attrs[0] != "section_id", f"{s.name} carries section_id but no MVT id"
 
 
-def test_the_contract_declares_the_mvt_id_and_keeps_section_id_a_property():
+def test_the_contract_declares_the_mvt_id_and_no_section_id_property():
     c = L.contract()["layers"]
     assert {n for n, v in c.items() if v["mvtId"]} == SECTION_LAYERS
     for n in SECTION_LAYERS:
-        assert c[n]["featureId"] == "section_id" and "section_id" in c[n]["attrs"]
+        assert c[n]["featureId"] == "section_id" and "section_id" not in c[n]["attrs"]
+        assert L.BY_NAME[n].attrs[0] == "section_id", f"{n}: the layer FILE keeps the handle"
     import json
     on_disk = json.loads(Path(tippe.__file__).with_name("tile-contract.json").read_text())
     assert on_disk["layers"] == c, "tile-contract.json is stale: python -m pipeline.deliver.tiles --write-contract"
@@ -92,7 +94,7 @@ def test_every_tippecanoe_run_feeds_section_features_with_section_id_as_their_id
     runs = [(cmd, files) for cmd, files in calls if cmd[0] == "tippecanoe"]
     assert runs and len(runs) == (2 if not bands else 1)
     for cmd, files in runs:
-        # the flag would strip section_id from the properties — see the module docstring
+        # the id is stamped and checked per feature — see the module docstring
         assert not any(a.startswith(("--use-attribute-for-id", "-ai", "--generate-ids")) for a in cmd)
         seen = set()
         for path, feats in files.items():
@@ -100,7 +102,8 @@ def test_every_tippecanoe_run_feeds_section_features_with_section_id_as_their_id
                 layer = f["tippecanoe"]["layer"]
                 seen.add(layer)
                 if layer in SECTION_LAYERS:
-                    assert f["id"] == f["properties"]["section_id"], (layer, f)
+                    assert isinstance(f.get("id"), int), (layer, f)
+                    assert "section_id" not in f["properties"], f"{layer}: the id ships twice: {f}"
                 else:
                     assert "id" not in f, f"{layer} must not get an MVT id: {f}"
         assert {"stream", "park"} <= seen
@@ -110,6 +113,51 @@ def test_every_tippecanoe_run_feeds_section_features_with_section_id_as_their_id
         assert [f["id"] for f in low_streams] == [11], "the low band still holds only what it draws"
         high_streams = [f for fs in high[1].values() for f in fs if f["tippecanoe"]["layer"] == "stream"]
         assert [f["id"] for f in high_streams] == [11, 12]
+
+
+def test_the_tile_carries_only_what_a_reader_needs(tmp_path, monkeypatch):
+    """T202: `water` that only says the layer's own name, and an unnamed lake's area where the outline width cannot
+    show it (the app reads a missing area as 10,000 m2), are left out; a named lake keeps both name and area."""
+    lake = L.BY_NAME["lake"]
+    assert tippe._tile_props(lake, {"section_id": 1, "water": "lake", "area_m2": 99_999}) == {}
+    assert tippe._tile_props(lake, {"section_id": 1, "water": "lake", "area_m2": 100_000}) == {"area_m2": 100_000}
+    assert tippe._tile_props(lake, {"section_id": 1, "water": "stream", "area_m2": 9}) == {"water": "stream"}
+    assert tippe._tile_props(lake, {"section_id": 1, "name": "Cultus Lake", "water": "lake", "area_m2": 9}) == \
+        {"name": "Cultus Lake", "area_m2": 9}
+    assert tippe._tile_props(L.BY_NAME["wetland"], {"section_id": 1, "water": "wetland"}) == {}
+    # anything a layer file carries that the spec does not declare never reaches a tile
+    assert tippe._tile_props(L.BY_NAME["region"], {"region_id": "7A", "name": "Omineca"}) == {"region_id": "7A"}
+    calls = _captured_build(tmp_path, monkeypatch)
+    lakes = [f for cmd, files in calls if cmd[0] == "tippecanoe" for fs in files.values() for f in fs
+             if f["tippecanoe"]["layer"] == "lake"]
+    assert lakes and all(f["properties"] == {} and f["id"] == 21 for f in lakes)
+
+
+def test_mu_is_its_own_pass_to_z12_and_the_high_band_never_holds_it(tmp_path, monkeypatch):
+    """T202: the units stop at z12, built in their own pass so z12 is a TOP zoom (finer edge), then joined."""
+    assert tippe.OWN_PASS == ("mu",) and L.BY_NAME["mu"].maxzoom == 12
+    d = _layer_dir(tmp_path)
+    (d / "mu.geojsonl").write_bytes(_feature("mu", 7, mu_id="2-4"))
+    calls = []
+
+    def fake_run(cmd):
+        calls.append((cmd, [a for a in cmd if a.endswith(".geojsonl")]))
+        Path(cmd[cmd.index("-o") + 1]).write_bytes(b"")
+
+    monkeypatch.setattr(tippe, "_run", fake_run)
+    monkeypatch.setattr(tippe, "check", lambda: None)
+    tippe.build(d, tmp_path / "atlas.pmtiles")
+    runs = [(c, fs) for c, fs in calls if c[0] == "tippecanoe"]
+    assert len(runs) == 3
+    (low, low_in), (high, high_in), (mu, mu_in) = runs
+    assert any(f.endswith("mu.geojsonl") for f in low_in)
+    assert not any(f.endswith("mu.geojsonl") for f in high_in)
+    assert [Path(f).name for f in mu_in] == ["mu.geojsonl"]
+    assert "--maximum-zoom=12" in mu and "--full-detail=12" in mu
+    assert f"--simplification-at-maximum-zoom={tippe.OWN_PASS_SIMPLIFICATION_AT_MAX}" in mu
+    assert f"--full-detail={tippe.TOP_DETAIL}" in high and "--maximum-zoom=13" in high
+    join = [c for c, _ in calls if c[0] == "tile-join"][0]
+    assert sum(a.endswith(".mbtiles") for a in join) == 3
 
 
 def test_tile_join_is_not_told_to_drop_ids(tmp_path, monkeypatch):
@@ -154,12 +202,12 @@ def _features(data: bytes, layer: str):
 @pytest.mark.needs_tiles
 def test_the_built_archive_carries_section_id_as_the_stream_feature_id(request):
     """Lower Mainland tiles that hold streams: z8 (top of the low band), z9 (bottom of the high
-    band) and z14 — so the id is proven on BOTH sides of the tile-join."""
+    band) and z13 — so the id is proven on BOTH sides of the tile-join, and is in the tile ONCE."""
     from pipeline.common.curated import GENERATED
     from pipeline.tests.conftest import need
     archive = need(request, "tiles", GENERATED.tiles / "atlas.pmtiles", "python -m pipeline.deliver.tiles --tiles-only")
-    for z, x, y in ((8, 40, 87), (9, 81, 175), (14, 2623, 5614)):
+    for z, x, y in ((8, 40, 87), (9, 81, 175), (13, 1311, 2807)):
         feats = list(_features(_tile(archive, z, x, y), "stream"))
         assert feats, f"no stream features in z{z}/{x}/{y}"
-        bad = [(fid, p.get("section_id")) for fid, p in feats if fid is None or fid != p.get("section_id")]
-        assert not bad, f"z{z}/{x}/{y}: {len(bad)} of {len(feats)} streams' id != section_id, e.g. {bad[:3]}"
+        bad = [(fid, p) for fid, p in feats if fid is None or "section_id" in p]
+        assert not bad, f"z{z}/{x}/{y}: {len(bad)} of {len(feats)} streams lack an MVT id or repeat it, e.g. {bad[:3]}"

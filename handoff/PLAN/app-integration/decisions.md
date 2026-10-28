@@ -1450,3 +1450,21 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
 - **Grid coarsening SHIPPED (owner 2026-10-27, "ship the bigger grid coarsening"):** the basemap's landuse goes to 1024
   units and water and earth (coastline) to 2048; roads stay at 4096 (`tiles/basemap_grid.GRID_SHIFT`). 322.5 →
   274.5 MB, nothing visible. Undo: `GRID_SHIFT = {}` and rebuild.
+
+## 2026-10-27 — T202 atlas tile sizes (owner)
+- Zero-loss set applied: no `section_id` property (the MVT id is the id; web stops promoting the sections), lake/wetland
+  `water` omitted when it is the layer's own kind, `area_m2` dropped on unnamed lakes under 10 ha (outline width within
+  0.065 px of the app's fallback), `region.name` dropped, grid 2048 below the top zoom (`-S 5`, same ground tolerance).
+- wma: only Creston Valley is drawn (`tile_names` on the def); the other 34 stay cut and stamped.
+- watershed (Liard): kept and DRAWN as a darker green wash (`color.watershed.fill` / `opacity.watershed`, light + dark);
+  the tile carries geometry only (decorative).
+- sign_zone: DRAWN — dashed closed-colour edge + slight infill; not tapped (like every area; the river under it is).
+- mu: capped at z12 in its own tippecanoe pass (z12 is its top zoom, edge ≤ ~8 m) and overzoomed by the app's `mus`
+  source. TO REVERSE if the unit edge looks wrong close in: in `pipeline/deliver/tiles/layers.py` set `mu` maxzoom back to
+  `ladder.MAX_ZOOM` and drop `own_pass`; in `app/packages/map/style/layers.source.json` point the `mu` layer back at
+  `atlas` and delete `sources.mus` (+ the `mus` lines in tools/overzoom.test.ts, tools/style-spec.test.ts); rebuild tiles.
+- z13 shape: the ≈5.5 m line — grid 1024 (`TOP_DETAIL = 10`) at `-S 1.25`. To go back: 12 / 5 (the T85 ≈4.3 m line).
+- parcel: no parcel-only pass. Of the measured options the best bytes per metre of error is the 2048 grid at z11–12
+  (−0.63 MB for +1 m, sub-pixel), which the archive-wide low-zoom grid already applies; every larger saving (`-S 20/40`,
+  dropping small parts at z11–12) moves the private-land edge by pixels or delays lots a zoom. Not done: brotli, the
+  uncompressed native archive.

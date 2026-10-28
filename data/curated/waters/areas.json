@@ -93,8 +93,9 @@
    "name_field": "WILDLIFE_MANAGEMENT_AREA_NAME",
    "which": "all",
    "cut": false,
-   "note": "35 WMAs. CRESTON VALLEY WILDLIFE MANAGEMENT AREA (CVWMA) WATERS is a Region 4 entry with unlimited bass and yellow perch quotas and no area to attach to; the archived base regs also targeted this layer for zone_r4_creston_valley_wma_permit.",
-   "tile_layer": "wma"
+   "note": "35 WMAs. CRESTON VALLEY WILDLIFE MANAGEMENT AREA (CVWMA) WATERS is a Region 4 entry with unlimited bass and yellow perch quotas and no area to attach to; the archived base regs also targeted this layer for zone_r4_creston_valley_wma_permit. Only Creston is DRAWN (tile_names, T202 owner 2026-10-27); all 35 are still cut and stamped.",
+   "tile_layer": "wma",
+   "tile_names": ["CRESTON VALLEY WILDLIFE MANAGEMENT AREA"]
   },
   {
    "id": "watersheds",

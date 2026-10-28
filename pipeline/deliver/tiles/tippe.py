@@ -81,7 +81,7 @@ from pathlib import Path
 
 import orjson
 
-from pipeline.deliver.tiles.layers import ALL, BY_NAME
+from pipeline.deliver.tiles.layers import ALL, BY_NAME, tile_attrs
 
 #: The last zoom built from a pre-filtered input. See the module docstring for why 8.
 LOW_BAND_MAX = 8
@@ -115,7 +115,13 @@ LOW_BAND_MAX = 8
 #:     -S(max) 14        z14  1.944 MiB   -32.1%
 #: z14 is 68% of the province archive, so -28.7% there is about 139 MiB off the download
 #: -- for a tolerance nobody can see at the only scale it is ever drawn at.
-SIMPLIFICATION = 10
+SIMPLIFICATION = 5
+
+#: THE GRID BELOW THE TOP ZOOM (T202, owner 2026-10-27): 2^11 = 2,048 units across a tile, not tippecanoe's 4,096.
+#: A z<=12 tile is drawn at most 2x (from z.0 to z.99), so a 2,048 grid snaps by at most half a pixel there, and
+#: `SIMPLIFICATION` was halved with it (10 -> 5 units), which keeps the GROUND tolerance exactly where it was: the
+#: tolerance is counted in grid units. Measured -10% at z11-12 on the Fraser Valley bbox, about -7 MB province-wide.
+LOW_DETAIL = 11
 
 #: THE ARCHIVE'S TOP ZOOM IS OVERZOOMED NOW (T85, D32: the archive stops at z13 and the camera goes to
 #: z18), so the paragraph above no longer holds at the top: there the tolerance is magnified 2x-32x.
@@ -125,7 +131,15 @@ SIMPLIFICATION = 10
 #: reach (magnitude 0-1 drew from z14 only), at the old z14's ground tolerance, so it grows toward the
 #: old z14's content; ESTIMATED (unmeasured until the build) at 0.8-0.9x of it — net about -140 MB on
 #: top of T64's wetland cut. The -S curve above says tolerance moves bytes little (10 -> 4: +16%).
-SIMPLIFICATION_AT_MAX = 5
+SIMPLIFICATION_AT_MAX = 1.25
+
+#: THE TOP ZOOM'S GRID (T202, owner 2026-10-27: "the ~5.5 m line"): 2^10 = 1,024 units across a z13 tile (3.1 m at
+#: 49 N), with the tolerance cut to 1.25 units to match. The worst-case ground error is tolerance + half a grid unit:
+#: 1.25 x 3.13 + 1.57 = ~5.5 m, against ~4.3 m at the old 4,096 / 5. At any given error a coarser grid beats a larger
+#: tolerance (handoff/PLAN/tiles/T202-regulation-audit.md round 2 §6: detail 12 at the same 5.5 m saves ~6%, this
+#: ~16% of z13, ~27 MB). Every shared node is still pinned, so sections still meet. TO GO BACK: TOP_DETAIL = 12 and
+#: SIMPLIFICATION_AT_MAX = 5 (the T85 line, ~4.3 m).
+TOP_DETAIL = 10
 
 
 def check() -> None:
@@ -136,9 +150,13 @@ def check() -> None:
                 "https://github.com/felt/tippecanoe")
 
 
-def _common(minzoom: int, maxzoom: int, simplify_at_max: int, verbose: bool) -> list[str]:
+def _common(minzoom: int, maxzoom: int, simplify_at_max: float, verbose: bool, *,
+            full_detail: int = LOW_DETAIL) -> list[str]:
+    """The flags every pass shares. `full_detail` is the grid at the pass's OWN top zoom (tippecanoe's
+    `--full-detail`); every zoom below it is drawn on `LOW_DETAIL`."""
     cmd = [
         f"--minimum-zoom={minzoom}", f"--maximum-zoom={maxzoom}",
+        f"--full-detail={full_detail}", f"--low-detail={LOW_DETAIL}",
         # per-feature tippecanoe.minzoom from the ladder is the ONLY thinning we accept
         "--no-feature-limit", "--no-tile-size-limit",
         "--no-simplification-of-shared-nodes",
@@ -153,7 +171,35 @@ def _common(minzoom: int, maxzoom: int, simplify_at_max: int, verbose: bool) -> 
     return cmd
 
 
-def _copy_layer(src: Path, dst: Path, *, max_minzoom: int | None, id_attr: str | None) -> int:
+#: AN UNNAMED LAKE KEEPS ITS AREA ONLY WHERE THE OUTLINE CAN SHOW IT (T202). `area_m2` has two readers: the label's sort
+#: key (a lake with no name has no label) and the outline width, `base + k*sqrt(area)` with a missing area read as
+#: 10,000 m2 (app/packages/map/src/paint.ts). Below this area the drawn width differs from that fallback by at most
+#: 0.0003 * (sqrt(100,000) - 100) = 0.065 px (z16, the steepest stop), which no one can see; above it the width is real
+#: information and the value stays. Unique per feature, so it never compressed: most unnamed lakes are under it.
+UNNAMED_AREA_KEPT_FROM = 100_000
+
+
+def _tile_props(spec, props: dict) -> dict:
+    """The properties a tile feature carries: the layer's tile attributes (`layers.tile_attrs`, which leaves out an
+    MVT-id layer's `section_id`: the id IS the feature's own) and, on the water polygons, nothing that says only
+    what absence already says (T202):
+
+    * `water` equal to the layer's own name (`"lake"` on `lake`, `"wetland"` on `wetland`): the style asks only
+      `water == "stream"` / `!= "stream"`, and an absent key is `!= "stream"`;
+    * `area_m2` on an unnamed lake under `UNNAMED_AREA_KEPT_FROM`."""
+    keep = set(tile_attrs(spec))
+    out = {k: v for k, v in props.items() if k in keep}
+    if out.get("water") == spec.name:
+        del out["water"]
+    if "area_m2" in out and not out.get("name"):
+        a = out["area_m2"]
+        if isinstance(a, (int, float)) and a < UNNAMED_AREA_KEPT_FROM:
+            del out["area_m2"]
+    return out
+
+
+def _copy_layer(src: Path, dst: Path, *, max_minzoom: int | None, id_attr: str | None,
+                spec=None) -> int:
     """Copy a layer file's features into `dst`. Returns how many were written.
 
     `max_minzoom`: keep only the features DRAWN at or below it (None keeps all). A feature
@@ -162,12 +208,14 @@ def _copy_layer(src: Path, dst: Path, *, max_minzoom: int | None, id_attr: str |
     "z14 only" would silently drop a whole layer out of the low band.
 
     `id_attr`: write that property's value as the GeoJSON feature `id`, which tippecanoe
-    carries through as the MVT feature id, AND leave the property where it is. This is
-    the section layers' `section_id` (see `LayerSpec.mvt_id`). It is done here, per
-    feature, rather than with `--use-attribute-for-id`, because that flag DELETES the
-    attribute from the properties (measured, tippecanoe 2.79) and the web style's
-    `promoteId` reads the property. A section feature with no id is a bug upstream and
-    stops the build: it would be a reach nobody can colour or tap.
+    carries through as the MVT feature id. This is the section layers' `section_id` (see
+    `LayerSpec.mvt_id`). It is done here, per feature, rather than with `--use-attribute-for-id`,
+    because the value is checked: a section feature with no id is a bug upstream and stops the
+    build — it would be a reach nobody can colour or tap.
+
+    `spec`: the properties are cut to what the TILE carries (`_tile_props`). The layer FILE keeps everything the
+    export wrote — `section_id` above all, which the bundle's section access reads (`deliver/bundle/access.py`) —
+    and the tile carries the id once, as the MVT id (T202: the property copy was 18 MB of the archive).
     """
     kept = 0
     with src.open("rb") as fin, dst.open("wb") as fout:
@@ -183,25 +231,23 @@ def _copy_layer(src: Path, dst: Path, *, max_minzoom: int | None, id_attr: str |
                     raise SystemExit(f"{src.name}: a feature's {id_attr} is {v!r}; an MVT id "
                                      f"must be a non-negative integer")
                 f["id"] = v
-                line = orjson.dumps(f) + b"\n"
-            fout.write(line if line.endswith(b"\n") else line + b"\n")
+            if spec is not None:
+                f["properties"] = _tile_props(spec, f.get("properties") or {})
+            fout.write(orjson.dumps(f) + b"\n")
             kept += 1
     return kept
 
 
 def _inputs(files: list[Path], tmp: Path, max_minzoom: int | None) -> tuple[list[Path], int]:
-    """The files one tippecanoe pass reads: each layer copied into `tmp` when the pass needs
-    it filtered (`max_minzoom`) or id-stamped (`LayerSpec.mvt_id`), otherwise the file as it
-    is. Returns the non-empty inputs and the feature count of the copied ones."""
+    """The files one tippecanoe pass reads: EVERY layer copied into `tmp`, cut to its tile properties
+    (`_tile_props`), filtered when the pass needs it (`max_minzoom`) and id-stamped (`LayerSpec.mvt_id`).
+    Returns the non-empty inputs and the feature count."""
     out, total = [], 0
     for f in files:
         spec = BY_NAME[f.stem]
         id_attr = spec.attrs[0] if spec.mvt_id else None
-        if max_minzoom is None and id_attr is None:
-            out.append(f)
-            continue
         dst = tmp / f.name
-        n = _copy_layer(f, dst, max_minzoom=max_minzoom, id_attr=id_attr)
+        n = _copy_layer(f, dst, max_minzoom=max_minzoom, id_attr=id_attr, spec=spec)
         total += n
         if n:
             out.append(dst)
@@ -212,6 +258,18 @@ def _run(cmd: list[str]) -> None:
     r = subprocess.run(cmd, capture_output=True, text=True)
     if r.returncode != 0:
         raise RuntimeError(f"{cmd[0]} failed ({r.returncode})\n{r.stderr[-3000:]}")
+
+
+#: THE LAYERS BUILT IN A PASS OF THEIR OWN, stopping at their own `maxzoom` (T202, owner 2026-10-27). The management
+#: units stop at z12 and the app overzooms that tile to z18 (`sources.mus` in app/packages/map/style/layers.source.json),
+#: because in the atlas every z13 tile also holds streams, so mu's z13 squares never deduped: -7 MB. Their own pass makes
+#: z12 that pass's TOP zoom, so it takes `OWN_PASS_SIMPLIFICATION_AT_MAX` on the full 4,096 grid: the unit edge is at
+#: most ~8 m off at z13-18 (in the high band z12 is an ordinary zoom, ~16 m). TO REVERSE: in layers.py set `mu`'s
+#: maxzoom back to `ladder.MAX_ZOOM` and drop its `own_pass` (it then rides the high band again: this tuple is read
+#: from the specs), and point the style's `mu` layer back at `atlas` (dropping `sources.mus`).
+OWN_PASS = tuple(s.name for s in ALL if s.own_pass)
+OWN_PASS_SIMPLIFICATION_AT_MAX = 5
+OWN_PASS_DETAIL = 12
 
 
 def build(layer_dir: Path, out: Path, *, minzoom: int = 4, maxzoom: int = 13,
@@ -226,16 +284,16 @@ def build(layer_dir: Path, out: Path, *, minzoom: int = 4, maxzoom: int = 13,
     out.parent.mkdir(parents=True, exist_ok=True)
 
     # A band needs at least one zoom on each side of the split to be worth the join.
-    # Every pass reads COPIES of the section layers, with `section_id` stamped as the MVT
-    # feature id (see `_copy_layer`). tile-join keeps feature ids as they are, so the ids
-    # written by both bands survive the join.
+    # Every pass reads COPIES of the layers, cut to their tile properties, with `section_id`
+    # stamped as the MVT feature id (see `_copy_layer`). tile-join keeps feature ids as they
+    # are, so the ids written by every pass survive the join.
     if not (minzoom <= LOW_BAND_MAX < maxzoom):
         with tempfile.TemporaryDirectory(prefix="tiles-ids-") as tmp:
             inputs, _ = _inputs(files, Path(tmp), None)
             print(f"  tippecanoe -> {out.name}  ({len(inputs)} layers, single pass)")
             _run(["tippecanoe", "-o", str(out), "--force", f"--name={name}",
                   f"--attribution={attribution}",
-                  *_common(minzoom, maxzoom, SIMPLIFICATION_AT_MAX, verbose),
+                  *_common(minzoom, maxzoom, SIMPLIFICATION_AT_MAX, verbose, full_detail=TOP_DETAIL),
                   *[str(f) for f in inputs]])
         return out
 
@@ -245,7 +303,9 @@ def build(layer_dir: Path, out: Path, *, minzoom: int = 4, maxzoom: int = 13,
         low_dir.mkdir()
         high_dir.mkdir()
         low_files, kept_total = _inputs(files, low_dir, LOW_BAND_MAX)
-        high_files, _ = _inputs(files, high_dir, None)
+        high_all, _ = _inputs(files, high_dir, None)
+        own = [f for f in high_all if f.stem in OWN_PASS]
+        high_files = [f for f in high_all if f.stem not in OWN_PASS]
 
         low = Path(tmp) / "low.mbtiles"
         high = Path(tmp) / "high.mbtiles"
@@ -254,24 +314,37 @@ def build(layer_dir: Path, out: Path, *, minzoom: int = 4, maxzoom: int = 13,
               f"({len(low_files)} layers, {kept_total:,} features drawn there)")
         # `--simplification-at-maximum-zoom=SIMPLIFICATION`, NOT 1: this band's maximum is
         # z8, which in the finished archive is an ordinary zoom and must be simplified like
-        # one. See the docstring — passing 1 here costs more than the flag ever saved.
+        # one — on the same grid as every other zoom below the top. See the docstring.
         _run(["tippecanoe", "-o", str(low), "--force", f"--name={name}",
               f"--attribution={attribution}",
-              *_common(minzoom, LOW_BAND_MAX, SIMPLIFICATION, verbose),
+              *_common(minzoom, LOW_BAND_MAX, SIMPLIFICATION, verbose, full_detail=LOW_DETAIL),
               *[str(f) for f in low_files]])
 
         print(f"  tippecanoe -> z{LOW_BAND_MAX + 1}-{maxzoom}  ({len(high_files)} layers, all features)")
         # The band's maximum IS the archive's maximum, and the camera overzooms it (T85), so it
-        # takes `SIMPLIFICATION_AT_MAX` — never 1 (see the constants).
+        # takes `SIMPLIFICATION_AT_MAX` on `TOP_DETAIL` — never 1 (see the constants).
         _run(["tippecanoe", "-o", str(high), "--force", f"--name={name}",
               f"--attribution={attribution}",
-              *_common(LOW_BAND_MAX + 1, maxzoom, SIMPLIFICATION_AT_MAX, verbose),
+              *_common(LOW_BAND_MAX + 1, maxzoom, SIMPLIFICATION_AT_MAX, verbose, full_detail=TOP_DETAIL),
               *[str(f) for f in high_files]])
 
+        passes = [low, high]
+        for f in own:
+            top = BY_NAME[f.stem].maxzoom
+            mb = Path(tmp) / f"{f.stem}.mbtiles"
+            print(f"  tippecanoe -> z{LOW_BAND_MAX + 1}-{top}  ({f.stem}, its own pass)")
+            _run(["tippecanoe", "-o", str(mb), "--force", f"--name={name}",
+                  f"--attribution={attribution}",
+                  *_common(LOW_BAND_MAX + 1, top, OWN_PASS_SIMPLIFICATION_AT_MAX, verbose,
+                           full_detail=OWN_PASS_DETAIL),
+                  str(f)])
+            passes.append(mb)
+
         # tile-join names the output after its inputs unless told otherwise, so the name
-        # and attribution are restated here rather than inherited.
+        # and attribution are restated here rather than inherited. The passes hold disjoint
+        # (layer, zoom) pairs, so the join merges layers into each tile and never doubles one.
         print(f"  tile-join  -> {out.name}")
         _run(["tile-join", "-f", "-o", str(out), f"--name={name}",
               f"--attribution={attribution}", f"--description={name}",
-              str(low), str(high)])
+              *[str(p) for p in passes]])
     return out

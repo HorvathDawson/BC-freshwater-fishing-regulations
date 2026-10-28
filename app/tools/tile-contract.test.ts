@@ -23,7 +23,7 @@ const ROOT = fileURLToPath(new URL("../..", import.meta.url));
 const contract = JSON.parse(
   readFileSync(join(ROOT, "pipeline/deliver/tiles/tile-contract.json"), "utf8"),
 ) as { layers: Record<string, { geometry: string; attrs: string[];
-                              featureId: string | null; decorative: boolean }>;
+                              featureId: string | null; decorative: boolean; mvtId?: boolean }>;
         magnitudeLadder: [number, number][] };
 
 const readStyle = (f: string) =>
@@ -72,6 +72,13 @@ describe("the style and the tiles agree", () => {
         expect(l.featureIdProperty,
                `${l.id} draws a decorative tile layer, which carries no attributes, but ` +
                `promotes "${l.featureIdProperty}"`).toBeUndefined();
+        continue;
+      }
+      // A SECTION'S ID IS ITS MVT FEATURE ID ONLY (T202): the tile carries no `section_id` property, and the contract
+      // says so with `mvtId` — the id the style names is the feature's own, which both renderers read as `feature.id`.
+      if (t.mvtId && t.featureId === l.featureIdProperty) {
+        expect(t.attrs, `${l.id}: an MVT-id layer must not also ship its id as a property`)
+          .not.toContain(l.featureIdProperty);
         continue;
       }
       expect(t.attrs, `${l.id}.featureIdProperty`).toContain(l.featureIdProperty);
@@ -219,15 +226,11 @@ describe("the style and the tiles agree", () => {
     // Not a failure — the pipeline may build a layer before the app draws it — but it
     // should be a deliberate, visible list rather than something nobody notices.
     //
-    //   sign_zone  the area a regulation encloses with fishing boundary signs. The tile
-    //              contract calls it "not a place, a rule": it has no meaning apart from the
-    //              rules bound to it (`cuts` names the water they are written about).
-    //              Regulations are not integrated, so it is not drawn; it comes back with
-    //              them (see `regulations.ts` in @app/core).
-    //   wma, watershed  built for regulation scopes; nothing in the app draws them yet.
+    //   wma  built for regulation scopes; only Creston Valley ships (T202, owner 2026-10-27), and nothing in the app
+    //        draws it yet. `sign_zone` (dashed closure ring) and `watershed` (the Liard wash) are drawn since T202.
     const drawn = new Set(source.layers.map((l) => l.sourceLayer));
     const undrawn = Object.keys(contract.layers).filter((n) => !drawn.has(n));
-    expect(undrawn).toEqual(["sign_zone", "wma", "watershed"]);
+    expect(undrawn).toEqual(["wma"]);
   });
 });
 
@@ -254,34 +257,34 @@ describe("the runtime uses the feature id, not just names it", () => {
   };
 
   /*
-   * EVERY LAYER THAT DECLARES AN ID IS PROMOTED ON THE WEB — the sections included (N2 review).
+   * EVERY AREA LAYER THAT DECLARES AN ID IS PROMOTED ON THE WEB; THE SECTIONS ARE NOT (T202, owner 2026-10-27).
    *
-   * The pipeline writes `section_id` twice on every section feature: as a property AND as the MVT feature id
-   * (`pipeline/tests/test_tile_mvt_ids.py`), so "the web style's promoteId keeps working unchanged". The phone reads the
-   * MVT id (MapLibre Native ignores `promoteId`; `nativeStyle` drops it); the web keeps promoting the property, so a
-   * served atlas of an older vintage — one with no MVT ids — still colours and taps on the web. Both name a section by
-   * the same integer: the next test holds the MVT id to exactly the promoted section property.
+   * A section's id is its MVT feature id (`pipeline/tests/test_tile_mvt_ids.py`) and the tiles no longer repeat it as a
+   * `section_id` property. GL JS reads the MVT id as `feature.id` for any source-layer it does not promote, so promoting
+   * the sections would now lift an absent property and leave every section with no id: no colour, no tap.
    */
-  it("promotes a property for every atlas layer that declares one", () => {
+  it("promotes a property for every atlas area layer that declares one", () => {
     const promote = style.sources.atlas?.promoteId ?? {};
     for (const [layerId, prop] of Object.entries(STYLE_META.featureIds)) {
       const layer = MAP_STYLE.layers.find((l) => l.id === layerId);
-      if (!layer) continue;                       // declared but not drawn
+      if (!layer || (layer as { source?: string }).source !== "atlas") continue;   // declared but not drawn here
       const sourceLayer = (layer as { "source-layer"?: string })["source-layer"] ?? layerId;
+      if (contract.layers[sourceLayer]?.mvtId) continue;
       expect(promote[sourceLayer],
              `${layerId}: nothing promotes "${prop}", so feature.id is undefined — ` +
              `setFeatureState addresses nothing and a tap returns no id`).toBe(prop);
     }
   });
 
-  it("the sections' MVT id is the property the web promotes: section_id, on exactly these source-layers", () => {
+  it("the sections are never promoted: their id is the MVT id, on exactly these source-layers", () => {
     const promote = style.sources.atlas?.promoteId ?? {};
     const mvt = Object.entries(contract.layers)
       .filter(([, l]) => (l as { mvtId?: boolean }).mvtId).map(([n]) => n).sort();
     expect(mvt).toEqual(["lake", "stream", "wetland"]);
     for (const n of mvt) {
       expect(contract.layers[n]!.featureId, n).toBe("section_id");
-      expect(promote[n], n).toBe("section_id");
+      expect(contract.layers[n]!.attrs, n).not.toContain("section_id");
+      expect(promote[n], n).toBeUndefined();
     }
   });
 

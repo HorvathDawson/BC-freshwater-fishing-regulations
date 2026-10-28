@@ -167,14 +167,15 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
          * from `STYLE_META.featureIds` rather than typed here, so the property named in `layers.source.json` and the
          * property MapLibre promotes cannot disagree.
          *
-         * THE SECTIONS ARE PROMOTED TOO, ON PURPOSE (N2 review). The tiles also carry `section_id` as each section's MVT
-         * feature id (P18, `pipeline/tests/test_tile_mvt_ids.py`), because MapLibre Native ignores `promoteId` — that id
-         * is the only one a phone sees, and `nativeStyle` drops this object. The web keeps promoting the property: the
-         * value is the same integer, and an atlas of an older vintage (no MVT ids) still colours and taps on the web.
+         * THE SECTIONS ARE NOT PROMOTED (T202, owner 2026-10-27). A section's id is its MVT feature id (P18,
+         * `pipeline/tests/test_tile_mvt_ids.py`) and the tiles no longer repeat it as a `section_id` property — that copy
+         * was 18 MB of the archive. GL JS reads the MVT id as `feature.id` for any source-layer it does not promote, so
+         * both renderers name a section by the same integer, exactly as the phone always has (`nativeStyle` drops this
+         * object). Only the area layers, whose ids are strings and cannot be MVT ids, are promoted.
          */
         promoteId: Object.fromEntries(
           Object.entries(STYLE_META.featureIds)
-            .filter(([layerId]) => MAP_STYLE.layers.some((l) => l.id === layerId))
+            .filter(([layerId, prop]) => prop !== "section_id" && MAP_STYLE.layers.some((l) => l.id === layerId))
             .map(([layerId, prop]) => [
               (MAP_STYLE.layers.find((l) => l.id === layerId) as
                  { "source-layer"?: string })["source-layer"] ?? layerId,

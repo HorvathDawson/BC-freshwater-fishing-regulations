@@ -23,6 +23,12 @@
       "url": "pmtiles://atlas",
       "maxzoom": 7,
       "$comment": "THE SAME ARCHIVE AS `atlas`, read as a second source that STOPS at z7 — the last zoom the tile builder writes basin polygons at (`basin` maxzoom = BASIN_HANDOVER_Z - 1 in pipeline/deliver/tiles/layers.py). MapLibre overzooms a source past its maxzoom, so the z7 tiles carry the field across [7, 8) up to the handover (z8 since T130, owner 2026-10-22: \"should be able to zoom out quite a bit more first\"; it was z10). An archive built while the handover was z9 also holds z8 basin tiles; they are never asked for. On `atlas` itself the field could never outlive the tiles: at z9 MapLibre asks the archive for z9 tiles, which carry no basins, and the field vanished a zoom before the rivers came back. Only the basin layer reads it, and that layer is drawn only while the field is on (`field.drawnIn`), so the Map tab never fetches through it."
+    },
+    "mus": {
+      "type": "vector",
+      "url": "pmtiles://atlas",
+      "maxzoom": 12,
+      "$comment": "THE SAME ARCHIVE AS `atlas`, read as a source that STOPS at z12 for the management units (T202, owner 2026-10-27). The tile builder writes `mu` only to z12, in its own pass with z12 as that pass's top zoom (pipeline/deliver/tiles/tippe.py `MU_MAX_ZOOM`), so z12 keeps a finer edge (~8 m at most on the ground) and MapLibre overzooms it from z13 to the camera's z18. On `atlas` the units would vanish at z13, where the archive has none. Saves ~7 MB: in the atlas every z13 tile also holds streams, so mu's squares never deduped there. TO REVERSE: set `MU_MAX_ZOOM` back to the archive's max zoom in tippe.py, point the `mu` layer back at `atlas` and drop this source."
     }
   },
   "groups": [
@@ -79,6 +85,27 @@
       "source": "imagery",
       "geometry": "raster",
       "$comment": "The satellite ground. Drawn UNDER everything of ours and under the outside-BC mask — the runtime places raster layers directly over the drawn basemap's ground, so the mask still says where we have no answers. No colour modes: a photograph has no colouring to choose, and the builder exempts raster layers from that rule for exactly this reason."
+    },
+    {
+      "id": "watershed",
+      "group": "admin",
+      "source": "atlas",
+      "sourceLayer": "watershed",
+      "geometry": "polygon",
+      "highlightable": false,
+      "colorModes": {
+        "plain": {
+          "label": "Regulated watersheds",
+          "scale": "static",
+          "color": {
+            "token": "color.watershed.fill"
+          }
+        }
+      },
+      "opacity": {
+        "token": "opacity.watershed"
+      },
+      "$comment": "A WATERSHED A REGULATION NAMES (today only the Liard, 142,173 km2; owner 2026-10-27, T202): a darker green wash UNDER every other layer, so a reader sees where the watershed rule applies without a border competing with the water. No outline: a drainage divide is not a line anyone fishes across, and the ground is what changes. The tile carries geometry only (decorative: the area's id and name live in the bundle's `area:` items), so nothing here is tapped or labelled."
     },
     {
       "id": "parcel_private",
@@ -1934,7 +1961,7 @@
     {
       "id": "mu",
       "group": "admin",
-      "source": "atlas",
+      "source": "mus",
       "sourceLayer": "mu",
       "geometry": "polygon",
       "featureIdProperty": "mu_id",
@@ -1996,6 +2023,57 @@
         "haloWidth": 1.8,
         "$comment": "INSIDE THE UNIT, NOT ALONG ITS EDGE.\nThis was `placement: line` on a POLYGON, which puts the number on the boundary itself, repeated every 200px. Two units share that boundary, so both numbers landed on the same line and neither said which side it belonged to — the one question a reader has at a boundary is 'which unit am I standing in', and a number sitting on the fence answers it for neither side.\nPoint placement on a polygon anchors the label at the shape's interior, so 4-18 reads inside 4-18. MapLibre places one symbol per polygon PER TILE, and a unit spans many tiles at z8+, so the number follows you around inside the unit instead of appearing once at a centroid you may never have on screen.\n`region` one layer up has always done this; the unit label was the odd one out."
       }
+    },
+    {
+      "id": "sign_zone",
+      "group": "access",
+      "source": "atlas",
+      "sourceLayer": "sign_zone",
+      "geometry": "polygon",
+      "featureIdProperty": "area_id",
+      "highlightable": false,
+      "colorModes": {
+        "plain": {
+          "label": "Sign-bounded closures",
+          "scale": "static",
+          "color": {
+            "token": "color.status.closed"
+          }
+        }
+      },
+      "opacity": {
+        "token": "opacity.sign_zone"
+      },
+      "outline": {
+        "color": {
+          "token": "color.status.closed"
+        },
+        "width": {
+          "token": "width.closure.edge",
+          "mode": "zoom",
+          "ramp": [
+            [
+              9,
+              0.8
+            ],
+            [
+              13,
+              1.4
+            ],
+            [
+              16,
+              2.0
+            ]
+          ]
+        },
+        "dash": {
+          "token": "dash.sign_zone"
+        },
+        "opacity": {
+          "token": "opacity.closure.edge"
+        }
+      },
+      "$comment": "A CLOSURE BOUNDED BY SIGNS (Fraser at Landstrom Bar, Skeena at the Kispiox confluence; hand-drawn rings in data/curated/waters/added_areas.geojson): a DASHED edge in the closed colour and a slight tint inside (owner 2026-10-27, T202). Dashed because the line on the ground is a pair of signs, not a surveyed boundary. Over the water's fills and under its lines, like `mu`, so the river's own status colour still answers on top. Not tapped, like every other area: a tap means the river, which is already cut at the ring and carries the closure itself."
     },
     {
       "id": "stream",
@@ -2355,7 +2433,9 @@
         "basin": "standing",
         "lake_flowing": "standing",
         "wetland_flowing": "standing",
-        "not_fishing_water": "plain"
+        "not_fishing_water": "plain",
+        "watershed": "plain",
+        "sign_zone": "plain"
       },
       "hide": [
         "mu",
@@ -2388,7 +2468,9 @@
         "basin": "plain",
         "lake_flowing": "plain",
         "wetland_flowing": "plain",
-        "not_fishing_water": "plain"
+        "not_fishing_water": "plain",
+        "watershed": "plain",
+        "sign_zone": "plain"
       },
       "$comment": "THE WATER IS DRAWN PLAIN AND THE ANSWER IS ON THE DOTS. Every other view colours the river, because a flow percentile can be carried from a gauge to the water around it. Temperature cannot yet — that needs the donor panel — and colouring a river from a station 40 km away would be inventing a number for water nobody measured. So the stations say what they read and the rivers say nothing, which is the truth today.\\n\\nIt is also a different SET of stations: 274 of the 439 publish a temperature against 361 that publish a discharge, and they are not the same 274."
     },
@@ -2414,7 +2496,9 @@
         "basin": "plain",
         "lake_flowing": "plain",
         "wetland_flowing": "plain",
-        "not_fishing_water": "plain"
+        "not_fishing_water": "plain",
+        "watershed": "plain",
+        "sign_zone": "plain"
       }
     },
     {
@@ -2440,7 +2524,9 @@
         "basin": "plain",
         "lake_flowing": "plain",
         "wetland_flowing": "plain",
-        "not_fishing_water": "plain"
+        "not_fishing_water": "plain",
+        "watershed": "plain",
+        "sign_zone": "plain"
       },
       "$comment": "THE DEFAULT, because regulations are not integrated. The Map tab draws water in its neutral colour; the per-layer modes the app sets (stocked, surveyed, standing) are applied over this. The `regulations` view and the `closure` colour mode it used were removed with the regulation integration — see app/packages/core/src/regulations.ts."
     }
