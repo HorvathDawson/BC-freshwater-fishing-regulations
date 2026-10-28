@@ -218,7 +218,7 @@ use that as the sole source of future work."
 | T171 | "Like your visit?": every forecast day uses the flow forecast (no weather-only gaps) | DONE | 3f43c1dd, ef762537, a09374b0 | feed republish (local; R2 owner) + app |
 | T172 | Android smoke on the emulator (builds, installs, opens, main screens) — before cleanup; full parity stays T50 | DONE | 9cc8724f, 04c7da78 | 9 findings → T50 "Found by T172" (status-bar insets, pin press, stale-install error) |
 | T173 | fish obstacles layer (falls, dams, culverts) from the BC Data Catalogue | OPEN | — | future |
-| T174 | remaining answered → grey → answered gaps on main rivers (321/84 runs; Gravel Slough connectors) | DONE | (this lane) | r-bda3fea28838: +407 Flow / +327 Level, 0 changed/lost; Q154 measured, off |
+| T174 | remaining answered → grey → answered gaps on main rivers (321/84 runs; Gravel Slough connectors) | DONE | 00153bf6 | r-bda3fea28838: +407 Flow / +327 Level, 0 changed/lost; Q154 measured, off |
 | T175 | a water's own line shows at every zoom on its Conditions / water map (copy from tiles, clamp the opening zoom) | DONE | e8999343, 1f46e968 | app; native not run (T172/T50) |
 | T176 | the Conditions legend's "N gauges in view" counts sections, not gauges | DONE | e8999343, 1f46e968 | app: "N reaches coloured" |
 | T177 | combine CLEVER + COFFEE on every forecast day, weighted by measured skill (owner Q160) | DONE | b039349e, 73dd133e, af119f2c | feed republish; equal weights until the archive decides (T178); + spots record the trip day |
