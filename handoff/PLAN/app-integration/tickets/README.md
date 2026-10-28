@@ -123,7 +123,7 @@ use that as the sole source of future work."
 | T76 | own gauge across a continuation (Vedder) | DONE | ce29990c, 2470ef08, f648ab5c, 4fba2181, e5dfe217 | live in r-36fbc5326506 |
 | T77 | D1 phone testing | OPEN | — | all (owner) |
 | T78 | tidal/backwater disclosure on Level | DONE | 4d35d021, c0412c4d, 8185dd28, 5aec64f3, ca52fa7c, c0ea4eb9 | live; Q47–Q49 |
-| T79 | imagery corridor P0 + pools validation | OPEN | — | all (owner go/no-go) |
+| T79 | imagery corridor P0 + pools validation | POSTPONED | — | parked by owner 2026-10-28; defaults stand |
 | T80 | small open items (S1 minors, Kitimat witness, D19, flash, search, CI) | PARTIAL | ca5ecb26, 309cd3e8, b08af5e9, ea63d8cb, 46f49485, 53abfd9c, 2c2d3d69, 3a6d20c3, 55b30ec7, 128cc4e0, 84d5919d, fb5d72e5 | two open shapes, item 4/6 (see ticket); Q50–Q52 |
 | T81 | settle the pending small owner questions | DONE | 2fb23d92, 116b0e19, 4b197646, bd824a69 | — |
 | T82 | T41 leftovers: reader gate run, caveat box O3, sheet height O5 | DONE | f7075463, d8997fbd, 663242b1, 7b9cf940 | — |
@@ -268,7 +268,7 @@ use that as the sole source of future work."
 | T221 | solo waters open on regs (no Map), URL follows the water, one salmon table, plain size rule, count line before its size box, at-a-glance species table (kept, no counts) | DONE | 73625e35, 9784a7b0 | owner 2026-10-28 web feedback (Dala River) |
 | T222 | Stave spawning channels (Ruskin/Northrop): add the FWA side channels so Stave r1/r2 can bind | OPEN | — | added_streams + atlas rebuild; no owner call |
 | T223 | user accounts shared between the web app and the phone app (sign-in, what syncs, offline) | OPEN | — | far future; default plan: Firebase Auth + Worker + R2 users/<uid>/, no DB |
-| T224 | name variants from local sources (municipal, ECCC, DFO, synopsis, OSM, BC GNIS), each with its real source | OPEN | — | candidates mined 10-28 (curation-review/name-variants); ★ owner: flow + auto-accept |
+| T224 | name variants from local sources (municipal, ECCC, DFO, synopsis, OSM, BC GNIS), each with its real source | IN PROGRESS | 009aeec0 | owner answers 10-28 applied: sources end to end, 183 accepted (mined_names.json), Names tab; needs the next atlas build |
 | T225 | feeds: where they live, how they're triggered, alerting (gauges, DFO, HYDAT) | OPEN | — | design first; host = Cloudflare Workers cron (owner 10-28), alerts in Cloudflare |
 | T226 | bait-ban / fly-only marks fade in with zoom (gentle default, `late` variant) | DONE | 6db63d0e | paint.ts gearPaint ramps; shots T226-shots/ |
 | T227 | closed-to-game-fish waters open for salmon: the salmon year bar at the top, region closure, species notes, plain closed row | DONE | 4f2e22a3, 6af1ffa5, f35fdc75, 3dd41b02 | owner 2026-10-28 (Cowichan); shots T227-shots/; `salmonTimelineKey` for the merge lane |

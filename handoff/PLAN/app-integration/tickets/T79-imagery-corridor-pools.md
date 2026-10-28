@@ -1,6 +1,6 @@
 # T79 — Coming-soon layers: imagery corridor P0 and pools validation (audit N21, D26)
 
-Status: OPEN. Owner needed (go / no-go).
+Status: POSTPONED (owner 2026-10-28: parked; defaults stand — no offline imagery until after the first native release, web online-only, pools a study).
 
 Source: owner 2026-10-21: "No offline 10 m base (10m is useless)" — stream-imagery/SPEC.md still offers the 10 m T1
 tier and §12 has 8 open questions (10 m pack, buffer, sources, Province licence, server option, caps).
