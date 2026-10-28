@@ -151,15 +151,15 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
   const [regsLayer, setRegsLayer] = useRegsLayer();
   const salmon = useSalmonColour({ source, paired, statusOk, mapTab: mapTab === "map", day: mapDay, settled });
   const salmonOffered = salmon.feed !== null && layers.effective.water === "regulations";
-  // (T213) BAIT & FLY: the same way — the release's `method` file handed over whatever the toggle says
+  const regsShown: RegsLayer = regsLayer === "salmon" && salmonOffered ? "salmon" : "standard";
+  // (T213) BAIT BAN / FLY ONLY: marks on the Standard map — the release's `method` file handed over the same way; the
+  // legend lists the marks while the Standard regulations are drawn
   const method = useMethodColour({ source, paired, statusOk, mapTab: mapTab === "map", day: mapDay, settled });
-  const methodOffered = method.feed !== null && layers.effective.water === "regulations";
-  const regsShown: RegsLayer = regsLayer === "salmon" && salmonOffered ? "salmon"
-    : regsLayer === "method" && methodOffered ? "method" : "standard";
+  const gearMarked = method.feed !== null && layers.effective.water === "regulations" && regsShown === "standard";
   const mm = useMapModes({ tab: mapTab, flowParam, horizon, zoomedOut, paired, statusOk,
                            water: layers.effective.water, groups: layers.effective.groups,
                            basemap: layers.effective.basemap, imageryUp: imagery.up,
-                           salmon: regsShown === "salmon", method: regsShown === "method" });
+                           salmon: regsShown === "salmon" });
   // Esri's credit is listed exactly while its imagery is drawn (the map's own control does the same from the style)
   const credits = useMemo(() => attribution && withImageryCredit(attribution, mm.basemap), [attribution, mm.basemap]);
   /*
@@ -184,7 +184,7 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
   const methodFeed = mapTab === "map" ? method.feed : null;
   return { noteVisible, setZoomedOut, vintage, mixedPair, unproven, statusIndex, statusOk, lakeFeed, imagery, layers,
            flowParam, horizon, horizonChipsShown, setFlowParam, pickDay, onChooseLayer, mm, credits, cond, gauges,
-           mapStatus, salmonFeed, salmonOffered, methodFeed, methodOffered, regsLayer: regsShown,
+           mapStatus, salmonFeed, salmonOffered, methodFeed, gearMarked, regsLayer: regsShown,
            setRegsLayer, salmonFacts: salmon.facts };
 }
 

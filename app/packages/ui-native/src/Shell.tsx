@@ -172,6 +172,8 @@ export function Shell(p: ShellProps) {
                   spots={spots} spotsShown={spotsShown} spotLayer={spotLayer} spotsError={p.spotsError}
                   onRefreshSpots={p.onRefreshSpots} refreshing={p.refreshing} locate={locate} photos={photos}
                   loader={loader} syncState={syncState} menu={menu} menuInfo={menuInfo} mapDay={mapDay}
+                  onDay={setMapDay} onOpenDay={() => setDayOpen(true)}
+                  dayRange={dayRange(new Date(), loader?.manifest?.regulations?.valid_until ?? null)}
                   onSaveSpot={onSaveSpot} onLayers={() => setLayersOpen(true)} onRegion={onRegion} />;
 
   /** (T48) The top bar — the search field — is the maps': on the Map and Conditions tabs while browsing. */
@@ -222,8 +224,7 @@ export function Shell(p: ShellProps) {
         )}
       </View>
       {showLegend && (
-        <MapLegend col={col} conditions={tab === "conditions"} palette={palette} theme={theme} mapDay={mapDay}
-                   onDay={() => setDayOpen(true)} />
+        <MapLegend col={col} conditions={tab === "conditions"} palette={palette} theme={theme} mapDay={mapDay} />
       )}
       {/* A tab change is a change of subject: the remembered reach goes with it. Hidden in water mode (P13/P14). */}
       {bottomBarShown(route) && <TabBar active={tab} palette={palette} onChange={nav.toTab} />}

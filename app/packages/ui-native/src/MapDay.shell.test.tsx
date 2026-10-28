@@ -10,6 +10,7 @@
  * The map renderer is replaced by a line saying which day its status was handed, and a button that taps the
  * Chilliwack (no WebGL in jsdom). The status index is a stub on a proven pair; the regulations are the fixture release.
  */
+import type { ReactNode } from "react";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { Pressable, Text, View } from "react-native";
@@ -22,8 +23,11 @@ import { LIGHT } from "./theme";
 
 const TAP = { sid: 0 };
 vi.mock("./MapScreen", () => ({
-  MapScreen: (p: { status?: { day: Date } | null; onPressFeature?: (l: string, id: number) => void }) =>
+  // (T213) the corner (the map's day strip) and the rail's switch are drawn as the map would
+  MapScreen: (p: { status?: { day: Date } | null; onPressFeature?: (l: string, id: number) => void;
+                   corner?: ReactNode; railExtra?: ReactNode }) =>
     <View>
+      {p.corner}{p.railExtra}
       <Text testID="map-status">{p.status ? p.status.day.toDateString() : "no status"}</Text>
       <Pressable accessibilityRole="button" accessibilityLabel="tap the map"
                  onPress={() => { void p.onPressFeature?.("streams", TAP.sid); }}><Text>map</Text></Pressable>
@@ -65,7 +69,7 @@ const slidOut = () => act(() => {
   for (const el of document.querySelectorAll("div"))
     for (const type of ["animationend", "webkitAnimationEnd"]) el.dispatchEvent(new Event(type, { bubbles: true }));
 });
-/** What the reader sees of the day: the map's status day, its calendar button, the legend's closed line, the sheet. */
+/** What the reader sees of the day: the map's status day, its day strip's calendar segment, the legend's closed line, the sheet. */
 const look = () => {
   slidOut();
   const button = screen.queryAllByRole("button").find((b) => /^Map coloured for /.test(b.getAttribute("aria-label") ?? ""));
@@ -117,8 +121,8 @@ describe("the one day, from the map's calendar and the page's pill", () => {
     seen.push(look());
 
     expect(seen).toEqual([
-      "map Wed Oct 21 2026 | button Today | Closed today | no sheet",
-      "map Wed Oct 21 2026 | button Today | Closed today | sheet: Showing today, Wednesday, October 21",
+      "map Wed Oct 21 2026 | button Date | Closed today | no sheet",
+      "map Wed Oct 21 2026 | button Date | Closed today | sheet: Showing today, Wednesday, October 21",
       "map Sat Oct 10 2026 | button Sat, Oct 10 | Closed on Oct 10 | sheet: Showing Saturday, October 10",
       "map Sat Oct 10 2026 | button Sat, Oct 10 | Closed on Oct 10 | no sheet",
       "pill SatOct 10",
@@ -126,7 +130,7 @@ describe("the one day, from the map's calendar and the page's pill", () => {
       "pill TodayOct 21",
       "back true: map gone | button none | no legend | no sheet | on the water",
       "back true",
-      "map Wed Oct 21 2026 | button Today | Closed today | no sheet",
+      "map Wed Oct 21 2026 | button Date | Closed today | no sheet",
     ]);
   }, 40_000);
 });

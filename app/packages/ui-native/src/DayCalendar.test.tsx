@@ -8,7 +8,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { useState } from "react";
 import { dayRange } from "@app/core";
-import { DayCalendar, MapDayButton } from "./DayCalendar";
+import { DayCalendar, MapDayStrip } from "./DayCalendar";
 import { LIGHT } from "./theme";
 
 afterEach(cleanup);
@@ -151,14 +151,18 @@ describe("<DayCalendar>", () => {
   });
 });
 
-describe("<MapDayButton> — the map's calendar icon", () => {
-  it("says 'Today', or the day it shows; a press opens the sheet; a 44 px target", () => {
-    const open = vi.fn();
-    const { rerender } = render(<MapDayButton palette={LIGHT} day={null} now={NOW} onPress={open} />);
-    const b = btn("Map coloured for today. Choose a day");
-    expect([b.textContent, b.style.minHeight, b.style.minWidth]).toEqual(["Today", "44px", "44px"]);
-    rerender(<MapDayButton palette={LIGHT} day={new Date(2026, 5, 13, 12)} now={NOW} onPress={open} />);
-    fireEvent.click(btn("Map coloured for Saturday, June 13. Choose a day"));
-    expect([screen.getByTestId("map-day").textContent, open.mock.calls.length]).toEqual(["Sat, Jun 13", 1]);
+describe("<MapDayStrip> — the map's day, in Conditions' corner strip (T213)", () => {
+  it("Today · Tomorrow · a calendar segment: the day shown filled; a press sets the day or opens the sheet", () => {
+    const onDay = vi.fn(), open = vi.fn();
+    const { rerender } = render(<MapDayStrip palette={LIGHT} day={null} range={YEAR} now={NOW} onDay={onDay} onOpen={open} />);
+    const pressed = () => ["today", "tomorrow", "pick"].map((k) => screen.getByTestId(`map-day-${k}`).getAttribute("aria-pressed"));
+    expect([screen.getByTestId("map-day").textContent, pressed()]).toEqual(["TodayTomorrowDate", ["true", "false", "false"]]);
+    fireEvent.click(btn("Colour the map for tomorrow"));
+    fireEvent.click(btn("Map coloured for today. Choose a day"));
+    expect([onDay.mock.calls.map((c) => said(c[0])), open.mock.calls.length]).toEqual([["Thu Oct 22 2026 12h"], 1]);
+    rerender(<MapDayStrip palette={LIGHT} day={new Date(2026, 5, 13, 12)} range={YEAR} now={NOW} onDay={onDay} onOpen={open} />);
+    fireEvent.click(btn("Colour the map for today"));
+    expect([screen.getByTestId("map-day").textContent, pressed(), said(onDay.mock.calls[1]![0])])
+      .toEqual(["TodayTomorrowSat, Jun 13", ["false", "false", "true"], "null"]);
   });
 });

@@ -4,7 +4,7 @@
  * any time zone the suite runs in.
  */
 import { describe, expect, it } from "vitest";
-import { chooseDay, DAY_PICKER, dayButtonVM, dayRange, inRange, monthVM, showingLine, stepDay } from "./dayPicker";
+import { chooseDay, DAY_PICKER, dayButtonVM, dayRange, inRange, mapDayChips, monthVM, showingLine, stepDay } from "./dayPicker";
 
 const NOW = new Date(2026, 9, 21, 9, 30);            // Wed Oct 21 2026, local
 const YEAR = dayRange(NOW, null);
@@ -27,6 +27,25 @@ describe("the range the data covers: one calendar year, cut at the release's las
   it("inRange: the first and last days are in, a day either side is out", () => {
     expect([new Date(2025, 11, 31), new Date(2026, 0, 1), new Date(2026, 11, 31, 23, 59), new Date(2027, 0, 1)]
       .map((d) => inRange(YEAR, d))).toEqual([false, true, true, false]);
+  });
+});
+
+describe("(T213) the map's day strip: Today · Tomorrow · a calendar segment, in Conditions' corner", () => {
+  const say = (day: Date | null, r = YEAR) => mapDayChips(day, NOW, r)
+    .map((c) => `${c.on ? "[" : ""}${c.chip}${c.on ? "]" : ""}${c.enabled ? "" : " (off)"}`).join(" | ");
+  it("today: Today is on and the calendar says Date", () => {
+    expect(say(null)).toBe("[Today] | Tomorrow | Date");
+  });
+  it("tomorrow: Tomorrow is on; its press sets tomorrow at local noon", () => {
+    expect(say(new Date(2026, 9, 22, 12))).toBe("Today | [Tomorrow] | Date");
+    expect(iso(mapDayChips(null, NOW, YEAR)[1]!.day)).toBe("2026-10-22 12h");
+  });
+  it("another day: the calendar segment names it and is on", () => {
+    expect(say(new Date(2026, 5, 15, 12))).toBe("Today | Tomorrow | [Mon, Jun 15]");
+    expect(mapDayChips(new Date(2026, 5, 15, 12), NOW, YEAR)[2]!.label).toBe("Map coloured for Monday, June 15. Choose a day");
+  });
+  it("tomorrow past the release's last day is refused, not clamped", () => {
+    expect(say(null, { ...YEAR, last: "2026-10-21", until: "2026-10-21" })).toBe("[Today] | Tomorrow (off) | Date");
   });
 });
 

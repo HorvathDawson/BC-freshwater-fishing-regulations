@@ -7,23 +7,20 @@
  * colour the same river differently.
  */
 import type { SectionKey } from "@app/core";
-import { Pressable, Text, View } from "react-native";
+import type { ReactNode } from "react";
+import { View } from "react-native";
 import { Map, type Camera, type MapProps, type TileEndpoints } from "@app/map";
 import type { Horizon, HorizonChipVM } from "@app/ui";
-import { hitProps } from "./regs/hit";
+import { CornerStrip } from "./CornerStrip";
 import { MapRail } from "./MapRail";
-import { TYPE } from "./type";
 import type { Palette } from "./theme";
 
-
-/** a horizon segment: at least 46 wide and 33 tall by its style (8 + 17 + 8), grown to 44 × 44 to the touch */
-const HORIZON_HIT = hitProps({ w: 46, h: 33 });
 
 export function MapScreen({ at, palette, theme, view, modes, groups, hide, show, camera,
                             onLayers, layersChanged = 0, onLongPress, onPressFeature, onMoved, onMapPoint, horizons,
                             highlight, marker, pins, status, standing, lakes, salmon, method, gauges, onVisible, onError,
                             fit, basemap, onImageryError, water, waterLine, selection, marks, onPressMark, spots,
-                            insetTop = 0, onRegion }: {
+                            insetTop = 0, onRegion, corner, railExtra }: {
   at: TileEndpoints; palette: Palette; theme: string; view: string;
   groups?: Record<string, boolean>;
   /** Layers this view does not draw — see `hiddenLayers`. Not a user toggle. */
@@ -73,6 +70,10 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
    * days and words) and the Shell's one `pick`, the same pair the panel header draws.
    */
   horizons?: { chips: readonly HorizonChipVM[]; onPick: (d: Horizon) => void };
+  /** (T213) The Map tab's day strip, in the corner the horizons use on Conditions (`MapDayStrip`). */
+  corner?: ReactNode;
+  /** (T213) What sits under the Layers button: the Map tab's Standard / Salmon switch (`RegsLayerToggle`). */
+  railExtra?: ReactNode;
   onError?: (e: Error) => void;
   /** Send the camera to a chosen water — see MapProps.fit. */
   fit?: MapProps["fit"];
@@ -112,8 +113,8 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
         P16 removed them as a second copy of the panel header's control; the owner put them
         back (2026-10-20) with +10. They are no longer a copy: the chips are `horizonChips`
         (core's words, the panel header's too) and `onPick` is the Shell's one horizon state,
-        so the map and the panel cannot disagree. (The corner held a date pill before, for
-        seasonal regulations; it went with them.)
+        so the map and the panel cannot disagree. (T213, owner 2026-10-28: the Map tab's day lives
+        in the same corner, drawn with the same strip — `MapDayStrip` — so both maps choose a day alike.)
       */}
       {/*
         THE TOP-LEFT CORNER, under the app's bar (T48: the search field across the top). The hamburger that sat here moved
@@ -124,44 +125,20 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
       <View testID="map-corner" style={{ position: "absolute", top: insetTop + 8, left: 14, flexDirection: "column",
                                           gap: 8, alignItems: "flex-start" }} pointerEvents="box-none">
       {horizons && (
-        /*
-          (refinement pass) ONE CONTROL, DRAWN AS ONE: a joined segmented strip — a single card with hairline dividers — in
-          place of five loose floating pills, five shadows and five borders over the map for what is one choice of day.
-          The chosen day is FILLED, not merely tinted: this control repaints the whole map, so which one is on has to be
-          readable at a glance and from the corner of an eye. Each segment is a 44 × 44 press (`hitProps`).
-        */
-        <View testID="map-horizons"
-              style={{ flexDirection: "row", backgroundColor: palette.card, borderWidth: 1, borderColor: palette.line2,
-                       borderRadius: palette.r.pill, overflow: "hidden", ...palette.lift }}>
-          {horizons.chips.map((h, i) => (
-            <Pressable key={h.day} onPress={() => horizons.onPick(h.day)} accessibilityRole="button"
-                       accessibilityLabel={h.label} {...HORIZON_HIT}>
-              <View style={{ minWidth: 46, paddingVertical: h.note ? 4 : 8, paddingHorizontal: 10,
-                             alignItems: "center", justifyContent: "center",
-                             backgroundColor: h.on ? palette.accent : palette.card,
-                             borderLeftWidth: i ? 1 : 0, borderLeftColor: palette.line2 }}>
-                <Text style={{ ...TYPE.micro, fontSize: 13, lineHeight: h.note ? 14 : 17, fontWeight: "600",
-                               color: h.on ? palette.onAccent : h.note ? palette.sub : palette.ink }}>
-                  {h.chip}
-                </Text>
-                {/* (T130) a day this quantity does not answer: greyed, with core's note, in about the same height */}
-                {h.note && (
-                  <Text style={{ ...TYPE.micro, fontSize: 10, lineHeight: 11, letterSpacing: 0, color: palette.sub }}>
-                    {h.note}
-                  </Text>
-                )}
-              </View>
-            </Pressable>
-          ))}
-        </View>
+        <CornerStrip palette={palette} testID="map-horizons"
+                     segments={horizons.chips.map((h) => ({ key: String(h.day), chip: h.chip, label: h.label, on: h.on,
+                                                            note: h.note ?? undefined,
+                                                            onPress: () => horizons.onPick(h.day) }))} />
       )}
+      {/* (T213) the Map tab's day, the same strip in the same corner (`MapDayStrip`) */}
+      {corner}
       </View>
 
       {/*
         THE RAIL (owner 2026-10-21): Layers moved here from a bottom-left pill — the map's own buttons in one stack on the
         right, under MapLibre's zoom stack (`MapRail`). Layers alone since T48: Spots is a bottom-bar tab again.
       */}
-      <MapRail palette={palette} onLayers={onLayers} layersChanged={layersChanged} top={insetTop} />
+      <MapRail palette={palette} onLayers={onLayers} layersChanged={layersChanged} top={insetTop}>{railExtra}</MapRail>
     </View>
   );
 }

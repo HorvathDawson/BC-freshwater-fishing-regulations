@@ -92,9 +92,9 @@ export function salmonInput(s: SalmonFeed): ChannelInput {
 }
 
 /**
- * (T213) THE BAIT & FLY COLOURING as the map is told it — ONLY on a proven pair: the release's method file (each
- * section's day-profile, fixed for the release) and the day. Handed over on the Map tab whichever colouring is chosen,
- * like salmon, so Standard ⇄ Bait & fly is one paint change. Its closures are the status channel's (`closed` in the mode).
+ * (T213) THE GEAR MARKS as the map is told them — ONLY on a proven pair: the release's method file (each section's
+ * day-profile, fixed for the release) and the day. No colouring of its own (owner 2026-10-28): the Standard map's bait
+ * ban / fly only edges (`paint.ts` `gearPaint`), hidden where the status day closes a section.
  */
 export interface MethodFeed {
   readonly facts: MethodFacts;

@@ -403,8 +403,6 @@ for (const l of src.layers ?? []) {
       if (m.scale === "profile") {
         if (!m.enum) err(`${w}: a profile mode must be declared over an enum — the day's label sets are its members`);
         if (!m.missing) err(`${w}: a profile mode must define "missing" — a label the day does not place is no answer`);
-        // (T213) `closed`: the status day's closures painted first (a channel that carries none borrows the index's)
-        if (m.closed) tokenValue(m.closed, `${w} closed`);
       }
       if (!m.property) err(`${w}: categorical needs a driving property`);
       for (const [k, v] of Object.entries(m.categories ?? {})) tokenValue(v, `${w} category "${k}"`);

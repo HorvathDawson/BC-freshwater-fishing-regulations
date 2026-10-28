@@ -1,20 +1,21 @@
 /**
- * (T213) BAIT BAN AND FLY FISHING ONLY, decoded — the map's "Bait & fly" colouring, a third choice beside Standard and
- * Salmon.
+ * (T213) BAIT BAN AND FLY FISHING ONLY, decoded — MARKS ON THE STANDARD MAP (owner 2026-10-28: "it should just be more
+ * styles on the regulations map"), never a colouring of their own: the status colour stays each line's fill, and a thin
+ * ink edge is drawn under it, solid for fly fishing only and dashed for a bait ban (@app/map `gearPaint`).
  *
  * The release file `method` (`method/1`, `pipeline/deliver/method.py`) is a projection of the answers' open-days strips
  * (the bits the water page's strip draws), so the map and the strip cannot disagree. Per section and day of the year it
  * says one class, decided in the pipeline:
  *
- *   none     open, neither bait ban nor fly only           `color.method.none`
- *   bait     bait ban                                       `color.method.bait`
- *   fly      fly fishing only / artificial flies only       `color.method.fly`
+ *   none     open, neither bait ban nor fly only           no mark
+ *   bait     bait ban                                       a dashed edge
+ *   fly      fly fishing only / artificial flies only       a solid edge
  *
- * CLOSED IS NOT IN THE FILE: a closed day reads `none` here. The status index says closed (it is installed first on the
- * Map tab), so the Bait & fly colouring paints a section the day's status closes in `color.method.closed` before it
- * reads this file — one source for "closed". A section the file does not list is `none` every day. Like the status index, every section points at one of a few
- * hundred day-profiles, so the map stores each section's PROFILE label once (feature-state) and carries the day in its
- * style (`methodDayProfiles`, one match over the labels): a day change is one paint property, a toggle a mode change.
+ * CLOSED IS NOT IN THE FILE: a closed day reads `none` here, and the map draws no mark where the day's status (the
+ * status index, the one source for "closed") closes the section. A section the file does not list is `none` every day.
+ * Like the status index, every section points at one of a few hundred day-profiles, so the map stores each section's
+ * PROFILE label once (feature-state `gm`) and carries the day in its style (`methodDayProfiles`): a day change is a paint
+ * change.
  *
  *     "BCMT", u8 1, 8 bytes section_handles,
  *     nProfiles × (nRuns × varint(length << 2 | code)),    366 days each, the status index's leap calendar
@@ -110,7 +111,7 @@ export function methodClassOn(f: MethodFacts, sid: number, on: Date): MethodClas
 /** The label of a section the file does not list: `none` every day, so it sits in every day's `none` set. */
 export const METHOD_UNLISTED = "m";
 
-/** A section's profile label for the Bait & fly colouring: `m<n>`, fixed for the release (strings: see `profileLabel`). */
+/** A section's profile label for the gear marks (T213): `m<n>`, fixed for the release (strings: see `profileLabel`). */
 export function methodLabel(f: MethodFacts, sid: number): string {
   const p = f.profileOf(sid);
   return p === null ? METHOD_UNLISTED : `m${p}`;
@@ -126,19 +127,15 @@ export function methodDayProfiles(f: MethodFacts, on: Date): MethodDay {
   return out;
 }
 
-/** What the legend lists: the file's classes, and closed (the status index's, the Standard map's red). */
-export type MethodLegendClass = MethodClass | "closed";
+/** The marks the Standard map's legend lists, in order (no mark is no row). */
+export type GearMark = Exclude<MethodClass, "none">;
+export const GEAR_LEGEND: readonly GearMark[] = ["fly", "bait"];
 
-/** The legend's words, in the order it lists them (closed last). */
+/** The legend's words for each mark. */
 export const METHOD_WORDS = {
-  mode: "Bait & fly",
-  legend: { fly: "Fly fishing only", bait: "Bait ban", none: "No bait or fly restriction", closed: "Closed" },
+  legend: { fly: "Fly fishing only", bait: "Bait ban" },
   says: {
     fly: "Fly fishing only or artificial flies only — no bait.",
     bait: "Bait ban: no bait of any kind.",
-    none: "Bait and lures allowed under the general rules.",
-    closed: "Closed: no fishing for any game fish.",
   },
 } as const;
-
-export const METHOD_LEGEND: readonly MethodLegendClass[] = ["fly", "bait", "none", "closed"];

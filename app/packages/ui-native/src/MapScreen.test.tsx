@@ -121,7 +121,8 @@ describe("<MapScreen> rail (owner 2026-10-21, Fish Washington style; T48: Layers
   it("Layers, said aloud; no layers handler: no rail; it starts RAIL_BELOW under the bar", () => {
     const { rerender } = render(<MapScreen {...BASE} onLayers={() => {}} insetTop={76} />);
     const layers = rail();
-    const top = (screen.getByRole("toolbar", { name: "Map tools" }) as HTMLElement).style.top;
+    // (T213) the rail's column (Layers, and the Map tab's switch under it) is what is placed
+    const top = (screen.getByTestId("map-rail-column") as HTMLElement).style.top;
     rerender(<MapScreen {...BASE} />);
     expect([layers, top, rail()]).toEqual(["Choose layers", `${76 + RAIL_BELOW}px`, "no rail"]);
   });

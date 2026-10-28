@@ -203,9 +203,9 @@ export interface MapProps {
    */
   salmon?: SalmonFeed | null;
   /**
-   * (T213) THE BAIT & FLY COLOURING, for every layer in the `method` mode — the same engine (`colouring.ts`, the `method`
-   * channel): each section's method profile label as its tile arrives, the day in the style; closures from `status`.
-   * Handed over on the Map tab whichever colouring is chosen, so the toggle is one paint change. ONLY ON A PROVEN PAIR.
+   * (T213) BAIT BAN / FLY ONLY, marked on the Standard map — the same engine (`colouring.ts`, the `method` channel):
+   * each section's method profile label as its tile arrives, the day in the gear layers' paint (`gearPaint`: an ink edge,
+   * solid fly only, dashed bait ban), none where `status` closes the section. ONLY ON A PROVEN PAIR.
    */
   method?: MethodFeed | null;
   /**

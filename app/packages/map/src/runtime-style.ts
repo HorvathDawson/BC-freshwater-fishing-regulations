@@ -17,10 +17,10 @@
  */
 import { layers as basemapLayers, namedFlavor } from "@protomaps/basemaps";
 import { ATLAS_MAX_ZOOM, BASEMAP_MAX_ZOOM } from "@app/core";
-import { MAP_STYLE, STYLE_META, defaultView, resolveTheme, withFollowers, type Tokens } from "./style";
+import { MAP_STYLE, NO_VALUES, STYLE_META, defaultView, resolveTheme, withFollowers, type Tokens } from "./style";
 import { PM_ASSETS, type TileEndpoints } from "./endpoints";
 import { gaugeLayers, gaugeSource } from "./gaugeDots";
-import { casingPaint, copyFillPaint, copyLinePaint, NOACCESS_LAYER, noaccessPaint, nobaselineOpacity, paintFor, ringPaint, SELECTION_CASING, SELECTION_RINGS } from "./paint";
+import { casingPaint, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, NOACCESS_LAYER, noaccessPaint, nobaselineOpacity, paintFor, ringPaint, SELECTION_CASING, SELECTION_RINGS } from "./paint";
 import { traceLayers, traceSources } from "./trace-overlay";
 import { COPY_CASING, COPY_FILL, COPY_LINE, COPY_SOURCE, EMPTY_COPY } from "./water-copy";
 import { BASEMAP_LABELS, basemapLabelPaint } from "./labels";
@@ -309,6 +309,17 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
         // over the boundaries (T83), and a ring placed by name would have slid under the shoreline it rings.
         const ringed = l.id === lastDrawing("lake") ? ring(SELECTION_RINGS.lake, "lake")
           : l.id === lastDrawing("wetland") ? ring(SELECTION_RINGS.wetland, "wetland") : undefined;
+        /*
+         * (T213) THE GEAR MARKS ROUND A LAKE (`gearPaint`): a solid ink ring for fly fishing only, a dashed one for a bait
+         * ban, over the lake's own outline and under the selection's ring. Built with no day: nothing is marked until the
+         * adapter paints them with the status and method days.
+         */
+        const gear = (lid: "stream" | "lake", widthOf?: unknown) => (["fly", "bait"] as const).map((mark) => ({
+          id: GEAR_LAYERS[lid][mark], type: "line" as const, source: "atlas", "source-layer": lid,
+          layout: { "line-cap": "butt" as const, "line-join": "round" as const },
+          paint: gearPaint(lid, layerModes[lid] ?? view?.modes[lid] ?? "plain", mark, resolveTheme(theme), NO_VALUES, widthOf),
+        }));
+        if (ringed && l.id === lastDrawing("lake")) return [painted, ...gear("lake"), ringed];
         if (ringed) return [painted, ringed];
         /*
          * (T175) THE WATER COPY, directly UNDER the water's own layers: where the atlas draws the water the atlas wins,
@@ -352,7 +363,11 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
          * the stream's own mode (`nobaselineOpacity`): every flow mode reads the number its
          * colour reads, every other mode is 0 — so nothing can leak, and nothing is missing.
          */
-        return [...copied, casing, painted,
+        return [...copied, casing,
+          // (T213) the gear edges: under the line (its colour stays the read), over the selection casing
+          ...gear("stream", (painted as { paint?: Record<string, unknown> }).paint?.["line-width"]
+                            ?? paintFor("stream", "plain", tk)["line-width"]),
+          painted,
         /*
          * "MEASURED HERE, BUT NOTHING TO COMPARE IT TO" — DRAWN AS A DASH.
          *

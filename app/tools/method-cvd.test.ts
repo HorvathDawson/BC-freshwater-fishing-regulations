@@ -1,17 +1,20 @@
 /**
- * (T213) THE BAIT & FLY KEY, held apart for every reader: fly only, bait ban, no restriction and closed — four classes on
- * a thin line — stand a "different category at a glance" apart (`water-status-cvd.test.ts` STATUS_FLOOR) in every
- * theme, for normal vision and under protanopia, deuteranopia and tritanopia (both simulation models); and every class
- * stands off the ground it is drawn on (`water-status-cvd.test.ts` GROUND_FLOOR). The status hues alone could not do
- * both (light: restricted vs open 15.9 for a deuteranope), so `none` and dark's `fly` carry their own hexes.
+ * (T213) THE GEAR MARKS, held apart for every reader. Bait ban and fly only are marks on the Standard map (owner
+ * 2026-10-28): an ink edge round the status line, solid for fly only, dashed for a bait ban (`@app/map` `gearPaint`).
+ * The two marks differ by SHAPE, which no colour deficiency removes; what colour must still do is make the edge visible
+ * — against the status line it rings (an open water: own or base; a closed or no-access water carries no mark) and
+ * against every ground it is drawn on — in every theme, for normal vision and under protanopia, deuteranopia and
+ * tritanopia (both simulation models). The floors are `water-status-cvd.test.ts`'s: a status apart from another
+ * (STATUS_FLOOR 20) and a line off its ground (GROUND_FLOOR 15).
  */
 import { describe, expect, it } from "vitest";
 import { namedFlavor } from "@protomaps/basemaps";
 import { resolveTheme } from "../packages/map/src/style";
 import { DEFICIENCIES, MODELS, deltaE, parseHex, simulate } from "./cvd";
 
-const CLASSES = ["fly", "bait", "none", "closed"] as const;
-const FLOOR = 20, GROUND_FLOOR = 15;
+/** the statuses a marked line can wear: closed and no-access sections are never marked */
+const MARKED = ["color.status.own", "color.status.base"] as const;
+const LINE_FLOOR = 20, GROUND_FLOOR = 15;
 
 /** `fill` laid over `under` at `alpha` — what the eye gets from a translucent fill (as water-status-cvd.test.ts). */
 function over(fill: string, under: string, alpha: number): string {
@@ -39,21 +42,23 @@ function worst(a: string, b: string): { dE: number; under: string } {
   return out;
 }
 
-describe("the Bait & fly key under colour-blindness (T213)", () => {
+describe("the gear marks under colour-blindness (T213)", () => {
   for (const theme of ["light", "dark", "cvd"]) {
-    it(`keeps every pair of classes apart — ${theme}`, () => {
-      const t = resolveTheme(theme) as Record<string, string>;
-      for (let i = 0; i < CLASSES.length; i++)
-        for (let j = i + 1; j < CLASSES.length; j++) {
-          const a = t[`color.method.${CLASSES[i]}`]!, b = t[`color.method.${CLASSES[j]}`]!;
-          const w = worst(a, b);
-          expect(w.dE, `${theme}: ${CLASSES[i]} ${a} vs ${CLASSES[j]} ${b}, under ${w.under}`).toBeGreaterThanOrEqual(FLOOR);
-        }
-      for (const c of CLASSES)
-        for (const [g, hex] of ground(theme, FLAVOR[theme]!)) {
-          const w = worst(t[`color.method.${c}`]!, hex);
-          expect(w.dE, `${theme}: ${c} on ${g} ${hex}, under ${w.under}`).toBeGreaterThanOrEqual(GROUND_FLOOR);
-        }
+    it(`the edge stands off every marked line and every ground, and the two marks differ by dash — ${theme}`, () => {
+      const t = resolveTheme(theme) as Record<string, string | number[]>;
+      const edge = t["color.gear.edge"] as string;
+      for (const s of MARKED) {
+        const w = worst(edge, t[s] as string);
+        expect(w.dE, `${theme}: edge ${edge} vs ${s} ${t[s]}, under ${w.under}`).toBeGreaterThanOrEqual(LINE_FLOOR);
+      }
+      for (const [g, hex] of ground(theme, FLAVOR[theme]!)) {
+        const w = worst(edge, hex);
+        expect(w.dE, `${theme}: edge on ${g} ${hex}, under ${w.under}`).toBeGreaterThanOrEqual(GROUND_FLOOR);
+      }
+      // the bait ban's edge is broken, fly only's whole: a real dash with a real gap
+      const dash = t["dash.gear.bait"] as number[];
+      expect(dash.length, theme).toBe(2);
+      expect(Math.min(...dash), theme).toBeGreaterThanOrEqual(1);
     });
   }
 });

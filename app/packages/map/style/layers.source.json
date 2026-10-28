@@ -1138,34 +1138,6 @@
             "field": "profile"
           },
           "$comment": "(T211) THE SALMON COLOURING, the fast way — the `profile` mode's engine, its own channel: feature-state `sp` holds the section's DFO CHAIN label (`s<chain>`, @app/core `salmonLabel`, fixed for the release), set as each tile arrives; the DAY lives in the paint as one match over the chain labels (`salmonDayProfiles`). Toggling Standard / Salmon is one paint change per layer: no fetch, no relabel. A section DFO does not list reads the UNLISTED chain (closed to salmon fishing, owner 2026-10-27) — an answer, not `missing`; `missing` is only a section not labelled yet. Its own tokens (`salmon.*`), never the provincial `status.*`, so the two colourings read apart."
-        },
-        "method": {
-          "label": "Bait & fly for the date",
-          "scale": "profile",
-          "property": "gm",
-          "enum": "method_class",
-          "categories": {
-            "fly": {
-              "token": "color.method.fly"
-            },
-            "bait": {
-              "token": "color.method.bait"
-            },
-            "none": {
-              "token": "color.method.none"
-            }
-          },
-          "missing": {
-            "token": "color.water.unmapped"
-          },
-          "closed": {
-            "token": "color.method.closed"
-          },
-          "data": {
-            "provider": "method",
-            "field": "profile"
-          },
-          "$comment": "(T213) THE BAIT & FLY COLOURING — the `salmon` mode's engine, its own channel: feature-state `gm` holds the section's METHOD PROFILE label (`m<n>`, @app/core `methodLabel`, fixed for the release), set as each tile arrives; the DAY lives in the paint as one match over the labels (`methodDayProfiles`). `closed` is painted FIRST from the status channel's own labels (feature-state `p` in the day's closed set): the method file carries no closures, the status index is the one source for closed. Fly fishing only and bait ban read apart from every other open water at a glance. Its own tokens (`method.*`), aliases of status hues already held to the colour-blind gates."
         }
       },
       "opacity": {
@@ -1392,34 +1364,6 @@
             "field": "profile"
           },
           "$comment": "(T211) THE SALMON COLOURING, the fast way — the `profile` mode's engine, its own channel: feature-state `sp` holds the section's DFO CHAIN label (`s<chain>`, @app/core `salmonLabel`, fixed for the release), set as each tile arrives; the DAY lives in the paint as one match over the chain labels (`salmonDayProfiles`). Toggling Standard / Salmon is one paint change per layer: no fetch, no relabel. A section DFO does not list reads the UNLISTED chain (closed to salmon fishing, owner 2026-10-27) — an answer, not `missing`; `missing` is only a section not labelled yet. Its own tokens (`salmon.*`), never the provincial `status.*`, so the two colourings read apart."
-        },
-        "method": {
-          "label": "Bait & fly for the date",
-          "scale": "profile",
-          "property": "gm",
-          "enum": "method_class",
-          "categories": {
-            "fly": {
-              "token": "color.method.fly"
-            },
-            "bait": {
-              "token": "color.method.bait"
-            },
-            "none": {
-              "token": "color.method.none"
-            }
-          },
-          "missing": {
-            "token": "color.water.unmapped"
-          },
-          "closed": {
-            "token": "color.method.closed"
-          },
-          "data": {
-            "provider": "method",
-            "field": "profile"
-          },
-          "$comment": "(T213) THE BAIT & FLY COLOURING — the `salmon` mode's engine, its own channel: feature-state `gm` holds the section's METHOD PROFILE label (`m<n>`, @app/core `methodLabel`, fixed for the release), set as each tile arrives; the DAY lives in the paint as one match over the labels (`methodDayProfiles`). `closed` is painted FIRST from the status channel's own labels (feature-state `p` in the day's closed set): the method file carries no closures, the status index is the one source for closed. Fly fishing only and bait ban read apart from every other open water at a glance. Its own tokens (`method.*`), aliases of status hues already held to the colour-blind gates."
         }
       },
       "opacity": {
@@ -1696,34 +1640,6 @@
             "field": "profile"
           },
           "$comment": "(T211) THE SALMON COLOURING, the fast way — the `profile` mode's engine, its own channel: feature-state `sp` holds the section's DFO CHAIN label (`s<chain>`, @app/core `salmonLabel`, fixed for the release), set as each tile arrives; the DAY lives in the paint as one match over the chain labels (`salmonDayProfiles`). Toggling Standard / Salmon is one paint change per layer: no fetch, no relabel. A section DFO does not list reads the UNLISTED chain (closed to salmon fishing, owner 2026-10-27) — an answer, not `missing`; `missing` is only a section not labelled yet. Its own tokens (`salmon.*`), never the provincial `status.*`, so the two colourings read apart."
-        },
-        "method": {
-          "label": "Bait & fly for the date",
-          "scale": "profile",
-          "property": "gm",
-          "enum": "method_class",
-          "categories": {
-            "fly": {
-              "token": "color.method.fly"
-            },
-            "bait": {
-              "token": "color.method.bait"
-            },
-            "none": {
-              "token": "color.method.none"
-            }
-          },
-          "missing": {
-            "token": "color.water.unmapped"
-          },
-          "closed": {
-            "token": "color.method.closed"
-          },
-          "data": {
-            "provider": "method",
-            "field": "profile"
-          },
-          "$comment": "(T213) THE BAIT & FLY COLOURING — the `salmon` mode's engine, its own channel: feature-state `gm` holds the section's METHOD PROFILE label (`m<n>`, @app/core `methodLabel`, fixed for the release), set as each tile arrives; the DAY lives in the paint as one match over the labels (`methodDayProfiles`). `closed` is painted FIRST from the status channel's own labels (feature-state `p` in the day's closed set): the method file carries no closures, the status index is the one source for closed. Fly fishing only and bait ban read apart from every other open water at a glance. Its own tokens (`method.*`), aliases of status hues already held to the colour-blind gates."
         }
       },
       "opacity": {
@@ -2192,34 +2108,6 @@
             "field": "profile"
           },
           "$comment": "(T211) THE SALMON COLOURING, the fast way — the `profile` mode's engine, its own channel: feature-state `sp` holds the section's DFO CHAIN label (`s<chain>`, @app/core `salmonLabel`, fixed for the release), set as each tile arrives; the DAY lives in the paint as one match over the chain labels (`salmonDayProfiles`). Toggling Standard / Salmon is one paint change per layer: no fetch, no relabel. A section DFO does not list reads the UNLISTED chain (closed to salmon fishing, owner 2026-10-27) — an answer, not `missing`; `missing` is only a section not labelled yet. Its own tokens (`salmon.*`), never the provincial `status.*`, so the two colourings read apart."
-        },
-        "method": {
-          "label": "Bait & fly for the date",
-          "scale": "profile",
-          "property": "gm",
-          "enum": "method_class",
-          "categories": {
-            "fly": {
-              "token": "color.method.fly"
-            },
-            "bait": {
-              "token": "color.method.bait"
-            },
-            "none": {
-              "token": "color.method.none"
-            }
-          },
-          "missing": {
-            "token": "color.water.unmapped"
-          },
-          "closed": {
-            "token": "color.method.closed"
-          },
-          "data": {
-            "provider": "method",
-            "field": "profile"
-          },
-          "$comment": "(T213) THE BAIT & FLY COLOURING — the `salmon` mode's engine, its own channel: feature-state `gm` holds the section's METHOD PROFILE label (`m<n>`, @app/core `methodLabel`, fixed for the release), set as each tile arrives; the DAY lives in the paint as one match over the labels (`methodDayProfiles`). `closed` is painted FIRST from the status channel's own labels (feature-state `p` in the day's closed set): the method file carries no closures, the status index is the one source for closed. Fly fishing only and bait ban read apart from every other open water at a glance. Its own tokens (`method.*`), aliases of status hues already held to the colour-blind gates."
         }
       },
       "label": {

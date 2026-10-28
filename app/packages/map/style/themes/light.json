@@ -128,9 +128,10 @@
     "color.salmon.release": "@color.status.restricted",
     "color.salmon.closed": "@color.status.closed",
     "color.salmon.check": "@color.status.own",
-    "color.method.fly": "@color.status.restricted",
-    "color.method.bait": "@color.status.own",
-    "color.method.none": "#7878A8",
-    "color.method.closed": "@color.status.closed"
+    "color.gear.edge": "@color.gauge.dot",
+    "dash.gear.bait": [
+      1.2,
+      1.2
+    ]
   }
 }

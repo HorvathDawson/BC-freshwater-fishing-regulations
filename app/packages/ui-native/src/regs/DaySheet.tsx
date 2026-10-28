@@ -1,6 +1,6 @@
 /**
  * "Which day?" — the date sheet (T23, prototype sheetHtml 'date'; T49 the month calendar). ONE sheet for both entry
- * points: the Regulations page's date pill and the map's calendar button (`MapDayButton`) open this, holding the one
+ * points: the Regulations page's date pill and the map's day strip's calendar segment (`MapDayStrip`) open this, holding the one
  * `DayCalendar`. ONE day state — the Shell's `mapDay`, null = today (D7) — so the page and the map's colours never
  * disagree: a day picked here from either colours the map and moves the page. A `<Sheet>`, so back closes it first (G1).
  */

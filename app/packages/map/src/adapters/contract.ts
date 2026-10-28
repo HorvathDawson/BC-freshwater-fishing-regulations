@@ -16,7 +16,7 @@ import {
   MAP_STYLE, NO_VALUES, STYLE_META, followerMode, followersOf, isRuntimeLayer, profileChannel,
   resolveTheme, type ChannelValues, type Tokens,
 } from "../style";
-import { casingPaint, copyFillPaint, copyLinePaint, NOACCESS_LAYER, noaccessPaint, NOBASELINE_LAYER, nobaselineOpacity,
+import { casingPaint, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, NOACCESS_LAYER, noaccessPaint, NOBASELINE_LAYER, nobaselineOpacity,
          paintFor, ringPaint, SELECTION_CASING, SELECTION_RINGS, type SelectionCue } from "../paint";
 
 export type { ChannelValues } from "../style";
@@ -191,6 +191,10 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
       h.setPaint(NOBASELINE_LAYER, "line-color", tokens["color.water.ungauged"]);
       // (T165) and so do the no-access dots: shown where this mode (and its day) paints a section no_access
       for (const [prop, value] of Object.entries(noaccessPaint(mode, tokens, values))) h.setPaint(NOACCESS_LAYER, prop, value);
+      // (T213) the gear edges: the stream's mode, its width, the status and method days
+      for (const mark of ["fly", "bait"] as const)
+        for (const [prop, value] of Object.entries(gearPaint("stream", mode, mark, tokens, values, out["line-width"])))
+          h.setPaint(GEAR_LAYERS.stream[mark], prop, value);
       // the selection's outline goes with the stream: its width is the stream's, its colour the theme's
       for (const [prop, value] of Object.entries(casingPaint(out["line-width"], tokens)))
         h.setPaint(SELECTION_CASING, prop, value);
@@ -202,7 +206,13 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
       for (const [prop, value] of Object.entries(casingPaint(copy["line-width"], tokens))) h.setPaint(COPY_CASING, prop, value);
     }
     // (T175) and a copied lake the lake's
-    if (layerId === "lake") for (const [prop, value] of Object.entries(copyFillPaint(out))) h.setPaint(COPY_FILL, prop, value);
+    if (layerId === "lake") {
+      for (const [prop, value] of Object.entries(copyFillPaint(out))) h.setPaint(COPY_FILL, prop, value);
+      // (T213) and its gear rings
+      for (const mark of ["fly", "bait"] as const)
+        for (const [prop, value] of Object.entries(gearPaint("lake", mode, mark, tokens, values)))
+          h.setPaint(GEAR_LAYERS.lake[mark], prop, value);
+    }
   };
   /** Is the field drawn now — its layer in a mode it draws in? */
   const fieldOn = () => STYLE_META.field != null && fieldDrawnIn(modeOf[STYLE_META.field.layer]);
@@ -218,11 +228,6 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
     // its seam goes with it: drawn in every view's mode, it would otherwise outline the province on the Map tab
     for (const follower of followersOf(f.layer)) h.setVisibility(follower, fieldOn());
     for (const id of Object.keys(f.covers)) zoomFor(h, id, modeOf[id], fieldOn());
-  };
-  /** (T213) A mode that paints the status day's closures first (`closed`): a new status day repaints it too. */
-  const bordersStatus = (layerId: string, mode: string): boolean => {
-    const m = STYLE_META.colorModes[layerId]?.[mode];
-    return m?.scale === "profile" && !!m.closed;
   };
   /** The channel a layer's mode reads its values from, if any. */
   const channelOf = (layerId: string, mode: string): keyof ChannelValues | null => {
@@ -307,7 +312,8 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
       }
       const tokens = resolveTheme(themeName, overrides);
       for (const [layerId, mode] of Object.entries(modeOf))
-        if (channelOf(layerId, mode) === channel || (channel === "status" && bordersStatus(layerId, mode)))
+        // (T213) the method day draws no colour: it marks the stream's and the lake's gear edges, painted with them
+        if (channelOf(layerId, mode) === channel || (channel === "method" && (layerId === "stream" || layerId === "lake")))
           paint(h, layerId, mode, tokens);
     },
 

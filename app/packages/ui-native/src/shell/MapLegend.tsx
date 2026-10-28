@@ -7,25 +7,23 @@
  * colouring. Plain water needs no key. Whether it is shown is the Shell's call; what it says is here.
  */
 import { CHANGE_LEGEND, changeMarkWords, closedLegend, FLOW_LEGEND, TEMP_LEGEND, unprovenLine, WATER_STATUS,
-         WATER_STATUS_LINE, WATER_STATUSES, waterLegend, SALMON_WORDS, salmonLegend, salmonLegendSource, METHOD_LEGEND, METHOD_WORDS }
+         WATER_STATUS_LINE, WATER_STATUSES, waterLegend, salmonLegend, salmonLegendSource, GEAR_LEGEND, METHOD_WORDS }
   from "@app/core";
-import { methodClassColour, salmonStatusColour } from "@app/map";
-import { Pressable, Text, View } from "react-native";
+import { gearEdgeColour, salmonStatusColour } from "@app/map";
+import { Text, View } from "react-native";
 import { LegendCount, LegendRamp, LegendStrip } from "../Chrome";
-import { MapDayButton } from "../DayCalendar";
 import { legendColour } from "../LayersSheet";
 import { TYPE } from "../type";
 import { changeRampStops, flowRampStops, type Palette } from "../theme";
 import type { MapColouring } from "./useMapColouring";
 
-export function MapLegend({ col, conditions, palette, theme, mapDay, onDay }: {
+export function MapLegend({ col, conditions, palette, theme, mapDay }: {
   col: MapColouring;
   /** The Conditions tab's legend (a ramp), else the Map tab's (the status key or the water colouring's). */
   conditions: boolean;
   palette: Palette; theme: string;
+  /** The day shown: the legend says "Closed on Oct 10" for it. */
   mapDay: Date | null;
-  /** Open the map's date sheet (the Map tab's day button). */
-  onDay: () => void;
 }) {
   const { flowParam, horizon, layers, mm, cond } = col;
   const onConditions = mm.onConditions;
@@ -84,10 +82,9 @@ export function MapLegend({ col, conditions, palette, theme, mapDay, onDay }: {
           <LegendCount key={r.label} palette={palette} colour={legendColour(palette, r.swatch)} label={r.label} />
         ))
       ) : col.regsLayer === "salmon" ? (
-        // (T211) DFO's salmon: the toggle, the day, the salmon key in the salmon colours, and whose rules they are
+        // (T211) DFO's salmon: the salmon key in the salmon colours, and whose rules they are. The switch is under the
+        // Layers button and the day in the map's corner (T213)
         <>
-          <RegsLayerToggle col={col} palette={palette} />
-          <MapDayButton palette={palette} day={mapDay} onPress={onDay} />
           {salmonLegend().map((r) => (
             <LegendCount key={r.status} palette={palette} colour={salmonStatusColour(theme, r.status)} line
                          label={r.label} />
@@ -96,27 +93,19 @@ export function MapLegend({ col, conditions, palette, theme, mapDay, onDay }: {
             {salmonLegendSource(col.salmonFacts)}
           </Text>
         </>
-      ) : col.regsLayer === "method" ? (
-        // (T213) BAIT & FLY: the toggle, the day, and the key — fly only and bait ban read apart from every other open
-        // water; closed is the Standard map's red (the status index's closures)
-        <>
-          <RegsLayerToggle col={col} palette={palette} />
-          <MapDayButton palette={palette} day={mapDay} onPress={onDay} />
-          {METHOD_LEGEND.map((c) => (
-            <LegendCount key={c} palette={palette} colour={methodClassColour(theme, c)} line
-                         label={c === "closed" ? closedLegend(mapDay) : METHOD_WORDS.legend[c]} />
-          ))}
-        </>
       ) : (
         // The three statuses, in the words and colours every surface uses (@app/core
-        // WATER_STATUS through the map's theme) — for today.
+        // WATER_STATUS through the map's theme) — for the day shown. (T213) Then the gear marks drawn ON them: an ink
+        // edge, solid for fly fishing only, dashed for a bait ban — the one compact key for status and marks.
         <>
-          {(col.salmonOffered || col.methodOffered) && <RegsLayerToggle col={col} palette={palette} />}
-          <MapDayButton palette={palette} day={mapDay} onPress={onDay} />
           {WATER_STATUSES.map((s) => (
             <LegendCount key={s} palette={palette} colour={palette.waterStatus[s]}
                          line dotted={WATER_STATUS_LINE[s] === "dotted"}
                          label={s === "closed" ? closedLegend(mapDay) : WATER_STATUS[s].label} />
+          ))}
+          {col.gearMarked && GEAR_LEGEND.map((m) => (
+            <LegendCount key={m} palette={palette} colour={gearEdgeColour(theme)} edge={m === "fly" ? "solid" : "dashed"}
+                         label={METHOD_WORDS.legend[m]} />
           ))}
         </>
       )}
@@ -133,34 +122,6 @@ export function MapLegend({ col, conditions, palette, theme, mapDay, onDay }: {
  * So the refusal is stated, in the one place a reader is already looking for what
  * the colours mean.
  */
-/**
- * (T211) STANDARD / SALMON — the Map tab's regulations toggle (owner 2026-10-27), first in the legend it switches. A press
- * moves only the map's modes: the salmon chains are already on every tile (`useSalmonColour`), so it is instant.
- */
-export function RegsLayerToggle({ col, palette }: { col: MapColouring; palette: Palette }) {
-  const W = SALMON_WORDS.toggle;
-  return (
-    <View testID="regs-paint-toggle" accessibilityRole="radiogroup" accessibilityLabel={W.label}
-          style={{ flexDirection: "row", borderWidth: 1.5, borderColor: palette.ink, borderRadius: palette.r.chip }}>
-      {(["standard", "salmon", "method"] as const)
-        .filter((k) => k === "standard" || (k === "salmon" ? col.salmonOffered : col.methodOffered)).map((k) => {
-        const on = col.regsLayer === k;
-        const word = k === "method" ? METHOD_WORDS.mode : W[k];
-        return (
-          <Pressable key={k} testID={`regs-paint-${k}`} onPress={() => col.setRegsLayer(k)}
-                     accessibilityRole="radio" aria-checked={on} accessibilityLabel={word}
-                     style={{ minHeight: 44, minWidth: 44, justifyContent: "center", paddingHorizontal: 10,
-                              backgroundColor: on ? palette.ink : "transparent" }}>
-            <Text style={{ ...TYPE.small, fontSize: 11.5, fontWeight: "700", color: on ? palette.card : palette.ink }}>
-              {word}
-            </Text>
-          </Pressable>
-        );
-      })}
-    </View>
-  );
-}
-
 export function PairBanner({ col, palette }: { col: MapColouring; palette: Palette }) {
   const { mixedPair, unproven, vintage } = col;
   return (

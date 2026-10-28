@@ -19,7 +19,7 @@
  * `faults` is a pure function of a layer order, so the mutation pin runs it on the order before T83.
  */
 import { describe, expect, it } from "vitest";
-import { SELECTION_CASING, SELECTION_RINGS } from "../packages/map/src/paint";
+import { GEAR_LAYERS, SELECTION_CASING, SELECTION_RINGS } from "../packages/map/src/paint";
 import { runtimeStyle } from "../packages/map/src/runtime-style";
 import { MAP_STYLE } from "../packages/map/src/style";
 import { COPY_CASING, COPY_FILL, COPY_LINE } from "../packages/map/src/water-copy";
@@ -64,8 +64,10 @@ describe("boundaries sit under the water's status lines and over its fills (T83)
       const ids = geometry(s.layers);
       expect([theme, faults(ids)]).toEqual([theme, []]);
       expect([theme, ids.slice(ids.indexOf("mu__edge"), ids.indexOf("stream-noaccess") + 1)]).toEqual([theme,
-        ["mu__edge", "lake__edge", SELECTION_RINGS.lake, "sign_zone", "sign_zone__edge", COPY_CASING, COPY_LINE,
-         SELECTION_CASING, "stream",
+        ["mu__edge", "lake__edge", GEAR_LAYERS.lake.fly, GEAR_LAYERS.lake.bait, SELECTION_RINGS.lake, "sign_zone",
+         "sign_zone__edge", COPY_CASING, COPY_LINE,
+         // (T213) the gear edges: over the selection casing, under the line whose colour stays the read
+         SELECTION_CASING, GEAR_LAYERS.stream.fly, GEAR_LAYERS.stream.bait, "stream",
          "stream-nobaseline", "stream-noaccess"]]);
       // (T175) the water copy directly UNDER the water's own layers: the lake's under the lake, the line under the casing
       expect([theme, ids.indexOf(COPY_FILL) === ids.indexOf("lake") - 1]).toEqual([theme, true]);

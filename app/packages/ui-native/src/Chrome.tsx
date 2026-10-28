@@ -77,7 +77,7 @@ export function DottedSwatch({ colour, width = 14 }: { colour: string; width?: n
 }
 
 /** One "29 closed" entry. The count is the point — it says how much map is that colour. */
-export function LegendCount({ palette, colour, n, label, line, dotted }:
+export function LegendCount({ palette, colour, n, label, line, dotted, edge }:
   { palette: Palette; colour: string; n?: number; label: string;
     /**
      * Draw the swatch as a LINE instead of a square — for a key to lines. Every line swatch is
@@ -85,10 +85,17 @@ export function LegendCount({ palette, colour, n, label, line, dotted }:
      */
     line?: boolean;
     /** (T165) the line DOTTED, as the map draws no public access (`WATER_STATUS_LINE`) */
-    dotted?: boolean }) {
+    dotted?: boolean;
+    /**
+     * (T213) a GEAR MARK's key: the edge the map draws round a line of any status colour, in `colour` (the gear ink) —
+     * a hollow line, solid for fly fishing only, dashed for a bait ban. No fill: the mark rides on every status.
+     */
+    edge?: "solid" | "dashed" }) {
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
-      {line && dotted ? <DottedSwatch colour={colour} /> : <View style={line
+      {edge ? <View testID={`legend-edge-${edge}`}
+                    style={{ width: 16, height: 7, borderWidth: 1.25, borderColor: colour, borderStyle: edge }} />
+        : line && dotted ? <DottedSwatch colour={colour} /> : <View style={line
         ? { width: 14, height: 3, backgroundColor: colour }
         : { width: 9, height: 9, borderRadius: palette.r.chip, backgroundColor: colour }} />}
       {n !== undefined && (

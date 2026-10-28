@@ -16,8 +16,8 @@ import type { WaterSource } from "@app/data";
 import { useAsync } from "./async";
 import { sourceKey } from "./conditionsColour";
 
-/** Which regulations the Map tab paints: the provincial day's status, DFO's salmon, or (T213) bait ban / fly only. */
-export type RegsLayer = "standard" | "salmon" | "method";
+/** Which regulations the Map tab paints: the provincial day's status (bait ban / fly only marked on it, T213), or DFO's salmon. */
+export type RegsLayer = "standard" | "salmon";
 
 /** What the map is handed (`MapProps.salmon`): the release's facts and the day. */
 export interface SalmonFeedVM {
@@ -48,16 +48,17 @@ export function useSalmonColour(i: { source: WaterSource; paired: boolean; statu
   return { feed, facts: f };
 }
 
-/** (T213) What the map is handed (`MapProps.method`): the release's bait ban / fly only profiles and the day. */
+/** (T213) What the map is handed (`MapProps.method`): the release's bait ban / fly only profiles and the day — the
+ *  Standard map's gear marks. */
 export interface MethodFeedVM {
   readonly facts: MethodFacts;
   readonly day: Date;
 }
 
 /**
- * (T213) THE BAIT & FLY COLOURING — `useSalmonColour`'s shape exactly: the release's `method` file read ONCE per source on
- * the Map tab, on a proven pair, after the day's status is in and WHATEVER THE TOGGLE SAYS, so the toggle is a mode change
- * only. Null where the release ships none (cut before T213): the choice is then not offered.
+ * (T213) THE GEAR MARKS (bait ban / fly only on the Standard map) — `useSalmonColour`'s shape exactly: the release's
+ * `method` file read ONCE per source on the Map tab, on a proven pair, after the day's status is in. Null where the
+ * release ships none (cut before T213): the marks and their legend rows are then not drawn.
  */
 export function useMethodColour(i: { source: WaterSource; paired: boolean; statusOk: boolean; mapTab: boolean;
                                      day: Date | null; settled?: boolean }): { feed: MethodFeedVM | null } {

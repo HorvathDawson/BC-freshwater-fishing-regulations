@@ -128,6 +128,62 @@ export function noaccessPaint(mode: string, tokens: Tokens, values: ChannelValue
   };
 }
 
+/**
+ * (T213, owner 2026-10-28: "it should just be more styles on the regulations map") BAIT BAN AND FLY FISHING ONLY ARE
+ * MARKS ON THE STANDARD MAP, never a colouring of their own. The status colour stays the line's fill — the primary read —
+ * and a thin EDGE in `color.gear.edge` (ink: no hue, so it reads the same for every reader) is drawn under it: SOLID for
+ * fly fishing only, DASHED (`dash.gear.bait`) for a bait ban. Picked over breaks in the line (read as the no-access
+ * dots, and bait bans cover most of some regions) and symbols along it (clutter at z11):
+ * handoff/PLAN/app-integration/T213-shots/variants/.
+ *
+ * Runtime layers for the same reason as the dots (`line-dasharray` cannot vary per feature): one per mark over every
+ * stream (under the stream line, over the selection casing, so a selected water keeps both rings) and one per mark round
+ * every lake. Shown only where the layer's mode is the Standard status mode (`profile`), the method channel's day
+ * places the section's `gm` label in that class, and the status day neither closes the section nor marks it no access
+ * (a closed water has no gear to choose; no-access is dotted already). Which is the colouring's own answer — no second
+ * test of a rule.
+ */
+export const GEAR_LAYERS = {
+  stream: { fly: "stream-gear-fly", bait: "stream-gear-bait" },
+  lake: { fly: "lake-gear-fly", bait: "lake-gear-bait" },
+} as const;
+export type GearMark = "fly" | "bait";
+/** The edge each side of a marked stream line, and a marked lake's ring, in px. */
+export const GEAR_EDGE_PX = 1.5;
+export const GEAR_RING_PX = 1.6;
+/** The status mode the marks ride on: the Standard map. */
+const GEAR_MODE = "profile";
+
+/** Where `mark` is shown on `layerId` (`stream` / `lake`) in `mode`, as a boolean expression; null: nowhere. */
+export function gearShown(layerId: "stream" | "lake", mode: string, mark: GearMark,
+                          values: ChannelValues | null = NO_VALUES): unknown | null {
+  const v = values ?? NO_VALUES;
+  const m = STYLE_META.colorModes[layerId]?.[mode];
+  if (mode !== GEAR_MODE || !m || m.scale !== "profile" || !v.method || !v.status) return null;
+  const labels = v.method[mark];
+  if (!labels.length) return null;
+  const off = [...(v.status.closed ?? []), ...(v.status.no_access ?? [])];
+  const marked = ["in", ["coalesce", ["feature-state", "gm"], ""], ["literal", [...labels]]];
+  return off.length
+    ? ["all", marked, ["!", ["in", ["coalesce", ["feature-state", m.property], ""], ["literal", off]]]]
+    : marked;
+}
+
+/** One mark's paint on a stream (an edge round the line, `streamWidth` its own) or a lake (a ring). */
+export function gearPaint(layerId: "stream" | "lake", mode: string, mark: GearMark, tokens: Tokens,
+                          values: ChannelValues | null = NO_VALUES, streamWidth?: unknown): Record<string, unknown> {
+  const shown = gearShown(layerId, mode, mark, values);
+  const width = layerId === "stream" && streamWidth !== undefined
+    ? withinZoomCurve(streamWidth, (w) => ["+", w, 2 * GEAR_EDGE_PX]) : GEAR_RING_PX;
+  return {
+    "line-color": tokens["color.gear.edge"],
+    "line-width": width,
+    // solid for fly only; dashed for a bait ban (a layer's dash is fixed, so each mark is its own layer)
+    ...(mark === "bait" ? { "line-dasharray": tokens["dash.gear.bait"] } : {}),
+    "line-opacity": shown === null ? 0 : ["case", shown, 1, 0],
+  };
+}
+
 /** The MapLibre paint property that carries colour, per layer type. */
 // Module-private: an implementation detail of `paintFor`.
 function colourPropFor(type: string | undefined): string {

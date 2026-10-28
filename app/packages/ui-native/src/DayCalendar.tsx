@@ -1,7 +1,7 @@
 /**
  * THE DAY CALENDAR (T49, owner 2026-10-21: "we need to fix date picker on regs map. could just be a calendar icon.").
  *
- * ONE component, two entry points: the map's calendar button (`MapDayButton`, in the Map tab's legend strip) and the
+ * ONE component, two entry points: the map's day strip's calendar segment (`MapDayStrip`, in the Map tab's corner) and the
  * Regulations page's date pill both open a sheet (`regs/DaySheet`) holding this. It moves THE day — the Shell's
  * `mapDay`, null = today (decisions D7) — through `onDay` and keeps no day of its own, so the map's colours and the
  * page never disagree. It keeps only which MONTH it is showing.
@@ -14,7 +14,8 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { Pressable, Text, View } from "react-native";
-import { chooseDay, DAY_PICKER, dayButtonVM, monthVM, showingLine, stepDay, type DayRange } from "@app/core";
+import { chooseDay, DAY_PICKER, mapDayChips, monthVM, showingLine, stepDay, type DayRange } from "@app/core";
+import { CornerStrip } from "./CornerStrip";
 import { Icon, type IconName } from "./icons";
 import type { Palette } from "./theme";
 import { TYPE } from "./type";
@@ -22,28 +23,26 @@ import { TYPE } from "./type";
 /** A thumb's target: every button here is at least this tall and wide. */
 const TARGET = 44;
 
-/** The map's calendar button: the icon and "Today" or the day it shows ("Sat, Jun 15"); a press opens the date sheet. */
-export function MapDayButton({ palette, day, onPress, now }: {
-  palette: Palette; day: Date | null; onPress: () => void;
+/**
+ * (T213, owner 2026-10-28: "date selector up there to match Conditions' location for selecting date offsets") THE MAP'S
+ * DAY STRIP, in the top-left corner where Conditions keeps its horizons and drawn with the same strip (`CornerStrip`):
+ * Today · Tomorrow · a calendar segment naming any other day shown, which opens the date sheet. The words are `@app/core`
+ * `mapDayChips`; a press moves THE day (`onDay`) or opens the sheet (`onOpen`).
+ */
+export function MapDayStrip({ palette, day, range, onDay, onOpen, now }: {
+  palette: Palette; day: Date | null; range: DayRange;
+  onDay: (d: Date | null) => void; onOpen: () => void;
   /** for tests; the device's clock otherwise */
   now?: Date;
 }) {
-  const vm = dayButtonVM(day, now ?? new Date());
+  const chips = mapDayChips(day, now ?? new Date(), range);
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={vm.label}
-               style={({ pressed }) => ({
-                 minHeight: TARGET, minWidth: TARGET, flexDirection: "row", alignItems: "center", gap: 6,
-                 paddingHorizontal: 8,
-                 // the strip's own padding is 7 above and the row gap 5 below: the target reaches into both, so the
-                 // strip is no taller than the stepper it replaces
-                 marginTop: -7, marginBottom: -5, marginLeft: -8,
-                 backgroundColor: pressed ? palette.tint : day ? palette.accent : "transparent",
-               })}>
-      <Icon name="calendar" colour={day ? palette.onAccent : palette.ink} size={18} />
-      <Text testID="map-day" style={{ ...TYPE.bodyStrong, fontSize: 13, color: day ? palette.onAccent : palette.ink }}>
-        {vm.text}
-      </Text>
-    </Pressable>
+    <CornerStrip palette={palette} testID="map-day" label={DAY_PICKER.strip}
+                 segments={chips.map((c) => ({
+                   key: c.k, chip: c.chip, label: c.label, on: c.on, enabled: c.enabled,
+                   icon: c.k === "pick" ? "calendar" as const : undefined,
+                   onPress: c.k === "pick" ? onOpen : () => onDay(c.day ?? null),
+                 }))} />
   );
 }
 

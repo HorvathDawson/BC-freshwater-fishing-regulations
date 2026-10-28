@@ -18,7 +18,7 @@ export { baseAdapter, type MapHandle } from "./adapters/contract";
  *  style, never from a hand-written list in a component — that is how the two apps end up
  *  offering different layers. */
 export { hiddenLayers, shownLayers, STYLE_META, FIELD_HANDOVER_Z, resolveTheme, waterStatusColour, tempBandColour,
-         salmonStatusColour, methodClassColour } from "./style";
+         salmonStatusColour, gearEdgeColour } from "./style";
 /** The one palette, read: a token's colour, its alpha, and MapLibre's controls from it. */
 export { colour, translucent } from "./chrome";
 /** The route overlay (owner 2026-10-21): routes copied out of the tiles, pins, and their words' slots. */

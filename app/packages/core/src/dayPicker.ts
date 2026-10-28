@@ -22,6 +22,12 @@ export const DAY_PICKER = {
   /** the sheet's first line: the day the map and the page read */
   showing: (said: string) => `Showing ${said}`,
   todaySaid: "today",
+  /** (T213) the map's day strip (Conditions' horizon pattern): Today · Tomorrow · a calendar segment for any other day */
+  strip: "Map date",
+  tomorrow: "Tomorrow",
+  tomorrowSaid: "tomorrow",
+  pick: "Date",
+  chipLabel: (said: string) => `Colour the map for ${said}`,
   todayFull: (full: string) => `today, ${full}`,
   prevMonth: "Previous month",
   nextMonth: "Next month",
@@ -72,6 +78,38 @@ export function dayButtonVM(day: Date | null, now: Date): { text: string; label:
   if (!day || sameDate(day, now)) return { text: DAY_PICKER.today, label: DAY_PICKER.buttonLabel(DAY_PICKER.todaySaid) };
   return { text: `${DAY_PICKER.weekdays[day.getDay()]![0]}, ${DAY_PICKER.monthsShort[day.getMonth()]} ${day.getDate()}`,
            label: DAY_PICKER.buttonLabel(fullDay(day)) };
+}
+
+/** One segment of the map's day strip: what it says, what it says aloud, whether it is the day shown. */
+export interface MapDayChip {
+  readonly k: "today" | "tomorrow" | "pick";
+  readonly chip: string;
+  readonly label: string;
+  readonly on: boolean;
+  /** the day a press sets (`chooseDay`); absent on `pick`, which opens the calendar */
+  readonly day?: Date | null;
+  /** false: the day is outside the range (tomorrow past the release's last day) — shown, refused */
+  readonly enabled: boolean;
+}
+
+/**
+ * (T213, owner 2026-10-28: "date selector up there to match Conditions' location for selecting date offsets") THE MAP'S
+ * DAY STRIP, in the top-left corner where Conditions keeps its horizons: Today · Tomorrow · and a calendar segment that
+ * names any other day shown ("Sat, Jun 15") or says "Date", opening the one picker.
+ */
+export function mapDayChips(day: Date | null, now: Date, range: DayRange): readonly MapDayChip[] {
+  const shown = day ?? now;
+  const tomorrow = shiftDay(now, 1);
+  const isToday = sameDate(shown, now), isTomorrow = sameDate(shown, tomorrow);
+  const other = !isToday && !isTomorrow;
+  return [
+    { k: "today", chip: DAY_PICKER.today, label: DAY_PICKER.chipLabel(DAY_PICKER.todaySaid), on: isToday, day: null,
+      enabled: true },
+    { k: "tomorrow", chip: DAY_PICKER.tomorrow, label: DAY_PICKER.chipLabel(DAY_PICKER.tomorrowSaid), on: isTomorrow,
+      day: chooseDay(tomorrow, now), enabled: inRange(range, tomorrow) },
+    { k: "pick", chip: other ? dayButtonVM(shown, now).text : DAY_PICKER.pick,
+      label: dayButtonVM(day, now).label, on: other, enabled: true },
+  ];
 }
 
 /** "Showing today, Wednesday, October 21" / "Showing Saturday, June 13" */

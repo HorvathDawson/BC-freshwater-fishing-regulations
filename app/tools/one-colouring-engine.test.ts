@@ -51,7 +51,7 @@ describe("one colouring engine", () => {
       for (const [name, m] of Object.entries(modes))
         if (section.has(layer) && m.scale !== "static") read.push(`${name}:${(m as { property: string }).property}`);
     expect([...new Set(read)].sort()).toEqual(
-      [`method:${KEYS.method}`, `profile:${KEYS.status}`, `salmon:${KEYS.salmon}`, `standing:${KEYS.standing}`,
+      [`profile:${KEYS.status}`, `salmon:${KEYS.salmon}`, `standing:${KEYS.standing}`,
        `stocked:${KEYS.stocked}`, `surveyed:${KEYS.survey}`]);
     expect(KEYS).toEqual({ status: "p", standing: "standing", stocked: "stocked", survey: "survey", salmon: "sp", method: "gm" });
   });

@@ -63,7 +63,7 @@ export function useChannels(refs: WebMapRefs, { wasLit, wasWater, wasCue }: Lit,
   const salmonDay = salmon ? salmonDayIndex(salmon.day) : -1;
   useEffect(() => toChannel("salmon", salmon ? salmonInput(salmon) : null, `salmon:${salmonDay}`),
             [salmon?.facts, salmonDay, at.atlas]);
-  // (T213) the Bait & fly colouring: profile labels once per release, the day in the style
+  // (T213) the gear marks: profile labels once per release, the day in the gear layers' paint
   const methodDay = method ? readingDayOf(method.day) : -1;
   useEffect(() => toChannel("method", method ? methodInput(method) : null, `method:${methodDay}`),
             [method?.facts, methodDay, at.atlas]);

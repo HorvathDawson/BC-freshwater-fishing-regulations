@@ -7,6 +7,7 @@
  * Under MapLibre's zoom stack on the web (top-right, `@app/map` controls.css); at the top on a phone, where the map
  * has none. An icon alone is a guess, so every button says its name aloud; the words are `@app/core` `MAP_RAIL`.
  */
+import type { ReactNode } from "react";
 import { LAYER_WORDS, MAP_RAIL } from "@app/core";
 import { Platform, Pressable, Text, View } from "react-native";
 import { Icon } from "./icons";
@@ -25,7 +26,7 @@ export const RAIL_BELOW = Platform.OS === "web" ? 84 : 8;
 /** On the web its right edge lines up with that zoom stack's (MapLibre's 10 px control margin); 14 elsewhere. */
 export const RAIL_RIGHT = Platform.OS === "web" ? 10 : 14;
 
-export function MapRail({ palette, onLayers, layersChanged = 0, top = 0 }: {
+export function MapRail({ palette, onLayers, layersChanged = 0, top = 0, children }: {
   palette: Palette;
   /** (T48) the bottom edge of the bar over the map (the search field), in px: the rail starts `RAIL_BELOW` under it */
   top?: number;
@@ -36,6 +37,11 @@ export function MapRail({ palette, onLayers, layersChanged = 0, top = 0 }: {
   layersChanged?: number;
   /** Absent: no Layers button. Both browse maps pass it (owner 2026-10-22): each opens the sheet with its own entries. */
   onLayers?: () => void;
+  /**
+   * (T213, owner 2026-10-28: "near the layer icon would be better") the map's own switches, stacked under the rail,
+   * right-aligned with it: the Map tab's Standard / Salmon (`RegsLayerToggle`).
+   */
+  children?: ReactNode;
 }) {
   const buttons = [
     onLayers && { k: "layers", label: LAYER_WORDS.railLabel(layersChanged), onPress: onLayers,
@@ -43,8 +49,10 @@ export function MapRail({ palette, onLayers, layersChanged = 0, top = 0 }: {
   ].filter((b): b is Exclude<typeof b, undefined> => !!b);
   if (buttons.length === 0) return null;
   return (
+    <View testID="map-rail-column" pointerEvents="box-none"
+          style={{ position: "absolute", right: RAIL_RIGHT, top: top + RAIL_BELOW, alignItems: "flex-end", gap: 8 }}>
     <View accessibilityRole="toolbar" accessibilityLabel={MAP_RAIL.label}
-          style={{ position: "absolute", right: RAIL_RIGHT, top: top + RAIL_BELOW, backgroundColor: palette.card,
+          style={{ backgroundColor: palette.card,
                    borderWidth: 1, borderColor: palette.line2, borderRadius: palette.r.box, overflow: "hidden",
                    ...palette.lift }}>
       {buttons.map((b, i) => (
@@ -65,6 +73,8 @@ export function MapRail({ palette, onLayers, layersChanged = 0, top = 0 }: {
           )}
         </Pressable>
       ))}
+    </View>
+    {children}
     </View>
   );
 }

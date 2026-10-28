@@ -1,17 +1,20 @@
 /**
- * (T213) THE BAIT & FLY PAINT, through the one colouring engine.
+ * (T213, owner 2026-10-28) BAIT BAN AND FLY ONLY ARE MARKS ON THE STANDARD MAP, through the one colouring engine.
  *
- *   paint      the `method` mode paints each profile label in its day's class colour (fly only, bait ban, none); the
- *              status day's CLOSED labels win first (the method file carries no closures); with no method installed
- *              the mode is the plain map
- *   repaint    a new status day repaints the method layers too (their closed set is the status's)
- *   speed      labels arrive with the status's in ONE feature-state call; a toggle is paint only
+ *   marks      an ink edge round a stream line (solid fly, dashed bait) and a ring round a lake, shown where the method
+ *              day places the section's `gm` label — never where the status day closes it or marks it no access, never
+ *              in any mode but the Standard status mode (`profile`), never with no method or no status installed
+ *   colour     the status colour is untouched: the Standard line paints exactly as it did without the marks
+ *   repaint    a new method day repaints the marks (one paint change; no relabel), a new status day too
+ *   style      the first frame carries the four layers, hidden; the stream's edges sit under the line, over the
+ *              selection casing; the lake's rings over its outline, under the selection ring
  */
 import { describe, expect, it } from "vitest";
 import { methodDayProfiles, type MethodFacts, type StatusIndex } from "@app/core";
 import { baseAdapter, type MapHandle } from "./adapters/contract";
 import { Colouring, methodInput, statusInput, type LabelTarget, type TileRenderer, type TileSections } from "./colouring";
-import { paintFor } from "./paint";
+import { GEAR_EDGE_PX, GEAR_LAYERS, gearPaint, paintFor, SELECTION_CASING, SELECTION_RINGS } from "./paint";
+import { runtimeStyle } from "./runtime-style";
 import { resolveTheme, NO_VALUES } from "./style";
 
 /** Profile 0 bait ban all year; profile 1 fly only Jan 1 → Jun 30, none after. Sections 100..104 profile 1, 7 profile 0. */
@@ -21,76 +24,104 @@ const FACTS: MethodFacts = {
   profileClassOn: (p, day) => (p === 0 ? "bait" : day <= 182 ? "fly" : "none"),
 };
 const MAY1 = new Date(2026, 4, 1), AUG1 = new Date(2026, 7, 1);
-const MODE = "method";
 const INDEX: StatusIndex = {
   handles: "0".repeat(16), reachDigest: "0".repeat(16), sections: 0, waters: 0, profiles: 1,
   profileOf: () => 0, profileCodeOn: () => "base", codeOn: () => "base", waterCodeOn: () => "base",
 };
 const t = resolveTheme("light");
 const STATUS = { closed: ["p3"], own: [], base: ["b", "p0"], no_access: ["n"], none: [] };
+const MAY = { ...NO_VALUES, status: STATUS, method: methodDayProfiles(FACTS, MAY1) };
+const W = paintFor("stream", "profile", t, MAY)["line-width"];
 
-function rig() {
-  const states: string[] = [], paints: string[] = [];
-  const h: MapHandle = {
-    setVisibility: () => {}, setFeatureState: () => {}, clearFeatureStates: () => {},
-    setPaint: (l, p, v) => { if (p === "line-color" || p === "fill-color") paints.push(`${l} ${JSON.stringify(v)}`); },
-  };
-  const target: LabelTarget = { setState: (l, id, s) => states.push(`${l} ${id} ${JSON.stringify(s)}`), clearAll: () => {} };
-  let tiles: TileSections[] = [];
-  const renderer: TileRenderer = { loaded: () => tiles, restore: () => {} };
-  const adapter = baseAdapter("web");
-  const c = new Colouring(adapter);
-  return { h, target, renderer, adapter, c, states, paints, setTiles: (x: TileSections[]) => { tiles = x; } };
-}
-
-describe("the Bait & fly mode's paint", () => {
-  it("each label in its day's class colour, the status day's closures first", () => {
-    const expr = JSON.stringify(paintFor("stream", MODE, t,
-      { ...NO_VALUES, status: STATUS, method: methodDayProfiles(FACTS, MAY1) })["line-color"]);
-    // closed: the status channel's own label `p`, matched before the method label `gm`
-    expect(expr.startsWith(`["match",["coalesce",["feature-state","p"],""],["p3"],"${t["color.method.closed"]}"`)).toBe(true);
-    expect(expr).toContain(`["m1"],"${t["color.method.fly"]}"`);
-    expect(expr).toContain(`["m0"],"${t["color.method.bait"]}"`);
-    expect(expr).toContain(`["m"],"${t["color.method.none"]}"`);
-    expect(expr).toContain(`"gm"`);
-    const aug = JSON.stringify(paintFor("stream", MODE, t,
-      { ...NO_VALUES, status: STATUS, method: methodDayProfiles(FACTS, AUG1) })["line-color"]);
-    expect(aug).toContain(`["m","m1"],"${t["color.method.none"]}"`);
+describe("the gear marks' paint", () => {
+  it("fly: a solid ink edge where the day says fly, off where the status day closes it or marks it no access", () => {
+    const p = gearPaint("stream", "profile", "fly", t, MAY, W);
+    expect(p["line-color"]).toBe(t["color.gear.edge"]);
+    expect(p["line-dasharray"]).toBeUndefined();
+    expect(p["line-opacity"]).toEqual(["case", ["all",
+      ["in", ["coalesce", ["feature-state", "gm"], ""], ["literal", ["m1"]]],
+      ["!", ["in", ["coalesce", ["feature-state", "p"], ""], ["literal", ["p3", "n"]]]]], 1, 0]);
+    expect(JSON.stringify(p["line-width"])).toContain(`["+",`);
+    expect(JSON.stringify(p["line-width"])).toContain(`${2 * GEAR_EDGE_PX}`);
   });
 
-  it("fly, bait, none and closed are four different colours in every theme", () => {
-    for (const th of ["light", "dark", "cvd"]) {
-      const r = resolveTheme(th);
-      const c = ["fly", "bait", "none", "closed"].map((k) => r[`color.method.${k}`]);
-      expect(new Set(c).size, th).toBe(4);
-    }
+  it("bait: the same edge, dashed (`dash.gear.bait`); a lake gets a ring of the same ink", () => {
+    const p = gearPaint("stream", "profile", "bait", t, MAY, W);
+    expect([p["line-dasharray"], JSON.stringify(p["line-opacity"]).includes(`["m0"]`)]).toEqual([t["dash.gear.bait"], true]);
+    const ring = gearPaint("lake", "profile", "bait", t, MAY);
+    expect([ring["line-color"], typeof ring["line-width"], ring["line-dasharray"]])
+      .toEqual([t["color.gear.edge"], "number", t["dash.gear.bait"]]);
   });
 
-  it("with no method installed the mode is the plain map", () => {
-    expect(paintFor("stream", MODE, t, NO_VALUES)).toEqual(paintFor("stream", "plain", t));
-    expect(paintFor("stream", MODE, t, { ...NO_VALUES, status: STATUS })).toEqual(paintFor("stream", "plain", t));
+  it("nowhere outside the Standard status mode, with no method or no status installed, or on a day with none", () => {
+    for (const mode of ["salmon", "plain", "standing"])
+      expect([mode, gearPaint("stream", mode, "fly", t, MAY, W)["line-opacity"]]).toEqual([mode, 0]);
+    expect(gearPaint("stream", "profile", "fly", t, { ...MAY, method: null }, W)["line-opacity"]).toBe(0);
+    expect(gearPaint("stream", "profile", "fly", t, { ...MAY, status: null }, W)["line-opacity"]).toBe(0);
+    // Aug 1: profile 1 is none, so nothing is fly
+    expect(gearPaint("stream", "profile", "fly", t, { ...MAY, method: methodDayProfiles(FACTS, AUG1) }, W)["line-opacity"])
+      .toBe(0);
+  });
+
+  it("the status colour is the Standard map's own: the marks change no colour", () => {
+    expect(paintFor("stream", "profile", t, MAY)).toEqual(paintFor("stream", "profile", t, { ...MAY, method: null }));
+  });
+
+  it("the ink stands in every theme", () => {
+    for (const th of ["light", "dark", "cvd"]) expect(typeof resolveTheme(th)["color.gear.edge"], th).toBe("string");
   });
 });
 
-describe("the Bait & fly channel", () => {
-  it("labels arrive with the status's in one call; a toggle is paint only; a new status day repaints it", () => {
+describe("the gear marks through the engine", () => {
+  function rig() {
+    const paints: string[] = [];
+    const h: MapHandle = {
+      setVisibility: () => {}, setFeatureState: () => {}, clearFeatureStates: () => {},
+      setPaint: (l, p, v) => { if (p === "line-opacity") paints.push(`${l} ${JSON.stringify(v)}`); },
+    };
+    const states: string[] = [];
+    const target: LabelTarget = { setState: (l, id, s) => states.push(`${l} ${id} ${JSON.stringify(s)}`), clearAll: () => {} };
+    let tiles: TileSections[] = [];
+    const renderer: TileRenderer = { loaded: () => tiles, restore: () => {} };
+    const adapter = baseAdapter("web");
+    return { h, target, renderer, adapter, c: new Colouring(adapter), paints, states,
+             setTiles: (x: TileSections[]) => { tiles = x; } };
+  }
+
+  it("labels arrive with the status's in one call; a new method day or status day repaints the marks", () => {
     const r = rig();
     r.adapter.setLayerMode(r.h, "stream", "profile", "light");
+    r.adapter.setLayerMode(r.h, "lake", "profile", "light");
     r.setTiles([{ stream: [100] }]);
     r.c.set(r.h, r.target, r.renderer, "status", statusInput({ index: INDEX, day: MAY1 }), "light");
+    r.paints.splice(0);
     r.c.set(r.h, r.target, r.renderer, "method", methodInput({ facts: FACTS, day: MAY1 }), "light");
+    const shown = (l: string) => r.paints.filter((p) => p.startsWith(`${l} `)).at(-1);
+    expect(shown(GEAR_LAYERS.stream.fly)).toContain(`"m1"`);
+    expect(shown(GEAR_LAYERS.lake.bait)).toContain(`"m0"`);
     r.states.splice(0);
     expect(r.c.label(r.target, { stream: [101, 7, 9] })).toBe(3);
     expect(r.states).toEqual(['stream 101 {"p":"p0","gm":"m1"}', 'stream 7 {"p":"p0","gm":"m0"}',
                               'stream 9 {"p":"p0","gm":"m"}']);
-    r.states.splice(0);
     r.paints.splice(0);
-    r.adapter.setLayerMode(r.h, "stream", MODE, "light");
-    expect(r.states).toEqual([]);
-    expect(r.paints.some((p) => p.includes(String(t["color.method.fly"])))).toBe(true);
-    // the status day moves: the method layer is repainted with it (its closures are the status's)
+    r.c.set(r.h, r.target, r.renderer, "method", methodInput({ facts: FACTS, day: AUG1 }), "light");
+    expect(shown(GEAR_LAYERS.stream.fly)).toBe(`${GEAR_LAYERS.stream.fly} 0`);
     r.paints.splice(0);
     r.c.set(r.h, r.target, r.renderer, "status", statusInput({ index: INDEX, day: AUG1 }), "light");
-    expect(r.paints.some((p) => p.startsWith("stream "))).toBe(true);
+    expect(shown(GEAR_LAYERS.stream.bait)).toBeDefined();
+  });
+});
+
+describe("the gear layers in the first frame", () => {
+  it("present, hidden, the stream's under its line and over the selection casing; the lake's under the selection ring", () => {
+    const ids = runtimeStyle({ atlas: "a", basemap: "b" } as never, "light").layers.map((l) => l.id);
+    const at = (id: string) => ids.indexOf(id);
+    for (const id of [...Object.values(GEAR_LAYERS.stream), ...Object.values(GEAR_LAYERS.lake)]) expect(at(id), id).toBeGreaterThan(-1);
+    expect(at(SELECTION_CASING)).toBeLessThan(at(GEAR_LAYERS.stream.fly));
+    expect(at(GEAR_LAYERS.stream.bait)).toBeLessThan(at("stream"));
+    expect(at(GEAR_LAYERS.lake.bait)).toBeLessThan(at(SELECTION_RINGS.lake));
+    const s = runtimeStyle({ atlas: "a", basemap: "b" } as never, "light");
+    for (const id of Object.values(GEAR_LAYERS.stream))
+      expect((s.layers.find((l) => l.id === id) as { paint: Record<string, unknown> }).paint["line-opacity"]).toBe(0);
   });
 });

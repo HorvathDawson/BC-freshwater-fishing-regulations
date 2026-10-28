@@ -3,7 +3,7 @@
  * else. If an adapter needs "one more layer" or "a slightly different colour here", it
  * belongs in layers.source.json — otherwise the platforms diverge and nothing catches it.
  */
-import { TEMP_BAND_TOKEN, WATER_STATUS, type DayProfiles, type MethodDay, type MethodLegendClass, type SalmonDay,
+import { TEMP_BAND_TOKEN, WATER_STATUS, type DayProfiles, type MethodDay, type SalmonDay,
          type SalmonMapStatus, type TempBand, type WaterStatus }
   from "@app/core";
 import style from "../style/style.json" with { type: "json" };
@@ -43,19 +43,14 @@ export type ColorMode =
   /** Categorical one step removed: feature-state holds a profile LABEL, the day says which labels are which member. */
   | { label: string; scale: "profile"; property: string; enum: string;
       categories: Record<string, TokenRef>; missing: TokenRef;
-      /** Whose values it reads: provider `salmon` (T211) / `method` (T213) is that channel's day, every other the
-       *  status's. */
-      data?: { provider: string; field?: string };
-      /** (T213) Painted FIRST where the day's STATUS closes the section (feature-state `p` in the status day's `closed`
-       *  set): a channel that carries no closures borrows the status index's, the one source for closed. */
-      closed?: TokenRef };
+      /** Whose values it reads: provider `salmon` (T211) is the salmon channel's day, every other the status's. */
+      data?: { provider: string; field?: string } };
 
-/** (T211) THE CHANNEL A PROFILE MODE READS ITS DAY FROM: the Salmon / Bait & fly colouring's own, else the status's. */
-type ProfileChannel = "status" | "salmon" | "method";
+/** (T211) THE CHANNEL A PROFILE MODE READS ITS DAY FROM: the Salmon colouring's own, else the day's status. */
+type ProfileChannel = "status" | "salmon";
 export function profileChannel(mode: ColorMode | undefined): ProfileChannel | null {
   if (mode?.scale !== "profile") return null;
-  const p = mode.data?.provider;
-  return p === "salmon" || p === "method" ? p : "status";
+  return mode.data?.provider === "salmon" ? "salmon" : "status";
 }
 
 /** The day's label sets a profile mode paints by (null: none installed). */
@@ -91,8 +86,8 @@ export interface ChannelValues {
   survey: number | null;
   /** (T211) the Salmon colouring's day: which chain labels paint which salmon status (@app/core `salmonDayProfiles`). */
   salmon: SalmonDay | null;
-  /** (T213) the Bait & fly colouring's day: which method labels paint fly / bait / none (@app/core
-   *  `methodDayProfiles`); its closures are `status`'s. */
+  /** (T213) the bait ban / fly only day: which method labels are marked fly / bait (@app/core `methodDayProfiles`)
+   *  — no colour of its own: the Standard map's gear edges (paint.ts `gearPaint`). */
   method: MethodDay | null;
 }
 export const NO_VALUES: ChannelValues =
@@ -282,11 +277,7 @@ export function colorExpression(layerId: string, modeName: string, t: Tokens,
       if (labels.length) out.push([...labels], val(ref));
     }
     out.push(val(mode.missing));           // `none` (tidal, outside B.C.) and every unplaced label
-    const own = out.length > 3 ? out : val(mode.missing);
-    // (T213) the status day's closures first, from the status channel's own label (`p`): one source for closed
-    const closedLabels = mode.closed ? (values ?? NO_VALUES).status?.closed : undefined;
-    if (!mode.closed || !closedLabels?.length) return own;
-    return ["match", ["coalesce", ["feature-state", "p"], ""], [...closedLabels], val(mode.closed), own];
+    return out.length > 3 ? out : val(mode.missing);
   }
 
   const read = ["feature-state", mode.property];
@@ -317,10 +308,10 @@ export function salmonStatusColour(theme: string, status: SalmonMapStatus): stri
   return hex;
 }
 
-/** (T213) The colour the Bait & fly colouring paints a class in one theme — its legend swatch. */
-export function methodClassColour(theme: string, cls: MethodLegendClass): string {
-  const hex = resolveTheme(theme)[`color.method.${cls}`];
-  if (typeof hex !== "string") throw new Error(`theme "${theme}" cannot paint method ${cls}`);
+/** (T213) The ink the Standard map's gear marks (fly only, bait ban) are drawn in, in one theme — the legend's swatch. */
+export function gearEdgeColour(theme: string): string {
+  const hex = resolveTheme(theme)["color.gear.edge"];
+  if (typeof hex !== "string") throw new Error(`theme "${theme}" has no gear edge`);
   return hex;
 }
 

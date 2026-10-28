@@ -2,7 +2,7 @@
  * THE BROWSE TABS' BODIES: the Map and Conditions tabs' ONE map, the Spots tab and the More tab (T62 3.4: out of the
  * Shell, unchanged). The top bar, the search sheet, the legend and the tab bar are the Shell's, drawn over these.
  */
-import { dayLabel, type SectionKey } from "@app/core";
+import { dayLabel, type DayRange, type SectionKey } from "@app/core";
 import { useCallback, type MutableRefObject } from "react";
 import type { SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
@@ -10,6 +10,7 @@ import { mapPointTap, routeWhere, spotsMenu, tapOpensWater, type Locate, type Ma
          type SpotPhotos, type SyncState } from "@app/ui";
 import type { Spot } from "@app/data/spots";
 import { hiddenLayers, shownLayers, type Camera, type MapSpots, type TileEndpoints } from "@app/map";
+import { MapDayStrip } from "../DayCalendar";
 import { MapScreen } from "../MapScreen";
 import { SpotsScreen } from "../SpotsScreen";
 import { TABS } from "../TabBar";
@@ -17,6 +18,7 @@ import { MoreScreen } from "../menu/MoreScreen";
 import type { MenuInfo } from "../menu/MenuHost";
 import type { Palette, ThemeName } from "../theme";
 import { HANDOVER_Z, HOME, type MapColouring } from "./useMapColouring";
+import { RegsLayerToggle } from "./RegsLayerToggle";
 import type { ShellNav } from "./useShellNav";
 import type { ShellSearch } from "./useShellSearch";
 
@@ -26,7 +28,8 @@ const NONE_PINS: readonly never[] = [];
 
 export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, onTheme, tiles, camera, insetTop,
                              spots, spotsShown, spotLayer, spotsError, onRefreshSpots, refreshing, locate,
-                             photos, loader, syncState, menu, menuInfo, mapDay, onSaveSpot, onLayers, onRegion }: {
+                             photos, loader, syncState, menu, menuInfo, mapDay, onSaveSpot, onLayers, onRegion,
+                             onDay, onOpenDay, dayRange }: {
   nav: ShellNav; col: MapColouring; search: ShellSearch; rail: MapRail; palette: Palette; theme: string;
   themeName: ThemeName; onTheme: (t: ThemeName) => void; tiles: TileEndpoints; camera: MutableRefObject<Camera>;
   insetTop: number; spots: readonly Spot[]; spotsShown: boolean; spotLayer: MapSpots | undefined;
@@ -36,6 +39,10 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
   onSaveSpot?: (spot: Spot) => void | Promise<void>;
   /** Open the Layers sheet (the Shell's). */
   onLayers: () => void;
+  /** (T213) The map's day strip: set THE day, open the date sheet, and the days it may offer. */
+  onDay: (d: Date | null) => void;
+  onOpenDay: () => void;
+  dayRange: DayRange;
   /** (T186) The region under the map's centre, for the web prefetch (`useReleasePrefetch`); absent on a phone. */
   onRegion?: (regionId: string | null) => void;
 }) {
@@ -73,6 +80,15 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
     forecastIssuedAt: syncState.forecastIssuedAt,
   };
   const { onConditions, modes, activeGroups } = mm;
+  /*
+   * (T213, owner 2026-10-28) THE MAP TAB'S OWN SWITCHES, on the map: the day in the corner Conditions keeps its horizons
+   * in, and Standard / Salmon under the Layers button — while the day's regulations are what the map draws, and not
+   * while search's sheet is over it.
+   */
+  const regsDrawn = tab === "map" && !searching && col.statusOk && layers.water.drawn === "regulations";
+  const corner = regsDrawn
+    ? <MapDayStrip palette={palette} day={mapDay} range={dayRange} onDay={onDay} onOpen={onOpenDay} /> : undefined;
+  const railExtra = regsDrawn && col.salmonOffered ? <RegsLayerToggle col={col} palette={palette} /> : undefined;
 
   return tab === "spots"
     // (T48) THE SPOTS TAB: the list, open one, Show it on the map, add one — the long press on the maps stays
@@ -161,6 +177,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
                      // P16 removed them). Temperature has no forecast, so it gets none. The
                      // SAME state the panel header sets — `useHorizon` in useMapColouring.
                      horizons={mm.horizonsShown ? { chips: horizonChipsShown, onPick: pickDay } : undefined}
+                     corner={corner} railExtra={railExtra}
                      // LAYERS ON BOTH MAPS (owner 2026-10-22): on Conditions the sheet is that map's own —
                      // Show (Flow · Level · Temperature), the ground, gauges and arrows — never the Map tab's
                      onLayers={onLayers}
