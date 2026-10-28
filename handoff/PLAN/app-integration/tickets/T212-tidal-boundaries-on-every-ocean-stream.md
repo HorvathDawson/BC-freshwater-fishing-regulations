@@ -73,3 +73,38 @@ runs on the full network. Review the Kitimat candidate (7137 m) before accepting
   `tidal-web.json` (23 findings on 15 streams), a source next to the book text in the Tidal tab.
 - Triage per candidate (`triage` key; `tidal-triage.md`): missed 5 (Capilano, Copper Creek, Nimpkish, Tlell,
   Chemainus), sanity 0, owner-edited 25, book agrees 11, no claim 1122. The Tidal tab defaults to missed + sanity.
+
+## Pass 2 (2026-10-28): DFO's own area / boundary descriptions
+- Tool: `python -m pipeline.tools.audit.tidal_pass2 extract` then `... propose --basemap data/source/bc.pmtiles`
+  (read only, ~2 min). Pages: pac.dfo-mpo.gc.ca does not resolve from here, so the crawl went through
+  web.archive.org (latest 2025-26 snapshots), discovered from the site's own links, not guessed URLs: 188 pages
+  cached raw under `data/source/dfo_tidal_areas/2026-10-28/` (+ `manifest.json` with each snapshot): 33 tidal
+  Area pages (1-29, 121; 1xx/130/142 are folded into them), 9 freshwater salmon region pages, 37 shellfish
+  contamination pages, 107 others; plus SOR/2007-77 (PFMA regulation) fetched directly from laws-lois.
+  Not fetched: a-s128/129/130 (404 in the archive) and ~6 non-area pages (archive timeouts).
+- `handoff/PLAN/curation-review/tidal/pass2/entries.json`: 1,715 entries (tidal area 704, PFMA subareas 602,
+  freshwater 142, shellfish 63, other 204), each with source URL, area, text, parsed geometry (DD°MM.mmm′ →
+  lon/lat, NAD27 converted; a "following the shoreline" stretch or a new clause breaks a line; parallels kept)
+  and what it implies: `is` 9 (the words name the boundary), `at_or_above` 1,089 (a line in tidal water),
+  `at_or_below` 139 (a freshwater limit), `context` 478. Named landmarks are resolved from a gazetteer built from
+  the PFMA brackets (e.g. Klinaklini's Wahshihlas Bay–Rubble Point line).
+- `pass2/proposals.json`: 109 streams the entries bear on. Against the T212 candidates: **agrees 15**
+  (Nimpkish, Chapman, Nanaimo, Salmon, Qualicum, Skeena, Nass, Fraser at Mission, Illiance, Kitsault, Wilauks,
+  Pallant, Kauwinch, Lausmann, Yorkson), **consistent 5** (a bound the cut satisfies: Somass, Sarita, Toquaht,
+  Chambers, Kanaka), **moves 1** (Tlell), **new 4** (Fraser side channels Annacis / Cannery / Morey / Parsons:
+  DFO lines in tidal water cross them; the point is a lower bound — they are tidal below Mission anyway),
+  **context 84** (named, nothing places it: 47 unlocated, 35 lines seaward of the FWA mouth — e.g. Quatlena,
+  Kwatna Bay, Dean Channel, South Bentinck — which only say the estuary is tidal, 2 unnamed-bridge guesses).
+- **Conflict with an owner mark: 1 — Tlell** (not overridden). DFO's tidal Area 2 page says the sign is ~1 km
+  above the Hwy 16 bridge (5250 m); DFO's freshwater region 6 page and the synopsis say 1.5 km (5750 m, the
+  mark). Two DFO pages disagree.
+- What the owner expected mostly does not hold: DFO's mouth closures ("shoreward of a line between two fishing
+  boundary signs", lat/lon lines at Dean Channel / Kwatna / Quatlena / South Bentinck) are drawn across the
+  inlet or bay SEAWARD of the FWA mouth — they confirm the mouth is tidal but never say where tidal water ends
+  up the river. The text that does name a boundary is rare (9 entries). DFO's default is stated on
+  definitions-eng: "Unless otherwise specified, the tidal boundary is a straight line drawn between the two most
+  seaward points of land … on either side of the mouth", i.e. the FWA-mouth default is DFO's own rule.
+- Review app: `pipeline/regs/review/tidal.py` merges `pass2/proposals.json` into the candidates as evidence
+  only (web rows "DFO pass 2 · …", a switchable point, new rows for the 4 new streams; Tlell is put back in the
+  "missed" review queue). `proposed` / `polygon` / `sources` are untouched, so no mark goes stale (tested).
+  NOT live yet: it loads when the review backend restarts (no curation-review/ file was edited).
