@@ -95502,7 +95502,7 @@
           "says": null,
           "n": null,
           "howtell": false,
-          "size": "must be 60 cm (24 in) or less, or 90 cm (35 in) or longer; release any other size",
+          "size": "release any between 60 cm (24 in) and 90 cm (35 in)",
           "q": null,
           "pics": [
            {
@@ -95519,7 +95519,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "must be 60 cm (24 in) or less, or 90 cm (35 in) or longer; release any other size Lake trout ›",
+           "release any between 60 cm (24 in) and 90 cm (35 in) Lake trout ›",
            "Only 1 over 90 cm (35 in)",
            "No more than 3 counting any Dolly Varden/bull trout you keep"
           ]
@@ -95649,7 +95649,7 @@
        "5 a day per angler across Region 6",
        "Rule book p.49 ↗",
        "This lake’s rule: up to 2 lake trout a day (part of the 5) Rule book p.52 ↗",
-       "must be 60 cm (24 in) or less, or 90 cm (35 in) or longer; release any other size Lake trout ›",
+       "release any between 60 cm (24 in) and 90 cm (35 in) Lake trout ›",
        "Only 1 over 90 cm (35 in)",
        "No more than 3 counting any Dolly Varden/bull trout you keep",
        "Of these, only 1 may be over 50 cm (20 in)",
@@ -95778,7 +95778,7 @@
      "5 a day per angler across Region 6",
      "Rule book p.49 ↗",
      "This lake’s rule: up to 2 lake trout a day (part of the 5) Rule book p.52 ↗",
-     "must be 60 cm (24 in) or less, or 90 cm (35 in) or longer; release any other size Lake trout ›",
+     "release any between 60 cm (24 in) and 90 cm (35 in) Lake trout ›",
      "Only 1 over 90 cm (35 in)",
      "No more than 3 counting any Dolly Varden/bull trout you keep",
      "Of these, only 1 may be over 50 cm (20 in)",
@@ -97005,7 +97005,7 @@
       "This lake’s rule: up to 4 a day per angler",
       "Rule book p.52 ↗",
       "Up to 4 may be Arctic grayling",
-      "must be 36 cm (14 in) or less, or 44 cm (17 in) or longer; release any other size Arctic grayling ›",
+      "release any between 36 cm (14 in) and 44 cm (17 in) Arctic grayling ›",
       "Only 1 over 44 cm (17 in)",
       "How it adds up",
       "This lake’s rule: 4 a day here. Arctic grayling you kept anywhere else today count toward those 4.",
@@ -97065,7 +97065,7 @@
       "This lake’s rule: up to 4 a day per angler",
       "Rule book p.52 ↗",
       "Up to 4 may be northern pike",
-      "must be 70 cm (28 in) or less, or 100 cm (39 in) or longer; release any other size Northern pike ›",
+      "release any between 70 cm (28 in) and 100 cm (39 in) Northern pike ›",
       "Only 1 over 100 cm (39 in)",
       "How it adds up",
       "This lake’s rule: 4 a day here. Northern pike you kept anywhere else today count toward those 4.",
@@ -118449,7 +118449,7 @@
       "In streams, keep up to 4 cutthroat trout, brook trout, brown trout, lake trout and rainbow trout a day, all kinds together. Replaced by this river’s rule Rule book p.28 ↗",
       "Only 1 cutthroat trout, Dolly Varden/bull trout, brook trout, brown trout or lake trout over 50 cm (20 in) a day. Replaced by this river’s rule Rule book p.28 ↗",
       "Keep up to 1 Dolly Varden/bull trout or lake trout a day. Replaced by this river’s rule Rule book p.28 ↗",
-      "Keep only Dolly Varden/bull trout and lake trout 60 cm (24 in) or longer. Replaced by this river’s rule Rule book p.28 ↗ See every regulation line ›"
+      "Dolly Varden/bull trout and lake trout must be 60 cm (24 in) or longer; release any shorter. Replaced by this river’s rule Rule book p.28 ↗ See every regulation line ›"
      ]
     ],
     "otherFish": [
@@ -118584,7 +118584,7 @@
      "In streams, keep up to 4 cutthroat trout, brook trout, brown trout, lake trout and rainbow trout a day, all kinds together. Replaced by this river’s rule Rule book p.28 ↗",
      "Only 1 cutthroat trout, Dolly Varden/bull trout, brook trout, brown trout or lake trout over 50 cm (20 in) a day. Replaced by this river’s rule Rule book p.28 ↗",
      "Keep up to 1 Dolly Varden/bull trout or lake trout a day. Replaced by this river’s rule Rule book p.28 ↗",
-     "Keep only Dolly Varden/bull trout and lake trout 60 cm (24 in) or longer. Replaced by this river’s rule Rule book p.28 ↗ See every regulation line ›",
+     "Dolly Varden/bull trout and lake trout must be 60 cm (24 in) or longer; release any shorter. Replaced by this river’s rule Rule book p.28 ↗ See every regulation line ›",
      "Other fish",
      "Kokanee release",
      "Whitefish 15 a day",
@@ -120833,7 +120833,7 @@
       "In streams, keep up to 4 cutthroat trout, brook trout, brown trout, lake trout and rainbow trout a day, all kinds together. Replaced by this river’s rule Rule book p.28 ↗",
       "Only 1 cutthroat trout, Dolly Varden/bull trout, brook trout, brown trout or lake trout over 50 cm (20 in) a day. Replaced by this river’s rule Rule book p.28 ↗",
       "Keep up to 1 Dolly Varden/bull trout or lake trout a day. Replaced by this river’s rule Rule book p.28 ↗",
-      "Keep only Dolly Varden/bull trout and lake trout 60 cm (24 in) or longer. Replaced by this river’s rule Rule book p.28 ↗ See every regulation line ›"
+      "Dolly Varden/bull trout and lake trout must be 60 cm (24 in) or longer; release any shorter. Replaced by this river’s rule Rule book p.28 ↗ See every regulation line ›"
      ]
     ],
     "otherFish": [
@@ -120968,7 +120968,7 @@
      "In streams, keep up to 4 cutthroat trout, brook trout, brown trout, lake trout and rainbow trout a day, all kinds together. Replaced by this river’s rule Rule book p.28 ↗",
      "Only 1 cutthroat trout, Dolly Varden/bull trout, brook trout, brown trout or lake trout over 50 cm (20 in) a day. Replaced by this river’s rule Rule book p.28 ↗",
      "Keep up to 1 Dolly Varden/bull trout or lake trout a day. Replaced by this river’s rule Rule book p.28 ↗",
-     "Keep only Dolly Varden/bull trout and lake trout 60 cm (24 in) or longer. Replaced by this river’s rule Rule book p.28 ↗ See every regulation line ›",
+     "Dolly Varden/bull trout and lake trout must be 60 cm (24 in) or longer; release any shorter. Replaced by this river’s rule Rule book p.28 ↗ See every regulation line ›",
      "Other fish",
      "Kokanee release",
      "Whitefish 15 a day",
@@ -124155,7 +124155,7 @@
       "In streams, keep up to 4 cutthroat trout, brook trout, brown trout, lake trout and rainbow trout a day, all kinds together. Replaced by this river’s rule Rule book p.28 ↗",
       "Only 1 cutthroat trout, Dolly Varden/bull trout, brook trout, brown trout or lake trout over 50 cm (20 in) a day. Replaced by this river’s rule Rule book p.28 ↗",
       "Keep up to 1 Dolly Varden/bull trout or lake trout a day. Replaced by this river’s rule Rule book p.28 ↗",
-      "Keep only Dolly Varden/bull trout and lake trout 60 cm (24 in) or longer. Replaced by this river’s rule Rule book p.28 ↗ See every regulation line ›"
+      "Dolly Varden/bull trout and lake trout must be 60 cm (24 in) or longer; release any shorter. Replaced by this river’s rule Rule book p.28 ↗ See every regulation line ›"
      ]
     ],
     "otherFish": [
@@ -124290,7 +124290,7 @@
      "In streams, keep up to 4 cutthroat trout, brook trout, brown trout, lake trout and rainbow trout a day, all kinds together. Replaced by this river’s rule Rule book p.28 ↗",
      "Only 1 cutthroat trout, Dolly Varden/bull trout, brook trout, brown trout or lake trout over 50 cm (20 in) a day. Replaced by this river’s rule Rule book p.28 ↗",
      "Keep up to 1 Dolly Varden/bull trout or lake trout a day. Replaced by this river’s rule Rule book p.28 ↗",
-     "Keep only Dolly Varden/bull trout and lake trout 60 cm (24 in) or longer. Replaced by this river’s rule Rule book p.28 ↗ See every regulation line ›",
+     "Dolly Varden/bull trout and lake trout must be 60 cm (24 in) or longer; release any shorter. Replaced by this river’s rule Rule book p.28 ↗ See every regulation line ›",
      "Other fish",
      "Kokanee release",
      "Whitefish 15 a day",
@@ -126531,7 +126531,7 @@
       "In streams, keep up to 4 cutthroat trout, brook trout, brown trout, lake trout and rainbow trout a day, all kinds together. Replaced by this river’s rule Rule book p.28 ↗",
       "Only 1 cutthroat trout, Dolly Varden/bull trout, brook trout, brown trout or lake trout over 50 cm (20 in) a day. Replaced by this river’s rule Rule book p.28 ↗",
       "Keep up to 1 Dolly Varden/bull trout or lake trout a day. Replaced by this river’s rule Rule book p.28 ↗",
-      "Keep only Dolly Varden/bull trout and lake trout 60 cm (24 in) or longer. Replaced by this river’s rule Rule book p.28 ↗ See every regulation line ›"
+      "Dolly Varden/bull trout and lake trout must be 60 cm (24 in) or longer; release any shorter. Replaced by this river’s rule Rule book p.28 ↗ See every regulation line ›"
      ]
     ],
     "otherFish": [
@@ -126666,7 +126666,7 @@
      "In streams, keep up to 4 cutthroat trout, brook trout, brown trout, lake trout and rainbow trout a day, all kinds together. Replaced by this river’s rule Rule book p.28 ↗",
      "Only 1 cutthroat trout, Dolly Varden/bull trout, brook trout, brown trout or lake trout over 50 cm (20 in) a day. Replaced by this river’s rule Rule book p.28 ↗",
      "Keep up to 1 Dolly Varden/bull trout or lake trout a day. Replaced by this river’s rule Rule book p.28 ↗",
-     "Keep only Dolly Varden/bull trout and lake trout 60 cm (24 in) or longer. Replaced by this river’s rule Rule book p.28 ↗ See every regulation line ›",
+     "Dolly Varden/bull trout and lake trout must be 60 cm (24 in) or longer; release any shorter. Replaced by this river’s rule Rule book p.28 ↗ See every regulation line ›",
      "Other fish",
      "Kokanee release",
      "Whitefish 15 a day",
@@ -128919,7 +128919,7 @@
       "In streams, keep up to 4 cutthroat trout, brook trout, brown trout, lake trout and rainbow trout a day, all kinds together. Replaced by this river’s rule Rule book p.28 ↗",
       "Only 1 cutthroat trout, Dolly Varden/bull trout, brook trout, brown trout or lake trout over 50 cm (20 in) a day. Replaced by this river’s rule Rule book p.28 ↗",
       "Keep up to 1 Dolly Varden/bull trout or lake trout a day. Replaced by this river’s rule Rule book p.28 ↗",
-      "Keep only Dolly Varden/bull trout and lake trout 60 cm (24 in) or longer. Replaced by this river’s rule Rule book p.28 ↗ See every regulation line ›"
+      "Dolly Varden/bull trout and lake trout must be 60 cm (24 in) or longer; release any shorter. Replaced by this river’s rule Rule book p.28 ↗ See every regulation line ›"
      ]
     ],
     "otherFish": [
@@ -129054,7 +129054,7 @@
      "In streams, keep up to 4 cutthroat trout, brook trout, brown trout, lake trout and rainbow trout a day, all kinds together. Replaced by this river’s rule Rule book p.28 ↗",
      "Only 1 cutthroat trout, Dolly Varden/bull trout, brook trout, brown trout or lake trout over 50 cm (20 in) a day. Replaced by this river’s rule Rule book p.28 ↗",
      "Keep up to 1 Dolly Varden/bull trout or lake trout a day. Replaced by this river’s rule Rule book p.28 ↗",
-     "Keep only Dolly Varden/bull trout and lake trout 60 cm (24 in) or longer. Replaced by this river’s rule Rule book p.28 ↗ See every regulation line ›",
+     "Dolly Varden/bull trout and lake trout must be 60 cm (24 in) or longer; release any shorter. Replaced by this river’s rule Rule book p.28 ↗ See every regulation line ›",
      "Other fish",
      "Kokanee release",
      "Whitefish 15 a day",
@@ -229155,7 +229155,7 @@
       "Possession: the daily quota for Arctic grayling. Fish at home don’t count. Carry limit From the Region 7B table — all of Region 7B. Rule book p.64 ↗",
       "Rules that don’t apply here (5)",
       "Keep up to 2 Arctic grayling a day. Replaced by this river’s rule From the Region 7B table — all of Region 7B. Rule book p.64 ↗",
-      "Keep only Arctic grayling 30 cm (12 in) or longer. Replaced by this river’s rule From the Region 7B table — all of Region 7B. Rule book p.64 ↗",
+      "Arctic grayling must be 30 cm (12 in) or longer; release any shorter. Replaced by this river’s rule From the Region 7B table — all of Region 7B. Rule book p.64 ↗",
       "Only 1 Arctic grayling over 45 cm (18 in) a day. Replaced by this river’s rule From the Region 7B table — all of Region 7B. Rule book p.64 ↗",
       "Possession: 2 days’ quota. Fish at home don’t count. Replaced by the Zone B rule From the Region 7B table — all of Region 7B. Rule book p.64 ↗",
       "Possession: 2 days’ quota. Fish at home don’t count. Replaced by the Zone B rule A B.C.-wide rule — everywhere in B.C. Rule book p.9 ↗ Rule book p.80 ↗ See every regulation line ›"
@@ -231732,7 +231732,7 @@
       "Possession: the daily quota for Arctic grayling. Fish at home don’t count. Carry limit From the Region 7B table — all of Region 7B. Rule book p.64 ↗",
       "Rules that don’t apply here (5)",
       "Keep up to 2 Arctic grayling a day. Replaced by this river’s rule From the Region 7B table — all of Region 7B. Rule book p.64 ↗",
-      "Keep only Arctic grayling 30 cm (12 in) or longer. Replaced by this river’s rule From the Region 7B table — all of Region 7B. Rule book p.64 ↗",
+      "Arctic grayling must be 30 cm (12 in) or longer; release any shorter. Replaced by this river’s rule From the Region 7B table — all of Region 7B. Rule book p.64 ↗",
       "Only 1 Arctic grayling over 45 cm (18 in) a day. Replaced by this river’s rule From the Region 7B table — all of Region 7B. Rule book p.64 ↗",
       "Possession: 2 days’ quota. Fish at home don’t count. Replaced by the Zone B rule From the Region 7B table — all of Region 7B. Rule book p.64 ↗",
       "Possession: 2 days’ quota. Fish at home don’t count. Replaced by the Zone B rule A B.C.-wide rule — everywhere in B.C. Rule book p.9 ↗ Rule book p.80 ↗ See every regulation line ›"
@@ -234291,7 +234291,7 @@
       "Possession: the daily quota for Arctic grayling. Fish at home don’t count. Carry limit From the Region 7B table — all of Region 7B. Rule book p.64 ↗",
       "Rules that don’t apply here (5)",
       "Keep up to 2 Arctic grayling a day. Replaced by this river’s rule From the Region 7B table — all of Region 7B. Rule book p.64 ↗",
-      "Keep only Arctic grayling 30 cm (12 in) or longer. Replaced by this river’s rule From the Region 7B table — all of Region 7B. Rule book p.64 ↗",
+      "Arctic grayling must be 30 cm (12 in) or longer; release any shorter. Replaced by this river’s rule From the Region 7B table — all of Region 7B. Rule book p.64 ↗",
       "Only 1 Arctic grayling over 45 cm (18 in) a day. Replaced by this river’s rule From the Region 7B table — all of Region 7B. Rule book p.64 ↗",
       "Possession: 2 days’ quota. Fish at home don’t count. Replaced by the Zone B rule From the Region 7B table — all of Region 7B. Rule book p.64 ↗",
       "Possession: 2 days’ quota. Fish at home don’t count. Replaced by the Zone B rule A B.C.-wide rule — everywhere in B.C. Rule book p.9 ↗ Rule book p.80 ↗ See every regulation line ›"
@@ -253468,7 +253468,7 @@
             "says": null,
             "n": null,
             "howtell": false,
-            "size": "must be 60 cm (24 in) or less, or 90 cm (35 in) or longer; release any other size",
+            "size": "release any between 60 cm (24 in) and 90 cm (35 in)",
             "q": null,
             "pics": [
              {
@@ -253484,7 +253484,7 @@
             "presence": null,
             "terms": [],
             "lines": [
-             "must be 60 cm (24 in) or less, or 90 cm (35 in) or longer; release any other size Lake trout ›",
+             "release any between 60 cm (24 in) and 90 cm (35 in) Lake trout ›",
              "No more than 3 counting any Dolly Varden/bull trout you keep"
             ]
            }
@@ -253595,7 +253595,7 @@
        "Rule book p.49 ↗",
        "Of these, only 1 may be over 50 cm (20 in)",
        "This lake’s rule: up to 1 lake trout a day (part of the 5) Rule book p.54 ↗",
-       "must be 60 cm (24 in) or less, or 90 cm (35 in) or longer; release any other size Lake trout ›",
+       "release any between 60 cm (24 in) and 90 cm (35 in) Lake trout ›",
        "No more than 3 counting any Dolly Varden/bull trout you keep",
        "Up to 5 may be brook, brown, cutthroat or rainbow trout",
        "any size Brook trout › Brown trout › Coastal cutthroat trout › Rainbow trout ›",
@@ -253723,7 +253723,7 @@
      "Rule book p.49 ↗",
      "Of these, only 1 may be over 50 cm (20 in)",
      "This lake’s rule: up to 1 lake trout a day (part of the 5) Rule book p.54 ↗",
-     "must be 60 cm (24 in) or less, or 90 cm (35 in) or longer; release any other size Lake trout ›",
+     "release any between 60 cm (24 in) and 90 cm (35 in) Lake trout ›",
      "No more than 3 counting any Dolly Varden/bull trout you keep",
      "Up to 5 may be brook, brown, cutthroat or rainbow trout",
      "any size Brook trout › Brown trout › Coastal cutthroat trout › Rainbow trout ›",
@@ -254948,7 +254948,7 @@
       "This lake’s rule: up to 4 a day per angler",
       "Rule book p.54 ↗",
       "Up to 4 may be Arctic grayling",
-      "must be 36 cm (14 in) or less, or 44 cm (17 in) or longer; release any other size Arctic grayling ›",
+      "release any between 36 cm (14 in) and 44 cm (17 in) Arctic grayling ›",
       "Only 1 over 44 cm (17 in)",
       "How it adds up",
       "This lake’s rule: 4 a day here. Arctic grayling you kept anywhere else today count toward those 4.",
@@ -255008,7 +255008,7 @@
       "This lake’s rule: up to 4 a day per angler",
       "Rule book p.54 ↗",
       "Up to 4 may be northern pike",
-      "must be 70 cm (28 in) or less, or 100 cm (39 in) or longer; release any other size Northern pike ›",
+      "release any between 70 cm (28 in) and 100 cm (39 in) Northern pike ›",
       "Only 1 over 100 cm (39 in)",
       "How it adds up",
       "This lake’s rule: 4 a day here. Northern pike you kept anywhere else today count toward those 4.",
@@ -262861,7 +262861,7 @@
           "says": null,
           "n": null,
           "howtell": false,
-          "size": "must be 60 cm (24 in) or less, or 90 cm (35 in) or longer; release any other size",
+          "size": "release any between 60 cm (24 in) and 90 cm (35 in)",
           "q": null,
           "pics": [
            {
@@ -262878,7 +262878,7 @@
           "presence": null,
           "terms": [],
           "lines": [
-           "must be 60 cm (24 in) or less, or 90 cm (35 in) or longer; release any other size Lake trout ›",
+           "release any between 60 cm (24 in) and 90 cm (35 in) Lake trout ›",
            "Only 1 over 90 cm (35 in)",
            "No more than 3 counting any Dolly Varden/bull trout you keep"
           ]
@@ -263008,7 +263008,7 @@
        "5 a day per angler across Region 6",
        "Rule book p.49 ↗",
        "This lake’s rule: up to 2 lake trout a day (part of the 5) Rule book p.50 ↗",
-       "must be 60 cm (24 in) or less, or 90 cm (35 in) or longer; release any other size Lake trout ›",
+       "release any between 60 cm (24 in) and 90 cm (35 in) Lake trout ›",
        "Only 1 over 90 cm (35 in)",
        "No more than 3 counting any Dolly Varden/bull trout you keep",
        "Of these, only 1 may be over 50 cm (20 in)",
@@ -263137,7 +263137,7 @@
      "5 a day per angler across Region 6",
      "Rule book p.49 ↗",
      "This lake’s rule: up to 2 lake trout a day (part of the 5) Rule book p.50 ↗",
-     "must be 60 cm (24 in) or less, or 90 cm (35 in) or longer; release any other size Lake trout ›",
+     "release any between 60 cm (24 in) and 90 cm (35 in) Lake trout ›",
      "Only 1 over 90 cm (35 in)",
      "No more than 3 counting any Dolly Varden/bull trout you keep",
      "Of these, only 1 may be over 50 cm (20 in)",
@@ -264364,7 +264364,7 @@
       "This lake’s rule: up to 4 a day per angler",
       "Rule book p.50 ↗",
       "Up to 4 may be Arctic grayling",
-      "must be 36 cm (14 in) or less, or 44 cm (17 in) or longer; release any other size Arctic grayling ›",
+      "release any between 36 cm (14 in) and 44 cm (17 in) Arctic grayling ›",
       "Only 1 over 44 cm (17 in)",
       "How it adds up",
       "This lake’s rule: 4 a day here. Arctic grayling you kept anywhere else today count toward those 4.",
@@ -264424,7 +264424,7 @@
       "This lake’s rule: up to 4 a day per angler",
       "Rule book p.50 ↗",
       "Up to 4 may be northern pike",
-      "must be 70 cm (28 in) or less, or 100 cm (39 in) or longer; release any other size Northern pike ›",
+      "release any between 70 cm (28 in) and 100 cm (39 in) Northern pike ›",
       "Only 1 over 100 cm (39 in)",
       "How it adds up",
       "This lake’s rule: 4 a day here. Northern pike you kept anywhere else today count toward those 4.",
@@ -267881,12 +267881,12 @@
       "Region 2",
       "Possession: 2 days’ quota. Fish at home don’t count. Carry limit Rule book p.21 ↗",
       "Rules that don’t apply here (10)",
-      "In streams, keep only trout and char 30 cm (12 in) or longer, hatchery only. Replaced by this river’s rule Rule book p.21 ↗",
+      "In streams, hatchery trout and char must be 30 cm (12 in) or longer; release any shorter. Replaced by this river’s rule Rule book p.21 ↗",
       "Only 1 Dolly Varden/bull trout or lake trout over 50 cm (20 in) a day. Not needed here Rule book p.21 ↗",
       "Only 2 trout or char over 50 cm (20 in) a day. Not needed here Rule book p.21 ↗",
       "In streams, keep up to 2 trout and char a day, all kinds together, hatchery only. Not needed here Rule book p.21 ↗",
       "Keep up to 1 Dolly Varden/bull trout or lake trout a day. Not needed here Rule book p.21 ↗",
-      "Keep only Dolly Varden/bull trout and lake trout 60 cm (24 in) or longer. Doesn’t matter today Rule book p.21 ↗",
+      "Dolly Varden/bull trout and lake trout must be 60 cm (24 in) or longer; release any shorter. Doesn’t matter today Rule book p.21 ↗",
       "Only 2 hatchery steelhead over 50 cm (20 in) a day. Replaced by this river’s rule Rule book p.21 ↗",
       "Once you’ve kept your daily limit of hatchery steelhead, stop fishing this water for the rest of the day. Doesn’t matter today Rule book p.21 ↗",
       "In streams, keep up to 10 steelhead a licence year. Doesn’t matter today Rule book p.6 ↗",
@@ -268016,12 +268016,12 @@
      "Region 2",
      "Possession: 2 days’ quota. Fish at home don’t count. Carry limit Rule book p.21 ↗",
      "Rules that don’t apply here (10)",
-     "In streams, keep only trout and char 30 cm (12 in) or longer, hatchery only. Replaced by this river’s rule Rule book p.21 ↗",
+     "In streams, hatchery trout and char must be 30 cm (12 in) or longer; release any shorter. Replaced by this river’s rule Rule book p.21 ↗",
      "Only 1 Dolly Varden/bull trout or lake trout over 50 cm (20 in) a day. Not needed here Rule book p.21 ↗",
      "Only 2 trout or char over 50 cm (20 in) a day. Not needed here Rule book p.21 ↗",
      "In streams, keep up to 2 trout and char a day, all kinds together, hatchery only. Not needed here Rule book p.21 ↗",
      "Keep up to 1 Dolly Varden/bull trout or lake trout a day. Not needed here Rule book p.21 ↗",
-     "Keep only Dolly Varden/bull trout and lake trout 60 cm (24 in) or longer. Doesn’t matter today Rule book p.21 ↗",
+     "Dolly Varden/bull trout and lake trout must be 60 cm (24 in) or longer; release any shorter. Doesn’t matter today Rule book p.21 ↗",
      "Only 2 hatchery steelhead over 50 cm (20 in) a day. Replaced by this river’s rule Rule book p.21 ↗",
      "Once you’ve kept your daily limit of hatchery steelhead, stop fishing this water for the rest of the day. Doesn’t matter today Rule book p.21 ↗",
      "In streams, keep up to 10 steelhead a licence year. Doesn’t matter today Rule book p.6 ↗",
@@ -274378,7 +274378,7 @@
       "Possession: the daily quota for Arctic grayling. Fish at home don’t count. Carry limit From the Region 7B table — all of Region 7B. Rule book p.64 ↗",
       "Rules that don’t apply here (5)",
       "Keep up to 2 Arctic grayling a day. Replaced by this river’s rule From the Region 7B table — all of Region 7B. Rule book p.64 ↗",
-      "Keep only Arctic grayling 30 cm (12 in) or longer. Replaced by this river’s rule From the Region 7B table — all of Region 7B. Rule book p.64 ↗",
+      "Arctic grayling must be 30 cm (12 in) or longer; release any shorter. Replaced by this river’s rule From the Region 7B table — all of Region 7B. Rule book p.64 ↗",
       "Only 1 Arctic grayling over 45 cm (18 in) a day. Replaced by this river’s rule From the Region 7B table — all of Region 7B. Rule book p.64 ↗",
       "Possession: 2 days’ quota. Fish at home don’t count. Replaced by the Zone B rule From the Region 7B table — all of Region 7B. Rule book p.64 ↗",
       "Possession: 2 days’ quota. Fish at home don’t count. Replaced by the Zone B rule A B.C.-wide rule — everywhere in B.C. Rule book p.9 ↗ Rule book p.80 ↗ See every regulation line ›"
@@ -277442,7 +277442,7 @@
     "From the Region 3 table — all of Region 3.",
     "The exact words",
     "none under 60 cm",
-    "Keep only Dolly Varden, bull trout and lake trout 60 cm (24 in) or longer.",
+    "Dolly Varden, bull trout and lake trout must be 60 cm (24 in) or longer; release any shorter.",
     "Technical detail",
     "z3:trout_char_quota::trout_char_quota.r4b { \"extents\": [ { \"area_id\": \"area:region:3\", \"op\": \"within\" } ], \"lengths\": [ { \"max_cm\": 60, \"take\": 0 } ], \"period\": \"daily\", \"species\": [ \"DV\", \"LT\" ] }",
     "Rule book p.28 ↗"
@@ -278594,7 +278594,7 @@
     "From the Region 2 table — all of Region 2.",
     "The exact words",
     "none under 60 cm",
-    "Keep only Dolly Varden, bull trout and lake trout 60 cm (24 in) or longer.",
+    "Dolly Varden, bull trout and lake trout must be 60 cm (24 in) or longer; release any shorter.",
     "Technical detail",
     "z2:trout_char_quota::trout_char_quota.r5b { \"extents\": [ { \"area_id\": \"area:region:2\", \"op\": \"within\" } ], \"lengths\": [ { \"max_cm\": 60, \"take\": 0 } ], \"period\": \"daily\", \"species\": [ \"DV\", \"LT\" ] }",
     "Rule book p.21 ↗"
@@ -278646,7 +278646,7 @@
     "From the Region 2 table — all of Region 2.",
     "The exact words",
     "Hatchery trout/char under 30 cm from streams",
-    "In streams, keep only trout and char 30 cm (12 in) or longer, hatchery only.",
+    "In streams, hatchery trout and char must be 30 cm (12 in) or longer; release any shorter.",
     "Technical detail",
     "z2:trout_char_quota::trout_char_quota.r8 { \"extents\": [ { \"area_id\": \"area:region:2\", \"feature_types\": [ \"stream\" ], \"op\": \"within\" } ], \"lengths\": [ { \"max_cm\": 30, \"take\": 0 } ], \"origin\": \"hatchery\", \"period\": \"daily\", \"species\": [ \"TROUT_CHAR\" ], \"water\": \"stream\" }",
     "Rule book p.21 ↗"
